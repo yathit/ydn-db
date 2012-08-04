@@ -1,6 +1,7 @@
 <project name="ydn-db" basedir="." default="compile-debug">
     <dirname property="ydn-db.dir" file="${ant.file.ydn-db}"/>
     <property name="work.dir" location="${ydn-db.dir}/.." />
+    <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${work.dir}/ydn/build.xml"/>
     <target name="compile-debug" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
@@ -8,6 +9,9 @@
                          input="${ydn-db.dir}/js/ydn/db/storage.js"
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${ydn-db.dir}/jsc/ydn-db.js">
+            <extrapaths>
+                <arg line='-p "${ydn-base.dir}/js"'/>
+            </extrapaths>
         </closure-compile>
     </target>
     <target name="deps" description="list dependency files">

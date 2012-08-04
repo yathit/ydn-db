@@ -24,6 +24,7 @@ goog.require('goog.debug.Logger');
 goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
 goog.require('goog.async.Deferred');
+goog.require('ydn.json');
 
 
 /**

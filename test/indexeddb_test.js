@@ -2,6 +2,7 @@
 goog.require('goog.testing.jsunit');
 
 goog.require('ydn.db.Storage');
+goog.require('goog.debug.Console');
 
 
 var reachedFinalContinuation;
