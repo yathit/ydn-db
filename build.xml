@@ -1,0 +1,25 @@
+<project name="ydn-db" basedir="." default="compile-debug">
+    <dirname property="ydn-db.dir" file="${ant.file.ydn-db}"/>
+    <property name="work.dir" location="${ydn-db.dir}/.." />
+    <import file="${work.dir}/ydn/build.xml"/>
+    <target name="compile-debug" description="compile JS">
+        <mkdir dir="${ydn-db.dir}/jsc"/>
+        <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
+                         input="${ydn-db.dir}/js/ydn/db/storage.js"
+                         input.dir="${ydn-db.dir}/js"
+                         output.fn="${ydn-db.dir}/jsc/ydn-db.js">
+        </closure-compile>
+    </target>
+    <target name="deps" description="list dependency files">
+        <delete file="${ydn-db.dir}/js/deps.js"/>
+        <calc-deps
+                input.dir="${ydn-db.dir}/js"
+                output.fn="${ydn-db.dir}/js/deps.js">
+        </calc-deps>
+    </target>
+    <target name="jstd" description="print out jstd file for JS test driver">
+        <jstd-gen base.dir="${ydn-db.dir}">
+        </jstd-gen>
+    </target>
+
+</project>

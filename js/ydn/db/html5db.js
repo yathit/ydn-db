@@ -10,14 +10,14 @@ goog.require('goog.storage.mechanism.mechanismfactory');
 
 /**
  * @implements {ydn.db.Db}
- * @param {string=} dbname
+ * @param {string} dbname
  * @param {Object=} schema table schema contain table name and keyPath
  * @param {string=} version
  * @constructor
  */
 ydn.db.Html5Db = function (dbname, schema, version) {
   this.version = version || '1';
-  dbname = dbname || ydn.store.NAMESPACE;
+  dbname = dbname;
   this.dbname = dbname;
   this.schema = schema || {};
   this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};

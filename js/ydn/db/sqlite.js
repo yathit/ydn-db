@@ -23,13 +23,12 @@ goog.require('goog.events');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
-goog.require('ydn.json');
 goog.require('goog.async.Deferred');
 
 
 /**
  * @implements {ydn.db.Db}
- * @param {string=} dbname
+ * @param {string} dbname
  * @param {Object=} schema table schema contain table name and keyPath
  * @param {string=} version
  * @constructor
@@ -37,7 +36,7 @@ goog.require('goog.async.Deferred');
 ydn.db.Sqlite = function (dbname, schema, version) {
   var self = this;
   this.version = version || '1';
-  dbname = dbname || ydn.store.NAMESPACE;
+  dbname = dbname;
   this.dbname = dbname;
   this.schema = schema || {};
   this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};  // keyPath must be 'id'

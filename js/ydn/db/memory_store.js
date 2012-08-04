@@ -6,20 +6,20 @@
 
 goog.provide('ydn.db.MemoryStore');
 goog.require('ydn.db.Db');
-goog.require('ydn.store');
+
 
 
 
 /**
  * @implements {ydn.db.Db}
  * @constructor
- * @param {string=} dbname
+ * @param {string} dbname
  * @param {Object=} schema table schema contain table name and keyPath
  * @param {string=} version
  */
 ydn.db.MemoryStore = function(dbname, schema, version) {
   this.version = version || 1;
-  dbname = dbname || ydn.store.NAMESPACE;
+  dbname = dbname;
   this.dbname = dbname;
   this.schema = schema || {};
   this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};

@@ -12,13 +12,13 @@ goog.require('ydn.db.Db');
 
 
 /**
- * @param {string=} dbname ydn.store.NAMESPACE
+ * @param {string} dbname
  * @param {string=} tablename create a 'default' table
  * @constructor
  */
 ydn.db.GoogIndexedDb = function (dbname, tablename) {
   var self = this;
-  this.dbname = dbname || ydn.store.NAMESPACE;
+  this.dbname = dbname;
   this.tablename = tablename || 'tb';
 
   goog.db.openDatabase(this.dbname).addCallback(function (db) {
