@@ -33,7 +33,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.Html5Db');
 goog.require('ydn.db.IndexedDb');
 goog.require('ydn.db.MemoryStore');
-goog.require('ydn.db.Sqlite');
+goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
 goog.require('goog.userAgent.product');
 
@@ -193,11 +193,11 @@ ydn.db.Storage.prototype.initDatabase = function() {
       this.db = new ydn.db.IndexedDb(this.dbname, this.schema, this.version);
     } else if (goog.userAgent.product.ASSUME_SAFARI || goog.userAgent.ASSUME_WEBKIT) {
       // for dead-code elimination
-      this.db = new ydn.db.Sqlite(this.dbname, this.schema, this.version);
+      this.db = new ydn.db.WebSql(this.dbname, this.schema, this.version);
     } else if (ydn.db.IndexedDb.isSupported()) { // run-time detection
       this.db = new ydn.db.IndexedDb(this.dbname, this.schema, this.version);
-    } else if (ydn.db.Sqlite.isSupported()) {
-      this.db = new ydn.db.Sqlite(this.dbname, this.schema, this.version);
+    } else if (ydn.db.WebSql.isSupported()) {
+      this.db = new ydn.db.WebSql(this.dbname, this.schema, this.version);
     } else if (ydn.db.Html5Db.isSupported()) {
       this.db = new ydn.db.Html5Db(this.dbname, this.schema, this.version);
     } else {
@@ -283,13 +283,13 @@ ydn.db.Storage.prototype.get = function(table, key) {
 /**
  * @inheritDoc
  */
-ydn.db.Storage.prototype.clear = function() {
+ydn.db.Storage.prototype.clear = function(opt_table) {
   if (this.db) {
-    this.db.clear();
+    return this.db.clear(opt_table);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.clear().chainDeferred(df);
+      db.clear(opt_table).chainDeferred(df);
     });
     return df;
   }

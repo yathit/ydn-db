@@ -5,7 +5,7 @@
 goog.provide('ydn.store.WebSqlJstest');
 goog.require('goog.debug.Console');
 goog.require('goog.debug.LogManager');
-goog.require('ydn.db.Sqlite');
+goog.require('ydn.db.WebSql');
 goog.require('ydn.db.test');
 
 
@@ -28,13 +28,13 @@ ydn.store.WebSqlJstest.prototype.setUp = function() {
 
 
 ydn.store.WebSqlJstest.prototype.test_special_key = function(queue) {
-  var db = new ydn.db.Sqlite(this.dbname + '2', {});
+  var db = new ydn.db.WebSql(this.dbname + '2', {});
   ydn.db.test.special_keys_test(queue, db);
 };
 
 
 ydn.store.WebSqlJstest.prototype.test_put_get_object = function(queue) {
-  var db = new ydn.db.Sqlite(this.dbname + '3', this.schema);
+  var db = new ydn.db.WebSql(this.dbname + '3', this.schema);
   ydn.db.test.run_put_get_tests(queue, db);
 };
 

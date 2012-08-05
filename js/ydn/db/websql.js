@@ -20,7 +20,7 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.Sqlite');
+goog.provide('ydn.db.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
@@ -39,7 +39,7 @@ goog.require('ydn.json');
  * version will be used.
  * @constructor
  */
-ydn.db.Sqlite = function(dbname, opt_schema, opt_version) {
+ydn.db.WebSql = function(dbname, opt_schema, opt_version) {
   var self = this;
   this.version = opt_version || ''; // so that it will use available version.
   dbname = dbname;
@@ -70,7 +70,7 @@ ydn.db.Sqlite = function(dbname, opt_schema, opt_version) {
  *
  * @return {boolean} true if supported.
  */
-ydn.db.Sqlite.isSupported = function() {
+ydn.db.WebSql.isSupported = function() {
   return goog.isFunction(goog.global.openDatabase);
 };
 
@@ -79,7 +79,7 @@ ydn.db.Sqlite.isSupported = function() {
  *
  * @define {boolean} debug flag.
  */
-ydn.db.Sqlite.DEBUG = false;
+ydn.db.WebSql.DEBUG = false;
 
 
 /**
@@ -87,7 +87,7 @@ ydn.db.Sqlite.DEBUG = false;
  * @final
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.Sqlite.prototype.logger = goog.debug.Logger.getLogger('ydn.db.Sqlite');
+ydn.db.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSql');
 
 
 /**
@@ -95,7 +95,7 @@ ydn.db.Sqlite.prototype.logger = goog.debug.Logger.getLogger('ydn.db.Sqlite');
  * @param {string} table databse table name.
  * @return {!goog.async.Deferred} return as deferred function.
  */
-ydn.db.Sqlite.prototype.createTable = function(table) {
+ydn.db.WebSql.prototype.createTable = function(table) {
   var d = new goog.async.Deferred();
   var self = this;
   this.schema[table].keyPath = this.schema[table].keyPath || 'id';
@@ -112,7 +112,7 @@ ydn.db.Sqlite.prototype.createTable = function(table) {
    * @param {SQLResultSet} results results.
    */
   var success_callback = function(transaction, results) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log(results);
     }
     self.logger.finest('Creating table: ' + table + ' OK.');
@@ -124,7 +124,7 @@ ydn.db.Sqlite.prototype.createTable = function(table) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('Error creating table: ' + table);
@@ -149,7 +149,7 @@ ydn.db.Sqlite.prototype.createTable = function(table) {
  * @return {!goog.async.Deferred} return as deferred function with reuslt of
  * boolean type.
  */
-ydn.db.Sqlite.prototype.exists = function(key, table) {
+ydn.db.WebSql.prototype.exists = function(key, table) {
   var self = this;
   var d = new goog.async.Deferred();
   var keyPath = this.schema[table].keyPath;
@@ -171,7 +171,7 @@ ydn.db.Sqlite.prototype.exists = function(key, table) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('exists error: ' + error);
@@ -189,7 +189,7 @@ ydn.db.Sqlite.prototype.exists = function(key, table) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.setItem = function(key, value) {
+ydn.db.WebSql.prototype.setItem = function(key, value) {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -203,7 +203,7 @@ ydn.db.Sqlite.prototype.setItem = function(key, value) {
    * @param {SQLResultSet} results results.
    */
   var success_callback = function(transaction, results) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log(results);
     }
     //self.logger.info('put ' + key);
@@ -214,7 +214,7 @@ ydn.db.Sqlite.prototype.setItem = function(key, value) {
    * @param {SQLError} error error.
    */
   var error_callback = function(error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log(error);
     }
     self.logger.warning('put error: ' + error);
@@ -238,7 +238,7 @@ ydn.db.Sqlite.prototype.setItem = function(key, value) {
  * @param {Object} value value.
  * @return {string} key.
  */
-ydn.db.Sqlite.prototype.getKey = function(table, value) {
+ydn.db.WebSql.prototype.getKey = function(table, value) {
   var keyObj = value;
   for (var i = 0; i < this.schema[table].keyParts.length; i++) {
     keyObj = keyObj[this.schema[table].keyParts[i]];
@@ -256,7 +256,7 @@ ydn.db.Sqlite.prototype.getKey = function(table, value) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.put = function(table, value) {
+ydn.db.WebSql.prototype.put = function(table, value) {
   var d = new goog.async.Deferred();
   var self = this;
   var keyPath = this.schema[table].keyPath;
@@ -268,7 +268,7 @@ ydn.db.Sqlite.prototype.put = function(table, value) {
    * @param {SQLResultSet} results results.
    */
   var success_callback = function(transaction, results) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log(results);
     }
     d.callback(true);
@@ -279,7 +279,7 @@ ydn.db.Sqlite.prototype.put = function(table, value) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('putObjects error: ' + error);
@@ -305,7 +305,7 @@ ydn.db.Sqlite.prototype.put = function(table, value) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.get = function(table, key) {
+ydn.db.WebSql.prototype.get = function(table, key) {
   var d = new goog.async.Deferred();
   var self = this;
   var keyPath = this.schema[table].keyPath;
@@ -337,7 +337,7 @@ ydn.db.Sqlite.prototype.get = function(table, key) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('Sqlite error: ' + error);
@@ -356,7 +356,7 @@ ydn.db.Sqlite.prototype.get = function(table, key) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.getItem = function(key) {
+ydn.db.WebSql.prototype.getItem = function(key) {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -382,7 +382,7 @@ ydn.db.Sqlite.prototype.getItem = function(key) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('Sqlite error: ' + error);
@@ -404,7 +404,7 @@ ydn.db.Sqlite.prototype.getItem = function(key) {
  * @param {string} value query value.
  * @return {!goog.async.Deferred} return as deferred function.
  */
-ydn.db.Sqlite.prototype.getObjects = function(table, column, value) {
+ydn.db.WebSql.prototype.getObjects = function(table, column, value) {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -433,7 +433,7 @@ ydn.db.Sqlite.prototype.getObjects = function(table, column, value) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('Sqlite error: ' + error);
@@ -452,7 +452,7 @@ ydn.db.Sqlite.prototype.getObjects = function(table, column, value) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.fetch = function(q) {
+ydn.db.WebSql.prototype.fetch = function(q) {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -487,7 +487,7 @@ ydn.db.Sqlite.prototype.fetch = function(q) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('Sqlite error: ' + error);
@@ -508,7 +508,7 @@ ydn.db.Sqlite.prototype.fetch = function(q) {
  *
  * @return {!goog.async.Deferred} return list of key in {@code Array.<string>}.
  */
-ydn.db.Sqlite.prototype.keys = function() {
+ydn.db.WebSql.prototype.keys = function() {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -532,7 +532,7 @@ ydn.db.Sqlite.prototype.keys = function() {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('Sqlite error: ' + error);
@@ -552,7 +552,7 @@ ydn.db.Sqlite.prototype.keys = function() {
  * @param {string=} opt_table table name.
  * @return {!goog.async.Deferred} return deferred function.
  */
-ydn.db.Sqlite.prototype.clearStore = function(opt_table) {
+ydn.db.WebSql.prototype.clearStore = function(opt_table) {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -572,7 +572,7 @@ ydn.db.Sqlite.prototype.clearStore = function(opt_table) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('Sqlite error: ' + error);
@@ -589,7 +589,7 @@ ydn.db.Sqlite.prototype.clearStore = function(opt_table) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.clear = function(table) {
+ydn.db.WebSql.prototype.clear = function(table) {
 
   if (table) {
     return this.clearStore(table);
@@ -606,7 +606,7 @@ ydn.db.Sqlite.prototype.clear = function(table) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.getCount = function(table) {
+ydn.db.WebSql.prototype.getCount = function(table) {
 
   var d = new goog.async.Deferred();
   var self = this;
@@ -629,7 +629,7 @@ ydn.db.Sqlite.prototype.getCount = function(table) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.Sqlite.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     self.logger.warning('getCount error: ' + error);

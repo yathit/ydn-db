@@ -56,7 +56,7 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
   }
 
   var indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
-      goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global.msIndexedDB;
+      goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global['msIndexedDB'];
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // In chrome, version is taken as description.
@@ -66,7 +66,7 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
   openRequest.onsuccess = function(ev) {
     self.logger.finer(self.dbname + ' ' + self.version + ' OK.');
     var db = ev.target.result;
-    if (goog.isDef(self.version) && self.version > db.version) { // for chrome
+    if (goog.isFunction(db.setVersion) && goog.isDef(self.version) && self.version > db.version) { // for chrome
       self.logger.finer('initializing database from ' + db.version + ' to ' +
           self.version);
 
@@ -126,7 +126,7 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
  */
 ydn.db.IndexedDb.isSupported = function() {
   var indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
-      goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global.msIndexedDB;
+      goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global['msIndexedDB'];
   return !!indexedDb;
 };
 
@@ -184,7 +184,7 @@ ydn.db.IndexedDb.prototype.logger =
  * @param {IDBDatabase} db database instance.
  */
 ydn.db.IndexedDb.prototype.setDb = function(db) {
-  window.console.log(' db set');
+
   this.logger.finest('Setting DB: ' + db.name + ' ver: ' + db.version);
   /**
    * @final
@@ -241,7 +241,7 @@ ydn.db.IndexedDb.prototype.initObjectStores = function(db) {
  *
  * @define {boolean} trun on debug flag to dump object.
  */
-ydn.db.IndexedDb.DEBUG = true;
+ydn.db.IndexedDb.DEBUG = false;
 
 
 /**

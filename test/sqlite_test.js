@@ -22,7 +22,7 @@ var tearDown = function() {
 var db_name = 'stest3';
 
 var test_0_put = function() {
-  var db = new ydn.db.Sqlite(db_name);
+  var db = new ydn.db.WebSql(db_name);
 
   var testEventType = 'test-event';
   var eventTarget = new goog.events.EventTarget();
@@ -48,7 +48,7 @@ var test_0_put = function() {
 };
 
 var test_0_put_2 = function() {
-  var db = new ydn.db.Sqlite(db_name);
+  var db = new ydn.db.WebSql(db_name);
 
   var testEventType = 'test-event';
   var eventTarget = new goog.events.EventTarget();
@@ -77,7 +77,7 @@ var test_0_put_2 = function() {
 
 
 var test_1_clear = function() {
-  var db = new ydn.db.Sqlite(db_name);
+  var db = new ydn.db.WebSql(db_name);
 
   var hasEventFired = false;
   var cleared_value;
@@ -129,7 +129,7 @@ var test_1_clear = function() {
 /**
  */
 var test_special_keys = function() {
-  var db = new ydn.db.Sqlite(db_name, {});
+  var db = new ydn.db.WebSql(db_name, {});
 
   var test_key = function(key) {
     console.log('testing ' + key);
@@ -194,7 +194,7 @@ var test_special_keys = function() {
 /**
  */
 var test_special_value = function() {
-  var db = new ydn.db.Sqlite(db_name, {});
+  var db = new ydn.db.WebSql(db_name, {});
 
   var ik = 0;
 
@@ -261,7 +261,7 @@ var test_3_putObject = function() {
   var put_obj_dbname = 'ydn.putodbtest1';
   var schema = {};
   schema[store_name] = {keyPath: 'id'};
-  var db = new ydn.db.Sqlite(put_obj_dbname, schema);
+  var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
   var key = 'a';
   var put_done = false;
@@ -315,7 +315,7 @@ var test_3_putObject_nested_keyPath = function() {
   var put_obj_dbname = 'putsqltest5';
   var schema = {};
   schema[store_name] = {keyPath: 'id.$t'};
-  var db = new ydn.db.Sqlite(put_obj_dbname, schema);
+  var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
   var key = 'a';
   var put_done = false;
@@ -366,7 +366,7 @@ var test_4_getObjects = function() {
   var put_obj_dbname = 'gobs3';
   var schema = {};
   schema[store_name] = {keyPath: 'id'};
-  var db = new ydn.db.Sqlite(put_obj_dbname, schema);
+  var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
   var objs = [
     {id: 'qs1', value: Math.random()},
@@ -426,7 +426,7 @@ var test_4_query_start_with = function() {
   var put_obj_dbname = 'pos3';
   var schema = {};
   schema[store_name] = {keyPath: 'id'};
-  var db = new ydn.db.Sqlite(put_obj_dbname, schema);
+  var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
   var objs = [
     {id: 'qs1', value: Math.random()},
