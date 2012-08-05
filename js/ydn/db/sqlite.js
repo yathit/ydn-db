@@ -37,7 +37,7 @@ goog.require('ydn.async');
  */
 ydn.db.Sqlite = function (dbname, schema, version) {
   var self = this;
-  this.version = version || '';
+  this.version = version || ''; // so that it will use available version.
   dbname = dbname;
   this.dbname = dbname;
   this.schema = schema || {};
