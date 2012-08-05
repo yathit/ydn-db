@@ -256,7 +256,7 @@ ydn.db.Sqlite.prototype.getKey = function(table, value) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.putObject = function(table, value) {
+ydn.db.Sqlite.prototype.put = function(table, value) {
   var d = new goog.async.Deferred();
   var self = this;
   var keyPath = this.schema[table].keyPath;
@@ -305,7 +305,7 @@ ydn.db.Sqlite.prototype.putObject = function(table, value) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.getObject = function(table, key) {
+ydn.db.Sqlite.prototype.get = function(table, key) {
   var d = new goog.async.Deferred();
   var self = this;
   var keyPath = this.schema[table].keyPath;

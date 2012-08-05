@@ -72,7 +72,7 @@ ydn.db.MemoryStore.prototype.setItem = function(key, value) {
 /**
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.putObject = function(table, value) {
+ydn.db.MemoryStore.prototype.put = function(table, value) {
   //  if (!goog.isDef(key)) {
   //    goog.asserts.assertObject(this.schema[table], 'table: ' + table +
   // ' is not defined in ' + this.dbname);
@@ -101,7 +101,7 @@ ydn.db.MemoryStore.prototype.getItem = function(key) {
 /**
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.getObject = function(table, key) {
+ydn.db.MemoryStore.prototype.get = function(table, key) {
   goog.asserts.assertString(table);
   goog.asserts.assertString(key);
   var keyPath = this.schema[table].keyPath;

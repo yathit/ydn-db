@@ -233,9 +233,9 @@ ydn.db.Storage.prototype.setItem = function(key, value) {
 /**
  * @inheritDoc
  */
-ydn.db.Storage.prototype.putObject = function(table, value) {
+ydn.db.Storage.prototype.put = function(table, value) {
   if (this.db) {
-    return this.db.putObject(table, value);
+    return this.db.put(table, value);
   }
   return goog.async.Deferred.fail(undefined);
 };
@@ -260,9 +260,9 @@ ydn.db.Storage.prototype.getItem = function(key) {
 /**
  * @inheritDoc
  */
-ydn.db.Storage.prototype.getObject = function(table, key) {
+ydn.db.Storage.prototype.get = function(table, key) {
   if (this.db) {
-    return this.db.getObject(table, key);
+    return this.db.get(table, key);
   }
   return goog.async.Deferred.fail(false);
 };

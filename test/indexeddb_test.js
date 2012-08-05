@@ -42,7 +42,7 @@ var test_0_put = function() {
       2000); // maxTimeout
 
 
-  db.put('a', '1').addCallback(function(value) {
+  db.setItem('a', '1').addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -120,7 +120,7 @@ var test_special_keys = function() {
         100, // interval
         2000); // maxTimeout
 
-    db.put(key, key_value).addCallback(function(value) {
+    db.setItem(key, key_value).addCallback(function(value) {
       console.log('receiving put value callback for ' + key + ' = ' + key_value);
       a_value = value;
       a_done = true;
@@ -140,7 +140,7 @@ var test_special_keys = function() {
         2000); // maxTimeout
 
 
-    db.get(key).addCallback(function(value) {
+    db.getItem(key).addCallback(function(value) {
       console.log('receiving get value callback ' + key + ' = ' + value);
       b_value = value;
       b_done = true;
@@ -180,7 +180,7 @@ var test_3_putObject = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.putObject(store_name, put_value).addCallback(function(value) {
+  db.put(store_name, put_value).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value_received = value;
     put_done = true;
@@ -200,7 +200,7 @@ var test_3_putObject = function() {
       2000); // maxTimeout
 
 
-  db.getObject(store_name, key).addCallback(function(value) {
+  db.get(store_name, key).addCallback(function(value) {
     console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
     get_value_received = value;
     get_done = true;
@@ -233,7 +233,7 @@ var test_3_putObject_nested_keyPath = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.putObject(store_name, put_value).addCallback(function(value) {
+  db.put(store_name, put_value).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value_received = value;
     put_done = true;
@@ -253,7 +253,7 @@ var test_3_putObject_nested_keyPath = function() {
       2000); // maxTimeout
 
 
-  db.getObject(store_name, key).addCallback(function(value) {
+  db.get(store_name, key).addCallback(function(value) {
     console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
     get_value_received = value;
     get_done = true;
@@ -287,7 +287,7 @@ var test_4_query_start_with = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.putObject(store_name, objs).addCallback(function(value) {
+  db.put(store_name, objs).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value_received = value;
     put_done = true;

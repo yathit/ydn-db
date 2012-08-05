@@ -54,7 +54,7 @@ ydn.db.Db.prototype.setItem = function(key, value) {
  * @param {Object|Array} value object to put.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.Db.prototype.putObject = function(table, value) {
+ydn.db.Db.prototype.put = function(table, value) {
 
 };
 
@@ -75,7 +75,7 @@ ydn.db.Db.prototype.getItem = function(key) {
  * @param {string} key key.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.Db.prototype.getObject = function(table, key) {
+ydn.db.Db.prototype.get = function(table, key) {
 
 };
 

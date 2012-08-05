@@ -342,7 +342,7 @@ ydn.db.IndexedDb.prototype.setItem = function(key, value) {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.putObject = function(table, value) {
+ydn.db.IndexedDb.prototype.put = function(table, value) {
   var self = this;
 
   if (goog.DEBUG && !goog.isDef(this.schema[table])) {
@@ -410,7 +410,7 @@ ydn.db.IndexedDb.prototype.getItem = function(key) {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.getObject = function(table, key) {
+ydn.db.IndexedDb.prototype.get = function(table, key) {
   var self = this;
 
   if (goog.DEBUG && !goog.isDef(this.schema[table])) {

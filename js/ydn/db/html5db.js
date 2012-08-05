@@ -79,7 +79,7 @@ ydn.db.Html5Db.prototype.setItem = function(key, value) {
  * @param {Object|Array} value object to put.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.Html5Db.prototype.putObject = function(table, value) {
+ydn.db.Html5Db.prototype.put = function(table, value) {
   var key = this.getKey(value[this.schema[table].keyPath], table);
   var value_str = ydn.json.stringify(value);
   window.localStorage.setItem(key, value_str);
@@ -99,7 +99,7 @@ ydn.db.Html5Db.prototype.getItem = function(key) {
 /**
  * @inheritDoc
  */
-ydn.db.Html5Db.prototype.getObject = function(table, key) {
+ydn.db.Html5Db.prototype.get = function(table, key) {
 
   var value = window.localStorage.getItem(this.getKey(key, table));
   return goog.async.Deferred.succeed(ydn.json.parse(
