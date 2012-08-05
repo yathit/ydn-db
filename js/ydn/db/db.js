@@ -37,6 +37,19 @@ ydn.db.Db.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
 /**
+ * Store schema
+ * @typedef {{name: string, keyPath: string, unique}}
+ */
+ydn.db.Db.TableSchema;
+
+
+/**
+ * @typedef {{Array.<ydn.db.Db.TableSchema>}}
+ */
+ydn.db.Db.DatabaseSchema;
+
+
+/**
  *
  *
  * @param {string} key key.
