@@ -19,11 +19,11 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'idxtest2';
+var db_name = 'idxtest6';
 
 
 var test_0_put = function() {
-  var db = new ydn.db.IndexedDb(db_name);
+  var db = new ydn.db.IndexedDb(db_name, {}, '2');
 
   var testEventType = 'test-event';
   var hasEventFired = false;

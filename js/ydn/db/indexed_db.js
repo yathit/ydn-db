@@ -43,27 +43,32 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
   this.dbname = dbname;
   this.schema = opt_schema || {};
   this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {keyPath: 'key'};
-  this.version = opt_version || '1';
+  /**
+   * @protected
+   * @type {number|undefined}
+   */
+  this.version;
+  if (goog.isDef(opt_version)) {
+    var v = parseInt(opt_version, 10);
+    if (!isNaN(v)) {
+      this.version = v;
+    }
+  }
 
   var indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
       goog.global.webkitIndexedDB || goog.global.moz_indexedDB;
 
+  // Currently in unstable stage, opening indexedDB has two incompatible call.
+  // In chrome, version is taken as description.
   self.logger.finer('Trying to open ' + this.dbname + ' ' + this.version);
-
-  // currently in unstable stage, opening indexedDB has two incompatible call.
-  // in chrome, if version is provide, it does not work, while other browser
-  // require version.
-  var is_set_version_supported = goog.isFunction(indexedDb.setVersion);
-  var version = is_set_version_supported ? undefined : this.version;
   var openRequest = indexedDb.open(this.dbname, this.version);
 
   openRequest.onsuccess = function(ev) {
-    self.logger.finer(self.dbname + ' ' + this.version + ' OK.');
+    self.logger.finer(self.dbname + ' ' + self.version + ' OK.');
     var db = ev.target.result;
     if (self.version != db.version) { // for chrome
       self.logger.finer('initializing database from ' + db.version + ' to ' +
           self.version);
-      goog.asserts.assert(is_set_version_supported);
 
       var setVrequest = db.setVersion(self.version); // for chrome
 
@@ -86,6 +91,7 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
       self.setDb(db);
     }
   };
+
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
     self.logger.finer('upgrading version ' + db.version);
@@ -99,11 +105,13 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
       self.setDb(db);
     };
   };
+
   openRequest.onerror = function(ev) {
     self.logger.severe('opening database ' + dbname + ' failed.');
     self.db = null;
   };
-  openRequest.onversionchange = function() {
+
+  openRequest.onversionchange = function(ev) {
     self.logger.fine('Version change request, so closing the database');
     if (self.db) {
       self.db.close();
@@ -118,7 +126,7 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
  */
 ydn.db.IndexedDb.isSupported = function() {
   var indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
-      goog.global.webkitIndexedDB || goog.global.moz_indexedDB;
+      goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global.msIndexedDB;
   return !!indexedDb;
 };
 
@@ -176,11 +184,14 @@ ydn.db.IndexedDb.prototype.logger =
  * @param {IDBDatabase} db database instance.
  */
 ydn.db.IndexedDb.prototype.setDb = function(db) {
+  window.console.log(' db set');
+  this.logger.finest('Setting DB: ' + db.name + ' ver: ' + db.version);
   /**
+   * @final
    * @private
    * @type {IDBDatabase}
    */
-  this.db = db;
+  this.db_ = db;
 
   this.is_ready = true;
   if (this.txQueue) {
@@ -230,7 +241,7 @@ ydn.db.IndexedDb.prototype.initObjectStores = function(db) {
  *
  * @define {boolean} trun on debug flag to dump object.
  */
-ydn.db.IndexedDb.DEBUG = false;
+ydn.db.IndexedDb.DEBUG = true;
 
 
 /**
@@ -240,7 +251,7 @@ ydn.db.IndexedDb.DEBUG = false;
  */
 ydn.db.IndexedDb.prototype.runTxQueue = function() {
 
-  if (!this.db) {
+  if (!this.db_) {
     return;
   }
 
@@ -274,7 +285,7 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df) {
      *
      * @type {IDBTransaction}
      */
-    var tx = this.db.transaction(scopes, /** @type {number} */ (mode));
+    var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
     goog.events.listen(/** @type {EventTarget} */ (tx),
         [ydn.db.IndexedDb.EventTypes.COMPLETE,
           ydn.db.IndexedDb.EventTypes.ABORT, ydn.db.IndexedDb.EventTypes.ERROR],

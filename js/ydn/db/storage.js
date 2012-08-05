@@ -218,10 +218,12 @@ ydn.db.Storage.prototype.initDatabase = function() {
  */
 ydn.db.Storage.prototype.setItem = function(key, value) {
   if (this.db) {
+    //console.log('set item d ' + key);
     return this.db.setItem(key, value);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
+      //console.log('set item ' + key);
       db.setItem(key, value).chainDeferred(df);
     });
     return df;
