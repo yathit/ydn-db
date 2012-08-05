@@ -19,23 +19,24 @@
  */
 
 goog.provide('ydn.db.Sqlite');
-goog.require('goog.events');
+goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
+goog.require('goog.events');
+goog.require('ydn.async');
 goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
-goog.require('goog.async.Deferred');
 goog.require('ydn.json');
-goog.require('ydn.async');
+
 
 
 /**
  * @implements {ydn.db.Db}
  * @param {string} dbname
- * @param {Object=} schema table schema contain table name and keyPath
+ * @param {Object=} schema table schema contain table name and keyPath.
  * @param {string=} version
  * @constructor
  */
-ydn.db.Sqlite = function (dbname, schema, version) {
+ydn.db.Sqlite = function(dbname, schema, version) {
   var self = this;
   this.version = version || ''; // so that it will use available version.
   dbname = dbname;
@@ -43,7 +44,7 @@ ydn.db.Sqlite = function (dbname, schema, version) {
   this.schema = schema || {};
   this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};  // keyPath must be 'id'
 
-  var estimatedSize = 5*1024*1024; // 5 MB
+  var estimatedSize = 5 * 1024 * 1024; // 5 MB
   var description = this.dbname;
 
   /**
@@ -59,7 +60,6 @@ ydn.db.Sqlite = function (dbname, schema, version) {
   }
 
 };
-
 
 
 /**
@@ -91,7 +91,7 @@ ydn.db.Sqlite.prototype.logger = goog.debug.Logger.getLogger('ydn.db.Sqlite');
  * @param {string} tablename
  * @return {!goog.async.Deferred}
  */
-ydn.db.Sqlite.prototype.createTable = function (tablename) {
+ydn.db.Sqlite.prototype.createTable = function(tablename) {
   var d = new goog.async.Deferred();
   var self = this;
   this.schema[tablename].keyPath = this.schema[tablename].keyPath || 'id';
@@ -105,7 +105,7 @@ ydn.db.Sqlite.prototype.createTable = function (tablename) {
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var success_callback = function (transaction, results) {
+  var success_callback = function(transaction, results) {
     if (ydn.db.Sqlite.DEBUG) {
       window.console.log(results);
     }
@@ -125,36 +125,35 @@ ydn.db.Sqlite.prototype.createTable = function (tablename) {
     d.errback(undefined);
   };
 
-  var sql = "CREATE TABLE IF NOT EXISTS '" + tablename + "' (" + keyPathQuoted + " TEXT UNIQUE PRIMARY KEY, value TEXT)";
-  this.db.transaction(function (t) {
-    self.logger.info('Creating table '+ self.dbname + '.' + tablename + ' keyPath: ' + keyPath);
+  var sql = "CREATE TABLE IF NOT EXISTS '" + tablename + "' (" + keyPathQuoted + ' TEXT UNIQUE PRIMARY KEY, value TEXT)';
+  this.db.transaction(function(t) {
+    self.logger.info('Creating table ' + self.dbname + '.' + tablename + ' keyPath: ' + keyPath);
     t.executeSql(sql, [], success_callback, error_callback);
   });
   return d;
 };
 
 
-
 /**
  *
  * @param {string} key
  * @param {string=} table
- * @return {!goog.async.Deferred} boolean
+ * @return {!goog.async.Deferred} boolean.
  */
-ydn.db.Sqlite.prototype.exists = function (key, table) {
+ydn.db.Sqlite.prototype.exists = function(key, table) {
   var self = this;
   var d = new goog.async.Deferred();
   table = table || ydn.db.Db.DEFAULT_TEXT_STORE;
   var keyPath = this.schema[table].keyPath;
   var keyPathQuoted = this.schema[table].keyPathQuoted;
   // NOTE: id cannot be quote.
-  var sql = "SELECT " + keyPathQuoted +  " FROM '" + table + "' WHERE " + keyPathQuoted +  " = ?";
+  var sql = 'SELECT ' + keyPathQuoted + " FROM '" + table + "' WHERE " + keyPathQuoted + ' = ?';
 
   /**
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     d.callback(results.rows.length > 0);
   };
 
@@ -170,9 +169,9 @@ ydn.db.Sqlite.prototype.exists = function (key, table) {
     d.errback(undefined);
   };
 
-  this.db.transaction(function (tx) {
+  this.db.transaction(function(tx) {
     //console.log(sql + ' ' + key);
-    tx.executeSql(sql, [key], callback, error_callback)
+    tx.executeSql(sql, [key], callback, error_callback);
   });
   return d;
 };
@@ -184,18 +183,18 @@ ydn.db.Sqlite.prototype.exists = function (key, table) {
  * @param {string} value
  * @return {!goog.async.Deferred}
  */
-ydn.db.Sqlite.prototype.put = function (key, value) {
+ydn.db.Sqlite.prototype.put = function(key, value) {
   var d = new goog.async.Deferred();
   var self = this;
 
-  var insert_sql = "INSERT INTO " + ydn.db.Db.DEFAULT_TEXT_STORE + " (value, id) VALUES (?,?)";
-  var update_sql = "UPDATE " + ydn.db.Db.DEFAULT_TEXT_STORE + " SET value=? WHERE id=?";
+  var insert_sql = 'INSERT INTO ' + ydn.db.Db.DEFAULT_TEXT_STORE + ' (value, id) VALUES (?,?)';
+  var update_sql = 'UPDATE ' + ydn.db.Db.DEFAULT_TEXT_STORE + ' SET value=? WHERE id=?';
 
   /**
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var success_callback = function (transaction, results) {
+  var success_callback = function(transaction, results) {
     if (ydn.db.Sqlite.DEBUG) {
       window.console.log(results);
     }
@@ -214,9 +213,9 @@ ydn.db.Sqlite.prototype.put = function (key, value) {
     d.errback(undefined);
   };
 
-  this.exists(key).addCallback(function (exists) { // FIXME how can we perform in one transaction ?
+  this.exists(key).addCallback(function(exists) { // FIXME how can we perform in one transaction ?
     var sql = exists ? update_sql : insert_sql;
-    self.db.transaction(function (t) {
+    self.db.transaction(function(t) {
       t.executeSql(sql, [value, key], success_callback, error_callback);
     });
   });
@@ -253,7 +252,7 @@ ydn.db.Sqlite.prototype.getKey = function(table, value) {
  * @param {Object|Array} value
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.Sqlite.prototype.putObject = function (table, value) {
+ydn.db.Sqlite.prototype.putObject = function(table, value) {
   var d = new goog.async.Deferred();
   var self = this;
   var keyPath = this.schema[table].keyPath;
@@ -264,7 +263,7 @@ ydn.db.Sqlite.prototype.putObject = function (table, value) {
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var success_callback = function (transaction, results) {
+  var success_callback = function(transaction, results) {
     if (ydn.db.Sqlite.DEBUG) {
       window.console.log(results);
     }
@@ -283,7 +282,7 @@ ydn.db.Sqlite.prototype.putObject = function (table, value) {
     d.errback(undefined);
   };
 
-  self.db.transaction(function (t) {
+  self.db.transaction(function(t) {
     for (var i = 0; i < arr.length; i++) {
       var last = i == arr.length - 1;
       var value_str = ydn.json.stringify(arr[i]);
@@ -303,19 +302,19 @@ ydn.db.Sqlite.prototype.putObject = function (table, value) {
  * @param {string} key
  * @return {!goog.async.Deferred}
  */
-ydn.db.Sqlite.prototype.getObject = function (table, key) {
+ydn.db.Sqlite.prototype.getObject = function(table, key) {
   var d = new goog.async.Deferred();
   var self = this;
   var keyPath = this.schema[table].keyPath;
   var keyPathQuoted = this.schema[table].keyPathQuoted;
 
-  var sql = "SELECT " + keyPathQuoted + ", value FROM '" + table + "' WHERE " + keyPathQuoted + " = '" + key + "'";
+  var sql = 'SELECT ' + keyPathQuoted + ", value FROM '" + table + "' WHERE " + keyPathQuoted + " = '" + key + "'";
 
   /**
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     var value;
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
@@ -339,7 +338,7 @@ ydn.db.Sqlite.prototype.getObject = function (table, key) {
     d.errback(undefined);
   };
 
-  this.db.transaction(function (t) {
+  this.db.transaction(function(t) {
     //console.log(sql);
     t.executeSql(sql, [], callback, error_callback);
   });
@@ -353,7 +352,7 @@ ydn.db.Sqlite.prototype.getObject = function (table, key) {
  * @param {string} key
  * @return {!goog.async.Deferred}
  */
-ydn.db.Sqlite.prototype.get = function (key) {
+ydn.db.Sqlite.prototype.get = function(key) {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -363,7 +362,7 @@ ydn.db.Sqlite.prototype.get = function (key) {
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     var value;
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
@@ -385,7 +384,7 @@ ydn.db.Sqlite.prototype.get = function (key) {
     d.errback(undefined);
   };
 
-  this.db.transaction(function (t) {
+  this.db.transaction(function(t) {
     t.executeSql(sql, [], callback, error_callback);
   });
 
@@ -400,18 +399,18 @@ ydn.db.Sqlite.prototype.get = function (key) {
  * @param {string} value
  * @return {!goog.async.Deferred}
  */
-ydn.db.Sqlite.prototype.getObjects = function (table, column, value) {
+ydn.db.Sqlite.prototype.getObjects = function(table, column, value) {
   var d = new goog.async.Deferred();
   var self = this;
 
   var sql = 'SELECT * FROM "' + table + '" WHERE ' +
-      goog.string.quote(column) + " = " + goog.string.quote(value);
+      goog.string.quote(column) + ' = ' + goog.string.quote(value);
 
   /**
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     var values = [];
     for (var i = 0; i < results.rows.length - 1; i++) {
       var row = results.rows.item(i);
@@ -435,7 +434,7 @@ ydn.db.Sqlite.prototype.getObjects = function (table, column, value) {
     d.errback(undefined);
   };
 
-  this.db.transaction(function (t) {
+  this.db.transaction(function(t) {
     //console.log(sql);
     t.executeSql(sql, [], callback, error_callback);
   });
@@ -444,20 +443,19 @@ ydn.db.Sqlite.prototype.getObjects = function (table, column, value) {
 };
 
 
-
 /**
  * Return object
  * @param {ydn.db.Query} q
  * @return {!goog.async.Deferred}
  */
-ydn.db.Sqlite.prototype.fetch = function (q) {
+ydn.db.Sqlite.prototype.fetch = function(q) {
   var d = new goog.async.Deferred();
   var self = this;
 
   var column = q.field || this.schema[q.table].keyPath;
-  var op = q.op == ydn.db.Query.Op.START_WITH ? " LIKE " : " = ";
+  var op = q.op == ydn.db.Query.Op.START_WITH ? ' LIKE ' : ' = ';
   var sql = 'SELECT * FROM ' + goog.string.quote(q.table) + ' WHERE ';
-  if (q.op == ydn.db.Query.Op.START_WITH ) {
+  if (q.op == ydn.db.Query.Op.START_WITH) {
     sql += '(' + column + ' LIKE ?)';
   } else {
     sql += '(' + goog.string.quote(column) + ' = ?)';
@@ -467,7 +465,7 @@ ydn.db.Sqlite.prototype.fetch = function (q) {
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     var values = [];
     for (var i = 0; i < results.rows.length; i++) {
       var row = results.rows.item(i);
@@ -491,7 +489,7 @@ ydn.db.Sqlite.prototype.fetch = function (q) {
     d.errback(undefined);
   };
 
-  this.db.transaction(function (t) {
+  this.db.transaction(function(t) {
     var v = q.value + '%';
     //console.log(sql + ' | ' + v);
     t.executeSql(sql, [v], callback, error_callback);
@@ -503,9 +501,9 @@ ydn.db.Sqlite.prototype.fetch = function (q) {
 
 /**
  *
- * @return {!goog.async.Deferred} {@code Array.<string>}
+ * @return {!goog.async.Deferred} {@code Array.<string>}.
  */
-ydn.db.Sqlite.prototype.keys = function () {
+ydn.db.Sqlite.prototype.keys = function() {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -515,7 +513,7 @@ ydn.db.Sqlite.prototype.keys = function () {
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     var ids = [];
     for (var i = results.rows.length - 1; i >= 0; i--) {
       var item = results.rows.item(i);
@@ -536,7 +534,7 @@ ydn.db.Sqlite.prototype.keys = function () {
     d.errback(undefined);
   };
 
-  this.db.transaction(function (t) {
+  this.db.transaction(function(t) {
     t.executeSql(sql, [], callback, error_callback);
   });
 
@@ -549,18 +547,18 @@ ydn.db.Sqlite.prototype.keys = function () {
  * @param {string=} table
  * @return {!goog.async.Deferred}
  */
-ydn.db.Sqlite.prototype.clearStore = function (table) {
+ydn.db.Sqlite.prototype.clearStore = function(table) {
   var d = new goog.async.Deferred();
   var self = this;
 
   table = table || ydn.db.Db.DEFAULT_TEXT_STORE;
-  var sql = "DELETE FROM  " + table;
+  var sql = 'DELETE FROM  ' + table;
 
   /**
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     d.callback(true);
   };
 
@@ -576,18 +574,19 @@ ydn.db.Sqlite.prototype.clearStore = function (table) {
     d.errback(undefined);
   };
 
-  this.db.transaction(function (t) {
+  this.db.transaction(function(t) {
     t.executeSql(sql, [], callback, error_callback);
   });
   return d;
 };
+
 
 /**
  * Deletes the store.
  * @param {string=} table
  * @return {!goog.async.Deferred}
  */
-ydn.db.Sqlite.prototype.clear = function (table) {
+ydn.db.Sqlite.prototype.clear = function(table) {
 
   if (table) {
     return this.clearStore(table);
@@ -601,11 +600,10 @@ ydn.db.Sqlite.prototype.clear = function (table) {
 };
 
 
-
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.getCount = function (table) {
+ydn.db.Sqlite.prototype.getCount = function(table) {
 
   var d = new goog.async.Deferred();
   var self = this;
@@ -617,7 +615,7 @@ ydn.db.Sqlite.prototype.getCount = function (table) {
    * @param {SQLTransaction} transaction
    * @param {SQLResultSet} results
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     var row = results.rows.item(0);
     //console.log(['row ', row  , results]);
     d.callback(row['COUNT(*)']);
@@ -635,21 +633,21 @@ ydn.db.Sqlite.prototype.getCount = function (table) {
     d.errback(undefined);
   };
 
-  this.db.transaction(function (t) {
+  this.db.transaction(function(t) {
     t.executeSql(sql, [], callback, error_callback);
   });
 
   return d;
 
-//  var d = new goog.async.Deferred();
-//  this.keys().addCallback(function(keys) {
-//    if (keys) {
-//      d.callback(keys.length);
-//    } else {
-//      d.errback(undefined);
-//    }
-//  });
-//  return d;
+  //  var d = new goog.async.Deferred();
+  //  this.keys().addCallback(function(keys) {
+  //    if (keys) {
+  //      d.callback(keys.length);
+  //    } else {
+  //      d.errback(undefined);
+  //    }
+  //  });
+  //  return d;
 };
 
 

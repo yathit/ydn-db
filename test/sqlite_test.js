@@ -1,8 +1,7 @@
 
-goog.require('goog.testing.jsunit');
-
-goog.require('ydn.db.Storage');
 goog.require('goog.debug.Console');
+goog.require('goog.testing.jsunit');
+goog.require('ydn.db.Storage');
 goog.require('ydn.testing');
 
 
@@ -99,8 +98,8 @@ var test_1_clear = function() {
     cleared_value = value;
     cleared = true;
   }).addErrback(function(v) {
-        fail('should not get error.');
-      });
+    fail('should not get error.');
+  });
 
 
   var counted, count;
@@ -121,65 +120,63 @@ var test_1_clear = function() {
     count = value;
     counted = true;
   }).addErrback(function(v) {
-        fail('should not get error.');
-      });
+    fail('should not get error.');
+  });
 
 };
 
 
-
-
 /**
  */
-var test_special_keys = function () {
+var test_special_keys = function() {
   var db = new ydn.db.Sqlite(db_name, {});
 
   var test_key = function(key) {
-  console.log('testing ' + key);
-  var key_value = 'a' + Math.random();
+    console.log('testing ' + key);
+    var key_value = 'a' + Math.random();
 
-  var a_done;
-  var a_value;
-  waitForCondition(
-      // Condition
-      function () {
-        return a_done;
-      },
-      // Continuation
-      function () {
-        assertTrue('put', a_value);
+    var a_done;
+    var a_value;
+    waitForCondition(
+        // Condition
+        function() {
+          return a_done;
+        },
+        // Continuation
+        function() {
+          assertTrue('put', a_value);
 
-        var b_done;
-        var b_value;
-        waitForCondition(
-            // Condition
-            function () {
-              return b_done;
-            },
-            // Continuation
-            function () {
-              assertEquals('get', key_value, b_value);
-              reachedFinalContinuation = true;
-            },
-            100, // interval
-            2000); // maxTimeout
+          var b_done;
+          var b_value;
+          waitForCondition(
+              // Condition
+              function() {
+                return b_done;
+              },
+              // Continuation
+              function() {
+                assertEquals('get', key_value, b_value);
+                reachedFinalContinuation = true;
+              },
+              100, // interval
+              2000); // maxTimeout
 
 
-        db.get(key).addCallback(function (value) {
-          console.log('receiving get value callback ' + key + ' = ' + value);
-          b_value = value;
-          b_done = true;
-        });
+          db.get(key).addCallback(function(value) {
+            console.log('receiving get value callback ' + key + ' = ' + value);
+            b_value = value;
+            b_done = true;
+          });
 
-      },
-      100, // interval
-      2000); // maxTimeout
+        },
+        100, // interval
+        2000); // maxTimeout
 
-  db.put(key, key_value).addCallback(function (value) {
-    console.log('receiving put value callback for ' + key + ' = ' + key_value + ' ' + value);
-    a_value = value;
-    a_done = true;
-  });
+    db.put(key, key_value).addCallback(function(value) {
+      console.log('receiving put value callback for ' + key + ' = ' + key_value + ' ' + value);
+      a_value = value;
+      a_done = true;
+    });
 
   };
 
@@ -194,10 +191,9 @@ var test_special_keys = function () {
 };
 
 
-
 /**
  */
-var test_special_value = function () {
+var test_special_value = function() {
   var db = new ydn.db.Sqlite(db_name, {});
 
   var ik = 0;
@@ -210,22 +206,22 @@ var test_special_value = function () {
     var a_value;
     waitForCondition(
         // Condition
-        function () {
+        function() {
           return a_done;
         },
         // Continuation
-        function () {
+        function() {
           assertTrue('put', a_value);
 
           var b_done;
           var b_value;
           waitForCondition(
               // Condition
-              function () {
+              function() {
                 return b_done;
               },
               // Continuation
-              function () {
+              function() {
                 assertEquals('get', value, b_value);
                 reachedFinalContinuation = true;
               },
@@ -233,7 +229,7 @@ var test_special_value = function () {
               2000); // maxTimeout
 
 
-          db.get(key).addCallback(function (value) {
+          db.get(key).addCallback(function(value) {
             console.log('receiving get value callback ' + key + ' = ' + value);
             b_value = value;
             b_done = true;
@@ -243,7 +239,7 @@ var test_special_value = function () {
         100, // interval
         2000); // maxTimeout
 
-    db.put(key, value).addCallback(function (value) {
+    db.put(key, value).addCallback(function(value) {
       console.log('receiving put value callback for ' + key + ' = ' + value + ' ' + value);
       a_value = value;
       a_done = true;
@@ -485,7 +481,7 @@ var test_4_query_start_with = function() {
       function() {
         assertEquals('obj length', objs.length - 1, get2_value_received.length);
         assertObjectEquals('get ' + objs[0].id, objs[0], get2_value_received[0]);
-        assertObjectEquals('get ' + objs[1].id , objs[1], get2_value_received[1]);
+        assertObjectEquals('get ' + objs[1].id, objs[1], get2_value_received[1]);
         reachedFinalContinuation = true;
       },
       100, // interval

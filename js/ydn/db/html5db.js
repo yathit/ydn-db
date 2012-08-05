@@ -8,14 +8,15 @@ goog.require('goog.storage.CollectableStorage');
 goog.require('goog.storage.mechanism.mechanismfactory');
 
 
+
 /**
  * @implements {ydn.db.Db}
  * @param {string} dbname
- * @param {Object=} schema table schema contain table name and keyPath
+ * @param {Object=} schema table schema contain table name and keyPath.
  * @param {string=} version
  * @constructor
  */
-ydn.db.Html5Db = function (dbname, schema, version) {
+ydn.db.Html5Db = function(dbname, schema, version) {
   this.version = version || '1';
   dbname = dbname;
   this.dbname = dbname;
@@ -68,16 +69,18 @@ ydn.db.Html5Db.prototype.getStoreName = function(table) {
   return this.dbname + '_v' + this.version + '_' + table;
 };
 
+
 /**
  *
  * @param {string} key
  * @param {string} value
  *  @return {!goog.async.Deferred}
  */
-ydn.db.Html5Db.prototype.put = function (key, value) {
+ydn.db.Html5Db.prototype.put = function(key, value) {
   this.stores[this.default_store].set(key, value);
   return goog.async.Deferred.succeed(true);
 };
+
 
 /**
  *
@@ -85,7 +88,7 @@ ydn.db.Html5Db.prototype.put = function (key, value) {
  * @param {string=} key
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.Html5Db.prototype.putObject = function (table, value, key) {
+ydn.db.Html5Db.prototype.putObject = function(table, value, key) {
   if (!goog.isDef(key)) {
     key = value[this.schema[table].keyPath];
   }
@@ -100,7 +103,7 @@ ydn.db.Html5Db.prototype.putObject = function (table, value, key) {
  * @param {string} key
  * @return {!goog.async.Deferred}
  */
-ydn.db.Html5Db.prototype.get = function (key) {
+ydn.db.Html5Db.prototype.get = function(key) {
   var value = this.stores[this.default_store].get(key);
   return goog.async.Deferred.succeed(value);
 };
@@ -111,7 +114,7 @@ ydn.db.Html5Db.prototype.get = function (key) {
  * @param {string} key
  * @return {!goog.async.Deferred}
  */
-ydn.db.Html5Db.prototype.getObject = function (table, key) {
+ydn.db.Html5Db.prototype.getObject = function(table, key) {
   goog.asserts.assertObject(this.stores[this.getStoreName(table)], 'table: ' + table + ' not existed in ' + this.dbname);
   var value = this.stores[this.getStoreName(table)].get(key);
   return goog.async.Deferred.succeed(ydn.json.parse(/** @type {string} */ (value)));
@@ -121,7 +124,7 @@ ydn.db.Html5Db.prototype.getObject = function (table, key) {
 /**
  * Deletes all objects from the store.
  */
-ydn.db.Html5Db.prototype.clear = function () {
+ydn.db.Html5Db.prototype.clear = function() {
   for (var table in this.mechanisms) {
     this.mechanisms[table].clear();
   }
@@ -132,17 +135,19 @@ ydn.db.Html5Db.prototype.clear = function () {
 /**
  * @inheritDoc
  */
-ydn.db.Html5Db.prototype.getCount = function (table) {
+ydn.db.Html5Db.prototype.getCount = function(table) {
   var d = new goog.async.Deferred();
   table = table || ydn.db.Db.DEFAULT_TEXT_STORE;
   d.callback(this.mechanisms[this.getStoreName(table)].getCount());
   return d;
 };
+
+
 /**
  * Fetch result of a query
  * @param {ydn.db.Query} q
  * @return {!goog.async.Deferred}
  */
-ydn.db.Html5Db.prototype.fetch = function (q) {
+ydn.db.Html5Db.prototype.fetch = function(q) {
   return goog.async.Deferred.fail(true);
 };

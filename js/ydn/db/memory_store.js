@@ -9,12 +9,11 @@ goog.require('ydn.db.Db');
 
 
 
-
 /**
  * @implements {ydn.db.Db}
  * @constructor
  * @param {string} dbname
- * @param {Object=} schema table schema contain table name and keyPath
+ * @param {Object=} schema table schema contain table name and keyPath.
  * @param {string=} version
  */
 ydn.db.MemoryStore = function(dbname, schema, version) {
@@ -44,17 +43,17 @@ ydn.db.MemoryStore.prototype.setVersion = function() {
 };
 
 
-
 /**
  *
  * @param {string} key
  * @param {string} value
  *  @return {!goog.async.Deferred}
  */
-ydn.db.MemoryStore.prototype.put = function (key, value) {
+ydn.db.MemoryStore.prototype.put = function(key, value) {
   this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key] = value;
   return goog.async.Deferred.succeed(true);
 };
+
 
 /**
  *
@@ -62,7 +61,7 @@ ydn.db.MemoryStore.prototype.put = function (key, value) {
  * @param {string=} key
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.MemoryStore.prototype.putObject = function (table, value, key) {
+ydn.db.MemoryStore.prototype.putObject = function(table, value, key) {
   if (!goog.isDef(key)) {
     goog.asserts.assertObject(this.schema[table], 'table: ' + table + ' is not defined in ' + this.dbname);
     goog.asserts.assertString(this.schema[table].keyPath, 'keyPath ' + this.schema[table].keyPath + ' not defined in ' + table + ' ' + JSON.stringify(this.schema[table]));
@@ -79,7 +78,7 @@ ydn.db.MemoryStore.prototype.putObject = function (table, value, key) {
  * @param {string} key
  * @return {!goog.async.Deferred}
  */
-ydn.db.MemoryStore.prototype.get = function (key) {
+ydn.db.MemoryStore.prototype.get = function(key) {
   var value = this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key];
   return goog.async.Deferred.succeed(value);
 };
@@ -91,7 +90,7 @@ ydn.db.MemoryStore.prototype.get = function (key) {
  * @param {string} key
  * @return {!goog.async.Deferred}
  */
-ydn.db.MemoryStore.prototype.getObject = function (table, key) {
+ydn.db.MemoryStore.prototype.getObject = function(table, key) {
   goog.asserts.assertString(table);
   goog.asserts.assertString(key);
   var keyPath = this.schema[table].keyPath;
@@ -110,7 +109,7 @@ ydn.db.MemoryStore.prototype.getObject = function (table, key) {
  * Deletes all objects from the store.
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.clear = function (table) {
+ydn.db.MemoryStore.prototype.clear = function(table) {
   if (goog.isDef(table)) {
     this.cache[table] = {};
   } else {
@@ -125,7 +124,7 @@ ydn.db.MemoryStore.prototype.clear = function (table) {
 /**
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.getCount = function (table) {
+ydn.db.MemoryStore.prototype.getCount = function(table) {
   table = table || ydn.db.Db.DEFAULT_TEXT_STORE;
   var d = new goog.async.Deferred();
   var n = 0;
@@ -142,6 +141,6 @@ ydn.db.MemoryStore.prototype.getCount = function (table) {
  * @param {ydn.db.Query} q
  * @return {!goog.async.Deferred}
  */
-ydn.db.MemoryStore.prototype.fetch = function (q) {
+ydn.db.MemoryStore.prototype.fetch = function(q) {
   return goog.async.Deferred.fail(true);
 };

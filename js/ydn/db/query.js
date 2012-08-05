@@ -20,8 +20,9 @@
 goog.provide('ydn.db.Query');
 
 
+
 /**
- * @param {string} table table name
+ * @param {string} table table name.
  * @constructor
  */
 ydn.db.Query = function(table) {
@@ -68,6 +69,7 @@ ydn.db.Query.prototype.get = function(value, field) {
   return this;
 };
 
+
 /**
  *
  * @param {string} table
@@ -78,7 +80,6 @@ ydn.db.Query.prototype.get = function(value, field) {
 ydn.db.Query.get = function(table, value, field) {
   return (new ydn.db.Query(table)).get(value, field);
 };
-
 
 
 /**
@@ -93,6 +94,7 @@ ydn.db.Query.prototype.startWith = function(value, field) {
   this.field = field || '';
   return this;
 };
+
 
 /**
  * @param {string} table

@@ -9,7 +9,7 @@ goog.require('ydn.db.Storage');
 goog.require('ydn.utils');
 
 
-ydn.store.StorageJstest = AsyncTestCase("StorageJstest");
+ydn.store.StorageJstest = AsyncTestCase('StorageJstest');
 
 ydn.store.StorageJstest.prototype.setUp = function() {
   //console.log('running test for PageJstest');
@@ -52,6 +52,7 @@ ydn.store.StorageJstest.prototype.db_clear_tests = function(queue, db) {
   });
 };
 
+
 /**
  * @param queue
  * @param {ydn.db.Db} db
@@ -64,6 +65,7 @@ ydn.store.StorageJstest.prototype.put_tests = function(queue, db) {
     }));
   });
 };
+
 
 /**
  * @param queue
@@ -92,15 +94,15 @@ ydn.store.StorageJstest.prototype.get_tests = function(queue, db) {
 ydn.store.StorageJstest.prototype.put_get_tests = function(queue, db) {
 
   queue.call('clear db before start', function(callbacks) {
-      db.clear().addCallback(callbacks.add(function(value) {
-        var result = value;
-        if (goog.isArray(value)) {
-          result = value.every(function(ok) {
-            return !!ok;
-          })
-        }
-        assertEquals('clear OK', true, result);
-      }));
+    db.clear().addCallback(callbacks.add(function(value) {
+      var result = value;
+      if (goog.isArray(value)) {
+        result = value.every(function(ok) {
+          return !!ok;
+        });
+      }
+      assertEquals('clear OK', true, result);
+    }));
   });
 
   queue.call('count after clear', function(callbacks) {
@@ -169,17 +171,17 @@ ydn.store.StorageJstest.prototype.put_get_tests = function(queue, db) {
     }));
   });
 
-//  queue.call('clear db', function(callbacks) {
-//    db.clear().addCallback(callbacks.add(function(value) {
-//      assertEquals('clear OK', true, value);
-//    }));
-//  });
-//
-//  queue.call('count', function(callbacks) {
-//    db.getCount().addCallback(callbacks.add(function(count) {
-//      assertEquals('count 0', 0, count);
-//    }));
-//  });
+  //  queue.call('clear db', function(callbacks) {
+  //    db.clear().addCallback(callbacks.add(function(value) {
+  //      assertEquals('clear OK', true, value);
+  //    }));
+  //  });
+  //
+  //  queue.call('count', function(callbacks) {
+  //    db.getCount().addCallback(callbacks.add(function(count) {
+  //      assertEquals('count 0', 0, count);
+  //    }));
+  //  });
 };
 
 //ydn.store.StorageJstest.prototype.test_clear_sqllite = function(queue) {
@@ -254,7 +256,7 @@ ydn.store.StorageJstest.prototype.special_keys_test = function(queue, db) {
       window.console.log('getting ' + key);
       db.get(key).addCallback(callbacks.add(function(value) {
         window.console.log('get ' + key + ' ' + value);
-        assertEquals('get ' +  key, key_value, value);
+        assertEquals('get ' + key, key_value, value);
       }));
     });
   };
@@ -282,7 +284,7 @@ ydn.store.StorageJstest.prototype.test_special_key_indexeddb = function(queue) {
   this.special_keys_test(queue, db);
 };
 
-ydn.store.StorageJstest.prototype.test_special_key_sqlite = function (queue) {
+ydn.store.StorageJstest.prototype.test_special_key_sqlite = function(queue) {
   if (ydn.db.Sqlite.isSupported()) {
     var db = new ydn.db.Sqlite(this.dbname + '2', {});
     this.special_keys_test(queue, db);
@@ -364,7 +366,7 @@ ydn.store.StorageJstest.prototype.test_put_get_object_memory = function(queue) {
   this.put_get_object_tests(queue, db);
 };
 
-ydn.store.StorageJstest.prototype.test_put_get_object_sqlite = function (queue) {
+ydn.store.StorageJstest.prototype.test_put_get_object_sqlite = function(queue) {
   if (ydn.db.Sqlite.isSupported()) {
     var db = new ydn.db.Sqlite(this.dbname + '3', this.schema);
     this.put_get_object_tests(queue, db);

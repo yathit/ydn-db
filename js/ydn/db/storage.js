@@ -25,18 +25,19 @@
  */
 
 goog.provide('ydn.db.Storage');
-goog.require('ydn.db.IndexedDb');
-goog.require('ydn.db.Sqlite');
-goog.require('ydn.db.Html5Db');
-goog.require('ydn.db.MemoryStore');
-goog.require('ydn.object');
 goog.require('ydn.async');
+goog.require('ydn.db.Html5Db');
+goog.require('ydn.db.IndexedDb');
+goog.require('ydn.db.MemoryStore');
+goog.require('ydn.db.Sqlite');
+goog.require('ydn.object');
+
 
 
 /**
  * Create a suitable storage mechanism. starting from indexdb, to websql to localStorage.
  * @param {string=} dbname
- * @param {Object=} schema table schema contain table name and keyPath
+ * @param {Object=} schema table schema contain table name and keyPath.
  * @param {string=} version
  * @implements {ydn.db.Db}
  * @constructor
@@ -68,14 +69,14 @@ ydn.db.Storage.prototype.getConfig = function() {
     dbname: this.dbname,
     schema: ydn.object.clone(this.schema),
     version: this.version
-  }
+  };
 };
 
 
 /**
  *
  * @param {string=} dbname
- * @return {string|undefined} normalized dbname
+ * @return {string|undefined} normalized dbname.
  */
 ydn.db.Storage.prototype.setDbName = function(dbname) {
   if (goog.isDef(dbname)) {
@@ -190,19 +191,20 @@ ydn.db.Storage.prototype.initDatabase = function() {
  * @param {string} value
  * @return {!goog.async.Deferred}
  */
-ydn.db.Storage.prototype.put = function (key, value) {
+ydn.db.Storage.prototype.put = function(key, value) {
   if (this.db) {
     this.db.put(key, value);
   }
   return goog.async.Deferred.fail(undefined);
 };
 
+
 /**
  * @param {string} table
  * @param {Object|Array} value
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.Storage.prototype.putObject = function (table, value) {
+ydn.db.Storage.prototype.putObject = function(table, value) {
   if (this.db) {
     return this.db.putObject(table, value);
   }
@@ -213,14 +215,15 @@ ydn.db.Storage.prototype.putObject = function (table, value) {
 /**
  *
  * @param {string} key
- * @return {!goog.async.Deferred} string
+ * @return {!goog.async.Deferred} string.
  */
-ydn.db.Storage.prototype.get = function (key) {
+ydn.db.Storage.prototype.get = function(key) {
   if (this.db) {
     return this.db.get(key);
   }
   return goog.async.Deferred.fail(undefined);
 };
+
 
 /**
  * Return object
@@ -228,7 +231,7 @@ ydn.db.Storage.prototype.get = function (key) {
  * @param {string} key
  * @return {!goog.async.Deferred}
  */
-ydn.db.Storage.prototype.getObject = function (table, key) {
+ydn.db.Storage.prototype.getObject = function(table, key) {
   if (this.db) {
     return this.db.getObject(table, key);
   }
@@ -239,7 +242,7 @@ ydn.db.Storage.prototype.getObject = function (table, key) {
 /**
  * @inheritDoc
  */
-ydn.db.Storage.prototype.clear = function () {
+ydn.db.Storage.prototype.clear = function() {
   if (this.db) {
     this.db.clear();
   }
@@ -250,9 +253,9 @@ ydn.db.Storage.prototype.clear = function () {
 /**
  * Get number of items stored.
  * @param {string=} table
- * @return {!goog.async.Deferred} {@code number}
+ * @return {!goog.async.Deferred} {@code number}.
  */
-ydn.db.Storage.prototype.getCount = function (table) {
+ydn.db.Storage.prototype.getCount = function(table) {
   if (this.db) {
     return this.db.getCount(table);
   }
@@ -260,13 +263,12 @@ ydn.db.Storage.prototype.getCount = function (table) {
 };
 
 
-
 /**
  * Fetch result of a query
  * @param {ydn.db.Query} q
  * @return {!goog.async.Deferred}
  */
-ydn.db.Storage.prototype.fetch = function (q) {
+ydn.db.Storage.prototype.fetch = function(q) {
   if (this.db) {
     return this.db.fetch(q);
   }
@@ -284,7 +286,7 @@ ydn.db.Storage.prototype.disp = function() {
 
     var print_table_description = function(table, count) {
       window.console.log('Table: ' + table + ', keyPath: ' + self.schema[table].keyPath +
-        ', count: ' + count);
+          ', count: ' + count);
     };
 
     for (var table in this.schema) {

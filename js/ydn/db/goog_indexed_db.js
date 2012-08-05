@@ -11,19 +11,20 @@ goog.require('goog.events');
 goog.require('ydn.db.Db');
 
 
+
 /**
  * @param {string} dbname
- * @param {string=} tablename create a 'default' table
+ * @param {string=} tablename create a 'default' table.
  * @constructor
  */
-ydn.db.GoogIndexedDb = function (dbname, tablename) {
+ydn.db.GoogIndexedDb = function(dbname, tablename) {
   var self = this;
   this.dbname = dbname;
   this.tablename = tablename || 'tb';
 
-  goog.db.openDatabase(this.dbname).addCallback(function (db) {
+  goog.db.openDatabase(this.dbname).addCallback(function(db) {
     window.console.log('db creaded');
-    self.db = db.setVersion('1.0').addCallback(function (tx) {
+    self.db = db.setVersion('1.0').addCallback(function(tx) {
       window.console.log('v set.');
       db.createObjectStore(self.tablename);
       // restart to see our structure changes
@@ -44,19 +45,19 @@ ydn.db.GoogIndexedDb = function (dbname, tablename) {
  * @param {string} key
  * @param {string} value
  */
-ydn.db.GoogIndexedDb.prototype.put = function (key, value) {
+ydn.db.GoogIndexedDb.prototype.put = function(key, value) {
 
   var d = new goog.async.Deferred();
   var self = this;
   window.console.log('putting ' + key);
-  this.db.addCallback(function (db) {
+  this.db.addCallback(function(db) {
     self.db = goog.async.Deferred.succeed(db);
     window.console.log('db opened.');
     var tx = db.createTransaction(
         [self.tablename],
         goog.db.Transaction.TransactionMode.READ_WRITE);
 
-    goog.events.listen(tx, goog.db.Transaction.EventTypes.COMPLETE, function () {
+    goog.events.listen(tx, goog.db.Transaction.EventTypes.COMPLETE, function() {
       d.callback(true);
     });
 
@@ -73,16 +74,16 @@ ydn.db.GoogIndexedDb.prototype.put = function (key, value) {
  * @param {string} key
  * @return {!goog.async.Deferred}
  */
-ydn.db.GoogIndexedDb.prototype.get = function (key) {
+ydn.db.GoogIndexedDb.prototype.get = function(key) {
   var d = new goog.async.Deferred();
   var self = this;
-  this.db.addCallback(function (db) {
+  this.db.addCallback(function(db) {
     var tx = db.createTransaction(
         [self.tablename],
         goog.db.Transaction.TransactionMode.READ_ONLY);
 
     var value;
-    goog.events.listen(tx, goog.db.Transaction.EventTypes.COMPLETE, function () {
+    goog.events.listen(tx, goog.db.Transaction.EventTypes.COMPLETE, function() {
       self.db = goog.async.Deferred.succeed(db);
       window.console.log(['value', value]);
       d.callback(value);
@@ -103,9 +104,10 @@ ydn.db.GoogIndexedDb.prototype.get = function (key) {
  * @param {string} key
  * @return {!goog.async.Deferred}
  */
-ydn.db.GoogIndexedDb.prototype.getObject = function (table, key) {
+ydn.db.GoogIndexedDb.prototype.getObject = function(table, key) {
 
 };
+
 
 /**
  *
@@ -113,25 +115,24 @@ ydn.db.GoogIndexedDb.prototype.getObject = function (table, key) {
  * @param {string=} key
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.GoogIndexedDb.prototype.putObject = function (table, value, key) {
+ydn.db.GoogIndexedDb.prototype.putObject = function(table, value, key) {
 
 };
-
 
 
 /**
  * Deletes all objects from the store.
  * @return {!goog.async.Deferred}
  */
-ydn.db.GoogIndexedDb.prototype.clear = function () {
+ydn.db.GoogIndexedDb.prototype.clear = function() {
   var d = new goog.async.Deferred();
   var self = this;
-  this.db.addCallback(function (db) {
+  this.db.addCallback(function(db) {
     var tx = db.createTransaction(
         [self.tablename],
         goog.db.Transaction.TransactionMode.READ_WRITE);
 
-    goog.events.listen(tx, goog.db.Transaction.EventTypes.COMPLETE, function () {
+    goog.events.listen(tx, goog.db.Transaction.EventTypes.COMPLETE, function() {
       self.db = goog.async.Deferred.succeed(db);
       d.callback(true);
     });
@@ -143,15 +144,14 @@ ydn.db.GoogIndexedDb.prototype.clear = function () {
 };
 
 
-
 /**
  *
- * @return {!goog.async.Deferred} {@code Array.<string>}
+ * @return {!goog.async.Deferred} {@code Array.<string>}.
  */
-ydn.db.GoogIndexedDb.prototype.getAll = function () {
+ydn.db.GoogIndexedDb.prototype.getAll = function() {
   var d = new goog.async.Deferred();
   var self = this;
-  goog.db.openDatabase(this.dbname).addCallback(function (db) {
+  goog.db.openDatabase(this.dbname).addCallback(function(db) {
     var putTx = db.createTransaction(
         [self.tablename],
         goog.db.Transaction.TransactionMode.READ_ONLY);
@@ -159,8 +159,8 @@ ydn.db.GoogIndexedDb.prototype.getAll = function () {
     store.getAll().addCallback(function(value) {
       d.callback(value);
     }).addErrback(function() {
-          d.errback(false);
-        });
+      d.errback(false);
+    });
   });
   return d;
 };
@@ -168,15 +168,15 @@ ydn.db.GoogIndexedDb.prototype.getAll = function () {
 
 /**
  * Get number of items stored.
- * @return {!goog.async.Deferred} {@code number}
+ * @return {!goog.async.Deferred} {@code number}.
  */
-ydn.db.GoogIndexedDb.prototype.getCount = function () {
+ydn.db.GoogIndexedDb.prototype.getCount = function() {
   var d = new goog.async.Deferred();
   this.getAll().addCallback(function(all) {
     d.callback(all.length);
   }).addErrback(function() {
-        d.errback(false);
-      });
+    d.errback(false);
+  });
   return d;
 };
 
@@ -184,18 +184,18 @@ ydn.db.GoogIndexedDb.prototype.getCount = function () {
 /**
  * @private
  */
-ydn.db.GoogIndexedDb.prototype.test = function () {
+ydn.db.GoogIndexedDb.prototype.test = function() {
   var self = this;
-  goog.db.openDatabase(this.dbname).addCallback(function (db) {
+  goog.db.openDatabase(this.dbname).addCallback(function(db) {
     var putTx = db.createTransaction(
         [self.tablename],
         goog.db.Transaction.TransactionMode.READ_WRITE);
     var store = putTx.objectStore(self.tablename);
     store.put('value', 'key');
-    goog.events.listen(putTx, goog.db.Transaction.EventTypes.COMPLETE, function () {
+    goog.events.listen(putTx, goog.db.Transaction.EventTypes.COMPLETE, function() {
       var getTx = db.createTransaction([self.tablename], goog.db.Transaction.TransactionMode.READ_ONLY);
       var request = getTx.objectStore(self.tablename).get('key');
-      request.addCallback(function (result) {
+      request.addCallback(function(result) {
         window.console.log('got ' + result);
       });
     });

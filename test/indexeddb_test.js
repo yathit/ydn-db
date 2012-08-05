@@ -1,9 +1,8 @@
 
-goog.require('goog.testing.jsunit');
-
-goog.require('ydn.db.Storage');
 goog.require('goog.debug.Console');
+goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
+goog.require('ydn.db.Storage');
 
 
 var reachedFinalContinuation;
@@ -75,8 +74,8 @@ var test_1_clear = function() {
     put_value = value;
     hasEventFired = true;
   }).addErrback(function(v) {
-        fail('should not get error.');
-      });
+    fail('should not get error.');
+  });
 
   var countValue;
   var countDone;
