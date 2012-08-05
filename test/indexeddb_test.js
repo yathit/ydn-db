@@ -19,7 +19,7 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'idxtest6';
+var db_name = 'idxtest';
 
 
 var test_0_put = function() {

@@ -238,8 +238,13 @@ ydn.db.Storage.prototype.setItem = function(key, value) {
 ydn.db.Storage.prototype.put = function(table, value) {
   if (this.db) {
     return this.db.put(table, value);
+  } else {
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function(db) {
+      db.put(table, value).chainDeferred(df);
+    });
+    return df;
   }
-  return goog.async.Deferred.fail(undefined);
 };
 
 
@@ -265,8 +270,13 @@ ydn.db.Storage.prototype.getItem = function(key) {
 ydn.db.Storage.prototype.get = function(table, key) {
   if (this.db) {
     return this.db.get(table, key);
+  } else {
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function(db) {
+      db.get(table, key).chainDeferred(df);
+    });
+    return df;
   }
-  return goog.async.Deferred.fail(false);
 };
 
 
@@ -276,8 +286,13 @@ ydn.db.Storage.prototype.get = function(table, key) {
 ydn.db.Storage.prototype.clear = function() {
   if (this.db) {
     this.db.clear();
+  } else {
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function(db) {
+      db.clear().chainDeferred(df);
+    });
+    return df;
   }
-  return goog.async.Deferred.fail(undefined);
 };
 
 
@@ -287,8 +302,14 @@ ydn.db.Storage.prototype.clear = function() {
 ydn.db.Storage.prototype.getCount = function(table) {
   if (this.db) {
     return this.db.getCount(table);
+  } else {
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function(db) {
+      db.getCount(table).chainDeferred(df);
+    });
+    return df;
   }
-  return goog.async.Deferred.fail(undefined);
+
 };
 
 
@@ -298,8 +319,14 @@ ydn.db.Storage.prototype.getCount = function(table) {
 ydn.db.Storage.prototype.fetch = function(q) {
   if (this.db) {
     return this.db.fetch(q);
+  } else {
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function(db) {
+      db.fetch(q).chainDeferred(df);
+    });
+    return df;
   }
-  return goog.async.Deferred.fail(undefined);
+
 };
 
 
