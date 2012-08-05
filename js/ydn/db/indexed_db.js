@@ -49,14 +49,22 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
       goog.global.webkitIndexedDB || goog.global.moz_indexedDB;
 
   self.logger.finer('Trying to open ' + this.dbname + ' ' + this.version);
+
+  // currently in unstable stage, opening indexedDB has two incompatible call.
+  // in chrome, if version is provide, it does not work, while other browser
+  // require version.
+  var is_set_version_supported = goog.isFunction(indexedDb.setVersion);
+  var version = is_set_version_supported ? undefined : this.version;
   var openRequest = indexedDb.open(this.dbname, this.version);
 
   openRequest.onsuccess = function(ev) {
     self.logger.finer(self.dbname + ' ' + this.version + ' OK.');
     var db = ev.target.result;
-    if (self.version != db.version) {
+    if (self.version != db.version) { // for chrome
       self.logger.finer('initializing database from ' + db.version + ' to ' +
           self.version);
+      goog.asserts.assert(is_set_version_supported);
+
       var setVrequest = db.setVersion(self.version); // for chrome
 
       setVrequest.onfailure = function(e) {
@@ -306,7 +314,7 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df) {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.put = function(key, value) {
+ydn.db.IndexedDb.prototype.setItem = function(key, value) {
 
   var self = this;
 
@@ -370,7 +378,7 @@ ydn.db.IndexedDb.prototype.putObject = function(table, value) {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.get = function(key) {
+ydn.db.IndexedDb.prototype.getItem = function(key) {
   var self = this;
 
   return this.doTransaction(function(tx) {

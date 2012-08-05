@@ -67,7 +67,7 @@ ydn.db.Html5Db.prototype.getKey = function(id, opt_table) {
 /**
  * @inheritDoc
  */
-ydn.db.Html5Db.prototype.put = function(key, value) {
+ydn.db.Html5Db.prototype.setItem = function(key, value) {
   window.localStorage.setItem(this.getKey(key), value);
   return goog.async.Deferred.succeed(true);
 };
@@ -90,7 +90,7 @@ ydn.db.Html5Db.prototype.putObject = function(table, value) {
 /**
  * @inheritDoc
  */
-ydn.db.Html5Db.prototype.get = function(key) {
+ydn.db.Html5Db.prototype.getItem = function(key) {
   var value = window.localStorage.getItem(this.getKey(key));
   return goog.async.Deferred.succeed(value);
 };
@@ -108,11 +108,17 @@ ydn.db.Html5Db.prototype.getObject = function(table, key) {
 
 
 /**
- * @inheritDoc
+ * Delete a store (table) or all.
+ * @param {string=} opt_table delete a specific table. if not specified delete
+ * all tables.
+ * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Html5Db.prototype.clear = function() {
+ydn.db.Html5Db.prototype.clear = function(opt_table) {
+  var tables_to_clear = goog.isDef(opt_table) ?
+      goog.object.create(opt_table) : this.schema;
+
   for (var key in window.localStorage) {
-    for (var table in this.schema) {
+    for (var table in tables_to_clear) {
       if (goog.string.startsWith(key, '_database_' + this.dbname + '-' + table)) {
         delete window.localStorage[key];
       }

@@ -43,7 +43,7 @@ ydn.db.Db.DEFAULT_TEXT_STORE = 'default_text_store';
  * @param {string} value value.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.Db.prototype.put = function(key, value) {
+ydn.db.Db.prototype.setItem = function(key, value) {
 
 };
 
@@ -64,7 +64,7 @@ ydn.db.Db.prototype.putObject = function(table, value) {
  * @param {string} key key.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.Db.prototype.get = function(key) {
+ydn.db.Db.prototype.getItem = function(key) {
 
 };
 
@@ -92,9 +92,9 @@ ydn.db.Db.prototype.getCount = function(opt_table) {
 
 
 /**
- * Deletes all objects from the store.
- * @param {string=} opt_table table name, default to
- * {@link ydn.db.Db.DEFAULT_TEXT_STORE}.
+ * Delete a store (table) or all.
+ * @param {string=} opt_table delete a specific table. if not specified delete
+ * all tables.
  * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.Db.prototype.clear = function(opt_table) {

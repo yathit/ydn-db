@@ -205,6 +205,9 @@ ydn.db.Storage.prototype.initDatabase = function() {
           this.version);
     }
 
+    if (this.deferredDb.hasFired()) {
+      this.deferredDb = new goog.async.Deferred();
+    }
     this.deferredDb.callback(this.db);
   }
 };
@@ -213,13 +216,13 @@ ydn.db.Storage.prototype.initDatabase = function() {
 /**
  * @inheritDoc
  */
-ydn.db.Storage.prototype.put = function(key, value) {
+ydn.db.Storage.prototype.setItem = function(key, value) {
   if (this.db) {
-    return this.db.put(key, value);
+    return this.db.setItem(key, value);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.put(key, value).chainDeferred(df);
+      db.setItem(key, value).chainDeferred(df);
     });
     return df;
   }
@@ -241,13 +244,13 @@ ydn.db.Storage.prototype.putObject = function(table, value) {
 /**
  * @inheritDoc
  */
-ydn.db.Storage.prototype.get = function(key) {
+ydn.db.Storage.prototype.getItem = function(key) {
   if (this.db) {
-    return this.db.get(key);
+    return this.db.getItem(key);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.get(key).chainDeferred(df);
+      db.getItem(key).chainDeferred(df);
     });
     return df;
   }

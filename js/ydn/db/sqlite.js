@@ -189,7 +189,7 @@ ydn.db.Sqlite.prototype.exists = function(key, table) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.put = function(key, value) {
+ydn.db.Sqlite.prototype.setItem = function(key, value) {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -356,7 +356,7 @@ ydn.db.Sqlite.prototype.getObject = function(table, key) {
 /**
  * @inheritDoc
  */
-ydn.db.Sqlite.prototype.get = function(key) {
+ydn.db.Sqlite.prototype.getItem = function(key) {
   var d = new goog.async.Deferred();
   var self = this;
 
@@ -641,16 +641,6 @@ ydn.db.Sqlite.prototype.getCount = function(table) {
   });
 
   return d;
-
-  //  var d = new goog.async.Deferred();
-  //  this.keys().addCallback(function(keys) {
-  //    if (keys) {
-  //      d.callback(keys.length);
-  //    } else {
-  //      d.errback(undefined);
-  //    }
-  //  });
-  //  return d;
 };
 
 

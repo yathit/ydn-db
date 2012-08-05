@@ -63,7 +63,7 @@ ydn.db.MemoryStore.prototype.setVersion = function() {
  *
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.put = function(key, value) {
+ydn.db.MemoryStore.prototype.setItem = function(key, value) {
   this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key] = value;
   return goog.async.Deferred.succeed(true);
 };
@@ -92,7 +92,7 @@ ydn.db.MemoryStore.prototype.putObject = function(table, value) {
 /**
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.get = function(key) {
+ydn.db.MemoryStore.prototype.getItem = function(key) {
   var value = this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key];
   return goog.async.Deferred.succeed(value);
 };

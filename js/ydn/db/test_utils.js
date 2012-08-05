@@ -41,7 +41,7 @@ ydn.db.test.db_clear_tests = function(queue, db) {
 ydn.db.test.put_tests = function(queue, db) {
 
   queue.call('put a', function(callbacks) {
-    db.put('a', '1').addCallback(callbacks.add(function(value) {
+    db.setItem('a', '1').addCallback(callbacks.add(function(value) {
       assertEquals('put a 1', true, value);
     }));
   });
@@ -55,13 +55,13 @@ ydn.db.test.put_tests = function(queue, db) {
 ydn.db.test.get_tests = function(queue, db) {
 
   queue.call('put a', function(callbacks) {
-    db.put('a', '1').addCallback(callbacks.add(function(value) {
+    db.setItem('a', '1').addCallback(callbacks.add(function(value) {
       assertEquals('put a 1', true, value);
     }));
   });
 
   queue.call('get a', function(callbacks) {
-    db.get('a').addCallback(callbacks.add(function(value) {
+    db.getItem('a').addCallback(callbacks.add(function(value) {
       assertEquals('get a 1', '1', value);
     }));
   });
@@ -98,14 +98,14 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
   var a_value = 'a' + Math.random();
 
   queue.call('put a', function(callbacks) {
-    db.put('a', a_value).addCallback(callbacks.add(function(value) {
+    db.setItem('a', a_value).addCallback(callbacks.add(function(value) {
       assertEquals('put a ' + a_value, true, value);
     }));
   });
 
 
   queue.call('get a', function(callbacks) {
-    db.get('a').addCallback(callbacks.add(function(value) {
+    db.getItem('a').addCallback(callbacks.add(function(value) {
       assertEquals('get a = ' + a_value, a_value, value);
     }));
   });
@@ -118,13 +118,13 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
   });
 
   queue.call('put b', function(callbacks) {
-    db.put('b', '2').addCallback(callbacks.add(function(value) {
+    db.setItem('b', '2').addCallback(callbacks.add(function(value) {
       assertEquals('put b 2', true, value);
     }));
   });
 
   queue.call('get b', function(callbacks) {
-    db.get('b').addCallback(callbacks.add(function(value) {
+    db.getItem('b').addCallback(callbacks.add(function(value) {
       assertEquals('get b 2', '2', value);
     }));
   });
@@ -137,13 +137,13 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
   });
 
   queue.call('update a', function(callbacks) {
-    db.put('a', '3').addCallback(callbacks.add(function(value) {
+    db.setItem('a', '3').addCallback(callbacks.add(function(value) {
       assertEquals('put a 3', true, value);
     }));
   });
 
   queue.call('get updated a', function(callbacks) {
-    db.get('a').addCallback(callbacks.add(function(value) {
+    db.getItem('a').addCallback(callbacks.add(function(value) {
       assertEquals('get a 3', '3', value);
     }));
   });
@@ -178,7 +178,7 @@ ydn.db.test.special_keys_test = function(queue, db) {
     var key_value = 'a' + Math.random();
     queue.call('put ' + key, function(callbacks) {
       window.console.log('putting ' + key + key_value);
-      db.put(key, key_value).addCallback(callbacks.add(function(value) {
+      db.setItem(key, key_value).addCallback(callbacks.add(function(value) {
         window.console.log('put ' + key + ' ' + value);
         assertEquals('put a 1', true, value);
       }));
@@ -186,7 +186,7 @@ ydn.db.test.special_keys_test = function(queue, db) {
 
     queue.call('get ' + key, function(callbacks) {
       window.console.log('getting ' + key);
-      db.get(key).addCallback(callbacks.add(function(value) {
+      db.getItem(key).addCallback(callbacks.add(function(value) {
         window.console.log('get ' + key + ' ' + value);
         assertEquals('get ' + key, key_value, value);
       }));
