@@ -17,12 +17,13 @@
  *
  * On application use, this is preferable over concrete storage implementation.
  * This wrapper has two purpose:
- * 1) select suitable supported storage mechanism and 2) silently fail when the
- * database is not initialized. Database is initialized when dbname, versiona
- * and schema are set. Often, dbname involve login user identification
- * and it is not available at the time of application start up. Additionally
- * schema may be prepared by multiple
- * module.
+ * 1) select suitable supported storage mechanism and 2) deferred execute when
+ * the database is not initialized. Database is initialized when dbname, version
+ * and schema are set.
+ *
+ * Often, dbname involve login user identification and it is not available at
+ * the time of application start up. Additionally schema may be prepared by
+ * multiple module. This top level wrapper provide these use cases.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -34,6 +35,7 @@ goog.require('ydn.db.IndexedDb');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.Sqlite');
 goog.require('ydn.object');
+goog.require('goog.userAgent.product');
 
 
 
@@ -50,9 +52,15 @@ goog.require('ydn.object');
 ydn.db.Storage = function(opt_dbname, opt_schema, opt_version) {
 
   /**
-   * @type {ydn.db.Db}
+   * @type {ydn.db.Db} db instance.
    */
   this.db;
+
+  /**
+   *
+   * @type {goog.async.Deferred} deferred db instance.
+   */
+  this.deferredDb = new goog.async.Deferred();
 
   this.setDbName(opt_dbname);
   this.setSchema(opt_schema, opt_version);
@@ -179,17 +187,25 @@ ydn.db.Storage.prototype.initDatabase = function() {
   // handle version change
   if (goog.isDef(this.dbname) && goog.isDef(this.schema) &&
       goog.isDef(this.version)) {
-    if (ydn.db.IndexedDb.isSupportedIndexedDb()) {
+
+    if (goog.userAgent.product.ASSUME_CHROME || goog.userAgent.product.ASSUME_FIREFOX) {
+      // for dead-code elimination
+      this.db = new ydn.db.IndexedDb(this.dbname, this.schema, this.version);
+    } else if (goog.userAgent.product.ASSUME_SAFARI || goog.userAgent.ASSUME_WEBKIT) {
+      // for dead-code elimination
+      this.db = new ydn.db.Sqlite(this.dbname, this.schema, this.version);
+    } else if (ydn.db.IndexedDb.isSupported()) { // run-time detection
       this.db = new ydn.db.IndexedDb(this.dbname, this.schema, this.version);
     } else if (ydn.db.Sqlite.isSupported()) {
       this.db = new ydn.db.Sqlite(this.dbname, this.schema, this.version);
-    } else {
+    } else if (ydn.db.Html5Db.isSupported()) {
       this.db = new ydn.db.Html5Db(this.dbname, this.schema, this.version);
-      if (!this.db.isReady()) {
-        this.db = new ydn.db.MemoryStore(this.dbname, this.schema,
-            this.version);
-      }
+    } else {
+      this.db = new ydn.db.MemoryStore(this.dbname, this.schema,
+          this.version);
     }
+
+    this.deferredDb.callback(this.db);
   }
 };
 
@@ -199,9 +215,15 @@ ydn.db.Storage.prototype.initDatabase = function() {
  */
 ydn.db.Storage.prototype.put = function(key, value) {
   if (this.db) {
-    this.db.put(key, value);
+    return this.db.put(key, value);
+  } else {
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function(db) {
+      db.put(key, value).chainDeferred(df);
+    });
+    return df;
   }
-  return goog.async.Deferred.fail(undefined);
+
 };
 
 
@@ -222,8 +244,13 @@ ydn.db.Storage.prototype.putObject = function(table, value) {
 ydn.db.Storage.prototype.get = function(key) {
   if (this.db) {
     return this.db.get(key);
+  } else {
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function(db) {
+      db.get(key).chainDeferred(df);
+    });
+    return df;
   }
-  return goog.async.Deferred.fail(undefined);
 };
 
 

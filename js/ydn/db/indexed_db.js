@@ -108,7 +108,7 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
  *
  * @return {boolean} return indexedDB support on run time.
  */
-ydn.db.IndexedDb.isSupportedIndexedDb = function() {
+ydn.db.IndexedDb.isSupported = function() {
   var indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
       goog.global.webkitIndexedDB || goog.global.moz_indexedDB;
   return !!indexedDb;

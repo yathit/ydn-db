@@ -18,8 +18,6 @@
 
 goog.provide('ydn.db.Html5Db');
 goog.require('goog.async.Deferred');
-goog.require('goog.storage.CollectableStorage');
-goog.require('goog.storage.mechanism.mechanismfactory');
 
 
 
@@ -32,37 +30,13 @@ goog.require('goog.storage.mechanism.mechanismfactory');
  */
 ydn.db.Html5Db = function(dbname, opt_schema, opt_version) {
   this.version = opt_version || '1';
-  dbname = dbname;
   this.dbname = dbname;
   this.schema = opt_schema || {};
   this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
 
-  /**
-   *
-   * @type {Object.<goog.storage.mechanism.IterableMechanism>}
-   */
-  this.mechanisms = {};
-  /**
-   *
-   * @type {Object.<goog.storage.CollectableStorage>}
-   */
-  this.stores = {};
-  this.is_ready = true;
-  for (var tablename in this.schema) {
-    if (this.schema.hasOwnProperty(tablename)) {
-      var store_name = this.getStoreName(tablename);
-      if (tablename == ydn.db.Db.DEFAULT_TEXT_STORE) {
-        this.default_store = store_name;
-      }
-      this.mechanisms[store_name] =
-          goog.storage.mechanism.mechanismfactory.create(store_name);
-      if (this.mechanisms[store_name] instanceof
-          goog.storage.mechanism.IterableMechanism) {
-        this.stores[store_name] = new goog.storage.CollectableStorage(
-            this.mechanisms[store_name]);
-      } else {
-        this.is_ready = false;
-      }
+  for (var table in this.schema) {
+    if (!goog.isDef(window.localStorage[table])) {
+      window.localStorage[table] = {};
     }
   }
 
@@ -71,22 +45,22 @@ ydn.db.Html5Db = function(dbname, opt_schema, opt_version) {
 
 /**
  *
- * @return {boolean} return true if ready.
+ * @return {boolean} true if localStorage is supported
  */
-ydn.db.Html5Db.prototype.isReady = function() {
-  return this.is_ready;
+ydn.db.Html5Db.isSupported = function() {
+  return !!window.localStorage;
 };
 
 
 /**
- * localStorage do not have concept of database.
  * @protected
- * @param {string} table table name.
- * @return {string} table name in global scope of localStorage.
+ * @param {string} id id.
+ * @param {string=} opt_table table name.
+ * @return {string}
  */
-ydn.db.Html5Db.prototype.getStoreName = function(table) {
-  //return this.dbname + '_v' + this.version + '_' + table;
-  return this.dbname + '_' + table;
+ydn.db.Html5Db.prototype.getKey = function(id, opt_table) {
+  opt_table = opt_table || ydn.db.Db.DEFAULT_TEXT_STORE;
+  return '_database_' + this.dbname + '-' + opt_table + '-' + id;
 };
 
 
@@ -94,7 +68,7 @@ ydn.db.Html5Db.prototype.getStoreName = function(table) {
  * @inheritDoc
  */
 ydn.db.Html5Db.prototype.put = function(key, value) {
-  this.stores[this.default_store].set(key, value);
+  window.localStorage.setItem(this.getKey(key), value);
   return goog.async.Deferred.succeed(true);
 };
 
@@ -106,9 +80,9 @@ ydn.db.Html5Db.prototype.put = function(key, value) {
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
 ydn.db.Html5Db.prototype.putObject = function(table, value) {
-  var key = value[this.schema[table].keyPath];
+  var key = this.getKey(value[this.schema[table].keyPath], table);
   var value_str = ydn.json.stringify(value);
-  this.stores[this.getStoreName(table)].set(key, value_str);
+  window.localStorage.setItem(key, value_str);
   return goog.async.Deferred.succeed(true);
 };
 
@@ -117,7 +91,7 @@ ydn.db.Html5Db.prototype.putObject = function(table, value) {
  * @inheritDoc
  */
 ydn.db.Html5Db.prototype.get = function(key) {
-  var value = this.stores[this.default_store].get(key);
+  var value = window.localStorage.getItem(this.getKey(key));
   return goog.async.Deferred.succeed(value);
 };
 
@@ -126,9 +100,8 @@ ydn.db.Html5Db.prototype.get = function(key) {
  * @inheritDoc
  */
 ydn.db.Html5Db.prototype.getObject = function(table, key) {
-  goog.asserts.assertObject(this.stores[this.getStoreName(table)], 'table: ' +
-      table + ' not existed in ' + this.dbname);
-  var value = this.stores[this.getStoreName(table)].get(key);
+
+  var value = window.localStorage.getItem(this.getKey(key, table));
   return goog.async.Deferred.succeed(ydn.json.parse(
       /** @type {string} */ (value)));
 };
@@ -138,8 +111,12 @@ ydn.db.Html5Db.prototype.getObject = function(table, key) {
  * @inheritDoc
  */
 ydn.db.Html5Db.prototype.clear = function() {
-  for (var table in this.mechanisms) {
-    this.mechanisms[table].clear();
+  for (var key in window.localStorage) {
+    for (var table in this.schema) {
+      if (goog.string.startsWith(key, '_database_' + this.dbname + '-' + table)) {
+        delete window.localStorage[key];
+      }
+    }
   }
   return goog.async.Deferred.succeed(true);
 };
@@ -154,7 +131,13 @@ ydn.db.Html5Db.prototype.clear = function() {
 ydn.db.Html5Db.prototype.getCount = function(opt_table) {
   var d = new goog.async.Deferred();
   opt_table = opt_table || ydn.db.Db.DEFAULT_TEXT_STORE;
-  d.callback(this.mechanisms[this.getStoreName(opt_table)].getCount());
+  var n = 0;
+  for (var key in window.localStorage) {
+    if (goog.string.startsWith(key, '_database_' + this.dbname)) {
+      n++;
+    }
+  }
+  d.callback(n);
   return d;
 };
 

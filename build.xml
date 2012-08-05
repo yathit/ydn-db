@@ -28,5 +28,14 @@
             </deps-options>
         </jstd-gen>
     </target>
-
+    <target name="jsdoc" description="create document">
+        <java jar="${jsdoc.dir}/jsrun.jar" fork="true" failonerror="true" logError="true">
+            <arg line="${jsdoc.dir}/app/run.js" />
+            <arg line="${ydn-db.dir}/js"/>
+            <arg line="--verbose"/>
+            <arg line="--recurse=6"/>
+            <arg line="--template=${jsdoc.dir}/templates/jsdoc"/>
+            <arg line="--directory=${ydn-db.dir}/docs"/>
+        </java>
+    </target>
 </project>
