@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview Store data in memory.
  *
@@ -12,22 +26,22 @@ goog.require('ydn.db.Db');
 /**
  * @implements {ydn.db.Db}
  * @constructor
- * @param {string} dbname
- * @param {Object=} schema table schema contain table name and keyPath.
- * @param {string=} version
+ * @param {string} dbname database name.
+ * @param {Object=} opt_schema table schema contain table name and keyPath.
+ * @param {string=} opt_version version.
  */
-ydn.db.MemoryStore = function(dbname, schema, version) {
-  this.version = version || 1;
+ydn.db.MemoryStore = function(dbname, opt_schema, opt_version) {
+  this.version = opt_version || 1;
   dbname = dbname;
   this.dbname = dbname;
-  this.schema = schema || {};
+  this.schema = opt_schema || {};
   this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
   this.setVersion();
 };
 
 
 /**
- * @private
+ * @protected
  */
 ydn.db.MemoryStore.prototype.setVersion = function() {
   /**
@@ -37,7 +51,9 @@ ydn.db.MemoryStore.prototype.setVersion = function() {
    */
   this.cache = {};
   for (var table in this.schema) {
-    goog.asserts.assertString(this.schema[table].keyPath, 'keyPath ' + this.schema[table].keyPath + ' not defined in ' + table + ' ' + JSON.stringify(this.schema[table]));
+    goog.asserts.assertString(this.schema[table].keyPath, 'keyPath ' +
+        this.schema[table].keyPath + ' not defined in ' + table + ' ' +
+        ydn.json.stringify(this.schema[table]));
     this.cache[table] = {};
   }
 };
@@ -45,9 +61,7 @@ ydn.db.MemoryStore.prototype.setVersion = function() {
 
 /**
  *
- * @param {string} key
- * @param {string} value
- *  @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.MemoryStore.prototype.put = function(key, value) {
   this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key] = value;
@@ -56,27 +70,27 @@ ydn.db.MemoryStore.prototype.put = function(key, value) {
 
 
 /**
- *
- * @param {Object} value
- * @param {string=} key
- * @return {!goog.async.Deferred} true on success. undefined on fail.
+ * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.putObject = function(table, value, key) {
-  if (!goog.isDef(key)) {
-    goog.asserts.assertObject(this.schema[table], 'table: ' + table + ' is not defined in ' + this.dbname);
-    goog.asserts.assertString(this.schema[table].keyPath, 'keyPath ' + this.schema[table].keyPath + ' not defined in ' + table + ' ' + JSON.stringify(this.schema[table]));
-    key = value[this.schema[table].keyPath];
-  }
-  goog.asserts.assertString(key, 'keyPath: ' + this.schema[table].keyPath + ' not defined in ' + JSON.stringify(value));
+ydn.db.MemoryStore.prototype.putObject = function(table, value) {
+  //  if (!goog.isDef(key)) {
+  //    goog.asserts.assertObject(this.schema[table], 'table: ' + table +
+  // ' is not defined in ' + this.dbname);
+  //    goog.asserts.assertString(this.schema[table].keyPath, 'keyPath ' +
+  // this.schema[table].keyPath + ' not defined in ' + table + ' ' +
+  // JSON.stringify(this.schema[table]));
+  //    key = value[this.schema[table].keyPath];
+  //  }
+  var key = value[this.schema[table].keyPath];
+  goog.asserts.assertString(key, 'keyPath: ' + this.schema[table].keyPath +
+      ' not defined in ' + JSON.stringify(value));
   this.cache[table][key] = value;
   return goog.async.Deferred.succeed(true);
 };
 
 
 /**
- *
- * @param {string} key
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.MemoryStore.prototype.get = function(key) {
   var value = this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key];
@@ -85,10 +99,7 @@ ydn.db.MemoryStore.prototype.get = function(key) {
 
 
 /**
- * Return object
- * @param {string} table
- * @param {string} key
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.MemoryStore.prototype.getObject = function(table, key) {
   goog.asserts.assertString(table);
@@ -106,7 +117,6 @@ ydn.db.MemoryStore.prototype.getObject = function(table, key) {
 
 
 /**
- * Deletes all objects from the store.
  * @inheritDoc
  */
 ydn.db.MemoryStore.prototype.clear = function(table) {
@@ -137,10 +147,8 @@ ydn.db.MemoryStore.prototype.getCount = function(table) {
 
 
 /**
- * Fetch result of a query
- * @param {ydn.db.Query} q
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.MemoryStore.prototype.fetch = function(q) {
-  return goog.async.Deferred.fail(true);
+  return goog.async.Deferred.fail(true); // don't bother to implement
 };

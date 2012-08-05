@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview HTML5 localStorage implemented as deferred async pattern.
  */
@@ -11,16 +25,16 @@ goog.require('goog.storage.mechanism.mechanismfactory');
 
 /**
  * @implements {ydn.db.Db}
- * @param {string} dbname
- * @param {Object=} schema table schema contain table name and keyPath.
- * @param {string=} version
+ * @param {string} dbname dtabase name.
+ * @param {Object=} opt_schema table schema contain table name and keyPath.
+ * @param {string=} opt_version version, default to '1'.
  * @constructor
  */
-ydn.db.Html5Db = function(dbname, schema, version) {
-  this.version = version || '1';
+ydn.db.Html5Db = function(dbname, opt_schema, opt_version) {
+  this.version = opt_version || '1';
   dbname = dbname;
   this.dbname = dbname;
-  this.schema = schema || {};
+  this.schema = opt_schema || {};
   this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
 
   /**
@@ -40,9 +54,12 @@ ydn.db.Html5Db = function(dbname, schema, version) {
       if (tablename == ydn.db.Db.DEFAULT_TEXT_STORE) {
         this.default_store = store_name;
       }
-      this.mechanisms[store_name] = goog.storage.mechanism.mechanismfactory.create(store_name);
-      if (this.mechanisms[store_name] instanceof goog.storage.mechanism.IterableMechanism) {
-        this.stores[store_name] = new goog.storage.CollectableStorage(this.mechanisms[store_name]);
+      this.mechanisms[store_name] =
+          goog.storage.mechanism.mechanismfactory.create(store_name);
+      if (this.mechanisms[store_name] instanceof
+          goog.storage.mechanism.IterableMechanism) {
+        this.stores[store_name] = new goog.storage.CollectableStorage(
+            this.mechanisms[store_name]);
       } else {
         this.is_ready = false;
       }
@@ -54,7 +71,7 @@ ydn.db.Html5Db = function(dbname, schema, version) {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} return true if ready.
  */
 ydn.db.Html5Db.prototype.isReady = function() {
   return this.is_ready;
@@ -62,19 +79,19 @@ ydn.db.Html5Db.prototype.isReady = function() {
 
 
 /**
- * @private
- * @param table
+ * localStorage do not have concept of database.
+ * @protected
+ * @param {string} table table name.
+ * @return {string} table name in global scope of localStorage.
  */
 ydn.db.Html5Db.prototype.getStoreName = function(table) {
-  return this.dbname + '_v' + this.version + '_' + table;
+  //return this.dbname + '_v' + this.version + '_' + table;
+  return this.dbname + '_' + table;
 };
 
 
 /**
- *
- * @param {string} key
- * @param {string} value
- *  @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.Html5Db.prototype.put = function(key, value) {
   this.stores[this.default_store].set(key, value);
@@ -83,15 +100,13 @@ ydn.db.Html5Db.prototype.put = function(key, value) {
 
 
 /**
- *
- * @param {Object} value
- * @param {string=} key
+ * @see put
+ * @param {string} table table name.
+ * @param {Object|Array} value object to put.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.Html5Db.prototype.putObject = function(table, value, key) {
-  if (!goog.isDef(key)) {
-    key = value[this.schema[table].keyPath];
-  }
+ydn.db.Html5Db.prototype.putObject = function(table, value) {
+  var key = value[this.schema[table].keyPath];
   var value_str = ydn.json.stringify(value);
   this.stores[this.getStoreName(table)].set(key, value_str);
   return goog.async.Deferred.succeed(true);
@@ -99,9 +114,7 @@ ydn.db.Html5Db.prototype.putObject = function(table, value, key) {
 
 
 /**
- *
- * @param {string} key
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.Html5Db.prototype.get = function(key) {
   var value = this.stores[this.default_store].get(key);
@@ -110,19 +123,19 @@ ydn.db.Html5Db.prototype.get = function(key) {
 
 
 /**
- * Return object
- * @param {string} key
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.Html5Db.prototype.getObject = function(table, key) {
-  goog.asserts.assertObject(this.stores[this.getStoreName(table)], 'table: ' + table + ' not existed in ' + this.dbname);
+  goog.asserts.assertObject(this.stores[this.getStoreName(table)], 'table: ' +
+      table + ' not existed in ' + this.dbname);
   var value = this.stores[this.getStoreName(table)].get(key);
-  return goog.async.Deferred.succeed(ydn.json.parse(/** @type {string} */ (value)));
+  return goog.async.Deferred.succeed(ydn.json.parse(
+      /** @type {string} */ (value)));
 };
 
 
 /**
- * Deletes all objects from the store.
+ * @inheritDoc
  */
 ydn.db.Html5Db.prototype.clear = function() {
   for (var table in this.mechanisms) {
@@ -133,20 +146,21 @@ ydn.db.Html5Db.prototype.clear = function() {
 
 
 /**
- * @inheritDoc
+ * Get number of items stored.
+ * @param {string=} opt_table table name, default to
+ * {@link ydn.db.Db.DEFAULT_TEXT_STORE}.
+ * @return {!goog.async.Deferred} return number of items in deferred function.
  */
-ydn.db.Html5Db.prototype.getCount = function(table) {
+ydn.db.Html5Db.prototype.getCount = function(opt_table) {
   var d = new goog.async.Deferred();
-  table = table || ydn.db.Db.DEFAULT_TEXT_STORE;
-  d.callback(this.mechanisms[this.getStoreName(table)].getCount());
+  opt_table = opt_table || ydn.db.Db.DEFAULT_TEXT_STORE;
+  d.callback(this.mechanisms[this.getStoreName(opt_table)].getCount());
   return d;
 };
 
 
 /**
- * Fetch result of a query
- * @param {ydn.db.Query} q
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.Html5Db.prototype.fetch = function(q) {
   return goog.async.Deferred.fail(true);

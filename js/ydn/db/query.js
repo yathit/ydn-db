@@ -58,50 +58,50 @@ ydn.db.Query.Op = {
 
 /**
  *
- * @param {string} value
- * @param {string=} field
- * @return {ydn.db.Query}
+ * @param {string} value value.
+ * @param {string=} opt_field field name if required.
+ * @return {ydn.db.Query} constructed query.
  */
-ydn.db.Query.prototype.get = function(value, field) {
+ydn.db.Query.prototype.get = function(value, opt_field) {
   this.op = ydn.db.Query.Op.EQ;
   this.value = value;
-  this.field = field || '';
+  this.field = opt_field || '';
   return this;
 };
 
 
 /**
  *
- * @param {string} table
- * @param {string} value
- * @param {string=} field
- * @return {ydn.db.Query}
+ * @param {string} table table name.
+ * @param {string} value value.
+ * @param {string=} opt_field field name if required.
+ * @return {ydn.db.Query} constructed query.
  */
-ydn.db.Query.get = function(table, value, field) {
-  return (new ydn.db.Query(table)).get(value, field);
+ydn.db.Query.get = function(table, value, opt_field) {
+  return (new ydn.db.Query(table)).get(value, opt_field);
 };
 
 
 /**
  *
- * @param {string} value
- * @param {string=} field
- * @return {ydn.db.Query}
+ * @param {string} value value.
+ * @param {string=} opt_field  field name if required.
+ * @return {ydn.db.Query} constructed query.
  */
-ydn.db.Query.prototype.startWith = function(value, field) {
+ydn.db.Query.prototype.startWith = function(value, opt_field) {
   this.op = ydn.db.Query.Op.START_WITH;
   this.value = value;
-  this.field = field || '';
+  this.field = opt_field || '';
   return this;
 };
 
 
 /**
- * @param {string} table
- * @param {string} value
- * @param {string=} field
- * @return {ydn.db.Query}
+ * @param {string} table table name.
+ * @param {string} value value.
+ * @param {string=} opt_field  field name if required.
+ * @return {ydn.db.Query} constructed query.
  */
-ydn.db.Query.startWith = function(table, value, field) {
-  return (new ydn.db.Query(table)).startWith(value, field);
+ydn.db.Query.startWith = function(table, value, opt_field) {
+  return (new ydn.db.Query(table)).startWith(value, opt_field);
 };

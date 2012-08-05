@@ -15,13 +15,16 @@
 /**
  * @fileoverview Wrappers for the all implemented Storage mechanisms.
  *
- * On application use, this is preferable over concrete storage implementation. This wrapper has two purpose:
- * 1) select suitable supported storage mechanism and 2) silently fail when the database is not initialized.
- * Database is initialized when dbname, versiona and schema are set. Often, dbname involve login user identification
- * and it is not available at the time of application start up. Additionally schema may be prepared by multiple
+ * On application use, this is preferable over concrete storage implementation.
+ * This wrapper has two purpose:
+ * 1) select suitable supported storage mechanism and 2) silently fail when the
+ * database is not initialized. Database is initialized when dbname, versiona
+ * and schema are set. Often, dbname involve login user identification
+ * and it is not available at the time of application start up. Additionally
+ * schema may be prepared by multiple
  * module.
  *
- * @author Kyaw Tun
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.Storage');
@@ -35,34 +38,37 @@ goog.require('ydn.object');
 
 
 /**
- * Create a suitable storage mechanism. starting from indexdb, to websql to localStorage.
- * @param {string=} dbname
- * @param {Object=} schema table schema contain table name and keyPath.
- * @param {string=} version
+ * Create a suitable storage mechanism. starting from indexdb, to websql to
+ * localStorage.
+ * @see goog.db
+ * @param {string=} opt_dbname database name.
+ * @param {Object=} opt_schema table schema contain table name and keyPath.
+ * @param {string=} opt_version version.
  * @implements {ydn.db.Db}
  * @constructor
  */
-ydn.db.Storage = function(dbname, schema, version) {
+ydn.db.Storage = function(opt_dbname, opt_schema, opt_version) {
 
   /**
    * @type {ydn.db.Db}
    */
   this.db;
 
-  this.setDbName(dbname);
-  this.setSchema(schema, version);
+  this.setDbName(opt_dbname);
+  this.setSchema(opt_schema, opt_version);
 };
 
 
 /**
- * @typedef {{dbname: (string|undefined), schema: (Object|undefined), version: (string|undefined)}}
+ * @typedef {{dbname: (string|undefined), schema: (Object|undefined), version:
+ * (string|undefined)}}
  */
 ydn.db.Storage.Config;
 
 
 /**
  *
- * @return {ydn.db.Storage.Config}
+ * @return {ydn.db.Storage.Config} configuration.
  */
 ydn.db.Storage.prototype.getConfig = function() {
   return {
@@ -75,17 +81,17 @@ ydn.db.Storage.prototype.getConfig = function() {
 
 /**
  *
- * @param {string=} dbname
+ * @param {string=} opt_dbname set database name.
  * @return {string|undefined} normalized dbname.
  */
-ydn.db.Storage.prototype.setDbName = function(dbname) {
-  if (goog.isDef(dbname)) {
-    dbname = dbname.replace(/[@|\.|\s]/g, '');
+ydn.db.Storage.prototype.setDbName = function(opt_dbname) {
+  if (goog.isDef(opt_dbname)) {
+    opt_dbname = opt_dbname.replace(/[@|\.|\s]/g, '');
   } else {
-    dbname = undefined;
+    opt_dbname = undefined;
   }
-  if (this.dbname !== dbname) {
-    this.dbname = dbname;
+  if (this.dbname !== opt_dbname) {
+    this.dbname = opt_dbname;
     this.initDatabase();
   }
   return this.dbname;
@@ -114,13 +120,13 @@ ydn.db.Storage.prototype.setDbName = function(dbname) {
  *   }
  * </pre>
  * @see {@link #addTableSchema}
- * @param {Object=} schema
- * @param {string=} version
+ * @param {Object=} opt_schema schema.
+ * @param {string=} opt_version version.
  */
-ydn.db.Storage.prototype.setSchema = function(schema, version) {
-  this.schema = schema;
-  if (goog.isDef(version)) {
-    this.version = version;
+ydn.db.Storage.prototype.setSchema = function(opt_schema, opt_version) {
+  this.schema = opt_schema;
+  if (goog.isDef(opt_version)) {
+    this.version = opt_version;
   }
   this.initDatabase();
 };
@@ -128,7 +134,7 @@ ydn.db.Storage.prototype.setSchema = function(schema, version) {
 
 /**
  *
- * @param {string} version
+ * @param {string} version version.
  */
 ydn.db.Storage.prototype.setVersion = function(version) {
   this.version = version;
@@ -148,8 +154,8 @@ ydn.db.Storage.prototype.setVersion = function(version) {
  *      ]
        }
  * </pre>
- * @param {string} tableName
- * @param {Object} tableSchema
+ * @param {string} tableName table name.
+ * @param {Object} tableSchema schema for the table.
  */
 ydn.db.Storage.prototype.addTableSchema = function(tableName, tableSchema) {
   if (this.db) {
@@ -161,16 +167,18 @@ ydn.db.Storage.prototype.addTableSchema = function(tableName, tableSchema) {
 
 
 /**
- * Initialize suitable database if {@code dbname} and {@code schema} are set, starting in the following order of preference.
+ * Initialize suitable database if {@code dbname} and {@code schema} are set,
+ * starting in the following order of preference.
  * 1. IndexedDb
  * 2. Sqlite
  * 3. Html5Db
  * 4. MemoryStore
- * @private
+ * @protected
  */
 ydn.db.Storage.prototype.initDatabase = function() {
   // handle version change
-  if (goog.isDef(this.dbname) && goog.isDef(this.schema) && goog.isDef(this.version)) {
+  if (goog.isDef(this.dbname) && goog.isDef(this.schema) &&
+      goog.isDef(this.version)) {
     if (ydn.db.IndexedDb.isSupportedIndexedDb()) {
       this.db = new ydn.db.IndexedDb(this.dbname, this.schema, this.version);
     } else if (ydn.db.Sqlite.isSupported()) {
@@ -178,7 +186,8 @@ ydn.db.Storage.prototype.initDatabase = function() {
     } else {
       this.db = new ydn.db.Html5Db(this.dbname, this.schema, this.version);
       if (!this.db.isReady()) {
-        this.db = new ydn.db.MemoryStore(this.dbname, this.schema, this.version);
+        this.db = new ydn.db.MemoryStore(this.dbname, this.schema,
+            this.version);
       }
     }
   }
@@ -186,10 +195,7 @@ ydn.db.Storage.prototype.initDatabase = function() {
 
 
 /**
- * This will silently ignore if user is not login.
- * @param {string} key
- * @param {string} value
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.Storage.prototype.put = function(key, value) {
   if (this.db) {
@@ -200,9 +206,7 @@ ydn.db.Storage.prototype.put = function(key, value) {
 
 
 /**
- * @param {string} table
- * @param {Object|Array} value
- * @return {!goog.async.Deferred} true on success. undefined on fail.
+ * @inheritDoc
  */
 ydn.db.Storage.prototype.putObject = function(table, value) {
   if (this.db) {
@@ -213,9 +217,7 @@ ydn.db.Storage.prototype.putObject = function(table, value) {
 
 
 /**
- *
- * @param {string} key
- * @return {!goog.async.Deferred} string.
+ * @inheritDoc
  */
 ydn.db.Storage.prototype.get = function(key) {
   if (this.db) {
@@ -226,10 +228,7 @@ ydn.db.Storage.prototype.get = function(key) {
 
 
 /**
- * Return object
- * @param {string} table
- * @param {string} key
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.Storage.prototype.getObject = function(table, key) {
   if (this.db) {
@@ -251,9 +250,7 @@ ydn.db.Storage.prototype.clear = function() {
 
 
 /**
- * Get number of items stored.
- * @param {string=} table
- * @return {!goog.async.Deferred} {@code number}.
+ * @inheritDoc
  */
 ydn.db.Storage.prototype.getCount = function(table) {
   if (this.db) {
@@ -264,9 +261,7 @@ ydn.db.Storage.prototype.getCount = function(table) {
 
 
 /**
- * Fetch result of a query
- * @param {ydn.db.Query} q
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.Storage.prototype.fetch = function(q) {
   if (this.db) {
@@ -285,12 +280,14 @@ ydn.db.Storage.prototype.disp = function() {
     var self = this;
 
     var print_table_description = function(table, count) {
-      window.console.log('Table: ' + table + ', keyPath: ' + self.schema[table].keyPath +
+      window.console.log('Table: ' + table + ', keyPath: ' +
+          self.schema[table].keyPath +
           ', count: ' + count);
     };
 
     for (var table in this.schema) {
-      this.getCount(table).addBoth(goog.partial(print_table_description, table));
+      this.getCount(table).addBoth(goog.partial(print_table_description,
+          table));
     }
   }
 };
