@@ -22,7 +22,9 @@ goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
 goog.require('goog.async.DeferredList');
 goog.require('ydn.json');
+goog.require('ydn.async');
 goog.require('goog.Timer');
+
 
 
 /**
@@ -495,7 +497,7 @@ ydn.db.IndexedDb.prototype.clear = function (table) {
     for (var store in this.schema) {
       dfs.push(this.clearStore(store));
     }
-    return new goog.async.DeferredList(dfs);
+    return ydn.async.reduceAllTrue(new goog.async.DeferredList(dfs));
   }
 };
 

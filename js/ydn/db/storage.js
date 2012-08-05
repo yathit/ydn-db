@@ -30,6 +30,7 @@ goog.require('ydn.db.Sqlite');
 goog.require('ydn.db.Html5Db');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.object');
+goog.require('ydn.async');
 
 
 /**

@@ -2,6 +2,7 @@
 goog.require('goog.testing.jsunit');
 
 goog.require('ydn.db.Storage');
+goog.require('goog.debug.Console');
 
 
 var reachedFinalContinuation;
@@ -253,7 +254,7 @@ var test_special_value = function () {
 
   test_value(ydn.json.stringify({id: 'a', value: 10.2}));
 
-  test_value(ydn.json.stringify({value: Math.random(), 'name': ydn.utils.testing.randEmail()}));
+  test_value(ydn.json.stringify({value: Math.random(), 'name': ydn.testing.randEmail()}));
 
 };
 

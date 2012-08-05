@@ -25,6 +25,7 @@ goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
 goog.require('goog.async.Deferred');
 goog.require('ydn.json');
+goog.require('ydn.async');
 
 
 /**
@@ -36,7 +37,7 @@ goog.require('ydn.json');
  */
 ydn.db.Sqlite = function (dbname, schema, version) {
   var self = this;
-  this.version = version || '1';
+  this.version = version || '';
   dbname = dbname;
   this.dbname = dbname;
   this.schema = schema || {};
@@ -58,6 +59,7 @@ ydn.db.Sqlite = function (dbname, schema, version) {
   }
 
 };
+
 
 
 /**
@@ -594,7 +596,7 @@ ydn.db.Sqlite.prototype.clear = function (table) {
     for (var store in this.schema) {
       dfs.push(this.clearStore(store));
     }
-    return new goog.async.DeferredList(dfs);
+    return ydn.async.reduceAllTrue(new goog.async.DeferredList(dfs));
   }
 };
 

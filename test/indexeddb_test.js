@@ -3,6 +3,7 @@ goog.require('goog.testing.jsunit');
 
 goog.require('ydn.db.Storage');
 goog.require('goog.debug.Console');
+goog.require('ydn.async');
 
 
 var reachedFinalContinuation;
@@ -69,7 +70,8 @@ var test_1_clear = function() {
       100, // interval
       1000); // maxTimeout
 
-  db.clear().addCallback(function(value) {
+  var dfl = db.clear();
+  dfl.addCallback(function(value) {
     put_value = value;
     hasEventFired = true;
   }).addErrback(function(v) {
