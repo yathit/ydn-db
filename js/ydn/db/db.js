@@ -37,8 +37,28 @@ ydn.db.Db.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
 /**
- * Store schema
- * @typedef {{name: string, keyPath: string, unique}}
+ * Store field data type following Web Sql definition.
+ * @see http://www.sqlite.org/lang_expr.html
+ * @enum {string}
+ */
+ydn.db.Db.DataType = {
+  TEXT: 'TEXT',
+  NUMERIC: 'REAL',
+  INTEGER: 'INTEGER'
+};
+
+
+/**
+ * Table schema following IndexedDB definition. In WebSql, a table is created
+ * with the indexeded field. Non-indexed value are stored in stringified string.
+ * @typedef {{name: string, type: ydn.db.Db.DataType, unique: boolean}}
+ */
+ydn.db.Db.IndexSchema;
+
+
+/**
+ * Table schema following IndexedDB definition.
+ * @typedef {{name: string, keyPath: string, indexes: Array.<ydn.db.Db.IndexSchema>}}
  */
 ydn.db.Db.TableSchema;
 
@@ -50,34 +70,12 @@ ydn.db.Db.DatabaseSchema;
 
 
 /**
- *
- *
- * @param {string} key key.
- * @param {string} value value.
- * @return {!goog.async.Deferred} true on success. undefined on fail.
- */
-ydn.db.Db.prototype.setItem = function(key, value) {
-
-};
-
-
-/**
  * @see put
  * @param {string} table table name.
  * @param {Object|Array} value object to put.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
 ydn.db.Db.prototype.put = function(table, value) {
-
-};
-
-
-/**
- * Return string
- * @param {string} key key.
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.Db.prototype.getItem = function(key) {
 
 };
 

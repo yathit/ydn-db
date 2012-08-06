@@ -214,21 +214,15 @@ ydn.db.Storage.prototype.initDatabase = function() {
 
 
 /**
- * @inheritDoc
+ * Store a value to default key-value store.
+ * @param {string} key key.
+ * @param {string} value value.
+ * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
 ydn.db.Storage.prototype.setItem = function(key, value) {
-  if (this.db) {
-    //console.log('set item d ' + key);
-    return this.db.setItem(key, value);
-  } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function(db) {
-      //console.log('set item ' + key);
-      db.setItem(key, value).chainDeferred(df);
-    });
-    return df;
+  if (ydn.db.Db.DEFAULT_TEXT_STORE) {
+    return this.put(ydn.db.Db.DEFAULT_TEXT_STORE, {'id': key, 'value': value});
   }
-
 };
 
 
@@ -249,18 +243,20 @@ ydn.db.Storage.prototype.put = function(table, value) {
 
 
 /**
- * @inheritDoc
+ * Retrieve a value from default key-value store.
+ * @param {string} key key.
+ * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.Storage.prototype.getItem = function(key) {
-  if (this.db) {
-    return this.db.getItem(key);
-  } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function(db) {
-      db.getItem(key).chainDeferred(df);
-    });
-    return df;
-  }
+  var out = this.get(ydn.db.Db.DEFAULT_TEXT_STORE, key);
+  var df = new goog.async.Deferred();
+  df.addCallback(function(data) {
+    df.callback(data['value']);
+  });
+  df.addErrback(function(data) {
+    df.callback(data);
+  });
+  return df;
 };
 
 

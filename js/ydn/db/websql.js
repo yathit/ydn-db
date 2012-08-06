@@ -44,6 +44,11 @@ ydn.db.WebSql = function(dbname, opt_schema, opt_version) {
   this.version = opt_version || ''; // so that it will use available version.
   dbname = dbname;
   this.dbname = dbname;
+  /**
+   * @final
+   * @protected
+   * @type {ydn.db.Db.DatabaseSchema}
+   */
   this.schema = opt_schema || {};
   this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
 
@@ -91,21 +96,60 @@ ydn.db.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSql');
 
 
 /**
+ * Non-indexed field are store in this default field. There is always a column
+ * in each table.
+ * @type {String}
+ */
+ydn.db.WebSql.DEFAULT_FIELD = '_default_';
+
+/**
+ * Initialize variable to the schema and prepare SQL statement for creating
+ * the table.
  * @protected
- * @param {string} table databse table name.
+ * @param {ydn.db.Db.TableSchema} schema name of table in the schema.
+ * @return {string} SQL statement for creating the table.
+ */
+ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
+
+  var keyPath = schema.keyPath || 'id';
+  var keyPathQuoted = goog.string.quote(keyPath);
+
+  schema.keyPath = keyPath;
+  schema.keyParts = keyPath.split('.');
+  schema.keyPathQuoted = goog.string.quote(keyPath);
+  schema.tableQuoted = goog.string.quote(schema.name);
+
+  var sql = "CREATE TABLE IF NOT EXISTS '" + schema.tableQuoted + "' (" +
+      keyPathQuoted + ' TEXT UNIQUE PRIMARY KEY';
+  sql += ', ' + ydn.db.WebSql.DEFAULT_FIELD + ' TEXT';
+
+  schema.indexes = schema.indexes || [];
+  schema.indexes.push(ydn.db.WebSql.DEFAULT_FIELD);
+
+  schema.columns = [];
+  for (var i = 0; i < n; i++) {
+    /**
+     * @type {ydn.db.Db.IndexSchema}
+     */
+    var index = schema.indexes[i];
+    index.nameQuoted = goog.string.quote(index.name);
+    var primary = index.unique ? ' UNIQUE ' : ' ';
+    sql += ', ' + index.name + primary + index.type;
+    columns.push(index.name);
+  }
+
+  sql += ');';
+
+  return sql;
+};
+
+
+/**
+ * @protected
+ * @param {ydn.db.Db.TableSchema} tableSchema databse table name.
  * @return {!goog.async.Deferred} return as deferred function.
  */
-ydn.db.WebSql.prototype.createTable = function(table) {
-  var d = new goog.async.Deferred();
-  var self = this;
-  this.schema[table].keyPath = this.schema[table].keyPath || 'id';
-  this.schema[table].keyParts = this.schema[table].keyPath.split('.');
-  //this.schema[tablename].keyPath =
-  // this.schema[tablename].keyPath.replace('.', '');
-  // '.' in column name is OK.
-  var keyPath = this.schema[table].keyPath;
-  this.schema[table].keyPathQuoted = goog.string.quote(keyPath);
-  var keyPathQuoted = this.schema[table].keyPathQuoted;
+ydn.db.WebSql.prototype.createTables = function(tableSchema) {
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -115,7 +159,7 @@ ydn.db.WebSql.prototype.createTable = function(table) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log(results);
     }
-    self.logger.finest('Creating table: ' + table + ' OK.');
+    self.logger.finest('Creating tables OK.');
     d.callback(true);
   };
 
@@ -127,16 +171,18 @@ ydn.db.WebSql.prototype.createTable = function(table) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    self.logger.warning('Error creating table: ' + table);
+    self.logger.warning('Error creating tables');
     d.errback(undefined);
   };
 
-  var sql = "CREATE TABLE IF NOT EXISTS '" + table + "' (" + keyPathQuoted +
-      ' TEXT UNIQUE PRIMARY KEY, value TEXT)';
+  var sqls = [];
+  for (var i = 0; i < this.schema.length; i++) {
+    sqls.push(this.prepareCreateTable(this.schema[i]));
+  }
+
   this.db.transaction(function(t) {
-    self.logger.info('Creating table ' + self.dbname + '.' + table +
-        ' keyPath: ' + keyPath);
-    t.executeSql(sql, [], success_callback, error_callback);
+    self.logger.info('Creating tables ' + sqls.join('\n'));
+    t.executeSql(sqls.join('\n'), [], success_callback, error_callback);
   });
   return d;
 };
@@ -187,52 +233,6 @@ ydn.db.WebSql.prototype.exists = function(key, table) {
 
 
 /**
- * @inheritDoc
- */
-ydn.db.WebSql.prototype.setItem = function(key, value) {
-  var d = new goog.async.Deferred();
-  var self = this;
-
-  var insert_sql = 'INSERT INTO ' + ydn.db.Db.DEFAULT_TEXT_STORE +
-      ' (value, id) VALUES (?,?)';
-  var update_sql = 'UPDATE ' + ydn.db.Db.DEFAULT_TEXT_STORE +
-      ' SET value=? WHERE id=?';
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var success_callback = function(transaction, results) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log(results);
-    }
-    //self.logger.info('put ' + key);
-    d.callback(true);
-  };
-
-  /**
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(error) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log(error);
-    }
-    self.logger.warning('put error: ' + error);
-    d.errback(undefined);
-  };
-
-  this.exists(key, ydn.db.Db.DEFAULT_TEXT_STORE).addCallback(function(exists) {
-    // FIXME how can we perform in one transaction ?
-    var sql = exists ? update_sql : insert_sql;
-    self.db.transaction(function(t) {
-      t.executeSql(sql, [value, key], success_callback, error_callback);
-    });
-  });
-  return d;
-};
-
-
-/**
  * @protected
  * @param {string} table table name.
  * @param {Object} value value.
@@ -253,15 +253,36 @@ ydn.db.WebSql.prototype.getKey = function(table, value) {
 };
 
 
+
 /**
  * @inheritDoc
  */
 ydn.db.WebSql.prototype.put = function(table, value) {
   var d = new goog.async.Deferred();
-  var self = this;
-  var keyPath = this.schema[table].keyPath;
-  var keyPathQuoted = this.schema[table].keyPathQuoted;
+
+  var schema = goog.array.find(this.schema, function(x) {
+    return x.name == table;
+  });
+  if (!schema) {
+    this.logger.warning('Table ' + table + ' not found.');
+    d.errback(undefined);
+  }
+
+  var columns = [];
+  for (var i = 0; i < schema.indexes.length; i++) {
+    columns.push(schema.indexes[i].name)
+  }
+
+
   var arr = goog.isArray(value) ? value : [value];
+  // value slot like: ?,?,?
+  var slots = ydn.object.reparr('?', schema.columns.length + 1).join(',');
+
+  var sql = 'INSERT OR REPLACE INTO "' + schema.nameQuoted + '" (' +
+      schema.keyPathQuoted + schema.columns.join(', ') + ') ' +
+      'VALUES (' + slots + ');';
+
+  var me = this;
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -282,17 +303,16 @@ ydn.db.WebSql.prototype.put = function(table, value) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    self.logger.warning('putObjects error: ' + error);
+    me.logger.warning('putObjects error: ' + error);
     d.errback(undefined);
   };
 
-  self.db.transaction(function(t) {
+  me.db.transaction(function(t) {
     for (var i = 0; i < arr.length; i++) {
       var last = i == arr.length - 1;
       var value_str = ydn.json.stringify(arr[i]);
-      var key = self.getKey(table, arr[i]);
-      var sql = 'INSERT OR REPLACE INTO "' + table + '" (' + keyPathQuoted +
-          ', value) VALUES (?,?);';
+      var key = me.getKey(table, arr[i]);
+
       //console.log(sql + ' [' + key + ', ' + value_str + ']')
       t.executeSql(sql, [key, value_str], last ? success_callback : undefined,
           last ? error_callback : undefined);
