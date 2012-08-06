@@ -1,1 +1,1 @@
-Abstraction of HTML5 Indexeddb, Web SQL and localStorage into deferred pattern wrapper.
+Web client database wrapper for HTML5 Indexeddb, Web SQL and localStorage.

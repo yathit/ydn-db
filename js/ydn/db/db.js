@@ -44,7 +44,7 @@ ydn.db.Db.TableSchema;
 
 
 /**
- * @typedef {{Array.<ydn.db.Db.TableSchema>}}
+ * @typedef {Array.<ydn.db.Db.TableSchema>}
  */
 ydn.db.Db.DatabaseSchema;
 
