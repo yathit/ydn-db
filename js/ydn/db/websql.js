@@ -34,7 +34,7 @@ goog.require('ydn.json');
 /**
  * @implements {ydn.db.Db}
  * @param {string} dbname name of database.
- * @param {Object=} opt_schema table schema contain table name and keyPath.
+ * @param {ydn.db.Db.DatabaseSchema} opt_schema table schema contain table name and keyPath.
  * @param {string=} opt_version database version. If not provided, available
  * version will be used.
  * @constructor
@@ -45,12 +45,11 @@ ydn.db.WebSql = function(dbname, opt_schema, opt_version) {
   dbname = dbname;
   this.dbname = dbname;
   /**
-   * @final
    * @protected
    * @type {ydn.db.Db.DatabaseSchema}
    */
-  this.schema = opt_schema || {};
-  this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
+  this.schema = opt_schema;
+
 
   var estimatedSize = 5 * 1024 * 1024; // 5 MB
   var description = this.dbname;
@@ -62,10 +61,8 @@ ydn.db.WebSql = function(dbname, opt_schema, opt_version) {
   this.db = goog.global.openDatabase(this.dbname, this.version, description,
       estimatedSize);
 
-  for (var tablename in this.schema) {
-    if (this.schema.hasOwnProperty(tablename)) {
-      this.createTable(tablename);
-    }
+  for (var table, i = 0; table = this.schema[i]; i++) {
+      this.createTable(table);
   }
 
 };
@@ -98,7 +95,7 @@ ydn.db.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSql');
 /**
  * Non-indexed field are store in this default field. There is always a column
  * in each table.
- * @type {String}
+ * @const {string}
  */
 ydn.db.WebSql.DEFAULT_FIELD = '_default_';
 
@@ -127,7 +124,7 @@ ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
   schema.indexes.push(ydn.db.WebSql.DEFAULT_FIELD);
 
   schema.columns = [];
-  for (var i = 0; i < n; i++) {
+  for (var i = 0; i < schema.indexes.length; i++) {
     /**
      * @type {ydn.db.Db.IndexSchema}
      */
@@ -135,7 +132,7 @@ ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
     index.nameQuoted = goog.string.quote(index.name);
     var primary = index.unique ? ' UNIQUE ' : ' ';
     sql += ', ' + index.name + primary + index.type;
-    columns.push(index.name);
+    schema.columns.push(index.name);
   }
 
   sql += ');';
@@ -149,7 +146,11 @@ ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
  * @param {ydn.db.Db.TableSchema} tableSchema databse table name.
  * @return {!goog.async.Deferred} return as deferred function.
  */
-ydn.db.WebSql.prototype.createTables = function(tableSchema) {
+ydn.db.WebSql.prototype.createTable = function(tableSchema) {
+
+  var df = new goog.async.Deferred();
+
+  var me = this;
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -159,8 +160,8 @@ ydn.db.WebSql.prototype.createTables = function(tableSchema) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log(results);
     }
-    self.logger.finest('Creating tables OK.');
-    d.callback(true);
+    me.logger.finest('Creating tables OK.');
+    df.callback(true);
   };
 
   /**
@@ -171,8 +172,8 @@ ydn.db.WebSql.prototype.createTables = function(tableSchema) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    self.logger.warning('Error creating tables');
-    d.errback(undefined);
+    me.logger.warning('Error creating tables');
+    df.errback(undefined);
   };
 
   var sqls = [];
@@ -181,10 +182,10 @@ ydn.db.WebSql.prototype.createTables = function(tableSchema) {
   }
 
   this.db.transaction(function(t) {
-    self.logger.info('Creating tables ' + sqls.join('\n'));
+    me.logger.info('Creating tables ' + sqls.join('\n'));
     t.executeSql(sqls.join('\n'), [], success_callback, error_callback);
   });
-  return d;
+  return df;
 };
 
 
@@ -314,6 +315,7 @@ ydn.db.WebSql.prototype.put = function(table, value) {
       var key = me.getKey(table, arr[i]);
 
       //console.log(sql + ' [' + key + ', ' + value_str + ']')
+      // TODO: fix error check for all result
       t.executeSql(sql, [key, value_str], last ? success_callback : undefined,
           last ? error_callback : undefined);
     }
@@ -327,12 +329,19 @@ ydn.db.WebSql.prototype.put = function(table, value) {
  */
 ydn.db.WebSql.prototype.get = function(table, key) {
   var d = new goog.async.Deferred();
-  var self = this;
-  var keyPath = this.schema[table].keyPath;
-  var keyPathQuoted = this.schema[table].keyPathQuoted;
 
-  var sql = 'SELECT ' + keyPathQuoted + ", value FROM '" + table + "' WHERE " +
-      keyPathQuoted + " = '" + key + "'";
+  var schema = goog.array.find(this.schema, function(x) {
+    return x.name == table;
+  });
+  if (!schema) {
+    this.logger.warning('Table ' + table + ' not found.');
+    d.errback(undefined);
+  }
+
+  var me = this;
+
+  var sql = 'SELECT * FROM ' + schema.nameQuoted + ' WHERE ' +
+      schema.keyPathQuoted + ' = ' + key + ';';
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -342,12 +351,19 @@ ydn.db.WebSql.prototype.get = function(table, key) {
     var value;
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
-      goog.asserts.assert(key == row[keyPath], key + ' = ' + row[keyPath] +
-          ' ?');
-      value = /** @type {String} */ (ydn.json.parse(row['value']));
-      // the first parse for unquoting.
-      //goog.asserts.assertString(unquoted_value);
-      //value = ydn.json.parse(/** @type {string} */ (unquoted_value));
+      goog.asserts.assert(key == row[schema.keyPath],
+          key + ' = ' + row[schema.keyPath] + ' ?');
+      value = ydn.json.parse(row[ydn.db.WebSql.DEFAULT_FIELD]);
+      value[schema.keyPath] = key;
+      for (var j = 0; j < schema.indexes.length; j++) {
+        var x = row[schema.indexes[j].name];
+        if (schema.indexes[j].type == ydn.db.Db.DataType.INTEGER) {
+          x = parseInt(x, 10);
+        } else if (schema.indexes[j].type == ydn.db.Db.DataType.FLOAT) {
+          x = parseFloat(x);
+        }
+        value[schema.indexes[j].name] = x;
+      }
     }
     d.callback(value);
   };
@@ -360,7 +376,7 @@ ydn.db.WebSql.prototype.get = function(table, key) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    self.logger.warning('Sqlite error: ' + error);
+    me.logger.warning('Sqlite error: ' + error);
     d.errback(undefined);
   };
 
@@ -374,7 +390,7 @@ ydn.db.WebSql.prototype.get = function(table, key) {
 
 
 /**
- * @inheritDoc
+ *
  */
 ydn.db.WebSql.prototype.getItem = function(key) {
   var d = new goog.async.Deferred();

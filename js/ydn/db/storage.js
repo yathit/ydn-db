@@ -220,9 +220,9 @@ ydn.db.Storage.prototype.initDatabase = function() {
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
 ydn.db.Storage.prototype.setItem = function(key, value) {
-  if (ydn.db.Db.DEFAULT_TEXT_STORE) {
+
     return this.put(ydn.db.Db.DEFAULT_TEXT_STORE, {'id': key, 'value': value});
-  }
+
 };
 
 

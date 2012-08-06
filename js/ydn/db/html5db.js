@@ -65,7 +65,7 @@ ydn.db.Html5Db.prototype.getKey = function(id, opt_table) {
 
 
 /**
- * @inheritDoc
+ *
  */
 ydn.db.Html5Db.prototype.setItem = function(key, value) {
   window.localStorage.setItem(this.getKey(key), value);
@@ -88,7 +88,7 @@ ydn.db.Html5Db.prototype.put = function(table, value) {
 
 
 /**
- * @inheritDoc
+ *
  */
 ydn.db.Html5Db.prototype.getItem = function(key) {
   var value = window.localStorage.getItem(this.getKey(key));

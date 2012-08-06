@@ -43,7 +43,7 @@ ydn.db.Db.DEFAULT_TEXT_STORE = 'default_text_store';
  */
 ydn.db.Db.DataType = {
   TEXT: 'TEXT',
-  NUMERIC: 'REAL',
+  FLOAT: 'REAL',
   INTEGER: 'INTEGER'
 };
 

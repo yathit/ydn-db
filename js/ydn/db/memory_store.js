@@ -61,7 +61,7 @@ ydn.db.MemoryStore.prototype.setVersion = function() {
 
 /**
  *
- * @inheritDoc
+ *
  */
 ydn.db.MemoryStore.prototype.setItem = function(key, value) {
   this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key] = value;
@@ -90,7 +90,7 @@ ydn.db.MemoryStore.prototype.put = function(table, value) {
 
 
 /**
- * @inheritDoc
+ *
  */
 ydn.db.MemoryStore.prototype.getItem = function(key) {
   var value = this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key];

@@ -34,15 +34,20 @@ goog.require('ydn.json');
  * @see ydn.db.Storage for schema defination
  * @implements {ydn.db.Db}
  * @param {string} dbname name of database.
- * @param {Object=} opt_schema table schema contain table name and keyPath.
+ * @param {ydn.db.Db.DatabaseSchema=} opt_schema table schema contain table name and keyPath.
  * @param {string=} opt_version version.
  * @constructor
  */
 ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
   var self = this;
   this.dbname = dbname;
-  this.schema = opt_schema || {};
-  this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {keyPath: 'key'};
+  /**
+   * @protected
+   * @final
+   * @type {ydn.db.Db.DatabaseSchema}
+   */
+  this.schema = opt_schema || [];
+
   /**
    * @protected
    * @type {number|undefined}
@@ -206,28 +211,26 @@ ydn.db.IndexedDb.prototype.setDb = function(db) {
  * @param {IDBDatabase} db database instance.
  */
 ydn.db.IndexedDb.prototype.initObjectStores = function(db) {
-  for (var tableName in this.schema) {
-    var keyPath = this.schema[tableName]['keyPath'];
-    goog.asserts.assertString(keyPath, 'keyPath required in ' + tableName);
-    this.logger.finest('Creating Object Store for ' + tableName +
+  for (var schema, i = 0; schema = this.schema[i]; i++) {
+    var keyPath = schema['keyPath'];
+    goog.asserts.assertString(keyPath, 'keyPath required in ' + schema.name);
+    this.logger.finest('Creating Object Store for ' + schema.name +
         ' with keyPath: ' + keyPath);
 
     /**
      * @preserveTry
      */
     try {
-      var store = db.createObjectStore(tableName, {
+      var store = db.createObjectStore(schema.name, {
         keyPath: keyPath, autoIncrement: false});
-      if (this.schema[tableName]['index']) {
-        for (var i = 0; i < this.schema[tableName]['index'].length; i++) {
-          var index = this.schema[tableName]['index'][i];
-          goog.asserts.assertString(index['name'], 'name required.');
-          goog.asserts.assertString(index['field'], 'field required.');
-          goog.asserts.assertBoolean(index['unique'], 'unique required.');
-          store.createIndex(index['name'], index['field'], {
-            unique: index['unique'] });
+
+        for (var i = 0; i < schema.indexes.length; i++) {
+          var index = schema.indexes[i];
+          goog.asserts.assertString(index.name, 'name required.');
+          goog.asserts.assertBoolean(index.unique, 'unique required.');
+          store.createIndex(index.name, index.name, {unique: index.unique});
         }
-      }
+
       //store.createIndex(keyPath, keyPath, { unique: true });
     } catch (e) { // e if e instanceof IDBDatabaseException
       // in Firefox, exception raise if the database already exist.
@@ -323,7 +326,7 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df) {
 
 
 /**
- * @inheritDoc
+ *
  */
 ydn.db.IndexedDb.prototype.setItem = function(key, value) {
 
@@ -387,7 +390,7 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
 
 
 /**
- * @inheritDoc
+ *
  */
 ydn.db.IndexedDb.prototype.getItem = function(key) {
   var self = this;
