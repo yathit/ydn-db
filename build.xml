@@ -24,6 +24,7 @@
     <target name="jstd" description="print out jstd file for JS test driver">
         <jstd-gen base.dir="${ydn-db.dir}">
             <deps-options>
+                <arg line='--path "${ydn.dir}/js"'/>
                 <arg line='--path "${ydn-base.dir}/js"'/>
             </deps-options>
         </jstd-gen>
