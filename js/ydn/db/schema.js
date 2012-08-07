@@ -47,7 +47,8 @@ ydn.db.IndexSchema = function (name, opt_unique, opt_type) {
 /**
  *
  * @param {string} name table name.
- * @param {string} keyPath indexedDB keyPath, like 'feed.id.$t'.
+ * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to
+ * 'id'.
  * @constructor
  */
 ydn.db.TableSchema = function(name, keyPath) {
@@ -60,13 +61,13 @@ ydn.db.TableSchema = function(name, keyPath) {
    * @final
    * @type {string}
    */
-  this.keyPath = keyPath;
+  this.keyPath = keyPath || 'id';
 
   /**
    * @final
    * @type {!Array.<string>}
    */
-  this.keyPaths = keyPath.split('.');
+  this.keyPaths = this.keyPath.split('.');
   /**
    *
    * @type {!Array.<!ydn.db.IndexSchema>}
@@ -175,18 +176,47 @@ ydn.db.TableSchema.prototype.setKey = function(obj, value) {
  */
 ydn.db.TableSchema.prototype.getIndexedValues = function(obj) {
 
+
 	var columns = [this.getQuotedKeyPath()];
 	var values = [this.getKey(obj)];
 	var slots = ['?'];
 
 	for (var i = 0; i < this.indexes.length; i++) {
+    if (this.indexes[i].name == ydn.db.WebSql.DEFAULT_FIELD) {
+      continue;
+    }
 		var v = obj[this.indexes[i].name];
 		if (goog.isDef(v)) {
+      if (this.indexes[i].type == ydn.db.DataType.INTEGER) {
+        if (!goog.isNumber(v)) {
+          v = parseInt(v, 10);
+        }
+      } else if (this.indexes[i].type == ydn.db.DataType.FLOAT) {
+        if (!goog.isNumber(v)) {
+          v = parseFloat(v);
+        }
+      } else {
+        if (!goog.isString(v)) {
+          v = ydn.json.stringify(v);
+        }
+      }
 			values.push(v);
 			slots.push('?');
-			columns.push(this.indexes[i].name);
+			columns.push(goog.string.quote(this.indexes[i].name));
 		}
 	}
+
+  var data = {};
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key) && !goog.array.contains(this.indexes, key)) {
+      data[key] = obj[key];
+    }
+  }
+
+  values.push(ydn.json.stringify(data));
+  slots.push('?');
+  columns.push(ydn.db.WebSql.DEFAULT_FIELD);
+
 	return {columns: columns, slots: slots, values: values};
 };
 

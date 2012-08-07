@@ -82,7 +82,7 @@ ydn.db.WebSql.isSupported = function() {
  *
  * @define {boolean} debug flag.
  */
-ydn.db.WebSql.DEBUG = false;
+ydn.db.WebSql.DEBUG = true;
 
 
 /**
@@ -231,13 +231,10 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
   if (!table) {
     this.logger.warning('Table ' + store_name + ' not found.');
     d.errback(undefined);
+    return d;
   }
 
-  var columns = table.getColumns();
-
   var arr = goog.isArray(obj) ? obj : [obj];
-  // value slot like: ?,?,?
-  var slots = ydn.object.reparr('?', columns.length + 1).join(',');
 
   var me = this;
 
@@ -267,19 +264,16 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
   me.db.transaction(function(t) {
     for (var i = 0; i < arr.length; i++) {
       var last = i == arr.length - 1;
-      var value_str = ydn.json.stringify(arr[i]);
-      var key = table.getKey(obj);
-			var keys = [key].concat(table.getColumns());
 
 			var out = table.getIndexedValues(obj);
 
 			var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
-				' (' + out.slots.join(', ') + ') ' +
+				' (' + out.columns.join(', ') + ') ' +
 				'VALUES (' + out.slots.join(', ') + ');';
 
-      //console.log(sql + ' [' + key + ', ' + value_str + ']')
+      console.log([sql, out.columns, out.values])
       // TODO: fix error check for all result
-      t.executeSql(sql, [out.columns, out.values], last ? success_callback : undefined,
+      t.executeSql(sql, out.values, last ? success_callback : undefined,
           last ? error_callback : undefined);
     }
   });
@@ -663,14 +657,15 @@ ydn.db.WebSql.prototype.delete = function() {
 		if (ydn.db.WebSql.DEBUG) {
 			window.console.log([tr, error]);
 		}
-		me.logger.warning('getCount error: ' + error);
+		me.logger.warning('delete TABLE: ' + error);
 		d.errback(undefined);
 	};
 
 	this.db.transaction(function(t) {
 		for (var i = 0; i < me.schema.stores.length; i++) {
-			var sql = 'DROP TABLE ' + me.schema.stores[i] + ';';
+			var sql = 'DROP TABLE ' + me.schema.stores[i].name + ';';
 		}
+    console.log(sql);
 		t.executeSql(sql, [], callback, error_callback);
 	});
 

@@ -13,16 +13,23 @@ var setUp = function() {
   goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+
+
+  this.table = 't1';
+  this.basic_schema = new ydn.db.DatabaseSchema(1);
+  this.basic_schema.addStore(new ydn.db.TableSchema(this.table));
 };
 
 var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
+
 };
 
-var db_name = 'stest3';
+var db_name = 'test1';
 
 var test_0_put = function() {
-  var db = new ydn.db.WebSql(db_name);
+
+  var db = new ydn.db.WebSql(db_name, [this.basic_schema]);
 
   var testEventType = 'test-event';
   var eventTarget = new goog.events.EventTarget();
@@ -41,10 +48,11 @@ var test_0_put = function() {
       100, // interval
       1000); // maxTimeout
 
-  db.setItem('a', '1').addCallback(function(value) {
+  db.put(this.table, {'id': 'a', 'value': '1'}).addCallback(function(value) {
     put_value = value;
     done = true;
   });
+
 };
 
 
