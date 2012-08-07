@@ -27,6 +27,7 @@ ydn.db.DataType = {
  * @param {string} name store (table) name.
  * @param {boolean=} opt_unique unique.
  * @param {ydn.db.DataType=} opt_type default to TEXT.
+ * @constructor
  */
 ydn.db.IndexSchema = function (name, opt_unique, opt_type) {
   /**
@@ -63,7 +64,7 @@ ydn.db.TableSchema = function(name, keyPath) {
 
   /**
    * @final
-   * @type {Array.<string>}
+   * @type {!Array.<string>}
    */
   this.keyPaths = keyPath.split('.');
   /**
@@ -135,20 +136,20 @@ ydn.db.TableSchema.prototype.addIndex = function(name, opt_unique, opt_type) {
 
 /**
  *
- * @param {Object} obj get key value from its keyPath field.
+ * @param {!Object} obj get key value from its keyPath field.
  * @return {string|undefined} return key value.
  */
 ydn.db.TableSchema.prototype.getKey = function(obj) {
-  return goog.object.getValueByKeys(obj, this.keyPaths);
+  return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
 };
+
 
 /**
  *
- * @param {Object} obj get key value from its keyPath field.
+ * @param {!Object} obj get key value from its keyPath field.
  * @param {string} value key value to set.
  */
 ydn.db.TableSchema.prototype.setKey = function(obj, value) {
-
 
   for (var i = 0; i < this.keyPaths.length; i++) {
     var key = obj[this.keyPaths[i]];
@@ -163,6 +164,18 @@ ydn.db.TableSchema.prototype.setKey = function(obj, value) {
     }
     obj = obj[key];
   }
+};
+
+
+/**
+ *
+ * @param {!Object} obj get values of indexed fields.
+ */
+ydn.db.TableSchema.prototype.getIndexedValues = function(obj) {
+	var values = [];
+	for (var i = 0; i < this.indexes.length; i++) {
+		values.push(obj[this.indexes[i]]);
+	}
 };
 
 
@@ -203,7 +216,7 @@ ydn.db.DatabaseSchema.prototype.addStore = function(table) {
  * @param {string} name store name.
  * @return {ydn.db.TableSchema} store if found.
  */
-ydn.db.TableSchema.prototype.getStore = function(name) {
+ydn.db.DatabaseSchema.prototype.getStore = function(name) {
   return /** @type {ydn.db.TableSchema} */ (goog.array.find(this.stores, function(x) {
     return x.name == name;
   }));

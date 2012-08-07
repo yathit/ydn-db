@@ -43,11 +43,11 @@ goog.require('goog.userAgent.product');
  * localStorage.
  * @see goog.db
  * @param {string=} opt_dbname database name.
- * @param {ydn.db.DatabaseSchema=} opt_schema table schema contain table name and keyPath.
+ * @param {Array.<!ydn.db.DatabaseSchema>=} opt_schemas opt_schema database schema used in chronical order.
  * @implements {ydn.db.Db}
  * @constructor
  */
-ydn.db.Storage = function(opt_dbname, opt_schema) {
+ydn.db.Storage = function(opt_dbname, opt_schemas) {
 
   /**
    * @private
@@ -64,8 +64,8 @@ ydn.db.Storage = function(opt_dbname, opt_schema) {
   if (goog.isDef(opt_dbname)) {
     this.setDbName(opt_dbname);
   }
-  if (goog.isDef(opt_schema)) {
-    this.setSchema(opt_schema);
+  if (goog.isDef(opt_schemas)) {
+    this.setSchema(opt_schemas);
   }
 };
 
@@ -77,17 +77,16 @@ ydn.db.Storage = function(opt_dbname, opt_schema) {
 ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
-/**
- *
- * @return {ydn.db.Storage.Config} configuration.
- */
-ydn.db.Storage.prototype.getConfig = function() {
-  return {
-    dbname: this.db_name,
-    schema: ydn.object.clone(this.schema),
-    version: this.version
-  };
-};
+///**
+// *
+// * @return {{dbname: string, schema: ydn.db.DatabaseSchema}} configuration.
+// */
+//ydn.db.Storage.prototype.getConfig = function() {
+//  return {
+//    dbname: this.db_name,
+//    schema: ydn.object.clone(this.schema)
+//  };
+//};
 
 
 /**
@@ -110,71 +109,20 @@ ydn.db.Storage.prototype.setDbName = function (opt_dbname) {
 
 
 /**
- * Database schema has following structure
- * <pre>
- *   {'table 1': {
- *      'keyPath': 'key.path',
- *      'index': [
- *        'name': 'index name',
- *        'field': 'field name',
- *        'unique': true
- *      ]
- *      },
- *   'table 2': {
- *      'keyPath': 'key.path',
- *      'index': [
- *        'name': 'index name',
- *        'field': 'field name',
- *        'unique': true
- *      ]
- *      }
- *   }
- * </pre>
+ * Set the latest version of database schema. This will start initialization if dbname have been set.
  * @see {@link #addTableSchema}
- * @param {Object=} opt_schema schema.
- * @param {string=} opt_version version.
+ * @param {Object} opt_schema schema.
  */
-ydn.db.Storage.prototype.setSchema = function(opt_schema, opt_version) {
-  this.schema = opt_schema;
-  if (goog.isDef(opt_version)) {
-    this.version = opt_version;
-  }
+ydn.db.Storage.prototype.setSchema = function(opt_schema) {
+	/**
+	 * @protected
+	 * @type {Array.<!ydn.db.DatabaseSchema>}
+	 */
+  this.schemas = this.schemas || [];
+	this.schemas.push(opt_schema);
   this.initDatabase();
 };
 
-
-/**
- *
- * @param {string} version version.
- */
-ydn.db.Storage.prototype.setVersion = function(version) {
-  this.version = version;
-  this.initDatabase();
-};
-
-
-/**
- * Database schema has following structure
- * <pre>
-       {
- *      'keyPath': 'key.path',
- *      'index': [
- *        'name': 'index name',
- *        'field': 'field name',
- *        'unique': true
- *      ]
-       }
- * </pre>
- * @param {string} tableName table name.
- * @param {Object} tableSchema schema for the table.
- */
-ydn.db.Storage.prototype.addTableSchema = function(tableName, tableSchema) {
-  if (this.db_) {
-    throw Error('Db already online.'); // should introduce setVersion
-  }
-  this.schema = this.schema || {};
-  this.schema[tableName] = tableSchema;
-};
 
 
 /**
@@ -193,19 +141,18 @@ ydn.db.Storage.prototype.initDatabase = function() {
 
     if (goog.userAgent.product.ASSUME_CHROME || goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
-      this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema, this.version);
+      this.db_ = new ydn.db.IndexedDb(this.db_name, this.schemas);
     } else if (goog.userAgent.product.ASSUME_SAFARI || goog.userAgent.ASSUME_WEBKIT) {
       // for dead-code elimination
-      this.db_ = new ydn.db.WebSql(this.db_name, this.schema, this.version);
+      this.db_ = new ydn.db.WebSql(this.db_name, this.schemas);
     } else if (ydn.db.IndexedDb.isSupported()) { // run-time detection
-      this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema, this.version);
+      this.db_ = new ydn.db.IndexedDb(this.db_name, this.schemas);
     } else if (ydn.db.WebSql.isSupported()) {
-      this.db_ = new ydn.db.WebSql(this.db_name, this.schema, this.version);
+      this.db_ = new ydn.db.WebSql(this.db_name, this.schemas);
     } else if (ydn.db.Html5Db.isSupported()) {
-      this.db_ = new ydn.db.Html5Db(this.db_name, this.schema, this.version);
+      this.db_ = new ydn.db.Html5Db(this.db_name, this.schemas);
     } else {
-      this.db_ = new ydn.db.MemoryStore(this.db_name, this.schema,
-          this.version);
+      this.db_ = new ydn.db.MemoryStore(this.db_name, this.schemas);
     }
 
     if (this.deferredDb.hasFired()) {
@@ -334,18 +281,22 @@ ydn.db.Storage.prototype.fetch = function(q) {
  */
 ydn.db.Storage.prototype.disp = function() {
   if (goog.DEBUG) {
-    window.console.log(this.db_name + ' ver: ' + this.version);
-    var self = this;
+		var schema = this.schemas[this.schemas.length - 1];
+    window.console.log(this.db_name + ' ver: ' + schema.version);
 
+		/**
+		 *
+		 * @param {ydn.db.TableSchema} table
+		 * @param {number} count
+		 */
     var print_table_description = function(table, count) {
-      window.console.log('Table: ' + table + ', keyPath: ' +
-          self.schema[table].keyPath +
-          ', count: ' + count);
+      window.console.log('Table: ' + table.name + ', keyPath: ' +
+				table.keyPath + ', count: ' + count);
     };
 
-    for (var table in this.schema) {
-      this.getCount(table).addBoth(goog.partial(print_table_description,
-          table));
+    for (var table, i = 0; table = schema.stores[i]; i++) {
+      this.getCount(table.name).addBoth(
+				goog.partial(print_table_description,table));
     }
   }
 };

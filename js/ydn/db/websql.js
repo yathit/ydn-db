@@ -219,11 +219,32 @@ ydn.db.WebSql.prototype.migrate = function() {
 //};
 
 
+/**
+ * @protected
+ * @param {string} table table name.
+ * @param {Object} value value.
+ * @return {string} key.
+ */
+ydn.db.WebSql.prototype.getKey = function(table, value) {
+	var keyObj = value;
+	for (var i = 0; i < this.schema[table].keyParts.length; i++) {
+		keyObj = keyObj[this.schema[table].keyParts[i]];
+		if (!goog.isDef(keyObj)) {
+			this.logger.severe('key for ' + this.schema[table].keyParts[i] +
+				' not defined in ' + ydn.json.stringify(keyObj));
+			throw new Error(this.schema[table].keyPath);
+		}
+	}
+	goog.asserts.assertString(keyObj);
+	return keyObj;
+};
+
+
 
 /**
  * @inheritDoc
  */
-ydn.db.WebSql.prototype.put = function(store_name, value) {
+ydn.db.WebSql.prototype.put = function(store_name, obj) {
   var d = new goog.async.Deferred();
 
   var table = this.schema.getStore(store_name);
@@ -234,7 +255,7 @@ ydn.db.WebSql.prototype.put = function(store_name, value) {
 
   var columns = table.getColumns();
 
-  var arr = goog.isArray(value) ? value : [value];
+  var arr = goog.isArray(obj) ? obj : [obj];
   // value slot like: ?,?,?
   var slots = ydn.object.reparr('?', columns.length + 1).join(',');
 
@@ -271,11 +292,13 @@ ydn.db.WebSql.prototype.put = function(store_name, value) {
     for (var i = 0; i < arr.length; i++) {
       var last = i == arr.length - 1;
       var value_str = ydn.json.stringify(arr[i]);
-      var key = me.getKey(store_name, arr[i]);
+      var key = table.getKey(obj);
+			var keys = [key].concat(table.getColumns());
+
 
       //console.log(sql + ' [' + key + ', ' + value_str + ']')
       // TODO: fix error check for all result
-      t.executeSql(sql, [key, value_str], last ? success_callback : undefined,
+      t.executeSql(sql, [keys, value_str], last ? success_callback : undefined,
           last ? error_callback : undefined);
     }
   });

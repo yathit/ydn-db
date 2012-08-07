@@ -27,23 +27,12 @@ goog.require('ydn.db.Db');
  * @implements {ydn.db.Db}
  * @constructor
  * @param {string} dbname database name.
- * @param {Object=} opt_schema table schema contain table name and keyPath.
- * @param {string=} opt_version version.
+ * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table name and keyPath
  */
-ydn.db.MemoryStore = function(dbname, opt_schema, opt_version) {
-  this.version = opt_version || 1;
-  dbname = dbname;
+ydn.db.MemoryStore = function(dbname, schemas) {
   this.dbname = dbname;
-  this.schema = opt_schema || {};
-  this.schema[ydn.db.Storage.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
-  this.setVersion();
-};
+  this.schema = schemas[schemas.length - 1];
 
-
-/**
- * @protected
- */
-ydn.db.MemoryStore.prototype.setVersion = function() {
   /**
    * @final
    * @private

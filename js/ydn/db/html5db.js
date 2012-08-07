@@ -24,15 +24,14 @@ goog.require('goog.async.Deferred');
 /**
  * @implements {ydn.db.Db}
  * @param {string} dbname dtabase name.
- * @param {Object=} opt_schema table schema contain table name and keyPath.
- * @param {string=} opt_version version, default to '1'.
+ * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table name and keyPath.
  * @constructor
  */
-ydn.db.Html5Db = function(dbname, opt_schema, opt_version) {
-  this.version = opt_version || '1';
+ydn.db.Html5Db = function(dbname, schemas) {
+
   this.dbname = dbname;
-  this.schema = opt_schema || {};
-  this.schema[ydn.db.Storage.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
+  this.schema = schemas[schemas.length - 1];
+
 
   for (var table in this.schema) {
     if (!goog.isDef(window.localStorage[table])) {

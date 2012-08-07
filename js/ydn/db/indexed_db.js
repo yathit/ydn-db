@@ -26,6 +26,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
+goog.require('ydn.db.DatabaseSchema');
 
 
 
@@ -34,57 +35,49 @@ goog.require('ydn.json');
  * @see ydn.db.Storage for schema defination
  * @implements {ydn.db.Db}
  * @param {string} dbname name of database.
- * @param {ydn.db.Db.DatabaseSchema=} opt_schema table schema contain table name and keyPath.
- * @param {string=} opt_version version.
+ * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table name and keyPath.
  * @constructor
  */
-ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
+ydn.db.IndexedDb = function(dbname, schemas) {
   var self = this;
   this.dbname = dbname;
+	/**
+	 * 
+	 * @type {Array.<!ydn.db.DatabaseSchema>}
+	 */
+	this.schemas = schemas;
   /**
    * @protected
    * @final
-   * @type {ydn.db.Db.DatabaseSchema}
+   * @type {ydn.db.DatabaseSchema}
    */
-  this.schema = opt_schema || [];
-
-  /**
-   * @protected
-   * @type {number|undefined}
-   */
-  this.version;
-  if (goog.isDef(opt_version)) {
-    var v = parseInt(opt_version, 10);
-    if (!isNaN(v)) {
-      this.version = v;
-    }
-  }
+  this.schema = schemas[schemas.length - 1];
 
   var indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
       goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global['msIndexedDB'];
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // In chrome, version is taken as description.
-  self.logger.finer('Trying to open ' + this.dbname + ' ' + this.version);
-  var openRequest = indexedDb.open(this.dbname, this.version);
+  self.logger.finer('Trying to open ' + this.dbname + ' ' + this.schema.version);
+  var openRequest = indexedDb.open(this.dbname, this.schema.version);
 
   openRequest.onsuccess = function(ev) {
-    self.logger.finer(self.dbname + ' ' + self.version + ' OK.');
+    self.logger.finer(self.dbname + ' ' + self.schema.version + ' OK.');
     var db = ev.target.result;
-    if (goog.isFunction(db.setVersion) && goog.isDef(self.version) && self.version > db.version) { // for chrome
+    if (goog.isFunction(db.setVersion) && goog.isDef(self.schema.version) && self.schema.version > db.version) { // for chrome
       self.logger.finer('initializing database from ' + db.version + ' to ' +
-          self.version);
+          self.schema.version);
 
-      var setVrequest = db.setVersion(self.version); // for chrome
+      var setVrequest = db.setVersion(self.schema.version); // for chrome
 
       setVrequest.onfailure = function(e) {
-        self.logger.warning('setting up database ' + db.dbname + ' fail.');
+        self.logger.warning('migrating from ' + db.version + ' to ' + self.schema.version + ' failed.');
         self.setDb(null);
       };
       setVrequest.onsuccess = function(e) {
-        self.initObjectStores(db);
-        self.logger.finer('changing to version ' + db.version + ' ready.');
-        var reOpenRequest = indexedDb.open(self.dbname);
+        self.migrate(db);
+        self.logger.finer('Migrated to version ' + db.version + '.');
+        var reOpenRequest = indexedDb.open(self.dbname); // have to reopen for new schema
         reOpenRequest.onsuccess = function(rev) {
           db = ev.target.result;
           self.logger.finer('version ' + db.version + ' ready.');
@@ -101,7 +94,7 @@ ydn.db.IndexedDb = function(dbname, opt_schema, opt_version) {
     var db = ev.target.result;
     self.logger.finer('upgrading version ' + db.version);
 
-    self.initObjectStores(db);
+    self.migrate(db);
 
     var reOpenRequest = indexedDb.open(self.dbname);
     reOpenRequest.onsuccess = function(rev) {
@@ -207,25 +200,34 @@ ydn.db.IndexedDb.prototype.setDb = function(db) {
 
 
 /**
+ * Migrate from current version to the last version.
  * @protected
  * @param {IDBDatabase} db database instance.
  */
-ydn.db.IndexedDb.prototype.initObjectStores = function(db) {
-  for (var schema, i = 0; schema = this.schema[i]; i++) {
-    var keyPath = schema['keyPath'];
-    goog.asserts.assertString(keyPath, 'keyPath required in ' + schema.name);
-    this.logger.finest('Creating Object Store for ' + schema.name +
-        ' with keyPath: ' + keyPath);
+ydn.db.IndexedDb.prototype.migrate = function(db) {
+
+	// create store that we don't have previously
+
+	var old_schema = goog.array.find(this.schemas, function(x) {return x.version == db.version});
+
+  for (var table, i = 0; table = this.schema.stores[i]; i++) {
+    this.logger.finest('Creating Object Store for ' + table.name +
+        ' keyPath: ' + table.keyPath);
+
+		if (old_schema && !goog.isNull(old_schema.getStore(table.name))) {
+			continue; // already have the store. TODO: update indexes
+		}
 
     /**
      * @preserveTry
      */
     try {
-      var store = db.createObjectStore(schema.name, {
-        keyPath: keyPath, autoIncrement: false});
+			goog.asserts.assertString(table.keyPath, 'name required.');
+      var store = db.createObjectStore(table.name, {
+        keyPath: table.keyPath, autoIncrement: false});
 
-        for (var i = 0; i < schema.indexes.length; i++) {
-          var index = schema.indexes[i];
+        for (var i = 0; i < table.indexes.length; i++) {
+          var index = table.indexes[i];
           goog.asserts.assertString(index.name, 'name required.');
           goog.asserts.assertBoolean(index.unique, 'unique required.');
           store.createIndex(index.name, index.name, {unique: index.unique});
@@ -237,6 +239,8 @@ ydn.db.IndexedDb.prototype.initObjectStores = function(db) {
       this.logger.warning(e.message);
     }
   }
+
+	// TODO: don't bother to delete old store
 };
 
 
