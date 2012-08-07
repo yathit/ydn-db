@@ -259,10 +259,6 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
   // value slot like: ?,?,?
   var slots = ydn.object.reparr('?', columns.length + 1).join(',');
 
-  var sql = 'INSERT OR REPLACE INTO "' + table.getQuotedName() + '" (' +
-      table.getQuotedKeyPath() + columns.join(', ') + ') ' +
-      'VALUES (' + slots + ');';
-
   var me = this;
 
   /**
@@ -295,10 +291,15 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
       var key = table.getKey(obj);
 			var keys = [key].concat(table.getColumns());
 
+			var out = table.getIndexedValues(obj);
+
+			var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
+				' (' + out.slots.join(', ') + ') ' +
+				'VALUES (' + out.slots.join(', ') + ');';
 
       //console.log(sql + ' [' + key + ', ' + value_str + ']')
       // TODO: fix error check for all result
-      t.executeSql(sql, [keys, value_str], last ? success_callback : undefined,
+      t.executeSql(sql, [out.columns, out.values], last ? success_callback : undefined,
           last ? error_callback : undefined);
     }
   });

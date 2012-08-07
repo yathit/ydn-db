@@ -170,12 +170,24 @@ ydn.db.TableSchema.prototype.setKey = function(obj, value) {
 /**
  *
  * @param {!Object} obj get values of indexed fields.
+ * @return {{columns: Array.<string>, slots: Array.<string>, values: Array.<string>}} return list of values
+ * as it appear on the indexed fields.
  */
 ydn.db.TableSchema.prototype.getIndexedValues = function(obj) {
-	var values = [];
+
+	var columns = [this.getQuotedKeyPath()];
+	var values = [this.getKey(obj)];
+	var slots = ['?'];
+
 	for (var i = 0; i < this.indexes.length; i++) {
-		values.push(obj[this.indexes[i]]);
+		var v = obj[this.indexes[i].name];
+		if (goog.isDef(v)) {
+			values.push(v);
+			slots.push('?');
+			columns.push(this.indexes[i].name);
+		}
 	}
+	return {columns: columns, slots: slots, values: values};
 };
 
 
