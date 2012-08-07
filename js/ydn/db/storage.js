@@ -38,23 +38,22 @@ goog.require('ydn.object');
 goog.require('goog.userAgent.product');
 
 
-
 /**
  * Create a suitable storage mechanism. starting from indexdb, to websql to
  * localStorage.
  * @see goog.db
  * @param {string=} opt_dbname database name.
- * @param {Object=} opt_schema table schema contain table name and keyPath.
- * @param {string=} opt_version version.
+ * @param {ydn.db.DatabaseSchema=} opt_schema table schema contain table name and keyPath.
  * @implements {ydn.db.Db}
  * @constructor
  */
-ydn.db.Storage = function(opt_dbname, opt_schema, opt_version) {
+ydn.db.Storage = function(opt_dbname, opt_schema) {
 
   /**
+   * @private
    * @type {ydn.db.Db} db instance.
    */
-  this.db;
+  this.db_;
 
   /**
    *
@@ -62,16 +61,20 @@ ydn.db.Storage = function(opt_dbname, opt_schema, opt_version) {
    */
   this.deferredDb = new goog.async.Deferred();
 
-  this.setDbName(opt_dbname);
-  this.setSchema(opt_schema, opt_version);
+  if (goog.isDef(opt_dbname)) {
+    this.setDbName(opt_dbname);
+  }
+  if (goog.isDef(opt_schema)) {
+    this.setSchema(opt_schema);
+  }
 };
 
 
+
 /**
- * @typedef {{dbname: (string|undefined), schema: (Object|undefined), version:
- * (string|undefined)}}
+ * @define {string} default key-value (store) table name.
  */
-ydn.db.Storage.Config;
+ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
 /**
@@ -80,7 +83,7 @@ ydn.db.Storage.Config;
  */
 ydn.db.Storage.prototype.getConfig = function() {
   return {
-    dbname: this.dbname,
+    dbname: this.db_name,
     schema: ydn.object.clone(this.schema),
     version: this.version
   };
@@ -89,20 +92,20 @@ ydn.db.Storage.prototype.getConfig = function() {
 
 /**
  *
- * @param {string=} opt_dbname set database name.
- * @return {string|undefined} normalized dbname.
+ * @param {string} opt_dbname set database name.
+ * @return {string} normalized dbname.
  */
-ydn.db.Storage.prototype.setDbName = function(opt_dbname) {
-  if (goog.isDef(opt_dbname)) {
-    opt_dbname = opt_dbname.replace(/[@|\.|\s]/g, '');
-  } else {
-    opt_dbname = undefined;
+ydn.db.Storage.prototype.setDbName = function (opt_dbname) {
+  if (this.db_) {
+    throw Error('DB already initialized');
   }
-  if (this.dbname !== opt_dbname) {
-    this.dbname = opt_dbname;
-    this.initDatabase();
-  }
-  return this.dbname;
+  /**
+   * @final
+   * @type {string}
+   */
+  this.db_name = opt_dbname.replace(/[@|\.|\s]/g, '');
+  this.initDatabase();
+  return this.db_name;
 };
 
 
@@ -166,7 +169,7 @@ ydn.db.Storage.prototype.setVersion = function(version) {
  * @param {Object} tableSchema schema for the table.
  */
 ydn.db.Storage.prototype.addTableSchema = function(tableName, tableSchema) {
-  if (this.db) {
+  if (this.db_) {
     throw Error('Db already online.'); // should introduce setVersion
   }
   this.schema = this.schema || {};
@@ -185,30 +188,30 @@ ydn.db.Storage.prototype.addTableSchema = function(tableName, tableSchema) {
  */
 ydn.db.Storage.prototype.initDatabase = function() {
   // handle version change
-  if (goog.isDef(this.dbname) && goog.isDef(this.schema) &&
+  if (goog.isDef(this.db_name) && goog.isDef(this.schema) &&
       goog.isDef(this.version)) {
 
     if (goog.userAgent.product.ASSUME_CHROME || goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
-      this.db = new ydn.db.IndexedDb(this.dbname, this.schema, this.version);
+      this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema, this.version);
     } else if (goog.userAgent.product.ASSUME_SAFARI || goog.userAgent.ASSUME_WEBKIT) {
       // for dead-code elimination
-      this.db = new ydn.db.WebSql(this.dbname, this.schema, this.version);
+      this.db_ = new ydn.db.WebSql(this.db_name, this.schema, this.version);
     } else if (ydn.db.IndexedDb.isSupported()) { // run-time detection
-      this.db = new ydn.db.IndexedDb(this.dbname, this.schema, this.version);
+      this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema, this.version);
     } else if (ydn.db.WebSql.isSupported()) {
-      this.db = new ydn.db.WebSql(this.dbname, this.schema, this.version);
+      this.db_ = new ydn.db.WebSql(this.db_name, this.schema, this.version);
     } else if (ydn.db.Html5Db.isSupported()) {
-      this.db = new ydn.db.Html5Db(this.dbname, this.schema, this.version);
+      this.db_ = new ydn.db.Html5Db(this.db_name, this.schema, this.version);
     } else {
-      this.db = new ydn.db.MemoryStore(this.dbname, this.schema,
+      this.db_ = new ydn.db.MemoryStore(this.db_name, this.schema,
           this.version);
     }
 
     if (this.deferredDb.hasFired()) {
       this.deferredDb = new goog.async.Deferred();
     }
-    this.deferredDb.callback(this.db);
+    this.deferredDb.callback(this.db_);
   }
 };
 
@@ -221,7 +224,7 @@ ydn.db.Storage.prototype.initDatabase = function() {
  */
 ydn.db.Storage.prototype.setItem = function(key, value) {
 
-    return this.put(ydn.db.Db.DEFAULT_TEXT_STORE, {'id': key, 'value': value});
+    return this.put(ydn.db.Storage.DEFAULT_TEXT_STORE, {'id': key, 'value': value});
 
 };
 
@@ -230,8 +233,8 @@ ydn.db.Storage.prototype.setItem = function(key, value) {
  * @inheritDoc
  */
 ydn.db.Storage.prototype.put = function(table, value) {
-  if (this.db) {
-    return this.db.put(table, value);
+  if (this.db_) {
+    return this.db_.put(table, value);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
@@ -248,7 +251,7 @@ ydn.db.Storage.prototype.put = function(table, value) {
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.Storage.prototype.getItem = function(key) {
-  var out = this.get(ydn.db.Db.DEFAULT_TEXT_STORE, key);
+  var out = this.get(ydn.db.Storage.DEFAULT_TEXT_STORE, key);
   var df = new goog.async.Deferred();
   df.addCallback(function(data) {
     df.callback(data['value']);
@@ -264,8 +267,8 @@ ydn.db.Storage.prototype.getItem = function(key) {
  * @inheritDoc
  */
 ydn.db.Storage.prototype.get = function(table, key) {
-  if (this.db) {
-    return this.db.get(table, key);
+  if (this.db_) {
+    return this.db_.get(table, key);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
@@ -280,8 +283,8 @@ ydn.db.Storage.prototype.get = function(table, key) {
  * @inheritDoc
  */
 ydn.db.Storage.prototype.clear = function(opt_table) {
-  if (this.db) {
-    return this.db.clear(opt_table);
+  if (this.db_) {
+    return this.db_.clear(opt_table);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
@@ -296,8 +299,8 @@ ydn.db.Storage.prototype.clear = function(opt_table) {
  * @inheritDoc
  */
 ydn.db.Storage.prototype.getCount = function(table) {
-  if (this.db) {
-    return this.db.getCount(table);
+  if (this.db_) {
+    return this.db_.getCount(table);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
@@ -313,8 +316,8 @@ ydn.db.Storage.prototype.getCount = function(table) {
  * @inheritDoc
  */
 ydn.db.Storage.prototype.fetch = function(q) {
-  if (this.db) {
-    return this.db.fetch(q);
+  if (this.db_) {
+    return this.db_.fetch(q);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
@@ -331,7 +334,7 @@ ydn.db.Storage.prototype.fetch = function(q) {
  */
 ydn.db.Storage.prototype.disp = function() {
   if (goog.DEBUG) {
-    window.console.log(this.dbname + ' ver: ' + this.version);
+    window.console.log(this.db_name + ' ver: ' + this.version);
     var self = this;
 
     var print_table_description = function(table, count) {

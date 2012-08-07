@@ -333,7 +333,7 @@ ydn.db.IndexedDb.prototype.setItem = function(key, value) {
   var self = this;
 
   return this.doTransaction(function(tx) {
-    var store = tx.objectStore(ydn.db.Db.DEFAULT_TEXT_STORE);
+    var store = tx.objectStore(ydn.db.Storage.DEFAULT_TEXT_STORE);
     var request = store.put({'key': key, 'value': value});
 
     request.onsuccess = function(event) {
@@ -347,7 +347,7 @@ ydn.db.IndexedDb.prototype.setItem = function(key, value) {
         window.console.log(event);
       }
     };
-  }, [ydn.db.Db.DEFAULT_TEXT_STORE],
+  }, [ydn.db.Storage.DEFAULT_TEXT_STORE],
   ydn.db.IndexedDb.TransactionMode.READ_WRITE);
 
 };
@@ -396,7 +396,7 @@ ydn.db.IndexedDb.prototype.getItem = function(key) {
   var self = this;
 
   return this.doTransaction(function(tx) {
-    var store = tx.objectStore(ydn.db.Db.DEFAULT_TEXT_STORE);
+    var store = tx.objectStore(ydn.db.Storage.DEFAULT_TEXT_STORE);
     var request = store.get(key);
 
     request.onsuccess = function(event) {
@@ -415,7 +415,7 @@ ydn.db.IndexedDb.prototype.getItem = function(key) {
       }
     };
 
-  }, [ydn.db.Db.DEFAULT_TEXT_STORE],
+  }, [ydn.db.Storage.DEFAULT_TEXT_STORE],
   ydn.db.IndexedDb.TransactionMode.READ_ONLY);
 
 };
@@ -461,7 +461,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
 
   var value = q.value;
   var column = q.field;
-  var table = q.table || ydn.db.Db.DEFAULT_TEXT_STORE;
+  var table = q.table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   if (!column) {
     goog.asserts.assertObject(this.schema[table], 'store ' + table +
         ' not exists in ' + this.dbname);
@@ -541,7 +541,7 @@ ydn.db.IndexedDb.prototype.clear = function(table) {
  */
 ydn.db.IndexedDb.prototype.clearStore = function(opt_table) {
   var self = this;
-  opt_table = opt_table || ydn.db.Db.DEFAULT_TEXT_STORE;
+  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
 
   return this.doTransaction(function(tx) {
     var store = tx.objectStore(opt_table);
@@ -567,7 +567,7 @@ ydn.db.IndexedDb.prototype.clearStore = function(opt_table) {
  */
 ydn.db.IndexedDb.prototype.getCount = function(table) {
 
-  table = table || ydn.db.Db.DEFAULT_TEXT_STORE;
+  table = table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   var self = this;
 
   return this.doTransaction(function(tx) {
@@ -598,7 +598,7 @@ ydn.db.IndexedDb.prototype.getCount = function(table) {
 ydn.db.IndexedDb.prototype.list = function(opt_table) {
   var self = this;
 
-  opt_table = opt_table || ydn.db.Db.DEFAULT_TEXT_STORE;
+  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   goog.asserts.assertObject(this.schema[opt_table], 'store ' + opt_table +
       ' not exists in ' + this.dbname);
   var column = this.schema[opt_table].keyPath;

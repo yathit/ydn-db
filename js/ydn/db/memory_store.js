@@ -35,7 +35,7 @@ ydn.db.MemoryStore = function(dbname, opt_schema, opt_version) {
   dbname = dbname;
   this.dbname = dbname;
   this.schema = opt_schema || {};
-  this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
+  this.schema[ydn.db.Storage.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
   this.setVersion();
 };
 
@@ -64,7 +64,7 @@ ydn.db.MemoryStore.prototype.setVersion = function() {
  *
  */
 ydn.db.MemoryStore.prototype.setItem = function(key, value) {
-  this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key] = value;
+  this.cache[ydn.db.Storage.DEFAULT_TEXT_STORE][key] = value;
   return goog.async.Deferred.succeed(true);
 };
 
@@ -93,7 +93,7 @@ ydn.db.MemoryStore.prototype.put = function(table, value) {
  *
  */
 ydn.db.MemoryStore.prototype.getItem = function(key) {
-  var value = this.cache[ydn.db.Db.DEFAULT_TEXT_STORE][key];
+  var value = this.cache[ydn.db.Storage.DEFAULT_TEXT_STORE][key];
   return goog.async.Deferred.succeed(value);
 };
 
@@ -135,7 +135,7 @@ ydn.db.MemoryStore.prototype.clear = function(table) {
  * @inheritDoc
  */
 ydn.db.MemoryStore.prototype.getCount = function(table) {
-  table = table || ydn.db.Db.DEFAULT_TEXT_STORE;
+  table = table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   var d = new goog.async.Deferred();
   var n = 0;
   for (var key in this.cache[table]) {

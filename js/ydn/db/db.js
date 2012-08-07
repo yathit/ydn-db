@@ -26,47 +26,10 @@ goog.require('ydn.db.Query');
 
 /**
  * @interface
+ * @param {string} dbname name of database.
+ * @param {ydn.db.DatabaseSchema} schema table schema contain table name and keyPath.
  */
-ydn.db.Db = function() {};
-
-
-/**
- * @define {string} default key-value (store) table name.
- */
-ydn.db.Db.DEFAULT_TEXT_STORE = 'default_text_store';
-
-
-/**
- * Store field data type following Web Sql definition.
- * @see http://www.sqlite.org/lang_expr.html
- * @enum {string}
- */
-ydn.db.Db.DataType = {
-  TEXT: 'TEXT',
-  FLOAT: 'REAL',
-  INTEGER: 'INTEGER'
-};
-
-
-/**
- * Table schema following IndexedDB definition. In WebSql, a table is created
- * with the indexeded field. Non-indexed value are stored in stringified string.
- * @typedef {{name: string, type: ydn.db.Db.DataType, unique: boolean}}
- */
-ydn.db.Db.IndexSchema;
-
-
-/**
- * Table schema following IndexedDB definition.
- * @typedef {{name: string, keyPath: string, indexes: Array.<ydn.db.Db.IndexSchema>}}
- */
-ydn.db.Db.TableSchema;
-
-
-/**
- * @typedef {Array.<ydn.db.Db.TableSchema>}
- */
-ydn.db.Db.DatabaseSchema;
+ydn.db.Db = function(dbname, schema) {};
 
 
 /**
@@ -94,7 +57,7 @@ ydn.db.Db.prototype.get = function(table, key) {
 /**
  * Get number of items stored.
  * @param {string=} opt_table table name, default to
- * {@link ydn.db.Db.DEFAULT_TEXT_STORE}.
+ * {@link ydn.db.Storage.DEFAULT_TEXT_STORE}.
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
 ydn.db.Db.prototype.getCount = function(opt_table) {

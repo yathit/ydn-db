@@ -32,7 +32,7 @@ ydn.db.Html5Db = function(dbname, opt_schema, opt_version) {
   this.version = opt_version || '1';
   this.dbname = dbname;
   this.schema = opt_schema || {};
-  this.schema[ydn.db.Db.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
+  this.schema[ydn.db.Storage.DEFAULT_TEXT_STORE] = {'keyPath': 'id'};
 
   for (var table in this.schema) {
     if (!goog.isDef(window.localStorage[table])) {
@@ -59,7 +59,7 @@ ydn.db.Html5Db.isSupported = function() {
  * @return {string}
  */
 ydn.db.Html5Db.prototype.getKey = function(id, opt_table) {
-  opt_table = opt_table || ydn.db.Db.DEFAULT_TEXT_STORE;
+  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   return '_database_' + this.dbname + '-' + opt_table + '-' + id;
 };
 
@@ -131,12 +131,12 @@ ydn.db.Html5Db.prototype.clear = function(opt_table) {
 /**
  * Get number of items stored.
  * @param {string=} opt_table table name, default to
- * {@link ydn.db.Db.DEFAULT_TEXT_STORE}.
+ * {@link ydn.db.Storage.DEFAULT_TEXT_STORE}.
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
 ydn.db.Html5Db.prototype.getCount = function(opt_table) {
   var d = new goog.async.Deferred();
-  opt_table = opt_table || ydn.db.Db.DEFAULT_TEXT_STORE;
+  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   var n = 0;
   for (var key in window.localStorage) {
     if (goog.string.startsWith(key, '_database_' + this.dbname)) {
