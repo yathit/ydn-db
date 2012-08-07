@@ -100,6 +100,7 @@ ydn.db.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSql');
  */
 ydn.db.WebSql.DEFAULT_FIELD = '_default_';
 
+
 /**
  * Initialize variable to the schema and prepare SQL statement for creating
  * the table.
@@ -174,6 +175,7 @@ ydn.db.WebSql.prototype.migrate = function() {
 
 };
 
+
 //
 ///**
 // *
@@ -217,7 +219,6 @@ ydn.db.WebSql.prototype.migrate = function() {
 //  });
 //  return d;
 //};
-
 
 
 /**
