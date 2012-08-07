@@ -67,12 +67,21 @@ ydn.db.Db.prototype.getCount = function(opt_table) {
 
 
 /**
- * Delete a store (table) or all.
- * @param {string=} opt_table delete a specific table. if not specified delete
+ * Remove all data in a store (table).
+ * @param {string} opt_table delete a specific table.
  * all tables.
  * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.Db.prototype.clear = function(opt_table) {
+
+};
+
+
+/**
+ * Delete the database.
+ * @return {!goog.async.Deferred} return a deferred function.
+ */
+ydn.db.Db.prototype.delete = function() {
 
 };
 
@@ -85,3 +94,4 @@ ydn.db.Db.prototype.clear = function(opt_table) {
 ydn.db.Db.prototype.fetch = function(q) {
 
 };
+

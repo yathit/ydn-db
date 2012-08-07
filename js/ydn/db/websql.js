@@ -545,15 +545,14 @@ ydn.db.WebSql.prototype.fetch = function(q) {
 
 /**
  * Deletes all objects from the store.
- * @param {string=} opt_table table name.
+ * @param {string} table_name table name.
  * @return {!goog.async.Deferred} return deferred function.
  */
-ydn.db.WebSql.prototype.clearStore = function(opt_table) {
+ydn.db.WebSql.prototype.clearStore = function(table_name) {
   var d = new goog.async.Deferred();
   var self = this;
 
-  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
-  var sql = 'DELETE FROM  ' + opt_table;
+  var sql = 'DELETE FROM  ' + table_name;
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -605,7 +604,7 @@ ydn.db.WebSql.prototype.clear = function(table) {
 ydn.db.WebSql.prototype.getCount = function(table) {
 
   var d = new goog.async.Deferred();
-  var self = this;
+  var me = this;
 
   table = table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   var sql = 'SELECT COUNT(*) FROM ' + table;
@@ -628,7 +627,7 @@ ydn.db.WebSql.prototype.getCount = function(table) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    self.logger.warning('getCount error: ' + error);
+    me.logger.warning('getCount error: ' + error);
     d.errback(undefined);
   };
 
@@ -640,7 +639,43 @@ ydn.db.WebSql.prototype.getCount = function(table) {
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.WebSql.prototype.delete = function() {
+	var d = new goog.async.Deferred();
+	var me = this;
 
+	/**
+	 * @param {SQLTransaction} transaction transaction.
+	 * @param {SQLResultSet} results results.
+	 */
+	var callback = function(transaction, results) {
+		//console.log(['row ', row  , results]);
+		d.callback(true);
+	};
+
+	/**
+	 * @param {SQLTransaction} tr transaction.
+	 * @param {SQLError} error error.
+	 */
+	var error_callback = function(tr, error) {
+		if (ydn.db.WebSql.DEBUG) {
+			window.console.log([tr, error]);
+		}
+		me.logger.warning('getCount error: ' + error);
+		d.errback(undefined);
+	};
+
+	this.db.transaction(function(t) {
+		for (var i = 0; i < me.schema.stores.length; i++) {
+			var sql = 'DROP TABLE ' + me.schema.stores[i] + ';';
+		}
+		t.executeSql(sql, [], callback, error_callback);
+	});
+
+	return d;
+};
 
 
 
