@@ -219,27 +219,6 @@ ydn.db.WebSql.prototype.migrate = function() {
 //};
 
 
-/**
- * @protected
- * @param {string} table table name.
- * @param {Object} value value.
- * @return {string} key.
- */
-ydn.db.WebSql.prototype.getKey = function(table, value) {
-	var keyObj = value;
-	for (var i = 0; i < this.schema[table].keyParts.length; i++) {
-		keyObj = keyObj[this.schema[table].keyParts[i]];
-		if (!goog.isDef(keyObj)) {
-			this.logger.severe('key for ' + this.schema[table].keyParts[i] +
-				' not defined in ' + ydn.json.stringify(keyObj));
-			throw new Error(this.schema[table].keyPath);
-		}
-	}
-	goog.asserts.assertString(keyObj);
-	return keyObj;
-};
-
-
 
 /**
  * @inheritDoc
@@ -337,9 +316,9 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
       for (var j = 0; j < table.indexes.length; j++) {
         var index = table.indexes[j];
         var x = row[index.name];
-        if (index.type == ydn.db.Db.DataType.INTEGER) {
+        if (index.type == ydn.db.DataType.INTEGER) {
           x = parseInt(x, 10);
-        } else if (index.type == ydn.db.Db.DataType.FLOAT) {
+        } else if (index.type == ydn.db.DataType.FLOAT) {
           x = parseFloat(x);
         }
         value[index.name] = x;
