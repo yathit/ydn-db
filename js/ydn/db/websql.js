@@ -177,51 +177,6 @@ ydn.db.WebSql.prototype.migrate = function() {
 };
 
 
-//
-///**
-// *
-// * @param {string} key key.
-// * @param {string} table table name.
-// * @return {!goog.async.Deferred} return as deferred function with reuslt of
-// * boolean type.
-// */
-//ydn.db.WebSql.prototype.exists = function(key, table) {
-//  var self = this;
-//  var d = new goog.async.Deferred();
-//  var keyPath = this.schema[table].keyPath;
-//  var keyPathQuoted = this.schema[table].keyPathQuoted;
-//  // NOTE: id cannot be quote.
-//  var sql = 'SELECT ' + keyPathQuoted + " FROM '" + table + "' WHERE " +
-//      keyPathQuoted + ' = ?';
-//
-//  /**
-//   * @param {SQLTransaction} transaction transaction.
-//   * @param {SQLResultSet} results results.
-//   */
-//  var callback = function(transaction, results) {
-//    d.callback(results.rows.length > 0);
-//  };
-//
-//  /**
-//   * @param {SQLTransaction} tr transaction.
-//   * @param {SQLError} error error.
-//   */
-//  var error_callback = function(tr, error) {
-//    if (ydn.db.WebSql.DEBUG) {
-//      window.console.log([tr, error]);
-//    }
-//    self.logger.warning('exists error: ' + error);
-//    d.errback(undefined);
-//  };
-//
-//  this.db.transaction(function(tx) {
-//    //console.log(sql + ' ' + key);
-//    tx.executeSql(sql, [key], callback, error_callback);
-//  });
-//  return d;
-//};
-
-
 /**
  * @inheritDoc
  */
@@ -366,50 +321,6 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
 
   return d;
 };
-
-//
-///**
-// *
-// */
-//ydn.db.WebSql.prototype.getItem = function(key) {
-//  var d = new goog.async.Deferred();
-//  var self = this;
-//
-//  var sql = 'SELECT id, value FROM ' + ydn.db.Storage.DEFAULT_TEXT_STORE +
-//      " WHERE id = '" + key + "'";
-//
-//  /**
-//   * @param {SQLTransaction} transaction transaction.
-//   * @param {SQLResultSet} results results.
-//   */
-//  var callback = function(transaction, results) {
-//    var value;
-//    if (results.rows.length > 0) {
-//      var row = results.rows.item(0);
-//      goog.asserts.assert(key == row['id'], key + ' = ' + row['id'] + ' ?');
-//      value = row['value'];
-//    }
-//    d.callback(value);
-//  };
-//
-//  /**
-//   * @param {SQLTransaction} tr transaction.
-//   * @param {SQLError} error error.
-//   */
-//  var error_callback = function(tr, error) {
-//    if (ydn.db.WebSql.DEBUG) {
-//      window.console.log([tr, error]);
-//    }
-//    self.logger.warning('Sqlite error: ' + error);
-//    d.errback(undefined);
-//  };
-//
-//  this.db.transaction(function(t) {
-//    t.executeSql(sql, [], callback, error_callback);
-//  });
-//
-//  return d;
-//};
 
 
 /**
