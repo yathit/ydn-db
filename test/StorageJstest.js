@@ -34,7 +34,7 @@ ydn.store.StorageJstest.prototype.test_setItem = function(queue) {
   });
 
   queue.call('set schema', function(callbacks) {
-    db.setLastSchema(ydn.db.test.getSchema());
+    db.addSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {
@@ -65,7 +65,7 @@ ydn.store.StorageJstest.prototype.test_setItem_getItem = function(queue) {
   });
 
   queue.call('set schema', function(callbacks) {
-    db.setLastSchema(ydn.db.test.getSchema());
+    db.addSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {
@@ -117,7 +117,7 @@ ydn.store.StorageJstest.prototype.test_put_get = function(queue) {
   });
 
   queue.call('set schema', function(callbacks) {
-    db.setLastSchema(ydn.db.test.getSchema());
+    db.addSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {

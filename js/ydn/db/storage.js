@@ -47,7 +47,8 @@ goog.require('ydn.object');
  * localStorage.
  * @see goog.db
  * @param {string=} opt_dbname database name.
- * @param {Array.<!ydn.db.DatabaseSchema>=} opt_schemas opt_schema database
+ * @param {!Array.<!ydn.db.DatabaseSchema|!Object>=} opt_schemas database schema
+ * or its configuration in JSOn format.
  * schema used in chronical order.
  * @implements {ydn.db.Db}
  * @constructor
@@ -138,19 +139,31 @@ ydn.db.Storage.prototype.setDbName = function(opt_dbname) {
 
 /**
  * Set the latest version of database schema. This will start initialization if
- * dbname have been set.
+ * database name have been set.
  * @export
  * @see {@link #addTableSchema}
- * @param {ydn.db.DatabaseSchema} schema set the last schema.
+ * @param {!ydn.db.DatabaseSchema|!Object} schema set the last schema or its
+ * configuration in JSON format.
  */
-ydn.db.Storage.prototype.setLastSchema = function(schema) {
+ydn.db.Storage.prototype.addSchema = function(schema) {
+  var to_init = !goog.isDef(this.schemas);
+
+  if (!(schema instanceof ydn.db.DatabaseSchema)) {
+    schema = ydn.db.DatabaseSchema.fromJSON(schema);
+  }
+
   /**
    * @protected
    * @type {Array.<!ydn.db.DatabaseSchema>}
    */
   this.schemas = this.schemas || [];
   this.schemas.push(schema);
-  this.initDatabase();
+  if (to_init) {
+    this.initDatabase();
+  } else {
+    // TODO: migration
+    throw Error('Schema migration not supported yet.');
+  }
 };
 
 
@@ -159,14 +172,25 @@ ydn.db.Storage.prototype.setLastSchema = function(schema) {
  * dbname have been set.
  * @export
  * @see {@link #addTableSchema}
- * @param {Array.<!ydn.db.DatabaseSchema>} schemas set schemas.
+ * @param {!Array.<!ydn.db.DatabaseSchema|!Object>} schemas set database schemas
+ * or its configuration in JSON format
  */
 ydn.db.Storage.prototype.setSchemas = function(schemas) {
+
+  var data = schemas;
+  if (!(schemas[0] instanceof ydn.db.DatabaseSchema)) {
+    // must be JSON
+    data = [];
+    for (var i = 0; i < schemas.length; i++) {
+      data.push(ydn.db.DatabaseSchema.fromJSON(schemas[i]));
+    }
+  }
+
   /**
    * @protected
    * @type {Array.<!ydn.db.DatabaseSchema>}
    */
-  this.schemas = schemas || [];
+  this.schemas = data || [];
   this.initDatabase();
 };
 
@@ -391,8 +415,6 @@ ydn.db.Storage.prototype.disp = function() {
 
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
-goog.exportSymbol('ydn.db.DatabaseSchema', ydn.db.DatabaseSchema);
-goog.exportSymbol('ydn.db.DatabaseSchema.fromJSON', ydn.db.DatabaseSchema.fromJSON);
 goog.exportProperty(goog.async.Deferred.prototype, 'success',
   goog.async.Deferred.prototype.addCallback);
 goog.exportProperty(goog.async.Deferred.prototype, 'error',

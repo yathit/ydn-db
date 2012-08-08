@@ -348,7 +348,6 @@ ydn.db.DatabaseSchema.prototype.toJSON = function() {
 
 
 /**
- * @export
  * @param {!Object} json Restore from json stream.
  * @return {!ydn.db.DatabaseSchema} create new database schema from JSON string.
  */

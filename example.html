@@ -15,13 +15,12 @@
 <script type="text/javascript">
 
   // initialize database
-  var schema = ydn.db.DatabaseSchema.fromJSON(
-      {"version":1,
+  var schema = {"version":1,
         "size":5 * 1024 * 1024, // 5 MB,
         "stores":[
           {"name":"t1", "keyPath":"id", "autoIncrement":false, "indexes":[]},
           {"name":"default_text_store", "keyPath":"id", "autoIncrement":false, "indexes":[]}
-        ]});
+        ]};
   var db = new ydn.db.Storage('test', [schema]);
 
   console.log('database db initialized.');
