@@ -19,18 +19,16 @@
  */
 
 goog.provide('ydn.db.Db');
-goog.require('ydn.db.DatabaseSchema');
 goog.require('goog.async.Deferred');
+goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.Query');
 
 
 
 /**
  * @interface
- * @param {string} dbname name of database.
- * @param {ydn.db.DatabaseSchema} schema table schema contain table name and keyPath.
  */
-ydn.db.Db = function(dbname, schema) {};
+ydn.db.Db = function() {};
 
 
 /**

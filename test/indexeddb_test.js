@@ -17,7 +17,7 @@ var setUp = function() {
 
 	this.table_name = 't1';
 	this.basic_schema = new ydn.db.DatabaseSchema(1);
-	this.basic_schema.addStore(new ydn.db.TableSchema(this.table_name));
+	this.basic_schema.addStore(new ydn.db.StoreSchema(this.table_name));
 };
 
 var tearDown = function() {
@@ -95,7 +95,7 @@ var test_1_clear = function() {
       100, // interval
       1000); // maxTimeout
 
-  db.getCount(this.table_name).addCallback(function(value) {
+  db.count(this.table_name).addCallback(function(value) {
     countValue = value;
     countDone = true;
   });
@@ -167,7 +167,7 @@ var test_4_put_nested_keyPath = function() {
   var store_name = 'ts1';
   var put_obj_dbname = 'putodbtest2';
 	var schema = new ydn.db.DatabaseSchema(1);
-	schema.addStore(new ydn.db.TableSchema(store_name, 'id.$t'));
+	schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
 	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
 
   var key = 'a';
@@ -220,7 +220,7 @@ var test_5_query_start_with = function() {
   var store_name = 'ts1';
   var put_obj_dbname = 'pos2';
 	var schema = new ydn.db.DatabaseSchema(1);
-	schema.addStore(new ydn.db.TableSchema(store_name, 'id'));
+	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
 
 

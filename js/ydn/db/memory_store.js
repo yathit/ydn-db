@@ -27,7 +27,8 @@ goog.require('ydn.db.Db');
  * @implements {ydn.db.Db}
  * @constructor
  * @param {string} dbname database name.
- * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table name and keyPath
+ * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table
+ * name and keyPath.
  */
 ydn.db.MemoryStore = function(dbname, schemas) {
   this.dbname = dbname;
@@ -35,7 +36,7 @@ ydn.db.MemoryStore = function(dbname, schemas) {
 
   /**
    * @final
-   * @private
+   * @protected
    * @type {Object}
    */
   this.cache = {};
@@ -47,15 +48,6 @@ ydn.db.MemoryStore = function(dbname, schemas) {
   }
 };
 
-
-/**
- *
- *
- */
-ydn.db.MemoryStore.prototype.setItem = function(key, value) {
-  this.cache[ydn.db.Storage.DEFAULT_TEXT_STORE][key] = value;
-  return goog.async.Deferred.succeed(true);
-};
 
 
 /**
@@ -77,14 +69,6 @@ ydn.db.MemoryStore.prototype.put = function(table, value) {
   return goog.async.Deferred.succeed(true);
 };
 
-
-/**
- *
- */
-ydn.db.MemoryStore.prototype.getItem = function(key) {
-  var value = this.cache[ydn.db.Storage.DEFAULT_TEXT_STORE][key];
-  return goog.async.Deferred.succeed(value);
-};
 
 
 /**
@@ -148,5 +132,5 @@ ydn.db.MemoryStore.prototype.fetch = function(q) {
  * @inheritDoc
  */
 ydn.db.MemoryStore.prototype.delete = function() {
-	return this.clear();
+  return this.clear();
 };

@@ -17,7 +17,7 @@ var setUp = function() {
 
   this.table_name = 't1';
   this.basic_schema = new ydn.db.DatabaseSchema(1);
-  this.basic_schema.addStore(new ydn.db.TableSchema(this.table_name));
+  this.basic_schema.addStore(new ydn.db.StoreSchema(this.table_name));
 };
 
 var tearDown = function() {
@@ -241,7 +241,7 @@ var test_5_get = function() {
   var store_name = 'ydn.test.ts1';
   var put_obj_dbname = 'ydn.putodbtest1';
   var schema = new ydn.db.DatabaseSchema(1);
-	schema.addStore(new ydn.db.TableSchema(store_name, 'id'));
+	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 
   var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
 
@@ -296,7 +296,7 @@ var test_6_putObject_nested_keyPath = function() {
   var put_obj_dbname = 'test2';
 
 	var schema = new ydn.db.DatabaseSchema(1);
-	schema.addStore(new ydn.db.TableSchema(store_name, 'id.$t'));
+	schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
 
 	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
 
@@ -349,7 +349,7 @@ var test_7_put_get_array = function() {
   var put_obj_dbname = 'test7';
 
 	var schema = new ydn.db.DatabaseSchema(1);
-	schema.addStore(new ydn.db.TableSchema(store_name, 'id'));
+	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 
 	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
 
@@ -410,7 +410,7 @@ var test_8_query_start_with = function() {
   var store_name = 'ts1';
 	var dbname = 'test8';
 	var schema = new ydn.db.DatabaseSchema(1);
-	schema.addStore(new ydn.db.TableSchema(store_name, 'id'));
+	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 	var db = new ydn.db.WebSql(dbname, [schema]);
 
 

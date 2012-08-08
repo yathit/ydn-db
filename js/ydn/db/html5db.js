@@ -17,34 +17,34 @@
  */
 
 goog.provide('ydn.db.Html5Db');
-goog.require('goog.async.Deferred');
 goog.require('goog.asserts');
-
+goog.require('goog.async.Deferred');
 
 
 /**
  * @implements {ydn.db.Db}
  * @param {string} dbname dtabase name.
- * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table name and keyPath.
+ * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table
+ * name and keyPath.
  * @constructor
  */
 ydn.db.Html5Db = function(dbname, schemas) {
-	this.dbname = dbname;
-	/**
-	 * @final
-	 * @protected
-	 * @type {Array.<!ydn.db.DatabaseSchema>}
-	 */
-	this.schemas = schemas;
+  this.dbname = dbname;
+  /**
+   * @final
+   * @protected
+   * @type {Array.<!ydn.db.DatabaseSchema>}
+   */
+  this.schemas = schemas;
 
-	this.schema = schemas[schemas.length - 1]; // we always use the last schema.
+  this.schema = schemas[schemas.length - 1]; // we always use the last schema.
 
 };
 
 
 /**
  *
- * @return {boolean} true if localStorage is supported
+ * @return {boolean} true if localStorage is supported.
  */
 ydn.db.Html5Db.isSupported = function() {
   return !!window.localStorage;
@@ -64,42 +64,39 @@ ydn.db.Html5Db.prototype.migrate = function(old_version) {
  * @protected
  * @param {string} id id.
  * @param {string} store_name table name.
- * @return {string}
+ * @return {string} canonical key name.
  */
 ydn.db.Html5Db.prototype.getKey = function(id, store_name) {
   return '_database_' + this.dbname + '-' + store_name + '-' + id;
 };
 
 
-
 /**
  * @inheritDoc
  */
 ydn.db.Html5Db.prototype.put = function(table, value) {
-	var store = this.schema.getStore(table);
-	goog.asserts.assertObject(store);
-	var key, value_str;
-	if (goog.isObject(value)) {
-		key = store.getKey(value);
-		goog.asserts.assertString(key);
-		key = this.getKey(key, table);
-		value_str = ydn.json.stringify(value);
-		window.localStorage.setItem(key, value_str);
-	} else if (goog.isArray(value)) {
-		for (var i = 0; i < value.length; i++) {
-			key = store.getKey(value[i]);
-			goog.asserts.assertString(key);
-			key = this.getKey(key, table);
-			value_str = ydn.json.stringify(value);
-			window.localStorage.setItem(key, value_str);
-		}
-	} else {
-		throw Error('Not object: ' + value);
-	}
+  var store = this.schema.getStore(table);
+  goog.asserts.assertObject(store);
+  var key, value_str;
+  if (goog.isObject(value)) {
+    key = store.getKey(value);
+    goog.asserts.assertString(key);
+    key = this.getKey(key, table);
+    value_str = ydn.json.stringify(value);
+    window.localStorage.setItem(key, value_str);
+  } else if (goog.isArray(value)) {
+    for (var i = 0; i < value.length; i++) {
+      key = store.getKey(value[i]);
+      goog.asserts.assertString(key);
+      key = this.getKey(key, table);
+      value_str = ydn.json.stringify(value);
+      window.localStorage.setItem(key, value_str);
+    }
+  } else {
+    throw Error('Not object: ' + value);
+  }
   return goog.async.Deferred.succeed(true);
 };
-
-
 
 
 /**
@@ -107,12 +104,12 @@ ydn.db.Html5Db.prototype.put = function(table, value) {
  */
 ydn.db.Html5Db.prototype.get = function(table, key) {
 
-	var store = this.schema.getStore(table);
-	goog.asserts.assertObject(store);
+  var store = this.schema.getStore(table);
+  goog.asserts.assertObject(store);
 
   var value = window.localStorage.getItem(this.getKey(key, table));
   return goog.async.Deferred.succeed(ydn.json.parse(
-      /** @type {string} */ (value)));
+    /** @type {string} */ (value)));
 };
 
 
@@ -124,11 +121,12 @@ ydn.db.Html5Db.prototype.get = function(table, key) {
  */
 ydn.db.Html5Db.prototype.clear = function(opt_table) {
   var tables_to_clear = goog.isDef(opt_table) ?
-      [opt_table] : this.schema.listStores();
+    [opt_table] : this.schema.listStores();
 
   for (var key in window.localStorage) {
     for (var table, i = 0; table = tables_to_clear[i]; i++) {
-      if (goog.string.startsWith(key, '_database_' + this.dbname + '-' + table)) {
+      if (goog.string.startsWith(key, '_database_' + this.dbname + '-' + table))
+      {
         delete window.localStorage[key];
       }
     }
@@ -141,7 +139,7 @@ ydn.db.Html5Db.prototype.clear = function(opt_table) {
  * @inheritDoc
  */
 ydn.db.Html5Db.prototype.delete = function() {
-	return this.clear();
+  return this.clear();
 };
 
 

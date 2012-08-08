@@ -23,11 +23,10 @@ goog.require('goog.Timer');
 goog.require('goog.async.DeferredList');
 goog.require('goog.events');
 goog.require('ydn.async');
+goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
-goog.require('ydn.db.DatabaseSchema');
-
 
 
 /**
@@ -35,17 +34,18 @@ goog.require('ydn.db.DatabaseSchema');
  * @see ydn.db.Storage for schema defination
  * @implements {ydn.db.Db}
  * @param {string} dbname name of database.
- * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table name and keyPath.
+ * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table
+ * name and keyPath.
  * @constructor
  */
 ydn.db.IndexedDb = function(dbname, schemas) {
   var self = this;
   this.dbname = dbname;
-	/**
-	 * 
-	 * @type {Array.<!ydn.db.DatabaseSchema>}
-	 */
-	this.schemas = schemas;
+  /**
+   *
+   * @type {Array.<!ydn.db.DatabaseSchema>}
+   */
+  this.schemas = schemas;
   /**
    * @protected
    * @final
@@ -55,27 +55,32 @@ ydn.db.IndexedDb = function(dbname, schemas) {
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // In chrome, version is taken as description.
-  self.logger.finer('Trying to open ' + this.dbname + ' ' + this.schema.version);
-  var openRequest = ydn.db.IndexedDb.indexedDb.open(this.dbname, this.schema.version);
+  self.logger.finer('Trying to open ' + this.dbname + ' ' +
+    this.schema.version);
+  var openRequest = ydn.db.IndexedDb.indexedDb.open(this.dbname,
+    /** @type {string} */ (this.schema.version)); // for old externs
 
   openRequest.onsuccess = function(ev) {
     self.logger.finer(self.dbname + ' ' + self.schema.version + ' OK.');
     var db = ev.target.result;
-		var old_version = db.version;
-    if (goog.isFunction(db.setVersion) && goog.isDef(self.schema.version) && self.schema.version > old_version) { // for chrome
+    var old_version = db.version;
+    if (goog.isFunction(db.setVersion) && goog.isDef(self.schema.version) &&
+      self.schema.version > old_version) { // for chrome
       self.logger.finer('initializing database from ' + db.version + ' to ' +
-          self.schema.version);
+        self.schema.version);
 
       var setVrequest = db.setVersion(self.schema.version); // for chrome
 
       setVrequest.onfailure = function(e) {
-        self.logger.warning('migrating from ' + db.version + ' to ' + self.schema.version + ' failed.');
+        self.logger.warning('migrating from ' + db.version + ' to ' +
+          self.schema.version + ' failed.');
         self.setDb(null);
       };
       setVrequest.onsuccess = function(e) {
         self.migrate(old_version, db);
         self.logger.finer('Migrated to version ' + db.version + '.');
-        var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname); // have to reopen for new schema
+        var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname);
+        // have to reopen for new schema
         reOpenRequest.onsuccess = function(rev) {
           db = ev.target.result;
           self.logger.finer('version ' + db.version + ' ready.');
@@ -92,7 +97,7 @@ ydn.db.IndexedDb = function(dbname, schemas) {
     var db = ev.target.result;
     self.logger.finer('upgrading version ' + db.version);
 
-		var old_version = undefined; // don't know.
+    var old_version = undefined; // don't know.
     self.migrate(old_version, db);
 
     var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname);
@@ -117,8 +122,21 @@ ydn.db.IndexedDb = function(dbname, schemas) {
 };
 
 
-ydn.db.IndexedDb.indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
-	goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global['msIndexedDB'];
+/**
+ *
+ * @define {boolean} trun on debug flag to dump object.
+ */
+ydn.db.IndexedDb.DEBUG = false;
+
+
+/**
+ *
+ * @type {IDBFactory} IndexedDb.
+ */
+ydn.db.IndexedDb.indexedDb = goog.global.indexedDB ||
+  goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
+  goog.global.moz_indexedDB ||
+  goog.global['msIndexedDB'];
 
 
 /**
@@ -166,7 +184,7 @@ ydn.db.IndexedDb.EventTypes = {
  * keys.
  */
 ydn.db.IndexedDb.IDBKeyRange = goog.global.IDBKeyRange ||
-    goog.global.webkitIDBKeyRange;
+  goog.global.webkitIDBKeyRange;
 
 
 /**
@@ -175,7 +193,7 @@ ydn.db.IndexedDb.IDBKeyRange = goog.global.IDBKeyRange ||
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.IndexedDb.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.IndexedDb');
+  goog.debug.Logger.getLogger('ydn.db.IndexedDb');
 
 
 /**
@@ -203,56 +221,53 @@ ydn.db.IndexedDb.prototype.setDb = function(db) {
 /**
  * Migrate from current version to the last version.
  * @protected
- * @param {string} old_version old database version
+ * @param {string} old_version old database version.
  * @param {IDBDatabase} db database instance.
  */
 ydn.db.IndexedDb.prototype.migrate = function(old_version, db) {
 
-	// create store that we don't have previously
+  // create store that we don't have previously
 
-	// Note: old_version is not available in new standard of IndexedDB. so just create new store
-	// whether it has old store or not.
-	var old_schema = goog.array.find(this.schemas, function(x) {return x.version == old_version});
+  // Note: old_version is not available in new standard of IndexedDB. so just
+  // create new store
+  // whether it has old store or not.
+  var old_schema = goog.array.find(this.schemas, function(x) {
+    return x.version == old_version;
+  });
 
   for (var table, i = 0; table = this.schema.stores[i]; i++) {
     this.logger.finest('Creating Object Store for ' + table.name +
-        ' keyPath: ' + table.keyPath);
+      ' keyPath: ' + table.keyPath);
 
-		if (old_schema && !goog.isNull(old_schema.getStore(table.name))) {
-			continue; // already have the store. TODO: update indexes
-		}
+    if (old_schema && !goog.isNull(old_schema.getStore(table.name))) {
+      continue; // already have the store. TODO: update indexes
+    }
 
     /**
      * @preserveTry
      */
     try {
-			goog.asserts.assertString(table.keyPath, 'name required.');
+      goog.asserts.assertString(table.keyPath, 'name required.');
       var store = db.createObjectStore(table.name, {
         keyPath: table.keyPath, autoIncrement: table.autoIncrement});
 
-        for (var i = 0; i < table.indexes.length; i++) {
-          var index = table.indexes[i];
-          goog.asserts.assertString(index.name, 'name required.');
-          goog.asserts.assertBoolean(index.unique, 'unique required.');
-          store.createIndex(index.name, index.name, {unique: index.unique});
-        }
+      for (var i = 0; i < table.indexes.length; i++) {
+        var index = table.indexes[i];
+        goog.asserts.assertString(index.name, 'name required.');
+        goog.asserts.assertBoolean(index.unique, 'unique required.');
+        store.createIndex(index.name, index.name, {unique: index.unique});
+      }
 
-      this.logger.finest('Created store: ' + store.name + ' keyPath: ' + store.keyPath);
+      this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
+        store.keyPath);
     } catch (e) { // e if e instanceof IDBDatabaseException
       // in Firefox, exception raise if the database already exist.
       this.logger.warning(e.message);
     }
   }
 
-	// TODO: don't bother to delete old store
+  // TODO: don't bother to delete old store
 };
-
-
-/**
- *
- * @define {boolean} trun on debug flag to dump object.
- */
-ydn.db.IndexedDb.DEBUG = true;
 
 
 /**
@@ -285,7 +300,8 @@ ydn.db.IndexedDb.prototype.runTxQueue = function() {
  * @param {goog.async.Deferred=} opt_df output deferred function to be used.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df) {
+ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df)
+{
   var self = this;
   opt_df = opt_df || new goog.async.Deferred();
 
@@ -298,21 +314,21 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df) {
      */
     var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
     goog.events.listen(/** @type {EventTarget} */ (tx),
-        [ydn.db.IndexedDb.EventTypes.COMPLETE,
-          ydn.db.IndexedDb.EventTypes.ABORT, ydn.db.IndexedDb.EventTypes.ERROR],
-        function(event) {
+      [ydn.db.IndexedDb.EventTypes.COMPLETE,
+        ydn.db.IndexedDb.EventTypes.ABORT, ydn.db.IndexedDb.EventTypes.ERROR],
+      function(event) {
 
-          if (goog.isDef(tx.result)) {
-            opt_df.callback(tx.result);
-          } else {
-            opt_df.errback(undefined);
-          }
+        if (goog.isDef(tx.result)) {
+          opt_df.callback(tx.result);
+        } else {
+          opt_df.errback(undefined);
+        }
 
-          goog.Timer.callOnce(function() {
-            self.is_ready = true;
-            self.runTxQueue();
-          });
+        goog.Timer.callOnce(function() {
+          self.is_ready = true;
+          self.runTxQueue();
         });
+      });
 
     fnc(tx);
 
@@ -331,7 +347,6 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df) {
   }
   return opt_df;
 };
-
 
 
 /**
@@ -368,7 +383,6 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
     };
   }, [table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
 };
-
 
 
 /**
@@ -414,7 +428,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
   var table = q.table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   if (!column) {
     goog.asserts.assertObject(this.schema[table], 'store ' + table +
-        ' not exists in ' + this.dbname);
+      ' not exists in ' + this.dbname);
     column = this.schema[q.table].keyPath;
   }
 
@@ -427,9 +441,9 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
     var value_upper = '';
     if (q.op == ydn.db.Query.Op.START_WITH) {
       value_upper = value.substring(0, value.length - 1) + String.fromCharCode(
-          value.charCodeAt(value.length - 1) + 1);
+        value.charCodeAt(value.length - 1) + 1);
       boundKeyRange = ydn.db.IndexedDb.IDBKeyRange.bound(value, value_upper,
-          false, true);
+        false, true);
     } else {
       boundKeyRange = ydn.db.IndexedDb.IDBKeyRange.only(value);
     }
@@ -489,15 +503,15 @@ ydn.db.IndexedDb.prototype.clear = function(table) {
  * @inheritDoc
  */
 ydn.db.IndexedDb.prototype.delete = function() {
-	var df = new goog.async.Deferred();
+  var df = new goog.async.Deferred();
 
-	if (goog.isFunction(ydn.db.IndexedDb.indexedDb.deleteDatabase)) {
-		ydn.db.IndexedDb.indexedDb.deleteDatabase(this.dbname);
-	} else {
-		return this.clear();
-	}
+  if (goog.isFunction(ydn.db.IndexedDb.indexedDb.deleteDatabase)) {
+    ydn.db.IndexedDb.indexedDb.deleteDatabase(this.dbname);
+  } else {
+    return this.clear();
+  }
 
-	return df;
+  return df;
 };
 
 
@@ -564,7 +578,7 @@ ydn.db.IndexedDb.prototype.list = function(opt_table) {
 
   opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   goog.asserts.assertObject(this.schema[opt_table], 'store ' + opt_table +
-      ' not exists in ' + this.dbname);
+    ' not exists in ' + this.dbname);
   var column = this.schema[opt_table].keyPath;
 
   return this.doTransaction(function(tx) {

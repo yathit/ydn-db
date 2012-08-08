@@ -29,13 +29,13 @@
  */
 
 goog.provide('ydn.db.Storage');
+goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.Html5Db');
 goog.require('ydn.db.IndexedDb');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
-goog.require('goog.userAgent.product');
 
 
 /**
@@ -43,7 +43,8 @@ goog.require('goog.userAgent.product');
  * localStorage.
  * @see goog.db
  * @param {string=} opt_dbname database name.
- * @param {Array.<!ydn.db.DatabaseSchema>=} opt_schemas opt_schema database schema used in chronical order.
+ * @param {Array.<!ydn.db.DatabaseSchema>=} opt_schemas opt_schema database
+ * schema used in chronical order.
  * @implements {ydn.db.Db}
  * @constructor
  */
@@ -70,23 +71,45 @@ ydn.db.Storage = function(opt_dbname, opt_schemas) {
 };
 
 
-
 /**
- * @define {string} default key-value (store) table name.
+ * @define {string} default key-value store name.
  */
 ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
-///**
-// *
-// * @return {{dbname: string, schema: ydn.db.DatabaseSchema}} configuration.
-// */
-//ydn.db.Storage.prototype.getConfig = function() {
-//  return {
-//    dbname: this.db_name,
-//    schema: ydn.object.clone(this.schema)
-//  };
-//};
+/**
+ * Get configuration of this storage. This is useful from getting storage from
+ * main thread to worker thread.
+ * <pre>
+ *   var db = new ydn.db.Storage(...);
+ *   ... initialize ...
+ *   var config = db.getConfig();
+ *
+ *   ... in worker thread ...
+ *   var schemas = [];
+ *   for (var i = 0; i < config.schemas.length; i++) {
+ *      schemas.push(ydn.db.DatabaseSchema.fromJSON(config.schemas[i]));
+ *   }
+ *   var worker_db = new ydn.db.Storage(config.db_name, schemas);
+ * </pre>
+ *
+ * @return {{db_name: string, schemas: Object}} configuration containing
+ * database and list of schema in JSON format.
+ */
+ydn.db.Storage.prototype.getConfig = function() {
+  if (!this.isReady()) {
+    throw Error('Database not initialized.');
+  }
+
+  var arr = this.schemas.map(function(x) {
+    return x.toJSON();
+  });
+
+  return {
+    db_name: this.db_name,
+    schemas: arr
+  };
+};
 
 
 /**
@@ -94,7 +117,7 @@ ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
  * @param {string} opt_dbname set database name.
  * @return {string} normalized dbname.
  */
-ydn.db.Storage.prototype.setDbName = function (opt_dbname) {
+ydn.db.Storage.prototype.setDbName = function(opt_dbname) {
   if (this.db_) {
     throw Error('DB already initialized');
   }
@@ -109,35 +132,36 @@ ydn.db.Storage.prototype.setDbName = function (opt_dbname) {
 
 
 /**
- * Set the latest version of database schema. This will start initialization if dbname have been set.
+ * Set the latest version of database schema. This will start initialization if
+ * dbname have been set.
  * @see {@link #addTableSchema}
  * @param {ydn.db.DatabaseSchema} schema set the last schema.
  */
 ydn.db.Storage.prototype.setLastSchema = function(schema) {
-	/**
-	 * @protected
-	 * @type {Array.<!ydn.db.DatabaseSchema>}
-	 */
-	this.schemas = this.schemas || [];
-	this.schemas.push(schema);
-	this.initDatabase();
+  /**
+   * @protected
+   * @type {Array.<!ydn.db.DatabaseSchema>}
+   */
+  this.schemas = this.schemas || [];
+  this.schemas.push(schema);
+  this.initDatabase();
 };
 
 
 /**
- * Set the latest version of database schema. This will start initialization if dbname have been set.
+ * Set the latest version of database schema. This will start initialization if
+ * dbname have been set.
  * @see {@link #addTableSchema}
  * @param {Array.<!ydn.db.DatabaseSchema>} schemas set schemas.
  */
 ydn.db.Storage.prototype.setSchemas = function(schemas) {
-	/**
-	 * @protected
-	 * @type {Array.<!ydn.db.DatabaseSchema>}
-	 */
+  /**
+   * @protected
+   * @type {Array.<!ydn.db.DatabaseSchema>}
+   */
   this.schemas = schemas || [];
   this.initDatabase();
 };
-
 
 
 /**
@@ -153,15 +177,19 @@ ydn.db.Storage.prototype.initDatabase = function() {
   // handle version change
   if (goog.isDef(this.db_name) && goog.isDef(this.schemas)) {
 
-		var schema = this.schemas[this.schemas.length -1];
-		if (!goog.string.isEmpty(ydn.db.Storage.DEFAULT_TEXT_STORE) && !schema.hasStore(ydn.db.Storage.DEFAULT_TEXT_STORE)) {
-			schema.addStore(new ydn.db.TableSchema(ydn.db.Storage.DEFAULT_TEXT_STORE));
-		}
+    var schema = this.schemas[this.schemas.length - 1];
+    if (!goog.string.isEmpty(ydn.db.Storage.DEFAULT_TEXT_STORE) &&
+      !schema.hasStore(ydn.db.Storage.DEFAULT_TEXT_STORE)) {
+      schema.addStore(new ydn.db.StoreSchema(
+        ydn.db.Storage.DEFAULT_TEXT_STORE));
+    }
 
-    if (goog.userAgent.product.ASSUME_CHROME || goog.userAgent.product.ASSUME_FIREFOX) {
+    if (goog.userAgent.product.ASSUME_CHROME ||
+      goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
       this.db_ = new ydn.db.IndexedDb(this.db_name, this.schemas);
-    } else if (goog.userAgent.product.ASSUME_SAFARI || goog.userAgent.ASSUME_WEBKIT) {
+    } else if (goog.userAgent.product.ASSUME_SAFARI ||
+      goog.userAgent.ASSUME_WEBKIT) {
       // for dead-code elimination
       this.db_ = new ydn.db.WebSql(this.db_name, this.schemas);
     } else if (ydn.db.IndexedDb.isSupported()) { // run-time detection
@@ -183,11 +211,11 @@ ydn.db.Storage.prototype.initDatabase = function() {
 
 
 /**
- * @return {boolean}
-*/
+ * @return {boolean} true if the database has been initialized.
+ */
 ydn.db.Storage.prototype.isReady = function() {
-	return !!this.db_;
-}
+  return !!this.db_;
+};
 
 
 /**
@@ -198,7 +226,8 @@ ydn.db.Storage.prototype.isReady = function() {
  */
 ydn.db.Storage.prototype.setItem = function(key, value) {
 
-  return this.put(ydn.db.Storage.DEFAULT_TEXT_STORE, {'id': key, 'value': value});
+  return this.put(ydn.db.Storage.DEFAULT_TEXT_STORE,
+    {'id': key, 'value': value});
 
 };
 
@@ -227,10 +256,10 @@ ydn.db.Storage.prototype.put = function(table, value) {
 ydn.db.Storage.prototype.getItem = function(key) {
   var out = this.get(ydn.db.Storage.DEFAULT_TEXT_STORE, key);
   var df = new goog.async.Deferred();
-	out.addCallback(function(data) {
+  out.addCallback(function(data) {
     df.callback(data['value']);
   });
-	out.addErrback(function(data) {
+  out.addErrback(function(data) {
     df.errback(data);
   });
   return df;
@@ -273,7 +302,7 @@ ydn.db.Storage.prototype.clear = function(opt_table) {
  * @inheritDoc
  */
 ydn.db.Storage.prototype.delete = function() {
- if (this.db_) {
+  if (this.db_) {
     return this.db_.delete();
   } else {
     var df = new goog.async.Deferred();
@@ -324,22 +353,22 @@ ydn.db.Storage.prototype.fetch = function(q) {
  */
 ydn.db.Storage.prototype.disp = function() {
   if (goog.DEBUG) {
-		var schema = this.schemas[this.schemas.length - 1];
+    var schema = this.schemas[this.schemas.length - 1];
     window.console.log(this.db_name + ' ver: ' + schema.version);
 
-		/**
-		 *
-		 * @param {ydn.db.TableSchema} table
-		 * @param {number} count
-		 */
+    /**
+     *
+     * @param {ydn.db.StoreSchema} table table.
+     * @param {number} count number.
+     */
     var print_table_description = function(table, count) {
       window.console.log('Table: ' + table.name + ', keyPath: ' +
-				table.keyPath + ', count: ' + count);
+        table.keyPath + ', count: ' + count);
     };
 
     for (var table, i = 0; table = schema.stores[i]; i++) {
       this.count(table.name).addBoth(
-				goog.partial(print_table_description,table));
+        goog.partial(print_table_description, table));
     }
   }
 };

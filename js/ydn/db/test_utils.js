@@ -8,15 +8,20 @@
 goog.provide('ydn.db.test');
 goog.require('ydn.db.Db');
 
+
+/**
+ *
+ * @type {string} store name.
+ */
 ydn.db.test.table = 't1';
 
 /**
- * @return {ydn.db.DatabaseSchema}
+ * @return {ydn.db.DatabaseSchema} database schema.
  */
 ydn.db.test.getSchema = function() {
-	var basic_schema = new ydn.db.DatabaseSchema(1);
-	basic_schema.addStore(new ydn.db.TableSchema(ydn.db.test.table));
-	return basic_schema;
+  var basic_schema = new ydn.db.DatabaseSchema(1);
+  basic_schema.addStore(new ydn.db.StoreSchema(ydn.db.test.table));
+  return basic_schema;
 };
 
 
@@ -77,8 +82,6 @@ ydn.db.test.get_tests = function(queue, db) {
     }));
   });
 };
-
-
 
 
 /**
