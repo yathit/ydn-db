@@ -29,8 +29,8 @@ var db_name = 'test1';
 
 var test_1_json = function() {
 
-	var store_name = 'ydn.test.ts1';
-	var put_obj_dbname = 'ydn.putodbtest1';
+	var store_name = 't1';
+	var put_obj_dbname = 'testdb2';
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 	var db = new ydn.db.Storage(put_obj_dbname, [schema]);
@@ -47,7 +47,34 @@ var test_1_json = function() {
 		// Continuation
 		function() {
 			assertTrue('put a 1', put_value_received);
+      console.log('put OK.');
 
+      var config = db.getConfig();
+      var schemas = [];
+      for (var i = 0; i < config.schemas.length; i++) {
+        schemas.push(ydn.db.DatabaseSchema.fromJSON(config.schemas[i]));
+      }
+      console.log([config, schemas]);
+      var db2 = new ydn.db.Storage(config.db_name, schemas);
+
+      var get_done;
+      var get_value_received;
+      waitForCondition(
+        // Condition
+        function() { return get_done; },
+        // Continuation
+        function() {
+          assertObjectEquals('get ', put_value, get_value_received);
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        1000); // maxTimeout
+
+      db2.get(store_name, key).addCallback(function(value) {
+        console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
+        get_value_received = value;
+        get_done = true;
+      });
 
 		},
 		100, // interval
@@ -59,33 +86,7 @@ var test_1_json = function() {
 		put_done = true;
 	});
 
-	var config = db.getConfig();
-	var schemas = [];
-	for (var i = 0; i < config.schemas.length; i++) {
-		schemas.push(ydn.db.DatabaseSchema.fromJSON(config.schemas[i]));
-	}
-	console.log([config, schemas]);
-	var db2 = new ydn.db.Storage(config.db_name, schemas);
 
-
-	var get_done;
-	var get_value_received;
-	waitForCondition(
-		// Condition
-		function() { return get_done; },
-		// Continuation
-		function() {
-			assertObjectEquals('get ', put_value, get_value_received);
-			reachedFinalContinuation = true;
-		},
-		100, // interval
-		1000); // maxTimeout
-
-	db2.get(store_name, key).addCallback(function(value) {
-		console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
-		get_value_received = value;
-		get_done = true;
-	});
 
 };
 

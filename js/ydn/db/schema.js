@@ -48,6 +48,28 @@ ydn.db.IndexSchema = function(name, opt_unique, opt_type) {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.IndexSchema.prototype.toJSON = function() {
+  return {
+    'name': this.name,
+    'type': this.type,
+    'unique': this.unique
+  }
+};
+
+
+/**
+ *
+ * @param {Object} json object in json format.
+ * @return {ydn.db.IndexSchema} created from input json string.
+ */
+ydn.db.IndexSchema.fromJSON = function(json) {
+  return new ydn.db.IndexSchema(json['name'], json['type'], json['unique']);
+};
+
+
+/**
  *
  * @param {string} name table name.
  * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to.
@@ -94,10 +116,15 @@ ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_indexes) {
  */
 ydn.db.StoreSchema.prototype.toJSON = function() {
 
+  var indexes = [];
+  for (var i = 0; i < this.indexes.length; i++) {
+    indexes.push(this.indexes[i].toJSON());
+  }
+
   return {'name': this.name,
     'keyPath': this.keyPath,
     'autoIncrement': this.autoIncrement,
-    'indexes': ydn.json.stringify(this.indexes)};
+    'indexes': indexes};
 };
 
 
@@ -107,8 +134,13 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
  * @return {!ydn.db.StoreSchema} create new store schema from JSON string.
  */
 ydn.db.StoreSchema.fromJSON = function(json) {
-  var indexes = /** @type {!Array.<!ydn.db.IndexSchema>} */
-    (ydn.json.parse(json['indexes']));
+  var indexes = [];
+  var indexes_json = ydn.json.parse(json['indexes']);
+  if (goog.isArray(indexes_json)) {
+    for (var i = 0; i < indexes_json.length; i++) {
+      indexes.push(ydn.db.IndexSchema.fromJSON(indexes_json[i]));
+    }
+  }
   return new ydn.db.StoreSchema(json['name'], json['keyPath'],
     json['autoIncrement'], indexes);
 };
@@ -316,14 +348,17 @@ ydn.db.DatabaseSchema.prototype.toJSON = function() {
 
 
 /**
- *
+ * @export
  * @param {!Object} json Restore from json stream.
  * @return {!ydn.db.DatabaseSchema} create new database schema from JSON string.
  */
 ydn.db.DatabaseSchema.fromJSON = function(json) {
-  return new ydn.db.DatabaseSchema(json['version'], json['size'],
-    /** @type {!Array.<!ydn.db.StoreSchema>} */
-    (ydn.json.parse(json['stores'])));
+  var stores = [];
+  var stores_json = ydn.json.parse(json['stores']);
+  for (var i = 0; i < stores_json.length; i++) {
+    stores.push(ydn.db.StoreSchema.fromJSON(stores_json[i]));
+  }
+  return new ydn.db.DatabaseSchema(json['version'], json['size'], stores);
 
 };
 

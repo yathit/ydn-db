@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notepad using ydn.db.Storage</title>
+  <script type="text/javascript" src="../jsc/ydn-db-min-0.1.js"></script>
+</head>
+<body>
+<ol>
+  <li>Write some text and save it.</li>
+  <li>Then reload the page.</li>
+  <li>The text will be restored.</li>
+</ol>
+<textarea id="content"></textarea>
+<button onclick="save()">Save</button>
+<script type="text/javascript">
+
+  // initialize database
+  var schema = ydn.db.DatabaseSchema.fromJSON(
+      {"version":1,
+        "size":5 * 1024 * 1024, // 5 MB,
+        "stores":[
+          {"name":"t1", "keyPath":"id", "autoIncrement":false, "indexes":[]},
+          {"name":"default_text_store", "keyPath":"id", "autoIncrement":false, "indexes":[]}
+        ]});
+  var db = new ydn.db.Storage('test', [schema]);
+
+  console.log('database db initialized.');
+
+  // restore previous save text.
+  db.getItem('content')
+      .success(function (text) {
+        console.log('Retrieved previous value: ' + text);
+        var ele = document.getElementById('content');
+        ele.value = text;
+      })
+      .error(function (x) {
+        console.log('Cannot retrieve revious text.');
+      });
+
+  function save() {
+    var ele = document.getElementById('content');
+    db.setItem('content', ele.value)
+        .success(function(x) {
+      console.log('saved: ' + ele.value);
+          ele.value = '';
+    }).error(function(x) {
+          console.log('Error in saving text.');
+        });
+  }
+
+</script>
+</body>
+</html>

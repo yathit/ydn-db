@@ -13,6 +13,10 @@
 // limitations under the License.
 
 /**
+ * @license Copyright 2012 YDN Authors. All Rights Reserved.
+ */
+
+/**
  * @fileoverview Wrappers for the all implemented Storage mechanisms.
  *
  * On application use, this is preferable over concrete storage implementation.
@@ -93,6 +97,7 @@ ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
  *   var worker_db = new ydn.db.Storage(config.db_name, schemas);
  * </pre>
  *
+ * @export
  * @return {{db_name: string, schemas: Object}} configuration containing
  * database and list of schema in JSON format.
  */
@@ -113,7 +118,7 @@ ydn.db.Storage.prototype.getConfig = function() {
 
 
 /**
- *
+ * @export
  * @param {string} opt_dbname set database name.
  * @return {string} normalized dbname.
  */
@@ -134,6 +139,7 @@ ydn.db.Storage.prototype.setDbName = function(opt_dbname) {
 /**
  * Set the latest version of database schema. This will start initialization if
  * dbname have been set.
+ * @export
  * @see {@link #addTableSchema}
  * @param {ydn.db.DatabaseSchema} schema set the last schema.
  */
@@ -151,6 +157,7 @@ ydn.db.Storage.prototype.setLastSchema = function(schema) {
 /**
  * Set the latest version of database schema. This will start initialization if
  * dbname have been set.
+ * @export
  * @see {@link #addTableSchema}
  * @param {Array.<!ydn.db.DatabaseSchema>} schemas set schemas.
  */
@@ -211,6 +218,7 @@ ydn.db.Storage.prototype.initDatabase = function() {
 
 
 /**
+ * @export
  * @return {boolean} true if the database has been initialized.
  */
 ydn.db.Storage.prototype.isReady = function() {
@@ -220,6 +228,7 @@ ydn.db.Storage.prototype.isReady = function() {
 
 /**
  * Store a value to default key-value store.
+ * @export
  * @param {string} key key.
  * @param {string} value value.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
@@ -233,6 +242,7 @@ ydn.db.Storage.prototype.setItem = function(key, value) {
 
 
 /**
+ * @export
  * @inheritDoc
  */
 ydn.db.Storage.prototype.put = function(table, value) {
@@ -250,6 +260,7 @@ ydn.db.Storage.prototype.put = function(table, value) {
 
 /**
  * Retrieve a value from default key-value store.
+ * @export
  * @param {string} key key.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
@@ -267,6 +278,7 @@ ydn.db.Storage.prototype.getItem = function(key) {
 
 
 /**
+ * @export
  * @inheritDoc
  */
 ydn.db.Storage.prototype.get = function(table, key) {
@@ -283,6 +295,7 @@ ydn.db.Storage.prototype.get = function(table, key) {
 
 
 /**
+ * @export
  * @inheritDoc
  */
 ydn.db.Storage.prototype.clear = function(opt_table) {
@@ -299,6 +312,7 @@ ydn.db.Storage.prototype.clear = function(opt_table) {
 
 
 /**
+ * @export
  * @inheritDoc
  */
 ydn.db.Storage.prototype.delete = function() {
@@ -315,6 +329,7 @@ ydn.db.Storage.prototype.delete = function() {
 
 
 /**
+ * @export
  * @inheritDoc
  */
 ydn.db.Storage.prototype.count = function(table) {
@@ -332,6 +347,7 @@ ydn.db.Storage.prototype.count = function(table) {
 
 
 /**
+ * @export
  * @inheritDoc
  */
 ydn.db.Storage.prototype.fetch = function(q) {
@@ -372,3 +388,12 @@ ydn.db.Storage.prototype.disp = function() {
     }
   }
 };
+
+
+goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
+goog.exportSymbol('ydn.db.DatabaseSchema', ydn.db.DatabaseSchema);
+goog.exportSymbol('ydn.db.DatabaseSchema.fromJSON', ydn.db.DatabaseSchema.fromJSON);
+goog.exportProperty(goog.async.Deferred.prototype, 'success',
+  goog.async.Deferred.prototype.addCallback);
+goog.exportProperty(goog.async.Deferred.prototype, 'error',
+  goog.async.Deferred.prototype.addErrback);

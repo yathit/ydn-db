@@ -14,6 +14,42 @@
             </extrapaths>
         </closure-compile>
     </target>
+    <macrodef name="adv-compile">
+        <attribute name="input.fn"/>
+        <attribute name="output.fn"/>
+        <attribute name="output.dir"/>
+        <attribute name="closure.entry"/>
+        <attribute name="cssmap-target" default="dummy"/>
+        <sequential>
+            <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
+                             base.dir="."
+                             input="@{input.fn}"
+                             input.dir="${ydn-db.dir}/js"
+                             output.fn="@{output.dir}/@{output.fn}">
+                <extrapaths>
+                    <arg line='-p "${ydn-base.dir}/js"'/>
+                    <arg line='-p "${ydn-db.dir}/js"'/>
+                    <arg line='-p "${ydn.dir}/js"'/>
+                </extrapaths>
+                <options>
+                    <arg line='-f "--generate_exports"'/>
+                    <arg line='-f "--externs=${ydn.dir}/externs/misc.js"'/>
+                    <arg line='-f "--closure_entry_point=@{closure.entry}"'/>
+                    <arg line='-f "--define=goog.DEBUG=false"'/>
+                    <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
+                </options>
+            </closure-compile>
+        </sequential>
+    </macrodef>
+    <target name="compile" description="generates compiled files for client js, /jsc/sync.jc">
+        <mkdir dir="${ydn-login-static.dir}/jsc"/>
+        <adv-compile
+                input.fn="${ydn-db.dir}/js/ydn/db/storage.js"
+                output.dir="${ydn-db.dir}/jsc"
+                output.fn="ydn-db-min-0.1.js"
+                closure.entry="ydn.db.Storage">
+        </adv-compile>
+    </target>
     <target name="deps" description="list dependency files">
         <delete file="${ydn-db.dir}/js/deps.js"/>
         <calc-deps
