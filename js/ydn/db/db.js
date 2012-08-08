@@ -36,7 +36,7 @@ ydn.db.Db = function(dbname, schema) {};
 /**
  * @see put
  * @param {string} table table name.
- * @param {Object|Array} value object to put.
+ * @param {!Object|Array.<!Object>} value object to put.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
 ydn.db.Db.prototype.put = function(table, value) {

@@ -18,6 +18,7 @@
 
 goog.provide('ydn.db.Html5Db');
 goog.require('goog.async.Deferred');
+goog.require('goog.asserts');
 
 
 
@@ -28,16 +29,16 @@ goog.require('goog.async.Deferred');
  * @constructor
  */
 ydn.db.Html5Db = function(dbname, schemas) {
+	this.dbname = dbname;
+	/**
+	 * @final
+	 * @protected
+	 * @type {Array.<!ydn.db.DatabaseSchema>}
+	 */
+	this.schemas = schemas;
 
-  this.dbname = dbname;
-  this.schema = schemas[schemas.length - 1];
+	this.schema = schemas[schemas.length - 1]; // we always use the last schema.
 
-
-  for (var table in this.schema) {
-    if (!goog.isDef(window.localStorage[table])) {
-      window.localStorage[table] = {};
-    }
-  }
 };
 
 
@@ -52,52 +53,62 @@ ydn.db.Html5Db.isSupported = function() {
 
 /**
  * @protected
+ * @param {string} old_version old version.
+ */
+ydn.db.Html5Db.prototype.migrate = function(old_version) {
+
+};
+
+
+/**
+ * @protected
  * @param {string} id id.
- * @param {string=} opt_table table name.
+ * @param {string} store_name table name.
  * @return {string}
  */
-ydn.db.Html5Db.prototype.getKey = function(id, opt_table) {
-  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
-  return '_database_' + this.dbname + '-' + opt_table + '-' + id;
+ydn.db.Html5Db.prototype.getKey = function(id, store_name) {
+  return '_database_' + this.dbname + '-' + store_name + '-' + id;
 };
 
 
-/**
- *
- */
-ydn.db.Html5Db.prototype.setItem = function(key, value) {
-  window.localStorage.setItem(this.getKey(key), value);
-  return goog.async.Deferred.succeed(true);
-};
-
 
 /**
- * @see put
- * @param {string} table table name.
- * @param {Object|Array} value object to put.
- * @return {!goog.async.Deferred} true on success. undefined on fail.
+ * @inheritDoc
  */
 ydn.db.Html5Db.prototype.put = function(table, value) {
-  var key = this.getKey(value[this.schema[table].keyPath], table);
-  var value_str = ydn.json.stringify(value);
-  window.localStorage.setItem(key, value_str);
+	var store = this.schema.getStore(table);
+	goog.asserts.assertObject(store);
+	var key, value_str;
+	if (goog.isObject(value)) {
+		key = store.getKey(value);
+		goog.asserts.assertString(key);
+		key = this.getKey(key, table);
+		value_str = ydn.json.stringify(value);
+		window.localStorage.setItem(key, value_str);
+	} else if (goog.isArray(value)) {
+		for (var i = 0; i < value.length; i++) {
+			key = store.getKey(value[i]);
+			goog.asserts.assertString(key);
+			key = this.getKey(key, table);
+			value_str = ydn.json.stringify(value);
+			window.localStorage.setItem(key, value_str);
+		}
+	} else {
+		throw Error('Not object: ' + value);
+	}
   return goog.async.Deferred.succeed(true);
 };
 
 
-/**
- *
- */
-ydn.db.Html5Db.prototype.getItem = function(key) {
-  var value = window.localStorage.getItem(this.getKey(key));
-  return goog.async.Deferred.succeed(value);
-};
 
 
 /**
  * @inheritDoc
  */
 ydn.db.Html5Db.prototype.get = function(table, key) {
+
+	var store = this.schema.getStore(table);
+	goog.asserts.assertObject(store);
 
   var value = window.localStorage.getItem(this.getKey(key, table));
   return goog.async.Deferred.succeed(ydn.json.parse(

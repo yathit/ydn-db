@@ -82,7 +82,7 @@ ydn.db.WebSql.isSupported = function() {
  *
  * @define {boolean} debug flag.
  */
-ydn.db.WebSql.DEBUG = true;
+ydn.db.WebSql.DEBUG = false;
 
 
 /**

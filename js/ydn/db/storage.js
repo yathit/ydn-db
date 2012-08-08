@@ -65,7 +65,7 @@ ydn.db.Storage = function(opt_dbname, opt_schemas) {
     this.setDbName(opt_dbname);
   }
   if (goog.isDef(opt_schemas)) {
-    this.setSchema(opt_schemas);
+    this.setSchemas(opt_schemas);
   }
 };
 
@@ -111,15 +111,30 @@ ydn.db.Storage.prototype.setDbName = function (opt_dbname) {
 /**
  * Set the latest version of database schema. This will start initialization if dbname have been set.
  * @see {@link #addTableSchema}
- * @param {Object} opt_schema schema.
+ * @param {ydn.db.DatabaseSchema} schema set the last schema.
  */
-ydn.db.Storage.prototype.setSchema = function(opt_schema) {
+ydn.db.Storage.prototype.setLastSchema = function(schema) {
 	/**
 	 * @protected
 	 * @type {Array.<!ydn.db.DatabaseSchema>}
 	 */
-  this.schemas = this.schemas || [];
-	this.schemas.push(opt_schema);
+	this.schemas = this.schemas || [];
+	this.schemas.push(schema);
+	this.initDatabase();
+};
+
+
+/**
+ * Set the latest version of database schema. This will start initialization if dbname have been set.
+ * @see {@link #addTableSchema}
+ * @param {Array.<!ydn.db.DatabaseSchema>} schemas set schemas.
+ */
+ydn.db.Storage.prototype.setSchemas = function(schemas) {
+	/**
+	 * @protected
+	 * @type {Array.<!ydn.db.DatabaseSchema>}
+	 */
+  this.schemas = schemas || [];
   this.initDatabase();
 };
 
@@ -136,8 +151,12 @@ ydn.db.Storage.prototype.setSchema = function(opt_schema) {
  */
 ydn.db.Storage.prototype.initDatabase = function() {
   // handle version change
-  if (goog.isDef(this.db_name) && goog.isDef(this.schema) &&
-      goog.isDef(this.version)) {
+  if (goog.isDef(this.db_name) && goog.isDef(this.schemas)) {
+
+		var schema = this.schemas[this.schemas.length -1];
+		if (!goog.string.isEmpty(ydn.db.Storage.DEFAULT_TEXT_STORE) && !schema.hasStore(ydn.db.Storage.DEFAULT_TEXT_STORE)) {
+			schema.addStore(new ydn.db.TableSchema(ydn.db.Storage.DEFAULT_TEXT_STORE));
+		}
 
     if (goog.userAgent.product.ASSUME_CHROME || goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
@@ -164,6 +183,14 @@ ydn.db.Storage.prototype.initDatabase = function() {
 
 
 /**
+ * @return {boolean}
+*/
+ydn.db.Storage.prototype.isReady = function() {
+	return !!this.db_;
+}
+
+
+/**
  * Store a value to default key-value store.
  * @param {string} key key.
  * @param {string} value value.
@@ -171,7 +198,7 @@ ydn.db.Storage.prototype.initDatabase = function() {
  */
 ydn.db.Storage.prototype.setItem = function(key, value) {
 
-    return this.put(ydn.db.Storage.DEFAULT_TEXT_STORE, {'id': key, 'value': value});
+  return this.put(ydn.db.Storage.DEFAULT_TEXT_STORE, {'id': key, 'value': value});
 
 };
 
@@ -200,11 +227,11 @@ ydn.db.Storage.prototype.put = function(table, value) {
 ydn.db.Storage.prototype.getItem = function(key) {
   var out = this.get(ydn.db.Storage.DEFAULT_TEXT_STORE, key);
   var df = new goog.async.Deferred();
-  df.addCallback(function(data) {
+	out.addCallback(function(data) {
     df.callback(data['value']);
   });
-  df.addErrback(function(data) {
-    df.callback(data);
+	out.addErrback(function(data) {
+    df.errback(data);
   });
   return df;
 };

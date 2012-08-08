@@ -48,10 +48,11 @@ ydn.db.IndexSchema = function (name, opt_unique, opt_type) {
  *
  * @param {string} name table name.
  * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to
+ * @param {boolean=} opt_autoIncrement If true, the object store has a key generator. Defaults to false.
  * 'id'.
  * @constructor
  */
-ydn.db.TableSchema = function(name, keyPath) {
+ydn.db.TableSchema = function(name, keyPath, opt_autoIncrement) {
   /**
    * @final
    * @type {string}
@@ -68,6 +69,12 @@ ydn.db.TableSchema = function(name, keyPath) {
    * @type {!Array.<string>}
    */
   this.keyPaths = this.keyPath.split('.');
+
+	/**
+	 * @final
+	 * @type {boolean}
+	 */
+	this.autoIncrement = !!opt_autoIncrement;
   /**
    *
    * @type {!Array.<!ydn.db.IndexSchema>}
@@ -276,6 +283,19 @@ ydn.db.DatabaseSchema.prototype.getStore = function(name) {
   return /** @type {ydn.db.TableSchema} */ (goog.array.find(this.stores, function(x) {
     return x.name == name;
   }));
+};
+
+
+/**
+ *
+ * @param {string} name store name.
+ * @return {boolean} return true if name found in stores.
+ */
+ydn.db.DatabaseSchema.prototype.hasStore = function(name) {
+
+	return this.stores.some(function(x) {
+		return x.name == name;
+	})
 };
 
 

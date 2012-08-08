@@ -21,10 +21,8 @@ ydn.store.StorageJstest.prototype.setUp = function() {
   goog.debug.Logger.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
 
-  this.dbname = 'storage_test';
-  this.table = 'test';
-  this.schema = {};
-  this.schema[this.table] = {'keyPath': 'id'};
+  this.dbname = 'storage_test_4-';
+
 };
 
 
@@ -36,11 +34,11 @@ ydn.store.StorageJstest.prototype.test_setItem = function(queue) {
   });
 
   queue.call('set schema', function(callbacks) {
-    db.setSchema({}, '1');
+    db.setLastSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {
-    assertNotUndefined('db initialized', db.db);
+    assertTrue('db initialized', db.isReady());
   });
 
   queue.call('put a', function(callbacks) {
@@ -63,15 +61,15 @@ ydn.store.StorageJstest.prototype.test_setItem_getItem = function(queue) {
   db.setItem('a', v); // using db before initialized.
 
   queue.call('not initialized', function(callbacks) {
-    assertUndefined('not initialized', db.db);
+    assertFalse('not initialized', db.isReady());
   });
 
   queue.call('set schema', function(callbacks) {
-    db.setSchema({}, '1');
+    db.setLastSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {
-    assertNotUndefined('db initialized', db.db);
+    assertTrue('db initialized', db.isReady());
   });
 
   queue.call('get a', function(callbacks) {
@@ -108,21 +106,22 @@ ydn.store.StorageJstest.prototype.test_setItem_getItem = function(queue) {
  */
 ydn.store.StorageJstest.prototype.test_put_get = function(queue) {
   var db = new ydn.db.Storage(this.dbname + '3');
+	this.table = ydn.db.test.table;
   var self = this;
 
   var v = {'id': 'a', 'value': 'a' + Math.random()};
   db.put(this.table, v); // using db before initialized.
 
   queue.call('not initialized', function(callbacks) {
-    assertUndefined('not initialized', db.db);
+		assertFalse('not initialized', db.isReady());
   });
 
   queue.call('set schema', function(callbacks) {
-    db.setSchema(self.schema, '1');
+    db.setLastSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {
-    assertNotUndefined('db initialized', db.db);
+    assertTrue('db initialized', db.isReady());
   });
 
   queue.call('get a', function(callbacks) {

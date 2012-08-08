@@ -53,7 +53,6 @@ ydn.db.IndexedDb = function(dbname, schemas) {
    */
   this.schema = schemas[schemas.length - 1];
 
-
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // In chrome, version is taken as description.
   self.logger.finer('Trying to open ' + this.dbname + ' ' + this.schema.version);
@@ -62,7 +61,8 @@ ydn.db.IndexedDb = function(dbname, schemas) {
   openRequest.onsuccess = function(ev) {
     self.logger.finer(self.dbname + ' ' + self.schema.version + ' OK.');
     var db = ev.target.result;
-    if (goog.isFunction(db.setVersion) && goog.isDef(self.schema.version) && self.schema.version > db.version) { // for chrome
+		var old_version = db.version;
+    if (goog.isFunction(db.setVersion) && goog.isDef(self.schema.version) && self.schema.version > old_version) { // for chrome
       self.logger.finer('initializing database from ' + db.version + ' to ' +
           self.schema.version);
 
@@ -73,7 +73,7 @@ ydn.db.IndexedDb = function(dbname, schemas) {
         self.setDb(null);
       };
       setVrequest.onsuccess = function(e) {
-        self.migrate(db);
+        self.migrate(old_version, db);
         self.logger.finer('Migrated to version ' + db.version + '.');
         var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname); // have to reopen for new schema
         reOpenRequest.onsuccess = function(rev) {
@@ -92,7 +92,8 @@ ydn.db.IndexedDb = function(dbname, schemas) {
     var db = ev.target.result;
     self.logger.finer('upgrading version ' + db.version);
 
-    self.migrate(db);
+		var old_version = undefined; // don't know.
+    self.migrate(old_version, db);
 
     var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname);
     reOpenRequest.onsuccess = function(rev) {
@@ -202,13 +203,16 @@ ydn.db.IndexedDb.prototype.setDb = function(db) {
 /**
  * Migrate from current version to the last version.
  * @protected
+ * @param {string} old_version old database version
  * @param {IDBDatabase} db database instance.
  */
-ydn.db.IndexedDb.prototype.migrate = function(db) {
+ydn.db.IndexedDb.prototype.migrate = function(old_version, db) {
 
 	// create store that we don't have previously
 
-	var old_schema = goog.array.find(this.schemas, function(x) {return x.version == db.version});
+	// Note: old_version is not available in new standard of IndexedDB. so just create new store
+	// whether it has old store or not.
+	var old_schema = goog.array.find(this.schemas, function(x) {return x.version == old_version});
 
   for (var table, i = 0; table = this.schema.stores[i]; i++) {
     this.logger.finest('Creating Object Store for ' + table.name +
@@ -224,7 +228,7 @@ ydn.db.IndexedDb.prototype.migrate = function(db) {
     try {
 			goog.asserts.assertString(table.keyPath, 'name required.');
       var store = db.createObjectStore(table.name, {
-        keyPath: table.keyPath, autoIncrement: false});
+        keyPath: table.keyPath, autoIncrement: table.autoIncrement});
 
         for (var i = 0; i < table.indexes.length; i++) {
           var index = table.indexes[i];
@@ -233,7 +237,7 @@ ydn.db.IndexedDb.prototype.migrate = function(db) {
           store.createIndex(index.name, index.name, {unique: index.unique});
         }
 
-      //store.createIndex(keyPath, keyPath, { unique: true });
+      this.logger.finest('Created store: ' + store.name + ' keyPath: ' + store.keyPath);
     } catch (e) { // e if e instanceof IDBDatabaseException
       // in Firefox, exception raise if the database already exist.
       this.logger.warning(e.message);
@@ -248,7 +252,7 @@ ydn.db.IndexedDb.prototype.migrate = function(db) {
  *
  * @define {boolean} trun on debug flag to dump object.
  */
-ydn.db.IndexedDb.DEBUG = false;
+ydn.db.IndexedDb.DEBUG = true;
 
 
 /**
@@ -276,7 +280,7 @@ ydn.db.IndexedDb.prototype.runTxQueue = function() {
  * as failed.
  * @protected
  * @param {Function} fnc transaction function.
- * @param {Array.<string>} scopes list of tabes involved in the transaction.
+ * @param {Array.<string>} scopes list of stores involved in the transaction.
  * @param {number|string} mode mode.
  * @param {goog.async.Deferred=} opt_df output deferred function to be used.
  * @return {!goog.async.Deferred} d result in deferred function.
@@ -329,42 +333,15 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df) {
 };
 
 
-/**
- *
- */
-ydn.db.IndexedDb.prototype.setItem = function(key, value) {
-
-  var self = this;
-
-  return this.doTransaction(function(tx) {
-    var store = tx.objectStore(ydn.db.Storage.DEFAULT_TEXT_STORE);
-    var request = store.put({'key': key, 'value': value});
-
-    request.onsuccess = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      tx.result = true;
-    };
-    request.onerror = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-    };
-  }, [ydn.db.Storage.DEFAULT_TEXT_STORE],
-  ydn.db.IndexedDb.TransactionMode.READ_WRITE);
-
-};
-
 
 /**
  * @inheritDoc
  */
 ydn.db.IndexedDb.prototype.put = function(table, value) {
-  var self = this;
+  var me = this;
 
-  if (goog.DEBUG && !goog.isDef(this.schema[table])) {
-    throw Error(table + ' not exist.');
+  if (!this.schema.hasStore(table)) {
+    throw Error(table + ' not exist in ' + this.dbname);
   }
 
   return this.doTransaction(function(tx) {
@@ -393,37 +370,6 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
 };
 
 
-/**
- *
- */
-ydn.db.IndexedDb.prototype.getItem = function(key) {
-  var self = this;
-
-  return this.doTransaction(function(tx) {
-    var store = tx.objectStore(ydn.db.Storage.DEFAULT_TEXT_STORE);
-    var request = store.get(key);
-
-    request.onsuccess = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      if (event.target.result) {
-        tx.result = event.target.result['value'];
-      }
-
-    };
-
-    request.onerror = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-    };
-
-  }, [ydn.db.Storage.DEFAULT_TEXT_STORE],
-  ydn.db.IndexedDb.TransactionMode.READ_ONLY);
-
-};
-
 
 /**
  * @inheritDoc
@@ -431,8 +377,8 @@ ydn.db.IndexedDb.prototype.getItem = function(key) {
 ydn.db.IndexedDb.prototype.get = function(table, key) {
   var self = this;
 
-  if (goog.DEBUG && !goog.isDef(this.schema[table])) {
-    throw Error(table + ' not exist.');
+  if (!this.schema.hasStore(table)) {
+    throw Error('Store: ' + table + ' not exist.');
   }
 
   return this.doTransaction(function(tx) {
@@ -586,7 +532,6 @@ ydn.db.IndexedDb.prototype.clearStore = function(opt_table) {
  */
 ydn.db.IndexedDb.prototype.getCount = function(table) {
 
-  table = table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   var self = this;
 
   return this.doTransaction(function(tx) {
