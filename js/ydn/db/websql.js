@@ -169,7 +169,7 @@ ydn.db.WebSql.prototype.migrate = function() {
   }
 
   this.db.transaction(function(t) {
-    me.logger.info('Creating tables ' + sqls.join('\n'));
+    me.logger.finest('Creating tables ' + sqls.join('\n'));
     t.executeSql(sqls.join('\n'), [], success_callback, error_callback);
   });
 
@@ -257,7 +257,7 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('putObjects error: ' + error);
+    me.logger.warning('put error: ' + error);
     d.errback(undefined);
   };
 
@@ -265,19 +265,53 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
     for (var i = 0; i < arr.length; i++) {
       var last = i == arr.length - 1;
 
-			var out = table.getIndexedValues(obj);
+			var out = table.getIndexedValues(arr[i]);
+			//console.log([obj, JSON.stringify(obj)]);
 
 			var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
 				' (' + out.columns.join(', ') + ') ' +
 				'VALUES (' + out.slots.join(', ') + ');';
 
-      console.log([sql, out.columns, out.values])
+      //console.log([sql, out.values])
       // TODO: fix error check for all result
       t.executeSql(sql, out.values, last ? success_callback : undefined,
           last ? error_callback : undefined);
     }
   });
   return d;
+};
+
+
+/**
+ * Parse resulting object of a row into original object as it 'put' into the database.
+ * @protected
+ * @param {ydn.db.TableSchema} table table of concern.
+ * @param {!Object} row row.
+ * @return {!Object} parse value
+ */
+ydn.db.WebSql.prototype.parseRow = function (table, row) {
+	goog.asserts.assertObject(row);
+	var value = ydn.json.parse(row[ydn.db.WebSql.DEFAULT_FIELD]);
+	var key = row[table.keyPath]; // NOT: table.getKey(row);
+	goog.asserts.assertString(key);
+	table.setKey(value, key);
+	for (var j = 0; j < table.indexes.length; j++) {
+		var index = table.indexes[j];
+		if (index.name == ydn.db.WebSql.DEFAULT_FIELD) {
+			continue;
+		}
+		var x = row[index.name];
+		if (!goog.isDef(x)) {
+			continue;
+		}
+		if (index.type == ydn.db.DataType.INTEGER) {
+			x = parseInt(x, 10);
+		} else if (index.type == ydn.db.DataType.FLOAT) {
+			x = parseFloat(x);
+		}
+		value[index.name] = x;
+	}
+	return value;
 };
 
 
@@ -296,30 +330,19 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
   var me = this;
 
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-      table.getQuotedKeyPath() + ' = ' + key + ';';
+      table.getQuotedKeyPath() + ' = ' + goog.string.quote(key) + ';';
 
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
-    var value;
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
-      value = ydn.json.parse(row[ydn.db.WebSql.DEFAULT_FIELD]);
-      table.setKey(value, key);
-      for (var j = 0; j < table.indexes.length; j++) {
-        var index = table.indexes[j];
-        var x = row[index.name];
-        if (index.type == ydn.db.DataType.INTEGER) {
-          x = parseInt(x, 10);
-        } else if (index.type == ydn.db.DataType.FLOAT) {
-          x = parseFloat(x);
-        }
-        value[index.name] = x;
-      }
-    }
-    d.callback(value);
+			d.callback(me.parseRow(table, row));
+    } else {
+			d.callback(undefined)
+		}
   };
 
   /**
@@ -444,51 +467,50 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
  */
 ydn.db.WebSql.prototype.fetch = function(q) {
   var d = new goog.async.Deferred();
-//  var self = this;
-//
-//  var column = q.field || this.schema[q.table].keyPath;
-//  var op = q.op == ydn.db.Query.Op.START_WITH ? ' LIKE ' : ' = ';
-//  var sql = 'SELECT * FROM ' + goog.string.quote(q.table) + ' WHERE ';
-//  if (q.op == ydn.db.Query.Op.START_WITH) {
-//    sql += '(' + column + ' LIKE ?)';
-//  } else {
-//    sql += '(' + goog.string.quote(column) + ' = ?)';
-//  }
-//
-//  /**
-//   * @param {SQLTransaction} transaction transaction.
-//   * @param {SQLResultSet} results results.
-//   */
-//  var callback = function(transaction, results) {
-//    var values = [];
-//    for (var i = 0; i < results.rows.length; i++) {
-//      var row = results.rows.item(i);
-//      var unquoted_value = /** @type {String} */ (ydn.json.parse(row['value']));
-//      // the first parse for unquoting.
-//      //goog.asserts.assertString(unquoted_value);
-//      //var value = ydn.json.parse(/** @type {string} */ (unquoted_value));
-//      values.push(unquoted_value);
-//    }
-//    d.callback(values);
-//  };
-//
-//  /**
-//   * @param {SQLTransaction} tr transaction.
-//   * @param {SQLError} error error.
-//   */
-//  var error_callback = function(tr, error) {
-//    if (ydn.db.WebSql.DEBUG) {
-//      window.console.log([tr, error]);
-//    }
-//    self.logger.warning('Sqlite error: ' + error);
-//    d.errback(undefined);
-//  };
-//
-//  this.db.transaction(function(t) {
-//    var v = q.value + '%';
-//    //console.log(sql + ' | ' + v);
-//    t.executeSql(sql, [v], callback, error_callback);
-//  });
+  var me = this;
+
+	var store = this.schema.getStore(q.table);
+
+  var column = q.field || store.keyPath;
+
+  var op = q.op == ydn.db.Query.Op.START_WITH ? ' LIKE ' : ' = ';
+  var sql = 'SELECT * FROM ' + store.getQuotedName() + ' WHERE ';
+  if (q.op == ydn.db.Query.Op.START_WITH) {
+    sql += '(' + column + ' LIKE ?)';
+  } else {
+    sql += '(' + goog.string.quote(column) + ' = ?)';
+  }
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function(transaction, results) {
+    var values = [];
+    for (var i = 0; i < results.rows.length; i++) {
+      var row = results.rows.item(i);
+      values.push(me.parseRow(store, row));
+    }
+    d.callback(values);
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   */
+  var error_callback = function(tr, error) {
+    if (ydn.db.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    me.logger.warning('Sqlite error: ' + error);
+    d.errback(undefined);
+  };
+
+  this.db.transaction(function(t) {
+    var v = q.value + '%';
+    //console.log(sql + ' | ' + v);
+    t.executeSql(sql, [v], callback, error_callback);
+  });
 
   return d;
 };
@@ -647,6 +669,7 @@ ydn.db.WebSql.prototype.delete = function() {
 	var callback = function(transaction, results) {
 		//console.log(['row ', row  , results]);
 		d.callback(true);
+		me.logger.warning('Deleted database: ' + me.dbname);
 	};
 
 	/**
@@ -657,15 +680,16 @@ ydn.db.WebSql.prototype.delete = function() {
 		if (ydn.db.WebSql.DEBUG) {
 			window.console.log([tr, error]);
 		}
-		me.logger.warning('delete TABLE: ' + error);
+		me.logger.warning('Delete TABLE: ' + error);
 		d.errback(undefined);
 	};
 
 	this.db.transaction(function(t) {
+		var sql = '';
 		for (var i = 0; i < me.schema.stores.length; i++) {
-			var sql = 'DROP TABLE ' + me.schema.stores[i].name + ';';
+			sql = sql + 'DROP TABLE ' + me.schema.stores[i].name + ';';
 		}
-    console.log(sql);
+    //console.log(sql);
 		t.executeSql(sql, [], callback, error_callback);
 	});
 

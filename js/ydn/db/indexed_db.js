@@ -53,13 +53,11 @@ ydn.db.IndexedDb = function(dbname, schemas) {
    */
   this.schema = schemas[schemas.length - 1];
 
-  var indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
-      goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global['msIndexedDB'];
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // In chrome, version is taken as description.
   self.logger.finer('Trying to open ' + this.dbname + ' ' + this.schema.version);
-  var openRequest = indexedDb.open(this.dbname, this.schema.version);
+  var openRequest = ydn.db.IndexedDb.indexedDb.open(this.dbname, this.schema.version);
 
   openRequest.onsuccess = function(ev) {
     self.logger.finer(self.dbname + ' ' + self.schema.version + ' OK.');
@@ -77,7 +75,7 @@ ydn.db.IndexedDb = function(dbname, schemas) {
       setVrequest.onsuccess = function(e) {
         self.migrate(db);
         self.logger.finer('Migrated to version ' + db.version + '.');
-        var reOpenRequest = indexedDb.open(self.dbname); // have to reopen for new schema
+        var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname); // have to reopen for new schema
         reOpenRequest.onsuccess = function(rev) {
           db = ev.target.result;
           self.logger.finer('version ' + db.version + ' ready.');
@@ -96,7 +94,7 @@ ydn.db.IndexedDb = function(dbname, schemas) {
 
     self.migrate(db);
 
-    var reOpenRequest = indexedDb.open(self.dbname);
+    var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname);
     reOpenRequest.onsuccess = function(rev) {
       db = ev.target.result;
       self.logger.finer('Database: ' + self.dbname + ' upgraded.');
@@ -118,14 +116,16 @@ ydn.db.IndexedDb = function(dbname, schemas) {
 };
 
 
+ydn.db.IndexedDb.indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
+	goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global['msIndexedDB'];
+
+
 /**
  *
  * @return {boolean} return indexedDB support on run time.
  */
 ydn.db.IndexedDb.isSupported = function() {
-  var indexedDb = goog.global.indexedDB || goog.global.mozIndexedDB ||
-      goog.global.webkitIndexedDB || goog.global.moz_indexedDB || goog.global['msIndexedDB'];
-  return !!indexedDb;
+  return !!ydn.db.IndexedDb.indexedDb;
 };
 
 
@@ -540,12 +540,27 @@ ydn.db.IndexedDb.prototype.clear = function(table) {
 
 
 /**
- * @param {string=} opt_table table name.
+ * @inheritDoc
+ */
+ydn.db.IndexedDb.prototype.delete = function() {
+	var df = new goog.async.Deferred();
+
+	if (goog.isFunction(ydn.db.IndexedDb.indexedDb.deleteDatabase)) {
+		ydn.db.IndexedDb.indexedDb.deleteDatabase(this.dbname);
+	} else {
+		return this.clear();
+	}
+
+	return df;
+};
+
+
+/**
+ * @param {string} opt_table table name.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
 ydn.db.IndexedDb.prototype.clearStore = function(opt_table) {
   var self = this;
-  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
 
   return this.doTransaction(function(tx) {
     var store = tx.objectStore(opt_table);
@@ -648,7 +663,5 @@ ydn.db.IndexedDb.prototype.list = function(opt_table) {
   }, [opt_table], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
 
 };
-
-
 
 

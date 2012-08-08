@@ -38,7 +38,6 @@ ydn.db.Html5Db = function(dbname, schemas) {
       window.localStorage[table] = {};
     }
   }
-
 };
 
 
@@ -114,16 +113,24 @@ ydn.db.Html5Db.prototype.get = function(table, key) {
  */
 ydn.db.Html5Db.prototype.clear = function(opt_table) {
   var tables_to_clear = goog.isDef(opt_table) ?
-      goog.object.create(opt_table) : this.schema;
+      [opt_table] : this.schema.listStores();
 
   for (var key in window.localStorage) {
-    for (var table in tables_to_clear) {
+    for (var table, i = 0; table = tables_to_clear[i]; i++) {
       if (goog.string.startsWith(key, '_database_' + this.dbname + '-' + table)) {
         delete window.localStorage[key];
       }
     }
   }
   return goog.async.Deferred.succeed(true);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.Html5Db.prototype.delete = function() {
+	return this.clear();
 };
 
 

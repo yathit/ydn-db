@@ -245,6 +245,22 @@ ydn.db.Storage.prototype.clear = function(opt_table) {
 /**
  * @inheritDoc
  */
+ydn.db.Storage.prototype.delete = function() {
+ if (this.db_) {
+    return this.db_.delete();
+  } else {
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function(db) {
+      db.delete().chainDeferred(df);
+    });
+    return df;
+  }
+};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.Storage.prototype.getCount = function(table) {
   if (this.db_) {
     return this.db_.getCount(table);

@@ -15,9 +15,9 @@ var setUp = function() {
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
 
 
-  this.table = 't1';
+  this.table_name = 't1';
   this.basic_schema = new ydn.db.DatabaseSchema(1);
-  this.basic_schema.addStore(new ydn.db.TableSchema(this.table));
+  this.basic_schema.addStore(new ydn.db.TableSchema(this.table_name));
 };
 
 var tearDown = function() {
@@ -31,9 +31,6 @@ var test_0_put = function() {
 
   var db = new ydn.db.WebSql(db_name, [this.basic_schema]);
 
-  var testEventType = 'test-event';
-  var eventTarget = new goog.events.EventTarget();
-  var hasEventFired = false;
   var put_value, done;
 
   waitForCondition(
@@ -48,7 +45,7 @@ var test_0_put = function() {
       100, // interval
       1000); // maxTimeout
 
-  db.put(this.table, {'id': 'a', 'value': '1'}).addCallback(function(value) {
+  db.put(this.table_name, {'id': 'a', 'value': '1'}).addCallback(function(value) {
     put_value = value;
     done = true;
   });
@@ -56,84 +53,58 @@ var test_0_put = function() {
 };
 
 
-//
-//var test_0_put_2 = function() {
-//  var db = new ydn.db.WebSql(db_name);
-//
-//  var testEventType = 'test-event';
-//  var eventTarget = new goog.events.EventTarget();
-//  var hasEventFired = false;
-//  var put_value, done;
-//  var key = 'a' + Math.random();
-//  var value = 'v' + Math.random();
-//
-//  waitForCondition(
-//      // Condition
-//      function() { return done; },
-//      // Continuation
-//      function() {
-//        assertEquals('put a 1', true, put_value);
-//        // Remember, the state of this boolean will be tested in tearDown().
-//        reachedFinalContinuation = true;
-//      },
-//      100, // interval
-//      1000); // maxTimeout
-//
-//  db.setItem(key, value).addCallback(function(value) {
-//    put_value = value;
-//    done = true;
-//  });
-//};
-//
-//
-//var test_1_clear = function() {
-//  var db = new ydn.db.WebSql(db_name);
-//
-//  var hasEventFired = false;
-//  var cleared_value;
-//  var cleared;
-//
-//  waitForCondition(
-//      // Condition
-//      function() { return cleared; },
-//      // Continuation
-//      function() {
-//        assertEquals('cleared', true, cleared_value);
-//      },
-//      100, // interval
-//      1000); // maxTimeout
-//
-//
-//  db.clear().addCallback(function(value) {
-//    cleared_value = value;
-//    cleared = true;
-//  }).addErrback(function(v) {
-//    fail('should not get error.');
-//  });
-//
-//
-//  var counted, count;
-//  waitForCondition(
-//      // Condition
-//      function() { return counted; },
-//      // Continuation
-//      function() {
-//        assertEquals('count after count', 0, count);
-//        // Remember, the state of this boolean will be tested in tearDown().
-//        reachedFinalContinuation = true;
-//      },
-//      100, // interval
-//      1000); // maxTimeout
-//
-//
-//  db.getCount().addCallback(function(value) {
-//    count = value;
-//    counted = true;
-//  }).addErrback(function(v) {
-//    fail('should not get error.');
-//  });
-//
-//};
+var test_1_delete = function() {
+
+	var db = new ydn.db.WebSql(db_name, [this.basic_schema]);
+
+	var put_value, done;
+
+	waitForCondition(
+		// Condition
+		function() { return done; },
+		// Continuation
+		function() {
+			assertTrue('deleted', put_value);
+			// Remember, the state of this boolean will be tested in tearDown().
+			reachedFinalContinuation = true;
+		},
+		100, // interval
+		1000); // maxTimeout
+
+	db.delete().addCallback(function(value) {
+		put_value = value;
+		done = true;
+	});
+
+};
+
+
+var test_2_clear = function() {
+
+	var db = new ydn.db.WebSql(db_name, [this.basic_schema]);
+
+  var cleared;
+
+  waitForCondition(
+      // Condition
+      function() { return cleared; },
+      // Continuation
+      function() {
+        assertTrue('cleared', true);
+      },
+      100, // interval
+      1000); // maxTimeout
+
+
+  db.clear(this.table_name).addCallback(function(value) {
+    cleared_value = value;
+    cleared = true;
+  }).addErrback(function(v) {
+    fail('should not get error.');
+  });
+
+
+};
 //
 //
 ///**
@@ -265,245 +236,253 @@ var test_0_put = function() {
 //};
 //
 //
-//
-//var test_3_putObject = function() {
-//  var store_name = 'ydn.test.ts1';
-//  var put_obj_dbname = 'ydn.putodbtest1';
-//  var schema = {};
-//  schema[store_name] = {keyPath: 'id'};
-//  var db = new ydn.db.WebSql(put_obj_dbname, schema);
-//
-//  var key = 'a';
-//  var put_done = false;
-//  var put_value = {value: Math.random()};
-//  put_value.id = key;
-//  var put_value_received;
-//
-//  waitForCondition(
-//      // Condition
-//      function() { return put_done; },
-//      // Continuation
-//      function() {
-//        assertTrue('put a 1', put_value_received);
-//
-//
-//      },
-//      100, // interval
-//      1000); // maxTimeout
-//
-//  db.put(store_name, put_value, key).addCallback(function(value) {
-//    console.log('receiving value callback.');
-//    put_value_received = value;
-//    put_done = true;
-//  });
-//
-//
-//  var get_done;
-//  var get_value_received;
-//  waitForCondition(
-//      // Condition
-//      function() { return get_done; },
-//      // Continuation
-//      function() {
-//        assertObjectEquals('get ', put_value, get_value_received);
-//        reachedFinalContinuation = true;
-//      },
-//      100, // interval
-//      1000); // maxTimeout
-//
-//  db.get(store_name, key).addCallback(function(value) {
-//    console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
-//    get_value_received = value;
-//    get_done = true;
-//  });
-//
-//};
-//
-//
-//var test_3_putObject_nested_keyPath = function() {
-//  var store_name = 'ts1';
-//  var put_obj_dbname = 'putsqltest5';
-//  var schema = {};
-//  schema[store_name] = {keyPath: 'id.$t'};
-//  var db = new ydn.db.WebSql(put_obj_dbname, schema);
-//
-//  var key = 'a';
-//  var put_done = false;
-//  var put_value = {value: Math.random()};
-//  put_value.id = {$t: key};
-//  var put_value_received;
-//
-//  waitForCondition(
-//      // Condition
-//      function() { return put_done; },
-//      // Continuation
-//      function() {
-//        assertTrue('put a 1', put_value_received);
-//
-//        var get_done;
-//        var get_value_received;
-//        waitForCondition(
-//            // Condition
-//            function() { return get_done; },
-//            // Continuation
-//            function() {
-//              assertObjectEquals('get', put_value, get_value_received);
-//              reachedFinalContinuation = true;
-//            },
-//            100, // interval
-//            2000); // maxTimeout
-//
-//
-//        db.get(store_name, key).addCallback(function(value) {
-//          console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
-//          get_value_received = value;
-//          get_done = true;
-//        });
-//      },
-//      100, // interval
-//      2000); // maxTimeout
-//
-//  db.put(store_name, put_value).addCallback(function(value) {
-//    console.log('receiving value callback.');
-//    put_value_received = value;
-//    put_done = true;
-//  });
-//};
-//
-//
-//var test_4_getObjects = function() {
-//  var store_name = 'ts1';
-//  var put_obj_dbname = 'gobs3';
-//  var schema = {};
-//  schema[store_name] = {keyPath: 'id'};
-//  var db = new ydn.db.WebSql(put_obj_dbname, schema);
-//
-//  var objs = [
-//    {id: 'qs1', value: Math.random()},
-//    {id: 'qs2', value: Math.random()},
-//    {id: 'qt', value: Math.random()}
-//  ];
-//
-//  var put_value_received;
-//  var put_done;
-//  waitForCondition(
-//      // Condition
-//      function() { return put_done; },
-//      // Continuation
-//      function() {
-//        assertTrue('put objs', put_value_received);
-//      },
-//      100, // interval
-//      2000); // maxTimeout
-//
-//  db.put(store_name, objs).addCallback(function(value) {
-//    console.log('receiving value callback.');
-//    put_value_received = value;
-//    put_done = true;
-//  });
-//
-//
-//  var test_get = function(idx) {
-//    var key = objs[idx].id;
-//    var get_done = false;
-//    var get_value_received = undefined;
-//    waitForCondition(
-//        // Condition
-//        function() { return get_done; },
-//        // Continuation
-//        function() {
-//          assertObjectEquals('get ' + key, objs[idx], get_value_received);
-//          reachedFinalContinuation = true;
-//        },
-//        100, // interval
-//        1000); // maxTimeout
-//
-//    db.get(store_name, key).addCallback(function(value) {
-//      console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
-//      get_value_received = value;
-//      get_done = true;
-//    });
-//  };
-//
-//  test_get(0);
-//  test_get(1);
-//
-//};
-//
-//
-//var test_4_query_start_with = function() {
-//  var store_name = 'ts1';
-//  var put_obj_dbname = 'pos3';
-//  var schema = {};
-//  schema[store_name] = {keyPath: 'id'};
-//  var db = new ydn.db.WebSql(put_obj_dbname, schema);
-//
-//  var objs = [
-//    {id: 'qs1', value: Math.random()},
-//    {id: 'qs2', value: Math.random()},
-//    {id: 'qt', value: Math.random()}
-//  ];
-//
-//  var put_value_received;
-//  var put_done;
-//  waitForCondition(
-//      // Condition
-//      function() { return put_done; },
-//      // Continuation
-//      function() {
-//        assertTrue('put objs', put_value_received);
-//      },
-//      100, // interval
-//      2000); // maxTimeout
-//
-//  db.put(store_name, objs).addCallback(function(value) {
-//    console.log('receiving value callback.');
-//    put_value_received = value;
-//    put_done = true;
-//  });
-//
-//  var key = 'qs1';
-//  var get_done;
-//  var get_value_received;
-//  waitForCondition(
-//      // Condition
-//      function() { return get_done; },
-//      // Continuation
-//      function() {
-//        assertObjectEquals('get ' + key, objs[0], get_value_received);
-//      },
-//      100, // interval
-//      1000); // maxTimeout
-//
-//  db.get(store_name, key).addCallback(function(value) {
-//    console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
-//    get_value_received = value;
-//    get_done = true;
-//  });
-//
-//  var get2_done;
-//  var get2_value_received;
-//  waitForCondition(
-//      // Condition
-//      function() { return get2_done; },
-//      // Continuation
-//      function() {
-//        assertEquals('obj length', objs.length - 1, get2_value_received.length);
-//        assertObjectEquals('get ' + objs[0].id, objs[0], get2_value_received[0]);
-//        assertObjectEquals('get ' + objs[1].id, objs[1], get2_value_received[1]);
-//        reachedFinalContinuation = true;
-//      },
-//      100, // interval
-//      1000); // maxTimeout
-//
-//
-//  var q = ydn.db.Query.startWith(store_name, 'qs');
-//  db.fetch(q).addCallback(function(value) {
-//    get2_value_received = value;
-//    get2_done = true;
-//  });
-//
-//};
+
+var test_5_get = function() {
+  var store_name = 'ydn.test.ts1';
+  var put_obj_dbname = 'ydn.putodbtest1';
+  var schema = new ydn.db.DatabaseSchema(1);
+	schema.addStore(new ydn.db.TableSchema(store_name, 'id'));
+
+  var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
+
+	var key = 'a';
+  var put_done = false;
+  var put_value = {value: Math.random(), 'remark': 'testing'};
+  put_value.id = key;
+  var put_value_received;
+
+  waitForCondition(
+      // Condition
+      function() { return put_done; },
+      // Continuation
+      function() {
+        assertTrue('put a 1', put_value_received);
+
+
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  db.put(store_name, put_value).addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value_received = value;
+    put_done = true;
+  });
+
+
+  var get_done;
+  var get_value_received;
+  waitForCondition(
+      // Condition
+      function() { return get_done; },
+      // Continuation
+      function() {
+        assertObjectEquals('get ', put_value, get_value_received);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  db.get(store_name, key).addCallback(function(value) {
+    console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
+    get_value_received = value;
+    get_done = true;
+  });
+};
+
+
+var test_6_putObject_nested_keyPath = function() {
+  var store_name = 'ts1';
+  var put_obj_dbname = 'test2';
+
+	var schema = new ydn.db.DatabaseSchema(1);
+	schema.addStore(new ydn.db.TableSchema(store_name, 'id.$t'));
+
+	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
+
+  var key = 'a';
+  var put_done = false;
+  var put_value = {value: Math.random()};
+  put_value.id = {$t: key};
+  var put_value_received;
+
+  waitForCondition(
+      // Condition
+      function() { return put_done; },
+      // Continuation
+      function() {
+        assertTrue('put a 1', put_value_received);
+
+        var get_done;
+        var get_value_received;
+        waitForCondition(
+            // Condition
+            function() { return get_done; },
+            // Continuation
+            function() {
+              assertObjectEquals('get', put_value, get_value_received);
+              reachedFinalContinuation = true;
+            },
+            100, // interval
+            2000); // maxTimeout
+
+
+        db.get(store_name, key).addCallback(function(value) {
+          console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
+          get_value_received = value;
+          get_done = true;
+        });
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(store_name, put_value).addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value_received = value;
+    put_done = true;
+  });
+};
+
+
+var test_7_put_get_array = function() {
+  var store_name = 'ts1';
+  var put_obj_dbname = 'test7';
+
+	var schema = new ydn.db.DatabaseSchema(1);
+	schema.addStore(new ydn.db.TableSchema(store_name, 'id'));
+
+	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
+
+  var objs = [
+    {id: 'qs1', value: Math.random()},
+    {id: 'qs2', value: Math.random()},
+    {id: 'qt', value: Math.random()}
+  ];
+
+  var put_value_received;
+  var put_done;
+  waitForCondition(
+      // Condition
+      function() { return put_done; },
+      // Continuation
+      function() {
+        assertTrue('put objs', put_value_received);
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(store_name, objs).addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value_received = value;
+    put_done = true;
+  });
+
+
+  var test_get = function(idx) {
+    var key = objs[idx].id;
+    var get_done = false;
+    var get_value_received = undefined;
+    waitForCondition(
+        // Condition
+        function() { return get_done; },
+        // Continuation
+        function() {
+          assertObjectEquals('get ' + key, objs[idx], get_value_received);
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        1000); // maxTimeout
+
+    db.get(store_name, key).addCallback(function(value) {
+      console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
+      get_value_received = value;
+      get_done = true;
+    });
+  };
+
+  test_get(0);
+  test_get(1);
+
+};
+
+
+var test_8_query_start_with = function() {
+  var store_name = 'ts1';
+	var dbname = 'test8';
+	var schema = new ydn.db.DatabaseSchema(1);
+	schema.addStore(new ydn.db.TableSchema(store_name, 'id'));
+	var db = new ydn.db.WebSql(dbname, [schema]);
+
+
+  var objs = [
+    {id: 'as1', value: Math.random()},
+    {id: 'as2', value: Math.random()},
+    {id: 'at', value: Math.random()}
+  ];
+
+  var put_value_received;
+  var put_done;
+  waitForCondition(
+      // Condition
+      function() { return put_done; },
+      // Continuation
+      function() {
+        assertTrue('put objs', put_value_received);
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(store_name, objs).addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value_received = value;
+    put_done = true;
+  });
+
+  var key = 'as1';
+  var get_done;
+  var get_value_received;
+  waitForCondition(
+      // Condition
+      function() { return get_done; },
+      // Continuation
+      function() {
+        assertObjectEquals('get ' + key, objs[0], get_value_received);
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  db.get(store_name, key).addCallback(function(value) {
+    console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
+    get_value_received = value;
+    get_done = true;
+  });
+
+  var get2_done;
+  var get2_value_received;
+  waitForCondition(
+      // Condition
+      function() { return get2_done; },
+      // Continuation
+      function() {
+        assertEquals('obj length', objs.length - 1, get2_value_received.length);
+				assertEquals('id ' + objs[0].id, objs[0].id, get2_value_received[0].id);
+				assertEquals('id ' + objs[1].id, objs[1].id, get2_value_received[1].id);
+				assertObjectEquals('get ' + objs[0].id, objs[0], get2_value_received[0]);
+        assertObjectEquals('get ' + objs[1].id, objs[1], get2_value_received[1]);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+
+  var q = ydn.db.Query.startWith(store_name, 'as');
+  db.fetch(q).addCallback(function(value) {
+		console.log(['Receiving ', value])
+    get2_value_received = value;
+    get2_done = true;
+  });
+
+};
 
 
 var testCase = new goog.testing.ContinuationTestCase();

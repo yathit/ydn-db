@@ -87,6 +87,20 @@ ydn.db.TableSchema.prototype.getIndex = function(name) {
   }));
 };
 
+/**
+ *
+ * @param {string} name index name.
+ * @return {boolean} return true if name is found in the index, including keyPath.
+ */
+ydn.db.TableSchema.prototype.hasIndex = function(name) {
+	if (name == this.keyPath) {
+		return true;
+	}
+	return this.indexes.some(function(x) {
+		return x.name == name;
+	})
+};
+
 
 /**
  *
@@ -153,9 +167,9 @@ ydn.db.TableSchema.prototype.getKey = function(obj) {
 ydn.db.TableSchema.prototype.setKey = function(obj, value) {
 
   for (var i = 0; i < this.keyPaths.length; i++) {
-    var key = obj[this.keyPaths[i]];
+    var key = this.keyPaths[i];
 
-    if (i = this.keyPaths.length - 1) {
+    if (i == this.keyPaths.length - 1) {
       obj[key] = value;
       return;
     }
@@ -208,7 +222,7 @@ ydn.db.TableSchema.prototype.getIndexedValues = function(obj) {
 
   var data = {};
   for (var key in obj) {
-    if (obj.hasOwnProperty(key) && !goog.array.contains(this.indexes, key)) {
+    if (obj.hasOwnProperty(key) && !this.hasIndex(key)) {
       data[key] = obj[key];
     }
   }
@@ -262,4 +276,22 @@ ydn.db.DatabaseSchema.prototype.getStore = function(name) {
   return /** @type {ydn.db.TableSchema} */ (goog.array.find(this.stores, function(x) {
     return x.name == name;
   }));
+};
+
+
+/**
+ *
+ * @return {!Array.<string>} Return list of store names.
+ */
+ydn.db.DatabaseSchema.prototype.listStores = function() {
+	if (!this.store_names) {
+		/**
+		 * @final
+		 * @type {!Array.<string>}
+		 */
+		this.store_names = this.stores.map(function(x) {
+			return x.name;
+		});
+	}
+	return this.store_names;
 };

@@ -141,3 +141,12 @@ ydn.db.MemoryStore.prototype.getCount = function(table) {
 ydn.db.MemoryStore.prototype.fetch = function(q) {
   return goog.async.Deferred.fail(true); // don't bother to implement
 };
+
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.MemoryStore.prototype.delete = function() {
+	return this.clear();
+};

@@ -68,7 +68,7 @@ ydn.db.Db.prototype.getCount = function(opt_table) {
 
 /**
  * Remove all data in a store (table).
- * @param {string} opt_table delete a specific table.
+ * @param {string=} opt_table delete a specific table.
  * all tables.
  * @return {!goog.async.Deferred} return a deferred function.
  */
