@@ -530,7 +530,7 @@ ydn.db.IndexedDb.prototype.clearStore = function(opt_table) {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.getCount = function(table) {
+ydn.db.IndexedDb.prototype.count = function(table) {
 
   var self = this;
 

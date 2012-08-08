@@ -617,7 +617,7 @@ ydn.db.WebSql.prototype.clear = function(table) {
 /**
  * @inheritDoc
  */
-ydn.db.WebSql.prototype.getCount = function(table) {
+ydn.db.WebSql.prototype.count = function(table) {
 
   var d = new goog.async.Deferred();
   var me = this;
@@ -643,7 +643,7 @@ ydn.db.WebSql.prototype.getCount = function(table) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('getCount error: ' + error);
+    me.logger.warning('count error: ' + error);
     d.errback(undefined);
   };
 

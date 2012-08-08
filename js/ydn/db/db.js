@@ -61,7 +61,7 @@ ydn.db.Db.prototype.get = function(table, key) {
  * {@link ydn.db.Storage.DEFAULT_TEXT_STORE}.
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
-ydn.db.Db.prototype.getCount = function(opt_table) {
+ydn.db.Db.prototype.count = function(opt_table) {
 
 };
 

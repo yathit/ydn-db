@@ -288,13 +288,13 @@ ydn.db.Storage.prototype.delete = function() {
 /**
  * @inheritDoc
  */
-ydn.db.Storage.prototype.getCount = function(table) {
+ydn.db.Storage.prototype.count = function(table) {
   if (this.db_) {
-    return this.db_.getCount(table);
+    return this.db_.count(table);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.getCount(table).chainDeferred(df);
+      db.count(table).chainDeferred(df);
     });
     return df;
   }
@@ -338,7 +338,7 @@ ydn.db.Storage.prototype.disp = function() {
     };
 
     for (var table, i = 0; table = schema.stores[i]; i++) {
-      this.getCount(table.name).addBoth(
+      this.count(table.name).addBoth(
 				goog.partial(print_table_description,table));
     }
   }

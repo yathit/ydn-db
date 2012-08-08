@@ -38,7 +38,7 @@ ydn.db.test.db_clear_tests = function(queue, db) {
   });
 
   queue.call('count', function(callbacks) {
-    db.getCount().addCallback(callbacks.add(function(count) {
+    db.count().addCallback(callbacks.add(function(count) {
       assertEquals('count 0', 0, count);
     }));
   });
@@ -100,7 +100,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
   });
 
   queue.call('count after clear', function(callbacks) {
-    db.getCount(ydn.db.test.table).addCallback(callbacks.add(function(count) {
+    db.count(ydn.db.test.table).addCallback(callbacks.add(function(count) {
       //console.log('starting count ' + count);
       assertEquals('start with 0', 0, count);
     }));
@@ -122,7 +122,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
   });
 
   queue.call('count 1', function(callbacks) {
-    db.getCount(ydn.db.test.table).addCallback(callbacks.add(function(count) {
+    db.count(ydn.db.test.table).addCallback(callbacks.add(function(count) {
       //console.log('new count ' + count);
       assertEquals('count 2', 1, count);
     }));
@@ -141,7 +141,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
   });
 
   queue.call('count', function(callbacks) {
-    db.getCount(ydn.db.test.table).addCallback(callbacks.add(function(count) {
+    db.count(ydn.db.test.table).addCallback(callbacks.add(function(count) {
       //console.log('new count 2 ' + count);
       assertEquals('count 2', 2, count);
     }));
@@ -160,7 +160,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
   });
 
   queue.call('count again', function(callbacks) {
-    db.getCount(ydn.db.test.table).addCallback(callbacks.add(function(count) {
+    db.count(ydn.db.test.table).addCallback(callbacks.add(function(count) {
       assertEquals('count again', 2, count);
     }));
   });
@@ -172,7 +172,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
   //  });
   //
   //  queue.call('count', function(callbacks) {
-  //    db.getCount().addCallback(callbacks.add(function(count) {
+  //    db.count().addCallback(callbacks.add(function(count) {
   //      assertEquals('count 0', 0, count);
   //    }));
   //  });

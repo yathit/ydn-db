@@ -151,7 +151,7 @@ ydn.db.Html5Db.prototype.delete = function() {
  * {@link ydn.db.Storage.DEFAULT_TEXT_STORE}.
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
-ydn.db.Html5Db.prototype.getCount = function(opt_table) {
+ydn.db.Html5Db.prototype.count = function(opt_table) {
   var d = new goog.async.Deferred();
   opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   var n = 0;

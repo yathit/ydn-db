@@ -123,7 +123,7 @@ ydn.db.MemoryStore.prototype.clear = function(table) {
 /**
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.getCount = function(table) {
+ydn.db.MemoryStore.prototype.count = function(table) {
   table = table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   var d = new goog.async.Deferred();
   var n = 0;
