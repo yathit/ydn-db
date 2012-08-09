@@ -299,9 +299,11 @@ ydn.db.IndexedDb.prototype.runTxQueue = function() {
     return;
   }
 
-  var task = this.txQueue.shift();
-  if (task) {
-    this.doTransaction(task.fnc, task.scopes, task.mode, task.d);
+  if (this.txQueue) {
+    var task = this.txQueue.shift();
+    if (task) {
+      this.doTransaction(task.fnc, task.scopes, task.mode, task.d);
+    }
   }
 };
 
