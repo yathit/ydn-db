@@ -135,7 +135,7 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
  */
 ydn.db.StoreSchema.fromJSON = function(json) {
   var indexes = [];
-  var indexes_json = json['indexes'];
+  var indexes_json = json['indexes'] || [];
   if (goog.isArray(indexes_json)) {
     for (var i = 0; i < indexes_json.length; i++) {
       indexes.push(ydn.db.IndexSchema.fromJSON(indexes_json[i]));
@@ -321,7 +321,7 @@ ydn.db.DatabaseSchema = function(version, opt_size, opt_stores) {
    * @final
    * @type {number}
    */
-  this.version = version;
+  this.version = version || 1;
 
   /**
    * @final
@@ -357,7 +357,7 @@ ydn.db.DatabaseSchema.prototype.toJSON = function() {
  */
 ydn.db.DatabaseSchema.fromJSON = function(json) {
   var stores = [];
-  var stores_json = json['stores'];
+  var stores_json = json['stores'] || [];
   for (var i = 0; i < stores_json.length; i++) {
     stores.push(ydn.db.StoreSchema.fromJSON(stores_json[i]));
   }

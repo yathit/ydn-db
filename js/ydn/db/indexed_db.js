@@ -336,7 +336,7 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df)
         ydn.db.IndexedDb.EventTypes.ABORT, ydn.db.IndexedDb.EventTypes.ERROR],
       function(event) {
 
-        if (goog.isDef(tx.result)) {
+        if (goog.isDef(tx.is_success)) {
           opt_df.callback(tx.result);
         } else {
           opt_df.errback(undefined);
@@ -389,6 +389,7 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
     }
 
     request.onsuccess = function(event) {
+      tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
@@ -423,6 +424,7 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
     var request = store.openCursor(keyRange);
 
     request.onsuccess = function(event) {
+      tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
@@ -466,16 +468,18 @@ ydn.db.IndexedDb.prototype.get = function(table, key) {
     throw Error('Store: ' + table + ' not exist.');
   }
 
-  var self = this;
+  var me = this;
 
   return this.doTransaction(function(tx) {
     var store = tx.objectStore(table);
     var request = store.get(key);
 
     request.onsuccess = function(event) {
+      tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
+      // how to return empty result
       tx.result = event.target.result;
     };
 
@@ -483,6 +487,7 @@ ydn.db.IndexedDb.prototype.get = function(table, key) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
+      me.logger.warning('Error retriving ' + key + ' in ' + table);
     };
 
   }, [table], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
@@ -525,6 +530,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
     var request = index.openCursor(boundKeyRange);
 
     request.onsuccess = function(event) {
+      tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
@@ -574,6 +580,7 @@ ydn.db.IndexedDb.prototype.deleteItem_ = function(table, id) {
     var request = store['delete'](id);
 
     request.onsuccess = function(event) {
+      tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
@@ -605,6 +612,7 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
     var request = tx.deleteObjectStore(table);
 
     request.onsuccess = function(event) {
+      tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
@@ -678,6 +686,7 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table) {
     var store = tx.objectStore(opt_table);
     var request = store.clear();
     request.onsuccess = function(event) {
+      tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
@@ -704,6 +713,7 @@ ydn.db.IndexedDb.prototype.count = function(table) {
     var store = tx.objectStore(table);
     var request = store.count();
     request.onsuccess = function(event) {
+      tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
@@ -746,6 +756,7 @@ ydn.db.IndexedDb.prototype.list = function(opt_table) {
     var request = index.openCursor();
 
     request.onsuccess = function(event) {
+      tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }

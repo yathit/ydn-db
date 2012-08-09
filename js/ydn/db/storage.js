@@ -292,7 +292,11 @@ ydn.db.Storage.prototype.getItem = function(key) {
   var out = this.get(ydn.db.Storage.DEFAULT_TEXT_STORE, key);
   var df = new goog.async.Deferred();
   out.addCallback(function(data) {
-    df.callback(data['value']);
+    if (goog.isDef(data)) {
+      df.callback(data['value']);
+    } else {
+      df.callback(undefined);
+    }
   });
   out.addErrback(function(data) {
     df.errback(data);

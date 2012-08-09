@@ -15,13 +15,8 @@
 <script type="text/javascript">
 
   // initialize database
-  var schema = {"version":1,
-        "size":5 * 1024 * 1024, // 5 MB,
-        "stores":[
-          {"name":"t1", "keyPath":"id", "autoIncrement":false, "indexes":[]},
-          {"name":"default_text_store", "keyPath":"id", "autoIncrement":false, "indexes":[]}
-        ]};
-  var db = new ydn.db.Storage('test', [schema]);
+  var schema_ver_1 = {};
+  var db = new ydn.db.Storage('test2', [schema_ver_1]);
 
   console.log('database db initialized.');
 
@@ -30,10 +25,10 @@
       .success(function (text) {
         console.log('Retrieved previous value: ' + text);
         var ele = document.getElementById('content');
-        ele.value = text;
+        ele.value = text || '';
       })
       .error(function (x) {
-        console.log('Cannot retrieve revious text.');
+        console.log('Cannot retrieve previous text.');
       });
 
   function save() {

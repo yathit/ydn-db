@@ -142,7 +142,6 @@ ydn.db.WebSql.prototype.migrate = function() {
 
   var me = this;
 
-
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
@@ -178,7 +177,6 @@ ydn.db.WebSql.prototype.migrate = function() {
           error_callback);
     }
   });
-
 };
 
 
