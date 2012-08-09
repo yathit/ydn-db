@@ -13,6 +13,8 @@ var db = new ydn.db.Storage('todos2', [schema_ver1]);
 
 var deleteTodo = function (id) {
   var request = db.remove('todo', id);
+
+  getAllTodoItems();
 };
 
 var getAllTodoItems = function () {
@@ -52,6 +54,8 @@ var addTodo = function () {
   db.put('todo', data);
 
   todo.value = "";
+
+  getAllTodoItems();
 };
 
 function init() {
