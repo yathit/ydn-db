@@ -148,16 +148,31 @@ ydn.db.IndexedDb.isSupported = function() {
 };
 
 
+// The fun fact with current Chrome 22 is it define
+// goog.global.webkitIDBTransaction as numeric value, the database engine
+// accept only string format.
+//
 /**
  * The three possible transaction modes.
  * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
- * @enum {string}
+ * @enum {string|number}
  */
 ydn.db.IndexedDb.TransactionMode = {
-  READ_ONLY: 'readonly',
-  READ_WRITE: 'readwrite',
-  VERSION_CHANGE: 'versionchange'
+  READ_ONLY: (goog.global.IDBTransaction ||
+      goog.global.webkitIDBTransaction).READ_ONLY || 'readonly',
+  READ_WRITE: (goog.global.IDBTransaction ||
+      goog.global.webkitIDBTransaction).READ_WRITE || 'readwrite',
+  VERSION_CHANGE: (goog.global.IDBTransaction ||
+      goog.global.webkitIDBTransaction).VERSION_CHANGE || 'versionchange'
 };
+
+//ydn.db.IndexedDb.TransactionMode = {
+//  READ_ONLY: 'readonly',
+//  READ_WRITE: 'readwrite',
+//  VERSION_CHANGE: 'versionchange'
+//};
+
+
 
 
 /**
@@ -386,14 +401,69 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
 
 
 /**
- * @inheritDoc
+ * Get all item in the store.
+ * @param {string} table table name.
+ * @private
  */
-ydn.db.IndexedDb.prototype.get = function(table, key) {
+ydn.db.IndexedDb.prototype.getAll_ = function(table) {
   var self = this;
 
   if (!this.schema.hasStore(table)) {
     throw Error('Store: ' + table + ' not exist.');
   }
+
+  return this.doTransaction(function(tx) {
+    var store = tx.objectStore(table);
+
+    // Get everything in the store;
+    var keyRange = ydn.db.IndexedDb.IDBKeyRange.lowerBound(0);
+    var request = store.openCursor(keyRange);
+
+    request.onsuccess = function(event) {
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+
+      if (!goog.isDef(tx.result)) {
+        tx.result = []; // return at least an empty array
+      }
+
+      var result = event.target.result;
+      if(!!result == false) {
+        return;
+      }
+
+      if (goog.isDef(result.value)) {
+        tx.result.push(result.value);
+      }
+
+      result['continue'](); // result.continue();
+    };
+
+    request.onerror = function(event) {
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+    };
+
+  }, [table], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.IndexedDb.prototype.get = function(table, key) {
+
+  if (!goog.isDef(key)) {
+    return this.getAll_(table);
+  }
+
+  if (!this.schema.hasStore(table)) {
+    throw Error('Store: ' + table + ' not exist.');
+  }
+
+  var self = this;
 
   return this.doTransaction(function(tx) {
     var store = tx.objectStore(table);
@@ -483,43 +553,122 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
 
 
 /**
+ *
+ * @param {string} table store name.
+ * @param {string} id key.
+ * @return {!goog.async.Deferred} deferred result.
+ * @private
+ */
+ydn.db.IndexedDb.prototype.deleteItem_ = function(table, id) {
+  var me = this;
+
+  if (!this.schema.hasStore(table)) {
+    throw Error(table + ' not exist in ' + this.dbname);
+  }
+
+  return this.doTransaction(function(tx) {
+    var store = tx.objectStore(table);
+    var request = store.delete(id);
+
+    request.onsuccess = function(event) {
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      tx.result = true;
+    };
+    request.onerror = function(event) {
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+    };
+  }, [table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
+};
+
+
+/**
+ *
+ * @param {string} table store name.
+ * @return {!goog.async.Deferred} deferred result.
+ * @private
+ */
+ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
+  var me = this;
+
+  if (!this.schema.hasStore(table)) {
+    throw Error(table + ' not exist in ' + this.dbname);
+  }
+
+  return this.doTransaction(function(tx) {
+    var request = tx.deleteObjectStore(table);
+
+    request.onsuccess = function(event) {
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      tx.result = true;
+    };
+    request.onerror = function(event) {
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+    };
+  }, [table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
+};
+
+
+
+/**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.clear = function(table) {
+ydn.db.IndexedDb.prototype.delete = function (opt_table, opt_id) {
 
-  if (table) {
-    return this.clearStore(table);
-  } else {
-    var dfs = [];
-    for (var store in this.schema) {
-      dfs.push(this.clearStore(store));
+  if (goog.isDef(opt_table)) {
+    if (goog.isDef(opt_id)) {
+      return this.deleteItem_(opt_table, opt_id);
+    } else {
+      return this.deleteStore_(opt_table);
     }
-    return ydn.async.reduceAllTrue(new goog.async.DeferredList(dfs));
+  } else {
+    if (goog.isFunction(ydn.db.IndexedDb.indexedDb.deleteDatabase)) {
+      var df = new goog.async.Deferred();
+      var req = ydn.db.IndexedDb.indexedDb.deleteDatabase(this.dbname);
+      req.onsuccess = function(e) {
+        df.addCallback(e);
+      };
+      req.onerror = function(e) {
+        df.addErrback(e);
+      };
+      return df;
+    } else {
+      return this.clearAll_();
+    }
   }
+};
+
+
+/**
+ *
+ * @return {!goog.async.Deferred} clear all stores.
+ * @private
+ */
+ydn.db.IndexedDb.prototype.clearAll_ = function () {
+  var dfs = [];
+  for (var i = 0; i < this.schema.stores.length; i++) {
+    dfs.push(this.clear(this.schema.stores[i].name));
+  }
+  return ydn.async.reduceAllTrue(new goog.async.DeferredList(dfs));
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.delete = function() {
-  var df = new goog.async.Deferred();
+ydn.db.IndexedDb.prototype.clear = function(opt_table) {
 
-  if (goog.isFunction(ydn.db.IndexedDb.indexedDb.deleteDatabase)) {
-    ydn.db.IndexedDb.indexedDb.deleteDatabase(this.dbname);
-  } else {
-    return this.clear();
+  if (!goog.isDef(opt_table)) {
+    return this.clearAll_();
   }
 
-  return df;
-};
-
-
-/**
- * @param {string} opt_table table name.
- * @return {!goog.async.Deferred} d result in deferred function.
- */
-ydn.db.IndexedDb.prototype.clearStore = function(opt_table) {
   var self = this;
 
   return this.doTransaction(function(tx) {

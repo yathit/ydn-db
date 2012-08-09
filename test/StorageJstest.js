@@ -151,4 +151,27 @@ ydn.store.StorageJstest.prototype.test_put_get = function(queue) {
 };
 
 
+/**
+ * Test for JSON configruation
+ * @param queue
+ */
+ydn.store.StorageJstest.prototype.test_json_config = function(queue) {
+
+  var store = {name:'todo', keyPath:"timeStamp"};
+
+  var schema_ver1 = {
+    version: 2,
+    size: 1 * 1024 * 1024, // 1 MB,
+    stores:[store]
+  };
+
+  var db = new ydn.db.Storage('todos_test', [schema_ver1]);
+
+  queue.call('create a database', function(callbacks) {
+    db.get('todo').addBoth(callbacks.add(function(value) {
+      assertEquals('empty', []);
+    }));
+  })
+};
+
 

@@ -99,7 +99,7 @@ ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
  * </pre>
  *
  * @export
- * @return {{db_name: string, schemas: Object}} configuration containing
+ * @return {{db_name: string, schemas: !Array.<!Object>}} configuration containing
  * database and list of schema in JSON format.
  */
 ydn.db.Storage.prototype.getConfig = function() {
@@ -337,15 +337,17 @@ ydn.db.Storage.prototype.clear = function(opt_table) {
 
 /**
  * @export
- * @inheritDoc
+ * @param {string=} opt_store delete a specific store.
+ * @param {string=} opt_id delete a specific row.
+ * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Storage.prototype.delete = function() {
+ydn.db.Storage.prototype.delete = function(opt_store, opt_id) {
   if (this.db_) {
-    return this.db_.delete();
+    return this.db_.delete(opt_store, opt_id);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.delete().chainDeferred(df);
+      db.delete(opt_store, opt_id).chainDeferred(df);
     });
     return df;
   }
@@ -366,7 +368,6 @@ ydn.db.Storage.prototype.count = function(table) {
     });
     return df;
   }
-
 };
 
 
@@ -384,7 +385,6 @@ ydn.db.Storage.prototype.fetch = function(q) {
     });
     return df;
   }
-
 };
 
 

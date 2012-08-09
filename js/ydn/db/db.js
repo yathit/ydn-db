@@ -45,7 +45,10 @@ ydn.db.Db.prototype.put = function(table, value) {
 /**
  * Return object
  * @param {string} table table name.
- * @param {string} key key.
+ * @param {string=} key object key to be retrieved, if not provided, all entries
+ * in the store will return.
+ * param {number=} start start number of entry.
+ * param {number=} limit maximun number of entries.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.Db.prototype.get = function(table, key) {
@@ -55,8 +58,7 @@ ydn.db.Db.prototype.get = function(table, key) {
 
 /**
  * Get number of items stored.
- * @param {string=} opt_table table name, default to
- * {@link ydn.db.Storage.DEFAULT_TEXT_STORE}.
+ * @param {string=} opt_table table name, if not provided, count all entries.
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
 ydn.db.Db.prototype.count = function(opt_table) {
@@ -76,10 +78,12 @@ ydn.db.Db.prototype.clear = function(opt_table) {
 
 
 /**
- * Delete the database.
+ * Delete the database, store or an entry.
+ * @param {string=} opt_store delete a specific store.
+ * @param {string=} opt_id delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Db.prototype.delete = function() {
+ydn.db.Db.prototype.delete = function(opt_store, opt_id) {
 
 };
 

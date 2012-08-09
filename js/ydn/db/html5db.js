@@ -100,22 +100,40 @@ ydn.db.Html5Db.prototype.put = function(table, value) {
 
 
 /**
- * @inheritDoc
+ * Return object
+ * @param {string} table table name.
+ * @param {string=} opt_key object key to be retrieved, if not provided, all entries
+ * in the store will return.
+ * param {number=} start start number of entry.
+ * param {number=} limit maximun number of entries.
+ * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.Html5Db.prototype.get = function(table, key) {
+ydn.db.Html5Db.prototype.get = function(table, opt_key) {
 
   var store = this.schema.getStore(table);
   goog.asserts.assertObject(store);
 
-  var value = window.localStorage.getItem(this.getKey(key, table));
-  return goog.async.Deferred.succeed(ydn.json.parse(
-    /** @type {string} */ (value)));
+  if (goog.isDef(opt_key)) {
+    var value = window.localStorage.getItem(this.getKey(opt_key, table));
+    return goog.async.Deferred.succeed(ydn.json.parse(
+      /** @type {string} */ (value)));
+  } else {
+    var arr = [];
+    for (var item in window.localStorage) {
+      if (goog.string.startsWith(item, '_database_' + this.dbname + '-' + table)) {
+        var value = window.localStorage[item];
+        arr.push(goog.async.Deferred.succeed(ydn.json.parse(
+            /** @type {string} */ (value))));
+      }
+    }
+    return goog.async.Deferred.succeed(value);
+  }
 };
 
 
 /**
- * Delete a store (table) or all.
- * @param {string=} opt_table delete a specific table. if not specified delete
+ * Remove all data in a store (table).
+ * @param {string=} opt_table delete a specific table.
  * all tables.
  * @return {!goog.async.Deferred} return a deferred function.
  */
@@ -136,10 +154,19 @@ ydn.db.Html5Db.prototype.clear = function(opt_table) {
 
 
 /**
- * @inheritDoc
+ * Delete the database, store or an entry.
+ * @param {string=} opt_table delete a specific store.
+ * @param {string=} opt_id delete a specific row.
+ * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Html5Db.prototype.delete = function() {
-  return this.clear();
+ydn.db.Html5Db.prototype.delete = function(opt_table, opt_id) {
+  if (goog.isDef(opt_id) && goog.isDef(opt_table)) {
+    var key = this.getKey(opt_id, opt_table);
+    delete window.localStorage[key];
+    return goog.async.Deferred.succeed(true);
+  } else {
+    return this.clear(opt_table);
+  }
 };
 
 
