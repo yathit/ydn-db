@@ -169,7 +169,7 @@ ydn.store.StorageJstest.prototype.test_json_config = function(queue) {
 
   queue.call('create a database', function(callbacks) {
     db.get('todo').addBoth(callbacks.add(function(value) {
-      assertEquals('empty', []);
+      assertEquals('empty', [], value);
     }));
   })
 };

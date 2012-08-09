@@ -148,9 +148,6 @@ ydn.db.IndexedDb.isSupported = function() {
 };
 
 
-// The fun fact with current Chrome 22 is it define
-// goog.global.webkitIDBTransaction as numeric value, the database engine
-// accept only string format.
 //
 /**
  * The three possible transaction modes.
@@ -158,18 +155,24 @@ ydn.db.IndexedDb.isSupported = function() {
  * @enum {string|number}
  */
 ydn.db.IndexedDb.TransactionMode = {
-  READ_ONLY: (goog.global.IDBTransaction ||
-      goog.global.webkitIDBTransaction).READ_ONLY || 'readonly',
-  READ_WRITE: (goog.global.IDBTransaction ||
-      goog.global.webkitIDBTransaction).READ_WRITE || 'readwrite',
-  VERSION_CHANGE: (goog.global.IDBTransaction ||
-      goog.global.webkitIDBTransaction).VERSION_CHANGE || 'versionchange'
+  READ_ONLY: 'readonly',
+  READ_WRITE: 'readwrite',
+  VERSION_CHANGE: 'versionchange'
 };
 
+
+
+// The fun fact with current Chrome 22 is it define
+// goog.global.webkitIDBTransaction as numeric value, the database engine
+// accept only string format.
+
 //ydn.db.IndexedDb.TransactionMode = {
-//  READ_ONLY: 'readonly',
-//  READ_WRITE: 'readwrite',
-//  VERSION_CHANGE: 'versionchange'
+//  READ_ONLY: (goog.global.IDBTransaction ||
+//      goog.global.webkitIDBTransaction).READ_ONLY || 'readonly',
+//  READ_WRITE: (goog.global.IDBTransaction ||
+//      goog.global.webkitIDBTransaction).READ_WRITE || 'readwrite',
+//  VERSION_CHANGE: (goog.global.IDBTransaction ||
+//      goog.global.webkitIDBTransaction).VERSION_CHANGE || 'versionchange'
 //};
 
 

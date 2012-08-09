@@ -5,7 +5,7 @@ goog.require('ydn.db.Storage');
 goog.require('ydn.testing');
 
 
-var reachedFinalContinuation;
+var reachedFinalContinuation, stubs;
 
 var setUp = function() {
   var c = new goog.debug.Console();
@@ -14,15 +14,17 @@ var setUp = function() {
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
 
+  //stubs = new goog.testing.PropertyReplacer();
 
-  this.table_name = 't1';
-  this.basic_schema = new ydn.db.DatabaseSchema(1);
-  this.basic_schema.addStore(new ydn.db.StoreSchema(this.table_name));
+
+  var table_name = 't1';
+  var basic_schema = new ydn.db.DatabaseSchema(1);
+  basic_schema.addStore(new ydn.db.StoreSchema(this.table_name));
 };
 
 var tearDown = function() {
+  //stubs.reset();
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
-
 };
 
 var db_name = 'test1';
@@ -119,8 +121,6 @@ var test_2_json_config_in_out = function() {
 		put_value_received = value;
 		put_done = true;
 	});
-
-
 
 };
 

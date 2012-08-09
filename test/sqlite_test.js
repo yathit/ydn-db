@@ -52,6 +52,32 @@ var test_0_put = function() {
 
 };
 
+var test_1_get_all = function() {
+
+  var db = new ydn.db.WebSql(db_name, [this.basic_schema]);
+
+  var hasEventFired = false;
+  var put_value;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertArrayEquals('get empty table', [], put_value);
+        // Remember, the state of this boolean will be tested in tearDown().
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.get(this.table_name).addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value = value;
+    hasEventFired = true;
+  });
+};
+
 
 var test_1_delete = function() {
 
@@ -71,7 +97,7 @@ var test_1_delete = function() {
 		100, // interval
 		1000); // maxTimeout
 
-	db.delete().addCallback(function(value) {
+	db.remove().addCallback(function(value) {
 		put_value = value;
 		done = true;
 	});

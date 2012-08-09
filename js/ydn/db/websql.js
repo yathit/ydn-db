@@ -142,6 +142,7 @@ ydn.db.WebSql.prototype.migrate = function() {
 
   var me = this;
 
+
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
@@ -171,7 +172,11 @@ ydn.db.WebSql.prototype.migrate = function() {
 
   this.db.transaction(function(t) {
     me.logger.finest('Creating tables ' + sqls.join('\n'));
-    t.executeSql(sqls.join('\n'), [], success_callback, error_callback);
+    for (var i = 0; i < sqls.length; i++) {
+      t.executeSql(sqls[i], [],
+          i == sqls.length - 1 ? success_callback : undefined,
+          error_callback);
+    }
   });
 
 };
