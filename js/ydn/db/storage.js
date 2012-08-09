@@ -99,8 +99,8 @@ ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
  * </pre>
  *
  * @export
- * @return {{db_name: string, schemas: !Array.<!Object>}} configuration containing
- * database and list of schema in JSON format.
+ * @return {{db_name: string, schemas: !Array.<!Object>}} configuration
+ * containing database and list of schema in JSON format.
  */
 ydn.db.Storage.prototype.getConfig = function() {
   if (!this.isReady()) {
@@ -173,7 +173,7 @@ ydn.db.Storage.prototype.addSchema = function(schema) {
  * @export
  * @see {@link #addTableSchema}
  * @param {!Array.<!ydn.db.DatabaseSchema|!Object>} schemas set database schemas
- * or its configuration in JSON format
+ * or its configuration in JSON format.
  */
 ydn.db.Storage.prototype.setSchemas = function(schemas) {
 

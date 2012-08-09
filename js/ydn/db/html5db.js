@@ -102,8 +102,8 @@ ydn.db.Html5Db.prototype.put = function(table, value) {
 /**
  * Return object
  * @param {string} table table name.
- * @param {string=} opt_key object key to be retrieved, if not provided, all entries
- * in the store will return.
+ * @param {string=} opt_key object key to be retrieved, if not provided, all
+ * entries in the store will return.
  * param {number=} start start number of entry.
  * param {number=} limit maximun number of entries.
  * @return {!goog.async.Deferred} return object in deferred function.
@@ -120,7 +120,8 @@ ydn.db.Html5Db.prototype.get = function(table, opt_key) {
   } else {
     var arr = [];
     for (var item in window.localStorage) {
-      if (goog.string.startsWith(item, '_database_' + this.dbname + '-' + table)) {
+      if (goog.string.startsWith(item, '_database_' + this.dbname + '-' +
+          table)) {
         var value = window.localStorage[item];
         arr.push(goog.async.Deferred.succeed(ydn.json.parse(
             /** @type {string} */ (value))));

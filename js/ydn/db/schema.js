@@ -55,7 +55,7 @@ ydn.db.IndexSchema.prototype.toJSON = function() {
     'name': this.name,
     'type': this.type,
     'unique': this.unique
-  }
+  };
 };
 
 

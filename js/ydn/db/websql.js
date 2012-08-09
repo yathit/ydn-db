@@ -563,7 +563,7 @@ ydn.db.WebSql.prototype.clear = function(opt_table) {
  * @inheritDoc
  */
 ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
-  
+
   if (goog.isDef(opt_table)) {
     if (goog.isDef(opt_id)) {
       return this.deleteRow_(opt_table, opt_id);

@@ -408,8 +408,9 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
 
 /**
  * Get all item in the store.
- * @param {string} table table name.
  * @private
+ * @param {string} table table name.
+ * @return {!goog.async.Deferred} d result in deferred function.
  */
 ydn.db.IndexedDb.prototype.getAll_ = function(table) {
   var self = this;
@@ -436,7 +437,7 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
       }
 
       var result = event.target.result;
-      if(!!result == false) {
+      if (!!result == false) {
         return;
       }
 
@@ -633,7 +634,7 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.remove = function (opt_table, opt_id) {
+ydn.db.IndexedDb.prototype.remove = function(opt_table, opt_id) {
 
   if (goog.isDef(opt_table)) {
     if (goog.isDef(opt_id)) {
@@ -664,7 +665,7 @@ ydn.db.IndexedDb.prototype.remove = function (opt_table, opt_id) {
  * @return {!goog.async.Deferred} clear all stores.
  * @private
  */
-ydn.db.IndexedDb.prototype.clearAll_ = function () {
+ydn.db.IndexedDb.prototype.clearAll_ = function() {
   var dfs = [];
   for (var i = 0; i < this.schema.stores.length; i++) {
     dfs.push(this.clear(this.schema.stores[i].name));
