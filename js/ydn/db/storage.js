@@ -337,17 +337,15 @@ ydn.db.Storage.prototype.clear = function(opt_table) {
 
 /**
  * @export
- * @param {string=} opt_store delete a specific store.
- * @param {string=} opt_id delete a specific row.
- * @return {!goog.async.Deferred} return a deferred function.
+ * @inheritDoc
  */
-ydn.db.Storage.prototype.delete = function(opt_store, opt_id) {
+ydn.db.Storage.prototype.remove = function(opt_store, opt_id) {
   if (this.db_) {
-    return this.db_.delete(opt_store, opt_id);
+    return this.db_.remove(opt_store, opt_id);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.delete(opt_store, opt_id).chainDeferred(df);
+      db.remove(opt_store, opt_id).chainDeferred(df);
     });
     return df;
   }

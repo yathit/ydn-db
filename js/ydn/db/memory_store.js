@@ -131,7 +131,7 @@ ydn.db.MemoryStore.prototype.fetch = function(q) {
 /**
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.delete = function(opt_table, opt_id) {
+ydn.db.MemoryStore.prototype.remove = function(opt_table, opt_id) {
   if (goog.isDef(opt_table) && goog.isDef(opt_id)) {
     delete this.cache[opt_table][opt_id];
     return goog.async.Deferred.succeed(true);

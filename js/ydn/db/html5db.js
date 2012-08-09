@@ -159,7 +159,7 @@ ydn.db.Html5Db.prototype.clear = function(opt_table) {
  * @param {string=} opt_id delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Html5Db.prototype.delete = function(opt_table, opt_id) {
+ydn.db.Html5Db.prototype.remove = function(opt_table, opt_id) {
   if (goog.isDef(opt_id) && goog.isDef(opt_table)) {
     var key = this.getKey(opt_id, opt_table);
     delete window.localStorage[key];

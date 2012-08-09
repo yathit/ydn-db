@@ -79,11 +79,14 @@ ydn.db.Db.prototype.clear = function(opt_table) {
 
 /**
  * Delete the database, store or an entry.
+ *
+ * Note: I wish this method be named 'delete' but closure compiler has problem
+ * with exporting 'delete' as method name.
  * @param {string=} opt_store delete a specific store.
  * @param {string=} opt_id delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Db.prototype.delete = function(opt_store, opt_id) {
+ydn.db.Db.prototype.remove = function(opt_store, opt_id) {
 
 };
 

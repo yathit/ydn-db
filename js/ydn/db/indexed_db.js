@@ -568,7 +568,7 @@ ydn.db.IndexedDb.prototype.deleteItem_ = function(table, id) {
 
   return this.doTransaction(function(tx) {
     var store = tx.objectStore(table);
-    var request = store.delete(id);
+    var request = store['delete'](id);
 
     request.onsuccess = function(event) {
       if (ydn.db.IndexedDb.DEBUG) {
@@ -620,7 +620,7 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.delete = function (opt_table, opt_id) {
+ydn.db.IndexedDb.prototype.remove = function (opt_table, opt_id) {
 
   if (goog.isDef(opt_table)) {
     if (goog.isDef(opt_id)) {
