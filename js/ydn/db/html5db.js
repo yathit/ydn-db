@@ -115,8 +115,12 @@ ydn.db.Html5Db.prototype.get = function(table, opt_key) {
 
   if (goog.isDef(opt_key)) {
     var value = window.localStorage.getItem(this.getKey(opt_key, table));
-    return goog.async.Deferred.succeed(ydn.json.parse(
-      /** @type {string} */ (value)));
+    if (!goog.isNull(value)) {
+      value = ydn.json.parse(/** @type {string} */ (value));
+    } else {
+      value = undefined; // localStorage return null for not existing value
+    }
+    return goog.async.Deferred.succeed(value);
   } else {
     var arr = [];
     for (var item in window.localStorage) {

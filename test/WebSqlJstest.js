@@ -35,3 +35,14 @@ ydn.store.WebSqlJstest.prototype.test_put_get_object = function(queue) {
   ydn.db.test.run_put_get_tests(queue, db);
 };
 
+
+ydn.store.WebSqlJstest.prototype.test_put_get_object = function(queue) {
+  var db = new ydn.db.WebSql(this.dbname, [ydn.db.test.getSchema()]);
+  ydn.db.test.empty_store_get_test(queue, db);
+};
+
+ydn.store.WebSqlJstest.prototype.test_nested_key_path = function(queue) {
+  var db = new ydn.db.WebSql('nested_key_path', [ydn.db.test.get_nested_key_path_schema()]);
+  ydn.db.test.nested_key_path(queue, db);
+};
+

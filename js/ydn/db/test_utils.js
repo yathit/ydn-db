@@ -26,8 +26,8 @@ ydn.db.test.getSchema = function() {
 
 
 /**
- * @param queue
- * @param {ydn.db.Db} db
+ * @param queue test queue.
+ * @param {ydn.db.Db} db Database instance.
  */
 ydn.db.test.db_clear_tests = function(queue, db) {
 
@@ -51,8 +51,8 @@ ydn.db.test.db_clear_tests = function(queue, db) {
 
 
 /**
- * @param queue
- * @param {ydn.db.Db} db
+ * @param queue test queue.
+ * @param {ydn.db.Db} db Database instance.
  */
 ydn.db.test.put_tests = function(queue, db) {
 
@@ -65,8 +65,8 @@ ydn.db.test.put_tests = function(queue, db) {
 
 
 /**
- * @param queue
- * @param {ydn.db.Db} db
+ * @param queue test queue.
+ * @param {ydn.db.Db} db Database instance.
  */
 ydn.db.test.get_tests = function(queue, db) {
 
@@ -85,8 +85,8 @@ ydn.db.test.get_tests = function(queue, db) {
 
 
 /**
- * @param queue
- * @param {ydn.db.Db} db
+ * @param queue test queue.
+ * @param {ydn.db.Db} db Database instance.
  */
 ydn.db.test.run_put_get_tests = function(queue, db) {
 
@@ -183,8 +183,8 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
 
 
 /**
- * @param queue
- * @param {ydn.db.Db} db
+ * @param queue test queue.
+ * @param {ydn.db.Db} db Database instance.
  */
 ydn.db.test.special_keys_test = function(queue, db) {
 
@@ -214,4 +214,56 @@ ydn.db.test.special_keys_test = function(queue, db) {
   test_key('http://www.ok.com');
   test_key('http://www.ok.com/ereom\ere#code?oer=ere');
 
+};
+
+
+
+/**
+ * @param queue test queue.
+ * @param {ydn.db.Db} db Database instance.
+ */
+ydn.db.test.empty_store_get_test = function(queue, db) {
+  var rand_key = 'k' + Math.random();
+  queue.call('get non existing key: ' + rand_key, function(callbacks) {
+    db.get(ydn.db.test.table, rand_key).addCallback(callbacks.add(function(value) {
+      assertUndefined('result', value);
+    }))
+  });
+};
+
+
+/**
+ * @return {ydn.db.DatabaseSchema} schema used in nested_key_path test.
+ */
+ydn.db.test.get_nested_key_path_schema = function() {
+  var store_name = 'nested_key_path';
+  var schema = new ydn.db.DatabaseSchema(1);
+  schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
+  return schema;
+};
+
+
+/**
+ * @param queue test queue.
+ * @param {ydn.db.Db} db Database instance.
+ */
+ydn.db.test.nested_key_path = function(queue, db) {
+  var schema = ydn.db.test.get_nested_key_path_schema();
+  var store_name = schema.stores[0].name;
+
+  var key = 'k' + Math.random();
+  var data = {value: Math.random()};
+  data.id = {$t: key};
+
+  queue.call('put ' + key, function(callbacks) {
+    db.put(store_name, data).addBoth(callbacks.add(function(value) {
+      assertTrue('put OK', value);
+    }))
+  });
+
+  queue.call('get ' + key, function(callbacks) {
+    db.get(store_name, key).addBoth(callbacks.add(function(value) {
+      assertEquals('get OK', data, value);
+    }))
+  });
 };
