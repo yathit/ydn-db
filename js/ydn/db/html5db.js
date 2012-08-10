@@ -127,11 +127,11 @@ ydn.db.Html5Db.prototype.get = function(table, opt_key) {
       if (goog.string.startsWith(item, '_database_' + this.dbname + '-' +
           table)) {
         var value = window.localStorage[item];
-        arr.push(goog.async.Deferred.succeed(ydn.json.parse(
-            /** @type {string} */ (value))));
+        arr.push(ydn.json.parse(
+            /** @type {string} */ (value)));
       }
     }
-    return goog.async.Deferred.succeed(value);
+    return goog.async.Deferred.succeed(arr);
   }
 };
 

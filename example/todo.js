@@ -28,13 +28,14 @@ var getAllTodoItems = function () {
   var df = db.get('todo');
 
   df.success(function (items) {
-    for (var i = 0; i < items.length; i++) {
+    var n = items.length;
+    for (var i = 0; i < n; i++) {
       renderTodo(items[i]);
     }
   });
 
   df.error(function (x) {
-    console.error('Failed: ' + x);
+    console.log('Failed: ' + x);
   })
 };
 
@@ -72,5 +73,5 @@ function init() {
   getAllTodoItems();
 }
 
-window.addEventListener("DOMContentLoaded", init, false);
+init();
 

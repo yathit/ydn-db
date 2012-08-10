@@ -169,7 +169,8 @@ ydn.db.StoreSchema.prototype.hasIndex = function(name) {
   if (name == this.keyPath) {
     return true;
   }
-  return this.indexes.some(function(x) {
+
+  return goog.array.some(this.indexes, function(x) {
     return x.name == name;
   });
 };
@@ -395,7 +396,7 @@ ydn.db.DatabaseSchema.prototype.getStore = function(name) {
  */
 ydn.db.DatabaseSchema.prototype.hasStore = function(name) {
 
-  return this.stores.some(function(x) {
+  return goog.array.some(this.stores, function(x) {
     return x.name == name;
   });
 };
@@ -411,7 +412,7 @@ ydn.db.DatabaseSchema.prototype.listStores = function() {
      * @final
      * @type {!Array.<string>}
      */
-    this.store_names = this.stores.map(function(x) {
+    this.store_names = goog.array.map(this.stores, function(x) {
       return x.name;
     });
   }
