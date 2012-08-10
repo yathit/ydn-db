@@ -20,12 +20,20 @@
 
   console.log('database db initialized.');
 
+  // this is just setting value but require setTimeout crazy hack is for IE
+  // supposedly to run background thread to UI thread
+  var setValue = function(id, value) {
+    setTimeout(function() {
+      var ele = document.getElementById('content');
+      ele.value = value || '';
+    }, 0);
+  };
+
   // restore previous save text.
   db.getItem('content')
       .success(function (text) {
         console.log('Retrieved previous value: ' + text);
-        var ele = document.getElementById('content');
-        ele.value = text || '';
+        setValue('content', text);
       })
       .error(function (x) {
         console.log('Cannot retrieve previous text.');
