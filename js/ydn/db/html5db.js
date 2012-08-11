@@ -23,7 +23,7 @@ goog.require('ydn.db.MemoryStore');
 /**
  * @extends {ydn.db.MemoryStore}
  * @param {string} dbname dtabase name.
- * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table
+ * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
  * name and keyPath.
  * @constructor
  */

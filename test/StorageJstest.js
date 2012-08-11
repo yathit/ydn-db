@@ -34,7 +34,7 @@ ydn.store.StorageJstest.prototype.test_setItem = function(queue) {
   });
 
   queue.call('set schema', function(callbacks) {
-    db.addSchema(ydn.db.test.getSchema());
+    db.setSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {
@@ -65,7 +65,7 @@ ydn.store.StorageJstest.prototype.test_setItem_getItem = function(queue) {
   });
 
   queue.call('set schema', function(callbacks) {
-    db.addSchema(ydn.db.test.getSchema());
+    db.setSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {
@@ -117,7 +117,7 @@ ydn.store.StorageJstest.prototype.test_put_get = function(queue) {
   });
 
   queue.call('set schema', function(callbacks) {
-    db.addSchema(ydn.db.test.getSchema());
+    db.setSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {
@@ -165,7 +165,7 @@ ydn.store.StorageJstest.prototype.test_json_config = function(queue) {
     stores:[store]
   };
 
-  var db = new ydn.db.Storage('todo_test', [schema_ver1]);
+  var db = new ydn.db.Storage('todo_test', schema_ver1);
 
   // it is wired that without this initialized test, it fail.
   // it is likely from js test bug.

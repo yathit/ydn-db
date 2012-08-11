@@ -24,12 +24,12 @@ goog.require('goog.async.Deferred');
 /**
  * @implements {ydn.db.Db}
  * @param {string} dbname dtabase name.
- * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table
+ * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
  * @constructor
  */
-ydn.db.MemoryStore = function(dbname, schemas, opt_localStorage) {
+ydn.db.MemoryStore = function(dbname, schema, opt_localStorage) {
 
   /**
    * @final
@@ -38,15 +38,18 @@ ydn.db.MemoryStore = function(dbname, schemas, opt_localStorage) {
    */
   this.cache_ = opt_localStorage || ydn.db.MemoryStore.getFakeLocalStorage();
 
-  this.dbname = dbname;
   /**
    * @final
-   * @protected
-   * @type {Array.<!ydn.db.DatabaseSchema>}
+   * @type {string}
    */
-  this.schemas = schemas;
+  this.dbname = dbname;
 
-  this.schema = schemas[schemas.length - 1]; // we always use the last schema.
+  /**
+   * @protected
+   * @final
+   * @type {!ydn.db.DatabaseSchema}
+   */
+  this.schema = schema; // we always use the last schema.
 
 };
 

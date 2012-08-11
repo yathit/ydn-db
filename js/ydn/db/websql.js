@@ -35,21 +35,19 @@ goog.require('ydn.json');
  * Note: Version is ignored, since it does work well.
  * @implements {ydn.db.Db}
  * @param {string} dbname name of database.
- * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table
+ * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @constructor
  */
-ydn.db.WebSql = function(dbname, schemas) {
+ydn.db.WebSql = function(dbname, schema) {
   var self = this;
   this.dbname = dbname;
   /**
    * @final
    * @protected
-   * @type {Array.<!ydn.db.DatabaseSchema>}
+   * @type {!ydn.db.DatabaseSchema}
    */
-  this.schemas = schemas;
-
-  this.schema = schemas[schemas.length - 1]; // we always use the last schema.
+  this.schema = schema; // we always use the last schema.
 
   var description = this.dbname;
 

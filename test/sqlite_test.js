@@ -29,7 +29,7 @@ var db_name = 'test1';
 
 var test_0_put = function() {
 
-  var db = new ydn.db.WebSql(db_name, [this.basic_schema]);
+  var db = new ydn.db.WebSql(db_name, this.basic_schema);
 
   var put_value, done;
 
@@ -54,7 +54,7 @@ var test_0_put = function() {
 
 var test_1_get_all = function() {
 
-  var db = new ydn.db.WebSql(db_name, [this.basic_schema]);
+  var db = new ydn.db.WebSql(db_name, this.basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -81,7 +81,7 @@ var test_1_get_all = function() {
 
 var test_1_delete = function() {
 
-	var db = new ydn.db.WebSql(db_name, [this.basic_schema]);
+	var db = new ydn.db.WebSql(db_name, this.basic_schema);
 
 	var put_value, done;
 
@@ -107,7 +107,7 @@ var test_1_delete = function() {
 
 var test_2_clear = function() {
 
-	var db = new ydn.db.WebSql(db_name, [this.basic_schema]);
+	var db = new ydn.db.WebSql(db_name, this.basic_schema);
 
   var cleared;
 
@@ -265,11 +265,11 @@ var test_2_clear = function() {
 
 var test_5_get = function() {
   var store_name = 'ydn.test.ts1';
-  var put_obj_dbname = 'ydn.putodbtest1';
+  var put_obj_dbname = 'ydn.putodbtest2';
   var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 
-  var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
+  var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
 	var key = 'a';
   var put_done = false;
@@ -324,7 +324,7 @@ var test_6_putObject_nested_keyPath = function() {
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
 
-	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
+	var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
   var key = 'a';
   var put_done = false;
@@ -377,7 +377,7 @@ var test_7_put_get_array = function() {
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 
-	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
+	var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
   var objs = [
     {id: 'qs1', value: Math.random()},
@@ -437,7 +437,7 @@ var test_8_query_start_with = function() {
 	var dbname = 'test8';
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
-	var db = new ydn.db.WebSql(dbname, [schema]);
+	var db = new ydn.db.WebSql(dbname, schema);
 
 
   var objs = [

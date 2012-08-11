@@ -36,7 +36,7 @@ var test_1_json_trival_config = function() {
 
   var schema_ver1 = {};
 
-  var db = new ydn.db.Storage('todos_test6', [schema_ver1]);
+  var db = new ydn.db.Storage('todos_test6', schema_ver1);
 
   //db.setItem('some-value', 'ok');
 
@@ -73,7 +73,7 @@ var test_0_json_config_empty_table = function() {
     stores:[store]
   };
 
-  var db = new ydn.db.Storage('todos_test', [schema_ver1]);
+  var db = new ydn.db.Storage('todos_test', schema_ver1);
 
   var hasEventFired = false;
   var put_value;
@@ -104,7 +104,7 @@ var test_1_json_trival_config_get = function() {
 
   var schema_ver1 = {};
 
-  var db = new ydn.db.Storage('todos_test7', [schema_ver1]);
+  var db = new ydn.db.Storage('todos_test7', schema_ver1);
 
   //db.setItem('some-value', 'ok');
 
@@ -141,7 +141,7 @@ var test_1_json_config = function() {
     stores:[store]
   };
 
-  var db = new ydn.db.Storage('todos_test', [schema_ver1]);
+  var db = new ydn.db.Storage('todos_test', schema_ver1);
 
   var hasEventFired = false;
   var put_value;
@@ -168,10 +168,10 @@ var test_1_json_config = function() {
 var test_2_json_config_in_out = function() {
 
 	var store_name = 't1';
-	var put_obj_dbname = 'testdb2';
+	var put_obj_dbname = 'testdb3';
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
-	var db = new ydn.db.Storage(put_obj_dbname, [schema]);
+	var db = new ydn.db.Storage(put_obj_dbname, schema);
 
 	var key = 'a';
 	var put_done = false;
@@ -188,12 +188,8 @@ var test_2_json_config_in_out = function() {
       console.log('put OK.');
 
       var config = db.getConfig();
-      var schemas = [];
-      for (var i = 0; i < config.schemas.length; i++) {
-        schemas.push(ydn.db.DatabaseSchema.fromJSON(config.schemas[i]));
-      }
-      console.log([config, schemas]);
-      var db2 = new ydn.db.Storage(config.db_name, schemas);
+      console.log(config);
+      var db2 = new ydn.db.Storage(config.db_name, config.schema);
 
       var get_done;
       var get_value_received;

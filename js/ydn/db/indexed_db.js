@@ -34,24 +34,20 @@ goog.require('ydn.json');
  * @see ydn.db.Storage for schema defination
  * @implements {ydn.db.Db}
  * @param {string} dbname name of database.
- * @param {Array.<!ydn.db.DatabaseSchema>} schemas table schema contain table
+ * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @constructor
  */
-ydn.db.IndexedDb = function(dbname, schemas) {
+ydn.db.IndexedDb = function(dbname, schema) {
   var self = this;
   this.dbname = dbname;
-  /**
-   *
-   * @type {Array.<!ydn.db.DatabaseSchema>}
-   */
-  this.schemas = schemas;
+
   /**
    * @protected
    * @final
-   * @type {ydn.db.DatabaseSchema}
+   * @type {!ydn.db.DatabaseSchema}
    */
-  this.schema = schemas[schemas.length - 1];
+  this.schema = schema;
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // In chrome, version is taken as description.
@@ -237,6 +233,21 @@ ydn.db.IndexedDb.prototype.setDb = function(db) {
 
 
 /**
+ * @private
+ * @param {IDBDatabase} db DB instance.
+ * @param {string} table store name.
+ * @return {boolean} true if the store exist.
+ */
+ydn.db.IndexedDb.prototype.hasStore_ = function(db, table) {
+  if (goog.isDef(db['objectStoreNames'])) {
+    return db['objectStoreNames'].contains(table);
+  } else {
+    return false; // TODO:
+  }
+};
+
+
+/**
  * Migrate from current version to the last version.
  * @protected
  * @param {string} old_version old database version.
@@ -246,18 +257,11 @@ ydn.db.IndexedDb.prototype.migrate = function(old_version, db) {
 
   // create store that we don't have previously
 
-  // Note: old_version is not available in new standard of IndexedDB. so just
-  // create new store
-  // whether it has old store or not.
-  var old_schema = goog.array.find(this.schemas, function(x) {
-    return x.version == old_version;
-  });
-
   for (var table, i = 0; table = this.schema.stores[i]; i++) {
     this.logger.finest('Creating Object Store for ' + table.name +
       ' keyPath: ' + table.keyPath);
 
-    if (db.objectStoreNames.contains(table)) {
+    if (this.hasStore_(db, table.name)) {
       continue; // already have the store. TODO: update indexes
     }
 

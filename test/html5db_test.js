@@ -29,7 +29,7 @@ var db_name = 'test12';
 
 var test_0_put = function() {
 
-  var db = new ydn.db.Html5Db(db_name, [this.basic_schema]);
+  var db = new ydn.db.Html5Db(db_name, this.basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -56,7 +56,7 @@ var test_0_put = function() {
 
 var test_0_empty_get = function() {
 
-  var db = new ydn.db.Html5Db(db_name, [this.basic_schema]);
+  var db = new ydn.db.Html5Db(db_name, this.basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -84,7 +84,7 @@ var test_0_empty_get = function() {
 //
 //var test_1_get_all = function() {
 //
-//  var db = new ydn.db.Html5Db(db_name, [this.basic_schema]);
+//  var db = new ydn.db.Html5Db(db_name, this.basic_schema);
 //
 //  var hasEventFired = false;
 //  var put_value;
@@ -112,7 +112,7 @@ var test_0_empty_get = function() {
 //
 //
 //var test_1_clear = function() {
-//	var db = new ydn.db.Html5Db(db_name, [this.basic_schema]);
+//	var db = new ydn.db.Html5Db(db_name, this.basic_schema);
 //
 //  var hasEventFired = false;
 //  var put_value;
@@ -162,7 +162,7 @@ var test_0_empty_get = function() {
 // */
 //var test_3_special_keys = function() {
 //
-//	var db = new ydn.db.Html5Db(db_name, [this.basic_schema]);
+//	var db = new ydn.db.Html5Db(db_name, this.basic_schema);
 //	var me = this;
 //
 //  var test_key = function(key) {

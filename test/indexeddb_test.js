@@ -30,7 +30,7 @@ var db_name = 'test12';
 
 var test_0_put = function() {
 
-  var db = new ydn.db.IndexedDb(db_name, [this.basic_schema]);
+  var db = new ydn.db.IndexedDb(db_name, this.basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -57,7 +57,7 @@ var test_0_put = function() {
 
 //var test_0_empty_get = function() {
 //
-//  var db = new ydn.db.IndexedDb(db_name, [this.basic_schema]);
+//  var db = new ydn.db.IndexedDb(db_name, this.basic_schema);
 //
 //  var hasEventFired = false;
 //  var put_value;
@@ -85,7 +85,7 @@ var test_0_put = function() {
 
 var test_1_get_all = function() {
 
-  var db = new ydn.db.IndexedDb(db_name, [this.basic_schema]);
+  var db = new ydn.db.IndexedDb(db_name, this.basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -113,7 +113,7 @@ var test_1_get_all = function() {
 
 
 var test_1_clear = function() {
-	var db = new ydn.db.IndexedDb(db_name, [this.basic_schema]);
+	var db = new ydn.db.IndexedDb(db_name, this.basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -163,7 +163,7 @@ var test_1_clear = function() {
  */
 var test_3_special_keys = function() {
 
-	var db = new ydn.db.IndexedDb(db_name, [this.basic_schema]);
+	var db = new ydn.db.IndexedDb(db_name, this.basic_schema);
 	var me = this;
 
   var test_key = function(key) {
@@ -224,7 +224,7 @@ var test_4_put_nested_keyPath = function() {
   var put_obj_dbname = 'putodbtest2';
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
-	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
+	var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
   var key = 'a';
   var put_done = false;
@@ -277,7 +277,7 @@ var test_5_query_start_with = function() {
   var put_obj_dbname = 'pos2';
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
-	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
+	var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
 
 
