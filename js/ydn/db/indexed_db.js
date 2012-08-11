@@ -257,34 +257,27 @@ ydn.db.IndexedDb.prototype.migrate = function(old_version, db) {
     this.logger.finest('Creating Object Store for ' + table.name +
       ' keyPath: ' + table.keyPath);
 
-    if (old_schema && !goog.isNull(old_schema.getStore(table.name))) {
+    if (db.objectStoreNames.contains(table)) {
       continue; // already have the store. TODO: update indexes
     }
 
-    /**
-     * @preserveTry
-     */
-    try {
-      goog.asserts.assertString(table.keyPath, 'name required.');
-      var store = db.createObjectStore(table.name, {
-        keyPath: table.keyPath, autoIncrement: table.autoIncrement});
+    goog.asserts.assertString(table.keyPath, 'name required.');
+    var store = db.createObjectStore(table.name, {
+      keyPath:table.keyPath, autoIncrement:table.autoIncrement});
 
-      for (var i = 0; i < table.indexes.length; i++) {
-        var index = table.indexes[i];
-        goog.asserts.assertString(index.name, 'name required.');
-        goog.asserts.assertBoolean(index.unique, 'unique required.');
-        store.createIndex(index.name, index.name, {unique: index.unique});
-      }
-
-      this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
-        store.keyPath);
-    } catch (e) { // e if e instanceof IDBDatabaseException
-      // in Firefox, exception raise if the database already exist.
-      this.logger.warning(e.message);
+    for (var i = 0; i < table.indexes.length; i++) {
+      var index = table.indexes[i];
+      goog.asserts.assertString(index.name, 'name required.');
+      goog.asserts.assertBoolean(index.unique, 'unique required.');
+      store.createIndex(index.name, index.name, {unique:index.unique});
     }
+
+    this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
+        store.keyPath);
+
   }
 
-  // TODO: don't bother to delete old store
+  // TODO: delete unused old stores ?
 };
 
 

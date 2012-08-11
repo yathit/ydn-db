@@ -64,6 +64,40 @@ var test_1_json_trival_config = function() {
 };
 
 
+var test_0_json_config_empty_table = function() {
+  var store = {name:'todo', keyPath:"timeStamp"};
+
+  var schema_ver1 = {
+    version: 2,
+    size: 1 * 1024 * 1024, // 1 MB,
+    stores:[store]
+  };
+
+  var db = new ydn.db.Storage('todos_test', [schema_ver1]);
+
+  var hasEventFired = false;
+  var put_value;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertArrayEquals('empry table', [], put_value);
+        // Remember, the state of this boolean will be tested in tearDown().
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.get('todo').addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value = value;
+    hasEventFired = true;
+  });
+};
+
+
 var test_1_json_trival_config_get = function() {
 
   var store = {name:'todo', keyPath:"timeStamp"};

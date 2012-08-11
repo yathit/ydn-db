@@ -161,14 +161,20 @@ ydn.store.StorageJstest.prototype.test_json_config = function(queue) {
 
   var schema_ver1 = {
     version: 2,
-    size: 1 * 1024 * 1024, // 1 MB,
+    size: 1 * 1024 * 1024, // 1 MB
     stores:[store]
   };
 
-  var db = new ydn.db.Storage('todos_test', [schema_ver1]);
+  var db = new ydn.db.Storage('todo_test', [schema_ver1]);
 
-  queue.call('create a database', function(callbacks) {
-    db.get('todo').addBoth(callbacks.add(function(value) {
+  // it is wired that without this initialized test, it fail.
+  // it is likely from js test bug.
+  queue.call('initialized', function(callbacks) {
+    assertTrue('db initialized', db.isReady());
+  });
+
+  queue.call('get todo table', function(callbacks) {
+    db.get('todo').addCallback(callbacks.add(function(value) {
       assertEquals('empty', [], value);
     }));
   })

@@ -67,9 +67,10 @@ ydn.db.Db.prototype.count = function(opt_table) {
 
 
 /**
- * Remove all data in a store (table).
- * @param {string=} opt_table delete a specific table.
- * all tables.
+ * Remove all data in the store (table).
+ * @param {string=} opt_table delete the table as provided otherwise
+ * delete all stores.
+ * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.Db.prototype.clear = function(opt_table) {
@@ -80,8 +81,8 @@ ydn.db.Db.prototype.clear = function(opt_table) {
 /**
  * Delete the database, store or an entry.
  *
- * Note: I wish this method be named 'delete' but closure compiler has problem
- * with exporting 'delete' as method name.
+ * Note: I wish this method be named 'delete' but closure compiler complain
+ * or sometimes problem with exporting 'delete' as method name.
  * @param {string=} opt_store delete a specific store.
  * @param {string=} opt_id delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.

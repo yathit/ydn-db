@@ -1,5 +1,6 @@
-// Copyright 2012 YDN Authors. All Rights Reserved.
-//
+/**
+ * @license Copyright 2012 YDN Authors. All Rights Reserved.
+ */
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -12,9 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/**
- * @license Copyright 2012 YDN Authors. All Rights Reserved.
- */
 
 /**
  * @fileoverview Wrappers for the all implemented Storage mechanisms.
@@ -120,10 +118,10 @@ ydn.db.Storage.prototype.getConfig = function() {
 
 /**
  * @export
- * @param {string} opt_dbname set database name.
- * @return {string} normalized dbname.
+ * @param {string} opt_db_name set database name.
+ * @return {string} normalized database name.
  */
-ydn.db.Storage.prototype.setDbName = function(opt_dbname) {
+ydn.db.Storage.prototype.setDbName = function(opt_db_name) {
   if (this.db_) {
     throw Error('DB already initialized');
   }
@@ -131,7 +129,7 @@ ydn.db.Storage.prototype.setDbName = function(opt_dbname) {
    * @final
    * @type {string}
    */
-  this.db_name = opt_dbname.replace(/[@|\.|\s]/g, '');
+  this.db_name = opt_db_name.replace(/[@|\.|\s]/g, '');
   this.initDatabase();
   return this.db_name;
 };
@@ -242,11 +240,32 @@ ydn.db.Storage.prototype.initDatabase = function() {
 
 
 /**
+ * Probe database is initialized and ready to be use.
  * @export
  * @return {boolean} true if the database has been initialized.
  */
 ydn.db.Storage.prototype.isReady = function() {
   return !!this.db_;
+};
+
+
+/**
+ * Close the database.
+ */
+ydn.db.Storage.prototype.close = function() {
+  if (this.db_) {
+    // this.db_.close();
+    delete this.db_;
+  }
+};
+
+
+/**
+ * Return underlining database instance.
+ * @return {ydn.db.Db|undefined} Database if exists.
+ */
+ydn.db.Storage.prototype.getDb = function() {
+  return this.db_;
 };
 
 
