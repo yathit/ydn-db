@@ -29,7 +29,7 @@ ydn.db.test.getSchema = function() {
  * @param queue test queue.
  * @param {ydn.db.Db} db Database instance.
  */
-ydn.db.test.db_clear_tests = function(queue, db) {
+ydn.db.test.db_clear_all_tests = function(queue, db) {
 
   queue.call('clear db', function(callbacks) {
     var df_clear = db.clear();
@@ -54,31 +54,32 @@ ydn.db.test.db_clear_tests = function(queue, db) {
  * @param queue test queue.
  * @param {ydn.db.Db} db Database instance.
  */
-ydn.db.test.put_tests = function(queue, db) {
+ydn.db.test.clear_tests = function(queue, db) {
+
+  var a_value = 'a' + Math.random();
 
   queue.call('put a', function(callbacks) {
-    db.setItem('a', '1').addCallback(callbacks.add(function(value) {
-      assertEquals('put a 1', true, value);
-    }));
-  });
-};
-
-
-/**
- * @param queue test queue.
- * @param {ydn.db.Db} db Database instance.
- */
-ydn.db.test.get_tests = function(queue, db) {
-
-  queue.call('put a', function(callbacks) {
-    db.setItem('a', '1').addCallback(callbacks.add(function(value) {
+    db.put(ydn.db.test.table, {id: 'a', value: a_value}).addCallback(callbacks.add(function(value) {
       assertEquals('put a 1', true, value);
     }));
   });
 
   queue.call('get a', function(callbacks) {
-    db.getItem('a').addCallback(callbacks.add(function(value) {
-      assertEquals('get a 1', '1', value);
+    db.get(ydn.db.test.table, 'a').addCallback(callbacks.add(function(value) {
+      assertEquals('get a = ' + a_value, a_value, value.value);
+    }));
+  });
+
+  queue.call('clear a', function(callbacks) {
+    var df_clear = db.clear(ydn.db.test.table, 'a');
+    df_clear.addCallback(callbacks.add(function(value) {
+      assertEquals('clear OK', true, value);
+    }));
+  });
+
+  queue.call('get a after clear', function(callbacks) {
+    db.get(ydn.db.test.table, 'a').addCallback(callbacks.add(function(value) {
+      assertUndefined('get a after clear', value);
     }));
   });
 };

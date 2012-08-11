@@ -67,13 +67,14 @@ ydn.db.Db.prototype.count = function(opt_table) {
 
 
 /**
- * Remove all data in the store (table).
+ * Remove a specific entry from a store or all.
  * @param {string=} opt_table delete the table as provided otherwise
  * delete all stores.
+ * @param {string=} opt_key delete a specific row.
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Db.prototype.clear = function(opt_table) {
+ydn.db.Db.prototype.clear = function(opt_table, opt_key) {
 
 };
 

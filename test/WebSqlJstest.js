@@ -29,6 +29,11 @@ ydn.store.WebSqlJstest.prototype.test_special_key = function(queue) {
   ydn.db.test.special_keys_test(queue, db);
 };
 
+ydn.store.WebSqlJstest.prototype.test_clear = function(queue) {
+  var db = new ydn.db.WebSql(this.dbname, ydn.db.test.getSchema());
+  ydn.db.test.clear_tests(queue, db);
+};
+
 
 ydn.store.WebSqlJstest.prototype.test_put_get_object = function(queue) {
   var db = new ydn.db.WebSql(this.dbname, ydn.db.test.getSchema());

@@ -674,7 +674,7 @@ ydn.db.IndexedDb.prototype.clearAll_ = function() {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.clear = function(opt_table) {
+ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
 
   if (!goog.isDef(opt_table)) {
     return this.clearAll_();
@@ -684,7 +684,12 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table) {
 
   return this.doTransaction(function(tx) {
     var store = tx.objectStore(opt_table);
-    var request = store.clear();
+    var request;
+    if (goog.isDef(opt_key)) {
+      request = store.clear();
+    } else {
+      request = store['delete'](opt_key);
+    }
     request.onsuccess = function(event) {
       tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {

@@ -105,18 +105,19 @@ var test_1_delete = function() {
 };
 
 
-var test_2_clear = function() {
+var test_2_clear_table = function() {
 
 	var db = new ydn.db.WebSql(db_name, this.basic_schema);
 
-  var cleared;
+  var cleared_value, cleared;
 
   waitForCondition(
       // Condition
       function() { return cleared; },
       // Continuation
       function() {
-        assertTrue('cleared', true);
+        assertTrue('cleared', cleared_value);
+        reachedFinalContinuation = true;
       },
       100, // interval
       1000); // maxTimeout
@@ -128,9 +129,37 @@ var test_2_clear = function() {
   }).addErrback(function(v) {
     fail('should not get error.');
   });
-
-
 };
+
+
+var test_2_clear = function() {
+
+  var db = new ydn.db.WebSql(db_name, this.basic_schema);
+
+  db.put(this.table_name, {'id': 'a', 'value': '1'});
+
+  var cleared_value, cleared;
+
+  waitForCondition(
+      // Condition
+      function() { return cleared; },
+      // Continuation
+      function() {
+        assertTrue('cleared', cleared_value);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+
+  db.clear(this.table_name, 'a').addCallback(function(value) {
+    cleared_value = value;
+    cleared = true;
+  }).addErrback(function(v) {
+        fail('should not get error.');
+      });
+};
+
 //
 //
 ///**

@@ -148,7 +148,7 @@ ydn.db.Storage.prototype.setSchema = function(schema) {
   /**
    * @final
    * @protected
-   * @type {ydn.db.DatabaseSchema}
+   * @type {!ydn.db.DatabaseSchema}
    */
   this.schema = schema;
   if (!this.isReady()) {
@@ -324,7 +324,6 @@ ydn.db.Storage.prototype.clear = function(opt_table) {
 
 
 /**
- * @export
  * @inheritDoc
  */
 ydn.db.Storage.prototype.remove = function(opt_store, opt_id) {

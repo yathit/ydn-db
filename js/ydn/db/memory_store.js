@@ -177,20 +177,26 @@ ydn.db.MemoryStore.prototype.get = function(table, opt_key) {
 
 /**
  * Remove all data in a store (table).
- * @param {string=} opt_table delete a specific table.
- * all tables.
+ * @param {string=} opt_table delete a specific table or all tables.
+ * @param {string=} opt_key delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.MemoryStore.prototype.clear = function(opt_table) {
-  var tables_to_clear = goog.isDef(opt_table) ?
-      [opt_table] : this.schema.listStores();
+ydn.db.MemoryStore.prototype.clear = function(opt_table, opt_key) {
 
-  for (var key in this.cache_) {
-    if (this.cache_.hasOwnProperty(key)) {
-      for (var table, i = 0; table = tables_to_clear[i]; i++) {
-        if (goog.string.startsWith(key, '_database_' + this.dbname + '-' + table))
-        {
-          delete this.cache_[key];
+  if (goog.isDef(opt_table) && goog.isDef(opt_key)) {
+    var key = this.getKey(opt_key, opt_table);
+    delete this.cache_[key];
+  } else {
+
+    var tables_to_clear = goog.isDef(opt_table) ?
+        [opt_table] : this.schema.listStores();
+
+    for (var key in this.cache_) {
+      if (this.cache_.hasOwnProperty(key)) {
+        for (var table, i = 0; table = tables_to_clear[i]; i++) {
+          if (goog.string.startsWith(key, '_database_' + this.dbname + '-' + table)) {
+            delete this.cache_[key];
+          }
         }
       }
     }

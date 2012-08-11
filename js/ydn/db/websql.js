@@ -81,7 +81,7 @@ ydn.db.WebSql.isSupported = function() {
  *
  * @define {boolean} debug flag.
  */
-ydn.db.WebSql.DEBUG = false;
+ydn.db.WebSql.DEBUG = true;
 
 
 /**
@@ -391,24 +391,22 @@ ydn.db.WebSql.prototype.fetch = function(q) {
 
 /**
  * Deletes all objects from the store.
- * @param {string} opt_table_name table name.
+ * @param {string} table_name table name.
+ * @param {string=} opt_key table name.
  * @return {!goog.async.Deferred} return deferred function.
  * @private
  */
-ydn.db.WebSql.prototype.clearTable_ = function(opt_table_name) {
+ydn.db.WebSql.prototype.clear_ = function(table_name, opt_key) {
   var d = new goog.async.Deferred();
   var self = this;
 
   var sql = '';
-  if (goog.isDef(opt_table_name)) {
-    var store = this.schema.getStore(opt_table_name);
-    if (!store) {
-      throw Error('Table ' + opt_table_name + ' not found.');
-    }
-    sql = 'DELETE FROM  ' + opt_table_name;
-  } else {
-    for (var i = 0; i < this.schema.stores.length; i++) {
-      sql = 'DELETE FROM  ' + this.schema.stores[i].name + '; ';
+  if (goog.isDef(table_name)) {
+    var store = this.schema.getStore(table_name);
+    goog.asserts.assertObject(store);
+    sql = 'DELETE FROM  ' + store.getQuotedName();
+    if (goog.isDef(opt_key)) {
+      sql += ' WHERE ' + store.getQuotedKeyPath() + ' = ?';
     }
   }
 
@@ -433,7 +431,8 @@ ydn.db.WebSql.prototype.clearTable_ = function(opt_table_name) {
   };
 
   this.db.transaction(function(t) {
-    t.executeSql(sql, [], callback, error_callback);
+    var arg = goog.isDef(opt_key) ? [opt_key] : [];
+    t.executeSql(sql, arg, callback, error_callback);
   });
   return d;
 };
@@ -543,14 +542,17 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
  * all tables.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.WebSql.prototype.clear = function(opt_table) {
+ydn.db.WebSql.prototype.clear = function(opt_table, opt_key) {
 
-  if (opt_table) {
-    return this.clearTable_(opt_table);
+  if (goog.isDef(opt_table)) {    
+    if (!this.schema.hasStore(opt_table)) {
+      throw Error('Table ' + opt_table + ' not found.');
+    }
+    return this.clear_(opt_table, opt_key);
   } else {
     var dfs = [];
     for (var store in this.schema) {
-      dfs.push(this.clearTable_(store));
+      dfs.push(this.clear_(store));
     }
     return ydn.async.reduceAllTrue(new goog.async.DeferredList(dfs));
   }
