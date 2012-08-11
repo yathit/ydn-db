@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Example using ydn.db.Storage</title>
-  <script type="text/javascript" src="../jsc/ydn-db-min-0.1.js"></script>
+  <script type="text/javascript" src="../jsc/ydn-db-min-0.2.js"></script>
 </head>
 <body>
 <ol>
@@ -16,7 +16,7 @@
 
   // initialize database
   var schema_ver_1 = {};
-  var db = new ydn.db.Storage('test2', [schema_ver_1]);
+  var db = new ydn.db.Storage('note', schema_ver_1);
 
   console.log('database db initialized.');
 

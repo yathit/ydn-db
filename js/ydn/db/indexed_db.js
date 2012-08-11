@@ -631,6 +631,42 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
 /**
  * @inheritDoc
  */
+ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
+
+  if (!goog.isDef(opt_table)) {
+    return this.clearAll_();
+  }
+
+  var self = this;
+
+  return this.doTransaction(function(tx) {
+    var store = tx.objectStore(opt_table);
+    var request;
+    if (goog.isDef(opt_key)) {
+      request = store['delete'](opt_key);
+    } else {
+      request = store.clear();
+    }
+    request.onsuccess = function(event) {
+      tx.is_success = true;
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      tx.result = true;
+    };
+    request.onerror = function(event) {
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+    };
+  }, [opt_table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
+
+};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.IndexedDb.prototype.remove = function(opt_table, opt_id) {
 
   if (goog.isDef(opt_table)) {
@@ -671,40 +707,6 @@ ydn.db.IndexedDb.prototype.clearAll_ = function() {
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
-
-  if (!goog.isDef(opt_table)) {
-    return this.clearAll_();
-  }
-
-  var self = this;
-
-  return this.doTransaction(function(tx) {
-    var store = tx.objectStore(opt_table);
-    var request;
-    if (goog.isDef(opt_key)) {
-      request = store.clear();
-    } else {
-      request = store['delete'](opt_key);
-    }
-    request.onsuccess = function(event) {
-      tx.is_success = true;
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      tx.result = true;
-    };
-    request.onerror = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-    };
-  }, [opt_table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
-
-};
 
 
 /**

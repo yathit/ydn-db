@@ -310,13 +310,13 @@ ydn.db.Storage.prototype.get = function(table, key) {
  * @export
  * @inheritDoc
  */
-ydn.db.Storage.prototype.clear = function(opt_table) {
+ydn.db.Storage.prototype.clear = function(opt_table, opt_key) {
   if (this.db_) {
-    return this.db_.clear(opt_table);
+    return this.db_.clear(opt_table, opt_key);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.clear(opt_table).chainDeferred(df);
+      db.clear(opt_table, opt_key).chainDeferred(df);
     });
     return df;
   }

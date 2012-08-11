@@ -12,11 +12,11 @@ var schema_ver1 = {
  * create IndexedDB or WebSql or even localStorage storage mechanism.
  * @type {ydn.db.Storage}
  */
-var db = new ydn.db.Storage('todos3', [schema_ver1]);
+var db = new ydn.db.Storage('todos3', schema_ver1);
 
 
 var deleteTodo = function (id) {
-  var request = db.remove('todo', id);
+  var request = db.clear('todo', id);
 
   getAllTodoItems();
 };
