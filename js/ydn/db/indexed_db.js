@@ -337,7 +337,7 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df)
         if (goog.isDef(tx.is_success)) {
           opt_df.callback(tx.result);
         } else {
-          opt_df.errback(undefined);
+          opt_df.errback(tx.error);
         }
 
         goog.Timer.callOnce(function() {
@@ -553,6 +553,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
+      tx.error = event;
     };
 
   }, [table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
@@ -589,6 +590,7 @@ ydn.db.IndexedDb.prototype.deleteItem_ = function(table, id) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
+      tx.error = event;
     };
   }, [table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
 };
@@ -621,6 +623,7 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
+      tx.error = event;
     };
   }, [table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
 };
@@ -657,6 +660,7 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
+      tx.error = event;
     };
   }, [opt_table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
 
@@ -737,6 +741,7 @@ ydn.db.IndexedDb.prototype.count = function(table) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
+      tx.error = event;
     };
 
   }, [table], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
@@ -794,6 +799,7 @@ ydn.db.IndexedDb.prototype.list = function(opt_table) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
+      tx.error = event;
     };
 
   }, [opt_table], ydn.db.IndexedDb.TransactionMode.READ_ONLY);

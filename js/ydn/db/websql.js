@@ -187,7 +187,7 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
   var table = this.schema.getStore(store_name);
   if (!table) {
     this.logger.warning('Table ' + store_name + ' not found.');
-    d.errback(undefined);
+    d.errback(error);
     return d;
   }
 
@@ -215,7 +215,7 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
       window.console.log([tr, error]);
     }
     me.logger.warning('put error: ' + error);
-    d.errback(undefined);
+    d.errback(error);
   };
 
   me.db.transaction(function(t) {
@@ -282,7 +282,7 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
   var table = this.schema.getStore(table_name);
   if (!table) {
     this.logger.warning('Table ' + table_name + ' not found.');
-    d.errback(undefined);
+    d.errback(error);
   }
 
   var me = this;
@@ -323,7 +323,7 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
       window.console.log([tr, error]);
     }
     me.logger.warning('get error: ' + error);
-    d.errback(undefined);
+    d.errback(error);
   };
 
   this.db.transaction(function(t) {
@@ -376,7 +376,7 @@ ydn.db.WebSql.prototype.fetch = function(q) {
       window.console.log([tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error);
-    d.errback(undefined);
+    d.errback(error);
   };
 
   this.db.transaction(function(t) {
@@ -427,7 +427,7 @@ ydn.db.WebSql.prototype.clear_ = function(table_name, opt_key) {
       window.console.log([tr, error]);
     }
     self.logger.warning('Sqlite error: ' + error);
-    d.errback(undefined);
+    d.errback(error);
   };
 
   this.db.transaction(function(t) {
@@ -469,7 +469,7 @@ ydn.db.WebSql.prototype.count = function(table) {
       window.console.log([tr, error]);
     }
     me.logger.warning('count error: ' + error);
-    d.errback(undefined);
+    d.errback(error);
   };
 
   this.db.transaction(function(t) {
@@ -495,7 +495,7 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
   var store = this.schema.getStore(table);
   if (!store) {
     this.logger.warning('Table ' + table + ' not found.');
-    d.errback(undefined);
+    d.errback(error);
     return d;
   }
 
@@ -521,7 +521,7 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
       window.console.log([tr, error]);
     }
     me.logger.warning('put error: ' + error);
-    d.errback(undefined);
+    d.errback(error);
   };
 
   me.db.transaction(function(t) {
@@ -623,7 +623,7 @@ ydn.db.WebSql.prototype.dropTable_ = function(opt_table) {
       window.console.log([tr, error]);
     }
     me.logger.warning('Delete TABLE: ' + error);
-    d.errback(undefined);
+    d.errback(error);
   };
 
   this.db.transaction(function(t) {
