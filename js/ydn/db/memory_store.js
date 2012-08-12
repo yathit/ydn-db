@@ -250,3 +250,11 @@ ydn.db.MemoryStore.prototype.count = function(opt_table) {
 ydn.db.MemoryStore.prototype.fetch = function(q) {
   return goog.async.Deferred.fail(true);
 };
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.MemoryStore.prototype.close = function () {
+  return goog.async.Deferred.succeed(true);
+};

@@ -250,10 +250,9 @@ ydn.db.IndexedDb.prototype.hasStore_ = function(db, table) {
 /**
  * Migrate from current version to the last version.
  * @protected
- * @param {string} old_version old database version.
  * @param {IDBDatabase} db database instance.
  */
-ydn.db.IndexedDb.prototype.migrate = function(old_version, db) {
+ydn.db.IndexedDb.prototype.migrate = function(db) {
 
   // create store that we don't have previously
 
@@ -665,9 +664,17 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
 
 
 /**
- * @inheritDoc
+ * Delete the database, store or an entry.
+ *
+ * @param {string=} opt_table delete a specific store.
+ * @param {string=} opt_id delete a specific row.
+ * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.IndexedDb.prototype.remove = function(opt_table, opt_id) {
+  /*
+  * Note: I wish this method be named 'delete' but closure compiler complain
+  * or sometimes problem with exporting 'delete' as method name.
+  */
 
   if (goog.isDef(opt_table)) {
     if (goog.isDef(opt_id)) {
@@ -794,3 +801,26 @@ ydn.db.IndexedDb.prototype.list = function(opt_table) {
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.IndexedDb.prototype.close = function () {
+
+  var df = new goog.async.Deferred();
+  var request = this.db.close();
+
+  request.onsuccess = function (event) {
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log(event);
+    }
+    df.callback(true);
+  };
+  request.onerror = function (event) {
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log(event);
+    }
+    df.errback(event);
+  };
+
+  return df;
+};

@@ -81,7 +81,7 @@ ydn.db.WebSql.isSupported = function() {
  *
  * @define {boolean} debug flag.
  */
-ydn.db.WebSql.DEBUG = true;
+ydn.db.WebSql.DEBUG = false;
 
 
 /**
@@ -112,8 +112,8 @@ ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
   var sql = 'CREATE TABLE IF NOT EXISTS ' + schema.getQuotedName() + ' (' +
     schema.getQuotedKeyPath() + ' TEXT UNIQUE PRIMARY KEY';
 
-  var has_default = !!schema.getIndex(ydn.db.WebSql.DEFAULT_FIELD);
-  if (!has_default) { // every table must has a default field.
+  // every table must has a default field.
+  if (!schema.hasIndex(ydn.db.WebSql.DEFAULT_FIELD)) {
     schema.addIndex(ydn.db.WebSql.DEFAULT_FIELD);
   }
 
@@ -560,7 +560,11 @@ ydn.db.WebSql.prototype.clear = function(opt_table, opt_key) {
 
 
 /**
- * @inheritDoc
+ * Delete the database, store or an entry.
+ *
+ * @param {string=} opt_table delete a specific store.
+ * @param {string=} opt_id delete a specific row.
+ * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
 
@@ -628,6 +632,15 @@ ydn.db.WebSql.prototype.dropTable_ = function(opt_table) {
   });
 
   return d;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.WebSql.prototype.close = function () {
+  // no need to close WebSQl database.
+  return goog.async.Deferred.succeed(true);
 };
 
 

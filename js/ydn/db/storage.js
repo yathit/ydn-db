@@ -151,10 +151,15 @@ ydn.db.Storage.prototype.setSchema = function(schema) {
    * @type {!ydn.db.DatabaseSchema}
    */
   this.schema = schema;
+
   if (!this.isReady()) {
     this.initDatabase();
   } else {
-    // TODO:
+    var me = this;
+    var df = this.db_.close();
+    df.addCallback(function(e) {
+      me.initDatabase();
+    });
   }
 };
 
@@ -216,12 +221,15 @@ ydn.db.Storage.prototype.isReady = function() {
 
 /**
  * Close the database.
+ * @return {!goog.async.Deferred} deferred function.
  */
 ydn.db.Storage.prototype.close = function() {
   if (this.db_) {
-    // this.db_.close();
+    var df = this.db_.close();
     delete this.db_;
+    return df;
   }
+  return goog.async.Deferred.succeed(true);
 };
 
 
@@ -317,22 +325,6 @@ ydn.db.Storage.prototype.clear = function(opt_table, opt_key) {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
       db.clear(opt_table, opt_key).chainDeferred(df);
-    });
-    return df;
-  }
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.Storage.prototype.remove = function(opt_store, opt_id) {
-  if (this.db_) {
-    return this.db_.remove(opt_store, opt_id);
-  } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function(db) {
-      db.remove(opt_store, opt_id).chainDeferred(df);
     });
     return df;
   }
