@@ -50,6 +50,7 @@ ydn.db.IndexedDb = function(dbname, schema) {
   this.schema = schema;
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
+  // version could be number of string.
   // In chrome, version is taken as description.
   self.logger.finer('Trying to open ' + this.dbname + ' ' +
     this.schema.version);
@@ -158,7 +159,7 @@ ydn.db.IndexedDb.TransactionMode = {
 
 
 
-// The fun fact with current Chrome 22 is it define
+// The fun fact with current Chrome 22 is it defines
 // goog.global.webkitIDBTransaction as numeric value, the database engine
 // accept only string format.
 
@@ -557,6 +558,7 @@ ydn.db.IndexedDb.prototype.list = function(q) {
       if (cursor) {
         tx.result.push(cursor['value']); // should not necessary if externs are
         // properly updated.
+
         //cursor.continue();
         cursor['continue'](); // Note: Must be quoted to avoid parse error.
       }

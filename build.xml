@@ -66,13 +66,24 @@
         </jstd-gen>
     </target>
     <target name="jsdoc" description="create document">
+        <mkdir dir="${work.dir}/ydn-dev/out/ydn-db/docs"/>
         <java jar="${jsdoc.dir}/jsrun.jar" fork="true" failonerror="true" logError="true">
             <arg line="${jsdoc.dir}/app/run.js" />
             <arg line="${ydn-db.dir}/js"/>
             <arg line="--verbose"/>
             <arg line="--recurse=6"/>
             <arg line="--template=${jsdoc.dir}/templates/jsdoc"/>
-            <arg line="--directory=${ydn-db.dir}/docs"/>
+            <arg line="--directory=${work.dir}/ydn-dev/out/ydn-db/docs"/>
+        </java>
+    </target>
+    <target name="jsdoc1" description="create document for storage class only">
+        <mkdir dir="${work.dir}/ydn-dev/out/ydn-db/docs"/>
+        <java jar="${jsdoc.dir}/jsrun.jar" fork="true" failonerror="true" logError="true">
+            <arg line="${jsdoc.dir}/app/run.js" />
+            <arg line="${ydn-db.dir}/js/ydn/db/storage.js"/>
+            <arg line="--verbose"/>
+            <arg line="--template=${work.dir}/ydn-dev/content/jsdoc-templates/jsdoc"/>
+            <arg line="--directory=${work.dir}/ydn-dev/out/ydn-db/docs"/>
         </java>
     </target>
 </project>

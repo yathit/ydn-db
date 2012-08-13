@@ -41,12 +41,17 @@ goog.require('ydn.object');
 
 
 /**
- * Create a suitable storage mechanism. starting from indexdb, to websql to
+ * Create a suitable storage mechanism from indexdb, to websql to
  * localStorage.
- * @see goog.db
+ *
+ * If database name and schema are provided, this will immediately initialize
+ * the database and ready to use. However if any of these two are missing,
+ * the database is not initialize until they are set by calling
+ * {@link #setsetDbName} and {@link #setSchema}.
+ * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
  * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
- * or its configuration in JSOn format.
+ * or its configuration in JSON format.
  * schema used in chronical order.
  * @implements {ydn.db.Db}
  * @constructor
@@ -89,13 +94,9 @@ ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
  *   var config = db.getConfig();
  *
  *   ... in worker thread ...
- *   var schemas = [];
- *   for (var i = 0; i < config.schemas.length; i++) {
- *      schemas.push(ydn.db.DatabaseSchema.fromJSON(config.schemas[i]));
- *   }
- *   var worker_db = new ydn.db.Storage(config.db_name, schemas);
+ *   var worker_db = new ydn.db.Storage(config.db_name, config.schema);
  * </pre>
- *
+ * In this way, data can be share between the two threads.
  * @export
  * @return {{db_name: string, schema: !Object}} configuration
  * containing database and list of schema in JSON format.
@@ -113,7 +114,9 @@ ydn.db.Storage.prototype.getConfig = function() {
 
 
 /**
+ * Set database. This will initialize the database.
  * @export
+ * @throws {Error} if database is already initialized.
  * @param {string} opt_db_name set database name.
  * @return {string} normalized database name.
  */
@@ -133,7 +136,8 @@ ydn.db.Storage.prototype.setDbName = function(opt_db_name) {
 
 /**
  * Set the latest version of database schema. This will start initialization if
- * database name have been set.
+ * database name have been set. The the database is already initialized,
+ * this will issue version change event and migrate to the schema.
  * @export
  * @see {@link #addTableSchema}
  * @param {!ydn.db.DatabaseSchema|!Object} schema set the last schema or its
@@ -245,8 +249,8 @@ ydn.db.Storage.prototype.getDb = function() {
 /**
  * Store a value to default key-value store.
  * @export
- * @param {string} key key.
- * @param {string} value value.
+ * @param {string} key The key to set.
+ * @param {string} value The value to save.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
 ydn.db.Storage.prototype.setItem = function(key, value) {
@@ -258,16 +262,21 @@ ydn.db.Storage.prototype.setItem = function(key, value) {
 
 
 /**
+ * Put an object to the store.
+ *
  * @export
- * @inheritDoc
+ * @param {string} store_name the name of store to use.
+ * @param {!Object|Array.<!Object>} value object to put.
+ * @return {!goog.async.Deferred} return key in deferred function. On error,
+ * an {@code Error} object is return as received from the mechanism.
  */
-ydn.db.Storage.prototype.put = function(table, value) {
+ydn.db.Storage.prototype.put = function(store_name, value) {
   if (this.db_) {
-    return this.db_.put(table, value);
+    return this.db_.put(store_name, value);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.put(table, value).chainDeferred(df);
+      db.put(store_name, value).chainDeferred(df);
     });
     return df;
   }
@@ -276,9 +285,12 @@ ydn.db.Storage.prototype.put = function(table, value) {
 
 /**
  * Retrieve a value from default key-value store.
+ *
+ * Note: This will not raise error to get non-existing object.
  * @export
- * @param {string} key key.
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @param {string} key The key to get.
+ * @return {!goog.async.Deferred} return resulting object in deferred function.
+ * If not found, {@code undefined} is return.
  */
 ydn.db.Storage.prototype.getItem = function(key) {
   var out = this.get(ydn.db.Storage.DEFAULT_TEXT_STORE, key);
@@ -298,16 +310,23 @@ ydn.db.Storage.prototype.getItem = function(key) {
 
 
 /**
+ * Retrieve an object.
+ *
+ * Note: This will not raise error to get non-existing object.
  * @export
- * @inheritDoc
+ * @param {string} store_name The name of store to retrive object from.
+ * @param {string=} opt_key the key of an object to be retrieved.
+ * if not provided, all entries in the store will return.
+ * @return {!goog.async.Deferred} return resulting object in deferred function.
+ * If not found, {@code undefined} is return.
  */
-ydn.db.Storage.prototype.get = function(table, key) {
+ydn.db.Storage.prototype.get = function(store_name, opt_key) {
   if (this.db_) {
-    return this.db_.get(table, key);
+    return this.db_.get(store_name, opt_key);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.get(table, key).chainDeferred(df);
+      db.get(store_name, opt_key).chainDeferred(df);
     });
     return df;
   }
@@ -315,16 +334,22 @@ ydn.db.Storage.prototype.get = function(table, key) {
 
 
 /**
+ * Remove a specific entry or all entries from a store.
+ *
  * @export
- * @inheritDoc
+ * @param {string=} opt_store_name the store name to use.
+ * If not provided all entries in the store will be cleared.
+ * @param {string=} opt_key delete a specific row.
+ * @see {@link #remove}
+ * @return {!goog.async.Deferred} return {@code true} in the deferred function.
  */
-ydn.db.Storage.prototype.clear = function(opt_table, opt_key) {
+ydn.db.Storage.prototype.clear = function(opt_store_name, opt_key) {
   if (this.db_) {
-    return this.db_.clear(opt_table, opt_key);
+    return this.db_.clear(opt_store_name, opt_key);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.clear(opt_table, opt_key).chainDeferred(df);
+      db.clear(opt_store_name, opt_key).chainDeferred(df);
     });
     return df;
   }
@@ -332,16 +357,20 @@ ydn.db.Storage.prototype.clear = function(opt_table, opt_key) {
 
 
 /**
+ * Get number of items in a store.
+ *
  * @export
- * @inheritDoc
+ * @param {string=} opt_store_name store name, if not provided, count all entries
+ * in the database.
+ * @return {!goog.async.Deferred} return number of items in deferred function.
  */
-ydn.db.Storage.prototype.count = function(table) {
+ydn.db.Storage.prototype.count = function(opt_store_name) {
   if (this.db_) {
-    return this.db_.count(table);
+    return this.db_.count(opt_store_name);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.count(table).chainDeferred(df);
+      db.count(opt_store_name).chainDeferred(df);
     });
     return df;
   }
@@ -349,14 +378,18 @@ ydn.db.Storage.prototype.count = function(table) {
 
 
 /**
+ * Fetch result of a query and return as array.
+ *
  * @export
- * @inheritDoc
+ * @param {ydn.db.Query} q query.
+ * @return {!goog.async.Deferred} return array of result for each row
+ * in a deferred function.
  */
 ydn.db.Storage.prototype.list = function(q) {
 
   if (!(q instanceof ydn.db.Query)) {
     // discretely support query in JSON format.
-    q = ydn.db.Query.fromJSON(q);
+    q = ydn.db.Query.fromJSON(/** @type {!Object} */ (q));
   }
 
   if (this.db_) {
@@ -373,8 +406,9 @@ ydn.db.Storage.prototype.list = function(q) {
 
 /**
  * Debug information about this database.
+ * @private
  */
-ydn.db.Storage.prototype.disp = function() {
+ydn.db.Storage.prototype.disp_ = function() {
   if (goog.DEBUG) {
     var schema = this.schema;
     window.console.log(this.db_name + ' ver: ' + schema.version);
