@@ -32,15 +32,14 @@ var db_name = 'test1';
 
 var test_1_json_trival_config = function() {
 
-  var store = {name:'todo', keyPath:"timeStamp"};
-
   var schema_ver1 = {};
 
-  var db = new ydn.db.Storage('todos_test6', schema_ver1);
+  var db = new ydn.db.Storage('todos_test8', schema_ver1);
 
   //db.setItem('some-value', 'ok');
 
   var hasEventFired = false;
+  var key = 'some-value';
   var put_value;
 
   waitForCondition(
@@ -48,7 +47,7 @@ var test_1_json_trival_config = function() {
       function() { return hasEventFired; },
       // Continuation
       function() {
-        assertTrue('put a 1', put_value);
+        assertEquals('put a 1', key, put_value);
         // Remember, the state of this boolean will be tested in tearDown().
         reachedFinalContinuation = true;
       },
@@ -56,7 +55,7 @@ var test_1_json_trival_config = function() {
       2000); // maxTimeout
 
   //db.getItem('some-value')
-  db.setItem('some-value', 'ok').addBoth(function(value) {
+  db.setItem(key, 'ok').addBoth(function(value) {
     console.log('receiving value callback.' + JSON.stringify(value));
     put_value = value;
     hasEventFired = true;
@@ -184,7 +183,7 @@ var test_2_json_config_in_out = function() {
 		function() { return put_done; },
 		// Continuation
 		function() {
-			assertTrue('put a 1', put_value_received);
+			assertEquals('put a 1', key, put_value_received);
       console.log('put OK.');
 
       var config = db.getConfig();

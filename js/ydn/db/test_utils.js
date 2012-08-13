@@ -20,7 +20,7 @@ ydn.db.test.table = 't1';
  */
 ydn.db.test.getSchema = function() {
   var basic_schema = new ydn.db.DatabaseSchema(1);
-  basic_schema.addStore(new ydn.db.StoreSchema(ydn.db.test.table));
+  basic_schema.addStore(new ydn.db.StoreSchema(ydn.db.test.table, 'id'));
   return basic_schema;
 };
 
@@ -60,7 +60,7 @@ ydn.db.test.clear_tests = function(queue, db) {
 
   queue.call('put a', function(callbacks) {
     db.put(ydn.db.test.table, {id: 'a', value: a_value}).addCallback(callbacks.add(function(value) {
-      assertEquals('put a 1', true, value);
+      assertEquals('put a', 'a', value);
     }));
   });
 
@@ -114,7 +114,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
 
   queue.call('put a', function(callbacks) {
     db.put(ydn.db.test.table, {id: 'a', value: a_value}).addCallback(callbacks.add(function(value) {
-      assertEquals('put a ' + a_value, true, value);
+      assertEquals('put a ' + a_value, 'a', value);
     }));
   });
 
@@ -134,7 +134,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
 
   queue.call('put b', function(callbacks) {
     db.put(ydn.db.test.table, {id: 'b', value: '2'}).addCallback(callbacks.add(function(value) {
-      assertEquals('put b 2', true, value);
+      assertEquals('put b 2', 'b', value);
     }));
   });
 
@@ -153,7 +153,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
 
   queue.call('update a', function(callbacks) {
     db.put(ydn.db.test.table, {id: 'a', value: '3'}).addCallback(callbacks.add(function(value) {
-      assertTrue('put a 3', value);
+      assertEquals('put a 3', 'a', value);
     }));
   });
 
@@ -195,7 +195,7 @@ ydn.db.test.special_keys_test = function(queue, db) {
       window.console.log('putting ' + key + key_value);
       db.put(ydn.db.test.table, {id: key, value: key_value}).addCallback(callbacks.add(function(value) {
         window.console.log('put ' + key + ' ' + value);
-        assertTrue('put a 1', value);
+        assertEquals('put a 1', key, value);
       }));
     });
 
@@ -258,7 +258,7 @@ ydn.db.test.nested_key_path = function(queue, db) {
 
   queue.call('put ' + key, function(callbacks) {
     db.put(store_name, data).addBoth(callbacks.add(function(value) {
-      assertTrue('put OK', value);
+      assertEquals('put OK', key, value);
     }))
   });
 

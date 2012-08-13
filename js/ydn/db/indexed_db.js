@@ -73,7 +73,7 @@ ydn.db.IndexedDb = function(dbname, schema) {
         self.setDb(null);
       };
       setVrequest.onsuccess = function(e) {
-        self.migrate(old_version, db);
+        self.migrate(db);
         self.logger.finer('Migrated to version ' + db.version + '.');
         var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname);
         // have to reopen for new schema
@@ -94,7 +94,7 @@ ydn.db.IndexedDb = function(dbname, schema) {
     self.logger.finer('upgrading version ' + db.version);
 
     var old_version = undefined; // don't know.
-    self.migrate(old_version, db);
+    self.migrate(db);
 
     var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname);
     reOpenRequest.onsuccess = function(rev) {
@@ -264,7 +264,6 @@ ydn.db.IndexedDb.prototype.migrate = function(db) {
       continue; // already have the store. TODO: update indexes
     }
 
-    goog.asserts.assertString(table.keyPath, 'name required.');
     var store = db.createObjectStore(table.name,
         {keyPath: table.keyPath, autoIncrement: table.autoIncrement});
 

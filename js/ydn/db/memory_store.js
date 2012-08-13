@@ -107,7 +107,7 @@ ydn.db.MemoryStore.DEFAULT_KEY_PATH = '_id_';
  * @protected
  * @param {ydn.db.StoreSchema} store table name.
  * @param {!Object} value object having key in keyPath field.
- * @return {string} canonical key name.
+ * @return {string|number} canonical key name.
  */
 ydn.db.MemoryStore.prototype.extractKey = function (store, value) {
   var key;
@@ -125,7 +125,7 @@ ydn.db.MemoryStore.prototype.extractKey = function (store, value) {
 
 /**
  * @protected
- * @param {string} id id.
+ * @param {string|number} id id.
  * @param {ydn.db.StoreSchema} store table name.
  * @return {string} canonical key name.
  */

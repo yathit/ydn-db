@@ -43,7 +43,7 @@ ydn.store.StorageJstest.prototype.test_setItem = function(queue) {
 
   queue.call('put a', function(callbacks) {
     db.setItem('a', '1').addBoth(callbacks.add(function(value) {
-      assertTrue('put a OK', value);
+      assertEquals('put a OK', 'a', value);
     }));
   });
 

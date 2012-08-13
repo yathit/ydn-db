@@ -262,7 +262,7 @@ var test_4_put_nested_keyPath = function() {
   var put_obj_dbname = 'putodbtest2';
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
-	var db = new ydn.db.WebSql(put_obj_dbname, schema);
+	var db = new ydn.db.IndexedDb(put_obj_dbname, schema);
 
   var key = 'a';
   var put_done = false;
@@ -275,7 +275,7 @@ var test_4_put_nested_keyPath = function() {
       function() { return put_done; },
       // Continuation
       function() {
-        assertTrue('put a 1', put_value_received);
+        assertEquals('put a 1', key, put_value_received);
         // Remember, the state of this boolean will be tested in tearDown().
       },
       100, // interval
@@ -317,8 +317,6 @@ var test_5_query_start_with = function() {
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 	var db = new ydn.db.WebSql(put_obj_dbname, schema);
 
-
-
   var objs = [
     {id: 'qs1', value: Math.random()},
     {id: 'qs2', value: Math.random()},
@@ -332,7 +330,8 @@ var test_5_query_start_with = function() {
       function() { return put_done; },
       // Continuation
       function() {
-        assertTrue('put objs', put_value_received);
+        assertArrayEquals('put objs', [objs[0].id, objs[1].id, objs[2].id],
+          put_value_received);
       },
       100, // interval
       2000); // maxTimeout

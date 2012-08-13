@@ -6,6 +6,8 @@ goog.require('ydn.testing');
 
 
 var reachedFinalContinuation;
+var table_name = 't1';
+var basic_schema;
 
 var setUp = function() {
   var c = new goog.debug.Console();
@@ -14,10 +16,9 @@ var setUp = function() {
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
 
+  basic_schema = new ydn.db.DatabaseSchema(1);
+  basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
 
-  this.table_name = 't1';
-  this.basic_schema = new ydn.db.DatabaseSchema(1);
-  this.basic_schema.addStore(new ydn.db.StoreSchema(this.table_name));
 };
 
 var tearDown = function() {
@@ -29,7 +30,7 @@ var db_name = 'test1';
 
 var test_0_put = function() {
 
-  var db = new ydn.db.WebSql(db_name, this.basic_schema);
+  var db = new ydn.db.WebSql(db_name, basic_schema);
 
   var put_value, done;
 
@@ -38,14 +39,14 @@ var test_0_put = function() {
       function() { return done; },
       // Continuation
       function() {
-        assertEquals('put a 1', true, put_value);
+        assertEquals('put a 1', 'a', put_value);
         // Remember, the state of this boolean will be tested in tearDown().
         reachedFinalContinuation = true;
       },
       100, // interval
       1000); // maxTimeout
 
-  db.put(this.table_name, {'id': 'a', 'value': '1'}).addCallback(function(value) {
+  db.put(table_name, {'id': 'a', 'value': '1'}).addCallback(function(value) {
     put_value = value;
     done = true;
   });
@@ -54,7 +55,7 @@ var test_0_put = function() {
 
 var test_1_get_all = function() {
 
-  var db = new ydn.db.WebSql(db_name, this.basic_schema);
+  var db = new ydn.db.WebSql(db_name, basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -71,7 +72,7 @@ var test_1_get_all = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.get(this.table_name).addCallback(function(value) {
+  db.get(table_name).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -81,7 +82,7 @@ var test_1_get_all = function() {
 
 var test_1_delete = function() {
 
-	var db = new ydn.db.WebSql(db_name, this.basic_schema);
+	var db = new ydn.db.WebSql(db_name, basic_schema);
 
 	var put_value, done;
 
@@ -107,7 +108,7 @@ var test_1_delete = function() {
 
 var test_2_clear_table = function() {
 
-	var db = new ydn.db.WebSql(db_name, this.basic_schema);
+	var db = new ydn.db.WebSql(db_name, basic_schema);
 
   var cleared_value, cleared;
 
@@ -123,7 +124,7 @@ var test_2_clear_table = function() {
       1000); // maxTimeout
 
 
-  db.clear(this.table_name).addCallback(function(value) {
+  db.clear(table_name).addCallback(function(value) {
     cleared_value = value;
     cleared = true;
   }).addErrback(function(v) {
@@ -134,9 +135,9 @@ var test_2_clear_table = function() {
 
 var test_2_clear = function() {
 
-  var db = new ydn.db.WebSql(db_name, this.basic_schema);
+  var db = new ydn.db.WebSql(db_name, basic_schema);
 
-  db.put(this.table_name, {'id': 'a', 'value': '1'});
+  db.put(table_name, {'id': 'a', 'value': '1'});
 
   var cleared_value, cleared;
 
@@ -152,7 +153,7 @@ var test_2_clear = function() {
       1000); // maxTimeout
 
 
-  db.clear(this.table_name, 'a').addCallback(function(value) {
+  db.clear(table_name, 'a').addCallback(function(value) {
     cleared_value = value;
     cleared = true;
   }).addErrback(function(v) {
@@ -160,12 +161,13 @@ var test_2_clear = function() {
       });
 };
 
-//
+
 //
 ///**
-// */
+//*/
 //var test_special_keys = function() {
-//  var db = new ydn.db.WebSql(db_name, {});
+//  var db = new ydn.db.WebSql(db_name, basic_schema);
+//
 //
 //  var test_key = function(key) {
 //    console.log('testing ' + key);
@@ -180,7 +182,7 @@ var test_2_clear = function() {
 //        },
 //        // Continuation
 //        function() {
-//          assertTrue('put', a_value);
+//          assertEquals('put', key, a_value);
 //
 //          var b_done;
 //          var b_value;
@@ -208,7 +210,7 @@ var test_2_clear = function() {
 //        100, // interval
 //        2000); // maxTimeout
 //
-//    db.setItem(key, key_value).addCallback(function(value) {
+//    db.put(key, key_value).addCallback(function(value) {
 //      console.log('receiving put value callback for ' + key + ' = ' + key_value + ' ' + value);
 //      a_value = value;
 //      a_done = true;
@@ -311,7 +313,7 @@ var test_5_get = function() {
       function() { return put_done; },
       // Continuation
       function() {
-        assertTrue('put a 1', put_value_received);
+        assertEquals('put a 1', 'a', put_value_received);
 
 
       },
@@ -346,7 +348,7 @@ var test_5_get = function() {
 };
 
 
-var test_6_putObject_nested_keyPath = function() {
+var test_6_put_nested_keyPath = function() {
   var store_name = 'ts1';
   var put_obj_dbname = 'test2';
 
@@ -366,7 +368,7 @@ var test_6_putObject_nested_keyPath = function() {
       function() { return put_done; },
       // Continuation
       function() {
-        assertTrue('put a 1', put_value_received);
+        assertEquals('put a 1', key, put_value_received);
 
         var get_done;
         var get_value_received;
@@ -421,7 +423,8 @@ var test_7_put_get_array = function() {
       function() { return put_done; },
       // Continuation
       function() {
-        assertTrue('put objs', put_value_received);
+        assertArrayEquals('put objs', [objs[0].id, objs[1].id, objs[2].id],
+          put_value_received);
       },
       100, // interval
       2000); // maxTimeout
@@ -482,7 +485,8 @@ var test_8_query_start_with = function() {
       function() { return put_done; },
       // Continuation
       function() {
-        assertTrue('put objs', put_value_received);
+        assertArrayEquals('put objs', [objs[0].id, objs[1].id, objs[2].id],
+          put_value_received);
       },
       100, // interval
       2000); // maxTimeout

@@ -230,7 +230,7 @@ ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type) {
  * @return {string|undefined} return key value.
  */
 ydn.db.StoreSchema.prototype.getKey = function(obj) {
-  return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPath));
+  return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
 };
 
 
@@ -277,13 +277,22 @@ ydn.db.StoreSchema.prototype.setKey = function(obj, value) {
  *
  * @param {!Object} obj get values of indexed fields.
  * @return {{columns: Array.<string>, slots: Array.<string>, values:
- * Array.<string>}} return list of values as it appear on the indexed fields.
+ * Array.<string>, key: (string|number)}} return list of values as it appear on the indexed fields.
  */
 ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
 
-
-  var columns = [this.getQuotedKeyPath()];
-  var values = [this.getKey(obj)];
+  var key;
+  var key_column;
+  if (goog.isDef(this.keyPath)) {
+    key_column = this.getQuotedKeyPath();
+    key = this.getKey(obj);
+    goog.asserts.assertString(key);
+  } else {
+    key_column = ydn.db.WebSql.DEFAULT_KEY_COLUMN;
+    key = this.generateKey();
+  }
+  var columns = [key_column];
+  var values = [key];
   var slots = ['?'];
 
   for (var i = 0; i < this.indexes.length; i++) {
@@ -312,9 +321,9 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
   }
 
   var data = {};
-  for (var key in obj) {
-    if (obj.hasOwnProperty(key) && !this.hasIndex(key)) {
-      data[key] = obj[key];
+  for (var item in obj) {
+    if (obj.hasOwnProperty(item) && !this.hasIndex(item)) {
+      data[item] = obj[item];
     }
   }
 
@@ -322,7 +331,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
   slots.push('?');
   columns.push(ydn.db.WebSql.DEFAULT_BLOB_COLUMN);
 
-  return {columns: columns, slots: slots, values: values};
+  return {columns: columns, slots: slots, values: values, key: key};
 };
 
 

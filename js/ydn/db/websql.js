@@ -116,11 +116,21 @@ ydn.db.WebSql.DEFAULT_BLOB_COLUMN = '_default_';
  */
 ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
 
+  var sql = 'CREATE TABLE IF NOT EXISTS ' + schema.getQuotedName() + ' (';
+
   var id_column_name = schema.getQuotedKeyPath() ||
       ydn.db.WebSql.DEFAULT_KEY_COLUMN;
 
-  var sql = 'CREATE TABLE IF NOT EXISTS ' + schema.getQuotedName() + ' (' +
-      id_column_name + ' TEXT UNIQUE PRIMARY KEY';
+  if (goog.isDef(schema.keyPath)) {
+      sql += schema.getQuotedKeyPath() + ' TEXT UNIQUE PRIMARY KEY';
+  } else {
+    // NOTE: we could have use AUTOINCREMENT here,
+    // however put request require to return key. If we use AUTOINCREMENT, the key value
+    // have to query again after INSERT since it does not return any result.
+    // generating the by ourselves eliminate this.
+    // for generating see ydn.db.StoreSchema.prototype.generateKey
+    sql += ydn.db.WebSql.DEFAULT_KEY_COLUMN + ' INTEGER PRIMARY KEY';
+  }
 
   // every table must has a default field.
   if (!schema.hasIndex(ydn.db.WebSql.DEFAULT_BLOB_COLUMN)) {
@@ -169,7 +179,7 @@ ydn.db.WebSql.prototype.migrate = function() {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('Error creating tables');
+    me.logger.warning('Error creating tables: ' + error.message);
   };
 
   var sqls = [];
@@ -203,31 +213,9 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
 
   var is_array = goog.isArray(obj);
   var arr = is_array ? obj : [obj];
+  var arr_result = [];
 
   var me = this;
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var success_callback = function(transaction, results) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log(results);
-    }
-    d.callback(true);
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('put error: ' + error);
-    d.errback(error);
-  };
 
   me.db.transaction(function(t) {
     for (var i = 0; i < arr.length; i++) {
@@ -240,10 +228,41 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
         ' (' + out.columns.join(', ') + ') ' +
         'VALUES (' + out.slots.join(', ') + ');';
 
-      //console.log([sql, out.values])
-      // TODO: fix error check for all result
-      t.executeSql(sql, out.values, last ? success_callback : undefined,
-        last ? error_callback : undefined);
+
+      /**
+       * @param {SQLTransaction} transaction transaction.
+       * @param {SQLResultSet} results results.
+       */
+      var success_callback = function(last, key, transaction, results) {
+        if (ydn.db.WebSql.DEBUG) {
+          window.console.log(results);
+        }
+        if (is_array) {
+          arr_result.push(key);
+          if (last) {
+            d.callback(arr_result);
+          }
+        } else {
+          d.callback(key);
+        }
+      };
+
+      /**
+       * @param {SQLTransaction} tr transaction.
+       * @param {SQLError} error error.
+       */
+      var error_callback = function(tr, error) {
+        if (ydn.db.WebSql.DEBUG) {
+          window.console.log([tr, error]);
+        }
+        me.logger.warning('put error: ' + error.message);
+        // TODO: roll back
+        d.errback(error);
+      };
+
+      //console.log([sql, out.values]);
+      t.executeSql(sql, out.values,
+        goog.partial(success_callback, last, out.key), error_callback);
     }
   });
   return d;
@@ -281,6 +300,18 @@ ydn.db.WebSql.prototype.parseRow = function(table, row) {
     value[index.name] = x;
   }
   return value;
+};
+
+
+/**
+ * Extract key from row result.
+ * @protected
+ * @param {ydn.db.StoreSchema} table table of concern.
+ * @param {!Object} row row.
+ * @return {!Object} parse value.
+ */
+ydn.db.WebSql.prototype.getKeyFromRow = function(table, row) {
+  return row[table.keyPath || ydn.db.WebSql.DEFAULT_KEY_COLUMN];
 };
 
 
@@ -333,7 +364,7 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('get error: ' + error);
+    me.logger.warning('get error: ' + error.message);
     d.errback(error);
   };
 
@@ -386,7 +417,7 @@ ydn.db.WebSql.prototype.fetch = function(q) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('Sqlite error: ' + error);
+    me.logger.warning('Sqlite error: ' + error.message);
     d.errback(error);
   };
 
@@ -417,7 +448,8 @@ ydn.db.WebSql.prototype.clear_ = function(table_name, opt_key) {
     goog.asserts.assertObject(store);
     sql = 'DELETE FROM  ' + store.getQuotedName();
     if (goog.isDef(opt_key)) {
-      sql += ' WHERE ' + store.getQuotedKeyPath() + ' = ?';
+      var key_column = store.getQuotedKeyPath() || ydn.db.WebSql.DEFAULT_KEY_COLUMN;
+      sql += ' WHERE ' + key_column + ' = ?';
     }
   }
 
@@ -437,7 +469,7 @@ ydn.db.WebSql.prototype.clear_ = function(table_name, opt_key) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    self.logger.warning('Sqlite error: ' + error);
+    self.logger.warning('Sqlite error: ' + error.message);
     d.errback(error);
   };
 
@@ -479,7 +511,7 @@ ydn.db.WebSql.prototype.count = function(table) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('count error: ' + error);
+    me.logger.warning('count error: ' + error.message);
     d.errback(error);
   };
 
@@ -531,7 +563,7 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('put error: ' + error);
+    me.logger.warning('put error: ' + error.message);
     d.errback(error);
   };
 
@@ -633,7 +665,7 @@ ydn.db.WebSql.prototype.dropTable_ = function(opt_table) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('Delete TABLE: ' + error);
+    me.logger.warning('Delete TABLE: ' + error.message);
     d.errback(error);
   };
 
@@ -653,5 +685,7 @@ ydn.db.WebSql.prototype.close = function () {
   // no need to close WebSQl database.
   return goog.async.Deferred.succeed(true);
 };
+
+
 
 

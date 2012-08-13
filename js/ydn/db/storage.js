@@ -180,7 +180,7 @@ ydn.db.Storage.prototype.initDatabase = function() {
     if (!goog.string.isEmpty(ydn.db.Storage.DEFAULT_TEXT_STORE) &&
       !this.schema.hasStore(ydn.db.Storage.DEFAULT_TEXT_STORE)) {
       this.schema.addStore(new ydn.db.StoreSchema(
-        ydn.db.Storage.DEFAULT_TEXT_STORE));
+        ydn.db.Storage.DEFAULT_TEXT_STORE, 'id'));
     }
 
     if (goog.userAgent.product.ASSUME_CHROME ||
