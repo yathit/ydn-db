@@ -388,13 +388,16 @@ ydn.db.WebSql.prototype.list = function(q) {
 
   var column = q.field || store.keyPath || ydn.db.WebSql.DEFAULT_KEY_COLUMN;
 
-  var op = q.op == ydn.db.Query.Op.START_WITH ? ' LIKE ' : ' = ';
-  var sql = 'SELECT * FROM ' + store.getQuotedName() + ' WHERE ';
+  var op = '=';
+  var value = q.value;
+
   if (q.op == ydn.db.Query.Op.START_WITH) {
-    sql += '(' + column + ' LIKE ?)';
-  } else {
-    sql += '(' + goog.string.quote(column) + ' = ?)';
+    op = 'LIKE';
+    value = q.value + '%';
   }
+
+  var sql = 'SELECT * FROM ' + store.getQuotedName() + ' WHERE ' +
+    '(' + goog.string.quote(column) + ' ' + op + ' ?)';
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -422,9 +425,8 @@ ydn.db.WebSql.prototype.list = function(q) {
   };
 
   this.db.transaction(function(t) {
-    var v = q.value + '%';
-    //console.log(sql + ' | ' + v);
-    t.executeSql(sql, [v], callback, error_callback);
+    //console.log([sql, value]);
+    t.executeSql(sql, [value], callback, error_callback);
   });
 
   return d;

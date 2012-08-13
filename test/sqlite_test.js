@@ -53,6 +53,43 @@ var test_0_put = function() {
 
 };
 
+
+var test_1_1_put_arr = function() {
+  var db_name = 'test_2';
+  var db = new ydn.db.WebSql(db_name, basic_schema);
+
+  var arr = [
+    {id: 'a' + Math.random(),
+      value: 'a' + Math.random(), remark: 'put test'},
+    {id: 'b' + Math.random(),
+      value: 'b' + Math.random(), remark: 'put test'},
+    {id: 'c' + Math.random(),
+      value: 'c' + Math.random(), remark: 'put test'}
+  ];
+
+  var hasEventFired = false;
+  var put_value;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertArrayEquals('put a', [arr[0].id, arr[1].id, arr[2].id], put_value);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+
+  db.put(table_name, arr).addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value = value;
+    hasEventFired = true;
+  });
+};
+
 var test_1_get_all = function() {
 
   var db = new ydn.db.WebSql(db_name, basic_schema);
@@ -534,7 +571,8 @@ var test_8_query_start_with = function() {
       1000); // maxTimeout
 
 
-  var q = ydn.db.Query.startWith(store_name, 'as');
+  var q = new ydn.db.Query(store_name, 'id', ydn.db.Query.Op.START_WITH, 'as');
+
   db.list(q).addCallback(function(value) {
 		console.log(['Receiving ', value])
     get2_value_received = value;
