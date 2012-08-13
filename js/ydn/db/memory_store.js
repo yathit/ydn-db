@@ -98,13 +98,39 @@ ydn.db.MemoryStore.prototype.migrate = function(old_version) {
 
 
 /**
+ * Column name of key, if keyPath is not specified.
+ * @const {string}
+ */
+ydn.db.MemoryStore.DEFAULT_KEY_PATH = '_id_';
+
+/**
  * @protected
- * @param {string} id id.
- * @param {string} store_name table name.
+ * @param {ydn.db.StoreSchema} store table name.
+ * @param {!Object} value object having key in keyPath field.
  * @return {string} canonical key name.
  */
-ydn.db.MemoryStore.prototype.getKey = function(id, store_name) {
-  return '_database_' + this.dbname + '-' + store_name + '-' + id;
+ydn.db.MemoryStore.prototype.extractKey = function (store, value) {
+  var key;
+  // we don't need to check, because this function is not used by user.
+  goog.asserts.assertObject(value, 'id or object must be defined.');
+  if (goog.isDef(store.keyPath)) {
+    key = store.getKey(value);
+  }
+  if (!goog.isDefAndNotNull(key)) {
+    key = store.generateKey();
+  }
+  return key;
+};
+
+
+/**
+ * @protected
+ * @param {string} id id.
+ * @param {ydn.db.StoreSchema} store table name.
+ * @return {string} canonical key name.
+ */
+ydn.db.MemoryStore.prototype.getKey = function(id, store) {
+  return '_database_' + this.dbname + '-' + store.name + '-' + id;
 };
 
 
@@ -115,24 +141,24 @@ ydn.db.MemoryStore.prototype.put = function(table, value) {
   var store = this.schema.getStore(table);
   goog.asserts.assertObject(store);
   var key, value_str;
+  var result;
   if (goog.isObject(value)) {
-    key = store.getKey(value);
-    goog.asserts.assertString(key);
-    key = this.getKey(key, table);
+    key = this.extractKey(store, value);
     value_str = ydn.json.stringify(value);
-    this.cache_.setItem(key, value_str);
+    this.cache_.setItem(this.getKey(key, store), value_str);
+    result = key;
   } else if (goog.isArray(value)) {
+    result = [];
     for (var i = 0; i < value.length; i++) {
-      key = store.getKey(value[i]);
-      goog.asserts.assertString(key);
-      key = this.getKey(key, table);
+      key = this.extractKey(store, value);
       value_str = ydn.json.stringify(value);
-      this.cache_.setItem(key, value_str);
+      this.cache_.setItem(this.getKey(key, store), value_str);
+      result.push(key);
     }
   } else {
     throw Error('Not object: ' + value);
   }
-  return goog.async.Deferred.succeed(true);
+  return goog.async.Deferred.succeed(result);
 };
 
 
@@ -151,7 +177,7 @@ ydn.db.MemoryStore.prototype.get = function(table, opt_key) {
   goog.asserts.assertObject(store);
 
   if (goog.isDef(opt_key)) {
-    var value = this.cache_.getItem(this.getKey(opt_key, table));
+    var value = this.cache_.getItem(this.getKey(opt_key, store));
     if (!goog.isNull(value)) {
       value = ydn.json.parse(/** @type {string} */ (value));
     } else {
@@ -184,7 +210,9 @@ ydn.db.MemoryStore.prototype.get = function(table, opt_key) {
 ydn.db.MemoryStore.prototype.clear = function(opt_table, opt_key) {
 
   if (goog.isDef(opt_table) && goog.isDef(opt_key)) {
-    var key = this.getKey(opt_key, opt_table);
+    var store = this.schema.getStore(opt_table);
+    goog.asserts.assertObject(store);
+    var key = this.getKey(opt_key, store);
     delete this.cache_[key];
   } else {
 
@@ -213,7 +241,8 @@ ydn.db.MemoryStore.prototype.clear = function(opt_table, opt_key) {
  */
 ydn.db.MemoryStore.prototype.remove = function(opt_table, opt_id) {
   if (goog.isDef(opt_id) && goog.isDef(opt_table)) {
-    var key = this.getKey(opt_id, opt_table);
+    var store = this.schema.getStore(opt_table);
+    var key = this.getKey(opt_id, store);
     delete this.cache_[key];
     return goog.async.Deferred.succeed(true);
   } else {

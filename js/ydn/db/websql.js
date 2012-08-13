@@ -81,7 +81,7 @@ ydn.db.WebSql.isSupported = function() {
  *
  * @define {boolean} debug flag.
  */
-ydn.db.WebSql.DEBUG = false;
+ydn.db.WebSql.DEBUG = true;
 
 
 /**
@@ -93,11 +93,18 @@ ydn.db.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSql');
 
 
 /**
+ * Column name of key, if keyPath is not specified.
+ * @const {string}
+ */
+ydn.db.WebSql.DEFAULT_KEY_COLUMN = '_id_';
+
+
+/**
  * Non-indexed field are store in this default field. There is always a column
  * in each table.
  * @const {string}
  */
-ydn.db.WebSql.DEFAULT_FIELD = '_default_';
+ydn.db.WebSql.DEFAULT_BLOB_COLUMN = '_default_';
 
 
 /**
@@ -109,12 +116,15 @@ ydn.db.WebSql.DEFAULT_FIELD = '_default_';
  */
 ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
 
+  var id_column_name = schema.getQuotedKeyPath() ||
+      ydn.db.WebSql.DEFAULT_KEY_COLUMN;
+
   var sql = 'CREATE TABLE IF NOT EXISTS ' + schema.getQuotedName() + ' (' +
-    schema.getQuotedKeyPath() + ' TEXT UNIQUE PRIMARY KEY';
+      id_column_name + ' TEXT UNIQUE PRIMARY KEY';
 
   // every table must has a default field.
-  if (!schema.hasIndex(ydn.db.WebSql.DEFAULT_FIELD)) {
-    schema.addIndex(ydn.db.WebSql.DEFAULT_FIELD);
+  if (!schema.hasIndex(ydn.db.WebSql.DEFAULT_BLOB_COLUMN)) {
+    schema.addIndex(ydn.db.WebSql.DEFAULT_BLOB_COLUMN);
   }
 
   for (var i = 0; i < schema.indexes.length; i++) {
@@ -187,11 +197,12 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
   var table = this.schema.getStore(store_name);
   if (!table) {
     this.logger.warning('Table ' + store_name + ' not found.');
-    d.errback(error);
+    d.errback(new Error('Table ' + store_name + ' not found.'));
     return d;
   }
 
-  var arr = goog.isArray(obj) ? obj : [obj];
+  var is_array = goog.isArray(obj);
+  var arr = is_array ? obj : [obj];
 
   var me = this;
 
@@ -249,13 +260,13 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
  */
 ydn.db.WebSql.prototype.parseRow = function(table, row) {
   goog.asserts.assertObject(row);
-  var value = ydn.json.parse(row[ydn.db.WebSql.DEFAULT_FIELD]);
+  var value = ydn.json.parse(row[ydn.db.WebSql.DEFAULT_BLOB_COLUMN]);
   var key = row[table.keyPath]; // NOT: table.getKey(row);
   goog.asserts.assertString(key);
   table.setKey(value, key);
   for (var j = 0; j < table.indexes.length; j++) {
     var index = table.indexes[j];
-    if (index.name == ydn.db.WebSql.DEFAULT_FIELD) {
+    if (index.name == ydn.db.WebSql.DEFAULT_BLOB_COLUMN) {
       continue;
     }
     var x = row[index.name];
@@ -282,7 +293,7 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
   var table = this.schema.getStore(table_name);
   if (!table) {
     this.logger.warning('Table ' + table_name + ' not found.');
-    d.errback(error);
+    d.errback(new Error('Table ' + table_name + ' not found.'));
   }
 
   var me = this;
@@ -344,7 +355,7 @@ ydn.db.WebSql.prototype.fetch = function(q) {
 
   var store = this.schema.getStore(q.table);
 
-  var column = q.field || store.keyPath;
+  var column = q.field || store.keyPath || ydn.db.WebSql.DEFAULT_KEY_COLUMN;
 
   var op = q.op == ydn.db.Query.Op.START_WITH ? ' LIKE ' : ' = ';
   var sql = 'SELECT * FROM ' + store.getQuotedName() + ' WHERE ';
@@ -495,7 +506,7 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
   var store = this.schema.getStore(table);
   if (!store) {
     this.logger.warning('Table ' + table + ' not found.');
-    d.errback(error);
+    d.errback(new Error('Table ' + table + ' not found.'));
     return d;
   }
 

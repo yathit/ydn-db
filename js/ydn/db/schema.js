@@ -88,15 +88,15 @@ ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_indexes) {
   this.name = name;
   /**
    * @final
-   * @type {string}
+   * @type {string|undefined}
    */
-  this.keyPath = keyPath || 'id';
+  this.keyPath = keyPath;
 
   /**
    * @final
    * @type {!Array.<string>}
    */
-  this.keyPaths = this.keyPath.split('.');
+  this.keyPaths = goog.isDef(this.keyPath) ? this.keyPath.split('.') : [];
 
   /**
    * @final
@@ -178,10 +178,10 @@ ydn.db.StoreSchema.prototype.hasIndex = function(name) {
 
 /**
  *
- * @return {string} return quoted keyPath.
+ * @return {string|undefined} return quoted keyPath.
  */
 ydn.db.StoreSchema.prototype.getQuotedKeyPath = function() {
-  return goog.string.quote(this.keyPath);
+  return goog.isDef(this.keyPath) ? goog.string.quote(this.keyPath) : undefined;
 };
 
 
@@ -230,7 +230,23 @@ ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type) {
  * @return {string|undefined} return key value.
  */
 ydn.db.StoreSchema.prototype.getKey = function(obj) {
-  return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
+  return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPath));
+};
+
+
+/**
+ * Generated a key starting from 0 with increment of 1.
+ * @return {number} generated key.
+ */
+ydn.db.StoreSchema.prototype.generateKey = function() {
+  if (!goog.isDef(this.current_key_)) {
+    /**
+     * @type {number}
+     * @private
+     */
+    this.current_key_ = 0;
+  }
+  return this.current_key_ ++;
 };
 
 
@@ -271,7 +287,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
   var slots = ['?'];
 
   for (var i = 0; i < this.indexes.length; i++) {
-    if (this.indexes[i].name == ydn.db.WebSql.DEFAULT_FIELD) {
+    if (this.indexes[i].name == ydn.db.WebSql.DEFAULT_BLOB_COLUMN) {
       continue;
     }
     var v = obj[this.indexes[i].name];
@@ -304,7 +320,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
 
   values.push(ydn.json.stringify(data));
   slots.push('?');
-  columns.push(ydn.db.WebSql.DEFAULT_FIELD);
+  columns.push(ydn.db.WebSql.DEFAULT_BLOB_COLUMN);
 
   return {columns: columns, slots: slots, values: values};
 };

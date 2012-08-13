@@ -265,8 +265,8 @@ ydn.db.IndexedDb.prototype.migrate = function(db) {
     }
 
     goog.asserts.assertString(table.keyPath, 'name required.');
-    var store = db.createObjectStore(table.name, {
-      keyPath:table.keyPath, autoIncrement:table.autoIncrement});
+    var store = db.createObjectStore(table.name,
+        {keyPath: table.keyPath, autoIncrement: table.autoIncrement});
 
     for (var i = 0; i < table.indexes.length; i++) {
       var index = table.indexes[i];
@@ -379,25 +379,41 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
     var store = tx.objectStore(table);
     var request;
     if (goog.isArray(value)) {
+      tx.result = [];
       for (var i = 0; i < value.length; i++) {
         request = store.put(value[i]);
+        request.onsuccess = function(event) {
+          tx.is_success = true;
+          if (ydn.db.IndexedDb.DEBUG) {
+            window.console.log(event);
+          }
+          tx.result.push(event.target.result);
+        };
+        request.onerror = function(event) {
+          if (ydn.db.IndexedDb.DEBUG) {
+            window.console.log(event);
+          }
+          request.error = event;
+        };
+
       }
     } else {
       request = store.put(value);
+      request.onsuccess = function(event) {
+        tx.is_success = true;
+        if (ydn.db.IndexedDb.DEBUG) {
+          window.console.log(event);
+        }
+        tx.result = event.target.result;
+      };
+      request.onerror = function(event) {
+        if (ydn.db.IndexedDb.DEBUG) {
+          window.console.log(event);
+        }
+        request.error = event;
+      };
     }
 
-    request.onsuccess = function(event) {
-      tx.is_success = true;
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      tx.result = true;
-    };
-    request.onerror = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-    };
   }, [table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
 };
 

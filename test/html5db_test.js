@@ -17,7 +17,7 @@ var setUp = function() {
 
 	this.table_name = 't1';
 	this.basic_schema = new ydn.db.DatabaseSchema(1);
-	this.basic_schema.addStore(new ydn.db.StoreSchema(this.table_name));
+	this.basic_schema.addStore(new ydn.db.StoreSchema(this.table_name, 'id'));
 };
 
 var tearDown = function() {
@@ -27,7 +27,7 @@ var tearDown = function() {
 var db_name = 'test12';
 
 
-var test_0_put = function() {
+var test_1_put = function() {
 
   var db = new ydn.db.Html5Db(db_name, this.basic_schema);
 
@@ -39,7 +39,7 @@ var test_0_put = function() {
       function() { return hasEventFired; },
       // Continuation
       function() {
-        assertEquals('put a 1', true, put_value);
+        assertEquals('put a', 'a', put_value);
         // Remember, the state of this boolean will be tested in tearDown().
         reachedFinalContinuation = true;
       },
@@ -48,6 +48,43 @@ var test_0_put = function() {
 
 
   db.put(this.table_name, {id: 'a', value: '1', remark: 'put test'}).addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value = value;
+    hasEventFired = true;
+  });
+};
+
+
+var test_0_put_arr = function() {
+
+  var db = new ydn.db.IndexedDb(db_name, this.basic_schema);
+
+  var arr = [
+    {id: 'a' + Math.random(),
+      value: 'a' + Math.random(), remark: 'put test'},
+    {id: 'b' + Math.random(),
+      value: 'b' + Math.random(), remark: 'put test'},
+    {id: 'c' + Math.random(),
+      value: 'c' + Math.random(), remark: 'put test'}
+  ];
+
+  var hasEventFired = false;
+  var put_value;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertArrayEquals('put a', [arr[0].id, arr[1].id, arr[2].id], put_value);
+        // Remember, the state of this boolean will be tested in tearDown().
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(this.table_name, arr).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -157,9 +194,72 @@ var test_0_empty_get = function() {
 //
 //};
 //
+
+
+
+/**
+ */
+var test_3_no_keyPath = function () {
+
+  var schema = new ydn.db.DatabaseSchema(1);
+  schema.addStore(new ydn.db.StoreSchema(this.table_name));
+
+  var db = new ydn.db.Html5Db(db_name, this.basic_schema);
+  var me = this;
+
+  var key = 'x';
+
+
+  var key_value = 'a' + Math.random();
+
+  var a_done;
+  var a_value;
+  waitForCondition(
+      // Condition
+      function () {
+        return a_done;
+      },
+      // Continuation
+      function () {
+        assertNotNullNorUndefined('put', a_value);
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(me.table_name, {remark: 'testing', value:key_value}).addCallback(function (value) {
+    console.log('receiving put value callback for ' + key + ' = ' + key_value);
+    a_value = value;
+    a_done = true;
+  });
+
+  var b_done;
+  var b_value;
+  waitForCondition(
+      // Condition
+      function () {
+        return b_done;
+      },
+      // Continuation
+      function () {
+        assertEquals('get', key_value, b_value.value);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.get(me.table_name, a_value).addCallback(function (value) {
+    console.log('receiving get value callback ' + key + ' = ' + value);
+    b_value = value;
+    b_done = true;
+  });
+
+
+};
+
 //
 ///**
-// */
+//*/
 //var test_3_special_keys = function() {
 //
 //	var db = new ydn.db.Html5Db(db_name, this.basic_schema);

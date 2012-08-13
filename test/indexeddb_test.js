@@ -26,11 +26,47 @@ var tearDown = function() {
 
 var db_name = 'test12';
 
+//
+//
+//var test_0_put = function() {
+//
+//  var db = new ydn.db.IndexedDb(db_name, this.basic_schema);
+//
+//  var hasEventFired = false;
+//  var put_value;
+//
+//  waitForCondition(
+//      // Condition
+//      function() { return hasEventFired; },
+//      // Continuation
+//      function() {
+//        assertEquals('put a', 'a', put_value);
+//        // Remember, the state of this boolean will be tested in tearDown().
+//        reachedFinalContinuation = true;
+//      },
+//      100, // interval
+//      2000); // maxTimeout
+//
+//
+//  db.put(this.table_name, {id: 'a', value: '1', remark: 'put test'}).addCallback(function(value) {
+//    console.log('receiving value callback.');
+//    put_value = value;
+//    hasEventFired = true;
+//  });
+//};
 
-
-var test_0_put = function() {
+var test_0_put_arr = function() {
 
   var db = new ydn.db.IndexedDb(db_name, this.basic_schema);
+
+  var arr = [
+    {id: 'a' + Math.random(),
+      value: 'a' + Math.random(), remark: 'put test'},
+    {id: 'b' + Math.random(),
+      value: 'b' + Math.random(), remark: 'put test'},
+    {id: 'c' + Math.random(),
+      value: 'c' + Math.random(), remark: 'put test'}
+  ];
 
   var hasEventFired = false;
   var put_value;
@@ -40,7 +76,7 @@ var test_0_put = function() {
       function() { return hasEventFired; },
       // Continuation
       function() {
-        assertEquals('put a 1', true, put_value);
+        assertArrayEquals('put a', [arr[0].id, arr[1].id, arr[2].id], put_value);
         // Remember, the state of this boolean will be tested in tearDown().
         reachedFinalContinuation = true;
       },
@@ -48,12 +84,14 @@ var test_0_put = function() {
       2000); // maxTimeout
 
 
-  db.put(this.table_name, {id: 'a', value: '1', remark: 'put test'}).addCallback(function(value) {
+  db.put(this.table_name, arr).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
   });
 };
+
+
 
 //var test_0_empty_get = function() {
 //
@@ -177,7 +215,7 @@ var test_3_special_keys = function() {
         function() { return a_done; },
         // Continuation
         function() {
-          assertTrue('put', a_value);
+          assertEquals('put a', key, a_value);
         },
         100, // interval
         2000); // maxTimeout
