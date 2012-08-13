@@ -304,7 +304,9 @@ ydn.db.MemoryStore.prototype.count = function(opt_table) {
 
 
 /**
- * @inheritDoc
+ * Fetch result of a query
+ * @param {!ydn.db.Query} q query.
+ * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.MemoryStore.prototype.list = function(q) {
   return goog.async.Deferred.fail('not implemented');

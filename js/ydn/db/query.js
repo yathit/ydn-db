@@ -22,31 +22,76 @@ goog.provide('ydn.db.Query');
 
 
 /**
- * @param {string} store table name.
- * @param {string=} opt_field field name.
- * @param {ydn.db.Query.Op=} opt_op field name.
- * @param {string=} opt_value field name.
+ * @param {!ydn.db.Query.Config} select configuration in json format
  * @constructor
  */
-ydn.db.Query = function(store, opt_field, opt_op, opt_value) {
+ydn.db.Query = function(select) {
   /**
+   * Store name.
    * @final
    * @type {string}
    */
-  this.store = store;
+  this.store = select['store'];
   /**
+   * Right value for query operation.
+   * @final
    * @type {string|undefined}
    */
-  this.value = opt_value;
+  this.value = select['value'];
   /**
+   * Query operator.
+   * @final
    * @type {ydn.db.Query.Op}
    */
-  this.op = opt_op || ydn.db.Query.Op.EQ;
+  this.op = select['op'] || ydn.db.Query.Op.EQ;
   /**
+   * Left value for query operation.
+   * @final
    * @type {string|undefined}
    */
-  this.field = opt_field;
+  this.field = select['field'];
+  /**
+   * Maximum number of result.
+   * @final
+   * @type {(number|undefined)}
+   */
+  this.limit = select['limit'];
+  /**
+   * Result to be ordered by.
+   * @final
+   * @type {(string|undefined)}
+   */
+  this.order = select['order'];
+  /**
+   * Result to be start by.
+   * @final
+   * @type {(number|undefined)}
+   */
+  this.offset = select['offset'];
 };
+
+
+/**
+ * This is similar to SQL WHERE clause.
+ * @typedef {{
+ *  op: ydn.db.Query.Op,
+ *  field: (string|undefined),
+ *  value: (string|undefined),
+ * }}
+ */
+ydn.db.Query.Where;
+
+
+/**
+ * This is similar to SQL SELECT statement.
+ * @typedef {{
+ *  store: string,
+ *  limit: (number|undefined),
+ *  order: (string|undefined),
+ *  offset: (number|undefined)
+ *  }}
+ */
+ydn.db.Query.Config;
 
 
 /**
@@ -59,17 +104,6 @@ ydn.db.Query.prototype.toJSON = function () {
     'op':this.op,
     'field':this.field
   }
-};
-
-
-/**
- *
- * @param {!Object} json
- * @return {!ydn.db.Query} query.
- */
-ydn.db.Query.fromJSON = function(json) {
-  var op = /** @type {ydn.db.Query.Op} */ (json['op']);
-  return new ydn.db.Query(json['store'], json['field'], op, json['value']);
 };
 
 

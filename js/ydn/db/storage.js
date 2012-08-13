@@ -381,15 +381,14 @@ ydn.db.Storage.prototype.count = function(opt_store_name) {
  * Fetch result of a query and return as array.
  *
  * @export
- * @param {ydn.db.Query} q query.
+ * @param {!ydn.db.Query|!ydn.db.Query.Config} q query.
  * @return {!goog.async.Deferred} return array of result for each row
  * in a deferred function.
  */
 ydn.db.Storage.prototype.list = function(q) {
 
   if (!(q instanceof ydn.db.Query)) {
-    // discretely support query in JSON format.
-    q = ydn.db.Query.fromJSON(/** @type {!Object} */ (q));
+    q = new ydn.db.Query(/** @type {!ydn.db.Query.Config} */ (q));
   }
 
   if (this.db_) {

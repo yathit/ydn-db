@@ -515,7 +515,9 @@ ydn.db.IndexedDb.prototype.get = function(table, key) {
 
 
 /**
- * @inheritDoc
+ * Fetch result of a query
+ * @param {!ydn.db.Query} q query.
+ * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.IndexedDb.prototype.list = function(q) {
   var self = this;
@@ -559,8 +561,10 @@ ydn.db.IndexedDb.prototype.list = function(q) {
         tx.result.push(cursor['value']); // should not necessary if externs are
         // properly updated.
 
-        //cursor.continue();
-        cursor['continue'](); // Note: Must be quoted to avoid parse error.
+        if (!goog.isDef(q.limit) || tx.result.length < q.limit) {
+          //cursor.continue();
+          cursor['continue'](); // Note: Must be quoted to avoid parse error.
+        }
       }
     };
 
