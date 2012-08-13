@@ -16,7 +16,7 @@ goog.require('ydn.db.Db');
 ydn.db.test.table = 't1';
 
 /**
- * @return {ydn.db.DatabaseSchema} database schema.
+ * @return {!ydn.db.DatabaseSchema} database schema.
  */
 ydn.db.test.getSchema = function() {
   var basic_schema = new ydn.db.DatabaseSchema(1);
