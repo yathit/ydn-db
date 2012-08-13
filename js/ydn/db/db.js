@@ -83,7 +83,7 @@ ydn.db.Db.prototype.clear = function(opt_table, opt_key) {
  * @param {ydn.db.Query} q query.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Db.prototype.fetch = function(q) {
+ydn.db.Db.prototype.list = function(q) {
 
 };
 

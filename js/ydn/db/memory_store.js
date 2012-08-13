@@ -304,8 +304,8 @@ ydn.db.MemoryStore.prototype.count = function(opt_table) {
 /**
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.fetch = function(q) {
-  return goog.async.Deferred.fail(true);
+ydn.db.MemoryStore.prototype.list = function(q) {
+  return goog.async.Deferred.fail('not implemented');
 };
 
 

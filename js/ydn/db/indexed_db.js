@@ -377,9 +377,11 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
   return this.doTransaction(function(tx) {
     var store = tx.objectStore(table);
     var request;
+
     if (goog.isArray(value)) {
+      var has_error = false;
       tx.result = [];
-      for (var i = 0; i < value.length; i++) {
+      for (var i = 0; i < value.length && !has_error; i++) {
         request = store.put(value[i]);
         request.onsuccess = function(event) {
           tx.is_success = true;
@@ -392,7 +394,9 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
           if (ydn.db.IndexedDb.DEBUG) {
             window.console.log(event);
           }
-          request.error = event;
+          tx.error = event;
+          has_error = true;
+          tx.abort();
         };
 
       }
@@ -409,7 +413,7 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
         if (ydn.db.IndexedDb.DEBUG) {
           window.console.log(event);
         }
-        request.error = event;
+        tx.error = event;
       };
     }
 
@@ -512,23 +516,18 @@ ydn.db.IndexedDb.prototype.get = function(table, key) {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.fetch = function(q) {
+ydn.db.IndexedDb.prototype.list = function(q) {
   var self = this;
 
   var value = q.value;
-  var column = q.field;
-  var table = q.table || ydn.db.Storage.DEFAULT_TEXT_STORE;
-  if (!column) {
-    goog.asserts.assertObject(this.schema[table], 'store ' + table +
-      ' not exists in ' + this.dbname);
-    column = this.schema[q.table].keyPath;
-  }
+  var store = this.schema.getStore(q.store);
+  var column = q.field || store.keyPath;
 
   return this.doTransaction(function(tx) {
     //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
     // ' in ' + table);
-    var store = tx.objectStore(table);
-    var index = store.index(column);
+    var obj_store = tx.objectStore(store);
+    var index = obj_store.index(column);
     var boundKeyRange;
     var value_upper = '';
     if (q.op == ydn.db.Query.Op.START_WITH) {
@@ -543,6 +542,8 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
     // ' of ' + column + ' in ' + table);
     var request = index.openCursor(boundKeyRange);
 
+    tx.result = [];
+
     request.onsuccess = function(event) {
       tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
@@ -554,9 +555,6 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
       var cursor = /** @type {IDBCursor} */ (event.target.result);
       //console.log(cursor);
       if (cursor) {
-        if (!tx.result) {
-          tx.result = [];
-        }
         tx.result.push(cursor['value']); // should not necessary if externs are
         // properly updated.
         //cursor.continue();
@@ -571,7 +569,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
       tx.error = event;
     };
 
-  }, [table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
+  }, [store.name], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
 
 };
 
@@ -769,7 +767,7 @@ ydn.db.IndexedDb.prototype.count = function(table) {
  * @param {string=} opt_table table name.
  * @return {!goog.async.Deferred} return as deferred function.
  */
-ydn.db.IndexedDb.prototype.list = function(opt_table) {
+ydn.db.IndexedDb.prototype.listKeys = function(opt_table) {
   var self = this;
 
   opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;

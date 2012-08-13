@@ -380,11 +380,11 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
 /**
  * @inheritDoc
  */
-ydn.db.WebSql.prototype.fetch = function(q) {
+ydn.db.WebSql.prototype.list = function(q) {
   var d = new goog.async.Deferred();
   var me = this;
 
-  var store = this.schema.getStore(q.table);
+  var store = this.schema.getStore(q.store);
 
   var column = q.field || store.keyPath || ydn.db.WebSql.DEFAULT_KEY_COLUMN;
 

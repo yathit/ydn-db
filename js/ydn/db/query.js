@@ -22,27 +22,54 @@ goog.provide('ydn.db.Query');
 
 
 /**
- * @param {string} table table name.
+ * @param {string} store table name.
+ * @param {string=} opt_field field name.
+ * @param {ydn.db.Query.Op=} opt_op field name.
+ * @param {string=} opt_value field name.
  * @constructor
  */
-ydn.db.Query = function(table) {
+ydn.db.Query = function(store, opt_field, opt_op, opt_value) {
   /**
    * @final
    * @type {string}
    */
-  this.table = table;
+  this.store = store;
   /**
-   * @type {string}
+   * @type {string|undefined}
    */
-  this.value = '';
+  this.value = opt_value;
   /**
    * @type {ydn.db.Query.Op}
    */
-  this.op = ydn.db.Query.Op.EQ;
+  this.op = opt_op || ydn.db.Query.Op.EQ;
   /**
-   * @type {string}
+   * @type {string|undefined}
    */
-  this.field = '';
+  this.field = opt_field;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.Query.prototype.toJSON = function () {
+  return {
+    'store':this.store,
+    'value':this.value,
+    'op':this.op,
+    'field':this.field
+  }
+};
+
+
+/**
+ *
+ * @param {!Object} json
+ * @return {!ydn.db.Query} query.
+ */
+ydn.db.Query.fromJSON = function(json) {
+  var op = /** @type {ydn.db.Query.Op} */ (json['op']);
+  return new ydn.db.Query(json['store'], json['field'], op, json['value']);
 };
 
 
@@ -55,53 +82,3 @@ ydn.db.Query.Op = {
   START_WITH: 'st'
 };
 
-
-/**
- *
- * @param {string} value value.
- * @param {string=} opt_field field name if required.
- * @return {ydn.db.Query} constructed query.
- */
-ydn.db.Query.prototype.get = function(value, opt_field) {
-  this.op = ydn.db.Query.Op.EQ;
-  this.value = value;
-  this.field = opt_field || '';
-  return this;
-};
-
-
-/**
- *
- * @param {string} table table name.
- * @param {string} value value.
- * @param {string=} opt_field field name if required.
- * @return {ydn.db.Query} constructed query.
- */
-ydn.db.Query.get = function(table, value, opt_field) {
-  return (new ydn.db.Query(table)).get(value, opt_field);
-};
-
-
-/**
- *
- * @param {string} value value.
- * @param {string=} opt_field  field name if required.
- * @return {ydn.db.Query} constructed query.
- */
-ydn.db.Query.prototype.startWith = function(value, opt_field) {
-  this.op = ydn.db.Query.Op.START_WITH;
-  this.value = value;
-  this.field = opt_field || '';
-  return this;
-};
-
-
-/**
- * @param {string} table table name.
- * @param {string} value value.
- * @param {string=} opt_field  field name if required.
- * @return {ydn.db.Query} constructed query.
- */
-ydn.db.Query.startWith = function(table, value, opt_field) {
-  return (new ydn.db.Query(table)).startWith(value, opt_field);
-};

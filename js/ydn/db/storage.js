@@ -352,13 +352,19 @@ ydn.db.Storage.prototype.count = function(table) {
  * @export
  * @inheritDoc
  */
-ydn.db.Storage.prototype.fetch = function(q) {
+ydn.db.Storage.prototype.list = function(q) {
+
+  if (!(q instanceof ydn.db.Query)) {
+    // discretely support query in JSON format.
+    q = ydn.db.Query.fromJSON(q);
+  }
+
   if (this.db_) {
-    return this.db_.fetch(q);
+    return this.db_.list(q);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.fetch(q).chainDeferred(df);
+      db.list(q).chainDeferred(df);
     });
     return df;
   }
