@@ -39,7 +39,7 @@ ydn.store.Html5DbJstest.prototype.test_put_get_object = function(queue) {
   ydn.db.test.run_put_get_tests(queue, db);
 };
 
-ydn.store.Html5DbJstest.prototype.test_put_get_object = function(queue) {
+ydn.store.Html5DbJstest.prototype.test_empty_store_get = function(queue) {
   var db = new ydn.db.Html5Db(this.dbname, ydn.db.test.getSchema());
   ydn.db.test.empty_store_get_test(queue, db);
 };

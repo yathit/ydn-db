@@ -119,82 +119,82 @@ var test_3_empty_get = function() {
   });
 };
 
-//
-//var test_4_get_all = function() {
-//
-//  var db = new ydn.db.Html5Db(db_name, basic_schema);
-//
-//  var hasEventFired = false;
-//  var put_value;
-//
-//  waitForCondition(
-//      // Condition
-//      function() { return hasEventFired; },
-//      // Continuation
-//      function() {
-//        assertArrayEquals('get empty table', [], put_value);
-//        // Remember, the state of this boolean will be tested in tearDown().
-//        reachedFinalContinuation = true;
-//      },
-//      100, // interval
-//      2000); // maxTimeout
-//
-//
-//  db.get(table_name).addCallback(function(value) {
-//    console.log('receiving value callback.');
-//    put_value = value;
-//    hasEventFired = true;
-//  });
-//};
-//
-//
-//
-//var test_5_clear = function() {
-//	var db = new ydn.db.Html5Db(db_name, basic_schema);
-//
-//  var hasEventFired = false;
-//  var put_value;
-//
-//  waitForCondition(
-//      // Condition
-//      function() { return hasEventFired; },
-//      // Continuation
-//      function() {
-//        assertEquals('clear', true, put_value);
-//        // Remember, the state of this boolean will be tested in tearDown().
-//      },
-//      100, // interval
-//      1000); // maxTimeout
-//
-//  var dfl = db.clear(table_name);
-//  dfl.addCallback(function(value) {
-//    put_value = value;
-//    hasEventFired = true;
-//  }).addErrback(function(v) {
-//    fail('should not get error.');
-//  });
-//
-//  var countValue;
-//  var countDone;
-//  waitForCondition(
-//      // Condition
-//      function() { return countDone; },
-//      // Continuation
-//      function() {
-//        assertEquals('count 0 after clear', 0, countValue);
-//        // Remember, the state of this boolean will be tested in tearDown().
-//        reachedFinalContinuation = true;
-//      },
-//      100, // interval
-//      1000); // maxTimeout
-//
-//  db.count(table_name).addCallback(function(value) {
-//    countValue = value;
-//    countDone = true;
-//  });
-//
-//};
-//
+
+var test_4_get_all = function() {
+  var db_name = 'test_4';
+  var db = new ydn.db.Html5Db(db_name, basic_schema);
+
+  var hasEventFired = false;
+  var put_value;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertArrayEquals('get empty table', [], put_value);
+        // Remember, the state of this boolean will be tested in tearDown().
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.get(table_name).addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value = value;
+    hasEventFired = true;
+  });
+};
+
+
+
+var test_5_clear = function() {
+	var db = new ydn.db.Html5Db(db_name, basic_schema);
+
+  var hasEventFired = false;
+  var put_value;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('clear', true, put_value);
+        // Remember, the state of this boolean will be tested in tearDown().
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var dfl = db.clear(table_name);
+  dfl.addCallback(function(value) {
+    put_value = value;
+    hasEventFired = true;
+  }).addErrback(function(v) {
+    fail('should not get error.');
+  });
+
+  var countValue;
+  var countDone;
+  waitForCondition(
+      // Condition
+      function() { return countDone; },
+      // Continuation
+      function() {
+        assertEquals('count 0 after clear', 0, countValue);
+        // Remember, the state of this boolean will be tested in tearDown().
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  db.count(table_name).addCallback(function(value) {
+    countValue = value;
+    countDone = true;
+  });
+
+};
+
 
 
 
@@ -371,66 +371,66 @@ var test_6_no_keyPath = function () {
 //  });
 //
 //};
+////
 //
-
-var test_9_query_start_with = function() {
-  var store_name = 'ts1';
-  var put_obj_dbname = 'pos2';
-	var schema = new ydn.db.DatabaseSchema(1);
-	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
-	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
-
-
-
-  var objs = [
-    {id: 'qs1', value: Math.random()},
-    {id: 'qs2', value: Math.random()},
-    {id: 'qt', value: Math.random()}
-  ];
-
-  var put_value_received;
-  var put_done;
-  waitForCondition(
-      // Condition
-      function() { return put_done; },
-      // Continuation
-      function() {
-        assertArrayEquals('put arr', [objs[0].id, objs[1].id, objs[2].id],
-          put_value_received);
-
-        var get_done;
-        var get_value_received;
-        waitForCondition(
-          // Condition
-          function() { return get_done; },
-          // Continuation
-          function() {
-            assertEquals('obj length', objs.length - 1, get_value_received.length);
-            assertObjectEquals('get', objs[0], get_value_received[0]);
-            assertObjectEquals('get', objs[1], get_value_received[1]);
-            reachedFinalContinuation = true;
-          },
-          100, // interval
-          2000); // maxTimeout
-
-
-        var q = ydn.db.Query.startWith(store_name, 'qs');
-        db.list(q).addCallback(function(value) {
-          get_value_received = value;
-          get_done = true;
-        });
-      },
-      100, // interval
-      2000); // maxTimeout
-
-  db.put(store_name, objs).addCallback(function(value) {
-    console.log('receiving value callback.');
-    put_value_received = value;
-    put_done = true;
-  });
-
-
-};
+//var test_9_query_start_with = function() {
+//  var store_name = 'ts1';
+//  var put_obj_dbname = 'pos2';
+//	var schema = new ydn.db.DatabaseSchema(1);
+//	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
+//	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
+//
+//
+//
+//  var objs = [
+//    {id: 'qs1', value: Math.random()},
+//    {id: 'qs2', value: Math.random()},
+//    {id: 'qt', value: Math.random()}
+//  ];
+//
+//  var put_value_received;
+//  var put_done;
+//  waitForCondition(
+//      // Condition
+//      function() { return put_done; },
+//      // Continuation
+//      function() {
+//        assertArrayEquals('put arr', [objs[0].id, objs[1].id, objs[2].id],
+//          put_value_received);
+//
+//        var get_done;
+//        var get_value_received;
+//        waitForCondition(
+//          // Condition
+//          function() { return get_done; },
+//          // Continuation
+//          function() {
+//            assertEquals('obj length', objs.length - 1, get_value_received.length);
+//            assertObjectEquals('get', objs[0], get_value_received[0]);
+//            assertObjectEquals('get', objs[1], get_value_received[1]);
+//            reachedFinalContinuation = true;
+//          },
+//          100, // interval
+//          2000); // maxTimeout
+//
+//
+//        var q = ydn.db.Query.startWith(store_name, 'qs');
+//        db.list(q).addCallback(function(value) {
+//          get_value_received = value;
+//          get_done = true;
+//        });
+//      },
+//      100, // interval
+//      2000); // maxTimeout
+//
+//  db.put(store_name, objs).addCallback(function(value) {
+//    console.log('receiving value callback.');
+//    put_value_received = value;
+//    put_done = true;
+//  });
+//
+//
+//};
 
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();

@@ -245,10 +245,8 @@ ydn.db.MemoryStore.prototype.clear = function(opt_table, opt_key) {
     var key = this.getKey(opt_key, store);
     delete this.cache_[key];
   } else {
-
     var tables_to_clear = goog.isDef(opt_table) ?
         [opt_table] : this.schema.listStores();
-
     for (var key in this.cache_) {
       if (this.cache_.hasOwnProperty(key)) {
         for (var table, i = 0; table = tables_to_clear[i]; i++) {
@@ -283,16 +281,20 @@ ydn.db.MemoryStore.prototype.remove = function(opt_table, opt_id) {
 
 /**
  * Get number of items stored.
- * @param {string=} opt_table table name, default to
- * {@link ydn.db.Storage.DEFAULT_TEXT_STORE}.
+ * @param {string=} opt_table table name
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
 ydn.db.MemoryStore.prototype.count = function(opt_table) {
-  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
+
+  var pre_fix = '_database_' + this.dbname;
+  if (goog.isDef(opt_table)) {
+    pre_fix += '-' + opt_table;
+  }
+
   var n = 0;
   for (var key in this.cache_) {
     if (this.cache_.hasOwnProperty(key)) {
-      if (goog.string.startsWith(key, '_database_' + this.dbname)) {
+      if (goog.string.startsWith(key, pre_fix)) {
         n++;
       }
     }

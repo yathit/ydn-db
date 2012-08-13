@@ -41,7 +41,7 @@ ydn.store.IndexedDbJstest.prototype.test_put_get_object = function(queue) {
 };
 
 
-ydn.store.IndexedDbJstest.prototype.test_put_get_object = function(queue) {
+ydn.store.IndexedDbJstest.prototype.test_empty_store_get = function(queue) {
   var db = new ydn.db.IndexedDb(this.dbname, ydn.db.test.getSchema());
   ydn.db.test.empty_store_get_test(queue, db);
 };

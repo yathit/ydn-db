@@ -34,11 +34,7 @@ ydn.db.test.db_clear_all_tests = function(queue, db) {
   queue.call('clear db', function(callbacks) {
     var df_clear = db.clear();
     df_clear.addCallback(callbacks.add(function(value) {
-      assertEquals('clear OK', true, value);
-    }));
-    df_clear.addErrback(callbacks.add(function(e) {
-      window.console.log(e);
-      fail(e);
+      assertTrue('clear OK', value);
     }));
   });
 
@@ -93,13 +89,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
 
   queue.call('clear db before start', function(callbacks) {
     db.clear(ydn.db.test.table).addCallback(callbacks.add(function(value) {
-      var result = value;
-      if (goog.isArray(value)) {
-        result = value.every(function(ok) {
-          return !!ok;
-        });
-      }
-      assertEquals('clear OK', true, result);
+      assertTrue('clear OK', value);
     }));
   });
 
