@@ -32,7 +32,6 @@ ydn.db.Db = function() {};
 
 
 /**
- * @see put
  * @param {string} table table name.
  * @param {!Object|Array.<!Object>} value object to put.
  * @return {!goog.async.Deferred} return key in deferred function.

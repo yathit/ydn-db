@@ -19,6 +19,7 @@
 goog.provide('ydn.db.MemoryStore');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
+goog.require('goog.Timer');
 
 
 /**
@@ -135,30 +136,58 @@ ydn.db.MemoryStore.prototype.getKey = function(id, store) {
 
 
 /**
+ *
+ * @define {boolean} use sync result.
+ */
+ydn.db.MemoryStore.SYNC = false;
+
+
+/**
+ * @protected
+ * @param {*} value
+ * @return {!goog.async.Deferred} return callback with given value in async.
+ */
+ydn.db.MemoryStore.succeed = function(value) {
+
+  var df = new goog.async.Deferred();
+
+  if (ydn.db.MemoryStore.SYNC) {
+    df.callback(value);
+  } else {
+    goog.Timer.callOnce(function() {
+      df.callback(value);
+    }, 0);
+  }
+
+  return df;
+};
+
+
+/**
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.put = function(table, value) {
+ydn.db.MemoryStore.prototype.put = function (table, value) {
   var store = this.schema.getStore(table);
   goog.asserts.assertObject(store);
   var key, value_str;
   var result;
-  if (goog.isObject(value)) {
+
+  if (goog.isArray(value)) {
+    result = [];
+    for (var i = 0; i < value.length; i++) {
+      key = this.extractKey(store, value[i]);
+      value_str = ydn.json.stringify(value[i]);
+      this.cache_.setItem(this.getKey(key, store), value_str);
+      result.push(key);
+    }
+  } else if (goog.isObject(value)) {
     key = this.extractKey(store, value);
     value_str = ydn.json.stringify(value);
     this.cache_.setItem(this.getKey(key, store), value_str);
     result = key;
-  } else if (goog.isArray(value)) {
-    result = [];
-    for (var i = 0; i < value.length; i++) {
-      key = this.extractKey(store, value);
-      value_str = ydn.json.stringify(value);
-      this.cache_.setItem(this.getKey(key, store), value_str);
-      result.push(key);
-    }
-  } else {
-    throw Error('Not object: ' + value);
   }
-  return goog.async.Deferred.succeed(result);
+
+  return ydn.db.MemoryStore.succeed(result);
 };
 
 
@@ -183,7 +212,7 @@ ydn.db.MemoryStore.prototype.get = function(table, opt_key) {
     } else {
       value = undefined; // localStorage return null for not existing value
     }
-    return goog.async.Deferred.succeed(value);
+    return ydn.db.MemoryStore.succeed(value);
   } else {
     var arr = [];
     for (var item in this.cache_) {
@@ -196,7 +225,8 @@ ydn.db.MemoryStore.prototype.get = function(table, opt_key) {
         }
       }
     }
-    return goog.async.Deferred.succeed(arr);
+
+    return ydn.db.MemoryStore.succeed(arr);
   }
 };
 
@@ -229,7 +259,7 @@ ydn.db.MemoryStore.prototype.clear = function(opt_table, opt_key) {
       }
     }
   }
-  return goog.async.Deferred.succeed(true);
+  return ydn.db.MemoryStore.succeed(true);
 };
 
 
@@ -244,7 +274,7 @@ ydn.db.MemoryStore.prototype.remove = function(opt_table, opt_id) {
     var store = this.schema.getStore(opt_table);
     var key = this.getKey(opt_id, store);
     delete this.cache_[key];
-    return goog.async.Deferred.succeed(true);
+    return ydn.db.MemoryStore.succeed(true);
   } else {
     return this.clear(opt_table);
   }
@@ -258,7 +288,6 @@ ydn.db.MemoryStore.prototype.remove = function(opt_table, opt_id) {
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
 ydn.db.MemoryStore.prototype.count = function(opt_table) {
-  var d = new goog.async.Deferred();
   opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   var n = 0;
   for (var key in this.cache_) {
@@ -268,8 +297,7 @@ ydn.db.MemoryStore.prototype.count = function(opt_table) {
       }
     }
   }
-  d.callback(n);
-  return d;
+  return ydn.db.MemoryStore.succeed(n);
 };
 
 
@@ -285,5 +313,5 @@ ydn.db.MemoryStore.prototype.fetch = function(q) {
  * @inheritDoc
  */
 ydn.db.MemoryStore.prototype.close = function () {
-  return goog.async.Deferred.succeed(true);
+  return ydn.db.MemoryStore.succeed(true);
 };
