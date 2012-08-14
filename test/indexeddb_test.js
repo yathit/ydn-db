@@ -311,12 +311,15 @@ var test_7_put_nested_keyPath = function() {
 };
 
 
-var _test_8_query_start_with = function () {
+var test_8_query_start_with = function () {
   var store_name = 'ts1';
-  var dbname = 'test_5';
+  var dbname = 'test_8';
   var schema = new ydn.db.DatabaseSchema(1);
-  schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
-  var db = new ydn.db.WebSql(dbname, schema);
+  // NOTE: key also need to be indexed.
+  var indexSchema = new ydn.db.IndexSchema('id', true);
+  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]));
+  //schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
+  var db = new ydn.db.IndexedDb(dbname, schema);
 
   var objs = [
     {id:'qs1', value:Math.random()},
@@ -354,7 +357,10 @@ var _test_8_query_start_with = function () {
         2000); // maxTimeout
 
 
-      var q = new ydn.db.Query(store_name, 'id', ydn.db.Query.Op.START_WITH, 'qs');
+      var keyRange = ydn.db.Query.createKeyRange(ydn.db.Query.Op.START_WITH, 'qs');
+      var q = new ydn.db.Query(
+        {store: store_name, index: 'id', keyRange: keyRange});
+      console.log([keyRange, q]);
       db.list(q).addCallback(function (value) {
         get_value_received = value;
         get_done = true;
@@ -366,7 +372,7 @@ var _test_8_query_start_with = function () {
 
 
   db.put(store_name, objs).addCallback(function (value) {
-    console.log('receiving value callback.');
+    console.log(['receiving value callback.', value]);
     put_value_received = value;
     put_done = true;
   });

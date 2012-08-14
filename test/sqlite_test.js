@@ -571,7 +571,10 @@ var test_8_query_start_with = function() {
       1000); // maxTimeout
 
 
-  var q = new ydn.db.Query(store_name, 'id', ydn.db.Query.Op.START_WITH, 'as');
+  var keyRange = ydn.db.Query.createKeyRange(ydn.db.Query.Op.START_WITH, 'as');
+  var q = new ydn.db.Query(
+    {store: store_name, index: 'id', keyRange: keyRange});
+  console.log([keyRange, q]);
 
   db.list(q).addCallback(function(value) {
 		console.log(['Receiving ', value])

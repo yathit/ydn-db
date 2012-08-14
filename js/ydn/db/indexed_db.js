@@ -193,16 +193,6 @@ ydn.db.IndexedDb.EventTypes = {
 
 
 /**
- *
- * @type {function(new:IDBKeyRange)} The IDBKeyRange interface of the IndexedDB
- * API represents a continuous interval over some data type that is used for
- * keys.
- */
-ydn.db.IndexedDb.IDBKeyRange = goog.global.IDBKeyRange ||
-  goog.global.webkitIDBKeyRange;
-
-
-/**
  * @protected
  * @final
  * @type {goog.debug.Logger} logger.
@@ -439,7 +429,7 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
     var store = tx.objectStore(table);
 
     // Get everything in the store;
-    var keyRange = ydn.db.IndexedDb.IDBKeyRange.lowerBound(0);
+    var keyRange = ydn.db.Query.IDBKeyRange.lowerBound(0);
     var request = store.openCursor(keyRange);
 
     request.onsuccess = function(event) {
@@ -522,28 +512,17 @@ ydn.db.IndexedDb.prototype.get = function(table, key) {
 ydn.db.IndexedDb.prototype.list = function(q) {
   var self = this;
 
-  var value = q.value;
   var store = this.schema.getStore(q.store);
-  var column = q.field || store.keyPath;
 
   return this.doTransaction(function(tx) {
     //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
     // ' in ' + table);
-    var obj_store = tx.objectStore(store);
-    var index = obj_store.index(column);
-    var boundKeyRange;
-    var value_upper = '';
-    if (q.op == ydn.db.Query.Op.START_WITH) {
-      value_upper = value.substring(0, value.length - 1) + String.fromCharCode(
-        value.charCodeAt(value.length - 1) + 1);
-      boundKeyRange = ydn.db.IndexedDb.IDBKeyRange.bound(value, value_upper,
-        false, true);
-    } else {
-      boundKeyRange = ydn.db.IndexedDb.IDBKeyRange.only(value);
-    }
+    var obj_store = tx.objectStore(store.name);
+    var index = obj_store.index(q.index);
+
     //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
     // ' of ' + column + ' in ' + table);
-    var request = index.openCursor(boundKeyRange);
+    var request = index.openCursor(q.keyRange);
 
     tx.result = [];
 

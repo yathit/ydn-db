@@ -388,18 +388,10 @@ ydn.db.WebSql.prototype.list = function(q) {
 
   var store = this.schema.getStore(q.store);
 
-  var column = q.field || store.keyPath || ydn.db.WebSql.DEFAULT_KEY_COLUMN;
-
-  var op = '=';
-  var value = q.value;
-
-  if (q.op == ydn.db.Query.Op.START_WITH) {
-    op = 'LIKE';
-    value = q.value + '%';
-  }
+  var clause = q.toWhereClause();
 
   var sql = 'SELECT * FROM ' + store.getQuotedName() + ' WHERE ' +
-    '(' + goog.string.quote(column) + ' ' + op + ' ?)';
+    '(' + clause.where_clause + ')';
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -430,8 +422,8 @@ ydn.db.WebSql.prototype.list = function(q) {
   };
 
   this.db.transaction(function(t) {
-    //console.log([sql, value]);
-    t.executeSql(sql, [value], callback, error_callback);
+    //console.log([sql, clause.params]);
+    t.executeSql(sql, clause.params, callback, error_callback);
   });
 
   return d;

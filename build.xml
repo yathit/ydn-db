@@ -46,7 +46,7 @@
         <adv-compile
                 input.fn="${ydn-db.dir}/js/ydn/db/storage.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="ydn-db-min-0.3.js"
+                output.fn="ydn-db-min-0.4.js"
                 closure.entry="ydn.db.Storage">
         </adv-compile>
     </target>
