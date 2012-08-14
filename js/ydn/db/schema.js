@@ -288,7 +288,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
     key = this.getKey(obj);
     goog.asserts.assertString(key);
   } else {
-    key_column = ydn.db.WebSql.DEFAULT_KEY_COLUMN;
+    key_column = ydn.db.DEFAULT_KEY_COLUMN;
     key = this.generateKey();
   }
   var columns = [key_column];
@@ -296,7 +296,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
   var slots = ['?'];
 
   for (var i = 0; i < this.indexes.length; i++) {
-    if (this.indexes[i].name == ydn.db.WebSql.DEFAULT_BLOB_COLUMN) {
+    if (this.indexes[i].name == ydn.db.DEFAULT_BLOB_COLUMN) {
       continue;
     }
     var v = obj[this.indexes[i].name];
@@ -329,7 +329,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
 
   values.push(ydn.json.stringify(data));
   slots.push('?');
-  columns.push(ydn.db.WebSql.DEFAULT_BLOB_COLUMN);
+  columns.push(ydn.db.DEFAULT_BLOB_COLUMN);
 
   return {columns: columns, slots: slots, values: values, key: key};
 };

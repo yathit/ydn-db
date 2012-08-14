@@ -93,21 +93,6 @@ ydn.db.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSql');
 
 
 /**
- * Column name of key, if keyPath is not specified.
- * @const {string}
- */
-ydn.db.WebSql.DEFAULT_KEY_COLUMN = '_id_';
-
-
-/**
- * Non-indexed field are store in this default field. There is always a column
- * in each table.
- * @const {string}
- */
-ydn.db.WebSql.DEFAULT_BLOB_COLUMN = '_default_';
-
-
-/**
  * Initialize variable to the schema and prepare SQL statement for creating
  * the table.
  * @protected
@@ -119,7 +104,7 @@ ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
   var sql = 'CREATE TABLE IF NOT EXISTS ' + schema.getQuotedName() + ' (';
 
   var id_column_name = schema.getQuotedKeyPath() ||
-      ydn.db.WebSql.DEFAULT_KEY_COLUMN;
+      ydn.db.DEFAULT_KEY_COLUMN;
 
   if (goog.isDef(schema.keyPath)) {
       sql += schema.getQuotedKeyPath() + ' TEXT UNIQUE PRIMARY KEY';
@@ -129,12 +114,12 @@ ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
     // have to query again after INSERT since it does not return any result.
     // generating the by ourselves eliminate this.
     // for generating see ydn.db.StoreSchema.prototype.generateKey
-    sql += ydn.db.WebSql.DEFAULT_KEY_COLUMN + ' INTEGER PRIMARY KEY';
+    sql += ydn.db.DEFAULT_KEY_COLUMN + ' INTEGER PRIMARY KEY';
   }
 
   // every table must has a default field.
-  if (!schema.hasIndex(ydn.db.WebSql.DEFAULT_BLOB_COLUMN)) {
-    schema.addIndex(ydn.db.WebSql.DEFAULT_BLOB_COLUMN);
+  if (!schema.hasIndex(ydn.db.DEFAULT_BLOB_COLUMN)) {
+    schema.addIndex(ydn.db.DEFAULT_BLOB_COLUMN);
   }
 
   for (var i = 0; i < schema.indexes.length; i++) {
@@ -279,13 +264,13 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
  */
 ydn.db.WebSql.prototype.parseRow = function(table, row) {
   goog.asserts.assertObject(row);
-  var value = ydn.json.parse(row[ydn.db.WebSql.DEFAULT_BLOB_COLUMN]);
+  var value = ydn.json.parse(row[ydn.db.DEFAULT_BLOB_COLUMN]);
   var key = row[table.keyPath]; // NOT: table.getKey(row);
   goog.asserts.assertString(key);
   table.setKey(value, key);
   for (var j = 0; j < table.indexes.length; j++) {
     var index = table.indexes[j];
-    if (index.name == ydn.db.WebSql.DEFAULT_BLOB_COLUMN) {
+    if (index.name == ydn.db.DEFAULT_BLOB_COLUMN) {
       continue;
     }
     var x = row[index.name];
@@ -311,7 +296,7 @@ ydn.db.WebSql.prototype.parseRow = function(table, row) {
  * @return {!Object} parse value.
  */
 ydn.db.WebSql.prototype.getKeyFromRow = function(table, row) {
-  return row[table.keyPath || ydn.db.WebSql.DEFAULT_KEY_COLUMN];
+  return row[table.keyPath || ydn.db.DEFAULT_KEY_COLUMN];
 };
 
 
@@ -447,7 +432,7 @@ ydn.db.WebSql.prototype.clear_ = function(table_name, opt_key) {
     goog.asserts.assertObject(store);
     sql = 'DELETE FROM  ' + store.getQuotedName();
     if (goog.isDef(opt_key)) {
-      var key_column = store.getQuotedKeyPath() || ydn.db.WebSql.DEFAULT_KEY_COLUMN;
+      var key_column = store.getQuotedKeyPath() || ydn.db.DEFAULT_KEY_COLUMN;
       sql += ' WHERE ' + key_column + ' = ?';
     }
   }

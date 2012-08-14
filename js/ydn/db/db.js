@@ -18,10 +18,27 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
+goog.provide('ydn.db');
 goog.provide('ydn.db.Db');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.Query');
+
+
+
+/**
+ * Column name of key, if keyPath is not specified.
+ * @const {string}
+ */
+ydn.db.DEFAULT_KEY_COLUMN = '_id_';
+
+
+/**
+ * Non-indexed field are store in this default field. There is always a column
+ * in each table.
+ * @const {string}
+ */
+ydn.db.DEFAULT_BLOB_COLUMN = '_default_';
 
 
 
