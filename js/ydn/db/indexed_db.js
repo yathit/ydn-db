@@ -52,19 +52,35 @@ ydn.db.IndexedDb = function(dbname, schema) {
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // version could be number of string.
   // In chrome, version is taken as description.
-  self.logger.finer('Trying to open ' + this.dbname + ' ' +
-    this.schema.version);
+  var msg = 'Trying to open database:' + this.dbname + ' ver: ' + this.schema.version;
+  self.logger.finer(msg);
+  if (ydn.db.IndexedDb.DEBUG) {
+    window.console.log(msg)
+  }
+
+  /**
+   * This open request return two format.
+   * @type {IDBOpenDBRequest|IDBRequest}
+   */
   var openRequest = ydn.db.IndexedDb.indexedDb.open(this.dbname,
     /** @type {string} */ (this.schema.version)); // for old externs
 
   openRequest.onsuccess = function(ev) {
-    self.logger.finer(self.dbname + ' ' + self.schema.version + ' OK.');
+    var msg = self.dbname + ' ver: ' + self.schema.version + ' OK.';
+    self.logger.finer(msg);
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log(msg);
+    }
     var db = ev.target.result;
     var old_version = db.version;
-    if (goog.isFunction(db.setVersion) && goog.isDef(self.schema.version) &&
+    if (goog.isDef(self.schema.version) &&
       self.schema.version > old_version) { // for chrome
-      self.logger.finer('initializing database from ' + db.version + ' to ' +
-        self.schema.version);
+      msg = 'initializing database from ' + db.version + ' to ' +
+        self.schema.version;
+      self.logger.finer(msg);
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(msg)
+      }
 
       var setVrequest = db.setVersion(self.schema.version); // for chrome
 
@@ -85,16 +101,23 @@ ydn.db.IndexedDb = function(dbname, schema) {
         };
       };
     } else {
-      self.logger.finer('database version ' + db.version + 'ready to go');
+      msg = 'database version ' + db.version + 'ready to go';
+      self.logger.finer(msg);
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(msg);
+      }
       self.setDb(db);
     }
   };
 
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
-    self.logger.finer('upgrading version ' + db.version);
+    var msg = 'upgrading version ' + db.version;
+    self.logger.finer(msg);
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log(msg);
+    }
 
-    var old_version = undefined; // don't know.
     self.migrate(db);
 
     var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname);
@@ -106,12 +129,29 @@ ydn.db.IndexedDb = function(dbname, schema) {
   };
 
   openRequest.onerror = function(ev) {
-    self.logger.severe('opening database ' + dbname + ' failed.');
+    var msg = 'opening database ' + dbname + ' failed.';
+    self.logger.severe(msg);
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log(msg)
+    }
+    self.db = null;
+  };
+
+  openRequest.onblocked = function(ev) {
+    var msg = 'database ' + dbname + ' block, close other connections.';
+    self.logger.severe(msg);
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log(msg)
+    }
     self.db = null;
   };
 
   openRequest.onversionchange = function(ev) {
-    self.logger.fine('Version change request, so closing the database');
+    var msg = 'Version change request, so closing the database';
+    self.logger.fine(msg);
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log(msg);
+    }
     if (self.db) {
       self.db.close();
     }
@@ -424,6 +464,15 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
   if (!this.schema.hasStore(table)) {
     throw Error('Store: ' + table + ' not exist.');
   }
+
+  // Workaround for Firefox: for opening version 1, firefox do not raise
+  // onupgradeneeded if the database do not exist. writing can start already,
+  // but reading is not. Opening a store raise NotFoundError.
+//  if (this.db_ && this.db_.objectStoreNames &&
+//    goog.isFunction(this.db_.objectStoreNames.contains) &&
+//    !this.db_.objectStoreNames.contains(table)) {
+//    return goog.async.Deferred.succeed([]);
+//  }
 
   return this.doTransaction(function(tx) {
     var store = tx.objectStore(table);

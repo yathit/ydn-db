@@ -42,6 +42,27 @@
             </closure-compile>
         </sequential>
     </macrodef>
+    <target name="simple" description="generates simple compile file">
+        <mkdir dir="${ydn-db.dir}/jsc"/>
+        <closure-compile compilationlevel="SIMPLE_OPTIMIZATIONS"
+                         base.dir="."
+                         input="${ydn-db.dir}/js/ydn/db/storage.js"
+                         input.dir="${ydn-db.dir}/jsc"
+                         output.fn="${work.dir}/ydn-dev/out/ydn-db/example/ydn-db-${ver}.js">
+            <extrapaths>
+                <arg line='-p "${ydn-base.dir}/js"'/>
+                <arg line='-p "${ydn-db.dir}/js"'/>
+                <arg line='-p "${ydn.dir}/js"'/>
+            </extrapaths>
+            <options>
+                <arg line='-f "--formatting=PRETTY_PRINT"'/>
+                <arg line='-f "--externs=${ydn.dir}/externs/misc.js"'/>
+                <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
+            </options>
+        </closure-compile>
+        <!--<copy file="${ydn-db.dir}/jsc/ydn-db-${ver}.js"-->
+              <!--todir="${work.dir}/ydn-dev/out/ydn-db/example"/>-->
+    </target>
     <target name="compile" description="generates compiled files for client js, /jsc/sync.jc">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-compile

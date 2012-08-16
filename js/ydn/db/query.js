@@ -184,14 +184,14 @@ ydn.db.Query.parseKeyRange = function (keyRange) {
     } else {
     return ydn.db.Query.IDBKeyRange.bound(
       keyRange.lower, keyRange.upper,
-      !keyRange.lowerOpen, !keyRange.upperOpen);
+      keyRange.lowerOpen, keyRange.upperOpen);
     }
   } else if (goog.isDef(keyRange.upper)) {
     return ydn.db.Query.IDBKeyRange.upperBound(keyRange.upper,
-      !keyRange.upperOpen);
+      keyRange.upperOpen);
   } else if (goog.isDef(keyRange.lower)) {
     return ydn.db.Query.IDBKeyRange.lowerBound(keyRange.lower,
-      !keyRange.lowerOpen);
+      keyRange.lowerOpen);
   } else {
     throw Error('Invalid keyRange');
   }
@@ -204,7 +204,7 @@ ydn.db.Query.parseKeyRange = function (keyRange) {
  */
 ydn.db.Query.isLikeOperation_ = function (keyRange) {
   if (goog.isDef(keyRange.lower) && goog.isDef(keyRange.upper) &&
-    keyRange.lowerOpen && !keyRange.upperOpen) {
+    !keyRange.lowerOpen && keyRange.upperOpen) {
     if (keyRange.lower.length == keyRange.upper.length) {
       var n = keyRange.lower.length - 1;
       return keyRange.lower.substr(0, n) ==

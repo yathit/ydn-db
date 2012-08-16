@@ -15,7 +15,7 @@
     schema = schema || {};
     if ($.db.isReady()) {
       $.db.close();
-      $.db = new ydn.db.Storage();
+      $.db = new ydn.db.Storage(schema, db_name);
     } else {
       $.db.setSchema(schema);
       $.db.setDbName(db_name);
