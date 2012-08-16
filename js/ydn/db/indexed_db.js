@@ -514,12 +514,52 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
 
 
 /**
+ * Retrieve an object from store.
+ * @param {ydn.db.Key} key
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.IndexedDb.prototype.fetch = function(key) {
+
+  if (!this.schema.hasStore(key.store_name)) {
+    throw Error('Store: ' + key.store_name + ' not exist.');
+  }
+
+  var me = this;
+
+  return this.doTransaction(function(tx) {
+    var store = tx.objectStore(key.store_name);
+    var request = store.get(key.id);
+
+    request.onsuccess = function(event) {
+      tx.is_success = true;
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      // how to return empty result
+      tx.result = event.target.result;
+    };
+
+    request.onerror = function(event) {
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      me.logger.warning('Error retrieving ' + key.id + ' in ' + key.store_name);
+    };
+
+  }, [key.store_name], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
+
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.IndexedDb.prototype.get = function(table, key) {
 
   if (!goog.isDef(key)) {
     return this.getAll_(table);
+  } else {
+    return this.fetch(new ydn.db.Key({}))
   }
 
   if (!this.schema.hasStore(table)) {

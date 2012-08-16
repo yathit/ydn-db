@@ -299,6 +299,15 @@ ydn.db.WebSql.prototype.getKeyFromRow = function(table, row) {
   return row[table.keyPath || ydn.db.DEFAULT_KEY_COLUMN];
 };
 
+/**
+ * Retrieve an object from store.
+ * @param {ydn.db.Key} key
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.WebSql.prototype.fetch = function(key) {
+  return this.get(key.store_name, key.id);
+};
+
 
 /**
  * @inheritDoc

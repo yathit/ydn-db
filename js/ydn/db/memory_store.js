@@ -190,6 +190,15 @@ ydn.db.MemoryStore.prototype.put = function (table, value) {
   return ydn.db.MemoryStore.succeed(result);
 };
 
+/**
+ * Retrieve an object from store.
+ * @param {ydn.db.Key} key
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.MemoryStore.prototype.fetch = function(key) {
+  return this.get(key.store_name, key.id + '');
+};
+
 
 /**
  * Return object

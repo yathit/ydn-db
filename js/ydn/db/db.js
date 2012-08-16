@@ -23,6 +23,7 @@ goog.provide('ydn.db.Db');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.Query');
+goog.require('ydn.db.Key');
 
 
 
@@ -68,6 +69,16 @@ ydn.db.Db.prototype.put = function(table, value) {
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.Db.prototype.get = function(table, key) {
+
+};
+
+
+/**
+ * Retrieve an object from store.
+ * @param {ydn.db.Key} key
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.Db.prototype.fetch = function(key) {
 
 };
 

@@ -334,6 +334,23 @@ ydn.db.Storage.prototype.get = function(store_name, opt_key) {
   }
 };
 
+/**
+ * Retrieve an object from store.
+ * @param {ydn.db.Key} key
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.Storage.prototype.fetch = function(key) {
+  if (this.db_) {
+    return this.db_.fetch(key);
+  } else {
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function(db) {
+      db.fetch(key).chainDeferred(df);
+    });
+    return df;
+  }
+};
+
 
 /**
  * Remove a specific entry or all entries from a store.
