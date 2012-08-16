@@ -50,6 +50,8 @@
                 output.fn="ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.Storage">
         </adv-compile>
+        <copy file="${ydn-db.dir}/jsc/ydn-db-min-${ver}.js"
+              todir="${work.dir}/ydn-dev/out/ydn-db/example"/>        
     </target>
     <target name="deps" description="list dependency files">
         <delete file="${ydn-db.dir}/js/deps.js"/>
@@ -68,8 +70,8 @@
     </target>
 
     <target name="gen-html" description="Generate HTML from soy template">
-        <property name="out.js" value="${ydn-db.dir}/jsc/jquery-ydn-db-min-${ver}.js"/>
-        <gen-soy-web output.fn="${out.js}"
+        <property name="jout.js" value="${ydn-db.dir}/jsc/jquery-ydn-db-min-${ver}.js"/>
+        <gen-soy-web output.fn="${jout.js}"
                      namespace="templ.ydn.db.jquery.render"
                      templ.dir="${ydn-db.dir}/templ"
                      content-file="${ydn-db.dir}/jsc/ydn-db-min-${ver}.js">
@@ -77,7 +79,7 @@
                 <arg value="--notidy=true"/>
             </soy-web-optionls>
         </gen-soy-web>
-        <copy file="${out.js}"
+        <copy file="${jout.js}"
               todir="${work.dir}/ydn-dev/out/ydn-db/example"/>
     </target>
     <target name="jsdoc" description="create document">

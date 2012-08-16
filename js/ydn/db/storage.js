@@ -219,12 +219,13 @@ ydn.db.Storage.prototype.initDatabase = function() {
  * @return {boolean} true if the database has been initialized.
  */
 ydn.db.Storage.prototype.isReady = function() {
-  return !!this.db_;
+  return goog.isDef(this.db_);
 };
 
 
 /**
  * Close the database.
+ * @export
  * @return {!goog.async.Deferred} deferred function.
  */
 ydn.db.Storage.prototype.close = function() {
@@ -239,6 +240,7 @@ ydn.db.Storage.prototype.close = function() {
 
 /**
  * Return underlining database instance.
+ * @export
  * @return {ydn.db.Db|undefined} Database if exists.
  */
 ydn.db.Storage.prototype.getDb = function() {
@@ -435,3 +437,11 @@ goog.exportProperty(goog.async.Deferred.prototype, 'success',
   goog.async.Deferred.prototype.addCallback);
 goog.exportProperty(goog.async.Deferred.prototype, 'error',
   goog.async.Deferred.prototype.addErrback);
+
+// somehow these methods are not exported via @export annotation
+goog.exportProperty(ydn.db.Storage.prototype, 'isReady',
+  ydn.db.Storage.prototype.isReady);
+goog.exportProperty(ydn.db.Storage.prototype, 'setSchema',
+  ydn.db.Storage.prototype.setSchema);
+goog.exportProperty(ydn.db.Storage.prototype, 'setDbName',
+  ydn.db.Storage.prototype.setDbName);

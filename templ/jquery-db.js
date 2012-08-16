@@ -7,21 +7,20 @@
 
 (function( $ ) {
 
-  $.fn.db = {
+  // inject ydn.db.Storage code here.
 
-    // inject ydn.db.Storage here.
+  $.db = new ydn.db.Storage();
 
-    /** Open database */
-    open: function(db_name, schema) {
-      var db = new ydn.db.Storage(db_name, schema);
-
-      // copy all methods and bind to db.
-      for (var method in db) {
-        if (typeof db[method] == 'function') {
-          $.fn.db[method] = db[method].bind(db);
-        }
-      }
+  $.db.open = function(db_name, schema) {
+    schema = schema || {};
+    if ($.db.isReady()) {
+      $.db.close();
+      $.db = new ydn.db.Storage();
+    } else {
+      $.db.setSchema(schema);
+      $.db.setDbName(db_name);
     }
+  };
 
-  }
+
 })( jQuery );
