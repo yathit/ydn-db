@@ -25,28 +25,27 @@ goog.provide('ydn.db.Key');
 /**
  * Builds a new Key object of known id.
  *
- * @param {ydn.db.Key.Json} json key defined in JSON format.
+ * @param {string} store
+ * @param {(string|number)}id
+ * @param {ydn.db.Key=} opt_parent
  * @constructor
  */
-ydn.db.Key = function(json) {
+ydn.db.Key = function(store, id, opt_parent) {
   /**
    * @final
    * @type {string}
    */
-  this.store_name = json['store'];
-  goog.asserts.assertString(this.store_name);
+  this.store_name = store;
   /**
    * @final
    * @type {(string|number)}
    */
-  this.id = json['id'];
-  goog.asserts.assert(this.id);
+  this.id = id;
   /**
    * @final
    * @type {ydn.db.Key}
    */
-  this.parent = goog.isDefAndNotNull(json['parent']) ?
-      new ydn.db.Key(json['parent']) : null;
+  this.parent = opt_parent || null;
 };
 
 
@@ -82,13 +81,13 @@ ydn.db.Key.prototype.toString = function() {
 
 /**
  *
- * @param {string} store
- * @param {string|number} id
- * @param var_args
- * @return {!ydn.db.Key}
+ * @param {!Object} json
  */
-ydn.db.Key.fromJSON = function(store, id, var_args) {
-  return new ydn.db.Key({'store': store, 'id': id})
+ydn.db.Key.fromJSON = function(json) {
+  var parent = goog.isDefAndNotNull(json['parent']) ?
+    ydn.db.Key.fromJSON(json['parent']) : null;
+
+  return new ydn.db.Key(json['store'], json['id'], parent);
 };
 
 

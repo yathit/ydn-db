@@ -348,35 +348,36 @@ ydn.db.IndexedDb.prototype.runTxQueue = function() {
  */
 ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df)
 {
-  var self = this;
+  var me = this;
   opt_df = opt_df || new goog.async.Deferred();
 
   if (this.is_ready) {
     this.is_ready = false;
 
     /**
-     *
+     * @protected
      * @type {IDBTransaction}
      */
-    var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
-    goog.events.listen(/** @type {EventTarget} */ (tx),
+    me.tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
+    goog.events.listen(/** @type {EventTarget} */ (me.tx),
       [ydn.db.IndexedDb.EventTypes.COMPLETE,
         ydn.db.IndexedDb.EventTypes.ABORT, ydn.db.IndexedDb.EventTypes.ERROR],
       function(event) {
 
-        if (goog.isDef(tx.is_success)) {
-          opt_df.callback(tx.result);
+        if (goog.isDef(me.tx.is_success)) {
+          opt_df.callback(me.tx.result);
         } else {
-          opt_df.errback(tx.error);
+          opt_df.errback(me.tx.error);
         }
 
+        delete me.tx;
         goog.Timer.callOnce(function() {
-          self.is_ready = true;
-          self.runTxQueue();
+          me.is_ready = true;
+          me.runTxQueue();
         });
       });
 
-    fnc(tx);
+    fnc(me.tx);
 
   } else {
 
@@ -559,37 +560,8 @@ ydn.db.IndexedDb.prototype.get = function(table, key) {
   if (!goog.isDef(key)) {
     return this.getAll_(table);
   } else {
-    return this.fetch(new ydn.db.Key({}))
+    return this.fetch(new ydn.db.Key(table, key));
   }
-
-  if (!this.schema.hasStore(table)) {
-    throw Error('Store: ' + table + ' not exist.');
-  }
-
-  var me = this;
-
-  return this.doTransaction(function(tx) {
-    var store = tx.objectStore(table);
-    var request = store.get(key);
-
-    request.onsuccess = function(event) {
-      tx.is_success = true;
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      // how to return empty result
-      tx.result = event.target.result;
-    };
-
-    request.onerror = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      me.logger.warning('Error retriving ' + key + ' in ' + table);
-    };
-
-  }, [table], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
-
 };
 
 
@@ -618,7 +590,7 @@ ydn.db.IndexedDb.prototype.list = function(q) {
     request.onsuccess = function(event) {
       tx.is_success = true;
       if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
+        window.console.log([q, event]);
       }
       /**
        * @type {IDBCursor}
@@ -626,8 +598,14 @@ ydn.db.IndexedDb.prototype.list = function(q) {
       var cursor = /** @type {IDBCursor} */ (event.target.result);
       //console.log(cursor);
       if (cursor) {
-        tx.result.push(cursor['value']); // should not necessary if externs are
+
+        var value = cursor['value']; // should not necessary if externs are
         // properly updated.
+
+        // do the filtering if requested.
+        if (!goog.isDef(q.filter) || q.filter(value)) {
+          tx.result.push(value);
+        }
 
         if (!goog.isDef(q.limit) || tx.result.length < q.limit) {
           //cursor.continue();
@@ -638,7 +616,7 @@ ydn.db.IndexedDb.prototype.list = function(q) {
 
     request.onerror = function(event) {
       if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
+        window.console.log([q, event]);
       }
       tx.error = event;
     };
@@ -916,4 +894,66 @@ ydn.db.IndexedDb.prototype.close = function () {
   };
 
   return df;
+};
+
+
+/**
+ * inheritDoc
+ */
+ydn.db.IndexedDb.prototype.getInTransaction = function(store_name, id, callback) {
+  var me = this;
+  goog.asserts.assertObject(this.tx, 'Not in transaction.');
+
+  var store = this.tx.objectStore(store_name);
+  var request = store.get(id);
+
+  request.onsuccess = function(event) {
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log([store_name, id, event]);
+    }
+    // how to return empty result
+    callback(event.target.result);
+  };
+
+  request.onerror = function(event) {
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log([store_name, id, event]);
+    }
+    me.logger.warning('Error retrieving ' + id + ' in ' + store_name +
+      event.message);
+    me.tx.abort();
+  };
+
+};
+
+
+/**
+ *
+ */
+ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value,
+                                                       opt_callback) {
+
+  var me = this;
+  goog.asserts.assertObject(this.tx, 'Not in transaction.');
+  var store = this.tx.objectStore(store_name);
+
+  var request = store.put(value);
+
+  request.onsuccess = function(event) {
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log([store_name, value, event]);
+    }
+    if (opt_callback) {
+      opt_callback(event.target.result);
+    }
+  };
+
+  request.onerror = function(event) {
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log([store_name, value, event]);
+    }
+    me.tx.error = event;
+    me.tx.abort();
+  };
+
 };

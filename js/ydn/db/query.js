@@ -67,6 +67,12 @@ ydn.db.Query = function(select) {
    * @type {function(!Object): boolean}
    */
   this.filter = select['filter'];
+  /**
+   * @final
+   * @type {function(*, *, number, Array): *}
+   * function(previousValue, currentValue, index, array)
+   */
+  this.reduce = select['reduce'];
 };
 
 

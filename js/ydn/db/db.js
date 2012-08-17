@@ -50,25 +50,25 @@ ydn.db.Db = function() {};
 
 
 /**
- * @param {string} table table name.
+ * @param {string} store table name.
  * @param {!Object|Array.<!Object>} value object to put.
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.Db.prototype.put = function(table, value) {
+ydn.db.Db.prototype.put = function(store, value) {
 
 };
 
 
 /**
  * Return object
- * @param {string} table table name.
- * @param {string=} key object key to be retrieved, if not provided, all entries
+ * @param {string} store table name.
+ * @param {string=} id object key to be retrieved, if not provided, all entries
  * in the store will return.
  * param {number=} start start number of entry.
  * param {number=} limit maximun number of entries.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.Db.prototype.get = function(table, key) {
+ydn.db.Db.prototype.get = function(store, id) {
 
 };
 
@@ -123,4 +123,5 @@ ydn.db.Db.prototype.list = function(q) {
 ydn.db.Db.prototype.close = function() {
 
 };
+
 
