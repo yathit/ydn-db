@@ -69,10 +69,15 @@ ydn.db.Query = function(select) {
   this.filter = select['filter'];
   /**
    * @final
-   * @type {function(*, *, number, Array): *}
+   * @type {function(*, !Object, number, Array): *}
    * function(previousValue, currentValue, index, array)
    */
   this.reduce = select['reduce'];
+  /**
+   * @final
+   * @type {function(!Object): *}
+   */
+  this.map = select['map'];
 };
 
 
@@ -97,8 +102,7 @@ ydn.db.Query.prototype.toJSON = function () {
  *  lower: (*|undefined),
  *  lowerOpen: (boolean|undefined),
  *  upper: (*|undefined),
- *  upperOpen: (boolean|undefined),
- *  op: (ydn.db.Query.Op|undefined)
+ *  upperOpen: (boolean|undefined)
  * }}
  */
 ydn.db.Query.KeyRange;
@@ -184,13 +188,13 @@ ydn.db.Query.IDBKeyRange = goog.global.IDBKeyRange ||
  * @return {!ydn.db.Query.IDBKeyRange} equivalent IDBKeyRange.
  */
 ydn.db.Query.parseKeyRange = function (keyRange) {
-  if (goog.isDef(keyRange.upper) && goog.isDef(keyRange.lower)) {
+  if (goog.isDef(keyRange['upper']) && goog.isDef(keyRange['lower'])) {
     if (keyRange.lower === keyRange.upper) {
       return ydn.db.Query.IDBKeyRange.only(keyRange.lower);
     } else {
     return ydn.db.Query.IDBKeyRange.bound(
       keyRange.lower, keyRange.upper,
-      keyRange.lowerOpen, keyRange.upperOpen);
+      keyRange['lowerOpen'], keyRange['upperOpen']);
     }
   } else if (goog.isDef(keyRange.upper)) {
     return ydn.db.Query.IDBKeyRange.upperBound(keyRange.upper,

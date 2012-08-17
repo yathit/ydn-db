@@ -299,6 +299,7 @@ ydn.db.WebSql.prototype.getKeyFromRow = function(table, row) {
   return row[table.keyPath || ydn.db.DEFAULT_KEY_COLUMN];
 };
 
+
 /**
  * Retrieve an object from store.
  * @param {ydn.db.Key} key

@@ -919,7 +919,7 @@ ydn.db.IndexedDb.prototype.getInTransaction = function(store_name, id, callback)
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log([store_name, id, event]);
     }
-    me.logger.warning('Error retrieving ' + id + ' in ' + store_name +
+    me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
       event.message);
     me.tx.abort();
   };
