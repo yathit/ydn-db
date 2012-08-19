@@ -23,7 +23,8 @@ goog.provide('ydn.db.Query');
 
 /**
  * @param {string} store store name.
- * @param {string} index store field, where key query is preformed.
+ * @param {string=} index store field, where key query is preformed. If not
+ * provided, the first index will be used.
  * @param {!ydn.db.Query.Config=} select configuration in json format
  * @constructor
  */
@@ -98,7 +99,7 @@ ydn.db.Query.prototype.filter;
 ydn.db.Query.prototype.map;
 
 /**
- * @type {function(this: ydn.db.Query, *, !Object, number, Array): *}
+ * @type {function(*, !Object, number, Array): *}
  * function(previousValue, currentValue, index, array)
  */
 ydn.db.Query.prototype.reduce;
@@ -141,12 +142,31 @@ ydn.db.Query.prototype.sum = function(field) {
 /**
  * Convenient method for SQL <code>AVERAGE</code> method.
  */
-ydn.db.Query.prototype.average = function() {
+ydn.db.Query.prototype.average = function(field) {
   this.reduce = function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
     }
-    return (prev * (i -1) + curr) / i;
+    return (prev * (i -1) + curr[field]) / i;
+  }
+};
+
+
+/**
+ *
+ * @param {string|Array.<string>} fields
+ */
+ydn.db.Query.prototype.select = function(fields) {
+  this.map =  function(data) {
+    if (goog.isString(fields)) {
+      return data[fields];
+    } else {
+      var selected_data = {};
+      for (var i = 0; i < fields.length; i++) {
+        selected_data[fields[i]] = data[fields[i]];
+      }
+      return selected_data;
+    }
   }
 };
 
