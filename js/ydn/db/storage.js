@@ -38,6 +38,7 @@ goog.require('ydn.db.IndexedDb');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
+goog.require('ydn.db.tr.Key');
 
 
 /**
@@ -407,7 +408,8 @@ ydn.db.Storage.prototype.count = function(opt_store_name) {
 ydn.db.Storage.prototype.list = function(q) {
 
   if (!(q instanceof ydn.db.Query)) {
-    q = new ydn.db.Query(/** @type {!ydn.db.Query.Config} */ (q));
+    q = new ydn.db.Query(q['store'], q['index'],
+        /** @type {!ydn.db.Query.Config} */ (q));
   }
 
   if (this.db_) {
@@ -419,6 +421,29 @@ ydn.db.Storage.prototype.list = function(q) {
     });
     return df;
   }
+};
+
+
+/**
+ *
+ * @param {string} store store name.
+ * @param {string} index store field, where key query is preformed.
+ * @return {!ydn.db.Query}
+ */
+ydn.db.Storage.prototype.query = function(store, index) {
+  return new ydn.db.Query(store, index);
+};
+
+
+/**
+ *
+ * @param {string} store
+ * @param {(string|number)}id
+ * @param {ydn.db.Key=} opt_parent
+ * @return {!ydn.db.tr.Key}
+ */
+ydn.db.Storage.prototype.key = function(store, id, opt_parent) {
+  return new ydn.db.tr.Key(store, id, opt_parent)
 };
 
 

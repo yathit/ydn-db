@@ -23,11 +23,12 @@ goog.provide('ydn.db.tr.Db');
 goog.provide('ydn.db.tr.Key');
 goog.require('ydn.db.Db');
 goog.require('ydn.db.Key');
+goog.require('goog.async.Deferred');
 
 
 /**
  * @extends {ydn.db.Db}
- * @constructor
+ * @interface
  */
 ydn.db.tr.Db = function() {};
 
@@ -39,10 +40,9 @@ ydn.db.tr.Db = function() {};
  * This method must be {@link #runInTransaction}.
  * @param {string} store store name.
  * @param {string|number} id object key.
- * @return {function(Object)} callback return object in the callback,
- * null if not found. Transaction will abort on error.
+ * @return {!goog.async.Deferred}
  */
-ydn.db.tr.Db.prototype.getInTransaction = function(store, id, callback) {};
+ydn.db.tr.Db.prototype.getInTransaction = function(store, id) {};
 
 
 /**
@@ -51,9 +51,9 @@ ydn.db.tr.Db.prototype.getInTransaction = function(store, id, callback) {};
  * This method must be {@link #runInTransaction}.
  * @param {string} store store name.
  * @param {!Object} value object to put.
- * @param {function(boolean)} opt_callback return true after successful put.
+ * @return {!goog.async.Deferred}
  */
-ydn.db.tr.Db.prototype.putInTransaction = function(store, value, opt_callback)
+ydn.db.tr.Db.prototype.putInTransaction = function(store, value)
 {};
 
 
@@ -68,10 +68,13 @@ ydn.db.tr.Db.prototype.runInTransaction = function(trFn, keys) {};
 
 /**
  * @extends {ydn.db.Key}
+ * @param {string} store
+ * @param {(string|number)}id
+ * @param {ydn.db.Key=} opt_parent
  * @constructor
  */
-ydn.db.tr.Key = function(var_args) {
-  goog.base(this, arguments);
+ydn.db.tr.Key = function(store, id, opt_parent) {
+  goog.base(this, store, id, opt_parent);
 
   /**
    * Database instance injected during transaction.
@@ -79,23 +82,25 @@ ydn.db.tr.Key = function(var_args) {
    */
   this.db;
 };
+goog.inherits(ydn.db.tr.Key, ydn.db.Key);
 
 
 /**
  * Get object in the store in a transaction.
- * @return {Object}
+ * @return {!goog.async.Deferred}
  */
-ydn.db.tr.Key.prototype.get = function(callback) {
+ydn.db.tr.Key.prototype.get = function() {
   goog.asserts.assertObject(this.db, 'This must be runInTransaction');
-  this.db.getInTransaction(this.store_name, this.id, callback);
+  return this.db.getInTransaction(this.store_name, this.id);
 };
 
 
 /**
  * Get object in the store in a transaction.
- * @param {Object} value
+ * @param {!Object} value
+ * @return {!goog.async.Deferred}
  */
 ydn.db.tr.Key.prototype.put = function(value) {
   goog.asserts.assertObject(this.db, 'This must be runInTransaction');
-  this.db.putInTransaction(this.store_name, value);
+  return this.db.putInTransaction(this.store_name, value);
 };

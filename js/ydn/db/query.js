@@ -22,61 +22,34 @@ goog.provide('ydn.db.Query');
 
 
 /**
- * @param {!ydn.db.Query.Config} select configuration in json format
+ * @param {string} store store name.
+ * @param {string} index store field, where key query is preformed.
+ * @param {!ydn.db.Query.Config=} select configuration in json format
  * @constructor
  */
-ydn.db.Query = function(select) {
+ydn.db.Query = function(store, index, select) {
   /**
    * Store name.
    * @final
    * @type {string}
    */
-  this.store = select['store'];
-  /**
-   * Right value for query operation.
-   * @final
-   * @type {!ydn.db.Query.IDBKeyRange}
-   */
-  this.keyRange = ydn.db.Query.parseKeyRange(select['keyRange']);
+  this.store = store;
   /**
    * Indexed field.
    * @final
    * @type {string}
    */
-  this.index = select['index'];
-  /**
-   * Maximum number of result.
-   * @final
-   * @type {(number|undefined)}
-   */
+  this.index = index;
+  this.keyRange = ydn.db.Query.parseKeyRange(select['keyRange']);
   this.limit = select['limit'];
   /**
    * Result to be ordered by.
-   * @final
    * @type {(string|undefined)}
    */
-  this.order = select['order'];
-  /**
-   * Result to be start by.
-   * @final
-   * @type {(number|undefined)}
-   */
+  this.direction = select['direction'];
   this.offset = select['offset'];
-  /**
-   * @final
-   * @type {function(!Object): boolean}
-   */
   this.filter = select['filter'];
-  /**
-   * @final
-   * @type {function(*, !Object, number, Array): *}
-   * function(previousValue, currentValue, index, array)
-   */
   this.reduce = select['reduce'];
-  /**
-   * @final
-   * @type {function(!Object): *}
-   */
   this.map = select['map'];
 };
 
@@ -88,10 +61,92 @@ ydn.db.Query.prototype.toJSON = function () {
   return {
     'store':this.store,
     'index':this.index,
-    'keyRange': ydn.db.Query.FakeKeyRange.toJSON(this.keyRange),
-    'order':this.order,
+    'key_range': ydn.db.Query.FakeKeyRange.toJSON(this.keyRange),
+    'direction':this.direction,
     'offset':this.offset,
     'limit':this.limit
+  }
+};
+
+/**
+ * Right value for query operation.
+ * @type {!ydn.db.Query.IDBKeyRange}
+ */
+ydn.db.Query.prototype.keyRange;
+
+/**
+ * Result to be start by.
+ * @type {(number|undefined)}
+ */
+ydn.db.Query.prototype.offset;
+
+/**
+ * Maximum number of result.
+ * @type {(number|undefined)}
+ */
+ydn.db.Query.prototype.limit;
+
+
+/**
+ * @type {function(!Object): boolean}
+ */
+ydn.db.Query.prototype.filter;
+
+/**
+ * @type {function(!Object): *}
+ */
+ydn.db.Query.prototype.map;
+
+/**
+ * @type {function(this: ydn.db.Query, *, !Object, number, Array): *}
+ * function(previousValue, currentValue, index, array)
+ */
+ydn.db.Query.prototype.reduce;
+
+
+/**
+ * Convenient method for SQL <code>COUNT</code> method.
+ */
+ydn.db.Query.prototype.count = function() {
+  this.reduce = function(prev) {
+    if (!prev) {
+      prev = 0;
+    }
+    return prev + 1;
+  }
+};
+
+
+/**
+ * Convenient method for SQL <code>SUM</code> method.
+ */
+ydn.db.Query.prototype.sum = function(field) {
+  /**
+   *
+   * @param {*} prev
+   * @param {!Object} curr
+   * @param {number} i
+   * @param {Array} arr
+   * @return {*}
+   */
+  this.reduce = function(prev, curr, i, arr) {
+    if (!goog.isDef(prev)) {
+      prev = 0;
+    }
+    return prev + curr[field];
+  }
+};
+
+
+/**
+ * Convenient method for SQL <code>AVERAGE</code> method.
+ */
+ydn.db.Query.prototype.average = function() {
+  this.reduce = function(prev, curr, i) {
+    if (!goog.isDef(prev)) {
+      prev = 0;
+    }
+    return (prev * (i -1) + curr) / i;
   }
 };
 

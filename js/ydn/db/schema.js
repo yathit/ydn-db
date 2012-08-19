@@ -121,7 +121,8 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
     indexes.push(this.indexes[i].toJSON());
   }
 
-  return {'name': this.name,
+  return {
+    'name': this.name,
     'keyPath': this.keyPath,
     'autoIncrement': this.autoIncrement,
     'indexes': indexes};

@@ -900,9 +900,10 @@ ydn.db.IndexedDb.prototype.close = function () {
 /**
  * inheritDoc
  */
-ydn.db.IndexedDb.prototype.getInTransaction = function(store_name, id, callback) {
+ydn.db.IndexedDb.prototype.getInTransaction = function(store_name, id) {
   var me = this;
   goog.asserts.assertObject(this.tx, 'Not in transaction.');
+  var df = new goog.async.Deferred();
 
   var store = this.tx.objectStore(store_name);
   var request = store.get(id);
@@ -912,7 +913,7 @@ ydn.db.IndexedDb.prototype.getInTransaction = function(store_name, id, callback)
       window.console.log([store_name, id, event]);
     }
     // how to return empty result
-    callback(event.target.result);
+    df.callback(event.target.result);
   };
 
   request.onerror = function(event) {
@@ -922,19 +923,20 @@ ydn.db.IndexedDb.prototype.getInTransaction = function(store_name, id, callback)
     me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
       event.message);
     me.tx.abort();
+    df.errback(event);
   };
-
+  return df;
 };
 
 
 /**
- *
+ * @return {!goog.async.Deferred}
  */
-ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value,
-                                                       opt_callback) {
+ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value) {
 
   var me = this;
   goog.asserts.assertObject(this.tx, 'Not in transaction.');
+  var df = new goog.async.Deferred();
   var store = this.tx.objectStore(store_name);
 
   var request = store.put(value);
@@ -943,9 +945,7 @@ ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value,
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log([store_name, value, event]);
     }
-    if (opt_callback) {
-      opt_callback(event.target.result);
-    }
+    df.callback(event.target.result);
   };
 
   request.onerror = function(event) {
@@ -954,6 +954,7 @@ ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value,
     }
     me.tx.error = event;
     me.tx.abort();
+    df.errback(event);
   };
-
+  return df;
 };
