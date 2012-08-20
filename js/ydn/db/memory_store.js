@@ -20,10 +20,11 @@ goog.provide('ydn.db.MemoryStore');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
+goog.require('ydn.db.tr.Db');
 
 
 /**
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.tr.Db}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -203,7 +204,7 @@ ydn.db.MemoryStore.prototype.fetch = function(key) {
 /**
  * Return object
  * @param {string} table table name.
- * @param {string=} opt_key object key to be retrieved, if not provided, all
+ * @param {(string|number)=} opt_key object key to be retrieved, if not provided, all
  * entries in the store will return.
  * param {number=} start start number of entry.
  * param {number=} limit maximun number of entries.
@@ -327,4 +328,41 @@ ydn.db.MemoryStore.prototype.list = function(q) {
  */
 ydn.db.MemoryStore.prototype.close = function () {
   return ydn.db.MemoryStore.succeed(true);
+};
+
+
+/**
+ * Get object in the store in a transaction. This return requested object
+ * immediately.
+ *
+ * This method must be {@link #runInTransaction}.
+ * @param {string} store store name.
+ * @param {string|number} id object key.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.MemoryStore.prototype.getInTransaction = function(store, id) {
+  throw Error('no impl');
+};
+
+
+/**
+ * Put the object in the store in a transaction.
+ *
+ * This method must be {@link #runInTransaction}.
+ * @param {string} store store name.
+ * @param {!Object} value object to put.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.MemoryStore.prototype.putInTransaction = function(store, value) {
+  throw Error('no impl');
+};
+
+
+/**
+ *
+ * @param {Function} trFn function that invoke in the transaction.
+ * @param {Array.<ydn.db.tr.Key> } keys list of keys involved in the transaction.
+ */
+ydn.db.MemoryStore.prototype.runInTransaction = function(trFn, keys) {
+  throw Error('not impl');
 };

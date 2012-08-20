@@ -62,8 +62,8 @@ ydn.db.Db.prototype.put = function(store, value) {
 /**
  * Return object
  * @param {string} store table name.
- * @param {string=} id object key to be retrieved, if not provided, all entries
- * in the store will return.
+ * @param {(string|number)=} id object key to be retrieved, if not provided,
+ * all entries in the store will return.
  * param {number=} start start number of entry.
  * param {number=} limit maximun number of entries.
  * @return {!goog.async.Deferred} return object in deferred function.

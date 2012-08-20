@@ -24,7 +24,7 @@ goog.require('goog.async.DeferredList');
 goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db.DatabaseSchema');
-goog.require('ydn.db.Db');
+goog.require('ydn.db.tr.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
 
@@ -32,7 +32,7 @@ goog.require('ydn.json');
 /**
  * @see goog.db.IndexedDb
  * @see ydn.db.Storage for schema defination
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.tr.Db}
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -957,4 +957,14 @@ ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value) {
     df.errback(event);
   };
   return df;
+};
+
+
+/**
+ *
+ * @param {Function} trFn function that invoke in the transaction.
+ * @param {Array.<ydn.db.tr.Key> } keys list of keys involved in the transaction.
+ */
+ydn.db.IndexedDb.prototype.runInTransaction = function(trFn, keys) {
+  throw Error('not impl');
 };

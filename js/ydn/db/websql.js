@@ -25,7 +25,7 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.Db');
+goog.require('ydn.db.tr.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
 
@@ -33,7 +33,7 @@ goog.require('ydn.json');
 /**
  * Construct WebSql database.
  * Note: Version is ignored, since it does work well.
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.tr.Db}
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -324,9 +324,11 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
 
   var me = this;
 
+  var params = [];
   if (goog.isDef(key)) {
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-        table.getQuotedKeyPath() + ' = ' + goog.string.quote(key) + ';';
+        table.getQuotedKeyPath() + ' = ?';
+    params = [key];
   } else {
     var sql = 'SELECT * FROM ' + table.getQuotedName();
   }
@@ -365,7 +367,7 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
 
   this.db.transaction(function(t) {
     //console.log(sql);
-    t.executeSql(sql, [], callback, error_callback);
+    t.executeSql(sql, params, callback, error_callback);
   });
 
   return d;
@@ -682,4 +684,39 @@ ydn.db.WebSql.prototype.close = function () {
 
 
 
+/**
+ * Get object in the store in a transaction. This return requested object
+ * immediately.
+ *
+ * This method must be {@link #runInTransaction}.
+ * @param {string} store store name.
+ * @param {string|number} id object key.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.WebSql.prototype.getInTransaction = function(store, id) {
+  throw Error('no impl');
+};
 
+
+/**
+ * Put the object in the store in a transaction.
+ *
+ * This method must be {@link #runInTransaction}.
+ * @param {string} store store name.
+ * @param {!Object} value object to put.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.WebSql.prototype.putInTransaction = function(store, value) {
+  throw Error('no impl');
+};
+
+
+
+/**
+ *
+ * @param {Function} trFn function that invoke in the transaction.
+ * @param {Array.<ydn.db.tr.Key> } keys list of keys involved in the transaction.
+ */
+ydn.db.WebSql.prototype.runInTransaction = function(trFn, keys) {
+  throw Error('not impl');
+};

@@ -61,7 +61,7 @@ ydn.db.Storage = function(opt_dbname, opt_schema) {
 
   /**
    * @private
-   * @type {ydn.db.Db} db instance.
+   * @type {ydn.db.tr.Db} db instance.
    */
   this.db_;
 
@@ -318,7 +318,7 @@ ydn.db.Storage.prototype.getItem = function(key) {
  * Note: This will not raise error to get non-existing object.
  * @export
  * @param {string} store_name The name of store to retrive object from.
- * @param {string=} opt_key the key of an object to be retrieved.
+ * @param {(string|number)=} opt_key the key of an object to be retrieved.
  * if not provided, all entries in the store will return.
  * @return {!goog.async.Deferred} return resulting object in deferred function.
  * If not found, {@code undefined} is return.
@@ -426,12 +426,24 @@ ydn.db.Storage.prototype.list = function(q) {
 
 /**
  *
- * @param {string} store store name.
- * @param {string} index store field, where key query is preformed.
+ * @param {string} store_name store name.
+ * @param {string=} index store field, where key query is preformed.
  * @return {!ydn.db.Query}
  */
-ydn.db.Storage.prototype.query = function(store, index) {
-  return new ydn.db.Query(store, index);
+ydn.db.Storage.prototype.query = function(store_name, index) {
+  var store = this.schema.getStore(store_name);
+  if (!store) {
+    throw Error('Store: ' + store_name + ' not exist.');
+  }
+  if (!goog.isDef(index)) {
+    if (store.indexes.length == 0) {
+      throw Error('Store: ' + store_name + ' has no index.');
+    }
+    var key_index = store.getIndex(/** @type {string} */ (store.keyPath));
+    index = /** @type {string} */
+        (key_index ? store.keyPath : store.indexes[0]);
+  }
+  return new ydn.db.Query(store_name, index);
 };
 
 
@@ -442,8 +454,23 @@ ydn.db.Storage.prototype.query = function(store, index) {
  * @param {ydn.db.Key=} opt_parent
  * @return {!ydn.db.tr.Key}
  */
+ydn.db.Storage.prototype.tkey = function(store, id, opt_parent) {
+  var key = new ydn.db.tr.Key(store, id, opt_parent);
+  key.db = this.db_;
+  return key;
+};
+
+/**
+ *
+ * @param {string} store
+ * @param {(string|number)}id
+ * @param {ydn.db.Key=} opt_parent
+ * @return {!ydn.db.Key}
+ */
 ydn.db.Storage.prototype.key = function(store, id, opt_parent) {
-  return new ydn.db.tr.Key(store, id, opt_parent)
+  var key = new ydn.db.Key(store, id, opt_parent);
+  key.db = this.db_;
+  return key;
 };
 
 

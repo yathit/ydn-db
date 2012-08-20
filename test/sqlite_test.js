@@ -572,8 +572,7 @@ var test_8_query_start_with = function() {
 
 
   var keyRange = ydn.db.Query.createKeyRange(ydn.db.Query.Op.START_WITH, 'as');
-  var q = new ydn.db.Query(
-    {store: store_name, index: 'id', keyRange: keyRange});
+  var q = new ydn.db.Query(store_name, 'id', {keyRange: keyRange});
   console.log([keyRange, q]);
 
   db.list(q).addCallback(function(value) {

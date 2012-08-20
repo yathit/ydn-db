@@ -50,11 +50,10 @@ ydn.db.tr.Db.prototype.getInTransaction = function(store, id) {};
  *
  * This method must be {@link #runInTransaction}.
  * @param {string} store store name.
- * @param {!Object} value object to put.
+ * @param {!Object|!Array.<!Object>} value object to put.
  * @return {!goog.async.Deferred}
  */
-ydn.db.tr.Db.prototype.putInTransaction = function(store, value)
-{};
+ydn.db.tr.Db.prototype.putInTransaction = function(store, value) {};
 
 
 
@@ -75,18 +74,13 @@ ydn.db.tr.Db.prototype.runInTransaction = function(trFn, keys) {};
  */
 ydn.db.tr.Key = function(store, id, opt_parent) {
   goog.base(this, store, id, opt_parent);
-
-  /**
-   * Database instance injected during transaction.
-   * @type {ydn.db.tr.Db}
-   */
-  this.db;
 };
 goog.inherits(ydn.db.tr.Key, ydn.db.Key);
 
 
 /**
  * Get object in the store in a transaction.
+ * @override
  * @return {!goog.async.Deferred}
  */
 ydn.db.tr.Key.prototype.get = function() {
@@ -97,8 +91,10 @@ ydn.db.tr.Key.prototype.get = function() {
 
 /**
  * Get object in the store in a transaction.
- * @param {!Object} value
- * @return {!goog.async.Deferred}
+ * @override
+ * @param {!Object|!Array.<!Object>} value object to put.
+ * @return {!goog.async.Deferred} return key in deferred function. On error,
+ * an {@code Error} object is return as received from the mechanism.
  */
 ydn.db.tr.Key.prototype.put = function(value) {
   goog.asserts.assertObject(this.db, 'This must be runInTransaction');
