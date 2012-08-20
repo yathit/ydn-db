@@ -46,9 +46,7 @@ ydn.db.Query = function(store, index, select) {
    */
   this.index = index;
   this.keyRange = ydn.db.Query.parseKeyRange(select['keyRange']);
-  this.limit = select['limit'];
   this.direction = select['direction'];
-  this.offset = select['offset'];
   this.filter = select['filter'];
   this.reduce = select['reduce'];
   this.map = select['map'];
@@ -64,9 +62,7 @@ ydn.db.Query.prototype.toJSON = function () {
     'store':this.store,
     'index':this.index,
     'key_range': ydn.db.Query.KeyRangeImpl.toJSON(this.keyRange),
-    'direction':this.direction,
-    'offset':this.offset,
-    'limit':this.limit
+    'direction':this.direction
   }
 };
 
@@ -81,19 +77,6 @@ ydn.db.Query.prototype.keyRange;
  * @type {(string|undefined)}
  */
 ydn.db.Query.prototype.direction;
-
-/**
- * Result to be start by.
- * @type {(number|undefined)}
- */
-ydn.db.Query.prototype.offset;
-
-/**
- * Maximum number of result.
- * @type {(number|undefined)}
- */
-ydn.db.Query.prototype.limit;
-
 
 /**
  * @type {function(!Object): boolean}
@@ -246,9 +229,7 @@ ydn.db.Query.KeyRange;
  *  store: (string|undefined),
  *  index: (string|undefined),
  *  keyRange: (ydn.db.Query.KeyRange|Object|undefined),
- *  limit: (number|undefined),
- *  direction: (string|undefined),
- *  offset: (number|undefined)
+ *  direction: (string|undefined)
  *  }}
  */
 ydn.db.Query.Config;

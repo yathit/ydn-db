@@ -582,11 +582,9 @@ ydn.db.IndexedDb.prototype.get = function(arg1, key) {
 
 
 /**
- * Get result of a query
- * @param {!ydn.db.Query} q query.
- * @return {!goog.async.Deferred} return a deferred function.
+ * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.fetch = function(q) {
+ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
   var self = this;
 
   var store = this.schema.getStore(q.store);
@@ -648,7 +646,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
           }
         }
 
-        if (to_continue && (!goog.isDef(q.limit) || tx.result.length < q.limit)) {
+        if (to_continue && (!goog.isDef(limit) || idx < limit)) {
           //cursor.continue();
           cursor['continue'](); // Note: Must be quoted to avoid parse error.
         }

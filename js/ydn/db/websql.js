@@ -391,11 +391,9 @@ ydn.db.WebSql.prototype.get = function (arg1, key) {
 
 
 /**
- * Fetch result of a query
- * @param {!ydn.db.Query} q query.
- * @return {!goog.async.Deferred} return a deferred function.
+ * @inheritDoc
  */
-ydn.db.WebSql.prototype.fetch = function(q) {
+ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
   var d = new goog.async.Deferred();
   var me = this;
 
@@ -413,7 +411,7 @@ ydn.db.WebSql.prototype.fetch = function(q) {
   var callback = function(transaction, results) {
     var values = [];
     for (var i = 0; i < results.rows.length; i++) {
-      if (goog.isDef(q.limit) && i >= q.limit) {
+      if (goog.isDef(limit) && i >= limit) {
         break;
       }
       var row = results.rows.item(i);

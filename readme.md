@@ -1,8 +1,7 @@
 # Overview #
 
-Wrapper for web client databases, supporting HTML5 Indexeddb, Web SQL and localStorage.
-
-See documentation in wiki and feel free to edit.
+Web client database API for Indexeddb, Web SQL and
+localStorage storage mechanisms supporting version migration, advanced query and transaction.
 
 
 # License #
