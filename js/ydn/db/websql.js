@@ -714,9 +714,8 @@ ydn.db.WebSql.prototype.putInTransaction = function(store, value) {
 
 /**
  *
- * @param {Function} trFn function that invoke in the transaction.
- * @param {Array.<ydn.db.tr.Key> } keys list of keys involved in the transaction.
+ * @inheritDoc
  */
-ydn.db.WebSql.prototype.runInTransaction = function(trFn, keys) {
+ydn.db.WebSql.prototype.runInTransaction = function(trFn, scopes, mode) {
   throw Error('not impl');
 };

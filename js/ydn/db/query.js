@@ -110,8 +110,8 @@ ydn.db.Query.prototype.map;
 
 /**
  * Reduce is execute after map.
- * @type {function(*, *, number, Array): *}
- * function(previousValue, currentValue, index, array)
+ * @type {function(*, *, number): *}
+ * function(previousValue, currentValue, index)
  */
 ydn.db.Query.prototype.reduce;
 
@@ -133,7 +133,7 @@ ydn.db.Query.prototype.count = function() {
  * Convenient method for SQL <code>SUM</code> method.
  */
 ydn.db.Query.prototype.sum = function(field) {
-  this.reduce = function(prev, curr, i, arr) {
+  this.reduce = function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
     }

@@ -341,7 +341,8 @@ ydn.db.IndexedDb.prototype.runTxQueue = function() {
  * as failed.
  * @protected
  * @param {Function} fnc transaction function.
- * @param {Array.<string>} scopes list of stores involved in the transaction.
+ * @param {!Array.<string>} scopes list of stores involved in the
+ * transaction.
  * @param {number|string} mode mode.
  * @param {goog.async.Deferred=} opt_df output deferred function to be used.
  * @return {!goog.async.Deferred} d result in deferred function.
@@ -584,19 +585,21 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
 
     //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
     // ' of ' + column + ' in ' + table);
-    var request = index.openCursor(q.keyRange, q.direction);
+    var request;
+    if (goog.isDef(q.direction)) {
+      request = index.openCursor(q.keyRange, q.direction);
+    } else {
+      request = index.openCursor(q.keyRange);
+    }
 
     tx.is_success = true;
     var idx = -1; // iteration index
     if (!is_reduce) {
       tx.result = [];
-    } else {
-      // reduce final result is not array
-      var result = [];
     }
 
     request.onsuccess = function(event) {
-      idx++;
+
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log([q, idx, event]);
       }
@@ -618,9 +621,9 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
             value = q.map(value);
           }
 
+          idx++;
           if (is_reduce) {
-            result.push(value);
-            tx.result = q.reduce(tx.result, value, idx, result);
+            tx.result = q.reduce(tx.result, value, idx);
           } else {
             tx.result.push(value);
           }
@@ -982,9 +985,10 @@ ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value) {
 
 /**
  *
- * @param {Function} trFn function that invoke in the transaction.
- * @param {Array.<ydn.db.tr.Key> } keys list of keys involved in the transaction.
+ * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.runInTransaction = function(trFn, keys) {
-  throw Error('not impl');
+ydn.db.IndexedDb.prototype.runInTransaction = function(trFn, scopes, mode) {
+  return this.doTransaction(function(tx) {
+    trFn();
+  }, scopes, mode);
 };

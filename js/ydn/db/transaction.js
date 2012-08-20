@@ -60,9 +60,12 @@ ydn.db.tr.Db.prototype.putInTransaction = function(store, value) {};
 /**
  *
  * @param {Function} trFn function that invoke in the transaction.
- * @param {Array.<ydn.db.tr.Key> } keys list of keys involved in the transaction.
+ * @param {!Array.<string>} scopes list of stores involved in the
+ * transaction.
+ * @param {number|string} mode mode.
+ * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.tr.Db.prototype.runInTransaction = function(trFn, keys) {};
+ydn.db.tr.Db.prototype.runInTransaction = function(trFn, scopes, mode) {};
 
 
 /**
