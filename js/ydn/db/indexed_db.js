@@ -556,12 +556,27 @@ ydn.db.IndexedDb.prototype.getByKey = function(key) {
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.get = function(table, key) {
+ydn.db.IndexedDb.prototype.get = function(arg1, key) {
 
-  if (!goog.isDef(key)) {
-    return this.getAll_(table);
+  if (arg1 instanceof ydn.db.Query) {
+    var df = new goog.async.Deferred();
+
+    var fetch_df = this.fetch(arg1);
+    fetch_df.addCallback(function(value) {
+      df.callback(goog.isArray(value) ? value[0] : undefined);
+    });
+    fetch_df.addErrback(function(value) {
+      df.errback(value);
+    });
+
+    return df;
+  } else if (arg1 instanceof ydn.db.Key) {
+    return this.getByKey(arg1);
+  } else if (!goog.isDef(key)) {
+    goog.asserts.assertString(arg1); // store name
+    return this.getAll_(arg1);
   } else {
-    return this.getByKey(new ydn.db.Key(table, key));
+    return this.getByKey(new ydn.db.Key(arg1, key));
   }
 };
 

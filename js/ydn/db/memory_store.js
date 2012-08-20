@@ -202,41 +202,51 @@ ydn.db.MemoryStore.prototype.getByKey = function(key) {
 
 
 /**
- * Return object
- * @param {string} table table name.
- * @param {(string|number)=} opt_key object key to be retrieved, if not provided, all
- * entries in the store will return.
- * param {number=} start start number of entry.
- * param {number=} limit maximun number of entries.
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.get = function(table, opt_key) {
+ydn.db.MemoryStore.prototype.get = function (arg1, opt_key) {
 
-  var store = this.schema.getStore(table);
-  goog.asserts.assertObject(store);
+  if (arg1 instanceof ydn.db.Query) {
+    var df = new goog.async.Deferred();
 
-  if (goog.isDef(opt_key)) {
-    var value = this.cache_.getItem(this.getKey(opt_key, store));
-    if (!goog.isNull(value)) {
-      value = ydn.json.parse(/** @type {string} */ (value));
-    } else {
-      value = undefined; // localStorage return null for not existing value
-    }
-    return ydn.db.MemoryStore.succeed(value);
+    var fetch_df = this.fetch(arg1);
+    fetch_df.addCallback(function (value) {
+      df.callback(goog.isArray(value) ? value[0] : undefined);
+    });
+    fetch_df.addErrback(function (value) {
+      df.errback(value);
+    });
+
+    return df;
+  } else if (arg1 instanceof ydn.db.Key) {
+    return this.getByKey(arg1);
   } else {
-    var arr = [];
-    for (var item in this.cache_) {
-      if (this.cache_.hasOwnProperty(item)) {
-        if (goog.string.startsWith(item, '_database_' + this.dbname + '-' +
-            table)) {
-          var value = this.cache_[item];
-          arr.push(ydn.json.parse(
-              /** @type {string} */ (value)));
+    var store = this.schema.getStore(arg1);
+    goog.asserts.assertObject(store);
+
+    if (goog.isDef(opt_key)) {
+      var value = this.cache_.getItem(this.getKey(opt_key, store));
+      if (!goog.isNull(value)) {
+        value = ydn.json.parse(/** @type {string} */ (value));
+      } else {
+        value = undefined; // localStorage return null for not existing value
+      }
+      return ydn.db.MemoryStore.succeed(value);
+    } else {
+      var arr = [];
+      for (var item in this.cache_) {
+        if (this.cache_.hasOwnProperty(item)) {
+          if (goog.string.startsWith(item, '_database_' + this.dbname + '-' +
+              arg1)) {
+            var value = this.cache_[item];
+            arr.push(ydn.json.parse(
+                /** @type {string} */ (value)));
+          }
         }
       }
-    }
 
-    return ydn.db.MemoryStore.succeed(arr);
+      return ydn.db.MemoryStore.succeed(arr);
+    }
   }
 };
 

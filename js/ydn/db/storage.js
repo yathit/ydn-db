@@ -317,7 +317,7 @@ ydn.db.Storage.prototype.getItem = function(key) {
  *
  * Note: This will not raise error to get non-existing object.
  * @export
- * @param {string} store_name The name of store to retrive object from.
+ * @param {string|!ydn.db.Query|!ydn.db.Key} store_name The name of store to retrive object from.
  * @param {(string|number)=} opt_key the key of an object to be retrieved.
  * if not provided, all entries in the store will return.
  * @return {!goog.async.Deferred} return resulting object in deferred function.

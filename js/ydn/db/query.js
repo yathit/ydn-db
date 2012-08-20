@@ -20,6 +20,7 @@
 goog.provide('ydn.db.Query');
 goog.provide('ydn.db.Query.KeyRange');
 goog.provide('ydn.db.Query.KeyRangeImpl');
+goog.require('goog.functions');
 
 
 
@@ -118,8 +119,50 @@ ydn.db.Query.prototype.reduce;
 
 
 /**
+ * Convenient method for SQL <code>WHEN</code> method.
+ * @param {string} field
+ * @param {string} op
+ * @param {string} value
+ * @param {string=} op2
+ * @param {string=} value2
+ * @return {!ydn.db.Query}
+ */
+ydn.db.Query.prototype.when = function(field, op, value, op2, value2) {
+
+  var op_test = function(op, lv) {
+    if (op === '=' || op === '==') {
+      return function(x) {return x == lv};
+    } else if (op === '===') {
+      return function(x) {return x === lv};
+    } else if (op === '>') {
+      return function(x) {return x > lv};
+    } else if (op === '>=') {
+      return function(x) {return x >= lv};
+    } else if (op === '<') {
+      return function(x) {return x < lv};
+    } else if (op === '<=') {
+      return function(x) {return x <= lv};
+    } else if (op === '!=') {
+      return function(x) {return x != lv};
+    }
+  };
+
+  var test1 = op_test(op, value);
+  var test2 = goog.isDef(op2) && goog.isDef(value2) ?
+      op_test(op, value) : goog.functions.TRUE;
+
+  var prev_filter = this.filter || goog.functions.TRUE;
+
+  this.filter = function (obj) {
+    return prev_filter(obj) && test1(obj[field]) && test2(obj[field]);
+  };
+  return this;
+};
+
+
+/**
  * Convenient method for SQL <code>COUNT</code> method.
- * @return {ydn.db.Query}
+ * @return {!ydn.db.Query}
  */
 ydn.db.Query.prototype.count = function() {
   this.reduce = function(prev) {
@@ -134,7 +177,7 @@ ydn.db.Query.prototype.count = function() {
 
 /**
  * Convenient method for SQL <code>SUM</code> method.
- * @return {ydn.db.Query}
+ * @return {!ydn.db.Query}
  */
 ydn.db.Query.prototype.sum = function(field) {
   this.reduce = function(prev, curr, i) {
@@ -149,7 +192,7 @@ ydn.db.Query.prototype.sum = function(field) {
 
 /**
  * Convenient method for SQL <code>AVERAGE</code> method.
- * @return {ydn.db.Query}
+ * @return {!ydn.db.Query}
  */
 ydn.db.Query.prototype.average = function(field) {
   this.reduce = function(prev, curr, i) {
@@ -165,7 +208,7 @@ ydn.db.Query.prototype.average = function(field) {
 /**
  *
  * @param {string|Array.<string>} arg1
- * @return {ydn.db.Query}
+ * @return {!ydn.db.Query}
  */
 ydn.db.Query.prototype.select = function(arg1) {
   this.map =  function(data) {

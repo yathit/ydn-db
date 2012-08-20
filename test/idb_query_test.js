@@ -122,7 +122,7 @@ var test_4_idb_sum = function() {
 
   goog.userAgent.product.ASSUME_CHROME = true;
 
-  var db_name = 'test_4_idb_sum2';
+  var db_name = 'test_4_idb_sum';
   var db = new ydn.db.Storage(db_name, basic_schema);
 
   var arr = [
@@ -208,6 +208,49 @@ var test_4_idb_avg = function() {
   });
 };
 
+
+var test_52_idb_when = function() {
+
+  goog.userAgent.product.ASSUME_CHROME = true;
+
+  var db_name = 'test_52_idb_when2';
+  var db = new ydn.db.Storage(db_name, basic_schema);
+
+  var arr = [
+    {id: 'a', value: 1, text: 'A'},
+    {id: 'b', value: 2, text: 'B'},
+    {id: 'c', value: 3, text: 'C'},
+    {id: 'd', value: 4, text: 'D'}
+  ];
+
+
+  var hasEventFired = false;
+  var result;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('when value = 1', 'B', result.text);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(table_name, arr).addCallback(function(value) {
+    console.log('receiving value callback ' + JSON.stringify(value));
+
+    var q = db.query(table_name);
+    q.when('value', '=', 2);
+    db.get(q).addCallback(function(q_result) {
+      console.log('receiving when query ' + JSON.stringify(q_result));
+      result = q_result;
+      hasEventFired = true;
+    })
+  });
+};
 
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();

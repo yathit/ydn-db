@@ -313,64 +313,80 @@ ydn.db.WebSql.prototype.getByKey = function(key) {
 /**
  * @inheritDoc
  */
-ydn.db.WebSql.prototype.get = function(table_name, key) {
+ydn.db.WebSql.prototype.get = function (arg1, key) {
   var d = new goog.async.Deferred();
 
-  var table = this.schema.getStore(table_name);
-  if (!table) {
-    this.logger.warning('Table ' + table_name + ' not found.');
-    d.errback(new Error('Table ' + table_name + ' not found.'));
-  }
+  if (arg1 instanceof ydn.db.Query) {
+    var df = new goog.async.Deferred();
 
-  var me = this;
+    var fetch_df = this.fetch(arg1);
+    fetch_df.addCallback(function (value) {
+      df.callback(goog.isArray(value) ? value[0] : undefined);
+    });
+    fetch_df.addErrback(function (value) {
+      df.errback(value);
+    });
 
-  var params = [];
-  if (goog.isDef(key)) {
-    var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-        table.getQuotedKeyPath() + ' = ?';
-    params = [key];
+    return df;
+  } else if (arg1 instanceof ydn.db.Key) {
+    return this.getByKey(arg1);
   } else {
-    var sql = 'SELECT * FROM ' + table.getQuotedName();
-  }
+    var table = this.schema.getStore(arg1);
+    if (!table) {
+      this.logger.warning('Table ' + arg1 + ' not found.');
+      d.errback(new Error('Table ' + arg1 + ' not found.'));
+    }
 
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function(transaction, results) {
-    if (!goog.isDef(key)) {
-      var arr = [];
-      for (var i = 0; i < results.rows.length; i++) {
-        var row = results.rows.item(i);
-        arr.push(me.parseRow(table, row));
-      }
-      d.callback(arr);
-    } else if (results.rows.length > 0) {
-      var row = results.rows.item(0);
-      d.callback(me.parseRow(table, row));
+    var me = this;
+
+    var params = [];
+    if (goog.isDef(key)) {
+      var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
+          table.getQuotedKeyPath() + ' = ?';
+      params = [key];
     } else {
-      d.callback(undefined);
+      var sql = 'SELECT * FROM ' + table.getQuotedName();
     }
-  };
 
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('get error: ' + error.message);
-    d.errback(error);
-  };
+    /**
+     * @param {SQLTransaction} transaction transaction.
+     * @param {SQLResultSet} results results.
+     */
+    var callback = function (transaction, results) {
+      if (!goog.isDef(key)) {
+        var arr = [];
+        for (var i = 0; i < results.rows.length; i++) {
+          var row = results.rows.item(i);
+          arr.push(me.parseRow(table, row));
+        }
+        d.callback(arr);
+      } else if (results.rows.length > 0) {
+        var row = results.rows.item(0);
+        d.callback(me.parseRow(table, row));
+      } else {
+        d.callback(undefined);
+      }
+    };
 
-  this.db.transaction(function(t) {
-    //console.log(sql);
-    t.executeSql(sql, params, callback, error_callback);
-  });
+    /**
+     * @param {SQLTransaction} tr transaction.
+     * @param {SQLError} error error.
+     */
+    var error_callback = function (tr, error) {
+      if (ydn.db.WebSql.DEBUG) {
+        window.console.log([tr, error]);
+      }
+      me.logger.warning('get error: ' + error.message);
+      d.errback(error);
+    };
 
-  return d;
+    this.db.transaction(function (t) {
+      //console.log(sql);
+      t.executeSql(sql, params, callback, error_callback);
+    });
+
+    return d;
+  }
 };
 
 
