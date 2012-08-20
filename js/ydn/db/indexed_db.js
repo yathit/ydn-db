@@ -298,8 +298,8 @@ ydn.db.IndexedDb.prototype.migrate = function(db) {
     var store = db.createObjectStore(table.name,
         {keyPath: table.keyPath, autoIncrement: table.autoIncrement});
 
-    for (var i = 0; i < table.indexes.length; i++) {
-      var index = table.indexes[i];
+    for (var j = 0; j < table.indexes.length; j++) {
+      var index = table.indexes[j];
       goog.asserts.assertString(index.name, 'name required.');
       goog.asserts.assertBoolean(index.unique, 'unique required.');
       store.createIndex(index.name, index.name, {unique:index.unique});
@@ -586,10 +586,14 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
     //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
     // ' of ' + column + ' in ' + table);
     var request;
-    if (goog.isDef(q.direction)) {
-      request = index.openCursor(q.keyRange, q.direction);
+    if (goog.isDefAndNotNull(q.keyRange)) {
+      if (goog.isDef(q.direction)) {
+        request = index.openCursor(q.keyRange, q.direction);
+      } else {
+        request = index.openCursor(q.keyRange);
+      }
     } else {
-      request = index.openCursor(q.keyRange);
+      request = index.openCursor();
     }
 
     tx.is_success = true;

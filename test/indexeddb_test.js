@@ -94,6 +94,45 @@ var test_2_put_arr = function() {
 };
 
 
+var test_22_select = function() {
+  var db_name = 'test_select';
+  var db = new ydn.db.IndexedDb(db_name, basic_schema);
+
+  var arr = [
+    {id: 'a', value: 'A'},
+    {id: 'b', value: 'B'},
+    {id: 'c', value: 'C'}
+  ];
+
+  var hasEventFired = false;
+  var put_value;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertArrayEquals('select query', [arr[0].value, arr[1].value, arr[2].value],
+            put_value);
+        // Remember, the state of this boolean will be tested in tearDown().
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(table_name, arr).addCallback(function(value) {
+    console.log('receiving value callback ' + JSON.stringify(value));
+
+    var q = db.query(table_name);
+    db.fetch(q).addCallback(function(q_result) {
+      console.log('receiving query');
+      put_value = q_result;
+      hasEventFired = true;
+    })
+  });
+};
+
 
 //var _test_3_empty_get = function() {
 //

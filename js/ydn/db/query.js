@@ -31,6 +31,7 @@ goog.provide('ydn.db.Query.KeyRangeImpl');
  * @constructor
  */
 ydn.db.Query = function(store, index, select) {
+  select = /** @type {ydn.db.Query.Config} */ (select || {});
   /**
    * Store name.
    * @final
@@ -70,7 +71,7 @@ ydn.db.Query.prototype.toJSON = function () {
 
 /**
  * Right value for query operation.
- * @type {!ydn.db.Query.IDBKeyRange}
+ * @type {ydn.db.Query.IDBKeyRange}
  */
 ydn.db.Query.prototype.keyRange;
 
@@ -118,6 +119,7 @@ ydn.db.Query.prototype.reduce;
 
 /**
  * Convenient method for SQL <code>COUNT</code> method.
+ * @return {ydn.db.Query}
  */
 ydn.db.Query.prototype.count = function() {
   this.reduce = function(prev) {
@@ -125,12 +127,14 @@ ydn.db.Query.prototype.count = function() {
       prev = 0;
     }
     return prev + 1;
-  }
+  };
+  return this;
 };
 
 
 /**
  * Convenient method for SQL <code>SUM</code> method.
+ * @return {ydn.db.Query}
  */
 ydn.db.Query.prototype.sum = function(field) {
   this.reduce = function(prev, curr, i) {
@@ -138,39 +142,44 @@ ydn.db.Query.prototype.sum = function(field) {
       prev = 0;
     }
     return prev + curr[field];
-  }
+  };
+  return this;
 };
 
 
 /**
  * Convenient method for SQL <code>AVERAGE</code> method.
+ * @return {ydn.db.Query}
  */
 ydn.db.Query.prototype.average = function(field) {
   this.reduce = function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
     }
-    return (prev * (i -1) + curr[field]) / i;
-  }
+    return (prev * i + curr[field]) / (i + 1);
+  };
+  return this;
 };
 
 
 /**
  *
- * @param {string|Array.<string>} fields
+ * @param {string|Array.<string>} arg1
+ * @return {ydn.db.Query}
  */
-ydn.db.Query.prototype.select = function(fields) {
+ydn.db.Query.prototype.select = function(arg1) {
   this.map =  function(data) {
-    if (goog.isString(fields)) {
-      return data[fields];
+    if (goog.isString(arg1)) {
+      return data[arg1];
     } else {
       var selected_data = {};
-      for (var i = 0; i < fields.length; i++) {
-        selected_data[fields[i]] = data[fields[i]];
+      for (var i = 0; i < arg1.length; i++) {
+        selected_data[arg1[i]] = data[arg1[i]];
       }
       return selected_data;
     }
-  }
+  };
+  return this;
 };
 
 
@@ -189,13 +198,12 @@ ydn.db.Query.KeyRange;
 /**
  * This is similar to SQL SELECT statement.
  * @typedef {{
- *  store: string,
- *  index: string,
- *  keyRange: (!ydn.db.Query.KeyRange),
+ *  store: (string|undefined),
+ *  index: (string|undefined),
+ *  keyRange: (ydn.db.Query.KeyRange|Object|undefined),
  *  limit: (number|undefined),
- *  order: (string|undefined),
- *  offset: (number|undefined),
- *  filter: function(!Object): boolean
+ *  direction: (string|undefined),
+ *  offset: (number|undefined)
  *  }}
  */
 ydn.db.Query.Config;
@@ -218,6 +226,14 @@ ydn.db.Query.KeyRangeImpl.only = function(value) {
 };
 
 
+/**
+ *
+ * @param {(string|number)=} lower
+ * @param {(string|number)=} upper
+ * @param {boolean=} lowerOpen
+ * @param {boolean=} upperOpen
+ * @return {ydn.db.Query.KeyRangeImpl}
+ */
 ydn.db.Query.KeyRangeImpl.bound = function(lower, upper,
   lowerOpen, upperOpen) {
   return new ydn.db.Query.KeyRangeImpl(lower, upper, lowerOpen, upperOpen);
@@ -259,10 +275,13 @@ ydn.db.Query.IDBKeyRange = goog.global.IDBKeyRange ||
 
 
 /**
- * @param {!ydn.db.Query.KeyRange} keyRange keyRange.
- * @return {!ydn.db.Query.IDBKeyRange} equivalent IDBKeyRange.
+ * @param {ydn.db.Query.KeyRange=} keyRange keyRange.
+ * @return {ydn.db.Query.IDBKeyRange} equivalent IDBKeyRange.
  */
 ydn.db.Query.parseKeyRange = function (keyRange) {
+  if (!goog.isDefAndNotNull(keyRange)) {
+    return null;
+  }
   if (goog.isDef(keyRange['upper']) && goog.isDef(keyRange['lower'])) {
     if (keyRange.lower === keyRange.upper) {
       return ydn.db.Query.IDBKeyRange.only(keyRange.lower);
@@ -278,7 +297,7 @@ ydn.db.Query.parseKeyRange = function (keyRange) {
     return ydn.db.Query.IDBKeyRange.lowerBound(keyRange.lower,
       keyRange.lowerOpen);
   } else {
-    throw Error('Invalid keyRange');
+    return null;
   }
 };
 
