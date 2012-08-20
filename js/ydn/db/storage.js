@@ -340,13 +340,13 @@ ydn.db.Storage.prototype.get = function(store_name, opt_key) {
  * @param {ydn.db.Key} key
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.Storage.prototype.fetch = function(key) {
+ydn.db.Storage.prototype.getByKey = function(key) {
   if (this.db_) {
-    return this.db_.fetch(key);
+    return this.db_.getByKey(key);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.fetch(key).chainDeferred(df);
+      db.getByKey(key).chainDeferred(df);
     });
     return df;
   }
@@ -405,7 +405,7 @@ ydn.db.Storage.prototype.count = function(opt_store_name) {
  * @return {!goog.async.Deferred} return array of result for each row
  * in a deferred function.
  */
-ydn.db.Storage.prototype.list = function(q) {
+ydn.db.Storage.prototype.fetch = function(q) {
 
   if (!(q instanceof ydn.db.Query)) {
     q = new ydn.db.Query(q['store'], q['index'],
@@ -413,11 +413,11 @@ ydn.db.Storage.prototype.list = function(q) {
   }
 
   if (this.db_) {
-    return this.db_.list(q);
+    return this.db_.fetch(q);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.list(q).chainDeferred(df);
+      db.fetch(q).chainDeferred(df);
     });
     return df;
   }

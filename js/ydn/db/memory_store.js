@@ -196,7 +196,7 @@ ydn.db.MemoryStore.prototype.put = function (table, value) {
  * @param {ydn.db.Key} key
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.MemoryStore.prototype.fetch = function(key) {
+ydn.db.MemoryStore.prototype.getByKey = function(key) {
   return this.get(key.store_name, key.id + '');
 };
 
@@ -318,7 +318,7 @@ ydn.db.MemoryStore.prototype.count = function(opt_table) {
  * @param {!ydn.db.Query} q query.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.MemoryStore.prototype.list = function(q) {
+ydn.db.MemoryStore.prototype.fetch = function(q) {
   return goog.async.Deferred.fail('not implemented');
 };
 

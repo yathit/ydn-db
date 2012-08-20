@@ -575,7 +575,7 @@ var test_8_query_start_with = function() {
   var q = new ydn.db.Query(store_name, 'id', {keyRange: keyRange});
   console.log([keyRange, q]);
 
-  db.list(q).addCallback(function(value) {
+  db.fetch(q).addCallback(function(value) {
 		console.log(['Receiving ', value])
     get2_value_received = value;
     get2_done = true;

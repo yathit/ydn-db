@@ -305,7 +305,7 @@ ydn.db.WebSql.prototype.getKeyFromRow = function(table, row) {
  * @param {ydn.db.Key} key
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.WebSql.prototype.fetch = function(key) {
+ydn.db.WebSql.prototype.getByKey = function(key) {
   return this.get(key.store_name, key.id + '');
 };
 
@@ -379,7 +379,7 @@ ydn.db.WebSql.prototype.get = function(table_name, key) {
  * @param {!ydn.db.Query} q query.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.WebSql.prototype.list = function(q) {
+ydn.db.WebSql.prototype.fetch = function(q) {
   var d = new goog.async.Deferred();
   var me = this;
 

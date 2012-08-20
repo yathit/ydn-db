@@ -72,15 +72,15 @@ ydn.db.Db.prototype.get = function(store, id) {
 
 };
 
-
-/**
- * Retrieve an object from store.
- * @param {ydn.db.Key} key
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.Db.prototype.fetch = function(key) {
-
-};
+//
+///**
+// * Retrieve an object from store.
+// * @param {ydn.db.Key} key
+// * @return {!goog.async.Deferred} return object in deferred function.
+// */
+//ydn.db.Db.prototype.getByKey = function(key) {
+//
+//};
 
 
 /**
@@ -111,7 +111,7 @@ ydn.db.Db.prototype.clear = function(opt_table, opt_key) {
  * @param {!ydn.db.Query} q query.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Db.prototype.list = function(q) {
+ydn.db.Db.prototype.fetch = function(q) {
 
 };
 

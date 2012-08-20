@@ -415,7 +415,7 @@ var test_6_no_keyPath = function () {
 //
 //
 //        var q = ydn.db.Query.startWith(store_name, 'qs');
-//        db.list(q).addCallback(function(value) {
+//        db.fetch(q).addCallback(function(value) {
 //          get_value_received = value;
 //          get_done = true;
 //        });

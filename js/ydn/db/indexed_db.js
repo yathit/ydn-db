@@ -519,7 +519,7 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
  * @param {ydn.db.Key} key
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.IndexedDb.prototype.fetch = function(key) {
+ydn.db.IndexedDb.prototype.getByKey = function(key) {
 
   if (!this.schema.hasStore(key.store_name)) {
     throw Error('Store: ' + key.store_name + ' not exist.');
@@ -560,17 +560,17 @@ ydn.db.IndexedDb.prototype.get = function(table, key) {
   if (!goog.isDef(key)) {
     return this.getAll_(table);
   } else {
-    return this.fetch(new ydn.db.Key(table, key));
+    return this.getByKey(new ydn.db.Key(table, key));
   }
 };
 
 
 /**
- * Fetch result of a query
+ * Get result of a query
  * @param {!ydn.db.Query} q query.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.IndexedDb.prototype.list = function(q) {
+ydn.db.IndexedDb.prototype.fetch = function(q) {
   var self = this;
 
   var store = this.schema.getStore(q.store);
