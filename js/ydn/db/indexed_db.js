@@ -574,6 +574,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
   var self = this;
 
   var store = this.schema.getStore(q.store);
+  var is_reduce = goog.isDef(q.reduce);
 
   return this.doTransaction(function(tx) {
     //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
@@ -583,14 +584,21 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
 
     //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
     // ' of ' + column + ' in ' + table);
-    var request = index.openCursor(q.keyRange);
+    var request = index.openCursor(q.keyRange, q.direction);
 
-    tx.result = [];
+    tx.is_success = true;
+    var idx = -1; // iteration index
+    if (!is_reduce) {
+      tx.result = [];
+    } else {
+      // reduce final result is not array
+      var result = [];
+    }
 
     request.onsuccess = function(event) {
-      tx.is_success = true;
+      idx++;
       if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log([q, event]);
+        window.console.log([q, idx, event]);
       }
       /**
        * @type {IDBCursor}
@@ -599,15 +607,26 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
       //console.log(cursor);
       if (cursor) {
 
-        var value = cursor['value']; // should not necessary if externs are
-        // properly updated.
+        var value = /** @type {!Object} */ cursor['value']; // should not necessary if externs are
+
+        var to_continue = !goog.isDef(q.continue) || q.continue(value);
 
         // do the filtering if requested.
         if (!goog.isDef(q.filter) || q.filter(value)) {
-          tx.result.push(value);
+
+          if (goog.isDef(q.map)) {
+            value = q.map(value);
+          }
+
+          if (is_reduce) {
+            result.push(value);
+            tx.result = q.reduce(tx.result, value, idx, result);
+          } else {
+            tx.result.push(value);
+          }
         }
 
-        if (!goog.isDef(q.limit) || tx.result.length < q.limit) {
+        if (to_continue && (!goog.isDef(q.limit) || tx.result.length < q.limit)) {
           //cursor.continue();
           cursor['continue'](); // Note: Must be quoted to avoid parse error.
         }
@@ -618,6 +637,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log([q, event]);
       }
+      tx.is_success = false;
       tx.error = event;
     };
 

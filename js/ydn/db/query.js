@@ -45,15 +45,12 @@ ydn.db.Query = function(store, index, select) {
   this.index = index;
   this.keyRange = ydn.db.Query.parseKeyRange(select['keyRange']);
   this.limit = select['limit'];
-  /**
-   * Result to be ordered by.
-   * @type {(string|undefined)}
-   */
   this.direction = select['direction'];
   this.offset = select['offset'];
   this.filter = select['filter'];
   this.reduce = select['reduce'];
   this.map = select['map'];
+  this.continue = select['continue'];
 };
 
 
@@ -78,6 +75,12 @@ ydn.db.Query.prototype.toJSON = function () {
 ydn.db.Query.prototype.keyRange;
 
 /**
+ * Cursor direction.
+ * @type {(string|undefined)}
+ */
+ydn.db.Query.prototype.direction;
+
+/**
  * Result to be start by.
  * @type {(number|undefined)}
  */
@@ -96,12 +99,18 @@ ydn.db.Query.prototype.limit;
 ydn.db.Query.prototype.filter;
 
 /**
+ * @type {function(!Object): boolean}
+ */
+ydn.db.Query.prototype.continue;
+
+/**
  * @type {function(!Object): *}
  */
 ydn.db.Query.prototype.map;
 
 /**
- * @type {function(*, !Object, number, Array): *}
+ * Reduce is execute after map.
+ * @type {function(*, *, number, Array): *}
  * function(previousValue, currentValue, index, array)
  */
 ydn.db.Query.prototype.reduce;
@@ -124,14 +133,6 @@ ydn.db.Query.prototype.count = function() {
  * Convenient method for SQL <code>SUM</code> method.
  */
 ydn.db.Query.prototype.sum = function(field) {
-  /**
-   *
-   * @param {*} prev
-   * @param {!Object} curr
-   * @param {number} i
-   * @param {Array} arr
-   * @return {*}
-   */
   this.reduce = function(prev, curr, i, arr) {
     if (!goog.isDef(prev)) {
       prev = 0;
