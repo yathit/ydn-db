@@ -213,7 +213,7 @@ var test_52_idb_when = function() {
 
   goog.userAgent.product.ASSUME_CHROME = true;
 
-  var db_name = 'test_52_idb_when2';
+  var db_name = 'test_52_idb_when';
   var db = new ydn.db.Storage(db_name, basic_schema);
 
   var arr = [
@@ -249,6 +249,72 @@ var test_52_idb_when = function() {
       result = q_result;
       hasEventFired = true;
     })
+  });
+};
+
+
+var test_53_idb_when = function() {
+
+  goog.userAgent.product.ASSUME_CHROME = true;
+
+  var db_name = 'test_53_idb_when2';
+  var db = new ydn.db.Storage(db_name, basic_schema);
+
+  var arr = [
+    {id: 'a', value: 1, text: 'X'},
+    {id: 'b', value: 2, text: 'Y'},
+    {id: 'c', value: 3, text: 'X'},
+    {id: 'd', value: 4, text: 'Y'}
+  ];
+
+
+  var t1_done = false;
+  var t2_done = false;
+  var t1_result, t2_result;
+
+  waitForCondition(
+      // Condition
+      function() { return t1_done; },
+      // Continuation
+      function() {
+        assertEquals('when value > 2', 2, t1_result.length);
+        assertArrayEquals('when value > 2', arr.slice(2,4), t1_result);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  waitForCondition(
+      // Condition
+      function() { return t2_done; },
+      // Continuation
+      function() {
+        assertEquals('when value > 2 and X', 1, t2_result.length);
+        assertArrayEquals('when value > 2 and X', arr.slice(2,3), t2_result);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(table_name, arr).addCallback(function(value) {
+    console.log('receiving value callback ' + JSON.stringify(value));
+
+    var q = db.query(table_name);
+    q.when('value', '>', 2);
+    db.fetch(q).addCallback(function(q_result) {
+      console.log('receiving when query ' + JSON.stringify(q_result));
+      t1_result = q_result;
+      t1_done = true;
+    });
+
+    q = db.query(table_name);
+    q.when('value', '>', 2).when('text', '=', 'X');
+    db.fetch(q).addCallback(function(q_result) {
+      console.log('receiving when query ' + JSON.stringify(q_result));
+      t2_result = q_result;
+      t2_done = true;
+    });
+
   });
 };
 

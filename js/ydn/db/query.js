@@ -144,12 +144,14 @@ ydn.db.Query.prototype.when = function(field, op, value, op2, value2) {
       return function(x) {return x <= lv};
     } else if (op === '!=') {
       return function(x) {return x != lv};
+    } else {
+      goog.asserts.assert(false, 'Invalid op: ' + op);
     }
   };
 
   var test1 = op_test(op, value);
   var test2 = goog.isDef(op2) && goog.isDef(value2) ?
-      op_test(op, value) : goog.functions.TRUE;
+      op_test(op2, value2) : goog.functions.TRUE;
 
   var prev_filter = this.filter || goog.functions.TRUE;
 
