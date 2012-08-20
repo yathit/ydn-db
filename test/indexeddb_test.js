@@ -49,7 +49,7 @@ var _test_1_put = function() {
       2000); // maxTimeout
 
 
-  db.set(table_name, {id: 'a', value: '1', remark: 'put test'}).addCallback(function(value) {
+  db.put(table_name, {id: 'a', value: '1', remark: 'put test'}).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -86,7 +86,7 @@ var test_2_put_arr = function() {
       2000); // maxTimeout
 
 
-  db.set(table_name, arr).addCallback(function(value) {
+  db.put(table_name, arr).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -221,7 +221,7 @@ var test_6_special_keys = function() {
         100, // interval
         2000); // maxTimeout
 
-    db.set(table_name, {id: key, value: key_value}).addCallback(function(value) {
+    db.put(table_name, {id: key, value: key_value}).addCallback(function(value) {
       console.log('receiving put value callback for ' + key + ' = ' + key_value);
       a_value = value;
       a_done = true;
@@ -282,7 +282,7 @@ var test_7_put_nested_keyPath = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.set(store_name, put_value).addCallback(function(value) {
+  db.put(store_name, put_value).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value_received = value;
     put_done = true;
@@ -370,7 +370,7 @@ var test_8_query_start_with = function () {
     2000); // maxTimeout
 
 
-  db.set(store_name, objs).addCallback(function (value) {
+  db.put(store_name, objs).addCallback(function (value) {
     console.log(['receiving value callback.', value]);
     put_value_received = value;
     put_done = true;

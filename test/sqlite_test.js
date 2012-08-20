@@ -46,7 +46,7 @@ var test_0_put = function() {
       100, // interval
       1000); // maxTimeout
 
-  db.set(table_name, {'id': 'a', 'value': '1'}).addCallback(function(value) {
+  db.put(table_name, {'id': 'a', 'value': '1'}).addCallback(function(value) {
     put_value = value;
     done = true;
   });
@@ -83,7 +83,7 @@ var test_1_1_put_arr = function() {
     2000); // maxTimeout
 
 
-  db.set(table_name, arr).addCallback(function(value) {
+  db.put(table_name, arr).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -174,7 +174,7 @@ var test_2_clear = function() {
 
   var db = new ydn.db.WebSql(db_name, basic_schema);
 
-  db.set(table_name, {'id': 'a', 'value': '1'});
+  db.put(table_name, {'id': 'a', 'value': '1'});
 
   var cleared_value, cleared;
 
@@ -247,7 +247,7 @@ var test_2_clear = function() {
 //        100, // interval
 //        2000); // maxTimeout
 //
-//    db.set(key, key_value).addCallback(function(value) {
+//    db.put(key, key_value).addCallback(function(value) {
 //      console.log('receiving put value callback for ' + key + ' = ' + key_value + ' ' + value);
 //      a_value = value;
 //      a_done = true;
@@ -357,7 +357,7 @@ var test_5_get = function() {
       100, // interval
       1000); // maxTimeout
 
-  db.set(store_name, put_value).addCallback(function(value) {
+  db.put(store_name, put_value).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value_received = value;
     put_done = true;
@@ -430,7 +430,7 @@ var test_6_put_nested_keyPath = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.set(store_name, put_value).addCallback(function(value) {
+  db.put(store_name, put_value).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value_received = value;
     put_done = true;
@@ -466,7 +466,7 @@ var test_7_put_get_array = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.set(store_name, objs).addCallback(function(value) {
+  db.put(store_name, objs).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value_received = value;
     put_done = true;
@@ -528,7 +528,7 @@ var test_8_query_start_with = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.set(store_name, objs).addCallback(function(value) {
+  db.put(store_name, objs).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value_received = value;
     put_done = true;

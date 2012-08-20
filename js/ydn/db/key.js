@@ -81,9 +81,9 @@ ydn.db.Key.prototype.get = function() {
  * @return {!goog.async.Deferred} return key in deferred function. On error,
  * an {@code Error} object is return as received from the mechanism.
  */
-ydn.db.Key.prototype.set = function(value) {
+ydn.db.Key.prototype.put = function(value) {
   goog.asserts.assertObject(this.db);
-  return this.db.set(this.store_name, value);
+  return this.db.put(this.store_name, value);
 };
 
 

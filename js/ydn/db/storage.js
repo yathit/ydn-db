@@ -258,7 +258,7 @@ ydn.db.Storage.prototype.getDb = function() {
  */
 ydn.db.Storage.prototype.setItem = function(key, value) {
 
-  return this.set(ydn.db.Storage.DEFAULT_TEXT_STORE,
+  return this.put(ydn.db.Storage.DEFAULT_TEXT_STORE,
     {'id': key, 'value': value});
 
 };
@@ -273,13 +273,13 @@ ydn.db.Storage.prototype.setItem = function(key, value) {
  * @return {!goog.async.Deferred} return key in deferred function. On error,
  * an {@code Error} object is return as received from the mechanism.
  */
-ydn.db.Storage.prototype.set = function(store_name, value) {
+ydn.db.Storage.prototype.put = function(store_name, value) {
   if (this.db_) {
-    return this.db_.set(store_name, value);
+    return this.db_.put(store_name, value);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.set(store_name, value).chainDeferred(df);
+      db.put(store_name, value).chainDeferred(df);
     });
     return df;
   }

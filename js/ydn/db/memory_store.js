@@ -167,7 +167,7 @@ ydn.db.MemoryStore.succeed = function(value) {
 /**
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.set = function (table, value) {
+ydn.db.MemoryStore.prototype.put = function (table, value) {
   var store = this.schema.getStore(table);
   goog.asserts.assertObject(store);
   var key, value_str;

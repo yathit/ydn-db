@@ -400,7 +400,7 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df)
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.set = function(table, value) {
+ydn.db.IndexedDb.prototype.put = function(table, value) {
   var me = this;
 
   if (!this.schema.hasStore(table)) {
