@@ -96,7 +96,7 @@ ydn.db.tr.Key.prototype.get = function() {
  * @return {!goog.async.Deferred} return key in deferred function. On error,
  * an {@code Error} object is return as received from the mechanism.
  */
-ydn.db.tr.Key.prototype.put = function(value) {
+ydn.db.tr.Key.prototype.set = function(value) {
   goog.asserts.assertObject(this.db, 'This must be runInTransaction');
   return this.db.putInTransaction(this.store_name, value);
 };

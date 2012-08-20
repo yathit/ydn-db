@@ -110,7 +110,7 @@ ydn.store.StorageJstest.prototype.test_put_get = function(queue) {
   var self = this;
 
   var v = {'id': 'a', 'value': 'a' + Math.random()};
-  db.put(this.table, v); // using db before initialized.
+  db.set(this.table, v); // using db before initialized.
 
   queue.call('not initialized', function(callbacks) {
 		assertFalse('not initialized', db.isReady());

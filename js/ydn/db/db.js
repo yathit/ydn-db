@@ -54,7 +54,7 @@ ydn.db.Db = function() {};
  * @param {!Object|Array.<!Object>} value object to put.
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.Db.prototype.put = function(store, value) {
+ydn.db.Db.prototype.set = function(store, value) {
 
 };
 

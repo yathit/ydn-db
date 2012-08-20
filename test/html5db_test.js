@@ -48,7 +48,7 @@ var test_1_put = function() {
       2000); // maxTimeout
 
 
-  db.put(table_name, {id: 'a', value: '1', remark: 'put test'}).addCallback(function(value) {
+  db.set(table_name, {id: 'a', value: '1', remark: 'put test'}).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -85,7 +85,7 @@ var test_2_put_arr = function() {
       2000); // maxTimeout
 
 
-  db.put(table_name, arr).addCallback(function(value) {
+  db.set(table_name, arr).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -250,7 +250,7 @@ var test_6_no_keyPath = function () {
       100, // interval
       2000); // maxTimeout
 
-  db.put(me.table_name, {remark: 'testing', value:key_value}).addCallback(function (value) {
+  db.set(me.table_name, {remark: 'testing', value:key_value}).addCallback(function (value) {
     console.log('receiving put value callback for ' + key + ' = ' + key_value);
     a_value = value;
     a_done = true;
@@ -283,7 +283,7 @@ var test_6_no_keyPath = function () {
 //        100, // interval
 //        2000); // maxTimeout
 //
-//    db.put(me.table_name, {id: key, value: key_value}).addCallback(function(value) {
+//    db.set(me.table_name, {id: key, value: key_value}).addCallback(function(value) {
 //      console.log('receiving put value callback for ' + key + ' = ' + key_value);
 //      a_value = value;
 //      a_done = true;
@@ -344,7 +344,7 @@ var test_6_no_keyPath = function () {
 //      100, // interval
 //      2000); // maxTimeout
 //
-//  db.put(store_name, put_value).addCallback(function(value) {
+//  db.set(store_name, put_value).addCallback(function(value) {
 //    console.log('receiving value callback.');
 //    put_value_received = value;
 //    put_done = true;
@@ -423,7 +423,7 @@ var test_6_no_keyPath = function () {
 //      100, // interval
 //      2000); // maxTimeout
 //
-//  db.put(store_name, objs).addCallback(function(value) {
+//  db.set(store_name, objs).addCallback(function(value) {
 //    console.log('receiving value callback.');
 //    put_value_received = value;
 //    put_done = true;

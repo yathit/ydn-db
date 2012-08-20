@@ -186,7 +186,7 @@ ydn.db.WebSql.prototype.migrate = function() {
 /**
  * @inheritDoc
  */
-ydn.db.WebSql.prototype.put = function(store_name, obj) {
+ydn.db.WebSql.prototype.set = function(store_name, obj) {
   var d = new goog.async.Deferred();
 
   var table = this.schema.getStore(store_name);
