@@ -213,7 +213,7 @@ var test_2_json_config_in_out = function() {
 		100, // interval
 		1000); // maxTimeout
 
-	db.put(store_name, put_value).addCallback(function(value) {
+	db.set(store_name, put_value).addCallback(function(value) {
 		console.log('receiving value callback.');
 		put_value_received = value;
 		put_done = true;
