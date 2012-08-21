@@ -1,5 +1,8 @@
 /**
  * @fileoverview Interface for query service.
+ *
+ * Use interface so that query, key and database can strongly typed
+ * cross-talking.
  */
 
 
@@ -27,6 +30,7 @@ ydn.db.QueryService.prototype.fetch = function(q, limit, offset) {};
 
 
 /**
+ * Return object
  * @param {string|!ydn.db.Query|!ydn.db.Key} q query.
  * @param {(string|number)=} id
  * @return {!goog.async.Deferred}
