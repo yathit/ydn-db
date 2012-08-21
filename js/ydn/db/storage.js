@@ -193,8 +193,7 @@ ydn.db.Storage.prototype.initDatabase = function() {
       goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
       this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema);
-    } else if (goog.userAgent.product.ASSUME_SAFARI ||
-      goog.userAgent.ASSUME_WEBKIT) {
+    } else if (goog.userAgent.product.ASSUME_SAFARI) {
       // for dead-code elimination
       this.db_ = new ydn.db.WebSql(this.db_name, this.schema);
     } else if (ydn.db.IndexedDb.isSupported()) { // run-time detection

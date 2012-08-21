@@ -127,6 +127,9 @@ ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
      * @type {ydn.db.IndexSchema}
      */
     var index = schema.indexes[i];
+    if (index.name == schema.keyPath) {
+      continue;
+    }
     var primary = index.unique ? ' UNIQUE ' : ' ';
     sql += ', ' + index.name + primary + index.type;
   }
@@ -199,11 +202,12 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
   var is_array = goog.isArray(obj);
   var arr = is_array ? obj : [obj];
   var arr_result = [];
+  var has_error = false;
 
   var me = this;
 
   me.db.transaction(function(t) {
-    for (var i = 0; i < arr.length; i++) {
+    for (var i = 0; !has_error && i < arr.length; i++) {
       var last = i == arr.length - 1;
 
       var out = table.getIndexedValues(arr[i]);
@@ -220,7 +224,7 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
        */
       var success_callback = function(last, key, transaction, results) {
         if (ydn.db.WebSql.DEBUG) {
-          window.console.log(results);
+          window.console.log([sql, out, last, key, transaction, results]);
         }
         if (is_array) {
           arr_result.push(key);
@@ -238,10 +242,11 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
        */
       var error_callback = function(tr, error) {
         if (ydn.db.WebSql.DEBUG) {
-          window.console.log([tr, error]);
+          window.console.log([sql, out, tr, error]);
         }
         me.logger.warning('put error: ' + error.message);
         // TODO: roll back
+        has_error = true;
         d.errback(error);
       };
 
@@ -398,26 +403,47 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
   var me = this;
 
   var store = this.schema.getStore(q.store);
+  var is_reduce = goog.isFunction(q.reduce);
 
+  var sql = 'SELECT * FROM ' + store.getQuotedName();
+  var params = [];
+
+  if (q.keyRange) {
   var clause = q.toWhereClause();
-
-  var sql = 'SELECT * FROM ' + store.getQuotedName() + ' WHERE ' +
-    '(' + clause.where_clause + ')';
+    sql += ' WHERE ' + '(' + clause.where_clause + ')';
+    params = clause.params;
+  }
 
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
-    var values = [];
+    if (!is_reduce) {
+      var result = [];
+    }
     for (var i = 0; i < results.rows.length; i++) {
-      if (goog.isDef(limit) && i >= limit) {
+      var row = results.rows.item(i);
+      var value = me.parseRow(store, row);
+      var to_continue = !goog.isFunction(q.continue) || q.continue(value);
+      if (!goog.isFunction(q.filter) || q.filter(value)) {
+
+        if (goog.isFunction(q.map)) {
+          value = q.map(value);
+        }
+
+        if (is_reduce) {
+          result = q.reduce(result, value, i);
+        } else {
+          result.push(value);
+        }
+      }
+
+      if (!(to_continue && (!goog.isDef(limit) || i < limit))) {
         break;
       }
-      var row = results.rows.item(i);
-      values.push(me.parseRow(store, row));
     }
-    d.callback(values);
+    d.callback(result);
   };
 
   /**
@@ -426,7 +452,7 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
    */
   var error_callback = function(tr, error) {
     if (ydn.db.WebSql.DEBUG) {
-      window.console.log([q, limit, offset, tr, error]);
+      window.console.log([q, sql, params, limit, offset, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
     d.errback(error);
@@ -434,7 +460,7 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
 
   this.db.transaction(function(t) {
     //console.log([sql, clause.params]);
-    t.executeSql(sql, clause.params, callback, error_callback);
+    t.executeSql(sql, params, callback, error_callback);
   });
 
   return d;

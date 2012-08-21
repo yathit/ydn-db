@@ -18,18 +18,12 @@ var setUp = function() {
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
 
-  var version = 1;
-	basic_schema = new ydn.db.DatabaseSchema(version);
-  var store;
-  if (version == 2) {
-    basic_schema = new ydn.db.DatabaseSchema(1);
-    var index1 = new ydn.db.IndexSchema('id');
-    var index2 = new ydn.db.IndexSchema('value', false, ydn.db.DataType.FLOAT);
-    store = new ydn.db.StoreSchema(table_name, 'id', false, [index1, index2]);
-  } else {
-    var index = new ydn.db.IndexSchema('id');
-    store = new ydn.db.StoreSchema(table_name, 'id', false, [index]);
-  }
+  goog.userAgent.product.ASSUME_SAFARI = true;
+
+  basic_schema = new ydn.db.DatabaseSchema(1);
+  var index = new ydn.db.IndexSchema('id');
+  var index2 = new ydn.db.IndexSchema('value', false, ydn.db.DataType.FLOAT);
+  var store = new ydn.db.StoreSchema(table_name, 'id', false, [index, index2]);
 	basic_schema.addStore(store);
 };
 
@@ -42,15 +36,13 @@ var db_name = 'test12';
 
 var test_2_idb_select = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
-
-  var db_name = 'test_2_idb_select';
+  var db_name = 'test_2_sql_select4';
   var db = new ydn.db.Storage(db_name, basic_schema);
 
   var arr = [
-    {id: 'a', value: 'A'},
-    {id: 'b', value: 'B'},
-    {id: 'c', value: 'C'}
+    {id: 'a', value: 1},
+    {id: 'b', value: 2},
+    {id: 'c', value: 3}
   ];
 
   var hasEventFired = false;
@@ -86,15 +78,13 @@ var test_2_idb_select = function() {
 
 var test_3_idb_count = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
-
-  var db_name = 'test_3_idb_count';
+  var db_name = 'test_3_sql_count4';
   var db = new ydn.db.Storage(db_name, basic_schema);
 
   var arr = [
-    {id: 'a', value: 'A'},
-    {id: 'b', value: 'B'},
-    {id: 'c', value: 'C'}
+    {id: 'a', value: 1},
+    {id: 'b', value: 2},
+    {id: 'c', value: 3}
   ];
 
   var hasEventFired = false;
@@ -129,9 +119,7 @@ var test_3_idb_count = function() {
 
 var test_4_idb_sum = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
-
-  var db_name = 'test_4_idb_sum';
+  var db_name = 'test_4_sql_sum3';
   var db = new ydn.db.Storage(db_name, basic_schema);
 
   var arr = [
@@ -175,9 +163,9 @@ var test_4_idb_sum = function() {
 
 var test_4_idb_avg = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
 
-  var db_name = 'test_4_idb_avg';
+
+  var db_name = 'test_4_sql_avg4';
   var db = new ydn.db.Storage(db_name, basic_schema);
 
   var arr = [
@@ -220,9 +208,9 @@ var test_4_idb_avg = function() {
 
 var test_52_idb_when = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
 
-  var db_name = 'test_52_idb_when';
+
+  var db_name = 'test_52_sql_when4';
   var db = new ydn.db.Storage(db_name, basic_schema);
 
   var arr = [
@@ -264,9 +252,7 @@ var test_52_idb_when = function() {
 
 var test_53_idb_when = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
-
-  var db_name = 'test_53_idb_when2';
+  var db_name = 'test_53_sql_when4';
   var db = new ydn.db.Storage(db_name, basic_schema);
 
   var arr = [

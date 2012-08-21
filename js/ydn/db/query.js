@@ -332,6 +332,9 @@ ydn.db.Query.parseKeyRange = function (keyRange) {
  * @param keyRange
  */
 ydn.db.Query.isLikeOperation_ = function (keyRange) {
+  if (!goog.isDefAndNotNull(keyRange)) {
+    return false;
+  }
   if (goog.isDef(keyRange.lower) && goog.isDef(keyRange.upper) &&
     !keyRange.lowerOpen && keyRange.upperOpen) {
     if (keyRange.lower.length == keyRange.upper.length) {
