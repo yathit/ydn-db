@@ -176,8 +176,12 @@ ydn.db.WebSql.prototype.migrate = function() {
   }
 
   this.db.transaction(function(t) {
+
     me.logger.finest('Creating tables ' + sqls.join('\n'));
     for (var i = 0; i < sqls.length; i++) {
+      if (ydn.db.WebSql.DEBUG) {
+        window.console.log(sqls[i]);
+      }
       t.executeSql(sqls[i], [],
           i == sqls.length - 1 ? success_callback : undefined,
           error_callback);
@@ -414,13 +418,15 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
     params = clause.params;
   }
 
+  var result;
+
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
     if (!is_reduce) {
-      var result = [];
+      result = [];
     }
     for (var i = 0; i < results.rows.length; i++) {
       var row = results.rows.item(i);

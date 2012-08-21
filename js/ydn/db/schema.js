@@ -65,7 +65,7 @@ ydn.db.IndexSchema.prototype.toJSON = function() {
  * @return {ydn.db.IndexSchema} created from input json string.
  */
 ydn.db.IndexSchema.fromJSON = function(json) {
-  return new ydn.db.IndexSchema(json['name'], json['type'], json['unique']);
+  return new ydn.db.IndexSchema(json['name'], json['unique'], json['type']);
 };
 
 
@@ -298,6 +298,9 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
 
   for (var i = 0; i < this.indexes.length; i++) {
     if (this.indexes[i].name == ydn.db.DEFAULT_BLOB_COLUMN) {
+      continue;
+    }
+    if (this.indexes[i].name == ydn.db.DEFAULT_KEY_COLUMN) {
       continue;
     }
     var v = obj[this.indexes[i].name];
