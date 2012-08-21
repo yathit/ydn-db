@@ -39,6 +39,7 @@ goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.db.tr.Key');
+goog.require('ydn.db.ActiveQuery');
 
 
 /**
@@ -401,16 +402,11 @@ ydn.db.Storage.prototype.count = function(opt_store_name) {
  * Fetch result of a query and return as array.
  *
  * @export
- * @param {!ydn.db.Query|!ydn.db.Query.Config} q query.
+ * @param {!ydn.db.Query} q query.
  * @return {!goog.async.Deferred} return array of result for each row
  * in a deferred function.
  */
 ydn.db.Storage.prototype.fetch = function(q) {
-
-  if (!(q instanceof ydn.db.Query)) {
-    q = new ydn.db.Query(q['store'], q['index'],
-        /** @type {!ydn.db.Query.Config} */ (q));
-  }
 
   if (this.db_) {
     return this.db_.fetch(q);
@@ -425,12 +421,17 @@ ydn.db.Storage.prototype.fetch = function(q) {
 
 
 /**
- *
+ * @export
  * @param {string} store_name store name.
- * @param {string=} index store field, where key query is preformed.
- * @return {!ydn.db.Query}
+ * @param {string} index store field, where key query is preformed. If not
+ * provided, the first index will be used.
+ * @param {(!ydn.db.Query.KeyRangeJson|!ydn.db.Query.IDBKeyRange|undefined)=}
+  * keyRange configuration in
+ * @param {string=} direction cursor direction.
+ * @return {!ydn.db.ActiveQuery}
  */
-ydn.db.Storage.prototype.query = function(store_name, index) {
+ydn.db.Storage.prototype.query = function(store_name, index, keyRange,
+                                          direction) {
   var store = this.schema.getStore(store_name);
   if (!store) {
     throw Error('Store: ' + store_name + ' not exist.');
@@ -443,12 +444,12 @@ ydn.db.Storage.prototype.query = function(store_name, index) {
     index = /** @type {string} */
         (key_index ? store.keyPath : store.indexes[0]);
   }
-  return new ydn.db.Query(store_name, index);
+  return new ydn.db.ActiveQuery(this, store_name, index, keyRange, direction);
 };
 
 
 /**
- *
+ * @export
  * @param {string} store
  * @param {(string|number)}id
  * @param {ydn.db.Key=} opt_parent
@@ -461,7 +462,7 @@ ydn.db.Storage.prototype.tkey = function(store, id, opt_parent) {
 };
 
 /**
- *
+ * @export
  * @param {string} store
  * @param {(string|number)}id
  * @param {ydn.db.Key=} opt_parent
@@ -530,3 +531,9 @@ goog.exportProperty(ydn.db.Storage.prototype, 'setSchema',
   ydn.db.Storage.prototype.setSchema);
 goog.exportProperty(ydn.db.Storage.prototype, 'setDbName',
   ydn.db.Storage.prototype.setDbName);
+goog.exportProperty(ydn.db.Storage.prototype, 'tkey',
+  ydn.db.Storage.prototype.tkey);
+goog.exportProperty(ydn.db.Storage.prototype, 'query',
+  ydn.db.Storage.prototype.query);
+goog.exportProperty(ydn.db.Storage.prototype, 'runInTransaction',
+  ydn.db.Storage.prototype.runInTransaction);

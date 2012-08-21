@@ -44,6 +44,7 @@ ydn.db.DEFAULT_BLOB_COLUMN = '_default_';
 
 
 /**
+ * @extends {ydn.db.QueryService}
  * @interface
  */
 ydn.db.Db = function() {};

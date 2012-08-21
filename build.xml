@@ -3,7 +3,7 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${work.dir}/ydn/build.xml"/>
-    <property name="ver" value="0.4"/>
+    <property name="ver" value="0.5"/>
     <target name="compile-debug" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
@@ -47,8 +47,8 @@
         <closure-compile compilationlevel="SIMPLE_OPTIMIZATIONS"
                          base.dir="."
                          input="${ydn-db.dir}/js/ydn/db/storage.js"
-                         input.dir="${ydn-db.dir}/jsc"
-                         output.fn="${work.dir}/ydn-dev/out/ydn-db/example/ydn-db-${ver}.js">
+                         output.fn="${ydn-db.dir}/jsc/ydn-db-${ver}.js"
+                         input.dir="${ydn-db.dir}/js">
             <extrapaths>
                 <arg line='-p "${ydn-base.dir}/js"'/>
                 <arg line='-p "${ydn-db.dir}/js"'/>
@@ -60,8 +60,8 @@
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
             </options>
         </closure-compile>
-        <!--<copy file="${ydn-db.dir}/jsc/ydn-db-${ver}.js"-->
-              <!--todir="${work.dir}/ydn-dev/out/ydn-db/example"/>-->
+        <copy file="${ydn-db.dir}/jsc/ydn-db-${ver}.js"
+              tofile="${work.dir}/ydn-dev/out/ydn-db/example/ydn-db.js"/>
     </target>
     <target name="compile" description="generates compiled files for client js, /jsc/sync.jc">
         <mkdir dir="${ydn-db.dir}/jsc"/>
@@ -72,7 +72,7 @@
                 closure.entry="ydn.db.Storage">
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/ydn-db-min-${ver}.js"
-              todir="${work.dir}/ydn-dev/out/ydn-db/example"/>        
+              tofile="${work.dir}/ydn-dev/out/ydn-db/example/ydn-db-min.js"/>
     </target>
     <target name="deps" description="list dependency files">
         <delete file="${ydn-db.dir}/js/deps.js"/>

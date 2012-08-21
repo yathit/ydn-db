@@ -18,7 +18,7 @@
 
 
 goog.provide('ydn.db.Query');
-goog.provide('ydn.db.Query.KeyRange');
+goog.provide('ydn.db.Query.KeyRangeJson');
 goog.provide('ydn.db.Query.KeyRangeImpl');
 goog.require('goog.functions');
 
@@ -28,11 +28,15 @@ goog.require('goog.functions');
  * @param {string} store store name.
  * @param {string} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {!ydn.db.Query.Config=} select configuration in json format
+ * @param {(!ydn.db.Query.KeyRangeJson|!ydn.db.Query.IDBKeyRange|undefined)=}
+ * keyRange configuration in
+ * json format.
+ * @param {string=} direction cursor direction.
  * @constructor
  */
-ydn.db.Query = function(store, index, select) {
-  select = /** @type {ydn.db.Query.Config} */ (select || {});
+ydn.db.Query = function(store, index, keyRange, direction) {
+  // Note for V8 optimization, declare all properties in constructor.
+
   /**
    * Store name.
    * @final
@@ -45,12 +49,19 @@ ydn.db.Query = function(store, index, select) {
    * @type {string}
    */
   this.index = index;
-  this.keyRange = ydn.db.Query.parseKeyRange(select['keyRange']);
-  this.direction = select['direction'];
-  this.filter = select['filter'];
-  this.reduce = select['reduce'];
-  this.map = select['map'];
-  this.continue = select['continue'];
+  var kr = null;
+  if (goog.isDefAndNotNull(keyRange) &&
+    !(keyRange instanceof ydn.db.Query.IDBKeyRange)) {
+    // must be JSON object
+    kr = ydn.db.Query.parseKeyRange(keyRange);
+  }
+  this.keyRange = kr;
+  this.direction = direction;
+  // set all null so that no surprise from inherit prototype
+  this.filter = null;
+  this.reduce = null;
+  this.map = null;
+  this.continue = null;
 };
 
 
@@ -61,14 +72,14 @@ ydn.db.Query.prototype.toJSON = function () {
   return {
     'store':this.store,
     'index':this.index,
-    'key_range': ydn.db.Query.KeyRangeImpl.toJSON(this.keyRange),
+    'key_range': ydn.db.Query.KeyRangeImpl.toJSON(this.keyRange || null),
     'direction':this.direction
   }
 };
 
 /**
  * Right value for query operation.
- * @type {ydn.db.Query.IDBKeyRange}
+ * @type {ydn.db.Query.IDBKeyRange|undefined}
  */
 ydn.db.Query.prototype.keyRange;
 
@@ -79,23 +90,23 @@ ydn.db.Query.prototype.keyRange;
 ydn.db.Query.prototype.direction;
 
 /**
- * @type {function(!Object): boolean}
+ * @type {?function(!Object): boolean}
  */
 ydn.db.Query.prototype.filter;
 
 /**
- * @type {function(!Object): boolean}
+ * @type {?function(!Object): boolean}
  */
 ydn.db.Query.prototype.continue;
 
 /**
- * @type {function(!Object): *}
+ * @type {?function(!Object): *}
  */
 ydn.db.Query.prototype.map;
 
 /**
  * Reduce is execute after map.
- * @type {function(*, *, number): *}
+ * @type {?function(*, *, number): *}
  * function(previousValue, currentValue, index)
  */
 ydn.db.Query.prototype.reduce;
@@ -220,19 +231,7 @@ ydn.db.Query.prototype.select = function(arg1) {
  *  upperOpen: (boolean|undefined)
  * }}
  */
-ydn.db.Query.KeyRange;
-
-
-/**
- * This is similar to SQL SELECT statement.
- * @typedef {{
- *  store: (string|undefined),
- *  index: (string|undefined),
- *  keyRange: (ydn.db.Query.KeyRange|Object|undefined),
- *  direction: (string|undefined)
- *  }}
- */
-ydn.db.Query.Config;
+ydn.db.Query.KeyRangeJson;
 
 
 /**
@@ -301,7 +300,7 @@ ydn.db.Query.IDBKeyRange = goog.global.IDBKeyRange ||
 
 
 /**
- * @param {ydn.db.Query.KeyRange=} keyRange keyRange.
+ * @param {ydn.db.Query.KeyRangeJson=} keyRange keyRange.
  * @return {ydn.db.Query.IDBKeyRange} equivalent IDBKeyRange.
  */
 ydn.db.Query.parseKeyRange = function (keyRange) {
@@ -350,6 +349,54 @@ ydn.db.Query.isLikeOperation_ = function (keyRange) {
 
 
 /**
+ *
+ * @param {*} value
+ */
+ydn.db.Query.prototype.only = function(value) {
+  goog.asserts.assertString(this.index, 'index name must be specified.');
+  this.keyRange = ydn.db.Query.IDBKeyRange.only(value);
+  return this;
+};
+
+
+/**
+ *
+ * @param {*} value
+ * @param {boolean=} is_open
+ */
+ydn.db.Query.prototype.upperBound = function(value, is_open) {
+  goog.asserts.assertString(this.index, 'index name must be specified.');
+  this.keyRange = ydn.db.Query.IDBKeyRange.upperBound(value, is_open);
+  return this;
+};
+
+/**
+ *
+ * @param {*} value
+ * @param {boolean=} is_open
+ */
+ydn.db.Query.prototype.lowerBound = function(value, is_open) {
+  goog.asserts.assertString(this.index, 'index name must be specified.');
+  this.keyRange = ydn.db.Query.IDBKeyRange.lowerBound(value, is_open);
+  return this;
+};
+
+/**
+ *
+ * @param {*} lower
+ * @param {*} upper
+ * @param {boolean=} lo
+ * @param {boolean=} uo
+ */
+ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
+  goog.asserts.assertString(this.index, 'index name must be specified.');
+  this.keyRange = ydn.db.Query.IDBKeyRange.bound(lower, upper, lo, uo);
+  return this;
+};
+
+
+
+/**
  * @return {{where_clause: string, params: Array}} return equivalent of keyRange
  * to SQL WHERE clause and its parameters.
  */
@@ -393,7 +440,7 @@ ydn.db.Query.Op = {
  * Helper method for creating useful KeyRange.
  * @param {ydn.db.Query.Op} op operator.
  * @param {string} value value.
- * @return {!ydn.db.Query.KeyRange} result.
+ * @return {!ydn.db.Query.KeyRangeJson} result.
  */
 ydn.db.Query.createKeyRange = function (op, value) {
   if (op == ydn.db.Query.Op.START_WITH) {
