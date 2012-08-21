@@ -56,6 +56,7 @@ goog.require('ydn.db.ActiveQuery');
  * or its configuration in JSON format.
  * schema used in chronical order.
  * @implements {ydn.db.Db}
+ * @implements {ydn.db.QueryServiceProvider}
  * @constructor
  */
 ydn.db.Storage = function(opt_dbname, opt_schema) {
@@ -220,7 +221,7 @@ ydn.db.Storage.prototype.initDatabase = function() {
  * @return {boolean} true if the database has been initialized.
  */
 ydn.db.Storage.prototype.isReady = function() {
-  return goog.isDef(this.db_);
+  return goog.isDefAndNotNull(this.db_);
 };
 
 
@@ -242,10 +243,10 @@ ydn.db.Storage.prototype.close = function() {
 /**
  * Return underlining database instance.
  * @export
- * @return {ydn.db.Db|undefined} Database if exists.
+ * @return {ydn.db.tr.Db} Database if exists.
  */
 ydn.db.Storage.prototype.getDb = function() {
-  return this.db_;
+  return this.db_ || null;
 };
 
 
@@ -455,9 +456,7 @@ ydn.db.Storage.prototype.query = function(store_name, index, keyRange,
  * @return {!ydn.db.tr.Key}
  */
 ydn.db.Storage.prototype.tkey = function(store, id, opt_parent) {
-  var key = new ydn.db.tr.Key(store, id, opt_parent);
-  key.db = this.db_;
-  return key;
+  return new ydn.db.tr.Key(this, store, id, opt_parent);
 };
 
 /**
@@ -477,24 +476,21 @@ ydn.db.Storage.prototype.key = function(store, id, opt_parent) {
 /**
  * @export
  * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<string|!ydn.db.Key>} scopes list of stores
+ * @param {!Array.<!ydn.db.Key>} keys list of stores
  * involved in the transaction.
  * @param {(number|string)=} mode mode, default to 'read_write'.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.Storage.prototype.runInTransaction = function(trFn, scopes, mode) {
+ydn.db.Storage.prototype.runInTransaction = function (trFn, keys, mode) {
   goog.asserts.assert(this.db_, 'database not ready');
-  if (scopes[0] instanceof ydn.db.Key) {
-    var store_names = [];
-    for (var key, i = 0; key = scopes[i]; i++) {
-      if (!goog.array.contains(store_names, key.store_name)) {
-        store_names.push(key.store_name);
-      }
+  var store_names = [];
+  for (var key, i = 0; key = keys[i]; i++) {
+    if (!goog.array.contains(store_names, key.store_name)) {
+      store_names.push(key.store_name);
     }
-    scopes = store_names;
   }
   mode = mode || ydn.db.IndexedDb.TransactionMode.READ_WRITE;
-  return this.db_.runInTransaction(trFn, scopes, mode);
+  return this.db_.runInTransaction(trFn, store_names, mode, keys);
 };
 
 

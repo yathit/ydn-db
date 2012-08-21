@@ -47,12 +47,6 @@ ydn.db.Key = function(store, id, opt_parent) {
    */
   this.parent = opt_parent || null;
 
-  /**
-   * Database instance
-   * @type {ydn.db.tr.Db}
-   */
-  this.db;
-
 };
 
 

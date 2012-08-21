@@ -38,45 +38,65 @@ ydn.db.tr.Db = function() {};
  * immediately.
  *
  * This method must be {@link #runInTransaction}.
+ * @param {IDBTransaction} tx
  * @param {string} store store name.
  * @param {string|number} id object key.
  * @return {!goog.async.Deferred}
  */
-ydn.db.tr.Db.prototype.getInTransaction = function(store, id) {};
+ydn.db.tr.Db.prototype.getInTransaction = function(tx, store, id) {};
 
 
 /**
  * Put the object in the store in a transaction.
  *
  * This method must be {@link #runInTransaction}.
+ * @param {IDBTransaction} tx
  * @param {string} store store name.
  * @param {!Object|!Array.<!Object>} value object to put.
  * @return {!goog.async.Deferred}
  */
-ydn.db.tr.Db.prototype.putInTransaction = function(store, value) {};
+ydn.db.tr.Db.prototype.putInTransaction = function(tx, store, value) {};
 
 
 
 /**
  *
  * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<string>} scopes list of stores involved in the
+ * @param {!Array.<string>} scopes list of store names involved in the
  * transaction.
  * @param {number|string} mode mode, default to 'read_write'.
+ * @param {!Array.<!ydn.db.tr.Key>} keys list of keys involved in the
+ * transaction.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.tr.Db.prototype.runInTransaction = function(trFn, scopes, mode) {};
+ydn.db.tr.Db.prototype.runInTransaction = function(trFn, scopes, mode, keys) {};
 
 
 /**
  * @extends {ydn.db.Key}
+ * @param {!ydn.db.QueryServiceProvider} dbp
  * @param {string} store
  * @param {(string|number)}id
  * @param {ydn.db.Key=} opt_parent
  * @constructor
  */
-ydn.db.tr.Key = function(store, id, opt_parent) {
+ydn.db.tr.Key = function(dbp, store, id, opt_parent) {
   goog.base(this, store, id, opt_parent);
+
+  /**
+   * Database instance
+   * @final
+   * @protected
+   * @type {ydn.db.QueryServiceProvider}
+   */
+  this.dbp = dbp;
+
+  /**
+   * Inject the transaction instance during transaction.
+   *  @type {IDBTransaction} 
+   */
+  this.tx;
+
 };
 goog.inherits(ydn.db.tr.Key, ydn.db.Key);
 
@@ -87,8 +107,8 @@ goog.inherits(ydn.db.tr.Key, ydn.db.Key);
  * @return {!goog.async.Deferred}
  */
 ydn.db.tr.Key.prototype.get = function() {
-  goog.asserts.assertObject(this.db, 'This must be runInTransaction');
-  return this.db.getInTransaction(this.store_name, this.id);
+  goog.asserts.assertObject(this.tx, this + ' must be runInTransaction');
+  return this.dbp.getDb().getInTransaction(this.tx, this.store_name, this.id);
 };
 
 
@@ -100,6 +120,6 @@ ydn.db.tr.Key.prototype.get = function() {
  * an {@code Error} object is return as received from the mechanism.
  */
 ydn.db.tr.Key.prototype.put = function(value) {
-  goog.asserts.assertObject(this.db, 'This must be runInTransaction');
-  return this.db.putInTransaction(this.store_name, value);
+  goog.asserts.assertObject(this.tx, this + ' must be runInTransaction');
+  return this.dbp.getDb().putInTransaction(this.tx, this.store_name, value);
 };

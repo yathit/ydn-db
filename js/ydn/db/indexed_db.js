@@ -163,7 +163,7 @@ ydn.db.IndexedDb = function(dbname, schema) {
  *
  * @define {boolean} trun on debug flag to dump object.
  */
-ydn.db.IndexedDb.DEBUG = false;
+ydn.db.IndexedDb.DEBUG = true;
 
 
 /**
@@ -359,26 +359,25 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df)
      * @protected
      * @type {IDBTransaction}
      */
-    me.tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
-    goog.events.listen(/** @type {EventTarget} */ (me.tx),
+    var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
+    goog.events.listen(/** @type {EventTarget} */ (tx),
       [ydn.db.IndexedDb.EventTypes.COMPLETE,
         ydn.db.IndexedDb.EventTypes.ABORT, ydn.db.IndexedDb.EventTypes.ERROR],
       function(event) {
 
-        if (goog.isDef(me.tx.is_success)) {
-          opt_df.callback(me.tx.result);
+        if (goog.isDef(tx.is_success)) {
+          opt_df.callback(tx.result);
         } else {
-          opt_df.errback(me.tx.error);
+          opt_df.errback(tx.error);
         }
 
-        delete me.tx;
         goog.Timer.callOnce(function() {
           me.is_ready = true;
           me.runTxQueue();
         });
       });
 
-    fnc(me.tx);
+    fnc(tx);
 
   } else {
 
@@ -940,12 +939,11 @@ ydn.db.IndexedDb.prototype.close = function () {
 /**
  * inheritDoc
  */
-ydn.db.IndexedDb.prototype.getInTransaction = function(store_name, id) {
+ydn.db.IndexedDb.prototype.getInTransaction = function(tx, store_name, id) {
   var me = this;
-  goog.asserts.assertObject(this.tx, 'Not in transaction.');
   var df = new goog.async.Deferred();
 
-  var store = this.tx.objectStore(store_name);
+  var store = tx.objectStore(store_name);
   var request = store.get(id);
 
   request.onsuccess = function(event) {
@@ -962,7 +960,7 @@ ydn.db.IndexedDb.prototype.getInTransaction = function(store_name, id) {
     }
     me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
       event.message);
-    me.tx.abort();
+    tx.abort();
     df.errback(event);
   };
   return df;
@@ -972,12 +970,11 @@ ydn.db.IndexedDb.prototype.getInTransaction = function(store_name, id) {
 /**
  * @return {!goog.async.Deferred}
  */
-ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value) {
+ydn.db.IndexedDb.prototype.putInTransaction = function(tx, store_name, value) {
 
   var me = this;
-  goog.asserts.assertObject(this.tx, 'Not in transaction.');
   var df = new goog.async.Deferred();
-  var store = this.tx.objectStore(store_name);
+  var store = tx.objectStore(store_name);
 
   var request = store.put(value);
 
@@ -992,8 +989,8 @@ ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value) {
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log([store_name, value, event]);
     }
-    me.tx.error = event;
-    me.tx.abort();
+    tx.error = event;
+    tx.abort();
     df.errback(event);
   };
   return df;
@@ -1004,8 +1001,24 @@ ydn.db.IndexedDb.prototype.putInTransaction = function(store_name, value) {
  *
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.runInTransaction = function(trFn, scopes, mode) {
+ydn.db.IndexedDb.prototype.runInTransaction = function(trFn, scopes, mode, keys) {
+
+
   return this.doTransaction(function(tx) {
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log([tx, trFn, scopes, mode, keys]);
+    }
+
+    for (var key, i = 0; key = keys[i]; i++) {
+      key.tx = tx; // inject transaction object.
+    }
+
+    // now execute transaction process
     trFn();
+
+    // due to async nature we cannot clean up tx now.
+    //for (var key, i = 0; key = keys[i]; i++) {
+    //  delete key.tx;
+    //}
   }, scopes, mode);
 };

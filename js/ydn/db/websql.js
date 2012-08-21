@@ -731,28 +731,17 @@ ydn.db.WebSql.prototype.close = function () {
 
 
 /**
- * Get object in the store in a transaction. This return requested object
- * immediately.
- *
- * This method must be {@link #runInTransaction}.
- * @param {string} store store name.
- * @param {string|number} id object key.
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
-ydn.db.WebSql.prototype.getInTransaction = function(store, id) {
+ydn.db.WebSql.prototype.getInTransaction = function(tx, store, id) {
   throw Error('no impl');
 };
 
 
 /**
- * Put the object in the store in a transaction.
- *
- * This method must be {@link #runInTransaction}.
- * @param {string} store store name.
- * @param {!Object} value object to put.
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
-ydn.db.WebSql.prototype.putInTransaction = function(store, value) {
+ydn.db.WebSql.prototype.putInTransaction = function(tx, store, value) {
   throw Error('no impl');
 };
 
@@ -762,6 +751,6 @@ ydn.db.WebSql.prototype.putInTransaction = function(store, value) {
  *
  * @inheritDoc
  */
-ydn.db.WebSql.prototype.runInTransaction = function(trFn, scopes, mode) {
+ydn.db.WebSql.prototype.runInTransaction = function(trFn, scopes, mode, keys) {
   throw Error('not impl');
 };

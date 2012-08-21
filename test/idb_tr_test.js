@@ -81,18 +81,19 @@ var test_2_idb_basic = function() {
 
     db.runInTransaction(function() {
       a_key.get().addCallback(function(a_obj) {
+        console.log('a_key get ' + JSON.stringify(a_obj));
         a_obj.value += amt;
         a_key.put(a_obj).addCallback(function(out) {
           t1_fired = true;
           assertEquals('tr done', 'a', out);
         });
       });
-    }, [table_name]);
+    }, [a_key]);
 
     var q = db.query(table_name);
     q.select('value');
     db.fetch(q).addCallback(function(q_result) {
-      console.log('receiving query ' + JSON.stringify(q_result));
+      console.log('receiving fetch ' + JSON.stringify(q_result));
       t1_result = q_result;
       t1_fired = true;
     })

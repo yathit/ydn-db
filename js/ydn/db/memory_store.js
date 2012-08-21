@@ -344,12 +344,13 @@ ydn.db.MemoryStore.prototype.close = function () {
  * immediately.
  *
  * This method must be {@link #runInTransaction}.
+ * @param {IDBTransaction} tx
  * @param {string} store store name.
  * @param {string|number} id object key.
  * @return {!goog.async.Deferred}
  */
-ydn.db.MemoryStore.prototype.getInTransaction = function(store, id) {
-  throw Error('no impl');
+ydn.db.MemoryStore.prototype.getInTransaction = function(tx, store, id) {
+  throw Error('not impl');
 };
 
 
@@ -357,12 +358,13 @@ ydn.db.MemoryStore.prototype.getInTransaction = function(store, id) {
  * Put the object in the store in a transaction.
  *
  * This method must be {@link #runInTransaction}.
+ * @param {IDBTransaction} tx
  * @param {string} store store name.
  * @param {!Object} value object to put.
  * @return {!goog.async.Deferred}
  */
-ydn.db.MemoryStore.prototype.putInTransaction = function(store, value) {
-  throw Error('no impl');
+ydn.db.MemoryStore.prototype.putInTransaction = function(tx, store, value) {
+  throw Error('not impl');
 };
 
 
@@ -370,6 +372,6 @@ ydn.db.MemoryStore.prototype.putInTransaction = function(store, value) {
  *
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.runInTransaction = function(trFn, scopes, mode) {
+ydn.db.MemoryStore.prototype.runInTransaction = function(trFn, scopes, mode, keys) {
   throw Error('not impl');
 };
