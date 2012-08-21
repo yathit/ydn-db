@@ -38,7 +38,7 @@ ydn.db.tr.Db = function() {};
  * immediately.
  *
  * This method must be {@link #runInTransaction}.
- * @param {IDBTransaction} tx
+ * @param {IDBTransaction|SQLTransaction} tx
  * @param {string} store store name.
  * @param {string|number} id object key.
  * @return {!goog.async.Deferred}
@@ -50,7 +50,7 @@ ydn.db.tr.Db.prototype.getInTransaction = function(tx, store, id) {};
  * Put the object in the store in a transaction.
  *
  * This method must be {@link #runInTransaction}.
- * @param {IDBTransaction} tx
+ * @param {IDBTransaction|SQLTransaction} tx
  * @param {string} store store name.
  * @param {!Object|!Array.<!Object>} value object to put.
  * @return {!goog.async.Deferred}
@@ -86,7 +86,7 @@ ydn.db.tr.Key = function(dbp, store, id, opt_parent) {
 
   /**
    * Inject the transaction instance during transaction.
-   *  @type {IDBTransaction} 
+   *  @type {IDBTransaction|SQLTransaction}
    */
   this.tx;
 

@@ -191,75 +191,89 @@ ydn.db.WebSql.prototype.migrate = function() {
 
 
 /**
- * @inheritDoc
+ * @param {SQLTransaction} tx
+ * @param {goog.async.Deferred} df
+ * @param {string} store_name table name.
+ * @param {!Object|Array.<!Object>} obj object to put.
  */
-ydn.db.WebSql.prototype.put = function(store_name, obj) {
-  var d = new goog.async.Deferred();
+ydn.db.WebSql.prototype.executePut_ = function(tx, df, store_name, obj) {
 
   var table = this.schema.getStore(store_name);
   if (!table) {
     this.logger.warning('Table ' + store_name + ' not found.');
-    d.errback(new Error('Table ' + store_name + ' not found.'));
-    return d;
+    df.errback(new Error('Table ' + store_name + ' not found.'));
+    return df;
   }
 
+  var me = this;
   var is_array = goog.isArray(obj);
   var arr = is_array ? obj : [obj];
   var arr_result = [];
   var has_error = false;
 
-  var me = this;
+  for (var i = 0; !has_error && i < arr.length; i++) {
+    var last = i == arr.length - 1;
 
-  me.db.transaction(function(t) {
-    for (var i = 0; !has_error && i < arr.length; i++) {
-      var last = i == arr.length - 1;
+    var out = table.getIndexedValues(arr[i]);
+    //console.log([obj, JSON.stringify(obj)]);
 
-      var out = table.getIndexedValues(arr[i]);
-      //console.log([obj, JSON.stringify(obj)]);
-
-      var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
+    var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
         ' (' + out.columns.join(', ') + ') ' +
         'VALUES (' + out.slots.join(', ') + ');';
 
-
-      /**
-       * @param {SQLTransaction} transaction transaction.
-       * @param {SQLResultSet} results results.
-       */
-      var success_callback = function(last, key, transaction, results) {
-        if (ydn.db.WebSql.DEBUG) {
-          window.console.log([sql, out, last, key, transaction, results]);
+    /**
+     * @param {SQLTransaction} transaction transaction.
+     * @param {SQLResultSet} results results.
+     */
+    var success_callback = function(last, key, transaction, results) {
+      if (ydn.db.WebSql.DEBUG) {
+        window.console.log([sql, out, last, key, transaction, results]);
+      }
+      if (is_array) {
+        arr_result.push(key);
+        if (last) {
+          df.callback(arr_result);
         }
-        if (is_array) {
-          arr_result.push(key);
-          if (last) {
-            d.callback(arr_result);
-          }
-        } else {
-          d.callback(key);
-        }
-      };
+      } else {
+        df.callback(key);
+      }
+    };
 
-      /**
-       * @param {SQLTransaction} tr transaction.
-       * @param {SQLError} error error.
-       */
-      var error_callback = function(tr, error) {
-        if (ydn.db.WebSql.DEBUG) {
-          window.console.log([sql, out, tr, error]);
-        }
-        me.logger.warning('put error: ' + error.message);
-        // TODO: roll back
-        has_error = true;
-        d.errback(error);
-      };
+    /**
+     * @param {SQLTransaction} tr transaction.
+     * @param {SQLError} error error.
+     */
+    var error_callback = function(tr, error) {
+      if (ydn.db.WebSql.DEBUG) {
+        window.console.log([sql, out, tr, error]);
+      }
+      me.logger.warning('put error: ' + error.message);
+      // TODO: roll back
+      has_error = true;
+      df.errback(error);
+    };
 
-      //console.log([sql, out.values]);
-      t.executeSql(sql, out.values,
+    //console.log([sql, out.values]);
+    tx.executeSql(sql, out.values,
         goog.partial(success_callback, last, out.key), error_callback);
-    }
+  }
+};
+
+
+/**
+ * @param {string} store_name table name.
+ * @param {!Object|Array.<!Object>} obj object to put.
+ * @return {!goog.async.Deferred} return key in deferred function.
+ */
+ydn.db.WebSql.prototype.put = function(store_name, obj) {
+  var df = new goog.async.Deferred();
+
+  var me = this;
+
+  me.db.transaction(function(tx) {
+    me.executePut_(tx, df, store_name, obj);
   });
-  return d;
+  return df;
 };
 
 
@@ -320,6 +334,68 @@ ydn.db.WebSql.prototype.getByKey = function(key) {
 
 
 /**
+ *
+ * @param {SQLTransaction} t
+ * @param {goog.async.Deferred} d
+ * @param {string} arg1
+ * @param {(number|string)=} key
+ * @private
+ */
+ydn.db.WebSql.prototype.executeGet_ = function(t, d, arg1, key) {
+  var table = this.schema.getStore(arg1);
+  if (!table) {
+    this.logger.warning('Table ' + arg1 + ' not found.');
+    d.errback(new Error('Table ' + arg1 + ' not found.'));
+  }
+
+  var me = this;
+
+  var params = [];
+  if (goog.isDef(key)) {
+    var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
+        table.getQuotedKeyPath() + ' = ?';
+    params = [key];
+  } else {
+    var sql = 'SELECT * FROM ' + table.getQuotedName();
+  }
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function (transaction, results) {
+    if (!goog.isDef(key)) {
+      var arr = [];
+      for (var i = 0; i < results.rows.length; i++) {
+        var row = results.rows.item(i);
+        arr.push(me.parseRow(table, row));
+      }
+      d.callback(arr);
+    } else if (results.rows.length > 0) {
+      var row = results.rows.item(0);
+      d.callback(me.parseRow(table, row));
+    } else {
+      d.callback(undefined);
+    }
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   */
+  var error_callback = function (tr, error) {
+    if (ydn.db.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    me.logger.warning('get error: ' + error.message);
+    d.errback(error);
+  };
+
+  t.executeSql(sql, params, callback, error_callback);
+};
+
+
+/**
  * Return object
  * @param {string|!ydn.db.Query|!ydn.db.Key} arg1 table name.
  * @param {(string|number)=} key object key to be retrieved, if not provided,
@@ -330,6 +406,7 @@ ydn.db.WebSql.prototype.getByKey = function(key) {
  */
 ydn.db.WebSql.prototype.get = function (arg1, key) {
   var d = new goog.async.Deferred();
+  var me = this;
 
   if (arg1 instanceof ydn.db.Query) {
     var df = new goog.async.Deferred();
@@ -346,58 +423,9 @@ ydn.db.WebSql.prototype.get = function (arg1, key) {
   } else if (arg1 instanceof ydn.db.Key) {
     return this.getByKey(arg1);
   } else {
-    var table = this.schema.getStore(arg1);
-    if (!table) {
-      this.logger.warning('Table ' + arg1 + ' not found.');
-      d.errback(new Error('Table ' + arg1 + ' not found.'));
-    }
-
-    var me = this;
-
-    var params = [];
-    if (goog.isDef(key)) {
-      var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-          table.getQuotedKeyPath() + ' = ?';
-      params = [key];
-    } else {
-      var sql = 'SELECT * FROM ' + table.getQuotedName();
-    }
-
-    /**
-     * @param {SQLTransaction} transaction transaction.
-     * @param {SQLResultSet} results results.
-     */
-    var callback = function (transaction, results) {
-      if (!goog.isDef(key)) {
-        var arr = [];
-        for (var i = 0; i < results.rows.length; i++) {
-          var row = results.rows.item(i);
-          arr.push(me.parseRow(table, row));
-        }
-        d.callback(arr);
-      } else if (results.rows.length > 0) {
-        var row = results.rows.item(0);
-        d.callback(me.parseRow(table, row));
-      } else {
-        d.callback(undefined);
-      }
-    };
-
-    /**
-     * @param {SQLTransaction} tr transaction.
-     * @param {SQLError} error error.
-     */
-    var error_callback = function (tr, error) {
-      if (ydn.db.WebSql.DEBUG) {
-        window.console.log([tr, error]);
-      }
-      me.logger.warning('get error: ' + error.message);
-      d.errback(error);
-    };
 
     this.db.transaction(function (t) {
-      //console.log(sql);
-      t.executeSql(sql, params, callback, error_callback);
+      me.executeGet_(t, d, arg1, key);
     });
 
     return d;
@@ -735,12 +763,15 @@ ydn.db.WebSql.prototype.close = function () {
 };
 
 
-
 /**
  * @inheritDoc
  */
 ydn.db.WebSql.prototype.getInTransaction = function(tx, store, id) {
-  throw Error('no impl');
+  var df = new goog.async.Deferred();
+  //goog.asserts.assertInstanceof(tx, SQLTransaction);
+  // cannot test externs SQLTransaction, must cast
+  this.executeGet_(/** @type {SQLTransaction} */ (tx), df, store, id);
+  return df;
 };
 
 
@@ -748,7 +779,11 @@ ydn.db.WebSql.prototype.getInTransaction = function(tx, store, id) {
  * @inheritDoc
  */
 ydn.db.WebSql.prototype.putInTransaction = function(tx, store, value) {
-  throw Error('no impl');
+  var df = new goog.async.Deferred();
+  // goog.asserts.assertInstanceof(tx, SQLTransaction);
+  // cannot test externs SQLTransaction, must cast
+  this.executePut_(/** @type {SQLTransaction} */ (tx), df, store, value);
+  return df;
 };
 
 
@@ -758,5 +793,28 @@ ydn.db.WebSql.prototype.putInTransaction = function(tx, store, value) {
  * @inheritDoc
  */
 ydn.db.WebSql.prototype.runInTransaction = function(trFn, scopes, mode, keys) {
-  throw Error('not impl');
+  var df = new goog.async.Deferred();
+
+  this.db.transaction(function(tx) {
+    if (ydn.db.WebSql.DEBUG) {
+      window.console.log([tx, trFn, scopes, mode, keys]);
+    }
+
+    for (var key, i = 0; key = keys[i]; i++) {
+      key.tx = tx; // inject transaction object.
+    }
+
+    // now execute transaction process
+    trFn();
+
+  });
+
+  df.addBoth(function() {
+    // clean up tx.
+    for (var key, i = 0; key = keys[i]; i++) {
+      delete key.tx;
+    }
+  });
+
+  return df;
 };
