@@ -202,7 +202,13 @@ ydn.db.MemoryStore.prototype.getByKey = function(key) {
 
 
 /**
- * @inheritDoc
+ * Return object
+ * @param {string|!ydn.db.Query|!ydn.db.Key} arg1 table name.
+ * @param {(string|number)=} opt_key object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * param {number=} start start number of entry.
+ * param {number=} limit maximun number of entries.
+ * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.MemoryStore.prototype.get = function (arg1, opt_key) {
 

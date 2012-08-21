@@ -320,7 +320,13 @@ ydn.db.WebSql.prototype.getByKey = function(key) {
 
 
 /**
- * @inheritDoc
+ * Return object
+ * @param {string|!ydn.db.Query|!ydn.db.Key} arg1 table name.
+ * @param {(string|number)=} key object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * param {number=} start start number of entry.
+ * param {number=} limit maximun number of entries.
+ * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.WebSql.prototype.get = function (arg1, key) {
   var d = new goog.async.Deferred();
