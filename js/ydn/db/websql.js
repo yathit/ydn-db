@@ -426,7 +426,7 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
    */
   var error_callback = function(tr, error) {
     if (ydn.db.WebSql.DEBUG) {
-      window.console.log([tr, error]);
+      window.console.log([q, limit, offset, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
     d.errback(error);

@@ -588,7 +588,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
   var self = this;
 
   var store = this.schema.getStore(q.store);
-  var is_reduce = goog.isDef(q.reduce);
+  var is_reduce = goog.isFunction(q.reduce);
 
   return this.doTransaction(function(tx) {
     //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
@@ -629,16 +629,16 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
 
         var value = /** @type {!Object} */ cursor['value']; // should not necessary if externs are
 
-        var to_continue = !goog.isDef(q.continue) || q.continue(value);
+        var to_continue = !goog.isFunction(q.continue) || q.continue(value);
 
         // do the filtering if requested.
-        if (!goog.isDef(q.filter) || q.filter(value)) {
+        if (!goog.isFunction(q.filter) || q.filter(value)) {
+          idx++;
 
-          if (goog.isDef(q.map)) {
+          if (goog.isFunction(q.map)) {
             value = q.map(value);
           }
 
-          idx++;
           if (is_reduce) {
             tx.result = q.reduce(tx.result, value, idx);
           } else {

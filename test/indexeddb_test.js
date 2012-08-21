@@ -348,20 +348,19 @@ var test_8_query_start_with = function () {
         },
         // Continuation
         function () {
-          assertEquals('obj length', objs.length - 1, get_value_received.length);
-          assertObjectEquals('get', objs[0], get_value_received[0]);
-          assertObjectEquals('get', objs[1], get_value_received[1]);
           reachedFinalContinuation = true;
         },
         100, // interval
         2000); // maxTimeout
 
 
-      var keyRange = ydn.db.Query.createKeyRange(ydn.db.Query.Op.START_WITH, 'qs');
-      var q = new ydn.db.Query(store_name, 'id', {keyRange: keyRange});
-      console.log([keyRange, q]);
+      var q = new ydn.db.Query(store_name, 'id').startsWith('qs');
       db.fetch(q).addCallback(function (value) {
-        get_value_received = value;
+        console.log('fetch value: ' + JSON.stringify(value));
+        assertEquals('obj length', objs.length - 1, value.length);
+        assertObjectEquals('get', objs[0], value[0]);
+        assertObjectEquals('get', objs[1], value[1]);
+
         get_done = true;
       });
 

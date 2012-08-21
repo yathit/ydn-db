@@ -428,32 +428,13 @@ ydn.db.Query.prototype.toWhereClause = function() {
 
 
 /**
- * Query operator
- * @enum {string}
- */
-ydn.db.Query.Op = {
-  START_WITH: 'st'
-};
-
-
-/**
  * Helper method for creating useful KeyRange.
- * @param {ydn.db.Query.Op} op operator.
  * @param {string} value value.
- * @return {!ydn.db.Query.KeyRangeJson} result.
  */
-ydn.db.Query.createKeyRange = function (op, value) {
-  if (op == ydn.db.Query.Op.START_WITH) {
-    var value_upper = value.substring(0, value.length - 1) + String.fromCharCode(
-      value.charCodeAt(value.length - 1) + 1);
-    return {
-      lower:value,
-      lowerOpen:false,
-      upper:value_upper,
-      upperOpen:true
-    };
-  } else {
-    throw Error('Invalid op');
-  }
+ydn.db.Query.prototype.startsWith = function (value) {
+  var value_upper = value.substring(0, value.length - 1) + String.fromCharCode(
+    value.charCodeAt(value.length - 1) + 1);
+  this.bound(value, value_upper, false, true);
+  return this;
 };
 
