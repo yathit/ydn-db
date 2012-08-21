@@ -69,7 +69,7 @@ ydn.db.Storage = function(opt_dbname, opt_schema) {
 
   /**
    *
-   * @type {goog.async.Deferred} deferred db instance.
+   * @type {!goog.async.Deferred} deferred db instance.
    */
   this.deferredDb = new goog.async.Deferred();
 
@@ -247,6 +247,15 @@ ydn.db.Storage.prototype.close = function() {
  */
 ydn.db.Storage.prototype.getDb = function() {
   return this.db_ || null;
+};
+
+/**
+ * Return underlining database instance.
+ * @export
+ * @return {!goog.async.Deferred} Database in deferred function.
+ */
+ydn.db.Storage.prototype.getDeferredDb = function() {
+  return this.deferredDb;
 };
 
 

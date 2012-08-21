@@ -28,3 +28,47 @@ ydn.db.ActiveKey = function(dbp, store, id, opt_parent) {
 
 };
 goog.inherits(ydn.db.ActiveKey, ydn.db.Key);
+
+
+
+
+/**
+ * Get object from store.
+ * @return {!goog.async.Deferred} return resulting object in deferred function.
+ */
+ydn.db.ActiveKey.prototype.get = function() {
+
+  if (this.dbp.isReady()) {
+    return this.dbp.getDb().get(this.store_name, this.id);
+  } else {
+    var me = this;
+    var df = new goog.async.Deferred();
+    this.dbp.getDeferredDb().addCallback(function(db) {
+      db.get(me.store_name, me.id).chainDeferred(df);
+    });
+    return df;
+  }
+
+
+};
+
+
+/**
+ * @param {!Object|!Array.<!Object>} value object to put.
+ * @return {!goog.async.Deferred} return key in deferred function. On error,
+ * an {@code Error} object is return as received from the mechanism.
+ */
+ydn.db.ActiveKey.prototype.put = function(value) {
+
+  if (this.dbp.isReady()) {
+    return this.dbp.getDb().put(this.store_name, value);
+  } else {
+    var me = this;
+    var df = new goog.async.Deferred();
+    this.dbp.getDeferredDb().addCallback(function(db) {
+      db.put(me.store_name, value).chainDeferred(df);
+    });
+    return df;
+  }
+
+};

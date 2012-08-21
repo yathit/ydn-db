@@ -61,27 +61,6 @@ ydn.db.Key.Json;
 
 
 /**
- * Get object from store.
- * @return {!goog.async.Deferred} return resulting object in deferred function.
- */
-ydn.db.Key.prototype.get = function() {
-  goog.asserts.assertObject(this.db);
-  return this.db.get(this.store_name, this.id);
-};
-
-
-/**
- * @param {!Object|!Array.<!Object>} value object to put.
- * @return {!goog.async.Deferred} return key in deferred function. On error,
- * an {@code Error} object is return as received from the mechanism.
- */
-ydn.db.Key.prototype.put = function(value) {
-  goog.asserts.assertObject(this.db);
-  return this.db.put(this.store_name, value);
-};
-
-
-/**
  * @return {!Object}
  */
 ydn.db.Key.prototype.toJSON = function() {

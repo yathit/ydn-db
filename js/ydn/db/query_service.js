@@ -27,10 +27,20 @@ ydn.db.QueryService.prototype.fetch = function(q, limit, offset) {};
 
 
 /**
- * @param {!ydn.db.Query} q query.
+ * @param {string|!ydn.db.Query|!ydn.db.Key} q query.
+ * @param {(string|number)=} id
  * @return {!goog.async.Deferred}
  */
-ydn.db.QueryService.prototype.get = function(q) {};
+ydn.db.QueryService.prototype.get = function(q, id) {};
+
+/**
+ * @param {string} store table name.
+ * @param {!Object|Array.<!Object>} value object to put.
+ * @return {!goog.async.Deferred} return key in deferred function.
+ */
+ydn.db.QueryService.prototype.put = function(store, value) {
+
+};
 
 
 /**
@@ -39,8 +49,18 @@ ydn.db.QueryService.prototype.get = function(q) {};
  */
 ydn.db.QueryServiceProvider = function() {};
 
+/**
+ * @return {boolean}
+ */
+ydn.db.QueryServiceProvider.prototype.isReady = function() {};
+
 
 /**
  * @return {ydn.db.QueryService}
  */
 ydn.db.QueryServiceProvider.prototype.getDb = function() {};
+
+/**
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.QueryServiceProvider.prototype.getDeferredDb = function() {};
