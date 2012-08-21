@@ -477,13 +477,22 @@ ydn.db.Storage.prototype.key = function(store, id, opt_parent) {
 /**
  * @export
  * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<string>} scopes list of stores involved in the
- * transaction.
+ * @param {!Array.<string|!ydn.db.Key>} scopes list of stores
+ * involved in the transaction.
  * @param {(number|string)=} mode mode, default to 'read_write'.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
 ydn.db.Storage.prototype.runInTransaction = function(trFn, scopes, mode) {
   goog.asserts.assert(this.db_, 'database not ready');
+  if (scopes[0] instanceof ydn.db.Key) {
+    var store_names = [];
+    for (var key, i = 0; key = scopes[i]; i++) {
+      if (!goog.array.contains(store_names, key.store_name)) {
+        store_names.push(key.store_name);
+      }
+    }
+    scopes = store_names;
+  }
   mode = mode || ydn.db.IndexedDb.TransactionMode.READ_WRITE;
   return this.db_.runInTransaction(trFn, scopes, mode);
 };
