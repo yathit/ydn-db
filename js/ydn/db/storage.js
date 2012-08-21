@@ -464,12 +464,10 @@ ydn.db.Storage.prototype.tkey = function(store, id, opt_parent) {
  * @param {string} store
  * @param {(string|number)}id
  * @param {ydn.db.Key=} opt_parent
- * @return {!ydn.db.Key}
+ * @return {!ydn.db.ActiveKey}
  */
 ydn.db.Storage.prototype.key = function(store, id, opt_parent) {
-  var key = new ydn.db.Key(store, id, opt_parent);
-  key.db = this.db_;
-  return key;
+  return new ydn.db.ActiveKey(this, store, id, opt_parent);
 };
 
 

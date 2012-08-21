@@ -22,7 +22,7 @@
 goog.provide('ydn.db.tr.Db');
 goog.provide('ydn.db.tr.Key');
 goog.require('ydn.db.Db');
-goog.require('ydn.db.Key');
+goog.require('ydn.db.ActiveKey');
 goog.require('goog.async.Deferred');
 
 
@@ -73,7 +73,7 @@ ydn.db.tr.Db.prototype.runInTransaction = function(trFn, scopes, mode, keys) {};
 
 
 /**
- * @extends {ydn.db.Key}
+ * @extends {ydn.db.ActiveKey}
  * @param {!ydn.db.QueryServiceProvider} dbp
  * @param {string} store
  * @param {(string|number)}id
@@ -81,15 +81,8 @@ ydn.db.tr.Db.prototype.runInTransaction = function(trFn, scopes, mode, keys) {};
  * @constructor
  */
 ydn.db.tr.Key = function(dbp, store, id, opt_parent) {
-  goog.base(this, store, id, opt_parent);
+  goog.base(this, dbp, store, id, opt_parent);
 
-  /**
-   * Database instance
-   * @final
-   * @protected
-   * @type {ydn.db.QueryServiceProvider}
-   */
-  this.dbp = dbp;
 
   /**
    * Inject the transaction instance during transaction.
@@ -98,7 +91,7 @@ ydn.db.tr.Key = function(dbp, store, id, opt_parent) {
   this.tx;
 
 };
-goog.inherits(ydn.db.tr.Key, ydn.db.Key);
+goog.inherits(ydn.db.tr.Key, ydn.db.ActiveKey);
 
 
 /**

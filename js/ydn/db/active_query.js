@@ -11,7 +11,7 @@ goog.require('ydn.db.Query');
 
 /**
  * @extends {ydn.db.Query}
- * @param {!ydn.db.QueryService} db db instance.
+ * @param {!ydn.db.QueryServiceProvider} db db instance.
  * @param {string} store store name.
  * @param {string} index store field, where key query is preformed. If not
  * provided, the first index will be used.
@@ -25,9 +25,10 @@ ydn.db.ActiveQuery = function(db, store, index, keyRange, direction) {
   // database instance. This is be module private variable.
   /**
    * @final
-   * @type {!ydn.db.QueryService}
+   * @protected
+   * @type {!ydn.db.QueryServiceProvider}
    */
-  this.db = db;
+  this.dbp = db;
 };
 goog.inherits(ydn.db.ActiveQuery, ydn.db.Query);
 
@@ -37,7 +38,7 @@ goog.inherits(ydn.db.ActiveQuery, ydn.db.Query);
  * @return {!goog.async.Deferred}
  */
 ydn.db.ActiveQuery.prototype.get = function(q) {
-  return this.db.get(this);
+  return this.dbp.getDb().get(this);
 };
 
 
@@ -48,5 +49,5 @@ ydn.db.ActiveQuery.prototype.get = function(q) {
  * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.ActiveQuery.prototype.fetch = function(opt_limit, opt_offset) {
-  return this.db.fetch(this, opt_limit, opt_offset);
+  return this.dbp.getDb().fetch(this, opt_limit, opt_offset);
 };
