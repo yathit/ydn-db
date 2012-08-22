@@ -99,12 +99,25 @@ ydn.db.tr.Key = function(dbp, store, id, opt_parent) {
 
   /**
    * Inject the transaction instance during transaction.
-   *  @type {IDBTransaction|SQLTransaction}
+   * @protected
+   * @type {IDBTransaction|SQLTransaction}
    */
   this.tx;
 
 };
 goog.inherits(ydn.db.tr.Key, ydn.db.ActiveKey);
+
+
+/**
+ *
+ * @param {IDBTransaction|SQLTransaction|null} tx
+ */
+ydn.db.tr.Key.prototype.setTx = function(tx) {
+  this.tx = tx;
+  if (this.parent) {
+    this.parent.setTx(tx);
+  }
+};
 
 
 /**
