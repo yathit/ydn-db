@@ -510,7 +510,7 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
 /**
  * Deletes all objects from the store.
  * @param {string} table_name table name.
- * @param {string=} opt_key table name.
+ * @param {(string|number)=} opt_key table name.
  * @return {!goog.async.Deferred} return deferred function.
  * @private
  */
@@ -655,10 +655,13 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
 
 
 
+
 /**
- * Remove all data in a store (table).
- * @param {string=} opt_table delete a specific table.
- * all tables.
+ * Remove a specific entry from a store or all.
+ * @param {string=} opt_table delete the table as provided otherwise
+ * delete all stores.
+ * @param {(string|number)=} opt_key delete a specific row.
+ * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.WebSql.prototype.clear = function(opt_table, opt_key) {
@@ -785,6 +788,19 @@ ydn.db.WebSql.prototype.putInTransaction = function(tx, store, value) {
   this.executePut_(/** @type {SQLTransaction} */ (tx), df, store, value);
   return df;
 };
+
+
+/**
+ * Get object in the store in a transaction. This return requested object
+ * immediately.
+ *
+ * This method must be {@link #runInTransaction}.
+ * @param {IDBTransaction|SQLTransaction} tx
+ * @param {string} store store name.
+ * @param {string|number} id object key.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.WebSql.prototype.clearInTransaction = function(tx, store, id) {};
 
 
 

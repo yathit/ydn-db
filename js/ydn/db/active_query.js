@@ -34,10 +34,9 @@ goog.inherits(ydn.db.ActiveQuery, ydn.db.Query);
 
 
 /**
- * @param {!ydn.db.Query} q query object.
  * @return {!goog.async.Deferred}
  */
-ydn.db.ActiveQuery.prototype.get = function(q) {
+ydn.db.ActiveQuery.prototype.get = function() {
   if (this.dbp.isReady()) {
     return this.dbp.getDb().get(this);
   } else {
@@ -45,6 +44,25 @@ ydn.db.ActiveQuery.prototype.get = function(q) {
     var df = new goog.async.Deferred();
     this.dbp.getDeferredDb().addCallback(function(db) {
       db.get(me).chainDeferred(df);
+    });
+    return df;
+  }
+};
+
+
+
+/**
+ * @param {!Object|Array.<!Object>} value object to put.
+ * @return {!goog.async.Deferred} return key in deferred function.
+ */
+ydn.db.ActiveQuery.prototype.put = function(value) {
+  if (this.dbp.isReady()) {
+    return this.dbp.getDb().put(this.store, value);
+  } else {
+    var me = this;
+    var df = new goog.async.Deferred();
+    this.dbp.getDeferredDb().addCallback(function(db) {
+      db.put(me.store, value).chainDeferred(df);
     });
     return df;
   }

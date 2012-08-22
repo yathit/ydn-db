@@ -56,6 +56,19 @@ ydn.db.QueryService.prototype.put = function(store, value) {
 
 
 /**
+ * Remove a specific entry from a store or all.
+ * @param {string=} opt_table delete the table as provided otherwise
+ * delete all stores.
+ * @param {(string|number)=} opt_key delete a specific row.
+ * @see {@link #remove}
+ * @return {!goog.async.Deferred} return a deferred function.
+ */
+ydn.db.QueryService.prototype.clear = function(opt_table, opt_key) {
+
+};
+
+
+/**
  *
  * @interface
  */

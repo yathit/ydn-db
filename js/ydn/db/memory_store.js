@@ -260,7 +260,7 @@ ydn.db.MemoryStore.prototype.get = function (arg1, opt_key) {
 /**
  * Remove all data in a store (table).
  * @param {string=} opt_table delete a specific table or all tables.
- * @param {string=} opt_key delete a specific row.
+ * @param {(string|number)=} opt_key delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.MemoryStore.prototype.clear = function(opt_table, opt_key) {
@@ -372,6 +372,18 @@ ydn.db.MemoryStore.prototype.getInTransaction = function(tx, store, id) {
 ydn.db.MemoryStore.prototype.putInTransaction = function(tx, store, value) {
   throw Error('not impl');
 };
+
+/**
+ * Get object in the store in a transaction. This return requested object
+ * immediately.
+ *
+ * This method must be {@link #runInTransaction}.
+ * @param {IDBTransaction|SQLTransaction} tx
+ * @param {string} store store name.
+ * @param {string|number} id object key.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.MemoryStore.prototype.clearInTransaction = function(tx, store, id) {};
 
 
 /**

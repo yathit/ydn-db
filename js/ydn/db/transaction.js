@@ -47,6 +47,19 @@ ydn.db.tr.Db.prototype.getInTransaction = function(tx, store, id) {};
 
 
 /**
+ * Get object in the store in a transaction. This return requested object
+ * immediately.
+ *
+ * This method must be {@link #runInTransaction}.
+ * @param {IDBTransaction|SQLTransaction} tx
+ * @param {string} store store name.
+ * @param {string|number} id object key.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.tr.Db.prototype.clearInTransaction = function(tx, store, id) {};
+
+
+/**
  * Put the object in the store in a transaction.
  *
  * This method must be {@link #runInTransaction}.
@@ -115,4 +128,14 @@ ydn.db.tr.Key.prototype.get = function() {
 ydn.db.tr.Key.prototype.put = function(value) {
   goog.asserts.assertObject(this.tx, this + ' must be runInTransaction');
   return this.dbp.getDb().putInTransaction(this.tx, this.store_name, value);
+};
+
+/**
+ * Clear object in the store in a transaction.
+ * @override
+ * @return {!goog.async.Deferred} return key in deferred function.
+ */
+ydn.db.tr.Key.prototype.clear = function() {
+  goog.asserts.assertObject(this.tx, this + ' must be runInTransaction');
+  return this.dbp.getDb().clearInTransaction(this.tx, this.store_name, this.id);
 };

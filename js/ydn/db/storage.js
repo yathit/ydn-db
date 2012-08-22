@@ -327,21 +327,26 @@ ydn.db.Storage.prototype.getItem = function(key) {
  *
  * Note: This will not raise error to get non-existing object.
  * @export
- * @param {string|!ydn.db.Query|!ydn.db.Key} store_name The name of store to retrive object from.
+ * @param {string|!ydn.db.Query|!ydn.db.Key|!Array<!ydn.db.Key>} store_name
+ * The name of store to retrive object from.
  * @param {(string|number)=} opt_key the key of an object to be retrieved.
  * if not provided, all entries in the store will return.
  * @return {!goog.async.Deferred} return resulting object in deferred function.
  * If not found, {@code undefined} is return.
  */
 ydn.db.Storage.prototype.get = function(store_name, opt_key) {
-  if (this.db_) {
-    return this.db_.get(store_name, opt_key);
+  if (goog.isArray(store_name)) {
+
   } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function(db) {
-      db.get(store_name, opt_key).chainDeferred(df);
-    });
-    return df;
+    if (this.db_) {
+      return this.db_.get(store_name, opt_key);
+    } else {
+      var df = new goog.async.Deferred();
+      this.deferredDb.addCallback(function(db) {
+        db.get(store_name, opt_key).chainDeferred(df);
+      });
+      return df;
+    }
   }
 };
 
@@ -369,7 +374,7 @@ ydn.db.Storage.prototype.getByKey = function(key) {
  * @export
  * @param {string=} opt_store_name the store name to use.
  * If not provided all entries in the store will be cleared.
- * @param {string=} opt_key delete a specific row.
+ * @param {(string|number)=} opt_key delete a specific row.
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return {@code true} in the deferred function.
  */
@@ -546,5 +551,26 @@ goog.exportProperty(ydn.db.Storage.prototype, 'tkey',
   ydn.db.Storage.prototype.tkey);
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
   ydn.db.Storage.prototype.query);
+goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
+  ydn.db.Storage.prototype.fetch);
 goog.exportProperty(ydn.db.Storage.prototype, 'runInTransaction',
   ydn.db.Storage.prototype.runInTransaction);
+
+goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
+  ydn.db.ActiveQuery.prototype.fetch);
+goog.exportProperty(ydn.db.ActiveQuery.prototype, 'get',
+  ydn.db.ActiveQuery.prototype.get);
+goog.exportProperty(ydn.db.ActiveQuery.prototype, 'put',
+  ydn.db.ActiveQuery.prototype.put);
+
+//goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
+//  ydn.db.ActiveKey.prototype.clear);
+
+goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'bound',
+  ydn.db.Query.KeyRangeImpl.bound);
+goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'upperBound',
+  ydn.db.Query.KeyRangeImpl.upperBound);
+goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'lowerBound',
+  ydn.db.Query.KeyRangeImpl.lowerBound);
+goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'only',
+  ydn.db.Query.KeyRangeImpl.only);

@@ -70,5 +70,21 @@ ydn.db.ActiveKey.prototype.put = function(value) {
     });
     return df;
   }
+};
 
+/**
+ * @return {!goog.async.Deferred} return key in deferred function.
+ */
+ydn.db.ActiveKey.prototype.clear = function() {
+
+  if (this.dbp.isReady()) {
+    return this.dbp.getDb().clear(this.store_name, this.id);
+  } else {
+    var me = this;
+    var df = new goog.async.Deferred();
+    this.dbp.getDeferredDb().addCallback(function(db) {
+      db.clear(me.store_name, me.id).chainDeferred(df);
+    });
+    return df;
+  }
 };
