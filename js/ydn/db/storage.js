@@ -327,27 +327,25 @@ ydn.db.Storage.prototype.getItem = function(key) {
  *
  * Note: This will not raise error to get non-existing object.
  * @export
- * @param {string|!ydn.db.Query|!ydn.db.Key|!Array<!ydn.db.Key>} store_name
+ * @param {string|!ydn.db.Query|!ydn.db.Key} store_name
  * The name of store to retrive object from.
  * @param {(string|number)=} opt_key the key of an object to be retrieved.
  * if not provided, all entries in the store will return.
  * @return {!goog.async.Deferred} return resulting object in deferred function.
  * If not found, {@code undefined} is return.
  */
-ydn.db.Storage.prototype.get = function(store_name, opt_key) {
-  if (goog.isArray(store_name)) {
+ydn.db.Storage.prototype.get = function (store_name, opt_key) {
 
+  if (this.db_) {
+    return this.db_.get(store_name, opt_key);
   } else {
-    if (this.db_) {
-      return this.db_.get(store_name, opt_key);
-    } else {
-      var df = new goog.async.Deferred();
-      this.deferredDb.addCallback(function(db) {
-        db.get(store_name, opt_key).chainDeferred(df);
-      });
-      return df;
-    }
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function (db) {
+      db.get(store_name, opt_key).chainDeferred(df);
+    });
+    return df;
   }
+
 };
 
 /**
@@ -534,6 +532,31 @@ ydn.db.Storage.prototype.disp_ = function() {
 };
 
 
+/**
+ * This is external use only.
+ * @export
+ * @param {!Array.<!{success: Function, error: Function}>} df_arr An array of
+ * deferred objects to wait for.
+ * @return {!goog.async.DeferredList} DeferredList instance.
+ */
+ydn.db.Storage.prototype.dfl = function(df_arr) {
+  var df_list = [];
+  for (var idf, i = 0; idf = df_arr[i]; i++) {
+    var df = new goog.async.Deferred();
+    idf['success'](goog.partial(function(df, x) {
+      //window.console.log([df, x]);
+      df.callback(x);
+    }, df));
+    idf['error'](goog.partial(function(df, x) {
+      //window.console.log([df, x]);
+      df.errback(x);
+    }, df));
+    df_list[i] = df;
+  }
+  return new goog.async.DeferredList(df_list);
+};
+
+
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
 goog.exportProperty(goog.async.Deferred.prototype, 'success',
   goog.async.Deferred.prototype.addCallback);
@@ -555,6 +578,8 @@ goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
   ydn.db.Storage.prototype.fetch);
 goog.exportProperty(ydn.db.Storage.prototype, 'runInTransaction',
   ydn.db.Storage.prototype.runInTransaction);
+goog.exportProperty(ydn.db.Storage.prototype, 'dfl',
+  ydn.db.Storage.prototype.dfl);
 
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
   ydn.db.ActiveQuery.prototype.fetch);
