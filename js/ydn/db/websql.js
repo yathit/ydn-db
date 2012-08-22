@@ -821,7 +821,7 @@ ydn.db.WebSql.prototype.runInTransaction = function(trFn, scopes, mode, keys) {
     }
 
     // now execute transaction process
-    trFn();
+    trFn(tx);
 
   });
 
