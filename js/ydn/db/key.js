@@ -25,17 +25,49 @@ goog.provide('ydn.db.Key');
 /**
  * Builds a new Key object of known id.
  *
- * @param {string} store
- * @param {(string|number)}id
+ * @param {string|!ydn.db.Key.Json} store_or_json_or_value
+ * @param {(string|number)=}id
  * @param {ydn.db.Key=} opt_parent
  * @constructor
  */
-ydn.db.Key = function(store, id, opt_parent) {
+ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
+
+  var store_name;
+  if (goog.isObject(store_or_json_or_value)) {
+    store_name = store_or_json_or_value['store'];
+    id = store_or_json_or_value['id'];
+    if (goog.isDefAndNotNull(store_or_json_or_value['parent'])) {
+      opt_parent = this.toKey(store_or_json_or_value['parent']);
+    }
+  } else {
+    goog.asserts.assertString(store_or_json_or_value);
+    if (!goog.isDef(id)) {
+      // must be valueOf string
+      var idx = store_or_json_or_value.lastIndexOf(ydn.db.Key.SEP_PARENT);
+      /**
+       * @type {string}
+       */
+      var store_and_id = store_or_json_or_value;
+      if (idx > 0) {
+        store_and_id = store_or_json_or_value.substr(idx);
+        opt_parent = this.toKey(store_or_json_or_value.substring(0, idx));
+      }
+      var parts = store_and_id.split(ydn.db.Key.SEP_STORE);
+      store_name = parts[0];
+      id = parts[1];
+      if (!goog.isDef(id)) {
+        throw Error('Invalid key value: ' + store_or_json_or_value);
+      }
+    } else {
+      store_name = store_or_json_or_value;
+    }
+  }
+
   /**
    * @final
    * @type {string}
    */
-  this.store_name = store;
+  this.store_name = store_name;
   /**
    * @final
    * @type {(string|number)}
@@ -61,22 +93,51 @@ ydn.db.Key.Json;
 
 
 /**
+ * @protected
+ * @param {!ydn.db.Key.Json|string} obj
+ * @return {ydn.db.Key}
+ */
+ydn.db.Key.prototype.toKey = function(obj) {
+  return new ydn.db.Key(obj);
+};
+
+
+/**
  * @return {!Object}
  */
 ydn.db.Key.prototype.toJSON = function() {
-  return {
+  var obj = {
     'store': this.store_name,
-    'id': this.id,
-    'parent': this.parent ? this.parent.toJSON() : undefined
+    'id': this.id
+  };
+  if (this.parent) {
+    obj['parent'] = this.parent.toJSON();
   }
+  return obj;
 };
 
+
 /**
+ * Separator between child and parent.
+ * @const {string}
+ */
+ydn.db.Key.SEP_PARENT = '^|';
+
+/**
+ * Separator between table and key.
+ * @const {string}
+ */
+ydn.db.Key.SEP_STORE = '^:';
+
+
+/**
+ * @override
  * @return {string}
  */
-ydn.db.Key.prototype.toValue = function() {
-  var parent_value = this.parent ? this.parent.toValue() + '\t' : '';
-  return parent_value + this.store_name + ':' + this.id;
+ydn.db.Key.prototype.valueOf = function() {
+  // necessary to make web-safe string ?
+  var parent_value = this.parent ? this.parent.valueOf() + ydn.db.Key.SEP_PARENT : '';
+  return parent_value + this.store_name + ydn.db.Key.SEP_STORE + this.id;
 };
 
 
@@ -84,20 +145,9 @@ ydn.db.Key.prototype.toValue = function() {
  * @inheritDoc
  */
 ydn.db.Key.prototype.toString = function() {
-  return this.toValue();
+  return this.valueOf().replace('^|', '|').replace('^:', ':');
 };
 
-
-/**
- *
- * @param {!Object} json
- */
-ydn.db.Key.fromJSON = function(json) {
-  var parent = goog.isDefAndNotNull(json['parent']) ?
-    ydn.db.Key.fromJSON(json['parent']) : null;
-
-  return new ydn.db.Key(json['store'], json['id'], parent);
-};
 
 
 

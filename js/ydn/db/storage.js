@@ -327,26 +327,21 @@ ydn.db.Storage.prototype.getItem = function(key) {
  *
  * Note: This will not raise error to get non-existing object.
  * @export
- * @param {string|!ydn.db.Query|!ydn.db.Key|!Array<!ydn.db.Key>} store_name
- * The name of store to retrive object from.
+ * @param {string|!ydn.db.Query|!ydn.db.Key} store_name The name of store to retrive object from.
  * @param {(string|number)=} opt_key the key of an object to be retrieved.
  * if not provided, all entries in the store will return.
  * @return {!goog.async.Deferred} return resulting object in deferred function.
  * If not found, {@code undefined} is return.
  */
-ydn.db.Storage.prototype.get = function(store_name, opt_key) {
-  if (goog.isArray(store_name)) {
-
+ydn.db.Storage.prototype.get = function (store_name, opt_key) {
+  if (this.db_) {
+    return this.db_.get(store_name, opt_key);
   } else {
-    if (this.db_) {
-      return this.db_.get(store_name, opt_key);
-    } else {
-      var df = new goog.async.Deferred();
-      this.deferredDb.addCallback(function(db) {
-        db.get(store_name, opt_key).chainDeferred(df);
-      });
-      return df;
-    }
+    var df = new goog.async.Deferred();
+    this.deferredDb.addCallback(function (db) {
+      db.get(store_name, opt_key).chainDeferred(df);
+    });
+    return df;
   }
 };
 
