@@ -817,18 +817,18 @@ ydn.db.WebSql.prototype.runInTransaction = function(trFn, scopes, mode, keys) {
     }
 
     for (var key, i = 0; key = keys[i]; i++) {
-      key.tx = tx; // inject transaction object.
+      key.setTx(tx); // inject transaction object.
     }
 
     // now execute transaction process
-    trFn();
+    trFn(tx);
 
   });
 
   df.addBoth(function() {
     // clean up tx.
     for (var key, i = 0; key = keys[i]; i++) {
-      delete key.tx;
+      key.setTx(null);
     }
   });
 

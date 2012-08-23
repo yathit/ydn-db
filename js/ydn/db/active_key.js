@@ -10,27 +10,32 @@ goog.require('ydn.db.Key');
 /**
  * @extends {ydn.db.Key}
  * @param {!ydn.db.QueryServiceProvider} dbp
- * @param {string} store
- * @param {(string|number)}id
+ * @param {string|!ydn.db.Key.Json} store
+ * @param {(string|number)=}id
  * @param {ydn.db.Key=} opt_parent
  * @constructor
  */
 ydn.db.ActiveKey = function(dbp, store, id, opt_parent) {
-  goog.base(this, store, id, opt_parent);
 
   /**
    * Database instance
    * @final
    * @protected
-   * @type {ydn.db.QueryServiceProvider}
+   * @type {!ydn.db.QueryServiceProvider}
    */
   this.dbp = dbp;
 
+  goog.base(this, store, id, opt_parent);
 };
 goog.inherits(ydn.db.ActiveKey, ydn.db.Key);
 
 
-
+/**
+ * @inheritDoc
+ */
+ydn.db.ActiveKey.prototype.toKey = function(obj) {
+  return new ydn.db.ActiveKey(this.dbp, obj);
+};
 
 /**
  * Get object from store.

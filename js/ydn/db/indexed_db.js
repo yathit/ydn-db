@@ -614,89 +614,113 @@ ydn.db.IndexedDb.prototype.get = function(arg1, key) {
   }
 };
 
+/**
+ * @param {IDBTransaction} tx
+ * @param {!goog.async.Deferred} df
+ * @param {!ydn.db.Query} q query.
+ * @param {number=} limit
+ * @param {number=} offset
+ * @private
+ */
+ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
+  var me = this;
+  var store = this.schema.getStore(q.store);
+  var is_reduce = goog.isFunction(q.reduce);
+
+  //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
+  // ' in ' + table);
+  var obj_store = tx.objectStore(store.name);
+  var index = obj_store.index(q.index);
+
+  //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
+  // ' of ' + column + ' in ' + table);
+  var request;
+  if (goog.isDefAndNotNull(q.keyRange)) {
+    if (goog.isDef(q.direction)) {
+      var dir = /** @type {number} */ (q.direction); // new standard is string.
+      request = index.openCursor(q.keyRange, dir);
+    } else {
+      request = index.openCursor(q.keyRange);
+    }
+  } else {
+    request = index.openCursor();
+  }
+
+  tx.is_success = true;
+  var idx = -1; // iteration index
+  if (!is_reduce) {
+    tx.result = [];
+  }
+
+  request.onsuccess = function(event) {
+
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log([q, idx, event]);
+    }
+    /**
+     * @type {IDBCursor}
+     */
+    var cursor = /** @type {IDBCursor} */ (event.target.result);
+    //console.log(cursor);
+    if (cursor) {
+
+      var value = /** @type {!Object} */ cursor['value']; // should not necessary if externs are
+
+      var to_continue = !goog.isFunction(q.continue) || q.continue(value);
+
+      // do the filtering if requested.
+      if (!goog.isFunction(q.filter) || q.filter(value)) {
+        idx++;
+
+        if (goog.isFunction(q.map)) {
+          value = q.map(value);
+        }
+
+        if (is_reduce) {
+          tx.result = q.reduce(tx.result, value, idx);
+        } else {
+          tx.result.push(value);
+        }
+      }
+
+      if (to_continue && (!goog.isDef(limit) || idx < limit)) {
+        //cursor.continue();
+        cursor['continue'](); // Note: Must be quoted to avoid parse error.
+      } else if (df) {
+        df.callback(tx.result);
+      }
+    } else {
+      me.logger.warning('no cursor');
+      df.callback(undefined);
+    }
+  };
+
+  request.onerror = function(event) {
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log([q, event]);
+    }
+    tx.is_success = false;
+    tx.error = event;
+    if (df) {
+      df.errback(event);
+    }
+  };
+
+};
+
 
 /**
  * @inheritDoc
  */
 ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
   var self = this;
+  var df = new goog.async.Deferred();
 
-  var store = this.schema.getStore(q.store);
-  var is_reduce = goog.isFunction(q.reduce);
+  this.doTransaction(function(tx) {
+    self.executeFetch_(tx, df, q, limit, offset);
+  }, [q.store], ydn.db.IndexedDb.TransactionMode.READ_ONLY, df);
 
-  return this.doTransaction(function(tx) {
-    //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
-    // ' in ' + table);
-    var obj_store = tx.objectStore(store.name);
-    var index = obj_store.index(q.index);
-
-    //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
-    // ' of ' + column + ' in ' + table);
-    var request;
-    if (goog.isDefAndNotNull(q.keyRange)) {
-      if (goog.isDef(q.direction)) {
-        request = index.openCursor(q.keyRange, q.direction);
-      } else {
-        request = index.openCursor(q.keyRange);
-      }
-    } else {
-      request = index.openCursor();
-    }
-
-    tx.is_success = true;
-    var idx = -1; // iteration index
-    if (!is_reduce) {
-      tx.result = [];
-    }
-
-    request.onsuccess = function(event) {
-
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log([q, idx, event]);
-      }
-      /**
-       * @type {IDBCursor}
-       */
-      var cursor = /** @type {IDBCursor} */ (event.target.result);
-      //console.log(cursor);
-      if (cursor) {
-
-        var value = /** @type {!Object} */ cursor['value']; // should not necessary if externs are
-
-        var to_continue = !goog.isFunction(q.continue) || q.continue(value);
-
-        // do the filtering if requested.
-        if (!goog.isFunction(q.filter) || q.filter(value)) {
-          idx++;
-
-          if (goog.isFunction(q.map)) {
-            value = q.map(value);
-          }
-
-          if (is_reduce) {
-            tx.result = q.reduce(tx.result, value, idx);
-          } else {
-            tx.result.push(value);
-          }
-        }
-
-        if (to_continue && (!goog.isDef(limit) || idx < limit)) {
-          //cursor.continue();
-          cursor['continue'](); // Note: Must be quoted to avoid parse error.
-        }
-      }
-    };
-
-    request.onerror = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log([q, event]);
-      }
-      tx.is_success = false;
-      tx.error = event;
-    };
-
-  }, [store.name], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
-
+  return df;
 };
 
 
@@ -1064,12 +1088,26 @@ ydn.db.IndexedDb.prototype.clearInTransaction = function(tx, opt_table, opt_key)
  */
 ydn.db.IndexedDb.prototype.putInTransaction = function(tx, store_name, value) {
 
-  var me = this;
   var df = new goog.async.Deferred();
 
   delete tx.result;
   delete tx.is_success;
-  me.executePut_(/** @type {IDBTransaction} */ (tx), df, store_name, value);
+  this.executePut_(/** @type {IDBTransaction} */ (tx), df, store_name, value);
+
+  return df;
+};
+
+
+/**
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.IndexedDb.prototype.fetchInTransaction = function(tx, q, limit, offset) {
+
+  var df = new goog.async.Deferred();
+
+  delete tx.result;
+  delete tx.is_success;
+  this.executeFetch_(/** @type {IDBTransaction} */ (tx), df, q, limit, offset);
 
   return df;
 };
@@ -1089,18 +1127,18 @@ ydn.db.IndexedDb.prototype.runInTransaction = function(trFn, scopes, mode, keys)
     }
 
     for (var key, i = 0; key = keys[i]; i++) {
-      key.tx = tx; // inject transaction object.
+      key.setTx(tx); // inject transaction object.
     }
 
     // now execute transaction process
-    trFn();
+    trFn(tx);
 
   }, scopes, mode, df);
 
   df.addBoth(function() {
     // clean up tx.
     for (var key, i = 0; key = keys[i]; i++) {
-      delete key.tx;
+      key.setTx(null);
     }
   });
 
