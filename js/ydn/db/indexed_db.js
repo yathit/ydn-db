@@ -39,7 +39,7 @@ goog.require('ydn.json');
  * @constructor
  */
 ydn.db.IndexedDb = function(dbname, schema) {
-  var self = this;
+  var me = this;
   this.dbname = dbname;
 
   /**
@@ -52,8 +52,8 @@ ydn.db.IndexedDb = function(dbname, schema) {
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // version could be number of string.
   // In chrome, version is taken as description.
-  var msg = 'Trying to open database:' + this.dbname + ' ver: ' + this.schema.version;
-  self.logger.finer(msg);
+  var msg = 'Trying to open database: ' + this.dbname + ' ver: ' + this.schema.version;
+  me.logger.finer(msg);
   if (ydn.db.IndexedDb.DEBUG) {
     window.console.log(msg)
   }
@@ -63,99 +63,126 @@ ydn.db.IndexedDb = function(dbname, schema) {
    * @type {IDBOpenDBRequest|IDBRequest}
    */
   var openRequest = ydn.db.IndexedDb.indexedDb.open(this.dbname,
-    /** @type {string} */ (this.schema.version)); // for old externs
+    // old externs uncorrected defined as string
+    /** @type {string} */ (this.schema.version));
+  if (ydn.db.IndexedDb.DEBUG) {
+    window.console.log(openRequest);
+  }
 
   openRequest.onsuccess = function(ev) {
-    var msg = self.dbname + ' ver: ' + self.schema.version + ' OK.';
-    self.logger.finer(msg);
+    var msg = me.dbname + ' ver: ' + me.schema.version + ' OK.';
+    me.logger.finer(msg);
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log(msg);
     }
     var db = ev.target.result;
     var old_version = db.version;
-    if (goog.isDef(self.schema.version) &&
-      self.schema.version > old_version) { // for chrome
+    if (goog.isDef(me.schema.version) &&
+      me.schema.version > old_version) { // for chrome
       msg = 'initializing database from ' + db.version + ' to ' +
-        self.schema.version;
-      self.logger.finer(msg);
+        me.schema.version;
+      me.logger.finer(msg);
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(msg)
       }
 
-      var setVrequest = db.setVersion(self.schema.version); // for chrome
+      var setVrequest = db.setVersion(me.schema.version); // for chrome
 
       setVrequest.onfailure = function(e) {
-        self.logger.warning('migrating from ' + db.version + ' to ' +
-          self.schema.version + ' failed.');
-        self.setDb(null);
+        me.logger.warning('migrating from ' + db.version + ' to ' +
+          me.schema.version + ' failed.');
+        me.setDb(null);
       };
       setVrequest.onsuccess = function(e) {
-        self.migrate(db);
-        self.logger.finer('Migrated to version ' + db.version + '.');
-        var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname);
+        me.migrate(db);
+        me.logger.finer('Migrated to version ' + db.version + '.');
+        var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(me.dbname);
         // have to reopen for new schema
         reOpenRequest.onsuccess = function(rev) {
           db = ev.target.result;
-          self.logger.finer('version ' + db.version + ' ready.');
-          self.setDb(db);
+          me.logger.finer('version ' + db.version + ' ready.');
+          me.setDb(db);
         };
       };
     } else {
       msg = 'database version ' + db.version + 'ready to go';
-      self.logger.finer(msg);
+      me.logger.finer(msg);
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(msg);
       }
-      self.setDb(db);
+      me.setDb(db);
     }
   };
 
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
     var msg = 'upgrading version ' + db.version;
-    self.logger.finer(msg);
+    me.logger.finer(msg);
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log(msg);
     }
 
-    self.migrate(db);
+    me.migrate(db);
 
-    var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(self.dbname);
+    var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(me.dbname);
     reOpenRequest.onsuccess = function(rev) {
       db = ev.target.result;
-      self.logger.finer('Database: ' + self.dbname + ' upgraded.');
-      self.setDb(db);
+      me.logger.finer('Database: ' + me.dbname + ' upgraded.');
+      me.setDb(db);
     };
   };
 
   openRequest.onerror = function(ev) {
     var msg = 'opening database ' + dbname + ' failed.';
-    self.logger.severe(msg);
+    me.logger.severe(msg);
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log(msg)
     }
-    self.db = null;
+    me.db = null;
   };
 
   openRequest.onblocked = function(ev) {
     var msg = 'database ' + dbname + ' block, close other connections.';
-    self.logger.severe(msg);
+    me.logger.severe(msg);
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log(msg)
     }
-    self.db = null;
+    me.db = null;
   };
 
   openRequest.onversionchange = function(ev) {
     var msg = 'Version change request, so closing the database';
-    self.logger.fine(msg);
+    me.logger.fine(msg);
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log(msg);
     }
-    if (self.db) {
-      self.db.close();
+    if (me.db) {
+      me.db.close();
     }
+  };
+
+  // extra checking whether, database is OK
+  if (goog.DEBUG || ydn.db.IndexedDb.DEBUG) {
+    goog.Timer.callOnce(function () {
+      if (openRequest.readyState != 'done') {
+        // what we observed is chrome attached error object to openRequest
+        // but did not call any of over listening events.
+        var msg = 'Database timeout ' + ydn.db.IndexedDb.timeOut +
+          ' reached. Database state is ' + openRequest.readyState;
+        me.logger.severe(msg);
+        if (ydn.db.IndexedDb.DEBUG) {
+          window.console.log(openRequest);
+        }
+        me.abortTxQueue(new Error(msg));
+        goog.Timer.callOnce(function () {
+          // we invoke error in later thread, so that task queue have
+          // enough window time to clean up.
+          throw Error(openRequest.error || msg);
+        }, 500);
+      }
+    }, ydn.db.IndexedDb.timeOut, this);
   }
+
 };
 
 
@@ -164,6 +191,15 @@ ydn.db.IndexedDb = function(dbname, schema) {
  * @define {boolean} trun on debug flag to dump object.
  */
 ydn.db.IndexedDb.DEBUG = false;
+
+
+/**
+ * @const
+ * @type {number}
+ */
+ydn.db.IndexedDb.timeOut =  goog.DEBUG || ydn.db.IndexedDb.DEBUG ? 500 : 3000;
+
+
 
 
 /**
@@ -329,6 +365,21 @@ ydn.db.IndexedDb.prototype.runTxQueue = function() {
     var task = this.txQueue.shift();
     if (task) {
       this.doTransaction(task.fnc, task.scopes, task.mode, task.d);
+    }
+  }
+};
+
+
+/**
+ * Abort the queuing tasks.
+ * @param e
+ */
+ydn.db.IndexedDb.prototype.abortTxQueue = function(e) {
+  if (this.txQueue) {
+    var task = this.txQueue.shift();
+    while (task) {
+      task.d.errback(e);
+      task = this.txQueue.shift();
     }
   }
 };
@@ -691,7 +742,9 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
       }
     } else {
       me.logger.warning('no cursor');
-      df.callback(undefined);
+      if (df) {
+        df.callback(undefined);
+      }
     }
   };
 
@@ -717,7 +770,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
   var df = new goog.async.Deferred();
 
   this.doTransaction(function(tx) {
-    self.executeFetch_(tx, df, q, limit, offset);
+    self.executeFetch_(tx, null, q, limit, offset);
   }, [q.store], ydn.db.IndexedDb.TransactionMode.READ_ONLY, df);
 
   return df;

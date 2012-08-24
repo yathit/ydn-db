@@ -25,11 +25,11 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'test12';
+var db_name = 'test123';
 
 
 
-var _test_1_put = function() {
+var test_1_put = function() {
 
   var db = new ydn.db.IndexedDb(db_name, basic_schema);
 
@@ -53,7 +53,10 @@ var _test_1_put = function() {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
-  });
+  }).addErrback(function(e) {
+      hasEventFired = true;
+      console.log('Error: ' + e);
+    });
 };
 
 
@@ -90,37 +93,43 @@ var test_2_put_arr = function() {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
-  });
+  }).addErrback(function(e) {
+      hasEventFired = true;
+      console.log('Error: ' + e);
+    });
 };
 
 
 
-//var _test_3_empty_get = function() {
-//
-//  var db = new ydn.db.IndexedDb(db_name, basic_schema);
-//
-//  var hasEventFired = false;
-//  var put_value;
-//
-//  waitForCondition(
-//      // Condition
-//      function() { return hasEventFired; },
-//      // Continuation
-//      function() {
-//        assertUndefined('retriving non existing value', put_value);
-//        // Remember, the state of this boolean will be tested in tearDown().
-//        reachedFinalContinuation = true;
-//      },
-//      100, // interval
-//      2000); // maxTimeout
-//
-//
-//  db.get(table_name, 'no_data').addCallback(function(value) {
-//    console.log('receiving value callback.');
-//    put_value = value;
-//    hasEventFired = true;
-//  });
-//};
+var _test_3_empty_get = function() {
+
+  var db = new ydn.db.IndexedDb(db_name, basic_schema);
+
+  var hasEventFired = false;
+  var put_value;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertUndefined('retriving non existing value', put_value);
+        // Remember, the state of this boolean will be tested in tearDown().
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.get(table_name, 'no_data').addCallback(function(value) {
+    console.log('receiving value callback.');
+    put_value = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+      hasEventFired = true;
+      console.log('Error: ' + e);
+    });
+};
 
 
 var test_4_get_all = function() {
