@@ -367,7 +367,6 @@ var test_81_fetch_keys = function () {
             100, // interval
             2000); // maxTimeout
 
-
         var keys = [
           new ydn.db.Key(store_name, objs[1].id),
           new ydn.db.Key(store_name, objs[2].id)];
