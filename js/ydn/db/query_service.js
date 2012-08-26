@@ -22,7 +22,7 @@ ydn.db.QueryService = function() {
 
 
 /**
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
  * @param {number=} limit
  * @param {number=} offset
  * @return {!goog.async.Deferred}

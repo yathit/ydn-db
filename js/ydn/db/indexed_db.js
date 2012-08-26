@@ -665,6 +665,54 @@ ydn.db.IndexedDb.prototype.get = function(arg1, key) {
   }
 };
 
+
+
+/**
+ * @param {IDBTransaction} tx
+ * @param {!goog.async.Deferred} df
+ * @param {!Array.<!ydn.db.Key>} keys query.
+ * @param {number=} limit
+ * @param {number=} offset
+ * @private
+ */
+ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit, offset) {
+  var me = this;
+
+  var n = keys.length;
+  tx.result = [];
+  offset = goog.isDef(offset) ? offset : 0;
+  limit = goog.isDef(limit) ? limit : keys.length;
+  for (var i = offset; i < limit; i++) {
+    var key = keys[i];
+    goog.asserts.assert(goog.isDef(key.id) && goog.isString(key.store_name),
+        'Invalid key: ' + key);
+    var store = tx.objectStore(key.store_name);
+    var request = store.get(key.id);
+
+    request.onsuccess = function(event) {
+      tx.is_success = true;
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      tx.result.push(event.target.result);
+      if (df && tx.result.length == limit) {
+        df.callback(df);
+      }
+    };
+
+    request.onerror = function(event) {
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      tx.is_success = false;
+      tx.abort();
+      df.errback(event);
+    };
+  }
+
+};
+
+
 /**
  * @param {IDBTransaction} tx
  * @param {!goog.async.Deferred} df
@@ -763,15 +811,35 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
 
 
 /**
- * @inheritDoc
+ * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
+ * @param {number=} limit
+ * @param {number=} offset
+ * @return {!goog.async.Deferred}
  */
 ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
   var self = this;
   var df = new goog.async.Deferred();
 
-  this.doTransaction(function(tx) {
-    self.executeFetch_(tx, null, q, limit, offset);
-  }, [q.store], ydn.db.IndexedDb.TransactionMode.READ_ONLY, df);
+  if (goog.isArray(q)) { // list of keys
+    var stores = [];
+    for (var i = 0; i < q.length; i++) {
+      /**
+       * @type {ydn.db.Key}
+       */
+      var key = q[i];
+      goog.asserts.assertInstanceof(key, ydn.db.Key);
+      if (!goog.array.contains(stores, q[i].store_name)) {
+        stores.push(q[i].store_name);
+      }
+    }
+    this.doTransaction(function(tx) {
+      self.executeFetchKeys_(tx, null, q, limit, offset);
+    }, stores, ydn.db.IndexedDb.TransactionMode.READ_ONLY, df);
+  } else {
+    this.doTransaction(function(tx) {
+      self.executeFetch_(tx, null, q, limit, offset);
+    }, [q.store], ydn.db.IndexedDb.TransactionMode.READ_ONLY, df);
+  }
 
   return df;
 };

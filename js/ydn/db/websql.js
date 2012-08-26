@@ -434,7 +434,10 @@ ydn.db.WebSql.prototype.get = function (arg1, key) {
 
 
 /**
- * @inheritDoc
+ * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
+ * @param {number=} limit
+ * @param {number=} offset
+ * @return {!goog.async.Deferred}
  */
 ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
   var d = new goog.async.Deferred();

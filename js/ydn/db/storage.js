@@ -414,18 +414,19 @@ ydn.db.Storage.prototype.count = function(opt_store_name) {
  * Fetch result of a query and return as array.
  *
  * @export
- * @param {!ydn.db.Query} q query.
- * @return {!goog.async.Deferred} return array of result for each row
- * in a deferred function.
+ * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
+ * @param {number=} limit
+ * @param {number=} offset
+ * @return {!goog.async.Deferred}
  */
-ydn.db.Storage.prototype.fetch = function(q) {
+ydn.db.Storage.prototype.fetch = function(q, limit, offset) {
 
   if (this.db_) {
-    return this.db_.fetch(q);
+    return this.db_.fetch(q, limit, offset);
   } else {
     var df = new goog.async.Deferred();
     this.deferredDb.addCallback(function(db) {
-      db.fetch(q).chainDeferred(df);
+      db.fetch(q, limit, offset).chainDeferred(df);
     });
     return df;
   }

@@ -134,6 +134,10 @@ var _test_3_empty_get = function() {
 
 var test_4_get_all = function() {
 
+  var db_name = 'test_get_all';
+  var table_name = 'no_data_table';
+  var basic_schema = new ydn.db.DatabaseSchema(1);
+  basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
   var db = new ydn.db.IndexedDb(db_name, basic_schema);
 
   var hasEventFired = false;
@@ -320,7 +324,75 @@ var test_7_put_nested_keyPath = function() {
 };
 
 
-var test_8_query_start_with = function () {
+var test_81_fetch_keys = function () {
+  var store_name = 'st';
+  var dbname = 'test81';
+  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
+  var db = new ydn.db.IndexedDb(dbname, schema);
+
+  var objs = [
+    {id:'qs1', value:Math.random()},
+    {id:'at2', value:Math.random()},
+    {id:'bs2', value:Math.random()},
+    {id:'st', value:Math.random()}
+  ];
+
+  var put_value_received;
+  var put_done;
+  waitForCondition(
+      // Condition
+      function () {
+        return put_done;
+      },
+      // Continuation
+      function () {
+
+        var get_done;
+        var get_value_received;
+        waitForCondition(
+            // Condition
+            function () {
+              return get_done;
+            },
+            // Continuation
+            function () {
+              assertEquals('obj length', keys.length, put_value_received.length);
+              assertObjectEquals('get', objs[1], put_value_received[0]);
+              assertObjectEquals('get', objs[2], put_value_received[1]);
+
+              reachedFinalContinuation = true;
+            },
+            100, // interval
+            2000); // maxTimeout
+
+
+        var keys = [
+          new ydn.db.Key(store_name, objs[1].id),
+          new ydn.db.Key(store_name, objs[2].id)];
+        db.fetch(keys).addCallback(function (value) {
+          console.log('fetch value: ' + JSON.stringify(value));
+          put_value_received = value;
+
+          get_done = true;
+        });
+
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+    put_value_received = value;
+    put_done = true;
+  });
+
+};
+
+
+var test_85_query_start_with = function () {
   var store_name = 'ts1';
   var dbname = 'test_8';
   var schema = new ydn.db.DatabaseSchema(1);

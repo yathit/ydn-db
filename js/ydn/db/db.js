@@ -73,19 +73,6 @@ ydn.db.Db.prototype.count = function(opt_table) {
 };
 
 
-
-/**
- * Fetch result of a query
- * @param {!ydn.db.Query} q query.
- * @param {number=} opt_limit maximun number of results.
- * @param {number=} opt_offset start counter.
- * @return {!goog.async.Deferred} return a deferred function.
- */
-ydn.db.Db.prototype.fetch = function(q, opt_limit, opt_offset) {
-
-};
-
-
 /**
  * Close the connection.
  * @return {!goog.async.Deferred} return a deferred function.
