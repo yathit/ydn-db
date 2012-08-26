@@ -83,6 +83,17 @@ ydn.db.Storage = function(opt_dbname, opt_schema) {
 
 
 /**
+ * Factory.
+ * @param {string=} opt_dbname database name.
+ * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
+ * @return {ydn.db.Storage}
+ */
+ydn.db.Storage.createInstance = function(opt_dbname, opt_schema) {
+  return new ydn.db.Storage(opt_dbname, opt_schema);
+};
+
+
+/**
  * @define {string} default key-value store name.
  */
 ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
