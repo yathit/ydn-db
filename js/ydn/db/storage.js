@@ -183,6 +183,13 @@ ydn.db.Storage.prototype.setSchema = function(schema) {
 
 
 /**
+ * Specified to use a specific storage mechanism.
+ * @define {string}
+ */
+ydn.db.Storage.USE_ONLY = '';
+
+
+/**
  * Initialize suitable database if {@code dbname} and {@code schema} are set,
  * starting in the following order of preference.
  * 1. IndexedDb
@@ -201,7 +208,9 @@ ydn.db.Storage.prototype.initDatabase = function() {
         ydn.db.Storage.DEFAULT_TEXT_STORE, 'id'));
     }
 
-    if (goog.userAgent.product.ASSUME_CHROME ||
+    if (ydn.db.Storage.USE_ONLY === 'ydn.db.MemoryStore') {
+      this.db_ = new ydn.db.MemoryStore(this.db_name, this.schema);
+    } else if (goog.userAgent.product.ASSUME_CHROME ||
       goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
       this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema);

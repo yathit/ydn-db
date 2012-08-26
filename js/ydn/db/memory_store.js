@@ -333,7 +333,23 @@ ydn.db.MemoryStore.prototype.count = function(opt_table) {
  * @inheritDoc
  */
 ydn.db.MemoryStore.prototype.fetch = function(q) {
-  return goog.async.Deferred.fail('not implemented');
+  if (goog.isArray(q)) { // list of array
+    var results = [];
+    for (var i = 0; i < q.length; i++) {
+      var store = this.schema.getStore(q[i].store_name);
+      goog.asserts.assertObject(store, 'Invalid key: ' + q[i]);
+      var value = this.cache_.getItem(this.getKey(q[i].id, store));
+      if (!goog.isNull(value)) {
+        value = ydn.json.parse(/** @type {string} */ (value));
+      } else {
+        value = undefined; // localStorage return null for not existing value
+      }
+      results.push(value);
+    }
+    return goog.async.Deferred.succeed(results);
+  } else {
+    return goog.async.Deferred.fail('not implemented');
+  }
 };
 
 
