@@ -23,6 +23,7 @@ goog.provide('ydn.db.Db');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.Query');
+goog.require('ydn.db.QueryService');
 goog.require('ydn.db.Key');
 
 
