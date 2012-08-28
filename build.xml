@@ -61,7 +61,7 @@
             </options>
         </closure-compile>
         <copy file="${ydn-db.dir}/jsc/ydn-db-${ver}.js"
-              tofile="${work.dir}/ydn-dev/out/ydn-db/example/ydn-db.js"/>
+              tofile="${work.dir}/hijax-server/static/jsc/ydn-db.js"/>
     </target>
     <target name="compile" description="generates compiled files for client js, /jsc/sync.jc">
         <mkdir dir="${ydn-db.dir}/jsc"/>
@@ -72,7 +72,7 @@
                 closure.entry="ydn.db.Storage">
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/ydn-db-min-${ver}.js"
-              tofile="${work.dir}/ydn-dev/out/ydn-db/example/ydn-db-min.js"/>
+              tofile="${work.dir}/hijax-server/static/jsc/ydn-db-min.js"/>
     </target>
     <target name="deps" description="list dependency files">
         <delete file="${ydn-db.dir}/js/deps.js"/>

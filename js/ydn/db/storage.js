@@ -53,7 +53,8 @@ goog.require('ydn.db.ActiveQuery');
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
  * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
- * or its configuration in JSON format.
+ * or its configuration in JSON format. If not provided, default empty schema
+ * is used.
  * schema used in chronical order.
  * @implements {ydn.db.Db}
  * @implements {ydn.db.QueryServiceProvider}
@@ -73,11 +74,10 @@ ydn.db.Storage = function(opt_dbname, opt_schema) {
    */
   this.deferredDb = new goog.async.Deferred();
 
+  this.setSchema(opt_schema || {});
+
   if (goog.isDef(opt_dbname)) {
     this.setDbName(opt_dbname);
-  }
-  if (goog.isDef(opt_schema)) {
-    this.setSchema(opt_schema);
   }
 };
 
