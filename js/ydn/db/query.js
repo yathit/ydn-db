@@ -415,14 +415,24 @@ ydn.db.Query.prototype.toWhereClause = function() {
   } else {
     if (goog.isDef(this.keyRange.lower)) {
       var lowerOp = this.keyRange.lowerOpen ? ' > ' : ' >= ';
-      where_clause += ' ' + column + lowerOp + '?';
-      params.push(this.keyRange.lower);
+      if (goog.isNumber(this.keyRange.lower)) {
+        where_clause += ' ' + column + lowerOp + this.keyRange.lower;
+      } else if (goog.isString(this.keyRange.lower)) {
+        where_clause += ' ' + column + lowerOp +
+            goog.string.quote(this.keyRange.lower);
+      }
+      //params.push(this.keyRange.lower);
     }
     if (goog.isDef(this.keyRange.upper)) {
       var upperOp = this.keyRange.upperOpen ? ' < ' : ' <= ';
       var and = where_clause.length > 0 ? ' AND ' : ' ';
-      where_clause += and + column + upperOp + '?';
-      params.push(this.keyRange.upper);
+      if (goog.isNumber(this.keyRange.upper)) {
+        where_clause += and + column + upperOp + this.keyRange.upper;
+      } else if (goog.isString(this.keyRange.upper)) {
+        where_clause += and + column + upperOp +
+            goog.string.quote(this.keyRange.upper);
+      }
+      //params.push(this.keyRange.upper);
     }
   }
 

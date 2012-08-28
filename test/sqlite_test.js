@@ -501,6 +501,65 @@ var test_7_put_get_array = function() {
 };
 
 
+
+var test_41_keyRange = function () {
+  var store_name = 'ts1';
+  var put_obj_dbname = 'test_41_6';
+
+  var schema = new ydn.db.DatabaseSchema(1);
+  var indexSchema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
+  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]));
+  var db = new ydn.db.WebSql(put_obj_dbname, schema);
+
+  var objs = [
+    {id:'qs0', value: 0, type: 'a'},
+    {id:'qs1', value: 1, type: 'a'},
+    {id:'at2', value: 2, type: 'b'},
+    {id:'bs1', value: 3, type: 'b'},
+    {id:'bs2', value: 4, type: 'c'},
+    {id:'bs3', value: 5, type: 'c'},
+    {id:'st3', value: 6, type: 'c'}
+  ];
+
+
+  var done;
+  var result;
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+        assertEquals('length', 2, result.length);
+        assertArrayEquals([objs[3], objs[4]], result);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+
+    var key_range = ydn.db.Query.KeyRangeImpl.bound(2, 5, true, true);
+    var q = new ydn.db.Query(store_name, 'value', key_range);
+
+    db.fetch(q).addBoth(function (value) {
+      console.log('fetch value: ' + JSON.stringify(value));
+      result = value;
+      done = true;
+    });
+  }).addErrback(function(e) {
+        console.log(e.stack);
+        console.log(e);
+        assertFalse(true, 'Error');
+      });
+
+};
+
+
 var test_74_where = function () {
   var store_name = 'ts1';
   var put_obj_dbname = 'test_74_where';

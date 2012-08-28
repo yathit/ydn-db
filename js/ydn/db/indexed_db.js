@@ -188,9 +188,9 @@ ydn.db.IndexedDb = function(dbname, schema) {
 
 /**
  *
- * @define {boolean} trun on debug flag to dump object.
+ * @define {boolean} turn on debug flag to dump object.
  */
-ydn.db.IndexedDb.DEBUG = true;
+ydn.db.IndexedDb.DEBUG = false;
 
 
 /**

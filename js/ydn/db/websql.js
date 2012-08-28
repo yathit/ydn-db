@@ -81,7 +81,7 @@ ydn.db.WebSql.isSupported = function() {
  *
  * @define {boolean} debug flag.
  */
-ydn.db.WebSql.DEBUG = false;
+ydn.db.WebSql.DEBUG = true;
 
 
 /**
@@ -131,7 +131,7 @@ ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
       continue;
     }
     var primary = index.unique ? ' UNIQUE ' : ' ';
-    sql += ', ' + index.name + primary + index.type;
+    sql += ', ' + index.name + ' ' + index.type + primary;
   }
 
   sql += ');';
@@ -502,7 +502,9 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
   };
 
   this.db.transaction(function(t) {
-    //console.log([sql, clause.params]);
+    if (ydn.db.WebSql.DEBUG) {
+      window.console.log([q, sql, params]);
+    }
     t.executeSql(sql, params, callback, error_callback);
   });
 
