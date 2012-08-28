@@ -295,6 +295,19 @@ ydn.db.Storage.prototype.setItem = function(key, value) {
 
 
 /**
+ * Remove an item to default key-value store.
+ * @export
+ * @param {string} id item id to be remove.
+ * @return {!goog.async.Deferred} true on success. undefined on fail.
+ */
+ydn.db.Storage.prototype.removeItem = function(id) {
+
+  return this.clear(ydn.db.Storage.DEFAULT_TEXT_STORE, id);
+
+};
+
+
+/**
  * Put an object to the store.
  *
  * @export

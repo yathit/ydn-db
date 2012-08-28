@@ -57,12 +57,12 @@ ydn.db.ActiveQuery.prototype.get = function() {
  */
 ydn.db.ActiveQuery.prototype.put = function(value) {
   if (this.dbp.isReady()) {
-    return this.dbp.getDb().put(this.store, value);
+    return this.dbp.getDb().put(this.store_name, value);
   } else {
     var me = this;
     var df = new goog.async.Deferred();
     this.dbp.getDeferredDb().addCallback(function(db) {
-      db.put(me.store, value).chainDeferred(df);
+      db.put(me.store_name, value).chainDeferred(df);
     });
     return df;
   }
