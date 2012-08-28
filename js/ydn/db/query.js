@@ -42,7 +42,7 @@ ydn.db.Query = function(store, index, keyRange, direction) {
    * @final
    * @type {string}
    */
-  this.store = store;
+  this.store_name = store;
   /**
    * Indexed field.
    * @final
@@ -70,7 +70,7 @@ ydn.db.Query = function(store, index, keyRange, direction) {
  */
 ydn.db.Query.prototype.toJSON = function () {
   return {
-    'store':this.store,
+    'store':this.store_name,
     'index':this.index,
     'key_range': ydn.db.Query.KeyRangeImpl.toJSON(this.keyRange || null),
     'direction':this.direction

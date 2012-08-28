@@ -723,7 +723,7 @@ ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit, off
  */
 ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
   var me = this;
-  var store = this.schema.getStore(q.store);
+  var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
 
   //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
@@ -840,7 +840,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
   } else {
     this.doTransaction(function(tx) {
       self.executeFetch_(tx, null, q, limit, offset);
-    }, [q.store], ydn.db.IndexedDb.TransactionMode.READ_ONLY, df);
+    }, [q.store_name], ydn.db.IndexedDb.TransactionMode.READ_ONLY, df);
   }
 
   return df;

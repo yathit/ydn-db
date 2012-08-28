@@ -507,8 +507,8 @@ ydn.db.Storage.prototype.key = function(store, id, opt_parent) {
 /**
  * @export
  * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<!ydn.db.Key|string>} keys list of keys or store name
- * involved in the transaction.
+ * @param {!Array.<!ydn.db.Key|string|ydn.db.Query>} keys list of keys or
+ * store name involved in the transaction.
  * @param {(number|string)=} mode mode, default to 'read_write'.
  * @return {!goog.async.Deferred} d result in deferred function.
  */

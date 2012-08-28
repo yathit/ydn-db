@@ -443,7 +443,7 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
   var d = new goog.async.Deferred();
   var me = this;
 
-  var store = this.schema.getStore(q.store);
+  var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
 
   var sql = 'SELECT * FROM ' + store.getQuotedName();
