@@ -49,13 +49,13 @@ ydn.db.Query = function(store, index, keyRange, direction) {
    * @type {string}
    */
   this.index = index;
-  var kr = null;
-  if (goog.isDefAndNotNull(keyRange) &&
-    !(keyRange instanceof ydn.db.Query.IDBKeyRange)) {
+
+  if (keyRange instanceof ydn.db.Query.IDBKeyRange) {
+    this.keyRange = keyRange;
+  } else if (goog.isDefAndNotNull(keyRange)) {
     // must be JSON object
-    kr = ydn.db.Query.parseKeyRange(keyRange);
+    this.keyRange = ydn.db.Query.parseKeyRange(keyRange);
   }
-  this.keyRange = kr;
   this.direction = direction;
   // set all null so that no surprise from inherit prototype
   this.filter = null;
@@ -413,27 +413,19 @@ ydn.db.Query.prototype.toWhereClause = function() {
     where_clause = column + ' LIKE ?';
     params.push(this.keyRange.lower + '%');
   } else {
+
     if (goog.isDef(this.keyRange.lower)) {
       var lowerOp = this.keyRange.lowerOpen ? ' > ' : ' >= ';
-      if (goog.isNumber(this.keyRange.lower)) {
-        where_clause += ' ' + column + lowerOp + this.keyRange.lower;
-      } else if (goog.isString(this.keyRange.lower)) {
-        where_clause += ' ' + column + lowerOp +
-            goog.string.quote(this.keyRange.lower);
-      }
-      //params.push(this.keyRange.lower);
+      where_clause += ' ' + column + lowerOp + '?';
+      params.push(this.keyRange.lower);
     }
     if (goog.isDef(this.keyRange.upper)) {
       var upperOp = this.keyRange.upperOpen ? ' < ' : ' <= ';
       var and = where_clause.length > 0 ? ' AND ' : ' ';
-      if (goog.isNumber(this.keyRange.upper)) {
-        where_clause += and + column + upperOp + this.keyRange.upper;
-      } else if (goog.isString(this.keyRange.upper)) {
-        where_clause += and + column + upperOp +
-            goog.string.quote(this.keyRange.upper);
-      }
-      //params.push(this.keyRange.upper);
+      where_clause += and + column + upperOp + '?';
+      params.push(this.keyRange.upper);
     }
+
   }
 
   return {where_clause: where_clause, params: params};
