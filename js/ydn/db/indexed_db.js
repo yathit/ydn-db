@@ -190,7 +190,7 @@ ydn.db.IndexedDb = function(dbname, schema) {
  *
  * @define {boolean} trun on debug flag to dump object.
  */
-ydn.db.IndexedDb.DEBUG = false;
+ydn.db.IndexedDb.DEBUG = true;
 
 
 /**
@@ -729,7 +729,9 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
   //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
   // ' in ' + table);
   var obj_store = tx.objectStore(store.name);
-  var index = obj_store.index(q.index);
+
+  var index = goog.isDefAndNotNull(q.index) ?
+      obj_store.index(q.index) : null;
 
   //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
   // ' of ' + column + ' in ' + table);
@@ -742,7 +744,7 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
       request = index.openCursor(q.keyRange);
     }
   } else {
-    request = index.openCursor();
+    request = obj_store.openCursor();
   }
 
   tx.is_success = true;

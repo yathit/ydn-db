@@ -113,7 +113,7 @@ ydn.db.Query.prototype.reduce;
 
 
 /**
- * Convenient method for SQL <code>WHEN</code> method.
+ * Convenient method for SQL <code>WHERE</code> predicate.
  * @param {string} field
  * @param {string} op
  * @param {string} value
@@ -121,7 +121,7 @@ ydn.db.Query.prototype.reduce;
  * @param {string=} value2
  * @return {!ydn.db.Query}
  */
-ydn.db.Query.prototype.when = function(field, op, value, op2, value2) {
+ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
   var op_test = function(op, lv) {
     if (op === '=' || op === '==') {
