@@ -560,6 +560,64 @@ var test_41_keyRange = function () {
 };
 
 
+var test_71_offset_limit = function () {
+  var store_name = 'ts1';
+  var put_obj_dbname = 'test_71_5';
+
+  var schema = new ydn.db.DatabaseSchema(1);
+  var indexSchema = new ydn.db.IndexSchema('id', true, ydn.db.DataType.INTEGER);
+  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]));
+  var db = new ydn.db.WebSql(put_obj_dbname, schema);
+
+   var objs = [
+    {value:'qs0', id: 0, type: 'a'},
+    {value:'qs1', id: 1, type: 'a'},
+    {value:'at2', id: 2, type: 'b'},
+    {value:'bs1', id: 3, type: 'b'},
+    {value:'bs2', id: 4, type: 'c'},
+    {value:'bs3', id: 5, type: 'c'},
+    {value:'st3', id: 6, type: 'c'}
+  ];
+
+  var offset = 2;
+  var limit = 2;
+  var target = objs.slice(offset, offset + limit);
+
+  var done;
+  var result;
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      console.log('result: ' + JSON.stringify(result));
+      console.log('target: ' + JSON.stringify(target));
+      assertEquals('length', target.length, result.length);
+      assertArrayEquals(target, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+
+  db.put(store_name, objs).addBoth(function (value) {
+    console.log(['receiving value callback.', value]);
+
+    var q = new ydn.db.Query(store_name, 'id');
+
+    db.fetch(q, limit, offset).addBoth(function (value) {
+      console.log('fetch value: ' + JSON.stringify(value));
+      result = value;
+      done = true;
+    });
+  });
+
+};
+
+
 var test_74_where = function () {
   var store_name = 'ts1';
   var put_obj_dbname = 'test_74_where';

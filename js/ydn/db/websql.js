@@ -81,7 +81,7 @@ ydn.db.WebSql.isSupported = function() {
  *
  * @define {boolean} debug flag.
  */
-ydn.db.WebSql.DEBUG = false;
+ydn.db.WebSql.DEBUG = true;
 
 
 /**
@@ -107,7 +107,12 @@ ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
       ydn.db.DEFAULT_KEY_COLUMN;
 
   if (goog.isDef(schema.keyPath)) {
-      sql += schema.getQuotedKeyPath() + ' TEXT UNIQUE PRIMARY KEY';
+    var index_key = schema.getIndex(schema.keyPath);
+    var type = ydn.db.DataType.TEXT;
+    if (index_key) {
+      type = index_key.type || ydn.db.DataType.TEXT;
+    }
+    sql += schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY';
   } else {
     // NOTE: we could have use AUTOINCREMENT here,
     // however put request require to return key. If we use AUTOINCREMENT, the key value
@@ -289,7 +294,6 @@ ydn.db.WebSql.prototype.parseRow = function(table, row) {
   goog.asserts.assertObject(row);
   var value = ydn.json.parse(row[ydn.db.DEFAULT_BLOB_COLUMN]);
   var key = row[table.keyPath]; // NOT: table.getKey(row);
-  goog.asserts.assertString(key);
   table.setKey(value, key);
   for (var j = 0; j < table.indexes.length; j++) {
     var index = table.indexes[j];
@@ -432,7 +436,6 @@ ydn.db.WebSql.prototype.get = function (arg1, key) {
   }
 };
 
-
 /**
  * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
  * @param {number=} limit
@@ -440,8 +443,27 @@ ydn.db.WebSql.prototype.get = function (arg1, key) {
  * @return {!goog.async.Deferred}
  */
 ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
+  if (q instanceof ydn.db.Query) {
+    return this.fetchQuery_(q, limit, offset);
+  } else {
+    throw Error('Not implemented.');
+  }
+};
+
+
+/**
+ * @param {ydn.db.Query} q query.
+ * @param {number=} limit
+ * @param {number=} offset
+ * @return {!goog.async.Deferred}
+ * @private
+ */
+ydn.db.WebSql.prototype.fetchQuery_ = function(q, limit, offset) {
   var d = new goog.async.Deferred();
   var me = this;
+
+  var start = offset || 0;
+  var end = goog.isDef(limit) ? start + limit : undefined;
 
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
@@ -449,10 +471,17 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
   var sql = 'SELECT * FROM ' + store.getQuotedName();
   var params = [];
 
+
   if (q.keyRange) {
   var clause = q.toWhereClause();
     sql += ' WHERE ' + '(' + clause.where_clause + ')';
     params = clause.params;
+  }
+
+  if (goog.isDef(q.index)) {
+    sql += ' ORDER BY ' + goog.string.quote(q.index);
+  } else if (goog.isDef(store.keyPath)) {
+    sql += ' ORDER BY ' + goog.string.quote(store.keyPath);
   }
 
   var result;
@@ -465,24 +494,27 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
     if (!is_reduce) {
       result = [];
     }
+    var idx = -1;
     for (var i = 0; i < results.rows.length; i++) {
       var row = results.rows.item(i);
       var value = me.parseRow(store, row);
       var to_continue = !goog.isFunction(q.continue) || q.continue(value);
       if (!goog.isFunction(q.filter) || q.filter(value)) {
+        idx++;
+        if (idx >= start) {
+          if (goog.isFunction(q.map)) {
+            value = q.map(value);
+          }
 
-        if (goog.isFunction(q.map)) {
-          value = q.map(value);
-        }
-
-        if (is_reduce) {
-          result = q.reduce(result, value, i);
-        } else {
-          result.push(value);
+          if (is_reduce) {
+            result = q.reduce(result, value, i);
+          } else {
+            result.push(value);
+          }
         }
       }
 
-      if (!(to_continue && (!goog.isDef(limit) || i < limit))) {
+      if (!(to_continue && (!goog.isDef(end) || (idx+1) < end))) {
         break;
       }
     }

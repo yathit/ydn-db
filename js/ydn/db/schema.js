@@ -254,7 +254,7 @@ ydn.db.StoreSchema.prototype.generateKey = function() {
 /**
  *
  * @param {!Object} obj get key value from its keyPath field.
- * @param {string} value key value to set.
+ * @param {string|number} value key value to set.
  */
 ydn.db.StoreSchema.prototype.setKey = function(obj, value) {
 
@@ -287,20 +287,19 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
   if (goog.isDef(this.keyPath)) {
     key_column = this.getQuotedKeyPath();
     key = this.getKey(obj);
-    goog.asserts.assertString(key);
   } else {
     key_column = ydn.db.DEFAULT_KEY_COLUMN;
     key = this.generateKey();
   }
+  goog.asserts.assert(goog.isDefAndNotNull(key), 'no key in ' + ydn.json.stringify(obj));
   var columns = [key_column];
   var values = [key];
   var slots = ['?'];
 
   for (var i = 0; i < this.indexes.length; i++) {
-    if (this.indexes[i].name == ydn.db.DEFAULT_BLOB_COLUMN) {
-      continue;
-    }
-    if (this.indexes[i].name == ydn.db.DEFAULT_KEY_COLUMN) {
+    if (this.indexes[i].name == this.keyPath ||
+      this.indexes[i].name == ydn.db.DEFAULT_KEY_COLUMN ||
+      this.indexes[i].name == ydn.db.DEFAULT_BLOB_COLUMN) {
       continue;
     }
     var v = obj[this.indexes[i].name];
