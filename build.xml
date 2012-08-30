@@ -90,7 +90,7 @@
         </jstd-gen>
     </target>
 
-    <target name="gen-html" description="Generate HTML from soy template">
+    <target name="jquery" description="Generate HTML from soy template">
         <property name="jout.js" value="${ydn-db.dir}/jsc/jquery-ydn-db-min-${ver}.js"/>
         <gen-soy-web output.fn="${jout.js}"
                      namespace="templ.ydn.db.jquery.render"

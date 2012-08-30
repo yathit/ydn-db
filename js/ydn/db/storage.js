@@ -618,12 +618,16 @@ goog.exportProperty(ydn.db.Storage.prototype, 'runInTransaction',
 goog.exportProperty(ydn.db.Storage.prototype, 'dfl',
   ydn.db.Storage.prototype.dfl);
 
+
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
   ydn.db.ActiveQuery.prototype.fetch);
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'get',
   ydn.db.ActiveQuery.prototype.get);
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'put',
   ydn.db.ActiveQuery.prototype.put);
+
+goog.exportProperty(ydn.db.Query.prototype, 'where',
+  ydn.db.Query.prototype.where);
 
 //goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
 //  ydn.db.ActiveKey.prototype.clear);
