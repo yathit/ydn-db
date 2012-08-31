@@ -285,6 +285,7 @@ ydn.db.Storage.prototype.getDb = function() {
   return this.db_ || null;
 };
 
+
 /**
  * Return underlining database instance.
  * @export
@@ -293,20 +294,6 @@ ydn.db.Storage.prototype.getDb = function() {
 ydn.db.Storage.prototype.getDeferredDb = function() {
   return this.deferredDb;
 };
-
-
-/**
- * @protected
- * @type {boolean}
- */
-ydn.db.Storage.prototype.encrypted = false;
-
-
-/**
- * @protected
- * @type {string}
- */
-ydn.db.Storage.prototype.sceret = '';
 
 
 /**
@@ -613,6 +600,7 @@ ydn.db.Storage.prototype.disp_ = function() {
 /**
  * This is external use only.
  * @export
+ * @private
  * @param {!Array.<!{success: Function, error: Function}>} df_arr An array of
  * deferred objects to wait for.
  * @return {!goog.async.DeferredList} DeferredList instance.
