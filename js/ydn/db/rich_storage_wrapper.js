@@ -2,7 +2,7 @@
  * @fileoverview adaptor for rich storage mechanism supporting expiration
  * and encryption.
  *
- * @suppress {accessControls|checkTypes}
+ * @suppress {accessControls}
  */
 
 
@@ -88,6 +88,7 @@ ydn.db.RichStorage.DATA_KEY = goog.storage.RichStorage.DATA_KEY;
 /**
  * Hashes a key using the secret.
  *
+ * @this {goog.storage.EncryptedStorage}
  * @param {string} key The key.
  * @return {string} The hash.
  * @private
@@ -98,6 +99,7 @@ ydn.db.RichStorage.prototype.hashKeyWithSecret_ =
 /**
  * Encrypts a value using a key, a salt, and the secret.
  *
+ * @this {goog.storage.EncryptedStorage}
  * @param {!Array.<number>} salt The salt.
  * @param {string} key The key.
  * @param {string} value The cleartext value.
@@ -112,6 +114,7 @@ ydn.db.RichStorage.prototype.encryptValue_ =
 /**
  * Decrypts a value using a key, a salt, and the secret.
  *
+ * @this {goog.storage.EncryptedStorage}
  * @param {!Array.<number>} salt The salt.
  * @param {string} key The key.
  * @param {string} value The encrypted value.
@@ -132,8 +135,7 @@ ydn.db.RichStorage.prototype.unwrapValue = function(key, value) {
   var wrapper = JSON.parse(value);
   goog.asserts.assertObject(wrapper, key + ' corrupted: ' + value);
 
-  // set method in goog.storage.EncryptedStorage
-  key = this.hashKeyWithSecret_(key);
+  // get (getWrapper) method in goog.storage.EncryptedStorage
   var salt = wrapper[goog.storage.EncryptedStorage.SALT_KEY];
   if (!goog.isString(value) || !goog.isArray(salt) || !salt.length) {
     throw goog.storage.ErrorCode.INVALID_VALUE;
@@ -168,6 +170,7 @@ ydn.db.RichStorage.prototype.unwrapValue = function(key, value) {
 ydn.db.RichStorage.prototype.wrapValue = function(key, value, opt_expiration) {
 
   // set method in goog.storage.EncryptedStorage
+  key = this.hashKeyWithSecret_(key);
   var salt = [];
   // 64-bit random salt.
   for (var i = 0; i < 8; ++i) {
