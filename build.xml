@@ -44,7 +44,8 @@
     </macrodef>
     <target name="simple" description="generates simple compile file">
         <mkdir dir="${ydn-db.dir}/jsc"/>
-        <closure-compile compilationlevel="SIMPLE_OPTIMIZATIONS"
+        <!--SIMPLE_OPTIMIZATIONS-->
+        <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
                          input="${ydn-db.dir}/js/ydn/db/storage.js"
                          output.fn="${ydn-db.dir}/jsc/ydn-db-${ver}.js"

@@ -56,12 +56,7 @@ ydn.db.RichStorage = function(parent, secret, opt_default_expiration) {
  * @param {!Object} wrapper The wrapper.
  * @return {boolean} True if the item has expired.
  */
-ydn.db.RichStorage.isExpired = function(wrapper) {
-  var creation = goog.storage.ExpiringStorage.getCreationTime(wrapper);
-  var expiration = goog.storage.ExpiringStorage.getExpirationTime(wrapper);
-  return !!expiration && expiration < goog.now() ||
-    !!creation && creation > goog.now();
-};
+ydn.db.RichStorage.isExpired = goog.storage.ExpiringStorage.isExpired;
 
 
 /**
