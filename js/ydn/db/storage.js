@@ -40,7 +40,7 @@ goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.db.tr.Key');
 goog.require('ydn.db.ActiveQuery');
-goog.require('goog.storage.ExpiringStorage');
+goog.require('ydn.db.RichStorage_');
 
 
 /**
@@ -184,6 +184,21 @@ ydn.db.Storage.prototype.setSchema = function(schema) {
 
 
 /**
+ *
+ * @param {string} secret
+ * @param {number=} expiration default expiration time in miliseconds.
+ */
+ydn.db.Storage.prototype.setSecret = function(secret, expiration) {
+  /**
+   * @protected
+   * @final
+   * @type {ydn.db.RichStorage}
+   */
+  this.wrapper = new ydn.db.RichStorage(this, secret, expiration);
+};
+
+
+/**
  * Specified to use a specific storage mechanism.
  * @define {string}
  */
@@ -295,66 +310,6 @@ ydn.db.Storage.prototype.sceret = '';
 
 
 /**
- *
- * @type {number|undefined}
- */
-ydn.db.Storage.prototype.default_expiration = undefined;
-
-
-/**
- * Rich storage supports expiring storage and encryption.
- * @define {boolean}
- */
-ydn.db.Storage.RICH_STORAGE_SUPPORTED = false;
-
-
-/**
- *
- * @param {string} key
- * @param {string} value
- * @return {string|undefined}
- */
-ydn.db.Storage.prototype.unwrapValue = function(key, value) {
-  var wrapper = JSON.parse(value);
-  goog.asserts.assertObject(wrapper, key + ' corrupted: ' + value);
-  if (goog.storage.ExpiringStorage.isExpired(wrapper)) {
-    if (!goog.isDef(value)) { // expired
-      this.removeItem(value);
-    }
-    return undefined;
-  }
-  var data = /** @type {string} */ (wrapper[goog.storage.RichStorage.DATA_KEY]);
-  goog.asserts.assertString(data);
-  return data;
-};
-
-
-/**
- *
- * @param {string} key
- * @param {string} value
- * @param {number=} opt_expiration
- * @return {string}
- */
-ydn.db.Storage.prototype.wrapValue = function(key, value, opt_expiration) {
-  var wrapper = {};
-  wrapper[goog.storage.RichStorage.DATA_KEY] = value;
-  if (goog.isDef(opt_expiration)) {
-    goog.asserts.assert(opt_expiration > 0, 'expiration time must be a number ' +
-        ' but ' + opt_expiration + ' found.');
-  } else {
-    opt_expiration = this.default_expiration;
-  }
-  if (opt_expiration) {
-    wrapper[goog.storage.ExpiringStorage.EXPIRATION_TIME_KEY] =
-        opt_expiration;
-  }
-  wrapper[goog.storage.ExpiringStorage.CREATION_TIME_KEY] = goog.now();
-  return ydn.json.stringify(wrapper);
-};
-
-
-/**
  * Store a value to default key-value store.
  * @export
  * @param {string} key The key to set.
@@ -366,8 +321,8 @@ ydn.db.Storage.prototype.wrapValue = function(key, value, opt_expiration) {
  */
 ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
 
-  if (ydn.db.Storage.RICH_STORAGE_SUPPORTED) {
-    value = this.wrapValue(key, value, opt_expiration);
+  if (this.wrapper) {
+    value = this.wrapper.wrapValue(key, value, opt_expiration);
   }
   return this.put(ydn.db.Storage.DEFAULT_TEXT_STORE,
     {'id': key, 'value': value});
@@ -426,8 +381,8 @@ ydn.db.Storage.prototype.getItem = function(key) {
   out.addCallback(function(data) {
     if (goog.isDef(data)) {
       var value = data['value'];
-      if (ydn.db.Storage.RICH_STORAGE_SUPPORTED && goog.isDef(value)) {
-        value = me.unwrapValue(key, value);
+      if (me.wrapper && goog.isDef(value)) {
+        value = me.wrapper.unwrapValue(key, value);
       }
       df.callback(value);
     } else {
