@@ -597,32 +597,6 @@ ydn.db.Storage.prototype.disp_ = function() {
 };
 
 
-/**
- * This is external use only.
- * @export
- * @private
- * @param {!Array.<!{success: Function, error: Function}>} df_arr An array of
- * deferred objects to wait for.
- * @return {!goog.async.DeferredList} DeferredList instance.
- */
-ydn.db.Storage.prototype.dfl = function(df_arr) {
-  var df_list = [];
-  for (var idf, i = 0; idf = df_arr[i]; i++) {
-    var df = new goog.async.Deferred();
-    idf['success'](goog.partial(function(df, x) {
-      //window.console.log([df, x]);
-      df.callback(x);
-    }, df));
-    idf['error'](goog.partial(function(df, x) {
-      //window.console.log([df, x]);
-      df.errback(x);
-    }, df));
-    df_list[i] = df;
-  }
-  return new goog.async.DeferredList(df_list);
-};
-
-
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
 goog.exportProperty(goog.async.Deferred.prototype, 'success',
   goog.async.Deferred.prototype.addCallback);
@@ -644,9 +618,6 @@ goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
   ydn.db.Storage.prototype.fetch);
 goog.exportProperty(ydn.db.Storage.prototype, 'runInTransaction',
   ydn.db.Storage.prototype.runInTransaction);
-goog.exportProperty(ydn.db.Storage.prototype, 'dfl',
-  ydn.db.Storage.prototype.dfl);
-
 
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
   ydn.db.ActiveQuery.prototype.fetch);
@@ -669,3 +640,5 @@ goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'lowerBound',
   ydn.db.Query.KeyRangeImpl.lowerBound);
 goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'only',
   ydn.db.Query.KeyRangeImpl.only);
+
+goog.exportProperty(ydn.async.dfl, 'dfl', ydn.async.dfl);
