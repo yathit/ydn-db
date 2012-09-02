@@ -64,6 +64,17 @@
         <copy file="${ydn-db.dir}/jsc/ydn-db-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/ydn-db.js"/>
     </target>
+    <target name="compile-core" description="generates compiled files for client js, /jsc/sync.jc">
+        <mkdir dir="${ydn-db.dir}/jsc"/>
+        <adv-comp
+                input.fn="${ydn-db.dir}/js/ydn/db/storage_core.js"
+                output.dir="${ydn-db.dir}/jsc"
+                output.fn="core-ydn-db-min-${ver}.js"
+                closure.entry="ydn.db.StorageCore">
+        </adv-comp>
+        <copy file="${ydn-db.dir}/jsc/core-ydn-db-min-${ver}.js"
+              tofile="${work.dir}/hijax-server/static/jsc/core-ydn-db-min.js"/>
+    </target>
     <target name="compile" description="generates compiled files for client js, /jsc/sync.jc">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp

@@ -1071,7 +1071,6 @@ ydn.db.IndexedDb.prototype.count = function(table) {
 ydn.db.IndexedDb.prototype.listKeys = function(opt_table) {
   var self = this;
 
-  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   goog.asserts.assertObject(this.schema[opt_table], 'store ' + opt_table +
     ' not exists in ' + this.dbname);
   var column = this.schema[opt_table].keyPath;
