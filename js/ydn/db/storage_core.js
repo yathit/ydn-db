@@ -67,10 +67,10 @@ ydn.db.StorageCore = function(opt_dbname, opt_schema) {
   this.db_;
 
   /**
-   *
+   * @private
    * @type {!goog.async.Deferred} deferred db instance.
    */
-  this.deferredDb = new goog.async.Deferred();
+  this.deferredDb_ = new goog.async.Deferred();
 
   this.setSchema(opt_schema || {});
 
@@ -90,11 +90,6 @@ ydn.db.StorageCore.createInstance = function(opt_dbname, opt_schema) {
   return new ydn.db.StorageCore(opt_dbname, opt_schema);
 };
 
-
-/**
- * @define {string} default key-value store name.
- */
-ydn.db.StorageCore.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
 /**
@@ -219,10 +214,10 @@ ydn.db.StorageCore.prototype.initDatabase = function() {
       this.db_ = new ydn.db.MemoryStore(this.db_name, this.schema);
     }
 
-    if (this.deferredDb.hasFired()) {
-      this.deferredDb = new goog.async.Deferred();
+    if (this.deferredDb_.hasFired()) {
+      this.deferredDb_ = new goog.async.Deferred();
     }
-    this.deferredDb.callback(this.db_);
+    this.deferredDb_.callback(this.db_);
   }
 };
 
@@ -254,7 +249,6 @@ ydn.db.StorageCore.prototype.close = function() {
 
 /**
  * Return underlining database instance.
- * @export
  * @return {ydn.db.tr.Db} Database if exists.
  */
 ydn.db.StorageCore.prototype.getDb = function() {
@@ -264,11 +258,10 @@ ydn.db.StorageCore.prototype.getDb = function() {
 
 /**
  * Return underlining database instance.
- * @export
  * @return {!goog.async.Deferred} Database in deferred function.
  */
 ydn.db.StorageCore.prototype.getDeferredDb = function() {
-  return this.deferredDb;
+  return this.deferredDb_;
 };
 
 
@@ -286,7 +279,7 @@ ydn.db.StorageCore.prototype.put = function(store_name, value) {
     return this.db_.put(store_name, value);
   } else {
     var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function(db) {
+    this.deferredDb_.addCallback(function(db) {
       db.put(store_name, value).chainDeferred(df);
     });
     return df;
@@ -312,7 +305,7 @@ ydn.db.StorageCore.prototype.get = function (store_name, opt_key) {
     return this.db_.get(store_name, opt_key);
   } else {
     var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function (db) {
+    this.deferredDb_.addCallback(function (db) {
       db.get(store_name, opt_key).chainDeferred(df);
     });
     return df;
@@ -330,7 +323,7 @@ ydn.db.StorageCore.prototype.getByKey = function(key) {
     return this.db_.getByKey(key);
   } else {
     var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function(db) {
+    this.deferredDb_.addCallback(function(db) {
       db.getByKey(key).chainDeferred(df);
     });
     return df;
@@ -353,7 +346,7 @@ ydn.db.StorageCore.prototype.clear = function(opt_store_name, opt_key) {
     return this.db_.clear(opt_store_name, opt_key);
   } else {
     var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function(db) {
+    this.deferredDb_.addCallback(function(db) {
       db.clear(opt_store_name, opt_key).chainDeferred(df);
     });
     return df;
@@ -374,7 +367,7 @@ ydn.db.StorageCore.prototype.count = function(opt_store_name) {
     return this.db_.count(opt_store_name);
   } else {
     var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function(db) {
+    this.deferredDb_.addCallback(function(db) {
       db.count(opt_store_name).chainDeferred(df);
     });
     return df;
@@ -397,7 +390,7 @@ ydn.db.StorageCore.prototype.fetch = function(q, limit, offset) {
     return this.db_.fetch(q, limit, offset);
   } else {
     var df = new goog.async.Deferred();
-    this.deferredDb.addCallback(function(db) {
+    this.deferredDb_.addCallback(function(db) {
       db.fetch(q, limit, offset).chainDeferred(df);
     });
     return df;

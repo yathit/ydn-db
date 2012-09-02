@@ -85,7 +85,6 @@ ydn.db.Storage.createInstance = function(opt_dbname, opt_schema) {
 ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
-
 /**
  *
  * @param {string} secret
