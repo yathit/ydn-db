@@ -257,6 +257,16 @@ ydn.db.StorageCore.prototype.getDb = function() {
 
 
 /**
+ * For undocumented export property to minified js file for hackers.
+ */
+ydn.db.StorageCore.prototype.getDbInstance_ = function() {
+  if (this.db_) {
+    return this.db_.getDb_();
+  }
+};
+
+
+/**
  * Return underlining database instance.
  * @return {!goog.async.Deferred} Database in deferred function.
  */

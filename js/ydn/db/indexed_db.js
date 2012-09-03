@@ -299,6 +299,11 @@ ydn.db.IndexedDb.prototype.setDb = function(db) {
 };
 
 
+ydn.db.IndexedDb.prototype.getDb_ = function() {
+  return this.db_;
+};
+
+
 /**
  * @private
  * @param {IDBDatabase} db DB instance.
@@ -726,9 +731,6 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
 
-  var start = offset || 0;
-  var end = goog.isDef(limit) ? start + limit : undefined;
-
   //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
   // ' in ' + table);
   var obj_store = tx.objectStore(store.name);
@@ -747,11 +749,7 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
       request = index.openCursor(q.keyRange);
     }
   } else {
-    if (index) {
-      request = index.openCursor();
-    } else {
-      request = obj_store.openCursor();
-    }
+    request = obj_store.openCursor();
   }
 
   tx.is_success = true;
@@ -780,20 +778,18 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
       if (!goog.isFunction(q.filter) || q.filter(value)) {
         idx++;
 
-        if (idx >= start) {
-          if (goog.isFunction(q.map)) {
-            value = q.map(value);
-          }
+        if (goog.isFunction(q.map)) {
+          value = q.map(value);
+        }
 
-          if (is_reduce) {
-            tx.result = q.reduce(tx.result, value, idx);
-          } else {
-            tx.result.push(value);
-          }
+        if (is_reduce) {
+          tx.result = q.reduce(tx.result, value, idx);
+        } else {
+          tx.result.push(value);
         }
       }
 
-      if (to_continue && (!goog.isDef(end) || (idx+1) < end)) {
+      if (to_continue && (!goog.isDef(limit) || idx < limit)) {
         //cursor.continue();
         cursor['continue'](); // Note: Must be quoted to avoid parse error.
       } else if (df) {
@@ -1071,6 +1067,7 @@ ydn.db.IndexedDb.prototype.count = function(table) {
 ydn.db.IndexedDb.prototype.listKeys = function(opt_table) {
   var self = this;
 
+  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   goog.asserts.assertObject(this.schema[opt_table], 'store ' + opt_table +
     ' not exists in ' + this.dbname);
   var column = this.schema[opt_table].keyPath;

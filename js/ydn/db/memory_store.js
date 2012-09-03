@@ -90,6 +90,11 @@ ydn.db.MemoryStore.isSupported = function() {
 };
 
 
+ydn.db.MemoryStore.prototype.getDb_ = function() {
+  return this.cache_;
+};
+
+
 /**
  * @protected
  * @param {string} old_version old version.

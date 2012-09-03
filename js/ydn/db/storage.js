@@ -245,6 +245,8 @@ ydn.db.Storage.prototype.key = function(store, id, opt_parent) {
 
 
 
+
+
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
 goog.exportProperty(goog.async.Deferred.prototype, 'success',
   goog.async.Deferred.prototype.addCallback);
@@ -266,6 +268,11 @@ goog.exportProperty(ydn.db.StorageCore.prototype, 'fetch',
   ydn.db.StorageCore.prototype.fetch);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'runInTransaction',
   ydn.db.StorageCore.prototype.runInTransaction);
+
+// for hacker
+goog.exportProperty(ydn.db.StorageCore.prototype, 'db',
+    ydn.db.StorageCore.prototype.getDbInstance_);
+
 
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
   ydn.db.ActiveQuery.prototype.fetch);
