@@ -754,6 +754,7 @@ ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit, off
 };
 
 
+
 /**
  * @param {IDBTransaction} tx
  * @param {!goog.async.Deferred} df
@@ -766,6 +767,9 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
   var me = this;
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
+
+  var start = offset || 0;
+  var end = goog.isDef(limit) ? start + limit : undefined;
 
   //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
   // ' in ' + table);
@@ -785,7 +789,11 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
       request = index.openCursor(q.keyRange);
     }
   } else {
-    request = obj_store.openCursor();
+    if (index) {
+      request = index.openCursor();
+    } else {
+      request = obj_store.openCursor();
+    }
   }
 
   tx.is_success = true;
@@ -814,18 +822,20 @@ ydn.db.IndexedDb.prototype.executeFetch_ = function(tx, df, q, limit, offset) {
       if (!goog.isFunction(q.filter) || q.filter(value)) {
         idx++;
 
-        if (goog.isFunction(q.map)) {
-          value = q.map(value);
-        }
+        if (idx >= start) {
+          if (goog.isFunction(q.map)) {
+            value = q.map(value);
+          }
 
-        if (is_reduce) {
-          tx.result = q.reduce(tx.result, value, idx);
-        } else {
-          tx.result.push(value);
+          if (is_reduce) {
+            tx.result = q.reduce(tx.result, value, idx);
+          } else {
+            tx.result.push(value);
+          }
         }
       }
 
-      if (to_continue && (!goog.isDef(limit) || idx < limit)) {
+      if (to_continue && (!goog.isDef(end) || (idx+1) < end)) {
         //cursor.continue();
         cursor['continue'](); // Note: Must be quoted to avoid parse error.
       } else if (df) {

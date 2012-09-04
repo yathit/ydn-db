@@ -444,8 +444,27 @@ ydn.db.WebSql.prototype.get = function (arg1, key) {
  * @return {!goog.async.Deferred}
  */
 ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
+  if (q instanceof ydn.db.Query) {
+    return this.fetchQuery_(q, limit, offset);
+  } else {
+    throw Error('Not implemented.');
+  }
+};
+
+
+/**
+ * @param {ydn.db.Query} q query.
+ * @param {number=} limit
+ * @param {number=} offset
+ * @return {!goog.async.Deferred}
+ * @private
+ */
+ydn.db.WebSql.prototype.fetchQuery_ = function(q, limit, offset) {
   var d = new goog.async.Deferred();
   var me = this;
+
+  var start = offset || 0;
+  var end = goog.isDef(limit) ? start + limit : undefined;
 
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
@@ -453,10 +472,17 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
   var sql = 'SELECT * FROM ' + store.getQuotedName();
   var params = [];
 
+
   if (q.keyRange) {
-  var clause = q.toWhereClause();
+    var clause = q.toWhereClause();
     sql += ' WHERE ' + '(' + clause.where_clause + ')';
     params = clause.params;
+  }
+
+  if (goog.isDef(q.index)) {
+    sql += ' ORDER BY ' + goog.string.quote(q.index);
+  } else if (goog.isDef(store.keyPath)) {
+    sql += ' ORDER BY ' + goog.string.quote(store.keyPath);
   }
 
   var result;
@@ -469,24 +495,27 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
     if (!is_reduce) {
       result = [];
     }
+    var idx = -1;
     for (var i = 0; i < results.rows.length; i++) {
       var row = results.rows.item(i);
       var value = me.parseRow(store, row);
       var to_continue = !goog.isFunction(q.continue) || q.continue(value);
       if (!goog.isFunction(q.filter) || q.filter(value)) {
+        idx++;
+        if (idx >= start) {
+          if (goog.isFunction(q.map)) {
+            value = q.map(value);
+          }
 
-        if (goog.isFunction(q.map)) {
-          value = q.map(value);
-        }
-
-        if (is_reduce) {
-          result = q.reduce(result, value, i);
-        } else {
-          result.push(value);
+          if (is_reduce) {
+            result = q.reduce(result, value, i);
+          } else {
+            result.push(value);
+          }
         }
       }
 
-      if (!(to_continue && (!goog.isDef(limit) || i < limit))) {
+      if (!(to_continue && (!goog.isDef(end) || (idx+1) < end))) {
         break;
       }
     }
