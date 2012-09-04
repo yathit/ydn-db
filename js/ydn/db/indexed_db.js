@@ -489,7 +489,47 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df)
 
 
 /**
- *
+ * Execute GET request either storing result to tx or callback to df.
+ * @param {IDBTransaction} tx
+ * @param {goog.async.Deferred} df
+ * @param {string} store_name table name.
+ * @param {string|number} id id to get.
+ * @private
+ */
+ydn.db.IndexedDb.prototype.executeGet_ = function(tx, df, store_name, id) {
+  var me = this;
+
+  var store = tx.objectStore(store_name);
+  var request = store.get(id);
+
+  request.onsuccess = function(event) {
+    tx.is_success = true;
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log([store_name, id, event]);
+    }
+    tx.result = event.target.result;
+    if (df) {
+      df.callback(event.target.result);
+    }
+  };
+
+
+  request.onerror = function(event) {
+    if (ydn.db.IndexedDb.DEBUG) {
+      window.console.log([store_name, id, event]);
+    }
+    me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
+        event.message);
+    tx.abort();
+    if (df) {
+      df.errback(event);
+    }
+  };
+};
+
+
+/**
+ * Execute PUT request either storing result to tx or callback to df.
  * @param {IDBTransaction} tx
  * @param {goog.async.Deferred} df
  * @param {string} table table name.
@@ -634,43 +674,43 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
   }, [table], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
 };
 
-
-/**
- * Retrieve an object from store.
- * @param {ydn.db.Key} key
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.IndexedDb.prototype.getByKey = function(key) {
-
-  if (!this.schema.hasStore(key.store_name)) {
-    throw Error('Store: ' + key.store_name + ' not exist.');
-  }
-
-  var me = this;
-
-  return this.doTransaction(function(tx) {
-    var store = tx.objectStore(key.store_name);
-    var request = store.get(key.id);
-
-    request.onsuccess = function(event) {
-      tx.is_success = true;
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      // how to return empty result
-      tx.result = event.target.result;
-    };
-
-    request.onerror = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      me.logger.warning('Error retrieving ' + key.id + ' in ' + key.store_name);
-    };
-
-  }, [key.store_name], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
-
-};
+//
+///**
+// * Retrieve an object from store.
+// * @param {ydn.db.Key} key
+// * @return {!goog.async.Deferred} return object in deferred function.
+// */
+//ydn.db.IndexedDb.prototype.getByKey = function(key) {
+//
+//  if (!this.schema.hasStore(key.store_name)) {
+//    throw Error('Store: ' + key.store_name + ' not exist.');
+//  }
+//
+//  var me = this;
+//
+//  return this.doTransaction(function(tx) {
+//    var store = tx.objectStore(key.store_name);
+//    var request = store.get(key.id);
+//
+//    request.onsuccess = function(event) {
+//      tx.is_success = true;
+//      if (ydn.db.IndexedDb.DEBUG) {
+//        window.console.log(event);
+//      }
+//      // how to return empty result
+//      tx.result = event.target.result;
+//    };
+//
+//    request.onerror = function(event) {
+//      if (ydn.db.IndexedDb.DEBUG) {
+//        window.console.log(event);
+//      }
+//      me.logger.warning('Error retrieving ' + key.id + ' in ' + key.store_name);
+//    };
+//
+//  }, [key.store_name], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
+//
+//};
 
 
 /**
@@ -696,13 +736,21 @@ ydn.db.IndexedDb.prototype.get = function(arg1, key) {
     });
 
     return df;
-  } else if (arg1 instanceof ydn.db.Key) {
-    return this.getByKey(arg1);
   } else if (!goog.isDef(key)) {
     goog.asserts.assertString(arg1); // store name
     return this.getAll_(arg1);
-  } else {
-    return this.getByKey(new ydn.db.Key(arg1, key));
+  } else  {
+    // single key
+    var store_name = arg1;
+    var id = key;
+    if (arg1 instanceof ydn.db.Key) {
+      store_name = arg1.store_name;
+      id = arg1.id;
+    }
+    var me = this;
+    return this.doTransaction(function(tx) {
+      me.executeGet_(tx, null, store_name, id);
+    }, [store_name], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
   }
 };
 
@@ -1188,33 +1236,22 @@ ydn.db.IndexedDb.prototype.close = function () {
 };
 
 
+
+
 /**
- * inheritDoc
+ * Get object in the store in a transaction. This return requested object
+ * immediately.
+ *
+ * This method must be {@link #runInTransaction}.
+ * @param {IDBTransaction|SQLTransaction} tx
+ * @param {string} store_name store name.
+ * @param {string|number} id object key.
+ * @return {!goog.async.Deferred}
  */
 ydn.db.IndexedDb.prototype.getInTransaction = function(tx, store_name, id) {
   var me = this;
   var df = new goog.async.Deferred();
-
-  var store = tx.objectStore(store_name);
-  var request = store.get(id);
-
-  request.onsuccess = function(event) {
-    if (ydn.db.IndexedDb.DEBUG) {
-      window.console.log([store_name, id, event]);
-    }
-    // how to return empty result
-    df.callback(event.target.result);
-  };
-
-  request.onerror = function(event) {
-    if (ydn.db.IndexedDb.DEBUG) {
-      window.console.log([store_name, id, event]);
-    }
-    me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
-      event.message);
-    tx.abort();
-    df.errback(event);
-  };
+  this.executeGet_(/** @type {IDBTransaction} */ (tx), df, store_name, id);
   return df;
 };
 
@@ -1255,6 +1292,7 @@ ydn.db.IndexedDb.prototype.clearInTransaction = function(tx, opt_table, opt_key)
 
   return df;
 };
+
 
 
 /**

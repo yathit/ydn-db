@@ -86,6 +86,9 @@
         <copy file="${ydn-db.dir}/jsc/ydn-db-min-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/ydn-db-min.js"/>
     </target>
+    <target name="gen-all-test-js" description="generate all test js">
+        <gen-js-test base.dir="${ydn-db.dir}/test"></gen-js-test>
+    </target>
     <target name="deps" description="list dependency files">
         <delete file="${ydn-db.dir}/js/deps.js"/>
         <calc-deps

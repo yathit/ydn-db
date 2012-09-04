@@ -82,6 +82,7 @@ ydn.db.test.clear_tests = function(queue, db) {
 
 
 /**
+ * Test put and get for basic object.
  * @param queue test queue.
  * @param {ydn.db.Db} db Database instance.
  */
@@ -174,6 +175,10 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
 
 
 /**
+ * Test key values and ensure that value is unchanged on put and get.
+ * For IndexedDB, key value is DOMString
+ * http://www.w3.org/TR/2011/WD-WebIDL-20110927/#idl-DOMString
+ * The DOMString type corresponds to the set of all possible sequences of 16 bit unsigned integer code units.
  * @param queue test queue.
  * @param {ydn.db.Db} db Database instance.
  */

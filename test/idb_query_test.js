@@ -38,14 +38,13 @@ var tearDown = function() {
 };
 
 var db_name = 'test12';
-
+var options = {preference: ['indexeddb']};
 
 var test_2_idb_select = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
 
   var db_name = 'test_2_idb_select';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: 'A'},
@@ -86,10 +85,8 @@ var test_2_idb_select = function() {
 
 var test_3_idb_count = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
-
   var db_name = 'test_3_idb_count';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: 'A'},
@@ -132,7 +129,7 @@ var test_4_idb_sum = function() {
   goog.userAgent.product.ASSUME_CHROME = true;
 
   var db_name = 'test_4_idb_sum';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: Math.random()},
@@ -178,7 +175,7 @@ var test_4_idb_avg = function() {
   goog.userAgent.product.ASSUME_CHROME = true;
 
   var db_name = 'test_4_idb_avg';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: Math.random()},
@@ -223,7 +220,7 @@ var test_52_idb_when = function() {
   goog.userAgent.product.ASSUME_CHROME = true;
 
   var db_name = 'test_52_idb_when';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: 1, text: 'A'},
@@ -252,7 +249,7 @@ var test_52_idb_when = function() {
     console.log('receiving value callback ' + JSON.stringify(value));
 
     var q = db.query(table_name);
-    q.when('value', '=', 2);
+    q.where('value', '=', 2);
     db.get(q).addCallback(function(q_result) {
       console.log('receiving when query ' + JSON.stringify(q_result));
       result = q_result;
@@ -267,7 +264,7 @@ var test_53_idb_when = function() {
   goog.userAgent.product.ASSUME_CHROME = true;
 
   var db_name = 'test_53_idb_when2';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: 1, text: 'X'},
@@ -309,7 +306,7 @@ var test_53_idb_when = function() {
     console.log('receiving value callback ' + JSON.stringify(value));
 
     var q = db.query(table_name);
-    q.when('value', '>', 2);
+    q.where('value', '>', 2);
     db.fetch(q).addCallback(function(q_result) {
       console.log('receiving when query ' + JSON.stringify(q_result));
       t1_result = q_result;
@@ -317,7 +314,7 @@ var test_53_idb_when = function() {
     });
 
     q = db.query(table_name);
-    q.when('value', '>', 2).when('text', '=', 'X');
+    q.where('value', '>', 2).where('text', '=', 'X');
     db.fetch(q).addCallback(function(q_result) {
       console.log('receiving when query ' + JSON.stringify(q_result));
       t2_result = q_result;

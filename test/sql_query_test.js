@@ -33,11 +33,12 @@ var tearDown = function() {
 
 var db_name = 'test12';
 
+var options = {preference: ['websql']};
 
-var test_2_idb_select = function() {
+var test_2_select = function() {
 
   var db_name = 'test_2_sql_select4';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: 1},
@@ -76,10 +77,10 @@ var test_2_idb_select = function() {
 };
 
 
-var test_3_idb_count = function() {
+var test_3_count = function() {
 
   var db_name = 'test_3_sql_count4';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: 1},
@@ -117,10 +118,10 @@ var test_3_idb_count = function() {
 };
 
 
-var test_4_idb_sum = function() {
+var test_4_sum = function() {
 
   var db_name = 'test_4_sql_sum3';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: Math.random()},
@@ -161,12 +162,12 @@ var test_4_idb_sum = function() {
 
 
 
-var test_4_idb_avg = function() {
+var test_4_avg = function() {
 
 
 
   var db_name = 'test_4_sql_avg4';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: Math.random()},
@@ -206,12 +207,10 @@ var test_4_idb_avg = function() {
 };
 
 
-var test_52_idb_when = function() {
-
-
+var test_52_where = function() {
 
   var db_name = 'test_52_sql_when4';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: 1, text: 'A'},
@@ -240,7 +239,7 @@ var test_52_idb_when = function() {
     console.log('receiving value callback ' + JSON.stringify(value));
 
     var q = db.query(table_name);
-    q.when('value', '=', 2);
+    q.where('value', '=', 2);
     db.get(q).addCallback(function(q_result) {
       console.log('receiving when query ' + JSON.stringify(q_result));
       result = q_result;
@@ -250,10 +249,10 @@ var test_52_idb_when = function() {
 };
 
 
-var test_53_idb_when = function() {
+var test_53_where = function() {
 
   var db_name = 'test_53_sql_when4';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: 1, text: 'X'},
@@ -295,7 +294,7 @@ var test_53_idb_when = function() {
     console.log('receiving value callback ' + JSON.stringify(value));
 
     var q = db.query(table_name);
-    q.when('value', '>', 2);
+    q.where('value', '>', 2);
     db.fetch(q).addCallback(function(q_result) {
       console.log('receiving when query ' + JSON.stringify(q_result));
       t1_result = q_result;
@@ -303,7 +302,7 @@ var test_53_idb_when = function() {
     });
 
     q = db.query(table_name);
-    q.when('value', '>', 2).when('text', '=', 'X');
+    q.where('value', '>', 2).where('text', '=', 'X');
     db.fetch(q).addCallback(function(q_result) {
       console.log('receiving when query ' + JSON.stringify(q_result));
       t2_result = q_result;
