@@ -96,6 +96,7 @@ ydn.db.IndexedDb = function(dbname, schema) {
       setVrequest.onsuccess = function(e) {
         me.migrate(db);
         me.logger.finer('Migrated to version ' + db.version + '.');
+        // db.close(); necessary?
         var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(me.dbname);
         // have to reopen for new schema
         reOpenRequest.onsuccess = function(rev) {
@@ -332,22 +333,48 @@ ydn.db.IndexedDb.prototype.migrate = function(db) {
     this.logger.finest('Creating Object Store for ' + table.name +
       ' keyPath: ' + table.keyPath);
 
+    var store;
     if (this.hasStore_(db, table.name)) {
-      continue; // already have the store. TODO: update indexes
-    }
+      // already have the store, just update indexes
+      var trans = db.transaction([table.name],
+        /** @type {number} */ (ydn.db.IndexedDb.TransactionMode.READ_WRITE));
+      store = trans.objectStore(table.name);
+      goog.asserts.assertObject(store, table.name + ' not found.');
+      var indexNames = store['indexNames']; // closre externs not yet updated.
+      goog.asserts.assertObject(indexNames); // let compiler know there it is.
 
-    var store = db.createObjectStore(table.name,
-        {keyPath: table.keyPath, autoIncrement: table.autoIncrement});
+      var created = 0;
+      var deleted = 0;
+      for (var j = 0; j < table.indexes.length; j++) {
+        var index = table.indexes[j];
+        if (!indexNames.contains(index.name)) {
+          store.createIndex(index.name, index.name, {unique:index.unique});
+          created++;
+        }
+      }
+      for (var j = 0; j < indexNames.length; j++) {
+        if (!table.hasIndex(indexNames[j])) {
+          store.deleteIndex(indexNames[j]);
+          deleted++;
+        }
+      }
 
-    for (var j = 0; j < table.indexes.length; j++) {
-      var index = table.indexes[j];
-      goog.asserts.assertString(index.name, 'name required.');
-      goog.asserts.assertBoolean(index.unique, 'unique required.');
-      store.createIndex(index.name, index.name, {unique:index.unique});
-    }
+      this.logger.finest('Updated store: ' + store.name + ', ' + created +
+        ' index created, ' + deleted + ' index deleted.');
+    } else {
+      store = db.createObjectStore(table.name,
+        {keyPath:table.keyPath, autoIncrement:table.autoIncrement});
 
-    this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
+      for (var j = 0; j < table.indexes.length; j++) {
+        var index = table.indexes[j];
+        goog.asserts.assertString(index.name, 'name required.');
+        goog.asserts.assertBoolean(index.unique, 'unique required.');
+        store.createIndex(index.name, index.name, {unique:index.unique});
+      }
+
+      this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
         store.keyPath);
+    }
 
   }
 

@@ -54,17 +54,23 @@ goog.require('ydn.object');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * schema used in chronical order.
+ * @param {!Object=} opt_options options.
  * @implements {ydn.db.Db}
  * @implements {ydn.db.QueryServiceProvider}
  * @constructor
  */
-ydn.db.StorageCore = function(opt_dbname, opt_schema) {
+ydn.db.StorageCore = function(opt_dbname, opt_schema, opt_options) {
 
   /**
    * @private
    * @type {ydn.db.tr.Db} db instance.
    */
-  this.db_;
+  this.db_ = null;
+
+  var options = opt_options || {};
+
+  this.preference = options['preference'];
+
 
   /**
    * @private
@@ -176,10 +182,13 @@ ydn.db.StorageCore.prototype.setSchema = function(schema) {
 
 
 /**
- * Specified to use a specific storage mechanism.
- * @define {string}
+ * Specified storage mechanism ordering.
+ * The default represent
+ * IndexedDB, WebSql, localStorage and in-memory store.
+ * @const
+ * @type {!Array.<string>}
  */
-ydn.db.StorageCore.USE_ONLY = '';
+ydn.db.StorageCore.PREFERENCE = ['indexeddb', 'websql', 'localstorage', 'memory'];
 
 
 /**
@@ -194,24 +203,36 @@ ydn.db.StorageCore.USE_ONLY = '';
 ydn.db.StorageCore.prototype.initDatabase = function() {
   // handle version change
   if (goog.isDef(this.db_name) && goog.isDef(this.schema)) {
-
-    if (ydn.db.StorageCore.USE_ONLY === 'ydn.db.MemoryStore') {
-      this.db_ = new ydn.db.MemoryStore(this.db_name, this.schema);
-    } else if (goog.userAgent.product.ASSUME_CHROME ||
+    this.db_ = null;
+    if (goog.userAgent.product.ASSUME_CHROME ||
       goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
       this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema);
     } else if (goog.userAgent.product.ASSUME_SAFARI) {
       // for dead-code elimination
       this.db_ = new ydn.db.WebSql(this.db_name, this.schema);
-    } else if (ydn.db.IndexedDb.isSupported()) { // run-time detection
-      this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema);
-    } else if (ydn.db.WebSql.isSupported()) {
-      this.db_ = new ydn.db.WebSql(this.db_name, this.schema);
-    } else if (ydn.db.Html5Db.isSupported()) {
-      this.db_ = new ydn.db.Html5Db(this.db_name, this.schema);
     } else {
-      this.db_ = new ydn.db.MemoryStore(this.db_name, this.schema);
+      // go according to ordering
+      var preference = this.preference || ydn.db.StorageCore.PREFERENCE;
+      for (var i = 0; i < preference.length; i++) {
+        var db_type = preference[i].toLowerCase();
+        if (db_type == 'indexeddb' && ydn.db.IndexedDb.isSupported()) { // run-time detection
+          this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema);
+          break;
+        } else if (db_type == 'websql' && ydn.db.WebSql.isSupported()) {
+          this.db_ = new ydn.db.WebSql(this.db_name, this.schema);
+          break;
+        } else if (db_type == 'localstorage' && ydn.db.Html5Db.isSupported()) {
+          this.db_ = new ydn.db.Html5Db(this.db_name, this.schema);
+          break;
+        } else if (db_type == 'memory')  {
+          this.db_ = new ydn.db.MemoryStore(this.db_name, this.schema);
+          break;
+        }
+      }
+      if (!this.db_) {
+        throw Error('No database obtained for preference of ' + ydn.json.stringify(preference));
+      }
     }
 
     if (this.deferredDb_.hasFired()) {

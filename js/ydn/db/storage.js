@@ -57,13 +57,13 @@ goog.require('ydn.db.StorageCore');
  * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
- * schema used in chronical order.
+ * @param {!Object=} opt_options options.
  * @implements {ydn.db.QueryServiceProvider}
  * @extends {ydn.db.StorageCore}
  * @constructor
  */
-ydn.db.Storage = function(opt_dbname, opt_schema) {
-  goog.base(this, opt_dbname, opt_schema);
+ydn.db.Storage = function(opt_dbname, opt_schema, opt_options) {
+  goog.base(this, opt_dbname, opt_schema, opt_options);
 };
 goog.inherits(ydn.db.Storage, ydn.db.StorageCore);
 
