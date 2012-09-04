@@ -329,8 +329,9 @@ var test_41_keyRange = function () {
 
 var test_42_autoincreasement = function () {
   var store_name = 'demoOS';
-  var dbname = 'test_42_1';
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', true);
+  var dbname = 'test_42_3';
+  var idx_schema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', true, [idx_schema]);
   var schema = new ydn.db.DatabaseSchema(2, undefined, [store_schema]);
   var db = new ydn.db.IndexedDb(dbname, schema);
 

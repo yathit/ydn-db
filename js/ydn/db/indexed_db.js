@@ -94,7 +94,7 @@ ydn.db.IndexedDb = function(dbname, schema) {
         me.setDb(null);
       };
       setVrequest.onsuccess = function(e) {
-        me.migrate(db);
+        me.migrate(db, true);
         me.logger.finer('Migrated to version ' + db.version + '.');
         // db.close(); necessary?
         var reOpenRequest = ydn.db.IndexedDb.indexedDb.open(me.dbname);
@@ -324,8 +324,9 @@ ydn.db.IndexedDb.prototype.hasStore_ = function(db, table) {
  * Migrate from current version to the last version.
  * @protected
  * @param {IDBDatabase} db database instance.
+ * @param {boolean=} is_caller_setversion call from set version;
  */
-ydn.db.IndexedDb.prototype.migrate = function(db) {
+ydn.db.IndexedDb.prototype.migrate = function(db, is_caller_setversion) {
 
   // create store that we don't have previously
 
@@ -336,6 +337,14 @@ ydn.db.IndexedDb.prototype.migrate = function(db) {
     var store;
     if (this.hasStore_(db, table.name)) {
       // already have the store, just update indexes
+      if (is_caller_setversion) {
+        // transaction cannot open in version upgrade
+        continue;
+      }
+      if (goog.userAgent.product.CHROME) {
+        // as of Chrome 22, transaction cannot open here
+        continue;
+      }
       var trans = db.transaction([table.name],
         /** @type {number} */ (ydn.db.IndexedDb.TransactionMode.READ_WRITE));
       store = trans.objectStore(table.name);
