@@ -126,8 +126,6 @@ var test_3_idb_count = function() {
 
 var test_4_idb_sum = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
-
   var db_name = 'test_4_idb_sum';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
 
@@ -217,8 +215,6 @@ var test_4_idb_avg = function() {
 
 var test_52_idb_when = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
-
   var db_name = 'test_52_idb_when';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
 
@@ -260,8 +256,6 @@ var test_52_idb_when = function() {
 
 
 var test_53_idb_when = function() {
-
-  goog.userAgent.product.ASSUME_CHROME = true;
 
   var db_name = 'test_53_idb_when2';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
