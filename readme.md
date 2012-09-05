@@ -22,6 +22,10 @@ And test it
 
 java -jar JsTestDriver.jar --tests all
 
+# Using #
+
+Nice tutorial on http://dev.yathit.com
+
 
 # License #
 Licensed under the Apache License, Version 2.0

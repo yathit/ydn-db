@@ -411,6 +411,6 @@ ydn.db.MemoryStore.prototype.clearInTransaction = function(tx, store, id) {};
  *
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.runInTransaction = function(trFn, scopes, mode, keys) {
+ydn.db.MemoryStore.prototype.run = function(trFn, scopes, mode, keys) {
   throw Error('not impl');
 };

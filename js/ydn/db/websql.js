@@ -846,7 +846,7 @@ ydn.db.WebSql.prototype.clearInTransaction = function(tx, store, id) {};
  *
  * @inheritDoc
  */
-ydn.db.WebSql.prototype.runInTransaction = function(trFn, scopes, mode, keys) {
+ydn.db.WebSql.prototype.run = function(trFn, scopes, mode, keys) {
   var df = new goog.async.Deferred();
 
   this.db.transaction(function(tx) {

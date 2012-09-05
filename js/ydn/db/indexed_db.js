@@ -300,6 +300,11 @@ ydn.db.IndexedDb.prototype.setDb = function(db) {
 };
 
 
+/**
+ *
+ * @return {IDBDatabase}
+ * @private
+ */
 ydn.db.IndexedDb.prototype.getDb_ = function() {
   return this.db_;
 };
@@ -1329,7 +1334,7 @@ ydn.db.IndexedDb.prototype.fetchInTransaction = function(tx, q, limit, offset) {
  *
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.runInTransaction = function(trFn, scopes, mode, keys) {
+ydn.db.IndexedDb.prototype.run = function(trFn, scopes, mode, keys) {
 
   var df = new goog.async.Deferred();
 

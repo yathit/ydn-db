@@ -438,7 +438,7 @@ ydn.db.StorageCore.prototype.fetch = function(q, limit, offset) {
  * @param {(number|string)=} mode mode, default to 'read_write'.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.StorageCore.prototype.runInTransaction = function (trFn, keys, mode) {
+ydn.db.StorageCore.prototype.run = function (trFn, keys, mode) {
   goog.asserts.assert(this.db_, 'database not ready');
   var store_names = [];
   for (var key, i = 0; key = keys[i]; i++) {
@@ -450,7 +450,7 @@ ydn.db.StorageCore.prototype.runInTransaction = function (trFn, keys, mode) {
     }
   }
   mode = mode || ydn.db.IndexedDb.TransactionMode.READ_WRITE;
-  return this.db_.runInTransaction(trFn, store_names, mode, keys);
+  return this.db_.run(trFn, store_names, mode, keys);
 };
 
 
@@ -498,7 +498,7 @@ goog.exportProperty(ydn.db.StorageCore.prototype, 'setDbName',
 goog.exportProperty(ydn.db.StorageCore.prototype, 'fetch',
   ydn.db.StorageCore.prototype.fetch);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'runInTransaction',
-  ydn.db.StorageCore.prototype.runInTransaction);
+  ydn.db.StorageCore.prototype.run);
 
 
 //goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
