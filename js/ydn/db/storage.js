@@ -258,15 +258,15 @@ goog.exportProperty(ydn.db.StorageCore.prototype, 'isReady',
   ydn.db.StorageCore.prototype.isReady);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'setSchema',
   ydn.db.StorageCore.prototype.setSchema);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'setDbName',
-  ydn.db.StorageCore.prototype.setDbName);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'setName',
+  ydn.db.StorageCore.prototype.setName);
 goog.exportProperty(ydn.db.Storage.prototype, 'tkey',
   ydn.db.Storage.prototype.tkey);
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
   ydn.db.Storage.prototype.query);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'fetch',
   ydn.db.StorageCore.prototype.fetch);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'runInTransaction',
+goog.exportProperty(ydn.db.StorageCore.prototype, 'run',
   ydn.db.StorageCore.prototype.run);
 
 // for hacker

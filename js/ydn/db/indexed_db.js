@@ -49,6 +49,13 @@ ydn.db.IndexedDb = function(dbname, schema) {
    */
   this.schema = schema;
 
+  /**
+   * Transaction queue
+   * @type {Array.<{fnc: Function, scopes: Array.<string>,
+   * mode: IDBTransaction, d: goog.async.Deferred}>}
+   */
+  this.txQueue = [];
+
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // version could be number of string.
   // In chrome, version is taken as description.
@@ -410,7 +417,7 @@ ydn.db.IndexedDb.prototype.runTxQueue = function() {
   if (this.txQueue) {
     var task = this.txQueue.shift();
     if (task) {
-      this.doTransaction(task.fnc, task.scopes, task.mode, task.d);
+      this.doTransaction_(task.fnc, task.scopes, task.mode, task.d);
     }
   }
 };
@@ -436,36 +443,41 @@ ydn.db.IndexedDb.prototype.abortTxQueue = function(e) {
  * put the result to 'result' field of the transaction object on success. If
  * 'result' field is not set, it is assumed
  * as failed.
- * @protected
+ * @private
  * @param {Function} fnc transaction function.
  * @param {!Array.<string>} scopes list of stores involved in the
  * transaction.
  * @param {number|string} mode mode.
- * @param {goog.async.Deferred=} opt_df output deferred function to be used.
+ * @param {goog.async.Deferred=} opt_dfr output deferred function to be used.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df)
+ydn.db.IndexedDb.prototype.doTransaction_ = function(fnc, scopes, mode, opt_dfr)
 {
   var me = this;
-  opt_df = opt_df || new goog.async.Deferred();
+  var df = opt_dfr || new goog.async.Deferred();
+  df.addBoth(function() {
+    me.tx_ = null;
+  });
 
   if (this.is_ready) {
     this.is_ready = false;
 
     /**
-     * @protected
+     * Existence of transaction object indicate that this database is in
+     * transaction. This must be set to null on finished.
+     * @private
      * @type {IDBTransaction}
      */
-    var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
-    goog.events.listen(/** @type {EventTarget} */ (tx),
+    me.tx_ = this.db_.transaction(scopes, /** @type {number} */ (mode));
+    goog.events.listen(/** @type {EventTarget} */ (me.tx_),
       [ydn.db.IndexedDb.EventTypes.COMPLETE,
         ydn.db.IndexedDb.EventTypes.ABORT, ydn.db.IndexedDb.EventTypes.ERROR],
       function(event) {
 
-        if (goog.isDef(tx.is_success)) {
-          opt_df.callback(tx.result);
+        if (goog.isDef(me.tx_.is_success)) {
+          df.callback(me.tx_.result);
         } else {
-          opt_df.errback(tx.error);
+          df.errback(me.tx_.error);
         }
 
         goog.Timer.callOnce(function() {
@@ -474,22 +486,12 @@ ydn.db.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode, opt_df)
         });
       });
 
-    fnc(tx);
+    fnc(me.tx_);
 
   } else {
-
-    if (!this.txQueue) {
-      /**
-       * Transaction queue
-       * @type {Array.<{fnc: Function, scopes: Array.<string>,
-       * mode: IDBTransaction, d: goog.async.Deferred}>}
-       */
-      this.txQueue = [];
-    }
-
-    this.txQueue.push({fnc: fnc, scopes: scopes, mode: mode, d: opt_df});
+    this.txQueue.push({fnc: fnc, scopes: scopes, mode: mode, d: df});
   }
-  return opt_df;
+  return df;
 };
 
 
@@ -612,7 +614,7 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
     throw Error(table + ' not exist in ' + this.dbname);
   }
 
-  return this.doTransaction(function(tx) {
+  return this.doTransaction_(function(tx) {
     me.executePut_(tx, null, table, value);
 
   }, [table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
@@ -641,7 +643,7 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
 //    return goog.async.Deferred.succeed([]);
 //  }
 
-  return this.doTransaction(function(tx) {
+  return this.doTransaction_(function(tx) {
     var store = tx.objectStore(table);
 
     // Get everything in the store;
@@ -693,7 +695,7 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
 //
 //  var me = this;
 //
-//  return this.doTransaction(function(tx) {
+//  return this.doTransaction_(function(tx) {
 //    var store = tx.objectStore(key.store_name);
 //    var request = store.get(key.id);
 //
@@ -753,7 +755,7 @@ ydn.db.IndexedDb.prototype.get = function(arg1, key) {
       id = arg1.id;
     }
     var me = this;
-    return this.doTransaction(function(tx) {
+    return this.doTransaction_(function(tx) {
       me.executeGet_(tx, null, store_name, id);
     }, [store_name], ydn.db.IndexedDb.TransactionMode.READ_ONLY);
   }
@@ -938,11 +940,11 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
         stores.push(q[i].store_name);
       }
     }
-    this.doTransaction(function(tx) {
+    this.doTransaction_(function(tx) {
       self.executeFetchKeys_(tx, null, q, limit, offset);
     }, stores, ydn.db.IndexedDb.TransactionMode.READ_ONLY, df);
   } else {
-    this.doTransaction(function(tx) {
+    this.doTransaction_(function(tx) {
       self.executeFetch_(tx, null, q, limit, offset);
     }, [q.store_name], ydn.db.IndexedDb.TransactionMode.READ_ONLY, df);
   }
@@ -965,7 +967,7 @@ ydn.db.IndexedDb.prototype.deleteItem_ = function(table, id) {
     throw Error(table + ' not exist in ' + this.dbname);
   }
 
-  return this.doTransaction(function(tx) {
+  return this.doTransaction_(function(tx) {
     var store = tx.objectStore(table);
     var request = store['delete'](id);
 
@@ -999,7 +1001,7 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
     throw Error(table + ' not exist in ' + this.dbname);
   }
 
-  return this.doTransaction(function(tx) {
+  return this.doTransaction_(function(tx) {
     var request = tx.deleteObjectStore(table);
 
     request.onsuccess = function(event) {
@@ -1050,7 +1052,7 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
 
   var self = this;
 
-  return this.doTransaction(function(tx) {
+  return this.doTransaction_(function(tx) {
     var store = tx.objectStore(opt_table);
     var request;
     if (goog.isDef(opt_key)) {
@@ -1136,7 +1138,7 @@ ydn.db.IndexedDb.prototype.count = function(table) {
 
   var self = this;
 
-  return this.doTransaction(function(tx) {
+  return this.doTransaction_(function(tx) {
     var store = tx.objectStore(table);
     var request = store.count();
     request.onsuccess = function(event) {
@@ -1171,7 +1173,7 @@ ydn.db.IndexedDb.prototype.listKeys = function(opt_table) {
     ' not exists in ' + this.dbname);
   var column = this.schema[opt_table].keyPath;
 
-  return this.doTransaction(function(tx) {
+  return this.doTransaction_(function(tx) {
     //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
     // ' in ' + table);
     var store = tx.objectStore(opt_table);
@@ -1338,7 +1340,7 @@ ydn.db.IndexedDb.prototype.run = function(trFn, scopes, mode, keys) {
 
   var df = new goog.async.Deferred();
 
-  this.doTransaction(function(tx) {
+  this.doTransaction_(function(tx) {
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log([tx, trFn, scopes, mode, keys]);
     }

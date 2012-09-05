@@ -81,7 +81,7 @@ ydn.db.StorageCore = function(opt_dbname, opt_schema, opt_options) {
   this.setSchema(opt_schema || {});
 
   if (goog.isDef(opt_dbname)) {
-    this.setDbName(opt_dbname);
+    this.setName(opt_dbname);
   }
 };
 
@@ -133,7 +133,7 @@ ydn.db.StorageCore.prototype.getConfig = function() {
  * @param {string} opt_db_name set database name.
  * @return {string} normalized database name.
  */
-ydn.db.StorageCore.prototype.setDbName = function(opt_db_name) {
+ydn.db.StorageCore.prototype.setName = function(opt_db_name) {
   if (this.db_) {
     throw Error('DB already initialized');
   }
@@ -493,11 +493,11 @@ goog.exportProperty(ydn.db.StorageCore.prototype, 'isReady',
   ydn.db.StorageCore.prototype.isReady);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'setSchema',
   ydn.db.StorageCore.prototype.setSchema);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'setDbName',
-  ydn.db.StorageCore.prototype.setDbName);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'setName',
+  ydn.db.StorageCore.prototype.setName);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'fetch',
   ydn.db.StorageCore.prototype.fetch);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'runInTransaction',
+goog.exportProperty(ydn.db.StorageCore.prototype, 'run',
   ydn.db.StorageCore.prototype.run);
 
 
