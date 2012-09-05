@@ -18,6 +18,7 @@ var setUp = function() {
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
   ydn.db.IndexedDb.DEBUG = true;
+  ydn.db.AbstractIndexedDb.DEBUG = true;
 
 	basic_schema = new ydn.db.DatabaseSchema(1);
   var index = new ydn.db.IndexSchema('id');

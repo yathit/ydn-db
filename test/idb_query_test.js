@@ -213,7 +213,7 @@ var test_4_idb_avg = function() {
 };
 
 
-var test_52_idb_when = function() {
+var test_52_idb_where = function() {
 
   var db_name = 'test_52_idb_when';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
@@ -255,7 +255,7 @@ var test_52_idb_when = function() {
 };
 
 
-var test_53_idb_when = function() {
+var test_53_idb_where = function() {
 
   var db_name = 'test_53_idb_when2';
   var db = new ydn.db.Storage(db_name, basic_schema, options);

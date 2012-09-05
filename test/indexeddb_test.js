@@ -156,7 +156,8 @@ var test_4_get_all = function() {
       2000); // maxTimeout
 
 
-  db.get(table_name).addCallback(function(value) {
+  var q = new ydn.db.Query(table_name);
+  db.fetch(q).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -308,7 +309,7 @@ var test_41_keyRange = function () {
 
 
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(['receiving value callback.', value]);
+    console.log(['receiving put callback.', value]);
 
     var key_range = ydn.db.Query.KeyRangeImpl.bound(2, 5, true, true);
     var q = new ydn.db.Query(store_name, 'value', key_range);

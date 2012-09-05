@@ -208,14 +208,6 @@ ydn.db.Storage.prototype.query = function(store_name, index, keyRange,
   if (!store) {
     throw Error('Store: ' + store_name + ' not exist.');
   }
-  if (!goog.isDef(index)) {
-    if (store.indexes.length == 0) {
-      throw Error('Store: ' + store_name + ' has no index.');
-    }
-    var key_index = store.getIndex(/** @type {string} */ (store.keyPath));
-    index = /** @type {string} */
-        (key_index ? store.keyPath : store.indexes[0]);
-  }
   return new ydn.db.ActiveQuery(this, store_name, index, keyRange, direction);
 };
 

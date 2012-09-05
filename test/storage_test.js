@@ -89,7 +89,8 @@ var test_0_json_config_empty_table = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.get('todo').addCallback(function(value) {
+  var q = db.query('todo');
+  db.fetch(q).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -157,7 +158,7 @@ var test_1_json_config = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.get('todo').addCallback(function(value) {
+  db.fetch(db.query('todo')).addCallback(function(value) {
     console.log('receiving value callback.' + JSON.stringify(value));
     put_value = value;
     hasEventFired = true;

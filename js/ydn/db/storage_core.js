@@ -63,7 +63,7 @@ ydn.db.StorageCore = function(opt_dbname, opt_schema, opt_options) {
 
   /**
    * @private
-   * @type {ydn.db.tr.Db} db instance.
+   * @type {ydn.db.Db} db instance.
    */
   this.db_ = null;
 
@@ -270,7 +270,7 @@ ydn.db.StorageCore.prototype.close = function() {
 
 /**
  * Return underlining database instance.
- * @return {ydn.db.tr.Db} Database if exists.
+ * @return {ydn.db.Db} Database if exists.
  */
 ydn.db.StorageCore.prototype.getDb = function() {
   return this.db_ || null;
@@ -279,6 +279,7 @@ ydn.db.StorageCore.prototype.getDb = function() {
 
 /**
  * For undocumented export property to minified js file for hackers.
+ * @deprecated this will be always deprecated.
  */
 ydn.db.StorageCore.prototype.getDbInstance_ = function() {
   if (this.db_) {
@@ -449,7 +450,7 @@ ydn.db.StorageCore.prototype.run = function (trFn, keys, mode) {
       store_names.push(store_name);
     }
   }
-  mode = mode || ydn.db.IndexedDb.TransactionMode.READ_WRITE;
+  mode = mode || ydn.db.AbstractIndexedDb.TransactionMode.READ_WRITE;
   return this.db_.run(trFn, store_names, mode, keys);
 };
 

@@ -1,0 +1,697 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Deferred wrapper for HTML5 IndexedDb.
+ *
+ * @author kyawtun@yathit.com (Kyaw Tun)
+ */
+
+goog.provide('ydn.db.AbstractIndexedDb');
+goog.require('goog.Timer');
+goog.require('goog.async.DeferredList');
+goog.require('goog.events');
+goog.require('ydn.async');
+goog.require('ydn.db.DatabaseSchema');
+goog.require('ydn.db.tr.Db');
+goog.require('ydn.db.Query');
+goog.require('ydn.json');
+goog.require('goog.debug.Error');
+
+
+/**
+ * @see goog.db.IndexedDb
+ * @see ydn.db.Storage for schema
+ * @param {string} dbname name of database.
+ * @param {!ydn.db.DatabaseSchema} schema table schema contain table
+ * name and keyPath.
+ * @constructor
+ */
+ydn.db.AbstractIndexedDb = function(dbname, schema) {
+  var me = this;
+  this.dbname = dbname;
+
+  /**
+   * @protected
+   * @final
+   * @type {!ydn.db.DatabaseSchema}
+   */
+  this.schema = schema;
+
+  /**
+   * Transaction queue
+   * @type {!Array.<{fnc: Function, scopes: Array.<string>,
+   * mode: IDBTransaction, d: goog.async.Deferred}>}
+   */
+  this.txQueue = [];
+
+  // Currently in unstable stage, opening indexedDB has two incompatible call.
+  // version could be number of string.
+  // In chrome, version is taken as description.
+  var msg = 'Trying to open database: ' + this.dbname + ' ver: ' + this.schema.version;
+  me.logger.finer(msg);
+  if (ydn.db.AbstractIndexedDb.DEBUG) {
+    window.console.log(msg)
+  }
+
+  /**
+   * This open request return two format.
+   * @type {IDBOpenDBRequest|IDBRequest}
+   */
+  var openRequest = ydn.db.AbstractIndexedDb.indexedDb.open(this.dbname,
+    // old externs uncorrected defined as string
+    /** @type {string} */ (this.schema.version));
+  if (ydn.db.AbstractIndexedDb.DEBUG) {
+    window.console.log(openRequest);
+  }
+
+  openRequest.onsuccess = function(ev) {
+    var msg = me.dbname + ' ver: ' + me.schema.version + ' OK.';
+    me.logger.finer(msg);
+    if (ydn.db.AbstractIndexedDb.DEBUG) {
+      window.console.log(msg);
+    }
+    var db = ev.target.result;
+    var old_version = db.version;
+    if (goog.isDef(me.schema.version) &&
+      me.schema.version > old_version) { // for chrome
+      msg = 'initializing database from ' + db.version + ' to ' +
+        me.schema.version;
+      me.logger.finer(msg);
+      if (ydn.db.AbstractIndexedDb.DEBUG) {
+        window.console.log(msg)
+      }
+
+      var setVrequest = db.setVersion(me.schema.version); // for chrome
+
+      setVrequest.onfailure = function(e) {
+        me.logger.warning('migrating from ' + db.version + ' to ' +
+          me.schema.version + ' failed.');
+        me.setDb(null);
+      };
+      setVrequest.onsuccess = function(e) {
+        me.migrate(db, true);
+        me.logger.finer('Migrated to version ' + db.version + '.');
+        // db.close(); necessary?
+        var reOpenRequest = ydn.db.AbstractIndexedDb.indexedDb.open(me.dbname);
+        // have to reopen for new schema
+        reOpenRequest.onsuccess = function(rev) {
+          db = ev.target.result;
+          me.logger.finer('version ' + db.version + ' ready.');
+          me.setDb(db);
+        };
+      };
+    } else {
+      msg = 'database version ' + db.version + 'ready to go';
+      me.logger.finer(msg);
+      if (ydn.db.AbstractIndexedDb.DEBUG) {
+        window.console.log(msg);
+      }
+      me.setDb(db);
+    }
+  };
+
+  openRequest.onupgradeneeded = function(ev) {
+    var db = ev.target.result;
+    var msg = 'upgrading version ' + db.version;
+    me.logger.finer(msg);
+    if (ydn.db.AbstractIndexedDb.DEBUG) {
+      window.console.log(msg);
+    }
+
+    me.migrate(db);
+
+    var reOpenRequest = ydn.db.AbstractIndexedDb.indexedDb.open(me.dbname);
+    reOpenRequest.onsuccess = function(rev) {
+      db = ev.target.result;
+      me.logger.finer('Database: ' + me.dbname + ' upgraded.');
+      me.setDb(db);
+    };
+  };
+
+  openRequest.onerror = function(ev) {
+    var msg = 'opening database ' + dbname + ' failed.';
+    me.logger.severe(msg);
+    if (ydn.db.AbstractIndexedDb.DEBUG) {
+      window.console.log(msg)
+    }
+    me.db = null;
+  };
+
+  openRequest.onblocked = function(ev) {
+    var msg = 'database ' + dbname + ' block, close other connections.';
+    me.logger.severe(msg);
+    if (ydn.db.AbstractIndexedDb.DEBUG) {
+      window.console.log(msg)
+    }
+    me.db = null;
+  };
+
+  openRequest.onversionchange = function(ev) {
+    var msg = 'Version change request, so closing the database';
+    me.logger.fine(msg);
+    if (ydn.db.AbstractIndexedDb.DEBUG) {
+      window.console.log(msg);
+    }
+    if (me.db) {
+      me.db.close();
+    }
+  };
+
+  // extra checking whether, database is OK
+  if (goog.DEBUG || ydn.db.AbstractIndexedDb.DEBUG) {
+    goog.Timer.callOnce(function () {
+      if (openRequest.readyState != 'done') {
+        // what we observed is chrome attached error object to openRequest
+        // but did not call any of over listening events.
+        var msg = 'Database timeout ' + ydn.db.AbstractIndexedDb.timeOut +
+          ' reached. Database state is ' + openRequest.readyState;
+        me.logger.severe(msg);
+        if (ydn.db.AbstractIndexedDb.DEBUG) {
+          window.console.log(openRequest);
+        }
+        me.abortTxQueue(new Error(msg));
+        goog.Timer.callOnce(function () {
+          // we invoke error in later thread, so that task queue have
+          // enough window time to clean up.
+          throw Error(openRequest['error'] || msg);
+        }, 500);
+      }
+    }, ydn.db.AbstractIndexedDb.timeOut, this);
+  }
+
+};
+
+
+/**
+ *
+ * @const {boolean} turn on debug flag to dump object.
+ */
+ydn.db.AbstractIndexedDb.DEBUG = false;
+
+
+/**
+ * @const
+ * @type {number}
+ */
+ydn.db.AbstractIndexedDb.timeOut =  goog.DEBUG || ydn.db.AbstractIndexedDb.DEBUG ? 500 : 3000;
+
+
+
+/**
+ * @protected
+ * @type {IDBFactory} IndexedDb.
+ */
+ydn.db.AbstractIndexedDb.indexedDb = goog.global.indexedDB ||
+  goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
+  goog.global.moz_indexedDB ||
+  goog.global['msIndexedDB'];
+
+
+/**
+ *
+ * @return {boolean} return indexedDB support on run time.
+ */
+ydn.db.AbstractIndexedDb.isSupported = function() {
+  return !!ydn.db.AbstractIndexedDb.indexedDb;
+};
+
+
+//
+/**
+ * The three possible transaction modes.
+ * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
+ * @enum {string|number}
+ */
+ydn.db.AbstractIndexedDb.TransactionMode = {
+  READ_ONLY: 'readonly',
+  READ_WRITE: 'readwrite',
+  VERSION_CHANGE: 'versionchange'
+};
+
+
+
+// The fun fact with current Chrome 22 is it defines
+// goog.global.webkitIDBTransaction as numeric value, the database engine
+// accept only string format.
+
+//ydn.db.AbstractIndexedDb.TransactionMode = {
+//  READ_ONLY: (goog.global.IDBTransaction ||
+//      goog.global.webkitIDBTransaction).READ_ONLY || 'readonly',
+//  READ_WRITE: (goog.global.IDBTransaction ||
+//      goog.global.webkitIDBTransaction).READ_WRITE || 'readwrite',
+//  VERSION_CHANGE: (goog.global.IDBTransaction ||
+//      goog.global.webkitIDBTransaction).VERSION_CHANGE || 'versionchange'
+//};
+
+
+
+
+/**
+ * Event types the Transaction can dispatch. COMPLETE events are dispatched
+ * when the transaction is committed. If a transaction is aborted it dispatches
+ * both an ABORT event and an ERROR event with the ABORT_ERR code. Error events
+ * are dispatched on any error.
+ *
+ * @see {@link goog.db.Transaction.EventTypes}
+ *
+ * @enum {string}
+ */
+ydn.db.AbstractIndexedDb.EventTypes = {
+  COMPLETE: 'complete',
+  ABORT: 'abort',
+  ERROR: 'error'
+};
+
+
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.AbstractIndexedDb.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.AbstractIndexedDb');
+
+
+/**
+ * @protected
+ * @param {IDBDatabase} db database instance.
+ */
+ydn.db.AbstractIndexedDb.prototype.setDb = function(db) {
+
+  this.logger.finest('Setting DB: ' + db.name + ' ver: ' + db.version);
+  /**
+   * @final
+   * @private
+   * @type {IDBDatabase}
+   */
+  this.db_ = db;
+
+  if (this.txQueue) {
+    this.runTxQueue_();
+  }
+
+};
+
+
+//
+///**
+// *
+// * @return {IDBDatabase}
+// * @private
+// */
+//ydn.db.AbstractIndexedDb.prototype.getDb_ = function() {
+//  return this.db_;
+//};
+
+
+/**
+ * @protected
+ * @param {IDBDatabase} db DB instance.
+ * @param {string} table store name.
+ * @return {boolean} true if the store exist.
+ */
+ydn.db.AbstractIndexedDb.prototype.hasStore_ = function(db, table) {
+  if (goog.isDef(db['objectStoreNames'])) {
+    return db['objectStoreNames'].contains(table);
+  } else {
+    return false; // TODO:
+  }
+};
+
+
+/**
+ * Migrate from current version to the last version.
+ * @protected
+ * @param {IDBDatabase} db database instance.
+ * @param {boolean=} is_caller_setversion call from set version;
+ */
+ydn.db.AbstractIndexedDb.prototype.migrate = function(db, is_caller_setversion) {
+
+  // create store that we don't have previously
+
+  for (var table, i = 0; table = this.schema.stores[i]; i++) {
+    this.logger.finest('Creating Object Store for ' + table.name +
+      ' keyPath: ' + table.keyPath);
+
+    var store;
+    if (this.hasStore_(db, table.name)) {
+      // already have the store, just update indexes
+      if (is_caller_setversion) {
+        // transaction cannot open in version upgrade
+        continue;
+      }
+      if (goog.userAgent.product.CHROME) {
+        // as of Chrome 22, transaction cannot open here
+        continue;
+      }
+      var trans = db.transaction([table.name],
+        /** @type {number} */ (ydn.db.AbstractIndexedDb.TransactionMode.READ_WRITE));
+      store = trans.objectStore(table.name);
+      goog.asserts.assertObject(store, table.name + ' not found.');
+      var indexNames = store['indexNames']; // closre externs not yet updated.
+      goog.asserts.assertObject(indexNames); // let compiler know there it is.
+
+      var created = 0;
+      var deleted = 0;
+      for (var j = 0; j < table.indexes.length; j++) {
+        var index = table.indexes[j];
+        if (!indexNames.contains(index.name)) {
+          store.createIndex(index.name, index.name, {unique:index.unique});
+          created++;
+        }
+      }
+      for (var j = 0; j < indexNames.length; j++) {
+        if (!table.hasIndex(indexNames[j])) {
+          store.deleteIndex(indexNames[j]);
+          deleted++;
+        }
+      }
+
+      this.logger.finest('Updated store: ' + store.name + ', ' + created +
+        ' index created, ' + deleted + ' index deleted.');
+    } else {
+      store = db.createObjectStore(table.name,
+        {keyPath:table.keyPath, autoIncrement:table.autoIncrement});
+
+      for (var j = 0; j < table.indexes.length; j++) {
+        var index = table.indexes[j];
+        goog.asserts.assertString(index.name, 'name required.');
+        goog.asserts.assertBoolean(index.unique, 'unique required.');
+        store.createIndex(index.name, index.name, {unique:index.unique});
+      }
+
+      this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
+        store.keyPath);
+    }
+
+  }
+
+  // TODO: delete unused old stores ?
+};
+
+
+/**
+ * Run the first transaction task in the queue. DB must be ready to do the
+ * transaction.
+ * @private
+ */
+ydn.db.AbstractIndexedDb.prototype.runTxQueue_ = function() {
+
+  goog.asserts.assertObject(this.db_);
+
+  var task = this.txQueue.shift();
+  if (task) {
+    this.doTransaction_(task.fnc, task.scopes, task.mode, task.d);
+  }
+};
+
+
+/**
+ * Abort the queuing tasks.
+ * @param e
+ */
+ydn.db.AbstractIndexedDb.prototype.abortTxQueue = function(e) {
+  if (this.txQueue) {
+    var task = this.txQueue.shift();
+    while (task) {
+      task.d.errback(e);
+      task = this.txQueue.shift();
+    }
+  }
+};
+
+
+/**
+ * Provide transaction object to subclass and keep a result.
+ * This also serve as mutex on transaction.
+ * @private
+ * @constructor
+ */
+ydn.db.AbstractIndexedDb.Transaction = function() {
+
+};
+
+
+/**
+ * Start a new transaction.
+ * @private
+ * @param {!IDBTransaction} tx the transaction object.
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.up = function(tx) {
+  /**
+   * @private
+   * @type {IDBTransaction}
+   */
+  this.idb_tx_ = tx;
+
+  /**
+   * @private
+   * @type {*}
+   */
+  this.result_ = undefined;
+
+  /**
+   * @private
+   * @type {boolean}
+   */
+  this.has_error_ = false;
+};
+
+
+/**
+ * @private
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.down = function() {
+  this.idb_tx_ = null;
+};
+
+
+/**
+ * @private
+ * @return {boolean}
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.isActive = function() {
+  return !!this.idb_tx_;
+};
+
+
+/**
+ *
+ * @return {!IDBTransaction}
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.getTx = function() {
+  goog.asserts.assertObject(this.idb_tx_);
+  return this.idb_tx_;
+};
+
+
+/**
+ *
+ * @return {!IDBObjectStore}
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.objectStore = function(name) {
+  return this.idb_tx_.objectStore(name);
+};
+
+
+/**
+ * Abort transaction and set error.
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.abort = function() {
+  this.has_error_ = true;
+  return this.idb_tx_.abort();
+};
+
+
+/**
+ * Push a result.
+ * @param {*} result
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.set = function(result) {
+  this.result_ = result;
+};
+
+/**
+ * Get a result.
+ * @return {*} last result
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.get = function() {
+  return this.result_;
+};
+
+
+
+/**
+ * Add an item to the last result. The last result must be array.
+ * @param {*} item
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.add = function(item) {
+  if (!goog.isDef(this.result_)) {
+    this.result_ = [];
+  }
+  goog.asserts.assertArray(this.result_);
+  this.result_.push(item);
+};
+
+
+ydn.db.AbstractIndexedDb.Transaction.prototype.setError = function() {
+  this.has_error_ = true;
+};
+
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.isSuccess = function() {
+  return !this.has_error_;
+};
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.AbstractIndexedDb.Transaction.prototype.hasError = function() {
+  return this.has_error_;
+};
+
+
+
+/**
+ * When DB is ready, fnc will be call with a fresh transaction object. Fnc must
+ * put the result to 'result' field of the transaction object on success. If
+ * 'result' field is not set, it is assumed
+ * as failed.
+ * @protected
+ * @param {Function} fnc transaction function.
+ * @param {!Array.<string>} scopes list of stores involved in the
+ * transaction.
+ * @param {number|string} mode mode.
+ * @param {goog.async.Deferred=} opt_dfr output deferred function to be used.
+ * @return {!goog.async.Deferred} d result in deferred function.
+ */
+ydn.db.AbstractIndexedDb.prototype.doTransaction_ = function(fnc, scopes, mode, opt_dfr)
+{
+  var me = this;
+  var df = opt_dfr || new goog.async.Deferred();
+
+  /**
+   * This is a start of critical section on transaction.
+   * If db_ is not defined, we are not ready.
+   * If tx_ is defined, means, other transaction are in progress.
+   * Of both case, we put then in queue.
+   *
+   * After transaction is over after receiving three possible (COMPLETE, ABORT
+   * or ERROR) events, we set tx_ to null and start next transaction in the
+   * queue.
+   */
+  if (this.db_ && !this.tx_.isActive()) {
+
+    /**
+     * Existence of transaction object indicate that this database is in
+     * transaction. This must be set to null on finished and before
+     * put the result to deferred object.
+     * @private
+     * @type {!IDBTransaction}
+     */
+    var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
+
+    me.tx_.up(tx);
+
+    tx.oncomplete = function(event) {
+      //console.log(['oncomplete', event, tx, me.tx_])
+      me.tx_.down();
+      if (goog.isDef(me.tx_.isSuccess())) {
+        var result = me.tx_.get();
+        df.callback(result);
+      } else {
+        var e = me.tx_.get();
+        df.errback(e);
+      }
+
+      me.runTxQueue_();
+    };
+
+    tx.onabort = function(event) {
+      //console.log(['onabort', event, tx, me.tx_])
+      me.tx_.down();
+      df.errback(event);
+
+      me.runTxQueue_();
+    };
+
+    tx.onabort = function(event) {
+      //console.log(['onabort', event, tx, me.tx_])
+      me.tx_.down();
+      df.errback(event);
+
+      me.runTxQueue_();
+    };
+
+    fnc(me.tx_);
+
+  } else {
+    this.txQueue.push({fnc:fnc, scopes:scopes, mode:mode, d:df});
+  }
+  return df;
+};
+
+
+
+/**
+ * Existence of transaction object indicate that this database is in
+ * transaction. This must be set to null on finished.
+ * @private
+ * @final
+ * @type {ydn.db.AbstractIndexedDb.Transaction}
+ */
+ydn.db.AbstractIndexedDb.prototype.tx_ = new ydn.db.AbstractIndexedDb.Transaction();
+
+
+/**
+ * @protected
+ * @return {ydn.db.AbstractIndexedDb.Transaction} transaction object if in
+ * transaction.
+ */
+ydn.db.AbstractIndexedDb.prototype.getTx = function() {
+  return this.tx_.isActive() ? this.tx_ : null;
+};
+
+
+
+/**
+ * Close the connection.
+ * @return {!goog.async.Deferred} return a deferred function.
+ */
+ydn.db.AbstractIndexedDb.prototype.close = function () {
+
+  var df = new goog.async.Deferred();
+  var request = this.db.close();
+
+  request.onsuccess = function (event) {
+    if (ydn.db.AbstractIndexedDb.DEBUG) {
+      window.console.log(event);
+    }
+    df.callback(true);
+  };
+  request.onerror = function (event) {
+    if (ydn.db.AbstractIndexedDb.DEBUG) {
+      window.console.log(event);
+    }
+    df.errback(event);
+  };
+
+  return df;
+};
+
