@@ -27,6 +27,7 @@ goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.tr.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
+goog.require('goog.debug.Error');
 
 
 /**
@@ -597,7 +598,66 @@ ydn.db.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
         df.errback(event);
       }
     };
+  }
+};
 
+
+
+/**
+ * Get object in the store in a transaction. This return requested object
+ * immediately.
+ *
+ * This method must be {@link #runInTransaction}.
+ * @param {IDBTransaction|SQLTransaction} tx
+ * @param {goog.async.Deferred} df
+ * @param {string} opt_store_name store name.
+ * @param {(string|number)=} opt_key object key.
+ */
+ydn.db.IndexedDb.prototype.executeClear_ = function (tx, df, opt_store_name, opt_key) {
+
+  var clearStore = function (df, store_name, opt_key) {
+    var store = tx.objectStore(store_name);
+    var request;
+    if (goog.isDef(opt_key)) {
+      request = store['delete'](opt_key);
+    } else {
+      request = store.clear();
+    }
+    request.onsuccess = function (event) {
+      tx.is_success = true;
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log([tx, store_name, opt_key, event]);
+      }
+      tx.result = event.target.result;
+      if (df) {
+        df.callback(event.target.result);
+      }
+    };
+    request.onerror = function (event) {
+      tx.is_success = false;
+      if (ydn.db.IndexedDb.DEBUG) {
+        window.console.log([tx, store_name, opt_key, event]);
+      }
+      tx.abort();
+      if (df) {
+        df.errback(event);
+      }
+    };
+  };
+
+  if (goog.isDef(opt_store_name)) {
+    clearStore(df, opt_store_name, opt_key);
+  } else {
+    var dfs = [];
+    for (var i = 0; i < this.schema.stores.length; i++) {
+      var idf = new goog.async.Deferred();
+      dfs[i] = idf;
+      clearStore(idf, this.schema.stores[i].name, opt_key);
+    }
+    if (goog.isDefAndNotNull(df)) {
+      var all_df = new goog.async.DeferredList(dfs);
+      all_df.chainDeferred(df);
+    }
   }
 };
 
@@ -1046,34 +1106,12 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
  */
 ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
 
-  if (!goog.isDef(opt_table)) {
-    return this.clearAll_();
-  }
-
+  var store_names = goog.isDefAndNotNull(opt_table) ? [opt_table] :
+      this.db_.objectStoreNames || this.schema.getStoreNames();
   var self = this;
-
   return this.doTransaction_(function(tx) {
-    var store = tx.objectStore(opt_table);
-    var request;
-    if (goog.isDef(opt_key)) {
-      request = store['delete'](opt_key);
-    } else {
-      request = store.clear();
-    }
-    request.onsuccess = function(event) {
-      tx.is_success = true;
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      tx.result = true;
-    };
-    request.onerror = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      tx.error = event;
-    };
-  }, [opt_table], ydn.db.IndexedDb.TransactionMode.READ_WRITE);
+    self.executeClear_(tx, null, opt_table, opt_key);
+  }, store_names, ydn.db.IndexedDb.TransactionMode.READ_WRITE);
 
 };
 
@@ -1109,26 +1147,10 @@ ydn.db.IndexedDb.prototype.remove = function(opt_table, opt_id) {
       };
       return df;
     } else {
-      return this.clearAll_();
+      return this.clear();
     }
   }
 };
-
-
-/**
- *
- * @return {!goog.async.Deferred} clear all stores.
- * @private
- */
-ydn.db.IndexedDb.prototype.clearAll_ = function() {
-  var dfs = [];
-  for (var i = 0; i < this.schema.stores.length; i++) {
-    dfs.push(this.clear(this.schema.stores[i].name));
-  }
-  return ydn.async.reduceAllTrue(new goog.async.DeferredList(dfs));
-};
-
-
 
 
 /**
@@ -1256,9 +1278,11 @@ ydn.db.IndexedDb.prototype.close = function () {
  * @return {!goog.async.Deferred}
  */
 ydn.db.IndexedDb.prototype.getInTransaction = function(tx, store_name, id) {
-  var me = this;
+  if (!this.tx_) {
+    throw new goog.debug.Error('Not in transaction');
+  }
   var df = new goog.async.Deferred();
-  this.executeGet_(/** @type {IDBTransaction} */ (tx), df, store_name, id);
+  this.executeGet_(this.tx_, df, store_name, id);
   return df;
 };
 
@@ -1273,30 +1297,11 @@ ydn.db.IndexedDb.prototype.getInTransaction = function(tx, store_name, id) {
  * @return {!goog.async.Deferred}
  */
 ydn.db.IndexedDb.prototype.clearInTransaction = function(tx, opt_table, opt_key) {
-
-  var df = new goog.async.Deferred();
-
-  var store = tx.objectStore(opt_table);
-  var request;
-  if (goog.isDef(opt_key)) {
-    request = store['delete'](opt_key);
-  } else {
-    request = store.clear();
+  if (!this.tx_) {
+    throw new goog.debug.Error('Not in transaction');
   }
-  request.onsuccess = function(event) {
-    tx.is_success = true;
-    if (ydn.db.IndexedDb.DEBUG) {
-      window.console.log([tx, opt_table, opt_key, event]);
-    }
-    df.callback(true)
-  };
-  request.onerror = function(event) {
-    if (ydn.db.IndexedDb.DEBUG) {
-      window.console.log([tx, opt_table, opt_key, event]);
-    }
-    df.errback(event);
-  };
-
+  var df = new goog.async.Deferred();
+  this.executeClear_(this.tx_, df, opt_table, opt_key);
   return df;
 };
 
@@ -1306,13 +1311,11 @@ ydn.db.IndexedDb.prototype.clearInTransaction = function(tx, opt_table, opt_key)
  * @return {!goog.async.Deferred}
  */
 ydn.db.IndexedDb.prototype.putInTransaction = function(tx, store_name, value) {
-
+  if (!this.tx_) {
+    throw new goog.debug.Error('Not in transaction');
+  }
   var df = new goog.async.Deferred();
-
-  delete tx.result;
-  delete tx.is_success;
-  this.executePut_(/** @type {IDBTransaction} */ (tx), df, store_name, value);
-
+  this.executePut_(this.tx_, df, store_name, value);
   return df;
 };
 
@@ -1321,12 +1324,12 @@ ydn.db.IndexedDb.prototype.putInTransaction = function(tx, store_name, value) {
  * @return {!goog.async.Deferred}
  */
 ydn.db.IndexedDb.prototype.fetchInTransaction = function(tx, q, limit, offset) {
-
+  if (!this.tx_) {
+    throw new goog.debug.Error('Not in transaction');
+  }
   var df = new goog.async.Deferred();
 
-  delete tx.result;
-  delete tx.is_success;
-  this.executeFetch_(/** @type {IDBTransaction} */ (tx), df, q, limit, offset);
+  this.executeFetch_(this.tx_, df, q, limit, offset);
 
   return df;
 };
@@ -1345,21 +1348,11 @@ ydn.db.IndexedDb.prototype.run = function(trFn, scopes, mode, keys) {
       window.console.log([tx, trFn, scopes, mode, keys]);
     }
 
-    for (var key, i = 0; key = keys[i]; i++) {
-      key.setTx(tx); // inject transaction object.
-    }
-
     // now execute transaction process
     trFn(tx);
 
   }, scopes, mode, df);
 
-  df.addBoth(function() {
-    // clean up tx.
-    for (var key, i = 0; key = keys[i]; i++) {
-      key.setTx(null);
-    }
-  });
 
   return df;
 };

@@ -17,6 +17,7 @@ var setUp = function() {
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
+  ydn.db.IndexedDb.DEBUG = true;
 
 	basic_schema = new ydn.db.DatabaseSchema(1);
   var index = new ydn.db.IndexSchema('id');
@@ -29,14 +30,14 @@ var tearDown = function() {
 };
 
 var db_name = 'test12';
+var options = {preference: ['indexeddb']};
 
 
 var test_2_idb_basic = function() {
 
-  goog.userAgent.product.ASSUME_CHROME = true;
 
   var db_name = 'test_2_idb_basic2';
-  var db = new ydn.db.Storage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a', value: 1},
@@ -77,7 +78,7 @@ var test_2_idb_basic = function() {
   db.put(table_name, arr).addCallback(function(value) {
     console.log('receiving value callback ' + JSON.stringify(value));
 
-    var a_key = db.tkey(table_name, 'a');
+    var a_key = db.key(table_name, 'a');
 
     db.run(function() {
       a_key.get().addCallback(function(a_obj) {

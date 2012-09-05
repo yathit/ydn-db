@@ -176,8 +176,8 @@ var test_25_clear = function() {
       function() { return hasEventFired; },
       // Continuation
       function() {
-        assertEquals('clear', true, put_value);
-        // Remember, the state of this boolean will be tested in tearDown().
+        // clear success do not return any result and hence 'undefined'.
+        assertEquals('clear result', undefined, put_value);
       },
       100, // interval
       1000); // maxTimeout
