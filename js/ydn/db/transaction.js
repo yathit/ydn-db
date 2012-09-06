@@ -82,7 +82,7 @@ ydn.db.tr.Db.prototype.putInTransaction = function(tx, store, value) {};
  * transaction.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.tr.Db.prototype.run = function(trFn, scopes, mode, keys) {};
+ydn.db.tr.Db.prototype.transaction = function(trFn, scopes, mode, keys) {};
 
 
 /**

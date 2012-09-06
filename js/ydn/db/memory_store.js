@@ -207,6 +207,14 @@ ydn.db.MemoryStore.prototype.getByKey = function(key) {
 
 
 /**
+ * @return {string}
+ */
+ydn.db.MemoryStore.prototype.type = function() {
+  return 'memory';
+};
+
+
+/**
  * Return object
  * @param {string|!ydn.db.Query|!ydn.db.Key} arg1 table name.
  * @param {(string|number)=} opt_key object key to be retrieved, if not provided,
@@ -411,6 +419,6 @@ ydn.db.MemoryStore.prototype.clearInTransaction = function(tx, store, id) {};
  *
  * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.run = function(trFn, scopes, mode, keys) {
+ydn.db.MemoryStore.prototype.transaction = function(trFn, scopes, mode, keys) {
   throw Error('not impl');
 };

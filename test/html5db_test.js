@@ -14,7 +14,7 @@ var setUp = function() {
   goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.Html5Db').setLevel(goog.debug.Logger.Level.FINEST);
+  goog.debug.Logger.getLogger('ydn.db.LocalStorage').setLevel(goog.debug.Logger.Level.FINEST);
 
 
 	basic_schema = new ydn.db.DatabaseSchema(1);
@@ -30,7 +30,7 @@ var db_name = 'test12';
 
 var test_1_put = function() {
 
-  var db = new ydn.db.Html5Db(db_name, basic_schema);
+  var db = new ydn.db.LocalStorage(db_name, basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -58,7 +58,7 @@ var test_1_put = function() {
 
 var test_2_put_arr = function() {
 
-  var db = new ydn.db.Html5Db(db_name, basic_schema);
+  var db = new ydn.db.LocalStorage(db_name, basic_schema);
 
   var arr = [
     {id: 'a' + Math.random(),
@@ -94,7 +94,7 @@ var test_2_put_arr = function() {
 
 var test_3_empty_get = function() {
 
-  var db = new ydn.db.Html5Db(db_name, basic_schema);
+  var db = new ydn.db.LocalStorage(db_name, basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -122,7 +122,7 @@ var test_3_empty_get = function() {
 
 var test_4_get_all = function() {
   var db_name = 'test_4';
-  var db = new ydn.db.Html5Db(db_name, basic_schema);
+  var db = new ydn.db.LocalStorage(db_name, basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -150,7 +150,7 @@ var test_4_get_all = function() {
 
 
 var test_5_clear = function() {
-	var db = new ydn.db.Html5Db(db_name, basic_schema);
+	var db = new ydn.db.LocalStorage(db_name, basic_schema);
 
   var hasEventFired = false;
   var put_value;
@@ -205,7 +205,7 @@ var test_6_no_keyPath = function () {
   var schema = new ydn.db.DatabaseSchema(1);
   schema.addStore(new ydn.db.StoreSchema(table_name));
 
-  var db = new ydn.db.Html5Db(db_name, basic_schema);
+  var db = new ydn.db.LocalStorage(db_name, basic_schema);
   var me = this;
 
   var key = 'x';
@@ -264,7 +264,7 @@ var test_6_no_keyPath = function () {
 //*/
 //var test_7_special_keys = function() {
 //
-//	var db = new ydn.db.Html5Db(db_name, basic_schema);
+//	var db = new ydn.db.LocalStorage(db_name, basic_schema);
 //	var me = this;
 //
 //  var test_key = function(key) {

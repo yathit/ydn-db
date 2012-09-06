@@ -434,7 +434,6 @@ ydn.db.WebSql.prototype.count = function(table) {
   var d = new goog.async.Deferred();
   var me = this;
 
-  table = table || ydn.db.Storage.DEFAULT_TEXT_STORE;
   var sql = 'SELECT COUNT(*) FROM ' + table;
 
   /**

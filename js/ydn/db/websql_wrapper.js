@@ -75,7 +75,21 @@ ydn.db.WebSqlWrapper = function(dbname, schema) {
 };
 
 
-ydn.db.WebSqlWrapper.prototype.getDb_ = function() {
+/**
+ * @const
+ * @type {string}
+ */
+ydn.db.WebSqlWrapper.TYPE = 'websql';
+
+/**
+ * @return {string}
+ */
+ydn.db.WebSqlWrapper.prototype.type = function() {
+  return ydn.db.WebSqlWrapper.TYPE;
+};
+
+
+ydn.db.WebSqlWrapper.prototype.getDb = function() {
   return this.sdb_;
 };
 
@@ -146,6 +160,14 @@ ydn.db.WebSqlWrapper.Transaction = function() {
   goog.base(this);
 };
 goog.inherits(ydn.db.WebSqlWrapper.Transaction, ydn.db.Db.Transaction);
+
+
+/**
+ * @override
+ */
+ydn.db.WebSqlWrapper.Transaction.type = function() {
+  return ydn.db.WebSqlWrapper.TYPE;
+};
 
 
 /**
@@ -519,7 +541,7 @@ ydn.db.WebSqlWrapper.prototype.clearInTransaction = function(tx, store, id) {};
  *
  *
  */
-ydn.db.WebSqlWrapper.prototype.run = function(trFn, scopes, mode, keys) {
+ydn.db.WebSqlWrapper.prototype.transaction = function(trFn, scopes, mode, keys) {
   var df = new goog.async.Deferred();
 
   this.sdb_.transaction(function(tx) {

@@ -81,7 +81,7 @@ var test_2_idb_basic = function() {
 
     var a_key = db.key(table_name, 'a');
 
-    db.run(function() {
+    db.transaction(function() {
       a_key.get().addCallback(function(a_obj) {
         console.log('a_key get ' + JSON.stringify(a_obj));
         a_obj.value += amt;

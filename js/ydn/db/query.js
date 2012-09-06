@@ -327,29 +327,6 @@ ydn.db.Query.parseKeyRange = function (keyRange) {
 };
 
 
-/**
- * @private
- * @param keyRange
- */
-ydn.db.Query.isLikeOperation_ = function (keyRange) {
-  if (!goog.isDefAndNotNull(keyRange)) {
-    return false;
-  }
-  if (goog.isDef(keyRange.lower) && goog.isDef(keyRange.upper) &&
-    !keyRange.lowerOpen && keyRange.upperOpen) {
-    if (keyRange.lower.length == keyRange.upper.length) {
-      var n = keyRange.lower.length - 1;
-      return keyRange.lower.substr(0, n) ==
-        keyRange.upper.substr(0, n) &&
-        keyRange.lower.charCodeAt(n) + 1 == keyRange.upper.charCodeAt(n);
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
-};
-
 
 /**
  *
@@ -437,9 +414,23 @@ ydn.db.Query.prototype.toWhereClause = function() {
  * @param {string} value value.
  */
 ydn.db.Query.prototype.startsWith = function (value) {
-  var value_upper = value.substring(0, value.length - 1) + String.fromCharCode(
-    value.charCodeAt(value.length - 1) + 1);
-  this.bound(value, value_upper, false, true);
+  var value_upper = value + '\uffff';
+  this.bound(value, value_upper);
   return this;
 };
 
+
+
+/**
+ * @private
+ * @param keyRange
+ */
+ydn.db.Query.isLikeOperation_ = function (keyRange) {
+  if (!goog.isDefAndNotNull(keyRange)) {
+    return false;
+  }
+  return goog.isDef(keyRange.lower) && goog.isDef(keyRange.upper) &&
+    !keyRange.lowerOpen && !keyRange.upperOpen &&
+    keyRange.lower.length == keyRange.upper.length + 1 &&
+    keyRange.upper[keyRange.lower.length - 1] == '\uffff';
+};

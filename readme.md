@@ -15,7 +15,7 @@ that should create three director for closure-library, ydn-base and ydn-db
 
 # Testing #
 
-You should able to run /ydn-db/test/all-test.html and pass all tests. Yes, it does when not raining :-)
+You should able to run /ydn-db/test/all-test.html and pass all tests.
 
 And then, setup JsTestDriver  (http://code.google.com/p/js-test-driver/)
 And test it

@@ -16,7 +16,7 @@
  * @fileoverview HTML5 localStorage implemented as deferred async pattern.
  */
 
-goog.provide('ydn.db.Html5Db');
+goog.provide('ydn.db.LocalStorage');
 goog.require('ydn.db.MemoryStore');
 
 
@@ -27,17 +27,68 @@ goog.require('ydn.db.MemoryStore');
  * name and keyPath.
  * @constructor
  */
-ydn.db.Html5Db = function(dbname, schemas) {
+ydn.db.LocalStorage = function(dbname, schemas) {
   goog.base(this, dbname, schemas, window.localStorage);
 };
-goog.inherits(ydn.db.Html5Db, ydn.db.MemoryStore);
+goog.inherits(ydn.db.LocalStorage, ydn.db.MemoryStore);
 
 
 /**
  *
  * @return {boolean} true if localStorage is supported.
  */
-ydn.db.Html5Db.isSupported = function() {
+ydn.db.LocalStorage.isSupported = function() {
   return !!window.localStorage;
 };
+
+
+/**
+ * @const
+ * @type {string}
+ */
+ydn.db.LocalStorage.TYPE = 'localstorage';
+
+/**
+ * @return {string}
+ */
+ydn.db.LocalStorage.prototype.type = function() {
+  return ydn.db.LocalStorage.TYPE;
+};
+
+
+/**
+ * @extends {ydn.db.MemoryStore}
+ * @param {string} dbname dtabase name.
+ * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
+ * name and keyPath.
+ * @constructor
+ */
+ydn.db.SessionStorage = function(dbname, schemas) {
+  goog.base(this, dbname, schemas, window.sessionStorage);
+};
+goog.inherits(ydn.db.SessionStorage, ydn.db.MemoryStore);
+
+
+/**
+ *
+ * @return {boolean} true if localStorage is supported.
+ */
+ydn.db.SessionStorage.isSupported = function() {
+  return !!window.sessionStorage;
+};
+
+
+/**
+ * @const
+ * @type {string}
+ */
+ydn.db.SessionStorage.TYPE = 'sessionstorage';
+
+/**
+ * @return {string}
+ */
+ydn.db.SessionStorage.prototype.type = function() {
+  return ydn.db.SessionStorage.TYPE;
+};
+
 

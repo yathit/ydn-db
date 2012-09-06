@@ -33,7 +33,7 @@
 goog.provide('ydn.db.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
-goog.require('ydn.db.Html5Db');
+goog.require('ydn.db.LocalStorage');
 goog.require('ydn.db.IndexedDb');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
@@ -248,22 +248,32 @@ goog.exportProperty(goog.async.Deferred.prototype, 'error',
 // somehow these methods are not exported via @export annotation
 goog.exportProperty(ydn.db.StorageCore.prototype, 'isReady',
   ydn.db.StorageCore.prototype.isReady);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'type',
+  ydn.db.StorageCore.prototype.type);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'setSchema',
   ydn.db.StorageCore.prototype.setSchema);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'setName',
   ydn.db.StorageCore.prototype.setName);
-goog.exportProperty(ydn.db.Storage.prototype, 'tkey',
-  ydn.db.Storage.prototype.tkey);
-goog.exportProperty(ydn.db.Storage.prototype, 'query',
-  ydn.db.Storage.prototype.query);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'getConfig',
+  ydn.db.StorageCore.prototype.getConfig);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'fetch',
   ydn.db.StorageCore.prototype.fetch);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'run',
-  ydn.db.StorageCore.prototype.run);
-
+goog.exportProperty(ydn.db.StorageCore.prototype, 'get',
+  ydn.db.StorageCore.prototype.get);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'put',
+  ydn.db.StorageCore.prototype.put);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'clear',
+  ydn.db.StorageCore.prototype.clear);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'transaction',
+  ydn.db.StorageCore.prototype.transaction);
 // for hacker
 goog.exportProperty(ydn.db.StorageCore.prototype, 'db',
     ydn.db.StorageCore.prototype.getDbInstance_);
+
+goog.exportProperty(ydn.db.Storage.prototype, 'query',
+  ydn.db.Storage.prototype.query);
+goog.exportProperty(ydn.db.Storage.prototype, 'key',
+  ydn.db.Storage.prototype.key);
 
 
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
@@ -273,6 +283,23 @@ goog.exportProperty(ydn.db.ActiveQuery.prototype, 'get',
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'put',
   ydn.db.ActiveQuery.prototype.put);
 
+goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
+  ydn.db.ActiveKey.prototype.clear);
+goog.exportProperty(ydn.db.ActiveKey.prototype, 'get',
+  ydn.db.ActiveKey.prototype.get);
+goog.exportProperty(ydn.db.ActiveKey.prototype, 'put',
+  ydn.db.ActiveKey.prototype.put);
+
+goog.exportProperty(ydn.db.Query.prototype, 'starts',
+  ydn.db.Query.prototype.startsWith);
+goog.exportProperty(ydn.db.Query.prototype, 'bound',
+  ydn.db.Query.prototype.bound);
+goog.exportProperty(ydn.db.Query.prototype, 'only',
+  ydn.db.Query.prototype.only);
+goog.exportProperty(ydn.db.Query.prototype, 'lowerBound',
+  ydn.db.Query.prototype.lowerBound);
+goog.exportProperty(ydn.db.Query.prototype, 'upperBound',
+  ydn.db.Query.prototype.upperBound);
 goog.exportProperty(ydn.db.Query.prototype, 'select',
     ydn.db.Query.prototype.select);
 goog.exportProperty(ydn.db.Query.prototype, 'where',
@@ -296,4 +323,8 @@ goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'lowerBound',
 goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'only',
   ydn.db.Query.KeyRangeImpl.only);
 
-goog.exportProperty(ydn.async.dfl, 'dfl', ydn.async.dfl);
+goog.exportProperty(ydn.db.Db.Transaction.prototype, 'type',
+  ydn.db.Db.Transaction.prototype.type);
+
+goog.exportSymbol('ydn.async', ydn.async);
+goog.exportProperty(ydn.async, 'dfl', ydn.async.dfl);

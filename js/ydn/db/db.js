@@ -84,6 +84,14 @@ ydn.db.Db.prototype.close = function() {
 };
 
 
+/**
+ *
+ * @return {string}
+ */
+ydn.db.Db.prototype.type = function() {
+};
+
+
 
 
 /**
@@ -109,6 +117,15 @@ ydn.db.Db.Transaction = function() {
    * @type {boolean}
    */
   this.has_error_ = false;
+};
+
+
+/**
+ *
+ * @return {string}
+ */
+ydn.db.Db.Transaction.prototype.type = function() {
+  return '';
 };
 
 

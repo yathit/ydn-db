@@ -221,6 +221,29 @@ ydn.db.IndexedDbWrapper.indexedDb = goog.global.indexedDB ||
 
 
 /**
+ * @const
+ * @type {string}
+ */
+ydn.db.IndexedDbWrapper.TYPE = 'indexeddb';
+
+
+/**
+ * @return {string}
+ */
+ydn.db.IndexedDbWrapper.prototype.type = function() {
+  return ydn.db.IndexedDbWrapper.TYPE;
+};
+
+/**
+ * Return underlining database instance.
+ * @return {IDBDatabase} Database if exists.
+ */
+ydn.db.IndexedDbWrapper.prototype.getDb = function() {
+  return this.db_ || null;
+};
+
+
+/**
  *
  * @return {boolean} return indexedDB support on run time.
  */
@@ -341,7 +364,8 @@ ydn.db.IndexedDbWrapper.prototype.migrate = function(db, is_caller_setversion) {
 
   // create store that we don't have previously
 
-  for (var table, i = 0; table = this.schema.stores[i]; i++) {
+  for (var i = 0; i < this.schema.stores.length; i++) {
+    var table = this.schema.stores[i];
     this.logger.finest('Creating Object Store for ' + table.name +
       ' keyPath: ' + table.keyPath);
 
@@ -442,6 +466,14 @@ ydn.db.IndexedDbWrapper.Transaction = function() {
   goog.base(this);
 };
 goog.inherits(ydn.db.IndexedDbWrapper.Transaction, ydn.db.Db.Transaction);
+
+
+/**
+ * @override
+ */
+ydn.db.IndexedDbWrapper.Transaction.type = function() {
+  return ydn.db.IndexedDbWrapper.TYPE;
+};
 
 
 /**

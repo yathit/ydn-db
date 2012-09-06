@@ -757,21 +757,20 @@ ydn.db.IndexedDb.prototype.count = function(table) {
 
 /**
  * Print out list of key for debug use.
- * @param {string=} opt_table table name.
+ * @param {string} store_name table name.
  * @return {!goog.async.Deferred} return as deferred function.
  */
-ydn.db.IndexedDb.prototype.listKeys = function(opt_table) {
+ydn.db.IndexedDb.prototype.listKeys = function(store_name) {
   var self = this;
 
-  opt_table = opt_table || ydn.db.Storage.DEFAULT_TEXT_STORE;
-  goog.asserts.assertObject(this.schema[opt_table], 'store ' + opt_table +
+  goog.asserts.assertObject(this.schema[store_name], 'store ' + store_name +
     ' not exists in ' + this.dbname);
-  var column = this.schema[opt_table].keyPath;
+  var column = this.schema[store_name].keyPath;
 
   return this.doTransaction_(function(tx) {
     //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
     // ' in ' + table);
-    var store = tx.objectStore(opt_table);
+    var store = tx.objectStore(store_name);
     var index = store.index(column);
     var boundKeyRange;
     var value_upper = '';
@@ -805,7 +804,7 @@ ydn.db.IndexedDb.prototype.listKeys = function(opt_table) {
       tx.set(event);
     };
 
-  }, [opt_table], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
+  }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
 
 };
 
@@ -872,7 +871,7 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
  * transaction.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.IndexedDb.prototype.run = function(trFn, scopes, mode, keys) {
+ydn.db.IndexedDb.prototype.transaction = function(trFn, scopes, mode, keys) {
 
   var df = new goog.async.Deferred();
 

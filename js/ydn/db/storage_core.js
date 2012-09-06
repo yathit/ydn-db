@@ -33,7 +33,7 @@
 goog.provide('ydn.db.StorageCore');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
-goog.require('ydn.db.Html5Db');
+goog.require('ydn.db.LocalStorage');
 goog.require('ydn.db.IndexedDb');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
@@ -111,17 +111,17 @@ ydn.db.StorageCore.createInstance = function(opt_dbname, opt_schema) {
  * </pre>
  * In this way, data can be share between the two threads.
  * @export
- * @return {{db_name: string, schema: !Object}} configuration
+ * @return {{name: string, schema: !Object}?} configuration
  * containing database and list of schema in JSON format.
  */
 ydn.db.StorageCore.prototype.getConfig = function() {
-  if (!this.isReady()) {
-    throw Error('Database not initialized.');
+  if (!this.schema) {
+    return null;
   }
 
   return {
-    db_name: this.db_name,
-    schema: /** @type {!Object} */ (this.schema.toJSON())
+    'name': this.db_name,
+    'schema': /** @type {!Object} */ (this.schema.toJSON())
   };
 };
 
@@ -188,7 +188,10 @@ ydn.db.StorageCore.prototype.setSchema = function(schema) {
  * @const
  * @type {!Array.<string>}
  */
-ydn.db.StorageCore.PREFERENCE = ['indexeddb', 'websql', 'localstorage', 'memory'];
+ydn.db.StorageCore.PREFERENCE = [ydn.db.IndexedDbWrapper.TYPE,
+  ydn.db.WebSqlWrapper.TYPE,
+  ydn.db.LocalStorage.TYPE,
+  ydn.db.SessionStorage.TYPE, 'memory'];
 
 
 /**
@@ -216,14 +219,17 @@ ydn.db.StorageCore.prototype.initDatabase = function() {
       var preference = this.preference || ydn.db.StorageCore.PREFERENCE;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
-        if (db_type == 'indexeddb' && ydn.db.IndexedDb.isSupported()) { // run-time detection
+        if (db_type == ydn.db.IndexedDbWrapper.TYPE && ydn.db.IndexedDb.isSupported()) { // run-time detection
           this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema);
           break;
-        } else if (db_type == 'websql' && ydn.db.WebSql.isSupported()) {
+        } else if (db_type == ydn.db.WebSqlWrapper.TYPE && ydn.db.WebSql.isSupported()) {
           this.db_ = new ydn.db.WebSql(this.db_name, this.schema);
           break;
-        } else if (db_type == 'localstorage' && ydn.db.Html5Db.isSupported()) {
-          this.db_ = new ydn.db.Html5Db(this.db_name, this.schema);
+        } else if (db_type == ydn.db.LocalStorage.TYPE && ydn.db.LocalStorage.isSupported()) {
+          this.db_ = new ydn.db.LocalStorage(this.db_name, this.schema);
+          break;
+        } else if (db_type == ydn.db.SessionStorage.TYPE && ydn.db.SessionStorage.isSupported()) {
+          this.db_ = new ydn.db.SessionStorage(this.db_name, this.schema);
           break;
         } else if (db_type == 'memory')  {
           this.db_ = new ydn.db.MemoryStore(this.db_name, this.schema);
@@ -250,6 +256,19 @@ ydn.db.StorageCore.prototype.initDatabase = function() {
  */
 ydn.db.StorageCore.prototype.isReady = function() {
   return goog.isDefAndNotNull(this.db_);
+};
+
+
+/**
+ *
+ * @return {string}
+ */
+ydn.db.StorageCore.prototype.type = function() {
+  if (this.db_) {
+    return this.db_.type();
+  } else {
+    return '';
+  }
 };
 
 
@@ -283,7 +302,7 @@ ydn.db.StorageCore.prototype.getDb = function() {
  */
 ydn.db.StorageCore.prototype.getDbInstance_ = function() {
   if (this.db_) {
-    return this.db_.getDb_();
+    return this.db_.getDb();
   }
 };
 
@@ -439,7 +458,7 @@ ydn.db.StorageCore.prototype.fetch = function(q, limit, offset) {
  * @param {(number|string)=} mode mode, default to 'read_write'.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.StorageCore.prototype.run = function (trFn, keys, mode) {
+ydn.db.StorageCore.prototype.transaction = function (trFn, keys, mode) {
   goog.asserts.assert(this.db_, 'database not ready');
   var store_names = [];
   for (var key, i = 0; key = keys[i]; i++) {
@@ -451,7 +470,7 @@ ydn.db.StorageCore.prototype.run = function (trFn, keys, mode) {
     }
   }
   mode = mode || ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE;
-  return this.db_.run(trFn, store_names, mode, keys);
+  return this.db_.transaction(trFn, store_names, mode, keys);
 };
 
 
@@ -492,25 +511,24 @@ goog.exportProperty(goog.async.Deferred.prototype, 'error',
 // somehow these methods are not exported via @export annotation
 goog.exportProperty(ydn.db.StorageCore.prototype, 'isReady',
   ydn.db.StorageCore.prototype.isReady);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'type',
+  ydn.db.StorageCore.prototype.type);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'setSchema',
   ydn.db.StorageCore.prototype.setSchema);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'setName',
   ydn.db.StorageCore.prototype.setName);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'getConfig',
+  ydn.db.StorageCore.prototype.getConfig);
 goog.exportProperty(ydn.db.StorageCore.prototype, 'fetch',
   ydn.db.StorageCore.prototype.fetch);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'run',
-  ydn.db.StorageCore.prototype.run);
-
-
-//goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
-//  ydn.db.ActiveKey.prototype.clear);
-
-goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'bound',
-  ydn.db.Query.KeyRangeImpl.bound);
-goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'upperBound',
-  ydn.db.Query.KeyRangeImpl.upperBound);
-goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'lowerBound',
-  ydn.db.Query.KeyRangeImpl.lowerBound);
-goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'only',
-  ydn.db.Query.KeyRangeImpl.only);
-
+goog.exportProperty(ydn.db.StorageCore.prototype, 'get',
+  ydn.db.StorageCore.prototype.get);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'put',
+  ydn.db.StorageCore.prototype.put);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'clear',
+  ydn.db.StorageCore.prototype.clear);
+goog.exportProperty(ydn.db.StorageCore.prototype, 'transaction',
+  ydn.db.StorageCore.prototype.transaction);
+// for hacker
+goog.exportProperty(ydn.db.StorageCore.prototype, 'db',
+  ydn.db.StorageCore.prototype.getDbInstance_);

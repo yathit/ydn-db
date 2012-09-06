@@ -189,7 +189,7 @@ var test_2_json_config_in_out = function() {
 
       var config = db.getConfig();
       console.log(config);
-      var db2 = new ydn.db.Storage(config.db_name, config.schema);
+      var db2 = new ydn.db.Storage(config.name, config.schema);
 
       var get_done;
       var get_value_received;
