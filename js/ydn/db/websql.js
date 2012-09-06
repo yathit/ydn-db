@@ -516,17 +516,15 @@ ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
 
 
 
-
-
 /**
- * Get object in the store in a transaction. This return requested object
- * immediately.
  *
- * This method must be {@link #runInTransaction}.
- * @param {IDBTransaction|SQLTransaction} tx
- * @param {string} store store name.
- * @param {string|number} id object key.
- * @return {!goog.async.Deferred}
+ *
  */
-ydn.db.WebSql.prototype.clearInTransaction = function(tx, store, id) {};
+ydn.db.WebSqlWrapper.prototype.transaction = function(trFn, scopes, mode) {
 
+  this.doTransaction(function(tx) {
+    // now execute transaction process
+    trFn(tx);
+  });
+
+};

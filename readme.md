@@ -5,13 +5,13 @@ localStorage storage mechanisms supporting version migration, advanced query and
 
 # Setup #
 
-Run apache or a static server. On it public directory, downloads repo as follow
+Run apache or a static server on its www directory, downloads the following three repos
 
 svn checkout http://closure-library.googlecode.com/svn/trunk/ closure-library
 git clone git@bitbucket.org:ytkyaw/ydn-db.git
 git clone https://bitbucket.org/ytkyaw/ydn-base.git
 
-that should create three director for closure-library, ydn-base and ydn-db
+that should create three directories for closure-library, ydn-base and ydn-db
 
 # Testing #
 

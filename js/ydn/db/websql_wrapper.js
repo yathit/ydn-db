@@ -25,7 +25,7 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.tr.Db');
+goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
 goog.require('ydn.db.Db.Transaction');
@@ -499,71 +499,4 @@ ydn.db.WebSqlWrapper.prototype.close = function () {
 };
 
 
-/**
- *
- */
-ydn.db.WebSqlWrapper.prototype.getInTransaction = function(tx, store, id) {
-  var df = new goog.async.Deferred();
-  //goog.asserts.assertInstanceof(tx, SQLTransaction);
-  // cannot test externs SQLTransaction, must cast
-  this.executeGet_(/** @type {SQLTransaction} */ (tx), df, store, id);
-  return df;
-};
 
-
-/**
- *
- */
-ydn.db.WebSqlWrapper.prototype.putInTransaction = function(tx, store, value) {
-  var df = new goog.async.Deferred();
-  // goog.asserts.assertInstanceof(tx, SQLTransaction);
-  // cannot test externs SQLTransaction, must cast
-  this.executePut_(/** @type {SQLTransaction} */ (tx), df, store, value);
-  return df;
-};
-
-
-/**
- * Get object in the store in a transaction. This return requested object
- * immediately.
- *
- * This method must be {@link #runInTransaction}.
- * @param {IDBTransaction|SQLTransaction} tx
- * @param {string} store store name.
- * @param {string|number} id object key.
- * @return {!goog.async.Deferred}
- */
-ydn.db.WebSqlWrapper.prototype.clearInTransaction = function(tx, store, id) {};
-
-
-
-/**
- *
- *
- */
-ydn.db.WebSqlWrapper.prototype.transaction = function(trFn, scopes, mode, keys) {
-  var df = new goog.async.Deferred();
-
-  this.sdb_.transaction(function(tx) {
-    if (ydn.db.WebSqlWrapper.DEBUG) {
-      window.console.log([tx, trFn, scopes, mode, keys]);
-    }
-
-    for (var key, i = 0; key = keys[i]; i++) {
-      key.setTx(tx); // inject transaction object.
-    }
-
-    // now execute transaction process
-    trFn(tx);
-
-  });
-
-  df.addBoth(function() {
-    // clean up tx.
-    for (var key, i = 0; key = keys[i]; i++) {
-      key.setTx(null);
-    }
-  });
-
-  return df;
-};

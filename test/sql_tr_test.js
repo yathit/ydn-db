@@ -80,7 +80,7 @@ var test_2_idb_basic = function() {
   db.put(table_name, arr).addCallback(function(value) {
     console.log('receiving value callback ' + JSON.stringify(value));
 
-    var a_key = db.tkey(table_name, 'a');
+    var a_key = db.key(table_name, 'a');
 
     db.transaction(function() {
       a_key.get().addCallback(function(a_obj) {

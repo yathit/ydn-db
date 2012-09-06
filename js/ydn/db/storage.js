@@ -38,10 +38,10 @@ goog.require('ydn.db.IndexedDb');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
-goog.require('ydn.db.tr.Key');
 goog.require('ydn.db.ActiveQuery');
 goog.require('ydn.db.RichStorage_');
 goog.require('ydn.db.StorageCore');
+goog.require('ydn.db.ActiveKey');
 
 
 /**
@@ -211,17 +211,6 @@ ydn.db.Storage.prototype.query = function(store_name, index, keyRange,
   return new ydn.db.ActiveQuery(this, store_name, index, keyRange, direction);
 };
 
-
-/**
- * @export
- * @param {string} store
- * @param {(string|number)}id
- * @param {ydn.db.Key=} opt_parent
- * @return {!ydn.db.tr.Key}
- */
-ydn.db.Storage.prototype.tkey = function(store, id, opt_parent) {
-  return new ydn.db.tr.Key(this, store, id, opt_parent);
-};
 
 
 /**

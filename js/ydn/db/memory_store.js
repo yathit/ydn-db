@@ -20,11 +20,11 @@ goog.provide('ydn.db.MemoryStore');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
-goog.require('ydn.db.tr.Db');
+goog.require('ydn.db.Db');
 
 
 /**
- * @implements {ydn.db.tr.Db}
+ * @implements {ydn.db.Db}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -374,51 +374,10 @@ ydn.db.MemoryStore.prototype.close = function () {
 };
 
 
-/**
- * Get object in the store in a transaction. This return requested object
- * immediately.
- *
- * This method must be {@link #runInTransaction}.
- * @param {IDBTransaction|SQLTransaction} tx
- * @param {string} store store name.
- * @param {string|number} id object key.
- * @return {!goog.async.Deferred}
- */
-ydn.db.MemoryStore.prototype.getInTransaction = function(tx, store, id) {
-  throw Error('not impl');
-};
-
-
-/**
- * Put the object in the store in a transaction.
- *
- * This method must be {@link #runInTransaction}.
- * @param {IDBTransaction|SQLTransaction} tx
- * @param {string} store store name.
- * @param {!Object} value object to put.
- * @return {!goog.async.Deferred}
- */
-ydn.db.MemoryStore.prototype.putInTransaction = function(tx, store, value) {
-  throw Error('not impl');
-};
-
-/**
- * Get object in the store in a transaction. This return requested object
- * immediately.
- *
- * This method must be {@link #runInTransaction}.
- * @param {IDBTransaction|SQLTransaction} tx
- * @param {string} store store name.
- * @param {string|number} id object key.
- * @return {!goog.async.Deferred}
- */
-ydn.db.MemoryStore.prototype.clearInTransaction = function(tx, store, id) {};
-
 
 /**
  *
- * @inheritDoc
  */
-ydn.db.MemoryStore.prototype.transaction = function(trFn, scopes, mode, keys) {
-  throw Error('not impl');
+ydn.db.MemoryStore.prototype.transaction = function(trFn, scopes, mode) {
+  trFn(this.cache_);
 };

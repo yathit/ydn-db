@@ -20,7 +20,6 @@
 
 goog.provide('ydn.db.IndexedDb');
 goog.require('goog.async.DeferredList');
-goog.require('ydn.db.tr.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
 goog.require('ydn.db.IndexedDbWrapper');
@@ -867,17 +866,15 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
  * @param {!Array.<string>} scopes list of store names involved in the
  * transaction.
  * @param {number|string} mode mode, default to 'read_write'.
- * @param {!Array.<!ydn.db.tr.Key>} keys list of keys involved in the
- * transaction.
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.IndexedDb.prototype.transaction = function(trFn, scopes, mode, keys) {
+ydn.db.IndexedDb.prototype.transaction = function(trFn, scopes, mode) {
 
   var df = new goog.async.Deferred();
 
   this.doTransaction_(function(tx) {
     if (ydn.db.IndexedDb.DEBUG) {
-      window.console.log([tx, trFn, scopes, mode, keys]);
+      window.console.log([tx, trFn, scopes, mode]);
     }
 
     // now execute transaction process

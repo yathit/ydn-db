@@ -451,25 +451,37 @@ ydn.db.StorageCore.prototype.fetch = function(q, limit, offset) {
 
 
 /**
+ * Run a transaction.
  * @export
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<!ydn.db.Key|string|ydn.db.Query>} keys list of keys or
  * store name involved in the transaction.
  * @param {(number|string)=} mode mode, default to 'read_write'.
+ * @param {...} opt_args
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.StorageCore.prototype.transaction = function (trFn, keys, mode) {
+ydn.db.StorageCore.prototype.transaction = function (trFn, keys, mode, opt_args) {
   goog.asserts.assert(this.db_, 'database not ready');
   var store_names = [];
-  for (var key, i = 0; key = keys[i]; i++) {
-    var store_name = goog.isString(key) ? key : goog.isString(key.store_name) ?
-        key.store_name : null;
+  if (goog.isString(keys)) {
+    store_names = [keys];
+  } else if (goog.isArray(keys)) {
+    for (var key, i = 0; key = keys[i]; i++) {
+      var store_name = goog.isString(key) ? key : goog.isString(key.store_name) ?
+          key.store_name : null;
 
-    if (store_name && !goog.array.contains(store_names, key.store_name)) {
-      store_names.push(store_name);
+      if (store_name && !goog.array.contains(store_names, key.store_name)) {
+        store_names.push(store_name);
+      }
     }
+  } else {
+    store_names = this.schema.getStoreNames();
   }
-  mode = mode || ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE;
+  mode = goog.isDef(mode) ? mode : ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE;
+  if (arguments.length > 3) {
+    // FIXME, how to make this general?
+    trFn = goog.partial(trFn, arguments[3], arguments[4], arguments[5], arguments[6]);
+  }
   return this.db_.transaction(trFn, store_names, mode, keys);
 };
 
