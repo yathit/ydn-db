@@ -25,7 +25,7 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.tr.Db');
+goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
 goog.require('ydn.db.WebSqlWrapper');
@@ -34,7 +34,7 @@ goog.require('ydn.db.WebSqlWrapper');
 /**
  * Construct WebSql database.
  * Note: Version is ignored, since it does work well.
- * @implements {ydn.db.tr.Db}
+ * @implements {ydn.db.Db}
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -151,11 +151,12 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
 
   var me = this;
 
-  me.db.transaction(function(tx) {
+  this.doTransaction(function(tx) {
     me.executePut_(tx, df, store_name, obj);
   });
   return df;
 };
+
 
 
 
@@ -246,17 +247,24 @@ ydn.db.WebSql.prototype.get = function (arg1, key) {
     });
 
     return df;
-  } else if (arg1 instanceof ydn.db.Key) {
-    return this.getByKey(arg1);
   } else {
+    var store_name, id;
+    if (arg1 instanceof ydn.db.Key) {
+      store_name = arg1.store_name;
+      id = arg1.id;
+    } else {
+      goog.asserts.assertString(arg1);
+      store_name = arg1;
+      id = key;
+    }
 
-    this.db.transaction(function (t) {
-      me.executeGet_(t, d, arg1, key);
+    this.doTransaction(function (t) {
+      me.executeGet_(t, d, store_name, id);
     });
-
     return d;
   }
 };
+
 
 
 /**
@@ -356,7 +364,7 @@ ydn.db.WebSql.prototype.fetchQuery_ = function(q, limit, offset) {
     d.errback(error);
   };
 
-  this.db.transaction(function(t) {
+  this.doTransaction(function(t) {
     if (ydn.db.WebSql.DEBUG) {
       window.console.log([q, sql, params]);
     }
@@ -409,7 +417,7 @@ ydn.db.WebSql.prototype.clear_ = function(table_name, opt_key) {
     d.errback(error);
   };
 
-  this.db.transaction(function(t) {
+  this.doTransaction(function(t) {
     var arg = goog.isDef(opt_key) ? [opt_key] : [];
     t.executeSql(sql, arg, callback, error_callback);
   });
@@ -451,7 +459,7 @@ ydn.db.WebSql.prototype.count = function(table) {
     d.errback(error);
   };
 
-  this.db.transaction(function(t) {
+  this.doTransaction(function(t) {
     t.executeSql(sql, [], callback, error_callback);
   });
 
@@ -509,28 +517,6 @@ ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
 
 
 
-/**
- * @inheritDoc
- */
-ydn.db.WebSql.prototype.getInTransaction = function(tx, store, id) {
-  var df = new goog.async.Deferred();
-  //goog.asserts.assertInstanceof(tx, SQLTransaction);
-  // cannot test externs SQLTransaction, must cast
-  this.executeGet_(/** @type {SQLTransaction} */ (tx), df, store, id);
-  return df;
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.WebSql.prototype.putInTransaction = function(tx, store, value) {
-  var df = new goog.async.Deferred();
-  // goog.asserts.assertInstanceof(tx, SQLTransaction);
-  // cannot test externs SQLTransaction, must cast
-  this.executePut_(/** @type {SQLTransaction} */ (tx), df, store, value);
-  return df;
-};
 
 
 /**

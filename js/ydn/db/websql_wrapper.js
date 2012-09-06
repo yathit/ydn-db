@@ -28,6 +28,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.tr.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
+goog.require('ydn.db.Db.Transaction');
 
 
 /**
@@ -51,23 +52,31 @@ ydn.db.WebSqlWrapper = function(dbname, schema) {
   var description = this.dbname;
 
   /**
+   * Transaction queue
+   * @type {!Array.<{fnc: Function, scopes: Array.<string>,
+   * mode: IDBTransaction, d: goog.async.Deferred}>}
+   */
+  this.stxQueue = [];  
+
+  /**
    * Must open the database with empty version, otherwise unrecoverable error
    * will occur in the
    * first instance.
-   * @protected
+   * @private
    * @type {Database}
    */
-  this.db = goog.global.openDatabase(this.dbname, '', description,
+  this.sdb_ = goog.global.openDatabase(this.dbname, '', description,
     this.schema.size);
 
-  if (this.db.version != this.schema.version) {
-    this.migrate();
+  if (this.sdb_.version != this.schema.version) {
+    this.migrate_();
   }
 
 };
 
+
 ydn.db.WebSqlWrapper.prototype.getDb_ = function() {
-  return this.db;
+  return this.sdb_;
 };
 
 
@@ -94,14 +103,100 @@ ydn.db.WebSqlWrapper.DEBUG = false;
 ydn.db.WebSqlWrapper.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSqlWrapper');
 
 
+
+/**
+ * Run a transaction. If already in transaction, this will join the transaction.
+ * @param {Function} transactionFunc
+ * @protected
+ */
+ydn.db.WebSqlWrapper.prototype.doTransaction = function(transactionFunc) {
+
+  var me = this;
+  if (this.stx_.isActive()) {
+    var ctx = this.stx_.getTx();
+    transactionFunc(ctx);
+  } else {
+    this.sdb_.transaction(
+
+      function callback(tx) {
+        me.stx_.up_(tx);
+        transactionFunc(tx);
+      },
+
+      function errorCallback(e) {
+        me.stx_.down();
+      },
+
+      function successCallback(e) {
+        me.stx_.down();
+      }
+    );
+  }
+
+};
+
+
+
+/**
+ * @private
+ * @extends {ydn.db.Db.Transaction}
+ * @constructor
+ */
+ydn.db.WebSqlWrapper.Transaction = function() {
+  goog.base(this);
+};
+goog.inherits(ydn.db.WebSqlWrapper.Transaction, ydn.db.Db.Transaction);
+
+
+/**
+ * Start a new transaction.
+ * @private
+ * @param {!SQLTransaction} tx the transaction object.
+ */
+ydn.db.WebSqlWrapper.Transaction.prototype.up_ = function(tx) {
+  this.up(tx);
+};
+
+
+/**
+ *
+ * @return {!SQLTransaction}
+ */
+ydn.db.WebSqlWrapper.Transaction.prototype.getTx = function() {
+  goog.asserts.assertObject(this.transaction_);
+  return /** @type {!SQLTransaction} */ (this.transaction_);
+};
+
+
+
+/**
+ * Existence of transaction object indicate that this database is in
+ * transaction. This must be set to null on finished.
+ * @private
+ * @final
+ * @type {!ydn.db.WebSqlWrapper.Transaction}
+ */
+ydn.db.WebSqlWrapper.prototype.stx_ = new ydn.db.WebSqlWrapper.Transaction();
+
+
+/**
+ * @protected
+ * @return {ydn.db.WebSqlWrapper.Transaction} transaction object if in
+ * transaction.
+ */
+ydn.db.WebSqlWrapper.prototype.getTx = function() {
+  return this.stx_.isActive() ? this.stx_ : null;
+};
+
+
 /**
  * Initialize variable to the schema and prepare SQL statement for creating
  * the table.
- * @protected
+ * @private
  * @param {ydn.db.StoreSchema} schema name of table in the schema.
  * @return {string} SQL statement for creating the table.
  */
-ydn.db.WebSqlWrapper.prototype.prepareCreateTable = function(schema) {
+ydn.db.WebSqlWrapper.prototype.prepareCreateTable_ = function(schema) {
 
   var sql = 'CREATE TABLE IF NOT EXISTS ' + schema.getQuotedName() + ' (';
 
@@ -144,9 +239,9 @@ ydn.db.WebSqlWrapper.prototype.prepareCreateTable = function(schema) {
 
 /**
  * Migrate from current version to the last version.
- * @protected
+ * @private
  */
-ydn.db.WebSqlWrapper.prototype.migrate = function() {
+ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
 
   var me = this;
 
@@ -174,10 +269,10 @@ ydn.db.WebSqlWrapper.prototype.migrate = function() {
 
   var sqls = [];
   for (var i = 0; i < this.schema.stores.length; i++) {
-    sqls.push(this.prepareCreateTable(this.schema.stores[i]));
+    sqls.push(this.prepareCreateTable_(this.schema.stores[i]));
   }
 
-  this.db.transaction(function(t) {
+  this.sdb_.transaction(function(t) {
 
     me.logger.finest('Creating tables ' + sqls.join('\n'));
     for (var i = 0; i < sqls.length; i++) {
@@ -196,6 +291,7 @@ ydn.db.WebSqlWrapper.prototype.migrate = function() {
 /**
  * Parse resulting object of a row into original object as it 'put' into the
  * database.
+ * @final
  * @protected
  * @param {ydn.db.StoreSchema} table table of concern.
  * @param {!Object} row row.
@@ -229,6 +325,7 @@ ydn.db.WebSqlWrapper.prototype.parseRow = function(table, row) {
 
 /**
  * Extract key from row result.
+ * @final
  * @protected
  * @param {ydn.db.StoreSchema} table table of concern.
  * @param {!Object} row row.
@@ -239,23 +336,9 @@ ydn.db.WebSqlWrapper.prototype.getKeyFromRow = function(table, row) {
 };
 
 
-/**
- * Retrieve an object from store.
- * @param {ydn.db.Key} key
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.WebSqlWrapper.prototype.getByKey = function(key) {
-  return this.get(key.store_name, key.id + '');
-};
-
-
-
-
-
-
 
 /**
- *
+ * @final
  * @param {string} table table name.
  * @param {string} id row name.
  * @return {!goog.async.Deferred} deferred result.
@@ -376,7 +459,7 @@ ydn.db.WebSqlWrapper.prototype.dropTable_ = function(opt_table) {
     d.errback(error);
   };
 
-  this.db.transaction(function(t) {
+  this.sdb_.transaction(function(t) {
     //console.log(sql);
     t.executeSql(sql, [], callback, error_callback);
   });
@@ -439,7 +522,7 @@ ydn.db.WebSqlWrapper.prototype.clearInTransaction = function(tx, store, id) {};
 ydn.db.WebSqlWrapper.prototype.run = function(trFn, scopes, mode, keys) {
   var df = new goog.async.Deferred();
 
-  this.db.transaction(function(tx) {
+  this.sdb_.transaction(function(tx) {
     if (ydn.db.WebSqlWrapper.DEBUG) {
       window.console.log([tx, trFn, scopes, mode, keys]);
     }
