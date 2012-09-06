@@ -28,7 +28,7 @@ goog.require('ydn.db.IndexedDbWrapper');
 /**
  * @see goog.db.IndexedDb
  * @see ydn.db.Storage for schema defination
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.QueryService}
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -727,7 +727,7 @@ ydn.db.IndexedDb.prototype.remove = function(opt_table, opt_id) {
 
 
 /**
- * @inheritDoc
+ *
  */
 ydn.db.IndexedDb.prototype.count = function(table) {
 

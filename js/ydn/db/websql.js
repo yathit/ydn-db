@@ -25,7 +25,7 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.Db');
+goog.require('ydn.db.QueryService');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
 goog.require('ydn.db.WebSqlWrapper');
@@ -34,7 +34,7 @@ goog.require('ydn.db.WebSqlWrapper');
 /**
  * Construct WebSql database.
  * Note: Version is ignored, since it does work well.
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.QueryService}
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -427,7 +427,7 @@ ydn.db.WebSql.prototype.clear_ = function(table_name, opt_key) {
 
 
 /**
- * @inheritDoc
+ *
  */
 ydn.db.WebSql.prototype.count = function(table) {
 

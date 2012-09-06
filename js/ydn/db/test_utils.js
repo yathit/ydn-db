@@ -6,7 +6,7 @@
  */
 
 goog.provide('ydn.db.test');
-goog.require('ydn.db.Db');
+goog.require('ydn.db.QueryService');
 
 
 /**
@@ -27,7 +27,7 @@ ydn.db.test.getSchema = function() {
 
 /**
  * @param queue test queue.
- * @param {ydn.db.Db} db Database instance.
+ * @param {ydn.db.QueryService} db Database instance.
  */
 ydn.db.test.db_clear_all_tests = function(queue, db) {
 
@@ -48,7 +48,7 @@ ydn.db.test.db_clear_all_tests = function(queue, db) {
 
 /**
  * @param queue test queue.
- * @param {ydn.db.Db} db Database instance.
+ * @param {ydn.db.QueryService} db Database instance.
  */
 ydn.db.test.clear_tests = function(queue, db) {
 
@@ -84,7 +84,7 @@ ydn.db.test.clear_tests = function(queue, db) {
 /**
  * Test put and get for basic object.
  * @param queue test queue.
- * @param {ydn.db.Db} db Database instance.
+ * @param {ydn.db.QueryService} db Database instance.
  */
 ydn.db.test.run_put_get_tests = function(queue, db) {
 
@@ -180,7 +180,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
  * http://www.w3.org/TR/2011/WD-WebIDL-20110927/#idl-DOMString
  * The DOMString type corresponds to the set of all possible sequences of 16 bit unsigned integer code units.
  * @param queue test queue.
- * @param {ydn.db.Db} db Database instance.
+ * @param {ydn.db.QueryService} db Database instance.
  */
 ydn.db.test.special_keys_test = function(queue, db) {
 
@@ -216,7 +216,7 @@ ydn.db.test.special_keys_test = function(queue, db) {
 
 /**
  * @param queue test queue.
- * @param {ydn.db.Db} db Database instance.
+ * @param {ydn.db.QueryService} db Database instance.
  */
 ydn.db.test.empty_store_get_test = function(queue, db) {
   var rand_key = 'k' + Math.random();
@@ -241,7 +241,7 @@ ydn.db.test.get_nested_key_path_schema = function() {
 
 /**
  * @param queue test queue.
- * @param {ydn.db.Db} db Database instance.
+ * @param {ydn.db.QueryService} db Database instance.
  */
 ydn.db.test.nested_key_path = function(queue, db) {
   var schema = ydn.db.test.get_nested_key_path_schema();

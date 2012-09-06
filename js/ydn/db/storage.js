@@ -40,7 +40,7 @@ goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.db.ActiveQuery');
 goog.require('ydn.db.RichStorage_');
-goog.require('ydn.db.StorageCore');
+goog.require('ydn.db.Core');
 goog.require('ydn.db.ActiveKey');
 
 
@@ -59,13 +59,13 @@ goog.require('ydn.db.ActiveKey');
  * is used.
  * @param {!Object=} opt_options options.
  * @implements {ydn.db.QueryServiceProvider}
- * @extends {ydn.db.StorageCore}
+ * @extends {ydn.db.Core}
  * @constructor
  */
 ydn.db.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
 };
-goog.inherits(ydn.db.Storage, ydn.db.StorageCore);
+goog.inherits(ydn.db.Storage, ydn.db.Core);
 
 
 /**
@@ -235,29 +235,29 @@ goog.exportProperty(goog.async.Deferred.prototype, 'error',
   goog.async.Deferred.prototype.addErrback);
 
 // somehow these methods are not exported via @export annotation
-goog.exportProperty(ydn.db.StorageCore.prototype, 'isReady',
-  ydn.db.StorageCore.prototype.isReady);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'type',
-  ydn.db.StorageCore.prototype.type);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'setSchema',
-  ydn.db.StorageCore.prototype.setSchema);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'setName',
-  ydn.db.StorageCore.prototype.setName);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'getConfig',
-  ydn.db.StorageCore.prototype.getConfig);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'fetch',
-  ydn.db.StorageCore.prototype.fetch);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'get',
-  ydn.db.StorageCore.prototype.get);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'put',
-  ydn.db.StorageCore.prototype.put);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'clear',
-  ydn.db.StorageCore.prototype.clear);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'transaction',
-  ydn.db.StorageCore.prototype.transaction);
+goog.exportProperty(ydn.db.Core.prototype, 'isReady',
+  ydn.db.Core.prototype.isReady);
+goog.exportProperty(ydn.db.Core.prototype, 'type',
+  ydn.db.Core.prototype.type);
+goog.exportProperty(ydn.db.Core.prototype, 'setSchema',
+  ydn.db.Core.prototype.setSchema);
+goog.exportProperty(ydn.db.Core.prototype, 'setName',
+  ydn.db.Core.prototype.setName);
+goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
+  ydn.db.Core.prototype.getConfig);
+goog.exportProperty(ydn.db.Core.prototype, 'fetch',
+  ydn.db.Core.prototype.fetch);
+goog.exportProperty(ydn.db.Core.prototype, 'get',
+  ydn.db.Core.prototype.get);
+goog.exportProperty(ydn.db.Core.prototype, 'put',
+  ydn.db.Core.prototype.put);
+goog.exportProperty(ydn.db.Core.prototype, 'clear',
+  ydn.db.Core.prototype.clear);
+goog.exportProperty(ydn.db.Core.prototype, 'transaction',
+  ydn.db.Core.prototype.transaction);
 // for hacker
-goog.exportProperty(ydn.db.StorageCore.prototype, 'db',
-    ydn.db.StorageCore.prototype.getDbInstance_);
+goog.exportProperty(ydn.db.Core.prototype, 'db',
+    ydn.db.Core.prototype.getDbInstance_);
 
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
   ydn.db.Storage.prototype.query);

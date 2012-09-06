@@ -26,6 +26,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
+goog.require('ydn.db');
 goog.require('goog.debug.Error');
 
 

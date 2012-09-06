@@ -30,11 +30,12 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.StorageCore');
+goog.provide('ydn.db.Core');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.LocalStorage');
 goog.require('ydn.db.IndexedDbWrapper');
+goog.require('ydn.db.IndexedDb');
 goog.require('ydn.db.SessionStorage');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
@@ -57,15 +58,15 @@ goog.require('ydn.object');
  * is used.
  * schema used in chronical order.
  * @param {!Object=} opt_options options.
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.QueryService}
  * @implements {ydn.db.QueryServiceProvider}
  * @constructor
  */
-ydn.db.StorageCore = function(opt_dbname, opt_schema, opt_options) {
+ydn.db.Core = function(opt_dbname, opt_schema, opt_options) {
 
   /**
    * @private
-   * @type {ydn.db.Db} db instance.
+   * @type {ydn.db.QueryService} db instance.
    */
   this.db_ = null;
 
@@ -92,10 +93,10 @@ ydn.db.StorageCore = function(opt_dbname, opt_schema, opt_options) {
  * Factory.
  * @param {string=} opt_dbname database name.
  * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
- * @return {ydn.db.StorageCore}
+ * @return {ydn.db.Core}
  */
-ydn.db.StorageCore.createInstance = function(opt_dbname, opt_schema) {
-  return new ydn.db.StorageCore(opt_dbname, opt_schema);
+ydn.db.Core.createInstance = function(opt_dbname, opt_schema) {
+  return new ydn.db.Core(opt_dbname, opt_schema);
 };
 
 
@@ -104,19 +105,19 @@ ydn.db.StorageCore.createInstance = function(opt_dbname, opt_schema) {
  * Get configuration of this storage. This is useful from getting storage from
  * main thread to worker thread.
  * <pre>
- *   var db = new ydn.db.StorageCore(...);
+ *   var db = new ydn.db.Core(...);
  *   ... initialize ...
  *   var config = db.getConfig();
  *
  *   ... in worker thread ...
- *   var worker_db = new ydn.db.StorageCore(config.db_name, config.schema);
+ *   var worker_db = new ydn.db.Core(config.db_name, config.schema);
  * </pre>
  * In this way, data can be share between the two threads.
  * @export
  * @return {{name: string, schema: !Object}?} configuration
  * containing database and list of schema in JSON format.
  */
-ydn.db.StorageCore.prototype.getConfig = function() {
+ydn.db.Core.prototype.getConfig = function() {
   if (!this.schema) {
     return null;
   }
@@ -135,7 +136,7 @@ ydn.db.StorageCore.prototype.getConfig = function() {
  * @param {string} opt_db_name set database name.
  * @return {string} normalized database name.
  */
-ydn.db.StorageCore.prototype.setName = function(opt_db_name) {
+ydn.db.Core.prototype.setName = function(opt_db_name) {
   if (this.db_) {
     throw Error('DB already initialized');
   }
@@ -158,7 +159,7 @@ ydn.db.StorageCore.prototype.setName = function(opt_db_name) {
  * @param {!ydn.db.DatabaseSchema|!Object} schema set the last schema or its
  * configuration in JSON format.
  */
-ydn.db.StorageCore.prototype.setSchema = function(schema) {
+ydn.db.Core.prototype.setSchema = function(schema) {
 
   if (!(schema instanceof ydn.db.DatabaseSchema)) {
     schema = ydn.db.DatabaseSchema.fromJSON(schema);
@@ -190,7 +191,7 @@ ydn.db.StorageCore.prototype.setSchema = function(schema) {
  * @const
  * @type {!Array.<string>}
  */
-ydn.db.StorageCore.PREFERENCE = [ydn.db.IndexedDbWrapper.TYPE,
+ydn.db.Core.PREFERENCE = [ydn.db.IndexedDbWrapper.TYPE,
   ydn.db.WebSqlWrapper.TYPE,
   ydn.db.LocalStorage.TYPE,
   ydn.db.SessionStorage.TYPE, 'memory'];
@@ -199,13 +200,9 @@ ydn.db.StorageCore.PREFERENCE = [ydn.db.IndexedDbWrapper.TYPE,
 /**
  * Initialize suitable database if {@code dbname} and {@code schema} are set,
  * starting in the following order of preference.
- * 1. IndexedDb
- * 2. Sqlite
- * 3. Html5Db
- * 4. MemoryStore
  * @protected
  */
-ydn.db.StorageCore.prototype.initDatabase = function() {
+ydn.db.Core.prototype.initDatabase = function() {
   // handle version change
   if (goog.isDef(this.db_name) && goog.isDef(this.schema)) {
     this.db_ = null;
@@ -218,7 +215,7 @@ ydn.db.StorageCore.prototype.initDatabase = function() {
       this.db_ = new ydn.db.WebSql(this.db_name, this.schema);
     } else {
       // go according to ordering
-      var preference = this.preference || ydn.db.StorageCore.PREFERENCE;
+      var preference = this.preference || ydn.db.Core.PREFERENCE;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
         if (db_type == ydn.db.IndexedDbWrapper.TYPE && ydn.db.IndexedDb.isSupported()) { // run-time detection
@@ -256,7 +253,7 @@ ydn.db.StorageCore.prototype.initDatabase = function() {
  * @export
  * @return {boolean} true if the database has been initialized.
  */
-ydn.db.StorageCore.prototype.isReady = function() {
+ydn.db.Core.prototype.isReady = function() {
   return goog.isDefAndNotNull(this.db_);
 };
 
@@ -265,7 +262,7 @@ ydn.db.StorageCore.prototype.isReady = function() {
  *
  * @return {string}
  */
-ydn.db.StorageCore.prototype.type = function() {
+ydn.db.Core.prototype.type = function() {
   if (this.db_) {
     return this.db_.type();
   } else {
@@ -279,7 +276,7 @@ ydn.db.StorageCore.prototype.type = function() {
  * @export
  * @return {!goog.async.Deferred} deferred function.
  */
-ydn.db.StorageCore.prototype.close = function() {
+ydn.db.Core.prototype.close = function() {
   if (this.db_) {
     var df = this.db_.close();
     delete this.db_;
@@ -291,9 +288,9 @@ ydn.db.StorageCore.prototype.close = function() {
 
 /**
  * Return underlining database instance.
- * @return {ydn.db.Db} Database if exists.
+ * @return {ydn.db.QueryService} Database if exists.
  */
-ydn.db.StorageCore.prototype.getDb = function() {
+ydn.db.Core.prototype.getDb = function() {
   return this.db_ || null;
 };
 
@@ -302,7 +299,7 @@ ydn.db.StorageCore.prototype.getDb = function() {
  * For undocumented export property to minified js file for hackers.
  * @deprecated this will be always deprecated.
  */
-ydn.db.StorageCore.prototype.getDbInstance_ = function() {
+ydn.db.Core.prototype.getDbInstance_ = function() {
   if (this.db_) {
     return this.db_.getDb();
   }
@@ -313,7 +310,7 @@ ydn.db.StorageCore.prototype.getDbInstance_ = function() {
  * Return underlining database instance.
  * @return {!goog.async.Deferred} Database in deferred function.
  */
-ydn.db.StorageCore.prototype.getDeferredDb = function() {
+ydn.db.Core.prototype.getDeferredDb = function() {
   return this.deferredDb_;
 };
 
@@ -327,7 +324,7 @@ ydn.db.StorageCore.prototype.getDeferredDb = function() {
  * @return {!goog.async.Deferred} return key in deferred function. On error,
  * an {@code Error} object is return as received from the mechanism.
  */
-ydn.db.StorageCore.prototype.put = function(store_name, value) {
+ydn.db.Core.prototype.put = function(store_name, value) {
   if (this.db_) {
     return this.db_.put(store_name, value);
   } else {
@@ -352,7 +349,7 @@ ydn.db.StorageCore.prototype.put = function(store_name, value) {
  * @return {!goog.async.Deferred} return resulting object in deferred function.
  * If not found, {@code undefined} is return.
  */
-ydn.db.StorageCore.prototype.get = function (store_name, opt_key) {
+ydn.db.Core.prototype.get = function (store_name, opt_key) {
 
   if (this.db_) {
     return this.db_.get(store_name, opt_key);
@@ -371,7 +368,7 @@ ydn.db.StorageCore.prototype.get = function (store_name, opt_key) {
  * @param {ydn.db.Key} key
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.StorageCore.prototype.getByKey = function(key) {
+ydn.db.Core.prototype.getByKey = function(key) {
   if (this.db_) {
     return this.db_.getByKey(key);
   } else {
@@ -394,7 +391,7 @@ ydn.db.StorageCore.prototype.getByKey = function(key) {
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return {@code true} in the deferred function.
  */
-ydn.db.StorageCore.prototype.clear = function(opt_store_name, opt_key) {
+ydn.db.Core.prototype.clear = function(opt_store_name, opt_key) {
   if (this.db_) {
     return this.db_.clear(opt_store_name, opt_key);
   } else {
@@ -415,7 +412,7 @@ ydn.db.StorageCore.prototype.clear = function(opt_store_name, opt_key) {
  * in the database.
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
-ydn.db.StorageCore.prototype.count = function(opt_store_name) {
+ydn.db.Core.prototype.count = function(opt_store_name) {
   if (this.db_) {
     return this.db_.count(opt_store_name);
   } else {
@@ -437,7 +434,7 @@ ydn.db.StorageCore.prototype.count = function(opt_store_name) {
  * @param {number=} offset
  * @return {!goog.async.Deferred}
  */
-ydn.db.StorageCore.prototype.fetch = function (q, limit, offset) {
+ydn.db.Core.prototype.fetch = function (q, limit, offset) {
 
   if (goog.isString(q)) {
     return this.fetch(new ydn.db.Query(q), limit, offset);
@@ -466,7 +463,7 @@ ydn.db.StorageCore.prototype.fetch = function (q, limit, offset) {
  * @param {...} opt_args
  * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.StorageCore.prototype.transaction = function (trFn, keys, mode, opt_args) {
+ydn.db.Core.prototype.transaction = function (trFn, keys, mode, opt_args) {
   goog.asserts.assert(this.db_, 'database not ready');
   var store_names = [];
   if (goog.isString(keys)) {
@@ -484,11 +481,18 @@ ydn.db.StorageCore.prototype.transaction = function (trFn, keys, mode, opt_args)
     store_names = this.schema.getStoreNames();
   }
   mode = goog.isDef(mode) ? mode : ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE;
-  if (arguments.length > 3) {
-    // FIXME, how to make this general?
-    trFn = goog.partial(trFn, arguments[3], arguments[4], arguments[5], arguments[6]);
+  var outFn = trFn;
+  if (arguments.length > 3) { // handle optional parameters
+    // see how it work in goog.partial.
+    var args = Array.prototype.slice.call(arguments, 3);
+    outFn = function() {
+      // Prepend the bound arguments to the current arguments.
+      var newArgs = Array.prototype.slice.call(arguments);
+      newArgs.unshift.apply(newArgs, args);
+      return trFn.apply(this, newArgs);
+    }
   }
-  return this.db_.transaction(trFn, store_names, mode, keys);
+  return this.db_.transaction(outFn, store_names, mode, keys);
 };
 
 
@@ -497,7 +501,7 @@ ydn.db.StorageCore.prototype.transaction = function (trFn, keys, mode, opt_args)
  * Debug information about this database.
  * @private
  */
-ydn.db.StorageCore.prototype.disp_ = function() {
+ydn.db.Core.prototype.disp_ = function() {
   if (goog.DEBUG) {
     var schema = this.schema;
     window.console.log(this.db_name + ' ver: ' + schema.version);
@@ -520,33 +524,33 @@ ydn.db.StorageCore.prototype.disp_ = function() {
 };
 
 
-goog.exportSymbol('ydn.db.StorageCore', ydn.db.StorageCore);
+goog.exportSymbol('ydn.db.Core', ydn.db.Core);
 goog.exportProperty(goog.async.Deferred.prototype, 'success',
   goog.async.Deferred.prototype.addCallback);
 goog.exportProperty(goog.async.Deferred.prototype, 'error',
   goog.async.Deferred.prototype.addErrback);
 
 // somehow these methods are not exported via @export annotation
-goog.exportProperty(ydn.db.StorageCore.prototype, 'isReady',
-  ydn.db.StorageCore.prototype.isReady);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'type',
-  ydn.db.StorageCore.prototype.type);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'setSchema',
-  ydn.db.StorageCore.prototype.setSchema);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'setName',
-  ydn.db.StorageCore.prototype.setName);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'getConfig',
-  ydn.db.StorageCore.prototype.getConfig);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'fetch',
-  ydn.db.StorageCore.prototype.fetch);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'get',
-  ydn.db.StorageCore.prototype.get);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'put',
-  ydn.db.StorageCore.prototype.put);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'clear',
-  ydn.db.StorageCore.prototype.clear);
-goog.exportProperty(ydn.db.StorageCore.prototype, 'transaction',
-  ydn.db.StorageCore.prototype.transaction);
+goog.exportProperty(ydn.db.Core.prototype, 'isReady',
+  ydn.db.Core.prototype.isReady);
+goog.exportProperty(ydn.db.Core.prototype, 'type',
+  ydn.db.Core.prototype.type);
+goog.exportProperty(ydn.db.Core.prototype, 'setSchema',
+  ydn.db.Core.prototype.setSchema);
+goog.exportProperty(ydn.db.Core.prototype, 'setName',
+  ydn.db.Core.prototype.setName);
+goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
+  ydn.db.Core.prototype.getConfig);
+goog.exportProperty(ydn.db.Core.prototype, 'fetch',
+  ydn.db.Core.prototype.fetch);
+goog.exportProperty(ydn.db.Core.prototype, 'get',
+  ydn.db.Core.prototype.get);
+goog.exportProperty(ydn.db.Core.prototype, 'put',
+  ydn.db.Core.prototype.put);
+goog.exportProperty(ydn.db.Core.prototype, 'clear',
+  ydn.db.Core.prototype.clear);
+goog.exportProperty(ydn.db.Core.prototype, 'transaction',
+  ydn.db.Core.prototype.transaction);
 // for hacker
-goog.exportProperty(ydn.db.StorageCore.prototype, 'db',
-  ydn.db.StorageCore.prototype.getDbInstance_);
+goog.exportProperty(ydn.db.Core.prototype, 'db',
+  ydn.db.Core.prototype.getDbInstance_);

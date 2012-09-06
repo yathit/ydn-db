@@ -25,9 +25,10 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.Db');
+goog.require('ydn.db.QueryService');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
+goog.require('ydn.db');
 
 
 /**

@@ -20,11 +20,11 @@ goog.provide('ydn.db.MemoryStore');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
-goog.require('ydn.db.Db');
+goog.require('ydn.db.QueryService');
 
 
 /**
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.QueryService}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -367,7 +367,7 @@ ydn.db.MemoryStore.prototype.fetch = function(q) {
 
 
 /**
- * @inheritDoc
+ *
  */
 ydn.db.MemoryStore.prototype.close = function () {
   return ydn.db.MemoryStore.succeed(true);
