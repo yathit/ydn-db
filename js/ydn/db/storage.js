@@ -312,8 +312,5 @@ goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'lowerBound',
 goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'only',
   ydn.db.Query.KeyRangeImpl.only);
 
-goog.exportProperty(ydn.db.Db.Transaction.prototype, 'type',
-  ydn.db.Db.Transaction.prototype.type);
-
 goog.exportSymbol('ydn.async', ydn.async);
 goog.exportProperty(ydn.async, 'dfl', ydn.async.dfl);

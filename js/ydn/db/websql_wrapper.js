@@ -28,7 +28,6 @@ goog.require('ydn.async');
 goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
-goog.require('ydn.db.Db.Transaction');
 
 
 /**
@@ -133,7 +132,7 @@ ydn.db.WebSqlWrapper.prototype.doTransaction = function(transactionFunc) {
     this.sdb_.transaction(
 
       function callback(tx) {
-        me.stx_.up_(tx);
+        me.stx_.up(tx);
         transactionFunc(tx);
       },
 
@@ -151,15 +150,16 @@ ydn.db.WebSqlWrapper.prototype.doTransaction = function(transactionFunc) {
 
 
 
+
 /**
+ * Provide transaction object to subclass and keep a result.
+ * This also serve as mutex on transaction.
  * @private
- * @extends {ydn.db.Db.Transaction}
  * @constructor
  */
 ydn.db.WebSqlWrapper.Transaction = function() {
-  goog.base(this);
+
 };
-goog.inherits(ydn.db.WebSqlWrapper.Transaction, ydn.db.Db.Transaction);
 
 
 /**
@@ -175,8 +175,29 @@ ydn.db.WebSqlWrapper.Transaction.type = function() {
  * @private
  * @param {!SQLTransaction} tx the transaction object.
  */
-ydn.db.WebSqlWrapper.Transaction.prototype.up_ = function(tx) {
-  this.up(tx);
+ydn.db.WebSqlWrapper.Transaction.prototype.up = function(tx) {
+  /**
+   * @private
+   * @type {SQLTransaction}
+   */
+  this.transaction_ = tx;
+
+};
+
+/**
+ * @private
+ */
+ydn.db.WebSqlWrapper.Transaction.prototype.down = function() {
+  this.transaction_ = null;
+};
+
+
+/**
+ * @private
+ * @return {boolean}
+ */
+ydn.db.WebSqlWrapper.Transaction.prototype.isActive = function() {
+  return !!this.transaction_;
 };
 
 

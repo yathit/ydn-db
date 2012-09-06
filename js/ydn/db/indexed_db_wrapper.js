@@ -27,7 +27,6 @@ goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
 goog.require('goog.debug.Error');
-goog.require('ydn.db.Db.Transaction');
 
 
 /**
@@ -457,21 +456,13 @@ ydn.db.IndexedDbWrapper.prototype.abortTxQueue = function(e) {
 
 
 /**
+ * Provide transaction object to subclass and keep a result.
+ * This also serve as mutex on transaction.
  * @private
- * @extends {ydn.db.Db.Transaction}
  * @constructor
  */
 ydn.db.IndexedDbWrapper.Transaction = function() {
-  goog.base(this);
-};
-goog.inherits(ydn.db.IndexedDbWrapper.Transaction, ydn.db.Db.Transaction);
 
-
-/**
- * @override
- */
-ydn.db.IndexedDbWrapper.Transaction.type = function() {
-  return ydn.db.IndexedDbWrapper.TYPE;
 };
 
 
@@ -480,8 +471,41 @@ ydn.db.IndexedDbWrapper.Transaction.type = function() {
  * @private
  * @param {!IDBTransaction} tx the transaction object.
  */
-ydn.db.IndexedDbWrapper.Transaction.prototype.up_ = function(tx) {
-  this.up(tx);
+ydn.db.IndexedDbWrapper.Transaction.prototype.up = function(tx) {
+  /**
+   * @private
+   * @type {IDBTransaction}
+   */
+  this.idb_tx_ = tx;
+
+  /**
+   * @private
+   * @type {*}
+   */
+  this.result_ = undefined;
+
+  /**
+   * @private
+   * @type {boolean}
+   */
+  this.has_error_ = false;
+};
+
+
+/**
+ * @private
+ */
+ydn.db.IndexedDbWrapper.Transaction.prototype.down = function() {
+  this.idb_tx_ = null;
+};
+
+
+/**
+ * @private
+ * @return {boolean}
+ */
+ydn.db.IndexedDbWrapper.Transaction.prototype.isActive = function() {
+  return !!this.idb_tx_;
 };
 
 
@@ -490,8 +514,8 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.up_ = function(tx) {
  * @return {!IDBTransaction}
  */
 ydn.db.IndexedDbWrapper.Transaction.prototype.getTx = function() {
-  goog.asserts.assertObject(this.transaction_);
-  return /** @type {!IDBTransaction} */ (this.transaction_);
+  goog.asserts.assertObject(this.idb_tx_);
+  return this.idb_tx_;
 };
 
 
@@ -500,7 +524,7 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.getTx = function() {
  * @return {!IDBObjectStore}
  */
 ydn.db.IndexedDbWrapper.Transaction.prototype.objectStore = function(name) {
-  return this.transaction_.objectStore(name);
+  return this.idb_tx_.objectStore(name);
 };
 
 
@@ -509,11 +533,61 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.objectStore = function(name) {
  */
 ydn.db.IndexedDbWrapper.Transaction.prototype.abort = function() {
   this.has_error_ = true;
-  return this.transaction_.abort();
+  return this.idb_tx_.abort();
+};
+
+
+/**
+ * Push a result.
+ * @param {*} result
+ */
+ydn.db.IndexedDbWrapper.Transaction.prototype.set = function(result) {
+  this.result_ = result;
+};
+
+/**
+ * Get a result.
+ * @return {*} last result
+ */
+ydn.db.IndexedDbWrapper.Transaction.prototype.get = function() {
+  return this.result_;
 };
 
 
 
+/**
+ * Add an item to the last result. The last result must be array.
+ * @param {*} item
+ */
+ydn.db.IndexedDbWrapper.Transaction.prototype.add = function(item) {
+  if (!goog.isDef(this.result_)) {
+    this.result_ = [];
+  }
+  goog.asserts.assertArray(this.result_);
+  this.result_.push(item);
+};
+
+
+ydn.db.IndexedDbWrapper.Transaction.prototype.setError = function() {
+  this.has_error_ = true;
+};
+
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.IndexedDbWrapper.Transaction.prototype.isSuccess = function() {
+  return !this.has_error_;
+};
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.IndexedDbWrapper.Transaction.prototype.hasError = function() {
+  return this.has_error_;
+};
 
 
 /**
@@ -555,7 +629,7 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode, o
      */
     var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
 
-    me.tx_.up_(tx);
+    me.tx_.up(tx);
 
     tx.oncomplete = function(event) {
       //console.log(['oncomplete', event, tx, me.tx_])
