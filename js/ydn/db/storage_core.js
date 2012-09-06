@@ -450,7 +450,7 @@ ydn.db.StorageCore.prototype.run = function (trFn, keys, mode) {
       store_names.push(store_name);
     }
   }
-  mode = mode || ydn.db.AbstractIndexedDb.TransactionMode.READ_WRITE;
+  mode = mode || ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE;
   return this.db_.run(trFn, store_names, mode, keys);
 };
 

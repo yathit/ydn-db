@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @fileoverview Implement ydn.db.Db with IndexedDB.
+ * @fileoverview Implements ydn.db.QueryService with IndexedDB.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -23,7 +23,7 @@ goog.require('goog.async.DeferredList');
 goog.require('ydn.db.tr.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
-goog.require('ydn.db.AbstractIndexedDb');
+goog.require('ydn.db.IndexedDbWrapper');
 
 
 /**
@@ -33,20 +33,20 @@ goog.require('ydn.db.AbstractIndexedDb');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @extends {ydn.db.AbstractIndexedDb}
+ * @extends {ydn.db.IndexedDbWrapper}
  * @constructor
  */
 ydn.db.IndexedDb = function(dbname, schema) {
   goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.IndexedDb, ydn.db.AbstractIndexedDb);
+goog.inherits(ydn.db.IndexedDb, ydn.db.IndexedDbWrapper);
 
 
 /**
  *
  * @const {boolean} turn on debug flag to dump object.
  */
-ydn.db.IndexedDb.DEBUG = ydn.db.AbstractIndexedDb.DEBUG || false;
+ydn.db.IndexedDb.DEBUG = ydn.db.IndexedDbWrapper.DEBUG || false;
 
 
 /**
@@ -54,7 +54,7 @@ ydn.db.IndexedDb.DEBUG = ydn.db.AbstractIndexedDb.DEBUG || false;
  * @return {boolean} return indexedDB support on run time.
  */
 ydn.db.IndexedDb.isSupported = function() {
-  return !!ydn.db.AbstractIndexedDb.indexedDb;
+  return !!ydn.db.IndexedDbWrapper.indexedDb;
 };
 
 
@@ -70,7 +70,7 @@ ydn.db.IndexedDb.prototype.logger =
 
 /**
  * Execute GET request either storing result to tx or callback to df.
- * @param {ydn.db.AbstractIndexedDb.Transaction} tx
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx
  * @param {goog.async.Deferred} df
  * @param {string} store_name table name.
  * @param {string|number} id id to get.
@@ -111,7 +111,7 @@ ydn.db.IndexedDb.prototype.executeGet_ = function(tx, df, store_name, id) {
 
 /**
  * Execute PUT request either storing result to tx or callback to df.
- * @param {ydn.db.AbstractIndexedDb.Transaction} tx
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx
  * @param {goog.async.Deferred} df
  * @param {string} table table name.
  * @param {!Object|Array.<!Object>} value object to put.
@@ -185,7 +185,7 @@ ydn.db.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
  * immediately.
  *
  * This method must be {@link #runInTransaction}.
- * @param {ydn.db.AbstractIndexedDb.Transaction} tx
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx
  * @param {goog.async.Deferred} df
  * @param {string=} opt_store_name store name.
  * @param {(string|number)=} opt_key object key.
@@ -261,7 +261,7 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
   } else {
     return this.doTransaction_(function(tx) {
       me.executePut_(tx, null, table, value);
-    }, [table], ydn.db.AbstractIndexedDb.TransactionMode.READ_WRITE);
+    }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
   }
 
 };
@@ -324,7 +324,7 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
       }
     };
 
-  }, [table], ydn.db.AbstractIndexedDb.TransactionMode.READ_ONLY);
+  }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
 };
 
 
@@ -382,7 +382,7 @@ ydn.db.IndexedDb.prototype.get = function (arg1, key) {
       var me = this;
       return this.doTransaction_(function (tx) {
         me.executeGet_(tx, null, store_name, id);
-      }, [store_name], ydn.db.AbstractIndexedDb.TransactionMode.READ_ONLY);
+      }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
     }
   }
 };
@@ -390,7 +390,7 @@ ydn.db.IndexedDb.prototype.get = function (arg1, key) {
 
 
 /**
- * @param {ydn.db.AbstractIndexedDb.Transaction} tx
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx
  * @param {!goog.async.Deferred} df
  * @param {!Array.<!ydn.db.Key>} keys query.
  * @param {number=} limit
@@ -443,7 +443,7 @@ ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit, off
 
 
 /**
- * @param {ydn.db.AbstractIndexedDb.Transaction} tx
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx
  * @param {!goog.async.Deferred} df
  * @param {!ydn.db.Query} q query.
  * @param {number=} limit
@@ -586,7 +586,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
     } else {
       return this.doTransaction_(function (tx) {
         self.executeFetchKeys_(tx, null, q, limit, offset);
-      }, stores, ydn.db.AbstractIndexedDb.TransactionMode.READ_ONLY);
+      }, stores, ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
     }
   } else if (q instanceof ydn.db.Query) {
     tx = this.getTx();
@@ -597,7 +597,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
     } else {
       return this.doTransaction_(function (tx) {
         self.executeFetchQuery_(tx, null, q, limit, offset);
-      }, [q.store_name], ydn.db.AbstractIndexedDb.TransactionMode.READ_ONLY);
+      }, [q.store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
     }
   } else {
     throw Error('Invalid input: ' + q);
@@ -636,7 +636,7 @@ ydn.db.IndexedDb.prototype.deleteItem_ = function(table, id) {
       tx.setError();
       tx.set(event);
     };
-  }, [table], ydn.db.AbstractIndexedDb.TransactionMode.READ_WRITE);
+  }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
 };
 
 
@@ -669,13 +669,13 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
       }
       tx.set(event);
     };
-  }, [table], ydn.db.AbstractIndexedDb.TransactionMode.READ_WRITE);
+  }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
 };
 
 
 ///**
 // *
-// * @param {ydn.db.AbstractIndexedDb.Transaction} tx
+// * @param {ydn.db.IndexedDbWrapper.Transaction} tx
 // * @param {goog.async.Deferred} df
 // * @param {string=} opt_table delete the table as provided otherwise
 // * delete all stores.
@@ -709,9 +709,9 @@ ydn.db.IndexedDb.prototype.remove = function(opt_table, opt_id) {
       return this.deleteStore_(opt_table);
     }
   } else {
-    if (goog.isFunction(ydn.db.AbstractIndexedDb.indexedDb.deleteDatabase)) {
+    if (goog.isFunction(ydn.db.IndexedDbWrapper.indexedDb.deleteDatabase)) {
       var df = new goog.async.Deferred();
-      var req = ydn.db.AbstractIndexedDb.indexedDb.deleteDatabase(this.dbname);
+      var req = ydn.db.IndexedDbWrapper.indexedDb.deleteDatabase(this.dbname);
       req.onsuccess = function(e) {
         df.addCallback(e);
       };
@@ -750,7 +750,7 @@ ydn.db.IndexedDb.prototype.count = function(table) {
       tx.set(event);
     };
 
-  }, [table], ydn.db.AbstractIndexedDb.TransactionMode.READ_ONLY);
+  }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
 
 };
 
@@ -805,7 +805,7 @@ ydn.db.IndexedDb.prototype.listKeys = function(opt_table) {
       tx.set(event);
     };
 
-  }, [opt_table], ydn.db.AbstractIndexedDb.TransactionMode.READ_ONLY);
+  }, [opt_table], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
 
 };
 
@@ -857,7 +857,7 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
   } else {
     return this.doTransaction_(function(tx) {
       self.executeClear_(tx, null, opt_table, opt_key);
-    }, store_names, ydn.db.AbstractIndexedDb.TransactionMode.READ_WRITE);
+    }, store_names, ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
   }
 };
 

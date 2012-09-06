@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @fileoverview Deferred wrapper for Web SQL storage.
+ * @fileoverview Implements ydn.db.QueryService with Web SQL storage.
  *
  * @see http://www.w3.org/TR/webdatabase/
  *
@@ -28,6 +28,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.tr.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
+goog.require('ydn.db.WebSqlWrapper');
 
 
 /**
@@ -37,39 +38,14 @@ goog.require('ydn.json');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
+ * @extends {ydn.db.WebSqlWrapper}
  * @constructor
  */
 ydn.db.WebSql = function(dbname, schema) {
-  var self = this;
-  this.dbname = dbname;
-  /**
-   * @final
-   * @protected
-   * @type {!ydn.db.DatabaseSchema}
-   */
-  this.schema = schema; // we always use the last schema.
-
-  var description = this.dbname;
-
-  /**
-   * Must open the database with empty version, otherwise unrecoverable error
-   * will occur in the
-   * first instance.
-   * @protected
-   * @type {Database}
-   */
-  this.db = goog.global.openDatabase(this.dbname, '', description,
-    this.schema.size);
-
-  if (this.db.version != this.schema.version) {
-    this.migrate();
-  }
-
+ goog.base(this, dbname, schema);
 };
+goog.inherits(ydn.db.WebSql, ydn.db.WebSqlWrapper);
 
-ydn.db.WebSql.prototype.getDb_ = function() {
-  return this.db;
-};
 
 
 /**
@@ -82,116 +58,17 @@ ydn.db.WebSql.isSupported = function() {
 
 
 /**
- *
- * @define {boolean} debug flag.
+ * @const
+ * @type {boolean} debug flag.
  */
 ydn.db.WebSql.DEBUG = false;
 
 
 /**
  * @protected
- * @final
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSql');
-
-
-/**
- * Initialize variable to the schema and prepare SQL statement for creating
- * the table.
- * @protected
- * @param {ydn.db.StoreSchema} schema name of table in the schema.
- * @return {string} SQL statement for creating the table.
- */
-ydn.db.WebSql.prototype.prepareCreateTable = function(schema) {
-
-  var sql = 'CREATE TABLE IF NOT EXISTS ' + schema.getQuotedName() + ' (';
-
-  var id_column_name = schema.getQuotedKeyPath() ||
-      ydn.db.DEFAULT_KEY_COLUMN;
-
-  if (goog.isDef(schema.keyPath)) {
-      sql += schema.getQuotedKeyPath() + ' TEXT UNIQUE PRIMARY KEY';
-  } else {
-    // NOTE: we could have use AUTOINCREMENT here,
-    // however put request require to return key. If we use AUTOINCREMENT, the key value
-    // have to query again after INSERT since it does not return any result.
-    // generating the by ourselves eliminate this.
-    // for generating see ydn.db.StoreSchema.prototype.generateKey
-    sql += ydn.db.DEFAULT_KEY_COLUMN + ' INTEGER PRIMARY KEY';
-  }
-
-  // every table must has a default field.
-  if (!schema.hasIndex(ydn.db.DEFAULT_BLOB_COLUMN)) {
-    schema.addIndex(ydn.db.DEFAULT_BLOB_COLUMN);
-  }
-
-  for (var i = 0; i < schema.indexes.length; i++) {
-    /**
-     * @type {ydn.db.IndexSchema}
-     */
-    var index = schema.indexes[i];
-    if (index.name == schema.keyPath) {
-      continue;
-    }
-    var primary = index.unique ? ' UNIQUE ' : ' ';
-    sql += ', ' + index.name + ' ' + index.type + primary;
-  }
-
-  sql += ');';
-
-  return sql;
-};
-
-
-/**
- * Migrate from current version to the last version.
- * @protected
- */
-ydn.db.WebSql.prototype.migrate = function() {
-
-  var me = this;
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var success_callback = function(transaction, results) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log(results);
-    }
-    me.logger.finest('Creating tables OK.');
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('Error creating tables: ' + error.message);
-  };
-
-  var sqls = [];
-  for (var i = 0; i < this.schema.stores.length; i++) {
-    sqls.push(this.prepareCreateTable(this.schema.stores[i]));
-  }
-
-  this.db.transaction(function(t) {
-
-    me.logger.finest('Creating tables ' + sqls.join('\n'));
-    for (var i = 0; i < sqls.length; i++) {
-      if (ydn.db.WebSql.DEBUG) {
-        window.console.log(sqls[i]);
-      }
-      t.executeSql(sqls[i], [],
-          i == sqls.length - 1 ? success_callback : undefined,
-          error_callback);
-    }
-  });
-};
 
 
 /**
@@ -280,61 +157,6 @@ ydn.db.WebSql.prototype.put = function(store_name, obj) {
   return df;
 };
 
-
-/**
- * Parse resulting object of a row into original object as it 'put' into the
- * database.
- * @protected
- * @param {ydn.db.StoreSchema} table table of concern.
- * @param {!Object} row row.
- * @return {!Object} parse value.
- */
-ydn.db.WebSql.prototype.parseRow = function(table, row) {
-  goog.asserts.assertObject(row);
-  var value = ydn.json.parse(row[ydn.db.DEFAULT_BLOB_COLUMN]);
-  var key = row[table.keyPath]; // NOT: table.getKey(row);
-  goog.asserts.assertString(key);
-  table.setKey(value, key);
-  for (var j = 0; j < table.indexes.length; j++) {
-    var index = table.indexes[j];
-    if (index.name == ydn.db.DEFAULT_BLOB_COLUMN) {
-      continue;
-    }
-    var x = row[index.name];
-    if (!goog.isDef(x)) {
-      continue;
-    }
-    if (index.type == ydn.db.DataType.INTEGER) {
-      x = parseInt(x, 10);
-    } else if (index.type == ydn.db.DataType.FLOAT) {
-      x = parseFloat(x);
-    }
-    value[index.name] = x;
-  }
-  return value;
-};
-
-
-/**
- * Extract key from row result.
- * @protected
- * @param {ydn.db.StoreSchema} table table of concern.
- * @param {!Object} row row.
- * @return {!Object} parse value.
- */
-ydn.db.WebSql.prototype.getKeyFromRow = function(table, row) {
-  return row[table.keyPath || ydn.db.DEFAULT_KEY_COLUMN];
-};
-
-
-/**
- * Retrieve an object from store.
- * @param {ydn.db.Key} key
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.WebSql.prototype.getByKey = function(key) {
-  return this.get(key.store_name, key.id + '');
-};
 
 
 /**
@@ -639,60 +461,6 @@ ydn.db.WebSql.prototype.count = function(table) {
 
 
 
-/**
- *
- * @param {string} table table name.
- * @param {string} id row name.
- * @return {!goog.async.Deferred} deferred result.
- * @private
- */
-ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
-  var d = new goog.async.Deferred();
-
-  var store = this.schema.getStore(table);
-  if (!store) {
-    this.logger.warning('Table ' + table + ' not found.');
-    d.errback(new Error('Table ' + table + ' not found.'));
-    return d;
-  }
-
-  var me = this;
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var success_callback = function(transaction, results) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log(results);
-    }
-    d.callback(true);
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('put error: ' + error.message);
-    d.errback(error);
-  };
-
-  me.db.transaction(function(t) {
-      var sql = 'DELETE FROM ' + store.getQuotedName() +
-          ' WHERE ' + store.getQuotedKeyPath() + ' = ' + goog.string.quote(id);
-      //console.log([sql, out.values])
-      t.executeSql(sql, [], success_callback, error_callback);
-  });
-  return d;
-};
-
-
-
-
 
 /**
  * Remove a specific entry from a store or all.
@@ -739,69 +507,6 @@ ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
   }
 };
 
-/**
- * @param {string=} opt_table table name to be deleted, if not specified all
- * tables will be deleted.
- * @return {!goog.async.Deferred} deferred result.
- * @private
- */
-ydn.db.WebSql.prototype.dropTable_ = function(opt_table) {
-
-  var d = new goog.async.Deferred();
-  var me = this;
-
-  var sql = '';
-  if (goog.isDef(opt_table)) {
-    var store = this.schema.getStore(opt_table);
-    if (!store) {
-      throw Error('Table ' + opt_table + ' not found.');
-    }
-    sql = sql + 'DROP TABLE ' + store.getQuotedName() + ';';
-  } else {
-    for (var i = 0; i < me.schema.stores.length; i++) {
-      sql = sql + 'DROP TABLE ' + me.schema.stores[i].getQuotedName() + ';';
-    }
-  }
-
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function(transaction, results) {
-    //console.log(['row ', row  , results]);
-    d.callback(true);
-    me.logger.warning('Deleted database: ' + me.dbname);
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('Delete TABLE: ' + error.message);
-    d.errback(error);
-  };
-
-  this.db.transaction(function(t) {
-    //console.log(sql);
-    t.executeSql(sql, [], callback, error_callback);
-  });
-
-  return d;
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.WebSql.prototype.close = function () {
-  // no need to close WebSQl database.
-  return goog.async.Deferred.succeed(true);
-};
 
 
 /**
@@ -840,35 +545,3 @@ ydn.db.WebSql.prototype.putInTransaction = function(tx, store, value) {
  */
 ydn.db.WebSql.prototype.clearInTransaction = function(tx, store, id) {};
 
-
-
-/**
- *
- * @inheritDoc
- */
-ydn.db.WebSql.prototype.run = function(trFn, scopes, mode, keys) {
-  var df = new goog.async.Deferred();
-
-  this.db.transaction(function(tx) {
-    if (ydn.db.WebSql.DEBUG) {
-      window.console.log([tx, trFn, scopes, mode, keys]);
-    }
-
-    for (var key, i = 0; key = keys[i]; i++) {
-      key.setTx(tx); // inject transaction object.
-    }
-
-    // now execute transaction process
-    trFn(tx);
-
-  });
-
-  df.addBoth(function() {
-    // clean up tx.
-    for (var key, i = 0; key = keys[i]; i++) {
-      key.setTx(null);
-    }
-  });
-
-  return df;
-};
