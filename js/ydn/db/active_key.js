@@ -44,7 +44,7 @@ ydn.db.ActiveKey.prototype.toKey = function(obj) {
 ydn.db.ActiveKey.prototype.get = function() {
 
   if (this.dbp.isReady()) {
-    return this.dbp.getDb().get(this.store_name, this.id);
+    return this.dbp.getQueryService().get(this.store_name, this.id);
   } else {
     var me = this;
     var df = new goog.async.Deferred();
@@ -66,7 +66,7 @@ ydn.db.ActiveKey.prototype.get = function() {
 ydn.db.ActiveKey.prototype.put = function(value) {
 
   if (this.dbp.isReady()) {
-    return this.dbp.getDb().put(this.store_name, value);
+    return this.dbp.getQueryService().put(this.store_name, value);
   } else {
     var me = this;
     var df = new goog.async.Deferred();
@@ -77,13 +77,14 @@ ydn.db.ActiveKey.prototype.put = function(value) {
   }
 };
 
+
 /**
  * @return {!goog.async.Deferred} return key in deferred function.
  */
 ydn.db.ActiveKey.prototype.clear = function() {
 
   if (this.dbp.isReady()) {
-    return this.dbp.getDb().clear(this.store_name, this.id);
+    return this.dbp.getQueryService().clear(this.store_name, this.id);
   } else {
     var me = this;
     var df = new goog.async.Deferred();

@@ -49,16 +49,6 @@ ydn.db.IndexedDb.DEBUG = ydn.db.IndexedDbWrapper.DEBUG || false;
 
 
 /**
- *
- * @return {boolean} return indexedDB support on run time.
- */
-ydn.db.IndexedDb.isSupported = function() {
-  return !!ydn.db.IndexedDbWrapper.indexedDb;
-};
-
-
-
-/**
  * @protected
  * @type {goog.debug.Logger} logger.
  */

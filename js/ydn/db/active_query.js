@@ -38,7 +38,7 @@ goog.inherits(ydn.db.ActiveQuery, ydn.db.Query);
  */
 ydn.db.ActiveQuery.prototype.get = function() {
   if (this.dbp.isReady()) {
-    return this.dbp.getDb().get(this);
+    return this.dbp.getQueryService().get(this);
   } else {
     var me = this;
     var df = new goog.async.Deferred();
@@ -57,7 +57,7 @@ ydn.db.ActiveQuery.prototype.get = function() {
  */
 ydn.db.ActiveQuery.prototype.put = function(value) {
   if (this.dbp.isReady()) {
-    return this.dbp.getDb().put(this.store_name, value);
+    return this.dbp.getQueryService().put(this.store_name, value);
   } else {
     var me = this;
     var df = new goog.async.Deferred();
@@ -77,7 +77,7 @@ ydn.db.ActiveQuery.prototype.put = function(value) {
  */
 ydn.db.ActiveQuery.prototype.fetch = function(opt_limit, opt_offset) {
   if (this.dbp.isReady()) {
-    return this.dbp.getDb().fetch(this, opt_limit, opt_offset);
+    return this.dbp.getQueryService().fetch(this, opt_limit, opt_offset);
   } else {
     var me = this;
     var df = new goog.async.Deferred();

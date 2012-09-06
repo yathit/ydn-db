@@ -74,6 +74,7 @@ ydn.db.QueryService.prototype.clear = function(opt_table, opt_key) {
  */
 ydn.db.QueryServiceProvider = function() {};
 
+
 /**
  * @return {boolean}
  */
@@ -83,7 +84,7 @@ ydn.db.QueryServiceProvider.prototype.isReady = function() {};
 /**
  * @return {ydn.db.QueryService}
  */
-ydn.db.QueryServiceProvider.prototype.getDb = function() {};
+ydn.db.QueryServiceProvider.prototype.getQueryService = function() {};
 
 /**
  * @return {!goog.async.Deferred}

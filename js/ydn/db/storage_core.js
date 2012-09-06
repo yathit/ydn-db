@@ -34,11 +34,9 @@ goog.provide('ydn.db.Core');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.LocalStorage');
-goog.require('ydn.db.IndexedDbWrapper');
-goog.require('ydn.db.IndexedDb');
 goog.require('ydn.db.SessionStorage');
+goog.require('ydn.db.IndexedDbWrapper');
 goog.require('ydn.db.MemoryStore');
-goog.require('ydn.db.WebSql');
 goog.require('ydn.db.WebSqlWrapper');
 goog.require('ydn.object');
 
@@ -58,25 +56,18 @@ goog.require('ydn.object');
  * is used.
  * schema used in chronical order.
  * @param {!Object=} opt_options options.
- * @implements {ydn.db.QueryService}
- * @implements {ydn.db.QueryServiceProvider}
  * @constructor
  */
 ydn.db.Core = function(opt_dbname, opt_schema, opt_options) {
 
-  /**
-   * @private
-   * @type {ydn.db.QueryService} db instance.
-   */
   this.db_ = null;
 
   var options = opt_options || {};
 
   this.preference = options['preference'];
 
-
   /**
-   * @private
+   * @protected
    * @type {!goog.async.Deferred} deferred db instance.
    */
   this.deferredDb_ = new goog.async.Deferred();
@@ -87,6 +78,13 @@ ydn.db.Core = function(opt_dbname, opt_schema, opt_options) {
     this.setName(opt_dbname);
   }
 };
+
+
+/**
+ * @protected
+ * @type {ydn.db.Db} db instance.
+ */
+ydn.db.Core.prototype.db_ = null;
 
 
 /**
@@ -209,20 +207,20 @@ ydn.db.Core.prototype.initDatabase = function() {
     if (goog.userAgent.product.ASSUME_CHROME ||
       goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
-      this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema);
+      this.db_ = new ydn.db.IndexedDbWrapper(this.db_name, this.schema);
     } else if (goog.userAgent.product.ASSUME_SAFARI) {
       // for dead-code elimination
-      this.db_ = new ydn.db.WebSql(this.db_name, this.schema);
+      this.db_ = new ydn.db.WebSqlWrapper(this.db_name, this.schema);
     } else {
       // go according to ordering
       var preference = this.preference || ydn.db.Core.PREFERENCE;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
-        if (db_type == ydn.db.IndexedDbWrapper.TYPE && ydn.db.IndexedDb.isSupported()) { // run-time detection
-          this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema);
+        if (db_type == ydn.db.IndexedDbWrapper.TYPE && ydn.db.IndexedDbWrapper.isSupported()) { // run-time detection
+          this.db_ = new ydn.db.IndexedDbWrapper(this.db_name, this.schema);
           break;
-        } else if (db_type == ydn.db.WebSqlWrapper.TYPE && ydn.db.WebSql.isSupported()) {
-          this.db_ = new ydn.db.WebSql(this.db_name, this.schema);
+        } else if (db_type == ydn.db.WebSqlWrapper.TYPE && ydn.db.WebSqlWrapper.isSupported()) {
+          this.db_ = new ydn.db.WebSqlWrapper(this.db_name, this.schema);
           break;
         } else if (db_type == ydn.db.LocalStorage.TYPE && ydn.db.LocalStorage.isSupported()) {
           this.db_ = new ydn.db.LocalStorage(this.db_name, this.schema);
@@ -288,22 +286,12 @@ ydn.db.Core.prototype.close = function() {
 
 /**
  * Return underlining database instance.
- * @return {ydn.db.QueryService} Database if exists.
+ * @return {ydn.db.Db} Database if exists.
  */
 ydn.db.Core.prototype.getDb = function() {
   return this.db_ || null;
 };
 
-
-/**
- * For undocumented export property to minified js file for hackers.
- * @deprecated this will be always deprecated.
- */
-ydn.db.Core.prototype.getDbInstance_ = function() {
-  if (this.db_) {
-    return this.db_.getDb();
-  }
-};
 
 
 /**
@@ -316,146 +304,22 @@ ydn.db.Core.prototype.getDeferredDb = function() {
 
 
 /**
- * Put an object to the store.
- *
- * @export
- * @param {string} store_name the name of store to use.
- * @param {!Object|Array.<!Object>} value object to put.
- * @return {!goog.async.Deferred} return key in deferred function. On error,
- * an {@code Error} object is return as received from the mechanism.
+ * For undocumented export property to minified js file for hackers.
+ * @deprecated this will be always deprecated.
  */
-ydn.db.Core.prototype.put = function(store_name, value) {
+ydn.db.Core.prototype.getDbInstance_ = function() {
   if (this.db_) {
-    return this.db_.put(store_name, value);
-  } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb_.addCallback(function(db) {
-      db.put(store_name, value).chainDeferred(df);
-    });
-    return df;
+    return this.db_.getDbInstance();
   }
 };
 
-
-/**
- * Retrieve an object.
- *
- * Note: This will not raise error to get non-existing object.
- * @export
- * @param {string|!ydn.db.Query|!ydn.db.Key} store_name
- * The name of store to retrive object from.
- * @param {(string|number)=} opt_key the key of an object to be retrieved.
- * if not provided, all entries in the store will return.
- * @return {!goog.async.Deferred} return resulting object in deferred function.
- * If not found, {@code undefined} is return.
- */
-ydn.db.Core.prototype.get = function (store_name, opt_key) {
-
-  if (this.db_) {
-    return this.db_.get(store_name, opt_key);
-  } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb_.addCallback(function (db) {
-      db.get(store_name, opt_key).chainDeferred(df);
-    });
-    return df;
-  }
-
-};
-
-/**
- * Retrieve an object from store.
- * @param {ydn.db.Key} key
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.Core.prototype.getByKey = function(key) {
-  if (this.db_) {
-    return this.db_.getByKey(key);
-  } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb_.addCallback(function(db) {
-      db.getByKey(key).chainDeferred(df);
-    });
-    return df;
-  }
-};
-
-
-/**
- * Remove a specific entry or all entries from a store.
- *
- * @export
- * @param {string=} opt_store_name the store name to use.
- * If not provided all entries in the store will be cleared.
- * @param {(string|number)=} opt_key delete a specific row.
- * @see {@link #remove}
- * @return {!goog.async.Deferred} return {@code true} in the deferred function.
- */
-ydn.db.Core.prototype.clear = function(opt_store_name, opt_key) {
-  if (this.db_) {
-    return this.db_.clear(opt_store_name, opt_key);
-  } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb_.addCallback(function(db) {
-      db.clear(opt_store_name, opt_key).chainDeferred(df);
-    });
-    return df;
-  }
-};
-
-
-/**
- * Get number of items in a store.
- *
- * @export
- * @param {string=} opt_store_name store name, if not provided, count all entries
- * in the database.
- * @return {!goog.async.Deferred} return number of items in deferred function.
- */
-ydn.db.Core.prototype.count = function(opt_store_name) {
-  if (this.db_) {
-    return this.db_.count(opt_store_name);
-  } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb_.addCallback(function(db) {
-      db.count(opt_store_name).chainDeferred(df);
-    });
-    return df;
-  }
-};
-
-
-/**
- * Fetch result of a query and return as array.
- *
- * @export
- * @param {!ydn.db.Query|!Array.<!ydn.db.Key>|string} q query.
- * @param {number=} limit
- * @param {number=} offset
- * @return {!goog.async.Deferred}
- */
-ydn.db.Core.prototype.fetch = function (q, limit, offset) {
-
-  if (goog.isString(q)) {
-    return this.fetch(new ydn.db.Query(q), limit, offset);
-  } else {
-    if (this.db_) {
-      return this.db_.fetch(q, limit, offset);
-    } else {
-      var df = new goog.async.Deferred();
-      this.deferredDb_.addCallback(function (db) {
-        db.fetch(q, limit, offset).chainDeferred(df);
-      });
-      return df;
-    }
-  }
-};
 
 
 
 /**
  * Run a transaction.
  * @export
+ * @final
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<!ydn.db.Key|string|ydn.db.Query>} keys list of keys or
  * store name involved in the transaction.
@@ -497,42 +361,9 @@ ydn.db.Core.prototype.transaction = function (trFn, keys, mode, opt_args) {
 
 
 
-/**
- * Debug information about this database.
- * @private
- */
-ydn.db.Core.prototype.disp_ = function() {
-  if (goog.DEBUG) {
-    var schema = this.schema;
-    window.console.log(this.db_name + ' ver: ' + schema.version);
-
-    /**
-     *
-     * @param {ydn.db.StoreSchema} table table.
-     * @param {number} count number.
-     */
-    var print_table_description = function(table, count) {
-      window.console.log('Table: ' + table.name + ', keyPath: ' +
-        table.keyPath + ', count: ' + count);
-    };
-
-    for (var table, i = 0; table = schema.stores[i]; i++) {
-      this.count(table.name).addBoth(
-        goog.partial(print_table_description, table));
-    }
-  }
-};
-
-
 goog.exportSymbol('ydn.db.Core', ydn.db.Core);
-goog.exportProperty(goog.async.Deferred.prototype, 'success',
-  goog.async.Deferred.prototype.addCallback);
-goog.exportProperty(goog.async.Deferred.prototype, 'error',
-  goog.async.Deferred.prototype.addErrback);
-
-// somehow these methods are not exported via @export annotation
-goog.exportProperty(ydn.db.Core.prototype, 'isReady',
-  ydn.db.Core.prototype.isReady);
+//goog.exportProperty(ydn.db.Core.prototype, 'isReady',
+//  ydn.db.Core.prototype.isReady);
 goog.exportProperty(ydn.db.Core.prototype, 'type',
   ydn.db.Core.prototype.type);
 goog.exportProperty(ydn.db.Core.prototype, 'setSchema',
@@ -541,14 +372,6 @@ goog.exportProperty(ydn.db.Core.prototype, 'setName',
   ydn.db.Core.prototype.setName);
 goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
   ydn.db.Core.prototype.getConfig);
-goog.exportProperty(ydn.db.Core.prototype, 'fetch',
-  ydn.db.Core.prototype.fetch);
-goog.exportProperty(ydn.db.Core.prototype, 'get',
-  ydn.db.Core.prototype.get);
-goog.exportProperty(ydn.db.Core.prototype, 'put',
-  ydn.db.Core.prototype.put);
-goog.exportProperty(ydn.db.Core.prototype, 'clear',
-  ydn.db.Core.prototype.clear);
 goog.exportProperty(ydn.db.Core.prototype, 'transaction',
   ydn.db.Core.prototype.transaction);
 // for hacker

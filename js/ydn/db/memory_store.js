@@ -29,6 +29,7 @@ goog.require('ydn.db.QueryService');
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
+ * @implements {ydn.db.Db}
  * @constructor
  */
 ydn.db.MemoryStore = function(dbname, schema, opt_localStorage) {
@@ -92,6 +93,14 @@ ydn.db.MemoryStore.isSupported = function() {
 
 ydn.db.MemoryStore.prototype.getDb_ = function() {
   return this.cache_;
+};
+
+
+/**
+ *
+ */
+ydn.db.MemoryStore.prototype.getDbInstance = function() {
+  return this.cache_ || null;
 };
 
 

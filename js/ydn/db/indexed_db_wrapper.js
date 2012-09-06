@@ -36,6 +36,7 @@ goog.require('goog.debug.Error');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
+ * @implements {ydn.db.Db}
  * @constructor
  */
 ydn.db.IndexedDbWrapper = function(dbname, schema) {
@@ -233,11 +234,11 @@ ydn.db.IndexedDbWrapper.prototype.type = function() {
   return ydn.db.IndexedDbWrapper.TYPE;
 };
 
+
 /**
- * Return underlining database instance.
- * @return {IDBDatabase} Database if exists.
+ *
  */
-ydn.db.IndexedDbWrapper.prototype.getDb = function() {
+ydn.db.IndexedDbWrapper.prototype.getDbInstance = function() {
   return this.db_ || null;
 };
 

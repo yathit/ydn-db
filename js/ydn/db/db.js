@@ -44,33 +44,12 @@ ydn.db.DEFAULT_BLOB_COLUMN = '_default_';
 
 
 /**
- * @extends {ydn.db.QueryService}
  * @interface
  */
 ydn.db.Db = function() {};
 
 
 
-
-//
-///**
-// * Retrieve an object from store.
-// * @param {ydn.db.Key} key
-// * @return {!goog.async.Deferred} return object in deferred function.
-// */
-//ydn.db.Db.prototype.getByKey = function(key) {
-//
-//};
-
-
-/**
- * Get number of items stored.
- * @param {string=} opt_table table name, if not provided, count all entries.
- * @return {!goog.async.Deferred} return number of items in deferred function.
- */
-ydn.db.Db.prototype.count = function(opt_table) {
-
-};
 
 
 /**
@@ -87,6 +66,13 @@ ydn.db.Db.prototype.close = function() {
  * @return {string}
  */
 ydn.db.Db.prototype.type = function() {
+};
+
+/**
+ *
+ * @return {*}
+ */
+ydn.db.Db.prototype.getDbInstance = function() {
 };
 
 

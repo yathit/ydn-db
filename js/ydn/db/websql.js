@@ -49,15 +49,6 @@ goog.inherits(ydn.db.WebSql, ydn.db.WebSqlWrapper);
 
 
 /**
- *
- * @return {boolean} true if supported.
- */
-ydn.db.WebSql.isSupported = function() {
-  return goog.isFunction(goog.global.openDatabase);
-};
-
-
-/**
  * @const
  * @type {boolean} debug flag.
  */

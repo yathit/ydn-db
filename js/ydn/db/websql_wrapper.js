@@ -37,6 +37,7 @@ goog.require('ydn.db');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
+ * @implements {ydn.db.Db}
  * @constructor
  */
 ydn.db.WebSqlWrapper = function(dbname, schema) {
@@ -88,9 +89,17 @@ ydn.db.WebSqlWrapper.prototype.type = function() {
   return ydn.db.WebSqlWrapper.TYPE;
 };
 
+//
+//ydn.db.WebSqlWrapper.prototype.getDb = function() {
+//  return this.sdb_;
+//};
 
-ydn.db.WebSqlWrapper.prototype.getDb = function() {
-  return this.sdb_;
+
+/**
+ *
+ */
+ydn.db.WebSqlWrapper.prototype.getDbInstance = function() {
+  return this.sdb_ || null;
 };
 
 
