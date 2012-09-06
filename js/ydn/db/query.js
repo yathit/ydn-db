@@ -26,7 +26,7 @@ goog.require('goog.functions');
 
 /**
  * @param {string} store store name.
- * @param {string} index store field, where key query is preformed. If not
+ * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {(!ydn.db.Query.KeyRangeJson|!ydn.db.Query.IDBKeyRange|undefined)=}
  * keyRange configuration in
@@ -46,7 +46,7 @@ ydn.db.Query = function(store, index, keyRange, direction) {
   /**
    * Indexed field.
    * @final
-   * @type {string}
+   * @type {string|undefined}
    */
   this.index = index;
 
@@ -384,6 +384,7 @@ ydn.db.Query.prototype.toWhereClause = function() {
 
   var where_clause = '';
   var params = [];
+  goog.asserts.assertString(this.index);
   var column = goog.string.quote(this.index);
 
   if (ydn.db.Query.isLikeOperation_(this.keyRange)) {

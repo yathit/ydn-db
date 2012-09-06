@@ -13,7 +13,7 @@ goog.require('ydn.db.Query');
  * @extends {ydn.db.Query}
  * @param {!ydn.db.QueryServiceProvider} db db instance.
  * @param {string} store store name.
- * @param {string} index store field, where key query is preformed. If not
+ * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {(!ydn.db.Query.KeyRangeJson|!ydn.db.Query.IDBKeyRange|undefined)=}
  * keyRange configuration in

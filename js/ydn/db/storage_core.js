@@ -34,9 +34,11 @@ goog.provide('ydn.db.StorageCore');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.LocalStorage');
-goog.require('ydn.db.IndexedDb');
+goog.require('ydn.db.IndexedDbWrapper');
+goog.require('ydn.db.SessionStorage');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
+goog.require('ydn.db.WebSqlWrapper');
 goog.require('ydn.object');
 
 
@@ -430,21 +432,25 @@ ydn.db.StorageCore.prototype.count = function(opt_store_name) {
  * Fetch result of a query and return as array.
  *
  * @export
- * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
+ * @param {!ydn.db.Query|!Array.<!ydn.db.Key>|string} q query.
  * @param {number=} limit
  * @param {number=} offset
  * @return {!goog.async.Deferred}
  */
-ydn.db.StorageCore.prototype.fetch = function(q, limit, offset) {
+ydn.db.StorageCore.prototype.fetch = function (q, limit, offset) {
 
-  if (this.db_) {
-    return this.db_.fetch(q, limit, offset);
+  if (goog.isString(q)) {
+    return this.fetch(new ydn.db.Query(q), limit, offset);
   } else {
-    var df = new goog.async.Deferred();
-    this.deferredDb_.addCallback(function(db) {
-      db.fetch(q, limit, offset).chainDeferred(df);
-    });
-    return df;
+    if (this.db_) {
+      return this.db_.fetch(q, limit, offset);
+    } else {
+      var df = new goog.async.Deferred();
+      this.deferredDb_.addCallback(function (db) {
+        db.fetch(q, limit, offset).chainDeferred(df);
+      });
+      return df;
+    }
   }
 };
 

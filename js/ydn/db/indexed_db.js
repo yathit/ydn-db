@@ -562,6 +562,7 @@ ydn.db.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit, offse
  * @return {!goog.async.Deferred}
  */
 ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
+
   var self = this;
   var df, tx;
 

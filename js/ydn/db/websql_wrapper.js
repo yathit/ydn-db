@@ -344,7 +344,6 @@ ydn.db.WebSqlWrapper.prototype.parseRow = function(table, row) {
   goog.asserts.assertObject(row);
   var value = ydn.json.parse(row[ydn.db.DEFAULT_BLOB_COLUMN]);
   var key = row[table.keyPath]; // NOT: table.getKey(row);
-  goog.asserts.assertString(key);
   table.setKey(value, key);
   for (var j = 0; j < table.indexes.length; j++) {
     var index = table.indexes[j];

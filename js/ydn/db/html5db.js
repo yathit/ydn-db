@@ -17,6 +17,7 @@
  */
 
 goog.provide('ydn.db.LocalStorage');
+goog.provide('ydn.db.SessionStorage');
 goog.require('ydn.db.MemoryStore');
 
 
