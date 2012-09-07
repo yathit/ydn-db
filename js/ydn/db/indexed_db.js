@@ -20,9 +20,9 @@
 
 goog.provide('ydn.db.IndexedDb');
 goog.require('goog.async.DeferredList');
+goog.require('ydn.db.IndexedDbWrapper');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
-goog.require('ydn.db.IndexedDbWrapper');
 
 
 /**
@@ -45,7 +45,7 @@ goog.inherits(ydn.db.IndexedDb, ydn.db.IndexedDbWrapper);
  *
  * @const {boolean} turn on debug flag to dump object.
  */
-ydn.db.IndexedDb.DEBUG = ydn.db.IndexedDbWrapper.DEBUG || false;
+ydn.db.IndexedDb.DEBUG = goog.DEBUG && (ydn.db.IndexedDbWrapper.DEBUG || false);
 
 
 /**
@@ -59,8 +59,8 @@ ydn.db.IndexedDb.prototype.logger =
 
 /**
  * Execute GET request either storing result to tx or callback to df.
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx
- * @param {goog.async.Deferred} df
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} store_name table name.
  * @param {string|number} id id to get.
  * @private
@@ -75,33 +75,24 @@ ydn.db.IndexedDb.prototype.executeGet_ = function(tx, df, store_name, id) {
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log([store_name, id, event]);
     }
-    if (df) {
-      df.callback(event.target.result);
-    } else {
-      tx.set(event.target.result);
-    }
+    df.callback(event.target.result);
   };
 
   request.onerror = function(event) {
-    tx.setError();
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log([store_name, id, event]);
     }
     me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
         event.message);
-    if (df) {
-      df.errback(event);
-    } else {
-      tx.abort();
-    }
+    df.errback(event);
   };
 };
 
 
 /**
  * Execute PUT request either storing result to tx or callback to df.
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx
- * @param {goog.async.Deferred} df
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} table table name.
  * @param {!Object|Array.<!Object>} value object to put.
  * @private
@@ -121,23 +112,14 @@ ydn.db.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
         results.push(event.target.result);
         var last = results.length == value.length;
         if (last) {
-          if (df) {
-            df.callback(results);
-          } else {
-            tx.set(results);
-          }
+          df.callback(results);
         }
       };
       request.onerror = function(event) {
-        tx.setError();
         if (ydn.db.IndexedDb.DEBUG) {
           window.console.log([event, table, value]);
         }
-        if (df) {
-          df.errback(event);
-        } else {
-          tx.abort();
-        }
+        df.errback(event);
       };
 
     }
@@ -147,26 +129,16 @@ ydn.db.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log([event, table, value]);
       }
-      if (df) {
-        df.callback(event.target.result);
-      } else {
-        tx.set(event.target.result)
-      }
+      df.callback(event.target.result);
     };
     request.onerror = function(event) {
-      tx.setError();
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log([event, table, value]);
       }
-      if (df) {
-        df.errback(event);
-      } else {
-        tx.set(event);
-      }
+      df.errback(event);
     };
   }
 };
-
 
 
 /**
@@ -174,57 +146,63 @@ ydn.db.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
  * immediately.
  *
  * This method must be {@link #runInTransaction}.
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx
- * @param {goog.async.Deferred} df
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string=} opt_store_name store name.
  * @param {(string|number)=} opt_key object key.
+ * @private
  */
-ydn.db.IndexedDb.prototype.executeClear_ = function (tx, df, opt_store_name, opt_key) {
+ydn.db.IndexedDb.prototype.executeClear_ = function(tx, df, opt_store_name,
+                                                    opt_key) {
 
-  var clearStore = function (df, store_name, opt_key) {
-    var store = tx.objectStore(store_name);
-    var request;
-    if (goog.isDef(opt_key)) {
-      request = store['delete'](opt_key);
-    } else {
-      request = store.clear();
-    }
-    request.onsuccess = function (event) {
+  var request, store;
+  if (goog.isDef(opt_key)) {
+    goog.asserts.assertString(opt_store_name);
+    store = tx.objectStore(opt_store_name);
+    request = store['delete'](opt_key);
+    request.onsuccess = function(event) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log([tx, store_name, opt_key, event]);
       }
-      tx.result = event.target.result;
-      if (df) {
-        df.callback(event.target.result);
-      }
+      df.callback(event.target.result);
     };
-    request.onerror = function (event) {
-      tx.setError();
+    request.onerror = function(event) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log([tx, store_name, opt_key, event]);
       }
-      if (df) {
-        df.errback(event);
-      } else {
-        tx.abort();
-      }
+      df.errback(event);
     };
-  };
-
-  if (goog.isDef(opt_store_name)) {
-    clearStore(df, opt_store_name, opt_key);
   } else {
-    var dfs = [];
-    for (var i = 0; i < this.schema.stores.length; i++) {
-      var idf = new goog.async.Deferred();
-      dfs[i] = idf;
-      clearStore(idf, this.schema.stores[i].name, opt_key);
-    }
-    if (goog.isDefAndNotNull(df)) {
-      var all_df = new goog.async.DeferredList(dfs);
-      all_df.chainDeferred(df);
+    var store_names_to_clear = goog.isDef(opt_store_name) ? [opt_store_name] :
+      this.schema.getStoreNames();
+    var n_todo = store_names_to_clear.length;
+    var n_done = 0;
+
+    for (var i = 0; i < n_todo; i++) {
+      var store_name = store_names_to_clear[i];
+      store = tx.objectStore(store_name);
+      request = store.clear();
+      request.onsuccess = function(event) {
+        n_done++;
+        if (ydn.db.IndexedDb.DEBUG) {
+          window.console.log([tx, n_done, event]);
+        }
+        if (n_done == n_todo) {
+          df.callback(event.target.result);
+        }
+      };
+      request.onerror = function(event) {
+        n_done++;
+        if (ydn.db.IndexedDb.DEBUG) {
+          window.console.log([tx, n_done, event]);
+        }
+        if (n_done == n_todo) {
+          df.errback(event);
+        }
+      };
     }
   }
+
 };
 
 
@@ -242,17 +220,17 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
     }
   }
 
-  var tx = this.getTx();
+  var tx = this.getActiveTx();
+  var df = new goog.async.Deferred();
   if (tx) {
-    var df = new goog.async.Deferred();
     me.executePut_(tx, df, table, value);
     return df;
   } else {
-    return this.doTransaction_(function(tx) {
-      me.executePut_(tx, null, table, value);
+    this.doTransaction_(function(tx) {
+      me.executePut_(tx, df, table, value);
     }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
   }
-
+  return df;
 };
 
 
@@ -278,7 +256,8 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
 //    return goog.async.Deferred.succeed([]);
 //  }
 
-  return this.doTransaction_(function(tx) {
+  var df = new goog.async.Deferred();
+  this.doTransaction_(function(tx) {
     var store = tx.objectStore(table);
 
     // Get everything in the store;
@@ -307,19 +286,20 @@ ydn.db.IndexedDb.prototype.getAll_ = function(table) {
     };
 
     request.onerror = function(event) {
-      tx.setError();
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
     };
 
   }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
+
+  return df;
 };
 
 
 /**
  *
- * @param {!ydn.db.Query} q
+ * @param {!ydn.db.Query} q query object.
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
@@ -347,7 +327,7 @@ ydn.db.IndexedDb.prototype.getQuery_ = function(q) {
  * param {number=} limit maximun number of entries.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.IndexedDb.prototype.get = function (arg1, key) {
+ydn.db.IndexedDb.prototype.get = function(arg1, key) {
 
   if (arg1 instanceof ydn.db.Query) {
     return this.getQuery_(arg1);
@@ -362,31 +342,32 @@ ydn.db.IndexedDb.prototype.get = function (arg1, key) {
       store_name = arg1;
       id = key;
     }
-    var tx = this.getTx();
+    var tx = this.getActiveTx();
+    var df = new goog.async.Deferred();
     if (tx) {
-      var df = new goog.async.Deferred();
       this.executeGet_(tx, df, store_name, id);
-      return df;
     } else {
       var me = this;
-      return this.doTransaction_(function (tx) {
-        me.executeGet_(tx, null, store_name, id);
+      this.doTransaction_(function(tx) {
+        me.executeGet_(tx, df, store_name, id);
       }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
     }
   }
+  return df;
 };
 
 
 
 /**
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx
- * @param {!goog.async.Deferred} df
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!Array.<!ydn.db.Key>} keys query.
- * @param {number=} limit
- * @param {number=} offset
+ * @param {number=} limit limit.
+ * @param {number=} offset offset.
  * @private
  */
-ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit, offset) {
+ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit,
+                                                        offset) {
   var me = this;
 
   var n = keys.length;
@@ -406,11 +387,7 @@ ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit, off
       }
       result.push(event.target.result);
       if (result.length == limit) {
-        if (df) {
           df.callback(result);
-        } else {
-          tx.set(result);
-        }
       }
     };
 
@@ -418,12 +395,7 @@ ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit, off
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-      tx.setError();
-      if (df) {
         df.errback(event);
-      } else {
-        tx.abort();
-      }
     };
   }
 
@@ -432,14 +404,15 @@ ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit, off
 
 
 /**
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx
- * @param {!goog.async.Deferred} df
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!ydn.db.Query} q query.
- * @param {number=} limit
- * @param {number=} offset
+ * @param {number=} limit limit.
+ * @param {number=} offset offset.
  * @private
  */
-ydn.db.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit, offset) {
+ydn.db.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit,
+                                                         offset) {
   var me = this;
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
@@ -488,7 +461,8 @@ ydn.db.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit, offse
     //console.log(cursor);
     if (cursor) {
 
-      var value = /** @type {!Object} */ cursor['value']; // should not necessary if externs are
+      var value = /** @type {!Object} */ cursor['value']; // should not
+      // necessary if externs are
 
       var to_continue = !goog.isFunction(q.continue) || q.continue(value);
 
@@ -509,24 +483,16 @@ ydn.db.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit, offse
         }
       }
 
-      if (to_continue && (!goog.isDef(end) || (idx+1) < end)) {
+      if (to_continue && (!goog.isDef(end) || (idx + 1) < end)) {
         //cursor.continue();
         cursor['continue'](); // Note: Must be quoted to avoid parse error.
       } else {
         var result = is_reduce ? previousResult : results;
-        if (df) {
-          df.callback(result);
-        } else {
-          tx.set(result);
-        }
+        df.callback(result);
       }
     } else {
       var result = is_reduce ? previousResult : results;
-      if (df) {
-        df.callback(result);
-      } else {
-        tx.set(result);
-      }
+      df.callback(result);
     }
   };
 
@@ -534,12 +500,7 @@ ydn.db.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit, offse
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log([q, event]);
     }
-    tx.setError();
-    if (df) {
-      df.errback(event);
-    } else {
-      tx.set(event);
-    }
+    df.errback(event);
   };
 
 };
@@ -547,9 +508,9 @@ ydn.db.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit, offse
 
 /**
  * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
- * @param {number=} limit
- * @param {number=} offset
- * @return {!goog.async.Deferred}
+ * @param {number=} limit limit.
+ * @param {number=} offset offset.
+ * @return {!goog.async.Deferred} result in deferred.
  */
 ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
 
@@ -568,27 +529,27 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
         stores.push(q[i].store_name);
       }
     }
-    tx = this.getTx();
+    tx = this.getActiveTx();
+    df = new goog.async.Deferred();
     if (tx) {
-      df = new goog.async.Deferred();
       this.executeFetchKeys_(tx, df, q, limit, offset);
-      return df;
     } else {
-      return this.doTransaction_(function (tx) {
-        self.executeFetchKeys_(tx, null, q, limit, offset);
+      this.doTransaction_(function(tx) {
+        self.executeFetchKeys_(tx, df, q, limit, offset);
       }, stores, ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
     }
+    return df;
   } else if (q instanceof ydn.db.Query) {
-    tx = this.getTx();
+    tx = this.getActiveTx();
+    df = new goog.async.Deferred();
     if (tx) {
-      df = new goog.async.Deferred();
       this.executeFetchQuery_(tx, df, q, limit, offset);
-      return df;
     } else {
-      return this.doTransaction_(function (tx) {
-        self.executeFetchQuery_(tx, null, q, limit, offset);
+      this.doTransaction_(function(tx) {
+        self.executeFetchQuery_(tx, df, q, limit, offset);
       }, [q.store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
     }
+    return df;
   } else {
     throw Error('Invalid input: ' + q);
   }
@@ -605,11 +566,12 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
 ydn.db.IndexedDb.prototype.deleteItem_ = function(table, id) {
   var me = this;
 
-  if (!this.schema.hasStore(table)) {
+  if (goog.DEBUG && !this.schema.hasStore(table)) {
     throw Error(table + ' not exist in ' + this.dbname);
   }
 
-  return this.doTransaction_(function(tx) {
+  var df = new goog.async.Deferred();
+  this.doTransaction_(function(tx) {
     var store = tx.objectStore(table);
     var request = store['delete'](id);
 
@@ -617,16 +579,16 @@ ydn.db.IndexedDb.prototype.deleteItem_ = function(table, id) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-      tx.set(true); // setting 'true' meaningful ?
+      df.callback(true); // setting 'true' meaningful ?
     };
     request.onerror = function(event) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-      tx.setError();
-      tx.set(event);
+      df.errback(event);
     };
   }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
+  return df;
 };
 
 
@@ -643,36 +605,38 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
     throw Error(table + ' not exist in ' + this.dbname);
   }
 
-  return this.doTransaction_(function(tx) {
+  var df = new goog.async.Deferred();
+  this.doTransaction_(function(tx) {
     var request = tx.getTx().deleteObjectStore(table);
 
     request.onsuccess = function(event) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-      tx.set(true);
+      df.callback(true);
     };
     request.onerror = function(event) {
-      tx.setError();
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-      tx.set(event);
+      df.errback(event);
     };
   }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
+  return df;
 };
 
 
 ///**
 // *
-// * @param {ydn.db.IndexedDbWrapper.Transaction} tx
-// * @param {goog.async.Deferred} df
+// * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+// * @param {goog.async.Deferred} df deferred to feed result.
 // * @param {string=} opt_table delete the table as provided otherwise
 // * delete all stores.
 // * @param {string=} opt_key delete a specific row.
 // * @private
 // */
-//ydn.db.IndexedDb.prototype.executeClear_ = function(tx, df, opt_table, opt_key) {
+//ydn.db.IndexedDb.prototype.executeClear_ = function(tx, df, opt_table,
+// opt_key) {
 //
 //};
 
@@ -717,31 +681,32 @@ ydn.db.IndexedDb.prototype.remove = function(opt_table, opt_id) {
 
 
 /**
- *
+ * @param {number} table store name.
+ * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.IndexedDb.prototype.count = function(table) {
 
   var self = this;
 
-  return this.doTransaction_(function(tx) {
+  var df = new goog.async.Deferred();
+  this.doTransaction_(function(tx) {
     var store = tx.objectStore(table);
     var request = store.count();
     request.onsuccess = function(event) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-      tx.set(event.target.result);
+      df.callback(event.target.result);
     };
     request.onerror = function(event) {
-      tx.setError();
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-      tx.set(event);
+      df.callback(event);
     };
 
   }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
-
+  return df;
 };
 
 
@@ -757,7 +722,10 @@ ydn.db.IndexedDb.prototype.listKeys = function(store_name) {
     ' not exists in ' + this.dbname);
   var column = this.schema[store_name].keyPath;
 
-  return this.doTransaction_(function(tx) {
+  var keys = [];
+
+  var df = new goog.async.Deferred();
+  this.doTransaction_(function(tx) {
     //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
     // ' in ' + table);
     var store = tx.objectStore(store_name);
@@ -779,41 +747,41 @@ ydn.db.IndexedDb.prototype.listKeys = function(store_name) {
       var cursor = /** @type {IDBCursor} */ (event.target.result);
       //console.log(cursor);
       if (cursor) {
-        tx.add(cursor['value'][column]); // should not necessary if
-        // externs are properly updated.
+        keys.push(cursor['key']);
         //cursor.continue();
         cursor['continue'](); // Note: Must be quoted to avoid parse error.
+      } else { // no more
+        df.callback(keys);
       }
     };
 
     request.onerror = function(event) {
-      tx.setError();
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-      tx.set(event);
+      df.errback(event);
     };
 
   }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
-
+  return df;
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.IndexedDb.prototype.close = function () {
+ydn.db.IndexedDb.prototype.close = function() {
 
   var df = new goog.async.Deferred();
   var request = this.db.close();
 
-  request.onsuccess = function (event) {
+  request.onsuccess = function(event) {
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log(event);
     }
     df.callback(true);
   };
-  request.onerror = function (event) {
+  request.onerror = function(event) {
     if (ydn.db.IndexedDb.DEBUG) {
       window.console.log(event);
     }
@@ -838,16 +806,16 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
   var store_names = goog.isDefAndNotNull(opt_table) ? [opt_table] :
       this.schema.getStoreNames();
   var self = this;
-  var tx = this.getTx();
+  var tx = this.getActiveTx();
+  var df = new goog.async.Deferred();
   if (tx) {
-    var df = new goog.async.Deferred();
     this.executeClear_(tx, df, opt_table, opt_key);
-    return df;
   } else {
-    return this.doTransaction_(function(tx) {
-      self.executeClear_(tx, null, opt_table, opt_key);
+    this.doTransaction_(function(tx) {
+      self.executeClear_(tx, df, opt_table, opt_key);
     }, store_names, ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
   }
+  return df;
 };
 
 
@@ -871,7 +839,7 @@ ydn.db.IndexedDb.prototype.transaction = function(trFn, scopes, mode) {
     // now execute transaction process
     trFn(tx.getTx());
 
-  }, scopes, mode, df);
+  }, scopes, mode);
 
 
   return df;

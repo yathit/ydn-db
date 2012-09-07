@@ -21,14 +21,14 @@
 goog.provide('ydn.db.IndexedDbWrapper');
 goog.require('goog.Timer');
 goog.require('goog.async.DeferredList');
+goog.require('goog.debug.Error');
 goog.require('goog.events');
 goog.require('ydn.async');
+goog.require('ydn.db');
 goog.require('ydn.db.DatabaseSchema');
+goog.require('ydn.db.Db');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
-goog.require('ydn.db');
-goog.require('goog.debug.Error');
-goog.require('ydn.db.Db');
 
 
 /**
@@ -61,10 +61,11 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // version could be number of string.
   // In chrome, version is taken as description.
-  var msg = 'Trying to open database: ' + this.dbname + ' ver: ' + this.schema.version;
+  var msg = 'Trying to open database: ' + this.dbname + ' ver: ' +
+    this.schema.version;
   me.logger.finer(msg);
   if (ydn.db.IndexedDbWrapper.DEBUG) {
-    window.console.log(msg)
+    window.console.log(msg);
   }
 
   /**
@@ -92,7 +93,7 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
         me.schema.version;
       me.logger.finer(msg);
       if (ydn.db.IndexedDbWrapper.DEBUG) {
-        window.console.log(msg)
+        window.console.log(msg);
       }
 
       var setVrequest = db.setVersion(me.schema.version); // for chrome
@@ -146,7 +147,7 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
     var msg = 'opening database ' + dbname + ' failed.';
     me.logger.severe(msg);
     if (ydn.db.IndexedDbWrapper.DEBUG) {
-      window.console.log(msg)
+      window.console.log(msg);
     }
     me.db = null;
   };
@@ -155,7 +156,7 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
     var msg = 'database ' + dbname + ' block, close other connections.';
     me.logger.severe(msg);
     if (ydn.db.IndexedDbWrapper.DEBUG) {
-      window.console.log(msg)
+      window.console.log(msg);
     }
     me.db = null;
   };
@@ -173,7 +174,7 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
 
   // extra checking whether, database is OK
   if (goog.DEBUG || ydn.db.IndexedDbWrapper.DEBUG) {
-    goog.Timer.callOnce(function () {
+    goog.Timer.callOnce(function() {
       if (openRequest.readyState != 'done') {
         // what we observed is chrome attached error object to openRequest
         // but did not call any of over listening events.
@@ -184,7 +185,7 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
           window.console.log(openRequest);
         }
         me.abortTxQueue(new Error(msg));
-        goog.Timer.callOnce(function () {
+        goog.Timer.callOnce(function() {
           // we invoke error in later thread, so that task queue have
           // enough window time to clean up.
           throw Error(openRequest['error'] || msg);
@@ -200,14 +201,15 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
  *
  * @const {boolean} turn on debug flag to dump object.
  */
-ydn.db.IndexedDbWrapper.DEBUG = false;
+ydn.db.IndexedDbWrapper.DEBUG = goog.DEBUG && false;
 
 
 /**
  * @const
  * @type {number}
  */
-ydn.db.IndexedDbWrapper.timeOut =  goog.DEBUG || ydn.db.IndexedDbWrapper.DEBUG ? 500 : 3000;
+ydn.db.IndexedDbWrapper.timeOut = goog.DEBUG || ydn.db.IndexedDbWrapper.DEBUG ?
+  500 : 3000;
 
 
 
@@ -229,7 +231,7 @@ ydn.db.IndexedDbWrapper.TYPE = 'indexeddb';
 
 
 /**
- * @return {string}
+ * @return {string} storage mechanism type.
  */
 ydn.db.IndexedDbWrapper.prototype.type = function() {
   return ydn.db.IndexedDbWrapper.TYPE;
@@ -237,7 +239,7 @@ ydn.db.IndexedDbWrapper.prototype.type = function() {
 
 
 /**
- *
+ * @return {IDBDatabase} this instance.
  */
 ydn.db.IndexedDbWrapper.prototype.getDbInstance = function() {
   return this.db_ || null;
@@ -359,7 +361,7 @@ ydn.db.IndexedDbWrapper.prototype.hasStore_ = function(db, table) {
  * Migrate from current version to the last version.
  * @protected
  * @param {IDBDatabase} db database instance.
- * @param {boolean=} is_caller_setversion call from set version;
+ * @param {boolean=} is_caller_setversion call from set version;.
  */
 ydn.db.IndexedDbWrapper.prototype.migrate = function(db, is_caller_setversion) {
 
@@ -393,7 +395,7 @@ ydn.db.IndexedDbWrapper.prototype.migrate = function(db, is_caller_setversion) {
       for (var j = 0; j < table.indexes.length; j++) {
         var index = table.indexes[j];
         if (!indexNames.contains(index.name)) {
-          store.createIndex(index.name, index.name, {unique:index.unique});
+          store.createIndex(index.name, index.name, {unique: index.unique});
           created++;
         }
       }
@@ -408,13 +410,13 @@ ydn.db.IndexedDbWrapper.prototype.migrate = function(db, is_caller_setversion) {
         ' index created, ' + deleted + ' index deleted.');
     } else {
       store = db.createObjectStore(table.name,
-        {keyPath:table.keyPath, autoIncrement:table.autoIncrement});
+        {keyPath: table.keyPath, autoIncrement: table.autoIncrement});
 
       for (var j = 0; j < table.indexes.length; j++) {
         var index = table.indexes[j];
         goog.asserts.assertString(index.name, 'name required.');
         goog.asserts.assertBoolean(index.unique, 'unique required.');
-        store.createIndex(index.name, index.name, {unique:index.unique});
+        store.createIndex(index.name, index.name, {unique: index.unique});
       }
 
       this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
@@ -438,7 +440,7 @@ ydn.db.IndexedDbWrapper.prototype.runTxQueue_ = function() {
 
   var task = this.txQueue.shift();
   if (task) {
-    this.doTransaction_(task.fnc, task.scopes, task.mode, task.d);
+    this.doTransaction_(task.fnc, task.scopes, task.mode);
   }
 };
 
@@ -516,7 +518,7 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.isActive = function() {
  *
  * @return {!IDBTransaction}
  */
-ydn.db.IndexedDbWrapper.Transaction.prototype.getTx = function() {
+ydn.db.IndexedDbWrapper.Transaction.prototype.getIdbTx = function() {
   goog.asserts.assertObject(this.idb_tx_);
   return this.idb_tx_;
 };
@@ -540,58 +542,6 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.abort = function() {
 };
 
 
-/**
- * Push a result.
- * @param {*} result
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.set = function(result) {
-  this.result_ = result;
-};
-
-/**
- * Get a result.
- * @return {*} last result
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.get = function() {
-  return this.result_;
-};
-
-
-
-/**
- * Add an item to the last result. The last result must be array.
- * @param {*} item
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.add = function(item) {
-  if (!goog.isDef(this.result_)) {
-    this.result_ = [];
-  }
-  goog.asserts.assertArray(this.result_);
-  this.result_.push(item);
-};
-
-
-ydn.db.IndexedDbWrapper.Transaction.prototype.setError = function() {
-  this.has_error_ = true;
-};
-
-
-/**
- *
- * @return {boolean}
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.isSuccess = function() {
-  return !this.has_error_;
-};
-
-/**
- *
- * @return {boolean}
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.hasError = function() {
-  return this.has_error_;
-};
-
 
 /**
  * When DB is ready, fnc will be call with a fresh transaction object. Fnc must
@@ -603,13 +553,10 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.hasError = function() {
  * @param {!Array.<string>} scopes list of stores involved in the
  * transaction.
  * @param {number|string} mode mode.
- * @param {goog.async.Deferred=} opt_dfr output deferred function to be used.
- * @return {!goog.async.Deferred} d result in deferred function.
  */
-ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode, opt_dfr)
+ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode)
 {
   var me = this;
-  var df = opt_dfr || new goog.async.Deferred();
 
   /**
    * This is a start of critical section on transaction.
@@ -637,39 +584,26 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode, o
     tx.oncomplete = function(event) {
       //console.log(['oncomplete', event, tx, me.tx_])
       me.tx_.down();
-      if (goog.isDef(me.tx_.isSuccess())) {
-        var result = me.tx_.get();
-        df.callback(result);
-      } else {
-        var e = me.tx_.get();
-        df.errback(e);
-      }
-
       me.runTxQueue_();
     };
 
     tx.onabort = function(event) {
       //console.log(['onabort', event, tx, me.tx_])
       me.tx_.down();
-      df.errback(event);
-
       me.runTxQueue_();
     };
 
     tx.onabort = function(event) {
       //console.log(['onabort', event, tx, me.tx_])
       me.tx_.down();
-      df.errback(event);
-
       me.runTxQueue_();
     };
 
     fnc(me.tx_);
 
   } else {
-    this.txQueue.push({fnc:fnc, scopes:scopes, mode:mode, d:df});
+    this.txQueue.push({fnc: fnc, scopes: scopes, mode: mode});
   }
-  return df;
 };
 
 
@@ -689,7 +623,7 @@ ydn.db.IndexedDbWrapper.prototype.tx_ = new ydn.db.IndexedDbWrapper.Transaction(
  * @return {ydn.db.IndexedDbWrapper.Transaction} transaction object if in
  * transaction.
  */
-ydn.db.IndexedDbWrapper.prototype.getTx = function() {
+ydn.db.IndexedDbWrapper.prototype.getActiveTx = function() {
   return this.tx_.isActive() ? this.tx_ : null;
 };
 
@@ -699,18 +633,18 @@ ydn.db.IndexedDbWrapper.prototype.getTx = function() {
  * Close the connection.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.IndexedDbWrapper.prototype.close = function () {
+ydn.db.IndexedDbWrapper.prototype.close = function() {
 
   var df = new goog.async.Deferred();
   var request = this.db.close();
 
-  request.onsuccess = function (event) {
+  request.onsuccess = function(event) {
     if (ydn.db.IndexedDbWrapper.DEBUG) {
       window.console.log(event);
     }
     df.callback(true);
   };
-  request.onerror = function (event) {
+  request.onerror = function(event) {
     if (ydn.db.IndexedDbWrapper.DEBUG) {
       window.console.log(event);
     }

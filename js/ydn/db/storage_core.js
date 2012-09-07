@@ -133,7 +133,6 @@ ydn.db.Core.prototype.getConfig = function() {
  * @export
  * @throws {Error} if database is already initialized.
  * @param {string} opt_db_name set database name.
- * @return {string} normalized database name.
  */
 ydn.db.Core.prototype.setName = function(opt_db_name) {
   if (this.db_) {
@@ -143,9 +142,8 @@ ydn.db.Core.prototype.setName = function(opt_db_name) {
    * @final
    * @type {string}
    */
-  this.db_name = opt_db_name.replace(/[@|\.|\s]/g, '');
+  this.db_name = opt_db_name;
   this.initDatabase();
-  return this.db_name;
 };
 
 

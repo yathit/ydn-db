@@ -398,9 +398,8 @@ goog.exportProperty(goog.async.Deferred.prototype, 'success',
 goog.exportProperty(goog.async.Deferred.prototype, 'error',
   goog.async.Deferred.prototype.addErrback);
 
-// somehow these methods are not exported via @export annotation
-goog.exportProperty(ydn.db.Core.prototype, 'isReady',
-  ydn.db.Core.prototype.isReady);
+//goog.exportProperty(ydn.db.Core.prototype, 'isReady',
+//  ydn.db.Core.prototype.isReady);
 goog.exportProperty(ydn.db.Core.prototype, 'type',
   ydn.db.Core.prototype.type);
 goog.exportProperty(ydn.db.Core.prototype, 'setSchema',
@@ -409,8 +408,9 @@ goog.exportProperty(ydn.db.Core.prototype, 'setName',
   ydn.db.Core.prototype.setName);
 goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
   ydn.db.Core.prototype.getConfig);
-goog.exportProperty(ydn.db.Core.prototype, 'fetch',
-  ydn.db.Core.prototype.fetch);
+// ActiveQuery do not need fetch, it is confusing if fetch in db.
+//goog.exportProperty(ydn.db.Core.prototype, 'fetch',
+//  ydn.db.Core.prototype.fetch);
 goog.exportProperty(ydn.db.Core.prototype, 'get',
   ydn.db.Core.prototype.get);
 goog.exportProperty(ydn.db.Core.prototype, 'put',
@@ -433,8 +433,6 @@ goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
   ydn.db.ActiveQuery.prototype.fetch);
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'get',
   ydn.db.ActiveQuery.prototype.get);
-goog.exportProperty(ydn.db.ActiveQuery.prototype, 'put',
-  ydn.db.ActiveQuery.prototype.put);
 
 goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
   ydn.db.ActiveKey.prototype.clear);

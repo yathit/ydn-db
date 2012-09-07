@@ -15,7 +15,8 @@ var setUp = function() {
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
-
+  ydn.db.IndexedDbWrapper.DEBUG = true;
+  ydn.db.IndexedDb.DEBUG = true;
 
 	basic_schema = new ydn.db.DatabaseSchema(1);
 	basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
@@ -178,6 +179,7 @@ var test_25_clear = function() {
       // Continuation
       function() {
         // clear success do not return any result and hence 'undefined'.
+        console.log('cleared');
         assertEquals('clear result', undefined, put_value);
       },
       100, // interval

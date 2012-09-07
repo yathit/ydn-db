@@ -52,24 +52,6 @@ ydn.db.ActiveQuery.prototype.get = function() {
 
 
 /**
- * @param {!Object|Array.<!Object>} value object to put.
- * @return {!goog.async.Deferred} return key in deferred function.
- */
-ydn.db.ActiveQuery.prototype.put = function(value) {
-  if (this.dbp.isReady()) {
-    return this.dbp.getQueryService().put(this.store_name, value);
-  } else {
-    var me = this;
-    var df = new goog.async.Deferred();
-    this.dbp.getDeferredDb().addCallback(function(db) {
-      db.put(me.store_name, value).chainDeferred(df);
-    });
-    return df;
-  }
-};
-
-
-/**
  * Fetch result of a query
  * @param {number=} opt_limit maximun number of results.
  * @param {number=} opt_offset start counter.
