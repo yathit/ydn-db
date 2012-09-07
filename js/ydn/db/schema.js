@@ -418,11 +418,11 @@ ydn.db.DatabaseSchema.prototype.addStore = function(table) {
  * @param {string} name store name.
  * @return {ydn.db.StoreSchema} store if found.
  */
-ydn.db.DatabaseSchema.prototype.getStore = function(name) {
+ydn.db.DatabaseSchema.prototype.getStore = function (name) {
   return /** @type {ydn.db.StoreSchema} */ (goog.array.find(this.stores,
-    function(x) {
-    return x.name == name;
-  }));
+      function (x) {
+        return x.name == name;
+      }));
 };
 
 

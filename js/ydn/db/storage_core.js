@@ -373,6 +373,8 @@ goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
   ydn.db.Core.prototype.getConfig);
 goog.exportProperty(ydn.db.Core.prototype, 'transaction',
   ydn.db.Core.prototype.transaction);
+goog.exportProperty(ydn.db.Core.prototype, 'close',
+  ydn.db.Core.prototype.close);
 // for hacker
 goog.exportProperty(ydn.db.Core.prototype, 'db',
   ydn.db.Core.prototype.getDbInstance_);

@@ -74,7 +74,7 @@ ydn.db.WebSql.prototype.executePut_ = function(tx, df, store_name, obj) {
   if (!table) {
     this.logger.warning('Table ' + store_name + ' not found.');
     df.errback(new Error('Table ' + store_name + ' not found.'));
-    return df;
+    return;
   }
 
   var me = this;

@@ -92,15 +92,6 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
 ydn.db.Key.Json;
 
 
-/**
- * @protected
- * @param {!ydn.db.Key.Json|string} obj
- * @return {ydn.db.Key}
- */
-ydn.db.Key.prototype.toKey = function(obj) {
-  return new ydn.db.Key(obj);
-};
-
 
 /**
  * @return {!Object}
@@ -114,6 +105,15 @@ ydn.db.Key.prototype.toJSON = function() {
     obj['parent'] = this.parent.toJSON();
   }
   return obj;
+};
+
+
+/**
+ *
+ * @return {ydn.db.Key}
+ */
+ydn.db.Key.prototype.parent = function() {
+  return this.parent || null;
 };
 
 

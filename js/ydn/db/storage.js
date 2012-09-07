@@ -158,15 +158,15 @@ ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
 /**
  *
  * @param {string} secret
- * @param {number=} expiration default expiration time in miliseconds.
+ * @param {number=} opt_expiration default expiration time in miliseconds.
  */
-ydn.db.Storage.prototype.setSecret = function(secret, expiration) {
+ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
   /**
    * @protected
    * @final
    * @type {ydn.db.RichStorage}
    */
-  this.wrapper = new ydn.db.RichStorage(this, secret, expiration);
+  this.wrapper = new ydn.db.RichStorage(this, secret, opt_expiration);
 };
 
 
@@ -298,7 +298,7 @@ ydn.db.Storage.prototype.put = function(store_name, value) {
  *
  * Note: This will not raise error to get non-existing object.
  * @export
- * @param {string|!ydn.db.Query|!ydn.db.Key} store_name
+ * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store_name
  * The name of store to retrive object from.
  * @param {(string|number)=} opt_key the key of an object to be retrieved.
  * if not provided, all entries in the store will return.
@@ -411,23 +411,20 @@ goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
 // ActiveQuery do not need fetch, it is confusing if fetch in db.
 //goog.exportProperty(ydn.db.Core.prototype, 'fetch',
 //  ydn.db.Core.prototype.fetch);
-goog.exportProperty(ydn.db.Core.prototype, 'get',
-  ydn.db.Core.prototype.get);
-goog.exportProperty(ydn.db.Core.prototype, 'put',
-  ydn.db.Core.prototype.put);
-goog.exportProperty(ydn.db.Core.prototype, 'clear',
-  ydn.db.Core.prototype.clear);
 goog.exportProperty(ydn.db.Core.prototype, 'transaction',
   ydn.db.Core.prototype.transaction);
+goog.exportProperty(ydn.db.Core.prototype, 'close',
+  ydn.db.Core.prototype.close);
 // for hacker
 goog.exportProperty(ydn.db.Core.prototype, 'db',
     ydn.db.Core.prototype.getDbInstance_);
 
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
   ydn.db.Storage.prototype.query);
-goog.exportProperty(ydn.db.Storage.prototype, 'key',
-  ydn.db.Storage.prototype.key);
-
+//goog.exportProperty(ydn.db.Storage.prototype, 'key',
+//  ydn.db.Storage.prototype.key);
+goog.exportProperty(ydn.db.Storage.prototype, 'encrypt',
+  ydn.db.Storage.prototype.encrypt);
 
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
   ydn.db.ActiveQuery.prototype.fetch);
@@ -476,3 +473,6 @@ goog.exportProperty(ydn.db.Query.KeyRangeImpl, 'only',
 
 goog.exportSymbol('ydn.async', ydn.async);
 goog.exportProperty(ydn.async, 'dfl', ydn.async.dfl);
+
+goog.exportSymbol('ydn.db.Key', ydn.db.Key);
+goog.exportProperty(ydn.db.Key.prototype, 'parent', ydn.db.Key.prototype.parent);

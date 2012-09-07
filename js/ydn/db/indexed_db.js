@@ -237,63 +237,74 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
 /**
  * Get all item in the store.
  * @private
- * @param {string} table table name.
- * @return {!goog.async.Deferred} d result in deferred function.
+ * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {boolean} not_key_only query only keys.
+ * @param {string|!Array.<string>=} opt_store_name table name.
  */
-ydn.db.IndexedDb.prototype.getAll_ = function(table) {
+ydn.db.IndexedDb.prototype.executeGetAll_ = function(tx, df, not_key_only, opt_store_name) {
   var self = this;
 
-  if (!this.schema.hasStore(table)) {
-    throw Error('Store: ' + table + ' not exist.');
-  }
-
-  // Workaround for Firefox: for opening version 1, firefox do not raise
-  // onupgradeneeded if the database do not exist. writing can start already,
-  // but reading is not. Opening a store raise NotFoundError.
-//  if (this.db_ && this.db_.objectStoreNames &&
-//    goog.isFunction(this.db_.objectStoreNames.contains) &&
-//    !this.db_.objectStoreNames.contains(table)) {
-//    return goog.async.Deferred.succeed([]);
-//  }
-
-  var df = new goog.async.Deferred();
-  this.doTransaction_(function(tx) {
-    var store = tx.objectStore(table);
+  var getAll = function(store_name, df) {
+    var results = [];
+    var store = tx.objectStore(store_name);
 
     // Get everything in the store;
     var keyRange = ydn.db.Query.IDBKeyRange.lowerBound(0);
     var request = store.openCursor(keyRange);
 
     request.onsuccess = function(event) {
-      if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
 
-      if (!goog.isDef(tx.result)) {
-        tx.result = []; // return at least an empty array
+      var cursor = event.target.result;
+      if (cursor) {
+        if (not_key_only) {
+          results.push(cursor['value']);
+        } else {
+          results.push(cursor['key']);
+        }
+        cursor['continue'](); // result.continue();
+      } else {
+        df.callback(true);
       }
-
-      var result = event.target.result;
-      if (!!result == false) {
-        return;
-      }
-
-      if (goog.isDef(result.value)) {
-        tx.result.push(result.value);
-      }
-
-      result['continue'](); // result.continue();
     };
 
     request.onerror = function(event) {
       if (ydn.db.IndexedDb.DEBUG) {
-        window.console.log(event);
+        window.console.log([store_name, event]);
       }
+      df.errback(event);
     };
+  };
 
-  }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
+  var store_names = goog.isString(opt_store_name) ? [opt_store_name] :
+    goog.isArray(opt_store_name) && opt_store_name.length > 0 ? opt_store_name :
+    this.schema.getStoreNames();
 
-  return df;
+  var dfs = [];
+  for (var i = 0; i < store_names.length; i++) {
+    var idf = new goog.async.Deferred();
+    getAll(store_names[i], idf);
+    dfs.push(dfs);
+  }
+
+  var dfl = new goog.async.DeferredList(dfs);
+  dfl.addCallback(function(dfl_results) {
+    var error_result = goog.array.find(dfl_results, function(x) {
+      return !x[0]; // false if fail
+    });
+    if (error_result) {
+      df.errback(error_result[1]);
+    } else {
+      var list = dfl_results[0][1]; // the first result, it is array
+      for (var i = 1; i < dfl_results.length; i++) {
+        list = list.concat(dfl_results[i][1]);
+      }
+      df.callback(df);
+    }
+  });
+  dfl.addErrback(function(e) {
+    df.errback(e);
+  })
 };
 
 
@@ -320,7 +331,7 @@ ydn.db.IndexedDb.prototype.getQuery_ = function(q) {
 
 /**
  * Return object
- * @param {string|!ydn.db.Query|!ydn.db.Key} arg1 table name.
+ * @param {(string|!Array.<string>|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
  * @param {(string|number)=} key object key to be retrieved, if not provided,
  * all entries in the store will return.
  * param {number=} start start number of entry.
@@ -329,8 +340,19 @@ ydn.db.IndexedDb.prototype.getQuery_ = function(q) {
  */
 ydn.db.IndexedDb.prototype.get = function(arg1, key) {
 
-  if (arg1 instanceof ydn.db.Query) {
-    return this.getQuery_(arg1);
+  var me = this;
+  var tx = this.getActiveTx();
+  var df = new goog.async.Deferred();
+  if (!goog.isDef(arg1) || !goog.isDef(key) &&
+      (goog.isString(arg1) || goog.isString(arg1[0]))) {
+    var stores = !goog.isDef(arg1) ? [] : arg1;
+    if (tx) {
+      this.executeGetAll_(tx, df, false, arg1);
+    } else {
+      this.doTransaction_(function(tx) {
+        me.executeGetAll_(tx, df, stores, id);
+      }, [stores], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
+    }
   } else {
     var store_name, id;
     if (arg1 instanceof ydn.db.Key) {
@@ -342,12 +364,9 @@ ydn.db.IndexedDb.prototype.get = function(arg1, key) {
       store_name = arg1;
       id = key;
     }
-    var tx = this.getActiveTx();
-    var df = new goog.async.Deferred();
     if (tx) {
       this.executeGet_(tx, df, store_name, id);
     } else {
-      var me = this;
       this.doTransaction_(function(tx) {
         me.executeGet_(tx, df, store_name, id);
       }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
@@ -366,8 +385,7 @@ ydn.db.IndexedDb.prototype.get = function(arg1, key) {
  * @param {number=} offset offset.
  * @private
  */
-ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit,
-                                                        offset) {
+ydn.db.IndexedDb.prototype.executeFetchKeys_ = function (tx, df, keys, limit, offset) {
   var me = this;
 
   var n = keys.length;
@@ -377,25 +395,25 @@ ydn.db.IndexedDb.prototype.executeFetchKeys_ = function(tx, df, keys, limit,
   for (var i = offset; i < limit; i++) {
     var key = keys[i];
     goog.asserts.assert(goog.isDef(key.id) && goog.isString(key.store_name),
-        'Invalid key: ' + key);
+      'Invalid key: ' + key);
     var store = tx.objectStore(key.store_name);
     var request = store.get(key.id);
 
-    request.onsuccess = function(event) {
+    request.onsuccess = function (event) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
       result.push(event.target.result);
       if (result.length == limit) {
-          df.callback(result);
+        df.callback(result);
       }
     };
 
-    request.onerror = function(event) {
+    request.onerror = function (event) {
       if (ydn.db.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-        df.errback(event);
+      df.errback(event);
     };
   }
 

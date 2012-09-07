@@ -30,12 +30,6 @@ ydn.db.ActiveKey = function(dbp, store, id, opt_parent) {
 goog.inherits(ydn.db.ActiveKey, ydn.db.Key);
 
 
-/**
- * @inheritDoc
- */
-ydn.db.ActiveKey.prototype.toKey = function(obj) {
-  return new ydn.db.ActiveKey(this.dbp, obj);
-};
 
 /**
  * Get object from store.
