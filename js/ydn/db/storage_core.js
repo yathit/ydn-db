@@ -39,6 +39,7 @@ goog.require('ydn.db.IndexedDbWrapper');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSqlWrapper');
 goog.require('ydn.object');
+goog.require('ydn.db.Db');
 
 
 /**

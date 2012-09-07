@@ -13,22 +13,24 @@ goog.require('ydn.db.Query');
 goog.require('ydn.db.Key');
 
 
+
+
 /**
  * @interface
  */
 ydn.db.QueryService = function() {
 
 };
-
-
-/**
- * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
- * @param {number=} limit
- * @param {number=} offset
- * @return {!goog.async.Deferred}
- */
-ydn.db.QueryService.prototype.fetch = function(q, limit, offset) {};
-
+//
+//
+///**
+// * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
+// * @param {number=} limit
+// * @param {number=} offset
+// * @return {!goog.async.Deferred}
+// */
+//ydn.db.QueryService.prototype.fetch = function(q, limit, offset) {};
+//
 
 
 /**

@@ -316,7 +316,6 @@ ydn.db.Storage.prototype.get = function (store_name, opt_key) {
     });
     return df;
   }
-
 };
 
 

@@ -13,17 +13,12 @@
 // limitations under the License.
 
 /**
- * @fileoverview Interface for database.
+ * @fileoverview Provide package variables.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db');
-goog.require('goog.async.Deferred');
-goog.require('ydn.db.DatabaseSchema');
-goog.require('ydn.db.Query');
-goog.require('ydn.db.QueryService');
-goog.require('ydn.db.Key');
 
 
 
@@ -41,38 +36,5 @@ ydn.db.DEFAULT_KEY_COLUMN = '_id_';
  */
 ydn.db.DEFAULT_BLOB_COLUMN = '_default_';
 
-
-
-/**
- * @interface
- */
-ydn.db.Db = function() {};
-
-
-
-
-
-/**
- * Close the connection.
- * @return {!goog.async.Deferred} return a deferred function.
- */
-ydn.db.Db.prototype.close = function() {
-
-};
-
-
-/**
- *
- * @return {string}
- */
-ydn.db.Db.prototype.type = function() {
-};
-
-/**
- *
- * @return {*}
- */
-ydn.db.Db.prototype.getDbInstance = function() {
-};
 
 

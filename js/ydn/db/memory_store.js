@@ -21,15 +21,16 @@ goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
 goog.require('ydn.db.QueryService');
+goog.require('ydn.db.Db');
 
 
 /**
  * @implements {ydn.db.QueryService}
+ * @implements {ydn.db.Db}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
- * @implements {ydn.db.Db}
  * @constructor
  */
 ydn.db.MemoryStore = function(dbname, schema, opt_localStorage) {
@@ -352,9 +353,12 @@ ydn.db.MemoryStore.prototype.count = function(opt_table) {
 
 
 /**
- * @inheritDoc
- */
-ydn.db.MemoryStore.prototype.fetch = function(q) {
+* @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
+* @param {number=} limit
+* @param {number=} offset
+* @return {!goog.async.Deferred}
+*/
+ydn.db.MemoryStore.prototype.fetch = function(q, limit, offset) {
   if (goog.isArray(q)) { // list of array
     var results = [];
     for (var i = 0; i < q.length; i++) {
