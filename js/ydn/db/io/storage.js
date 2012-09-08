@@ -279,16 +279,11 @@ ydn.db.Storage.prototype.put = function(store_name, value) {
 
 
 /**
- * Retrieve an object.
- *
- * Note: This will not raise error to get non-existing object.
- * @export
- * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store_name
- * The name of store to retrive object from.
- * @param {(string|number)=} opt_key the key of an object to be retrieved.
- * if not provided, all entries in the store will return.
- * @return {!goog.async.Deferred} return resulting object in deferred function.
- * If not found, {@code undefined} is return.
+ * Return object
+ * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store_name table name.
+ * @param {(string|number|!Array.<string>)=} opt_key object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.Storage.prototype.get = function (store_name, opt_key) {
 

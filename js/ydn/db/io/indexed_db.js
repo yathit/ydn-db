@@ -468,9 +468,13 @@ ydn.db.IndexedDb.prototype.getQuery_ = function(q) {
 
 
 /**
- * @inheritDoc
+ *
+ * @param {string} store_name
+ * @param {string|number} id
+ * @return {!goog.async.Deferred} return object in deferred function.
+ * @private
  */
-ydn.db.IndexedDb.prototype.getById = function(store_name, id) {
+ydn.db.IndexedDb.prototype.getById_ = function(store_name, id) {
   var me = this;
   var tx = this.getActiveTx();
   var df = new goog.async.Deferred();
@@ -554,7 +558,59 @@ ydn.db.IndexedDb.prototype.getByStore_ = function(store_name) {
 
 
 
- /**
+
+
+/**
+* Return object
+* @param {(string|!Array.<string>|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
+* @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
+* all entries in the store will return.
+* param {number=} start start number of entry.
+* param {number=} limit maximun number of entries.
+* @return {!goog.async.Deferred} return object in deferred function.
+*/
+ydn.db.IndexedDb.prototype.get = function (arg1, arg2) {
+
+  if (arg1 instanceof ydn.db.Key) {
+    /**
+     * @type {ydn.db.Key}
+     */
+    var k = arg1;
+    return this.getById_(k.getStoreName(), k.getId());
+  } else if (goog.isString(arg1)) {
+    if (goog.isString(arg2) || goog.isNumber(arg2)) {
+      /** @type {string} */
+      var store_name = arg1;
+      /** @type {string|number} */
+      var id = arg2;
+      return this.getById_(store_name, id);
+    } else if (!goog.isDef(arg2)) {
+      return this.getByStore_(arg1);
+    } else if (goog.isArray(arg2)) {
+      if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
+        return this.getByIds_(arg1, arg2);
+      } else {
+        throw new ydn.error.ArgumentException();
+      }
+    } else {
+      throw new ydn.error.ArgumentException();
+    }
+  } else if (goog.isArray(arg1)) {
+    if (arg1[0] instanceof ydn.db.Key) {
+      return this.getByKeys_(arg1);
+    } else {
+      throw new ydn.error.ArgumentException();
+    }
+  } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
+    return this.getByStore_();
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+
+};
+
+
+/**
  * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!Array.<!ydn.db.Key>} keys query.
@@ -703,7 +759,7 @@ ydn.db.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit,
 
 
 /**
- * @param {!ydn.db.Query|!Array.<!ydn.db.Key>} q query.
+ * @param {!ydn.db.Query} q query.
  * @param {number=} limit limit.
  * @param {number=} offset offset.
  * @return {!goog.async.Deferred} result in deferred.

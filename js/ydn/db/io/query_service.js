@@ -38,8 +38,6 @@ ydn.db.QueryService.prototype.fetch = function(q, limit, offset) {};
  * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store table name.
  * @param {(string|number|!Array.<string>)=} id object key to be retrieved, if not provided,
  * all entries in the store will return.
- * param {number=} start start number of entry.
- * param {number=} limit maximun number of entries.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.QueryService.prototype.get = function(store, id) {
