@@ -50,7 +50,7 @@
         <!--SIMPLE_OPTIMIZATIONS-->
         <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
-                         input="${ydn-db.dir}/js/ydn/db/storage.js"
+                         input="${ydn-db.dir}/js/ydn/db/io/storage.js"
                          output.fn="${ydn-db.dir}/jsc/ydn-db-${ver}.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>

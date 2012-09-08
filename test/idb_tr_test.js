@@ -77,25 +77,24 @@ var test_2_idb_basic = function() {
 
 
   db.put(table_name, arr).addCallback(function(value) {
-    console.log('receiving value callback ' + JSON.stringify(value));
-
-    var a_key = db.key(table_name, 'a');
+    console.log('put: n:' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(value));
 
     db.transaction(function() {
-      a_key.get().addCallback(function(a_obj) {
-        console.log('a_key get ' + JSON.stringify(a_obj));
+      db.get(table_name, 'a').addCallback(function(a_obj) {
+        console.log('get a, n: ' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(a_obj));
         a_obj.value += amt;
-        a_key.put(a_obj).addCallback(function(out) {
+        db.put(a_obj, table_name, 'a').addCallback(function(out) {
+          console.log('put a, n: ' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(a_obj));
           t1_fired = true;
           assertEquals('tr done', 'a', out);
         });
       });
-    }, [a_key]);
+    }, [table_name], 'readwrite');
 
     var q = db.query(table_name);
     q.select('value');
     db.fetch(q).addCallback(function(q_result) {
-      console.log('receiving fetch ' + JSON.stringify(q_result));
+      console.log('receiving fetch n:' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(q_result));
       t1_result = q_result;
       t1_fired = true;
     })

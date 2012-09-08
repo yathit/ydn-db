@@ -60,7 +60,7 @@ ydn.db.IndexedDb.prototype.logger =
 
 /**
  * Execute GET request either storing result to tx or callback to df.
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {IDBTransaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} store_name table name.
  * @param {string|number} id id to get.
@@ -93,7 +93,7 @@ ydn.db.IndexedDb.prototype.executeGet_ = function(tx, df, store_name, id) {
 
 /**
  * Execute GET request callback results to df.
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {IDBTransaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} store_name table name.
  * @param {!Array.<string|number>} ids id to get.
@@ -114,29 +114,16 @@ ydn.db.IndexedDb.prototype.executeGetMultiple_ = function (tx, df, store_name,
           // should put outside for loop or just remove try block?
       var request = store.get(ids[i]);
 
-      request.onsuccess = function (event) {
+      request.onsuccess = goog.partial(function (i, event) {
         result_count++;
         if (ydn.db.IndexedDb.DEBUG) {
           window.console.log([store_name, event]);
         }
-        var key = event.target.result['key'];
-        var value = event.target.result['value'];
-        var idx = ids.indexOf(key);
-        if (idx == -1) {
-          /*
-           This should never happen because according to
-      http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
-           This function produces the same result if a record with the given key
-           doesn't exist as when a record exists, but has undefined as value.
-           */
-          throw new ydn.error.InternalError('Unrequested key: ' + key);
-        } else {
-          results[idx] = value;
-        }
+        results[i] = event.target.result;
         if (result_count == ids.length) {
           df.callback(results);
         }
-      };
+      }, i);
 
       request.onerror = function (event) {
         result_count++;
@@ -160,7 +147,7 @@ ydn.db.IndexedDb.prototype.executeGetMultiple_ = function (tx, df, store_name,
 
 /**
  * Execute GET request callback results to df.
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {IDBTransaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!Array.<!ydn.db.Key>} keys id to get.
  * @private
@@ -187,28 +174,19 @@ ydn.db.IndexedDb.prototype.executeGetKeys_ = function (tx, df, keys) {
       // should put outside for loop or just remove try block?
       var request = store.get(key.getId());
 
-      request.onsuccess = function (event) {
+      request.onsuccess = goog.partial(function (i, event) {
         result_count++;
         if (ydn.db.IndexedDb.DEBUG) {
           window.console.log(event);
         }
-        var value = event.target.result;
-//        // do correct ordering
-//        var id = me.schema.getStore()
-//        var idx = goog.array.findIndex(keys, function (k) {
-//          return k.getId() == id;
-//        });
-//        if (idx == -1) { // this should never happen.
-//          throw new ydn.error.InternalError('Unrequested key: ' + id);
-//        } else {
-//          results[idx] = value;
-//        }
-        // or just push it :-)
-        results.push(value);
+        results[i] = event.target.result;
         if (result_count == keys.length) {
+          // here we cannot simply check results.length == keys.length to
+          // decide finished collecting because success result will
+          // not return in order in general.
           df.callback(results);
         }
-      };
+      }, i);
 
       request.onerror = function (event) {
         result_count++;
@@ -232,7 +210,7 @@ ydn.db.IndexedDb.prototype.executeGetKeys_ = function (tx, df, keys) {
 
 /**
  * Execute PUT request either storing result to tx or callback to df.
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {IDBTransaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} table table name.
  * @param {!Object|Array.<!Object>} value object to put.
@@ -248,7 +226,7 @@ ydn.db.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
       request = store.put(value[i]);
       request.onsuccess = function(event) {
         if (ydn.db.IndexedDb.DEBUG) {
-          window.console.log([event, table, value]);
+          window.console.log([event, table]);
         }
         results.push(event.target.result);
         var last = results.length == value.length;
@@ -258,7 +236,7 @@ ydn.db.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
       };
       request.onerror = function(event) {
         if (ydn.db.IndexedDb.DEBUG) {
-          window.console.log([event, table, value]);
+          window.console.log([event, table]);
         }
         df.errback(event);
       };
@@ -287,7 +265,7 @@ ydn.db.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
  * immediately.
  *
  * This method must be {@link #runInTransaction}.
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {ydn.db.IdbTxMutex} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string=} opt_store_name store name.
  * @param {(string|number)=} opt_key object key.
@@ -350,9 +328,10 @@ ydn.db.IndexedDb.prototype.executeClear_ = function(tx, df, opt_store_name,
 /**
  * @param {string} table table name.
  * @param {!Object|Array.<!Object>} value object to put.
+ * @param {(string|number)=} opt_key
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.IndexedDb.prototype.put = function(table, value) {
+ydn.db.IndexedDb.prototype.put = function(table, value, opt_key) {
   var me = this;
 
   if (ydn.db.IndexedDb.DEBUG) {
@@ -361,14 +340,15 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
     }
   }
 
-  var tx = this.getActiveTx();
+  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
   if (tx) {
-    me.executePut_(tx, df, table, value);
+    me.executePut_(tx.getTx(), df, table, value);
     return df;
   } else {
     this.doTransaction_(function(tx) {
-      me.executePut_(tx, df, table, value);
+      me.executePut_(tx.getTx(), df, table, value);
+      tx.setDone();
     }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
   }
   return df;
@@ -378,7 +358,7 @@ ydn.db.IndexedDb.prototype.put = function(table, value) {
 /**
  * Get all item in the store.
  * @private
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {IDBTransaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {boolean} not_key_only query only keys.
  * @param {string|!Array.<string>=} opt_store_name table name.
@@ -479,13 +459,14 @@ ydn.db.IndexedDb.prototype.getQuery_ = function(q) {
  */
 ydn.db.IndexedDb.prototype.getById_ = function(store_name, id) {
   var me = this;
-  var tx = this.getActiveTx();
+  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
   if (tx) {
-    this.executeGet_(tx, df, store_name, id);
+    this.executeGet_(tx.getTx(), df, store_name, id);
   } else {
     this.doTransaction_(function(tx) {
-      me.executeGet_(tx, df, store_name, id);
+      me.executeGet_(tx.getTx(), df, store_name, id);
+      tx.setDone(); // block next transaction
     }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
   }
   return df;
@@ -500,13 +481,14 @@ ydn.db.IndexedDb.prototype.getById_ = function(store_name, id) {
  */
 ydn.db.IndexedDb.prototype.getByIds_ = function(store_name, ids) {
   var me = this;
-  var tx = this.getActiveTx();
+  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
   if (tx) {
-    this.executeGetMultiple_(tx, df, store_name, ids);
+    this.executeGetMultiple_(tx.getTx(), df, store_name, ids);
   } else {
     this.doTransaction_(function(tx) {
-      me.executeGetMultiple_(tx, df, store_name, ids);
+      me.executeGetMultiple_(tx.getTx(), df, store_name, ids);
+      tx.setDone(); // block next transaction.
     }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
   }
   return df;
@@ -520,10 +502,10 @@ ydn.db.IndexedDb.prototype.getByIds_ = function(store_name, ids) {
  */
 ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
   var me = this;
-  var tx = this.getActiveTx();
+  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
   if (tx) {
-    this.executeGetKeys_(tx, df, keys);
+    this.executeGetKeys_(tx.getTx(), df, keys);
   } else {
     var store_names = [];
     for (var i = 1; i < keys.length; i++) {
@@ -533,7 +515,8 @@ ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
       }
     }
     this.doTransaction_(function(tx) {
-      me.executeGetKeys_(tx, df, keys);
+      me.executeGetKeys_(tx.getTx(), df, keys);
+      tx.setDone();
     }, store_names, ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
   }
   return df;
@@ -548,14 +531,16 @@ ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
  */
 ydn.db.IndexedDb.prototype.getByStore_ = function(store_name) {
   var me = this;
-  var tx = this.getActiveTx();
+  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
   if (tx) {
-    this.executeGetAll_(tx, df, false, store_name);
+    this.executeGetAll_(tx.getTx(), df, false, store_name);
   } else {
     this.doTransaction_(function(tx) {
-      me.executeGetAll_(tx, df, store_name);
+      me.executeGetAll_(tx.getTx(), df, store_name);
+      tx.setDone();
     }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
+
   }
   return df;
 };
@@ -615,7 +600,7 @@ ydn.db.IndexedDb.prototype.get = function (arg1, arg2) {
 
 
 /**
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {ydn.db.IdbTxMutex} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!Array.<!ydn.db.Key>} keys query.
  * @param {number=} limit limit.
@@ -660,7 +645,7 @@ ydn.db.IndexedDb.prototype.executeFetchKeys_ = function (tx, df, keys, limit, of
 
 
 /**
- * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+ * @param {IDBTransaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!ydn.db.Query} q query.
  * @param {number=} limit limit.
@@ -774,13 +759,14 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
   var df, tx;
 
   if (q instanceof ydn.db.Query) {
-    tx = this.getActiveTx();
+    tx = this.getActiveIdbTx();
     df = new goog.async.Deferred();
     if (tx) {
-      this.executeFetchQuery_(tx, df, q, limit, offset);
+      this.executeFetchQuery_(tx.getTx(), df, q, limit, offset);
     } else {
       this.doTransaction_(function(tx) {
-        self.executeFetchQuery_(tx, df, q, limit, offset);
+        self.executeFetchQuery_(tx.getTx(), df, q, limit, offset);
+        tx.setDone();
       }, [q.store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
     }
     return df;
@@ -862,7 +848,7 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
 
 ///**
 // *
-// * @param {ydn.db.IndexedDbWrapper.Transaction} tx active transaction object.
+// * @param {ydn.db.IdbTxMutex} tx active transaction object.
 // * @param {goog.async.Deferred} df deferred to feed result.
 // * @param {string=} opt_table delete the table as provided otherwise
 // * delete all stores.
@@ -1015,7 +1001,7 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
   var store_names = goog.isDefAndNotNull(opt_table) ? [opt_table] :
       this.schema.getStoreNames();
   var self = this;
-  var tx = this.getActiveTx();
+  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
   if (tx) {
     this.executeClear_(tx, df, opt_table, opt_key);

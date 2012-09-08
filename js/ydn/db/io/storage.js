@@ -35,6 +35,7 @@ goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.LocalStorage');
 goog.require('ydn.db.IndexedDb');
+goog.require('ydn.db.IndexedDbWrapper');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
@@ -262,16 +263,17 @@ ydn.db.Storage.prototype.query = function(store_name, index, keyRange,
  * @export
  * @param {string} store_name the name of store to use.
  * @param {!Object|Array.<!Object>} value object to put.
+ * @param {(string|number)=}  opt_key
  * @return {!goog.async.Deferred} return key in deferred function. On error,
  * an {@code Error} object is return as received from the mechanism.
  */
-ydn.db.Storage.prototype.put = function(store_name, value) {
+ydn.db.Storage.prototype.put = function(store_name, value, opt_key) {
   if (this.getQueryService()) {
-    return this.getQueryService().put(store_name, value);
+    return this.getQueryService().put(store_name, value, opt_key);
   } else {
     var df = new goog.async.Deferred();
     this.getDeferredDb().addCallback(function(db) {
-      db.put(store_name, value).chainDeferred(df);
+      db.put(store_name, value, opt_key).chainDeferred(df);
     });
     return df;
   }
@@ -408,16 +410,6 @@ goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'get',
   ydn.db.ActiveQuery.prototype.get);
 
-goog.exportProperty(ydn.db.Query.prototype, 'starts',
-  ydn.db.Query.prototype.startsWith);
-goog.exportProperty(ydn.db.Query.prototype, 'bound',
-  ydn.db.Query.prototype.bound);
-goog.exportProperty(ydn.db.Query.prototype, 'only',
-  ydn.db.Query.prototype.only);
-goog.exportProperty(ydn.db.Query.prototype, 'lowerBound',
-  ydn.db.Query.prototype.lowerBound);
-goog.exportProperty(ydn.db.Query.prototype, 'upperBound',
-  ydn.db.Query.prototype.upperBound);
 goog.exportProperty(ydn.db.Query.prototype, 'select',
     ydn.db.Query.prototype.select);
 goog.exportProperty(ydn.db.Query.prototype, 'where',

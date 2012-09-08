@@ -20,6 +20,7 @@
 
 goog.provide('ydn.db');
 goog.provide('ydn.db.ValidKeyException');
+goog.provide('ydn.db.WrapperDBInvalidStateException');
 
 
 
@@ -36,6 +37,23 @@ ydn.db.DEFAULT_KEY_COLUMN = '_id_';
  * @const {string}
  */
 ydn.db.DEFAULT_BLOB_COLUMN = '_default_';
+
+
+/**
+ * Event types the Transaction can dispatch. COMPLETE events are dispatched
+ * when the transaction is committed. If a transaction is aborted it dispatches
+ * both an ABORT event and an ERROR event with the ABORT_ERR code. Error events
+ * are dispatched on any error.
+ *
+ * @see {@link goog.db.Transaction.EventTypes}
+ *
+ * @enum {string}
+ */
+ydn.db.TransactionEventTypes = {
+  COMPLETE: 'complete',
+  ABORT: 'abort',
+  ERROR: 'error'
+};
 
 
 
@@ -64,3 +82,26 @@ ydn.db.ValidKeyException.prototype.name = 'ValidKeyException';
 
 
 
+
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.WrapperDBInvalidStateException = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.WrapperDBInvalidStateException);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(ydn.db.ValidKeyException, Error);
+
+ydn.db.WrapperDBInvalidStateException.prototype.name = 'WrapperDBInvalidStateException';

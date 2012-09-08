@@ -104,9 +104,10 @@ ydn.db.MemoryStore.succeed = function(value) {
 /**
  * @param {string} table table name.
  * @param {!Object|Array.<!Object>} value object to put.
+ * @param {(string|number)=} opt_key
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.MemoryStore.prototype.put = function (table, value) {
+ydn.db.MemoryStore.prototype.put = function (table, value, opt_key) {
   var key, value_str;
   var result;
 

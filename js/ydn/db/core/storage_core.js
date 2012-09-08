@@ -321,17 +321,18 @@ ydn.db.Core.prototype.getDbInstance_ = function() {
  * @export
  * @final
  * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<string>} storeNames list of keys or
+ * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {(number|string)=} mode mode, default to 'read_write'.
+ * @param {(number|string)=} mode mode, default to 'readonly'.
  * @param {...} opt_args
  */
-ydn.db.Core.prototype.transaction = function (trFn, storeNames, mode, opt_args) {
+ydn.db.Core.prototype.transaction = function (trFn, store_names, mode, opt_args) {
   goog.asserts.assert(this.db_, 'database not ready');
-  var store_names = [];
-  if (goog.isString(storeNames)) {
-    store_names = [storeNames];
-  } else {
+  var names = store_names;
+  if (goog.isString(store_names)) {
+    names = [store_names];
+  } else if (!goog.isArray(store_names) ||
+      (store_names.length > 0 && !goog.isString(store_names[0]))) {
     throw new ydn.error.ArgumentException("storeNames");
   }
   mode = goog.isDef(mode) ? mode : ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY;
@@ -346,7 +347,7 @@ ydn.db.Core.prototype.transaction = function (trFn, storeNames, mode, opt_args) 
       return trFn.apply(this, newArgs);
     }
   }
-  this.db_.transaction(outFn, store_names, mode);
+  this.db_.transaction(outFn, names, mode);
 };
 
 

@@ -135,9 +135,10 @@ ydn.db.WebSql.prototype.executePut_ = function(tx, df, store_name, obj) {
 /**
  * @param {string} store_name table name.
  * @param {!Object|Array.<!Object>} obj object to put.
+ * @param {(string|number)=}  opt_key
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.WebSql.prototype.put = function(store_name, obj) {
+ydn.db.WebSql.prototype.put = function(store_name, obj, opt_key) {
   var df = new goog.async.Deferred();
 
   var me = this;

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @fileoverview Deferred wrapper for HTML5 IndexedDb.
+ * @fileoverview Wrapper for IndexedDb.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -28,6 +28,7 @@ goog.require('ydn.db');
 goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.CoreService');
 goog.require('ydn.json');
+goog.require('ydn.db.IdbTxMutex');
 
 
 /**
@@ -116,9 +117,10 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
       };
     } else {
       msg = 'database version ' + db.version + 'ready to go';
-      me.logger.finer(msg);
       if (ydn.db.IndexedDbWrapper.DEBUG) {
         window.console.log(msg);
+      } else {
+        me.logger.finer(msg);
       }
       me.setDb(db);
     }
@@ -127,9 +129,10 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
     var msg = 'upgrading version ' + db.version;
-    me.logger.finer(msg);
     if (ydn.db.IndexedDbWrapper.DEBUG) {
       window.console.log(msg);
+    } else {
+      me.logger.finer(msg);
     }
 
     me.migrate(db);
@@ -144,9 +147,10 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
 
   openRequest.onerror = function(ev) {
     var msg = 'opening database ' + dbname + ' failed.';
-    me.logger.severe(msg);
     if (ydn.db.IndexedDbWrapper.DEBUG) {
       window.console.log(msg);
+    } else {
+      me.logger.severe(msg);
     }
     me.db = null;
   };
@@ -282,24 +286,6 @@ ydn.db.IndexedDbWrapper.TransactionMode = {
 //      goog.global.webkitIDBTransaction).VERSION_CHANGE || 'versionchange'
 //};
 
-
-
-
-/**
- * Event types the Transaction can dispatch. COMPLETE events are dispatched
- * when the transaction is committed. If a transaction is aborted it dispatches
- * both an ABORT event and an ERROR event with the ABORT_ERR code. Error events
- * are dispatched on any error.
- *
- * @see {@link goog.db.Transaction.EventTypes}
- *
- * @enum {string}
- */
-ydn.db.IndexedDbWrapper.EventTypes = {
-  COMPLETE: 'complete',
-  ABORT: 'abort',
-  ERROR: 'error'
-};
 
 
 /**
@@ -441,7 +427,15 @@ ydn.db.IndexedDbWrapper.prototype.runTxQueue_ = function() {
 
   var task = this.txQueue.shift();
   if (task) {
-    this.doTransaction_(task.fnc, task.scopes, task.mode);
+    if (this.mu_tx_.isSetDone()) { // explicitly set, transaction is not
+      // to be continue, honer this by running in seperate thread,
+      // to that transaction would have committed.
+      goog.Timer.callOnce(function() {
+        this.doTransaction_(task.fnc, task.scopes, task.mode);
+      }, 0, this);
+    } else {
+      this.doTransaction_(task.fnc, task.scopes, task.mode);
+    }
   }
 };
 
@@ -462,88 +456,6 @@ ydn.db.IndexedDbWrapper.prototype.abortTxQueue_ = function(e) {
 };
 
 
-/**
- * Provide transaction object to subclass and keep a result.
- * This also serve as mutex on transaction.
- * @private
- * @constructor
- */
-ydn.db.IndexedDbWrapper.Transaction = function() {
-
-};
-
-
-/**
- * Start a new transaction.
- * @private
- * @param {!IDBTransaction} tx the transaction object.
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.up = function(tx) {
-  /**
-   * @private
-   * @type {IDBTransaction}
-   */
-  this.idb_tx_ = tx;
-
-  /**
-   * @private
-   * @type {*}
-   */
-  this.result_ = undefined;
-
-  /**
-   * @private
-   * @type {boolean}
-   */
-  this.has_error_ = false;
-};
-
-
-/**
- * @private
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.down = function() {
-  this.idb_tx_ = null;
-};
-
-
-/**
- * @private
- * @return {boolean}
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.isActive = function() {
-  return !!this.idb_tx_;
-};
-
-
-/**
- * @final
- * @return {!IDBTransaction}
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.getIdbTx = function() {
-  goog.asserts.assertObject(this.idb_tx_);
-  return this.idb_tx_;
-};
-
-
-/**
- * .abortTxQueue
- * @return {!IDBObjectStore}
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.objectStore = function(name) {
-  return this.idb_tx_.objectStore(name);
-};
-
-
-/**
- * Abort transaction and set error.
- */
-ydn.db.IndexedDbWrapper.Transaction.prototype.abort = function() {
-  this.has_error_ = true;
-  return this.idb_tx_.abort();
-};
-
-
 
 /**
  * When DB is ready, fnc will be call with a fresh transaction object. Fnc must
@@ -559,19 +471,20 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.abort = function() {
  */
 ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode)
 {
+  console.log('doTransaction_ ' + JSON.stringify(scopes) + ' ' + mode);
   var me = this;
 
   /**
    * This is a start of critical section on transaction.
-   * If db_ is not defined, we are not ready.
-   * If tx_ is defined, means, other transaction are in progress.
-   * Of both case, we put then in queue.
+   * If db_ is not defined, database is not ready.
+   * 
+   * 
    *
    * After transaction is over after receiving three possible (COMPLETE, ABORT
    * or ERROR) events, we set tx_ to null and start next transaction in the
    * queue.
    */
-  if (this.db_ && !this.tx_.isActive()) {
+  if (this.db_ && !this.mu_tx_.isActiveAndAvailable()) {
 
     /**
      * Existence of transaction object indicate that this database is in
@@ -582,31 +495,35 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode)
      */
     var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
 
-    me.tx_.up(tx);
+    me.mu_tx_.up(tx);
+
+    // we choose to avoid using add listener pattern to reduce memory leak,
+    // if it might.
 
     tx.oncomplete = function(event) {
-      //console.log(['oncomplete', event, tx, me.tx_])
-      me.tx_.down();
+      console.log(['oncomplete', event, tx, me.mu_tx_])
+      me.mu_tx_.down(tx, ydn.db.TransactionEventTypes.COMPLETE, event);
+      console.log('running text queue')
       me.runTxQueue_();
     };
 
     tx.onerror = function(event) {
       if (ydn.db.IndexedDbWrapper.DEBUG) {
-        window.console.log(['onerror', event, tx, me.tx_]);
+        window.console.log(['onerror', event, tx, me.mu_tx_]);
       }
-      me.tx_.down();
+      me.mu_tx_.down(tx, ydn.db.TransactionEventTypes.ERROR, event);
       me.runTxQueue_();
     };
 
     tx.onabort = function(event) {
       if (ydn.db.IndexedDbWrapper.DEBUG) {
-        window.console.log(['onabort', event, tx, me.tx_]);
+        window.console.log(['onabort', event, tx, me.mu_tx_]);
       }
-      me.tx_.down();
+      me.mu_tx_.down(tx, ydn.db.TransactionEventTypes.ABORT, event);
       me.runTxQueue_();
     };
 
-    fnc(me.tx_);
+    fnc(me.mu_tx_);
 
   } else {
     this.txQueue.push({fnc: fnc, scopes: scopes, mode: mode});
@@ -616,23 +533,34 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode)
 
 
 /**
- * Existence of transaction object indicate that this database is in
- * transaction. This must be set to null on finished.
+ * One database can have only one transaction.
  * @private
  * @final
- * @type {!ydn.db.IndexedDbWrapper.Transaction}
+ * @type {!ydn.db.IdbTxMutex}
  */
-ydn.db.IndexedDbWrapper.prototype.tx_ = new ydn.db.IndexedDbWrapper.Transaction();
+ydn.db.IndexedDbWrapper.prototype.mu_tx_ = new ydn.db.IdbTxMutex();
 
 
 /**
+ * Obtain active consumable transaction object.
  * @final
  * @protected
- * @return {ydn.db.IndexedDbWrapper.Transaction} transaction object if in
- * transaction.
+ * @return {ydn.db.IdbTxMutex} transaction object if active and available.
  */
-ydn.db.IndexedDbWrapper.prototype.getActiveTx = function() {
-  return this.tx_.isActive() ? this.tx_ : null;
+ydn.db.IndexedDbWrapper.prototype.getActiveIdbTx = function() {
+  return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;
+};
+
+
+/**
+ * Active transaction is explicitly set not to do next transaction.
+ */
+ydn.db.IndexedDbWrapper.prototype.setTxDone = function() {
+  if (this.mu_tx_) {
+    this.mu_tx_.setDone();
+  } else {
+    this.logger.warning('Unavailable tx is setting done.');
+  }
 };
 
 
@@ -665,23 +593,30 @@ ydn.db.IndexedDbWrapper.prototype.close = function() {
 
 
 /**
- *
+ * Perform explicit transaction.
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} scopes list of store names involved in the
  * transaction.
- * @param {number|string} mode mode, default to 'read_write'.
+ * @param {number|string} mode mode, default to 'readonly'.
  * @final
  */
-ydn.db.IndexedDbWrapper.prototype.transaction = function(trFn, scopes, mode) {
+ydn.db.IndexedDbWrapper.prototype.transaction = function (trFn, scopes, mode) {
 
-   this.doTransaction_(function(tx) {
-    if (ydn.db.IndexedDbWrapper.DEBUG) {
-      window.console.log([tx, trFn, scopes, mode]);
-    }
-
-    // now execute transaction process
-    trFn(tx.getTx());
-
-  }, scopes, mode);
-
+  console.log('starting explicit transaction for ' + JSON.stringify(scopes) + ' ' + mode +
+     ' status: ' + this.mu_tx_.isActive());
+  if (this.mu_tx_.isActive()) {
+    // we honour explicit transaction request, by putting it in the queue
+    // need flush the queue?
+    console.log('enqueing')
+    this.txQueue.push({fnc:trFn, scopes:scopes, mode:mode});
+  } else {
+    console.log('right away')
+    this.doTransaction_(function (tx) {
+      if (ydn.db.IndexedDbWrapper.DEBUG) {
+        window.console.log([tx, trFn, scopes, mode]);
+      }
+      // now execute transaction process
+      trFn(tx.getTx());
+    }, scopes, mode);
+  }
 };
