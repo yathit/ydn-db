@@ -192,16 +192,19 @@ ydn.db.IndexedDb.prototype.executeGetKeys_ = function (tx, df, keys) {
         if (ydn.db.IndexedDb.DEBUG) {
           window.console.log(event);
         }
-        var id = event.target.result['key'];
-        var value = event.target.result['value'];
-        var idx = goog.array.findIndex(keys, function (k) {
-          return k.getId() == id;
-        });
-        if (idx == -1) { // this should never happen.
-          throw new ydn.error.InternalError('Unrequested key: ' + id);
-        } else {
-          results[idx] = value;
-        }
+        var value = event.target.result;
+//        // do correct ordering
+//        var id = me.schema.getStore()
+//        var idx = goog.array.findIndex(keys, function (k) {
+//          return k.getId() == id;
+//        });
+//        if (idx == -1) { // this should never happen.
+//          throw new ydn.error.InternalError('Unrequested key: ' + id);
+//        } else {
+//          results[idx] = value;
+//        }
+        // or just push it :-)
+        results.push(value);
         if (result_count == keys.length) {
           df.callback(results);
         }
@@ -524,8 +527,9 @@ ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
   } else {
     var store_names = [];
     for (var i = 1; i < keys.length; i++) {
-      if (!store_names.indexOf(keys[i].getStoreName())) {
-        store_names.push(keys[i].getStoreName());
+      var store_name = keys[i].getStoreName();
+      if (store_names.indexOf(store_name) == -1) {
+        store_names.push(store_name);
       }
     }
     this.doTransaction_(function(tx) {
@@ -769,29 +773,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
   var self = this;
   var df, tx;
 
-  if (goog.isArray(q)) { // list of keys
-    var stores = [];
-    for (var i = 0; i < q.length; i++) {
-      /**
-       * @type {ydn.db.Key}
-       */
-      var key = q[i];
-      goog.asserts.assertInstanceof(key, ydn.db.Key);
-      if (!goog.array.contains(stores, q[i].store_name)) {
-        stores.push(q[i].store_name);
-      }
-    }
-    tx = this.getActiveTx();
-    df = new goog.async.Deferred();
-    if (tx) {
-      this.executeFetchKeys_(tx, df, q, limit, offset);
-    } else {
-      this.doTransaction_(function(tx) {
-        self.executeFetchKeys_(tx, df, q, limit, offset);
-      }, stores, ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
-    }
-    return df;
-  } else if (q instanceof ydn.db.Query) {
+  if (q instanceof ydn.db.Query) {
     tx = this.getActiveTx();
     df = new goog.async.Deferred();
     if (tx) {
@@ -803,7 +785,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
     }
     return df;
   } else {
-    throw Error('Invalid input: ' + q);
+    throw new ydn.error.ArgumentException();
   }
 };
 

@@ -183,7 +183,7 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
         if (ydn.db.IndexedDbWrapper.DEBUG) {
           window.console.log(openRequest);
         }
-        me.abortTxQueue(new Error(msg));
+        me.abortTxQueue_(new Error(msg));
         goog.Timer.callOnce(function() {
           // we invoke error in later thread, so that task queue have
           // enough window time to clean up.
@@ -213,7 +213,7 @@ ydn.db.IndexedDbWrapper.timeOut = goog.DEBUG || ydn.db.IndexedDbWrapper.DEBUG ?
 
 
 /**
- * @protected
+ * @const
  * @type {IDBFactory} IndexedDb.
  */
 ydn.db.IndexedDbWrapper.indexedDb = goog.global.indexedDB ||
@@ -238,6 +238,7 @@ ydn.db.IndexedDbWrapper.prototype.type = function() {
 
 
 /**
+ * @final
  * @return {IDBDatabase} this instance.
  */
 ydn.db.IndexedDbWrapper.prototype.getDbInstance = function() {
@@ -310,6 +311,7 @@ ydn.db.IndexedDbWrapper.prototype.logger =
 
 
 /**
+ * @final
  * @protected
  * @param {IDBDatabase} db database instance.
  */
@@ -446,9 +448,10 @@ ydn.db.IndexedDbWrapper.prototype.runTxQueue_ = function() {
 
 /**
  * Abort the queuing tasks.
+ * @private
  * @param e
  */
-ydn.db.IndexedDbWrapper.prototype.abortTxQueue = function(e) {
+ydn.db.IndexedDbWrapper.prototype.abortTxQueue_ = function(e) {
   if (this.txQueue) {
     var task = this.txQueue.shift();
     while (task) {
@@ -514,7 +517,7 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.isActive = function() {
 
 
 /**
- *
+ * @final
  * @return {!IDBTransaction}
  */
 ydn.db.IndexedDbWrapper.Transaction.prototype.getIdbTx = function() {
@@ -524,7 +527,7 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.getIdbTx = function() {
 
 
 /**
- *
+ * .abortTxQueue
  * @return {!IDBObjectStore}
  */
 ydn.db.IndexedDbWrapper.Transaction.prototype.objectStore = function(name) {
@@ -623,6 +626,7 @@ ydn.db.IndexedDbWrapper.prototype.tx_ = new ydn.db.IndexedDbWrapper.Transaction(
 
 
 /**
+ * @final
  * @protected
  * @return {ydn.db.IndexedDbWrapper.Transaction} transaction object if in
  * transaction.

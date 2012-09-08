@@ -37,7 +37,7 @@ ydn.db.MemoryService = function(dbname, schema, opt_localStorage) {
   /**
    * @final
    * @type {Object}
-   * @private
+   * @protected // should be private ?
    */
   this.cache_ = opt_localStorage || ydn.db.MemoryService.getFakeLocalStorage();
 
@@ -120,13 +120,18 @@ ydn.db.MemoryService.prototype.migrate = function(old_version) {
 ydn.db.MemoryService.DEFAULT_KEY_PATH = '_id_';
 
 
+
+
 /**
+ * @final
  * @protected
- * @param {ydn.db.StoreSchema} store table name.
+ * @param {string} store_name table name.
  * @param {!Object} value object having key in keyPath field.
  * @return {string|number} canonical key name.
  */
-ydn.db.MemoryService.prototype.extractKey = function (store, value) {
+ydn.db.MemoryService.prototype.extractKey = function (store_name, value) {
+  var store = this.schema.getStore(store_name);
+  goog.asserts.assertObject(store, 'store: ' + store_name + ' not found.');
   var key;
   // we don't need to check, because this function is not used by user.
   goog.asserts.assertObject(value, 'id or object must be defined.');
@@ -141,6 +146,7 @@ ydn.db.MemoryService.prototype.extractKey = function (store, value) {
 
 
 /**
+ * @final
  * @protected
  * @param {string|number} id id.
  * @param {ydn.db.StoreSchema|string} store table name.
@@ -202,4 +208,65 @@ ydn.db.MemoryService.prototype.close = function () {
  */
 ydn.db.MemoryService.prototype.transaction = function(trFn, scopes, mode) {
   trFn(this.cache_);
+};
+
+
+
+/**
+ * @protected
+ * @final
+ * @param {string} store_name table name.
+ * @param {(string|number)} id id.
+ * @return {string} canonical key name.
+ */
+ydn.db.MemoryService.prototype.makeKey = function(store_name, id) {
+  return '_database_' + this.dbname + '-' + store_name + '-' + id;
+};
+
+
+
+/**
+ *
+ * @param {string} store_name or key
+ * @param {(string|number)} id
+ * @return {*}
+ * @protected
+ * @final
+ */
+ydn.db.MemoryService.prototype.getItemInternal = function(store_name, id) {
+  var key = this.makeKey(store_name, id);
+  var value = this.cache_.getItem(key);
+  if (!goog.isNull(value)) {
+    value = ydn.json.parse(/** @type {string} */ (value));
+  } else {
+    value = undefined; // localStorage return null for not existing value
+  }
+  return value;
+};
+
+
+/**
+ *
+ * @param {*} value
+ * @param {string} store_name_or_key
+ * @param {(string|number)=} id
+ * @protected
+ * @final
+ */
+ydn.db.MemoryService.prototype.setItemInternal = function(value, store_name_or_key, id) {
+  var key = goog.isDef(id) ? this.makeKey(store_name_or_key, id) : store_name_or_key;
+  this.cache_.setItem(key, value);
+};
+
+
+/**
+ *
+ * @param {string} store_name_or_key
+ * @param {(string|number)=} id
+ * @protected
+ * @final
+ */
+ydn.db.MemoryService.prototype.removeItemInternal = function(store_name_or_key, id) {
+  var key = goog.isDef(id) ? this.makeKey(store_name_or_key, id) : store_name_or_key;
+  this.cache_.removeItem(key);
 };

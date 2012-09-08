@@ -593,7 +593,7 @@ var test_81_fetch_keys = function () {
         var keys = [
           new ydn.db.Key(store_name, objs[1].id),
           new ydn.db.Key(store_name, objs[2].id)];
-        db.fetch(keys).addCallback(function (value) {
+        db.get(keys).addCallback(function (value) {
           console.log('fetch value: ' + JSON.stringify(value));
           put_value_received = value;
 
