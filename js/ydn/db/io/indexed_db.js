@@ -340,15 +340,16 @@ ydn.db.IndexedDb.prototype.put = function(table, value, opt_key) {
     }
   }
 
+  var open_tx = this.isOpenTransaction();
   var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
-  if (tx) {
+  if (open_tx) {
+    goog.asserts.assertObject(tx);
     me.executePut_(tx.getTx(), df, table, value);
     return df;
   } else {
     this.doTransaction_(function(tx) {
       me.executePut_(tx.getTx(), df, table, value);
-      tx.setDone();
     }, [table], ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
   }
   return df;
@@ -459,9 +460,11 @@ ydn.db.IndexedDb.prototype.getQuery_ = function(q) {
  */
 ydn.db.IndexedDb.prototype.getById_ = function(store_name, id) {
   var me = this;
+  var open_tx = this.isOpenTransaction();
   var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
-  if (tx) {
+  if (open_tx) {
+    goog.asserts.assertObject(tx);
     this.executeGet_(tx.getTx(), df, store_name, id);
   } else {
     this.doTransaction_(function(tx) {
@@ -481,14 +484,14 @@ ydn.db.IndexedDb.prototype.getById_ = function(store_name, id) {
  */
 ydn.db.IndexedDb.prototype.getByIds_ = function(store_name, ids) {
   var me = this;
+  var open_tx = this.isOpenTransaction();
   var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
-  if (tx) {
+  if (open_tx) {
     this.executeGetMultiple_(tx.getTx(), df, store_name, ids);
   } else {
     this.doTransaction_(function(tx) {
       me.executeGetMultiple_(tx.getTx(), df, store_name, ids);
-      tx.setDone(); // block next transaction.
     }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
   }
   return df;
@@ -531,14 +534,14 @@ ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
  */
 ydn.db.IndexedDb.prototype.getByStore_ = function(store_name) {
   var me = this;
+  var open_tx = this.isOpenTransaction();
   var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
-  if (tx) {
+  if (open_tx) {
     this.executeGetAll_(tx.getTx(), df, false, store_name);
   } else {
     this.doTransaction_(function(tx) {
       me.executeGetAll_(tx.getTx(), df, store_name);
-      tx.setDone();
     }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
 
   }
@@ -757,16 +760,15 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
 
   var self = this;
   var df, tx;
-
+  var open_tx = this.isOpenTransaction();
   if (q instanceof ydn.db.Query) {
     tx = this.getActiveIdbTx();
     df = new goog.async.Deferred();
-    if (tx) {
+    if (open_tx) {
       this.executeFetchQuery_(tx.getTx(), df, q, limit, offset);
     } else {
       this.doTransaction_(function(tx) {
         self.executeFetchQuery_(tx.getTx(), df, q, limit, offset);
-        tx.setDone();
       }, [q.store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
     }
     return df;

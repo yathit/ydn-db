@@ -68,7 +68,7 @@ var test_2_idb_basic = function() {
       // Continuation
       function() {
         db.get(table_name, 'a').addCallback(function(a_obj) {
-          assertEquals('a value', 1+amt, a_obj.value);
+          assertEquals('a value after adding ' + amt, 1+amt, a_obj.value);
           t2_fired = true;
         })
       },
@@ -83,7 +83,7 @@ var test_2_idb_basic = function() {
       db.get(table_name, 'a').addCallback(function(a_obj) {
         console.log('get a, n: ' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(a_obj));
         a_obj.value += amt;
-        db.put(a_obj, table_name, 'a').addCallback(function(out) {
+        db.put(table_name, a_obj).addCallback(function(out) {
           console.log('put a, n: ' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(a_obj));
           t1_fired = true;
           assertEquals('tr done', 'a', out);
@@ -95,8 +95,6 @@ var test_2_idb_basic = function() {
     q.select('value');
     db.fetch(q).addCallback(function(q_result) {
       console.log('receiving fetch n:' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(q_result));
-      t1_result = q_result;
-      t1_fired = true;
     })
   });
 };

@@ -24,6 +24,23 @@ ydn.db.IdbTxMutex = function() {
 };
 
 
+
+
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.IdbTxMutex.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.IdbTxMutex');
+
+
+/**
+ * @const
+ * @type {boolean}
+ */
+ydn.db.IdbTxMutex.DEBUG = true;
+
+
 /**
  * Newly created transaction it push to mutex and lock.
  * @final
@@ -31,8 +48,7 @@ ydn.db.IdbTxMutex = function() {
  */
 ydn.db.IdbTxMutex.prototype.up = function(tx) {
 
-  console.log('receiving new tx, n: ' + this.tx_count_);
-  console.log([tx, this.idb_tx_]);
+  this.logger.finest('tx up, count: ' + this.tx_count_);
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
@@ -87,7 +103,7 @@ ydn.db.IdbTxMutex.prototype.is_set_done_ = false;
  * @param {*} event
  */
 ydn.db.IdbTxMutex.prototype.down = function (tx, type, event) {
-  console.log('down ' + this.tx_count_ + ' ' + this.idb_tx_)
+  this.logger.finest('tx down, count: ' + this.tx_count_);
   // down must be call only once by those who up
   goog.asserts.assert(this.idb_tx_ === tx);
   this.idb_tx_ = null;
@@ -111,6 +127,7 @@ ydn.db.IdbTxMutex.prototype.down = function (tx, type, event) {
 
 /**
  * Transaction is explicitly set not to do next transaction.
+ * @deprecated
  */
 ydn.db.IdbTxMutex.prototype.setDone = function() {
   this.is_set_done_ = true;
