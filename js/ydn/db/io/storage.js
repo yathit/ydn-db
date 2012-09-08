@@ -41,7 +41,6 @@ goog.require('ydn.object');
 goog.require('ydn.db.ActiveQuery');
 goog.require('ydn.db.RichStorage_');
 goog.require('ydn.db.Core');
-goog.require('ydn.db.ActiveKey');
 
 
 /**
@@ -257,20 +256,6 @@ ydn.db.Storage.prototype.query = function(store_name, index, keyRange,
 };
 
 
-
-/**
- * @export
- * @param {string} store
- * @param {(string|number)}id
- * @param {ydn.db.Key=} opt_parent
- * @return {!ydn.db.ActiveKey}
- */
-ydn.db.Storage.prototype.key = function(store, id, opt_parent) {
-  return new ydn.db.ActiveKey(this, store, id, opt_parent);
-};
-
-
-
 /**
  * Put an object to the store.
  *
@@ -367,26 +352,23 @@ ydn.db.Storage.prototype.count = function(opt_store_name) {
  * Fetch result of a query and return as array.
  *
  * @export
- * @param {!ydn.db.Query|!Array.<!ydn.db.Key>|string} q query.
+ * @param {!ydn.db.Query} q query.
  * @param {number=} limit
  * @param {number=} offset
  * @return {!goog.async.Deferred}
  */
 ydn.db.Storage.prototype.fetch = function (q, limit, offset) {
 
-  if (goog.isString(q)) {
-    return this.fetch(new ydn.db.Query(q), limit, offset);
+  if (this.getQueryService()) {
+    return this.getQueryService().fetch(q, limit, offset);
   } else {
-    if (this.getQueryService()) {
-      return this.getQueryService().fetch(q, limit, offset);
-    } else {
-      var df = new goog.async.Deferred();
-      this.getDeferredDb().addCallback(function (db) {
-        db.fetch(q, limit, offset).chainDeferred(df);
-      });
-      return df;
-    }
+    var df = new goog.async.Deferred();
+    this.getDeferredDb().addCallback(function (db) {
+      db.fetch(q, limit, offset).chainDeferred(df);
+    });
+    return df;
   }
+
 };
 
 
@@ -430,13 +412,6 @@ goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
   ydn.db.ActiveQuery.prototype.fetch);
 goog.exportProperty(ydn.db.ActiveQuery.prototype, 'get',
   ydn.db.ActiveQuery.prototype.get);
-
-goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
-  ydn.db.ActiveKey.prototype.clear);
-goog.exportProperty(ydn.db.ActiveKey.prototype, 'get',
-  ydn.db.ActiveKey.prototype.get);
-goog.exportProperty(ydn.db.ActiveKey.prototype, 'put',
-  ydn.db.ActiveKey.prototype.put);
 
 goog.exportProperty(ydn.db.Query.prototype, 'starts',
   ydn.db.Query.prototype.startsWith);

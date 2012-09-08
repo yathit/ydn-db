@@ -25,8 +25,6 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.QueryService');
-goog.require('ydn.db.Query');
 goog.require('ydn.json');
 goog.require('ydn.db');
 
@@ -37,7 +35,7 @@ goog.require('ydn.db');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.CoreService}
  * @constructor
  */
 ydn.db.WebSqlWrapper = function(dbname, schema) {
@@ -131,6 +129,7 @@ ydn.db.WebSqlWrapper.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebS
  * Run a transaction. If already in transaction, this will join the transaction.
  * @param {Function} transactionFunc
  * @protected
+ * @final
  */
 ydn.db.WebSqlWrapper.prototype.doTransaction = function(transactionFunc) {
 
@@ -530,3 +529,16 @@ ydn.db.WebSqlWrapper.prototype.close = function () {
 
 
 
+
+/**
+ * @inheritDoc
+ * @final
+ */
+ydn.db.WebSqlWrapper.prototype.transaction = function(trFn, scopes, mode) {
+
+  this.doTransaction(function(tx) {
+    // now execute transaction process
+    trFn(tx);
+  });
+
+};

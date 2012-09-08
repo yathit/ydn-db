@@ -21,16 +21,17 @@ goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
 goog.require('ydn.db.QueryService');
-goog.require('ydn.db.Db');
+goog.require('ydn.db.AbstractService');
 
 
 /**
  * @implements {ydn.db.QueryService}
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.CoreService}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
+ * @extends {ydn.db.CacheService}
  * @constructor
  */
 ydn.db.MemoryStore = function(dbname, schema, opt_localStorage) {
@@ -143,11 +144,12 @@ ydn.db.MemoryStore.prototype.extractKey = function (store, value) {
 /**
  * @protected
  * @param {string|number} id id.
- * @param {ydn.db.StoreSchema} store table name.
+ * @param {ydn.db.StoreSchema|string} store table name.
  * @return {string} canonical key name.
  */
 ydn.db.MemoryStore.prototype.getKey = function(id, store) {
-  return '_database_' + this.dbname + '-' + store.name + '-' + id;
+  var store_name = store instanceof ydn.db.StoreSchema ? store.name : store;
+  return '_database_' + this.dbname + '-' + store_name + '-' + id;
 };
 
 
@@ -212,7 +214,7 @@ ydn.db.MemoryStore.prototype.put = function (table, value) {
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.MemoryStore.prototype.getByKey = function(key) {
-  return this.get(key.store_name, key.id + '');
+  return this.get(key.getStoreName(), key.getId() + '');
 };
 
 
@@ -225,9 +227,62 @@ ydn.db.MemoryStore.prototype.type = function() {
 
 
 /**
+ *
+ * @param {!ydn.db.Query} q
+ * @return {goog.async.Deferred}
+ * @private
+ */
+ydn.db.MemoryStore.prototype.get1_ = function(q) {
+  var df = new goog.async.Deferred();
+
+  var fetch_df = this.fetch(q);
+  fetch_df.addCallback(function (value) {
+    df.callback(goog.isArray(value) ? value[0] : undefined);
+  });
+  fetch_df.addErrback(function (value) {
+    df.errback(value);
+  });
+
+  return df;
+};
+
+
+/**
+ *
+ * @param {string} store_name
+ * @param {Array.<string>} keys
+ * @return {goog.async.Deferred}
+ * @private
+ */
+ydn.db.MemoryStore.prototype.getKeys_ = function(store_name, keys) {
+  var arr = [];
+  for (var i = 0; i < keys.length; i++) {
+    /**
+     * @type {!ydn.db.Key}
+     */
+    var key = keys[i];
+    var value = this.cache_.getItem(this.getKey(key.getId(),
+        key.getStoreName()));
+    if (!goog.isNull(value)) {
+      value = ydn.json.parse(/** @type {string} */ (value));
+    } else {
+      value = undefined; // localStorage return null for not existing value
+    }
+    arr.push(ydn.json.parse(/** @type {string} */ (value)));
+  }
+  return ydn.db.MemoryStore.succeed(arr);
+};
+
+
+ydn.db.MemoryStore.prototype.getIds_ = function(store_name, ids) {
+
+}
+
+
+/**
  * Return object
- * @param {string|!ydn.db.Query|!ydn.db.Key} arg1 table name.
- * @param {(string|number)=} opt_key object key to be retrieved, if not provided,
+ * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=}  arg1 table name.
+ * @param {(string|number|!Array.<string>)=} opt_key object key to be retrieved, if not provided,
  * all entries in the store will return.
  * param {number=} start start number of entry.
  * param {number=} limit maximun number of entries.
@@ -235,21 +290,9 @@ ydn.db.MemoryStore.prototype.type = function() {
  */
 ydn.db.MemoryStore.prototype.get = function (arg1, opt_key) {
 
-  if (arg1 instanceof ydn.db.Query) {
-    var df = new goog.async.Deferred();
-
-    var fetch_df = this.fetch(arg1);
-    fetch_df.addCallback(function (value) {
-      df.callback(goog.isArray(value) ? value[0] : undefined);
-    });
-    fetch_df.addErrback(function (value) {
-      df.errback(value);
-    });
-
-    return df;
-  } else if (arg1 instanceof ydn.db.Key) {
+  if (arg1 instanceof ydn.db.Key) {
     return this.getByKey(arg1);
-  } else {
+  } else if (goog.isString(arg1)) {
     var store = this.schema.getStore(arg1);
     goog.asserts.assertObject(store);
 
@@ -273,9 +316,12 @@ ydn.db.MemoryStore.prototype.get = function (arg1, opt_key) {
           }
         }
       }
-
-      return ydn.db.MemoryStore.succeed(arr);
     }
+    return ydn.db.MemoryStore.succeed(arr);
+  } else if (goog.isArray(arg1) && (arg1[0] instanceof ydn.db.Key)) {
+
+  } else {
+    throw 'InvalidInputArgumentError';
   }
 };
 

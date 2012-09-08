@@ -215,8 +215,8 @@ ydn.db.WebSql.prototype.executeGet_ = function(t, d, arg1, key) {
 
 /**
  * Return object
- * @param {string|!ydn.db.Query|!ydn.db.Key} arg1 table name.
- * @param {(string|number)=} key object key to be retrieved, if not provided,
+ * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
+ * @param {(string|number|!Array.<string>)=} key object key to be retrieved, if not provided,
  * all entries in the store will return.
  * param {number=} start start number of entry.
  * param {number=} limit maximun number of entries.
@@ -505,17 +505,3 @@ ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
   }
 };
 
-
-
-/**
- *
- *
- */
-ydn.db.WebSqlWrapper.prototype.transaction = function(trFn, scopes, mode) {
-
-  this.doTransaction(function(tx) {
-    // now execute transaction process
-    trFn(tx);
-  });
-
-};

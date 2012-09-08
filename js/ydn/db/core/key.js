@@ -16,6 +16,8 @@
  * @fileoverview  A unique key for a datastore object supporting hierarchy of
  * parent-child relationships for an entity.
  *
+ * The instances are immutable.
+ *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
@@ -37,7 +39,7 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
     store_name = store_or_json_or_value['store'];
     id = store_or_json_or_value['id'];
     if (goog.isDefAndNotNull(store_or_json_or_value['parent'])) {
-      opt_parent = this.toKey(store_or_json_or_value['parent']);
+      opt_parent = new ydn.db.Key(store_or_json_or_value['parent']);
     }
   } else {
     goog.asserts.assertString(store_or_json_or_value);
@@ -50,7 +52,7 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
       var store_and_id = store_or_json_or_value;
       if (idx > 0) {
         store_and_id = store_or_json_or_value.substr(idx);
-        opt_parent = this.toKey(store_or_json_or_value.substring(0, idx));
+        opt_parent = new ydn.db.Key(store_or_json_or_value.substring(0, idx));
       }
       var parts = store_and_id.split(ydn.db.Key.SEP_STORE);
       store_name = parts[0];
@@ -65,19 +67,22 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
 
   /**
    * @final
+   * @private
    * @type {string}
    */
-  this.store_name = store_name;
+  this.store_name_ = store_name;
   /**
    * @final
+   * @private
    * @type {(string|number)}
    */
-  this.id = id;
+  this.id_ = id;
   /**
+   * @private
    * @final
    * @type {ydn.db.Key}
    */
-  this.parent = opt_parent || null;
+  this.parent_ = opt_parent || null;
 
 };
 
@@ -98,11 +103,11 @@ ydn.db.Key.Json;
  */
 ydn.db.Key.prototype.toJSON = function() {
   var obj = {
-    'store': this.store_name,
-    'id': this.id
+    'store': this.store_name_,
+    'id': this.id_
   };
-  if (this.parent) {
-    obj['parent'] = this.parent.toJSON();
+  if (this.parent_) {
+    obj['parent'] = this.parent_.toJSON();
   }
   return obj;
 };
@@ -113,7 +118,7 @@ ydn.db.Key.prototype.toJSON = function() {
  * @return {ydn.db.Key}
  */
 ydn.db.Key.prototype.parent = function() {
-  return this.parent || null;
+  return this.parent_;
 };
 
 
@@ -136,8 +141,8 @@ ydn.db.Key.SEP_STORE = '^:';
  */
 ydn.db.Key.prototype.valueOf = function() {
   // necessary to make web-safe string ?
-  var parent_value = this.parent ? this.parent.valueOf() + ydn.db.Key.SEP_PARENT : '';
-  return parent_value + this.store_name + ydn.db.Key.SEP_STORE + this.id;
+  var parent_value = this.parent_ ? this.parent_.valueOf() + ydn.db.Key.SEP_PARENT : '';
+  return parent_value + this.store_name_ + ydn.db.Key.SEP_STORE + this.id_;
 };
 
 
@@ -146,6 +151,24 @@ ydn.db.Key.prototype.valueOf = function() {
  */
 ydn.db.Key.prototype.toString = function() {
   return this.valueOf().replace('^|', '|').replace('^:', ':');
+};
+
+
+/**
+ * 
+ * @return {string}
+ */
+ydn.db.Key.prototype.getStoreName = function() {
+  return this.store_name_;
+};
+
+
+/**
+ *
+ * @return {string|number}
+ */
+ydn.db.Key.prototype.getId = function() {
+  return this.id_;
 };
 
 

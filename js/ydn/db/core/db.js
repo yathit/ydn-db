@@ -19,6 +19,7 @@
  */
 
 goog.provide('ydn.db');
+goog.provide('ydn.db.ValidKeyException');
 
 
 
@@ -35,6 +36,31 @@ ydn.db.DEFAULT_KEY_COLUMN = '_id_';
  * @const {string}
  */
 ydn.db.DEFAULT_BLOB_COLUMN = '_default_';
+
+
+
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.ValidKeyException = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.ValidKeyException);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(ydn.db.ValidKeyException, Error);
+
+ydn.db.ValidKeyException.prototype.name = 'ValidKeyException';
 
 
 

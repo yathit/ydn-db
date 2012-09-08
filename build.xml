@@ -3,7 +3,7 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${work.dir}/ydn/build.xml"/>
-    <property name="ver" value="0.7.1"/>
+    <property name="ver" value="0.8.0"/>
     <target name="compile-debug" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
@@ -17,20 +17,23 @@
     </target>
     <macrodef name="adv-comp">
         <attribute name="input.fn"/>
+        <attribute name="input.dir"/>
         <attribute name="output.fn"/>
         <attribute name="output.dir"/>
         <attribute name="closure.entry"/>
         <attribute name="cssmap-target" default="dummy"/>
+        <element name="exjs.dir" optional="yes"/>
         <sequential>
             <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                             base.dir="."
+                             base.dir="@{input.dir}"
                              input="@{input.fn}"
-                             input.dir="${ydn-db.dir}/js"
+                             input.dir="@{input.dir}"
                              output.fn="@{output.dir}/@{output.fn}">
                 <extrapaths>
                     <arg line='-p "${ydn-base.dir}/js"'/>
-                    <arg line='-p "${ydn-db.dir}/js"'/>
                     <arg line='-p "${ydn.dir}/js"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
+                    <exjs.dir/>
                 </extrapaths>
                 <options>
                     <!--<arg line='-f "-generate_exports"'/>-->
@@ -64,10 +67,11 @@
         <copy file="${ydn-db.dir}/jsc/ydn-db-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/ydn-db.js"/>
     </target>
-    <target name="compile-core" description="generates compiled files for client js, /jsc/sync.jc">
+    <target name="compile-core" description="generates compiled files for core">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.fn="${ydn-db.dir}/js/ydn/db/storage_core.js"
+                input.dir="${ydn-db.dir}/js/ydn/db/core"
+                input.fn="${ydn-db.dir}/js/ydn/db/core/storage_core.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="core-ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.Core">
@@ -75,10 +79,11 @@
         <copy file="${ydn-db.dir}/jsc/core-ydn-db-min-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/core-ydn-db-min.js"/>
     </target>
-    <target name="compile" description="generates compiled files for client js, /jsc/sync.jc">
+    <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.fn="${ydn-db.dir}/js/ydn/db/storage.js"
+                input.dir="${ydn-db.dir}/js/ydn/db/io"
+                input.fn="${ydn-db.dir}/js/ydn/db/io/storage.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.Storage">

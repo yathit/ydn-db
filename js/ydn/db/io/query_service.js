@@ -36,7 +36,7 @@ ydn.db.QueryService.prototype.fetch = function(q, limit, offset) {};
 /**
  * Return object
  * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store table name.
- * @param {(string|number)=} id object key to be retrieved, if not provided,
+ * @param {(string|number|!Array.<string>)=} id object key to be retrieved, if not provided,
  * all entries in the store will return.
  * param {number=} start start number of entry.
  * param {number=} limit maximun number of entries.

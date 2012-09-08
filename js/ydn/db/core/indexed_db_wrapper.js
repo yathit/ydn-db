@@ -26,8 +26,7 @@ goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db');
 goog.require('ydn.db.DatabaseSchema');
-goog.require('ydn.db.Db');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.CoreService');
 goog.require('ydn.json');
 
 
@@ -37,7 +36,7 @@ goog.require('ydn.json');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.Db}
+ * @implements {ydn.db.CoreService}
  * @constructor
  */
 ydn.db.IndexedDbWrapper = function(dbname, schema) {
@@ -548,6 +547,7 @@ ydn.db.IndexedDbWrapper.Transaction.prototype.abort = function() {
  * put the result to 'result' field of the transaction object on success. If
  * 'result' field is not set, it is assumed
  * as failed.
+ * @final
  * @protected
  * @param {Function} fnc transaction function.
  * @param {!Array.<string>} scopes list of stores involved in the
@@ -587,14 +587,18 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode)
       me.runTxQueue_();
     };
 
-    tx.onabort = function(event) {
-      //console.log(['onabort', event, tx, me.tx_])
+    tx.onerror = function(event) {
+      if (ydn.db.IndexedDbWrapper.DEBUG) {
+        window.console.log(['onerror', event, tx, me.tx_]);
+      }
       me.tx_.down();
       me.runTxQueue_();
     };
 
     tx.onabort = function(event) {
-      //console.log(['onabort', event, tx, me.tx_])
+      if (ydn.db.IndexedDbWrapper.DEBUG) {
+        window.console.log(['onabort', event, tx, me.tx_]);
+      }
       me.tx_.down();
       me.runTxQueue_();
     };
@@ -636,7 +640,7 @@ ydn.db.IndexedDbWrapper.prototype.getActiveTx = function() {
 ydn.db.IndexedDbWrapper.prototype.close = function() {
 
   var df = new goog.async.Deferred();
-  var request = this.db.close();
+  var request = this.db_.close();
 
   request.onsuccess = function(event) {
     if (ydn.db.IndexedDbWrapper.DEBUG) {
@@ -654,3 +658,26 @@ ydn.db.IndexedDbWrapper.prototype.close = function() {
   return df;
 };
 
+
+
+/**
+ *
+ * @param {Function} trFn function that invoke in the transaction.
+ * @param {!Array.<string>} scopes list of store names involved in the
+ * transaction.
+ * @param {number|string} mode mode, default to 'read_write'.
+ * @final
+ */
+ydn.db.IndexedDbWrapper.prototype.transaction = function(trFn, scopes, mode) {
+
+   this.doTransaction_(function(tx) {
+    if (ydn.db.IndexedDbWrapper.DEBUG) {
+      window.console.log([tx, trFn, scopes, mode]);
+    }
+
+    // now execute transaction process
+    trFn(tx.getTx());
+
+  }, scopes, mode);
+
+};
