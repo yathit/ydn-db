@@ -66,23 +66,20 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
   }
 
   /**
-   * @final
-   * @private
+   * @protected
    * @type {string}
    */
-  this.store_name_ = store_name;
+  this.store_name = store_name;
   /**
-   * @final
-   * @private
+   * @protected
    * @type {(string|number)}
    */
-  this.id_ = id;
+  this.id = id;
   /**
-   * @private
-   * @final
+   * @protected
    * @type {ydn.db.Key}
    */
-  this.parent_ = opt_parent || null;
+  this.parent = opt_parent || null;
 
 };
 
@@ -103,22 +100,13 @@ ydn.db.Key.Json;
  */
 ydn.db.Key.prototype.toJSON = function() {
   var obj = {
-    'store': this.store_name_,
-    'id': this.id_
+    'store': this.store_name,
+    'id': this.id
   };
-  if (this.parent_) {
-    obj['parent'] = this.parent_.toJSON();
+  if (this.parent) {
+    obj['parent'] = this.parent.toJSON();
   }
   return obj;
-};
-
-
-/**
- *
- * @return {ydn.db.Key}
- */
-ydn.db.Key.prototype.parent = function() {
-  return this.parent_;
 };
 
 
@@ -141,8 +129,8 @@ ydn.db.Key.SEP_STORE = '^:';
  */
 ydn.db.Key.prototype.valueOf = function() {
   // necessary to make web-safe string ?
-  var parent_value = this.parent_ ? this.parent_.valueOf() + ydn.db.Key.SEP_PARENT : '';
-  return parent_value + this.store_name_ + ydn.db.Key.SEP_STORE + this.id_;
+  var parent_value = this.parent ? this.parent.valueOf() + ydn.db.Key.SEP_PARENT : '';
+  return parent_value + this.store_name + ydn.db.Key.SEP_STORE + this.id;
 };
 
 
@@ -159,7 +147,7 @@ ydn.db.Key.prototype.toString = function() {
  * @return {string}
  */
 ydn.db.Key.prototype.getStoreName = function() {
-  return this.store_name_;
+  return this.store_name;
 };
 
 
@@ -168,9 +156,15 @@ ydn.db.Key.prototype.getStoreName = function() {
  * @return {string|number}
  */
 ydn.db.Key.prototype.getId = function() {
-  return this.id_;
+  return this.id;
 };
 
 
-
+/**
+ *
+ * @return {ydn.db.Key}
+ */
+ydn.db.Key.prototype.getParent = function() {
+  return this.parent;
+};
 
