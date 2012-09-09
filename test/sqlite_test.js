@@ -92,6 +92,7 @@ var test_1_1_put_arr = function() {
 
 var test_1_get_all = function() {
 
+  var db_name = 'get_empty_table_test_2';
   var db = new ydn.db.WebSql(db_name, basic_schema);
 
   var hasEventFired = false;

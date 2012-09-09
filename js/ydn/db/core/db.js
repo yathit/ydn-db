@@ -126,11 +126,11 @@ ydn.db.YdnDbInvalidStateException.prototype.name = 'WrapperDBInvalidStateExcepti
  * @constructor
  * @extends {Error}
  */
-ydn.db.YdnDbNotFoundError = function(opt_msg) {
+ydn.db.NotFoundError = function(opt_msg) {
 
   // Ensure there is a stack trace.
   if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.YdnDbNotFoundError);
+    Error.captureStackTrace(this, ydn.db.NotFoundError);
   } else {
     this.stack = new Error().stack || '';
   }
@@ -139,6 +139,6 @@ ydn.db.YdnDbNotFoundError = function(opt_msg) {
     this.message = String(opt_msg);
   }
 };
-goog.inherits(ydn.db.YdnDbNotFoundError, Error);
+goog.inherits(ydn.db.NotFoundError, Error);
 
-ydn.db.YdnDbNotFoundError.prototype.name = 'YdnDbNotFoundError';
+ydn.db.NotFoundError.prototype.name = 'ydn.db.NotFoundError';

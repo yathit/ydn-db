@@ -240,7 +240,7 @@ var test_52_where = function() {
 
     var q = db.query(table_name);
     q.where('value', '=', 2);
-    db.get(q).addCallback(function(q_result) {
+    q.get().addCallback(function(q_result) {
       console.log('receiving when query ' + JSON.stringify(q_result));
       result = q_result;
       hasEventFired = true;

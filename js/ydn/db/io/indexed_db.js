@@ -898,7 +898,7 @@ ydn.db.IndexedDb.prototype.count = function(table) {
 
   var df = new goog.async.Deferred();
   this.doIdbTransaction(function(tx) {
-    var store = tx.objectStore(table);
+    var store = tx.getTx().objectStore(table);
     var request = store.count();
     request.onsuccess = function(event) {
       if (ydn.db.IndexedDb.DEBUG) {

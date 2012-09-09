@@ -48,8 +48,6 @@ ydn.db.IdbTxMutex.DEBUG = false;
  */
 ydn.db.IdbTxMutex.prototype.up = function(tx) {
 
-  this.logger.finest('tx up, count: ' + this.tx_count_);
-
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
   goog.asserts.assert(goog.isNull(this.idb_tx_), 'transaction overlap ' + this.idb_tx_);
@@ -67,6 +65,8 @@ ydn.db.IdbTxMutex.prototype.up = function(tx) {
   goog.array.clear(this.complete_listeners_);
 
   this.tx_count_++;
+
+  this.logger.finest('tx up, count: ' + this.tx_count_);
 };
 
 

@@ -72,7 +72,7 @@ ydn.db.WebSql.prototype.executePut_ = function (tx, df, store_name, obj) {
 
   var table = this.schema.getStore(store_name);
   if (!table) {
-    throw new ydn.db.YdnDbNotFoundError(store_name);
+    throw new ydn.db.NotFoundError(store_name);
   }
 
   var me = this;
@@ -124,7 +124,7 @@ ydn.db.WebSql.prototype.executePutMultiple_ = function (tx, df, store_name, arr)
 
   var table = this.schema.getStore(store_name);
   if (!table) {
-    throw new ydn.db.YdnDbNotFoundError(store_name);
+    throw new ydn.db.NotFoundError(store_name);
   }
 
   var me = this;
@@ -232,7 +232,7 @@ ydn.db.WebSql.prototype.executeGet_ = function(t, d, table_name, id) {
 
   var table = this.schema.getStore(table_name);
   if (!table) {
-    throw new ydn.db.YdnDbNotFoundError(table_name);
+    throw new ydn.db.NotFoundError(table_name);
   }
 
   var me = this;
@@ -288,9 +288,9 @@ ydn.db.WebSql.prototype.executeGetByStore_ = function(t, d, opt_table_name) {
 
   var getAll = function (table_name) {
 
-    var table = this.schema.getStore(table_name);
+    var table = me.schema.getStore(table_name);
     if (!table) {
-      throw new ydn.db.YdnDbNotFoundError(table_name);
+      throw new ydn.db.NotFoundError(table_name);
     }
 
     var sql = 'SELECT * FROM ' + table.getQuotedName();
@@ -329,6 +329,7 @@ ydn.db.WebSql.prototype.executeGetByStore_ = function(t, d, opt_table_name) {
   var table_names = goog.isString(opt_table_name) ? [opt_table_name] :
       goog.isArray(opt_table_name) && opt_table_name.length > 0 ?
           opt_table_name : this.schema.getStoreNames();
+  n_todo = table_names.length;
 
   if (n_todo > 0) {
     for (var i = 0; i < n_todo; i++) {
@@ -353,7 +354,7 @@ ydn.db.WebSql.prototype.executeGetMultiple_ = function (t, d, table_name, ids) {
 
   var table = this.schema.getStore(table_name);
   if (!table) {
-    throw new ydn.db.YdnDbNotFoundError(table_name);
+    throw new ydn.db.NotFoundError(table_name);
   }
 
   var get = function (i, tx) {
@@ -365,7 +366,7 @@ ydn.db.WebSql.prototype.executeGetMultiple_ = function (t, d, table_name, ids) {
     var callback = function (transaction, results) {
       var row = results.rows.item(0);
       results[i] = me.parseRow(table, row);
-      if (i == ids.length) {
+      if ((i + 1) == ids.length) {
         d.callback(results);
       } else {
         get(i + 1, transaction);
@@ -417,7 +418,7 @@ ydn.db.WebSql.prototype.executeGetKeys_ = function (t, d, keys) {
     var table_name = key.getStoreName();
     var table = this.schema.getStore(table_name);
     if (!table) {
-      throw new ydn.db.YdnDbNotFoundError(table_name);
+      throw new ydn.db.NotFoundError(table_name);
     }
 
     /**
@@ -427,7 +428,7 @@ ydn.db.WebSql.prototype.executeGetKeys_ = function (t, d, keys) {
     var callback = function (transaction, results) {
       var row = results.rows.item(0);
       results[i] = me.parseRow(table, row);
-      if (i == keys.length) {
+      if (i == keys.length - 1) {
         d.callback(results);
       } else {
         get(i + 1, transaction);
@@ -705,6 +706,8 @@ ydn.db.WebSql.prototype.executeQuery_ = function(t, d, q, limit, offset) {
     d.errback(error);
   };
 
+  t.executeSql(sql, params, callback, error_callback);
+
 };
 
 
@@ -751,6 +754,9 @@ ydn.db.WebSql.prototype.executeClearStore_ = function (t, d, table_name) {
   var deleteStore = function (i, tx) {
 
     var store = me.schema.getStore(store_names[i]);
+    if (!store) {
+      throw new ydn.db.NotFoundError(store_names[i]);
+    }
 
     var sql = 'DELETE FROM  ' + store.getQuotedName();
 
@@ -759,7 +765,7 @@ ydn.db.WebSql.prototype.executeClearStore_ = function (t, d, table_name) {
      * @param {SQLResultSet} results results.
      */
     var callback = function (transaction, results) {
-      if (i == store_names.length) {
+      if (i == store_names.length - 1) {
         d.callback(true);
       } else {
         deleteStore(i + 1, transaction);
@@ -834,13 +840,14 @@ ydn.db.WebSql.prototype.executeClear_ = function (t, d, table_name, key) {
 
 
 /**
- * Deletes all objects from the store.
- * @param {string|!Array.<string>} table_name table name.
- * @param {(string|number)=} opt_key table name.
- * @return {!goog.async.Deferred} return deferred function.
- * @private
+ * Remove a specific entry from a store or all.
+ * @param {string=} table_name delete the table as provided otherwise
+ * delete all stores.
+ * @param {(string|number)=} opt_key delete a specific row.
+ * @see {@link #remove}
+ * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.WebSql.prototype.clear_ = function (table_name, opt_key) {
+ydn.db.WebSql.prototype.clear = function (table_name, opt_key) {
 
   var me = this;
   var open_tx = this.isOpenTransaction();
@@ -852,7 +859,7 @@ ydn.db.WebSql.prototype.clear_ = function (table_name, opt_key) {
     } else {
       this.doSqlTransaction(function (tx) {
         me.executeClear_(tx.getTx(), df, table_name, opt_key);
-      }, [], ydn.db.TransactionMode.READ_ONLY);
+      }, [], ydn.db.TransactionMode.READ_WRITE);
     }
   } else {
     if (open_tx) {
@@ -860,7 +867,7 @@ ydn.db.WebSql.prototype.clear_ = function (table_name, opt_key) {
     } else {
       this.doSqlTransaction(function (tx) {
         me.executeClearStore_(tx.getTx(), df, table_name);
-      }, [], ydn.db.TransactionMode.READ_ONLY);
+      }, [], ydn.db.TransactionMode.READ_WRITE);
     }
   }
   return df;
@@ -914,49 +921,24 @@ ydn.db.WebSql.prototype.count = function(table) {
 
 
 /**
- * Remove a specific entry from a store or all.
- * @param {string=} opt_table delete the table as provided otherwise
- * delete all stores.
- * @param {(string|number)=} opt_key delete a specific row.
- * @see {@link #remove}
- * @return {!goog.async.Deferred} return a deferred function.
- */
-ydn.db.WebSql.prototype.clear = function(opt_table, opt_key) {
+* Delete the database, store or an entry.
+*
+* @param {string=} opt_table delete a specific store.
+* @param {string=} opt_id delete a specific row.
+* @return {!goog.async.Deferred} return a deferred function.
+*/
+ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
 
-  if (goog.isDef(opt_table)) {    
-    if (!this.schema.hasStore(opt_table)) {
-      throw Error('Table ' + opt_table + ' not found.');
+  if (goog.isDef(opt_table)) {
+    if (goog.isDef(opt_id)) {
+      return this.deleteRow_(opt_table, opt_id);
+    } else {
+      return this.dropTable_(opt_table);
     }
-    return this.clear_(opt_table, opt_key);
   } else {
-    var dfs = [];
-    for (var store in this.schema) {
-      dfs.push(this.clear_(store));
-    }
-    return ydn.async.reduceAllTrue(new goog.async.DeferredList(dfs));
+    return this.dropTable_();
   }
 };
-//
-//
-///**
-// * Delete the database, store or an entry.
-// *
-// * @param {string=} opt_table delete a specific store.
-// * @param {string=} opt_id delete a specific row.
-// * @return {!goog.async.Deferred} return a deferred function.
-// */
-//ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
-//
-//  if (goog.isDef(opt_table)) {
-//    if (goog.isDef(opt_id)) {
-//      return this.deleteRow_(opt_table, opt_id);
-//    } else {
-//      return this.dropTable_(opt_table);
-//    }
-//  } else {
-//    return this.dropTable_();
-//  }
-//};
 
 
 
@@ -1011,60 +993,76 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
   return d;
 };
 
-//
-//
-///**
-// * @param {string=} opt_table table name to be deleted, if not specified all
-// * tables will be deleted.
-// * @return {!goog.async.Deferred} deferred result.
-// * @protected
-// */
-//ydn.db.WebSql.prototype.dropTable_ = function(opt_table) {
-//
-//  var d = new goog.async.Deferred();
-//  var me = this;
-//
-//  var sql = '';
-//  if (goog.isDef(opt_table)) {
-//    var store = this.schema.getStore(opt_table);
-//    if (!store) {
-//      throw Error('Table ' + opt_table + ' not found.');
-//    }
-//    sql = sql + 'DROP TABLE ' + store.getQuotedName() + ';';
-//  } else {
-//    for (var i = 0; i < me.schema.stores.length; i++) {
-//      sql = sql + 'DROP TABLE ' + me.schema.stores[i].getQuotedName() + ';';
-//    }
-//  }
-//
-//
-//  /**
-//   * @param {SQLTransaction} transaction transaction.
-//   * @param {SQLResultSet} results results.
-//   */
-//  var callback = function(transaction, results) {
-//    //console.log(['row ', row  , results]);
-//    d.callback(true);
-//    me.logger.warning('Deleted database: ' + me.dbname);
-//  };
-//
-//  /**
-//   * @param {SQLTransaction} tr transaction.
-//   * @param {SQLError} error error.
-//   */
-//  var error_callback = function(tr, error) {
-//    if (ydn.db.WebSqlWrapper.DEBUG) {
-//      window.console.log([tr, error]);
-//    }
-//    me.logger.warning('Delete TABLE: ' + error.message);
-//    d.errback(error);
-//  };
-//
-//  this.sql_db_.transaction(function(t) {
-//    //console.log(sql);
-//    t.executeSql(sql, [], callback, error_callback);
-//  });
-//
-//  return d;
-//};
-//
+
+
+/**
+* @param {string=} opt_table table name to be deleted, if not specified all
+* tables will be deleted.
+* @protected
+*/
+ydn.db.WebSql.prototype.executeDropTable_ = function(t, d, opt_table) {
+
+  var me = this;
+
+  var sql = '';
+  if (goog.isDef(opt_table)) {
+    var store = this.schema.getStore(opt_table);
+    if (!store) {
+      throw Error('Table ' + opt_table + ' not found.');
+    }
+    sql = sql + 'DROP TABLE ' + store.getQuotedName() + ';';
+  } else {
+    for (var i = 0; i < me.schema.stores.length; i++) {
+      sql = sql + 'DROP TABLE ' + me.schema.stores[i].getQuotedName() + ';';
+    }
+  }
+
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function(transaction, results) {
+    //console.log(['row ', row  , results]);
+    d.callback(true);
+    me.logger.warning('Deleted database: ' + me.dbname);
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   */
+  var error_callback = function(tr, error) {
+    if (ydn.db.WebSqlWrapper.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    me.logger.warning('Delete TABLE: ' + error.message);
+    d.errback(error);
+  };
+
+  t.executeSql(sql, [], callback, error_callback);
+
+};
+
+
+/**
+ * @param {string=} opt_table table name to be deleted, if not specified all
+ * tables will be deleted.
+ * @return {!goog.async.Deferred} deferred result.
+ * @protected
+ */
+ydn.db.WebSql.prototype.dropTable_ = function(opt_table) {
+  var me = this;
+  var open_tx = this.isOpenTransaction();
+  var tx = this.getActiveSqlTx();
+  var df = new goog.async.Deferred();
+  if (open_tx) {
+    this.executeDropTable_(tx.getTx(), df, opt_table);
+  } else {
+    this.doSqlTransaction(function(tx) {
+      me.executeDropTable_(tx.getTx(), df, opt_table);
+    }, [], ydn.db.TransactionMode.READ_WRITE);
+  }
+  return df;
+};
+
