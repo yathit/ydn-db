@@ -323,7 +323,7 @@ ydn.db.Core.prototype.getDbInstance_ = function() {
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {(number|string)=} mode mode, default to 'readonly'.
+ * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
  * @param {...} opt_args
  */
 ydn.db.Core.prototype.transaction = function (trFn, store_names, mode, opt_args) {
@@ -335,7 +335,7 @@ ydn.db.Core.prototype.transaction = function (trFn, store_names, mode, opt_args)
       (store_names.length > 0 && !goog.isString(store_names[0]))) {
     throw new ydn.error.ArgumentException("storeNames");
   }
-  mode = goog.isDef(mode) ? mode : ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY;
+  mode = goog.isDef(mode) ? mode : ydn.db.TransactionMode.READ_ONLY;
   var outFn = trFn;
   if (arguments.length > 3) { // handle optional parameters
     // see how this works in goog.partial.

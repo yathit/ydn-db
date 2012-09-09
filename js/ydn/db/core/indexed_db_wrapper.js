@@ -54,7 +54,7 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
   /**
    * Transaction queue
    * @type {!Array.<{fnc: Function, scopes: Array.<string>,
-   * mode: IDBTransaction, d: goog.async.Deferred}>}
+   * mode: ydn.db.TransactionMode}>}
    */
   this.txQueue = [];
 
@@ -259,25 +259,11 @@ ydn.db.IndexedDbWrapper.isSupported = function() {
 };
 
 
-//
-/**
- * The three possible transaction modes.
- * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
- * @enum {string|number}
- */
-ydn.db.IndexedDbWrapper.TransactionMode = {
-  READ_ONLY: 'readonly',
-  READ_WRITE: 'readwrite',
-  VERSION_CHANGE: 'versionchange'
-};
-
-
-
 // The fun fact with current Chrome 22 is it defines
 // goog.global.webkitIDBTransaction as numeric value, the database engine
 // accept only string format.
 
-//ydn.db.IndexedDbWrapper.TransactionMode = {
+//ydn.db.TransactionMode = {
 //  READ_ONLY: (goog.global.IDBTransaction ||
 //      goog.global.webkitIDBTransaction).READ_ONLY || 'readonly',
 //  READ_WRITE: (goog.global.IDBTransaction ||
@@ -360,7 +346,7 @@ ydn.db.IndexedDbWrapper.prototype.migrate = function(db, is_caller_setversion) {
         continue;
       }
       var trans = db.transaction([table.name],
-        /** @type {number} */ (ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE));
+        /** @type {number} */ (ydn.db.TransactionMode.READ_WRITE));
       store = trans.objectStore(table.name);
       goog.asserts.assertObject(store, table.name + ' not found.');
       var indexNames = store['indexNames']; // closre externs not yet updated.
@@ -417,11 +403,11 @@ ydn.db.IndexedDbWrapper.prototype.runTxQueue_ = function() {
   var task = this.txQueue.shift();
   if (task) {
     if (this.isOpenTransaction()) { //
-      this.doTransaction_(task.fnc, task.scopes, task.mode);
+      this.doIdbTransaction(task.fnc, task.scopes, task.mode);
     } else {
       // only open transaction can continue to use existing transaction.
       goog.Timer.callOnce(function() {
-        this.doTransaction_(task.fnc, task.scopes, task.mode);
+        this.doIdbTransaction(task.fnc, task.scopes, task.mode);
       }, 100, this);
     }
   }
@@ -459,7 +445,7 @@ ydn.db.IndexedDbWrapper.prototype.abortTxQueue_ = function(e) {
  * transaction.
  * @param {number|string} mode mode.
  */
-ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode)
+ydn.db.IndexedDbWrapper.prototype.doIdbTransaction = function(fnc, scopes, mode)
 {
   //console.log('doTransaction_ ' + JSON.stringify(scopes) + ' ' + mode);
   var me = this;
@@ -492,7 +478,7 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode)
     // if it might.
 
     tx.oncomplete = function(event) {
-      window.console.log(['oncomplete', event, tx, me.mu_tx_])
+      // window.console.log(['oncomplete', event, tx, me.mu_tx_]);
       me.mu_tx_.down(tx, ydn.db.TransactionEventTypes.COMPLETE, event);
       me.runTxQueue_();
     };
@@ -584,7 +570,7 @@ ydn.db.IndexedDbWrapper.prototype.is_open_transaction_ = false;
  * @return {boolean} true indicate active transaction to be use.
  */
 ydn.db.IndexedDbWrapper.prototype.isOpenTransaction = function() {
-  return this.mu_tx_.isActive() && this.is_open_transaction_;
+  return this.mu_tx_.isActiveAndAvailable() && this.is_open_transaction_;
 };
 
 
@@ -593,7 +579,7 @@ ydn.db.IndexedDbWrapper.prototype.isOpenTransaction = function() {
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} scopes list of store names involved in the
  * transaction.
- * @param {number|string} mode mode, default to 'readonly'.
+ * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
  * @final
  */
 ydn.db.IndexedDbWrapper.prototype.transaction = function (trFn, scopes, mode) {
@@ -619,7 +605,7 @@ ydn.db.IndexedDbWrapper.prototype.transaction = function (trFn, scopes, mode) {
     this.txQueue.push({fnc:wrapTrFn, scopes:scopes, mode:mode});
 
   } else {
-    this.doTransaction_(function (tx) {
+    this.doIdbTransaction(function (tx) {
       if (ydn.db.IndexedDbWrapper.DEBUG) {
         window.console.log([tx, trFn, scopes, mode]);
       }
@@ -628,9 +614,9 @@ ydn.db.IndexedDbWrapper.prototype.transaction = function (trFn, scopes, mode) {
       me.is_open_transaction_ = true;
       // now execute transaction process
       trFn(tx.getTx());
-      // me.is_open_transaction_ = false;
+      me.is_open_transaction_ = false;
       // transaction can still be used until committed, so
-      // is_open_transaction_ will be set false on the start of new begining.
+      // is_open_transaction_ will be set false on the start of new beginning.
     }, scopes, mode);
   }
 };

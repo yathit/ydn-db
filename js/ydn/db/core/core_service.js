@@ -39,7 +39,7 @@ ydn.db.CoreService.prototype.getDbInstance = function() {};
  * @param {Function} trFn callback function that invoke in the transaction with transaction instance.
  * @param {!Array.<string>} storeNames list of store names involved in the
  * transaction.
- * @param {number|string} mode mode, default to 'read_write'.
+ * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
  */
 ydn.db.CoreService.prototype.transaction = function(trFn, storeNames, mode) {};
 

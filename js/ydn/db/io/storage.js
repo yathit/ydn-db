@@ -262,7 +262,7 @@ ydn.db.Storage.prototype.query = function(store_name, index, keyRange,
  *
  * @export
  * @param {string} store_name the name of store to use.
- * @param {!Object|Array.<!Object>} value object to put.
+ * @param {!Object|!Array.<!Object>} value object to put.
  * @param {(string|number)=}  opt_key
  * @return {!goog.async.Deferred} return key in deferred function. On error,
  * an {@code Error} object is return as received from the mechanism.

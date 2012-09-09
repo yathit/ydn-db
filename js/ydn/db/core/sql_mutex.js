@@ -5,7 +5,7 @@
 goog.provide('ydn.db.SqlTxMutex');
 goog.require('goog.array');
 goog.require('goog.asserts');
-goog.require('ydn.db.WrapperDBInvalidStateException');
+goog.require('ydn.db.YdnDbInvalidStateException');
 
 
 /**
@@ -97,15 +97,12 @@ ydn.db.SqlTxMutex.prototype.is_set_done_ = false;
 /**
  * Transaction is released and mutex is unlock.
  * @final
- * @param {SQLTransaction} tx the same transaction object in up. This is only
- * used for validation and inadvertently invoked by non-owner.
  * @param {ydn.db.TransactionEventTypes} type event type
  * @param {*} event
  */
-ydn.db.SqlTxMutex.prototype.down = function (tx, type, event) {
+ydn.db.SqlTxMutex.prototype.down = function (type, event) {
   this.logger.finest('tx down, count: ' + this.tx_count_);
-  // down must be call only once by those who up
-  goog.asserts.assert(this.sql_tx_ === tx);
+
   this.sql_tx_ = null;
 
   for (var i = 0; this.complete_listeners_.length; i++) {
@@ -175,7 +172,7 @@ ydn.db.SqlTxMutex.prototype.isActiveAndAvailable = function() {
  */
 ydn.db.SqlTxMutex.prototype.addCompletedListener = function(fn) {
   if (!this.sql_tx_) {
-    throw new ydn.db.WrapperDBInvalidStateException('No active tx to listen.');
+    throw new ydn.db.YdnDbInvalidStateException('No active tx to listen.');
   }
   this.complete_listeners_.push(fn);
 };
@@ -192,14 +189,14 @@ ydn.db.SqlTxMutex.prototype.getTx = function() {
   return this.sql_tx_;
 };
 
-
-/**
- * Set error status and abort transaction.
- * @deprecated
- * @final
- */
-ydn.db.SqlTxMutex.prototype.abort = function() {
-  this.has_error_ = true;
-  return this.sql_tx_.abort();
-};
+//
+///**
+// * Set error status and abort transaction.
+// * @deprecated
+// * @final
+// */
+//ydn.db.SqlTxMutex.prototype.abort = function() {
+//  this.has_error_ = true;
+//  return this.sql_tx_.abort();
+//};
 

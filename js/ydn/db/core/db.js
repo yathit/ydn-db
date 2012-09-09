@@ -19,8 +19,8 @@
  */
 
 goog.provide('ydn.db');
-goog.provide('ydn.db.ValidKeyException');
-goog.provide('ydn.db.WrapperDBInvalidStateException');
+goog.provide('ydn.db.YdnDbValidKeyException');
+goog.provide('ydn.db.YdnDbInvalidStateException');
 
 
 
@@ -56,31 +56,16 @@ ydn.db.TransactionEventTypes = {
 };
 
 
-
 /**
- * Base class for custom error objects.
- * @param {*=} opt_msg The message associated with the error.
- * @constructor
- * @extends {Error}
+ * The three possible transaction modes.
+ * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
+ * @enum {string|number}
  */
-ydn.db.ValidKeyException = function(opt_msg) {
-
-  // Ensure there is a stack trace.
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.ValidKeyException);
-  } else {
-    this.stack = new Error().stack || '';
-  }
-
-  if (opt_msg) {
-    this.message = String(opt_msg);
-  }
+ydn.db.TransactionMode = {
+  READ_ONLY: 'readonly',
+  READ_WRITE: 'readwrite',
+  VERSION_CHANGE: 'versionchange'
 };
-goog.inherits(ydn.db.ValidKeyException, Error);
-
-ydn.db.ValidKeyException.prototype.name = 'ValidKeyException';
-
-
 
 
 /**
@@ -89,11 +74,11 @@ ydn.db.ValidKeyException.prototype.name = 'ValidKeyException';
  * @constructor
  * @extends {Error}
  */
-ydn.db.WrapperDBInvalidStateException = function(opt_msg) {
+ydn.db.YdnDbValidKeyException = function(opt_msg) {
 
   // Ensure there is a stack trace.
   if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.WrapperDBInvalidStateException);
+    Error.captureStackTrace(this, ydn.db.YdnDbValidKeyException);
   } else {
     this.stack = new Error().stack || '';
   }
@@ -102,6 +87,58 @@ ydn.db.WrapperDBInvalidStateException = function(opt_msg) {
     this.message = String(opt_msg);
   }
 };
-goog.inherits(ydn.db.ValidKeyException, Error);
+goog.inherits(ydn.db.YdnDbValidKeyException, Error);
 
-ydn.db.WrapperDBInvalidStateException.prototype.name = 'WrapperDBInvalidStateException';
+ydn.db.YdnDbValidKeyException.prototype.name = 'ValidKeyException';
+
+
+
+
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.YdnDbInvalidStateException = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.YdnDbInvalidStateException);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(ydn.db.YdnDbInvalidStateException, Error);
+
+ydn.db.YdnDbInvalidStateException.prototype.name = 'WrapperDBInvalidStateException';
+
+
+
+
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.YdnDbNotFoundError = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.YdnDbNotFoundError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(ydn.db.YdnDbNotFoundError, Error);
+
+ydn.db.YdnDbNotFoundError.prototype.name = 'YdnDbNotFoundError';

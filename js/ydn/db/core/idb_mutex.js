@@ -5,7 +5,7 @@
 goog.provide('ydn.db.IdbTxMutex');
 goog.require('goog.array');
 goog.require('goog.asserts');
-goog.require('ydn.db.WrapperDBInvalidStateException');
+goog.require('ydn.db.YdnDbInvalidStateException');
 
 
 /**
@@ -175,7 +175,7 @@ ydn.db.IdbTxMutex.prototype.isActiveAndAvailable = function() {
  */
 ydn.db.IdbTxMutex.prototype.addCompletedListener = function(fn) {
   if (!this.idb_tx_) {
-    throw new ydn.db.WrapperDBInvalidStateException('No active tx to listen.');
+    throw new ydn.db.YdnDbInvalidStateException('No active tx to listen.');
   }
   this.complete_listeners_.push(fn);
 };

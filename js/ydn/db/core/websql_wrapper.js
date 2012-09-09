@@ -27,6 +27,7 @@ goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.json');
 goog.require('ydn.db');
+goog.require('ydn.db.SqlTxMutex');
 
 
 /**
@@ -52,20 +53,20 @@ ydn.db.WebSqlWrapper = function(dbname, schema) {
 
   /**
    * Transaction queue
-   * @type {!Array.<{fnc: Function}>}
+   * @type {!Array.<{fnc: Function, scopes: Array.<string>,
+   * mode: ydn.db.TransactionMode}>}
    */
   this.sql_tx_queue = [];  
 
   /**
    * Must open the database with empty version, otherwise unrecoverable error
    * will occur in the first instance.
-   * @type {Database}
    */
-  var db = goog.global.openDatabase(this.dbname, '', description,
+  this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
     this.schema.size);
 
   if (this.sql_db_.version != this.schema.version) {
-    this.migrate_(db);
+    this.migrate_();
   }
 
 };
@@ -130,24 +131,21 @@ ydn.db.WebSqlWrapper.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebS
 
 
 /**
- * Run the first transaction task in the queue. DB must be ready to do the
- * transaction.
+ * Run the first transaction task in the queue.
  * @private
  */
 ydn.db.WebSqlWrapper.prototype.runTxQueue_ = function() {
 
-  goog.asserts.assertObject(this.db_);
-
   var task = this.sql_tx_queue.shift();
   if (task) {
-    if (this.isOpenTransaction()) { //
-      this.doTransaction_(task.fnc);
-    } else {
-      // only open transaction can continue to use existing transaction.
-      goog.Timer.callOnce(function() {
-        this.doSqlTransaction(task.fnc);
-      }, 100, this);
-    }
+  //  if (this.isOpenTransaction()) { //
+      this.doSqlTransaction(task.fnc, task.scopes, task.mode);
+//    } else {
+//      // only open transaction can continue to use existing transaction.
+//      goog.Timer.callOnce(function() {
+//        this.doSqlTransaction(task.fnc, task.scopes, task.mode);
+//      }, 100, this);
+//    }
   }
 };
 
@@ -165,49 +163,6 @@ ydn.db.WebSqlWrapper.prototype.abortTxQueue_ = function(e) {
       task.fnc(null); // TODO: any better way ?
     }
   }
-};
-
-
-
-
-/**
- * Run a transaction. If already in transaction, this will join the transaction.
- * @param {Function} transactionFunc
- * @protected
- * @final
- */
-ydn.db.WebSqlWrapper.prototype.doSqlTransaction = function(transactionFunc) {
-
-  var me = this;
-  if (this.sql_mu_tx_.isActive()) {
-    var ctx = this.sql_mu_tx_.getTx();
-    transactionFunc(ctx);
-  } else {
-    this.sql_db_.transaction(
-
-      function callback(tx) {
-        me.sql_mu_tx_.up(tx);
-        transactionFunc(tx);
-      },
-
-      function errorCallback(e) {
-        me.sql_mu_tx_.down();
-      },
-
-      function successCallback(e) {
-        me.sql_mu_tx_.down();
-      }
-    );
-  }
-
-};
-
-
-/**
- * @override
- */
-ydn.db.WebSqlWrapper.prototype.type = function() {
-  return ydn.db.WebSqlWrapper.TYPE;
 };
 
 
@@ -281,17 +236,13 @@ ydn.db.WebSqlWrapper.prototype.prepareCreateTable_ = function(schema) {
 
 
 /**
- * Migrate from current version to the last version. Upon finished,
- * database is set.
- * @param {Database} db
+ * Migrate from current version to the last version.
  * @private
  */
-ydn.db.WebSqlWrapper.prototype.migrate_ = function(db) {
+ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
 
   var me = this;
 
-  var n_todo = 0;
-  var n_done = 0;
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -303,10 +254,6 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function(db) {
     }
     me.logger.finest('Creating tables OK.');
 
-    // database is ready and all tables has been setup, set it.
-    if (n_done == n_todo) {
-      me.sql_db_ = db;
-    }
   };
 
   /**
@@ -324,38 +271,24 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function(db) {
   for (var i = 0; i < this.schema.stores.length; i++) {
     sqls.push(this.prepareCreateTable_(this.schema.stores[i]));
   }
-  n_todo = this.schema.stores.length;
+
 
   // TODO: deleting tables.
 
-  if (n_todo > 0) {
-    db.transaction(function(t) {
+  this.doSqlTransaction(function (t) {
 
-      me.logger.finest('Creating tables ' + sqls.join('\n'));
-      for (var i = 0; i < sqls.length; i++) {
-        if (ydn.db.WebSqlWrapper.DEBUG) {
-          window.console.log(sqls[i]);
-        }
-        t.executeSql(sqls[i], [],
-            i == sqls.length - 1 ? success_callback : undefined,
-            error_callback);
+    me.logger.finest('Creating tables ' + sqls.join('\n'));
+    for (var i = 0; i < sqls.length; i++) {
+      if (ydn.db.WebSqlWrapper.DEBUG) {
+        window.console.log(sqls[i]);
       }
-    });
-  } else {
-    this.sql_db_ = db;
-  }
+      t.getTx().executeSql(sqls[i], [],
+          i == sqls.length - 1 ? success_callback : undefined,
+          error_callback);
+    }
+  }, [], ydn.db.TransactionMode.READ_WRITE);
+
 };
-
-
-/**
- * @final
- * @protected
- * @return {boolean}
- */
-ydn.db.WebSqlWrapper.prototype.isReady = function() {
-  return !!this.sql_db_;
-};
-
 
 
 /**
@@ -405,138 +338,6 @@ ydn.db.WebSqlWrapper.prototype.getKeyFromRow = function(table, row) {
 };
 
 
-
-/**
- * @final
- * @param {string} table table name.
- * @param {string} id row name.
- * @return {!goog.async.Deferred} deferred result.
- * @protected
- */
-ydn.db.WebSqlWrapper.prototype.deleteRow_ = function(table, id) {
-  var d = new goog.async.Deferred();
-
-  var store = this.schema.getStore(table);
-  if (!store) {
-    this.logger.warning('Table ' + table + ' not found.');
-    d.errback(new Error('Table ' + table + ' not found.'));
-    return d;
-  }
-
-  var me = this;
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var success_callback = function(transaction, results) {
-    if (ydn.db.WebSqlWrapper.DEBUG) {
-      window.console.log(results);
-    }
-    d.callback(true);
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.WebSqlWrapper.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('put error: ' + error.message);
-    d.errback(error);
-  };
-
-  me.db.transaction(function(t) {
-      var sql = 'DELETE FROM ' + store.getQuotedName() +
-          ' WHERE ' + store.getQuotedKeyPath() + ' = ' + goog.string.quote(id);
-      //console.log([sql, out.values])
-      t.executeSql(sql, [], success_callback, error_callback);
-  });
-  return d;
-};
-
-
-
-
-/**
- * Delete the database, store or an entry.
- *
- * @param {string=} opt_table delete a specific store.
- * @param {string=} opt_id delete a specific row.
- * @return {!goog.async.Deferred} return a deferred function.
- */
-ydn.db.WebSqlWrapper.prototype.remove = function(opt_table, opt_id) {
-
-  if (goog.isDef(opt_table)) {
-    if (goog.isDef(opt_id)) {
-      return this.deleteRow_(opt_table, opt_id);
-    } else {
-      return this.dropTable_(opt_table);
-    }
-  } else {
-    return this.dropTable_();
-  }
-};
-
-
-/**
- * @param {string=} opt_table table name to be deleted, if not specified all
- * tables will be deleted.
- * @return {!goog.async.Deferred} deferred result.
- * @protected
- */
-ydn.db.WebSqlWrapper.prototype.dropTable_ = function(opt_table) {
-
-  var d = new goog.async.Deferred();
-  var me = this;
-
-  var sql = '';
-  if (goog.isDef(opt_table)) {
-    var store = this.schema.getStore(opt_table);
-    if (!store) {
-      throw Error('Table ' + opt_table + ' not found.');
-    }
-    sql = sql + 'DROP TABLE ' + store.getQuotedName() + ';';
-  } else {
-    for (var i = 0; i < me.schema.stores.length; i++) {
-      sql = sql + 'DROP TABLE ' + me.schema.stores[i].getQuotedName() + ';';
-    }
-  }
-
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function(transaction, results) {
-    //console.log(['row ', row  , results]);
-    d.callback(true);
-    me.logger.warning('Deleted database: ' + me.dbname);
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.WebSqlWrapper.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('Delete TABLE: ' + error.message);
-    d.errback(error);
-  };
-
-  this.sql_db_.transaction(function(t) {
-    //console.log(sql);
-    t.executeSql(sql, [], callback, error_callback);
-  });
-
-  return d;
-};
-
-
 /**
  * @final
  */
@@ -546,17 +347,121 @@ ydn.db.WebSqlWrapper.prototype.close = function () {
 };
 
 
+/**
+ * Flag use inside transaction method to make, subsequent call are
+ * available for using existing transaction.
+ * @type {boolean}
+ * @private
+ */
+ydn.db.WebSqlWrapper.prototype.is_open_transaction_ = false;
 
 
 /**
- * @inheritDoc
+ * @final
+ * @protected
+ * @return {boolean} true indicate active transaction to be use.
+ */
+ydn.db.WebSqlWrapper.prototype.isOpenTransaction = function() {
+  return this.sql_mu_tx_.isActiveAndAvailable() && this.is_open_transaction_;
+};
+
+
+
+/**
+ * Run a transaction. If already in transaction, this will join the transaction.
+ * @param {function(ydn.db.SqlTxMutex)} trFn
+ * @param {Array.<string>} scopes
+ * @param {ydn.db.TransactionMode} mode
+ * @protected
  * @final
  */
-ydn.db.WebSqlWrapper.prototype.transaction = function(trFn, scopes, mode) {
+ydn.db.WebSqlWrapper.prototype.doSqlTransaction = function(trFn, scopes, mode) {
 
-  this.doTransaction(function(tx) {
-    // now execute transaction process
-    trFn(tx);
-  });
+  var me = this;
+  if (!this.sql_mu_tx_.isActiveAndAvailable()) {
+    /**
+     * SQLTransactionCallback
+     * @param {!SQLTransaction} tx
+     */
+    var transaction_callback = function(tx) {
+      me.sql_mu_tx_.up(tx);
+      trFn(me.sql_mu_tx_);
+    };
+
+    /**
+     * SQLVoidCallback
+     */
+    var success_callback = function() {
+      me.sql_mu_tx_.down(ydn.db.TransactionEventTypes.COMPLETE, true);
+      me.runTxQueue_();
+    };
+
+    /**
+     * SQLTransactionErrorCallback
+     * @param {SQLError} e
+     */
+    var error_callback = function(e) {
+      me.sql_mu_tx_.down(ydn.db.TransactionEventTypes.ERROR, e);
+      me.runTxQueue_();
+    };
+
+    if (mode == ydn.db.TransactionMode.READ_ONLY) {
+      this.sql_db_.readTransaction(transaction_callback,
+          error_callback, success_callback);
+    } else {
+      this.sql_db_.transaction(transaction_callback,
+          error_callback, success_callback);
+    }
+
+  } else {
+    this.sql_tx_queue.push({fnc: trFn, scopes: scopes, mode: mode});
+  }
+
+};
+
+
+
+
+/**
+ * Perform explicit isolated transaction.
+ * @param {Function} trFn function that invoke in the transaction.
+ * @param {!Array.<string>} scopes list of store names involved in the
+ * transaction.
+ * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
+ * @final
+ */
+ydn.db.WebSqlWrapper.prototype.transaction = function (trFn, scopes, mode) {
+
+  var me = this;
+
+  if (this.sql_mu_tx_.isActive()) {
+    // honour explicit transaction request, by putting it in the queue
+
+    // wrap TrFn so that we can toggle it is_open_transaction_.
+    var wrapTrFn = goog.partial(function(trFn, tx) {
+      me.is_open_transaction_ = true;
+      // now execute transaction process
+      trFn(tx.getTx());
+      me.is_open_transaction_ = false;
+    }, trFn);
+
+    this.sql_tx_queue.push({fnc:wrapTrFn, scopes:scopes, mode:mode});
+  } else {
+
+   this.doSqlTransaction(function(tx) {
+     if (ydn.db.WebSqlWrapper.DEBUG) {
+       window.console.log([tx, trFn, scopes, mode]);
+     }
+     // by opening transaction, all get/put methods will use current
+     // transaction
+     me.is_open_transaction_ = true;
+     // now execute transaction process
+     trFn(tx.getTx());
+
+     me.is_open_transaction_ = false;
+
+   }, scopes, mode);
+
+  }
 
 };

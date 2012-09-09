@@ -427,6 +427,19 @@ ydn.db.DatabaseSchema.prototype.getStore = function (name) {
 
 
 /**
+ * Get index of store.
+ * @param {string} name store name.
+ * @return {number} index of store -1 if not found.
+ */
+ydn.db.DatabaseSchema.prototype.getIndexOf = function (name) {
+  return goog.array.indexOf(this.stores,
+      function (x) {
+        return x.name == name;
+      });
+};
+
+
+/**
  *
  * @param {string} name store name.
  * @return {boolean} return true if name found in stores.

@@ -47,7 +47,7 @@ ydn.db.QueryService.prototype.get = function(store, id) {
 
 /**
  * @param {string} store table name.
- * @param {!Object|Array.<!Object>} value object to put.
+ * @param {!Object|!Array.<!Object>} value object to put.
  * @param {(string|number)=}  opt_key
  * @return {!goog.async.Deferred} return key in deferred function.
  */
