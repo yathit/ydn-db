@@ -289,6 +289,10 @@ ydn.db.Storage.prototype.put = function(store_name, value, opt_key) {
  */
 ydn.db.Storage.prototype.get = function (store_name, opt_key) {
 
+  if (goog.isString(store_name)) {
+    goog.asserts.assertObject(this.schema.getStore(store_name), 'store: ' + store_name + ' not exist.');
+  }
+
   if (this.getQueryService()) {
     return this.getQueryService().get(store_name, opt_key);
   } else {

@@ -36,7 +36,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.LocalStorageWrapper');
 goog.require('ydn.db.SessionStorageWrapper');
 goog.require('ydn.db.IndexedDbWrapper');
-goog.require('ydn.db.MemoryService');
+goog.require('ydn.db.SimpleStorage');
 goog.require('ydn.db.WebSqlWrapper');
 goog.require('ydn.object');
 goog.require('ydn.db.CoreService');
@@ -229,7 +229,7 @@ ydn.db.Core.prototype.initDatabase = function() {
           this.db_ = new ydn.db.SessionStorageWrapper(this.db_name, this.schema);
           break;
         } else if (db_type == 'memory')  {
-          this.db_ = new ydn.db.MemoryService(this.db_name, this.schema);
+          this.db_ = new ydn.db.SimpleStorage(this.db_name, this.schema);
           break;
         }
       }

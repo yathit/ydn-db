@@ -367,16 +367,14 @@ ydn.db.IndexedDb.prototype.put = function(table, value, opt_key) {
 ydn.db.IndexedDb.prototype.executeGetAll_ = function(tx, df, not_key_only, opt_store_name) {
   var self = this;
 
-  var getAll = function(store_name, df) {
+  var getAll = function(store_name) {
     var results = [];
     var store = tx.objectStore(store_name);
 
     // Get everything in the store;
-    var keyRange = ydn.db.Query.IDBKeyRange.lowerBound(0);
-    var request = store.openCursor(keyRange);
+    var request = store.openCursor();
 
     request.onsuccess = function(event) {
-
       var cursor = event.target.result;
       if (cursor) {
         if (not_key_only) {
@@ -386,7 +384,10 @@ ydn.db.IndexedDb.prototype.executeGetAll_ = function(tx, df, not_key_only, opt_s
         }
         cursor['continue'](); // result.continue();
       } else {
-        df.callback(true);
+        n_done++;
+        if (n_done == n_todo) {
+          df.callback(results);
+        }
       }
     };
 
@@ -399,34 +400,20 @@ ydn.db.IndexedDb.prototype.executeGetAll_ = function(tx, df, not_key_only, opt_s
   };
 
   var store_names = goog.isString(opt_store_name) ? [opt_store_name] :
-    goog.isArray(opt_store_name) && opt_store_name.length > 0 ? opt_store_name :
-    this.schema.getStoreNames();
+    goog.isArray(opt_store_name) && opt_store_name.length > 0 ?
+        this.schema.getStoreNames() : opt_store_name;
 
-  var dfs = [];
-  for (var i = 0; i < store_names.length; i++) {
-    var idf = new goog.async.Deferred();
-    getAll(store_names[i], idf);
-    dfs.push(dfs);
+  var n_todo = store_names.length;
+  var n_done = 0;
+
+  if (n_todo > 0) {
+    for (var i = 0; i < store_names.length; i++) {
+      getAll(store_names[i]);
+    }
+  } else {
+    df.callback([]);
   }
 
-  var dfl = new goog.async.DeferredList(dfs);
-  dfl.addCallback(function(dfl_results) {
-    var error_result = goog.array.find(dfl_results, function(x) {
-      return !x[0]; // false if fail
-    });
-    if (error_result) {
-      df.errback(error_result[1]);
-    } else {
-      var list = dfl_results[0][1]; // the first result, it is array
-      for (var i = 1; i < dfl_results.length; i++) {
-        list = list.concat(dfl_results[i][1]);
-      }
-      df.callback(df);
-    }
-  });
-  dfl.addErrback(function(e) {
-    df.errback(e);
-  })
 };
 
 
@@ -541,7 +528,7 @@ ydn.db.IndexedDb.prototype.getByStore_ = function(store_name) {
     this.executeGetAll_(tx.getTx(), df, false, store_name);
   } else {
     this.doTransaction_(function(tx) {
-      me.executeGetAll_(tx.getTx(), df, store_name);
+      me.executeGetAll_(tx.getTx(), df, false, store_name);
     }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
 
   }

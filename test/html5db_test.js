@@ -222,7 +222,7 @@ var test_6_no_keyPath = function () {
       },
       // Continuation
       function () {
-        assertNotNullNorUndefined('put', a_value);
+        assertNotNullNorUndefined('put ok', a_value);
 
         var b_done;
         var b_value;
@@ -240,8 +240,8 @@ var test_6_no_keyPath = function () {
           2000); // maxTimeout
 
 
-        db.get(me.table_name, a_value).addCallback(function (value) {
-          console.log('receiving get value callback ' + key + ' = ' + value);
+        db.get(table_name, a_value).addCallback(function (value) {
+          console.log('receiving get value callback ' + a_value + ' = ' + value);
           b_value = value;
           b_done = true;
         });
@@ -250,7 +250,7 @@ var test_6_no_keyPath = function () {
       100, // interval
       2000); // maxTimeout
 
-  db.put(me.table_name, {remark: 'testing', value:key_value}).addCallback(function (value) {
+  db.put(table_name, {remark: 'testing', value:key_value}).addCallback(function (value) {
     console.log('receiving put value callback for ' + key + ' = ' + key_value);
     a_value = value;
     a_done = true;

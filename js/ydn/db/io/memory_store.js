@@ -21,7 +21,7 @@ goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
 goog.require('ydn.db.QueryService');
-goog.require('ydn.db.MemoryService');
+goog.require('ydn.db.SimpleStorage');
 
 
 /**
@@ -30,13 +30,13 @@ goog.require('ydn.db.MemoryService');
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
- * @extends {ydn.db.MemoryService}
+ * @extends {ydn.db.SimpleStorage}
  * @constructor
  */
 ydn.db.MemoryStore = function(dbname, schema, opt_localStorage) {
   goog.base(this, dbname, schema, opt_localStorage);
 };
-goog.inherits(ydn.db.MemoryStore, ydn.db.MemoryService);
+goog.inherits(ydn.db.MemoryStore, ydn.db.SimpleStorage);
 
 
 /**
@@ -122,7 +122,7 @@ ydn.db.MemoryStore.prototype.put = function (table, value, opt_key) {
   } else if (goog.isObject(value)) {
     key = this.extractKey(table, value);
     value_str = ydn.json.stringify(value);
-    this.cache_.setItem(value_str, table, key);
+    this.setItemInternal(value_str, table, key);
     result = key;
   } else {
     throw new ydn.error.ArgumentException();

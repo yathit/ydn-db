@@ -483,6 +483,7 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction_ = function(fnc, scopes, mode)
      */
     var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
 
+    this.is_open_transaction_ = false; // transaction must explicitly open
     me.mu_tx_.up(tx);
 
     // we choose to avoid using add listener pattern to reduce memory leak,
@@ -581,7 +582,7 @@ ydn.db.IndexedDbWrapper.prototype.is_open_transaction_ = false;
  * @return {boolean} true indicate active transaction to be use.
  */
 ydn.db.IndexedDbWrapper.prototype.isOpenTransaction = function() {
-  return this.is_open_transaction_;
+  return this.mu_tx_.isActive() && this.is_open_transaction_;
 };
 
 
@@ -625,7 +626,9 @@ ydn.db.IndexedDbWrapper.prototype.transaction = function (trFn, scopes, mode) {
       me.is_open_transaction_ = true;
       // now execute transaction process
       trFn(tx.getTx());
-      me.is_open_transaction_ = false;
+      // me.is_open_transaction_ = false;
+      // transaction can still be used until committed, so
+      // is_open_transaction_ will be set false on the start of new begining.
     }, scopes, mode);
   }
 };

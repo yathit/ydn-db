@@ -34,7 +34,7 @@ var tearDown = function() {
 var db_name = 'test12';
 
 
-var test_2_idb_basic = function() {
+var test_2_sql_basic = function() {
 
 
   var db_name = 'test_2_sql_basic2';
@@ -80,18 +80,16 @@ var test_2_idb_basic = function() {
   db.put(table_name, arr).addCallback(function(value) {
     console.log('receiving value callback ' + JSON.stringify(value));
 
-    var a_key = db.key(table_name, 'a');
-
     db.transaction(function() {
-      a_key.get().addCallback(function(a_obj) {
+      db.get(table_name, 'a').addCallback(function(a_obj) {
         console.log('a_key get ' + JSON.stringify(a_obj));
         a_obj.value += amt;
-        a_key.put(a_obj).addCallback(function(out) {
+        db.put(table_name, a_obj).addCallback(function(out) {
           t1_fired = true;
           assertEquals('tr done', 'a', out);
         });
       });
-    }, [a_key]);
+    }, [table_name]);
 
     var q = db.query(table_name);
     q.select('value');
