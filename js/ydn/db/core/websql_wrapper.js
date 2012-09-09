@@ -52,23 +52,20 @@ ydn.db.WebSqlWrapper = function(dbname, schema) {
 
   /**
    * Transaction queue
-   * @type {!Array.<{fnc: Function, scopes: Array.<string>,
-   * mode: IDBTransaction, d: goog.async.Deferred}>}
+   * @type {!Array.<{fnc: Function}>}
    */
-  this.stxQueue = [];  
+  this.sql_tx_queue = [];  
 
   /**
    * Must open the database with empty version, otherwise unrecoverable error
-   * will occur in the
-   * first instance.
-   * @private
+   * will occur in the first instance.
    * @type {Database}
    */
-  this.sdb_ = goog.global.openDatabase(this.dbname, '', description,
+  var db = goog.global.openDatabase(this.dbname, '', description,
     this.schema.size);
 
-  if (this.sdb_.version != this.schema.version) {
-    this.migrate_();
+  if (this.sql_db_.version != this.schema.version) {
+    this.migrate_(db);
   }
 
 };
@@ -89,15 +86,23 @@ ydn.db.WebSqlWrapper.prototype.type = function() {
 
 //
 //ydn.db.WebSqlWrapper.prototype.getDb = function() {
-//  return this.sdb_;
+//  return this.sql_db_;
 //};
+
+
+/**
+ *
+ * @type {Database}
+ * @private
+ */
+ydn.db.WebSqlWrapper.prototype.sql_db_ = null;
 
 
 /**
  *
  */
 ydn.db.WebSqlWrapper.prototype.getDbInstance = function() {
-  return this.sdb_ || null;
+  return this.sql_db_ || null;
 };
 
 
@@ -124,6 +129,46 @@ ydn.db.WebSqlWrapper.DEBUG = false;
 ydn.db.WebSqlWrapper.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSqlWrapper');
 
 
+/**
+ * Run the first transaction task in the queue. DB must be ready to do the
+ * transaction.
+ * @private
+ */
+ydn.db.WebSqlWrapper.prototype.runTxQueue_ = function() {
+
+  goog.asserts.assertObject(this.db_);
+
+  var task = this.sql_tx_queue.shift();
+  if (task) {
+    if (this.isOpenTransaction()) { //
+      this.doTransaction_(task.fnc);
+    } else {
+      // only open transaction can continue to use existing transaction.
+      goog.Timer.callOnce(function() {
+        this.doSqlTransaction(task.fnc);
+      }, 100, this);
+    }
+  }
+};
+
+
+/**
+ * Abort the queuing tasks.
+ * @private
+ * @param e
+ */
+ydn.db.WebSqlWrapper.prototype.abortTxQueue_ = function(e) {
+  if (this.sql_tx_queue) {
+    var task = this.sql_tx_queue.shift();
+    while (task) {
+      task = this.sql_tx_queue.shift();
+      task.fnc(null); // TODO: any better way ?
+    }
+  }
+};
+
+
+
 
 /**
  * Run a transaction. If already in transaction, this will join the transaction.
@@ -131,26 +176,26 @@ ydn.db.WebSqlWrapper.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebS
  * @protected
  * @final
  */
-ydn.db.WebSqlWrapper.prototype.doTransaction = function(transactionFunc) {
+ydn.db.WebSqlWrapper.prototype.doSqlTransaction = function(transactionFunc) {
 
   var me = this;
-  if (this.stx_.isActive()) {
-    var ctx = this.stx_.getTx();
+  if (this.sql_mu_tx_.isActive()) {
+    var ctx = this.sql_mu_tx_.getTx();
     transactionFunc(ctx);
   } else {
-    this.sdb_.transaction(
+    this.sql_db_.transaction(
 
       function callback(tx) {
-        me.stx_.up(tx);
+        me.sql_mu_tx_.up(tx);
         transactionFunc(tx);
       },
 
       function errorCallback(e) {
-        me.stx_.down();
+        me.sql_mu_tx_.down();
       },
 
       function successCallback(e) {
-        me.stx_.down();
+        me.sql_mu_tx_.down();
       }
     );
   }
@@ -158,67 +203,12 @@ ydn.db.WebSqlWrapper.prototype.doTransaction = function(transactionFunc) {
 };
 
 
-
-
-/**
- * Provide transaction object to subclass and keep a result.
- * This also serve as mutex on transaction.
- * @private
- * @constructor
- */
-ydn.db.WebSqlWrapper.Transaction = function() {
-
-};
-
-
 /**
  * @override
  */
-ydn.db.WebSqlWrapper.Transaction.type = function() {
+ydn.db.WebSqlWrapper.prototype.type = function() {
   return ydn.db.WebSqlWrapper.TYPE;
 };
-
-
-/**
- * Start a new transaction.
- * @private
- * @param {!SQLTransaction} tx the transaction object.
- */
-ydn.db.WebSqlWrapper.Transaction.prototype.up = function(tx) {
-  /**
-   * @private
-   * @type {SQLTransaction}
-   */
-  this.transaction_ = tx;
-
-};
-
-/**
- * @private
- */
-ydn.db.WebSqlWrapper.Transaction.prototype.down = function() {
-  this.transaction_ = null;
-};
-
-
-/**
- * @private
- * @return {boolean}
- */
-ydn.db.WebSqlWrapper.Transaction.prototype.isActive = function() {
-  return !!this.transaction_;
-};
-
-
-/**
- *
- * @return {!SQLTransaction}
- */
-ydn.db.WebSqlWrapper.Transaction.prototype.getTx = function() {
-  goog.asserts.assertObject(this.transaction_);
-  return /** @type {!SQLTransaction} */ (this.transaction_);
-};
-
 
 
 /**
@@ -226,18 +216,19 @@ ydn.db.WebSqlWrapper.Transaction.prototype.getTx = function() {
  * transaction. This must be set to null on finished.
  * @private
  * @final
- * @type {!ydn.db.WebSqlWrapper.Transaction}
+ * @type {!ydn.db.SqlTxMutex}
  */
-ydn.db.WebSqlWrapper.prototype.stx_ = new ydn.db.WebSqlWrapper.Transaction();
+ydn.db.WebSqlWrapper.prototype.sql_mu_tx_ = new ydn.db.SqlTxMutex();
 
 
 /**
+ * @final
  * @protected
- * @return {ydn.db.WebSqlWrapper.Transaction} transaction object if in
+ * @return {ydn.db.SqlTxMutex} transaction object if in
  * transaction.
  */
-ydn.db.WebSqlWrapper.prototype.getTx = function() {
-  return this.stx_.isActive() ? this.stx_ : null;
+ydn.db.WebSqlWrapper.prototype.getActiveSqlTx = function() {
+  return this.sql_mu_tx_.isActiveAndAvailable() ? this.sql_mu_tx_ : null;
 };
 
 
@@ -290,12 +281,17 @@ ydn.db.WebSqlWrapper.prototype.prepareCreateTable_ = function(schema) {
 
 
 /**
- * Migrate from current version to the last version.
+ * Migrate from current version to the last version. Upon finished,
+ * database is set.
+ * @param {Database} db
  * @private
  */
-ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
+ydn.db.WebSqlWrapper.prototype.migrate_ = function(db) {
 
   var me = this;
+
+  var n_todo = 0;
+  var n_done = 0;
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -306,6 +302,11 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
       window.console.log(results);
     }
     me.logger.finest('Creating tables OK.');
+
+    // database is ready and all tables has been setup, set it.
+    if (n_done == n_todo) {
+      me.sql_db_ = db;
+    }
   };
 
   /**
@@ -323,19 +324,36 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
   for (var i = 0; i < this.schema.stores.length; i++) {
     sqls.push(this.prepareCreateTable_(this.schema.stores[i]));
   }
+  n_todo = this.schema.stores.length;
 
-  this.sdb_.transaction(function(t) {
+  // TODO: deleting tables.
 
-    me.logger.finest('Creating tables ' + sqls.join('\n'));
-    for (var i = 0; i < sqls.length; i++) {
-      if (ydn.db.WebSqlWrapper.DEBUG) {
-        window.console.log(sqls[i]);
+  if (n_todo > 0) {
+    db.transaction(function(t) {
+
+      me.logger.finest('Creating tables ' + sqls.join('\n'));
+      for (var i = 0; i < sqls.length; i++) {
+        if (ydn.db.WebSqlWrapper.DEBUG) {
+          window.console.log(sqls[i]);
+        }
+        t.executeSql(sqls[i], [],
+            i == sqls.length - 1 ? success_callback : undefined,
+            error_callback);
       }
-      t.executeSql(sqls[i], [],
-          i == sqls.length - 1 ? success_callback : undefined,
-          error_callback);
-    }
-  });
+    });
+  } else {
+    this.sql_db_ = db;
+  }
+};
+
+
+/**
+ * @final
+ * @protected
+ * @return {boolean}
+ */
+ydn.db.WebSqlWrapper.prototype.isReady = function() {
+  return !!this.sql_db_;
 };
 
 
@@ -510,7 +528,7 @@ ydn.db.WebSqlWrapper.prototype.dropTable_ = function(opt_table) {
     d.errback(error);
   };
 
-  this.sdb_.transaction(function(t) {
+  this.sql_db_.transaction(function(t) {
     //console.log(sql);
     t.executeSql(sql, [], callback, error_callback);
   });
@@ -520,10 +538,10 @@ ydn.db.WebSqlWrapper.prototype.dropTable_ = function(opt_table) {
 
 
 /**
- *
+ * @final
  */
 ydn.db.WebSqlWrapper.prototype.close = function () {
-  // no need to close WebSQl database.
+  // WebSQl API do not have close method.
   return goog.async.Deferred.succeed(true);
 };
 

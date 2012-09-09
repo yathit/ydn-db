@@ -265,7 +265,7 @@ ydn.db.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
  * immediately.
  *
  * This method must be {@link #runInTransaction}.
- * @param {ydn.db.IdbTxMutex} tx active transaction object.
+ * @param {IDBTransaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string=} opt_store_name store name.
  * @param {(string|number)=} opt_key object key.
@@ -456,7 +456,6 @@ ydn.db.IndexedDb.prototype.getById_ = function(store_name, id) {
   } else {
     this.doTransaction_(function(tx) {
       me.executeGet_(tx.getTx(), df, store_name, id);
-      tx.setDone(); // block next transaction
     }, [store_name], ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
   }
   return df;
@@ -492,9 +491,10 @@ ydn.db.IndexedDb.prototype.getByIds_ = function(store_name, ids) {
  */
 ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
   var me = this;
+  var open_tx = this.isOpenTransaction();
   var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
-  if (tx) {
+  if (open_tx) {
     this.executeGetKeys_(tx.getTx(), df, keys);
   } else {
     var store_names = [];
@@ -506,7 +506,6 @@ ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
     }
     this.doTransaction_(function(tx) {
       me.executeGetKeys_(tx.getTx(), df, keys);
-      tx.setDone();
     }, store_names, ydn.db.IndexedDbWrapper.TransactionMode.READ_ONLY);
   }
   return df;
@@ -590,7 +589,7 @@ ydn.db.IndexedDb.prototype.get = function (arg1, arg2) {
 
 
 /**
- * @param {ydn.db.IdbTxMutex} tx active transaction object.
+ * @param {IDBTransaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!Array.<!ydn.db.Key>} keys query.
  * @param {number=} limit limit.
@@ -991,12 +990,13 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
       this.schema.getStoreNames();
   var self = this;
   var tx = this.getActiveIdbTx();
+  var open_tx = this.isOpenTransaction();
   var df = new goog.async.Deferred();
-  if (tx) {
-    this.executeClear_(tx, df, opt_table, opt_key);
+  if (open_tx) {
+    this.executeClear_(tx.getTx(), df, opt_table, opt_key);
   } else {
     this.doTransaction_(function(tx) {
-      self.executeClear_(tx, df, opt_table, opt_key);
+      self.executeClear_(tx.getTx(), df, opt_table, opt_key);
     }, store_names, ydn.db.IndexedDbWrapper.TransactionMode.READ_WRITE);
   }
   return df;

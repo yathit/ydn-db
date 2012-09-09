@@ -437,8 +437,10 @@ ydn.db.IndexedDbWrapper.prototype.abortTxQueue_ = function(e) {
   if (this.txQueue) {
     var task = this.txQueue.shift();
     while (task) {
-      task.d.errback(e);
       task = this.txQueue.shift();
+      task.fnc(null); // TODO: any better way ?
+      // fake transaction object possible. calling tx.objectStore return
+      // request and call error on all requests.
     }
   }
 };
