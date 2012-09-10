@@ -1,5 +1,5 @@
 /**
- * @fileoverview Hold active IDBTransaction object provide mutex function.
+ * @fileoverview Hold active Transaction object and provides mutex function.
  */
 
 goog.provide('ydn.db.TransactionMutex');
@@ -67,6 +67,13 @@ ydn.db.TransactionMutex.prototype.up = function(tx) {
 
   goog.array.clear(this.complete_listeners_);
 
+  /**
+   *
+   * @type {boolean}
+   * @private
+   */
+  this.out_of_scope_ = false;
+
   this.tx_count_++;
 
   this.logger.finest('tx up, count: ' + this.tx_count_);
@@ -126,6 +133,19 @@ ydn.db.TransactionMutex.prototype.down = function (type, event) {
 
 
 /**
+ * Transaction callback function is out of scope. We no longer accepting adding
+ * listeners.
+ */
+ydn.db.TransactionMutex.prototype.out = function() {
+  this.out_of_scope_ = true;
+  // interestingly tx_ can still be use even after out of scope from the
+  // transaction callback. This is the whole reason we are
+  // having this class. Otherwise, transaction scope handling
+  // will be very simple.
+};
+
+
+/**
  * Transaction is explicitly set not to do next transaction.
  * @deprecated
  */
@@ -180,17 +200,19 @@ ydn.db.TransactionMutex.prototype.isActiveAndAvailable = function() {
  * level. Use this listener to release resource for robustness. Any error on
  * the listener will be swallowed.
  * @final
- * @param {number} tx_count
  * @param {function(string=, *=)} fn first argument is either 'complete',
  * 'error', or 'abort' and second argument is event.
  */
-ydn.db.TransactionMutex.prototype.addCompletedListener = function(tx_count, fn)
-{
+ydn.db.TransactionMutex.prototype.addCompletedListener = function(fn) {
+  // thinks about using standard addEventListener.
+  // most use case, here is to listen any events, but here three event type
+  // most consumer do not care what event type it is.
+  // IMO mimicking addEventListener is over kill.
   if (!this.idb_tx_) {
-    throw new ydn.db.InvalidStateException('No active tx to listen.');
+    throw new ydn.db.InvalidStateException('Tx gone.');
   }
-  if (tx_count != this.tx_count_) {
-    throw new ydn.db.InvalidStateException('Invalid transaction context.');
+  if (this.out_of_scope_) {
+    throw new ydn.db.InvalidStateException('Out of scope.');
   }
   this.complete_listeners_.push(fn);
 };

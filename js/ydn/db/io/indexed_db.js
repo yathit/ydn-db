@@ -321,7 +321,6 @@ ydn.db.IndexedDb.prototype.executeClear_ = function(tx, df, opt_store_name,
       };
     }
   }
-
 };
 
 

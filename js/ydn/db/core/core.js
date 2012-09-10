@@ -90,18 +90,6 @@ ydn.db.Core.prototype.db_ = null;
 
 
 /**
- * Factory.
- * @param {string=} opt_dbname database name.
- * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
- * @return {ydn.db.Core}
- */
-ydn.db.Core.createInstance = function(opt_dbname, opt_schema) {
-  return new ydn.db.Core(opt_dbname, opt_schema);
-};
-
-
-
-/**
  * Get configuration of this storage. This is useful from getting storage from
  * main thread to worker thread.
  * <pre>
@@ -192,7 +180,32 @@ ydn.db.Core.prototype.setSchema = function(schema) {
 ydn.db.Core.PREFERENCE = [ydn.db.IndexedDbWrapper.TYPE,
   ydn.db.WebSqlWrapper.TYPE,
   ydn.db.LocalStorageWrapper.TYPE,
-  ydn.db.SessionStorageWrapper.TYPE, 'memory'];
+  ydn.db.SessionStorageWrapper.TYPE,
+  ydn.db.SimpleStorage.TYPE];
+
+
+/**
+ * Create database instance.
+ * @param {string} db_type
+ * @param {string} db_name
+ * @param {!ydn.db.DatabaseSchema} config
+ * @return {ydn.db.CoreService}
+ */
+ydn.db.Core.prototype.createDbInstance = function(db_type, db_name, config) {
+  //noinspection JSValidateTypes
+  if (db_type == ydn.db.IndexedDbWrapper.TYPE) {
+    return new ydn.db.IndexedDbWrapper(db_name, config);
+  } else if (db_type == ydn.db.WebSqlWrapper.TYPE) {
+    return new ydn.db.WebSqlWrapper(db_name, config);
+  } else if (db_type == ydn.db.LocalStorageWrapper.TYPE) {
+    return new ydn.db.LocalStorageWrapper(db_name, config);
+  } else if (db_type == ydn.db.SessionStorageWrapper.TYPE) {
+    return new ydn.db.SessionStorageWrapper(db_name, config);
+  } else if (db_type == ydn.db.SimpleStorage.TYPE)  {
+    return new ydn.db.SimpleStorage(db_name, config);
+  }
+  return null;
+};
 
 
 /**
@@ -207,34 +220,34 @@ ydn.db.Core.prototype.initDatabase = function() {
     if (goog.userAgent.product.ASSUME_CHROME ||
       goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
-      this.db_ = new ydn.db.IndexedDbWrapper(this.db_name, this.schema);
+      this.db_ = this.createDbInstance(ydn.db.IndexedDbWrapper.TYPE, this.db_name, this.schema);
     } else if (goog.userAgent.product.ASSUME_SAFARI) {
       // for dead-code elimination
-      this.db_ = new ydn.db.WebSqlWrapper(this.db_name, this.schema);
+      this.db_ = this.createDbInstance(ydn.db.WebSqlWrapper.TYPE, this.db_name, this.schema);
     } else {
       // go according to ordering
       var preference = this.preference || ydn.db.Core.PREFERENCE;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
         if (db_type == ydn.db.IndexedDbWrapper.TYPE && ydn.db.IndexedDbWrapper.isSupported()) { // run-time detection
-          this.db_ = new ydn.db.IndexedDbWrapper(this.db_name, this.schema);
+          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         } else if (db_type == ydn.db.WebSqlWrapper.TYPE && ydn.db.WebSqlWrapper.isSupported()) {
-          this.db_ = new ydn.db.WebSqlWrapper(this.db_name, this.schema);
+          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         } else if (db_type == ydn.db.LocalStorageWrapper.TYPE && ydn.db.LocalStorageWrapper.isSupported()) {
-          this.db_ = new ydn.db.LocalStorageWrapper(this.db_name, this.schema);
+          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         } else if (db_type == ydn.db.SessionStorageWrapper.TYPE && ydn.db.SessionStorageWrapper.isSupported()) {
-          this.db_ = new ydn.db.SessionStorageWrapper(this.db_name, this.schema);
+          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
-        } else if (db_type == 'memory')  {
-          this.db_ = new ydn.db.SimpleStorage(this.db_name, this.schema);
+        } else if (db_type == ydn.db.SimpleStorage.TYPE)  {
+          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         }
       }
       if (!this.db_) {
-        throw Error('No database obtained for preference of ' + ydn.json.stringify(preference));
+        throw new ydn.error.ConstrainError('No storage mechanism found.');
       }
     }
 
@@ -319,14 +332,12 @@ ydn.db.Core.prototype.getDbInstance_ = function() {
 /**
  * Run a transaction.
  * @export
- * @final
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
- * @param {...} opt_args
  */
-ydn.db.Core.prototype.transaction = function (trFn, store_names, mode, opt_args) {
+ydn.db.Core.prototype.transaction = function (trFn, store_names, mode) {
   goog.asserts.assert(this.db_, 'database not ready');
   var names = store_names;
   if (goog.isString(store_names)) {
@@ -336,27 +347,9 @@ ydn.db.Core.prototype.transaction = function (trFn, store_names, mode, opt_args)
     throw new ydn.error.ArgumentException("storeNames");
   }
   mode = goog.isDef(mode) ? mode : ydn.db.TransactionMode.READ_ONLY;
-  var outFn = trFn;
-  if (arguments.length > 3) { // handle optional parameters
-    // see how this works in goog.partial.
-    var args = Array.prototype.slice.call(arguments, 3);
-    outFn = function() {
-      // Prepend the bound arguments to the current arguments.
-      var newArgs = Array.prototype.slice.call(arguments);
-      newArgs.unshift.apply(newArgs, args);
-      return trFn.apply(this, newArgs);
-    }
-  }
 
   this.db_.doTransaction(function (tx) {
-//    if (ydn.db.IndexedDbWrapper.DEBUG) {
-//      window.console.log([tx, trFn, names, mode]);
-//    }
-
-    // now execute transaction process
-    outFn(tx.getTx());
-    // transaction can still be used until committed, so
-    // is_open_transaction_ will be set false on the start of new beginning.
+    trFn(tx);
   }, names, mode);
 
 };

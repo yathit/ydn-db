@@ -393,6 +393,14 @@ ydn.db.Storage.prototype.fetch = function (q, limit, offset) {
 };
 
 
+/**
+ * @override
+ */
+ydn.db.Storage.prototype.newTxInstance = function(tx) {
+  return new ydn.db.TxStorage(this, tx);
+};
+
+
 
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);

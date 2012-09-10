@@ -6,17 +6,17 @@
  */
 
 
-goog.provide('ydn.db.InTxStorage');
-goog.require('ydn.db.Storage');
+goog.provide('ydn.db.TxCore');
+goog.require('ydn.db.Core');
 
 
 /**
- *
+ * @implements {ydn.db.TransactionService}
  * @param {!ydn.db.Storage} storage
  * @param {!ydn.db.TransactionMutex} mu_tx
  * @constructor
  */
-ydn.db.InTxStorage = function(storage, mu_tx) {
+ydn.db.TxCore = function(storage, mu_tx) {
   /**
    * @final
    * @type {!ydn.db.Storage}
@@ -28,7 +28,7 @@ ydn.db.InTxStorage = function(storage, mu_tx) {
    * @type {SQLTransaction|IDBTransaction|Object}
    * @private
    */
-  this.tx_ = mu_tx.getTx();
+  this.tx_ = mu_tx.getTx(); // tx in mu_tx is mutable
 
   this.itx_count_ = mu_tx.getTxCount();
 
@@ -52,7 +52,7 @@ ydn.db.InTxStorage = function(storage, mu_tx) {
  * @param {function(string=, *=)} fn first argument is either 'complete',
  * 'error', or 'abort' and second argument is event.
  */
-ydn.db.InTxStorage.prototype.addCompletedListener = function(fn) {
+ydn.db.TxCore.prototype.addCompletedListener = function(fn) {
   this.mu_tx_.addCompletedListener(this.itx_count_, fn);
 };
 
@@ -64,6 +64,7 @@ ydn.db.InTxStorage.prototype.addCompletedListener = function(fn) {
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.InTxStorage.prototype.get = function (store_name, opt_key) {
+ydn.db.TxCore.prototype.get = function (store_name, opt_key) {
   return this.storage_.getInTx(this.tx_, store_name, opt_key);
 };
+

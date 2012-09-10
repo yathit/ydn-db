@@ -28,7 +28,6 @@ goog.require('ydn.db');
 goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.CoreService');
 goog.require('ydn.json');
-goog.require('ydn.db.IdbTxMutex');
 
 
 /**
@@ -57,6 +56,8 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
    * mode: ydn.db.TransactionMode}>}
    */
   this.txQueue = [];
+
+  this.in_tx_ = false;
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // version could be number of string.
@@ -157,18 +158,20 @@ ydn.db.IndexedDbWrapper = function(dbname, schema) {
 
   openRequest.onblocked = function(ev) {
     var msg = 'database ' + dbname + ' block, close other connections.';
-    me.logger.severe(msg);
     if (ydn.db.IndexedDbWrapper.DEBUG) {
       window.console.log(msg);
+    } else {
+      me.logger.severe(msg);
     }
     me.db = null;
   };
 
   openRequest.onversionchange = function(ev) {
     var msg = 'Version change request, so closing the database';
-    me.logger.fine(msg);
     if (ydn.db.IndexedDbWrapper.DEBUG) {
       window.console.log(msg);
+    } else {
+      me.logger.fine(msg);
     }
     if (me.db) {
       me.db.close();
@@ -402,14 +405,7 @@ ydn.db.IndexedDbWrapper.prototype.runTxQueue_ = function() {
 
   var task = this.txQueue.shift();
   if (task) {
-    if (this.isOpenTransaction()) { //
-      this.doTransaction(task.fnc, task.scopes, task.mode);
-    } else {
-      // only open transaction can continue to use existing transaction.
-      goog.Timer.callOnce(function() {
-        this.doTransaction(task.fnc, task.scopes, task.mode);
-      }, 100, this);
-    }
+    this.doTransaction(task.fnc, task.scopes, task.mode);
   }
 };
 
@@ -432,15 +428,22 @@ ydn.db.IndexedDbWrapper.prototype.abortTxQueue_ = function(e) {
 };
 
 
+/**
+ * Flag to indicate in transaction.
+ * @type {boolean}
+ * @private
+ */
+ydn.db.IndexedDbWrapper.prototype.in_tx_ = false;
+
+
 
 /**
  * When DB is ready, fnc will be call with a fresh transaction object. Fnc must
  * put the result to 'result' field of the transaction object on success. If
  * 'result' field is not set, it is assumed
  * as failed.
- * @final
  * @protected
- * @param {Function} fnc transaction function.
+ * @param {function(IDBTransaction)} fnc transaction function.
  * @param {!Array.<string>} scopes list of stores involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode.
@@ -460,7 +463,7 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction = function(fnc, scopes, mode)
    * or ERROR) events, we set tx_ to null and start next transaction in the
    * queue.
    */
-  if (this.db_ && !this.mu_tx_.isActiveAndAvailable()) {
+  if (this.db_ && !this.in_tx_) {
 
     /**
      * Existence of transaction object indicate that this database is in
@@ -471,35 +474,25 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction = function(fnc, scopes, mode)
      */
     var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
 
-    this.is_open_transaction_ = false; // transaction must explicitly open
-    me.mu_tx_.up(tx);
-
-    // we choose to avoid using add listener pattern to reduce memory leak,
-    // if it might.
+    this.in_tx_ = true;
 
     tx.oncomplete = function(event) {
       // window.console.log(['oncomplete', event, tx, me.mu_tx_]);
-      me.mu_tx_.down(tx, ydn.db.TransactionEventTypes.COMPLETE, event);
+      me.in_tx_ = false;
       me.runTxQueue_();
     };
 
     tx.onerror = function(event) {
-      if (ydn.db.IndexedDbWrapper.DEBUG) {
-        window.console.log(['onerror', event, tx, me.mu_tx_]);
-      }
-      me.mu_tx_.down(ydn.db.TransactionEventTypes.ERROR, event);
+      me.in_tx_ = false;
       me.runTxQueue_();
     };
 
     tx.onabort = function(event) {
-      if (ydn.db.IndexedDbWrapper.DEBUG) {
-        window.console.log(['onabort', event, tx, me.mu_tx_]);
-      }
-      me.mu_tx_.down(ydn.db.TransactionEventTypes.ABORT, event);
+      me.in_tx_ = false;
       me.runTxQueue_();
     };
 
-    fnc(me.mu_tx_);
+    fnc(tx);
 
   } else {
     this.txQueue.push({fnc: fnc, scopes: scopes, mode: mode});
@@ -509,37 +502,8 @@ ydn.db.IndexedDbWrapper.prototype.doTransaction = function(fnc, scopes, mode)
 
 
 /**
- * One database can have only one transaction.
- * @private
- * @final
- * @type {!ydn.db.IdbTxMutex}
- */
-ydn.db.IndexedDbWrapper.prototype.mu_tx_ = new ydn.db.IdbTxMutex();
-
-
-/**
- * Obtain active consumable transaction object.
- * @final
- * @protected
- * @return {ydn.db.IdbTxMutex} transaction object if active and available.
- */
-ydn.db.IndexedDbWrapper.prototype.getActiveIdbTx = function() {
-  return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;
-};
-
-
-/**
- *
- * @return {IDBTransaction}
- */
-ydn.db.IndexedDbWrapper.prototype.getTx = function() {
-  return null;
-};
-
-
-
-/**
  * Close the connection.
+ * @final
  * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.IndexedDbWrapper.prototype.close = function() {
@@ -564,43 +528,4 @@ ydn.db.IndexedDbWrapper.prototype.close = function() {
 };
 
 
-/**
- * Flag use inside transaction method to make, subsequent call are
- * available for using existing transaction.
- * @type {boolean}
- * @private
- */
-ydn.db.IndexedDbWrapper.prototype.is_open_transaction_ = false;
 
-
-/**
- * @final
- * @protected
- * @return {boolean} true indicate active transaction to be use.
- */
-ydn.db.IndexedDbWrapper.prototype.isOpenTransaction = function() {
-  return this.mu_tx_.isActiveAndAvailable() && this.is_open_transaction_;
-};
-
-
-/**
- * Perform explicit transaction.
- * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<string>} scopes list of store names involved in the
- * transaction.
- * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
- */
-ydn.db.IndexedDbWrapper.prototype.transaction = function (trFn, scopes, mode) {
-
-    this.doTransaction(function (tx) {
-      if (ydn.db.IndexedDbWrapper.DEBUG) {
-        window.console.log([tx, trFn, scopes, mode]);
-      }
-
-      // now execute transaction process
-      trFn(tx.getTx());
-      // transaction can still be used until committed, so
-      // is_open_transaction_ will be set false on the start of new beginning.
-    }, scopes, mode);
-
-};

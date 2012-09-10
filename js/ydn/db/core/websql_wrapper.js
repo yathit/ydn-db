@@ -27,7 +27,6 @@ goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.json');
 goog.require('ydn.db');
-goog.require('ydn.db.SqlTxMutex');
 
 
 /**
@@ -56,7 +55,9 @@ ydn.db.WebSqlWrapper = function(dbname, schema) {
    * @type {!Array.<{fnc: Function, scopes: Array.<string>,
    * mode: ydn.db.TransactionMode}>}
    */
-  this.sql_tx_queue = [];  
+  this.sql_tx_queue = [];
+
+  this.in_tx_ = false;
 
   /**
    * Must open the database with empty version, otherwise unrecoverable error
@@ -138,14 +139,7 @@ ydn.db.WebSqlWrapper.prototype.runTxQueue_ = function() {
 
   var task = this.sql_tx_queue.shift();
   if (task) {
-  //  if (this.isOpenTransaction()) { //
       this.doTransaction(task.fnc, task.scopes, task.mode);
-//    } else {
-//      // only open transaction can continue to use existing transaction.
-//      goog.Timer.callOnce(function() {
-//        this.doTransaction(task.fnc, task.scopes, task.mode);
-//      }, 100, this);
-//    }
   }
 };
 
@@ -167,24 +161,10 @@ ydn.db.WebSqlWrapper.prototype.abortTxQueue_ = function(e) {
 
 
 /**
- * Existence of transaction object indicate that this database is in
- * transaction. This must be set to null on finished.
  * @private
- * @final
- * @type {!ydn.db.SqlTxMutex}
+ * @type {boolean}
  */
-ydn.db.WebSqlWrapper.prototype.sql_mu_tx_ = new ydn.db.SqlTxMutex();
-
-
-/**
- * @final
- * @protected
- * @return {ydn.db.SqlTxMutex} transaction object if in
- * transaction.
- */
-ydn.db.WebSqlWrapper.prototype.getActiveSqlTx = function() {
-  return this.sql_mu_tx_.isActiveAndAvailable() ? this.sql_mu_tx_ : null;
-};
+ydn.db.WebSqlWrapper.prototype.in_tx_ = false;
 
 
 /**
@@ -282,7 +262,7 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
       if (ydn.db.WebSqlWrapper.DEBUG) {
         window.console.log(sqls[i]);
       }
-      t.getTx().executeSql(sqls[i], [],
+      t.executeSql(sqls[i], [],
           i == sqls.length - 1 ? success_callback : undefined,
           error_callback);
     }
@@ -347,29 +327,10 @@ ydn.db.WebSqlWrapper.prototype.close = function () {
 };
 
 
-/**
- * Flag use inside transaction method to make, subsequent call are
- * available for using existing transaction.
- * @type {boolean}
- * @private
- */
-ydn.db.WebSqlWrapper.prototype.is_open_transaction_ = false;
-
-
-/**
- * @final
- * @protected
- * @return {boolean} true indicate active transaction to be use.
- */
-ydn.db.WebSqlWrapper.prototype.isOpenTransaction = function() {
-  return this.sql_mu_tx_.isActiveAndAvailable() && this.is_open_transaction_;
-};
-
-
 
 /**
  * Run a transaction. If already in transaction, this will join the transaction.
- * @param {function(ydn.db.TransactionMutex)} trFn
+ * @param {function(SQLTransaction)} trFn
  * @param {Array.<string>} scopes
  * @param {ydn.db.TransactionMode} mode
  * @protected
@@ -378,21 +339,21 @@ ydn.db.WebSqlWrapper.prototype.isOpenTransaction = function() {
 ydn.db.WebSqlWrapper.prototype.doTransaction = function(trFn, scopes, mode) {
 
   var me = this;
-  if (!this.sql_mu_tx_.isActiveAndAvailable()) {
+  if (!this.in_tx_) {
     /**
      * SQLTransactionCallback
      * @param {!SQLTransaction} tx
      */
     var transaction_callback = function(tx) {
-      me.sql_mu_tx_.up(tx);
-      trFn(me.sql_mu_tx_);
+      me.in_tx_ = true;
+      trFn(tx);
     };
 
     /**
      * SQLVoidCallback
      */
     var success_callback = function() {
-      me.sql_mu_tx_.down(ydn.db.TransactionEventTypes.COMPLETE, true);
+      me.in_tx_ = false;
       me.runTxQueue_();
     };
 
@@ -401,7 +362,7 @@ ydn.db.WebSqlWrapper.prototype.doTransaction = function(trFn, scopes, mode) {
      * @param {SQLError} e
      */
     var error_callback = function(e) {
-      me.sql_mu_tx_.down(ydn.db.TransactionEventTypes.ERROR, e);
+      me.in_tx_ = false;
       me.runTxQueue_();
     };
 
