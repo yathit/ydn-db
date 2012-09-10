@@ -1,4 +1,4 @@
-
+// core service test
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
@@ -117,6 +117,53 @@ var test_2_websql_basic = function() {
   }, table_name, 'readwrite');
 };
 
+
+
+var test_3_local_basic = function() {
+
+  var db_type =  'localstorage';
+  var options = {preference: [db_type]};
+  var db_name = 'test_core_basic_1';
+  var db = new ydn.db.Core(db_name, basic_schema, options);
+
+  var val = {id: 'a', value: Math.random()};
+
+  var t1_fired = false;
+  var result;
+
+  waitForCondition(
+      // Condition
+      function() { return t1_fired; },
+      // Continuation
+      function() {
+        assertEquals('database type', db_type, db.type());
+        assertEquals('correct val', val.value, result.value);
+        reachedFinalContinuation = true;
+
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.transaction(function(tx) {
+    // note _default_ column
+    tx.executeSql('INSERT OR REPLACE INTO ' + table_name +
+        ' (id, _default_) VALUES (?, ?)', [val.id, JSON.stringify(val)], function(e) {
+      console.log(e);
+      console.log('Received put result ');
+      tx.executeSql('SELECT * FROM ' + table_name +
+          ' WHERE id = ?', [val.id], function(transaction, e) {
+        console.log(e);
+        var row = e.rows.item(0);
+        result = JSON.parse(row['_default_']);
+        console.log('Received get result ' + result);
+        t1_fired = true;
+      }, function error_cb(e) {
+        console.log(e);
+        fail('wrong sql?');
+      })
+    });
+  }, table_name, 'readwrite');
+};
 
 
 var testCase = new goog.testing.ContinuationTestCase();
