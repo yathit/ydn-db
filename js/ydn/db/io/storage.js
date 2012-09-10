@@ -39,7 +39,7 @@ goog.require('ydn.db.IndexedDbWrapper');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
-goog.require('ydn.db.ActiveQuery');
+goog.require('ydn.db.TQuery');
 goog.require('ydn.db.RichStorage_');
 goog.require('ydn.db.Core');
 
@@ -245,7 +245,7 @@ ydn.db.Storage.prototype.getItem = function(key) {
  * @param {(!ydn.db.Query.KeyRangeJson|!ydn.db.Query.IDBKeyRange|undefined)=}
   * keyRange configuration in
  * @param {string=} direction cursor direction.
- * @return {!ydn.db.ActiveQuery}
+ * @return {!ydn.db.TQuery}
  */
 ydn.db.Storage.prototype.query = function(store_name, index, keyRange,
                                           direction) {
@@ -253,7 +253,7 @@ ydn.db.Storage.prototype.query = function(store_name, index, keyRange,
   if (!store) {
     throw Error('Store: ' + store_name + ' not exist.');
   }
-  return new ydn.db.ActiveQuery(this, store_name, index, keyRange, direction);
+  return new ydn.db.TQuery(this, store_name, index, keyRange, direction);
 };
 
 
@@ -409,10 +409,10 @@ goog.exportProperty(ydn.db.Storage.prototype, 'query',
 goog.exportProperty(ydn.db.Storage.prototype, 'encrypt',
   ydn.db.Storage.prototype.encrypt);
 
-goog.exportProperty(ydn.db.ActiveQuery.prototype, 'fetch',
-  ydn.db.ActiveQuery.prototype.fetch);
-goog.exportProperty(ydn.db.ActiveQuery.prototype, 'get',
-  ydn.db.ActiveQuery.prototype.get);
+goog.exportProperty(ydn.db.TQuery.prototype, 'fetch',
+  ydn.db.TQuery.prototype.fetch);
+goog.exportProperty(ydn.db.TQuery.prototype, 'get',
+  ydn.db.TQuery.prototype.get);
 
 goog.exportProperty(ydn.db.Query.prototype, 'select',
     ydn.db.Query.prototype.select);

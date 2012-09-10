@@ -606,10 +606,10 @@ ydn.db.IndexedDb.prototype.executeFetchKeys_ = function (tx, df, keys, limit, of
   limit = goog.isDef(limit) ? limit : keys.length;
   for (var i = offset; i < limit; i++) {
     var key = keys[i];
-    goog.asserts.assert(goog.isDef(key.id) && goog.isString(key.getStoreName()),
+    goog.asserts.assert(goog.isDef(key.getId()) && goog.isString(key.getStoreName()),
       'Invalid key: ' + key);
     var store = tx.objectStore(key.getStoreName());
-    var request = store.get(key.id);
+    var request = store.get(key.getId());
 
     request.onsuccess = function (event) {
       if (ydn.db.IndexedDb.DEBUG) {

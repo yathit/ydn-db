@@ -1,15 +1,18 @@
 /**
- * @fileoverview Query with database instance, ready to fetch the result.
+ * @fileoverview Query associate with transaction context.
  */
 
 
-goog.provide('ydn.db.ActiveQuery');
+goog.provide('ydn.db.TQuery');
 goog.require('ydn.db.Query');
 goog.require('ydn.db.QueryService');
 goog.require('ydn.db.Query');
 
 
 /**
+ * Create a query from a database. If the database is active transaction,
+ * the query will join the transaction, otherwise to belong to own transaction
+ * instance.
  * @extends {ydn.db.Query}
  * @param {!ydn.db.QueryServiceProvider} db db instance.
  * @param {string} store store name.
@@ -20,7 +23,7 @@ goog.require('ydn.db.Query');
  * @param {string=} direction cursor direction.
  * @constructor
  */
-ydn.db.ActiveQuery = function(db, store, index, keyRange, direction) {
+ydn.db.TQuery = function(db, store, index, keyRange, direction) {
   goog.base(this, store, index, keyRange, direction);
   // database instance. This is be module private variable.
   /**
@@ -30,13 +33,13 @@ ydn.db.ActiveQuery = function(db, store, index, keyRange, direction) {
    */
   this.dbp = db;
 };
-goog.inherits(ydn.db.ActiveQuery, ydn.db.Query);
+goog.inherits(ydn.db.TQuery, ydn.db.Query);
 
 
 /**
  * @return {!goog.async.Deferred}
  */
-ydn.db.ActiveQuery.prototype.get = function() {
+ydn.db.TQuery.prototype.get = function() {
   var rdf;
   var df = new goog.async.Deferred();
   if (this.dbp.isReady()) {
@@ -68,7 +71,7 @@ ydn.db.ActiveQuery.prototype.get = function() {
  * @param {number=} opt_offset start counter.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.ActiveQuery.prototype.fetch = function(opt_limit, opt_offset) {
+ydn.db.TQuery.prototype.fetch = function(opt_limit, opt_offset) {
   if (this.dbp.isReady()) {
     return this.dbp.getQueryService().fetch(this, opt_limit, opt_offset);
   } else {
