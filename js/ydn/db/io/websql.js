@@ -201,7 +201,7 @@ ydn.db.WebSql.prototype.put = function (store_name, obj, opt_key) {
     if (open_tx) {
       me.executePutMultiple_(tx.getTx(), df, store_name, obj);
     } else {
-      this.doSqlTransaction(function (tx) {
+      this.doTransaction(function (tx) {
         me.executePutMultiple_(tx.getTx(), df, store_name, obj);
       }, [], ydn.db.TransactionMode.READ_WRITE);
     }
@@ -209,7 +209,7 @@ ydn.db.WebSql.prototype.put = function (store_name, obj, opt_key) {
     if (open_tx) {
       me.executePut_(tx.getTx(), df, store_name, obj);
     } else {
-      this.doSqlTransaction(function (tx) {
+      this.doTransaction(function (tx) {
         me.executePut_(tx.getTx(), df, store_name, obj);
       }, [], ydn.db.TransactionMode.READ_WRITE);
     }
@@ -482,7 +482,7 @@ ydn.db.WebSql.prototype.getById_ = function(store_name, id) {
   if (open_tx) {
     this.executeGet_(tx.getTx(), df, store_name, id);
   } else {
-    this.doSqlTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeGet_(tx.getTx(), df, store_name, id);
     }, [store_name], ydn.db.TransactionMode.READ_ONLY);
   }
@@ -505,7 +505,7 @@ ydn.db.WebSql.prototype.getByStore_ = function(store_name) {
   if (open_tx) {
     this.executeGetByStore_(tx.getTx(), df, store_name);
   } else {
-    this.doSqlTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeGetByStore_(tx.getTx(), df, store_name);
     }, [store_name], ydn.db.TransactionMode.READ_ONLY);
   }
@@ -528,7 +528,7 @@ ydn.db.WebSql.prototype.getByIds_ = function(store_name, ids) {
   if (open_tx) {
     this.executeGetMultiple_(tx.getTx(), df, store_name, ids);
   } else {
-    this.doSqlTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeGetMultiple_(tx.getTx(), df, store_name, ids);
     }, [store_name], ydn.db.TransactionMode.READ_ONLY);
   }
@@ -551,11 +551,23 @@ ydn.db.WebSql.prototype.getByKeys_ = function(keys) {
   if (open_tx) {
     this.executeGetKeys_(tx.getTx(), df, keys);
   } else {
-    this.doSqlTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeGetKeys_(tx.getTx(), df, keys);
     }, [], ydn.db.TransactionMode.READ_ONLY);
   }
   return df;
+};
+
+/**
+ * Return object
+ * @param {IDBTransaction|IDBTransaction|Object} tx
+ * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store_name table name.
+ * @param {(string|number|!Array.<string>)=} opt_key object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.WebSql.prototype.getInTx = function (tx, store_name, opt_key) {
+
 };
 
 
@@ -728,7 +740,7 @@ ydn.db.WebSql.prototype.fetchQuery_ = function(q, limit, offset) {
   if (open_tx) {
     this.executeQuery_(tx.getTx(), df, q, limit, offset);
   } else {
-    this.doSqlTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeQuery_(tx.getTx(), df, q, limit, offset);
     }, [], ydn.db.TransactionMode.READ_ONLY);
   }
@@ -857,7 +869,7 @@ ydn.db.WebSql.prototype.clear = function (table_name, opt_key) {
     if (open_tx) {
       this.executeClear_(tx.getTx(), df, table_name, opt_key);
     } else {
-      this.doSqlTransaction(function (tx) {
+      this.doTransaction(function (tx) {
         me.executeClear_(tx.getTx(), df, table_name, opt_key);
       }, [], ydn.db.TransactionMode.READ_WRITE);
     }
@@ -865,7 +877,7 @@ ydn.db.WebSql.prototype.clear = function (table_name, opt_key) {
     if (open_tx) {
       this.executeClearStore_(tx.getTx(), df, table_name);
     } else {
-      this.doSqlTransaction(function (tx) {
+      this.doTransaction(function (tx) {
         me.executeClearStore_(tx.getTx(), df, table_name);
       }, [], ydn.db.TransactionMode.READ_WRITE);
     }
@@ -909,7 +921,7 @@ ydn.db.WebSql.prototype.count = function(table) {
     d.errback(error);
   };
 
-  this.doSqlTransaction(function(t) {
+  this.doTransaction(function(t) {
     t.getTx().executeSql(sql, [], callback, error_callback);
   }, [table], ydn.db.TransactionMode.READ_ONLY);
 
@@ -1059,7 +1071,7 @@ ydn.db.WebSql.prototype.dropTable_ = function(opt_table) {
   if (open_tx) {
     this.executeDropTable_(tx.getTx(), df, opt_table);
   } else {
-    this.doSqlTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeDropTable_(tx.getTx(), df, opt_table);
     }, [], ydn.db.TransactionMode.READ_WRITE);
   }

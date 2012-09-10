@@ -403,11 +403,11 @@ ydn.db.IndexedDbWrapper.prototype.runTxQueue_ = function() {
   var task = this.txQueue.shift();
   if (task) {
     if (this.isOpenTransaction()) { //
-      this.doIdbTransaction(task.fnc, task.scopes, task.mode);
+      this.doTransaction(task.fnc, task.scopes, task.mode);
     } else {
       // only open transaction can continue to use existing transaction.
       goog.Timer.callOnce(function() {
-        this.doIdbTransaction(task.fnc, task.scopes, task.mode);
+        this.doTransaction(task.fnc, task.scopes, task.mode);
       }, 100, this);
     }
   }
@@ -443,9 +443,9 @@ ydn.db.IndexedDbWrapper.prototype.abortTxQueue_ = function(e) {
  * @param {Function} fnc transaction function.
  * @param {!Array.<string>} scopes list of stores involved in the
  * transaction.
- * @param {number|string} mode mode.
+ * @param {ydn.db.TransactionMode} mode mode.
  */
-ydn.db.IndexedDbWrapper.prototype.doIdbTransaction = function(fnc, scopes, mode)
+ydn.db.IndexedDbWrapper.prototype.doTransaction = function(fnc, scopes, mode)
 {
   //console.log('doTransaction_ ' + JSON.stringify(scopes) + ' ' + mode);
   var me = this;
@@ -487,7 +487,7 @@ ydn.db.IndexedDbWrapper.prototype.doIdbTransaction = function(fnc, scopes, mode)
       if (ydn.db.IndexedDbWrapper.DEBUG) {
         window.console.log(['onerror', event, tx, me.mu_tx_]);
       }
-      me.mu_tx_.down(tx, ydn.db.TransactionEventTypes.ERROR, event);
+      me.mu_tx_.down(ydn.db.TransactionEventTypes.ERROR, event);
       me.runTxQueue_();
     };
 
@@ -495,7 +495,7 @@ ydn.db.IndexedDbWrapper.prototype.doIdbTransaction = function(fnc, scopes, mode)
       if (ydn.db.IndexedDbWrapper.DEBUG) {
         window.console.log(['onabort', event, tx, me.mu_tx_]);
       }
-      me.mu_tx_.down(tx, ydn.db.TransactionEventTypes.ABORT, event);
+      me.mu_tx_.down(ydn.db.TransactionEventTypes.ABORT, event);
       me.runTxQueue_();
     };
 
@@ -525,6 +525,15 @@ ydn.db.IndexedDbWrapper.prototype.mu_tx_ = new ydn.db.IdbTxMutex();
  */
 ydn.db.IndexedDbWrapper.prototype.getActiveIdbTx = function() {
   return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;
+};
+
+
+/**
+ *
+ * @return {IDBTransaction}
+ */
+ydn.db.IndexedDbWrapper.prototype.getTx = function() {
+  return null;
 };
 
 
@@ -580,43 +589,18 @@ ydn.db.IndexedDbWrapper.prototype.isOpenTransaction = function() {
  * @param {!Array.<string>} scopes list of store names involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
- * @final
  */
 ydn.db.IndexedDbWrapper.prototype.transaction = function (trFn, scopes, mode) {
 
-  if (ydn.db.IndexedDbWrapper.DEBUG) {
-    var msg = this.mu_tx_.isActive() ? ' enqueue' : 'requested';
-    window.console.log('transaction ' + JSON.stringify(scopes) + ' (' + mode +
-        ') ' + msg);
-  }
-
-  var me = this;
-  if (this.mu_tx_.isActive()) {
-    // we honour explicit transaction request, by putting it in the queue
-
-    // wrap TrFn so that we can toggle it is_open_transaction_.
-    var wrapTrFn = goog.partial(function(trFn, tx) {
-      me.is_open_transaction_ = true;
-      // now execute transaction process
-      trFn(tx.getTx());
-      me.is_open_transaction_ = false;
-    }, trFn);
-
-    this.txQueue.push({fnc:wrapTrFn, scopes:scopes, mode:mode});
-
-  } else {
-    this.doIdbTransaction(function (tx) {
+    this.doTransaction(function (tx) {
       if (ydn.db.IndexedDbWrapper.DEBUG) {
         window.console.log([tx, trFn, scopes, mode]);
       }
-      // by opening transaction, all get/put methods will use current
-      // transaction
-      me.is_open_transaction_ = true;
+
       // now execute transaction process
       trFn(tx.getTx());
-      me.is_open_transaction_ = false;
       // transaction can still be used until committed, so
       // is_open_transaction_ will be set false on the start of new beginning.
     }, scopes, mode);
-  }
+
 };

@@ -36,7 +36,7 @@ ydn.db.SimpleStorage = function(dbname, schema, opt_localStorage) {
 
   /**
    * @final
-   * @type {Object}
+   * @type {!Object}
    * @protected // should be private ?
    */
   this.cache_ = opt_localStorage || ydn.db.SimpleStorage.getFakeLocalStorage();
@@ -59,7 +59,7 @@ ydn.db.SimpleStorage = function(dbname, schema, opt_localStorage) {
 
 /**
  *
- * @return {Object} return memory store object.
+ * @return {!Object} return memory store object.
  */
 ydn.db.SimpleStorage.getFakeLocalStorage = function() {
 
@@ -203,11 +203,36 @@ ydn.db.SimpleStorage.prototype.close = function () {
 };
 
 
+
+/**
+ * One database can have only one transaction.
+ * @private
+ * @final
+ * @type {!ydn.db.TransactionMutex}
+ */
+ydn.db.SimpleStorage.prototype.mu_tx_ = new ydn.db.TransactionMutex();
+
+
+/**
+ * Obtain active consumable transaction object.
+ * @final
+ * @protected
+ * @return {ydn.db.TransactionMutex} transaction object if active and available.
+ */
+ydn.db.SimpleStorage.prototype.getActiveIdbTx = function() {
+  return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;
+};
+
+
 /**
  * @final
  */
-ydn.db.SimpleStorage.prototype.transaction = function(trFn, scopes, mode) {
-  trFn(this.cache_);
+ydn.db.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode) {
+  if (this.mu_tx_.isActive()) {
+    this.mu_tx_.down(ydn.db.TransactionEventTypes.COMPLETE, null);
+  }
+  this.mu_tx_.up(this.cache_);
+  trFn(this.mu_tx_);
 };
 
 

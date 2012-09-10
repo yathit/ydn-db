@@ -347,9 +347,19 @@ ydn.db.Core.prototype.transaction = function (trFn, store_names, mode, opt_args)
       return trFn.apply(this, newArgs);
     }
   }
-  this.db_.transaction(outFn, names, mode);
-};
 
+  this.db_.doTransaction(function (tx) {
+//    if (ydn.db.IndexedDbWrapper.DEBUG) {
+//      window.console.log([tx, trFn, names, mode]);
+//    }
+
+    // now execute transaction process
+    outFn(tx.getTx());
+    // transaction can still be used until committed, so
+    // is_open_transaction_ will be set false on the start of new beginning.
+  }, names, mode);
+
+};
 
 
 goog.exportSymbol('ydn.db.Core', ydn.db.Core);

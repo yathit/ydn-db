@@ -239,15 +239,13 @@ ydn.db.MemoryStore.prototype.getByKeys_ = function(keys) {
 
 /**
  * Return object
- * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=}  arg1 table name.
+ * @param {IDBTransaction|IDBTransaction|Object} tx
+ * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
  * @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
  * all entries in the store will return.
- * param {number=} start start number of entry.
- * param {number=} limit maximun number of entries.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.MemoryStore.prototype.get = function (arg1, arg2) {
-
+ydn.db.MemoryStore.prototype.getInTx = function (tx, arg1, arg2) {
 
   if (arg1 instanceof ydn.db.Key) {
     /**
@@ -284,6 +282,20 @@ ydn.db.MemoryStore.prototype.get = function (arg1, arg2) {
   } else {
     throw new ydn.error.ArgumentException();
   }
+};
+
+
+/**
+ * Return object
+ * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=}  arg1 table name.
+ * @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * param {number=} start start number of entry.
+ * param {number=} limit maximun number of entries.
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.MemoryStore.prototype.get = function (arg1, arg2) {
+  return this.getInTx(this.cache_, arg1, arg2);
 };
 
 

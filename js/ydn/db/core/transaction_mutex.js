@@ -2,10 +2,12 @@
  * @fileoverview Hold active IDBTransaction object provide mutex function.
  */
 
+goog.provide('ydn.db.TransactionMutex');
+goog.provide('ydn.db.SqlTxMutex');
 goog.provide('ydn.db.IdbTxMutex');
 goog.require('goog.array');
 goog.require('goog.asserts');
-goog.require('ydn.db.YdnDbInvalidStateException');
+goog.require('ydn.db.InvalidStateException');
 
 
 /**
@@ -13,10 +15,10 @@ goog.require('ydn.db.YdnDbInvalidStateException');
  * This also serve as mutex on transaction.
  * @constructor
  */
-ydn.db.IdbTxMutex = function() {
+ydn.db.TransactionMutex = function() {
   this.idb_tx_ = null;
   /**
-   * Write-only instance variable for debug info.
+   * Transaction counter.
    * @type {number}
    * @private
    */
@@ -30,27 +32,28 @@ ydn.db.IdbTxMutex = function() {
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.IdbTxMutex.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.IdbTxMutex');
+ydn.db.TransactionMutex.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.TransactionMutex');
 
 
 /**
  * @const
  * @type {boolean}
  */
-ydn.db.IdbTxMutex.DEBUG = false;
+ydn.db.TransactionMutex.DEBUG = false;
 
 
 /**
  * Newly created transaction it push to mutex and lock.
  * @final
- * @param {!IDBTransaction} tx the transaction object.
+ * @param {!IDBTransaction|!SQLTransaction|!Object} tx the transaction object.
  */
-ydn.db.IdbTxMutex.prototype.up = function(tx) {
+ydn.db.TransactionMutex.prototype.up = function(tx) {
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
-  goog.asserts.assert(goog.isNull(this.idb_tx_), 'transaction overlap ' + this.idb_tx_);
+  goog.asserts.assert(goog.isNull(this.idb_tx_), 'transaction overlap ' +
+    this.idb_tx_);
 
   this.idb_tx_ = tx;
 
@@ -72,10 +75,10 @@ ydn.db.IdbTxMutex.prototype.up = function(tx) {
 
 /**
  * Current transaction.
- * @type {IDBTransaction}
+ * @type {!IDBTransaction|!SQLTransaction|Object}
  * @private
  */
-ydn.db.IdbTxMutex.prototype.idb_tx_ = null;
+ydn.db.TransactionMutex.prototype.idb_tx_ = null;
 
 
 /**
@@ -83,7 +86,7 @@ ydn.db.IdbTxMutex.prototype.idb_tx_ = null;
  * @type {Array.<!Function>}
  * @private
  */
-ydn.db.IdbTxMutex.prototype.complete_listeners_ = [];
+ydn.db.TransactionMutex.prototype.complete_listeners_ = [];
 
 
 /**
@@ -91,21 +94,18 @@ ydn.db.IdbTxMutex.prototype.complete_listeners_ = [];
  * @type {boolean}
  * @private
  */
-ydn.db.IdbTxMutex.prototype.is_set_done_ = false;
+ydn.db.TransactionMutex.prototype.is_set_done_ = false;
 
 
 /**
  * Transaction is released and mutex is unlock.
  * @final
- * @param {IDBTransaction} tx the same transaction object in up. This is only
- * used for validation and inadvertently invoked by non-owner.
  * @param {ydn.db.TransactionEventTypes} type event type
  * @param {*} event
  */
-ydn.db.IdbTxMutex.prototype.down = function (tx, type, event) {
+ydn.db.TransactionMutex.prototype.down = function (type, event) {
   this.logger.finest('tx down, count: ' + this.tx_count_);
   // down must be call only once by those who up
-  goog.asserts.assert(this.idb_tx_ === tx);
   this.idb_tx_ = null;
 
   for (var i = 0; this.complete_listeners_.length; i++) {
@@ -129,8 +129,18 @@ ydn.db.IdbTxMutex.prototype.down = function (tx, type, event) {
  * Transaction is explicitly set not to do next transaction.
  * @deprecated
  */
-ydn.db.IdbTxMutex.prototype.setDone = function() {
+ydn.db.TransactionMutex.prototype.setDone = function() {
   this.is_set_done_ = true;
+};
+
+
+/**
+ * Get number of transaction count.
+ * @final
+ * @return {number}
+ */
+ydn.db.TransactionMutex.prototype.getTxCount = function() {
+  return this.tx_count_;
 };
 
 
@@ -138,7 +148,7 @@ ydn.db.IdbTxMutex.prototype.setDone = function() {
  *
  * @return {boolean}
  */
-ydn.db.IdbTxMutex.prototype.isSetDone = function() {
+ydn.db.TransactionMutex.prototype.isSetDone = function() {
   return this.is_set_done_;
 };
 
@@ -147,7 +157,7 @@ ydn.db.IdbTxMutex.prototype.isSetDone = function() {
  * @final
  * @return {boolean}
  */
-ydn.db.IdbTxMutex.prototype.isActive = function() {
+ydn.db.TransactionMutex.prototype.isActive = function() {
   return !!this.idb_tx_;
 };
 
@@ -157,7 +167,7 @@ ydn.db.IdbTxMutex.prototype.isActive = function() {
  * @final
  * @return {boolean}
  */
-ydn.db.IdbTxMutex.prototype.isActiveAndAvailable = function() {
+ydn.db.TransactionMutex.prototype.isActiveAndAvailable = function() {
   return !!this.idb_tx_ && !this.is_set_done_;
 };
 
@@ -170,12 +180,17 @@ ydn.db.IdbTxMutex.prototype.isActiveAndAvailable = function() {
  * level. Use this listener to release resource for robustness. Any error on
  * the listener will be swallowed.
  * @final
+ * @param {number} tx_count
  * @param {function(string=, *=)} fn first argument is either 'complete',
  * 'error', or 'abort' and second argument is event.
  */
-ydn.db.IdbTxMutex.prototype.addCompletedListener = function(fn) {
+ydn.db.TransactionMutex.prototype.addCompletedListener = function(tx_count, fn)
+{
   if (!this.idb_tx_) {
-    throw new ydn.db.YdnDbInvalidStateException('No active tx to listen.');
+    throw new ydn.db.InvalidStateException('No active tx to listen.');
+  }
+  if (tx_count != this.tx_count_) {
+    throw new ydn.db.InvalidStateException('Invalid transaction context.');
   }
   this.complete_listeners_.push(fn);
 };
@@ -185,21 +200,60 @@ ydn.db.IdbTxMutex.prototype.addCompletedListener = function(fn) {
  * Return current active transaction if available. Transaction consumer must
  * check {@link #isActiveAndAvailable} if this transaction object
  * should be used.
- * @final
- * @return {IDBTransaction}
+ * @return {!IDBTransaction|!SQLTransaction|Object}
  */
-ydn.db.IdbTxMutex.prototype.getTx = function() {
+ydn.db.TransactionMutex.prototype.getTx = function() {
   return this.idb_tx_;
 };
 
 
+
 /**
- * Set error status and abort transaction.
- * @deprecated
- * @final
+ * Hold active IDBTransaction object provide mutex function.
  */
-ydn.db.IdbTxMutex.prototype.abort = function() {
-  this.has_error_ = true;
-  return this.idb_tx_.abort();
+
+
+/**
+ * Provide transaction object to subclass and keep a result.
+ * This also serve as mutex on transaction.
+ * @extends {ydn.db.TransactionMutex}
+ * @constructor
+ */
+ydn.db.IdbTxMutex = function() {
+  goog.base(this);
+};
+goog.inherits(ydn.db.IdbTxMutex, ydn.db.TransactionMutex);
+
+
+/**
+ * @return {IDBTransaction}
+ */
+ydn.db.IdbTxMutex.prototype.getTx = function() {
+  return /** @type {IDBTransaction} */ (goog.base(this, 'getTx'));
+};
+
+
+
+/**
+ * Hold active SQLTransaction object provide mutex function.
+ */
+
+/**
+ * Provide transaction object to subclass and keep a result.
+ * This also serve as mutex on transaction.
+ * @extends {ydn.db.TransactionMutex}
+ * @constructor
+ */
+ydn.db.SqlTxMutex = function() {
+  goog.base(this);
+};
+goog.inherits(ydn.db.SqlTxMutex, ydn.db.TransactionMutex);
+
+
+/**
+ * @return {SQLTransaction}
+ */
+ydn.db.SqlTxMutex.prototype.getTx = function() {
+  return /** @type {SQLTransaction} */ (goog.base(this, 'getTx'));
 };
 

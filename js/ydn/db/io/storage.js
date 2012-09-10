@@ -289,10 +289,6 @@ ydn.db.Storage.prototype.put = function(store_name, value, opt_key) {
  */
 ydn.db.Storage.prototype.get = function (store_name, opt_key) {
 
-  if (goog.isString(store_name)) {
-    goog.asserts.assertObject(this.schema.getStore(store_name), 'store: ' + store_name + ' not exist.');
-  }
-
   if (this.getQueryService()) {
     return this.getQueryService().get(store_name, opt_key);
   } else {
@@ -303,6 +299,30 @@ ydn.db.Storage.prototype.get = function (store_name, opt_key) {
     return df;
   }
 };
+
+
+
+/**
+ * Return object
+ * @param {IDBTransaction|IDBTransaction|Object} tx
+ * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store_name table name.
+ * @param {(string|number|!Array.<string>)=} opt_key object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.Storage.prototype.getInTx = function (tx, store_name, opt_key) {
+
+  if (this.getQueryService()) {
+    return this.getQueryService().getInTx(tx, store_name, opt_key);
+  } else {
+    var df = new goog.async.Deferred();
+    this.getDeferredDb().addCallback(function (db) {
+      db.getInTx(tx, store_name, opt_key).chainDeferred(df);
+    });
+    return df;
+  }
+};
+
 
 
 /**

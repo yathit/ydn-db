@@ -139,11 +139,11 @@ ydn.db.WebSqlWrapper.prototype.runTxQueue_ = function() {
   var task = this.sql_tx_queue.shift();
   if (task) {
   //  if (this.isOpenTransaction()) { //
-      this.doSqlTransaction(task.fnc, task.scopes, task.mode);
+      this.doTransaction(task.fnc, task.scopes, task.mode);
 //    } else {
 //      // only open transaction can continue to use existing transaction.
 //      goog.Timer.callOnce(function() {
-//        this.doSqlTransaction(task.fnc, task.scopes, task.mode);
+//        this.doTransaction(task.fnc, task.scopes, task.mode);
 //      }, 100, this);
 //    }
   }
@@ -275,7 +275,7 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
 
   // TODO: deleting tables.
 
-  this.doSqlTransaction(function (t) {
+  this.doTransaction(function (t) {
 
     me.logger.finest('Creating tables ' + sqls.join('\n'));
     for (var i = 0; i < sqls.length; i++) {
@@ -369,13 +369,13 @@ ydn.db.WebSqlWrapper.prototype.isOpenTransaction = function() {
 
 /**
  * Run a transaction. If already in transaction, this will join the transaction.
- * @param {function(ydn.db.SqlTxMutex)} trFn
+ * @param {function(ydn.db.TransactionMutex)} trFn
  * @param {Array.<string>} scopes
  * @param {ydn.db.TransactionMode} mode
  * @protected
  * @final
  */
-ydn.db.WebSqlWrapper.prototype.doSqlTransaction = function(trFn, scopes, mode) {
+ydn.db.WebSqlWrapper.prototype.doTransaction = function(trFn, scopes, mode) {
 
   var me = this;
   if (!this.sql_mu_tx_.isActiveAndAvailable()) {
@@ -420,48 +420,3 @@ ydn.db.WebSqlWrapper.prototype.doSqlTransaction = function(trFn, scopes, mode) {
 };
 
 
-
-
-/**
- * Perform explicit isolated transaction.
- * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<string>} scopes list of store names involved in the
- * transaction.
- * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
- * @final
- */
-ydn.db.WebSqlWrapper.prototype.transaction = function (trFn, scopes, mode) {
-
-  var me = this;
-
-  if (this.sql_mu_tx_.isActive()) {
-    // honour explicit transaction request, by putting it in the queue
-
-    // wrap TrFn so that we can toggle it is_open_transaction_.
-    var wrapTrFn = goog.partial(function(trFn, tx) {
-      me.is_open_transaction_ = true;
-      // now execute transaction process
-      trFn(tx.getTx());
-      me.is_open_transaction_ = false;
-    }, trFn);
-
-    this.sql_tx_queue.push({fnc:wrapTrFn, scopes:scopes, mode:mode});
-  } else {
-
-   this.doSqlTransaction(function(tx) {
-     if (ydn.db.WebSqlWrapper.DEBUG) {
-       window.console.log([tx, trFn, scopes, mode]);
-     }
-     // by opening transaction, all get/put methods will use current
-     // transaction
-     me.is_open_transaction_ = true;
-     // now execute transaction process
-     trFn(tx.getTx());
-
-     me.is_open_transaction_ = false;
-
-   }, scopes, mode);
-
-  }
-
-};

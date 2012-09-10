@@ -46,6 +46,19 @@ ydn.db.QueryService.prototype.get = function(store, id) {
 
 
 /**
+ * Return object
+ * @param {IDBTransaction|IDBTransaction|Object} tx
+ * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store_name table name.
+ * @param {(string|number|!Array.<string>)=} opt_key object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.QueryService.prototype.getInTx = function (tx, store_name, opt_key) {
+
+};
+
+
+/**
  * @param {string} store table name.
  * @param {!Object|!Array.<!Object>} value object to put.
  * @param {(string|number)=}  opt_key

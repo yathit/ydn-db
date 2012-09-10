@@ -348,7 +348,7 @@ ydn.db.IndexedDb.prototype.put = function(table, value, opt_key) {
     me.executePut_(tx.getTx(), df, table, value);
     return df;
   } else {
-    this.doIdbTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executePut_(tx.getTx(), df, table, value);
     }, [table], ydn.db.TransactionMode.READ_WRITE);
   }
@@ -439,22 +439,19 @@ ydn.db.IndexedDb.prototype.getQuery_ = function(q) {
 
 
 /**
- *
+ * @param {IDBTransaction} tx active transaction object.
  * @param {string} store_name
  * @param {string|number} id
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
-ydn.db.IndexedDb.prototype.getById_ = function(store_name, id) {
+ydn.db.IndexedDb.prototype.getById_ = function(tx, store_name, id) {
   var me = this;
-  var open_tx = this.isOpenTransaction();
-  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
-  if (open_tx) {
-    goog.asserts.assertObject(tx);
-    this.executeGet_(tx.getTx(), df, store_name, id);
+  if (tx) {
+    this.executeGet_(tx, df, store_name, id);
   } else {
-    this.doIdbTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeGet_(tx.getTx(), df, store_name, id);
     }, [store_name], ydn.db.TransactionMode.READ_ONLY);
   }
@@ -463,21 +460,19 @@ ydn.db.IndexedDb.prototype.getById_ = function(store_name, id) {
 
 
 /**
- *
+ * @param {IDBTransaction} tx active transaction object.
  * @param {string} store_name
  * @param {!Array.<string|number>} ids
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
-ydn.db.IndexedDb.prototype.getByIds_ = function(store_name, ids) {
+ydn.db.IndexedDb.prototype.getByIds_ = function(tx, store_name, ids) {
   var me = this;
-  var open_tx = this.isOpenTransaction();
-  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
-  if (open_tx) {
-    this.executeGetMultiple_(tx.getTx(), df, store_name, ids);
+  if (tx) {
+    this.executeGetMultiple_(tx, df, store_name, ids);
   } else {
-    this.doIdbTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeGetMultiple_(tx.getTx(), df, store_name, ids);
     }, [store_name], ydn.db.TransactionMode.READ_ONLY);
   }
@@ -486,18 +481,16 @@ ydn.db.IndexedDb.prototype.getByIds_ = function(store_name, ids) {
 
 
 /**
- *
+ * @param {IDBTransaction} tx active transaction object.
  * @param {!Array.<!ydn.db.Key>} keys
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
-ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
+ydn.db.IndexedDb.prototype.getByKeys_ = function(tx, keys) {
   var me = this;
-  var open_tx = this.isOpenTransaction();
-  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
-  if (open_tx) {
-    this.executeGetKeys_(tx.getTx(), df, keys);
+  if (tx) {
+    this.executeGetKeys_(tx, df, keys);
   } else {
     var store_names = [];
     for (var i = 1; i < keys.length; i++) {
@@ -506,7 +499,7 @@ ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
         store_names.push(store_name);
       }
     }
-    this.doIdbTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeGetKeys_(tx.getTx(), df, keys);
     }, store_names, ydn.db.TransactionMode.READ_ONLY);
   }
@@ -515,20 +508,18 @@ ydn.db.IndexedDb.prototype.getByKeys_ = function(keys) {
 
 
 /**
- *
+ * @param {IDBTransaction=} tx active transaction object.
  * @param {(string|!Array.<string>)=} store_name
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
-ydn.db.IndexedDb.prototype.getByStore_ = function(store_name) {
+ydn.db.IndexedDb.prototype.getByStore_ = function(tx, store_name) {
   var me = this;
-  var open_tx = this.isOpenTransaction();
-  var tx = this.getActiveIdbTx();
   var df = new goog.async.Deferred();
-  if (open_tx) {
-    this.executeGetAll_(tx.getTx(), df, false, store_name);
+  if (tx) {
+    this.executeGetAll_(tx, df, false, store_name);
   } else {
-    this.doIdbTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       me.executeGetAll_(tx.getTx(), df, false, store_name);
     }, [store_name], ydn.db.TransactionMode.READ_ONLY);
 
@@ -539,6 +530,56 @@ ydn.db.IndexedDb.prototype.getByStore_ = function(store_name) {
 
 
 
+/**
+ * Return object
+ * @param {IDBTransaction|IDBTransaction|Object} tx
+ * @param {(string|!Array.<string>|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
+ * @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.IndexedDb.prototype.getInTx = function (tx, arg1, arg2) {
+
+  tx = /** @type {IDBTransaction} */ (tx);
+
+  if (arg1 instanceof ydn.db.Key) {
+    /**
+     * @type {ydn.db.Key}
+     */
+    var k = arg1;
+    return this.getById_(tx, k.getStoreName(), k.getId());
+  } else if (goog.isString(arg1)) {
+    if (goog.isString(arg2) || goog.isNumber(arg2)) {
+      /** @type {string} */
+      var store_name = arg1;
+      /** @type {string|number} */
+      var id = arg2;
+      return this.getById_(tx, store_name, id);
+    } else if (!goog.isDef(arg2)) {
+      return this.getByStore_(tx, arg1);
+    } else if (goog.isArray(arg2)) {
+      if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
+        return this.getByIds_(tx, arg1, arg2);
+      } else {
+        throw new ydn.error.ArgumentException();
+      }
+    } else {
+      throw new ydn.error.ArgumentException();
+    }
+  } else if (goog.isArray(arg1)) {
+    if (arg1[0] instanceof ydn.db.Key) {
+      return this.getByKeys_(tx, arg1);
+    } else {
+      throw new ydn.error.ArgumentException();
+    }
+  } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
+    return this.getByStore_(tx);
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+
+};
+
 
 /**
 * Return object
@@ -548,43 +589,7 @@ ydn.db.IndexedDb.prototype.getByStore_ = function(store_name) {
 * @return {!goog.async.Deferred} return object in deferred function.
 */
 ydn.db.IndexedDb.prototype.get = function (arg1, arg2) {
-
-  if (arg1 instanceof ydn.db.Key) {
-    /**
-     * @type {ydn.db.Key}
-     */
-    var k = arg1;
-    return this.getById_(k.getStoreName(), k.getId());
-  } else if (goog.isString(arg1)) {
-    if (goog.isString(arg2) || goog.isNumber(arg2)) {
-      /** @type {string} */
-      var store_name = arg1;
-      /** @type {string|number} */
-      var id = arg2;
-      return this.getById_(store_name, id);
-    } else if (!goog.isDef(arg2)) {
-      return this.getByStore_(arg1);
-    } else if (goog.isArray(arg2)) {
-      if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-        return this.getByIds_(arg1, arg2);
-      } else {
-        throw new ydn.error.ArgumentException();
-      }
-    } else {
-      throw new ydn.error.ArgumentException();
-    }
-  } else if (goog.isArray(arg1)) {
-    if (arg1[0] instanceof ydn.db.Key) {
-      return this.getByKeys_(arg1);
-    } else {
-      throw new ydn.error.ArgumentException();
-    }
-  } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-    return this.getByStore_();
-  } else {
-    throw new ydn.error.ArgumentException();
-  }
-
+  return this.getInTx(null, arg1, arg2);
 };
 
 
@@ -753,7 +758,7 @@ ydn.db.IndexedDb.prototype.fetch = function(q, limit, offset) {
     if (open_tx) {
       this.executeFetchQuery_(tx.getTx(), df, q, limit, offset);
     } else {
-      this.doIdbTransaction(function(tx) {
+      this.doTransaction(function(tx) {
         self.executeFetchQuery_(tx.getTx(), df, q, limit, offset);
       }, [q.store_name], ydn.db.TransactionMode.READ_ONLY);
     }
@@ -779,7 +784,7 @@ ydn.db.IndexedDb.prototype.deleteItem_ = function(table, id) {
   }
 
   var df = new goog.async.Deferred();
-  this.doIdbTransaction(function(tx) {
+  this.doTransaction(function(tx) {
     var store = tx.objectStore(table);
     var request = store['delete'](id);
 
@@ -814,7 +819,7 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
   }
 
   var df = new goog.async.Deferred();
-  this.doIdbTransaction(function(tx) {
+  this.doTransaction(function(tx) {
     var request = tx.getTx().deleteObjectStore(table);
 
     request.onsuccess = function(event) {
@@ -897,7 +902,7 @@ ydn.db.IndexedDb.prototype.count = function(table) {
   var self = this;
 
   var df = new goog.async.Deferred();
-  this.doIdbTransaction(function(tx) {
+  this.doTransaction(function(tx) {
     var store = tx.getTx().objectStore(table);
     var request = store.count();
     request.onsuccess = function(event) {
@@ -933,7 +938,7 @@ ydn.db.IndexedDb.prototype.listKeys = function(store_name) {
   var keys = [];
 
   var df = new goog.async.Deferred();
-  this.doIdbTransaction(function(tx) {
+  this.doTransaction(function(tx) {
     //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
     // ' in ' + table);
     var store = tx.objectStore(store_name);
@@ -995,9 +1000,25 @@ ydn.db.IndexedDb.prototype.clear = function(opt_table, opt_key) {
   if (open_tx) {
     this.executeClear_(tx.getTx(), df, opt_table, opt_key);
   } else {
-    this.doIdbTransaction(function(tx) {
+    this.doTransaction(function(tx) {
       self.executeClear_(tx.getTx(), df, opt_table, opt_key);
     }, store_names, ydn.db.TransactionMode.READ_WRITE);
   }
   return df;
+};
+
+
+
+/**
+ * Perform explicit transaction.
+ * @param {Function} trFn function that invoke in the transaction.
+ * @param {!Array.<string>} scopes list of store names involved in the
+ * transaction.
+ * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
+ * @override
+ */
+ydn.db.IndexedDb.prototype.transaction = function (trFn, scopes, mode) {
+
+  goog.base(this, 'transaction', trFn, scopes, mode);
+
 };

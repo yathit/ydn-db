@@ -33,21 +33,21 @@ ydn.db.CoreService.prototype.type = function() {};
  */
 ydn.db.CoreService.prototype.getDbInstance = function() {};
 
-
-/**
- * Return active transaction.
- * @return {string} If not in transaction, this return null.
- */
-ydn.db.CoreService.prototype.getTx = function() {};
-
+//
+///**
+// * Return active transaction.
+// * @return {SQLTransaction|IDBTransaction|Object} If not in transaction, this return null.
+// */
+//ydn.db.CoreService.prototype.getTx = function() {};
+//
 
 /**
  *
- * @param {function(ydn.db.CoreService)} trFn callback function that invoke in the transaction with transaction instance.
+ * @param {function(ydn.db.TransactionMutex)} trFn callback function that invoke in the transaction with transaction instance.
  * @param {!Array.<string>} storeNames list of store names involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
  */
-ydn.db.CoreService.prototype.transaction = function(trFn, storeNames, mode) {};
+ydn.db.CoreService.prototype.doTransaction = function(trFn, storeNames, mode) {};
 
 

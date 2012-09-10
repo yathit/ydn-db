@@ -20,7 +20,7 @@
 
 goog.provide('ydn.db');
 goog.provide('ydn.db.YdnDbValidKeyException');
-goog.provide('ydn.db.YdnDbInvalidStateException');
+goog.provide('ydn.db.InvalidStateException');
 
 
 
@@ -100,11 +100,11 @@ ydn.db.YdnDbValidKeyException.prototype.name = 'ValidKeyException';
  * @constructor
  * @extends {Error}
  */
-ydn.db.YdnDbInvalidStateException = function(opt_msg) {
+ydn.db.InvalidStateException = function(opt_msg) {
 
   // Ensure there is a stack trace.
   if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.YdnDbInvalidStateException);
+    Error.captureStackTrace(this, ydn.db.InvalidStateException);
   } else {
     this.stack = new Error().stack || '';
   }
@@ -113,9 +113,9 @@ ydn.db.YdnDbInvalidStateException = function(opt_msg) {
     this.message = String(opt_msg);
   }
 };
-goog.inherits(ydn.db.YdnDbInvalidStateException, Error);
+goog.inherits(ydn.db.InvalidStateException, Error);
 
-ydn.db.YdnDbInvalidStateException.prototype.name = 'WrapperDBInvalidStateException';
+ydn.db.InvalidStateException.prototype.name = 'ydn.db.InvalidStateException';
 
 
 
