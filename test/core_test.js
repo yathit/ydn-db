@@ -31,7 +31,8 @@ var tearDown = function() {
 
 var test_1_idb_basic = function() {
 
-  var options = {preference: ['indexeddb']};
+  var db_type =  'indexeddb';
+  var options = {preference: [db_type]};
   var db_name = 'test_core_basic_1';
   var db = new ydn.db.Core(db_name, basic_schema, options);
 
@@ -45,7 +46,8 @@ var test_1_idb_basic = function() {
       function() { return t1_fired; },
       // Continuation
       function() {
-        assertSame('correct obj', val, result);
+        assertEquals('database type', db_type, db.type());
+        assertEquals('correct obj', val.value, result.value);
         reachedFinalContinuation = true;
 
       },
@@ -55,19 +57,66 @@ var test_1_idb_basic = function() {
   db.transaction(function(tx) {
     console.log('tx started.');
     var store = tx.objectStore(table_name);
-    store.put(val);
-    tx.addEventListener('complete', function(e) {
+    var request = store.put(val);
+    request.onsuccess = function(e) {
       console.log('put ok: ' + e.target.result);
-      store = tx.objectStore(table_name);
-      store.get('a');
-      tx.addEventListener('complete', function(e) {
+      store.get('a').onsuccess = function(e) {
         t1_fired = true;
         result = e.target.result;
         console.log('get ok: ' + JSON.stringify(result));
-      }, false);
-    }, false);
+      };
+    };
   }, table_name, 'readwrite');
 };
+
+
+
+var test_2_websql_basic = function() {
+
+  var db_type =  'websql';
+  var options = {preference: [db_type]};
+  var db_name = 'test_core_basic_1';
+  var db = new ydn.db.Core(db_name, basic_schema, options);
+
+  var val = {id: 'a', value: Math.random()};
+
+  var t1_fired = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return t1_fired; },
+    // Continuation
+    function() {
+      assertEquals('database type', db_type, db.type());
+      assertEquals('correct val', val.value, result.value);
+      reachedFinalContinuation = true;
+
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.transaction(function(tx) {
+    // note _default_ column
+    tx.executeSql('INSERT OR REPLACE INTO ' + table_name +
+      ' (id, _default_) VALUES (?, ?)', [val.id, JSON.stringify(val)], function(e) {
+      console.log(e);
+      console.log('Received put result ');
+      tx.executeSql('SELECT * FROM ' + table_name +
+        ' WHERE id = ?', [val.id], function(transaction, e) {
+        console.log(e);
+        var row = e.rows.item(0);
+        result = JSON.parse(row['_default_']);
+        console.log('Received get result ' + result);
+        t1_fired = true;
+      }, function error_cb(e) {
+        console.log(e);
+        fail('wrong sql?');
+      })
+    });
+  }, table_name, 'readwrite');
+};
+
 
 
 var testCase = new goog.testing.ContinuationTestCase();
