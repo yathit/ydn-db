@@ -7,7 +7,7 @@ goog.provide('ydn.db.tr.SqlMutex');
 goog.provide('ydn.db.tr.IdbMutex');
 goog.require('goog.array');
 goog.require('goog.asserts');
-goog.require('ydn.db.InvalidStateException');
+goog.require('ydn.db.InvalidStateError');
 
 
 /**
@@ -65,8 +65,6 @@ ydn.db.tr.Mutex.prototype.up = function(tx) {
    */
   this.has_error_ = false;
 
-  goog.array.clear(this.complete_listeners_);
-
   /**
    *
    * @type {boolean}
@@ -75,6 +73,8 @@ ydn.db.tr.Mutex.prototype.up = function(tx) {
   this.out_of_scope_ = false;
 
   this.tx_count_++;
+
+  this.oncompleted = null;
 
   this.logger.finest('tx up, count: ' + this.tx_count_);
 };
@@ -87,13 +87,6 @@ ydn.db.tr.Mutex.prototype.up = function(tx) {
  */
 ydn.db.tr.Mutex.prototype.idb_tx_ = null;
 
-
-/**
- *
- * @type {Array.<!Function>}
- * @private
- */
-ydn.db.tr.Mutex.prototype.complete_listeners_ = [];
 
 
 /**
@@ -115,20 +108,11 @@ ydn.db.tr.Mutex.prototype.down = function (type, event) {
   // down must be call only once by those who up
   this.idb_tx_ = null;
 
-  for (var i = 0; this.complete_listeners_.length; i++) {
-    /**
-     * @preserve_try
-     */
-    try {
-      this.complete_listeners_[i](type, event);
-    } catch (e) {
-      // OK to swallow error. we told this in doc.
-      if (goog.DEBUG) {
-        throw e;
-      }
-    }
+  if (this.oncompleted) {
+    this.oncompleted(type, event);
+    this.oncompleted = null;
   }
-  goog.array.clear(this.complete_listeners_);
+
 };
 
 
@@ -142,6 +126,17 @@ ydn.db.tr.Mutex.prototype.out = function() {
   // transaction callback. This is the whole reason we are
   // having this class. Otherwise, transaction scope handling
   // will be very simple.
+};
+
+
+/**
+ * True if call while in transaction callback scope. Transaction callback
+ * is out of scope when a request is returning a result on success or error
+ * callback.
+ * @return {boolean} return true if call while in transaction callback scope.
+ */
+ydn.db.tr.Mutex.prototype.inScope = function() {
+  return !this.out_of_scope_;
 };
 
 
@@ -199,30 +194,17 @@ ydn.db.tr.Mutex.prototype.isActiveAndAvailable = function() {
  * for transaction logistic tracking, which should, in fact, be tracked request
  * level. Use this listener to release resource for robustness. Any error on
  * the listener will be swallowed.
- * @final
- * @param {function(string=, *=)} fn first argument is either 'complete',
+ * @type {?function(string=, *=)} fn first argument is either 'complete',
  * 'error', or 'abort' and second argument is event.
  */
-ydn.db.tr.Mutex.prototype.addCompletedListener = function(fn) {
-  // thinks about using standard addEventListener.
-  // most use case, here is to listen any events, but here three event type
-  // most consumer do not care what event type it is.
-  // IMO mimicking addEventListener is over kill.
-  if (!this.idb_tx_) {
-    throw new ydn.db.InvalidStateException('Tx gone.');
-  }
-  if (this.out_of_scope_) {
-    throw new ydn.db.InvalidStateException('Out of scope.');
-  }
-  this.complete_listeners_.push(fn);
-};
+ydn.db.tr.Mutex.prototype.oncompleted = null;
 
 
 /**
  * Return current active transaction if available. Transaction consumer must
  * check {@link #isActiveAndAvailable} if this transaction object
  * should be used.
- * @return {!IDBTransaction|!SQLTransaction|Object}
+ * @return {IDBTransaction|SQLTransaction|Object}
  */
 ydn.db.tr.Mutex.prototype.getTx = function() {
   return this.idb_tx_;

@@ -31,7 +31,7 @@ ydn.db.DbService.prototype.type = function() {};
 
 /**
  *
- * @param {function((SQLTransaction|IDBTransaction|Object))} trFn callback function that invoke in the transaction with transaction instance.
+ * @param {function((SQLTransaction|IDBTransaction|Object))||Function} trFn callback function that invoke in the transaction with transaction instance.
  * @param {!Array.<string>} storeNames list of store names involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.

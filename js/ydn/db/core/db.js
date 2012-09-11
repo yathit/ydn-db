@@ -19,8 +19,8 @@
  */
 
 goog.provide('ydn.db');
-goog.provide('ydn.db.YdnDbValidKeyException');
-goog.provide('ydn.db.InvalidStateException');
+goog.provide('ydn.db.ValidKeyException');
+goog.provide('ydn.db.InvalidStateError');
 
 
 
@@ -74,11 +74,11 @@ ydn.db.TransactionMode = {
  * @constructor
  * @extends {Error}
  */
-ydn.db.YdnDbValidKeyException = function(opt_msg) {
+ydn.db.ValidKeyException = function(opt_msg) {
 
   // Ensure there is a stack trace.
   if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.YdnDbValidKeyException);
+    Error.captureStackTrace(this, ydn.db.ValidKeyException);
   } else {
     this.stack = new Error().stack || '';
   }
@@ -87,9 +87,9 @@ ydn.db.YdnDbValidKeyException = function(opt_msg) {
     this.message = String(opt_msg);
   }
 };
-goog.inherits(ydn.db.YdnDbValidKeyException, Error);
+goog.inherits(ydn.db.ValidKeyException, Error);
 
-ydn.db.YdnDbValidKeyException.prototype.name = 'ValidKeyException';
+ydn.db.ValidKeyException.prototype.name = 'ydn.db.ValidKeyException';
 
 
 
@@ -100,11 +100,11 @@ ydn.db.YdnDbValidKeyException.prototype.name = 'ValidKeyException';
  * @constructor
  * @extends {Error}
  */
-ydn.db.InvalidStateException = function(opt_msg) {
+ydn.db.InvalidScopeError = function(opt_msg) {
 
   // Ensure there is a stack trace.
   if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.InvalidStateException);
+    Error.captureStackTrace(this, ydn.db.InvalidScopeError);
   } else {
     this.stack = new Error().stack || '';
   }
@@ -113,9 +113,33 @@ ydn.db.InvalidStateException = function(opt_msg) {
     this.message = String(opt_msg);
   }
 };
-goog.inherits(ydn.db.InvalidStateException, Error);
+goog.inherits(ydn.db.InvalidScopeError, Error);
 
-ydn.db.InvalidStateException.prototype.name = 'ydn.db.InvalidStateException';
+ydn.db.InvalidScopeError.prototype.name = 'ydn.db.InvalidScopeError';
+
+
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.InvalidStateError = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.InvalidStateError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(ydn.db.InvalidStateError, Error);
+
+ydn.db.InvalidStateError.prototype.name = 'ydn.db.InvalidStateError';
 
 
 

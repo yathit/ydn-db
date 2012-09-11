@@ -18,11 +18,11 @@
 
 goog.provide('ydn.db.tr.SimpleStorage');
 goog.require('ydn.db.adapter.SimpleStorage');
-goog.require('ydn.db.tr.Service');
+goog.require('ydn.db.tr.DbService');
 
 
 /**
- * @implements {ydn.db.tr.Service}
+ * @implements {ydn.db.tr.DbService}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -50,7 +50,6 @@ ydn.db.tr.SimpleStorage.prototype.mu_tx_ = new ydn.db.tr.Mutex();
 /**
  * Obtain active consumable transaction object.
  * @final
- * @protected
  * @return {ydn.db.tr.Mutex} transaction object if active and available.
  */
 ydn.db.tr.SimpleStorage.prototype.getActiveTx = function() {
@@ -59,9 +58,9 @@ ydn.db.tr.SimpleStorage.prototype.getActiveTx = function() {
 
 
 /**
- * @final
+ *  @override
  */
-ydn.db.tr.SimpleStorage.prototype.doTxTransaction = function(trFn, scopes, mode) {
+ydn.db.tr.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode) {
   if (this.mu_tx_.isActive()) {
     this.mu_tx_.down(ydn.db.TransactionEventTypes.COMPLETE, null);
   }

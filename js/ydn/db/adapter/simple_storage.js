@@ -213,7 +213,7 @@ ydn.db.adapter.SimpleStorage.prototype.close = function () {
 
 
 /**
- * @final
+ * @inheritDoc
  */
 ydn.db.adapter.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode) {
   trFn(this.cache_);

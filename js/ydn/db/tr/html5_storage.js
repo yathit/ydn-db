@@ -35,29 +35,6 @@ goog.inherits(ydn.db.tr.LocalStorage, ydn.db.tr.SimpleStorage);
 
 
 /**
- *
- * @return {boolean} true if localStorage is supported.
- */
-ydn.db.tr.LocalStorage.isSupported = function() {
-  return !!window.localStorage;
-};
-
-
-/**
- * @const
- * @type {string}
- */
-ydn.db.tr.LocalStorage.TYPE = 'localstorage';
-
-/**
- * @return {string}
- */
-ydn.db.tr.LocalStorage.prototype.type = function() {
-  return ydn.db.tr.LocalStorage.TYPE;
-};
-
-
-/**
  * @extends {ydn.db.tr.SimpleStorage}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
@@ -69,27 +46,5 @@ ydn.db.tr.SessionStorage = function(dbname, schemas) {
 };
 goog.inherits(ydn.db.tr.SessionStorage, ydn.db.tr.SimpleStorage);
 
-
-/**
- *
- * @return {boolean} true if localStorage is supported.
- */
-ydn.db.tr.SessionStorage.isSupported = function() {
-  return !!window.sessionStorage;
-};
-
-
-/**
- * @const
- * @type {string}
- */
-ydn.db.tr.SessionStorage.TYPE = 'sessionstorage';
-
-/**
- * @return {string}
- */
-ydn.db.tr.SessionStorage.prototype.type = function() {
-  return ydn.db.tr.SessionStorage.TYPE;
-};
 
 

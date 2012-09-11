@@ -11,8 +11,10 @@ goog.require('ydn.error.NotSupportedException');
 
 
 
+
 /**
- * @implements {ydn.db.CoreService}
+ * @implements {ydn.db.tr.StorageService}
+ * @implements {ydn.db.tr.TxService}
  * @param {!ydn.db.tr.Storage} storage
  * @param {!ydn.db.tr.Mutex} mu_tx
  * @constructor
@@ -43,6 +45,24 @@ ydn.db.tr.TxStorage = function(storage, mu_tx) {
 
 
 /**
+ *
+ * @return {SQLTransaction|IDBTransaction|Object}
+ */
+ydn.db.tr.TxStorage.prototype.getTx = function() {
+  return this.tx_;
+};
+
+
+/**
+ *
+ * @return {number}
+ */
+ydn.db.tr.TxStorage.prototype.getTxNo = function() {
+  return this.itx_count_;
+};
+
+
+/**
  * Add a transaction complete (also error and abort) event. The listener will
  * be invoked after receiving one of these three events and before executing
  * next transaction. However, it is recommended that listener is not used
@@ -50,11 +70,19 @@ ydn.db.tr.TxStorage = function(storage, mu_tx) {
  * level. Use this listener to release resource for robustness. Any error on
  * the listener will be swallowed.
  * @final
- * @param {function(string=, *=)} fn first argument is either 'complete',
+ * @param {?function(string=, *=)} fn first argument is either 'complete',
  * 'error', or 'abort' and second argument is event.
  */
-ydn.db.tr.TxStorage.prototype.addCompletedListener = function(fn) {
-  this.mu_tx_.addCompletedListener(fn);
+ydn.db.tr.TxStorage.prototype.setCompletedListener = function(fn) {
+  this.mu_tx_.oncompleted = fn || null;
+};
+
+
+/**
+ * Going out of scope
+ */
+ydn.db.tr.TxStorage.prototype.out = function() {
+  this.mu_tx_.out();
 };
 
 
@@ -78,6 +106,16 @@ ydn.db.tr.TxStorage.prototype.close = function() {
 /**
  * @inheritDoc
  */
-ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, mode) {
- this.storage_.transaction(trFn, store_names, mode);
+ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, mode, opt_args) {
+  // this is nested transaction, and will start new wrap
+ this.storage_.transaction(trFn, store_names, mode, opt_args);
 };
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.TxStorage.prototype.getActiveTx = function() {
+  return this.storage_.getActiveTx();
+};
+

@@ -57,6 +57,8 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
    */
   this.txQueue = [];
 
+  this.idx_db_ = null;
+
   this.in_tx_ = false;
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
@@ -190,7 +192,7 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
         if (ydn.db.adapter.IndexedDb.DEBUG) {
           window.console.log(openRequest);
         }
-        me.abortTxQueue_(new Error(msg));
+        me.abortTxQueue(new Error(msg));
         goog.Timer.callOnce(function() {
           // we invoke error in later thread, so that task queue have
           // enough window time to clean up.
@@ -249,7 +251,7 @@ ydn.db.adapter.IndexedDb.prototype.type = function() {
  * @return {IDBDatabase} this instance.
  */
 ydn.db.adapter.IndexedDb.prototype.getDbInstance = function() {
-  return this.idx_db || null;
+  return this.idx_db_ || null;
 };
 
 
@@ -292,23 +294,33 @@ ydn.db.adapter.IndexedDb.prototype.logger =
  */
 ydn.db.adapter.IndexedDb.prototype.setDb = function(db) {
 
-  this.logger.finest('Setting DB: ' + db.name + ' ver: ' + db.version);
-  /**
-   * @final
-   * @protected
-   * @type {IDBDatabase}
-   */
-  this.idx_db = db;
+  this.idx_db_ = db;
 
   if (this.txQueue) {
-    this.runTxQueue_();
+    this.runTxQueue();
   }
 
 };
 
 
 /**
+ * @private
+ * @type {IDBDatabase}
+ */
+ydn.db.adapter.IndexedDb.prototype.idx_db_ = null;
+
+
+/**
  * @protected
+ * @return {IDBDatabase}
+ */
+ydn.db.adapter.IndexedDb.prototype.getIdxDb = function() {
+  return this.idx_db_;
+};
+
+
+/**
+ * @private
  * @param {IDBDatabase} db DB instance.
  * @param {string} table store name.
  * @return {boolean} true if the store exist.
@@ -317,7 +329,8 @@ ydn.db.adapter.IndexedDb.prototype.hasStore_ = function(db, table) {
   if (goog.isDef(db['objectStoreNames'])) {
     return db['objectStoreNames'].contains(table);
   } else {
-    return false; // TODO:
+    // old chrome is not following IndexedDB spec, not likely to encounter
+    throw new ydn.error.InternalError('objectStoreNames not supported');
   }
 };
 
@@ -399,9 +412,9 @@ ydn.db.adapter.IndexedDb.prototype.migrate = function(db, is_caller_setversion) 
  * transaction.
  * @protected
  */
-ydn.db.adapter.IndexedDb.prototype.runTxQueue_ = function() {
+ydn.db.adapter.IndexedDb.prototype.runTxQueue = function() {
 
-  goog.asserts.assertObject(this.idx_db);
+  goog.asserts.assertObject(this.idx_db_);
 
   var task = this.txQueue.shift();
   if (task) {
@@ -415,7 +428,7 @@ ydn.db.adapter.IndexedDb.prototype.runTxQueue_ = function() {
  * @protected
  * @param e
  */
-ydn.db.adapter.IndexedDb.prototype.abortTxQueue_ = function(e) {
+ydn.db.adapter.IndexedDb.prototype.abortTxQueue = function(e) {
   if (this.txQueue) {
     var task = this.txQueue.shift();
     while (task) {
@@ -443,7 +456,7 @@ ydn.db.adapter.IndexedDb.prototype.in_tx_ = false;
  * 'result' field is not set, it is assumed
  * as failed.
  * @protected
- * @param {function(IDBTransaction)} fnc transaction function.
+ * @param {function(IDBTransaction)|Function} fnc transaction function.
  * @param {!Array.<string>} scopes list of stores involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode.
@@ -463,7 +476,7 @@ ydn.db.adapter.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
    * or ERROR) events, we set tx_ to null and start next transaction in the
    * queue.
    */
-  if (this.idx_db && !this.in_tx_) {
+  if (this.idx_db_ && !this.in_tx_) {
 
     /**
      * Existence of transaction object indicate that this database is in
@@ -472,24 +485,24 @@ ydn.db.adapter.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
      * @private
      * @type {!IDBTransaction}
      */
-    var tx = this.idx_db.transaction(scopes, /** @type {number} */ (mode));
+    var tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
 
     this.in_tx_ = true;
 
     tx.oncomplete = function(event) {
       // window.console.log(['oncomplete', event, tx, me.mu_tx_]);
       me.in_tx_ = false;
-      me.runTxQueue_();
+      me.runTxQueue();
     };
 
     tx.onerror = function(event) {
       me.in_tx_ = false;
-      me.runTxQueue_();
+      me.runTxQueue();
     };
 
     tx.onabort = function(event) {
       me.in_tx_ = false;
-      me.runTxQueue_();
+      me.runTxQueue();
     };
 
     fnc(tx);
@@ -510,7 +523,7 @@ ydn.db.adapter.IndexedDb.prototype.close = function() {
 
   var df = new goog.async.Deferred();
 
-  this.idx_db.close(); // return void.
+  this.idx_db_.close(); // return void.
 
   return df;
 };

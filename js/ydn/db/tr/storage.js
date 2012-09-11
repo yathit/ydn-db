@@ -37,6 +37,8 @@ goog.require('ydn.db.tr.WebSql');
 goog.require('ydn.db.tr.LocalStorage');
 goog.require('ydn.db.tr.SessionStorage');
 goog.require('ydn.db.tr.SimpleStorage');
+goog.require('ydn.db.tr.TxService');
+goog.require('ydn.db.tr.StorageService');
 goog.require('ydn.db.tr.TxStorage');
 
 
@@ -48,7 +50,7 @@ goog.require('ydn.db.tr.TxStorage');
  * If database name and schema are provided, this will immediately initialize
  * the database and ready to use. However if any of these two are missing,
  * the database is not initialize until they are set by calling
- * {@link #setsetDbName} and {@link #setSchema}.
+ * {@link #setName} and {@link #setSchema}.
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
  * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
@@ -56,6 +58,7 @@ goog.require('ydn.db.tr.TxStorage');
  * is used.
  * schema used in chronical order.
  * @param {!Object=} opt_options options.
+ * @implements {ydn.db.tr.StorageService}
  * @extends{ydn.db.Core}
  * @constructor
  */
@@ -86,6 +89,17 @@ ydn.db.tr.Storage.prototype.createDbInstance = function(db_type, db_name, config
 
 
 /**
+ *
+ * @param {function(!ydn.db.tr.DbService)} callback
+ * @override
+ */
+ydn.db.tr.Storage.prototype.onReady = function(callback) {
+  goog.base(this, 'onReady', /**
+   @type {function(!ydn.db.DbService)} */ (callback));
+};
+
+
+/**
  * @protected
  * @param {!ydn.db.tr.Mutex} tx
  * @return {!ydn.db.tr.TxStorage}
@@ -98,15 +112,14 @@ ydn.db.tr.Storage.prototype.newTxInstance = function(tx) {
 /**
  * Run a transaction.
  * @export
- * @final
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
+ * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {...} opt_args
+ * @override
  */
-ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, mode, opt_args) {
-  goog.asserts.assert(this.db_, 'database not ready');
+ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode, opt_args) {
   var names = store_names;
   if (goog.isString(store_names)) {
     names = [store_names];
@@ -114,7 +127,7 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, mode, opt
       (store_names.length > 0 && !goog.isString(store_names[0]))) {
     throw new ydn.error.ArgumentException("storeNames");
   }
-  mode = goog.isDef(mode) ? mode : ydn.db.TransactionMode.READ_ONLY;
+  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
   var outFn = trFn;
   if (arguments.length > 3) { // handle optional parameters
     // see how this works in goog.partial.
@@ -127,16 +140,27 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, mode, opt
     }
   }
 
-
   var me = this;
-  this.db_.doTxTransaction(function (tx) {
-    // wrap this database and hold active transaction instance
-    var tx_db = me.newTxInstance(tx);
-    // now execute transaction process
-    trFn(tx_db);
-    tx_db.out(); // flag transaction callback scope is over.
-    // transaction is still active and use in followup request handlers
-  }, names, mode);
+
+  this.onReady(function(db) {
+    db.doTransaction(function (tx) {
+      // wrap this database and hold active transaction instance
+      var tx_db = me.newTxInstance(tx);
+      // now execute transaction process
+      trFn(tx_db);
+      tx_db.out(); // flag transaction callback scope is over.
+      // transaction is still active and use in followup request handlers
+    }, names, mode);
+  });
+};
+
+
+/**
+ * Obtain active consumable transaction object.
+ * @return {ydn.db.tr.Mutex} transaction object if active and available.
+ */
+ydn.db.tr.Storage.prototype.getActiveTx = function() {
+  return this.db_.getActiveTx();
 };
 
 
@@ -151,6 +175,6 @@ goog.exportProperty(ydn.db.Core.prototype, 'transaction',
   ydn.db.Core.prototype.transaction);
 goog.exportProperty(ydn.db.Core.prototype, 'close',
   ydn.db.Core.prototype.close);
-// for hacker
-goog.exportProperty(ydn.db.Core.prototype, 'db',
-  ydn.db.Core.prototype.getDbInstance);
+// for hacker.
+goog.exportProperty(ydn.db.Core.prototype, 'onReady',
+  ydn.db.Core.prototype.onReady);

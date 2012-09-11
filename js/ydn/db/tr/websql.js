@@ -23,7 +23,7 @@
 
 goog.provide('ydn.db.tr.WebSql');
 goog.require('ydn.db.adapter.WebSql');
-goog.require('ydn.db.tr.Service');
+goog.require('ydn.db.tr.DbService');
 goog.require('ydn.db.tr.SqlMutex');
 
 
@@ -33,7 +33,7 @@ goog.require('ydn.db.tr.SqlMutex');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.tr.Service}
+ * @implements {ydn.db.tr.DbService}
  * @extends {ydn.db.adapter.WebSql}
  * @constructor
  */
@@ -69,25 +69,19 @@ ydn.db.tr.WebSql.prototype.sql_mu_tx_ = new ydn.db.tr.SqlMutex();
 
 /**
  * @final
- * @protected
  * @return {ydn.db.tr.SqlMutex} transaction object if in
  * transaction.
  */
-ydn.db.tr.WebSql.prototype.getActiveSqlTx = function() {
+ydn.db.tr.WebSql.prototype.getActiveTx = function() {
   return this.sql_mu_tx_.isActiveAndAvailable() ? this.sql_mu_tx_ : null;
 };
 
 
 
 /**
- * Run a transaction. If already in transaction, this will join the transaction.
- * @param {function(ydn.db.tr.Mutex)} trFn
- * @param {Array.<string>} scopes
- * @param {ydn.db.TransactionMode} mode
- * @protected
- * @final
+ *  @override
  */
-ydn.db.tr.WebSql.prototype.doTxTransaction = function(trFn, scopes, mode) {
+ydn.db.tr.WebSql.prototype.doTransaction = function(trFn, scopes, mode) {
 
   var me = this;
   if (!this.sql_mu_tx_.isActiveAndAvailable()) {
@@ -105,7 +99,7 @@ ydn.db.tr.WebSql.prototype.doTxTransaction = function(trFn, scopes, mode) {
      */
     var success_callback = function() {
       me.sql_mu_tx_.down(ydn.db.TransactionEventTypes.COMPLETE, true);
-      me.runTxQueue_();
+      me.runTxQueue();
     };
 
     /**
@@ -114,14 +108,14 @@ ydn.db.tr.WebSql.prototype.doTxTransaction = function(trFn, scopes, mode) {
      */
     var error_callback = function(e) {
       me.sql_mu_tx_.down(ydn.db.TransactionEventTypes.ERROR, e);
-      me.runTxQueue_();
+      me.runTxQueue();
     };
 
     if (mode == ydn.db.TransactionMode.READ_ONLY) {
-      this.sql_db.readTransaction(transaction_callback,
+      this.getSqlDb().readTransaction(transaction_callback,
           error_callback, success_callback);
     } else {
-      this.sql_db.transaction(transaction_callback,
+      this.getSqlDb().transaction(transaction_callback,
           error_callback, success_callback);
     }
 

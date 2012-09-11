@@ -97,7 +97,7 @@ ydn.db.IndexedDb.prototype.executeGet_ = function(tx, df, store_name, id) {
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} store_name table name.
  * @param {!Array.<string|number>} ids id to get.
- * @throws {ydn.db.YdnDbValidKeyException}
+ * @throws {ydn.db.ValidKeyException}
  * @throws {ydn.error.InternalError}
  * @private
  */
@@ -136,7 +136,7 @@ ydn.db.IndexedDb.prototype.executeGetMultiple_ = function (tx, df, store_name,
     } catch (e) {
       if (e.name == 'DataError') {
         // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
-        throw new ydn.db.YdnDbValidKeyException(ids[i]);
+        throw new ydn.db.ValidKeyException(ids[i]);
       } else {
         throw e;
       }
@@ -199,7 +199,7 @@ ydn.db.IndexedDb.prototype.executeGetKeys_ = function (tx, df, keys) {
     } catch (e) {
       if (e.name == 'DataError') {
         // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
-        throw new ydn.db.YdnDbValidKeyException(key.getId());
+        throw new ydn.db.ValidKeyException(key.getId());
       } else {
         throw e;
       }

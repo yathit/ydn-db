@@ -261,16 +261,6 @@ ydn.db.Core.prototype.initDatabase = function() {
 
 
 /**
- * Probe database is initialized and ready to be use.
- * @private should not require
- * @return {boolean} true if the database has been initialized.
- */
-ydn.db.Core.prototype.isReady = function() {
-  return goog.isDefAndNotNull(this.db_);
-};
-
-
-/**
  *
  * @return {string}
  */
@@ -299,36 +289,14 @@ ydn.db.Core.prototype.close = function() {
 
 
 /**
- * Return underlining database service.
- * @see {@link #getDeferredDb}
- * @return {ydn.db.DbService} Database if exists.
- */
-ydn.db.Core.prototype.getDb = function() {
-  return this.db_ || null;
-};
-
-
-
-/**
- * Return underlining database service when it ready.
- * @return {!goog.async.Deferred} Database in deferred function.
- */
-ydn.db.Core.prototype.getDeferredDb = function() {
-  return this.deferredDb_;
-};
-
-
-/**
- * Use robust higher level
- * {@link #getDB} or {@link #getDeferredDb} or {@link #transaction} methods
- * instead.
  *
- * This is undocumented export property to minified js file for hackers.
- * @return {*} underlying database instance.
+ * @param {function(!ydn.db.DbService)} callback
  */
-ydn.db.Core.prototype.getDbInstance = function() {
+ydn.db.Core.prototype.onReady = function(callback) {
   if (this.db_) {
-    return this.db_.getDbInstance();
+    callback(this.db_);
+  } else {
+    this.deferredDb_.addCallback(callback);
   }
 };
 
@@ -341,10 +309,10 @@ ydn.db.Core.prototype.getDbInstance = function() {
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
+ * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
  */
-ydn.db.Core.prototype.transaction = function (trFn, store_names, mode) {
-  goog.asserts.assert(this.db_, 'database not ready');
+ydn.db.Core.prototype.transaction = function (trFn, store_names, opt_mode) {
+
   var names = store_names;
   if (goog.isString(store_names)) {
     names = [store_names];
@@ -352,12 +320,13 @@ ydn.db.Core.prototype.transaction = function (trFn, store_names, mode) {
       (store_names.length > 0 && !goog.isString(store_names[0]))) {
     throw new ydn.error.ArgumentException("storeNames");
   }
-  mode = goog.isDef(mode) ? mode : ydn.db.TransactionMode.READ_ONLY;
+  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
 
-  this.db_.doTransaction(function (tx) {
-    trFn(tx);
-  }, names, mode);
-
+  this.onReady(function(db) {
+    db.doTransaction(function (tx) {
+      trFn(tx);
+    }, names, mode);
+  });
 };
 
 
@@ -372,6 +341,7 @@ goog.exportProperty(ydn.db.Core.prototype, 'transaction',
   ydn.db.Core.prototype.transaction);
 goog.exportProperty(ydn.db.Core.prototype, 'close',
   ydn.db.Core.prototype.close);
-// for hacker
-goog.exportProperty(ydn.db.Core.prototype, 'db',
-  ydn.db.Core.prototype.getDbInstance);
+// for hacker only. This method should not document this, since this will change
+// transaction state.
+goog.exportProperty(ydn.db.Core.prototype, 'onReady',
+  ydn.db.Core.prototype.onReady);

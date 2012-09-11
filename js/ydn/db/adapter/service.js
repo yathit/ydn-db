@@ -31,7 +31,7 @@ ydn.db.CoreService.prototype.type = function() {};
 /**
  * Run a transaction.
  * @export
- * @param {Function} trFn function that invoke in the transaction.
+ * @param {function((!IDBTransaction|!SQLTransaction|Object))|!Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
