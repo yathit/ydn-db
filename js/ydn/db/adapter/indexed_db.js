@@ -26,7 +26,7 @@ goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db');
 goog.require('ydn.db.DatabaseSchema');
-goog.require('ydn.db.CoreService');
+goog.require('ydn.db.DbService');
 goog.require('ydn.json');
 
 
@@ -36,7 +36,7 @@ goog.require('ydn.json');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.CoreService}
+ * @implements {ydn.db.DbService}
  * @constructor
  */
 ydn.db.adapter.IndexedDb = function(dbname, schema) {
@@ -249,7 +249,7 @@ ydn.db.adapter.IndexedDb.prototype.type = function() {
  * @return {IDBDatabase} this instance.
  */
 ydn.db.adapter.IndexedDb.prototype.getDbInstance = function() {
-  return this.db_ || null;
+  return this.idx_db || null;
 };
 
 
@@ -295,10 +295,10 @@ ydn.db.adapter.IndexedDb.prototype.setDb = function(db) {
   this.logger.finest('Setting DB: ' + db.name + ' ver: ' + db.version);
   /**
    * @final
-   * @private
+   * @protected
    * @type {IDBDatabase}
    */
-  this.db_ = db;
+  this.idx_db = db;
 
   if (this.txQueue) {
     this.runTxQueue_();
@@ -397,11 +397,11 @@ ydn.db.adapter.IndexedDb.prototype.migrate = function(db, is_caller_setversion) 
 /**
  * Run the first transaction task in the queue. DB must be ready to do the
  * transaction.
- * @private
+ * @protected
  */
 ydn.db.adapter.IndexedDb.prototype.runTxQueue_ = function() {
 
-  goog.asserts.assertObject(this.db_);
+  goog.asserts.assertObject(this.idx_db);
 
   var task = this.txQueue.shift();
   if (task) {
@@ -412,7 +412,7 @@ ydn.db.adapter.IndexedDb.prototype.runTxQueue_ = function() {
 
 /**
  * Abort the queuing tasks.
- * @private
+ * @protected
  * @param e
  */
 ydn.db.adapter.IndexedDb.prototype.abortTxQueue_ = function(e) {
@@ -463,7 +463,7 @@ ydn.db.adapter.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
    * or ERROR) events, we set tx_ to null and start next transaction in the
    * queue.
    */
-  if (this.db_ && !this.in_tx_) {
+  if (this.idx_db && !this.in_tx_) {
 
     /**
      * Existence of transaction object indicate that this database is in
@@ -472,7 +472,7 @@ ydn.db.adapter.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
      * @private
      * @type {!IDBTransaction}
      */
-    var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
+    var tx = this.idx_db.transaction(scopes, /** @type {number} */ (mode));
 
     this.in_tx_ = true;
 
@@ -510,7 +510,7 @@ ydn.db.adapter.IndexedDb.prototype.close = function() {
 
   var df = new goog.async.Deferred();
 
-  this.db_.close(); // return void.
+  this.idx_db.close(); // return void.
 
   return df;
 };

@@ -21,6 +21,7 @@
 goog.provide('ydn.db.tr.IndexedDb');
 goog.require('ydn.db.adapter.IndexedDb');
 goog.require('ydn.db.tr.Service');
+goog.require('ydn.db.tr.IdbMutex');
 
 
 /**
@@ -65,7 +66,7 @@ ydn.db.tr.IndexedDb.prototype.logger =
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode.
  */
-ydn.db.tr.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
+ydn.db.tr.IndexedDb.prototype.doTxTransaction = function(fnc, scopes, mode)
 {
   //console.log('doTransaction_ ' + JSON.stringify(scopes) + ' ' + mode);
   var me = this;
@@ -80,7 +81,7 @@ ydn.db.tr.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
    * or ERROR) events, we set tx_ to null and start next transaction in the
    * queue.
    */
-  if (this.db_ && !this.mu_tx_.isActiveAndAvailable()) {
+  if (this.idx_db && !this.mu_tx_.isActiveAndAvailable()) {
 
     /**
      * Existence of transaction object indicate that this database is in
@@ -89,9 +90,8 @@ ydn.db.tr.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
      * @private
      * @type {!IDBTransaction}
      */
-    var tx = this.db_.transaction(scopes, /** @type {number} */ (mode));
+    var tx = this.idx_db.transaction(scopes, /** @type {number} */ (mode));
 
-    this.is_open_transaction_ = false; // transaction must explicitly open
     me.mu_tx_.up(tx);
 
     // we choose to avoid using add listener pattern to reduce memory leak,

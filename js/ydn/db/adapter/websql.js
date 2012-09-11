@@ -27,6 +27,7 @@ goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.json');
 goog.require('ydn.db');
+goog.require('ydn.db.DbService');
 
 
 /**
@@ -35,7 +36,7 @@ goog.require('ydn.db');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.CoreService}
+ * @implements {ydn.db.DbService}
  * @constructor
  */
 ydn.db.adapter.WebSql = function(dbname, schema) {
@@ -63,10 +64,10 @@ ydn.db.adapter.WebSql = function(dbname, schema) {
    * Must open the database with empty version, otherwise unrecoverable error
    * will occur in the first instance.
    */
-  this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
+  this.sql_db = goog.global.openDatabase(this.dbname, '', description,
     this.schema.size);
 
-  if (this.sql_db_.version != this.schema.version) {
+  if (this.sql_db.version != this.schema.version) {
     this.migrate_();
   }
 
@@ -95,16 +96,16 @@ ydn.db.adapter.WebSql.prototype.type = function() {
 /**
  *
  * @type {Database}
- * @private
+ * @protected
  */
-ydn.db.adapter.WebSql.prototype.sql_db_ = null;
+ydn.db.adapter.WebSql.prototype.sql_db = null;
 
 
 /**
  *
  */
 ydn.db.adapter.WebSql.prototype.getDbInstance = function() {
-  return this.sql_db_ || null;
+  return this.sql_db || null;
 };
 
 
@@ -133,7 +134,7 @@ ydn.db.adapter.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.ada
 
 /**
  * Run the first transaction task in the queue.
- * @private
+ * @protected
  */
 ydn.db.adapter.WebSql.prototype.runTxQueue_ = function() {
 
@@ -146,7 +147,7 @@ ydn.db.adapter.WebSql.prototype.runTxQueue_ = function() {
 
 /**
  * Abort the queuing tasks.
- * @private
+ * @protected
  * @param e
  */
 ydn.db.adapter.WebSql.prototype.abortTxQueue_ = function(e) {
@@ -367,10 +368,10 @@ ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode) {
     };
 
     if (mode == ydn.db.TransactionMode.READ_ONLY) {
-      this.sql_db_.readTransaction(transaction_callback,
+      this.sql_db.readTransaction(transaction_callback,
           error_callback, success_callback);
     } else {
-      this.sql_db_.transaction(transaction_callback,
+      this.sql_db.transaction(transaction_callback,
           error_callback, success_callback);
     }
 

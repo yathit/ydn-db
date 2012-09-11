@@ -7,19 +7,20 @@
 
 
 goog.provide('ydn.db.tr.TxStorage');
-goog.require('ydn.db.Core');
+goog.require('ydn.error.NotSupportedException');
+
 
 
 /**
- * @implements {ydn.db.tr.Service}
- * @param {!ydn.db.Storage} storage
+ * @implements {ydn.db.CoreService}
+ * @param {!ydn.db.tr.Storage} storage
  * @param {!ydn.db.tr.Mutex} mu_tx
  * @constructor
  */
 ydn.db.tr.TxStorage = function(storage, mu_tx) {
   /**
    * @final
-   * @type {!ydn.db.Storage}
+   * @type {!ydn.db.tr.Storage}
    * @private
    */
   this.storage_ = storage;
@@ -53,18 +54,30 @@ ydn.db.tr.TxStorage = function(storage, mu_tx) {
  * 'error', or 'abort' and second argument is event.
  */
 ydn.db.tr.TxStorage.prototype.addCompletedListener = function(fn) {
-  this.mu_tx_.addCompletedListener(this.itx_count_, fn);
+  this.mu_tx_.addCompletedListener(fn);
 };
 
 
 /**
- * Return object
- * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store_name table name.
- * @param {(string|number|!Array.<string>)=} opt_key object key to be retrieved, if not provided,
- * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
+ *
+ * @inheritDoc
  */
-ydn.db.tr.TxStorage.prototype.get = function (store_name, opt_key) {
-  return this.storage_.getInTx(this.tx_, store_name, opt_key);
+ydn.db.tr.TxStorage.prototype.type = function() {
+  return this.storage_.type();
 };
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.TxStorage.prototype.close = function() {
+  return this.storage_.close();
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, mode) {
+ this.storage_.transaction(trFn, store_names, mode);
+};

@@ -37,6 +37,7 @@ goog.require('ydn.db.tr.WebSql');
 goog.require('ydn.db.tr.LocalStorage');
 goog.require('ydn.db.tr.SessionStorage');
 goog.require('ydn.db.tr.SimpleStorage');
+goog.require('ydn.db.tr.TxStorage');
 
 
 
@@ -71,7 +72,7 @@ ydn.db.tr.Storage.prototype.createDbInstance = function(db_type, db_name, config
   //noinspection JSValidateTypes
   if (db_type == ydn.db.adapter.IndexedDb.TYPE) {
     return new ydn.db.tr.IndexedDb(db_name, config);
-  } else if (db_type == ydn.db.WebSql.TYPE) {
+  } else if (db_type == ydn.db.adapter.WebSql.TYPE) {
     return new ydn.db.tr.WebSql(db_name, config);
   } else if (db_type == ydn.db.adapter.LocalStorage.TYPE) {
     return new ydn.db.tr.LocalStorage(db_name, config);
@@ -86,8 +87,8 @@ ydn.db.tr.Storage.prototype.createDbInstance = function(db_type, db_name, config
 
 /**
  * @protected
- * @param {ydn.db.tr.Service} tx
- * @return {!ydn.db.tr.Storage}
+ * @param {!ydn.db.tr.Mutex} tx
+ * @return {!ydn.db.tr.TxStorage}
  */
 ydn.db.tr.Storage.prototype.newTxInstance = function(tx) {
   return new ydn.db.tr.TxStorage(this, tx);
@@ -140,18 +141,16 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, mode, opt
 
 
 goog.exportSymbol('ydn.db.tr.Storage', ydn.db.tr.Storage);
-//goog.exportProperty(ydn.db.tr.Storage.prototype, 'isReady',
-//  ydn.db.tr.Storage.prototype.isReady);
 goog.exportProperty(ydn.db.Core.prototype, 'type',
   ydn.db.Core.prototype.type);
 goog.exportProperty(ydn.db.Core.prototype, 'setName',
   ydn.db.Core.prototype.setName);
-goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
-  ydn.db.Core.prototype.getConfig);
+goog.exportProperty(ydn.db.Core.prototype, 'valueOf',
+  ydn.db.Core.prototype.valueOf);
 goog.exportProperty(ydn.db.Core.prototype, 'transaction',
   ydn.db.Core.prototype.transaction);
-goog.exportProperty(ydn.db.tr.Storage.prototype, 'close',
+goog.exportProperty(ydn.db.Core.prototype, 'close',
   ydn.db.Core.prototype.close);
 // for hacker
 goog.exportProperty(ydn.db.Core.prototype, 'db',
-  ydn.db.Core.prototype.getDbInstance_);
+  ydn.db.Core.prototype.getDbInstance);

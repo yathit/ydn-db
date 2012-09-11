@@ -3,14 +3,14 @@
  */
 
 
-goog.provide('ydn.db.CoreService');
+goog.provide('ydn.db.DbService');
 goog.require('goog.async.Deferred');
 
 
 /**
  * @interface
  */
-ydn.db.CoreService = function() {};
+ydn.db.DbService = function() {};
 
 
 /**
@@ -18,28 +18,16 @@ ydn.db.CoreService = function() {};
  *
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.CoreService.prototype.close = function() {};
+ydn.db.DbService.prototype.close = function() {};
 
 
 /**
  * Return readable representation of storage mechanism. It should be all lower case and use in type checking.
  * @return {string}
  */
-ydn.db.CoreService.prototype.type = function() {};
+ydn.db.DbService.prototype.type = function() {};
 
-/**
- * Return native database. This is only use externally for hacking.
- * @return {*}
- */
-ydn.db.CoreService.prototype.getDbInstance = function() {};
 
-//
-///**
-// * Return active transaction.
-// * @return {SQLTransaction|IDBTransaction|Object} If not in transaction, this return null.
-// */
-//ydn.db.CoreService.prototype.getTx = function() {};
-//
 
 /**
  *
@@ -48,6 +36,6 @@ ydn.db.CoreService.prototype.getDbInstance = function() {};
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
  */
-ydn.db.CoreService.prototype.doTransaction = function(trFn, storeNames, mode) {};
+ydn.db.DbService.prototype.doTransaction = function(trFn, storeNames, mode) {};
 
 

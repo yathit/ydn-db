@@ -24,6 +24,7 @@
 goog.provide('ydn.db.tr.WebSql');
 goog.require('ydn.db.adapter.WebSql');
 goog.require('ydn.db.tr.Service');
+goog.require('ydn.db.tr.SqlMutex');
 
 
 /**
@@ -117,10 +118,10 @@ ydn.db.tr.WebSql.prototype.doTxTransaction = function(trFn, scopes, mode) {
     };
 
     if (mode == ydn.db.TransactionMode.READ_ONLY) {
-      this.sql_db_.readTransaction(transaction_callback,
+      this.sql_db.readTransaction(transaction_callback,
           error_callback, success_callback);
     } else {
-      this.sql_db_.transaction(transaction_callback,
+      this.sql_db.transaction(transaction_callback,
           error_callback, success_callback);
     }
 

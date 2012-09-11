@@ -39,8 +39,8 @@ goog.require('ydn.db.adapter.IndexedDb');
 goog.require('ydn.db.adapter.SimpleStorage');
 goog.require('ydn.db.adapter.WebSql');
 goog.require('ydn.object');
-goog.require('ydn.db.CoreService');
 goog.require('ydn.error.ArgumentException');
+goog.require('ydn.db.CoreService');
 
 
 /**
@@ -58,6 +58,7 @@ goog.require('ydn.error.ArgumentException');
  * is used.
  * schema used in chronical order.
  * @param {!Object=} opt_options options.
+ * @implements {ydn.db.CoreService}
  * @constructor
  */
 ydn.db.Core = function(opt_dbname, opt_schema, opt_options) {
@@ -84,7 +85,7 @@ ydn.db.Core = function(opt_dbname, opt_schema, opt_options) {
 
 /**
  * @protected
- * @type {ydn.db.CoreService} db instance.
+ * @type {ydn.db.DbService} db instance.
  */
 ydn.db.Core.prototype.db_ = null;
 
@@ -158,7 +159,7 @@ ydn.db.Core.prototype.setSchema = function(schema) {
    */
   this.schema = schema;
 
-  if (!this.isReady()) {
+  if (!this.db_) {
     this.initDatabase();
   } else {
     var me = this;
@@ -189,7 +190,7 @@ ydn.db.Core.PREFERENCE = [ydn.db.adapter.IndexedDb.TYPE,
  * @param {string} db_type
  * @param {string} db_name
  * @param {!ydn.db.DatabaseSchema} config
- * @return {ydn.db.CoreService}
+ * @return {ydn.db.DbService}
  */
 ydn.db.Core.prototype.createDbInstance = function(db_type, db_name, config) {
   //noinspection JSValidateTypes
@@ -298,8 +299,9 @@ ydn.db.Core.prototype.close = function() {
 
 
 /**
- * Return underlining database instance.
- * @return {ydn.db.CoreService} Database if exists.
+ * Return underlining database service.
+ * @see {@link #getDeferredDb}
+ * @return {ydn.db.DbService} Database if exists.
  */
 ydn.db.Core.prototype.getDb = function() {
   return this.db_ || null;
@@ -308,7 +310,7 @@ ydn.db.Core.prototype.getDb = function() {
 
 
 /**
- * Return underlining database instance.
+ * Return underlining database service when it ready.
  * @return {!goog.async.Deferred} Database in deferred function.
  */
 ydn.db.Core.prototype.getDeferredDb = function() {
@@ -317,7 +319,12 @@ ydn.db.Core.prototype.getDeferredDb = function() {
 
 
 /**
- * For undocumented export property to minified js file for hackers.
+ * Use robust higher level
+ * {@link #getDB} or {@link #getDeferredDb} or {@link #transaction} methods
+ * instead.
+ *
+ * This is undocumented export property to minified js file for hackers.
+ * @return {*} underlying database instance.
  */
 ydn.db.Core.prototype.getDbInstance = function() {
   if (this.db_) {
