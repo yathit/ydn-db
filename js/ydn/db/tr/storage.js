@@ -38,7 +38,7 @@ goog.require('ydn.db.tr.LocalStorage');
 goog.require('ydn.db.tr.SessionStorage');
 goog.require('ydn.db.tr.SimpleStorage');
 goog.require('ydn.db.tr.TxService');
-goog.require('ydn.db.tr.StorageService');
+goog.require('ydn.db.tr.Service');
 goog.require('ydn.db.tr.TxStorage');
 
 
@@ -58,7 +58,7 @@ goog.require('ydn.db.tr.TxStorage');
  * is used.
  * schema used in chronical order.
  * @param {!Object=} opt_options options.
- * @implements {ydn.db.tr.StorageService}
+ * @implements {ydn.db.tr.Service}
  * @extends{ydn.db.Core}
  * @constructor
  */
@@ -157,21 +157,14 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
 
 
 /**
- * @inheritDoc
+ * @override
  */
-ydn.db.tr.StorageService.prototype.joinTransaction = function (trFn, store_names, opt_mode, opt_args) {
+ydn.db.tr.Storage.prototype.joinTransaction = function (trFn, store_names, opt_mode, opt_args) {
   // we are in outer loop.
   this.transaction(trFn, store_names, opt_mode, opt_args);
 };
 
 
-/**
- * Obtain active consumable transaction object.
- * @return {ydn.db.tr.Mutex} transaction object if active and available.
- */
-ydn.db.tr.Storage.prototype.getActiveTx = function() {
-  return this.db_.getActiveTx();
-};
 
 
 goog.exportSymbol('ydn.db.tr.Storage', ydn.db.tr.Storage);

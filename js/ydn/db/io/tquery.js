@@ -3,18 +3,18 @@
  */
 
 
-goog.provide('ydn.db.TQuery');
-goog.require('ydn.db.exe.Query');
-goog.require('ydn.db.QueryService');
-goog.require('ydn.db.exe.Query');
+goog.provide('ydn.db.io.Query');
+goog.require('ydn.db.Query');
+goog.require('ydn.db.io.QueryService');
+goog.require('ydn.db.Query');
 
 
 /**
  * Create a query from a database. If the database is active transaction,
  * the query will join the transaction, otherwise to belong to own transaction
  * instance.
- * @extends {ydn.db.exe.Query}
- * @param {!ydn.db.QueryServiceProvider} db db instance.
+ * @extends {ydn.db.Query}
+ * @param {!ydn.db.io.QueryServiceProvider} db db instance.
  * @param {string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
@@ -23,23 +23,23 @@ goog.require('ydn.db.exe.Query');
  * @param {string=} direction cursor direction.
  * @constructor
  */
-ydn.db.TQuery = function(db, store, index, keyRange, direction) {
+ydn.db.io.Query = function(db, store, index, keyRange, direction) {
   goog.base(this, store, index, keyRange, direction);
   // database instance. This is be module private variable.
   /**
    * @final
    * @protected
-   * @type {!ydn.db.QueryServiceProvider}
+   * @type {!ydn.db.io.QueryServiceProvider}
    */
   this.dbp = db;
 };
-goog.inherits(ydn.db.TQuery, ydn.db.exe.Query);
+goog.inherits(ydn.db.io.Query, ydn.db.Query);
 
 
 /**
  * @return {!goog.async.Deferred}
  */
-ydn.db.TQuery.prototype.get = function() {
+ydn.db.io.Query.prototype.get = function() {
   var rdf;
   var df = new goog.async.Deferred();
   if (this.dbp.isReady()) {
@@ -71,7 +71,7 @@ ydn.db.TQuery.prototype.get = function() {
  * @param {number=} opt_offset start counter.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.TQuery.prototype.fetch = function(opt_limit, opt_offset) {
+ydn.db.io.Query.prototype.fetch = function(opt_limit, opt_offset) {
   if (this.dbp.isReady()) {
     return this.dbp.getQueryService().fetch(this, opt_limit, opt_offset);
   } else {

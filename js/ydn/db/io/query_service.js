@@ -6,10 +6,10 @@
  */
 
 
-goog.provide('ydn.db.QueryService');
-goog.provide('ydn.db.QueryServiceProvider');
+goog.provide('ydn.db.io.QueryService');
+goog.provide('ydn.db.io.QueryServiceProvider');
 goog.require('goog.async.Deferred');
-goog.require('ydn.db.exe.Query');
+goog.require('ydn.db.Query');
 goog.require('ydn.db.Key');
 
 
@@ -24,7 +24,7 @@ ydn.db.tr.QueryService = function() {
 
 
 /**
-* @param {!ydn.db.exe.Query} q query.
+* @param {!ydn.db.Query} q query.
 * @param {number=} limit
 * @param {number=} offset
 * @return {!goog.async.Deferred}
@@ -73,11 +73,11 @@ ydn.db.tr.QueryService.prototype.clear = function(opt_table, opt_key) {
  *
  * @interface
  */
-ydn.db.QueryServiceProvider = function() {};
+ydn.db.io.QueryServiceProvider = function() {};
 
 
 /**
  * @param {function(!ydn.db.tr.QueryService)} callback
  */
-ydn.db.QueryServiceProvider.prototype.isReady = function(callback) {};
+ydn.db.io.QueryServiceProvider.prototype.isReady = function(callback) {};
 

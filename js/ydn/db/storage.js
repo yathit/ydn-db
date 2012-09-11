@@ -35,11 +35,12 @@ goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.exe.LocalStorage');
 goog.require('ydn.db.exe.IndexedDb');
-goog.require('ydn.db.exe.MemoryStore');
+goog.require('ydn.db.exe.SimpleStore');
 goog.require('ydn.db.exe.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.db.RichStorage_');
 goog.require('ydn.db.tr.Storage');
+goog.require('ydn.db.TxStorage');
 
 
 /**
@@ -56,8 +57,9 @@ goog.require('ydn.db.tr.Storage');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!Object=} opt_options options.
- * @implements {ydn.db.QueryService}
- * @implements {ydn.db.QueryServiceProvider}
+ * @implements {ydn.db.Service}
+ * @implements {ydn.db.io.QueryService}
+ * @implements {ydn.db.io.QueryServiceProvider}
  * @extends {ydn.db.tr.Storage}
  * @constructor
  */
@@ -254,10 +256,10 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
         var id = arg2;
         df.callback(this.getById(store_name, id));
       } else if (!goog.isDef(arg2)) {
-        df.callback(this.getByStore(tx, arg1));
+        df.callback(this.getByStore(arg1));
       } else if (goog.isArray(arg2)) {
         if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-          df.callback(this.getByIds_(tx, arg1, arg2));
+          df.callback(this.getByIds_(arg1, arg2));
         } else {
           throw new ydn.error.ArgumentException();
         }
@@ -266,12 +268,12 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
       }
     } else if (goog.isArray(arg1)) {
       if (arg1[0] instanceof ydn.db.Key) {
-        df.callback(this.getByKeys_(tx, arg1));
+        df.callback(this.getByKeys_(arg1));
       } else {
         throw new ydn.error.ArgumentException();
       }
     } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-      df.callback(this.getByStore_(tx));
+      df.callback(this.getByStore_());
     } else {
       throw new ydn.error.ArgumentException();
     }
@@ -329,21 +331,21 @@ goog.exportProperty(ydn.db.Storage.prototype, 'query',
 goog.exportProperty(ydn.db.Storage.prototype, 'encrypt',
   ydn.db.Storage.prototype.encrypt);
 
-goog.exportProperty(ydn.db.TQuery.prototype, 'fetch',
-  ydn.db.TQuery.prototype.fetch);
-goog.exportProperty(ydn.db.TQuery.prototype, 'get',
-  ydn.db.TQuery.prototype.get);
+goog.exportProperty(ydn.db.io.Query.prototype, 'fetch',
+  ydn.db.io.Query.prototype.fetch);
+goog.exportProperty(ydn.db.io.Query.prototype, 'get',
+  ydn.db.io.Query.prototype.get);
 
-goog.exportProperty(ydn.db.exe.Query.prototype, 'select',
-    ydn.db.exe.Query.prototype.select);
-goog.exportProperty(ydn.db.exe.Query.prototype, 'where',
-  ydn.db.exe.Query.prototype.where);
-goog.exportProperty(ydn.db.exe.Query.prototype, 'sum',
-    ydn.db.exe.Query.prototype.sum);
-goog.exportProperty(ydn.db.exe.Query.prototype, 'count',
-    ydn.db.exe.Query.prototype.count);
-goog.exportProperty(ydn.db.exe.Query.prototype, 'average',
-    ydn.db.exe.Query.prototype.average);
+goog.exportProperty(ydn.db.Query.prototype, 'select',
+    ydn.db.Query.prototype.select);
+goog.exportProperty(ydn.db.Query.prototype, 'where',
+  ydn.db.Query.prototype.where);
+goog.exportProperty(ydn.db.Query.prototype, 'sum',
+    ydn.db.Query.prototype.sum);
+goog.exportProperty(ydn.db.Query.prototype, 'count',
+    ydn.db.Query.prototype.count);
+goog.exportProperty(ydn.db.Query.prototype, 'average',
+    ydn.db.Query.prototype.average);
 
 //goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
 //  ydn.db.ActiveKey.prototype.clear);

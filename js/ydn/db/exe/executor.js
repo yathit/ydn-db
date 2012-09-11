@@ -1,14 +1,12 @@
 /**
- * @fileoverview Interface for query service.
+ * @fileoverview Interface for executing CRUD and query.
  *
- * Use interface so that query, key and database can strongly typed
- * cross-talking.
  */
 
 
 goog.provide('ydn.db.exe.Executor');
 goog.require('goog.async.Deferred');
-goog.require('ydn.db.exe.Query');
+goog.require('ydn.db.Query');
 goog.require('ydn.db.Key');
 
 

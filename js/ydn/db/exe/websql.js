@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @fileoverview Implements ydn.db.QueryService with Web SQL storage.
+ * @fileoverview Implements ydn.db.io.QueryService with Web SQL storage.
  *
  * @see http://www.w3.org/TR/webdatabase/
  *
@@ -25,26 +25,26 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.QueryService');
-goog.require('ydn.db.exe.Query');
+goog.require('ydn.db.exe.Executor');
 goog.require('ydn.json');
-goog.require('ydn.db.exe.WebSql');
 
 
 /**
- * Construct WebSql database.
- * Note: Version is ignored, since it does work well.
- * @implements {ydn.db.QueryService}
- * @param {string} dbname name of database.
- * @param {!ydn.db.DatabaseSchema} schema table schema contain table
- * name and keyPath.
- * @extends {ydn.db.exe.WebSql}
+ * @implements {ydn.db.exe.Executor}
+ * @param {SQLTransaction} tx
  * @constructor
  */
-ydn.db.exe.WebSql = function(dbname, schema) {
- goog.base(this, dbname, schema);
+ydn.db.exe.WebSql = function(tx) {
+  this.tx_ = tx;
 };
-goog.inherits(ydn.db.exe.WebSql, ydn.db.exe.WebSql);
+
+
+/**
+ *
+ * @type {SQLTransaction}
+ * @private
+ */
+ydn.db.exe.WebSql.prototype.tx_ = null;
 
 
 
@@ -621,13 +621,13 @@ ydn.db.exe.WebSql.prototype.get = function (arg1, arg2) {
 
 
 /**
- * @param {!ydn.db.exe.Query} q query.
+ * @param {!ydn.db.Query} q query.
  * @param {number=} limit
  * @param {number=} offset
  * @return {!goog.async.Deferred}
  */
 ydn.db.exe.WebSql.prototype.fetch = function(q, limit, offset) {
-  if (q instanceof ydn.db.exe.Query) {
+  if (q instanceof ydn.db.Query) {
     return this.fetchQuery_(q, limit, offset);
   } else {
     throw new ydn.error.ArgumentException();
@@ -638,7 +638,7 @@ ydn.db.exe.WebSql.prototype.fetch = function(q, limit, offset) {
 /**
  * @param {SQLTransaction} t
  * @param {goog.async.Deferred} d
- * @param {ydn.db.exe.Query} q query.
+ * @param {ydn.db.Query} q query.
  * @param {number=} limit
  * @param {number=} offset
  * @private
@@ -725,7 +725,7 @@ ydn.db.exe.WebSql.prototype.executeQuery_ = function(t, d, q, limit, offset) {
 
 
 /**
- * @param {ydn.db.exe.Query} q query.
+ * @param {ydn.db.Query} q query.
  * @param {number=} limit
  * @param {number=} offset
  * @return {!goog.async.Deferred}

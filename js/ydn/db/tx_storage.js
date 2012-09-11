@@ -6,22 +6,21 @@
  */
 
 
-goog.provide('ydn.db.tr.TxStorage');
+goog.provide('ydn.db.TxStorage');
 goog.require('ydn.error.NotSupportedException');
 
 
 /**
- * @implements {ydn.db.tr.Service}
- * @implements {ydn.db.tr.TxService}
- * @param {!ydn.db.tr.Storage} storage
+ * @implements {ydn.db.Service}
+ * @param {!ydn.db.Storage} storage
  * @param {!ydn.db.tr.Mutex} mu_tx
  * @param {string} scope
  * @constructor
  */
-ydn.db.tr.TxStorage = function(storage, mu_tx, scope) {
+ydn.db.TxStorage = function(storage, mu_tx, scope) {
   /**
    * @final
-   * @type {!ydn.db.tr.Storage}
+   * @type {!ydn.db.Storage}
    * @private
    */
   this.storage_ = storage;
@@ -36,6 +35,9 @@ ydn.db.tr.TxStorage = function(storage, mu_tx, scope) {
 
   this.scope = scope;
 
+  this.executor = this.storage_.getExecutor();
+  this.executor.setTx(this.tx_);
+
   /**
    * @final
    * @type {!ydn.db.tr.Mutex}
@@ -49,8 +51,20 @@ ydn.db.tr.TxStorage = function(storage, mu_tx, scope) {
  *
  * @return {SQLTransaction|IDBTransaction|Object}
  */
-ydn.db.tr.TxStorage.prototype.getTx = function() {
+ydn.db.TxStorage.prototype.getTx = function() {
   return this.tx_;
+};
+
+
+/**
+ * @throws {ydn.db.ScopeError}
+ * @param {function(!ydn.db.exe.Executor)} callback
+ */
+ydn.db.StorageService.prototype.execute = function(callback) {
+  if (!this.executor.isActive()) {
+    throw new ydn.db.ScopeError(callback.name + ' cannot run on ' + this.scope);
+  }
+  callback(this.executor);
 };
 
 
@@ -58,7 +72,7 @@ ydn.db.tr.TxStorage.prototype.getTx = function() {
  *
  * @return {number}
  */
-ydn.db.tr.TxStorage.prototype.getTxNo = function() {
+ydn.db.TxStorage.prototype.getTxNo = function() {
   return this.itx_count_;
 };
 
@@ -74,7 +88,7 @@ ydn.db.tr.TxStorage.prototype.getTxNo = function() {
  * @param {?function(string=, *=)} fn first argument is either 'complete',
  * 'error', or 'abort' and second argument is event.
  */
-ydn.db.tr.TxStorage.prototype.setCompletedListener = function(fn) {
+ydn.db.TxStorage.prototype.setCompletedListener = function(fn) {
   this.mu_tx_.oncompleted = fn || null;
 };
 
@@ -82,7 +96,7 @@ ydn.db.tr.TxStorage.prototype.setCompletedListener = function(fn) {
 /**
  * Going out of scope
  */
-ydn.db.tr.TxStorage.prototype.out = function() {
+ydn.db.TxStorage.prototype.out = function() {
   this.mu_tx_.out();
 };
 
@@ -91,7 +105,7 @@ ydn.db.tr.TxStorage.prototype.out = function() {
  *
  * @inheritDoc
  */
-ydn.db.tr.TxStorage.prototype.type = function() {
+ydn.db.TxStorage.prototype.type = function() {
   return this.storage_.type();
 };
 
@@ -99,7 +113,7 @@ ydn.db.tr.TxStorage.prototype.type = function() {
 /**
  * @inheritDoc
  */
-ydn.db.tr.TxStorage.prototype.close = function() {
+ydn.db.TxStorage.prototype.close = function() {
   return this.storage_.close();
 };
 
@@ -107,7 +121,7 @@ ydn.db.tr.TxStorage.prototype.close = function() {
 /**
  * @inheritDoc
  */
-ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, mode, opt_args) {
+ydn.db.TxStorage.prototype.transaction = function (trFn, store_names, mode, opt_args) {
   // this is nested transaction, and will start new wrap
  this.storage_.transaction(trFn, store_names, mode, opt_args);
 };
@@ -116,7 +130,7 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, mode, o
 /**
  * @inheritDoc
  */
-ydn.db.tr.TxStorage.prototype.joinTransaction = function (trFn, store_names, opt_mode, opt_args) {
+ydn.db.TxStorage.prototype.joinTransaction = function (trFn, store_names, opt_mode, opt_args) {
   var names = store_names;
   if (goog.isString(store_names)) {
     names = [store_names];
@@ -140,4 +154,11 @@ ydn.db.tr.TxStorage.prototype.joinTransaction = function (trFn, store_names, opt
   outFn(this);
 };
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.TxStorage.prototype.getActiveTx = function() {
+  return this.storage_.getActiveTx();
+};
 

@@ -13,15 +13,14 @@
 // limitations under the License.
 
 /**
- * @fileoverview Implements ydn.db.QueryService with IndexedDB.
+ * @fileoverview Implements ydn.db.io.QueryService with IndexedDB.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.exe.IndexedDb');
 goog.require('goog.async.DeferredList');
-goog.require('ydn.db.adapter.IndexedDb');
-goog.require('ydn.db.exe.Query');
+goog.require('ydn.db.exe.Executor');
 goog.require('ydn.json');
 goog.require('ydn.error');
 
@@ -420,7 +419,7 @@ ydn.db.exe.IndexedDb.prototype.executeGetAll_ = function(tx, df, not_key_only, o
 
 /**
  *
- * @param {!ydn.db.exe.Query} q query object.
+ * @param {!ydn.db.Query} q query object.
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
@@ -632,7 +631,7 @@ ydn.db.exe.IndexedDb.prototype.executeFetchKeys_ = function (tx, df, keys, limit
 /**
  * @param {IDBTransaction} tx active transaction object.
  * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.exe.Query} q query.
+ * @param {!ydn.db.Query} q query.
  * @param {number=} limit limit.
  * @param {number=} offset offset.
  * @private
@@ -733,7 +732,7 @@ ydn.db.exe.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit,
 
 
 /**
- * @param {!ydn.db.exe.Query} q query.
+ * @param {!ydn.db.Query} q query.
  * @param {number=} limit limit.
  * @param {number=} offset offset.
  * @return {!goog.async.Deferred} result in deferred.
@@ -743,7 +742,7 @@ ydn.db.exe.IndexedDb.prototype.fetch = function(q, limit, offset) {
   var self = this;
   var df, tx;
   var open_tx = this.isOpenTransaction();
-  if (q instanceof ydn.db.exe.Query) {
+  if (q instanceof ydn.db.Query) {
     tx = this.getActiveIdbTx();
     df = new goog.async.Deferred();
     if (open_tx) {

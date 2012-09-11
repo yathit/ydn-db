@@ -3,14 +3,14 @@
  */
 
 
-goog.provide('ydn.db.CoreService');
+goog.provide('ydn.db.DbService');
 goog.require('goog.async.Deferred');
 
 
 /**
  * @interface
  */
-ydn.db.CoreService = function() {};
+ydn.db.DbService = function() {};
 
 
 /**
@@ -18,24 +18,24 @@ ydn.db.CoreService = function() {};
  *
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.CoreService.prototype.close = function() {};
+ydn.db.DbService.prototype.close = function() {};
 
 
 /**
  * Return readable representation of storage mechanism. It should be all lower case and use in type checking.
  * @return {string}
  */
-ydn.db.CoreService.prototype.type = function() {};
+ydn.db.DbService.prototype.type = function() {};
+
 
 
 /**
- * Run a transaction.
- * @export
- * @param {function((!IDBTransaction|!SQLTransaction|Object))|!Function} trFn function that invoke in the transaction.
- * @param {!Array.<string>} store_names list of keys or
- * store name involved in the transaction.
- * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
+ *
+ * @param {function((SQLTransaction|IDBTransaction|Object))||Function} trFn callback function that invoke in the transaction with transaction instance.
+ * @param {!Array.<string>} storeNames list of store names involved in the
+ * transaction.
+ * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
  */
-ydn.db.CoreService.prototype.transaction = function (trFn, store_names, mode) {};
+ydn.db.DbService.prototype.doTransaction = function(trFn, storeNames, mode) {};
 
 

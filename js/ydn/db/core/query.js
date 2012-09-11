@@ -17,7 +17,7 @@
  */
 
 
-goog.provide('ydn.db.exe.Query');
+goog.provide('ydn.db.Query');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRangeImpl');
 
@@ -33,7 +33,7 @@ goog.require('ydn.db.KeyRangeImpl');
  * @param {string=} direction cursor direction.
  * @constructor
  */
-ydn.db.exe.Query = function(store, index, keyRange, direction) {
+ydn.db.Query = function(store, index, keyRange, direction) {
   // Note for V8 optimization, declare all properties in constructor.
 
   /**
@@ -67,7 +67,7 @@ ydn.db.exe.Query = function(store, index, keyRange, direction) {
 /**
  * @inheritDoc
  */
-ydn.db.exe.Query.prototype.toJSON = function () {
+ydn.db.Query.prototype.toJSON = function () {
   return {
     'store':this.store_name,
     'index':this.index,
@@ -80,35 +80,35 @@ ydn.db.exe.Query.prototype.toJSON = function () {
  * Right value for query operation.
  * @type {ydn.db.KeyRange|undefined}
  */
-ydn.db.exe.Query.prototype.keyRange;
+ydn.db.Query.prototype.keyRange;
 
 /**
  * Cursor direction.
  * @type {(string|undefined)}
  */
-ydn.db.exe.Query.prototype.direction;
+ydn.db.Query.prototype.direction;
 
 /**
  * @type {?function(!Object): boolean}
  */
-ydn.db.exe.Query.prototype.filter;
+ydn.db.Query.prototype.filter;
 
 /**
  * @type {?function(!Object): boolean}
  */
-ydn.db.exe.Query.prototype.continue;
+ydn.db.Query.prototype.continue;
 
 /**
  * @type {?function(!Object): *}
  */
-ydn.db.exe.Query.prototype.map;
+ydn.db.Query.prototype.map;
 
 /**
  * Reduce is execute after map.
  * @type {?function(*, *, number): *}
  * function(previousValue, currentValue, index)
  */
-ydn.db.exe.Query.prototype.reduce;
+ydn.db.Query.prototype.reduce;
 
 
 /**
@@ -118,9 +118,9 @@ ydn.db.exe.Query.prototype.reduce;
  * @param {string} value
  * @param {string=} op2
  * @param {string=} value2
- * @return {!ydn.db.exe.Query}
+ * @return {!ydn.db.Query}
  */
-ydn.db.exe.Query.prototype.where = function(field, op, value, op2, value2) {
+ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
   var op_test = function(op, lv) {
     if (op === '=' || op === '==') {
@@ -157,9 +157,9 @@ ydn.db.exe.Query.prototype.where = function(field, op, value, op2, value2) {
 
 /**
  * Convenient method for SQL <code>COUNT</code> method.
- * @return {!ydn.db.exe.Query}
+ * @return {!ydn.db.Query}
  */
-ydn.db.exe.Query.prototype.count = function() {
+ydn.db.Query.prototype.count = function() {
   this.reduce = function(prev) {
     if (!prev) {
       prev = 0;
@@ -172,9 +172,9 @@ ydn.db.exe.Query.prototype.count = function() {
 
 /**
  * Convenient method for SQL <code>SUM</code> method.
- * @return {!ydn.db.exe.Query}
+ * @return {!ydn.db.Query}
  */
-ydn.db.exe.Query.prototype.sum = function(field) {
+ydn.db.Query.prototype.sum = function(field) {
   this.reduce = function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
@@ -187,9 +187,9 @@ ydn.db.exe.Query.prototype.sum = function(field) {
 
 /**
  * Convenient method for SQL <code>AVERAGE</code> method.
- * @return {!ydn.db.exe.Query}
+ * @return {!ydn.db.Query}
  */
-ydn.db.exe.Query.prototype.average = function(field) {
+ydn.db.Query.prototype.average = function(field) {
   this.reduce = function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
@@ -203,9 +203,9 @@ ydn.db.exe.Query.prototype.average = function(field) {
 /**
  *
  * @param {string|Array.<string>} arg1
- * @return {!ydn.db.exe.Query}
+ * @return {!ydn.db.Query}
  */
-ydn.db.exe.Query.prototype.select = function(arg1) {
+ydn.db.Query.prototype.select = function(arg1) {
   this.map =  function(data) {
     if (goog.isString(arg1)) {
       return data[arg1];
@@ -240,7 +240,7 @@ ydn.db.KeyRangeJson;
  *
  * @param {*} value
  */
-ydn.db.exe.Query.prototype.only = function(value) {
+ydn.db.Query.prototype.only = function(value) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.KeyRange.only(value);
   return this;
@@ -252,7 +252,7 @@ ydn.db.exe.Query.prototype.only = function(value) {
  * @param {*} value
  * @param {boolean=} is_open
  */
-ydn.db.exe.Query.prototype.upperBound = function(value, is_open) {
+ydn.db.Query.prototype.upperBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.KeyRange.upperBound(value, is_open);
   return this;
@@ -263,7 +263,7 @@ ydn.db.exe.Query.prototype.upperBound = function(value, is_open) {
  * @param {*} value
  * @param {boolean=} is_open
  */
-ydn.db.exe.Query.prototype.lowerBound = function(value, is_open) {
+ydn.db.Query.prototype.lowerBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.KeyRange.lowerBound(value, is_open);
   return this;
@@ -276,7 +276,7 @@ ydn.db.exe.Query.prototype.lowerBound = function(value, is_open) {
  * @param {boolean=} lo
  * @param {boolean=} uo
  */
-ydn.db.exe.Query.prototype.bound = function(lower, upper, lo, uo) {
+ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.KeyRange.bound(lower, upper, lo, uo);
   return this;
@@ -288,14 +288,14 @@ ydn.db.exe.Query.prototype.bound = function(lower, upper, lo, uo) {
  * @return {{where_clause: string, params: Array}} return equivalent of keyRange
  * to SQL WHERE clause and its parameters.
  */
-ydn.db.exe.Query.prototype.toWhereClause = function() {
+ydn.db.Query.prototype.toWhereClause = function() {
 
   var where_clause = '';
   var params = [];
   goog.asserts.assertString(this.index);
   var column = goog.string.quote(this.index);
 
-  if (ydn.db.exe.Query.isLikeOperation_(this.keyRange)) {
+  if (ydn.db.Query.isLikeOperation_(this.keyRange)) {
     where_clause = column + ' LIKE ?';
     params.push(this.keyRange.lower + '%');
   } else {
@@ -322,7 +322,7 @@ ydn.db.exe.Query.prototype.toWhereClause = function() {
  * Helper method for creating useful KeyRange.
  * @param {string} value value.
  */
-ydn.db.exe.Query.prototype.startsWith = function (value) {
+ydn.db.Query.prototype.startsWith = function (value) {
   var value_upper = value + '\uffff';
   this.bound(value, value_upper);
   return this;
@@ -334,7 +334,7 @@ ydn.db.exe.Query.prototype.startsWith = function (value) {
  * @private
  * @param keyRange
  */
-ydn.db.exe.Query.isLikeOperation_ = function (keyRange) {
+ydn.db.Query.isLikeOperation_ = function (keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {
     return false;
   }

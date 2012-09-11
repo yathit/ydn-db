@@ -414,7 +414,7 @@ var test_6_no_keyPath = function () {
 //          2000); // maxTimeout
 //
 //
-//        var q = ydn.db.exe.Query.startWith(store_name, 'qs');
+//        var q = ydn.db.Query.startWith(store_name, 'qs');
 //        db.fetch(q).addCallback(function(value) {
 //          get_value_received = value;
 //          get_done = true;

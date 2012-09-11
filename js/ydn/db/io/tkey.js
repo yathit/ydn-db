@@ -2,7 +2,7 @@
  * @fileoverview Mutable key with transaction context.
  */
 
-goog.provide('ydn.db.TKey');
+goog.provide('ydn.db.io.Key');
 goog.require('ydn.db.Key');
 
 
@@ -17,10 +17,10 @@ goog.require('ydn.db.Key');
  * @extends {ydn.db.Key}
  * @constructor
  */
-ydn.db.TKey = function(db, store_or_json_or_value, id, opt_parent) {
+ydn.db.io.Key = function(db, store_or_json_or_value, id, opt_parent) {
   goog.base(this, store_or_json_or_value, id, opt_parent);
 };
-goog.inherits(ydn.db.TKey, ydn.db.Key);
+goog.inherits(ydn.db.io.Key, ydn.db.Key);
 
 
 /**
