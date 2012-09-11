@@ -33,7 +33,6 @@
 goog.provide('ydn.db.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
-goog.require('ydn.db.exe.LocalStorage');
 goog.require('ydn.db.exe.IndexedDb');
 goog.require('ydn.db.exe.SimpleStore');
 goog.require('ydn.db.exe.WebSql');
@@ -41,6 +40,9 @@ goog.require('ydn.object');
 goog.require('ydn.db.RichStorage_');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.db.TxStorage');
+goog.require('ydn.db.Service');
+goog.require('ydn.db.io.QueryService');
+goog.require('ydn.db.io.QueryServiceProvider');
 
 
 /**
@@ -58,8 +60,6 @@ goog.require('ydn.db.TxStorage');
  * is used.
  * @param {!Object=} opt_options options.
  * @implements {ydn.db.Service}
- * @implements {ydn.db.io.QueryService}
- * @implements {ydn.db.io.QueryServiceProvider}
  * @extends {ydn.db.tr.Storage}
  * @constructor
  */
@@ -134,8 +134,15 @@ ydn.db.Storage.prototype.getExecutor = function (scope) {
   var service = this.getDb();
   goog.asserts.assertObject(service, 'how could this be');
 
-  if (service.type() == ydn.db.adapter.IndexedDb.TYPE) {
+  var type = service.type();
+  if (type == ydn.db.adapter.IndexedDb.TYPE) {
     this.executor = new ydn.db.exe.IndexedDb();
+  } else if (type == ydn.db.adapter.WebSql.TYPE) {
+    this.executor = new ydn.db.exe.WebSql();
+  } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
+    type == ydn.db.adapter.LocalStorage.TYPE ||
+    type == ydn.db.adapter.SessionStorage.TYPE) {
+    this.executor = new ydn.db.exe.SimpleStorage();
   } else {
     throw new ydn.db.InternalError('No executor for ' + service.type());
   }

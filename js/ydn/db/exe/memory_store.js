@@ -42,6 +42,20 @@ ydn.db.exe.SimpleStore = function(tx) {
  */
 ydn.db.exe.SimpleStore.prototype.tx_ = null;
 
+/**
+ * @inheritDoc
+ */
+ydn.db.exe.SimpleStore.prototype.setTx = function(tx) {
+  this.tx_ = tx;
+};
+
+/**
+ * @inheritDoc
+ */
+ydn.db.exe.SimpleStore.prototype.isActive = function() {
+  return !!this.tx_;
+};
+
 
 /**
  *

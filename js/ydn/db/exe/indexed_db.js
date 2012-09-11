@@ -44,6 +44,21 @@ ydn.db.exe.IndexedDb.prototype.tx_ = null;
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.exe.IndexedDb.prototype.setTx = function(tx) {
+  this.tx_ = tx;
+};
+
+/**
+ * @inheritDoc
+ */
+ydn.db.exe.IndexedDb.prototype.isActive = function() {
+  return !!this.tx_;
+};
+
+
+/**
  *
  * @const {boolean} turn on debug flag to dump object.
  */

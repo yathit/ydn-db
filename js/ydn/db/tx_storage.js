@@ -35,7 +35,7 @@ ydn.db.TxStorage = function(storage, mu_tx, scope) {
 
   this.scope = scope;
 
-  this.executor = this.storage_.getExecutor();
+  var executor = this.storage_.getExecutor();
   this.executor.setTx(this.tx_);
 
   /**

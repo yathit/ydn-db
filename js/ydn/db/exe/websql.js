@@ -46,6 +46,20 @@ ydn.db.exe.WebSql = function(tx) {
  */
 ydn.db.exe.WebSql.prototype.tx_ = null;
 
+/**
+ * @inheritDoc
+ */
+ydn.db.exe.WebSql.prototype.setTx = function(tx) {
+  this.tx_ = tx;
+};
+
+/**
+ * @inheritDoc
+ */
+ydn.db.exe.WebSql.prototype.isActive = function() {
+  return !!this.tx_;
+};
+
 
 
 /**
