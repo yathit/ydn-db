@@ -21,7 +21,7 @@ goog.require('ydn.db.adapter.SimpleStorage');
 
 
 /**
- * @implements {ydn.db.TransactionService}
+ * @implements {ydn.db.tr.Service}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
@@ -41,16 +41,16 @@ goog.inherits(ydn.db.tr.SimpleStorage, ydn.db.adapter.SimpleStorage);
  * One database can have only one transaction.
  * @private
  * @final
- * @type {!ydn.db.TransactionMutex}
+ * @type {!ydn.db.tr.Mutex}
  */
-ydn.db.tr.SimpleStorage.prototype.mu_tx_ = new ydn.db.TransactionMutex();
+ydn.db.tr.SimpleStorage.prototype.mu_tx_ = new ydn.db.tr.Mutex();
 
 
 /**
  * Obtain active consumable transaction object.
  * @final
  * @protected
- * @return {ydn.db.TransactionMutex} transaction object if active and available.
+ * @return {ydn.db.tr.Mutex} transaction object if active and available.
  */
 ydn.db.tr.SimpleStorage.prototype.getActiveTx = function() {
   return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;

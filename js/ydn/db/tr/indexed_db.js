@@ -19,7 +19,7 @@
  */
 
 goog.provide('ydn.db.tr.IndexedDb');
-goog.provide('ydn.db.IndexedDb');
+goog.require('ydn.db.adapter.IndexedDb');
 
 
 /**
@@ -28,7 +28,7 @@ goog.provide('ydn.db.IndexedDb');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.TransactionService}
+ * @implements {ydn.db.tr.Service}
  * @extends {ydn.db.adapter.IndexedDb}
  * @constructor
  */
@@ -131,16 +131,16 @@ ydn.db.tr.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
  * One database can have only one transaction.
  * @private
  * @final
- * @type {!ydn.db.IdbTxMutex}
+ * @type {!ydn.db.tr.IdbMutex}
  */
-ydn.db.tr.IndexedDb.prototype.mu_tx_ = new ydn.db.IdbTxMutex();
+ydn.db.tr.IndexedDb.prototype.mu_tx_ = new ydn.db.tr.IdbMutex();
 
 
 /**
  * Obtain active consumable transaction object.
  * @final
  * @protected
- * @return {ydn.db.IdbTxMutex} transaction object if active and available.
+ * @return {ydn.db.tr.IdbMutex} transaction object if active and available.
  */
 ydn.db.tr.IndexedDb.prototype.getActiveIdbTx = function() {
   return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;

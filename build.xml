@@ -80,16 +80,17 @@
         <copy file="${ydn-db.dir}/jsc/core-ydn-db-min-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/core-ydn-db-min.js"/>
     </target>
-    <target name="compile-tcore" description="generates compiled files for tcore">
+    <target name="compile-tr" description="generates compiled files for tr storage">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/tr"
-                input.fn="${ydn-db.dir}/js/ydn/db/tr/core.js"
+                input.fn="${ydn-db.dir}/js/ydn/db/tr/storage.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="core-ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.Core">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/adapter"'/>
             </exjs.dir>
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/core-ydn-db-min-${ver}.js"

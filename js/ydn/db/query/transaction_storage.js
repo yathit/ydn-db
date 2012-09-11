@@ -13,7 +13,7 @@ goog.require('ydn.db.Storage');
 /**
  *
  * @param {!ydn.db.Storage} storage
- * @param {!ydn.db.TransactionMutex} mu_tx
+ * @param {!ydn.db.tr.Mutex} mu_tx
  * @constructor
  */
 ydn.db.TxStorage = function(storage, mu_tx) {
@@ -34,7 +34,7 @@ ydn.db.TxStorage = function(storage, mu_tx) {
 
   /**
    * @final
-   * @type {!ydn.db.TransactionMutex}
+   * @type {!ydn.db.tr.Mutex}
    * @private
    */
   this.mu_tx_ = mu_tx;

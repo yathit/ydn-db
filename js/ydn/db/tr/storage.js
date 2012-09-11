@@ -30,7 +30,7 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.tr.Core');
+goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.Core');
 goog.require('ydn.db.tr.IndexedDb');
 goog.require('ydn.db.tr.WebSql');
@@ -58,16 +58,16 @@ goog.require('ydn.db.tr.SimpleStorage');
  * @extends{ydn.db.Core}
  * @constructor
  */
-ydn.db.tr.Core = function(opt_dbname, opt_schema, opt_options) {
+ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
 };
-goog.inherits(ydn.db.tr.Core, ydn.db.Core);
+goog.inherits(ydn.db.tr.Storage, ydn.db.Core);
 
 
 /**
  * @override
  */
-ydn.db.tr.Core.prototype.createDbInstance = function(db_type, db_name, config) {
+ydn.db.tr.Storage.prototype.createDbInstance = function(db_type, db_name, config) {
   //noinspection JSValidateTypes
   if (db_type == ydn.db.adapter.IndexedDb.TYPE) {
     return new ydn.db.tr.IndexedDb(db_name, config);
@@ -86,11 +86,11 @@ ydn.db.tr.Core.prototype.createDbInstance = function(db_type, db_name, config) {
 
 /**
  * @protected
- * @param {ydn.db.TransactionService} tx
- * @return {!ydn.db.tr.Core}
+ * @param {ydn.db.tr.Service} tx
+ * @return {!ydn.db.tr.Storage}
  */
-ydn.db.tr.Core.prototype.newTxInstance = function(tx) {
-  return new ydn.db.TxCore(this, tx);
+ydn.db.tr.Storage.prototype.newTxInstance = function(tx) {
+  return new ydn.db.tr.TxStorage(this, tx);
 };
 
 
@@ -104,7 +104,7 @@ ydn.db.tr.Core.prototype.newTxInstance = function(tx) {
  * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
  * @param {...} opt_args
  */
-ydn.db.tr.Core.prototype.transaction = function (trFn, store_names, mode, opt_args) {
+ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, mode, opt_args) {
   goog.asserts.assert(this.db_, 'database not ready');
   var names = store_names;
   if (goog.isString(store_names)) {
@@ -139,9 +139,9 @@ ydn.db.tr.Core.prototype.transaction = function (trFn, store_names, mode, opt_ar
 };
 
 
-goog.exportSymbol('ydn.db.tr.Core', ydn.db.tr.Core);
-//goog.exportProperty(ydn.db.tr.Core.prototype, 'isReady',
-//  ydn.db.tr.Core.prototype.isReady);
+goog.exportSymbol('ydn.db.tr.Storage', ydn.db.tr.Storage);
+//goog.exportProperty(ydn.db.tr.Storage.prototype, 'isReady',
+//  ydn.db.tr.Storage.prototype.isReady);
 goog.exportProperty(ydn.db.Core.prototype, 'type',
   ydn.db.Core.prototype.type);
 goog.exportProperty(ydn.db.Core.prototype, 'setName',
@@ -150,7 +150,7 @@ goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
   ydn.db.Core.prototype.getConfig);
 goog.exportProperty(ydn.db.Core.prototype, 'transaction',
   ydn.db.Core.prototype.transaction);
-goog.exportProperty(ydn.db.tr.Core.prototype, 'close',
+goog.exportProperty(ydn.db.tr.Storage.prototype, 'close',
   ydn.db.Core.prototype.close);
 // for hacker
 goog.exportProperty(ydn.db.Core.prototype, 'db',

@@ -2,9 +2,9 @@
  * @fileoverview Hold active Transaction object and provides mutex function.
  */
 
-goog.provide('ydn.db.TransactionMutex');
-goog.provide('ydn.db.SqlTxMutex');
-goog.provide('ydn.db.IdbTxMutex');
+goog.provide('ydn.db.tr.Mutex');
+goog.provide('ydn.db.tr.SqlMutex');
+goog.provide('ydn.db.tr.IdbMutex');
 goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('ydn.db.InvalidStateException');
@@ -15,7 +15,7 @@ goog.require('ydn.db.InvalidStateException');
  * This also serve as mutex on transaction.
  * @constructor
  */
-ydn.db.TransactionMutex = function() {
+ydn.db.tr.Mutex = function() {
   this.idb_tx_ = null;
   /**
    * Transaction counter.
@@ -32,15 +32,15 @@ ydn.db.TransactionMutex = function() {
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.TransactionMutex.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.TransactionMutex');
+ydn.db.tr.Mutex.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.tr.Mutex');
 
 
 /**
  * @const
  * @type {boolean}
  */
-ydn.db.TransactionMutex.DEBUG = false;
+ydn.db.tr.Mutex.DEBUG = false;
 
 
 /**
@@ -48,7 +48,7 @@ ydn.db.TransactionMutex.DEBUG = false;
  * @final
  * @param {!IDBTransaction|!SQLTransaction|!Object} tx the transaction object.
  */
-ydn.db.TransactionMutex.prototype.up = function(tx) {
+ydn.db.tr.Mutex.prototype.up = function(tx) {
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
@@ -85,7 +85,7 @@ ydn.db.TransactionMutex.prototype.up = function(tx) {
  * @type {!IDBTransaction|!SQLTransaction|Object}
  * @private
  */
-ydn.db.TransactionMutex.prototype.idb_tx_ = null;
+ydn.db.tr.Mutex.prototype.idb_tx_ = null;
 
 
 /**
@@ -93,7 +93,7 @@ ydn.db.TransactionMutex.prototype.idb_tx_ = null;
  * @type {Array.<!Function>}
  * @private
  */
-ydn.db.TransactionMutex.prototype.complete_listeners_ = [];
+ydn.db.tr.Mutex.prototype.complete_listeners_ = [];
 
 
 /**
@@ -101,7 +101,7 @@ ydn.db.TransactionMutex.prototype.complete_listeners_ = [];
  * @type {boolean}
  * @private
  */
-ydn.db.TransactionMutex.prototype.is_set_done_ = false;
+ydn.db.tr.Mutex.prototype.is_set_done_ = false;
 
 
 /**
@@ -110,7 +110,7 @@ ydn.db.TransactionMutex.prototype.is_set_done_ = false;
  * @param {ydn.db.TransactionEventTypes} type event type
  * @param {*} event
  */
-ydn.db.TransactionMutex.prototype.down = function (type, event) {
+ydn.db.tr.Mutex.prototype.down = function (type, event) {
   this.logger.finest('tx down, count: ' + this.tx_count_);
   // down must be call only once by those who up
   this.idb_tx_ = null;
@@ -136,7 +136,7 @@ ydn.db.TransactionMutex.prototype.down = function (type, event) {
  * Transaction callback function is out of scope. We no longer accepting adding
  * listeners.
  */
-ydn.db.TransactionMutex.prototype.out = function() {
+ydn.db.tr.Mutex.prototype.out = function() {
   this.out_of_scope_ = true;
   // interestingly tx_ can still be use even after out of scope from the
   // transaction callback. This is the whole reason we are
@@ -149,7 +149,7 @@ ydn.db.TransactionMutex.prototype.out = function() {
  * Transaction is explicitly set not to do next transaction.
  * @deprecated
  */
-ydn.db.TransactionMutex.prototype.setDone = function() {
+ydn.db.tr.Mutex.prototype.setDone = function() {
   this.is_set_done_ = true;
 };
 
@@ -159,7 +159,7 @@ ydn.db.TransactionMutex.prototype.setDone = function() {
  * @final
  * @return {number}
  */
-ydn.db.TransactionMutex.prototype.getTxCount = function() {
+ydn.db.tr.Mutex.prototype.getTxCount = function() {
   return this.tx_count_;
 };
 
@@ -168,7 +168,7 @@ ydn.db.TransactionMutex.prototype.getTxCount = function() {
  *
  * @return {boolean}
  */
-ydn.db.TransactionMutex.prototype.isSetDone = function() {
+ydn.db.tr.Mutex.prototype.isSetDone = function() {
   return this.is_set_done_;
 };
 
@@ -177,7 +177,7 @@ ydn.db.TransactionMutex.prototype.isSetDone = function() {
  * @final
  * @return {boolean}
  */
-ydn.db.TransactionMutex.prototype.isActive = function() {
+ydn.db.tr.Mutex.prototype.isActive = function() {
   return !!this.idb_tx_;
 };
 
@@ -187,7 +187,7 @@ ydn.db.TransactionMutex.prototype.isActive = function() {
  * @final
  * @return {boolean}
  */
-ydn.db.TransactionMutex.prototype.isActiveAndAvailable = function() {
+ydn.db.tr.Mutex.prototype.isActiveAndAvailable = function() {
   return !!this.idb_tx_ && !this.is_set_done_;
 };
 
@@ -203,7 +203,7 @@ ydn.db.TransactionMutex.prototype.isActiveAndAvailable = function() {
  * @param {function(string=, *=)} fn first argument is either 'complete',
  * 'error', or 'abort' and second argument is event.
  */
-ydn.db.TransactionMutex.prototype.addCompletedListener = function(fn) {
+ydn.db.tr.Mutex.prototype.addCompletedListener = function(fn) {
   // thinks about using standard addEventListener.
   // most use case, here is to listen any events, but here three event type
   // most consumer do not care what event type it is.
@@ -224,7 +224,7 @@ ydn.db.TransactionMutex.prototype.addCompletedListener = function(fn) {
  * should be used.
  * @return {!IDBTransaction|!SQLTransaction|Object}
  */
-ydn.db.TransactionMutex.prototype.getTx = function() {
+ydn.db.tr.Mutex.prototype.getTx = function() {
   return this.idb_tx_;
 };
 
@@ -238,19 +238,19 @@ ydn.db.TransactionMutex.prototype.getTx = function() {
 /**
  * Provide transaction object to subclass and keep a result.
  * This also serve as mutex on transaction.
- * @extends {ydn.db.TransactionMutex}
+ * @extends {ydn.db.tr.Mutex}
  * @constructor
  */
-ydn.db.IdbTxMutex = function() {
+ydn.db.tr.IdbMutex = function() {
   goog.base(this);
 };
-goog.inherits(ydn.db.IdbTxMutex, ydn.db.TransactionMutex);
+goog.inherits(ydn.db.tr.IdbMutex, ydn.db.tr.Mutex);
 
 
 /**
  * @return {IDBTransaction}
  */
-ydn.db.IdbTxMutex.prototype.getTx = function() {
+ydn.db.tr.IdbMutex.prototype.getTx = function() {
   return /** @type {IDBTransaction} */ (goog.base(this, 'getTx'));
 };
 
@@ -263,19 +263,19 @@ ydn.db.IdbTxMutex.prototype.getTx = function() {
 /**
  * Provide transaction object to subclass and keep a result.
  * This also serve as mutex on transaction.
- * @extends {ydn.db.TransactionMutex}
+ * @extends {ydn.db.tr.Mutex}
  * @constructor
  */
-ydn.db.SqlTxMutex = function() {
+ydn.db.tr.SqlMutex = function() {
   goog.base(this);
 };
-goog.inherits(ydn.db.SqlTxMutex, ydn.db.TransactionMutex);
+goog.inherits(ydn.db.tr.SqlMutex, ydn.db.tr.Mutex);
 
 
 /**
  * @return {SQLTransaction}
  */
-ydn.db.SqlTxMutex.prototype.getTx = function() {
+ydn.db.tr.SqlMutex.prototype.getTx = function() {
   return /** @type {SQLTransaction} */ (goog.base(this, 'getTx'));
 };
 

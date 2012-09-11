@@ -840,7 +840,7 @@ ydn.db.IndexedDb.prototype.deleteStore_ = function(table) {
 
 ///**
 // *
-// * @param {ydn.db.IdbTxMutex} tx active transaction object.
+// * @param {ydn.db.tr.IdbMutex} tx active transaction object.
 // * @param {goog.async.Deferred} df deferred to feed result.
 // * @param {string=} opt_table delete the table as provided otherwise
 // * delete all stores.

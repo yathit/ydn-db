@@ -27,6 +27,6 @@ goog.addDependency("../../../ydn-db/js/ydn/db/tr/html5_storage.js", ['ydn.db.tr.
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/indexed_db.js", ['ydn.db.tr.IndexedDb', 'ydn.db.IndexedDb'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/simple_storage.js", ['ydn.db.tr.SimpleStorage'], ['ydn.db.adapter.SimpleStorage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/transaction_core.js", ['ydn.db.TxCore'], ['ydn.db.Core']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tr/transaction_mutex.js", ['ydn.db.TransactionMutex', 'ydn.db.SqlTxMutex', 'ydn.db.IdbTxMutex'], ['goog.array', 'goog.asserts', 'ydn.db.InvalidStateException']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tr/transaction_service.js", ['ydn.db.TransactionService'], ['ydn.db.CoreService']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/transaction_mutex.js", ['ydn.db.tr.Mutex', 'ydn.db.tr.SqlMutex', 'ydn.db.tr.IdbMutex'], ['goog.array', 'goog.asserts', 'ydn.db.InvalidStateException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/transaction_service.js", ['ydn.db.tr.Service'], ['ydn.db.CoreService']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/websql.js", ['ydn.db.tr.WebSql'], ['ydn.db.WebSql']);

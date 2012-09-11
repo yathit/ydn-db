@@ -22,7 +22,7 @@
  */
 
 goog.provide('ydn.db.tr.WebSql');
-goog.require('ydn.db.WebSql');
+goog.require('ydn.db.adapter.WebSql');
 
 
 /**
@@ -31,14 +31,14 @@ goog.require('ydn.db.WebSql');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.TransactionService}
- * @extends {ydn.db.WebSql}
+ * @implements {ydn.db.tr.Service}
+ * @extends {ydn.db.adapter.WebSql}
  * @constructor
  */
 ydn.db.tr.WebSql = function(dbname, schema) {
   goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.tr.WebSql, ydn.db.WebSql);
+goog.inherits(ydn.db.tr.WebSql, ydn.db.adapter.WebSql);
 
 
 /**
@@ -60,15 +60,15 @@ ydn.db.tr.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.tr.WebSq
  * transaction. This must be set to null on finished.
  * @private
  * @final
- * @type {!ydn.db.SqlTxMutex}
+ * @type {!ydn.db.tr.SqlMutex}
  */
-ydn.db.tr.WebSql.prototype.sql_mu_tx_ = new ydn.db.SqlTxMutex();
+ydn.db.tr.WebSql.prototype.sql_mu_tx_ = new ydn.db.tr.SqlMutex();
 
 
 /**
  * @final
  * @protected
- * @return {ydn.db.SqlTxMutex} transaction object if in
+ * @return {ydn.db.tr.SqlMutex} transaction object if in
  * transaction.
  */
 ydn.db.tr.WebSql.prototype.getActiveSqlTx = function() {
@@ -79,7 +79,7 @@ ydn.db.tr.WebSql.prototype.getActiveSqlTx = function() {
 
 /**
  * Run a transaction. If already in transaction, this will join the transaction.
- * @param {function(ydn.db.TransactionMutex)} trFn
+ * @param {function(ydn.db.tr.Mutex)} trFn
  * @param {Array.<string>} scopes
  * @param {ydn.db.TransactionMode} mode
  * @protected
