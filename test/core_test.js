@@ -146,22 +146,9 @@ var test_3_local_basic = function() {
 
   db.transaction(function(tx) {
     // note _default_ column
-    tx.executeSql('INSERT OR REPLACE INTO ' + table_name +
-        ' (id, _default_) VALUES (?, ?)', [val.id, JSON.stringify(val)], function(e) {
-      console.log(e);
-      console.log('Received put result ');
-      tx.executeSql('SELECT * FROM ' + table_name +
-          ' WHERE id = ?', [val.id], function(transaction, e) {
-        console.log(e);
-        var row = e.rows.item(0);
-        result = JSON.parse(row['_default_']);
-        console.log('Received get result ' + result);
-        t1_fired = true;
-      }, function error_cb(e) {
-        console.log(e);
-        fail('wrong sql?');
-      })
-    });
+    tx.setItem(val.id, JSON.stringify(val));
+    result =  JSON.parse(tx.getItem(val.id));
+    t1_fired = true;
   }, table_name, 'readwrite');
 };
 
