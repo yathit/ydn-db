@@ -20,15 +20,15 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.WebSql');
+goog.provide('ydn.db.exe.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db.QueryService');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.exe.Query');
 goog.require('ydn.json');
-goog.require('ydn.db.WebSql');
+goog.require('ydn.db.exe.WebSql');
 
 
 /**
@@ -38,13 +38,13 @@ goog.require('ydn.db.WebSql');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @extends {ydn.db.WebSql}
+ * @extends {ydn.db.exe.WebSql}
  * @constructor
  */
-ydn.db.WebSql = function(dbname, schema) {
+ydn.db.exe.WebSql = function(dbname, schema) {
  goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.WebSql, ydn.db.WebSql);
+goog.inherits(ydn.db.exe.WebSql, ydn.db.exe.WebSql);
 
 
 
@@ -52,14 +52,14 @@ goog.inherits(ydn.db.WebSql, ydn.db.WebSql);
  * @const
  * @type {boolean} debug flag.
  */
-ydn.db.WebSql.DEBUG = false;
+ydn.db.exe.WebSql.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSql');
+ydn.db.exe.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.exe.WebSql');
 
 
 /**
@@ -68,7 +68,7 @@ ydn.db.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSql');
  * @param {string} store_name table name.
  * @param {!Object} obj object to put.
  */
-ydn.db.WebSql.prototype.executePut_ = function (tx, df, store_name, obj) {
+ydn.db.exe.WebSql.prototype.executePut_ = function (tx, df, store_name, obj) {
 
   var table = this.schema.getStore(store_name);
   if (!table) {
@@ -89,7 +89,7 @@ ydn.db.WebSql.prototype.executePut_ = function (tx, df, store_name, obj) {
    * @param {SQLResultSet} results results.
    */
   var success_callback = function (transaction, results) {
-    if (ydn.db.WebSql.DEBUG) {
+    if (ydn.db.exe.WebSql.DEBUG) {
       window.console.log([sql, out, transaction, results]);
     }
     df.callback(out.key);
@@ -101,7 +101,7 @@ ydn.db.WebSql.prototype.executePut_ = function (tx, df, store_name, obj) {
    * @param {SQLError} error error.
    */
   var error_callback = function (tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
+    if (ydn.db.exe.WebSql.DEBUG) {
       window.console.log([sql, out, tr, error]);
     }
     me.logger.warning('put error: ' + error.message);
@@ -120,7 +120,7 @@ ydn.db.WebSql.prototype.executePut_ = function (tx, df, store_name, obj) {
  * @param {string} store_name table name.
  * @param {!Array.<!Object>} arr object to put.
  */
-ydn.db.WebSql.prototype.executePutMultiple_ = function (tx, df, store_name, arr) {
+ydn.db.exe.WebSql.prototype.executePutMultiple_ = function (tx, df, store_name, arr) {
 
   var table = this.schema.getStore(store_name);
   if (!table) {
@@ -165,7 +165,7 @@ ydn.db.WebSql.prototype.executePutMultiple_ = function (tx, df, store_name, arr)
      * @param {SQLError} error error.
      */
     var error_callback = function (tr, error) {
-      if (ydn.db.WebSql.DEBUG) {
+      if (ydn.db.exe.WebSql.DEBUG) {
         window.console.log([sql, out, tr, error]);
       }
       df.errback(error);
@@ -190,7 +190,7 @@ ydn.db.WebSql.prototype.executePutMultiple_ = function (tx, df, store_name, arr)
  * @param {(string|number)=}  opt_key
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.WebSql.prototype.put = function (store_name, obj, opt_key) {
+ydn.db.exe.WebSql.prototype.put = function (store_name, obj, opt_key) {
 
   var me = this;
   var open_tx = this.isOpenTransaction();
@@ -228,7 +228,7 @@ ydn.db.WebSql.prototype.put = function (store_name, obj, opt_key) {
  * @param {(number|string)} id
  * @private
  */
-ydn.db.WebSql.prototype.executeGet_ = function(t, d, table_name, id) {
+ydn.db.exe.WebSql.prototype.executeGet_ = function(t, d, table_name, id) {
 
   var table = this.schema.getStore(table_name);
   if (!table) {
@@ -260,7 +260,7 @@ ydn.db.WebSql.prototype.executeGet_ = function(t, d, table_name, id) {
    * @param {SQLError} error error.
    */
   var error_callback = function (tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
+    if (ydn.db.exe.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     me.logger.warning('get error: ' + error.message);
@@ -279,7 +279,7 @@ ydn.db.WebSql.prototype.executeGet_ = function(t, d, table_name, id) {
  * @param {(string|!Array.<string>)=} opt_table_name
  * @private
  */
-ydn.db.WebSql.prototype.executeGetByStore_ = function(t, d, opt_table_name) {
+ydn.db.exe.WebSql.prototype.executeGetByStore_ = function(t, d, opt_table_name) {
 
   var me = this;
   var arr = [];
@@ -316,7 +316,7 @@ ydn.db.WebSql.prototype.executeGetByStore_ = function(t, d, opt_table_name) {
      */
     var error_callback = function (tr, error) {
       n_done++;
-      if (ydn.db.WebSql.DEBUG) {
+      if (ydn.db.exe.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
       me.logger.warning('get error: ' + error.message);
@@ -347,7 +347,7 @@ ydn.db.WebSql.prototype.executeGetByStore_ = function(t, d, opt_table_name) {
  * @param {!Array.<(number|string)>} ids
  * @private
  */
-ydn.db.WebSql.prototype.executeGetMultiple_ = function (t, d, table_name, ids) {
+ydn.db.exe.WebSql.prototype.executeGetMultiple_ = function (t, d, table_name, ids) {
 
   var me = this;
   var results = [];
@@ -378,7 +378,7 @@ ydn.db.WebSql.prototype.executeGetMultiple_ = function (t, d, table_name, ids) {
      * @param {SQLError} error error.
      */
     var error_callback = function (tr, error) {
-      if (ydn.db.WebSql.DEBUG) {
+      if (ydn.db.exe.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
       me.logger.warning('get error: ' + error.message);
@@ -408,7 +408,7 @@ ydn.db.WebSql.prototype.executeGetMultiple_ = function (t, d, table_name, ids) {
  * @param {!Array.<!ydn.db.Key>} keys
  * @private
  */
-ydn.db.WebSql.prototype.executeGetKeys_ = function (t, d, keys) {
+ydn.db.exe.WebSql.prototype.executeGetKeys_ = function (t, d, keys) {
 
   var me = this;
   var results = [];
@@ -440,7 +440,7 @@ ydn.db.WebSql.prototype.executeGetKeys_ = function (t, d, keys) {
      * @param {SQLError} error error.
      */
     var error_callback = function (tr, error) {
-      if (ydn.db.WebSql.DEBUG) {
+      if (ydn.db.exe.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
       me.logger.warning('get error: ' + error.message);
@@ -474,7 +474,7 @@ ydn.db.WebSql.prototype.executeGetKeys_ = function (t, d, keys) {
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
-ydn.db.WebSql.prototype.getById_ = function(store_name, id) {
+ydn.db.exe.WebSql.prototype.getById_ = function(store_name, id) {
   var me = this;
   var open_tx = this.isOpenTransaction();
   var tx = this.getActiveSqlTx();
@@ -497,7 +497,7 @@ ydn.db.WebSql.prototype.getById_ = function(store_name, id) {
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
-ydn.db.WebSql.prototype.getByStore_ = function(store_name) {
+ydn.db.exe.WebSql.prototype.getByStore_ = function(store_name) {
   var me = this;
   var open_tx = this.isOpenTransaction();
   var tx = this.getActiveSqlTx();
@@ -520,7 +520,7 @@ ydn.db.WebSql.prototype.getByStore_ = function(store_name) {
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
-ydn.db.WebSql.prototype.getByIds_ = function(store_name, ids) {
+ydn.db.exe.WebSql.prototype.getByIds_ = function(store_name, ids) {
   var me = this;
   var open_tx = this.isOpenTransaction();
   var tx = this.getActiveSqlTx();
@@ -543,7 +543,7 @@ ydn.db.WebSql.prototype.getByIds_ = function(store_name, ids) {
  * @return {!goog.async.Deferred} return object in deferred function.
  * @private
  */
-ydn.db.WebSql.prototype.getByKeys_ = function(keys) {
+ydn.db.exe.WebSql.prototype.getByKeys_ = function(keys) {
   var me = this;
   var open_tx = this.isOpenTransaction();
   var tx = this.getActiveSqlTx();
@@ -566,7 +566,7 @@ ydn.db.WebSql.prototype.getByKeys_ = function(keys) {
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.WebSql.prototype.getInTx = function (tx, store_name, opt_key) {
+ydn.db.exe.WebSql.prototype.getInTx = function (tx, store_name, opt_key) {
 
 };
 
@@ -578,7 +578,7 @@ ydn.db.WebSql.prototype.getInTx = function (tx, store_name, opt_key) {
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.WebSql.prototype.get = function (arg1, arg2) {
+ydn.db.exe.WebSql.prototype.get = function (arg1, arg2) {
 
   if (arg1 instanceof ydn.db.Key) {
     /**
@@ -621,13 +621,13 @@ ydn.db.WebSql.prototype.get = function (arg1, arg2) {
 
 
 /**
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.exe.Query} q query.
  * @param {number=} limit
  * @param {number=} offset
  * @return {!goog.async.Deferred}
  */
-ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
-  if (q instanceof ydn.db.Query) {
+ydn.db.exe.WebSql.prototype.fetch = function(q, limit, offset) {
+  if (q instanceof ydn.db.exe.Query) {
     return this.fetchQuery_(q, limit, offset);
   } else {
     throw new ydn.error.ArgumentException();
@@ -638,12 +638,12 @@ ydn.db.WebSql.prototype.fetch = function(q, limit, offset) {
 /**
  * @param {SQLTransaction} t
  * @param {goog.async.Deferred} d
- * @param {ydn.db.Query} q query.
+ * @param {ydn.db.exe.Query} q query.
  * @param {number=} limit
  * @param {number=} offset
  * @private
  */
-ydn.db.WebSql.prototype.executeQuery_ = function(t, d, q, limit, offset) {
+ydn.db.exe.WebSql.prototype.executeQuery_ = function(t, d, q, limit, offset) {
 
   var me = this;
 
@@ -711,7 +711,7 @@ ydn.db.WebSql.prototype.executeQuery_ = function(t, d, q, limit, offset) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
+    if (ydn.db.exe.WebSql.DEBUG) {
       window.console.log([q, sql, params, limit, offset, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
@@ -725,13 +725,13 @@ ydn.db.WebSql.prototype.executeQuery_ = function(t, d, q, limit, offset) {
 
 
 /**
- * @param {ydn.db.Query} q query.
+ * @param {ydn.db.exe.Query} q query.
  * @param {number=} limit
  * @param {number=} offset
  * @return {!goog.async.Deferred}
  * @private
  */
-ydn.db.WebSql.prototype.fetchQuery_ = function(q, limit, offset) {
+ydn.db.exe.WebSql.prototype.fetchQuery_ = function(q, limit, offset) {
 
   var me = this;
   var open_tx = this.isOpenTransaction();
@@ -755,7 +755,7 @@ ydn.db.WebSql.prototype.fetchQuery_ = function(q, limit, offset) {
  * @param {(string|!Array.<string>)=} table_name table name.
  * @private
  */
-ydn.db.WebSql.prototype.executeClearStore_ = function (t, d, table_name) {
+ydn.db.exe.WebSql.prototype.executeClearStore_ = function (t, d, table_name) {
 
   var me = this;
   var store_names = goog.isArray(table_name) && table_name.length > 0 ?
@@ -789,7 +789,7 @@ ydn.db.WebSql.prototype.executeClearStore_ = function (t, d, table_name) {
      * @param {SQLError} error error.
      */
     var error_callback = function (tr, error) {
-      if (ydn.db.WebSql.DEBUG) {
+      if (ydn.db.exe.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
       me.logger.warning('Sqlite error: ' + error.message);
@@ -817,7 +817,7 @@ ydn.db.WebSql.prototype.executeClearStore_ = function (t, d, table_name) {
  * @param {(string|number)} key table name.
  * @private
  */
-ydn.db.WebSql.prototype.executeClear_ = function (t, d, table_name, key) {
+ydn.db.exe.WebSql.prototype.executeClear_ = function (t, d, table_name, key) {
 
   var me = this;
   var store = this.schema.getStore(table_name);
@@ -839,7 +839,7 @@ ydn.db.WebSql.prototype.executeClear_ = function (t, d, table_name, key) {
    * @param {SQLError} error error.
    */
   var error_callback = function (tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
+    if (ydn.db.exe.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
@@ -859,7 +859,7 @@ ydn.db.WebSql.prototype.executeClear_ = function (t, d, table_name, key) {
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.WebSql.prototype.clear = function (table_name, opt_key) {
+ydn.db.exe.WebSql.prototype.clear = function (table_name, opt_key) {
 
   var me = this;
   var open_tx = this.isOpenTransaction();
@@ -892,7 +892,7 @@ ydn.db.WebSql.prototype.clear = function (table_name, opt_key) {
  * @param {string} table store name.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.WebSql.prototype.count = function(table) {
+ydn.db.exe.WebSql.prototype.count = function(table) {
 
   var d = new goog.async.Deferred();
   var me = this;
@@ -914,7 +914,7 @@ ydn.db.WebSql.prototype.count = function(table) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
+    if (ydn.db.exe.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     me.logger.warning('count error: ' + error.message);
@@ -939,7 +939,7 @@ ydn.db.WebSql.prototype.count = function(table) {
 * @param {string=} opt_id delete a specific row.
 * @return {!goog.async.Deferred} return a deferred function.
 */
-ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
+ydn.db.exe.WebSql.prototype.remove = function(opt_table, opt_id) {
 
   if (goog.isDef(opt_table)) {
     if (goog.isDef(opt_id)) {
@@ -961,7 +961,7 @@ ydn.db.WebSql.prototype.remove = function(opt_table, opt_id) {
  * @return {!goog.async.Deferred} deferred result.
  * @protected
  */
-ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
+ydn.db.exe.WebSql.prototype.deleteRow_ = function(table, id) {
   var d = new goog.async.Deferred();
 
   var store = this.schema.getStore(table);
@@ -978,7 +978,7 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
    * @param {SQLResultSet} results results.
    */
   var success_callback = function(transaction, results) {
-    if (ydn.db.WebSql.DEBUG) {
+    if (ydn.db.exe.WebSql.DEBUG) {
       window.console.log(results);
     }
     d.callback(true);
@@ -989,7 +989,7 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
+    if (ydn.db.exe.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     me.logger.warning('put error: ' + error.message);
@@ -1012,7 +1012,7 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
 * tables will be deleted.
 * @protected
 */
-ydn.db.WebSql.prototype.executeDropTable_ = function(t, d, opt_table) {
+ydn.db.exe.WebSql.prototype.executeDropTable_ = function(t, d, opt_table) {
 
   var me = this;
 
@@ -1045,7 +1045,7 @@ ydn.db.WebSql.prototype.executeDropTable_ = function(t, d, opt_table) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.WebSql.DEBUG) {
+    if (ydn.db.exe.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     me.logger.warning('Delete TABLE: ' + error.message);
@@ -1063,7 +1063,7 @@ ydn.db.WebSql.prototype.executeDropTable_ = function(t, d, opt_table) {
  * @return {!goog.async.Deferred} deferred result.
  * @protected
  */
-ydn.db.WebSql.prototype.dropTable_ = function(opt_table) {
+ydn.db.exe.WebSql.prototype.dropTable_ = function(opt_table) {
   var me = this;
   var open_tx = this.isOpenTransaction();
   var tx = this.getActiveSqlTx();

@@ -21,6 +21,7 @@
 goog.provide('ydn.db');
 goog.provide('ydn.db.ValidKeyException');
 goog.provide('ydn.db.InvalidStateError');
+goog.require('goog.async.Deferred');
 
 
 
@@ -37,6 +38,26 @@ ydn.db.DEFAULT_KEY_COLUMN = '_id_';
  * @const {string}
  */
 ydn.db.DEFAULT_BLOB_COLUMN = '_default_';
+
+
+/**
+ * Target for jquery
+ * @define {boolean}
+ */
+ydn.db.JQUERY = false;
+
+
+/**
+ * Create a new deferred instance depending on target platform.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.createDeferred = function() {
+  if (ydn.db.JQUERY) {
+    return new goog.async.Deferred();
+  } else {
+    return new goog.async.Deferred();
+  }
+};
 
 
 /**
@@ -100,11 +121,11 @@ ydn.db.ValidKeyException.prototype.name = 'ydn.db.ValidKeyException';
  * @constructor
  * @extends {Error}
  */
-ydn.db.InvalidScopeError = function(opt_msg) {
+ydn.db.ScopeError = function(opt_msg) {
 
   // Ensure there is a stack trace.
   if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.InvalidScopeError);
+    Error.captureStackTrace(this, ydn.db.ScopeError);
   } else {
     this.stack = new Error().stack || '';
   }
@@ -113,9 +134,9 @@ ydn.db.InvalidScopeError = function(opt_msg) {
     this.message = String(opt_msg);
   }
 };
-goog.inherits(ydn.db.InvalidScopeError, Error);
+goog.inherits(ydn.db.ScopeError, Error);
 
-ydn.db.InvalidScopeError.prototype.name = 'ydn.db.InvalidScopeError';
+ydn.db.ScopeError.prototype.name = 'ydn.db.ScopeError';
 
 
 /**

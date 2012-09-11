@@ -24,19 +24,16 @@ var setUp = function() {
 	basic_schema.addStore(store);
 };
 
+
 var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
 
+var test_1_basic = function() {
 
-
-var test_1_idb_basic = function() {
-
-  var db_type =  'indexeddb';
-  var options = {preference: [db_type]};
   var db_name = 'test_tr_basic_1';
-  var db = new ydn.db.tr.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.tr.Storage(db_name, basic_schema);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -48,7 +45,6 @@ var test_1_idb_basic = function() {
       function() { return t1_fired; },
       // Continuation
       function() {
-        assertEquals('database type', db_type, db.type());
         assertEquals('correct obj', val.value, result.value);
         reachedFinalContinuation = true;
 
@@ -57,12 +53,12 @@ var test_1_idb_basic = function() {
       2000); // maxTimeout
 
   db.transaction(function(idb) {
-    console.log('tx started.');
-    assertEquals('type', db_type, idb.type());
+    assertTrue('type', idb.type().length > 0);
     var tx = idb.getTx();
     assertNotUndefined(tx);
     assertNotNull(tx);
     assertNull(tx.error);
+    console.log('tx started with ' + idb.type() + ' ' + tx);
     var store = tx.objectStore(table_name);
     var put_req = store.put(val);
     put_req.onsuccess = function(x) {

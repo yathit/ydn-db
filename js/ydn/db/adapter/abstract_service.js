@@ -4,7 +4,7 @@
 
 
 goog.provide('ydn.db.AbstractService');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.exe.Query');
 goog.require('ydn.db.QueryService');
 goog.require('ydn.db.Key');
 

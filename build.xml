@@ -99,8 +99,8 @@
     <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db/io"
-                input.fn="${ydn-db.dir}/js/ydn/db/io/storage.js"
+                input.dir="${ydn-db.dir}/js/ydn/db"
+                input.fn="${ydn-db.dir}/js/ydn/db/storage.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.Storage">

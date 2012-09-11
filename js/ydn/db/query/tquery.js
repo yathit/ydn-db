@@ -4,21 +4,21 @@
 
 
 goog.provide('ydn.db.TQuery');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.exe.Query');
 goog.require('ydn.db.QueryService');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.exe.Query');
 
 
 /**
  * Create a query from a database. If the database is active transaction,
  * the query will join the transaction, otherwise to belong to own transaction
  * instance.
- * @extends {ydn.db.Query}
+ * @extends {ydn.db.exe.Query}
  * @param {!ydn.db.QueryServiceProvider} db db instance.
  * @param {string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!ydn.db.Query.KeyRangeJson|!ydn.db.Query.IDBKeyRange|undefined)=}
+ * @param {(!ydn.db.KeyRangeJson|!ydn.db.KeyRange|undefined)=}
  * keyRange configuration in
  * @param {string=} direction cursor direction.
  * @constructor
@@ -33,7 +33,7 @@ ydn.db.TQuery = function(db, store, index, keyRange, direction) {
    */
   this.dbp = db;
 };
-goog.inherits(ydn.db.TQuery, ydn.db.Query);
+goog.inherits(ydn.db.TQuery, ydn.db.exe.Query);
 
 
 /**

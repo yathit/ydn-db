@@ -102,10 +102,11 @@ ydn.db.tr.Storage.prototype.onReady = function(callback) {
 /**
  * @protected
  * @param {!ydn.db.tr.Mutex} tx
+ * @param {string} scope
  * @return {!ydn.db.tr.TxStorage}
  */
-ydn.db.tr.Storage.prototype.newTxInstance = function(tx) {
-  return new ydn.db.tr.TxStorage(this, tx);
+ydn.db.tr.Storage.prototype.newTxInstance = function(tx, scope) {
+  return new ydn.db.tr.TxStorage(this, tx, scope);
 };
 
 
@@ -145,13 +146,22 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
   this.onReady(function(db) {
     db.doTransaction(function (tx) {
       // wrap this database and hold active transaction instance
-      var tx_db = me.newTxInstance(tx);
+      var tx_db = me.newTxInstance(tx, trFn.name || '');
       // now execute transaction process
       trFn(tx_db);
       tx_db.out(); // flag transaction callback scope is over.
       // transaction is still active and use in followup request handlers
     }, names, mode);
   });
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.StorageService.prototype.joinTransaction = function (trFn, store_names, opt_mode, opt_args) {
+  // we are in outer loop.
+  this.transaction(trFn, store_names, opt_mode, opt_args);
 };
 
 

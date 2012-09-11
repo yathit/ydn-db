@@ -16,7 +16,7 @@
  * @fileoverview Data store in memory.
  */
 
-goog.provide('ydn.db.MemoryStore');
+goog.provide('ydn.db.exe.MemoryStore');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
@@ -33,17 +33,17 @@ goog.require('ydn.db.adapter.SimpleStorage');
  * @extends {ydn.db.adapter.SimpleStorage}
  * @constructor
  */
-ydn.db.MemoryStore = function(dbname, schema, opt_localStorage) {
+ydn.db.exe.MemoryStore = function(dbname, schema, opt_localStorage) {
   goog.base(this, dbname, schema, opt_localStorage);
 };
-goog.inherits(ydn.db.MemoryStore, ydn.db.adapter.SimpleStorage);
+goog.inherits(ydn.db.exe.MemoryStore, ydn.db.adapter.SimpleStorage);
 
 
 /**
  *
  * @return {Object} return memory store object.
  */
-ydn.db.MemoryStore.getFakeLocalStorage = function() {
+ydn.db.exe.MemoryStore.getFakeLocalStorage = function() {
 
   var localStorage = {};
   localStorage.setItem = function(key, value) {
@@ -68,7 +68,7 @@ ydn.db.MemoryStore.getFakeLocalStorage = function() {
  *
  * @return {boolean} true if memory is supported.
  */
-ydn.db.MemoryStore.isSupported = function() {
+ydn.db.exe.MemoryStore.isSupported = function() {
   return true;
 };
 
@@ -77,7 +77,7 @@ ydn.db.MemoryStore.isSupported = function() {
  *
  * @define {boolean} use sync result.
  */
-ydn.db.MemoryStore.SYNC = false;
+ydn.db.exe.MemoryStore.SYNC = false;
 
 
 /**
@@ -85,11 +85,11 @@ ydn.db.MemoryStore.SYNC = false;
  * @param {*} value
  * @return {!goog.async.Deferred} return callback with given value in async.
  */
-ydn.db.MemoryStore.succeed = function(value) {
+ydn.db.exe.MemoryStore.succeed = function(value) {
 
   var df = new goog.async.Deferred();
 
-  if (ydn.db.MemoryStore.SYNC) {
+  if (ydn.db.exe.MemoryStore.SYNC) {
     df.callback(value);
   } else {
     goog.Timer.callOnce(function() {
@@ -107,7 +107,7 @@ ydn.db.MemoryStore.succeed = function(value) {
  * @param {(string|number)=} opt_key
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.MemoryStore.prototype.put = function (table, value, opt_key) {
+ydn.db.exe.MemoryStore.prototype.put = function (table, value, opt_key) {
   var key, value_str;
   var result;
 
@@ -128,7 +128,7 @@ ydn.db.MemoryStore.prototype.put = function (table, value, opt_key) {
     throw new ydn.error.ArgumentException();
   }
 
-  return ydn.db.MemoryStore.succeed(result);
+  return ydn.db.exe.MemoryStore.succeed(result);
 };
 
 
@@ -139,7 +139,7 @@ ydn.db.MemoryStore.prototype.put = function (table, value, opt_key) {
  * @param {string|number} id
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.MemoryStore.prototype.getById_ = function(store_name, id) {
+ydn.db.exe.MemoryStore.prototype.getById_ = function(store_name, id) {
   return goog.async.Deferred.succeed(this.getItemInternal(store_name, id));
 };
 
@@ -151,7 +151,7 @@ ydn.db.MemoryStore.prototype.getById_ = function(store_name, id) {
  * @param {string=} opt_store_name
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.MemoryStore.prototype.getByStore_ = function (opt_store_name) {
+ydn.db.exe.MemoryStore.prototype.getByStore_ = function (opt_store_name) {
   var arr = [];
   var collect = function (store_name) {
     for (var item in this.cache_) {
@@ -181,18 +181,18 @@ ydn.db.MemoryStore.prototype.getByStore_ = function (opt_store_name) {
 /**
  * @return {string}
  */
-ydn.db.MemoryStore.prototype.type = function() {
+ydn.db.exe.MemoryStore.prototype.type = function() {
   return 'memory';
 };
 
 
 /**
  *
- * @param {!ydn.db.Query} q
+ * @param {!ydn.db.exe.Query} q
  * @return {goog.async.Deferred}
  * @private
  */
-ydn.db.MemoryStore.prototype.get1_ = function(q) {
+ydn.db.exe.MemoryStore.prototype.get1_ = function(q) {
   var df = new goog.async.Deferred();
 
   var fetch_df = this.fetch(q);
@@ -214,7 +214,7 @@ ydn.db.MemoryStore.prototype.get1_ = function(q) {
  * @return {!goog.async.Deferred} return result in deferred function.
  * @private
  */
-ydn.db.MemoryStore.prototype.getByIds_ = function(store_name, ids) {
+ydn.db.exe.MemoryStore.prototype.getByIds_ = function(store_name, ids) {
   var arr = [];
   for (var i = 0; i < ids.length; i++) {
     arr.push(this.getById_(store_name, ids[i]));
@@ -228,7 +228,7 @@ ydn.db.MemoryStore.prototype.getByIds_ = function(store_name, ids) {
  * @return {!goog.async.Deferred} return result in deferred function.
  * @private
  */
-ydn.db.MemoryStore.prototype.getByKeys_ = function(keys) {
+ydn.db.exe.MemoryStore.prototype.getByKeys_ = function(keys) {
   var arr = [];
   for (var i = 0; i < keys.length; i++) {
     arr.push(this.getById_(keys[i].getStoreName(), keys[i].getId()));
@@ -245,7 +245,7 @@ ydn.db.MemoryStore.prototype.getByKeys_ = function(keys) {
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.MemoryStore.prototype.getInTx = function (tx, arg1, arg2) {
+ydn.db.exe.MemoryStore.prototype.getInTx = function (tx, arg1, arg2) {
 
   if (arg1 instanceof ydn.db.Key) {
     /**
@@ -294,7 +294,7 @@ ydn.db.MemoryStore.prototype.getInTx = function (tx, arg1, arg2) {
  * param {number=} limit maximun number of entries.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.MemoryStore.prototype.get = function (arg1, arg2) {
+ydn.db.exe.MemoryStore.prototype.get = function (arg1, arg2) {
   return this.getInTx(this.cache_, arg1, arg2);
 };
 
@@ -305,7 +305,7 @@ ydn.db.MemoryStore.prototype.get = function (arg1, arg2) {
  * @param {(string|number)=} opt_key delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.MemoryStore.prototype.clear = function(opt_table, opt_key) {
+ydn.db.exe.MemoryStore.prototype.clear = function(opt_table, opt_key) {
 
   if (goog.isDef(opt_table) && goog.isDef(opt_key)) {
     this.removeItemInternal(opt_table, opt_key);
@@ -322,7 +322,7 @@ ydn.db.MemoryStore.prototype.clear = function(opt_table, opt_key) {
       }
     }
   }
-  return ydn.db.MemoryStore.succeed(true);
+  return ydn.db.exe.MemoryStore.succeed(true);
 };
 
 
@@ -332,11 +332,11 @@ ydn.db.MemoryStore.prototype.clear = function(opt_table, opt_key) {
  * @param {(string|number)=} opt_id delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.MemoryStore.prototype.remove = function(opt_table, opt_id) {
+ydn.db.exe.MemoryStore.prototype.remove = function(opt_table, opt_id) {
   if (goog.isDef(opt_id) && goog.isDef(opt_table)) {
     var key = this.makeKey(opt_table, opt_id);
     delete this.cache_[key];
-    return ydn.db.MemoryStore.succeed(true);
+    return ydn.db.exe.MemoryStore.succeed(true);
   } else {
     return this.clear(opt_table);
   }
@@ -348,7 +348,7 @@ ydn.db.MemoryStore.prototype.remove = function(opt_table, opt_id) {
  * @param {string=} opt_table table name
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
-ydn.db.MemoryStore.prototype.count = function(opt_table) {
+ydn.db.exe.MemoryStore.prototype.count = function(opt_table) {
 
   var pre_fix = '_database_' + this.dbname;
   if (goog.isDef(opt_table)) {
@@ -363,17 +363,17 @@ ydn.db.MemoryStore.prototype.count = function(opt_table) {
       }
     }
   }
-  return ydn.db.MemoryStore.succeed(n);
+  return ydn.db.exe.MemoryStore.succeed(n);
 };
 
 
 /**
-* @param {!ydn.db.Query} q query.
+* @param {!ydn.db.exe.Query} q query.
 * @param {number=} limit
 * @param {number=} offset
 * @return {!goog.async.Deferred}
 */
-ydn.db.MemoryStore.prototype.fetch = function(q, limit, offset) {
+ydn.db.exe.MemoryStore.prototype.fetch = function(q, limit, offset) {
   throw new ydn.error.NotImplementedException();
 };
 

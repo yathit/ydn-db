@@ -17,10 +17,9 @@
  */
 
 
-goog.provide('ydn.db.Query');
-goog.provide('ydn.db.Query.KeyRangeJson');
-goog.provide('ydn.db.Query.KeyRangeImpl');
+goog.provide('ydn.db.exe.Query');
 goog.require('goog.functions');
+goog.require('ydn.db.KeyRangeImpl');
 
 
 
@@ -28,13 +27,13 @@ goog.require('goog.functions');
  * @param {string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!ydn.db.Query.KeyRangeJson|!ydn.db.Query.IDBKeyRange|undefined)=}
+ * @param {(!ydn.db.KeyRangeJson|!ydn.db.KeyRange|undefined)=}
  * keyRange configuration in
  * json format.
  * @param {string=} direction cursor direction.
  * @constructor
  */
-ydn.db.Query = function(store, index, keyRange, direction) {
+ydn.db.exe.Query = function(store, index, keyRange, direction) {
   // Note for V8 optimization, declare all properties in constructor.
 
   /**
@@ -50,11 +49,11 @@ ydn.db.Query = function(store, index, keyRange, direction) {
    */
   this.index = index;
 
-  if (keyRange instanceof ydn.db.Query.IDBKeyRange) {
+  if (keyRange instanceof ydn.db.KeyRange) {
     this.keyRange = keyRange;
   } else if (goog.isDefAndNotNull(keyRange)) {
     // must be JSON object
-    this.keyRange = ydn.db.Query.parseKeyRange(keyRange);
+    this.keyRange = ydn.db.KeyRangeImpl.parseKeyRange(keyRange);
   }
   this.direction = direction;
   // set all null so that no surprise from inherit prototype
@@ -68,48 +67,48 @@ ydn.db.Query = function(store, index, keyRange, direction) {
 /**
  * @inheritDoc
  */
-ydn.db.Query.prototype.toJSON = function () {
+ydn.db.exe.Query.prototype.toJSON = function () {
   return {
     'store':this.store_name,
     'index':this.index,
-    'key_range': ydn.db.Query.KeyRangeImpl.toJSON(this.keyRange || null),
+    'key_range': ydn.db.KeyRangeImpl.toJSON(this.keyRange || null),
     'direction':this.direction
   }
 };
 
 /**
  * Right value for query operation.
- * @type {ydn.db.Query.IDBKeyRange|undefined}
+ * @type {ydn.db.KeyRange|undefined}
  */
-ydn.db.Query.prototype.keyRange;
+ydn.db.exe.Query.prototype.keyRange;
 
 /**
  * Cursor direction.
  * @type {(string|undefined)}
  */
-ydn.db.Query.prototype.direction;
+ydn.db.exe.Query.prototype.direction;
 
 /**
  * @type {?function(!Object): boolean}
  */
-ydn.db.Query.prototype.filter;
+ydn.db.exe.Query.prototype.filter;
 
 /**
  * @type {?function(!Object): boolean}
  */
-ydn.db.Query.prototype.continue;
+ydn.db.exe.Query.prototype.continue;
 
 /**
  * @type {?function(!Object): *}
  */
-ydn.db.Query.prototype.map;
+ydn.db.exe.Query.prototype.map;
 
 /**
  * Reduce is execute after map.
  * @type {?function(*, *, number): *}
  * function(previousValue, currentValue, index)
  */
-ydn.db.Query.prototype.reduce;
+ydn.db.exe.Query.prototype.reduce;
 
 
 /**
@@ -119,9 +118,9 @@ ydn.db.Query.prototype.reduce;
  * @param {string} value
  * @param {string=} op2
  * @param {string=} value2
- * @return {!ydn.db.Query}
+ * @return {!ydn.db.exe.Query}
  */
-ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
+ydn.db.exe.Query.prototype.where = function(field, op, value, op2, value2) {
 
   var op_test = function(op, lv) {
     if (op === '=' || op === '==') {
@@ -158,9 +157,9 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
 /**
  * Convenient method for SQL <code>COUNT</code> method.
- * @return {!ydn.db.Query}
+ * @return {!ydn.db.exe.Query}
  */
-ydn.db.Query.prototype.count = function() {
+ydn.db.exe.Query.prototype.count = function() {
   this.reduce = function(prev) {
     if (!prev) {
       prev = 0;
@@ -173,9 +172,9 @@ ydn.db.Query.prototype.count = function() {
 
 /**
  * Convenient method for SQL <code>SUM</code> method.
- * @return {!ydn.db.Query}
+ * @return {!ydn.db.exe.Query}
  */
-ydn.db.Query.prototype.sum = function(field) {
+ydn.db.exe.Query.prototype.sum = function(field) {
   this.reduce = function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
@@ -188,9 +187,9 @@ ydn.db.Query.prototype.sum = function(field) {
 
 /**
  * Convenient method for SQL <code>AVERAGE</code> method.
- * @return {!ydn.db.Query}
+ * @return {!ydn.db.exe.Query}
  */
-ydn.db.Query.prototype.average = function(field) {
+ydn.db.exe.Query.prototype.average = function(field) {
   this.reduce = function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
@@ -204,9 +203,9 @@ ydn.db.Query.prototype.average = function(field) {
 /**
  *
  * @param {string|Array.<string>} arg1
- * @return {!ydn.db.Query}
+ * @return {!ydn.db.exe.Query}
  */
-ydn.db.Query.prototype.select = function(arg1) {
+ydn.db.exe.Query.prototype.select = function(arg1) {
   this.map =  function(data) {
     if (goog.isString(arg1)) {
       return data[arg1];
@@ -231,100 +230,9 @@ ydn.db.Query.prototype.select = function(arg1) {
  *  upperOpen: (boolean|undefined)
  * }}
  */
-ydn.db.Query.KeyRangeJson;
+ydn.db.KeyRangeJson;
 
 
-/**
- * For those browser that not implemented IDBKeyRange.
- * @constructor
- */
-ydn.db.Query.KeyRangeImpl = function(lower, upper, lowerOpen, upperOpen) {
-  this.lower = lower;
-  this.upper = upper;
-  this.lowerOpen = !!lowerOpen;
-  this.upperOpen = !!upperOpen;
-};
-
-
-ydn.db.Query.KeyRangeImpl.only = function(value) {
-  return new ydn.db.Query.KeyRangeImpl(value, value, false, false);
-};
-
-
-/**
- *
- * @param {(string|number)=} lower
- * @param {(string|number)=} upper
- * @param {boolean=} lowerOpen
- * @param {boolean=} upperOpen
- * @return {ydn.db.Query.KeyRangeImpl}
- */
-ydn.db.Query.KeyRangeImpl.bound = function(lower, upper,
-  lowerOpen, upperOpen) {
-  return new ydn.db.Query.KeyRangeImpl(lower, upper, lowerOpen, upperOpen);
-};
-
-
-ydn.db.Query.KeyRangeImpl.upperBound = function(upper, upperOpen) {
-  return new ydn.db.Query.KeyRangeImpl(undefined, upper, undefined, upperOpen);
-};
-
-ydn.db.Query.KeyRangeImpl.lowerBound = function(lower, lowerOpen) {
-  return new ydn.db.Query.KeyRangeImpl(lower, undefined, lowerOpen, undefined);
-};
-
-
-/**
- *
- * @param {ydn.db.Query.IDBKeyRange} keyRange IDBKeyRange.
- * @return {!Object} IDBKeyRange in JSON format.
- */
-ydn.db.Query.KeyRangeImpl.toJSON = function(keyRange) {
-  return {
-    'lower': keyRange.lower,
-    'upper': keyRange.upper,
-    'lowerOpen': keyRange.lowerOpen,
-    'upperOpen': keyRange.upperOpen
-  }
-};
-
-
-/**
- *
- * @type {function(new:IDBKeyRange)} The IDBKeyRange interface of the IndexedDB
- * API represents a continuous interval over some data type that is used for
- * keys.
- */
-ydn.db.Query.IDBKeyRange = goog.global.IDBKeyRange ||
-  goog.global.webkitIDBKeyRange || ydn.db.Query.KeyRangeImpl;
-
-
-/**
- * @param {ydn.db.Query.KeyRangeJson=} keyRange keyRange.
- * @return {ydn.db.Query.IDBKeyRange} equivalent IDBKeyRange.
- */
-ydn.db.Query.parseKeyRange = function (keyRange) {
-  if (!goog.isDefAndNotNull(keyRange)) {
-    return null;
-  }
-  if (goog.isDef(keyRange['upper']) && goog.isDef(keyRange['lower'])) {
-    if (keyRange.lower === keyRange.upper) {
-      return ydn.db.Query.IDBKeyRange.only(keyRange.lower);
-    } else {
-    return ydn.db.Query.IDBKeyRange.bound(
-      keyRange.lower, keyRange.upper,
-      keyRange['lowerOpen'], keyRange['upperOpen']);
-    }
-  } else if (goog.isDef(keyRange.upper)) {
-    return ydn.db.Query.IDBKeyRange.upperBound(keyRange.upper,
-      keyRange.upperOpen);
-  } else if (goog.isDef(keyRange.lower)) {
-    return ydn.db.Query.IDBKeyRange.lowerBound(keyRange.lower,
-      keyRange.lowerOpen);
-  } else {
-    return null;
-  }
-};
 
 
 
@@ -332,9 +240,9 @@ ydn.db.Query.parseKeyRange = function (keyRange) {
  *
  * @param {*} value
  */
-ydn.db.Query.prototype.only = function(value) {
+ydn.db.exe.Query.prototype.only = function(value) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.Query.IDBKeyRange.only(value);
+  this.keyRange = ydn.db.KeyRange.only(value);
   return this;
 };
 
@@ -344,9 +252,9 @@ ydn.db.Query.prototype.only = function(value) {
  * @param {*} value
  * @param {boolean=} is_open
  */
-ydn.db.Query.prototype.upperBound = function(value, is_open) {
+ydn.db.exe.Query.prototype.upperBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.Query.IDBKeyRange.upperBound(value, is_open);
+  this.keyRange = ydn.db.KeyRange.upperBound(value, is_open);
   return this;
 };
 
@@ -355,9 +263,9 @@ ydn.db.Query.prototype.upperBound = function(value, is_open) {
  * @param {*} value
  * @param {boolean=} is_open
  */
-ydn.db.Query.prototype.lowerBound = function(value, is_open) {
+ydn.db.exe.Query.prototype.lowerBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.Query.IDBKeyRange.lowerBound(value, is_open);
+  this.keyRange = ydn.db.KeyRange.lowerBound(value, is_open);
   return this;
 };
 
@@ -368,9 +276,9 @@ ydn.db.Query.prototype.lowerBound = function(value, is_open) {
  * @param {boolean=} lo
  * @param {boolean=} uo
  */
-ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
+ydn.db.exe.Query.prototype.bound = function(lower, upper, lo, uo) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.Query.IDBKeyRange.bound(lower, upper, lo, uo);
+  this.keyRange = ydn.db.KeyRange.bound(lower, upper, lo, uo);
   return this;
 };
 
@@ -380,14 +288,14 @@ ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
  * @return {{where_clause: string, params: Array}} return equivalent of keyRange
  * to SQL WHERE clause and its parameters.
  */
-ydn.db.Query.prototype.toWhereClause = function() {
+ydn.db.exe.Query.prototype.toWhereClause = function() {
 
   var where_clause = '';
   var params = [];
   goog.asserts.assertString(this.index);
   var column = goog.string.quote(this.index);
 
-  if (ydn.db.Query.isLikeOperation_(this.keyRange)) {
+  if (ydn.db.exe.Query.isLikeOperation_(this.keyRange)) {
     where_clause = column + ' LIKE ?';
     params.push(this.keyRange.lower + '%');
   } else {
@@ -414,7 +322,7 @@ ydn.db.Query.prototype.toWhereClause = function() {
  * Helper method for creating useful KeyRange.
  * @param {string} value value.
  */
-ydn.db.Query.prototype.startsWith = function (value) {
+ydn.db.exe.Query.prototype.startsWith = function (value) {
   var value_upper = value + '\uffff';
   this.bound(value, value_upper);
   return this;
@@ -426,7 +334,7 @@ ydn.db.Query.prototype.startsWith = function (value) {
  * @private
  * @param keyRange
  */
-ydn.db.Query.isLikeOperation_ = function (keyRange) {
+ydn.db.exe.Query.isLikeOperation_ = function (keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {
     return false;
   }

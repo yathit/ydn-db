@@ -15,8 +15,9 @@ goog.require('ydn.db.tr.Mutex');
  */
 ydn.db.tr.StorageService = function() {};
 
+
 /**
- * Run a transaction.
+ * Run a new transaction.
  * @override
  * @param {function(!ydn.db.tr.StorageService)} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
@@ -27,11 +28,26 @@ ydn.db.tr.StorageService = function() {};
 ydn.db.tr.StorageService.prototype.transaction = function (trFn, store_names, mode, opt_args) {};
 
 
+
+/**
+ * Run transaction in existing or creating new.
+ * @protected
+ * @param {function(!ydn.db.tr.StorageService)} trFn function that invoke in the transaction.
+ * @param {!Array.<string>} store_names list of keys or
+ * store name involved in the transaction.
+ * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
+ * @param {...} opt_args
+ */
+ydn.db.tr.StorageService.prototype.joinTransaction = function (trFn, store_names, mode, opt_args) {};
+
+
 /**
  * Obtain active consumable transaction object.
  * @return {ydn.db.tr.Mutex} transaction object if active and available.
  */
 ydn.db.tr.StorageService.prototype.getActiveTx = function() {};
+
+
 
 
 

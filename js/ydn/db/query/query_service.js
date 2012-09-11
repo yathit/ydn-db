@@ -9,7 +9,7 @@
 goog.provide('ydn.db.QueryService');
 goog.provide('ydn.db.QueryServiceProvider');
 goog.require('goog.async.Deferred');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.exe.Query');
 goog.require('ydn.db.Key');
 
 
@@ -18,18 +18,18 @@ goog.require('ydn.db.Key');
 /**
  * @interface
  */
-ydn.db.QueryService = function() {
+ydn.db.tr.QueryService = function() {
 
 };
 
 
 /**
-* @param {!ydn.db.Query} q query.
+* @param {!ydn.db.exe.Query} q query.
 * @param {number=} limit
 * @param {number=} offset
 * @return {!goog.async.Deferred}
 */
-ydn.db.QueryService.prototype.fetch = function(q, limit, offset) {};
+ydn.db.tr.QueryService.prototype.fetch = function(q, limit, offset) {};
 
 
 
@@ -40,20 +40,7 @@ ydn.db.QueryService.prototype.fetch = function(q, limit, offset) {};
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.QueryService.prototype.get = function(store, id) {
-
-};
-
-
-/**
- * Return object
- * @param {IDBTransaction|IDBTransaction|Object} tx
- * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store_name table name.
- * @param {(string|number|!Array.<string>)=} opt_key object key to be retrieved, if not provided,
- * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.QueryService.prototype.getInTx = function (tx, store_name, opt_key) {
+ydn.db.tr.QueryService.prototype.get = function(store, id) {
 
 };
 
@@ -64,7 +51,7 @@ ydn.db.QueryService.prototype.getInTx = function (tx, store_name, opt_key) {
  * @param {(string|number)=}  opt_key
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.QueryService.prototype.put = function(store, value, opt_key) {
+ydn.db.tr.QueryService.prototype.put = function(store, value, opt_key) {
 
 };
 
@@ -77,7 +64,7 @@ ydn.db.QueryService.prototype.put = function(store, value, opt_key) {
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.QueryService.prototype.clear = function(opt_table, opt_key) {
+ydn.db.tr.QueryService.prototype.clear = function(opt_table, opt_key) {
 
 };
 
@@ -90,17 +77,7 @@ ydn.db.QueryServiceProvider = function() {};
 
 
 /**
- * @return {boolean}
+ * @param {function(!ydn.db.tr.QueryService)} callback
  */
-ydn.db.QueryServiceProvider.prototype.isReady = function() {};
+ydn.db.QueryServiceProvider.prototype.isReady = function(callback) {};
 
-
-/**
- * @return {ydn.db.QueryService}
- */
-ydn.db.QueryServiceProvider.prototype.getQueryService = function() {};
-
-/**
- * @return {!goog.async.Deferred}
- */
-ydn.db.QueryServiceProvider.prototype.getDeferredDb = function() {};

@@ -16,29 +16,29 @@
  * @fileoverview HTML5 localStorage implemented as deferred async pattern.
  */
 
-goog.provide('ydn.db.LocalStorage');
-goog.provide('ydn.db.SessionStorage');
-goog.require('ydn.db.MemoryStore');
+goog.provide('ydn.db.exe.LocalStorage');
+goog.provide('ydn.db.exe.SessionStorage');
+goog.require('ydn.db.exe.MemoryStore');
 
 
 /**
- * @extends {ydn.db.MemoryStore}
+ * @extends {ydn.db.exe.MemoryStore}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
  * name and keyPath.
  * @constructor
  */
-ydn.db.LocalStorage = function(dbname, schemas) {
+ydn.db.exe.LocalStorage = function(dbname, schemas) {
   goog.base(this, dbname, schemas, window.localStorage);
 };
-goog.inherits(ydn.db.LocalStorage, ydn.db.MemoryStore);
+goog.inherits(ydn.db.exe.LocalStorage, ydn.db.exe.MemoryStore);
 
 
 /**
  *
  * @return {boolean} true if localStorage is supported.
  */
-ydn.db.LocalStorage.isSupported = function() {
+ydn.db.exe.LocalStorage.isSupported = function() {
   return !!window.localStorage;
 };
 
@@ -47,34 +47,34 @@ ydn.db.LocalStorage.isSupported = function() {
  * @const
  * @type {string}
  */
-ydn.db.LocalStorage.TYPE = 'localstorage';
+ydn.db.exe.LocalStorage.TYPE = 'localstorage';
 
 /**
  * @return {string}
  */
-ydn.db.LocalStorage.prototype.type = function() {
-  return ydn.db.LocalStorage.TYPE;
+ydn.db.exe.LocalStorage.prototype.type = function() {
+  return ydn.db.exe.LocalStorage.TYPE;
 };
 
 
 /**
- * @extends {ydn.db.MemoryStore}
+ * @extends {ydn.db.exe.MemoryStore}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
  * name and keyPath.
  * @constructor
  */
-ydn.db.SessionStorage = function(dbname, schemas) {
+ydn.db.exe.SessionStorage = function(dbname, schemas) {
   goog.base(this, dbname, schemas, window.sessionStorage);
 };
-goog.inherits(ydn.db.SessionStorage, ydn.db.MemoryStore);
+goog.inherits(ydn.db.exe.SessionStorage, ydn.db.exe.MemoryStore);
 
 
 /**
  *
  * @return {boolean} true if localStorage is supported.
  */
-ydn.db.SessionStorage.isSupported = function() {
+ydn.db.exe.SessionStorage.isSupported = function() {
   return !!window.sessionStorage;
 };
 
@@ -83,13 +83,13 @@ ydn.db.SessionStorage.isSupported = function() {
  * @const
  * @type {string}
  */
-ydn.db.SessionStorage.TYPE = 'sessionstorage';
+ydn.db.exe.SessionStorage.TYPE = 'sessionstorage';
 
 /**
  * @return {string}
  */
-ydn.db.SessionStorage.prototype.type = function() {
-  return ydn.db.SessionStorage.TYPE;
+ydn.db.exe.SessionStorage.prototype.type = function() {
+  return ydn.db.exe.SessionStorage.TYPE;
 };
 
 

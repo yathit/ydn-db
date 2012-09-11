@@ -84,7 +84,7 @@ ydn.db.Core = function(opt_dbname, opt_schema, opt_options) {
 
 
 /**
- * @protected
+ * @private
  * @type {ydn.db.DbService} db instance.
  */
 ydn.db.Core.prototype.db_ = null;
@@ -293,7 +293,7 @@ ydn.db.Core.prototype.close = function() {
  * @param {function(!ydn.db.DbService)} callback
  */
 ydn.db.Core.prototype.onReady = function(callback) {
-  if (this.db_) {
+  if (this.db_) { // we can skip this check, but it saves one function wrap.
     callback(this.db_);
   } else {
     this.deferredDb_.addCallback(callback);
