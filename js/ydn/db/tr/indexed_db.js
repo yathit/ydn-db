@@ -20,6 +20,7 @@
 
 goog.provide('ydn.db.tr.IndexedDb');
 goog.require('ydn.db.adapter.IndexedDb');
+goog.require('ydn.db.tr.Service');
 
 
 /**

@@ -509,20 +509,8 @@ ydn.db.adapter.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
 ydn.db.adapter.IndexedDb.prototype.close = function() {
 
   var df = new goog.async.Deferred();
-  var request = this.db_.close();
 
-  request.onsuccess = function(event) {
-    if (ydn.db.adapter.IndexedDb.DEBUG) {
-      window.console.log(event);
-    }
-    df.callback(true);
-  };
-  request.onerror = function(event) {
-    if (ydn.db.adapter.IndexedDb.DEBUG) {
-      window.console.log(event);
-    }
-    df.errback(event);
-  };
+  this.db_.close(); // return void.
 
   return df;
 };

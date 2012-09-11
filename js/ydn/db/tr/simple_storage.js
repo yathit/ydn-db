@@ -18,6 +18,7 @@
 
 goog.provide('ydn.db.tr.SimpleStorage');
 goog.require('ydn.db.adapter.SimpleStorage');
+goog.require('ydn.db.tr.Service');
 
 
 /**

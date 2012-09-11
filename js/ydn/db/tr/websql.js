@@ -23,6 +23,7 @@
 
 goog.provide('ydn.db.tr.WebSql');
 goog.require('ydn.db.adapter.WebSql');
+goog.require('ydn.db.tr.Service');
 
 
 /**

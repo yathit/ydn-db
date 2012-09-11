@@ -105,7 +105,7 @@ ydn.db.Core.prototype.db_ = null;
  * @return {{name: string, schema: !Object}?} configuration
  * containing database and list of schema in JSON format.
  */
-ydn.db.Core.prototype.getConfig = function() {
+ydn.db.Core.prototype.valueOf = function() {
   if (!this.schema) {
     return null;
   }
@@ -261,7 +261,7 @@ ydn.db.Core.prototype.initDatabase = function() {
 
 /**
  * Probe database is initialized and ready to be use.
- * @export
+ * @private should not require
  * @return {boolean} true if the database has been initialized.
  */
 ydn.db.Core.prototype.isReady = function() {
@@ -318,9 +318,8 @@ ydn.db.Core.prototype.getDeferredDb = function() {
 
 /**
  * For undocumented export property to minified js file for hackers.
- * @deprecated this will be always deprecated.
  */
-ydn.db.Core.prototype.getDbInstance_ = function() {
+ydn.db.Core.prototype.getDbInstance = function() {
   if (this.db_) {
     return this.db_.getDbInstance();
   }
@@ -356,18 +355,16 @@ ydn.db.Core.prototype.transaction = function (trFn, store_names, mode) {
 
 
 goog.exportSymbol('ydn.db.Core', ydn.db.Core);
-//goog.exportProperty(ydn.db.Core.prototype, 'isReady',
-//  ydn.db.Core.prototype.isReady);
 goog.exportProperty(ydn.db.Core.prototype, 'type',
   ydn.db.Core.prototype.type);
 goog.exportProperty(ydn.db.Core.prototype, 'setName',
   ydn.db.Core.prototype.setName);
-goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
-  ydn.db.Core.prototype.getConfig);
+goog.exportProperty(ydn.db.Core.prototype, 'valueOf',
+  ydn.db.Core.prototype.valueOf);
 goog.exportProperty(ydn.db.Core.prototype, 'transaction',
   ydn.db.Core.prototype.transaction);
 goog.exportProperty(ydn.db.Core.prototype, 'close',
   ydn.db.Core.prototype.close);
 // for hacker
 goog.exportProperty(ydn.db.Core.prototype, 'db',
-  ydn.db.Core.prototype.getDbInstance_);
+  ydn.db.Core.prototype.getDbInstance);
