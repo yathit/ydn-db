@@ -29,13 +29,13 @@ goog.provide('ydn.db.IndexedDb');
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @implements {ydn.db.TransactionService}
- * @extends {ydn.db.IndexedDbWrapper}
+ * @extends {ydn.db.adapter.IndexedDb}
  * @constructor
  */
 ydn.db.tr.IndexedDb = function(dbname, schema) {
   goog.base(this, dbname, schema)
 };
-goog.inherits(ydn.db.tr.IndexedDb, ydn.db.IndexedDbWrapper);
+goog.inherits(ydn.db.tr.IndexedDb, ydn.db.adapter.IndexedDb);
 
 
 /**

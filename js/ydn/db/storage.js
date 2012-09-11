@@ -35,7 +35,7 @@ goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.LocalStorage');
 goog.require('ydn.db.IndexedDb');
-goog.require('ydn.db.IndexedDbWrapper');
+goog.require('ydn.db.adapter.IndexedDb');
 goog.require('ydn.db.MemoryStore');
 goog.require('ydn.db.WebSql');
 goog.require('ydn.object');
@@ -97,10 +97,10 @@ ydn.db.Storage.prototype.initDatabase = function() {
       var preference = this.preference || ydn.db.Core.PREFERENCE;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
-        if (db_type == ydn.db.IndexedDbWrapper.TYPE && ydn.db.IndexedDbWrapper.isSupported()) { // run-time detection
+        if (db_type == ydn.db.adapter.IndexedDb.TYPE && ydn.db.adapter.IndexedDb.isSupported()) { // run-time detection
           this.db_ = new ydn.db.IndexedDb(this.db_name, this.schema);
           break;
-        } else if (db_type == ydn.db.WebSqlWrapper.TYPE && ydn.db.WebSqlWrapper.isSupported()) {
+        } else if (db_type == ydn.db.WebSql.TYPE && ydn.db.WebSql.isSupported()) {
           this.db_ = new ydn.db.WebSql(this.db_name, this.schema);
           break;
         } else if (db_type == ydn.db.LocalStorage.TYPE && ydn.db.LocalStorage.isSupported()) {

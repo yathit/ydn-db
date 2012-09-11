@@ -18,11 +18,11 @@
 
 goog.provide('ydn.db.tr.LocalStorage');
 goog.provide('ydn.db.tr.SessionStorage');
-goog.require('ydn.db.SimpleStorage');
+goog.require('ydn.db.adapter.SimpleStorage');
 
 
 /**
- * @extends {ydn.db.SimpleStorage}
+ * @extends {ydn.db.adapter.SimpleStorage}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
  * name and keyPath.
@@ -31,7 +31,7 @@ goog.require('ydn.db.SimpleStorage');
 ydn.db.tr.LocalStorage = function(dbname, schemas) {
   goog.base(this, dbname, schemas, window.localStorage);
 };
-goog.inherits(ydn.db.tr.LocalStorage, ydn.db.SimpleStorage);
+goog.inherits(ydn.db.tr.LocalStorage, ydn.db.adapter.SimpleStorage);
 
 
 /**
@@ -58,7 +58,7 @@ ydn.db.tr.LocalStorage.prototype.type = function() {
 
 
 /**
- * @extends {ydn.db.SimpleStorage}
+ * @extends {ydn.db.adapter.SimpleStorage}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
  * name and keyPath.
@@ -67,7 +67,7 @@ ydn.db.tr.LocalStorage.prototype.type = function() {
 ydn.db.tr.SessionStorage = function(dbname, schemas) {
   goog.base(this, dbname, schemas, window.sessionStorage);
 };
-goog.inherits(ydn.db.tr.SessionStorage, ydn.db.SimpleStorage);
+goog.inherits(ydn.db.tr.SessionStorage, ydn.db.adapter.SimpleStorage);
 
 
 /**

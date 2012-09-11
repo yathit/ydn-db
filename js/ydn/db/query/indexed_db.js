@@ -20,7 +20,7 @@
 
 goog.provide('ydn.db.IndexedDb');
 goog.require('goog.async.DeferredList');
-goog.require('ydn.db.IndexedDbWrapper');
+goog.require('ydn.db.adapter.IndexedDb');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
 goog.require('ydn.error');
@@ -33,20 +33,20 @@ goog.require('ydn.error');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @extends {ydn.db.IndexedDbWrapper}
+ * @extends {ydn.db.adapter.IndexedDb}
  * @constructor
  */
 ydn.db.IndexedDb = function(dbname, schema) {
   goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.IndexedDb, ydn.db.IndexedDbWrapper);
+goog.inherits(ydn.db.IndexedDb, ydn.db.adapter.IndexedDb);
 
 
 /**
  *
  * @const {boolean} turn on debug flag to dump object.
  */
-ydn.db.IndexedDb.DEBUG = goog.DEBUG && (ydn.db.IndexedDbWrapper.DEBUG || false);
+ydn.db.IndexedDb.DEBUG = goog.DEBUG && (ydn.db.adapter.IndexedDb.DEBUG || false);
 
 
 /**
@@ -875,9 +875,9 @@ ydn.db.IndexedDb.prototype.remove = function(opt_table, opt_id) {
       return this.deleteStore_(opt_table);
     }
   } else {
-    if (goog.isFunction(ydn.db.IndexedDbWrapper.indexedDb.deleteDatabase)) {
+    if (goog.isFunction(ydn.db.adapter.IndexedDb.indexedDb.deleteDatabase)) {
       var df = new goog.async.Deferred();
-      var req = ydn.db.IndexedDbWrapper.indexedDb.deleteDatabase(this.dbname);
+      var req = ydn.db.adapter.IndexedDb.indexedDb.deleteDatabase(this.dbname);
       req.onsuccess = function(e) {
         df.addCallback(e);
       };

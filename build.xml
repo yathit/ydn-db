@@ -3,7 +3,7 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
-    <property name="ver" value="0.8.0"/>
+    <property name="ver" value="0.9.0"/>
     <target name="compile-debug" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
@@ -73,6 +73,9 @@
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="core-ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.Core">
+            <exjs.dir>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/adapter"'/>
+            </exjs.dir>
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/core-ydn-db-min-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/core-ydn-db-min.js"/>

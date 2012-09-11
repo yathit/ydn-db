@@ -22,7 +22,7 @@
  */
 
 goog.provide('ydn.db.tr.WebSql');
-goog.require('ydn.db.WebSqlWrapper');
+goog.require('ydn.db.WebSql');
 
 
 /**

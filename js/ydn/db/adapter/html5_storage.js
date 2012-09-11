@@ -16,29 +16,29 @@
  * @fileoverview HTML5 localStorage implemented as deferred async pattern.
  */
 
-goog.provide('ydn.db.LocalStorageWrapper');
-goog.provide('ydn.db.SessionStorageWrapper');
-goog.require('ydn.db.SimpleStorage');
+goog.provide('ydn.db.adapter.LocalStorage');
+goog.provide('ydn.db.adapter.SessionStorage');
+goog.require('ydn.db.adapter.SimpleStorage');
 
 
 /**
- * @extends {ydn.db.SimpleStorage}
+ * @extends {ydn.db.adapter.SimpleStorage}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
  * name and keyPath.
  * @constructor
  */
-ydn.db.LocalStorageWrapper = function(dbname, schemas) {
+ydn.db.adapter.LocalStorage = function(dbname, schemas) {
   goog.base(this, dbname, schemas, window.localStorage);
 };
-goog.inherits(ydn.db.LocalStorageWrapper, ydn.db.SimpleStorage);
+goog.inherits(ydn.db.adapter.LocalStorage, ydn.db.adapter.SimpleStorage);
 
 
 /**
  *
  * @return {boolean} true if localStorage is supported.
  */
-ydn.db.LocalStorageWrapper.isSupported = function() {
+ydn.db.adapter.LocalStorage.isSupported = function() {
   return !!window.localStorage;
 };
 
@@ -47,34 +47,34 @@ ydn.db.LocalStorageWrapper.isSupported = function() {
  * @const
  * @type {string}
  */
-ydn.db.LocalStorageWrapper.TYPE = 'localstorage';
+ydn.db.adapter.LocalStorage.TYPE = 'localstorage';
 
 /**
  * @return {string}
  */
-ydn.db.LocalStorageWrapper.prototype.type = function() {
-  return ydn.db.LocalStorageWrapper.TYPE;
+ydn.db.adapter.LocalStorage.prototype.type = function() {
+  return ydn.db.adapter.LocalStorage.TYPE;
 };
 
 
 /**
- * @extends {ydn.db.SimpleStorage}
+ * @extends {ydn.db.adapter.SimpleStorage}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
  * name and keyPath.
  * @constructor
  */
-ydn.db.SessionStorageWrapper = function(dbname, schemas) {
+ydn.db.adapter.SessionStorage = function(dbname, schemas) {
   goog.base(this, dbname, schemas, window.sessionStorage);
 };
-goog.inherits(ydn.db.SessionStorageWrapper, ydn.db.SimpleStorage);
+goog.inherits(ydn.db.adapter.SessionStorage, ydn.db.adapter.SimpleStorage);
 
 
 /**
  *
  * @return {boolean} true if localStorage is supported.
  */
-ydn.db.SessionStorageWrapper.isSupported = function() {
+ydn.db.adapter.SessionStorage.isSupported = function() {
   return !!window.sessionStorage;
 };
 
@@ -83,13 +83,13 @@ ydn.db.SessionStorageWrapper.isSupported = function() {
  * @const
  * @type {string}
  */
-ydn.db.SessionStorageWrapper.TYPE = 'sessionstorage';
+ydn.db.adapter.SessionStorage.TYPE = 'sessionstorage';
 
 /**
  * @return {string}
  */
-ydn.db.SessionStorageWrapper.prototype.type = function() {
-  return ydn.db.SessionStorageWrapper.TYPE;
+ydn.db.adapter.SessionStorage.prototype.type = function() {
+  return ydn.db.adapter.SessionStorage.TYPE;
 };
 
 

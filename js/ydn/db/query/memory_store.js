@@ -21,7 +21,7 @@ goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
 goog.require('ydn.db.QueryService');
-goog.require('ydn.db.SimpleStorage');
+goog.require('ydn.db.adapter.SimpleStorage');
 
 
 /**
@@ -30,13 +30,13 @@ goog.require('ydn.db.SimpleStorage');
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
- * @extends {ydn.db.SimpleStorage}
+ * @extends {ydn.db.adapter.SimpleStorage}
  * @constructor
  */
 ydn.db.MemoryStore = function(dbname, schema, opt_localStorage) {
   goog.base(this, dbname, schema, opt_localStorage);
 };
-goog.inherits(ydn.db.MemoryStore, ydn.db.SimpleStorage);
+goog.inherits(ydn.db.MemoryStore, ydn.db.adapter.SimpleStorage);
 
 
 /**

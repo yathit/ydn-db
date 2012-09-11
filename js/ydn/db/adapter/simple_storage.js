@@ -16,7 +16,7 @@
  * @fileoverview Data store in memory.
  */
 
-goog.provide('ydn.db.SimpleStorage');
+goog.provide('ydn.db.adapter.SimpleStorage');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
@@ -32,14 +32,14 @@ goog.require('ydn.db.CoreService');
  * @param {Object=} opt_localStorage
  * @constructor
  */
-ydn.db.SimpleStorage = function(dbname, schema, opt_localStorage) {
+ydn.db.adapter.SimpleStorage = function(dbname, schema, opt_localStorage) {
 
   /**
    * @final
    * @type {!Object}
    * @protected // should be private ?
    */
-  this.cache_ = opt_localStorage || ydn.db.SimpleStorage.getFakeLocalStorage();
+  this.cache_ = opt_localStorage || ydn.db.adapter.SimpleStorage.getFakeLocalStorage();
 
   /**
    * @final
@@ -61,14 +61,14 @@ ydn.db.SimpleStorage = function(dbname, schema, opt_localStorage) {
  * @const
  * @type {string}
  */
-ydn.db.SimpleStorage.TYPE = 'memory';
+ydn.db.adapter.SimpleStorage.TYPE = 'memory';
 
 
 /**
  *
  * @return {!Object} return memory store object.
  */
-ydn.db.SimpleStorage.getFakeLocalStorage = function() {
+ydn.db.adapter.SimpleStorage.getFakeLocalStorage = function() {
 
   var localStorage = {};
   localStorage.setItem = function(key, value) {
@@ -93,12 +93,12 @@ ydn.db.SimpleStorage.getFakeLocalStorage = function() {
  *
  * @return {boolean} true if memory is supported.
  */
-ydn.db.SimpleStorage.isSupported = function() {
+ydn.db.adapter.SimpleStorage.isSupported = function() {
   return true;
 };
 
 
-ydn.db.SimpleStorage.prototype.getDb_ = function() {
+ydn.db.adapter.SimpleStorage.prototype.getDb_ = function() {
   return this.cache_;
 };
 
@@ -106,7 +106,7 @@ ydn.db.SimpleStorage.prototype.getDb_ = function() {
 /**
  *
  */
-ydn.db.SimpleStorage.prototype.getDbInstance = function() {
+ydn.db.adapter.SimpleStorage.prototype.getDbInstance = function() {
   return this.cache_ || null;
 };
 
@@ -115,7 +115,7 @@ ydn.db.SimpleStorage.prototype.getDbInstance = function() {
  * @protected
  * @param {string} old_version old version.
  */
-ydn.db.SimpleStorage.prototype.migrate = function(old_version) {
+ydn.db.adapter.SimpleStorage.prototype.migrate = function(old_version) {
 
 };
 
@@ -124,7 +124,7 @@ ydn.db.SimpleStorage.prototype.migrate = function(old_version) {
  * Column name of key, if keyPath is not specified.
  * @const {string}
  */
-ydn.db.SimpleStorage.DEFAULT_KEY_PATH = '_id_';
+ydn.db.adapter.SimpleStorage.DEFAULT_KEY_PATH = '_id_';
 
 
 
@@ -136,7 +136,7 @@ ydn.db.SimpleStorage.DEFAULT_KEY_PATH = '_id_';
  * @param {!Object} value object having key in keyPath field.
  * @return {string|number} canonical key name.
  */
-ydn.db.SimpleStorage.prototype.extractKey = function (store_name, value) {
+ydn.db.adapter.SimpleStorage.prototype.extractKey = function (store_name, value) {
   var store = this.schema.getStore(store_name);
   goog.asserts.assertObject(store, 'store: ' + store_name + ' not found.');
   var key;
@@ -159,7 +159,7 @@ ydn.db.SimpleStorage.prototype.extractKey = function (store_name, value) {
  * @param {ydn.db.StoreSchema|string} store table name.
  * @return {string} canonical key name.
  */
-ydn.db.SimpleStorage.prototype.getKey = function(id, store) {
+ydn.db.adapter.SimpleStorage.prototype.getKey = function(id, store) {
   var store_name = store instanceof ydn.db.StoreSchema ? store.name : store;
   return '_database_' + this.dbname + '-' + store_name + '-' + id;
 };
@@ -169,7 +169,7 @@ ydn.db.SimpleStorage.prototype.getKey = function(id, store) {
  *
  * @define {boolean} use sync result.
  */
-ydn.db.SimpleStorage.SYNC = false;
+ydn.db.adapter.SimpleStorage.SYNC = false;
 
 
 /**
@@ -177,11 +177,11 @@ ydn.db.SimpleStorage.SYNC = false;
  * @param {*} value
  * @return {!goog.async.Deferred} return callback with given value in async.
  */
-ydn.db.SimpleStorage.succeed = function(value) {
+ydn.db.adapter.SimpleStorage.succeed = function(value) {
 
   var df = new goog.async.Deferred();
 
-  if (ydn.db.SimpleStorage.SYNC) {
+  if (ydn.db.adapter.SimpleStorage.SYNC) {
     df.callback(value);
   } else {
     goog.Timer.callOnce(function() {
@@ -197,7 +197,7 @@ ydn.db.SimpleStorage.succeed = function(value) {
 /**
  * @return {string}
  */
-ydn.db.SimpleStorage.prototype.type = function() {
+ydn.db.adapter.SimpleStorage.prototype.type = function() {
   return 'memory';
 };
 
@@ -205,8 +205,8 @@ ydn.db.SimpleStorage.prototype.type = function() {
 /**
  * @inheritDoc
  */
-ydn.db.SimpleStorage.prototype.close = function () {
-  return ydn.db.SimpleStorage.succeed(true);
+ydn.db.adapter.SimpleStorage.prototype.close = function () {
+  return ydn.db.adapter.SimpleStorage.succeed(true);
 };
 
 
@@ -215,7 +215,7 @@ ydn.db.SimpleStorage.prototype.close = function () {
 /**
  * @final
  */
-ydn.db.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode) {
+ydn.db.adapter.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode) {
   trFn(this.cache_);
 };
 
@@ -228,7 +228,7 @@ ydn.db.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode) {
  * @param {(string|number)} id id.
  * @return {string} canonical key name.
  */
-ydn.db.SimpleStorage.prototype.makeKey = function(store_name, id) {
+ydn.db.adapter.SimpleStorage.prototype.makeKey = function(store_name, id) {
   return '_database_' + this.dbname + '-' + store_name + '-' + id;
 };
 
@@ -242,7 +242,7 @@ ydn.db.SimpleStorage.prototype.makeKey = function(store_name, id) {
  * @protected
  * @final
  */
-ydn.db.SimpleStorage.prototype.getItemInternal = function(store_name, id) {
+ydn.db.adapter.SimpleStorage.prototype.getItemInternal = function(store_name, id) {
   var key = this.makeKey(store_name, id);
   var value = this.cache_.getItem(key);
   if (!goog.isNull(value)) {
@@ -262,7 +262,7 @@ ydn.db.SimpleStorage.prototype.getItemInternal = function(store_name, id) {
  * @protected
  * @final
  */
-ydn.db.SimpleStorage.prototype.setItemInternal = function(value, store_name_or_key, id) {
+ydn.db.adapter.SimpleStorage.prototype.setItemInternal = function(value, store_name_or_key, id) {
   var key = goog.isDef(id) ? this.makeKey(store_name_or_key, id) : store_name_or_key;
   this.cache_.setItem(key, value);
 };
@@ -275,7 +275,7 @@ ydn.db.SimpleStorage.prototype.setItemInternal = function(value, store_name_or_k
  * @protected
  * @final
  */
-ydn.db.SimpleStorage.prototype.removeItemInternal = function(store_name_or_key, id) {
+ydn.db.adapter.SimpleStorage.prototype.removeItemInternal = function(store_name_or_key, id) {
   var key = goog.isDef(id) ? this.makeKey(store_name_or_key, id) : store_name_or_key;
   this.cache_.removeItem(key);
 };

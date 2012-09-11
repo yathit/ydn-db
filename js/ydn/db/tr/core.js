@@ -69,15 +69,15 @@ goog.inherits(ydn.db.tr.Core, ydn.db.Core);
  */
 ydn.db.tr.Core.prototype.createDbInstance = function(db_type, db_name, config) {
   //noinspection JSValidateTypes
-  if (db_type == ydn.db.IndexedDbWrapper.TYPE) {
+  if (db_type == ydn.db.adapter.IndexedDb.TYPE) {
     return new ydn.db.tr.IndexedDb(db_name, config);
-  } else if (db_type == ydn.db.WebSqlWrapper.TYPE) {
+  } else if (db_type == ydn.db.WebSql.TYPE) {
     return new ydn.db.tr.WebSql(db_name, config);
-  } else if (db_type == ydn.db.LocalStorageWrapper.TYPE) {
+  } else if (db_type == ydn.db.adapter.LocalStorage.TYPE) {
     return new ydn.db.tr.LocalStorage(db_name, config);
-  } else if (db_type == ydn.db.SessionStorageWrapper.TYPE) {
+  } else if (db_type == ydn.db.adapter.SessionStorage.TYPE) {
     return new ydn.db.tr.SessionStorage(db_name, config);
-  } else if (db_type == ydn.db.SimpleStorage.TYPE)  {
+  } else if (db_type == ydn.db.adapter.SimpleStorage.TYPE)  {
     return new ydn.db.tr.SimpleStorage(db_name, config);
   }
   return null;

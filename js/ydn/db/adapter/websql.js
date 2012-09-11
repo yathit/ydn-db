@@ -20,7 +20,7 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.WebSqlWrapper');
+goog.provide('ydn.db.adapter.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
@@ -38,7 +38,7 @@ goog.require('ydn.db');
  * @implements {ydn.db.CoreService}
  * @constructor
  */
-ydn.db.WebSqlWrapper = function(dbname, schema) {
+ydn.db.adapter.WebSql = function(dbname, schema) {
   var self = this;
   this.dbname = dbname;
   /**
@@ -77,17 +77,17 @@ ydn.db.WebSqlWrapper = function(dbname, schema) {
  * @const
  * @type {string}
  */
-ydn.db.WebSqlWrapper.TYPE = 'websql';
+ydn.db.adapter.WebSql.TYPE = 'websql';
 
 /**
  * @return {string}
  */
-ydn.db.WebSqlWrapper.prototype.type = function() {
-  return ydn.db.WebSqlWrapper.TYPE;
+ydn.db.adapter.WebSql.prototype.type = function() {
+  return ydn.db.adapter.WebSql.TYPE;
 };
 
 //
-//ydn.db.WebSqlWrapper.prototype.getDb = function() {
+//ydn.db.adapter.WebSql.prototype.getDb = function() {
 //  return this.sql_db_;
 //};
 
@@ -97,13 +97,13 @@ ydn.db.WebSqlWrapper.prototype.type = function() {
  * @type {Database}
  * @private
  */
-ydn.db.WebSqlWrapper.prototype.sql_db_ = null;
+ydn.db.adapter.WebSql.prototype.sql_db_ = null;
 
 
 /**
  *
  */
-ydn.db.WebSqlWrapper.prototype.getDbInstance = function() {
+ydn.db.adapter.WebSql.prototype.getDbInstance = function() {
   return this.sql_db_ || null;
 };
 
@@ -112,7 +112,7 @@ ydn.db.WebSqlWrapper.prototype.getDbInstance = function() {
  *
  * @return {boolean} true if supported.
  */
-ydn.db.WebSqlWrapper.isSupported = function() {
+ydn.db.adapter.WebSql.isSupported = function() {
   return goog.isFunction(goog.global.openDatabase);
 };
 
@@ -121,21 +121,21 @@ ydn.db.WebSqlWrapper.isSupported = function() {
  * @const
  * @type {boolean} debug flag.
  */
-ydn.db.WebSqlWrapper.DEBUG = false;
+ydn.db.adapter.WebSql.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.WebSqlWrapper.prototype.logger = goog.debug.Logger.getLogger('ydn.db.WebSqlWrapper');
+ydn.db.adapter.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.adapter.WebSql');
 
 
 /**
  * Run the first transaction task in the queue.
  * @private
  */
-ydn.db.WebSqlWrapper.prototype.runTxQueue_ = function() {
+ydn.db.adapter.WebSql.prototype.runTxQueue_ = function() {
 
   var task = this.sql_tx_queue.shift();
   if (task) {
@@ -149,7 +149,7 @@ ydn.db.WebSqlWrapper.prototype.runTxQueue_ = function() {
  * @private
  * @param e
  */
-ydn.db.WebSqlWrapper.prototype.abortTxQueue_ = function(e) {
+ydn.db.adapter.WebSql.prototype.abortTxQueue_ = function(e) {
   if (this.sql_tx_queue) {
     var task = this.sql_tx_queue.shift();
     while (task) {
@@ -164,7 +164,7 @@ ydn.db.WebSqlWrapper.prototype.abortTxQueue_ = function(e) {
  * @private
  * @type {boolean}
  */
-ydn.db.WebSqlWrapper.prototype.in_tx_ = false;
+ydn.db.adapter.WebSql.prototype.in_tx_ = false;
 
 
 /**
@@ -174,7 +174,7 @@ ydn.db.WebSqlWrapper.prototype.in_tx_ = false;
  * @param {ydn.db.StoreSchema} schema name of table in the schema.
  * @return {string} SQL statement for creating the table.
  */
-ydn.db.WebSqlWrapper.prototype.prepareCreateTable_ = function(schema) {
+ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(schema) {
 
   var sql = 'CREATE TABLE IF NOT EXISTS ' + schema.getQuotedName() + ' (';
 
@@ -219,7 +219,7 @@ ydn.db.WebSqlWrapper.prototype.prepareCreateTable_ = function(schema) {
  * Migrate from current version to the last version.
  * @private
  */
-ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
+ydn.db.adapter.WebSql.prototype.migrate_ = function() {
 
   var me = this;
 
@@ -229,7 +229,7 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
    * @param {SQLResultSet} results results.
    */
   var success_callback = function(transaction, results) {
-    if (ydn.db.WebSqlWrapper.DEBUG) {
+    if (ydn.db.adapter.WebSql.DEBUG) {
       window.console.log(results);
     }
     me.logger.finest('Creating tables OK.');
@@ -241,7 +241,7 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.WebSqlWrapper.DEBUG) {
+    if (ydn.db.adapter.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     me.logger.warning('Error creating tables: ' + error.message);
@@ -259,7 +259,7 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
 
     me.logger.finest('Creating tables ' + sqls.join('\n'));
     for (var i = 0; i < sqls.length; i++) {
-      if (ydn.db.WebSqlWrapper.DEBUG) {
+      if (ydn.db.adapter.WebSql.DEBUG) {
         window.console.log(sqls[i]);
       }
       t.executeSql(sqls[i], [],
@@ -280,7 +280,7 @@ ydn.db.WebSqlWrapper.prototype.migrate_ = function() {
  * @param {!Object} row row.
  * @return {!Object} parse value.
  */
-ydn.db.WebSqlWrapper.prototype.parseRow = function(table, row) {
+ydn.db.adapter.WebSql.prototype.parseRow = function(table, row) {
   goog.asserts.assertObject(row);
   var value = ydn.json.parse(row[ydn.db.DEFAULT_BLOB_COLUMN]);
   var key = row[table.keyPath]; // NOT: table.getKey(row);
@@ -313,7 +313,7 @@ ydn.db.WebSqlWrapper.prototype.parseRow = function(table, row) {
  * @param {!Object} row row.
  * @return {!Object} parse value.
  */
-ydn.db.WebSqlWrapper.prototype.getKeyFromRow = function(table, row) {
+ydn.db.adapter.WebSql.prototype.getKeyFromRow = function(table, row) {
   return row[table.keyPath || ydn.db.DEFAULT_KEY_COLUMN];
 };
 
@@ -321,7 +321,7 @@ ydn.db.WebSqlWrapper.prototype.getKeyFromRow = function(table, row) {
 /**
  * @final
  */
-ydn.db.WebSqlWrapper.prototype.close = function () {
+ydn.db.adapter.WebSql.prototype.close = function () {
   // WebSQl API do not have close method.
   return goog.async.Deferred.succeed(true);
 };
@@ -336,7 +336,7 @@ ydn.db.WebSqlWrapper.prototype.close = function () {
  * @protected
  * @final
  */
-ydn.db.WebSqlWrapper.prototype.doTransaction = function(trFn, scopes, mode) {
+ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode) {
 
   var me = this;
   if (!this.in_tx_) {

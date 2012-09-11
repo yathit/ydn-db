@@ -28,7 +28,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.QueryService');
 goog.require('ydn.db.Query');
 goog.require('ydn.json');
-goog.require('ydn.db.WebSqlWrapper');
+goog.require('ydn.db.WebSql');
 
 
 /**
@@ -38,13 +38,13 @@ goog.require('ydn.db.WebSqlWrapper');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @extends {ydn.db.WebSqlWrapper}
+ * @extends {ydn.db.WebSql}
  * @constructor
  */
 ydn.db.WebSql = function(dbname, schema) {
  goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.WebSql, ydn.db.WebSqlWrapper);
+goog.inherits(ydn.db.WebSql, ydn.db.WebSql);
 
 
 
@@ -978,7 +978,7 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
    * @param {SQLResultSet} results results.
    */
   var success_callback = function(transaction, results) {
-    if (ydn.db.WebSqlWrapper.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log(results);
     }
     d.callback(true);
@@ -989,7 +989,7 @@ ydn.db.WebSql.prototype.deleteRow_ = function(table, id) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.WebSqlWrapper.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     me.logger.warning('put error: ' + error.message);
@@ -1045,7 +1045,7 @@ ydn.db.WebSql.prototype.executeDropTable_ = function(t, d, opt_table) {
    * @param {SQLError} error error.
    */
   var error_callback = function(tr, error) {
-    if (ydn.db.WebSqlWrapper.DEBUG) {
+    if (ydn.db.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     me.logger.warning('Delete TABLE: ' + error.message);

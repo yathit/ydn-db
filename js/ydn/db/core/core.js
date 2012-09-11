@@ -33,11 +33,11 @@
 goog.provide('ydn.db.Core');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
-goog.require('ydn.db.LocalStorageWrapper');
-goog.require('ydn.db.SessionStorageWrapper');
-goog.require('ydn.db.IndexedDbWrapper');
-goog.require('ydn.db.SimpleStorage');
-goog.require('ydn.db.WebSqlWrapper');
+goog.require('ydn.db.adapter.LocalStorage');
+goog.require('ydn.db.adapter.SessionStorage');
+goog.require('ydn.db.adapter.IndexedDb');
+goog.require('ydn.db.adapter.SimpleStorage');
+goog.require('ydn.db.adapter.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.db.CoreService');
 goog.require('ydn.error.ArgumentException');
@@ -177,11 +177,11 @@ ydn.db.Core.prototype.setSchema = function(schema) {
  * @const
  * @type {!Array.<string>}
  */
-ydn.db.Core.PREFERENCE = [ydn.db.IndexedDbWrapper.TYPE,
-  ydn.db.WebSqlWrapper.TYPE,
-  ydn.db.LocalStorageWrapper.TYPE,
-  ydn.db.SessionStorageWrapper.TYPE,
-  ydn.db.SimpleStorage.TYPE];
+ydn.db.Core.PREFERENCE = [ydn.db.adapter.IndexedDb.TYPE,
+  ydn.db.adapter.WebSql.TYPE,
+  ydn.db.adapter.LocalStorage.TYPE,
+  ydn.db.adapter.SessionStorage.TYPE,
+  ydn.db.adapter.SimpleStorage.TYPE];
 
 
 /**
@@ -193,16 +193,16 @@ ydn.db.Core.PREFERENCE = [ydn.db.IndexedDbWrapper.TYPE,
  */
 ydn.db.Core.prototype.createDbInstance = function(db_type, db_name, config) {
   //noinspection JSValidateTypes
-  if (db_type == ydn.db.IndexedDbWrapper.TYPE) {
-    return new ydn.db.IndexedDbWrapper(db_name, config);
-  } else if (db_type == ydn.db.WebSqlWrapper.TYPE) {
-    return new ydn.db.WebSqlWrapper(db_name, config);
-  } else if (db_type == ydn.db.LocalStorageWrapper.TYPE) {
-    return new ydn.db.LocalStorageWrapper(db_name, config);
-  } else if (db_type == ydn.db.SessionStorageWrapper.TYPE) {
-    return new ydn.db.SessionStorageWrapper(db_name, config);
-  } else if (db_type == ydn.db.SimpleStorage.TYPE)  {
-    return new ydn.db.SimpleStorage(db_name, config);
+  if (db_type == ydn.db.adapter.IndexedDb.TYPE) {
+    return new ydn.db.adapter.IndexedDb(db_name, config);
+  } else if (db_type == ydn.db.adapter.WebSql.TYPE) {
+    return new ydn.db.adapter.WebSql(db_name, config);
+  } else if (db_type == ydn.db.adapter.LocalStorage.TYPE) {
+    return new ydn.db.adapter.LocalStorage(db_name, config);
+  } else if (db_type == ydn.db.adapter.SessionStorage.TYPE) {
+    return new ydn.db.adapter.SessionStorage(db_name, config);
+  } else if (db_type == ydn.db.adapter.SimpleStorage.TYPE)  {
+    return new ydn.db.adapter.SimpleStorage(db_name, config);
   }
   return null;
 };
@@ -220,28 +220,28 @@ ydn.db.Core.prototype.initDatabase = function() {
     if (goog.userAgent.product.ASSUME_CHROME ||
       goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
-      this.db_ = this.createDbInstance(ydn.db.IndexedDbWrapper.TYPE, this.db_name, this.schema);
+      this.db_ = this.createDbInstance(ydn.db.adapter.IndexedDb.TYPE, this.db_name, this.schema);
     } else if (goog.userAgent.product.ASSUME_SAFARI) {
       // for dead-code elimination
-      this.db_ = this.createDbInstance(ydn.db.WebSqlWrapper.TYPE, this.db_name, this.schema);
+      this.db_ = this.createDbInstance(ydn.db.adapter.WebSql.TYPE, this.db_name, this.schema);
     } else {
       // go according to ordering
       var preference = this.preference || ydn.db.Core.PREFERENCE;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
-        if (db_type == ydn.db.IndexedDbWrapper.TYPE && ydn.db.IndexedDbWrapper.isSupported()) { // run-time detection
+        if (db_type == ydn.db.adapter.IndexedDb.TYPE && ydn.db.adapter.IndexedDb.isSupported()) { // run-time detection
           this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
-        } else if (db_type == ydn.db.WebSqlWrapper.TYPE && ydn.db.WebSqlWrapper.isSupported()) {
+        } else if (db_type == ydn.db.adapter.WebSql.TYPE && ydn.db.adapter.WebSql.isSupported()) {
           this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
-        } else if (db_type == ydn.db.LocalStorageWrapper.TYPE && ydn.db.LocalStorageWrapper.isSupported()) {
+        } else if (db_type == ydn.db.adapter.LocalStorage.TYPE && ydn.db.adapter.LocalStorage.isSupported()) {
           this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
-        } else if (db_type == ydn.db.SessionStorageWrapper.TYPE && ydn.db.SessionStorageWrapper.isSupported()) {
+        } else if (db_type == ydn.db.adapter.SessionStorage.TYPE && ydn.db.adapter.SessionStorage.isSupported()) {
           this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
-        } else if (db_type == ydn.db.SimpleStorage.TYPE)  {
+        } else if (db_type == ydn.db.adapter.SimpleStorage.TYPE)  {
           this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         }

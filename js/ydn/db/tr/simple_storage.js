@@ -17,7 +17,7 @@
  */
 
 goog.provide('ydn.db.tr.SimpleStorage');
-goog.require('ydn.db.SimpleStorage');
+goog.require('ydn.db.adapter.SimpleStorage');
 
 
 /**
@@ -26,13 +26,13 @@ goog.require('ydn.db.SimpleStorage');
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
- * @extends {ydn.db.SimpleStorage}
+ * @extends {ydn.db.adapter.SimpleStorage}
  * @constructor
  */
 ydn.db.tr.SimpleStorage = function(dbname, schema, opt_localStorage) {
   goog.base(this, dbname, schema, opt_localStorage);
 };
-goog.inherits(ydn.db.tr.SimpleStorage, ydn.db.SimpleStorage);
+goog.inherits(ydn.db.tr.SimpleStorage, ydn.db.adapter.SimpleStorage);
 
 
 
