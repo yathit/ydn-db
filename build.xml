@@ -2,7 +2,7 @@
     <dirname property="ydn-db.dir" file="${ant.file.ydn-db}"/>
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
-    <import file="${work.dir}/ydn/build.xml"/>
+    <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver" value="0.8.0"/>
     <target name="compile-debug" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
@@ -31,13 +31,12 @@
                              output.fn="@{output.dir}/@{output.fn}">
                 <extrapaths>
                     <arg line='-p "${ydn-base.dir}/js"'/>
-                    <arg line='-p "${ydn.dir}/js"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
                     <exjs.dir/>
                 </extrapaths>
                 <options>
                     <!--<arg line='-f "-generate_exports"'/>-->
-                    <arg line='-f "--externs=${ydn.dir}/externs/misc.js"'/>
+                    <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
                     <arg line='-f "--closure_entry_point=@{closure.entry}"'/>
                     <arg line='-f "--define=goog.DEBUG=false"'/>
                     <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
@@ -56,11 +55,10 @@
             <extrapaths>
                 <arg line='-p "${ydn-base.dir}/js"'/>
                 <arg line='-p "${ydn-db.dir}/js"'/>
-                <arg line='-p "${ydn.dir}/js"'/>
             </extrapaths>
             <options>
                 <arg line='-f "--formatting=PRETTY_PRINT"'/>
-                <arg line='-f "--externs=${ydn.dir}/externs/misc.js"'/>
+                <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
             </options>
         </closure-compile>
@@ -119,25 +117,11 @@
     <target name="jstd" description="print out jstd file for JS test driver">
         <jstd-gen base.dir="${ydn-db.dir}">
             <deps-options>
-                <arg line='--path "${ydn.dir}/js"'/>
                 <arg line='--path "${ydn-base.dir}/js"'/>
             </deps-options>
         </jstd-gen>
     </target>
 
-    <target name="jquery" description="Generate HTML from soy template">
-        <property name="jout.js" value="${ydn-db.dir}/jsc/jquery-ydn-db-min-${ver}.js"/>
-        <gen-soy-web output.fn="${jout.js}"
-                     namespace="templ.ydn.db.jquery.render"
-                     templ.dir="${ydn-db.dir}/templ"
-                     content-file="${ydn-db.dir}/jsc/ydn-db-min-${ver}.js">
-            <soy-web-optionls>
-                <arg value="--notidy=true"/>
-            </soy-web-optionls>
-        </gen-soy-web>
-        <copy file="${jout.js}"
-              todir="${work.dir}/ydn-dev/out/ydn-db/example"/>
-    </target>
     <target name="jsdoc" description="create document">
         <mkdir dir="${work.dir}/ydn-dev/out/ydn-db/docs"/>
         <java jar="${jsdoc.dir}/jsrun.jar" fork="true" failonerror="true" logError="true">
@@ -160,7 +144,7 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-core,compile,simple,jquery">
+            depends="compile-core,compile,simple">
 
     </target>
 </project>
