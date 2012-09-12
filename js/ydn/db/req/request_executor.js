@@ -160,3 +160,9 @@ ydn.db.req.RequestExecutor.prototype.clearById = goog.abstractMethod;
  */
 ydn.db.req.RequestExecutor.prototype.clearByStore = goog.abstractMethod;
 
+
+/**
+ * @param {!goog.async.Deferred} df return a deferred function.
+ * @param {string} table store name.
+ */
+ydn.db.req.RequestExecutor.prototype.count = goog.abstractMethod;

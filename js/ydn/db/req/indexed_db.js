@@ -744,19 +744,7 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 //};
 //
 //
-/////**
-//// *
-//// * @param {ydn.db.tr.IdbMutex} tx active transaction object.
-//// * @param {goog.async.Deferred} df deferred to feed result.
-//// * @param {string=} opt_table delete the table as provided otherwise
-//// * delete all stores.
-//// * @param {string=} opt_key delete a specific row.
-//// * @private
-//// */
-////ydn.db.req.IndexedDb.prototype.executeClear_ = function(tx, df, opt_table,
-//// opt_key) {
-////
-////};
+
 //
 //
 //
@@ -797,37 +785,33 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 //  }
 //};
 //
-//
-///**
-// * @param {string} table store name.
-// * @return {!goog.async.Deferred} return a deferred function.
-// */
-//ydn.db.req.IndexedDb.prototype.count = function(table) {
-//
-//  var self = this;
-//
-//  var df = new goog.async.Deferred();
-//  this.doTransaction(function(tx) {
-//    var store = tx.getTx().objectStore(table);
-//    var request = store.count();
-//    request.onsuccess = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      df.callback(event.target.result);
-//    };
-//    request.onerror = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      df.callback(event);
-//    };
-//
-//  }, [table], ydn.db.TransactionMode.READ_ONLY);
-//  return df;
-//};
-//
-//
+
+/**
+ * @param {!goog.async.Deferred} df return a deferred function.
+ * @param {string} table store name.
+*/
+ydn.db.req.IndexedDb.prototype.count = function (df, table) {
+
+  var self = this;
+
+  var store = this.tx.getTx().objectStore(table);
+  var request = store.count();
+  request.onsuccess = function (event) {
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log(event);
+    }
+    df.callback(event.target.result);
+  };
+  request.onerror = function (event) {
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log(event);
+    }
+    df.callback(event);
+  };
+
+};
+
+
 ///**
 // * Print out list of key for debug use.
 // * @param {string} store_name table name.

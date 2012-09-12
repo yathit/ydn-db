@@ -170,7 +170,7 @@ ydn.db.Storage.prototype.execute = function(callback, store_names, mode)
     // create a new transaction and close
     var tx_callback = function(idb) {
       // transaction should be active now
-      if (me.executor.isActive()) {
+      if (!me.getMuTx().isActiveAndAvailable()) {
         throw new ydn.db.InternalError();
       }
       callback(me.executor);
@@ -284,6 +284,19 @@ ydn.db.Storage.prototype.clear = function(arg1, arg2) {
 
   this.execute(clear, [], ydn.db.TransactionMode.READ_WRITE);
 
+  return df;
+};
+
+
+/**
+ *
+ * @param {string} store_name
+ */
+ydn.db.Storage.prototype.count = function(store_name) {
+  var df = ydn.db.createDeferred();
+  var count = function(executor) {
+    executor.count(df, store_name);
+  };
   return df;
 };
 

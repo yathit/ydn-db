@@ -31,7 +31,7 @@ goog.require('ydn.db.req.RequestExecutor');
 ydn.db.req.SimpleStore = function(schema) {
   goog.base(this, schema);
 };
-goog.inherits(ydn.db.req.WebSql, ydn.db.req.RequestExecutor);
+goog.inherits(ydn.db.req.SimpleStore, ydn.db.req.RequestExecutor);
 
 
 
