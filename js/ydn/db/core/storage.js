@@ -383,19 +383,19 @@ ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
 
   //console.log('core starting ' + trFn.name);
 
-  var names = store_names;
-  if (goog.isString(store_names)) {
-    names = [store_names];
-  } else if (!goog.isArray(store_names) ||
-      (store_names.length > 0 && !goog.isString(store_names[0]))) {
-    throw new ydn.error.ArgumentException("storeNames");
-  }
-  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
-
-  var me = this;
 
   var ready = !!this.db_ && this.db_.isReady();
   if (ready && !this.in_tx_) {
+    var me = this;
+    var names = store_names;
+    if (goog.isString(store_names)) {
+      names = [store_names];
+    } else if (!goog.isArray(store_names) ||
+      (store_names.length > 0 && !goog.isString(store_names[0]))) {
+      throw new ydn.error.ArgumentException("storeNames");
+    }
+    var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
+
     var on_complete = function (type, ev) {
       /**
        * @preserve_try
@@ -424,8 +424,8 @@ ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
     //console.log('core queing ' + trFn.name);
     this.txQueue.push({
       fnc:trFn,
-      scopes:names,
-      mode:mode,
+      scopes:store_names,
+      mode:opt_mode,
       oncompleted:completed_event_handler
     });
   }

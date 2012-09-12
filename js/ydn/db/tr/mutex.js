@@ -3,8 +3,6 @@
  */
 
 goog.provide('ydn.db.tr.Mutex');
-goog.provide('ydn.db.tr.SqlMutex');
-goog.provide('ydn.db.tr.IdbMutex');
 goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('ydn.db.InvalidStateError');
@@ -210,54 +208,4 @@ ydn.db.tr.Mutex.prototype.getTx = function() {
   return this.tx_;
 };
 
-
-
-/**
- * Hold active IDBTransaction object provide mutex function.
- */
-
-
-/**
- * Provide transaction object to subclass and keep a result.
- * This also serve as mutex on transaction.
- * @extends {ydn.db.tr.Mutex}
- * @constructor
- */
-ydn.db.tr.IdbMutex = function() {
-  goog.base(this);
-};
-goog.inherits(ydn.db.tr.IdbMutex, ydn.db.tr.Mutex);
-
-
-/**
- * @return {IDBTransaction}
- */
-ydn.db.tr.IdbMutex.prototype.getTx = function() {
-  return /** @type {IDBTransaction} */ (goog.base(this, 'getTx'));
-};
-
-
-
-/**
- * Hold active SQLTransaction object provide mutex function.
- */
-
-/**
- * Provide transaction object to subclass and keep a result.
- * This also serve as mutex on transaction.
- * @extends {ydn.db.tr.Mutex}
- * @constructor
- */
-ydn.db.tr.SqlMutex = function() {
-  goog.base(this);
-};
-goog.inherits(ydn.db.tr.SqlMutex, ydn.db.tr.Mutex);
-
-
-/**
- * @return {SQLTransaction}
- */
-ydn.db.tr.SqlMutex.prototype.getTx = function() {
-  return /** @type {SQLTransaction} */ (goog.base(this, 'getTx'));
-};
 
