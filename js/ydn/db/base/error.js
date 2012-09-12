@@ -6,7 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-goog.provide('ydn.db.ValidKeyException');
+goog.provide('ydn.db.InvalidKeyException');
 goog.provide('ydn.db.InvalidStateError');
 goog.provide('ydn.db.InternalError');
 goog.provide('ydn.db.ScopeError');
@@ -21,11 +21,11 @@ goog.provide('ydn.db.NotFoundError');
  * @constructor
  * @extends {Error}
  */
-ydn.db.ValidKeyException = function(opt_msg) {
+ydn.db.InvalidKeyException = function(opt_msg) {
 
   // Ensure there is a stack trace.
   if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.ValidKeyException);
+    Error.captureStackTrace(this, ydn.db.InvalidKeyException);
   } else {
     this.stack = new Error().stack || '';
   }
@@ -34,9 +34,9 @@ ydn.db.ValidKeyException = function(opt_msg) {
     this.message = String(opt_msg);
   }
 };
-goog.inherits(ydn.db.ValidKeyException, Error);
+goog.inherits(ydn.db.InvalidKeyException, Error);
 
-ydn.db.ValidKeyException.prototype.name = 'ydn.db.ValidKeyException';
+ydn.db.InvalidKeyException.prototype.name = 'ydn.db.ValidKeyException';
 
 
 

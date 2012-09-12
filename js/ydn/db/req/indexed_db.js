@@ -51,274 +51,274 @@ ydn.db.req.IndexedDb.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.req.IndexedDb');
 
 
+
+
+
 /**
- * @return {IDBTransaction}
- */
-ydn.db.req.IndexedDb.prototype.getTx = function() {
-  return /** @type {IDBTransaction} */ (goog.base(this, 'getTx'));
+* Execute GET request callback results to df.
+* @param {goog.async.Deferred} df deferred to feed result.
+* @param {string} store_name table name.
+* @param {!Array.<string|number>} ids id to get.
+* @throws {ydn.db.ValidKeyException}
+* @throws {ydn.error.InternalError}
+* @private
+*/
+ydn.db.req.IndexedDb.prototype.getByIds = function (df, store_name, ids) {
+  var me = this;
+
+  var results = [];
+  var result_count = 0;
+
+  for (var i = 0; i < ids.length; i++) {
+    var store = this.tx.objectStore(store_name);
+    try { // should use try just to cache offending id ?
+          // should put outside for loop or just remove try block?
+      var request = store.get(ids[i]);
+
+      request.onsuccess = goog.partial(function (i, event) {
+        result_count++;
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          window.console.log([store_name, event]);
+        }
+        results[i] = event.target.result;
+        if (result_count == ids.length) {
+          df.callback(results);
+        }
+      }, i);
+
+      request.onerror = function (event) {
+        result_count++;
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          window.console.log([store_name, event]);
+        }
+        df.errback(event);
+        // abort transaction ?
+      };
+    } catch (e) {
+      if (e.name == 'DataError') {
+        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
+        throw new ydn.db.InvalidKeyException(ids[i]);
+      } else {
+        throw e;
+      }
+    }
+  }
+};
+
+
+/**
+* Execute GET request callback results to df.
+* @param {goog.async.Deferred} df deferred to feed result.
+* @param {!Array.<!ydn.db.Key>} keys id to get.
+* @private
+*/
+ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
+  var me = this;
+
+  var results = [];
+  var result_count = 0;
+
+  /**
+   * @type {IDBObjectStore}
+   */
+  var store;
+  for (var i = 0; i < keys.length; i++) {
+    /**
+     * @type {!ydn.db.Key}
+     */
+    var key = keys[i];
+    if (!store || store.name != key.getStoreName()) {
+      store = this.tx.objectStore(key.getStoreName());
+    }
+    try { // should use try just to cache offending id ?
+      // should put outside for loop or just remove try block?
+      var request = store.get(key.getId());
+
+      request.onsuccess = goog.partial(function (i, event) {
+        result_count++;
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          window.console.log(event);
+        }
+        results[i] = event.target.result;
+        if (result_count == keys.length) {
+          // here we cannot simply check results.length == keys.length to
+          // decide finished collecting because success result will
+          // not return in order in general.
+          df.callback(results);
+        }
+      }, i);
+
+      request.onerror = function (event) {
+        result_count++;
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          window.console.log([keys, event]);
+        }
+        df.errback(event);
+        // abort transaction ?
+      };
+    } catch (e) {
+      if (e.name == 'DataError') {
+        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
+        throw new ydn.db.InvalidKeyException(key.getId());
+      } else {
+        throw e;
+      }
+    }
+  }
 };
 
 
 
-//
-//
-//
-///**
-// * Execute GET request callback results to df.
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {goog.async.Deferred} df deferred to feed result.
-// * @param {string} store_name table name.
-// * @param {!Array.<string|number>} ids id to get.
-// * @throws {ydn.db.ValidKeyException}
-// * @throws {ydn.error.InternalError}
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.executeGetMultiple_ = function (tx, df, store_name,
-//                                                           ids) {
-//  var me = this;
-//
-//  var results = [];
-//  var result_count = 0;
-//
-//  for (var i = 0; i < ids.length; i++) {
-//    var store = tx.objectStore(store_name);
-//    try { // should use try just to cache offending id ?
-//          // should put outside for loop or just remove try block?
-//      var request = store.get(ids[i]);
-//
-//      request.onsuccess = goog.partial(function (i, event) {
-//        result_count++;
-//        if (ydn.db.req.IndexedDb.DEBUG) {
-//          window.console.log([store_name, event]);
-//        }
-//        results[i] = event.target.result;
-//        if (result_count == ids.length) {
-//          df.callback(results);
-//        }
-//      }, i);
-//
-//      request.onerror = function (event) {
-//        result_count++;
-//        if (ydn.db.req.IndexedDb.DEBUG) {
-//          window.console.log([store_name, event]);
-//        }
-//        df.errback(event);
-//        // abort transaction ?
-//      };
-//    } catch (e) {
-//      if (e.name == 'DataError') {
-//        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
-//        throw new ydn.db.ValidKeyException(ids[i]);
-//      } else {
-//        throw e;
-//      }
-//    }
-//  }
-//};
-//
-//
-///**
-// * Execute GET request callback results to df.
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {goog.async.Deferred} df deferred to feed result.
-// * @param {!Array.<!ydn.db.Key>} keys id to get.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.executeGetKeys_ = function (tx, df, keys) {
-//  var me = this;
-//
-//  var results = [];
-//  var result_count = 0;
-//
-//  /**
-//   * @type {IDBObjectStore}
-//   */
-//  var store;
-//  for (var i = 0; i < keys.length; i++) {
-//    /**
-//     * @type {!ydn.db.Key}
-//     */
-//    var key = keys[i];
-//    if (!store || store.name != key.getStoreName()) {
-//      store = tx.objectStore(key.getStoreName());
-//    }
-//    try { // should use try just to cache offending id ?
-//      // should put outside for loop or just remove try block?
-//      var request = store.get(key.getId());
-//
-//      request.onsuccess = goog.partial(function (i, event) {
-//        result_count++;
-//        if (ydn.db.req.IndexedDb.DEBUG) {
-//          window.console.log(event);
-//        }
-//        results[i] = event.target.result;
-//        if (result_count == keys.length) {
-//          // here we cannot simply check results.length == keys.length to
-//          // decide finished collecting because success result will
-//          // not return in order in general.
-//          df.callback(results);
-//        }
-//      }, i);
-//
-//      request.onerror = function (event) {
-//        result_count++;
-//        if (ydn.db.req.IndexedDb.DEBUG) {
-//          window.console.log([keys, event]);
-//        }
-//        df.errback(event);
-//        // abort transaction ?
-//      };
-//    } catch (e) {
-//      if (e.name == 'DataError') {
-//        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
-//        throw new ydn.db.ValidKeyException(key.getId());
-//      } else {
-//        throw e;
-//      }
-//    }
-//  }
-//};
-//
-//
-///**
-// * Execute PUT request either storing result to tx or callback to df.
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {goog.async.Deferred} df deferred to feed result.
-// * @param {string} table table name.
-// * @param {!Object|Array.<!Object>} value object to put.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.executePut_ = function(tx, df, table, value) {
-//  var store = tx.objectStore(table);
-//  var request;
-//
-//  if (goog.isArray(value)) {
-//    var results = [];
-//    for (var i = 0; i < value.length; i++) {
-//      request = store.put(value[i]);
-//      request.onsuccess = function(event) {
-//        if (ydn.db.req.IndexedDb.DEBUG) {
-//          window.console.log([event, table]);
-//        }
-//        results.push(event.target.result);
-//        var last = results.length == value.length;
-//        if (last) {
-//          df.callback(results);
-//        }
-//      };
-//      request.onerror = function(event) {
-//        if (ydn.db.req.IndexedDb.DEBUG) {
-//          window.console.log([event, table]);
-//        }
-//        df.errback(event);
-//      };
-//
-//    }
-//  } else {
-//    request = store.put(value);
-//    request.onsuccess = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log([event, table, value]);
-//      }
-//      df.callback(event.target.result);
-//    };
-//    request.onerror = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log([event, table, value]);
-//      }
-//      df.errback(event);
-//    };
-//  }
-//};
-//
-//
-///**
-// * Get object in the store in a transaction. This return requested object
-// * immediately.
-// *
-// * This method must be {@link #runInTransaction}.
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {goog.async.Deferred} df deferred to feed result.
-// * @param {string=} opt_store_name store name.
-// * @param {(string|number)=} opt_key object key.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.executeClear_ = function(tx, df, opt_store_name,
-//                                                    opt_key) {
-//
-//  var request, store;
-//  if (goog.isDef(opt_key)) {
-//    goog.asserts.assertString(opt_store_name);
-//    store = tx.objectStore(opt_store_name);
-//    request = store['delete'](opt_key);
-//    request.onsuccess = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log([tx, store_name, opt_key, event]);
-//      }
-//      df.callback(event.target.result);
-//    };
-//    request.onerror = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log([tx, store_name, opt_key, event]);
-//      }
-//      df.errback(event);
-//    };
-//  } else {
-//    var store_names_to_clear = goog.isDef(opt_store_name) ? [opt_store_name] :
-//      this.schema.getStoreNames();
-//    var n_todo = store_names_to_clear.length;
-//    var n_done = 0;
-//
-//    for (var i = 0; i < n_todo; i++) {
-//      var store_name = store_names_to_clear[i];
-//      store = tx.objectStore(store_name);
-//      request = store.clear();
-//      request.onsuccess = function(event) {
-//        n_done++;
-//        if (ydn.db.req.IndexedDb.DEBUG) {
-//          window.console.log([tx, n_done, event]);
-//        }
-//        if (n_done == n_todo) {
-//          df.callback(event.target.result);
-//        }
-//      };
-//      request.onerror = function(event) {
-//        n_done++;
-//        if (ydn.db.req.IndexedDb.DEBUG) {
-//          window.console.log([tx, n_done, event]);
-//        }
-//        if (n_done == n_todo) {
-//          df.errback(event);
-//        }
-//      };
-//    }
-//  }
-//};
-//
-//
-///**
-// * @param {string} table table name.
-// * @param {!Object|Array.<!Object>} value object to put.
-// * @param {(string|number)=} opt_key
-// * @return {!goog.async.Deferred} return key in deferred function.
-// */
-//ydn.db.req.IndexedDb.prototype.put = function(table, value, opt_key) {
-//  var me = this;
-//
-//  var open_tx = this.isOpenTransaction();
-//  var tx = this.getActiveIdbTx();
-//  var df = new goog.async.Deferred();
-//  if (open_tx) {
-//    goog.asserts.assertObject(tx);
-//    me.executePut_(tx.getTx(), df, table, value);
-//    return df;
-//  } else {
-//    this.doTransaction(function(tx) {
-//      me.executePut_(tx.getTx(), df, table, value);
-//    }, [table], ydn.db.TransactionMode.READ_WRITE);
-//  }
-//  return df;
-//};
+/**
+* Execute PUT request either storing result to tx or callback to df.
+* @param {goog.async.Deferred} df deferred to feed result.
+* @param {string} table table name.
+* @param {!Object} value object to put.
+* @private
+*/
+ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value) {
+  var store = this.tx.objectStore(table);
+
+  var request = store.put(value);
+  request.onsuccess = function (event) {
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log([event, table, value]);
+    }
+    df.callback(event.target.result);
+  };
+  request.onerror = function (event) {
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log([event, table, value]);
+    }
+    df.errback(event);
+  };
+};
+
+
+
+
+/**
+ * Execute PUT request either storing result to tx or callback to df.
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {string} store_name table name.
+ * @param {!Array.<!Object>} objs object to put.
+ * @private
+ */
+ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs) {
+
+  var results = [];
+  var result_count = 0;
+
+  for (var i = 0; i < objs.length; i++) {
+    var store = this.tx.objectStore(store_name);
+    try { // should use try just to cache offending id ?
+      // should put outside for loop or just remove try block?
+      var request = store.put(objs[i]);
+
+      request.onsuccess = goog.partial(function (i, event) {
+        result_count++;
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          window.console.log([store_name, event]);
+        }
+        results[i] = event.target.result;
+        if (result_count == objs.length) {
+          df.callback(results);
+        }
+      }, i);
+
+      request.onerror = function (event) {
+        result_count++;
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          window.console.log([store_name, event]);
+        }
+        df.errback(event);
+        // abort transaction ?
+      };
+    } catch (e) {
+      if (e.name == 'DataError') {
+        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
+        throw new ydn.db.InvalidKeyException(objs[i]);
+      } else {
+        throw e;
+      }
+    }
+  }
+};
+
+
+/**
+* Get object in the store in a transaction. This return requested object
+* immediately.
+*
+* @param {goog.async.Deferred} df deferred to feed result.
+* @param {string} store_name store name.
+* @param {(string|number)} key object key.
+* @private
+*/
+ydn.db.req.IndexedDb.prototype.clearById = function (df, store_name, key) {
+
+  var store = this.tx.objectStore(store_name);
+  var request = store['delete'](key);
+  request.onsuccess = function (event) {
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, key, event]);
+    }
+    df.callback(event.target.result);
+  };
+  request.onerror = function (event) {
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, key, event]);
+    }
+    df.errback(event);
+  };
+
+};
+
+
+
+/**
+ * Get object in the store in a transaction. This return requested object
+ * immediately.
+ *
+ * @param {goog.async.Deferred} df deferred to feed result.
+ *  @param {(string|!Array.<string>)=} opt_store_name
+ * @private
+ */
+ydn.db.req.IndexedDb.prototype.clearByStore = function (df, opt_store_name) {
+
+
+  var store_names_to_clear = goog.isDef(opt_store_name) ? [opt_store_name] :
+      this.schema.getStoreNames();
+  var n_todo = store_names_to_clear.length;
+  var n_done = 0;
+
+  for (var i = 0; i < n_todo; i++) {
+    var store_name = store_names_to_clear[i];
+    var store = this.tx.objectStore(store_name);
+    var request = store.clear();
+    request.onsuccess = function (event) {
+      n_done++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([n_done, event]);
+      }
+      if (n_done == n_todo) {
+        df.callback(true);
+      }
+    };
+    request.onerror = function (event) {
+      n_done++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([n_done, event]);
+      }
+      if (n_done == n_todo) {
+        df.errback(event);
+      }
+    };
+  }
+
+};
+
+
 //
 //
 ///**
@@ -380,37 +380,16 @@ ydn.db.req.IndexedDb.prototype.getTx = function() {
 //  }
 //
 //};
-//
-//
-///**
-// *
-// * @param {!ydn.db.Query} q query object.
-// * @return {!goog.async.Deferred} return object in deferred function.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.getQuery_ = function(q) {
-//  var df = new goog.async.Deferred();
-//
-//  var fetch_df = this.fetch(q, 1);
-//  fetch_df.addCallback(function(value) {
-//    df.callback(goog.isArray(value) ? value[0] : undefined);
-//  });
-//  fetch_df.addErrback(function(value) {
-//    df.errback(value);
-//  });
-//
-//  return df;
-//};
+
 
 
 
 /**
 * @inheritDoc
 */
-ydn.db.req.IndexedDb.prototype.getById = function(store_name, id) {
+ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 
   var me = this;
-  var df = new goog.async.Deferred();
 
   var store = this.tx.objectStore(store_name);
   var request = store.get(id);
@@ -430,30 +409,11 @@ ydn.db.req.IndexedDb.prototype.getById = function(store_name, id) {
       event.message);
     df.errback(event);
   };
-  return df;
 };
-/*
 
-*//**
-* @param {IDBTransaction} tx active transaction object.
-* @param {string} store_name
-* @param {!Array.<string|number>} ids
-* @return {!goog.async.Deferred} return object in deferred function.
-* @private
-*//*
-ydn.db.req.IndexedDb.prototype.getByIds_ = function(tx, store_name, ids) {
-  var me = this;
-  var df = new goog.async.Deferred();
-  if (tx) {
-    this.executeGetMultiple_(tx, df, store_name, ids);
-  } else {
-    this.doTransaction(function(tx) {
-      me.executeGetMultiple_(tx.getTx(), df, store_name, ids);
-    }, [store_name], ydn.db.TransactionMode.READ_ONLY);
-  }
-  return df;
-};*/
-//
+
+
+
 //
 ///**
 // * @param {IDBTransaction} tx active transaction object.
@@ -481,27 +441,7 @@ ydn.db.req.IndexedDb.prototype.getByIds_ = function(tx, store_name, ids) {
 //  return df;
 //};
 //
-//
-///**
-// * @param {IDBTransaction=} tx active transaction object.
-// * @param {(string|!Array.<string>)=} store_name
-// * @return {!goog.async.Deferred} return object in deferred function.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.getByStore_ = function(tx, store_name) {
-//  var me = this;
-//  var df = new goog.async.Deferred();
-//  if (tx) {
-//    this.executeGetAll_(tx, df, false, store_name);
-//  } else {
-//    this.doTransaction(function(tx) {
-//      me.executeGetAll_(tx.getTx(), df, false, store_name);
-//    }, [store_name], ydn.db.TransactionMode.READ_ONLY);
-//
-//  }
-//  return df;
-//};
-//
+
 //
 //
 //

@@ -1,6 +1,9 @@
 /**
  * @fileoverview Execute CRUD and query request.
  *
+ * Before invoking database request, transaction object (tx) must set
+ * and active. Caller must preform setting tx. This class will not check
+ * it, but run immediately. Basically thinks this as a static object.
  */
 
 
@@ -10,7 +13,6 @@ goog.require('goog.debug.Logger');
 goog.require('ydn.db.Query');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.InternalError');
-
 
 
 
@@ -55,7 +57,7 @@ ydn.db.req.RequestExecutor.prototype.scope = '?';
 /**
  *
  * @param {SQLTransaction|IDBTransaction|Object} tx
- * @param {string} scope
+ * @param {string} scope scope for logistic purpose only.
  */
 ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {
   this.tx = tx;
@@ -63,62 +65,78 @@ ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {
 };
 
 
-/**
- * Return true if transaction object is active.
- * @return {boolean}
- */
-ydn.db.req.RequestExecutor.prototype.isActive = function() {
-  return goog.isDefAndNotNull(this.tx);
-};
 
-
-
-/**
- * @throws {ydn.db.InternalError}
- * @return {SQLTransaction|IDBTransaction|Object}
- * @protected
- */
-ydn.db.req.RequestExecutor.prototype.getTx = function() {
-  if (!this.isActive()) {
-    // this kind of error is not due to user.
-    throw new ydn.db.InternalError('Scope: ' + this.scope + ' invalid.');
-  }
-  return this.tx;
-};
+//
+//
+///**
+// * @throws {ydn.db.InternalError}
+// * @return {SQLTransaction|IDBTransaction|Object}
+// * @protected
+// */
+//ydn.db.req.RequestExecutor.prototype.getTx = function() {
+//  if (!this.isActive()) {
+//    // this kind of error is not due to user.
+//    throw new ydn.db.InternalError('Scope: ' + this.scope + ' invalid.');
+//  }
+//  return this.tx;
+//};
 
 
 /**
  * Return object
+ * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store table name.
  * @param {(string|number)} id object key to be retrieved, if not provided,
  * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.req.RequestExecutor.prototype.getById = goog.abstractMethod;
 
 
 /**
+ * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store_name
  * @param {!Array.<string|number>} ids
- * @return {!goog.async.Deferred} return object in deferred function.
- * @private
  */
 ydn.db.req.RequestExecutor.prototype.getByIds = goog.abstractMethod;
 
 
 
 /**
-* @param {!Array.<!ydn.db.Key>} keys
-* @return {!goog.async.Deferred} return object in deferred function.
-* @private
-*/
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!Array.<!ydn.db.Key>} keys
+ */
 ydn.db.req.RequestExecutor.prototype.getByKeys = goog.abstractMethod;
 
 
 /**
-* @param {(string|!Array.<string>)=} store_name
-* @return {!goog.async.Deferred} return object in deferred function.
-* @private
+ * Return object
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {string} store table name.
+ * @param {!Object} obj
+ * all entries in the store will return.
+ */
+ydn.db.req.RequestExecutor.prototype.putObject = goog.abstractMethod;
+
+
+/**
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {string} store_name
+ * @param {!Array.<Object>} objs
+ */
+ydn.db.req.RequestExecutor.prototype.putObjects = goog.abstractMethod;
+
+
+
+/**
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!Array.<Object>} objs
+ * @param {!Array.<!ydn.db.Key>} keys
+ */
+ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
+
+/**
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {(string|!Array.<string>)=} store_name
 */
 ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
 
@@ -126,10 +144,10 @@ ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
 
 /**
  * Return object
+ * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store table name.
  * @param {(string|number)} id object key to be retrieved, if not provided,
  * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.req.RequestExecutor.prototype.clearById = goog.abstractMethod;
 
@@ -137,8 +155,8 @@ ydn.db.req.RequestExecutor.prototype.clearById = goog.abstractMethod;
 
 /**
  * Return object
+ * @param {!goog.async.Deferred} return object in deferred function.
  * @param {(!Array.<string>|string)=} store table name.
- * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.req.RequestExecutor.prototype.clearByStore = goog.abstractMethod;
 

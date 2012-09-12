@@ -517,13 +517,12 @@ ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 
 /**
 *
-* @param {string} store_name
+ * @param {!goog.async.Deferred} df object in deferred function.
+ * @param {string} store_name
 * @param {string|number} id
-* @return {!goog.async.Deferred} return object in deferred function.
 */
-ydn.db.req.WebSql.prototype.getById = function(store_name, id) {
+ydn.db.req.WebSql.prototype.getById = function(df, store_name, id) {
   var me = this;
-  var df = new goog.async.Deferred();
 
   var table = this.schema.getStore(store_name);
   if (!table) {
@@ -561,7 +560,7 @@ ydn.db.req.WebSql.prototype.getById = function(store_name, id) {
   };
 
   this.getTx().executeSql(sql, params, callback, error_callback);
-  return df;
+
 };
 //
 //

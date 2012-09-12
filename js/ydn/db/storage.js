@@ -86,6 +86,38 @@ ydn.db.Storage.prototype.initDatabase = function () {
 
 
 /**
+ * @override
+ */
+ydn.db.Storage.prototype.init = function() {
+  var type = this.type();
+  if (type == ydn.db.adapter.IndexedDb.TYPE) {
+    this.executor = new ydn.db.req.IndexedDb(this.schema);
+  } else if (type == ydn.db.adapter.WebSql.TYPE) {
+    this.executor = new ydn.db.req.WebSql(this.schema);
+  } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
+      type == ydn.db.adapter.LocalStorage.TYPE ||
+      type == ydn.db.adapter.SessionStorage.TYPE) {
+    this.executor = new ydn.db.req.SimpleStore(this.schema);
+  } else {
+    throw new ydn.db.InternalError('No executor for ' + type);
+  }
+  goog.base(this, 'init');
+};
+
+
+/**
+ * Inject transaction instance to the executor.
+ * @override
+ */
+ydn.db.Storage.prototype.newTxInstance = function(scope) {
+  var tx_db = goog.base(this, 'newTxInstance', scope);
+  var tx = this.getMuTx().getTx();
+  this.executor.setTx(tx, scope);
+  return tx_db;
+};
+
+
+/**
  * @define {string} default key-value store name.
  */
 ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
@@ -107,32 +139,18 @@ ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
 
 
 /**
- * @type {ydn.db.req.RequestExecutor}
+ * @type {!ydn.db.req.RequestExecutor}
  */
-ydn.db.Storage.prototype.executor = null;
+ydn.db.Storage.prototype.executor;
 
 
 /**
  *
- * @param {string} scope callback function name as scope name
  * @throws {ydn.db.ScopeError}
  * @return {!ydn.db.req.RequestExecutor}
  */
-ydn.db.Storage.prototype.getExecutor = function (scope) {
-
-  var type = this.type();
-  if (type == ydn.db.adapter.IndexedDb.TYPE) {
-    this.executor = new ydn.db.req.IndexedDb(this.schema);
-  } else if (type == ydn.db.adapter.WebSql.TYPE) {
-    this.executor = new ydn.db.req.WebSql(this.schema);
-  } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
-    type == ydn.db.adapter.LocalStorage.TYPE ||
-    type == ydn.db.adapter.SessionStorage.TYPE) {
-    this.executor = new ydn.db.req.SimpleStore(this.schema);
-  } else {
-    throw new ydn.db.InternalError('No executor for ' + type);
-  }
-
+ydn.db.Storage.prototype.getExecutor = function () {
+  goog.asserts.assertObject(this.executor);
   return this.executor;
 };
 
@@ -147,17 +165,15 @@ ydn.db.Storage.prototype.execute = function(callback, store_names, mode)
 {
   var me = this;
   var scope = '?';
-  var executor = this.getExecutor(scope);
-  if (!executor.isActive()) {
+  if (!this.getMuTx().isActiveAndAvailable()) {
     // invoke in non-transaction context
     // create a new transaction and close
     var tx_callback = function(idb) {
       // transaction should be active now
-      executor = me.getExecutor(scope);
-      if (!executor.isActive()) {
+      if (me.executor.isActive()) {
         throw new ydn.db.InternalError();
       }
-      callback(executor);
+      callback(me.executor);
       idb.lock(); // explicitly told not to use this transaction again.
     };
     tx_callback.name = scope; // scope name
@@ -165,7 +181,7 @@ ydn.db.Storage.prototype.execute = function(callback, store_names, mode)
   } else {
     // call within a transaction
     // continue to use existing transaction
-    callback(executor);
+    callback(me.executor);
   }
 
 };
@@ -257,12 +273,12 @@ ydn.db.Storage.prototype.clear = function(arg1, arg2) {
     var request, store;
     if (goog.isDef(arg2)) {
       if (goog.isString(arg1)) {
-        df.chainDeferred(executor.clearById(arg1, arg2));
+        executor.clearById(df, arg1, arg2);
       } else {
         throw new ydn.error.ArgumentException();
       }
     } else {
-      df.chainDeferred(executor.clearByStore(arg1));
+      executor.clearByStore(df, arg1);
     }
   };
 
@@ -293,19 +309,19 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
        * @type {ydn.db.Key}
        */
       var k = arg1;
-      df.chainDeferred(executor.getById(k.getStoreName(), k.getId()));
+      executor.getById(df, k.getStoreName(), k.getId());
     } else if (goog.isString(arg1)) {
       if (goog.isString(arg2) || goog.isNumber(arg2)) {
         /** @type {string} */
         var store_name = arg1;
         /** @type {string|number} */
         var id = arg2;
-        df.chainDeferred(this.getById(store_name, id));
+        executor.getById(df, store_name, id);
       } else if (!goog.isDef(arg2)) {
-        df.chainDeferred(this.getByStore(arg1));
+        executor.getByStore(df, arg1);
       } else if (goog.isArray(arg2)) {
         if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-          df.chainDeferred(this.getByIds(arg1, arg2));
+          executor.getByIds(df, arg1, arg2);
         } else {
           throw new ydn.error.ArgumentException();
         }
@@ -314,12 +330,12 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
       }
     } else if (goog.isArray(arg1)) {
       if (arg1[0] instanceof ydn.db.Key) {
-        df.chainDeferred(this.getByKeys(arg1));
+        executor.getByKeys(df, arg1);
       } else {
         throw new ydn.error.ArgumentException();
       }
     } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-      df.chainDeferred(this.getByStore());
+      executor.getByStore(df);
     } else {
       throw new ydn.error.ArgumentException();
     }
@@ -333,13 +349,26 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
 
 
 /**
- * @param {string} store table name.
- * @param {!Object|!Array.<!Object>} value object to put.
- * @param {(string|number)=}  opt_key
- * @return {!goog.async.Deferred} return key in deferred function.
+ * Execute PUT request either storing result to tx or callback to df.
+ * @param {string} table table name.
+ * @param {!Object|Array.<!Object>} value object to put.
+ * @return {!goog.async.Deferred}
  */
-ydn.db.Storage.prototype.put = function(store, value, opt_key) {
+ydn.db.Storage.prototype.put = function (table, value) {
   var df = ydn.db.createDeferred();
+  var me = this;
+  this.execute(function (executor) {
+    if (!goog.isString(table)) {
+      throw new ydn.error.ArgumentException();
+    }
+    if (goog.isArray(value)) {
+      executor.putObjects(df, table, value);
+    } else if (goog.isObject(value)) {
+      executor.putObject(df, table, value);
+    } else {
+      throw new ydn.error.ArgumentException();
+    }
+  }, [table], ydn.db.TransactionMode.READ_WRITE);
   return df;
 };
 

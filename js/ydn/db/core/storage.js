@@ -227,49 +227,42 @@ ydn.db.core.Storage.prototype.createDbInstance = function(db_type, db_name, conf
 ydn.db.core.Storage.prototype.initDatabase = function() {
   // handle version change
   if (goog.isDef(this.db_name) && goog.isDef(this.schema)) {
-    this.db_ = null;
+    var db = null;
     if (goog.userAgent.product.ASSUME_CHROME ||
       goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
-      this.db_ = this.createDbInstance(ydn.db.adapter.IndexedDb.TYPE, this.db_name, this.schema);
+      db = this.createDbInstance(ydn.db.adapter.IndexedDb.TYPE, this.db_name, this.schema);
     } else if (goog.userAgent.product.ASSUME_SAFARI) {
       // for dead-code elimination
-      this.db_ = this.createDbInstance(ydn.db.adapter.WebSql.TYPE, this.db_name, this.schema);
+      db = this.createDbInstance(ydn.db.adapter.WebSql.TYPE, this.db_name, this.schema);
     } else {
       // go according to ordering
       var preference = this.preference || ydn.db.core.Storage.PREFERENCE;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
         if (db_type == ydn.db.adapter.IndexedDb.TYPE && ydn.db.adapter.IndexedDb.isSupported()) { // run-time detection
-          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         } else if (db_type == ydn.db.adapter.WebSql.TYPE && ydn.db.adapter.WebSql.isSupported()) {
-          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         } else if (db_type == ydn.db.adapter.LocalStorage.TYPE && ydn.db.adapter.LocalStorage.isSupported()) {
-          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         } else if (db_type == ydn.db.adapter.SessionStorage.TYPE && ydn.db.adapter.SessionStorage.isSupported()) {
-          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         } else if (db_type == ydn.db.adapter.SimpleStorage.TYPE)  {
-          this.db_ = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type, this.db_name, this.schema);
           break;
         }
       }
-      if (!this.db_) {
-        throw new ydn.error.ConstrainError('No storage mechanism found.');
-      }
     }
-
-    if (this.deferredDb_.hasFired()) {
-      this.deferredDb_ = new goog.async.Deferred();
+    if (goog.isNull(db)) {
+      throw new ydn.error.ConstrainError('No storage mechanism found.');
+    } else {
+      this.setDb_(db);
     }
-    var me = this;
-    this.db_.onReady(function(db) {
-      me.deferredDb_.callback(me.db_);
-      me.runTxQueue();
-    });
   }
 };
 
@@ -284,6 +277,37 @@ ydn.db.core.Storage.prototype.type = function() {
   } else {
     return '';
   }
+};
+
+
+/**
+ * Setting db .
+ * @param {!ydn.db.adapter.IDatabase} db
+ * @private
+ */
+ydn.db.core.Storage.prototype.setDb_ = function(db) {
+  this.db_ = db;
+  this.init(); // let super class to initialize.
+  if (this.deferredDb_.hasFired()) {
+    this.deferredDb_ = new goog.async.Deferred();
+  }
+  var me = this;
+  this.db_.onReady(function(db) {
+    me.deferredDb_.callback(me.db_);
+    me.runTxQueue();
+  });
+};
+
+
+/**
+ * Database database is instantiated, but may not ready.
+ * Subclass may perform initialization.
+ * When ready, deferred call are invoked and transaction queue
+ * will run.
+ * @protected
+ */
+ydn.db.core.Storage.prototype.init = function() {
+
 };
 
 
