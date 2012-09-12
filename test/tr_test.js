@@ -32,8 +32,10 @@ var tearDown = function() {
 
 var test_1_basic = function() {
 
+  var db_type =  'indexeddb';
+  var options = {preference: [db_type]};
   var db_name = 'test_tr_basic_1';
-  var db = new ydn.db.tr.Storage(db_name, basic_schema);
+  var db = new ydn.db.tr.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -47,12 +49,11 @@ var test_1_basic = function() {
       function() {
         assertEquals('correct obj', val.value, result.value);
         reachedFinalContinuation = true;
-
       },
       100, // interval
       2000); // maxTimeout
 
-  db.transaction(function(idb) {
+  db.transaction(function tx_cb1 (idb) {
     assertTrue('type', idb.type().length > 0);
     var tx = idb.getTx();
     assertNotUndefined(tx);

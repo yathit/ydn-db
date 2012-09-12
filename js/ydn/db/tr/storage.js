@@ -86,13 +86,41 @@ goog.inherits(ydn.db.tr.Storage, ydn.db.core.Storage);
 
 /**
  * @protected
- * @param {!ydn.db.tr.Mutex} mu_tx
  * @param {string} scope
  * @return {!ydn.db.tr.TxStorage}
  */
-ydn.db.tr.Storage.prototype.newTxInstance = function(mu_tx, scope) {
-  return new ydn.db.tr.TxStorage(this, mu_tx, scope);
+ydn.db.tr.Storage.prototype.newTxInstance = function(scope) {
+  return new ydn.db.tr.TxStorage(this, scope);
 };
+
+
+
+/**
+ * One database can have only one transaction.
+ * @private
+ * @final
+ * @type {!ydn.db.tr.Mutex}
+ */
+ydn.db.tr.Storage.prototype.mu_tx_ = new ydn.db.tr.Mutex();
+
+
+/**
+ *
+ * @return {!ydn.db.tr.Mutex}
+ */
+ydn.db.tr.Storage.prototype.getMuTx = function() {
+  return this.mu_tx_;
+};
+
+
+/**
+ * Obtain active consumable transaction object.
+ * @return {ydn.db.tr.Mutex} transaction object if active and available.
+ */
+ydn.db.tr.Storage.prototype.getActiveTx = function() {
+  return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;
+};
+
 
 
 /**
@@ -108,6 +136,9 @@ ydn.db.tr.Storage.prototype.newTxInstance = function(mu_tx, scope) {
  */
 ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
+
+  //console.log('tr starting ' + trFn.name);
+
   var names = store_names;
   if (goog.isString(store_names)) {
     names = [store_names];
@@ -130,18 +161,23 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
 
   var me = this;
 
-  var tx_db, mu_tx;
-  var transaction_process = function(mu_tx) {
+  var tx_db;
+  var transaction_process = function(tx) {
+
+    //console.log('tr running ' + trFn.name);
+
+    me.mu_tx_.up(tx);
+
     // wrap this database and hold active transaction instance
-    tx_db = me.newTxInstance(mu_tx, trFn.name || '');
+    tx_db = me.newTxInstance(trFn.name || '');
     // now execute transaction process
     trFn(tx_db);
-    mu_tx.out(); // flag transaction callback scope is over.
+    me.mu_tx_.out(); // flag transaction callback scope is over.
     // transaction is still active and use in followup request handlers
   };
 
   var completed_handler = function(type, event) {
-    mu_tx.down(type, event);
+    me.mu_tx_.down(type, event);
     if (goog.isFunction(oncompleted)) {
       /**
        * @preserve_try
@@ -163,16 +199,6 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
 };
 
 
-/**
-* @override
-*/
-ydn.db.tr.Storage.prototype.joinTransaction = function (trFn, store_names, opt_mode, oncompleted, opt_args) {
-  // we are in outer loop.
-  //this.transaction(trFn, store_names, opt_mode, oncompleted, opt_args);
-  throw new ydn.db.InternalError();
-  // this class cannot call join transaction.
-  // todo: wrong interface spec?
-};
 
 
 

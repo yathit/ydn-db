@@ -16,7 +16,7 @@ goog.require('ydn.db.InvalidStateError');
  * @constructor
  */
 ydn.db.tr.Mutex = function() {
-  this.idb_tx_ = null;
+  this.tx_ = null;
   /**
    * Transaction counter.
    * @type {number}
@@ -52,10 +52,10 @@ ydn.db.tr.Mutex.prototype.up = function(tx) {
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
-  goog.asserts.assert(goog.isNull(this.idb_tx_), 'transaction overlap ' +
-    this.idb_tx_);
+  goog.asserts.assert(!goog.isDefAndNotNull(this.tx_), 'transaction overlap ' +
+    this.tx_);
 
-  this.idb_tx_ = tx;
+  this.tx_ = tx;
 
   this.is_set_done_ = false;
 
@@ -104,9 +104,10 @@ ydn.db.tr.Mutex.prototype.is_set_done_ = false;
  * @param {*} event
  */
 ydn.db.tr.Mutex.prototype.down = function (type, event) {
+  goog.asserts.assertObject(this.tx_, 'mutex already unlocked');
   this.logger.finest('tx down, count: ' + this.tx_count_);
   // down must be call only once by those who up
-  this.idb_tx_ = null;
+  this.tx_ = null;
 
   if (this.oncompleted) {
     this.oncompleted(type, event);
@@ -143,7 +144,7 @@ ydn.db.tr.Mutex.prototype.inScope = function() {
 /**
  * Transaction is explicitly set not to do next transaction.
  */
-ydn.db.tr.Mutex.prototype.setDone = function() {
+ydn.db.tr.Mutex.prototype.lock = function() {
   this.is_set_done_ = true;
 };
 
@@ -172,7 +173,7 @@ ydn.db.tr.Mutex.prototype.isSetDone = function() {
  * @return {boolean}
  */
 ydn.db.tr.Mutex.prototype.isActive = function() {
-  return !!this.idb_tx_;
+  return !!this.tx_;
 };
 
 
@@ -182,7 +183,7 @@ ydn.db.tr.Mutex.prototype.isActive = function() {
  * @return {boolean}
  */
 ydn.db.tr.Mutex.prototype.isActiveAndAvailable = function() {
-  return !!this.idb_tx_ && !this.is_set_done_;
+  return !!this.tx_ && !this.is_set_done_;
 };
 
 
@@ -206,7 +207,7 @@ ydn.db.tr.Mutex.prototype.oncompleted = null;
  * @return {IDBTransaction|SQLTransaction|Object}
  */
 ydn.db.tr.Mutex.prototype.getTx = function() {
-  return this.idb_tx_;
+  return this.tx_;
 };
 
 

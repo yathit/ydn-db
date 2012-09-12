@@ -42,5 +42,3 @@ ydn.db.tr.ITxStorage.prototype.getTxNo = function() {};
  */
 ydn.db.tr.ITxStorage.prototype.setCompletedListener = function(fn) {};
 
-
-

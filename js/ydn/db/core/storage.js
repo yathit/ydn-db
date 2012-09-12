@@ -335,7 +335,8 @@ ydn.db.core.Storage.prototype.runTxQueue = function() {
 
   var task = this.txQueue.shift();
   if (task) {
-    this.transaction(task.fnc, task.scopes, task.mode, task.oncompleted);
+    ydn.db.core.Storage.prototype.transaction.call(this,
+      task.fnc, task.scopes, task.mode, task.oncompleted);
   }
 };
 
@@ -380,6 +381,8 @@ ydn.db.core.Storage.prototype.in_tx_ = false;
 ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
      opt_mode, completed_event_handler) {
 
+  //console.log('core starting ' + trFn.name);
+
   var names = store_names;
   if (goog.isString(store_names)) {
     names = [store_names];
@@ -394,29 +397,31 @@ ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
   var ready = !!this.db_ && this.db_.isReady();
   if (ready && !this.in_tx_) {
     var on_complete = function (type, ev) {
-      if (goog.isFunction(completed_event_handler)) {
-        /**
-         * @preserve_try
-         */
-        try {
+      /**
+       * @preserve_try
+       */
+      try {
+        if (goog.isFunction(completed_event_handler)) {
           completed_event_handler(type, ev);
-        } catch (e) {
-          // swallow error. document it publicly.
-          // this is necessary and
-          if (goog.DEBUG) {
-            throw e;
-          }
         }
+      } catch (e) {
+        // swallow error. document it publicly.
+        if (goog.DEBUG) {
+          throw e;
+        }
+      } finally {
+        me.in_tx_ = false;
+        me.runTxQueue();
       }
-      me.in_tx_ = false;
-      me.runTxQueue();
     };
 
     this.in_tx_ = true;
+    //console.log('core running ' + trFn.name);
     this.db_.doTransaction(function (tx) {
       trFn(tx);
     }, names, mode, on_complete);
   } else {
+    //console.log('core queing ' + trFn.name);
     this.txQueue.push({
       fnc:trFn,
       scopes:names,
