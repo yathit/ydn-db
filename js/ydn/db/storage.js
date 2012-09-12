@@ -240,14 +240,34 @@ ydn.db.Storage.prototype.getItem = function(key) {
 
 /**
  * Remove a specific entry from a store or all.
- * @param {string=} opt_table delete the table as provided otherwise
+ * @param {(!Array.<string>|string)=} arg1 delete the table as provided otherwise
  * delete all stores.
- * @param {(string|number)=} opt_key delete a specific row.
+ * @param {(string|number)=} arg2 delete a specific row.
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.Storage.prototype.clear = function(opt_table, opt_key) {
+ydn.db.Storage.prototype.clear = function(arg1, arg2) {
+
   var df = ydn.db.createDeferred();
+
+  /**
+   * @param {!ydn.db.req.RequestExecutor} executor
+   */
+  var clear = function (executor) {
+    var request, store;
+    if (goog.isDef(arg2)) {
+      if (goog.isString(arg1)) {
+        df.chainDeferred(executor.clearById(arg1, arg2));
+      } else {
+        throw new ydn.error.ArgumentException();
+      }
+    } else {
+      df.chainDeferred(executor.clearByStore(arg1));
+    }
+  };
+
+  this.execute(clear, [], ydn.db.TransactionMode.READ_WRITE);
+
   return df;
 };
 
@@ -264,7 +284,6 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
   var df = ydn.db.createDeferred();
 
   /**
-   *
    * @param {!ydn.db.req.RequestExecutor} executor
    */
   var get = function(executor) {
@@ -274,19 +293,19 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
        * @type {ydn.db.Key}
        */
       var k = arg1;
-      df.callback(executor.getById(k.getStoreName(), k.getId()));
+      df.chainDeferred(executor.getById(k.getStoreName(), k.getId()));
     } else if (goog.isString(arg1)) {
       if (goog.isString(arg2) || goog.isNumber(arg2)) {
         /** @type {string} */
         var store_name = arg1;
         /** @type {string|number} */
         var id = arg2;
-        df.callback(this.getById(store_name, id));
+        df.chainDeferred(this.getById(store_name, id));
       } else if (!goog.isDef(arg2)) {
-        df.callback(this.getByStore(arg1));
+        df.chainDeferred(this.getByStore(arg1));
       } else if (goog.isArray(arg2)) {
         if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-          df.callback(this.getByIds(arg1, arg2));
+          df.chainDeferred(this.getByIds(arg1, arg2));
         } else {
           throw new ydn.error.ArgumentException();
         }
@@ -295,18 +314,19 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
       }
     } else if (goog.isArray(arg1)) {
       if (arg1[0] instanceof ydn.db.Key) {
-        df.callback(this.getByKeys(arg1));
+        df.chainDeferred(this.getByKeys(arg1));
       } else {
         throw new ydn.error.ArgumentException();
       }
     } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-      df.callback(this.getByStore());
+      df.chainDeferred(this.getByStore());
     } else {
       throw new ydn.error.ArgumentException();
     }
   };
 
   this.execute(get, [], ydn.db.TransactionMode.READ_ONLY);
+
   return df;
 };
 

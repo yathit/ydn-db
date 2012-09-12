@@ -44,6 +44,15 @@ ydn.db.tr.TxStorage.prototype.isActive = function() {
 
 /**
  *
+ * @return {!ydn.db.tr.Storage}
+ */
+ydn.db.tr.TxStorage.prototype.getStorage = function() {
+  return this.storage_;
+};
+
+
+/**
+ *
  * @return {SQLTransaction|IDBTransaction|Object}
  */
 ydn.db.tr.TxStorage.prototype.getTx = function() {

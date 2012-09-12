@@ -122,3 +122,23 @@ ydn.db.req.RequestExecutor.prototype.getByKeys = goog.abstractMethod;
 */
 ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
 
+
+
+/**
+ * Return object
+ * @param {string} store table name.
+ * @param {(string|number)} id object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.req.RequestExecutor.prototype.clearById = goog.abstractMethod;
+
+
+
+/**
+ * Return object
+ * @param {(!Array.<string>|string)=} store table name.
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.req.RequestExecutor.prototype.clearByStore = goog.abstractMethod;
+
