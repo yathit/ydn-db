@@ -19,8 +19,7 @@
  */
 
 goog.provide('ydn.db');
-goog.provide('ydn.db.ValidKeyException');
-goog.provide('ydn.db.InvalidStateError');
+
 goog.require('goog.async.Deferred');
 
 
@@ -89,103 +88,3 @@ ydn.db.TransactionMode = {
   READ_WRITE: 'readwrite',
   VERSION_CHANGE: 'versionchange'
 };
-
-
-/**
- * Base class for custom error objects.
- * @param {*=} opt_msg The message associated with the error.
- * @constructor
- * @extends {Error}
- */
-ydn.db.ValidKeyException = function(opt_msg) {
-
-  // Ensure there is a stack trace.
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.ValidKeyException);
-  } else {
-    this.stack = new Error().stack || '';
-  }
-
-  if (opt_msg) {
-    this.message = String(opt_msg);
-  }
-};
-goog.inherits(ydn.db.ValidKeyException, Error);
-
-ydn.db.ValidKeyException.prototype.name = 'ydn.db.ValidKeyException';
-
-
-
-
-/**
- * Base class for custom error objects.
- * @param {*=} opt_msg The message associated with the error.
- * @constructor
- * @extends {Error}
- */
-ydn.db.ScopeError = function(opt_msg) {
-
-  // Ensure there is a stack trace.
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.ScopeError);
-  } else {
-    this.stack = new Error().stack || '';
-  }
-
-  if (opt_msg) {
-    this.message = String(opt_msg);
-  }
-};
-goog.inherits(ydn.db.ScopeError, Error);
-
-ydn.db.ScopeError.prototype.name = 'ydn.db.ScopeError';
-
-
-/**
- * Base class for custom error objects.
- * @param {*=} opt_msg The message associated with the error.
- * @constructor
- * @extends {Error}
- */
-ydn.db.InvalidStateError = function(opt_msg) {
-
-  // Ensure there is a stack trace.
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.InvalidStateError);
-  } else {
-    this.stack = new Error().stack || '';
-  }
-
-  if (opt_msg) {
-    this.message = String(opt_msg);
-  }
-};
-goog.inherits(ydn.db.InvalidStateError, Error);
-
-ydn.db.InvalidStateError.prototype.name = 'ydn.db.InvalidStateError';
-
-
-
-
-/**
- * Base class for custom error objects.
- * @param {*=} opt_msg The message associated with the error.
- * @constructor
- * @extends {Error}
- */
-ydn.db.NotFoundError = function(opt_msg) {
-
-  // Ensure there is a stack trace.
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.NotFoundError);
-  } else {
-    this.stack = new Error().stack || '';
-  }
-
-  if (opt_msg) {
-    this.message = String(opt_msg);
-  }
-};
-goog.inherits(ydn.db.NotFoundError, Error);
-
-ydn.db.NotFoundError.prototype.name = 'ydn.db.NotFoundError';

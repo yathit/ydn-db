@@ -49,4 +49,10 @@ ydn.db.tr.ITxStorage.prototype.setCompletedListener = function(fn) {};
 ydn.db.tr.ITxStorage.prototype.out = function() {};
 
 
+/**
+ * Set transaction should not be used.
+ */
+ydn.db.tr.ITxStorage.prototype.setDone = function() {};
+
+
 

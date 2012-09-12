@@ -58,7 +58,7 @@ ydn.db.TxStorage.prototype.getTx = function() {
 
 /**
  * @throws {ydn.db.ScopeError}
- * @param {function(!ydn.db.req.IExecutor)} callback
+ * @param {function(!ydn.db.req.AbstractRequestExecutor)} callback
  */
 ydn.db.StorageService.prototype.execute = function(callback) {
   if (!this.executor.isActive()) {

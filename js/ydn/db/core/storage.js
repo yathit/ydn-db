@@ -301,6 +301,13 @@ ydn.db.core.Storage.prototype.onReady = function(callback) {
 };
 
 
+/**
+ * @protected
+ * @return {ydn.db.adapter.IDatabase}
+ */
+ydn.db.core.Storage.prototype.getDb = function() {
+  return this.db_;
+};
 
 
 /**

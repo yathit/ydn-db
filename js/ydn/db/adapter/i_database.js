@@ -30,12 +30,18 @@ ydn.db.adapter.IDatabase.prototype.type = function() {};
 
 
 /**
- *
- * @param {function((SQLTransaction|IDBTransaction|Object))||Function} trFn callback function that invoke in the transaction with transaction instance.
- * @param {!Array.<string>} storeNames list of store names involved in the
+ * Perform transaction immediately and invoke transaction_callback with
+ * the transaction object.
+ * Database adaptor must invoke completed_event_handler
+ * when the data is transaction completed.
+ * Caller must not invoke this method until transaction completed event is fired.
+ * @param {function((SQLTransaction|IDBTransaction|Object))||Function} transaction_callback callback function that invoke in the transaction with transaction instance.
+ * @param {!Array.<string>} store_names list of store names involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
+ * @param {function(ydn.db.TransactionMode, *)} completed_event_handler
  */
-ydn.db.adapter.IDatabase.prototype.doTransaction = function(trFn, storeNames, mode) {};
+ydn.db.adapter.IDatabase.prototype.doTransaction = function(transaction_callback, store_names,
+                                                            mode, completed_event_handler) {};
 
 

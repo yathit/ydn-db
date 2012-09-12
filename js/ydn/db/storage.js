@@ -52,7 +52,7 @@ goog.require('ydn.db.io.QueryServiceProvider');
  * If database name and schema are provided, this will immediately initialize
  * the database and ready to use. However if any of these two are missing,
  * the database is not initialize until they are set by calling
- * {@link #setsetDbName} and {@link #setSchema}.
+ * {@link #setName} and {@link #setSchema}.
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
  * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
@@ -87,17 +87,6 @@ ydn.db.Storage.prototype.initDatabase = function () {
 
 
 /**
- *
- * @param {function(!ydn.db.tr.QueryService)} callback
- * @override
- */
-ydn.db.Storage.prototype.onReady = function(callback) {
-  goog.base(this, 'onReady', /**
-   @type {function(!ydn.db.tr.IDatabase)} */ (callback));
-};
-
-
-/**
  * @define {string} default key-value store name.
  */
 ydn.db.Storage.DEFAULT_TEXT_STORE = 'default_text_store';
@@ -119,22 +108,29 @@ ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
 
 
 /**
- * @type {ydn.db.req.IExecutor}
+ * @type {ydn.db.req.AbstractRequestExecutor}
  */
 ydn.db.Storage.prototype.executor = null;
 
 
 /**
  *
+ * @return {*}
+ */
+ydn.db.Storage.prototype.getQueryService = function() {
+  return this.getDb();
+};
+
+
+/**
+ *
  * @param {string} scope callback function name as scope name
  * @throws {ydn.db.ScopeError}
- * @return {!ydn.db.req.IExecutor}
+ * @return {!ydn.db.req.AbstractRequestExecutor}
  */
 ydn.db.Storage.prototype.getExecutor = function (scope) {
-  var service = this.getDb();
-  goog.asserts.assertObject(service, 'how could this be');
 
-  var type = service.type();
+  var type = this.type();
   if (type == ydn.db.adapter.IndexedDb.TYPE) {
     this.executor = new ydn.db.req.IndexedDb();
   } else if (type == ydn.db.adapter.WebSql.TYPE) {
@@ -142,13 +138,9 @@ ydn.db.Storage.prototype.getExecutor = function (scope) {
   } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
     type == ydn.db.adapter.LocalStorage.TYPE ||
     type == ydn.db.adapter.SessionStorage.TYPE) {
-    this.executor = new ydn.db.exe.SimpleStorage();
+    this.executor = new ydn.db.req.SimpleStorage();
   } else {
-    throw new ydn.db.InternalError('No executor for ' + service.type());
-  }
-
-  if (!this.executor.isActive()) {
-    throw new ydn.db.ScopeError(scope);
+    throw new ydn.db.InternalError('No executor for ' + type);
   }
 
   return this.executor;
@@ -157,11 +149,32 @@ ydn.db.Storage.prototype.getExecutor = function (scope) {
 
 /**
  * @throws {ydn.db.ScopeError}
- * @param {function(!ydn.db.req.IExecutor)} callback
+ * @param {function(!ydn.db.req.AbstractRequestExecutor)} callback
  */
-ydn.db.Storage.prototype.execute = function(callback) {
-  // only TxStorage has active executor.
-  throw new ydn.db.ScopeError(callback.name);
+ydn.db.Storage.prototype.execute = function(callback, scope, store_names, mode)
+{
+  var me = this;
+  var executor = this.getExecutor(scope);
+  if (!executor.isActive()) {
+    // invoke in non-transaction context
+    // create a new transaction and close
+    var tx_callback = function(idb) {
+      // transaction should be active now
+      executor = me.getExecutor(scope);
+      if (!executor.isActive()) {
+        throw new ydn.db.InternalError();
+      }
+      callback(executor);
+      idb.setDone(); // explicitly told not to use this transaction again.
+    };
+    tx_callback.name = scope; // scope name
+    this.transaction(tx_callback, store_names, mode);
+  } else {
+    // call within a transaction
+    // continue to use existing transaction
+    callback(executor);
+  }
+
 };
 
 
@@ -245,7 +258,7 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
 
   /**
    *
-   * @param {!ydn.db.req.IExecutor} executor
+   * @param {!ydn.db.req.AbstractRequestExecutor} executor
    */
   var get = function(executor) {
 
@@ -266,7 +279,7 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
         df.callback(this.getByStore(arg1));
       } else if (goog.isArray(arg2)) {
         if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-          df.callback(this.getByIds_(arg1, arg2));
+          df.callback(this.getByIds(arg1, arg2));
         } else {
           throw new ydn.error.ArgumentException();
         }
@@ -275,12 +288,12 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
       }
     } else if (goog.isArray(arg1)) {
       if (arg1[0] instanceof ydn.db.Key) {
-        df.callback(this.getByKeys_(arg1));
+        df.callback(this.getByKeys(arg1));
       } else {
         throw new ydn.error.ArgumentException();
       }
     } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-      df.callback(this.getByStore_());
+      df.callback(this.getByStore());
     } else {
       throw new ydn.error.ArgumentException();
     }

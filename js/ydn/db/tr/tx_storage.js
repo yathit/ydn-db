@@ -14,34 +14,22 @@ goog.require('ydn.error.NotSupportedException');
  * @implements {ydn.db.tr.IStorage}
  * @implements {ydn.db.tr.ITxStorage}
  * @param {!ydn.db.tr.Storage} storage
- * @param {!ydn.db.tr.Mutex} mu_tx
  * @param {string} scope
  * @constructor
  */
-ydn.db.tr.TxStorage = function(storage, mu_tx, scope) {
+ydn.db.tr.TxStorage = function(storage, scope) {
   /**
    * @final
    * @type {!ydn.db.tr.Storage}
    * @private
    */
   this.storage_ = storage;
-  /**
-   * @final
-   * @type {SQLTransaction|IDBTransaction|Object}
-   * @private
-   */
-  this.tx_ = mu_tx.getTx(); // tx in mu_tx is mutable
 
+  var mu_tx = storage.get
   this.itx_count_ = mu_tx.getTxCount();
 
   this.scope = scope;
 
-  /**
-   * @final
-   * @type {!ydn.db.tr.Mutex}
-   * @private
-   */
-  this.mu_tx_ = mu_tx;
 };
 
 
@@ -60,6 +48,11 @@ ydn.db.tr.TxStorage.prototype.getTx = function() {
  */
 ydn.db.tr.TxStorage.prototype.getTxNo = function() {
   return this.itx_count_;
+};
+
+
+ydn.db.tr.TxStorage.prototype.setDone = function() {
+  this.storage_.getTx().setDone();
 };
 
 

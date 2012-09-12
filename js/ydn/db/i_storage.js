@@ -6,7 +6,7 @@
 
 goog.provide('ydn.db.IStorage');
 goog.require('ydn.db.tr.IStorage');
-goog.require('ydn.db.req.IExecutor');
+goog.require('ydn.db.req.AbstractRequestExecutor');
 
 
 
@@ -20,6 +20,6 @@ ydn.db.IStorage = function() {};
 
 /**
  * @throws {ydn.db.ScopeError}
- * @param {function(!ydn.db.req.IExecutor)} callback
+ * @param {function(!ydn.db.req.AbstractRequestExecutor)} callback
  */
 ydn.db.IStorage.prototype.execute = function(callback) {};
