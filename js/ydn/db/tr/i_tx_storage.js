@@ -43,16 +43,4 @@ ydn.db.tr.ITxStorage.prototype.getTxNo = function() {};
 ydn.db.tr.ITxStorage.prototype.setCompletedListener = function(fn) {};
 
 
-/**
- * Going out of scope
- */
-ydn.db.tr.ITxStorage.prototype.out = function() {};
-
-
-/**
- * Set transaction should not be used.
- */
-ydn.db.tr.ITxStorage.prototype.setDone = function() {};
-
-
 

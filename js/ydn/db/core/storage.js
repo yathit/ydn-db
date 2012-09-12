@@ -375,7 +375,7 @@ ydn.db.core.Storage.prototype.in_tx_ = false;
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.TransactionMode, *)=} completed_event_handler
+ * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
  */
 ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
      opt_mode, completed_event_handler) {

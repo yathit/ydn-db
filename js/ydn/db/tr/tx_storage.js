@@ -14,10 +14,11 @@ goog.require('ydn.error.NotSupportedException');
  * @implements {ydn.db.tr.IStorage}
  * @implements {ydn.db.tr.ITxStorage}
  * @param {!ydn.db.tr.Storage} storage
+ * @param {!ydn.db.tr.Mutex} mu_tx
  * @param {string} scope
  * @constructor
  */
-ydn.db.tr.TxStorage = function(storage, scope) {
+ydn.db.tr.TxStorage = function(storage, mu_tx, scope) {
   /**
    * @final
    * @type {!ydn.db.tr.Storage}
@@ -25,7 +26,13 @@ ydn.db.tr.TxStorage = function(storage, scope) {
    */
   this.storage_ = storage;
 
-  var mu_tx = storage.get
+  /**
+   * @final
+   * @type {!ydn.db.tr.Mutex}
+   * @private
+   */
+  this.mu_tx_ = mu_tx;
+
   this.itx_count_ = mu_tx.getTxCount();
 
   this.scope = scope;
@@ -38,7 +45,7 @@ ydn.db.tr.TxStorage = function(storage, scope) {
  * @return {SQLTransaction|IDBTransaction|Object}
  */
 ydn.db.tr.TxStorage.prototype.getTx = function() {
-  return this.tx_;
+  return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_.getTx() : null;
 };
 
 
@@ -52,7 +59,7 @@ ydn.db.tr.TxStorage.prototype.getTxNo = function() {
 
 
 ydn.db.tr.TxStorage.prototype.setDone = function() {
-  this.storage_.getTx().setDone();
+  this.mu_tx_.setDone();
 };
 
 
@@ -71,13 +78,6 @@ ydn.db.tr.TxStorage.prototype.setCompletedListener = function(fn) {
   this.mu_tx_.oncompleted = fn || null;
 };
 
-
-/**
- * Going out of scope
- */
-ydn.db.tr.TxStorage.prototype.out = function() {
-  this.mu_tx_.out();
-};
 
 
 /**

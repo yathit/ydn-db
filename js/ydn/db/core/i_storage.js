@@ -35,7 +35,8 @@ ydn.db.core.IStorage.prototype.type = function() {};
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
+ * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
  */
-ydn.db.core.IStorage.prototype.transaction = function (trFn, store_names, mode) {};
+ydn.db.core.IStorage.prototype.transaction = function (trFn, store_names, mode, completed_event_handler) {};
 
 

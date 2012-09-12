@@ -26,12 +26,11 @@ goog.addDependency("../../../ydn-db/js/ydn/db/req/memory_store.js", ['ydn.db.req
 goog.addDependency("../../../ydn-db/js/ydn/db/req/websql.js", ['ydn.db.req.WebSql'], ['goog.async.Deferred', 'goog.debug.Logger', 'goog.events', 'ydn.async', 'ydn.db.req.AbstractRequestExecutor', 'ydn.json']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/html5_storage.js", ['ydn.db.tr.LocalStorage', 'ydn.db.tr.SessionStorage'], ['ydn.db.tr.SimpleStorage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/indexed_db.js", ['ydn.db.tr.IndexedDb'], ['ydn.db.adapter.IndexedDb', 'ydn.db.tr.IDatabase', 'ydn.db.tr.IdbMutex']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_database.js", ['ydn.db.tr.IDatabase'], ['ydn.db.adapter.IDatabase', 'ydn.db.tr.Mutex']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_storage.js", ['ydn.db.tr.IStorage'], ['ydn.db.core.IStorage', 'ydn.db.tr.Mutex']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_tx_storage.js", ['ydn.db.tr.ITxStorage'], ['ydn.db.core.IStorage', 'ydn.db.tr.Mutex']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/mutex.js", ['ydn.db.tr.Mutex', 'ydn.db.tr.SqlMutex', 'ydn.db.tr.IdbMutex'], ['goog.array', 'goog.asserts', 'ydn.db.InvalidStateError']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/simple_storage.js", ['ydn.db.tr.SimpleStorage'], ['ydn.db.adapter.SimpleStorage', 'ydn.db.tr.IDatabase']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tr/storage.js", ['ydn.db.tr.Storage'], ['ydn.db.core.Storage', 'ydn.db.tr.IndexedDb', 'ydn.db.tr.WebSql', 'ydn.db.tr.LocalStorage', 'ydn.db.tr.SessionStorage', 'ydn.db.tr.SimpleStorage', 'ydn.db.tr.ITxStorage', 'ydn.db.tr.IStorage', 'ydn.db.tr.TxStorage']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/storage.js", ['ydn.db.tr.Storage'], ['ydn.db.core.Storage', 'ydn.db.tr.ITxStorage', 'ydn.db.tr.IStorage', 'ydn.db.tr.TxStorage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/tx_storage.js", ['ydn.db.tr.TxStorage'], ['ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/websql.js", ['ydn.db.tr.WebSql'], ['ydn.db.adapter.WebSql', 'ydn.db.tr.IDatabase', 'ydn.db.tr.SqlMutex']);
 goog.addDependency("../../../ydn-db/js/ydn/db/utils/test_utils.js", ['ydn.db.test'], ['ydn.db.io.QueryService']);

@@ -142,7 +142,6 @@ ydn.db.tr.Mutex.prototype.inScope = function() {
 
 /**
  * Transaction is explicitly set not to do next transaction.
- * @deprecated
  */
 ydn.db.tr.Mutex.prototype.setDone = function() {
   this.is_set_done_ = true;

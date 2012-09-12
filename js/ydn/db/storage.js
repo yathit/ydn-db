@@ -115,15 +115,6 @@ ydn.db.Storage.prototype.executor = null;
 
 /**
  *
- * @return {*}
- */
-ydn.db.Storage.prototype.getQueryService = function() {
-  return this.getDb();
-};
-
-
-/**
- *
  * @param {string} scope callback function name as scope name
  * @throws {ydn.db.ScopeError}
  * @return {!ydn.db.req.AbstractRequestExecutor}
@@ -304,15 +295,6 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
 };
 
 
-
-
-
-/**
- * @override
- */
-ydn.db.Storage.prototype.newTxInstance = function(tx) {
-  return new ydn.db.TxStorage(this, tx);
-};
 
 
 

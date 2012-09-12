@@ -23,9 +23,11 @@ ydn.db.tr.IStorage = function() {};
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
+ * @param {function(ydn.db.TransactionEventTypes, *)=} oncompleted
  * @param {...} opt_args
  */
-ydn.db.tr.IStorage.prototype.transaction = function (trFn, store_names, mode, opt_args) {};
+ydn.db.tr.IStorage.prototype.transaction = function (trFn, store_names, mode,
+    oncompleted, opt_args) {};
 
 
 
@@ -36,9 +38,11 @@ ydn.db.tr.IStorage.prototype.transaction = function (trFn, store_names, mode, op
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
+ * @param {function(ydn.db.TransactionEventTypes, *)=} oncompleted
  * @param {...} opt_args
  */
-ydn.db.tr.IStorage.prototype.joinTransaction = function (trFn, store_names, mode, opt_args) {};
+ydn.db.tr.IStorage.prototype.joinTransaction = function (trFn, store_names,
+                                                         oncompleted, mode, opt_args) {};
 
 
 

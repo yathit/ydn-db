@@ -32,11 +32,6 @@
 
 goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.core.Storage');
-goog.require('ydn.db.tr.IndexedDb');
-goog.require('ydn.db.tr.WebSql');
-goog.require('ydn.db.tr.LocalStorage');
-goog.require('ydn.db.tr.SessionStorage');
-goog.require('ydn.db.tr.SimpleStorage');
 goog.require('ydn.db.tr.ITxStorage');
 goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.TxStorage');
@@ -66,47 +61,37 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.core.Storage);
+//
+//
+///**
+// * @override
+// */
+//ydn.db.tr.Storage.prototype.createDbInstance = function(db_type, db_name, config) {
+//  //noinspection JSValidateTypes
+//  if (db_type == ydn.db.adapter.IndexedDb.TYPE) {
+//    return new ydn.db.tr.IndexedDb(db_name, config);
+//  } else if (db_type == ydn.db.adapter.WebSql.TYPE) {
+//    return new ydn.db.tr.WebSql(db_name, config);
+//  } else if (db_type == ydn.db.adapter.LocalStorage.TYPE) {
+//    return new ydn.db.tr.LocalStorage(db_name, config);
+//  } else if (db_type == ydn.db.adapter.SessionStorage.TYPE) {
+//    return new ydn.db.tr.SessionStorage(db_name, config);
+//  } else if (db_type == ydn.db.adapter.SimpleStorage.TYPE)  {
+//    return new ydn.db.tr.SimpleStorage(db_name, config);
+//  }
+//  return null;
+//};
 
-
-/**
- * @override
- */
-ydn.db.tr.Storage.prototype.createDbInstance = function(db_type, db_name, config) {
-  //noinspection JSValidateTypes
-  if (db_type == ydn.db.adapter.IndexedDb.TYPE) {
-    return new ydn.db.tr.IndexedDb(db_name, config);
-  } else if (db_type == ydn.db.adapter.WebSql.TYPE) {
-    return new ydn.db.tr.WebSql(db_name, config);
-  } else if (db_type == ydn.db.adapter.LocalStorage.TYPE) {
-    return new ydn.db.tr.LocalStorage(db_name, config);
-  } else if (db_type == ydn.db.adapter.SessionStorage.TYPE) {
-    return new ydn.db.tr.SessionStorage(db_name, config);
-  } else if (db_type == ydn.db.adapter.SimpleStorage.TYPE)  {
-    return new ydn.db.tr.SimpleStorage(db_name, config);
-  }
-  return null;
-};
-
-
-/**
- *
- * @param {function(!ydn.db.tr.IDatabase)} callback
- * @override
- */
-ydn.db.tr.Storage.prototype.onReady = function(callback) {
-  goog.base(this, 'onReady', /**
-   @type {function(!ydn.db.adapter.IDatabase)} */ (callback));
-};
 
 
 /**
  * @protected
- * @param {!ydn.db.tr.Mutex} tx
+ * @param {!ydn.db.tr.Mutex} mu_tx
  * @param {string} scope
  * @return {!ydn.db.tr.TxStorage}
  */
-ydn.db.tr.Storage.prototype.newTxInstance = function(tx, scope) {
-  return new ydn.db.tr.TxStorage(this, tx, scope);
+ydn.db.tr.Storage.prototype.newTxInstance = function(mu_tx, scope) {
+  return new ydn.db.tr.TxStorage(this, mu_tx, scope);
 };
 
 
@@ -117,10 +102,12 @@ ydn.db.tr.Storage.prototype.newTxInstance = function(tx, scope) {
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
+ * @param {function(ydn.db.TransactionEventTypes, *)=} oncompleted
  * @param {...} opt_args
  * @override
  */
-ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode, opt_args) {
+ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
+                                                    oncompleted, opt_args) {
   var names = store_names;
   if (goog.isString(store_names)) {
     names = [store_names];
@@ -130,9 +117,9 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
   }
   var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
   var outFn = trFn;
-  if (arguments.length > 3) { // handle optional parameters
+  if (arguments.length > 4) { // handle optional parameters
     // see how this works in goog.partial.
-    var args = Array.prototype.slice.call(arguments, 3);
+    var args = Array.prototype.slice.call(arguments, 4);
     outFn = function() {
       // Prepend the bound arguments to the current arguments.
       var newArgs = Array.prototype.slice.call(arguments);
@@ -143,25 +130,48 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
 
   var me = this;
 
-  this.onReady(function(db) {
-    db.doTransaction(function (tx) {
-      // wrap this database and hold active transaction instance
-      var tx_db = me.newTxInstance(tx, trFn.name || '');
-      // now execute transaction process
-      trFn(tx_db);
-      tx_db.out(); // flag transaction callback scope is over.
-      // transaction is still active and use in followup request handlers
-    }, names, mode);
-  });
+  var tx_db, mu_tx;
+  var transaction_process = function(mu_tx) {
+    // wrap this database and hold active transaction instance
+    tx_db = me.newTxInstance(mu_tx, trFn.name || '');
+    // now execute transaction process
+    trFn(tx_db);
+    mu_tx.out(); // flag transaction callback scope is over.
+    // transaction is still active and use in followup request handlers
+  };
+
+  var completed_handler = function(type, event) {
+    mu_tx.down(type, event);
+    if (goog.isFunction(oncompleted)) {
+      /**
+       * @preserve_try
+       */
+      try {
+        oncompleted(type, event);
+      } catch (e) {
+        // swallow error. document it publicly.
+        // this is necessary and
+        if (goog.DEBUG) {
+          throw e;
+        }
+      }
+    }
+  };
+
+  goog.base(this, 'transaction', transaction_process, names, mode, completed_handler);
+
 };
 
 
 /**
- * @override
- */
-ydn.db.tr.Storage.prototype.joinTransaction = function (trFn, store_names, opt_mode, opt_args) {
+* @override
+*/
+ydn.db.tr.Storage.prototype.joinTransaction = function (trFn, store_names, opt_mode, oncompleted, opt_args) {
   // we are in outer loop.
-  this.transaction(trFn, store_names, opt_mode, opt_args);
+  //this.transaction(trFn, store_names, opt_mode, oncompleted, opt_args);
+  throw new ydn.db.InternalError();
+  // this class cannot call join transaction.
+  // todo: wrong interface spec?
 };
 
 
