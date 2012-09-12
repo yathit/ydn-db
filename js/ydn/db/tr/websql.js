@@ -23,7 +23,7 @@
 
 goog.provide('ydn.db.tr.WebSql');
 goog.require('ydn.db.adapter.WebSql');
-goog.require('ydn.db.tr.DbService');
+goog.require('ydn.db.tr.IDatabase');
 goog.require('ydn.db.tr.SqlMutex');
 
 
@@ -33,7 +33,7 @@ goog.require('ydn.db.tr.SqlMutex');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.tr.DbService}
+ * @implements {ydn.db.tr.IDatabase}
  * @extends {ydn.db.adapter.WebSql}
  * @constructor
  */

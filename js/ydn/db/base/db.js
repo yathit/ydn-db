@@ -27,7 +27,8 @@ goog.require('goog.async.Deferred');
 
 /**
  * Column name of key, if keyPath is not specified.
- * @const {string}
+ * @const
+ * @type {string}
  */
 ydn.db.DEFAULT_KEY_COLUMN = '_id_';
 
@@ -35,7 +36,8 @@ ydn.db.DEFAULT_KEY_COLUMN = '_id_';
 /**
  * Non-indexed field are store in this default field. There is always a column
  * in each table.
- * @const {string}
+ * @const
+ * @type {string}
  */
 ydn.db.DEFAULT_BLOB_COLUMN = '_default_';
 

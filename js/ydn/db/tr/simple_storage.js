@@ -18,11 +18,11 @@
 
 goog.provide('ydn.db.tr.SimpleStorage');
 goog.require('ydn.db.adapter.SimpleStorage');
-goog.require('ydn.db.tr.DbService');
+goog.require('ydn.db.tr.IDatabase');
 
 
 /**
- * @implements {ydn.db.tr.DbService}
+ * @implements {ydn.db.tr.IDatabase}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.

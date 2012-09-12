@@ -27,7 +27,7 @@ goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.json');
 goog.require('ydn.db');
-goog.require('ydn.db.DbService');
+goog.require('ydn.db.adapter.IDatabase');
 
 
 /**
@@ -36,7 +36,7 @@ goog.require('ydn.db.DbService');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.DbService}
+ * @implements {ydn.db.adapter.IDatabase}
  * @constructor
  */
 ydn.db.adapter.WebSql = function(dbname, schema) {

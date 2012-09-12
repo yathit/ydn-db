@@ -4,16 +4,16 @@
  */
 
 
-goog.provide('ydn.db.tr.DbService');
-goog.require('ydn.db.DbService');
+goog.provide('ydn.db.tr.IDatabase');
+goog.require('ydn.db.adapter.IDatabase');
 goog.require('ydn.db.tr.Mutex');
 
 
 /**
- * @extends {ydn.db.DbService}
+ * @extends {ydn.db.adapter.IDatabase}
  * @interface
  */
-ydn.db.tr.DbService = function() {};
+ydn.db.tr.IDatabase = function() {};
 
 
 /**
@@ -24,12 +24,12 @@ ydn.db.tr.DbService = function() {};
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
  * @override
  */
-ydn.db.tr.DbService.prototype.doTransaction = function(trFn, storeNames, mode) {};
+ydn.db.tr.IDatabase.prototype.doTransaction = function(trFn, storeNames, mode) {};
 
 
 /**
  * Obtain active consumable transaction object.
  * @return {ydn.db.tr.Mutex} transaction object if active and available.
  */
-ydn.db.tr.DbService.prototype.getActiveTx = function() {};
+ydn.db.tr.IDatabase.prototype.getActiveTx = function() {};
 

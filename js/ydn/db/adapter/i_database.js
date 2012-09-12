@@ -3,14 +3,14 @@
  */
 
 
-goog.provide('ydn.db.DbService');
+goog.provide('ydn.db.adapter.IDatabase');
 goog.require('goog.async.Deferred');
 
 
 /**
  * @interface
  */
-ydn.db.DbService = function() {};
+ydn.db.adapter.IDatabase = function() {};
 
 
 /**
@@ -18,14 +18,14 @@ ydn.db.DbService = function() {};
  *
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.DbService.prototype.close = function() {};
+ydn.db.adapter.IDatabase.prototype.close = function() {};
 
 
 /**
  * Return readable representation of storage mechanism. It should be all lower case and use in type checking.
  * @return {string}
  */
-ydn.db.DbService.prototype.type = function() {};
+ydn.db.adapter.IDatabase.prototype.type = function() {};
 
 
 
@@ -36,6 +36,6 @@ ydn.db.DbService.prototype.type = function() {};
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
  */
-ydn.db.DbService.prototype.doTransaction = function(trFn, storeNames, mode) {};
+ydn.db.adapter.IDatabase.prototype.doTransaction = function(trFn, storeNames, mode) {};
 
 

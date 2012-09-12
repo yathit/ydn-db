@@ -11,8 +11,8 @@ goog.require('ydn.error.NotSupportedException');
 
 
 /**
- * @implements {ydn.db.tr.Service}
- * @implements {ydn.db.tr.TxService}
+ * @implements {ydn.db.tr.IStorage}
+ * @implements {ydn.db.tr.ITxStorage}
  * @param {!ydn.db.tr.Storage} storage
  * @param {!ydn.db.tr.Mutex} mu_tx
  * @param {string} scope

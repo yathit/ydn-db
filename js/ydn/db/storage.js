@@ -33,14 +33,14 @@
 goog.provide('ydn.db.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
-goog.require('ydn.db.exe.IndexedDb');
-goog.require('ydn.db.exe.SimpleStore');
-goog.require('ydn.db.exe.WebSql');
+goog.require('ydn.db.req.IndexedDb');
+goog.require('ydn.db.req.SimpleStore');
+goog.require('ydn.db.req.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.db.RichStorage_');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.db.TxStorage');
-goog.require('ydn.db.Service');
+goog.require('ydn.db.IStorage');
 goog.require('ydn.db.io.QueryService');
 goog.require('ydn.db.io.QueryServiceProvider');
 
@@ -59,7 +59,7 @@ goog.require('ydn.db.io.QueryServiceProvider');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!Object=} opt_options options.
- * @implements {ydn.db.Service}
+ * @implements {ydn.db.IStorage}
  * @extends {ydn.db.tr.Storage}
  * @constructor
  */
@@ -93,7 +93,7 @@ ydn.db.Storage.prototype.initDatabase = function () {
  */
 ydn.db.Storage.prototype.onReady = function(callback) {
   goog.base(this, 'onReady', /**
-   @type {function(!ydn.db.tr.DbService)} */ (callback));
+   @type {function(!ydn.db.tr.IDatabase)} */ (callback));
 };
 
 
@@ -119,7 +119,7 @@ ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
 
 
 /**
- * @type {ydn.db.exe.Executor}
+ * @type {ydn.db.req.IExecutor}
  */
 ydn.db.Storage.prototype.executor = null;
 
@@ -128,7 +128,7 @@ ydn.db.Storage.prototype.executor = null;
  *
  * @param {string} scope callback function name as scope name
  * @throws {ydn.db.ScopeError}
- * @return {!ydn.db.exe.Executor}
+ * @return {!ydn.db.req.IExecutor}
  */
 ydn.db.Storage.prototype.getExecutor = function (scope) {
   var service = this.getDb();
@@ -136,9 +136,9 @@ ydn.db.Storage.prototype.getExecutor = function (scope) {
 
   var type = service.type();
   if (type == ydn.db.adapter.IndexedDb.TYPE) {
-    this.executor = new ydn.db.exe.IndexedDb();
+    this.executor = new ydn.db.req.IndexedDb();
   } else if (type == ydn.db.adapter.WebSql.TYPE) {
-    this.executor = new ydn.db.exe.WebSql();
+    this.executor = new ydn.db.req.WebSql();
   } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
     type == ydn.db.adapter.LocalStorage.TYPE ||
     type == ydn.db.adapter.SessionStorage.TYPE) {
@@ -157,7 +157,7 @@ ydn.db.Storage.prototype.getExecutor = function (scope) {
 
 /**
  * @throws {ydn.db.ScopeError}
- * @param {function(!ydn.db.exe.Executor)} callback
+ * @param {function(!ydn.db.req.IExecutor)} callback
  */
 ydn.db.Storage.prototype.execute = function(callback) {
   // only TxStorage has active executor.
@@ -245,7 +245,7 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
 
   /**
    *
-   * @param {!ydn.db.exe.Executor} executor
+   * @param {!ydn.db.req.IExecutor} executor
    */
   var get = function(executor) {
 
@@ -310,26 +310,26 @@ goog.exportProperty(goog.async.Deferred.prototype, 'success',
 goog.exportProperty(goog.async.Deferred.prototype, 'error',
   goog.async.Deferred.prototype.addErrback);
 
-//goog.exportProperty(ydn.db.Core.prototype, 'isReady',
-//  ydn.db.Core.prototype.isReady);
-goog.exportProperty(ydn.db.Core.prototype, 'type',
-  ydn.db.Core.prototype.type);
-goog.exportProperty(ydn.db.Core.prototype, 'setSchema',
-  ydn.db.Core.prototype.setSchema);
-goog.exportProperty(ydn.db.Core.prototype, 'setName',
-  ydn.db.Core.prototype.setName);
-goog.exportProperty(ydn.db.Core.prototype, 'getConfig',
-  ydn.db.Core.prototype.getConfig);
+//goog.exportProperty(ydn.db.core.Storage.prototype, 'isReady',
+//  ydn.db.core.Storage.prototype.isReady);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'type',
+  ydn.db.core.Storage.prototype.type);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'setSchema',
+  ydn.db.core.Storage.prototype.setSchema);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'setName',
+  ydn.db.core.Storage.prototype.setName);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'getConfig',
+  ydn.db.core.Storage.prototype.getConfig);
 // ActiveQuery do not need fetch, it is confusing if fetch in db.
-//goog.exportProperty(ydn.db.Core.prototype, 'fetch',
-//  ydn.db.Core.prototype.fetch);
-goog.exportProperty(ydn.db.Core.prototype, 'transaction',
-  ydn.db.Core.prototype.transaction);
-goog.exportProperty(ydn.db.Core.prototype, 'close',
-  ydn.db.Core.prototype.close);
+//goog.exportProperty(ydn.db.core.Storage.prototype, 'fetch',
+//  ydn.db.core.Storage.prototype.fetch);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'transaction',
+  ydn.db.core.Storage.prototype.transaction);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'close',
+  ydn.db.core.Storage.prototype.close);
 // for hacker
-goog.exportProperty(ydn.db.Core.prototype, 'db',
-    ydn.db.Core.prototype.getDbInstance_);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'db',
+    ydn.db.core.Storage.prototype.getDbInstance_);
 
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
   ydn.db.Storage.prototype.query);

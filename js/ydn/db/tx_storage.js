@@ -11,7 +11,7 @@ goog.require('ydn.error.NotSupportedException');
 
 
 /**
- * @implements {ydn.db.Service}
+ * @implements {ydn.db.IStorage}
  * @param {!ydn.db.Storage} storage
  * @param {!ydn.db.tr.Mutex} mu_tx
  * @param {string} scope
@@ -58,7 +58,7 @@ ydn.db.TxStorage.prototype.getTx = function() {
 
 /**
  * @throws {ydn.db.ScopeError}
- * @param {function(!ydn.db.exe.Executor)} callback
+ * @param {function(!ydn.db.req.IExecutor)} callback
  */
 ydn.db.StorageService.prototype.execute = function(callback) {
   if (!this.executor.isActive()) {

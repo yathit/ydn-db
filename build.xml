@@ -69,11 +69,12 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/core"
-                input.fn="${ydn-db.dir}/js/ydn/db/core/core.js"
+                input.fn="${ydn-db.dir}/js/ydn/db/core/storage.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="core-ydn-db-min-${ver}.js"
-                closure.entry="ydn.db.Core">
+                closure.entry="ydn.db.core.Storage">
             <exjs.dir>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/adapter"'/>
             </exjs.dir>
         </adv-comp>
@@ -89,6 +90,7 @@
                 output.fn="tr-ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.tr.Storage">
             <exjs.dir>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/adapter"'/>
             </exjs.dir>

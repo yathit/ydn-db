@@ -3,14 +3,14 @@
  */
 
 
-goog.provide('ydn.db.CoreService');
+goog.provide('ydn.db.core.IStorage');
 goog.require('goog.async.Deferred');
 
 
 /**
  * @interface
  */
-ydn.db.CoreService = function() {};
+ydn.db.core.IStorage = function() {};
 
 
 /**
@@ -18,14 +18,14 @@ ydn.db.CoreService = function() {};
  *
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.CoreService.prototype.close = function() {};
+ydn.db.core.IStorage.prototype.close = function() {};
 
 
 /**
  * Return readable representation of storage mechanism. It should be all lower case and use in type checking.
  * @return {string}
  */
-ydn.db.CoreService.prototype.type = function() {};
+ydn.db.core.IStorage.prototype.type = function() {};
 
 
 /**
@@ -36,6 +36,6 @@ ydn.db.CoreService.prototype.type = function() {};
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
  */
-ydn.db.CoreService.prototype.transaction = function (trFn, store_names, mode) {};
+ydn.db.core.IStorage.prototype.transaction = function (trFn, store_names, mode) {};
 
 

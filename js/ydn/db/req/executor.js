@@ -4,7 +4,7 @@
  */
 
 
-goog.provide('ydn.db.exe.Executor');
+goog.provide('ydn.db.req.IExecutor');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.Query');
 goog.require('ydn.db.Key');
@@ -15,7 +15,7 @@ goog.require('ydn.db.Key');
 /**
  * @interface
  */
-ydn.db.exe.Executor = function() {
+ydn.db.req.IExecutor = function() {
 
 };
 
@@ -24,13 +24,13 @@ ydn.db.exe.Executor = function() {
  *
  * @param {SQLTransaction|IDBTransaction|Object} tx
  */
-ydn.db.exe.Executor.prototype.setTx = function(tx) {};
+ydn.db.req.IExecutor.prototype.setTx = function(tx) {};
 
 
 /**
  * Return true if transaction object is active.
  */
-ydn.db.exe.Executor.prototype.isActive = function() {};
+ydn.db.req.IExecutor.prototype.isActive = function() {};
 
 
 /**
@@ -40,5 +40,5 @@ ydn.db.exe.Executor.prototype.isActive = function() {};
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.exe.Executor.prototype.getById = function(store, id) {};
+ydn.db.req.IExecutor.prototype.getById = function(store, id) {};
 

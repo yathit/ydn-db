@@ -21,11 +21,11 @@ goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
 goog.require('ydn.db.Key');
-goog.require('ydn.db.DbService');
+goog.require('ydn.db.adapter.IDatabase');
 
 
 /**
- * @implements {ydn.db.DbService}
+ * @implements {ydn.db.adapter.IDatabase}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.

@@ -2,7 +2,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
-goog.require('ydn.db.Core');
+goog.require('ydn.db.core.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 
@@ -34,7 +34,7 @@ var test_1_idb_basic = function() {
   var db_type =  'indexeddb';
   var options = {preference: [db_type]};
   var db_name = 'test_core_basic_1';
-  var db = new ydn.db.Core(db_name, basic_schema, options);
+  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -76,7 +76,7 @@ var test_2_websql_basic = function() {
   var db_type =  'websql';
   var options = {preference: [db_type]};
   var db_name = 'test_core_basic_1';
-  var db = new ydn.db.Core(db_name, basic_schema, options);
+  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -124,7 +124,7 @@ var test_3_local_basic = function() {
   var db_type =  'localstorage';
   var options = {preference: [db_type]};
   var db_name = 'test_core_basic_1';
-  var db = new ydn.db.Core(db_name, basic_schema, options);
+  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
 

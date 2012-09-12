@@ -16,19 +16,19 @@
  * @fileoverview Data store in memory.
  */
 
-goog.provide('ydn.db.exe.SimpleStore');
+goog.provide('ydn.db.req.SimpleStore');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
-goog.require('ydn.db.exe.Executor');
+goog.require('ydn.db.req.IExecutor');
 
 
 /**
- * @implements {ydn.db.exe.Executor}
+ * @implements {ydn.db.req.IExecutor}
  * @param {Object} tx
  * @constructor
  */
-ydn.db.exe.SimpleStore = function(tx) {
+ydn.db.req.SimpleStore = function(tx) {
   this.tx_ = tx;
 };
 
@@ -40,19 +40,19 @@ ydn.db.exe.SimpleStore = function(tx) {
  * @type {Object}
  * @private
  */
-ydn.db.exe.SimpleStore.prototype.tx_ = null;
+ydn.db.req.SimpleStore.prototype.tx_ = null;
 
 /**
  * @inheritDoc
  */
-ydn.db.exe.SimpleStore.prototype.setTx = function(tx) {
+ydn.db.req.SimpleStore.prototype.setTx = function(tx) {
   this.tx_ = tx;
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.exe.SimpleStore.prototype.isActive = function() {
+ydn.db.req.SimpleStore.prototype.isActive = function() {
   return !!this.tx_;
 };
 
@@ -61,7 +61,7 @@ ydn.db.exe.SimpleStore.prototype.isActive = function() {
  *
  * @return {Object} return memory store object.
  */
-ydn.db.exe.SimpleStore.getFakeLocalStorage = function() {
+ydn.db.req.SimpleStore.getFakeLocalStorage = function() {
 
   var localStorage = {};
   localStorage.setItem = function(key, value) {
@@ -86,7 +86,7 @@ ydn.db.exe.SimpleStore.getFakeLocalStorage = function() {
  *
  * @return {boolean} true if memory is supported.
  */
-ydn.db.exe.SimpleStore.isSupported = function() {
+ydn.db.req.SimpleStore.isSupported = function() {
   return true;
 };
 
@@ -95,7 +95,7 @@ ydn.db.exe.SimpleStore.isSupported = function() {
  *
  * @define {boolean} use sync result.
  */
-ydn.db.exe.SimpleStore.SYNC = false;
+ydn.db.req.SimpleStore.SYNC = false;
 
 
 /**
@@ -103,11 +103,11 @@ ydn.db.exe.SimpleStore.SYNC = false;
  * @param {*} value
  * @return {!goog.async.Deferred} return callback with given value in async.
  */
-ydn.db.exe.SimpleStore.succeed = function(value) {
+ydn.db.req.SimpleStore.succeed = function(value) {
 
   var df = new goog.async.Deferred();
 
-  if (ydn.db.exe.SimpleStore.SYNC) {
+  if (ydn.db.req.SimpleStore.SYNC) {
     df.callback(value);
   } else {
     goog.Timer.callOnce(function() {
@@ -125,7 +125,7 @@ ydn.db.exe.SimpleStore.succeed = function(value) {
  * @param {(string|number)=} opt_key
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.exe.SimpleStore.prototype.put = function (table, value, opt_key) {
+ydn.db.req.SimpleStore.prototype.put = function (table, value, opt_key) {
   var key, value_str;
   var result;
 
@@ -146,7 +146,7 @@ ydn.db.exe.SimpleStore.prototype.put = function (table, value, opt_key) {
     throw new ydn.error.ArgumentException();
   }
 
-  return ydn.db.exe.SimpleStore.succeed(result);
+  return ydn.db.req.SimpleStore.succeed(result);
 };
 
 
@@ -157,7 +157,7 @@ ydn.db.exe.SimpleStore.prototype.put = function (table, value, opt_key) {
  * @param {string|number} id
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.exe.SimpleStore.prototype.getById_ = function(store_name, id) {
+ydn.db.req.SimpleStore.prototype.getById_ = function(store_name, id) {
   return goog.async.Deferred.succeed(this.getItemInternal(store_name, id));
 };
 
@@ -169,7 +169,7 @@ ydn.db.exe.SimpleStore.prototype.getById_ = function(store_name, id) {
  * @param {string=} opt_store_name
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.exe.SimpleStore.prototype.getByStore_ = function (opt_store_name) {
+ydn.db.req.SimpleStore.prototype.getByStore_ = function (opt_store_name) {
   var arr = [];
   var collect = function (store_name) {
     for (var item in this.cache_) {
@@ -199,7 +199,7 @@ ydn.db.exe.SimpleStore.prototype.getByStore_ = function (opt_store_name) {
 /**
  * @return {string}
  */
-ydn.db.exe.SimpleStore.prototype.type = function() {
+ydn.db.req.SimpleStore.prototype.type = function() {
   return 'memory';
 };
 
@@ -210,7 +210,7 @@ ydn.db.exe.SimpleStore.prototype.type = function() {
  * @return {goog.async.Deferred}
  * @private
  */
-ydn.db.exe.SimpleStore.prototype.get1_ = function(q) {
+ydn.db.req.SimpleStore.prototype.get1_ = function(q) {
   var df = new goog.async.Deferred();
 
   var fetch_df = this.fetch(q);
@@ -232,7 +232,7 @@ ydn.db.exe.SimpleStore.prototype.get1_ = function(q) {
  * @return {!goog.async.Deferred} return result in deferred function.
  * @private
  */
-ydn.db.exe.SimpleStore.prototype.getByIds_ = function(store_name, ids) {
+ydn.db.req.SimpleStore.prototype.getByIds_ = function(store_name, ids) {
   var arr = [];
   for (var i = 0; i < ids.length; i++) {
     arr.push(this.getById_(store_name, ids[i]));
@@ -246,7 +246,7 @@ ydn.db.exe.SimpleStore.prototype.getByIds_ = function(store_name, ids) {
  * @return {!goog.async.Deferred} return result in deferred function.
  * @private
  */
-ydn.db.exe.SimpleStore.prototype.getByKeys_ = function(keys) {
+ydn.db.req.SimpleStore.prototype.getByKeys_ = function(keys) {
   var arr = [];
   for (var i = 0; i < keys.length; i++) {
     arr.push(this.getById_(keys[i].getStoreName(), keys[i].getId()));
@@ -263,7 +263,7 @@ ydn.db.exe.SimpleStore.prototype.getByKeys_ = function(keys) {
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.exe.SimpleStore.prototype.getInTx = function (tx, arg1, arg2) {
+ydn.db.req.SimpleStore.prototype.getInTx = function (tx, arg1, arg2) {
 
   if (arg1 instanceof ydn.db.Key) {
     /**
@@ -312,7 +312,7 @@ ydn.db.exe.SimpleStore.prototype.getInTx = function (tx, arg1, arg2) {
  * param {number=} limit maximun number of entries.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.exe.SimpleStore.prototype.get = function (arg1, arg2) {
+ydn.db.req.SimpleStore.prototype.get = function (arg1, arg2) {
   return this.getInTx(this.cache_, arg1, arg2);
 };
 
@@ -323,7 +323,7 @@ ydn.db.exe.SimpleStore.prototype.get = function (arg1, arg2) {
  * @param {(string|number)=} opt_key delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.exe.SimpleStore.prototype.clear = function(opt_table, opt_key) {
+ydn.db.req.SimpleStore.prototype.clear = function(opt_table, opt_key) {
 
   if (goog.isDef(opt_table) && goog.isDef(opt_key)) {
     this.removeItemInternal(opt_table, opt_key);
@@ -340,7 +340,7 @@ ydn.db.exe.SimpleStore.prototype.clear = function(opt_table, opt_key) {
       }
     }
   }
-  return ydn.db.exe.SimpleStore.succeed(true);
+  return ydn.db.req.SimpleStore.succeed(true);
 };
 
 
@@ -350,11 +350,11 @@ ydn.db.exe.SimpleStore.prototype.clear = function(opt_table, opt_key) {
  * @param {(string|number)=} opt_id delete a specific row.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.exe.SimpleStore.prototype.remove = function(opt_table, opt_id) {
+ydn.db.req.SimpleStore.prototype.remove = function(opt_table, opt_id) {
   if (goog.isDef(opt_id) && goog.isDef(opt_table)) {
     var key = this.makeKey(opt_table, opt_id);
     delete this.cache_[key];
-    return ydn.db.exe.SimpleStore.succeed(true);
+    return ydn.db.req.SimpleStore.succeed(true);
   } else {
     return this.clear(opt_table);
   }
@@ -366,7 +366,7 @@ ydn.db.exe.SimpleStore.prototype.remove = function(opt_table, opt_id) {
  * @param {string=} opt_table table name
  * @return {!goog.async.Deferred} return number of items in deferred function.
  */
-ydn.db.exe.SimpleStore.prototype.count = function(opt_table) {
+ydn.db.req.SimpleStore.prototype.count = function(opt_table) {
 
   var pre_fix = '_database_' + this.dbname;
   if (goog.isDef(opt_table)) {
@@ -381,7 +381,7 @@ ydn.db.exe.SimpleStore.prototype.count = function(opt_table) {
       }
     }
   }
-  return ydn.db.exe.SimpleStore.succeed(n);
+  return ydn.db.req.SimpleStore.succeed(n);
 };
 
 
@@ -391,7 +391,7 @@ ydn.db.exe.SimpleStore.prototype.count = function(opt_table) {
 * @param {number=} offset
 * @return {!goog.async.Deferred}
 */
-ydn.db.exe.SimpleStore.prototype.fetch = function(q, limit, offset) {
+ydn.db.req.SimpleStore.prototype.fetch = function(q, limit, offset) {
   throw new ydn.error.NotImplementedException();
 };
 

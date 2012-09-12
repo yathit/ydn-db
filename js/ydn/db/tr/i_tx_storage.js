@@ -4,15 +4,15 @@
  */
 
 
-goog.provide('ydn.db.tr.TxService');
-goog.require('ydn.db.CoreService');
+goog.provide('ydn.db.tr.ITxStorage');
+goog.require('ydn.db.core.IStorage');
 goog.require('ydn.db.tr.Mutex');
 
 
 /**
  * @interface
  */
-ydn.db.tr.TxService = function() {};
+ydn.db.tr.ITxStorage = function() {};
 
 
 
@@ -20,14 +20,14 @@ ydn.db.tr.TxService = function() {};
 /**
  * @return {IDBTransaction|SQLTransaction|Object}
  */
-ydn.db.tr.TxService.getTx = function() {};
+ydn.db.tr.ITxStorage.getTx = function() {};
 
 
 /**
  * Get transaction series number.
  * @return {number}
  */
-ydn.db.tr.TxService.prototype.getTxNo = function() {};
+ydn.db.tr.ITxStorage.prototype.getTxNo = function() {};
 
 /**
  * Add a transaction complete (also error and abort) event. The listener will
@@ -40,13 +40,13 @@ ydn.db.tr.TxService.prototype.getTxNo = function() {};
  * @param {function(string=, *=)} fn first argument is either 'complete',
  * 'error', or 'abort' and second argument is event.
  */
-ydn.db.tr.TxService.prototype.setCompletedListener = function(fn) {};
+ydn.db.tr.ITxStorage.prototype.setCompletedListener = function(fn) {};
 
 
 /**
  * Going out of scope
  */
-ydn.db.tr.TxService.prototype.out = function() {};
+ydn.db.tr.ITxStorage.prototype.out = function() {};
 
 
 
