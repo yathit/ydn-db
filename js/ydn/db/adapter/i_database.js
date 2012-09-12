@@ -28,6 +28,18 @@ ydn.db.adapter.IDatabase.prototype.close = function() {};
 ydn.db.adapter.IDatabase.prototype.type = function() {};
 
 
+/**
+ * @return {boolean}
+ */
+ydn.db.adapter.IDatabase.prototype.isReady = function() {};
+
+
+/**
+ * @param {function(ydn.db.adapter.IDatabase)} callback
+ */
+ydn.db.adapter.IDatabase.prototype.onReady = function(callback) {};
+
+
 
 /**
  * Perform transaction immediately and invoke transaction_callback with
@@ -39,7 +51,7 @@ ydn.db.adapter.IDatabase.prototype.type = function() {};
  * @param {!Array.<string>} store_names list of store names involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
- * @param {function(ydn.db.TransactionMode, *)} completed_event_handler
+ * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
  */
 ydn.db.adapter.IDatabase.prototype.doTransaction = function(transaction_callback, store_names,
                                                             mode, completed_event_handler) {};

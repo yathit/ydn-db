@@ -52,20 +52,14 @@ ydn.db.adapter.WebSql = function(dbname, schema) {
   var description = this.dbname;
 
   /**
-   * Transaction queue
-   * @type {!Array.<{fnc: Function, scopes: Array.<string>,
-   * mode: ydn.db.TransactionMode}>}
-   */
-  this.sql_tx_queue = [];
-
-  this.in_tx_ = false;
-
-  /**
    * Must open the database with empty version, otherwise unrecoverable error
    * will occur in the first instance.
    */
   this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
     this.schema.size);
+  // we can immediately set this to sql_db_ because database table creation
+  // are going through doTranaction process, it already lock out
+  // for using this database.
 
   if (this.sql_db_.version != this.schema.version) {
     this.migrate_();
@@ -135,41 +129,6 @@ ydn.db.adapter.WebSql.DEBUG = false;
  */
 ydn.db.adapter.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.adapter.WebSql');
 
-
-/**
- * Run the first transaction task in the queue.
- * @protected
- */
-ydn.db.adapter.WebSql.prototype.runTxQueue = function() {
-
-  var task = this.sql_tx_queue.shift();
-  if (task) {
-      this.doTransaction(task.fnc, task.scopes, task.mode);
-  }
-};
-
-
-/**
- * Abort the queuing tasks.
- * @protected
- * @param e
- */
-ydn.db.adapter.WebSql.prototype.abortTxQueue_ = function(e) {
-  if (this.sql_tx_queue) {
-    var task = this.sql_tx_queue.shift();
-    while (task) {
-      task = this.sql_tx_queue.shift();
-      task.fnc(null); // TODO: any better way ?
-    }
-  }
-};
-
-
-/**
- * @private
- * @type {boolean}
- */
-ydn.db.adapter.WebSql.prototype.in_tx_ = false;
 
 
 /**
@@ -260,6 +219,10 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
 
   // TODO: deleting tables.
 
+  var oncompleted = function(t, e) {
+    me.is_ready_ = true;
+  };
+
   this.doTransaction(function (t) {
 
     me.logger.finest('Creating tables ' + sqls.join('\n'));
@@ -268,14 +231,30 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
         window.console.log(sqls[i]);
       }
       t.executeSql(sqls[i], [],
-          i == sqls.length - 1 ? success_callback : undefined,
-          error_callback);
+        i == sqls.length - 1 ? success_callback : undefined,
+        error_callback);
     }
-  }, [], ydn.db.TransactionMode.READ_WRITE);
+  }, [], ydn.db.TransactionMode.READ_WRITE, oncompleted);
 
 };
 
 
+/**
+ * @return {boolean}
+ */
+ydn.db.adapter.WebSql.prototype.isReady = function() {
+  return true;
+};
+
+
+/**
+ *
+ * @inheritDoc
+ */
+ydn.db.adapter.WebSql.prototype.onReady = function(cb) {
+  // due to the way, this work, database is always ready to use.
+  cb(this);
+};
 
 
 /**
@@ -293,18 +272,17 @@ ydn.db.adapter.WebSql.prototype.close = function () {
  * @param {function(SQLTransaction)|Function} trFn
  * @param {Array.<string>} scopes
  * @param {ydn.db.TransactionMode} mode
+ * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
  * @protected
  */
-ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode) {
-
-  var me = this;
-  if (!this.in_tx_) {
-    /**
+ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
+          completed_event_handler) {
+    goog.asserts.assertFunction(completed_event_handler);
+        /**
      * SQLTransactionCallback
      * @param {!SQLTransaction} tx
      */
     var transaction_callback = function(tx) {
-      me.in_tx_ = true;
       trFn(tx);
     };
 
@@ -312,8 +290,8 @@ ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode) {
      * SQLVoidCallback
      */
     var success_callback = function() {
-      me.in_tx_ = false;
-      me.runTxQueue();
+      completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE,
+        {'type': ydn.db.TransactionEventTypes.COMPLETE});
     };
 
     /**
@@ -321,8 +299,7 @@ ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode) {
      * @param {SQLError} e
      */
     var error_callback = function(e) {
-      me.in_tx_ = false;
-      me.runTxQueue();
+      completed_event_handler(ydn.db.TransactionEventTypes.ERROR, e);
     };
 
     if (mode == ydn.db.TransactionMode.READ_ONLY) {
@@ -333,9 +310,6 @@ ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode) {
           error_callback, success_callback);
     }
 
-  } else {
-    this.sql_tx_queue.push({fnc: trFn, scopes: scopes, mode: mode});
-  }
 
 };
 

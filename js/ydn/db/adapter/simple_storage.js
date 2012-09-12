@@ -104,6 +104,21 @@ ydn.db.adapter.SimpleStorage.prototype.getDb_ = function() {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.adapter.SimpleStorage.prototype.isReady = function() {
+  return true;
+};
+
+/**
+ * @inheritDoc
+ */
+ydn.db.adapter.SimpleStorage.prototype.onReady = function(cb) {
+  cb(this);
+};
+
+
+/**
  *
  */
 ydn.db.adapter.SimpleStorage.prototype.getDbInstance = function() {

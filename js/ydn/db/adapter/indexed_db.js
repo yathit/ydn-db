@@ -50,16 +50,7 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
    */
   this.schema = schema;
 
-  /**
-   * Transaction queue
-   * @type {!Array.<{fnc: Function, scopes: Array.<string>,
-   * mode: ydn.db.TransactionMode}>}
-   */
-  this.txQueue = [];
-
   this.idx_db_ = null;
-
-  this.in_tx_ = false;
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // version could be number of string.
@@ -192,7 +183,7 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
         if (ydn.db.adapter.IndexedDb.DEBUG) {
           window.console.log(openRequest);
         }
-        me.abortTxQueue(new Error(msg));
+        // me.abortTxQueue(new Error(msg)); how to notified ?
         goog.Timer.callOnce(function() {
           // we invoke error in later thread, so that task queue have
           // enough window time to clean up.
@@ -248,10 +239,37 @@ ydn.db.adapter.IndexedDb.prototype.type = function() {
 
 /**
  * @final
+ * @type {!goog.async.Deferred}
+ * @private
+ */
+ydn.db.adapter.IndexedDb.prototype.deferredIdxDb_ = new goog.async.Deferred();
+
+
+/**
+ *
+ * @param {function(!ydn.db.adapter.IndexedDb)} callback
+ */
+ydn.db.adapter.IndexedDb.prototype.onReady = function(callback) {
+  this.deferredIdxDb_.addCallback(callback);
+};
+
+
+/**
+ * Return database object, on if it is ready.
+ * @final
  * @return {IDBDatabase} this instance.
  */
 ydn.db.adapter.IndexedDb.prototype.getDbInstance = function() {
+  // no checking for closing status. caller should know it.
   return this.idx_db_ || null;
+};
+
+
+/**
+ * @return {boolean}
+ */
+ydn.db.adapter.IndexedDb.prototype.isReady = function() {
+  return !!this.idx_db_;
 };
 
 
@@ -296,10 +314,7 @@ ydn.db.adapter.IndexedDb.prototype.setDb = function(db) {
 
   this.idx_db_ = db;
 
-  if (this.txQueue) {
-    this.runTxQueue();
-  }
-
+  this.deferredIdxDb_.callback(db);
 };
 
 
@@ -407,48 +422,6 @@ ydn.db.adapter.IndexedDb.prototype.migrate = function(db, is_caller_setversion) 
 };
 
 
-/**
- * Run the first transaction task in the queue. DB must be ready to do the
- * transaction.
- * @protected
- */
-ydn.db.adapter.IndexedDb.prototype.runTxQueue = function() {
-
-  goog.asserts.assertObject(this.idx_db_);
-
-  var task = this.txQueue.shift();
-  if (task) {
-    this.doTransaction(task.fnc, task.scopes, task.mode);
-  }
-};
-
-
-/**
- * Abort the queuing tasks.
- * @protected
- * @param e
- */
-ydn.db.adapter.IndexedDb.prototype.abortTxQueue = function(e) {
-  if (this.txQueue) {
-    var task = this.txQueue.shift();
-    while (task) {
-      task = this.txQueue.shift();
-      task.fnc(null); // TODO: any better way ?
-      // fake transaction object possible. calling tx.objectStore return
-      // request and call error on all requests.
-    }
-  }
-};
-
-
-/**
- * Flag to indicate in transaction.
- * @type {boolean}
- * @private
- */
-ydn.db.adapter.IndexedDb.prototype.in_tx_ = false;
-
-
 
 /**
  * When DB is ready, fnc will be call with a fresh transaction object. Fnc must
@@ -460,56 +433,30 @@ ydn.db.adapter.IndexedDb.prototype.in_tx_ = false;
  * @param {!Array.<string>} scopes list of stores involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode.
+ * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
  */
-ydn.db.adapter.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode)
-{
-  //console.log('doTransaction_ ' + JSON.stringify(scopes) + ' ' + mode);
-  var me = this;
+ydn.db.adapter.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, completed_event_handler) {
 
   /**
-   * This is a start of critical section on transaction.
-   * If db_ is not defined, database is not ready.
-   * 
-   * 
-   *
-   * After transaction is over after receiving three possible (COMPLETE, ABORT
-   * or ERROR) events, we set tx_ to null and start next transaction in the
-   * queue.
+   * @private
+   * @type {!IDBTransaction}
    */
-  if (this.idx_db_ && !this.in_tx_) {
+  var tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
 
-    /**
-     * Existence of transaction object indicate that this database is in
-     * transaction. This must be set to null on finished and before
-     * put the result to deferred object.
-     * @private
-     * @type {!IDBTransaction}
-     */
-    var tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
+  tx.oncomplete = function (event) {
+    completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE, event);
+  };
 
-    this.in_tx_ = true;
+  tx.onerror = function (event) {
+    completed_event_handler(ydn.db.TransactionEventTypes.ERROR, event);
+  };
 
-    tx.oncomplete = function(event) {
-      // window.console.log(['oncomplete', event, tx, me.mu_tx_]);
-      me.in_tx_ = false;
-      me.runTxQueue();
-    };
+  tx.onabort = function (event) {
+    completed_event_handler(ydn.db.TransactionEventTypes.ABORT, event);
+  };
 
-    tx.onerror = function(event) {
-      me.in_tx_ = false;
-      me.runTxQueue();
-    };
+  fnc(tx);
 
-    tx.onabort = function(event) {
-      me.in_tx_ = false;
-      me.runTxQueue();
-    };
-
-    fnc(tx);
-
-  } else {
-    this.txQueue.push({fnc: fnc, scopes: scopes, mode: mode});
-  }
 };
 
 
