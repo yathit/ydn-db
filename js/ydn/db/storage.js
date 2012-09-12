@@ -39,7 +39,6 @@ goog.require('ydn.db.req.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.db.RichStorage_');
 goog.require('ydn.db.tr.Storage');
-goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.IStorage');
 goog.require('ydn.db.io.QueryService');
 goog.require('ydn.db.io.QueryServiceProvider');
@@ -108,7 +107,7 @@ ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
 
 
 /**
- * @type {ydn.db.req.AbstractRequestExecutor}
+ * @type {ydn.db.req.RequestExecutor}
  */
 ydn.db.Storage.prototype.executor = null;
 
@@ -117,19 +116,19 @@ ydn.db.Storage.prototype.executor = null;
  *
  * @param {string} scope callback function name as scope name
  * @throws {ydn.db.ScopeError}
- * @return {!ydn.db.req.AbstractRequestExecutor}
+ * @return {!ydn.db.req.RequestExecutor}
  */
 ydn.db.Storage.prototype.getExecutor = function (scope) {
 
   var type = this.type();
   if (type == ydn.db.adapter.IndexedDb.TYPE) {
-    this.executor = new ydn.db.req.IndexedDb();
+    this.executor = new ydn.db.req.IndexedDb(this.schema);
   } else if (type == ydn.db.adapter.WebSql.TYPE) {
-    this.executor = new ydn.db.req.WebSql();
+    this.executor = new ydn.db.req.WebSql(this.schema);
   } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
     type == ydn.db.adapter.LocalStorage.TYPE ||
     type == ydn.db.adapter.SessionStorage.TYPE) {
-    this.executor = new ydn.db.req.SimpleStorage();
+    this.executor = new ydn.db.req.SimpleStore(this.schema);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
   }
@@ -140,11 +139,14 @@ ydn.db.Storage.prototype.getExecutor = function (scope) {
 
 /**
  * @throws {ydn.db.ScopeError}
- * @param {function(!ydn.db.req.AbstractRequestExecutor)} callback
+ * @param {function(!ydn.db.req.RequestExecutor)} callback
+ * @param {!Array.<string>} store_names store name involved in the transaction.
+ * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
  */
-ydn.db.Storage.prototype.execute = function(callback, scope, store_names, mode)
+ydn.db.Storage.prototype.execute = function(callback, store_names, mode)
 {
   var me = this;
+  var scope = '?';
   var executor = this.getExecutor(scope);
   if (!executor.isActive()) {
     // invoke in non-transaction context
@@ -156,7 +158,7 @@ ydn.db.Storage.prototype.execute = function(callback, scope, store_names, mode)
         throw new ydn.db.InternalError();
       }
       callback(executor);
-      idb.setDone(); // explicitly told not to use this transaction again.
+      idb.lock(); // explicitly told not to use this transaction again.
     };
     tx_callback.name = scope; // scope name
     this.transaction(tx_callback, store_names, mode);
@@ -237,6 +239,20 @@ ydn.db.Storage.prototype.getItem = function(key) {
 
 
 /**
+ * Remove a specific entry from a store or all.
+ * @param {string=} opt_table delete the table as provided otherwise
+ * delete all stores.
+ * @param {(string|number)=} opt_key delete a specific row.
+ * @see {@link #remove}
+ * @return {!goog.async.Deferred} return a deferred function.
+ */
+ydn.db.Storage.prototype.clear = function(opt_table, opt_key) {
+  var df = ydn.db.createDeferred();
+  return df;
+};
+
+
+/**
  * Return object
  * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
  * @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
@@ -245,11 +261,11 @@ ydn.db.Storage.prototype.getItem = function(key) {
  */
 ydn.db.Storage.prototype.get = function (arg1, arg2) {
 
-  var df = ydn.db.createDeferred;
+  var df = ydn.db.createDeferred();
 
   /**
    *
-   * @param {!ydn.db.req.AbstractRequestExecutor} executor
+   * @param {!ydn.db.req.RequestExecutor} executor
    */
   var get = function(executor) {
 
@@ -290,12 +306,34 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
     }
   };
 
-  this.execute(get);
+  this.execute(get, [], ydn.db.TransactionMode.READ_ONLY);
   return df;
 };
 
 
 
+/**
+ * @param {string} store table name.
+ * @param {!Object|!Array.<!Object>} value object to put.
+ * @param {(string|number)=}  opt_key
+ * @return {!goog.async.Deferred} return key in deferred function.
+ */
+ydn.db.Storage.prototype.put = function(store, value, opt_key) {
+  var df = ydn.db.createDeferred();
+  return df;
+};
+
+
+/**
+ * @param {!ydn.db.Query} q query.
+ * @param {number=} limit
+ * @param {number=} offset
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.Storage.prototype.fetch = function(q, limit, offset) {
+  var df = ydn.db.createDeferred();
+  return df;
+};
 
 
 
@@ -323,20 +361,19 @@ goog.exportProperty(ydn.db.core.Storage.prototype, 'transaction',
 goog.exportProperty(ydn.db.core.Storage.prototype, 'close',
   ydn.db.core.Storage.prototype.close);
 // for hacker
-goog.exportProperty(ydn.db.core.Storage.prototype, 'db',
-    ydn.db.core.Storage.prototype.getDbInstance_);
 
-goog.exportProperty(ydn.db.Storage.prototype, 'query',
-  ydn.db.Storage.prototype.query);
+
+//goog.exportProperty(ydn.db.Storage.prototype, 'query',
+//  ydn.db.Storage.prototype.query);
 //goog.exportProperty(ydn.db.Storage.prototype, 'key',
 //  ydn.db.Storage.prototype.key);
 goog.exportProperty(ydn.db.Storage.prototype, 'encrypt',
   ydn.db.Storage.prototype.encrypt);
 
-goog.exportProperty(ydn.db.io.Query.prototype, 'fetch',
-  ydn.db.io.Query.prototype.fetch);
-goog.exportProperty(ydn.db.io.Query.prototype, 'get',
-  ydn.db.io.Query.prototype.get);
+//goog.exportProperty(ydn.db.io.Query.prototype, 'fetch',
+//  ydn.db.io.Query.prototype.fetch);
+//goog.exportProperty(ydn.db.io.Query.prototype, 'get',
+//  ydn.db.io.Query.prototype.get);
 
 goog.exportProperty(ydn.db.Query.prototype, 'select',
     ydn.db.Query.prototype.select);

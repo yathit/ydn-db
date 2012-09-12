@@ -20,20 +20,20 @@
 
 goog.provide('ydn.db.req.IndexedDb');
 goog.require('goog.async.DeferredList');
-goog.require('ydn.db.req.AbstractRequestExecutor');
+goog.require('ydn.db.req.RequestExecutor');
 goog.require('ydn.json');
 goog.require('ydn.error');
 
 
 /**
- * @extends {ydn.db.req.AbstractRequestExecutor}
+ * @extends {ydn.db.req.RequestExecutor}
  * @param {ydn.db.DatabaseSchema} schema
  * @constructor
  */
 ydn.db.req.IndexedDb = function(schema) {
   goog.base(this, schema);
 };
-goog.inherits(ydn.db.req.IndexedDb, ydn.db.req.AbstractRequestExecutor);
+goog.inherits(ydn.db.req.IndexedDb, ydn.db.req.RequestExecutor);
 
 
 /**
@@ -432,27 +432,27 @@ ydn.db.req.IndexedDb.prototype.getById = function(store_name, id) {
   };
   return df;
 };
-//
-//
-///**
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {string} store_name
-// * @param {!Array.<string|number>} ids
-// * @return {!goog.async.Deferred} return object in deferred function.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.getByIds_ = function(tx, store_name, ids) {
-//  var me = this;
-//  var df = new goog.async.Deferred();
-//  if (tx) {
-//    this.executeGetMultiple_(tx, df, store_name, ids);
-//  } else {
-//    this.doTransaction(function(tx) {
-//      me.executeGetMultiple_(tx.getTx(), df, store_name, ids);
-//    }, [store_name], ydn.db.TransactionMode.READ_ONLY);
-//  }
-//  return df;
-//};
+/*
+
+*//**
+* @param {IDBTransaction} tx active transaction object.
+* @param {string} store_name
+* @param {!Array.<string|number>} ids
+* @return {!goog.async.Deferred} return object in deferred function.
+* @private
+*//*
+ydn.db.req.IndexedDb.prototype.getByIds_ = function(tx, store_name, ids) {
+  var me = this;
+  var df = new goog.async.Deferred();
+  if (tx) {
+    this.executeGetMultiple_(tx, df, store_name, ids);
+  } else {
+    this.doTransaction(function(tx) {
+      me.executeGetMultiple_(tx.getTx(), df, store_name, ids);
+    }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+  }
+  return df;
+};*/
 //
 //
 ///**

@@ -116,7 +116,7 @@ ydn.db.core.Storage.prototype.db_ = null;
  * @return {{name: string, schema: !Object}?} configuration
  * containing database and list of schema in JSON format.
  */
-ydn.db.core.Storage.prototype.valueOf = function() {
+ydn.db.core.Storage.prototype.getConfig = function() {
   if (!this.schema) {
     return null;
   }
@@ -437,8 +437,8 @@ goog.exportProperty(ydn.db.core.Storage.prototype, 'type',
   ydn.db.core.Storage.prototype.type);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'setName',
   ydn.db.core.Storage.prototype.setName);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'valueOf',
-  ydn.db.core.Storage.prototype.valueOf);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'getConfig',
+  ydn.db.core.Storage.prototype.getConfig);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'transaction',
   ydn.db.core.Storage.prototype.transaction);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'close',

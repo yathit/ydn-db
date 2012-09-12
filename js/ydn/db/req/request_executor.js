@@ -4,7 +4,7 @@
  */
 
 
-goog.provide('ydn.db.req.AbstractRequestExecutor');
+goog.provide('ydn.db.req.RequestExecutor');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db.Query');
@@ -18,7 +18,7 @@ goog.require('ydn.db.InternalError');
  * @param {ydn.db.DatabaseSchema} schema
  * @constructor
  */
-ydn.db.req.AbstractRequestExecutor = function(schema) {
+ydn.db.req.RequestExecutor = function(schema) {
   /**
    * @protected
    * @final
@@ -33,8 +33,8 @@ ydn.db.req.AbstractRequestExecutor = function(schema) {
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.req.AbstractRequestExecutor.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.req.AbstractRequestExecutor');
+ydn.db.req.RequestExecutor.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.req.RequestExecutor');
 
 
 /**
@@ -42,14 +42,14 @@ ydn.db.req.AbstractRequestExecutor.prototype.logger =
  * @type {SQLTransaction|IDBTransaction|Object}
  * @protected
  */
-ydn.db.req.AbstractRequestExecutor.prototype.tx = null;
+ydn.db.req.RequestExecutor.prototype.tx = null;
 
 
 /**
  * @protected
  * @type {string}
  */
-ydn.db.req.AbstractRequestExecutor.prototype.scope = '?';
+ydn.db.req.RequestExecutor.prototype.scope = '?';
 
 
 /**
@@ -57,7 +57,7 @@ ydn.db.req.AbstractRequestExecutor.prototype.scope = '?';
  * @param {SQLTransaction|IDBTransaction|Object} tx
  * @param {string} scope
  */
-ydn.db.req.AbstractRequestExecutor.prototype.setTx = function(tx, scope) {
+ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {
   this.tx = tx;
   this.scope_ = scope;
 };
@@ -67,7 +67,7 @@ ydn.db.req.AbstractRequestExecutor.prototype.setTx = function(tx, scope) {
  * Return true if transaction object is active.
  * @return {boolean}
  */
-ydn.db.req.AbstractRequestExecutor.prototype.isActive = function() {
+ydn.db.req.RequestExecutor.prototype.isActive = function() {
   return goog.isDefAndNotNull(this.tx);
 };
 
@@ -78,7 +78,7 @@ ydn.db.req.AbstractRequestExecutor.prototype.isActive = function() {
  * @return {SQLTransaction|IDBTransaction|Object}
  * @protected
  */
-ydn.db.req.AbstractRequestExecutor.prototype.getTx = function() {
+ydn.db.req.RequestExecutor.prototype.getTx = function() {
   if (!this.isActive()) {
     // this kind of error is not due to user.
     throw new ydn.db.InternalError('Scope: ' + this.scope + ' invalid.');
@@ -94,5 +94,31 @@ ydn.db.req.AbstractRequestExecutor.prototype.getTx = function() {
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.req.AbstractRequestExecutor.prototype.getById = goog.abstractMethod;
+ydn.db.req.RequestExecutor.prototype.getById = goog.abstractMethod;
+
+
+/**
+ * @param {string} store_name
+ * @param {!Array.<string|number>} ids
+ * @return {!goog.async.Deferred} return object in deferred function.
+ * @private
+ */
+ydn.db.req.RequestExecutor.prototype.getByIds = goog.abstractMethod;
+
+
+
+/**
+* @param {!Array.<!ydn.db.Key>} keys
+* @return {!goog.async.Deferred} return object in deferred function.
+* @private
+*/
+ydn.db.req.RequestExecutor.prototype.getByKeys = goog.abstractMethod;
+
+
+/**
+* @param {(string|!Array.<string>)=} store_name
+* @return {!goog.async.Deferred} return object in deferred function.
+* @private
+*/
+ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
 

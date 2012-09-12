@@ -200,16 +200,13 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
 
 
 
-
-
-
 goog.exportSymbol('ydn.db.tr.Storage', ydn.db.tr.Storage);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'type',
   ydn.db.core.Storage.prototype.type);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'setName',
   ydn.db.core.Storage.prototype.setName);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'valueOf',
-  ydn.db.core.Storage.prototype.valueOf);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'getConfig',
+  ydn.db.core.Storage.prototype.getConfig);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'transaction',
   ydn.db.core.Storage.prototype.transaction);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'close',

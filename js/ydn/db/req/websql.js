@@ -25,19 +25,19 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.req.AbstractRequestExecutor');
+goog.require('ydn.db.req.RequestExecutor');
 goog.require('ydn.json');
 
 
 /**
- * @extends {ydn.db.req.AbstractRequestExecutor}
+ * @extends {ydn.db.req.RequestExecutor}
  * @param {ydn.db.DatabaseSchema} schema
  * @constructor
  */
 ydn.db.req.WebSql = function(schema) {
   goog.base(this, schema);
 };
-goog.inherits(ydn.db.req.WebSql, ydn.db.req.AbstractRequestExecutor);
+goog.inherits(ydn.db.req.WebSql, ydn.db.req.RequestExecutor);
 
 
 

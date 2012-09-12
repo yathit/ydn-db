@@ -6,7 +6,7 @@
 
 goog.provide('ydn.db.IStorage');
 goog.require('ydn.db.tr.IStorage');
-goog.require('ydn.db.req.AbstractRequestExecutor');
+goog.require('ydn.db.req.RequestExecutor');
 
 
 
@@ -20,6 +20,8 @@ ydn.db.IStorage = function() {};
 
 /**
  * @throws {ydn.db.ScopeError}
- * @param {function(!ydn.db.req.AbstractRequestExecutor)} callback
+ * @param {function(!ydn.db.req.RequestExecutor)} callback
+ * @param {!Array.<string>} store_names store name involved in the transaction.
+ * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
  */
-ydn.db.IStorage.prototype.execute = function(callback) {};
+ydn.db.IStorage.prototype.execute = goog.abstractMethod;
