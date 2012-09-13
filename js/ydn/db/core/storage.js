@@ -457,7 +457,7 @@ ydn.db.core.Storage.prototype.abortTxQueue_ = function(e) {
 
 
 /**
- * Flag to indicate in transaction.
+ * Flag to indicate in transaction. Shuld not necessary.
  * @type {boolean}
  * @private
  */
