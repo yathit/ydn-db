@@ -177,7 +177,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
   var result_keys = [];
 
   /**
-   * Put and item at i. This will invoke callback to df if all objects
+   * Put and item at i. This wydn.db.core.Storageill invoke callback to df if all objects
    * have been put, otherwise recursive call to itself at next i+1 item.
    * @param {number} i
    * @param {SQLTransaction} tx

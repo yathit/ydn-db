@@ -221,7 +221,7 @@ ydn.db.adapter.SimpleStorage.prototype.type = function() {
  * @inheritDoc
  */
 ydn.db.adapter.SimpleStorage.prototype.close = function () {
-  return ydn.db.adapter.SimpleStorage.succeed(true);
+
 };
 
 

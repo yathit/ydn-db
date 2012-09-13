@@ -15,8 +15,6 @@ ydn.db.adapter.IDatabase = function() {};
 
 /**
  * Close the connection.
- *
- * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.adapter.IDatabase.prototype.close = function() {};
 

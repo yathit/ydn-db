@@ -484,15 +484,11 @@ ydn.db.adapter.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, 
 /**
  * Close the connection.
  * @final
- * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.adapter.IndexedDb.prototype.close = function() {
 
-  var df = new goog.async.Deferred();
+  this.idx_db_.close(); // IDB return void.
 
-  this.idx_db_.close(); // return void.
-
-  return df;
 };
 
 

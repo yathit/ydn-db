@@ -262,7 +262,6 @@ ydn.db.adapter.WebSql.prototype.onReady = function(cb) {
  */
 ydn.db.adapter.WebSql.prototype.close = function () {
   // WebSQl API do not have close method.
-  return goog.async.Deferred.succeed(true);
 };
 
 
