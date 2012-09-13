@@ -133,7 +133,7 @@ ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
 
 
 /**
- * Return object
+ * Delete given key in the object store.
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store table name.
  * @param {(string|number)} id object key to be retrieved, if not provided,
@@ -144,7 +144,7 @@ ydn.db.req.RequestExecutor.prototype.clearById = goog.abstractMethod;
 
 
 /**
- * Return object
+ * Clear a store or stores.
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {(!Array.<string>|string)=} store table name.
  */
