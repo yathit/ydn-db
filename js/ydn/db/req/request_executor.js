@@ -100,12 +100,18 @@ ydn.db.req.RequestExecutor.prototype.getById = goog.abstractMethod;
 ydn.db.req.RequestExecutor.prototype.getByIds = goog.abstractMethod;
 
 
-
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!Array.<!ydn.db.Key>} keys
  */
 ydn.db.req.RequestExecutor.prototype.getByKeys = goog.abstractMethod;
+
+
+/**
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {(string|!Array.<string>)=} store_name
+ */
+ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
 
 
 /**
@@ -133,12 +139,6 @@ ydn.db.req.RequestExecutor.prototype.putObjects = goog.abstractMethod;
  * @param {!Array.<!ydn.db.Key>} keys
  */
 ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
-
-/**
- * @param {!goog.async.Deferred} return object in deferred function.
- * @param {(string|!Array.<string>)=} store_name
-*/
-ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
 
 
 /**

@@ -26,11 +26,12 @@ var tearDown = function() {
 
 };
 
-var db_name = 'test1';
+var db_name = 'test2';
+var options = {preference: ['websql']};
 
 var test_0_put = function() {
 
-  var db = new ydn.db.WebSql(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var put_value, done;
 
@@ -55,8 +56,8 @@ var test_0_put = function() {
 
 
 var test_1_1_put_arr = function() {
-  var db_name = 'test_2';
-  var db = new ydn.db.WebSql(db_name, basic_schema);
+  var db_name = 'test_3';
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a' + Math.random(),
@@ -92,8 +93,8 @@ var test_1_1_put_arr = function() {
 
 var test_1_get_all = function() {
 
-  var db_name = 'get_empty_table_test_2';
-  var db = new ydn.db.WebSql(db_name, basic_schema);
+  var db_name = 'get_empty_table_test_21';
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -120,7 +121,7 @@ var test_1_get_all = function() {
 
 var test_1_delete = function() {
 
-	var db = new ydn.db.WebSql(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
 	var put_value, done;
 
@@ -136,7 +137,7 @@ var test_1_delete = function() {
 		100, // interval
 		1000); // maxTimeout
 
-	db.remove().addCallback(function(value) {
+	db.clear(table_name).addCallback(function(value) {
 		put_value = value;
 		done = true;
 	});
@@ -146,7 +147,7 @@ var test_1_delete = function() {
 
 var test_2_clear_table = function() {
 
-	var db = new ydn.db.WebSql(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var cleared_value, cleared;
 
@@ -173,7 +174,7 @@ var test_2_clear_table = function() {
 
 var test_2_clear = function() {
 
-  var db = new ydn.db.WebSql(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   db.put(table_name, {'id': 'a', 'value': '1'});
 
@@ -334,11 +335,11 @@ var test_2_clear = function() {
 
 var test_5_get = function() {
   var store_name = 'ydn.test.ts1';
-  var put_obj_dbname = 'ydn.putodbtest2';
+  var db_name = 'ydn.putodbtest21';
   var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 
-  var db = new ydn.db.WebSql(put_obj_dbname, schema);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
 	var key = 'a';
   var put_done = false;
@@ -388,12 +389,12 @@ var test_5_get = function() {
 
 var test_6_put_nested_keyPath = function() {
   var store_name = 'ts1';
-  var put_obj_dbname = 'test2';
+  var db_name = 'test21';
 
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
 
-	var db = new ydn.db.WebSql(put_obj_dbname, schema);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var key = 'a';
   var put_done = false;
@@ -441,12 +442,12 @@ var test_6_put_nested_keyPath = function() {
 
 var test_7_put_get_array = function() {
   var store_name = 'ts1';
-  var put_obj_dbname = 'test7';
+  var db_name = 'test71';
 
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
 
-	var db = new ydn.db.WebSql(put_obj_dbname, schema);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
     {id: 'qs1', value: Math.random()},
@@ -505,12 +506,12 @@ var test_7_put_get_array = function() {
 
 var test_41_keyRange = function () {
   var store_name = 'ts1';
-  var put_obj_dbname = 'test_41_6';
+  var db_name = 'test_41_61';
 
   var schema = new ydn.db.DatabaseSchema(1);
   var indexSchema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
   schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]));
-  var db = new ydn.db.WebSql(put_obj_dbname, schema);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs0', value: 0, type: 'a'},
@@ -563,12 +564,12 @@ var test_41_keyRange = function () {
 
 var test_71_offset_limit = function () {
   var store_name = 'ts1';
-  var put_obj_dbname = 'test_71_5';
+  var db_name = 'test_71_51';
 
   var schema = new ydn.db.DatabaseSchema(1);
   var indexSchema = new ydn.db.IndexSchema('id', true, ydn.db.DataType.INTEGER);
   schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]));
-  var db = new ydn.db.WebSql(put_obj_dbname, schema);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
    var objs = [
     {value:'qs0', id: 0, type: 'a'},
@@ -621,11 +622,11 @@ var test_71_offset_limit = function () {
 
 var test_74_where = function () {
   var store_name = 'ts1';
-  var put_obj_dbname = 'test_74_where';
+  var db_name = 'test_74_where1';
 
   var schema = new ydn.db.DatabaseSchema(1);
   schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
-  var db = new ydn.db.WebSql(put_obj_dbname, schema);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs0', value: 0, type: 'a'},
@@ -673,10 +674,10 @@ var test_74_where = function () {
 
 var test_8_query_start_with = function() {
   var store_name = 'ts1';
-	var dbname = 'test8';
+	var db_name = 'test81';
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
-	var db = new ydn.db.WebSql(dbname, schema);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
 
   var objs = [
