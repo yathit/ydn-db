@@ -18,7 +18,7 @@ goog.require('ydn.db.Query');
  * @param {string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!ydn.db.KeyRangeJson|!ydn.db.KeyRange|undefined)=}
+ * @param {(!ydn.db.KeyRangeJson|!ydn.db.IDBKeyRange|undefined)=}
  * keyRange configuration in
  * @param {string=} direction cursor direction.
  * @constructor

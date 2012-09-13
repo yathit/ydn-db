@@ -545,7 +545,7 @@ var test_41_keyRange = function () {
   db.put(store_name, objs).addCallback(function (value) {
     console.log(['receiving value callback.', value]);
 
-    var key_range = ydn.db.KeyRangeImpl.bound(2, 5, true, true);
+    var key_range = ydn.db.KeyRange.bound(2, 5, true, true);
     var q = new ydn.db.Query(store_name, 'value', key_range);
 
     db.fetch(q).addBoth(function (value) {

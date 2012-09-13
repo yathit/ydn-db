@@ -215,7 +215,7 @@ ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
  * @param {string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!ydn.db.KeyRangeJson|!ydn.db.KeyRange|undefined)=}
+ * @param {(!ydn.db.KeyRangeJson|!ydn.db.IDBKeyRange|undefined)=}
   * keyRange configuration in
  * json format.
  * @param {string=} direction cursor direction.
@@ -540,14 +540,14 @@ goog.exportProperty(ydn.db.Query.prototype, 'average',
 //goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
 //  ydn.db.ActiveKey.prototype.clear);
 
-goog.exportProperty(ydn.db.KeyRangeImpl, 'bound',
-  ydn.db.KeyRangeImpl.bound);
-goog.exportProperty(ydn.db.KeyRangeImpl, 'upperBound',
-  ydn.db.KeyRangeImpl.upperBound);
-goog.exportProperty(ydn.db.KeyRangeImpl, 'lowerBound',
-  ydn.db.KeyRangeImpl.lowerBound);
-goog.exportProperty(ydn.db.KeyRangeImpl, 'only',
-  ydn.db.KeyRangeImpl.only);
+goog.exportProperty(ydn.db.KeyRange, 'bound',
+  ydn.db.KeyRange.bound);
+goog.exportProperty(ydn.db.KeyRange, 'upperBound',
+  ydn.db.KeyRange.upperBound);
+goog.exportProperty(ydn.db.KeyRange, 'lowerBound',
+  ydn.db.KeyRange.lowerBound);
+goog.exportProperty(ydn.db.KeyRange, 'only',
+  ydn.db.KeyRange.only);
 
 goog.exportSymbol('ydn.async', ydn.async);
 goog.exportProperty(ydn.async, 'dfl', ydn.async.dfl);

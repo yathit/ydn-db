@@ -1,5 +1,7 @@
 /**
  * @fileoverview Database schema.
+ *
+ * This data structure is immutable.
  */
 
 

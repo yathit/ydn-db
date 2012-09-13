@@ -59,14 +59,14 @@ goog.exportProperty(ydn.db.Query.prototype, 'average',
 //goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
 //  ydn.db.ActiveKey.prototype.clear);
 
-goog.exportProperty(ydn.db.KeyRangeImpl, 'bound',
-  ydn.db.KeyRangeImpl.bound);
-goog.exportProperty(ydn.db.KeyRangeImpl, 'upperBound',
-  ydn.db.KeyRangeImpl.upperBound);
-goog.exportProperty(ydn.db.KeyRangeImpl, 'lowerBound',
-  ydn.db.KeyRangeImpl.lowerBound);
-goog.exportProperty(ydn.db.KeyRangeImpl, 'only',
-  ydn.db.KeyRangeImpl.only);
+goog.exportProperty(ydn.db.KeyRange, 'bound',
+  ydn.db.KeyRange.bound);
+goog.exportProperty(ydn.db.KeyRange, 'upperBound',
+  ydn.db.KeyRange.upperBound);
+goog.exportProperty(ydn.db.KeyRange, 'lowerBound',
+  ydn.db.KeyRange.lowerBound);
+goog.exportProperty(ydn.db.KeyRange, 'only',
+  ydn.db.KeyRange.only);
 
 goog.exportProperty(ydn.db.TxStorage.prototype, 'query',
   ydn.db.TxStorage.prototype.query);

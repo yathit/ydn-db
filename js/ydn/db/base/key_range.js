@@ -7,15 +7,15 @@
  */
 
 goog.provide('ydn.db.KeyRangeJson');
+goog.provide('ydn.db.IDBKeyRange');
 goog.provide('ydn.db.KeyRange');
-goog.provide('ydn.db.KeyRangeImpl');
 
 
 /**
  * For those browser that not implemented IDBKeyRange.
  * @constructor
  */
-ydn.db.KeyRangeImpl = function(lower, upper, lowerOpen, upperOpen) {
+ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
   this.lower = lower;
   this.upper = upper;
   this.lowerOpen = !!lowerOpen;
@@ -23,8 +23,8 @@ ydn.db.KeyRangeImpl = function(lower, upper, lowerOpen, upperOpen) {
 };
 
 
-ydn.db.KeyRangeImpl.only = function(value) {
-  return new ydn.db.KeyRangeImpl(value, value, false, false);
+ydn.db.KeyRange.only = function(value) {
+  return new ydn.db.KeyRange(value, value, false, false);
 };
 
 
@@ -34,29 +34,29 @@ ydn.db.KeyRangeImpl.only = function(value) {
  * @param {(string|number)=} upper
  * @param {boolean=} lowerOpen
  * @param {boolean=} upperOpen
- * @return {ydn.db.KeyRangeImpl}
+ * @return {ydn.db.KeyRange}
  */
-ydn.db.KeyRangeImpl.bound = function(lower, upper,
+ydn.db.KeyRange.bound = function(lower, upper,
                                      lowerOpen, upperOpen) {
-  return new ydn.db.KeyRangeImpl(lower, upper, lowerOpen, upperOpen);
+  return new ydn.db.KeyRange(lower, upper, lowerOpen, upperOpen);
 };
 
 
-ydn.db.KeyRangeImpl.upperBound = function(upper, upperOpen) {
-  return new ydn.db.KeyRangeImpl(undefined, upper, undefined, upperOpen);
+ydn.db.KeyRange.upperBound = function(upper, upperOpen) {
+  return new ydn.db.KeyRange(undefined, upper, undefined, upperOpen);
 };
 
-ydn.db.KeyRangeImpl.lowerBound = function(lower, lowerOpen) {
-  return new ydn.db.KeyRangeImpl(lower, undefined, lowerOpen, undefined);
+ydn.db.KeyRange.lowerBound = function(lower, lowerOpen) {
+  return new ydn.db.KeyRange(lower, undefined, lowerOpen, undefined);
 };
 
 
 /**
  *
- * @param {ydn.db.KeyRange} keyRange IDBKeyRange.
+ * @param {ydn.db.IDBKeyRange} keyRange IDBKeyRange.
  * @return {!Object} IDBKeyRange in JSON format.
  */
-ydn.db.KeyRangeImpl.toJSON = function(keyRange) {
+ydn.db.KeyRange.toJSON = function(keyRange) {
   return {
     'lower': keyRange.lower,
     'upper': keyRange.upper,
@@ -68,25 +68,25 @@ ydn.db.KeyRangeImpl.toJSON = function(keyRange) {
 
 /**
  * @param {ydn.db.KeyRangeJson=} keyRange keyRange.
- * @return {ydn.db.KeyRange} equivalent IDBKeyRange.
+ * @return {ydn.db.IDBKeyRange} equivalent IDBKeyRange.
  */
-ydn.db.KeyRangeImpl.parseKeyRange = function (keyRange) {
+ydn.db.KeyRange.parseKeyRange = function (keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {
     return null;
   }
   if (goog.isDef(keyRange['upper']) && goog.isDef(keyRange['lower'])) {
     if (keyRange.lower === keyRange.upper) {
-      return ydn.db.KeyRange.only(keyRange.lower);
+      return ydn.db.IDBKeyRange.only(keyRange.lower);
     } else {
-      return ydn.db.KeyRange.bound(
+      return ydn.db.IDBKeyRange.bound(
         keyRange.lower, keyRange.upper,
         keyRange['lowerOpen'], keyRange['upperOpen']);
     }
   } else if (goog.isDef(keyRange.upper)) {
-    return ydn.db.KeyRange.upperBound(keyRange.upper,
+    return ydn.db.IDBKeyRange.upperBound(keyRange.upper,
       keyRange.upperOpen);
   } else if (goog.isDef(keyRange.lower)) {
-    return ydn.db.KeyRange.lowerBound(keyRange.lower,
+    return ydn.db.IDBKeyRange.lowerBound(keyRange.lower,
       keyRange.lowerOpen);
   } else {
     return null;
@@ -100,6 +100,6 @@ ydn.db.KeyRangeImpl.parseKeyRange = function (keyRange) {
  * API represents a continuous interval over some data type that is used for
  * keys.
  */
-ydn.db.KeyRange = goog.global.IDBKeyRange ||
-  goog.global.webkitIDBKeyRange || ydn.db.KeyRangeImpl;
+ydn.db.IDBKeyRange = goog.global.IDBKeyRange ||
+  goog.global.webkitIDBKeyRange || ydn.db.KeyRange;
 
