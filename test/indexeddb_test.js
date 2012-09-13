@@ -238,7 +238,7 @@ var test_31_special_keys = function() {
         2000); // maxTimeout
 
     db.put(table_name, {id: key, value: key_value}).addCallback(function(value) {
-      console.log('receiving put value callback for ' + key + ' = ' + key_value);
+      console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
       a_value = value;
       a_done = true;
     });
@@ -258,7 +258,7 @@ var test_31_special_keys = function() {
 
 
     db.get(table_name, key).addCallback(function(value) {
-      console.log('receiving get value callback ' + key + ' = ' + value);
+      console.log(db + ' receiving get value callback ' + key + ' = ' + value);
       b_value = value;
       b_done = true;
     });
@@ -275,11 +275,12 @@ var test_31_special_keys = function() {
 
 var test_41_keyRange = function () {
   var store_name = 'st';
-  var dbname = 'test_41';
+  var db_name = 'test_45';
   var indexSchema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
+  console.log('db ' + db);
 
   var objs = [
     {id:'qs0', value: 0, type: 'a'},
@@ -311,13 +312,13 @@ var test_41_keyRange = function () {
 
 
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(['receiving put callback.', value]);
+    console.log([db + ' receiving put callback.', value]);
 
     var key_range = ydn.db.KeyRangeImpl.bound(2, 5, true, true);
     var q = new ydn.db.Query(store_name, 'value', key_range);
 
     db.fetch(q).addBoth(function (value) {
-      console.log('fetch value: ' + JSON.stringify(value));
+      console.log(db + ' fetch value: ' + JSON.stringify(value));
       result = value;
       done = true;
     });
@@ -332,11 +333,11 @@ var test_41_keyRange = function () {
 
 var test_42_autoincreasement = function () {
   var store_name = 'demoOS';
-  var dbname = 'test_42_3';
+  var db_name = 'test_42_3';
   var idx_schema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', true, [idx_schema]);
   var schema = new ydn.db.DatabaseSchema(2, undefined, [store_schema]);
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs0', value: 0, type: 'a'},
@@ -388,10 +389,10 @@ var test_42_autoincreasement = function () {
 
 var test_7_put_nested_keyPath = function() {
   var store_name = 'ts1';
-  var put_obj_dbname = 'putodbtest2';
+  var db_name = 'putodbtest2';
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var key = 'a';
   var put_done = false;
@@ -441,11 +442,11 @@ var test_7_put_nested_keyPath = function() {
 
 var test_71_offset_limit = function () {
   var store_name = 'st';
-  var dbname = 'test_71_3';
+  var db_name = 'test_71_3';
   var indexSchema = new ydn.db.IndexSchema('id', true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
     {value:'qs0', id: 0, type: 'a'},
@@ -497,11 +498,11 @@ var test_71_offset_limit = function () {
 
 var test_74_where = function () {
   var store_name = 'st';
-  var dbname = 'test_74';
+  var db_name = 'test_74';
   var indexSchema = new ydn.db.IndexSchema('id', true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs0', value: 0, type: 'a'},
@@ -549,11 +550,11 @@ var test_74_where = function () {
 
 var test_81_fetch_keys = function () {
   var store_name = 'st';
-  var dbname = 'test81';
+  var db_name = 'test81';
   var indexSchema = new ydn.db.IndexSchema('id', true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs1', value:Math.random()},
@@ -616,13 +617,13 @@ var test_81_fetch_keys = function () {
 
 var test_85_query_start_with = function () {
   var store_name = 'ts1';
-  var dbname = 'test_8';
+  var db_name = 'test_8';
   var schema = new ydn.db.DatabaseSchema(1);
   // NOTE: key also need to be indexed.
   var indexSchema = new ydn.db.IndexSchema('id', true);
   schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]));
   //schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs1', value:Math.random()},

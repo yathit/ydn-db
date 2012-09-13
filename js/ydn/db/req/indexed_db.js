@@ -209,8 +209,8 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs) {
   var results = [];
   var result_count = 0;
 
+  var store = this.tx.objectStore(store_name);
   for (var i = 0; i < objs.length; i++) {
-    var store = this.tx.objectStore(store_name);
     try { // should use try just to cache offending id ?
       // should put outside for loop or just remove try block?
       var request = store.put(objs[i]);
@@ -302,7 +302,7 @@ ydn.db.req.IndexedDb.prototype.clearByStore = function (df, opt_store_name) {
         window.console.log([n_done, event]);
       }
       if (n_done == n_todo) {
-        df.callback(true);
+        df.callback(undefined); // clear do not ruturn any result.
       }
     };
     request.onerror = function (event) {
@@ -541,111 +541,109 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 //
 //};
 //
-//
-//
-///**
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {goog.async.Deferred} df deferred to feed result.
-// * @param {!ydn.db.Query} q query.
-// * @param {number=} limit limit.
-// * @param {number=} offset offset.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.executeFetchQuery_ = function(tx, df, q, limit,
-//                                                         offset) {
-//  var me = this;
-//  var store = this.schema.getStore(q.store_name);
-//  var is_reduce = goog.isFunction(q.reduce);
-//
-//  var start = offset || 0;
-//  var end = goog.isDef(limit) ? start + limit : undefined;
-//
-//  //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
-//  // ' in ' + table);
-//  var obj_store = tx.objectStore(store.name);
-//
-//  var index = goog.isDefAndNotNull(q.index) ?
-//      obj_store.index(q.index) : null;
-//
-//  //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
-//  // ' of ' + column + ' in ' + table);
-//  var request;
-//  if (goog.isDefAndNotNull(q.keyRange)) {
-//    if (goog.isDef(q.direction)) {
-//      var dir = /** @type {number} */ (q.direction); // new standard is string.
-//      request = index.openCursor(q.keyRange, dir);
-//    } else {
-//      request = index.openCursor(q.keyRange);
-//    }
-//  } else {
-//    if (index) {
-//      request = index.openCursor();
-//    } else {
-//      request = obj_store.openCursor();
-//    }
-//  }
-//
-//  var idx = -1; // iteration index
-//  var results = [];
-//  var previousResult = undefined; // q.initialValue
-//
-//  request.onsuccess = function(event) {
-//
-//    if (ydn.db.req.IndexedDb.DEBUG) {
-//      window.console.log([q, idx, event]);
-//    }
-//    /**
-//     * @type {IDBCursor}
-//     */
-//    var cursor = /** @type {IDBCursor} */ (event.target.result);
-//    //console.log(cursor);
-//    if (cursor) {
-//
-//      var value = /** @type {!Object} */ cursor['value']; // should not
-//      // necessary if externs are
-//
-//      var to_continue = !goog.isFunction(q.continue) || q.continue(value);
-//
-//      // do the filtering if requested.
-//      if (!goog.isFunction(q.filter) || q.filter(value)) {
-//        idx++;
-//
-//        if (idx >= start) {
-//          if (goog.isFunction(q.map)) {
-//            value = q.map(value);
-//          }
-//
-//          if (is_reduce) {
-//            previousResult = q.reduce(previousResult, value, idx);
-//          } else {
-//            results.push(value);
-//          }
-//        }
-//      }
-//
-//      if (to_continue && (!goog.isDef(end) || (idx + 1) < end)) {
-//        //cursor.continue();
-//        cursor['continue'](); // Note: Must be quoted to avoid parse error.
-//      } else {
-//        var result = is_reduce ? previousResult : results;
-//        df.callback(result);
-//      }
-//    } else {
-//      var result = is_reduce ? previousResult : results;
-//      df.callback(result);
-//    }
-//  };
-//
-//  request.onerror = function(event) {
-//    if (ydn.db.req.IndexedDb.DEBUG) {
-//      window.console.log([q, event]);
-//    }
-//    df.errback(event);
-//  };
-//
-//};
-//
-//
+
+
+/**
+* @param {goog.async.Deferred} df deferred to feed result.
+* @param {!ydn.db.Query} q query.
+* @param {number=} max limit.
+* @param {number=} skip offset.
+* @private
+*/
+ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
+  var me = this;
+  var store = this.schema.getStore(q.store_name);
+  var is_reduce = goog.isFunction(q.reduce);
+
+  var start = skip || 0;
+  var end = goog.isDef(max) ? start + max : undefined;
+
+  //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
+  // ' in ' + table);
+  var obj_store = this.tx.objectStore(store.name);
+
+  var index = goog.isDefAndNotNull(q.index) ?
+      obj_store.index(q.index) : null;
+
+  //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
+  // ' of ' + column + ' in ' + table);
+  var request;
+  if (goog.isDefAndNotNull(q.keyRange)) {
+    if (goog.isDef(q.direction)) {
+      var dir = /** @type {number} */ (q.direction); // new standard is string.
+      request = index.openCursor(q.keyRange, dir);
+    } else {
+      request = index.openCursor(q.keyRange);
+    }
+  } else {
+    if (index) {
+      request = index.openCursor();
+    } else {
+      request = obj_store.openCursor();
+    }
+  }
+
+  var idx = -1; // iteration index
+  var results = [];
+  var previousResult = undefined; // q.initialValue
+
+  request.onsuccess = function(event) {
+
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log([q, idx, event]);
+    }
+    /**
+     * @type {IDBCursor}
+     */
+    var cursor = /** @type {IDBCursor} */ (event.target.result);
+    //console.log(cursor);
+    if (cursor) {
+
+      var value = /** @type {!Object} */ cursor['value']; // should not
+      // necessary if externs are
+
+      var to_continue = !goog.isFunction(q.continue) || q.continue(value);
+
+      // do the filtering if requested.
+      if (!goog.isFunction(q.filter) || q.filter(value)) {
+        idx++;
+
+        if (idx >= start) {
+          if (goog.isFunction(q.map)) {
+            value = q.map(value);
+          }
+
+          if (is_reduce) {
+            previousResult = q.reduce(previousResult, value, idx);
+          } else {
+            results.push(value);
+          }
+        }
+      }
+
+      if (to_continue && (!goog.isDef(end) || (idx + 1) < end)) {
+        //cursor.continue();
+        cursor['continue'](); // Note: Must be quoted to avoid parse error.
+      } else {
+        var result = is_reduce ? previousResult : results;
+        df.callback(result);
+      }
+    } else {
+      var result = is_reduce ? previousResult : results;
+      df.callback(result);
+    }
+  };
+
+  request.onerror = function(event) {
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log([q, event]);
+    }
+    df.errback(event);
+  };
+
+};
+
+
 ///**
 // * @param {!ydn.db.Query} q query.
 // * @param {number=} limit limit.
@@ -794,7 +792,7 @@ ydn.db.req.IndexedDb.prototype.count = function (df, table) {
 
   var self = this;
 
-  var store = this.tx.getTx().objectStore(table);
+  var store = this.tx.objectStore(table);
   var request = store.count();
   request.onsuccess = function (event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
@@ -806,7 +804,7 @@ ydn.db.req.IndexedDb.prototype.count = function (df, table) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log(event);
     }
-    df.callback(event);
+    df.errback(event);
   };
 
 };

@@ -52,6 +52,8 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
 
   this.idx_db_ = null;
 
+  this.deferredIdxDb_ = new goog.async.Deferred();
+
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // version could be number of string.
   // In chrome, version is taken as description.
@@ -238,11 +240,10 @@ ydn.db.adapter.IndexedDb.prototype.type = function() {
 
 
 /**
- * @final
- * @type {!goog.async.Deferred}
+ * @type {goog.async.Deferred}
  * @private
  */
-ydn.db.adapter.IndexedDb.prototype.deferredIdxDb_ = new goog.async.Deferred();
+ydn.db.adapter.IndexedDb.prototype.deferredIdxDb_ = null;
 
 
 /**
@@ -305,24 +306,40 @@ ydn.db.adapter.IndexedDb.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.adapter.IndexedDb');
 
 
-/**
- * @final
- * @protected
- * @param {IDBDatabase} db database instance.
- */
-ydn.db.adapter.IndexedDb.prototype.setDb = function(db) {
-
-  this.idx_db_ = db;
-
-  this.deferredIdxDb_.callback(db);
-};
-
 
 /**
  * @private
  * @type {IDBDatabase}
  */
 ydn.db.adapter.IndexedDb.prototype.idx_db_ = null;
+
+
+/**
+ * @final
+ * @protected
+ * @param {IDBDatabase} db database instance.
+ */
+ydn.db.adapter.IndexedDb.prototype.setDb = function (db) {
+
+  this.idx_db_ = db;
+
+  // often web app developer have problem with versioning, in that schema is
+  // different but version number is the same. So let us do sanity check
+  if (goog.DEBUG) {
+    for (var i = 0; i < this.schema.stores.length; i++) {
+      var store = this.schema.stores[i];
+      goog.asserts.assert(this.hasStore_(store.name), 'store: ' + store.name +
+        ' not exist in database but in schema, new version?');
+      // more checking in indexes.
+    }
+    this.deferredIdxDb_.callback(this.idx_db_);
+  } else {
+    this.deferredIdxDb_.callback(this.idx_db_);
+  }
+};
+
+
+
 
 
 /**
@@ -345,7 +362,8 @@ ydn.db.adapter.IndexedDb.prototype.hasStore_ = function(db, table) {
     return db['objectStoreNames'].contains(table);
   } else {
     // old chrome is not following IndexedDB spec, not likely to encounter
-    throw new ydn.error.InternalError('objectStoreNames not supported');
+    // throw new ydn.error.InternalError('objectStoreNames not supported');
+    return true;
   }
 };
 

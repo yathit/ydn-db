@@ -141,7 +141,6 @@ ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
 ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
 
 
-
 /**
  * Return object
  * @param {!goog.async.Deferred} return object in deferred function.
@@ -166,3 +165,13 @@ ydn.db.req.RequestExecutor.prototype.clearByStore = goog.abstractMethod;
  * @param {string} table store name.
  */
 ydn.db.req.RequestExecutor.prototype.count = goog.abstractMethod;
+
+
+
+/**
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!ydn.db.Query} q query.
+ * @param {number=} max
+ * @param {number=} skip
+ */
+ydn.db.req.RequestExecutor.prototype.fetch = goog.abstractMethod;

@@ -266,23 +266,33 @@ ydn.db.Storage.prototype.clear = function(arg1, arg2) {
 
   var df = ydn.db.createDeferred();
 
-  /**
-   * @param {!ydn.db.req.RequestExecutor} executor
-   */
-  var clear = function (executor) {
-    var request, store;
-    if (goog.isDef(arg2)) {
-      if (goog.isString(arg1)) {
-        executor.clearById(df, arg1, arg2);
-      } else {
-        throw new ydn.error.ArgumentException();
-      }
+  if (goog.isString(arg1)) {
+    var store_name = arg1;
+    if (goog.isString(arg2) || goog.isNumber(arg2)) {
+      var id = arg2;
+      this.execute(function(executor) {
+        executor.clearById(df, store_name, id);
+      }, [store_name], ydn.db.TransactionMode.READ_WRITE);
+    } else if (!goog.isDef(arg2)) {
+      this.execute(function(executor) {
+        executor.clearByStore(df, store_name);
+      }, [store_name], ydn.db.TransactionMode.READ_WRITE);
     } else {
-      executor.clearByStore(df, arg1);
+      throw new ydn.error.ArgumentException();
     }
-  };
-
-  this.execute(clear, [], ydn.db.TransactionMode.READ_WRITE);
+  } else if (goog.isArray(arg1) && goog.isString(arg1[0])) {
+    var store_names = arg1;
+    this.execute(function(executor) {
+      executor.clearByStore(df, store_names);
+    }, [store_names], ydn.db.TransactionMode.READ_WRITE);
+  } else if (!goog.isDef(arg1)) {
+    var store_names = this.schema.getStoreNames();
+    this.execute(function(executor) {
+      executor.clearByStore(df, store_names);
+    }, [store_names], ydn.db.TransactionMode.READ_WRITE);
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
 
   return df;
 };
@@ -297,6 +307,7 @@ ydn.db.Storage.prototype.count = function(store_name) {
   var count = function(executor) {
     executor.count(df, store_name);
   };
+  this.execute(count, [store_name], ydn.db.TransactionMode.READ_ONLY);
   return df;
 };
 
@@ -312,49 +323,69 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
 
   var df = ydn.db.createDeferred();
 
-  /**
-   * @param {!ydn.db.req.RequestExecutor} executor
-   */
-  var get = function(executor) {
 
-    if (arg1 instanceof ydn.db.Key) {
-      /**
-       * @type {ydn.db.Key}
-       */
-      var k = arg1;
-      executor.getById(df, k.getStoreName(), k.getId());
-    } else if (goog.isString(arg1)) {
-      if (goog.isString(arg2) || goog.isNumber(arg2)) {
-        /** @type {string} */
-        var store_name = arg1;
-        /** @type {string|number} */
-        var id = arg2;
+  if (arg1 instanceof ydn.db.Key) {
+    /**
+     * @type {ydn.db.Key}
+     */
+    var k = arg1;
+    var store = k.getStoreName();
+    var kid = k.getId();
+    this.execute(function (executor) {
+      executor.getById(df, store, kid);
+    }, [store], ydn.db.TransactionMode.READ_ONLY);
+  } else if (goog.isString(arg1)) {
+    var store_name = arg1;
+    if (goog.isString(arg2) || goog.isNumber(arg2)) {
+      /** @type {string} */
+      /** @type {string|number} */
+      var id = arg2;
+      this.execute(function (executor) {
         executor.getById(df, store_name, id);
-      } else if (!goog.isDef(arg2)) {
-        executor.getByStore(df, arg1);
-      } else if (goog.isArray(arg2)) {
-        if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-          executor.getByIds(df, arg1, arg2);
-        } else {
-          throw new ydn.error.ArgumentException();
-        }
+      }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+    } else if (!goog.isDef(arg2)) {
+      this.execute(function (executor) {
+        executor.getByStore(df, store_name);
+      }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+
+    } else if (goog.isArray(arg2)) {
+      if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
+        var ids = arg2;
+        this.execute(function (executor) {
+          executor.getByIds(df, store_name, ids);
+        }, [store_name], ydn.db.TransactionMode.READ_ONLY);
       } else {
         throw new ydn.error.ArgumentException();
       }
-    } else if (goog.isArray(arg1)) {
-      if (arg1[0] instanceof ydn.db.Key) {
-        executor.getByKeys(df, arg1);
-      } else {
-        throw new ydn.error.ArgumentException();
-      }
-    } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-      executor.getByStore(df);
     } else {
       throw new ydn.error.ArgumentException();
     }
-  };
-
-  this.execute(get, [], ydn.db.TransactionMode.READ_ONLY);
+  } else if (goog.isArray(arg1)) {
+    if (arg1[0] instanceof ydn.db.Key) {
+      var store_names = [];
+      /**
+       * @type {!Array.<!ydn.db.Key>}
+       */
+      var keys = arg1;
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (!goog.array.contains(store_names, key.getStoreName())) {
+          store_names.push(key.getStoreName());
+        }
+      }
+      this.execute(function (executor) {
+        executor.getByKeys(df, keys);
+      }, store_names, ydn.db.TransactionMode.READ_ONLY);
+    } else {
+      throw new ydn.error.ArgumentException();
+    }
+  } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
+    this.execute(function (executor) {
+      executor.getByStore(df);
+    }, this.schema.getStoreNames(), ydn.db.TransactionMode.READ_ONLY);
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
 
   return df;
 };
@@ -363,38 +394,63 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
 
 /**
  * Execute PUT request either storing result to tx or callback to df.
- * @param {string} table table name.
- * @param {!Object|Array.<!Object>} value object to put.
+ * @param {string} store_name table name.
+ * @param {!Object|!Array.<!Object>} value object to put.
  * @return {!goog.async.Deferred}
  */
-ydn.db.Storage.prototype.put = function (table, value) {
+ydn.db.Storage.prototype.put = function (store_name, value) {
+
   var df = ydn.db.createDeferred();
   var me = this;
-  this.execute(function (executor) {
-    if (!goog.isString(table)) {
-      throw new ydn.error.ArgumentException();
-    }
+  if (goog.isString(store_name)) {
+    goog.asserts.assert(this.schema.hasStore(store_name), 'Store: ' +
+      store_name + ' not exists.');
     if (goog.isArray(value)) {
-      executor.putObjects(df, table, value);
+      var objs = value;
+      this.execute(function (executor) {
+        executor.putObjects(df, store_name, objs);
+      }, [store_name], ydn.db.TransactionMode.READ_WRITE);
     } else if (goog.isObject(value)) {
-      executor.putObject(df, table, value);
+      var obj = value;
+      this.execute(function (executor) {
+        executor.putObject(df, store_name, obj);
+      }, [store_name], ydn.db.TransactionMode.READ_WRITE);
     } else {
       throw new ydn.error.ArgumentException();
     }
-  }, [table], ydn.db.TransactionMode.READ_WRITE);
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+
   return df;
 };
 
 
 /**
  * @param {!ydn.db.Query} q query.
- * @param {number=} limit
- * @param {number=} offset
+ * @param {number=} max
+ * @param {number=} skip
  * @return {!goog.async.Deferred}
  */
-ydn.db.Storage.prototype.fetch = function(q, limit, offset) {
+ydn.db.Storage.prototype.fetch = function(q, max, skip) {
   var df = ydn.db.createDeferred();
+  if (!(q instanceof ydn.db.Query)) {
+    throw new ydn.error.ArgumentException();
+  }
+  goog.asserts.assert(this.schema.hasStore(q.store_name), q.store_name +
+      ' not exists.');
+
+  this.execute(function (executor) {
+    executor.fetch(df, q, max, skip);
+  }, [q.store_name], ydn.db.TransactionMode.READ_ONLY);
+
   return df;
+};
+
+
+/** @override */
+ydn.db.Storage.prototype.toString = function() {
+  return this.db_name + ':' + this.getMuTx().getTxCount();
 };
 
 
