@@ -99,6 +99,14 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
 };
 
 
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.core.Storage.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.core.Storage');
+
+
 
 /**
  * Get configuration of this storage. This is useful from getting storage from
@@ -295,7 +303,8 @@ ydn.db.core.Storage.prototype.setDb_ = function(db) {
   var me = this;
   this.db_.onReady(function(db) {
     me.deferredDb_.callback(me.db_);
-    me.runTxQueue();
+    this.last_queue_checkin_ = NaN;
+    me.popTxQueue_();
   });
 };
 
@@ -308,7 +317,6 @@ ydn.db.core.Storage.prototype.setDb_ = function(db) {
  * @protected
  */
 ydn.db.core.Storage.prototype.init = function() {
-
 };
 
 
@@ -350,19 +358,77 @@ ydn.db.core.Storage.prototype.getDb = function() {
 };
 
 
+/**
+ *
+ * @type {number}
+ * @private
+ */
+ydn.db.core.Storage.prototype.last_queue_checkin_ = NaN;
+
+
+/**
+ * @const
+ * @type {number}
+ */
+ydn.db.core.Storage.timeOut = goog.DEBUG || ydn.db.adapter.IndexedDb.DEBUG ?
+  500 : 3000;
+
+
+/**
+ * @const
+ * @type {number}
+ */
+ydn.db.core.Storage.MAX_QUEUE = 1000;
+
 
 /**
  * Run the first transaction task in the queue. DB must be ready to do the
  * transaction.
- * @protected
+ * @private
  */
-ydn.db.core.Storage.prototype.runTxQueue = function() {
+ydn.db.core.Storage.prototype.popTxQueue_ = function() {
 
   var task = this.txQueue.shift();
   if (task) {
     ydn.db.core.Storage.prototype.transaction.call(this,
       task.fnc, task.scopes, task.mode, task.oncompleted);
   }
+  this.last_queue_checkin_ = goog.now();
+};
+
+
+/**
+ * Push a transaction job to the queue.
+ * @param {Function} trFn function that invoke in the transaction.
+ * @param {!Array.<string>} store_names list of keys or
+ * store name involved in the transaction.
+ * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
+ * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
+ * @private
+ */
+ydn.db.core.Storage.prototype.pushTxQueue_ = function (trFn, store_names, 
+    opt_mode, completed_event_handler) {
+  this.txQueue.push({
+    fnc:trFn,
+    scopes:store_names,
+    mode:opt_mode,
+    oncompleted:completed_event_handler
+  });
+  var now = goog.now();
+  if (!isNaN(this.last_queue_checkin_)) {
+    if ((now - this.last_queue_checkin_) > ydn.db.core.Storage.timeOut) {
+      this.logger.warning('queue is not moving.');
+      // todo: actively push the queue if transaction object is available
+      // this will make robustness to the app.
+      // in normal situation, queue will automatically empty since
+      // pop queue will call whenever transaction is finished.
+    }
+  }
+  if (this.txQueue.length > ydn.db.core.Storage.MAX_QUEUE) {
+    this.logger.warning('Maximum queue size exceed, dropping the first job.');
+    this.txQueue.shift();
+  }
+
 };
 
 
@@ -371,7 +437,7 @@ ydn.db.core.Storage.prototype.runTxQueue = function() {
  * @protected
  * @param e
  */
-ydn.db.core.Storage.prototype.abortTxQueue = function(e) {
+ydn.db.core.Storage.prototype.abortTxQueue_ = function(e) {
   if (this.txQueue) {
     var task = this.txQueue.shift();
     while (task) {
@@ -436,7 +502,7 @@ ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
         }
       } finally {
         me.in_tx_ = false;
-        me.runTxQueue();
+        me.popTxQueue_();
       }
     };
 
@@ -447,12 +513,7 @@ ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
     }, names, mode, on_complete);
   } else {
     //console.log('core queing ' + trFn.name);
-    this.txQueue.push({
-      fnc:trFn,
-      scopes:store_names,
-      mode:opt_mode,
-      oncompleted:completed_event_handler
-    });
+    this.pushTxQueue_(trFn, store_names, opt_mode, completed_event_handler);
   }
 };
 
