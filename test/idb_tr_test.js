@@ -17,8 +17,6 @@ var setUp = function() {
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
-  ydn.db.IndexedDb.DEBUG = true;
-  ydn.db.adapter.IndexedDb.DEBUG = true;
 
 	basic_schema = new ydn.db.DatabaseSchema(1);
   var index = new ydn.db.IndexSchema('id');
@@ -30,7 +28,7 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'test12';
+var db_name = 'test_tr_13';
 var options = {preference: ['indexeddb']};
 
 
@@ -77,14 +75,14 @@ var test_2_idb_basic = function() {
 
 
   db.put(table_name, arr).addCallback(function(value) {
-    console.log('put: n:' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(value));
+    console.log(db + ' put: ' + JSON.stringify(value));
 
     db.transaction(function() {
       db.get(table_name, 'a').addCallback(function(a_obj) {
-        console.log('get a, n: ' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(a_obj));
+        console.log(db + ' get a ' + JSON.stringify(a_obj));
         a_obj.value += amt;
         db.put(table_name, a_obj).addCallback(function(out) {
-          console.log('put a, n: ' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(a_obj));
+          console.log(db + ' put a ' + JSON.stringify(a_obj));
           t1_fired = true;
           assertEquals('tr done', 'a', out);
         });
@@ -94,7 +92,7 @@ var test_2_idb_basic = function() {
     var q = db.query(table_name);
     q.select('value');
     db.fetch(q).addCallback(function(q_result) {
-      console.log('receiving fetch n:' + db.db_.mu_tx_.tx_count_ + ' ' + JSON.stringify(q_result));
+      console.log(db + ' receiving fetch ' + JSON.stringify(q_result));
     })
   });
 };

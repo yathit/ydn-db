@@ -321,9 +321,11 @@ ydn.db.adapter.IndexedDb.prototype.idx_db_ = null;
  */
 ydn.db.adapter.IndexedDb.prototype.setDb = function (db) {
 
-  goog.asserts.assert(!this.idx_db_);
-  goog.asserts.assert(!this.deferredIdxDb_.hasFired());
   this.idx_db_ = db;
+  if (this.deferredIdxDb_.hasFired()) {
+    // require for version change
+    this.deferredIdxDb_ = new goog.async.Deferred();
+  }
 
   // often web app developer have problem with versioning, in that schema is
   // different but version number is the same. So let us do sanity check

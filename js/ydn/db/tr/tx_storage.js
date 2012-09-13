@@ -25,7 +25,6 @@ ydn.db.tr.TxStorage = function(storage, scope) {
    */
   this.storage_ = storage;
 
-
   this.itx_count_ = storage.getMuTx().getTxCount();
 
   this.scope = scope;

@@ -37,13 +37,13 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'test12';
+var db_name = 'test_q_13';
 var options = {preference: ['indexeddb']};
 
 var test_2_idb_select = function() {
 
 
-  var db_name = 'test_2_idb_select';
+  var db_name = 'test_2_idb_select2';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [

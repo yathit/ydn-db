@@ -45,8 +45,9 @@ ydn.db.tr.Mutex.DEBUG = false;
  * Newly created transaction it push to mutex and lock.
  * @final
  * @param {!IDBTransaction|!SQLTransaction|!Object} tx the transaction object.
+ * @param {string=} scope scope name.
  */
-ydn.db.tr.Mutex.prototype.up = function(tx) {
+ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
@@ -70,11 +71,14 @@ ydn.db.tr.Mutex.prototype.up = function(tx) {
    */
   this.out_of_scope_ = false;
 
+  this.scope_name = goog.isDef(scope) ? scope : '';
+
   this.tx_count_++;
 
   this.oncompleted = null;
 
-  this.logger.finest('tx up, count: ' + this.tx_count_);
+  var sc = !!this.scope_name ? '[' + this.scope_name + ']' : '';
+  this.logger.finest('tx ' + this.tx_count_ + ': ' + sc + ' open');
 };
 
 
@@ -96,6 +100,22 @@ ydn.db.tr.Mutex.prototype.is_set_done_ = false;
 
 
 /**
+ * @protected
+ * @type {string}
+ */
+ydn.db.tr.Mutex.prototype.scope_name = '';
+
+
+/**
+ *
+ * @return {string}
+ */
+ydn.db.tr.Mutex.prototype.getScope = function() {
+  return this.scope_name;
+};
+
+
+/**
  * Transaction is released and mutex is unlock.
  * @final
  * @param {ydn.db.TransactionEventTypes} type event type
@@ -103,7 +123,7 @@ ydn.db.tr.Mutex.prototype.is_set_done_ = false;
  */
 ydn.db.tr.Mutex.prototype.down = function (type, event) {
   goog.asserts.assertObject(this.tx_, 'mutex already unlocked');
-  this.logger.finest('tx down, count: ' + this.tx_count_);
+  this.logger.finest('tx ' + this.tx_count_ + ': close');
   // down must be call only once by those who up
   this.tx_ = null;
 

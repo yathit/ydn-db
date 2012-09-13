@@ -31,7 +31,7 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'test12';
+var db_name = 'test_sql_tr_12';
 
 
 var test_2_sql_basic = function() {
@@ -51,6 +51,7 @@ var test_2_sql_basic = function() {
 
   var t1_fired = false;
   var t2_fired = false;
+  var tx_1, tx_2, tx_3;
 
   waitForCondition(
       // Condition
@@ -78,23 +79,27 @@ var test_2_sql_basic = function() {
 
 
   db.put(table_name, arr).addCallback(function(value) {
-    console.log('receiving value callback ' + JSON.stringify(value));
+    console.log(db + ' receiving value callback ' + JSON.stringify(value));
+    tx_1 = db.getTxNo();
 
-    db.transaction(function() {
-      db.get(table_name, 'a').addCallback(function(a_obj) {
-        console.log('a_key get ' + JSON.stringify(a_obj));
+    db.transaction(function tx_1(tdb) {
+      console.log(db + ' starting tr');
+      tdb.get(table_name, 'a').addCallback(function(a_obj) {
+        console.log(tdb + ' a get ' + JSON.stringify(a_obj));
         a_obj.value += amt;
-        db.put(table_name, a_obj).addCallback(function(out) {
+        tdb.put(table_name, a_obj).addCallback(function(out) {
+          console.log(tdb + ' a_obj put ' + JSON.stringify(a_obj));
           t1_fired = true;
           assertEquals('tr done', 'a', out);
         });
       });
-    }, [table_name]);
+    }, [table_name], ydn.db.TransactionMode.READ_WRITE);
 
     var q = db.query(table_name);
     q.select('value');
+    console.log(db + 'fetching');
     db.fetch(q).addCallback(function(q_result) {
-      console.log('receiving fetch ' + JSON.stringify(q_result));
+      console.log(db + ' receiving fetch ' + JSON.stringify(q_result));
       t1_result = q_result;
       t1_fired = true;
     })

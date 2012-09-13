@@ -16,7 +16,6 @@ ydn.db.core.IStorage = function() {};
 /**
  * Close the connection.
  *
- * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.core.IStorage.prototype.close = function() {};
 

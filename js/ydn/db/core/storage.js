@@ -181,10 +181,10 @@ ydn.db.core.Storage.prototype.setSchema = function(schema) {
     this.initDatabase();
   } else {
     var me = this;
-    var df = this.db_.close();
-    df.addCallback(function(e) {
-      me.initDatabase();
-    });
+    this.db_.close();
+    this.db_ = null;
+    this.deferredDb_ = new goog.async.Deferred();
+    this.initDatabase();
   }
 };
 
@@ -322,16 +322,12 @@ ydn.db.core.Storage.prototype.init = function() {
 
 /**
  * Close the database.
- * @export
- * @return {!goog.async.Deferred} deferred function.
  */
 ydn.db.core.Storage.prototype.close = function() {
   if (this.db_) {
-    var df = this.db_.close();
-    delete this.db_;
-    return df;
+    this.db_.close();
+    this.db_ = null;
   }
-  return goog.async.Deferred.succeed(true);
 };
 
 

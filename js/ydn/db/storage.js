@@ -39,7 +39,8 @@ goog.require('ydn.db.req.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.db.RichStorage_');
 goog.require('ydn.db.tr.Storage');
-goog.require('ydn.db.IStorage');
+goog.require('ydn.db.TxStorage');
+goog.require('ydn.db.io.Query');
 goog.require('ydn.db.io.QueryService');
 goog.require('ydn.db.io.QueryServiceProvider');
 
@@ -58,9 +59,9 @@ goog.require('ydn.db.io.QueryServiceProvider');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!Object=} opt_options options.
- * @implements {ydn.db.IStorage}
+ * @implements {ydn.db.io.QueryService}
  * @extends {ydn.db.tr.Storage}
- * @constructor
+ * @constructor *
  */
 ydn.db.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
@@ -91,13 +92,13 @@ ydn.db.Storage.prototype.initDatabase = function () {
 ydn.db.Storage.prototype.init = function() {
   var type = this.type();
   if (type == ydn.db.adapter.IndexedDb.TYPE) {
-    this.executor = new ydn.db.req.IndexedDb(this.schema);
+    this.executor = new ydn.db.req.IndexedDb(this.db_name, this.schema);
   } else if (type == ydn.db.adapter.WebSql.TYPE) {
-    this.executor = new ydn.db.req.WebSql(this.schema);
+    this.executor = new ydn.db.req.WebSql(this.db_name, this.schema);
   } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
       type == ydn.db.adapter.LocalStorage.TYPE ||
       type == ydn.db.adapter.SessionStorage.TYPE) {
-    this.executor = new ydn.db.req.SimpleStore(this.schema);
+    this.executor = new ydn.db.req.SimpleStore(this.db_name, this.schema);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
   }
@@ -110,7 +111,7 @@ ydn.db.Storage.prototype.init = function() {
  * @override
  */
 ydn.db.Storage.prototype.newTxInstance = function(scope) {
-  var tx_db = goog.base(this, 'newTxInstance', scope);
+  var tx_db = new ydn.db.TxStorage(this, scope);
   var tx = this.getMuTx().getTx();
   this.executor.setTx(tx, scope);
   return tx_db;
@@ -206,6 +207,20 @@ ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
   return this.put(ydn.db.Storage.DEFAULT_TEXT_STORE,
     {'id': key, 'value': value});
 
+};
+
+
+/**
+ * @param {string} store store name.
+ * @param {string=} index store field, where key query is preformed. If not
+ * provided, the first index will be used.
+ * @param {(!ydn.db.KeyRangeJson|!ydn.db.KeyRange|undefined)=}
+  * keyRange configuration in
+ * json format.
+ * @param {string=} direction cursor direction.
+ */
+ydn.db.Storage.prototype.query = function(store, index, keyRange, direction) {
+  return new ydn.db.io.Query(this, store, index, keyRange, direction);
 };
 
 
@@ -450,7 +465,12 @@ ydn.db.Storage.prototype.fetch = function(q, max, skip) {
 
 /** @override */
 ydn.db.Storage.prototype.toString = function() {
-  return this.db_name + ':' + this.getMuTx().getTxCount();
+  if (goog.DEBUG) {
+    var scope = this.getMuTx().getScope();
+    scope = scope ? ' [' + scope + ']' : '';
+    return this.db_name + ':' + this.getTxNo() + scope;
+  }
+  return ydn.db.Storage + ':' + this.db_name;
 };
 
 

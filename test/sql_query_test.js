@@ -31,7 +31,7 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'test12';
+var db_name = 'test_sql_q_12';
 
 var options = {preference: ['websql']};
 

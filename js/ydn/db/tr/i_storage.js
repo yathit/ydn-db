@@ -30,6 +30,13 @@ ydn.db.tr.IStorage.prototype.transaction = function (trFn, store_names, mode,
     oncompleted, opt_args) {};
 
 
+/**
+ *
+ * @return {number}
+ */
+ydn.db.tr.IStorage.prototype.getTxNo = goog.abstractMethod;
+
+
 
 
 

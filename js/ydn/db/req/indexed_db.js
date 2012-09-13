@@ -26,12 +26,13 @@ goog.require('ydn.error');
 
 
 /**
+ *  @param {string} dbname
  * @extends {ydn.db.req.RequestExecutor}
  * @param {ydn.db.DatabaseSchema} schema
  * @constructor
  */
-ydn.db.req.IndexedDb = function(schema) {
-  goog.base(this, schema);
+ydn.db.req.IndexedDb = function(dbname, schema) {
+  goog.base(this, dbname, schema);
 };
 goog.inherits(ydn.db.req.IndexedDb, ydn.db.req.RequestExecutor);
 
@@ -319,67 +320,121 @@ ydn.db.req.IndexedDb.prototype.clearByStore = function (df, opt_store_name) {
 };
 
 
-//
-//
-///**
-// * Get all item in the store.
-// * @private
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {goog.async.Deferred} df deferred to feed result.
-// * @param {boolean} not_key_only query only keys.
-// * @param {string|!Array.<string>=} opt_store_name table name.
-// */
-//ydn.db.req.IndexedDb.prototype.executeGetAll_ = function(tx, df, not_key_only, opt_store_name) {
-//  var self = this;
-//
-//  var getAll = function(store_name) {
-//    var results = [];
-//    var store = tx.objectStore(store_name);
-//
-//    // Get everything in the store;
-//    var request = store.openCursor();
-//
-//    request.onsuccess = function(event) {
-//      var cursor = event.target.result;
-//      if (cursor) {
-//        if (not_key_only) {
-//          results.push(cursor['value']);
-//        } else {
-//          results.push(cursor['key']);
-//        }
-//        cursor['continue'](); // result.continue();
-//      } else {
-//        n_done++;
-//        if (n_done == n_todo) {
-//          df.callback(results);
-//        }
-//      }
-//    };
-//
-//    request.onerror = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log([store_name, event]);
-//      }
-//      df.errback(event);
-//    };
-//  };
-//
-//  var store_names = goog.isString(opt_store_name) ? [opt_store_name] :
-//    goog.isArray(opt_store_name) && opt_store_name.length > 0 ?
-//        opt_store_name : this.schema.getStoreNames();
-//
-//  var n_todo = store_names.length;
-//  var n_done = 0;
-//
-//  if (n_todo > 0) {
-//    for (var i = 0; i < store_names.length; i++) {
-//      getAll(store_names[i]);
-//    }
-//  } else {
-//    df.callback([]);
-//  }
-//
-//};
+
+/**
+ * Get all item in the store.
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {boolean} not_key_only query only keys.
+ * @param {string|!Array.<string>=} opt_store_name table name.
+ */
+ydn.db.req.IndexedDb.prototype.getKeysByStore = function(df, not_key_only, opt_store_name) {
+  var self = this;
+
+  var getAll = function(store_name) {
+    var results = [];
+    var store = self.tx.objectStore(store_name);
+
+    // Get everything in the store;
+    var request = store.openCursor();
+
+    request.onsuccess = function(event) {
+      var cursor = event.target.result;
+      if (cursor) {
+        if (not_key_only) {
+          results.push(cursor['value']);
+        } else {
+          results.push(cursor['key']);
+        }
+        cursor['continue'](); // result.continue();
+      } else {
+        n_done++;
+        if (n_done == n_todo) {
+          df.callback(results);
+        }
+      }
+    };
+
+    request.onerror = function(event) {
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, event]);
+      }
+      df.errback(event);
+    };
+  };
+
+  var store_names = goog.isString(opt_store_name) ? [opt_store_name] :
+    goog.isArray(opt_store_name) && opt_store_name.length > 0 ?
+      opt_store_name : this.schema.getStoreNames();
+
+  var n_todo = store_names.length;
+  var n_done = 0;
+
+  if (n_todo > 0) {
+    for (var i = 0; i < store_names.length; i++) {
+      getAll(store_names[i]);
+    }
+  } else {
+    df.callback([]);
+  }
+
+};
+
+
+
+
+
+/**
+* Get all item in the store.
+* @param {goog.async.Deferred} df deferred to feed result.
+* @param {string|!Array.<string>=} opt_store_name table name.
+*/
+ydn.db.req.IndexedDb.prototype.getByStore = function(df, opt_store_name) {
+  var me = this;
+
+  var getAll = function (store_name) {
+    var results = [];
+    var store = me.tx.objectStore(store_name);
+
+    // Get everything in the store;
+    var request = store.openCursor();
+
+    request.onsuccess = function (event) {
+      var cursor = event.target.result;
+      if (cursor) {
+        results.push(cursor['value']);
+        cursor['continue'](); // result.continue();
+      } else {
+        n_done++;
+        if (n_done == n_todo) {
+          df.callback(results);
+        }
+      }
+    };
+
+    request.onerror = function(event) {
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, event]);
+      }
+      df.errback(event);
+    };
+  };
+
+  var store_names = goog.isString(opt_store_name) ? [opt_store_name] :
+    goog.isArray(opt_store_name) && opt_store_name.length > 0 ?
+        opt_store_name : this.schema.getStoreNames();
+
+  var n_todo = store_names.length;
+  var n_done = 0;
+
+  if (n_todo > 0) {
+    for (var i = 0; i < store_names.length; i++) {
+      getAll(store_names[i]);
+    }
+  } else {
+    df.callback([]);
+  }
+
+};
 
 
 
@@ -644,33 +699,6 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
 };
 
 
-///**
-// * @param {!ydn.db.Query} q query.
-// * @param {number=} limit limit.
-// * @param {number=} offset offset.
-// * @return {!goog.async.Deferred} result in deferred.
-// */
-//ydn.db.req.IndexedDb.prototype.fetch = function(q, limit, offset) {
-//
-//  var self = this;
-//  var df, tx;
-//  var open_tx = this.isOpenTransaction();
-//  if (q instanceof ydn.db.Query) {
-//    tx = this.getActiveIdbTx();
-//    df = new goog.async.Deferred();
-//    if (open_tx) {
-//      this.executeFetchQuery_(tx.getTx(), df, q, limit, offset);
-//    } else {
-//      this.doTransaction(function(tx) {
-//        self.executeFetchQuery_(tx.getTx(), df, q, limit, offset);
-//      }, [q.store_name], ydn.db.TransactionMode.READ_ONLY);
-//    }
-//    return df;
-//  } else {
-//    throw new ydn.error.ArgumentException();
-//  }
-//};
-//
 //
 ///**
 // *
@@ -894,18 +922,3 @@ ydn.db.req.IndexedDb.prototype.count = function (df, table) {
 //  return df;
 //};
 //
-//
-//
-///**
-// * Perform explicit transaction.
-// * @param {Function} trFn function that invoke in the transaction.
-// * @param {!Array.<string>} scopes list of store names involved in the
-// * transaction.
-// * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
-// * @override
-// */
-//ydn.db.req.IndexedDb.prototype.transaction = function (trFn, scopes, mode) {
-//
-//  goog.base(this, 'transaction', trFn, scopes, mode);
-//
-//};

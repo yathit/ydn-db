@@ -18,18 +18,18 @@ goog.require('ydn.db.Key');
 /**
  * @interface
  */
-ydn.db.tr.QueryService = function() {
+ydn.db.io.QueryService = function() {
 
 };
 
 
 /**
 * @param {!ydn.db.Query} q query.
-* @param {number=} limit
-* @param {number=} offset
+* @param {number=} max
+* @param {number=} skip
 * @return {!goog.async.Deferred}
 */
-ydn.db.tr.QueryService.prototype.fetch = function(q, limit, offset) {};
+ydn.db.io.QueryService.prototype.fetch = function(q, max, skip) {};
 
 
 
@@ -40,7 +40,7 @@ ydn.db.tr.QueryService.prototype.fetch = function(q, limit, offset) {};
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.tr.QueryService.prototype.get = function(store, id) {
+ydn.db.io.QueryService.prototype.get = function(store, id) {
 
 };
 
@@ -51,7 +51,7 @@ ydn.db.tr.QueryService.prototype.get = function(store, id) {
  * @param {(string|number)=}  opt_key
  * @return {!goog.async.Deferred} return key in deferred function.
  */
-ydn.db.tr.QueryService.prototype.put = function(store, value, opt_key) {
+ydn.db.io.QueryService.prototype.put = function(store, value, opt_key) {
 
 };
 
@@ -64,7 +64,7 @@ ydn.db.tr.QueryService.prototype.put = function(store, value, opt_key) {
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.tr.QueryService.prototype.clear = function(opt_table, opt_key) {
+ydn.db.io.QueryService.prototype.clear = function(opt_table, opt_key) {
 
 };
 
@@ -76,8 +76,4 @@ ydn.db.tr.QueryService.prototype.clear = function(opt_table, opt_key) {
 ydn.db.io.QueryServiceProvider = function() {};
 
 
-/**
- * @param {function(!ydn.db.tr.QueryService)} callback
- */
-ydn.db.io.QueryServiceProvider.prototype.isReady = function(callback) {};
 

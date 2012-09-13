@@ -26,11 +26,12 @@ var tearDown = function() {
 };
 
 var db_name = 'test12';
+var options = {preference: ['localstorage']};
 
 
 var test_1_put = function() {
 
-  var db = new ydn.db.LocalStorage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -58,7 +59,7 @@ var test_1_put = function() {
 
 var test_2_put_arr = function() {
 
-  var db = new ydn.db.LocalStorage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
     {id: 'a' + Math.random(),
@@ -94,7 +95,7 @@ var test_2_put_arr = function() {
 
 var test_3_empty_get = function() {
 
-  var db = new ydn.db.LocalStorage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -122,7 +123,7 @@ var test_3_empty_get = function() {
 
 var test_4_get_all = function() {
   var db_name = 'test_4';
-  var db = new ydn.db.LocalStorage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -150,7 +151,7 @@ var test_4_get_all = function() {
 
 
 var test_5_clear = function() {
-	var db = new ydn.db.LocalStorage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -205,7 +206,7 @@ var test_6_no_keyPath = function () {
   var schema = new ydn.db.DatabaseSchema(1);
   schema.addStore(new ydn.db.StoreSchema(table_name));
 
-  var db = new ydn.db.LocalStorage(db_name, basic_schema);
+  var db = new ydn.db.Storage(db_name, schema, options);
   var me = this;
 
   var key = 'x';

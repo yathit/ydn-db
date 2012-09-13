@@ -17,10 +17,17 @@ goog.require('ydn.db.InternalError');
 
 
 /**
+ * @param {string} dbname
  * @param {ydn.db.DatabaseSchema} schema
  * @constructor
  */
-ydn.db.req.RequestExecutor = function(schema) {
+ydn.db.req.RequestExecutor = function(dbname, schema) {
+  /**
+   * @protected
+   * @final
+   * @type {string}
+   */
+  this.dbname = dbname;
   /**
    * @protected
    * @final
@@ -64,22 +71,6 @@ ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {
   this.scope_ = scope;
 };
 
-
-
-//
-//
-///**
-// * @throws {ydn.db.InternalError}
-// * @return {SQLTransaction|IDBTransaction|Object}
-// * @protected
-// */
-//ydn.db.req.RequestExecutor.prototype.getTx = function() {
-//  if (!this.isActive()) {
-//    // this kind of error is not due to user.
-//    throw new ydn.db.InternalError('Scope: ' + this.scope + ' invalid.');
-//  }
-//  return this.tx;
-//};
 
 
 /**

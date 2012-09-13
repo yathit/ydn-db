@@ -112,6 +112,14 @@ ydn.db.tr.Storage.prototype.getMuTx = function() {
   return this.mu_tx_;
 };
 
+/**
+ *
+ * @return {number}
+ */
+ydn.db.tr.Storage.prototype.getTxNo = function() {
+  return this.mu_tx_.getTxCount();
+};
+
 
 /**
  * Obtain active consumable transaction object.
@@ -138,6 +146,7 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
   //console.log('tr starting ' + trFn.name);
+  var scope_name = trFn.name || '';
 
   var names = store_names;
   if (goog.isString(store_names)) {
@@ -166,10 +175,10 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
 
     //console.log('tr running ' + trFn.name);
 
-    me.mu_tx_.up(tx);
+    me.mu_tx_.up(tx, scope_name);
 
     // wrap this database and hold active transaction instance
-    tx_db = me.newTxInstance(trFn.name || '');
+    tx_db = me.newTxInstance(scope_name);
     // now execute transaction process
     trFn(tx_db);
     me.mu_tx_.out(); // flag transaction callback scope is over.

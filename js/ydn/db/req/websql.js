@@ -31,11 +31,12 @@ goog.require('ydn.json');
 
 /**
  * @extends {ydn.db.req.RequestExecutor}
+ * @param {string} dbname
  * @param {ydn.db.DatabaseSchema} schema
  * @constructor
  */
-ydn.db.req.WebSql = function(schema) {
-  goog.base(this, schema);
+ydn.db.req.WebSql = function(dbname, schema) {
+  goog.base(this, dbname, schema);
 };
 goog.inherits(ydn.db.req.WebSql, ydn.db.req.RequestExecutor);
 
