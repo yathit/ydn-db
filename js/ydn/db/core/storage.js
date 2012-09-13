@@ -89,8 +89,6 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
    */
   this.txQueue = [];
 
-  this.in_tx_ = false;
-
   this.setSchema(opt_schema || {});
 
   if (goog.isDef(opt_dbname)) {
@@ -454,17 +452,6 @@ ydn.db.core.Storage.prototype.abortTxQueue_ = function(e) {
 
 
 
-
-
-/**
- * Flag to indicate in transaction. Shuld not necessary.
- * @type {boolean}
- * @private
- */
-ydn.db.core.Storage.prototype.in_tx_ = false;
-
-
-
 /**
  * Run a transaction.
  * @export
@@ -480,8 +467,8 @@ ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
   //console.log('core starting ' + trFn.name);
 
 
-  var ready = !!this.db_ && this.db_.isReady();
-  if (ready && !this.in_tx_) {
+  var is_ready = !!this.db_ && this.db_.isReady();
+  if (is_ready) {
     var me = this;
     var names = store_names;
     if (goog.isString(store_names)) {
@@ -506,18 +493,16 @@ ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
           throw e;
         }
       } finally {
-        me.in_tx_ = false;
         me.popTxQueue_();
       }
     };
 
-    this.in_tx_ = true;
     //console.log('core running ' + trFn.name);
     this.db_.doTransaction(function (tx) {
       trFn(tx);
     }, names, mode, on_complete);
   } else {
-    //console.log('core queing ' + trFn.name);
+    //console.log('core queuing ' + trFn.name);
     this.pushTxQueue_(trFn, store_names, opt_mode, completed_event_handler);
   }
 };
