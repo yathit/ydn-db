@@ -26,7 +26,7 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'test123';
+var db_name = 'test124';
 var options = {preference: ['indexeddb']};
 
 
@@ -62,7 +62,7 @@ var test_1_put = function() {
 
 
 var test_2_put_arr = function() {
-  var db_name = 'test_2';
+  var db_name = 'test_21';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var arr = [
@@ -135,7 +135,7 @@ var _test_3_empty_get = function() {
 
 var test_4_get_all = function() {
 
-  var db_name = 'test_get_all';
+  var db_name = 'test_get_all1';
   var table_name = 'no_data_table';
   var basic_schema = new ydn.db.DatabaseSchema(1);
   basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
@@ -218,7 +218,7 @@ var test_25_clear = function() {
 /**
  */
 var test_31_special_keys = function() {
-  var db_name = 'test_6';
+  var db_name = 'test_61';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var key_test = function(key) {
@@ -275,7 +275,7 @@ var test_31_special_keys = function() {
 
 var test_41_keyRange = function () {
   var store_name = 'st';
-  var db_name = 'test_45';
+  var db_name = 'test_451';
   var indexSchema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
@@ -333,7 +333,7 @@ var test_41_keyRange = function () {
 
 var test_42_autoincreasement = function () {
   var store_name = 'demoOS';
-  var db_name = 'test_42_3';
+  var db_name = 'test_42_31';
   var idx_schema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', true, [idx_schema]);
   var schema = new ydn.db.DatabaseSchema(2, undefined, [store_schema]);
@@ -389,7 +389,7 @@ var test_42_autoincreasement = function () {
 
 var test_7_put_nested_keyPath = function() {
   var store_name = 'ts1';
-  var db_name = 'putodbtest2';
+  var db_name = 'putodbtest21';
 	var schema = new ydn.db.DatabaseSchema(1);
 	schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -442,7 +442,7 @@ var test_7_put_nested_keyPath = function() {
 
 var test_71_offset_limit = function () {
   var store_name = 'st';
-  var db_name = 'test_71_3';
+  var db_name = 'test_71_31';
   var indexSchema = new ydn.db.IndexSchema('id', true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
@@ -498,7 +498,7 @@ var test_71_offset_limit = function () {
 
 var test_74_where = function () {
   var store_name = 'st';
-  var db_name = 'test_74';
+  var db_name = 'test_741';
   var indexSchema = new ydn.db.IndexSchema('id', true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
@@ -550,7 +550,7 @@ var test_74_where = function () {
 
 var test_81_fetch_keys = function () {
   var store_name = 'st';
-  var db_name = 'test81';
+  var db_name = 'test811';
   var indexSchema = new ydn.db.IndexSchema('id', true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
@@ -617,7 +617,7 @@ var test_81_fetch_keys = function () {
 
 var test_85_query_start_with = function () {
   var store_name = 'ts1';
-  var db_name = 'test_8';
+  var db_name = 'test_81';
   var schema = new ydn.db.DatabaseSchema(1);
   // NOTE: key also need to be indexed.
   var indexSchema = new ydn.db.IndexSchema('id', true);

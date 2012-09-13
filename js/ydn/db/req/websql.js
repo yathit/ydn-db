@@ -109,58 +109,58 @@ ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
   return row[table.keyPath || ydn.db.DEFAULT_KEY_COLUMN];
 };
 
-//
-///**
-// * @param {SQLTransaction} tx
-// * @param {goog.async.Deferred} df
-// * @param {string} store_name table name.
-// * @param {!Object} obj object to put.
-// */
-//ydn.db.req.WebSql.prototype.executePut_ = function (tx, df, store_name, obj) {
-//
-//  var table = this.schema.getStore(store_name);
-//  if (!table) {
-//    throw new ydn.db.NotFoundError(store_name);
-//  }
-//
-//  var me = this;
-//
-//  var out = table.getIndexedValues(obj);
-//  //console.log([obj, JSON.stringify(obj)]);
-//
-//  var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
-//      ' (' + out.columns.join(', ') + ') ' +
-//      'VALUES (' + out.slots.join(', ') + ');';
-//
-//  /**
-//   * @param {SQLTransaction} transaction transaction.
-//   * @param {SQLResultSet} results results.
-//   */
-//  var success_callback = function (transaction, results) {
-//    if (ydn.db.req.WebSql.DEBUG) {
-//      window.console.log([sql, out, transaction, results]);
-//    }
-//    df.callback(out.key);
-//
-//  };
-//
-//  /**
-//   * @param {SQLTransaction} tr transaction.
-//   * @param {SQLError} error error.
-//   */
-//  var error_callback = function (tr, error) {
-//    if (ydn.db.req.WebSql.DEBUG) {
-//      window.console.log([sql, out, tr, error]);
-//    }
-//    me.logger.warning('put error: ' + error.message);
-//    df.errback(error);
-//  };
-//
-//  //console.log([sql, out.values]);
-//  tx.executeSql(sql, out.values, success_callback, error_callback);
-//
-//};
-//
+
+/**
+* @param {SQLTransaction} tx
+* @param {goog.async.Deferred} df
+* @param {string} store_name table name.
+* @param {!Object} obj object to put.
+*/
+ydn.db.req.WebSql.prototype.executePut_ = function (tx, df, store_name, obj) {
+
+  var table = this.schema.getStore(store_name);
+  if (!table) {
+    throw new ydn.db.NotFoundError(store_name);
+  }
+
+  var me = this;
+
+  var out = table.getIndexedValues(obj);
+  //console.log([obj, JSON.stringify(obj)]);
+
+  var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
+      ' (' + out.columns.join(', ') + ') ' +
+      'VALUES (' + out.slots.join(', ') + ');';
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var success_callback = function (transaction, results) {
+    if (ydn.db.req.WebSql.DEBUG) {
+      window.console.log([sql, out, transaction, results]);
+    }
+    df.callback(out.key);
+
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   */
+  var error_callback = function (tr, error) {
+    if (ydn.db.req.WebSql.DEBUG) {
+      window.console.log([sql, out, tr, error]);
+    }
+    me.logger.warning('put error: ' + error.message);
+    df.errback(error);
+  };
+
+  //console.log([sql, out.values]);
+  tx.executeSql(sql, out.values, success_callback, error_callback);
+
+};
+
 //
 ///**
 // * @param {SQLTransaction} tx

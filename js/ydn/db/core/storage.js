@@ -63,17 +63,22 @@ goog.require('ydn.db.core.IStorage');
  */
 ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
 
-  this.db_ = null;
 
   var options = opt_options || {};
 
   this.preference = options['preference'];
 
   /**
-   * @protected
-   * @type {!goog.async.Deferred} deferred db instance.
+   * @type {ydn.db.adapter.IDatabase}
+   * @private
+   */
+  this.db_ = null;
+  /**
+   * @type {!goog.async.Deferred}
+   * @private
    */
   this.deferredDb_ = new goog.async.Deferred();
+  // ?: keeping an object in deferred and non-deferred is not a good design
 
   /**
    * Transaction queue
@@ -85,6 +90,7 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
   this.txQueue = [];
 
   this.in_tx_ = false;
+
   this.setSchema(opt_schema || {});
 
   if (goog.isDef(opt_dbname)) {
@@ -92,12 +98,6 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
   }
 };
 
-
-/**
- * @private
- * @type {ydn.db.adapter.IDatabase} db instance.
- */
-ydn.db.core.Storage.prototype.db_ = null;
 
 
 /**
@@ -188,7 +188,8 @@ ydn.db.core.Storage.prototype.setSchema = function(schema) {
  * @const
  * @type {!Array.<string>}
  */
-ydn.db.core.Storage.PREFERENCE = [ydn.db.adapter.IndexedDb.TYPE,
+ydn.db.core.Storage.PREFERENCE = [
+  ydn.db.adapter.IndexedDb.TYPE,
   ydn.db.adapter.WebSql.TYPE,
   ydn.db.adapter.LocalStorage.TYPE,
   ydn.db.adapter.SessionStorage.TYPE,
@@ -199,21 +200,21 @@ ydn.db.core.Storage.PREFERENCE = [ydn.db.adapter.IndexedDb.TYPE,
  * Create database instance.
  * @param {string} db_type
  * @param {string} db_name
- * @param {!ydn.db.DatabaseSchema} config
+ * @param {!ydn.db.DatabaseSchema} schema
  * @return {ydn.db.adapter.IDatabase}
  */
-ydn.db.core.Storage.prototype.createDbInstance = function(db_type, db_name, config) {
+ydn.db.core.Storage.prototype.createDbInstance = function(db_type, db_name, schema) {
   //noinspection JSValidateTypes
   if (db_type == ydn.db.adapter.IndexedDb.TYPE) {
-    return new ydn.db.adapter.IndexedDb(db_name, config);
+    return new ydn.db.adapter.IndexedDb(db_name, schema);
   } else if (db_type == ydn.db.adapter.WebSql.TYPE) {
-    return new ydn.db.adapter.WebSql(db_name, config);
+    return new ydn.db.adapter.WebSql(db_name, schema);
   } else if (db_type == ydn.db.adapter.LocalStorage.TYPE) {
-    return new ydn.db.adapter.LocalStorage(db_name, config);
+    return new ydn.db.adapter.LocalStorage(db_name, schema);
   } else if (db_type == ydn.db.adapter.SessionStorage.TYPE) {
-    return new ydn.db.adapter.SessionStorage(db_name, config);
+    return new ydn.db.adapter.SessionStorage(db_name, schema);
   } else if (db_type == ydn.db.adapter.SimpleStorage.TYPE)  {
-    return new ydn.db.adapter.SimpleStorage(db_name, config);
+    return new ydn.db.adapter.SimpleStorage(db_name, schema);
   }
   return null;
 };

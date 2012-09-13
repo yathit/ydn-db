@@ -321,6 +321,8 @@ ydn.db.adapter.IndexedDb.prototype.idx_db_ = null;
  */
 ydn.db.adapter.IndexedDb.prototype.setDb = function (db) {
 
+  goog.asserts.assert(!this.idx_db_);
+  goog.asserts.assert(!this.deferredIdxDb_.hasFired());
   this.idx_db_ = db;
 
   // often web app developer have problem with versioning, in that schema is
@@ -328,7 +330,7 @@ ydn.db.adapter.IndexedDb.prototype.setDb = function (db) {
   if (goog.DEBUG) {
     for (var i = 0; i < this.schema.stores.length; i++) {
       var store = this.schema.stores[i];
-      goog.asserts.assert(this.hasStore_(store.name), 'store: ' + store.name +
+      goog.asserts.assert(this.hasStore_(db, store.name), 'store: ' + store.name +
         ' not exist in database but in schema, new version?');
       // more checking in indexes.
     }
