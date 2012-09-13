@@ -2,7 +2,7 @@
  * @fileoverview Light wrapper {@link ydn.db.Storage} using active transaction
  * instance given at constructor.
  *
- *
+ * Creating multiple transaction facility added.
  */
 
 
