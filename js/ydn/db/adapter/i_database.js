@@ -49,7 +49,7 @@ ydn.db.adapter.IDatabase.prototype.onReady = function(callback) {};
  * @param {!Array.<string>} store_names list of store names involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
- * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
+ * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
  */
 ydn.db.adapter.IDatabase.prototype.doTransaction = function(transaction_callback, store_names,
                                                             mode, completed_event_handler) {};

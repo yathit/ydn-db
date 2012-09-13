@@ -271,12 +271,11 @@ ydn.db.adapter.WebSql.prototype.close = function () {
  * @param {function(SQLTransaction)|Function} trFn
  * @param {Array.<string>} scopes
  * @param {ydn.db.TransactionMode} mode
- * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
+ * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
  * @protected
  */
 ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
           completed_event_handler) {
-    goog.asserts.assertFunction(completed_event_handler);
         /**
      * SQLTransactionCallback
      * @param {!SQLTransaction} tx

@@ -130,7 +130,7 @@ ydn.db.adapter.SimpleStorage.prototype.getDbInstance = function() {
  * @protected
  * @param {string} old_version old version.
  */
-ydn.db.adapter.SimpleStorage.prototype.migrate = function(old_version) {
+ydn.db.adapter.SimpleStorage.prototype.doVersionChange = function(old_version) {
 
 };
 

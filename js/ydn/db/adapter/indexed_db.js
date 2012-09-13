@@ -100,9 +100,9 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
         me.setDb(null);
       };
       setVrequest.onsuccess = function(e) {
-        me.migrate(db, true);
+        me.doVersionChange(db, true);
         me.logger.finer('Migrated to version ' + db.version + '.');
-        // db.close(); necessary?
+        // db.close(); // cannot close connection. this cause InvalidStateError
         var reOpenRequest = ydn.db.adapter.IndexedDb.indexedDb.open(me.dbname);
         // have to reopen for new schema
         reOpenRequest.onsuccess = function(rev) {
@@ -131,8 +131,12 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
       me.logger.finer(msg);
     }
 
-    me.migrate(db);
+    me.doVersionChange(db);
 
+    // by reopening the database, we make sure that we are not in
+    // version change state since transaction cannot open during version
+    // change state. this is most common mistake on using IndexedDB API.
+    // db.close(); // cannot close connection. this cause InvalidStateError
     var reOpenRequest = ydn.db.adapter.IndexedDb.indexedDb.open(me.dbname);
     reOpenRequest.onsuccess = function(rev) {
       db = ev.target.result;
@@ -378,10 +382,9 @@ ydn.db.adapter.IndexedDb.prototype.hasStore_ = function(db, table) {
  * @param {IDBDatabase} db database instance.
  * @param {boolean=} is_caller_setversion call from set version;.
  */
-ydn.db.adapter.IndexedDb.prototype.migrate = function(db, is_caller_setversion) {
+ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, is_caller_setversion) {
 
   // create store that we don't have previously
-
   for (var i = 0; i < this.schema.stores.length; i++) {
     var table = this.schema.stores[i];
     this.logger.finest('Creating Object Store for ' + table.name +
@@ -455,7 +458,7 @@ ydn.db.adapter.IndexedDb.prototype.migrate = function(db, is_caller_setversion) 
  * @param {!Array.<string>} scopes list of stores involved in the
  * transaction.
  * @param {ydn.db.TransactionMode} mode mode.
- * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
+ * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
  */
 ydn.db.adapter.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, completed_event_handler) {
 
