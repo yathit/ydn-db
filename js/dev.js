@@ -3,8 +3,17 @@
  *
  */
 
+goog.require('goog.debug.Console');
+goog.require('goog.debug.Logger');
+goog.require('goog.debug.LogManager');
 goog.require('ydn.db.Storage');
 goog.require('ydn.db.TxStorage');
+
+var c = new goog.debug.Console();
+c.setCapturing(true);
+goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
+goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.INFO);
+
 
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);

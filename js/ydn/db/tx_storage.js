@@ -62,3 +62,27 @@ ydn.db.TxStorage.prototype.clear = function(arg1, arg2) {
 ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
   return this.getStorage().fetch(q, max, skip);
 };
+
+
+
+ydn.db.TxStorage.prototype.query = function(q, max, skip) {
+  return this.getStorage().query(q, max, skip);
+};
+
+
+
+ydn.db.TxStorage.prototype.key = function(q, max, skip) {
+  return this.getStorage().key(q, max, skip);
+};
+
+
+/** @override */
+ydn.db.TxStorage.prototype.toString = function() {
+  var s = 'ydn.db.Storage:' + this.getStorage().getName();
+  if (goog.DEBUG) {
+    var scope = this.getScope();
+    scope = scope ? ' [' + scope + ']' : '';
+    return s + ':' + this.getTxNo() + scope;
+  }
+  return s;
+};

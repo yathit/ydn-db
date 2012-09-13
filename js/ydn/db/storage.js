@@ -41,6 +41,7 @@ goog.require('ydn.db.RichStorage_');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.io.Query');
+goog.require('ydn.db.io.Key');
 goog.require('ydn.db.io.QueryService');
 goog.require('ydn.db.io.QueryServiceProvider');
 
@@ -221,6 +222,17 @@ ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
  */
 ydn.db.Storage.prototype.query = function(store, index, keyRange, direction) {
   return new ydn.db.io.Query(this, store, index, keyRange, direction);
+};
+
+
+/**
+ *
+ * @param {(string|number)=}id
+ * @param {ydn.db.Key=} opt_parent
+ * @return {ydn.db.io.Key}
+ */
+ydn.db.Storage.prototype.key = function(store_or_json_or_value, id, opt_parent) {
+  return new ydn.db.io.Key(this, store_or_json_or_value, id, opt_parent);
 };
 
 
@@ -465,12 +477,13 @@ ydn.db.Storage.prototype.fetch = function(q, max, skip) {
 
 /** @override */
 ydn.db.Storage.prototype.toString = function() {
+  var s = 'ydn.db.Storage:' + this.getName();
   if (goog.DEBUG) {
     var scope = this.getMuTx().getScope();
     scope = scope ? ' [' + scope + ']' : '';
-    return this.db_name + ':' + this.getTxNo() + scope;
+    return s + ':' + this.getTxNo() + scope;
   }
-  return ydn.db.Storage + ':' + this.db_name;
+  return s;
 };
 
 

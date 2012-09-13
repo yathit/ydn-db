@@ -156,6 +156,15 @@ ydn.db.core.Storage.prototype.setName = function(opt_db_name) {
 
 
 /**
+ *
+ * @return {string}
+ */
+ydn.db.core.Storage.prototype.getName = function() {
+  return this.db_name;
+};
+
+
+/**
  * Set the latest version of database schema. This will start initialization if
  * database name have been set. The the database is already initialized,
  * this will issue version change event and migrate to the schema.

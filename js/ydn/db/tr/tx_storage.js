@@ -67,6 +67,14 @@ ydn.db.tr.TxStorage.prototype.getTxNo = function() {
   return this.itx_count_;
 };
 
+/**
+ *
+ * @return {string}
+ */
+ydn.db.tr.TxStorage.prototype.getScope = function() {
+  return this.scope;
+};
+
 
 /**
  * Transaction is explicitly set not to do next transaction.

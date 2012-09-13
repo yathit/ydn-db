@@ -4,16 +4,34 @@
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver" value="0.9.1"/>
-    <target name="compile-debug" description="compile JS">
+    <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
+        <property name="output.fn" value="${ydn-db.dir}/jsc/dev-ydn-db-min-${ver}.js"/>
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                         input="${ydn-db.dir}/js/ydn/db/storage.js"
+                         input="${ydn-db.dir}/js/dev.js"
                          input.dir="${ydn-db.dir}/js"
-                         output.fn="${ydn-db.dir}/jsc/ydn-db.js">
+                         output.fn="${output.fn}">
             <extrapaths>
+                <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
+            <options>
+                <arg line='-f "--source_map_format=V3"'/>
+                <arg line='-f "--create_source_map=${output.fn}.map"'/>
+                <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
+                <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
+            </options>
         </closure-compile>
+        <copy file="${output.fn}"
+              tofile="${work.dir}/hijax-server/static/jsc/dev-ydn-db-min.js"/>
+        <copy file="${output.fn}.map"
+              tofile="${work.dir}/hijax-server/static/jsc/dev-ydn-db-min.js.map"/>
+        <concat destfile="${output.fn}" append="true">
+            //@ sourceMappingURL=dev-ydn-db-min-${ver}.js.map
+        </concat>
+        <concat destfile="${work.dir}/hijax-server/static/jsc/dev-ydn-db-min.js" append="true">
+            //@ sourceMappingURL=dev-ydn-db-min.js.map
+        </concat>
     </target>
     <macrodef name="adv-comp">
         <attribute name="input.fn"/>
@@ -49,7 +67,7 @@
         <!--SIMPLE_OPTIMIZATIONS-->
         <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
-                         input="${ydn-db.dir}/js/ydn/db/io/storage.js"
+                         input="${ydn-db.dir}/js/ydn/db/storage.js"
                          output.fn="${ydn-db.dir}/jsc/ydn-db-${ver}.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
@@ -102,13 +120,34 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db"
-                input.fn="${ydn-db.dir}/js/ydn/db/storage.js"
+                input.fn="${ydn-db.dir}/js/main.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.Storage">
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/ydn-db-min-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/ydn-db-min.js"/>
+        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn-db-min-${ver}.js">
+            <header>
+                (function( $ ) {
+            </header>
+            <filelist dir="${ydn-db.dir}/jsc" files="ydn-db-min-${ver}.js"/>
+        </concat>
+        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn-db-min-${ver}.js" append="true">
+            $.db = new ydn.db.Storage();
+
+            $.db.open = function(db_name, schema) {
+            schema = schema || {};
+            if ($.db.isReady()) {
+            $.db.close();
+            $.db = new ydn.db.Storage(schema, db_name);
+            } else {
+            $.db.setSchema(schema);
+            $.db.setDbName(db_name);
+            }
+            };
+            })( jQuery );
+        </concat>
     </target>
     <target name="gen-all-test-js" description="generate all test js">
         <gen-js-test base.dir="${ydn-db.dir}/test"></gen-js-test>
@@ -150,7 +189,7 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-core,compile,simple">
+            depends="compile-core,compile,simple,compile-dev,compile-tr">
 
     </target>
 </project>
