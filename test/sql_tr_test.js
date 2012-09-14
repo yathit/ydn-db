@@ -80,7 +80,6 @@ var test_2_sql_basic = function() {
 
   db.put(table_name, arr).addCallback(function(value) {
     console.log(db + ' receiving value callback ' + JSON.stringify(value));
-    tx_1 = db.getTxNo();
 
     db.transaction(function tx_1(tdb) {
       console.log(db + ' starting tr');

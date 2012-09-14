@@ -11,9 +11,11 @@ goog.require('ydn.db.InvalidStateError');
 /**
  * Provide transaction object to subclass and keep a result.
  * This also serve as mutex on transaction.
+ * @param {number} tr_no track number
  * @constructor
  */
-ydn.db.tr.Mutex = function() {
+ydn.db.tr.Mutex = function(tr_no) {
+  this.tr_no = tr_no;
   this.tx_ = null;
   /**
    * Transaction counter.
@@ -77,8 +79,7 @@ ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
 
   this.oncompleted = null;
 
-  var sc = !!this.scope_name ? '[' + this.scope_name + ']' : '';
-  this.logger.finest('tx ' + this.tx_count_ + ': ' + sc + ' open');
+  this.logger.finest(this + ': open');
 };
 
 
@@ -123,7 +124,7 @@ ydn.db.tr.Mutex.prototype.getScope = function() {
  */
 ydn.db.tr.Mutex.prototype.down = function (type, event) {
   goog.asserts.assertObject(this.tx_, 'mutex already unlocked');
-  this.logger.finest('tx ' + this.tx_count_ + ': close');
+  this.logger.finest(this + ': close');
   // down must be call only once by those who up
   this.tx_ = null;
 
@@ -227,6 +228,17 @@ ydn.db.tr.Mutex.prototype.oncompleted = null;
  */
 ydn.db.tr.Mutex.prototype.getTx = function() {
   return this.tx_;
+};
+
+
+/** @override */
+ydn.db.tr.Mutex.prototype.toString = function() {
+  var s = 'Mutex';
+  if (goog.DEBUG) {
+  var sc = !!this.scope_name ? '[' + this.scope_name + ']' : '';
+  s = s + ':' + this.tr_no + ':' + this.tx_count_ + sc;
+  }
+  return s;
 };
 
 

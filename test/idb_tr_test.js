@@ -77,12 +77,12 @@ var test_2_idb_basic = function() {
   db.put(table_name, arr).addCallback(function(value) {
     console.log(db + ' put: ' + JSON.stringify(value));
 
-    db.transaction(function() {
-      db.get(table_name, 'a').addCallback(function(a_obj) {
-        console.log(db + ' get a ' + JSON.stringify(a_obj));
+    db.transaction(function(idb) {
+      idb.get(table_name, 'a').addCallback(function(a_obj) {
+        console.log(idb + ' get a ' + JSON.stringify(a_obj));
         a_obj.value += amt;
-        db.put(table_name, a_obj).addCallback(function(out) {
-          console.log(db + ' put a ' + JSON.stringify(a_obj));
+        idb.put(table_name, a_obj).addCallback(function(out) {
+          console.log(idb + ' put a ' + JSON.stringify(a_obj));
           t1_fired = true;
           assertEquals('tr done', 'a', out);
         });

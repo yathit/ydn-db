@@ -90,6 +90,7 @@ ydn.db.TxStorage.prototype.execute = function(callback, store_names, mode)
     //console.log('continuing')
     // call within a transaction
     // continue to use existing transaction
+    me.executor.setTx(me.getMuTx().getTx(), me.scope);
     callback(me.executor);
   }
 

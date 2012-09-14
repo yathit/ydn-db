@@ -26,14 +26,16 @@ ydn.db.tr.TxStorage = function(storage, ptx_no, scope_name) {
    */
   this.storage_ = storage;
 
-  this.mu_tx_ = new ydn.db.tr.Mutex();
-
-  this.scope = scope_name;
 
   /*
    * Transaction queue no.
    */
-  this.ptx_no_ = ptx_no;
+  this.q_no_ = ptx_no;  
+
+  this.mu_tx_ = new ydn.db.tr.Mutex(ptx_no);
+
+  this.scope = scope_name;
+
 
 };
 
@@ -323,7 +325,7 @@ ydn.db.tr.TxStorage.prototype.toString = function() {
   if (goog.DEBUG) {
     var scope = this.mu_tx_.getScope();
     scope = scope ? ' [' + scope + ']' : '';
-    return s + ':' + this.ptx_no_ + ':' + this.getTxNo() + scope;
+    return s + ':' + this.q_no_ + ':' + this.getTxNo() + scope;
   }
   return s;
 };
