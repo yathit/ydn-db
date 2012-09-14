@@ -135,6 +135,15 @@ ydn.db.core.Storage.prototype.getConfig = function() {
 
 
 /**
+ * Return structured clone of schema.
+ * @return {!ydn.db.DatabaseSchema}
+ */
+ydn.db.core.Storage.prototype.getSchema = function() {
+  return ydn.db.DatabaseSchema.fromJSON(this.schema.toJSON());
+};
+
+
+/**
  * Set database. This will initialize the database.
  * @export
  * @throws {Error} if database is already initialized.

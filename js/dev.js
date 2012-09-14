@@ -1,5 +1,5 @@
 /**
- * @filevoerview Exports for dev-ydn-db module.
+ * @fileoverview Exports for dev-ydn-db module.
  *
  */
 

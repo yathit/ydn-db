@@ -1,5 +1,5 @@
 /**
- * @filevoerview Exports for core-ydn-db module.
+ * @fileoverview Exports for core-ydn-db module.
  */
 
 goog.require('ydn.db.core.Storage');

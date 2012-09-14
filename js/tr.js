@@ -1,5 +1,5 @@
 /**
- * @filevoerview Exports for tr-ydn-db module.
+ * @fileoverview Exports for tr-ydn-db module.
  */
 
 goog.require('ydn.db.tr.Storage');

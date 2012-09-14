@@ -15,9 +15,10 @@ goog.require('ydn.error.NotSupportedException');
  * @implements {ydn.db.tr.ITxStorage}
  * @param {!ydn.db.tr.Storage} storage
  * @param {number} ptx_no
+ * @param {string} scope_name
  * @constructor
  */
-ydn.db.tr.TxStorage = function(storage, ptx_no) {
+ydn.db.tr.TxStorage = function(storage, ptx_no, scope_name) {
   /**
    * @final
    * @type {!ydn.db.tr.Storage}
@@ -26,6 +27,8 @@ ydn.db.tr.TxStorage = function(storage, ptx_no) {
   this.storage_ = storage;
 
   this.mu_tx_ = new ydn.db.tr.Mutex();
+
+  this.scope = scope_name;
 
   /*
    * Transaction queue no.
@@ -40,8 +43,16 @@ ydn.db.tr.TxStorage = function(storage, ptx_no) {
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.tr.TxStorage.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.tr.TxStorage');
+ydn.db.tr.TxStorage.prototype.logger = goog.debug.Logger.getLogger('ydn.db.tr.TxStorage');
+
+
+/**
+ *
+ * @return {string}
+ */
+ydn.db.tr.TxStorage.prototype.getScope = function() {
+  return this.scope;
+};
 
 
 /**
@@ -53,13 +64,12 @@ ydn.db.tr.TxStorage.prototype.mu_tx_ = null;
 
 
 /**
- *
- * @return {!ydn.db.tr.Mutex}
+ * @protected
+ * @return {ydn.db.tr.Mutex}
  */
 ydn.db.tr.TxStorage.prototype.getMuTx = function() {
-  return /** @type {!ydn.db.tr.Mutex} */ (this.mu_tx_);
+  return this.mu_tx_;
 };
-
 
 /**
  *
@@ -185,7 +195,7 @@ ydn.db.tr.TxStorage.prototype.popTxQueue_ = function() {
   var task = this.trQueue_.shift();
   if (task) {
     ydn.db.tr.TxStorage.prototype.transaction.call(this,
-      task.fnc, task.scope, task.store_names, task.mode, task.oncompleted);
+      task.fnc, task.store_names, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
 };
@@ -193,18 +203,16 @@ ydn.db.tr.TxStorage.prototype.popTxQueue_ = function() {
 /**
  * Push a transaction job to the queue.
  * @param {Function} trFn function that invoke in the transaction.
- * @param {string} scope
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
  * @private
  */
-ydn.db.tr.TxStorage.prototype.pushTxQueue_ = function (trFn, scope, store_names,
+ydn.db.tr.TxStorage.prototype.pushTxQueue_ = function (trFn, store_names,
                                                        opt_mode, completed_event_handler) {
   this.trQueue_.push({
     fnc:trFn,
-    scope: scope,
     store_names:store_names,
     mode:opt_mode,
     oncompleted:completed_event_handler
@@ -267,10 +275,11 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
 
   var me = this;
 
-  if (this.mu_tx_.isActiveAndAvailable()) {
-    this.pushTxQueue_(outFn, scope_name, store_names, mode, oncompleted);
+  if (this.mu_tx_.isActive()) {
+    //console.log(this + ' active')
+    this.pushTxQueue_(outFn, store_names, mode, oncompleted);
   } else {
-  
+    //console.log(this + ' not active')
     var transaction_process = function (tx) {
 
       //console.log('tr running ' + trFn.name);
@@ -299,6 +308,7 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
           }
         }
       }
+      me.popTxQueue_();
     };
 
     this.storage_.newTransaction(transaction_process, names, mode, completed_handler);
@@ -317,3 +327,4 @@ ydn.db.tr.TxStorage.prototype.toString = function() {
   }
   return s;
 };
+

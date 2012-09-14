@@ -392,7 +392,7 @@ ydn.db.DatabaseSchema.prototype.getStoreNames = function() {
 
 
 /**
- * @param {!Object} json Restore from json stream.
+ * @param {*} json Restore from json stream.
  * @return {!ydn.db.DatabaseSchema} create new database schema from JSON string.
  */
 ydn.db.DatabaseSchema.fromJSON = function(json) {

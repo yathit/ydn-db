@@ -308,7 +308,7 @@ var test_41_keyRange = function () {
         reachedFinalContinuation = true;
       },
       100, // interval
-      2000); // maxTimeout
+      1000); // maxTimeout
 
 
   db.put(store_name, objs).addCallback(function (value) {

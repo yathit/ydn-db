@@ -163,6 +163,7 @@ ydn.db.tr.Mutex.prototype.inScope = function() {
  * Transaction is explicitly set not to do next transaction.
  */
 ydn.db.tr.Mutex.prototype.lock = function() {
+  this.logger.finest(this + ': locked');
   this.is_set_done_ = true;
 };
 

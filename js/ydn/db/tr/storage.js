@@ -59,7 +59,7 @@ goog.require('ydn.db.tr.TxStorage');
  */
 ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
-  this.ptx_no_ = 0;
+  this.ptx_no = 0;
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.core.Storage);
 //
@@ -87,17 +87,18 @@ goog.inherits(ydn.db.tr.Storage, ydn.db.core.Storage);
 /**
  *
  * @type {number}
- * @private
+ * @protected
  */
-ydn.db.tr.Storage.prototype.ptx_no_ = 0;
+ydn.db.tr.Storage.prototype.ptx_no = 0;
 
 
 /**
  * @protected
+ * @param {string} scope_name
  * @return {!ydn.db.tr.TxStorage}
  */
-ydn.db.tr.Storage.prototype.newTxInstance = function() {
-  return new ydn.db.tr.TxStorage(this, this.ptx_no_++);
+ydn.db.tr.Storage.prototype.newTxInstance = function(scope_name) {
+  return new ydn.db.tr.TxStorage(this, this.ptx_no++, scope_name);
 };
 
 
@@ -122,7 +123,8 @@ ydn.db.tr.Storage.prototype.newTransaction = function(transaction_process, names
 ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
-  var tx_queue = this.newTxInstance();
+  var scope_name = trFn.name || '';
+  var tx_queue = this.newTxInstance(scope_name);
   tx_queue.transaction(trFn, store_names, opt_mode,
     oncompleted, opt_args);
 
