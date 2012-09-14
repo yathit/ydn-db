@@ -59,13 +59,14 @@ var test_1_basic = function() {
     assertNotUndefined(tx);
     assertNotNull(tx);
     assertNull(tx.error);
-    console.log('tx started with ' + idb.type() + ' ' + tx);
+    console.log(idb + ' tx started with ' + idb.type() + ' ' + tx);
     var store = tx.objectStore(table_name);
     var put_req = store.put(val);
     put_req.onsuccess = function(x) {
+      console.log(idb + ' put ' + x);
       var get_req = store.get(val.id);
       get_req.onsuccess = function(e) {
-        console.log(e);
+        console.log(idb + ' get ' + e);
         result = e.target.result;
         t1_fired = true;
       };

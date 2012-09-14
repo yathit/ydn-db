@@ -418,7 +418,6 @@ ydn.db.Storage.prototype.get = function (arg1, arg2) {
 };
 
 
-
 /**
  * Execute PUT request either storing result to tx or callback to df.
  * @param {string} store_name table name.

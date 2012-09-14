@@ -17,6 +17,13 @@ ydn.db.tr.IStorage = function() {};
 
 
 /**
+ *
+ * @return {string}
+ */
+ydn.db.tr.IStorage.prototype.type = goog.abstractMethod;
+
+
+/**
  * Run a new transaction.
  * @override
  * @param {function(!ydn.db.tr.IStorage)} trFn function that invoke in the transaction.
@@ -26,15 +33,9 @@ ydn.db.tr.IStorage = function() {};
  * @param {function(ydn.db.TransactionEventTypes, *)=} oncompleted
  * @param {...} opt_args
  */
-ydn.db.tr.IStorage.prototype.transaction = function (trFn, store_names, mode,
-    oncompleted, opt_args) {};
+ydn.db.tr.IStorage.prototype.transaction = goog.abstractMethod;
 
 
-/**
- *
- * @return {number}
- */
-ydn.db.tr.IStorage.prototype.getTxNo = goog.abstractMethod;
 
 
 

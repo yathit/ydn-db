@@ -87,7 +87,7 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @type {!Array.<{fnc: Function, scopes: Array.<string>,
    * mode: ydn.db.TransactionMode, oncompleted: Function}>}
    */
-  this.txQueue = [];
+  this.txQueue_ = [];
 
   this.setSchema(opt_schema || {});
 
@@ -213,6 +213,7 @@ ydn.db.core.Storage.PREFERENCE = [
 
 /**
  * Create database instance.
+ * @protected
  * @param {string} db_type
  * @param {string} db_name
  * @param {!ydn.db.DatabaseSchema} schema
@@ -339,7 +340,7 @@ ydn.db.core.Storage.prototype.close = function() {
 
 
 /**
- * Datbase instance is ready to used.
+ * Access readied database instance asynchronously.
  * @param {function(!ydn.db.adapter.IDatabase)} callback
  */
 ydn.db.core.Storage.prototype.onReady = function(callback) {
@@ -353,6 +354,8 @@ ydn.db.core.Storage.prototype.onReady = function(callback) {
 
 
 /**
+ * Get database instance.
+ * @see {@link #onReady}
  * @protected
  * @return {ydn.db.adapter.IDatabase}
  */
@@ -391,7 +394,7 @@ ydn.db.core.Storage.MAX_QUEUE = 1000;
  */
 ydn.db.core.Storage.prototype.popTxQueue_ = function() {
 
-  var task = this.txQueue.shift();
+  var task = this.txQueue_.shift();
   if (task) {
     ydn.db.core.Storage.prototype.transaction.call(this,
       task.fnc, task.scopes, task.mode, task.oncompleted);
@@ -411,7 +414,7 @@ ydn.db.core.Storage.prototype.popTxQueue_ = function() {
  */
 ydn.db.core.Storage.prototype.pushTxQueue_ = function (trFn, store_names, 
     opt_mode, completed_event_handler) {
-  this.txQueue.push({
+  this.txQueue_.push({
     fnc:trFn,
     scopes:store_names,
     mode:opt_mode,
@@ -427,9 +430,9 @@ ydn.db.core.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
       // pop queue will call whenever transaction is finished.
     }
   }
-  if (this.txQueue.length > ydn.db.core.Storage.MAX_QUEUE) {
+  if (this.txQueue_.length > ydn.db.core.Storage.MAX_QUEUE) {
     this.logger.warning('Maximum queue size exceed, dropping the first job.');
-    this.txQueue.shift();
+    this.txQueue_.shift();
   }
 
 };
@@ -441,10 +444,10 @@ ydn.db.core.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
  * @param e
  */
 ydn.db.core.Storage.prototype.abortTxQueue_ = function(e) {
-  if (this.txQueue) {
-    var task = this.txQueue.shift();
+  if (this.txQueue_) {
+    var task = this.txQueue_.shift();
     while (task) {
-      task = this.txQueue.shift();
+      task = this.txQueue_.shift();
       task.oncompleted(ydn.db.TransactionEventTypes.ABORT, e);
     }
   }
@@ -508,18 +511,3 @@ ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
 };
 
 
-goog.exportSymbol('ydn.db.core.Storage', ydn.db.core.Storage);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'type',
-  ydn.db.core.Storage.prototype.type);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'setName',
-  ydn.db.core.Storage.prototype.setName);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'getConfig',
-  ydn.db.core.Storage.prototype.getConfig);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'transaction',
-  ydn.db.core.Storage.prototype.transaction);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'close',
-  ydn.db.core.Storage.prototype.close);
-// for hacker only. This method should not document this, since this will change
-// transaction state.
-goog.exportProperty(ydn.db.core.Storage.prototype, 'onReady',
-  ydn.db.core.Storage.prototype.onReady);

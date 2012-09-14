@@ -59,6 +59,7 @@ goog.require('ydn.db.tr.TxStorage');
  */
 ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
+  this.ptx_no_ = 0;
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.core.Storage);
 //
@@ -83,52 +84,28 @@ goog.inherits(ydn.db.tr.Storage, ydn.db.core.Storage);
 //};
 
 
+/**
+ *
+ * @type {number}
+ * @private
+ */
+ydn.db.tr.Storage.prototype.ptx_no_ = 0;
+
 
 /**
  * @protected
- * @param {string} scope
  * @return {!ydn.db.tr.TxStorage}
  */
-ydn.db.tr.Storage.prototype.newTxInstance = function(scope) {
-  return new ydn.db.tr.TxStorage(this, scope);
+ydn.db.tr.Storage.prototype.newTxInstance = function() {
+  return new ydn.db.tr.TxStorage(this, this.ptx_no_++);
 };
 
 
+ydn.db.tr.Storage.prototype.newTransaction = function(transaction_process, names, mode, completed_handler) {
 
-/**
- * One database can have only one transaction.
- * @private
- * @final
- * @type {!ydn.db.tr.Mutex}
- */
-ydn.db.tr.Storage.prototype.mu_tx_ = new ydn.db.tr.Mutex();
-
-
-/**
- *
- * @return {!ydn.db.tr.Mutex}
- */
-ydn.db.tr.Storage.prototype.getMuTx = function() {
-  return this.mu_tx_;
+  ydn.db.tr.Storage.superClass_.transaction.call(this,
+    transaction_process, names, mode, completed_handler);
 };
-
-/**
- *
- * @return {number}
- */
-ydn.db.tr.Storage.prototype.getTxNo = function() {
-  return this.mu_tx_.getTxCount();
-};
-
-
-/**
- * Obtain active consumable transaction object.
- * @return {ydn.db.tr.Mutex} transaction object if active and available.
- */
-ydn.db.tr.Storage.prototype.getActiveTx = function() {
-  return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;
-};
-
 
 
 /**
@@ -145,81 +122,10 @@ ydn.db.tr.Storage.prototype.getActiveTx = function() {
 ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
-  //console.log('tr starting ' + trFn.name);
-  var scope_name = trFn.name || '';
-
-  var names = store_names;
-  if (goog.isString(store_names)) {
-    names = [store_names];
-  } else if (!goog.isArray(store_names) ||
-      (store_names.length > 0 && !goog.isString(store_names[0]))) {
-    throw new ydn.error.ArgumentException("storeNames");
-  }
-  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
-  var outFn = trFn;
-  if (arguments.length > 4) { // handle optional parameters
-    // see how this works in goog.partial.
-    var args = Array.prototype.slice.call(arguments, 4);
-    outFn = function() {
-      // Prepend the bound arguments to the current arguments.
-      var newArgs = Array.prototype.slice.call(arguments);
-      newArgs.unshift.apply(newArgs, args);
-      return trFn.apply(this, newArgs);
-    }
-  }
-
-  var me = this;
-
-  var tx_db;
-  var transaction_process = function(tx) {
-
-    //console.log('tr running ' + trFn.name);
-
-    me.mu_tx_.up(tx, scope_name);
-
-    // wrap this database and hold active transaction instance
-    tx_db = me.newTxInstance(scope_name);
-    // now execute transaction process
-    trFn(tx_db);
-    me.mu_tx_.out(); // flag transaction callback scope is over.
-    // transaction is still active and use in followup request handlers
-  };
-
-  var completed_handler = function(type, event) {
-    me.mu_tx_.down(type, event);
-    if (goog.isFunction(oncompleted)) {
-      /**
-       * @preserve_try
-       */
-      try {
-        oncompleted(type, event);
-      } catch (e) {
-        // swallow error. document it publicly.
-        // this is necessary and
-        if (goog.DEBUG) {
-          throw e;
-        }
-      }
-    }
-  };
-
-  goog.base(this, 'transaction', transaction_process, names, mode, completed_handler);
+  var tx_queue = this.newTxInstance();
+  tx_queue.transaction(trFn, store_names, opt_mode,
+    oncompleted, opt_args);
 
 };
 
 
-
-goog.exportSymbol('ydn.db.tr.Storage', ydn.db.tr.Storage);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'type',
-  ydn.db.core.Storage.prototype.type);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'setName',
-  ydn.db.core.Storage.prototype.setName);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'getConfig',
-  ydn.db.core.Storage.prototype.getConfig);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'transaction',
-  ydn.db.core.Storage.prototype.transaction);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'close',
-  ydn.db.core.Storage.prototype.close);
-// for hacker.
-goog.exportProperty(ydn.db.core.Storage.prototype, 'onReady',
-  ydn.db.core.Storage.prototype.onReady);

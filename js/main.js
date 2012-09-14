@@ -1,5 +1,5 @@
 /**
- * @fileoverview List require file for JsTestDriver.
+ * @filevoerview Exports for main ydn-db module.
  *
  */
 
