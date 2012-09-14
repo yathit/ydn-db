@@ -558,8 +558,7 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
   // optional optimization
   // here we are looking at whether we can use substitute max and skip with
   // native SQL LIMIT and OFFSET
-  if (!goog.isFunction(q.filter) && !goog.isFunction(q.continue) &&
-      unique) { // we can use this optimization only for unique result
+  if (!goog.isFunction(q.filter) && !goog.isFunction(q.continue)) {
     if (goog.isDef(end)) {
       sql += ' LIMIT ' + (end - start);
       end = undefined;
