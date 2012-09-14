@@ -15,17 +15,7 @@
 
 
 /**
- * @fileoverview Wrappers for the all implemented Storage mechanisms.
- *
- * On application use, this is preferable over concrete storage implementation.
- * This wrapper has two purpose:
- * 1) select suitable supported storage mechanism and 2) deferred execute when
- * the database is not initialized. Database is initialized when dbname, version
- * and schema are set.
- *
- * Often, dbname involve login user identification and it is not available at
- * the time of application start up. Additionally schema may be prepared by
- * multiple module. This top level wrapper provide these use cases.
+ * @fileoverview Provide thread safe database operations.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
