@@ -16,6 +16,7 @@
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
             <options>
+                <arg line='-f "--generate_exports"'/>
                 <arg line='-f "--source_map_format=V3"'/>
                 <arg line='-f "--create_source_map=${output.fn}.map"'/>
                 <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
@@ -87,7 +88,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/core"
-                input.fn="${ydn-db.dir}/js/ydn/db/core/storage.js"
+                input.fn="${ydn-db.dir}/js/core.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="core-ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.core.Storage">
@@ -103,7 +104,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/tr"
-                input.fn="${ydn-db.dir}/js/ydn/db/tr/storage.js"
+                input.fn="${ydn-db.dir}/js/tr.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="tr-ydn-db-min-${ver}.js"
                 closure.entry="ydn.db.tr.Storage">

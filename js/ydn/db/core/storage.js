@@ -492,21 +492,10 @@ ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
     var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
 
     var on_complete = function (type, ev) {
-      /**
-       * @preserve_try
-       */
-      try {
-        if (goog.isFunction(completed_event_handler)) {
-          completed_event_handler(type, ev);
-        }
-      } catch (e) {
-        // swallow error. document it publicly.
-        if (goog.DEBUG) {
-          throw e;
-        }
-      } finally {
-        me.popTxQueue_();
+      if (goog.isFunction(completed_event_handler)) {
+        completed_event_handler(type, ev);
       }
+      me.popTxQueue_();
     };
 
     //console.log('core running ' + trFn.name);

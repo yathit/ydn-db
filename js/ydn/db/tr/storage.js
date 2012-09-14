@@ -125,8 +125,20 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
 
   var scope_name = trFn.name || '';
   var tx_queue = this.newTxInstance(scope_name);
-  tx_queue.transaction(trFn, store_names, opt_mode,
-    oncompleted, opt_args);
+  if (arguments.length > 4) {
+    var args = Array.prototype.slice.call(arguments, 4);
+    var outFn = function () {
+      // Prepend the bound arguments to the current arguments.
+      var newArgs = Array.prototype.slice.call(arguments);
+      //newArgs.unshift.apply(newArgs, args);
+      newArgs = newArgs.concat(args);
+      return trFn.apply(this, newArgs);
+    };
+    outFn.name = trFn.name;
+    tx_queue.transaction(outFn, store_names, opt_mode, oncompleted);
+  } else { // optional are strip
+    tx_queue.transaction(trFn, store_names, opt_mode, oncompleted);
+  }
 
 };
 

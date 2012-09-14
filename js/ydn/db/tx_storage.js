@@ -390,11 +390,13 @@ ydn.db.TxStorage.prototype.clear = function(arg1, arg2) {
 
 /** @override */
 ydn.db.TxStorage.prototype.toString = function() {
-  var s = 'ydn.db.Storage:' + this.getStorage().getName();
+  var s = 'TxStorage:' + this.getStorage().getName();
   if (goog.DEBUG) {
     var scope = this.getScope();
-    scope = scope ? ' [' + scope + ']' : '';
-    return s + ':' + this.getTxNo() + scope;
+    scope = scope ? '[' + scope + ']' : '';
+    var mu = this.getMuTx().getScope();
+    var mu_scope = mu ? '[' + mu + ']' : '';
+    return s + ':' + this.q_no_ + scope + ':' + this.getTxNo() + mu_scope;
   }
   return s;
 };

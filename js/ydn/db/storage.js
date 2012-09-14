@@ -224,7 +224,7 @@ ydn.db.Storage.prototype.removeItem = function(id) {
 
 /** @override */
 ydn.db.Storage.prototype.toString = function() {
-  var s = 'ydn.db.Storage:' + this.getName();
+  var s = 'Storage:' + this.getName();
   if (goog.DEBUG) {
     return s + ':' + this.default_tx_queue_.getTxNo();
   }

@@ -265,15 +265,16 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
   var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
   var outFn = trFn;
   if (arguments.length > 4) { // handle optional parameters
-    // see how this works in goog.partial.
     var args = Array.prototype.slice.call(arguments, 4);
     outFn = function () {
       // Prepend the bound arguments to the current arguments.
       var newArgs = Array.prototype.slice.call(arguments);
-      newArgs.unshift.apply(newArgs, args);
+       //newArgs.unshift.apply(newArgs, args); // pre-apply
+      newArgs = newArgs.concat(args); // post-apply
       return trFn.apply(this, newArgs);
     }
   }
+  outFn.name = trFn.name;
 
   var me = this;
 
@@ -289,28 +290,29 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
       me.mu_tx_.up(tx, scope_name);
 
       // now execute transaction process
-      trFn(me);
+      outFn(me);
       me.mu_tx_.out(); // flag transaction callback scope is over.
       // transaction is still active and use in followup request handlers
     };
 
     var completed_handler = function (type, event) {
       me.mu_tx_.down(type, event);
-      if (goog.isFunction(oncompleted)) {
-        /**
-         * @preserve_try
-         */
-        try {
+      /**
+       * @preserve_try
+       */
+      try {
+        if (goog.isFunction(oncompleted)) {
           oncompleted(type, event);
-        } catch (e) {
-          // swallow error. document it publicly.
-          // this is necessary and
-          if (goog.DEBUG) {
-            throw e;
-          }
         }
+      } catch (e) {
+        // swallow error. document it publicly.
+        // this is necessary and
+        if (goog.DEBUG) {
+          throw e;
+        }
+      } finally {
+        me.popTxQueue_();
       }
-      me.popTxQueue_();
     };
 
     this.storage_.newTransaction(transaction_process, names, mode, completed_handler);

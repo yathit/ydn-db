@@ -76,6 +76,47 @@ var test_1_basic = function() {
 
 
 
+
+var test_2_opt_arg = function() {
+
+
+  var db_name = 'test_tr_opt_arg_1';
+  var db = new ydn.db.tr.Storage(db_name, basic_schema);
+
+  var val = {id: 'a', value: Math.random()};
+
+  var t1_fired = false;
+  var result;
+  var a_out, b_out, c_out, type_out;
+
+  waitForCondition(
+    // Condition
+    function() { return t1_fired; },
+    // Continuation
+    function() {
+      assertEquals('a', 1, a_out);
+      assertEquals('b', '3', b_out);
+      assertEquals('c', 'ok', c_out.id);
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+
+  var oncompleted = function(type, e) {
+    assertEquals('complete event', 'complete', type);
+    t1_fired = true;
+  };
+
+  db.transaction(function tx_cb1 (idb, a, b, c) {
+    a_out = a;
+    b_out = b;
+    c_out = c;
+    type_out = idb.type();
+  }, table_name, 'readwrite', oncompleted, 1, '3', {id: 'ok'});
+};
+
+
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();
 G_testRunner.initialize(testCase);
