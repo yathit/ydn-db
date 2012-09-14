@@ -61,22 +61,25 @@ ydn.db.KeyRange.lowerBound = function(lower, lowerOpen) {
 
 /**
  *
- * @param {ydn.db.IDBKeyRange} keyRange IDBKeyRange.
+ * @param {ydn.db.IDBKeyRange|ydn.db.KeyRange} keyRange IDBKeyRange.
  * @return {!Object} IDBKeyRange in JSON format.
  */
 ydn.db.KeyRange.toJSON = function(keyRange) {
+  if (!keyRange) {
+    return {};
+  }
   return {
-    'lower': keyRange.lower,
-    'upper': keyRange.upper,
-    'lowerOpen': keyRange.lowerOpen,
-    'upperOpen': keyRange.upperOpen
+    'lower': keyRange['lower'],
+    'upper': keyRange['upper'],
+    'lowerOpen': keyRange['lowerOpen'],
+    'upperOpen': keyRange['upperOpen']
   }
 };
 
 
 /**
- * @param {ydn.db.KeyRangeJson=} keyRange keyRange.
- * @return {ydn.db.IDBKeyRange} equivalent IDBKeyRange.
+ * @param {(ydn.db.KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} keyRange keyRange.
+ * @return {ydn.db.KeyRange} equivalent IDBKeyRange.
  */
 ydn.db.KeyRange.parseKeyRange = function (keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {

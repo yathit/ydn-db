@@ -533,6 +533,7 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
   var sql = 'SELECT * FROM ' + store.getQuotedName();
   var params = [];
 
+  var index = store.getIndex(q.index);
 
   if (q.keyRange) {
     var clause = q.toWhereClause();
@@ -540,10 +541,33 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
     params = clause.params;
   }
 
-  if (goog.isDef(q.index)) {
-    sql += ' ORDER BY ' + goog.string.quote(q.index);
+  // Note: IndexedDB key range result are always ordered.
+  var dir = 'ASC';
+  if (q.direction == 'prev') {
+    dir = 'DESC';
+  }
+  var unique = true;
+  if (index) {
+    sql += ' ORDER BY ' + goog.string.quote(index.name) + ' ' + dir;
+    unique = index.unique;
   } else if (goog.isDef(store.keyPath)) {
-    sql += ' ORDER BY ' + goog.string.quote(store.keyPath);
+    sql += ' ORDER BY ' + goog.string.quote(store.keyPath) + ' ' + dir;
+  }
+
+
+  // optional optimization
+  // here we are looking at whether we can use substitute max and skip with
+  // native SQL LIMIT and OFFSET
+  if (!goog.isFunction(q.filter) && !goog.isFunction(q.continue) &&
+      unique) { // we can use this optimization only for unique result
+    if (goog.isDef(end)) {
+      sql += ' LIMIT ' + (end - start);
+      end = undefined;
+    }
+    if (start > 0) {
+      sql += ' OFFSET ' + start;
+      start = 0;
+    }
   }
 
   var result;

@@ -25,7 +25,7 @@ goog.require('ydn.error.ArgumentException');
 
 
 /**
- * @param {string=} store store name. If not defined, all object stores are used.
+ * @param {string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {string=} direction cursor direction.
@@ -37,11 +37,13 @@ goog.require('ydn.error.ArgumentException');
  */
 ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
   // Note for V8 optimization, declare all properties in constructor.
-
+  if (!goog.isString(store)) {
+    throw new ydn.error.ArgumentException('store name required');
+  }
   /**
    * Store name.
    * @final
-   * @type {string|undefined}
+   * @type {string}
    */
   this.store_name = store;
   /**
@@ -51,6 +53,9 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
    */
   this.index = index;
 
+  if (goog.isDef(direction) && ['next'].indexOf(direction) == -1) {
+    throw new ydn.error.ArgumentException('direction');
+  }
   /**
    * @final
    * @type {string}
@@ -72,11 +77,8 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
    * @type {!ydn.db.KeyRange|undefined}
    */
   this.keyRange = kr;
-  if (!goog.isDef(this.store_name)) {
-    throw new ydn.error.ArgumentException();
-  }
   if (goog.isDef(this.keyRange) && !goog.isDef(this.index)) {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.error.ArgumentException('index required.');
   }
   // set all null so that no surprise from inherit prototype
   this.filter = null;
@@ -100,7 +102,7 @@ ydn.db.Query.prototype.toJSON = function () {
 
 /**
  * Right value for query operation.
- * @type {ydn.db.IDBKeyRange|undefined}
+ * @type {ydn.db.KeyRange|undefined}
  */
 ydn.db.Query.prototype.keyRange;
 
