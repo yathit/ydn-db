@@ -7,6 +7,7 @@ goog.require('ydn.db.Storage');
 goog.require('ydn.db.TxStorage');
 
 
+
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
 goog.exportProperty(goog.async.Deferred.prototype, 'success',
   goog.async.Deferred.prototype.addCallback);
@@ -78,6 +79,11 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'put',
   ydn.db.TxStorage.prototype.put);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'clear',
   ydn.db.TxStorage.prototype.clear);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
+  ydn.db.TxStorage.prototype.fetch);
+
+goog.exportProperty(ydn.db.tr.TxStorage.prototype, 'getTx',
+  ydn.db.tr.TxStorage.prototype.getTx);
 
 goog.exportSymbol('ydn.async', ydn.async);
 goog.exportProperty(ydn.async, 'dfl', ydn.async.dfl);

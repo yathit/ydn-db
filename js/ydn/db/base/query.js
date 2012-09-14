@@ -24,22 +24,23 @@ goog.require('ydn.db.KeyRange');
 
 
 /**
- * @param {string} store store name.
+ * @param {string=} store store name. If not defined, all object stores are used.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!ydn.db.KeyRangeJson|!ydn.db.IDBKeyRange|undefined)=}
- * keyRange configuration in
- * json format.
  * @param {string=} direction cursor direction.
+ * @param {(!ydn.db.KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
+ * keyRange configuration in json or native format. Alternatively key range
+ * constructor parameters can be given
+ * @param {...} opt_args additional parameters for key range constructor
  * @constructor
  */
-ydn.db.Query = function(store, index, keyRange, direction) {
+ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
   // Note for V8 optimization, declare all properties in constructor.
 
   /**
    * Store name.
    * @final
-   * @type {string}
+   * @type {string|undefined}
    */
   this.store_name = store;
   /**
@@ -49,13 +50,27 @@ ydn.db.Query = function(store, index, keyRange, direction) {
    */
   this.index = index;
 
-  if (keyRange instanceof ydn.db.IDBKeyRange) {
-    this.keyRange = keyRange;
-  } else if (goog.isDefAndNotNull(keyRange)) {
-    // must be JSON object
-    this.keyRange = ydn.db.KeyRange.parseKeyRange(keyRange);
-  }
+  /**
+   * @final
+   * @type {string}
+   */
   this.direction = direction;
+
+  var kr;
+  if (keyRange instanceof ydn.db.KeyRange) {
+    kr = keyRange;
+  } else if (goog.isObject(keyRange)) {
+    // must be JSON object
+    kr = ydn.db.KeyRange.parseKeyRange(keyRange);
+  } else if (goog.isDef(keyRange)) {
+    kr = ydn.db.KeyRange.bound.apply(this,
+      Array.prototype.slice.call(arguments, 3));
+  }
+  /**
+   * @final
+   * @type {!ydn.db.KeyRange|undefined}
+   */
+  this.keyRange = kr;
   // set all null so that no surprise from inherit prototype
   this.filter = null;
   this.reduce = null;

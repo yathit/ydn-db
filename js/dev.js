@@ -8,6 +8,7 @@ goog.require('goog.debug.Logger');
 goog.require('goog.debug.LogManager');
 goog.require('ydn.db.Storage');
 goog.require('ydn.db.TxStorage');
+goog.require('ydn.db.tr.TxStorage');
 
 var c = new goog.debug.Console();
 c.setCapturing(true);
@@ -87,6 +88,11 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'put',
   ydn.db.TxStorage.prototype.put);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'clear',
   ydn.db.TxStorage.prototype.clear);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
+  ydn.db.TxStorage.prototype.fetch);
+
+goog.exportProperty(ydn.db.tr.TxStorage.prototype, 'getTx',
+  ydn.db.tr.TxStorage.prototype.getTx);
 
 goog.exportSymbol('ydn.async', ydn.async);
 goog.exportProperty(ydn.async, 'dfl', ydn.async.dfl);

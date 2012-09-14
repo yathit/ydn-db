@@ -430,15 +430,15 @@ ydn.db.core.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
     oncompleted:completed_event_handler
   });
   var now = goog.now();
-  if (!isNaN(this.last_queue_checkin_)) {
-    if ((now - this.last_queue_checkin_) > ydn.db.core.Storage.timeOut) {
-      this.logger.warning('queue is not moving.');
+  //if (!isNaN(this.last_queue_checkin_)) {
+    //if ((now - this.last_queue_checkin_) > ydn.db.core.Storage.timeOut) {
+    //  this.logger.warning('queue is not moving.');
       // todo: actively push the queue if transaction object is available
       // this will make robustness to the app.
       // in normal situation, queue will automatically empty since
       // pop queue will call whenever transaction is finished.
-    }
-  }
+    //}
+  //}
   if (this.txQueue_.length > ydn.db.core.Storage.MAX_QUEUE) {
     this.logger.warning('Maximum queue size exceed, dropping the first job.');
     this.txQueue_.shift();

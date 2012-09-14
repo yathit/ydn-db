@@ -111,7 +111,7 @@ ydn.db.tr.TxStorage.prototype.getStorage = function() {
 
 
 /**
- *
+ * @export
  * @return {SQLTransaction|IDBTransaction|Object}
  */
 ydn.db.tr.TxStorage.prototype.getTx = function() {

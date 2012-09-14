@@ -23,6 +23,14 @@ ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
 };
 
 
+/**
+ * @override
+ */
+ydn.db.KeyRange.prototype.toJSON = function() {
+  return ydn.db.KeyRange.toJSON(this);
+};
+
+
 ydn.db.KeyRange.only = function(value) {
   return new ydn.db.KeyRange(value, value, false, false);
 };
