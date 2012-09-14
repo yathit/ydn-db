@@ -20,6 +20,7 @@
 goog.provide('ydn.db.Query');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
+goog.require('ydn.error.ArgumentException');
 
 
 
@@ -71,6 +72,12 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
    * @type {!ydn.db.KeyRange|undefined}
    */
   this.keyRange = kr;
+  if (!goog.isDef(this.store_name)) {
+    throw new ydn.error.ArgumentException();
+  }
+  if (goog.isDef(this.keyRange) && !goog.isDef(this.index)) {
+    throw new ydn.error.ArgumentException();
+  }
   // set all null so that no surprise from inherit prototype
   this.filter = null;
   this.reduce = null;
