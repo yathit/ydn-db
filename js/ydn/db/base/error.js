@@ -137,3 +137,26 @@ goog.inherits(ydn.db.NotFoundError, Error);
 
 ydn.db.NotFoundError.prototype.name = 'ydn.db.NotFoundError';
 
+
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.DataCloneError = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.DataCloneError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(ydn.db.DataCloneError, Error);
+
+ydn.db.DataCloneError.prototype.name = 'ydn.db.DataCloneError';

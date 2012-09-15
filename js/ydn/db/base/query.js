@@ -71,12 +71,12 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
     // must be JSON object
     kr = ydn.db.KeyRange.parseKeyRange(keyRange);
   } else if (goog.isDef(keyRange)) {
-    kr = ydn.db.KeyRange.bound.apply(this,
+    kr = ydn.db.IDBKeyRange.bound.apply(this,
       Array.prototype.slice.call(arguments, 3));
   }
   /**
    * @final
-   * @type {!ydn.db.KeyRange|undefined}
+   * @type {!ydn.db.IDBKeyRange|undefined}
    */
   this.keyRange = kr;
   if (goog.isDef(this.keyRange) && !goog.isDef(this.index)) {
@@ -104,7 +104,7 @@ ydn.db.Query.prototype.toJSON = function () {
 
 /**
  * Right value for query operation.
- * @type {ydn.db.KeyRange|undefined}
+ * @type {ydn.db.IDBKeyRange|undefined}
  */
 ydn.db.Query.prototype.keyRange;
 

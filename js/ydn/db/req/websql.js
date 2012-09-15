@@ -533,7 +533,7 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
   var sql = 'SELECT * FROM ' + store.getQuotedName();
   var params = [];
 
-  var index = store.getIndex(q.index);
+  var index = goog.isDef(q.index) ? store.getIndex(q.index) : null;
 
   if (q.keyRange) {
     var clause = q.toWhereClause();

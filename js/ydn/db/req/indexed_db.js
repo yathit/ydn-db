@@ -302,38 +302,70 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs) {
   var result_count = 0;
 
   var store = this.tx.objectStore(store_name);
-  for (var i = 0; i < objs.length; i++) {
-    try { // should use try just to cache offending id ?
-      // should put outside for loop or just remove try block?
-      var request = store.put(objs[i]);
+  var put = function(i) {
 
-      request.onsuccess = goog.partial(function (i, event) {
-        result_count++;
-        //if (ydn.db.req.IndexedDb.DEBUG) {
-        //  window.console.log([store_name, event]);
-        //}
-        results[i] = event.target.result;
-        if (result_count == objs.length) {
-          df.callback(results);
+    if (!goog.isDefAndNotNull(objs[i])) {
+      // should we just throw error ?
+      result_count++;
+      results[i] = undefined;
+      if (result_count == objs.length) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
+        if (next < objs.length) {
+          put(next);
         }
-      }, i);
+      }
+    }
 
-      request.onerror = function (event) {
-        result_count++;
-        if (ydn.db.req.IndexedDb.DEBUG) {
-          window.console.log([store_name, event]);
-        }
-        df.errback(event);
-        // abort transaction ?
-      };
+    var request;
+    try {
+      request = store.put(objs[i]);
     } catch (e) {
       if (e.name == 'DataError') {
         // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
-        throw new ydn.db.InvalidKeyException(objs[i]);
+        throw new ydn.db.InvalidKeyException(i + ' of ' + objs.length);
+      } if (e.name == 'DataCloneError') {
+        throw new ydn.db.DataCloneError(i + ' of ' + objs.length);
       } else {
         throw e;
       }
     }
+
+    request.onsuccess = function (event) {
+      result_count++;
+      //if (ydn.db.req.IndexedDb.DEBUG) {
+      //  window.console.log([store_name, event]);
+      //}
+      results[i] = event.target.result;
+      if (result_count == objs.length) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
+        if (next < objs.length) {
+          put(next);
+        }
+      }
+    };
+
+    request.onerror = function (event) {
+      result_count++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, event]);
+      }
+      df.errback(event);
+      // abort transaction ?
+    };
+
+  };
+
+  if (objs.length > 0) {
+    // send parallel requests
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < objs.length; i++) {
+      put(i);
+    }
+  } else {
+    df.callback([]);
   }
 };
 
