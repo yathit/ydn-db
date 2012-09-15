@@ -201,6 +201,257 @@ var test_2_clear = function() {
 };
 
 
+var test_22_get_arr = function() {
+  var db_name = 'test_22';
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  assertEquals('db', 'websql', db.type());
+
+  var arr = [];
+  var n = ydn.db.req.WebSql.REQ_PER_TX / 2;
+  for (var i = 0; i < n; i++) {
+    arr.push({id: i, value: 'a' + Math.random()});
+  }
+  var ids = [1, 2];
+
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('length', ids.length, results.length);
+        assertEquals('1', arr[ids[0]].value, results[0].value);
+        assertEquals('1', arr[ids[1]].value, results[1].value);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(table_name, arr);
+
+  db.get(table_name, ids).addCallback(function(value) {
+    console.log('receiving value callback.');
+    results = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+        hasEventFired = true;
+        console.log('Error: ' + e);
+      });
+};
+
+
+
+var test_23_get_arr = function() {
+  var db_name = 'test_23';
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  assertEquals('db', 'websql', db.type());
+
+  var arr = [];
+  var n = ydn.db.req.WebSql.REQ_PER_TX * 2.5;
+  for (var i = 0; i < n; i++) {
+    arr.push({id: i, value: 'a' + Math.random()});
+  }
+  var ids = [2,
+    ydn.db.req.WebSql.REQ_PER_TX,
+    ydn.db.req.WebSql.REQ_PER_TX+1,
+    2*ydn.db.req.WebSql.REQ_PER_TX+1];
+
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('length', ids.length, results.length);
+        assertEquals('1', arr[ids[0]].value, results[0].value);
+        assertEquals('1', arr[ids[1]].value, results[1].value);
+        assertEquals('1', arr[ids[2]].value, results[2].value);
+        assertEquals('1', arr[ids[3]].value, results[3].value);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(table_name, arr);
+
+  db.get(table_name, ids).addCallback(function(value) {
+    console.log('receiving value callback.');
+    results = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+        hasEventFired = true;
+        console.log('Error: ' + e);
+      });
+};
+
+
+
+var test_82_fetch_keys = function () {
+  var store_name = 'st';
+  var db_name = 'test821';
+  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
+  var db = new ydn.db.Storage(db_name, schema, options);
+  assertEquals('db', 'websql', db.type());
+
+  var objs = [];
+  var n = ydn.db.req.IndexedDb.REQ_PER_TX * 2.5;
+  for (var i = 0; i < n; i++) {
+    objs.push({id: 'a' + i, value: Math.random()});
+  }
+  var ids = [2,
+    ydn.db.req.IndexedDb.REQ_PER_TX,
+    ydn.db.req.IndexedDb.REQ_PER_TX+1,
+    2*ydn.db.req.IndexedDb.REQ_PER_TX+1];
+  var keys = [];
+  for (var i = 0; i < ids.length; i++) {
+    keys.push(new ydn.db.Key(store_name, objs[ids[i]].id));
+  }
+
+  var put_done;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return put_done;
+      },
+      // Continuation
+      function () {
+
+        var get_done, results;
+        waitForCondition(
+            // Condition
+            function () {
+              return get_done;
+            },
+            // Continuation
+            function () {
+              assertEquals('length', keys.length, results.length);
+              for (var i = 0; i < keys.length; i++) {
+                assertEquals('1', objs[ids[i]].value, results[i].value);
+              }
+
+              reachedFinalContinuation = true;
+            },
+            100, // interval
+            2000); // maxTimeout
+
+        db.get(keys).addCallback(function (value) {
+          console.log('fetch value: ' + JSON.stringify(value));
+          results = value;
+          get_done = true;
+        });
+
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+    put_done = true;
+  });
+};
+
+
+
+var test_83_fetch_keys = function () {
+  var store_name1 = 'st1';
+  var store_name2 = 'st2';
+  var db_name = 'test83';
+  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var store_schema1 = new ydn.db.StoreSchema(store_name1, 'id', false, [indexSchema]);
+  var store_schema2 = new ydn.db.StoreSchema(store_name2, 'id');
+  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema1, store_schema2]);
+  var db = new ydn.db.Storage(db_name, schema, options);
+  assertEquals('db', 'websql', db.type());
+
+
+  var objs1 = [];
+  var n = ydn.db.req.WebSql.REQ_PER_TX * 2.5;
+  for (var i = 0; i < n; i++) {
+    objs1.push({id: 'a' + i, value: Math.random()});
+  }
+
+  var objs2 = [];
+  for (var i = 0; i < n; i++) {
+    objs2.push({id: 'b' + i, value: Math.random()});
+  }
+  var ids = [2,
+    ydn.db.req.WebSql.REQ_PER_TX,
+    ydn.db.req.WebSql.REQ_PER_TX+1,
+    2*ydn.db.req.WebSql.REQ_PER_TX+1];
+  var keys = [];
+  for (var i = 0; i < ids.length; i++) {
+    keys.push(new ydn.db.Key(store_name1, objs1[ids[i]].id));
+  }
+  for (var i = 0; i < ids.length; i++) {
+    keys.push(new ydn.db.Key(store_name2, objs2[ids[i]].id));
+  }
+
+  var put1_done, put2_done;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return put1_done && put2_done;
+      },
+      // Continuation
+      function () {
+
+        var get_done, results;
+        waitForCondition(
+            // Condition
+            function () {
+              return get_done;
+            },
+            // Continuation
+            function () {
+              assertEquals('length', ids.length * 2, results.length);
+              for (var i = 0; i < ids.length; i++) {
+                assertEquals('store 1 ' + i, objs1[ids[i]].value, results[i].value);
+              }
+              for (var i = 0; i < ids.length; i++) {
+                assertEquals('store 2 ' + i, objs2[ids[i]].value, results[i+ids.length].value);
+              }
+
+              reachedFinalContinuation = true;
+            },
+            100, // interval
+            2000); // maxTimeout
+
+
+        db.get(keys).addCallback(function (value) {
+          console.log('fetch value: ' + JSON.stringify(value));
+          results = value;
+          get_done = true;
+        });
+
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(store_name1, objs1).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+    put1_done = true;
+  });
+  db.put(store_name2, objs2).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+    put2_done = true;
+  });
+
+};
+
 //
 ///**
 //*/

@@ -225,7 +225,7 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
       request = store.get(key.getId());
     } catch (e) {
       if (e.name == 'DataError') {
-        throw new ydn.db.InvalidKeyException(key.getId());
+        throw new ydn.db.InvalidKeyException(key + ' at ' + i);
       } else {
         throw e;
       }

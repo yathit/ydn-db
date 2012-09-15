@@ -50,6 +50,14 @@ ydn.db.req.WebSql.DEBUG = false;
 
 
 /**
+ * Maximum number of requests created per transaction.
+ * @const
+ * @type {number}
+ */
+ydn.db.req.WebSql.REQ_PER_TX = 10;
+
+
+/**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
@@ -297,16 +305,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
 
   var me = this;
   var objects = [];
-  /**
-   * Flag for parallel requests that have received the result.
-   * The length of this indicate the number of parallel requests we went
-   * to send to the SQLite engine. currently 2.
-   * the result will be send out to df when these flags are all set true.
-   * initially all set true, but false once request is send, see below.
-   * @type {Array}
-   */
-  var req_done = [true, true];
-  var n_req = req_done.length;
+  var result_count = 0;
 
   var table = this.schema.getStore(table_name);
   if (!table) {
@@ -318,36 +317,31 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
    * i position. If req_done are all true, df will be invoked, if not
    * it recursively call itself to next sequence.
    * @param {number} i the index of ids
-   * @param {number} req_id index of req_done
    * @param {SQLTransaction} tx
    */
-  var get = function (i, req_id, tx) {
+  var get = function (i, tx) {
 
     /**
      * @param {SQLTransaction} transaction transaction.
      * @param {SQLResultSet} results results.
      */
     var callback = function (transaction, results) {
+      result_count++;
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         objects[i] = me.parseRow(table, row);
-        // how about results.length > 1 it can happen when unique is not
-        // set true.
-        // this is related to IndexedDB API spec in
-        // http://www.w3.org/TR/IndexedDB/#index-concept
-        // 'An index also contains a multiEntry flag.'
+        // this is get function, we take only one result.
       } else {
         objects[i] = undefined; // not necessary.
       }
-      req_done[req_id] = true;
-      // use simple logic, don't use array function.
-      if (req_done[0] && req_done[1]) {
-        // all done.
+
+      if (result_count == ids.length) {
         df.callback(objects);
       } else {
-        var next_req = i + n_req;
-        req_done[next_req] = false;
-        get(next_req, req_id, transaction);
+        var next = i + ydn.db.req.WebSql.REQ_PER_TX;
+        if (next < ids.length) {
+          get(next, transaction);
+        }
       }
     };
 
@@ -372,9 +366,8 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
 
   if (ids.length > 0) {
     // send parallel requests
-    for (var i = 0; i < n_req; i++) {
-      req_done[i] = false;
-      get(i, i, this.getTx());
+    for (var i = 0; i < ydn.db.req.WebSql.REQ_PER_TX && i < ids.length; i++) {
+      get(i, this.getTx());
     }
   } else {
     df.callback([]);
@@ -459,12 +452,13 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
 ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
 
   var me = this;
-  var results = [];
+  var objects = [];
+  var result_count = 0;
 
   var get = function (i, tx) {
     var key = keys[i];
     var table_name = key.getStoreName();
-    var table = this.schema.getStore(table_name);
+    var table = me.schema.getStore(table_name);
     if (!table) {
       throw new ydn.db.NotFoundError(table_name);
     }
@@ -474,13 +468,24 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
      * @param {SQLResultSet} results results.
      */
     var callback = function (transaction, results) {
-      var row = results.rows.item(0);
-      results[i] = me.parseRow(table, row);
-      if (i == keys.length - 1) {
-        df.callback(results);
+      result_count++;
+      if (results.rows.length > 0) {
+        var row = results.rows.item(0);
+        objects[i] = me.parseRow(table, row);
+        // this is get function, we take only one result.
       } else {
-        get(i + 1, transaction);
+        objects[i] = undefined; // not necessary.
       }
+
+      if (result_count == keys.length) {
+        df.callback(objects);
+      } else {
+        var next = i + ydn.db.req.WebSql.REQ_PER_TX;
+        if (next < keys.length) {
+          get(next, transaction);
+        }
+      }
+
     };
 
     /**
@@ -507,7 +512,10 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
   };
 
   if (keys.length > 0) {
-    get(0, this.getTx());
+    // send parallel requests
+    for (var i = 0; i < ydn.db.req.WebSql.REQ_PER_TX && i < keys.length; i++) {
+      get(i, this.getTx());
+    }
   } else {
     df.callback([]);
   }
