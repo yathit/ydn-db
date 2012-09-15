@@ -210,52 +210,61 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
   var results = [];
   var result_count = 0;
 
-  /**
-   * @type {IDBObjectStore}
-   */
-  var store;
-  for (var i = 0; i < keys.length; i++) {
+
+  var get = function(i) {
     /**
      * @type {!ydn.db.Key}
      */
     var key = keys[i];
-    if (!store || store.name != key.getStoreName()) {
-      store = this.tx.objectStore(key.getStoreName());
-    }
-    try { // should use try just to cache offending id ?
-      // should put outside for loop or just remove try block?
-      var request = store.get(key.getId());
-
-      request.onsuccess = goog.partial(function (i, event) {
-        result_count++;
-        if (ydn.db.req.IndexedDb.DEBUG) {
-          window.console.log(event);
-        }
-        results[i] = event.target.result;
-        if (result_count == keys.length) {
-          // here we cannot simply check results.length == keys.length to
-          // decide finished collecting because success result will
-          // not return in order in general.
-          df.callback(results);
-        }
-      }, i);
-
-      request.onerror = function (event) {
-        result_count++;
-        if (ydn.db.req.IndexedDb.DEBUG) {
-          window.console.log([keys, event]);
-        }
-        df.errback(event);
-        // abort transaction ?
-      };
+    /**
+     * @type {IDBObjectStore}
+     */
+    var store = me.tx.objectStore(key.getStoreName());
+    var request;
+    try {
+      request = store.get(key.getId());
     } catch (e) {
       if (e.name == 'DataError') {
-        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
         throw new ydn.db.InvalidKeyException(key.getId());
       } else {
         throw e;
       }
     }
+
+    request.onsuccess = function (event) {
+      result_count++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      results[i] = event.target.result;
+      if (result_count == keys.length) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
+        if (next < keys.length) {
+          get(next);
+        }
+      }
+    };
+
+    request.onerror = function (event) {
+      result_count++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([keys, event]);
+      }
+      df.errback(event);
+      // abort transaction ?
+    };
+
+  };
+
+  if (keys.length > 0) {
+    // send parallel requests
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < keys.length; i++) {
+      get(i);
+    }
+  } else {
+    df.callback([]);
   }
 };
 

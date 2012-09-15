@@ -787,6 +787,164 @@ var test_81_fetch_keys = function () {
 };
 
 
+
+var test_82_fetch_keys = function () {
+  var store_name = 'st';
+  var db_name = 'test821';
+  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+
+  var objs = [];
+  var n = ydn.db.req.IndexedDb.REQ_PER_TX * 2.5;
+  for (var i = 0; i < n; i++) {
+    objs.push({id: 'a' + i, value: Math.random()});
+  }
+  var ids = [2,
+    ydn.db.req.IndexedDb.REQ_PER_TX,
+    ydn.db.req.IndexedDb.REQ_PER_TX+1,
+    2*ydn.db.req.IndexedDb.REQ_PER_TX+1];
+  var keys = [];
+  for (var i = 0; i < ids.length; i++) {
+    keys.push(new ydn.db.Key(store_name, objs[ids[i]].id));
+  }
+
+  var put_done;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return put_done;
+      },
+      // Continuation
+      function () {
+
+        var get_done, results;
+        waitForCondition(
+            // Condition
+            function () {
+              return get_done;
+            },
+            // Continuation
+            function () {
+              assertEquals('length', keys.length, results.length);
+              for (var i = 0; i < keys.length; i++) {
+                assertEquals('1', objs[ids[i]].value, results[i].value);
+              }
+
+              reachedFinalContinuation = true;
+            },
+            100, // interval
+            2000); // maxTimeout
+
+
+        db.get(keys).addCallback(function (value) {
+          console.log('fetch value: ' + JSON.stringify(value));
+          results = value;
+          get_done = true;
+        });
+
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+    put_done = true;
+  });
+
+};
+
+
+var test_83_fetch_keys = function () {
+  var store_name1 = 'st1';
+  var store_name2 = 'st2';
+  var db_name = 'test83';
+  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var store_schema1 = new ydn.db.StoreSchema(store_name1, 'id', false, [indexSchema]);
+  var store_schema2 = new ydn.db.StoreSchema(store_name2, 'id');
+  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema1, store_schema2]);
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+
+  var objs1 = [];
+  var n = ydn.db.req.IndexedDb.REQ_PER_TX * 2.5;
+  for (var i = 0; i < n; i++) {
+    objs1.push({id: 'a' + i, value: Math.random()});
+  }
+
+  var objs2 = [];
+  for (var i = 0; i < n; i++) {
+    objs2.push({id: 'b' + i, value: Math.random()});
+  }
+  var ids = [2,
+    ydn.db.req.IndexedDb.REQ_PER_TX,
+    ydn.db.req.IndexedDb.REQ_PER_TX+1,
+    2*ydn.db.req.IndexedDb.REQ_PER_TX+1];
+  var keys = [];
+  for (var i = 0; i < ids.length; i++) {
+    keys.push(new ydn.db.Key(store_name1, objs1[ids[i]].id));
+  }
+  for (var i = 0; i < ids.length; i++) {
+    keys.push(new ydn.db.Key(store_name2, objs2[ids[i]].id));
+  }
+
+  var put1_done, put2_done;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return put1_done && put2_done;
+      },
+      // Continuation
+      function () {
+
+        var get_done, results;
+        waitForCondition(
+            // Condition
+            function () {
+              return get_done;
+            },
+            // Continuation
+            function () {
+              assertEquals('length', ids.length * 2, results.length);
+              for (var i = 0; i < ids.length; i++) {
+                assertEquals('store 1 ' + i, objs1[ids[i]].value, results[i].value);
+              }
+              for (var i = 0; i < ids.length; i++) {
+                assertEquals('store 2 ' + i, objs2[ids[i]].value, results[i+ids.length].value);
+              }
+
+              reachedFinalContinuation = true;
+            },
+            100, // interval
+            2000); // maxTimeout
+
+
+        db.get(keys).addCallback(function (value) {
+          console.log('fetch value: ' + JSON.stringify(value));
+          results = value;
+          get_done = true;
+        });
+
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(store_name1, objs1).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+    put1_done = true;
+  });
+  db.put(store_name2, objs2).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+    put2_done = true;
+  });
+
+};
+
+
 var test_85_query_start_with = function () {
   var store_name = 'ts1';
   var db_name = 'test_81';
