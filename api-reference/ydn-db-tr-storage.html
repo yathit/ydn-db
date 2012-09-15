@@ -1,15 +1,14 @@
-<h1 name="class-classTitle">Class ydn.db.tr.Storage</h1>
+<h1 class="classTitle">Class ydn.db.tr.Storage</h1>
 
 <p>
 This class extends <code>ydn.db.core.Storage</code> and provides robust parallel transaction queues.
 </p>
-<dl name="class-detailList">
-  <dt name="class-heading">Extends:</dt>
+<dl class="detailList">
+  <dt class="heading">Extends:</dt>
 
   <dd>Super class constructor: <a href="https://sites.google.com/a/yathit.com/ydn-dev/api-reference/ydn-db-core">ydn.db.core.Storage</a>.</dd>
 </dl>
-<table cellspacing="0" name="class-summaryTable">
-
+<table cellspacing="0" class="summaryTable">
 
 
   <caption>
@@ -36,21 +35,21 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 
   <tr>
 
-    <td name="class-attributes">&nbsp;</td>
+    <td class="attributes">&nbsp;</td>
 
 
 
 
-    <td name="class-nameDescription">
+    <td class="nameDescription">
 
 
 
-      <div name="class-fixedFont">
+      <div class="fixedFont">
         <b><a href="#constructor">ydn.db.tr.Storage</a></b>(name, schema, option)
       </div>
 
 
-      <div name="class-description">
+      <div class="description">
         Create a suitable storage mechanism.
       </div>
     </td>
@@ -59,7 +58,7 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 </table>
 
 
-<table cellspacing="0" name="class-summaryTable">
+<table cellspacing="0" class="summaryTable">
 
 
   <caption>
@@ -92,16 +91,16 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 
 
 
-    <td name="class-attributes">&nbsp;</td>
+    <td class="attributes">&nbsp;</td>
 
 
 
 
-    <td name="class-nameDescription">
+    <td class="nameDescription">
 
 
 
-      <div name="class-fixedFont">
+      <div class="fixedFont">
         <b><a href="#transaction">transaction</a></b>(transaction_callback, store_names,
         mode, completed_event_handler)
       </div>
@@ -109,7 +108,7 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 
 
 
-      <div name="class-description">
+      <div class="description">
         Perform a database transaction.
       </div>
     </td>
@@ -123,7 +122,7 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 
 
 
-<div name="class-sectionTitle">
+<div class="sectionTitle">
   Method Detail
 </div>
 
@@ -132,22 +131,22 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 <a name="transaction"></a>
 
 
-<div name="class-fixedFont">
+<div class="fixedFont">
   <b>transaction</b>(transaction_callback, store_names,
   mode, completed_event_handler)
 </div>
 
 
-<div name="class-description">
+<div class="description">
   Preform a isolated non-overlapping database transaction asynchronously. If invoke from base
 <code>ydn.db.Storage</code> instance, this create a new transaction queue. Subsequents call
 from the <code>ydn.db.tr.Storage</code> create non-overlapping transaction.</div>
 
 
-<dl name="class-detailList">
-  <dt name="class-heading">Parameters:</dt>
+<dl class="detailList">
+  <dt class="heading">Parameters:</dt>
 
-  <dt><span name="class-light fixedFont">{!function(ydn.db.tr.ITxStorage: tx)}</span> <b>transaction_callback</b></dt>
+  <dt><span class="light fixedFont">{!function(ydn.db.tr.ITxStorage: tx)}</span> <b>transaction_callback</b></dt>
 
   <dd>Transaction in callback function. The callback is invoked <code>ydn.db.tr.ITxStorage</code> instance.
     Use <code>tx.getTx()</code> to get active transaction object, which could be either of  <code>IDBTransaction</code>,
@@ -158,21 +157,21 @@ from the <code>ydn.db.tr.Storage</code> create non-overlapping transaction.</div
     be invoked when previous one is completed.
   </dd>
 
-  <dt><span name="class-light fixedFont">{Array.}</span> <b>store_names</b></dt>
+  <dt><span class="light fixedFont">{Array.}</span> <b>store_names</b></dt>
 
   <dd>List of store name. If empty list, all stores are open.</dd>
 
-  <dt><span name="class-light fixedFont">{string}</span> <b>mode</b></dt>
+  <dt><span class="light fixedFont">{string}</span> <b>mode</b></dt>
 
   <dd>Transaction mode: <code>readonly</code> (default) or <code>readwrite</code>.</dd>
 
-  <dt><span name="class-light fixedFont">{function(string: type, *: event)}</span> <b>completed_event_handler</b></dt>
+  <dt><span class="light fixedFont">{function(string: type, *: event)}</span> <b>completed_event_handler</b></dt>
 
   <dd>Handle event for transaction <code>completed</code>, <code>error</code> or <code>abort</code> event type.
     If provided, handler will be called once and only once immediately after the transacting become
     inactive. </dd>
 
-  <dt><span name="class-light fixedFont">{...}</span> <b>opt_var_args</b></dt>
+  <dt><span class="light fixedFont">{...}</span> <b>opt_var_args</b></dt>
 
   <dd>Optional variable arguments pass back to <code>transaction_callback</code> prepending argument <code>tx</code></dd>
 
