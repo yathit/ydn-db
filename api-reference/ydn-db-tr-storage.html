@@ -92,16 +92,11 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
         mode, completed_event_handler)
       </div>
 
-
       <div class="description">
         Create isolated database transaction.
       </div>
     </td>
   </tr>
-
-
-
-
   </tbody>
 </table>
 
@@ -110,8 +105,6 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 <div class="sectionTitle">
   Method Detail
 </div>
-
-
 
 <a name="transaction"></a>
 
@@ -124,7 +117,7 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 
 <div class="description">
   Preform a isolated non-overlapping database transaction asynchronously. If invoke from base
-<code>ydn.db.Storage</code> instance, this create a new transaction queue. Subsequents call
+<code>ydn.db.Storage</code> instance, this create a new transaction immediately. Subsequents call
 from the <code>ydn.db.tr.Storage</code> create non-overlapping transaction.</div>
 
 
