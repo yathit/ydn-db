@@ -29,18 +29,6 @@ ydn.db.TxStorage = function(storage, ptx_no, scope_name) {
   this.db_name = this.getStorage().getName();
   this.schema = this.getStorage().getSchema();
 
-  var type = this.type();
-  if (type == ydn.db.adapter.IndexedDb.TYPE) {
-    this.executor = new ydn.db.req.IndexedDb(this.db_name, this.schema);
-  } else if (type == ydn.db.adapter.WebSql.TYPE) {
-    this.executor = new ydn.db.req.WebSql(this.db_name, this.schema);
-  } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
-    type == ydn.db.adapter.LocalStorage.TYPE ||
-    type == ydn.db.adapter.SessionStorage.TYPE) {
-    this.executor = new ydn.db.req.SimpleStore(this.db_name, this.schema);
-  } else {
-    throw new ydn.db.InternalError('No executor for ' + type);
-  }
 };
 goog.inherits(ydn.db.TxStorage, ydn.db.tr.TxStorage);
 
@@ -61,6 +49,32 @@ ydn.db.TxStorage.prototype.getStorage = function() {
 ydn.db.TxStorage.prototype.executor = null;
 
 
+/**
+ * @protected
+ * @return {ydn.db.req.RequestExecutor}
+ */
+ydn.db.TxStorage.prototype.getExecutor = function() {
+  if (this.executor) {
+    return this.executor;
+  } else {
+
+    var type = this.type();
+    if (type == ydn.db.adapter.IndexedDb.TYPE) {
+      this.executor = new ydn.db.req.IndexedDb(this.db_name, this.schema);
+    } else if (type == ydn.db.adapter.WebSql.TYPE) {
+      this.executor = new ydn.db.req.WebSql(this.db_name, this.schema);
+    } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
+        type == ydn.db.adapter.LocalStorage.TYPE ||
+        type == ydn.db.adapter.SessionStorage.TYPE) {
+      this.executor = new ydn.db.req.SimpleStore(this.db_name, this.schema);
+    } else {
+      throw new ydn.db.InternalError('No executor for ' + type);
+    }
+
+    return this.executor;
+  }
+};
+
 
 /**
  * @throws {ydn.db.ScopeError}
@@ -80,8 +94,8 @@ ydn.db.TxStorage.prototype.execute = function(callback, store_names, mode)
       if (!me.getMuTx().isActiveAndAvailable()) {
         throw new ydn.db.InternalError();
       }
-      me.executor.setTx(me.getMuTx().getTx(), me.scope);
-      callback(me.executor);
+      me.getExecutor().setTx(me.getMuTx().getTx(), me.scope);
+      callback(me.getExecutor());
       me.getMuTx().lock(); // explicitly told not to use this transaction again.
     };
     tx_callback.name = this.scope; // scope name
@@ -90,8 +104,8 @@ ydn.db.TxStorage.prototype.execute = function(callback, store_names, mode)
     //console.log('continuing')
     // call within a transaction
     // continue to use existing transaction
-    me.executor.setTx(me.getMuTx().getTx(), me.scope);
-    callback(me.executor);
+    me.getExecutor().setTx(me.getMuTx().getTx(), me.scope);
+    callback(me.getExecutor());
   }
 
 };

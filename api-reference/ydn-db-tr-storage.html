@@ -5,7 +5,6 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 </p>
 <dl class="detailList">
   <dt class="heading">Extends:</dt>
-
   <dd>Super class constructor: <a href="https://sites.google.com/a/yathit.com/ydn-dev/api-reference/ydn-db-core">ydn.db.core.Storage</a>.</dd>
 </dl>
 <table cellspacing="0" class="summaryTable">
@@ -13,27 +12,14 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
   <caption>
     Class Summary
   </caption>
-
-
   <thead>
-
-
   <tr>
-
-
     <th>Constructor Attributes</th>
-
-
     <th>Constructor Name and Description</th>
   </tr>
   </thead>
-
-
   <tbody>
-
-
   <tr>
-
     <td class="attributes">&nbsp;</td>
 
     <td class="nameDescription">
@@ -52,40 +38,21 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
 
 
 <table cellspacing="0" class="summaryTable">
-
-
   <caption>
     Method Summary
   </caption>
-
   <thead>
-
-
   <tr>
 
     <th>Method Attributes</th>
-
-
-
-
     <th>Method Name and Description</th>
   </tr>
   </thead>
-
-
-
   <tbody>
-
   <tr>
-
-
-
     <td class="attributes">&nbsp;</td>
 
-
     <td class="nameDescription">
-
-
 
       <div class="fixedFont">
         <b><a href="#transaction">transaction</a></b>(transaction_callback, store_names,
@@ -100,26 +67,21 @@ This class extends <code>ydn.db.core.Storage</code> and provides robust parallel
   </tbody>
 </table>
 
-
-
 <div class="sectionTitle">
   Method Detail
 </div>
 
 <a name="transaction"></a>
 
-
 <div class="fixedFont">
   <b>transaction</b>(transaction_callback, store_names,
   mode, completed_event_handler)
 </div>
 
-
 <div class="description">
   Preform a isolated non-overlapping database transaction asynchronously. If invoke from base
 <code>ydn.db.Storage</code> instance, this create a new transaction immediately. Subsequents call
 from the <code>ydn.db.tr.Storage</code> create non-overlapping transaction.</div>
-
 
 <dl class="detailList">
   <dt class="heading">Parameters:</dt>
@@ -135,7 +97,7 @@ from the <code>ydn.db.tr.Storage</code> create non-overlapping transaction.</div
     be invoked when previous one is completed.
   </dd>
 
-  <dt><span class="light fixedFont">{Array.}</span> <b>store_names</b></dt>
+  <dt><span class="light fixedFont">{Array.<string>}</span> <b>store_names</b></dt>
 
   <dd>List of store name. If empty list, all stores are open.</dd>
 
@@ -153,9 +115,23 @@ from the <code>ydn.db.tr.Storage</code> create non-overlapping transaction.</div
 
   <dd>Optional variable arguments pass back to <code>transaction_callback</code> prepending argument <code>tx</code></dd>
 
-
   <br>
-
+  The following managed transaction is only applicable to subclass <a
+    href="https://sites.google.com/a/yathit.com/ydn-dev/api-reference/ydn-db-storage">ydn.db.Storage</a>
+<pre>for (var i = 1; i &lt;= 3; i++) {
+  console.log('Requesting to update player ' + i);
+  db.transaction(function increaseHealth10(i, tx) {
+    console.log('Updating player ' + i);
+    var key = db.key('player', i);
+    key.get().success(function(p1) {
+      print_player(p1);
+      p1.health += 10;
+      key.put(p1).success(function(p1id) {
+        console.log('Player ' + p1id + ' updated.');
+      })
+    })
+  }, ['player'], undefined, i)
+}</pre>
 
 
 </dl>

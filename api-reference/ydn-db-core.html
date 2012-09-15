@@ -1,10 +1,9 @@
 <h1 class="classTitle">Class ydn.db.core.Storage</h1>
 
-<p>Wrapper for IndexedDB, WebSQL and web storage API. This class provide robust
-  transaction instance, of which database operation performed. </p>
+<p>Wrapper for IndexedDB, WebSQL and web storage API. This provides robust
+  active transaction objects. </p>
 
 <table cellspacing="0" class="summaryTable">
-
 
   <caption>
     Class Summary
@@ -241,7 +240,7 @@ stores: [{
   mode, completed_event_handler)
 </div>
 <div class="description">
-  Preform a isolated database transaction asynchronously.
+  Acquire transaction object from the database connection and return immediately.
 </div>
 <dl class="detailList">
   <dt class="heading">Parameters:</dt>
@@ -290,23 +289,5 @@ stores: [{
   }
 }, ['player'], 'readwrite')</pre>
 
-  <br>
-  The following managed transaction is only applicable to subclass <a
-    href="https://sites.google.com/a/yathit.com/ydn-dev/api-reference/ydn-db-storage">ydn.db.Storage
-</a>
-<pre>for (var i = 1; i &lt;= 3; i++) {
-  console.log('Requesting to update player ' + i);
-  db.transaction(function increaseHealth10(i, tx) {
-    console.log('Updating player ' + i);
-    var key = db.key('player', i);
-    key.get().success(function(p1) {
-      print_player(p1);
-      p1.health += 10;
-      key.put(p1).success(function(p1id) {
-        console.log('Player ' + p1id + ' updated.');
-      })
-    })
-  }, ['player'], undefined, i)
-}</pre>
 
 </dl>

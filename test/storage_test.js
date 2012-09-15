@@ -221,7 +221,31 @@ var test_2_json_config_in_out = function() {
 
 };
 
+var test_4_lazy_init = function() {
+  var db_name = 'test_storage_4';
+  var db = new ydn.db.Storage();
+  var value =  'a1 object';
+  var get_done, result;
 
+  waitForCondition(
+      // Condition
+      function() { return get_done; },
+      // Continuation
+      function() {
+        assertEquals('get ', value, result);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  db.setItem('a1', value).addCallback(function(y) {
+    db.getItem('a1').addCallback(function(x) {
+      result = x;
+      get_done = true;
+    })
+  });
+  db.setName('lazy-db');
+};
 
 
 var testCase = new goog.testing.ContinuationTestCase();
