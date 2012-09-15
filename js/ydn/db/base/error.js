@@ -36,7 +36,7 @@ ydn.db.InvalidKeyException = function(opt_msg) {
 };
 goog.inherits(ydn.db.InvalidKeyException, Error);
 
-ydn.db.InvalidKeyException.prototype.name = 'ydn.db.ValidKeyException';
+ydn.db.InvalidKeyException.prototype.name = 'ydn.db.InvalidKeyException';
 
 
 

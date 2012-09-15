@@ -45,6 +45,14 @@ ydn.db.req.IndexedDb.DEBUG = goog.DEBUG && false;
 
 
 /**
+ * Maximum number of requests created per transaction.
+ * @const
+ * @type {number}
+ */
+ydn.db.req.IndexedDb.REQ_PER_TX = 10;
+
+
+/**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
@@ -60,18 +68,18 @@ ydn.db.req.IndexedDb.prototype.logger =
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {string} store_name table name.
 * @param {!Array.<string|number>} ids id to get.
-* @throws {ydn.db.ValidKeyException}
+* @throws {ydn.db.InvalidKeyException}
 * @throws {ydn.error.InternalError}
-* @private
+* @deprecated
 */
-ydn.db.req.IndexedDb.prototype.getByIds = function (df, store_name, ids) {
+ydn.db.req.IndexedDb.prototype.getByIds_old_ = function (df, store_name, ids) {
   var me = this;
 
   var results = [];
   var result_count = 0;
+  var store = this.tx.objectStore(store_name);
 
   for (var i = 0; i < ids.length; i++) {
-    var store = this.tx.objectStore(store_name);
     try { // should use try just to cache offending id ?
           // should put outside for loop or just remove try block?
       var request = store.get(ids[i]);
@@ -103,6 +111,89 @@ ydn.db.req.IndexedDb.prototype.getByIds = function (df, store_name, ids) {
         throw e;
       }
     }
+  }
+};
+
+
+
+/**
+ * Execute GET request callback results to df.
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {string} store_name table name.
+ * @param {!Array.<string|number>} ids id to get.
+ * @throws {ydn.db.InvalidKeyException}
+ * @throws {ydn.error.InternalError}
+ */
+ydn.db.req.IndexedDb.prototype.getByIds = function (df, store_name, ids) {
+  var me = this;
+
+  var results = [];
+  var result_count = 0;
+  var store = this.tx.objectStore(store_name);
+
+  var get = function (i) {
+
+    if (!goog.isDefAndNotNull(ids[i])) {
+      // should we just throw error ?
+      result_count++;
+      results[i] = undefined;
+      if (result_count == ids.length) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
+        if (next < ids.length) {
+          get(next);
+        }
+      }
+    }
+
+    var request;
+    try {
+      request = store.get(ids[i]);
+    } catch (e) {
+      if (e.name == 'DataError') {
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          window.console.log([store_name, i, ids[i], e]);
+        }
+        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
+        throw new ydn.db.InvalidKeyException(ids[i]);
+      } else {
+        throw e;
+      }
+    }
+    request.onsuccess = (function (event) {
+      result_count++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, ids, i, event]);
+      }
+      results[i] = event.target.result;
+      if (result_count == ids.length) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
+        if (next < ids.length) {
+          get(next);
+        }
+      }
+    });
+
+    request.onerror = function (event) {
+      result_count++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, ids, i, event]);
+      }
+      df.errback(event);
+    };
+
+  };
+
+  if (ids.length > 0) {
+    // send parallel requests
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < ids.length; i++) {
+      get(i);
+    }
+  } else {
+    df.callback([]);
   }
 };
 
@@ -218,9 +309,9 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs) {
 
       request.onsuccess = goog.partial(function (i, event) {
         result_count++;
-        if (ydn.db.req.IndexedDb.DEBUG) {
-          window.console.log([store_name, event]);
-        }
+        //if (ydn.db.req.IndexedDb.DEBUG) {
+        //  window.console.log([store_name, event]);
+        //}
         results[i] = event.target.result;
         if (result_count == objs.length) {
           df.callback(results);

@@ -79,7 +79,7 @@ ydn.db.KeyRange.toJSON = function(keyRange) {
 
 /**
  * @param {(ydn.db.KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} keyRange keyRange.
- * @return {ydn.db.KeyRange} equivalent IDBKeyRange.
+ * @return {ydn.db.IDBKeyRange} equivalent IDBKeyRange.
  */
 ydn.db.KeyRange.parseKeyRange = function (keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {

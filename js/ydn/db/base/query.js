@@ -53,7 +53,9 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
    */
   this.index = index;
 
-  if (goog.isDef(direction) && ['next'].indexOf(direction) == -1) {
+  if (!goog.isDefAndNotNull(direction)) {
+    direction = undefined;
+  } else if (['next', 'prev'].indexOf(direction) == -1) {
     throw new ydn.error.ArgumentException('direction');
   }
   /**
@@ -64,7 +66,7 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
 
   var kr;
   if (keyRange instanceof ydn.db.KeyRange) {
-    kr = keyRange;
+    kr = ydn.db.KeyRange.parseKeyRange(keyRange);
   } else if (goog.isObject(keyRange)) {
     // must be JSON object
     kr = ydn.db.KeyRange.parseKeyRange(keyRange);

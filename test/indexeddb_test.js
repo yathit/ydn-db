@@ -61,7 +61,7 @@ var test_1_put = function() {
 };
 
 
-var test_2_put_arr = function() {
+var test_21_put_arr = function() {
   var db_name = 'test_21';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
 
@@ -98,6 +98,98 @@ var test_2_put_arr = function() {
       hasEventFired = true;
       console.log('Error: ' + e);
     });
+};
+
+
+
+var test_22_get_arr = function() {
+  var db_name = 'test_22';
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
+
+  var arr = [];
+  var n = ydn.db.req.IndexedDb.REQ_PER_TX / 2;
+  for (var i = 0; i < n; i++) {
+    arr.push({id: i, value: 'a' + Math.random()});
+  }
+  var ids = [1, 2];
+
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('length', ids.length, results.length);
+        assertEquals('1', arr[ids[0]].value, results[0].value);
+        assertEquals('1', arr[ids[1]].value, results[1].value);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(table_name, arr);
+
+  db.get(table_name, ids).addCallback(function(value) {
+    console.log('receiving value callback.');
+    results = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+        hasEventFired = true;
+        console.log('Error: ' + e);
+      });
+};
+
+
+var test_23_get_arr = function() {
+  var db_name = 'test_23';
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
+
+  var arr = [];
+  var n = ydn.db.req.IndexedDb.REQ_PER_TX * 2.5;
+  for (var i = 0; i < n; i++) {
+    arr.push({id: i, value: 'a' + Math.random()});
+  }
+  var ids = [2,
+    ydn.db.req.IndexedDb.REQ_PER_TX,
+    ydn.db.req.IndexedDb.REQ_PER_TX+1,
+    2*ydn.db.req.IndexedDb.REQ_PER_TX+1];
+
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('length', ids.length, results.length);
+        assertEquals('1', arr[ids[0]].value, results[0].value);
+        assertEquals('1', arr[ids[1]].value, results[1].value);
+        assertEquals('1', arr[ids[2]].value, results[2].value);
+        assertEquals('1', arr[ids[3]].value, results[3].value);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(table_name, arr);
+
+  db.get(table_name, ids).addCallback(function(value) {
+    console.log('receiving value callback.');
+    results = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+        hasEventFired = true;
+        console.log('Error: ' + e);
+      });
 };
 
 
@@ -315,7 +407,7 @@ var test_41_keyRange = function () {
     console.log([db + ' receiving put callback.', value]);
 
     var key_range = ydn.db.KeyRange.bound(2, 5, true, true);
-    var q = new ydn.db.Query(store_name, 'value', key_range);
+    var q = new ydn.db.Query(store_name, 'value', undefined, key_range);
 
     db.fetch(q).addBoth(function (value) {
       console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -372,7 +464,7 @@ var test_42_autoincreasement = function () {
     console.log(['receiving value callback.', value]);
 
     var key_range = ydn.db.KeyRange.bound(2, 5, true, true);
-    var q = new ydn.db.Query(store_name, 'value', key_range);
+    var q = new ydn.db.Query(store_name, 'value', 'next', key_range);
 
     db.fetch(q).addBoth(function (value) {
       console.log('fetch value: ' + JSON.stringify(value));
