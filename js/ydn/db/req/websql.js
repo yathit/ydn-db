@@ -50,11 +50,22 @@ ydn.db.req.WebSql.DEBUG = false;
 
 
 /**
- * Maximum number of requests created per transaction.
+ * Maximum number of readonly requests created per transaction.
  * @const
  * @type {number}
  */
 ydn.db.req.WebSql.REQ_PER_TX = 10;
+
+
+/**
+ * Maximum number of read-write requests created per transaction.
+ * Since SQLite locks all stores during read write  request, it is better
+ * to give this number smaller. Larger number will not help to get faster
+ * because it bottleneck is in SQL engine, not from our side.
+ * @const
+ * @type {number}
+ */
+ydn.db.req.WebSql.RW_REQ_PER_TX = 2;
 
 
 /**
@@ -184,6 +195,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
 
   var me = this;
   var result_keys = [];
+  var result_count = 0;
 
   /**
    * Put and item at i. This wydn.db.core.Storageill invoke callback to df if all objects
@@ -211,7 +223,10 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
       if (result_keys.length == objects.length) {
         df.callback(result_keys);
       } else {
-        put(i + 1, transaction);
+        var next = i + ydn.db.req.WebSql.RW_REQ_PER_TX;
+        if (next < objects.length) {
+          put(next, transaction);
+        }
       }
     };
 
@@ -231,13 +246,10 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
   };
 
   if (objects.length > 0) {
-    // todo: optimization for sending multiple requests
-    // currently we send request only one request at a time.
-    // we should not loop however because if the request array is large,
-    // this will create large request and SQLite engine may freak out.
-    // issue request only after successful request.
-    // perhaps, two requests should be good enough.
-    put(0, this.getTx());
+    // send parallel requests
+    for (var i = 0; i < ydn.db.req.WebSql.RW_REQ_PER_TX && i < objects.length; i++) {
+      put(i, this.getTx());
+    }
   } else {
     df.callback([]);
   }

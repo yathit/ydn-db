@@ -55,7 +55,7 @@ var test_0_put = function() {
 };
 
 
-var test_1_1_put_arr = function() {
+var test_11_put_arr = function() {
   var db_name = 'test_3';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
 
@@ -751,6 +751,47 @@ var test_7_put_get_array = function() {
   test_get(0);
   test_get(1);
 
+};
+
+
+var test_12_put_arr = function() {
+  var db_name = 'test_12';
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  assertEquals('db', 'websql', db.type());
+
+  var arr = [];
+  var n = ydn.db.req.WebSql.RW_REQ_PER_TX * 2.5;
+  for (var i = 0; i < n; i++) {
+    arr.push({id: 'a' + i, value: 'a' + Math.random()});
+  }
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('length', arr.length, results.length);
+        for (var i = 0; i < arr.length; i++) {
+          assertEquals('1', arr[i].id, results[i]);
+        }
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(table_name, arr).addCallback(function(value) {
+    console.log('receiving value callback.');
+    results = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+        hasEventFired = true;
+        console.log('Error: ' + e);
+      });
 };
 
 
