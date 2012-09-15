@@ -51,6 +51,12 @@ ydn.db.req.WebSql.DEBUG = false;
 
 /**
  * Maximum number of readonly requests created per transaction.
+ * Common naive implementation in WebSQL library is sending massive requests
+ * to the transaction and controlled by setTimeout to get another transaction.
+ * It will not get optimal performance. Basically, sending more request will not
+ * help much because JS is just parsing and storing data which is faster
+ * than SQL processing. Smaller number also help SQLite engine to give
+ * other transaction to perform parallel requests.
  * @const
  * @type {number}
  */
@@ -59,9 +65,9 @@ ydn.db.req.WebSql.REQ_PER_TX = 10;
 
 /**
  * Maximum number of read-write requests created per transaction.
- * Since SQLite locks all stores during read write  request, it is better
+ * Since SQLite locks all stores during read write request, it is better
  * to give this number smaller. Larger number will not help to get faster
- * because it bottleneck is in SQL engine, not from our side.
+ * because it bottleneck is in SQL engine, not from JS side.
  * @const
  * @type {number}
  */
@@ -399,11 +405,18 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
 
   var me = this;
   var arr = [];
-  var n_todo = 0;
-  var n_done = 0;
 
-  var getAll = function (table_name) {
+  var table_names = goog.isString(opt_table_name) ? [opt_table_name] :
+      goog.isArray(opt_table_name) && opt_table_name.length > 0 ?
+          opt_table_name : this.schema.getStoreNames();
+  var n_todo = table_names.length;
 
+  /**
+   * @param {number} idx the index of table_names
+   * @param {SQLTransaction} tx
+   */
+  var getAll = function (idx, tx) {
+    var table_name = table_names[idx];
     var table = me.schema.getStore(table_name);
     if (!table) {
       throw new ydn.db.NotFoundError(table_name);
@@ -416,13 +429,14 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
      * @param {SQLResultSet} results results.
      */
     var callback = function (transaction, results) {
-      n_done++;
       for (var i = 0; i < results.rows.length; i++) {
         var row = results.rows.item(i);
         arr.push(me.parseRow(table, row));
       }
-      if (n_done == n_todo) {
+      if (idx == n_todo - 1) {
         df.callback(arr);
+      } else {
+        getAll(idx + 1, transaction);
       }
     };
 
@@ -431,7 +445,6 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
      * @param {SQLError} error error.
      */
     var error_callback = function (tr, error) {
-      n_done++;
       if (ydn.db.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
@@ -439,19 +452,13 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
       df.errback(error);
     };
 
-    me.getTx().executeSql(sql, [], callback, error_callback);
+    tx.executeSql(sql, [], callback, error_callback);
   };
 
-  var table_names = goog.isString(opt_table_name) ? [opt_table_name] :
-      goog.isArray(opt_table_name) && opt_table_name.length > 0 ?
-          opt_table_name : this.schema.getStoreNames();
-  n_todo = table_names.length;
+  // send request to the first store
+  // getAll will continue to fetch one after another
+  getAll(0, this.getTx());
 
-  if (n_todo > 0) {
-    for (var i = 0; i < n_todo; i++) {
-      getAll(table_names[i]);
-    }
-  }
 };
 
 

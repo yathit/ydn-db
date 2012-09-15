@@ -1,0 +1,478 @@
+<h1 name="class-classTitle">Class ydn.db.core.Storage</h1>
+
+<p>Wrapper for IndexedDB, WebSQL and web storage API. This class provide robust transaction instance, of which database operation performed. </p>
+
+<table cellspacing="0" name="class-summaryTable">
+
+
+
+  <caption>
+    Class Summary
+  </caption>
+
+
+
+
+  <thead>
+
+
+
+  <tr>
+
+
+
+    <th>Constructor Attributes</th>
+
+
+
+
+    <th>Constructor Name and Description</th>
+  </tr>
+  </thead>
+
+
+
+
+  <tbody>
+
+
+
+  <tr>
+
+
+
+    <td name="class-attributes">&nbsp;</td>
+
+
+
+
+    <td name="class-nameDescription">
+
+
+
+      <div name="class-fixedFont">
+        <b><a href="#constructor">ydn.db.Core</a></b>(name, schema, options)
+      </div>
+
+
+
+
+      <div name="class-description">
+        Create a suitable storage mechanism.
+      </div>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+
+<table cellspacing="0" name="class-summaryTable">
+
+
+  <caption>
+    Method Summary
+  </caption>
+
+
+
+  <thead>
+
+
+  <tr>
+
+
+
+    <th>Method Attributes</th>
+
+
+
+
+    <th>Method Name and Description</th>
+  </tr>
+  </thead>
+
+
+
+  <tbody>
+
+
+
+  <tr>
+
+
+
+    <td name="class-attributes">&nbsp;</td>
+
+
+
+
+    <td name="class-nameDescription">
+
+
+
+      <div name="class-fixedFont">
+        <b><a href="#close">close</a></b>()
+      </div>
+
+
+
+
+      <div name="class-description">
+        Close the database connection.
+      </div>
+    </td>
+  </tr>
+
+
+
+  <tr>
+
+
+
+    <td name="class-attributes">&nbsp;</td>
+
+
+
+
+    <td name="class-nameDescription">
+
+
+
+      <div name="class-fixedFont">
+        <b><a href="#getConfig">getConfig</a></b>()
+      </div>
+
+
+
+
+      <div name="class-description">
+        Get configuration of this storage.
+      </div>
+    </td>
+  </tr>
+
+
+
+  <tr>
+
+
+
+    <td name="class-attributes">&nbsp;</td>
+
+
+
+
+    <td name="class-nameDescription">
+
+
+
+      <div name="class-fixedFont">
+        <b><a href="#setName">setName</a></b>(name)
+      </div>
+
+
+
+
+      <div name="class-description">
+        Set database name.
+      </div>
+    </td>
+  </tr>
+
+
+
+
+  <tr>
+
+
+
+    <td name="class-attributes">&nbsp;</td>
+
+
+
+
+    <td name="class-nameDescription">
+
+
+
+      <div name="class-fixedFont">
+        <b><a href="#transaction">transaction</a></b>(transaction_callback, store_names,
+        mode, completed_event_handler)
+      </div>
+
+
+
+
+      <div name="class-description">
+        Perform a database transaction.
+      </div>
+    </td>
+  </tr>
+
+
+  <tr>
+
+
+
+    <td name="class-attributes">&nbsp;</td>
+
+
+
+
+    <td name="class-nameDescription">
+
+
+
+      <div name="class-fixedFont">
+        <b><a href="#setSchema">type</a></b>(schema)
+      </div>
+
+
+
+
+      <div name="class-description">
+        Get storage mechanism type.
+      </div>
+    </td>
+  </tr>
+
+
+  </tbody>
+</table>
+
+
+
+<div name="class-details">
+  <a name="constructor"></a>
+
+
+
+
+  <div name="class-sectionTitle">
+    Class Detail
+  </div>
+
+
+
+
+  <div name="class-fixedFont">
+    <b>ydn.db.Core</b>(dbname, schema, options)
+  </div>
+
+
+
+
+  <div name="class-description">
+    Create a suitable storage mechanism depending on preference setting and runtime environment. Provide undefined value to database name to lazy initialization. Database will&nbsp;initialize when the database name is set.&nbsp;</div>
+
+
+
+
+  <dl name="class-detailList">
+    <dt name="class-heading">Parameters:</dt>
+
+    <dt><span name="class-light fixedFont optional">{string=}</span> <b>name</b></dt>
+
+    <dd>Database name.</dd>
+
+    <dt><span name="class-light fixedFont optional">{!ydn.db.DatabaseSchema=}</span> <b>schema</b></dt>
+
+    <dd>Optional database schema JSON format. Default schema is {}. Schema is&nbsp;up-gradable by increasing version numeric value. Schema defines list of store names, its keyPath and index fields as follow:
+
+<pre>schema = {
+version: 1,
+size: 2 * 1024 * 1024, // 2 MB
+stores: [{
+    name: 'customer',
+    keyPath: 'email'
+}, {
+    name: 'product',
+    keyPath: 'sku',
+    indexes: [{
+         name: 'name'
+    }]
+}]
+}
+      </pre>
+    </dd>
+
+    <dt><span name="class-light fixedFont optional">{!Object=}</span> <b>options</b></dt>
+
+    <dd>Additional options. Currently only implemented feature is preferential ordering of store mechanisms.</dd>
+
+<pre>options = {preference: ["indexeddb", "websql", "localstorage", "sessionstorage", "memory"]}
+    </pre>
+  </dl>
+
+</div>
+
+
+
+
+<div name="class-sectionTitle">
+  Method Detail
+</div>
+
+<a name="close"></a>
+
+
+<div name="class-fixedFont">
+  <span name="class-light">{!goog.async.Deferred}</span> <b>close</b>()
+</div>
+
+
+<div name="class-description">
+  Close the database connection.
+</div>
+
+
+<dl name="class-detailList">
+  <dt name="class-heading">Returns:</dt>
+
+  <dd><span name="class-light fixedFont">{!goog.async.Deferred}</span> true on deferred function.</dd>
+</dl>
+
+<hr>
+
+
+<a name="getConfig"></a>
+
+
+<div name="class-fixedFont">
+  <span name="class-light">{{name: string, schema: !Object}}</span> <b>getConfig</b>()
+</div>
+
+
+<div name="class-description">
+  Get configuration of this storage. This is useful from getting storage from main thread to worker thread.
+<pre>  var db = new ydn.db.Core(...);
+  ... initialize ...
+  var config = db.getConfig();
+
+  ... in worker thread ...
+  var worker_db = new ydn.db.Core(config.name, config.schema);
+</pre>
+  In this way, data can be share between the two threads.
+</div>
+
+
+<dl name="class-detailList">
+  <dt name="class-heading">Returns:</dt>
+
+  <dd><span name="class-light fixedFont">{{db_name: string, schema: !Object}}</span> configuration containing database and list of schema in JSON format.</dd>
+</dl>
+
+<hr>
+
+
+<a name="setName"></a>
+
+
+<div name="class-fixedFont">
+  <span name="class-light">{string}</span> <b>setName</b>(name)
+</div>
+
+
+<div name="class-description">
+  Set database name. This will initialize the database connection.
+</div>
+
+
+<dl name="class-detailList">
+  <dt name="class-heading">Parameters:</dt>
+
+  <dt><span name="class-light fixedFont">{string}</span> <b>name</b></dt>
+
+  <dd>name of database.</dd>
+</dl>
+
+
+<dl name="class-detailList">
+  <dt name="class-heading">Throws:</dt>
+
+  <dt><span name="class-light fixedFont">{Error}</span> </dt>
+
+  <dd>If database is already initialized.</dd>
+</dl>
+
+<hr>
+
+
+<a name="transaction"></a>
+
+
+<div name="class-fixedFont">
+  <b>transaction</b>(transaction_callback, store_names,
+  mode, completed_event_handler)
+</div>
+
+
+<div name="class-description">
+  Preform a isolated database transaction asynchronously. </div>
+
+
+<dl name="class-detailList">
+  <dt name="class-heading">Parameters:</dt>
+
+  <dt><span name="class-light fixedFont">{!function(tx)}</span> <b>transaction_callback</b></dt>
+
+  <dd>Transaction in callback function. The callback is invoke is with native transaction object  <code>IDBTransaction</code>,
+    <code>SQLTransaction</code>, or <code>localStorage</code> depending on runtime environment.
+    Use duck typing to check the require type. Transaction will automatically commit if not use
+    actively. </dd>
+
+  <dt><span name="class-light fixedFont">{Array.}</span> <b>store_names</b></dt>
+
+  <dd>List of store name. If empty list, all stores are open.</dd>
+
+  <dt><span name="class-light fixedFont">{string}</span> <b>mode</b></dt>
+
+  <dd>Transaction mode: <code>readonly</code> (default) or <code>readwrite</code>.</dd>
+
+  <dt><span name="class-light fixedFont">{function(string: type, *: event)}</span> <b>completed_event_handler</b></dt>
+
+  <dd>Handle event for transaction <code>completed</code>, <code>error</code> or <code>abort</code> event type.
+  If provided, handler will be called once and only once immediately after the transacting become
+  inactive. </dd>
+
+  <dt><span name="class-light fixedFont">{...}</span> <b>opt_var_args</b></dt>
+
+  <dd>Optional variable arguments pass back to <code>transaction_callback</code> prepending argument <code>tx</code></dd>
+
+
+  <br>
+<pre>db.transaction(function transaction_callback (tx) {
+  if (tx.objectStore) {
+    request = tx.objectStore('player').openCursor()
+    request.onsuccess = function(event) {
+      console.log('IndexedDB got ' + JSON.stringify(event.target.result.value))
+    }
+  } else if (tx.executeSql) {
+    tx.executeSql('SELECT * FROM player', [], function(tr, results) {
+      console.log('WebSql got ' + JSON.stringify(results.rows.item(0)));
+    })
+  } else { // localStorage or memory store. In any case, it has getItem, setItem, etc
+    var v = tx.getItem('_database_tr_test2-player-1')
+    console.log('localStorage got ' + v);
+  }
+}, ['player'], 'readwrite')</pre>
+
+  <br>
+  The following managed transaction is only applicable to subclass <a href="https://sites.google.com/a/yathit.com/ydn-dev/api-reference/ydn-db-storage">ydn.db.Storage
+</a>
+<pre>for (var i = 1; i &lt;= 3; i++) {
+  console.log('Requesting to update player ' + i);
+  db.transaction(function increaseHealth10(i, tx) {
+    console.log('Updating player ' + i);
+    var key = db.key('player', i);
+    key.get().success(function(p1) {
+      print_player(p1);
+      p1.health += 10;
+      key.put(p1).success(function(p1id) {
+        console.log('Player ' + p1id + ' updated.');
+      })
+    })
+  }, ['player'], undefined, i)
+}</pre>
+
+</dl>
