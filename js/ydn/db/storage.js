@@ -169,13 +169,13 @@ ydn.db.Storage.prototype.fetch = function(q, max, skip) {
 };
 
 
-ydn.db.Storage.prototype.query = function(q, max, skip) {
-  return this.default_tx_queue_.query(q, max, skip);
+ydn.db.Storage.prototype.query = function(store, index, direction, keyRange, upper, lowerOpen, upperOpen) {
+  return this.default_tx_queue_.query(store, index, direction, keyRange, upper, lowerOpen, upperOpen);
 };
 
 
-ydn.db.Storage.prototype.key = function(q, max, skip) {
-  return this.default_tx_queue_.key(q, max, skip);
+ydn.db.Storage.prototype.key = function(store_or_json_or_value, id, opt_parent) {
+  return this.default_tx_queue_.key(store_or_json_or_value, id, opt_parent);
 };
 
 /**

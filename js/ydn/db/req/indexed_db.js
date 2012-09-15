@@ -749,8 +749,11 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
   // ' in ' + table);
   var obj_store = this.tx.objectStore(store.name);
 
-  var index = goog.isDefAndNotNull(q.index) ?
-      obj_store.index(q.index) : null;
+  var index = null;
+  if (goog.DEBUG && goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
+    throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in: ' + q.store_name);
+  }
+  index = goog.isDefAndNotNull(q.index) ? obj_store.index(q.index) : null;
 
   //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
   // ' of ' + column + ' in ' + table);

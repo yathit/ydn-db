@@ -50,6 +50,8 @@ ydn.db.TxStorage.prototype.executor = null;
 
 
 /**
+ * Return cache executor object or create on request. This have to be crated
+ * Lazily because, we can initialize it only when transaction object is active.
  * @protected
  * @return {ydn.db.req.RequestExecutor}
  */
