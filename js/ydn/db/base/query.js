@@ -86,7 +86,7 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
   this.filter = null;
   this.reduce = null;
   this.map = null;
-  this.continue = null;
+  this.continued = null;
 };
 
 
@@ -122,7 +122,7 @@ ydn.db.Query.prototype.filter;
 /**
  * @type {?function(!Object): boolean}
  */
-ydn.db.Query.prototype.continue;
+ydn.db.Query.prototype.continued;
 
 /**
  * @type {?function(!Object): *}

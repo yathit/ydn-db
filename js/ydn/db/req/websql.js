@@ -219,8 +219,9 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
      * @param {SQLResultSet} results results.
      */
     var success_callback = function (transaction, results) {
-      result_keys.push(out.key);
-      if (result_keys.length == objects.length) {
+      result_count++;
+      result_keys[i] = out.key;
+      if (result_count == objects.length) {
         df.callback(result_keys);
       } else {
         var next = i + ydn.db.req.WebSql.RW_REQ_PER_TX;
@@ -578,7 +579,7 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
   // optional optimization
   // here we are looking at whether we can use substitute max and skip with
   // native SQL LIMIT and OFFSET
-  if (!goog.isFunction(q.filter) && !goog.isFunction(q.continue)) {
+  if (!goog.isFunction(q.filter) && !goog.isFunction(q.continued)) {
     if (goog.isDef(end)) {
       sql += ' LIMIT ' + (end - start);
       end = undefined;
@@ -603,7 +604,7 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
     for (var i = 0; i < results.rows.length; i++) {
       var row = results.rows.item(i);
       var value = me.parseRow(store, row);
-      var to_continue = !goog.isFunction(q.continue) || q.continue(value);
+      var to_continue = !goog.isFunction(q.continued) || q.continued(value);
       if (!goog.isFunction(q.filter) || q.filter(value)) {
         idx++;
         if (idx >= start) {

@@ -789,7 +789,7 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
       var value = /** @type {!Object} */ cursor['value']; // should not
       // necessary if externs are
 
-      var to_continue = !goog.isFunction(q.continue) || q.continue(value);
+      var to_continue = !goog.isFunction(q.continued) || q.continued(value);
 
       // do the filtering if requested.
       if (!goog.isFunction(q.filter) || q.filter(value)) {
