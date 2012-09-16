@@ -94,7 +94,7 @@ ydn.db.TxStorage.prototype.execute = function(callback, store_names, mode)
     var tx_callback = function(idb) {
       // transaction should be active now
       if (!me.getMuTx().isActiveAndAvailable()) {
-        throw new ydn.db.InternalError();
+        throw new ydn.db.InternalError('Tx not available for scope: ' + me.scope);
       }
       me.getExecutor().setTx(me.getMuTx().getTx(), me.scope);
       callback(me.getExecutor());
@@ -251,7 +251,16 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
     }, [store], ydn.db.TransactionMode.READ_ONLY);
   } else if (goog.isString(arg1)) {
     var store_name = arg1;
-    if (goog.isString(arg2) || goog.isNumber(arg2)) {
+    if (goog.isArray(arg2)) {
+      if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
+        var ids = arg2;
+        this.execute(function (executor) {
+          executor.getByIds(df, store_name, ids);
+        }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+      } else {
+        throw new ydn.error.ArgumentException();
+      }
+    } else if (goog.isString(arg2) || goog.isNumber(arg2)) {
       /** @type {string} */
       /** @type {string|number} */
       var id = arg2;
@@ -263,15 +272,6 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
         executor.getByStore(df, store_name);
       }, [store_name], ydn.db.TransactionMode.READ_ONLY);
 
-    } else if (goog.isArray(arg2)) {
-      if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-        var ids = arg2;
-        this.execute(function (executor) {
-          executor.getByIds(df, store_name, ids);
-        }, [store_name], ydn.db.TransactionMode.READ_ONLY);
-      } else {
-        throw new ydn.error.ArgumentException();
-      }
     } else {
       throw new ydn.error.ArgumentException();
     }
@@ -333,7 +333,7 @@ ydn.db.TxStorage.prototype.put = function (store_name, value) {
       throw new ydn.error.ArgumentException();
     }
   } else {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.error.ArgumentException('store name required.');
   }
 
   return df;

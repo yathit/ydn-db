@@ -118,9 +118,10 @@ ydn.db.core.Storage.prototype.logger =
  *   var worker_db = new ydn.db.core.Storage(config.db_name, config.schema);
  * </pre>
  * In this way, data can be share between the two threads.
- * @export
+ *
  * @return {{name: string, schema: !Object}?} configuration
  * containing database and list of schema in JSON format.
+ * @export
  */
 ydn.db.core.Storage.prototype.getConfig = function() {
   if (!this.schema) {
@@ -137,6 +138,7 @@ ydn.db.core.Storage.prototype.getConfig = function() {
 /**
  * Return structured clone of schema.
  * @return {!ydn.db.DatabaseSchema}
+ * @export
  */
 ydn.db.core.Storage.prototype.getSchema = function() {
   return ydn.db.DatabaseSchema.fromJSON(this.schema.toJSON());
@@ -296,6 +298,7 @@ ydn.db.core.Storage.prototype.initDatabase = function() {
 /**
  *
  * @return {string}
+ * @export
  */
 ydn.db.core.Storage.prototype.type = function() {
   if (this.db_) {
@@ -339,6 +342,7 @@ ydn.db.core.Storage.prototype.init = function() {
 
 /**
  * Close the database.
+ * @export
  */
 ydn.db.core.Storage.prototype.close = function() {
   if (this.db_) {
@@ -351,6 +355,7 @@ ydn.db.core.Storage.prototype.close = function() {
 /**
  * Access readied database instance asynchronously.
  * @param {function(!ydn.db.adapter.IDatabase)} callback
+ * @export
  */
 ydn.db.core.Storage.prototype.onReady = function(callback) {
   if (this.db_ && !this.db_.getDbInstance()) {
@@ -466,12 +471,13 @@ ydn.db.core.Storage.prototype.abortTxQueue_ = function(e) {
 
 /**
  * Run a transaction.
- * @export
+ *
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
+ * @export
  */
 ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
      opt_mode, completed_event_handler) {
