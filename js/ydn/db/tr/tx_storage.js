@@ -26,18 +26,39 @@ ydn.db.tr.TxStorage = function(storage, ptx_no, scope_name) {
    */
   this.storage_ = storage;
 
-
   /*
    * Transaction queue no.
+   * @final
+   * @type {number}
    */
-  this.q_no_ = ptx_no;  
+  this.q_no_ = ptx_no;
 
+  /**
+   * @final
+   * @type {!Array.<{fnc: Function, scope: string, store_names: Array.<string>,
+   * mode: ydn.db.TransactionMode, oncompleted: Function}>}
+   * @private
+   */
+  this.trQueue_ = [];
+
+  /**
+   *
+   * @type {!ydn.db.tr.Mutex}
+   * @private
+   * @final
+   */
   this.mu_tx_ = new ydn.db.tr.Mutex(ptx_no);
 
   this.scope = scope_name;
 
-
 };
+
+
+/**
+ * @const
+ * @type {boolean}
+ */
+ydn.db.tr.TxStorage.DEBUG = false;
 
 
 
@@ -79,6 +100,14 @@ ydn.db.tr.TxStorage.prototype.getMuTx = function() {
  */
 ydn.db.tr.TxStorage.prototype.getTxNo = function() {
   return this.mu_tx_.getTxCount();
+};
+
+/**
+ *
+ * @return {number}
+ */
+ydn.db.tr.TxStorage.prototype.getQueueNo = function() {
+  return this.q_no_;
 };
 
 
@@ -179,15 +208,6 @@ ydn.db.tr.TxStorage.MAX_QUEUE = 1000;
 
 
 /**
- *
- * @type {!Array.<{fnc: Function, scope: string, store_names: Array.<string>,
- * mode: ydn.db.TransactionMode, oncompleted: Function}>}
- * @private
- */
-ydn.db.tr.TxStorage.prototype.trQueue_ = [];
-
-
-/**
  * Run the first transaction task in the queue. DB must be ready to do the
  * transaction.
  * @private
@@ -209,9 +229,9 @@ ydn.db.tr.TxStorage.prototype.popTxQueue_ = function() {
  * store name involved in the transaction.
  * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
- * @private
+ * @protected
  */
-ydn.db.tr.TxStorage.prototype.pushTxQueue_ = function (trFn, store_names,
+ydn.db.tr.TxStorage.prototype.pushTxQueue = function (trFn, store_names,
                                                        opt_mode, completed_event_handler) {
   this.trQueue_.push({
     fnc:trFn,
@@ -280,7 +300,7 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
 
   if (this.mu_tx_.isActive()) {
     //console.log(this + ' active')
-    this.pushTxQueue_(outFn, store_names, mode, oncompleted);
+    this.pushTxQueue(outFn, store_names, mode, oncompleted);
   } else {
     //console.log(this + ' not active')
     var transaction_process = function (tx) {
@@ -315,6 +335,9 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
       }
     };
 
+    if (ydn.db.tr.TxStorage.DEBUG) {
+      window.console.log(this + ' transaction ' + mode + ' open for ' + JSON.stringify(names) + ' in ' + scope_name);
+    }
     this.storage_.newTransaction(transaction_process, names, mode, completed_handler);
   }
 

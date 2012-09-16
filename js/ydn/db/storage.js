@@ -125,6 +125,15 @@ ydn.db.Storage.prototype.getWrapper = function() {
 
 /**
  *
+ * @return {number}
+ */
+ydn.db.Storage.prototype.getTxNo = function() {
+  return this.default_tx_queue_.getTxNo();
+};
+
+
+/**
+ *
  * @param {string} store_name
  * @return {!goog.async.Deferred} return object in deferred function.
  */

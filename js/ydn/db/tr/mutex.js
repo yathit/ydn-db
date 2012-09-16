@@ -79,7 +79,11 @@ ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
 
   this.oncompleted = null;
 
-  this.logger.finest(this + ': open');
+  if (ydn.db.tr.Mutex.DEBUG) {
+    window.console.log(this + ': open');
+  } else {
+    this.logger.finest(this + ': open');
+  }
 };
 
 
@@ -124,7 +128,11 @@ ydn.db.tr.Mutex.prototype.getScope = function() {
  */
 ydn.db.tr.Mutex.prototype.down = function (type, event) {
   goog.asserts.assertObject(this.tx_, 'mutex already unlocked');
-  this.logger.finest(this + ': close');
+  if (ydn.db.tr.Mutex.DEBUG) {
+    window.console.log(this + ': close');
+  } else {
+    this.logger.finest(this + ': close');
+  }
   // down must be call only once by those who up
   this.tx_ = null;
 
@@ -164,7 +172,11 @@ ydn.db.tr.Mutex.prototype.inScope = function() {
  * Transaction is explicitly set not to do next transaction.
  */
 ydn.db.tr.Mutex.prototype.lock = function() {
-  this.logger.finest(this + ': locked');
+  if (ydn.db.tr.Mutex.DEBUG) {
+    window.console.log(this + ': locked');
+  } else {
+    this.logger.finest(this + ': locked');
+  }
   this.is_set_done_ = true;
 };
 

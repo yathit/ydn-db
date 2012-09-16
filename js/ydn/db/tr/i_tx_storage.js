@@ -24,10 +24,17 @@ ydn.db.tr.ITxStorage.getTx = function() {};
 
 
 /**
- * Get transaction series number.
+ * Get transaction count.
  * @return {number}
  */
 ydn.db.tr.ITxStorage.prototype.getTxNo = function() {};
+
+
+/**
+ * Get transaction queue number.
+ * @return {number}
+ */
+ydn.db.tr.ITxStorage.prototype.getQueueNo = function() {};
 
 /**
  * Add a transaction complete (also error and abort) event. The listener will

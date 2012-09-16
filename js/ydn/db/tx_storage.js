@@ -87,29 +87,32 @@ ydn.db.TxStorage.prototype.getExecutor = function() {
 ydn.db.TxStorage.prototype.execute = function(callback, store_names, mode)
 {
   var me = this;
-  if (!this.getMuTx().isActiveAndAvailable()) {
-    //console.log('creating new')
-    // invoke in non-transaction context
-    // create a new transaction and close
-    var tx_callback = function(idb) {
-      // transaction should be active now
-      if (!me.getMuTx().isActiveAndAvailable()) {
-        throw new ydn.db.InternalError('Tx not available for scope: ' + me.scope);
-      }
-      me.getExecutor().setTx(me.getMuTx().getTx(), me.scope);
-      callback(me.getExecutor());
-      me.getMuTx().lock(); // explicitly told not to use this transaction again.
-    };
-    tx_callback.name = this.scope; // scope name
-    this.transaction(tx_callback, store_names, mode);
-  } else {
-    //console.log('continuing')
+  var mu_tx = this.getMuTx();
+
+  if (mu_tx.isActiveAndAvailable()) {
+    //window.console.log(mu_tx.getScope() + ' continuing');
     // call within a transaction
     // continue to use existing transaction
-    me.getExecutor().setTx(me.getMuTx().getTx(), me.scope);
+    me.getExecutor().setTx(mu_tx.getTx(), me.scope);
     callback(me.getExecutor());
+  } else {
+    //console.log('creating new')
+    //
+    // create a new transaction and close for invoke in non-transaction context
+    var tx_callback = function(idb) {
+      // transaction should be active now
+      if (!mu_tx.isActive()) {
+        throw new ydn.db.InternalError('Tx not available for scope: ' + me.scope);
+      }
+      me.getExecutor().setTx(mu_tx.getTx(), me.scope);
+      callback(me.getExecutor());
+      mu_tx.lock(); // explicitly told not to use this transaction again.
+    };
+    //var cbFn = goog.partial(tx_callback, callback);
+    tx_callback.name = this.scope; // scope name
+    //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + ' locked: ' + mu_tx.isSetDone());
+    this.transaction(tx_callback, store_names, mode);
   }
-
 };
 
 
@@ -244,13 +247,15 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
      * @type {ydn.db.Key}
      */
     var k = arg1;
-    var store = k.getStoreName();
+    var k_store_name = k.getStoreName();
+    goog.asserts.assert(this.schema.hasStore(k_store_name), 'Store: ' + k_store_name + ' not found.');
     var kid = k.getId();
     this.execute(function (executor) {
-      executor.getById(df, store, kid);
-    }, [store], ydn.db.TransactionMode.READ_ONLY);
+      executor.getById(df, k_store_name, kid);
+    }, [k_store_name], ydn.db.TransactionMode.READ_ONLY);
   } else if (goog.isString(arg1)) {
     var store_name = arg1;
+    goog.asserts.assert(this.schema.hasStore(store_name), 'Store: ' + store_name + ' not found.');
     if (goog.isArray(arg2)) {
       if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
         var ids = arg2;
@@ -284,8 +289,10 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
       var keys = arg1;
       for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        if (!goog.array.contains(store_names, key.getStoreName())) {
-          store_names.push(key.getStoreName());
+        var i_store_name = key.getStoreName();
+        goog.asserts.assert(this.schema.hasStore(i_store_name), 'Store: ' + i_store_name + ' not found.');
+        if (!goog.array.contains(store_names, i_store_name)) {
+          store_names.push(i_store_name);
         }
       }
       this.execute(function (executor) {

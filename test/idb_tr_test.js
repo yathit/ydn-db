@@ -28,12 +28,10 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'test_tr_13';
 var options = {preference: ['indexeddb']};
 
 
 var test_2_idb_basic = function() {
-
 
   var db_name = 'test_2_idb_basic2';
   var db = new ydn.db.Storage(db_name, basic_schema, options);
@@ -78,13 +76,16 @@ var test_2_idb_basic = function() {
     console.log(db + ' put: ' + JSON.stringify(value));
 
     db.transaction(function(idb) {
+      assertEquals('tx 0', 1, idb.getTxNo());
       idb.get(table_name, 'a').addCallback(function(a_obj) {
         console.log(idb + ' get a ' + JSON.stringify(a_obj));
+        assertEquals('get 0', 1, idb.getTxNo());
         a_obj.value += amt;
         idb.put(table_name, a_obj).addCallback(function(out) {
           console.log(idb + ' put a ' + JSON.stringify(a_obj));
+          assertEquals('put 0', 1, idb.getTxNo());
           t1_fired = true;
-          assertEquals('tr done', 'a', out);
+          assertEquals('tr addCallback', 'a', out);
         });
       });
     }, [table_name], 'readwrite');
@@ -95,6 +96,119 @@ var test_2_idb_basic = function() {
       console.log(db + ' receiving fetch ' + JSON.stringify(q_result));
     })
   });
+};
+
+var schema = {
+  stores: [{
+    name: 'player',
+    keyPath: 'id',
+    indexes: [{
+      name: 'id',
+      type: 'INTEGER',
+      unique: true
+    }, {
+      name: 'health',
+      type: 'REAL'
+    }]
+  }, {
+    name: 'weapon',
+    keyPath: 'name'
+  }]
+};
+
+var player_data = [{
+  id: 1,
+  health: 50,
+  weapon: 'gun',
+  first: 'A',
+  last: 'Z',
+  full_name: 'A Z',
+  sex: 'FEMALE',
+  age: 24,
+  country: 'SG'
+}, {
+  id: 2,
+  health: 50,
+  weapon: 'gun',
+  first: 'B',
+  last: 'Z',
+  full_name: 'B Z',
+  sex: 'FEMALE',
+  age: 18,
+  country: 'US'
+}, {
+  id: 3,
+  health: 50,
+  weapon: 'laser',
+  first: 'C',
+  last: 'Z',
+  full_name: 'C Z',
+  sex: 'MALE',
+  age: 19,
+  country: 'SG'
+}, {
+  id: 4,
+  health: 50,
+  weapon: 'sword',
+  first: 'D',
+  last: 'Z',
+  full_name: 'D Z',
+  sex: 'FEMALE',
+  age: 19,
+  country: 'SG'
+}];
+var weapon_data = [{
+  name: 'gun',
+  count: 5
+}, {
+  name: 'sword',
+  count: 10
+}, {
+  name: 'laser',
+  count: 1
+}];
+
+
+var test_4_multi_stores = function() {
+  var db = new ydn.db.Storage('idb_tr_test3', schema);
+  assertEquals('base tx', 0, db.getTxNo());
+  db.put('player', player_data).addCallback(function(x) {
+    assertEquals('put 1', 1, db.getTxNo());
+  });
+  db.put('weapon', weapon_data).addCallback(function(x) {
+    assertEquals('put 2', 2, db.getTxNo());
+  });
+
+  var print_both = function(pid) {
+    db.get('player', pid).addCallback(function(player) {
+      db.get('weapon', player.weapon).addCallback(function(weapon) {
+        console.log([player, weapon]);
+      });
+    })
+  };
+
+  var change_weapon = function (pid, new_weapon_name) {
+    db.transaction(function tx_change(idb) {
+      var get_ini_data = idb.get([idb.key('player', pid), idb.key('weapon', new_weapon_name)]);
+      get_ini_data.addCallback(function get_pre_data(data) {
+        var player = data[0];
+        var new_weapon = data[1];
+        idb.get('weapon', player.weapon).addCallback(function (old_weapon) {
+          console.log('Changing from ' + old_weapon.name + ' to ' + new_weapon.name);
+          new_weapon.count--;
+          old_weapon.count++;
+          player.weapon = new_weapon.name;
+          idb.put('weapon', [new_weapon, old_weapon]);
+          idb.put('player', player);
+        })
+      });
+    }, ['player', 'weapon'], 'readwrite');
+  };
+
+  var pid = 1;
+  print_both(pid);
+  change_weapon(1, 'laser');
+  print_both(pid);
 };
 
 

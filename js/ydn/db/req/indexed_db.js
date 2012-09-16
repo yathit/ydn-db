@@ -578,7 +578,16 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 
   var me = this;
 
-  var store = this.tx.objectStore(store_name);
+  var store;
+  try {
+    store = this.tx.objectStore(store_name);
+  } catch (e) {
+    if (e.name == 'NotFoundError') {
+      throw new ydn.db.NotFoundError(store_name + ' not in Tx scope: ' + this.scope);
+    } else {
+      throw e;
+    }
+  }
   var request = store.get(id);
 
   request.onsuccess = function(event) {

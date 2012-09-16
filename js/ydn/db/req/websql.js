@@ -52,10 +52,11 @@ ydn.db.req.WebSql.DEBUG = false;
 /**
  * Maximum number of readonly requests created per transaction.
  * Common naive implementation in WebSQL library is sending massive requests
- * to the transaction and controlled by setTimeout to get another transaction.
- * It will not get optimal performance. Basically, sending more request will not
- * help much because JS is just parsing and storing data which is faster
- * than SQL processing. Smaller number also help SQLite engine to give
+ * to the transaction and use setTimeout to prevent breaking the system.
+ * To get optimal performance, we send limited number of request per transaction.
+ * Sending more request will not help much because JS is just parsing and
+ * pushing to result array data which is faster than SQL processing.
+ * Smaller number also help SQLite engine to give
  * other transaction to perform parallel requests.
  * @const
  * @type {number}
