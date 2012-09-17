@@ -89,8 +89,16 @@
           <code>app_id</code>: Application id
         </li>
         <li><span class="light fixedFont">{string=}</span>
-          <code>login_server_url</code>: Optional, login server
-          origin if login server is used.
+          <code>login_server_origin</code>: Optional, login server
+          origin. Eg: <code>https://gae-login-server.appspot.com</code>
+        </li>
+        <li><span class="light fixedFont">{string=}</span>
+          <code>auth_server_origin</code>: Optional, authorization server
+          origin. Eg: <code>https://api.yathit.com</code>
+        </li>
+        <li><span class="light fixedFont">{string=}</span>
+          <code>proxy_server_origin</code>: Optional, proxy server
+          origin. Eg: <code>https://api.yathit.com</code>
         </li>
         <li><span class="light fixedFont">{Object=}</span>
           <code>openid_client</code>: Optional, OpenID client details having
