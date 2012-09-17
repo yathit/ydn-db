@@ -8,7 +8,7 @@ Beautiful API for secure robust high-performance large-scale web app.
 
 * Support IndexedDB, Web SQL and localStorage storage mechanisms.
 * Well tested closure library module.
-* Support [[http://dev.yathit.com/ydn-db/using/schema.html | version migration]], encryption, high level [[http://dev.yathit.com/ydn-db/starting/query.html | query]] and advance  [[http://dev.yathit.com/ydn-db/starting/transaction.html | transaction workflow]].
+* Support [version migration](http://dev.yathit.com/ydn-db/using/schema.html), encryption, high level [query](http://dev.yathit.com/ydn-db/starting/query.html) and advance [transaction workflow](http://dev.yathit.com/ydn-db/starting/transaction.html).
 * Each method call is an atomic transaction. All methods are asynchronous.
 * We adopt strict javascript coding pattern: no global, no eval, no error globbing, parameterized query, all public methods and constructors are strongly type, this is this, coding error throw error. 
 * JQuery plugin available (see download section).
