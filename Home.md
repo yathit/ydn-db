@@ -70,7 +70,7 @@ The following compiled distribution js are available on download section. Use on
 * **JQuery** //jquery-ydn-db-min-x.x.js// same as ydn-db-min-x.x.js, but attached to JQuery object.
 * **Development:** //dev-ydn-db-min-x.x.js// same as ydn-db-min-x.x.js, with assertion/warning/error are display.
 
-If any file is missing, download the source codes and compile them by running [JAVA ant](http://ant.apache.org/)task, `ant build`, to accompanying build.xml file with [closure compiler](https://developers.google.com/closure/compiler/). [Javascript source maps file](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/) will also be generated.  
+If any file is missing, download the source codes and compile them by running [JAVA ant](http://ant.apache.org/) task, `ant build`, to accompanying build.xml file with [closure compiler](https://developers.google.com/closure/compiler/). [Javascript source maps file](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/) will also be generated.  
 
 This library depend on the following library. This is required only if you compiled from source.
 
