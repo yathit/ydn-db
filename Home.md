@@ -64,13 +64,13 @@ For project setup and testing, see readme.md in the source code root folder.
 
 The following compiled distribution js are available on download section. Use only one.
 
-* **Raw:** //ydn-db-x.x.js// a compiled file without minification, but comments are stripped. Use this for testing and debugging. Turn on logging or change compiled constant like {{{ydn.db.adapter.IndexedDb.DEBUG = true;}}}. Most file will have one debug flag. Logging are enable and capture by using standard closure logging system, {{{goog.debug.Logger}}}.
+* **Raw:** //ydn-db-x.x.js// a compiled file without minification, but comments are stripped. Use this for testing and debugging. Turn on logging or change compiled constant like `ydn.db.adapter.IndexedDb.DEBUG = true;`. Most file will have one debug flag. Logging are enable and capture by using standard closure logging system, `goog.debug.Logger`.
 * **Production:** //ydn-db-min-x.x.js// for production site.  
 * **Core:** //core-ydn-db-min-x.x.js// minified js file for production site. It is only a database wrapper. 
 * **JQuery** //jquery-ydn-db-min-x.x.js// same as ydn-db-min-x.x.js, but attached to JQuery object.
 * **Development:** //dev-ydn-db-min-x.x.js// same as ydn-db-min-x.x.js, with assertion/warning/error are display.
 
-If any file is missing, download the source codes and compile them by running [[http://ant.apache.org/ | JAVA ant]] task, {{{ant build}}}, to accompanying build.xml file with [[https://developers.google.com/closure/compiler/ | closure compiler]]. [[http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/ | Javascript source maps file]] will also be generated.  
+If any file is missing, download the source codes and compile them by running [JAVA ant](http://ant.apache.org/)task, `ant build`, to accompanying build.xml file with [closure compiler](https://developers.google.com/closure/compiler/). [Javascript source maps file](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/) will also be generated.  
 
 This library depend on the following library. This is required only if you compiled from source.
 
