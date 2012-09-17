@@ -1,4 +1,4 @@
-Client-side javascript database module.
+Client-side javascript database module for Indexeddb, Web SQL and localStorage storage mechanisms supporting version migration, advanced query and transaction.
 
 # Goal 
 
@@ -53,9 +53,9 @@ String value data can be optionally encrypted using SHA-1 cipher.
 
 ### Resources
 
-* [[http://dev.yathit.com/ydn-db/using.html | Using YDN-DB]] 
-* [[http://dev.yathit.com/api-reference/ydn-db-storage.html | API Reference]]
-* [[http://dev.yathit.com/ydn-db/demos.html | Demo applications]]
+* [Using YDN-DB](http://dev.yathit.com/ydn-db/using.html)
+* [API Reference](http://dev.yathit.com/api-reference/ydn-db-storage.html)
+* [Demo applications](http://dev.yathit.com/ydn-db/demos.html)
 
 
 ### Setup, download and dependency 
