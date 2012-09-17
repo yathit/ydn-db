@@ -17,58 +17,39 @@ Beautiful API for secure robust high-performance large-scale web app.
 
 Import lastest minified JS script (see download section) to your HTML files. This will create single object in the global scope, call **ydn.db.Storage**.
 
-{{{
-#!javascript
+    var db = new ydn.db.Storage('db name');
+    db.setItem('x', 'some value')
+    db.getItem('x').success(function(value) {
+    console.log('x = ' + value);
 
-var db = new ydn.db.Storage('db name');
-
-db.setItem('x', 'some value')
-
-db.getItem('x').success(function(value) {
-  console.log('x = ' + value);
-}
-}}}
 
 ==== Query ====
 Calculate average by using query
-{{{
-#!javascript
+    q = db.query('customer').average('age');
+    avg = q.fetch()
 
-q = db.query('customer').average('age');
-avg = q.fetch()
-
-}}}
 Key-range query 
-{{{
-#!javascript
-q = db.query('customer', 'age', 18, 25).where('sex', '=', 'FEMALE').select('full_name')
-young_girl_names = q.fetch()
-}}}
+    q = db.query('customer', 'age', 18, 25).where('sex', '=', 'FEMALE').select('full_name')
+    young_girl_names = q.fetch()
 
 ==== Transaction ====
 
 Example for updating an entity with a new property value relative to its current value.
-{{{
-#!javascript
 
-db.transaction(function(tdb) {
-   tdb.get('player', 1).success(function(p1_obj) {
+    db.transaction(function(tdb) {
+        tdb.get('player', 1).success(function(p1_obj) {
         p1_obj.health += 10;
         tdb.put('player', p123_obj);
-   });
-}, ['player'], 'readwrite');
-
-}}}
+      });
+    }, ['player'], 'readwrite');
 
 ==== Encryption ====
 String value data can be optionally encrypted using SHA-1 cipher. 
-{{{
-#!javascript
-db = new ydn.db.Store('store name')
-db.setSecret(passphase); // generally send from server side upon login
-db.setItem(key, value, 3600*1000); // data expire on one hour
-db.getItem(key); // data will be decrypted using the provided passphase
-}}}
+
+    db = new ydn.db.Store('store name')
+    db.setSecret(passphase); // generally send from server side upon login
+    db.setItem(key, value, 3600*1000); // data expire on one hour
+    db.getItem(key); // data will be decrypted using the provided passphase
 
 === Resources ===
 
