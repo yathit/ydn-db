@@ -85,8 +85,6 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
 goog.exportProperty(ydn.db.tr.TxStorage.prototype, 'getTx',
   ydn.db.tr.TxStorage.prototype.getTx);
 
-goog.exportSymbol('ydn.async', ydn.async);
-goog.exportProperty(ydn.async, 'dfl', ydn.async.dfl);
 
 goog.exportSymbol('ydn.db.Key', ydn.db.Key);
 goog.exportProperty(ydn.db.Key.prototype, 'parent', ydn.db.Key.prototype.parent);
