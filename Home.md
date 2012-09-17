@@ -83,7 +83,7 @@ For interested contributor, email to one of the authors in the source code. We f
 
 ### Bug report 
 
-Please [[https://bitbucket.org/ytkyaw/ydn-db/issues/new | file an issue]] for bug report describing how we could reproduce the problem. Any subtle problem, memory/speed performance issue and missing feature from stand point of IndexedDB API will be considered.  
+Please [file an issue] (https://github.com/yathit/ydn-db/issues/new) for bug report describing how we could reproduce the problem. Any subtle problem, memory/speed performance issue and missing feature from stand point of IndexedDB API will be considered.  
 
 ## License 
 
