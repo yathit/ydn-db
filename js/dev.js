@@ -15,13 +15,11 @@ var c = new goog.debug.Console();
 c.setCapturing(true);
 goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
 
+
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
-goog.exportProperty(goog.async.Deferred.prototype, 'success',
-  goog.async.Deferred.prototype.addCallback);
+
 goog.exportProperty(goog.async.Deferred.prototype, 'done',
     goog.async.Deferred.prototype.addCallback);
-goog.exportProperty(goog.async.Deferred.prototype, 'error',
-  goog.async.Deferred.prototype.addErrback);
 goog.exportProperty(goog.async.Deferred.prototype, 'fail',
     goog.async.Deferred.prototype.addErrback);
 goog.exportProperty(goog.async.Deferred.prototype, 'then',
@@ -60,8 +58,6 @@ goog.exportProperty(ydn.db.Query.prototype, 'count',
 goog.exportProperty(ydn.db.Query.prototype, 'average',
   ydn.db.Query.prototype.average);
 
-//goog.exportProperty(ydn.db.ActiveKey.prototype, 'clear',
-//  ydn.db.ActiveKey.prototype.clear);
 
 goog.exportProperty(ydn.db.KeyRange, 'bound',
   ydn.db.KeyRange.bound);
@@ -71,6 +67,8 @@ goog.exportProperty(ydn.db.KeyRange, 'lowerBound',
   ydn.db.KeyRange.lowerBound);
 goog.exportProperty(ydn.db.KeyRange, 'only',
   ydn.db.KeyRange.only);
+goog.exportProperty(ydn.db.KeyRange, 'starts',
+    ydn.db.KeyRange.starts);
 
 goog.exportProperty(ydn.db.Storage.prototype, 'encrypt',
     ydn.db.Storage.prototype.encrypt);
@@ -102,11 +100,13 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'clear',
 goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
   ydn.db.TxStorage.prototype.fetch);
 
+goog.exportProperty(ydn.db.tr.Storage.prototype, 'transaction',
+    ydn.db.tr.Storage.prototype.transaction);
+goog.exportProperty(ydn.db.tr.TxStorage.prototype, 'transaction',
+    ydn.db.tr.TxStorage.prototype.transaction);
+
 goog.exportProperty(ydn.db.tr.TxStorage.prototype, 'getTx',
   ydn.db.tr.TxStorage.prototype.getTx);
-
-goog.exportSymbol('ydn.async', ydn.async);
-goog.exportProperty(ydn.async, 'all', ydn.async.all);
 
 goog.exportSymbol('ydn.db.Key', ydn.db.Key);
 goog.exportProperty(ydn.db.Key.prototype, 'parent', ydn.db.Key.prototype.parent);
