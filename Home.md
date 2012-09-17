@@ -1,10 +1,10 @@
 Client-side javascript database module.
 
-=== Goal ===
+# Goal 
 
 Beautiful API for secure robust high-performance large-scale web app.
 
-=== Features ===
+## Features
 
 * Support IndexedDB, Web SQL and localStorage storage mechanisms.
 * Well tested closure library module.
@@ -13,7 +13,7 @@ Beautiful API for secure robust high-performance large-scale web app.
 * We adopt strict javascript coding pattern: no global, no eval, no error globbing, parameterized query, all public methods and constructors are strongly type, this is this, coding error throw error. 
 * JQuery plugin available (see download section).
 
-=== Basic usage ===
+## Basic usage 
 
 Import lastest minified JS script (see download section) to your HTML files. This will create single object in the global scope, call **ydn.db.Storage**.
 
@@ -23,16 +23,16 @@ Import lastest minified JS script (see download section) to your HTML files. Thi
     console.log('x = ' + value);
 
 
-==== Query ====
+### Query 
 Calculate average by using query
     q = db.query('customer').average('age');
     avg = q.fetch()
 
-Key-range query 
+#### Key-range query 
     q = db.query('customer', 'age', 18, 25).where('sex', '=', 'FEMALE').select('full_name')
     young_girl_names = q.fetch()
 
-==== Transaction ====
+### Transaction 
 
 Example for updating an entity with a new property value relative to its current value.
 
@@ -43,7 +43,7 @@ Example for updating an entity with a new property value relative to its current
       });
     }, ['player'], 'readwrite');
 
-==== Encryption ====
+### Encryption 
 String value data can be optionally encrypted using SHA-1 cipher. 
 
     db = new ydn.db.Store('store name')
@@ -51,14 +51,14 @@ String value data can be optionally encrypted using SHA-1 cipher.
     db.setItem(key, value, 3600*1000); // data expire on one hour
     db.getItem(key); // data will be decrypted using the provided passphase
 
-=== Resources ===
+### Resources
 
 * [[http://dev.yathit.com/ydn-db/using.html | Using YDN-DB]] 
 * [[http://dev.yathit.com/api-reference/ydn-db-storage.html | API Reference]]
 * [[http://dev.yathit.com/ydn-db/demos.html | Demo applications]]
 
 
-=== Setup, download and dependency ===
+### Setup, download and dependency 
  
 For project setup and testing, see readme.md in the source code root folder.
 
@@ -77,14 +77,14 @@ This library depend on the following library. This is required only if you compi
 * [[http://git.yathit.com/ydn-base | YDN Base]]
 * [[http://code.google.com/p/closure-library/ | Closure library]]
 
-=== Contributing ===
+## Contributing 
 
 For interested contributor, email to one of the authors in the source code. We follow [[http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml | Google JavaScript Style Guide]]. All commit on master branch must pass most stringent setting compilation and all unit tests.
 
-=== Bug report ===
+### Bug report 
 
 Please [[https://bitbucket.org/ytkyaw/ydn-db/issues/new | file an issue]] for bug report describing how we could reproduce the problem. Any subtle problem, memory/speed performance issue and missing feature from stand point of IndexedDB API will be considered.  
 
-=== License ===
+## License 
 
 Licensed under the Apache License, Version 2.0 
