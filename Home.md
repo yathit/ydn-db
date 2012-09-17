@@ -74,12 +74,12 @@ If any file is missing, download the source codes and compile them by running [J
 
 This library depend on the following library. This is required only if you compiled from source.
 
-* [[http://git.yathit.com/ydn-base | YDN Base]]
-* [[http://code.google.com/p/closure-library/ | Closure library]]
+* [YDN Base](http://git.yathit.com/ydn-base)
+* [Closure library] http://code.google.com/p/closure-library/)
 
 ## Contributing 
 
-For interested contributor, email to one of the authors in the source code. We follow [[http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml | Google JavaScript Style Guide]]. All commit on master branch must pass most stringent setting compilation and all unit tests.
+For interested contributor, email to one of the authors in the source code. We follow [Google JavaScript Style Guide] (http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml). All commit on master branch must pass most stringent setting compilation and all unit tests.
 
 ### Bug report 
 
