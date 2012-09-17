@@ -72,10 +72,12 @@ The following compiled distribution js are available on download section. Use on
 
 If any file is missing, download the source codes and compile them by running [JAVA ant](http://ant.apache.org/) task, `ant build`, to accompanying build.xml file with [closure compiler](https://developers.google.com/closure/compiler/). [Javascript source maps file](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/) will also be generated.  
 
+Originally this repositionary is in [Bitbucket] (http://git.yathit.com/ydn-db/wiki/Home)
+
 This library depend on the following library. This is required only if you compiled from source.
 
 * [YDN Base](http://git.yathit.com/ydn-base)
-* [Closure library] http://code.google.com/p/closure-library/)
+* [Closure library] (http://code.google.com/p/closure-library/)
 
 ## Contributing 
 
