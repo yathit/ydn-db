@@ -176,7 +176,7 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   } else { // using out of line key.
     // it still has _ROWID_ as column name
     var type = ydn.db.DataType.TEXT;
-    var key_index = table_schema.getIndex(table_schema.keyPath);
+    var key_index = table_schema.getIndex(ydn.db.SQLITE_SPECIAL_COLUNM_NAME);
     if (key_index) {
       type = key_index.type;
     }
