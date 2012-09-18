@@ -46,7 +46,7 @@ goog.inherits(ydn.db.req.WebSql, ydn.db.req.RequestExecutor);
  * @const
  * @type {boolean} debug flag.
  */
-ydn.db.req.WebSql.DEBUG = true;
+ydn.db.req.WebSql.DEBUG = false;
 
 
 /**
