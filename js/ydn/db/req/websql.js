@@ -141,8 +141,9 @@ ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 * @param {goog.async.Deferred} df
 * @param {string} store_name table name.
 * @param {!Object} obj object to put.
+* @param {(string|number)=} opt_key
 */
-ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj) {
+ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) {
 
   var table = this.schema.getStore(store_name);
   if (!table) {
@@ -151,7 +152,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj) {
 
   var me = this;
 
-  var out = table.getIndexedValues(obj);
+  var out = table.getIndexedValues(obj, opt_key);
   //console.log([obj, JSON.stringify(obj)]);
 
   var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
@@ -195,8 +196,9 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj) {
 * @param {goog.async.Deferred} df
 * @param {string} store_name table name.
 * @param {!Array.<!Object>} objects object to put.
+ * @param {!Array.<(string|number)>=} opt_keys
 */
-ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
+ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_keys) {
 
   var table = this.schema.getStore(store_name);
   if (!table) {
@@ -217,7 +219,12 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
 
     // todo: handle undefined or null object
 
-    var out = table.getIndexedValues(objects[i]);
+    var out;
+    if (goog.isDef(opt_keys)) {
+      out = table.getIndexedValues(objects[i], opt_keys[i]);
+    } else {
+      out = table.getIndexedValues(objects[i]);
+    }
     //console.log([obj, JSON.stringify(obj)]);
 
     var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +

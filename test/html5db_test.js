@@ -211,7 +211,6 @@ var test_6_no_keyPath = function () {
 
   var key = 'x';
 
-
   var key_value = 'a' + Math.random();
 
   var a_done;

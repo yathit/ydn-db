@@ -433,7 +433,7 @@ var test_42_autoincreasement = function () {
 
 var test_43_no_key_column = function () {
   var store_name = 'demoOS';
-  var db_name = 'test_43_24';
+  var db_name = 'test_43_25';
   var store_schema = new ydn.db.StoreSchema(store_name, undefined, false);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -447,6 +447,7 @@ var test_43_no_key_column = function () {
     {id:'bs3', value:5, type:'c'},
     {id:'st3', value:6, type:'c'}
   ];
+  var keys = objs.map(function(x) {return x.id});
 
 
   var done, result, put_done, put_result;
@@ -474,9 +475,7 @@ var test_43_no_key_column = function () {
     // Continuation
     function () {
       assertEquals('key length', objs.length, put_result.length);
-      for (var i = 1; i < objs.length; i++) {
-        assertEquals('auto increase at ' + i, put_result[i], put_result[i-1] + 1);
-      }
+      assertArrayEquals('get back the keys', keys, put_result);
 
       // retrieve back by those key
 
@@ -490,7 +489,7 @@ var test_43_no_key_column = function () {
     100, // interval
     1000); // maxTimeout
 
-  db.put(store_name, objs).addCallback(function (value) {
+  db.put(store_name, objs, keys).addCallback(function (value) {
     console.log(['receiving key from put', value]);
     put_done = true;
     put_result = value

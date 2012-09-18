@@ -145,7 +145,7 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   var id_column_name = table_schema.getQuotedKeyPath() ||
     ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
 
-  var has_key_column = false;
+
   if (goog.isDef(table_schema.keyPath)) {
     var type = ydn.db.DataType.TEXT;
     if (table_schema.autoIncrement) {
@@ -161,10 +161,10 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     if (table_schema.autoIncrement) {
       sql += ' AUTOINCREMENT ';
     }
-    has_key_column = true;
+
   } else if (table_schema.autoIncrement) {
     sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT ';
-    has_key_column = true;
+
 
     // else no key column the special column names _ROWID_ will be used instead.
     for (var i = 0; i < table_schema.indexes.length; i++) {
@@ -173,8 +173,16 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
           ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' cannot be used.');
       }
     }
+  } else { // using out of line key.
+    // it still has _ROWID_ as column name
+    var type = ydn.db.DataType.TEXT;
+    var key_index = table_schema.getIndex(table_schema.keyPath);
+    if (key_index) {
+      type = key_index.type;
+    }
+    sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type + ' UNIQUE PRIMARY KEY ';
 
-  } // else OK: no primary column. it still has _ROWID_ as column name
+  }
 
 
   // every table must has a default field.
@@ -183,7 +191,7 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   }
 
 
-  var sep = has_key_column ? ', ' : '';
+  var sep = ', ';
   for (var i = 0; i < table_schema.indexes.length; i++) {
     /**
      * @type {ydn.db.IndexSchema}
@@ -195,7 +203,7 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     var primary = index.unique ? ' UNIQUE ' : ' ';
 
     sql += sep + index.name + ' ' + index.type + primary;
-    sep = ', ';
+
   }
 
   sql += ');';

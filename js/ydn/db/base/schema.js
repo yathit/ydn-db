@@ -289,10 +289,11 @@ ydn.db.StoreSchema.prototype.setKey = function(obj, value) {
 /**
  *
  * @param {!Object} obj get values of indexed fields.
+ * @param {(string|number)=} opt_key
  * @return {{columns: Array.<string>, slots: Array.<string>, values:
  * Array.<string>, key: (string|number|undefined)}} return list of values as it appear on the indexed fields.
  */
-ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
+ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
 
   var key_column;
   var values = [];
@@ -304,7 +305,13 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
     columns = [this.getQuotedKeyPath()];
     values = [key];
     slots = ['?'];
+  } else if (goog.isDef(opt_key)) {
+    key = opt_key;
+    columns = [ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
+    values = [key];
+    slots = ['?'];
   }
+
 
   for (var i = 0; i < this.indexes.length; i++) {
     if (this.indexes[i].name == this.keyPath ||
