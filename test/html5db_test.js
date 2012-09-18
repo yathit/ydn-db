@@ -201,7 +201,7 @@ var test_5_clear = function() {
 
 /**
  */
-var test_6_no_keyPath = function () {
+var _test_6_no_keyPath = function () {
 
   var schema = new ydn.db.DatabaseSchema(1);
   schema.addStore(new ydn.db.StoreSchema(table_name));
