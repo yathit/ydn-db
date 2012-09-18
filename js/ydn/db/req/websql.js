@@ -616,7 +616,16 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
       result = [];
     }
     var idx = -1;
-    for (var i = 0; i < results.rows.length; i++) {
+    // http://www.w3.org/TR/webdatabase/#database-query-results
+    // Fetching the length might be expensive, and authors are thus encouraged
+    // to avoid using it (or enumerating over the object, which implicitly uses
+    // it) where possible.
+    // for (var row, i = 0; row = results.rows.item(i); i++) {
+    // Unfortunately, such enumerating don't work
+    // RangeError: Item index is out of range in Chrome.
+    // INDEX_SIZE_ERR: DOM Exception in Safari
+    var n = results.rows.length;
+    for (var i = 0; i < n; i++) {
       var row = results.rows.item(i);
       var value = me.parseRow(store, row);
       var to_continue = !goog.isFunction(q.continued) || q.continued(value);
