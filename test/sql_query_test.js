@@ -23,7 +23,7 @@ var setUp = function() {
   basic_schema = new ydn.db.DatabaseSchema(1);
   var index = new ydn.db.IndexSchema('id');
   var index2 = new ydn.db.IndexSchema('value', false, ydn.db.DataType.FLOAT);
-  var store = new ydn.db.StoreSchema(table_name, 'id', false, [index, index2]);
+  var store = new ydn.db.StoreSchema(table_name, 'id', false, undefined, [index, index2]);
 	basic_schema.addStore(store);
 };
 

@@ -146,16 +146,12 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
 
 
+  var type = table_schema.type;
+  if (type == ydn.db.DataType.ARRAY) {
+    // key will be converted into string
+    type = ydn.db.DataType.TEXT;
+  }
   if (goog.isDef(table_schema.keyPath)) {
-    var type = ydn.db.DataType.TEXT;
-    if (table_schema.autoIncrement) {
-      type = ydn.db.DataType.INTEGER;
-    } else {
-      var key_index = table_schema.getIndex(table_schema.keyPath);
-      if (key_index) {
-        type = key_index.type;
-      }
-    }
     sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY ';
 
     if (table_schema.autoIncrement) {
@@ -163,23 +159,10 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     }
 
   } else if (table_schema.autoIncrement) {
-    sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT ';
-
-
-    // else no key column the special column names _ROWID_ will be used instead.
-    for (var i = 0; i < table_schema.indexes.length; i++) {
-      if (table_schema.indexes[i].name == ydn.db.SQLITE_SPECIAL_COLUNM_NAME) {
-        throw new ydn.error.ConstrainError('column name ' +
-          ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' cannot be used.');
-      }
-    }
+    sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
+      ' UNIQUE PRIMARY KEY AUTOINCREMENT ';
   } else { // using out of line key.
     // it still has _ROWID_ as column name
-    var type = ydn.db.DataType.TEXT;
-    var key_index = table_schema.getIndex(ydn.db.SQLITE_SPECIAL_COLUNM_NAME);
-    if (key_index) {
-      type = key_index.type;
-    }
     sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type + ' UNIQUE PRIMARY KEY ';
 
   }

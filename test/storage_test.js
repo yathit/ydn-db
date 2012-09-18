@@ -19,7 +19,7 @@ var setUp = function() {
 
   var table_name = 't1';
   var basic_schema = new ydn.db.DatabaseSchema(1);
-  basic_schema.addStore(new ydn.db.StoreSchema(this.table_name));
+  basic_schema.addStore(new ydn.db.StoreSchema(table_name));
 };
 
 var tearDown = function() {

@@ -300,7 +300,7 @@ var test_82_fetch_keys = function () {
   var store_name = 'st';
   var db_name = 'test821';
   var indexSchema = new ydn.db.IndexSchema('id', true);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
   assertEquals('db', 'websql', db.type());
@@ -501,7 +501,7 @@ var test_83_fetch_keys = function () {
   var store_name2 = 'st2';
   var db_name = 'test83';
   var indexSchema = new ydn.db.IndexSchema('id', true);
-  var store_schema1 = new ydn.db.StoreSchema(store_name1, 'id', false, [indexSchema]);
+  var store_schema1 = new ydn.db.StoreSchema(store_name1, 'id', false, undefined, [indexSchema]);
   var store_schema2 = new ydn.db.StoreSchema(store_name2, 'id');
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema1, store_schema2]);
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -929,11 +929,11 @@ var test_12_put_arr = function() {
 
 var test_41_keyRange = function () {
   var store_name = 'ts1';
-  var db_name = 'test_41_61';
+  var db_name = 'test_41_62';
 
   var schema = new ydn.db.DatabaseSchema(1);
   var indexSchema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
-  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]));
+  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]));
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
@@ -991,7 +991,7 @@ var test_71_offset_limit = function () {
 
   var schema = new ydn.db.DatabaseSchema(1);
   var indexSchema = new ydn.db.IndexSchema('id', true, ydn.db.DataType.INTEGER);
-  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]));
+  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, ydn.db.DataType.INTEGER, [indexSchema]));
   var db = new ydn.db.Storage(db_name, schema, options);
 
    var objs = [
