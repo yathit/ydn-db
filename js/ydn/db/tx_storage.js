@@ -317,24 +317,40 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
  * Execute PUT request either storing result to tx or callback to df.
  * @param {string} store_name table name.
  * @param {!Object|!Array.<!Object>} value object to put.
+ * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys
  * @return {!goog.async.Deferred}
  */
-ydn.db.TxStorage.prototype.put = function (store_name, value) {
+ydn.db.TxStorage.prototype.put = function (store_name, value, opt_keys) {
+
+
 
   var df = ydn.db.createDeferred();
   var me = this;
   if (goog.isString(store_name)) {
-    goog.asserts.assert(this.schema.hasStore(store_name), 'Store: ' +
-      store_name + ' not exists.');
+    var store = this.schema.getStore(store_name);
+    if (!store) {
+      throw new ydn.error.ArgumentException('Store: ' + store_name + ' not exists.');
+    }
+    // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
+    if ((goog.isDef(store.keyPath) || store.autoIncrement) && goog.isDef(opt_keys)) {
+      // The object store uses in-line keys or has a key generator, and a key parameter was provided.
+      throw new ydn.error.ArgumentException('in-line key is in used.');
+    } else if (!goog.isDef(store.keyPath) && !store.autoIncrement && !goog.isDef(opt_keys)) {
+      // The object store uses out-of-line keys and has no key generator, and no key parameter was provided.
+      throw new ydn.error.ArgumentException('out-of-line key must be provided.');
+    }
+
     if (goog.isArray(value)) {
       var objs = value;
+      var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
       this.execute(function (executor) {
-        executor.putObjects(df, store_name, objs);
+        executor.putObjects(df, store_name, objs, keys);
       }, [store_name], ydn.db.TransactionMode.READ_WRITE);
     } else if (goog.isObject(value)) {
       var obj = value;
+      var key = /** @type {number|string|undefined} */  (opt_keys);
       this.execute(function (executor) {
-        executor.putObject(df, store_name, obj);
+        executor.putObject(df, store_name, obj, key);
       }, [store_name], ydn.db.TransactionMode.READ_WRITE);
     } else {
       throw new ydn.error.ArgumentException();

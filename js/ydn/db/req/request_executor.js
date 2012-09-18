@@ -106,19 +106,21 @@ ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
 
 
 /**
- * Return object
- * @param {!goog.async.Deferred} return object in deferred function.
+ * Put object and return key inserted.
+ * @param {!goog.async.Deferred} return key in deferred function.
  * @param {string} store table name.
  * @param {!Object} obj
- * all entries in the store will return.
+ * @param {(string|number)=} opt_key
  */
 ydn.db.req.RequestExecutor.prototype.putObject = goog.abstractMethod;
 
 
 /**
- * @param {!goog.async.Deferred} return object in deferred function.
+ * Put objects and return list of key inserted.
+ * @param {!goog.async.Deferred} return keys in deferred function.
  * @param {string} store_name
  * @param {!Array.<Object>} objs
+ * @param {!Array.<(string|number)>=} opt_key
  */
 ydn.db.req.RequestExecutor.prototype.putObjects = goog.abstractMethod;
 
@@ -127,7 +129,7 @@ ydn.db.req.RequestExecutor.prototype.putObjects = goog.abstractMethod;
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!Array.<Object>} objs
- * @param {!Array.<!ydn.db.Key>} keys
+ * @param {!Array.<!ydn.db.Key>=} keys
  */
 ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
 

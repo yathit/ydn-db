@@ -275,12 +275,27 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {string} table table name.
 * @param {!Object} value object to put.
-* @private
+* @param {(string|number)=} opt_key
 */
-ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value) {
+ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value, opt_key) {
   var store = this.tx.objectStore(table);
 
-  var request = store.put(value);
+  var request;
+  try {
+    if (goog.isDef(opt_key)) {
+      request = store.put(value, opt_key);
+    } else {
+      request = store.put(value);
+    }
+  } catch (e) {
+    if (e.name == 'DataError') {
+      // give useful info.
+      var str = ydn.json.stringify(value);
+      throw new ydn.db.InvalidKeyException(table + ': ' + str.substring(0, 50));
+    } else {
+      throw e;
+    }
+  }
   request.onsuccess = function (event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
@@ -303,9 +318,10 @@ ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value) {
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} store_name table name.
  * @param {!Array.<!Object>} objs object to put.
+ * @param {!Array.<(string|number)>=} opt_keys
  * @private
  */
-ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs) {
+ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_keys) {
 
   var results = [];
   var result_count = 0;
@@ -329,7 +345,11 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs) {
 
     var request;
     try {
-      request = store.put(objs[i]);
+      if (goog.isDef(opt_keys)) {
+        request = store.put(objs[i], opt_keys[i]);
+      } else {
+        request = store.put(objs[i]);
+      }
     } catch (e) {
       if (e.name == 'DataError') {
         // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
