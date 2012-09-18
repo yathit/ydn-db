@@ -160,3 +160,30 @@ ydn.db.DataCloneError = function(opt_msg) {
 goog.inherits(ydn.db.DataCloneError, Error);
 
 ydn.db.DataCloneError.prototype.name = 'ydn.db.DataCloneError';
+
+
+/**
+ *
+ * @param {SQLError} e
+ * @param {*=} opt_msg
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.SQLError = function(e, opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.DataCloneError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+  this.message += ' :' + e.message;
+};
+goog.inherits(ydn.db.SQLError, Error);
+
+ydn.db.SQLError.prototype.name = 'ydn.db.SQLError';
+

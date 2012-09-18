@@ -364,6 +364,72 @@ var test_82_fetch_keys = function () {
 };
 
 
+var test_42_autoincreasement = function () {
+  var store_name = 'demoOS';
+  var db_name = 'test_42_23';
+  var store_schema = new ydn.db.StoreSchema(store_name, undefined, true);
+  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var objs = [
+    {id:'qs0', value:0, type:'a'},
+    {id:'qs1', value:1, type:'a'},
+    {id:'at2', value:2, type:'b'},
+    {id:'bs1', value:3, type:'b'},
+    {id:'bs2', value:4, type:'c'},
+    {id:'bs3', value:5, type:'c'},
+    {id:'st3', value:6, type:'c'}
+  ];
+
+
+  var done, result, put_done, put_result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertEquals('length', objs.length, result.length);
+      assertArrayEquals('get back', objs, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  waitForCondition(
+    // Condition
+    function () {
+      return put_done;
+    },
+    // Continuation
+    function () {
+      assertEquals('key length', objs.length, put_result.length);
+      for (var i = 1; i < objs.length; i++) {
+        assertEquals('auto increase at ' + i, put_result[i], put_result[i-1] + 1);
+      }
+
+      // retrieve back by those key
+
+      db.get(store_name, put_result).addBoth(function (value) {
+        console.log('fetch value: ' + JSON.stringify(value));
+        result = value;
+        done = true;
+      });
+    },
+
+    100, // interval
+    1000); // maxTimeout
+
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(['receiving key from put', value]);
+    put_done = true;
+    put_result = value
+  });
+};
+
 
 var test_83_fetch_keys = function () {
   var store_name1 = 'st1';

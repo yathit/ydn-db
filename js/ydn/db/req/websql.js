@@ -46,7 +46,7 @@ goog.inherits(ydn.db.req.WebSql, ydn.db.req.RequestExecutor);
  * @const
  * @type {boolean} debug flag.
  */
-ydn.db.req.WebSql.DEBUG = false;
+ydn.db.req.WebSql.DEBUG = true;
 
 
 /**
@@ -133,7 +133,7 @@ ydn.db.req.WebSql.prototype.parseRow = function(table, row) {
  * @return {!Object} parse value.
  */
 ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
-  return row[table.keyPath || ydn.db.DEFAULT_KEY_COLUMN];
+  return row[table.keyPath || ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
 };
 
 
@@ -166,8 +166,10 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj) {
     if (ydn.db.req.WebSql.DEBUG) {
       window.console.log([sql, out, transaction, results]);
     }
-
-    df.callback(out.key);
+    // In SQLite, row id (insertId) is column and hence cab retrieved back by
+    // row ID. see in getById for details.
+    var key = goog.isDef(out.key) ? out.key : results.insertId;
+    df.callback(key);
 
   };
 
@@ -228,7 +230,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
      */
     var success_callback = function (transaction, results) {
       result_count++;
-      result_keys[i] = out.key;
+      result_keys[i] = goog.isDef(out.key) ? out.key : results.insertId;
       if (result_count == objects.length) {
         df.callback(result_keys);
       } else {
@@ -281,9 +283,11 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
   var me = this;
 
+  var column_name = table.getSQLKeyColumnName();
+
   var params = [id];
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-      table.getQuotedKeyPath() + ' = ?';
+    column_name + ' = ?';
 
 
   /**
@@ -379,9 +383,12 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
       df.errback(error);
     };
 
-    var params = [ids[i]];
+    var id = ids[i];
+    var column_name = table.getSQLKeyColumnName();
+
+    var params = [id];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-      table.getQuotedKeyPath() + ' = ?';
+      column_name + ' = ?';
     tx.executeSql(sql, params, callback, error_callback);
   };
 
@@ -522,11 +529,10 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
       df.errback(error);
     };
 
-    /**
-     *
-     * @type {!Array.<!ydn.db.Key>}
-     */
-    var params = [key.getId()];
+    var id = key.getId();
+    var column_name = table.getSQLKeyColumnName();
+
+    var params = [id];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
         table.getQuotedKeyPath() + ' = ?';
     tx.executeSql(sql, params, callback, error_callback);
@@ -723,7 +729,7 @@ ydn.db.req.WebSql.prototype.removeById = function (d, table_name, key) {
 
   var me = this;
   var store = this.schema.getStore(table_name);
-  var key_column = store.getQuotedKeyPath() || ydn.db.DEFAULT_KEY_COLUMN;
+  var key_column = store.getSQLKeyColumnName();
 
   var sql = 'DELETE FROM  ' + store.getQuotedName() + ' WHERE ' +
       key_column + ' = ?';

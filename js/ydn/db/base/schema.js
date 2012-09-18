@@ -180,11 +180,19 @@ ydn.db.StoreSchema.prototype.hasIndex = function(name) {
 
 
 /**
- *
  * @return {string|undefined} return quoted keyPath.
  */
 ydn.db.StoreSchema.prototype.getQuotedKeyPath = function() {
   return goog.isDef(this.keyPath) ? goog.string.quote(this.keyPath) : undefined;
+};
+
+/**
+ * Return quoted keyPath. In case undefined return default key column.
+ * @return {string} return quoted keyPath.
+ */
+ydn.db.StoreSchema.prototype.getSQLKeyColumnName = function() {
+  return goog.isDef(this.keyPath) ?
+    goog.string.quote(this.keyPath) : ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
 };
 
 
@@ -282,27 +290,24 @@ ydn.db.StoreSchema.prototype.setKey = function(obj, value) {
  *
  * @param {!Object} obj get values of indexed fields.
  * @return {{columns: Array.<string>, slots: Array.<string>, values:
- * Array.<string>, key: (string|number)}} return list of values as it appear on the indexed fields.
+ * Array.<string>, key: (string|number|undefined)}} return list of values as it appear on the indexed fields.
  */
 ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
 
-  var key;
   var key_column;
+  var values = [];
+  var slots = [];
+  var columns = [];
+  var key;
   if (goog.isDef(this.keyPath)) {
-    key_column = this.getQuotedKeyPath();
     key = this.getKey(obj);
-  } else {
-    key_column = ydn.db.DEFAULT_KEY_COLUMN;
-    key = this.generateKey();
+    columns = [this.getQuotedKeyPath()];
+    values = [key];
+    slots = ['?'];
   }
-  goog.asserts.assert(goog.isDefAndNotNull(key), 'no key in ' + ydn.json.stringify(obj));
-  var columns = [key_column];
-  var values = [key];
-  var slots = ['?'];
 
   for (var i = 0; i < this.indexes.length; i++) {
     if (this.indexes[i].name == this.keyPath ||
-      this.indexes[i].name == ydn.db.DEFAULT_KEY_COLUMN ||
       this.indexes[i].name == ydn.db.DEFAULT_BLOB_COLUMN) {
       continue;
     }
