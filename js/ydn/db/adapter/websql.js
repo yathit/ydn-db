@@ -146,10 +146,12 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
 
   if (goog.isDef(table_schema.keyPath)) {
-    var type = 'TEXT'; // TODO: always TEXT ?
+
+    var type = table_schema.autoIncrement ? 'INTEGER' :
+      'TEXT'; // TODO: always TEXT ?
     sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY';
+
     if (table_schema.autoIncrement) {
-      // require keyPath to be Integer
       sql += ' AUTOINCREMENT';
     }
   } {
