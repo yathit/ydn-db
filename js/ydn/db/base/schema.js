@@ -238,21 +238,21 @@ ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type) {
 /**
  *
  * @param {!Object} obj get key value from its keyPath field.
- * @return {string|undefined} return key value.
+ * @return {!Array|number|string|undefined} return key value.
  */
 ydn.db.StoreSchema.prototype.getKey = function(obj) {
+  // http://www.w3.org/TR/IndexedDB/#key-construct
   return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
 };
 
-
 /**
  * Generated a key starting from 0 with increment of 1.
+ * NOTE: Use only by simple store.
  * @return {number} generated key.
  */
 ydn.db.StoreSchema.prototype.generateKey = function() {
   if (!goog.isDef(this.current_key_)) {
-    // FIXME: this implementation is incorrect. current_key_ must be
-    // retrieve from the max value in the store.
+
     /**
      * @type {number}
      * @private
@@ -261,6 +261,7 @@ ydn.db.StoreSchema.prototype.generateKey = function() {
   }
   return this.current_key_ ++;
 };
+
 
 
 /**
@@ -287,11 +288,25 @@ ydn.db.StoreSchema.prototype.setKey = function(obj, value) {
 
 
 /**
- *
+ * Separator between subset of key in array type. This is used in SQLite,
+ * since it cannot handle array data type.
+ * @const
+ * @type {string}
+ */
+ydn.db.StoreSchema.KEY_SEP = ydn.db.Key.SEP_PARENT;
+
+
+/**
+ * This is for WebSQL.
  * @param {!Object} obj get values of indexed fields.
- * @param {(string|number)=} opt_key
- * @return {{columns: Array.<string>, slots: Array.<string>, values:
- * Array.<string>, key: (string|number|undefined)}} return list of values as it appear on the indexed fields.
+ * @param {(!Array|string|number)=} opt_key
+ * @return {{
+ *    columns: Array.<string>,
+ *    slots: Array.<string>,
+ *    values: Array.<string>,
+ *    key: (!Array|string|number|undefined),
+ *    normalized_key: (string|number|undefined)
+ *  }} return list of values as it appear on the indexed fields.
  */
 ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
 
@@ -299,19 +314,24 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
   var values = [];
   var slots = [];
   var columns = [];
-  var key;
-  if (goog.isDef(this.keyPath)) {
-    key = this.getKey(obj);
-    columns = [this.getQuotedKeyPath()];
-    values = [key];
-    slots = ['?'];
-  } else if (goog.isDef(opt_key)) {
-    key = opt_key;
-    columns = [ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
-    values = [key];
+  var key, normalized_key;
+  if (goog.isDef(this.keyPath) || goog.isDef(opt_key)) {
+    if (goog.isDef(this.keyPath)) {
+      key = this.getKey(obj) || opt_key;
+      columns = [this.getQuotedKeyPath()];
+    } else {
+      key = opt_key;
+      columns = [ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
+    }
+    if (goog.isArray(key)) {
+      // SQLite do not support Array as key
+      normalized_key = key.join(ydn.db.StoreSchema.KEY_SEP);
+    } else {
+      normalized_key = key;
+    }
+    values = [normalized_key];
     slots = ['?'];
   }
-
 
   for (var i = 0; i < this.indexes.length; i++) {
     if (this.indexes[i].name == this.keyPath ||
@@ -350,7 +370,13 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
   slots.push('?');
   columns.push(ydn.db.DEFAULT_BLOB_COLUMN);
 
-  return {columns: columns, slots: slots, values: values, key: key};
+  return {
+    columns: columns,
+    slots: slots,
+    values: values,
+    key: key,
+    normalized_key: normalized_key
+  };
 };
 
 

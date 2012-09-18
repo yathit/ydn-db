@@ -77,7 +77,7 @@ ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {
  * Return object
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store table name.
- * @param {(string|number)} id object key to be retrieved, if not provided,
+ * @param {(!Array|string|number)} id object key to be retrieved, if not provided,
  * all entries in the store will return.
  */
 ydn.db.req.RequestExecutor.prototype.getById = goog.abstractMethod;
@@ -86,7 +86,7 @@ ydn.db.req.RequestExecutor.prototype.getById = goog.abstractMethod;
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store_name
- * @param {!Array.<string|number>} ids
+ * @param {!Array.<!Array|string|number>} ids
  */
 ydn.db.req.RequestExecutor.prototype.getByIds = goog.abstractMethod;
 
@@ -110,7 +110,7 @@ ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
  * @param {!goog.async.Deferred} return key in deferred function.
  * @param {string} store table name.
  * @param {!Object} obj
- * @param {(string|number)=} opt_key
+ * @param {(!Array|string|number)=} opt_key
  */
 ydn.db.req.RequestExecutor.prototype.putObject = goog.abstractMethod;
 
@@ -120,7 +120,7 @@ ydn.db.req.RequestExecutor.prototype.putObject = goog.abstractMethod;
  * @param {!goog.async.Deferred} return keys in deferred function.
  * @param {string} store_name
  * @param {!Array.<Object>} objs
- * @param {!Array.<(string|number)>=} opt_key
+ * @param {!Array.<(!Array|string|number)>=} opt_key
  */
 ydn.db.req.RequestExecutor.prototype.putObjects = goog.abstractMethod;
 
@@ -138,7 +138,7 @@ ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
  * Delete given key in the object store.
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store table name.
- * @param {(string|number)} id object key to be retrieved, if not provided,
+ * @param {(!Array|string|number)} id object key to be retrieved, if not provided,
  * all entries in the store will return.
  */
 ydn.db.req.RequestExecutor.prototype.clearById = goog.abstractMethod;

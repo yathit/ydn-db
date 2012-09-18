@@ -141,7 +141,7 @@ ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 * @param {goog.async.Deferred} df
 * @param {string} store_name table name.
 * @param {!Object} obj object to put.
-* @param {(string|number)=} opt_key
+* @param {(!Array|string|number)=} opt_key
 */
 ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) {
 
@@ -196,7 +196,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) 
 * @param {goog.async.Deferred} df
 * @param {string} store_name table name.
 * @param {!Array.<!Object>} objects object to put.
- * @param {!Array.<(string|number)>=} opt_keys
+ * @param {!Array.<(Array|string|number)>=} opt_keys
 */
 ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_keys) {
 
@@ -278,8 +278,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_
 *
 * @param {goog.async.Deferred} d
 * @param {string} table_name
-* @param {(number|string)} id
-* @private
+* @param {(!Array|number|string)} id
 */
 ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
@@ -292,7 +291,8 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
   var column_name = table.getSQLKeyColumnName();
 
-  var params = [id];
+  var params = goog.isArray(id) ? [id.join(ydn.db.StoreSchema.KEY_SEP)] : [id];
+
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
     column_name + ' = ?';
 
@@ -330,8 +330,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
  *
  * @param {goog.async.Deferred} df
  * @param {string} table_name
- * @param {!Array.<(number|string)>} ids
- * @private
+ * @param {!Array.<(!Array|number|string)>} ids
  */
 ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
 
@@ -393,7 +392,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
     var id = ids[i];
     var column_name = table.getSQLKeyColumnName();
 
-    var params = [id];
+    var params = goog.isArray(id) ? [id.join(ydn.db.StoreSchema.KEY_SEP)] : [id];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
       column_name + ' = ?';
     tx.executeSql(sql, params, callback, error_callback);
@@ -536,7 +535,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
       df.errback(error);
     };
 
-    var id = key.getId();
+    var id = key.getNormalizedId();
     var column_name = table.getSQLKeyColumnName();
 
     var params = [id];
@@ -779,7 +778,7 @@ ydn.db.req.WebSql.prototype.removeById = function (d, table_name, key) {
 /**
  * @param {!goog.async.Deferred} d deferred result.
  * @param {string} table table name.
- * @param {(string|number)} id row name.
+ * @param {(!Array|string|number)} id row name.
  */
 ydn.db.req.WebSql.prototype.clearById = function (d, table, id) {
 

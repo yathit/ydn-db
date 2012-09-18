@@ -275,7 +275,7 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {string} table table name.
 * @param {!Object} value object to put.
-* @param {(string|number)=} opt_key
+* @param {(!Array|string|number)=} opt_key
 */
 ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value, opt_key) {
   var store = this.tx.objectStore(table);
@@ -318,7 +318,7 @@ ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value, opt_key) 
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} store_name table name.
  * @param {!Array.<!Object>} objs object to put.
- * @param {!Array.<(string|number)>=} opt_keys
+ * @param {!Array.<(!Array|string|number)>=} opt_keys
  * @private
  */
 ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_keys) {
@@ -405,7 +405,7 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_
 *
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {string} store_name store name.
-* @param {(string|number)} key object key.
+* @param {(!Array|string|number)} key object key.
 * @private
 */
 ydn.db.req.IndexedDb.prototype.clearById = function (df, store_name, key) {

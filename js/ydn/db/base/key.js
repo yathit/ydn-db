@@ -28,7 +28,7 @@ goog.provide('ydn.db.Key');
  * Builds a new Key object of known id.
  *
  * @param {string|!ydn.db.Key.Json} store_or_json_or_value
- * @param {(string|number)=}id
+ * @param {(!Array|string|number)=}id
  * @param {ydn.db.Key=} opt_parent
  * @constructor
  */
@@ -72,7 +72,7 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
   this.store_name = store_name;
   /**
    * @protected
-   * @type {(string|number)}
+   * @type {(!Array|string|number)}
    */
   this.id = id;
   /**
@@ -112,7 +112,8 @@ ydn.db.Key.prototype.toJSON = function() {
 
 /**
  * Separator between child and parent.
- * @const {string}
+ * @const
+ * @type {string}
  */
 ydn.db.Key.SEP_PARENT = '^|';
 
@@ -153,10 +154,23 @@ ydn.db.Key.prototype.getStoreName = function() {
 
 /**
  *
- * @return {string|number}
+ * @return {!Array|string|number}
  */
 ydn.db.Key.prototype.getId = function() {
   return this.id;
+};
+
+
+/**
+ *
+ * @return {string|number}
+ */
+ydn.db.Key.prototype.getNormalizedId = function() {
+  if (goog.isArray(this.id)) {
+    return this.id.join(ydn.db.Key.SEP_PARENT);
+  } else {
+    return this.id;
+  }
 };
 
 
