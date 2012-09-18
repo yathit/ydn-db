@@ -42,7 +42,7 @@ ydn.db.KeyRange.only = function(value) {
  * @param {(string|number)=} upper
  * @param {boolean=} lowerOpen
  * @param {boolean=} upperOpen
- * @return {ydn.db.KeyRange}
+ * @return {!ydn.db.KeyRange}
  */
 ydn.db.KeyRange.bound = function(lower, upper,
                                      lowerOpen, upperOpen) {
@@ -56,6 +56,18 @@ ydn.db.KeyRange.upperBound = function(upper, upperOpen) {
 
 ydn.db.KeyRange.lowerBound = function(lower, lowerOpen) {
   return new ydn.db.KeyRange(lower, undefined, lowerOpen, undefined);
+};
+
+
+
+/**
+ * Helper method for creating useful KeyRange.
+ * @param {string} value value.
+ * @return {!ydn.db.KeyRange}
+ */
+ydn.db.KeyRange.starts = function (value) {
+  var value_upper = value + '\uffff';
+  return ydn.db.KeyRange.bound(value, value_upper);
 };
 
 

@@ -344,16 +344,6 @@ ydn.db.Query.prototype.toWhereClause = function() {
 };
 
 
-/**
- * Helper method for creating useful KeyRange.
- * @param {string} value value.
- */
-ydn.db.Query.prototype.startsWith = function (value) {
-  var value_upper = value + '\uffff';
-  this.bound(value, value_upper);
-  return this;
-};
-
 
 
 /**
