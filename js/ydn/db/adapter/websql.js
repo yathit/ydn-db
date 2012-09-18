@@ -147,9 +147,15 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var has_key_column = false;
   if (goog.isDef(table_schema.keyPath)) {
-    var type = table_schema.autoIncrement ?
-      'INTEGER' :
-      'TEXT'; // TODO: always TEXT for non AUTOINCREMENT ?
+    var type = ydn.db.DataType.TEXT;
+    if (table_schema.autoIncrement) {
+      type = ydn.db.DataType.INTEGER;
+    } else {
+      var key_index = table_schema.getIndex(table_schema.keyPath);
+      if (key_index) {
+        type = key_index.type;
+      }
+    }
     sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY ';
 
     if (table_schema.autoIncrement) {

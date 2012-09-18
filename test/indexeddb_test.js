@@ -1045,7 +1045,9 @@ var test_85_query_start_with = function () {
         2000); // maxTimeout
 
 
-      var q = new ydn.db.Query(store_name, 'id').startsWith('qs');
+      var q = new ydn.db.Query(store_name, 'id', 'next', ydn.db.KeyRange.starts('qs'));
+
+
       db.fetch(q).addCallback(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         assertEquals('obj length', objs.length - 1, value.length);
