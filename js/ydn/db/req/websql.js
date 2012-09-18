@@ -51,7 +51,7 @@ ydn.db.req.WebSql.DEBUG = false;
 
 /**
  * Maximum number of readonly requests created per transaction.
- * Common naive implementation in WebSQL library is sending massive requests
+ * Common implementation in WebSQL library is sending massive requests
  * to the transaction and use setTimeout to prevent breaking the system.
  * To get optimal performance, we send limited number of request per transaction.
  * Sending more request will not help much because JS is just parsing and
@@ -166,6 +166,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj) {
     if (ydn.db.req.WebSql.DEBUG) {
       window.console.log([sql, out, transaction, results]);
     }
+
     df.callback(out.key);
 
   };

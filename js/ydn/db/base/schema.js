@@ -243,6 +243,8 @@ ydn.db.StoreSchema.prototype.getKey = function(obj) {
  */
 ydn.db.StoreSchema.prototype.generateKey = function() {
   if (!goog.isDef(this.current_key_)) {
+    // FIXME: this implementation is incorrect. current_key_ must be
+    // retrieve from the max value in the store.
     /**
      * @type {number}
      * @private
