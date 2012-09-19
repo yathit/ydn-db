@@ -51,12 +51,25 @@ ydn.db.adapter.WebSql = function(dbname, schema) {
 
   var description = this.dbname;
 
-  /**
-   * Must open the database with empty version, otherwise unrecoverable error
-   * will occur in the first instance.
-   */
-  this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
-    this.schema.size);
+  try {
+    /**
+     * http://www.w3.org/TR/webdatabase/#databases
+     *
+     * According to W3C doc, INVALID_STATE_ERR will be throw if version is
+     * provided, but database of that version is not exist. The only way to
+     * work around is giving empty string and mirage after opening the database.
+     */
+    this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
+      this.schema.size);
+  } catch (e) {
+    if (e.name == 'SECURITY_ERR') {
+      // TODO: abort th queue
+      throw new ydn.db.SecurityError(e);
+    } else {
+      throw e;
+    }
+  }
+
   // we can immediately set this to sql_db_ because database table creation
   // are going through doTranaction process, it already lock out
   // for using this database.

@@ -173,7 +173,7 @@ ydn.db.SQLError = function(e, opt_msg) {
 
   // Ensure there is a stack trace.
   if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ydn.db.DataCloneError);
+    Error.captureStackTrace(this, ydn.db.SQLError);
   } else {
     this.stack = new Error().stack || '';
   }
@@ -186,4 +186,30 @@ ydn.db.SQLError = function(e, opt_msg) {
 goog.inherits(ydn.db.SQLError, Error);
 
 ydn.db.SQLError.prototype.name = 'ydn.db.SQLError';
+
+
+/**
+ *
+ * @param {Error} e
+ * @param {*=} opt_msg
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.SecurityError = function(e, opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.SecurityError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+  this.message += ' :' + e.message;
+};
+goog.inherits(ydn.db.SecurityError, Error);
+
+ydn.db.SecurityError.prototype.name = 'ydn.db.SecurityError';
 
