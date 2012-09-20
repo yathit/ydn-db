@@ -422,7 +422,7 @@ var test_32_array_key = function() {
       function() { return a_done; },
       // Continuation
       function() {
-        assertEquals('put a', key, a_value);
+        assertArrayEquals('put a', key, a_value);
 
         var b_done;
         var b_value;
@@ -431,7 +431,7 @@ var test_32_array_key = function() {
           function() { return b_done; },
           // Continuation
           function() {
-            assertEquals('get', key_value, b_value.value);
+            assertEquals('get ' + JSON.stringify(key), key_value, b_value.value);
             reachedFinalContinuation = true;
           },
           100, // interval

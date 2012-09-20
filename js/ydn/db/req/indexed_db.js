@@ -701,13 +701,15 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
     throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in: ' + q.store_name);
   }
   if (goog.isDefAndNotNull(q.index)) {
-    try {
-      index = obj_store.index(q.index);
-    } catch (e) {
-      if (e.name == 'NotFoundError') {
-        throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in Store: ' + q.store_name);
-      } else {
-        throw e;
+    if (q.index != store.keyPath) {
+      try {
+        index = obj_store.index(q.index);
+      } catch (e) {
+        if (e.name == 'NotFoundError') {
+          throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in Store: ' + q.store_name);
+        } else {
+          throw e;
+        }
       }
     }
   }
@@ -717,11 +719,19 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
   // ' of ' + column + ' in ' + table);
   var request;
   if (goog.isDefAndNotNull(q.keyRange)) {
-    if (goog.isDef(q.direction)) {
+    if (index) {
       var dir = /** @type {number} */ (q.direction); // new standard is string.
-      request = index.openCursor(q.keyRange, dir);
+      if (goog.isDef(dir)) {
+        request = index.openCursor(q.keyRange, dir);
+      } else {
+        request = index.openCursor(q.keyRange);
+      }
     } else {
-      request = index.openCursor(q.keyRange);
+      if (goog.isDef(dir)) {
+        request = obj_store.openCursor(q.keyRange, dir);
+      } else {
+        request = obj_store.openCursor(q.keyRange);
+      }
     }
   } else {
     if (index) {
