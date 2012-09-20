@@ -629,88 +629,6 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 
 
 
-
-//
-///**
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {!Array.<!ydn.db.Key>} keys
-// * @return {!goog.async.Deferred} return object in deferred function.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.getByKeys_ = function(tx, keys) {
-//  var me = this;
-//  var df = new goog.async.Deferred();
-//  if (tx) {
-//    this.executeGetKeys_(tx, df, keys);
-//  } else {
-//    var store_names = [];
-//    for (var i = 1; i < keys.length; i++) {
-//      var store_name = keys[i].getStoreName();
-//      if (store_names.indexOf(store_name) == -1) {
-//        store_names.push(store_name);
-//      }
-//    }
-//    this.doTransaction(function(tx) {
-//      me.executeGetKeys_(tx.getTx(), df, keys);
-//    }, store_names, ydn.db.TransactionMode.READ_ONLY);
-//  }
-//  return df;
-//};
-//
-
-//
-//
-//
-///**
-// * Return object
-// * @param {IDBTransaction|IDBTransaction|Object} tx
-// * @param {(string|!Array.<string>|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
-// * @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
-// * all entries in the store will return.
-// * @return {!goog.async.Deferred} return object in deferred function.
-// */
-//ydn.db.req.IndexedDb.prototype.getInTx = function (tx, arg1, arg2) {
-//
-//  tx = /** @type {IDBTransaction} */ (tx);
-//
-//  if (arg1 instanceof ydn.db.Key) {
-//    /**
-//     * @type {ydn.db.Key}
-//     */
-//    var k = arg1;
-//    return this.getById_(tx, k.getStoreName(), k.getId());
-//  } else if (goog.isString(arg1)) {
-//    if (goog.isString(arg2) || goog.isNumber(arg2)) {
-//      /** @type {string} */
-//      var store_name = arg1;
-//      /** @type {string|number} */
-//      var id = arg2;
-//      return this.getById_(tx, store_name, id);
-//    } else if (!goog.isDef(arg2)) {
-//      return this.getByStore_(tx, arg1);
-//    } else if (goog.isArray(arg2)) {
-//      if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-//        return this.getByIds_(tx, arg1, arg2);
-//      } else {
-//        throw new ydn.error.ArgumentException();
-//      }
-//    } else {
-//      throw new ydn.error.ArgumentException();
-//    }
-//  } else if (goog.isArray(arg1)) {
-//    if (arg1[0] instanceof ydn.db.Key) {
-//      return this.getByKeys_(tx, arg1);
-//    } else {
-//      throw new ydn.error.ArgumentException();
-//    }
-//  } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-//    return this.getByStore_(tx);
-//  } else {
-//    throw new ydn.error.ArgumentException();
-//  }
-//
-//};
-//
 //
 //
 //
@@ -782,7 +700,18 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
   if (goog.DEBUG && goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
     throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in: ' + q.store_name);
   }
-  index = goog.isDefAndNotNull(q.index) ? obj_store.index(q.index) : null;
+  if (goog.isDefAndNotNull(q.index)) {
+    try {
+      index = obj_store.index(q.index);
+    } catch (e) {
+      if (e.name == 'NotFoundError') {
+        throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in Store: ' + q.store_name);
+      } else {
+        throw e;
+      }
+    }
+  }
+
 
   //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
   // ' of ' + column + ' in ' + table);

@@ -10,6 +10,7 @@ goog.provide('ydn.db.InvalidKeyException');
 goog.provide('ydn.db.InvalidStateError');
 goog.provide('ydn.db.InternalError');
 goog.provide('ydn.db.ScopeError');
+goog.provide('ydn.db.SecurityError');
 goog.provide('ydn.db.NotFoundError');
 
 

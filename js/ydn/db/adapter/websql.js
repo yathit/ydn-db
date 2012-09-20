@@ -26,6 +26,7 @@ goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.json');
+goog.require('ydn.db.SecurityError');
 goog.require('ydn.db');
 goog.require('ydn.db.adapter.IDatabase');
 

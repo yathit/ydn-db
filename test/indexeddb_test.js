@@ -404,6 +404,68 @@ var test_31_special_keys = function() {
 };
 
 
+
+var test_32_array_key = function() {
+  var db_name = 'test_32_1';
+  var schema = new ydn.db.DatabaseSchema(1);
+  schema.addStore(new ydn.db.StoreSchema(table_name, 'id', false, ydn.db.DataType.ARRAY));
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var key_test = function(key) {
+    console.log('testing ' + key);
+    var key_value = 'a' + Math.random();
+
+    var a_done;
+    var a_value;
+    waitForCondition(
+      // Condition
+      function() { return a_done; },
+      // Continuation
+      function() {
+        assertEquals('put a', key, a_value);
+
+        var b_done;
+        var b_value;
+        waitForCondition(
+          // Condition
+          function() { return b_done; },
+          // Continuation
+          function() {
+            assertEquals('get', key_value, b_value.value);
+            reachedFinalContinuation = true;
+          },
+          100, // interval
+          2000); // maxTimeout
+
+
+        db.get(table_name, key).addCallback(function(value) {
+          console.log(db + ' receiving get value callback ' + key + ' = ' + value);
+          b_value = value;
+          b_done = true;
+        });
+      },
+      100, // interval
+      2000); // maxTimeout
+
+    db.put(table_name, {id: key, value: key_value}).addCallback(function(value) {
+      console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
+      a_value = value;
+      a_done = true;
+    });
+
+
+  };
+
+  key_test(['x']);
+
+  key_test(['a', 'b']);
+
+  key_test(['a', 'b', 'c']);
+
+};
+
+
+
 var test_41_keyRange = function () {
   var store_name = 'st';
   var db_name = 'test_451';
