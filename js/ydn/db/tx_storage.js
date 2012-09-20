@@ -262,19 +262,23 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
     // should try query without sniffing store.type
     if (store.type == ydn.db.DataType.ARRAY) {
       if (goog.isArray(arg2)) {
-        var key0 = arg2[0];
+        var arr = arg2;
+        var key0 = arr[0];
         if (goog.isArray(key0)) {
           if (goog.isString(key0[0]) || goog.isNumber(key0[0])) {
             this.execute(function (executor) {
-              executor.getByIds(df, store_name, arg2);
+              executor.getByIds(df, store_name, arr);
             }, [store_name], ydn.db.TransactionMode.READ_ONLY);
           } else {
             throw new ydn.error.ArgumentException('key array too deep.');
           }
-        } else {
+        } else if (goog.isDef(arg2)) {
+          var arr_id = arg2;
           this.execute(function (executor) {
-            executor.getById(df, store_name, arg2);
+            executor.getById(df, store_name, arr_id);
           }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+        } else {
+          throw new ydn.error.ArgumentException();
         }
       } else {
         throw new ydn.error.ArgumentException('array key required.');
