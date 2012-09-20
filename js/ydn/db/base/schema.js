@@ -342,23 +342,21 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
   var slots = [];
   var columns = [];
   var key, normalized_key;
-  if (goog.isDef(this.keyPath) || goog.isDef(opt_key)) {
-    if (goog.isDef(this.keyPath)) {
-      key = this.getKey(obj) || opt_key;
-      columns = [this.getQuotedKeyPath()];
-    } else {
-      key = opt_key;
-      columns = [ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
-    }
-    if (goog.isArray(key)) {
-      // SQLite do not support Array as key
-      normalized_key = key.join(ydn.db.StoreSchema.KEY_SEP);
-    } else {
-      normalized_key = key;
-    }
-    values = [normalized_key];
-    slots = ['?'];
+  if (goog.isDef(this.keyPath)) {
+    key = this.getKey(obj);
+    columns = [this.getQuotedKeyPath()];
+  } else if (goog.isDef(opt_key)) {
+    key = opt_key;
+    columns = [ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
   }
+  if (goog.isArray(key)) {
+    // SQLite do not support Array as key
+    normalized_key = key.join(ydn.db.StoreSchema.KEY_SEP);
+  } else {
+    normalized_key = key;
+  }
+  values = [normalized_key];
+  slots = ['?'];
 
   for (var i = 0; i < this.indexes.length; i++) {
     if (this.indexes[i].name == this.keyPath ||

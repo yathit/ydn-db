@@ -231,7 +231,7 @@ ydn.db.TxStorage.prototype.count = function(store_name) {
 
 
 /**
- * Return object
+ * Return object or objects of given key or keys.
  * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
  * @param {(string|number|!Array.<string>|!Array.<!Array.<string>>)=} arg2
  * object key to be retrieved, if not provided,
@@ -258,6 +258,8 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
     var store_name = arg1;
     var store = this.schema.getStore(store_name);
     goog.asserts.assert(store, 'Store: ' + store_name + ' not found.');
+    // here I have very concern about schema an object store mismatch!
+    // should try query without sniffing store.type
     if (store.type == ydn.db.DataType.ARRAY) {
       if (goog.isArray(arg2)) {
         var key0 = arg2[0];
