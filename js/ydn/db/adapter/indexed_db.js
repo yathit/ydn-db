@@ -366,7 +366,7 @@ ydn.db.adapter.IndexedDb.prototype.getIdxDb = function() {
  * @return {boolean} true if the store exist.
  */
 ydn.db.adapter.IndexedDb.prototype.hasStore_ = function(db, table) {
-  if (goog.isDef(db['objectStoreNames'])) {
+  if ('objectStoreNames' in db) {
     return db['objectStoreNames'].contains(table);
   } else {
     // old chrome is not following IndexedDB spec, not likely to encounter
