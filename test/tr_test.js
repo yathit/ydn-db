@@ -20,7 +20,7 @@ var setUp = function() {
 
 	basic_schema = new ydn.db.DatabaseSchema(1);
   var index = new ydn.db.IndexSchema('id');
-  var store = new ydn.db.StoreSchema(table_name, 'id', false, [index]);
+  var store = new ydn.db.StoreSchema(table_name, 'id', false, undefined, [index]);
 	basic_schema.addStore(store);
 };
 
@@ -54,11 +54,12 @@ var test_1_basic = function() {
       2000); // maxTimeout
 
   db.transaction(function tx_cb1 (idb) {
-    assertTrue('type', idb.type().length > 0);
+    console.log('tr start: ' + idb);
+    assertEquals('type', db_type, idb.type());
     var tx = idb.getTx();
     assertNotUndefined(tx);
     assertNotNull(tx);
-    assertNull(tx.error);
+    // assertNull(tx.error); // accessing error object will cause tx to commit ?
     console.log(idb + ' tx started with ' + idb.type() + ' ' + tx);
     var store = tx.objectStore(table_name);
     var put_req = store.put(val);

@@ -23,13 +23,15 @@ goog.provide('ydn.db');
 goog.require('goog.async.Deferred');
 
 
-
 /**
- * Column name of key, if keyPath is not specified.
+ * When key column is not defined, You can access the ROWID of an SQLite table
+ * using one the special column names ROWID, _ROWID_, or OID.
+ *
+ * http://www.sqlite.org/autoinc.html
  * @const
  * @type {string}
  */
-ydn.db.DEFAULT_KEY_COLUMN = '_id_';
+ydn.db.SQLITE_SPECIAL_COLUNM_NAME = '_ROWID_';
 
 
 /**

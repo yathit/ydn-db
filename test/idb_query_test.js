@@ -25,10 +25,10 @@ var setUp = function() {
     basic_schema = new ydn.db.DatabaseSchema(1);
     var index1 = new ydn.db.IndexSchema('id');
     var index2 = new ydn.db.IndexSchema('value', false, ydn.db.DataType.FLOAT);
-    store = new ydn.db.StoreSchema(table_name, 'id', false, [index1, index2]);
+    store = new ydn.db.StoreSchema(table_name, 'id', false, undefined, [index1, index2]);
   } else {
     var index = new ydn.db.IndexSchema('id');
-    store = new ydn.db.StoreSchema(table_name, 'id', false, [index]);
+    store = new ydn.db.StoreSchema(table_name, 'id', false, undefined, [index]);
   }
 	basic_schema.addStore(store);
 };

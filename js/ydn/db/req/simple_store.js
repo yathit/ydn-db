@@ -35,6 +35,9 @@ ydn.db.req.SimpleStore = function(dbname, schema) {
 goog.inherits(ydn.db.req.SimpleStore, ydn.db.req.RequestExecutor);
 
 
+
+/**
+
 /**
  * @final
  * @protected
@@ -54,6 +57,10 @@ ydn.db.req.SimpleStore.prototype.extractKey = function (store_name, value) {
   if (!goog.isDefAndNotNull(key)) {
     key = store.generateKey();
   }
+  if (goog.isArray(key)) {
+    // SQLite do not support Array as key
+    key = key.join(ydn.db.StoreSchema.KEY_SEP);
+  }
   return key;
 };
 
@@ -63,10 +70,13 @@ ydn.db.req.SimpleStore.prototype.extractKey = function (store_name, value) {
  * @protected
  * @final
  * @param {string} store_name table name.
- * @param {(string|number)} id id.
+ * @param {(!Array|string|number)} id id.
  * @return {string} canonical key name.
  */
 ydn.db.req.SimpleStore.prototype.makeKey = function(store_name, id) {
+  if (goog.isArray(id)) {
+    id = id.join(ydn.db.StoreSchema.KEY_SEP);
+  }
   return '_database_' + this.dbname + '-' + store_name + '-' + id;
 };
 
@@ -75,7 +85,7 @@ ydn.db.req.SimpleStore.prototype.makeKey = function(store_name, id) {
 /**
  *
  * @param {string} store_name or key
- * @param {(string|number)} id
+ * @param {(!Array|string|number)} id
  * @return {*}
  * @protected
  * @final
@@ -109,7 +119,7 @@ ydn.db.req.SimpleStore.prototype.setItemInternal = function(value, store_name_or
 /**
  *
  * @param {string} store_name_or_key
- * @param {(string|number)=} id
+ * @param {(!Array|string|number)=} id
  * @protected
  * @final
  */
@@ -197,7 +207,7 @@ ydn.db.req.SimpleStore.prototype.putObjects = function (df, table, value) {
 * Retrieve an object from store.
  * @param {!goog.async.Deferred} df return object in deferred function.
  * @param {string} store_name
-* @param {string|number} id
+* @param {!Array|string|number} id
 */
 ydn.db.req.SimpleStore.prototype.getById = function(df, store_name, id) {
   df.callback(this.getItemInternal(store_name, id));
@@ -267,7 +277,7 @@ ydn.db.req.SimpleStore.prototype.getByKeys = function(df, keys) {
  * Remove all data in a store (table).
  * @param {!goog.async.Deferred} df return a deferred function.
  * @param {string} table delete a specific table or all tables.
- * @param {(string|number)} id delete a specific row.
+ * @param {(!Array|string|number)} id delete a specific row.
  */
 ydn.db.req.SimpleStore.prototype.clearById = function (df, table, id) {
 

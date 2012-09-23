@@ -275,12 +275,27 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {string} table table name.
 * @param {!Object} value object to put.
-* @private
+* @param {(!Array|string|number)=} opt_key
 */
-ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value) {
+ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value, opt_key) {
   var store = this.tx.objectStore(table);
 
-  var request = store.put(value);
+  var request;
+  try {
+    if (goog.isDef(opt_key)) {
+      request = store.put(value, opt_key);
+    } else {
+      request = store.put(value);
+    }
+  } catch (e) {
+    if (e.name == 'DataError') {
+      // give useful info.
+      var str = ydn.json.stringify(value);
+      throw new ydn.db.InvalidKeyException(table + ': ' + str.substring(0, 50));
+    } else {
+      throw e;
+    }
+  }
   request.onsuccess = function (event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
@@ -303,9 +318,10 @@ ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value) {
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} store_name table name.
  * @param {!Array.<!Object>} objs object to put.
+ * @param {!Array.<(!Array|string|number)>=} opt_keys
  * @private
  */
-ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs) {
+ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_keys) {
 
   var results = [];
   var result_count = 0;
@@ -329,7 +345,11 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs) {
 
     var request;
     try {
-      request = store.put(objs[i]);
+      if (goog.isDef(opt_keys)) {
+        request = store.put(objs[i], opt_keys[i]);
+      } else {
+        request = store.put(objs[i]);
+      }
     } catch (e) {
       if (e.name == 'DataError') {
         // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
@@ -385,7 +405,7 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs) {
 *
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {string} store_name store name.
-* @param {(string|number)} key object key.
+* @param {(!Array|string|number)} key object key.
 * @private
 */
 ydn.db.req.IndexedDb.prototype.clearById = function (df, store_name, key) {
@@ -609,88 +629,6 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 
 
 
-
-//
-///**
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {!Array.<!ydn.db.Key>} keys
-// * @return {!goog.async.Deferred} return object in deferred function.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.getByKeys_ = function(tx, keys) {
-//  var me = this;
-//  var df = new goog.async.Deferred();
-//  if (tx) {
-//    this.executeGetKeys_(tx, df, keys);
-//  } else {
-//    var store_names = [];
-//    for (var i = 1; i < keys.length; i++) {
-//      var store_name = keys[i].getStoreName();
-//      if (store_names.indexOf(store_name) == -1) {
-//        store_names.push(store_name);
-//      }
-//    }
-//    this.doTransaction(function(tx) {
-//      me.executeGetKeys_(tx.getTx(), df, keys);
-//    }, store_names, ydn.db.TransactionMode.READ_ONLY);
-//  }
-//  return df;
-//};
-//
-
-//
-//
-//
-///**
-// * Return object
-// * @param {IDBTransaction|IDBTransaction|Object} tx
-// * @param {(string|!Array.<string>|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
-// * @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
-// * all entries in the store will return.
-// * @return {!goog.async.Deferred} return object in deferred function.
-// */
-//ydn.db.req.IndexedDb.prototype.getInTx = function (tx, arg1, arg2) {
-//
-//  tx = /** @type {IDBTransaction} */ (tx);
-//
-//  if (arg1 instanceof ydn.db.Key) {
-//    /**
-//     * @type {ydn.db.Key}
-//     */
-//    var k = arg1;
-//    return this.getById_(tx, k.getStoreName(), k.getId());
-//  } else if (goog.isString(arg1)) {
-//    if (goog.isString(arg2) || goog.isNumber(arg2)) {
-//      /** @type {string} */
-//      var store_name = arg1;
-//      /** @type {string|number} */
-//      var id = arg2;
-//      return this.getById_(tx, store_name, id);
-//    } else if (!goog.isDef(arg2)) {
-//      return this.getByStore_(tx, arg1);
-//    } else if (goog.isArray(arg2)) {
-//      if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-//        return this.getByIds_(tx, arg1, arg2);
-//      } else {
-//        throw new ydn.error.ArgumentException();
-//      }
-//    } else {
-//      throw new ydn.error.ArgumentException();
-//    }
-//  } else if (goog.isArray(arg1)) {
-//    if (arg1[0] instanceof ydn.db.Key) {
-//      return this.getByKeys_(tx, arg1);
-//    } else {
-//      throw new ydn.error.ArgumentException();
-//    }
-//  } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-//    return this.getByStore_(tx);
-//  } else {
-//    throw new ydn.error.ArgumentException();
-//  }
-//
-//};
-//
 //
 //
 //
@@ -762,17 +700,38 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
   if (goog.DEBUG && goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
     throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in: ' + q.store_name);
   }
-  index = goog.isDefAndNotNull(q.index) ? obj_store.index(q.index) : null;
+  if (goog.isDefAndNotNull(q.index)) {
+    if (q.index != store.keyPath) {
+      try {
+        index = obj_store.index(q.index);
+      } catch (e) {
+        if (e.name == 'NotFoundError') {
+          throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in Store: ' + q.store_name);
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
 
   //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
   // ' of ' + column + ' in ' + table);
   var request;
   if (goog.isDefAndNotNull(q.keyRange)) {
-    if (goog.isDef(q.direction)) {
+    if (index) {
       var dir = /** @type {number} */ (q.direction); // new standard is string.
-      request = index.openCursor(q.keyRange, dir);
+      if (goog.isDef(dir)) {
+        request = index.openCursor(q.keyRange, dir);
+      } else {
+        request = index.openCursor(q.keyRange);
+      }
     } else {
-      request = index.openCursor(q.keyRange);
+      if (goog.isDef(dir)) {
+        request = obj_store.openCursor(q.keyRange, dir);
+      } else {
+        request = obj_store.openCursor(q.keyRange);
+      }
     }
   } else {
     if (index) {

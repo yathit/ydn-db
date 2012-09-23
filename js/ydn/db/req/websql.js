@@ -51,7 +51,7 @@ ydn.db.req.WebSql.DEBUG = false;
 
 /**
  * Maximum number of readonly requests created per transaction.
- * Common naive implementation in WebSQL library is sending massive requests
+ * Common implementation in WebSQL library is sending massive requests
  * to the transaction and use setTimeout to prevent breaking the system.
  * To get optimal performance, we send limited number of request per transaction.
  * Sending more request will not help much because JS is just parsing and
@@ -133,7 +133,7 @@ ydn.db.req.WebSql.prototype.parseRow = function(table, row) {
  * @return {!Object} parse value.
  */
 ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
-  return row[table.keyPath || ydn.db.DEFAULT_KEY_COLUMN];
+  return row[table.keyPath || ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
 };
 
 
@@ -141,8 +141,9 @@ ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 * @param {goog.async.Deferred} df
 * @param {string} store_name table name.
 * @param {!Object} obj object to put.
+* @param {(!Array|string|number)=} opt_key
 */
-ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj) {
+ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) {
 
   var table = this.schema.getStore(store_name);
   if (!table) {
@@ -151,7 +152,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj) {
 
   var me = this;
 
-  var out = table.getIndexedValues(obj);
+  var out = table.getIndexedValues(obj, opt_key);
   //console.log([obj, JSON.stringify(obj)]);
 
   var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
@@ -166,7 +167,10 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj) {
     if (ydn.db.req.WebSql.DEBUG) {
       window.console.log([sql, out, transaction, results]);
     }
-    df.callback(out.key);
+    // In SQLite, row id (insertId) is column and hence cab retrieved back by
+    // row ID. see in getById for details.
+    var key = goog.isDef(out.key) ? out.key : results.insertId;
+    df.callback(key);
 
   };
 
@@ -192,8 +196,9 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj) {
 * @param {goog.async.Deferred} df
 * @param {string} store_name table name.
 * @param {!Array.<!Object>} objects object to put.
+ * @param {!Array.<(Array|string|number)>=} opt_keys
 */
-ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
+ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_keys) {
 
   var table = this.schema.getStore(store_name);
   if (!table) {
@@ -214,7 +219,12 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
 
     // todo: handle undefined or null object
 
-    var out = table.getIndexedValues(objects[i]);
+    var out;
+    if (goog.isDef(opt_keys)) {
+      out = table.getIndexedValues(objects[i], opt_keys[i]);
+    } else {
+      out = table.getIndexedValues(objects[i]);
+    }
     //console.log([obj, JSON.stringify(obj)]);
 
     var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
@@ -227,7 +237,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
      */
     var success_callback = function (transaction, results) {
       result_count++;
-      result_keys[i] = out.key;
+      result_keys[i] = goog.isDef(out.key) ? out.key : results.insertId;
       if (result_count == objects.length) {
         df.callback(result_keys);
       } else {
@@ -268,8 +278,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects) {
 *
 * @param {goog.async.Deferred} d
 * @param {string} table_name
-* @param {(number|string)} id
-* @private
+* @param {(!Array|number|string)} id
 */
 ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
@@ -280,9 +289,12 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
   var me = this;
 
-  var params = [id];
+  var column_name = table.getSQLKeyColumnName();
+
+  var params = goog.isArray(id) ? [id.join(ydn.db.StoreSchema.KEY_SEP)] : [id];
+
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-      table.getQuotedKeyPath() + ' = ?';
+    column_name + ' = ?';
 
 
   /**
@@ -318,8 +330,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
  *
  * @param {goog.async.Deferred} df
  * @param {string} table_name
- * @param {!Array.<(number|string)>} ids
- * @private
+ * @param {!Array.<(!Array|number|string)>} ids
  */
 ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
 
@@ -378,9 +389,12 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
       df.errback(error);
     };
 
-    var params = [ids[i]];
+    var id = ids[i];
+    var column_name = table.getSQLKeyColumnName();
+
+    var params = goog.isArray(id) ? [id.join(ydn.db.StoreSchema.KEY_SEP)] : [id];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-      table.getQuotedKeyPath() + ' = ?';
+      column_name + ' = ?';
     tx.executeSql(sql, params, callback, error_callback);
   };
 
@@ -521,11 +535,10 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
       df.errback(error);
     };
 
-    /**
-     *
-     * @type {!Array.<!ydn.db.Key>}
-     */
-    var params = [key.getId()];
+    var id = key.getNormalizedId();
+    var column_name = table.getSQLKeyColumnName();
+
+    var params = [id];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
         table.getQuotedKeyPath() + ' = ?';
     tx.executeSql(sql, params, callback, error_callback);
@@ -609,7 +622,16 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
       result = [];
     }
     var idx = -1;
-    for (var i = 0; i < results.rows.length; i++) {
+    // http://www.w3.org/TR/webdatabase/#database-query-results
+    // Fetching the length might be expensive, and authors are thus encouraged
+    // to avoid using it (or enumerating over the object, which implicitly uses
+    // it) where possible.
+    // for (var row, i = 0; row = results.rows.item(i); i++) {
+    // Unfortunately, such enumerating don't work
+    // RangeError: Item index is out of range in Chrome.
+    // INDEX_SIZE_ERR: DOM Exception in Safari
+    var n = results.rows.length;
+    for (var i = 0; i < n; i++) {
       var row = results.rows.item(i);
       var value = me.parseRow(store, row);
       var to_continue = !goog.isFunction(q.continued) || q.continued(value);
@@ -722,7 +744,7 @@ ydn.db.req.WebSql.prototype.removeById = function (d, table_name, key) {
 
   var me = this;
   var store = this.schema.getStore(table_name);
-  var key_column = store.getQuotedKeyPath() || ydn.db.DEFAULT_KEY_COLUMN;
+  var key_column = store.getSQLKeyColumnName();
 
   var sql = 'DELETE FROM  ' + store.getQuotedName() + ' WHERE ' +
       key_column + ' = ?';
@@ -756,7 +778,7 @@ ydn.db.req.WebSql.prototype.removeById = function (d, table_name, key) {
 /**
  * @param {!goog.async.Deferred} d deferred result.
  * @param {string} table table name.
- * @param {(string|number)} id row name.
+ * @param {(!Array|string|number)} id row name.
  */
 ydn.db.req.WebSql.prototype.clearById = function (d, table, id) {
 

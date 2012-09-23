@@ -26,6 +26,7 @@ goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.json');
+goog.require('ydn.db.SecurityError');
 goog.require('ydn.db');
 goog.require('ydn.db.adapter.IDatabase');
 
@@ -51,12 +52,25 @@ ydn.db.adapter.WebSql = function(dbname, schema) {
 
   var description = this.dbname;
 
-  /**
-   * Must open the database with empty version, otherwise unrecoverable error
-   * will occur in the first instance.
-   */
-  this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
-    this.schema.size);
+  try {
+    /**
+     * http://www.w3.org/TR/webdatabase/#databases
+     *
+     * According to W3C doc, INVALID_STATE_ERR will be throw if version is
+     * provided, but database of that version is not exist. The only way to
+     * work around is giving empty string and mirage after opening the database.
+     */
+    this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
+      this.schema.size);
+  } catch (e) {
+    if (e.name == 'SECURITY_ERR') {
+      // TODO: abort th queue
+      throw new ydn.db.SecurityError(e);
+    } else {
+      throw e;
+    }
+  }
+
   // we can immediately set this to sql_db_ because database table creation
   // are going through doTranaction process, it already lock out
   // for using this database.
@@ -135,42 +149,58 @@ ydn.db.adapter.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.ada
  * Initialize variable to the schema and prepare SQL statement for creating
  * the table.
  * @private
- * @param {ydn.db.StoreSchema} schema name of table in the schema.
+ * @param {ydn.db.StoreSchema} table_schema name of table in the schema.
  * @return {string} SQL statement for creating the table.
  */
-ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(schema) {
+ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
-  var sql = 'CREATE TABLE IF NOT EXISTS ' + schema.getQuotedName() + ' (';
+  var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
 
-  var id_column_name = schema.getQuotedKeyPath() ||
-      ydn.db.DEFAULT_KEY_COLUMN;
+  var id_column_name = table_schema.getQuotedKeyPath() ||
+    ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
 
-  if (goog.isDef(schema.keyPath)) {
-      sql += schema.getQuotedKeyPath() + ' TEXT UNIQUE PRIMARY KEY';
-  } else {
-    // NOTE: we could have use AUTOINCREMENT here,
-    // however put request require to return key. If we use AUTOINCREMENT, the key value
-    // have to query again after INSERT since it does not return any result.
-    // generating the by ourselves eliminate this.
-    // for generating see ydn.db.StoreSchema.prototype.generateKey
-    sql += ydn.db.DEFAULT_KEY_COLUMN + ' INTEGER PRIMARY KEY';
+
+  var type = table_schema.type;
+  if (type == ydn.db.DataType.ARRAY) {
+    // key will be converted into string
+    type = ydn.db.DataType.TEXT;
   }
+  if (goog.isDef(table_schema.keyPath)) {
+    sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY ';
+
+    if (table_schema.autoIncrement) {
+      sql += ' AUTOINCREMENT ';
+    }
+
+  } else if (table_schema.autoIncrement) {
+    sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
+      ' UNIQUE PRIMARY KEY AUTOINCREMENT ';
+  } else { // using out of line key.
+    // it still has _ROWID_ as column name
+    sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type + ' UNIQUE PRIMARY KEY ';
+
+  }
+
 
   // every table must has a default field.
-  if (!schema.hasIndex(ydn.db.DEFAULT_BLOB_COLUMN)) {
-    schema.addIndex(ydn.db.DEFAULT_BLOB_COLUMN);
+  if (!table_schema.hasIndex(ydn.db.DEFAULT_BLOB_COLUMN)) {
+    table_schema.addIndex(ydn.db.DEFAULT_BLOB_COLUMN);
   }
 
-  for (var i = 0; i < schema.indexes.length; i++) {
+
+  var sep = ', ';
+  for (var i = 0; i < table_schema.indexes.length; i++) {
     /**
      * @type {ydn.db.IndexSchema}
      */
-    var index = schema.indexes[i];
-    if (index.name == schema.keyPath) {
+    var index = table_schema.indexes[i];
+    if (index.name == table_schema.keyPath) {
       continue;
     }
     var primary = index.unique ? ' UNIQUE ' : ' ';
-    sql += ', ' + index.name + ' ' + index.type + primary;
+
+    sql += sep + index.name + ' ' + index.type + primary;
+
   }
 
   sql += ');';
@@ -188,28 +218,6 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
   var me = this;
 
 
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var success_callback = function(transaction, results) {
-    if (ydn.db.adapter.WebSql.DEBUG) {
-      window.console.log(results);
-    }
-    me.logger.finest('Creating tables OK.');
-
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.adapter.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('Error creating tables: ' + error.message);
-  };
 
   var sqls = [];
   for (var i = 0; i < this.schema.stores.length; i++) {
@@ -226,13 +234,41 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
   this.doTransaction(function (t) {
 
     me.logger.finest('Creating tables ' + sqls.join('\n'));
-    for (var i = 0; i < sqls.length; i++) {
+
+    var create = function(i) {
       if (ydn.db.adapter.WebSql.DEBUG) {
         window.console.log(sqls[i]);
       }
-      t.executeSql(sqls[i], [],
-        i == sqls.length - 1 ? success_callback : undefined,
-        error_callback);
+      /**
+       * @param {SQLTransaction} transaction transaction.
+       * @param {SQLResultSet} results results.
+       */
+      var success_callback = function(transaction, results) {
+        if (ydn.db.adapter.WebSql.DEBUG) {
+          window.console.log(results);
+        }
+        me.logger.finest('Created table: ' + me.schema.stores[i].name);
+
+      };
+
+      /**
+       * @param {SQLTransaction} tr transaction.
+       * @param {SQLError} error error.
+       */
+      var error_callback = function(tr, error) {
+        if (ydn.db.adapter.WebSql.DEBUG) {
+          window.console.log([tr, error]);
+        }
+        throw new ydn.db.SQLError(error, 'Error creating table: ' +
+          me.schema.stores[i].name);
+      };
+
+      t.executeSql(sqls[i], [], success_callback, error_callback);
+    };
+
+    for (var i = 0; i < sqls.length; i++) {
+      // TODO: create only require table ? possible
+      create(i);
     }
   }, [], ydn.db.TransactionMode.READ_WRITE, oncompleted);
 

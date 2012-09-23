@@ -1,4 +1,4 @@
-<project name="ydn-db" basedir="." default="compile-debug">
+<project name="ydn-db" basedir="." default="compile">
     <dirname property="ydn-db.dir" file="${ant.file.ydn-db}"/>
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />

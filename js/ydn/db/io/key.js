@@ -39,8 +39,9 @@ ydn.db.io.Key.prototype.get = function() {
 
 /**
  * @param {!Object} obj
+ * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys
  * @return {!goog.async.Deferred}
  */
-ydn.db.io.Key.prototype.put = function(obj) {
-  return this.dbp.put(this.getStoreName(), obj);
+ydn.db.io.Key.prototype.put = function(obj, opt_keys) {
+  return this.dbp.put(this.getStoreName(), obj, opt_keys);
 };

@@ -12,14 +12,19 @@ goog.provide('ydn.db.StoreSchema');
 
 
 /**
- * Store field data type following Web Sql definition.
+ * Data type for field in object store. This is required to compatible between
+ * IndexedDB and SQLite.
+ * SQLite mandate COLUMN field specified data type.
+ * IndexedDB allow Array as data type in key, while SQLite is not to use.
+ * @see http://www.w3.org/TR/IndexedDB/#key-construct
  * @see http://www.sqlite.org/lang_expr.html
  * @enum {string}
  */
 ydn.db.DataType = {
   TEXT: 'TEXT',
   FLOAT: 'REAL',
-  INTEGER: 'INTEGER'
+  INTEGER: 'INTEGER',
+  ARRAY: 'ARRAY' // out of tune here
 };
 
 
@@ -77,34 +82,52 @@ ydn.db.IndexSchema.fromJSON = function(json) {
  * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to.
  * @param {boolean=} opt_autoIncrement If true, the object store has a key
  * generator. Defaults to false.
- * 'id'.
+ * @param {ydn.db.DataType=} opt_type data type for keyPath. Default to
+ * <code>ydn.db.DataType.INTEGER</code> if opt_autoIncrement is
+ * <code>true</code>
  * @param {!Array.<!ydn.db.IndexSchema>=} opt_indexes list of indexes.
  * @constructor
  */
-ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_indexes) {
+ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_type, opt_indexes) {
 
   /**
    * @final
    * @type {string}
    */
   this.name = name;
+  if (!goog.isString(this.name)) {
+    throw new ydn.error.ArgumentException('store name must be a string');
+  }
   /**
    * @final
    * @type {string|undefined}
    */
   this.keyPath = keyPath;
-
-  /**
-   * @final
-   * @type {!Array.<string>}
-   */
-  this.keyPaths = goog.isDef(this.keyPath) ? this.keyPath.split('.') : [];
+  if (goog.isDef(this.keyPath) && !goog.isString(this.name)) {
+    throw new ydn.error.ArgumentException('keyPath must be a string');
+  }
 
   /**
    * @final
    * @type {boolean}
    */
   this.autoIncrement = !!opt_autoIncrement;
+
+  /**
+   * @final
+   * @type {ydn.db.DataType}
+   */
+  this.type = opt_type ? opt_type : this.autoIncrement ?
+    ydn.db.DataType.INTEGER : ydn.db.DataType.TEXT;
+  if (!goog.isString(this.type)) {
+    throw new ydn.error.ArgumentException('type invalid in store: ' + this.name);
+  }
+
+  /**
+   * @final
+   * @type {!Array.<string>}
+   */
+  this.keyPaths = goog.isDef(this.keyPath) ? this.keyPath.split('.') : [];
   /**
    * @final
    * @type {!Array.<!ydn.db.IndexSchema>}
@@ -127,7 +150,9 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
     'name': this.name,
     'keyPath': this.keyPath,
     'autoIncrement': this.autoIncrement,
-    'indexes': indexes};
+    'type': this.type,
+    'indexes': indexes
+  };
 };
 
 
@@ -145,7 +170,7 @@ ydn.db.StoreSchema.fromJSON = function(json) {
     }
   }
   return new ydn.db.StoreSchema(json['name'], json['keyPath'],
-    json['autoIncrement'], indexes);
+    json['autoIncrement'], json['type'], indexes);
 };
 
 
@@ -180,11 +205,20 @@ ydn.db.StoreSchema.prototype.hasIndex = function(name) {
 
 
 /**
- *
  * @return {string|undefined} return quoted keyPath.
  */
 ydn.db.StoreSchema.prototype.getQuotedKeyPath = function() {
   return goog.isDef(this.keyPath) ? goog.string.quote(this.keyPath) : undefined;
+};
+
+
+/**
+ * Return quoted keyPath. In case undefined return default key column.
+ * @return {string} return quoted keyPath.
+ */
+ydn.db.StoreSchema.prototype.getSQLKeyColumnName = function() {
+  return goog.isDef(this.keyPath) ?
+    goog.string.quote(this.keyPath) : ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
 };
 
 
@@ -216,6 +250,7 @@ ydn.db.StoreSchema.prototype.getColumns = function() {
   return this.columns_;
 };
 
+
 /**
  *
  * @param {string} name store (table) name.
@@ -230,19 +265,22 @@ ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type) {
 /**
  *
  * @param {!Object} obj get key value from its keyPath field.
- * @return {string|undefined} return key value.
+ * @return {!Array|number|string|undefined} return key value.
  */
 ydn.db.StoreSchema.prototype.getKey = function(obj) {
+  // http://www.w3.org/TR/IndexedDB/#key-construct
   return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
 };
 
 
 /**
  * Generated a key starting from 0 with increment of 1.
+ * NOTE: Use only by simple store.
  * @return {number} generated key.
  */
 ydn.db.StoreSchema.prototype.generateKey = function() {
   if (!goog.isDef(this.current_key_)) {
+
     /**
      * @type {number}
      * @private
@@ -277,30 +315,51 @@ ydn.db.StoreSchema.prototype.setKey = function(obj, value) {
 
 
 /**
- *
- * @param {!Object} obj get values of indexed fields.
- * @return {{columns: Array.<string>, slots: Array.<string>, values:
- * Array.<string>, key: (string|number)}} return list of values as it appear on the indexed fields.
+ * Separator between subset of key in array type. This is used in SQLite,
+ * since it cannot handle array data type.
+ * @const
+ * @type {string}
  */
-ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
+ydn.db.StoreSchema.KEY_SEP = ydn.db.Key.SEP_PARENT;
 
-  var key;
+
+/**
+ * This is for WebSQL.
+ * @param {!Object} obj get values of indexed fields.
+ * @param {(!Array|string|number)=} opt_key
+ * @return {{
+ *    columns: Array.<string>,
+ *    slots: Array.<string>,
+ *    values: Array.<string>,
+ *    key: (!Array|string|number|undefined),
+ *    normalized_key: (string|number|undefined)
+ *  }} return list of values as it appear on the indexed fields.
+ */
+ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
+
   var key_column;
+  var values = [];
+  var slots = [];
+  var columns = [];
+  var key, normalized_key;
   if (goog.isDef(this.keyPath)) {
-    key_column = this.getQuotedKeyPath();
     key = this.getKey(obj);
-  } else {
-    key_column = ydn.db.DEFAULT_KEY_COLUMN;
-    key = this.generateKey();
+    columns = [this.getQuotedKeyPath()];
+  } else if (goog.isDef(opt_key)) {
+    key = opt_key;
+    columns = [ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
   }
-  goog.asserts.assert(goog.isDefAndNotNull(key), 'no key in ' + ydn.json.stringify(obj));
-  var columns = [key_column];
-  var values = [key];
-  var slots = ['?'];
+  if (goog.isArray(key)) {
+    // SQLite do not support Array as key
+    normalized_key = key.join(ydn.db.StoreSchema.KEY_SEP);
+  } else {
+    normalized_key = key;
+  }
+  values = [normalized_key];
+  slots = ['?'];
 
   for (var i = 0; i < this.indexes.length; i++) {
     if (this.indexes[i].name == this.keyPath ||
-      this.indexes[i].name == ydn.db.DEFAULT_KEY_COLUMN ||
       this.indexes[i].name == ydn.db.DEFAULT_BLOB_COLUMN) {
       continue;
     }
@@ -336,7 +395,13 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj) {
   slots.push('?');
   columns.push(ydn.db.DEFAULT_BLOB_COLUMN);
 
-  return {columns: columns, slots: slots, values: values, key: key};
+  return {
+    columns: columns,
+    slots: slots,
+    values: values,
+    key: key,
+    normalized_key: normalized_key
+  };
 };
 
 
@@ -402,7 +467,6 @@ ydn.db.DatabaseSchema.fromJSON = function(json) {
     stores.push(ydn.db.StoreSchema.fromJSON(stores_json[i]));
   }
   return new ydn.db.DatabaseSchema(json['version'], json['size'], stores);
-
 };
 
 

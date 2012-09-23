@@ -140,47 +140,6 @@ var test_12_put_arr = function() {
       });
 };
 
-//
-//var test_13_put_arr = function() {
-//  var db_name = 'test_put_12';
-//  var db = new ydn.db.Storage(db_name, basic_schema, options);
-//
-//  var arr = [
-//    {id: 0, value: 'a' + Math.random()},
-//    null,
-//    {id: 2, value: 'a' + Math.random()}];
-//
-//  var hasEventFired = false;
-//  var results;
-//
-//  waitForCondition(
-//      // Condition
-//      function() { return hasEventFired; },
-//      // Continuation
-//      function() {
-//        assertEquals('length', arr.length, results.length);
-//        for (var i = 0; i < arr.length; i++) {
-//          assertEquals('1', arr[i].id, results[i]);
-//        }
-//
-//        reachedFinalContinuation = true;
-//      },
-//      100, // interval
-//      2000); // maxTimeout
-//
-//
-//      db.put(table_name, arr).addCallback(function(value) {
-//        assertThrows('InvalidKeyException', function() {
-//          console.log('receiving value callback.');
-//    hasEventFired = true;
-//        } );
-//
-//  });
-//  assertThrows('InvalidKeyException', function() {
-//    db.put(table_name, arr);
-//  });
-//};
-
 
 var test_22_get_arr = function() {
   var db_name = 'test_22';
@@ -445,11 +404,74 @@ var test_31_special_keys = function() {
 };
 
 
+
+var test_32_array_key = function() {
+  var db_name = 'test_32_1';
+  var schema = new ydn.db.DatabaseSchema(1);
+  schema.addStore(new ydn.db.StoreSchema(table_name, 'id', false, ydn.db.DataType.ARRAY));
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var key_test = function(key) {
+    console.log('testing ' + key);
+    var key_value = 'a' + Math.random();
+
+    var a_done;
+    var a_value;
+    waitForCondition(
+      // Condition
+      function() { return a_done; },
+      // Continuation
+      function() {
+        assertArrayEquals('put a', key, a_value);
+
+        var b_done;
+        var b_value;
+        waitForCondition(
+          // Condition
+          function() { return b_done; },
+          // Continuation
+          function() {
+            assertEquals('get ' + JSON.stringify(key), key_value, b_value.value);
+            reachedFinalContinuation = true;
+          },
+          100, // interval
+          2000); // maxTimeout
+
+
+        db.get(table_name, key).addCallback(function(value) {
+          console.log(db + ' receiving get value callback ' + key + ' = ' + value);
+          b_value = value;
+          b_done = true;
+        });
+      },
+      100, // interval
+      2000); // maxTimeout
+
+    db.put(table_name, {id: key, value: key_value}).addCallback(function(value) {
+      console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
+      a_value = value;
+      a_done = true;
+    });
+
+
+  };
+
+  key_test(['x']);
+
+  key_test(['a', 'b']);
+
+  key_test(['a', 'b', 'c']);
+
+};
+
+
+
 var test_41_keyRange = function () {
   var store_name = 'st';
   var db_name = 'test_451';
   var indexSchema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
+    ydn.db.DataType.TEXT, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
   console.log('db ' + db);
@@ -508,7 +530,8 @@ var test_42_keyRange = function () {
   var store_name = 'st';
   var db_name = 'test_451';
   var indexSchema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
+    ydn.db.DataType.TEXT, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
   console.log('db ' + db);
@@ -560,61 +583,138 @@ var test_42_keyRange = function () {
 
 };
 
+
 var test_42_autoincreasement = function () {
   var store_name = 'demoOS';
-  var db_name = 'test_42_31';
-  var idx_schema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', true, [idx_schema]);
-  var schema = new ydn.db.DatabaseSchema(2, undefined, [store_schema]);
+  var db_name = 'test_42_25';
+  var store_schema = new ydn.db.StoreSchema(store_name, undefined, true);
+  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
-    {id:'qs0', value: 0, type: 'a'},
-    {id:'qs1', value: 1, type: 'a'},
-    {id:'at2', value: 2, type: 'b'},
-    {id:'bs1', value: 3, type: 'b'},
-    {id:'bs2', value: 4, type: 'c'},
-    {id:'bs3', value: 5, type: 'c'},
-    {id:'st3', value: 6, type: 'c'}
+    {id:'qs0', value:0, type:'a'},
+    {id:'qs1', value:1, type:'a'},
+    {id:'at2', value:2, type:'b'},
+    {id:'bs1', value:3, type:'b'},
+    {id:'bs2', value:4, type:'c'},
+    {id:'bs3', value:5, type:'c'},
+    {id:'st3', value:6, type:'c'}
   ];
 
 
-  var done;
-  var result;
+  var done, result, put_done, put_result;
+
   waitForCondition(
-      // Condition
-      function () {
-        return done;
-      },
-      // Continuation
-      function () {
-        assertEquals('length', 2, result.length);
-        assertArrayEquals([objs[3], objs[4]], result);
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertEquals('length', objs.length, result.length);
+      assertArrayEquals('get back', objs, result);
 
-        reachedFinalContinuation = true;
-      },
-      100, // interval
-      2000); // maxTimeout
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
 
+  waitForCondition(
+    // Condition
+    function () {
+      return put_done;
+    },
+    // Continuation
+    function () {
+      assertEquals('key length', objs.length, put_result.length);
+      for (var i = 1; i < objs.length; i++) {
+        assertEquals('auto increase at ' + i, put_result[i], put_result[i-1] + 1);
+      }
+
+      // retrieve back by those key
+
+      db.get(store_name, put_result).addBoth(function (value) {
+        console.log('fetch value: ' + JSON.stringify(value));
+        result = value;
+        done = true;
+      });
+    },
+
+    100, // interval
+    1000); // maxTimeout
 
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(['receiving value callback.', value]);
-
-    var key_range = ydn.db.KeyRange.bound(2, 5, true, true);
-    var q = new ydn.db.Query(store_name, 'value', 'next', key_range);
-
-    db.fetch(q).addBoth(function (value) {
-      console.log('fetch value: ' + JSON.stringify(value));
-      result = value;
-      done = true;
-    });
-  }).addErrback(function(e) {
-        console.log(e.stack);
-        console.log(e);
-        assertFalse(true, 'Error');
-      });
-
+    console.log(['receiving key from put', value]);
+    put_done = true;
+    put_result = value
+  });
 };
+
+
+var test_43_no_key_column = function () {
+  var store_name = 'demoOS';
+  var db_name = 'test_43_25';
+  var store_schema = new ydn.db.StoreSchema(store_name, undefined,  undefined, false);
+  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var objs = [
+    {id:'qs0', value:0, type:'a'},
+    {id:'qs1', value:1, type:'a'},
+    {id:'at2', value:2, type:'b'},
+    {id:'bs1', value:3, type:'b'},
+    {id:'bs2', value:4, type:'c'},
+    {id:'bs3', value:5, type:'c'},
+    {id:'st3', value:6, type:'c'}
+  ];
+  var keys = objs.map(function(x) {return x.id});
+
+
+  var done, result, put_done, put_result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertEquals('length', objs.length, result.length);
+      assertArrayEquals('get back', objs, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  waitForCondition(
+    // Condition
+    function () {
+      return put_done;
+    },
+    // Continuation
+    function () {
+      assertEquals('key length', objs.length, put_result.length);
+      assertArrayEquals('get back the keys', keys, put_result);
+      // retrieve back by those key
+
+      db.get(store_name, put_result).addBoth(function (value) {
+        console.log('fetch value: ' + JSON.stringify(value));
+        result = value;
+        done = true;
+      });
+    },
+
+    100, // interval
+    1000); // maxTimeout
+
+  db.put(store_name, objs, keys).addCallback(function (value) {
+    console.log(['receiving key from put', value]);
+    put_done = true;
+    put_result = value
+  });
+};
+
 
 var test_7_put_nested_keyPath = function() {
   var store_name = 'ts1';
@@ -672,8 +772,8 @@ var test_7_put_nested_keyPath = function() {
 var test_71_offset_limit = function () {
   var store_name = 'st';
   var db_name = 'test_71_31';
-  var indexSchema = new ydn.db.IndexSchema('id', true);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
+    ydn.db.DataType.INTEGER);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
@@ -729,7 +829,8 @@ var test_74_where = function () {
   var store_name = 'st';
   var db_name = 'test_741';
   var indexSchema = new ydn.db.IndexSchema('id', true);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
+    ydn.db.DataType.INTEGER, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
@@ -781,7 +882,8 @@ var test_81_fetch_keys = function () {
   var store_name = 'st';
   var db_name = 'test811';
   var indexSchema = new ydn.db.IndexSchema('id', true);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
+    ydn.db.DataType.TEXT, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
@@ -849,7 +951,7 @@ var test_82_fetch_keys = function () {
   var store_name = 'st';
   var db_name = 'test821';
   var indexSchema = new ydn.db.IndexSchema('id', true);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
@@ -920,7 +1022,7 @@ var test_83_fetch_keys = function () {
   var store_name2 = 'st2';
   var db_name = 'test83';
   var indexSchema = new ydn.db.IndexSchema('id', true);
-  var store_schema1 = new ydn.db.StoreSchema(store_name1, 'id', false, [indexSchema]);
+  var store_schema1 = new ydn.db.StoreSchema(store_name1, 'id', false, undefined, [indexSchema]);
   var store_schema2 = new ydn.db.StoreSchema(store_name2, 'id');
   var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema1, store_schema2]);
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -1008,7 +1110,7 @@ var test_85_query_start_with = function () {
   var schema = new ydn.db.DatabaseSchema(1);
   // NOTE: key also need to be indexed.
   var indexSchema = new ydn.db.IndexSchema('id', true);
-  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, [indexSchema]));
+  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]));
   //schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
   var db = new ydn.db.Storage(db_name, schema, options);
 

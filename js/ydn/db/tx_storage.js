@@ -231,9 +231,10 @@ ydn.db.TxStorage.prototype.count = function(store_name) {
 
 
 /**
- * Return object
+ * Return object or objects of given key or keys.
  * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
+ * @param {(string|number|!Array.<string>|!Array.<!Array.<string>>)=} arg2
+ * object key to be retrieved, if not provided,
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
@@ -255,30 +256,58 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
     }, [k_store_name], ydn.db.TransactionMode.READ_ONLY);
   } else if (goog.isString(arg1)) {
     var store_name = arg1;
-    goog.asserts.assert(this.schema.hasStore(store_name), 'Store: ' + store_name + ' not found.');
-    if (goog.isArray(arg2)) {
-      if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-        var ids = arg2;
+    var store = this.schema.getStore(store_name);
+    goog.asserts.assert(store, 'Store: ' + store_name + ' not found.');
+    // here I have very concern about schema an object store mismatch!
+    // should try query without sniffing store.type
+    if (store.type == ydn.db.DataType.ARRAY) {
+      if (goog.isArray(arg2)) {
+        var arr = arg2;
+        var key0 = arr[0];
+        if (goog.isArray(key0)) {
+          if (goog.isString(key0[0]) || goog.isNumber(key0[0])) {
+            this.execute(function (executor) {
+              executor.getByIds(df, store_name, arr);
+            }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+          } else {
+            throw new ydn.error.ArgumentException('key array too deep.');
+          }
+        } else if (goog.isDef(arg2)) {
+          var arr_id = arg2;
+          this.execute(function (executor) {
+            executor.getById(df, store_name, arr_id);
+          }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+        } else {
+          throw new ydn.error.ArgumentException();
+        }
+      } else {
+        throw new ydn.error.ArgumentException('array key required.');
+      }
+    } else {
+      if (goog.isArray(arg2)) {
+        if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
+          var ids = arg2;
+          this.execute(function (executor) {
+            executor.getByIds(df, store_name, ids);
+          }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+        } else {
+          throw new ydn.error.ArgumentException('key must be string or number');
+        }
+      } else if (goog.isString(arg2) || goog.isNumber(arg2)) {
+        /** @type {string} */
+        /** @type {string|number} */
+        var id = arg2;
         this.execute(function (executor) {
-          executor.getByIds(df, store_name, ids);
+          executor.getById(df, store_name, id);
         }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+      } else if (!goog.isDef(arg2)) {
+        this.execute(function (executor) {
+          executor.getByStore(df, store_name);
+        }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+
       } else {
         throw new ydn.error.ArgumentException();
       }
-    } else if (goog.isString(arg2) || goog.isNumber(arg2)) {
-      /** @type {string} */
-      /** @type {string|number} */
-      var id = arg2;
-      this.execute(function (executor) {
-        executor.getById(df, store_name, id);
-      }, [store_name], ydn.db.TransactionMode.READ_ONLY);
-    } else if (!goog.isDef(arg2)) {
-      this.execute(function (executor) {
-        executor.getByStore(df, store_name);
-      }, [store_name], ydn.db.TransactionMode.READ_ONLY);
-
-    } else {
-      throw new ydn.error.ArgumentException();
     }
   } else if (goog.isArray(arg1)) {
     if (arg1[0] instanceof ydn.db.Key) {
@@ -317,24 +346,40 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
  * Execute PUT request either storing result to tx or callback to df.
  * @param {string} store_name table name.
  * @param {!Object|!Array.<!Object>} value object to put.
+ * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys
  * @return {!goog.async.Deferred}
  */
-ydn.db.TxStorage.prototype.put = function (store_name, value) {
+ydn.db.TxStorage.prototype.put = function (store_name, value, opt_keys) {
+
+
 
   var df = ydn.db.createDeferred();
   var me = this;
   if (goog.isString(store_name)) {
-    goog.asserts.assert(this.schema.hasStore(store_name), 'Store: ' +
-      store_name + ' not exists.');
+    var store = this.schema.getStore(store_name);
+    if (!store) {
+      throw new ydn.error.ArgumentException('Store: ' + store_name + ' not exists.');
+    }
+    // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
+    if ((goog.isDef(store.keyPath) || store.autoIncrement) && goog.isDef(opt_keys)) {
+      // The object store uses in-line keys or has a key generator, and a key parameter was provided.
+      throw new ydn.error.ArgumentException('in-line key is in used.');
+    } else if (!goog.isDef(store.keyPath) && !store.autoIncrement && !goog.isDef(opt_keys)) {
+      // The object store uses out-of-line keys and has no key generator, and no key parameter was provided.
+      throw new ydn.error.ArgumentException('out-of-line key must be provided.');
+    }
+
     if (goog.isArray(value)) {
       var objs = value;
+      var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
       this.execute(function (executor) {
-        executor.putObjects(df, store_name, objs);
+        executor.putObjects(df, store_name, objs, keys);
       }, [store_name], ydn.db.TransactionMode.READ_WRITE);
     } else if (goog.isObject(value)) {
       var obj = value;
+      var key = /** @type {number|string|undefined} */  (opt_keys);
       this.execute(function (executor) {
-        executor.putObject(df, store_name, obj);
+        executor.putObject(df, store_name, obj, key);
       }, [store_name], ydn.db.TransactionMode.READ_WRITE);
     } else {
       throw new ydn.error.ArgumentException();

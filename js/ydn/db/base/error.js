@@ -10,6 +10,7 @@ goog.provide('ydn.db.InvalidKeyException');
 goog.provide('ydn.db.InvalidStateError');
 goog.provide('ydn.db.InternalError');
 goog.provide('ydn.db.ScopeError');
+goog.provide('ydn.db.SecurityError');
 goog.provide('ydn.db.NotFoundError');
 
 
@@ -160,3 +161,56 @@ ydn.db.DataCloneError = function(opt_msg) {
 goog.inherits(ydn.db.DataCloneError, Error);
 
 ydn.db.DataCloneError.prototype.name = 'ydn.db.DataCloneError';
+
+
+/**
+ *
+ * @param {SQLError} e
+ * @param {*=} opt_msg
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.SQLError = function(e, opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.SQLError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+  this.message += ' :' + e.message;
+};
+goog.inherits(ydn.db.SQLError, Error);
+
+ydn.db.SQLError.prototype.name = 'ydn.db.SQLError';
+
+
+/**
+ *
+ * @param {Error} e
+ * @param {*=} opt_msg
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.SecurityError = function(e, opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.SecurityError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+  this.message += ' :' + e.message;
+};
+goog.inherits(ydn.db.SecurityError, Error);
+
+ydn.db.SecurityError.prototype.name = 'ydn.db.SecurityError';
+
