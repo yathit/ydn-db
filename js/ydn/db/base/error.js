@@ -113,6 +113,28 @@ goog.inherits(ydn.db.InvalidStateError, Error);
 ydn.db.InvalidStateError.prototype.name = 'ydn.db.InvalidStateError';
 
 
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.InvalidAccessError = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.InvalidAccessError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(ydn.db.InvalidAccessError, Error);
+
+ydn.db.InvalidAccessError.prototype.name = 'ydn.db.InvalidAccessError';
 
 
 /**

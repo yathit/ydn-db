@@ -388,7 +388,7 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, is_caller_setv
   for (var i = 0; i < this.schema.stores.length; i++) {
     var table = this.schema.stores[i];
     this.logger.finest('Creating Object Store for ' + table.name +
-      ' keyPath: ' + table.keyPath);
+      ' keyPath: ' + table.keyPath + ', auto: ' + table.autoIncrement);
 
     var store;
     if (this.hasStore_(db, table.name)) {
@@ -427,8 +427,24 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, is_caller_setv
       this.logger.finest('Updated store: ' + store.name + ', ' + created +
         ' index created, ' + deleted + ' index deleted.');
     } else {
-      store = db.createObjectStore(table.name,
-        {keyPath: table.keyPath, autoIncrement: table.autoIncrement});
+      // IE10 is picky on optional parameters of keyPath. If it is undefined, it must not be defined.
+      var options = {'autoIncrement': table.autoIncrement};
+      if (goog.isDefAndNotNull(table.keyPath)) {
+        options['keyPath'] = table.keyPath;
+      }
+      try {
+        store = db.createObjectStore(table.name, options);
+      } catch (e) {
+        if (e.name == 'InvalidAccessError') {
+          throw new ydn.db.InvalidAccessError('creating store for ' + table.name + ' of keyPath: ' +
+              table.keyPath + ' and autoIncrement: ' + table.autoIncrement);
+        } else if (e.name == 'ConstraintError') {
+          // store already exist.
+          throw new ydn.error.ConstrainError('creating store for ' + table.name);
+        } else {
+          throw e;
+        }
+      }
 
       for (var j = 0; j < table.indexes.length; j++) {
         var index = table.indexes[j];
