@@ -294,7 +294,7 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
       return trFn.apply(this, newArgs);
     }
   }
-  outFn.name = trFn.name;
+  outFn.name = scope_name;
 
   var me = this;
 
