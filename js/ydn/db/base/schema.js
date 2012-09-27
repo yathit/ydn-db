@@ -406,6 +406,18 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
 
 
 /**
+ * Compare two stores.
+ * @param {!ydn.db.StoreSchema} store
+ * @return {boolean}
+ */
+ydn.db.StoreSchema.prototype.equals = function(store) {
+  return this.store_names === store.name &&
+    this.keyPaths === store.keyPaths &&
+    ydn.object.isSame(this.toJSON(), store.toJSON());
+};
+
+
+/**
  *
  * @param {number} version version.
  * @param {number=} opt_size estimated database size. Default to 5 MB.

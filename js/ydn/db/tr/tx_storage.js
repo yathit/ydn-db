@@ -305,12 +305,11 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
     //console.log(this + ' not active')
     var transaction_process = function (tx) {
 
-      //console.log('tr running ' + trFn.name);
-
       me.mu_tx_.up(tx, scope_name);
 
       // now execute transaction process
       outFn(me);
+
       me.mu_tx_.out(); // flag transaction callback scope is over.
       // transaction is still active and use in followup request handlers
     };
@@ -326,7 +325,7 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
         }
       } catch (e) {
         // swallow error. document it publicly.
-        // this is necessary and
+        // this is necessary to continue transaction queue
         if (goog.DEBUG) {
           throw e;
         }

@@ -98,6 +98,13 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
 
 
 /**
+ * If true, a new store schema will be generate on the fly.
+ * @type {boolean}
+ */
+ydn.db.core.Storage.prototype.auto_schema = false;
+
+
+/**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
@@ -132,6 +139,48 @@ ydn.db.core.Storage.prototype.getConfig = function() {
     'name': this.db_name,
     'schema': /** @type {!Object} */ (this.schema.toJSON())
   };
+};
+
+
+/**
+ * Get current schema.
+ * @return {!Object}
+ */
+ydn.db.core.Storage.prototype.getSchema = function() {
+  return /** @type {!Object} */ (this.schema.toJSON());
+};
+
+
+/**
+ * Get current schema.
+ * @return {Object} null if give store do not exist
+ */
+ydn.db.core.Storage.prototype.getStoreSchema = function(store_name) {
+  var store = this.schema.getStore(store_name);
+  return /** @type {!Object} */ (store.toJSON());
+};
+
+
+/**
+ *
+ * @param {!Object} store_schema
+ */
+ydn.db.core.Storage.prototype.addStoreSchema = function(store_schema) {
+  var store = this.schema.getStore(store_schema);
+  if (store) {
+    var new_store = new ydn.db.StoreSchema(store_schema);
+    if (!store.equals(new_store)) {
+      if (!this.auto_schema) {
+        throw new ydn.error.ConstrainError('Schema auto generation is disabled.');
+      } //else {
+        // do update
+      //}
+    }
+  } else {
+    if (!this.auto_schema) {
+      throw new ydn.error.ConstrainError('Schema auto generation is disabled.');
+    }
+  }
 };
 
 
