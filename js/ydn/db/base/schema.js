@@ -411,8 +411,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
  * @return {boolean}
  */
 ydn.db.StoreSchema.prototype.equals = function(store) {
-  return this.store_names === store.name &&
-    this.keyPaths === store.keyPaths &&
+  return this.name === store.name &&
     ydn.object.isSame(this.toJSON(), store.toJSON());
 };
 

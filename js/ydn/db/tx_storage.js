@@ -27,7 +27,8 @@ goog.require('ydn.db.req.WebSql');
 ydn.db.TxStorage = function(storage, ptx_no, scope_name) {
   goog.base(this, storage, ptx_no, scope_name);
   this.db_name = this.getStorage().getName();
-  this.schema = this.getStorage().getSchema();
+  var schema = this.getStorage().getSchema();
+  this.schema = ydn.db.DatabaseSchema.fromJSON(schema);
 
 };
 goog.inherits(ydn.db.TxStorage, ydn.db.tr.TxStorage);

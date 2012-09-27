@@ -166,9 +166,10 @@ ydn.db.core.Storage.prototype.getStoreSchema = function(store_name) {
  * @param {!Object} store_schema
  */
 ydn.db.core.Storage.prototype.addStoreSchema = function(store_schema) {
-  var store = this.schema.getStore(store_schema);
+  var store_name = store_schema['name'];
+  var store = this.schema.getStore(store_name);
   if (store) {
-    var new_store = new ydn.db.StoreSchema(store_schema);
+    var new_store = new ydn.db.StoreSchema(store_name);
     if (!store.equals(new_store)) {
       if (!this.auto_schema) {
         throw new ydn.error.ConstrainError('Schema auto generation is disabled.');
@@ -181,16 +182,6 @@ ydn.db.core.Storage.prototype.addStoreSchema = function(store_schema) {
       throw new ydn.error.ConstrainError('Schema auto generation is disabled.');
     }
   }
-};
-
-
-/**
- * Return structured clone of schema.
- * @return {!ydn.db.DatabaseSchema}
- * @export
- */
-ydn.db.core.Storage.prototype.getSchema = function() {
-  return ydn.db.DatabaseSchema.fromJSON(this.schema.toJSON());
 };
 
 

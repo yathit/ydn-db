@@ -184,6 +184,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) 
     }
     me.logger.warning('put error: ' + error.message);
     df.errback(error);
+    return true; // roll back
   };
 
   //console.log([sql, out.values]);
@@ -257,6 +258,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) 
           window.console.log([sql, out, tr, error]);
         }
         df.errback(error);
+        return true; // roll back
       };
 
       //console.log([sql, out.values]);
@@ -320,6 +322,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
     }
     me.logger.warning('get error: ' + error.message);
     d.errback(error);
+    return true; // roll back
   };
 
   this.tx.executeSql(sql, params, callback, error_callback);
@@ -387,6 +390,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
       me.logger.warning('get error: ' + error.message);
       // t.abort(); there is no abort
       df.errback(error);
+      return true; // roll back
     };
 
     var id = ids[i];
@@ -465,6 +469,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
       }
       me.logger.warning('get error: ' + error.message);
       df.errback(error);
+      return true; // roll back
     };
 
     tx.executeSql(sql, [], callback, error_callback);
@@ -533,6 +538,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
       }
       me.logger.warning('get error: ' + error.message);
       df.errback(error);
+      return true; // roll back
     };
 
     var id = key.getNormalizedId();
@@ -667,6 +673,7 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
     }
     me.logger.warning('Sqlite error: ' + error.message);
     df.errback(error);
+    return true; // roll back
   };
 
   this.tx.executeSql(sql, params, callback, error_callback);
@@ -719,6 +726,7 @@ ydn.db.req.WebSql.prototype.clearByStore = function (d, table_name) {
       }
       me.logger.warning('Sqlite error: ' + error.message);
       d.errback(error);
+      return true; // roll back
     };
 
     tx.executeSql(sql, [], callback, error_callback);
@@ -767,6 +775,7 @@ ydn.db.req.WebSql.prototype.removeById = function (d, table_name, key) {
     }
     me.logger.warning('Sqlite error: ' + error.message);
     d.errback(error);
+    return true; // roll back
   };
 
   this.tx.executeSql(sql, [key], callback, error_callback);
@@ -811,6 +820,7 @@ ydn.db.req.WebSql.prototype.clearById = function (d, table, id) {
     }
     me.logger.warning('put error: ' + error.message);
     d.errback(error);
+    return true; // roll back
   };
 
   var sql = 'DELETE FROM ' + store.getQuotedName() +
@@ -852,6 +862,7 @@ ydn.db.req.WebSql.prototype.count = function(d, table) {
     }
     me.logger.warning('count error: ' + error.message);
     d.errback(error);
+    return true; // roll back
   };
 
   this.tx.executeSql(sql, [], callback, error_callback);
@@ -905,6 +916,7 @@ ydn.db.req.WebSql.prototype.removeByStore = function(d, opt_table) {
     }
     me.logger.warning('Delete TABLE: ' + error.message);
     d.errback(error);
+    return true; // roll back
   };
 
   this.tx.executeSql(sql, [], callback, error_callback);
