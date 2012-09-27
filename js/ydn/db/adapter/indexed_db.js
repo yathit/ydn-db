@@ -436,8 +436,8 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, is_caller_setv
         store = db.createObjectStore(table.name, options);
       } catch (e) {
         if (e.name == 'InvalidAccessError') {
-          throw new ydn.db.InvalidAccessError('creating store for ' + table.name + ' of keyPath: ' +
-              table.keyPath + ' and autoIncrement: ' + table.autoIncrement);
+          throw new ydn.db.InvalidAccessError('creating store for ' + table.name + ' with options: ' +
+              ydn.json.stringify(options));
         } else if (e.name == 'ConstraintError') {
           // store already exist.
           throw new ydn.error.ConstrainError('creating store for ' + table.name);
