@@ -169,17 +169,17 @@ ydn.db.core.Storage.prototype.addStoreSchema = function(store_schema) {
   var store_name = store_schema['name'];
   var store = this.schema.getStore(store_name);
   if (store) {
-    var new_store = new ydn.db.StoreSchema(store_name);
+    var new_store = ydn.db.StoreSchema.fromJSON(store_schema);
     if (!store.equals(new_store)) {
       if (!this.auto_schema) {
-        throw new ydn.error.ConstrainError('Schema auto generation is disabled.');
+        throw new ydn.error.ConstrainError('Cannot update store: ' + store_name + '. Schema auto generation is disabled.');
       } //else {
         // do update
       //}
     }
   } else {
     if (!this.auto_schema) {
-      throw new ydn.error.ConstrainError('Schema auto generation is disabled.');
+      throw new ydn.error.ConstrainError('Cannot add ' + store_name + '. Schema auto generation is disabled.');
     }
   }
 };
