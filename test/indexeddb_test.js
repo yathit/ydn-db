@@ -208,10 +208,9 @@ var test_23_get_arr = function() {
       // Continuation
       function() {
         assertEquals('length', ids.length, results.length);
-        assertEquals('1', arr[ids[0]].value, results[0].value);
-        assertEquals('1', arr[ids[1]].value, results[1].value);
-        assertEquals('1', arr[ids[2]].value, results[2].value);
-        assertEquals('1', arr[ids[3]].value, results[3].value);
+        for (var i = 0; i < ids.length; i++) {
+          assertEquals('of ' + i, arr[ids[i]].value, results[i].value);
+        }
 
         reachedFinalContinuation = true;
       },
