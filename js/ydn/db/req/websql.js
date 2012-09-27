@@ -192,86 +192,86 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) 
 
 
 
-/**
-* @param {goog.async.Deferred} df
-* @param {string} store_name table name.
-* @param {!Array.<!Object>} objects object to put.
- * @param {!Array.<(Array|string|number)>=} opt_keys
-*/
-ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_keys) {
-
-  var table = this.schema.getStore(store_name);
-  if (!table) {
-    throw new ydn.db.NotFoundError(store_name);
-  }
-
-  var me = this;
-  var result_keys = [];
-  var result_count = 0;
-
   /**
-   * Put and item at i. This wydn.db.core.Storageill invoke callback to df if all objects
-   * have been put, otherwise recursive call to itself at next i+1 item.
-   * @param {number} i
-   * @param {SQLTransaction} tx
-   */
-  var put = function (i, tx) {
+  * @param {goog.async.Deferred} df
+  * @param {string} store_name table name.
+  * @param {!Array.<!Object>} objects object to put.
+   * @param {!Array.<(Array|string|number)>=} opt_keys
+  */
+  ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_keys) {
 
-    // todo: handle undefined or null object
-
-    var out;
-    if (goog.isDef(opt_keys)) {
-      out = table.getIndexedValues(objects[i], opt_keys[i]);
-    } else {
-      out = table.getIndexedValues(objects[i]);
+    var table = this.schema.getStore(store_name);
+    if (!table) {
+      throw new ydn.db.NotFoundError(store_name);
     }
-    //console.log([obj, JSON.stringify(obj)]);
 
-    var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
-        ' (' + out.columns.join(', ') + ') ' +
-        'VALUES (' + out.slots.join(', ') + ');';
+    var me = this;
+    var result_keys = [];
+    var result_count = 0;
 
     /**
-     * @param {SQLTransaction} transaction transaction.
-     * @param {SQLResultSet} results results.
+     * Put and item at i. This ydn.db.core.Storage will invoke callback to df if all objects
+     * have been put, otherwise recursive call to itself at next i+1 item.
+     * @param {number} i
+     * @param {SQLTransaction} tx
      */
-    var success_callback = function (transaction, results) {
-      result_count++;
-      result_keys[i] = goog.isDef(out.key) ? out.key : results.insertId;
-      if (result_count == objects.length) {
-        df.callback(result_keys);
+    var put = function (i, tx) {
+
+      // todo: handle undefined or null object
+
+      var out;
+      if (goog.isDef(opt_keys)) {
+        out = table.getIndexedValues(objects[i], opt_keys[i]);
       } else {
-        var next = i + ydn.db.req.WebSql.RW_REQ_PER_TX;
-        if (next < objects.length) {
-          put(next, transaction);
+        out = table.getIndexedValues(objects[i]);
+      }
+      //console.log([obj, JSON.stringify(obj)]);
+
+      var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
+          ' (' + out.columns.join(', ') + ') ' +
+          'VALUES (' + out.slots.join(', ') + ');';
+
+      /**
+       * @param {SQLTransaction} transaction transaction.
+       * @param {SQLResultSet} results results.
+       */
+      var success_callback = function (transaction, results) {
+        result_count++;
+        result_keys[i] = goog.isDef(out.key) ? out.key : results.insertId;
+        if (result_count == objects.length) {
+          df.callback(result_keys);
+        } else {
+          var next = i + ydn.db.req.WebSql.RW_REQ_PER_TX;
+          if (next < objects.length) {
+            put(next, transaction);
+          }
         }
-      }
+      };
+
+      /**
+       * @param {SQLTransaction} tr transaction.
+       * @param {SQLError} error error.
+       */
+      var error_callback = function (tr, error) {
+        if (ydn.db.req.WebSql.DEBUG) {
+          window.console.log([sql, out, tr, error]);
+        }
+        df.errback(error);
+      };
+
+      //console.log([sql, out.values]);
+      tx.executeSql(sql, out.values, success_callback, error_callback);
     };
 
-    /**
-     * @param {SQLTransaction} tr transaction.
-     * @param {SQLError} error error.
-     */
-    var error_callback = function (tr, error) {
-      if (ydn.db.req.WebSql.DEBUG) {
-        window.console.log([sql, out, tr, error]);
+    if (objects.length > 0) {
+      // send parallel requests
+      for (var i = 0; i < ydn.db.req.WebSql.RW_REQ_PER_TX && i < objects.length; i++) {
+        put(i, this.getTx());
       }
-      df.errback(error);
-    };
-
-    //console.log([sql, out.values]);
-    tx.executeSql(sql, out.values, success_callback, error_callback);
-  };
-
-  if (objects.length > 0) {
-    // send parallel requests
-    for (var i = 0; i < ydn.db.req.WebSql.RW_REQ_PER_TX && i < objects.length; i++) {
-      put(i, this.getTx());
+    } else {
+      df.callback([]);
     }
-  } else {
-    df.callback([]);
-  }
-};
+  };
 
 
 /**
