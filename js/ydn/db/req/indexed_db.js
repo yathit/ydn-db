@@ -621,8 +621,7 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log([store_name, id, event]);
     }
-    me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
-      event.message);
+    //me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' + event.message);
     df.errback(event);
   };
 };

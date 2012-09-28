@@ -79,9 +79,7 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
    * @type {!ydn.db.IDBKeyRange|undefined}
    */
   this.keyRange = kr;
-  if (goog.isDef(this.keyRange) && !goog.isDef(this.index)) {
-    throw new ydn.error.ArgumentException('index required.');
-  }
+
   // set all null so that no surprise from inherit prototype
   this.filter = null;
   this.reduce = null;
