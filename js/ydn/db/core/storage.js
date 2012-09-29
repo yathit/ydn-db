@@ -518,6 +518,7 @@ ydn.db.core.Storage.prototype.abortTxQueue_ = function(e) {
  * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
  * @export
+ * @final
  */
 ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
      opt_mode, completed_event_handler) {

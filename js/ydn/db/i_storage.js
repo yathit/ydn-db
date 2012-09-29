@@ -5,13 +5,13 @@
 
 
 goog.provide('ydn.db.IStorage');
-goog.require('ydn.db.tr.IStorage');
+goog.require('ydn.db.tr.ITxStorage');
 goog.require('ydn.db.req.RequestExecutor');
 
 
 
 /**
- * @extends {ydn.db.tr.IStorage}
+ * @extends {ydn.db.tr.ITxStorage}
  * @interface
  */
 ydn.db.IStorage = function() {};

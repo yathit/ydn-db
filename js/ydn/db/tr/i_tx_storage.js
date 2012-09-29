@@ -5,7 +5,6 @@
 
 
 goog.provide('ydn.db.tr.ITxStorage');
-goog.require('ydn.db.core.IStorage');
 goog.require('ydn.db.tr.Mutex');
 
 
@@ -15,6 +14,24 @@ goog.require('ydn.db.tr.Mutex');
 ydn.db.tr.ITxStorage = function() {};
 
 
+/**
+ *
+ * @return {string}
+ */
+ydn.db.tr.ITxStorage.prototype.type = goog.abstractMethod;
+
+
+
+/**
+ * Run a new transaction.
+ * @param {function(!ydn.db.tr.ITxStorage)} trFn function that invoke in the transaction.
+ * @param {!Array.<string>} store_names list of keys or
+ * store name involved in the transaction.
+ * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
+ * @param {function(ydn.db.TransactionEventTypes, *)=} oncompleted
+ * @param {...} opt_args
+ */
+ydn.db.tr.ITxStorage.prototype.run = goog.abstractMethod;
 
 
 /**
@@ -36,16 +53,4 @@ ydn.db.tr.ITxStorage.prototype.getTxNo = function() {};
  */
 ydn.db.tr.ITxStorage.prototype.getQueueNo = function() {};
 
-/**
- * Add a transaction complete (also error and abort) event. The listener will
- * be invoked after receiving one of these three events and before executing
- * next transaction. However, it is recommended that listener is not used
- * for transaction logistic tracking, which should, in fact, be tracked request
- * level. Use this listener to release resource for robustness. Any error on
- * the listener will be swallowed.
- * @final
- * @param {function(string=, *=)} fn first argument is either 'complete',
- * 'error', or 'abort' and second argument is event.
- */
-ydn.db.tr.ITxStorage.prototype.setCompletedListener = function(fn) {};
 

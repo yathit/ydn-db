@@ -81,7 +81,7 @@ var test_2_sql_basic = function() {
   db.put(table_name, arr).addCallback(function(value) {
     console.log(db + ' receiving value callback ' + JSON.stringify(value));
 
-    db.transaction(function tx_1(tdb) {
+    db.run(function tx_1(tdb) {
       console.log(db + ' starting tr');
       tdb.get(table_name, 'a').addCallback(function(a_obj) {
         console.log(tdb + ' a get ' + JSON.stringify(a_obj));

@@ -50,6 +50,8 @@ ydn.db.TxStorage.prototype.getStorage = function() {
 ydn.db.TxStorage.prototype.executor = null;
 
 
+
+
 /**
  * Return cache executor object or create on request. This have to be crated
  * Lazily because, we can initialize it only when transaction object is active.
@@ -103,6 +105,9 @@ ydn.db.TxStorage.prototype.execute = function(callback, store_names, mode)
     var tx_callback = function(idb) {
       // transaction should be active now
       if (!mu_tx.isActive()) {
+        throw new ydn.db.InternalError('Tx not active for scope: ' + me.scope);
+      }
+      if (!mu_tx.isAvailable()) {
         throw new ydn.db.InternalError('Tx not available for scope: ' + me.scope);
       }
       me.getExecutor().setTx(mu_tx.getTx(), me.scope);
@@ -112,7 +117,7 @@ ydn.db.TxStorage.prototype.execute = function(callback, store_names, mode)
     //var cbFn = goog.partial(tx_callback, callback);
     tx_callback.name = this.scope; // scope name
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + ' locked: ' + mu_tx.isSetDone());
-    this.transaction(tx_callback, store_names, mode);
+    this.run(tx_callback, store_names, mode);
   }
 };
 

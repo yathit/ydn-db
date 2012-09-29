@@ -33,7 +33,6 @@
 goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.tr.ITxStorage');
-goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.TxStorage');
 
 
@@ -53,7 +52,7 @@ goog.require('ydn.db.tr.TxStorage');
  * is used.
  * schema used in chronical order.
  * @param {!Object=} opt_options options.
- * @implements {ydn.db.tr.IStorage}
+ * @implements {ydn.db.tr.ITxStorage}
  * @extends{ydn.db.core.Storage}
  * @constructor
  */
@@ -93,6 +92,23 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.tr.Storage.prototype.getQueueNo = function() {
+  // this must be base storage
+  return 0;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.Storage.prototype.getTxNo = function() {
+  return this.ptx_no;
+};
+
+
+/**
  * @protected
  * @param {string} scope_name
  * @return {!ydn.db.tr.TxStorage}
@@ -101,12 +117,6 @@ ydn.db.tr.Storage.prototype.newTxInstance = function(scope_name) {
   return new ydn.db.tr.TxStorage(this, this.ptx_no++, scope_name);
 };
 
-
-ydn.db.tr.Storage.prototype.newTransaction = function(transaction_process, names, mode, completed_handler) {
-
-  ydn.db.tr.Storage.superClass_.transaction.call(this,
-    transaction_process, names, mode, completed_handler);
-};
 
 
 /**
@@ -118,9 +128,8 @@ ydn.db.tr.Storage.prototype.newTransaction = function(transaction_process, names
  * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.TransactionEventTypes, *)=} oncompleted
  * @param {...} opt_args
- * @override
  */
-ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
+ydn.db.tr.Storage.prototype.run = function (trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
   var scope_name = trFn.name || '';
@@ -135,9 +144,9 @@ ydn.db.tr.Storage.prototype.transaction = function (trFn, store_names, opt_mode,
       return trFn.apply(this, newArgs);
     };
     outFn.name = trFn.name;
-    tx_queue.transaction(outFn, store_names, opt_mode, oncompleted);
+    tx_queue.run(outFn, store_names, opt_mode, oncompleted);
   } else { // optional are strip
-    tx_queue.transaction(trFn, store_names, opt_mode, oncompleted);
+    tx_queue.run(trFn, store_names, opt_mode, oncompleted);
   }
 
 };

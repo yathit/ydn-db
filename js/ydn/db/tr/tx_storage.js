@@ -7,11 +7,12 @@
 
 
 goog.provide('ydn.db.tr.TxStorage');
+goog.require('ydn.db.core.IStorage');
 goog.require('ydn.error.NotSupportedException');
 
 
 /**
- * @implements {ydn.db.tr.IStorage}
+ * @implements {ydn.db.core.IStorage}
  * @implements {ydn.db.tr.ITxStorage}
  * @param {!ydn.db.tr.Storage} storage
  * @param {number} ptx_no
@@ -61,12 +62,30 @@ ydn.db.tr.TxStorage = function(storage, ptx_no, scope_name) {
 ydn.db.tr.TxStorage.DEBUG = false;
 
 
-
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.TxStorage.prototype.logger = goog.debug.Logger.getLogger('ydn.db.tr.TxStorage');
+
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.TxStorage.prototype.close = function() {
+  return this.storage_.close();
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names,
+                                                   opt_mode, completed_event_handler) {
+  this.storage_.transaction(trFn, store_names,
+      opt_mode, completed_event_handler);
+};
 
 
 /**
@@ -158,23 +177,6 @@ ydn.db.tr.TxStorage.prototype.lock = function() {
 
 
 /**
- * Add a transaction complete (also error and abort) event. The listener will
- * be invoked after receiving one of these three events and before executing
- * next transaction. However, it is recommended that listener is not used
- * for transaction logistic tracking, which should, in fact, be tracked request
- * level. Use this listener to release resource for robustness. Any error on
- * the listener will be swallowed.
- * @final
- * @param {?function(string=, *=)} fn first argument is either 'complete',
- * 'error', or 'abort' and second argument is event.
- */
-ydn.db.tr.TxStorage.prototype.setCompletedListener = function(fn) {
-  this.mu_tx_.oncompleted = fn || null;
-};
-
-
-
-/**
  *
  * @inheritDoc
  */
@@ -182,13 +184,6 @@ ydn.db.tr.TxStorage.prototype.type = function() {
   return this.storage_.type();
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.tr.TxStorage.prototype.close = function() {
-  return this.storage_.close();
-};
 
 
 
@@ -216,8 +211,7 @@ ydn.db.tr.TxStorage.prototype.popTxQueue_ = function() {
 
   var task = this.trQueue_.shift();
   if (task) {
-    ydn.db.tr.TxStorage.prototype.transaction.call(this,
-      task.fnc, task.store_names, task.mode, task.oncompleted);
+    this.run(task.fnc, task.store_names, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
 };
@@ -270,7 +264,7 @@ ydn.db.tr.TxStorage.prototype.pushTxQueue = function (trFn, store_names,
  * @param {...} opt_args
  * @override
  */
-ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mode, oncompleted, opt_args) {
+ydn.db.tr.TxStorage.prototype.run = function (trFn, store_names, opt_mode, oncompleted, opt_args) {
 
   //console.log('tr starting ' + trFn.name);
   var scope_name = trFn.name || '';
@@ -337,7 +331,7 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names, opt_mod
     if (ydn.db.tr.TxStorage.DEBUG) {
       window.console.log(this + ' transaction ' + mode + ' open for ' + JSON.stringify(names) + ' in ' + scope_name);
     }
-    this.storage_.newTransaction(transaction_process, names, mode, completed_handler);
+    this.storage_.transaction(transaction_process, names, mode, completed_handler);
   }
 
 };

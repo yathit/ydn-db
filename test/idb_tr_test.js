@@ -17,6 +17,7 @@ var setUp = function() {
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
+  goog.debug.Logger.getLogger('ydn.db.tr').setLevel(goog.debug.Logger.Level.FINEST);
 
 	basic_schema = new ydn.db.DatabaseSchema(1);
   var index = new ydn.db.IndexSchema('id');
@@ -75,7 +76,7 @@ var test_2_idb_basic = function() {
   db.put(table_name, arr).addCallback(function(value) {
     console.log(db + ' put: ' + JSON.stringify(value));
 
-    db.transaction(function(idb) {
+    db.run(function(idb) {
       assertEquals('tx 0', 1, idb.getTxNo());
       idb.get(table_name, 'a').addCallback(function(a_obj) {
         console.log(idb + ' get a ' + JSON.stringify(a_obj));
@@ -188,7 +189,7 @@ var test_4_multi_stores = function() {
   };
 
   var change_weapon = function (pid, new_weapon_name) {
-    db.transaction(function tx_change(idb) {
+    db.run(function tx_change(idb) {
       var get_ini_data = idb.get([idb.key('player', pid), idb.key('weapon', new_weapon_name)]);
       get_ini_data.addCallback(function get_pre_data(data) {
         var player = data[0];

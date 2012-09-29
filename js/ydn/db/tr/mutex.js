@@ -210,12 +210,22 @@ ydn.db.tr.Mutex.prototype.isActive = function() {
 
 
 /**
+ * Transaction object is available.
+ * @final
+ * @return {boolean}
+ */
+ydn.db.tr.Mutex.prototype.isAvailable = function() {
+  return !this.is_set_done_;
+};
+
+
+/**
  * Transaction object is active and not done.
  * @final
  * @return {boolean}
  */
 ydn.db.tr.Mutex.prototype.isActiveAndAvailable = function() {
-  return !!this.tx_ && !this.is_set_done_;
+  return this.isActive() && this.isAvailable();
 };
 
 

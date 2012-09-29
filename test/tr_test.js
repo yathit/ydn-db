@@ -53,7 +53,7 @@ var test_1_basic = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.transaction(function tx_cb1 (idb) {
+  db.run(function tx_cb1 (idb) {
     console.log('tr start: ' + idb);
     assertEquals('type', db_type, idb.type());
     var tx = idb.getTx();
@@ -109,7 +109,7 @@ var test_2_opt_arg = function() {
     t1_fired = true;
   };
 
-  db.transaction(function tx_cb1 (idb, a, b, c) {
+  db.run(function tx_cb1 (idb, a, b, c) {
     a_out = a;
     b_out = b;
     c_out = c;

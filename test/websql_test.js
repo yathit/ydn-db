@@ -15,6 +15,7 @@ var setUp = function() {
   goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+  ydn.db.req.WebSql.DEBUG = true;
 
   basic_schema = new ydn.db.DatabaseSchema(1);
   basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
@@ -423,7 +424,7 @@ var test_42_autoincreasement = function () {
     100, // interval
     1000); // maxTimeout
 
-  db.put(store_name, objs).addCallback(function (value) {
+  db.put(store_name, objs).addBoth(function (value) {
     console.log(['receiving key from put', value]);
     put_done = true;
     put_result = value
