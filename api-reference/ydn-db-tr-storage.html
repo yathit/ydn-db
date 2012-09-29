@@ -86,9 +86,9 @@ from the <code>ydn.db.tr.Storage</code> create non-overlapping transaction.</div
 <dl class="detailList">
   <dt class="heading">Parameters:</dt>
 
-  <dt><span class="light fixedFont">{!function(ydn.db.tr.ITxStorage: tx)}</span> <b>transaction_callback</b></dt>
+  <dt><span class="light fixedFont">{!function(ydn.db.tr.IStorage: tx)}</span> <b>transaction_callback</b></dt>
 
-  <dd>Transaction in callback function. The callback is invoked <code>ydn.db.tr.ITxStorage</code> instance.
+  <dd>Transaction in callback function. The callback is invoked <code>ydn.db.tr.IStorage</code> instance.
     Use <code>tx.getTx()</code> to get active transaction object, which could be either of  <code>IDBTransaction</code>,
     <code>SQLTransaction</code>, or <code>localStorage</code> depending on runtime environment.
     It returns <code>null</code> when transaction is no longer active.

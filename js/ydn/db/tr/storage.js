@@ -32,7 +32,7 @@
 
 goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.core.Storage');
-goog.require('ydn.db.tr.ITxStorage');
+goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.TxStorage');
 
 
@@ -52,7 +52,7 @@ goog.require('ydn.db.tr.TxStorage');
  * is used.
  * schema used in chronical order.
  * @param {!Object=} opt_options options.
- * @implements {ydn.db.tr.ITxStorage}
+ * @implements {ydn.db.tr.IStorage}
  * @extends{ydn.db.core.Storage}
  * @constructor
  */

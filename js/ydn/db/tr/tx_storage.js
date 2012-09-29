@@ -13,7 +13,7 @@ goog.require('ydn.error.NotSupportedException');
 
 /**
  * @implements {ydn.db.core.IStorage}
- * @implements {ydn.db.tr.ITxStorage}
+ * @implements {ydn.db.tr.IStorage}
  * @param {!ydn.db.tr.Storage} storage
  * @param {number} ptx_no
  * @param {string} scope_name
