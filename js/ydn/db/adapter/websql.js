@@ -338,8 +338,8 @@ ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
       this.sql_db_.readTransaction(transaction_callback,
           error_callback, success_callback);
     } else if (mode == ydn.db.TransactionMode.VERSION_CHANGE) {
-      this.sql_db_.changeVersion(this.sql_db_.version, this.schema.version, transaction_callback,
-          error_callback, success_callback);
+      this.sql_db_.changeVersion(this.sql_db_.version, this.schema.version + '',
+          transaction_callback, error_callback, success_callback);
     } else {
       this.sql_db_.transaction(transaction_callback,
           error_callback, success_callback);

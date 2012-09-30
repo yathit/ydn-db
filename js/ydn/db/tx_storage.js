@@ -198,6 +198,7 @@ ydn.db.TxStorage.prototype.removeItem = function(id) {
  * If not found, {@code undefined} is return.
  */
 ydn.db.TxStorage.prototype.getItem = function(key) {
+  // if the table not exist, <code>get</code> will throw error.
   var out = this.get(ydn.db.IStorage.DEFAULT_TEXT_STORE, key);
   var df = new goog.async.Deferred();
   var me = this;

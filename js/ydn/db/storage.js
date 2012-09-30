@@ -68,7 +68,7 @@ goog.inherits(ydn.db.Storage, ydn.db.tr.Storage);
 ydn.db.Storage.prototype.initDatabase = function () {
   // handle version change
   if (goog.isDef(this.schema) &&
-    (!goog.string.isEmpty(ydn.db.IStorage.DEFAULT_TEXT_STORE) &&
+    (ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE &&
       !this.schema.hasStore(ydn.db.IStorage.DEFAULT_TEXT_STORE))) {
     this.schema.addStore(new ydn.db.StoreSchema(
       ydn.db.IStorage.DEFAULT_TEXT_STORE, 'id'));

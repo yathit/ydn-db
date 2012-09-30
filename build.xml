@@ -6,7 +6,7 @@
     <property name="ver" value="0.10.0"/>
     <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
-        <property name="output.fn" value="${ydn-db.dir}/jsc/dev-ydn-db-min-${ver}.js"/>
+        <property name="output.fn" value="${ydn-db.dir}/jsc/dev-ydn.db-min-${ver}.js"/>
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
                          input="${ydn-db.dir}/js/dev.js"
                          input.dir="${ydn-db.dir}/js"
@@ -24,14 +24,14 @@
             </options>
         </closure-compile>
         <copy file="${output.fn}"
-              tofile="${work.dir}/hijax-server/static/jsc/dev-ydn-db-min.js"/>
+              tofile="${work.dir}/hijax-server/static/jsc/dev-ydn.db-min.js"/>
         <copy file="${output.fn}.map"
-              tofile="${work.dir}/hijax-server/static/jsc/dev-ydn-db-min.js.map"/>
+              tofile="${work.dir}/hijax-server/static/jsc/dev-ydn.db-min.js.map"/>
         <concat destfile="${output.fn}" append="true">
-            //@ sourceMappingURL=dev-ydn-db-min-${ver}.js.map
+            //@ sourceMappingURL=dev-ydn.db-min-${ver}.js.map
         </concat>
-        <concat destfile="${work.dir}/hijax-server/static/jsc/dev-ydn-db-min.js" append="true">
-            //@ sourceMappingURL=dev-ydn-db-min.js.map
+        <concat destfile="${work.dir}/hijax-server/static/jsc/dev-ydn.db-min.js" append="true">
+            //@ sourceMappingURL=dev-ydn.db-min.js.map
         </concat>
     </target>
     <macrodef name="adv-comp">
@@ -42,6 +42,7 @@
         <attribute name="closure.entry"/>
         <attribute name="cssmap-target" default="dummy"/>
         <element name="exjs.dir" optional="yes"/>
+        <element name="ex.opt" optional="yes"/>
         <sequential>
             <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
                              base.dir="@{input.dir}"
@@ -59,6 +60,7 @@
                     <arg line='-f "--closure_entry_point=@{closure.entry}"'/>
                     <arg line='-f "--define=goog.DEBUG=false"'/>
                     <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
+                    <ex.opt/>
                 </options>
             </closure-compile>
         </sequential>
@@ -69,7 +71,7 @@
         <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
                          input="${ydn-db.dir}/js/ydn/db/storage.js"
-                         output.fn="${ydn-db.dir}/jsc/ydn-db-${ver}.js"
+                         output.fn="${ydn-db.dir}/jsc/ydn.db-${ver}.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
                 <arg line='-p "${ydn-base.dir}/js"'/>
@@ -81,7 +83,7 @@
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
             </options>
         </closure-compile>
-        <copy file="${ydn-db.dir}/jsc/ydn-db-${ver}.js"
+        <copy file="${ydn-db.dir}/jsc/ydn.db-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/ydn-db.js"/>
     </target>
     <target name="compile-core" description="generates compiled files for core">
@@ -90,15 +92,15 @@
                 input.dir="${ydn-db.dir}/js/ydn/db/core"
                 input.fn="${ydn-db.dir}/js/core.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="core-ydn-db-min-${ver}.js"
+                output.fn="core-ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.core.Storage">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/adapter"'/>
             </exjs.dir>
         </adv-comp>
-        <copy file="${ydn-db.dir}/jsc/core-ydn-db-min-${ver}.js"
-              tofile="${work.dir}/hijax-server/static/jsc/core-ydn-db-min.js"/>
+        <copy file="${ydn-db.dir}/jsc/core-ydn.db-min-${ver}.js"
+              tofile="${work.dir}/hijax-server/static/jsc/core-ydn.db-min.js"/>
     </target>
     <target name="compile-tr" description="generates compiled files for tr storage">
         <mkdir dir="${ydn-db.dir}/jsc"/>
@@ -106,7 +108,7 @@
                 input.dir="${ydn-db.dir}/js/ydn/db/tr"
                 input.fn="${ydn-db.dir}/js/tr.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="tr-ydn-db-min-${ver}.js"
+                output.fn="tr-ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.tr.Storage">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
@@ -114,8 +116,8 @@
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/adapter"'/>
             </exjs.dir>
         </adv-comp>
-        <copy file="${ydn-db.dir}/jsc/tr-ydn-db-min-${ver}.js"
-              tofile="${work.dir}/hijax-server/static/jsc/core-ydn-db-min.js"/>
+        <copy file="${ydn-db.dir}/jsc/tr-ydn.db-min-${ver}.js"
+              tofile="${work.dir}/hijax-server/static/jsc/core-ydn.db-min.js"/>
     </target>
     <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
@@ -123,18 +125,35 @@
                 input.dir="${ydn-db.dir}/js/ydn/db"
                 input.fn="${ydn-db.dir}/js/main.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="ydn-db-min-${ver}.js"
+                output.fn="ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.Storage">
+            <ex.opt>
+                <arg line='-f "--define=ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE=false"'/>
+            </ex.opt>
         </adv-comp>
-        <copy file="${ydn-db.dir}/jsc/ydn-db-min-${ver}.js"
-              tofile="${work.dir}/hijax-server/static/jsc/ydn-db-min.js"/>
-        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn-db-min-${ver}.js">
+        <copy file="${ydn-db.dir}/jsc/ydn.db-min-${ver}.js"
+              tofile="${work.dir}/hijax-server/static/jsc/ydn.db-min.js"/>
+
+    </target>
+    <target name="compile-ex" description="compile with extra features">
+        <mkdir dir="${ydn-db.dir}/jsc"/>
+        <adv-comp
+                input.dir="${ydn-db.dir}/js/ydn/db"
+                input.fn="${ydn-db.dir}/js/main.js"
+                output.dir="${ydn-db.dir}/jsc"
+                output.fn="ex-ydn.db-min-${ver}.js"
+                closure.entry="ydn.db.Storage">
+            <ex.opt>
+                <arg line='-f "--define=ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE=true"'/>
+            </ex.opt>
+        </adv-comp>
+        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js">
             <header>
                 (function( $ ) {
             </header>
-            <filelist dir="${ydn-db.dir}/jsc" files="ydn-db-min-${ver}.js"/>
+            <filelist dir="${ydn-db.dir}/jsc" files="ex-ydn.db-min-${ver}.js"/>
         </concat>
-        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn-db-min-${ver}.js" append="true">
+        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js" append="true">
             $.db = new ydn.db.Storage();
 
             $.db.open = function(db_name, schema) {
