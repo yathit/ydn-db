@@ -61,9 +61,6 @@ goog.exportProperty(ydn.db.KeyRange, 'only',
 goog.exportProperty(ydn.db.KeyRange, 'starts',
     ydn.db.KeyRange.starts);
 
-goog.exportProperty(ydn.db.Storage.prototype, 'encrypt',
-    ydn.db.Storage.prototype.encrypt);
-
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
     ydn.db.Storage.prototype.query);
 goog.exportProperty(ydn.db.Storage.prototype, 'key',

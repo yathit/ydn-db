@@ -139,7 +139,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db"
-                input.fn="${ydn-db.dir}/js/main.js"
+                input.fn="${ydn-db.dir}/js/ex.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="ex-ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.Storage">

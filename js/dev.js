@@ -100,10 +100,10 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'clear',
 goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
   ydn.db.TxStorage.prototype.fetch);
 
-goog.exportProperty(ydn.db.tr.Storage.prototype, 'transaction',
-    ydn.db.tr.Storage.prototype.transaction);
-goog.exportProperty(ydn.db.tr.TxStorage.prototype, 'transaction',
-    ydn.db.tr.TxStorage.prototype.transaction);
+goog.exportProperty(ydn.db.tr.Storage.prototype, 'run',
+    ydn.db.tr.Storage.prototype.run);
+goog.exportProperty(ydn.db.tr.TxStorage.prototype, 'run',
+    ydn.db.tr.TxStorage.prototype.run);
 
 goog.exportProperty(ydn.db.tr.TxStorage.prototype, 'getTx',
   ydn.db.tr.TxStorage.prototype.getTx);
