@@ -16,7 +16,7 @@ var setUp = function() {
   //goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
+  goog.debug.Logger.getLogger('ydn.db.adapter.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
   ydn.db.adapter.IndexedDb.DEBUG = true;
 
   this.db_name = 'test_db' + Math.random();
@@ -76,14 +76,14 @@ var test_10_no_db = function() {
 
 var test_11_same_ver = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
-  var schema = {version: 1, stores: [this.store_schema, new_store]};
+  var schema = {version: 2, stores: [this.store_schema, new_store]};
   schema_test(schema);
 };
 
 
 var test_12_ver_update = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
-  var schema = {version: 2, stores: [this.store_schema, new_store]};
+  var schema = {version: 3, stores: [this.store_schema, new_store]};
   schema_test(schema, true);
 };
 

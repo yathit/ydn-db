@@ -37,10 +37,11 @@ goog.require('ydn.db.adapter.IDatabase');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
+ * @param {number=} opt_size estimated database size. Default to 5 MB.
  * @implements {ydn.db.adapter.IDatabase}
  * @constructor
  */
-ydn.db.adapter.WebSql = function(dbname, schema) {
+ydn.db.adapter.WebSql = function(dbname, schema, opt_size) {
   var self = this;
   this.dbname = dbname;
   /**
@@ -52,6 +53,8 @@ ydn.db.adapter.WebSql = function(dbname, schema) {
 
   var description = this.dbname;
 
+  var size = opt_size || 4 * 1024 * 1024; // 4 MB
+
   try {
     /**
      * http://www.w3.org/TR/webdatabase/#databases
@@ -61,7 +64,7 @@ ydn.db.adapter.WebSql = function(dbname, schema) {
      * work around is giving empty string and mirage after opening the database.
      */
     this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
-      this.schema.size);
+        size);
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
       // TODO: abort th queue
@@ -168,11 +171,11 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   if (goog.isDef(table_schema.keyPath)) {
     sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY ';
 
-    if (table_schema.autoIncrement) {
+    if (table_schema.autoIncremenent) {
       sql += ' AUTOINCREMENT ';
     }
 
-  } else if (table_schema.autoIncrement) {
+  } else if (table_schema.autoIncremenent) {
     sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
       ' UNIQUE PRIMARY KEY AUTOINCREMENT ';
   } else { // using out of line key.

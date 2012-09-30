@@ -368,10 +368,10 @@ ydn.db.TxStorage.prototype.put = function (store_name, value, opt_keys) {
       throw new ydn.error.ArgumentException('Store: ' + store_name + ' not exists.');
     }
     // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
-    if ((goog.isDef(store.keyPath) || store.autoIncrement) && goog.isDef(opt_keys)) {
+    if ((goog.isDef(store.keyPath) || store.autoIncremenent) && goog.isDef(opt_keys)) {
       // The object store uses in-line keys or has a key generator, and a key parameter was provided.
       throw new ydn.error.ArgumentException('in-line key is in used.');
-    } else if (!goog.isDef(store.keyPath) && !store.autoIncrement && !goog.isDef(opt_keys)) {
+    } else if (!goog.isDef(store.keyPath) && !store.autoIncremenent && !goog.isDef(opt_keys)) {
       // The object store uses out-of-line keys and has no key generator, and no key parameter was provided.
       throw new ydn.error.ArgumentException('out-of-line key must be provided.');
     }

@@ -34,7 +34,7 @@ goog.require('ydn.json');
  * @see goog.db.IndexedDb
  * @see ydn.db.Storage for schema
  * @param {string} dbname name of database.
- * @param {!ydn.db.DatabaseSchema} schema table schema contain table
+ * @param {ydn.db.DatabaseSchema=} schema table schema contain table
  * name and keyPath.
  * @implements {ydn.db.adapter.IDatabase}
  * @constructor
@@ -42,13 +42,6 @@ goog.require('ydn.json');
 ydn.db.adapter.IndexedDb = function(dbname, schema) {
   var me = this;
   this.dbname = dbname;
-
-  /**
-   * @protected
-   * @final
-   * @type {!ydn.db.DatabaseSchema}
-   */
-  this.schema = schema;
 
   this.idx_db_ = null;
 
@@ -58,7 +51,7 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
   // version could be number of string.
   // In chrome, version is taken as description.
   var msg = 'Trying to open database: ' + this.dbname + ' ver: ' +
-    this.schema.version;
+    schema.version;
   me.logger.finer(msg);
   if (ydn.db.adapter.IndexedDb.DEBUG) {
     window.console.log(msg);
@@ -70,31 +63,31 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
    */
   var openRequest = ydn.db.adapter.IndexedDb.indexedDb.open(this.dbname,
     // old externs uncorrected defined as string
-    /** @type {string} */ (this.schema.version));
+    /** @type {string} */ (schema.version));
   if (ydn.db.adapter.IndexedDb.DEBUG) {
     window.console.log(openRequest);
   }
 
   openRequest.onsuccess = function(ev) {
-    var msg = me.dbname + ' ver: ' + me.schema.version + ' OK.';
+    var msg = me.dbname + ' ver: ' + schema.version + ' OK.';
     me.logger.finer(msg);
     if (ydn.db.adapter.IndexedDb.DEBUG) {
       window.console.log(msg);
     }
     var db = ev.target.result;
     var old_version = db.version;
-    if (goog.isDef(me.schema.version) &&
-      me.schema.version > old_version) { // for chrome
+    if (goog.isDef(schema.version) &&
+      schema.version > old_version) { // for chrome
 
-      var setVrequest = db.setVersion(me.schema.version); // for chrome
+      var setVrequest = db.setVersion(schema.version); // for chrome
 
       setVrequest.onfailure = function(e) {
         me.logger.warning('migrating from ' + db.version + ' to ' +
-          me.schema.version + ' failed.');
+          schema.version + ' failed.');
         me.setDb(null);
       };
       setVrequest.onsuccess = function(e) {
-        me.doVersionChange(db, setVrequest['transaction'], true);
+        me.doVersionChange(db, setVrequest['transaction'], schema, true);
       };
     } else {
       msg = 'database version ' + db.version + 'ready to go';
@@ -116,7 +109,7 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
       me.logger.finer(msg);
     }
 
-    me.doVersionChange(db, openRequest['transaction']);
+    me.doVersionChange(db, openRequest['transaction'], schema);
 
   };
 
@@ -297,8 +290,9 @@ ydn.db.adapter.IndexedDb.prototype.idx_db_ = null;
  * @final
  * @protected
  * @param {IDBDatabase} db database instance.
+ * @param {IDBTransaction} trans
  */
-ydn.db.adapter.IndexedDb.prototype.setDb = function (db) {
+ydn.db.adapter.IndexedDb.prototype.setDb = function (db, trans) {
 
   this.idx_db_ = db;
   if (this.deferredIdxDb_.hasFired()) {
@@ -306,19 +300,8 @@ ydn.db.adapter.IndexedDb.prototype.setDb = function (db) {
     this.deferredIdxDb_ = new goog.async.Deferred();
   }
 
-  // often web app developer have problem with versioning, in that schema is
-  // different but version number is the same. So let us do sanity check
-  if (goog.DEBUG) {
-    for (var i = 0; i < this.schema.stores.length; i++) {
-      var store = this.schema.stores[i];
-      goog.asserts.assert(this.hasStore_(db, store.name), 'store: ' + store.name +
-        ' not exist in database but in schema, new version?');
-      // more checking in indexes.
-    }
-    this.deferredIdxDb_.callback(this.idx_db_);
-  } else {
-    this.deferredIdxDb_.callback(this.idx_db_);
-  }
+  this.deferredIdxDb_.callback(this.idx_db_);
+
 };
 
 
@@ -340,18 +323,103 @@ ydn.db.adapter.IndexedDb.prototype.hasStore_ = function(db, table) {
 
 
 /**
+ * Validate schema. If schema is not set, this will sniff the schema.
+ * @protected
+ * @param {IDBDatabase} db
+ * @param {IDBTransaction} trans
+ * @param {DOMStringList} objectStoreNames
+ * @param {ydn.db.DatabaseSchema=} schema
+ */
+ydn.db.adapter.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNames, schema) {
+
+  if (!goog.isDef(schema)) {
+    schema = new ydn.db.DatabaseSchema(/** @type {number} */ (db.version));
+    for (var i = 0; i < objectStoreNames.length; i++) {
+      var objStore = trans.objectStore(objectStoreNames[i]);
+      var indexes = [];
+      var n = objStore.indexNames.length;
+      for (var j = 0; j < n; j++) {
+        var index = objStore.index(objStore.indexNames[j]);
+        indexes.push(new ydn.db.IndexSchema(index.name, index.unique, undefined, index.keyPath, index.multiEntry));
+      }
+      var store = new ydn.db.StoreSchema(objStore.name, objStore.keyPath, objStore.autoIncremenent, undefined, indexes);
+    }
+  } else {
+    // validate schema
+    if (goog.DEBUG) {
+      var storeNames = schema.getStoreNames();
+      if (storeNames.length != objectStoreNames.length) {
+        var names = goog.array.map(objectStoreNames, function(x) {return x});
+        throw new ydn.error.ConstrainError('Different number of object stores in schema and database: ' +
+            ydn.json.stringify(storeNames) + ' vs. ' + ydn.json.stringify(names));
+      }
+      for (var i = 0; i < storeNames.length; i++) {
+        if (!objectStoreNames.contains(storeNames[i])) {
+          throw new ydn.error.ConstrainError('Require store: ' + storeNames[i] + ' not exist in the database');
+        }
+        var objStore = trans.objectStore(storeNames[i]);
+        var store = schema.getStore(storeNames[i]);
+        if (objStore.keyPath !== store.keyPath) {
+          throw new ydn.error.ConstrainError('Different keyPath between schema and database: ' +
+              objStore.keyPath + ' vs. ' + store.keyPath);
+        }
+        if (store.autoIncremenent != !!objStore.autoIncremenent) {
+          throw new ydn.error.ConstrainError('Different autoIncrement between schema and database: ' +
+              objStore.autoIncremenent + ' vs. ' + store.autoIncremenent);
+        }
+
+        var indexNames = store.getIndexNames();
+        if (indexNames.length != objStore.indexNames.length) {
+          throw new ydn.error.ConstrainError('Different number of index in ' +
+              storeNames[i] + ' between schema and database: ' +
+              ydn.json.stringify(indexNames) + ' vs. ' + ydn.json.stringify(objStore.indexNames));
+        }
+        for (var j = 0; j < indexNames.length; j++) {
+          var objIndex = objStore.index(indexNames[j]);
+          var index = store.getIndex(indexNames[j]);
+          var msg = ' in index: ' + indexNames[j] + ' of store: ' + storeNames[i] + ' between schema and database: ' ;
+          if (objIndex.keyPath !== index.keyPath) {
+            throw new ydn.error.ConstrainError('Different keyPath ' +
+                msg + objIndex.keyPath + ' vs. ' + index.keyPath);
+          }
+          if (objIndex.unique != index.unique) {
+            throw new ydn.error.ConstrainError('Different unique value ' +
+                msg + objIndex.unique + ' vs. ' + index.unique);
+          }
+          if (objIndex.multiEntry != index.multiEntry) {
+            throw new ydn.error.ConstrainError('Different multiEntry value ' +
+                msg + objIndex.multiEntry + ' vs. ' + index.multiEntry);
+          }
+        }
+      }
+    }
+  }
+
+  goog.asserts.assertInstanceof(schema, ydn.db.DatabaseSchema);
+  /**
+   * @protected
+   * @final
+   * @type {!ydn.db.DatabaseSchema}
+   */
+  this.schema = schema;
+};
+
+
+/**
  * Migrate from current version to the last version.
  * @protected
  * @param {IDBDatabase} db database instance.
  * @param {IDBTransaction} trans
+ * {ydn.db.DatabaseSchema} schema
  * @param {boolean=} is_caller_setversion call from set version;.
  */
-ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, trans, is_caller_setversion) {
+ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is_caller_setversion) {
 
   var me = this;
   var s = is_caller_setversion ? 'changing' : 'upgrading';
   this.logger.finer(s + ' version from ' + db.version + ' to ' +
-      this.schema.version);
+      schema.version);
+
 
   trans.oncomplete = function(e) {
 
@@ -373,8 +441,8 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, trans, is_call
   };
 
   // create store that we don't have previously
-  for (var i = 0; i < this.schema.stores.length; i++) {
-    var table = this.schema.stores[i];
+  for (var i = 0; i < schema.stores.length; i++) {
+    var table = schema.stores[i];
     this.logger.finest('Creating Object Store for ' + table.name +
       ' keyPath: ' + table.keyPath);
 
@@ -406,8 +474,25 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, trans, is_call
       this.logger.finest('Updated store: ' + store.name + ', ' + created +
         ' index created, ' + deleted + ' index deleted.');
     } else {
-      store = db.createObjectStore(table.name,
-        {keyPath: table.keyPath, autoIncrement: table.autoIncrement});
+
+      // IE10 is picky on optional parameters of keyPath. If it is undefined, it must not be defined.
+      var options = {"autoIncremenent": table.autoIncremenent};
+      if (goog.isDefAndNotNull(table.keyPath)) {
+        options['keyPath'] = table.keyPath;
+      }
+      try {
+        store = db.createObjectStore(table.name, options);
+      } catch (e) {
+        if (e.name == 'InvalidAccessError') {
+          throw new ydn.db.InvalidAccessError('creating store for ' + table.name + ' of keyPath: ' +
+              table.keyPath + ' and autoIncrement: ' + table.autoIncremenent);
+        } else if (e.name == 'ConstraintError') {
+          // store already exist.
+          throw new ydn.error.ConstrainError('creating store for ' + table.name);
+        } else {
+          throw e;
+        }
+      }
 
       for (var j = 0; j < table.indexes.length; j++) {
         var index = table.indexes[j];
@@ -422,7 +507,7 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, trans, is_call
 
   }
 
-
+  me.setSchema(db, trans, /** @type {DOMStringList} */ (db.objectStoreNames), schema);
 
   // TODO: delete unused old stores ?
 };

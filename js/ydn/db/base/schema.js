@@ -33,9 +33,11 @@ ydn.db.DataType = {
  * @param {string} name store (table) name.
  * @param {boolean=} opt_unique unique.
  * @param {ydn.db.DataType=} opt_type default to TEXT.
+ * @param {string=} keyPath
+ * @param {boolean=} multiEntry
  * @constructor
  */
-ydn.db.IndexSchema = function(name, opt_unique, opt_type) {
+ydn.db.IndexSchema = function(name, opt_unique, opt_type, keyPath, multiEntry) {
   /**
    * @final
    * @type {string}
@@ -43,14 +45,34 @@ ydn.db.IndexSchema = function(name, opt_unique, opt_type) {
   this.name = name;
   /**
    * @final
-   * @type {ydn.db.DataType}
+   * @type {ydn.db.DataType|undefined}
    */
-  this.type = opt_type || ydn.db.DataType.TEXT;
+  this.type = opt_type;
   /**
    * @final
    * @type {boolean}
    */
   this.unique = !!opt_unique;
+
+  /**
+   * @final
+   * @type {string|undefined}
+   */
+  this.keyPath = keyPath;
+  /**
+   * @final
+   * @type {boolean}
+   */
+  this.multiEntry = !!multiEntry;
+};
+
+
+/**
+ *
+ * @return {ydn.db.DataType}
+ */
+ydn.db.IndexSchema.prototype.getType = function() {
+  return this.type || ydn.db.DataType.TEXT;
 };
 
 
@@ -100,9 +122,9 @@ ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_type, opt_in
   }
   /**
    * @final
-   * @type {string|undefined}
+   * @type {string}
    */
-  this.keyPath = keyPath;
+  this.keyPath = keyPath || this.name;
   if (goog.isDef(this.keyPath) && !goog.isString(this.name)) {
     throw new ydn.error.ArgumentException('keyPath must be a string');
   }
@@ -111,13 +133,13 @@ ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_type, opt_in
    * @final
    * @type {boolean}
    */
-  this.autoIncrement = !!opt_autoIncrement;
+  this.autoIncremenent = !!opt_autoIncrement;
 
   /**
    * @final
    * @type {ydn.db.DataType}
    */
-  this.type = opt_type ? opt_type : this.autoIncrement ?
+  this.type = opt_type ? opt_type : this.autoIncremenent ?
     ydn.db.DataType.INTEGER : ydn.db.DataType.TEXT;
   if (!goog.isString(this.type)) {
     throw new ydn.error.ArgumentException('type invalid in store: ' + this.name);
@@ -149,7 +171,7 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
   return {
     'name': this.name,
     'keyPath': this.keyPath,
-    'autoIncrement': this.autoIncrement,
+    "autoIncremenent": this.autoIncremenent,
     'type': this.type,
     'indexes': indexes
   };
@@ -170,7 +192,7 @@ ydn.db.StoreSchema.fromJSON = function(json) {
     }
   }
   return new ydn.db.StoreSchema(json['name'], json['keyPath'],
-    json['autoIncrement'], json['type'], indexes);
+    json['autoIncremenent'], json['type'], indexes);
 };
 
 
@@ -248,6 +270,14 @@ ydn.db.StoreSchema.prototype.getColumns = function() {
     }
   }
   return this.columns_;
+};
+
+/**
+ *
+ * @return {!Array.<string>}
+ */
+ydn.db.StoreSchema.prototype.getIndexNames = function() {
+  return this.indexes.map(function(x) {return x.name;});
 };
 
 
@@ -421,22 +451,15 @@ ydn.db.StoreSchema.prototype.equals = function(store) {
 /**
  *
  * @param {number} version version.
- * @param {number=} opt_size estimated database size. Default to 5 MB.
  * @param {!Array.<!ydn.db.StoreSchema>=} opt_stores store schemas.
  * @constructor
  */
-ydn.db.DatabaseSchema = function(version, opt_size, opt_stores) {
+ydn.db.DatabaseSchema = function(version, opt_stores) {
   /**
    * @final
    * @type {number}
    */
   this.version = version || 1;
-
-  /**
-   * @final
-   * @type {number}
-   */
-  this.size = opt_size || 5 * 1024 * 1024; // 5 MB
 
   /**
    * @final
@@ -455,7 +478,6 @@ ydn.db.DatabaseSchema.prototype.toJSON = function() {
 
   return {
     'version': this.version,
-    'size': this.size,
     'stores': stores};
 };
 
@@ -479,7 +501,7 @@ ydn.db.DatabaseSchema.fromJSON = function(json) {
   for (var i = 0; i < stores_json.length; i++) {
     stores.push(ydn.db.StoreSchema.fromJSON(stores_json[i]));
   }
-  return new ydn.db.DatabaseSchema(json['version'], json['size'], stores);
+  return new ydn.db.DatabaseSchema(json['version'], stores);
 };
 
 
