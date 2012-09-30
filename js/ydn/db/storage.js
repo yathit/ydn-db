@@ -53,28 +53,38 @@ goog.require('ydn.db.io.QueryServiceProvider');
  * @constructor *
  */
 ydn.db.Storage = function(opt_dbname, opt_schema, opt_options) {
+  if (goog.isDef(opt_schema)) {
+    if (!(opt_schema instanceof ydn.db.DatabaseSchema)) {
+      opt_schema = ydn.db.DatabaseSchema.fromJSON(opt_schema);
+    }
+    if (ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE &&
+        !opt_schema.hasStore(ydn.db.IStorage.DEFAULT_TEXT_STORE)) {
+      opt_schema.addStore(new ydn.db.StoreSchema(
+          ydn.db.IStorage.DEFAULT_TEXT_STORE, 'id'));
+    }
+  }
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
   this.default_tx_queue_ = this.newTxInstance('base');
 };
 goog.inherits(ydn.db.Storage, ydn.db.tr.Storage);
 
-
-/**
- * Initialize suitable database if {@code dbname} and {@code schema} are set,
- * starting in the following order of preference.
- * @override
- */
-ydn.db.Storage.prototype.initDatabase = function () {
-  // handle version change
-  if (goog.isDef(this.schema) &&
-    (ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE &&
-      !this.schema.hasStore(ydn.db.IStorage.DEFAULT_TEXT_STORE))) {
-    this.schema.addStore(new ydn.db.StoreSchema(
-      ydn.db.IStorage.DEFAULT_TEXT_STORE, 'id'));
-  }
-  goog.base(this, 'initDatabase');
-};
+//
+///**
+// * Initialize suitable database if {@code dbname} and {@code schema} are set,
+// * starting in the following order of preference.
+// * @override
+// */
+//ydn.db.Storage.prototype.initDatabase = function () {
+//  // handle version change
+//  if (goog.isDef(this.schema) &&
+//    (ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE &&
+//      !this.schema.hasStore(ydn.db.IStorage.DEFAULT_TEXT_STORE))) {
+//    this.schema.addStore(new ydn.db.StoreSchema(
+//      ydn.db.IStorage.DEFAULT_TEXT_STORE, 'id'));
+//  }
+//  goog.base(this, 'initDatabase');
+//};
 
 
 /**

@@ -27,7 +27,7 @@ goog.require('ydn.db.adapter.IDatabase');
 /**
  * @implements {ydn.db.adapter.IDatabase}
  * @param {string} dbname dtabase name.
- * @param {!ydn.db.DatabaseSchema} schema table schema contain table
+ * @param {!ydn.db.DatabaseSchema=} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
  * @constructor

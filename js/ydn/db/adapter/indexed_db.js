@@ -308,12 +308,12 @@ ydn.db.adapter.IndexedDb.prototype.setDb = function (db, trans) {
 /**
  * @private
  * @param {IDBDatabase} db DB instance.
- * @param {string} table store name.
+ * @param {string} store_name store name.
  * @return {boolean} true if the store exist.
  */
-ydn.db.adapter.IndexedDb.prototype.hasStore_ = function(db, table) {
+ydn.db.adapter.IndexedDb.prototype.hasStore_ = function(db, store_name) {
   if ('objectStoreNames' in db) {
-    return db['objectStoreNames'].contains(table);
+    return db['objectStoreNames'].contains(store_name);
   } else {
     // old chrome is not following IndexedDB spec, not likely to encounter
     throw new ydn.error.NotSupportedException('Very old IndexedDB API');
@@ -452,8 +452,7 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, trans, schema,
 
       store = trans.objectStore(table.name);
       goog.asserts.assertObject(store, table.name + ' not found.');
-      var indexNames = store['indexNames']; // closre externs not yet updated.
-      goog.asserts.assertObject(indexNames); // let compiler know there it is.
+      var indexNames = /** @type {DOMStringList} */ (store.indexNames);
 
       var created = 0;
       var deleted = 0;
@@ -509,7 +508,7 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, trans, schema,
 
   me.setSchema(db, trans, /** @type {DOMStringList} */ (db.objectStoreNames), schema);
 
-  // TODO: delete unused old stores ?
+  // TODO: delete unused stores ?
 };
 
 

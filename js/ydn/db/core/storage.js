@@ -89,7 +89,7 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
    */
   this.txQueue_ = [];
 
-  this.setSchema(opt_schema || {});
+  this.setSchema(opt_schema);
 
   if (goog.isDef(opt_dbname)) {
     this.setName(opt_dbname);
@@ -219,26 +219,22 @@ ydn.db.core.Storage.prototype.getName = function() {
  * this will issue version change event and migrate to the schema.
  * @export
  * @see {@link #addTableSchema}
- * @param {!ydn.db.DatabaseSchema|!Object} schema set the last schema or its
+ * @param {!ydn.db.DatabaseSchema=} schema set the last schema or its
+ * @protected
  * configuration in JSON format.
  */
 ydn.db.core.Storage.prototype.setSchema = function(schema) {
 
-  if (!(schema instanceof ydn.db.DatabaseSchema)) {
-    schema = ydn.db.DatabaseSchema.fromJSON(schema);
-  }
-
   /**
    * @final
    * @protected
-   * @type {!ydn.db.DatabaseSchema}
+   * @type {!ydn.db.DatabaseSchema|undefined}
    */
   this.schema = schema;
 
   if (!this.db_) {
     this.initDatabase();
   } else {
-    var me = this;
     this.db_.close();
     this.db_ = null;
     this.deferredDb_ = new goog.async.Deferred();
@@ -266,22 +262,20 @@ ydn.db.core.Storage.PREFERENCE = [
  * Create database instance.
  * @protected
  * @param {string} db_type
- * @param {string} db_name
- * @param {!ydn.db.DatabaseSchema} schema
  * @return {ydn.db.adapter.IDatabase}
  */
-ydn.db.core.Storage.prototype.createDbInstance = function(db_type, db_name, schema) {
-  //noinspection JSValidateTypes
+ydn.db.core.Storage.prototype.createDbInstance = function(db_type) {
+
   if (db_type == ydn.db.adapter.IndexedDb.TYPE) {
-    return new ydn.db.adapter.IndexedDb(db_name, schema);
+    return new ydn.db.adapter.IndexedDb(this.db_name, this.schema);
   } else if (db_type == ydn.db.adapter.WebSql.TYPE) {
-    return new ydn.db.adapter.WebSql(db_name, schema);
+    return new ydn.db.adapter.WebSql(this.db_name, this.schema, this.preference['size']);
   } else if (db_type == ydn.db.adapter.LocalStorage.TYPE) {
-    return new ydn.db.adapter.LocalStorage(db_name, schema);
+    return new ydn.db.adapter.LocalStorage(this.db_name, this.schema);
   } else if (db_type == ydn.db.adapter.SessionStorage.TYPE) {
-    return new ydn.db.adapter.SessionStorage(db_name, schema);
+    return new ydn.db.adapter.SessionStorage(this.db_name, this.schema);
   } else if (db_type == ydn.db.adapter.SimpleStorage.TYPE)  {
-    return new ydn.db.adapter.SimpleStorage(db_name, schema);
+    return new ydn.db.adapter.SimpleStorage(this.db_name, this.schema);
   }
   return null;
 };
@@ -299,29 +293,29 @@ ydn.db.core.Storage.prototype.initDatabase = function() {
     if (goog.userAgent.product.ASSUME_CHROME ||
       goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
-      db = this.createDbInstance(ydn.db.adapter.IndexedDb.TYPE, this.db_name, this.schema);
+      db = this.createDbInstance(ydn.db.adapter.IndexedDb.TYPE);
     } else if (goog.userAgent.product.ASSUME_SAFARI) {
       // for dead-code elimination
-      db = this.createDbInstance(ydn.db.adapter.WebSql.TYPE, this.db_name, this.schema);
+      db = this.createDbInstance(ydn.db.adapter.WebSql.TYPE);
     } else {
       // go according to ordering
       var preference = this.preference || ydn.db.core.Storage.PREFERENCE;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
         if (db_type == ydn.db.adapter.IndexedDb.TYPE && ydn.db.adapter.IndexedDb.isSupported()) { // run-time detection
-          db = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type);
           break;
         } else if (db_type == ydn.db.adapter.WebSql.TYPE && ydn.db.adapter.WebSql.isSupported()) {
-          db = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type);
           break;
         } else if (db_type == ydn.db.adapter.LocalStorage.TYPE && ydn.db.adapter.LocalStorage.isSupported()) {
-          db = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type);
           break;
         } else if (db_type == ydn.db.adapter.SessionStorage.TYPE && ydn.db.adapter.SessionStorage.isSupported()) {
-          db = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type);
           break;
         } else if (db_type == ydn.db.adapter.SimpleStorage.TYPE)  {
-          db = this.createDbInstance(db_type, this.db_name, this.schema);
+          db = this.createDbInstance(db_type);
           break;
         }
       }
