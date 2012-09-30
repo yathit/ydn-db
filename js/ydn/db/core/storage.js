@@ -534,9 +534,6 @@ ydn.db.core.Storage.prototype.abortTxQueue_ = function(e) {
 ydn.db.core.Storage.prototype.transaction = function (trFn, store_names,
      opt_mode, completed_event_handler) {
 
-  //console.log('core starting ' + trFn.name);
-
-
   var is_ready = !!this.db_ && this.db_.isReady();
   if (is_ready) {
     var me = this;

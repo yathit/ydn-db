@@ -85,12 +85,6 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
     var old_version = db.version;
     if (goog.isDef(me.schema.version) &&
       me.schema.version > old_version) { // for chrome
-      msg = 'initializing database from ' + db.version + ' to ' +
-        me.schema.version;
-      me.logger.finer(msg);
-      if (ydn.db.adapter.IndexedDb.DEBUG) {
-        window.console.log(msg);
-      }
 
       var setVrequest = db.setVersion(me.schema.version); // for chrome
 
@@ -100,16 +94,7 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
         me.setDb(null);
       };
       setVrequest.onsuccess = function(e) {
-        me.doVersionChange(db, true);
-        me.logger.finer('Migrated to version ' + db.version + '.');
-        // db.close(); // cannot close connection. this cause InvalidStateError
-        var reOpenRequest = ydn.db.adapter.IndexedDb.indexedDb.open(me.dbname);
-        // have to reopen for new schema
-        reOpenRequest.onsuccess = function(rev) {
-          db = ev.target.result;
-          me.logger.finer('version ' + db.version + ' ready.');
-          me.setDb(db);
-        };
+        me.doVersionChange(db, setVrequest['transaction'], true);
       };
     } else {
       msg = 'database version ' + db.version + 'ready to go';
@@ -131,18 +116,8 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
       me.logger.finer(msg);
     }
 
-    me.doVersionChange(db);
+    me.doVersionChange(db, openRequest['transaction']);
 
-    // by reopening the database, we make sure that we are not in
-    // version change state since transaction cannot open during version
-    // change state. this is most common mistake on using IndexedDB API.
-    // db.close(); // cannot close connection. this cause InvalidStateError
-    var reOpenRequest = ydn.db.adapter.IndexedDb.indexedDb.open(me.dbname);
-    reOpenRequest.onsuccess = function(rev) {
-      db = ev.target.result;
-      me.logger.finer('Database: ' + me.dbname + ' upgraded.');
-      me.setDb(db);
-    };
   };
 
   openRequest.onerror = function(ev) {
@@ -358,8 +333,8 @@ ydn.db.adapter.IndexedDb.prototype.hasStore_ = function(db, table) {
     return db['objectStoreNames'].contains(table);
   } else {
     // old chrome is not following IndexedDB spec, not likely to encounter
-    // throw new ydn.error.InternalError('objectStoreNames not supported');
-    return true;
+    throw new ydn.error.NotSupportedException('Very old IndexedDB API');
+    //return true;
   }
 };
 
@@ -368,9 +343,34 @@ ydn.db.adapter.IndexedDb.prototype.hasStore_ = function(db, table) {
  * Migrate from current version to the last version.
  * @protected
  * @param {IDBDatabase} db database instance.
+ * @param {IDBTransaction} trans
  * @param {boolean=} is_caller_setversion call from set version;.
  */
-ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, is_caller_setversion) {
+ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, trans, is_caller_setversion) {
+
+  var me = this;
+  var s = is_caller_setversion ? 'changing' : 'upgrading';
+  this.logger.finer(s + ' version from ' + db.version + ' to ' +
+      this.schema.version);
+
+  trans.oncomplete = function(e) {
+
+    // by reopening the database, we make sure that we are not in
+    // version change state since transaction cannot open during version
+    // change state. this is most common mistake on using IndexedDB API.
+    // db.close(); // cannot close connection. this cause InvalidStateError
+    var reOpenRequest = ydn.db.adapter.IndexedDb.indexedDb.open(me.dbname);
+    reOpenRequest.onsuccess = function(rev) {
+      var db = rev.target.result;
+      me.logger.finer('Database: ' + me.dbname + ' upgraded.');
+      me.setDb(db);
+    };
+
+    reOpenRequest.onerror = function(e) {
+      me.logger.finer('Database: ' + me.dbname + ' upgrade fail.');
+      me.setDb(null);
+    }
+  };
 
   // create store that we don't have previously
   for (var i = 0; i < this.schema.stores.length; i++) {
@@ -381,16 +381,7 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, is_caller_setv
     var store;
     if (this.hasStore_(db, table.name)) {
       // already have the store, just update indexes
-      if (is_caller_setversion) {
-        // transaction cannot open in version upgrade
-        continue;
-      }
-      if (goog.userAgent.product.CHROME) {
-        // as of Chrome 22, transaction cannot open here
-        continue;
-      }
-      var trans = db.transaction([table.name],
-        /** @type {number} */ (ydn.db.TransactionMode.READ_WRITE));
+
       store = trans.objectStore(table.name);
       goog.asserts.assertObject(store, table.name + ' not found.');
       var indexNames = store['indexNames']; // closre externs not yet updated.
@@ -430,6 +421,8 @@ ydn.db.adapter.IndexedDb.prototype.doVersionChange = function(db, is_caller_setv
     }
 
   }
+
+
 
   // TODO: delete unused old stores ?
 };
