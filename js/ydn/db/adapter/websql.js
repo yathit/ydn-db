@@ -217,8 +217,6 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
 
   var me = this;
 
-
-
   var sqls = [];
   for (var i = 0; i < this.schema.stores.length; i++) {
     sqls.push(this.prepareCreateTable_(this.schema.stores[i]));
@@ -270,7 +268,7 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
       // TODO: create only require table ? possible
       create(i);
     }
-  }, [], ydn.db.TransactionMode.READ_WRITE, oncompleted);
+  }, [], ydn.db.TransactionMode.VERSION_CHANGE, oncompleted);
 
 };
 
@@ -338,6 +336,9 @@ ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
 
     if (mode == ydn.db.TransactionMode.READ_ONLY) {
       this.sql_db_.readTransaction(transaction_callback,
+          error_callback, success_callback);
+    } else if (mode == ydn.db.TransactionMode.VERSION_CHANGE) {
+      this.sql_db_.changeVersion(this.sql_db_.version, this.schema.version, transaction_callback,
           error_callback, success_callback);
     } else {
       this.sql_db_.transaction(transaction_callback,
