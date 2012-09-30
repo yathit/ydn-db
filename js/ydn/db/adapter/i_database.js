@@ -40,6 +40,13 @@ ydn.db.adapter.IDatabase.prototype.onReady = function(callback) {};
 
 
 /**
+ * @return {*}
+ */
+ydn.db.adapter.IDatabase.prototype.getDbInstance = function() {};
+
+
+
+/**
  * Perform transaction immediately and invoke transaction_callback with
  * the transaction object.
  * Database adaptor must invoke completed_event_handler

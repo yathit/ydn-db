@@ -18,5 +18,5 @@ goog.exportProperty(ydn.db.core.Storage.prototype, 'close',
   ydn.db.core.Storage.prototype.close);
 // for hacker only. This method should not document this, since this will change
 // transaction state.
-goog.exportProperty(ydn.db.core.Storage.prototype, 'onReady',
-  ydn.db.core.Storage.prototype.onReady);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'db',
+  ydn.db.core.Storage.prototype.getDbInstance);

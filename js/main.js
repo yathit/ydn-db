@@ -17,8 +17,8 @@ goog.exportProperty(goog.async.Deferred.prototype, 'then',
     goog.async.Deferred.prototype.addCallbacks);
 
 //goog.exportSymbol('ydn.db.core.Storage', ydn.db.core.Storage);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'onReady',
-    ydn.db.core.Storage.prototype.onReady);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'db',
+    ydn.db.core.Storage.prototype.getDbInstance);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'type',
     ydn.db.core.Storage.prototype.type);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'setSchema',

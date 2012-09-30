@@ -11,12 +11,12 @@ var table_name = 't1';
 var setUp = function() {
   var c = new goog.debug.Console();
   c.setCapturing(true);
-  goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
+  //goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+  //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
-  ydn.db.adapter.IndexedDb.DEBUG = true;
-  ydn.db.req.IndexedDb.DEBUG = true;
+  //ydn.db.adapter.IndexedDb.DEBUG = true;
+  //ydn.db.req.IndexedDb.DEBUG = true;
 
 	basic_schema = new ydn.db.DatabaseSchema(1);
 	basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));

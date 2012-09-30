@@ -391,30 +391,41 @@ ydn.db.core.Storage.prototype.close = function() {
   }
 };
 
-
-/**
- * Access readied database instance asynchronously.
- * @param {function(!ydn.db.adapter.IDatabase)} callback
- * @export
- */
-ydn.db.core.Storage.prototype.onReady = function(callback) {
-  if (this.db_ && !this.db_.getDbInstance()) {
-    // we can skip this check, but it saves one function wrap.
-    callback(this.db_);
-  } else {
-    this.deferredDb_.addCallback(callback);
-  }
-};
+//
+//
+///**
+// * Access readied database instance asynchronously.
+// * @param {function(!ydn.db.adapter.IDatabase)} callback
+// * @export
+// */
+//ydn.db.core.Storage.prototype.onReady = function(callback) {
+//  if (this.db_ && !this.db_.getDbInstance()) {
+//    // we can skip this check, but it saves one function wrap.
+//    callback(this.db_);
+//  } else {
+//    this.deferredDb_.addCallback(callback);
+//  }
+//};
 
 
 /**
  * Get database instance.
- * @see {@link #onReady}
  * @protected
  * @return {ydn.db.adapter.IDatabase}
  */
 ydn.db.core.Storage.prototype.getDb = function() {
   return this.db_;
+};
+
+
+
+/**
+ * Get database instance.
+ * @see {@link #getDb}
+ * @return {*}
+ */
+ydn.db.core.Storage.prototype.getDbInstance = function() {
+  return this.db_ ? this.db_.getDbInstance() : null;
 };
 
 
