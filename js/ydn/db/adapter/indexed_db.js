@@ -114,7 +114,7 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
   };
 
   openRequest.onerror = function(ev) {
-    var msg = 'opening database ' + dbname + ' failed.';
+    var msg = 'opening database ' + dbname + ':' + schema.version + ' failed.';
     if (ydn.db.adapter.IndexedDb.DEBUG) {
       window.console.log(msg);
     } else {
@@ -361,11 +361,11 @@ ydn.db.adapter.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNa
         var store = schema.getStore(storeNames[i]);
         if (objStore.keyPath !== store.keyPath) {
           throw new ydn.error.ConstrainError('Different keyPath between schema and database: ' +
-              objStore.keyPath + ' vs. ' + store.keyPath);
+            store.keyPath + ' vs. ' + objStore.keyPath);
         }
         if (store.autoIncremenent != !!objStore.autoIncremenent) {
           throw new ydn.error.ConstrainError('Different autoIncrement between schema and database: ' +
-              objStore.autoIncremenent + ' vs. ' + store.autoIncremenent);
+            store.autoIncremenent + ' vs. ' + objStore.autoIncremenent);
         }
 
         var indexNames = store.getIndexNames();
@@ -380,15 +380,15 @@ ydn.db.adapter.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNa
           var msg = ' in index: ' + indexNames[j] + ' of store: ' + storeNames[i] + ' between schema and database: ' ;
           if (objIndex.keyPath !== index.keyPath) {
             throw new ydn.error.ConstrainError('Different keyPath ' +
-                msg + objIndex.keyPath + ' vs. ' + index.keyPath);
+                msg + index.keyPath + ' vs. ' + objIndex.keyPath);
           }
           if (objIndex.unique != index.unique) {
             throw new ydn.error.ConstrainError('Different unique value ' +
-                msg + objIndex.unique + ' vs. ' + index.unique);
+                msg + index.unique + ' vs. ' + objIndex.unique);
           }
           if (objIndex.multiEntry != index.multiEntry) {
             throw new ydn.error.ConstrainError('Different multiEntry value ' +
-                msg + objIndex.multiEntry + ' vs. ' + index.multiEntry);
+                msg + index.multiEntry + ' vs. ' + objIndex.multiEntry);
           }
         }
       }

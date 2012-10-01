@@ -598,7 +598,7 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
   if (index) {
     sql += ' ORDER BY ' + goog.string.quote(index.name) + ' ' + dir;
     unique = index.unique;
-  } else if (goog.isDef(store.keyPath)) {
+  } else if (goog.isString(store.keyPath)) {
     sql += ' ORDER BY ' + goog.string.quote(store.keyPath) + ' ' + dir;
   }
 

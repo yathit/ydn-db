@@ -269,7 +269,8 @@ ydn.db.core.Storage.prototype.createDbInstance = function(db_type) {
   if (db_type == ydn.db.adapter.IndexedDb.TYPE) {
     return new ydn.db.adapter.IndexedDb(this.db_name, this.schema);
   } else if (db_type == ydn.db.adapter.WebSql.TYPE) {
-    return new ydn.db.adapter.WebSql(this.db_name, this.schema, this.preference['size']);
+    var size = this.preference ? this.preference['size'] : undefined;
+    return new ydn.db.adapter.WebSql(this.db_name, this.schema, size);
   } else if (db_type == ydn.db.adapter.LocalStorage.TYPE) {
     return new ydn.db.adapter.LocalStorage(this.db_name, this.schema);
   } else if (db_type == ydn.db.adapter.SessionStorage.TYPE) {

@@ -100,6 +100,7 @@ var test_2_idb_basic = function() {
 };
 
 var schema = {
+  version: 1,
   stores: [{
     name: 'player',
     keyPath: 'id',

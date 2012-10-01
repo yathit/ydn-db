@@ -69,7 +69,7 @@ var schema_test = function(schema, to_delete) {
 
 
 var test_10_no_db = function() {
-  var schema = {stores: [this.store_schema]};
+  var schema = {version: 1, stores: [this.store_schema]};
   schema_test(schema);
 };
 

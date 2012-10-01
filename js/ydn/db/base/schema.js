@@ -58,7 +58,7 @@ ydn.db.IndexSchema = function(name, opt_unique, opt_type, keyPath, multiEntry) {
    * @final
    * @type {string|undefined}
    */
-  this.keyPath = keyPath;
+  this.keyPath = goog.isDef(keyPath) ? keyPath : this.name;
   /**
    * @final
    * @type {boolean}
@@ -122,10 +122,10 @@ ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_type, opt_in
   }
   /**
    * @final
-   * @type {string}
+   * @type {string?}
    */
-  this.keyPath = keyPath || this.name;
-  if (goog.isDef(this.keyPath) && !goog.isString(this.name)) {
+  this.keyPath = goog.isDef(keyPath) ? keyPath : null;
+  if (!goog.isNull(this.keyPath) && !goog.isString(this.keyPath)) {
     throw new ydn.error.ArgumentException('keyPath must be a string');
   }
 
@@ -149,7 +149,7 @@ ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_type, opt_in
    * @final
    * @type {!Array.<string>}
    */
-  this.keyPaths = goog.isDef(this.keyPath) ? this.keyPath.split('.') : [];
+  this.keyPaths = !goog.isNull(this.keyPath) ? this.keyPath.split('.') : [];
   /**
    * @final
    * @type {!Array.<!ydn.db.IndexSchema>}
@@ -230,7 +230,7 @@ ydn.db.StoreSchema.prototype.hasIndex = function(name) {
  * @return {string|undefined} return quoted keyPath.
  */
 ydn.db.StoreSchema.prototype.getQuotedKeyPath = function() {
-  return goog.isDef(this.keyPath) ? goog.string.quote(this.keyPath) : undefined;
+  return goog.isString(this.keyPath) ? goog.string.quote(this.keyPath) : undefined;
 };
 
 
@@ -239,7 +239,7 @@ ydn.db.StoreSchema.prototype.getQuotedKeyPath = function() {
  * @return {string} return quoted keyPath.
  */
 ydn.db.StoreSchema.prototype.getSQLKeyColumnName = function() {
-  return goog.isDef(this.keyPath) ?
+  return goog.isString(this.keyPath) ?
     goog.string.quote(this.keyPath) : ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
 };
 
@@ -372,8 +372,8 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
   var slots = [];
   var columns = [];
   var key, normalized_key;
-  if (goog.isDef(this.keyPath) || goog.isDef(opt_key)) {
-    if (goog.isDef(this.keyPath)) {
+  if (goog.isString(this.keyPath) || goog.isDef(opt_key)) {
+    if (goog.isString(this.keyPath)) {
       key = this.getKey(obj);
       columns = [this.getQuotedKeyPath()];
     } else if (goog.isDef(opt_key)) {
@@ -450,16 +450,16 @@ ydn.db.StoreSchema.prototype.equals = function(store) {
 
 /**
  *
- * @param {number} version version.
+ * @param {number=} version version.
  * @param {!Array.<!ydn.db.StoreSchema>=} opt_stores store schemas.
  * @constructor
  */
 ydn.db.DatabaseSchema = function(version, opt_stores) {
   /**
    * @final
-   * @type {number}
+   * @type {number|undefined}
    */
-  this.version = version || 1;
+  this.version = version;
 
   /**
    * @final
@@ -479,6 +479,15 @@ ydn.db.DatabaseSchema.prototype.toJSON = function() {
   return {
     'version': this.version,
     'stores': stores};
+};
+
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.DatabaseSchema.prototype.isAutoSchema = function() {
+  return !goog.isDef(this.version);
 };
 
 

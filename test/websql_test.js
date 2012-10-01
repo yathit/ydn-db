@@ -302,7 +302,7 @@ var test_82_fetch_keys = function () {
   var db_name = 'test821';
   var indexSchema = new ydn.db.IndexSchema('id', true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]);
-  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
+  var schema = new ydn.db.DatabaseSchema(1,  [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
   assertEquals('db', 'websql', db.type());
 
@@ -369,7 +369,7 @@ var test_42_autoincreasement = function () {
   var store_name = 'demoOS';
   var db_name = 'test_42_24';
   var store_schema = new ydn.db.StoreSchema(store_name, undefined, true);
-  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
+  var schema = new ydn.db.DatabaseSchema(1,  [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
@@ -436,7 +436,7 @@ var test_43_no_key_column = function () {
   var store_name = 'demoOS';
   var db_name = 'test_43_25';
   var store_schema = new ydn.db.StoreSchema(store_name, undefined, false);
-  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema]);
+  var schema = new ydn.db.DatabaseSchema(1,  [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
@@ -504,7 +504,7 @@ var test_83_fetch_keys = function () {
   var indexSchema = new ydn.db.IndexSchema('id', true);
   var store_schema1 = new ydn.db.StoreSchema(store_name1, 'id', false, undefined, [indexSchema]);
   var store_schema2 = new ydn.db.StoreSchema(store_name2, 'id');
-  var schema = new ydn.db.DatabaseSchema(1, undefined, [store_schema1, store_schema2]);
+  var schema = new ydn.db.DatabaseSchema(1,  [store_schema1, store_schema2]);
   var db = new ydn.db.Storage(db_name, schema, options);
   assertEquals('db', 'websql', db.type());
 

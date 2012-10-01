@@ -35,7 +35,7 @@ goog.require('ydn.db.adapter.IDatabase');
  * Construct WebSql database.
  * Note: Version is ignored, since it does work well.
  * @param {string} dbname name of database.
- * @param {!ydn.db.DatabaseSchema} schema table schema contain table
+ * @param {!ydn.db.DatabaseSchema=} schema table schema contain table
  * name and keyPath.
  * @param {number=} opt_size estimated database size. Default to 5 MB.
  * @implements {ydn.db.adapter.IDatabase}
@@ -44,6 +44,11 @@ goog.require('ydn.db.adapter.IDatabase');
 ydn.db.adapter.WebSql = function(dbname, schema, opt_size) {
   var self = this;
   this.dbname = dbname;
+
+  if (!goog.isDef(schema)) {
+    schema = new ydn.db.DatabaseSchema();
+  }
+
   /**
    * @final
    * @protected

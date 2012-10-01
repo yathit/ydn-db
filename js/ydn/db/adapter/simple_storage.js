@@ -50,7 +50,7 @@ ydn.db.adapter.SimpleStorage = function(dbname, schema, opt_localStorage) {
   /**
    * @protected
    * @final
-   * @type {!ydn.db.DatabaseSchema}
+   * @type {!ydn.db.DatabaseSchema|undefined}
    */
   this.schema = schema; // we always use the last schema.
 

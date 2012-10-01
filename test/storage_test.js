@@ -31,7 +31,7 @@ var db_name = 'test1';
 
 var test_1_json_trival_config = function() {
 
-  var schema_ver1 = {};
+  var schema_ver1 = {version: 1};
 
   var db = new ydn.db.Storage('todos_test8', schema_ver1);
 

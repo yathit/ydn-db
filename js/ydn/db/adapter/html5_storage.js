@@ -24,7 +24,7 @@ goog.require('ydn.db.adapter.SimpleStorage');
 /**
  * @extends {ydn.db.adapter.SimpleStorage}
  * @param {string} dbname dtabase name.
- * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
+ * @param {!ydn.db.DatabaseSchema=} schemas table schema contain table
  * name and keyPath.
  * @constructor
  */
@@ -60,7 +60,7 @@ ydn.db.adapter.LocalStorage.prototype.type = function() {
 /**
  * @extends {ydn.db.adapter.SimpleStorage}
  * @param {string} dbname dtabase name.
- * @param {!ydn.db.DatabaseSchema} schemas table schema contain table
+ * @param {!ydn.db.DatabaseSchema=} schemas table schema contain table
  * name and keyPath.
  * @constructor
  */
