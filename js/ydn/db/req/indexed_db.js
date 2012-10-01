@@ -57,63 +57,7 @@ ydn.db.req.IndexedDb.REQ_PER_TX = 10;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.req.IndexedDb.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.req.IndexedDb');
-
-
-
-
-
-/**
-* Execute GET request callback results to df.
-* @param {goog.async.Deferred} df deferred to feed result.
-* @param {string} store_name table name.
-* @param {!Array.<string|number>} ids id to get.
-* @throws {ydn.db.InvalidKeyException}
-* @throws {ydn.error.InternalError}
-* @deprecated
-*/
-ydn.db.req.IndexedDb.prototype.getByIds_old_ = function (df, store_name, ids) {
-  var me = this;
-
-  var results = [];
-  var result_count = 0;
-  var store = this.tx.objectStore(store_name);
-
-  for (var i = 0; i < ids.length; i++) {
-    try { // should use try just to cache offending id ?
-          // should put outside for loop or just remove try block?
-      var request = store.get(ids[i]);
-
-      request.onsuccess = goog.partial(function (i, event) {
-        result_count++;
-        if (ydn.db.req.IndexedDb.DEBUG) {
-          window.console.log([store_name, event]);
-        }
-        results[i] = event.target.result;
-        if (result_count == ids.length) {
-          df.callback(results);
-        }
-      }, i);
-
-      request.onerror = function (event) {
-        result_count++;
-        if (ydn.db.req.IndexedDb.DEBUG) {
-          window.console.log([store_name, event]);
-        }
-        df.errback(event);
-        // abort transaction ?
-      };
-    } catch (e) {
-      if (e.name == 'DataError') {
-        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
-        throw new ydn.db.InvalidKeyException(ids[i]);
-      } else {
-        throw e;
-      }
-    }
-  }
-};
-
+  goog.debug.Logger.getLogger('ydn.db.req.IndexedDb');
 
 
 /**
@@ -328,20 +272,6 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_
 
   var store = this.tx.objectStore(store_name);
   var put = function(i) {
-
-    if (!goog.isDefAndNotNull(objs[i])) {
-      // should we just throw error ?
-      result_count++;
-      results[i] = undefined;
-      if (result_count == objs.length) {
-        df.callback(results);
-      } else {
-        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
-        if (next < objs.length) {
-          put(next);
-        }
-      }
-    }
 
     var request;
     try {
@@ -625,55 +555,6 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
     df.errback(event);
   };
 };
-
-
-
-//
-//
-//
-///**
-// * @param {IDBTransaction} tx active transaction object.
-// * @param {goog.async.Deferred} df deferred to feed result.
-// * @param {!Array.<!ydn.db.Key>} keys query.
-// * @param {number=} limit limit.
-// * @param {number=} offset offset.
-// * @deprecated
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.executeFetchKeys_ = function (tx, df, keys, limit, offset) {
-//  var me = this;
-//
-//  var n = keys.length;
-//  var result = [];
-//  offset = goog.isDef(offset) ? offset : 0;
-//  limit = goog.isDef(limit) ? limit : keys.length;
-//  for (var i = offset; i < limit; i++) {
-//    var key = keys[i];
-//    goog.asserts.assert(goog.isDef(key.getId()) && goog.isString(key.getStoreName()),
-//      'Invalid key: ' + key);
-//    var store = tx.objectStore(key.getStoreName());
-//    var request = store.get(key.getId());
-//
-//    request.onsuccess = function (event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      result.push(event.target.result);
-//      if (result.length == limit) {
-//        df.callback(result);
-//      }
-//    };
-//
-//    request.onerror = function (event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      df.errback(event);
-//    };
-//  }
-//
-//};
-//
 
 
 /**
