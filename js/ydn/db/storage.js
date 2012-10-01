@@ -24,7 +24,9 @@ goog.provide('ydn.db.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.object');
-goog.require('ydn.db.RichStorage_');
+if (ydn.db.IStorage.ENABLE_ENCRYPTION) {
+  goog.require('ydn.db.RichStorage_');
+}
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.IStorage');
@@ -44,7 +46,7 @@ goog.require('ydn.db.io.QueryServiceProvider');
  * {@link #setName} and {@link #setSchema}.
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
- * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
+ * @param {(!ydn.db.DatabaseSchema|!Object)=} opt_schema database schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!Object=} opt_options options.
@@ -52,18 +54,20 @@ goog.require('ydn.db.io.QueryServiceProvider');
  * @extends {ydn.db.tr.Storage}
  * @constructor *
  */
-ydn.db.Storage = function(opt_dbname, opt_schema, opt_options) {
-  if (goog.isDef(opt_schema)) {
-    if (!(opt_schema instanceof ydn.db.DatabaseSchema)) {
-      opt_schema = ydn.db.DatabaseSchema.fromJSON(opt_schema);
-    }
-    if (ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE &&
-        !opt_schema.hasStore(ydn.db.IStorage.DEFAULT_TEXT_STORE)) {
-      opt_schema.addStore(new ydn.db.StoreSchema(
-          ydn.db.IStorage.DEFAULT_TEXT_STORE, 'id'));
-    }
+ydn.db.Storage = function (opt_dbname, opt_schema, opt_options) {
+
+  var options = opt_options || {};
+  var schema = goog.isDef(opt_schema) ?
+    (!(opt_schema instanceof ydn.db.DatabaseSchema)) ?
+      ydn.db.DatabaseSchema.fromJSON(opt_schema) :
+      opt_schema : new ydn.db.DatabaseSchema();
+
+  if ((ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE || !!options['use_text_store']) &&
+    !schema.hasStore(ydn.db.IStorage.DEFAULT_TEXT_STORE)) {
+    schema.addStore(new ydn.db.StoreSchema(
+      ydn.db.IStorage.DEFAULT_TEXT_STORE, 'id'));
   }
-  goog.base(this, opt_dbname, opt_schema, opt_options);
+  goog.base(this, opt_dbname, schema, options);
 
   this.default_tx_queue_ = this.newTxInstance('base');
 };
@@ -115,12 +119,14 @@ ydn.db.Storage.prototype.newTxInstance = function(scope_name) {
  * @param {number=} opt_expiration default expiration time in miliseconds.
  */
 ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
-  /**
-   * @protected
-   * @final
-   * @type {ydn.db.RichStorage}
-   */
-  this.wrapper = new ydn.db.RichStorage(this, secret, opt_expiration);
+  if (ydn.db.IStorage.ENABLE_ENCRYPTION) {
+    /**
+     * @protected
+     * @final
+     * @type {ydn.db.RichStorage}
+     */
+    this.wrapper = new ydn.db.RichStorage(this, secret, opt_expiration);
+  }
 };
 
 
@@ -129,7 +135,7 @@ ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
  * @return {ydn.db.RichStorage}
  */
 ydn.db.Storage.prototype.getWrapper = function() {
-  return this.wrapper;
+  return this.wrapper || null;
 };
 
 

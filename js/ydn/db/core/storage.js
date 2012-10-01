@@ -65,6 +65,7 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
 
 
   var options = opt_options || {};
+  var schema = goog.isDef(opt_schema) ? opt_schema : new ydn.db.DatabaseSchema();
 
   this.preference = options['preference'];
 
@@ -89,7 +90,7 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
    */
   this.txQueue_ = [];
 
-  this.setSchema(opt_schema);
+  this.setSchema(schema);
 
   if (goog.isDef(opt_dbname)) {
     this.setName(opt_dbname);
@@ -218,8 +219,7 @@ ydn.db.core.Storage.prototype.getName = function() {
  * database name have been set. The the database is already initialized,
  * this will issue version change event and migrate to the schema.
  * @export
- * @see {@link #addTableSchema}
- * @param {!ydn.db.DatabaseSchema=} schema set the last schema or its
+ * @param {!ydn.db.DatabaseSchema} schema set the schema
  * @protected
  * configuration in JSON format.
  */
@@ -228,7 +228,7 @@ ydn.db.core.Storage.prototype.setSchema = function(schema) {
   /**
    * @final
    * @protected
-   * @type {!ydn.db.DatabaseSchema|undefined}
+   * @type {!ydn.db.DatabaseSchema}
    */
   this.schema = schema;
 
