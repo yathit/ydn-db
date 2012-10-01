@@ -61,9 +61,15 @@ ydn.db.adapter.IndexedDb = function(dbname, schema) {
    * This open request return two format.
    * @type {IDBOpenDBRequest|IDBRequest}
    */
-  var openRequest = ydn.db.adapter.IndexedDb.indexedDb.open(this.dbname,
-    // old externs uncorrected defined as string
-    /** @type {string} */ (schema.version));
+  var openRequest;
+  if (goog.isDef(schema.version)) {
+    openRequest = ydn.db.adapter.IndexedDb.indexedDb.open(this.dbname,
+      // old externs uncorrected defined as string
+      /** @type {string} */ (schema.version));
+  } else {
+    openRequest = ydn.db.adapter.IndexedDb.indexedDb.open(this.dbname);
+  }
+
   if (ydn.db.adapter.IndexedDb.DEBUG) {
     window.console.log(openRequest);
   }

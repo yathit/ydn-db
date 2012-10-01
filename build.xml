@@ -129,6 +129,7 @@
                 closure.entry="ydn.db.Storage">
             <ex.opt>
                 <arg line='-f "--define=ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE=false"'/>
+                <arg line='-f "--define=ydn.db.IStorage.ENABLE_ENCRYPTION=false"'/>
             </ex.opt>
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/ydn.db-min-${ver}.js"

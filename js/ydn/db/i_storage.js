@@ -37,7 +37,7 @@ ydn.db.IStorage.DEFAULT_TEXT_STORE = 'default_text_store';
 /**
  * @define {boolean}
  */
-ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE = false;
+ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE = true;
 
 
 

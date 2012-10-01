@@ -40,7 +40,7 @@ var schema_test = function(schema, to_delete) {
   console.log('testing schema: ' + JSON.stringify(schema));
   var db = new ydn.db.Storage(this.db_name, schema, this.options);
 
-  var version = goog.isDef(schema.version) ? schema.version : 1;
+  var version = schema.version;
 
   var done, value;
   waitForCondition(
@@ -69,21 +69,20 @@ var schema_test = function(schema, to_delete) {
 
 
 var test_10_no_db = function() {
-  var schema = {version: 1, stores: [this.store_schema]};
+  var schema = {stores: [this.store_schema]};
   schema_test(schema);
 };
 
 
 var test_11_same_ver = function() {
-  var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
-  var schema = {version: 2, stores: [this.store_schema, new_store]};
+  var schema = {version: 1, stores: [this.store_schema]};
   schema_test(schema);
 };
 
 
 var test_12_ver_update = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
-  var schema = {version: 3, stores: [this.store_schema, new_store]};
+  var schema = {version: 2, stores: [this.store_schema, new_store]};
   schema_test(schema, true);
 };
 
