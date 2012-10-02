@@ -294,6 +294,88 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
 
 /**
+ * @param {SQLTransaction} trans
+ * @param {function(Object.<string>)} callback
+ * @private
+ */
+ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var success_callback = function (transaction, results) {
+
+    var out = {};
+    for (var i = 0; i < results.rows.length; i++) {
+
+      var info = /** @type {SqliteTableInfo} */ (results.rows.item(i));
+
+//      name: "st1"
+//      rootpage: 5
+//      sql: "CREATE TABLE "st1" ("id" TEXT UNIQUE PRIMARY KEY , _default_ undefined )"
+//      tbl_name: "st1"
+//      type: "table"
+
+//      name: "sqlite_autoindex_st1_1"
+//      rootpage: 6
+//      sql: null
+//      tbl_name: "st1"
+//      type: "index"
+
+      if (info.type == 'table') {
+
+        var str = info.sql.substr(info.sql.indexOf('('), info.sql.lastIndexOf(')'));
+        var column_infos = ydn.string.split_comma_seperated(str);
+
+        var table_info = {key: '', unique: false, type: '', indexes: []};
+
+        for (var j = 0; j < column_infos.length; j++) {
+          var fields = ydn.string.split_space_seperated(column_infos[j]);
+          if (fields.indexOf('PRIMARY') != 0 && fields.indexOf('KEY') != 0) {
+            table_info.key = fields[0];
+            table_info.type = fields[1];
+            if (fields.indexOf('UNIQUE') != 0) {
+              table_info.unique = true;
+            }
+          } else {
+            var index = {name: fields[0], type: fields[1]};
+            table_info.indexes.push(index);
+          }
+        }
+
+        out[info.name] = table_info;
+      }
+    }
+    if (ydn.db.conn.WebSql.DEBUG) {
+      window.console.log(out);
+    }
+
+    callback(out);
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   */
+  var error_callback = function (tr, error) {
+    if (ydn.db.conn.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+
+  };
+
+  // var sql = 'PRAGMA table_info(' + goog.string.quote(table_name) + ')';
+  // Invoking this will result error of:
+  //   "could not prepare statement (23 not authorized)"
+
+  var sql = 'select * from sqlite_master';
+
+  trans.executeSql(sql, [], success_callback, error_callback);
+};
+
+
+/**
  *
  * @param {SQLTransaction} trans
  * @param {ydn.db.StoreSchema} store_schema
@@ -304,11 +386,15 @@ ydn.db.conn.WebSql.prototype.update_store_ = function(trans, store_schema,
                                                       callback) {
 
   var me = this;
+  this.table_info_(trans, function(table_infos) {
+    console.log(table_infos);
+  });
   var sql = this.prepareCreateTable_(store_schema);
 
   if (ydn.db.conn.WebSql.DEBUG) {
     window.console.log(sql);
   }
+
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
@@ -365,6 +451,10 @@ ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
       me.logger.warning(me.dbname + ': ' + action + ' void.');
     } else {
       if (!me.df_sql_db_.hasFired()) { // FIXME: why need to check ?
+        // this checking is necessary when browser prompt user,
+        // this migration function run two times: one creating table
+        // and one without creating table. How annoying ?
+        // testing is in /test/test_multi_storage.html page.
         me.logger.finest(me.dbname + ': ready.');
         me.df_sql_db_.callback(me.sql_db_);
       } else {

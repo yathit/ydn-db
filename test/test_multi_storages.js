@@ -8,6 +8,7 @@
 
 
 ydn.db.conn.IndexedDb.DEBUG = true;
+ydn.db.conn.WebSql.DEBUG = true;
 var div = document.getElementById('console');
 var c = new goog.debug.DivConsole(div);
 c.setCapturing(true);
