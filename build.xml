@@ -161,17 +161,16 @@
             $.db = new ydn.db.Storage();
 
             $.db.open = function(db_name, schema) {
-            schema = schema || {};
-            if ($.db.isReady()) {
-            $.db.close();
-            $.db = new ydn.db.Storage(schema, db_name);
-            } else {
-            $.db.setSchema(schema);
-            $.db.setDbName(db_name);
-            }
+                schema = schema || {};
+                $.db.setSchema(schema);
+                $.db.setName(db_name);
             };
-            })( jQuery );
+            })( jQuery);
         </concat>
+        <copy file="${ydn-db.dir}/jsc/ex-ydn.db-min-${ver}.js"
+              tofile="${work.dir}/hijax-server/static/jsc/ex-ydn.db-min.js"/>
+        <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js"
+              tofile="${work.dir}/hijax-server/static/jsc/jquery-ydn.db-min.js"/>
     </target>
     <target name="gen-all-test-js" description="generate all test js">
         <gen-js-test base.dir="${ydn-db.dir}/test"></gen-js-test>

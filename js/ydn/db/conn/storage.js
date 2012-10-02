@@ -232,7 +232,6 @@ ydn.db.conn.Storage.prototype.getName = function() {
  * this will issue version change event and migrate to the schema.
  * @export
  * @param {!ydn.db.DatabaseSchema} schema set the schema
- * @protected
  * configuration in JSON format.
  */
 ydn.db.conn.Storage.prototype.setSchema = function(schema) {
