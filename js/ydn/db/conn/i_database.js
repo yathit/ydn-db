@@ -3,46 +3,46 @@
  */
 
 
-goog.provide('ydn.db.adapter.IDatabase');
+goog.provide('ydn.db.conn.IDatabase');
 goog.require('goog.async.Deferred');
 
 
 /**
  * @interface
  */
-ydn.db.adapter.IDatabase = function() {};
+ydn.db.conn.IDatabase = function() {};
 
 
 /**
  * Close the connection.
  */
-ydn.db.adapter.IDatabase.prototype.close = function() {};
+ydn.db.conn.IDatabase.prototype.close = function() {};
 
 
 /**
  * Return readable representation of storage mechanism. It should be all lower case and use in type checking.
  * @return {string}
  */
-ydn.db.adapter.IDatabase.prototype.type = function() {};
+ydn.db.conn.IDatabase.prototype.type = function() {};
 
 
 /**
  * @return {boolean}
  */
-ydn.db.adapter.IDatabase.prototype.isReady = function() {};
+ydn.db.conn.IDatabase.prototype.isReady = function() {};
 
 
 /**
- * @param {function(ydn.db.adapter.IDatabase)} callback
+ * @param {function(ydn.db.conn.IDatabase)} callback
  */
-ydn.db.adapter.IDatabase.prototype.onReady = function(callback) {};
+ydn.db.conn.IDatabase.prototype.onReady = function(callback) {};
 
 
 
 /**
  * @return {*}
  */
-ydn.db.adapter.IDatabase.prototype.getDbInstance = function() {};
+ydn.db.conn.IDatabase.prototype.getDbInstance = function() {};
 
 
 
@@ -58,7 +58,7 @@ ydn.db.adapter.IDatabase.prototype.getDbInstance = function() {};
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
  * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
  */
-ydn.db.adapter.IDatabase.prototype.doTransaction = function(transaction_callback, store_names,
+ydn.db.conn.IDatabase.prototype.doTransaction = function(transaction_callback, store_names,
                                                             mode, completed_event_handler) {};
 
 

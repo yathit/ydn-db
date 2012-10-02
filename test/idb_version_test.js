@@ -16,8 +16,8 @@ var setUp = function() {
   //goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.adapter.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
-  ydn.db.adapter.IndexedDb.DEBUG = true;
+  goog.debug.Logger.getLogger('ydn.db.conn.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
+  ydn.db.conn.IndexedDb.DEBUG = true;
 
   this.db_name = 'test_db' + Math.random();
   this.store_name = 'st';
@@ -27,8 +27,8 @@ var setUp = function() {
 
 var deleteDb = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
-  if (ydn.db.adapter.IndexedDb.indexedDb.deleteDatabase) {
-    ydn.db.adapter.IndexedDb.indexedDb.deleteDatabase(this.db_name);
+  if (ydn.db.conn.IndexedDb.indexedDb.deleteDatabase) {
+    ydn.db.conn.IndexedDb.indexedDb.deleteDatabase(this.db_name);
   } else {
     console.log('Delete database manually: ' + this.db_name);
   }

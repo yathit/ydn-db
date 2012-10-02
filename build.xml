@@ -51,7 +51,7 @@
                              output.fn="@{output.dir}/@{output.fn}">
                 <extrapaths>
                     <arg line='-p "${ydn-base.dir}/js"'/>
-                    <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
                     <exjs.dir/>
                 </extrapaths>
                 <options>
@@ -86,17 +86,18 @@
         <copy file="${ydn-db.dir}/jsc/ydn.db-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/ydn-db.js"/>
     </target>
-    <target name="compile-core" description="generates compiled files for core">
+    <target name="compile-conn"
+            description="generates compiled files for core">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db/core"
+                input.dir="${ydn-db.dir}/js/ydn/db/conn"
                 input.fn="${ydn-db.dir}/js/core.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="core-ydn.db-min-${ver}.js"
-                closure.entry="ydn.db.core.Storage">
+                closure.entry="ydn.db.conn.Storage">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/adapter"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
             </exjs.dir>
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/core-ydn.db-min-${ver}.js"
@@ -112,8 +113,7 @@
                 closure.entry="ydn.db.tr.Storage">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/adapter"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
             </exjs.dir>
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/tr-ydn.db-min-${ver}.js"
@@ -211,7 +211,7 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-core,compile,simple,compile-dev,compile-tr">
+            depends="compile-conn,compile,simple,compile-dev,compile-tr">
 
     </target>
 </project>

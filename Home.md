@@ -64,7 +64,7 @@ For project setup and testing, see readme.md in the source code root folder.
 
 The following compiled distribution js are available on download section. Use only one.
 
-* **Raw:** //ydn-db-x.x.js// a compiled file without minification, but comments are stripped. Use this for testing and debugging. Turn on logging or change compiled constant like `ydn.db.adapter.IndexedDb.DEBUG = true;`. Most file will have one debug flag. Logging are enable and capture by using standard closure logging system, `goog.debug.Logger`.
+* **Raw:** //ydn-db-x.x.js// a compiled file without minification, but comments are stripped. Use this for testing and debugging. Turn on logging or change compiled constant like `ydn.db.conn.IndexedDb.DEBUG = true;`. Most file will have one debug flag. Logging are enable and capture by using standard closure logging system, `goog.debug.Logger`.
 * **Production:** //ydn-db-min-x.x.js// for production site.  
 * **Core:** //core-ydn-db-min-x.x.js// minified js file for production site. It is only a database wrapper. 
 * **JQuery** //jquery-ydn-db-min-x.x.js// same as ydn-db-min-x.x.js, but attached to JQuery object.

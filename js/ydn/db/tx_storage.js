@@ -64,13 +64,13 @@ ydn.db.TxStorage.prototype.getExecutor = function() {
   } else {
 
     var type = this.type();
-    if (type == ydn.db.adapter.IndexedDb.TYPE) {
+    if (type == ydn.db.conn.IndexedDb.TYPE) {
       this.executor = new ydn.db.req.IndexedDb(this.db_name, this.schema);
-    } else if (type == ydn.db.adapter.WebSql.TYPE) {
+    } else if (type == ydn.db.conn.WebSql.TYPE) {
       this.executor = new ydn.db.req.WebSql(this.db_name, this.schema);
-    } else if (type == ydn.db.adapter.SimpleStorage.TYPE ||
-        type == ydn.db.adapter.LocalStorage.TYPE ||
-        type == ydn.db.adapter.SessionStorage.TYPE) {
+    } else if (type == ydn.db.conn.SimpleStorage.TYPE ||
+        type == ydn.db.conn.LocalStorage.TYPE ||
+        type == ydn.db.conn.SessionStorage.TYPE) {
       this.executor = new ydn.db.req.SimpleStore(this.db_name, this.schema);
     } else {
       throw new ydn.db.InternalError('No executor for ' + type);

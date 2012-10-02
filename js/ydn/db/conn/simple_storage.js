@@ -16,30 +16,30 @@
  * @fileoverview Data store in memory.
  */
 
-goog.provide('ydn.db.adapter.SimpleStorage');
+goog.provide('ydn.db.conn.SimpleStorage');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('goog.Timer');
 goog.require('ydn.db.Key');
-goog.require('ydn.db.adapter.IDatabase');
+goog.require('ydn.db.conn.IDatabase');
 
 
 /**
- * @implements {ydn.db.adapter.IDatabase}
+ * @implements {ydn.db.conn.IDatabase}
  * @param {string} dbname dtabase name.
  * @param {!ydn.db.DatabaseSchema=} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
  * @constructor
  */
-ydn.db.adapter.SimpleStorage = function(dbname, schema, opt_localStorage) {
+ydn.db.conn.SimpleStorage = function(dbname, schema, opt_localStorage) {
 
   /**
    * @final
    * @type {!Object}
    * @protected // should be private ?
    */
-  this.cache_ = opt_localStorage || ydn.db.adapter.SimpleStorage.getFakeLocalStorage();
+  this.cache_ = opt_localStorage || ydn.db.conn.SimpleStorage.getFakeLocalStorage();
 
   /**
    * @final
@@ -61,14 +61,14 @@ ydn.db.adapter.SimpleStorage = function(dbname, schema, opt_localStorage) {
  * @const
  * @type {string}
  */
-ydn.db.adapter.SimpleStorage.TYPE = 'memory';
+ydn.db.conn.SimpleStorage.TYPE = 'memory';
 
 
 /**
  *
  * @return {!Object} return memory store object.
  */
-ydn.db.adapter.SimpleStorage.getFakeLocalStorage = function() {
+ydn.db.conn.SimpleStorage.getFakeLocalStorage = function() {
 
   var localStorage = {};
   localStorage.setItem = function(key, value) {
@@ -93,12 +93,12 @@ ydn.db.adapter.SimpleStorage.getFakeLocalStorage = function() {
  *
  * @return {boolean} true if memory is supported.
  */
-ydn.db.adapter.SimpleStorage.isSupported = function() {
+ydn.db.conn.SimpleStorage.isSupported = function() {
   return true;
 };
 
 
-ydn.db.adapter.SimpleStorage.prototype.getDb_ = function() {
+ydn.db.conn.SimpleStorage.prototype.getDb_ = function() {
   return this.cache_;
 };
 
@@ -106,14 +106,14 @@ ydn.db.adapter.SimpleStorage.prototype.getDb_ = function() {
 /**
  * @inheritDoc
  */
-ydn.db.adapter.SimpleStorage.prototype.isReady = function() {
+ydn.db.conn.SimpleStorage.prototype.isReady = function() {
   return true;
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.adapter.SimpleStorage.prototype.onReady = function(cb) {
+ydn.db.conn.SimpleStorage.prototype.onReady = function(cb) {
   cb(this);
 };
 
@@ -121,7 +121,7 @@ ydn.db.adapter.SimpleStorage.prototype.onReady = function(cb) {
 /**
  *
  */
-ydn.db.adapter.SimpleStorage.prototype.getDbInstance = function() {
+ydn.db.conn.SimpleStorage.prototype.getDbInstance = function() {
   return this.cache_ || null;
 };
 
@@ -130,7 +130,7 @@ ydn.db.adapter.SimpleStorage.prototype.getDbInstance = function() {
  * @protected
  * @param {string} old_version old version.
  */
-ydn.db.adapter.SimpleStorage.prototype.doVersionChange = function(old_version) {
+ydn.db.conn.SimpleStorage.prototype.doVersionChange = function(old_version) {
 
 };
 
@@ -139,14 +139,14 @@ ydn.db.adapter.SimpleStorage.prototype.doVersionChange = function(old_version) {
  * Column name of key, if keyPath is not specified.
  * @const {string}
  */
-ydn.db.adapter.SimpleStorage.DEFAULT_KEY_PATH = '_id_';
+ydn.db.conn.SimpleStorage.DEFAULT_KEY_PATH = '_id_';
 
 
 
 /**
  * @return {string}
  */
-ydn.db.adapter.SimpleStorage.prototype.type = function() {
+ydn.db.conn.SimpleStorage.prototype.type = function() {
   return 'memory';
 };
 
@@ -154,7 +154,7 @@ ydn.db.adapter.SimpleStorage.prototype.type = function() {
 /**
  * @inheritDoc
  */
-ydn.db.adapter.SimpleStorage.prototype.close = function () {
+ydn.db.conn.SimpleStorage.prototype.close = function () {
 
 };
 
@@ -164,7 +164,7 @@ ydn.db.adapter.SimpleStorage.prototype.close = function () {
 /**
  * @inheritDoc
  */
-ydn.db.adapter.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode, oncompleted) {
+ydn.db.conn.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode, oncompleted) {
   trFn(this.cache_);
   oncompleted(ydn.db.TransactionEventTypes.COMPLETE, {});
 };

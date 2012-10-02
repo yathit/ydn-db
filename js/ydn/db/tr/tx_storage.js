@@ -7,12 +7,12 @@
 
 
 goog.provide('ydn.db.tr.TxStorage');
-goog.require('ydn.db.core.IStorage');
+goog.require('ydn.db.conn.IStorage');
 goog.require('ydn.error.NotSupportedException');
 
 
 /**
- * @implements {ydn.db.core.IStorage}
+ * @implements {ydn.db.conn.IStorage}
  * @implements {ydn.db.tr.IStorage}
  * @param {!ydn.db.tr.Storage} storage
  * @param {number} ptx_no
@@ -235,7 +235,7 @@ ydn.db.tr.TxStorage.prototype.pushTxQueue = function (trFn, store_names,
   });
 //  var now = goog.now();
 //  if (!isNaN(this.last_queue_checkin_)) {
-//    if ((now - this.last_queue_checkin_) > ydn.db.core.Storage.timeOut) {
+//    if ((now - this.last_queue_checkin_) > ydn.db.conn.Storage.timeOut) {
 //      this.logger.warning('queue is not moving.');
 //      // todo: actively push the queue if transaction object is available
 //      // this will make robustness to the app.
@@ -243,7 +243,7 @@ ydn.db.tr.TxStorage.prototype.pushTxQueue = function (trFn, store_names,
 //      // pop queue will call whenever transaction is finished.
 //    }
 //  }
-  if (this.trQueue_.length > ydn.db.core.Storage.MAX_QUEUE) {
+  if (this.trQueue_.length > ydn.db.conn.Storage.MAX_QUEUE) {
     this.logger.warning('Maximum queue size exceed, dropping the first job.');
     this.trQueue_.shift();
   }

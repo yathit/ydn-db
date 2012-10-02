@@ -3,20 +3,20 @@
  */
 
 goog.require('ydn.db.tr.Storage');
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.conn.Storage');
 
 
 goog.exportSymbol('ydn.db.tr.Storage', ydn.db.tr.Storage);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'type',
-  ydn.db.core.Storage.prototype.type);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'setName',
-  ydn.db.core.Storage.prototype.setName);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'getConfig',
-  ydn.db.core.Storage.prototype.getConfig);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'transaction',
-  ydn.db.core.Storage.prototype.transaction);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'close',
-  ydn.db.core.Storage.prototype.close);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'type',
+  ydn.db.conn.Storage.prototype.type);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'setName',
+  ydn.db.conn.Storage.prototype.setName);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'getConfig',
+  ydn.db.conn.Storage.prototype.getConfig);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'transaction',
+  ydn.db.conn.Storage.prototype.transaction);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'close',
+  ydn.db.conn.Storage.prototype.close);
 // for hacker.
-goog.exportProperty(ydn.db.core.Storage.prototype, 'onReady',
-  ydn.db.core.Storage.prototype.onReady);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'db',
+  ydn.db.conn.Storage.prototype.getDbInstance);

@@ -20,7 +20,7 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.adapter.WebSql');
+goog.provide('ydn.db.conn.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
@@ -28,7 +28,7 @@ goog.require('ydn.async');
 goog.require('ydn.json');
 goog.require('ydn.db.SecurityError');
 goog.require('ydn.db');
-goog.require('ydn.db.adapter.IDatabase');
+goog.require('ydn.db.conn.IDatabase');
 
 
 /**
@@ -38,10 +38,10 @@ goog.require('ydn.db.adapter.IDatabase');
  * @param {!ydn.db.DatabaseSchema=} schema table schema contain table
  * name and keyPath.
  * @param {number=} opt_size estimated database size. Default to 5 MB.
- * @implements {ydn.db.adapter.IDatabase}
+ * @implements {ydn.db.conn.IDatabase}
  * @constructor
  */
-ydn.db.adapter.WebSql = function(dbname, schema, opt_size) {
+ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
   var self = this;
   this.dbname = dbname;
 
@@ -94,13 +94,13 @@ ydn.db.adapter.WebSql = function(dbname, schema, opt_size) {
  * @const
  * @type {string}
  */
-ydn.db.adapter.WebSql.TYPE = 'websql';
+ydn.db.conn.WebSql.TYPE = 'websql';
 
 /**
  * @return {string}
  */
-ydn.db.adapter.WebSql.prototype.type = function() {
-  return ydn.db.adapter.WebSql.TYPE;
+ydn.db.conn.WebSql.prototype.type = function() {
+  return ydn.db.conn.WebSql.TYPE;
 };
 
 
@@ -109,14 +109,14 @@ ydn.db.adapter.WebSql.prototype.type = function() {
  * @type {Database}
  * @private
  */
-ydn.db.adapter.WebSql.prototype.sql_db_ = null;
+ydn.db.conn.WebSql.prototype.sql_db_ = null;
 
 
 /**
  * @protected
  * @return {Database}
  */
-ydn.db.adapter.WebSql.prototype.getSqlDb = function() {
+ydn.db.conn.WebSql.prototype.getSqlDb = function() {
   return this.sql_db_;
 };
 
@@ -124,7 +124,7 @@ ydn.db.adapter.WebSql.prototype.getSqlDb = function() {
 /**
  *
  */
-ydn.db.adapter.WebSql.prototype.getDbInstance = function() {
+ydn.db.conn.WebSql.prototype.getDbInstance = function() {
   return this.sql_db_ || null;
 };
 
@@ -133,7 +133,7 @@ ydn.db.adapter.WebSql.prototype.getDbInstance = function() {
  *
  * @return {boolean} true if supported.
  */
-ydn.db.adapter.WebSql.isSupported = function() {
+ydn.db.conn.WebSql.isSupported = function() {
   return goog.isFunction(goog.global.openDatabase);
 };
 
@@ -142,14 +142,14 @@ ydn.db.adapter.WebSql.isSupported = function() {
  * @const
  * @type {boolean} debug flag.
  */
-ydn.db.adapter.WebSql.DEBUG = false;
+ydn.db.conn.WebSql.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.adapter.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.adapter.WebSql');
+ydn.db.conn.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.conn.WebSql');
 
 
 
@@ -160,7 +160,7 @@ ydn.db.adapter.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.ada
  * @param {ydn.db.StoreSchema} table_schema name of table in the schema.
  * @return {string} SQL statement for creating the table.
  */
-ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
+ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
 
@@ -221,7 +221,7 @@ ydn.db.adapter.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
  * Migrate from current version to the last version.
  * @private
  */
-ydn.db.adapter.WebSql.prototype.migrate_ = function() {
+ydn.db.conn.WebSql.prototype.migrate_ = function() {
 
   var me = this;
 
@@ -242,7 +242,7 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
     me.logger.finest('Creating tables ' + sqls.join('\n'));
 
     var create = function(i) {
-      if (ydn.db.adapter.WebSql.DEBUG) {
+      if (ydn.db.conn.WebSql.DEBUG) {
         window.console.log(sqls[i]);
       }
       /**
@@ -250,7 +250,7 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
        * @param {SQLResultSet} results results.
        */
       var success_callback = function(transaction, results) {
-        if (ydn.db.adapter.WebSql.DEBUG) {
+        if (ydn.db.conn.WebSql.DEBUG) {
           window.console.log(results);
         }
         me.logger.finest('Created table: ' + me.schema.stores[i].name);
@@ -262,7 +262,7 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
        * @param {SQLError} error error.
        */
       var error_callback = function(tr, error) {
-        if (ydn.db.adapter.WebSql.DEBUG) {
+        if (ydn.db.conn.WebSql.DEBUG) {
           window.console.log([tr, error]);
         }
         throw new ydn.db.SQLError(error, 'Error creating table: ' +
@@ -284,7 +284,7 @@ ydn.db.adapter.WebSql.prototype.migrate_ = function() {
 /**
  * @return {boolean}
  */
-ydn.db.adapter.WebSql.prototype.isReady = function() {
+ydn.db.conn.WebSql.prototype.isReady = function() {
   return true;
 };
 
@@ -293,7 +293,7 @@ ydn.db.adapter.WebSql.prototype.isReady = function() {
  *
  * @inheritDoc
  */
-ydn.db.adapter.WebSql.prototype.onReady = function(cb) {
+ydn.db.conn.WebSql.prototype.onReady = function(cb) {
   // due to the way, this work, database is always ready to use.
   cb(this);
 };
@@ -302,7 +302,7 @@ ydn.db.adapter.WebSql.prototype.onReady = function(cb) {
 /**
  * @final
  */
-ydn.db.adapter.WebSql.prototype.close = function () {
+ydn.db.conn.WebSql.prototype.close = function () {
   // WebSQl API do not have close method.
 };
 
@@ -316,7 +316,7 @@ ydn.db.adapter.WebSql.prototype.close = function () {
  * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
  * @protected
  */
-ydn.db.adapter.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
+ydn.db.conn.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
           completed_event_handler) {
         /**
      * SQLTransactionCallback

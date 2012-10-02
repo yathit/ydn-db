@@ -16,21 +16,19 @@ goog.exportProperty(goog.async.Deferred.prototype, 'fail',
 goog.exportProperty(goog.async.Deferred.prototype, 'then',
     goog.async.Deferred.prototype.addCallbacks);
 
-//goog.exportSymbol('ydn.db.core.Storage', ydn.db.core.Storage);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'db',
-    ydn.db.core.Storage.prototype.getDbInstance);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'type',
-    ydn.db.core.Storage.prototype.type);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'setSchema',
-    ydn.db.core.Storage.prototype.setSchema);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'setName',
-    ydn.db.core.Storage.prototype.setName);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'getConfig',
-    ydn.db.core.Storage.prototype.getConfig);
+//goog.exportSymbol('ydn.db.conn.Storage', ydn.db.conn.Storage);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'db',
+    ydn.db.conn.Storage.prototype.getDbInstance);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'type',
+    ydn.db.conn.Storage.prototype.type);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'setName',
+    ydn.db.conn.Storage.prototype.setName);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'getConfig',
+    ydn.db.conn.Storage.prototype.getConfig);
 goog.exportProperty(ydn.db.tr.Storage.prototype, 'transaction',
     ydn.db.tr.Storage.prototype.transaction);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'close',
-    ydn.db.core.Storage.prototype.close);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'close',
+    ydn.db.conn.Storage.prototype.close);
 
 
 goog.exportProperty(ydn.db.io.Query.prototype, 'fetch',
