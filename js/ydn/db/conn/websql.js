@@ -69,35 +69,63 @@ ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
    */
   this.df_sql_db_ = new goog.async.Deferred();
 
+  var init_migrated = false;
+
   var me = this;
   var creationCallback = function(e) {
-    me.logger.finest('receiving creationCallback ');
-    if (me.sql_db_.version != me.schema.version) {
-      me.migrate_();
-    } else {
-      // this should never happen.
-      // me.df_sql_db_.callback(me.sql_db_);
-      throw new ydn.db.InternalError();
-    }
+    var msg = init_migrated ?
+      ' and already migrated, but migrating again.' : ', migrating.';
+    me.logger.finest('receiving creation callback ' + msg);
+    //if (!init_migrated) {
+      me.migrate_(true);
+    //}
   };
 
   try {
     /**
      * http://www.w3.org/TR/webdatabase/#dom-opendatabase
      *
-     * According to W3C doc, INVALID_STATE_ERR will be throw if version is
-     * provided, but database of that version is not exist. The only way to
-     * work around is giving empty string and mirage after opening the database.
+     * Opening robust web database is tricky. Mainly due to the fact that
+     * an empty database is created even if user deny to create the database.
      */
-    this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
+    var version = goog.isDef(this.schema.version) ?
+      this.schema.version + '' : '';
+    this.sql_db_ = goog.global.openDatabase(this.dbname, version, description,
         size, creationCallback);
 
-    if (this.sql_db_.version === this.schema.version) {
-      this.logger.finest('Database open for ' + this.sql_db_.version);
-      this.df_sql_db_.callback(this.sql_db_);
-    } else {
+    if (this.sql_db_.version === version) {
+      this.logger.finest('Existing database version ' + this.sql_db_.version +
+         ' opened.');
+
+      // OK. Use it immediately
+      // this.df_sql_db_.callback(this.sql_db_);
+      // oophs, sometime database is just empty
+
+      // FIXME: still need to migrate
+      // in case previous database fail, but user granted in next refresh.
+      // In this case, empty database of the request version exist,
+      // but no tables. gagarrrrrrr
       me.migrate_();
+      // Nice thing is migrate_ is idempotent :-D
+      // only just ugly calling every time, and most case, will be unnecessary.
+      // however this do not effect performance
+    } else {
+      this.logger.finest('Database version ' + this.sql_db_.version +
+        ' opened, but require ' + version + ' version.');
+      // HACK: even if user do not yet response whether to allow storage,
+      // we are trying to create tables.
+      // this is because, when user decided to allow the database,
+      // there is no callback to create tables. In IndexedDB API, there is
+      // onupgradeneeded callback in such case.
+      me.migrate_();
+      // interesting fact is, transaction object do not execute SQL,
+      // if user is not allow yet or denied.
+      // in that case, our migration go limbo.
+      // that is a reason, we need to migrate again, again and again,
+      // ... every time, to make sure tables exist.
+      init_migrated = true;
     }
+
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
       this.logger.warning('SECURITY_ERR for opening ' + this.dbname);
@@ -261,10 +289,17 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 /**
  * Migrate from current version to the last version.
  * @private
+ * @param {boolean=} is_version_change
  */
-ydn.db.conn.WebSql.prototype.migrate_ = function() {
+ydn.db.conn.WebSql.prototype.migrate_ = function(is_version_change) {
 
-  this.logger.finest('changing version from ' + this.sql_db_.version + ' to ' + this.schema.version);
+  var msg = is_version_change ? 'changing version' : 'setting version';
+  this.logger.finest(this.dbname + ': ' + msg + ' from ' +
+    this.sql_db_.version + ' to ' + this.schema.version);
+
+  var mode = is_version_change ?
+    ydn.db.TransactionMode.VERSION_CHANGE : ydn.db.TransactionMode.READ_WRITE;
+  // yes, READ_WRITE mode can create table.
 
   var me = this;
 
@@ -298,7 +333,7 @@ ydn.db.conn.WebSql.prototype.migrate_ = function() {
         if (ydn.db.conn.WebSql.DEBUG) {
           window.console.log(results);
         }
-        me.logger.finest('Created table: ' + me.schema.stores[i].name);
+        me.logger.finest(me.dbname +  ' created table: ' + me.schema.stores[i].name);
 
       };
 
@@ -321,7 +356,7 @@ ydn.db.conn.WebSql.prototype.migrate_ = function() {
       // TODO: create only require table ? possible
       create(i);
     }
-  }, [], ydn.db.TransactionMode.VERSION_CHANGE, oncompleted);
+  }, [], mode, oncompleted);
 
 };
 

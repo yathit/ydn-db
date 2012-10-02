@@ -21,8 +21,13 @@ var options = {
   preference: ['websql', 'indexeddb']
 };
 
-var schema1 = {version: 1, stores: [{name: 'st1', keyPath: 'id'}]};
-var schema2 = {version: 1, stores: [{name: 'st2', keyPath: 'id'}]};
+
+// need to test '1' and 'undefined' cases.
+var ver = 1;
+
+var schema1 = {version: ver, stores: [{name: 'st1', keyPath: 'id'}]};
+var schema2 = {version: ver, stores: [{name: 'st2', keyPath: 'id'}]};
+
 var db1 = new ydn.db.Storage('db1', schema1, options);
 var db2 = new ydn.db.Storage('db2', schema2, options);
 
