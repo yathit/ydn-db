@@ -295,7 +295,7 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
 /**
  * @param {SQLTransaction} trans
- * @param {function(Object.<string>)} callback
+ * @param {function(Object)} callback
  * @private
  */
 ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
@@ -328,18 +328,26 @@ ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
         var str = info.sql.substr(info.sql.indexOf('('), info.sql.lastIndexOf(')'));
         var column_infos = ydn.string.split_comma_seperated(str);
 
-        var table_info = {key: '', unique: false, type: '', indexes: []};
+        var table_info = {
+          key: '',
+          unique: false,
+          type: '',
+          indexes: [],
+          sql: info.sql
+        };
 
         for (var j = 0; j < column_infos.length; j++) {
           var fields = ydn.string.split_space_seperated(column_infos[j]);
-          if (fields.indexOf('PRIMARY') != 0 && fields.indexOf('KEY') != 0) {
-            table_info.key = fields[0];
+          if (fields.indexOf('PRIMARY') != -1 && fields.indexOf('KEY') != -1) {
+            table_info.key = goog.string.stripQuotes(fields[0], '"');
             table_info.type = fields[1];
-            if (fields.indexOf('UNIQUE') != 0) {
+            if (fields.indexOf('UNIQUE') != -1) {
               table_info.unique = true;
             }
-          } else {
-            var index = {name: fields[0], type: fields[1]};
+          } else if (fields[0] != ydn.db.DEFAULT_BLOB_COLUMN) {
+            var index = {
+              name: goog.string.stripQuotes(fields[0], '"'),
+              type: fields[1]};
             table_info.indexes.push(index);
           }
         }
@@ -347,9 +355,9 @@ ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
         out[info.name] = table_info;
       }
     }
-    if (ydn.db.conn.WebSql.DEBUG) {
-      window.console.log(out);
-    }
+//    if (ydn.db.conn.WebSql.DEBUG) {
+//      window.console.log(out);
+//    }
 
     callback(out);
   };
@@ -374,7 +382,6 @@ ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
   trans.executeSql(sql, [], success_callback, error_callback);
 };
 
-
 /**
  *
  * @param {SQLTransaction} trans
@@ -384,15 +391,33 @@ ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
  */
 ydn.db.conn.WebSql.prototype.update_store_ = function(trans, store_schema,
                                                       callback) {
-
   var me = this;
   this.table_info_(trans, function(table_infos) {
-    console.log(table_infos);
+    me.update_store_with_info_(trans, store_schema,
+      callback, table_infos);
   });
+};
+
+
+/**
+ *
+ * @param {SQLTransaction} trans
+ * @param {ydn.db.StoreSchema} store_schema
+ * @param {Function} callback
+ * @param {Object} table_infos
+ * @private
+ */
+ydn.db.conn.WebSql.prototype.update_store_with_info_ = function(trans, store_schema,
+                                                      callback, table_infos) {
+
+  var me = this;
+
   var sql = this.prepareCreateTable_(store_schema);
+  var table_info = table_infos[store_schema.name];
+  var ex_sql = table_info ? table_info.sql : '';
 
   if (ydn.db.conn.WebSql.DEBUG) {
-    window.console.log(sql);
+    window.console.log([sql, ex_sql, table_info]);
   }
 
   /**
@@ -400,9 +425,6 @@ ydn.db.conn.WebSql.prototype.update_store_ = function(trans, store_schema,
    * @param {SQLResultSet} results results.
    */
   var success_callback = function (transaction, results) {
-    if (ydn.db.conn.WebSql.DEBUG) {
-      window.console.log(results);
-    }
     me.logger.finest(me.dbname + ' created table: ' + store_schema.name);
     callback(true);
   };
