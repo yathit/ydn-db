@@ -56,6 +56,7 @@
                 </extrapaths>
                 <options>
                     <!--<arg line='-f "-generate_exports"'/>-->
+                    <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
                     <arg line='-f "--closure_entry_point=@{closure.entry}"'/>
                     <arg line='-f "--define=goog.DEBUG=false"'/>

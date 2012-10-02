@@ -488,11 +488,17 @@ ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
 
   this.doTransaction(function (t) {
 
-    for (var i = 0; i < me.schema.stores.length; i++) {
-      me.update_store_(t, me.schema.stores[i], function() {
-        updated_count++;
-      });
-    }
+    me.table_info_(t, function(table_infos) {
+
+      for (var i = 0; i < me.schema.stores.length; i++) {
+        me.update_store_with_info_(t, me.schema.stores[i], function() {
+          updated_count++;
+        }, table_infos);
+      }
+
+    });
+
+
 
   }, [], mode, oncompleted);
 
