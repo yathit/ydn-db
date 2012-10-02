@@ -77,7 +77,7 @@ ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
       ' and already migrated, but migrating again.' : ', migrating.';
     me.logger.finest('receiving creation callback ' + msg);
     //if (!init_migrated) {
-      me.migrate_(true);
+      me.migrate_(true); // yeah, to make sure.
     //}
   };
 
@@ -291,7 +291,7 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
  * @private
  * @param {boolean=} is_version_change
  */
-ydn.db.conn.WebSql.prototype.migrate_ = function(is_version_change) {
+ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
 
   var msg = is_version_change ? 'changing version' : 'setting version';
   this.logger.finest(this.dbname + ': ' + msg + ' from ' +
@@ -308,12 +308,22 @@ ydn.db.conn.WebSql.prototype.migrate_ = function(is_version_change) {
     sqls.push(this.prepareCreateTable_(this.schema.stores[i]));
   }
 
+  var has_created = sqls.length == 0;
 
-  // TODO: deleting tables.
+  var oncompleted = function (t, e) {
+    if (!has_created) {
+      me.logger.warning(me.dbname + ': migration void.');
+    } else {
+      me.logger.finest(me.dbname + ': migration completed.');
+    }
+  };
 
-  var oncompleted = function(t, e) {
-    if (!me.df_sql_db_.hasFired()) { // FIXME: why ?
+  var on_tables_created = function() {
+    if (!me.df_sql_db_.hasFired()) { // FIXME: why need to check ?
+      me.logger.finest(me.dbname + ': ready.');
       me.df_sql_db_.callback(me.sql_db_);
+    } else {
+      me.logger.warning(me.dbname + ': ready again?');
     }
   };
 
@@ -321,7 +331,7 @@ ydn.db.conn.WebSql.prototype.migrate_ = function(is_version_change) {
 
     me.logger.finest('Creating tables ' + sqls.join('\n'));
 
-    var create = function(i) {
+    var create = function (i) {
       if (ydn.db.conn.WebSql.DEBUG) {
         window.console.log(sqls[i]);
       }
@@ -329,22 +339,29 @@ ydn.db.conn.WebSql.prototype.migrate_ = function(is_version_change) {
        * @param {SQLTransaction} transaction transaction.
        * @param {SQLResultSet} results results.
        */
-      var success_callback = function(transaction, results) {
+      var success_callback = function (transaction, results) {
         if (ydn.db.conn.WebSql.DEBUG) {
           window.console.log(results);
         }
-        me.logger.finest(me.dbname +  ' created table: ' + me.schema.stores[i].name);
-
+        has_created = true;
+        me.logger.finest(me.dbname + ' created table: ' + me.schema.stores[i].name);
+        var next = i + 1;
+        if (next < sqls.length) {
+          create(next);
+        } else {
+          on_tables_created();
+        }
       };
 
       /**
        * @param {SQLTransaction} tr transaction.
        * @param {SQLError} error error.
        */
-      var error_callback = function(tr, error) {
+      var error_callback = function (tr, error) {
         if (ydn.db.conn.WebSql.DEBUG) {
           window.console.log([tr, error]);
         }
+        has_created = false;
         throw new ydn.db.SQLError(error, 'Error creating table: ' +
           me.schema.stores[i].name);
       };
@@ -352,9 +369,11 @@ ydn.db.conn.WebSql.prototype.migrate_ = function(is_version_change) {
       t.executeSql(sqls[i], [], success_callback, error_callback);
     };
 
-    for (var i = 0; i < sqls.length; i++) {
-      // TODO: create only require table ? possible
-      create(i);
+    if (sqls.length > 0) {
+      // TODO: create only require table ? possible in robust way
+      create(0);
+    } else {
+      on_tables_created();
     }
   }, [], mode, oncompleted);
 
@@ -389,7 +408,6 @@ ydn.db.conn.WebSql.prototype.close = function () {
 };
 
 
-
 /**
  * Run a transaction. If already in transaction, this will join the transaction.
  * @param {function(SQLTransaction)|Function} trFn
@@ -398,31 +416,30 @@ ydn.db.conn.WebSql.prototype.close = function () {
  * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
  * @protected
  */
-ydn.db.conn.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
-          completed_event_handler) {
-        /**
-     * SQLTransactionCallback
-     * @param {!SQLTransaction} tx
-     */
-    var transaction_callback = function(tx) {
-      trFn(tx);
-    };
+ydn.db.conn.WebSql.prototype.doTransaction = function (trFn, scopes, mode, completed_event_handler) {
+  /**
+   * SQLTransactionCallback
+   * @param {!SQLTransaction} tx
+   */
+  var transaction_callback = function (tx) {
+    trFn(tx);
+  };
 
-    /**
-     * SQLVoidCallback
-     */
-    var success_callback = function() {
-      completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE,
-        {'type': ydn.db.TransactionEventTypes.COMPLETE});
-    };
+  /**
+   * SQLVoidCallback
+   */
+  var success_callback = function () {
+    completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE,
+      {'type':ydn.db.TransactionEventTypes.COMPLETE});
+  };
 
-    /**
-     * SQLTransactionErrorCallback
-     * @param {SQLError} e
-     */
-    var error_callback = function(e) {
-      completed_event_handler(ydn.db.TransactionEventTypes.ERROR, e);
-    };
+  /**
+   * SQLTransactionErrorCallback
+   * @param {SQLError} e
+   */
+  var error_callback = function (e) {
+    completed_event_handler(ydn.db.TransactionEventTypes.ERROR, e);
+  };
 
   if (goog.isNull(this.sql_db_)) {
     // this happen on SECURITY_ERR
@@ -430,17 +447,18 @@ ydn.db.conn.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
     completed_event_handler(ydn.db.TransactionEventTypes.ERROR, this.last_error_);
   }
 
-    if (mode == ydn.db.TransactionMode.READ_ONLY) {
-      this.sql_db_.readTransaction(transaction_callback,
-          error_callback, success_callback);
-    } else if (mode == ydn.db.TransactionMode.VERSION_CHANGE) {
-      this.sql_db_.changeVersion(this.sql_db_.version, this.schema.version + '',
-          transaction_callback, error_callback, success_callback);
-    } else {
-      this.sql_db_.transaction(transaction_callback,
-          error_callback, success_callback);
-    }
+  if (mode == ydn.db.TransactionMode.READ_ONLY) {
+    this.sql_db_.readTransaction(transaction_callback,
+      error_callback, success_callback);
+  } else if (mode == ydn.db.TransactionMode.VERSION_CHANGE) {
+    this.sql_db_.changeVersion(this.sql_db_.version, this.schema.version + '',
+      transaction_callback, error_callback, success_callback);
+  } else {
+    this.sql_db_.transaction(transaction_callback,
+      error_callback, success_callback);
+  }
 
+  // TODO: deleting tables.
 
 };
 

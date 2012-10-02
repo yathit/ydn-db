@@ -516,6 +516,8 @@ ydn.db.conn.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
  */
 ydn.db.conn.Storage.prototype.purgeTxQueue_ = function(e) {
   if (this.txQueue_) {
+    this.logger.info('Purging ' + this.txQueue_.length +
+      ' transactions request.');
     var task = this.txQueue_.shift();
     while (task) {
       task = this.txQueue_.shift();
