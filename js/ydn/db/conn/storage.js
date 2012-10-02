@@ -358,15 +358,17 @@ ydn.db.conn.Storage.prototype.setDb_ = function(db) {
   var me = this;
 
   var success = function(db) {
+    me.logger.finest('Database: ' + me.db_name + ' ready.');
     me.deferredDb_.callback(me.db_);
     me.last_queue_checkin_ = NaN;
     me.popTxQueue_();
   };
 
   var error = function(e) {
+    me.logger.warning('Database: ' + me.db_name + ' fail.');
     // this could happen if user do not allow to use the storage
-    me.deferredDb_.callback(null);
-    me.purgeTxQueue_(db);
+    me.deferredDb_.errback(e);
+    me.purgeTxQueue_(e);
   };
 
   this.db_.onReady(success, error);

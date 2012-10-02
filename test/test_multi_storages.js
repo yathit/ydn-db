@@ -8,10 +8,18 @@
 
 
 ydn.db.conn.IndexedDb.DEBUG = true;
-goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+var div = document.getElementById('console');
+var c = new goog.debug.DivConsole(div);
+c.setCapturing(true);
+
+goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+goog.debug.Logger.getLogger('ydn.db.conn').setLevel(goog.debug.Logger.Level.FINEST);
 
 // NOTE: size is only used in WebSQL
-var options = {size: 10*1024*1024};
+var options = {
+  size: 10*1024*1024,
+  preference: ['websql', 'indexeddb']
+};
 
 var schema1 = {version: 1, stores: [{name: 'st1', keyPath: 'id'}]};
 var schema2 = {version: 1, stores: [{name: 'st2', keyPath: 'id'}]};

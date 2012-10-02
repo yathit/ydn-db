@@ -62,13 +62,23 @@ ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
   // but, still not don't bother to user.
   var size = goog.isDef(opt_size) ? opt_size : 5 * 1024 * 1024; // 5 MB
 
+  /**
+   * @final
+   * @type {!goog.async.Deferred}
+   * @private
+   */
   this.df_sql_db_ = new goog.async.Deferred();
 
   var me = this;
   var creationCallback = function(e) {
-    console.log('receiving creationCallback ');
-    console.log(e);
-    me.df_sql_db_.callback(e);
+    me.logger.finest('receiving creationCallback ');
+    if (me.sql_db_.version != me.schema.version) {
+      me.migrate_();
+    } else {
+      // this should never happen.
+      // me.df_sql_db_.callback(me.sql_db_);
+      throw new ydn.db.InternalError();
+    }
   };
 
   try {
@@ -82,21 +92,21 @@ ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
     this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
         size, creationCallback);
 
-    // we can immediately set this to sql_db_ because database table creation
-    // are going through doTranaction process, it already lock out
-    // for using this database.
-
-    if (this.sql_db_.version != this.schema.version) {
-      console.log('changing version from ' + this.sql_db_.version + ' to ' + this.schema.version);
-      this.migrate_();
+    if (this.sql_db_.version === this.schema.version) {
+      this.logger.finest('Database open for ' + this.sql_db_.version);
+      this.df_sql_db_.callback(this.sql_db_);
+    } else {
+      me.migrate_();
     }
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
+      this.logger.warning('SECURITY_ERR for opening ' + this.dbname);
       this.sql_db_ = null; // this will purge the tx queue
       // throw new ydn.db.SecurityError(e);
       // don't throw now, so that web app can handle without using
       // database.
       this.last_error_ = new ydn.db.SecurityError(e);
+      this.df_sql_db_.errback(this.last_error_);
     } else {
       throw e;
     }
@@ -138,7 +148,6 @@ ydn.db.conn.WebSql.prototype.last_error_ = null;
 
 
 /**
- *
  * @type {Database}
  * @private
  */
@@ -255,6 +264,8 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
  */
 ydn.db.conn.WebSql.prototype.migrate_ = function() {
 
+  this.logger.finest('changing version from ' + this.sql_db_.version + ' to ' + this.schema.version);
+
   var me = this;
 
   var sqls = [];
@@ -266,7 +277,9 @@ ydn.db.conn.WebSql.prototype.migrate_ = function() {
   // TODO: deleting tables.
 
   var oncompleted = function(t, e) {
-    me.is_ready_ = true;
+    if (!me.df_sql_db_.hasFired()) { // FIXME: why ?
+      me.df_sql_db_.callback(me.sql_db_);
+    }
   };
 
   this.doTransaction(function (t) {
@@ -375,6 +388,12 @@ ydn.db.conn.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
     var error_callback = function(e) {
       completed_event_handler(ydn.db.TransactionEventTypes.ERROR, e);
     };
+
+  if (goog.isNull(this.sql_db_)) {
+    // this happen on SECURITY_ERR
+    trFn(null);
+    completed_event_handler(ydn.db.TransactionEventTypes.ERROR, this.last_error_);
+  }
 
     if (mode == ydn.db.TransactionMode.READ_ONLY) {
       this.sql_db_.readTransaction(transaction_callback,
