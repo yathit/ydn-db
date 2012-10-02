@@ -59,7 +59,12 @@ ydn.db.conn.IDatabase.prototype.getDbInstance = function() {};
  * @param {ydn.db.TransactionMode} mode mode, default to 'read_write'.
  * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
  */
-ydn.db.conn.IDatabase.prototype.doTransaction = function(transaction_callback, store_names,
-                                                            mode, completed_event_handler) {};
+ydn.db.conn.IDatabase.prototype.doTransaction = goog.abstractMethod;
 
 
+/**
+ *
+ * @param {(SQLTransaction|IDBTransaction|Object)} tx active transaction on version change mode.
+ * @param {ydn.db.StoreSchema} store_schema
+ */
+ydn.db.conn.IDatabase.prototype.addStoreSchema = goog.abstractMethod;

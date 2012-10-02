@@ -90,6 +90,8 @@ ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
    */
   this.txQueue_ = [];
 
+  this.in_version_change_tx_ = false;
+
   this.setSchema(schema);
 
   if (goog.isDef(opt_dbname)) {
@@ -130,6 +132,7 @@ ydn.db.conn.Storage.prototype.logger =
  * @return {{name: string, schema: !Object}?} configuration
  * containing database and list of schema in JSON format.
  * @export
+ * @deprecated
  */
 ydn.db.conn.Storage.prototype.getConfig = function() {
   if (!this.schema) {
@@ -163,7 +166,9 @@ ydn.db.conn.Storage.prototype.getStoreSchema = function(store_name) {
 
 
 /**
- *
+ * Add a store schema to current database schema on auto schema generation
+ * mode {@see #auto_schema}.
+ * If the store already exist it will be updated as necessary.
  * @param {!Object} store_schema
  */
 ydn.db.conn.Storage.prototype.addStoreSchema = function(store_schema) {
@@ -173,14 +178,21 @@ ydn.db.conn.Storage.prototype.addStoreSchema = function(store_schema) {
     var new_store = ydn.db.StoreSchema.fromJSON(store_schema);
     if (!store.equals(new_store)) {
       if (!this.auto_schema) {
-        throw new ydn.error.ConstrainError('Cannot update store: ' + store_name + '. Schema auto generation is disabled.');
+        throw new ydn.error.ConstrainError('Cannot update store: ' +
+          store_name + '. Schema auto generation is disabled.');
       } //else {
         // do update
       //}
     }
   } else {
     if (!this.auto_schema) {
-      throw new ydn.error.ConstrainError('Cannot add ' + store_name + '. Schema auto generation is disabled.');
+      throw new ydn.error.ConstrainError('Cannot add ' + store_name +
+        '. Schema auto generation is disabled.');
+    } else {
+      var me;
+      this.transaction(function(tx) {
+        me.db_.addStoreSchema(tx, store);
+      }, [], ydn.db.TransactionMode.VERSION_CHANGE);
     }
   }
 };
@@ -527,6 +539,14 @@ ydn.db.conn.Storage.prototype.purgeTxQueue_ = function(e) {
 };
 
 
+/**
+ * Flag to indicate on version change transaction.
+ * @type {boolean}
+ * @private
+ */
+ydn.db.conn.Storage.prototype.in_version_change_tx_ = false;
+
+
 
 /**
  * Run a transaction.
@@ -539,36 +559,45 @@ ydn.db.conn.Storage.prototype.purgeTxQueue_ = function(e) {
  * @export
  * @final
  */
-ydn.db.conn.Storage.prototype.transaction = function (trFn, store_names,
-     opt_mode, completed_event_handler) {
+ydn.db.conn.Storage.prototype.transaction = function (trFn, store_names, opt_mode, completed_event_handler) {
 
   var is_ready = !!this.db_ && this.db_.isReady();
-  if (is_ready) {
-    var me = this;
-    var names = store_names;
-    if (goog.isString(store_names)) {
-      names = [store_names];
-    } else if (!goog.isArray(store_names) ||
-      (store_names.length > 0 && !goog.isString(store_names[0]))) {
-      throw new ydn.error.ArgumentException("storeNames");
-    }
-    var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
-
-    var on_complete = function (type, ev) {
-      if (goog.isFunction(completed_event_handler)) {
-        completed_event_handler(type, ev);
-      }
-      me.popTxQueue_();
-    };
-
-    //console.log('core running ' + trFn.name);
-    this.db_.doTransaction(function (tx) {
-      trFn(tx);
-    }, names, mode, on_complete);
-  } else {
-    //console.log('core queuing ' + trFn.name);
+  if (!is_ready || this.in_version_change_tx_) {
+    // a "versionchange" transaction is still running, a InvalidStateError
+    // exception must be thrown
     this.pushTxQueue_(trFn, store_names, opt_mode, completed_event_handler);
+    return;
   }
+
+  var me = this;
+  var names = store_names;
+  if (goog.isString(store_names)) {
+    names = [store_names];
+  } else if (!goog.isArray(store_names) ||
+    (store_names.length > 0 && !goog.isString(store_names[0]))) {
+    throw new ydn.error.ArgumentException("storeNames");
+  }
+  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
+
+  if (mode == ydn.db.TransactionMode.VERSION_CHANGE) {
+    this.in_version_change_tx_ = true;
+  }
+
+  var on_complete = function (type, ev) {
+    if (goog.isFunction(completed_event_handler)) {
+      completed_event_handler(type, ev);
+    }
+    if (mode == ydn.db.TransactionMode.VERSION_CHANGE) {
+      me.in_version_change_tx_ = false;
+    }
+    me.popTxQueue_();
+  };
+
+  //console.log('core running ' + trFn.name);
+  this.db_.doTransaction(function (tx) {
+    trFn(tx);
+  }, names, mode, on_complete);
+
 };
 
 

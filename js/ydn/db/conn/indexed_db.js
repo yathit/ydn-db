@@ -421,6 +421,79 @@ ydn.db.conn.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNames
 
 
 /**
+ *
+ * @param {IDBDatabase} db
+ * @param {IDBTransaction} trans
+ * @param {ydn.db.StoreSchema} store_schema
+ * @private
+ */
+ydn.db.conn.IndexedDb.prototype.update_store_ = function(db, trans, store_schema) {
+  this.logger.finest('Creating Object Store for ' + store_schema.name +
+    ' keyPath: ' + store_schema.keyPath);
+
+  var objectStoreNames = /** @type {DOMStringList} */ (db.objectStoreNames);
+
+  var store;
+  if (objectStoreNames.contains(store_schema.name)) {
+    // already have the store, just update indexes
+
+    store = trans.objectStore(store_schema.name);
+    goog.asserts.assertObject(store, store_schema.name + ' not found.');
+    var indexNames = /** @type {DOMStringList} */ (store.indexNames);
+
+    var created = 0;
+    var deleted = 0;
+    for (var j = 0; j < store_schema.indexes.length; j++) {
+      var index = store_schema.indexes[j];
+      if (!indexNames.contains(index.name)) {
+        store.createIndex(index.name, index.name, {unique: index.unique});
+        created++;
+      }
+    }
+    for (var j = 0; j < indexNames.length; j++) {
+      if (!store_schema.hasIndex(indexNames[j])) {
+        store.deleteIndex(indexNames[j]);
+        deleted++;
+      }
+    }
+
+    this.logger.finest('Updated store: ' + store.name + ', ' + created +
+      ' index created, ' + deleted + ' index deleted.');
+  } else {
+
+    // IE10 is picky on optional parameters of keyPath. If it is undefined, it must not be defined.
+    var options = {"autoIncremenent": store_schema.autoIncremenent};
+    if (goog.isDefAndNotNull(store_schema.keyPath)) {
+      options['keyPath'] = store_schema.keyPath;
+    }
+    try {
+      store = db.createObjectStore(store_schema.name, options);
+    } catch (e) {
+      if (e.name == 'InvalidAccessError') {
+        throw new ydn.db.InvalidAccessError('creating store for ' + store_schema.name + ' of keyPath: ' +
+          store_schema.keyPath + ' and autoIncrement: ' + store_schema.autoIncremenent);
+      } else if (e.name == 'ConstraintError') {
+        // store already exist.
+        throw new ydn.error.ConstrainError('creating store for ' + store_schema.name);
+      } else {
+        throw e;
+      }
+    }
+
+    for (var j = 0; j < store_schema.indexes.length; j++) {
+      var index = store_schema.indexes[j];
+      goog.asserts.assertString(index.name, 'name required.');
+      goog.asserts.assertBoolean(index.unique, 'unique required.');
+      store.createIndex(index.name, index.name, {unique: index.unique});
+    }
+
+    this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
+      store.keyPath);
+  }
+};
+
+
+/**
  * Migrate from current version to the last version.
  * @protected
  * @param {IDBDatabase} db database instance.
@@ -434,7 +507,6 @@ ydn.db.conn.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is
   var s = is_caller_setversion ? 'changing' : 'upgrading';
   this.logger.finer(s + ' version from ' + db.version + ' to ' +
       schema.version);
-
 
   trans.oncomplete = function(e) {
 
@@ -457,73 +529,22 @@ ydn.db.conn.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is
 
   // create store that we don't have previously
   for (var i = 0; i < schema.stores.length; i++) {
-    var table = schema.stores[i];
-    this.logger.finest('Creating Object Store for ' + table.name +
-      ' keyPath: ' + table.keyPath);
-
-    var store;
-    if (this.hasStore_(db, table.name)) {
-      // already have the store, just update indexes
-
-      store = trans.objectStore(table.name);
-      goog.asserts.assertObject(store, table.name + ' not found.');
-      var indexNames = /** @type {DOMStringList} */ (store.indexNames);
-
-      var created = 0;
-      var deleted = 0;
-      for (var j = 0; j < table.indexes.length; j++) {
-        var index = table.indexes[j];
-        if (!indexNames.contains(index.name)) {
-          store.createIndex(index.name, index.name, {unique: index.unique});
-          created++;
-        }
-      }
-      for (var j = 0; j < indexNames.length; j++) {
-        if (!table.hasIndex(indexNames[j])) {
-          store.deleteIndex(indexNames[j]);
-          deleted++;
-        }
-      }
-
-      this.logger.finest('Updated store: ' + store.name + ', ' + created +
-        ' index created, ' + deleted + ' index deleted.');
-    } else {
-
-      // IE10 is picky on optional parameters of keyPath. If it is undefined, it must not be defined.
-      var options = {"autoIncremenent": table.autoIncremenent};
-      if (goog.isDefAndNotNull(table.keyPath)) {
-        options['keyPath'] = table.keyPath;
-      }
-      try {
-        store = db.createObjectStore(table.name, options);
-      } catch (e) {
-        if (e.name == 'InvalidAccessError') {
-          throw new ydn.db.InvalidAccessError('creating store for ' + table.name + ' of keyPath: ' +
-              table.keyPath + ' and autoIncrement: ' + table.autoIncremenent);
-        } else if (e.name == 'ConstraintError') {
-          // store already exist.
-          throw new ydn.error.ConstrainError('creating store for ' + table.name);
-        } else {
-          throw e;
-        }
-      }
-
-      for (var j = 0; j < table.indexes.length; j++) {
-        var index = table.indexes[j];
-        goog.asserts.assertString(index.name, 'name required.');
-        goog.asserts.assertBoolean(index.unique, 'unique required.');
-        store.createIndex(index.name, index.name, {unique: index.unique});
-      }
-
-      this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
-        store.keyPath);
-    }
-
+    // this is sync process.
+    this.update_store_(db, trans, schema.stores[i]);
   }
 
-  me.setSchema(db, trans, /** @type {DOMStringList} */ (db.objectStoreNames), schema);
+  var storeNames = /** @type {DOMStringList} */ (db.objectStoreNames);
+  this.setSchema(db, trans, storeNames, schema);
 
   // TODO: delete unused stores ?
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.conn.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
+  this.update_store_(this.idx_db_, /** @type {IDBTransaction} */ (tx), store_schema);
 };
 
 

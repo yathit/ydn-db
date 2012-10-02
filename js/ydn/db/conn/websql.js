@@ -29,6 +29,7 @@ goog.require('ydn.json');
 goog.require('ydn.db.SecurityError');
 goog.require('ydn.db');
 goog.require('ydn.db.conn.IDatabase');
+goog.require('goog.functions');
 
 
 /**
@@ -244,7 +245,6 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   var id_column_name = table_schema.getQuotedKeyPath() ||
     ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
 
-
   var type = table_schema.type;
   if (type == ydn.db.DataType.ARRAY) {
     // key will be converted into string
@@ -294,6 +294,50 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
 
 /**
+ *
+ * @param {SQLTransaction} trans
+ * @param {ydn.db.StoreSchema} store_schema
+ * @param {Function} callback
+ * @private
+ */
+ydn.db.conn.WebSql.prototype.update_store_ = function(trans, store_schema,
+                                                      callback) {
+
+  var me = this;
+  var sql = this.prepareCreateTable_(store_schema);
+
+  if (ydn.db.conn.WebSql.DEBUG) {
+    window.console.log(sql);
+  }
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var success_callback = function (transaction, results) {
+    if (ydn.db.conn.WebSql.DEBUG) {
+      window.console.log(results);
+    }
+    me.logger.finest(me.dbname + ' created table: ' + store_schema.name);
+    callback(true);
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   */
+  var error_callback = function (tr, error) {
+    if (ydn.db.conn.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    throw new ydn.db.SQLError(error, 'Error creating table: ' +
+      store_schema.name);
+  };
+
+  trans.executeSql(sql, [], success_callback, error_callback);
+};
+
+
+/**
  * Migrate from current version to the last version.
  * @private
  * @param {boolean=} is_version_change
@@ -313,78 +357,31 @@ ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
 
   var me = this;
 
-  var sqls = [];
-  for (var i = 0; i < this.schema.stores.length; i++) {
-    sqls.push(this.prepareCreateTable_(this.schema.stores[i]));
-  }
-
-  var has_created = sqls.length == 0;
+  var updated_count = 0;
 
   var oncompleted = function (t, e) {
+    var has_created = updated_count == me.schema.stores.length;
     if (!has_created) {
       me.logger.warning(me.dbname + ': ' + action + ' void.');
     } else {
+      if (!me.df_sql_db_.hasFired()) { // FIXME: why need to check ?
+        me.logger.finest(me.dbname + ': ready.');
+        me.df_sql_db_.callback(me.sql_db_);
+      } else {
+        me.logger.warning(me.dbname + ': ready again?');
+      }
       me.logger.finest(me.dbname + ': ' + action + ' completed.');
-    }
-  };
-
-  var on_tables_created = function() {
-    if (!me.df_sql_db_.hasFired()) { // FIXME: why need to check ?
-      me.logger.finest(me.dbname + ': ready.');
-      me.df_sql_db_.callback(me.sql_db_);
-    } else {
-      me.logger.warning(me.dbname + ': ready again?');
     }
   };
 
   this.doTransaction(function (t) {
 
-    me.logger.finest('Creating tables ' + sqls.join('\n'));
-
-    var create = function (i) {
-      if (ydn.db.conn.WebSql.DEBUG) {
-        window.console.log(sqls[i]);
-      }
-      /**
-       * @param {SQLTransaction} transaction transaction.
-       * @param {SQLResultSet} results results.
-       */
-      var success_callback = function (transaction, results) {
-        if (ydn.db.conn.WebSql.DEBUG) {
-          window.console.log(results);
-        }
-        has_created = true;
-        me.logger.finest(me.dbname + ' created table: ' + me.schema.stores[i].name);
-        var next = i + 1;
-        if (next < sqls.length) {
-          create(next);
-        } else {
-          on_tables_created();
-        }
-      };
-
-      /**
-       * @param {SQLTransaction} tr transaction.
-       * @param {SQLError} error error.
-       */
-      var error_callback = function (tr, error) {
-        if (ydn.db.conn.WebSql.DEBUG) {
-          window.console.log([tr, error]);
-        }
-        has_created = false;
-        throw new ydn.db.SQLError(error, 'Error creating table: ' +
-          me.schema.stores[i].name);
-      };
-
-      t.executeSql(sqls[i], [], success_callback, error_callback);
-    };
-
-    if (sqls.length > 0) {
-      // TODO: create only require table ? possible in robust way
-      create(0);
-    } else {
-      on_tables_created();
+    for (var i = 0; i < me.schema.stores.length; i++) {
+      me.update_store_(t, me.schema.stores[i], function() {
+        updated_count++;
+      });
     }
+
   }, [], mode, oncompleted);
 
 };
@@ -474,4 +471,12 @@ ydn.db.conn.WebSql.prototype.doTransaction = function (trFn, scopes, mode, compl
 
 };
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.conn.WebSql.prototype.addStoreSchema = function(tx, store_schema) {
+  this.update_store_(/** @type {SQLTransaction} */ (tx), store_schema,
+    goog.functions.TRUE);
+};
 

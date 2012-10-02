@@ -169,3 +169,10 @@ ydn.db.conn.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode,
   oncompleted(ydn.db.TransactionEventTypes.COMPLETE, {});
 };
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.conn.SimpleStorage.prototype.addStoreSchema = function(tx, store_schema) {
+
+};
