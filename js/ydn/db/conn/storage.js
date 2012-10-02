@@ -520,8 +520,8 @@ ydn.db.conn.Storage.prototype.purgeTxQueue_ = function(e) {
       ' transactions request.');
     var task = this.txQueue_.shift();
     while (task) {
-      task = this.txQueue_.shift();
       task.oncompleted(ydn.db.TransactionEventTypes.ERROR, e);
+      task = this.txQueue_.shift();
     }
   }
 };
