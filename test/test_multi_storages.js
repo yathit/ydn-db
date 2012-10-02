@@ -17,7 +17,7 @@ goog.debug.Logger.getLogger('ydn.db.conn').setLevel(goog.debug.Logger.Level.FINE
 
 // NOTE: size is only used in WebSQL
 var options = {
-  size: 10*1024*1024,
+  size: 100*1024*1024,
   preference: ['websql', 'indexeddb']
 };
 

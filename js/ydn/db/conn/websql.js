@@ -60,6 +60,7 @@ ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
 
   // Safari default limit is 5 MB, so we ask the largest storage size
   // but, still not don't bother to user.
+  // Opera don't ask user even request for 1 GB.
   var size = goog.isDef(opt_size) ? opt_size : 5 * 1024 * 1024; // 5 MB
 
   /**
