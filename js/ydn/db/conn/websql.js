@@ -76,8 +76,14 @@ ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
     var msg = init_migrated ?
       ' and already migrated, but migrating again.' : ', migrating.';
     me.logger.finest('receiving creation callback ' + msg);
+
+    // the standard state that we should call VERSION_CHANGE request on
+    // this callback.
+    // http://www.w3.org/TR/webdatabase/#dom-opendatabase
+    var use_version_change_request = true;
+
     //if (!init_migrated) {
-      me.migrate_(true); // yeah, to make sure.
+      me.migrate_(use_version_change_request); // yeah, to make sure.
     //}
   };
 
