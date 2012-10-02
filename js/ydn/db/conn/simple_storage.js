@@ -113,7 +113,7 @@ ydn.db.conn.SimpleStorage.prototype.isReady = function() {
 /**
  * @inheritDoc
  */
-ydn.db.conn.SimpleStorage.prototype.onReady = function(cb) {
+ydn.db.conn.SimpleStorage.prototype.onReady = function(cb, eb) {
   cb(this);
 };
 

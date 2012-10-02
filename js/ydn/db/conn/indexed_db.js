@@ -136,7 +136,7 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
     } else {
       me.logger.severe(msg);
     }
-    me.setDb(null);
+    me.setDb(ev);
   };
 
   openRequest.onversionchange = function(ev) {
@@ -228,8 +228,9 @@ ydn.db.conn.IndexedDb.prototype.deferredIdxDb_ = null;
  *
  * @param {function(!ydn.db.conn.IndexedDb)} callback
  */
-ydn.db.conn.IndexedDb.prototype.onReady = function(callback) {
+ydn.db.conn.IndexedDb.prototype.onReady = function(callback, errback) {
   this.deferredIdxDb_.addCallback(callback);
+  this.deferredIdxDb_.addErrback(errback);
 };
 
 
@@ -248,7 +249,7 @@ ydn.db.conn.IndexedDb.prototype.getDbInstance = function() {
  * @return {boolean}
  */
 ydn.db.conn.IndexedDb.prototype.isReady = function() {
-  return !!this.idx_db_;
+  return this.deferredIdxDb_.hasFired();
 };
 
 
@@ -295,17 +296,22 @@ ydn.db.conn.IndexedDb.prototype.idx_db_ = null;
 /**
  * @final
  * @protected
- * @param {IDBDatabase} db database instance.
+ * @param {IDBDatabase|Error} db database instance.
  * @param {IDBTransaction} trans
  */
 ydn.db.conn.IndexedDb.prototype.setDb = function (db, trans) {
 
-  this.idx_db_ = db;
   if (this.deferredIdxDb_.hasFired()) {
     this.deferredIdxDb_ = new goog.async.Deferred();
   }
+  if (db instanceof Error) {
+    this.idx_db_ = null;
+    this.deferredIdxDb_.errback(db);
+  } else {
+    this.idx_db_ = db;
+    this.deferredIdxDb_.callback(this.idx_db_);
+  }
 
-  this.deferredIdxDb_.callback(this.idx_db_);
 
 };
 

@@ -356,20 +356,20 @@ ydn.db.conn.Storage.prototype.setDb_ = function(db) {
     this.deferredDb_ = new goog.async.Deferred();
   }
   var me = this;
-  this.db_.onReady(function(db) {
+
+  var success = function(db) {
     me.deferredDb_.callback(me.db_);
     me.last_queue_checkin_ = NaN;
-    if (db) {
-      me.popTxQueue_();
-    } else {
-      // this could happen if user do not allow to use the storage
-      var noDBError = {
-        'type': 'NoDatabase',
-        'message': 'No database'
-      };
-      me.purgeTxQueue_(noDBError);
-    }
-  });
+    me.popTxQueue_();
+  };
+
+  var error = function(e) {
+    // this could happen if user do not allow to use the storage
+    me.deferredDb_.callback(null);
+    me.purgeTxQueue_(db);
+  };
+
+  this.db_.onReady(success, error);
 };
 
 

@@ -34,8 +34,9 @@ ydn.db.conn.IDatabase.prototype.isReady = function() {};
 
 /**
  * @param {function(ydn.db.conn.IDatabase)} callback
+ * @param {function(Error)} errback
  */
-ydn.db.conn.IDatabase.prototype.onReady = function(callback) {};
+ydn.db.conn.IDatabase.prototype.onReady = function(callback, errback) {};
 
 
 

@@ -58,34 +58,51 @@ ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
 
   var description = this.dbname;
 
-  var size = opt_size || 4 * 1024 * 1024; // 4 MB
+  // Safari default limit is 5 MB, so we ask the largest storage size
+  // but, still not don't bother to user.
+  var size = goog.isDef(opt_size) ? opt_size : 5 * 1024 * 1024; // 5 MB
+
+  this.df_sql_db_ = new goog.async.Deferred();
+
+  var me = this;
+  var creationCallback = function(e) {
+    console.log('receiving creationCallback ');
+    console.log(e);
+    me.df_sql_db_.callback(e);
+  };
 
   try {
     /**
-     * http://www.w3.org/TR/webdatabase/#databases
+     * http://www.w3.org/TR/webdatabase/#dom-opendatabase
      *
      * According to W3C doc, INVALID_STATE_ERR will be throw if version is
      * provided, but database of that version is not exist. The only way to
      * work around is giving empty string and mirage after opening the database.
      */
     this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
-        size);
+        size, creationCallback);
+
+    // we can immediately set this to sql_db_ because database table creation
+    // are going through doTranaction process, it already lock out
+    // for using this database.
+
+    if (this.sql_db_.version != this.schema.version) {
+      console.log('changing version from ' + this.sql_db_.version + ' to ' + this.schema.version);
+      this.migrate_();
+    }
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
-      // TODO: abort th queue
-      throw new ydn.db.SecurityError(e);
+      this.sql_db_ = null; // this will purge the tx queue
+      // throw new ydn.db.SecurityError(e);
+      // don't throw now, so that web app can handle without using
+      // database.
+      this.last_error_ = new ydn.db.SecurityError(e);
     } else {
       throw e;
     }
   }
 
-  // we can immediately set this to sql_db_ because database table creation
-  // are going through doTranaction process, it already lock out
-  // for using this database.
 
-  if (this.sql_db_.version != this.schema.version) {
-    this.migrate_();
-  }
 
 };
 
@@ -102,6 +119,22 @@ ydn.db.conn.WebSql.TYPE = 'websql';
 ydn.db.conn.WebSql.prototype.type = function() {
   return ydn.db.conn.WebSql.TYPE;
 };
+
+
+/**
+ * Deferred object encapsulating database instance.
+ * @type {*}
+ * @private
+ */
+ydn.db.conn.WebSql.prototype.df_sql_db_ = null;
+
+
+/**
+ *
+ * @type {Error}
+ * @private
+ */
+ydn.db.conn.WebSql.prototype.last_error_ = null;
 
 
 /**
@@ -195,7 +228,6 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     table_schema.addIndex(ydn.db.DEFAULT_BLOB_COLUMN);
   }
 
-
   var sep = ', ';
   for (var i = 0; i < table_schema.indexes.length; i++) {
     /**
@@ -285,7 +317,7 @@ ydn.db.conn.WebSql.prototype.migrate_ = function() {
  * @return {boolean}
  */
 ydn.db.conn.WebSql.prototype.isReady = function() {
-  return true;
+  return this.df_sql_db_.hasFired();
 };
 
 
@@ -293,10 +325,12 @@ ydn.db.conn.WebSql.prototype.isReady = function() {
  *
  * @inheritDoc
  */
-ydn.db.conn.WebSql.prototype.onReady = function(cb) {
+ydn.db.conn.WebSql.prototype.onReady = function(cb, eb) {
   // due to the way, this work, database is always ready to use.
-  cb(this);
+  this.df_sql_db_.addCallback(cb);
+  this.df_sql_db_.addErrback(eb);
 };
+
 
 
 /**
