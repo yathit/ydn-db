@@ -122,21 +122,21 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
   openRequest.onerror = function(ev) {
     var msg = 'opening database ' + dbname + ':' + schema.version + ' failed.';
     if (ydn.db.conn.IndexedDb.DEBUG) {
-      window.console.log(msg);
+      window.console.log([msg, ev, openRequest]);
     } else {
       me.logger.severe(msg);
     }
-    me.db = null;
+    me.setDb(null);
   };
 
   openRequest.onblocked = function(ev) {
     var msg = 'database ' + dbname + ' block, close other connections.';
     if (ydn.db.conn.IndexedDb.DEBUG) {
-      window.console.log(msg);
+      window.console.log([msg, ev, openRequest]);
     } else {
       me.logger.severe(msg);
     }
-    me.db = null;
+    me.setDb(null);
   };
 
   openRequest.onversionchange = function(ev) {
@@ -302,7 +302,6 @@ ydn.db.conn.IndexedDb.prototype.setDb = function (db, trans) {
 
   this.idx_db_ = db;
   if (this.deferredIdxDb_.hasFired()) {
-    // require for version change
     this.deferredIdxDb_ = new goog.async.Deferred();
   }
 

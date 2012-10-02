@@ -358,8 +358,17 @@ ydn.db.conn.Storage.prototype.setDb_ = function(db) {
   var me = this;
   this.db_.onReady(function(db) {
     me.deferredDb_.callback(me.db_);
-    this.last_queue_checkin_ = NaN;
-    me.popTxQueue_();
+    me.last_queue_checkin_ = NaN;
+    if (db) {
+      me.popTxQueue_();
+    } else {
+      // this could happen if user do not allow to use the storage
+      var noDBError = {
+        'type': 'NoDatabase',
+        'message': 'No database'
+      };
+      me.purgeTxQueue_(noDBError);
+    }
   });
 };
 
@@ -503,12 +512,12 @@ ydn.db.conn.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
  * @protected
  * @param e
  */
-ydn.db.conn.Storage.prototype.abortTxQueue_ = function(e) {
+ydn.db.conn.Storage.prototype.purgeTxQueue_ = function(e) {
   if (this.txQueue_) {
     var task = this.txQueue_.shift();
     while (task) {
       task = this.txQueue_.shift();
-      task.oncompleted(ydn.db.TransactionEventTypes.ABORT, e);
+      task.oncompleted(ydn.db.TransactionEventTypes.ERROR, e);
     }
   }
 };
