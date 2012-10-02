@@ -144,7 +144,7 @@ ydn.db.tr.Mutex.prototype.down = function (type, event) {
       this.oncompleted = null;
     }
   } else {
-    this.logger.severe(this + ' has no TX to be unlocked.');
+    this.logger.severe(this + ' has no TX to be unlocked for ' + type);
   }
 
 };

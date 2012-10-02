@@ -293,13 +293,16 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
  */
 ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
 
-  var msg = is_version_change ? 'changing version' : 'setting version';
-  this.logger.finest(this.dbname + ': ' + msg + ' from ' +
+  var action = is_version_change ? 'changing version' : 'setting version';
+  this.logger.finest(this.dbname + ': ' + action + ' from ' +
     this.sql_db_.version + ' to ' + this.schema.version);
 
-  var mode = is_version_change ?
-    ydn.db.TransactionMode.VERSION_CHANGE : ydn.db.TransactionMode.READ_WRITE;
-  // yes, READ_WRITE mode can create table.
+  //var mode = is_version_change ?
+  //    ydn.db.TransactionMode.VERSION_CHANGE : ydn.db.TransactionMode.READ_WRITE;
+
+  // HACK: VERSION_CHANGE can cause subtle error.
+  var mode = ydn.db.TransactionMode.READ_WRITE;
+  // yes READ_WRITE mode can create table and more robust. :-D
 
   var me = this;
 
@@ -312,9 +315,9 @@ ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
 
   var oncompleted = function (t, e) {
     if (!has_created) {
-      me.logger.warning(me.dbname + ': migration void.');
+      me.logger.warning(me.dbname + ': ' + action + ' void.');
     } else {
-      me.logger.finest(me.dbname + ': migration completed.');
+      me.logger.finest(me.dbname + ': ' + action + ' completed.');
     }
   };
 
@@ -433,11 +436,13 @@ ydn.db.conn.WebSql.prototype.doTransaction = function (trFn, scopes, mode, compl
       {'type':ydn.db.TransactionEventTypes.COMPLETE});
   };
 
+  var me = this;
   /**
    * SQLTransactionErrorCallback
    * @param {SQLError} e
    */
   var error_callback = function (e) {
+    me.logger.finest(me + ': Tx ' + mode + ' request cause error.');
     completed_event_handler(ydn.db.TransactionEventTypes.ERROR, e);
   };
 
