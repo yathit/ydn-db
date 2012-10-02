@@ -20,6 +20,7 @@
                 <arg line='-f "--source_map_format=V3"'/>
                 <arg line='-f "--create_source_map=${output.fn}.map"'/>
                 <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
+                <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
                 <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
             </options>
         </closure-compile>

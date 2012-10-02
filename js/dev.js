@@ -34,8 +34,8 @@ goog.exportProperty(ydn.db.conn.Storage.prototype, 'setName',
   ydn.db.conn.Storage.prototype.setName);
 goog.exportProperty(ydn.db.conn.Storage.prototype, 'getConfig',
   ydn.db.conn.Storage.prototype.getConfig);
-goog.exportProperty(ydn.db.tr.Storage.prototype, 'transaction',
-  ydn.db.tr.Storage.prototype.transaction);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'transaction',
+  ydn.db.conn.Storage.prototype.transaction);
 goog.exportProperty(ydn.db.conn.Storage.prototype, 'close',
   ydn.db.conn.Storage.prototype.close);
 
