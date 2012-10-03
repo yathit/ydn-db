@@ -30,6 +30,41 @@ var options = {
   use_text_store: false
 };
 
+/**
+ * Assert the two schema are similar
+ * @param {ydn.db.DatabaseSchema} schema
+ * @param {ydn.db.DatabaseSchema|DatabaseSchema} schema_json
+ */
+var assert_similar_schema = function(schema, schema_json) {
+  console.log(['testing ', schema, schema_json]);
+  assertEquals('# stores', schema.stores.length, schema_json.stores.length);
+  assertEquals('# stores', schema.version, schema_json.version);
+  for (var i = 0; i < schema.stores.length; i++) {
+    var store = schema.stores[i];
+    var store_json = schema_json.stores[i];
+    assertEquals(i + ': name', store.name, store_json.name);
+    assertEquals(i + ': type', store.type, store_json.type);
+    assertEquals(i + ': keyPath', store.keyPath, store_json.keyPath);
+    assertEquals(i + ': autoIncremenent', store.autoIncremenent,
+        store_json.autoIncremenent);
+    assertEquals('# indexes', store.indexes.length,
+        store_json.indexes.length);
+
+    for (var j = 0; j < store.indexes.length; j++) {
+      var index = store.indexes[i];
+      var index_json = store_json.indexes[i];
+      assertEquals(i + ':' + j + ': index name', index.name, index_json.name);
+      assertEquals(i + ':' + j + ': index type', index.type, index_json.type);
+      //assertEquals(i + ':' + j + ': index keyPath', index.keyPath, index_json.keyPath);
+    }
+
+    store_json = store_json instanceof ydn.db.StoreSchema ?
+        store_json : ydn.db.StoreSchema.fromJSON(store_json);
+    assertTrue(i + ': similar', store.similar(store_json));
+  }
+  //console.log('test OK');
+};
+
 var test_2_sql_schema_sniffing = function() {
 
   var schema = new ydn.db.DatabaseSchema(1);
@@ -43,38 +78,7 @@ var test_2_sql_schema_sniffing = function() {
 
   var schema_json = db.getSchema();
 
-
-  var assert_schema = function(schema, schema_json) {
-    console.log(['testing ', schema, schema_json]);
-    assertEquals('# stores', schema.stores.length, schema_json.stores.length);
-    assertEquals('# stores', schema.version, schema_json.version);
-    for (var i = 0; i < schema.stores.length; i++) {
-      var store = schema.stores[i];
-      var store_json = schema_json.stores[i];
-      assertEquals(i + ': name', store.name, store_json.name);
-      assertEquals(i + ': type', store.type, store_json.type);
-      assertEquals(i + ': keyPath', store.keyPath, store_json.keyPath);
-      assertEquals(i + ': autoIncremenent', store.autoIncremenent,
-          store_json.autoIncremenent);
-      assertEquals('# indexes', store.indexes.length,
-          store_json.indexes.length);
-
-      for (var j = 0; j < store.indexes.length; j++) {
-        var index = store.indexes[i];
-        var index_json = store_json.indexes[i];
-        assertEquals(i + ':' + j + ': index name', index.name, index_json.name);
-        assertEquals(i + ':' + j + ': index type', index.type, index_json.type);
-        //assertEquals(i + ':' + j + ': index keyPath', index.keyPath, index_json.keyPath);
-      }
-
-      store_json = store_json instanceof ydn.db.StoreSchema ?
-          store_json : ydn.db.StoreSchema.fromJSON(store_json);
-      assertTrue(i + ': similar', store.similar(store_json));
-    }
-    console.log('test OK');
-  };
-
-  assert_schema(schema, schema_json);
+  assert_similar_schema(schema, schema_json);
 
 
   var t1_fired = false;
@@ -92,7 +96,7 @@ var test_2_sql_schema_sniffing = function() {
           }
         }
         var sniff_schema = new ydn.db.DatabaseSchema(1, stores);
-        assert_schema(schema, sniff_schema);
+        assert_similar_schema(schema, sniff_schema);
         reachedFinalContinuation = true;
       },
       100, // interval
