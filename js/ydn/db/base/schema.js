@@ -9,6 +9,7 @@ goog.provide('ydn.db.DataType');
 goog.provide('ydn.db.DatabaseSchema');
 goog.provide('ydn.db.IndexSchema');
 goog.provide('ydn.db.StoreSchema');
+goog.require('ydn.db.Key');
 
 
 /**
