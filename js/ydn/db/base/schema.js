@@ -90,11 +90,13 @@ ydn.db.IndexSchema.prototype.toJSON = function() {
 
 /**
  *
- * @param {Object} json object in json format.
+ * @param {!IndexSchema} json object in json format.
  * @return {ydn.db.IndexSchema} created from input json string.
  */
 ydn.db.IndexSchema.fromJSON = function(json) {
-  return new ydn.db.IndexSchema(json['name'], json['unique'], json['type']);
+  //name, opt_unique, opt_type, keyPath, multiEntry
+  return new ydn.db.IndexSchema(json.name, json.unique, json.type,
+    json.keyPath, json.multiEntry);
 };
 
 
@@ -180,19 +182,19 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
 
 /**
  *
- * @param {!Object} json Restore from json stream.
+ * @param {!StoreSchema} json Restore from json stream.
  * @return {!ydn.db.StoreSchema} create new store schema from JSON string.
  */
 ydn.db.StoreSchema.fromJSON = function(json) {
   var indexes = [];
-  var indexes_json = json['indexes'] || [];
+  var indexes_json = json.indexes || [];
   if (goog.isArray(indexes_json)) {
     for (var i = 0; i < indexes_json.length; i++) {
       indexes.push(ydn.db.IndexSchema.fromJSON(indexes_json[i]));
     }
   }
-  return new ydn.db.StoreSchema(json['name'], json['keyPath'],
-    json['autoIncremenent'], json['type'], indexes);
+  return new ydn.db.StoreSchema(json.name, json.keyPath,
+    json.autoIncremenent, json.type, indexes);
 };
 
 
@@ -501,16 +503,16 @@ ydn.db.DatabaseSchema.prototype.getStoreNames = function() {
 
 
 /**
- * @param {*} json Restore from json stream.
+ * @param {!DatabaseSchema} json Restore from json stream.
  * @return {!ydn.db.DatabaseSchema} create new database schema from JSON string.
  */
 ydn.db.DatabaseSchema.fromJSON = function(json) {
   var stores = [];
-  var stores_json = json['stores'] || [];
+  var stores_json = json.stores || [];
   for (var i = 0; i < stores_json.length; i++) {
     stores.push(ydn.db.StoreSchema.fromJSON(stores_json[i]));
   }
-  return new ydn.db.DatabaseSchema(json['version'], stores);
+  return new ydn.db.DatabaseSchema(json.version, stores);
 };
 
 

@@ -57,7 +57,7 @@ goog.require('ydn.db.conn.IStorage');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * schema used in chronical order.
- * @param {!Object=} opt_options options.
+ * @param {!StorageOptions=} opt_options options.
  * @implements {ydn.db.conn.IStorage}
  * @constructor
  */
@@ -67,7 +67,17 @@ ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
   var options = opt_options || {};
   var schema = goog.isDef(opt_schema) ? opt_schema : new ydn.db.DatabaseSchema();
 
-  this.preference = options['preference'];
+  /**
+   * @final
+   * @type {!Array.<string>}
+   */
+  this.preference = options.preference || ydn.db.conn.Storage.PREFERENCE;
+
+  /**
+   * @final
+   * @type {number|undefined}
+   */
+  this.size = options.size;
 
   /**
    * @type {ydn.db.conn.IDatabase}
@@ -148,20 +158,20 @@ ydn.db.conn.Storage.prototype.getConfig = function() {
 
 /**
  * Get current schema.
- * @return {!Object}
+ * @return {!DatabaseSchema}
  */
 ydn.db.conn.Storage.prototype.getSchema = function() {
-  return /** @type {!Object} */ (this.schema.toJSON());
+  return /** @type {!DatabaseSchema} */ (this.schema.toJSON());
 };
 
 
 /**
  * Get current schema.
- * @return {Object} null if give store do not exist
+ * @return {StoreSchema?} null if give store do not exist
  */
 ydn.db.conn.Storage.prototype.getStoreSchema = function(store_name) {
   var store = this.schema.getStore(store_name);
-  return /** @type {!Object} */ (store.toJSON());
+  return store ? /** @type {!StoreSchema} */ (store.toJSON()) : null;
 };
 
 
@@ -169,7 +179,7 @@ ydn.db.conn.Storage.prototype.getStoreSchema = function(store_name) {
  * Add a store schema to current database schema on auto schema generation
  * mode {@see #auto_schema}.
  * If the store already exist it will be updated as necessary.
- * @param {!Object} store_schema
+ * @param {!StoreSchema} store_schema
  */
 ydn.db.conn.Storage.prototype.addStoreSchema = function(store_schema) {
   var store_name = store_schema['name'];
@@ -203,10 +213,16 @@ ydn.db.conn.Storage.prototype.addStoreSchema = function(store_schema) {
  * @export
  * @throws {Error} if database is already initialized.
  * @param {string} opt_db_name set database name.
+ * @param {(!ydn.db.DatabaseSchema|!DatabaseSchema)=} opt_schema
  */
-ydn.db.conn.Storage.prototype.setName = function(opt_db_name) {
+ydn.db.conn.Storage.prototype.setName = function(opt_db_name, opt_schema) {
   if (this.db_) {
     throw Error('DB already initialized');
+  }
+  if (goog.isDef(opt_schema)) {
+    var schema = (opt_schema instanceof ydn.db.DatabaseSchema) ?
+      opt_schema : ydn.db.DatabaseSchema.fromJSON(opt_schema);
+    this.setSchema(schema);
   }
   /**
    * @final
@@ -230,7 +246,7 @@ ydn.db.conn.Storage.prototype.getName = function() {
  * Set the latest version of database schema. This will start initialization if
  * database name have been set. The the database is already initialized,
  * this will issue version change event and migrate to the schema.
- * @export
+ * @protected
  * @param {!ydn.db.DatabaseSchema} schema set the schema
  * configuration in JSON format.
  */
@@ -280,8 +296,7 @@ ydn.db.conn.Storage.prototype.createDbInstance = function(db_type) {
   if (db_type == ydn.db.conn.IndexedDb.TYPE) {
     return new ydn.db.conn.IndexedDb(this.db_name, this.schema);
   } else if (db_type == ydn.db.conn.WebSql.TYPE) {
-    var size = this.preference ? this.preference['size'] : undefined;
-    return new ydn.db.conn.WebSql(this.db_name, this.schema, size);
+    return new ydn.db.conn.WebSql(this.db_name, this.schema, this.size);
   } else if (db_type == ydn.db.conn.LocalStorage.TYPE) {
     return new ydn.db.conn.LocalStorage(this.db_name, this.schema);
   } else if (db_type == ydn.db.conn.SessionStorage.TYPE) {
@@ -311,7 +326,7 @@ ydn.db.conn.Storage.prototype.initDatabase = function() {
       db = this.createDbInstance(ydn.db.conn.WebSql.TYPE);
     } else {
       // go according to ordering
-      var preference = this.preference || ydn.db.conn.Storage.PREFERENCE;
+      var preference = this.preference;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
         if (db_type == ydn.db.conn.IndexedDb.TYPE && ydn.db.conn.IndexedDb.isSupported()) { // run-time detection

@@ -51,7 +51,7 @@ goog.require('ydn.db.tr.TxStorage');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * schema used in chronical order.
- * @param {!Object=} opt_options options.
+ * @param {!StorageOptions=} opt_options options.
  * @implements {ydn.db.tr.IStorage}
  * @extends{ydn.db.conn.Storage}
  * @constructor
