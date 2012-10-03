@@ -28,20 +28,3 @@ ydn.db.IStorage.prototype.execute = goog.abstractMethod;
 
 
 
-/**
- * @define {string} default key-value store name.
- */
-ydn.db.IStorage.DEFAULT_TEXT_STORE = 'default_text_store';
-
-
-/**
- * @define {boolean}
- */
-ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE = true;
-
-
-
-/**
- * @define {boolean}
- */
-ydn.db.IStorage.ENABLE_ENCRYPTION = false;

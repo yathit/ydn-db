@@ -62,6 +62,8 @@ var test_1_json_trival_config = function() {
 };
 
 
+
+
 var test_0_json_config_empty_table = function() {
   var store = {name:'todo', keyPath:"timeStamp"};
 

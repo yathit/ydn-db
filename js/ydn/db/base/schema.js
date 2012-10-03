@@ -356,6 +356,12 @@ ydn.db.StoreSchema.KEY_SEP = ydn.db.Key.SEP_PARENT;
 
 
 /**
+ * @define {string} default key-value store name.
+ */
+ydn.db.StoreSchema.DEFAULT_TEXT_STORE = 'default_text_store';
+
+
+/**
  * This is for WebSQL.
  * @param {!Object} obj get values of indexed fields.
  * @param {(!Array|string|number)=} opt_key

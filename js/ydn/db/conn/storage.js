@@ -43,6 +43,7 @@ goog.require('ydn.error.ArgumentException');
 goog.require('ydn.db.conn.IStorage');
 
 
+
 /**
  * Create a suitable storage mechanism from indexdb, to websql to
  * localStorage.
@@ -53,7 +54,7 @@ goog.require('ydn.db.conn.IStorage');
  * {@link #setsetDbName} and {@link #setSchema}.
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
- * @param {!ydn.db.DatabaseSchema=} opt_schema database schema
+ * @param {!ydn.db.DatabaseSchema|DatabaseSchema=} opt_schema database schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * schema used in chronical order.
@@ -65,7 +66,6 @@ ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
 
 
   var options = opt_options || {};
-  var schema = goog.isDef(opt_schema) ? opt_schema : new ydn.db.DatabaseSchema();
 
   /**
    * @final
@@ -78,6 +78,13 @@ ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @type {number|undefined}
    */
   this.size = options.size;
+
+  /**
+   * @final
+   * @type {boolean}
+   */
+  this.use_text_store = goog.isDef(options.use_text_store) ?
+    options.use_text_store : ydn.db.ENABLE_DEFAULT_TEXT_STORE;
 
   /**
    * @type {ydn.db.conn.IDatabase}
@@ -102,7 +109,9 @@ ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   this.in_version_change_tx_ = false;
 
-  this.setSchema(schema);
+  if (goog.isDefAndNotNull(opt_schema)) {
+    this.setSchema(opt_schema);
+  }
 
   if (goog.isDef(opt_dbname)) {
     this.setName(opt_dbname);
@@ -139,7 +148,7 @@ ydn.db.conn.Storage.prototype.logger =
  * </pre>
  * In this way, data can be share between the two threads.
  *
- * @return {{name: string, schema: !Object}?} configuration
+ * @return {{name: string, schema: DatabaseSchema}?} configuration
  * containing database and list of schema in JSON format.
  * @export
  * @deprecated
@@ -151,17 +160,17 @@ ydn.db.conn.Storage.prototype.getConfig = function() {
 
   return {
     'name': this.db_name,
-    'schema': /** @type {!Object} */ (this.schema.toJSON())
+    'schema': this.getSchema()
   };
 };
 
 
 /**
  * Get current schema.
- * @return {!DatabaseSchema}
+ * @return {DatabaseSchema}
  */
 ydn.db.conn.Storage.prototype.getSchema = function() {
-  return /** @type {!DatabaseSchema} */ (this.schema.toJSON());
+  return this.schema ? /** @type {!DatabaseSchema} */ (this.schema.toJSON()) : null;
 };
 
 
@@ -219,17 +228,17 @@ ydn.db.conn.Storage.prototype.setName = function(opt_db_name, opt_schema) {
   if (this.db_) {
     throw Error('DB already initialized');
   }
-  if (goog.isDef(opt_schema)) {
-    var schema = (opt_schema instanceof ydn.db.DatabaseSchema) ?
-      opt_schema : ydn.db.DatabaseSchema.fromJSON(opt_schema);
-    this.setSchema(schema);
+  if (goog.isDef(opt_schema) || !this.schema) {
+    this.setSchema(opt_schema || null);
   }
   /**
    * @final
+   * @protected
    * @type {string}
    */
   this.db_name = opt_db_name;
   this.initDatabase();
+
 };
 
 
@@ -247,10 +256,19 @@ ydn.db.conn.Storage.prototype.getName = function() {
  * database name have been set. The the database is already initialized,
  * this will issue version change event and migrate to the schema.
  * @protected
- * @param {!ydn.db.DatabaseSchema} schema set the schema
+ * @param {!ydn.db.DatabaseSchema|DatabaseSchema} opt_schema set the schema
  * configuration in JSON format.
  */
-ydn.db.conn.Storage.prototype.setSchema = function(schema) {
+ydn.db.conn.Storage.prototype.setSchema = function(opt_schema) {
+
+  var schema = (opt_schema instanceof ydn.db.DatabaseSchema) ?
+    opt_schema : goog.isDefAndNotNull(opt_schema) ?
+      ydn.db.DatabaseSchema.fromJSON(opt_schema) : new ydn.db.DatabaseSchema();
+
+  if (this.use_text_store && !schema.hasStore(ydn.db.StoreSchema.DEFAULT_TEXT_STORE)) {
+    schema.addStore(new ydn.db.StoreSchema(
+      ydn.db.StoreSchema.DEFAULT_TEXT_STORE, 'id', false, ydn.db.DataType.TEXT));
+  }
 
   /**
    * @final
@@ -259,14 +277,6 @@ ydn.db.conn.Storage.prototype.setSchema = function(schema) {
    */
   this.schema = schema;
 
-  if (!this.db_) {
-    this.initDatabase();
-  } else {
-    this.db_.close();
-    this.db_ = null;
-    this.deferredDb_ = new goog.async.Deferred();
-    this.initDatabase();
-  }
 };
 
 
@@ -367,6 +377,15 @@ ydn.db.conn.Storage.prototype.type = function() {
   } else {
     return '';
   }
+};
+
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.conn.Storage.prototype.isReady = function() {
+  return this.deferredDb_.hasFired();
 };
 
 

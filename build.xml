@@ -1,4 +1,4 @@
-<project name="ydn-db" basedir="." default="compile">
+<project name="ydn-db" basedir="." default="compile-dev">
     <dirname property="ydn-db.dir" file="${ant.file.ydn-db}"/>
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
@@ -8,18 +8,19 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <property name="output.fn" value="${ydn-db.dir}/jsc/dev-ydn.db-min-${ver}.js"/>
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                         input="${ydn-db.dir}/js/dev.js"
+                         input="${ydn-db.dir}/js/main.js"
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${output.fn}">
             <extrapaths>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
             <options>
                 <arg line='-f "--generate_exports"'/>
-                <arg line='-f "--define=ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE=true"'/>
-                <arg line='-f "--define=ydn.db.IStorage.ENABLE_ENCRYPTION=true"'/>
+                <arg line='-f "--define=ydn.db.ENABLE_DEFAULT_TEXT_STORE=true"'/>
+                <arg line='-f "--define=ydn.db.ENABLE_ENCRYPTION=true"'/>
                 <arg line='-f "--source_map_format=V3"'/>
                 <arg line='-f "--create_source_map=${output.fn}.map"'/>
                 <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
@@ -39,6 +40,24 @@
         <concat destfile="${work.dir}/hijax-server/static/jsc/dev-ydn.db-min.js" append="true">
             //@ sourceMappingURL=dev-ydn.db-min.js.map
         </concat>
+
+        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js">
+            <header>
+                (function( $ ) {
+            </header>
+            <filelist dir="${ydn-db.dir}/jsc"
+                      files="dev-ydn.db-min-${ver}.js"/>
+        </concat>
+        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js" append="true">
+            $.db = new ydn.db.Storage();
+
+            $.db.open = function(db_name, schema) {
+            $.db.setName(db_name, schema);
+            };
+            })( jQuery);
+        </concat>
+        <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js"
+              tofile="${work.dir}/hijax-server/static/jsc/jquery-ydn.db-min.js"/>
     </target>
     <macrodef name="adv-comp">
         <attribute name="input.fn"/>
@@ -110,54 +129,41 @@
             </exjs.dir>
         </adv-comp>
     </target>
-    <target name="compile-tr" description="generates compiled files for tr storage">
+    <target name="compile-core"
+            description="generates compiled files for core distribution">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db/tr"
-                input.fn="${ydn-db.dir}/js/tr.js"
+                input.dir="${ydn-db.dir}/js/ydn/db"
+                input.fn="${ydn-db.dir}/js/core.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="tr-ydn.db-min-${ver}.js"
+                output.fn="core-ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.tr.Storage">
             <exjs.dir>
+                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
             </exjs.dir>
         </adv-comp>
-        <copy file="${ydn-db.dir}/jsc/tr-ydn.db-min-${ver}.js"
+        <copy file="${ydn-db.dir}/jsc/core-ydn.db-min-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/core-ydn.db-min.js"/>
     </target>
     <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db"
+                input.dir="${ydn-db.dir}/js"
                 input.fn="${ydn-db.dir}/js/main.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.Storage">
             <ex.opt>
-                <arg line='-f "--define=ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE=true"'/>
-                <arg line='-f "--define=ydn.db.IStorage.ENABLE_ENCRYPTION=true"'/>
+                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
+                <arg line='-f "--define=ydn.db.ENABLE_DEFAULT_TEXT_STORE=true"'/>
+                <arg line='-f "--define=ydn.db.ENABLE_ENCRYPTION=true"'/>
             </ex.opt>
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/ydn.db-min-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/ydn.db-min.js"/>
-
-        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js">
-            <header>
-                (function( $ ) {
-            </header>
-            <filelist dir="${ydn-db.dir}/jsc" files="ydn.db-min-${ver}.js"/>
-        </concat>
-        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js" append="true">
-            $.db = new ydn.db.Storage();
-
-            $.db.open = function(db_name, schema) {
-                $.db.setName(db_name, schema);
-            };
-            })( jQuery);
-        </concat>
-        <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js"
-              tofile="${work.dir}/hijax-server/static/jsc/jquery-ydn.db-min.js"/>
     </target>
     <target name="gen-all-test-js" description="generate all test js">
         <gen-js-test base.dir="${ydn-db.dir}/test"></gen-js-test>
@@ -199,7 +205,7 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-conn,compile,simple,compile-dev,compile-tr">
+            depends="compile-conn,compile,simple,compile-dev,compile-core">
 
     </target>
 </project>

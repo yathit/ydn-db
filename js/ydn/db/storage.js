@@ -24,7 +24,7 @@ goog.provide('ydn.db.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.object');
-if (ydn.db.IStorage.ENABLE_ENCRYPTION) {
+if (ydn.db.ENABLE_ENCRYPTION) {
   goog.require('ydn.db.RichStorage_');
 }
 goog.require('ydn.db.tr.Storage');
@@ -56,20 +56,12 @@ goog.require('ydn.db.io.QueryServiceProvider');
  */
 ydn.db.Storage = function (opt_dbname, opt_schema, opt_options) {
 
-  var options = opt_options || /** @type {!StorageOptions} */ ({});
-  var schema = goog.isDef(opt_schema) ?
-    (!(opt_schema instanceof ydn.db.DatabaseSchema)) ?
-      ydn.db.DatabaseSchema.fromJSON(opt_schema) :
-      opt_schema : new ydn.db.DatabaseSchema();
+  goog.base(this, opt_dbname, opt_schema, opt_options);
 
-  if ((ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE || !!options['use_text_store']) &&
-    !schema.hasStore(ydn.db.IStorage.DEFAULT_TEXT_STORE)) {
-    schema.addStore(new ydn.db.StoreSchema(
-      ydn.db.IStorage.DEFAULT_TEXT_STORE, 'id'));
+  if (!this.default_tx_queue_) {
+    this.default_tx_queue_ = this.newTxInstance('base');
   }
-  goog.base(this, opt_dbname, schema, options);
 
-  this.default_tx_queue_ = this.newTxInstance('base');
 };
 goog.inherits(ydn.db.Storage, ydn.db.tr.Storage);
 
@@ -82,10 +74,10 @@ goog.inherits(ydn.db.Storage, ydn.db.tr.Storage);
 //ydn.db.Storage.prototype.initDatabase = function () {
 //  // handle version change
 //  if (goog.isDef(this.schema) &&
-//    (ydn.db.IStorage.ENABLE_DEFAULT_TEXT_STORE &&
-//      !this.schema.hasStore(ydn.db.IStorage.DEFAULT_TEXT_STORE))) {
+//    (ydn.db.ENABLE_DEFAULT_TEXT_STORE &&
+//      !this.schema.hasStore(ydn.db.StoreSchema.DEFAULT_TEXT_STORE))) {
 //    this.schema.addStore(new ydn.db.StoreSchema(
-//      ydn.db.IStorage.DEFAULT_TEXT_STORE, 'id'));
+//      ydn.db.StoreSchema.DEFAULT_TEXT_STORE, 'id'));
 //  }
 //  goog.base(this, 'initDatabase');
 //};
@@ -97,10 +89,13 @@ goog.inherits(ydn.db.Storage, ydn.db.tr.Storage);
 ydn.db.Storage.prototype.init = function() {
 
   goog.base(this, 'init');
+
+  // update schema
+  if (this.default_tx_queue_) {
+    this.default_tx_queue_.setNameAndSchema(this.getName(), this.getSchema());
+  }
+
 };
-
-
-ydn.db.Storage.prototype.default_tx_queue_ = null;
 
 
 /**
@@ -119,7 +114,7 @@ ydn.db.Storage.prototype.newTxInstance = function(scope_name) {
  * @param {number=} opt_expiration default expiration time in miliseconds.
  */
 ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
-  if (ydn.db.IStorage.ENABLE_ENCRYPTION) {
+  if (ydn.db.ENABLE_ENCRYPTION) {
     /**
      * @protected
      * @final

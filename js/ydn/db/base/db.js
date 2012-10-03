@@ -90,3 +90,17 @@ ydn.db.TransactionMode = {
   READ_WRITE: 'readwrite',
   VERSION_CHANGE: 'versionchange'
 };
+
+
+
+/**
+ * @define {boolean}
+ */
+ydn.db.ENABLE_DEFAULT_TEXT_STORE = true;
+
+
+
+/**
+ * @define {boolean}
+ */
+ydn.db.ENABLE_ENCRYPTION = false;

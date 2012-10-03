@@ -26,10 +26,8 @@ goog.require('ydn.db.req.WebSql');
 */
 ydn.db.TxStorage = function(storage, ptx_no, scope_name) {
   goog.base(this, storage, ptx_no, scope_name);
-  this.db_name = this.getStorage().getName();
-  var schema = this.getStorage().getSchema();
-  this.schema = ydn.db.DatabaseSchema.fromJSON(schema);
 
+  this.setNameAndSchema(this.getStorage().getName(), this.getStorage().getSchema());
 };
 goog.inherits(ydn.db.TxStorage, ydn.db.tr.TxStorage);
 
@@ -40,6 +38,18 @@ goog.inherits(ydn.db.TxStorage, ydn.db.tr.TxStorage);
  */
 ydn.db.TxStorage.prototype.getStorage = function() {
   return /** @type {!ydn.db.Storage} */ (goog.base(this, 'getStorage'));
+};
+
+
+/**
+ *
+ * @param {string} name
+ * @param {DatabaseSchema} schema
+ */
+ydn.db.TxStorage.prototype.setNameAndSchema = function(name, schema) {
+  this.db_name = name;
+  this.schema = schema ?
+    ydn.db.DatabaseSchema.fromJSON(schema) : new ydn.db.DatabaseSchema();
 };
 
 
@@ -140,7 +150,7 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
   if (wrapper) {
     value = wrapper.wrapValue(key, value, opt_expiration);
   }
-  return this.put(ydn.db.IStorage.DEFAULT_TEXT_STORE,
+  return this.put(ydn.db.StoreSchema.DEFAULT_TEXT_STORE,
     {'id': key, 'value': value});
 
 };
@@ -182,7 +192,7 @@ ydn.db.TxStorage.prototype.key = function(store_or_json_or_value, id, opt_parent
  */
 ydn.db.TxStorage.prototype.removeItem = function(id) {
 
-  return this.clear(ydn.db.IStorage.DEFAULT_TEXT_STORE, id);
+  return this.clear(ydn.db.StoreSchema.DEFAULT_TEXT_STORE, id);
 
 };
 
@@ -199,7 +209,7 @@ ydn.db.TxStorage.prototype.removeItem = function(id) {
  */
 ydn.db.TxStorage.prototype.getItem = function(key) {
   // if the table not exist, <code>get</code> will throw error.
-  var out = this.get(ydn.db.IStorage.DEFAULT_TEXT_STORE, key);
+  var out = this.get(ydn.db.StoreSchema.DEFAULT_TEXT_STORE, key);
   var df = new goog.async.Deferred();
   var me = this;
   out.addCallback(function(data) {
@@ -237,6 +247,7 @@ ydn.db.TxStorage.prototype.count = function(store_name) {
 };
 
 
+
 /**
  * Return object or objects of given key or keys.
  * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
@@ -256,7 +267,8 @@ ydn.db.TxStorage.prototype.get = function (arg1, arg2) {
      */
     var k = arg1;
     var k_store_name = k.getStoreName();
-    goog.asserts.assert(this.schema.hasStore(k_store_name), 'Store: ' + k_store_name + ' not found.');
+    goog.asserts.assert(this.schema.hasStore(k_store_name), 'Store: ' +
+      k_store_name + ' not found.');
     var kid = k.getId();
     this.execute(function (executor) {
       executor.getById(df, k_store_name, kid);

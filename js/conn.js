@@ -1,5 +1,5 @@
 /**
- * @fileoverview Exports for core-ydn-db module.
+ * @fileoverview Exports for conn-ydn-db module.
  */
 
 goog.require('ydn.db.conn.Storage');
@@ -18,6 +18,8 @@ goog.exportProperty(ydn.db.conn.Storage.prototype, 'transaction',
   ydn.db.conn.Storage.prototype.transaction);
 goog.exportProperty(ydn.db.conn.Storage.prototype, 'close',
   ydn.db.conn.Storage.prototype.close);
+goog.exportProperty(ydn.db.conn.Storage.prototype, 'isReady',
+  ydn.db.conn.Storage.prototype.isReady);
 // for hacker only. This method should not document this, since this will change
 // transaction state.
 goog.exportProperty(ydn.db.conn.Storage.prototype, 'db',
