@@ -463,12 +463,12 @@ ydn.db.TxStorage.prototype.clear = function(arg1, arg2) {
     var store_names = arg1;
     this.execute(function(executor) {
       executor.clearByStore(df, store_names);
-    }, [store_names], ydn.db.TransactionMode.READ_WRITE);
+    }, store_names, ydn.db.TransactionMode.READ_WRITE);
   } else if (!goog.isDef(arg1)) {
     var store_names = this.schema.getStoreNames();
     this.execute(function(executor) {
       executor.clearByStore(df, store_names);
-    }, [store_names], ydn.db.TransactionMode.READ_WRITE);
+    }, store_names, ydn.db.TransactionMode.READ_WRITE);
   } else {
     throw new ydn.error.ArgumentException();
   }

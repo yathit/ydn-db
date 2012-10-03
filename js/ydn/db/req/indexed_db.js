@@ -369,8 +369,8 @@ ydn.db.req.IndexedDb.prototype.clearById = function (df, store_name, key) {
  */
 ydn.db.req.IndexedDb.prototype.clearByStore = function (df, opt_store_name) {
 
-
-  var store_names_to_clear = goog.isDef(opt_store_name) ? [opt_store_name] :
+  var store_names_to_clear = (goog.isArray(opt_store_name) && opt_store_name.length > 0) ?
+    opt_store_name : goog.isString(opt_store_name) ? [opt_store_name] :
       this.schema.getStoreNames();
   var n_todo = store_names_to_clear.length;
   var n_done = 0;
