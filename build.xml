@@ -12,6 +12,7 @@
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${output.fn}">
             <extrapaths>
+                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
@@ -99,7 +100,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/conn"
-                input.fn="${ydn-db.dir}/js/core.js"
+                input.fn="${ydn-db.dir}/js/conn.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="conn-ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.conn.Storage">
