@@ -8,12 +8,13 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <property name="output.fn" value="${ydn-db.dir}/jsc/dev-ydn.db-min-${ver}.js"/>
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                         input="${ydn-db.dir}/js/main.js"
+                         input="${ydn-db.dir}/js/dev.js"
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${output.fn}">
             <extrapaths>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/main.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
@@ -50,10 +51,6 @@
         </concat>
         <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js" append="true">
             $.db = new ydn.db.Storage();
-
-            $.db.open = function(db_name, schema) {
-            $.db.setName(db_name, schema);
-            };
             })( jQuery);
         </concat>
         <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js"

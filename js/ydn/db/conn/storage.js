@@ -109,8 +109,18 @@ ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   this.in_version_change_tx_ = false;
 
-  if (goog.isDefAndNotNull(opt_schema)) {
-    this.setSchema(opt_schema);
+  /**
+   * @final
+   * @protected
+   * @type {!ydn.db.DatabaseSchema}
+   */
+  this.schema = (opt_schema instanceof ydn.db.DatabaseSchema) ?
+    opt_schema : goog.isDefAndNotNull(opt_schema) ?
+    ydn.db.DatabaseSchema.fromJSON(opt_schema) : new ydn.db.DatabaseSchema();
+
+  if (this.use_text_store && !this.schema.hasStore(ydn.db.StoreSchema.DEFAULT_TEXT_STORE)) {
+    this.schema.addStore(new ydn.db.StoreSchema(
+      ydn.db.StoreSchema.DEFAULT_TEXT_STORE, 'id', false, ydn.db.DataType.TEXT));
   }
 
   if (goog.isDef(opt_dbname)) {
@@ -222,15 +232,12 @@ ydn.db.conn.Storage.prototype.addStoreSchema = function(store_schema) {
  * @export
  * @throws {Error} if database is already initialized.
  * @param {string} opt_db_name set database name.
- * @param {(!ydn.db.DatabaseSchema|!DatabaseSchema)=} opt_schema
  */
-ydn.db.conn.Storage.prototype.setName = function(opt_db_name, opt_schema) {
+ydn.db.conn.Storage.prototype.setName = function(opt_db_name) {
   if (this.db_) {
     throw Error('DB already initialized');
   }
-  if (goog.isDef(opt_schema) || !this.schema) {
-    this.setSchema(opt_schema || null);
-  }
+
   /**
    * @final
    * @protected
@@ -250,34 +257,6 @@ ydn.db.conn.Storage.prototype.getName = function() {
   return this.db_name;
 };
 
-
-/**
- * Set the latest version of database schema. This will start initialization if
- * database name have been set. The the database is already initialized,
- * this will issue version change event and migrate to the schema.
- * @protected
- * @param {!ydn.db.DatabaseSchema|DatabaseSchema} opt_schema set the schema
- * configuration in JSON format.
- */
-ydn.db.conn.Storage.prototype.setSchema = function(opt_schema) {
-
-  var schema = (opt_schema instanceof ydn.db.DatabaseSchema) ?
-    opt_schema : goog.isDefAndNotNull(opt_schema) ?
-      ydn.db.DatabaseSchema.fromJSON(opt_schema) : new ydn.db.DatabaseSchema();
-
-  if (this.use_text_store && !schema.hasStore(ydn.db.StoreSchema.DEFAULT_TEXT_STORE)) {
-    schema.addStore(new ydn.db.StoreSchema(
-      ydn.db.StoreSchema.DEFAULT_TEXT_STORE, 'id', false, ydn.db.DataType.TEXT));
-  }
-
-  /**
-   * @final
-   * @protected
-   * @type {!ydn.db.DatabaseSchema}
-   */
-  this.schema = schema;
-
-};
 
 
 /**
@@ -632,5 +611,3 @@ ydn.db.conn.Storage.prototype.transaction = function (trFn, store_names, opt_mod
   }, names, mode, on_complete);
 
 };
-
-

@@ -31,12 +31,6 @@ goog.exportProperty(ydn.db.Storage.prototype, 'query',
     ydn.db.Storage.prototype.query);
 goog.exportProperty(ydn.db.Storage.prototype, 'key',
     ydn.db.Storage.prototype.key);
-goog.exportProperty(ydn.db.Storage.prototype, 'get',
-    ydn.db.Storage.prototype.get);
-goog.exportProperty(ydn.db.Storage.prototype, 'put',
-    ydn.db.Storage.prototype.put);
-goog.exportProperty(ydn.db.Storage.prototype, 'clear',
-    ydn.db.Storage.prototype.clear);
 goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
     ydn.db.Storage.prototype.fetch);
 
@@ -45,12 +39,6 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'query',
     ydn.db.TxStorage.prototype.query);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'key',
     ydn.db.TxStorage.prototype.key);
-goog.exportProperty(ydn.db.TxStorage.prototype, 'get',
-    ydn.db.TxStorage.prototype.get);
-goog.exportProperty(ydn.db.TxStorage.prototype, 'put',
-    ydn.db.TxStorage.prototype.put);
-goog.exportProperty(ydn.db.TxStorage.prototype, 'clear',
-    ydn.db.TxStorage.prototype.clear);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
     ydn.db.TxStorage.prototype.fetch);
 

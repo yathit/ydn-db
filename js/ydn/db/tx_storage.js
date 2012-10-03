@@ -21,13 +21,19 @@ goog.require('ydn.db.req.WebSql');
  * @param {!ydn.db.Storage} storage
  * @param {number} ptx_no
  * @param {string} scope_name
+ * @param {ydn.db.DatabaseSchema} schema
  * @constructor
  * @extends {ydn.db.tr.TxStorage}
 */
-ydn.db.TxStorage = function(storage, ptx_no, scope_name) {
+ydn.db.TxStorage = function(storage, ptx_no, scope_name, schema) {
   goog.base(this, storage, ptx_no, scope_name);
 
-  this.setNameAndSchema(this.getStorage().getName(), this.getStorage().getSchema());
+  /**
+   * @protected
+   * @final
+   * @type {ydn.db.DatabaseSchema}
+   */
+  this.schema = schema;
 };
 goog.inherits(ydn.db.TxStorage, ydn.db.tr.TxStorage);
 
@@ -43,13 +49,12 @@ ydn.db.TxStorage.prototype.getStorage = function() {
 
 /**
  *
- * @param {string} name
- * @param {DatabaseSchema} schema
+ * @return {string}
  */
-ydn.db.TxStorage.prototype.setNameAndSchema = function(name, schema) {
-  this.db_name = name;
-  this.schema = schema ?
-    ydn.db.DatabaseSchema.fromJSON(schema) : new ydn.db.DatabaseSchema();
+ydn.db.TxStorage.prototype.getName = function() {
+  // db name can be undefined during instantiation.
+  this.db_name = this.db_name || this.getStorage().getName();
+  return this.db_name;
 };
 
 
@@ -75,7 +80,7 @@ ydn.db.TxStorage.prototype.getExecutor = function() {
 
     var type = this.type();
     if (type == ydn.db.conn.IndexedDb.TYPE) {
-      this.executor = new ydn.db.req.IndexedDb(this.db_name, this.schema);
+      this.executor = new ydn.db.req.IndexedDb(this.getName(), this.schema);
     } else if (type == ydn.db.conn.WebSql.TYPE) {
       this.executor = new ydn.db.req.WebSql(this.db_name, this.schema);
     } else if (type == ydn.db.conn.SimpleStorage.TYPE ||

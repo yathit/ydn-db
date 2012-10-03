@@ -342,6 +342,15 @@ ydn.db.Query.prototype.toWhereClause = function() {
 };
 
 
+/**
+ * @override
+ */
+ydn.db.Query.prototype.toString = function() {
+  var idx = goog.isDef(this.index) ? ':' + this.index : '';
+  return 'query:' + this.store_name + idx;
+};
+
+
 
 
 /**

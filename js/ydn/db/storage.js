@@ -58,9 +58,7 @@ ydn.db.Storage = function (opt_dbname, opt_schema, opt_options) {
 
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
-  if (!this.default_tx_queue_) {
-    this.default_tx_queue_ = this.newTxInstance('base');
-  }
+  this.default_tx_queue_ = this.newTxInstance('base');
 
 };
 goog.inherits(ydn.db.Storage, ydn.db.tr.Storage);
@@ -90,11 +88,6 @@ ydn.db.Storage.prototype.init = function() {
 
   goog.base(this, 'init');
 
-  // update schema
-  if (this.default_tx_queue_) {
-    this.default_tx_queue_.setNameAndSchema(this.getName(), this.getSchema());
-  }
-
 };
 
 
@@ -104,7 +97,7 @@ ydn.db.Storage.prototype.init = function() {
  * @return {!ydn.db.tr.TxStorage}
  */
 ydn.db.Storage.prototype.newTxInstance = function(scope_name) {
-  return new ydn.db.TxStorage(this, this.ptx_no++, scope_name);
+  return new ydn.db.TxStorage(this, this.ptx_no++, scope_name, this.schema);
 };
 
 

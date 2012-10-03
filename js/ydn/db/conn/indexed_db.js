@@ -161,18 +161,8 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
       if (openRequest.readyState != 'done') {
         // what we observed is chrome attached error object to openRequest
         // but did not call any of over listening events.
-        var msg = 'Database timeout ' + ydn.db.conn.IndexedDb.timeOut +
-          ' reached. Database state is ' + openRequest.readyState;
+        var msg = 'Database state is still ' + openRequest.readyState;
         me.logger.severe(msg);
-        if (ydn.db.conn.IndexedDb.DEBUG) {
-          window.console.log(openRequest);
-        }
-        // me.abortTxQueue(new Error(msg)); how to notified ?
-        goog.Timer.callOnce(function() {
-          // we invoke error in later thread, so that task queue have
-          // enough window time to clean up.
-          throw Error(openRequest['error'] || msg);
-        }, 500);
       }
     }, ydn.db.conn.IndexedDb.timeOut, this);
   }
