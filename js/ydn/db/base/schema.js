@@ -78,6 +78,25 @@ ydn.db.IndexSchema.prototype.getType = function() {
 
 
 /**
+ *
+ * @param {string} str
+ * @return {ydn.db.DataType|undefined}
+ */
+ydn.db.IndexSchema.toType = function(str) {
+  var types = [ydn.db.DataType.TEXT, ydn.db.DataType.INTEGER,
+    ydn.db.DataType.FLOAT, ydn.db.DataType.ARRAY];
+  var idx = goog.array.indexOf(types, function(x) {
+    return x == str;
+  });
+  if (idx >= 0) {
+    return types[idx];
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.IndexSchema.prototype.toJSON = function() {
@@ -86,6 +105,30 @@ ydn.db.IndexSchema.prototype.toJSON = function() {
     'type': this.type,
     'unique': this.unique
   };
+};
+
+
+/**
+ * Compare two stores.
+ * @see #equals
+ * @param {ydn.db.IndexSchema} index
+ * @return {boolean}
+ */
+ydn.db.IndexSchema.prototype.similar = function(index) {
+  if (!index) {
+    return false;
+  }
+  if (this.name != index.name ||
+      this.unique != index.unique ||
+      this.keyPath != index.keyPath
+    ) {
+    return false;
+  }
+  if (goog.isDef(this.type) && goog.isDef(index.type) &&
+    this.type != index.type) {
+    return false;
+  }
+  return true;
 };
 
 
@@ -448,12 +491,42 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
 
 /**
  * Compare two stores.
+ * @see #similar
  * @param {!ydn.db.StoreSchema} store
  * @return {boolean}
  */
 ydn.db.StoreSchema.prototype.equals = function(store) {
   return this.name === store.name &&
     ydn.object.isSame(this.toJSON(), store.toJSON());
+};
+
+
+/**
+ * Compare two stores.
+ * @see #equals
+ * @param {!ydn.db.StoreSchema} store
+ * @return {boolean}
+ */
+ydn.db.StoreSchema.prototype.similar = function(store) {
+
+  if (this.name != store.name ||
+      this.keyPath != store.keyPath ||
+      this.autoIncremenent != store.autoIncremenent ||
+      store.indexes.length != this.indexes.length) {
+    return false;
+  }
+  if (goog.isDef(this.type) && goog.isDef(store.type) &&
+    this.type != store.type) {
+    return false;
+  }
+  for (var i = 0; i < this.indexes.length; i++) {
+    var index = store.getIndex(this.indexes[i].name);
+    if (!this.indexes[i].similar(index)) {
+      return false;
+    }
+  }
+
+  return true;
 };
 
 
