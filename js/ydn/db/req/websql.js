@@ -100,7 +100,6 @@ ydn.db.req.WebSql.prototype.getTx = function() {
  * @return {!Object} parse value.
  */
 ydn.db.req.WebSql.prototype.parseRow = function(table, row) {
-  goog.asserts.assertObject(row);
   var value = ydn.json.parse(row[ydn.db.DEFAULT_BLOB_COLUMN]);
   var key = row[table.keyPath]; // NOT: table.getKey(row);
   table.setKey(value, key);
@@ -197,7 +196,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) 
 * @param {goog.async.Deferred} df
 * @param {string} store_name table name.
 * @param {!Array.<!Object>} objects object to put.
- * @param {!Array.<(Array|string|number)>=} opt_keys
+ * @param {!Array.<(!Array|string|number)>=} opt_keys
 */
 ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_keys) {
 
@@ -306,7 +305,11 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
   var callback = function (transaction, results) {
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
-      d.callback(me.parseRow(table, row));
+      if (goog.isDefAndNotNull(row)) {
+        d.callback(me.parseRow(table, row));
+      } else {
+        d.callback(undefined);
+      }
     } else {
       d.callback(undefined);
     }
@@ -363,7 +366,9 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
       result_count++;
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
-        objects[i] = me.parseRow(table, row);
+        if (goog.isDefAndNotNull(row)) {
+          objects[i] = me.parseRow(table, row);
+        }
         // this is get function, we take only one result.
       } else {
         objects[i] = undefined; // not necessary.
@@ -450,7 +455,9 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
     var callback = function (transaction, results) {
       for (var i = 0; i < results.rows.length; i++) {
         var row = results.rows.item(i);
-        arr.push(me.parseRow(table, row));
+        if (goog.isDefAndNotNull(row)) {
+          arr.push(me.parseRow(table, row));
+        } 
       }
       if (idx == n_todo - 1) {
         df.callback(arr);
@@ -511,7 +518,9 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
       result_count++;
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
-        objects[i] = me.parseRow(table, row);
+        if (goog.isDefAndNotNull(row)) {
+          objects[i] = me.parseRow(table, row);
+        }
         // this is get function, we take only one result.
       } else {
         objects[i] = undefined; // not necessary.
@@ -639,7 +648,10 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
     var n = results.rows.length;
     for (var i = 0; i < n; i++) {
       var row = results.rows.item(i);
-      var value = me.parseRow(store, row);
+      var value = {}; // ??
+      if (goog.isDefAndNotNull(row)) {
+        value = me.parseRow(store, row);
+      }
       var to_continue = !goog.isFunction(q.continued) || q.continued(value);
       if (!goog.isFunction(q.filter) || q.filter(value)) {
         idx++;
