@@ -15,8 +15,8 @@ var setUp = function() {
   c.setCapturing(true);
   goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
+  //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+  goog.debug.Logger.getLogger('ydn.db.conn.WebSql').setLevel(goog.debug.Logger.Level.FINEST);
 
 
   goog.userAgent.product.ASSUME_SAFARI = true;

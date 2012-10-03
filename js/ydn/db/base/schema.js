@@ -60,6 +60,14 @@ ydn.db.IndexSchema = function(name, opt_unique, opt_type, keyPath, multiEntry) {
    * @type {string|undefined}
    */
   this.keyPath = goog.isDef(keyPath) ? keyPath : this.name;
+
+  if (this.keyPath != this.name) {
+    // Sqlite database TABLE column name is 'name' and also 'keyPath'.
+    // seperate naming is only possible in IndexedDB.
+    // basically I don't see name should be different from keyPath.
+    throw new ydn.error.NotSupportedException('index name and keyPath must be same');
+  }
+
   /**
    * @final
    * @type {boolean}
@@ -85,14 +93,8 @@ ydn.db.IndexSchema.prototype.getType = function() {
 ydn.db.IndexSchema.toType = function(str) {
   var types = [ydn.db.DataType.TEXT, ydn.db.DataType.INTEGER,
     ydn.db.DataType.FLOAT, ydn.db.DataType.ARRAY];
-  var idx = goog.array.indexOf(types, function(x) {
-    return x == str;
-  });
-  if (idx >= 0) {
-    return types[idx];
-  } else {
-    return undefined;
-  }
+  var idx = goog.array.indexOf(types, str);
+  return types[idx]; // undefined OK.
 };
 
 

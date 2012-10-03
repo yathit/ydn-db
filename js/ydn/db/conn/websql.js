@@ -283,7 +283,7 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     }
     var primary = index.unique ? ' UNIQUE ' : ' ';
 
-    sql += sep + index.name + ' ' + index.type + primary;
+    sql += sep + goog.string.quote(index.name) + ' ' + index.type + primary;
 
   }
 
@@ -294,6 +294,7 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
 
 /**
+ * From Sqlite master table, reflect table information in the form of schema.
  * @param {SQLTransaction} trans
  * @param {function(Object.<!StoreSchema>)} callback
  * @private
@@ -328,33 +329,35 @@ ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
         var str = info.sql.substr(info.sql.indexOf('('), info.sql.lastIndexOf(')'));
         var column_infos = ydn.string.split_comma_seperated(str);
 
-
-        var key = '';
-        var type;
+        var key_name = '';
+        var key_type;
         var indexes = [];
         var autoIncrement = false;
 
         for (var j = 0; j < column_infos.length; j++) {
 
           var fields = ydn.string.split_space_seperated(column_infos[j]);
+          var name = goog.string.stripQuotes(fields[0], '"');
+          var type = ydn.db.IndexSchema.toType(fields[1]);
+          // console.log([fields[1], type]);
+
           if (fields.indexOf('PRIMARY') != -1 && fields.indexOf('KEY') != -1) {
-            key = goog.string.stripQuotes(fields[0], '"');
-            type = ydn.db.IndexSchema.toType(fields[1]);
+            key_name = name;
+            key_type = type;
             if (fields.indexOf('AUTOINCREMENT') != -1) {
               autoIncrement = true;
             }
           } else if (fields[0] != ydn.db.DEFAULT_BLOB_COLUMN) {
-            var name = goog.string.stripQuotes(fields[0], '"');
             var unique = fields[2] == 'UNIQUE';
-            var idx_t = ydn.db.IndexSchema.toType(fields[1]);
-            var index = new ydn.db.IndexSchema(name, unique, idx_t, name);
+            var index = new ydn.db.IndexSchema(name, unique, type, name);
             indexes.push(index);
           }
 
         }
 
-        out[info.name] = new ydn.db.StoreSchema(info.name, key, autoIncrement,
-          type, indexes);
+        out[info.name] = new ydn.db.StoreSchema(info.name, key_name, autoIncrement,
+          key_type, indexes);
+        //console.log([info.name, str, out[info.name]]);
       }
     }
 //    if (ydn.db.conn.WebSql.DEBUG) {
@@ -439,13 +442,17 @@ ydn.db.conn.WebSql.prototype.update_store_with_info_ = function(trans, store_sch
       window.console.log([tr, error]);
     }
     throw new ydn.db.SQLError(error, 'Error creating table: ' +
-      store_schema.name);
+      store_schema.name + ' "' + sql + '"');
   };
 
   if (table_info) {
     // table already exists.
     if (store_schema.similar(table_info)) {
+      me.logger.finest(store_schema.name + ' exists.');
       callback(true);
+    } else {
+      me.logger.finest(store_schema.name + ' exist, but different schema.');
+      trans.executeSql(sql, [], success_callback, error_callback);
     }
   } else {
     trans.executeSql(sql, [], success_callback, error_callback);
@@ -479,7 +486,7 @@ ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
   var oncompleted = function (t, e) {
     var has_created = updated_count == me.schema.stores.length;
     if (!has_created) {
-      me.logger.warning(me.dbname + ': ' + action + ' void.');
+      me.logger.warning(me.dbname + ': ' + action + ' voided.');
     } else {
       if (!me.df_sql_db_.hasFired()) { // FIXME: why need to check ?
         // this checking is necessary when browser prompt user,
@@ -508,8 +515,6 @@ ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
       }
 
     });
-
-
 
   }, [], mode, oncompleted);
 
