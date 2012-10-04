@@ -98,8 +98,33 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
      */
     var version = goog.isDef(this.schema.version) ?
       this.schema.version + '' : '';
-    this.sql_db_ = goog.global.openDatabase(this.dbname, version, description,
+
+    // From the W3C description:
+    // <snap>
+    // If the database version provided is not the empty string, and there is
+    // already a database with the given name from the origin origin, but the
+    // database has a different version than the version provided, then throw
+    // an INVALID_STATE_ERR exception and abort these steps.
+    // </snap>
+    //
+    // Since we have no way of knowing, the database with different version
+    // already exist in user browser, opening a version database with specific
+    // version is unwise.
+    //
+    // Interestingly chrome and (Safari on OS X) do not emmit INVALID_STATE_ERR
+    // even if the database already exist. It simply invokes creationCallback,
+    // as it should.
+    //
+
+    if (ydn.db.con.WebSql.GENTLE_OPENING) {
+      // this works in Chrome, Safari and Opera
+      this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
+        size);
+    } else {
+      // this works in Chrome and OS X Safari
+      this.sql_db_ = goog.global.openDatabase(this.dbname, version, description,
         size, creationCallback);
+    }
 
     if (this.sql_db_.version === version) {
       this.logger.finest('Existing database version ' + this.sql_db_.version +
@@ -109,7 +134,7 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
       // this.df_sql_db_.callback(this.sql_db_);
       // oophs, sometime database is just empty
 
-      // FIXME: still need to migrate
+      // HACK: still need to migrate
       // in case previous database fail, but user granted in next refresh.
       // In this case, empty database of the request version exist,
       // but no tables. gagarrrrrrr
@@ -148,9 +173,13 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
     }
   }
 
-
-
 };
+
+
+/**
+ * @define {boolean}
+ */
+ydn.db.con.WebSql.GENTLE_OPENING = true;
 
 
 /**
@@ -250,7 +279,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     // key will be converted into string
     type = ydn.db.DataType.TEXT;
   }
-  if (goog.isDef(table_schema.keyPath)) {
+  if (goog.isDefAndNotNull(table_schema.keyPath)) {
     sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY ';
 
     if (table_schema.autoIncremenent) {

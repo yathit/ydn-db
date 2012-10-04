@@ -437,7 +437,7 @@ var test_42_autoincreasement = function () {
 
 var test_43_no_key_column = function () {
   var store_name = 'demoOS';
-  var db_name = 'test_43_25';
+  var db_name = 'test_43_27';
   var store_schema = new ydn.db.StoreSchema(store_name, undefined, false);
   var schema = new ydn.db.DatabaseSchema(1,  [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
