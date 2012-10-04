@@ -27,10 +27,9 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var options = {preference: ['indexeddb']};
 
-
-var test_51_multiEntry = function () {
+var do_test_multiEntry = function (db_type) {
+  var options = {preference: [db_type]};
   var store_name = 'st';
   var db_name = 'test_51_multiEntry_2';
   var indexSchema = new ydn.db.IndexSchema('tag', ydn.db.DataType.TEXT, false, true);
@@ -65,7 +64,7 @@ var test_51_multiEntry = function () {
     function () {
 
       for (var i = 0; i < total; i++) {
-        assertEquals(tags[i] + ' count', exp_counts[i], counts[i]);
+        assertEquals(db_type + ' ' + tags[i] + ' count', exp_counts[i], counts[i]);
       }
 
       reachedFinalContinuation = true;
@@ -94,6 +93,15 @@ var test_51_multiEntry = function () {
   });
 
 };
+
+var test_11_multiEntry_idb = function () {
+  do_test_multiEntry('indexeddb');
+};
+
+
+//var test_51_multiEntry_websql = function () {
+//  do_test_multiEntry('websql');
+//};
 
 
 
