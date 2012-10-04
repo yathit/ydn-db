@@ -49,8 +49,6 @@ var do_test_multiEntry = function (db_type) {
     {id:'st3', value: 6}
   ];
 
-  goog.scope()
-
   var tags = ['d', 'b', 'c', 'a', 'e'];
   var exp_counts = [1, 3, 2, 4, 0];
   var counts = [];

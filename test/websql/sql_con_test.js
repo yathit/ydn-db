@@ -68,7 +68,7 @@ var assert_similar_schema = function(schema, schema_json) {
 var test_2_sql_schema_sniffing = function() {
 
   var schema = new ydn.db.DatabaseSchema(1);
-  var index = new ydn.db.IndexSchema('id.$t', true, ydn.db.DataType.TEXT, 'id.$t');
+  var index = new ydn.db.IndexSchema('id.$t', ydn.db.DataType.TEXT, true);
   var store = new ydn.db.StoreSchema(table_name, 'id', false, ydn.db.DataType.INTEGER, [index]);
   schema.addStore(store);
 

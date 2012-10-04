@@ -17,9 +17,9 @@ goog.addDependency("../../../ydn-db/js/ydn/db/base/key_range.js", ['ydn.db.KeyRa
 goog.addDependency("../../../ydn-db/js/ydn/db/base/query.js", ['ydn.db.Query'], ['goog.functions', 'ydn.db.KeyRange', 'ydn.error.ArgumentException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/schema.js", ['ydn.db.DataType', 'ydn.db.DatabaseSchema', 'ydn.db.IndexSchema', 'ydn.db.StoreSchema'], ['ydn.db.Key']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/html5_storage.js", ['ydn.db.con.LocalStorage', 'ydn.db.con.SessionStorage'], ['ydn.db.con.SimpleStorage']);
-goog.addDependency("../../../ydn-db/js/ydn/db/conn/indexed_db.js", ['ydn.db.con.IndexedDb'], ['goog.Timer', 'goog.async.DeferredList', 'goog.debug.Error', 'goog.events', 'ydn.async', 'ydn.db', 'ydn.db.DatabaseSchema', 'ydn.db.con.IDatabase', 'ydn.json']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/i_database.js", ['ydn.db.con.IDatabase'], ['goog.async.Deferred']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/i_storage.js", ['ydn.db.con.IStorage'], ['goog.async.Deferred']);
+goog.addDependency("../../../ydn-db/js/ydn/db/conn/indexed_db.js", ['ydn.db.con.IndexedDb'], ['goog.Timer', 'goog.async.DeferredList', 'goog.debug.Error', 'goog.events', 'ydn.async', 'ydn.db', 'ydn.db.DatabaseSchema', 'ydn.db.con.IDatabase', 'ydn.json']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/simple_storage.js", ['ydn.db.con.SimpleStorage'], ['goog.asserts', 'goog.async.Deferred', 'goog.Timer', 'ydn.db.Key', 'ydn.db.con.IDatabase']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/storage.js", ['ydn.db.con.Storage'], ['goog.userAgent.product', 'ydn.async', 'ydn.db.con.LocalStorage', 'ydn.db.con.SessionStorage', 'ydn.db.con.IndexedDb', 'ydn.db.con.SimpleStorage', 'ydn.db.con.WebSql', 'ydn.object', 'ydn.error.ArgumentException', 'ydn.db.con.IStorage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/websql.js", ['ydn.db.con.WebSql'], ['goog.async.Deferred', 'goog.debug.Logger', 'goog.events', 'ydn.async', 'ydn.json', 'ydn.db.SecurityError', 'ydn.db', 'ydn.db.con.IDatabase', 'goog.functions']);
