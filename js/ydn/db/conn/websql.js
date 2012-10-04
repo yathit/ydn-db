@@ -416,6 +416,7 @@ ydn.db.con.WebSql.prototype.table_info_ = function(trans, callback) {
   trans.executeSql(sql, [], success_callback, error_callback);
 };
 
+
 /**
  *
  * @param {SQLTransaction} trans
