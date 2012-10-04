@@ -59,10 +59,10 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
 
   var description = this.dbname;
 
-  // Safari default limit is 5 MB, so we ask the largest storage size
-  // but, still not don't bother to user.
+  // Safari default limit is slightly over 4 MB, so we ask the largest storage
+  // size but, still not don't bother to user.
   // Opera don't ask user even request for 1 GB.
-  var size = goog.isDef(opt_size) ? opt_size : 5 * 1024 * 1024; // 5 MB
+  var size = goog.isDef(opt_size) ? opt_size : 4 * 1024 * 1024; // 5 MB
 
   /**
    * @final
@@ -295,10 +295,9 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   }
 
-
-  // every table must has a default field.
+  // every table must has a default field to store schemaless fields
   if (!table_schema.hasIndex(ydn.db.DEFAULT_BLOB_COLUMN)) {
-    table_schema.addIndex(ydn.db.DEFAULT_BLOB_COLUMN);
+    table_schema.addIndex(ydn.db.DEFAULT_BLOB_COLUMN, false, ydn.db.DataType.BLOB);
   }
 
   var sep = ', ';

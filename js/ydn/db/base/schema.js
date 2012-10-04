@@ -25,7 +25,8 @@ ydn.db.DataType = {
   TEXT: 'TEXT',
   FLOAT: 'REAL',
   INTEGER: 'INTEGER',
-  ARRAY: 'ARRAY' // out of tune here
+  BLOB: 'BLOB',
+  ARRAY: 'ARRAY' // out of tune here, not in WebSQL, but keyPath could be array
 };
 
 
@@ -108,7 +109,7 @@ ydn.db.IndexSchema.prototype.getType = function() {
  */
 ydn.db.IndexSchema.toType = function(str) {
   var types = [ydn.db.DataType.TEXT, ydn.db.DataType.INTEGER,
-    ydn.db.DataType.FLOAT, ydn.db.DataType.ARRAY];
+    ydn.db.DataType.FLOAT, ydn.db.DataType.ARRAY, ydn.db.DataType.BLOB];
   var idx = goog.array.indexOf(types, str);
   return types[idx]; // undefined OK.
 };
