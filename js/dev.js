@@ -6,7 +6,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.debug.Logger');
 goog.require('goog.debug.LogManager');
-goog.require('ydn.db.conn.Storage');
+goog.require('ydn.db.con.Storage');
 
 
 (function() {
@@ -21,7 +21,7 @@ goog.require('ydn.db.conn.Storage');
  * @param {number=} scale
  * @param {string=} logger
  */
-ydn.db.conn.Storage.prototype.log = function (scale, logger) {
+ydn.db.con.Storage.prototype.log = function (scale, logger) {
 
   logger = logger || 'ydn.db';
   var level = goog.isDef(scale) ? new goog.debug.Logger.Level('log', scale) :
@@ -30,5 +30,5 @@ ydn.db.conn.Storage.prototype.log = function (scale, logger) {
 
 };
 
-goog.exportProperty(ydn.db.conn.Storage.prototype, 'log',
-  ydn.db.conn.Storage.prototype.log);
+goog.exportProperty(ydn.db.con.Storage.prototype, 'log',
+  ydn.db.con.Storage.prototype.log);

@@ -111,7 +111,7 @@
         <copy file="${ydn-db.dir}/jsc/ydn.db-${ver}.js"
               tofile="${work.dir}/hijax-server/static/jsc/ydn-db.js"/>
     </target>
-    <target name="compile-conn"
+    <target name="compile-con"
             description="generates compiled files for core">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
@@ -119,7 +119,7 @@
                 input.fn="${ydn-db.dir}/js/conn.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="conn-ydn.db-min-${ver}.js"
-                closure.entry="ydn.db.conn.Storage">
+                closure.entry="ydn.db.con.Storage">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
@@ -202,7 +202,7 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-conn,compile,simple,compile-dev,compile-core">
+            depends="compile-con,compile,simple,compile-dev,compile-core">
 
     </target>
 </project>

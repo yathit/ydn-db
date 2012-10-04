@@ -3,28 +3,28 @@
  */
 
 
-goog.provide('ydn.db.conn.IStorage');
+goog.provide('ydn.db.con.IStorage');
 goog.require('goog.async.Deferred');
 
 
 /**
  * @interface
  */
-ydn.db.conn.IStorage = function() {};
+ydn.db.con.IStorage = function() {};
 
 
 /**
  * Close the connection.
  *
  */
-ydn.db.conn.IStorage.prototype.close = function() {};
+ydn.db.con.IStorage.prototype.close = function() {};
 
 
 /**
  * Return readable representation of storage mechanism. It should be all lower case and use in type checking.
  * @return {string}
  */
-ydn.db.conn.IStorage.prototype.type = function() {};
+ydn.db.con.IStorage.prototype.type = function() {};
 
 
 /**
@@ -36,6 +36,6 @@ ydn.db.conn.IStorage.prototype.type = function() {};
  * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
  * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
  */
-ydn.db.conn.IStorage.prototype.transaction = function (trFn, store_names, mode, completed_event_handler) {};
+ydn.db.con.IStorage.prototype.transaction = function (trFn, store_names, mode, completed_event_handler) {};
 
 

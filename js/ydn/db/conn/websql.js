@@ -20,7 +20,7 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.conn.WebSql');
+goog.provide('ydn.db.con.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
@@ -28,7 +28,7 @@ goog.require('ydn.async');
 goog.require('ydn.json');
 goog.require('ydn.db.SecurityError');
 goog.require('ydn.db');
-goog.require('ydn.db.conn.IDatabase');
+goog.require('ydn.db.con.IDatabase');
 goog.require('goog.functions');
 
 
@@ -39,10 +39,10 @@ goog.require('goog.functions');
  * @param {!ydn.db.DatabaseSchema=} schema table schema contain table
  * name and keyPath.
  * @param {number=} opt_size estimated database size. Default to 5 MB.
- * @implements {ydn.db.conn.IDatabase}
+ * @implements {ydn.db.con.IDatabase}
  * @constructor
  */
-ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
+ydn.db.con.WebSql = function(dbname, schema, opt_size) {
   var self = this;
   this.dbname = dbname;
 
@@ -157,13 +157,13 @@ ydn.db.conn.WebSql = function(dbname, schema, opt_size) {
  * @const
  * @type {string}
  */
-ydn.db.conn.WebSql.TYPE = 'websql';
+ydn.db.con.WebSql.TYPE = 'websql';
 
 /**
  * @return {string}
  */
-ydn.db.conn.WebSql.prototype.type = function() {
-  return ydn.db.conn.WebSql.TYPE;
+ydn.db.con.WebSql.prototype.type = function() {
+  return ydn.db.con.WebSql.TYPE;
 };
 
 
@@ -172,7 +172,7 @@ ydn.db.conn.WebSql.prototype.type = function() {
  * @type {*}
  * @private
  */
-ydn.db.conn.WebSql.prototype.df_sql_db_ = null;
+ydn.db.con.WebSql.prototype.df_sql_db_ = null;
 
 
 /**
@@ -180,21 +180,21 @@ ydn.db.conn.WebSql.prototype.df_sql_db_ = null;
  * @type {Error}
  * @private
  */
-ydn.db.conn.WebSql.prototype.last_error_ = null;
+ydn.db.con.WebSql.prototype.last_error_ = null;
 
 
 /**
  * @type {Database}
  * @private
  */
-ydn.db.conn.WebSql.prototype.sql_db_ = null;
+ydn.db.con.WebSql.prototype.sql_db_ = null;
 
 
 /**
  * @protected
  * @return {Database}
  */
-ydn.db.conn.WebSql.prototype.getSqlDb = function() {
+ydn.db.con.WebSql.prototype.getSqlDb = function() {
   return this.sql_db_;
 };
 
@@ -202,7 +202,7 @@ ydn.db.conn.WebSql.prototype.getSqlDb = function() {
 /**
  *
  */
-ydn.db.conn.WebSql.prototype.getDbInstance = function() {
+ydn.db.con.WebSql.prototype.getDbInstance = function() {
   return this.sql_db_ || null;
 };
 
@@ -211,7 +211,7 @@ ydn.db.conn.WebSql.prototype.getDbInstance = function() {
  *
  * @return {boolean} true if supported.
  */
-ydn.db.conn.WebSql.isSupported = function() {
+ydn.db.con.WebSql.isSupported = function() {
   return goog.isFunction(goog.global.openDatabase);
 };
 
@@ -220,14 +220,14 @@ ydn.db.conn.WebSql.isSupported = function() {
  * @const
  * @type {boolean} debug flag.
  */
-ydn.db.conn.WebSql.DEBUG = false;
+ydn.db.con.WebSql.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.conn.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.conn.WebSql');
+ydn.db.con.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.con.WebSql');
 
 
 
@@ -238,7 +238,7 @@ ydn.db.conn.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.conn.W
  * @param {ydn.db.StoreSchema} table_schema name of table in the schema.
  * @return {string} SQL statement for creating the table.
  */
-ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
+ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
 
@@ -299,7 +299,7 @@ ydn.db.conn.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
  * @param {function(Object.<!StoreSchema>)} callback
  * @private
  */
-ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
+ydn.db.con.WebSql.prototype.table_info_ = function(trans, callback) {
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -360,7 +360,7 @@ ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
         //console.log([info.name, str, out[info.name]]);
       }
     }
-//    if (ydn.db.conn.WebSql.DEBUG) {
+//    if (ydn.db.con.WebSql.DEBUG) {
 //      window.console.log(out);
 //    }
 
@@ -372,7 +372,7 @@ ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
    * @param {SQLError} error error.
    */
   var error_callback = function (tr, error) {
-    if (ydn.db.conn.WebSql.DEBUG) {
+    if (ydn.db.con.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
 
@@ -394,7 +394,7 @@ ydn.db.conn.WebSql.prototype.table_info_ = function(trans, callback) {
  * @param {Function} callback
  * @private
  */
-ydn.db.conn.WebSql.prototype.update_store_ = function(trans, store_schema,
+ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
                                                       callback) {
   var me = this;
   this.table_info_(trans, function(table_infos) {
@@ -412,7 +412,7 @@ ydn.db.conn.WebSql.prototype.update_store_ = function(trans, store_schema,
  * @param {Object.<!ydn.db.StoreSchema>} table_infos
  * @private
  */
-ydn.db.conn.WebSql.prototype.update_store_with_info_ = function(trans, store_schema,
+ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_schema,
                                                       callback, table_infos) {
 
   var me = this;
@@ -420,7 +420,7 @@ ydn.db.conn.WebSql.prototype.update_store_with_info_ = function(trans, store_sch
   var sql = this.prepareCreateTable_(store_schema);
   var table_info = table_infos[store_schema.name];
 
-  if (ydn.db.conn.WebSql.DEBUG) {
+  if (ydn.db.con.WebSql.DEBUG) {
     window.console.log([sql, table_info]);
   }
 
@@ -438,7 +438,7 @@ ydn.db.conn.WebSql.prototype.update_store_with_info_ = function(trans, store_sch
    * @param {SQLError} error error.
    */
   var error_callback = function (tr, error) {
-    if (ydn.db.conn.WebSql.DEBUG) {
+    if (ydn.db.con.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
     throw new ydn.db.SQLError(error, 'Error creating table: ' +
@@ -466,7 +466,7 @@ ydn.db.conn.WebSql.prototype.update_store_with_info_ = function(trans, store_sch
  * @private
  * @param {boolean=} is_version_change
  */
-ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
+ydn.db.con.WebSql.prototype.migrate_ = function (is_version_change) {
 
   var action = is_version_change ? 'changing version' : 'setting version';
   this.logger.finest(this.dbname + ': ' + action + ' from ' +
@@ -524,7 +524,7 @@ ydn.db.conn.WebSql.prototype.migrate_ = function (is_version_change) {
 /**
  * @return {boolean}
  */
-ydn.db.conn.WebSql.prototype.isReady = function() {
+ydn.db.con.WebSql.prototype.isReady = function() {
   return this.df_sql_db_.hasFired();
 };
 
@@ -533,7 +533,7 @@ ydn.db.conn.WebSql.prototype.isReady = function() {
  *
  * @inheritDoc
  */
-ydn.db.conn.WebSql.prototype.onReady = function(cb, eb) {
+ydn.db.con.WebSql.prototype.onReady = function(cb, eb) {
   // due to the way, this work, database is always ready to use.
   this.df_sql_db_.addCallback(cb);
   this.df_sql_db_.addErrback(eb);
@@ -544,7 +544,7 @@ ydn.db.conn.WebSql.prototype.onReady = function(cb, eb) {
 /**
  * @final
  */
-ydn.db.conn.WebSql.prototype.close = function () {
+ydn.db.con.WebSql.prototype.close = function () {
   // WebSQl API do not have close method.
 };
 
@@ -557,7 +557,7 @@ ydn.db.conn.WebSql.prototype.close = function () {
  * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
  * @protected
  */
-ydn.db.conn.WebSql.prototype.doTransaction = function (trFn, scopes, mode, completed_event_handler) {
+ydn.db.con.WebSql.prototype.doTransaction = function (trFn, scopes, mode, completed_event_handler) {
   /**
    * SQLTransactionCallback
    * @param {!SQLTransaction} tx
@@ -609,7 +609,7 @@ ydn.db.conn.WebSql.prototype.doTransaction = function (trFn, scopes, mode, compl
 /**
  * @inheritDoc
  */
-ydn.db.conn.WebSql.prototype.addStoreSchema = function(tx, store_schema) {
+ydn.db.con.WebSql.prototype.addStoreSchema = function(tx, store_schema) {
   this.update_store_(/** @type {SQLTransaction} */ (tx), store_schema,
     goog.functions.TRUE);
 };

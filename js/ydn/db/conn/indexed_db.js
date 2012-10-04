@@ -18,7 +18,7 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.conn.IndexedDb');
+goog.provide('ydn.db.con.IndexedDb');
 goog.require('goog.Timer');
 goog.require('goog.async.DeferredList');
 goog.require('goog.debug.Error');
@@ -26,7 +26,7 @@ goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db');
 goog.require('ydn.db.DatabaseSchema');
-goog.require('ydn.db.conn.IDatabase');
+goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.json');
 
 
@@ -36,13 +36,13 @@ goog.require('ydn.json');
  * @param {string} dbname name of database.
  * @param {ydn.db.DatabaseSchema=} schema table schema contain table
  * name and keyPath.
- * @implements {ydn.db.conn.IDatabase}
+ * @implements {ydn.db.con.IDatabase}
  * @constructor
  */
-ydn.db.conn.IndexedDb = function(dbname, schema) {
+ydn.db.con.IndexedDb = function(dbname, schema) {
 
   /**
-   * @type {ydn.db.conn.IndexedDb}
+   * @type {ydn.db.con.IndexedDb}
    */
   var me = this;
   this.dbname = dbname;
@@ -57,7 +57,7 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
   var msg = 'Trying to open database: ' + this.dbname + ' ver: ' +
     schema.version;
   me.logger.finer(msg);
-  if (ydn.db.conn.IndexedDb.DEBUG) {
+  if (ydn.db.con.IndexedDb.DEBUG) {
     window.console.log(msg);
   }
 
@@ -67,21 +67,21 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
    */
   var openRequest;
   if (goog.isDef(schema.version)) {
-    openRequest = ydn.db.conn.IndexedDb.indexedDb.open(this.dbname,
+    openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname,
       // old externs uncorrected defined as string
       /** @type {string} */ (schema.version));
   } else {
-    openRequest = ydn.db.conn.IndexedDb.indexedDb.open(this.dbname);
+    openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname);
   }
 
-  if (ydn.db.conn.IndexedDb.DEBUG) {
+  if (ydn.db.con.IndexedDb.DEBUG) {
     window.console.log(openRequest);
   }
 
   openRequest.onsuccess = function(ev) {
     var msg = me.dbname + ' ver: ' + schema.version + ' OK.';
     me.logger.finer(msg);
-    if (ydn.db.conn.IndexedDb.DEBUG) {
+    if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log(msg);
     }
     var db = ev.target.result;
@@ -101,7 +101,7 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
       };
     } else {
       msg = 'database version ' + db.version + 'ready to go';
-      if (ydn.db.conn.IndexedDb.DEBUG) {
+      if (ydn.db.con.IndexedDb.DEBUG) {
         window.console.log(msg);
       } else {
         me.logger.finer(msg);
@@ -113,7 +113,7 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
     var msg = 'upgrading version ' + db.version;
-    if (ydn.db.conn.IndexedDb.DEBUG) {
+    if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log(msg);
     } else {
       me.logger.finer(msg);
@@ -125,7 +125,7 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
 
   openRequest.onerror = function(ev) {
     var msg = 'opening database ' + dbname + ':' + schema.version + ' failed.';
-    if (ydn.db.conn.IndexedDb.DEBUG) {
+    if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log([msg, ev, openRequest]);
     } else {
       me.logger.severe(msg);
@@ -135,7 +135,7 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
 
   openRequest.onblocked = function(ev) {
     var msg = 'database ' + dbname + ' block, close other connections.';
-    if (ydn.db.conn.IndexedDb.DEBUG) {
+    if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log([msg, ev, openRequest]);
     } else {
       me.logger.severe(msg);
@@ -145,7 +145,7 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
 
   openRequest.onversionchange = function(ev) {
     var msg = 'Version change request, so closing the database';
-    if (ydn.db.conn.IndexedDb.DEBUG) {
+    if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log(msg);
     } else {
       me.logger.fine(msg);
@@ -156,7 +156,7 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
   };
 
   // extra checking whether, database is OK
-  if (goog.DEBUG || ydn.db.conn.IndexedDb.DEBUG) {
+  if (goog.DEBUG || ydn.db.con.IndexedDb.DEBUG) {
     goog.Timer.callOnce(function() {
       if (openRequest.readyState != 'done') {
         // what we observed is chrome attached error object to openRequest
@@ -164,7 +164,7 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
         var msg = 'Database state is still ' + openRequest.readyState;
         me.logger.severe(msg);
       }
-    }, ydn.db.conn.IndexedDb.timeOut, this);
+    }, ydn.db.con.IndexedDb.timeOut, this);
   }
 
 };
@@ -174,14 +174,14 @@ ydn.db.conn.IndexedDb = function(dbname, schema) {
  *
  * @const {boolean} turn on debug flag to dump object.
  */
-ydn.db.conn.IndexedDb.DEBUG = goog.DEBUG && false;
+ydn.db.con.IndexedDb.DEBUG = goog.DEBUG && false;
 
 
 /**
  * @const
  * @type {number}
  */
-ydn.db.conn.IndexedDb.timeOut = goog.DEBUG || ydn.db.conn.IndexedDb.DEBUG ?
+ydn.db.con.IndexedDb.timeOut = goog.DEBUG || ydn.db.con.IndexedDb.DEBUG ?
   500 : 3000;
 
 
@@ -190,7 +190,7 @@ ydn.db.conn.IndexedDb.timeOut = goog.DEBUG || ydn.db.conn.IndexedDb.DEBUG ?
  * @const
  * @type {IDBFactory} IndexedDb.
  */
-ydn.db.conn.IndexedDb.indexedDb = goog.global.indexedDB ||
+ydn.db.con.IndexedDb.indexedDb = goog.global.indexedDB ||
   goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
   goog.global.moz_indexedDB ||
   goog.global['msIndexedDB'];
@@ -200,14 +200,14 @@ ydn.db.conn.IndexedDb.indexedDb = goog.global.indexedDB ||
  * @const
  * @type {string}
  */
-ydn.db.conn.IndexedDb.TYPE = 'indexeddb';
+ydn.db.con.IndexedDb.TYPE = 'indexeddb';
 
 
 /**
  * @return {string} storage mechanism type.
  */
-ydn.db.conn.IndexedDb.prototype.type = function() {
-  return ydn.db.conn.IndexedDb.TYPE;
+ydn.db.con.IndexedDb.prototype.type = function() {
+  return ydn.db.con.IndexedDb.TYPE;
 };
 
 
@@ -215,14 +215,14 @@ ydn.db.conn.IndexedDb.prototype.type = function() {
  * @type {goog.async.Deferred}
  * @private
  */
-ydn.db.conn.IndexedDb.prototype.deferredIdxDb_ = null;
+ydn.db.con.IndexedDb.prototype.deferredIdxDb_ = null;
 
 
 /**
  *
- * @param {function(!ydn.db.conn.IndexedDb)} callback
+ * @param {function(!ydn.db.con.IndexedDb)} callback
  */
-ydn.db.conn.IndexedDb.prototype.onReady = function(callback, errback) {
+ydn.db.con.IndexedDb.prototype.onReady = function(callback, errback) {
   this.deferredIdxDb_.addCallback(callback);
   this.deferredIdxDb_.addErrback(errback);
 };
@@ -233,7 +233,7 @@ ydn.db.conn.IndexedDb.prototype.onReady = function(callback, errback) {
  * @final
  * @return {IDBDatabase} this instance.
  */
-ydn.db.conn.IndexedDb.prototype.getDbInstance = function() {
+ydn.db.con.IndexedDb.prototype.getDbInstance = function() {
   // no checking for closing status. caller should know it.
   return this.idx_db_ || null;
 };
@@ -242,7 +242,7 @@ ydn.db.conn.IndexedDb.prototype.getDbInstance = function() {
 /**
  * @return {boolean}
  */
-ydn.db.conn.IndexedDb.prototype.isReady = function() {
+ydn.db.con.IndexedDb.prototype.isReady = function() {
   return this.deferredIdxDb_.hasFired();
 };
 
@@ -251,8 +251,8 @@ ydn.db.conn.IndexedDb.prototype.isReady = function() {
  *
  * @return {boolean} return indexedDB support on run time.
  */
-ydn.db.conn.IndexedDb.isSupported = function() {
-  return !!ydn.db.conn.IndexedDb.indexedDb;
+ydn.db.con.IndexedDb.isSupported = function() {
+  return !!ydn.db.con.IndexedDb.indexedDb;
 };
 
 
@@ -275,8 +275,8 @@ ydn.db.conn.IndexedDb.isSupported = function() {
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.conn.IndexedDb.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.conn.IndexedDb');
+ydn.db.con.IndexedDb.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.con.IndexedDb');
 
 
 
@@ -284,7 +284,7 @@ ydn.db.conn.IndexedDb.prototype.logger =
  * @private
  * @type {IDBDatabase}
  */
-ydn.db.conn.IndexedDb.prototype.idx_db_ = null;
+ydn.db.con.IndexedDb.prototype.idx_db_ = null;
 
 
 /**
@@ -293,7 +293,7 @@ ydn.db.conn.IndexedDb.prototype.idx_db_ = null;
  * @param {IDBDatabase} db database instance.
  * @param {Error=} e
  */
-ydn.db.conn.IndexedDb.prototype.setDb = function (db, e) {
+ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
 
   if (this.deferredIdxDb_.hasFired()) {
     this.deferredIdxDb_ = new goog.async.Deferred();
@@ -316,7 +316,7 @@ ydn.db.conn.IndexedDb.prototype.setDb = function (db, e) {
  * @param {string} store_name store name.
  * @return {boolean} true if the store exist.
  */
-ydn.db.conn.IndexedDb.prototype.hasStore_ = function(db, store_name) {
+ydn.db.con.IndexedDb.prototype.hasStore_ = function(db, store_name) {
   if ('objectStoreNames' in db) {
     return db['objectStoreNames'].contains(store_name);
   } else {
@@ -335,7 +335,7 @@ ydn.db.conn.IndexedDb.prototype.hasStore_ = function(db, store_name) {
  * @param {DOMStringList} objectStoreNames
  * @param {ydn.db.DatabaseSchema=} schema
  */
-ydn.db.conn.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNames, schema) {
+ydn.db.con.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNames, schema) {
 
   if (!goog.isDef(schema)) {
     schema = new ydn.db.DatabaseSchema(/** @type {number} */ (db.version));
@@ -417,7 +417,7 @@ ydn.db.conn.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNames
  * @param {ydn.db.StoreSchema} store_schema
  * @private
  */
-ydn.db.conn.IndexedDb.prototype.update_store_ = function(db, trans, store_schema) {
+ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema) {
   this.logger.finest('Creating Object Store for ' + store_schema.name +
     ' keyPath: ' + store_schema.keyPath);
 
@@ -491,7 +491,7 @@ ydn.db.conn.IndexedDb.prototype.update_store_ = function(db, trans, store_schema
  * {ydn.db.DatabaseSchema} schema
  * @param {boolean=} is_caller_setversion call from set version;.
  */
-ydn.db.conn.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is_caller_setversion) {
+ydn.db.con.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is_caller_setversion) {
 
   var me = this;
   var s = is_caller_setversion ? 'changing' : 'upgrading';
@@ -504,7 +504,7 @@ ydn.db.conn.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is
     // version change state since transaction cannot open during version
     // change state. this is most common mistake on using IndexedDB API.
     // db.close(); // cannot close connection. this cause InvalidStateError
-    var reOpenRequest = ydn.db.conn.IndexedDb.indexedDb.open(me.dbname);
+    var reOpenRequest = ydn.db.con.IndexedDb.indexedDb.open(me.dbname);
     reOpenRequest.onsuccess = function(rev) {
       var db = rev.target.result;
       me.logger.finer('Database: ' + me.dbname + ' upgraded.');
@@ -533,7 +533,7 @@ ydn.db.conn.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is
 /**
  * @inheritDoc
  */
-ydn.db.conn.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
+ydn.db.con.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
   this.update_store_(this.idx_db_, /** @type {IDBTransaction} */ (tx), store_schema);
 };
 
@@ -551,7 +551,7 @@ ydn.db.conn.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
  * @param {ydn.db.TransactionMode} mode mode.
  * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
  */
-ydn.db.conn.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, completed_event_handler) {
+ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, completed_event_handler) {
 
   /**
    * @private
@@ -581,7 +581,7 @@ ydn.db.conn.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, com
  * Close the connection.
  * @final
  */
-ydn.db.conn.IndexedDb.prototype.close = function() {
+ydn.db.con.IndexedDb.prototype.close = function() {
 
   this.idx_db_.close(); // IDB return void.
 

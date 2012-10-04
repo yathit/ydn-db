@@ -15,6 +15,7 @@ var setUp = function() {
   goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+  ydn.db.con.WebSql.DEBUG = true;
   ydn.db.req.WebSql.DEBUG = true;
 
   basic_schema = new ydn.db.DatabaseSchema(1);
@@ -122,7 +123,9 @@ var test_1_get_all = function() {
 
 var test_1_delete = function() {
 
+  console.log('starting')
   var db = new ydn.db.Storage(db_name, basic_schema, options);
+  console.log(db.getSchema());
 
 	var put_value, done;
 

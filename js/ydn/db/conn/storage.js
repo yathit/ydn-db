@@ -30,17 +30,17 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.conn.Storage');
+goog.provide('ydn.db.con.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
-goog.require('ydn.db.conn.LocalStorage');
-goog.require('ydn.db.conn.SessionStorage');
-goog.require('ydn.db.conn.IndexedDb');
-goog.require('ydn.db.conn.SimpleStorage');
-goog.require('ydn.db.conn.WebSql');
+goog.require('ydn.db.con.LocalStorage');
+goog.require('ydn.db.con.SessionStorage');
+goog.require('ydn.db.con.IndexedDb');
+goog.require('ydn.db.con.SimpleStorage');
+goog.require('ydn.db.con.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.error.ArgumentException');
-goog.require('ydn.db.conn.IStorage');
+goog.require('ydn.db.con.IStorage');
 
 
 
@@ -59,10 +59,10 @@ goog.require('ydn.db.conn.IStorage');
  * is used.
  * schema used in chronical order.
  * @param {!StorageOptions=} opt_options options.
- * @implements {ydn.db.conn.IStorage}
+ * @implements {ydn.db.con.IStorage}
  * @constructor
  */
-ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
+ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
 
   var options = opt_options || {};
@@ -71,7 +71,7 @@ ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @final
    * @type {!Array.<string>}
    */
-  this.preference = options.preference || ydn.db.conn.Storage.PREFERENCE;
+  this.preference = options.preference || ydn.db.con.Storage.PREFERENCE;
 
   /**
    * @final
@@ -87,7 +87,7 @@ ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
     options.use_text_store : ydn.db.ENABLE_DEFAULT_TEXT_STORE;
 
   /**
-   * @type {ydn.db.conn.IDatabase}
+   * @type {ydn.db.con.IDatabase}
    * @private
    */
   this.db_ = null;
@@ -133,15 +133,15 @@ ydn.db.conn.Storage = function(opt_dbname, opt_schema, opt_options) {
  * If true, a new store schema will be generate on the fly.
  * @type {boolean}
  */
-ydn.db.conn.Storage.prototype.auto_schema = false;
+ydn.db.con.Storage.prototype.auto_schema = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.conn.Storage.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.conn.Storage');
+ydn.db.con.Storage.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.con.Storage');
 
 
 
@@ -149,12 +149,12 @@ ydn.db.conn.Storage.prototype.logger =
  * Get configuration of this storage. This is useful from getting storage from
  * main thread to worker thread.
  * <pre>
- *   var db = new ydn.db.conn.Storage(...);
+ *   var db = new ydn.db.con.Storage(...);
  *   ... initialize ...
  *   var config = db.getConfig();
  *
  *   ... in worker thread ...
- *   var worker_db = new ydn.db.conn.Storage(config.db_name, config.schema);
+ *   var worker_db = new ydn.db.con.Storage(config.db_name, config.schema);
  * </pre>
  * In this way, data can be share between the two threads.
  *
@@ -163,7 +163,7 @@ ydn.db.conn.Storage.prototype.logger =
  * @export
  * @deprecated
  */
-ydn.db.conn.Storage.prototype.getConfig = function() {
+ydn.db.con.Storage.prototype.getConfig = function() {
   if (!this.schema) {
     return null;
   }
@@ -179,7 +179,7 @@ ydn.db.conn.Storage.prototype.getConfig = function() {
  * Get current schema.
  * @return {DatabaseSchema}
  */
-ydn.db.conn.Storage.prototype.getSchema = function() {
+ydn.db.con.Storage.prototype.getSchema = function() {
   return this.schema ? /** @type {!DatabaseSchema} */ (this.schema.toJSON()) : null;
 };
 
@@ -188,7 +188,7 @@ ydn.db.conn.Storage.prototype.getSchema = function() {
  * Get current schema.
  * @return {StoreSchema?} null if give store do not exist
  */
-ydn.db.conn.Storage.prototype.getStoreSchema = function(store_name) {
+ydn.db.con.Storage.prototype.getStoreSchema = function(store_name) {
   var store = this.schema.getStore(store_name);
   return store ? /** @type {!StoreSchema} */ (store.toJSON()) : null;
 };
@@ -200,7 +200,7 @@ ydn.db.conn.Storage.prototype.getStoreSchema = function(store_name) {
  * If the store already exist it will be updated as necessary.
  * @param {!StoreSchema} store_schema
  */
-ydn.db.conn.Storage.prototype.addStoreSchema = function(store_schema) {
+ydn.db.con.Storage.prototype.addStoreSchema = function(store_schema) {
   var store_name = store_schema['name'];
   var store = this.schema.getStore(store_name);
   if (store) {
@@ -233,7 +233,7 @@ ydn.db.conn.Storage.prototype.addStoreSchema = function(store_schema) {
  * @throws {Error} if database is already initialized.
  * @param {string} opt_db_name set database name.
  */
-ydn.db.conn.Storage.prototype.setName = function(opt_db_name) {
+ydn.db.con.Storage.prototype.setName = function(opt_db_name) {
   if (this.db_) {
     throw Error('DB already initialized');
   }
@@ -253,7 +253,7 @@ ydn.db.conn.Storage.prototype.setName = function(opt_db_name) {
  *
  * @return {string}
  */
-ydn.db.conn.Storage.prototype.getName = function() {
+ydn.db.con.Storage.prototype.getName = function() {
   return this.db_name;
 };
 
@@ -266,32 +266,32 @@ ydn.db.conn.Storage.prototype.getName = function() {
  * @const
  * @type {!Array.<string>}
  */
-ydn.db.conn.Storage.PREFERENCE = [
-  ydn.db.conn.IndexedDb.TYPE,
-  ydn.db.conn.WebSql.TYPE,
-  ydn.db.conn.LocalStorage.TYPE,
-  ydn.db.conn.SessionStorage.TYPE,
-  ydn.db.conn.SimpleStorage.TYPE];
+ydn.db.con.Storage.PREFERENCE = [
+  ydn.db.con.IndexedDb.TYPE,
+  ydn.db.con.WebSql.TYPE,
+  ydn.db.con.LocalStorage.TYPE,
+  ydn.db.con.SessionStorage.TYPE,
+  ydn.db.con.SimpleStorage.TYPE];
 
 
 /**
  * Create database instance.
  * @protected
  * @param {string} db_type
- * @return {ydn.db.conn.IDatabase}
+ * @return {ydn.db.con.IDatabase}
  */
-ydn.db.conn.Storage.prototype.createDbInstance = function(db_type) {
+ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
 
-  if (db_type == ydn.db.conn.IndexedDb.TYPE) {
-    return new ydn.db.conn.IndexedDb(this.db_name, this.schema);
-  } else if (db_type == ydn.db.conn.WebSql.TYPE) {
-    return new ydn.db.conn.WebSql(this.db_name, this.schema, this.size);
-  } else if (db_type == ydn.db.conn.LocalStorage.TYPE) {
-    return new ydn.db.conn.LocalStorage(this.db_name, this.schema);
-  } else if (db_type == ydn.db.conn.SessionStorage.TYPE) {
-    return new ydn.db.conn.SessionStorage(this.db_name, this.schema);
-  } else if (db_type == ydn.db.conn.SimpleStorage.TYPE)  {
-    return new ydn.db.conn.SimpleStorage(this.db_name, this.schema);
+  if (db_type == ydn.db.con.IndexedDb.TYPE) {
+    return new ydn.db.con.IndexedDb(this.db_name, this.schema);
+  } else if (db_type == ydn.db.con.WebSql.TYPE) {
+    return new ydn.db.con.WebSql(this.db_name, this.schema, this.size);
+  } else if (db_type == ydn.db.con.LocalStorage.TYPE) {
+    return new ydn.db.con.LocalStorage(this.db_name, this.schema);
+  } else if (db_type == ydn.db.con.SessionStorage.TYPE) {
+    return new ydn.db.con.SessionStorage(this.db_name, this.schema);
+  } else if (db_type == ydn.db.con.SimpleStorage.TYPE)  {
+    return new ydn.db.con.SimpleStorage(this.db_name, this.schema);
   }
   return null;
 };
@@ -302,35 +302,35 @@ ydn.db.conn.Storage.prototype.createDbInstance = function(db_type) {
  * starting in the following order of preference.
  * @protected
  */
-ydn.db.conn.Storage.prototype.initDatabase = function() {
+ydn.db.con.Storage.prototype.initDatabase = function() {
   // handle version change
   if (goog.isDef(this.db_name) && goog.isDef(this.schema)) {
     var db = null;
     if (goog.userAgent.product.ASSUME_CHROME ||
       goog.userAgent.product.ASSUME_FIREFOX) {
       // for dead-code elimination
-      db = this.createDbInstance(ydn.db.conn.IndexedDb.TYPE);
+      db = this.createDbInstance(ydn.db.con.IndexedDb.TYPE);
     } else if (goog.userAgent.product.ASSUME_SAFARI) {
       // for dead-code elimination
-      db = this.createDbInstance(ydn.db.conn.WebSql.TYPE);
+      db = this.createDbInstance(ydn.db.con.WebSql.TYPE);
     } else {
       // go according to ordering
       var preference = this.preference;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
-        if (db_type == ydn.db.conn.IndexedDb.TYPE && ydn.db.conn.IndexedDb.isSupported()) { // run-time detection
+        if (db_type == ydn.db.con.IndexedDb.TYPE && ydn.db.con.IndexedDb.isSupported()) { // run-time detection
           db = this.createDbInstance(db_type);
           break;
-        } else if (db_type == ydn.db.conn.WebSql.TYPE && ydn.db.conn.WebSql.isSupported()) {
+        } else if (db_type == ydn.db.con.WebSql.TYPE && ydn.db.con.WebSql.isSupported()) {
           db = this.createDbInstance(db_type);
           break;
-        } else if (db_type == ydn.db.conn.LocalStorage.TYPE && ydn.db.conn.LocalStorage.isSupported()) {
+        } else if (db_type == ydn.db.con.LocalStorage.TYPE && ydn.db.con.LocalStorage.isSupported()) {
           db = this.createDbInstance(db_type);
           break;
-        } else if (db_type == ydn.db.conn.SessionStorage.TYPE && ydn.db.conn.SessionStorage.isSupported()) {
+        } else if (db_type == ydn.db.con.SessionStorage.TYPE && ydn.db.con.SessionStorage.isSupported()) {
           db = this.createDbInstance(db_type);
           break;
-        } else if (db_type == ydn.db.conn.SimpleStorage.TYPE)  {
+        } else if (db_type == ydn.db.con.SimpleStorage.TYPE)  {
           db = this.createDbInstance(db_type);
           break;
         }
@@ -350,7 +350,7 @@ ydn.db.conn.Storage.prototype.initDatabase = function() {
  * @return {string}
  * @export
  */
-ydn.db.conn.Storage.prototype.type = function() {
+ydn.db.con.Storage.prototype.type = function() {
   if (this.db_) {
     return this.db_.type();
   } else {
@@ -363,17 +363,17 @@ ydn.db.conn.Storage.prototype.type = function() {
  *
  * @return {boolean}
  */
-ydn.db.conn.Storage.prototype.isReady = function() {
+ydn.db.con.Storage.prototype.isReady = function() {
   return this.deferredDb_.hasFired();
 };
 
 
 /**
  * Setting db .
- * @param {!ydn.db.conn.IDatabase} db
+ * @param {!ydn.db.con.IDatabase} db
  * @private
  */
-ydn.db.conn.Storage.prototype.setDb_ = function(db) {
+ydn.db.con.Storage.prototype.setDb_ = function(db) {
   this.db_ = db;
   this.init(); // let super class to initialize.
   if (this.deferredDb_.hasFired()) {
@@ -406,7 +406,7 @@ ydn.db.conn.Storage.prototype.setDb_ = function(db) {
  * will run.
  * @protected
  */
-ydn.db.conn.Storage.prototype.init = function() {
+ydn.db.con.Storage.prototype.init = function() {
 };
 
 
@@ -414,7 +414,7 @@ ydn.db.conn.Storage.prototype.init = function() {
  * Close the database.
  * @export
  */
-ydn.db.conn.Storage.prototype.close = function() {
+ydn.db.con.Storage.prototype.close = function() {
   if (this.db_) {
     this.db_.close();
     this.db_ = null;
@@ -425,10 +425,10 @@ ydn.db.conn.Storage.prototype.close = function() {
 //
 ///**
 // * Access readied database instance asynchronously.
-// * @param {function(!ydn.db.conn.IDatabase)} callback
+// * @param {function(!ydn.db.con.IDatabase)} callback
 // * @export
 // */
-//ydn.db.conn.Storage.prototype.onReady = function(callback) {
+//ydn.db.con.Storage.prototype.onReady = function(callback) {
 //  if (this.db_ && !this.db_.getDbInstance()) {
 //    // we can skip this check, but it saves one function wrap.
 //    callback(this.db_);
@@ -441,9 +441,9 @@ ydn.db.conn.Storage.prototype.close = function() {
 /**
  * Get database instance.
  * @protected
- * @return {ydn.db.conn.IDatabase}
+ * @return {ydn.db.con.IDatabase}
  */
-ydn.db.conn.Storage.prototype.getDb = function() {
+ydn.db.con.Storage.prototype.getDb = function() {
   return this.db_;
 };
 
@@ -454,7 +454,7 @@ ydn.db.conn.Storage.prototype.getDb = function() {
  * @see {@link #getDb}
  * @return {*}
  */
-ydn.db.conn.Storage.prototype.getDbInstance = function() {
+ydn.db.con.Storage.prototype.getDbInstance = function() {
   return this.db_ ? this.db_.getDbInstance() : null;
 };
 
@@ -464,14 +464,14 @@ ydn.db.conn.Storage.prototype.getDbInstance = function() {
  * @type {number}
  * @private
  */
-ydn.db.conn.Storage.prototype.last_queue_checkin_ = NaN;
+ydn.db.con.Storage.prototype.last_queue_checkin_ = NaN;
 
 
 /**
  * @const
  * @type {number}
  */
-ydn.db.conn.Storage.timeOut = goog.DEBUG || ydn.db.conn.IndexedDb.DEBUG ?
+ydn.db.con.Storage.timeOut = goog.DEBUG || ydn.db.con.IndexedDb.DEBUG ?
   500 : 3000;
 
 
@@ -479,7 +479,7 @@ ydn.db.conn.Storage.timeOut = goog.DEBUG || ydn.db.conn.IndexedDb.DEBUG ?
  * @const
  * @type {number}
  */
-ydn.db.conn.Storage.MAX_QUEUE = 1000;
+ydn.db.con.Storage.MAX_QUEUE = 1000;
 
 
 /**
@@ -487,11 +487,11 @@ ydn.db.conn.Storage.MAX_QUEUE = 1000;
  * transaction.
  * @private
  */
-ydn.db.conn.Storage.prototype.popTxQueue_ = function() {
+ydn.db.con.Storage.prototype.popTxQueue_ = function() {
 
   var task = this.txQueue_.shift();
   if (task) {
-    ydn.db.conn.Storage.prototype.transaction.call(this,
+    ydn.db.con.Storage.prototype.transaction.call(this,
       task.fnc, task.scopes, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
@@ -507,7 +507,7 @@ ydn.db.conn.Storage.prototype.popTxQueue_ = function() {
  * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
  * @private
  */
-ydn.db.conn.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
+ydn.db.con.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
     opt_mode, completed_event_handler) {
   this.txQueue_.push({
     fnc:trFn,
@@ -517,7 +517,7 @@ ydn.db.conn.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
   });
   var now = goog.now();
   //if (!isNaN(this.last_queue_checkin_)) {
-    //if ((now - this.last_queue_checkin_) > ydn.db.conn.Storage.timeOut) {
+    //if ((now - this.last_queue_checkin_) > ydn.db.con.Storage.timeOut) {
     //  this.logger.warning('queue is not moving.');
       // todo: actively push the queue if transaction object is available
       // this will make robustness to the app.
@@ -525,7 +525,7 @@ ydn.db.conn.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
       // pop queue will call whenever transaction is finished.
     //}
   //}
-  if (this.txQueue_.length > ydn.db.conn.Storage.MAX_QUEUE) {
+  if (this.txQueue_.length > ydn.db.con.Storage.MAX_QUEUE) {
     this.logger.warning('Maximum queue size exceed, dropping the first job.');
     this.txQueue_.shift();
   }
@@ -538,7 +538,7 @@ ydn.db.conn.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
  * @protected
  * @param e
  */
-ydn.db.conn.Storage.prototype.purgeTxQueue_ = function(e) {
+ydn.db.con.Storage.prototype.purgeTxQueue_ = function(e) {
   if (this.txQueue_) {
     this.logger.info('Purging ' + this.txQueue_.length +
       ' transactions request.');
@@ -556,7 +556,7 @@ ydn.db.conn.Storage.prototype.purgeTxQueue_ = function(e) {
  * @type {boolean}
  * @private
  */
-ydn.db.conn.Storage.prototype.in_version_change_tx_ = false;
+ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
 
 
 
@@ -571,7 +571,7 @@ ydn.db.conn.Storage.prototype.in_version_change_tx_ = false;
  * @export
  * @final
  */
-ydn.db.conn.Storage.prototype.transaction = function (trFn, store_names, opt_mode, completed_event_handler) {
+ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode, completed_event_handler) {
 
   var is_ready = !!this.db_ && this.db_.isReady();
   if (!is_ready || this.in_version_change_tx_) {

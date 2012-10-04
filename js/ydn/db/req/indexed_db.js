@@ -778,9 +778,9 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
 //      return this.deleteStore_(opt_table);
 //    }
 //  } else {
-//    if (goog.isFunction(ydn.db.conn.IndexedDb.indexedDb.deleteDatabase)) {
+//    if (goog.isFunction(ydn.db.con.IndexedDb.indexedDb.deleteDatabase)) {
 //      var df = new goog.async.Deferred();
-//      var req = ydn.db.conn.IndexedDb.indexedDb.deleteDatabase(this.dbname);
+//      var req = ydn.db.con.IndexedDb.indexedDb.deleteDatabase(this.dbname);
 //      req.onsuccess = function(e) {
 //        df.addCallback(e);
 //      };
