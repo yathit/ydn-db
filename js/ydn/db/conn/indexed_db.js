@@ -481,9 +481,12 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 
     for (var j = 0; j < store_schema.indexes.length; j++) {
       var index = store_schema.indexes[j];
-      goog.asserts.assertString(index.name, 'name required.');
-      goog.asserts.assertBoolean(index.unique, 'unique required.');
-      store.createIndex(index.name, index.name, {unique: index.unique});
+      if (index.unique || index.multiEntry) {
+        var idx_options = {unique: index.unique, multiEntry: index.multiEntry};
+        store.createIndex(index.name, index.name, idx_options);
+      } else {
+        store.createIndex(index.name, index.name);
+      }
     }
 
     this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
