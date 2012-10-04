@@ -47,10 +47,9 @@ ydn.db.IndexSchema = function(keyPath, opt_type, opt_unique, multiEntry, name) {
     // basically I don't see name should be different from keyPath.
     throw new ydn.error.NotSupportedException(
       'index name and keyPath must be same: ' + name + ' != ' + keyPath);
-  } else if (!goog.isDef(keyPath)) {
+  } else if (!goog.isDef(keyPath) && goog.isDef(name)) {
     keyPath = name;
   }
-
 
   /**
    * @final
@@ -74,7 +73,11 @@ ydn.db.IndexSchema = function(keyPath, opt_type, opt_unique, multiEntry, name) {
    * @final
    * @type {ydn.db.DataType|undefined}
    */
-  this.type = opt_type;
+  this.type = ydn.db.IndexSchema.toType(opt_type);
+  if (this.type != opt_type) {
+    throw new ydn.error.ArgumentException('Invalid index type: ' + opt_type +
+        ' in ' + this.name);
+  }
   /**
    * @final
    * @type {boolean}
@@ -100,7 +103,7 @@ ydn.db.IndexSchema.prototype.getType = function() {
 
 /**
  *
- * @param {string} str
+ * @param {string=} str
  * @return {ydn.db.DataType|undefined}
  */
 ydn.db.IndexSchema.toType = function(str) {

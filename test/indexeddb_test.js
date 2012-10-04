@@ -468,7 +468,7 @@ var test_32_array_key = function() {
 var test_41_keyRange = function () {
   var store_name = 'st';
   var db_name = 'test_451';
-  var indexSchema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
+  var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.INTEGER, true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
     ydn.db.DataType.TEXT, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(3, [store_schema]);
@@ -528,7 +528,7 @@ var test_41_keyRange = function () {
 var test_42_keyRange = function () {
   var store_name = 'st';
   var db_name = 'test_42_12';
-  var indexSchema = new ydn.db.IndexSchema('value', true, ydn.db.DataType.INTEGER);
+  var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.INTEGER, true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
     ydn.db.DataType.TEXT, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
@@ -826,7 +826,7 @@ var test_71_offset_limit = function () {
 var test_74_where = function () {
   var store_name = 'st';
   var db_name = 'test_741';
-  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var indexSchema = new ydn.db.IndexSchema('id', undefined, true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
     ydn.db.DataType.INTEGER, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
@@ -879,7 +879,7 @@ var test_74_where = function () {
 var test_81_fetch_keys = function () {
   var store_name = 'st';
   var db_name = 'test811';
-  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var indexSchema = new ydn.db.IndexSchema('id', undefined, true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
     ydn.db.DataType.TEXT, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
@@ -948,7 +948,7 @@ var test_81_fetch_keys = function () {
 var test_82_fetch_keys = function () {
   var store_name = 'st';
   var db_name = 'test821';
-  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var indexSchema = new ydn.db.IndexSchema('id', undefined, true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]);
   var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -1019,7 +1019,7 @@ var test_83_fetch_keys = function () {
   var store_name1 = 'st1';
   var store_name2 = 'st2';
   var db_name = 'test83';
-  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var indexSchema = new ydn.db.IndexSchema('id', undefined, true);
   var store_schema1 = new ydn.db.StoreSchema(store_name1, 'id', false, undefined, [indexSchema]);
   var store_schema2 = new ydn.db.StoreSchema(store_name2, 'id');
   var schema = new ydn.db.DatabaseSchema(1, [store_schema1, store_schema2]);
@@ -1107,7 +1107,7 @@ var test_85_query_start_with = function () {
   var db_name = 'test_81';
   var schema = new ydn.db.DatabaseSchema(1);
   // NOTE: key also need to be indexed.
-  var indexSchema = new ydn.db.IndexSchema('id', true);
+  var indexSchema = new ydn.db.IndexSchema('id', undefined, true);
   schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]));
   //schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
   var db = new ydn.db.Storage(db_name, schema, options);
