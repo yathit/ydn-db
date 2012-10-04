@@ -338,16 +338,25 @@ ydn.db.con.IndexedDb.prototype.hasStore_ = function(db, store_name) {
 ydn.db.con.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNames, schema) {
 
   if (!goog.isDef(schema)) {
+    // sniff schema from the database.
     schema = new ydn.db.DatabaseSchema(/** @type {number} */ (db.version));
+
+    // Unlike SQLIte IndexedDB do not need to specified type and no info
+    // available. It can be sniff by reading one fo the database.
+    // this will be overkilled. We want sync sniffing.
+    var type = undefined;
+
     for (var i = 0; i < objectStoreNames.length; i++) {
       var objStore = trans.objectStore(objectStoreNames[i]);
       var indexes = [];
       var n = objStore.indexNames.length;
       for (var j = 0; j < n; j++) {
         var index = objStore.index(objStore.indexNames[j]);
-        indexes.push(new ydn.db.IndexSchema(index.name, index.unique, undefined, index.keyPath, index.multiEntry));
+        indexes.push(new ydn.db.IndexSchema(index.keyPath, type,
+          index.unique, index.multiEntry, index.name));
       }
-      var store = new ydn.db.StoreSchema(objStore.name, objStore.keyPath, objStore.autoIncremenent, undefined, indexes);
+      var store = new ydn.db.StoreSchema(objStore.name, objStore.keyPath,
+        objStore.autoIncremenent, type, indexes);
     }
   } else {
     // validate schema

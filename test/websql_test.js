@@ -14,9 +14,9 @@ var setUp = function() {
   c.setCapturing(true);
   goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  ydn.db.con.WebSql.DEBUG = true;
-  ydn.db.req.WebSql.DEBUG = true;
+  goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+  //ydn.db.con.WebSql.DEBUG = true;
+  //ydn.db.req.WebSql.DEBUG = true;
 
   basic_schema = new ydn.db.DatabaseSchema(1);
   basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
@@ -994,7 +994,7 @@ var test_71_offset_limit = function () {
   var db_name = 'test_71_51';
 
   var schema = new ydn.db.DatabaseSchema(1);
-  var indexSchema = new ydn.db.IndexSchema('id', true, ydn.db.DataType.INTEGER);
+  var indexSchema = new ydn.db.IndexSchema('id', ydn.db.DataType.INTEGER, true);
   schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, ydn.db.DataType.INTEGER, [indexSchema]));
   var db = new ydn.db.Storage(db_name, schema, options);
 

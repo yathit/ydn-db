@@ -378,7 +378,7 @@ ydn.db.con.WebSql.prototype.table_info_ = function(trans, callback) {
             }
           } else if (fields[0] != ydn.db.DEFAULT_BLOB_COLUMN) {
             var unique = fields[2] == 'UNIQUE';
-            var index = new ydn.db.IndexSchema(name, unique, type, name);
+            var index = new ydn.db.IndexSchema(name, type, unique);
             indexes.push(index);
           }
 

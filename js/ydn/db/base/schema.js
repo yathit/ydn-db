@@ -31,19 +31,45 @@ ydn.db.DataType = {
 
 /**
  *
- * @param {string} name store (table) name.
+ * @param {string} keyPath
  * @param {boolean=} opt_unique unique.
- * @param {ydn.db.DataType=} opt_type default to TEXT.
- * @param {string=} keyPath
+ * @param {ydn.db.DataType=} opt_type to be determined.
  * @param {boolean=} multiEntry
+ * @param {string=} name store (table) name. If specified, must be same as
+ * keyPath
  * @constructor
  */
-ydn.db.IndexSchema = function(name, opt_unique, opt_type, keyPath, multiEntry) {
+ydn.db.IndexSchema = function(keyPath, opt_type, opt_unique, multiEntry, name) {
+
+  if (goog.isDef(name) && goog.isDef(keyPath) && name != keyPath) {
+    // Sqlite database TABLE column name is 'name' and also 'keyPath'.
+    // seperate naming is only possible in IndexedDB.
+    // basically I don't see name should be different from keyPath.
+    throw new ydn.error.NotSupportedException(
+      'index name and keyPath must be same: ' + name + ' != ' + keyPath);
+  } else if (!goog.isDef(keyPath)) {
+    keyPath = name;
+  }
+
+
   /**
    * @final
    * @type {string}
    */
-  this.name = name;
+  this.keyPath = keyPath;
+
+  if (!goog.isDef(this.keyPath)) {
+    throw new ydn.error.ArgumentException('index keyPath or name required.');
+  }
+  if (!goog.isString(this.keyPath)) {
+    throw new ydn.error.ArgumentException('index keyPath must be string.');
+  }
+
+  /**
+   * @final
+   * @type {string}
+   */
+  this.name = this.keyPath;
   /**
    * @final
    * @type {ydn.db.DataType|undefined}
@@ -54,19 +80,6 @@ ydn.db.IndexSchema = function(name, opt_unique, opt_type, keyPath, multiEntry) {
    * @type {boolean}
    */
   this.unique = !!opt_unique;
-
-  /**
-   * @final
-   * @type {string|undefined}
-   */
-  this.keyPath = goog.isDef(keyPath) ? keyPath : this.name;
-
-  if (this.keyPath != this.name) {
-    // Sqlite database TABLE column name is 'name' and also 'keyPath'.
-    // seperate naming is only possible in IndexedDB.
-    // basically I don't see name should be different from keyPath.
-    throw new ydn.error.NotSupportedException('index name and keyPath must be same');
-  }
 
   /**
    * @final
@@ -141,8 +154,8 @@ ydn.db.IndexSchema.prototype.similar = function(index) {
  */
 ydn.db.IndexSchema.fromJSON = function(json) {
   //name, opt_unique, opt_type, keyPath, multiEntry
-  return new ydn.db.IndexSchema(json.name, json.unique, json.type,
-    json.keyPath, json.multiEntry);
+  return new ydn.db.IndexSchema(json.keyPath, json.type, json.unique,
+    json.multiEntry, json.name);
 };
 
 
@@ -331,12 +344,15 @@ ydn.db.StoreSchema.prototype.getIndexNames = function() {
 
 /**
  *
- * @param {string} name store (table) name.
+ * @param {string} name column name or keyPath
+ * @param {ydn.db.DataType=} opt_type .
  * @param {boolean=} opt_unique unique.
- * @param {ydn.db.DataType=} opt_type default to TEXT.
+ * @param {boolean=} opt_multiEntry .
  */
-ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type) {
-  this.indexes.push(new ydn.db.IndexSchema(name, opt_unique, opt_type));
+ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type,
+      opt_multiEntry) {
+  this.indexes.push(new ydn.db.IndexSchema(name, opt_type, opt_unique,
+    opt_multiEntry));
 };
 
 
