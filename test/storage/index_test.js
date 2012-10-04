@@ -49,6 +49,8 @@ var do_test_multiEntry = function (db_type) {
     {id:'st3', value: 6}
   ];
 
+  goog.scope()
+
   var tags = ['d', 'b', 'c', 'a', 'e'];
   var exp_counts = [1, 3, 2, 4, 0];
   var counts = [];
@@ -99,7 +101,7 @@ var test_11_multiEntry_idb = function () {
 };
 
 
-//var test_51_multiEntry_websql = function () {
+//var test_12_multiEntry_websql = function () {
 //  do_test_multiEntry('websql');
 //};
 
