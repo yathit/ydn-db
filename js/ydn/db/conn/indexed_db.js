@@ -548,7 +548,6 @@ ydn.db.con.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
 };
 
 
-
 /**
  * When DB is ready, fnc will be call with a fresh transaction object. Fnc must
  * put the result to 'result' field of the transaction object on success. If
@@ -563,24 +562,52 @@ ydn.db.con.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
  */
 ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, completed_event_handler) {
 
+  /**
+   * @type {!IDBTransaction}
+   */
+  var tx;
+
   if (mode === ydn.db.TransactionMode.VERSION_CHANGE) {
+    var next_version = this.idx_db_.version + 1;
     if (goog.isFunction(this.idx_db_.setVersion)) {
-      throw new ydn.error.NotImplementedException();
+
+      var me = this;
+      var setVrequest = this.idx_db_.setVersion(next_version);
+
+      setVrequest.onfailure = function (e) {
+        me.logger.warning('changing version from ' + me.idx_db_.version + ' to ' +
+          next_version + ' failed.');
+        completed_event_handler(ydn.db.TransactionEventTypes.ERROR, e);
+      };
+      setVrequest.onsuccess = function (e) {
+
+        tx = setVrequest['transaction'];
+
+        tx.oncomplete = function (event) {
+          completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE, event);
+        };
+
+        tx.onerror = function (event) {
+          completed_event_handler(ydn.db.TransactionEventTypes.ERROR, event);
+        };
+
+        tx.onabort = function (event) {
+          completed_event_handler(ydn.db.TransactionEventTypes.ABORT, event);
+        };
+
+        fnc(tx);
+      };
     } else {
       // http://www.w3.org/TR/IndexedDB/#dfn-mode
       // "versionchange". This type of transaction can't be manually created,
       // but instead is created automatically when a upgradeneeded event is
       // fired.
-      var next_version = this.idx_db_.version + 1;
       //this.idx_db_.close();
       throw new ydn.error.NotImplementedException();
     }
-  } else {
+  } else { // for READ_ONLY and READ_WRITE mode
 
-    /**
-     * @type {!IDBTransaction}
-     */
-    var tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
+    tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
 
     tx.oncomplete = function (event) {
       completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE, event);
@@ -596,7 +623,6 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
 
     fnc(tx);
   }
-
 };
 
 
