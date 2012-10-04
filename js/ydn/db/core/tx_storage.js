@@ -39,7 +39,7 @@ goog.inherits(ydn.db.core.TxStorage, ydn.db.tr.TxStorage);
 
 
 /**
- *
+ * @final
  * @return {!ydn.db.core.Storage}
  */
 ydn.db.core.TxStorage.prototype.getStorage = function() {
@@ -48,7 +48,7 @@ ydn.db.core.TxStorage.prototype.getStorage = function() {
 
 
 /**
- *
+ * @final
  * @return {string}
  */
 ydn.db.core.TxStorage.prototype.getName = function() {
@@ -65,11 +65,10 @@ ydn.db.core.TxStorage.prototype.getName = function() {
 ydn.db.core.TxStorage.prototype.executor = null;
 
 
-
-
 /**
  * Return cache executor object or create on request. This have to be crated
  * Lazily because, we can initialize it only when transaction object is active.
+ * @final
  * @protected
  * @return {ydn.db.req.RequestExecutor}
  */
@@ -97,7 +96,9 @@ ydn.db.core.TxStorage.prototype.getExecutor = function() {
 
 
 /**
+ * @final
  * @throws {ydn.db.ScopeError}
+ * @protected
  * @param {function(ydn.db.req.RequestExecutor)} callback
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.TransactionMode} mode mode, default to 'readonly'.
@@ -134,6 +135,21 @@ ydn.db.core.TxStorage.prototype.execute = function(callback, store_names, mode)
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + ' locked: ' + mu_tx.isSetDone());
     this.run(tx_callback, store_names, mode);
   }
+};
+
+
+/**
+ * Add or update a store issuing a version change event.
+ * @protected
+ * @param {ydn.db.StoreSchema} store
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.core.TxStorage.prototype.addStoreSchema = function(store) {
+  var df = new goog.async.Deferred();
+
+  throw new ydn.error.NotImplementedException();
+
+  return df;
 };
 
 

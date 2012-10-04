@@ -562,25 +562,39 @@ ydn.db.con.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
  */
 ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, completed_event_handler) {
 
-  /**
-   * @private
-   * @type {!IDBTransaction}
-   */
-  var tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
+  if (mode === ydn.db.TransactionMode.VERSION_CHANGE) {
+    if (goog.isFunction(this.idx_db_.setVersion)) {
+      throw new ydn.error.NotImplementedException();
+    } else {
+      // http://www.w3.org/TR/IndexedDB/#dfn-mode
+      // "versionchange". This type of transaction can't be manually created,
+      // but instead is created automatically when a upgradeneeded event is
+      // fired.
+      var next_version = this.idx_db_.version + 1;
+      //this.idx_db_.close();
+      throw new ydn.error.NotImplementedException();
+    }
+  } else {
 
-  tx.oncomplete = function (event) {
-    completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE, event);
-  };
+    /**
+     * @type {!IDBTransaction}
+     */
+    var tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
 
-  tx.onerror = function (event) {
-    completed_event_handler(ydn.db.TransactionEventTypes.ERROR, event);
-  };
+    tx.oncomplete = function (event) {
+      completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE, event);
+    };
 
-  tx.onabort = function (event) {
-    completed_event_handler(ydn.db.TransactionEventTypes.ABORT, event);
-  };
+    tx.onerror = function (event) {
+      completed_event_handler(ydn.db.TransactionEventTypes.ERROR, event);
+    };
 
-  fnc(tx);
+    tx.onabort = function (event) {
+      completed_event_handler(ydn.db.TransactionEventTypes.ABORT, event);
+    };
+
+    fnc(tx);
+  }
 
 };
 

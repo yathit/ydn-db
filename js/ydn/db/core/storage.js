@@ -80,7 +80,7 @@ ydn.db.core.Storage.prototype.newTxInstance = function(scope_name) {
 
 
 /**
- *
+ * @final
  * @return {number}
  */
 ydn.db.core.Storage.prototype.getTxNo = function() {
