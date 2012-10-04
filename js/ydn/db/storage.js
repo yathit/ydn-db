@@ -27,13 +27,12 @@ goog.require('ydn.object');
 if (ydn.db.ENABLE_ENCRYPTION) {
   goog.require('ydn.db.RichStorage_');
 }
-goog.require('ydn.db.tr.Storage');
+goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.IStorage');
 goog.require('ydn.db.io.Query');
 goog.require('ydn.db.io.Key');
 goog.require('ydn.db.io.QueryService');
-goog.require('ydn.db.io.QueryServiceProvider');
 
 
 /**
@@ -51,17 +50,15 @@ goog.require('ydn.db.io.QueryServiceProvider');
  * is used.
  * @param {!StorageOptions=} opt_options options.
  * @implements {ydn.db.io.QueryService}
- * @extends {ydn.db.tr.Storage}
+ * @extends {ydn.db.core.Storage}
  * @constructor *
  */
 ydn.db.Storage = function (opt_dbname, opt_schema, opt_options) {
 
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
-  this.default_tx_queue_ = this.newTxInstance('base');
-
 };
-goog.inherits(ydn.db.Storage, ydn.db.tr.Storage);
+goog.inherits(ydn.db.Storage, ydn.db.core.Storage);
 
 //
 ///**
@@ -92,9 +89,7 @@ ydn.db.Storage.prototype.init = function() {
 
 
 /**
- * @protected
- * @param {string} scope_name
- * @return {!ydn.db.tr.TxStorage}
+ * @override
  */
 ydn.db.Storage.prototype.newTxInstance = function(scope_name) {
   return new ydn.db.TxStorage(this, this.ptx_no++, scope_name, this.schema);
@@ -127,51 +122,6 @@ ydn.db.Storage.prototype.getWrapper = function() {
 };
 
 
-/**
- *
- * @return {number}
- */
-ydn.db.Storage.prototype.getTxNo = function() {
-  return this.default_tx_queue_.getTxNo();
-};
-
-
-/**
- *
- * @param {string} store_name
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.Storage.prototype.count = function(store_name) {
-  return this.default_tx_queue_.count(store_name);
-};
-
-
-/**
- * Return object
- * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
- * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.Storage.prototype.get = function (arg1, arg2) {
-  return this.default_tx_queue_.get(arg1, arg2);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.Storage.prototype.put = function(store, value, opt_key) {
-  return this.default_tx_queue_.put(store, value, opt_key);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.Storage.prototype.clear = function(arg1, arg2) {
-  return this.default_tx_queue_.clear(arg1, arg2);
-};
 
 
 /**
@@ -187,9 +137,6 @@ ydn.db.Storage.prototype.query = function(store, index, direction, keyRange, upp
 };
 
 
-ydn.db.Storage.prototype.key = function(store_or_json_or_value, id, opt_parent) {
-  return this.default_tx_queue_.key(store_or_json_or_value, id, opt_parent);
-};
 
 /**
  * Retrieve a value from default key-value store.

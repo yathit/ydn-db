@@ -10,7 +10,7 @@ goog.require('ydn.db.Key');
 /**
  * Builds a new Key object of known id.
  *
- * @param {!ydn.db.io.QueryService} db db instance.
+ * @param {!ydn.db.io.CrudService} db db instance.
  * @param {string|!ydn.db.Key.Json} store_name
  * @param {(string|number)=} id
  * @param {ydn.db.Key=} opt_parent
@@ -22,7 +22,7 @@ ydn.db.io.Key = function(db, store_name, id, opt_parent) {
   /**
    * @final
    * @protected
-   * @type {!ydn.db.io.QueryService}
+   * @type {!ydn.db.io.CrudService}
    */
   this.dbp = db;
 };

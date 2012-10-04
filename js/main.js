@@ -29,16 +29,12 @@ goog.exportProperty(ydn.db.Query.prototype, 'average',
 
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
     ydn.db.Storage.prototype.query);
-goog.exportProperty(ydn.db.Storage.prototype, 'key',
-    ydn.db.Storage.prototype.key);
 goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
     ydn.db.Storage.prototype.fetch);
 
 
 goog.exportProperty(ydn.db.TxStorage.prototype, 'query',
     ydn.db.TxStorage.prototype.query);
-goog.exportProperty(ydn.db.TxStorage.prototype, 'key',
-    ydn.db.TxStorage.prototype.key);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
     ydn.db.TxStorage.prototype.fetch);
 

@@ -7,16 +7,17 @@
 
 
 goog.provide('ydn.db.io.QueryService');
-goog.provide('ydn.db.io.QueryServiceProvider');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.Query');
 goog.require('ydn.db.Key');
+goog.require('ydn.db.io.CrudService');
 
 
 
 
 /**
  * @interface
+ * @extends {ydn.db.io.CrudService}
  */
 ydn.db.io.QueryService = function() {
 
@@ -32,48 +33,6 @@ ydn.db.io.QueryService = function() {
 ydn.db.io.QueryService.prototype.fetch = function(q, max, skip) {};
 
 
-
-/**
- * Return object
- * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store table name.
- * @param {(string|number|!Array.<string>)=} id object key to be retrieved, if not provided,
- * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
- */
-ydn.db.io.QueryService.prototype.get = function(store, id) {
-
-};
-
-
-/**
- * @param {string} store table name.
- * @param {!Object|!Array.<!Object>} value object to put.
- * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys
- * @return {!goog.async.Deferred} return key in deferred function.
- */
-ydn.db.io.QueryService.prototype.put = function(store, value, opt_keys) {
-
-};
-
-
-/**
- * Remove a specific entry from a store or all.
- * @param {string=} opt_table delete the table as provided otherwise
- * delete all stores.
- * @param {(string|number)=} opt_key delete a specific row.
- * @see {@link #remove}
- * @return {!goog.async.Deferred} return a deferred function.
- */
-ydn.db.io.QueryService.prototype.clear = function(opt_table, opt_key) {
-
-};
-
-
-/**
- *
- * @interface
- */
-ydn.db.io.QueryServiceProvider = function() {};
 
 
 
