@@ -145,11 +145,9 @@ ydn.db.core.TxStorage.prototype.execute = function(callback, store_names, mode)
  * @return {!goog.async.Deferred}
  */
 ydn.db.core.TxStorage.prototype.addStoreSchema = function(store) {
-  var df = new goog.async.Deferred();
 
-  throw new ydn.error.NotImplementedException();
+  return this.addStoreSchema(store);
 
-  return df;
 };
 
 

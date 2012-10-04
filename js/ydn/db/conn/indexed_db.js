@@ -544,6 +544,7 @@ ydn.db.con.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is_
  */
 ydn.db.con.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
   this.update_store_(this.idx_db_, /** @type {IDBTransaction} */ (tx), store_schema);
+  return goog.async.Deferred.succeed(true); // update_store_ is synchronous
 };
 
 

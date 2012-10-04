@@ -639,7 +639,12 @@ ydn.db.con.WebSql.prototype.doTransaction = function (trFn, scopes, mode, comple
  * @inheritDoc
  */
 ydn.db.con.WebSql.prototype.addStoreSchema = function(tx, store_schema) {
+  var df = new goog.async.Deferred();
+  var callback = function() {
+    df.callback(true);
+  };
   this.update_store_(/** @type {SQLTransaction} */ (tx), store_schema,
-    goog.functions.TRUE);
+    callback);
+  return df;
 };
 

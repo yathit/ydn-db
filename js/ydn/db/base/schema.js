@@ -513,7 +513,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
 /**
  * Compare two stores.
  * @see #similar
- * @param {!ydn.db.StoreSchema} store
+ * @param {ydn.db.StoreSchema} store
  * @return {boolean}
  */
 ydn.db.StoreSchema.prototype.equals = function(store) {

@@ -174,5 +174,5 @@ ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode, 
  * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.addStoreSchema = function(tx, store_schema) {
-
+  return goog.async.Deferred.succeed(true);
 };

@@ -130,13 +130,6 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
 
 /**
- * If true, a new store schema will be generate on the fly.
- * @type {boolean}
- */
-ydn.db.con.Storage.prototype.auto_schema = false;
-
-
-/**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
@@ -199,30 +192,33 @@ ydn.db.con.Storage.prototype.getStoreSchema = function(store_name) {
  * mode {@see #auto_schema}.
  * If the store already exist it will be updated as necessary.
  * @param {!StoreSchema} store_schema
+ * @return {!goog.async.Deferred}
  */
-ydn.db.con.Storage.prototype.addStoreSchema = function(store_schema) {
-  var store_name = store_schema['name'];
+ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
+
+  var new_store = ydn.db.StoreSchema.fromJSON(store_schema);
+
+  var store_name = store_schema.name;
   var store = this.schema.getStore(store_name);
-  if (store) {
-    var new_store = ydn.db.StoreSchema.fromJSON(store_schema);
-    if (!store.equals(new_store)) {
-      if (!this.auto_schema) {
-        throw new ydn.error.ConstrainError('Cannot update store: ' +
-          store_name + '. Schema auto generation is disabled.');
-      } //else {
-        // do update
-      //}
+  if (!new_store.equals(store)) {
+
+    var action = store ? 'update' : 'add';
+
+    if (! this.schema.isAutoSchema()) {
+      throw new ydn.error.ConstrainError('Cannot ' + action + ' store: ' +
+        store_name + '. Not auto schema generation mode.');
+    } else {
+      // do update
+      var me;
+      var df = new goog.async.Deferred();
+      this.transaction(function (tx) {
+        var d = me.db_.addStoreSchema(tx, store);
+        df.chainDeferred(d);
+      }, [], ydn.db.TransactionMode.VERSION_CHANGE);
+      return df;
     }
   } else {
-    if (!this.auto_schema) {
-      throw new ydn.error.ConstrainError('Cannot add ' + store_name +
-        '. Schema auto generation is disabled.');
-    } else {
-      var me;
-      this.transaction(function(tx) {
-        me.db_.addStoreSchema(tx, store);
-      }, [], ydn.db.TransactionMode.VERSION_CHANGE);
-    }
+    return goog.async.Deferred.succeed(false); // no change
   }
 };
 
