@@ -101,22 +101,17 @@ ydn.db.req.WebSql.prototype.getTx = function() {
  */
 ydn.db.req.WebSql.prototype.parseRow = function(table, row) {
   var value = ydn.json.parse(row[ydn.db.DEFAULT_BLOB_COLUMN]);
-  var key = row[table.keyPath]; // NOT: table.getKey(row);
-  table.setKey(value, key);
+  if (goog.isDefAndNotNull(table.keyPath)) {
+    var key = row[table.keyPath]; // NOT: table.getKeyValue(row);
+    table.setKeyValue(value, key);
+  }
   for (var j = 0; j < table.indexes.length; j++) {
     var index = table.indexes[j];
     if (index.name == ydn.db.DEFAULT_BLOB_COLUMN) {
       continue;
     }
     var x = row[index.name];
-    if (!goog.isDef(x)) {
-      continue;
-    }
-    if (index.type == ydn.db.DataType.INTEGER) {
-      x = parseInt(x, 10);
-    } else if (index.type == ydn.db.DataType.FLOAT) {
-      x = parseFloat(x);
-    }
+
     value[index.name] = x;
   }
   return value;

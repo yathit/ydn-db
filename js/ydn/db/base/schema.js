@@ -18,13 +18,16 @@ goog.require('ydn.db.Key');
  * SQLite mandate COLUMN field specified data type.
  * IndexedDB allow Array as data type in key, while SQLite is not to use.
  * @see http://www.w3.org/TR/IndexedDB/#key-construct
+ * @see http://www.sqlite.org/datatype3.html
  * @see http://www.sqlite.org/lang_expr.html
  * @enum {string}
  */
 ydn.db.DataType = {
   TEXT: 'TEXT',
-  FLOAT: 'REAL',
-  INTEGER: 'INTEGER',
+  FLOAT: 'REAL', // deprecate, use NUMERIC instead
+  NUMERIC: 'NUMERIC',
+  INTEGER: 'INTEGER', // deprecate, use NUMERIC instead
+  DATE: 'DATE',
   BLOB: 'BLOB',
   ARRAY: 'ARRAY' // out of tune here, not in WebSQL, but keyPath could be array
 };
@@ -361,13 +364,34 @@ ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type,
 
 
 /**
- *
- * @param {!Object} obj get key value from its keyPath field.
+ * Extract value of keyPath from a given object.
+ * @see #getKeyValue
+ * @param {!Object} obj object to extract from
  * @return {!Array|number|string|undefined} return key value.
  */
-ydn.db.StoreSchema.prototype.getKey = function(obj) {
+ydn.db.StoreSchema.prototype.getKeyValue = function(obj) {
   // http://www.w3.org/TR/IndexedDB/#key-construct
   return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
+};
+
+
+/**
+ * Extract value of keyPath from a row of SQL results
+ * @param {!Object} obj
+ * @return {!Array|number|string|undefined} return key value.
+ */
+ydn.db.StoreSchema.prototype.getRowValue = function(obj) {
+  if (goog.isDefAndNotNull(this.keyPath)) {
+    var value = obj[this.keyPath];
+    if (this.type == ydn.db.DataType.INTEGER) {
+      value = parseInt(value, 10);
+    } else if (this.type == ydn.db.DataType.FLOAT) {
+      value = parseFloat(value);
+    }
+    return value;
+  } else {
+    return undefined;
+  }
 };
 
 
@@ -390,11 +414,12 @@ ydn.db.StoreSchema.prototype.generateKey = function() {
 
 
 /**
- *
+ * Set keyPath field of the object with given value.
+ * @see #getKeyValue
  * @param {!Object} obj get key value from its keyPath field.
  * @param {string|number} value key value to set.
  */
-ydn.db.StoreSchema.prototype.setKey = function(obj, value) {
+ydn.db.StoreSchema.prototype.setKeyValue = function(obj, value) {
 
   for (var i = 0; i < this.keyPaths.length; i++) {
     var key = this.keyPaths[i];
@@ -448,7 +473,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
   var key, normalized_key;
   if (goog.isString(this.keyPath) || goog.isDef(opt_key)) {
     if (goog.isString(this.keyPath)) {
-      key = this.getKey(obj);
+      key = this.getKeyValue(obj);
       columns = [this.getQuotedKeyPath()];
     } else if (goog.isDef(opt_key)) {
       key = opt_key;
@@ -481,7 +506,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
         }
       } else {
         if (!goog.isString(v)) {
-          v = ydn.json.stringify(v);
+          v = v + '';
         }
       }
       values.push(v);

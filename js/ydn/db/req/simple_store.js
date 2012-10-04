@@ -52,7 +52,7 @@ ydn.db.req.SimpleStore.prototype.extractKey = function (store_name, value) {
   // we don't need to check, because this function is not used by user.
   goog.asserts.assertObject(value, 'id or object must be defined.');
   if (goog.isDef(store.keyPath)) {
-    key = store.getKey(value);
+    key = store.getKeyValue(value);
   }
   if (!goog.isDefAndNotNull(key)) {
     key = store.generateKey();
@@ -144,7 +144,7 @@ ydn.db.req.SimpleStore.SYNC = true;
  * @param {ydn.db.StoreSchema|string} store table name.
  * @return {string} canonical key name.
  */
-ydn.db.req.SimpleStore.prototype.getKey = function(id, store) {
+ydn.db.req.SimpleStore.prototype.getKeyValue = function(id, store) {
   var store_name = store instanceof ydn.db.StoreSchema ? store.name : store;
   return '_database_' + this.dbname + '-' + store_name + '-' + id;
 };
