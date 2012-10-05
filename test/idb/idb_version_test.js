@@ -22,7 +22,7 @@ var setUp = function() {
   this.db_name = 'test_db' + Math.random();
   this.store_name = 'st';
   this.store_schema = {name: this.store_name, keyPath: 'id'};
-  this.options = {mechanisms: ['indexeddb']};
+  this.options = {Mechanisms: ['indexeddb']};
 };
 
 var deleteDb = function() {
@@ -69,20 +69,20 @@ var schema_test = function(schema, to_delete) {
 
 
 var test_10_no_db = function() {
-  var schema = {stores: [this.store_schema]};
+  var schema = {Stores: [this.store_schema]};
   schema_test(schema);
 };
 
 
 var test_11_same_ver = function() {
-  var schema = {version: 1, stores: [this.store_schema]};
+  var schema = {version: 1, Stores: [this.store_schema]};
   schema_test(schema);
 };
 
 
 var test_12_ver_update = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
-  var schema = {version: 2, stores: [this.store_schema, new_store]};
+  var schema = {version: 2, Stores: [this.store_schema, new_store]};
   schema_test(schema, true);
 };
 

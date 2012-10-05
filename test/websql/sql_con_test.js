@@ -26,7 +26,7 @@ var tearDown = function() {
 };
 
 var options = {
-  mechanisms: ['websql'],
+  Mechanisms: ['websql'],
   use_text_store: false
 };
 
@@ -37,22 +37,24 @@ var options = {
  */
 var assert_similar_schema = function(schema, schema_json) {
   console.log(['testing ', schema, schema_json]);
-  assertEquals('# stores', schema.stores.length, schema_json.stores.length);
+  var stores = schema_json.Stores || schema_json.stores;
+  assertEquals('# stores', schema.stores.length, stores.length);
   assertEquals('# stores', schema.version, schema_json.version);
   for (var i = 0; i < schema.stores.length; i++) {
     var store = schema.stores[i];
-    var store_json = schema_json.stores[i];
+    var store_json = stores[i];
     assertEquals(i + ': name', store.name, store_json.name);
     assertEquals(i + ': type', store.type, store_json.type);
     assertEquals(i + ': keyPath', store.keyPath, store_json.keyPath);
     assertEquals(i + ': autoIncremenent', store.autoIncremenent,
         store_json.autoIncremenent);
+    var indexes = store.Indexes || store.indexes;
     assertEquals('# indexes', store.indexes.length,
-        store_json.indexes.length);
+        indexes.length);
 
     for (var j = 0; j < store.indexes.length; j++) {
       var index = store.indexes[i];
-      var index_json = store_json.indexes[i];
+      var index_json = indexes[i];
       assertEquals(i + ':' + j + ': index name', index.name, index_json.name);
       assertEquals(i + ':' + j + ': index type', index.type, index_json.type);
       //assertEquals(i + ':' + j + ': index keyPath', index.keyPath, index_json.keyPath);
@@ -69,10 +71,10 @@ var test_2_sql_schema_sniffing = function() {
 
   var schema = new ydn.db.DatabaseSchema(1);
   var index = new ydn.db.IndexSchema('id.$t', ydn.db.DataType.TEXT, true);
-  var store = new ydn.db.StoreSchema(table_name, 'id', false, ydn.db.DataType.INTEGER, [index]);
+  var store = new ydn.db.StoreSchema(table_name, 'id', false, ydn.db.DataType.NUMERIC, [index]);
   schema.addStore(store);
 
-  var db_name = 'test_sql_con_6';
+  var db_name = 'test_2_sql_schema_sniffing_2';
   var db = new ydn.db.Storage(db_name, schema, options);
 
 

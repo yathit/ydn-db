@@ -162,7 +162,7 @@ ydn.store.StorageJstest.prototype.test_json_config = function(queue) {
   var schema_ver1 = {
     version: 2,
     size: 1 * 1024 * 1024, // 1 MB
-    stores:[store]
+    Stores:[store]
   };
 
   var db = new ydn.db.Storage('todo_test', schema_ver1);

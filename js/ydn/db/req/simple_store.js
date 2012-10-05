@@ -57,11 +57,9 @@ ydn.db.req.SimpleStore.prototype.extractKey = function (store_name, value) {
   if (!goog.isDefAndNotNull(key)) {
     key = store.generateKey();
   }
-  if (goog.isArray(key)) {
-    // SQLite do not support Array as key
-    key = key.join(ydn.db.StoreSchema.KEY_SEP);
-  }
-  return key;
+
+  key = ydn.db.IndexSchema.js2sql(key, store.type);
+  return /** @type {string|number} */ (key);
 };
 
 
@@ -69,29 +67,29 @@ ydn.db.req.SimpleStore.prototype.extractKey = function (store_name, value) {
 /**
  * @protected
  * @final
- * @param {string} store_name table name.
+ * @param {ydn.db.StoreSchema} store table name.
  * @param {(!Array|string|number)} id id.
  * @return {string} canonical key name.
  */
-ydn.db.req.SimpleStore.prototype.makeKey = function(store_name, id) {
-  if (goog.isArray(id)) {
-    id = id.join(ydn.db.StoreSchema.KEY_SEP);
-  }
-  return '_database_' + this.dbname + '-' + store_name + '-' + id;
+ydn.db.req.SimpleStore.prototype.makeKey = function(store, id) {
+  var s = ydn.db.IndexSchema.js2sql(id, store.type);
+  return '_database_' + this.dbname + '-' + store.name + '-' + s;
 };
 
 
 
 /**
  *
- * @param {string} store_name or key
+ * @param {!ydn.db.StoreSchema|string} store_name or key
  * @param {(!Array|string|number)} id
  * @return {*}
  * @protected
  * @final
  */
 ydn.db.req.SimpleStore.prototype.getItemInternal = function(store_name, id) {
-  var key = this.makeKey(store_name, id);
+  var store = store_name instanceof ydn.db.StoreSchema ?
+    store_name : this.schema.getStore(store_name);
+  var key = this.makeKey(store, id);
   var value = this.tx.getItem(key);
   if (!goog.isNull(value)) {
     value = ydn.json.parse(/** @type {string} */ (value));
@@ -111,7 +109,14 @@ ydn.db.req.SimpleStore.prototype.getItemInternal = function(store_name, id) {
  * @final
  */
 ydn.db.req.SimpleStore.prototype.setItemInternal = function(value, store_name_or_key, id) {
-  var key = goog.isDef(id) ? this.makeKey(store_name_or_key, id) : store_name_or_key;
+  var key;
+  if (goog.isDef(id)) {
+    var store = this.schema.getStore(store_name_or_key);
+    key = this.makeKey(store, id);
+  } else {
+    key = store_name_or_key;
+  }
+
   this.tx.setItem(key, value);
 };
 
@@ -124,7 +129,13 @@ ydn.db.req.SimpleStore.prototype.setItemInternal = function(value, store_name_or
  * @final
  */
 ydn.db.req.SimpleStore.prototype.removeItemInternal = function(store_name_or_key, id) {
-  var key = goog.isDef(id) ? this.makeKey(store_name_or_key, id) : store_name_or_key;
+  var key;
+  if (goog.isDef(id)) {
+    var store = this.schema.getStore(store_name_or_key);
+    key = this.makeKey(store, id);
+  } else {
+    key = store_name_or_key;
+  }
   this.tx.removeItem(key);
 };
 

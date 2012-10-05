@@ -1,8 +1,8 @@
 schema = {
-  stores: [{
+  Stores: [{
     name: 'player',
     keyPath: 'id',
-    indexes: [{
+    Indexes: [{
       name: 'id',
       type: 'INTEGER',
       unique: true

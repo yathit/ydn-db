@@ -33,7 +33,7 @@ var tearDown = function() {
 
 var db_name = 'test_sql_q_12';
 
-var options = {mechanisms: ['websql']};
+var options = {Mechanisms: ['websql']};
 
 var test_2_select = function() {
 

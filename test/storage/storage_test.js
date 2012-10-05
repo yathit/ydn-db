@@ -70,7 +70,7 @@ var test_0_json_config_empty_table = function() {
   var schema_ver1 = {
     version: 2,
     size: 1 * 1024 * 1024, // 1 MB,
-    stores:[store]
+    Stores:[store]
   };
 
   var db = new ydn.db.Storage('todos_test', schema_ver1);
@@ -138,7 +138,7 @@ var test_1_json_config = function() {
   var schema_ver1 = {
     version: 2,
     size: 1 * 1024 * 1024, // 1 MB,
-    stores:[store]
+    Stores:[store]
   };
 
   var db = new ydn.db.Storage('todos_test', schema_ver1);

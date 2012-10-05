@@ -13,27 +13,6 @@ goog.require('ydn.db.Key');
 
 
 /**
- * Data type for field in object store. This is required to compatible between
- * IndexedDB and SQLite.
- * SQLite mandate COLUMN field specified data type.
- * IndexedDB allow Array as data type in key, while SQLite is not to use.
- * @see http://www.w3.org/TR/IndexedDB/#key-construct
- * @see http://www.sqlite.org/datatype3.html
- * @see http://www.sqlite.org/lang_expr.html
- * @enum {string}
- */
-ydn.db.DataType = {
-  TEXT: 'TEXT',
-  FLOAT: 'REAL', // deprecate, use NUMERIC instead
-  NUMERIC: 'NUMERIC',
-  INTEGER: 'INTEGER', // deprecate, use NUMERIC instead
-  DATE: 'DATE',
-  BLOB: 'BLOB',
-  ARRAY: 'ARRAY' // out of tune here, not in WebSQL, but keyPath could be array
-};
-
-
-/**
  *
  * @param {string} keyPath
  * @param {boolean=} opt_unique unique.
@@ -96,6 +75,151 @@ ydn.db.IndexSchema = function(keyPath, opt_type, opt_unique, multiEntry, name) {
 };
 
 
+
+/**
+ * Data type for field in object store. This is required to compatible between
+ * IndexedDB and SQLite.
+ * SQLite mandate COLUMN field specified data type.
+ * IndexedDB allow Array as data type in key, while SQLite is not to use.
+ * @see http://www.w3.org/TR/IndexedDB/#key-construct
+ * @see http://www.sqlite.org/datatype3.html
+ * @see http://www.sqlite.org/lang_expr.html
+ * @enum {string}
+ */
+ydn.db.DataType = {
+  ARRAY: 'ARRAY', // out of tune here, not in WebSQL, but keyPath could be array
+  BLOB: 'BLOB',
+  DATE: 'DATE',
+  NUMERIC: 'NUMERIC',
+  TEXT: 'TEXT'
+};
+
+
+/**
+ * This data type abbreviation is used to prefix value of ydn.db.DataType.ARRAY
+ * on storage.
+ * @see http://www.sqlite.org/datatype3.html
+ * @enum {string}
+ */
+ydn.db.DataTypeAbbr = {
+  DATE: 'd',
+  NUMERIC: 'n',
+  TEXT: 't'
+};
+
+
+/**
+ * Seperator char for array
+ * @const
+ * @type {string}
+ */
+ydn.db.IndexSchema.ARRAY_SEP = String.fromCharCode(0x001F);
+
+
+/**
+ * Convert key value from IndexedDB value to Sqlite for storage.
+ * @see #sql2js
+ * @param {Array|Date|*} key
+ * @param {ydn.db.DataType|undefined} type
+ * @return {*}
+ */
+ydn.db.IndexSchema.js2sql = function(key, type) {
+  if (type == ydn.db.DataType.DATE) {
+    if (key instanceof Date) {
+      return +key;  // date is store as NUMERIC
+    } // else ?
+  } else if (type == ydn.db.DataType.ARRAY) {
+    // NOTE: we are storing these value for indexing purpose.
+    // Array is not native to Sqlite. To be multiEntry searchable,
+    // array values are store as TEXT and search using LIKE %q%
+    // where q is ARRAY_SEP + search_term + ARRAY_SEP
+    // for type preserve conversion, type information is prepended at the
+    // front with ydn.db.DataTypeAbbr.
+    var arr = !goog.isDefAndNotNull(key) ? [''] :
+      goog.isArray(key) ? key : [key];
+    var t = ydn.db.IndexSchema.toAbbrType(arr[0]);
+    var value = (t == ydn.db.DataTypeAbbr.DATE) ?
+      arr.reduce(function(p, x) {return p + (+x);}, '') :
+      arr.join(ydn.db.IndexSchema.ARRAY_SEP);
+    return t + ydn.db.IndexSchema.ARRAY_SEP +
+      value + ydn.db.IndexSchema.ARRAY_SEP;
+  } else {
+    return key;
+  }
+};
+
+
+/**
+ * Convert key value from Sqlite value to IndexedDB for storage.
+ * @see #js2sql
+ * @param {string|number|*} key
+ * @param {ydn.db.DataType|undefined} type
+ * @return {Date|Array|*}
+ */
+ydn.db.IndexSchema.sql2js = function(key, type) {
+  if (type == ydn.db.DataType.DATE) {
+    return new Date(key); // key is number
+  } else if (type == ydn.db.DataType.ARRAY) {
+    goog.asserts.assertString(key);
+    /**
+     * @type {string}
+     */
+    var s = key;
+    var arr = s.split(ydn.db.IndexSchema.ARRAY_SEP);
+    var t = arr[0];
+    var effective_arr = arr.slice(1, arr.length - 1); // remove last and first
+    return goog.array.map(effective_arr, function(x) {
+      if (t == ydn.db.DataTypeAbbr.DATE) {
+        return new Date(parseInt(x, 10));
+      } else if (t == ydn.db.DataTypeAbbr.NUMERIC) {
+        return parseFloat(x);
+      } else {
+        return x;
+      }
+    })
+  } else {
+    return key;
+  }
+};
+
+
+/**
+ * @const
+ * @type {!Array.<ydn.db.DataType>}
+ */
+ydn.db.IndexSchema.TYPES = [ydn.db.DataType.ARRAY, ydn.db.DataType.BLOB,
+  ydn.db.DataType.DATE, ydn.db.DataType.NUMERIC,
+  ydn.db.DataType.TEXT];
+
+
+/**
+ *
+ * @param {ydn.db.DataType|string=} str
+ * @return {ydn.db.DataType|undefined}
+ */
+ydn.db.IndexSchema.toType = function(str) {
+  var idx = goog.array.indexOf(ydn.db.IndexSchema.TYPES, str);
+  return ydn.db.IndexSchema.TYPES[idx]; // undefined OK.
+};
+
+
+/**
+ *
+ * @param {*} x
+ * @return {ydn.db.DataTypeAbbr}
+ */
+ydn.db.IndexSchema.toAbbrType = function(x) {
+  if (x instanceof Date) {
+    return ydn.db.DataTypeAbbr.DATE;
+  } else if (goog.isNumber(x)) {
+    return ydn.db.DataTypeAbbr.NUMERIC;
+  } else {
+    return ydn.db.DataTypeAbbr.TEXT;
+  }
+};
+
+
+
 /**
  *
  * @return {ydn.db.DataType}
@@ -104,18 +228,6 @@ ydn.db.IndexSchema.prototype.getType = function() {
   return this.type || ydn.db.DataType.TEXT;
 };
 
-
-/**
- *
- * @param {string=} str
- * @return {ydn.db.DataType|undefined}
- */
-ydn.db.IndexSchema.toType = function(str) {
-  var types = [ydn.db.DataType.TEXT, ydn.db.DataType.INTEGER,
-    ydn.db.DataType.FLOAT, ydn.db.DataType.ARRAY, ydn.db.DataType.BLOB];
-  var idx = goog.array.indexOf(types, str);
-  return types[idx]; // undefined OK.
-};
 
 
 /**
@@ -166,6 +278,7 @@ ydn.db.IndexSchema.fromJSON = function(json) {
 };
 
 
+
 /**
  *
  * @param {string} name table name.
@@ -208,7 +321,7 @@ ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_type, opt_in
    * @type {ydn.db.DataType}
    */
   this.type = opt_type ? opt_type : this.autoIncremenent ?
-    ydn.db.DataType.INTEGER : ydn.db.DataType.TEXT;
+    ydn.db.DataType.NUMERIC : ydn.db.DataType.TEXT;
   if (!goog.isString(this.type)) {
     throw new ydn.error.ArgumentException('type invalid in store: ' + this.name);
   }
@@ -383,9 +496,9 @@ ydn.db.StoreSchema.prototype.getKeyValue = function(obj) {
 ydn.db.StoreSchema.prototype.getRowValue = function(obj) {
   if (goog.isDefAndNotNull(this.keyPath)) {
     var value = obj[this.keyPath];
-    if (this.type == ydn.db.DataType.INTEGER) {
-      value = parseInt(value, 10);
-    } else if (this.type == ydn.db.DataType.FLOAT) {
+    if (this.type == ydn.db.DataType.DATE) {
+      value = Date.parse(value);
+    } else if (this.type == ydn.db.DataType.ARRAY) {
       value = parseFloat(value);
     }
     return value;
@@ -417,7 +530,7 @@ ydn.db.StoreSchema.prototype.generateKey = function() {
  * Set keyPath field of the object with given value.
  * @see #getKeyValue
  * @param {!Object} obj get key value from its keyPath field.
- * @param {string|number} value key value to set.
+ * @param {*} value key value to set.
  */
 ydn.db.StoreSchema.prototype.setKeyValue = function(obj, value) {
 
@@ -435,15 +548,6 @@ ydn.db.StoreSchema.prototype.setKeyValue = function(obj, value) {
     obj = obj[key];
   }
 };
-
-
-/**
- * Separator between subset of key in array type. This is used in SQLite,
- * since it cannot handle array data type.
- * @const
- * @type {string}
- */
-ydn.db.StoreSchema.KEY_SEP = ydn.db.Key.SEP_PARENT;
 
 
 /**
@@ -479,13 +583,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
       key = opt_key;
       columns = [ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
     }
-    if (goog.isArray(key)) {
-      // SQLite do not support Array as key
-      normalized_key = key.join(ydn.db.StoreSchema.KEY_SEP);
-    } else {
-      normalized_key = key;
-    }
-    values = [normalized_key];
+    values = [ydn.db.IndexSchema.js2sql(key, this.type)];
     slots = ['?'];
   }
 
@@ -496,20 +594,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
     }
     var v = obj[this.indexes[i].name];
     if (goog.isDef(v)) {
-      if (this.indexes[i].type == ydn.db.DataType.INTEGER) {
-        if (!goog.isNumber(v)) {
-          v = parseInt(v, 10);
-        }
-      } else if (this.indexes[i].type == ydn.db.DataType.FLOAT) {
-        if (!goog.isNumber(v)) {
-          v = parseFloat(v);
-        }
-      } else {
-        if (!goog.isString(v)) {
-          v = v + '';
-        }
-      }
-      values.push(v);
+      values.push(ydn.db.IndexSchema.js2sql(v, this.indexes[i].type));
       slots.push('?');
       columns.push(goog.string.quote(this.indexes[i].name));
     }

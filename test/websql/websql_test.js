@@ -29,7 +29,7 @@ var tearDown = function() {
 };
 
 var db_name = 'test2';
-var options = {mechanisms: ['websql']};
+var options = {Mechanisms: ['websql']};
 
 var test_0_put = function() {
 
@@ -936,7 +936,7 @@ var test_41_keyRange = function () {
   var db_name = 'test_41_62';
 
   var schema = new ydn.db.DatabaseSchema(1);
-  var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.INTEGER, true);
+  var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.NUMERIC, true);
   schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]));
   var db = new ydn.db.Storage(db_name, schema, options);
 
@@ -991,11 +991,11 @@ var test_41_keyRange = function () {
 
 var test_71_offset_limit = function () {
   var store_name = 'ts1';
-  var db_name = 'test_71_51';
+  var db_name = 'test_71_53';
 
   var schema = new ydn.db.DatabaseSchema(1);
-  var indexSchema = new ydn.db.IndexSchema('id', ydn.db.DataType.INTEGER, true);
-  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, ydn.db.DataType.INTEGER, [indexSchema]));
+  var indexSchema = new ydn.db.IndexSchema('id', ydn.db.DataType.NUMERIC, true);
+  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, ydn.db.DataType.NUMERIC, [indexSchema]));
   var db = new ydn.db.Storage(db_name, schema, options);
 
    var objs = [

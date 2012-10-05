@@ -29,7 +29,7 @@ var tearDown = function() {
 
 
 var do_test_multiEntry = function (db_type) {
-  var options = {mechanisms: [db_type]};
+  var options = {Mechanisms: [db_type]};
   var store_name = 'st';
   var db_name = 'test_51_multiEntry_2';
   var indexSchema = new ydn.db.IndexSchema('tag', ydn.db.DataType.TEXT, false, true);

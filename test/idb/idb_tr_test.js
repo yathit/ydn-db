@@ -28,7 +28,7 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var options = {mechanisms: ['indexeddb']};
+var options = {Mechanisms: ['indexeddb']};
 
 
 var test_2_idb_basic = function() {
@@ -100,16 +100,16 @@ var test_2_idb_basic = function() {
 
 var schema = {
   version: 1,
-  stores: [{
+  Stores: [{
     name: 'player',
     keyPath: 'id',
-    indexes: [{
+    Indexes: [{
       name: 'id',
-      type: 'INTEGER',
+      type: 'NUMERIC',
       unique: true
     }, {
       name: 'health',
-      type: 'REAL'
+      type: 'NUMERIC'
     }]
   }, {
     name: 'weapon',
