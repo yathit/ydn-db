@@ -18,17 +18,16 @@ goog.require('ydn.db.con.Storage');
 
 /**
  *
- * @param {number=} scale
- * @param {string=} logger
+ * @param {string=} scope
+ * @param {string|number=} level
  */
-ydn.db.con.Storage.prototype.log = function (scale, logger) {
+ydn.db.log = function (scope, level) {
 
-  logger = logger || 'ydn.db';
-  var level = goog.isDef(scale) ? new goog.debug.Logger.Level('log', scale) :
+  scope = scope || 'ydn.db';
+  var log_level = goog.isNumber(level) ? new goog.debug.Logger.Level('log', level) :
     goog.debug.Logger.Level.FINE;
-  goog.debug.Logger.getLogger(logger).setLevel(level);
+  goog.debug.Logger.getLogger(scope).setLevel(log_level);
 
 };
 
-goog.exportProperty(ydn.db.con.Storage.prototype, 'log',
-  ydn.db.con.Storage.prototype.log);
+goog.exportSymbol('ydn.db.log', ydn.db.log);

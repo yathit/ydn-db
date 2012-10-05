@@ -54,12 +54,9 @@ ydn.db.con.IndexedDb = function(dbname, schema) {
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // version could be number of string.
   // In chrome, version is taken as description.
-  var msg = 'Trying to open database: ' + this.dbname + ' ver: ' +
+  var msg = 'Opening database: ' + this.dbname + ' ver: ' +
     schema.version;
   me.logger.finer(msg);
-  if (ydn.db.con.IndexedDb.DEBUG) {
-    window.console.log(msg);
-  }
 
   /**
    * This open request return two format.
@@ -81,9 +78,7 @@ ydn.db.con.IndexedDb = function(dbname, schema) {
   openRequest.onsuccess = function(ev) {
     var msg = me.dbname + ' ver: ' + schema.version + ' OK.';
     me.logger.finer(msg);
-    if (ydn.db.con.IndexedDb.DEBUG) {
-      window.console.log(msg);
-    }
+
     var db = ev.target.result;
     var old_version = db.version;
     if (goog.isDef(schema.version) &&
@@ -296,6 +291,7 @@ ydn.db.con.IndexedDb.prototype.idx_db_ = null;
 ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
 
   if (this.deferredIdxDb_.hasFired()) {
+    this.logger.warning(this + ': already set.');
     this.deferredIdxDb_ = new goog.async.Deferred();
   }
   if (goog.isDef(e)) {
@@ -356,7 +352,7 @@ ydn.db.con.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNames,
           index.unique, index.multiEntry, index.name));
       }
       var store = new ydn.db.StoreSchema(objStore.name, objStore.keyPath,
-        objStore.autoIncremenent, type, indexes);
+        objStore.autoIncrement, type, indexes);
     }
   } else {
     // validate schema
@@ -377,9 +373,9 @@ ydn.db.con.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNames,
           throw new ydn.error.ConstrainError('Different keyPath between schema and database: ' +
             store.keyPath + ' vs. ' + objStore.keyPath);
         }
-        if (store.autoIncremenent != !!objStore.autoIncremenent) {
+        if (store.autoIncrement != !!objStore.autoIncrement) {
           throw new ydn.error.ConstrainError('Different autoIncrement between schema and database: ' +
-            store.autoIncremenent + ' vs. ' + objStore.autoIncremenent);
+            store.autoIncrement + ' vs. ' + objStore.autoIncrement);
         }
 
         var indexNames = store.getIndexNames();
@@ -461,7 +457,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
   } else {
 
     // IE10 is picky on optional parameters of keyPath. If it is undefined, it must not be defined.
-    var options = {"autoIncremenent": store_schema.autoIncremenent};
+    var options = {"autoIncrement": store_schema.autoIncrement};
     if (goog.isDefAndNotNull(store_schema.keyPath)) {
       options['keyPath'] = store_schema.keyPath;
     }
@@ -470,7 +466,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
     } catch (e) {
       if (e.name == 'InvalidAccessError') {
         throw new ydn.db.InvalidAccessError('creating store for ' + store_schema.name + ' of keyPath: ' +
-          store_schema.keyPath + ' and autoIncrement: ' + store_schema.autoIncremenent);
+          store_schema.keyPath + ' and autoIncrement: ' + store_schema.autoIncrement);
       } else if (e.name == 'ConstraintError') {
         // store already exist.
         throw new ydn.error.ConstrainError('creating store for ' + store_schema.name);
@@ -506,8 +502,8 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 ydn.db.con.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is_caller_setversion) {
 
   var me = this;
-  var s = is_caller_setversion ? 'changing' : 'upgrading';
-  this.logger.finer(s + ' version from ' + db.version + ' to ' +
+  var action = is_caller_setversion ? 'changing' : 'upgrading';
+  this.logger.finer(action + ' version from ' + db.version + ' to ' +
       schema.version);
 
   trans.oncomplete = function(e) {
@@ -519,12 +515,12 @@ ydn.db.con.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is_
     var reOpenRequest = ydn.db.con.IndexedDb.indexedDb.open(me.dbname);
     reOpenRequest.onsuccess = function(rev) {
       var db = rev.target.result;
-      me.logger.finer('Database: ' + me.dbname + ' upgraded.');
+      me.logger.finer(me + ':' + action + ' OK.');
       me.setDb(db);
     };
 
     reOpenRequest.onerror = function(e) {
-      me.logger.finer('Database: ' + me.dbname + ' upgrade fail.');
+      me.logger.finer(me + ':' + action + ' fail.');
       me.setDb(null);
     }
   };
@@ -641,4 +637,10 @@ ydn.db.con.IndexedDb.prototype.close = function() {
 };
 
 
-
+/**
+ * @override
+ */
+ydn.db.con.IndexedDb.prototype.toString = function() {
+  var s = this.idx_db_ ? this.idx_db_.name + ':' + this.idx_db_.version : '';
+  return this.type() + ':' + s;
+};

@@ -1,5 +1,5 @@
 /**
- * @license Copyright 2012 YDN Authors. All Rights Reserved.
+ * @license Copyright 2012 YDN Authors, Yathit. All Rights Reserved.
  */
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,17 +15,9 @@
 
 
 /**
- * @fileoverview Wrappers for the all implemented Storage mechanisms.
+ * @fileoverview Database connector.
  *
- * On application use, this is preferable over concrete storage implementation.
- * This wrapper has two purpose:
- * 1) select suitable supported storage mechanism and 2) deferred execute when
- * the database is not initialized. Database is initialized when dbname, version
- * and schema are set.
  *
- * Often, dbname involve login user identification and it is not available at
- * the time of application start up. Additionally schema may be prepared by
- * multiple module. This top level wrapper provide these use cases.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -45,8 +37,7 @@ goog.require('ydn.db.con.IStorage');
 
 
 /**
- * Create a suitable storage mechanism from indexdb, to websql to
- * localStorage.
+ * Create a suitable storage mechanism.
  *
  * If database name and schema are provided, this will immediately initialize
  * the database and ready to use. However if any of these two are missing,
@@ -370,22 +361,23 @@ ydn.db.con.Storage.prototype.isReady = function() {
  * @private
  */
 ydn.db.con.Storage.prototype.setDb_ = function(db) {
-  this.db_ = db;
   this.init(); // let super class to initialize.
   if (this.deferredDb_.hasFired()) {
+    this.logger.warning(this + ': database already initialized.');
     this.deferredDb_ = new goog.async.Deferred();
   }
-  var me = this;
+  this.db_ = db;
 
+  var me = this;
   var success = function(db) {
-    me.logger.finest('Database: ' + me.db_name + ' ready.');
+    me.logger.finest(me + ': ready.');
     me.deferredDb_.callback(me.db_);
     me.last_queue_checkin_ = NaN;
     me.popTxQueue_();
   };
 
   var error = function(e) {
-    me.logger.warning('Database: ' + me.db_name + ' fail.');
+    me.logger.warning(me + ': opening fail.');
     // this could happen if user do not allow to use the storage
     me.deferredDb_.errback(e);
     me.purgeTxQueue_(e);
@@ -606,4 +598,9 @@ ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode
     trFn(tx);
   }, names, mode, on_complete);
 
+};
+
+
+ydn.db.con.Storage.prototype.toString = function() {
+  return 'ydn.db.con.Storage:' + this.db_;
 };

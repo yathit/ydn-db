@@ -283,7 +283,7 @@ ydn.db.IndexSchema.fromJSON = function(json) {
  *
  * @param {string} name table name.
  * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to.
- * @param {boolean=} opt_autoIncrement If true, the object store has a key
+ * @param {boolean=} autoIncrement If true, the object store has a key
  * generator. Defaults to false.
  * @param {ydn.db.DataType=} opt_type data type for keyPath. Default to
  * <code>ydn.db.DataType.INTEGER</code> if opt_autoIncrement is
@@ -291,7 +291,7 @@ ydn.db.IndexSchema.fromJSON = function(json) {
  * @param {!Array.<!ydn.db.IndexSchema>=} opt_indexes list of indexes.
  * @constructor
  */
-ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_type, opt_indexes) {
+ydn.db.StoreSchema = function(name, keyPath, autoIncrement, opt_type, opt_indexes) {
 
   /**
    * @final
@@ -314,13 +314,15 @@ ydn.db.StoreSchema = function(name, keyPath, opt_autoIncrement, opt_type, opt_in
    * @final
    * @type {boolean}
    */
-  this.autoIncremenent = !!opt_autoIncrement;
+  this.autoIncrement = !!autoIncrement;
+  // Yes, correct spelling is autoIncrement not autoIncremenent, as it
+  // was written in W3C documentation.
 
   /**
    * @final
-   * @type {ydn.db.DataType}
+   * @type {ydn.db.DataType} // TODO: allow for undefined type
    */
-  this.type = opt_type ? opt_type : this.autoIncremenent ?
+  this.type = opt_type ? opt_type : this.autoIncrement ?
     ydn.db.DataType.NUMERIC : ydn.db.DataType.TEXT;
   if (!goog.isString(this.type)) {
     throw new ydn.error.ArgumentException('type invalid in store: ' + this.name);
@@ -352,7 +354,7 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
   return {
     'name': this.name,
     'keyPath': this.keyPath,
-    "autoIncremenent": this.autoIncremenent,
+    "autoIncrement": this.autoIncrement,
     'type': this.type,
     'Indexes': indexes
   };
@@ -373,7 +375,7 @@ ydn.db.StoreSchema.fromJSON = function(json) {
     }
   }
   return new ydn.db.StoreSchema(json.name, json.keyPath,
-    json.autoIncremenent, json.type, indexes);
+    json.autoIncrement, json.type, indexes);
 };
 
 
@@ -643,7 +645,7 @@ ydn.db.StoreSchema.prototype.similar = function(store) {
 
   if (this.name != store.name ||
       this.keyPath != store.keyPath ||
-      this.autoIncremenent != store.autoIncremenent ||
+      this.autoIncrement != store.autoIncrement ||
       store.indexes.length != this.indexes.length) {
     return false;
   }

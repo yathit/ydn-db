@@ -53,7 +53,7 @@ StoreSchema.prototype.keyPath;
 /**
  * @type {boolean}
  */
-StoreSchema.prototype.autoIncremenent;
+StoreSchema.prototype.autoIncrement;
 
 /**
  * @type {ydn.db.DataType}

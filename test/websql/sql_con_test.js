@@ -46,8 +46,8 @@ var assert_similar_schema = function(schema, schema_json) {
     assertEquals(i + ': name', store.name, store_json.name);
     assertEquals(i + ': type', store.type, store_json.type);
     assertEquals(i + ': keyPath', store.keyPath, store_json.keyPath);
-    assertEquals(i + ': autoIncremenent', store.autoIncremenent,
-        store_json.autoIncremenent);
+    assertEquals(i + ':autoIncrementt', store.autoIncrement,
+        store_json.autoIncrement);
     var indexes = store.Indexes || store.indexes;
     assertEquals('# indexes', store.indexes.length,
         indexes.length);

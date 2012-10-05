@@ -1,6 +1,3 @@
-/**
- * @license Copyright 2012 YDN Authors. All Rights Reserved.
- */
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -181,7 +178,7 @@ ydn.db.Storage.prototype.removeItem = function(id) {
 /** @override */
 ydn.db.Storage.prototype.toString = function() {
   var s = 'Storage:' + this.getName();
-  if (goog.DEBUG) {
+  if (goog.DEBUG && this.default_tx_queue_) {
     return s + ':' + this.default_tx_queue_.getTxNo();
   }
   return s;

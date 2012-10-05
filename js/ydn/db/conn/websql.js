@@ -282,11 +282,11 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   if (goog.isDefAndNotNull(table_schema.keyPath)) {
     sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY ';
 
-    if (table_schema.autoIncremenent) {
+    if (table_schema.autoIncrement) {
       sql += ' AUTOINCREMENT ';
     }
 
-  } else if (table_schema.autoIncremenent) {
+  } else if (table_schema.autoIncrement) {
     sql += ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
       ' UNIQUE PRIMARY KEY AUTOINCREMENT ';
   } else { // using out of line key.
@@ -648,3 +648,11 @@ ydn.db.con.WebSql.prototype.addStoreSchema = function(tx, store_schema) {
   return df;
 };
 
+
+/**
+ * @override
+ */
+ydn.db.con.WebSql.prototype.toString = function() {
+  var s = this.sql_db_ ? this.dbname + ':' + this.sql_db_.version : '';
+  return this.type() + ':' + s;
+};
