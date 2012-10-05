@@ -9,7 +9,6 @@ goog.require('ydn.db.TxStorage');
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
 
-
 goog.exportProperty(ydn.db.io.Query.prototype, 'fetch',
     ydn.db.io.Query.prototype.fetch);
 goog.exportProperty(ydn.db.io.Query.prototype, 'get',
@@ -26,16 +25,16 @@ goog.exportProperty(ydn.db.Query.prototype, 'count',
 goog.exportProperty(ydn.db.Query.prototype, 'average',
     ydn.db.Query.prototype.average);
 
-
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
     ydn.db.Storage.prototype.query);
 goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
     ydn.db.Storage.prototype.fetch);
 
-
-goog.exportProperty(ydn.db.TxStorage.prototype, 'query',
-    ydn.db.TxStorage.prototype.query);
-goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
-    ydn.db.TxStorage.prototype.fetch);
+goog.exportSymbol('ydn.db.KeyRange', ydn.db.KeyRange );
+goog.exportSymbol('ydn.db.KeyRange.only', ydn.db.KeyRange.only);
+goog.exportSymbol('ydn.db.KeyRange.bound', ydn.db.KeyRange.bound);
+goog.exportSymbol('ydn.db.KeyRange.upperBound', ydn.db.KeyRange.upperBound);
+goog.exportSymbol('ydn.db.KeyRange.lowerBound', ydn.db.KeyRange.lowerBound);
+goog.exportSymbol('ydn.db.KeyRange.starts', ydn.db.KeyRange.starts);
 
 

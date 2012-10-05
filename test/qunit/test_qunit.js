@@ -1,36 +1,35 @@
 var db_name_put = "qunit_test_6";
-var store_name = "ts";    // in-line key store
-var store_name_2 = "ts2"; // out-of-line key store
-var store_name_3 = "ts3"; // in-line key + auto
-var store_name_4 = "ts4"; // out-of-line key + auto
-var store_name_5 = "ts5"; // nested keyPath
-var index_name = "ix1";
+var store_inline = "ts";    // in-line key store
+var store_outline = "ts2"; // out-of-line key store
+var store_inline_auto = "ts3"; // in-line key + auto
+var store_outline_auto = "ts4"; // out-of-line key + auto
+var store_nested_key = "ts5"; // nested keyPath
+
 var data_1 = { test:"test value", name:"name 1", id:1 };
 var data_1a = { test:"test value", name:"name 1", id: ['a', 'b']};
 var data_2 = { test:"test value", name:"name 2" };
 var gdata_1 = { test:"test value", name:"name 3", id: {$t: 1} };
-var msg_fail = "Creating initial situation failed";
 
 var schema_1 = {
   version: 1,
   Stores: [
     {
-      name: store_name,
+      name: store_inline,
       keyPath: 'id',
     type: 'NUMERIC'},
     {
-      name: store_name_2,
+      name: store_outline,
       type: 'NUMERIC'},
     {
-      name: store_name_3,
+      name: store_inline_auto,
       keyPath: 'id',
       autoIncrement: true,
       type: 'INTEGER'},
     {
-      name: store_name_4,
+      name: store_outline_auto,
       autoIncrement: true},
     {
-      name: store_name_5,
+      name: store_nested_key,
       keyPath: 'id.$t', // gdata style key.
       type: 'NUMERIC'}
   ]
@@ -60,7 +59,7 @@ asyncTest("Put data", function () {
 
   var db = new ydn.db.Storage(db_name_put, schema_1);
 
-  db.put(store_name, data_1).then(function () {
+  db.put(store_inline, data_1).then(function () {
     ok(true, "data inserted");
     start();
   }, function (e) {
@@ -76,7 +75,7 @@ asyncTest("Put data of array key", function () {
 
   var db = new ydn.db.Storage(db_name_put, schema_1);
 
-  db.put(store_name, data_1a).then(function (x) {
+  db.put(store_inline, data_1a).then(function (x) {
     ok('length' in x, "array key");
     deepEqual(data_1a.id, x, 'same key');
     start();
@@ -93,7 +92,7 @@ asyncTest("Put data with off-line-key", function () {
   expect(2);
 
   var key = Math.random();
-  db.put(store_name_2, data_2, key).then(function (x) {
+  db.put(store_outline, data_2, key).then(function (x) {
     ok(true, "data inserted");
     equal(key, x, 'key');
     start();
@@ -108,9 +107,9 @@ asyncTest("Put data - inline-key autoincrement", function () {
   var db = new ydn.db.Storage(db_name_put, schema_1);
   expect(2);
 
-  db.put(store_name_3, data_1).then(function (x) {
+  db.put(store_inline_auto, data_1).then(function (x) {
     equal(data_1.id, x, 'key');
-    db.put(store_name_3, data_2).then(function (x) {
+    db.put(store_inline_auto, data_2).then(function (x) {
       ok(x > data_1.id, 'key 2 greater than data_1 key');
       start();
     }, function (e) {
@@ -128,11 +127,11 @@ asyncTest("Put data - offline-key autoincrement", function () {
   var db = new ydn.db.Storage(db_name_put, schema_1);
   expect(2);
 
-  db.put(store_name_4, data_1).then(function (x) {
+  db.put(store_outline_auto, data_1).then(function (x) {
     ok(true, 'no key data insert ok');
     var key = x;
     // add same data.
-    db.put(store_name_4, data_1).then(function (x) {
+    db.put(store_outline_auto, data_1).then(function (x) {
       ok(x > key, 'key 2 greater than previous key');
       start();
     }, function (e) {
@@ -150,7 +149,7 @@ asyncTest("Put data with nested", function () {
   var db = new ydn.db.Storage(db_name_put, schema_1);
   expect(1);
 
-  db.put(store_name_5, gdata_1).then(function (x) {
+  db.put(store_nested_key, gdata_1).then(function (x) {
     equal(gdata_1.id.$t, x, 'key');
     start();
   }, function (e) {
@@ -179,8 +178,8 @@ asyncTest("Get 1 inline-line key object", function () {
 
   var db = new ydn.db.Storage(db_name_put, schema_1);
   var value_1 = 'test ' + Math.random();
-  db.put(store_name, {id: 1, value: value_1});
-  db.get(store_name, 1).then(function (x) {
+  db.put(store_inline, {id: 1, value: value_1});
+  db.get(store_inline, 1).then(function (x) {
     equal(value_1, x.value, 'value');
     start();
   }, function (e) {
@@ -197,9 +196,9 @@ asyncTest("Get array inline-line key object", function () {
   var db = new ydn.db.Storage(db_name_put, schema_1);
   var value_1 = 'test ' + Math.random();
   var value_2 = 'test ' + Math.random();
-  db.put(store_name, {id: 1, value: value_1});
-  db.put(store_name, {id: 2, value: value_2});
-  db.get(store_name, [1, 2]).then(function (x) {
+  db.put(store_inline, {id: 1, value: value_1});
+  db.put(store_inline, {id: 2, value: value_2});
+  db.get(store_inline, [1, 2]).then(function (x) {
     equal(2, x.length, 'length');
     equal(value_1, x[0].value, 'value 1');
     equal(value_2, x[1].value, 'value 2');
@@ -217,9 +216,9 @@ asyncTest("Get 1 outoff-line key object", function () {
   var db = new ydn.db.Storage(db_name_put, schema_1);
   var value_1 = 'test ' + Math.random();
   var key_in = 'id' + Math.random();
-  db.put(store_name_2, {abc: value_1}, key_in).then(function(key) {
+  db.put(store_outline, {abc: value_1}, key_in).then(function(key) {
     equal(key_in, key, 'got same key');
-    db.get(store_name_2, key).then(function (x) {
+    db.get(store_outline, key).then(function (x) {
       equal(value_1, x.abc, 'value');
       start();
     }, function (e) {
@@ -240,9 +239,9 @@ asyncTest("Get array out-of-line key object", function () {
   var db = new ydn.db.Storage(db_name_put, schema_1);
   var value_1 = 'get test ' + Math.random();
   var value_2 = 'get test ' + Math.random();
-  db.put(store_name_2, [{d: value_1}, {e: value_2}], ['a', 'b']).then(function(keys) {
+  db.put(store_outline, [{d: value_1}, {e: value_2}], ['a', 'b']).then(function(keys) {
     equal(2, keys.length, 'key length');
-    db.get(store_name_2, keys).then(function (x) {
+    db.get(store_outline, keys).then(function (x) {
       equal(2, x.length, 'value length');
       equal(value_1, x[0].d, 'value 1');
       equal(value_2, x[1].e, 'value 2');
@@ -257,3 +256,76 @@ asyncTest("Get array out-of-line key object", function () {
   });
 
 });
+
+
+var db_index = "qunit_idx_3";
+// copy previous schema and add index schema
+var schema_index = JSON.parse(JSON.stringify(schema_1));
+var index_name = 'tag';
+for (var i = 0; i < 4; i++) {
+  // add index for the field 'tag'
+  schema_index.Stores[i].Indexes = [
+    {name: index_name,
+    type: 'TEXT'}
+  ];
+}
+schema_index.Stores[4].Indexes = [
+  {name: 'tag.$t'}
+];
+var st_m_1 = 'multi_index_store';
+schema_index.Stores[5] = {
+  name: st_m_1,
+  autoIncrement: true,
+  Indexes: [
+    {
+      name: index_name,
+      multiEntry: true
+    }
+  ]
+};
+
+
+module("Index", {
+  setUp: function() {
+    //var db = new ydn.db.Storage(db_name_get);
+  },
+  tearDown: function() {
+    ydn.db.deleteDatabase(db_index);
+  }
+});
+
+
+asyncTest("Get index", function () {
+  expect(4);
+
+  var db = new ydn.db.Storage(db_name_put, schema_index);
+  console.log(db.getSchema());
+  var value_1 = 'test ' + Math.random();
+  var value_2 = 'test ' + Math.random();
+  db.put(store_inline, {id: 1, value: value_1, tag: 'a'});
+  db.put(store_inline, {id: 2, value: value_2, tag: 'b'});
+  db.put(store_inline, {id: 3, value: value_2, tag: 'c'});
+  var keyRange = ydn.db.KeyRange.only('a');
+  var dir = 'next';
+  var q = db.query(store_inline, index_name, dir, keyRange);
+  db.fetch(q).then(function (x) {
+    console.log(db.getSchema());
+    equal(1, x.length, 'result length');
+    equal('a', x[0].id, 'a value');
+    var keyRange = ydn.db.KeyRange.only('c');
+    var q = db.query(store_inline, index_name, dir, keyRange);
+    db.fetch(q).then(function (x) {
+      equal(1, x.length, 'result length');
+      equal('c', x[0].id, 'c value');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+

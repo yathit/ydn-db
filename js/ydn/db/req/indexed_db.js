@@ -574,19 +574,33 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
 
   //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
   // ' in ' + table);
-  var obj_store = this.tx.objectStore(store.name);
+  var obj_store;
+  try {
+    obj_store = this.tx.objectStore(store.name);
+  }  catch (e) {
+    if (goog.DEBUG && e.name == 'NotFoundError') {
+      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
+          'store: ' + store.name + ' not in transaction.' :
+          'store: ' + store.name + ' not in database: ' + this.tx.db.name;
+      throw new ydn.db.NotFoundError(msg);
+    } else {
+      throw e; // InvalidStateError: we can't do anything about it ?
+    }
+  }
 
   var index = null;
-  if (goog.DEBUG && goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
-    throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in: ' + q.store_name);
-  }
+
   if (goog.isDefAndNotNull(q.index)) {
     if (q.index != store.keyPath) {
       try {
         index = obj_store.index(q.index);
       } catch (e) {
-        if (e.name == 'NotFoundError') {
-          throw new ydn.db.NotFoundError('Index: ' + q.index + ' not found in Store: ' + q.store_name);
+        if (goog.DEBUG && e.name == 'NotFoundError') {
+          var msg = obj_store.indexNames.contains(q.index) ?
+              'index: ' + q.index + ' of ' + obj_store.name +
+                  ' not in transaction scope' :
+              'index: ' + q.index + ' not found in store: ' + obj_store.name;
+          throw new ydn.db.NotFoundError(msg);
         } else {
           throw e;
         }

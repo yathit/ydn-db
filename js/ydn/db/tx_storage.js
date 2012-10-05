@@ -128,8 +128,17 @@ ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
   if (!(q instanceof ydn.db.Query)) {
     throw new ydn.error.ArgumentException();
   }
-  goog.asserts.assert(this.schema.hasStore(q.store_name), q.store_name +
-    ' not exists.');
+  if (goog.DEBUG) {
+    var store = this.schema.getStore(q.store_name);
+    if (!store) {
+      throw new ydn.error.ArgumentException(q.store_name +
+          ' not exists.');
+    }
+    if (goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
+      throw new ydn.error.ArgumentException('Index: ' + q.index +
+          ' not exists in store: ' + q.store_name);
+    }
+  }
 
   this.execute(function (executor) {
     executor.fetch(df, q, max, skip);

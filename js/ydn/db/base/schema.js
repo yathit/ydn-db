@@ -273,7 +273,15 @@ ydn.db.IndexSchema.prototype.similar = function(index) {
  * @return {ydn.db.IndexSchema} created from input json string.
  */
 ydn.db.IndexSchema.fromJSON = function(json) {
-  //name, opt_unique, opt_type, keyPath, multiEntry
+  if (goog.DEBUG) {
+    var fields = ['name', 'unique', 'type', 'keyPath', 'multiEntry'];
+    for (var key in json) {
+      if (json.hasOwnProperty(key)) {
+        goog.asserts.assert(goog.array.indexOf(fields, key) >= 0,
+            'Unknown field: ' + key + ' in ' + ydn.json.stringify(json));
+      }
+    }
+  }
   return new ydn.db.IndexSchema(json.keyPath, json.type, json.unique,
     json.multiEntry, json.name);
 };
@@ -373,6 +381,15 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
  * @return {!ydn.db.StoreSchema} create new store schema from JSON string.
  */
 ydn.db.StoreSchema.fromJSON = function(json) {
+  if (goog.DEBUG) {
+    var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'Indexes'];
+    for (var key in json) {
+      if (json.hasOwnProperty(key)) {
+        goog.asserts.assert(goog.array.indexOf(fields, key) >= 0,
+            'Unknown field: ' + key + ' in ' + ydn.json.stringify(json));
+      }
+    }
+  }
   var indexes = [];
   var indexes_json = json.Indexes || [];
   if (goog.isArray(indexes_json)) {
