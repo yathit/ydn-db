@@ -1,4 +1,4 @@
-var db_name = "qunit_test_6";
+var db_name_put = "qunit_test_6";
 var store_name = "ts";    // in-line key store
 var store_name_2 = "ts2"; // out-of-line key store
 var store_name_3 = "ts3"; // in-line key + auto
@@ -25,11 +25,10 @@ var schema = {
       name: store_name_3,
       keyPath: 'id',
       autoIncrement: true,
-      type: 'NUMERIC'},
+      type: 'INTEGER'},
     {
       name: store_name_4,
-      autoIncrement: true,
-      type: 'NUMERIC'},
+      autoIncrement: true},
     {
       name: store_name_5,
       keyPath: 'id.$t', // gdata style key.
@@ -38,10 +37,10 @@ var schema = {
 };
 
 var initionalizeDB = function(callback, opt_schema) {
-  ydn.db.deleteDatabase(db_name);
+  ydn.db.deleteDatabase(db_name_put);
   setTimeout(function() {
     opt_schema = opt_schema || schema;
-    var db = new ydn.db.Storage(db_name, opt_schema);
+    var db = new ydn.db.Storage(db_name_put, opt_schema);
     callback(db);
   }, 100);
 };
@@ -51,7 +50,7 @@ var initionalizeDB = function(callback, opt_schema) {
 
 module("Put", {
   tearDown: function() {
-    ydn.db.deleteDatabase(db_name);
+    ydn.db.deleteDatabase(db_name_put);
   }
 });
 
@@ -59,7 +58,7 @@ module("Put", {
 asyncTest("Put data", function () {
   expect(1);
 
-  var db = new ydn.db.Storage(db_name, schema);
+  var db = new ydn.db.Storage(db_name_put, schema);
 
   db.put(store_name, data_1).then(function () {
     ok(true, "data inserted");
@@ -75,7 +74,7 @@ asyncTest("Put data", function () {
 asyncTest("Put data of array key", function () {
   expect(2);
 
-  var db = new ydn.db.Storage(db_name, schema);
+  var db = new ydn.db.Storage(db_name_put, schema);
 
   db.put(store_name, data_1a).then(function (x) {
     ok('length' in x, "array key");
@@ -90,7 +89,7 @@ asyncTest("Put data of array key", function () {
 
 
 asyncTest("Put data with off-line-key", function () {
-  var db = new ydn.db.Storage(db_name, schema);
+  var db = new ydn.db.Storage(db_name_put, schema);
   expect(2);
 
   var key = Math.random();
@@ -106,7 +105,7 @@ asyncTest("Put data with off-line-key", function () {
 });
 
 asyncTest("Put data - inline-key autoincrement", function () {
-  var db = new ydn.db.Storage(db_name, schema);
+  var db = new ydn.db.Storage(db_name_put, schema);
   expect(2);
 
   db.put(store_name_3, data_1).then(function (x) {
@@ -126,7 +125,7 @@ asyncTest("Put data - inline-key autoincrement", function () {
 });
 
 asyncTest("Put data - offline-key autoincrement", function () {
-  var db = new ydn.db.Storage(db_name, schema);
+  var db = new ydn.db.Storage(db_name_put, schema);
   expect(2);
 
   db.put(store_name_4, data_1).then(function (x) {
@@ -148,7 +147,7 @@ asyncTest("Put data - offline-key autoincrement", function () {
 
 
 asyncTest("Put data with nested", function () {
-  var db = new ydn.db.Storage(db_name, schema);
+  var db = new ydn.db.Storage(db_name_put, schema);
   expect(1);
 
   db.put(store_name_5, gdata_1).then(function (x) {

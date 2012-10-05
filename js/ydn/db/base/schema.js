@@ -90,6 +90,7 @@ ydn.db.DataType = {
   ARRAY: 'ARRAY', // out of tune here, not in WebSQL, but keyPath could be array
   BLOB: 'BLOB',
   DATE: 'DATE',
+  INTEGER: 'INTEGER', // AUTOINCREMENT is only allowed on an INTEGER
   NUMERIC: 'NUMERIC',
   TEXT: 'TEXT'
 };
@@ -188,7 +189,7 @@ ydn.db.IndexSchema.sql2js = function(key, type) {
  * @type {!Array.<ydn.db.DataType>}
  */
 ydn.db.IndexSchema.TYPES = [ydn.db.DataType.ARRAY, ydn.db.DataType.BLOB,
-  ydn.db.DataType.DATE, ydn.db.DataType.NUMERIC,
+  ydn.db.DataType.DATE, ydn.db.DataType.INTEGER, ydn.db.DataType.NUMERIC,
   ydn.db.DataType.TEXT];
 
 
@@ -323,10 +324,15 @@ ydn.db.StoreSchema = function(name, keyPath, autoIncrement, opt_type, opt_indexe
    * @type {ydn.db.DataType} // TODO: allow for undefined type
    */
   this.type = opt_type ? opt_type : this.autoIncrement ?
-    ydn.db.DataType.NUMERIC : ydn.db.DataType.TEXT;
+    ydn.db.DataType.INTEGER : ydn.db.DataType.TEXT;
   if (!goog.isString(this.type)) {
     throw new ydn.error.ArgumentException('type invalid in store: ' + this.name);
   }
+  if (this.autoIncrement) {
+    var sqlite_msg = 'AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY';
+    goog.asserts.assert(this.type == ydn.db.DataType.INTEGER, sqlite_msg);
+  }
+
 
   /**
    * @final
