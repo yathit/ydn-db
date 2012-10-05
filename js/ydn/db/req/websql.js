@@ -100,14 +100,14 @@ ydn.db.req.WebSql.prototype.getTx = function() {
  * @return {!Object} parse value.
  */
 ydn.db.req.WebSql.prototype.parseRow = function(table, row) {
-  var value = ydn.json.parse(row[ydn.db.DEFAULT_BLOB_COLUMN]);
+  var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
   if (goog.isDefAndNotNull(table.keyPath)) {
     var key = ydn.db.IndexSchema.sql2js(row[table.keyPath], table.type);
     table.setKeyValue(value, key);
   }
   for (var j = 0; j < table.indexes.length; j++) {
     var index = table.indexes[j];
-    if (index.name == ydn.db.DEFAULT_BLOB_COLUMN) {
+    if (index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
       continue;
     }
     var x = row[index.name];
@@ -126,7 +126,7 @@ ydn.db.req.WebSql.prototype.parseRow = function(table, row) {
  * @return {!Object} parse value.
  */
 ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
-  return row[table.keyPath || ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
+  return row[table.keyPath || ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
 };
 
 

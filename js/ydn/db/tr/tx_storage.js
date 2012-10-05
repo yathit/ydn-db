@@ -37,7 +37,7 @@ ydn.db.tr.TxStorage = function(storage, ptx_no, scope_name) {
   /**
    * @final
    * @type {!Array.<{fnc: Function, scope: string, store_names: Array.<string>,
-   * mode: ydn.db.TransactionMode, oncompleted: Function}>}
+   * mode: ydn.db.base.TransactionMode, oncompleted: Function}>}
    * @private
    */
   this.trQueue_ = [];
@@ -221,8 +221,8 @@ ydn.db.tr.TxStorage.prototype.popTxQueue_ = function() {
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} completed_event_handler
  * @protected
  */
 ydn.db.tr.TxStorage.prototype.pushTxQueue = function (trFn, store_names,
@@ -259,8 +259,8 @@ ydn.db.tr.TxStorage.prototype.pushTxQueue = function (trFn, store_names,
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.TransactionEventTypes, *)=} oncompleted
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted
  * @param {...} opt_args
  * @override
  */
@@ -276,7 +276,7 @@ ydn.db.tr.TxStorage.prototype.run = function (trFn, store_names, opt_mode, oncom
     (store_names.length > 0 && !goog.isString(store_names[0]))) {
     throw new ydn.error.ArgumentException("storeNames");
   }
-  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
+  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
   var outFn = trFn;
   if (arguments.length > 4) { // handle optional parameters
     var args = Array.prototype.slice.call(arguments, 4);

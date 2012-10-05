@@ -421,7 +421,7 @@ ydn.db.StoreSchema.prototype.getQuotedKeyPath = function() {
  */
 ydn.db.StoreSchema.prototype.getSQLKeyColumnName = function() {
   return goog.isString(this.keyPath) ?
-    goog.string.quote(this.keyPath) : ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
+    goog.string.quote(this.keyPath) : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 };
 
 
@@ -581,7 +581,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
       columns = [this.getQuotedKeyPath()];
     } else if (goog.isDef(opt_key)) {
       key = opt_key;
-      columns = [ydn.db.SQLITE_SPECIAL_COLUNM_NAME];
+      columns = [ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
     }
     values = [ydn.db.IndexSchema.js2sql(key, this.type)];
     slots = ['?'];
@@ -589,7 +589,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
 
   for (var i = 0; i < this.indexes.length; i++) {
     if (this.indexes[i].name == this.keyPath ||
-      this.indexes[i].name == ydn.db.DEFAULT_BLOB_COLUMN) {
+      this.indexes[i].name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
       continue;
     }
     var v = obj[this.indexes[i].name];
@@ -609,7 +609,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
 
   values.push(ydn.json.stringify(data));
   slots.push('?');
-  columns.push(ydn.db.DEFAULT_BLOB_COLUMN);
+  columns.push(ydn.db.base.DEFAULT_BLOB_COLUMN);
 
   return {
     columns: columns,

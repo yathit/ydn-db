@@ -19,88 +19,17 @@
  */
 
 goog.provide('ydn.db');
-
-goog.require('goog.async.Deferred');
-
-
-/**
- * When key column is not defined, You can access the ROWID of an SQLite table
- * using one the special column names ROWID, _ROWID_, or OID.
- *
- * http://www.sqlite.org/autoinc.html
- * @const
- * @type {string}
- */
-ydn.db.SQLITE_SPECIAL_COLUNM_NAME = '_ROWID_';
+goog.require('ydn.db.con.IndexedDb');
 
 
 /**
- * Non-indexed field are store in this default field. There is always a column
- * in each table.
- * @const
- * @type {string}
+ * Delete database. This will attempt in all mechanism.
+ * @param {string} db_name
  */
-ydn.db.DEFAULT_BLOB_COLUMN = '_default_';
-
-
-/**
- * Target for jquery
- * @define {boolean}
- */
-ydn.db.JQUERY = false;
-
-
-/**
- * Create a new deferred instance depending on target platform.
- * @return {!goog.async.Deferred}
- */
-ydn.db.createDeferred = function() {
-  if (ydn.db.JQUERY) {
-    return new goog.async.Deferred();
-  } else {
-    return new goog.async.Deferred();
+ydn.db.deleteDatabase = function(db_name) {
+  if ('deleteDatabase' in ydn.db.con.IndexedDb.indexedDb) {
+    ydn.db.con.IndexedDb.indexedDb.deleteDatabase(db_name);
   }
+  // WebSQL database cannot be deleted. TODO: clear
+  // TODO: clear localStorage
 };
-
-
-/**
- * Event types the Transaction can dispatch. COMPLETE events are dispatched
- * when the transaction is committed. If a transaction is aborted it dispatches
- * both an ABORT event and an ERROR event with the ABORT_ERR code. Error events
- * are dispatched on any error.
- *
- * @see {@link goog.db.Transaction.EventTypes}
- *
- * @enum {string}
- */
-ydn.db.TransactionEventTypes = {
-  COMPLETE: 'complete',
-  ABORT: 'abort',
-  ERROR: 'error'
-};
-
-
-/**
- * The three possible transaction modes.
- * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
- * @enum {string|number}
- */
-ydn.db.TransactionMode = {
-  READ_ONLY: 'readonly',
-  READ_WRITE: 'readwrite',
-  VERSION_CHANGE: 'versionchange'
-};
-
-
-
-/**
- * @define {boolean}
- */
-ydn.db.ENABLE_DEFAULT_TEXT_STORE = true;
-
-
-
-/**
- * @define {boolean}
- */
-ydn.db.ENABLE_ENCRYPTION = false;

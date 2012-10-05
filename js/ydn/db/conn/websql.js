@@ -27,7 +27,7 @@ goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.json');
 goog.require('ydn.db.SecurityError');
-goog.require('ydn.db');
+goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
 goog.require('goog.functions');
 
@@ -272,7 +272,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
 
   var id_column_name = table_schema.getQuotedKeyPath() ||
-    ydn.db.SQLITE_SPECIAL_COLUNM_NAME;
+    ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
   var type = table_schema.type;
   if (type == ydn.db.DataType.ARRAY) {
@@ -287,17 +287,17 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     }
 
   } else if (table_schema.autoIncremenent) {
-    sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
+    sql += ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
       ' UNIQUE PRIMARY KEY AUTOINCREMENT ';
   } else { // using out of line key.
     // it still has _ROWID_ as column name
-    sql += ydn.db.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type + ' UNIQUE PRIMARY KEY ';
+    sql += ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type + ' UNIQUE PRIMARY KEY ';
 
   }
 
   // every table must has a default field to store schemaless fields
-  if (!table_schema.hasIndex(ydn.db.DEFAULT_BLOB_COLUMN)) {
-    table_schema.addIndex(ydn.db.DEFAULT_BLOB_COLUMN, false, ydn.db.DataType.BLOB);
+  if (!table_schema.hasIndex(ydn.db.base.DEFAULT_BLOB_COLUMN)) {
+    table_schema.addIndex(ydn.db.base.DEFAULT_BLOB_COLUMN, false, ydn.db.DataType.BLOB);
   }
 
   var sep = ', ';
@@ -375,7 +375,7 @@ ydn.db.con.WebSql.prototype.table_info_ = function(trans, callback) {
             if (fields.indexOf('AUTOINCREMENT') != -1) {
               autoIncrement = true;
             }
-          } else if (fields[0] != ydn.db.DEFAULT_BLOB_COLUMN) {
+          } else if (fields[0] != ydn.db.base.DEFAULT_BLOB_COLUMN) {
             var unique = fields[2] == 'UNIQUE';
             var index = new ydn.db.IndexSchema(name, type, unique);
             indexes.push(index);
@@ -502,10 +502,10 @@ ydn.db.con.WebSql.prototype.migrate_ = function (is_version_change) {
     this.sql_db_.version + ' to ' + this.schema.version);
 
   //var mode = is_version_change ?
-  //    ydn.db.TransactionMode.VERSION_CHANGE : ydn.db.TransactionMode.READ_WRITE;
+  //    ydn.db.base.TransactionMode.VERSION_CHANGE : ydn.db.base.TransactionMode.READ_WRITE;
 
   // HACK: VERSION_CHANGE can cause subtle error.
-  var mode = ydn.db.TransactionMode.READ_WRITE;
+  var mode = ydn.db.base.TransactionMode.READ_WRITE;
   // yes READ_WRITE mode can create table and more robust. :-D
 
   var me = this;
@@ -582,8 +582,8 @@ ydn.db.con.WebSql.prototype.close = function () {
  * Run a transaction. If already in transaction, this will join the transaction.
  * @param {function(SQLTransaction)|Function} trFn
  * @param {Array.<string>} scopes
- * @param {ydn.db.TransactionMode} mode
- * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
+ * @param {ydn.db.base.TransactionMode} mode
+ * @param {function(ydn.db.base.TransactionEventTypes, *)} completed_event_handler
  * @protected
  */
 ydn.db.con.WebSql.prototype.doTransaction = function (trFn, scopes, mode, completed_event_handler) {
@@ -599,8 +599,8 @@ ydn.db.con.WebSql.prototype.doTransaction = function (trFn, scopes, mode, comple
    * SQLVoidCallback
    */
   var success_callback = function () {
-    completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE,
-      {'type':ydn.db.TransactionEventTypes.COMPLETE});
+    completed_event_handler(ydn.db.base.TransactionEventTypes.COMPLETE,
+      {'type':ydn.db.base.TransactionEventTypes.COMPLETE});
   };
 
   var me = this;
@@ -610,19 +610,19 @@ ydn.db.con.WebSql.prototype.doTransaction = function (trFn, scopes, mode, comple
    */
   var error_callback = function (e) {
     me.logger.finest(me + ': Tx ' + mode + ' request cause error.');
-    completed_event_handler(ydn.db.TransactionEventTypes.ERROR, e);
+    completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, e);
   };
 
   if (goog.isNull(this.sql_db_)) {
     // this happen on SECURITY_ERR
     trFn(null);
-    completed_event_handler(ydn.db.TransactionEventTypes.ERROR, this.last_error_);
+    completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, this.last_error_);
   }
 
-  if (mode == ydn.db.TransactionMode.READ_ONLY) {
+  if (mode == ydn.db.base.TransactionMode.READ_ONLY) {
     this.sql_db_.readTransaction(transaction_callback,
       error_callback, success_callback);
-  } else if (mode == ydn.db.TransactionMode.VERSION_CHANGE) {
+  } else if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {
     this.sql_db_.changeVersion(this.sql_db_.version, this.schema.version + '',
       transaction_callback, error_callback, success_callback);
   } else {

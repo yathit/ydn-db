@@ -44,7 +44,7 @@ goog.inherits(ydn.db.io.Query, ydn.db.Query);
  * @return {!goog.async.Deferred}
  */
 ydn.db.io.Query.prototype.get = function() {
-  var df = ydn.db.createDeferred();
+  var df = ydn.db.base.createDeferred();
   var rdf = this.dbp.fetch(this, 1);
 
   // extract the first result.

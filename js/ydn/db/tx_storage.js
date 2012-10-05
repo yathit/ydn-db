@@ -124,7 +124,7 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
  * @return {!goog.async.Deferred}
  */
 ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
-  var df = ydn.db.createDeferred();
+  var df = ydn.db.base.createDeferred();
   if (!(q instanceof ydn.db.Query)) {
     throw new ydn.error.ArgumentException();
   }
@@ -133,7 +133,7 @@ ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
 
   this.execute(function (executor) {
     executor.fetch(df, q, max, skip);
-  }, [q.store_name], ydn.db.TransactionMode.READ_ONLY);
+  }, [q.store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
   return df;
 };

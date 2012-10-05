@@ -123,7 +123,7 @@ ydn.db.tr.Mutex.prototype.getScope = function() {
 /**
  * Transaction is released and mutex is unlock.
  * @final
- * @param {ydn.db.TransactionEventTypes} type event type
+ * @param {ydn.db.base.TransactionEventTypes} type event type
  * @param {*} event
  */
 ydn.db.tr.Mutex.prototype.down = function (type, event) {

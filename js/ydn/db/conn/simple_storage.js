@@ -166,7 +166,7 @@ ydn.db.con.SimpleStorage.prototype.close = function () {
  */
 ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode, oncompleted) {
   trFn(this.cache_);
-  oncompleted(ydn.db.TransactionEventTypes.COMPLETE, {});
+  oncompleted(ydn.db.base.TransactionEventTypes.COMPLETE, {});
 };
 
 
@@ -176,3 +176,4 @@ ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode, 
 ydn.db.con.SimpleStorage.prototype.addStoreSchema = function(tx, store_schema) {
   return goog.async.Deferred.succeed(true);
 };
+

@@ -714,7 +714,7 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
 //      }
 //      df.errback(event);
 //    };
-//  }, [table], ydn.db.TransactionMode.READ_WRITE);
+//  }, [table], ydn.db.base.TransactionMode.READ_WRITE);
 //  return df;
 //};
 //
@@ -748,7 +748,7 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
 //      }
 //      df.errback(event);
 //    };
-//  }, [table], ydn.db.TransactionMode.READ_WRITE);
+//  }, [table], ydn.db.base.TransactionMode.READ_WRITE);
 //  return df;
 //};
 //
@@ -873,7 +873,7 @@ ydn.db.req.IndexedDb.prototype.count = function (df, table) {
 //      df.errback(event);
 //    };
 //
-//  }, [store_name], ydn.db.TransactionMode.READ_ONLY);
+//  }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 //  return df;
 //};
 //
@@ -900,7 +900,7 @@ ydn.db.req.IndexedDb.prototype.count = function (df, table) {
 //  } else {
 //    this.doTransaction(function(tx) {
 //      self.executeClear_(tx.getTx(), df, opt_table, opt_key);
-//    }, store_names, ydn.db.TransactionMode.READ_WRITE);
+//    }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
 //  }
 //  return df;
 //};

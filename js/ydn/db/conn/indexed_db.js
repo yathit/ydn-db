@@ -24,7 +24,7 @@ goog.require('goog.async.DeferredList');
 goog.require('goog.debug.Error');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db');
+goog.require('ydn.db.base');
 goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.json');
@@ -260,7 +260,7 @@ ydn.db.con.IndexedDb.isSupported = function() {
 // goog.global.webkitIDBTransaction as numeric value, the database engine
 // accept only string format.
 
-//ydn.db.TransactionMode = {
+//ydn.db.base.TransactionMode = {
 //  READ_ONLY: (goog.global.IDBTransaction ||
 //      goog.global.webkitIDBTransaction).READ_ONLY || 'readonly',
 //  READ_WRITE: (goog.global.IDBTransaction ||
@@ -560,8 +560,8 @@ ydn.db.con.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
  * @param {function(IDBTransaction)|Function} fnc transaction function.
  * @param {!Array.<string>} scopes list of stores involved in the
  * transaction.
- * @param {ydn.db.TransactionMode} mode mode.
- * @param {function(ydn.db.TransactionEventTypes, *)} completed_event_handler
+ * @param {ydn.db.base.TransactionMode} mode mode.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)} completed_event_handler
  */
 ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, completed_event_handler) {
 
@@ -570,7 +570,7 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
    */
   var tx;
 
-  if (mode === ydn.db.TransactionMode.VERSION_CHANGE) {
+  if (mode === ydn.db.base.TransactionMode.VERSION_CHANGE) {
     var next_version = this.idx_db_.version + 1;
     if (goog.isFunction(this.idx_db_.setVersion)) {
 
@@ -580,22 +580,22 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
       setVrequest.onfailure = function (e) {
         me.logger.warning('changing version from ' + me.idx_db_.version + ' to ' +
           next_version + ' failed.');
-        completed_event_handler(ydn.db.TransactionEventTypes.ERROR, e);
+        completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, e);
       };
       setVrequest.onsuccess = function (e) {
 
         tx = setVrequest['transaction'];
 
         tx.oncomplete = function (event) {
-          completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE, event);
+          completed_event_handler(ydn.db.base.TransactionEventTypes.COMPLETE, event);
         };
 
         tx.onerror = function (event) {
-          completed_event_handler(ydn.db.TransactionEventTypes.ERROR, event);
+          completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, event);
         };
 
         tx.onabort = function (event) {
-          completed_event_handler(ydn.db.TransactionEventTypes.ABORT, event);
+          completed_event_handler(ydn.db.base.TransactionEventTypes.ABORT, event);
         };
 
         fnc(tx);
@@ -613,15 +613,15 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
     tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
 
     tx.oncomplete = function (event) {
-      completed_event_handler(ydn.db.TransactionEventTypes.COMPLETE, event);
+      completed_event_handler(ydn.db.base.TransactionEventTypes.COMPLETE, event);
     };
 
     tx.onerror = function (event) {
-      completed_event_handler(ydn.db.TransactionEventTypes.ERROR, event);
+      completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, event);
     };
 
     tx.onabort = function (event) {
-      completed_event_handler(ydn.db.TransactionEventTypes.ABORT, event);
+      completed_event_handler(ydn.db.base.TransactionEventTypes.ABORT, event);
     };
 
     fnc(tx);

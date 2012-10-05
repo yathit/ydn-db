@@ -24,7 +24,7 @@ goog.provide('ydn.db.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.object');
-if (ydn.db.ENABLE_ENCRYPTION) {
+if (ydn.db.base.ENABLE_ENCRYPTION) {
   goog.require('ydn.db.RichStorage_');
 }
 goog.require('ydn.db.core.Storage');
@@ -69,7 +69,7 @@ goog.inherits(ydn.db.Storage, ydn.db.core.Storage);
 //ydn.db.Storage.prototype.initDatabase = function () {
 //  // handle version change
 //  if (goog.isDef(this.schema) &&
-//    (ydn.db.ENABLE_DEFAULT_TEXT_STORE &&
+//    (ydn.db.base.ENABLE_DEFAULT_TEXT_STORE &&
 //      !this.schema.hasStore(ydn.db.StoreSchema.DEFAULT_TEXT_STORE))) {
 //    this.schema.addStore(new ydn.db.StoreSchema(
 //      ydn.db.StoreSchema.DEFAULT_TEXT_STORE, 'id'));
@@ -102,7 +102,7 @@ ydn.db.Storage.prototype.newTxInstance = function(scope_name) {
  * @param {number=} opt_expiration default expiration time in miliseconds.
  */
 ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
-  if (ydn.db.ENABLE_ENCRYPTION) {
+  if (ydn.db.base.ENABLE_ENCRYPTION) {
     /**
      * @protected
      * @final

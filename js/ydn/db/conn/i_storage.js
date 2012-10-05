@@ -33,8 +33,8 @@ ydn.db.con.IStorage.prototype.type = function() {};
  * @param {function((!IDBTransaction|!SQLTransaction|Object))|!Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {ydn.db.TransactionMode=} mode mode, default to 'readonly'.
- * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
+ * @param {ydn.db.base.TransactionMode=} mode mode, default to 'readonly'.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} completed_event_handler
  */
 ydn.db.con.IStorage.prototype.transaction = function (trFn, store_names, mode, completed_event_handler) {};
 

@@ -111,7 +111,7 @@ var test_2_sql_schema_sniffing = function() {
       infos = result;
       t1_fired = true;
     })
-  }, [], ydn.db.TransactionMode.READ_WRITE);
+  }, [], ydn.db.base.TransactionMode.READ_WRITE);
 
 };
 

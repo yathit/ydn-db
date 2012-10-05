@@ -92,7 +92,7 @@ var test_2_sql_basic = function() {
           assertEquals('tr done', 'a', out);
         });
       });
-    }, [table_name], ydn.db.TransactionMode.READ_WRITE);
+    }, [table_name], ydn.db.base.TransactionMode.READ_WRITE);
 
     var q = db.query(table_name);
     q.select('value');

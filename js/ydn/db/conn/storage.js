@@ -84,7 +84,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @type {boolean}
    */
   this.use_text_store = goog.isDef(options.use_text_store) ?
-    options.use_text_store : ydn.db.ENABLE_DEFAULT_TEXT_STORE;
+    options.use_text_store : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
 
   /**
    * @type {ydn.db.con.IDatabase}
@@ -103,7 +103,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @private
    * @final
    * @type {!Array.<{fnc: Function, scopes: Array.<string>,
-   * mode: ydn.db.TransactionMode, oncompleted: Function}>}
+   * mode: ydn.db.base.TransactionMode, oncompleted: Function}>}
    */
   this.txQueue_ = [];
 
@@ -214,7 +214,7 @@ ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
       this.transaction(function (tx) {
         var d = me.db_.addStoreSchema(tx, store);
         df.chainDeferred(d);
-      }, [], ydn.db.TransactionMode.VERSION_CHANGE);
+      }, [], ydn.db.base.TransactionMode.VERSION_CHANGE);
       return df;
     }
   } else {
@@ -499,8 +499,8 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} completed_event_handler
  * @private
  */
 ydn.db.con.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
@@ -540,7 +540,7 @@ ydn.db.con.Storage.prototype.purgeTxQueue_ = function(e) {
       ' transactions request.');
     var task = this.txQueue_.shift();
     while (task) {
-      task.oncompleted(ydn.db.TransactionEventTypes.ERROR, e);
+      task.oncompleted(ydn.db.base.TransactionEventTypes.ERROR, e);
       task = this.txQueue_.shift();
     }
   }
@@ -562,8 +562,8 @@ ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.TransactionEventTypes, *)=} completed_event_handler
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} completed_event_handler
  * @export
  * @final
  */
@@ -585,9 +585,9 @@ ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode
     (store_names.length > 0 && !goog.isString(store_names[0]))) {
     throw new ydn.error.ArgumentException("storeNames");
   }
-  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.TransactionMode.READ_ONLY;
+  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
 
-  if (mode == ydn.db.TransactionMode.VERSION_CHANGE) {
+  if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {
     this.in_version_change_tx_ = true;
   }
 
@@ -595,7 +595,7 @@ ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode
     if (goog.isFunction(completed_event_handler)) {
       completed_event_handler(type, ev);
     }
-    if (mode == ydn.db.TransactionMode.VERSION_CHANGE) {
+    if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {
       me.in_version_change_tx_ = false;
     }
     me.popTxQueue_();

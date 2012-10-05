@@ -20,8 +20,8 @@
             </extrapaths>
             <options>
                 <arg line='-f "--generate_exports"'/>
-                <arg line='-f "--define=ydn.db.ENABLE_DEFAULT_TEXT_STORE=true"'/>
-                <arg line='-f "--define=ydn.db.ENABLE_ENCRYPTION=true"'/>
+                <arg line='-f "--define=ydn.db.base.ENABLE_DEFAULT_TEXT_STORE=true"'/>
+                <arg line='-f "--define=ydn.db.base.ENABLE_ENCRYPTION=true"'/>
                 <arg line='-f "--source_map_format=V3"'/>
                 <arg line='-f "--create_source_map=${output.fn}.map"'/>
                 <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
@@ -156,8 +156,8 @@
             <ex.opt>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
-                <arg line='-f "--define=ydn.db.ENABLE_DEFAULT_TEXT_STORE=true"'/>
-                <arg line='-f "--define=ydn.db.ENABLE_ENCRYPTION=true"'/>
+                <arg line='-f "--define=ydn.db.base.ENABLE_DEFAULT_TEXT_STORE=true"'/>
+                <arg line='-f "--define=ydn.db.base.ENABLE_ENCRYPTION=true"'/>
             </ex.opt>
         </adv-comp>
         <copy file="${ydn-db.dir}/jsc/ydn.db-min-${ver}.js"

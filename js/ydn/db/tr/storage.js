@@ -125,8 +125,8 @@ ydn.db.tr.Storage.prototype.newTxInstance = function(scope_name) {
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {ydn.db.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.TransactionEventTypes, *)=} oncompleted
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted
  * @param {...} opt_args
  */
 ydn.db.tr.Storage.prototype.run = function (trFn, store_names, opt_mode,
