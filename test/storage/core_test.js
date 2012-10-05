@@ -32,7 +32,7 @@ var tearDown = function() {
 var test_1_idb_basic = function() {
 
   var db_type =  'indexeddb';
-  var options = {preference: [db_type]};
+  var options = {mechanisms: [db_type]};
   var db_name = 'test_core_basic_1';
   var db = new ydn.db.con.Storage(db_name, basic_schema, options);
 
@@ -74,7 +74,7 @@ var test_1_idb_basic = function() {
 var test_2_websql_basic = function() {
 
   var db_type =  'websql';
-  var options = {preference: [db_type]};
+  var options = {mechanisms: [db_type]};
   var db_name = 'test_core_basic_1';
   var db = new ydn.db.con.Storage(db_name, basic_schema, options);
 
@@ -122,7 +122,7 @@ var test_2_websql_basic = function() {
 var test_3_local_basic = function() {
 
   var db_type =  'localstorage';
-  var options = {preference: [db_type]};
+  var options = {mechanisms: [db_type]};
   var db_name = 'test_core_basic_1';
   var db = new ydn.db.con.Storage(db_name, basic_schema, options);
 

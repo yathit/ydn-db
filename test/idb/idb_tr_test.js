@@ -28,7 +28,7 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var options = {preference: ['indexeddb']};
+var options = {mechanisms: ['indexeddb']};
 
 
 var test_2_idb_basic = function() {

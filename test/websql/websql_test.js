@@ -29,7 +29,7 @@ var tearDown = function() {
 };
 
 var db_name = 'test2';
-var options = {preference: ['websql']};
+var options = {mechanisms: ['websql']};
 
 var test_0_put = function() {
 

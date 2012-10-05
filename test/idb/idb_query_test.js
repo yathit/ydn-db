@@ -38,7 +38,7 @@ var tearDown = function() {
 };
 
 var db_name = 'test_q_13';
-var options = {preference: ['indexeddb']};
+var options = {mechanisms: ['indexeddb']};
 
 
 var test_1_query_constructor = function() {

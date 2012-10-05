@@ -22,7 +22,7 @@ var setUp = function() {
   this.db_name = 'test_db' + Math.random();
   this.store_name = 'st';
   this.store_schema = {name: this.store_name, keyPath: 'id'};
-  this.options = {preference: ['indexeddb']};
+  this.options = {mechanisms: ['indexeddb']};
 };
 
 var deleteDb = function() {

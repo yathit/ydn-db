@@ -33,7 +33,7 @@ var tearDown = function() {
 var test_1_basic = function() {
 
   var db_type =  'indexeddb';
-  var options = {preference: [db_type]};
+  var options = {mechanisms: [db_type]};
   var db_name = 'test_tr_basic_1';
   var db = new ydn.db.tr.Storage(db_name, basic_schema, options);
 

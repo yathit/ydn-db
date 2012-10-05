@@ -28,7 +28,7 @@ var tearDown = function() {
 };
 
 var db_name = 'test124';
-var options = {preference: ['indexeddb']};
+var options = {mechanisms: ['indexeddb']};
 
 
 var test_10_put = function() {

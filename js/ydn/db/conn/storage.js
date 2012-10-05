@@ -71,7 +71,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @final
    * @type {!Array.<string>}
    */
-  this.preference = options.preference || ydn.db.con.Storage.PREFERENCE;
+  this.mechanisms = options.Mechanisms || ydn.db.con.Storage.PREFERENCE;
 
   /**
    * @final
@@ -311,7 +311,7 @@ ydn.db.con.Storage.prototype.initDatabase = function() {
       db = this.createDbInstance(ydn.db.con.WebSql.TYPE);
     } else {
       // go according to ordering
-      var preference = this.preference;
+      var preference = this.mechanisms;
       for (var i = 0; i < preference.length; i++) {
         var db_type = preference[i].toLowerCase();
         if (db_type == ydn.db.con.IndexedDb.TYPE && ydn.db.con.IndexedDb.isSupported()) { // run-time detection

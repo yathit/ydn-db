@@ -241,7 +241,7 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
     'keyPath': this.keyPath,
     "autoIncremenent": this.autoIncremenent,
     'type': this.type,
-    'indexes': indexes
+    'Indexes': indexes
   };
 };
 
@@ -253,7 +253,7 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
  */
 ydn.db.StoreSchema.fromJSON = function(json) {
   var indexes = [];
-  var indexes_json = json.indexes || [];
+  var indexes_json = json.Indexes || [];
   if (goog.isArray(indexes_json)) {
     for (var i = 0; i < indexes_json.length; i++) {
       indexes.push(ydn.db.IndexSchema.fromJSON(indexes_json[i]));
@@ -607,7 +607,7 @@ ydn.db.DatabaseSchema.prototype.toJSON = function() {
 
   return {
     'version': this.version,
-    'stores': stores};
+    'Stores': stores};
 };
 
 
@@ -635,7 +635,7 @@ ydn.db.DatabaseSchema.prototype.getStoreNames = function() {
  */
 ydn.db.DatabaseSchema.fromJSON = function(json) {
   var stores = [];
-  var stores_json = json.stores || [];
+  var stores_json = json.Stores || [];
   for (var i = 0; i < stores_json.length; i++) {
     stores.push(ydn.db.StoreSchema.fromJSON(stores_json[i]));
   }

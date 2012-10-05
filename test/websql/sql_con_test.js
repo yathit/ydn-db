@@ -26,7 +26,7 @@ var tearDown = function() {
 };
 
 var options = {
-  preference: ['websql'],
+  mechanisms: ['websql'],
   use_text_store: false
 };
 
