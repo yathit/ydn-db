@@ -803,6 +803,22 @@ ydn.db.DatabaseSchema.prototype.hasStore = function(name) {
 
 /**
  *
+ * @param {ydn.db.DatabaseSchema} schema
+ * @return {boolean}
+ */
+ydn.db.DatabaseSchema.prototype.similar = function(schema) {
+  if (!schema || this.stores.length != schema.stores.length) {
+    return false;
+  }
+  return goog.array.every(this.stores, function(x) {
+    var store = schema.getStore(x.name);
+    return !!store && store.similar(x);
+  })
+};
+
+
+/**
+ *
  * @return {!Array.<string>} Return list of store names.
  */
 ydn.db.DatabaseSchema.prototype.listStores = function() {

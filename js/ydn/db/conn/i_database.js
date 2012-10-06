@@ -69,3 +69,11 @@ ydn.db.con.IDatabase.prototype.doTransaction = goog.abstractMethod;
  * @return {!goog.async.Deferred}
  */
 ydn.db.con.IDatabase.prototype.addStoreSchema = goog.abstractMethod;
+
+
+
+/**
+ * Get schema from the database.
+ * @param {function(ydn.db.DatabaseSchema)} callback
+ */
+ydn.db.con.IDatabase.prototype.getSchema = goog.abstractMethod;

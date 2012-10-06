@@ -161,9 +161,19 @@ ydn.db.con.Storage.prototype.getConfig = function() {
 
 /**
  * Get current schema.
+ * @param {function(ydn.db.DatabaseSchema)=} callback
  * @return {DatabaseSchema}
  */
-ydn.db.con.Storage.prototype.getSchema = function() {
+ydn.db.con.Storage.prototype.getSchema = function(callback) {
+  if (goog.isDef(callback)) {
+    if (this.db_) {
+      this.deferredDb_.addCallback(function(db) {
+        db.getSchema(callback);
+      });
+    } else {
+      callback(null);
+    }
+  }
   return this.schema ? /** @type {!DatabaseSchema} */ (this.schema.toJSON()) : null;
 };
 

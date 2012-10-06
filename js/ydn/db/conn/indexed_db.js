@@ -324,6 +324,53 @@ ydn.db.con.IndexedDb.prototype.hasStore_ = function(db, store_name) {
 
 
 /**
+ *
+ * @param {function(ydn.db.DatabaseSchema)} callback
+ * @param {IDBTransaction=} trans
+ * @param {IDBDatabase=} db
+ */
+ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
+  db = db || this.idx_db_;
+  var mode = ydn.db.base.TransactionMode.READ_ONLY;
+  if (!goog.isDef(trans)) {
+    var names = [];
+    for (var i = db.objectStoreNames.length - 1; i >= 0; i--) {
+      names[i] = db.objectStoreNames[i];
+    }
+    trans = db.transaction(names, /** @type {number} */ (mode));
+  } else {
+    db = trans.db;
+  }
+
+  /** @type {DOMStringList} */
+  var objectStoreNames = /** @type {DOMStringList} */ (db.objectStoreNames);
+
+  var schema = new ydn.db.DatabaseSchema(/** @type {number} */ (db.version));
+  var n = objectStoreNames.length;
+  for (var i = 0; i < n; i++) {
+    /**
+     * @type {IDBObjectStore}
+     */
+    var objStore = trans.objectStore(objectStoreNames[i]);
+    var indexes = [];
+    for (var j = objStore.indexNames.length - 1; j >= 0; j--) {
+      /**
+       * @type {IDBIndex}
+       */
+      var index = objStore.index(objStore.indexNames[j]);
+      indexes[j] = new ydn.db.IndexSchema(index.keyPath, undefined,
+          index.unique, index.multiEntry, index.name);
+    }
+    var store = new ydn.db.StoreSchema(objStore.name, objStore.keyPath,
+        objStore.autoIncrement, undefined, indexes);
+    schema.addStore(store);
+  }
+
+  callback(schema);
+};
+
+
+/**
  * Validate schema. If schema is not set, this will sniff the schema.
  * @protected
  * @param {IDBDatabase} db

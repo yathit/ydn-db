@@ -177,3 +177,24 @@ ydn.db.con.SimpleStorage.prototype.addStoreSchema = function(tx, store_schema) {
   return goog.async.Deferred.succeed(true);
 };
 
+
+/**
+ * Get schema from the database.
+ * @param {function(ydn.db.DatabaseSchema)} callback
+ */
+ydn.db.con.SimpleStorage.prototype.getSchema = function(callback) {
+  var schema = new ydn.db.DatabaseSchema();
+  var re = new RegExp('^_database_' + this.dbname + '-([^-]+)-');
+  for (var key in this.cache_) {
+    if (this.cache_.hasOwnProperty(key)) {
+      var m = key.match(re);
+      if (m) {
+        var store_name = m[0];
+        if (!schema.hasStore(store_name)) {
+          schema.addStore(new ydn.db.StoreSchema(store_name));
+        }
+      }
+    }
+  }
+  callback(schema);
+};

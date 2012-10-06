@@ -107,7 +107,7 @@ var test_2_sql_schema_sniffing = function() {
 
   db.transaction(function(t) {
     console.log('in tx')
-    db.db_.table_info_(t, function(result) {
+    db.db_.getSchema(t, function(result) {
       infos = result;
       t1_fired = true;
     })

@@ -30,7 +30,48 @@ var tearDown = function() {
 };
 
 
-var test_1_idb_basic = function() {
+/**
+ *
+ * @param {ydn.db.Storage} db
+ */
+var schema_test = function(db) {
+
+  var schema = ydn.db.DatabaseSchema.fromJSON(db.getSchema());
+
+  var t1_fired = false;
+  var result;
+
+  db.getSchema(function(int_schema) {
+    t1_fired = true;
+    result = int_schema;
+  });
+
+
+  waitForCondition(
+      // Condition
+      function() { return t1_fired; },
+      // Continuation
+      function() {
+        console.log([schema, result]);
+        assertTrue(schema.similar(result));
+        reachedFinalContinuation = true;
+
+      },
+      100, // interval
+      2000); // maxTimeout
+
+};
+
+var test_11_schema_idb = function() {
+  var db_type =  'indexeddb';
+  var options = {Mechanisms: [db_type]};
+  var db_name = 'test_11_schema_idb_1';
+  var db = new ydn.db.con.Storage(db_name, basic_schema, options);
+  schema_test(db);
+};
+
+
+var test_21_idb_basic = function() {
 
   var db_type =  'indexeddb';
   var options = {Mechanisms: [db_type]};
@@ -72,7 +113,7 @@ var test_1_idb_basic = function() {
 
 
 
-var test_2_websql_basic = function() {
+var test_22_websql_basic = function() {
 
   var db_type =  'websql';
   var options = {Mechanisms: [db_type]};
@@ -120,7 +161,7 @@ var test_2_websql_basic = function() {
 
 
 
-var test_3_local_basic = function() {
+var test_23_local_basic = function() {
 
   var db_type =  'localstorage';
   var options = {Mechanisms: [db_type]};

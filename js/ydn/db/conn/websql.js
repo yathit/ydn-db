@@ -85,7 +85,7 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
     var use_version_change_request = true;
 
     //if (!init_migrated) {
-      me.migrate_(use_version_change_request); // yeah, to make sure.
+      me.doVersionChange_(use_version_change_request); // yeah, to make sure.
     //}
   };
 
@@ -138,7 +138,7 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
       // in case previous database fail, but user granted in next refresh.
       // In this case, empty database of the request version exist,
       // but no tables. gagarrrrrrr
-      me.migrate_();
+      me.doVersionChange_();
       // Nice thing is migrate_ is idempotent :-D
       // only just ugly calling every time, and most case, will be unnecessary.
       // however this do not effect performance
@@ -150,7 +150,7 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
       // this is because, when user decided to allow the database,
       // there is no callback to create tables. In IndexedDB API, there is
       // onupgradeneeded callback in such case.
-      me.migrate_();
+      me.doVersionChange_();
       // interesting fact is, transaction object do not execute SQL,
       // if user is not allow yet or denied.
       // in that case, our migration go limbo.
@@ -323,11 +323,24 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
 /**
  * From Sqlite master table, reflect table information in the form of schema.
- * @param {SQLTransaction} trans
- * @param {function(Object.<!StoreSchema>)} callback
- * @private
+ * @param {function(ydn.db.DatabaseSchema)} callback
+ * @param {SQLTransaction=} trans
  */
-ydn.db.con.WebSql.prototype.table_info_ = function(trans, callback) {
+ydn.db.con.WebSql.prototype.getSchema = function(callback, trans) {
+
+  if (!trans) {
+    var me = this;
+    this.doTransaction(function(tx) {
+          me.getSchema(callback, tx);
+        }
+    , ['sqlite_master'], ydn.db.base.TransactionMode.READ_ONLY,
+        goog.functions.TRUE);
+  }
+
+  var version = (this.sql_db_ && this.sql_db_.version) ?
+      parseInt(this.sql_db_.version, 10) : undefined;
+  version = isNaN(version) ? undefined : version;
+  var out = new ydn.db.DatabaseSchema(version);
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -335,7 +348,6 @@ ydn.db.con.WebSql.prototype.table_info_ = function(trans, callback) {
    */
   var success_callback = function (transaction, results) {
 
-    var out = {};
     for (var i = 0; i < results.rows.length; i++) {
 
       var info = /** @type {SqliteTableInfo} */ (results.rows.item(i));
@@ -384,7 +396,7 @@ ydn.db.con.WebSql.prototype.table_info_ = function(trans, callback) {
         }
 
         out[info.name] = new ydn.db.StoreSchema(info.name, key_name, autoIncrement,
-          key_type, indexes);
+            key_type, indexes);
         //console.log([info.name, str, out[info.name]]);
       }
     }
@@ -410,7 +422,7 @@ ydn.db.con.WebSql.prototype.table_info_ = function(trans, callback) {
   // Invoking this will result error of:
   //   "could not prepare statement (23 not authorized)"
 
-  var sql = 'select * from sqlite_master';
+  var sql = 'SELECT * FROM sqlite_master';
 
   trans.executeSql(sql, [], success_callback, error_callback);
 };
@@ -426,28 +438,28 @@ ydn.db.con.WebSql.prototype.table_info_ = function(trans, callback) {
 ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
                                                       callback) {
   var me = this;
-  this.table_info_(trans, function(table_infos) {
+  this.getSchema(function(table_infos) {
     me.update_store_with_info_(trans, store_schema,
       callback, table_infos);
-  });
+  }, trans);
 };
 
 
 /**
  *
  * @param {SQLTransaction} trans
- * @param {ydn.db.StoreSchema} store_schema
+ * @param {ydn.db.StoreSchema} store_schema table schema to be upgrade
  * @param {Function} callback
- * @param {Object.<!ydn.db.StoreSchema>} table_infos
+ * @param {ydn.db.StoreSchema|undefined} table_info table information in the
+ * existing database.
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_schema,
-                                                      callback, table_infos) {
+                                                      callback, table_info) {
 
   var me = this;
 
   var sql = this.prepareCreateTable_(store_schema);
-  var table_info = table_infos[store_schema.name];
 
   if (ydn.db.con.WebSql.DEBUG) {
     window.console.log([sql, table_info]);
@@ -481,6 +493,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
       callback(true);
     } else {
       me.logger.finest(store_schema.name + ' exist, but different schema.');
+      // TODO: use ALTER
       trans.executeSql(sql, [], success_callback, error_callback);
     }
   } else {
@@ -495,7 +508,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
  * @private
  * @param {boolean=} is_version_change
  */
-ydn.db.con.WebSql.prototype.migrate_ = function (is_version_change) {
+ydn.db.con.WebSql.prototype.doVersionChange_ = function (is_version_change) {
 
   var action = is_version_change ? 'changing version' : 'setting version';
   this.logger.finest(this.dbname + ': ' + action + ' from ' +
@@ -508,6 +521,10 @@ ydn.db.con.WebSql.prototype.migrate_ = function (is_version_change) {
   var mode = ydn.db.base.TransactionMode.READ_WRITE;
   // yes READ_WRITE mode can create table and more robust. :-D
 
+  /**
+   *
+   * @type {ydn.db.con.WebSql}
+   */
   var me = this;
 
   var updated_count = 0;
@@ -534,16 +551,17 @@ ydn.db.con.WebSql.prototype.migrate_ = function (is_version_change) {
   this.doTransaction(function (t) {
 
     // sniff current table info in the database.
-    me.table_info_(t, function(table_infos) {
+    me.getSchema(function(table_infos) {
 
       for (var i = 0; i < me.schema.stores.length; i++) {
         var counter = function() {
           updated_count++;
         };
-        me.update_store_with_info_(t, me.schema.stores[i], counter, table_infos);
+        var table_info = table_infos.getStore(me.schema.stores[i].name);
+        me.update_store_with_info_(t, me.schema.stores[i], counter, table_info);
       }
 
-    });
+    }, t);
 
   }, [], mode, oncompleted);
 
