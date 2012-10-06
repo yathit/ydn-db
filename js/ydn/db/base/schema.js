@@ -394,7 +394,11 @@ ydn.db.StoreSchema.fromJSON = function(json) {
   var indexes_json = json.Indexes || [];
   if (goog.isArray(indexes_json)) {
     for (var i = 0; i < indexes_json.length; i++) {
-      indexes.push(ydn.db.IndexSchema.fromJSON(indexes_json[i]));
+      var index = ydn.db.IndexSchema.fromJSON(indexes_json[i]);
+      if (goog.isDef(index.keyPath) && index.keyPath === json.keyPath) {
+        continue; // key do not need indexing.
+      }
+      indexes.push(index);
     }
   }
   return new ydn.db.StoreSchema(json.name, json.keyPath,

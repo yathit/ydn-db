@@ -20,7 +20,7 @@ var setUp = function() {
   //ydn.db.con.WebSql.DEBUG = true;
 
 	basic_schema = new ydn.db.DatabaseSchema(1);
-  var index = new ydn.db.IndexSchema('id');
+  var index = new ydn.db.IndexSchema('tag');
   var store = new ydn.db.StoreSchema(table_name, 'id', false, undefined, [index]);
 	basic_schema.addStore(store);
 };
@@ -65,7 +65,15 @@ var schema_test = function(db) {
 var test_11_schema_idb = function() {
   var db_type =  'indexeddb';
   var options = {Mechanisms: [db_type]};
-  var db_name = 'test_11_schema_idb_1';
+  var db_name = 'test_11_schema_idb_4';
+  var db = new ydn.db.con.Storage(db_name, basic_schema, options);
+  schema_test(db);
+};
+
+var test_12_schema_sql = function() {
+  var db_type =  'websql';
+  var options = {Mechanisms: [db_type]};
+  var db_name = 'test_12_schema_sql_2';
   var db = new ydn.db.con.Storage(db_name, basic_schema, options);
   schema_test(db);
 };

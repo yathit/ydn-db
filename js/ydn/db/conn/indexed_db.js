@@ -488,7 +488,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
     for (var j = 0; j < store_schema.indexes.length; j++) {
       var index = store_schema.indexes[j];
       if (!indexNames.contains(index.name)) {
-        store.createIndex(index.name, index.name, {unique: index.unique});
+        store.createIndex(index.name, index.keyPath, {unique: index.unique});
         created++;
       }
     }

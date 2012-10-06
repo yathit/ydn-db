@@ -335,6 +335,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans) {
         }
     , ['sqlite_master'], ydn.db.base.TransactionMode.READ_ONLY,
         goog.functions.TRUE);
+    return;
   }
 
   var version = (this.sql_db_ && this.sql_db_.version) ?
@@ -364,6 +365,9 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans) {
 //      tbl_name: "st1"
 //      type: "index"
 
+      if (info.name == '__WebKitDatabaseInfoTable__') {
+        continue;
+      }
       if (info.type == 'table') {
 
         var str = info.sql.substr(info.sql.indexOf('('), info.sql.lastIndexOf(')'));
@@ -387,7 +391,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans) {
             if (fields.indexOf('AUTOINCREMENT') != -1) {
               autoIncrement = true;
             }
-          } else if (fields[0] != ydn.db.base.DEFAULT_BLOB_COLUMN) {
+          } else if (name != ydn.db.base.DEFAULT_BLOB_COLUMN) {
             var unique = fields[2] == 'UNIQUE';
             var index = new ydn.db.IndexSchema(name, type, unique);
             indexes.push(index);
@@ -395,8 +399,8 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans) {
 
         }
 
-        out[info.name] = new ydn.db.StoreSchema(info.name, key_name, autoIncrement,
-            key_type, indexes);
+        out.addStore(new ydn.db.StoreSchema(info.name, key_name, autoIncrement,
+            key_type, indexes));
         //console.log([info.name, str, out[info.name]]);
       }
     }
