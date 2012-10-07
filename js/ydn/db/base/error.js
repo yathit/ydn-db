@@ -204,7 +204,7 @@ ydn.db.SQLError = function(e, opt_msg) {
   if (opt_msg) {
     this.message = String(opt_msg);
   }
-  this.message += ' :' + e.message;
+  this.message += ' :' + e.message + ' [' + e.code + ']';
 };
 goog.inherits(ydn.db.SQLError, Error);
 

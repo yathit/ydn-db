@@ -1,7 +1,7 @@
 
 //ydn.db.log('ydn.db', 100);
 
-var db_name_put = "qunit_test_6";
+var db_name_put = "qunit_test_7";
 var store_inline = "ts";    // in-line key store
 var store_outline = "ts2"; // out-of-line key store
 var store_inline_auto = "ts3"; // in-line key + auto

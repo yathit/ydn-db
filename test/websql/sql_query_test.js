@@ -7,7 +7,7 @@ goog.require('goog.testing.PropertyReplacer');
 
 
 var reachedFinalContinuation, basic_schema;
-var table_name = 't1';
+var table_name = 'sql_query_5';
 var stubs;
 
 var setUp = function() {
@@ -16,13 +16,13 @@ var setUp = function() {
   goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
+  //goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
 
   goog.userAgent.product.ASSUME_SAFARI = true;
 
   basic_schema = new ydn.db.DatabaseSchema(1);
   var index = new ydn.db.IndexSchema('id');
-  var index2 = new ydn.db.IndexSchema('value', ydn.db.DataType.FLOAT, false);
+  var index2 = new ydn.db.IndexSchema('value', ydn.db.DataType.NUMERIC, false);
   var store = new ydn.db.StoreSchema(table_name, 'id', false, undefined, [index, index2]);
 	basic_schema.addStore(store);
 };

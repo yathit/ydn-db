@@ -18,19 +18,12 @@ goog.require('ydn.db.Key');
  * @param {boolean=} opt_unique unique.
  * @param {ydn.db.DataType=} opt_type to be determined.
  * @param {boolean=} multiEntry
- * @param {string=} name store (table) name. If specified, must be same as
- * keyPath
+ * @param {string=} name index name.
  * @constructor
  */
 ydn.db.IndexSchema = function(keyPath, opt_type, opt_unique, multiEntry, name) {
 
-  if (goog.isDef(name) && goog.isDef(keyPath) && name != keyPath) {
-    // Sqlite database TABLE column name is 'name' and also 'keyPath'.
-    // seperate naming is only possible in IndexedDB.
-    // basically I don't see name should be different from keyPath.
-    throw new ydn.error.NotSupportedException(
-      'index name and keyPath must be same: ' + name + ' != ' + keyPath);
-  } else if (!goog.isDef(keyPath) && goog.isDef(name)) {
+  if (!goog.isDef(keyPath) && goog.isDef(name)) {
     keyPath = name;
   }
 

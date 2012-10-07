@@ -121,9 +121,19 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
       this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
         size);
     } else {
-      // this works in Chrome and OS X Safari
+      try {
+      // this works in Chrome and OS X Safari even if the specified
+      // database version does not exist. Other browsers throw INVALID_STATE_ERR
       this.sql_db_ = goog.global.openDatabase(this.dbname, version, description,
         size, creationCallback);
+      } catch (e) {
+        if (e.name == 'INVALID_STATE_ERR') {
+          this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
+              size);
+        } else {
+          throw e;
+        }
+      }
     }
 
     if (this.sql_db_.version === version) {
@@ -179,7 +189,7 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
 /**
  * @define {boolean}
  */
-ydn.db.con.WebSql.GENTLE_OPENING = true;
+ydn.db.con.WebSql.GENTLE_OPENING = false;
 
 
 /**
@@ -265,7 +275,7 @@ ydn.db.con.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.con.Web
  * the table.
  * @private
  * @param {ydn.db.StoreSchema} table_schema name of table in the schema.
- * @return {string} SQL statement for creating the table.
+ * @return {!Array.<string>} SQL statement for creating the table.
  */
 ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
@@ -296,28 +306,37 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   }
 
   // every table must has a default field to store schemaless fields
-  if (!table_schema.hasIndex(ydn.db.base.DEFAULT_BLOB_COLUMN)) {
-    table_schema.addIndex(ydn.db.base.DEFAULT_BLOB_COLUMN, false, ydn.db.DataType.BLOB);
-  }
+  sql += ' ,' +  ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' + ydn.db.DataType.BLOB;
 
+  var sqls = [];
   var sep = ', ';
   for (var i = 0; i < table_schema.indexes.length; i++) {
     /**
      * @type {ydn.db.IndexSchema}
      */
     var index = table_schema.indexes[i];
-    if (index.name == table_schema.keyPath) {
+    var unique = index.unique ? ' UNIQUE ' : ' ';
+
+    // http://sqlite.org/lang_createindex.html
+    if (index.type != ydn.db.DataType.BLOB) {
+      var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS '  +
+          goog.string.quote(index.name) +
+          ' ON ' + table_schema.getQuotedName() + ' (' + id_column_name + ')';
+      sqls.push(idx_sql);
+    }
+
+    if (index.keyPath == table_schema.keyPath) {
       continue;
     }
-    var primary = index.unique ? ' UNIQUE ' : ' ';
 
-    sql += sep + goog.string.quote(index.name) + ' ' + index.type + primary;
+    sql += sep + goog.string.quote(index.keyPath) + ' ' + index.getType() + unique;
 
   }
 
   sql += ');';
+  sqls.unshift(sql);
 
-  return sql;
+  return sqls;
 };
 
 
@@ -352,6 +371,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans) {
     for (var i = 0; i < results.rows.length; i++) {
 
       var info = /** @type {SqliteTableInfo} */ (results.rows.item(i));
+      //console.log(info);
 
 //      name: "st1"
 //      rootpage: 5
@@ -394,14 +414,16 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans) {
           } else if (name != ydn.db.base.DEFAULT_BLOB_COLUMN) {
             var unique = fields[2] == 'UNIQUE';
             var index = new ydn.db.IndexSchema(name, type, unique);
+            //console.log(index);
             indexes.push(index);
           }
 
         }
 
-        out.addStore(new ydn.db.StoreSchema(info.name, key_name, autoIncrement,
-            key_type, indexes));
-        //console.log([info.name, str, out[info.name]]);
+        var store = new ydn.db.StoreSchema(info.name, key_name, autoIncrement,
+            key_type, indexes);
+        out.addStore(store);
+        //console.log([info, store]);
       }
     }
 //    if (ydn.db.con.WebSql.DEBUG) {
@@ -463,45 +485,58 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
 
   var me = this;
 
-  var sql = this.prepareCreateTable_(store_schema);
+  var sqls = this.prepareCreateTable_(store_schema);
 
   if (ydn.db.con.WebSql.DEBUG) {
-    window.console.log([sql, table_info]);
+    window.console.log([sqls, table_info]);
   }
 
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var success_callback = function (transaction, results) {
-    me.logger.finest(me.dbname + ' created table: ' + store_schema.name);
-    callback(true);
+  var count = 0;
+
+  var exe_sql = function (sql) {
+    /**
+     * @param {SQLTransaction} transaction transaction.
+     * @param {SQLResultSet} results results.
+     */
+    var success_callback = function (transaction, results) {
+      count++;
+      if (count == sqls.length) {
+        callback(true);
+      }
+    };
+
+    /**
+     * @param {SQLTransaction} tr transaction.
+     * @param {SQLError} error error.
+     */
+    var error_callback = function (tr, error) {
+      if (ydn.db.con.WebSql.DEBUG) {
+        window.console.log([tr, error]);
+      }
+      throw new ydn.db.SQLError(error, 'Error creating table: ' +
+          store_schema.name + ' ' + sql);
+    };
+
+    trans.executeSql(sql, [], success_callback, error_callback);
   };
 
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function (tr, error) {
-    if (ydn.db.con.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    throw new ydn.db.SQLError(error, 'Error creating table: ' +
-      store_schema.name + ' "' + sql + '"');
-  };
-
+  var action = 'Create';
   if (table_info) {
     // table already exists.
     if (store_schema.similar(table_info)) {
       me.logger.finest(store_schema.name + ' exists.');
       callback(true);
+      return;
     } else {
-      me.logger.finest(store_schema.name + ' exist, but different schema.');
+      action = 'Modify';
+
       // TODO: use ALTER
-      trans.executeSql(sql, [], success_callback, error_callback);
     }
-  } else {
-    trans.executeSql(sql, [], success_callback, error_callback);
+  }
+
+  me.logger.finest(action + ' table: ' + store_schema.name + ': ' + sqls.join(';'));
+  for (var i = 0; i < sqls.length; i++) {
+    exe_sql(sqls[i]);
   }
 
 };

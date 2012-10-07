@@ -7,7 +7,7 @@ goog.require('goog.testing.PropertyReplacer');
 
 
 var reachedFinalContinuation;
-var table_name = 't1';
+var table_name = 'st1';
 var stubs;
 
 var setUp = function() {
@@ -39,7 +39,6 @@ var assert_similar_schema = function(schema, schema_json) {
   console.log(['testing ', schema, schema_json]);
   var stores = schema_json.Stores || schema_json.stores;
   assertEquals('# stores', schema.stores.length, stores.length);
-  assertEquals('# stores', schema.version, schema_json.version);
   for (var i = 0; i < schema.stores.length; i++) {
     var store = schema.stores[i];
     var store_json = stores[i];
@@ -73,32 +72,25 @@ var test_2_sql_schema_sniffing = function() {
   var index = new ydn.db.IndexSchema('id.$t', ydn.db.DataType.TEXT, true);
   var store = new ydn.db.StoreSchema(table_name, 'id', false, ydn.db.DataType.NUMERIC, [index]);
   schema.addStore(store);
+  console.log(schema);
 
-  var db_name = 'test_2_sql_schema_sniffing_2';
+  var db_name = 'test_2_sql_schema_sniffing_8';
   var db = new ydn.db.Storage(db_name, schema, options);
 
 
   var schema_json = db.getSchema();
 
-  assert_similar_schema(schema, schema_json);
-
 
   var t1_fired = false;
-  var infos;
+  var sniff_schema;
 
   waitForCondition(
       // Condition
       function() { return t1_fired; },
       // Continuation
       function() {
-        var stores = [];
-        for (var key in infos) {
-          if (schema.hasStore(key)) {
-            stores.push(infos[key]);
-          }
-        }
-        var sniff_schema = new ydn.db.DatabaseSchema(1, stores);
-        assert_similar_schema(schema, sniff_schema);
+        console.log([schema, sniff_schema]);
+        assertTrue(schema.similar(sniff_schema));
         reachedFinalContinuation = true;
       },
       100, // interval
@@ -107,10 +99,10 @@ var test_2_sql_schema_sniffing = function() {
 
   db.transaction(function(t) {
     console.log('in tx')
-    db.db_.getSchema(t, function(result) {
-      infos = result;
+    db.db_.getSchema(function(result) {
+      sniff_schema = result;
       t1_fired = true;
-    })
+    }, t)
   }, [], ydn.db.base.TransactionMode.READ_WRITE);
 
 };

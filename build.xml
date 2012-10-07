@@ -3,7 +3,7 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
-    <property name="ver" value="0.11.1"/>
+    <property name="ver" value="0.11.2"/>
     <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <property name="output.fn" value="${ydn-db.dir}/jsc/dev-ydn.db-min-${ver}.js"/>

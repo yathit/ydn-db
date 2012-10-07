@@ -333,7 +333,7 @@ var test_42_autoincreasement_offline = function () {
 var test_43_autoincreasement_inline = function () {
   var store_name = 'demoOS';
   var db_name = 'test_43_3';
-  var store_schema = new ydn.db.StoreSchema(store_name, 'value', true, ydn.db.DataType.NUMERIC);
+  var store_schema = new ydn.db.StoreSchema(store_name, 'value', true, ydn.db.DataType.INTEGER);
   var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
