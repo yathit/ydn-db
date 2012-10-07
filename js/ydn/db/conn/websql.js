@@ -128,6 +128,7 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
         size, creationCallback);
       } catch (e) {
         if (e.name == 'INVALID_STATE_ERR') {
+          // fail back to gentle opening.
           this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
               size);
         } else {
@@ -465,8 +466,9 @@ ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
                                                       callback) {
   var me = this;
   this.getSchema(function(table_infos) {
+    var table_info = table_infos.getStore(store_schema.name);
     me.update_store_with_info_(trans, store_schema,
-      callback, table_infos);
+      callback, table_info);
   }, trans);
 };
 
