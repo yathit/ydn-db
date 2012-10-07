@@ -31,10 +31,9 @@ goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
     ydn.db.Storage.prototype.fetch);
 
 goog.exportSymbol('ydn.db.KeyRange', ydn.db.KeyRange );
-goog.exportSymbol('ydn.db.KeyRange.only', ydn.db.KeyRange.only);
-goog.exportSymbol('ydn.db.KeyRange.bound', ydn.db.KeyRange.bound);
-goog.exportSymbol('ydn.db.KeyRange.upperBound', ydn.db.KeyRange.upperBound);
-goog.exportSymbol('ydn.db.KeyRange.lowerBound', ydn.db.KeyRange.lowerBound);
-goog.exportSymbol('ydn.db.KeyRange.starts', ydn.db.KeyRange.starts);
-
+goog.exportProperty(ydn.db.KeyRange, 'upperBound', ydn.db.KeyRange.upperBound);
+goog.exportProperty(ydn.db.KeyRange, 'lowerBound', ydn.db.KeyRange.lowerBound);
+goog.exportProperty(ydn.db.KeyRange, 'bound', ydn.db.KeyRange.bound);
+goog.exportProperty(ydn.db.KeyRange, 'only', ydn.db.KeyRange.only);
+goog.exportProperty(ydn.db.KeyRange, 'starts', ydn.db.KeyRange.starts);
 

@@ -29,4 +29,27 @@ StorageOptions.prototype.size;
  */
 StorageOptions.prototype.Mechanisms;
 
+/**
+ * @constructor
+ */
+function KeyRangeJson() {}
 
+/**
+ * @type {*}
+ */
+KeyRangeJson.prototype.lower;
+
+/**
+ * @type {*}
+ */
+KeyRangeJson.prototype.lowerOpen;
+
+/**
+ * @type {*}
+ */
+KeyRangeJson.prototype.upper;
+
+/**
+ * @type {*}
+ */
+KeyRangeJson.prototype.upperOpen;

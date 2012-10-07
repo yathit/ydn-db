@@ -58,7 +58,7 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {string=} direction cursor direction.
- * @param {(!ydn.db.KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
+ * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
     * keyRange configuration in json or native format. Alternatively key range
  * constructor parameters can be given
  * @param {(string|number)=} upper
@@ -128,16 +128,15 @@ ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
   if (!(q instanceof ydn.db.Query)) {
     throw new ydn.error.ArgumentException();
   }
-  if (goog.DEBUG) {
-    var store = this.schema.getStore(q.store_name);
-    if (!store) {
-      throw new ydn.error.ArgumentException(q.store_name +
-          ' not exists.');
-    }
-    if (goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
-      throw new ydn.error.ArgumentException('Index: ' + q.index +
-          ' not exists in store: ' + q.store_name);
-    }
+
+  var store = this.schema.getStore(q.store_name);
+  if (!store) {
+    throw new ydn.error.ArgumentException(q.store_name +
+        ' not exists.');
+  }
+  if (goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
+    throw new ydn.error.ArgumentException('Index: ' + q.index +
+        ' not exists in store: ' + q.store_name);
   }
 
   this.execute(function (executor) {

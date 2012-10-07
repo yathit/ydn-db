@@ -6,7 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-goog.provide('ydn.db.KeyRangeJson');
+
 goog.provide('ydn.db.IDBKeyRange');
 goog.provide('ydn.db.KeyRange');
 
@@ -16,10 +16,10 @@ goog.provide('ydn.db.KeyRange');
  * @constructor
  */
 ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
-  this.lower = lower;
-  this.upper = upper;
-  this.lowerOpen = !!lowerOpen;
-  this.upperOpen = !!upperOpen;
+  this['lower'] = lower;
+  this['upper']  = upper;
+  this['lowerOpen']  = !!lowerOpen;
+  this['upperOpen']  = !!upperOpen;
 };
 
 
@@ -73,24 +73,23 @@ ydn.db.KeyRange.starts = function (value) {
 
 /**
  *
- * @param {ydn.db.IDBKeyRange|ydn.db.KeyRange} keyRange IDBKeyRange.
- * @return {!Object} IDBKeyRange in JSON format.
+ * @param {ydn.db.IDBKeyRange|ydn.db.KeyRange|KeyRangeJson} keyRange IDBKeyRange.
+ * @return {!KeyRangeJson} IDBKeyRange in JSON format.
  */
 ydn.db.KeyRange.toJSON = function(keyRange) {
-  if (!keyRange) {
-    return {};
-  }
-  return {
+  keyRange = keyRange || /** @type {KeyRangeJson} */ ({});
+  var out = {
     'lower': keyRange['lower'],
     'upper': keyRange['upper'],
     'lowerOpen': keyRange['lowerOpen'],
     'upperOpen': keyRange['upperOpen']
-  }
+  };
+  return /** @type {!KeyRangeJson} */ (out);
 };
 
 
 /**
- * @param {(ydn.db.KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} keyRange keyRange.
+ * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} keyRange keyRange.
  * @return {ydn.db.IDBKeyRange} equivalent IDBKeyRange.
  */
 ydn.db.KeyRange.parseKeyRange = function (keyRange) {

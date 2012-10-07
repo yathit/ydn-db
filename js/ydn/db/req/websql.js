@@ -587,7 +587,7 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
   var index = goog.isDef(q.index) ? store.getIndex(q.index) : null;
 
   if (q.keyRange) {
-    var clause = q.toWhereClause();
+    var clause = q.toWhereClause(store.keyPath);
     sql += ' WHERE ' + '(' + clause.where_clause + ')';
     params = clause.params;
   }
@@ -682,6 +682,9 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
     return true; // roll back
   };
 
+  if (goog.DEBUG) {
+    this.logger.finest(this + ' SQL:' + sql + ' ' + ydn.json.stringify(params));
+  }
   this.tx.executeSql(sql, params, callback, error_callback);
 
 };

@@ -29,7 +29,7 @@ goog.require('ydn.error.ArgumentException');
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {string=} direction cursor direction.
- * @param {(!ydn.db.KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
+ * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
  * keyRange configuration in json or native format. Alternatively key range
  * constructor parameters can be given
  * @param {...} opt_args additional parameters for key range constructor
@@ -246,21 +246,6 @@ ydn.db.Query.prototype.select = function(arg1) {
 
 
 /**
- * JSON definition for IDBKeyRange.
- * @typedef {{
- *  lower: (*|undefined),
- *  lowerOpen: (boolean|undefined),
- *  upper: (*|undefined),
- *  upperOpen: (boolean|undefined)
- * }}
- */
-ydn.db.KeyRangeJson;
-
-
-
-
-
-/**
  *
  * @param {*} value
  */
@@ -309,28 +294,30 @@ ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
 
 
 /**
+ * @param {string?} keyPath if index is not defined, keyPath will be used.
  * @return {{where_clause: string, params: Array}} return equivalent of keyRange
  * to SQL WHERE clause and its parameters.
  */
-ydn.db.Query.prototype.toWhereClause = function() {
+ydn.db.Query.prototype.toWhereClause = function(keyPath) {
 
   var where_clause = '';
   var params = [];
-  goog.asserts.assertString(this.index);
-  var column = goog.string.quote(this.index);
+  var index = goog.isDef(this.index) ? this.index :
+      goog.isDefAndNotNull(keyPath) ? keyPath : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  var column = goog.string.quote(index);
 
   if (ydn.db.Query.isLikeOperation_(this.keyRange)) {
     where_clause = column + ' LIKE ?';
-    params.push(this.keyRange.lower + '%');
+    params.push(this.keyRange['lower'] + '%');
   } else {
 
     if (goog.isDef(this.keyRange.lower)) {
-      var lowerOp = this.keyRange.lowerOpen ? ' > ' : ' >= ';
+      var lowerOp = this.keyRange['lowerOpen'] ? ' > ' : ' >= ';
       where_clause += ' ' + column + lowerOp + '?';
       params.push(this.keyRange.lower);
     }
-    if (goog.isDef(this.keyRange.upper)) {
-      var upperOp = this.keyRange.upperOpen ? ' < ' : ' <= ';
+    if (goog.isDef(this.keyRange['upper'])) {
+      var upperOp = this.keyRange['upperOpen'] ? ' < ' : ' <= ';
       var and = where_clause.length > 0 ? ' AND ' : ' ';
       where_clause += and + column + upperOp + '?';
       params.push(this.keyRange.upper);

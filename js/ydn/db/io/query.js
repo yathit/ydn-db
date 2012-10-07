@@ -19,7 +19,7 @@ goog.require('ydn.db.Query');
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {string=} direction cursor direction.
- * @param {(!ydn.db.KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
+ * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
     * keyRange configuration in json or native format. Alternatively key range
  * constructor parameters can be given
  * @param {(string|number)=} upper
