@@ -1,9 +1,5 @@
 /**
- * Created with IntelliJ IDEA.
- * User: mbikt
- * Date: 9/11/12
- * Time: 3:04 PM
- * To change this template use File | Settings | File Templates.
+ * @fileoverview Wrapper for a IndexedDB key range.
  */
 
 
@@ -13,49 +9,107 @@ goog.provide('ydn.db.KeyRange');
 
 /**
  * For those browser that not implemented IDBKeyRange.
+ * @param {*} lower The value of the lower bound.
+ * @param {*} upper  The value of the upper bound.
+ * @param {boolean=} lowerOpen  If true, the range excludes the lower bound
+ * value.
+ * @param {boolean=} upperOpen If true, the range excludes the lower bound
+ * value.
  * @constructor
  */
 ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
   this['lower'] = lower;
-  this['upper']  = upper;
-  this['lowerOpen']  = !!lowerOpen;
-  this['upperOpen']  = !!upperOpen;
+  this['upper'] = upper;
+  this['lowerOpen'] = !!lowerOpen;
+  this['upperOpen'] = !!upperOpen;
 };
 
 
 /**
+ *
+ * @type {*}
+ */
+ydn.db.KeyRange.prototype.lower = undefined;
+
+/**
+ *
+ * @type {*}
+ */
+ydn.db.KeyRange.prototype.upper = undefined;
+
+/**
+ *
+ * @type {boolean}
+ */
+ydn.db.KeyRange.prototype.lowerOpen = false;
+
+/**
+ *
+ * @type {boolean}
+ */
+ydn.db.KeyRange.prototype.upperOpen = false;
+
+/**
  * @override
+ * @return {!Object} in JSON format.
  */
 ydn.db.KeyRange.prototype.toJSON = function() {
   return ydn.db.KeyRange.toJSON(this);
 };
 
 
+/**
+ * Creates a new key range for a single value.
+ *
+ * @param {Object} value The single value in the range.
+ * @return {!ydn.db.KeyRange} The key range.
+ */
 ydn.db.KeyRange.only = function(value) {
   return new ydn.db.KeyRange(value, value, false, false);
 };
 
 
+
 /**
+ * Creates a key range with upper and lower bounds.
  *
- * @param {(string|number)=} lower
- * @param {(string|number)=} upper
- * @param {boolean=} lowerOpen
- * @param {boolean=} upperOpen
- * @return {!ydn.db.KeyRange}
+ * @param {*} lower The value of the lower bound.
+ * @param {*} upper The value of the upper bound.
+ * @param {boolean=} opt_lowerOpen If true, the range excludes the lower bound
+ *     value.
+ * @param {boolean=} opt_upperOpen If true, the range excludes the upper bound
+ *     value.
+ * @return {!ydn.db.KeyRange} The key range.
  */
 ydn.db.KeyRange.bound = function(lower, upper,
-                                     lowerOpen, upperOpen) {
-  return new ydn.db.KeyRange(lower, upper, lowerOpen, upperOpen);
+                                 opt_lowerOpen, opt_upperOpen) {
+  return new ydn.db.KeyRange(lower, upper, opt_lowerOpen, opt_upperOpen);
 };
 
 
-ydn.db.KeyRange.upperBound = function(upper, upperOpen) {
-  return new ydn.db.KeyRange(undefined, upper, undefined, upperOpen);
+/**
+ * Creates a key range with a upper bound only, starts at the first record.
+ *
+ * @param {Object} upper The value of the upper bound.
+ * @param {boolean=} opt_upperOpen If true, the range excludes the upper bound
+ *     value.
+ * @return {!ydn.db.KeyRange} The key range.
+ */
+ydn.db.KeyRange.upperBound = function(upper, opt_upperOpen) {
+  return new ydn.db.KeyRange(undefined, upper, undefined, opt_upperOpen);
 };
 
-ydn.db.KeyRange.lowerBound = function(lower, lowerOpen) {
-  return new ydn.db.KeyRange(lower, undefined, lowerOpen, undefined);
+
+/**
+ * Creates a key range with a lower bound only, finishes at the last record.
+ *
+ * @param {Object} lower The value of the lower bound.
+ * @param {boolean=} opt_lowerOpen If true, the range excludes the lower bound
+ *     value.
+ * @return {!ydn.db.KeyRange} The key range.
+ */
+ydn.db.KeyRange.lowerBound = function(lower, opt_lowerOpen) {
+  return new ydn.db.KeyRange(lower, undefined, opt_lowerOpen, undefined);
 };
 
 
@@ -63,9 +117,9 @@ ydn.db.KeyRange.lowerBound = function(lower, lowerOpen) {
 /**
  * Helper method for creating useful KeyRange.
  * @param {string} value value.
- * @return {!ydn.db.KeyRange}
+ * @return {!ydn.db.KeyRange} The key range.
  */
-ydn.db.KeyRange.starts = function (value) {
+ydn.db.KeyRange.starts = function(value) {
   var value_upper = value + '\uffff';
   return ydn.db.KeyRange.bound(value, value_upper);
 };
@@ -73,7 +127,8 @@ ydn.db.KeyRange.starts = function (value) {
 
 /**
  *
- * @param {ydn.db.IDBKeyRange|ydn.db.KeyRange|KeyRangeJson} keyRange IDBKeyRange.
+ * @param {ydn.db.IDBKeyRange|ydn.db.KeyRange|KeyRangeJson} keyRange
+ * IDBKeyRange.
  * @return {!KeyRangeJson} IDBKeyRange in JSON format.
  */
 ydn.db.KeyRange.toJSON = function(keyRange) {
@@ -89,10 +144,11 @@ ydn.db.KeyRange.toJSON = function(keyRange) {
 
 
 /**
- * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} keyRange keyRange.
+ * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} keyRange
+ * keyRange.
  * @return {ydn.db.IDBKeyRange} equivalent IDBKeyRange.
  */
-ydn.db.KeyRange.parseKeyRange = function (keyRange) {
+ydn.db.KeyRange.parseKeyRange = function(keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {
     return null;
   }

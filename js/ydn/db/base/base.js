@@ -29,15 +29,16 @@ ydn.db.base.DEFAULT_BLOB_COLUMN = '_default_';
 
 
 /**
- * Target for jquery
- * @define {boolean}
+ * For JQuery output, deferred functions is slight different and adapt
+ * the deferred to jquery style.
+ * @define {boolean} true if target compile output is Jquery.
  */
 ydn.db.base.JQUERY = false;
 
 
 /**
  * Create a new deferred instance depending on target platform.
- * @return {!goog.async.Deferred}
+ * @return {!goog.async.Deferred} newly created deferred object.
  */
 ydn.db.base.createDeferred = function() {
   if (ydn.db.base.JQUERY) {
@@ -79,13 +80,14 @@ ydn.db.base.TransactionMode = {
 
 
 /**
- * @define {boolean}
+ * @define {boolean} if true, a default key-value text store should be created
+ * in the abscent of configuration option.
  */
 ydn.db.base.ENABLE_DEFAULT_TEXT_STORE = true;
 
 
 
 /**
- * @define {boolean}
+ * @define {boolean} flag to indicate to enable encryption.
  */
 ydn.db.base.ENABLE_ENCRYPTION = false;

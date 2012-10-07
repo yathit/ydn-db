@@ -14,10 +14,12 @@ goog.require('ydn.db.Key');
 
 /**
  *
- * @param {string} keyPath
- * @param {boolean=} opt_unique unique.
+ * @param {string} keyPath the key path.
  * @param {ydn.db.DataType=} opt_type to be determined.
- * @param {boolean=} multiEntry
+ * @param {boolean=} opt_unique True if the index enforces that there is only
+ * one objectfor each unique value it indexes on.
+ * @param {boolean=} multiEntry  specifies whether the index's multiEntry flag
+ * is set.
  * @param {string=} name index name.
  * @constructor
  */
@@ -113,9 +115,9 @@ ydn.db.IndexSchema.ARRAY_SEP = String.fromCharCode(0x001F);
 /**
  * Convert key value from IndexedDB value to Sqlite for storage.
  * @see #sql2js
- * @param {Array|Date|*} key
- * @param {ydn.db.DataType|undefined} type
- * @return {*}
+ * @param {Array|Date|*} key key.
+ * @param {ydn.db.DataType|undefined} type data type.
+ * @return {*} string.
  */
 ydn.db.IndexSchema.js2sql = function(key, type) {
   if (type == ydn.db.DataType.DATE) {
@@ -170,7 +172,7 @@ ydn.db.IndexSchema.sql2js = function(key, type) {
       } else {
         return x;
       }
-    })
+    });
   } else {
     return key;
   }
@@ -289,7 +291,7 @@ ydn.db.IndexSchema.fromJSON = function(json) {
  * generator. Defaults to false.
  * @param {ydn.db.DataType=} opt_type data type for keyPath. Default to
  * <code>ydn.db.DataType.INTEGER</code> if opt_autoIncrement is
- * <code>true</code>
+ * <code>true.</code>
  * @param {!Array.<!ydn.db.IndexSchema>=} opt_indexes list of indexes.
  * @constructor
  */
@@ -361,7 +363,7 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
   return {
     'name': this.name,
     'keyPath': this.keyPath,
-    "autoIncrement": this.autoIncrement,
+    'autoIncrement': this.autoIncrement,
     'type': this.type,
     'Indexes': indexes
   };
@@ -486,7 +488,7 @@ ydn.db.StoreSchema.prototype.getIndexNames = function() {
 
 /**
  *
- * @param {string} name column name or keyPath
+ * @param {string} name column name or keyPath.
  * @param {ydn.db.DataType=} opt_type .
  * @param {boolean=} opt_unique unique.
  * @param {boolean=} opt_multiEntry .
@@ -501,7 +503,7 @@ ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type,
 /**
  * Extract value of keyPath from a given object.
  * @see #getKeyValue
- * @param {!Object} obj object to extract from
+ * @param {!Object} obj object to extract from.
  * @return {!Array|number|string|undefined} return key value.
  */
 ydn.db.StoreSchema.prototype.getKeyValue = function(obj) {
@@ -544,7 +546,7 @@ ydn.db.StoreSchema.prototype.generateKey = function() {
      */
     this.current_key_ = 0;
   }
-  return this.current_key_ ++;
+  return this.current_key_++;
 };
 
 
@@ -764,9 +766,9 @@ ydn.db.DatabaseSchema.prototype.addStore = function(table) {
  * @param {string} name store name.
  * @return {ydn.db.StoreSchema} store if found.
  */
-ydn.db.DatabaseSchema.prototype.getStore = function (name) {
+ydn.db.DatabaseSchema.prototype.getStore = function(name) {
   return /** @type {ydn.db.StoreSchema} */ (goog.array.find(this.stores,
-      function (x) {
+      function(x) {
         return x.name == name;
       }));
 };
@@ -777,9 +779,9 @@ ydn.db.DatabaseSchema.prototype.getStore = function (name) {
  * @param {string} name store name.
  * @return {number} index of store -1 if not found.
  */
-ydn.db.DatabaseSchema.prototype.getIndexOf = function (name) {
+ydn.db.DatabaseSchema.prototype.getIndexOf = function(name) {
   return goog.array.indexOf(this.stores,
-      function (x) {
+      function(x) {
         return x.name == name;
       });
 };
@@ -810,7 +812,7 @@ ydn.db.DatabaseSchema.prototype.similar = function(schema) {
   return goog.array.every(this.stores, function(x) {
     var store = schema.getStore(x.name);
     return !!store && store.similar(x);
-  })
+  });
 };
 
 

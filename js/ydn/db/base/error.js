@@ -1,17 +1,13 @@
 /**
- * Created with IntelliJ IDEA.
- * User: mbikt
- * Date: 9/12/12
- * Time: 9:44 AM
- * To change this template use File | Settings | File Templates.
+ * @fileoverview Error classes for the database module.
  */
 
+goog.provide('ydn.db.InternalError');
 goog.provide('ydn.db.InvalidKeyException');
 goog.provide('ydn.db.InvalidStateError');
-goog.provide('ydn.db.InternalError');
+goog.provide('ydn.db.NotFoundError');
 goog.provide('ydn.db.ScopeError');
 goog.provide('ydn.db.SecurityError');
-goog.provide('ydn.db.NotFoundError');
 
 
 
@@ -37,6 +33,9 @@ ydn.db.InvalidKeyException = function(opt_msg) {
 };
 goog.inherits(ydn.db.InvalidKeyException, Error);
 
+/**
+ * @type {string} name of error.
+ */
 ydn.db.InvalidKeyException.prototype.name = 'ydn.db.InvalidKeyException';
 
 
@@ -62,6 +61,9 @@ ydn.db.InternalError = function(opt_msg) {
 };
 goog.inherits(ydn.db.InternalError, Error);
 
+/**
+ * @type {string} name of error.
+ */
 ydn.db.InternalError.prototype.name = 'ydn.db.InternalError';
 
 
@@ -86,6 +88,9 @@ ydn.db.ScopeError = function(opt_msg) {
 };
 goog.inherits(ydn.db.ScopeError, Error);
 
+/**
+ * @type {string} name of error.
+ */
 ydn.db.ScopeError.prototype.name = 'ydn.db.ScopeError';
 
 
@@ -110,6 +115,9 @@ ydn.db.InvalidStateError = function(opt_msg) {
 };
 goog.inherits(ydn.db.InvalidStateError, Error);
 
+/**
+ * @type {string} name of error.
+ */
 ydn.db.InvalidStateError.prototype.name = 'ydn.db.InvalidStateError';
 
 
@@ -134,6 +142,9 @@ ydn.db.InvalidAccessError = function(opt_msg) {
 };
 goog.inherits(ydn.db.InvalidAccessError, Error);
 
+/**
+ * @type {string} name of error.
+ */
 ydn.db.InvalidAccessError.prototype.name = 'ydn.db.InvalidAccessError';
 
 
@@ -158,6 +169,9 @@ ydn.db.NotFoundError = function(opt_msg) {
 };
 goog.inherits(ydn.db.NotFoundError, Error);
 
+/**
+ * @type {string} name of error.
+ */
 ydn.db.NotFoundError.prototype.name = 'ydn.db.NotFoundError';
 
 
@@ -182,13 +196,16 @@ ydn.db.DataCloneError = function(opt_msg) {
 };
 goog.inherits(ydn.db.DataCloneError, Error);
 
+/**
+ * @type {string} name of error.
+ */
 ydn.db.DataCloneError.prototype.name = 'ydn.db.DataCloneError';
 
 
 /**
  *
- * @param {SQLError} e
- * @param {*=} opt_msg
+ * @param {SQLError} e original error.
+ * @param {*=} opt_msg optional message.
  * @constructor
  * @extends {Error}
  */
@@ -208,13 +225,16 @@ ydn.db.SQLError = function(e, opt_msg) {
 };
 goog.inherits(ydn.db.SQLError, Error);
 
+/**
+ * @type {string} name of error.
+ */
 ydn.db.SQLError.prototype.name = 'ydn.db.SQLError';
 
 
 /**
  *
- * @param {Error} e
- * @param {*=} opt_msg
+ * @param {Error} e original message.
+ * @param {*=} opt_msg optional message.
  * @constructor
  * @extends {Error}
  */
@@ -234,5 +254,8 @@ ydn.db.SecurityError = function(e, opt_msg) {
 };
 goog.inherits(ydn.db.SecurityError, Error);
 
+/**
+ * @type {string} name of error.
+ */
 ydn.db.SecurityError.prototype.name = 'ydn.db.SecurityError';
 

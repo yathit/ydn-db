@@ -31,8 +31,8 @@ goog.require('ydn.error.ArgumentException');
  * @param {string=} direction cursor direction.
  * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
  * keyRange configuration in json or native format. Alternatively key range
- * constructor parameters can be given
- * @param {...} opt_args additional parameters for key range constructor
+ * constructor parameters can be given.
+ * @param {...} opt_args additional parameters for key range constructor.
  * @constructor
  */
 ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
@@ -91,13 +91,13 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
 /**
  * @inheritDoc
  */
-ydn.db.Query.prototype.toJSON = function () {
+ydn.db.Query.prototype.toJSON = function() {
   return {
-    'store':this.store_name,
-    'index':this.index,
+    'store': this.store_name,
+    'index': this.index,
     'key_range': ydn.db.KeyRange.toJSON(this.keyRange || null),
-    'direction':this.direction
-  }
+    'direction': this.direction
+  };
 };
 
 /**
@@ -137,12 +137,12 @@ ydn.db.Query.prototype.reduce;
 
 /**
  * Convenient method for SQL <code>WHERE</code> predicate.
- * @param {string} field
- * @param {string} op
- * @param {string} value
- * @param {string=} op2
- * @param {string=} value2
- * @return {!ydn.db.Query}
+ * @param {string} field index field name to query from.
+ * @param {string} op where operator.
+ * @param {string} value rvalue to compare.
+ * @param {string=} op2 secound operator.
+ * @param {string=} value2 second rvalue to compare.
+ * @return {!ydn.db.Query} The query.
  */
 ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
@@ -172,7 +172,7 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
   var prev_filter = this.filter || goog.functions.TRUE;
 
-  this.filter = function (obj) {
+  this.filter = function(obj) {
     return prev_filter(obj) && test1(obj[field]) && test2(obj[field]);
   };
   return this;
@@ -181,7 +181,7 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
 /**
  * Convenient method for SQL <code>COUNT</code> method.
- * @return {!ydn.db.Query}
+ * @return {!ydn.db.Query} The query.
  */
 ydn.db.Query.prototype.count = function() {
   this.reduce = function(prev) {
@@ -196,7 +196,8 @@ ydn.db.Query.prototype.count = function() {
 
 /**
  * Convenient method for SQL <code>SUM</code> method.
- * @return {!ydn.db.Query}
+ * @param {string} field name.
+ * @return {!ydn.db.Query} The query for chaining.
  */
 ydn.db.Query.prototype.sum = function(field) {
   this.reduce = function(prev, curr, i) {
@@ -211,7 +212,8 @@ ydn.db.Query.prototype.sum = function(field) {
 
 /**
  * Convenient method for SQL <code>AVERAGE</code> method.
- * @return {!ydn.db.Query}
+ * @param {string} field name.
+ * @return {!ydn.db.Query} The query for chaining.
  */
 ydn.db.Query.prototype.average = function(field) {
   this.reduce = function(prev, curr, i) {
@@ -226,11 +228,11 @@ ydn.db.Query.prototype.average = function(field) {
 
 /**
  *
- * @param {string|Array.<string>} arg1
- * @return {!ydn.db.Query}
+ * @param {string|Array.<string>} arg1 field names to select.
+ * @return {!ydn.db.Query} The query for chaining.
  */
 ydn.db.Query.prototype.select = function(arg1) {
-  this.map =  function(data) {
+  this.map = function(data) {
     if (goog.isString(arg1)) {
       return data[arg1];
     } else {
@@ -247,7 +249,8 @@ ydn.db.Query.prototype.select = function(arg1) {
 
 /**
  *
- * @param {*} value
+ * @param {*} value the only value.
+ * @return {!ydn.db.Query} The query for chaining.
  */
 ydn.db.Query.prototype.only = function(value) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
@@ -258,8 +261,9 @@ ydn.db.Query.prototype.only = function(value) {
 
 /**
  *
- * @param {*} value
- * @param {boolean=} is_open
+ * @param {*} value The value of the upper bound.
+ * @param {boolean=} is_open If true, the range excludes the upper bound value.
+ * @return {!ydn.db.Query} The query for chaining.
  */
 ydn.db.Query.prototype.upperBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
@@ -269,8 +273,9 @@ ydn.db.Query.prototype.upperBound = function(value, is_open) {
 
 /**
  *
- * @param {*} value
- * @param {boolean=} is_open
+ * @param {*} value  The value of the lower bound.
+ * @param {boolean=} is_open  If true, the range excludes the lower bound value.
+ * @return {!ydn.db.Query} The query for chaining.
  */
 ydn.db.Query.prototype.lowerBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
@@ -280,10 +285,11 @@ ydn.db.Query.prototype.lowerBound = function(value, is_open) {
 
 /**
  *
- * @param {*} lower
- * @param {*} upper
- * @param {boolean=} lo
- * @param {boolean=} uo
+ * @param {*} lower  The value of the lower bound.
+ * @param {*} upper  The value of the upper bound.
+ * @param {boolean=} lo If true, the range excludes the lower bound value.
+ * @param {boolean=} uo If true, the range excludes the upper bound value.
+ * @return {!ydn.db.Query} The query for chaining.
  */
 ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
@@ -303,7 +309,8 @@ ydn.db.Query.prototype.toWhereClause = function(keyPath) {
   var where_clause = '';
   var params = [];
   var index = goog.isDef(this.index) ? this.index :
-      goog.isDefAndNotNull(keyPath) ? keyPath : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+      goog.isDefAndNotNull(keyPath) ? keyPath :
+          ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   var column = goog.string.quote(index);
 
   if (ydn.db.Query.isLikeOperation_(this.keyRange)) {
@@ -342,9 +349,11 @@ ydn.db.Query.prototype.toString = function() {
 
 /**
  * @private
- * @param keyRange
+ * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} keyRange key range to check.
+ * @return {boolean} true if given key range can be substitute with SQL
+ * operation LIKE.
  */
-ydn.db.Query.isLikeOperation_ = function (keyRange) {
+ydn.db.Query.isLikeOperation_ = function(keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {
     return false;
   }

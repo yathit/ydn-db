@@ -27,9 +27,10 @@ goog.provide('ydn.db.Key');
 /**
  * Builds a new Key object of known id.
  *
- * @param {string|!ydn.db.Key.Json} store_or_json_or_value
- * @param {(!Array|string|number)=}id
- * @param {ydn.db.Key=} opt_parent
+ * @param {string|!ydn.db.Key.Json} store_or_json_or_value store name of key
+ * object in JSON format.
+ * @param {(!Array|string|number)=} id key id.
+ * @param {ydn.db.Key=} opt_parent optional parent key.
  * @constructor
  */
 ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
@@ -96,7 +97,7 @@ ydn.db.Key.Json;
 
 
 /**
- * @return {!Object}
+ * @return {!Object} key in JSON object.
  */
 ydn.db.Key.prototype.toJSON = function() {
   var obj = {
@@ -113,7 +114,7 @@ ydn.db.Key.prototype.toJSON = function() {
 /**
  * Separator between child and parent.
  * @const
- * @type {string}
+ * @type {string} seperator string.
  */
 ydn.db.Key.SEP_PARENT = '^|';
 
@@ -126,11 +127,12 @@ ydn.db.Key.SEP_STORE = '^:';
 
 /**
  * @override
- * @return {string}
+ * @return {string} seperator string.
  */
 ydn.db.Key.prototype.valueOf = function() {
   // necessary to make web-safe string ?
-  var parent_value = this.parent ? this.parent.valueOf() + ydn.db.Key.SEP_PARENT : '';
+  var parent_value = this.parent ? this.parent.valueOf() +
+      ydn.db.Key.SEP_PARENT : '';
   return parent_value + this.store_name + ydn.db.Key.SEP_STORE + this.id;
 };
 
@@ -144,8 +146,8 @@ ydn.db.Key.prototype.toString = function() {
 
 
 /**
- * 
- * @return {string}
+ *
+ * @return {string} return store name.
  */
 ydn.db.Key.prototype.getStoreName = function() {
   return this.store_name;
@@ -154,7 +156,7 @@ ydn.db.Key.prototype.getStoreName = function() {
 
 /**
  *
- * @return {!Array|string|number}
+ * @return {!Array|string|number} key id.
  */
 ydn.db.Key.prototype.getId = function() {
   return this.id;
@@ -163,7 +165,7 @@ ydn.db.Key.prototype.getId = function() {
 
 /**
  *
- * @return {string|number}
+ * @return {string|number} normalized key.
  */
 ydn.db.Key.prototype.getNormalizedId = function() {
   if (goog.isArray(this.id)) {

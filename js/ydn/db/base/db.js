@@ -24,7 +24,7 @@ goog.require('ydn.db.con.IndexedDb');
 
 /**
  * Delete database. This will attempt in all mechanism.
- * @param {string} db_name
+ * @param {string} db_name name of database.
  */
 ydn.db.deleteDatabase = function(db_name) {
   if ('deleteDatabase' in ydn.db.con.IndexedDb.indexedDb) {
