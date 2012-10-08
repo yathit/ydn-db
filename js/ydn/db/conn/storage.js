@@ -194,12 +194,13 @@ ydn.db.con.Storage.prototype.getStoreSchema = function(store_name) {
  * Add a store schema to current database schema on auto schema generation
  * mode {@see #auto_schema}.
  * If the store already exist it will be updated as necessary.
- * @param {!StoreSchema} store_schema
+ * @param {!StoreSchema|!ydn.db.StoreSchema} store_schema
  * @return {!goog.async.Deferred}
  */
 ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
 
-  var new_store = ydn.db.StoreSchema.fromJSON(store_schema);
+  var new_store = store_schema instanceof ydn.db.StoreSchema ?
+      store_schema : ydn.db.StoreSchema.fromJSON(store_schema);
 
   var store_name = store_schema.name;
   var store = this.schema.getStore(store_name);

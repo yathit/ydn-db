@@ -129,6 +129,19 @@ ydn.db.Storage.prototype.fetch = function(q, max, skip) {
 };
 
 
+/**
+ * @param {string} store store name. If not defined, all object stores are used.
+ * @param {string=} index store field, where key query is preformed. If not
+ * provided, the first index will be used.
+ * @param {string=} direction cursor direction.
+ * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
+    *   keyRange configuration in json or native format. Alternatively key range
+ * constructor parameters can be given
+ * @param {(string|number)=} upper
+ * @param {boolean=} lowerOpen
+ * @param {boolean=} upperOpen
+ * @return {!ydn.db.io.Query}
+ */
 ydn.db.Storage.prototype.query = function(store, index, direction, keyRange, upper, lowerOpen, upperOpen) {
   return this.default_tx_queue_.query(store, index, direction, keyRange, upper, lowerOpen, upperOpen);
 };

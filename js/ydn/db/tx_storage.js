@@ -59,11 +59,12 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
  * provided, the first index will be used.
  * @param {string=} direction cursor direction.
  * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
-    * keyRange configuration in json or native format. Alternatively key range
+ *   keyRange configuration in json or native format. Alternatively key range
  * constructor parameters can be given
  * @param {(string|number)=} upper
  * @param {boolean=} lowerOpen
  * @param {boolean=} upperOpen
+ * @return {!ydn.db.io.Query}
  */
 ydn.db.TxStorage.prototype.query = function(store, index, direction, keyRange, upper, lowerOpen, upperOpen) {
   return new ydn.db.io.Query(this, store, index, direction, keyRange, upper, lowerOpen, upperOpen);

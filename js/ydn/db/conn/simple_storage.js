@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 /**
  * @fileoverview Data store in memory.
  */
+
 
 goog.provide('ydn.db.con.SimpleStorage');
 goog.require('goog.asserts');
