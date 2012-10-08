@@ -17,7 +17,9 @@
 /**
  * @fileoverview Database connector.
  *
- *
+ * Create and maintain database connection and provide robust transaction
+ * objects upon request. Storage mechanisms implement
+ * ydn.db.con.IDatabase interface.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */

@@ -39,7 +39,7 @@ ydn.db.con.SimpleStorage = function(dbname, schema, opt_localStorage) {
    * @type {!Object}
    * @protected // should be private ?
    */
-  this.cache_ = opt_localStorage || ydn.db.con.SimpleStorage.getFakeLocalStorage();
+  this.cache_ = opt_localStorage || ydn.db.con.SimpleStorage.getInMemoryStorage();
 
   /**
    * @final
@@ -68,7 +68,7 @@ ydn.db.con.SimpleStorage.TYPE = 'memory';
  *
  * @return {!Object} return memory store object.
  */
-ydn.db.con.SimpleStorage.getFakeLocalStorage = function() {
+ydn.db.con.SimpleStorage.getInMemoryStorage = function() {
 
   var localStorage = {};
   localStorage.setItem = function(key, value) {
