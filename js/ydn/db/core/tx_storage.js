@@ -206,7 +206,9 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
   } else if (goog.isString(arg1)) {
     var store_name = arg1;
     var store = this.schema.getStore(store_name);
-    goog.asserts.assert(store, 'Store: ' + store_name + ' not found.');
+    if (!store) {
+      throw new ydn.error.ArgumentException('Store: ' + store_name + ' not found.')
+    }
     // here I have very concern about schema an object store mismatch!
     // should try query without sniffing store.type
     if (store.type == ydn.db.DataType.ARRAY) {
@@ -268,7 +270,9 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
       for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
         var i_store_name = key.getStoreName();
-        goog.asserts.assert(this.schema.hasStore(i_store_name), 'Store: ' + i_store_name + ' not found.');
+        if (!this.schema.hasStore(i_store_name)) {
+          throw new ydn.error.ArgumentException('Store: ' + i_store_name + ' not found.');
+        }
         if (!goog.array.contains(store_names, i_store_name)) {
           store_names.push(i_store_name);
         }

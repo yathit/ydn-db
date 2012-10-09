@@ -271,9 +271,9 @@ ydn.db.IndexSchema.fromJSON = function(json) {
   if (goog.DEBUG) {
     var fields = ['name', 'unique', 'type', 'keyPath', 'multiEntry'];
     for (var key in json) {
-      if (json.hasOwnProperty(key)) {
-        goog.asserts.assert(goog.array.indexOf(fields, key) >= 0,
-            'Unknown field: ' + key + ' in ' + ydn.json.stringify(json));
+      if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
+        throw new ydn.error.ArgumentException('Unknown field: ' + key + ' in ' +
+            ydn.json.stringify(json));
       }
     }
   }
@@ -379,9 +379,9 @@ ydn.db.StoreSchema.fromJSON = function(json) {
   if (goog.DEBUG) {
     var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'Indexes'];
     for (var key in json) {
-      if (json.hasOwnProperty(key)) {
-        goog.asserts.assert(goog.array.indexOf(fields, key) >= 0,
-            'Unknown field: ' + key + ' in ' + ydn.json.stringify(json));
+      if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
+        throw new ydn.error.ArgumentException('Unknown field: ' + key + ' in ' +
+            ydn.json.stringify(json));
       }
     }
   }
@@ -743,6 +743,15 @@ ydn.db.DatabaseSchema.prototype.getStoreNames = function() {
  * @return {!ydn.db.DatabaseSchema} create new database schema from JSON string.
  */
 ydn.db.DatabaseSchema.fromJSON = function(json) {
+  if (goog.DEBUG) {
+    var fields = ['version', 'Stores'];
+    for (var key in json) {
+      if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
+        throw new ydn.error.ArgumentException('Unknown field: ' + key + ' in ' +
+            ydn.json.stringify(json));
+      }
+    }
+  }
   var stores = [];
   var stores_json = json.Stores || [];
   for (var i = 0; i < stores_json.length; i++) {

@@ -29,6 +29,20 @@ goog.exportProperty(ydn.db.Storage.prototype, 'query',
     ydn.db.Storage.prototype.query);
 goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
     ydn.db.Storage.prototype.fetch);
+goog.exportProperty(ydn.db.Storage.prototype, 'setItem',
+    ydn.db.Storage.prototype.setItem);
+goog.exportProperty(ydn.db.Storage.prototype, 'getItem',
+    ydn.db.Storage.prototype.getItem);
+
+goog.exportProperty(ydn.db.TxStorage.prototype, 'query',
+    ydn.db.TxStorage.prototype.query);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
+    ydn.db.TxStorage.prototype.fetch);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'setItem',
+    ydn.db.TxStorage.prototype.setItem);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'getItem',
+    ydn.db.TxStorage.prototype.getItem);
+
 
 goog.exportSymbol('ydn.db.KeyRange', ydn.db.KeyRange );
 goog.exportProperty(ydn.db.KeyRange, 'upperBound', ydn.db.KeyRange.upperBound);

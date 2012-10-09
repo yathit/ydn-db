@@ -50,7 +50,7 @@ goog.require('ydn.db.tr.TxStorage');
  * schema used in chronical order.
  * @param {!StorageOptions=} opt_options options.
  * @implements {ydn.db.tr.IStorage}
- * @extends{ydn.db.con.Storage}
+ * @extends {ydn.db.con.Storage}
  * @constructor
  */
 ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
@@ -118,7 +118,6 @@ ydn.db.tr.Storage.prototype.newTxInstance = function(scope_name) {
 
 /**
  * Run a transaction.
- * @export
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.

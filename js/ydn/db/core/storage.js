@@ -45,7 +45,7 @@ goog.require('ydn.db.io.CrudService');
  * @param {!StorageOptions=} opt_options options.
  * @implements {ydn.db.io.CrudService}
  * @extends {ydn.db.tr.Storage}
- * @constructor *
+ * @constructor
  */
 ydn.db.core.Storage = function (opt_dbname, opt_schema, opt_options) {
 

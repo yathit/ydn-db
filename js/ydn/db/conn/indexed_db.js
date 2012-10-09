@@ -295,6 +295,7 @@ ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
     this.deferredIdxDb_ = new goog.async.Deferred();
   }
   if (goog.isDef(e)) {
+    this.logger.warning('Error received: ' + (e ? e.message : ''));
     this.idx_db_ = null;
     this.deferredIdxDb_.errback(e);
   } else {

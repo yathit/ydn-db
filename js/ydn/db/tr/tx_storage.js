@@ -255,7 +255,6 @@ ydn.db.tr.TxStorage.prototype.pushTxQueue = function (trFn, store_names,
  * Create a new isolated transaction. After creating a transaction, use
  * {@link #getTx} to received an active transaction. If transaction is not
  * active, it return null. In this case a new transaction must re-create.
- * @export
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
