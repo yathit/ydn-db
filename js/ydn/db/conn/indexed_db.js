@@ -287,8 +287,8 @@ ydn.db.con.IndexedDb.isSupported = function() {
 };
 
 
-// The fun fact with current Chrome 22 is it defines
-// webkitIDBTransaction as numeric value, the database engine
+// The fun fact with current Chrome 22 defines
+// webkitIDBTransaction as numeric value, but the database engine
 // accept only string format.
 
 //ydn.db.base.TransactionMode = {
