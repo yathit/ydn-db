@@ -359,7 +359,7 @@ ydn.db.req.SimpleStore.prototype.count = function(df, opt_table) {
 
 
 ///**
-//* @param {!ydn.db.Query} q query.
+//* @param {!ydn.db.Cursor} q query.
 //* @param {number=} limit
 //* @param {number=} offset
 //* @return {!goog.async.Deferred}

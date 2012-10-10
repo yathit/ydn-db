@@ -8,7 +8,7 @@
 
 goog.provide('ydn.db.io.CrudService');
 goog.require('goog.async.Deferred');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.Cursor');
 goog.require('ydn.db.Key');
 
 

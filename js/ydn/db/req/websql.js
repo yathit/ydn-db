@@ -567,7 +567,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
 
 /**
 * @param {goog.async.Deferred} df
-* @param {!ydn.db.Query} q query.
+* @param {!ydn.db.Cursor} q query.
 * @param {number=} max
 * @param {number=} skip
 */

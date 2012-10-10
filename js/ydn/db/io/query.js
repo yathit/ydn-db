@@ -4,16 +4,16 @@
 
 
 goog.provide('ydn.db.io.Query');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.Cursor');
 goog.require('ydn.db.io.QueryService');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.Cursor');
 
 
 /**
  * Create a query from a database. If the database is active transaction,
  * the query will join the transaction, otherwise to belong to own transaction
  * instance.
- * @extends {ydn.db.Query}
+ * @extends {ydn.db.Cursor}
  * @param {!ydn.db.io.QueryService} db db instance.
  * @param {string} store store name. If not defined, all object stores are used.
  * @param {string=} index store field, where key query is preformed. If not
@@ -37,7 +37,7 @@ ydn.db.io.Query = function(db, store, index, direction, keyRange, upper, lowerOp
    */
   this.dbp = db;
 };
-goog.inherits(ydn.db.io.Query, ydn.db.Query);
+goog.inherits(ydn.db.io.Query, ydn.db.Cursor);
 
 
 /**

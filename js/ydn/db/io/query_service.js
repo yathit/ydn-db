@@ -8,7 +8,7 @@
 
 goog.provide('ydn.db.io.QueryService');
 goog.require('goog.async.Deferred');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.Cursor');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.io.CrudService');
 
@@ -25,7 +25,7 @@ ydn.db.io.QueryService = function() {
 
 
 /**
-* @param {!ydn.db.Query} q query.
+* @param {!ydn.db.Cursor} q query.
 * @param {number=} max
 * @param {number=} skip
 * @return {!goog.async.Deferred}

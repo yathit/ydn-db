@@ -288,7 +288,7 @@ var test_4_get_all = function() {
       2000); // maxTimeout
 
 
-  var q = new ydn.db.Query(table_name);
+  var q = new ydn.db.Cursor(table_name);
   db.fetch(q).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
@@ -452,7 +452,7 @@ var test_41_keyRange = function () {
     console.log([db + ' receiving put callback.', value]);
 
     var key_range = ydn.db.KeyRange.bound(2, 5, true, true);
-    var q = new ydn.db.Query(store_name, 'value', undefined, key_range);
+    var q = new ydn.db.Cursor(store_name, 'value', undefined, key_range);
 
     db.fetch(q).addBoth(function (value) {
       console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -574,7 +574,7 @@ var test_71_offset_limit = function () {
   db.put(store_name, objs).addBoth(function (value) {
     console.log(['receiving value callback.', value]);
 
-    var q = new ydn.db.Query(store_name, 'id');
+    var q = new ydn.db.Cursor(store_name, 'id');
 
     db.fetch(q, limit, offset).addBoth(function (value) {
       console.log('fetch value: ' + JSON.stringify(value));
@@ -626,7 +626,7 @@ var test_74_where = function () {
   db.put(store_name, objs).addBoth(function (value) {
     console.log(['receiving value callback.', value]);
 
-    var q = new ydn.db.Query(store_name).where('value', '<', 5, '>', 2);
+    var q = new ydn.db.Cursor(store_name).where('value', '<', 5, '>', 2);
 
     db.fetch(q).addBoth(function (value) {
       console.log('fetch value: ' + JSON.stringify(value));
@@ -908,7 +908,7 @@ var test_85_query_start_with = function () {
 
 
       var key_range = ydn.db.KeyRange.starts('qs');
-      var q = new ydn.db.Query(store_name, 'id', 'next', key_range);
+      var q = new ydn.db.Cursor(store_name, 'id', 'next', key_range);
       db.fetch(q).addCallback(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         assertEquals('obj length', objs.length - 1, value.length);

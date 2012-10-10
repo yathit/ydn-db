@@ -13,11 +13,11 @@
 // limitations under the License.
 
 /**
- * @fileoverview Query.
+ * @fileoverview Cursor object.
  */
 
 
-goog.provide('ydn.db.Query');
+goog.provide('ydn.db.Cursor');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.error.ArgumentException');
@@ -35,7 +35,7 @@ goog.require('ydn.error.ArgumentException');
  * @param {...} opt_args additional parameters for key range constructor.
  * @constructor
  */
-ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
+ydn.db.Cursor = function(store, index, direction, keyRange, opt_args) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
     throw new ydn.error.ArgumentException('store name required');
@@ -91,7 +91,7 @@ ydn.db.Query = function(store, index, direction, keyRange, opt_args) {
 /**
  * @inheritDoc
  */
-ydn.db.Query.prototype.toJSON = function() {
+ydn.db.Cursor.prototype.toJSON = function() {
   return {
     'store': this.store_name,
     'index': this.index,
@@ -104,35 +104,35 @@ ydn.db.Query.prototype.toJSON = function() {
  * Right value for query operation.
  * @type {ydn.db.IDBKeyRange|undefined}
  */
-ydn.db.Query.prototype.keyRange;
+ydn.db.Cursor.prototype.keyRange;
 
 /**
  * Cursor direction.
  * @type {(string|undefined)}
  */
-ydn.db.Query.prototype.direction;
+ydn.db.Cursor.prototype.direction;
 
 /**
  * @type {?function(!Object): boolean}
  */
-ydn.db.Query.prototype.filter;
+ydn.db.Cursor.prototype.filter;
 
 /**
  * @type {?function(!Object): boolean}
  */
-ydn.db.Query.prototype.continued;
+ydn.db.Cursor.prototype.continued;
 
 /**
  * @type {?function(!Object): *}
  */
-ydn.db.Query.prototype.map;
+ydn.db.Cursor.prototype.map;
 
 /**
  * Reduce is execute after map.
  * @type {?function(*, *, number): *}
  * function(previousValue, currentValue, index)
  */
-ydn.db.Query.prototype.reduce;
+ydn.db.Cursor.prototype.reduce;
 
 
 /**
@@ -142,9 +142,9 @@ ydn.db.Query.prototype.reduce;
  * @param {string} value rvalue to compare.
  * @param {string=} op2 secound operator.
  * @param {string=} value2 second rvalue to compare.
- * @return {!ydn.db.Query} The query.
+ * @return {!ydn.db.Cursor} The query.
  */
-ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
+ydn.db.Cursor.prototype.where = function(field, op, value, op2, value2) {
 
   var op_test = function(op, lv) {
     if (op === '=' || op === '==') {
@@ -181,9 +181,9 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
 /**
  * Convenient method for SQL <code>COUNT</code> method.
- * @return {!ydn.db.Query} The query.
+ * @return {!ydn.db.Cursor} The query.
  */
-ydn.db.Query.prototype.count = function() {
+ydn.db.Cursor.prototype.count = function() {
   this.reduce = function(prev) {
     if (!prev) {
       prev = 0;
@@ -197,9 +197,9 @@ ydn.db.Query.prototype.count = function() {
 /**
  * Convenient method for SQL <code>SUM</code> method.
  * @param {string} field name.
- * @return {!ydn.db.Query} The query for chaining.
+ * @return {!ydn.db.Cursor} The query for chaining.
  */
-ydn.db.Query.prototype.sum = function(field) {
+ydn.db.Cursor.prototype.sum = function(field) {
   this.reduce = function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
@@ -213,9 +213,9 @@ ydn.db.Query.prototype.sum = function(field) {
 /**
  * Convenient method for SQL <code>AVERAGE</code> method.
  * @param {string} field name.
- * @return {!ydn.db.Query} The query for chaining.
+ * @return {!ydn.db.Cursor} The query for chaining.
  */
-ydn.db.Query.prototype.average = function(field) {
+ydn.db.Cursor.prototype.average = function(field) {
   this.reduce = function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
@@ -229,9 +229,9 @@ ydn.db.Query.prototype.average = function(field) {
 /**
  *
  * @param {string|Array.<string>} arg1 field names to select.
- * @return {!ydn.db.Query} The query for chaining.
+ * @return {!ydn.db.Cursor} The query for chaining.
  */
-ydn.db.Query.prototype.select = function(arg1) {
+ydn.db.Cursor.prototype.select = function(arg1) {
   this.map = function(data) {
     if (goog.isString(arg1)) {
       return data[arg1];
@@ -250,9 +250,9 @@ ydn.db.Query.prototype.select = function(arg1) {
 /**
  *
  * @param {*} value the only value.
- * @return {!ydn.db.Query} The query for chaining.
+ * @return {!ydn.db.Cursor} The query for chaining.
  */
-ydn.db.Query.prototype.only = function(value) {
+ydn.db.Cursor.prototype.only = function(value) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.IDBKeyRange.only(value);
   return this;
@@ -263,9 +263,9 @@ ydn.db.Query.prototype.only = function(value) {
  *
  * @param {*} value The value of the upper bound.
  * @param {boolean=} is_open If true, the range excludes the upper bound value.
- * @return {!ydn.db.Query} The query for chaining.
+ * @return {!ydn.db.Cursor} The query for chaining.
  */
-ydn.db.Query.prototype.upperBound = function(value, is_open) {
+ydn.db.Cursor.prototype.upperBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.IDBKeyRange.upperBound(value, is_open);
   return this;
@@ -275,9 +275,9 @@ ydn.db.Query.prototype.upperBound = function(value, is_open) {
  *
  * @param {*} value  The value of the lower bound.
  * @param {boolean=} is_open  If true, the range excludes the lower bound value.
- * @return {!ydn.db.Query} The query for chaining.
+ * @return {!ydn.db.Cursor} The query for chaining.
  */
-ydn.db.Query.prototype.lowerBound = function(value, is_open) {
+ydn.db.Cursor.prototype.lowerBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.IDBKeyRange.lowerBound(value, is_open);
   return this;
@@ -289,9 +289,9 @@ ydn.db.Query.prototype.lowerBound = function(value, is_open) {
  * @param {*} upper  The value of the upper bound.
  * @param {boolean=} lo If true, the range excludes the lower bound value.
  * @param {boolean=} uo If true, the range excludes the upper bound value.
- * @return {!ydn.db.Query} The query for chaining.
+ * @return {!ydn.db.Cursor} The query for chaining.
  */
-ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
+ydn.db.Cursor.prototype.bound = function(lower, upper, lo, uo) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.IDBKeyRange.bound(lower, upper, lo, uo);
   return this;
@@ -304,7 +304,7 @@ ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
  * @return {{where_clause: string, params: Array}} return equivalent of keyRange
  * to SQL WHERE clause and its parameters.
  */
-ydn.db.Query.prototype.toWhereClause = function(keyPath) {
+ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
 
   var where_clause = '';
   var params = [];
@@ -313,7 +313,7 @@ ydn.db.Query.prototype.toWhereClause = function(keyPath) {
           ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   var column = goog.string.quote(index);
 
-  if (ydn.db.Query.isLikeOperation_(this.keyRange)) {
+  if (ydn.db.Cursor.isLikeOperation_(this.keyRange)) {
     where_clause = column + ' LIKE ?';
     params.push(this.keyRange['lower'] + '%');
   } else {
@@ -339,7 +339,7 @@ ydn.db.Query.prototype.toWhereClause = function(keyPath) {
 /**
  * @override
  */
-ydn.db.Query.prototype.toString = function() {
+ydn.db.Cursor.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
   return 'query:' + this.store_name + idx;
 };
@@ -353,7 +353,7 @@ ydn.db.Query.prototype.toString = function() {
  * @return {boolean} true if given key range can be substitute with SQL
  * operation LIKE.
  */
-ydn.db.Query.isLikeOperation_ = function(keyRange) {
+ydn.db.Cursor.isLikeOperation_ = function(keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {
     return false;
   }

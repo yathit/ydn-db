@@ -10,7 +10,7 @@
 goog.provide('ydn.db.req.RequestExecutor');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.Cursor');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.InternalError');
 
@@ -163,7 +163,7 @@ ydn.db.req.RequestExecutor.prototype.count = goog.abstractMethod;
 
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Cursor} q query.
  * @param {number=} max
  * @param {number=} skip
  */

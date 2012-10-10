@@ -560,7 +560,7 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 
 /**
 * @param {goog.async.Deferred} df deferred to feed result.
-* @param {!ydn.db.Query} q query.
+* @param {!ydn.db.Cursor} q query.
 * @param {number=} max limit.
 * @param {number=} skip offset.
 * @private

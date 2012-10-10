@@ -119,14 +119,14 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 
 
 /**
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Cursor} q query.
  * @param {number=} max
  * @param {number=} skip
  * @return {!goog.async.Deferred}
  */
 ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
   var df = ydn.db.base.createDeferred();
-  if (!(q instanceof ydn.db.Query)) {
+  if (!(q instanceof ydn.db.Cursor)) {
     throw new ydn.error.ArgumentException();
   }
 
