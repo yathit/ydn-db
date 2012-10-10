@@ -172,6 +172,25 @@ ydn.db.KeyRange.parseKeyRange = function(keyRange) {
 };
 
 
+
+
+/**
+ * @private
+ * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} keyRange key range to check.
+ * @return {boolean} true if given key range can be substitute with SQL
+ * operation LIKE.
+ */
+ydn.db.KeyRange.isLikeOperation = function(keyRange) {
+  if (!goog.isDefAndNotNull(keyRange)) {
+    return false;
+  }
+  return goog.isDef(keyRange.lower) && goog.isDef(keyRange.upper) &&
+    !keyRange.lowerOpen && !keyRange.upperOpen &&
+    keyRange.lower.length == keyRange.upper.length + 1 &&
+    keyRange.upper[keyRange.lower.length - 1] == '\uffff';
+};
+
+
 /**
  *
  * @type {function(new:IDBKeyRange)} The IDBKeyRange interface of the IndexedDB

@@ -144,7 +144,6 @@ ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
 ydn.db.req.RequestExecutor.prototype.clearById = goog.abstractMethod;
 
 
-
 /**
  * Clear a store or stores.
  * @param {!goog.async.Deferred} return object in deferred function.
@@ -160,11 +159,29 @@ ydn.db.req.RequestExecutor.prototype.clearByStore = goog.abstractMethod;
 ydn.db.req.RequestExecutor.prototype.count = goog.abstractMethod;
 
 
+/**
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!ydn.db.Query} q the query.
+ * @param {number=} max maximum number of records to be fetched.
+ * @param {number=} skip skip the number of success records received.
+ */
+ydn.db.req.RequestExecutor.prototype.fetchQuery = goog.abstractMethod;
+
 
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
- * @param {!ydn.db.Cursor} q query.
- * @param {number=} max
- * @param {number=} skip
+ * @param {!ydn.db.Cursor} q the query.
+ * @param {number=} max maximum number of records to be fetched.
+ * @param {number=} skip skip the number of success records received.
  */
-ydn.db.req.RequestExecutor.prototype.fetch = goog.abstractMethod;
+ydn.db.req.RequestExecutor.prototype.fetchCursor = goog.abstractMethod;
+
+
+/**
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!ydn.db.Cursor} q the cursor.
+ * @param {Array.<string>} scope list of store names.
+ * @param {boolean=} written open as readwrite operation. default is readonly.
+ * @param {boolean=} resumed resume previous cursor position.
+ */
+ydn.db.req.RequestExecutor.prototype.open = goog.abstractMethod;

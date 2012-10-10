@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 /**
- * @fileoverview Cursor object.
+ * @fileoverview Query object.
+ *
+ * Define database query declaratively.
  */
 
 
-goog.provide('ydn.db.Cursor');
+goog.provide('ydn.db.Query');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.error.ArgumentException');
@@ -25,114 +28,46 @@ goog.require('ydn.error.ArgumentException');
 
 
 /**
- * @param {string} store store name.
- * @param {string=} index store field, where key query is preformed. If not
- * provided, the first index will be used.
- * @param {string=} direction cursor direction.
- * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
- * keyRange configuration in json or native format. Alternatively key range
- * constructor parameters can be given.
- * @param {...} opt_args additional parameters for key range constructor.
+ * @param {string} sql_statement The sql statement.
  * @constructor
  */
-ydn.db.Cursor = function(store, index, direction, keyRange, opt_args) {
+ydn.db.Query = function(sql_statement) {
   // Note for V8 optimization, declare all properties in constructor.
-  if (!goog.isString(store)) {
-    throw new ydn.error.ArgumentException('store name required');
+  if (!goog.isString(sql_statement)) {
+    throw new ydn.error.ArgumentException('SQL statement required');
   }
-  /**
-   * Store name.
-   * @final
-   * @type {string}
-   */
-  this.store_name = store;
-  /**
-   * Indexed field.
-   * @final
-   * @type {string|undefined}
-   */
-  this.index = index;
 
-  if (!goog.isDefAndNotNull(direction)) {
-    direction = undefined;
-  } else if (['next', 'prev'].indexOf(direction) == -1) {
-    throw new ydn.error.ArgumentException('direction');
-  }
-  /**
-   * @final
-   * @type {string}
-   */
-  this.direction = direction;
-
-  var kr;
-  if (keyRange instanceof ydn.db.KeyRange) {
-    kr = ydn.db.KeyRange.parseKeyRange(keyRange);
-  } else if (goog.isObject(keyRange)) {
-    // must be JSON object
-    kr = ydn.db.KeyRange.parseKeyRange(keyRange);
-  } else if (goog.isDef(keyRange)) {
-    kr = ydn.db.IDBKeyRange.bound.apply(this,
-      Array.prototype.slice.call(arguments, 3));
-  }
-  /**
-   * @final
-   * @type {!ydn.db.IDBKeyRange|undefined}
-   */
-  this.keyRange = kr;
-
-  // set all null so that no surprise from inherit prototype
-  this.filter = null;
-  this.reduce = null;
-  this.map = null;
-  this.continued = null;
+  this.sql = sql_statement;
 };
+
+
+/**
+ * @private
+ * @type {string}
+ */
+ydn.db.Query.prototype.sql = '';
 
 
 /**
  * @inheritDoc
  */
-ydn.db.Cursor.prototype.toJSON = function() {
+ydn.db.Query.prototype.toJSON = function() {
   return {
-    'store': this.store_name,
-    'index': this.index,
-    'key_range': ydn.db.KeyRange.toJSON(this.keyRange || null),
-    'direction': this.direction
+    'sql': this.sql
   };
 };
 
-/**
- * Right value for query operation.
- * @type {ydn.db.IDBKeyRange|undefined}
- */
-ydn.db.Cursor.prototype.keyRange;
 
 /**
- * Cursor direction.
- * @type {(string|undefined)}
+ * @typedef {{
+ *  field: string,
+ *  op: string,
+ *  value: string,
+ *  op2: (string|undefined),
+ * value2: (string|undefined)
+ * }}
  */
-ydn.db.Cursor.prototype.direction;
-
-/**
- * @type {?function(!Object): boolean}
- */
-ydn.db.Cursor.prototype.filter;
-
-/**
- * @type {?function(!Object): boolean}
- */
-ydn.db.Cursor.prototype.continued;
-
-/**
- * @type {?function(!Object): *}
- */
-ydn.db.Cursor.prototype.map;
-
-/**
- * Reduce is execute after map.
- * @type {?function(*, *, number): *}
- * function(previousValue, currentValue, index)
- */
-ydn.db.Cursor.prototype.reduce;
+ydn.db.Query.Where;
 
 
 /**
@@ -142,159 +77,222 @@ ydn.db.Cursor.prototype.reduce;
  * @param {string} value rvalue to compare.
  * @param {string=} op2 secound operator.
  * @param {string=} value2 second rvalue to compare.
- * @return {!ydn.db.Cursor} The query.
+ * @return {!ydn.db.Query} The query.
  */
-ydn.db.Cursor.prototype.where = function(field, op, value, op2, value2) {
+ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
-  var op_test = function(op, lv) {
-    if (op === '=' || op === '==') {
-      return function(x) {return x == lv};
-    } else if (op === '===') {
-      return function(x) {return x === lv};
-    } else if (op === '>') {
-      return function(x) {return x > lv};
-    } else if (op === '>=') {
-      return function(x) {return x >= lv};
-    } else if (op === '<') {
-      return function(x) {return x < lv};
-    } else if (op === '<=') {
-      return function(x) {return x <= lv};
-    } else if (op === '!=') {
-      return function(x) {return x != lv};
-    } else {
-      goog.asserts.assert(false, 'Invalid op: ' + op);
-    }
-  };
+  var already =  goog.array.some(this.wheres, function(x) {
+    return x.field === field;
+  });
 
-  var test1 = op_test(op, value);
-  var test2 = goog.isDef(op2) && goog.isDef(value2) ?
-      op_test(op2, value2) : goog.functions.TRUE;
+  if (already) {
+    throw new ydn.error.ArgumentException(field);
+  }
 
-  var prev_filter = this.filter || goog.functions.TRUE;
+  this.wheres.push({field: field, op: op, value: value, op2: op2, value2: value2});
 
-  this.filter = function(obj) {
-    return prev_filter(obj) && test1(obj[field]) && test2(obj[field]);
-  };
   return this;
+
+//  var op_test = function(op, lv) {
+//    if (op === '=' || op === '==') {
+//      return function(x) {return x == lv};
+//    } else if (op === '===') {
+//      return function(x) {return x === lv};
+//    } else if (op === '>') {
+//      return function(x) {return x > lv};
+//    } else if (op === '>=') {
+//      return function(x) {return x >= lv};
+//    } else if (op === '<') {
+//      return function(x) {return x < lv};
+//    } else if (op === '<=') {
+//      return function(x) {return x <= lv};
+//    } else if (op === '!=') {
+//      return function(x) {return x != lv};
+//    } else {
+//      goog.asserts.assert(false, 'Invalid op: ' + op);
+//    }
+//  };
+//
+//  var test1 = op_test(op, value);
+//  var test2 = goog.isDef(op2) && goog.isDef(value2) ?
+//      op_test(op2, value2) : goog.functions.TRUE;
+//
+//  var prev_filter = this.filter || goog.functions.TRUE;
+//
+//  this.filter = function(obj) {
+//    return prev_filter(obj) && test1(obj[field]) && test2(obj[field]);
+//  };
+//  return this;
 };
 
 
 /**
- * Convenient method for SQL <code>COUNT</code> method.
- * @return {!ydn.db.Cursor} The query.
+ * @protected
+ * @type {!Array<!ydn.db.Query.Where>}
  */
-ydn.db.Cursor.prototype.count = function() {
-  this.reduce = function(prev) {
-    if (!prev) {
-      prev = 0;
-    }
-    return prev + 1;
-  };
+ydn.db.Query.prototype.wheres = [];
+
+
+/**
+ * @enum {string}
+ */
+ydn.db.Query.MapType = {
+  SELECT: 'sl'
+};
+
+
+/**
+ * @typedef {{
+ *   type: ydn.db.Query.MapType,
+ *   fields: !Array.<string>
+ * }}
+ */
+ydn.db.Query.Map;
+
+
+/**
+ *
+ * @type {ydn.db.Query.Map}
+ */
+ydn.db.Query.prototype.map = null;
+
+
+
+/**
+ * @enum {string}
+ */
+ydn.db.Query.AggregateType = {
+  COUNT: 'ct',
+  SUM: 'sm',
+  AVERAGE: 'av',
+  MAX: 'mx',
+  MIN: 'mn'
+};
+
+
+/**
+ * @typedef {{
+ *   type: ydn.db.Query.AggregateType,
+ *   field: (string|undefined)
+ * }}
+ */
+ydn.db.Query.Aggregate;
+
+
+/**
+ *
+ * @type {ydn.db.Query.Aggregate}
+ */
+ydn.db.Query.prototype.aggregate = null;
+
+
+/**
+ * Convenient method for SQL <code>COUNT</code> method.
+ * @return {!ydn.db.Query} The query.
+ */
+ydn.db.Query.prototype.count = function() {
+
+  if (this.aggregate) {
+    throw new ydn.error.ConstrainError('Aggregate method already defined.');
+  }
+  this.aggregate = {type: ydn.db.Query.AggregateType.COUNT};
   return this;
+
+//  this.reduce = function(prev) {
+//    if (!prev) {
+//      prev = 0;
+//    }
+//    return prev + 1;
+//  };
+//  return this;
 };
 
 
 /**
  * Convenient method for SQL <code>SUM</code> method.
  * @param {string} field name.
- * @return {!ydn.db.Cursor} The query for chaining.
+ * @return {!ydn.db.Query} The query for chaining.
  */
-ydn.db.Cursor.prototype.sum = function(field) {
-  this.reduce = function(prev, curr, i) {
-    if (!goog.isDef(prev)) {
-      prev = 0;
-    }
-    return prev + curr[field];
+ydn.db.Query.prototype.sum = function(field) {
+
+  if (this.aggregate) {
+    throw new ydn.error.ConstrainError('Aggregate method already defined.');
+  }
+  this.aggregate = {
+    type: ydn.db.Query.AggregateType.SUM,
+    field: field
   };
   return this;
+
+//  this.reduce = function(prev, curr, i) {
+//    if (!goog.isDef(prev)) {
+//      prev = 0;
+//    }
+//    return prev + curr[field];
+//  };
+//  return this;
 };
 
 
 /**
  * Convenient method for SQL <code>AVERAGE</code> method.
  * @param {string} field name.
- * @return {!ydn.db.Cursor} The query for chaining.
+ * @return {!ydn.db.Query} The query for chaining.
  */
-ydn.db.Cursor.prototype.average = function(field) {
-  this.reduce = function(prev, curr, i) {
-    if (!goog.isDef(prev)) {
-      prev = 0;
-    }
-    return (prev * i + curr[field]) / (i + 1);
+ydn.db.Query.prototype.average = function(field) {
+
+  if (this.aggregate) {
+    throw new ydn.error.ConstrainError('Aggregate method already defined.');
+  }
+  this.aggregate = {
+    type: ydn.db.Query.AggregateType.AVERAGE,
+    field: field
   };
   return this;
+
+//  this.reduce = function(prev, curr, i) {
+//    if (!goog.isDef(prev)) {
+//      prev = 0;
+//    }
+//    return (prev * i + curr[field]) / (i + 1);
+//  };
+//  return this;
 };
 
 
 /**
  *
- * @param {string|Array.<string>} arg1 field names to select.
- * @return {!ydn.db.Cursor} The query for chaining.
+ * @param {string|Array.<string>} fields field names to select.
+ * @return {!ydn.db.Query} The query for chaining.
  */
-ydn.db.Cursor.prototype.select = function(arg1) {
-  this.map = function(data) {
-    if (goog.isString(arg1)) {
-      return data[arg1];
-    } else {
-      var selected_data = {};
-      for (var i = 0; i < arg1.length; i++) {
-        selected_data[arg1[i]] = data[arg1[i]];
-      }
-      return selected_data;
-    }
+ydn.db.Query.prototype.select = function(fields) {
+
+  if (this.map) {
+    throw new ydn.error.ConstrainError('Map method already defined.');
+  }
+  var fs = goog.isString(fields) ? [fields] : goog.isArray(fields) ?
+    fields : null;
+  if (!fields) {
+    throw new ydn.error.ArgumentException();
+  }
+  this.map = {
+    type: ydn.db.Query.MapType.SELECT,
+    field: fields
   };
   return this;
-};
 
-
-/**
- *
- * @param {*} value the only value.
- * @return {!ydn.db.Cursor} The query for chaining.
- */
-ydn.db.Cursor.prototype.only = function(value) {
-  goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.IDBKeyRange.only(value);
-  return this;
-};
-
-
-/**
- *
- * @param {*} value The value of the upper bound.
- * @param {boolean=} is_open If true, the range excludes the upper bound value.
- * @return {!ydn.db.Cursor} The query for chaining.
- */
-ydn.db.Cursor.prototype.upperBound = function(value, is_open) {
-  goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.IDBKeyRange.upperBound(value, is_open);
-  return this;
-};
-
-/**
- *
- * @param {*} value  The value of the lower bound.
- * @param {boolean=} is_open  If true, the range excludes the lower bound value.
- * @return {!ydn.db.Cursor} The query for chaining.
- */
-ydn.db.Cursor.prototype.lowerBound = function(value, is_open) {
-  goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.IDBKeyRange.lowerBound(value, is_open);
-  return this;
-};
-
-/**
- *
- * @param {*} lower  The value of the lower bound.
- * @param {*} upper  The value of the upper bound.
- * @param {boolean=} lo If true, the range excludes the lower bound value.
- * @param {boolean=} uo If true, the range excludes the upper bound value.
- * @return {!ydn.db.Cursor} The query for chaining.
- */
-ydn.db.Cursor.prototype.bound = function(lower, upper, lo, uo) {
-  goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.IDBKeyRange.bound(lower, upper, lo, uo);
-  return this;
+//  this.map = function(data) {
+//    if (goog.isString(arg1)) {
+//      return data[arg1];
+//    } else {
+//      var selected_data = {};
+//      for (var i = 0; i < arg1.length; i++) {
+//        selected_data[arg1[i]] = data[arg1[i]];
+//      }
+//      return selected_data;
+//    }
+//  };
+//  return this;
 };
 
 
@@ -304,7 +302,7 @@ ydn.db.Cursor.prototype.bound = function(lower, upper, lo, uo) {
  * @return {{where_clause: string, params: Array}} return equivalent of keyRange
  * to SQL WHERE clause and its parameters.
  */
-ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
+ydn.db.Query.prototype.toWhereClause = function(keyPath) {
 
   var where_clause = '';
   var params = [];
@@ -313,7 +311,7 @@ ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
           ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   var column = goog.string.quote(index);
 
-  if (ydn.db.Cursor.isLikeOperation_(this.keyRange)) {
+  if (ydn.db.Query.isLikeOperation_(this.keyRange)) {
     where_clause = column + ' LIKE ?';
     params.push(this.keyRange['lower'] + '%');
   } else {
@@ -339,7 +337,7 @@ ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
 /**
  * @override
  */
-ydn.db.Cursor.prototype.toString = function() {
+ydn.db.Query.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
   return 'query:' + this.store_name + idx;
 };
@@ -353,7 +351,7 @@ ydn.db.Cursor.prototype.toString = function() {
  * @return {boolean} true if given key range can be substitute with SQL
  * operation LIKE.
  */
-ydn.db.Cursor.isLikeOperation_ = function(keyRange) {
+ydn.db.Query.isLikeOperation_ = function(keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {
     return false;
   }

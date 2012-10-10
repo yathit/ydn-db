@@ -118,31 +118,96 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 };
 
 
+
 /**
- * @param {!ydn.db.Cursor} q query.
- * @param {number=} max
- * @param {number=} skip
+ * @param {!ydn.db.Cursor} q the cursor.
+ * @param {Array.<string>} scope list of store names.
+ * @param {boolean=} written open as readwrite operation. default is readonly.
+ * @param {boolean=} resumed resume previous cursor position.
  * @return {!goog.async.Deferred}
  */
-ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
+ydn.db.TxStorage.prototype.open = function(q, scope, written, resumed) {
   var df = ydn.db.base.createDeferred();
   if (!(q instanceof ydn.db.Cursor)) {
     throw new ydn.error.ArgumentException();
   }
 
-  var store = this.schema.getStore(q.store_name);
-  if (!store) {
-    throw new ydn.error.ArgumentException(q.store_name +
-        ' not exists.');
-  }
-  if (goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
-    throw new ydn.error.ArgumentException('Index: ' + q.index +
-        ' not exists in store: ' + q.store_name);
+  var me = this;
+  if (!scope) {
+    scope = this.schema.getStoreNames();
+  } else if (goog.isArray(scope)) {
+    var idx = goog.array.findIndex(scope, function(x) {
+      return !me.schema.hasStore(x);
+    });
+    if (idx >= 0) {
+      throw new ydn.error.ArgumentException('Invalid store name: ' + scope[idx]);
+    }
+
+  } else {
+    throw new ydn.error.ArgumentException('Invalid scope');
   }
 
+  var mode = !!written ? ydn.db.TransactionMode.READ_WRITE :
+    ydn.db.TransactionMode.READ_ONLY;
+
   this.execute(function (executor) {
-    executor.fetch(df, q, max, skip);
-  }, [q.store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    executor.open(df, q, scope, mode, !!resumed);
+  }, scope, ydn.db.base.TransactionMode.READ_ONLY);
+
+  return df;
+};
+
+
+/**
+ * @param {!ydn.db.Cursor|!ydn.db.Query} q query.
+ * @param {number=} max maximum number of records to be fetched.
+ * @param {number=} skip skip the number of success records received.
+ * @return {!goog.async.Deferred} return result as list.
+ */
+ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
+
+  var df = ydn.db.base.createDeferred();
+
+  if (q instanceof ydn.db.Query) {
+    var store = this.schema.getStore(q.store_name);
+    if (!store) {
+      throw new ydn.error.ArgumentException(q.store_name +
+        ' not exists.');
+    }
+    if (goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
+      throw new ydn.error.ArgumentException('Index: ' + q.index +
+        ' not exists in store: ' + q.store_name);
+    }
+
+    this.execute(function (executor) {
+      executor.fetchQuery(df, q, max, skip);
+    }, [q.store_name], ydn.db.base.TransactionMode.READ_ONLY);
+
+  } else if (q instanceof ydn.db.Cursor) {
+    var me = this;
+    var scope = q.store;
+    if (!q.scope) {
+      scope = this.schema.getStoreNames();
+    } else if (goog.isArray(q.scope)) {
+      var idx = goog.array.findIndex(q.scope, function(x) {
+        return !me.schema.hasStore(x);
+      });
+      if (idx >= 0) {
+        throw new ydn.error.ArgumentException('Invalid store name: ' + q.scope[idx]);
+      }
+
+    } else {
+      throw new ydn.error.ArgumentException('Invalid scope');
+    }
+
+
+    this.execute(function (executor) {
+      executor.fetchQuery(df, q, max, skip);
+    }, [q.store_name], ydn.db.base.TransactionMode.READ_ONLY);
+
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
 
   return df;
 };
