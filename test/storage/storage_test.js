@@ -69,7 +69,6 @@ var test_0_json_config_empty_table = function() {
 
   var schema_ver1 = {
     version: 2,
-    size: 1 * 1024 * 1024, // 1 MB,
     Stores:[store]
   };
 
@@ -137,7 +136,6 @@ var test_1_json_config = function() {
 
   var schema_ver1 = {
     version: 2,
-    size: 1 * 1024 * 1024, // 1 MB,
     Stores:[store]
   };
 

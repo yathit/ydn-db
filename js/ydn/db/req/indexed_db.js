@@ -46,6 +46,7 @@ ydn.db.req.IndexedDb.DEBUG = goog.DEBUG && false;
 
 /**
  * Maximum number of requests created per transaction.
+ * Large number of requests can cause memory hog without increasing performance.
  * @const
  * @type {number}
  */

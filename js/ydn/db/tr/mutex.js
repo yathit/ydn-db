@@ -139,10 +139,10 @@ ydn.db.tr.Mutex.prototype.down = function (type, event) {
     // down must be call only once by those who up
     this.tx_ = null;
 
-    if (this.oncompleted) {
+    if (goog.isFunction(this.oncompleted)) {
       this.oncompleted(type, event);
-      this.oncompleted = null;
     }
+    this.oncompleted = null;
   } else {
     this.logger.severe(this + ' has no TX to be unlocked for ' + type);
   }

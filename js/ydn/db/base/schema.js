@@ -693,11 +693,19 @@ ydn.db.StoreSchema.prototype.similar = function(store) {
  * @constructor
  */
 ydn.db.DatabaseSchema = function(version, opt_stores) {
+
+  if (goog.isDef(version)) {
+    if (!goog.isNumber(version) || isNaN(version) || version <= 0) {
+      throw new ydn.error.ArgumentException('Invalid version');
+    }
+  }
+
   /**
-   * @final
    * @type {number|undefined}
    */
   this.version = version;
+
+  this.is_auto_schema_ = !goog.isDef(this.version);
 
   /**
    * @final
@@ -722,10 +730,38 @@ ydn.db.DatabaseSchema.prototype.toJSON = function() {
 
 /**
  *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.DatabaseSchema.prototype.is_auto_schema_ = false;
+
+
+/**
+ * Get schema version.
+ * @return {number}
+ */
+ydn.db.DatabaseSchema.prototype.getVersion = function() {
+  return goog.isDef(this.version) ? this.version : 1;
+};
+
+
+/**
+ * Update database schema for auto schema mode.
+ * @param {number} version must be number type
+ */
+ydn.db.DatabaseSchema.prototype.setVersion = function(version) {
+  goog.asserts.assert(this.is_auto_schema_);
+  goog.asserts.assertNumber(version);
+  this.version = version;
+};
+
+
+/**
+ *
  * @return {boolean}
  */
 ydn.db.DatabaseSchema.prototype.isAutoSchema = function() {
-  return !goog.isDef(this.version);
+  return this.is_auto_schema_;
 };
 
 
