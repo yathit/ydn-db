@@ -15,7 +15,7 @@ goog.addDependency("../../../ydn-db/js/ydn/db/base/db.js", ['ydn.db'], ['ydn.db.
 goog.addDependency("../../../ydn-db/js/ydn/db/base/error.js", ['ydn.db.InternalError', 'ydn.db.InvalidKeyException', 'ydn.db.InvalidStateError', 'ydn.db.NotFoundError', 'ydn.db.ScopeError', 'ydn.db.SecurityError'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/key.js", ['ydn.db.Key'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/key_range.js", ['ydn.db.IDBKeyRange', 'ydn.db.KeyRange'], []);
-goog.addDependency("../../../ydn-db/js/ydn/db/base/query.js", ['ydn.db.Query'], ['goog.functions', 'ydn.db.KeyRange', 'ydn.error.ArgumentException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/base/query.js", ['ydn.db.Query'], ['goog.functions', 'ydn.db.KeyRange', 'ydn.error.ArgumentException', 'ydn.db.DatabaseSchema']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/schema.js", ['ydn.db.DataType', 'ydn.db.DatabaseSchema', 'ydn.db.IndexSchema', 'ydn.db.StoreSchema'], ['ydn.db.Key']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/html5_storage.js", ['ydn.db.con.LocalStorage', 'ydn.db.con.SessionStorage'], ['ydn.db.con.SimpleStorage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/i_database.js", ['ydn.db.con.IDatabase'], ['goog.async.Deferred']);
@@ -30,9 +30,9 @@ goog.addDependency("../../../ydn-db/js/ydn/db/core/tx_storage.js", ['ydn.db.core
 goog.addDependency("../../../ydn-db/js/ydn/db/io/crud_service.js", ['ydn.db.io.CrudService'], ['goog.async.Deferred', 'ydn.db.Cursor', 'ydn.db.Key']);
 goog.addDependency("../../../ydn-db/js/ydn/db/io/key.js", ['ydn.db.io.Key'], ['ydn.db.Key']);
 goog.addDependency("../../../ydn-db/js/ydn/db/io/query.js", ['ydn.db.io.Query'], ['ydn.db.Cursor', 'ydn.db.io.QueryService', 'ydn.db.Cursor']);
-goog.addDependency("../../../ydn-db/js/ydn/db/io/query_service.js", ['ydn.db.io.QueryService'], ['goog.async.Deferred', 'ydn.db.Cursor', 'ydn.db.Key', 'ydn.db.io.CrudService']);
+goog.addDependency("../../../ydn-db/js/ydn/db/io/query_service.js", ['ydn.db.io.QueryService'], ['goog.async.Deferred', 'ydn.db.Cursor', 'ydn.db.Query', 'ydn.db.Key', 'ydn.db.io.CrudService']);
 goog.addDependency("../../../ydn-db/js/ydn/db/req/indexed_db.js", ['ydn.db.req.IndexedDb'], ['goog.async.DeferredList', 'ydn.db.req.RequestExecutor', 'ydn.json', 'ydn.error']);
-goog.addDependency("../../../ydn-db/js/ydn/db/req/request_executor.js", ['ydn.db.req.RequestExecutor'], ['goog.async.Deferred', 'goog.debug.Logger', 'ydn.db.Cursor', 'ydn.db.Key', 'ydn.db.InternalError']);
+goog.addDependency("../../../ydn-db/js/ydn/db/req/request_executor.js", ['ydn.db.req.RequestExecutor'], ['goog.async.Deferred', 'goog.debug.Logger', 'ydn.db.Cursor', 'ydn.db.Query', 'ydn.db.Key', 'ydn.db.InternalError']);
 goog.addDependency("../../../ydn-db/js/ydn/db/req/simple_store.js", ['ydn.db.req.SimpleStore'], ['goog.asserts', 'goog.async.Deferred', 'goog.Timer', 'ydn.db.req.RequestExecutor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/req/websql.js", ['ydn.db.req.WebSql'], ['goog.async.Deferred', 'goog.debug.Logger', 'goog.events', 'ydn.async', 'ydn.db.req.RequestExecutor', 'ydn.json']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_storage.js", ['ydn.db.tr.IStorage'], ['ydn.db.tr.Mutex']);
