@@ -24,6 +24,7 @@ goog.provide('ydn.db.Query');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.error.ArgumentException');
+goog.require('ydn.db.DatabaseSchema');
 
 
 
@@ -38,7 +39,27 @@ ydn.db.Query = function(sql_statement) {
   }
 
   this.sql = sql_statement;
+
+  this.wheres = [];
+  this.aggregate = null;
+  this.map = null;
+  this.direction = undefined;
+  this.index = undefined;
 };
+
+
+/**
+ *
+ * @type {string|undefined}
+ */
+ydn.db.Query.prototype.index = undefined;
+
+
+/**
+ *
+ * @type {string|undefined}
+ */
+ydn.db.Query.prototype.direction = undefined;
 
 
 /**
@@ -55,6 +76,47 @@ ydn.db.Query.prototype.toJSON = function() {
   return {
     'sql': this.sql
   };
+};
+
+
+/**
+ *
+ * @param {boolean} value if <code>true</code>,  the cursor should not yield
+ * records with the same key.
+ * @return {ydn.db.Query} this query for chaining.
+ */
+ydn.db.Query.prototype.unique = function(value) {
+  if (this.direction == ydn.db.Cursor.NEXT || this.direction == ydn.db.Cursor.NEXT_UNIQUE) {
+    this.direction = !!value ? ydn.db.Cursor.NEXT_UNIQUE : ydn.db.Cursor.NEXT;
+  } else {
+    this.direction = !!value ? ydn.db.Cursor.PREV_UNIQUE : ydn.db.Cursor.PREV;
+  }
+  return this;
+};
+
+
+/**
+ *
+ * @param {boolean} value if <code>true</code>,  the cursor should yield
+ * monotonically decreasing order of keys..
+ * @return {ydn.db.Query} this query for chaining.
+ */
+ydn.db.Query.prototype.reverse = function(value) {
+  if (this.direction == ydn.db.Cursor.NEXT_UNIQUE || this.direction == ydn.db.Cursor.PREV_UNIQUE) {
+    this.direction = !!value ? ydn.db.Cursor.PREV_UNIQUE : ydn.db.Cursor.NEXT_UNIQUE;
+  } else {
+    this.direction = !!value ? ydn.db.Cursor.PREV : ydn.db.Cursor.NEXT;
+  }
+  return this;
+};
+
+
+/**
+ *
+ * @param {string} index
+ */
+ydn.db.Query.prototype.orderBy = function(index) {
+  this.index = index;
 };
 
 
@@ -123,6 +185,50 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 //    return prev_filter(obj) && test1(obj[field]) && test2(obj[field]);
 //  };
 //  return this;
+};
+
+
+
+/**
+ * Process where instruction into filter iteration method.
+ * @param {string} field index field name to query from.
+ * @param {string} op where operator.
+ * @param {string} value rvalue to compare.
+ * @param {string=} op2 secound operator.
+ * @param {string=} value2 second rvalue to compare.
+ * @protected
+ */
+ydn.db.Query.processWhere = function(cursor, field, op, value, op2, value2) {
+
+  var op_test = function(op, lv) {
+    if (op === '=' || op === '==') {
+      return function(x) {return x == lv};
+    } else if (op === '===') {
+      return function(x) {return x === lv};
+    } else if (op === '>') {
+      return function(x) {return x > lv};
+    } else if (op === '>=') {
+      return function(x) {return x >= lv};
+    } else if (op === '<') {
+      return function(x) {return x < lv};
+    } else if (op === '<=') {
+      return function(x) {return x <= lv};
+    } else if (op === '!=') {
+      return function(x) {return x != lv};
+    } else {
+      goog.asserts.assert(false, 'Invalid op: ' + op);
+    }
+  };
+
+  var test1 = op_test(op, value);
+  var test2 = goog.isDef(op2) && goog.isDef(value2) ?
+      op_test(op2, value2) : goog.functions.TRUE;
+
+  var prev_filter = cursor.filter || goog.functions.TRUE;
+
+  cursor.filter = function(obj) {
+    return prev_filter(obj) && test1(obj[field]) && test2(obj[field]);
+  };
 };
 
 
@@ -224,13 +330,22 @@ ydn.db.Query.prototype.sum = function(field) {
   };
   return this;
 
-//  this.reduce = function(prev, curr, i) {
-//    if (!goog.isDef(prev)) {
-//      prev = 0;
-//    }
-//    return prev + curr[field];
-//  };
-//  return this;
+
+};
+
+
+/**
+ * Return reduce iteration function for SUM
+ * @param {string} field
+ * @return {Function}
+ */
+ydn.db.Query.reduceSum = function(field) {
+  return function(prev, curr, i) {
+    if (!goog.isDef(prev)) {
+      prev = 0;
+    }
+    return prev + curr[field];
+  };
 };
 
 
@@ -250,13 +365,22 @@ ydn.db.Query.prototype.average = function(field) {
   };
   return this;
 
-//  this.reduce = function(prev, curr, i) {
-//    if (!goog.isDef(prev)) {
-//      prev = 0;
-//    }
-//    return (prev * i + curr[field]) / (i + 1);
-//  };
-//  return this;
+
+};
+
+
+/**
+ * Return reduce iteration function for AVERAGE
+ * @param {string} field
+ * @return {Function}
+ */
+ydn.db.Query.reduceAverage = function (field) {
+  return function (prev, curr, i) {
+    if (!goog.isDef(prev)) {
+      prev = 0;
+    }
+    return (prev * i + curr[field]) / (i + 1);
+  };
 };
 
 
@@ -281,18 +405,27 @@ ydn.db.Query.prototype.select = function(fields) {
   };
   return this;
 
-//  this.map = function(data) {
-//    if (goog.isString(arg1)) {
-//      return data[arg1];
-//    } else {
-//      var selected_data = {};
-//      for (var i = 0; i < arg1.length; i++) {
-//        selected_data[arg1[i]] = data[arg1[i]];
-//      }
-//      return selected_data;
-//    }
-//  };
-//  return this;
+
+};
+
+
+/**
+ *
+ * @param {!Array.<string>|string} fields
+ * @return {Function}
+ */
+ydn.db.Query.mapSelect = function (fields) {
+  return function (data) {
+    if (goog.isString(fields)) {
+      return data[fields];
+    } else {
+      var selected_data = {};
+      for (var i = 0; i < fields.length; i++) {
+        selected_data[fields[i]] = data[fields[i]];
+      }
+      return selected_data;
+    }
+  };
 };
 
 
@@ -331,6 +464,77 @@ ydn.db.Query.prototype.toWhereClause = function(keyPath) {
   }
 
   return {where_clause: where_clause, params: params};
+};
+
+
+/**
+ * Parse SQL statement and convert to cursor object.
+ * @param {!ydn.db.DatabaseSchema} schema
+ * @return {ydn.db.Cursor}
+ */
+ydn.db.Query.prototype.toCursor = function(schema) {
+
+  /**
+   * @type {ydn.db.Cursor}
+   */
+  var cursor;
+  // assumeing sql_statement is just a database name
+  var store_name = goog.string.stripQuotes(this.sql);
+  var store = schema.getStore(store_name);
+  if (store) {
+    cursor = new ydn.db.Cursor(store_name, this.direction, this.index);
+  } else {
+    throw new ydn.db.SqlParseError(this.sql);
+  }
+
+  // sniff index field
+  if (!goog.isDef(this.index)) {
+    for (var i = 0; i < this.wheres.length; i++) {
+      /**
+       * @type {ydn.db.Query.Where}
+       */
+      var where = this.wheres[i];
+      if (store.hasIndex(where.field)) {
+        this.index = where.field;
+        if (goog.isDef(where.op2)) {
+          this.key_range = new ydn.db.KeyRange(where.value, where.value2,
+            where.op == '>', where.op2 == '<');
+        } else {
+          this.key_range = new ydn.db.KeyRange(where.value, undefined,
+            where.op == '>', undefined);
+        }
+        this.wheres.splice(i, 1);
+        break;
+      }
+    }
+  }
+
+  // then, process where clauses
+  for (var i = 0; i < this.wheres.length; i++) {
+    ydn.db.Query.processWhere(cursor, this.wheres[i].field,
+      this.wheres[i].op, this.wheres[i].value,
+      this.wheres[i].op2, this.wheres[i].value2);
+  }
+
+  if (this.map) {
+    if (this.map.type == ydn.db.Query.MapType.SELECT) {
+      cursor.map = ydn.db.Query.mapSelect(this.map.fields);
+    } else {
+      throw new new ydn.db.SqlParseError(this.sql);
+    }
+  }
+
+  if (this.aggregate) {
+    if (this.aggregate.type == ydn.db.Query.AggregateType.SUM) {
+      cursor.reduce = ydn.db.Query.reduceSum(this.aggregate.field);
+    } else if (this.aggregate.type == ydn.db.Query.AggregateType.AVERAGE) {
+      cursor.reduce = ydn.db.Query.reduceAverage(this.aggregate.field);
+    } else {
+      throw new new ydn.db.SqlParseError(this.sql);
+    }
+  }
+
+  return cursor;
 };
 
 

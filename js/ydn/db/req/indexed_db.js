@@ -565,13 +565,21 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 * @param {number=} skip offset.
 * @private
 */
-ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
+ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q, max, skip) {
   var me = this;
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
 
   var start = skip || 0;
   var end = goog.isDef(max) ? start + max : undefined;
+
+  var on_complete = function(result) {
+    if (goog.isFunction(q.finalize)) {
+      df.callback(q.finalize(result));
+    } else {
+      df.callback(result);
+    }
+  };
 
   //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
   // ' in ' + table);
@@ -638,7 +646,7 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
 
   var idx = -1; // iteration index
   var results = [];
-  var previousResult = undefined; // q.initialValue
+  var previousResult = goog.isFunction(q.initial) ? q.initial() : undefined;
 
   request.onsuccess = function(event) {
 
@@ -679,11 +687,11 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
         cursor['continue'](); // Note: Must be quoted to avoid parse error.
       } else {
         var result = is_reduce ? previousResult : results;
-        df.callback(result);
+        on_complete(result);
       }
     } else {
       var result = is_reduce ? previousResult : results;
-      df.callback(result);
+      on_complete(result);
     }
   };
 
@@ -697,118 +705,20 @@ ydn.db.req.IndexedDb.prototype.fetch = function(df, q, max, skip) {
 };
 
 
-//
-///**
-// *
-// * @param {string} table store name.
-// * @param {string} id key.
-// * @return {!goog.async.Deferred} deferred result.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.deleteItem_ = function(table, id) {
-//  var me = this;
-//
-//  if (goog.DEBUG && !this.schema.hasStore(table)) {
-//    throw Error(table + ' not exist in ' + this.dbname);
-//  }
-//
-//  var df = new goog.async.Deferred();
-//  this.doTransaction(function(tx) {
-//    var store = tx.objectStore(table);
-//    var request = store['delete'](id);
-//
-//    request.onsuccess = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      df.callback(true); // setting 'true' meaningful ?
-//    };
-//    request.onerror = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      df.errback(event);
-//    };
-//  }, [table], ydn.db.base.TransactionMode.READ_WRITE);
-//  return df;
-//};
-//
-//
-///**
-// *
-// * @param {string} table store name.
-// * @return {!goog.async.Deferred} deferred result.
-// * @private
-// */
-//ydn.db.req.IndexedDb.prototype.deleteStore_ = function(table) {
-//  var me = this;
-//
-//  if (!this.schema.hasStore(table)) {
-//    throw Error(table + ' not exist in ' + this.dbname);
-//  }
-//
-//  var df = new goog.async.Deferred();
-//  this.doTransaction(function(tx) {
-//    var request = tx.getTx().deleteObjectStore(table);
-//
-//    request.onsuccess = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      df.callback(true);
-//    };
-//    request.onerror = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      df.errback(event);
-//    };
-//  }, [table], ydn.db.base.TransactionMode.READ_WRITE);
-//  return df;
-//};
-//
-//
+/**
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {!ydn.db.Query} q query.
+ * @param {number=} max limit.
+ * @param {number=} skip offset.
+ * @private
+ */
+ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q, max, skip) {
 
-//
-//
-//
-//
-///**
-// * Delete the database, store or an entry.
-// *
-// * @param {string=} opt_table delete a specific store.
-// * @param {string=} opt_id delete a specific row.
-// * @return {!goog.async.Deferred} return a deferred function.
-// */
-//ydn.db.req.IndexedDb.prototype.remove = function(opt_table, opt_id) {
-//  /*
-//  * Note: I wish this method be named 'delete' but closure compiler complain
-//  * or sometimes problem with exporting 'delete' as method name.
-//  */
-//
-//  if (goog.isDef(opt_table)) {
-//    if (goog.isDef(opt_id)) {
-//      return this.deleteItem_(opt_table, opt_id);
-//    } else {
-//      return this.deleteStore_(opt_table);
-//    }
-//  } else {
-//    if (goog.isFunction(ydn.db.con.IndexedDb.indexedDb.deleteDatabase)) {
-//      var df = new goog.async.Deferred();
-//      var req = ydn.db.con.IndexedDb.indexedDb.deleteDatabase(this.dbname);
-//      req.onsuccess = function(e) {
-//        df.addCallback(e);
-//      };
-//      req.onerror = function(e) {
-//        df.addErrback(e);
-//      };
-//      return df;
-//    } else {
-//      return this.clear();
-//    }
-//  }
-//};
-//
+  var cursor = q.toCursor();
+
+};
+
+
 
 /**
  * @param {!goog.async.Deferred} df return a deferred function.
@@ -834,89 +744,3 @@ ydn.db.req.IndexedDb.prototype.count = function (df, table) {
   };
 
 };
-
-
-///**
-// * Print out list of key for debug use.
-// * @param {string} store_name table name.
-// * @return {!goog.async.Deferred} return as deferred function.
-// */
-//ydn.db.req.IndexedDb.prototype.listKeys = function(store_name) {
-//  var self = this;
-//
-//  goog.asserts.assertObject(this.schema[store_name], 'store ' + store_name +
-//    ' not exists in ' + this.dbname);
-//  var column = this.schema[store_name].keyPath;
-//
-//  var keys = [];
-//
-//  var df = new goog.async.Deferred();
-//  this.doTransaction(function(tx) {
-//    //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
-//    // ' in ' + table);
-//    var store = tx.objectStore(store_name);
-//    var index = store.index(column);
-//    var boundKeyRange;
-//    var value_upper = '';
-//
-//    //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
-//    // ' of ' + column + ' in ' + table);
-//    var request = index.openCursor();
-//
-//    request.onsuccess = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      /**
-//       * @type {IDBCursor}
-//       */
-//      var cursor = /** @type {IDBCursor} */ (event.target.result);
-//      //console.log(cursor);
-//      if (cursor) {
-//        keys.push(cursor['key']);
-//        //cursor.continue();
-//        cursor['continue'](); // Note: Must be quoted to avoid parse error.
-//      } else { // no more
-//        df.callback(keys);
-//      }
-//    };
-//
-//    request.onerror = function(event) {
-//      if (ydn.db.req.IndexedDb.DEBUG) {
-//        window.console.log(event);
-//      }
-//      df.errback(event);
-//    };
-//
-//  }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-//  return df;
-//};
-//
-//
-//
-///**
-// * Remove a specific entry from a store or all.
-// * @param {string=} opt_table delete the table as provided otherwise
-// * delete all stores.
-// * @param {(string|number)=} opt_key delete a specific row.
-// * @see {@link #remove}
-// * @return {!goog.async.Deferred} return a deferred function.
-// */
-//ydn.db.req.IndexedDb.prototype.clear = function(opt_table, opt_key) {
-//
-//  var store_names = goog.isDefAndNotNull(opt_table) ? [opt_table] :
-//      this.schema.getStoreNames();
-//  var self = this;
-//  var tx = this.getActiveIdbTx();
-//  var open_tx = this.isOpenTransaction();
-//  var df = new goog.async.Deferred();
-//  if (open_tx) {
-//    this.executeClear_(tx.getTx(), df, opt_table, opt_key);
-//  } else {
-//    this.doTransaction(function(tx) {
-//      self.executeClear_(tx.getTx(), df, opt_table, opt_key);
-//    }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
-//  }
-//  return df;
-//};
-//

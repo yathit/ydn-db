@@ -259,3 +259,31 @@ goog.inherits(ydn.db.SecurityError, Error);
  */
 ydn.db.SecurityError.prototype.name = 'ydn.db.SecurityError';
 
+
+
+/**
+ *
+ * @param {*=} opt_msg optional message.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.SqlParseError = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.SqlParseError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(ydn.db.SqlParseError, Error);
+
+/**
+ * @type {string} name of error.
+ */
+ydn.db.SqlParseError.prototype.name = 'ydn.db.SqlParseError';
+

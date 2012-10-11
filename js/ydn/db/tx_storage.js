@@ -122,11 +122,11 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 /**
  * @param {!ydn.db.Cursor} q the cursor.
  * @param {Array.<string>} scope list of store names.
- * @param {boolean=} written open as readwrite operation. default is readonly.
+ * @param {ydn.db.base.CursorMode=} mode open as readwrite operation. default is readonly.
  * @param {boolean=} resumed resume previous cursor position.
  * @return {!goog.async.Deferred}
  */
-ydn.db.TxStorage.prototype.open = function(q, scope, written, resumed) {
+ydn.db.TxStorage.prototype.iterate = function(q, scope, mode, resumed) {
   var df = ydn.db.base.createDeferred();
   if (!(q instanceof ydn.db.Cursor)) {
     throw new ydn.error.ArgumentException();
@@ -147,11 +147,13 @@ ydn.db.TxStorage.prototype.open = function(q, scope, written, resumed) {
     throw new ydn.error.ArgumentException('Invalid scope');
   }
 
-  var mode = !!written ? ydn.db.TransactionMode.READ_WRITE :
-    ydn.db.TransactionMode.READ_ONLY;
+  var tr_mode = ydn.db.TransactionMode.READ_ONLY;
+  if (mode == ydn.db.base.CursorMode.READ_WRITE) {
+    tr_mode = ydn.db.TransactionMode.READ_WRITE;
+  }
 
   this.execute(function (executor) {
-    executor.open(df, q, scope, mode, !!resumed);
+    executor.iterate(df, q, scope, tr_mode, !!resumed);
   }, scope, ydn.db.base.TransactionMode.READ_ONLY);
 
   return df;

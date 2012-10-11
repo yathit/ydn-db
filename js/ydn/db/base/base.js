@@ -80,6 +80,18 @@ ydn.db.base.TransactionMode = {
 
 
 /**
+ * Mode for opening cursor
+ * @enum {string|number}
+ */
+ydn.db.base.CursorMode = {
+  READ_ONLY: ydn.db.base.TransactionMode.READ_ONLY,
+  READ_WRITE: ydn.db.base.TransactionMode.READ_WRITE,
+  KEY_ONLY: 'keyonly'
+};
+
+
+
+/**
  * @define {boolean} if true, a default key-value text store should be created
  * in the abscent of configuration option.
  */

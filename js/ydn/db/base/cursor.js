@@ -27,16 +27,16 @@ goog.require('ydn.error.ArgumentException');
 
 /**
  * @param {string} store store name.
+ * @param {string=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {string=} direction cursor direction.
  * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
   * keyRange configuration in json or native format. Alternatively key range
  * constructor parameters can be given.
  * @param {...} opt_args additional parameters for key range constructor.
  * @constructor
  */
-ydn.db.Cursor = function(store, index, direction, keyRange, opt_args) {
+ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
     throw new ydn.error.ArgumentException('store name required');
@@ -90,6 +90,42 @@ ydn.db.Cursor = function(store, index, direction, keyRange, opt_args) {
 
 
 /**
+ * Cursor direction.
+ * @links http://www.w3.org/TR/IndexedDB/#dfn-direction
+ * @enum {string}
+ */
+ydn.db.Cursor.Direction = {
+  NEXT: 'next',
+  NEXT_UNIQUE: 'nextunique',
+  PREV: 'prev',
+  PREV_UNIQUE: 'prevunique'
+};
+
+
+/**
+ * @const
+ * @type {!Array.<ydn.db.Cursor.Direction>}
+ */
+ydn.db.Cursor.DIRECTIONS = [
+  ydn.db.Cursor.Direction.NEXT,
+  ydn.db.Cursor.Direction.NEXT_UNIQUE,
+  ydn.db.Cursor.Direction.PREV,
+  ydn.db.Cursor.Direction.PREV_UNIQUE
+];
+
+
+/**
+ *
+ * @param {ydn.db.Cursor.Direction|string=} str
+ * @return {ydn.db.Cursor.Direction|undefined}
+ */
+ydn.db.IndexSchema.toDir = function(str) {
+  var idx = goog.array.indexOf(ydn.db.Cursor.DIRECTIONS, str);
+  return ydn.db.Cursor.DIRECTIONS[idx]; // undefined OK.
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.Cursor.prototype.toJSON = function() {
@@ -109,9 +145,14 @@ ydn.db.Cursor.prototype.keyRange;
 
 /**
  * Cursor direction.
- * @type {(string|undefined)}
+ * @type {(ydn.db.Cursor.Direction|undefined)}
  */
 ydn.db.Cursor.prototype.direction;
+
+/**
+ * @type {?function(): *}
+ */
+ydn.db.Cursor.prototype.initial = null;
 
 /**
  * @type {?function(!Object): boolean}
@@ -134,6 +175,12 @@ ydn.db.Cursor.prototype.map = null;
  * function(previousValue, currentValue, index)
  */
 ydn.db.Cursor.prototype.reduce = null;
+
+
+/**
+ * @type {?function(*): *}
+ */
+ydn.db.Cursor.prototype.finalize = null;
 
 
 

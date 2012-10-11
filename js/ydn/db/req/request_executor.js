@@ -181,7 +181,7 @@ ydn.db.req.RequestExecutor.prototype.fetchCursor = goog.abstractMethod;
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!ydn.db.Cursor} q the cursor.
  * @param {Array.<string>} scope list of store names.
- * @param {boolean=} written open as readwrite operation. default is readonly.
+ * @param {ydn.db.base.CursorMode=} mode open as readwrite operation. default is readonly.
  * @param {boolean=} resumed resume previous cursor position.
  */
-ydn.db.req.RequestExecutor.prototype.open = goog.abstractMethod;
+ydn.db.req.RequestExecutor.prototype.iterate = goog.abstractMethod;
