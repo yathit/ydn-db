@@ -13,6 +13,7 @@ goog.require('ydn.db.io.QueryService');
 goog.require('ydn.db.req.IndexedDb');
 goog.require('ydn.db.req.SimpleStore');
 goog.require('ydn.db.req.WebSql');
+goog.require('ydn.db.io.Cursor');
 
 
 
@@ -64,10 +65,20 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
  * @param {(string|number)=} upper
  * @param {boolean=} lowerOpen
  * @param {boolean=} upperOpen
+ * @return {!ydn.db.io.Cursor}
+ */
+ydn.db.TxStorage.prototype.cursor = function(store, direction, index, keyRange, upper, lowerOpen, upperOpen) {
+  return new ydn.db.io.Cursor(this, store, direction, index, keyRange, upper, lowerOpen, upperOpen);
+};
+
+
+
+/**
+ * @param {string} sql_statement store name.
  * @return {!ydn.db.io.Query}
  */
-ydn.db.TxStorage.prototype.query = function(store, direction, index, keyRange, upper, lowerOpen, upperOpen) {
-  return new ydn.db.io.Query(this, store, direction, index, keyRange, upper, lowerOpen, upperOpen);
+ydn.db.TxStorage.prototype.query = function(sql_statement) {
+  return new ydn.db.io.Query(this, sql_statement);
 };
 
 
