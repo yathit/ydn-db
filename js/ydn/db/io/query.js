@@ -16,9 +16,9 @@ goog.require('ydn.db.Cursor');
  * @extends {ydn.db.Cursor}
  * @param {!ydn.db.io.QueryService} db db instance.
  * @param {string} store store name. If not defined, all object stores are used.
+ * @param {ydn.db.Cursor.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {string=} direction cursor direction.
  * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
     * keyRange configuration in json or native format. Alternatively key range
  * constructor parameters can be given
@@ -27,8 +27,8 @@ goog.require('ydn.db.Cursor');
  * @param {boolean=} upperOpen
  * @constructor
  */
-ydn.db.io.Query = function(db, store, index, direction, keyRange, upper, lowerOpen, upperOpen) {
-  goog.base(this, store, index, direction, keyRange, upper, lowerOpen, upperOpen);
+ydn.db.io.Query = function(db, store, direction, index, keyRange, upper, lowerOpen, upperOpen) {
+  goog.base(this, store, direction, index, keyRange, upper, lowerOpen, upperOpen);
   // database instance. This is be module private variable.
   /**
    * @final

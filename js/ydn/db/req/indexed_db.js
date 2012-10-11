@@ -563,7 +563,6 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 * @param {!ydn.db.Cursor} q query.
 * @param {number=} max limit.
 * @param {number=} skip offset.
-* @private
 */
 ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q, max, skip) {
   var me = this;
@@ -710,11 +709,11 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q, max, skip) {
  * @param {!ydn.db.Query} q query.
  * @param {number=} max limit.
  * @param {number=} skip offset.
- * @private
  */
 ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q, max, skip) {
 
-  var cursor = q.toCursor();
+  var cursor = q.toCursor(this.schema);
+  this.fetchCursor(df, cursor, max, skip);
 
 };
 

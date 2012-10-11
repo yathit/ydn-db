@@ -11,6 +11,7 @@ goog.provide('ydn.db.req.RequestExecutor');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db.Cursor');
+goog.require('ydn.db.Query');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.InternalError');
 

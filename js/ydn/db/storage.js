@@ -198,4 +198,11 @@ ydn.db.Storage.prototype.toString = function() {
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.Storage.prototype.iterate = function(q, scope, mode, resumed) {
+  return this.default_tx_queue_.iterate(q, scope, mode, resumed);
+};
+
 

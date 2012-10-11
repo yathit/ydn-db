@@ -175,7 +175,6 @@ ydn.db.KeyRange.parseKeyRange = function(keyRange) {
 
 
 /**
- * @private
  * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} keyRange key range to check.
  * @return {boolean} true if given key range can be substitute with SQL
  * operation LIKE.

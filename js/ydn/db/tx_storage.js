@@ -55,9 +55,9 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
 
 /**
  * @param {string} store store name. If not defined, all object stores are used.
+ * @param {ydn.db.Cursor.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {string=} direction cursor direction.
  * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
  *   keyRange configuration in json or native format. Alternatively key range
  * constructor parameters can be given
@@ -66,8 +66,8 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
  * @param {boolean=} upperOpen
  * @return {!ydn.db.io.Query}
  */
-ydn.db.TxStorage.prototype.query = function(store, index, direction, keyRange, upper, lowerOpen, upperOpen) {
-  return new ydn.db.io.Query(this, store, index, direction, keyRange, upper, lowerOpen, upperOpen);
+ydn.db.TxStorage.prototype.query = function(store, direction, index, keyRange, upper, lowerOpen, upperOpen) {
+  return new ydn.db.io.Query(this, store, direction, index, keyRange, upper, lowerOpen, upperOpen);
 };
 
 
@@ -147,14 +147,14 @@ ydn.db.TxStorage.prototype.iterate = function(q, scope, mode, resumed) {
     throw new ydn.error.ArgumentException('Invalid scope');
   }
 
-  var tr_mode = ydn.db.TransactionMode.READ_ONLY;
+  var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;
   if (mode == ydn.db.base.CursorMode.READ_WRITE) {
-    tr_mode = ydn.db.TransactionMode.READ_WRITE;
+    tr_mode = ydn.db.base.TransactionMode.READ_WRITE;
   }
 
   this.execute(function (executor) {
-    executor.iterate(df, q, scope, tr_mode, !!resumed);
-  }, scope, ydn.db.base.TransactionMode.READ_ONLY);
+    executor.iterate(df, q, scope, mode, !!resumed);
+  }, scope, tr_mode);
 
   return df;
 };
@@ -170,42 +170,29 @@ ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
 
   var df = ydn.db.base.createDeferred();
 
+  var query, cursor;
   if (q instanceof ydn.db.Query) {
-    var store = this.schema.getStore(q.store_name);
+    query = q;
+    var store_name = query.getStoreName();
+    var store = this.schema.getStore(store_name);
     if (!store) {
-      throw new ydn.error.ArgumentException(q.store_name +
+      throw new ydn.error.ArgumentException(store_name +
         ' not exists.');
     }
-    if (goog.isDefAndNotNull(q.index) && !store.hasIndex(q.index)) {
-      throw new ydn.error.ArgumentException('Index: ' + q.index +
-        ' not exists in store: ' + q.store_name);
+    if (goog.isDefAndNotNull(query.index) && !store.hasIndex(query.index)) {
+      throw new ydn.error.ArgumentException('Index: ' + query.index +
+        ' not exists in store: ' + store_name);
     }
 
     this.execute(function (executor) {
-      executor.fetchQuery(df, q, max, skip);
-    }, [q.store_name], ydn.db.base.TransactionMode.READ_ONLY);
+      executor.fetchQuery(df, query, max, skip);
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
   } else if (q instanceof ydn.db.Cursor) {
-    var me = this;
-    var scope = q.store;
-    if (!q.scope) {
-      scope = this.schema.getStoreNames();
-    } else if (goog.isArray(q.scope)) {
-      var idx = goog.array.findIndex(q.scope, function(x) {
-        return !me.schema.hasStore(x);
-      });
-      if (idx >= 0) {
-        throw new ydn.error.ArgumentException('Invalid store name: ' + q.scope[idx]);
-      }
-
-    } else {
-      throw new ydn.error.ArgumentException('Invalid scope');
-    }
-
-
+    cursor = q;
     this.execute(function (executor) {
-      executor.fetchQuery(df, q, max, skip);
-    }, [q.store_name], ydn.db.base.TransactionMode.READ_ONLY);
+      executor.fetchCursor(df, cursor, max, skip);
+    }, [cursor.store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
   } else {
     throw new ydn.error.ArgumentException();

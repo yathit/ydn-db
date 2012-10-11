@@ -9,6 +9,7 @@
 goog.provide('ydn.db.io.QueryService');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.Cursor');
+goog.require('ydn.db.Query');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.io.CrudService');
 
@@ -34,15 +35,14 @@ ydn.db.io.QueryService.prototype.fetch = function(q, max, skip) {};
 
 
 
-
 /**
  * @param {!ydn.db.Cursor} q the cursor.
  * @param {Array.<string>} scope list of store names.
- * @param {boolean=} written open as readwrite operation. default is readonly.
+ * @param {ydn.db.base.CursorMode=} mode open as readwrite operation. default is readonly.
  * @param {boolean=} resumed resume previous cursor position.
  * @return {!goog.async.Deferred}
  */
-ydn.db.io.QueryService.prototype.open = function(q, scope, written, resumed) {};
+ydn.db.io.QueryService.prototype.iterate = function(q, scope, mode, resumed) {};
 
 
 

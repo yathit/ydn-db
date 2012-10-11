@@ -5,13 +5,15 @@
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver" value="0.11.4"/>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
+    <property name="dev-out.fn"
+              value="${ydn-db.dir}/jsc/dev-ydn.db-min-${ver}.js"/>
     <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
-        <property name="output.fn" value="${ydn-db.dir}/jsc/dev-ydn.db-min-${ver}.js"/>
+
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
                          input="${ydn-db.dir}/js/dev.js"
                          input.dir="${ydn-db.dir}/js"
-                         output.fn="${output.fn}">
+                         output.fn="${dev-out.fn}">
             <extrapaths>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
@@ -25,7 +27,7 @@
                 <arg line='-f "--define=ydn.db.base.ENABLE_DEFAULT_TEXT_STORE=true"'/>
                 <arg line='-f "--define=ydn.db.base.ENABLE_ENCRYPTION=true"'/>
                 <arg line='-f "--source_map_format=V3"'/>
-                <arg line='-f "--create_source_map=${output.fn}.map"'/>
+                <arg line='-f "--create_source_map=${dev-out.fn}.map"'/>
                 <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
                 <arg line='-f "--externs=${ydn-db.dir}/externs/misc.js"'/>
                 <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
@@ -33,16 +35,13 @@
                 <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
             </options>
         </closure-compile>
-        <copy file="${output.fn}"
-              tofile="${out.dir}/dev-ydn.db-min.js"/>
-        <copy file="${output.fn}.map"
+
+        <copy file="${dev-out.fn}.map"
               tofile="${out.dir}/dev-ydn.db-min.js.map"/>
-        <concat destfile="${output.fn}" append="true">
+        <concat destfile="${dev-out.fn}" append="true">
             //@ sourceMappingURL=dev-ydn.db-min-${ver}.js.map
         </concat>
-        <concat destfile="${out.dir}/dev-ydn.db-min.js" append="true">
-            //@ sourceMappingURL=dev-ydn.db-min.js.map
-        </concat>
+       
 
         <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js">
             <header>
@@ -55,8 +54,16 @@
             $.db = new ydn.db.Storage();
             })( jQuery);
         </concat>
+
+    </target>
+    <target name="to-doc" description="copy file to documentation site">
+        <copy file="${dev-out.fn}"
+              tofile="${out.dir}/dev-ydn.db-min.js"/>
+        <concat destfile="${out.dir}/dev-ydn.db-min.js" append="true">
+            //@ sourceMappingURL=dev-ydn.db-min.js.map
+        </concat>
         <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js"
-              tofile="${out.dir}/jquery-ydn.db-min.js"/>
+              tofile="${out.dir}/jquery-ydn.db-min.js"/>  
     </target>
     <macrodef name="adv-comp">
         <attribute name="input.fn"/>

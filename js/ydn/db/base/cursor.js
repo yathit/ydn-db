@@ -27,7 +27,7 @@ goog.require('ydn.error.ArgumentException');
 
 /**
  * @param {string} store store name.
- * @param {string=} direction cursor direction.
+ * @param {ydn.db.Cursor.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
@@ -61,7 +61,7 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
   }
   /**
    * @final
-   * @type {string}
+   * @type {ydn.db.Cursor.Direction|undefined}
    */
   this.direction = direction;
 
@@ -91,7 +91,7 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
 
 /**
  * Cursor direction.
- * @links http://www.w3.org/TR/IndexedDB/#dfn-direction
+ * @link http://www.w3.org/TR/IndexedDB/#dfn-direction
  * @enum {string}
  */
 ydn.db.Cursor.Direction = {
@@ -99,6 +99,45 @@ ydn.db.Cursor.Direction = {
   NEXT_UNIQUE: 'nextunique',
   PREV: 'prev',
   PREV_UNIQUE: 'prevunique'
+};
+
+
+
+
+/**
+ * @param {string?} keyPath if index is not defined, keyPath will be used.
+ * @return {{where_clause: string, params: Array}} return equivalent of keyRange
+ * to SQL WHERE clause and its parameters.
+ */
+ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
+
+  var where_clause = '';
+  var params = [];
+  var index = goog.isDef(this.index) ? this.index :
+    goog.isDefAndNotNull(keyPath) ? keyPath :
+      ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  var column = goog.string.quote(index);
+
+  if (ydn.db.KeyRange.isLikeOperation(this.keyRange)) {
+    where_clause = column + ' LIKE ?';
+    params.push(this.keyRange['lower'] + '%');
+  } else {
+
+    if (goog.isDef(this.keyRange.lower)) {
+      var lowerOp = this.keyRange['lowerOpen'] ? ' > ' : ' >= ';
+      where_clause += ' ' + column + lowerOp + '?';
+      params.push(this.keyRange.lower);
+    }
+    if (goog.isDef(this.keyRange['upper'])) {
+      var upperOp = this.keyRange['upperOpen'] ? ' < ' : ' <= ';
+      var and = where_clause.length > 0 ? ' AND ' : ' ';
+      where_clause += and + column + upperOp + '?';
+      params.push(this.keyRange.upper);
+    }
+
+  }
+
+  return {where_clause: where_clause, params: params};
 };
 
 
