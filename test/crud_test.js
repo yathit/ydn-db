@@ -572,6 +572,75 @@ var test_53_fetch_keys = function () {
 };
 
 
+
+
+var test_61_query_start_with = function () {
+  var store_name = 'ts1';
+  var db_name = 'test_crud_1';
+  var schema = new ydn.db.DatabaseSchema(1);
+  // NOTE: key also need to be indexed.
+  var indexSchema = new ydn.db.IndexSchema('id', undefined, true);
+  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]));
+  //schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var objs = [
+    {id:'qs1', value:Math.random()},
+    {id:'qs2', value:Math.random()},
+    {id:'qt', value:Math.random()}
+  ];
+
+  var put_value_received;
+  var put_done;
+  waitForCondition(
+    // Condition
+    function () {
+      return put_done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('put objs', [objs[0].id, objs[1].id, objs[2].id],
+        put_value_received);
+
+      var get_done;
+      var get_value_received;
+      waitForCondition(
+        // Condition
+        function () {
+          return get_done;
+        },
+        // Continuation
+        function () {
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        2000); // maxTimeout
+
+
+      var key_range = ydn.db.KeyRange.starts('qs');
+      var q = new ydn.db.Cursor(store_name, 'next', 'id', key_range);
+      db.fetch(q).addCallback(function (value) {
+        console.log('fetch value: ' + JSON.stringify(value));
+        assertEquals('obj length', objs.length - 1, value.length);
+        assertObjectEquals('get', objs[0], value[0]);
+        assertObjectEquals('get', objs[1], value[1]);
+
+        get_done = true;
+      });
+
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+    put_value_received = value;
+    put_done = true;
+  });
+
+};
+
+
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();
 G_testRunner.initialize(testCase);
