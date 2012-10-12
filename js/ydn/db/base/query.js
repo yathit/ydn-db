@@ -472,26 +472,27 @@ ydn.db.Query.prototype.toCursor = function(schema) {
   }
 
   // sniff index field
-  if (!goog.isDef(this.index)) {
-    for (var i = 0; i < this.wheres.length; i++) {
-      /**
-       * @type {ydn.db.Query.Where}
-       */
-      var where = this.wheres[i];
-      if (store.hasIndex(where.field)) {
-        this.index = where.field;
-        if (goog.isDef(where.op2)) {
-          this.key_range = new ydn.db.KeyRange(where.value, where.value2,
-            where.op == '>', where.op2 == '<');
-        } else {
-          this.key_range = new ydn.db.KeyRange(where.value, undefined,
-            where.op == '>', undefined);
-        }
-        this.wheres.splice(i, 1);
-        break;
-      }
-    }
-  }
+  // TODO: use index for performance
+//  if (!goog.isDef(this.index)) {
+//    for (var i = 0; i < this.wheres.length; i++) {
+//      /**
+//       * @type {ydn.db.Query.Where}
+//       */
+//      var where = this.wheres[i];
+//      if (store.hasIndex(where.field)) {
+//        this.index = where.field;
+//        if (goog.isDef(where.op2)) {
+//          this.key_range = new ydn.db.KeyRange(where.value, where.value2,
+//            where.op == '>', where.op2 == '<');
+//        } else {
+//          this.key_range = new ydn.db.KeyRange(where.value, undefined,
+//            where.op == '>', undefined);
+//        }
+//        this.wheres.splice(i, 1);
+//        break;
+//      }
+//    }
+//  }
 
   // then, process where clauses
   for (var i = 0; i < this.wheres.length; i++) {
@@ -630,7 +631,33 @@ ydn.db.Query.prototype.toSql = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      rowParser = ydn.db.Query.parseRowCount(this.aggregate.field);
+      rowParser = ydn.db.Query.parseRowTakeFirst;
+      finalize = ydn.db.Query.finalizeTakeFirst;
+    } else if (this.aggregate.type == ydn.db.Query.AggregateType.SUM) {
+      select += 'SELECT SUM (';
+      select += distinct ? 'DISTINCT ' : '';
+      if (goog.isString(this.aggregate.field)) {
+        select += goog.string.quote(this.aggregate.field);
+      } else {
+        select += '*';
+      }
+      select += ')';
+      fields_selected = true;
+      // parse row and then select the fields.
+      rowParser = ydn.db.Query.parseRowTakeFirst;
+      finalize = ydn.db.Query.finalizeTakeFirst;
+    } else if (this.aggregate.type == ydn.db.Query.AggregateType.AVERAGE) {
+      select += 'SELECT AVG (';
+      select += distinct ? 'DISTINCT ' : '';
+      if (goog.isString(this.aggregate.field)) {
+        select += goog.string.quote(this.aggregate.field);
+      } else {
+        select += '*';
+      }
+      select += ')';
+      fields_selected = true;
+      // parse row and then select the fields.
+      rowParser = ydn.db.Query.parseRowTakeFirst;
       finalize = ydn.db.Query.finalizeTakeFirst;
     } else {
       throw new ydn.db.SqlParseError(this.aggregate.type + ' in ' + this.sql);
@@ -646,6 +673,7 @@ ydn.db.Query.prototype.toSql = function(schema) {
     if (where.length > 0) {
       where += ' AND ';
     }
+    where += 'WHERE ';
     where += this.wheres[i].field + ' ' + this.wheres[i].op + ' ?';
     params.push(this.wheres[i].value);
     if (goog.isDefAndNotNull(this.wheres[i].op2)) {
@@ -720,22 +748,19 @@ ydn.db.Query.parseRow = function(table, row) {
 
 
 /**
- * Parse resulting object of a row into original object as it 'put' into the
- * database.
+ * Parse resulting object of a row
  * @final
- * @protected
- * @param {string=} field
+ * @param {ydn.db.StoreSchema} table table of concern.
+ * @param {!Object} row row.
+ * @return {*} the first field of object in row value.
  */
-ydn.db.Query.parseRowCount = function(field) {
-  field = goog.isDef(field) ? field : '*';
-  return function(table, row) {
-     //return  ydn.json.parse(row['COUNT (' + field + ')']);
-    for (var key in row) {
-      if (row.hasOwnProperty(key)) {
-        return row[key];
-      }
+ydn.db.Query.parseRowTakeFirst = function (table, row) {
+  for (var key in row) {
+    if (row.hasOwnProperty(key)) {
+      return row[key];
     }
   }
+  return undefined;
 };
 
 

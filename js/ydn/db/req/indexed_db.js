@@ -561,16 +561,11 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 /**
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {!ydn.db.Cursor} q query.
-* @param {number=} max limit.
-* @param {number=} skip offset.
 */
-ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q, max, skip) {
+ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   var me = this;
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
-
-  var start = skip || 0;
-  var end = goog.isDef(max) ? start + max : undefined;
 
   var on_complete = function(result) {
     if (goog.isFunction(q.finalize)) {
@@ -668,7 +663,7 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q, max, skip) {
       if (!goog.isFunction(q.filter) || q.filter(value)) {
         idx++;
 
-        if (idx >= start) {
+
           if (goog.isFunction(q.map)) {
             value = q.map(value);
           }
@@ -678,10 +673,10 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q, max, skip) {
           } else {
             results.push(value);
           }
-        }
+
       }
 
-      if (to_continue && (!goog.isDef(end) || (idx + 1) < end)) {
+      if (to_continue) {
         //cursor.continue();
         cursor['continue'](); // Note: Must be quoted to avoid parse error.
       } else {
@@ -707,13 +702,11 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q, max, skip) {
 /**
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!ydn.db.Query} q query.
- * @param {number=} max limit.
- * @param {number=} skip offset.
  */
-ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q, max, skip) {
+ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q) {
 
   var cursor = q.toCursor(this.schema);
-  this.fetchCursor(df, cursor, max, skip);
+  this.fetchCursor(df, cursor);
 
 };
 

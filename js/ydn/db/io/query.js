@@ -36,7 +36,8 @@ goog.inherits(ydn.db.io.Query, ydn.db.Query);
  */
 ydn.db.io.Query.prototype.get = function() {
   var df = ydn.db.base.createDeferred();
-  var rdf = this.dbp.fetch(this, 1);
+  this.limit(1);
+  var rdf = this.dbp.fetch(this);
 
   // extract the first result.
   rdf.addCallback(function(results) {
@@ -53,10 +54,8 @@ ydn.db.io.Query.prototype.get = function() {
 
 /**
  * Fetch result of a query
- * @param {number=} opt_max maximun number of results.
- * @param {number=} opt_skip start counter.
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.io.Query.prototype.fetch = function(opt_max, opt_skip) {
-  return this.dbp.fetch(this, opt_max, opt_skip);
+ydn.db.io.Query.prototype.fetch = function() {
+  return this.dbp.fetch(this);
 };
