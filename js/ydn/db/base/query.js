@@ -252,7 +252,7 @@ ydn.db.Query.MapType = {
 /**
  * @typedef {{
  *   type: ydn.db.Query.MapType,
- *   fields: !Array.<string>
+ *   fields: (!Array.<string>|string)
  * }}
  */
 ydn.db.Query.Map;
@@ -306,13 +306,22 @@ ydn.db.Query.prototype.count = function() {
   this.aggregate = {type: ydn.db.Query.AggregateType.COUNT, field: undefined};
   return this;
 
-//  this.reduce = function(prev) {
-//    if (!prev) {
-//      prev = 0;
-//    }
-//    return prev + 1;
-//  };
-//  return this;
+};
+
+
+
+/**
+ * Return reduce iteration function for SUM
+ * @param {string=} field
+ * @return {Function}
+ */
+ydn.db.Query.reduceCount = function(field) {
+  return function(prev) {
+    if (!prev) {
+      prev = 0;
+    }
+    return prev + 1;
+  };
 };
 
 
@@ -495,7 +504,7 @@ ydn.db.Query.prototype.toCursor = function(schema) {
     if (this.map.type == ydn.db.Query.MapType.SELECT) {
       cursor.map = ydn.db.Query.mapSelect(this.map.fields);
     } else {
-      throw new ydn.db.SqlParseError(this.sql);
+      throw new ydn.db.SqlParseError(this.map.type);
     }
   }
 
@@ -510,8 +519,10 @@ ydn.db.Query.prototype.toCursor = function(schema) {
       if (goog.isString(this.aggregate.field)) {
         cursor.reduce = ydn.db.Query.reduceAverage(this.aggregate.field);
       } else {
-        throw new ydn.db.SqlParseError('SUM: ' + this.sql);
+        throw new ydn.db.SqlParseError('AVERAGE: ' + this.sql);
       }
+    } else if (this.aggregate.type == ydn.db.Query.AggregateType.COUNT) {
+      cursor.reduce = ydn.db.Query.reduceCount(this.aggregate.field);
     } else {
       throw new ydn.db.SqlParseError(this.sql);
     }
@@ -566,14 +577,16 @@ ydn.db.Query.prototype.offset = function(value) {
  * @param {ydn.db.DatabaseSchema} schema
  * @return {{
  *    sql: string,
- *    params: !Array.<string>:
- *    rowParser: (null|function(ydn.dbStoreSchema, !Object): *))
+ *    params: !Array.<string>,
+ *    rowParser: (null|function(ydn.db.StoreSchema, !Object): *),
+ *    finalize: (null|function(*): *)
  *  }}
  */
 ydn.db.Query.prototype.toSql = function(schema) {
 
   var params = [];
   var rowParser = ydn.db.Query.parseRow;
+  var finalize = null;
 
   var from;
   // assuming sql_statement is just a database name
@@ -584,11 +597,11 @@ ydn.db.Query.prototype.toSql = function(schema) {
   } else {
     throw new ydn.db.SqlParseError(this.sql);
   }
-  var select = 'SELECT';
-  if (this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE ||
-    this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE)  {
-    select += ' DISTINCT';
-  }
+  var select = '';
+  var distinct = this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE ||
+    this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE;
+
+  var fields_selected = false;
   if (goog.isDefAndNotNull(this.map)) {
     if (this.map.type == ydn.db.Query.MapType.SELECT) {
       var fs =goog.isArray(this.map.fields) ?
@@ -596,15 +609,36 @@ ydn.db.Query.prototype.toSql = function(schema) {
       var fields = goog.array.map(fs, function(x) {
         return goog.string.quote(x);
       });
-      select += '(' + fields.join(', ') + ')';
+      select += 'SELECT (' + fields.join(', ') + ')';
+      fields_selected = true;
       // parse row and then select the fields.
       rowParser = goog.functions.compose(
         ydn.db.Query.mapSelect(this.map.fields), ydn.db.Query.parseRow);
     } else {
-      throw new ydn.db.SqlParseError(this.sql);
+      throw new ydn.db.SqlParseError(this.map + ' in ' + this.sql);
     }
-  } else {
-    select += '(*)';
+  }
+  if (goog.isDefAndNotNull(this.aggregate)) {
+    if (this.aggregate.type == ydn.db.Query.AggregateType.COUNT) {
+      select += 'SELECT COUNT (';
+      select += distinct ? 'DISTINCT ' : '';
+      if (goog.isString(this.aggregate.field)) {
+        select += goog.string.quote(this.aggregate.field);
+      } else {
+        select += '*';
+      }
+      select += ')';
+      fields_selected = true;
+      // parse row and then select the fields.
+      rowParser = ydn.db.Query.parseRowCount(this.aggregate.field);
+      finalize = ydn.db.Query.finalizeTakeFirst;
+    } else {
+      throw new ydn.db.SqlParseError(this.aggregate.type + ' in ' + this.sql);
+    }
+  }
+
+  if (select.length == 0) {
+    select += 'SELECT *' + (distinct ? ' DISTINCT' : '');
   }
 
   var where = '';
@@ -642,7 +676,7 @@ ydn.db.Query.prototype.toSql = function(schema) {
   }
 
   var sql = select + ' ' + from + ' ' + where + ' ' + order + ' ' + range;
-  return {sql: sql, params: params, rowParser: rowParser};
+  return {sql: sql, params: params, rowParser: rowParser, finalize: finalize};
 };
 
 
@@ -663,7 +697,6 @@ ydn.db.Query.prototype.toString = function() {
  * Parse resulting object of a row into original object as it 'put' into the
  * database.
  * @final
- * @protected
  * @param {ydn.db.StoreSchema} table table of concern.
  * @param {!Object} row row.
  * @return {!Object} parse value.
@@ -683,5 +716,39 @@ ydn.db.Query.parseRow = function(table, row) {
     value[index.name] = ydn.db.IndexSchema.sql2js(x, index.type);
   }
   return value;
+};
+
+
+/**
+ * Parse resulting object of a row into original object as it 'put' into the
+ * database.
+ * @final
+ * @protected
+ * @param {string=} field
+ */
+ydn.db.Query.parseRowCount = function(field) {
+  field = goog.isDef(field) ? field : '*';
+  return function(table, row) {
+     //return  ydn.json.parse(row['COUNT (' + field + ')']);
+    for (var key in row) {
+      if (row.hasOwnProperty(key)) {
+        return row[key];
+      }
+    }
+  }
+};
+
+
+/**
+ *
+ * @param {*} arr
+ * @return {*}
+ */
+ydn.db.Query.finalizeTakeFirst = function(arr) {
+  if (goog.isArray(arr)) {
+    return arr[0];
+  } else {
+    return undefined;
+  }
 };
 

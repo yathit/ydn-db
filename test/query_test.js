@@ -107,54 +107,43 @@ var test_2_select = function() {
   var q = db.query(store_name);
   q.select('value');
   db.fetch(q).addCallback(function (q_result) {
-    console.log('receiving query ' + JSON.stringify(q_result));
+    //console.log('receiving query ' + JSON.stringify(q_result));
     result = q_result;
     hasEventFired = true;
   })
 
 };
 
-//
-//var test_3_idb_count = function() {
-//
-//  var db_name = 'test_3_idb_count';
-//  var db = new ydn.db.Storage(db_name, basic_schema, options);
-//
-//  var arr = [
-//    {id: 'a', value: 'A'},
-//    {id: 'b', value: 'B'},
-//    {id: 'c', value: 'C'}
-//  ];
-//
-//  var hasEventFired = false;
-//  var put_value;
-//
-//  waitForCondition(
-//      // Condition
-//      function() { return hasEventFired; },
-//      // Continuation
-//      function() {
-//        assertEquals('select query', 3, put_value);
-//        // Remember, the state of this boolean will be tested in tearDown().
-//        reachedFinalContinuation = true;
-//      },
-//      100, // interval
-//      2000); // maxTimeout
-//
-//
-//  db.put(store_name, arr).addCallback(function(value) {
-//    console.log('receiving value callback ' + JSON.stringify(value));
-//
-//    var q = db.query(store_name);
-//    q.count();
-//    db.fetch(q).addCallback(function(q_result) {
-//      console.log('receiving query ' + JSON.stringify(q_result));
-//      put_value = q_result;
-//      hasEventFired = true;
-//    })
-//  });
-//};
-//
+
+var test_3_count = function () {
+
+  var hasEventFired = false;
+  var put_value;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return hasEventFired;
+    },
+    // Continuation
+    function () {
+      assertEquals('select query', objs.length, put_value);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  var q = db.query(store_name);
+  q.count();
+  db.fetch(q).addCallback(function (q_result) {
+    console.log('receiving query ' + JSON.stringify(q_result));
+    put_value = q_result;
+    hasEventFired = true;
+  })
+
+};
+
 //
 //var test_4_idb_sum = function() {
 //

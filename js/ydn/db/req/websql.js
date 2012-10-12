@@ -636,7 +636,7 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
   };
 
   if (goog.DEBUG) {
-    this.logger.finest(this + ' SQL:' + sql + ' PARAMS:' + ydn.json.stringify(params));
+    this.logger.finest(this + ' SQL: ' + sql + ' PARAMS:' + ydn.json.stringify(params));
   }
   this.tx.executeSql(sql, params, callback, error_callback);
 
@@ -657,6 +657,7 @@ ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
   var sql = sql_out.sql;
   var params = sql_out.params;
   var rowParser = sql_out.rowParser;
+  var finalize = sql_out.finalize;
 
   var result = [];
 
@@ -687,6 +688,7 @@ ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
       }
       result[i] = value;
     }
+    result = goog.isFunction(finalize) ? finalize(result) : result;
     df.callback(result);
   };
 
@@ -704,7 +706,7 @@ ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
   };
 
   if (goog.DEBUG) {
-    this.logger.finest(this + ' SQL:' + sql + ' PARAMS:' + ydn.json.stringify(params));
+    this.logger.finest(this + ' SQL: ' + sql + ' PARAMS:' + ydn.json.stringify(params));
   }
   this.tx.executeSql(sql, params, callback, error_callback);
 
@@ -958,5 +960,5 @@ ydn.db.req.WebSql.prototype.removeByStore = function(d, opt_table) {
  * @override
  */
 ydn.db.req.WebSql.prototype.toString = function() {
-  return 'WebSqlEx:' + this.dbname;
+  return 'WebSqlEx:' + (this.dbname || '');
 };
