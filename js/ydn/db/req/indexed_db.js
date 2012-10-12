@@ -386,7 +386,7 @@ ydn.db.req.IndexedDb.prototype.clearByStore = function (df, opt_store_name) {
         window.console.log([n_done, event]);
       }
       if (n_done == n_todo) {
-        df.callback(undefined); // clear do not ruturn any result.
+        df.callback(true);
       }
     };
     request.onerror = function (event) {
