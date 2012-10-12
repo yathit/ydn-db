@@ -287,21 +287,6 @@ ydn.db.con.IndexedDb.isSupported = function() {
 };
 
 
-// The fun fact with current Chrome 22 defines
-// webkitIDBTransaction as numeric value, but the database engine
-// accept only string format.
-
-//ydn.db.base.TransactionMode = {
-//  READ_ONLY: (goog.global.IDBTransaction ||
-//      goog.global.webkitIDBTransaction).READ_ONLY || 'readonly',
-//  READ_WRITE: (goog.global.IDBTransaction ||
-//      goog.global.webkitIDBTransaction).READ_WRITE || 'readwrite',
-//  VERSION_CHANGE: (goog.global.IDBTransaction ||
-//      goog.global.webkitIDBTransaction).VERSION_CHANGE || 'versionchange'
-//};
-
-
-
 /**
  * @protected
  * @type {goog.debug.Logger} logger.

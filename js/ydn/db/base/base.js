@@ -69,19 +69,52 @@ ydn.db.base.TransactionEventTypes = {
 /**
  * The three possible transaction modes.
  * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
+ * @private
+ */
+ydn.db.base.DefaultTransactionMode = {
+  'READ_ONLY': 'readonly',
+  'READ_WRITE': 'readwrite',
+  'VERSION_CHANGE': 'versionchange'
+};
+
+
+/**
+ * HACK: The fun fact with current Chrome 22 defines  webkitIDBTransaction as
+ * numeric value, but the database engine expect string format and display
+ * deprecated warning.
+ * https://bitbucket.org/ytkyaw/ydn-db/issue/28
+ * http://code.google.com/p/chromium/issues/detail?id=155171
+ * @const
+ * @private
+ * @type {*}
+ */
+ydn.db.base.IDBTransaction = ('LOADING' in goog.global.webkitIDBRequest ?
+  (goog.global.webkitIDBTransaction || goog.global.IDBTransaction) :
+  ydn.db.base.DefaultTransactionMode);
+
+
+
+// The fun fact with current Chrome 22 defines
+// webkitIDBTransaction as numeric value, but the database engine
+// expect string format and display deprecated warning.
+
+
+/**
+ * The three possible transaction modes.
+ * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
  * @enum {string|number}
  */
 ydn.db.base.TransactionMode = {
-  READ_ONLY: 'readonly',
-  READ_WRITE: 'readwrite',
-  VERSION_CHANGE: 'versionchange'
+  READ_ONLY: ydn.db.base.IDBTransaction.READ_ONLY,
+  READ_WRITE: ydn.db.base.IDBTransaction.READ_WRITE,
+  VERSION_CHANGE: ydn.db.base.IDBTransaction.VERSION_CHANGE
 };
 
 
 
 /**
  * Mode for opening cursor
- * @enum {string|number}
+ * @enum {string}
  */
 ydn.db.base.CursorMode = {
   READ_ONLY: ydn.db.base.TransactionMode.READ_ONLY,

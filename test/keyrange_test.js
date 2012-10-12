@@ -8,7 +8,7 @@ goog.require('goog.testing.PropertyReplacer');
 
 var reachedFinalContinuation, schema, debug_console;
 
-var db_name = 'test_kr_2';
+var db_name = 'test_kr_3';
 var store_name = 'st';
 var db;
 
@@ -78,23 +78,28 @@ var keyRange_test = function (q, exp_result) {
 
 };
 
+var test_store_wise = function () {
+  var q = new ydn.db.Cursor(store_name);
+  keyRange_test(q, objs);
+};
+
 
 var test_integer_close_close = function () {
-  var key_range = ydn.db.KeyRange.bound(2, 3);
-  var q = new ydn.db.Cursor(store_name, undefined, 'value', key_range);
-  keyRange_test(q, objs.slice(2, 4));
+  var key_range = ydn.db.KeyRange.bound(0, 3);
+  var q = new ydn.db.Cursor(store_name, undefined, 'id', key_range);
+  keyRange_test(q, objs.slice(1, 4));
 };
 
 var test_integer_open_close = function () {
-  var key_range = ydn.db.KeyRange.bound(2, 3, true);
-  var q = new ydn.db.Cursor(store_name, undefined, 'value', key_range);
-  keyRange_test(q, objs.slice(3, 4));
+  var key_range = ydn.db.KeyRange.bound(0, 3, true);
+  var q = new ydn.db.Cursor(store_name, undefined, 'id', key_range);
+  keyRange_test(q, objs.slice(2, 4));
 };
 
 var test_integer_open_open = function () {
-  var key_range = ydn.db.KeyRange.bound(2, 3, true, true);
-  var q = new ydn.db.Cursor(store_name, undefined, 'value', key_range);
-  keyRange_test(q, objs.slice(3, 3));
+  var key_range = ydn.db.KeyRange.bound(0, 3, true, true);
+  var q = new ydn.db.Cursor(store_name, undefined, 'id', key_range);
+  keyRange_test(q, objs.slice(2, 3));
 };
 
 // more testing ...
