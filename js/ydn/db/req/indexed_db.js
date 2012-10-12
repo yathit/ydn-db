@@ -615,28 +615,25 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
   // ' of ' + column + ' in ' + table);
   var request;
-  if (goog.isDefAndNotNull(q.keyRange)) {
-    if (index) {
-      var dir = /** @type {number} */ (q.direction); // new standard is string.
-      if (goog.isDef(dir)) {
-        request = index.openCursor(q.keyRange, dir);
-      } else {
-        request = index.openCursor(q.keyRange);
-      }
+  var dir = /** @type {number} */ (q.direction); // new standard is string.
+
+  // keyRange is nullable but cannot be undefined.
+  var keyRange = goog.isDef(q.keyRange) ? q.keyRange : null;
+
+  if (index) {
+    if (goog.isDefAndNotNull(dir)) {
+      request = index.openCursor(keyRange, dir);
     } else {
-      if (goog.isDef(dir)) {
-        request = obj_store.openCursor(q.keyRange, dir);
-      } else {
-        request = obj_store.openCursor(q.keyRange);
-      }
+      request = index.openCursor(keyRange);
     }
   } else {
-    if (index) {
-      request = index.openCursor();
+    if (goog.isDefAndNotNull(dir)) {
+      request = obj_store.openCursor(keyRange, dir);
     } else {
-      request = obj_store.openCursor();
+      request = obj_store.openCursor(keyRange);
     }
   }
+
 
   var idx = -1; // iteration index
   var results = [];

@@ -114,7 +114,7 @@ ydn.db.base.TransactionMode = {
 
 /**
  * Mode for opening cursor
- * @enum {string}
+ * @enum {string|number}
  */
 ydn.db.base.CursorMode = {
   READ_ONLY: ydn.db.base.TransactionMode.READ_ONLY,
