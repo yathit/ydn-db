@@ -6,22 +6,28 @@ goog.require('ydn.db.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 
-var reachedFinalContinuation, basic_schema;
-var table_name = 't1';
-var stubs;
+var reachedFinalContinuation, schema, debug_console;
+
+var db_name = 'test_kr_2';
+var store_name = 'st';
+var db;
+
 
 var setUp = function () {
-  var c = new goog.debug.Console();
-  c.setCapturing(true);
-  //goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
-  //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-  goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+  if (!debug_console) {
+    debug_console = new goog.debug.Console();
+    debug_console.setCapturing(true);
+    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
+    //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+    goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+  }
 
-  var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.INTEGER, true);
+  var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.TEXT, true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
-    ydn.db.DataType.TEXT, [indexSchema]);
-  var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
+    ydn.db.DataType.INTEGER, [indexSchema]);
+  schema = new ydn.db.DatabaseSchema(1, [store_schema]);
   db = new ydn.db.Storage(db_name, schema, options);
 
   db.put(store_name, objs).addCallback(function (value) {
@@ -33,21 +39,16 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'test_kr_1';
-var store_name = 'st';
-var db;
-
 
 var objs = [
-  {id:'qs0', value: 0, type: 'a', remark: 'test ' + Math.random()},
-  {id:'qs1', value: 1, type: 'a', remark: 'test ' + Math.random()},
-  {id:'at2', value: 2, type: 'b', remark: 'test ' + Math.random()},
-  {id:'bs1', value: 3, type: 'b', remark: 'test ' + Math.random()},
-  {id:'bs2', value: 4, type: 'c', remark: 'test ' + Math.random()},
-  {id:'bs3', value: 5, type: 'c', remark: 'test ' + Math.random()},
-  {id:'st3', value: 6, type: 'c', remark: 'test ' + Math.random()}
+  {id: -3, value: 'a0', type: 'a', remark: 'test ' + Math.random()},
+  {id: 0, value: 'a2', type: 'a', remark: 'test ' + Math.random()},
+  {id: 1, value: 'ba', type: 'b', remark: 'test ' + Math.random()},
+  {id: 3, value: 'bc', type: 'b', remark: 'test ' + Math.random()},
+  {id: 10, value: 'c', type: 'c', remark: 'test ' + Math.random()},
+  {id: 11, value: 'c1', type: 'c', remark: 'test ' + Math.random()},
+  {id: 20, value: 'ca', type: 'c', remark: 'test ' + Math.random()}
 ];
-
 
 var keyRange_test = function (q, exp_result) {
 
