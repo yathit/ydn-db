@@ -90,6 +90,12 @@ var test_integer_close_close = function () {
   keyRange_test(q, objs.slice(1, 4));
 };
 
+var test_integer_close_close_reverse = function () {
+  var key_range = ydn.db.KeyRange.bound(0, 3);
+  var q = new ydn.db.Cursor(store_name, ydn.db.Cursor.Direction.PREV, 'id', key_range);
+  keyRange_test(q, objs.slice(1, 4).reverse());
+};
+
 var test_integer_open_close = function () {
   var key_range = ydn.db.KeyRange.bound(0, 3, true);
   var q = new ydn.db.Cursor(store_name, undefined, 'id', key_range);
