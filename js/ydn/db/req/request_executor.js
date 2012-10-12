@@ -163,8 +163,6 @@ ydn.db.req.RequestExecutor.prototype.count = goog.abstractMethod;
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!ydn.db.Query} q the query.
- * @param {number=} max maximum number of records to be fetched.
- * @param {number=} skip skip the number of success records received.
  */
 ydn.db.req.RequestExecutor.prototype.fetchQuery = goog.abstractMethod;
 
@@ -172,8 +170,6 @@ ydn.db.req.RequestExecutor.prototype.fetchQuery = goog.abstractMethod;
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!ydn.db.Cursor} q the query.
- * @param {number=} max maximum number of records to be fetched.
- * @param {number=} skip skip the number of success records received.
  */
 ydn.db.req.RequestExecutor.prototype.fetchCursor = goog.abstractMethod;
 

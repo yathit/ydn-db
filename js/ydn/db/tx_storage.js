@@ -173,11 +173,9 @@ ydn.db.TxStorage.prototype.iterate = function(q, scope, mode, resumed) {
 
 /**
  * @param {!ydn.db.Cursor|!ydn.db.Query} q query.
- * @param {number=} max maximum number of records to be fetched.
- * @param {number=} skip skip the number of success records received.
  * @return {!goog.async.Deferred} return result as list.
  */
-ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
+ydn.db.TxStorage.prototype.fetch = function(q) {
 
   var df = ydn.db.base.createDeferred();
 
@@ -187,7 +185,7 @@ ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
     var store_name = query.getStoreName();
     var store = this.schema.getStore(store_name);
     if (!store) {
-      throw new ydn.error.ArgumentException(store_name +
+      throw new ydn.error.ArgumentException('store: ' + store_name +
         ' not exists.');
     }
     if (goog.isDefAndNotNull(query.index) && !store.hasIndex(query.index)) {
@@ -196,13 +194,13 @@ ydn.db.TxStorage.prototype.fetch = function(q, max, skip) {
     }
 
     this.execute(function (executor) {
-      executor.fetchQuery(df, query, max, skip);
+      executor.fetchQuery(df, query);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
   } else if (q instanceof ydn.db.Cursor) {
     cursor = q;
     this.execute(function (executor) {
-      executor.fetchCursor(df, cursor, max, skip);
+      executor.fetchCursor(df, cursor);
     }, [cursor.store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
   } else {

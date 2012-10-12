@@ -90,32 +90,6 @@ ydn.db.req.WebSql.prototype.getTx = function() {
 };
 
 
-/**
- * Parse resulting object of a row into original object as it 'put' into the
- * database.
- * @final
- * @protected
- * @param {ydn.db.StoreSchema} table table of concern.
- * @param {!Object} row row.
- * @return {!Object} parse value.
- */
-ydn.db.req.WebSql.prototype.parseRow = function(table, row) {
-  var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
-  if (goog.isDefAndNotNull(table.keyPath)) {
-    var key = ydn.db.IndexSchema.sql2js(row[table.keyPath], table.type);
-    table.setKeyValue(value, key);
-  }
-  for (var j = 0; j < table.indexes.length; j++) {
-    var index = table.indexes[j];
-    if (index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
-      continue;
-    }
-    var x = row[index.name];
-    value[index.name] = ydn.db.IndexSchema.sql2js(x, index.type);
-  }
-  return value;
-};
-
 
 /**
  * Extract key from row result.
@@ -300,7 +274,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
       if (goog.isDefAndNotNull(row)) {
-        d.callback(me.parseRow(table, row));
+        d.callback(ydn.db.Query.parseRow(table, row));
       } else {
         d.callback(undefined);
       }
@@ -361,7 +335,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = me.parseRow(table, row);
+          objects[i] = ydn.db.Query.parseRow(table, row);
         }
         // this is get function, we take only one result.
       } else {
@@ -450,7 +424,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
       for (var i = 0; i < results.rows.length; i++) {
         var row = results.rows.item(i);
         if (goog.isDefAndNotNull(row)) {
-          arr.push(me.parseRow(table, row));
+          arr.push(ydn.db.Query.parseRow(table, row));
         } 
       }
       if (idx == n_todo - 1) {
@@ -513,7 +487,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = me.parseRow(table, row);
+          objects[i] = ydn.db.Query.parseRow(table, row);
         }
         // this is get function, we take only one result.
       } else {
@@ -566,17 +540,12 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
 
 
 /**
-* @param {goog.async.Deferred} df
-* @param {!ydn.db.Cursor} q query.
-* @param {number=} max
-* @param {number=} skip
-*/
-ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
+ * @param {!goog.async.Deferred} df return object in deferred function.
+ * @param {!ydn.db.Cursor} q the query.
+ */
+ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
 
   var me = this;
-
-  var start = skip || 0;
-  var end = goog.isDef(max) ? start + max : undefined;
 
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(q.reduce);
@@ -606,30 +575,14 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
   }
 
 
-  // optional optimization
-  // here we are looking at whether we can use substitute max and skip with
-  // native SQL LIMIT and OFFSET
-  if (!goog.isFunction(q.filter) && !goog.isFunction(q.continued)) {
-    if (goog.isDef(end)) {
-      sql += ' LIMIT ' + (end - start);
-      end = undefined;
-    }
-    if (start > 0) {
-      sql += ' OFFSET ' + start;
-      start = 0;
-    }
-  }
-
-  var result;
+  var result = is_reduce ? undefined : [];
 
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
-    if (!is_reduce) {
-      result = [];
-    }
+
     var idx = -1;
     // http://www.w3.org/TR/webdatabase/#database-query-results
     // Fetching the length might be expensive, and authors are thus encouraged
@@ -644,12 +597,12 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
       var row = results.rows.item(i);
       var value = {}; // ??
       if (goog.isDefAndNotNull(row)) {
-        value = me.parseRow(store, row);
+        value = ydn.db.Query.parseRow(store, row);
       }
       var to_continue = !goog.isFunction(q.continued) || q.continued(value);
       if (!goog.isFunction(q.filter) || q.filter(value)) {
         idx++;
-        if (idx >= start) {
+
           if (goog.isFunction(q.map)) {
             value = q.map(value);
           }
@@ -659,10 +612,10 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
           } else {
             result.push(value);
           }
-        }
+
       }
 
-      if (!(to_continue && (!goog.isDef(end) || (idx+1) < end))) {
+      if (!to_continue) {
         break;
       }
     }
@@ -675,7 +628,75 @@ ydn.db.req.WebSql.prototype.fetch = function(df, q, max, skip) {
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
-      window.console.log([q, sql, params, max, skip, tr, error]);
+      window.console.log([q, sql, params, tr, error]);
+    }
+    me.logger.warning('Sqlite error: ' + error.message);
+    df.errback(error);
+    return true; // roll back
+  };
+
+  if (goog.DEBUG) {
+    this.logger.finest(this + ' SQL:' + sql + ' PARAMS:' + ydn.json.stringify(params));
+  }
+  this.tx.executeSql(sql, params, callback, error_callback);
+
+};
+
+
+
+/**
+ * @param {goog.async.Deferred} df
+ * @param {!ydn.db.Query} q query.
+ */
+ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
+
+  var me = this;
+
+  var store = this.schema.getStore(q.getStoreName());
+  var sql_out = q.toSql(this.schema);
+  var sql = sql_out.sql;
+  var params = sql_out.params;
+  var rowParser = sql_out.rowParser;
+
+  var result = [];
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function(transaction, results) {
+
+    // http://www.w3.org/TR/webdatabase/#database-query-results
+    // Fetching the length might be expensive, and authors are thus encouraged
+    // to avoid using it (or enumerating over the object, which implicitly uses
+    // it) where possible.
+    // for (var row, i = 0; row = results.rows.item(i); i++) {
+    // Unfortunately, such enumerating don't work
+    // RangeError: Item index is out of range in Chrome.
+    // INDEX_SIZE_ERR: DOM Exception in Safari
+    var n = results.rows.length;
+    for (var i = 0; i < n; i++) {
+      var row = results.rows.item(i);
+      var value = {}; // ??
+      if (goog.isDefAndNotNull(row)) {
+        if (rowParser) {
+          value = rowParser(store, row);
+        } else {
+          value = row;
+        }
+      }
+      result[i] = value;
+    }
+    df.callback(result);
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   */
+  var error_callback = function(tr, error) {
+    if (ydn.db.req.WebSql.DEBUG) {
+      window.console.log([q, sql, params, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
     df.errback(error);

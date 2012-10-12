@@ -45,6 +45,8 @@ ydn.db.Query = function(sql_statement) {
   this.map = null;
   this.direction = undefined;
   this.index = undefined;
+  this.limit_ = NaN;
+  this.offset_ = NaN;
 };
 
 
@@ -394,19 +396,19 @@ ydn.db.Query.prototype.select = function (fields) {
   if (this.map) {
     throw new ydn.error.ConstrainError('Map method already defined.');
   }
-  var fs = goog.isString(fields) ? [fields] : goog.isArray(fields) ?
-    fields : null;
-  if (goog.isNull(fs)) {
-    throw new ydn.error.ArgumentException();
-  } else {
+  if (goog.isString(fields) || goog.isArray(fields)) {
     this.map = {
-      type:ydn.db.Query.MapType.SELECT,
-      fields:fs
+      type: ydn.db.Query.MapType.SELECT,
+      fields: fields
     };
+  } else {
+    throw new ydn.error.ArgumentException();
   }
 
   return this;
 };
+
+
 
 
 /**
@@ -520,6 +522,131 @@ ydn.db.Query.prototype.toCursor = function(schema) {
 
 
 /**
+ * @protected
+ * @type {number}
+ */
+ydn.db.Query.prototype.limit_ = NaN;
+
+
+/**
+ *
+ * @param value limit value.
+ */
+ydn.db.Query.prototype.limit = function(value) {
+  if (goog.isNumber(value) && value > 0) {
+    this.limit_ = value;
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+};
+
+
+/**
+ * @protected
+ * @type {number}
+ */
+ydn.db.Query.prototype.offset_ = NaN;
+
+
+/**
+ *
+ * @param value offset value.
+ */
+ydn.db.Query.prototype.offset = function(value) {
+  if (goog.isNumber(value) && value >= 0) {
+    this.offset_ = value;
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+};
+
+
+/**
+ * Integrate into single queriable SQl statement.
+ * @param {ydn.db.DatabaseSchema} schema
+ * @return {{
+ *    sql: string,
+ *    params: !Array.<string>:
+ *    rowParser: (null|function(ydn.dbStoreSchema, !Object): *))
+ *  }}
+ */
+ydn.db.Query.prototype.toSql = function(schema) {
+
+  var params = [];
+  var rowParser = ydn.db.Query.parseRow;
+
+  var from;
+  // assuming sql_statement is just a database name
+  var store_name = goog.string.stripQuotes(this.sql, '"');
+  var store = schema.getStore(store_name);
+  if (store) {
+    from = 'FROM ' + goog.string.quote(store_name);
+  } else {
+    throw new ydn.db.SqlParseError(this.sql);
+  }
+  var select = 'SELECT';
+  if (this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE ||
+    this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE)  {
+    select += ' DISTINCT';
+  }
+  if (goog.isDefAndNotNull(this.map)) {
+    if (this.map.type == ydn.db.Query.MapType.SELECT) {
+      var fs =goog.isArray(this.map.fields) ?
+        this.map.fields : [this.map.fields];
+      var fields = goog.array.map(fs, function(x) {
+        return goog.string.quote(x);
+      });
+      select += '(' + fields.join(', ') + ')';
+      // parse row and then select the fields.
+      rowParser = goog.functions.compose(
+        ydn.db.Query.mapSelect(this.map.fields), ydn.db.Query.parseRow);
+    } else {
+      throw new ydn.db.SqlParseError(this.sql);
+    }
+  } else {
+    select += '(*)';
+  }
+
+  var where = '';
+  for (var i = 0; i < this.wheres.length; i++) {
+    if (where.length > 0) {
+      where += ' AND ';
+    }
+    where += this.wheres[i].field + ' ' + this.wheres[i].op + ' ?';
+    params.push(this.wheres[i].value);
+    if (goog.isDefAndNotNull(this.wheres[i].op2)) {
+      where += ' AND ' + this.wheres[i].field + ' ' + this.wheres[i].op2 + ' ?';
+      params.push(this.wheres[i].value2);
+    }
+  }
+
+  var field_name = goog.isDefAndNotNull(this.index) ?
+    goog.string.quote(this.index) : goog.isDefAndNotNull(store.keyPath) ?
+    goog.string.quote(store.keyPath) : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+
+  var order = 'ORDER BY ' + field_name;
+  if (this.direction == ydn.db.Cursor.Direction.PREV ||
+    this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE) {
+    order += ' DESC';
+  } else {
+    order += ' ASC';
+  }
+
+  var range = '';
+  if (!isNaN(this.limit_)) {
+    range += ' LIMIT ' + this.limit_;
+  }
+
+  if (!isNaN(this.offset_)) {
+    range += ' OFFSET ' + this.offset_;
+  }
+
+  var sql = select + ' ' + from + ' ' + where + ' ' + order + ' ' + range;
+  return {sql: sql, params: params, rowParser: rowParser};
+};
+
+
+/**
  * @override
  */
 ydn.db.Query.prototype.toString = function() {
@@ -530,4 +657,31 @@ ydn.db.Query.prototype.toString = function() {
   }
 };
 
+
+
+/**
+ * Parse resulting object of a row into original object as it 'put' into the
+ * database.
+ * @final
+ * @protected
+ * @param {ydn.db.StoreSchema} table table of concern.
+ * @param {!Object} row row.
+ * @return {!Object} parse value.
+ */
+ydn.db.Query.parseRow = function(table, row) {
+  var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
+  if (goog.isDefAndNotNull(table.keyPath)) {
+    var key = ydn.db.IndexSchema.sql2js(row[table.keyPath], table.type);
+    table.setKeyValue(value, key);
+  }
+  for (var j = 0; j < table.indexes.length; j++) {
+    var index = table.indexes[j];
+    if (index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
+      continue;
+    }
+    var x = row[index.name];
+    value[index.name] = ydn.db.IndexSchema.sql2js(x, index.type);
+  }
+  return value;
+};
 

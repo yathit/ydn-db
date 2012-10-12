@@ -122,15 +122,15 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
         size);
     } else {
       try {
-      // this works in Chrome and OS X Safari even if the specified
-      // database version does not exist. Other browsers throw INVALID_STATE_ERR
-      this.sql_db_ = goog.global.openDatabase(this.dbname, version, description,
-        size, creationCallback);
+        // this works in Chrome and OS X Safari even if the specified
+        // database version does not exist. Other browsers throw INVALID_STATE_ERR
+        this.sql_db_ = goog.global.openDatabase(this.dbname, version, description,
+          size, creationCallback);
       } catch (e) {
         if (e.name == 'INVALID_STATE_ERR') {
           // fail back to gentle opening.
           this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
-              size);
+            size);
         } else {
           throw e;
         }
@@ -268,7 +268,6 @@ ydn.db.con.WebSql.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.con.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.con.WebSql');
-
 
 
 /**

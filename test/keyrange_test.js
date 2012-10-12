@@ -16,20 +16,16 @@ var setUp = function () {
   //goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-  goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
-
-  var version = 1;
-  basic_schema = new ydn.db.DatabaseSchema(version);
-  var store;
+  goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
 
   var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.INTEGER, true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
     ydn.db.DataType.TEXT, [indexSchema]);
-  schema = new ydn.db.DatabaseSchema(1, [store_schema]);
+  var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
   db = new ydn.db.Storage(db_name, schema, options);
 
   db.put(store_name, objs).addCallback(function (value) {
-    console.log('db ready.');
+    console.log(db + ' ready.');
   });
 };
 
@@ -39,7 +35,6 @@ var tearDown = function() {
 
 var db_name = 'test_kr_1';
 var store_name = 'st';
-var options = {Mechanisms: ['indexeddb']};
 var db;
 
 
