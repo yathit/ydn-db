@@ -588,27 +588,26 @@ ydn.db.StoreSchema.DEFAULT_TEXT_STORE = 'default_text_store';
  *    columns: Array.<string>,
  *    slots: Array.<string>,
  *    values: Array.<string>,
- *    key: (!Array|string|number|undefined),
- *    normalized_key: (string|number|undefined)
+ *    key: (!Array|string|number|undefined)
  *  }} return list of values as it appear on the indexed fields.
  */
 ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
 
+  // since corretness of the inline, offline, auto are already checked,
+  // here we don't check again. this method should not throw error for
+  // these reason. If error must be throw it has to be InternalError.
+
   var key_column;
   var values = [];
-  var slots = [];
-  var columns = [];
-  var key, normalized_key;
-  if (goog.isString(this.keyPath) || goog.isDef(opt_key)) {
-    if (goog.isString(this.keyPath)) {
-      key = this.getKeyValue(obj);
-      columns = [this.getQuotedKeyPath()];
-    } else if (goog.isDef(opt_key)) {
-      key = opt_key;
-      columns = [ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
-    }
+
+  var normalized_key;
+  var key = goog.isDef(opt_key) ? opt_key :
+      goog.isString(this.keyPath) ? this.getKeyValue(obj) : undefined;
+  var columns =  [];
+  if (goog.isDef(key)) {
+    columns = goog.isDefAndNotNull(this.keyPath) ? [this.getQuotedKeyPath()] :
+        [ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
     values = [ydn.db.IndexSchema.js2sql(key, this.type)];
-    slots = ['?'];
   }
 
   for (var i = 0; i < this.indexes.length; i++) {
@@ -619,7 +618,6 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
     var v = obj[this.indexes[i].name];
     if (goog.isDef(v)) {
       values.push(ydn.db.IndexSchema.js2sql(v, this.indexes[i].type));
-      slots.push('?');
       columns.push(goog.string.quote(this.indexes[i].name));
     }
   }
@@ -632,15 +630,18 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
   }
 
   values.push(ydn.json.stringify(data));
-  slots.push('?');
   columns.push(ydn.db.base.DEFAULT_BLOB_COLUMN);
+
+  var slots = [];
+  for (var i = values.length - 1; i >= 0; i--) {
+    slots[i] = '?';
+  }
 
   return {
     columns: columns,
     slots: slots,
     values: values,
-    key: key,
-    normalized_key: normalized_key
+    key: key
   };
 };
 

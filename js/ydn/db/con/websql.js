@@ -190,7 +190,7 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
 /**
  * @define {boolean}
  */
-ydn.db.con.WebSql.GENTLE_OPENING = false;
+ydn.db.con.WebSql.GENTLE_OPENING = true;
 
 
 /**

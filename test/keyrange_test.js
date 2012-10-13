@@ -6,11 +6,11 @@ goog.require('ydn.db.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 
-var reachedFinalContinuation, schema, debug_console;
+var reachedFinalContinuation, schema, debug_console, db, objs;
 
 var db_name = 'test_kr_3';
 var store_name = 'st';
-var db, objs;
+
 
 
 var setUp = function () {

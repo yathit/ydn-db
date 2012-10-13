@@ -79,9 +79,13 @@ ydn.db.base.DefaultTransactionMode = {
 
 
 /**
+ * Before Chrome 22, IDBTransaction mode are number. New standard change to
+ * string. Chrome 22 still follow standard, but wired new constants are
+ * taking from the new standard.
  * HACK: The fun fact with current Chrome 22 defines  webkitIDBTransaction as
  * numeric value, but the database engine expect string format and display
  * deprecated warning.
+ * For detail discussion see:
  * https://bitbucket.org/ytkyaw/ydn-db/issue/28
  * http://code.google.com/p/chromium/issues/detail?id=155171
  * @const

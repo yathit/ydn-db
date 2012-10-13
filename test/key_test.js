@@ -5,45 +5,66 @@ goog.require('ydn.async');
 goog.require('ydn.db.Storage');
 
 
-var reachedFinalContinuation, basic_schema;
-var table_name = 't1';
+var reachedFinalContinuation, debug_console, basic_schema;
+var db_name = 'test_key_11_3';
+var string_table = 't1';
+var number_table = 't2';
+var date_table = 't3';
+var array_table = 't4';
+var out_of_line_store = 't5';
+
 
 var setUp = function() {
-  var c = new goog.debug.Console();
-  c.setCapturing(true);
-  //goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
+  if (!debug_console) {
+    debug_console = new goog.debug.Console();
+    debug_console.setCapturing(true);
+    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.con.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+  //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
+  //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   //ydn.db.con.IndexedDb.DEBUG = true;
+  //ydn.db.con.WebSql.DEBUG = true;
   //ydn.db.req.IndexedDb.DEBUG = true;
+  //ydn.db.req.WebSql.DEBUG = true;
+  }
 
-	basic_schema = new ydn.db.DatabaseSchema(1);
-	basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
+
+
+  reachedFinalContinuation = false;
 };
 
 var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-var db_name = 'test124';
-var options = {Mechanisms: ['indexeddb']};
 
+var createDb = function() {
+  basic_schema = new ydn.db.DatabaseSchema(1);
+  basic_schema.addStore(new ydn.db.StoreSchema(string_table, 'id'));
+  basic_schema.addStore(new ydn.db.StoreSchema(number_table, 'id', false,
+      ydn.db.DataType.NUMERIC));
+  basic_schema.addStore(new ydn.db.StoreSchema(date_table, 'id', false,
+      ydn.db.DataType.DATE));
+  basic_schema.addStore(new ydn.db.StoreSchema(array_table, 'id', false,
+      ydn.db.DataType.ARRAY));
 
-/**
- */
-var test_31_special_keys = function() {
-  var db_name = 'test_61';
+  basic_schema.addStore(new ydn.db.StoreSchema(out_of_line_store, undefined,  false));
+
   var db = new ydn.db.Storage(db_name, basic_schema, options);
+  return db;
+};
 
-  var key_test = function(key) {
-    console.log('testing ' + key);
-    var key_value = 'a' + Math.random();
 
-    var a_done;
-    var a_value;
-    waitForCondition(
+var key_test = function(db, key, table_name, callback) {
+
+  table_name = table_name || string_table;
+  console.log('testing ' + key + ' on ' + table_name);
+  var key_value = 'a' + Math.random();
+
+  var a_done;
+  var a_value;
+  waitForCondition(
       // Condition
       function() { return a_done; },
       // Continuation
@@ -53,50 +74,77 @@ var test_31_special_keys = function() {
       100, // interval
       2000); // maxTimeout
 
-    db.put(table_name, {id: key, value: key_value}).addCallback(function(value) {
-      console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
-      a_value = value;
-      a_done = true;
-    });
+  db.put(table_name, {id: key, value: key_value}).addCallback(function(value) {
+    //console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
+    a_value = value;
+    a_done = true;
+  });
 
-    var b_done;
-    var b_value;
-    waitForCondition(
+  var b_done;
+  var b_value;
+  waitForCondition(
       // Condition
       function() { return b_done; },
       // Continuation
       function() {
         assertEquals('get', key_value, b_value.value);
-        reachedFinalContinuation = true;
+        if (callback) {
+          callback(true);
+        }
       },
       100, // interval
       2000); // maxTimeout
 
+  db.get(table_name, key).addCallback(function(value) {
+    console.log(db + ' receiving get value callback ' + key + ' = ' + JSON.stringify(value));
+    b_value = value;
+    b_done = true;
+  });
+};
 
-    db.get(table_name, key).addCallback(function(value) {
-      console.log(db + ' receiving get value callback ' + key + ' = ' + value);
-      b_value = value;
-      b_done = true;
-    });
+/**
+ */
+var test_11_string_keys = function() {
+
+  var db = createDb();
+
+  var on_completed = function() {
+    reachedFinalContinuation = true;
   };
 
-  key_test('x');
+  key_test(db, 'x');
+  //key_test(new Date());  // Date is allow key
+  key_test(db, 't@som.com');
+  key_test(db, 'http://www.ok.com');
+  key_test(db, 'http://www.ok.com/?id=123#ok');
+  key_test(db, 'ID: /*!32302 10*/');
+  key_test(db, 'x;" DROP TABLE ' + string_table, string_table, on_completed);
 
-  key_test('t@som.com');
+};
 
-  key_test('http://www.ok.com');
+var test_12_number_keys = function() {
+
+  var db_name = 'test_key_12_1';
+  var db = new ydn.db.Storage(db_name, basic_schema, options);
+
+  var on_completed = function() {
+    reachedFinalContinuation = true;
+  };
+
+  key_test(db, 1, number_table);
+  key_test(db, 0, number_table);
+  key_test(db, -1, number_table);
+  key_test(db, Math.random(), number_table);
+  key_test(db, -Math.random(), number_table);
+  key_test(db, 1.0, number_table, on_completed);
 
 };
 
 
 
-var test_43_offline_key = function () {
-  var store_name = 'demoOS';
-  var db_name = 'test_43_27';
-  var store_schema = new ydn.db.StoreSchema(store_name, undefined,  false);
-  var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
-  var db = new ydn.db.Storage(db_name, schema, options);
+var test_21_out_of_line = function () {
 
+  var db = createDb();
   var key = Math.random();
   var data = {test: 'some random ' + Math.random(), type: Math.random()};
 
@@ -126,7 +174,7 @@ var test_43_offline_key = function () {
       assertEquals('key', key, put_result);
       // retrieve back by those key
 
-      db.get(store_name, put_result).addBoth(function (value) {
+      db.get(out_of_line_store, put_result).addBoth(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
@@ -136,17 +184,17 @@ var test_43_offline_key = function () {
     100, // interval
     1000); // maxTimeout
 
-  db.put(store_name, data, key).addCallback(function (value) {
-    console.log(['receiving key from put', value]);
+  db.put(out_of_line_store, data, key).addCallback(function (value) {
+    //console.log(['receiving key from put', value]);
     put_done = true;
     put_result = value
   });
 };
 
 
-var test_44_offline_key_array = function () {
+var test_22_out_of_line_array = function () {
   var store_name = 'demoOS';
-  var db_name = 'test_43_27';
+  var db_name = 'test_22_1';
   var store_schema = new ydn.db.StoreSchema(store_name, undefined,  false);
   var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -210,9 +258,9 @@ var test_44_offline_key_array = function () {
 
 
 
-var test_7_put_nested_keyPath = function() {
+var test_40_nested_keyPath = function() {
   var store_name = 'ts1';
-  var db_name = 'putodbtest21';
+  var db_name = 'test_key_40_1';
   var schema = new ydn.db.DatabaseSchema(1);
   schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -255,7 +303,7 @@ var test_7_put_nested_keyPath = function() {
 
 
   db.get(store_name, key).addCallback(function(value) {
-    console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
+    //console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
     get_value_received = value;
     get_done = true;
   });
@@ -332,8 +380,9 @@ var test_42_autoincreasement_offline = function () {
 
 var test_43_autoincreasement_inline = function () {
   var store_name = 'demoOS';
-  var db_name = 'test_43_3';
-  var store_schema = new ydn.db.StoreSchema(store_name, 'value', true, ydn.db.DataType.INTEGER);
+  var db_name = 'test_key_43_4';
+  var store_schema = new ydn.db.StoreSchema(store_name, 'value', true,
+      ydn.db.DataType.INTEGER);
   var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
@@ -396,7 +445,11 @@ var test_43_autoincreasement_inline = function () {
     console.log(['receiving key from put', value]);
     keys = value;
     put_done = true;
-  });
+  }).addErrback(function(e) {
+        console.error(e);
+        keys = [];
+        put_done = true;
+      });
 };
 
 

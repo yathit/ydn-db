@@ -6,7 +6,7 @@ goog.require('ydn.db.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 
-var reachedFinalContinuation, basic_schema, debug_console;
+var reachedFinalContinuation, schema, debug_console, db, objs;
 
 var db_name = 'test_crud_2';
 var table_name = 'st';
@@ -21,12 +21,13 @@ var setUp = function () {
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
+  ydn.db.con.IndexedDb.DEBUG = true;
 
-  basic_schema = new ydn.db.DatabaseSchema(1);
-  basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
+  schema = new ydn.db.DatabaseSchema(1);
+  schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
 
 };
 
@@ -36,7 +37,7 @@ var tearDown = function() {
 
 var test_11_put = function() {
 
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -68,7 +69,7 @@ var test_11_put = function() {
 
 var test_12_put_array = function() {
   var db_name = 'test_12';
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var arr = [];
   var n = ydn.db.req.IndexedDb.REQ_PER_TX / 2;
@@ -106,11 +107,9 @@ var test_12_put_array = function() {
 };
 
 
-
-
 var test_13_put_array = function() {
-  var db_name = 'test_21';
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db_name = 'test_crud_ 13_1';
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var arr = [];
   var n = ydn.db.req.IndexedDb.REQ_PER_TX * 2.5;
@@ -152,7 +151,7 @@ var test_13_put_array = function() {
 
 var test_22_get_array = function() {
   var db_name = 'test_crud_21_1';
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var arr = [];
   var n = ydn.db.req.IndexedDb.REQ_PER_TX / 2;
@@ -197,7 +196,7 @@ var test_22_get_array = function() {
 
 var test_23_get_array = function() {
   var db_name = 'test_crud_23';
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var arr = [];
   var n = ydn.db.req.IndexedDb.REQ_PER_TX * 2.5;
@@ -247,9 +246,9 @@ var test_24_get_all_no_data = function() {
 
   var db_name = 'test_get_all_1';
   var table_name = 'no_data_table';
-  var basic_schema = new ydn.db.DatabaseSchema(1);
-  basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var schema = new ydn.db.DatabaseSchema(1);
+  schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -278,7 +277,7 @@ var test_24_get_all_no_data = function() {
 
 var test_31_get_none_exist = function() {
 
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -307,7 +306,7 @@ var test_31_get_none_exist = function() {
 };
 
 var test_41_clear_store = function() {
-  var db = new ydn.db.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var put_value;
