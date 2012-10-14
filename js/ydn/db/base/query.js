@@ -26,6 +26,7 @@ goog.require('ydn.db.KeyRange');
 goog.require('ydn.error.ArgumentException');
 goog.require('ydn.db.DatabaseSchema');
 goog.require('ydn.db.SqlCursor');
+goog.require('ydn.string');
 
 
 
@@ -39,7 +40,11 @@ ydn.db.Query = function(sql_statement) {
     throw new ydn.error.ArgumentException();
   }
 
-  this.sql = goog.isDef(sql_statement) ? sql_statement : '';
+  this.sql = '';
+  if (goog.isDef(sql_statement)) {
+    this.sql = sql_statement;
+    //this.parseSql(sql_statement);
+  }
 
   this.store_name = '';
   this.wheres = [];
@@ -71,6 +76,108 @@ ydn.db.Query.prototype.index = undefined;
  * @type {ydn.db.Cursor.Direction|undefined}
  */
 ydn.db.Query.prototype.direction = undefined;
+
+
+
+/**
+ * @private
+ * @type {number}
+ */
+ydn.db.Query.prototype.limit_ = NaN;
+
+/**
+ * @private
+ * @type {number}
+ */
+ydn.db.Query.prototype.offset_ = NaN;
+
+
+
+/**
+ * @protected
+ * @type {!Array.<!ydn.db.Query.Where>}
+ */
+ydn.db.Query.prototype.wheres = [];
+
+
+
+/**
+ *
+ * @type {ydn.db.Query.Aggregate?}
+ */
+ydn.db.Query.prototype.aggregate = null;
+
+
+
+/**
+ *
+ * @type {ydn.db.Query.Map?}
+ */
+ydn.db.Query.prototype.map = null;
+
+
+/**
+ * @protected
+ * @param {string} sql
+ * @return {{
+ *    action: string,
+ *    fields: (string|!Array.<string>|undefined),
+ *    store_name: string,
+ *    wheres: !Array.<string>
+ *  }}
+ * @throws {ydn.error.ArgumentException}
+ */
+ydn.db.Query.prototype.parseSql = function(sql) {
+  var from_parts = sql.split(/\sFROM\s/i);
+  if (from_parts.length != 2) {
+    throw new ydn.error.ArgumentException('FROM required.');
+  }
+
+  // Parse Pre-FROM
+  var pre_from_parts = from_parts[0].match(/\s*?(SELECT|COUNT|MAX|AVG|MIN|CONCAT)\s*(.*)/i);
+  if (pre_from_parts.length != 3) {
+    throw new ydn.error.ArgumentException('Unable to parse: ' + sql);
+  }
+  var action = pre_from_parts[1].toUpperCase();
+  var action_arg = pre_from_parts[2].trim();
+  var fields = undefined;
+  if (action_arg.length > 0 && action_arg != '*') {
+    if (action_arg[0] == '(') {
+      action_arg = action_arg.substring(1);
+    }
+    if (action_arg[action_arg.length - 2] == ')') {
+      action_arg = action_arg.substring(0, action_arg.length - 2);
+    }
+    if (action_arg.indexOf(',') > 0) {
+      fields = ydn.string.split_comma_seperated(action_arg);
+      fields = goog.array.map(fields, function(x) {
+        return goog.string.stripQuotes(x, '"');
+      })
+    } else {
+      fields = action_arg;
+    }
+  }
+
+  // Parse FROM
+  var parts = from_parts[1].trim().match(/"(.+)"\s*(.*)/);
+  if (!parts) {
+    throw new ydn.error.ArgumentException('store name required.');
+  }
+  var store_name = parts[1];
+  var wheres = [];
+  if (parts.length > 2) {
+    wheres.push(parts[2]);
+  }
+
+
+
+  return {
+    action: action,
+    fields: fields,
+    store_name: store_name,
+    wheres: wheres
+  }
+};
 
 
 /**
@@ -257,12 +364,6 @@ ydn.db.Query.processWhere = function(cursor, where) {
 };
 
 
-/**
- * @protected
- * @type {!Array.<!ydn.db.Query.Where>}
- */
-ydn.db.Query.prototype.wheres = [];
-
 
 /**
  * @enum {string}
@@ -281,12 +382,6 @@ ydn.db.Query.MapType = {
 ydn.db.Query.Map;
 
 
-/**
- *
- * @type {ydn.db.Query.Map?}
- */
-ydn.db.Query.prototype.map = null;
-
 
 
 /**
@@ -297,7 +392,9 @@ ydn.db.Query.AggregateType = {
   SUM: 'sm',
   AVERAGE: 'av',
   MAX: 'mx',
-  MIN: 'mn'
+  MIN: 'mn',
+  SELECT: 'sl',
+  CONCAT: 'cc'
 };
 
 
@@ -309,12 +406,6 @@ ydn.db.Query.AggregateType = {
  */
 ydn.db.Query.Aggregate;
 
-
-/**
- *
- * @type {ydn.db.Query.Aggregate?}
- */
-ydn.db.Query.prototype.aggregate = null;
 
 //
 ///**
@@ -668,12 +759,6 @@ ydn.db.Query.prototype.toCursor = function(schema) {
 };
 
 
-/**
- * @protected
- * @type {number}
- */
-ydn.db.Query.prototype.limit_ = NaN;
-
 
 /**
  *
@@ -687,12 +772,6 @@ ydn.db.Query.prototype.limit = function(value) {
   }
 };
 
-
-/**
- * @protected
- * @type {number}
- */
-ydn.db.Query.prototype.offset_ = NaN;
 
 
 /**
@@ -764,7 +843,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       fields_selected = true;
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
-      cursor.map = ydn.db.Query.takeFirst;
+      cursor.map = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else if (this.aggregate.type == ydn.db.Query.AggregateType.SUM) {
       select += 'SELECT SUM (';
@@ -778,7 +857,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       fields_selected = true;
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
-      cursor.map = ydn.db.Query.takeFirst;
+      cursor.map = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else if (this.aggregate.type == ydn.db.Query.AggregateType.AVERAGE) {
       select += 'SELECT AVG (';
@@ -792,7 +871,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       fields_selected = true;
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
-      cursor.map = ydn.db.Query.takeFirst;
+      cursor.map = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else {
       throw new ydn.db.SqlParseError(this.aggregate.type + ' in ' + this.sql);
@@ -969,22 +1048,6 @@ ydn.db.Query.prototype.toString = function() {
   } else {
     return goog.base(this, 'toString');
   }
-};
-
-
-/**
- * Take the first field of an object
- * @final
- * @param {!Object} row row.
- * @return {*} the first field of object in row value.
- */
-ydn.db.Query.takeFirst = function (row) {
-  for (var key in row) {
-    if (row.hasOwnProperty(key)) {
-      return row[key];
-    }
-  }
-  return undefined;
 };
 
 
