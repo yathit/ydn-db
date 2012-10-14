@@ -107,7 +107,7 @@ var test_2_select = function() {
       2000); // maxTimeout
 
   var q = db.query().from(store_name);
-  q.select('value');
+  q.select('select', 'value');
   db.fetch(q).addCallback(function (q_result) {
     console.log('receiving query ' + JSON.stringify(q_result));
     result = q_result;
@@ -137,7 +137,7 @@ var test_3_count = function () {
     2000); // maxTimeout
 
   var q = db.query().from(store_name);
-  q.count();
+  q.select('COUNT');
   db.fetch(q).addCallback(function (q_result) {
     //console.log('receiving query ' + JSON.stringify(q_result));
     put_value = q_result;
@@ -171,7 +171,7 @@ var test_4_sum = function() {
 
 
     var q = db.query().from(store_name);
-    q.sum('id');
+    q.select('sum', 'id');
     db.fetch(q).addCallback(function(q_result) {
       //console.log('receiving query ' + JSON.stringify(q_result));
       put_value = q_result;
@@ -207,7 +207,7 @@ var test_4_average = function() {
 
 
     var q = db.query().from(store_name);
-    q.average('id');
+    q.select('avg', 'id');
     db.fetch(q).addCallback(function(q_result) {
       //console.log('receiving query ' + JSON.stringify(q_result));
       put_value = q_result;

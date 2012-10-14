@@ -18,12 +18,6 @@ goog.exportProperty(ydn.db.Query.prototype, 'select',
     ydn.db.Query.prototype.select);
 goog.exportProperty(ydn.db.Query.prototype, 'where',
     ydn.db.Query.prototype.where);
-goog.exportProperty(ydn.db.Query.prototype, 'sum',
-    ydn.db.Query.prototype.sum);
-goog.exportProperty(ydn.db.Query.prototype, 'count',
-    ydn.db.Query.prototype.count);
-goog.exportProperty(ydn.db.Query.prototype, 'average',
-    ydn.db.Query.prototype.average);
 
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
     ydn.db.Storage.prototype.query);

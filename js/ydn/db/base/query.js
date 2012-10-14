@@ -316,20 +316,20 @@ ydn.db.Query.Aggregate;
  */
 ydn.db.Query.prototype.aggregate = null;
 
-
-/**
- * Convenient method for SQL <code>COUNT</code> method.
- * @return {!ydn.db.Query} The query.
- */
-ydn.db.Query.prototype.count = function() {
-
-  if (this.aggregate) {
-    throw new ydn.error.ConstrainError('Aggregate method already defined.');
-  }
-  this.aggregate = {type: ydn.db.Query.AggregateType.COUNT, field: undefined};
-  return this;
-
-};
+//
+///**
+// * Convenient method for SQL <code>COUNT</code> method.
+// * @return {!ydn.db.Query} The query.
+// */
+//ydn.db.Query.prototype.count = function() {
+//
+//  if (this.aggregate) {
+//    throw new ydn.error.ConstrainError('Aggregate method already defined.');
+//  }
+//  this.aggregate = {type: ydn.db.Query.AggregateType.COUNT, field: undefined};
+//  return this;
+//
+//};
 
 
 
@@ -346,26 +346,26 @@ ydn.db.Query.reduceCount = function(field) {
     return prev + 1;
   };
 };
-
-
-/**
- * Convenient method for SQL <code>SUM</code> method.
- * @param {string} field name.
- * @return {!ydn.db.Query} The query for chaining.
- */
-ydn.db.Query.prototype.sum = function(field) {
-
-  if (this.aggregate) {
-    throw new ydn.error.ConstrainError('Aggregate method already defined.');
-  }
-  this.aggregate = {
-    type: ydn.db.Query.AggregateType.SUM,
-    field: field
-  };
-  return this;
-
-
-};
+//
+//
+///**
+// * Convenient method for SQL <code>SUM</code> method.
+// * @param {string} field name.
+// * @return {!ydn.db.Query} The query for chaining.
+// */
+//ydn.db.Query.prototype.sum = function(field) {
+//
+//  if (this.aggregate) {
+//    throw new ydn.error.ConstrainError('Aggregate method already defined.');
+//  }
+//  this.aggregate = {
+//    type: ydn.db.Query.AggregateType.SUM,
+//    field: field
+//  };
+//  return this;
+//
+//
+//};
 
 
 /**
@@ -384,23 +384,57 @@ ydn.db.Query.reduceSum = function(field) {
 
 
 /**
- * Convenient method for SQL <code>AVERAGE</code> method.
- * @param {string} field name.
- * @return {!ydn.db.Query} The query for chaining.
+ * Return reduce iteration function for MIN
+ * @param {string} field
+ * @return {Function}
  */
-ydn.db.Query.prototype.average = function(field) {
-
-  if (this.aggregate) {
-    throw new ydn.error.ConstrainError('Aggregate method already defined.');
-  }
-  this.aggregate = {
-    type: ydn.db.Query.AggregateType.AVERAGE,
-    field: field
+ydn.db.Query.reduceMin = function(field) {
+  return function(prev, curr, i) {
+    var x = curr[field];
+    if (!goog.isDef(prev)) {
+      return x;
+    }
+    return prev < x ? prev : x;
   };
-  return this;
-
-
 };
+
+
+/**
+ * Return reduce iteration function for MAX
+ * @param {string} field
+ * @return {Function}
+ */
+ydn.db.Query.reduceMax = function(field) {
+  return function(prev, curr, i) {
+    var x = curr[field];
+    if (!goog.isDef(prev)) {
+      return x;
+    }
+    return prev > x ? prev : x;
+  };
+};
+
+
+//
+//
+///**
+// * Convenient method for SQL <code>AVERAGE</code> method.
+// * @param {string} field name.
+// * @return {!ydn.db.Query} The query for chaining.
+// */
+//ydn.db.Query.prototype.average = function(field) {
+//
+//  if (this.aggregate) {
+//    throw new ydn.error.ConstrainError('Aggregate method already defined.');
+//  }
+//  this.aggregate = {
+//    type: ydn.db.Query.AggregateType.AVERAGE,
+//    field: field
+//  };
+//  return this;
+//
+//
+//};
 
 
 /**
@@ -420,21 +454,90 @@ ydn.db.Query.reduceAverage = function (field) {
 
 /**
  *
- * @param {string|Array.<string>} fields field names to select.
+ * @param {string?=} opt_method selection method.
+ * @param {(string|!Array.<string>)=} fields field names to select.
  * @return {!ydn.db.Query} The query for chaining.
  */
-ydn.db.Query.prototype.select = function (fields) {
+ydn.db.Query.prototype.select = function (opt_method, fields) {
 
-  if (this.map) {
-    throw new ydn.error.ConstrainError('Map method already defined.');
+  var  method = 'select';
+  if (goog.isDefAndNotNull(opt_method)) {
+    if (goog.isString(opt_method)) {
+      method = opt_method.toLowerCase();
+    } else {
+      throw new ydn.error.ArgumentException();
+    }
   }
-  if (goog.isString(fields) || goog.isArray(fields)) {
-    this.map = {
-      type: ydn.db.Query.MapType.SELECT,
-      fields: fields
+
+  if (method == 'select') {
+    if (this.map) {
+      throw new ydn.error.ConstrainError('SELECT');
+    }
+    if (goog.isString(fields) || goog.isArray(fields)) {
+      this.map = {
+        type:ydn.db.Query.MapType.SELECT,
+        fields:fields
+      };
+    } else {
+      throw new ydn.error.ArgumentException('SELECT fields missing');
+    }
+  } else if (method == 'avg') {
+    if (this.aggregate) {
+      throw new ydn.error.ConstrainError('Aggregate method already defined.');
+    }
+    if (!goog.isString(fields)) {
+      throw new ydn.error.ArgumentException('AVG');
+    }
+    this.aggregate = {
+      type: ydn.db.Query.AggregateType.AVERAGE,
+      field: fields
     };
+  } else if (method == 'min') {
+    if (this.aggregate) {
+      throw new ydn.error.ConstrainError('Aggregate method already defined.');
+    }
+    if (!goog.isString(fields)) {
+      throw new ydn.error.ArgumentException('MIN');
+    }
+    this.aggregate = {
+      type: ydn.db.Query.AggregateType.MIN,
+      field: fields
+    };
+  } else if (method == 'max') {
+    if (this.aggregate) {
+      throw new ydn.error.ConstrainError('Aggregate method already defined.');
+    }
+    if (!goog.isString(fields)) {
+      throw new ydn.error.ArgumentException('MAX');
+    }
+    this.aggregate = {
+      type: ydn.db.Query.AggregateType.MAX,
+      field: fields
+    };
+  } else if (method == 'sum') {
+    if (this.aggregate) {
+      throw new ydn.error.ConstrainError('Aggregate method already defined.');
+    }
+    if (!goog.isString(fields)) {
+      throw new ydn.error.ArgumentException('SUM');
+    }
+    this.aggregate = {
+      type: ydn.db.Query.AggregateType.SUM,
+      field: fields
+    };
+  } else if (method == 'count') {
+    if (this.aggregate) {
+      throw new ydn.error.ConstrainError('Aggregate method already defined.');
+    }
+    if (goog.isString(fields)) {
+      this.aggregate = {type:ydn.db.Query.AggregateType.COUNT, field:fields};
+    } else if (goog.isDef(fields)) {
+      throw new ydn.error.ArgumentException('COUNT');
+    } else {
+      this.aggregate = {type:ydn.db.Query.AggregateType.COUNT, field:undefined};
+    }
   } else {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.error.ArgumentException('Unknown SELECT method: ' + opt_method);
   }
 
   return this;
@@ -535,6 +638,18 @@ ydn.db.Query.prototype.toCursor = function(schema) {
         cursor.reduce = ydn.db.Query.reduceSum(this.aggregate.field);
       } else {
         throw new ydn.db.SqlParseError('SUM: ' + this.sql);
+      }
+    } else if (this.aggregate.type == ydn.db.Query.AggregateType.MIN) {
+      if (goog.isString(this.aggregate.field)) {
+        cursor.reduce = ydn.db.Query.reduceMin(this.aggregate.field);
+      } else {
+        throw new ydn.db.SqlParseError('MIN: ' + this.sql);
+      }
+    } else if (this.aggregate.type == ydn.db.Query.AggregateType.MAX) {
+      if (goog.isString(this.aggregate.field)) {
+        cursor.reduce = ydn.db.Query.reduceMax(this.aggregate.field);
+      } else {
+        throw new ydn.db.SqlParseError('MAX: ' + this.sql);
       }
     } else if (this.aggregate.type == ydn.db.Query.AggregateType.AVERAGE) {
       if (goog.isString(this.aggregate.field)) {
