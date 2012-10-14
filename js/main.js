@@ -14,11 +14,28 @@ goog.exportProperty(ydn.db.io.Query.prototype, 'fetch',
 goog.exportProperty(ydn.db.io.Query.prototype, 'get',
     ydn.db.io.Query.prototype.get);
 
+//goog.exportProperty(ydn.db.Cursor.prototype, 'filter',
+//    ydn.db.Cursor.prototype.filter);
+//goog.exportProperty(ydn.db.Cursor.prototype, 'reduce',
+//    ydn.db.Cursor.prototype.reduce);
+//goog.exportProperty(ydn.db.Cursor.prototype, 'map',
+//    ydn.db.Cursor.prototype.map);
+//goog.exportProperty(ydn.db.Cursor.prototype, 'initial',
+//    ydn.db.Cursor.prototype.initial);
+//goog.exportProperty(ydn.db.Cursor.prototype, 'continued',
+//    ydn.db.Cursor.prototype.continued);
+//goog.exportProperty(ydn.db.Cursor.prototype, 'finalize',
+//    ydn.db.Cursor.prototype.finalize);
+
 goog.exportProperty(ydn.db.Query.prototype, 'select',
     ydn.db.Query.prototype.select);
 goog.exportProperty(ydn.db.Query.prototype, 'where',
     ydn.db.Query.prototype.where);
+goog.exportProperty(ydn.db.Query.prototype, 'from',
+    ydn.db.Query.prototype.from);
 
+goog.exportProperty(ydn.db.Storage.prototype, 'cursor',
+    ydn.db.Storage.prototype.cursor);
 goog.exportProperty(ydn.db.Storage.prototype, 'query',
     ydn.db.Storage.prototype.query);
 goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
@@ -28,6 +45,8 @@ goog.exportProperty(ydn.db.Storage.prototype, 'setItem',
 goog.exportProperty(ydn.db.Storage.prototype, 'getItem',
     ydn.db.Storage.prototype.getItem);
 
+goog.exportProperty(ydn.db.TxStorage.prototype, 'cursor',
+    ydn.db.TxStorage.prototype.cursor);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'query',
     ydn.db.TxStorage.prototype.query);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',

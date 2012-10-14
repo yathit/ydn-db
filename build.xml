@@ -15,7 +15,7 @@
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${dev-out.fn}">
             <extrapaths>
-                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/con.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/main.js"'/>
@@ -36,12 +36,18 @@
             </options>
         </closure-compile>
 
-        <copy file="${dev-out.fn}.map"
-              tofile="${out.dir}/dev-ydn.db-min.js.map"/>
         <concat destfile="${dev-out.fn}" append="true">
             //@ sourceMappingURL=dev-ydn.db-min-${ver}.js.map
         </concat>
-       
+
+        <replace description="replace so with online repo path"
+                 file="${dev-out.fn}.map"
+                 token="/Users/kyawtun/work/ydn-db/"
+                 value="https://bitbucket.org/ytkyaw/ydn-db/raw/master/"/>
+        <replace description="replace so with online repo path"
+                 file="${dev-out.fn}.map"
+                 token="/Users/kyawtun/work/closure-library/"
+                 value="https://raw.github.com/yathit/google-closure-library/master/"/>
 
         <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js">
             <header>
@@ -59,6 +65,8 @@
     <target name="to-doc" description="copy file to documentation site">
         <copy file="${dev-out.fn}"
               tofile="${out.dir}/dev-ydn.db-min.js"/>
+        <copy file="${dev-out.fn}.map"
+              tofile="${out.dir}/dev-ydn.db-min.js.map"/>
         <concat destfile="${out.dir}/dev-ydn.db-min.js" append="true">
             //@ sourceMappingURL=dev-ydn.db-min.js.map
         </concat>
@@ -82,7 +90,7 @@
                              output.fn="@{output.dir}/@{output.fn}">
                 <extrapaths>
                     <arg line='-p "${ydn-base.dir}/js"'/>
-                    <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/con"'/>
                     <exjs.dir/>
                 </extrapaths>
                 <options>
@@ -124,14 +132,14 @@
             description="generates compiled files for core">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db/conn"
-                input.fn="${ydn-db.dir}/js/conn.js"
+                input.dir="${ydn-db.dir}/js/ydn/db/con"
+                input.fn="${ydn-db.dir}/js/con.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="conn-ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.con.Storage">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/con"'/>
             </exjs.dir>
         </adv-comp>
     </target>
@@ -145,9 +153,9 @@
                 output.fn="core-ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.tr.Storage">
             <exjs.dir>
-                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/con.js"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/con"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
             </exjs.dir>
         </adv-comp>
@@ -163,7 +171,7 @@
                 output.fn="ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.Storage">
             <ex.opt>
-                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/con.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-f "--define=ydn.db.base.ENABLE_DEFAULT_TEXT_STORE=true"'/>

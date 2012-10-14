@@ -264,6 +264,17 @@ ydn.db.IndexSchema.prototype.similar = function(index) {
 
 /**
  *
+ * @param {ydn.db.Cursor.Direction|string=} str
+ * @return {ydn.db.Cursor.Direction|undefined}
+ */
+ydn.db.IndexSchema.toDir = function(str) {
+  var idx = goog.array.indexOf(ydn.db.Cursor.DIRECTIONS, str);
+  return ydn.db.Cursor.DIRECTIONS[idx]; // undefined OK.
+};
+
+
+/**
+ *
  * @param {!IndexSchema} json object in json format.
  * @return {ydn.db.IndexSchema} created from input json string.
  */

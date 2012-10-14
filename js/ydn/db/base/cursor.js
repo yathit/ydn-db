@@ -82,10 +82,12 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
   this.keyRange = kr;
 
   // set all null so that no surprise from inherit prototype
+  this.initial = null;
   this.filter = null;
   this.reduce = null;
   this.map = null;
   this.continued = null;
+  this.finalize = null;
 };
 
 
@@ -115,15 +117,6 @@ ydn.db.Cursor.DIRECTIONS = [
 ];
 
 
-/**
- *
- * @param {ydn.db.Cursor.Direction|string=} str
- * @return {ydn.db.Cursor.Direction|undefined}
- */
-ydn.db.IndexSchema.toDir = function(str) {
-  var idx = goog.array.indexOf(ydn.db.Cursor.DIRECTIONS, str);
-  return ydn.db.Cursor.DIRECTIONS[idx]; // undefined OK.
-};
 
 
 /**
@@ -234,6 +227,45 @@ ydn.db.Cursor.prototype.bound = function(lower, upper, lo, uo) {
   this.keyRange = ydn.db.IDBKeyRange.bound(lower, upper, lo, uo);
   return this;
 };
+
+
+
+/**
+ * @param {string?} keyPath if index is not defined, keyPath will be used.
+ * @return {{where_clause: string, params: Array}} return equivalent of keyRange
+ * to SQL WHERE clause and its parameters.
+ */
+ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
+
+  var where_clause = '';
+  var params = [];
+  var index = goog.isDef(this.index) ? this.index :
+      goog.isDefAndNotNull(keyPath) ? keyPath :
+          ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  var column = goog.string.quote(index);
+
+  if (ydn.db.KeyRange.isLikeOperation(this.keyRange)) {
+    where_clause = column + ' LIKE ?';
+    params.push(this.keyRange['lower'] + '%');
+  } else {
+
+    if (goog.isDef(this.keyRange.lower)) {
+      var lowerOp = this.keyRange['lowerOpen'] ? ' > ' : ' >= ';
+      where_clause += ' ' + column + lowerOp + '?';
+      params.push(this.keyRange.lower);
+    }
+    if (goog.isDef(this.keyRange['upper'])) {
+      var upperOp = this.keyRange['upperOpen'] ? ' < ' : ' <= ';
+      var and = where_clause.length > 0 ? ' AND ' : ' ';
+      where_clause += and + column + upperOp + '?';
+      params.push(this.keyRange.upper);
+    }
+
+  }
+
+  return {where_clause: where_clause, params: params};
+};
+
 
 
 
