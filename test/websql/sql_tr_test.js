@@ -94,8 +94,8 @@ var test_2_sql_basic = function() {
       });
     }, [table_name], ydn.db.base.TransactionMode.READ_WRITE);
 
-    var q = db.query(table_name);
-    q.select('value');
+    var q = db.query().from(table_name);
+    q.select('select', 'value');
     console.log(db + 'fetching');
     db.fetch(q).addCallback(function(q_result) {
       console.log(db + ' receiving fetch ' + JSON.stringify(q_result));

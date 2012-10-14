@@ -90,8 +90,8 @@ var test_2_idb_basic = function() {
       });
     }, [table_name], 'readwrite');
 
-    var q = db.query(table_name);
-    q.select('value');
+    var q = db.query().from(table_name);
+    q.select('select', 'value');
     db.fetch(q).addCallback(function(q_result) {
       console.log(db + ' receiving fetch ' + JSON.stringify(q_result));
     })
