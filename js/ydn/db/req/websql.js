@@ -32,7 +32,7 @@ goog.require('ydn.json');
 /**
  * @extends {ydn.db.req.RequestExecutor}
  * @param {string} dbname
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.DatabaseSchema} schema
  * @constructor
  */
 ydn.db.req.WebSql = function(dbname, schema) {
@@ -252,9 +252,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_
 ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
   var table = this.schema.getStore(table_name);
-  if (!table) {
-    throw new ydn.db.NotFoundError(table_name);
-  }
+  goog.asserts.assertInstanceof(table, ydn.db.StoreSchema, table_name + ' not found.');
 
   var me = this;
 
@@ -274,7 +272,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
       if (goog.isDefAndNotNull(row)) {
-        d.callback(ydn.db.Query.parseRow(table, row));
+        d.callback(ydn.db.SqlCursor.parseRow(table, row));
       } else {
         d.callback(undefined);
       }
@@ -313,9 +311,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
   var result_count = 0;
 
   var table = this.schema.getStore(table_name);
-  if (!table) {
-    throw new ydn.db.NotFoundError(table_name);
-  }
+  goog.asserts.assertInstanceof(table, ydn.db.StoreSchema, table_name + ' not found.');
 
   /**
    * Get fetch the given id of i position and put to results array in
@@ -335,7 +331,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.Query.parseRow(table, row);
+          objects[i] = ydn.db.SqlCursor.parseRow(table, row);
         }
         // this is get function, we take only one result.
       } else {
@@ -410,9 +406,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
   var getAll = function (idx, tx) {
     var table_name = table_names[idx];
     var table = me.schema.getStore(table_name);
-    if (!table) {
-      throw new ydn.db.NotFoundError(table_name);
-    }
+    goog.asserts.assertInstanceof(table, ydn.db.StoreSchema, table_name + ' not found.');
 
     var sql = 'SELECT * FROM ' + table.getQuotedName();
 
@@ -424,7 +418,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
       for (var i = 0; i < results.rows.length; i++) {
         var row = results.rows.item(i);
         if (goog.isDefAndNotNull(row)) {
-          arr.push(ydn.db.Query.parseRow(table, row));
+          arr.push(ydn.db.SqlCursor.parseRow(table, row));
         } 
       }
       if (idx == n_todo - 1) {
@@ -474,9 +468,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
     var key = keys[i];
     var table_name = key.getStoreName();
     var table = me.schema.getStore(table_name);
-    if (!table) {
-      throw new ydn.db.NotFoundError(table_name);
-    }
+    goog.asserts.assertInstanceof(table, ydn.db.StoreSchema, table_name + ' not found.');
 
     /**
      * @param {SQLTransaction} transaction transaction.
@@ -487,7 +479,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.Query.parseRow(table, row);
+          objects[i] = ydn.db.SqlCursor.parseRow(table, row);
         }
         // this is get function, we take only one result.
       } else {
@@ -541,39 +533,19 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
 
 /**
  * @param {!goog.async.Deferred} df return object in deferred function.
- * @param {!ydn.db.Cursor} q the query.
+ * @param {!ydn.db.Cursor} cursor the query.
  */
-ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
+ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
 
   var me = this;
-
-  var store = this.schema.getStore(q.store_name);
-  var is_reduce = goog.isFunction(q.reduce);
-
-  var sql = 'SELECT * FROM ' + store.getQuotedName();
-  var params = [];
-
-  var index = goog.isDef(q.index) ? store.getIndex(q.index) : null;
-
-  if (q.keyRange) {
-    var clause = q.toWhereClause(store.keyPath);
-    sql += ' WHERE ' + '(' + clause.where_clause + ')';
-    params = clause.params;
-  }
-
-  // Note: IndexedDB key range result are always ordered.
-  var dir = 'ASC';
-  if (q.direction == 'prev') {
-    dir = 'DESC';
-  }
-  var unique = true;
-  if (index) {
-    sql += ' ORDER BY ' + goog.string.quote(index.name) + ' ' + dir;
-    unique = index.unique;
-  } else if (goog.isString(store.keyPath)) {
-    sql += ' ORDER BY ' + goog.string.quote(store.keyPath) + ' ' + dir;
-  }
-
+  var is_reduce = goog.isFunction(cursor.reduce);
+  /**
+   *
+   * @type {!ydn.db.SqlCursor}
+   */
+  var q = cursor instanceof ydn.db.SqlCursor ?
+      /** @type {!ydn.db.SqlCursor} */ (cursor) :
+      ydn.db.Query.cursor2SqlCursor(cursor, this.schema);
 
   var result = is_reduce ? undefined : [];
 
@@ -597,7 +569,7 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
       var row = results.rows.item(i);
       var value = {}; // ??
       if (goog.isDefAndNotNull(row)) {
-        value = ydn.db.Query.parseRow(store, row);
+        value = q.parseRow(row);
       }
       var to_continue = !goog.isFunction(q.continued) || q.continued(value);
       if (!goog.isFunction(q.filter) || q.filter(value)) {
@@ -612,14 +584,17 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
           } else {
             result.push(value);
           }
-
       }
 
       if (!to_continue) {
         break;
       }
     }
-    df.callback(result);
+    if (goog.isFunction(q.finalize)) {
+      df.callback(q.finalize(result));
+    } else {
+      df.callback(result);
+    }
   };
 
   /**
@@ -628,7 +603,7 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
-      window.console.log([q, sql, params, tr, error]);
+      window.console.log([q, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
     df.errback(error);
@@ -636,82 +611,23 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
   };
 
   if (goog.DEBUG) {
-    this.logger.finest(this + ' SQL: ' + sql + ' PARAMS:' + ydn.json.stringify(params));
+    this.logger.finest(this + ' SQL: ' + q.sql + ' PARAMS:' +
+        ydn.json.stringify(q.params));
   }
-  this.tx.executeSql(sql, params, callback, error_callback);
+  this.tx.executeSql(q.sql, q.params, callback, error_callback);
 
 };
-
 
 
 /**
- * @param {goog.async.Deferred} df
+ * @param {!goog.async.Deferred} df
  * @param {!ydn.db.Query} q query.
  */
 ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
-
-  var me = this;
-
   var store = this.schema.getStore(q.getStoreName());
-  var sql_out = q.toSql(this.schema);
-  var sql = sql_out.sql;
-  var params = sql_out.params;
-  var rowParser = sql_out.rowParser;
-  var finalize = sql_out.finalize;
-
-  var result = [];
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function(transaction, results) {
-
-    // http://www.w3.org/TR/webdatabase/#database-query-results
-    // Fetching the length might be expensive, and authors are thus encouraged
-    // to avoid using it (or enumerating over the object, which implicitly uses
-    // it) where possible.
-    // for (var row, i = 0; row = results.rows.item(i); i++) {
-    // Unfortunately, such enumerating don't work
-    // RangeError: Item index is out of range in Chrome.
-    // INDEX_SIZE_ERR: DOM Exception in Safari
-    var n = results.rows.length;
-    for (var i = 0; i < n; i++) {
-      var row = results.rows.item(i);
-      var value = {}; // ??
-      if (goog.isDefAndNotNull(row)) {
-        if (rowParser) {
-          value = rowParser(store, row);
-        } else {
-          value = row;
-        }
-      }
-      result[i] = value;
-    }
-    result = goog.isFunction(finalize) ? finalize(result) : result;
-    df.callback(result);
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.req.WebSql.DEBUG) {
-      window.console.log([q, sql, params, tr, error]);
-    }
-    me.logger.warning('Sqlite error: ' + error.message);
-    df.errback(error);
-    return true; // roll back
-  };
-
-  if (goog.DEBUG) {
-    this.logger.finest(this + ' SQL: ' + sql + ' PARAMS:' + ydn.json.stringify(params));
-  }
-  this.tx.executeSql(sql, params, callback, error_callback);
-
+  var cursor = q.toSqlCursor(this.schema);
+  this.fetchCursor(df, cursor);
 };
-
 
 
 /**

@@ -26,7 +26,7 @@ goog.require('ydn.db.req.RequestExecutor');
 /**
  * @extends {ydn.db.req.RequestExecutor}
  * @param {string} dbname
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.DatabaseSchema} schema
  * @constructor
  */
 ydn.db.req.SimpleStore = function(dbname, schema) {

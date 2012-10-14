@@ -22,7 +22,7 @@ goog.require('ydn.db.io.Cursor');
  * @param {!ydn.db.Storage} storage
  * @param {number} ptx_no
  * @param {string} scope_name
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.DatabaseSchema} schema
  * @constructor
  * @extends {ydn.db.core.TxStorage}
 */

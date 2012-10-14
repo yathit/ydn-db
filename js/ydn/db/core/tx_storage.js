@@ -21,7 +21,7 @@ goog.require('ydn.db.req.WebSql');
  * @param {!ydn.db.core.Storage} storage
  * @param {number} ptx_no
  * @param {string} scope_name
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.DatabaseSchema} schema
  * @constructor
  * @extends {ydn.db.tr.TxStorage}
 */
@@ -31,7 +31,7 @@ ydn.db.core.TxStorage = function(storage, ptx_no, scope_name, schema) {
   /**
    * @protected
    * @final
-   * @type {ydn.db.DatabaseSchema}
+   * @type {!ydn.db.DatabaseSchema}
    */
   this.schema = schema;
 };

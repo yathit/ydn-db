@@ -25,21 +25,23 @@ goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.error.ArgumentException');
 goog.require('ydn.db.DatabaseSchema');
+goog.require('ydn.db.SqlCursor');
 
 
 
 /**
- * @param {string} sql_statement The sql statement.
+ * @param {string=} sql_statement The sql statement.
  * @constructor
  */
 ydn.db.Query = function(sql_statement) {
   // Note for V8 optimization, declare all properties in constructor.
-  if (!goog.isString(sql_statement)) {
-    throw new ydn.error.ArgumentException('SQL statement required');
+  if (goog.isDef(sql_statement) && !goog.isString(sql_statement)) {
+    throw new ydn.error.ArgumentException();
   }
 
-  this.sql = sql_statement;
+  this.sql = goog.isDef(sql_statement) ? sql_statement : '';
 
+  this.store_name = '';
   this.wheres = [];
   this.aggregate = null;
   this.map = null;
@@ -48,6 +50,13 @@ ydn.db.Query = function(sql_statement) {
   this.limit_ = NaN;
   this.offset_ = NaN;
 };
+
+
+/**
+ *
+ * @type {string}
+ */
+ydn.db.Query.prototype.store_name = '';
 
 
 /**
@@ -78,6 +87,17 @@ ydn.db.Query.prototype.toJSON = function() {
   return {
     'sql': this.sql
   };
+};
+
+
+/**
+ *
+ * @param {string} store_name
+ * @return {ydn.db.Query} this query for chaining.
+ */
+ydn.db.Query.prototype.from = function(store_name) {
+  this.store_name = store_name;
+  return this;
 };
 
 
@@ -193,14 +213,17 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
 /**
  * Process where instruction into filter iteration method.
- * @param {string} field index field name to query from.
- * @param {string} op where operator.
- * @param {string} value rvalue to compare.
- * @param {string=} op2 secound operator.
- * @param {string=} value2 second rvalue to compare.
+ * @param {!ydn.db.Cursor} cursor index field name to query from.
+ * @param {!ydn.db.Query.Where} where
  * @protected
  */
-ydn.db.Query.processWhere = function(cursor, field, op, value, op2, value2) {
+ydn.db.Query.processWhere = function(cursor, where) {
+
+  var field = where.field;
+  var op = where.op;
+  var value = where.value;
+  var op2 = where.op2;
+  var value2 = where.value2;
 
   var op_test = function(op, lv) {
     if (op === '=' || op === '==') {
@@ -445,8 +468,7 @@ ydn.db.Query.mapSelect = function (fields) {
  * @return {string}
  */
 ydn.db.Query.prototype.getStoreName = function() {
-  var store_name = goog.string.stripQuotes(this.sql, '"');
-  return store_name;
+  return this.store_name;
 };
 
 
@@ -458,18 +480,18 @@ ydn.db.Query.prototype.getStoreName = function() {
  */
 ydn.db.Query.prototype.toCursor = function(schema) {
 
-  /**
-   * @type {ydn.db.Cursor}
-   */
-  var cursor;
-  // assumeing sql_statement is just a database name
-  var store_name = goog.string.stripQuotes(this.sql, '"');
-  var store = schema.getStore(store_name);
-  if (store) {
-    cursor = new ydn.db.Cursor(store_name, this.direction, this.index);
-  } else {
-    throw new ydn.db.SqlParseError(this.sql);
+
+  if (this.store_name.length == 0) {
+    throw new ydn.error.InvalidOperationException('store name not set.');
   }
+  var store = schema.getStore(this.store_name);
+  if (!store) {
+    throw new ydn.error.InvalidOperationException('store: ' + this.store_name +
+        ' not found.');
+  }
+
+  var cursor =  new ydn.db.Cursor(store_name, this.direction, this.index);
+
 
   // sniff index field
   // TODO: use index for performance
@@ -496,9 +518,7 @@ ydn.db.Query.prototype.toCursor = function(schema) {
 
   // then, process where clauses
   for (var i = 0; i < this.wheres.length; i++) {
-    ydn.db.Query.processWhere(cursor, this.wheres[i].field,
-      this.wheres[i].op, this.wheres[i].value,
-      this.wheres[i].op2, this.wheres[i].value2);
+    ydn.db.Query.processWhere(cursor, this.wheres[i]);
   }
 
   if (this.map) {
@@ -575,29 +595,26 @@ ydn.db.Query.prototype.offset = function(value) {
 
 /**
  * Integrate into single queriable SQl statement.
- * @param {ydn.db.DatabaseSchema} schema
- * @return {{
- *    sql: string,
- *    params: !Array.<string>,
- *    rowParser: (null|function(ydn.db.StoreSchema, !Object): *),
- *    finalize: (null|function(*): *)
- *  }}
+ * @param {!ydn.db.DatabaseSchema} schema
+ * @return {!ydn.db.SqlCursor}
  */
-ydn.db.Query.prototype.toSql = function(schema) {
+ydn.db.Query.prototype.toSqlCursor = function(schema) {
 
-  var params = [];
-  var rowParser = ydn.db.Query.parseRow;
-  var finalize = null;
-
-  var from;
-  // assuming sql_statement is just a database name
-  var store_name = goog.string.stripQuotes(this.sql, '"');
-  var store = schema.getStore(store_name);
-  if (store) {
-    from = 'FROM ' + goog.string.quote(store_name);
-  } else {
-    throw new ydn.db.SqlParseError(this.sql);
+  if (this.sql.length > 0) {
+    throw new ydn.error.NotImplementedException('SQL parser not implement');
   }
+  if (this.store_name.length == 0) {
+    throw new ydn.error.InvalidOperationException('store name not set.');
+  }
+  var store = schema.getStore(this.store_name);
+  if (!store) {
+    throw new ydn.error.InvalidOperationException('store: ' + this.store_name +
+        ' not found.');
+  }
+
+  var cursor = new ydn.db.SqlCursor(store);
+  var from = 'FROM ' + goog.string.quote(this.store_name);
+
   var select = '';
   var distinct = this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE ||
     this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE;
@@ -613,8 +630,8 @@ ydn.db.Query.prototype.toSql = function(schema) {
       select += 'SELECT (' + fields.join(', ') + ')';
       fields_selected = true;
       // parse row and then select the fields.
-      rowParser = goog.functions.compose(
-        ydn.db.Query.mapSelect(this.map.fields), ydn.db.Query.parseRow);
+      cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
+      cursor.map = ydn.db.Query.mapSelect(this.map.fields);
     } else {
       throw new ydn.db.SqlParseError(this.map + ' in ' + this.sql);
     }
@@ -631,8 +648,9 @@ ydn.db.Query.prototype.toSql = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      rowParser = ydn.db.Query.parseRowTakeFirst;
-      finalize = ydn.db.Query.finalizeTakeFirst;
+      cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
+      cursor.map = ydn.db.Query.takeFirst;
+      cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else if (this.aggregate.type == ydn.db.Query.AggregateType.SUM) {
       select += 'SELECT SUM (';
       select += distinct ? 'DISTINCT ' : '';
@@ -644,8 +662,9 @@ ydn.db.Query.prototype.toSql = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      rowParser = ydn.db.Query.parseRowTakeFirst;
-      finalize = ydn.db.Query.finalizeTakeFirst;
+      cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
+      cursor.map = ydn.db.Query.takeFirst;
+      cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else if (this.aggregate.type == ydn.db.Query.AggregateType.AVERAGE) {
       select += 'SELECT AVG (';
       select += distinct ? 'DISTINCT ' : '';
@@ -657,8 +676,9 @@ ydn.db.Query.prototype.toSql = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      rowParser = ydn.db.Query.parseRowTakeFirst;
-      finalize = ydn.db.Query.finalizeTakeFirst;
+      cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
+      cursor.map = ydn.db.Query.takeFirst;
+      cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else {
       throw new ydn.db.SqlParseError(this.aggregate.type + ' in ' + this.sql);
     }
@@ -670,15 +690,21 @@ ydn.db.Query.prototype.toSql = function(schema) {
 
   var where = '';
   for (var i = 0; i < this.wheres.length; i++) {
-    if (where.length > 0) {
-      where += ' AND ';
-    }
-    where += 'WHERE ';
-    where += this.wheres[i].field + ' ' + this.wheres[i].op + ' ?';
-    params.push(this.wheres[i].value);
-    if (goog.isDefAndNotNull(this.wheres[i].op2)) {
-      where += ' AND ' + this.wheres[i].field + ' ' + this.wheres[i].op2 + ' ?';
-      params.push(this.wheres[i].value2);
+    if (store.hasIndex(this.wheres[i].field)) {
+      if (where.length > 0) {
+        where += ' AND ';
+      } else {
+        where += 'WHERE ';
+      }
+      where += goog.string.quote(this.wheres[i].field) + ' ' + this.wheres[i].op + ' ?';
+      cursor.params.push(this.wheres[i].value);
+      if (goog.isDefAndNotNull(this.wheres[i].op2)) {
+        where += ' AND ' + goog.string.quote(this.wheres[i].field) + ' ' +
+            this.wheres[i].op2 + ' ?';
+        cursor.params.push(this.wheres[i].value2);
+      }
+    } else {
+      ydn.db.Query.processWhere(cursor, this.wheres[i]);
     }
   }
 
@@ -703,8 +729,118 @@ ydn.db.Query.prototype.toSql = function(schema) {
     range += ' OFFSET ' + this.offset_;
   }
 
-  var sql = select + ' ' + from + ' ' + where + ' ' + order + ' ' + range;
-  return {sql: sql, params: params, rowParser: rowParser, finalize: finalize};
+  cursor.sql = select + ' ' + from + ' ' + where + ' ' + order + ' ' + range;
+  return cursor;
+};
+
+
+
+/**
+ * @param {string?} keyPath if index is not defined, keyPath will be used.
+ * @return {{where_clause: string, params: Array}} return equivalent of keyRange
+ * to SQL WHERE clause and its parameters.
+ */
+ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
+
+  var where_clause = '';
+  var params = [];
+  var index = goog.isDef(this.index) ? this.index :
+      goog.isDefAndNotNull(keyPath) ? keyPath :
+          ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  var column = goog.string.quote(index);
+
+  if (ydn.db.KeyRange.isLikeOperation(this.keyRange)) {
+    where_clause = column + ' LIKE ?';
+    params.push(this.keyRange['lower'] + '%');
+  } else {
+
+    if (goog.isDef(this.keyRange.lower)) {
+      var lowerOp = this.keyRange['lowerOpen'] ? ' > ' : ' >= ';
+      where_clause += ' ' + column + lowerOp + '?';
+      params.push(this.keyRange.lower);
+    }
+    if (goog.isDef(this.keyRange['upper'])) {
+      var upperOp = this.keyRange['upperOpen'] ? ' < ' : ' <= ';
+      var and = where_clause.length > 0 ? ' AND ' : ' ';
+      where_clause += and + column + upperOp + '?';
+      params.push(this.keyRange.upper);
+    }
+
+  }
+
+  return {where_clause: where_clause, params: params};
+};
+
+
+
+
+
+/**
+ *
+ * @param {!ydn.db.Cursor} cursor
+ * @param {ydn.db.DatabaseSchema} schema
+ * @return {!ydn.db.SqlCursor}
+ */
+ydn.db.Query.cursor2SqlCursor = function(cursor, schema) {
+
+  var store = schema.getStore(cursor.store_name);
+  goog.asserts.assertObject(store, cursor.store_name + ' not found.');
+  var sql_cursor = new ydn.db.SqlCursor(store);
+
+  var select = 'SELECT';
+
+  var from = '* FROM ' + store.getQuotedName();
+
+  var index = goog.isDef(cursor.index) ? store.getIndex(cursor.index) : null;
+
+  var where_clause = '';
+  if (cursor.keyRange) {
+    var key_column = goog.isDef(cursor.index) ? cursor.index :
+        goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
+            ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+    var column = goog.string.quote(key_column);
+
+    if (ydn.db.KeyRange.isLikeOperation(cursor.keyRange)) {
+      where_clause = column + ' LIKE ?';
+      sql_cursor.params.push(cursor.keyRange['lower'] + '%');
+    } else {
+      if (goog.isDef(cursor.keyRange.lower)) {
+        var lowerOp = cursor.keyRange['lowerOpen'] ? ' > ' : ' >= ';
+        where_clause += ' ' + column + lowerOp + '?';
+        sql_cursor.params.push(cursor.keyRange.lower);
+      }
+      if (goog.isDef(cursor.keyRange['upper'])) {
+        var upperOp = cursor.keyRange['upperOpen'] ? ' < ' : ' <= ';
+        var and = where_clause.length > 0 ? ' AND ' : ' ';
+        where_clause += and + column + upperOp + '?';
+        sql_cursor.params.push(cursor.keyRange.upper);
+      }
+    }
+    where_clause = ' WHERE ' + '(' + where_clause + ')';
+  }
+
+  // Note: IndexedDB key range result are always ordered.
+  var dir = 'ASC';
+  if (cursor.direction == ydn.db.Cursor.Direction.PREV ||
+      ydn.db.Cursor.Direction.PREV_UNIQUE) {
+    dir = 'DESC';
+  }
+  var order = '';
+  if (index) {
+    order = 'ORDER BY ' + goog.string.quote(index.name) + ' ' + dir;
+  } else if (goog.isString(store.keyPath)) {
+    order = 'ORDER BY ' + goog.string.quote(store.keyPath) + ' ' + dir;
+  } else {
+    order = 'ORDER BY ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  }
+
+  sql_cursor.sql = [select, from, where_clause, order, dir].join(' ');
+  sql_cursor.map = cursor.map;
+  sql_cursor.reduce = cursor.reduce;
+  sql_cursor.initial = cursor.initial;
+  sql_cursor.finalize = cursor.finalize;
+  sql_cursor.filter = cursor.filter;
+  return sql_cursor;
 };
 
 
@@ -720,30 +856,19 @@ ydn.db.Query.prototype.toString = function() {
 };
 
 
-
 /**
- * Parse resulting object of a row into original object as it 'put' into the
- * database.
+ * Take the first field of an object
  * @final
- * @param {ydn.db.StoreSchema} table table of concern.
  * @param {!Object} row row.
- * @return {!Object} parse value.
+ * @return {*} the first field of object in row value.
  */
-ydn.db.Query.parseRow = function(table, row) {
-  var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
-  if (goog.isDefAndNotNull(table.keyPath)) {
-    var key = ydn.db.IndexSchema.sql2js(row[table.keyPath], table.type);
-    table.setKeyValue(value, key);
-  }
-  for (var j = 0; j < table.indexes.length; j++) {
-    var index = table.indexes[j];
-    if (index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
-      continue;
+ydn.db.Query.takeFirst = function (row) {
+  for (var key in row) {
+    if (row.hasOwnProperty(key)) {
+      return row[key];
     }
-    var x = row[index.name];
-    value[index.name] = ydn.db.IndexSchema.sql2js(x, index.type);
   }
-  return value;
+  return undefined;
 };
 
 

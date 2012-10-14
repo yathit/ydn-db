@@ -106,10 +106,10 @@ var test_2_select = function() {
       100, // interval
       2000); // maxTimeout
 
-  var q = db.query(store_name);
+  var q = db.query().from(store_name);
   q.select('value');
   db.fetch(q).addCallback(function (q_result) {
-    //console.log('receiving query ' + JSON.stringify(q_result));
+    console.log('receiving query ' + JSON.stringify(q_result));
     result = q_result;
     hasEventFired = true;
   })
@@ -136,7 +136,7 @@ var test_3_count = function () {
     100, // interval
     2000); // maxTimeout
 
-  var q = db.query(store_name);
+  var q = db.query().from(store_name);
   q.count();
   db.fetch(q).addCallback(function (q_result) {
     //console.log('receiving query ' + JSON.stringify(q_result));
@@ -170,7 +170,7 @@ var test_4_sum = function() {
       2000); // maxTimeout
 
 
-    var q = db.query(store_name);
+    var q = db.query().from(store_name);
     q.sum('id');
     db.fetch(q).addCallback(function(q_result) {
       //console.log('receiving query ' + JSON.stringify(q_result));
@@ -206,7 +206,7 @@ var test_4_average = function() {
 
 
 
-    var q = db.query(store_name);
+    var q = db.query().from(store_name);
     q.average('id');
     db.fetch(q).addCallback(function(q_result) {
       //console.log('receiving query ' + JSON.stringify(q_result));
@@ -252,7 +252,7 @@ var where_test = function(q, exp_result) {
 
 var test_51_where_eq = function () {
 
-  var q = db.query(store_name);
+  var q = db.query().from(store_name);
   var idx = 2;
   q.where('id', '=', objs[idx].id);
   where_test(q, [objs[idx]]);
@@ -260,7 +260,7 @@ var test_51_where_eq = function () {
 
 var test_52_where_gt = function () {
 
-  var q = db.query(store_name);
+  var q = db.query().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id > value;
@@ -271,7 +271,7 @@ var test_52_where_gt = function () {
 
 var test_53_where_gt_eq = function () {
 
-  var q = db.query(store_name);
+  var q = db.query().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id >= value;
@@ -282,7 +282,7 @@ var test_53_where_gt_eq = function () {
 
 var test_54_where_lt = function () {
 
-  var q = db.query(store_name);
+  var q = db.query().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id < value;
@@ -293,7 +293,7 @@ var test_54_where_lt = function () {
 
 var test_55_where_lt_eq = function () {
 
-  var q = db.query(store_name);
+  var q = db.query().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id <= value;
@@ -304,7 +304,7 @@ var test_55_where_lt_eq = function () {
 
 var test_56_where_gt_lt = function () {
 
-  var q = db.query(store_name);
+  var q = db.query().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id > value && x.id < value;

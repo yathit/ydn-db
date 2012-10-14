@@ -19,7 +19,7 @@ goog.require('ydn.db.InternalError');
 
 /**
  * @param {string} dbname
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.DatabaseSchema} schema
  * @constructor
  */
 ydn.db.req.RequestExecutor = function(dbname, schema) {
@@ -32,7 +32,7 @@ ydn.db.req.RequestExecutor = function(dbname, schema) {
   /**
    * @protected
    * @final
-   * @type {ydn.db.DatabaseSchema}
+   * @type {!ydn.db.DatabaseSchema}
    */
   this.schema = schema;
 };
