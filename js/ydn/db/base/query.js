@@ -490,7 +490,7 @@ ydn.db.Query.prototype.toCursor = function(schema) {
         ' not found.');
   }
 
-  var cursor =  new ydn.db.Cursor(store_name, this.direction, this.index);
+  var cursor =  new ydn.db.Cursor(this.store_name, this.direction, this.index);
 
 
   // sniff index field
@@ -786,6 +786,11 @@ ydn.db.Query.cursor2SqlCursor = function(cursor, schema) {
   var store = schema.getStore(cursor.store_name);
   goog.asserts.assertObject(store, cursor.store_name + ' not found.');
   var sql_cursor = new ydn.db.SqlCursor(store);
+  sql_cursor.map = cursor.map;
+  sql_cursor.reduce = cursor.reduce;
+  sql_cursor.initial = cursor.initial;
+  sql_cursor.finalize = cursor.finalize;
+  sql_cursor.filter = cursor.filter;
 
   var select = 'SELECT';
 
@@ -822,24 +827,20 @@ ydn.db.Query.cursor2SqlCursor = function(cursor, schema) {
   // Note: IndexedDB key range result are always ordered.
   var dir = 'ASC';
   if (cursor.direction == ydn.db.Cursor.Direction.PREV ||
-      ydn.db.Cursor.Direction.PREV_UNIQUE) {
+      cursor.direction == ydn.db.Cursor.Direction.PREV_UNIQUE) {
     dir = 'DESC';
   }
   var order = '';
   if (index) {
-    order = 'ORDER BY ' + goog.string.quote(index.name) + ' ' + dir;
+    order = 'ORDER BY ' + goog.string.quote(index.name);
   } else if (goog.isString(store.keyPath)) {
-    order = 'ORDER BY ' + goog.string.quote(store.keyPath) + ' ' + dir;
+    order = 'ORDER BY ' + goog.string.quote(store.keyPath);
   } else {
     order = 'ORDER BY ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   }
 
   sql_cursor.sql = [select, from, where_clause, order, dir].join(' ');
-  sql_cursor.map = cursor.map;
-  sql_cursor.reduce = cursor.reduce;
-  sql_cursor.initial = cursor.initial;
-  sql_cursor.finalize = cursor.finalize;
-  sql_cursor.filter = cursor.filter;
+
   return sql_cursor;
 };
 

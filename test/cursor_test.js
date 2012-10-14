@@ -72,7 +72,7 @@ var test_11_fetch = function () {
 
 
 
-    var q = db.query(store_name);
+    var q = db.query().from(store_name);
 
     q.fetch().addBoth(function (value) {
       console.log(db + ' fetch value: ' + JSON.stringify(value));

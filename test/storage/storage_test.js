@@ -139,7 +139,7 @@ var test_1_json_config = function() {
     Stores:[store]
   };
 
-  var db = new ydn.db.Storage('todos_test', schema_ver1);
+  var db = new ydn.db.Storage('todos_test_2', schema_ver1);
 
   var hasEventFired = false;
   var put_value;
@@ -156,7 +156,7 @@ var test_1_json_config = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.fetch(db.query('todo')).addCallback(function(value) {
+  db.fetch(db.query().from('todo')).addCallback(function(value) {
     console.log('receiving value callback.' + JSON.stringify(value));
     put_value = value;
     hasEventFired = true;

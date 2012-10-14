@@ -676,10 +676,11 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
       if (to_continue) {
         //cursor.continue();
         cursor['continue'](); // Note: Must be quoted to avoid parse error.
-      } else {
-        var result = is_reduce ? previousResult : results;
-        on_complete(result);
       }
+//      } else {
+//        var result = is_reduce ? previousResult : results;
+//        on_complete(result);
+//      }
     } else {
       var result = is_reduce ? previousResult : results;
       on_complete(result);
