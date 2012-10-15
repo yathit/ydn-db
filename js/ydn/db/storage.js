@@ -12,7 +12,7 @@
 
 
 /**
- * @fileoverview Provide thread safe database operations.
+ * @fileoverview Provide database query operations.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */

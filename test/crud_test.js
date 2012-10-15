@@ -24,7 +24,7 @@ var setUp = function () {
     goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
-  ydn.db.con.IndexedDb.DEBUG = true;
+  //ydn.db.con.IndexedDb.DEBUG = true;
 
   schema = new ydn.db.DatabaseSchema(1);
   schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));

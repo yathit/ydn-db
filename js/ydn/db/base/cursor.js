@@ -88,6 +88,8 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
   this.map = null;
   this.continued = null;
   this.finalize = null;
+  this.sql = '';
+  this.params = [];
 };
 
 
@@ -201,6 +203,7 @@ ydn.db.Cursor.prototype.upperBound = function(value, is_open) {
   return this;
 };
 
+
 /**
  *
  * @param {*} value  The value of the lower bound.
@@ -227,7 +230,6 @@ ydn.db.Cursor.prototype.bound = function(lower, upper, lo, uo) {
   this.keyRange = ydn.db.IDBKeyRange.bound(lower, upper, lo, uo);
   return this;
 };
-
 
 
 /**
@@ -268,6 +270,89 @@ ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
 
 
 
+/**
+ * Convert keyRange to SQL statment
+ * @param {ydn.db.DatabaseSchema} schema
+ * @return {boolean} true if SQL plan changed.
+ */
+ydn.db.Cursor.prototype.planSql = function(schema) {
+
+  if (this.sql) {
+    return false;
+  }
+
+  var store = schema.getStore(this.store_name);
+  goog.asserts.assertObject(store, this.store_name + ' not found.');
+  this.params = [];
+
+  var select = 'SELECT';
+
+  var from = '* FROM ' + store.getQuotedName();
+
+  var index = goog.isDef(this.index) ? store.getIndex(this.index) : null;
+
+  var where_clause = '';
+  if (this.keyRange) {
+    var key_column = goog.isDefAndNotNull(this.index) ? this.index :
+      goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
+        ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+    var column = goog.string.quote(key_column);
+
+    if (ydn.db.KeyRange.isLikeOperation(this.keyRange)) {
+      where_clause = column + ' LIKE ?';
+      this.params.push(this.keyRange['lower'] + '%');
+    } else {
+      if (goog.isDef(this.keyRange.lower)) {
+        var lowerOp = this.keyRange['lowerOpen'] ? ' > ' : ' >= ';
+        where_clause += ' ' + column + lowerOp + '?';
+        this.params.push(this.keyRange.lower);
+      }
+      if (goog.isDef(this.keyRange['upper'])) {
+        var upperOp = this.keyRange['upperOpen'] ? ' < ' : ' <= ';
+        var and = where_clause.length > 0 ? ' AND ' : ' ';
+        where_clause += and + column + upperOp + '?';
+        this.params.push(this.keyRange.upper);
+      }
+    }
+    where_clause = ' WHERE ' + '(' + where_clause + ')';
+  }
+
+  // Note: IndexedDB key range result are always ordered.
+  var dir = 'ASC';
+  if (this.direction == ydn.db.Cursor.Direction.PREV ||
+    this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE) {
+    dir = 'DESC';
+  }
+  var order = '';
+  if (index) {
+    order = 'ORDER BY ' + goog.string.quote(index.name);
+  } else if (goog.isString(store.keyPath)) {
+    order = 'ORDER BY ' + goog.string.quote(store.keyPath);
+  } else {
+    order = 'ORDER BY ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  }
+
+  this.sql = [select, from, where_clause, order, dir].join(' ');
+  return true;
+};
+
+
+
+/**
+ * SQL statement for executing.
+ * @type {string}
+ */
+ydn.db.Cursor.prototype.sql = '';
+
+
+/**
+ * SQL parameters for executing SQL.
+ * @type {!Array.<string>}
+ */
+ydn.db.Cursor.prototype.params = [];
+
+
+
 
 /**
  * @override
@@ -277,3 +362,54 @@ ydn.db.Cursor.prototype.toString = function() {
   return 'Cursor:' + this.store_name + idx;
 };
 
+
+
+/**
+ * Parse resulting object of a row into original object as it 'put' into the
+ * database.
+ * @param {!Object} row row.
+ * @param {ydn.db.StoreSchema} store
+ * @return {!Object} parse value.
+ */
+ydn.db.Cursor.prototype.parseRow = function(row, store) {
+  return ydn.db.Cursor.parseRow(row, store);
+};
+
+
+
+/**
+ * Parse resulting object of a row into original object as it 'put' into the
+ * database.
+ * @final
+ * @param {!Object} row row.
+ * @param {ydn.db.StoreSchema} store
+ * @return {!Object} parse value.
+ */
+ydn.db.Cursor.parseRow = function(row, store) {
+  var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
+  if (goog.isDefAndNotNull(store.keyPath)) {
+    var key = ydn.db.IndexSchema.sql2js(row[store.keyPath], store.type);
+    store.setKeyValue(value, key);
+  }
+  for (var j = 0; j < store.indexes.length; j++) {
+    var index = store.indexes[j];
+    if (index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
+      continue;
+    }
+    var x = row[index.name];
+    value[index.name] = ydn.db.IndexSchema.sql2js(x, index.type);
+  }
+  return value;
+};
+
+
+/**
+ * Return given input row.
+ * @final
+ * @param {!Object} row row.
+ * @param {ydn.db.StoreSchema} store
+ * @return {!Object} the first field of object in row value.
+ */
+ydn.db.Cursor.parseRowIdentity = function (row, store) {
+  return row;
+};

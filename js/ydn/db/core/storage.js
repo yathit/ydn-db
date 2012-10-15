@@ -12,7 +12,7 @@
 
 
 /**
- * @fileoverview Provide thread safe database operations.
+ * @fileoverview Provide atomic CRUD database operations.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -30,14 +30,14 @@ goog.require('ydn.db.io.CrudService');
 
 
 /**
- * Create a suitable storage mechanism from indexdb, to websql to
- * localStorage.
+ * Construct storage providing atomic CRUD database operations on implemented
+ * storage mechanisms.
  *
- * If database name and schema are provided, this will immediately initialize
- * the database and ready to use. However if any of these two are missing,
- * the database is not initialize until they are set by calling
- * {@link #setName} and {@link #setSchema}.
- * @see goog.db Google Closure Library DB module.
+ * This class do not execute database operation, but create a non-overlapping
+ * transaction queue on ydn.db.core.TxStorage and all operations are
+ * passed to it.
+ *
+ *
  * @param {string=} opt_dbname database name.
  * @param {(!ydn.db.DatabaseSchema|!DatabaseSchema)=} opt_schema database schema
  * or its configuration in JSON format. If not provided, default empty schema

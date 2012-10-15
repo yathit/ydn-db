@@ -12,17 +12,7 @@
 
 
 /**
- * @fileoverview Wrappers for the all implemented Storage mechanisms.
- *
- * On application use, this is preferable over concrete storage implementation.
- * This wrapper has two purpose:
- * 1) select suitable supported storage mechanism and 2) deferred execute when
- * the database is not initialized. Database is initialized when dbname, version
- * and schema are set.
- *
- * Often, dbname involve login user identification and it is not available at
- * the time of application start up. Additionally schema may be prepared by
- * multiple module. This top level wrapper provide these use cases.
+ * @fileoverview Provide parallel transaction runner.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -35,14 +25,8 @@ goog.require('ydn.db.tr.TxStorage');
 
 
 /**
- * Create a suitable storage mechanism from indexdb, to websql to
- * localStorage.
+ * Create storage providing method to run in transaction.
  *
- * If database name and schema are provided, this will immediately initialize
- * the database and ready to use. However if any of these two are missing,
- * the database is not initialize until they are set by calling
- * {@link #setName} and {@link #setSchema}.
- * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
  * @param {!ydn.db.DatabaseSchema|DatabaseSchema=} opt_schema database schema
  * or its configuration in JSON format. If not provided, default empty schema

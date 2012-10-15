@@ -1,6 +1,5 @@
 /**
-* @fileoverview Light wrapper {@link ydn.db.core.Storage} using active transaction
-* instance given at constructor.
+* @fileoverview Provide atomic CRUD database operations.
 *
 *
 */
@@ -17,6 +16,14 @@ goog.require('ydn.db.req.WebSql');
 
 
 /**
+ * Construct storage to execute CRUD database operations.
+ *
+ * Execution database operation is atomic, if a new transaction require,
+ * otherwise existing transaction is used and the operation become part of
+ * the existing transaction. A new transaction is required if the transaction
+ * is not active or locked. Active transaction can be locked by using
+ * mutex.
+ *
  * @implements {ydn.db.io.CrudService}
  * @param {!ydn.db.core.Storage} storage
  * @param {number} ptx_no

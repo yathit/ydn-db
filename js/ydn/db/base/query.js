@@ -25,7 +25,6 @@ goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.error.ArgumentException');
 goog.require('ydn.db.DatabaseSchema');
-goog.require('ydn.db.SqlCursor');
 goog.require('ydn.string');
 
 
@@ -790,7 +789,7 @@ ydn.db.Query.prototype.offset = function(value) {
 /**
  * Integrate into single queriable SQl statement.
  * @param {!ydn.db.DatabaseSchema} schema
- * @return {!ydn.db.SqlCursor}
+ * @return {!ydn.db.Cursor}
  */
 ydn.db.Query.prototype.toSqlCursor = function(schema) {
 
@@ -806,7 +805,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
         ' not found.');
   }
 
-  var cursor = new ydn.db.SqlCursor(store);
+  var cursor = new ydn.db.Cursor(this.store_name);
   var from = 'FROM ' + goog.string.quote(this.store_name);
 
   var select = '';
@@ -824,7 +823,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       select += 'SELECT (' + fields.join(', ') + ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
+      cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
       cursor.map = ydn.db.Query.mapSelect(this.map.fields);
     } else {
       throw new ydn.db.SqlParseError(this.map + ' in ' + this.sql);
@@ -842,7 +841,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
+      cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
       cursor.map = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else if (this.aggregate.type == ydn.db.Query.AggregateType.SUM) {
@@ -856,7 +855,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
+      cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
       cursor.map = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else if (this.aggregate.type == ydn.db.Query.AggregateType.AVERAGE) {
@@ -870,7 +869,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.SqlCursor.parseRowIdentity;
+      cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
       cursor.map = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else {
@@ -927,76 +926,6 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
   return cursor;
 };
 
-
-
-/**
- *
- * @param {!ydn.db.Cursor} cursor
- * @param {ydn.db.DatabaseSchema} schema
- * @return {!ydn.db.SqlCursor}
- */
-ydn.db.Query.cursor2SqlCursor = function(cursor, schema) {
-
-  var store = schema.getStore(cursor.store_name);
-  goog.asserts.assertObject(store, cursor.store_name + ' not found.');
-  var sql_cursor = new ydn.db.SqlCursor(store);
-  sql_cursor.map = cursor.map;
-  sql_cursor.reduce = cursor.reduce;
-  sql_cursor.initial = cursor.initial;
-  sql_cursor.finalize = cursor.finalize;
-  sql_cursor.filter = cursor.filter;
-
-  var select = 'SELECT';
-
-  var from = '* FROM ' + store.getQuotedName();
-
-  var index = goog.isDef(cursor.index) ? store.getIndex(cursor.index) : null;
-
-  var where_clause = '';
-  if (cursor.keyRange) {
-    var key_column = goog.isDef(cursor.index) ? cursor.index :
-        goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
-            ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
-    var column = goog.string.quote(key_column);
-
-    if (ydn.db.KeyRange.isLikeOperation(cursor.keyRange)) {
-      where_clause = column + ' LIKE ?';
-      sql_cursor.params.push(cursor.keyRange['lower'] + '%');
-    } else {
-      if (goog.isDef(cursor.keyRange.lower)) {
-        var lowerOp = cursor.keyRange['lowerOpen'] ? ' > ' : ' >= ';
-        where_clause += ' ' + column + lowerOp + '?';
-        sql_cursor.params.push(cursor.keyRange.lower);
-      }
-      if (goog.isDef(cursor.keyRange['upper'])) {
-        var upperOp = cursor.keyRange['upperOpen'] ? ' < ' : ' <= ';
-        var and = where_clause.length > 0 ? ' AND ' : ' ';
-        where_clause += and + column + upperOp + '?';
-        sql_cursor.params.push(cursor.keyRange.upper);
-      }
-    }
-    where_clause = ' WHERE ' + '(' + where_clause + ')';
-  }
-
-  // Note: IndexedDB key range result are always ordered.
-  var dir = 'ASC';
-  if (cursor.direction == ydn.db.Cursor.Direction.PREV ||
-      cursor.direction == ydn.db.Cursor.Direction.PREV_UNIQUE) {
-    dir = 'DESC';
-  }
-  var order = '';
-  if (index) {
-    order = 'ORDER BY ' + goog.string.quote(index.name);
-  } else if (goog.isString(store.keyPath)) {
-    order = 'ORDER BY ' + goog.string.quote(store.keyPath);
-  } else {
-    order = 'ORDER BY ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
-  }
-
-  sql_cursor.sql = [select, from, where_clause, order, dir].join(' ');
-
-  return sql_cursor;
-};
 
 
 /**

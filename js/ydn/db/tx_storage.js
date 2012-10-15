@@ -1,6 +1,5 @@
 /**
-* @fileoverview Light wrapper {@link ydn.db.Storage} using active transaction
-* instance given at constructor.
+* @fileoverview Execute database query operations.
 *
 *
 */

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @fileoverview Wrapper for IndexedDb.
+ * @fileoverview IndexedDb connector.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */

@@ -272,7 +272,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
       if (goog.isDefAndNotNull(row)) {
-        d.callback(ydn.db.SqlCursor.parseRow(table, row));
+        d.callback(ydn.db.Cursor.parseRow(row, table));
       } else {
         d.callback(undefined);
       }
@@ -331,7 +331,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.SqlCursor.parseRow(table, row);
+          objects[i] = ydn.db.Cursor.parseRow(row, table);
         }
         // this is get function, we take only one result.
       } else {
@@ -418,7 +418,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
       for (var i = 0; i < results.rows.length; i++) {
         var row = results.rows.item(i);
         if (goog.isDefAndNotNull(row)) {
-          arr.push(ydn.db.SqlCursor.parseRow(table, row));
+          arr.push(ydn.db.Cursor.parseRow(row, table));
         } 
       }
       if (idx == n_todo - 1) {
@@ -479,7 +479,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.SqlCursor.parseRow(table, row);
+          objects[i] = ydn.db.Cursor.parseRow(row, table);
         }
         // this is get function, we take only one result.
       } else {
@@ -538,14 +538,9 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
 ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
 
   var me = this;
+  cursor.planSql(this.schema);
   var is_reduce = goog.isFunction(cursor.reduce);
-  /**
-   *
-   * @type {!ydn.db.SqlCursor}
-   */
-  var q = cursor instanceof ydn.db.SqlCursor ?
-      /** @type {!ydn.db.SqlCursor} */ (cursor) :
-      ydn.db.Query.cursor2SqlCursor(cursor, this.schema);
+  var store = this.schema.getStore(cursor.store_name);
 
   var result = is_reduce ? undefined : [];
 
@@ -569,18 +564,18 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
       var row = results.rows.item(i);
       var value = {}; // ??
       if (goog.isDefAndNotNull(row)) {
-        value = q.parseRow(row);
+        value = cursor.parseRow(row, store);
       }
-      var to_continue = !goog.isFunction(q.continued) || q.continued(value);
-      if (!goog.isFunction(q.filter) || q.filter(value)) {
+      var to_continue = !goog.isFunction(cursor.continued) || cursor.continued(value);
+      if (!goog.isFunction(cursor.filter) || cursor.filter(value)) {
         idx++;
 
-          if (goog.isFunction(q.map)) {
-            value = q.map(value);
+          if (goog.isFunction(cursor.map)) {
+            value = cursor.map(value);
           }
 
           if (is_reduce) {
-            result = q.reduce(result, value, i);
+            result = cursor.reduce(result, value, i);
           } else {
             result.push(value);
           }
@@ -590,8 +585,8 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
         break;
       }
     }
-    if (goog.isFunction(q.finalize)) {
-      df.callback(q.finalize(result));
+    if (goog.isFunction(cursor.finalize)) {
+      df.callback(cursor.finalize(result));
     } else {
       df.callback(result);
     }
@@ -603,7 +598,7 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
-      window.console.log([q, tr, error]);
+      window.console.log([cursor, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
     df.errback(error);
@@ -611,10 +606,10 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
   };
 
   if (goog.DEBUG) {
-    this.logger.finest(this + ' SQL: ' + q.sql + ' PARAMS:' +
-        ydn.json.stringify(q.params));
+    this.logger.finest(this + ' SQL: ' + cursor.sql + ' PARAMS:' +
+        ydn.json.stringify(cursor.params));
   }
-  this.tx.executeSql(q.sql, q.params, callback, error_callback);
+  this.tx.executeSql(cursor.sql, cursor.params, callback, error_callback);
 
 };
 
@@ -624,7 +619,7 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
  * @param {!ydn.db.Query} q query.
  */
 ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
-  var store = this.schema.getStore(q.getStoreName());
+
   var cursor = q.toSqlCursor(this.schema);
   this.fetchCursor(df, cursor);
 };

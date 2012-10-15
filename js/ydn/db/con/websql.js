@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @fileoverview Wrapper for Web SQL storage.
+ * @fileoverview WebSQL database connector.
  *
  * @see http://www.w3.org/TR/webdatabase/
  *

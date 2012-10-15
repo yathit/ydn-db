@@ -42,6 +42,10 @@
 
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
+                 token="/Users/kyawtun/work/ydn-base/"
+                 value="https://bitbucket.org/ytkyaw/ydn-base/raw/master/"/>
+        <replace description="replace so with online repo path"
+                 file="${dev-out.fn}.map"
                  token="/Users/kyawtun/work/ydn-db/"
                  value="https://bitbucket.org/ytkyaw/ydn-db/raw/master/"/>
         <replace description="replace so with online repo path"

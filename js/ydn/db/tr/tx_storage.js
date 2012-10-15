@@ -1,8 +1,7 @@
 /**
- * @fileoverview Light wrapper {@link ydn.db.Storage} using active transaction
- * instance given at constructor.
+ * @fileoverview Provide non-overlapping serial transaction runner.
  *
- * Creating multiple transaction facility added.
+ *
  */
 
 
@@ -12,6 +11,8 @@ goog.require('ydn.error.NotSupportedException');
 
 
 /**
+ * Create storage providing method to run in non-overlapping transaction.
+ *
  * @implements {ydn.db.con.IStorage}
  * @implements {ydn.db.tr.IStorage}
  * @param {!ydn.db.tr.Storage} storage
@@ -20,6 +21,7 @@ goog.require('ydn.error.NotSupportedException');
  * @constructor
  */
 ydn.db.tr.TxStorage = function(storage, ptx_no, scope_name) {
+
   /**
    * @final
    * @type {!ydn.db.tr.Storage}
