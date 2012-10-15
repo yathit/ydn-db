@@ -4,14 +4,14 @@ Beautiful API for secure robust high-performance large-scale web app.
 
 # Setup #
 
-If you haven't try [Closure Tools] (https://developers.google.com/closure/) before,
+If you haven't try [Closure Tools](https://developers.google.com/closure/) before,
 setup can be time consuming and painful. I recommend to read
-Michael Bolin book's [Closure: The Definitive Guide] (http://shop.oreilly.com/product/0636920001416.do).
+Michael Bolin book's [Closure: The Definitive Guide](http://shop.oreilly.com/product/0636920001416.do).
 A good understanding of closure coding pattern is necessary to understand and
 follow this library codes.
 
-[Apache ant] (http://ant.apache.org/) is used to build javascript compiler. ydn-base repo
-[build.xml] (https://bitbucket.org/ytkyaw/ydn-base/raw/master/build.xml) defines compiler
+[Apache ant](http://ant.apache.org/) is used to build javascript compiler. ydn-base repo
+[build.xml](https://bitbucket.org/ytkyaw/ydn-base/raw/master/build.xml) defines compiler
 and others tools setting. You must change according to your local machine setting.
 
 Downloads the following three repos a directory.
@@ -31,7 +31,7 @@ Run apache or a static server on that directory.
 You should able to run /ydn-db/test/all-test.html and pass all tests. These test
 file are for baisc testing and debuging.
 
-Coverage test is performed by [JsTestDriver]  (http://code.google.com/p/js-test-driver/)
+Coverage test is performed by [JsTestDriver](http://code.google.com/p/js-test-driver/)
 test. Notice that `ant gen-alltest-js` generate jsTestDriver.conf to prepare testing
 configuration.
 
@@ -39,7 +39,7 @@ configuration.
 
 # Using #
 
-Nice documentation on [YDN] (http://dev.yathit.com)
+Nice documentation on [YDN](http://dev.yathit.com)
 
 
 # License #
