@@ -318,53 +318,6 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
 
 /**
- * Process where instruction into filter iteration method.
- * @param {!ydn.db.Cursor} cursor index field name to query from.
- * @param {!ydn.db.Query.Where} where
- * @protected
- */
-ydn.db.Query.processWhere = function(cursor, where) {
-
-  var field = where.field;
-  var op = where.op;
-  var value = where.value;
-  var op2 = where.op2;
-  var value2 = where.value2;
-
-  var op_test = function(op, lv) {
-    if (op === '=' || op === '==') {
-      return function(x) {return x == lv};
-    } else if (op === '===') {
-      return function(x) {return x === lv};
-    } else if (op === '>') {
-      return function(x) {return x > lv};
-    } else if (op === '>=') {
-      return function(x) {return x >= lv};
-    } else if (op === '<') {
-      return function(x) {return x < lv};
-    } else if (op === '<=') {
-      return function(x) {return x <= lv};
-    } else if (op === '!=') {
-      return function(x) {return x != lv};
-    } else {
-      goog.asserts.assert(false, 'Invalid op: ' + op);
-    }
-  };
-
-  var test1 = op_test(op, value);
-  var test2 = goog.isDef(op2) && goog.isDef(value2) ?
-      op_test(op2, value2) : goog.functions.TRUE;
-
-  var prev_filter = cursor.filter || goog.functions.TRUE;
-
-  cursor.filter = function(obj) {
-    return prev_filter(obj) && test1(obj[field]) && test2(obj[field]);
-  };
-};
-
-
-
-/**
  * @enum {string}
  */
 ydn.db.Query.MapType = {
@@ -667,7 +620,8 @@ ydn.db.Query.prototype.getStoreName = function() {
 
 
 /**
- * Parse SQL statement and convert to cursor object.
+ * Parse SQL statement and convert to cursor object for IndexedDB execution.
+ * @see #toSqlCursor
  * @param {ydn.db.DatabaseSchema} schema
  * @return {!ydn.db.Cursor}
  */
@@ -687,31 +641,30 @@ ydn.db.Query.prototype.toCursor = function(schema) {
 
 
   // sniff index field
-  // TODO: use index for performance
-//  if (!goog.isDef(this.index)) {
-//    for (var i = 0; i < this.wheres.length; i++) {
-//      /**
-//       * @type {ydn.db.Query.Where}
-//       */
-//      var where = this.wheres[i];
-//      if (store.hasIndex(where.field)) {
-//        this.index = where.field;
-//        if (goog.isDef(where.op2)) {
-//          this.key_range = new ydn.db.KeyRange(where.value, where.value2,
-//            where.op == '>', where.op2 == '<');
-//        } else {
-//          this.key_range = new ydn.db.KeyRange(where.value, undefined,
-//            where.op == '>', undefined);
-//        }
-//        this.wheres.splice(i, 1);
-//        break;
-//      }
-//    }
-//  }
+  if (!goog.isDef(this.index)) {
+    for (var i = 0; i < this.wheres.length; i++) {
+      /**
+       * @type {ydn.db.Query.Where}
+       */
+      var where = this.wheres[i];
+      if (store.hasIndex(where.field)) {
+        this.index = where.field;
+        if (goog.isDef(where.op2)) {
+          this.key_range = new ydn.db.KeyRange(where.value, where.value2,
+            where.op == '>', where.op2 == '<');
+        } else {
+          this.key_range = new ydn.db.KeyRange(where.value, undefined,
+            where.op == '>', undefined);
+        }
+        this.wheres.splice(i, 1);
+        break;
+      }
+    }
+  }
 
   // then, process where clauses
   for (var i = 0; i < this.wheres.length; i++) {
-    ydn.db.Query.processWhere(cursor, this.wheres[i]);
+    cursor.processWhere(this.wheres[i]);
   }
 
   if (this.map) {
@@ -787,7 +740,8 @@ ydn.db.Query.prototype.offset = function(value) {
 
 
 /**
- * Integrate into single queriable SQl statement.
+ * Convert this query into iterable cursor object for WebSQL execution.
+ * @see #toCursor
  * @param {!ydn.db.DatabaseSchema} schema
  * @return {!ydn.db.Cursor}
  */
@@ -897,7 +851,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
         cursor.params.push(this.wheres[i].value2);
       }
     } else {
-      ydn.db.Query.processWhere(cursor, this.wheres[i]);
+      cursor.processWhere(this.wheres[i]);
     }
   }
 

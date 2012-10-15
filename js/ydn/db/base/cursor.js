@@ -88,6 +88,8 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
   this.map = null;
   this.continued = null;
   this.finalize = null;
+
+  this.parseRow = ydn.db.Cursor.prototype.parseRow;
   this.sql = '';
   this.params = [];
 };
@@ -412,4 +414,71 @@ ydn.db.Cursor.parseRow = function(row, store) {
  */
 ydn.db.Cursor.parseRowIdentity = function (row, store) {
   return row;
+};
+
+
+/**
+ *
+ * @param {string} op
+ * @param {number|string} lv
+ * @param {number|string} x
+ * @return {boolean}
+ */
+ydn.db.Cursor.op_test = function(op, lv, x) {
+  if (op === '=' || op === '==') {
+    return  x == lv;
+  } else if (op === '===') {
+    return  x === lv;
+  } else if (op === '>') {
+    return  x > lv;
+  } else if (op === '>=') {
+    return  x >= lv;
+  } else if (op === '<') {
+    return  x < lv;
+  } else if (op === '<=') {
+    return  x <= lv;
+  } else if (op === '!=') {
+    return  x != lv;
+  } else {
+    throw new Error('Invalid op: ' + op);
+  }
+};
+
+
+
+/**
+ * Process where instruction into filter iteration method.
+ * @param {!ydn.db.Query.Where} where
+ */
+ydn.db.Cursor.prototype.processWhere = function (where) {
+
+
+  var valid_arr = ['=', '==', '===', '<', '<=', '>', '>=', '!='];
+  if (!goog.array.contains(valid_arr, where.op)) {
+    throw new ydn.error.ArgumentException('Invalid where op: ' + where.op);
+  }
+  if (goog.isDef(where.op2) && !goog.array.contains(valid_arr, where.op2)) {
+    throw new ydn.error.ArgumentException('Invalid where op: ' + where.op2);
+  }
+
+  var prev_filter = goog.functions.TRUE;
+  if (goog.isFunction(this.filter)) {
+    prev_filter = this.filter;
+  }
+
+  this.filter = function (obj) {
+    var value = obj[where.field];
+    var ok2 = true;
+    if (goog.isDef(where.op2) && goog.isDef(where.value2)) {
+      ok2 = ydn.db.Cursor.op_test(where.op2, where.value2, value);
+    }
+
+    //console.log([prev_filter(obj), ok2, ydn.db.Cursor.op_test(where.op, where.value, value)])
+
+    return prev_filter(obj) && ok2 && ydn.db.Cursor.op_test(where.op, where.value, value);
+  };
+
+
+  window.console.log([where, this.filter.toString()]);
+
 };

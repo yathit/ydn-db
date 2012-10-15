@@ -623,14 +623,19 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   if (index) {
     if (goog.isDefAndNotNull(dir)) {
       request = index.openCursor(keyRange, dir);
-    } else {
+    } else if (goog.isDefAndNotNull(keyRange)) {
       request = index.openCursor(keyRange);
+    } else {
+      request = index.openCursor();
     }
   } else {
     if (goog.isDefAndNotNull(dir)) {
       request = obj_store.openCursor(keyRange, dir);
-    } else {
+    } else if (goog.isDefAndNotNull(keyRange))  {
       request = obj_store.openCursor(keyRange);
+      // some browser have problem with null, even though spec said OK.
+    } else {
+      request = obj_store.openCursor();
     }
   }
 

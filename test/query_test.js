@@ -11,6 +11,7 @@ var db_name = 'test_q_17';
 var store_name = 'st';
 
 
+
 var setUp = function() {
   if (!debug_console) {
     debug_console = new goog.debug.Console();
@@ -21,6 +22,7 @@ var setUp = function() {
     goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
+  ydn.db.req.IndexedDb.DEBUG = false;
 
   var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.TEXT, true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
