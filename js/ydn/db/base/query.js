@@ -94,7 +94,7 @@ ydn.db.Query.prototype.offset_ = NaN;
 
 /**
  * @protected
- * @type {!Array.<!ydn.db.Query.Where>}
+ * @type {!Array.<!ydn.db.Where>}
  */
 ydn.db.Query.prototype.wheres = [];
 
@@ -249,18 +249,6 @@ ydn.db.Query.prototype.orderBy = function(index) {
 
 
 /**
- * @typedef {{
- *  field: string,
- *  op: string,
- *  value: string,
- *  op2: (string|undefined),
- * value2: (string|undefined)
- * }}
- */
-ydn.db.Query.Where;
-
-
-/**
  * Convenient method for SQL <code>WHERE</code> predicate.
  * @param {string} field index field name to query from.
  * @param {string} op where operator.
@@ -279,40 +267,31 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
     throw new ydn.error.ArgumentException(field);
   }
 
-  this.wheres.push({field: field, op: op, value: value, op2: op2, value2: value2});
+  var upper, lower, upperOpen, lowerOpen;
+  if (op == '<' || op == '<=') {
+    lower = value;
+    lowerOpen = op == '<';
+  } else if (op == '>' || op == '>=') {
+    upper = value;
+    upperOpen = op == '>';
+  } else if (op == '=' || op == '==') {
+    lower = value;
+  }
+  if (op2 == '<' || op2 == '<=') {
+    lower = value2;
+    lowerOpen = op2 == '<';
+  } else if (op2 == '>' || op2 == '>=') {
+    upper = value2;
+    upperOpen = op2 == '>';
+  } else if (op == '=' || op == '==') {
+    upper = value;
+  }
+
+
+  this.wheres.push(new ydn.db.Where(field, lower, upper, lowerOpen, upperOpen));
 
   return this;
 
-//  var op_test = function(op, lv) {
-//    if (op === '=' || op === '==') {
-//      return function(x) {return x == lv};
-//    } else if (op === '===') {
-//      return function(x) {return x === lv};
-//    } else if (op === '>') {
-//      return function(x) {return x > lv};
-//    } else if (op === '>=') {
-//      return function(x) {return x >= lv};
-//    } else if (op === '<') {
-//      return function(x) {return x < lv};
-//    } else if (op === '<=') {
-//      return function(x) {return x <= lv};
-//    } else if (op === '!=') {
-//      return function(x) {return x != lv};
-//    } else {
-//      goog.asserts.assert(false, 'Invalid op: ' + op);
-//    }
-//  };
-//
-//  var test1 = op_test(op, value);
-//  var test2 = goog.isDef(op2) && goog.isDef(value2) ?
-//      op_test(op2, value2) : goog.functions.TRUE;
-//
-//  var prev_filter = this.filter || goog.functions.TRUE;
-//
-//  this.filter = function(obj) {
-//    return prev_filter(obj) && test1(obj[field]) && test2(obj[field]);
-//  };
-//  return this;
 };
 
 
@@ -637,34 +616,34 @@ ydn.db.Query.prototype.toCursor = function(schema) {
         ' not found.');
   }
 
-  var cursor =  new ydn.db.Cursor(this.store_name, this.direction, this.index);
 
+
+  var key_range;
+  var index = this.index;
+  var direction = this.direction;
 
   // sniff index field
   if (!goog.isDef(this.index)) {
     for (var i = 0; i < this.wheres.length; i++) {
       /**
-       * @type {ydn.db.Query.Where}
+       * @type {ydn.db.Where}
        */
       var where = this.wheres[i];
       if (store.hasIndex(where.field)) {
-        this.index = where.field;
-        if (goog.isDef(where.op2)) {
-          this.key_range = new ydn.db.KeyRange(where.value, where.value2,
-            where.op == '>', where.op2 == '<');
-        } else {
-          this.key_range = new ydn.db.KeyRange(where.value, undefined,
-            where.op == '>', undefined);
-        }
+        index = where.field;
+        key_range = where;
+        direction = direction || ydn.db.Cursor.Direction.NEXT;
         this.wheres.splice(i, 1);
         break;
       }
     }
   }
 
+  var cursor =  new ydn.db.Cursor(this.store_name, direction, index, key_range);
+
   // then, process where clauses
   for (var i = 0; i < this.wheres.length; i++) {
-    cursor.processWhere(this.wheres[i]);
+    cursor.processWhereAsFilter(this.wheres[i]);
   }
 
   if (this.map) {
@@ -843,15 +822,11 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       } else {
         where += 'WHERE ';
       }
-      where += goog.string.quote(this.wheres[i].field) + ' ' + this.wheres[i].op + ' ?';
-      cursor.params.push(this.wheres[i].value);
-      if (goog.isDefAndNotNull(this.wheres[i].op2)) {
-        where += ' AND ' + goog.string.quote(this.wheres[i].field) + ' ' +
-            this.wheres[i].op2 + ' ?';
-        cursor.params.push(this.wheres[i].value2);
-      }
+      var where_clause = this.wheres[i].toWhereClause();
+      where += where_clause.sql;
+      cursor.params.push(where_clause.params);
     } else {
-      cursor.processWhere(this.wheres[i]);
+      cursor.processWhereAsFilter(this.wheres[i]);
     }
   }
 

@@ -53,7 +53,7 @@ var objs = [
 
 
 
-var test_11_query_constructor = function() {
+var test_11_cursor_constructor = function() {
   // test query constructor
   var lower = 1;
   var upper = 5;
@@ -88,8 +88,68 @@ var test_11_query_constructor = function() {
 };
 
 
-var test_12_sql_parser = function() {
+var test_12_query_where = function() {
+  var lower = 1;
+  var upper = 5;
+  var query = new ydn.db.Query().from(store_name);
+  query = query.where('id', '<', lower);
+  var cursor = query.toCursor(schema);
+  assertNotNull(cursor.keyRange);
+  assertEquals('lower', lower, cursor.keyRange.lower);
+  assertUndefined('upper', cursor.keyRange.upper);
+  assertTrue('lowerOpen', cursor.keyRange.lowerOpen);
 
+  query = new ydn.db.Query().from(store_name);
+  query = query.where('id', '<=', lower);
+  cursor = query.toCursor(schema);
+  assertNotNull(cursor.keyRange);
+  assertEquals('lower', lower, cursor.keyRange.lower);
+  assertUndefined('upper', cursor.keyRange.upper);
+  assertFalse('lowerOpen', cursor.keyRange.lowerOpen);
+
+  query = new ydn.db.Query().from(store_name);
+  query = query.where('id', '>', lower);
+  cursor = query.toCursor(schema);
+  assertNotNull(cursor.keyRange);
+  assertEquals('upper', lower, cursor.keyRange.upper);
+  assertUndefined('lower', cursor.keyRange.lower);
+  assertTrue('upperOpen', cursor.keyRange.upperOpen);
+
+  query = new ydn.db.Query().from(store_name);
+  query = query.where('id', '>=', lower);
+  cursor = query.toCursor(schema);
+  assertNotNull(cursor.keyRange);
+  assertEquals('upper', lower, cursor.keyRange.upper);
+  assertUndefined('lower', cursor.keyRange.lower);
+  assertFalse('upperOpen', cursor.keyRange.upperOpen);
+
+  reachedFinalContinuation = true;
+};
+
+var test_13_query_where = function() {
+  var lower = 1;
+  var upper = 5;
+  var query, cursor;
+
+  query = new ydn.db.Query().from(store_name);
+  query = query.where('id', '<', lower, '>', upper);
+  cursor = query.toCursor(schema);
+  assertNotNull(cursor.keyRange);
+  assertEquals('lower', lower, cursor.keyRange.lower);
+  assertEquals('upper', upper, cursor.keyRange.upper);
+  assertTrue('lowerOpen', cursor.keyRange.lowerOpen);
+  assertTrue('upperOpen', cursor.keyRange.upperOpen);
+
+  query = new ydn.db.Query().from(store_name);
+  query = query.where('id', '<=', lower, '>=', upper);
+  cursor = query.toCursor(schema);
+  assertNotNull(cursor.keyRange);
+  assertEquals('lower', lower, cursor.keyRange.lower);
+  assertEquals('upper', upper, cursor.keyRange.upper);
+  assertFalse('lowerOpen', cursor.keyRange.lowerOpen);
+  assertFalse('upperOpen', cursor.keyRange.upperOpen);
+
+  reachedFinalContinuation = true;
 };
 
 

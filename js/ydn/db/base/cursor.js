@@ -21,6 +21,7 @@
 goog.provide('ydn.db.Cursor');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
+goog.require('ydn.db.Where');
 goog.require('ydn.error.ArgumentException');
 
 
@@ -236,38 +237,19 @@ ydn.db.Cursor.prototype.bound = function(lower, upper, lo, uo) {
 
 /**
  * @param {string?} keyPath if index is not defined, keyPath will be used.
- * @return {{where_clause: string, params: Array}} return equivalent of keyRange
+ * @return {{sql: string, params: !Array.<string>}} return equivalent of keyRange
  * to SQL WHERE clause and its parameters.
  */
 ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
 
-  var where_clause = '';
-  var params = [];
   var index = goog.isDef(this.index) ? this.index :
       goog.isDefAndNotNull(keyPath) ? keyPath :
           ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   var column = goog.string.quote(index);
 
-  if (ydn.db.KeyRange.isLikeOperation(this.keyRange)) {
-    where_clause = column + ' LIKE ?';
-    params.push(this.keyRange['lower'] + '%');
-  } else {
+  var where = new ydn.db.Where(column, keyPath);
 
-    if (goog.isDef(this.keyRange.lower)) {
-      var lowerOp = this.keyRange['lowerOpen'] ? ' > ' : ' >= ';
-      where_clause += ' ' + column + lowerOp + '?';
-      params.push(this.keyRange.lower);
-    }
-    if (goog.isDef(this.keyRange['upper'])) {
-      var upperOp = this.keyRange['upperOpen'] ? ' < ' : ' <= ';
-      var and = where_clause.length > 0 ? ' AND ' : ' ';
-      where_clause += and + column + upperOp + '?';
-      params.push(this.keyRange.upper);
-    }
-
-  }
-
-  return {where_clause: where_clause, params: params};
+  return where.toWhereClause();
 };
 
 
@@ -300,7 +282,7 @@ ydn.db.Cursor.prototype.planSql = function(schema) {
         ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
     var column = goog.string.quote(key_column);
 
-    if (ydn.db.KeyRange.isLikeOperation(this.keyRange)) {
+    if (ydn.db.Where.resolvedStartsWith(this.keyRange)) {
       where_clause = column + ' LIKE ?';
       this.params.push(this.keyRange['lower'] + '%');
     } else {
@@ -418,7 +400,7 @@ ydn.db.Cursor.parseRowIdentity = function (row, store) {
 
 
 /**
- *
+ * @final
  * @param {string} op
  * @param {number|string} lv
  * @param {number|string} x
@@ -448,18 +430,9 @@ ydn.db.Cursor.op_test = function(op, lv, x) {
 
 /**
  * Process where instruction into filter iteration method.
- * @param {!ydn.db.Query.Where} where
+ * @param {!ydn.db.Where} where
  */
-ydn.db.Cursor.prototype.processWhere = function (where) {
-
-
-  var valid_arr = ['=', '==', '===', '<', '<=', '>', '>=', '!='];
-  if (!goog.array.contains(valid_arr, where.op)) {
-    throw new ydn.error.ArgumentException('Invalid where op: ' + where.op);
-  }
-  if (goog.isDef(where.op2) && !goog.array.contains(valid_arr, where.op2)) {
-    throw new ydn.error.ArgumentException('Invalid where op: ' + where.op2);
-  }
+ydn.db.Cursor.prototype.processWhereAsFilter = function (where) {
 
   var prev_filter = goog.functions.TRUE;
   if (goog.isFunction(this.filter)) {
@@ -468,17 +441,19 @@ ydn.db.Cursor.prototype.processWhere = function (where) {
 
   this.filter = function (obj) {
     var value = obj[where.field];
+    var ok1 = true;
+    if (goog.isDef(where.lower)) {
+      ok1 = where.lowerOpen ? obj < where.lower : obj <= where.lower;
+    }
     var ok2 = true;
-    if (goog.isDef(where.op2) && goog.isDef(where.value2)) {
-      ok2 = ydn.db.Cursor.op_test(where.op2, where.value2, value);
+    if (goog.isDef(where.upper)) {
+      ok1 = where.upperOpen ? obj > where.upper : obj >= where.upper;
     }
 
-    //console.log([prev_filter(obj), ok2, ydn.db.Cursor.op_test(where.op, where.value, value)])
-
-    return prev_filter(obj) && ok2 && ydn.db.Cursor.op_test(where.op, where.value, value);
+    return prev_filter(obj) && ok1 && ok2;
   };
 
 
-  window.console.log([where, this.filter.toString()]);
+  //console.log([where, this.filter.toString()]);
 
 };
