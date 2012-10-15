@@ -35,6 +35,7 @@ goog.require('ydn.db.con.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.error.ArgumentException');
 goog.require('ydn.db.con.IStorage');
+goog.require('goog.events.EventTarget');
 
 
 
@@ -54,6 +55,7 @@ goog.require('ydn.db.con.IStorage');
  * @param {!StorageOptions=} opt_options options.
  * @implements {ydn.db.con.IStorage}
  * @constructor
+ * @extends {goog.events.EventTarget}
  */
 ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
@@ -120,6 +122,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
     this.setName(opt_dbname);
   }
 };
+goog.inherits(ydn.db.con.Storage, goog.events.EventTarget)
 
 
 /**
@@ -387,6 +390,7 @@ ydn.db.con.Storage.prototype.setDb_ = function(db) {
     me.deferredDb_.callback(me.db_);
     me.last_queue_checkin_ = NaN;
     me.popTxQueue_();
+    me.dispatchEvent('connected');
   };
 
   var error = function(e) {
