@@ -372,6 +372,19 @@ ydn.db.con.Storage.prototype.isReady = function() {
 
 
 /**
+ *
+ * @enum {string}
+ */
+ydn.db.con.Storage.EventTypes = {
+  CONNECTED: 'conneted',
+  FAIL: 'fail',
+  CREATED: 'created',
+  UPDATED: 'updated',
+  DELETED: 'deleted'
+};
+
+
+/**
  * Setting db .
  * @param {!ydn.db.con.IDatabase} db
  * @private
@@ -390,7 +403,7 @@ ydn.db.con.Storage.prototype.setDb_ = function(db) {
     me.deferredDb_.callback(me.db_);
     me.last_queue_checkin_ = NaN;
     me.popTxQueue_();
-    me.dispatchEvent('connected');
+    me.dispatchEvent(ydn.db.con.Storage.EventTypes.CONNECTED);
   };
 
   var error = function(e) {
@@ -398,6 +411,7 @@ ydn.db.con.Storage.prototype.setDb_ = function(db) {
     // this could happen if user do not allow to use the storage
     me.deferredDb_.errback(e);
     me.purgeTxQueue_(e);
+    me.dispatchEvent(ydn.db.con.Storage.EventTypes.FAIL);
   };
 
   this.db_.onReady(success, error);
