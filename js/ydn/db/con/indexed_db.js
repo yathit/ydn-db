@@ -34,30 +34,38 @@ goog.require('ydn.json');
  * @see goog.db.IndexedDb
  * @see ydn.db.Storage for schema
  * @param {string} dbname name of database.
- * @param {ydn.db.DatabaseSchema=} schema table schema contain table
+ * @param {ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @implements {ydn.db.con.IDatabase}
  * @constructor
  */
 ydn.db.con.IndexedDb = function(dbname, schema) {
 
-  /**
-   * @type {ydn.db.con.IndexedDb}
-   */
-  var me = this;
   this.dbname = dbname;
 
   this.idx_db_ = null;
 
-  this.deferredIdxDb_ = new goog.async.Deferred();
+  this.connect(schema);
+};
+
+
+/**
+ * @protected
+ * @param {ydn.db.DatabaseSchema=} schema
+ */
+ydn.db.con.IndexedDb.prototype.connect = function(schema) {
+
+  /**
+   * @type {ydn.db.con.IndexedDb}
+   */
+  var me = this;
 
   var version = schema.getVersion();
 
   // Currently in unstable stage, opening indexedDB has two incompatible call.
   // version could be number (new) or string (old).
   // In chrome, version is taken as description.
-  var msg = 'Opening database: ' + this.dbname + ' ver: ' + version;
-  me.logger.finer(msg);
+  me.logger.finer('Opening database: ' + this.dbname + ' ver: ' + version);
 
   /**
    * This open request return two format.
@@ -155,7 +163,7 @@ ydn.db.con.IndexedDb = function(dbname, schema) {
   };
 
   openRequest.onerror = function(ev) {
-    var msg = 'opening database ' + dbname + ':' + schema.version + ' failed.';
+    var msg = 'opening database ' + me.dbname + ':' + schema.version + ' failed.';
     if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log([msg, ev, openRequest]);
     } else {
@@ -165,7 +173,7 @@ ydn.db.con.IndexedDb = function(dbname, schema) {
   };
 
   openRequest.onblocked = function(ev) {
-    var msg = 'database ' + dbname + ' block, close other connections.';
+    var msg = 'database ' + me.dbname + ' block, close other connections.';
     if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log([msg, ev, openRequest]);
     } else {
@@ -243,20 +251,10 @@ ydn.db.con.IndexedDb.prototype.type = function() {
 
 
 /**
- * @type {goog.async.Deferred}
- * @private
+ * @inheritDoc
  */
-ydn.db.con.IndexedDb.prototype.deferredIdxDb_ = null;
+ydn.db.con.IndexedDb.prototype.onConnected = null;
 
-
-/**
- *
- * @param {function(!ydn.db.con.IndexedDb)} callback
- */
-ydn.db.con.IndexedDb.prototype.onReady = function(callback, errback) {
-  this.deferredIdxDb_.addCallback(callback);
-  this.deferredIdxDb_.addErrback(errback);
-};
 
 
 /**
@@ -274,7 +272,7 @@ ydn.db.con.IndexedDb.prototype.getDbInstance = function() {
  * @return {boolean}
  */
 ydn.db.con.IndexedDb.prototype.isReady = function() {
-  return this.deferredIdxDb_.hasFired();
+  return !!this.idx_db_;
 };
 
 
@@ -311,19 +309,40 @@ ydn.db.con.IndexedDb.prototype.idx_db_ = null;
  */
 ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
 
-  if (this.deferredIdxDb_.hasFired()) {
-    this.logger.warning(this + ': already set.');
-    this.deferredIdxDb_ = new goog.async.Deferred();
-  }
+
   if (goog.isDef(e)) {
     this.logger.warning('Error received: ' + (e ? e.message : ''));
     this.idx_db_ = null;
-    this.deferredIdxDb_.errback(e);
+
   } else {
+    goog.asserts.assertObject(db);
     this.idx_db_ = db;
-    this.deferredIdxDb_.callback(this.idx_db_);
+    var me = this;
+    this.idx_db_.onabort = function(e) {
+      me.logger.finest(me + ': onabort - ' + e.message);
+    };
+    this.idx_db_.onerror = function(e) {
+      if (ydn.db.con.IndexedDb.DEBUG) {
+        window.console.log([this, e]);
+      }
+      me.logger.finest(me + ': onerror - ' + e.message);
+    };
+    this.idx_db_.onversionchange = function(e) {
+      if (ydn.db.con.IndexedDb.DEBUG) {
+        window.console.log([this, e]);
+      }
+      me.logger.finest(me + ': onversionchange - ' + e.message);
+      delete me.idx_db_.onabort;
+      delete me.idx_db_.onerror;
+      delete me.idx_db_.onversionchange;
+      me.idx_db_.close();
+      me.idx_db_ = null;
+    }
   }
 
+  if (goog.isFunction(this.onConnected)) {
+    this.onConnected(!!me.idx_db_, e);
+  }
 
 };
 

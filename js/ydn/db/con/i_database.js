@@ -33,10 +33,10 @@ ydn.db.con.IDatabase.prototype.isReady = function() {};
 
 
 /**
- * @param {function(ydn.db.con.IDatabase)} callback
- * @param {function(Error)} errback
+ * Callback function
+ * @type {Function}
  */
-ydn.db.con.IDatabase.prototype.onReady = function(callback, errback) {};
+ydn.db.con.IDatabase.prototype.onConnected;
 
 
 

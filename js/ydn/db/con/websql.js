@@ -37,7 +37,7 @@ goog.require('goog.functions');
  * Construct WebSql database.
  * Note: Version is ignored, since it does work well.
  * @param {string} dbname name of database.
- * @param {!ydn.db.DatabaseSchema=} schema table schema contain table
+ * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
  * @param {number=} opt_size estimated database size. Default to 5 MB.
  * @implements {ydn.db.con.IDatabase}
@@ -47,30 +47,34 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
   var self = this;
   this.dbname = dbname;
 
-  if (!goog.isDef(schema)) {
-    schema = new ydn.db.DatabaseSchema();
-  }
-
   /**
    * @final
    * @protected
    * @type {!ydn.db.DatabaseSchema}
    */
-  this.schema = schema; // we always use the last schema.
+  this.schema = schema;
 
-  var description = this.dbname;
 
   // Safari default limit is slightly over 4 MB, so we ask the largest storage
   // size but, still not don't bother to user.
   // Opera don't ask user even request for 1 GB.
-  var size = goog.isDef(opt_size) ? opt_size : 4 * 1024 * 1024; // 5 MB
-
   /**
-   * @final
-   * @type {!goog.async.Deferred}
    * @private
+   * @final
+   * @type {number}
    */
-  this.df_sql_db_ = new goog.async.Deferred();
+  this.size = goog.isDef(opt_size) ? opt_size : 4 * 1024 * 1024; // 5 MB
+
+  this.connect();
+};
+
+
+/**
+ * @protected
+ */
+ydn.db.con.WebSql.prototype.connect = function() {
+
+  var description = this.dbname;
 
   var init_migrated = false;
 
@@ -89,6 +93,11 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
       me.doVersionChange_(use_version_change_request); // yeah, to make sure.
     //}
   };
+
+  /**
+   * @type {Database}
+   */
+  var db = null;
 
   try {
     /**
@@ -119,72 +128,94 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
 
     if (ydn.db.con.WebSql.GENTLE_OPENING) {
       // this works in Chrome, Safari and Opera
-      this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
-        size);
+      db = goog.global.openDatabase(this.dbname, '', description,
+        this.size);
     } else {
       try {
         // this works in Chrome and OS X Safari even if the specified
         // database version does not exist. Other browsers throw INVALID_STATE_ERR
-        this.sql_db_ = goog.global.openDatabase(this.dbname, version, description,
-          size, creationCallback);
+        db = goog.global.openDatabase(this.dbname, version, description,
+          this.size, creationCallback);
       } catch (e) {
         if (e.name == 'INVALID_STATE_ERR') {
           // fail back to gentle opening.
-          this.sql_db_ = goog.global.openDatabase(this.dbname, '', description,
-            size);
+          db = goog.global.openDatabase(this.dbname, '', description,
+            this.size);
         } else {
           throw e;
         }
       }
     }
-
-    if (this.sql_db_.version === version) {
-      this.logger.finest('Existing database version ' + this.sql_db_.version +
-         ' opened.');
-
-      // OK. Use it immediately
-      // this.df_sql_db_.callback(this.sql_db_);
-      // oophs, sometime database is just empty
-
-      // HACK: still need to migrate
-      // in case previous database fail, but user granted in next refresh.
-      // In this case, empty database of the request version exist,
-      // but no tables. gagarrrrrrr
-      me.doVersionChange_();
-      // Nice thing is migrate_ is idempotent :-D
-      // only just ugly calling every time, and most case, will be unnecessary.
-      // however this do not effect performance
-    } else {
-      this.logger.finest('Database version ' + this.sql_db_.version +
-        ' opened, but require ' + version + ' version.');
-      // HACK: even if user do not yet response whether to allow storage,
-      // we are trying to create tables.
-      // this is because, when user decided to allow the database,
-      // there is no callback to create tables. In IndexedDB API, there is
-      // onupgradeneeded callback in such case.
-      me.doVersionChange_();
-      // interesting fact is, transaction object do not execute SQL,
-      // if user is not allow yet or denied.
-      // in that case, our migration go limbo.
-      // that is a reason, we need to migrate again, again and again,
-      // ... every time, to make sure tables exist.
-      init_migrated = true;
-    }
-
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
       this.logger.warning('SECURITY_ERR for opening ' + this.dbname);
-      this.sql_db_ = null; // this will purge the tx queue
+      db = null; // this will purge the tx queue
       // throw new ydn.db.SecurityError(e);
       // don't throw now, so that web app can handle without using
       // database.
       this.last_error_ = new ydn.db.SecurityError(e);
-      this.df_sql_db_.errback(this.last_error_);
+
     } else {
       throw e;
     }
   }
 
+  if (!db) {
+    this.setDb(null, this.last_error_);
+  } else if (db.version === version) {
+    this.logger.finest('Existing database version ' + db.version +
+      ' opened.');
+
+    // OK. Use it immediately
+    // this.df_sql_db_.callback(this.sql_db_);
+    // oophs, sometime database is just empty
+
+    // HACK: still need to migrate
+    // in case previous database fail, but user granted in next refresh.
+    // In this case, empty database of the request version exist,
+    // but no tables. gagarrrrrrr
+    me.doVersionChange_();
+    // Nice thing is migrate_ is idempotent :-D
+    // only just ugly calling every time, and most case, will be unnecessary.
+    // however this do not effect performance
+  } else {
+    me.logger.finest('Database version ' + db.version +
+      ' opened, but require ' + version + ' version.');
+    // HACK: even if user do not yet response whether to allow storage,
+    // we are trying to create tables.
+    // this is because, when user decided to allow the database,
+    // there is no callback to create tables. In IndexedDB API, there is
+    // onupgradeneeded callback in such case.
+    me.doVersionChange_();
+    // interesting fact is, transaction object do not execute SQL,
+    // if user is not allow yet or denied.
+    // in that case, our migration go limbo.
+    // that is a reason, we need to migrate again, again and again,
+    // ... every time, to make sure tables exist.
+    init_migrated = true;
+  }
+
+  this.setDb(db);
+
+};
+
+
+/**
+ *
+ * @param {Database} db
+ * @param {Error=} e
+ * @private
+ */
+ydn.db.con.WebSql.prototype.setDb = function(db, e) {
+  if (goog.isDef(e)) {
+    this.sql_db_ = null;
+    if (goog.isFunction(this.onConnected)) {
+      this.onConnected(false, e);
+    }
+  } else {
+    this.sql_db_ = db;
+    this.onConnected(true);
+  }
 };
 
 
@@ -208,13 +239,6 @@ ydn.db.con.WebSql.prototype.type = function() {
 };
 
 
-/**
- * Deferred object encapsulating database instance.
- * @type {*}
- * @private
- */
-ydn.db.con.WebSql.prototype.df_sql_db_ = null;
-
 
 /**
  *
@@ -231,13 +255,6 @@ ydn.db.con.WebSql.prototype.last_error_ = null;
 ydn.db.con.WebSql.prototype.sql_db_ = null;
 
 
-/**
- * @protected
- * @return {Database}
- */
-ydn.db.con.WebSql.prototype.getSqlDb = function() {
-  return this.sql_db_;
-};
 
 
 /**
@@ -547,13 +564,14 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
 /**
  * Migrate from current version to the last version.
  * @private
+ * @param {Database} db
  * @param {boolean=} is_version_change
  */
-ydn.db.con.WebSql.prototype.doVersionChange_ = function (is_version_change) {
+ydn.db.con.WebSql.prototype.doVersionChange_ = function (db, is_version_change) {
 
   var action = is_version_change ? 'changing version' : 'setting version';
   this.logger.finest(this.dbname + ': ' + action + ' from ' +
-    this.sql_db_.version + ' to ' + this.schema.version);
+    db.version + ' to ' + this.schema.version);
 
   //var mode = is_version_change ?
   //    ydn.db.base.TransactionMode.VERSION_CHANGE : ydn.db.base.TransactionMode.READ_WRITE;
@@ -581,7 +599,7 @@ ydn.db.con.WebSql.prototype.doVersionChange_ = function (is_version_change) {
         // and one without creating table. How annoying ?
         // testing is in /test/test_multi_storage.html page.
         me.logger.finest(me.dbname + ': ready.');
-        me.df_sql_db_.callback(me.sql_db_);
+        me.setDb()
       } else {
         me.logger.warning(me.dbname + ': ready again?');
       }
@@ -613,7 +631,7 @@ ydn.db.con.WebSql.prototype.doVersionChange_ = function (is_version_change) {
  * @return {boolean}
  */
 ydn.db.con.WebSql.prototype.isReady = function() {
-  return this.df_sql_db_.hasFired();
+  return !!this.sql_db_;
 };
 
 
@@ -621,11 +639,7 @@ ydn.db.con.WebSql.prototype.isReady = function() {
  *
  * @inheritDoc
  */
-ydn.db.con.WebSql.prototype.onReady = function(cb, eb) {
-  // due to the way, this work, database is always ready to use.
-  this.df_sql_db_.addCallback(cb);
-  this.df_sql_db_.addErrback(eb);
-};
+ydn.db.con.WebSql.prototype.onConnected = null;
 
 
 

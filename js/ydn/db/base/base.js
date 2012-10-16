@@ -92,7 +92,8 @@ ydn.db.base.DefaultTransactionMode = {
  * @private
  * @type {*}
  */
-ydn.db.base.IDBTransaction = ('LOADING' in goog.global.webkitIDBRequest ?
+ydn.db.base.IDBTransaction = (goog.global.webkitIDBRequest && (
+    'LOADING' in goog.global.webkitIDBRequest) ?
   (goog.global.webkitIDBTransaction || goog.global.IDBTransaction) :
   ydn.db.base.DefaultTransactionMode);
 

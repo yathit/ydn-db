@@ -40,6 +40,16 @@ goog.exportProperty(ydn.db.Query.prototype, 'where',
     ydn.db.Query.prototype.where);
 goog.exportProperty(ydn.db.Query.prototype, 'from',
     ydn.db.Query.prototype.from);
+goog.exportProperty(ydn.db.Query.prototype, 'limit',
+  ydn.db.Query.prototype.limit);
+goog.exportProperty(ydn.db.Query.prototype, 'order',
+  ydn.db.Query.prototype.order);
+goog.exportProperty(ydn.db.Query.prototype, 'offset',
+  ydn.db.Query.prototype.offset);
+goog.exportProperty(ydn.db.Query.prototype, 'reverse',
+  ydn.db.Query.prototype.reverse);
+goog.exportProperty(ydn.db.Query.prototype, 'unique',
+  ydn.db.Query.prototype.unique);
 
 goog.exportProperty(ydn.db.Storage.prototype, 'cursor',
     ydn.db.Storage.prototype.cursor);

@@ -243,7 +243,7 @@ ydn.db.Query.prototype.reverse = function(value) {
  *
  * @param {string} index
  */
-ydn.db.Query.prototype.orderBy = function(index) {
+ydn.db.Query.prototype.order = function(index) {
   this.index = index;
 };
 

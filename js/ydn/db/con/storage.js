@@ -59,6 +59,7 @@ goog.require('goog.events.EventTarget');
  */
 ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
+  goog.base(this);
 
   var options = opt_options || {};
 
@@ -398,23 +399,21 @@ ydn.db.con.Storage.prototype.setDb_ = function(db) {
   this.db_ = db;
 
   var me = this;
-  var success = function(db) {
-    me.logger.finest(me + ': ready.');
-    me.deferredDb_.callback(me.db_);
-    me.last_queue_checkin_ = NaN;
-    me.popTxQueue_();
-    me.dispatchEvent(ydn.db.con.Storage.EventTypes.CONNECTED);
-  };
 
-  var error = function(e) {
-    me.logger.warning(me + ': opening fail.');
-    // this could happen if user do not allow to use the storage
-    me.deferredDb_.errback(e);
-    me.purgeTxQueue_(e);
-    me.dispatchEvent(ydn.db.con.Storage.EventTypes.FAIL);
-  };
 
-  this.db_.onReady(success, error);
+  this.db_.onConnected = function (success, e) {
+    if (goog.isDef(e)) {
+      me.logger.warning(me + ': opening fail.');
+      // this could happen if user do not allow to use the storage
+      me.purgeTxQueue_(e);
+      me.dispatchEvent(ydn.db.con.Storage.EventTypes.FAIL);
+    } else {
+      me.logger.finest(me + ': ready.');
+      me.last_queue_checkin_ = NaN;
+      me.popTxQueue_();
+      me.dispatchEvent(ydn.db.con.Storage.EventTypes.CONNECTED);
+    }
+  }
 };
 
 

@@ -100,9 +100,6 @@ ydn.db.con.SimpleStorage.isSupported = function() {
 };
 
 
-ydn.db.con.SimpleStorage.prototype.getDb_ = function() {
-  return this.cache_;
-};
 
 
 /**
@@ -115,9 +112,7 @@ ydn.db.con.SimpleStorage.prototype.isReady = function() {
 /**
  * @inheritDoc
  */
-ydn.db.con.SimpleStorage.prototype.onReady = function(cb, eb) {
-  cb(this);
-};
+ydn.db.con.SimpleStorage.prototype.onConnected = null;
 
 
 /**
