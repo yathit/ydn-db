@@ -276,6 +276,7 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
     lowerOpen = op == '>';
   } else if (op == '=' || op == '==') {
     lower = value;
+    upper = value;
   }
   if (op2 == '<' || op2 == '<=') {
     upper = value2;
@@ -283,8 +284,8 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
   } else if (op2 == '>' || op2 == '>=') {
     lower = value2;
     lowerOpen = op2 == '>';
-  } else if (op == '=' || op == '==') {
-    upper = value;
+  } else if (goog.isDef(op2)) {
+    throw new ydn.error.ArgumentException(op2);
   }
 
 
@@ -616,8 +617,6 @@ ydn.db.Query.prototype.toCursor = function(schema) {
         ' not found.');
   }
 
-
-
   var key_range;
   var index = this.index;
   var direction = this.direction;
@@ -686,6 +685,7 @@ ydn.db.Query.prototype.toCursor = function(schema) {
     }
   }
 
+  //window.console.log([this, cursor]);
   return cursor;
 };
 
@@ -824,7 +824,9 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       }
       var where_clause = this.wheres[i].toWhereClause();
       where += where_clause.sql;
-      cursor.params.push(where_clause.params);
+      if (where_clause.params.length > 0) {
+        cursor.params = cursor.params.concat(where_clause.params);
+      }
     } else {
       cursor.processWhereAsFilter(this.wheres[i]);
     }

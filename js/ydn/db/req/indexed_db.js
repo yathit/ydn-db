@@ -612,6 +612,7 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   }
 
 
+  window.console.log(q);
   //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
   // ' of ' + column + ' in ' + table);
   var request;

@@ -69,3 +69,14 @@ ydn.db.io.Cursor.prototype.get = function() {
 ydn.db.io.Cursor.prototype.fetch = function(opt_max, opt_skip) {
   return this.dbp.fetch(this, opt_max, opt_skip);
 };
+
+
+/**
+ * @param {Array.<string>} scope list of store names.
+ * @param {ydn.db.base.CursorMode=} mode open as readwrite operation. default is readonly.
+ * @param {boolean=} resumed resume previous cursor position.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.io.Cursor.prototype.iterate = function(scope, mode, resumed) {
+  return this.dbp.iterate(this, scope, mode, resumed);
+};

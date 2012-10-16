@@ -18,11 +18,11 @@ var setUp = function() {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-    goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
-  ydn.db.req.IndexedDb.DEBUG = false;
+  //ydn.db.req.IndexedDb.DEBUG = false;
 
   var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.TEXT, true);
   var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
@@ -121,6 +121,15 @@ var test_12_query_where = function() {
   assertNotNull(cursor.keyRange);
   assertEquals('upper', lower, cursor.keyRange.upper);
   assertUndefined('lower', cursor.keyRange.lower);
+  assertFalse('upperOpen', cursor.keyRange.upperOpen);
+
+  query = new ydn.db.Query().from(store_name);
+  query = query.where('id', '=', lower);
+  cursor = query.toCursor(schema);
+  assertNotNull(cursor.keyRange);
+  assertEquals('lower', lower, cursor.keyRange.lower);
+  assertEquals('upper', lower, cursor.keyRange.upper);
+  assertFalse('lowerOpen', cursor.keyRange.lowerOpen);
   assertFalse('upperOpen', cursor.keyRange.upperOpen);
 
   reachedFinalContinuation = true;
@@ -317,7 +326,7 @@ var where_test = function(q, exp_result) {
 };
 
 
-var test_51_where_eq = function () {
+var test_51_where_indexed_eq = function () {
 
   var q = db.query().from(store_name);
   var idx = 2;
@@ -325,7 +334,7 @@ var test_51_where_eq = function () {
   where_test(q, [objs[idx]]);
 };
 
-var test_52_where_gt = function () {
+var test_52_where_indexed_gt = function () {
 
   var q = db.query().from(store_name);
   var value = 10;
@@ -336,7 +345,7 @@ var test_52_where_gt = function () {
   where_test(q, result);
 };
 
-var test_53_where_gt_eq = function () {
+var test_53_where_indexed_gt_eq = function () {
 
   var q = db.query().from(store_name);
   var value = 10;
@@ -347,7 +356,7 @@ var test_53_where_gt_eq = function () {
   where_test(q, result);
 };
 
-var test_54_where_lt = function () {
+var test_54_where_indexed_lt = function () {
 
   var q = db.query().from(store_name);
   var value = 10;
@@ -358,18 +367,30 @@ var test_54_where_lt = function () {
   where_test(q, result);
 };
 
-var test_55_where_lt_eq = function () {
+var test_55_where_indexed_eq = function () {
 
   var q = db.query().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
-    return x.id <= value;
+    return x.id == value;
   });
-  q.where('id', '<=', value);
+  q.where('id', '=', value);
   where_test(q, result);
 };
 
-var test_56_where_gt_lt = function () {
+var test_56_where_indexed_gt_lt = function () {
+
+  var q = db.query().from(store_name);
+  var lower = 1;
+  var upper = 10;
+  var result = objs.filter(function(x) {
+    return x.id >= lower && x.id <= upper;
+  });
+  q.where('id', '>=', lower, '<=', upper);
+  where_test(q, result);
+};
+
+var test_57_where_indexed_eq = function () {
 
   var q = db.query().from(store_name);
   var value = 10;
@@ -378,6 +399,17 @@ var test_56_where_gt_lt = function () {
   });
   q.where('id', '>=', value, '<=', value);
   where_test(q, result);
+};
+
+var test_61_where_eq = function () {
+
+  var q = db.query().from(store_name);
+  var idx = 2;
+  var arr = objs.filter(function(x) {
+    return x.type == objs[idx].type;
+  });
+  q.where('type', '=', objs[idx].type);
+  where_test(q, arr);
 };
 
 

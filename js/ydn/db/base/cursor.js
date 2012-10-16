@@ -19,6 +19,7 @@
 
 
 goog.provide('ydn.db.Cursor');
+goog.provide('ydn.db.Cursor.Direction');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -398,33 +399,33 @@ ydn.db.Cursor.parseRowIdentity = function (row, store) {
   return row;
 };
 
-
-/**
- * @final
- * @param {string} op
- * @param {number|string} lv
- * @param {number|string} x
- * @return {boolean}
- */
-ydn.db.Cursor.op_test = function(op, lv, x) {
-  if (op === '=' || op === '==') {
-    return  x == lv;
-  } else if (op === '===') {
-    return  x === lv;
-  } else if (op === '>') {
-    return  x > lv;
-  } else if (op === '>=') {
-    return  x >= lv;
-  } else if (op === '<') {
-    return  x < lv;
-  } else if (op === '<=') {
-    return  x <= lv;
-  } else if (op === '!=') {
-    return  x != lv;
-  } else {
-    throw new Error('Invalid op: ' + op);
-  }
-};
+//
+///**
+// * @final
+// * @param {string} op
+// * @param {number|string} lv
+// * @param {number|string} x
+// * @return {boolean}
+// */
+//ydn.db.Cursor.op_test = function(op, lv, x) {
+//  if (op === '=' || op === '==') {
+//    return  x == lv;
+//  } else if (op === '===') {
+//    return  x === lv;
+//  } else if (op === '>') {
+//    return  x > lv;
+//  } else if (op === '>=') {
+//    return  x >= lv;
+//  } else if (op === '<') {
+//    return  x < lv;
+//  } else if (op === '<=') {
+//    return  x <= lv;
+//  } else if (op === '!=') {
+//    return  x != lv;
+//  } else {
+//    throw new Error('Invalid op: ' + op);
+//  }
+//};
 
 
 
@@ -443,11 +444,11 @@ ydn.db.Cursor.prototype.processWhereAsFilter = function (where) {
     var value = obj[where.field];
     var ok1 = true;
     if (goog.isDef(where.lower)) {
-      ok1 = where.lowerOpen ? obj < where.lower : obj <= where.lower;
+      ok1 = where.lowerOpen ? value < where.lower : value <= where.lower;
     }
     var ok2 = true;
     if (goog.isDef(where.upper)) {
-      ok1 = where.upperOpen ? obj > where.upper : obj >= where.upper;
+      ok2 = where.upperOpen ? value > where.upper : value >= where.upper;
     }
 
     return prev_filter(obj) && ok1 && ok2;

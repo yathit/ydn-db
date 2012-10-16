@@ -14,6 +14,13 @@ goog.exportProperty(ydn.db.io.Query.prototype, 'fetch',
 goog.exportProperty(ydn.db.io.Query.prototype, 'get',
     ydn.db.io.Query.prototype.get);
 
+goog.exportProperty(ydn.db.io.Cursor.prototype, 'fetch',
+  ydn.db.io.Cursor.prototype.fetch);
+goog.exportProperty(ydn.db.io.Cursor.prototype, 'get',
+  ydn.db.io.Cursor.prototype.get);
+goog.exportProperty(ydn.db.io.Cursor.prototype, 'iterate',
+  ydn.db.io.Cursor.prototype.iterate);
+
 //goog.exportProperty(ydn.db.Cursor.prototype, 'filter',
 //    ydn.db.Cursor.prototype.filter);
 //goog.exportProperty(ydn.db.Cursor.prototype, 'reduce',

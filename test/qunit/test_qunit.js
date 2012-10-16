@@ -1,5 +1,5 @@
 
-//ydn.db.log('ydn.db', 100);
+ydn.db.log('ydn.db', 100);
 
 var db_name_put = "qunit_test_7";
 var store_inline = "ts";    // in-line key store
@@ -351,6 +351,41 @@ module("Query", {
 });
 
 
+asyncTest("Select in index", function () {
+
+  var arr = [
+    {id: 1, value: 'A'},
+    {id: 2, value: 'B'},
+    {id: 3, value: 'B'}
+  ];
+  expect(5);
+
+  var db = new ydn.db.Storage(db_query, schema_1);
+  db.put(store_inline, arr);
+
+  var q = db.query().from(store_inline);
+  q.where('id', '==', 1);
+  q.fetch().done(function (x) {
+    equal(x.length, 1, 'A length');
+    equal(arr[0].id, x[0].id);
+
+    q = db.query().from(store_inline);
+    q.where('id', '>=', 2);
+    q.fetch().done(function (x) {
+      equal(x.length, 2, 'A length');
+      equal(x[0].id, arr[1].id);
+
+      q = db.query().from(store_inline);
+      q.where('id', '==', 4);
+      q.fetch().done(function (x) {
+        equal(0, x.length, 'A length');
+        start();
+      });
+    });
+  });
+
+});
+
 asyncTest("Select", function () {
 
   var arr = [
@@ -364,19 +399,19 @@ asyncTest("Select", function () {
   db.put(store_inline, arr);
 
   var q = db.query().from(store_inline);
-  q.where('select', 'value', '==', 'A');
+  q.where('value', '==', 'A');
   q.fetch().done(function (x) {
-    equal(1, x.length, 'A length');
+    equal(x.length, 1, 'A length');
     equal(arr[0].id, x[0].id);
 
     q = db.query().from(store_inline);
-    q.where('select', 'value', '==', 'B');
+    q.where('value', '==', 'B');
     q.fetch().done(function (x) {
-      equal(2, x.length, 'A length');
-      equal(arr[1].id, x[0].id);
+      equal(x.length, 2, 'A length');
+      equal(x[0].id, arr[1].id);
 
       q = db.query().from(store_inline);
-      q.where('select', 'value', '==', 'C');
+      q.where('value', '==', 'C');
       q.fetch().done(function (x) {
         equal(0, x.length, 'A length');
         start();
@@ -387,7 +422,7 @@ asyncTest("Select", function () {
 });
 
 var db_key_range = "qunit_keyrange_2";
-module("Query", {
+module("Cursor", {
   setUp: function() {
     //var db = new ydn.db.Storage(db_key_range);
   },
@@ -413,7 +448,7 @@ asyncTest("Key range", function () {
   expect(2);
   db.put(store_inline_index, objs).then(function (value) {
     var key_range = ydn.db.KeyRange.bound(1, 3);
-    var q = db.query().from(store_inline_index, undefined, undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, undefined, key_range);
     q.fetch().then(function (x) {
       console.log(q)
       equal(x.length, 3, '3 results');
@@ -434,7 +469,7 @@ asyncTest("Key range lowerBound open", function () {
   expect(2);
   db.put(store_inline_index, objs).done(function (value) {
     var key_range = ydn.db.KeyRange.bound(1, 3, true);
-    var q = db.query().from(store_inline_index, undefined, undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, undefined, key_range);
     db.fetch(q).then(function (x) {
       equal(2, x.length, '2 results');
       equal('b2', x[0].value, 'correct result');
@@ -451,7 +486,7 @@ asyncTest("Key range upperBound open", function () {
   expect(3);
   db.put(store_inline_index, objs).done(function (value) {
     var key_range = ydn.db.KeyRange.bound(1, 3, false, true);
-    var q = db.query().from(store_inline_index, undefined, undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, undefined, key_range);
     db.fetch(q).then(function (x) {
       equal(2, x.length, '2 results');
       equal('a1', x[0].value, 'correct result');
@@ -469,7 +504,7 @@ asyncTest("Key range both side open", function () {
   expect(2);
   db.put(store_inline_index, objs).done(function (value) {
     var key_range = ydn.db.KeyRange.bound(1, 3, true, true);
-    var q = db.query().from(store_inline_index, undefined, undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, undefined, key_range);
     db.fetch(q).then(function (x) {
       equal(1, x.length, '1 results');
       equal('b2', x[0].value, 'correct result');
@@ -486,7 +521,7 @@ asyncTest("Key range - index string", function () {
   expect(2);
   db.put(store_inline_index, objs).done(function (value) {
     var key_range = ydn.db.KeyRange.bound('c1', 'c3');
-    var q = db.query().from(store_inline_index, 'value', undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, 'value', key_range);
     db.fetch(q).then(function (x) {
       equal(3, x.length, '2 results');
       equal('c1', x[0].value, 'correct result');
@@ -503,7 +538,7 @@ asyncTest("Key range - index string - lowerBound open", function () {
   expect(2);
   db.put(store_inline_index, objs).done(function (value) {
     var key_range = ydn.db.KeyRange.bound('c1', 'c3', true);
-    var q = db.query().from(store_inline_index, 'value', undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, 'value', key_range);
     db.fetch(q).then(function (x) {
       equal(2, x.length, '2 results');
       equal('c2', x[0].value, 'correct result');
@@ -520,7 +555,7 @@ asyncTest("Key range - index string - upperBound open", function () {
   expect(2);
   db.put(store_inline_index, objs).done(function (value) {
     var key_range = ydn.db.KeyRange.bound('c1', 'c3', false, true);
-    var q = db.query().from(store_inline_index, 'value', undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, 'value', key_range);
     db.fetch(q).then(function (x) {
       equal(2, x.length, '2 results');
       equal('c1', x[0].value, 'correct result');
@@ -538,7 +573,7 @@ asyncTest("Key range - index string - both sides open", function () {
   expect(2);
   db.put(store_inline_index, objs).done(function (value) {
     var key_range = ydn.db.KeyRange.bound('c1', 'c3', true, true);
-    var q = db.query().from(store_inline_index, 'value', undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, 'value', key_range);
     db.fetch(q).then(function (x) {
       equal(1, x.length, '1 results');
       equal('c2', x[0].value, 'correct result');
@@ -556,7 +591,7 @@ asyncTest("Key range - index string - starts with", function () {
   expect(2);
   db.put(store_inline_index, objs).done(function (value) {
     var key_range = ydn.db.KeyRange.starts('c');
-    var q = db.query().from(store_inline_index, 'value', undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, 'value', key_range);
     db.fetch(q).then(function (x) {
       equal(4, x.length, '2 results');
       equal('c1', x[0].value, 'correct result');
@@ -573,7 +608,7 @@ asyncTest("Key range - index string - starts with of no result", function () {
   expect(1);
   db.put(store_inline_index, objs).done(function (value) {
     var key_range = ydn.db.KeyRange.starts('d');
-    var q = db.query().from(store_inline_index, 'value', undefined, key_range);
+    var q = db.cursor(store_inline_index, undefined, 'value', key_range);
     db.fetch(q).then(function (x) {
       equal(0, x.length, '2 results');
       start();
