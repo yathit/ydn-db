@@ -269,20 +269,20 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 
   var upper, lower, upperOpen, lowerOpen;
   if (op == '<' || op == '<=') {
-    lower = value;
-    lowerOpen = op == '<';
-  } else if (op == '>' || op == '>=') {
     upper = value;
-    upperOpen = op == '>';
+    upperOpen = op == '<';
+  } else if (op == '>' || op == '>=') {
+    lower = value;
+    lowerOpen = op == '>';
   } else if (op == '=' || op == '==') {
     lower = value;
   }
   if (op2 == '<' || op2 == '<=') {
-    lower = value2;
-    lowerOpen = op2 == '<';
-  } else if (op2 == '>' || op2 == '>=') {
     upper = value2;
-    upperOpen = op2 == '>';
+    upperOpen = op2 == '<';
+  } else if (op2 == '>' || op2 == '>=') {
+    lower = value2;
+    lowerOpen = op2 == '>';
   } else if (op == '=' || op == '==') {
     upper = value;
   }

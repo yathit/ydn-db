@@ -122,7 +122,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
     this.setName(opt_dbname);
   }
 };
-goog.inherits(ydn.db.con.Storage, goog.events.EventTarget)
+goog.inherits(ydn.db.con.Storage, goog.events.EventTarget);
 
 
 /**

@@ -92,7 +92,7 @@ var test_12_query_where = function() {
   var lower = 1;
   var upper = 5;
   var query = new ydn.db.Query().from(store_name);
-  query = query.where('id', '<', lower);
+  query = query.where('id', '>', lower);
   var cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('lower', lower, cursor.keyRange.lower);
@@ -100,7 +100,7 @@ var test_12_query_where = function() {
   assertTrue('lowerOpen', cursor.keyRange.lowerOpen);
 
   query = new ydn.db.Query().from(store_name);
-  query = query.where('id', '<=', lower);
+  query = query.where('id', '>=', lower);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('lower', lower, cursor.keyRange.lower);
@@ -108,7 +108,7 @@ var test_12_query_where = function() {
   assertFalse('lowerOpen', cursor.keyRange.lowerOpen);
 
   query = new ydn.db.Query().from(store_name);
-  query = query.where('id', '>', lower);
+  query = query.where('id', '<', lower);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('upper', lower, cursor.keyRange.upper);
@@ -116,7 +116,7 @@ var test_12_query_where = function() {
   assertTrue('upperOpen', cursor.keyRange.upperOpen);
 
   query = new ydn.db.Query().from(store_name);
-  query = query.where('id', '>=', lower);
+  query = query.where('id', '<=', lower);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('upper', lower, cursor.keyRange.upper);
@@ -132,7 +132,7 @@ var test_13_query_where = function() {
   var query, cursor;
 
   query = new ydn.db.Query().from(store_name);
-  query = query.where('id', '<', lower, '>', upper);
+  query = query.where('id', '>', lower, '<', upper);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('lower', lower, cursor.keyRange.lower);
@@ -141,7 +141,7 @@ var test_13_query_where = function() {
   assertTrue('upperOpen', cursor.keyRange.upperOpen);
 
   query = new ydn.db.Query().from(store_name);
-  query = query.where('id', '<=', lower, '>=', upper);
+  query = query.where('id', '>=', lower, '<=', upper);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('lower', lower, cursor.keyRange.lower);
@@ -374,9 +374,9 @@ var test_56_where_gt_lt = function () {
   var q = db.query().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
-    return x.id > value && x.id < value;
+    return x.id >= value && x.id <= value;
   });
-  q.where('id', '>', value, '<', value);
+  q.where('id', '>=', value, '<=', value);
   where_test(q, result);
 };
 
