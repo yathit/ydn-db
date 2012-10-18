@@ -243,23 +243,26 @@ ydn.db.IndexSchema.prototype.toJSON = function() {
  * Compare two stores.
  * @see #equals
  * @param {ydn.db.IndexSchema} index
- * @return {boolean}
+ * @return {string}
  */
-ydn.db.IndexSchema.prototype.similar = function(index) {
+ydn.db.IndexSchema.prototype.difference = function(index) {
   if (!index) {
-    return false;
+    return 'no index for ' + this.name;
   }
-  if (this.name != index.name ||
-      this.unique != index.unique ||
-      this.keyPath != index.keyPath
-    ) {
-    return false;
+  if (this.name != index.name) {
+    return 'name: ' + this.name + ' - ' + index.name;
+  }
+  if (this.keyPath != index.keyPath) {
+    return 'keyPath: ' + this.keyPath + ' - ' + index.keyPath;
+  }
+  if (this.keyPath != index.keyPath) {
+    return 'unique: ' + this.unique + ' - ' + index.unique;
   }
   if (goog.isDef(this.type) && goog.isDef(index.type) &&
     this.type != index.type) {
-    return false;
+    return 'data type: ' + this.type + ' - ' + index.type;
   }
-  return true;
+  return '';
 };
 
 
@@ -673,29 +676,50 @@ ydn.db.StoreSchema.prototype.equals = function(store) {
 /**
  * Compare two stores.
  * @see #equals
- * @param {!ydn.db.StoreSchema} store
- * @return {boolean}
+ * @param {ydn.db.StoreSchema} store
+ * @return {string} explination for difference, empty string for similar
  */
-ydn.db.StoreSchema.prototype.similar = function(store) {
+ydn.db.StoreSchema.prototype.difference = function(store) {
 
-  if (this.name != store.name ||
-      this.keyPath != store.keyPath ||
-      this.autoIncrement != store.autoIncrement ||
-      store.indexes.length != this.indexes.length) {
-    return false;
+  if (!store) {
+    return 'missing store: ' + this.name;
   }
+  if (this.name != store.name) {
+    return 'store name: ' + this.name + ' - ' + store.name;
+  }
+  if (this.keyPath != store.keyPath) {
+    return 'keyPath: ' + this.keyPath + ' - ' + store.keyPath;
+  }
+  if (this.autoIncrement != store.autoIncrement) {
+    return 'autoIncrement: ' + this.autoIncrement + ' - ' + store.autoIncrement;
+  }
+  if (this.indexes.length != store.indexes.length) {
+    return 'indexes length: ' + this.indexes.length + ' - ' + store.indexes.length;
+  }
+
   if (goog.isDef(this.type) && goog.isDef(store.type) &&
     this.type != store.type) {
-    return false;
+    return 'data type: ' + this.type + ' - ' + store.type;
   }
   for (var i = 0; i < this.indexes.length; i++) {
     var index = store.getIndex(this.indexes[i].name);
-    if (!this.indexes[i].similar(index)) {
-      return false;
+    var msg = this.indexes[i].difference(index);
+    if (msg.length > 0) {
+      return 'index: ' + this.indexes[i] + ' ' + msg;
     }
   }
 
-  return true;
+  return '';
+};
+
+
+/**
+ *
+ * @param {ydn.db.StoreSchema} store
+ * @return {boolean}
+ */
+ydn.db.StoreSchema.prototype.similar = function(store) {
+  return this.difference(store).length == 0;
 };
 
 
@@ -859,18 +883,34 @@ ydn.db.DatabaseSchema.prototype.hasStore = function(name) {
 
 
 /**
+ * Return an explination what is different between the schemas.
+ * @param {ydn.db.DatabaseSchema} schema
+ * @return {string} return empty string if the two are similar.
+ */
+ydn.db.DatabaseSchema.prototype.difference = function(schema) {
+  if (!schema || this.stores.length != schema.stores.length) {
+    return 'Number of store: ' + this.stores.length + ' vs ' +
+      schema.stores.length;
+  }
+  for (var i = 0; i < this.stores.length; i++) {
+    var store = schema.getStore(this.stores[i].name);
+    var msg = this.stores[i].difference(store);
+    if (msg.length > 0) {
+      return 'store: ' + store.name + ' ' + msg;
+    }
+  }
+
+  return '';
+};
+
+
+/**
  *
  * @param {ydn.db.DatabaseSchema} schema
  * @return {boolean}
  */
 ydn.db.DatabaseSchema.prototype.similar = function(schema) {
-  if (!schema || this.stores.length != schema.stores.length) {
-    return false;
-  }
-  return goog.array.every(this.stores, function(x) {
-    var store = schema.getStore(x.name);
-    return !!store && store.similar(x);
-  });
+  return this.difference(schema).length == 0;
 };
 
 

@@ -665,7 +665,6 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
       if (!goog.isFunction(q.filter) || q.filter(value)) {
         idx++;
 
-
           if (goog.isFunction(q.map)) {
             value = q.map(value);
           }

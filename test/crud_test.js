@@ -25,6 +25,7 @@ var setUp = function () {
   }
 
   //ydn.db.con.IndexedDb.DEBUG = true;
+  ydn.db.con.WebSql.DEBUG = true;
 
   schema = new ydn.db.DatabaseSchema(1);
   schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));

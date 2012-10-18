@@ -101,7 +101,10 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
        * @param {ydn.db.DatabaseSchema} db_schema
        */
       var validator = function(db_schema) {
-        if (!schema.similar(db_schema)) {
+        var diff_msg = schema.difference(db_schema);
+        if (diff_msg.length > 0) {
+          me.logger.finer('Schema change require for difference in ' + diff_msg);
+
           var on_completed = function(t, e) {
             if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
               me.setDb(db);
@@ -113,7 +116,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
           };
           me.idx_db_ = db; // ??
           me.doTransaction(function(tx) {
-            me.doVersionChange(db, tx, schema);
+            me.changeSchema(db, tx, schema);
           }, [], ydn.db.base.TransactionMode.VERSION_CHANGE, on_completed);
         } else {
           me.setDb(db);
@@ -128,20 +131,21 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
       goog.asserts.assertFunction(db['serVersion'],
         'Expecting IDBDatabase in old format');
       var version = /** @type {*} */ (schema.getVersion());
-      var setVrequest = db.setVersion(/** @type {string} */ (version)); // for chrome
+      var ver_request = db.setVersion(/** @type {string} */ (version)); // for chrome
 
-      setVrequest.onfailure = function(e) {
+      ver_request.onfailure = function(e) {
         me.logger.warning('migrating from ' + db.version + ' to ' +
           schema.getVersion() + ' failed.');
         me.setDb(null, e);
       };
-      setVrequest.onsuccess = function(e) {
-        me.doVersionChange(db, setVrequest['transaction'], schema, true);
+      ver_request.onsuccess = function(e) {
+        me.changeSchema(db, ver_request['transaction'], schema, true);
       };
     } else {
       if (schema.getVersion() == db.version) {
         me.logger.finer('database version ' + db.version + ' ready to go');
       } else {
+        // this will not happen according to IDB spec.
         me.logger.warning('connected database version ' + db.version +
           ' is higher than requested version.');
       }
@@ -151,44 +155,38 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
-    var msg = 'upgrading version ' + db.version;
-    if (ydn.db.con.IndexedDb.DEBUG) {
-      window.console.log(msg);
-    } else {
-      me.logger.finer(msg);
-    }
 
-    me.doVersionChange(db, openRequest['transaction'], schema);
+    me.logger.finer('upgrade needed for version ' + db.version);
+
+    me.changeSchema(db, openRequest['transaction'], schema);
 
   };
 
   openRequest.onerror = function(ev) {
     var msg = 'opening database ' + me.dbname + ':' + schema.version + ' failed.';
     if (ydn.db.con.IndexedDb.DEBUG) {
-      window.console.log([msg, ev, openRequest]);
-    } else {
-      me.logger.severe(msg);
+      window.console.log([ev, openRequest]);
     }
+    me.logger.severe(msg);
+
     me.setDb(null, ev);
   };
 
   openRequest.onblocked = function(ev) {
-    var msg = 'database ' + me.dbname + ' block, close other connections.';
     if (ydn.db.con.IndexedDb.DEBUG) {
-      window.console.log([msg, ev, openRequest]);
-    } else {
-      me.logger.severe(msg);
+      window.console.log([ev, openRequest]);
     }
+    me.logger.severe('database ' + me.dbname + ' ' + schema.version +
+      ' block, close other connections.');
+
+    // should we reopen again after some time?
+
     me.setDb(null, ev);
   };
 
   openRequest.onversionchange = function(ev) {
-    var msg = 'Version change request, so closing the database';
-    if (ydn.db.con.IndexedDb.DEBUG) {
-      window.console.log(msg);
-    } else {
-      me.logger.fine(msg);
-    }
+    me.logger.fine('Version change request, so closing the database');
+
     if (me.db) {
       me.db.close();
     }
@@ -196,17 +194,22 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 
   // extra checking whether, database is OK
   if (goog.DEBUG || ydn.db.con.IndexedDb.DEBUG) {
-    goog.Timer.callOnce(function() {
+    var timer = new goog.Timer( ydn.db.con.IndexedDb.timeOut);
+    timer.addEventListener(goog.Timer.TICK, function() {
       if (openRequest.readyState != 'done') {
         // what we observed is chrome attached error object to openRequest
         // but did not call any of over listening events.
-        var msg = 'Database state is still ' + openRequest.readyState;
+        var msg = me + ': database state is still ' + openRequest.readyState;
         me.logger.severe(msg);
+      } else {
+        timer.stop();
+        timer.dispose();
       }
-    }, ydn.db.con.IndexedDb.timeOut, this);
+    });
   }
 
 };
+
 
 
 /**
@@ -222,7 +225,6 @@ ydn.db.con.IndexedDb.DEBUG = goog.DEBUG && false;
  */
 ydn.db.con.IndexedDb.timeOut = goog.DEBUG || ydn.db.con.IndexedDb.DEBUG ?
   500 : 3000;
-
 
 
 /**
@@ -580,14 +582,14 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 
 
 /**
- * Migrate from current version to the last version.
+ * Migrate from current version to the given version.
  * @protected
  * @param {IDBDatabase} db database instance.
  * @param {IDBTransaction} trans
  * {ydn.db.DatabaseSchema} schema
  * @param {boolean=} is_caller_setversion call from set version;.
  */
-ydn.db.con.IndexedDb.prototype.doVersionChange = function(db, trans, schema, is_caller_setversion) {
+ydn.db.con.IndexedDb.prototype.changeSchema = function(db, trans, schema, is_caller_setversion) {
 
   var me = this;
   var action = is_caller_setversion ? 'changing' : 'upgrading';
