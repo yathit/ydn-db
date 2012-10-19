@@ -719,7 +719,20 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
     }
   } else { // for READ_ONLY and READ_WRITE mode
 
-    var tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
+    var tx;
+    try { // this try...catch block will removed on non-debug compiled.
+      tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
+    } catch (e) {
+      if (goog.DEBUG && e.name == 'NotFoundError') {
+        // http://www.w3.org/TR/IndexedDB/#widl-IDBDatabase-transaction-IDBTransaction-any-storeNames-DOMString-mode
+        throw new ydn.db.NotFoundError('stores not found: ' + ydn.json.stringify(scopes));
+      } if (goog.DEBUG && e.name == 'InvalidAccessError') {
+        throw new ydn.db.NotFoundError('store names must be given: '  + ydn.json.stringify(scopes));
+      } else {
+        throw e;
+      }
+    }
+
     call_tx(tx);
   }
 };
