@@ -731,10 +731,8 @@ ydn.db.StoreSchema.prototype.similar = function(store) {
  */
 ydn.db.DatabaseSchema = function(version, opt_stores) {
 
+  var ver = goog.isString(version) ? parseFloat(version) : version;
   if (goog.isDef(version)) {
-    if (goog.isString(version)) {
-      version = parseFloat(version);
-    }
     if (!goog.isNumber(version) || isNaN(version) || version < 0) {
       throw new ydn.error.ArgumentException('Invalid version: ' + version);
     }
@@ -743,7 +741,7 @@ ydn.db.DatabaseSchema = function(version, opt_stores) {
   /**
    * @type {number|undefined}
    */
-  this.version = version;
+  this.version = ver;
 
   this.is_auto_schema_ = !goog.isDef(this.version);
 

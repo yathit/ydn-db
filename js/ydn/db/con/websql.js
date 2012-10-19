@@ -188,9 +188,9 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
 
     if (!schema.isAutoSchema() && db.version < version) {
       me.logger.finest('Upgrading to version: ' + version);
-    } else {
-      me.doVersionChange_(db, schema, false);
     }
+
+    me.doVersionChange_(db, schema, false);
   }
 
 
@@ -250,8 +250,6 @@ ydn.db.con.WebSql.prototype.last_error_ = null;
  * @private
  */
 ydn.db.con.WebSql.prototype.sql_db_ = null;
-
-
 
 
 /**
@@ -658,7 +656,6 @@ ydn.db.con.WebSql.prototype.isReady = function() {
 ydn.db.con.WebSql.prototype.onConnected = null;
 
 
-
 /**
  * @final
  */
@@ -676,7 +673,6 @@ ydn.db.con.WebSql.prototype.close = function () {
  * @protected
  */
 ydn.db.con.WebSql.prototype.doTransaction = function (trFn, scopes, mode, completed_event_handler) {
-
 
   var me = this;
 
