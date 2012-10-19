@@ -172,13 +172,12 @@ ydn.db.con.Storage.prototype.getConfig = function() {
  */
 ydn.db.con.Storage.prototype.getSchema = function(callback) {
   if (goog.isDef(callback)) {
-    if (this.db_) {
-      this.deferredDb_.addCallback(function(db) {
-        db.getSchema(callback);
-      });
-    } else {
-      callback(null);
-    }
+    var me = this;
+    var get_schema = function(tx) {
+      goog.asserts.assertFunction(callback); // ?? compiler complains undefined.
+      me.db_.getSchema(callback, tx);
+    };
+    this.transaction(get_schema, null, ydn.db.base.TransactionMode.READ_ONLY);
   }
   return this.schema ? /** @type {!DatabaseSchema} */ (this.schema.toJSON()) : null;
 };
@@ -397,6 +396,7 @@ ydn.db.con.Storage.prototype.setDb_ = function(db) {
     this.deferredDb_ = new goog.async.Deferred();
   }
   this.db_ = db;
+  this.deferredDb_.callback(db);
 
   var me = this;
 
@@ -408,6 +408,7 @@ ydn.db.con.Storage.prototype.setDb_ = function(db) {
       me.purgeTxQueue_(e);
       me.dispatchEvent(ydn.db.con.Storage.EventTypes.FAIL);
     } else {
+
       me.logger.finest(me + ': ready.');
       me.last_queue_checkin_ = NaN;
       me.popTxQueue_();
@@ -519,7 +520,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
 /**
  * Push a transaction job to the queue.
  * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<string>} store_names list of keys or
+ * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.base.TransactionEventTypes, *)=} completed_event_handler
@@ -582,7 +583,7 @@ ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
  * Run a transaction.
  *
  * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<string>} store_names list of keys or
+ * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.base.TransactionEventTypes, *)=} completed_event_handler
@@ -591,22 +592,27 @@ ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
  */
 ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode, completed_event_handler) {
 
+  var names = store_names;
+
+  if (goog.isString(store_names)) {
+    names = [store_names];
+  } else if (!goog.isDefAndNotNull(store_names)) {
+    names = null;
+  } else if (!goog.isArray(store_names) ||
+    (!goog.isString(store_names[0]))) {
+    throw new ydn.error.ArgumentException("storeNames");
+  }
+
   var is_ready = !!this.db_ && this.db_.isReady();
   if (!is_ready || this.in_version_change_tx_) {
     // a "versionchange" transaction is still running, a InvalidStateError
     // exception must be thrown
-    this.pushTxQueue_(trFn, store_names, opt_mode, completed_event_handler);
+    this.pushTxQueue_(trFn, names, opt_mode, completed_event_handler);
     return;
   }
 
   var me = this;
-  var names = store_names;
-  if (goog.isString(store_names)) {
-    names = [store_names];
-  } else if (!goog.isArray(store_names) ||
-    (store_names.length > 0 && !goog.isString(store_names[0]))) {
-    throw new ydn.error.ArgumentException("storeNames");
-  }
+
   var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
 
   if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {

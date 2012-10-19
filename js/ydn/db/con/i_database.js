@@ -54,7 +54,7 @@ ydn.db.con.IDatabase.prototype.getDbInstance = function() {};
  * when the data is transaction completed.
  * Caller must not invoke this method until transaction completed event is fired.
  * @param {function((SQLTransaction|IDBTransaction|Object))||Function} transaction_callback callback function that invoke in the transaction with transaction instance.
- * @param {!Array.<string>} store_names list of store names involved in the
+ * @param {Array.<string>} store_names list of store names involved in the
  * transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'read_write'.
  * @param {function(ydn.db.base.TransactionEventTypes, *)} completed_event_handler
@@ -73,7 +73,9 @@ ydn.db.con.IDatabase.prototype.addStoreSchema = goog.abstractMethod;
 
 
 /**
- * Get schema from the database.
+ *
  * @param {function(ydn.db.DatabaseSchema)} callback
+ * @param {(SQLTransaction|IDBTransaction|Object)=} trans
+ * @param {(IDBDatabase|Database)=} db
  */
 ydn.db.con.IDatabase.prototype.getSchema = goog.abstractMethod;

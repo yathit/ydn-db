@@ -356,10 +356,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
 
 /**
- * From Sqlite master table, reflect table information in the form of schema.
- * @param {function(ydn.db.DatabaseSchema)} callback
- * @param {SQLTransaction=} trans
- * @param {Database=} db
+ * @inheritDoc
  */
 ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 

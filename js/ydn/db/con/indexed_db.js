@@ -334,11 +334,13 @@ ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
         window.console.log([this, e]);
       }
       me.logger.finest(me + ': onversionchange - ' + e.message);
-      delete me.idx_db_.onabort;
-      delete me.idx_db_.onerror;
-      delete me.idx_db_.onversionchange;
-      me.idx_db_.close();
-      me.idx_db_ = null;
+      if (me.idx_db_) {
+        delete me.idx_db_.onabort;
+        delete me.idx_db_.onerror;
+        delete me.idx_db_.onversionchange;
+        me.idx_db_.close();
+        me.idx_db_ = null;
+      }
     }
   }
 
@@ -367,10 +369,7 @@ ydn.db.con.IndexedDb.prototype.hasStore_ = function(db, store_name) {
 
 
 /**
- *
- * @param {function(ydn.db.DatabaseSchema)} callback
- * @param {IDBTransaction=} trans
- * @param {IDBDatabase=} db
+ * @inheritDoc
  */
 ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
   db = db || this.idx_db_;
@@ -380,6 +379,7 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
     for (var i = db.objectStoreNames.length - 1; i >= 0; i--) {
       names[i] = db.objectStoreNames[i];
     }
+
     trans = db.transaction(names, /** @type {number} */ (mode));
   } else {
     db = trans.db;
@@ -644,8 +644,8 @@ ydn.db.con.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
  * as failed.
  * @protected
  * @param {function(IDBTransaction)|Function} fnc transaction function.
- * @param {!Array.<string>} scopes list of stores involved in the
- * transaction.
+ * @param {Array.<string>} scopes list of stores involved in the
+ * transaction. If null, all stores is used.
  * @param {ydn.db.base.TransactionMode} mode mode.
  * @param {function(ydn.db.base.TransactionEventTypes, *)} completed_event_handler
  */
@@ -653,6 +653,13 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
 
 
   var me = this;
+
+  if (!scopes) {
+    scopes = [];
+    for (var i = this.idx_db_.objectStoreNames.length - 1; i >= 0; i--) {
+      scopes[i] = this.idx_db_.objectStoreNames[i];
+    }
+  }
 
   /**
    *

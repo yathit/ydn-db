@@ -71,7 +71,7 @@
               tofile="${out.dir}/dev-ydn.db.js"/>
         <copy file="${dev-out.fn}.map"
               tofile="${out.dir}/dev-ydn.db.js.map"/>
-        <replace file="${out.dir}/dev-ydn.db.js.map"
+        <replace file="${out.dir}/dev-ydn.db.js"
                  token="dev-ydn.db-${ver}.js.map" value="dev-ydn.db.js.map"/>
         <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-${ver}.js"
               tofile="${out.dir}/jquery-ydn.db.js"/>
