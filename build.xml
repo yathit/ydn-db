@@ -3,10 +3,10 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
-    <property name="ver" value="0.13.1"/>
+    <property name="ver" value="0.13.14"/>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
     <property name="dev-out.fn"
-              value="${ydn-db.dir}/jsc/dev-ydn.db-min-${ver}.js"/>
+              value="${ydn-db.dir}/jsc/dev-ydn.db-${ver}.js"/>
     <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
 
@@ -37,7 +37,7 @@
         </closure-compile>
 
         <concat destfile="${dev-out.fn}" append="true">
-            //@ sourceMappingURL=dev-ydn.db-min-${ver}.js.map
+            //@ sourceMappingURL=dev-ydn.db-${ver}.js.map
         </concat>
 
         <replace description="replace so with online repo path"
@@ -53,14 +53,14 @@
                  token="/Users/kyawtun/work/closure-library/"
                  value="https://raw.github.com/yathit/google-closure-library/master/"/>
 
-        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js">
+        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-${ver}.js">
             <header>
                 (function( $ ) {
             </header>
             <filelist dir="${ydn-db.dir}/jsc"
-                      files="dev-ydn.db-min-${ver}.js"/>
+                      files="dev-ydn.db-${ver}.js"/>
         </concat>
-        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js" append="true">
+        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-${ver}.js" append="true">
             $.db = new ydn.db.Storage();
             })( jQuery);
         </concat>
@@ -68,14 +68,13 @@
     </target>
     <target name="to-doc" description="copy file to documentation site">
         <copy file="${dev-out.fn}"
-              tofile="${out.dir}/dev-ydn.db-min.js"/>
+              tofile="${out.dir}/dev-ydn.db.js"/>
         <copy file="${dev-out.fn}.map"
-              tofile="${out.dir}/dev-ydn.db-min.js.map"/>
-        <concat destfile="${out.dir}/dev-ydn.db-min.js" append="true">
-            //@ sourceMappingURL=dev-ydn.db-min.js.map
-        </concat>
-        <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-min-${ver}.js"
-              tofile="${out.dir}/jquery-ydn.db-min.js"/>  
+              tofile="${out.dir}/dev-ydn.db.js.map"/>
+        <replace file="${out.dir}/dev-ydn.db.js.map"
+                 token="dev-ydn.db-${ver}.js.map" value="dev-ydn.db.js.map"/>
+        <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-${ver}.js"
+              tofile="${out.dir}/jquery-ydn.db.js"/>
     </target>
     <macrodef name="adv-comp">
         <attribute name="input.fn"/>

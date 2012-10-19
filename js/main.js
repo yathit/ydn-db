@@ -21,19 +21,21 @@ goog.exportProperty(ydn.db.io.Cursor.prototype, 'get',
 goog.exportProperty(ydn.db.io.Cursor.prototype, 'iterate',
   ydn.db.io.Cursor.prototype.iterate);
 
-//goog.exportProperty(ydn.db.Cursor.prototype, 'filter',
-//    ydn.db.Cursor.prototype.filter);
-//goog.exportProperty(ydn.db.Cursor.prototype, 'reduce',
-//    ydn.db.Cursor.prototype.reduce);
-//goog.exportProperty(ydn.db.Cursor.prototype, 'map',
-//    ydn.db.Cursor.prototype.map);
-//goog.exportProperty(ydn.db.Cursor.prototype, 'initial',
-//    ydn.db.Cursor.prototype.initial);
-//goog.exportProperty(ydn.db.Cursor.prototype, 'continued',
-//    ydn.db.Cursor.prototype.continued);
-//goog.exportProperty(ydn.db.Cursor.prototype, 'finalize',
-//    ydn.db.Cursor.prototype.finalize);
+goog.exportSymbol('ydn.db.Cursor', ydn.db.Cursor);
+goog.exportProperty(ydn.db.Cursor.prototype, 'filter',
+    ydn.db.Cursor.prototype.filter);
+goog.exportProperty(ydn.db.Cursor.prototype, 'reduce',
+    ydn.db.Cursor.prototype.reduce);
+goog.exportProperty(ydn.db.Cursor.prototype, 'map',
+    ydn.db.Cursor.prototype.map);
+goog.exportProperty(ydn.db.Cursor.prototype, 'initial',
+    ydn.db.Cursor.prototype.initial);
+goog.exportProperty(ydn.db.Cursor.prototype, 'continued',
+    ydn.db.Cursor.prototype.continued);
+goog.exportProperty(ydn.db.Cursor.prototype, 'finalize',
+    ydn.db.Cursor.prototype.finalize);
 
+goog.exportSymbol('ydn.db.Query', ydn.db.Query);
 goog.exportProperty(ydn.db.Query.prototype, 'select',
     ydn.db.Query.prototype.select);
 goog.exportProperty(ydn.db.Query.prototype, 'where',
