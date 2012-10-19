@@ -725,15 +725,18 @@ ydn.db.StoreSchema.prototype.similar = function(store) {
 
 /**
  *
- * @param {number=} version version.
+ * @param {number|string=} version version, if string, it must be parse to int.
  * @param {!Array.<!ydn.db.StoreSchema>=} opt_stores store schemas.
  * @constructor
  */
 ydn.db.DatabaseSchema = function(version, opt_stores) {
 
   if (goog.isDef(version)) {
-    if (!goog.isNumber(version) || isNaN(version) || version <= 0) {
-      throw new ydn.error.ArgumentException('Invalid version');
+    if (goog.isString(version)) {
+      version = parseFloat(version);
+    }
+    if (!goog.isNumber(version) || isNaN(version) || version < 0) {
+      throw new ydn.error.ArgumentException('Invalid version: ' + version);
     }
   }
 

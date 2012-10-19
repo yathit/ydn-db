@@ -73,11 +73,25 @@ ydn.db.TxStorage.prototype.cursor = function(store, direction, index, keyRange, 
 
 
 /**
- * @param {string} sql_statement store name.
- * @return {!ydn.db.io.Query}
+ * Create a new query with given store name.
+ * @param {string=} store_name store name.
+ * @return {!ydn.db.Query}
  */
-ydn.db.TxStorage.prototype.query = function(sql_statement) {
-  return new ydn.db.io.Query(this, sql_statement);
+ydn.db.TxStorage.prototype.query = function(store_name) {
+  if (goog.DEBUG) {
+    if (arguments.length > 1) {
+      throw new ydn.error.ArgumentException();
+    }
+    if (goog.isDef(store_name) && !goog.isString(store_name)) {
+      throw new ydn.error.ArgumentException();
+    }
+  }
+  var q = new ydn.db.Query();
+  if (goog.isDef(store_name)) {
+    q.from(store_name);
+  }
+
+  return q;
 };
 
 
