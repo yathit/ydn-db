@@ -776,9 +776,7 @@ ydn.db.DatabaseSchema = function(version, opt_stores) {
   this.stores = opt_stores || [];
 
   this.is_auto_schema_ = this.stores.length == 0;
-  if (this.is_auto_schema_ && !this.is_auto_version_) {
-    throw new ydn.error.ArgumentException('store must be defined.');
-  }
+
 };
 
 
