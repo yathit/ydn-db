@@ -101,7 +101,7 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
      * Opening robust web database is tricky. Mainly due to the fact that
      * an empty database is created even if user deny to create the database.
      */
-    var version = schema.isAutoSchema() ? '' : schema.version + '';
+    var version = schema.isAutoVersion() ? '' : schema.version + '';
 
     // From the W3C description:
     // <snap>
@@ -186,7 +186,7 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
         ' opened, but require ' + version + ' version.');
     }
 
-    if (!schema.isAutoSchema() && db.version < version) {
+    if (!schema.isAutoVersion() && db.version < version) {
       me.logger.finest('Upgrading to version: ' + version);
     }
 
@@ -206,12 +206,12 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
 ydn.db.con.WebSql.prototype.setDb = function(db, e) {
   if (goog.isDef(e)) {
     this.sql_db_ = null;
-    if (goog.isFunction(this.onConnected)) {
-      this.onConnected(false, e);
+    if (goog.isFunction(this.onConnectionChange)) {
+      this.onConnectionChange(false, e);
     }
   } else {
     this.sql_db_ = db;
-    this.onConnected(true);
+    this.onConnectionChange(true);
   }
 };
 
@@ -653,7 +653,7 @@ ydn.db.con.WebSql.prototype.isReady = function() {
  *
  * @inheritDoc
  */
-ydn.db.con.WebSql.prototype.onConnected = null;
+ydn.db.con.WebSql.prototype.onConnectionChange = null;
 
 
 /**

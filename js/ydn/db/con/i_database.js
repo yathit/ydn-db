@@ -34,9 +34,9 @@ ydn.db.con.IDatabase.prototype.isReady = function() {};
 
 /**
  * Callback function
- * @type {Function}
+ * @type {function(boolean, Error=)}
  */
-ydn.db.con.IDatabase.prototype.onConnected;
+ydn.db.con.IDatabase.prototype.onConnectionChange = function(is_success, e) {};
 
 
 

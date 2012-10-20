@@ -767,13 +767,18 @@ ydn.db.DatabaseSchema = function(version, opt_stores) {
    */
   this.version = ver;
 
-  this.is_auto_schema_ = !goog.isDef(this.version);
+  this.is_auto_version_ = !goog.isDef(this.version);
 
   /**
    * @final
    * @type {!Array.<!ydn.db.StoreSchema>}
    */
   this.stores = opt_stores || [];
+
+  this.is_auto_schema_ = this.stores.length == 0;
+  if (this.is_auto_schema_ && !this.is_auto_version_) {
+    throw new ydn.error.ArgumentException('store must be defined.');
+  }
 };
 
 
@@ -789,6 +794,13 @@ ydn.db.DatabaseSchema.prototype.toJSON = function() {
     'Stores': stores};
 };
 
+
+/**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.DatabaseSchema.prototype.is_auto_version_ = false;
 
 /**
  *
@@ -812,10 +824,20 @@ ydn.db.DatabaseSchema.prototype.getVersion = function() {
  * @param {number} version must be number type
  */
 ydn.db.DatabaseSchema.prototype.setVersion = function(version) {
-  goog.asserts.assert(this.is_auto_schema_);
+  goog.asserts.assert(this.is_auto_version_);
   goog.asserts.assertNumber(version);
   this.version = version;
 };
+
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.DatabaseSchema.prototype.isAutoVersion = function() {
+  return this.is_auto_version_;
+};
+
 
 
 /**

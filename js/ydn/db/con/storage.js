@@ -15,7 +15,7 @@
 
 
 /**
- * @fileoverview Database connector.
+ * @fileoverview Generic database connector.
  *
  * Create and maintain database connection and provide robust transaction
  * objects upon request. Storage mechanisms implement
@@ -35,6 +35,7 @@ goog.require('ydn.db.con.WebSql');
 goog.require('ydn.object');
 goog.require('ydn.error.ArgumentException');
 goog.require('ydn.db.con.IStorage');
+goog.require('ydn.db.events.StorageEvent');
 goog.require('goog.events.EventTarget');
 
 
@@ -87,12 +88,6 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @private
    */
   this.db_ = null;
-  /**
-   * @type {!goog.async.Deferred}
-   * @private
-   */
-  this.deferredDb_ = new goog.async.Deferred();
-  // ?: keeping an object in deferred and non-deferred is not a good design
 
   /**
    * Transaction queue
@@ -211,7 +206,7 @@ ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
 
     var action = store ? 'update' : 'add';
 
-    if (! this.schema.isAutoSchema()) {
+    if (! this.schema.isAutoVersion()) {
       throw new ydn.error.ConstrainError('Cannot ' + action + ' store: ' +
         store_name + '. Not auto schema generation mode.');
     } else {
@@ -286,7 +281,7 @@ ydn.db.con.Storage.PREFERENCE = [
 ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
 
   if (db_type == ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.con.IndexedDb(this.db_name, this.schema);
+    return new ydn.db.con.IndexedDb(this.db_name, this.schema, this.size);
   } else if (db_type == ydn.db.con.WebSql.TYPE) {
     return new ydn.db.con.WebSql(this.db_name, this.schema, this.size);
   } else if (db_type == ydn.db.con.LocalStorage.TYPE) {
@@ -367,21 +362,21 @@ ydn.db.con.Storage.prototype.type = function() {
  * @return {boolean}
  */
 ydn.db.con.Storage.prototype.isReady = function() {
-  return this.deferredDb_.hasFired();
+  return !!this.db_ && this.db_.isReady();
 };
 
-
-/**
- *
- * @enum {string}
- */
-ydn.db.con.Storage.EventTypes = {
-  CONNECTED: 'conneted',
-  FAIL: 'fail',
-  CREATED: 'created',
-  UPDATED: 'updated',
-  DELETED: 'deleted'
-};
+//
+///**
+// *
+// * @enum {string}
+// */
+//ydn.db.con.Storage.EventTypes = {
+//  CONNECTED: 'conneted',
+//  FAIL: 'fail',
+//  CREATED: 'created',
+//  UPDATED: 'updated',
+//  DELETED: 'deleted'
+//};
 
 
 /**
@@ -391,27 +386,32 @@ ydn.db.con.Storage.EventTypes = {
  */
 ydn.db.con.Storage.prototype.setDb_ = function(db) {
   this.init(); // let super class to initialize.
-  if (this.deferredDb_.hasFired()) {
-    this.logger.warning(this + ': database already initialized.');
-    this.deferredDb_ = new goog.async.Deferred();
-  }
+
   this.db_ = db;
-  this.deferredDb_.callback(db);
 
   var me = this;
 
-  this.db_.onConnected = function (success, e) {
+  /**
+   *
+   * @param {boolean} success
+   * @param {Error=} e
+   */
+  this.db_.onConnectionChange = function (success, e) {
     if (goog.isDef(e)) {
       me.logger.warning(me + ': opening fail: ' + e.message);
       // this could happen if user do not allow to use the storage
       me.purgeTxQueue_(e);
-      me.dispatchEvent(ydn.db.con.Storage.EventTypes.FAIL);
+      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me,
+          e, 'opening database fail: ' + e.message);
+      me.dispatchEvent(event);
     } else {
 
       me.logger.finest(me + ': ready.');
       me.last_queue_checkin_ = NaN;
       me.popTxQueue_();
-      me.dispatchEvent(ydn.db.con.Storage.EventTypes.CONNECTED);
+      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.CONNECTED,
+          me, e);
+      me.dispatchEvent(event);
     }
   }
 };
@@ -605,7 +605,7 @@ ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode
   var is_ready = !!this.db_ && this.db_.isReady();
   if (!is_ready || this.in_version_change_tx_) {
     // a "versionchange" transaction is still running, a InvalidStateError
-    // exception must be thrown
+    // exception will be thrown
     this.pushTxQueue_(trFn, names, opt_mode, completed_event_handler);
     return;
   }

@@ -36,10 +36,11 @@ goog.require('ydn.json');
  * @param {string} dbname name of database.
  * @param {!ydn.db.DatabaseSchema} schema table schema contain table
  * name and keyPath.
+ * @param {number=} opt_size estimated database size.
  * @implements {ydn.db.con.IDatabase}
  * @constructor
  */
-ydn.db.con.IndexedDb = function(dbname, schema) {
+ydn.db.con.IndexedDb = function(dbname, schema, opt_size) {
 
   this.dbname = dbname;
 
@@ -49,6 +50,21 @@ ydn.db.con.IndexedDb = function(dbname, schema) {
    * @type {!ydn.db.DatabaseSchema}
    */
   this.schema = schema;
+
+  if (goog.isDef(opt_size)) {
+    // https://developers.google.com/chrome/whitepapers/storage#asking_more
+    // IndexedDB is yet to implement in Quota Management API.
+    /*
+    webkitStorageInfo.requestQuota(
+        webkitStorageInfo.PERSISTENT
+        newQuotaInBytes,
+        quotaCallback,
+        errorCallback);
+    */
+    if (opt_size > 5 * 1024 * 1024) { // no need to ask for 5 MB.
+      this.logger.warning('storage size request ignored.');
+    }
+  }
 
   this.idx_db_ = null;
 
@@ -78,7 +94,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
    * @type {IDBOpenDBRequest|IDBRequest}
    */
   var openRequest;
-  if (schema.isAutoSchema()) {
+  if (schema.isAutoVersion()) {
     // auto schema do not have version
     openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname);
   } else {
@@ -102,18 +118,20 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
     var msg = 'Database: ' + db.name + ', ver: ' + db.version + ' opened.';
     me.logger.finer(msg);
 
-    if (schema.isAutoSchema()) {
+    if (schema.isAutoVersion()) {
       // since there is no version, auto schema always need to validate
       /**
        * Validate given schema and schema of opened database.
        * @param {ydn.db.DatabaseSchema} db_schema
        */
-      var schema_updator = function(db_schema) {
+      var schema_updater = function(db_schema) {
 
         // add existing object store
-        for (var i = 0; i < db_schema.stores.length; i++) {
-          if (!schema.hasStore(db_schema.stores[i].name)) {
-            schema.addStore(db_schema.stores[i].clone());
+        if (schema.isAutoSchema()) {
+          for (var i = 0; i < db_schema.stores.length; i++) {
+            if (!schema.hasStore(db_schema.stores[i].name)) {
+              schema.addStore(db_schema.stores[i].clone());
+            }
           }
         }
 
@@ -138,7 +156,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
           me.setDb(db);
         }
       };
-      me.getSchema(schema_updator, undefined, db);
+      me.getSchema(schema_updater, undefined, db);
 
     } else if (schema.getVersion() > db.version) {
 
@@ -227,7 +245,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 
   // extra checking whether, database is OK
   if (goog.DEBUG || ydn.db.con.IndexedDb.DEBUG) {
-    var timer = new goog.Timer( ydn.db.con.IndexedDb.timeOut);
+    var timer = new goog.Timer(1000);
     timer.addEventListener(goog.Timer.TICK, function() {
       if (openRequest.readyState != 'done') {
         // what we observed is chrome attached error object to openRequest
@@ -250,14 +268,6 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
  * @const {boolean} turn on debug flag to dump object.
  */
 ydn.db.con.IndexedDb.DEBUG = goog.DEBUG && false;
-
-
-/**
- * @const
- * @type {number}
- */
-ydn.db.con.IndexedDb.timeOut = goog.DEBUG || ydn.db.con.IndexedDb.DEBUG ?
-  500 : 3000;
 
 
 /**
@@ -288,7 +298,7 @@ ydn.db.con.IndexedDb.prototype.type = function() {
 /**
  * @inheritDoc
  */
-ydn.db.con.IndexedDb.prototype.onConnected = null;
+ydn.db.con.IndexedDb.prototype.onConnectionChange = null;
 
 
 
@@ -375,19 +385,19 @@ ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
         delete me.idx_db_.onversionchange;
         me.idx_db_.close();
         me.idx_db_ = null;
-        if (goog.isFunction(me.onConnected)) {
-          me.onConnected(null, e);
+        if (goog.isFunction(me.onConnectionChange)) {
+          me.onConnectionChange(null, e);
         }
       }
-      if (me.schema && me.schema.isAutoSchema()) {
+      if (me.schema && me.schema.isAutoVersion()) {
         me.logger.finest(me + ': reconnecting');
         me.connect(me.schema);
       }
     }
   }
 
-  if (goog.isFunction(this.onConnected)) {
-    this.onConnected(!!this.idx_db_, e);
+  if (goog.isFunction(this.onConnectionChange)) {
+    this.onConnectionChange(!!this.idx_db_, e);
   }
 
 };
