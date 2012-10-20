@@ -385,10 +385,18 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
     for (var i = idb.objectStoreNames.length - 1; i >= 0; i--) {
       names[i] = idb.objectStoreNames[i];
     }
-
+    if (names.length == 0) {
+      // http://www.w3.org/TR/IndexedDB/#widl-IDBDatabase-transaction-
+      // IDBTransaction-any-storeNames-DOMString-mode
+      //
+      // InvalidAccessError:	The function was called with an empty list of
+      // store names
+      callback(new ydn.db.DatabaseSchema(idb.version));
+      return;
+    }
     trans = idb.transaction(names, /** @type {number} */ (mode));
   } else {
-    window.console.log(['trans', trans]);
+    //window.console.log(['trans', trans]);
     idb = trans['db'];
   }
 

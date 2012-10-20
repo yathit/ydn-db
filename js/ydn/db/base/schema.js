@@ -731,10 +731,12 @@ ydn.db.StoreSchema.prototype.similar = function(store) {
  */
 ydn.db.DatabaseSchema = function(version, opt_stores) {
 
-  var ver = goog.isString(version) ? parseFloat(version) : version;
-  if (goog.isDef(version)) {
-    if (!goog.isNumber(version) || isNaN(version) || version < 0) {
-      throw new ydn.error.ArgumentException('Invalid version: ' + version);
+  var ver = goog.isString(version) ? version.length == 0 ?
+      undefined : parseFloat(version) : version;
+  if (goog.isDef(ver)) {
+    if (!goog.isNumber(ver) || isNaN(ver) || ver < 0) {
+      throw new ydn.error.ArgumentException('Invalid version: ' + ver + ' (' +
+          version + ')');
     }
   }
 
