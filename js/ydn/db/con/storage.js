@@ -400,10 +400,9 @@ ydn.db.con.Storage.prototype.setDb_ = function(db) {
 
   var me = this;
 
-
   this.db_.onConnected = function (success, e) {
     if (goog.isDef(e)) {
-      me.logger.warning(me + ': opening fail.');
+      me.logger.warning(me + ': opening fail: ' + e.message);
       // this could happen if user do not allow to use the storage
       me.purgeTxQueue_(e);
       me.dispatchEvent(ydn.db.con.Storage.EventTypes.FAIL);

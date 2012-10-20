@@ -317,7 +317,7 @@ var where_test = function(q, exp_result) {
       2000); // maxTimeout
 
 
-    q.fetch().addCallback(function(q_result) {
+    db.fetch(q).addCallback(function(q_result) {
       //console.log('receiving when query ' + JSON.stringify(q_result));
       result = q_result;
       hasEventFired = true;

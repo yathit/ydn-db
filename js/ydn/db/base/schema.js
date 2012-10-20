@@ -250,17 +250,17 @@ ydn.db.IndexSchema.prototype.difference = function(index) {
     return 'no index for ' + this.name;
   }
   if (this.name != index.name) {
-    return 'name: ' + this.name + ' - ' + index.name;
+    return 'name, expect: ' + this.name + ', but: ' + index.name;
   }
   if (this.keyPath != index.keyPath) {
-    return 'keyPath: ' + this.keyPath + ' - ' + index.keyPath;
+    return 'keyPath, expect: ' + this.keyPath + ', but: ' + index.keyPath;
   }
   if (this.keyPath != index.keyPath) {
-    return 'unique: ' + this.unique + ' - ' + index.unique;
+    return 'unique, expect: ' + this.unique + ', but: ' + index.unique;
   }
   if (goog.isDef(this.type) && goog.isDef(index.type) &&
     this.type != index.type) {
-    return 'data type: ' + this.type + ' - ' + index.type;
+    return 'data type, expect: ' + this.type + ', but: ' + index.type;
   }
   return '';
 };
@@ -337,15 +337,21 @@ ydn.db.StoreSchema = function(name, keyPath, autoIncrement, opt_type, opt_indexe
   // Yes, correct spelling is autoIncrement not autoIncremenent, as it
   // was written in W3C documentation.
 
+  var type;
+  if (goog.isDef(opt_type)) {
+    type = ydn.db.IndexSchema.toType(opt_type);
+    if (!goog.isDef(type)) {
+      throw new ydn.error.ArgumentException('type invalid in store: ' + this.name);
+    }
+  }
+
   /**
    * @final
-   * @type {ydn.db.DataType} // TODO: allow for undefined type
+   * @type {ydn.db.DataType|undefined} //
    */
-  this.type = opt_type ? opt_type : this.autoIncrement ?
-    ydn.db.DataType.INTEGER : ydn.db.DataType.TEXT;
-  if (!goog.isString(this.type)) {
-    throw new ydn.error.ArgumentException('type invalid in store: ' + this.name);
-  }
+  this.type = goog.isDef(type) ? type : this.autoIncrement ?
+    ydn.db.DataType.INTEGER : undefined;
+
   if (this.autoIncrement) {
     var sqlite_msg = 'AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY';
     goog.asserts.assert(this.type == ydn.db.DataType.INTEGER, sqlite_msg);
@@ -413,6 +419,15 @@ ydn.db.StoreSchema.fromJSON = function(json) {
   }
   return new ydn.db.StoreSchema(json.name, json.keyPath,
     json.autoIncrement, json.type, indexes);
+};
+
+
+/**
+ *
+ * @return {!ydn.db.StoreSchema}
+ */
+ydn.db.StoreSchema.prototype.clone = function() {
+  return ydn.db.StoreSchema.fromJSON(/** @type {!StoreSchema} */ (this.toJSON()));
 };
 
 
@@ -685,21 +700,21 @@ ydn.db.StoreSchema.prototype.difference = function(store) {
     return 'missing store: ' + this.name;
   }
   if (this.name != store.name) {
-    return 'store name: ' + this.name + ' - ' + store.name;
+    return 'store name, expect: ' + this.name + ', but: ' + store.name;
   }
   if (this.keyPath != store.keyPath) {
-    return 'keyPath: ' + this.keyPath + ' - ' + store.keyPath;
+    return 'keyPath, expect:  ' + this.keyPath + ', but: ' + store.keyPath;
   }
   if (this.autoIncrement != store.autoIncrement) {
-    return 'autoIncrement: ' + this.autoIncrement + ' - ' + store.autoIncrement;
+    return 'autoIncrement, expect:  ' + this.autoIncrement + ', but: ' + store.autoIncrement;
   }
   if (this.indexes.length != store.indexes.length) {
-    return 'indexes length: ' + this.indexes.length + ' - ' + store.indexes.length;
+    return 'indexes length, expect:  ' + this.indexes.length + ', but: ' + store.indexes.length;
   }
 
   if (goog.isDef(this.type) && goog.isDef(store.type) &&
     this.type != store.type) {
-    return 'data type: ' + this.type + ' - ' + store.type;
+    return 'data type, expect:  ' + this.type + ', but: ' + store.type;
   }
   for (var i = 0; i < this.indexes.length; i++) {
     var index = store.getIndex(this.indexes[i].name);

@@ -70,11 +70,9 @@ var test_11_fetch = function () {
     1000); // maxTimeout
 
 
-
-
     var q = db.query().from(store_name);
 
-    q.fetch().addBoth(function (value) {
+    db.fetch(q).addBoth(function (value) {
       console.log(db + ' fetch value: ' + JSON.stringify(value));
       result = value;
       done = true;
