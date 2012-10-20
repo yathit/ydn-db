@@ -26,7 +26,7 @@ goog.require('ydn.db.req.RequestExecutor');
 /**
  * @extends {ydn.db.req.RequestExecutor}
  * @param {string} dbname
- * @param {!ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.schema.Database} schema
  * @constructor
  */
 ydn.db.req.SimpleStore = function(dbname, schema) {
@@ -58,7 +58,7 @@ ydn.db.req.SimpleStore.prototype.extractKey = function (store_name, value) {
     key = store.generateKey();
   }
 
-  key = ydn.db.IndexSchema.js2sql(key, store.type);
+  key = ydn.db.schema.Index.js2sql(key, store.type);
   return /** @type {string|number} */ (key);
 };
 
@@ -67,12 +67,12 @@ ydn.db.req.SimpleStore.prototype.extractKey = function (store_name, value) {
 /**
  * @protected
  * @final
- * @param {ydn.db.StoreSchema} store table name.
+ * @param {ydn.db.schema.Store} store table name.
  * @param {(!Array|string|number)} id id.
  * @return {string} canonical key name.
  */
 ydn.db.req.SimpleStore.prototype.makeKey = function(store, id) {
-  var s = ydn.db.IndexSchema.js2sql(id, store.type);
+  var s = ydn.db.schema.Index.js2sql(id, store.type);
   return '_database_' + this.dbname + '-' + store.name + '-' + s;
 };
 
@@ -80,14 +80,14 @@ ydn.db.req.SimpleStore.prototype.makeKey = function(store, id) {
 
 /**
  *
- * @param {!ydn.db.StoreSchema|string} store_name or key
+ * @param {!ydn.db.schema.Store|string} store_name or key
  * @param {(!Array|string|number)} id
  * @return {*}
  * @protected
  * @final
  */
 ydn.db.req.SimpleStore.prototype.getItemInternal = function(store_name, id) {
-  var store = store_name instanceof ydn.db.StoreSchema ?
+  var store = store_name instanceof ydn.db.schema.Store ?
     store_name : this.schema.getStore(store_name);
   var key = this.makeKey(store, id);
   var value = this.tx.getItem(key);
@@ -152,11 +152,11 @@ ydn.db.req.SimpleStore.SYNC = true;
  * @final
  * @protected
  * @param {string|number} id id.
- * @param {ydn.db.StoreSchema|string} store table name.
+ * @param {ydn.db.schema.Store|string} store table name.
  * @return {string} canonical key name.
  */
 ydn.db.req.SimpleStore.prototype.getKeyValue = function(id, store) {
-  var store_name = store instanceof ydn.db.StoreSchema ? store.name : store;
+  var store_name = store instanceof ydn.db.schema.Store ? store.name : store;
   return '_database_' + this.dbname + '-' + store_name + '-' + id;
 };
 

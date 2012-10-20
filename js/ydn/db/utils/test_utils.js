@@ -16,11 +16,11 @@ goog.require('ydn.db.io.QueryService');
 ydn.db.test.table = 't1';
 
 /**
- * @return {!ydn.db.DatabaseSchema} database schema.
+ * @return {!ydn.db.schema.Database} database schema.
  */
 ydn.db.test.getSchema = function() {
-  var basic_schema = new ydn.db.DatabaseSchema(1);
-  basic_schema.addStore(new ydn.db.StoreSchema(ydn.db.test.table, 'id'));
+  var basic_schema = new ydn.db.schema.Database(1);
+  basic_schema.addStore(new ydn.db.schema.Store(ydn.db.test.table, 'id'));
   return basic_schema;
 };
 
@@ -229,12 +229,12 @@ ydn.db.test.empty_store_get_test = function(queue, db) {
 
 
 /**
- * @return {ydn.db.DatabaseSchema} schema used in nested_key_path test.
+ * @return {ydn.db.schema.Database} schema used in nested_key_path test.
  */
 ydn.db.test.get_nested_key_path_schema = function() {
   var store_name = 'nested_key_path';
-  var schema = new ydn.db.DatabaseSchema(1);
-  schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
+  var schema = new ydn.db.schema.Database(1);
+  schema.addStore(new ydn.db.schema.Store(store_name, 'id.$t'));
   return schema;
 };
 

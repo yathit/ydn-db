@@ -24,10 +24,10 @@ var setUp = function() {
   }
   //ydn.db.req.IndexedDb.DEBUG = false;
 
-  var indexSchema = new ydn.db.IndexSchema('value', ydn.db.DataType.TEXT, true);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
-    ydn.db.DataType.INTEGER, [indexSchema]);
-  schema = new ydn.db.DatabaseSchema(1, [store_schema]);
+  var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
+  var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
+    ydn.db.schema.DataType.INTEGER, [indexSchema]);
+  schema = new ydn.db.schema.Database(1, [store_schema]);
   db = new ydn.db.Storage(db_name, schema, options);
 
   db.put(store_name, objs).addCallback(function (value) {

@@ -21,9 +21,9 @@ var setUp = function() {
 
   goog.userAgent.product.ASSUME_SAFARI = true;
 
-	basic_schema = new ydn.db.DatabaseSchema(1);
-  var index = new ydn.db.IndexSchema('id');
-  var store = new ydn.db.StoreSchema(table_name, 'id', false, undefined, [index]);
+	basic_schema = new ydn.db.schema.Database(1);
+  var index = new ydn.db.schema.Index('id');
+  var store = new ydn.db.schema.Store(table_name, 'id', false, undefined, [index]);
 	basic_schema.addStore(store);
 };
 

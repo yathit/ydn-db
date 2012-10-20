@@ -17,8 +17,8 @@ var setUp = function() {
   //stubs = new goog.testing.PropertyReplacer();
 
   var table_name = 't1';
-  var basic_schema = new ydn.db.DatabaseSchema(1);
-  basic_schema.addStore(new ydn.db.StoreSchema(table_name));
+  var basic_schema = new ydn.db.schema.Database(1);
+  basic_schema.addStore(new ydn.db.schema.Store(table_name));
 };
 
 var tearDown = function() {

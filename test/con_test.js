@@ -86,7 +86,7 @@ var trival_schema_test = function(dbname) {
   var opt = ydn.object.clone(options);
   opt['used_text_store'] = false;
   var db = new ydn.db.Storage(dbname, schema, opt);
-  var validated_schema = ydn.db.DatabaseSchema.fromJSON(db.getSchema());
+  var validated_schema = ydn.db.schema.Database.fromJSON(db.getSchema());
 
   var done, act_schema;
   waitForCondition(
@@ -148,8 +148,8 @@ var test_13c_ver_update = function() {
 //
 ///**
 // * Assert the two schema are similar
-// * @param {ydn.db.DatabaseSchema} schema
-// * @param {ydn.db.DatabaseSchema|DatabaseSchema} schema_json
+// * @param {ydn.db.schema.Database} schema
+// * @param {ydn.db.schema.Database|DatabaseSchema} schema_json
 // */
 //var assert_similar_schema = function(schema, schema_json) {
 //  console.log(['testing ', schema, schema_json]);
@@ -175,8 +175,8 @@ var test_13c_ver_update = function() {
 //      //assertEquals(i + ':' + j + ': index keyPath', index.keyPath, index_json.keyPath);
 //    }
 //
-//    store_json = store_json instanceof ydn.db.StoreSchema ?
-//        store_json : ydn.db.StoreSchema.fromJSON(store_json);
+//    store_json = store_json instanceof ydn.db.schema.Store ?
+//        store_json : ydn.db.schema.Store.fromJSON(store_json);
 //    assertTrue(i + ': similar', store.similar(store_json));
 //  }
 //  //console.log('test OK');
@@ -184,9 +184,9 @@ var test_13c_ver_update = function() {
 //
 //var test_2_schema_sniffing = function() {
 //
-//  var index = new ydn.db.IndexSchema('id.$t', ydn.db.DataType.TEXT, true);
-//  var store = new ydn.db.StoreSchema(store_name, 'id', false, ydn.db.DataType.NUMERIC, [index]);
-//  var schema = new ydn.db.DatabaseSchema(1, [store]);
+//  var index = new ydn.db.schema.Index('id.$t', ydn.db.schema.DataType.TEXT, true);
+//  var store = new ydn.db.schema.Store(store_name, 'id', false, ydn.db.schema.DataType.NUMERIC, [index]);
+//  var schema = new ydn.db.schema.Database(1, [store]);
 //
 //  var db_name = 'test_2_sql_schema_sniffing_8';
 //  var db = new ydn.db.Storage(db_name, schema, options);

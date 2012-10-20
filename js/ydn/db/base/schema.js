@@ -5,10 +5,10 @@
  */
 
 
-goog.provide('ydn.db.DataType');
-goog.provide('ydn.db.DatabaseSchema');
-goog.provide('ydn.db.IndexSchema');
-goog.provide('ydn.db.StoreSchema');
+goog.provide('ydn.db.schema.DataType');
+goog.provide('ydn.db.schema.Database');
+goog.provide('ydn.db.schema.Index');
+goog.provide('ydn.db.schema.Store');
 goog.require('ydn.db.Cursor.Direction');
 goog.require('ydn.db.Key');
 
@@ -16,7 +16,7 @@ goog.require('ydn.db.Key');
 /**
  *
  * @param {string} keyPath the key path.
- * @param {ydn.db.DataType=} opt_type to be determined.
+ * @param {ydn.db.schema.DataType=} opt_type to be determined.
  * @param {boolean=} opt_unique True if the index enforces that there is only
  * one objectfor each unique value it indexes on.
  * @param {boolean=} multiEntry  specifies whether the index's multiEntry flag
@@ -24,7 +24,7 @@ goog.require('ydn.db.Key');
  * @param {string=} name index name.
  * @constructor
  */
-ydn.db.IndexSchema = function(keyPath, opt_type, opt_unique, multiEntry, name) {
+ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name) {
 
   if (!goog.isDef(keyPath) && goog.isDef(name)) {
     keyPath = name;
@@ -50,9 +50,9 @@ ydn.db.IndexSchema = function(keyPath, opt_type, opt_unique, multiEntry, name) {
   this.name = this.keyPath;
   /**
    * @final
-   * @type {ydn.db.DataType|undefined}
+   * @type {ydn.db.schema.DataType|undefined}
    */
-  this.type = ydn.db.IndexSchema.toType(opt_type);
+  this.type = ydn.db.schema.Index.toType(opt_type);
   if (this.type != opt_type) {
     throw new ydn.error.ArgumentException('Invalid index type: ' + opt_type +
         ' in ' + this.name);
@@ -82,7 +82,7 @@ ydn.db.IndexSchema = function(keyPath, opt_type, opt_unique, multiEntry, name) {
  * @see http://www.sqlite.org/lang_expr.html
  * @enum {string}
  */
-ydn.db.DataType = {
+ydn.db.schema.DataType = {
   ARRAY: 'ARRAY', // out of tune here, not in WebSQL, but keyPath could be array
   BLOB: 'BLOB',
   DATE: 'DATE',
@@ -93,7 +93,7 @@ ydn.db.DataType = {
 
 
 /**
- * This data type abbreviation is used to prefix value of ydn.db.DataType.ARRAY
+ * This data type abbreviation is used to prefix value of ydn.db.schema.DataType.ARRAY
  * on storage.
  * @see http://www.sqlite.org/datatype3.html
  * @enum {string}
@@ -110,22 +110,22 @@ ydn.db.DataTypeAbbr = {
  * @const
  * @type {string}
  */
-ydn.db.IndexSchema.ARRAY_SEP = String.fromCharCode(0x001F);
+ydn.db.schema.Index.ARRAY_SEP = String.fromCharCode(0x001F);
 
 
 /**
  * Convert key value from IndexedDB value to Sqlite for storage.
  * @see #sql2js
  * @param {Array|Date|*} key key.
- * @param {ydn.db.DataType|undefined} type data type.
+ * @param {ydn.db.schema.DataType|undefined} type data type.
  * @return {*} string.
  */
-ydn.db.IndexSchema.js2sql = function(key, type) {
-  if (type == ydn.db.DataType.DATE) {
+ydn.db.schema.Index.js2sql = function(key, type) {
+  if (type == ydn.db.schema.DataType.DATE) {
     if (key instanceof Date) {
       return +key;  // date is store as NUMERIC
     } // else ?
-  } else if (type == ydn.db.DataType.ARRAY) {
+  } else if (type == ydn.db.schema.DataType.ARRAY) {
     // NOTE: we are storing these value for indexing purpose.
     // Array is not native to Sqlite. To be multiEntry searchable,
     // array values are store as TEXT and search using LIKE %q%
@@ -134,12 +134,12 @@ ydn.db.IndexSchema.js2sql = function(key, type) {
     // front with ydn.db.DataTypeAbbr.
     var arr = !goog.isDefAndNotNull(key) ? [''] :
       goog.isArray(key) ? key : [key];
-    var t = ydn.db.IndexSchema.toAbbrType(arr[0]);
+    var t = ydn.db.schema.Index.toAbbrType(arr[0]);
     var value = (t == ydn.db.DataTypeAbbr.DATE) ?
       arr.reduce(function(p, x) {return p + (+x);}, '') :
-      arr.join(ydn.db.IndexSchema.ARRAY_SEP);
-    return t + ydn.db.IndexSchema.ARRAY_SEP +
-      value + ydn.db.IndexSchema.ARRAY_SEP;
+      arr.join(ydn.db.schema.Index.ARRAY_SEP);
+    return t + ydn.db.schema.Index.ARRAY_SEP +
+      value + ydn.db.schema.Index.ARRAY_SEP;
   } else {
     return key;
   }
@@ -150,19 +150,19 @@ ydn.db.IndexSchema.js2sql = function(key, type) {
  * Convert key value from Sqlite value to IndexedDB for storage.
  * @see #js2sql
  * @param {string|number|*} key
- * @param {ydn.db.DataType|undefined} type
+ * @param {ydn.db.schema.DataType|undefined} type
  * @return {Date|Array|*}
  */
-ydn.db.IndexSchema.sql2js = function(key, type) {
-  if (type == ydn.db.DataType.DATE) {
+ydn.db.schema.Index.sql2js = function(key, type) {
+  if (type == ydn.db.schema.DataType.DATE) {
     return new Date(key); // key is number
-  } else if (type == ydn.db.DataType.ARRAY) {
+  } else if (type == ydn.db.schema.DataType.ARRAY) {
     goog.asserts.assertString(key);
     /**
      * @type {string}
      */
     var s = key;
-    var arr = s.split(ydn.db.IndexSchema.ARRAY_SEP);
+    var arr = s.split(ydn.db.schema.Index.ARRAY_SEP);
     var t = arr[0];
     var effective_arr = arr.slice(1, arr.length - 1); // remove last and first
     return goog.array.map(effective_arr, function(x) {
@@ -182,21 +182,21 @@ ydn.db.IndexSchema.sql2js = function(key, type) {
 
 /**
  * @const
- * @type {!Array.<ydn.db.DataType>}
+ * @type {!Array.<ydn.db.schema.DataType>}
  */
-ydn.db.IndexSchema.TYPES = [ydn.db.DataType.ARRAY, ydn.db.DataType.BLOB,
-  ydn.db.DataType.DATE, ydn.db.DataType.INTEGER, ydn.db.DataType.NUMERIC,
-  ydn.db.DataType.TEXT];
+ydn.db.schema.Index.TYPES = [ydn.db.schema.DataType.ARRAY, ydn.db.schema.DataType.BLOB,
+  ydn.db.schema.DataType.DATE, ydn.db.schema.DataType.INTEGER, ydn.db.schema.DataType.NUMERIC,
+  ydn.db.schema.DataType.TEXT];
 
 
 /**
  *
- * @param {ydn.db.DataType|string=} str
- * @return {ydn.db.DataType|undefined}
+ * @param {ydn.db.schema.DataType|string=} str
+ * @return {ydn.db.schema.DataType|undefined}
  */
-ydn.db.IndexSchema.toType = function(str) {
-  var idx = goog.array.indexOf(ydn.db.IndexSchema.TYPES, str);
-  return ydn.db.IndexSchema.TYPES[idx]; // undefined OK.
+ydn.db.schema.Index.toType = function(str) {
+  var idx = goog.array.indexOf(ydn.db.schema.Index.TYPES, str);
+  return ydn.db.schema.Index.TYPES[idx]; // undefined OK.
 };
 
 
@@ -205,7 +205,7 @@ ydn.db.IndexSchema.toType = function(str) {
  * @param {*} x
  * @return {ydn.db.DataTypeAbbr}
  */
-ydn.db.IndexSchema.toAbbrType = function(x) {
+ydn.db.schema.Index.toAbbrType = function(x) {
   if (x instanceof Date) {
     return ydn.db.DataTypeAbbr.DATE;
   } else if (goog.isNumber(x)) {
@@ -219,10 +219,10 @@ ydn.db.IndexSchema.toAbbrType = function(x) {
 
 /**
  *
- * @return {ydn.db.DataType}
+ * @return {ydn.db.schema.DataType}
  */
-ydn.db.IndexSchema.prototype.getType = function() {
-  return this.type || ydn.db.DataType.TEXT;
+ydn.db.schema.Index.prototype.getType = function() {
+  return this.type || ydn.db.schema.DataType.TEXT;
 };
 
 
@@ -230,7 +230,7 @@ ydn.db.IndexSchema.prototype.getType = function() {
 /**
  * @inheritDoc
  */
-ydn.db.IndexSchema.prototype.toJSON = function() {
+ydn.db.schema.Index.prototype.toJSON = function() {
   return {
     'name': this.name,
     'type': this.type,
@@ -242,10 +242,10 @@ ydn.db.IndexSchema.prototype.toJSON = function() {
 /**
  * Compare two stores.
  * @see #equals
- * @param {ydn.db.IndexSchema} index
+ * @param {ydn.db.schema.Index} index
  * @return {string}
  */
-ydn.db.IndexSchema.prototype.difference = function(index) {
+ydn.db.schema.Index.prototype.difference = function(index) {
   if (!index) {
     return 'no index for ' + this.name;
   }
@@ -271,7 +271,7 @@ ydn.db.IndexSchema.prototype.difference = function(index) {
  * @param {ydn.db.Cursor.Direction|string=} str
  * @return {ydn.db.Cursor.Direction|undefined}
  */
-ydn.db.IndexSchema.toDir = function(str) {
+ydn.db.schema.Index.toDir = function(str) {
   var idx = goog.array.indexOf(ydn.db.Cursor.DIRECTIONS, str);
   return ydn.db.Cursor.DIRECTIONS[idx]; // undefined OK.
 };
@@ -280,9 +280,9 @@ ydn.db.IndexSchema.toDir = function(str) {
 /**
  *
  * @param {!IndexSchema} json object in json format.
- * @return {ydn.db.IndexSchema} created from input json string.
+ * @return {ydn.db.schema.Index} created from input json string.
  */
-ydn.db.IndexSchema.fromJSON = function(json) {
+ydn.db.schema.Index.fromJSON = function(json) {
   if (goog.DEBUG) {
     var fields = ['name', 'unique', 'type', 'keyPath', 'multiEntry'];
     for (var key in json) {
@@ -292,7 +292,7 @@ ydn.db.IndexSchema.fromJSON = function(json) {
       }
     }
   }
-  return new ydn.db.IndexSchema(json.keyPath, json.type, json.unique,
+  return new ydn.db.schema.Index(json.keyPath, json.type, json.unique,
     json.multiEntry, json.name);
 };
 
@@ -304,13 +304,13 @@ ydn.db.IndexSchema.fromJSON = function(json) {
  * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to.
  * @param {boolean=} autoIncrement If true, the object store has a key
  * generator. Defaults to false.
- * @param {ydn.db.DataType=} opt_type data type for keyPath. Default to
- * <code>ydn.db.DataType.INTEGER</code> if opt_autoIncrement is
+ * @param {ydn.db.schema.DataType=} opt_type data type for keyPath. Default to
+ * <code>ydn.db.schema.DataType.INTEGER</code> if opt_autoIncrement is
  * <code>true.</code>
- * @param {!Array.<!ydn.db.IndexSchema>=} opt_indexes list of indexes.
+ * @param {!Array.<!ydn.db.schema.Index>=} opt_indexes list of indexes.
  * @constructor
  */
-ydn.db.StoreSchema = function(name, keyPath, autoIncrement, opt_type, opt_indexes) {
+ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type, opt_indexes) {
 
   /**
    * @final
@@ -339,7 +339,7 @@ ydn.db.StoreSchema = function(name, keyPath, autoIncrement, opt_type, opt_indexe
 
   var type;
   if (goog.isDef(opt_type)) {
-    type = ydn.db.IndexSchema.toType(opt_type);
+    type = ydn.db.schema.Index.toType(opt_type);
     if (!goog.isDef(type)) {
       throw new ydn.error.ArgumentException('type invalid in store: ' + this.name);
     }
@@ -347,14 +347,14 @@ ydn.db.StoreSchema = function(name, keyPath, autoIncrement, opt_type, opt_indexe
 
   /**
    * @final
-   * @type {ydn.db.DataType|undefined} //
+   * @type {ydn.db.schema.DataType|undefined} //
    */
   this.type = goog.isDef(type) ? type : this.autoIncrement ?
-    ydn.db.DataType.INTEGER : undefined;
+    ydn.db.schema.DataType.INTEGER : undefined;
 
   if (this.autoIncrement) {
     var sqlite_msg = 'AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY';
-    goog.asserts.assert(this.type == ydn.db.DataType.INTEGER, sqlite_msg);
+    goog.asserts.assert(this.type == ydn.db.schema.DataType.INTEGER, sqlite_msg);
   }
 
 
@@ -365,7 +365,7 @@ ydn.db.StoreSchema = function(name, keyPath, autoIncrement, opt_type, opt_indexe
   this.keyPaths = !goog.isNull(this.keyPath) ? this.keyPath.split('.') : [];
   /**
    * @final
-   * @type {!Array.<!ydn.db.IndexSchema>}
+   * @type {!Array.<!ydn.db.schema.Index>}
    */
   this.indexes = opt_indexes || [];
 };
@@ -374,7 +374,7 @@ ydn.db.StoreSchema = function(name, keyPath, autoIncrement, opt_type, opt_indexe
 /**
  * @inheritDoc
  */
-ydn.db.StoreSchema.prototype.toJSON = function() {
+ydn.db.schema.Store.prototype.toJSON = function() {
 
   var indexes = [];
   for (var i = 0; i < this.indexes.length; i++) {
@@ -394,9 +394,9 @@ ydn.db.StoreSchema.prototype.toJSON = function() {
 /**
  *
  * @param {!StoreSchema} json Restore from json stream.
- * @return {!ydn.db.StoreSchema} create new store schema from JSON string.
+ * @return {!ydn.db.schema.Store} create new store schema from JSON string.
  */
-ydn.db.StoreSchema.fromJSON = function(json) {
+ydn.db.schema.Store.fromJSON = function(json) {
   if (goog.DEBUG) {
     var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'Indexes'];
     for (var key in json) {
@@ -410,34 +410,34 @@ ydn.db.StoreSchema.fromJSON = function(json) {
   var indexes_json = json.Indexes || [];
   if (goog.isArray(indexes_json)) {
     for (var i = 0; i < indexes_json.length; i++) {
-      var index = ydn.db.IndexSchema.fromJSON(indexes_json[i]);
+      var index = ydn.db.schema.Index.fromJSON(indexes_json[i]);
       if (goog.isDef(index.keyPath) && index.keyPath === json.keyPath) {
         continue; // key do not need indexing.
       }
       indexes.push(index);
     }
   }
-  return new ydn.db.StoreSchema(json.name, json.keyPath,
+  return new ydn.db.schema.Store(json.name, json.keyPath,
     json.autoIncrement, json.type, indexes);
 };
 
 
 /**
  *
- * @return {!ydn.db.StoreSchema}
+ * @return {!ydn.db.schema.Store}
  */
-ydn.db.StoreSchema.prototype.clone = function() {
-  return ydn.db.StoreSchema.fromJSON(/** @type {!StoreSchema} */ (this.toJSON()));
+ydn.db.schema.Store.prototype.clone = function() {
+  return ydn.db.schema.Store.fromJSON(/** @type {!StoreSchema} */ (this.toJSON()));
 };
 
 
 /**
  *
  * @param {string} name index name.
- * @return {ydn.db.IndexSchema} index if found.
+ * @return {ydn.db.schema.Index} index if found.
  */
-ydn.db.StoreSchema.prototype.getIndex = function(name) {
-  return /** @type {ydn.db.IndexSchema} */ (goog.array.find(this.indexes,
+ydn.db.schema.Store.prototype.getIndex = function(name) {
+  return /** @type {ydn.db.schema.Index} */ (goog.array.find(this.indexes,
     function(x) {
     return x.name == name;
   }));
@@ -450,7 +450,7 @@ ydn.db.StoreSchema.prototype.getIndex = function(name) {
  * @return {boolean} return true if name is found in the index, including
  * keyPath.
  */
-ydn.db.StoreSchema.prototype.hasIndex = function(name) {
+ydn.db.schema.Store.prototype.hasIndex = function(name) {
   if (name == this.keyPath) {
     return true;
   }
@@ -464,7 +464,7 @@ ydn.db.StoreSchema.prototype.hasIndex = function(name) {
 /**
  * @return {string|undefined} return quoted keyPath.
  */
-ydn.db.StoreSchema.prototype.getQuotedKeyPath = function() {
+ydn.db.schema.Store.prototype.getQuotedKeyPath = function() {
   return goog.isString(this.keyPath) ? goog.string.quote(this.keyPath) : undefined;
 };
 
@@ -473,7 +473,7 @@ ydn.db.StoreSchema.prototype.getQuotedKeyPath = function() {
  * Return quoted keyPath. In case undefined return default key column.
  * @return {string} return quoted keyPath.
  */
-ydn.db.StoreSchema.prototype.getSQLKeyColumnName = function() {
+ydn.db.schema.Store.prototype.getSQLKeyColumnName = function() {
   return goog.isString(this.keyPath) ?
     goog.string.quote(this.keyPath) : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 };
@@ -483,7 +483,7 @@ ydn.db.StoreSchema.prototype.getSQLKeyColumnName = function() {
  *
  * @return {string} return quoted name.
  */
-ydn.db.StoreSchema.prototype.getQuotedName = function() {
+ydn.db.schema.Store.prototype.getQuotedName = function() {
   return goog.string.quote(this.name);
 };
 
@@ -492,7 +492,7 @@ ydn.db.StoreSchema.prototype.getQuotedName = function() {
  * @return {Array.<string>} return name of indexed. It is used as column name
  * in WebSql.
  */
-ydn.db.StoreSchema.prototype.getColumns = function() {
+ydn.db.schema.Store.prototype.getColumns = function() {
   if (this.columns_ && this.columns_.length != this.indexes.length) {
     /**
      * @private
@@ -511,7 +511,7 @@ ydn.db.StoreSchema.prototype.getColumns = function() {
  *
  * @return {!Array.<string>}
  */
-ydn.db.StoreSchema.prototype.getIndexNames = function() {
+ydn.db.schema.Store.prototype.getIndexNames = function() {
   return this.indexes.map(function(x) {return x.name;});
 };
 
@@ -519,13 +519,13 @@ ydn.db.StoreSchema.prototype.getIndexNames = function() {
 /**
  *
  * @param {string} name column name or keyPath.
- * @param {ydn.db.DataType=} opt_type .
+ * @param {ydn.db.schema.DataType=} opt_type .
  * @param {boolean=} opt_unique unique.
  * @param {boolean=} opt_multiEntry .
  */
-ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type,
+ydn.db.schema.Store.prototype.addIndex = function(name, opt_unique, opt_type,
       opt_multiEntry) {
-  this.indexes.push(new ydn.db.IndexSchema(name, opt_type, opt_unique,
+  this.indexes.push(new ydn.db.schema.Index(name, opt_type, opt_unique,
     opt_multiEntry));
 };
 
@@ -536,7 +536,7 @@ ydn.db.StoreSchema.prototype.addIndex = function(name, opt_unique, opt_type,
  * @param {!Object} obj object to extract from.
  * @return {!Array|number|string|undefined} return key value.
  */
-ydn.db.StoreSchema.prototype.getKeyValue = function(obj) {
+ydn.db.schema.Store.prototype.getKeyValue = function(obj) {
   // http://www.w3.org/TR/IndexedDB/#key-construct
   return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
 };
@@ -547,12 +547,12 @@ ydn.db.StoreSchema.prototype.getKeyValue = function(obj) {
  * @param {!Object} obj
  * @return {!Array|number|string|undefined} return key value.
  */
-ydn.db.StoreSchema.prototype.getRowValue = function(obj) {
+ydn.db.schema.Store.prototype.getRowValue = function(obj) {
   if (goog.isDefAndNotNull(this.keyPath)) {
     var value = obj[this.keyPath];
-    if (this.type == ydn.db.DataType.DATE) {
+    if (this.type == ydn.db.schema.DataType.DATE) {
       value = Date.parse(value);
-    } else if (this.type == ydn.db.DataType.ARRAY) {
+    } else if (this.type == ydn.db.schema.DataType.ARRAY) {
       value = parseFloat(value);
     }
     return value;
@@ -567,7 +567,7 @@ ydn.db.StoreSchema.prototype.getRowValue = function(obj) {
  * NOTE: Use only by simple store.
  * @return {number} generated key.
  */
-ydn.db.StoreSchema.prototype.generateKey = function() {
+ydn.db.schema.Store.prototype.generateKey = function() {
   if (!goog.isDef(this.current_key_)) {
 
     /**
@@ -586,7 +586,7 @@ ydn.db.StoreSchema.prototype.generateKey = function() {
  * @param {!Object} obj get key value from its keyPath field.
  * @param {*} value key value to set.
  */
-ydn.db.StoreSchema.prototype.setKeyValue = function(obj, value) {
+ydn.db.schema.Store.prototype.setKeyValue = function(obj, value) {
 
   for (var i = 0; i < this.keyPaths.length; i++) {
     var key = this.keyPaths[i];
@@ -607,7 +607,7 @@ ydn.db.StoreSchema.prototype.setKeyValue = function(obj, value) {
 /**
  * @define {string} default key-value store name.
  */
-ydn.db.StoreSchema.DEFAULT_TEXT_STORE = 'default_text_store';
+ydn.db.schema.Store.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
 /**
@@ -621,7 +621,7 @@ ydn.db.StoreSchema.DEFAULT_TEXT_STORE = 'default_text_store';
  *    key: (!Array|string|number|undefined)
  *  }} return list of values as it appear on the indexed fields.
  */
-ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
+ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
 
   // since corretness of the inline, offline, auto are already checked,
   // here we don't check again. this method should not throw error for
@@ -637,7 +637,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
   if (goog.isDef(key)) {
     columns = goog.isDefAndNotNull(this.keyPath) ? [this.getQuotedKeyPath()] :
         [ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
-    values = [ydn.db.IndexSchema.js2sql(key, this.type)];
+    values = [ydn.db.schema.Index.js2sql(key, this.type)];
   }
 
   for (var i = 0; i < this.indexes.length; i++) {
@@ -647,7 +647,7 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
     }
     var v = obj[this.indexes[i].name];
     if (goog.isDef(v)) {
-      values.push(ydn.db.IndexSchema.js2sql(v, this.indexes[i].type));
+      values.push(ydn.db.schema.Index.js2sql(v, this.indexes[i].type));
       columns.push(goog.string.quote(this.indexes[i].name));
     }
   }
@@ -679,10 +679,10 @@ ydn.db.StoreSchema.prototype.getIndexedValues = function(obj, opt_key) {
 /**
  * Compare two stores.
  * @see #similar
- * @param {ydn.db.StoreSchema} store
+ * @param {ydn.db.schema.Store} store
  * @return {boolean}
  */
-ydn.db.StoreSchema.prototype.equals = function(store) {
+ydn.db.schema.Store.prototype.equals = function(store) {
   return this.name === store.name &&
     ydn.object.isSame(this.toJSON(), store.toJSON());
 };
@@ -691,10 +691,10 @@ ydn.db.StoreSchema.prototype.equals = function(store) {
 /**
  * Compare two stores.
  * @see #equals
- * @param {ydn.db.StoreSchema} store
+ * @param {ydn.db.schema.Store} store
  * @return {string} explination for difference, empty string for similar
  */
-ydn.db.StoreSchema.prototype.difference = function(store) {
+ydn.db.schema.Store.prototype.difference = function(store) {
 
   if (!store) {
     return 'missing store: ' + this.name;
@@ -730,10 +730,10 @@ ydn.db.StoreSchema.prototype.difference = function(store) {
 
 /**
  *
- * @param {ydn.db.StoreSchema} store
+ * @param {ydn.db.schema.Store} store
  * @return {boolean}
  */
-ydn.db.StoreSchema.prototype.similar = function(store) {
+ydn.db.schema.Store.prototype.similar = function(store) {
   return this.difference(store).length == 0;
 };
 
@@ -741,10 +741,10 @@ ydn.db.StoreSchema.prototype.similar = function(store) {
 /**
  *
  * @param {number|string=} version version, if string, it must be parse to int.
- * @param {!Array.<!ydn.db.StoreSchema>=} opt_stores store schemas.
+ * @param {!Array.<!ydn.db.schema.Store>=} opt_stores store schemas.
  * @constructor
  */
-ydn.db.DatabaseSchema = function(version, opt_stores) {
+ydn.db.schema.Database = function(version, opt_stores) {
 
   var ver = goog.isString(version) ? version.length == 0 ?
       undefined : parseFloat(version) : version;
@@ -758,7 +758,7 @@ ydn.db.DatabaseSchema = function(version, opt_stores) {
     }
   }
   if (goog.isDef(opt_stores) && (!goog.isArray(opt_stores) ||
-      opt_stores.length > 0 && !(opt_stores[0] instanceof ydn.db.StoreSchema))) {
+      opt_stores.length > 0 && !(opt_stores[0] instanceof ydn.db.schema.Store))) {
     throw new ydn.error.ArgumentException('stores');
   }
 
@@ -771,7 +771,7 @@ ydn.db.DatabaseSchema = function(version, opt_stores) {
 
   /**
    * @final
-   * @type {!Array.<!ydn.db.StoreSchema>}
+   * @type {!Array.<!ydn.db.schema.Store>}
    */
   this.stores = opt_stores || [];
 
@@ -783,7 +783,7 @@ ydn.db.DatabaseSchema = function(version, opt_stores) {
 /**
  * @inheritDoc
  */
-ydn.db.DatabaseSchema.prototype.toJSON = function() {
+ydn.db.schema.Database.prototype.toJSON = function() {
 
   var stores = this.stores.map(function(x) {return x.toJSON()});
 
@@ -798,21 +798,21 @@ ydn.db.DatabaseSchema.prototype.toJSON = function() {
  * @type {boolean}
  * @private
  */
-ydn.db.DatabaseSchema.prototype.is_auto_version_ = false;
+ydn.db.schema.Database.prototype.is_auto_version_ = false;
 
 /**
  *
  * @type {boolean}
  * @private
  */
-ydn.db.DatabaseSchema.prototype.is_auto_schema_ = false;
+ydn.db.schema.Database.prototype.is_auto_schema_ = false;
 
 
 /**
  * Get schema version.
  * @return {number}
  */
-ydn.db.DatabaseSchema.prototype.getVersion = function() {
+ydn.db.schema.Database.prototype.getVersion = function() {
   return goog.isDef(this.version) ? this.version : 1;
 };
 
@@ -821,7 +821,7 @@ ydn.db.DatabaseSchema.prototype.getVersion = function() {
  * Update database schema for auto schema mode.
  * @param {number} version must be number type
  */
-ydn.db.DatabaseSchema.prototype.setVersion = function(version) {
+ydn.db.schema.Database.prototype.setVersion = function(version) {
   goog.asserts.assert(this.is_auto_version_);
   goog.asserts.assertNumber(version);
   this.version = version;
@@ -832,7 +832,7 @@ ydn.db.DatabaseSchema.prototype.setVersion = function(version) {
  *
  * @return {boolean}
  */
-ydn.db.DatabaseSchema.prototype.isAutoVersion = function() {
+ydn.db.schema.Database.prototype.isAutoVersion = function() {
   return this.is_auto_version_;
 };
 
@@ -842,7 +842,7 @@ ydn.db.DatabaseSchema.prototype.isAutoVersion = function() {
  *
  * @return {boolean}
  */
-ydn.db.DatabaseSchema.prototype.isAutoSchema = function() {
+ydn.db.schema.Database.prototype.isAutoSchema = function() {
   return this.is_auto_schema_;
 };
 
@@ -851,16 +851,16 @@ ydn.db.DatabaseSchema.prototype.isAutoSchema = function() {
  *
  * @return {!Array.<string>}
  */
-ydn.db.DatabaseSchema.prototype.getStoreNames = function() {
+ydn.db.schema.Database.prototype.getStoreNames = function() {
   return this.stores.map(function(x) {return x.name;});
 };
 
 
 /**
  * @param {!DatabaseSchema} json Restore from json stream.
- * @return {!ydn.db.DatabaseSchema} create new database schema from JSON string.
+ * @return {!ydn.db.schema.Database} create new database schema from JSON string.
  */
-ydn.db.DatabaseSchema.fromJSON = function(json) {
+ydn.db.schema.Database.fromJSON = function(json) {
   if (goog.DEBUG) {
     var fields = ['version', 'Stores'];
     for (var key in json) {
@@ -873,17 +873,17 @@ ydn.db.DatabaseSchema.fromJSON = function(json) {
   var stores = [];
   var stores_json = json.Stores || [];
   for (var i = 0; i < stores_json.length; i++) {
-    stores.push(ydn.db.StoreSchema.fromJSON(stores_json[i]));
+    stores.push(ydn.db.schema.Store.fromJSON(stores_json[i]));
   }
-  return new ydn.db.DatabaseSchema(json.version, stores);
+  return new ydn.db.schema.Database(json.version, stores);
 };
 
 
 /**
  *
- * @param {!ydn.db.StoreSchema} table store.
+ * @param {!ydn.db.schema.Store} table store.
  */
-ydn.db.DatabaseSchema.prototype.addStore = function(table) {
+ydn.db.schema.Database.prototype.addStore = function(table) {
   this.stores.push(table);
 };
 
@@ -891,10 +891,10 @@ ydn.db.DatabaseSchema.prototype.addStore = function(table) {
 /**
  *
  * @param {string} name store name.
- * @return {ydn.db.StoreSchema} store if found.
+ * @return {ydn.db.schema.Store} store if found.
  */
-ydn.db.DatabaseSchema.prototype.getStore = function(name) {
-  return /** @type {ydn.db.StoreSchema} */ (goog.array.find(this.stores,
+ydn.db.schema.Database.prototype.getStore = function(name) {
+  return /** @type {ydn.db.schema.Store} */ (goog.array.find(this.stores,
       function(x) {
         return x.name == name;
       }));
@@ -906,7 +906,7 @@ ydn.db.DatabaseSchema.prototype.getStore = function(name) {
  * @param {string} name store name.
  * @return {number} index of store -1 if not found.
  */
-ydn.db.DatabaseSchema.prototype.getIndexOf = function(name) {
+ydn.db.schema.Database.prototype.getIndexOf = function(name) {
   return goog.array.indexOf(this.stores,
       function(x) {
         return x.name == name;
@@ -919,7 +919,7 @@ ydn.db.DatabaseSchema.prototype.getIndexOf = function(name) {
  * @param {string} name store name.
  * @return {boolean} return true if name found in stores.
  */
-ydn.db.DatabaseSchema.prototype.hasStore = function(name) {
+ydn.db.schema.Database.prototype.hasStore = function(name) {
 
   return goog.array.some(this.stores, function(x) {
     return x.name == name;
@@ -929,10 +929,10 @@ ydn.db.DatabaseSchema.prototype.hasStore = function(name) {
 
 /**
  * Return an explination what is different between the schemas.
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {ydn.db.schema.Database} schema
  * @return {string} return empty string if the two are similar.
  */
-ydn.db.DatabaseSchema.prototype.difference = function(schema) {
+ydn.db.schema.Database.prototype.difference = function(schema) {
   if (!schema || this.stores.length != schema.stores.length) {
     return 'Number of store: ' + this.stores.length + ' vs ' +
       schema.stores.length;
@@ -951,10 +951,10 @@ ydn.db.DatabaseSchema.prototype.difference = function(schema) {
 
 /**
  *
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {ydn.db.schema.Database} schema
  * @return {boolean}
  */
-ydn.db.DatabaseSchema.prototype.similar = function(schema) {
+ydn.db.schema.Database.prototype.similar = function(schema) {
   return this.difference(schema).length == 0;
 };
 
@@ -963,7 +963,7 @@ ydn.db.DatabaseSchema.prototype.similar = function(schema) {
  *
  * @return {!Array.<string>} Return list of store names.
  */
-ydn.db.DatabaseSchema.prototype.listStores = function() {
+ydn.db.schema.Database.prototype.listStores = function() {
   if (!this.store_names) {
     /**
      * @final

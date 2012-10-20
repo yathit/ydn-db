@@ -6,7 +6,7 @@ goog.require('ydn.db.Storage');
 
 
 var reachedFinalContinuation, debug_console, basic_schema;
-var db_name = 'test_key_11_3';
+var db_name = 'test_key_11_4';
 var string_table = 't1';
 var number_table = 't2';
 var date_table = 't3';
@@ -38,18 +38,22 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
+var getBasicSchema = function () {
+  var s1 = new ydn.db.schema.Store(string_table, 'id');
+  var s2 = new ydn.db.schema.Store(number_table, 'id', false,
+      ydn.db.schema.DataType.NUMERIC);
+  var s3 = new ydn.db.schema.Store(date_table, 'id', false,
+      ydn.db.schema.DataType.DATE);
+  var s4 = new ydn.db.schema.Store(array_table, 'id', false,
+      ydn.db.schema.DataType.ARRAY);
+  var s5 = new ydn.db.schema.Store(out_of_line_store, undefined,  false);
+  basic_schema = new ydn.db.schema.Database(1, [s1, s2, s3, s4, s5]);
+  return basic_schema;
+}
 
 var createDb = function() {
-  basic_schema = new ydn.db.DatabaseSchema(1);
-  basic_schema.addStore(new ydn.db.StoreSchema(string_table, 'id'));
-  basic_schema.addStore(new ydn.db.StoreSchema(number_table, 'id', false,
-      ydn.db.DataType.NUMERIC));
-  basic_schema.addStore(new ydn.db.StoreSchema(date_table, 'id', false,
-      ydn.db.DataType.DATE));
-  basic_schema.addStore(new ydn.db.StoreSchema(array_table, 'id', false,
-      ydn.db.DataType.ARRAY));
 
-  basic_schema.addStore(new ydn.db.StoreSchema(out_of_line_store, undefined,  false));
+  var basic_schema = getBasicSchema();
 
   var db = new ydn.db.Storage(db_name, basic_schema, options);
   return db;
@@ -124,7 +128,8 @@ var test_11_string_keys = function() {
 
 var test_12_number_keys = function() {
 
-  var db_name = 'test_key_12_1';
+  var db_name = 'test_key_12_2';
+  var basic_schema = getBasicSchema();
   var db = new ydn.db.Storage(db_name, basic_schema, options);
 
   var on_completed = function() {
@@ -195,8 +200,8 @@ var test_21_out_of_line = function () {
 var test_22_out_of_line_array = function () {
   var store_name = 'demoOS';
   var db_name = 'test_22_1';
-  var store_schema = new ydn.db.StoreSchema(store_name, undefined,  false);
-  var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
+  var store_schema = new ydn.db.schema.Store(store_name, undefined,  false);
+  var schema = new ydn.db.schema.Database(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
@@ -261,8 +266,8 @@ var test_22_out_of_line_array = function () {
 var test_40_nested_keyPath = function() {
   var store_name = 'ts1';
   var db_name = 'test_key_40_1';
-  var schema = new ydn.db.DatabaseSchema(1);
-  schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
+  var schema = new ydn.db.schema.Database(1);
+  schema.addStore(new ydn.db.schema.Store(store_name, 'id.$t'));
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var key = 'a';
@@ -314,8 +319,8 @@ var test_40_nested_keyPath = function() {
 var test_42_autoincreasement_offline = function () {
   var store_name = 'demoOS';
   var db_name = 'test_42_25';
-  var store_schema = new ydn.db.StoreSchema(store_name, undefined, true);
-  var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
+  var store_schema = new ydn.db.schema.Store(store_name, undefined, true);
+  var schema = new ydn.db.schema.Database(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
@@ -381,9 +386,9 @@ var test_42_autoincreasement_offline = function () {
 var test_43_autoincreasement_inline = function () {
   var store_name = 'demoOS';
   var db_name = 'test_key_43_4';
-  var store_schema = new ydn.db.StoreSchema(store_name, 'value', true,
-      ydn.db.DataType.INTEGER);
-  var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
+  var store_schema = new ydn.db.schema.Store(store_name, 'value', true,
+      ydn.db.schema.DataType.INTEGER);
+  var schema = new ydn.db.schema.Database(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [

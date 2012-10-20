@@ -15,7 +15,7 @@ function IndexSchema() {}
 IndexSchema.prototype.name;
 
 /**
- * @type {ydn.db.DataType}
+ * @type {ydn.db.schema.DataType}
  */
 IndexSchema.prototype.type;
 
@@ -56,7 +56,7 @@ StoreSchema.prototype.keyPath;
 StoreSchema.prototype.autoIncrement;
 
 /**
- * @type {ydn.db.DataType}
+ * @type {ydn.db.schema.DataType}
  */
 StoreSchema.prototype.type;
 

@@ -21,10 +21,10 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
-  var indexSchema = new ydn.db.IndexSchema('tag', ydn.db.DataType.TEXT, false, true);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
-      ydn.db.DataType.TEXT, [indexSchema]);
-  schema = new ydn.db.DatabaseSchema(1, [store_schema]);
+  var indexSchema = new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT, false, true);
+  var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
+      ydn.db.schema.DataType.TEXT, [indexSchema]);
+  schema = new ydn.db.schema.Database(1, [store_schema]);
   db = new ydn.db.Storage(db_name, schema, options);
 
 

@@ -42,7 +42,7 @@ goog.require('ydn.db.io.QueryService');
  * {@link #setName} and {@link #setSchema}.
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
- * @param {(!ydn.db.DatabaseSchema|!DatabaseSchema)=} opt_schema database schema
+ * @param {(!ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
@@ -67,9 +67,9 @@ goog.inherits(ydn.db.Storage, ydn.db.core.Storage);
 //  // handle version change
 //  if (goog.isDef(this.schema) &&
 //    (ydn.db.base.ENABLE_DEFAULT_TEXT_STORE &&
-//      !this.schema.hasStore(ydn.db.StoreSchema.DEFAULT_TEXT_STORE))) {
-//    this.schema.addStore(new ydn.db.StoreSchema(
-//      ydn.db.StoreSchema.DEFAULT_TEXT_STORE, 'id'));
+//      !this.schema.hasStore(ydn.db.schema.Store.DEFAULT_TEXT_STORE))) {
+//    this.schema.addStore(new ydn.db.schema.Store(
+//      ydn.db.schema.Store.DEFAULT_TEXT_STORE, 'id'));
 //  }
 //  goog.base(this, 'initDatabase');
 //};

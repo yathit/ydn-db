@@ -37,7 +37,7 @@ goog.require('goog.functions');
  * Construct WebSql database.
  * Note: Version is ignored, since it does work well.
  * @param {string} dbname name of database.
- * @param {!ydn.db.DatabaseSchema} schema table schema contain table
+ * @param {!ydn.db.schema.Database} schema table schema contain table
  * name and keyPath.
  * @param {number=} opt_size estimated database size. Default to 5 MB.
  * @implements {ydn.db.con.IDatabase}
@@ -63,7 +63,7 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
 
 /**
  * @protected
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {ydn.db.schema.Database} schema
  */
 ydn.db.con.WebSql.prototype.connect = function(schema) {
 
@@ -287,7 +287,7 @@ ydn.db.con.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.con.Web
  * Initialize variable to the schema and prepare SQL statement for creating
  * the table.
  * @private
- * @param {ydn.db.StoreSchema} table_schema name of table in the schema.
+ * @param {ydn.db.schema.Store} table_schema name of table in the schema.
  * @return {!Array.<string>} SQL statement for creating the table.
  */
 ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
@@ -298,9 +298,9 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
   var type = table_schema.type;
-  if (type == ydn.db.DataType.ARRAY) {
+  if (type == ydn.db.schema.DataType.ARRAY) {
     // key will be converted into string
-    type = ydn.db.DataType.TEXT;
+    type = ydn.db.schema.DataType.TEXT;
   }
   if (goog.isDefAndNotNull(table_schema.keyPath)) {
     sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY ';
@@ -319,19 +319,19 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   }
 
   // every table must has a default field to store schemaless fields
-  sql += ' ,' +  ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' + ydn.db.DataType.BLOB;
+  sql += ' ,' +  ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' + ydn.db.schema.DataType.BLOB;
 
   var sqls = [];
   var sep = ', ';
   for (var i = 0; i < table_schema.indexes.length; i++) {
     /**
-     * @type {ydn.db.IndexSchema}
+     * @type {ydn.db.schema.Index}
      */
     var index = table_schema.indexes[i];
     var unique = index.unique ? ' UNIQUE ' : ' ';
 
     // http://sqlite.org/lang_createindex.html
-    if (index.type != ydn.db.DataType.BLOB) {
+    if (index.type != ydn.db.schema.DataType.BLOB) {
       var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS '  +
           goog.string.quote(index.name) +
           ' ON ' + table_schema.getQuotedName() + ' (' + id_column_name + ')';
@@ -363,7 +363,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
   var version = (db && db.version) ?
       parseInt(db.version, 10) : undefined;
   version = isNaN(version) ? undefined : version;
-  var out = new ydn.db.DatabaseSchema(version);
+  var out = new ydn.db.schema.Database(version);
 
 
   /**
@@ -406,7 +406,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 
           var fields = ydn.string.split_space_seperated(column_infos[j]);
           var name = goog.string.stripQuotes(fields[0], '"');
-          var type = ydn.db.IndexSchema.toType(fields[1]);
+          var type = ydn.db.schema.Index.toType(fields[1]);
           // console.log([fields[1], type]);
 
           if (fields.indexOf('PRIMARY') != -1 && fields.indexOf('KEY') != -1) {
@@ -417,14 +417,14 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             }
           } else if (name != ydn.db.base.DEFAULT_BLOB_COLUMN) {
             var unique = fields[2] == 'UNIQUE';
-            var index = new ydn.db.IndexSchema(name, type, unique);
+            var index = new ydn.db.schema.Index(name, type, unique);
             //console.log(index);
             indexes.push(index);
           }
 
         }
 
-        var store = new ydn.db.StoreSchema(info.name, key_name, autoIncrement,
+        var store = new ydn.db.schema.Store(info.name, key_name, autoIncrement,
             key_type, indexes);
         out.addStore(store);
         //console.log([info, store]);
@@ -473,7 +473,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 /**
  *
  * @param {SQLTransaction} trans
- * @param {ydn.db.StoreSchema} store_schema
+ * @param {ydn.db.schema.Store} store_schema
  * @param {Function} callback
  * @private
  */
@@ -491,9 +491,9 @@ ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
 /**
  * Alter or create table with given table schema.
  * @param {SQLTransaction} trans
- * @param {ydn.db.StoreSchema} store_schema table schema to be upgrade
+ * @param {ydn.db.schema.Store} store_schema table schema to be upgrade
  * @param {Function} callback
- * @param {ydn.db.StoreSchema|undefined} table_info table information in the
+ * @param {ydn.db.schema.Store|undefined} table_info table information in the
  * existing database.
  * @private
  */
@@ -563,7 +563,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
  * Migrate from current version to the last version.
  * @private
  * @param {Database} db
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {ydn.db.schema.Database} schema
  * @param {boolean=} is_version_change
  */
 ydn.db.con.WebSql.prototype.doVersionChange_ = function (db, schema, is_version_change) {

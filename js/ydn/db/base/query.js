@@ -24,7 +24,7 @@ goog.provide('ydn.db.Query');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.error.ArgumentException');
-goog.require('ydn.db.DatabaseSchema');
+goog.require('ydn.db.schema.Database');
 goog.require('ydn.string');
 
 
@@ -602,7 +602,7 @@ ydn.db.Query.prototype.getStoreName = function() {
 /**
  * Parse SQL statement and convert to cursor object for IndexedDB execution.
  * @see #toSqlCursor
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {ydn.db.schema.Database} schema
  * @return {!ydn.db.Cursor}
  */
 ydn.db.Query.prototype.toCursor = function(schema) {
@@ -721,7 +721,7 @@ ydn.db.Query.prototype.offset = function(value) {
 /**
  * Convert this query into iterable cursor object for WebSQL execution.
  * @see #toCursor
- * @param {!ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.schema.Database} schema
  * @return {!ydn.db.Cursor}
  */
 ydn.db.Query.prototype.toSqlCursor = function(schema) {
@@ -874,7 +874,7 @@ ydn.db.Query.prototype.toString = function() {
 /**
  * Parse resulting object of a row
  * @final
- * @param {ydn.db.StoreSchema} table table of concern.
+ * @param {ydn.db.schema.Store} table table of concern.
  * @param {!Object} row row.
  * @return {*} the first field of object in row value.
  */

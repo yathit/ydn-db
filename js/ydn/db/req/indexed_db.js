@@ -28,7 +28,7 @@ goog.require('ydn.error');
 /**
  *  @param {string} dbname
  * @extends {ydn.db.req.RequestExecutor}
- * @param {!ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.schema.Database} schema
  * @constructor
  */
 ydn.db.req.IndexedDb = function(dbname, schema) {

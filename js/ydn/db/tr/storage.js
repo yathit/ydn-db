@@ -28,7 +28,7 @@ goog.require('ydn.db.tr.TxStorage');
  * Create storage providing method to run in transaction.
  *
  * @param {string=} opt_dbname database name.
- * @param {!ydn.db.DatabaseSchema|DatabaseSchema=} opt_schema database schema
+ * @param {!ydn.db.schema.Database|DatabaseSchema=} opt_schema database schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * schema used in chronical order.

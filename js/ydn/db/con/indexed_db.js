@@ -25,7 +25,7 @@ goog.require('goog.debug.Error');
 goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db.base');
-goog.require('ydn.db.DatabaseSchema');
+goog.require('ydn.db.schema.Database');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.json');
 
@@ -34,7 +34,7 @@ goog.require('ydn.json');
  * @see goog.db.IndexedDb
  * @see ydn.db.Storage for schema
  * @param {string} dbname name of database.
- * @param {!ydn.db.DatabaseSchema} schema table schema contain table
+ * @param {!ydn.db.schema.Database} schema table schema contain table
  * name and keyPath.
  * @param {number=} opt_size estimated database size.
  * @implements {ydn.db.con.IDatabase}
@@ -47,7 +47,7 @@ ydn.db.con.IndexedDb = function(dbname, schema, opt_size) {
     /**
    * @protected
    * @final
-   * @type {!ydn.db.DatabaseSchema}
+   * @type {!ydn.db.schema.Database}
    */
   this.schema = schema;
 
@@ -74,7 +74,7 @@ ydn.db.con.IndexedDb = function(dbname, schema, opt_size) {
 
 /**
  * @protected
- * @param {ydn.db.DatabaseSchema=} schema
+ * @param {ydn.db.schema.Database=} schema
  */
 ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 
@@ -122,7 +122,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
       // since there is no version, auto schema always need to validate
       /**
        * Validate given schema and schema of opened database.
-       * @param {ydn.db.DatabaseSchema} db_schema
+       * @param {ydn.db.schema.Database} db_schema
        */
       var schema_updater = function(db_schema) {
 
@@ -187,7 +187,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 
       /**
        * Validate given schema and schema of opened database.
-       * @param {ydn.db.DatabaseSchema} db_schema
+       * @param {ydn.db.schema.Database} db_schema
        */
       var validator = function(db_schema) {
         var diff_msg = schema.difference(db_schema);
@@ -441,7 +441,7 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
       //
       // InvalidAccessError:	The function was called with an empty list of
       // store names
-      callback(new ydn.db.DatabaseSchema(idb.version));
+      callback(new ydn.db.schema.Database(idb.version));
       return;
     }
     trans = idb.transaction(names, /** @type {number} */ (mode));
@@ -453,7 +453,7 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
   /** @type {DOMStringList} */
   var objectStoreNames = /** @type {DOMStringList} */ (idb.objectStoreNames);
 
-  var schema = new ydn.db.DatabaseSchema(/** @type {number} */ (idb.version));
+  var schema = new ydn.db.schema.Database(/** @type {number} */ (idb.version));
   var n = objectStoreNames.length;
   for (var i = 0; i < n; i++) {
     /**
@@ -466,10 +466,10 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
        * @type {IDBIndex}
        */
       var index = objStore.index(objStore.indexNames[j]);
-      indexes[j] = new ydn.db.IndexSchema(index.keyPath, undefined,
+      indexes[j] = new ydn.db.schema.Index(index.keyPath, undefined,
         index.unique, index.multiEntry, index.name);
     }
-    var store = new ydn.db.StoreSchema(objStore.name, objStore.keyPath,
+    var store = new ydn.db.schema.Store(objStore.name, objStore.keyPath,
       objStore.autoIncrement, undefined, indexes);
     schema.addStore(store);
   }
@@ -484,13 +484,13 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
 // * @param {IDBDatabase} db
 // * @param {IDBTransaction} trans
 // * @param {DOMStringList} objectStoreNames
-// * @param {ydn.db.DatabaseSchema=} schema
+// * @param {ydn.db.schema.Database=} schema
 // */
 //ydn.db.con.IndexedDb.prototype.setSchema = function(db, trans, objectStoreNames, schema) {
 //
 //  if (!goog.isDef(schema)) {
 //    // sniff schema from the database.
-//    schema = new ydn.db.DatabaseSchema(/** @type {number} */ (db.version));
+//    schema = new ydn.db.schema.Database(/** @type {number} */ (db.version));
 //
 //    // Unlike SQLIte IndexedDB do not need to specified type and no info
 //    // available. It can be sniff by reading one fo the database.
@@ -503,10 +503,10 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
 //      var n = objStore.indexNames.length;
 //      for (var j = 0; j < n; j++) {
 //        var index = objStore.index(objStore.indexNames[j]);
-//        indexes.push(new ydn.db.IndexSchema(index.keyPath, type,
+//        indexes.push(new ydn.db.schema.Index(index.keyPath, type,
 //          index.unique, index.multiEntry, index.name));
 //      }
-//      var store = new ydn.db.StoreSchema(objStore.name, objStore.keyPath,
+//      var store = new ydn.db.schema.Store(objStore.name, objStore.keyPath,
 //        objStore.autoIncrement, type, indexes);
 //    }
 //  } else {
@@ -560,11 +560,11 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
 //    }
 //  }
 //
-//  goog.asserts.assertInstanceof(schema, ydn.db.DatabaseSchema);
+//  goog.asserts.assertInstanceof(schema, ydn.db.schema.Database);
 //  /**
 //   * @protected
 //   * @final
-//   * @type {!ydn.db.DatabaseSchema}
+//   * @type {!ydn.db.schema.Database}
 //   */
 //  this.schema = schema;
 //};
@@ -574,7 +574,7 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
  *
  * @param {IDBDatabase} db
  * @param {IDBTransaction} trans
- * @param {ydn.db.StoreSchema} store_schema
+ * @param {ydn.db.schema.Store} store_schema
  * @private
  */
 ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema) {
@@ -651,7 +651,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
  * @protected
  * @param {IDBDatabase} db database instance.
  * @param {IDBTransaction} trans
- * {ydn.db.DatabaseSchema} schema
+ * {ydn.db.schema.Database} schema
  * @param {boolean=} is_caller_setversion call from set version;.
  */
 ydn.db.con.IndexedDb.prototype.updateSchema = function(db, trans, schema, is_caller_setversion) {

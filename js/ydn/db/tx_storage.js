@@ -21,7 +21,7 @@ goog.require('ydn.db.io.Cursor');
  * @param {!ydn.db.Storage} storage
  * @param {number} ptx_no
  * @param {string} scope_name
- * @param {!ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.schema.Database} schema
  * @constructor
  * @extends {ydn.db.core.TxStorage}
 */
@@ -47,7 +47,7 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
   if (wrapper) {
     value = wrapper.wrapValue(key, value, opt_expiration);
   }
-  return this.put(ydn.db.StoreSchema.DEFAULT_TEXT_STORE,
+  return this.put(ydn.db.schema.Store.DEFAULT_TEXT_STORE,
     {'id': key, 'value': value});
 
 };
@@ -103,7 +103,7 @@ ydn.db.TxStorage.prototype.query = function(store_name) {
  */
 ydn.db.TxStorage.prototype.removeItem = function(id) {
 
-  return this.clear(ydn.db.StoreSchema.DEFAULT_TEXT_STORE, id);
+  return this.clear(ydn.db.schema.Store.DEFAULT_TEXT_STORE, id);
 
 };
 
@@ -120,7 +120,7 @@ ydn.db.TxStorage.prototype.removeItem = function(id) {
  */
 ydn.db.TxStorage.prototype.getItem = function(key) {
   // if the table not exist, <code>get</code> will throw error.
-  var out = this.get(ydn.db.StoreSchema.DEFAULT_TEXT_STORE, key);
+  var out = this.get(ydn.db.schema.Store.DEFAULT_TEXT_STORE, key);
   var df = new goog.async.Deferred();
   var me = this;
   out.addCallback(function(data) {

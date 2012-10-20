@@ -257,7 +257,7 @@ ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
 
 /**
  * Convert keyRange to SQL statment
- * @param {ydn.db.DatabaseSchema} schema
+ * @param {ydn.db.schema.Database} schema
  * @return {boolean} true if SQL plan changed.
  */
 ydn.db.Cursor.prototype.planSql = function(schema) {
@@ -353,7 +353,7 @@ ydn.db.Cursor.prototype.toString = function() {
  * Parse resulting object of a row into original object as it 'put' into the
  * database.
  * @param {!Object} row row.
- * @param {ydn.db.StoreSchema} store
+ * @param {ydn.db.schema.Store} store
  * @return {!Object} parse value.
  */
 ydn.db.Cursor.prototype.parseRow = function(row, store) {
@@ -367,13 +367,13 @@ ydn.db.Cursor.prototype.parseRow = function(row, store) {
  * database.
  * @final
  * @param {!Object} row row.
- * @param {ydn.db.StoreSchema} store
+ * @param {ydn.db.schema.Store} store
  * @return {!Object} parse value.
  */
 ydn.db.Cursor.parseRow = function(row, store) {
   var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
   if (goog.isDefAndNotNull(store.keyPath)) {
-    var key = ydn.db.IndexSchema.sql2js(row[store.keyPath], store.type);
+    var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.type);
     store.setKeyValue(value, key);
   }
   for (var j = 0; j < store.indexes.length; j++) {
@@ -382,7 +382,7 @@ ydn.db.Cursor.parseRow = function(row, store) {
       continue;
     }
     var x = row[index.name];
-    value[index.name] = ydn.db.IndexSchema.sql2js(x, index.type);
+    value[index.name] = ydn.db.schema.Index.sql2js(x, index.type);
   }
   return value;
 };
@@ -392,7 +392,7 @@ ydn.db.Cursor.parseRow = function(row, store) {
  * Return given input row.
  * @final
  * @param {!Object} row row.
- * @param {ydn.db.StoreSchema} store
+ * @param {ydn.db.schema.Store} store
  * @return {!Object} the first field of object in row value.
  */
 ydn.db.Cursor.parseRowIdentity = function (row, store) {

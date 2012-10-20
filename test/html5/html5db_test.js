@@ -17,8 +17,8 @@ var setUp = function() {
   goog.debug.Logger.getLogger('ydn.db.LocalStorage').setLevel(goog.debug.Logger.Level.FINEST);
 
 
-	basic_schema = new ydn.db.DatabaseSchema(1);
-	basic_schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
+	basic_schema = new ydn.db.schema.Database(1);
+	basic_schema.addStore(new ydn.db.schema.Store(table_name, 'id'));
 };
 
 var tearDown = function() {
@@ -203,8 +203,8 @@ var test_5_clear = function() {
  */
 var _test_6_no_keyPath = function () {
 
-  var schema = new ydn.db.DatabaseSchema(1);
-  schema.addStore(new ydn.db.StoreSchema(table_name));
+  var schema = new ydn.db.schema.Database(1);
+  schema.addStore(new ydn.db.schema.Store(table_name));
 
   var db = new ydn.db.Storage(db_name, schema, options);
   var me = this;
@@ -323,8 +323,8 @@ var _test_6_no_keyPath = function () {
 //var test_8_put_nested_keyPath = function() {
 //  var store_name = 'ts1';
 //  var put_obj_dbname = 'putodbtest2';
-//	var schema = new ydn.db.DatabaseSchema(1);
-//	schema.addStore(new ydn.db.StoreSchema(store_name, 'id.$t'));
+//	var schema = new ydn.db.schema.Database(1);
+//	schema.addStore(new ydn.db.schema.Store(store_name, 'id.$t'));
 //	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
 //
 //  var key = 'a';
@@ -376,8 +376,8 @@ var _test_6_no_keyPath = function () {
 //var test_9_query_start_with = function() {
 //  var store_name = 'ts1';
 //  var put_obj_dbname = 'pos2';
-//	var schema = new ydn.db.DatabaseSchema(1);
-//	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
+//	var schema = new ydn.db.schema.Database(1);
+//	schema.addStore(new ydn.db.schema.Store(store_name, 'id'));
 //	var db = new ydn.db.WebSql(put_obj_dbname, [schema]);
 //
 //

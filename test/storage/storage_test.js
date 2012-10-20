@@ -17,8 +17,8 @@ var setUp = function() {
   //stubs = new goog.testing.PropertyReplacer();
 
   var table_name = 't1';
-  var basic_schema = new ydn.db.DatabaseSchema(1);
-  basic_schema.addStore(new ydn.db.StoreSchema(table_name));
+  var basic_schema = new ydn.db.schema.Database(1);
+  basic_schema.addStore(new ydn.db.schema.Store(table_name));
 };
 
 var tearDown = function() {
@@ -167,8 +167,8 @@ var test_2_json_config_in_out = function() {
 
 	var store_name = 't1';
 	var put_obj_dbname = 'testdb3';
-	var schema = new ydn.db.DatabaseSchema(1);
-	schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
+	var schema = new ydn.db.schema.Database(1);
+	schema.addStore(new ydn.db.schema.Store(store_name, 'id'));
 	var db = new ydn.db.Storage(put_obj_dbname, schema);
 
 	var key = 'a';

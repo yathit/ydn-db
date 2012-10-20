@@ -29,7 +29,7 @@ goog.require('ydn.db.con.IDatabase');
 /**
  * @implements {ydn.db.con.IDatabase}
  * @param {string} dbname dtabase name.
- * @param {!ydn.db.DatabaseSchema=} schema table schema contain table
+ * @param {!ydn.db.schema.Database=} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
  * @constructor
@@ -52,7 +52,7 @@ ydn.db.con.SimpleStorage = function(dbname, schema, opt_localStorage) {
   /**
    * @protected
    * @final
-   * @type {!ydn.db.DatabaseSchema|undefined}
+   * @type {!ydn.db.schema.Database|undefined}
    */
   this.schema = schema; // we always use the last schema.
 
@@ -177,10 +177,10 @@ ydn.db.con.SimpleStorage.prototype.addStoreSchema = function(tx, store_schema) {
 
 /**
  * Get schema from the database.
- * @param {function(ydn.db.DatabaseSchema)} callback
+ * @param {function(ydn.db.schema.Database)} callback
  */
 ydn.db.con.SimpleStorage.prototype.getSchema = function(callback) {
-  var schema = new ydn.db.DatabaseSchema();
+  var schema = new ydn.db.schema.Database();
   var re = new RegExp('^_database_' + this.dbname + '-([^-]+)-');
   for (var key in this.cache_) {
     if (this.cache_.hasOwnProperty(key)) {
@@ -188,7 +188,7 @@ ydn.db.con.SimpleStorage.prototype.getSchema = function(callback) {
       if (m) {
         var store_name = m[0];
         if (!schema.hasStore(store_name)) {
-          schema.addStore(new ydn.db.StoreSchema(store_name));
+          schema.addStore(new ydn.db.schema.Store(store_name));
         }
       }
     }

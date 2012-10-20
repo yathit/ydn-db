@@ -49,7 +49,7 @@ goog.require('goog.events.EventTarget');
  * {@link #setsetDbName} and {@link #setSchema}.
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
- * @param {!ydn.db.DatabaseSchema|DatabaseSchema=} opt_schema database schema
+ * @param {!ydn.db.schema.Database|DatabaseSchema=} opt_schema database schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * schema used in chronical order.
@@ -103,15 +103,15 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   /**
    * @final
    * @protected
-   * @type {!ydn.db.DatabaseSchema}
+   * @type {!ydn.db.schema.Database}
    */
-  this.schema = (opt_schema instanceof ydn.db.DatabaseSchema) ?
+  this.schema = (opt_schema instanceof ydn.db.schema.Database) ?
     opt_schema : goog.isDefAndNotNull(opt_schema) ?
-    ydn.db.DatabaseSchema.fromJSON(opt_schema) : new ydn.db.DatabaseSchema();
+    ydn.db.schema.Database.fromJSON(opt_schema) : new ydn.db.schema.Database();
 
-  if (this.use_text_store && !this.schema.hasStore(ydn.db.StoreSchema.DEFAULT_TEXT_STORE)) {
-    this.schema.addStore(new ydn.db.StoreSchema(
-      ydn.db.StoreSchema.DEFAULT_TEXT_STORE, 'id', false, ydn.db.DataType.TEXT));
+  if (this.use_text_store && !this.schema.hasStore(ydn.db.schema.Store.DEFAULT_TEXT_STORE)) {
+    this.schema.addStore(new ydn.db.schema.Store(
+      ydn.db.schema.Store.DEFAULT_TEXT_STORE, 'id', false, ydn.db.schema.DataType.TEXT));
   }
 
   if (goog.isDef(opt_dbname)) {
@@ -162,7 +162,7 @@ ydn.db.con.Storage.prototype.getConfig = function() {
 
 /**
  * Get current schema.
- * @param {function(ydn.db.DatabaseSchema)=} callback
+ * @param {function(ydn.db.schema.Database)=} callback
  * @return {DatabaseSchema}
  */
 ydn.db.con.Storage.prototype.getSchema = function(callback) {
@@ -192,13 +192,13 @@ ydn.db.con.Storage.prototype.getStoreSchema = function(store_name) {
  * Add a store schema to current database schema on auto schema generation
  * mode {@see #auto_schema}.
  * If the store already exist it will be updated as necessary.
- * @param {!StoreSchema|!ydn.db.StoreSchema} store_schema
+ * @param {!StoreSchema|!ydn.db.schema.Store} store_schema
  * @return {!goog.async.Deferred}
  */
 ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
 
-  var new_store = store_schema instanceof ydn.db.StoreSchema ?
-      store_schema : ydn.db.StoreSchema.fromJSON(store_schema);
+  var new_store = store_schema instanceof ydn.db.schema.Store ?
+      store_schema : ydn.db.schema.Store.fromJSON(store_schema);
 
   var store_name = store_schema.name;
   var store = this.schema.getStore(store_name);

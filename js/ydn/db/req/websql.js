@@ -32,7 +32,7 @@ goog.require('ydn.json');
 /**
  * @extends {ydn.db.req.RequestExecutor}
  * @param {string} dbname
- * @param {!ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.schema.Database} schema
  * @constructor
  */
 ydn.db.req.WebSql = function(dbname, schema) {
@@ -95,7 +95,7 @@ ydn.db.req.WebSql.prototype.getTx = function() {
  * Extract key from row result.
  * @final
  * @protected
- * @param {ydn.db.StoreSchema} table table of concern.
+ * @param {ydn.db.schema.Store} table table of concern.
  * @param {!Object} row row.
  * @return {!Object} parse value.
  */
@@ -252,13 +252,13 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_
 ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
   var table = this.schema.getStore(table_name);
-  goog.asserts.assertInstanceof(table, ydn.db.StoreSchema, table_name + ' not found.');
+  goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name + ' not found.');
 
   var me = this;
 
   var column_name = table.getSQLKeyColumnName();
 
-  var params = [ydn.db.IndexSchema.js2sql(id, table.type)];
+  var params = [ydn.db.schema.Index.js2sql(id, table.type)];
 
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
     column_name + ' = ?';
@@ -311,7 +311,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
   var result_count = 0;
 
   var table = this.schema.getStore(table_name);
-  goog.asserts.assertInstanceof(table, ydn.db.StoreSchema, table_name + ' not found.');
+  goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name + ' not found.');
 
   /**
    * Get fetch the given id of i position and put to results array in
@@ -365,7 +365,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
     var id = ids[i];
     var column_name = table.getSQLKeyColumnName();
 
-    var params = [ydn.db.IndexSchema.js2sql(id, table.type)];
+    var params = [ydn.db.schema.Index.js2sql(id, table.type)];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
       column_name + ' = ?';
     tx.executeSql(sql, params, callback, error_callback);
@@ -406,7 +406,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
   var getAll = function (idx, tx) {
     var table_name = table_names[idx];
     var table = me.schema.getStore(table_name);
-    goog.asserts.assertInstanceof(table, ydn.db.StoreSchema, table_name + ' not found.');
+    goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name + ' not found.');
 
     var sql = 'SELECT * FROM ' + table.getQuotedName();
 
@@ -468,7 +468,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
     var key = keys[i];
     var table_name = key.getStoreName();
     var table = me.schema.getStore(table_name);
-    goog.asserts.assertInstanceof(table, ydn.db.StoreSchema, table_name + ' not found.');
+    goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name + ' not found.');
 
     /**
      * @param {SQLTransaction} transaction transaction.

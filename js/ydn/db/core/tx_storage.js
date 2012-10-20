@@ -28,7 +28,7 @@ goog.require('ydn.db.req.WebSql');
  * @param {!ydn.db.core.Storage} storage
  * @param {number} ptx_no
  * @param {string} scope_name
- * @param {!ydn.db.DatabaseSchema} schema
+ * @param {!ydn.db.schema.Database} schema
  * @constructor
  * @extends {ydn.db.tr.TxStorage}
 */
@@ -38,7 +38,7 @@ ydn.db.core.TxStorage = function(storage, ptx_no, scope_name, schema) {
   /**
    * @protected
    * @final
-   * @type {!ydn.db.DatabaseSchema}
+   * @type {!ydn.db.schema.Database}
    */
   this.schema = schema;
 };
@@ -148,7 +148,7 @@ ydn.db.core.TxStorage.prototype.execute = function(callback, store_names, mode)
 /**
  * Add or update a store issuing a version change event.
  * @protected
- * @param {ydn.db.StoreSchema} store
+ * @param {ydn.db.schema.Store} store
  * @return {!goog.async.Deferred}
  */
 ydn.db.core.TxStorage.prototype.addStoreSchema = function(store) {
@@ -218,7 +218,7 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
     }
     // here I have very concern about schema an object store mismatch!
     // should try query without sniffing store.type
-    if (store.type == ydn.db.DataType.ARRAY) {
+    if (store.type == ydn.db.schema.DataType.ARRAY) {
       if (goog.isArray(arg2)) {
         var arr = arg2;
         var key0 = arr[0];

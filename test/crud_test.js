@@ -27,8 +27,8 @@ var setUp = function () {
   //ydn.db.con.IndexedDb.DEBUG = true;
   ydn.db.con.WebSql.DEBUG = true;
 
-  schema = new ydn.db.DatabaseSchema(1);
-  schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
+  schema = new ydn.db.schema.Database(1);
+  schema.addStore(new ydn.db.schema.Store(table_name, 'id'));
 
 };
 
@@ -247,8 +247,8 @@ var test_24_get_all_no_data = function() {
 
   var db_name = 'test_get_all_1';
   var table_name = 'no_data_table';
-  var schema = new ydn.db.DatabaseSchema(1);
-  schema.addStore(new ydn.db.StoreSchema(table_name, 'id'));
+  var schema = new ydn.db.schema.Database(1);
+  schema.addStore(new ydn.db.schema.Store(table_name, 'id'));
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var hasEventFired = false;
@@ -356,8 +356,8 @@ var test_41_clear_store = function() {
 
 var test_51_array_key = function() {
   var db_name = 'test_crud_41_1';
-  var schema = new ydn.db.DatabaseSchema(1);
-  schema.addStore(new ydn.db.StoreSchema(table_name, 'id', false, ydn.db.DataType.ARRAY));
+  var schema = new ydn.db.schema.Database(1);
+  schema.addStore(new ydn.db.schema.Store(table_name, 'id', false, ydn.db.schema.DataType.ARRAY));
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var key_test = function(key) {
@@ -418,10 +418,10 @@ var test_51_array_key = function() {
 var test_52_fetch_keys = function () {
   var store_name = 'st';
   var db_name = 'test_crud_52_1';
-  var indexSchema = new ydn.db.IndexSchema('id', undefined, true);
-  var store_schema = new ydn.db.StoreSchema(store_name, 'id', false,
-    ydn.db.DataType.TEXT, [indexSchema]);
-  var schema = new ydn.db.DatabaseSchema(1, [store_schema]);
+  var indexSchema = new ydn.db.schema.Index('id', undefined, true);
+  var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
+    ydn.db.schema.DataType.TEXT, [indexSchema]);
+  var schema = new ydn.db.schema.Database(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
@@ -489,10 +489,10 @@ var test_53_fetch_keys = function () {
   var store_name1 = 'st1';
   var store_name2 = 'st2';
   var db_name = 'test_crud_53_3';
-  var indexSchema = new ydn.db.IndexSchema('id', undefined, true);
-  var store_schema1 = new ydn.db.StoreSchema(store_name1, 'id', false, undefined, [indexSchema]);
-  var store_schema2 = new ydn.db.StoreSchema(store_name2, 'id');
-  var schema = new ydn.db.DatabaseSchema(1, [store_schema1, store_schema2]);
+  var indexSchema = new ydn.db.schema.Index('id', undefined, true);
+  var store_schema1 = new ydn.db.schema.Store(store_name1, 'id', false, undefined, [indexSchema]);
+  var store_schema2 = new ydn.db.schema.Store(store_name2, 'id');
+  var schema = new ydn.db.schema.Database(1, [store_schema1, store_schema2]);
   var db = new ydn.db.Storage(db_name, schema, options);
 
 
@@ -577,11 +577,11 @@ var test_53_fetch_keys = function () {
 var test_61_query_start_with = function () {
   var store_name = 'ts1';
   var db_name = 'test_crud_1';
-  var schema = new ydn.db.DatabaseSchema(1);
+  var schema = new ydn.db.schema.Database(1);
   // NOTE: key also need to be indexed.
-  var indexSchema = new ydn.db.IndexSchema('id', undefined, true);
-  schema.addStore(new ydn.db.StoreSchema(store_name, 'id', false, undefined, [indexSchema]));
-  //schema.addStore(new ydn.db.StoreSchema(store_name, 'id'));
+  var indexSchema = new ydn.db.schema.Index('id', undefined, true);
+  schema.addStore(new ydn.db.schema.Store(store_name, 'id', false, undefined, [indexSchema]));
+  //schema.addStore(new ydn.db.schema.Store(store_name, 'id'));
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var objs = [
