@@ -2,6 +2,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
+goog.require('ydn.object');
 goog.require('ydn.db.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
@@ -9,7 +10,6 @@ goog.require('goog.testing.PropertyReplacer');
 var reachedFinalContinuation, debug_console, db_name;
 var store_name = 'st';
 var stubs;
-var options = {Mechanisms: ['indexeddb']};
 
 var setUp = function() {
   if (!debug_console) {
@@ -30,12 +30,16 @@ var setUp = function() {
 
 };
 
-var deleteDb = function() {
+/**
+ * @param {string=} name
+ */
+var deleteDb = function(name) {
+  name = name || db_name;
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
   if (ydn.db.con.IndexedDb.indexedDb.deleteDatabase) {
-    ydn.db.con.IndexedDb.indexedDb.deleteDatabase(db_name);
+    ydn.db.con.IndexedDb.indexedDb.deleteDatabase(name);
   } else {
-    console.log('Delete database manually: ' + db_name);
+    console.log('Delete database manually: ' + name);
   }
 };
 
@@ -75,10 +79,12 @@ var schema_test = function(schema, to_delete, name) {
 
 var trival_db_name = 'test_' + Math.random();
 
-var trival_schema_test = function() {
+var trival_schema_test = function(dbname) {
   var schema = {};
-  var opt = {Mechanisms: ['indexeddb'], 'used_text_store': false};
-  var db = new ydn.db.Storage(trival_db_name, schema, opt);
+
+  var opt = ydn.object.clone(options);
+  opt['used_text_store'] = false;
+  var db = new ydn.db.Storage(dbname, schema, opt);
   var validated_schema = ydn.db.DatabaseSchema.fromJSON(db.getSchema());
 
   var done, act_schema;
@@ -105,12 +111,13 @@ var trival_schema_test = function() {
 };
 
 var test_10a_trival_schema = function() {
-  trival_schema_test();
+  trival_schema_test(trival_db_name);
 };
 
 var test_10b_trival_schema = function() {
   // this run is different because database already exists.
-  trival_schema_test();
+  trival_schema_test(trival_db_name);
+  deleteDb(trival_db_name);
 };
 
 var test_12_no_db = function() {
@@ -119,13 +126,19 @@ var test_12_no_db = function() {
 };
 
 
-var test_13_same_ver = function() {
+var test_13a_same_ver = function() {
   var schema = {version: 1, Stores: [store_schema]};
   schema_test(schema);
 };
 
+var test_13b_same_ver_diff_schema = function() {
+  var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
+  var schema = {version: 1, Stores: [store_schema, new_store]};
+  schema_test(schema);
+};
 
-var test_14_ver_update = function() {
+
+var test_13c_ver_update = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
   var schema = {version: 2, Stores: [store_schema, new_store]};
   schema_test(schema, true);

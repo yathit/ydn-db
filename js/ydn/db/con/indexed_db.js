@@ -62,13 +62,12 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 
   var version = schema.getVersion();
 
-  // Currently in unstable stage, opening indexedDB has two incompatible call.
-  // version could be number (new) or string (old).
   // In chrome, version is taken as description.
   me.logger.finer('Opening database: ' + this.dbname + ' ver: ' + version);
 
   /**
-   * This open request return two format.
+   * Currently in transaction stage, opening indexedDB return two format.
+   * IDBRequest from old and IDBOpenDBRequest from new API.
    * @type {IDBOpenDBRequest|IDBRequest}
    */
   var openRequest;
@@ -77,6 +76,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
     openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname);
   } else {
     openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname,
+    // version could be number (new) or string (old).
     // casting is for old externs uncorrected defined as string
     // old version will think, version as description.
     /** @type {string} */ (schema.version));
@@ -98,6 +98,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
     if (schema.isAutoSchema()) {
       // since there is no version, auto schema always need to validate
       /**
+       * Validate given schema and schema of opened database.
        * @param {ydn.db.DatabaseSchema} db_schema
        */
       var validator = function(db_schema) {
@@ -125,6 +126,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
       me.getSchema(validator, undefined, db);
 
     } else if (schema.getVersion() > db.version) {
+
       // in old format, db.version will be a string. type coercion should work
       // here
 
@@ -372,23 +374,28 @@ ydn.db.con.IndexedDb.prototype.hasStore_ = function(db, store_name) {
  * @inheritDoc
  */
 ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
-  db = db || this.idx_db_;
+
+  /**
+   * @type {IDBDatabase}
+   */
+  var idb = /** @type {IDBDatabase} */ (db) || this.idx_db_;
   var mode = ydn.db.base.TransactionMode.READ_ONLY;
   if (!goog.isDef(trans)) {
     var names = [];
-    for (var i = db.objectStoreNames.length - 1; i >= 0; i--) {
-      names[i] = db.objectStoreNames[i];
+    for (var i = idb.objectStoreNames.length - 1; i >= 0; i--) {
+      names[i] = idb.objectStoreNames[i];
     }
 
-    trans = db.transaction(names, /** @type {number} */ (mode));
+    trans = idb.transaction(names, /** @type {number} */ (mode));
   } else {
-    db = trans.db;
+    window.console.log(['trans', trans]);
+    idb = trans['db'];
   }
 
   /** @type {DOMStringList} */
-  var objectStoreNames = /** @type {DOMStringList} */ (db.objectStoreNames);
+  var objectStoreNames = /** @type {DOMStringList} */ (idb.objectStoreNames);
 
-  var schema = new ydn.db.DatabaseSchema(/** @type {number} */ (db.version));
+  var schema = new ydn.db.DatabaseSchema(/** @type {number} */ (idb.version));
   var n = objectStoreNames.length;
   for (var i = 0; i < n; i++) {
     /**
