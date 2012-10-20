@@ -734,10 +734,17 @@ ydn.db.DatabaseSchema = function(version, opt_stores) {
   var ver = goog.isString(version) ? version.length == 0 ?
       undefined : parseFloat(version) : version;
   if (goog.isDef(ver)) {
-    if (!goog.isNumber(ver) || isNaN(ver) || ver < 0) {
+    if (!goog.isNumber(ver) || ver < 0) {
       throw new ydn.error.ArgumentException('Invalid version: ' + ver + ' (' +
           version + ')');
     }
+    if (isNaN(ver)) {
+      ver = undefined;
+    }
+  }
+  if (goog.isDef(opt_stores) && (!goog.isArray(opt_stores) ||
+      opt_stores.length > 0 && !(opt_stores[0] instanceof ydn.db.StoreSchema))) {
+    throw new ydn.error.ArgumentException('stores');
   }
 
   /**
