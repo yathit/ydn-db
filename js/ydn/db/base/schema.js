@@ -11,6 +11,7 @@ goog.provide('ydn.db.schema.Index');
 goog.provide('ydn.db.schema.Store');
 goog.require('ydn.db.Cursor.Direction');
 goog.require('ydn.db.Key');
+goog.require('ydn.db.utils');
 
 
 /**
@@ -140,8 +141,10 @@ ydn.db.schema.Index.js2sql = function(key, type) {
       arr.join(ydn.db.schema.Index.ARRAY_SEP);
     return t + ydn.db.schema.Index.ARRAY_SEP +
       value + ydn.db.schema.Index.ARRAY_SEP;
-  } else {
+  } else if (goog.isDef(type)) {
     return key;
+  } else {
+    return ydn.db.utils.encodeKey(key);
   }
 };
 
@@ -174,8 +177,10 @@ ydn.db.schema.Index.sql2js = function(key, type) {
         return x;
       }
     });
-  } else {
+  } else if (goog.isDef(type)) {
     return key;
+  } else {
+    return ydn.db.utils.decodeKey(/** @type {string} */ (key));
   }
 };
 
