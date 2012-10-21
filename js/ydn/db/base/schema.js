@@ -223,11 +223,11 @@ ydn.db.schema.Index.toAbbrType = function(x) {
 
 
 /**
- *
+ * Return type. If not defined, BLOB type return.
  * @return {ydn.db.schema.DataType}
  */
 ydn.db.schema.Index.prototype.getType = function() {
-  return this.type || ydn.db.schema.DataType.TEXT;
+  return this.type || ydn.db.schema.DataType.BLOB;
 };
 
 

@@ -297,11 +297,14 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   var id_column_name = table_schema.getQuotedKeyPath() ||
     ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
-  var type = table_schema.type;
+  // undefined type are recorded in encoded key and use BLOB data type
+  // @see ydn.db.utils.encodeKey
+  var type = table_schema.type || 'BLOB';
   if (type == ydn.db.schema.DataType.ARRAY) {
     // key will be converted into string
     type = ydn.db.schema.DataType.TEXT;
   }
+
   if (goog.isDefAndNotNull(table_schema.keyPath)) {
     sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY ';
 
@@ -331,12 +334,12 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     var unique = index.unique ? ' UNIQUE ' : ' ';
 
     // http://sqlite.org/lang_createindex.html
-    if (index.type != ydn.db.schema.DataType.BLOB) {
+    //if (index.type != ydn.db.schema.DataType.BLOB) {
       var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS '  +
           goog.string.quote(index.name) +
           ' ON ' + table_schema.getQuotedName() + ' (' + id_column_name + ')';
       sqls.push(idx_sql);
-    }
+    //}
 
     if (index.keyPath == table_schema.keyPath) {
       continue;
