@@ -815,10 +815,10 @@ ydn.db.schema.Database.prototype.is_auto_schema_ = false;
 
 /**
  * Get schema version.
- * @return {number}
+ * @return {number|undefined}
  */
 ydn.db.schema.Database.prototype.getVersion = function() {
-  return goog.isDef(this.version) ? this.version : 1;
+  return this.version;
 };
 
 
@@ -882,6 +882,14 @@ ydn.db.schema.Database.fromJSON = function(json) {
   }
   return new ydn.db.schema.Database(json.version, stores);
 };
+//
+//
+///**
+// * @param {number} version
+// */
+//ydn.db.schema.Database.prototype.setVersion = function(version) {
+//  this.version = version;
+//};
 
 
 /**
@@ -889,6 +897,10 @@ ydn.db.schema.Database.fromJSON = function(json) {
  * @param {!ydn.db.schema.Store} table store.
  */
 ydn.db.schema.Database.prototype.addStore = function(table) {
+  if (!this.isAutoSchema()) {
+    throw new ydn.error.InvalidOperationException();
+  }
+
   this.stores.push(table);
 };
 

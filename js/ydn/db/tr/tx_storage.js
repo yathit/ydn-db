@@ -80,6 +80,19 @@ ydn.db.tr.TxStorage.prototype.close = function() {
 };
 
 
+
+
+/**
+* Add or update a store issuing a version change event.
+* @protected
+* @param {!StoreSchema|!ydn.db.schema.Store} store
+* @return {!goog.async.Deferred}
+*/
+ydn.db.tr.TxStorage.prototype.addStoreSchema = function(store) {
+  return this.storage_.addStoreSchema(store);
+};
+
+
 /**
  * @inheritDoc
  */

@@ -62,15 +62,6 @@ ydn.db.con.IDatabase.prototype.getDbInstance = function() {};
 ydn.db.con.IDatabase.prototype.doTransaction = goog.abstractMethod;
 
 
-/**
- *
- * @param {(SQLTransaction|IDBTransaction|Object)} tx active transaction on version change mode.
- * @param {ydn.db.schema.Store} store_schema
- * @return {!goog.async.Deferred}
- */
-ydn.db.con.IDatabase.prototype.addStoreSchema = goog.abstractMethod;
-
-
 
 /**
  *

@@ -44,13 +44,6 @@ ydn.db.con.IndexedDb = function(dbname, schema, opt_size) {
 
   this.dbname = dbname;
 
-    /**
-   * @protected
-   * @final
-   * @type {!ydn.db.schema.Database}
-   */
-  this.schema = schema;
-
   if (goog.isDef(opt_size)) {
     // https://developers.google.com/chrome/whitepapers/storage#asking_more
     // IndexedDB is yet to implement in Quota Management API.
@@ -83,10 +76,10 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
    */
   var me = this;
 
-  //var version = schema.getVersion();
+  var version = schema.getVersion();
 
   // In chrome, version is taken as description.
-  me.logger.finer('Opening database: ' + this.dbname + ' ver: ' + schema.version);
+  me.logger.finer('Opening database: ' + this.dbname + ' ver: ' + version);
 
   /**
    * Currently in transaction stage, opening indexedDB return two format.
@@ -94,7 +87,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
    * @type {IDBOpenDBRequest|IDBRequest}
    */
   var openRequest;
-  if (schema.isAutoVersion()) {
+  if (!goog.isDef(version)) {
     // auto schema do not have version
     openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname);
   } else {
@@ -102,7 +95,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
     // version could be number (new) or string (old).
     // casting is for old externs uncorrected defined as string
     // old version will think, version as description.
-    /** @type {string} */ (schema.version));
+    /** @type {string} */ (version));
   }
 
 
@@ -371,14 +364,19 @@ ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
       }
       me.logger.finest(me + ': onerror - ' + e.message);
     };
-    this.idx_db_.onversionchange = function(e) {
+
+    /**
+     *
+     * @param {IDBVersionChangeEvent} event
+     */
+    this.idx_db_.onversionchange = function(event) {
       // Handle version changes while a web app is open in another tab
       // https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Version_changes_while_a_web_app_is_open_in_another_tab
       //
       if (ydn.db.con.IndexedDb.DEBUG) {
-        window.console.log([this, e]);
+        window.console.log([this, event]);
       }
-      me.logger.finest(me + ': onversionchange - ' + e.message);
+      me.logger.finest(me + ': onversionchange to: ' + event.version);
       if (me.idx_db_) {
         delete me.idx_db_.onabort;
         delete me.idx_db_.onerror;
@@ -386,12 +384,8 @@ ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
         me.idx_db_.close();
         me.idx_db_ = null;
         if (goog.isFunction(me.onConnectionChange)) {
-          me.onConnectionChange(null, e);
+          me.onConnectionChange(null, event);
         }
-      }
-      if (me.schema && me.schema.isAutoVersion()) {
-        me.logger.finest(me + ': reconnecting');
-        me.connect(me.schema);
       }
     }
   }
@@ -589,6 +583,13 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 
     store = trans.objectStore(store_schema.name);
     goog.asserts.assertObject(store, store_schema.name + ' not found.');
+
+    if (store.keyPath != store_schema.keyPath) {
+      throw new ydn.error.InvalidOperationException('keyPath: ' + store.keyPath +
+        ' in ' + store_schema.name + ' cannot be changed into ' +
+        store_schema.keyPath);
+    }
+
     var indexNames = /** @type {DOMStringList} */ (store.indexNames);
 
     var created = 0;
@@ -693,13 +694,6 @@ ydn.db.con.IndexedDb.prototype.updateSchema = function(db, trans, schema, is_cal
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.con.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
-  this.update_store_(this.idx_db_, /** @type {IDBTransaction} */ (tx), store_schema);
-  return goog.async.Deferred.succeed(true); // update_store_ is synchronous
-};
 
 
 /**
@@ -715,7 +709,6 @@ ydn.db.con.IndexedDb.prototype.addStoreSchema = function(tx, store_schema) {
  * @param {function(ydn.db.base.TransactionEventTypes, *)} completed_event_handler
  */
 ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, completed_event_handler) {
-
 
   var me = this;
 
@@ -751,6 +744,7 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
     var version = goog.isString(this.idx_db_.version) ?
       parseFloat(this.idx_db_.version) : this.idx_db_.version;
     var next_version = version + 1;
+    //this.schema.setVersion(next_version);
     if (goog.isFunction(this.idx_db_.setVersion)) {
 
       var setVrequest = this.idx_db_.setVersion(/** @type {string} */ (next_version));
@@ -771,13 +765,12 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
       // "versionchange". This type of transaction can't be manually created,
       // but instead is created automatically when a upgradeneeded event is
       // fired.
-      //this.idx_db_.close();
-      var openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname);
+      this.idx_db_.close();
+      var openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname,
+        /** @type {string} */ (next_version));
       openRequest.onupgradeneeded = function(ev) {
         var db = ev.target.result;
         me.idx_db_ = db;
-        //me.deferredIdxDb_ = new goog.async.Deferred();
-        //me.deferredIdxDb_.callback(db);
         var tx = openRequest['transaction'];
         call_tx(tx);
       };

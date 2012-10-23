@@ -10,7 +10,7 @@ goog.require('goog.testing.PropertyReplacer');
 var reachedFinalContinuation, debug_console, db_name;
 var store_name = 'st';
 var stubs;
-options.used_text_store = false;
+options.usedTextStore = false;
 
 var setUp = function() {
   if (!debug_console) {
@@ -144,6 +144,22 @@ var test_13c_ver_update = function() {
   var schema = {version: 2, Stores: [store_schema, new_store]};
   schema_test(schema, true);
 };
+
+
+var test_21_add_store = function() {
+  var db_name = 'test_' + Math.random();
+  // autoSchema database
+  var db = new ydn.db.Storage(db_name, undefined, options);
+  var sh = db.getSchema();
+  assertEquals('no store', 0, sh.Stores.length);
+  assertTrue('auto schema', db.isAutoSchema());
+  var store = {'name': 'st1', 'keyPath': 'id'};
+  db.addStoreSchema(store).addBoth(function(x) {
+    assertEquals('1 store', 1, sh.Stores.length);
+    assertTrue('still auto schema', db.isAutoSchema());
+  });
+};
+
 
 //
 ///**

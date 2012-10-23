@@ -80,8 +80,8 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @final
    * @type {boolean}
    */
-  this.use_text_store = goog.isDef(options.use_text_store) ?
-    options.use_text_store : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
+  this.use_text_store = goog.isDef(options.usedTextStore) ?
+    options.usedTextStore : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
 
   /**
    * @type {ydn.db.con.IDatabase}
@@ -197,12 +197,16 @@ ydn.db.con.Storage.prototype.getStoreSchema = function(store_name) {
  */
 ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
 
+  /**
+   *
+   * @type {ydn.db.schema.Store}
+   */
   var new_store = store_schema instanceof ydn.db.schema.Store ?
       store_schema : ydn.db.schema.Store.fromJSON(store_schema);
 
   var store_name = store_schema.name;
   var store = this.schema.getStore(store_name);
-  if (!new_store.equals(store)) {
+  if (!new_store.similar(store)) {
 
     var action = store ? 'update' : 'add';
 
@@ -216,7 +220,7 @@ ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
       this.transaction(function (tx) {
         var d = me.db_.addStoreSchema(tx, store);
         df.chainDeferred(d);
-      }, [], ydn.db.base.TransactionMode.VERSION_CHANGE);
+      }, null, ydn.db.base.TransactionMode.VERSION_CHANGE);
       return df;
     }
   } else {
@@ -633,6 +637,23 @@ ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode
     trFn(tx);
   }, names, mode, on_complete);
 
+};
+
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.con.Storage.prototype.isAutoVersion = function() {
+  return this.schema.isAutoVersion();
+};
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.con.Storage.prototype.isAutoSchema = function() {
+  return this.schema.isAutoSchema();
 };
 
 
