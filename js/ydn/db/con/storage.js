@@ -215,16 +215,13 @@ ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
         store_name + '. Not auto schema generation mode.');
     } else {
       // do update
-      var me;
-      var df = new goog.async.Deferred();
-      this.transaction(function (tx) {
-        var d = me.db_.addStoreSchema(tx, store);
-        df.chainDeferred(d);
-      }, null, ydn.db.base.TransactionMode.VERSION_CHANGE);
-      return df;
+      this.schema.addStore(new_store);
+      this.db_.close();
+      this.db_ = null;
+      return this.initDatabase();
     }
   } else {
-    return goog.async.Deferred.succeed(false); // no change
+    return goog.async.Deferred.succeed(false); // no change required
   }
 };
 
@@ -303,10 +300,13 @@ ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
  * Initialize suitable database if {@code dbname} and {@code schema} are set,
  * starting in the following order of preference.
  * @protected
+ * @return {!goog.async.Deferred}
  */
 ydn.db.con.Storage.prototype.initDatabase = function() {
   // handle version change
+
   if (goog.isDef(this.db_name) && goog.isDef(this.schema)) {
+    var df = new goog.async.Deferred();
     var db = null;
     if (goog.userAgent.product.ASSUME_CHROME ||
       goog.userAgent.product.ASSUME_FIREFOX) {
@@ -338,13 +338,48 @@ ydn.db.con.Storage.prototype.initDatabase = function() {
         }
       }
     }
+
     if (goog.isNull(db)) {
+      goog.async.Deferred.succeed(false);
       throw new ydn.error.ConstrainError('No storage mechanism found.');
     } else {
-      this.setDb_(db);
+      this.init(); // let super class to initialize.
+
+      this.db_ = db;
+
+      var me = this;
+
+      /**
+       *
+       * @param {boolean} success
+       * @param {Error=} e
+       */
+      this.db_.onConnectionChange = function (success, e) {
+        if (goog.isDef(e)) {
+          me.logger.warning(me + ': opening fail: ' + e.message);
+          goog.async.Deferred.fail(false);
+          // this could happen if user do not allow to use the storage
+          me.purgeTxQueue_(e);
+          var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me,
+            e, 'opening database fail: ' + e.message);
+          me.dispatchEvent(event);
+        } else {
+
+          me.logger.finest(me + ': ready.');
+          goog.async.Deferred.succeed(true);
+          me.last_queue_checkin_ = NaN;
+          me.popTxQueue_();
+          var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.CONNECTED,
+            me, e);
+          me.dispatchEvent(event);
+        }
+      }
     }
+    return df;
   }
+  return goog.async.Deferred.succeed(false);
 };
+
 
 
 /**
@@ -383,42 +418,6 @@ ydn.db.con.Storage.prototype.isReady = function() {
 //};
 
 
-/**
- * Setting db .
- * @param {!ydn.db.con.IDatabase} db
- * @private
- */
-ydn.db.con.Storage.prototype.setDb_ = function(db) {
-  this.init(); // let super class to initialize.
-
-  this.db_ = db;
-
-  var me = this;
-
-  /**
-   *
-   * @param {boolean} success
-   * @param {Error=} e
-   */
-  this.db_.onConnectionChange = function (success, e) {
-    if (goog.isDef(e)) {
-      me.logger.warning(me + ': opening fail: ' + e.message);
-      // this could happen if user do not allow to use the storage
-      me.purgeTxQueue_(e);
-      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me,
-          e, 'opening database fail: ' + e.message);
-      me.dispatchEvent(event);
-    } else {
-
-      me.logger.finest(me + ': ready.');
-      me.last_queue_checkin_ = NaN;
-      me.popTxQueue_();
-      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.CONNECTED,
-          me, e);
-      me.dispatchEvent(event);
-    }
-  }
-};
 
 
 /**
