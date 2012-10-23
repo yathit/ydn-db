@@ -215,10 +215,11 @@ ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
         store_name + '. Not auto schema generation mode.');
     } else {
       // do update
-      this.schema.addStore(new_store);
       this.db_.close();
+      var schema = /** @type {DatabaseSchema} */ (this.schema.toJSON());
+      schema.Stores.push(new_store.toJSON());
       this.db_ = null;
-      return this.initDatabase();
+      return this.initDatabase(ydn.db.schema.Database.fromJSON(schema));
     }
   } else {
     return goog.async.Deferred.succeed(false); // no change required
