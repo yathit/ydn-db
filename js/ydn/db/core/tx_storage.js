@@ -141,6 +141,18 @@ ydn.db.core.TxStorage.prototype.execute = function(callback, store_names, mode)
     tx_callback.name = this.scope; // scope name
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + ' locked: ' + mu_tx.isSetDone());
     this.run(tx_callback, store_names, mode);
+    // need to think about handling oncompleted and onerror callback of the
+    // transaction. after executed all the requests, the transaction is not
+    // completed. consider this case
+    // db.put(data).addCallback(function(id) {
+    //    // at this stage, transaction for put request is not grantee finished.
+    //    db.get(id);
+    //    // but practically, when next transaction is open,
+    //    // the previous transaction should be finished anyways,
+    //    // due to 'readwrite' lock.
+    //    // so seems like OK. it is not necessary to listen oncompleted
+    //    // callback.
+    // });
   }
 };
 
