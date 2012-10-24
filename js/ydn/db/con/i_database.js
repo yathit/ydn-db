@@ -35,9 +35,9 @@ ydn.db.con.IDatabase.prototype.isReady = function() {};
 /**
  * @param {string} name database name.
  * @param {!ydn.db.schema.Database} schema dtabase schema.
- * @param {function(Error=)} callback on success or no error.
+ * @return {!goog.async.Deferred}
  */
-ydn.db.con.IDatabase.prototype.connect = function(name, schema, callback) {};
+ydn.db.con.IDatabase.prototype.connect = function(name, schema) {};
 
 
 

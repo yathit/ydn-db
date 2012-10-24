@@ -64,19 +64,17 @@ ydn.db.con.IndexedDb = function(opt_size) {
 /**
  * @param {string} dbname name of database.
  * @param {ydn.db.schema.Database} schema
- * @param {function(Error=)} on_connected on success no error.
+ * @return {!goog.async.Deferred}
  */
-ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) {
+ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
   /**
    * @type {ydn.db.con.IndexedDb}
    */
   var me = this;
-
+  var df = new goog.async.Deferred();
 
   /**
-   * @final
-   * @protected
    * @param {IDBDatabase} db database instance.
    * @param {Error=} e
    */
@@ -85,11 +83,11 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) 
     if (goog.isDef(e)) {
       me.logger.warning(e ? e.message : 'Error received.');
       me.idx_db_ = null;
-
+      df.errback(e);
     } else {
       goog.asserts.assertObject(db);
       me.idx_db_ = db;
-      this.idx_db_.onabort = function(e) {
+      me.idx_db_.onabort = function(e) {
         me.logger.finest(me + ': onabort - ' + e.message);
       };
       me.idx_db_.onerror = function(e) {
@@ -121,10 +119,10 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) 
             me.onDisconnected(event);
           }
         }
-      }
+      };
+      df.callback(true);
     }
 
-    on_connected(e);
   };
 
 
@@ -133,33 +131,14 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) 
    * @protected
    * @param {IDBDatabase} db database instance.
    * @param {IDBTransaction} trans
-   * {ydn.db.schema.Database} schema
    * @param {boolean=} is_caller_setversion call from set version;.
    */
-  var updateSchema = function(db, trans, schema, is_caller_setversion) {
+  var updateSchema = function(db, trans, is_caller_setversion) {
 
     var action = is_caller_setversion ? 'changing' : 'upgrading';
-    me.logger.finer(action + ' version from ' + db.version + ' to ' +
+    me.logger.finer(action + ' version to ' + db.version + ' from ' +
       schema.getVersion());
 
-    trans.oncomplete = function(e) {
-
-      // for old format.
-      // by reopening the database, we make sure that we are not in
-      // version change state since transaction cannot open during version
-      // change state.
-      var reOpenRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname);
-      reOpenRequest.onsuccess = function(rev) {
-        var db = rev.target.result;
-        me.logger.finer(me + ':' + action + ' OK.');
-        setDb(db);
-      };
-
-      reOpenRequest.onerror = function(e) {
-        me.logger.finer(me + ':' + action + ' fail.');
-        setDb(null);
-      }
-    };
 
     // create store that we don't have previously
     for (var i = 0; i < schema.stores.length; i++) {
@@ -173,9 +152,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) 
     // TODO: delete unused stores ?
   };
 
-
-
-    var version = schema.getVersion();
+  var version = schema.getVersion();
 
   // In chrome, version is taken as description.
   me.logger.finer('Opening database: ' + dbname + ' ver: ' + version);
@@ -245,9 +222,32 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) 
                 schema.getVersion() + ' failed.');
               setDb(null, e);
             };
+
+            var trans = ver_request['transaction'];
             ver_request.onsuccess = function(e) {
-              updateSchema(db, ver_request['transaction'], schema, true);
+              updateSchema(db, trans, true);
             };
+
+            //
+            trans.oncomplete = function(e) {
+
+              // for old format.
+              // by reopening the database, we make sure that we are not in
+              // version change state since transaction cannot open during version
+              // change state.
+              var reOpenRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname);
+              reOpenRequest.onsuccess = function(rev) {
+                var db = rev.target.result;
+                me.logger.finer(me + ': OK.');
+                setDb(db);
+              };
+
+              reOpenRequest.onerror = function(e) {
+                me.logger.finer(me + ': fail.');
+                setDb(null);
+              }
+            };
+
           } else {
             var next_version = db.version + 1;
             db.close();
@@ -255,7 +255,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) 
             req.onupgradeneeded = function(ev) {
               var db = ev.target.result;
               me.logger.finer('upgrade needed for version ' + db.version);
-              updateSchema(db, openRequest['transaction'], schema);
+              updateSchema(db, openRequest['transaction'], false);
 
             };
 
@@ -283,7 +283,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) 
         setDb(null, e);
       };
       ver_request.onsuccess = function(e) {
-        updateSchema(db, ver_request['transaction'], schema, true);
+        updateSchema(db, ver_request['transaction'], true);
       };
     } else {
       if (schema.getVersion() == db.version) {
@@ -316,7 +316,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) 
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
     me.logger.finer('upgrade needed for version ' + db.version);
-    updateSchema(db, openRequest['transaction'], schema);
+    updateSchema(db, openRequest['transaction'], false);
   };
 
   openRequest.onerror = function(ev) {
@@ -354,6 +354,8 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) 
       }
     });
   }
+
+  return df;
 
 };
 
@@ -717,6 +719,10 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
     }
   }
 
+  if (scopes.length == 0) {
+    fnc(null); // this will cause InvalidAccessError
+  }
+
   var tx;
   try { // this try...catch block will removed on non-debug compiled.
     tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
@@ -724,9 +730,9 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
     if (goog.DEBUG && e.name == 'NotFoundError') {
       // http://www.w3.org/TR/IndexedDB/#widl-IDBDatabase-transaction-IDBTransaction-any-storeNames-DOMString-mode
       throw new ydn.db.NotFoundError('stores not found: ' + ydn.json.stringify(scopes));
-    }
-    if (goog.DEBUG && e.name == 'InvalidAccessError') {
-      throw new ydn.db.NotFoundError('store names must be given: ' + ydn.json.stringify(scopes));
+    //}
+    // if (goog.DEBUG && e.name == 'InvalidAccessError') {
+    //  throw new ydn.db.NotFoundError('store names must be given: ' + ydn.json.stringify(scopes));
     } else {
       throw e;
     }

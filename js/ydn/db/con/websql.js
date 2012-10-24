@@ -59,15 +59,15 @@ ydn.db.con.WebSql = function(opt_size) {
 /**
  * @param {string} dbname name of database.
  * @param {ydn.db.schema.Database} schema database schema.
- * @param {function(Error=)} on_connected callback on success no error.
+ *  @return {!goog.async.Deferred}
  */
-ydn.db.con.WebSql.prototype.connect = function(dbname, schema, on_connected) {
+ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
   var description = dbname;
 
   var me = this;
   var init_migrated = false;
-
+  var df = new goog.async.Deferred();
 
   /**
    *
@@ -77,11 +77,11 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema, on_connected) {
   var setDb = function (db, e) {
     if (goog.isDef(e)) {
       me.sql_db_ = null;
-      on_connected(e);
+      df.errback(e);
 
     } else {
       me.sql_db_ = db;
-      on_connected();
+      df.callback(true);
     }
   };
 
@@ -288,7 +288,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema, on_connected) {
     doVersionChange_(db, schema, false);
   }
 
-
+  return df;
 };
 
 

@@ -174,13 +174,16 @@ ydn.db.con.Storage.prototype.getConfig = function() {
  * @return {DatabaseSchema}
  */
 ydn.db.con.Storage.prototype.getSchema = function(callback) {
-  if (goog.isDef(callback)) {
-    var me = this;
-    var get_schema = function(tx) {
-      goog.asserts.assertFunction(callback); // ?? compiler complains undefined.
-      me.db_.getSchema(callback, tx);
-    };
-    this.transaction(get_schema, null, ydn.db.base.TransactionMode.READ_ONLY);
+  if (goog.isFunction(callback)) {
+    if (this.db_) {
+      this.db_.getSchema(callback);
+    } else {
+      var me = this;
+      var get_schema = function(tx) {
+        me.db_.getSchema(callback, tx);
+      };
+      this.transaction(get_schema, null, ydn.db.base.TransactionMode.READ_ONLY);
+    }
   }
   return this.schema ? /** @type {!DatabaseSchema} */ (this.schema.toJSON()) : null;
 };
@@ -371,8 +374,29 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
 
   this.init(); // let super class to initialize.
 
-  db.connect(this.db_name, this.schema, function on_connected(e) {
-    if (goog.isDef(e)) {
+  db.connect(this.db_name, this.schema).addCallback(function(ok) {
+    me.db_ = db;
+    me.logger.finest(me + ': ready.');
+    me.last_queue_checkin_ = NaN;
+
+    goog.async.Deferred.succeed(true);
+
+    me.popTxQueue_();
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.CONNECTED,
+      me, null);
+    me.dispatchEvent(event);
+
+    /**
+     *
+     * @param e
+     */
+    db.onDisconnected = function (e) {
+
+      me.logger.finest(me + ': disconnected.');
+      // no event for disconnected.
+
+    };
+  }).addErrback(function(e) {
       me.logger.warning(me + ': opening fail: ' + e.message);
       goog.async.Deferred.fail(e);
       // this could happen if user do not allow to use the storage
@@ -380,31 +404,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
       var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me,
         e, 'opening database fail: ' + e.message);
       me.dispatchEvent(event);
-    } else {
-      me.db_ = db;
-      me.logger.finest(me + ': ready.');
-      me.last_queue_checkin_ = NaN;
-
-      goog.async.Deferred.succeed(true);
-
-      me.popTxQueue_();
-      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.CONNECTED,
-        me, e);
-      me.dispatchEvent(event);
-
-      /**
-       *
-       * @param e
-       */
-      db.onDisconnected = function (e) {
-
-        me.logger.finest(me + ': disconnected.');
-        // no event for disconnected.
-
-      };
-
-    }
-  });
+    });
 
   return df;
 

@@ -83,10 +83,8 @@ var trival_db_name = 'test_' + Math.random();
 var trival_schema_test = function(dbname) {
   var schema = {};
 
-  var opt = ydn.object.clone(options);
-  opt['used_text_store'] = false;
-  var db = new ydn.db.Storage(dbname, schema, opt);
-  var validated_schema = ydn.db.schema.Database.fromJSON(db.getSchema());
+  var db = new ydn.db.Storage(dbname, schema, options);
+  var validated_schema = new ydn.db.schema.Database(db.getSchema());
 
   var done, act_schema;
   waitForCondition(

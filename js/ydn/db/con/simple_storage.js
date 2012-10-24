@@ -89,9 +89,9 @@ ydn.db.con.SimpleStorage.isSupported = function() {
 /**
  * @param {string} dbname name of database.
  * @param {!ydn.db.schema.Database} schema database schema.
- * @param {function(Error=)} on_connected on success no error.
+ * @return {!goog.async.Deferred}
  */
-ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema, on_connected) {
+ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
 
   /**
    * @final
@@ -106,7 +106,7 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema, on_connect
    */
   this.schema = schema; // we always use the last schema.
 
-  on_connected();
+  return goog.async.Deferred.succeed(true);
 };
 
 
