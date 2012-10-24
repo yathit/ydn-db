@@ -33,10 +33,11 @@ ydn.db.con.IDatabase.prototype.isReady = function() {};
 
 
 /**
- * Callback function
- * @type {function(boolean, Error=)}
+ * @param {string} name database name.
+ * @param {!ydn.db.schema.Database} schema dtabase schema.
+ * @param {function(Error=)} callback on success or no error.
  */
-ydn.db.con.IDatabase.prototype.onConnectionChange = function(is_success, e) {};
+ydn.db.con.IDatabase.prototype.connect = function(name, schema, callback) {};
 
 
 

@@ -25,7 +25,7 @@ StorageOptions.prototype.Mechanisms;
 
 
 /**
- * @type {boolean=}
+ * @type {boolean}
  */
 StorageOptions.prototype.autoSchema;
 

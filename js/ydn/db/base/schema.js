@@ -751,6 +751,9 @@ ydn.db.schema.Store.prototype.similar = function(store) {
  */
 ydn.db.schema.Database = function(version, opt_stores) {
 
+  /**
+   * @type {number|undefined}
+   */
   var ver;
   var stores = opt_stores;
   if (goog.isObject(version)) {
@@ -773,10 +776,14 @@ ydn.db.schema.Database = function(version, opt_stores) {
     for (var i = 0; i < stores_json.length; i++) {
       stores.push(ydn.db.schema.Store.fromJSON(stores_json[i]));
     }
+  } else if (goog.isString(version)) {
+    ver = version.length == 0 ?
+      undefined : parseFloat(version);
+  } else if (goog.isNumber(version)) {
+    ver = version;
   }
 
-  ver = goog.isString(version) ? version.length == 0 ?
-      undefined : parseFloat(version) : version;
+
   if (goog.isDef(ver)) {
     if (!goog.isNumber(ver) || ver < 0) {
       throw new ydn.error.ArgumentException('Invalid version: ' + ver + ' (' +
@@ -904,15 +911,6 @@ ydn.db.schema.Database.fromJSON = function(json) {
     stores.push(ydn.db.schema.Store.fromJSON(stores_json[i]));
   }
   return new ydn.db.schema.Database(json.version, stores);
-};
-
-
-/**
- *
- * @return {number} number of stores.
- */
-ydn.db.schema.Database.prototype.addStore = function(table) {
-  this.stores.push(table);
 };
 
 

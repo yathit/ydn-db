@@ -33,16 +33,12 @@ goog.require('ydn.json');
 /**
  * @see goog.db.IndexedDb
  * @see ydn.db.Storage for schema
- * @param {string} dbname name of database.
- * @param {!ydn.db.schema.Database} schema table schema contain table
- * name and keyPath.
+ *
  * @param {number=} opt_size estimated database size.
  * @implements {ydn.db.con.IDatabase}
  * @constructor
  */
-ydn.db.con.IndexedDb = function(dbname, schema, opt_size) {
-
-  this.dbname = dbname;
+ydn.db.con.IndexedDb = function(opt_size) {
 
   if (goog.isDef(opt_size)) {
     // https://developers.google.com/chrome/whitepapers/storage#asking_more
@@ -61,25 +57,128 @@ ydn.db.con.IndexedDb = function(dbname, schema, opt_size) {
 
   this.idx_db_ = null;
 
-  this.connect(schema);
 };
 
 
+
 /**
- * @protected
- * @param {ydn.db.schema.Database=} schema
+ * @param {string} dbname name of database.
+ * @param {ydn.db.schema.Database} schema
+ * @param {function(Error=)} on_connected on success no error.
  */
-ydn.db.con.IndexedDb.prototype.connect = function(schema) {
+ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema, on_connected) {
 
   /**
    * @type {ydn.db.con.IndexedDb}
    */
   var me = this;
 
-  var version = schema.getVersion();
+
+  /**
+   * @final
+   * @protected
+   * @param {IDBDatabase} db database instance.
+   * @param {Error=} e
+   */
+  var setDb = function (db, e) {
+
+    if (goog.isDef(e)) {
+      me.logger.warning(e ? e.message : 'Error received.');
+      me.idx_db_ = null;
+
+    } else {
+      goog.asserts.assertObject(db);
+      me.idx_db_ = db;
+      this.idx_db_.onabort = function(e) {
+        me.logger.finest(me + ': onabort - ' + e.message);
+      };
+      me.idx_db_.onerror = function(e) {
+        if (ydn.db.con.IndexedDb.DEBUG) {
+          window.console.log([this, e]);
+        }
+        me.logger.finest(me + ': onerror - ' + e.message);
+      };
+
+      /**
+       *
+       * @param {IDBVersionChangeEvent} event
+       */
+      me.idx_db_.onversionchange = function(event) {
+        // Handle version changes while a web app is open in another tab
+        // https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Version_changes_while_a_web_app_is_open_in_another_tab
+        //
+        if (ydn.db.con.IndexedDb.DEBUG) {
+          window.console.log([this, event]);
+        }
+        me.logger.finest(me + ': onversionchange to: ' + event.version);
+        if (me.idx_db_) {
+          delete me.idx_db_.onabort;
+          delete me.idx_db_.onerror;
+          delete me.idx_db_.onversionchange;
+          me.idx_db_.close();
+          me.idx_db_ = null;
+          if (goog.isFunction(me.onDisconnected)) {
+            me.onDisconnected(event);
+          }
+        }
+      }
+    }
+
+    on_connected(e);
+  };
+
+
+  /**
+   * Migrate from current version to the given version.
+   * @protected
+   * @param {IDBDatabase} db database instance.
+   * @param {IDBTransaction} trans
+   * {ydn.db.schema.Database} schema
+   * @param {boolean=} is_caller_setversion call from set version;.
+   */
+  var updateSchema = function(db, trans, schema, is_caller_setversion) {
+
+    var action = is_caller_setversion ? 'changing' : 'upgrading';
+    me.logger.finer(action + ' version from ' + db.version + ' to ' +
+      schema.getVersion());
+
+    trans.oncomplete = function(e) {
+
+      // for old format.
+      // by reopening the database, we make sure that we are not in
+      // version change state since transaction cannot open during version
+      // change state.
+      var reOpenRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname);
+      reOpenRequest.onsuccess = function(rev) {
+        var db = rev.target.result;
+        me.logger.finer(me + ':' + action + ' OK.');
+        setDb(db);
+      };
+
+      reOpenRequest.onerror = function(e) {
+        me.logger.finer(me + ':' + action + ' fail.');
+        setDb(null);
+      }
+    };
+
+    // create store that we don't have previously
+    for (var i = 0; i < schema.stores.length; i++) {
+      // this is sync process.
+      me.update_store_(db, trans, schema.stores[i]);
+    }
+
+    //var storeNames = /** @type {DOMStringList} */ (db.objectStoreNames);
+    //this.setSchema(db, trans, storeNames, schema);
+
+    // TODO: delete unused stores ?
+  };
+
+
+
+    var version = schema.getVersion();
 
   // In chrome, version is taken as description.
-  me.logger.finer('Opening database: ' + this.dbname + ' ver: ' + version);
+  me.logger.finer('Opening database: ' + dbname + ' ver: ' + version);
 
   /**
    * Currently in transaction stage, opening indexedDB return two format.
@@ -89,19 +188,15 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
   var openRequest;
   if (!goog.isDef(version)) {
     // auto schema do not have version
-    openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname);
+    openRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname);
   } else {
-    openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname,
+    openRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname,
     // version could be number (new) or string (old).
     // casting is for old externs uncorrected defined as string
     // old version will think, version as description.
     /** @type {string} */ (version));
   }
 
-
-  if (ydn.db.con.IndexedDb.DEBUG) {
-    window.console.log(openRequest);
-  }
 
   openRequest.onsuccess = function(ev) {
     /**
@@ -134,19 +229,40 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 
           var on_completed = function(t, e) {
             if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
-              me.setDb(db);
+              setDb(db);
             } else {
               me.logger.severe('Fail to update version on ' + db.name + ':' +
                 db.version);
-              me.setDb(null, e);
+              setDb(null, e);
             }
           };
-          me.idx_db_ = db; // ??
-          me.doTransaction(function(tx) {
-            me.updateSchema(db, tx, schema);
-          }, [], ydn.db.base.TransactionMode.VERSION_CHANGE, on_completed);
+
+          if (goog.isFunction(db.setVersion)) {
+            var ver_request = db.setVersion(/** @type {string} */ (version)); // for chrome
+
+            ver_request.onfailure = function(e) {
+              me.logger.warning('migrating from ' + db.version + ' to ' +
+                schema.getVersion() + ' failed.');
+              setDb(null, e);
+            };
+            ver_request.onsuccess = function(e) {
+              updateSchema(db, ver_request['transaction'], schema, true);
+            };
+          } else {
+            var next_version = db.version + 1;
+            db.close();
+            var req = ydn.db.con.IndexedDb.indexedDb.open(dbname, next_version);
+            req.onupgradeneeded = function(ev) {
+              var db = ev.target.result;
+              me.logger.finer('upgrade needed for version ' + db.version);
+              updateSchema(db, openRequest['transaction'], schema);
+
+            };
+
+          }
+
         } else {
-          me.setDb(db);
+          setDb(db);
         }
       };
       me.getSchema(schema_updater, undefined, db);
@@ -164,10 +280,10 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
       ver_request.onfailure = function(e) {
         me.logger.warning('migrating from ' + db.version + ' to ' +
           schema.getVersion() + ' failed.');
-        me.setDb(null, e);
+        setDb(null, e);
       };
       ver_request.onsuccess = function(e) {
-        me.updateSchema(db, ver_request['transaction'], schema, true);
+        updateSchema(db, ver_request['transaction'], schema, true);
       };
     } else {
       if (schema.getVersion() == db.version) {
@@ -186,9 +302,9 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
         var diff_msg = schema.difference(db_schema);
         if (diff_msg.length > 0) {
           me.logger.finer(diff_msg);
-          me.setDb(null, new ydn.error.ConstrainError('different schema: ' + diff_msg));
+          setDb(null, new ydn.error.ConstrainError('different schema: ' + diff_msg));
         } else {
-          me.setDb(db);
+          setDb(db);
         }
       };
 
@@ -199,41 +315,28 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
-
     me.logger.finer('upgrade needed for version ' + db.version);
-
-    me.updateSchema(db, openRequest['transaction'], schema);
-
+    updateSchema(db, openRequest['transaction'], schema);
   };
 
   openRequest.onerror = function(ev) {
-    var msg = 'opening database ' + me.dbname + ':' + schema.version + ' failed.';
+    var msg = 'opening database ' + dbname + ':' + schema.version + ' failed.';
     if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log([ev, openRequest]);
     }
     me.logger.severe(msg);
-
-    me.setDb(null, ev);
+    setDb(null, ev);
   };
 
   openRequest.onblocked = function(ev) {
     if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log([ev, openRequest]);
     }
-    me.logger.severe('database ' + me.dbname + ' ' + schema.version +
+    me.logger.severe('database ' + dbname + ' ' + schema.version +
       ' block, close other connections.');
 
     // should we reopen again after some time?
-
-    me.setDb(null, ev);
-  };
-
-  openRequest.onversionchange = function(ev) {
-    me.logger.fine('Version change request, so closing the database');
-
-    if (me.db) {
-      me.db.close();
-    }
+    setDb(null, ev);
   };
 
   // extra checking whether, database is OK
@@ -255,62 +358,6 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 };
 
 
-/**
- * @final
- * @protected
- * @param {IDBDatabase} db database instance.
- * @param {Error=} e
- */
-ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
-
-  if (goog.isDef(e)) {
-    this.logger.warning(e ? e.message : 'Error received.');
-    this.idx_db_ = null;
-
-  } else {
-    goog.asserts.assertObject(db);
-    this.idx_db_ = db;
-    var me = this;
-    this.idx_db_.onabort = function(e) {
-      me.logger.finest(me + ': onabort - ' + e.message);
-    };
-    this.idx_db_.onerror = function(e) {
-      if (ydn.db.con.IndexedDb.DEBUG) {
-        window.console.log([this, e]);
-      }
-      me.logger.finest(me + ': onerror - ' + e.message);
-    };
-
-    /**
-     *
-     * @param {IDBVersionChangeEvent} event
-     */
-    this.idx_db_.onversionchange = function(event) {
-      // Handle version changes while a web app is open in another tab
-      // https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Version_changes_while_a_web_app_is_open_in_another_tab
-      //
-      if (ydn.db.con.IndexedDb.DEBUG) {
-        window.console.log([this, event]);
-      }
-      me.logger.finest(me + ': onversionchange to: ' + event.version);
-      if (me.idx_db_) {
-        delete me.idx_db_.onabort;
-        delete me.idx_db_.onerror;
-        delete me.idx_db_.onversionchange;
-        me.idx_db_.close();
-        me.idx_db_ = null;
-        if (goog.isFunction(me.onConnectionChange)) {
-          me.onConnectionChange(null, event);
-        }
-      }
-    }
-  }
-
-  if (goog.isFunction(this.onConnectionChange)) {
-    this.onConnectionChange(!!this.idx_db_, e);
-  }
-
-};
 
 
 
@@ -346,11 +393,6 @@ ydn.db.con.IndexedDb.prototype.type = function() {
   return ydn.db.con.IndexedDb.TYPE;
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.con.IndexedDb.prototype.onConnectionChange = null;
 
 
 
@@ -649,52 +691,6 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 };
 
 
-/**
- * Migrate from current version to the given version.
- * @protected
- * @param {IDBDatabase} db database instance.
- * @param {IDBTransaction} trans
- * {ydn.db.schema.Database} schema
- * @param {boolean=} is_caller_setversion call from set version;.
- */
-ydn.db.con.IndexedDb.prototype.updateSchema = function(db, trans, schema, is_caller_setversion) {
-
-  var me = this;
-  var action = is_caller_setversion ? 'changing' : 'upgrading';
-  this.logger.finer(action + ' version from ' + db.version + ' to ' +
-    schema.getVersion());
-
-  trans.oncomplete = function(e) {
-
-    // by reopening the database, we make sure that we are not in
-    // version change state since transaction cannot open during version
-    // change state. this is most common mistake on using IndexedDB API.
-    // db.close(); // cannot close connection. this cause InvalidStateError
-    var reOpenRequest = ydn.db.con.IndexedDb.indexedDb.open(me.dbname);
-    reOpenRequest.onsuccess = function(rev) {
-      var db = rev.target.result;
-      me.logger.finer(me + ':' + action + ' OK.');
-      me.setDb(db);
-    };
-
-    reOpenRequest.onerror = function(e) {
-      me.logger.finer(me + ':' + action + ' fail.');
-      me.setDb(null);
-    }
-  };
-
-  // create store that we don't have previously
-  for (var i = 0; i < schema.stores.length; i++) {
-    // this is sync process.
-    this.update_store_(db, trans, schema.stores[i]);
-  }
-
-  //var storeNames = /** @type {DOMStringList} */ (db.objectStoreNames);
-  //this.setSchema(db, trans, storeNames, schema);
-
-  // TODO: delete unused stores ?
-};
-
 
 
 
@@ -721,82 +717,36 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
     }
   }
 
-  /**
-   *
-   * @param {!IDBTransaction} tx
-   */
-  var call_tx = function(tx) {
+  var tx;
+  try { // this try...catch block will removed on non-debug compiled.
+    tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
+  } catch (e) {
+    if (goog.DEBUG && e.name == 'NotFoundError') {
+      // http://www.w3.org/TR/IndexedDB/#widl-IDBDatabase-transaction-IDBTransaction-any-storeNames-DOMString-mode
+      throw new ydn.db.NotFoundError('stores not found: ' + ydn.json.stringify(scopes));
+    }
+    if (goog.DEBUG && e.name == 'InvalidAccessError') {
+      throw new ydn.db.NotFoundError('store names must be given: ' + ydn.json.stringify(scopes));
+    } else {
+      throw e;
+    }
+  }
 
-    tx.oncomplete = function (event) {
-      completed_event_handler(ydn.db.base.TransactionEventTypes.COMPLETE, event);
-    };
-
-    tx.onerror = function (event) {
-      completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, event);
-    };
-
-    tx.onabort = function (event) {
-      completed_event_handler(ydn.db.base.TransactionEventTypes.ABORT, event);
-    };
-
-    fnc(tx);
+  tx.oncomplete = function (event) {
+    completed_event_handler(ydn.db.base.TransactionEventTypes.COMPLETE, event);
   };
 
-  if (mode === ydn.db.base.TransactionMode.VERSION_CHANGE) {
-    var version = goog.isString(this.idx_db_.version) ?
-      parseFloat(this.idx_db_.version) : this.idx_db_.version;
-    var next_version = version + 1;
-    //this.schema.setVersion(next_version);
-    if (goog.isFunction(this.idx_db_.setVersion)) {
+  tx.onerror = function (event) {
+    completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, event);
+  };
 
-      var setVrequest = this.idx_db_.setVersion(/** @type {string} */ (next_version));
+  tx.onabort = function (event) {
+    completed_event_handler(ydn.db.base.TransactionEventTypes.ABORT, event);
+  };
 
-      setVrequest.onfailure = function (e) {
-        me.logger.warning('changing version from ' + me.idx_db_.version + ' to ' +
-          next_version + ' failed.');
-        completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, e);
-      };
-      setVrequest.onsuccess = function (e) {
+  fnc(tx);
 
-        var tx = setVrequest['transaction'];
-
-        call_tx(tx);
-      };
-    } else {
-      // http://www.w3.org/TR/IndexedDB/#dfn-mode
-      // "versionchange". This type of transaction can't be manually created,
-      // but instead is created automatically when a upgradeneeded event is
-      // fired.
-      this.idx_db_.close();
-      var openRequest = ydn.db.con.IndexedDb.indexedDb.open(this.dbname,
-        /** @type {string} */ (next_version));
-      openRequest.onupgradeneeded = function(ev) {
-        var db = ev.target.result;
-        me.idx_db_ = db;
-        var tx = openRequest['transaction'];
-        call_tx(tx);
-      };
-    }
-  } else { // for READ_ONLY and READ_WRITE mode
-
-    var tx;
-    try { // this try...catch block will removed on non-debug compiled.
-      tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
-    } catch (e) {
-      if (goog.DEBUG && e.name == 'NotFoundError') {
-        // http://www.w3.org/TR/IndexedDB/#widl-IDBDatabase-transaction-IDBTransaction-any-storeNames-DOMString-mode
-        throw new ydn.db.NotFoundError('stores not found: ' + ydn.json.stringify(scopes));
-      } if (goog.DEBUG && e.name == 'InvalidAccessError') {
-        throw new ydn.db.NotFoundError('store names must be given: '  + ydn.json.stringify(scopes));
-      } else {
-        throw e;
-      }
-    }
-
-    call_tx(tx);
-  }
 };
-
 
 
 /**

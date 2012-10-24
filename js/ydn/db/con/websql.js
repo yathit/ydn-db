@@ -36,16 +36,12 @@ goog.require('goog.functions');
 /**
  * Construct WebSql database.
  * Note: Version is ignored, since it does work well.
- * @param {string} dbname name of database.
- * @param {!ydn.db.schema.Database} schema table schema contain table
- * name and keyPath.
  * @param {number=} opt_size estimated database size. Default to 5 MB.
  * @implements {ydn.db.con.IDatabase}
  * @constructor
  */
-ydn.db.con.WebSql = function(dbname, schema, opt_size) {
-  var self = this;
-  this.dbname = dbname;
+ydn.db.con.WebSql = function(opt_size) {
+
 
   // Safari default limit is slightly over 4 MB, so we ask the largest storage
   // size but, still not don't bother to user.
@@ -57,19 +53,119 @@ ydn.db.con.WebSql = function(dbname, schema, opt_size) {
    */
   this.size = goog.isDef(opt_size) ? opt_size : 4 * 1024 * 1024; // 5 MB
 
-  this.connect(schema);
 };
 
 
 /**
- * @protected
- * @param {ydn.db.schema.Database} schema
+ * @param {string} dbname name of database.
+ * @param {ydn.db.schema.Database} schema database schema.
+ * @param {function(Error=)} on_connected callback on success no error.
  */
-ydn.db.con.WebSql.prototype.connect = function(schema) {
+ydn.db.con.WebSql.prototype.connect = function(dbname, schema, on_connected) {
 
-  var description = this.dbname;
+  var description = dbname;
 
+  var me = this;
   var init_migrated = false;
+
+
+  /**
+   *
+   * @param {Database} db
+   * @param {Error=} e
+   */
+  var setDb = function (db, e) {
+    if (goog.isDef(e)) {
+      me.sql_db_ = null;
+      on_connected(e);
+
+    } else {
+      me.sql_db_ = db;
+      on_connected();
+    }
+  };
+
+
+
+  /**
+   * Migrate from current version to the last version.
+   * @private
+   * @param {Database} db
+   * @param {ydn.db.schema.Database} schema
+   * @param {boolean=} is_version_change
+   */
+  var doVersionChange_ = function (db, schema, is_version_change) {
+
+    /**
+     *
+     * @type {ydn.db.con.WebSql}
+     */
+    var me = this;
+
+    var action = is_version_change ? 'changing version' : 'setting version';
+    me.logger.finest(dbname + ': ' + action + ' from ' +
+      db.version + ' to ' + schema.version);
+
+    //var mode = is_version_change ?
+    //    ydn.db.base.TransactionMode.VERSION_CHANGE : ydn.db.base.TransactionMode.READ_WRITE;
+
+    // HACK: VERSION_CHANGE can cause subtle error.
+    var mode = ydn.db.base.TransactionMode.READ_WRITE;
+    // yes READ_WRITE mode can create table and more robust. :-D
+
+
+    var updated_count = 0;
+
+    /**
+     * SQLTransactionCallback
+     * @param {!SQLTransaction} tx
+     */
+    var transaction_callback = function (tx) {
+      // sniff current table info in the database.
+      me.getSchema(function(table_infos) {
+
+        for (var i = 0; i < schema.stores.length; i++) {
+          var counter = function() {
+            updated_count++;
+          };
+          var table_info = table_infos.getStore(schema.stores[i].name);
+          me.update_store_with_info_(tx, schema.stores[i], counter, table_info);
+        }
+
+      }, tx, db);
+    };
+
+    /**
+     * SQLVoidCallback
+     */
+    var success_callback = function () {
+      var has_created = updated_count == schema.stores.length;
+      if (!has_created) {
+        // success callback without actually executing
+        me.logger.warning(dbname + ': ' + action + ' voided.');
+      } else {
+        //if (!me.df_sql_db_.hasFired()) { // FIXME: why need to check ?
+        // this checking is necessary when browser prompt user,
+        // this migration function run two times: one creating table
+        // and one without creating table. How annoying ?
+        // testing is in /test/test_multi_storage.html page.
+        me.logger.finest(dbname + ': ready.');
+        setDb(db);
+      }
+    };
+
+    /**
+     * SQLTransactionErrorCallback
+     * @param {SQLError} e
+     */
+    var error_callback = function (e) {
+      throw e;
+    };
+
+    db.transaction(transaction_callback, error_callback, success_callback)
+
+
+  };
 
 
   /**
@@ -77,7 +173,6 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
    */
   var db = null;
 
-  var me = this;
   var creationCallback = function(e) {
     var msg = init_migrated ?
       ' and already migrated, but migrating again.' : ', migrating.';
@@ -89,7 +184,7 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
     var use_version_change_request = true;
 
     //if (!init_migrated) {
-      me.doVersionChange_(db, schema, use_version_change_request); // yeah, to make sure.
+      doVersionChange_(db, schema, use_version_change_request); // yeah, to make sure.
     //}
   };
 
@@ -122,18 +217,18 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
 
     if (ydn.db.con.WebSql.GENTLE_OPENING) {
       // this works in Chrome, Safari and Opera
-      db = goog.global.openDatabase(this.dbname, '', description,
+      db = goog.global.openDatabase(dbname, '', description,
         this.size);
     } else {
       try {
         // this works in Chrome and OS X Safari even if the specified
         // database version does not exist. Other browsers throw INVALID_STATE_ERR
-        db = goog.global.openDatabase(this.dbname, version, description,
+        db = goog.global.openDatabase(dbname, version, description,
           this.size, creationCallback);
       } catch (e) {
         if (e.name == 'INVALID_STATE_ERR') {
           // fail back to gentle opening.
-          db = goog.global.openDatabase(this.dbname, '', description,
+          db = goog.global.openDatabase(dbname, '', description,
             this.size);
         } else {
           throw e;
@@ -142,7 +237,7 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
     }
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
-      this.logger.warning('SECURITY_ERR for opening ' + this.dbname);
+      this.logger.warning('SECURITY_ERR for opening ' + dbname);
       db = null; // this will purge the tx queue
       // throw new ydn.db.SecurityError(e);
       // don't throw now, so that web app can handle without using
@@ -155,7 +250,7 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
   }
 
   if (!db) {
-    this.setDb(null, this.last_error_);
+    setDb(null, this.last_error_);
   } else  {
 
     // Even if db version are the same, we cannot assume schema are as expected.
@@ -190,30 +285,13 @@ ydn.db.con.WebSql.prototype.connect = function(schema) {
       me.logger.finest('Upgrading to version: ' + version);
     }
 
-    me.doVersionChange_(db, schema, false);
+    doVersionChange_(db, schema, false);
   }
 
 
 };
 
 
-/**
- *
- * @param {Database} db
- * @param {Error=} e
- * @private
- */
-ydn.db.con.WebSql.prototype.setDb = function(db, e) {
-  if (goog.isDef(e)) {
-    this.sql_db_ = null;
-    if (goog.isFunction(this.onConnectionChange)) {
-      this.onConnectionChange(false, e);
-    }
-  } else {
-    this.sql_db_ = db;
-    this.onConnectionChange(true);
-  }
-};
 
 
 /**
@@ -562,87 +640,6 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
 };
 
 
-/**
- * Migrate from current version to the last version.
- * @private
- * @param {Database} db
- * @param {ydn.db.schema.Database} schema
- * @param {boolean=} is_version_change
- */
-ydn.db.con.WebSql.prototype.doVersionChange_ = function (db, schema, is_version_change) {
-
-  var action = is_version_change ? 'changing version' : 'setting version';
-  this.logger.finest(this.dbname + ': ' + action + ' from ' +
-    db.version + ' to ' + schema.version);
-
-  //var mode = is_version_change ?
-  //    ydn.db.base.TransactionMode.VERSION_CHANGE : ydn.db.base.TransactionMode.READ_WRITE;
-
-  // HACK: VERSION_CHANGE can cause subtle error.
-  var mode = ydn.db.base.TransactionMode.READ_WRITE;
-  // yes READ_WRITE mode can create table and more robust. :-D
-
-  /**
-   *
-   * @type {ydn.db.con.WebSql}
-   */
-  var me = this;
-
-  var updated_count = 0;
-
-  /**
-   * SQLTransactionCallback
-   * @param {!SQLTransaction} tx
-   */
-  var transaction_callback = function (tx) {
-    // sniff current table info in the database.
-    me.getSchema(function(table_infos) {
-
-      for (var i = 0; i < schema.stores.length; i++) {
-        var counter = function() {
-          updated_count++;
-        };
-        var table_info = table_infos.getStore(schema.stores[i].name);
-        me.update_store_with_info_(tx, schema.stores[i], counter, table_info);
-      }
-
-    }, tx, db);
-  };
-
-  /**
-   * SQLVoidCallback
-   */
-  var success_callback = function () {
-    var has_created = updated_count == schema.stores.length;
-    if (!has_created) {
-      // success callback without actually executing
-      me.logger.warning(me.dbname + ': ' + action + ' voided.');
-    } else {
-      //if (!me.df_sql_db_.hasFired()) { // FIXME: why need to check ?
-      // this checking is necessary when browser prompt user,
-      // this migration function run two times: one creating table
-      // and one without creating table. How annoying ?
-      // testing is in /test/test_multi_storage.html page.
-      me.logger.finest(me.dbname + ': ready.');
-      me.setDb(db);
-    }
-  };
-
-  /**
-   * SQLTransactionErrorCallback
-   * @param {SQLError} e
-   */
-  var error_callback = function (e) {
-    throw e;
-  };
-
-  db.transaction(transaction_callback, error_callback, success_callback)
-
-
-
-
-};
-
 
 /**
  * @return {boolean}
@@ -651,12 +648,6 @@ ydn.db.con.WebSql.prototype.isReady = function() {
   return !!this.sql_db_;
 };
 
-
-/**
- *
- * @inheritDoc
- */
-ydn.db.con.WebSql.prototype.onConnectionChange = null;
 
 
 /**
@@ -726,12 +717,3 @@ ydn.db.con.WebSql.prototype.doTransaction = function (trFn, scopes, mode, comple
 
 };
 
-
-
-/**
- * @override
- */
-ydn.db.con.WebSql.prototype.toString = function() {
-  var s = this.sql_db_ ? this.dbname + ':' + this.sql_db_.version : '';
-  return this.type() + ':' + s;
-};

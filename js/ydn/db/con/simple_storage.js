@@ -28,13 +28,11 @@ goog.require('ydn.db.con.IDatabase');
 
 /**
  * @implements {ydn.db.con.IDatabase}
- * @param {string} dbname dtabase name.
- * @param {!ydn.db.schema.Database=} schema table schema contain table
  * name and keyPath.
  * @param {Object=} opt_localStorage
  * @constructor
  */
-ydn.db.con.SimpleStorage = function(dbname, schema, opt_localStorage) {
+ydn.db.con.SimpleStorage = function(opt_localStorage) {
 
   /**
    * @final
@@ -42,19 +40,6 @@ ydn.db.con.SimpleStorage = function(dbname, schema, opt_localStorage) {
    * @protected // should be private ?
    */
   this.cache_ = opt_localStorage || ydn.db.con.SimpleStorage.getInMemoryStorage();
-
-  /**
-   * @final
-   * @type {string}
-   */
-  this.dbname = dbname;
-
-  /**
-   * @protected
-   * @final
-   * @type {!ydn.db.schema.Database|undefined}
-   */
-  this.schema = schema; // we always use the last schema.
 
 };
 
@@ -101,18 +86,39 @@ ydn.db.con.SimpleStorage.isSupported = function() {
 
 
 
+/**
+ * @param {string} dbname name of database.
+ * @param {!ydn.db.schema.Database} schema database schema.
+ * @param {function(Error=)} on_connected on success no error.
+ */
+ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema, on_connected) {
+
+  /**
+   * @final
+   * @type {string}
+   */
+  this.dbname = dbname;
+
+  /**
+   * @protected
+   * @final
+   * @type {!ydn.db.schema.Database|undefined}
+   */
+  this.schema = schema; // we always use the last schema.
+
+  on_connected();
+};
+
+
+
 
 /**
  * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.isReady = function() {
-  return true;
+  return !!this.dbname && !!this.schema;
 };
 
-/**
- * @inheritDoc
- */
-ydn.db.con.SimpleStorage.prototype.onConnectionChange = null;
 
 
 /**
@@ -123,13 +129,6 @@ ydn.db.con.SimpleStorage.prototype.getDbInstance = function() {
 };
 
 
-/**
- * @protected
- * @param {string} old_version old version.
- */
-ydn.db.con.SimpleStorage.prototype.doVersionChange = function(old_version) {
-
-};
 
 
 /**

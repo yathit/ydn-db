@@ -32,6 +32,7 @@ goog.require('ydn.db.con.SessionStorage');
 goog.require('ydn.db.con.IndexedDb');
 goog.require('ydn.db.con.SimpleStorage');
 goog.require('ydn.db.con.WebSql');
+goog.require('ydn.db.schema.EditableDatabase');
 goog.require('ydn.object');
 goog.require('ydn.error.ArgumentException');
 goog.require('ydn.db.con.IStorage');
@@ -102,7 +103,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   var schema;
   if (opt_schema instanceof ydn.db.schema.Database) {
-    schema = ydn.db.schema.Database;
+    schema = opt_schema;
   } else if (goog.isObject(opt_schema)) {
     if (options.autoSchema || !goog.isDef(opt_schema['Stores'])) {
       schema = new ydn.db.schema.EditableDatabase(opt_schema);
@@ -217,16 +218,16 @@ ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
 
     var action = store ? 'update' : 'add';
 
-    if (! this.schema.isAutoVersion()) {
+    if (this.schema instanceof ydn.db.schema.EditableDatabase) {
+      // do update
+      var schema = /** @type {ydn.db.schema.EditableDatabase} */ (this.schema);
+      schema.addStore(new_store);
+      this.db_.close();
+      this.db_ = null;
+      return this.connectDatabase();
+    } else {
       throw new ydn.error.ConstrainError('Cannot ' + action + ' store: ' +
         store_name + '. Not auto schema generation mode.');
-    } else {
-      // do update
-      this.db_.close();
-      var schema = /** @type {DatabaseSchema} */ (this.schema.toJSON());
-      schema.Stores.push(new_store.toJSON());
-      this.db_ = null;
-      return this.connectDatabase(ydn.db.schema.Database.fromJSON(schema));
     }
   } else {
     return goog.async.Deferred.succeed(false); // no change required
@@ -297,15 +298,15 @@ ydn.db.con.Storage.PREFERENCE = [
 ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
 
   if (db_type == ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.con.IndexedDb(this.db_name, this.schema, this.size);
+    return new ydn.db.con.IndexedDb(this.size);
   } else if (db_type == ydn.db.con.WebSql.TYPE) {
-    return new ydn.db.con.WebSql(this.db_name, this.schema, this.size);
+    return new ydn.db.con.WebSql(this.size);
   } else if (db_type == ydn.db.con.LocalStorage.TYPE) {
-    return new ydn.db.con.LocalStorage(this.db_name, this.schema);
+    return new ydn.db.con.LocalStorage();
   } else if (db_type == ydn.db.con.SessionStorage.TYPE) {
-    return new ydn.db.con.SessionStorage(this.db_name, this.schema);
+    return new ydn.db.con.SessionStorage();
   } else if (db_type == ydn.db.con.SimpleStorage.TYPE)  {
-    return new ydn.db.con.SimpleStorage(this.db_name, this.schema);
+    return new ydn.db.con.SimpleStorage();
   }
   return null;
 };
@@ -321,7 +322,6 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
   // handle version change
 
   goog.asserts.assertString(this.db_name);
-  goog.asserts.assertObject(this.schema);
 
   var df = new goog.async.Deferred();
 
@@ -367,18 +367,11 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
     throw new ydn.error.ConstrainError('No storage mechanism found.');
   }
 
-  this.db_ = db;
+  var me = this;
 
   this.init(); // let super class to initialize.
 
-  var me = this;
-
-  /**
-   *
-   * @param {boolean} is_connected
-   * @param {Error=} e
-   */
-  db.onConnected = function (e) {
+  db.connect(this.db_name, this.schema, function on_connected(e) {
     if (goog.isDef(e)) {
       me.logger.warning(me + ': opening fail: ' + e.message);
       goog.async.Deferred.fail(e);
@@ -388,7 +381,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
         e, 'opening database fail: ' + e.message);
       me.dispatchEvent(event);
     } else {
-
+      me.db_ = db;
       me.logger.finest(me + ': ready.');
       me.last_queue_checkin_ = NaN;
 
@@ -401,7 +394,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
 
       /**
        *
-       * @param {Error=} e
+       * @param e
        */
       db.onDisconnected = function (e) {
 
@@ -411,7 +404,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
       };
 
     }
-  };
+  });
 
   return df;
 
