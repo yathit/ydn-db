@@ -255,6 +255,65 @@ ydn.db.con.IndexedDb.prototype.connect = function(schema) {
 };
 
 
+/**
+ * @final
+ * @protected
+ * @param {IDBDatabase} db database instance.
+ * @param {Error=} e
+ */
+ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
+
+  if (goog.isDef(e)) {
+    this.logger.warning(e ? e.message : 'Error received.');
+    this.idx_db_ = null;
+
+  } else {
+    goog.asserts.assertObject(db);
+    this.idx_db_ = db;
+    var me = this;
+    this.idx_db_.onabort = function(e) {
+      me.logger.finest(me + ': onabort - ' + e.message);
+    };
+    this.idx_db_.onerror = function(e) {
+      if (ydn.db.con.IndexedDb.DEBUG) {
+        window.console.log([this, e]);
+      }
+      me.logger.finest(me + ': onerror - ' + e.message);
+    };
+
+    /**
+     *
+     * @param {IDBVersionChangeEvent} event
+     */
+    this.idx_db_.onversionchange = function(event) {
+      // Handle version changes while a web app is open in another tab
+      // https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Version_changes_while_a_web_app_is_open_in_another_tab
+      //
+      if (ydn.db.con.IndexedDb.DEBUG) {
+        window.console.log([this, event]);
+      }
+      me.logger.finest(me + ': onversionchange to: ' + event.version);
+      if (me.idx_db_) {
+        delete me.idx_db_.onabort;
+        delete me.idx_db_.onerror;
+        delete me.idx_db_.onversionchange;
+        me.idx_db_.close();
+        me.idx_db_ = null;
+        if (goog.isFunction(me.onConnectionChange)) {
+          me.onConnectionChange(null, event);
+        }
+      }
+    }
+  }
+
+  if (goog.isFunction(this.onConnectionChange)) {
+    this.onConnectionChange(!!this.idx_db_, e);
+  }
+
+};
+
+
+
 
 /**
  *
@@ -338,63 +397,6 @@ ydn.db.con.IndexedDb.prototype.logger =
  */
 ydn.db.con.IndexedDb.prototype.idx_db_ = null;
 
-
-/**
- * @final
- * @protected
- * @param {IDBDatabase} db database instance.
- * @param {Error=} e
- */
-ydn.db.con.IndexedDb.prototype.setDb = function (db, e) {
-
-  if (goog.isDef(e)) {
-    this.logger.warning(e ? e.message : 'Error received.');
-    this.idx_db_ = null;
-
-  } else {
-    goog.asserts.assertObject(db);
-    this.idx_db_ = db;
-    var me = this;
-    this.idx_db_.onabort = function(e) {
-      me.logger.finest(me + ': onabort - ' + e.message);
-    };
-    this.idx_db_.onerror = function(e) {
-      if (ydn.db.con.IndexedDb.DEBUG) {
-        window.console.log([this, e]);
-      }
-      me.logger.finest(me + ': onerror - ' + e.message);
-    };
-
-    /**
-     *
-     * @param {IDBVersionChangeEvent} event
-     */
-    this.idx_db_.onversionchange = function(event) {
-      // Handle version changes while a web app is open in another tab
-      // https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Version_changes_while_a_web_app_is_open_in_another_tab
-      //
-      if (ydn.db.con.IndexedDb.DEBUG) {
-        window.console.log([this, event]);
-      }
-      me.logger.finest(me + ': onversionchange to: ' + event.version);
-      if (me.idx_db_) {
-        delete me.idx_db_.onabort;
-        delete me.idx_db_.onerror;
-        delete me.idx_db_.onversionchange;
-        me.idx_db_.close();
-        me.idx_db_ = null;
-        if (goog.isFunction(me.onConnectionChange)) {
-          me.onConnectionChange(null, event);
-        }
-      }
-    }
-  }
-
-  if (goog.isFunction(this.onConnectionChange)) {
-    this.onConnectionChange(!!this.idx_db_, e);
-  }
-
-};
 
 
 /**
