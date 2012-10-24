@@ -745,13 +745,37 @@ ydn.db.schema.Store.prototype.similar = function(store) {
 
 /**
  *
- * @param {number|string=} version version, if string, it must be parse to int.
+ * @param {DatabaseSchema|number|string=} version version, if string, it must be parse to int.
  * @param {!Array.<!ydn.db.schema.Store>=} opt_stores store schemas.
  * @constructor
  */
 ydn.db.schema.Database = function(version, opt_stores) {
 
-  var ver = goog.isString(version) ? version.length == 0 ?
+  var ver;
+  var stores = opt_stores;
+  if (goog.isObject(version)) {
+    /**
+     * @type {DatabaseSchema}
+     */
+    var json = version;
+    if (goog.DEBUG) {
+      var fields = ['version', 'Stores'];
+      for (var key in json) {
+        if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
+          throw new ydn.error.ArgumentException('Unknown field: ' + key + ' in ' +
+            ydn.json.stringify(json));
+        }
+      }
+    }
+    ver = json['version'];
+    stores = [];
+    var stores_json = json.Stores || [];
+    for (var i = 0; i < stores_json.length; i++) {
+      stores.push(ydn.db.schema.Store.fromJSON(stores_json[i]));
+    }
+  }
+
+  ver = goog.isString(version) ? version.length == 0 ?
       undefined : parseFloat(version) : version;
   if (goog.isDef(ver)) {
     if (!goog.isNumber(ver) || ver < 0) {
@@ -778,9 +802,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
    * @final
    * @type {!Array.<!ydn.db.schema.Store>}
    */
-  this.stores = opt_stores || [];
-
-  this.is_auto_schema_ = this.stores.length == 0;
+  this.stores = stores || [];
 
 };
 
@@ -848,7 +870,7 @@ ydn.db.schema.Database.prototype.isAutoVersion = function() {
  * @return {boolean}
  */
 ydn.db.schema.Database.prototype.isAutoSchema = function() {
-  return this.is_auto_schema_;
+  return false;
 };
 
 
@@ -862,6 +884,7 @@ ydn.db.schema.Database.prototype.getStoreNames = function() {
 
 
 /**
+ * @deprecated
  * @param {!DatabaseSchema} json Restore from json stream.
  * @return {!ydn.db.schema.Database} create new database schema from JSON string.
  */
@@ -882,27 +905,26 @@ ydn.db.schema.Database.fromJSON = function(json) {
   }
   return new ydn.db.schema.Database(json.version, stores);
 };
-//
-//
-///**
-// * @param {number} version
-// */
-//ydn.db.schema.Database.prototype.setVersion = function(version) {
-//  this.version = version;
-//};
 
 
 /**
  *
- * @param {!ydn.db.schema.Store} table store.
+ * @return {number} number of stores.
  */
 ydn.db.schema.Database.prototype.addStore = function(table) {
-  if (!this.isAutoSchema()) {
-    throw new ydn.error.InvalidOperationException();
-  }
-
   this.stores.push(table);
 };
+
+
+/**
+ *
+ * @param {number} idx index of stores.
+ * @return {ydn.db.schema.Store} store schema at the index.
+ */
+ydn.db.schema.Database.prototype.store = function(idx) {
+  return this.stores[idx] || null;
+};
+
 
 
 /**

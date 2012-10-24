@@ -80,8 +80,8 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @final
    * @type {boolean}
    */
-  this.use_text_store = goog.isDef(options.usedTextStore) ?
-    options.usedTextStore : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
+  this.use_text_store = goog.isDef(options.use_text_store) ?
+    options.use_text_store : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
 
   /**
    * @type {ydn.db.con.IDatabase}
@@ -100,19 +100,26 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   this.in_version_change_tx_ = false;
 
+  var schema;
+  if (opt_schema instanceof ydn.db.schema.Database) {
+    schema = ydn.db.schema.Database;
+  } else if (goog.isObject(opt_schema)) {
+    if (options.autoSchema || !goog.isDef(opt_schema['Stores'])) {
+      schema = new ydn.db.schema.EditableDatabase(opt_schema);
+    } else {
+      schema = new ydn.db.schema.Database(opt_schema);
+    }
+  } else {
+    schema = new ydn.db.schema.EditableDatabase();
+  }
+
   /**
    * @final
    * @protected
    * @type {!ydn.db.schema.Database}
    */
-  this.schema = (opt_schema instanceof ydn.db.schema.Database) ?
-    opt_schema : goog.isDefAndNotNull(opt_schema) ?
-    ydn.db.schema.Database.fromJSON(opt_schema) : new ydn.db.schema.Database();
+  this.schema = schema;
 
-  if (this.use_text_store && !this.schema.hasStore(ydn.db.schema.Store.DEFAULT_TEXT_STORE)) {
-    this.schema.addStore(new ydn.db.schema.Store(
-      ydn.db.schema.Store.DEFAULT_TEXT_STORE, 'id', false, ydn.db.schema.DataType.TEXT));
-  }
 
   if (goog.isDef(opt_dbname)) {
     this.setName(opt_dbname);
@@ -247,6 +254,13 @@ ydn.db.con.Storage.prototype.setName = function(opt_db_name) {
   this.connectDatabase();
 
 };
+
+
+/**
+ * Super class must not mutate schema data.
+ * @type {!ydn.db.schema.Database} database schema as requested.
+ */
+ydn.db.con.Storage.prototype.schema;
 
 
 /**

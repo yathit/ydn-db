@@ -11,12 +11,6 @@
 function StorageOptions() {}
 
 /**
- * If true, a default key-value text object store will be created.
- * @type {boolean|undefined}
- */
-StorageOptions.prototype.used_key_value_store;
-
-/**
  * Estimated database size for WebSQL.
  * @type {number|undefined}
  */
@@ -28,6 +22,12 @@ StorageOptions.prototype.size;
  * @type {!Array.<string>|undefined}
  */
 StorageOptions.prototype.Mechanisms;
+
+
+/**
+ * @type {boolean=}
+ */
+StorageOptions.prototype.autoSchema;
 
 /**
  * @constructor
