@@ -251,20 +251,23 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
         } else {
           throw new ydn.error.ArgumentException('key must be string or number');
         }
-      } else if (goog.isString(arg2) || goog.isNumber(arg2)) {
+      } else if (goog.isDef(arg2)) {
+        if (goog.DEBUG) {
+           if (!(goog.isString(arg2) || goog.isNumber(arg2) || goog.isDateLike(arg2))) {
+             throw new ydn.error.ArgumentException('argument 2 must be string, number or date');
+           }
+        }
         /** @type {string} */
         /** @type {string|number} */
         var id = arg2;
         this.execute(function (executor) {
           executor.getById(df, store_name, id);
         }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-      } else if (!goog.isDef(arg2)) {
+      } else {
         this.execute(function (executor) {
           executor.getByStore(df, store_name);
         }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
-      } else {
-        throw new ydn.error.ArgumentException();
       }
     }
   } else if (goog.isArray(arg1)) {

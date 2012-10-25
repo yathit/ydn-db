@@ -199,7 +199,7 @@ var test_21_out_of_line = function () {
 
 var test_22_out_of_line_array = function () {
   var store_name = 'demoOS';
-  var db_name = 'test_22_1';
+  var db_name = 'test_22_2';
   var store_schema = new ydn.db.schema.Store(store_name, undefined,  false);
   var schema = new ydn.db.schema.Database(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);

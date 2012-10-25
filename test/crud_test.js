@@ -194,8 +194,6 @@ var test_22_get_array = function() {
 };
 
 
-
-
 var test_23_get_array = function() {
   var db_name = 'test_crud_23 _2';
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -574,8 +572,6 @@ var test_53_fetch_keys = function () {
   });
 
 };
-
-
 
 
 var test_61_query_start_with = function () {

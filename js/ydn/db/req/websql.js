@@ -132,7 +132,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) 
    */
   var success_callback = function (transaction, results) {
     if (ydn.db.req.WebSql.DEBUG) {
-      window.console.log([sql, out, transaction, results]);
+      window.console.log(['success', sql, out, transaction, results]);
     }
     // In SQLite, row id (insertId) is column and hence cab retrieved back by
     // row ID. see in getById for details.
@@ -294,6 +294,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
     return true; // roll back
   };
 
+  //window.console.log(['getById', sql, params]);
   this.tx.executeSql(sql, params, callback, error_callback);
 };
 
