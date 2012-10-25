@@ -978,7 +978,7 @@ ydn.db.schema.Database.prototype.difference = function(schema) {
     var store = schema.getStore(this.stores[i].name);
     var msg = this.stores[i].difference(store);
     if (msg.length > 0) {
-      return 'store: ' + store.name + ' ' + msg;
+      return 'store: ' + this.stores[i].name + ' ' + msg;
     }
   }
 

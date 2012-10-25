@@ -97,7 +97,6 @@ var trival_schema_test = function(dbname) {
       var diff = validated_schema.difference(act_schema);
       assertTrue('version diff: ' + diff, diff.length == 0);
       reachedFinalContinuation = true;
-
     },
     100, // interval
     2000); // maxTimeout

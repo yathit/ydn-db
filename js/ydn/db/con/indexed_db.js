@@ -75,6 +75,8 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
   var df = new goog.async.Deferred();
 
   /**
+   * This is final result of connection. It is either fail or connected
+   * and only once.
    * @param {IDBDatabase} db database instance.
    * @param {Error=} e
    */
@@ -165,6 +167,8 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
   var openRequest;
   if (!goog.isDef(version)) {
     // auto schema do not have version
+    // Note: undefined is not 'not defined', i.e. open('name', undefined)
+    // is not the same effect as open('name');
     openRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname);
   } else {
     openRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname,

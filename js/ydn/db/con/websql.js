@@ -65,7 +65,12 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
   var description = dbname;
 
+
+  /**
+   * @type {ydn.db.con.WebSql}
+   */
   var me = this;
+
   var init_migrated = false;
   var df = new goog.async.Deferred();
 
@@ -95,12 +100,6 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
    * @param {boolean=} is_version_change
    */
   var doVersionChange_ = function (db, schema, is_version_change) {
-
-    /**
-     *
-     * @type {ydn.db.con.WebSql}
-     */
-    var me = this;
 
     var action = is_version_change ? 'changing version' : 'setting version';
     me.logger.finest(dbname + ': ' + action + ' from ' +
@@ -163,7 +162,6 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     };
 
     db.transaction(transaction_callback, error_callback, success_callback)
-
 
   };
 
@@ -292,8 +290,6 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 };
 
 
-
-
 /**
  * @define {boolean}
  */
@@ -306,13 +302,13 @@ ydn.db.con.WebSql.GENTLE_OPENING = true;
  */
 ydn.db.con.WebSql.TYPE = 'websql';
 
+
 /**
  * @return {string}
  */
 ydn.db.con.WebSql.prototype.type = function() {
   return ydn.db.con.WebSql.TYPE;
 };
-
 
 
 /**
@@ -444,7 +440,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
   var version = (db && db.version) ?
       parseInt(db.version, 10) : undefined;
   version = isNaN(version) ? undefined : version;
-  var out = new ydn.db.schema.Database(version);
+  var stores = [];
 
 
   /**
@@ -507,7 +503,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 
         var store = new ydn.db.schema.Store(info.name, key_name, autoIncrement,
             key_type, indexes);
-        out.addStore(store);
+        stores.push(store);
         //console.log([info, store]);
       }
     }
@@ -515,6 +511,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 //      window.console.log(out);
 //    }
 
+    var out = new ydn.db.schema.Database(version, stores);
     callback(out);
   };
 
