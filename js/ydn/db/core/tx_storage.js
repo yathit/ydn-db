@@ -204,8 +204,15 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
      */
     var k = arg1;
     var k_store_name = k.getStoreName();
-    goog.asserts.assert(this.schema.hasStore(k_store_name), 'Store: ' +
-      k_store_name + ' not found.');
+    if (!this.schema.hasStore(k_store_name)) {
+      if (this.schema.isAutoSchema()) {
+        return goog.async.Deferred.succeed(undefined);
+      } else {
+        throw new ydn.error.ArgumentException('Store: ' +
+          k_store_name + ' not found.');
+      }
+    }
+
     var kid = k.getId();
     this.execute(function (executor) {
       executor.getById(df, k_store_name, kid);
@@ -214,7 +221,11 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
     var store_name = arg1;
     var store = this.schema.getStore(store_name);
     if (!store) {
-      throw new ydn.error.ArgumentException('Store: ' + store_name + ' not found.')
+      if (this.schema.isAutoSchema()) {
+        return goog.async.Deferred.succeed(undefined);
+      } else {
+        throw new ydn.error.ArgumentException('Store: ' + store_name + ' not found.');
+      }
     }
     // here I have very concern about schema an object store mismatch!
     // should try query without sniffing store.type
@@ -281,7 +292,14 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
         var key = keys[i];
         var i_store_name = key.getStoreName();
         if (!this.schema.hasStore(i_store_name)) {
-          throw new ydn.error.ArgumentException('Store: ' + i_store_name + ' not found.');
+          if (this.schema.isAutoSchema()) {
+            var fail_array = [];
+            // I think more efficient than: fail_array.length = keys.length;
+            fail_array[keys.length - 1] = undefined;
+            return goog.async.Deferred.succeed(fail_array);
+          } else {
+            throw new ydn.error.ArgumentException('Store: ' + i_store_name + ' not found.');
+          }
         }
         if (!goog.array.contains(store_names, i_store_name)) {
           store_names.push(i_store_name);

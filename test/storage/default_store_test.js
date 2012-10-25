@@ -27,14 +27,14 @@ var tearDown = function() {
 };
 
 var db_name = 'test1';
+var tr_db_name = 'test_2_trival_config_' + Math.random();
 
 
 var test_1_trival_config = function() {
 
-  var schema_ver1 = {};
-  var db_name = 'test_2_trival_config_' + Math.random();
 
-  var db = new ydn.db.Storage(db_name, schema_ver1);
+
+  var db = new ydn.db.Storage(tr_db_name);
 
   //db.setItem('some-value', 'ok');
 
@@ -70,7 +70,7 @@ var test_2_trival_config_repeat = function() {
   var schema_ver1 = {};
   var db_name = 'test_2_trival_config_1';
 
-  var db = new ydn.db.Storage(db_name, schema_ver1);
+  var db = new ydn.db.Storage(tr_db_name);
 
   //db.setItem('some-value', 'ok');
 
@@ -83,6 +83,7 @@ var test_2_trival_config_repeat = function() {
     function() { return hasEventFired; },
     // Continuation
     function() {
+      console.log(db.getSchema());
       assertEquals('put a 1', key, put_value);
       // Remember, the state of this boolean will be tested in tearDown().
       reachedFinalContinuation = true;

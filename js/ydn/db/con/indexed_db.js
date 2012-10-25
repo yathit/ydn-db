@@ -218,7 +218,17 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
             }
           };
 
-          if (goog.isFunction(db.setVersion)) {
+          if (goog.isFunction(goog.global['IDBOpenDBRequest'])) {
+            var next_version = db.version + 1;
+            db.close();
+            var req = ydn.db.con.IndexedDb.indexedDb.open(dbname, next_version);
+            req.onupgradeneeded = function(ev) {
+              var db = ev.target.result;
+              me.logger.finer('upgrade needed for version ' + db.version);
+              updateSchema(db, openRequest['transaction'], false);
+
+            };
+          } else if (goog.isFunction(db.setVersion)) {
             var ver_request = db.setVersion(/** @type {string} */ (version)); // for chrome
 
             ver_request.onfailure = function(e) {
@@ -253,16 +263,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
             };
 
           } else {
-            var next_version = db.version + 1;
-            db.close();
-            var req = ydn.db.con.IndexedDb.indexedDb.open(dbname, next_version);
-            req.onupgradeneeded = function(ev) {
-              var db = ev.target.result;
-              me.logger.finer('upgrade needed for version ' + db.version);
-              updateSchema(db, openRequest['transaction'], false);
-
-            };
-
+            throw new ydn.error.InternalError('Unknown standard.');
           }
 
         } else {
