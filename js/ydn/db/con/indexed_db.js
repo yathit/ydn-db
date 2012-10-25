@@ -360,10 +360,6 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 };
 
 
-
-
-
-
 /**
  *
  * @const {boolean} turn on debug flag to dump object.
@@ -485,6 +481,13 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
       return;
     }
     trans = idb.transaction(names, /** @type {number} */ (mode));
+  } else if (goog.isNull(trans)) {
+    if (idb.objectStoreNames.length == 0) {
+      callback(new ydn.db.schema.Database(idb.version));
+      return;
+    } else {
+      throw new ydn.error.InternalError();
+    }
   } else {
     //window.console.log(['trans', trans]);
     idb = trans['db'];
@@ -493,7 +496,7 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
   /** @type {DOMStringList} */
   var objectStoreNames = /** @type {DOMStringList} */ (idb.objectStoreNames);
 
-  var schema = new ydn.db.schema.Database(/** @type {number} */ (idb.version));
+  var stores = [];
   var n = objectStoreNames.length;
   for (var i = 0; i < n; i++) {
     /**
@@ -509,10 +512,11 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
       indexes[j] = new ydn.db.schema.Index(index.keyPath, undefined,
         index.unique, index.multiEntry, index.name);
     }
-    var store = new ydn.db.schema.Store(objStore.name, objStore.keyPath,
+    stores[i] = new ydn.db.schema.Store(objStore.name, objStore.keyPath,
       objStore.autoIncrement, undefined, indexes);
-    schema.addStore(store);
   }
+  var schema = new ydn.db.schema.Database(/** @type {number} */ (idb.version),
+    stores);
 
   callback(schema);
 };
@@ -720,7 +724,8 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function (fnc, scopes, mode, comp
   }
 
   if (scopes.length == 0) {
-    fnc(null); // this will cause InvalidAccessError
+    fnc(null);
+    // opening without object store name will cause InvalidAccessError
   }
 
   var tx;

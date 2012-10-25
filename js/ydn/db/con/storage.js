@@ -135,46 +135,49 @@ goog.inherits(ydn.db.con.Storage, goog.events.EventTarget);
  */
 ydn.db.con.Storage.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.con.Storage');
-
-
-
-/**
- * Get configuration of this storage. This is useful from getting storage from
- * main thread to worker thread.
- * <pre>
- *   var db = new ydn.db.con.Storage(...);
- *   ... initialize ...
- *   var config = db.getConfig();
- *
- *   ... in worker thread ...
- *   var worker_db = new ydn.db.con.Storage(config.db_name, config.schema);
- * </pre>
- * In this way, data can be share between the two threads.
- *
- * @return {{name: string, schema: DatabaseSchema}?} configuration
- * containing database and list of schema in JSON format.
- * @export
- * @deprecated
- */
-ydn.db.con.Storage.prototype.getConfig = function() {
-  if (!this.schema) {
-    return null;
-  }
-
-  return {
-    'name': this.db_name,
-    'schema': this.getSchema()
-  };
-};
+//
+//
+//
+///**
+// * Get configuration of this storage. This is useful from getting storage from
+// * main thread to worker thread.
+// * <pre>
+// *   var db = new ydn.db.con.Storage(...);
+// *   ... initialize ...
+// *   var config = db.getConfig();
+// *
+// *   ... in worker thread ...
+// *   var worker_db = new ydn.db.con.Storage(config.db_name, config.schema);
+// * </pre>
+// * In this way, data can be share between the two threads.
+// *
+// * @return {{name: string, schema: DatabaseSchema}?} configuration
+// * containing database and list of schema in JSON format.
+// * @export
+// * @deprecated
+// */
+//ydn.db.con.Storage.prototype.getConfig = function() {
+//  if (!this.schema) {
+//    return null;
+//  }
+//
+//  return {
+//    'name': this.db_name,
+//    'schema': this.getSchema()
+//  };
+//};
 
 
 /**
  * Get current schema.
- * @param {function(ydn.db.schema.Database)=} callback
+ * @param {function(ydn.db.schema.Database)=} opt_callback
  * @return {DatabaseSchema}
  */
-ydn.db.con.Storage.prototype.getSchema = function(callback) {
-  if (goog.isFunction(callback)) {
+ydn.db.con.Storage.prototype.getSchema = function(opt_callback) {
+  if (goog.isDef(opt_callback)) {
+    var callback = function(schema) {
+      opt_callback(schema.toJSON());
+    };
     if (this.db_) {
       this.db_.getSchema(callback);
     } else {
@@ -225,9 +228,13 @@ ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
       // do update
       var schema = /** @type {ydn.db.schema.EditableDatabase} */ (this.schema);
       schema.addStore(new_store);
-      this.db_.close();
-      this.db_ = null;
-      return this.connectDatabase();
+      if (this.db_) {
+        this.db_.close();
+        this.db_ = null;
+        return this.connectDatabase();
+      } else {
+        return goog.async.Deferred.succeed(false);
+      }
     } else {
       throw new ydn.error.ConstrainError('Cannot ' + action + ' store: ' +
         store_name + '. Not auto schema generation mode.');

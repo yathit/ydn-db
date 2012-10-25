@@ -22,8 +22,6 @@ goog.exportProperty(ydn.db.con.Storage.prototype, 'type',
   ydn.db.con.Storage.prototype.type);
 goog.exportProperty(ydn.db.con.Storage.prototype, 'setName',
   ydn.db.con.Storage.prototype.setName);
-goog.exportProperty(ydn.db.con.Storage.prototype, 'getConfig',
-  ydn.db.con.Storage.prototype.getConfig);
 goog.exportProperty(ydn.db.con.Storage.prototype, 'getSchema',
   ydn.db.con.Storage.prototype.getSchema);
 goog.exportProperty(ydn.db.con.Storage.prototype, 'transaction',

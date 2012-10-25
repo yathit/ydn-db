@@ -103,7 +103,7 @@ var trival_schema_test = function(dbname) {
     2000); // maxTimeout
 
   db.getSchema(function(v) {
-    act_schema = v;
+    act_schema = new ydn.db.schema.Database(v);
     done = true;
   })
 
@@ -145,16 +145,34 @@ var test_13c_ver_update = function() {
 
 
 var test_21_add_store = function() {
+  var done, sh_len;
+  waitForCondition(
+    // Condition
+    function() { return done; },
+    // Continuation
+    function() {
+      assertEquals('1 store', 1, sh_len);
+      assertTrue('still auto schema', db.isAutoSchema());
+      reachedFinalContinuation = true;
+
+    },
+    100, // interval
+    2000); // maxTimeout
+
   var db_name = 'test_' + Math.random();
   // autoSchema database
   var db = new ydn.db.Storage(db_name, undefined, options);
   var sh = db.getSchema();
   assertEquals('no store', 0, sh.Stores.length);
   assertTrue('auto schema', db.isAutoSchema());
-  var store = {'name': 'st1', 'keyPath': 'id'};
-  db.addStoreSchema(store).addBoth(function(x) {
-    assertEquals('1 store', 1, sh.Stores.length);
-    assertTrue('still auto schema', db.isAutoSchema());
+  var store_name = 'st' + Math.random();
+  var store = {name: store_name, keyPath: 'id'};
+  var v = Math.random();
+  db.put(store, {id: 'a', value: v});
+  db.getSchema(function(sh) {
+    console.log(sh);
+    sh_len = sh.Stores.length;
+    done = true;
   });
 };
 
