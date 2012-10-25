@@ -144,7 +144,8 @@ ydn.db.schema.Index.js2sql = function(key, type) {
   } else if (goog.isDef(type)) {
     return key;
   } else {
-    return ydn.db.utils.encodeKey(key);
+    var encoded = ydn.db.utils.encodeKey(key);
+    return "X'" + encoded + "'";
   }
 };
 

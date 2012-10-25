@@ -17,8 +17,8 @@ var setUp = function() {
   //stubs = new goog.testing.PropertyReplacer();
 
   var table_name = 't1';
-  var basic_schema = new ydn.db.schema.Database(1);
-  basic_schema.addStore(new ydn.db.schema.Store(table_name));
+  var basic_schema = new ydn.db.schema.Database(1, [new ydn.db.schema.Store(table_name)]);
+
 };
 
 var tearDown = function() {
@@ -32,7 +32,7 @@ var db_name = 'test1';
 var test_1_trival_config = function() {
 
   var schema_ver1 = {};
-  var db_name = 'test_1_trival_config_' + Math.random();
+  var db_name = 'test_2_trival_config_' + Math.random();
 
   var db = new ydn.db.Storage(db_name, schema_ver1);
 
@@ -68,7 +68,7 @@ var test_1_trival_config = function() {
 var test_2_trival_config_repeat = function() {
 
   var schema_ver1 = {};
-  var db_name = 'test_1_trival_config_1';
+  var db_name = 'test_2_trival_config_1';
 
   var db = new ydn.db.Storage(db_name, schema_ver1);
 

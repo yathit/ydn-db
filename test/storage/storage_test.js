@@ -17,8 +17,9 @@ var setUp = function() {
   //stubs = new goog.testing.PropertyReplacer();
 
   var table_name = 't1';
-  var basic_schema = new ydn.db.schema.Database(1);
-  basic_schema.addStore(new ydn.db.schema.Store(table_name));
+  var store = new ydn.db.schema.Store(table_name);
+  var basic_schema = new ydn.db.schema.Database(1, [store]);
+
 };
 
 var tearDown = function() {
@@ -33,7 +34,7 @@ var test_1_json_trival_config = function() {
 
   var schema_ver1 = {version: 1};
 
-  var db = new ydn.db.Storage('todos_test8', schema_ver1);
+  var db = new ydn.db.Storage('todos_test_9', schema_ver1);
 
   //db.setItem('some-value', 'ok');
 
@@ -72,7 +73,7 @@ var test_0_json_config_empty_table = function() {
     Stores:[store]
   };
 
-  var db = new ydn.db.Storage('todos_test', schema_ver1);
+  var db = new ydn.db.Storage('todos_test_2', schema_ver1);
 
   var hasEventFired = false;
   var put_value;
@@ -103,7 +104,7 @@ var test_1_json_trival_config_get = function() {
 
   var schema_ver1 = {};
 
-  var db = new ydn.db.Storage('todos_test7', schema_ver1);
+  var db = new ydn.db.Storage('todos_test_8', schema_ver1);
 
   //db.setItem('some-value', 'ok');
 
@@ -139,7 +140,7 @@ var test_1_json_config = function() {
     Stores:[store]
   };
 
-  var db = new ydn.db.Storage('todos_test_2', schema_ver1);
+  var db = new ydn.db.Storage('todos_test_3', schema_ver1);
 
   var hasEventFired = false;
   var put_value;
@@ -167,8 +168,9 @@ var test_2_json_config_in_out = function() {
 
 	var store_name = 't1';
 	var put_obj_dbname = 'testdb3';
-	var schema = new ydn.db.schema.Database(1);
-	schema.addStore(new ydn.db.schema.Store(store_name, 'id'));
+  var store = new ydn.db.schema.Store(store_name, 'id');
+	var schema = new ydn.db.schema.Database(1, store);
+
 	var db = new ydn.db.Storage(put_obj_dbname, schema);
 
 	var key = 'a';

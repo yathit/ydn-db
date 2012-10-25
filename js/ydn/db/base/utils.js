@@ -141,7 +141,7 @@ ydn.db.utils.decodeKey = function (encodedKey) {
       parentArray.push(new Date(ydn.db.utils.decodeNumber(reader)));
     }
     else if (type === ydn.db.utils.TYPE_STRING) {
-      parentArray.push(new ydn.db.utils.HexStringReader(reader)); // add new
+      parentArray.push(ydn.db.utils.decodeString(reader)); // add new
     }
     else if (type === 0) // empty array case
     {

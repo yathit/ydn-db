@@ -265,9 +265,10 @@ var test_22_out_of_line_array = function () {
 
 var test_40_nested_keyPath = function() {
   var store_name = 'ts1';
-  var db_name = 'test_key_40_1';
-  var schema = new ydn.db.schema.Database(1);
-  schema.addStore(new ydn.db.schema.Store(store_name, 'id.$t'));
+  var db_name = 'test_key_40_4';
+  var store = new ydn.db.schema.Store(store_name, 'id.$t', false, ydn.db.schema.DataType.TEXT);
+  var schema = new ydn.db.schema.Database(1, [store]);
+
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var key = 'a';
@@ -288,7 +289,7 @@ var test_40_nested_keyPath = function() {
     2000); // maxTimeout
 
   db.put(store_name, put_value).addCallback(function(value) {
-    console.log('receiving value callback.');
+    console.log('put: ' + value);
     put_value_received = value;
     put_done = true;
   });
@@ -308,7 +309,7 @@ var test_40_nested_keyPath = function() {
 
 
   db.get(store_name, key).addCallback(function(value) {
-    //console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
+    console.log('receiving get value callback ' + key + ' = ' + JSON.stringify(value) + ' ' + typeof value);
     get_value_received = value;
     get_done = true;
   });
@@ -318,7 +319,7 @@ var test_40_nested_keyPath = function() {
 
 var test_42_autoincreasement_offline = function () {
   var store_name = 'demoOS';
-  var db_name = 'test_42_25';
+  var db_name = 'test_42_26';
   var store_schema = new ydn.db.schema.Store(store_name, undefined, true);
   var schema = new ydn.db.schema.Database(1, [store_schema]);
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -385,7 +386,7 @@ var test_42_autoincreasement_offline = function () {
 
 var test_43_autoincreasement_inline = function () {
   var store_name = 'demoOS';
-  var db_name = 'test_key_43_4';
+  var db_name = 'test_key_43_5';
   var store_schema = new ydn.db.schema.Store(store_name, 'value', true,
       ydn.db.schema.DataType.INTEGER);
   var schema = new ydn.db.schema.Database(1, [store_schema]);

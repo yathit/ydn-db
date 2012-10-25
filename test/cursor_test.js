@@ -8,7 +8,7 @@ goog.require('goog.testing.PropertyReplacer');
 
 var reachedFinalContinuation, debug_console, schema, db, objs;
 var store_name = 't1';
-var db_name = 'test_cursor_2';
+var db_name = 'test_cursor_3';
 
 var setUp = function () {
   if (!debug_console) {

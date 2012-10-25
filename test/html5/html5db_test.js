@@ -16,9 +16,9 @@ var setUp = function() {
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
   goog.debug.Logger.getLogger('ydn.db.LocalStorage').setLevel(goog.debug.Logger.Level.FINEST);
 
+  var store = new ydn.db.schema.Store(table_name, 'id');
+	basic_schema = new ydn.db.schema.Database(1, [store]);
 
-	basic_schema = new ydn.db.schema.Database(1);
-	basic_schema.addStore(new ydn.db.schema.Store(table_name, 'id'));
 };
 
 var tearDown = function() {

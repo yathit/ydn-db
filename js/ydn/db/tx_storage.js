@@ -32,6 +32,16 @@ goog.inherits(ydn.db.TxStorage, ydn.db.core.TxStorage);
 
 
 /**
+ * @const
+ * @type {StoreSchema}
+ */
+ydn.db.TxStorage.KEY_VALUE_STORE_SCHEMA = /** @type {StoreSchema} */ ({
+  'name': ydn.db.schema.Store.DEFAULT_TEXT_STORE,
+  'keyPath': 'id',
+  'type':ydn.db.schema.DataType.TEXT});
+
+
+/**
  * Store a value to default key-value store.
  * @export
  * @param {string} key The key to set.
@@ -47,7 +57,15 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
   if (wrapper) {
     value = wrapper.wrapValue(key, value, opt_expiration);
   }
-  return this.put(ydn.db.schema.Store.DEFAULT_TEXT_STORE,
+  var store = ydn.db.schema.Store.DEFAULT_TEXT_STORE;
+  if (!this.schema.hasStore(ydn.db.schema.Store.DEFAULT_TEXT_STORE)) {
+    if (this.schema.isAutoSchema()) {
+      store = ydn.db.TxStorage.KEY_VALUE_STORE_SCHEMA;
+    } else {
+      throw new ydn.error.ArgumentException('key-value store not in used.');
+    }
+  }
+  return this.put(store,
     {'id': key, 'value': value});
 
 };

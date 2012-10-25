@@ -45,6 +45,30 @@ var tearDown = function() {
 };
 
 
+var encoding_test = function(key) {
+  var encodedKey = ydn.db.utils.encodeKey(key);
+  var re_key = ydn.db.utils.decodeKey(encodedKey);
+  console.log([key, encodedKey]);
+  if (goog.isArray(key)) {
+    assertArrayEquals(key + ' ' + encodedKey, key, re_key)
+  } else {
+    assertEquals(key + ' ' + encodedKey, key, re_key);
+  }
+
+};
+
+var test_encoding = function() {
+  // these value are taken from FB polyfill test.
+  encoding_test(2);  // "01C0"
+  encoding_test(8);  // "01C020"
+  encoding_test(8.3); // ["01C02099999999999A", 8.3]
+  encoding_test(5.7); // ["01C016CCCCCCCCCCCD", 5.7]
+  encoding_test('n2'); // "036F33"
+  encoding_test('n3'); // ["036F34", "n3"]
+  encoding_test([[2], 'abc']); // "09C000000000000000072441250008037C217E00000001C0390000000000000003626364"
+  reachedFinalContinuation = true;
+};
+
 var text_store = function(table_name, key) {
 
 

@@ -7,7 +7,7 @@ goog.require('goog.testing.PropertyReplacer');
 
 
 var reachedFinalContinuation, schema, db, debug_console;
-var db_name = 'test_q_17';
+var db_name = 'test_q_18';
 var store_name = 'st';
 
 

@@ -18,10 +18,10 @@ var setUp = function() {
   goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
   ydn.db.con.IndexedDb.DEBUG = true;
 
-	basic_schema = new ydn.db.schema.Database(1);
+
   var index = new ydn.db.schema.Index('id');
   var store = new ydn.db.schema.Store(table_name, 'id', false, undefined, [index]);
-	basic_schema.addStore(store);
+  basic_schema = new ydn.db.schema.Database(1, [store]);
 };
 
 
@@ -34,7 +34,7 @@ var test_1_basic = function() {
 
   var db_type =  'indexeddb';
   var options = {Mechanisms: [db_type]};
-  var db_name = 'test_tr_basic_1';
+  var db_name = 'test_tr_basic_2';
   var db = new ydn.db.tr.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
@@ -81,7 +81,7 @@ var test_1_basic = function() {
 var test_2_opt_arg = function() {
 
 
-  var db_name = 'test_tr_opt_arg_1';
+  var db_name = 'test_tr_opt_arg_2';
   var db = new ydn.db.tr.Storage(db_name, basic_schema);
 
   var val = {id: 'a', value: Math.random()};
