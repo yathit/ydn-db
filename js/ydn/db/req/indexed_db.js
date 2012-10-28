@@ -559,6 +559,157 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 
 
 /**
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {!ydn.db.Cursor} q query.
+ * @param {function(*, *, number=)} map map iteration function.
+ * @param {*} initial initial value for reduce iteration function.
+ * @param {function(*, *, number=)} reduce reduce iteration function.
+ * @param {function(*): *} update update iteration function.
+ * @param {function(*): boolean} clear clear iteration function.
+ */
+ydn.db.req.IndexedDb.prototype.iterate = function(df, q, map, initial, reduce, update, clear) {
+  var me = this;
+  var store = this.schema.getStore(q.store_name);
+  var is_reduce = goog.isFunction(reduce);
+
+  //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
+  // ' in ' + table);
+  var obj_store;
+  try {
+    obj_store = this.tx.objectStore(store.name);
+  }  catch (e) {
+    if (goog.DEBUG && e.name == 'NotFoundError') {
+      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
+          'store: ' + store.name + ' not in transaction.' :
+          'store: ' + store.name + ' not in database: ' + this.tx.db.name;
+      throw new ydn.db.NotFoundError(msg);
+    } else {
+      throw e; // InvalidStateError: we can't do anything about it ?
+    }
+  }
+
+  var index = null;
+
+  if (goog.isDefAndNotNull(q.index)) {
+    if (q.index != store.keyPath) {
+      try {
+        index = obj_store.index(q.index);
+      } catch (e) {
+        if (goog.DEBUG && e.name == 'NotFoundError') {
+          var msg = obj_store.indexNames.contains(q.index) ?
+              'index: ' + q.index + ' of ' + obj_store.name +
+                  ' not in transaction scope' :
+              'index: ' + q.index + ' not found in store: ' + obj_store.name;
+          throw new ydn.db.NotFoundError(msg);
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
+
+  //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
+  // ' of ' + column + ' in ' + table);
+  var request;
+  var dir = /** @type {number} */ (q.direction); // new standard is string.
+
+  // keyRange is nullable but cannot be undefined.
+  var keyRange = goog.isDef(q.keyRange) ? q.keyRange : null;
+
+  if (index) {
+    if (goog.isDefAndNotNull(dir)) {
+      request = index.openCursor(keyRange, dir);
+    } else if (goog.isDefAndNotNull(keyRange)) {
+      request = index.openCursor(keyRange);
+    } else {
+      request = index.openCursor();
+    }
+  } else {
+    if (goog.isDefAndNotNull(dir)) {
+      request = obj_store.openCursor(keyRange, dir);
+    } else if (goog.isDefAndNotNull(keyRange))  {
+      request = obj_store.openCursor(keyRange);
+      // some browser have problem with null, even though spec said OK.
+    } else {
+      request = obj_store.openCursor();
+    }
+  }
+
+
+  var idx = -1; // iteration index
+  var results = [];
+  var previousResult = initial;
+
+  request.onsuccess = function(event) {
+
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log([q, idx, event]);
+    }
+    /**
+     * @type {IDBCursor}
+     */
+    var cursor = /** @type {IDBCursor} */ (event.target.result);
+    //console.log(cursor);
+    if (cursor) {
+
+      var value = /** @type {!Object} */ cursor['value']; // should not
+      // necessary if externs are
+
+      var to_continue = !goog.isFunction(q.continued) || q.continued(value);
+
+      // do the filtering if requested.
+      if (!goog.isFunction(q.filter) || q.filter(value)) {
+        idx++;
+
+        if (goog.isFunction(map)) {
+          value = map(value);
+        }
+
+        if (goog.isFunction(update)) {
+          var updated_value = update(value);
+          if (goog.isDef(updated_value)) {
+            cursor.update(updated_value);
+          }
+        }
+
+        if (goog.isFunction(clear)) {
+          var to_clear = update(value);
+          if (to_clear === true) {
+            cursor['delete']();
+          }
+        }
+
+        if (is_reduce) {
+          previousResult = reduce(previousResult, value, idx);
+        } else {
+          results.push(value);
+        }
+
+
+      }
+
+      if (to_continue) {
+        //cursor.continue();
+        cursor['continue'](); // Note: Must be quoted to avoid parse error.
+      }
+    } else {
+      var result = is_reduce ? previousResult : results;
+      df.callback(result);
+    }
+  };
+
+  request.onerror = function(event) {
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log([q, event]);
+    }
+    df.errback(event);
+  };
+
+};
+
+
+/**
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {!ydn.db.Cursor} q query.
 */

@@ -117,11 +117,21 @@ ydn.db.KeyRange.lowerBound = function(lower, opt_lowerOpen) {
 
 /**
  * Helper method for creating useful KeyRange.
- * @param {string} value value.
+ * @param {string|!Array} value value.
  * @return {!ydn.db.KeyRange} The key range.
  */
 ydn.db.KeyRange.starts = function(value) {
-  var value_upper = value + '\uffff';
+  var value_upper;
+  if (goog.isArray(value)) {
+    value_upper = ydn.object.clone(value);
+    // Note on ordering: array > string > data > number
+    value_upper.push('\uffff');
+  } else if (goog.isString(value)) {
+    value_upper = value + '\uffff';
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+
   return ydn.db.KeyRange.bound(value, value_upper);
 };
 

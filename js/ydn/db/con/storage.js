@@ -182,6 +182,7 @@ ydn.db.con.Storage.prototype.getSchema = function(opt_callback) {
       this.db_.getSchema(callback);
     } else {
       var me = this;
+      goog.asserts.assertFunction(callback); // compiler complained.
       var get_schema = function(tx) {
         me.db_.getSchema(callback, tx);
       };
