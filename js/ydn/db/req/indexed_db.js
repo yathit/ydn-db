@@ -561,13 +561,13 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 /**
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!ydn.db.Cursor} q query.
- * @param {function(*, *, number=)} map map iteration function.
- * @param {*} initial initial value for reduce iteration function.
- * @param {function(*, *, number=)} reduce reduce iteration function.
- * @param {function(*): *} update update iteration function.
  * @param {function(*): boolean} clear clear iteration function.
+ * @param {function(*): *} update update iteration function.
+ * @param {function(*): *} map map iteration function.
+ * @param {function(*, *, number=): *} reduce reduce iteration function.
+ * @param {*} initial initial value for reduce iteration function.
  */
-ydn.db.req.IndexedDb.prototype.iterate = function(df, q, map, initial, reduce, update, clear) {
+ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map, reduce, initial) {
   var me = this;
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(reduce);
@@ -586,6 +586,15 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, map, initial, reduce, u
     } else {
       throw e; // InvalidStateError: we can't do anything about it ?
     }
+  }
+
+  if (q.has_done === false) {  // continue the iteration
+    goog.asserts.assert(q.key);
+  } else { // start a new iteration
+    q.has_done = undefined;
+    q.sotre_key = undefined;
+    q.index_key = undefined;
+    q.counter = 0;
   }
 
   var index = null;
@@ -607,7 +616,6 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, map, initial, reduce, u
       }
     }
   }
-
 
   //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
   // ' of ' + column + ' in ' + table);
@@ -647,14 +655,20 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, map, initial, reduce, u
       window.console.log([q, idx, event]);
     }
     /**
-     * @type {IDBCursor}
+     * @type {IDBCursorWithValue}
      */
-    var cursor = /** @type {IDBCursor} */ (event.target.result);
+    var cursor = /** @type {IDBCursorWithValue} */ (event.target.result);
     //console.log(cursor);
     if (cursor) {
 
-      var value = /** @type {!Object} */ cursor['value']; // should not
-      // necessary if externs are
+      if (idx == -1 && q.has_done === false) {
+        // check for iteration continuation
+        cursor['continue'](q.key);
+      }
+
+      q.counter++;
+
+      var value = cursor.value;
 
       var to_continue = !goog.isFunction(q.continued) || q.continued(value);
 

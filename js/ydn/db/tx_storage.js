@@ -162,40 +162,30 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 
 
 /**
- * @param {!ydn.db.Cursor} q the cursor.
- * @param {Array.<string>} scope list of store names.
- * @param {ydn.db.base.CursorMode=} mode open as readwrite operation. default is readonly.
- * @param {boolean=} resumed resume previous cursor position.
- * @return {!goog.async.Deferred}
+ * @param {!ydn.db.Cursor} q query.
+ * @param {function(*): boolean} clear clear iteration function.
+ * @param {function(*): *} update update iteration function.
+ * @param {function(*): *} map map iteration function.
+ * @param {function(*, *, number=): *} reduce reduce iteration function.
+ * @param {*} initial initial value for reduce iteration function.
  */
-ydn.db.TxStorage.prototype.iterate = function(q, scope, mode, resumed) {
+ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce, initial) {
   var df = ydn.db.base.createDeferred();
   if (!(q instanceof ydn.db.Cursor)) {
     throw new ydn.error.ArgumentException();
   }
 
-  var me = this;
-  if (!scope) {
-    scope = this.schema.getStoreNames();
-  } else if (goog.isArray(scope)) {
-    var idx = goog.array.findIndex(scope, function(x) {
-      return !me.schema.hasStore(x);
-    });
-    if (idx >= 0) {
-      throw new ydn.error.ArgumentException('Invalid store name: ' + scope[idx]);
-    }
-
-  } else {
-    throw new ydn.error.ArgumentException('Invalid scope');
-  }
-
   var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;
-  if (mode == ydn.db.base.CursorMode.READ_WRITE) {
+  if (goog.isDef(clear) || goog.isDef(update)) {
     tr_mode = ydn.db.base.TransactionMode.READ_WRITE;
   }
 
+  var scope = goog.isDef(q.index) ?
+    [q.index] : this.schema.getStoreNames();
+
+
   this.execute(function (executor) {
-    executor.iterate(df, q, scope, mode, !!resumed);
+    executor.iterate(df, q, clear, update, map, reduce, initial);
   }, scope, tr_mode);
 
   return df;

@@ -35,14 +35,6 @@ ydn.db.io.QueryService.prototype.fetch = function(q, max, skip) {};
 
 
 
-/**
- * @param {!ydn.db.Cursor} q the cursor.
- * @param {Array.<string>} scope list of store names.
- * @param {ydn.db.base.CursorMode=} mode open as readwrite operation. default is readonly.
- * @param {boolean=} resumed resume previous cursor position.
- * @return {!goog.async.Deferred}
- */
-ydn.db.io.QueryService.prototype.iterate = function(q, scope, mode, resumed) {};
 
 
 

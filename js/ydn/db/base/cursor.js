@@ -86,10 +86,13 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
   // set all null so that no surprise from inherit prototype
   this.initial = null;
   this.filter = null;
-  this.reduce = null;
-  this.map = null;
   this.continued = null;
-  this.finalize = null;
+
+  // transient properties during cursor iteration
+  this.counter = 0;
+  this.store_key = undefined;
+  this.index_key = undefined;
+  this.has_done = undefined;
 
   this.parseRow = ydn.db.Cursor.prototype.parseRow;
   this.sql = '';
@@ -155,17 +158,17 @@ ydn.db.Cursor.prototype.direction;
 ydn.db.Cursor.prototype.initial = null;
 
 /**
- * @type {?function(!Object): boolean}
+ * @type {?function(*): boolean}
  */
 ydn.db.Cursor.prototype.filter = null;
 
 /**
- * @type {?function(!Object): boolean}
+ * @type {?function(*): boolean}
  */
 ydn.db.Cursor.prototype.continued = null;
 
 /**
- * @type {?function(!Object): *}
+ * @type {?function(*): *}
  */
 ydn.db.Cursor.prototype.map = null;
 
@@ -454,7 +457,42 @@ ydn.db.Cursor.prototype.processWhereAsFilter = function (where) {
     return prev_filter(obj) && ok1 && ok2;
   };
 
-
   //console.log([where, this.filter.toString()]);
 
+};
+
+
+/**
+ *
+ * @return {*|undefined} Current cursor key.
+ */
+ydn.db.Cursor.prototype.key = function() {
+  return this.store_key;
+};
+
+
+/**
+ *
+ * @return {*|undefined} Current cursor index key.
+ */
+ydn.db.Cursor.prototype.indexKey = function() {
+  return this.index_key;
+};
+
+
+/**
+ *
+ * @return {number} number of record iterated.
+ */
+ydn.db.Cursor.prototype.count = function() {
+  return this.counter;
+};
+
+
+/**
+ *
+ * @return {boolean|undefined} number of record iterated.
+ */
+ydn.db.Cursor.prototype.done = function() {
+  return this.has_done;
 };
