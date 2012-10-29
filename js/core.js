@@ -28,4 +28,10 @@ goog.exportProperty(ydn.db.core.TxStorage.prototype, 'count',
   ydn.db.core.TxStorage.prototype.count);
 
 
+goog.exportSymbol('ydn.db.Key', ydn.db.Key );
+goog.exportProperty(ydn.db.Key.prototype, 'id', ydn.db.Key.prototype.getId);
+goog.exportProperty(ydn.db.Key.prototype, 'parent',
+  ydn.db.Key.prototype.getParent);
+goog.exportProperty(ydn.db.Key.prototype, 'storeName',
+  ydn.db.Key.prototype.getStoreName);
 
