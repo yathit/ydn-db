@@ -187,8 +187,8 @@ ydn.db.core.TxStorage.prototype.count = function(store_name) {
 
 /**
  * Return object or objects of given key or keys.
- * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(string|number|!Array.<string>|!Array.<!Array.<string>>)=} arg2
+ * @param {(string|!ydn.db.Key)=} arg1 table name.
+ * @param {(string|number|Date|!Array)=} arg2
  * object key to be retrieved, if not provided,
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
@@ -196,7 +196,6 @@ ydn.db.core.TxStorage.prototype.count = function(store_name) {
 ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
 
   var df = ydn.db.base.createDeferred();
-
 
   if (arg1 instanceof ydn.db.Key) {
     /**
@@ -217,7 +216,7 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
     this.execute(function (executor) {
       executor.getById(df, k_store_name, kid);
     }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY);
-  } else if (goog.isString(arg1)) {
+  } else if (goog.isString(arg1) && goog.isDef(arg2)) {
     var store_name = arg1;
     var store = this.schema.getStore(store_name);
     if (!store) {
@@ -227,60 +226,56 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
         throw new ydn.error.ArgumentException('Store: ' + store_name + ' not found.');
       }
     }
-    // here I have very concern about schema an object store mismatch!
-    // should try query without sniffing store.type
-    if (store.type == ydn.db.schema.DataType.ARRAY) {
-      if (goog.isArray(arg2)) {
-        var arr = arg2;
-        var key0 = arr[0];
-        if (goog.isArray(key0)) {
-          if (goog.isString(key0[0]) || goog.isNumber(key0[0])) {
-            this.execute(function (executor) {
-              executor.getByIds(df, store_name, arr);
-            }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-          } else {
-            throw new ydn.error.ArgumentException('key array too deep.');
-          }
-        } else if (goog.isDef(arg2)) {
-          var arr_id = arg2;
-          this.execute(function (executor) {
-            executor.getById(df, store_name, arr_id);
-          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-        } else {
-          throw new ydn.error.ArgumentException();
-        }
-      } else {
-        throw new ydn.error.ArgumentException('array key required.');
-      }
-    } else {
-      if (goog.isArray(arg2)) {
-        if (goog.isString(arg2[0]) || goog.isNumber(arg2[0])) {
-          var ids = arg2;
-          this.execute(function (executor) {
-            executor.getByIds(df, store_name, ids);
-          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-        } else {
-          throw new ydn.error.ArgumentException('key must be string or number');
-        }
-      } else if (goog.isDef(arg2)) {
-        if (goog.DEBUG) {
-           if (!(goog.isString(arg2) || goog.isNumber(arg2) || goog.isDateLike(arg2))) {
-             throw new ydn.error.ArgumentException('argument 2 must be string, number or date');
-           }
-        }
-        /** @type {string} */
-        /** @type {string|number} */
-        var id = arg2;
-        this.execute(function (executor) {
-          executor.getById(df, store_name, id);
-        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-      } else {
-        this.execute(function (executor) {
-          executor.getByStore(df, store_name);
-        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    var id = arg2;
+    this.execute(function (executor) {
+      executor.getById(df, store_name, id);
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+
+  return df;
+};
+
+
+/**
+ * Return object or objects of given key or keys.
+ * @param {(string|!Array.<!ydn.db.Key>)=} arg1 table name.
+ * @param {(!Array.<string>)=} arg2
+ * object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.core.TxStorage.prototype.list = function (arg1, arg2) {
+
+  var df = ydn.db.base.createDeferred();
+
+
+  if (goog.isString(arg1)) {
+    var store_name = arg1;
+    var store = this.schema.getStore(store_name);
+    if (!store) {
+      if (this.schema.isAutoSchema()) {
+        return goog.async.Deferred.succeed(undefined);
+      } else {
+        throw new ydn.error.ArgumentException('Store: ' + store_name + ' not found.');
       }
     }
+
+    if (goog.isArray(arg2)) {
+      var ids = arg2;
+      this.execute(function (executor) {
+        executor.getByIds(df, store_name, ids);
+      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    } else if (!goog.isDef(arg2)) {
+      this.execute(function (executor) {
+        executor.getByStore(df, store_name);
+      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    } else {
+      throw new ydn.error.ArgumentException();
+    }
+
   } else if (goog.isArray(arg1)) {
     if (arg1[0] instanceof ydn.db.Key) {
       var store_names = [];

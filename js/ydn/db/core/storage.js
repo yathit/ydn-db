@@ -96,16 +96,27 @@ ydn.db.core.Storage.prototype.count = function(store_name) {
 
 
 /**
- * Return object
- * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(string|number|!Array.<string>)=} arg2 object key to be retrieved, if not provided,
- * all entries in the store will return.
+ * Return object or objects of given key or keys.
+ * @param {(string|!ydn.db.Key)=} arg1 table name.
+ * @param {(string|number|Date)=} arg2
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.core.Storage.prototype.get = function (arg1, arg2) {
   return this.default_tx_queue_.get(arg1, arg2);
 };
 
+
+/**
+ * Return object or objects of given key or keys.
+ * @param {(string|!Array.<!ydn.db.Key>)=} arg1 table name.
+ * @param {(!Array.<string>)=} arg2
+ * object key to be retrieved, if not provided,
+ * all entries in the store will return.
+ * @return {!goog.async.Deferred} return object in deferred function.
+ */
+ydn.db.core.Storage.prototype.list = function (arg1, arg2) {
+  return this.default_tx_queue_.list(arg1, arg2);
+}
 
 /**
  * @inheritDoc

@@ -11,6 +11,8 @@ goog.exportSymbol('ydn.db.core.Storage', ydn.db.core.Storage);
 
 goog.exportProperty(ydn.db.core.Storage.prototype, 'get',
     ydn.db.core.Storage.prototype.get);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'list',
+  ydn.db.core.Storage.prototype.list);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'put',
     ydn.db.core.Storage.prototype.put);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'clear',
@@ -20,6 +22,8 @@ goog.exportProperty(ydn.db.core.Storage.prototype, 'count',
 
 goog.exportProperty(ydn.db.core.TxStorage.prototype, 'get',
     ydn.db.core.TxStorage.prototype.get);
+goog.exportProperty(ydn.db.core.TxStorage.prototype, 'list',
+  ydn.db.core.TxStorage.prototype.list);
 goog.exportProperty(ydn.db.core.TxStorage.prototype, 'put',
     ydn.db.core.TxStorage.prototype.put);
 goog.exportProperty(ydn.db.core.TxStorage.prototype, 'clear',

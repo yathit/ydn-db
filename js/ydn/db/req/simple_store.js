@@ -68,7 +68,7 @@ ydn.db.req.SimpleStore.prototype.extractKey = function (store_name, value) {
  * @protected
  * @final
  * @param {ydn.db.schema.Store} store table name.
- * @param {(!Array|string|number)} id id.
+ * @param {(string|number|Date|!Array)} id id.
  * @return {string} canonical key name.
  */
 ydn.db.req.SimpleStore.prototype.makeKey = function(store, id) {
@@ -81,7 +81,7 @@ ydn.db.req.SimpleStore.prototype.makeKey = function(store, id) {
 /**
  *
  * @param {!ydn.db.schema.Store|string} store_name or key
- * @param {(!Array|string|number)} id
+ * @param {(string|number|Date|!Array)} id
  * @return {*}
  * @protected
  * @final
@@ -218,7 +218,7 @@ ydn.db.req.SimpleStore.prototype.putObjects = function (df, table, value) {
 * Retrieve an object from store.
  * @param {!goog.async.Deferred} df return object in deferred function.
  * @param {string} store_name
-* @param {!Array|string|number} id
+* @param {(string|number|Date|!Array)} id
 */
 ydn.db.req.SimpleStore.prototype.getById = function(df, store_name, id) {
   df.callback(this.getItemInternal(store_name, id));

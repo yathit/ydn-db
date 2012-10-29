@@ -183,7 +183,7 @@ var test_22_get_array = function() {
 
   db.put(table_name, arr);
 
-  db.get(table_name, ids).addCallback(function(value) {
+  db.list(table_name, ids).addCallback(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
@@ -230,7 +230,7 @@ var test_23_get_array = function() {
 
   db.put(table_name, arr);
 
-  db.get(table_name, ids).addCallback(function(value) {
+  db.list(table_name, ids).addCallback(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
@@ -463,7 +463,7 @@ var test_52_fetch_keys = function () {
       var keys = [
         new ydn.db.Key(store_name, objs[1].id),
         new ydn.db.Key(store_name, objs[2].id)];
-      db.get(keys).addCallback(function (value) {
+      db.list(keys).addCallback(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         put_value_received = value;
 
@@ -552,7 +552,7 @@ var test_53_fetch_keys = function () {
         100, // interval
         2000); // maxTimeout
 
-      db.get(keys).addCallback(function (value) {
+      db.list(keys).addCallback(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         results = value;
         get_done = true;

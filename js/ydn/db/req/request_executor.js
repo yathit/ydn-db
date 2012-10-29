@@ -78,7 +78,7 @@ ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {
  * Return object
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store table name.
- * @param {(!Array.<string>|string|number)} id object key to be retrieved, if not provided,
+ * @param {(string|number|Date|!Array)} id object key to be retrieved, if not provided,
  * all entries in the store will return.
  */
 ydn.db.req.RequestExecutor.prototype.getById = goog.abstractMethod;

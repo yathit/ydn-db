@@ -247,7 +247,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_
 *
 * @param {goog.async.Deferred} d
 * @param {string} table_name
-* @param {(!Array|number|string)} id
+* @param {(string|number|Date|!Array)} id
 */
 ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 

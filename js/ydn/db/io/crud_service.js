@@ -23,10 +23,9 @@ ydn.db.io.CrudService = function() {
 
 
 /**
- * Return object
- * @param {(string|!ydn.db.Key|!Array.<!ydn.db.Key>)=} store table name.
- * @param {(string|number|!Array.<string>)=} id object key to be retrieved, if not provided,
- * all entries in the store will return.
+ * Return object of given key.
+ * @param {(string|!ydn.db.Key)=} store table name.
+ * @param {(string|number|Date)=} id
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.io.CrudService.prototype.get = function(store, id) {
