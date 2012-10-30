@@ -23,7 +23,7 @@ ydn.db.core.IStorage = function() {};
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  */
-ydn.db.core.IStorage.prototype.execute = goog.abstractMethod;
+ydn.db.core.IStorage.prototype.exec = goog.abstractMethod;
 
 
 

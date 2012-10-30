@@ -143,7 +143,7 @@ ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce, ini
     [q.index] : this.schema.getStoreNames();
 
 
-  this.execute(function (executor) {
+  this.exec(function (executor) {
     executor.iterate(df, q, clear, update, map, reduce, initial);
   }, scope, tr_mode);
 
@@ -173,13 +173,13 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
         ' not exists in store: ' + store_name);
     }
 
-    this.execute(function (executor) {
+    this.exec(function (executor) {
       executor.fetchQuery(df, query);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
   } else if (q instanceof ydn.db.Cursor) {
     cursor = q;
-    this.execute(function (executor) {
+    this.exec(function (executor) {
       executor.fetchCursor(df, cursor);
     }, [cursor.store_name], ydn.db.base.TransactionMode.READ_ONLY);
 

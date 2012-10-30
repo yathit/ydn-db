@@ -110,7 +110,7 @@ ydn.db.core.TxStorage.prototype.getExecutor = function() {
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  */
-ydn.db.core.TxStorage.prototype.execute = function(callback, store_names, mode)
+ydn.db.core.TxStorage.prototype.exec = function(callback, store_names, mode)
 {
   var me = this;
   var mu_tx = this.getMuTx();
@@ -185,7 +185,7 @@ ydn.db.core.TxStorage.prototype.count = function(store_name, opt_key_range) {
     }
 
   };
-  this.execute(count, store_names, ydn.db.base.TransactionMode.READ_ONLY);
+  this.exec(count, store_names, ydn.db.base.TransactionMode.READ_ONLY);
   return df;
 };
 
@@ -219,7 +219,7 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
     }
 
     var kid = k.getId();
-    this.execute(function (executor) {
+    this.exec(function (executor) {
       executor.getById(df, k_store_name, kid);
     }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY);
   } else if (goog.isString(arg1) && goog.isDef(arg2)) {
@@ -233,7 +233,7 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
       }
     }
     var id = arg2;
-    this.execute(function (executor) {
+    this.exec(function (executor) {
       executor.getById(df, store_name, id);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
@@ -271,11 +271,11 @@ ydn.db.core.TxStorage.prototype.list = function (arg1, arg2) {
 
     if (goog.isArray(arg2)) {
       var ids = arg2;
-      this.execute(function (executor) {
+      this.exec(function (executor) {
         executor.getByIds(df, store_name, ids);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else if (!goog.isDef(arg2)) {
-      this.execute(function (executor) {
+      this.exec(function (executor) {
         executor.getByStore(df, store_name);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else {
@@ -306,14 +306,14 @@ ydn.db.core.TxStorage.prototype.list = function (arg1, arg2) {
           store_names.push(i_store_name);
         }
       }
-      this.execute(function (executor) {
+      this.exec(function (executor) {
         executor.getByKeys(df, keys);
       }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
     } else {
       throw new ydn.error.ArgumentException();
     }
   } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-    this.execute(function (executor) {
+    this.exec(function (executor) {
       executor.getByStore(df);
     }, this.schema.getStoreNames(), ydn.db.base.TransactionMode.READ_ONLY);
   } else {
@@ -387,13 +387,13 @@ ydn.db.core.TxStorage.prototype.put = function (store_name_or_schema, value, opt
   if (goog.isArray(value)) {
     var objs = value;
     var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
-    this.execute(function (executor) {
+    this.exec(function (executor) {
       executor.putObjects(df, store_name, objs, keys);
     }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
   } else if (goog.isObject(value)) {
     var obj = value;
     var key = /** @type {number|string|undefined} */  (opt_keys);
-    this.execute(function (executor) {
+    this.exec(function (executor) {
       executor.putObject(df, store_name, obj, key);
     }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
   } else {
@@ -422,11 +422,11 @@ ydn.db.core.TxStorage.prototype.clear = function(arg1, arg2) {
     var store_name = arg1;
     if (goog.isString(arg2) || goog.isNumber(arg2)) {
       var id = arg2;
-      this.execute(function(executor) {
+      this.exec(function(executor) {
         executor.clearById(df, store_name, id);
       }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
     } else if (!goog.isDef(arg2)) {
-      this.execute(function(executor) {
+      this.exec(function(executor) {
         executor.clearByStore(df, store_name);
       }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
     } else {
@@ -434,12 +434,12 @@ ydn.db.core.TxStorage.prototype.clear = function(arg1, arg2) {
     }
   } else if (goog.isArray(arg1) && goog.isString(arg1[0])) {
     var store_names = arg1;
-    this.execute(function(executor) {
+    this.exec(function(executor) {
       executor.clearByStore(df, store_names);
     }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
   } else if (!goog.isDef(arg1)) {
     var store_names = this.schema.getStoreNames();
-    this.execute(function(executor) {
+    this.exec(function(executor) {
       executor.clearByStore(df, store_names);
     }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
   } else {
