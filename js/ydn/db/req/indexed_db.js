@@ -26,7 +26,7 @@ goog.require('ydn.error');
 
 
 /**
- *  @param {string} dbname
+ * @param {string} dbname
  * @extends {ydn.db.req.RequestExecutor}
  * @param {!ydn.db.schema.Database} schema
  * @constructor
