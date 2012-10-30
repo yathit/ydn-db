@@ -778,12 +778,13 @@ ydn.db.req.WebSql.prototype.clearById = function (d, table, id) {
 
 /**
  * @param {!goog.async.Deferred} d return a deferred function.
- * @param {string} table store name.
+ * @param {!Array.<string>} tables store name.
 */
-ydn.db.req.WebSql.prototype.count = function(d, table) {
+ydn.db.req.WebSql.prototype.countStores = function(d, tables) {
 
   var me = this;
 
+  var table = tables[0];
   var sql = 'SELECT COUNT(*) FROM ' + goog.string.quote(table);
 
   /**
@@ -814,6 +815,48 @@ ydn.db.req.WebSql.prototype.count = function(d, table) {
   return d;
 };
 
+
+/**
+ * @param {!goog.async.Deferred} d return a deferred function.
+ * @param {string} table store name.
+ * @param {ydn.db.KeyRange} keyRange
+ */
+ydn.db.req.WebSql.prototype.countKeyRange = function(d, table, keyRange) {
+
+  var me = this;
+
+  var sql = 'SELECT COUNT(*) FROM ' + goog.string.quote(table);
+
+  // TODO: key_range
+
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function(transaction, results) {
+    var row = results.rows.item(0);
+    //console.log(['row ', row  , results]);
+    d.callback(row['COUNT(*)']);
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   */
+  var error_callback = function(tr, error) {
+    if (ydn.db.req.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    me.logger.warning('count error: ' + error.message);
+    d.errback(error);
+    return true; // roll back
+  };
+
+  this.tx.executeSql(sql, [], callback, error_callback);
+
+  return d;
+};
 
 
 

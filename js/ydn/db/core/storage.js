@@ -24,8 +24,6 @@ goog.require('ydn.object');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.db.core.TxStorage');
 goog.require('ydn.db.core.IStorage');
-goog.require('ydn.db.io.Query');
-goog.require('ydn.db.io.Key');
 goog.require('ydn.db.io.CrudService');
 
 
@@ -87,11 +85,12 @@ ydn.db.core.Storage.prototype.getTxNo = function() {
 
 /**
  *
- * @param {string} store_name
+ * @param {string=} store_name
+ * @param {ydn.db.KeyRange=} opt_key_range
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.Storage.prototype.count = function(store_name) {
-  return this.default_tx_queue_.count(store_name);
+ydn.db.core.Storage.prototype.count = function(store_name, opt_key_range) {
+  return this.default_tx_queue_.count(store_name, opt_key_range);
 };
 
 
@@ -116,7 +115,8 @@ ydn.db.core.Storage.prototype.get = function (arg1, arg2) {
  */
 ydn.db.core.Storage.prototype.list = function (arg1, arg2) {
   return this.default_tx_queue_.list(arg1, arg2);
-}
+};
+
 
 /**
  * @inheritDoc
@@ -131,11 +131,6 @@ ydn.db.core.Storage.prototype.put = function(store, value, opt_key) {
  */
 ydn.db.core.Storage.prototype.clear = function(arg1, arg2) {
   return this.default_tx_queue_.clear(arg1, arg2);
-};
-
-
-ydn.db.core.Storage.prototype.key = function(store_or_json_or_value, id, opt_parent) {
-  return this.default_tx_queue_.key(store_or_json_or_value, id, opt_parent);
 };
 
 

@@ -26,6 +26,7 @@ goog.require('ydn.db.KeyRange');
 goog.require('ydn.error.ArgumentException');
 goog.require('ydn.db.schema.Database');
 goog.require('ydn.string');
+goog.require('ydn.math.Expression');
 
 
 
@@ -47,8 +48,8 @@ ydn.db.Query = function(sql_statement) {
 
   this.store_name = '';
   this.wheres = [];
-  this.aggregate = null;
-  this.map = null;
+  this.reduce_ = null;
+  this.map_ = null;
   this.direction = undefined;
   this.index = undefined;
   this.limit_ = NaN;
@@ -93,7 +94,7 @@ ydn.db.Query.prototype.offset_ = NaN;
 
 
 /**
- * @protected
+ * @private
  * @type {!Array.<!ydn.db.Where>}
  */
 ydn.db.Query.prototype.wheres = [];
@@ -101,18 +102,18 @@ ydn.db.Query.prototype.wheres = [];
 
 
 /**
- *
+ * @private
  * @type {ydn.db.Query.Aggregate?}
  */
-ydn.db.Query.prototype.aggregate = null;
+ydn.db.Query.prototype.reduce_ = null;
 
 
 
 /**
- *
+ * @private
  * @type {ydn.db.Query.Map?}
  */
-ydn.db.Query.prototype.map = null;
+ydn.db.Query.prototype.map_ = null;
 
 
 /**
@@ -296,16 +297,10 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
 };
 
 
-
 /**
- * @enum {string}
- */
-ydn.db.Query.MapType = {
-  SELECT: 'sl'
-};
-
-
-/**
+ *
+ *   expression: (ydn.math.Expression|undefined),
+ *
  * @typedef {{
  *   type: ydn.db.Query.MapType,
  *   fields: (!Array.<string>|string)
@@ -313,6 +308,15 @@ ydn.db.Query.MapType = {
  */
 ydn.db.Query.Map;
 
+
+
+/**
+ * @enum {string}
+ */
+ydn.db.Query.MapType = {
+  SELECT: 'sl',
+  EXPRESSION: 'ex'
+};
 
 
 
@@ -326,7 +330,8 @@ ydn.db.Query.AggregateType = {
   MAX: 'mx',
   MIN: 'mn',
   SELECT: 'sl',
-  CONCAT: 'cc'
+  CONCAT: 'cc',
+  EXPRESSION: 'ex'
 };
 
 
@@ -346,10 +351,10 @@ ydn.db.Query.Aggregate;
 // */
 //ydn.db.Query.prototype.count = function() {
 //
-//  if (this.aggregate) {
+//  if (this.reduce_) {
 //    throw new ydn.error.ConstrainError('Aggregate method already defined.');
 //  }
-//  this.aggregate = {type: ydn.db.Query.AggregateType.COUNT, field: undefined};
+//  this.reduce_ = {type: ydn.db.Query.AggregateType.COUNT, field: undefined};
 //  return this;
 //
 //};
@@ -378,10 +383,10 @@ ydn.db.Query.reduceCount = function(field) {
 // */
 //ydn.db.Query.prototype.sum = function(field) {
 //
-//  if (this.aggregate) {
+//  if (this.reduce_) {
 //    throw new ydn.error.ConstrainError('Aggregate method already defined.');
 //  }
-//  this.aggregate = {
+//  this.reduce_ = {
 //    type: ydn.db.Query.AggregateType.SUM,
 //    field: field
 //  };
@@ -447,10 +452,10 @@ ydn.db.Query.reduceMax = function(field) {
 // */
 //ydn.db.Query.prototype.average = function(field) {
 //
-//  if (this.aggregate) {
+//  if (this.reduce_) {
 //    throw new ydn.error.ConstrainError('Aggregate method already defined.');
 //  }
-//  this.aggregate = {
+//  this.reduce_ = {
 //    type: ydn.db.Query.AggregateType.AVERAGE,
 //    field: field
 //  };
@@ -477,94 +482,132 @@ ydn.db.Query.reduceAverage = function (field) {
 
 /**
  *
- * @param {string?=} opt_method selection method.
+ * @param {(string|ydn.math.Expression)=} opt_method selection method.
+ * @param {string=} fields field names to select.
+ * @return {!ydn.db.Query} The query for chaining.
+ */
+ydn.db.Query.prototype.reduce = function (opt_method, fields) {
+
+  if (this.reduce_) {
+    throw new ydn.error.ArgumentException('too many reduce.');
+  }
+  var  method = '';
+  if (opt_method instanceof ydn.math.Expression) {
+    var exp = opt_method;
+
+      this.reduce_ = /** @type {ydn.db.Query.Aggregate} */ ({
+        type:ydn.db.Query.AggregateType.EXPRESSION,
+        fields:''
+      }); // why casting ??
+
+    return this;
+  } else if (goog.isString(opt_method)) {
+    method = opt_method.toLowerCase();
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+  
+
+  if (method == 'avg') {
+
+    if (!goog.isString(fields)) {
+      throw new ydn.error.ArgumentException('AVG');
+    }
+    this.reduce_ = {
+      type: ydn.db.Query.AggregateType.AVERAGE,
+      field: fields
+    };
+  } else if (method == 'min') {
+
+    if (!goog.isString(fields)) {
+      throw new ydn.error.ArgumentException('MIN');
+    }
+    this.reduce_ = {
+      type: ydn.db.Query.AggregateType.MIN,
+      field: fields
+    };
+  } else if (method == 'max') {
+
+    if (!goog.isString(fields)) {
+      throw new ydn.error.ArgumentException('MAX');
+    }
+    this.reduce_ = {
+      type: ydn.db.Query.AggregateType.MAX,
+      expr: null,
+      field: fields
+    };
+  } else if (method == 'sum') {
+
+    if (!goog.isString(fields)) {
+      throw new ydn.error.ArgumentException('SUM');
+    }
+    this.reduce_ = {
+      type: ydn.db.Query.AggregateType.SUM,
+      field: fields
+    };
+  } else if (method == 'count') {
+
+    if (goog.isString(fields)) {
+      this.reduce_ = {type:ydn.db.Query.AggregateType.COUNT, field:fields};
+    } else if (goog.isDef(fields)) {
+      throw new ydn.error.ArgumentException('COUNT');
+    } else {
+      this.reduce_ = {type:ydn.db.Query.AggregateType.COUNT, field:undefined};
+    }
+  } else {
+    throw new ydn.error.ArgumentException('Unknown reduce method: ' + opt_method);
+  }
+
+  return this;
+};
+
+
+/**
+ *
+ * @param {string|ydn.math.Expression} opt_method selection method.
  * @param {(string|!Array.<string>)=} fields field names to select.
  * @return {!ydn.db.Query} The query for chaining.
  */
-ydn.db.Query.prototype.select = function (opt_method, fields) {
+ydn.db.Query.prototype.map = function (opt_method, fields) {
 
-  var  method = 'select';
-  if (goog.isDefAndNotNull(opt_method)) {
-    if (goog.isString(opt_method)) {
-      method = opt_method.toLowerCase();
+  if (this.map_) {
+    throw new ydn.error.ConstrainError('too many call.');
+  }
+
+  var  method = '';
+  if (opt_method instanceof ydn.math.Expression) {
+    if (goog.isString(fields) || goog.isArray(fields)) {
+    this.map_ = {
+      type:ydn.db.Query.MapType.EXPRESSION,
+      fields:fields
+    };
     } else {
       throw new ydn.error.ArgumentException();
     }
+  } else if (goog.isString(opt_method)) {
+    method = opt_method.toLowerCase();
+  } else {
+    throw new ydn.error.ArgumentException();
   }
 
   if (method == 'select') {
-    if (this.map) {
-      throw new ydn.error.ConstrainError('SELECT');
-    }
+
     if (goog.isString(fields) || goog.isArray(fields)) {
-      this.map = {
+      this.map_ = {
         type:ydn.db.Query.MapType.SELECT,
         fields:fields
       };
     } else {
       throw new ydn.error.ArgumentException('SELECT fields missing');
     }
-  } else if (method == 'avg') {
-    if (this.aggregate) {
-      throw new ydn.error.ConstrainError('Aggregate method already defined.');
-    }
-    if (!goog.isString(fields)) {
-      throw new ydn.error.ArgumentException('AVG');
-    }
-    this.aggregate = {
-      type: ydn.db.Query.AggregateType.AVERAGE,
-      field: fields
-    };
-  } else if (method == 'min') {
-    if (this.aggregate) {
-      throw new ydn.error.ConstrainError('Aggregate method already defined.');
-    }
-    if (!goog.isString(fields)) {
-      throw new ydn.error.ArgumentException('MIN');
-    }
-    this.aggregate = {
-      type: ydn.db.Query.AggregateType.MIN,
-      field: fields
-    };
-  } else if (method == 'max') {
-    if (this.aggregate) {
-      throw new ydn.error.ConstrainError('Aggregate method already defined.');
-    }
-    if (!goog.isString(fields)) {
-      throw new ydn.error.ArgumentException('MAX');
-    }
-    this.aggregate = {
-      type: ydn.db.Query.AggregateType.MAX,
-      field: fields
-    };
-  } else if (method == 'sum') {
-    if (this.aggregate) {
-      throw new ydn.error.ConstrainError('Aggregate method already defined.');
-    }
-    if (!goog.isString(fields)) {
-      throw new ydn.error.ArgumentException('SUM');
-    }
-    this.aggregate = {
-      type: ydn.db.Query.AggregateType.SUM,
-      field: fields
-    };
-  } else if (method == 'count') {
-    if (this.aggregate) {
-      throw new ydn.error.ConstrainError('Aggregate method already defined.');
-    }
-    if (goog.isString(fields)) {
-      this.aggregate = {type:ydn.db.Query.AggregateType.COUNT, field:fields};
-    } else if (goog.isDef(fields)) {
-      throw new ydn.error.ArgumentException('COUNT');
-    } else {
-      this.aggregate = {type:ydn.db.Query.AggregateType.COUNT, field:undefined};
-    }
+
   } else {
-    throw new ydn.error.ArgumentException('Unknown SELECT method: ' + opt_method);
+    throw new ydn.error.ArgumentException('Unknown query: ' + opt_method);
   }
 
   return this;
 };
+
 
 
 
@@ -645,41 +688,41 @@ ydn.db.Query.prototype.toCursor = function(schema) {
     cursor.processWhereAsFilter(this.wheres[i]);
   }
 
-  if (this.map) {
-    if (this.map.type == ydn.db.Query.MapType.SELECT) {
-      cursor.map = ydn.db.Query.mapSelect(this.map.fields);
+  if (this.map_) {
+    if (this.map_.type == ydn.db.Query.MapType.SELECT) {
+      cursor.map_ = ydn.db.Query.mapSelect(this.map_.fields);
     } else {
-      throw new ydn.db.SqlParseError(this.map.type);
+      throw new ydn.db.SqlParseError(this.map_.type);
     }
   }
 
-  if (this.aggregate) {
-    if (this.aggregate.type == ydn.db.Query.AggregateType.SUM) {
-      if (goog.isString(this.aggregate.field)) {
-        cursor.reduce = ydn.db.Query.reduceSum(this.aggregate.field);
+  if (this.reduce_) {
+    if (this.reduce_.type == ydn.db.Query.AggregateType.SUM) {
+      if (goog.isString(this.reduce_.field)) {
+        cursor.reduce_ = ydn.db.Query.reduceSum(this.reduce_.field);
       } else {
         throw new ydn.db.SqlParseError('SUM: ' + this.sql);
       }
-    } else if (this.aggregate.type == ydn.db.Query.AggregateType.MIN) {
-      if (goog.isString(this.aggregate.field)) {
-        cursor.reduce = ydn.db.Query.reduceMin(this.aggregate.field);
+    } else if (this.reduce_.type == ydn.db.Query.AggregateType.MIN) {
+      if (goog.isString(this.reduce_.field)) {
+        cursor.reduce_ = ydn.db.Query.reduceMin(this.reduce_.field);
       } else {
         throw new ydn.db.SqlParseError('MIN: ' + this.sql);
       }
-    } else if (this.aggregate.type == ydn.db.Query.AggregateType.MAX) {
-      if (goog.isString(this.aggregate.field)) {
-        cursor.reduce = ydn.db.Query.reduceMax(this.aggregate.field);
+    } else if (this.reduce_.type == ydn.db.Query.AggregateType.MAX) {
+      if (goog.isString(this.reduce_.field)) {
+        cursor.reduce_ = ydn.db.Query.reduceMax(this.reduce_.field);
       } else {
         throw new ydn.db.SqlParseError('MAX: ' + this.sql);
       }
-    } else if (this.aggregate.type == ydn.db.Query.AggregateType.AVERAGE) {
-      if (goog.isString(this.aggregate.field)) {
-        cursor.reduce = ydn.db.Query.reduceAverage(this.aggregate.field);
+    } else if (this.reduce_.type == ydn.db.Query.AggregateType.AVERAGE) {
+      if (goog.isString(this.reduce_.field)) {
+        cursor.reduce_ = ydn.db.Query.reduceAverage(this.reduce_.field);
       } else {
         throw new ydn.db.SqlParseError('AVERAGE: ' + this.sql);
       }
-    } else if (this.aggregate.type == ydn.db.Query.AggregateType.COUNT) {
-      cursor.reduce = ydn.db.Query.reduceCount(this.aggregate.field);
+    } else if (this.reduce_.type == ydn.db.Query.AggregateType.COUNT) {
+      cursor.reduce_ = ydn.db.Query.reduceCount(this.reduce_.field);
     } else {
       throw new ydn.db.SqlParseError(this.sql);
     }
@@ -746,10 +789,10 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
     this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE;
 
   var fields_selected = false;
-  if (goog.isDefAndNotNull(this.map)) {
-    if (this.map.type == ydn.db.Query.MapType.SELECT) {
-      var fs =goog.isArray(this.map.fields) ?
-        this.map.fields : [this.map.fields];
+  if (goog.isDefAndNotNull(this.map_)) {
+    if (this.map_.type == ydn.db.Query.MapType.SELECT) {
+      var fs =goog.isArray(this.map_.fields) ?
+        this.map_.fields : [this.map_.fields];
       var fields = goog.array.map(fs, function(x) {
         return goog.string.quote(x);
       });
@@ -757,17 +800,17 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       fields_selected = true;
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
-      cursor.map = ydn.db.Query.mapSelect(this.map.fields);
+      cursor.map_ = ydn.db.Query.mapSelect(this.map_.fields);
     } else {
-      throw new ydn.db.SqlParseError(this.map + ' in ' + this.sql);
+      throw new ydn.db.SqlParseError(this.map_ + ' in ' + this.sql);
     }
   }
-  if (goog.isDefAndNotNull(this.aggregate)) {
-    if (this.aggregate.type == ydn.db.Query.AggregateType.COUNT) {
+  if (goog.isDefAndNotNull(this.reduce_)) {
+    if (this.reduce_.type == ydn.db.Query.AggregateType.COUNT) {
       select += 'SELECT COUNT (';
       select += distinct ? 'DISTINCT ' : '';
-      if (goog.isString(this.aggregate.field)) {
-        select += goog.string.quote(this.aggregate.field);
+      if (goog.isString(this.reduce_.field)) {
+        select += goog.string.quote(this.reduce_.field);
       } else {
         select += '*';
       }
@@ -775,13 +818,13 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       fields_selected = true;
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
-      cursor.map = ydn.object.takeFirst;
+      cursor.map_ = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Query.finalizeTakeFirst;
-    } else if (this.aggregate.type == ydn.db.Query.AggregateType.SUM) {
+    } else if (this.reduce_.type == ydn.db.Query.AggregateType.SUM) {
       select += 'SELECT SUM (';
       select += distinct ? 'DISTINCT ' : '';
-      if (goog.isString(this.aggregate.field)) {
-        select += goog.string.quote(this.aggregate.field);
+      if (goog.isString(this.reduce_.field)) {
+        select += goog.string.quote(this.reduce_.field);
       } else {
         select += '*';
       }
@@ -789,13 +832,13 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       fields_selected = true;
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
-      cursor.map = ydn.object.takeFirst;
+      cursor.map_ = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Query.finalizeTakeFirst;
-    } else if (this.aggregate.type == ydn.db.Query.AggregateType.AVERAGE) {
+    } else if (this.reduce_.type == ydn.db.Query.AggregateType.AVERAGE) {
       select += 'SELECT AVG (';
       select += distinct ? 'DISTINCT ' : '';
-      if (goog.isString(this.aggregate.field)) {
-        select += goog.string.quote(this.aggregate.field);
+      if (goog.isString(this.reduce_.field)) {
+        select += goog.string.quote(this.reduce_.field);
       } else {
         select += '*';
       }
@@ -803,10 +846,10 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       fields_selected = true;
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
-      cursor.map = ydn.object.takeFirst;
+      cursor.map_ = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Query.finalizeTakeFirst;
     } else {
-      throw new ydn.db.SqlParseError(this.aggregate.type + ' in ' + this.sql);
+      throw new ydn.db.SqlParseError(this.reduce_.type + ' in ' + this.sql);
     }
   }
 

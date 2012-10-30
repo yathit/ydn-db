@@ -160,26 +160,32 @@ ydn.db.core.TxStorage.prototype.execute = function(callback, store_names, mode)
 
 /**
  *
- * @param {(string|number)=}id
- * @param {ydn.db.Key=} opt_parent
- * @return {ydn.db.io.Key}
- */
-ydn.db.core.TxStorage.prototype.key = function(store_or_json_or_value, id, opt_parent) {
-  return new ydn.db.io.Key(this, store_or_json_or_value, id, opt_parent);
-};
-
-
-/**
- *
- * @param {string} store_name
+ * @param {!Array.<string>|string=} store_name
+ * @param {ydn.db.KeyRange=} opt_key_range
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.TxStorage.prototype.count = function(store_name) {
+ydn.db.core.TxStorage.prototype.count = function(store_name, opt_key_range) {
   var df = ydn.db.base.createDeferred();
+
+  var store_names = goog.isArray(store_name) ?
+    store_name : goog.isDef(store_name) ?
+    [store_name] : this.schema.getStoreNames();
+
+  if (store_names.length == 0) {
+    // it is an error to call transaction with store names.
+    df.callback(0);
+    return df;
+  }
+
   var count = function(executor) {
-    executor.count(df, store_name);
+    if (goog.isDef(opt_key_range)) {
+      executor.countKeyRange(df, store_name, opt_key_range);
+    } else {
+      executor.countStores(df, store_names);
+    }
+
   };
-  this.execute(count, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+  this.execute(count, store_names, ydn.db.base.TransactionMode.READ_ONLY);
   return df;
 };
 

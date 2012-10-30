@@ -295,7 +295,7 @@ var test_4_average = function() {
 
 /**
  *
- * @param {ydn.db.io.Query} q
+ * @param {ydn.db.Query} q
  * @param {Array} exp_result
  */
 var where_test = function(q, exp_result) {

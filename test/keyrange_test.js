@@ -8,10 +8,8 @@ goog.require('goog.testing.PropertyReplacer');
 
 var reachedFinalContinuation, schema, debug_console, db, objs;
 
-var db_name = 'test_kr_3';
+var db_name = 'test_kr_4';
 var store_name = 'st';
-
-
 
 var setUp = function () {
   if (!debug_console) {
@@ -195,6 +193,8 @@ var test_store_string_index_wise_revrse = function () {
   var q = new ydn.db.Cursor(store_name, ydn.db.Cursor.Direction.PREV, 'value');
   keyRange_test(q, objs.reverse());
 };
+
+
 
 
 var testCase = new goog.testing.ContinuationTestCase();

@@ -57,7 +57,38 @@ var initionalizeDB = function(callback, opt_put_schema) {
 };
 
 
+module("Count", {
+  setUp: function() {
+    //var db = new ydn.db.Storage(db_name_get);
+  },
+  tearDown: function() {
+    ydn.db.deleteDatabase(db_name_put);
+  }
+});
 
+asyncTest("key range", function () {
+  expect(2);
+
+  var db = new ydn.db.Storage(db_name_put, schema_1);
+  db.clear(store_outline);
+  var value_1 = 'get test ' + Math.random();
+  var value_2 = 'get test ' + Math.random();
+  var key_range = ydn.db.KeyRange.starts('a');
+  db.put(store_outline, [{d: value_1}, {e: value_2}, {e: value_2}], ['a', 'a2', 'b']).then(function(keys) {
+    equal(keys.length, 3, 'key length');
+    db.count(store_outline, key_range).then(function (x) {
+      equal(x, 2, 'number of records');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
 
 var db_index = "qunit_idx_3";
 // copy previous schema and add index schema
@@ -329,3 +360,4 @@ asyncTest("Key range - index string - starts with of no result", function () {
     start();
   })
 });
+

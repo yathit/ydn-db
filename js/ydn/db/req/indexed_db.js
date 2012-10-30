@@ -881,14 +881,62 @@ ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q) {
 
 /**
  * @param {!goog.async.Deferred} df return a deferred function.
- * @param {string} table store name.
+ * @param {!Array.<string>}  stores store name.
 */
-ydn.db.req.IndexedDb.prototype.count = function (df, table) {
+ydn.db.req.IndexedDb.prototype.countStores = function (df, stores) {
+
+  var me = this;
+  var total = 0;
+
+  var count_store = function (i) {
+    var table = stores[i];
+    var store = me.tx.objectStore(table);
+    var request = store.count();
+    request.onsuccess = function (event) {
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      total += event.target.result;
+      i++;
+      if (i == stores.length) {
+        df.callback(total);
+      } else {
+        count_store(i);
+      }
+
+    };
+    request.onerror = function (event) {
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      df.errback(event);
+    };
+  };
+
+  if (stores.length == 0) {
+    df.callback(0);
+  } else {
+    count_store(0);
+  }
+
+};
+
+
+
+/**
+ * @param {!goog.async.Deferred} df return a deferred function.
+ * @param {string} table store name.
+ * @param {ydn.db.KeyRange} keyRange
+ */
+ydn.db.req.IndexedDb.prototype.countKeyRange = function (df, table, keyRange) {
 
   var self = this;
 
+  var key_range = ydn.db.IDBKeyRange.bound(keyRange.lower, keyRange.upper,
+      keyRange.lowerOpen, keyRange.upperOpen);
+
   var store = this.tx.objectStore(table);
-  var request = store.count();
+  var request = store.count(key_range);
   request.onsuccess = function (event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log(event);

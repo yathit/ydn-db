@@ -12,7 +12,7 @@ goog.require('ydn.db.io.QueryService');
 goog.require('ydn.db.req.IndexedDb');
 goog.require('ydn.db.req.SimpleStore');
 goog.require('ydn.db.req.WebSql');
-goog.require('ydn.db.io.Cursor');
+
 
 
 
@@ -70,47 +70,6 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
 
 };
 
-
-/**
- * @param {string} store store name. If not defined, all object stores are used.
- * @param {ydn.db.Cursor.Direction=} direction cursor direction.
- * @param {string=} index store field, where key query is preformed. If not
- * provided, the first index will be used.
- * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
- *   keyRange configuration in json or native format. Alternatively key range
- * constructor parameters can be given
- * @param {(string|number)=} upper
- * @param {boolean=} lowerOpen
- * @param {boolean=} upperOpen
- * @return {!ydn.db.io.Cursor}
- */
-ydn.db.TxStorage.prototype.cursor = function(store, direction, index, keyRange, upper, lowerOpen, upperOpen) {
-  return new ydn.db.io.Cursor(this, store, direction, index, keyRange, upper, lowerOpen, upperOpen);
-};
-
-
-
-/**
- * Create a new query with given store name.
- * @param {string=} store_name store name.
- * @return {!ydn.db.Query}
- */
-ydn.db.TxStorage.prototype.query = function(store_name) {
-  if (goog.DEBUG) {
-    if (arguments.length > 1) {
-      throw new ydn.error.ArgumentException();
-    }
-    if (goog.isDef(store_name) && !goog.isString(store_name)) {
-      throw new ydn.error.ArgumentException();
-    }
-  }
-  var q = new ydn.db.Query();
-  if (goog.isDef(store_name)) {
-    q.from(store_name);
-  }
-
-  return q;
-};
 
 
 /**

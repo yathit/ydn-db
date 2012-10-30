@@ -132,7 +132,7 @@ ydn.db.KeyRange.starts = function(value) {
     throw new ydn.error.ArgumentException();
   }
 
-  return ydn.db.KeyRange.bound(value, value_upper);
+  return ydn.db.KeyRange.bound(value, value_upper, false, true);
 };
 
 

@@ -27,8 +27,6 @@ if (ydn.db.base.ENABLE_ENCRYPTION) {
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.IStorage');
-goog.require('ydn.db.io.Query');
-goog.require('ydn.db.io.Key');
 goog.require('ydn.db.io.QueryService');
 
 
@@ -120,40 +118,11 @@ ydn.db.Storage.prototype.getWrapper = function() {
 
 
 /**
- * @param {string} store store name. If not defined, all object stores are used.
- * @param {ydn.db.Cursor.Direction=} direction cursor direction.
- * @param {string=} index store field, where key query is preformed. If not
- * provided, the first index will be used.
- * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
-    *   keyRange configuration in json or native format. Alternatively key range
- * constructor parameters can be given
- * @param {(string|number)=} upper
- * @param {boolean=} lowerOpen
- * @param {boolean=} upperOpen
- * @return {!ydn.db.io.Cursor}
- */
-ydn.db.Storage.prototype.cursor = function(store, direction, index, keyRange, upper, lowerOpen, upperOpen) {
-  return this.default_tx_queue_.cursor(store, direction, index, keyRange, upper, lowerOpen, upperOpen);
-};
-
-
-
-/**
  * @inheritDoc
  */
 ydn.db.Storage.prototype.fetch = function(q) {
   return this.default_tx_queue_.fetch(q);
 };
-
-
-/**
- * @param {string} sql_statement store name.
- * @return {!ydn.db.io.Query}
- */
-ydn.db.Storage.prototype.query = function(sql_statement) {
-  return this.default_tx_queue_.query(sql_statement);
-};
-
 
 
 /**

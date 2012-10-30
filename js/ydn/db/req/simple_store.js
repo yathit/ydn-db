@@ -337,9 +337,34 @@ ydn.db.req.SimpleStore.prototype.clearByStore = function (df, opt_table) {
 /**
 * Get number of items stored.
  * @param {!goog.async.Deferred} df return number of items in deferred function.
- * @param {string=} opt_table table name
+ * @param {!Array.<string>}  tables table name
 */
-ydn.db.req.SimpleStore.prototype.count = function(df, opt_table) {
+ydn.db.req.SimpleStore.prototype.countStores = function(df, tables) {
+
+  var store = tables[0];
+  var pre_fix = '_database_' + this.dbname;
+  if (goog.isDef(store)) {
+    pre_fix += '-' + store;
+  }
+
+  var n = 0;
+  for (var key in this.tx) {
+    if (this.tx.hasOwnProperty(key)) {
+      if (goog.string.startsWith(key, pre_fix)) {
+        n++;
+      }
+    }
+  }
+  df.callback(n);
+};
+
+/**
+ * Get number of items stored.
+ * @param {!goog.async.Deferred} df return number of items in deferred function.
+ * @param {string} opt_table table name
+ *  @param {ydn.db.KeyRange} keyRange
+ */
+ydn.db.req.SimpleStore.prototype.countKeyRange = function(df, opt_table, keyRange) {
 
   var pre_fix = '_database_' + this.dbname;
   if (goog.isDef(opt_table)) {
