@@ -567,6 +567,11 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
         '" not found.');
   }
 
+  var resume = cursor.has_done === false;
+  if (resume) {
+    goog.asserts.assert(cursor.store_key);
+  }
+
   var obj_store;
   try {
     obj_store = this.tx.objectStore(store.name);
@@ -634,20 +639,39 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
     }
   }
 
-  request.onsuccess = function(event) {
+  var cue = false;
+  request.onsuccess = function (event) {
     /**
      * @type {IDBCursorWithValue}
      */
-    var cursor = /** @type {IDBCursorWithValue} */ (event.target.result);
+    var cur = /** @type {IDBCursorWithValue} */ (event.target.result);
     // console.log(cursor);
-    if (cursor) {
-      cursor.done = false;
-      cursor.count++;
+    if (cur) {
+      if (resume) {
+        // cue to correct position
+        if (cur.key != cursor.key) {
+          if (cue) {
+            me.logger('Resume corrupt on ' + cursor.store_name + ':' +
+                cursor.store_key + ':' + cursor.index_key);
+            on_error(new ydn.db.InvalidStateError());
+          }
+          cue = true;
+          cur.advance(cursor.key);
+        } else {
+          if (cur.primaryKey == cursor.primaryKey) {
+            resume = false; // got it
+          }
+          cur['continue']();
+        }
+      }
+      cursor.has_done = false;
+      cursor.counter++;
       cursor.store_key = cursor.key;
       cursor.index_key = cursor.primaryKey;
-      on_success(cursor.value);
+      on_success(cur.value);
+      cur['continue']();
     } else {
-      cursor.done = true;
+      cursor.has_done = true;
       on_completed();
     }
   };
