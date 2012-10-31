@@ -651,14 +651,14 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
         // cue to correct position
         if (cur.key != cursor.key) {
           if (cue) {
-            me.logger('Resume corrupt on ' + cursor.store_name + ':' +
+            me.logger.warning('Resume corrupt on ' + cursor.store_name + ':' +
                 cursor.store_key + ':' + cursor.index_key);
             on_error(new ydn.db.InvalidStateError());
           }
           cue = true;
-          cur.advance(cursor.key);
+          cur['continue'](cursor.key);
         } else {
-          if (cur.primaryKey == cursor.primaryKey) {
+          if (cur.primaryKey == cursor.index_key) {
             resume = false; // got it
           }
           cur['continue']();
@@ -666,8 +666,8 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
       }
       cursor.has_done = false;
       cursor.counter++;
-      cursor.store_key = cursor.key;
-      cursor.index_key = cursor.primaryKey;
+      cursor.store_key = cur.key;
+      cursor.index_key = cur.primaryKey;
       on_success(cur.value);
       cur['continue']();
     } else {
