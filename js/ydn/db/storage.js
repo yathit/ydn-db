@@ -27,7 +27,6 @@ if (ydn.db.base.ENABLE_ENCRYPTION) {
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.IStorage');
-goog.require('ydn.db.io.QueryService');
 
 
 /**
@@ -44,7 +43,6 @@ goog.require('ydn.db.io.QueryService');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
- * @implements {ydn.db.io.QueryService}
  * @extends {ydn.db.core.Storage}
  * @constructor *
  */
@@ -118,7 +116,8 @@ ydn.db.Storage.prototype.getWrapper = function() {
 
 
 /**
- * @inheritDoc
+ * @param {!ydn.db.Cursor|!ydn.db.Query} q query.
+ * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.Storage.prototype.fetch = function(q) {
   return this.default_tx_queue_.fetch(q);

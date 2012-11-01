@@ -18,7 +18,7 @@
  * @fileoverview Generic database connector.
  *
  * Create and maintain database connection and provide robust transaction
- * objects upon request. Storage mechanisms implement
+ * objects upon request. Storage mechanism providers implement
  * ydn.db.con.IDatabase interface.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)

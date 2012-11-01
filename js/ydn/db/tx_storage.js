@@ -8,7 +8,6 @@
 goog.provide('ydn.db.TxStorage');
 goog.require('ydn.error.NotSupportedException');
 goog.require('ydn.db.core.TxStorage');
-goog.require('ydn.db.io.QueryService');
 goog.require('ydn.db.req.IndexedDb');
 goog.require('ydn.db.req.SimpleStore');
 goog.require('ydn.db.req.WebSql');
@@ -17,7 +16,6 @@ goog.require('ydn.db.req.WebSql');
 
 
 /**
- * @implements {ydn.db.io.QueryService}
  * @param {!ydn.db.Storage} storage
  * @param {number} ptx_no
  * @param {string} scope_name

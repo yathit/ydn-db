@@ -8,7 +8,6 @@
 goog.provide('ydn.db.core.TxStorage');
 goog.require('ydn.error.NotSupportedException');
 goog.require('ydn.db.tr.TxStorage');
-goog.require('ydn.db.io.CrudService');
 goog.require('ydn.db.req.IndexedDb');
 goog.require('ydn.db.req.SimpleStore');
 goog.require('ydn.db.req.WebSql');
@@ -24,11 +23,11 @@ goog.require('ydn.db.req.WebSql');
  * is not active or locked. Active transaction can be locked by using
  * mutex.
  *
- * @implements {ydn.db.io.CrudService}
  * @param {!ydn.db.core.Storage} storage
  * @param {number} ptx_no
  * @param {string} scope_name
  * @param {!ydn.db.schema.Database} schema
+ * @implements {ydn.db.core.IStorage}
  * @constructor
  * @extends {ydn.db.tr.TxStorage}
 */

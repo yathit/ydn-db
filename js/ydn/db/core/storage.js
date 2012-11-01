@@ -24,7 +24,6 @@ goog.require('ydn.object');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.db.core.TxStorage');
 goog.require('ydn.db.core.IStorage');
-goog.require('ydn.db.io.CrudService');
 
 
 /**
@@ -41,8 +40,8 @@ goog.require('ydn.db.io.CrudService');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
- * @implements {ydn.db.io.CrudService}
  * @extends {ydn.db.tr.Storage}
+ * @implements {ydn.db.core.IStorage}
  * @constructor
  */
 ydn.db.core.Storage = function (opt_dbname, opt_schema, opt_options) {
@@ -85,9 +84,7 @@ ydn.db.core.Storage.prototype.getTxNo = function() {
 
 /**
  *
- * @param {string=} store_name
- * @param {ydn.db.KeyRange=} opt_key_range
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @inheritDoc
  */
 ydn.db.core.Storage.prototype.count = function(store_name, opt_key_range) {
   return this.default_tx_queue_.count(store_name, opt_key_range);
@@ -95,10 +92,7 @@ ydn.db.core.Storage.prototype.count = function(store_name, opt_key_range) {
 
 
 /**
- * Return object or objects of given key or keys.
- * @param {(string|!ydn.db.Key)=} arg1 table name.
- * @param {(string|number|Date)=} arg2
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @inheritDoc
  */
 ydn.db.core.Storage.prototype.get = function (arg1, arg2) {
   return this.default_tx_queue_.get(arg1, arg2);
@@ -106,12 +100,7 @@ ydn.db.core.Storage.prototype.get = function (arg1, arg2) {
 
 
 /**
- * Return object or objects of given key or keys.
- * @param {(string|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(!Array.<string>)=} arg2
- * object key to be retrieved, if not provided,
- * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @inheritDoc
  */
 ydn.db.core.Storage.prototype.list = function (arg1, arg2) {
   return this.default_tx_queue_.list(arg1, arg2);
