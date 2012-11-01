@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @fileoverview HTML5 localStorage implemented as deferred async pattern.
+ * @fileoverview Web storage connectors.
  */
 
 goog.provide('ydn.db.con.LocalStorage');
@@ -48,7 +48,7 @@ ydn.db.con.LocalStorage.isSupported = function() {
 ydn.db.con.LocalStorage.TYPE = 'localstorage';
 
 /**
- * @return {string}
+ * @inheritDoc
  */
 ydn.db.con.LocalStorage.prototype.type = function() {
   return ydn.db.con.LocalStorage.TYPE;
@@ -82,7 +82,7 @@ ydn.db.con.SessionStorage.isSupported = function() {
 ydn.db.con.SessionStorage.TYPE = 'sessionstorage';
 
 /**
- * @return {string}
+ * @inheritDoc
  */
 ydn.db.con.SessionStorage.prototype.type = function() {
   return ydn.db.con.SessionStorage.TYPE;

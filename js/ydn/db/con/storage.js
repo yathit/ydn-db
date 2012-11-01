@@ -15,7 +15,7 @@
 
 
 /**
- * @fileoverview Generic database connector.
+ * @fileoverview Storage provider.
  *
  * Create and maintain database connection and provide robust transaction
  * objects upon request. Storage mechanism providers implement
@@ -25,36 +25,44 @@
  */
 
 goog.provide('ydn.db.con.Storage');
+goog.require('goog.events.EventTarget');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
+goog.require('ydn.db.con.IStorage');
+goog.require('ydn.db.con.IndexedDb');
 goog.require('ydn.db.con.LocalStorage');
 goog.require('ydn.db.con.SessionStorage');
-goog.require('ydn.db.con.IndexedDb');
 goog.require('ydn.db.con.SimpleStorage');
 goog.require('ydn.db.con.WebSql');
-goog.require('ydn.db.schema.EditableDatabase');
-goog.require('ydn.object');
-goog.require('ydn.error.ArgumentException');
-goog.require('ydn.db.con.IStorage');
 goog.require('ydn.db.events.StorageEvent');
-goog.require('goog.events.EventTarget');
+goog.require('ydn.db.schema.EditableDatabase');
+goog.require('ydn.error.ArgumentException');
+goog.require('ydn.object');
 
 
 
 /**
- * Create a suitable storage mechanism.
+ * Create a storage and connect to suitable database connection.
  *
- * If database name and schema are provided, this will immediately initialize
- * the database and ready to use. However if any of these two are missing,
- * the database is not initialize until they are set by calling
- * {@link #setsetDbName} and {@link #setSchema}.
- * @see goog.db Google Closure Library DB module.
+ * The storage is ready to use on created, but transaction requested
+ * my buffered until connection is established.
+ *
+ * If database name is provided, this will immediately initialize
+ * the connection. Database name can be set later by using {@link #setName}
+ * method.
+ *
+ * This grantee that the connected database has the similar schema as specified
+ * in the input. If dissimilar between the two schema, the version change
+ * is issued and alter the schema to match the input schema.
+ *
+ * @see {@link goog.db} Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
  * @param {!ydn.db.schema.Database|DatabaseSchema=} opt_schema database schema
- * or its configuration in JSON format. If not provided, default empty schema
- * is used.
- * schema used in chronical order.
+ * or its configuration in JSON format. If not provided, default empty
+ * auto-schema is used.
  * @param {!StorageOptions=} opt_options options.
+ * @throws {ConstrainedError} if fix version is used, but client database
+ * schema is dissimilar.
  * @implements {ydn.db.con.IStorage}
  * @constructor
  * @extends {goog.events.EventTarget}
@@ -170,8 +178,8 @@ ydn.db.con.Storage.prototype.logger =
 
 /**
  * Get current schema.
- * @param {function(ydn.db.schema.Database)=} opt_callback
- * @return {DatabaseSchema}
+ * @param {function(ydn.db.schema.Database)=} opt_callback schema in database.
+ * @return {DatabaseSchema} schema in memory.
  */
 ydn.db.con.Storage.prototype.getSchema = function(opt_callback) {
   if (goog.isDef(opt_callback)) {
@@ -189,28 +197,20 @@ ydn.db.con.Storage.prototype.getSchema = function(opt_callback) {
       this.transaction(get_schema, null, ydn.db.base.TransactionMode.READ_ONLY);
     }
   }
-  return this.schema ? /** @type {!DatabaseSchema} */ (this.schema.toJSON()) : null;
+  return this.schema ? /** @type {!DatabaseSchema} */ (this.schema.toJSON()) :
+    null;
 };
 
-
-/**
- * Get current schema.
- * @return {StoreSchema?} null if give store do not exist
- */
-ydn.db.con.Storage.prototype.getStoreSchema = function(store_name) {
-  var store = this.schema.getStore(store_name);
-  return store ? /** @type {!StoreSchema} */ (store.toJSON()) : null;
-};
 
 
 /**
  * Add a store schema to current database schema on auto schema generation
  * mode {@see #auto_schema}.
  * If the store already exist it will be updated as necessary.
- * @param {!StoreSchema|!ydn.db.schema.Store} store_schema
- * @return {!goog.async.Deferred}
+ * @param {!StoreSchema|!ydn.db.schema.Store} store_schema store schema.
+ * @return {!goog.async.Deferred} promise.
  */
-ydn.db.con.Storage.prototype.addStoreSchema = function (store_schema) {
+ydn.db.con.Storage.prototype.addStoreSchema = function(store_schema) {
 
   /**
    *
@@ -277,7 +277,7 @@ ydn.db.con.Storage.prototype.schema;
 
 /**
  *
- * @return {string}
+ * @return {string} name of database.
  */
 ydn.db.con.Storage.prototype.getName = function() {
   return this.db_name;
@@ -303,8 +303,8 @@ ydn.db.con.Storage.PREFERENCE = [
 /**
  * Create database instance.
  * @protected
- * @param {string} db_type
- * @return {ydn.db.con.IDatabase}
+ * @param {string} db_type database type.
+ * @return {ydn.db.con.IDatabase} newly created database instance.
  */
 ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
 
@@ -316,7 +316,7 @@ ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
     return new ydn.db.con.LocalStorage();
   } else if (db_type == ydn.db.con.SessionStorage.TYPE) {
     return new ydn.db.con.SessionStorage();
-  } else if (db_type == ydn.db.con.SimpleStorage.TYPE)  {
+  } else if (db_type == ydn.db.con.SimpleStorage.TYPE) {
     return new ydn.db.con.SimpleStorage();
   }
   return null;
@@ -327,9 +327,9 @@ ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
  * Initialize suitable database if {@code dbname} and {@code schema} are set,
  * starting in the following order of preference.
  * @protected
- * @return {!goog.async.Deferred}
+ * @return {!goog.async.Deferred} promise.
  */
-ydn.db.con.Storage.prototype.connectDatabase = function () {
+ydn.db.con.Storage.prototype.connectDatabase = function() {
   // handle version change
 
   goog.asserts.assertString(this.db_name);
@@ -354,16 +354,20 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
     var preference = this.mechanisms;
     for (var i = 0; i < preference.length; i++) {
       var db_type = preference[i].toLowerCase();
-      if (db_type == ydn.db.con.IndexedDb.TYPE && ydn.db.con.IndexedDb.isSupported()) { // run-time detection
+      if (db_type == ydn.db.con.IndexedDb.TYPE &&
+        ydn.db.con.IndexedDb.isSupported()) { // run-time detection
         db = this.createDbInstance(db_type);
         break;
-      } else if (db_type == ydn.db.con.WebSql.TYPE && ydn.db.con.WebSql.isSupported()) {
+      } else if (db_type == ydn.db.con.WebSql.TYPE &&
+        ydn.db.con.WebSql.isSupported()) {
         db = this.createDbInstance(db_type);
         break;
-      } else if (db_type == ydn.db.con.LocalStorage.TYPE && ydn.db.con.LocalStorage.isSupported()) {
+      } else if (db_type == ydn.db.con.LocalStorage.TYPE &&
+        ydn.db.con.LocalStorage.isSupported()) {
         db = this.createDbInstance(db_type);
         break;
-      } else if (db_type == ydn.db.con.SessionStorage.TYPE && ydn.db.con.SessionStorage.isSupported()) {
+      } else if (db_type == ydn.db.con.SessionStorage.TYPE &&
+        ydn.db.con.SessionStorage.isSupported()) {
         db = this.createDbInstance(db_type);
         break;
       } else if (db_type == ydn.db.con.SimpleStorage.TYPE) {
@@ -396,9 +400,9 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
 
     /**
      *
-     * @param e
+     * @param {*} e event.
      */
-    db.onDisconnected = function (e) {
+    db.onDisconnected = function(e) {
 
       me.logger.finest(me + ': disconnected.');
       // no event for disconnected.
@@ -422,7 +426,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function () {
 
 /**
  *
- * @return {string}
+ * @return {string} database mechanism type.
  * @export
  */
 ydn.db.con.Storage.prototype.type = function() {
@@ -436,7 +440,7 @@ ydn.db.con.Storage.prototype.type = function() {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} true on ready.
  */
 ydn.db.con.Storage.prototype.isReady = function() {
   return !!this.db_ && this.db_.isReady();
@@ -496,22 +500,22 @@ ydn.db.con.Storage.prototype.close = function() {
 //  }
 //};
 
-
-/**
- * Get database instance.
- * @protected
- * @return {ydn.db.con.IDatabase}
- */
-ydn.db.con.Storage.prototype.getDb = function() {
-  return this.db_;
-};
+//
+///**
+// * Get database instance.
+// * @protected
+// * @return {ydn.db.con.IDatabase} database connector.
+// */
+//ydn.db.con.Storage.prototype.getDb = function() {
+//  return this.db_;
+//};
 
 
 
 /**
  * Get database instance.
  * @see {@link #getDb}
- * @return {*}
+ * @return {*} database instance.
  */
 ydn.db.con.Storage.prototype.getDbInstance = function() {
   return this.db_ ? this.db_.getDbInstance() : null;
@@ -563,16 +567,17 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
  * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} completed_event_handler
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=}
+  * completed_event_handler handler.
  * @private
  */
-ydn.db.con.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
+ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
     opt_mode, completed_event_handler) {
   this.txQueue_.push({
-    fnc:trFn,
-    scopes:store_names,
-    mode:opt_mode,
-    oncompleted:completed_event_handler
+    fnc: trFn,
+    scopes: store_names,
+    mode: opt_mode,
+    oncompleted: completed_event_handler
   });
   var now = goog.now();
   //if (!isNaN(this.last_queue_checkin_)) {
@@ -594,8 +599,8 @@ ydn.db.con.Storage.prototype.pushTxQueue_ = function (trFn, store_names,
 
 /**
  * Abort the queuing tasks.
- * @protected
- * @param e
+ * @private
+ * @param {Error} e error.
  */
 ydn.db.con.Storage.prototype.purgeTxQueue_ = function(e) {
   if (this.txQueue_) {
@@ -626,11 +631,12 @@ ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
  * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} completed_event_handler
- * @export
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=}
+ * completed_event_handler handler.
  * @final
  */
-ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode, completed_event_handler) {
+ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
+     opt_mode, completed_event_handler) {
 
   var names = store_names;
 
@@ -640,7 +646,7 @@ ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode
     names = null;
   } else if (!goog.isArray(store_names) ||
     (!goog.isString(store_names[0]))) {
-    throw new ydn.error.ArgumentException("storeNames");
+    throw new ydn.error.ArgumentException('storeNames');
   }
 
   var is_ready = !!this.db_ && this.db_.isReady();
@@ -653,13 +659,14 @@ ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode
 
   var me = this;
 
-  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
+  var mode = goog.isDef(opt_mode) ? opt_mode :
+    ydn.db.base.TransactionMode.READ_ONLY;
 
   if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {
     this.in_version_change_tx_ = true;
   }
 
-  var on_complete = function (type, ev) {
+  var on_complete = function(type, ev) {
     if (goog.isFunction(completed_event_handler)) {
       completed_event_handler(type, ev);
     }
@@ -670,7 +677,7 @@ ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode
   };
 
   //console.log('core running ' + trFn.name);
-  this.db_.doTransaction(function (tx) {
+  this.db_.doTransaction(function(tx) {
     trFn(tx);
   }, names, mode, on_complete);
 
@@ -679,7 +686,7 @@ ydn.db.con.Storage.prototype.transaction = function (trFn, store_names, opt_mode
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} true if auto version mode.
  */
 ydn.db.con.Storage.prototype.isAutoVersion = function() {
   return this.schema.isAutoVersion();
@@ -687,13 +694,16 @@ ydn.db.con.Storage.prototype.isAutoVersion = function() {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} true if auto schema mode.
  */
 ydn.db.con.Storage.prototype.isAutoSchema = function() {
   return this.schema.isAutoSchema();
 };
 
 
+/**
+ * @inheritDoc
+ */
 ydn.db.con.Storage.prototype.toString = function() {
   return 'ydn.db.con.Storage:' + this.db_;
 };

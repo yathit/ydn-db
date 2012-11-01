@@ -24,17 +24,17 @@ goog.provide('ydn.db.con.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
+goog.require('goog.functions');
 goog.require('ydn.async');
-goog.require('ydn.json');
-goog.require('ydn.string');
 goog.require('ydn.db.SecurityError');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
-goog.require('goog.functions');
+goog.require('ydn.json');
+goog.require('ydn.string');
 
 
 /**
- * Construct WebSql database.
+ * Construct a WebSql database connector.
  * Note: Version is ignored, since it does work well.
  * @param {number=} opt_size estimated database size. Default to 5 MB.
  * @implements {ydn.db.con.IDatabase}
@@ -51,15 +51,13 @@ ydn.db.con.WebSql = function(opt_size) {
    * @final
    * @type {number}
    */
-  this.size = goog.isDef(opt_size) ? opt_size : 4 * 1024 * 1024; // 5 MB
+  this.size_ = goog.isDef(opt_size) ? opt_size : 4 * 1024 * 1024; // 5 MB
 
 };
 
 
 /**
- * @param {string} dbname name of database.
- * @param {ydn.db.schema.Database} schema database schema.
- *  @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
@@ -76,10 +74,10 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
   /**
    *
-   * @param {Database} db
-   * @param {Error=} e
+   * @param {Database} db database.
+   * @param {Error=} e error object only in case of error.
    */
-  var setDb = function (db, e) {
+  var setDb = function(db, e) {
     if (goog.isDef(e)) {
       me.sql_db_ = null;
       df.errback(e);
@@ -95,18 +93,19 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
   /**
    * Migrate from current version to the last version.
    * @private
-   * @param {Database} db
-   * @param {ydn.db.schema.Database} schema
-   * @param {boolean=} is_version_change
+   * @param {Database} db database.
+   * @param {ydn.db.schema.Database} schema  schema.
+   * @param {boolean=} is_version_change version change or not.
    */
-  var doVersionChange_ = function (db, schema, is_version_change) {
+  var doVersionChange_ = function(db, schema, is_version_change) {
 
     var action = is_version_change ? 'changing version' : 'setting version';
     me.logger.finest(dbname + ': ' + action + ' from ' +
       db.version + ' to ' + schema.version);
 
     //var mode = is_version_change ?
-    //    ydn.db.base.TransactionMode.VERSION_CHANGE : ydn.db.base.TransactionMode.READ_WRITE;
+    //    ydn.db.base.TransactionMode.VERSION_CHANGE :
+    // ydn.db.base.TransactionMode.READ_WRITE;
 
     // HACK: VERSION_CHANGE can cause subtle error.
     var mode = ydn.db.base.TransactionMode.READ_WRITE;
@@ -117,9 +116,9 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
     /**
      * SQLTransactionCallback
-     * @param {!SQLTransaction} tx
+     * @param {!SQLTransaction} tx transaction object.
      */
-    var transaction_callback = function (tx) {
+    var transaction_callback = function(tx) {
       // sniff current table info in the database.
       me.getSchema(function(table_infos) {
 
@@ -137,7 +136,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     /**
      * SQLVoidCallback
      */
-    var success_callback = function () {
+    var success_callback = function() {
       var has_created = updated_count == schema.stores.length;
       if (!has_created) {
         // success callback without actually executing
@@ -155,13 +154,13 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
     /**
      * SQLTransactionErrorCallback
-     * @param {SQLError} e
+     * @param {SQLError} e error.
      */
-    var error_callback = function (e) {
+    var error_callback = function(e) {
       throw e;
     };
 
-    db.transaction(transaction_callback, error_callback, success_callback)
+    db.transaction(transaction_callback, error_callback, success_callback);
 
   };
 
@@ -182,7 +181,8 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     var use_version_change_request = true;
 
     //if (!init_migrated) {
-      doVersionChange_(db, schema, use_version_change_request); // yeah, to make sure.
+      // yeah, to make sure.
+      doVersionChange_(db, schema, use_version_change_request);
     //}
   };
 
@@ -216,18 +216,19 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     if (ydn.db.con.WebSql.GENTLE_OPENING) {
       // this works in Chrome, Safari and Opera
       db = goog.global.openDatabase(dbname, '', description,
-        this.size);
+        this.size_);
     } else {
       try {
         // this works in Chrome and OS X Safari even if the specified
-        // database version does not exist. Other browsers throw INVALID_STATE_ERR
+        // database version does not exist. Other browsers throw
+        // INVALID_STATE_ERR
         db = goog.global.openDatabase(dbname, version, description,
-          this.size, creationCallback);
+          this.size_, creationCallback);
       } catch (e) {
         if (e.name == 'INVALID_STATE_ERR') {
           // fail back to gentle opening.
           db = goog.global.openDatabase(dbname, '', description,
-            this.size);
+            this.size_);
         } else {
           throw e;
         }
@@ -249,7 +250,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
   if (!db) {
     setDb(null, this.last_error_);
-  } else  {
+  } else {
 
     // Even if db version are the same, we cannot assume schema are as expected.
     // Sometimes database is just empty with given version.
@@ -291,20 +292,21 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
 
 /**
- * @define {boolean}
+ * @define {boolean} gentle opening do not specify version number on open
+ * method invokation.
  */
 ydn.db.con.WebSql.GENTLE_OPENING = true;
 
 
 /**
  * @const
- * @type {string}
+ * @type {string} type.
  */
 ydn.db.con.WebSql.TYPE = 'websql';
 
 
 /**
- * @return {string}
+ * @inheritDoc
  */
 ydn.db.con.WebSql.prototype.type = function() {
   return ydn.db.con.WebSql.TYPE;
@@ -313,21 +315,21 @@ ydn.db.con.WebSql.prototype.type = function() {
 
 /**
  *
- * @type {Error}
+ * @type {Error} error.
  * @private
  */
 ydn.db.con.WebSql.prototype.last_error_ = null;
 
 
 /**
- * @type {Database}
+ * @type {Database} database instance.
  * @private
  */
 ydn.db.con.WebSql.prototype.sql_db_ = null;
 
 
 /**
- *
+ * @inheritDoc
  */
 ydn.db.con.WebSql.prototype.getDbInstance = function() {
   return this.sql_db_ || null;
@@ -354,7 +356,8 @@ ydn.db.con.WebSql.DEBUG = false;
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.con.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.con.WebSql');
+ydn.db.con.WebSql.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.con.WebSql');
 
 
 /**
@@ -380,7 +383,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   }
 
   if (goog.isDefAndNotNull(table_schema.keyPath)) {
-    sql += table_schema.getQuotedKeyPath() + ' ' + type + ' UNIQUE PRIMARY KEY ';
+    sql += table_schema.getQuotedKeyPath() + ' ' + type +
+      ' UNIQUE PRIMARY KEY ';
 
     if (table_schema.autoIncrement) {
       sql += ' AUTOINCREMENT ';
@@ -391,12 +395,14 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
       ' UNIQUE PRIMARY KEY AUTOINCREMENT ';
   } else { // using out of line key.
     // it still has _ROWID_ as column name
-    sql += ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type + ' UNIQUE PRIMARY KEY ';
+    sql += ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
+      ' UNIQUE PRIMARY KEY ';
 
   }
 
   // every table must has a default field to store schemaless fields
-  sql += ' ,' +  ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' + ydn.db.schema.DataType.BLOB;
+  sql += ' ,' + ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' +
+    ydn.db.schema.DataType.BLOB;
 
   var sqls = [];
   var sep = ', ';
@@ -409,7 +415,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
     // http://sqlite.org/lang_createindex.html
     //if (index.type != ydn.db.schema.DataType.BLOB) {
-      var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS '  +
+      var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS ' +
           goog.string.quote(index.name) +
           ' ON ' + table_schema.getQuotedName() + ' (' + id_column_name + ')';
       sqls.push(idx_sql);
@@ -419,7 +425,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
       continue;
     }
 
-    sql += sep + goog.string.quote(index.keyPath) + ' ' + index.getType() + unique;
+    sql += sep + goog.string.quote(index.keyPath) + ' ' + index.getType() +
+      unique;
 
   }
 
@@ -447,7 +454,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
-  var success_callback = function (transaction, results) {
+  var success_callback = function(transaction, results) {
 
     for (var i = 0; i < results.rows.length; i++) {
 
@@ -456,7 +463,8 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 
 //      name: "st1"
 //      rootpage: 5
-//      sql: "CREATE TABLE "st1" ("id" TEXT UNIQUE PRIMARY KEY , _default_ undefined )"
+//      sql: "CREATE TABLE "st1" ("id" TEXT UNIQUE PRIMARY KEY ,
+//                                 _default_ undefined )"
 //      tbl_name: "st1"
 //      type: "table"
 
@@ -471,7 +479,8 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
       }
       if (info.type == 'table') {
 
-        var str = info.sql.substr(info.sql.indexOf('('), info.sql.lastIndexOf(')'));
+        var str = info.sql.substr(info.sql.indexOf('('),
+          info.sql.lastIndexOf(')'));
         var column_infos = ydn.string.split_comma_seperated(str);
 
         var key_name = '';
@@ -519,7 +528,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
    */
-  var error_callback = function (tr, error) {
+  var error_callback = function(tr, error) {
     if (ydn.db.con.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
@@ -550,9 +559,9 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 
 /**
  *
- * @param {SQLTransaction} trans
- * @param {ydn.db.schema.Store} store_schema
- * @param {Function} callback
+ * @param {SQLTransaction} trans transaction.
+ * @param {ydn.db.schema.Store} store_schema schema.
+ * @param {Function} callback callback on finished.
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
@@ -568,15 +577,15 @@ ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
 
 /**
  * Alter or create table with given table schema.
- * @param {SQLTransaction} trans
- * @param {ydn.db.schema.Store} store_schema table schema to be upgrade
- * @param {Function} callback
+ * @param {SQLTransaction} trans transaction.
+ * @param {ydn.db.schema.Store} store_schema table schema to be upgrade.
+ * @param {Function} callback callback on finished.
  * @param {ydn.db.schema.Store|undefined} table_info table information in the
  * existing database.
  * @private
  */
-ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_schema,
-                                                      callback, table_info) {
+ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
+     store_schema, callback, table_info) {
 
   var me = this;
 
@@ -588,12 +597,12 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
 
   var count = 0;
 
-  var exe_sql = function (sql) {
+  var exe_sql = function(sql) {
     /**
      * @param {SQLTransaction} transaction transaction.
      * @param {SQLResultSet} results results.
      */
-    var success_callback = function (transaction, results) {
+    var success_callback = function(transaction, results) {
       count++;
       if (count == sqls.length) {
         callback(true);
@@ -604,7 +613,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
      */
-    var error_callback = function (tr, error) {
+    var error_callback = function(tr, error) {
       if (ydn.db.con.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
@@ -629,7 +638,8 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
     }
   }
 
-  me.logger.finest(action + ' table: ' + store_schema.name + ': ' + sqls.join(';'));
+  me.logger.finest(action + ' table: ' + store_schema.name + ': ' +
+    sqls.join(';'));
   for (var i = 0; i < sqls.length; i++) {
     exe_sql(sqls[i]);
   }
@@ -637,57 +647,52 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans, store_sche
 };
 
 
-
 /**
- * @return {boolean}
+ * @inheritDoc
  */
 ydn.db.con.WebSql.prototype.isReady = function() {
   return !!this.sql_db_;
 };
 
 
-
 /**
  * @final
  */
-ydn.db.con.WebSql.prototype.close = function () {
+ydn.db.con.WebSql.prototype.close = function() {
   // WebSQl API do not have close method.
 };
 
 
 /**
- * Run a transaction. If already in transaction, this will join the transaction.
- * @param {function(SQLTransaction)|Function} trFn
- * @param {Array.<string>} scopes
- * @param {ydn.db.base.TransactionMode} mode
- * @param {function(ydn.db.base.TransactionEventTypes, *)} completed_event_handler
+ * @inheritDoc
  * @protected
  */
-ydn.db.con.WebSql.prototype.doTransaction = function (trFn, scopes, mode, completed_event_handler) {
+ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
+                                                      completed_event_handler) {
 
   var me = this;
 
   /**
    * SQLTransactionCallback
-   * @param {!SQLTransaction} tx
+   * @param {!SQLTransaction} tx transaction.
    */
-  var transaction_callback = function (tx) {
+  var transaction_callback = function(tx) {
     trFn(tx);
   };
 
   /**
    * SQLVoidCallback
    */
-  var success_callback = function () {
+  var success_callback = function() {
     completed_event_handler(ydn.db.base.TransactionEventTypes.COMPLETE,
-      {'type':ydn.db.base.TransactionEventTypes.COMPLETE});
+      {'type': ydn.db.base.TransactionEventTypes.COMPLETE});
   };
 
   /**
    * SQLTransactionErrorCallback
-   * @param {SQLError} e
+   * @param {SQLError} e error.
    */
-  var error_callback = function (e) {
+  var error_callback = function(e) {
     me.logger.finest(me + ': Tx ' + mode + ' request cause error.');
     completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, e);
   };
@@ -695,7 +700,8 @@ ydn.db.con.WebSql.prototype.doTransaction = function (trFn, scopes, mode, comple
   if (goog.isNull(this.sql_db_)) {
     // this happen on SECURITY_ERR
     trFn(null);
-    completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, this.last_error_);
+    completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR,
+      this.last_error_);
   }
 
   if (mode == ydn.db.base.TransactionMode.READ_ONLY) {

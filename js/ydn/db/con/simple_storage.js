@@ -17,19 +17,19 @@
  * @fileoverview Data store in memory.
  */
 
+// TODO: in memory indexing.
 
 goog.provide('ydn.db.con.SimpleStorage');
+goog.require('goog.Timer');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
-goog.require('goog.Timer');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.con.IDatabase');
 
 
 /**
  * @implements {ydn.db.con.IDatabase}
- * name and keyPath.
- * @param {Object=} opt_localStorage
+ * @param {Object=} opt_localStorage storage provider.
  * @constructor
  */
 ydn.db.con.SimpleStorage = function(opt_localStorage) {
@@ -37,9 +37,10 @@ ydn.db.con.SimpleStorage = function(opt_localStorage) {
   /**
    * @final
    * @type {!Object}
-   * @protected // should be private ?
+   * @private
    */
-  this.cache_ = opt_localStorage || ydn.db.con.SimpleStorage.getInMemoryStorage();
+  this.cache_ = opt_localStorage ||
+    ydn.db.con.SimpleStorage.getInMemoryStorage();
 
 };
 
@@ -87,9 +88,7 @@ ydn.db.con.SimpleStorage.isSupported = function() {
 
 
 /**
- * @param {string} dbname name of database.
- * @param {!ydn.db.schema.Database} schema database schema.
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
 
@@ -122,7 +121,7 @@ ydn.db.con.SimpleStorage.prototype.isReady = function() {
 
 
 /**
- *
+ * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.getDbInstance = function() {
   return this.cache_ || null;
@@ -140,7 +139,7 @@ ydn.db.con.SimpleStorage.DEFAULT_KEY_PATH = '_id_';
 
 
 /**
- * @return {string}
+ * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.type = function() {
   return 'memory';
@@ -150,17 +149,16 @@ ydn.db.con.SimpleStorage.prototype.type = function() {
 /**
  * @inheritDoc
  */
-ydn.db.con.SimpleStorage.prototype.close = function () {
+ydn.db.con.SimpleStorage.prototype.close = function() {
 
 };
-
-
 
 
 /**
  * @inheritDoc
  */
-ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode, oncompleted) {
+ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode,
+                                                            oncompleted) {
   trFn(this.cache_);
   oncompleted(ydn.db.base.TransactionEventTypes.COMPLETE, {});
 };
@@ -168,8 +166,7 @@ ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode, 
 
 
 /**
- * Get schema from the database.
- * @param {function(ydn.db.schema.Database)} callback
+ * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.getSchema = function(callback) {
   var schema = new ydn.db.schema.Database();
