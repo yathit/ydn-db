@@ -20,10 +20,10 @@
 goog.provide('ydn.db.core.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
-goog.require('ydn.object');
-goog.require('ydn.db.tr.Storage');
-goog.require('ydn.db.core.TxStorage');
 goog.require('ydn.db.core.IStorage');
+goog.require('ydn.db.core.TxStorage');
+goog.require('ydn.db.tr.Storage');
+goog.require('ydn.object');
 
 
 /**
@@ -36,7 +36,8 @@ goog.require('ydn.db.core.IStorage');
  *
  *
  * @param {string=} opt_dbname database name.
- * @param {(!ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database schema
+ * @param {(!ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database
+ * schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
@@ -44,7 +45,7 @@ goog.require('ydn.db.core.IStorage');
  * @implements {ydn.db.core.IStorage}
  * @constructor
  */
-ydn.db.core.Storage = function (opt_dbname, opt_schema, opt_options) {
+ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
@@ -68,14 +69,15 @@ ydn.db.core.Storage.prototype.init = function() {
  * @override
  */
 ydn.db.core.Storage.prototype.newTxInstance = function(scope_name) {
-  return new ydn.db.core.TxStorage(this, this.ptx_no++, scope_name, this.schema);
+  return new ydn.db.core.TxStorage(this, this.ptx_no++, scope_name,
+    this.schema);
 };
 
 
 
 /**
  * @final
- * @return {number}
+ * @return {number} transaction series number.
  */
 ydn.db.core.Storage.prototype.getTxNo = function() {
   return this.default_tx_queue_.getTxNo();
@@ -94,7 +96,7 @@ ydn.db.core.Storage.prototype.count = function(store_name, opt_key_range) {
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.get = function (arg1, arg2) {
+ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
   return this.default_tx_queue_.get(arg1, arg2);
 };
 
@@ -102,7 +104,7 @@ ydn.db.core.Storage.prototype.get = function (arg1, arg2) {
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.list = function (arg1, arg2) {
+ydn.db.core.Storage.prototype.list = function(arg1, arg2) {
   return this.default_tx_queue_.list(arg1, arg2);
 };
 
@@ -126,7 +128,8 @@ ydn.db.core.Storage.prototype.clear = function(arg1, arg2) {
 /** @override */
 ydn.db.core.Storage.prototype.toString = function() {
   var s = 'Storage:' + this.getName();
-  if (goog.DEBUG && this.default_tx_queue_) { // this.default_tx_queue_ null is possible while in constructor
+  if (goog.DEBUG && this.default_tx_queue_) { // this.default_tx_queue_ null
+  // is possible while in constructor
     return s + ':' + this.default_tx_queue_.getTxNo();
   }
   return s;

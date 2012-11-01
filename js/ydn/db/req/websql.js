@@ -53,7 +53,8 @@ ydn.db.req.WebSql.DEBUG = false;
  * Maximum number of readonly requests created per transaction.
  * Common implementation in WebSQL library is sending massive requests
  * to the transaction and use setTimeout to prevent breaking the system.
- * To get optimal performance, we send limited number of request per transaction.
+ * To get optimal performance, we send limited number of request per
+ * transaction.
  * Sending more request will not help much because JS is just parsing and
  * pushing to result array data which is faster than SQL processing.
  * Smaller number also help SQLite engine to give
@@ -79,7 +80,8 @@ ydn.db.req.WebSql.RW_REQ_PER_TX = 2;
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.req.WebSql.prototype.logger = goog.debug.Logger.getLogger('ydn.db.req.WebSql');
+ydn.db.req.WebSql.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.req.WebSql');
 
 
 /**
@@ -110,7 +112,8 @@ ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 * @param {!Object} obj object to put.
 * @param {(!Array|string|number)=} opt_key
 */
-ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) {
+ydn.db.req.WebSql.prototype.putObject = function(df, store_name, obj, opt_key)
+{
 
   var table = this.schema.getStore(store_name);
   if (!table) {
@@ -130,7 +133,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) 
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
-  var success_callback = function (transaction, results) {
+  var success_callback = function(transaction, results) {
     if (ydn.db.req.WebSql.DEBUG) {
       window.console.log(['success', sql, out, transaction, results]);
     }
@@ -145,7 +148,7 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) 
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
    */
-  var error_callback = function (tr, error) {
+  var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
       window.console.log([sql, out, tr, error]);
     }
@@ -166,7 +169,8 @@ ydn.db.req.WebSql.prototype.putObject = function (df, store_name, obj, opt_key) 
 * @param {!Array.<!Object>} objects object to put.
  * @param {!Array.<(!Array|string|number)>=} opt_keys
 */
-ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_keys) {
+ydn.db.req.WebSql.prototype.putObjects = function(
+  df, store_name, objects, opt_keys) {
 
   var table = this.schema.getStore(store_name);
   if (!table) {
@@ -178,12 +182,13 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_
   var result_count = 0;
 
   /**
-   * Put and item at i. This ydn.db.con.Storage will invoke callback to df if all objects
+   * Put and item at i. This ydn.db.con.Storage will invoke callback to df if
+   * all objects
    * have been put, otherwise recursive call to itself at next i+1 item.
    * @param {number} i
    * @param {SQLTransaction} tx
    */
-  var put = function (i, tx) {
+  var put = function(i, tx) {
 
     // todo: handle undefined or null object
 
@@ -203,7 +208,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_
      * @param {SQLTransaction} transaction transaction.
      * @param {SQLResultSet} results results.
      */
-    var success_callback = function (transaction, results) {
+    var success_callback = function(transaction, results) {
       result_count++;
       result_keys[i] = goog.isDef(out.key) ? out.key : results.insertId;
       if (result_count == objects.length) {
@@ -220,7 +225,7 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
      */
-    var error_callback = function (tr, error) {
+    var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
         window.console.log([sql, out, tr, error]);
       }
@@ -234,7 +239,8 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_
 
   if (objects.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.req.WebSql.RW_REQ_PER_TX && i < objects.length; i++) {
+    for (var i = 0; i < ydn.db.req.WebSql.RW_REQ_PER_TX && i < objects.length;
+         i++) {
       put(i, this.getTx());
     }
   } else {
@@ -252,7 +258,8 @@ ydn.db.req.WebSql.prototype.putObjects = function (df, store_name, objects, opt_
 ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
   var table = this.schema.getStore(table_name);
-  goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name + ' not found.');
+  goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
+    ' not found.');
 
   var me = this;
 
@@ -268,7 +275,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
       if (goog.isDefAndNotNull(row)) {
@@ -285,7 +292,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
    */
-  var error_callback = function (tr, error) {
+  var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
@@ -305,29 +312,30 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
  * @param {string} table_name
  * @param {!Array.<(!Array|number|string)>} ids
  */
-ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
+ydn.db.req.WebSql.prototype.getByIds = function(df, table_name, ids) {
 
   var me = this;
   var objects = [];
   var result_count = 0;
 
   var table = this.schema.getStore(table_name);
-  goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name + ' not found.');
+  goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
+    ' not found.');
 
   /**
    * Get fetch the given id of i position and put to results array in
    * i position. If req_done are all true, df will be invoked, if not
    * it recursively call itself to next sequence.
-   * @param {number} i the index of ids
+   * @param {number} i the index of ids.
    * @param {SQLTransaction} tx
    */
-  var get = function (i, tx) {
+  var get = function(i, tx) {
 
     /**
      * @param {SQLTransaction} transaction transaction.
      * @param {SQLResultSet} results results.
      */
-    var callback = function (transaction, results) {
+    var callback = function(transaction, results) {
       result_count++;
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
@@ -353,7 +361,7 @@ ydn.db.req.WebSql.prototype.getByIds = function (df, table_name, ids) {
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
      */
-    var error_callback = function (tr, error) {
+    var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
@@ -401,13 +409,14 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
   var n_todo = table_names.length;
 
   /**
-   * @param {number} idx the index of table_names
+   * @param {number} idx the index of table_names.
    * @param {SQLTransaction} tx
    */
-  var getAll = function (idx, tx) {
+  var getAll = function(idx, tx) {
     var table_name = table_names[idx];
     var table = me.schema.getStore(table_name);
-    goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name + ' not found.');
+    goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
+      ' not found.');
 
     var sql = 'SELECT * FROM ' + table.getQuotedName();
 
@@ -415,12 +424,12 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
      * @param {SQLTransaction} transaction transaction.
      * @param {SQLResultSet} results results.
      */
-    var callback = function (transaction, results) {
+    var callback = function(transaction, results) {
       for (var i = 0; i < results.rows.length; i++) {
         var row = results.rows.item(i);
         if (goog.isDefAndNotNull(row)) {
           arr.push(ydn.db.Cursor.parseRow(row, table));
-        } 
+        }
       }
       if (idx == n_todo - 1) {
         df.callback(arr);
@@ -433,7 +442,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
      */
-    var error_callback = function (tr, error) {
+    var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
@@ -459,23 +468,24 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
 * @param {goog.async.Deferred} df
 * @param {!Array.<!ydn.db.Key>} keys
 */
-ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
+ydn.db.req.WebSql.prototype.getByKeys = function(df, keys) {
 
   var me = this;
   var objects = [];
   var result_count = 0;
 
-  var get = function (i, tx) {
+  var get = function(i, tx) {
     var key = keys[i];
     var table_name = key.getStoreName();
     var table = me.schema.getStore(table_name);
-    goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name + ' not found.');
+    goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
+      ' not found.');
 
     /**
      * @param {SQLTransaction} transaction transaction.
      * @param {SQLResultSet} results results.
      */
-    var callback = function (transaction, results) {
+    var callback = function(transaction, results) {
       result_count++;
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
@@ -502,7 +512,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function (df, keys) {
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
      */
-    var error_callback = function (tr, error) {
+    var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
@@ -567,7 +577,8 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
       if (goog.isDefAndNotNull(row)) {
         value = cursor.parseRow(row, store);
       }
-      var to_continue = !goog.isFunction(cursor.continued) || cursor.continued(value);
+      var to_continue = !goog.isFunction(cursor.continued) ||
+        cursor.continued(value);
       if (!goog.isFunction(cursor.filter) || cursor.filter(value)) {
         idx++;
 
@@ -631,7 +642,7 @@ ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
 * @param {goog.async.Deferred} d
 * @param {(string|!Array.<string>)=} table_name table name.
 */
-ydn.db.req.WebSql.prototype.clearByStore = function (d, table_name) {
+ydn.db.req.WebSql.prototype.clearByStore = function(d, table_name) {
 
   var me = this;
   var store_names = goog.isArray(table_name) && table_name.length > 0 ?
@@ -639,7 +650,7 @@ ydn.db.req.WebSql.prototype.clearByStore = function (d, table_name) {
       [table_name] : this.schema.getStoreNames();
 
 
-  var deleteStore = function (i, tx) {
+  var deleteStore = function(i, tx) {
 
     var store = me.schema.getStore(store_names[i]);
     if (!store) {
@@ -652,7 +663,7 @@ ydn.db.req.WebSql.prototype.clearByStore = function (d, table_name) {
      * @param {SQLTransaction} transaction transaction.
      * @param {SQLResultSet} results results.
      */
-    var callback = function (transaction, results) {
+    var callback = function(transaction, results) {
       if (i == store_names.length - 1) {
         d.callback(true);
       } else {
@@ -664,7 +675,7 @@ ydn.db.req.WebSql.prototype.clearByStore = function (d, table_name) {
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
      */
-    var error_callback = function (tr, error) {
+    var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
@@ -692,7 +703,7 @@ ydn.db.req.WebSql.prototype.clearByStore = function (d, table_name) {
 * @param {string} table_name table name.
 * @param {(string|number)} key table name.
 */
-ydn.db.req.WebSql.prototype.removeById = function (d, table_name, key) {
+ydn.db.req.WebSql.prototype.removeById = function(d, table_name, key) {
 
   var me = this;
   var store = this.schema.getStore(table_name);
@@ -705,7 +716,7 @@ ydn.db.req.WebSql.prototype.removeById = function (d, table_name, key) {
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     d.callback(true);
   };
 
@@ -713,7 +724,7 @@ ydn.db.req.WebSql.prototype.removeById = function (d, table_name, key) {
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
    */
-  var error_callback = function (tr, error) {
+  var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
@@ -733,7 +744,7 @@ ydn.db.req.WebSql.prototype.removeById = function (d, table_name, key) {
  * @param {string} table table name.
  * @param {(!Array|string|number)} id row name.
  */
-ydn.db.req.WebSql.prototype.clearById = function (d, table, id) {
+ydn.db.req.WebSql.prototype.clearById = function(d, table, id) {
 
 
   var store = this.schema.getStore(table);
@@ -747,7 +758,7 @@ ydn.db.req.WebSql.prototype.clearById = function (d, table, id) {
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
-  var success_callback = function (transaction, results) {
+  var success_callback = function(transaction, results) {
     if (ydn.db.req.WebSql.DEBUG) {
       window.console.log(results);
     }
@@ -758,7 +769,7 @@ ydn.db.req.WebSql.prototype.clearById = function (d, table, id) {
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
    */
-  var error_callback = function (tr, error) {
+  var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }

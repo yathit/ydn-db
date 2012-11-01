@@ -11,9 +11,9 @@ goog.provide('ydn.db.req.RequestExecutor');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db.Cursor');
-goog.require('ydn.db.Query');
-goog.require('ydn.db.Key');
 goog.require('ydn.db.InternalError');
+goog.require('ydn.db.Key');
+goog.require('ydn.db.Query');
 
 
 
@@ -78,7 +78,8 @@ ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {
  * Return object
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store table name.
- * @param {(string|number|Date|!Array)} id object key to be retrieved, if not provided,
+ * @param {(string|number|Date|!Array)} id object key to be retrieved, if not
+ * provided,
  * all entries in the store will return.
  */
 ydn.db.req.RequestExecutor.prototype.getById = goog.abstractMethod;
@@ -139,7 +140,8 @@ ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
  * Delete given key in the object store.
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store table name.
- * @param {(!Array|string|number)} id object key to be retrieved, if not provided,
+ * @param {(!Array|string|number)} id object key to be retrieved, if not
+ * provided,
  * all entries in the store will return.
  */
 ydn.db.req.RequestExecutor.prototype.clearById = goog.abstractMethod;

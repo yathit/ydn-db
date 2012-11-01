@@ -10,7 +10,8 @@ goog.require('ydn.db.schema.Database');
 
 /**
  *
- * @param {DatabaseSchema|number|string=} version version, if string, it must be parse to int.
+ * @param {DatabaseSchema|number|string=} version version, if string, it must
+ * be parse to int.
  * @param {!Array.<!ydn.db.schema.Store>=} opt_stores store schemas.
  * @constructor
  * @extends {ydn.db.schema.Database}

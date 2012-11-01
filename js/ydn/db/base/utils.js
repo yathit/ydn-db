@@ -51,13 +51,15 @@ ydn.db.utils.MAX_TYPE_BYTE_SIZE = 12; // NOTE: Cannot be greater than 255
 
 /**
  *
- * @param {*} key
- * @return {string}
+ * @param {*} key key to encode.
+ * @return {string} encoded key as string.
  */
-ydn.db.utils.encodeKey = function (key) {
-  var stack = [key], writer = new ydn.db.utils.HexStringWriter(), type = 0, dataType, obj;
+ydn.db.utils.encodeKey = function(key) {
+  var stack = [key], writer = new ydn.db.utils.HexStringWriter(), type = 0,
+    dataType, obj;
   while ((obj = stack.pop()) !== undefined) {
-    if (type % 4 === 0 && type + ydn.db.utils.TYPE_ARRAY > ydn.db.utils.MAX_TYPE_BYTE_SIZE) {
+    if (type % 4 === 0 && type + ydn.db.utils.TYPE_ARRAY >
+      ydn.db.utils.MAX_TYPE_BYTE_SIZE) {
       writer.write(type);
       type = 0;
     }
@@ -74,7 +76,7 @@ ydn.db.utils.encodeKey = function (key) {
         writer.write(type);
       }
     }
-    else if (dataType === "number") {
+    else if (dataType === 'number') {
       type += ydn.db.utils.TYPE_NUMBER;
       writer.write(type);
       ydn.db.utils.encodeNumber(writer, obj);
@@ -84,7 +86,7 @@ ydn.db.utils.encodeKey = function (key) {
       writer.write(type);
       ydn.db.utils.encodeNumber(writer, obj.valueOf());
     }
-    else if (dataType === "string") {
+    else if (dataType === 'string') {
       type += ydn.db.utils.TYPE_STRING;
       writer.write(type);
       ydn.db.utils.encodeString(writer, obj);
@@ -101,10 +103,10 @@ ydn.db.utils.encodeKey = function (key) {
 
 /**
  *
- * @param {string} encodedKey
- * @return {*}
+ * @param {string} encodedKey key to decoded.
+ * @return {*} decoded key.
  */
-ydn.db.utils.decodeKey = function (encodedKey) {
+ydn.db.utils.decodeKey = function(encodedKey) {
   var rootArray = []; // one-element root array that contains the result
   var parentArray = rootArray;
   var type, arrayStack = [], depth, tmp;
@@ -128,7 +130,8 @@ ydn.db.utils.decodeKey = function (encodedKey) {
         arrayStack.push(parentArray);
         parentArray = tmp;
       }
-      if (type === 0 && reader.current + ydn.db.utils.TYPE_ARRAY > ydn.db.utils.MAX_TYPE_BYTE_SIZE) {
+      if (type === 0 && reader.current + ydn.db.utils.TYPE_ARRAY >
+        ydn.db.utils.MAX_TYPE_BYTE_SIZE) {
         reader.read();
       }
       else break;
@@ -183,7 +186,12 @@ ydn.db.utils.pNeg1074 = 5e-324;                      // 2^-1074);
  */
 ydn.db.utils.pNeg1022 = 2.2250738585072014e-308;     // 2^-1022
 
-ydn.db.utils.ieee754 = function (number) {
+/**
+ *
+ * @param {number} number
+ * @return {Object} IEEE754 number.
+ */
+ydn.db.utils.ieee754 = function(number) {
   var s = 0, e = 0, m = 0;
   if (number !== 0) {
     if (isFinite(number)) {
@@ -204,7 +212,8 @@ ydn.db.utils.ieee754 = function (number) {
         }
         e = p + 1023;
       }
-      m = e ? Math.floor((number / Math.pow(2, p) - 1) * ydn.db.utils.p52) : Math.floor(number / ydn.db.utils.pNeg1074);
+      m = e ? Math.floor((number / Math.pow(2, p) - 1) * ydn.db.utils.p52) :
+        Math.floor(number / ydn.db.utils.pNeg1074);
     }
     else {
       e = 0x7FF;
@@ -216,7 +225,7 @@ ydn.db.utils.ieee754 = function (number) {
       }
     }
   }
-  return { sign : s, exponent : e, mantissa : m };
+  return { sign: s, exponent: e, mantissa: m };
 };
 
 
@@ -225,7 +234,7 @@ ydn.db.utils.ieee754 = function (number) {
  * @param writer
  * @param number
  */
-ydn.db.utils.encodeNumber = function (writer, number) {
+ydn.db.utils.encodeNumber = function(writer, number) {
   var iee_number = ydn.db.utils.ieee754(number);
   if (iee_number.sign) {
     iee_number.mantissa = ydn.db.utils.p52 - 1 - iee_number.mantissa;
@@ -254,7 +263,7 @@ ydn.db.utils.encodeNumber = function (writer, number) {
  * @param reader
  * @return {*}
  */
-ydn.db.utils.decodeNumber = function (reader) {
+ydn.db.utils.decodeNumber = function(reader) {
   var b = reader.read() | 0;
   var sign = b >> 7 ? false : true;
 
@@ -289,10 +298,11 @@ ydn.db.utils.secondLayer = 0x3FFF + 0x7F;
  * @param writer
  * @param string
  */
-ydn.db.utils.encodeString = function (writer, string) {
+ydn.db.utils.encodeString = function(writer, string) {
   /* 3 layers:
    Chars 0         - 7E            are encoded as 0xxxxxxx with 1 added
-   Chars 7F        - (3FFF+7F)     are encoded as 10xxxxxx xxxxxxxx with 7F subtracted
+   Chars 7F        - (3FFF+7F)     are encoded as 10xxxxxx xxxxxxxx with 7F
+   subtracted
    Chars (3FFF+80) - FFFF          are encoded as 11xxxxxx xxxxxxxx xx000000
    */
   for (var i = 0; i < string.length; i++) {
@@ -316,7 +326,7 @@ ydn.db.utils.encodeString = function (writer, string) {
  * @param reader
  * @return {string}
  */
-ydn.db.utils.decodeString = function (reader) {
+ydn.db.utils.decodeString = function(reader) {
   var buffer = [], layer = 0, unicode = 0, count = 0, $byte, tmp;
   while (true) {
     $byte = reader.read();
@@ -351,7 +361,7 @@ ydn.db.utils.decodeString = function (reader) {
       }
     }
   }
-  return buffer.join("");
+  return buffer.join('');
 };
 
 /**
@@ -359,37 +369,38 @@ ydn.db.utils.decodeString = function (reader) {
  * @param string
  * @constructor
  */
-ydn.db.utils.HexStringReader = function (string) {
+ydn.db.utils.HexStringReader = function(string) {
   this.current = null;
 
   //var string = string;
   var lastIndex = string.length - 1;
   var index = -1;
 
-  this.read = function () {
-    return this.current = index < lastIndex ? parseInt(string[++index] + string[++index], 16) : null;
-  }
+  this.read = function() {
+    return this.current = index < lastIndex ? parseInt(string[++index] +
+      string[++index], 16) : null;
+  };
 };
 
 /**
  * @private
  * @constructor
  */
-ydn.db.utils.HexStringWriter = function () {
+ydn.db.utils.HexStringWriter = function() {
   var buffer = [], c;
-  this.write = function ($byte) {
+  this.write = function($byte) {
     for (var i = 0; i < arguments.length; i++) {
       c = arguments[i].toString(16);
-      buffer.push(c.length === 2 ? c : c = "0" + c);
+      buffer.push(c.length === 2 ? c : c = '0' + c);
     }
   };
-  this.toString = function () {
-    return buffer.length ? buffer.join("") : null;
+  this.toString = function() {
+    return buffer.length ? buffer.join('') : null;
   };
-  this.trim = function () {
+  this.trim = function() {
     var length = buffer.length;
-    while (buffer[--length] === "00") {}
+    while (buffer[--length] === '00') {}
     buffer.length = ++length;
     return this;
-  }
+  };
 };

@@ -6,11 +6,11 @@
 
 
 goog.provide('ydn.db.core.TxStorage');
-goog.require('ydn.error.NotSupportedException');
-goog.require('ydn.db.tr.TxStorage');
 goog.require('ydn.db.req.IndexedDb');
 goog.require('ydn.db.req.SimpleStore');
 goog.require('ydn.db.req.WebSql');
+goog.require('ydn.db.tr.TxStorage');
+goog.require('ydn.error.NotSupportedException');
 
 
 
@@ -23,10 +23,10 @@ goog.require('ydn.db.req.WebSql');
  * is not active or locked. Active transaction can be locked by using
  * mutex.
  *
- * @param {!ydn.db.core.Storage} storage
- * @param {number} ptx_no
- * @param {string} scope_name
- * @param {!ydn.db.schema.Database} schema
+ * @param {!ydn.db.core.Storage} storage base storage object.
+ * @param {number} ptx_no transaction queue number.
+ * @param {string} scope_name scope name.
+ * @param {!ydn.db.schema.Database} schema schema.
  * @implements {ydn.db.core.IStorage}
  * @constructor
  * @extends {ydn.db.tr.TxStorage}
@@ -46,7 +46,7 @@ goog.inherits(ydn.db.core.TxStorage, ydn.db.tr.TxStorage);
 
 /**
  * @final
- * @return {!ydn.db.core.Storage}
+ * @return {!ydn.db.core.Storage} storage.
  */
 ydn.db.core.TxStorage.prototype.getStorage = function() {
   return /** @type {!ydn.db.core.Storage} */ (goog.base(this, 'getStorage'));
@@ -55,7 +55,7 @@ ydn.db.core.TxStorage.prototype.getStorage = function() {
 
 /**
  * @final
- * @return {string}
+ * @return {string} database name.
  */
 ydn.db.core.TxStorage.prototype.getName = function() {
   // db name can be undefined during instantiation.
@@ -66,7 +66,7 @@ ydn.db.core.TxStorage.prototype.getName = function() {
 
 /**
  * @protected
- * @type {ydn.db.req.RequestExecutor}
+ * @type {ydn.db.req.RequestExecutor} request executor.
  */
 ydn.db.core.TxStorage.prototype.executor = null;
 
@@ -76,7 +76,7 @@ ydn.db.core.TxStorage.prototype.executor = null;
  * Lazily because, we can initialize it only when transaction object is active.
  * @final
  * @protected
- * @return {ydn.db.req.RequestExecutor}
+ * @return {ydn.db.req.RequestExecutor} get executor.
  */
 ydn.db.core.TxStorage.prototype.getExecutor = function() {
   if (this.executor) {
@@ -105,7 +105,8 @@ ydn.db.core.TxStorage.prototype.getExecutor = function() {
  * @final
  * @throws {ydn.db.ScopeError}
  * @protected
- * @param {function(ydn.db.req.RequestExecutor)} callback
+ * @param {function(ydn.db.req.RequestExecutor)} callback callback when executor
+ * is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  */
@@ -130,7 +131,8 @@ ydn.db.core.TxStorage.prototype.exec = function(callback, store_names, mode)
         throw new ydn.db.InternalError('Tx not active for scope: ' + me.scope);
       }
       if (!mu_tx.isAvailable()) {
-        throw new ydn.db.InternalError('Tx not available for scope: ' + me.scope);
+        throw new ydn.db.InternalError('Tx not available for scope: ' +
+          me.scope);
       }
       me.getExecutor().setTx(mu_tx.getTx(), me.scope);
       callback(me.getExecutor());
@@ -138,7 +140,8 @@ ydn.db.core.TxStorage.prototype.exec = function(callback, store_names, mode)
     };
     //var cbFn = goog.partial(tx_callback, callback);
     tx_callback.name = this.scope; // scope name
-    //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + ' locked: ' + mu_tx.isSetDone());
+    //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
+    // locked: ' + mu_tx.isSetDone());
     this.run(tx_callback, store_names, mode);
     // need to think about handling oncompleted and onerror callback of the
     // transaction. after executed all the requests, the transaction is not
@@ -159,9 +162,7 @@ ydn.db.core.TxStorage.prototype.exec = function(callback, store_names, mode)
 
 /**
  *
- * @param {!Array.<string>|string=} store_name
- * @param {ydn.db.KeyRange=} opt_key_range
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @inheritDoc
  */
 ydn.db.core.TxStorage.prototype.count = function(store_name, opt_key_range) {
   var df = ydn.db.base.createDeferred();
@@ -191,14 +192,9 @@ ydn.db.core.TxStorage.prototype.count = function(store_name, opt_key_range) {
 
 
 /**
- * Return object or objects of given key or keys.
- * @param {(string|!ydn.db.Key)=} arg1 table name.
- * @param {(string|number|Date|!Array)=} arg2
- * object key to be retrieved, if not provided,
- * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
+ydn.db.core.TxStorage.prototype.get = function(arg1, arg2) {
 
   var df = ydn.db.base.createDeferred();
 
@@ -218,7 +214,7 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
     }
 
     var kid = k.getId();
-    this.exec(function (executor) {
+    this.exec(function(executor) {
       executor.getById(df, k_store_name, kid);
     }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY);
   } else if (goog.isString(arg1) && goog.isDef(arg2)) {
@@ -228,11 +224,12 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
       if (this.schema.isAutoSchema()) {
         return goog.async.Deferred.succeed(undefined);
       } else {
-        throw new ydn.error.ArgumentException('Store: ' + store_name + ' not found.');
+        throw new ydn.error.ArgumentException('Store: ' + store_name +
+          ' not found.');
       }
     }
     var id = arg2;
-    this.exec(function (executor) {
+    this.exec(function(executor) {
       executor.getById(df, store_name, id);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
@@ -252,7 +249,7 @@ ydn.db.core.TxStorage.prototype.get = function (arg1, arg2) {
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.TxStorage.prototype.list = function (arg1, arg2) {
+ydn.db.core.TxStorage.prototype.list = function(arg1, arg2) {
 
   var df = ydn.db.base.createDeferred();
 
@@ -264,17 +261,18 @@ ydn.db.core.TxStorage.prototype.list = function (arg1, arg2) {
       if (this.schema.isAutoSchema()) {
         return goog.async.Deferred.succeed(undefined);
       } else {
-        throw new ydn.error.ArgumentException('Store: ' + store_name + ' not found.');
+        throw new ydn.error.ArgumentException('Store: ' + store_name +
+          ' not found.');
       }
     }
 
     if (goog.isArray(arg2)) {
       var ids = arg2;
-      this.exec(function (executor) {
+      this.exec(function(executor) {
         executor.getByIds(df, store_name, ids);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else if (!goog.isDef(arg2)) {
-      this.exec(function (executor) {
+      this.exec(function(executor) {
         executor.getByStore(df, store_name);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else {
@@ -298,21 +296,22 @@ ydn.db.core.TxStorage.prototype.list = function (arg1, arg2) {
             fail_array[keys.length - 1] = undefined;
             return goog.async.Deferred.succeed(fail_array);
           } else {
-            throw new ydn.error.ArgumentException('Store: ' + i_store_name + ' not found.');
+            throw new ydn.error.ArgumentException('Store: ' + i_store_name +
+              ' not found.');
           }
         }
         if (!goog.array.contains(store_names, i_store_name)) {
           store_names.push(i_store_name);
         }
       }
-      this.exec(function (executor) {
+      this.exec(function(executor) {
         executor.getByKeys(df, keys);
       }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
     } else {
       throw new ydn.error.ArgumentException();
     }
   } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-    this.exec(function (executor) {
+    this.exec(function(executor) {
       executor.getByStore(df);
     }, this.schema.getStoreNames(), ydn.db.base.TransactionMode.READ_ONLY);
   } else {
@@ -324,21 +323,17 @@ ydn.db.core.TxStorage.prototype.list = function (arg1, arg2) {
 
 
 /**
- * Execute PUT request either storing result to tx or callback to df.
- * @param {string|StoreSchema} store_name_or_schema store name or
- * schema.
- * @param {!Object|!Array.<!Object>} value object to put.
- * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys
- * @return {!goog.async.Deferred}
+ * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.put = function (store_name_or_schema, value, opt_keys) {
+ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
+                                                opt_keys) {
 
 
 
   var store_name = goog.isString(store_name_or_schema) ?
     store_name_or_schema : goog.isObject(store_name_or_schema) ?
     store_name_or_schema['name'] : undefined;
-  if (!goog.isString(store_name))  {
+  if (!goog.isString(store_name)) {
     throw new ydn.error.ArgumentException('store name');
   }
 
@@ -355,7 +350,8 @@ ydn.db.core.TxStorage.prototype.put = function (store_name_or_schema, value, opt
     } else {
       throw new ydn.error.ArgumentException('store schema required.');
     }
-  } else if (this.schema.isAutoSchema() && goog.isObject(store_name_or_schema)) {
+  } else if (this.schema.isAutoSchema() && goog.isObject(store_name_or_schema))
+  {
     // if there is changes in schema, change accordingly.
     var new_schema = ydn.db.schema.Store.fromJSON(store_name_or_schema);
     var diff = store.difference(new_schema);
@@ -369,30 +365,37 @@ ydn.db.core.TxStorage.prototype.put = function (store_name_or_schema, value, opt
   var me = this;
 
   if (!store) {
-    throw new ydn.error.ArgumentException('Store: ' + store_name + ' not exists.');
+    throw new ydn.error.ArgumentException('Store: ' + store_name +
+      ' not exists.');
   }
   // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
   if ((goog.isString(store.keyPath)) && goog.isDef(opt_keys)) {
-    // The object store uses in-line keys or has a key generator, and a key parameter was provided.
-    throw new ydn.error.ArgumentException('key cannot provide while in-line key is in used.');
+    // The object store uses in-line keys or has a key generator, and a key
+    // parameter was provided.
+    throw new ydn.error.ArgumentException(
+      'key cannot provide while in-line key ' + 'is in used.');
   } else if (store.autoIncrement && goog.isDef(opt_keys)) {
-    // The object store uses in-line keys or has a key generator, and a key parameter was provided.
-    throw new ydn.error.ArgumentException('key cannot provide while autoIncrement is true.');
-  } else if (!goog.isString(store.keyPath) && !store.autoIncrement && !goog.isDef(opt_keys)) {
-    // The object store uses out-of-line keys and has no key generator, and no key parameter was provided.
+    // The object store uses in-line keys or has a key generator, and a key
+    // parameter was provided.
+    throw new ydn.error.ArgumentException('key cannot provide while ' +
+      'autoIncrement is true.');
+  } else if (!goog.isString(store.keyPath) && !store.autoIncrement &&
+    !goog.isDef(opt_keys)) {
+    // The object store uses out-of-line keys and has no key generator, and no
+    // key parameter was provided.
     throw new ydn.error.ArgumentException('out-of-line key must be provided.');
   }
 
   if (goog.isArray(value)) {
     var objs = value;
     var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
-    this.exec(function (executor) {
+    this.exec(function(executor) {
       executor.putObjects(df, store_name, objs, keys);
     }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
   } else if (goog.isObject(value)) {
     var obj = value;
-    var key = /** @type {number|string|undefined} */  (opt_keys);
-    this.exec(function (executor) {
+    var key = /** @type {number|string|undefined} */ (opt_keys);
+    this.exec(function(executor) {
       executor.putObject(df, store_name, obj, key);
     }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
   } else {
@@ -407,7 +410,8 @@ ydn.db.core.TxStorage.prototype.put = function (store_name_or_schema, value, opt
 
 /**
  * Remove a specific entry from a store or all.
- * @param {(!Array.<string>|string)=} arg1 delete the table as provided otherwise
+ * @param {(!Array.<string>|string)=} arg1 delete the table as provided
+ * otherwise
  * delete all stores.
  * @param {(string|number)=} arg2 delete a specific row.
  * @see {@link #remove}

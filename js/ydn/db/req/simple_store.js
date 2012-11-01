@@ -17,9 +17,9 @@
  */
 
 goog.provide('ydn.db.req.SimpleStore');
+goog.require('goog.Timer');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
-goog.require('goog.Timer');
 goog.require('ydn.db.req.RequestExecutor');
 
 
@@ -45,7 +45,7 @@ goog.inherits(ydn.db.req.SimpleStore, ydn.db.req.RequestExecutor);
  * @param {!Object} value object having key in keyPath field.
  * @return {string|number} canonical key name.
  */
-ydn.db.req.SimpleStore.prototype.extractKey = function (store_name, value) {
+ydn.db.req.SimpleStore.prototype.extractKey = function(store_name, value) {
   var store = this.schema.getStore(store_name);
   goog.asserts.assertObject(store, 'store: ' + store_name + ' not found.');
   var key;
@@ -80,7 +80,7 @@ ydn.db.req.SimpleStore.prototype.makeKey = function(store, id) {
 
 /**
  *
- * @param {!ydn.db.schema.Store|string} store_name or key
+ * @param {!ydn.db.schema.Store|string} store_name or key.
  * @param {(string|number|Date|!Array)} id
  * @return {*}
  * @protected
@@ -108,7 +108,8 @@ ydn.db.req.SimpleStore.prototype.getItemInternal = function(store_name, id) {
  * @protected
  * @final
  */
-ydn.db.req.SimpleStore.prototype.setItemInternal = function(value, store_name_or_key, id) {
+ydn.db.req.SimpleStore.prototype.setItemInternal = function(value,
+                                                            store_name_or_key, id) {
   var key;
   if (goog.isDef(id)) {
     var store = this.schema.getStore(store_name_or_key);
@@ -128,7 +129,8 @@ ydn.db.req.SimpleStore.prototype.setItemInternal = function(value, store_name_or
  * @protected
  * @final
  */
-ydn.db.req.SimpleStore.prototype.removeItemInternal = function(store_name_or_key, id) {
+ydn.db.req.SimpleStore.prototype.removeItemInternal = function(
+  store_name_or_key, id) {
   var key;
   if (goog.isDef(id)) {
     var store = this.schema.getStore(store_name_or_key);
@@ -187,7 +189,7 @@ ydn.db.req.SimpleStore.succeed = function(value) {
  * @param {string} table table name.
 * @param {!Object} value object to put.
 */
-ydn.db.req.SimpleStore.prototype.putObject = function (df, table, value) {
+ydn.db.req.SimpleStore.prototype.putObject = function(df, table, value) {
   var key = this.extractKey(table, value);
   var value_str = ydn.json.stringify(value);
   this.setItemInternal(value_str, table, key);
@@ -200,7 +202,7 @@ ydn.db.req.SimpleStore.prototype.putObject = function (df, table, value) {
  * @param {string} table table name.
  * @param {Array.<!Object>} value object to put.
  */
-ydn.db.req.SimpleStore.prototype.putObjects = function (df, table, value) {
+ydn.db.req.SimpleStore.prototype.putObjects = function(df, table, value) {
 
   var result = [];
   for (var i = 0; i < value.length; i++) {
@@ -229,9 +231,9 @@ ydn.db.req.SimpleStore.prototype.getById = function(df, store_name, id) {
 /**
 * @inheritDoc
 */
-ydn.db.req.SimpleStore.prototype.getByStore = function (df, opt_store_name) {
+ydn.db.req.SimpleStore.prototype.getByStore = function(df, opt_store_name) {
   var arr = [];
-  var collect = function (store_name) {
+  var collect = function(store_name) {
     for (var item in this.tx) {
       if (this.tx.hasOwnProperty(item)) {
         if (goog.string.startsWith(item, '_database_' + this.dbname + '-' +
@@ -262,7 +264,7 @@ ydn.db.req.SimpleStore.prototype.getByStore = function (df, opt_store_name) {
  * @param {string} store_name
  * @param {!Array.<string|number>} ids
  */
-ydn.db.req.SimpleStore.prototype.getByIds = function (df, store_name, ids) {
+ydn.db.req.SimpleStore.prototype.getByIds = function(df, store_name, ids) {
   var arr = [];
   for (var i = 0; i < ids.length; i++) {
     var value = this.getItemInternal(store_name, ids[i]);
@@ -290,7 +292,7 @@ ydn.db.req.SimpleStore.prototype.getByKeys = function(df, keys) {
  * @param {string} table delete a specific table or all tables.
  * @param {(!Array|string|number)} id delete a specific row.
  */
-ydn.db.req.SimpleStore.prototype.clearById = function (df, table, id) {
+ydn.db.req.SimpleStore.prototype.clearById = function(df, table, id) {
 
   this.removeItemInternal(table, id);
 
@@ -300,14 +302,15 @@ ydn.db.req.SimpleStore.prototype.clearById = function (df, table, id) {
 /**
  * @inheritDoc
 */
-ydn.db.req.SimpleStore.prototype.clearByStore = function (df, opt_table) {
+ydn.db.req.SimpleStore.prototype.clearByStore = function(df, opt_table) {
 
   var tables_to_clear = goog.isDef(opt_table) ?
     [opt_table] : this.schema.listStores();
   for (var key in this.tx) {
     if (this.tx.hasOwnProperty(key)) {
       for (var table, i = 0; table = tables_to_clear[i]; i++) {
-        if (goog.string.startsWith(key, '_database_' + this.dbname + '-' + table)) {
+        if (goog.string.startsWith(key, '_database_' + this.dbname + '-' +
+          table)) {
           delete this.tx[key];
         }
       }
@@ -337,7 +340,7 @@ ydn.db.req.SimpleStore.prototype.clearByStore = function (df, opt_table) {
 /**
 * Get number of items stored.
  * @param {!goog.async.Deferred} df return number of items in deferred function.
- * @param {!Array.<string>}  tables table name
+ * @param {!Array.<string>}  tables table name.
 */
 ydn.db.req.SimpleStore.prototype.countStores = function(df, tables) {
 
@@ -361,10 +364,11 @@ ydn.db.req.SimpleStore.prototype.countStores = function(df, tables) {
 /**
  * Get number of items stored.
  * @param {!goog.async.Deferred} df return number of items in deferred function.
- * @param {string} opt_table table name
+ * @param {string} opt_table table name.
  *  @param {ydn.db.KeyRange} keyRange
  */
-ydn.db.req.SimpleStore.prototype.countKeyRange = function(df, opt_table, keyRange) {
+ydn.db.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
+                                                          keyRange) {
 
   var pre_fix = '_database_' + this.dbname;
   if (goog.isDef(opt_table)) {

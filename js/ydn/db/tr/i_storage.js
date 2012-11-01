@@ -1,5 +1,5 @@
 /**
- * @fileoverview Interface for core database service during transaction.
+ * @fileoverview Interface for transactional database service.
  *
  */
 
@@ -14,43 +14,34 @@ goog.require('ydn.db.tr.Mutex');
 ydn.db.tr.IStorage = function() {};
 
 
-/**
- *
- * @return {string}
- */
-ydn.db.tr.IStorage.prototype.type = goog.abstractMethod;
-
 
 
 /**
  * Run a new transaction.
- * @param {function(!ydn.db.tr.IStorage)} trFn function that invoke in the transaction.
+ * @param {function(!ydn.db.tr.IStorage)} trFn function that invoke in the
+ * transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted
- * @param {...} opt_args
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted event
+ * handler on completed.
+ * @param {...} opt_args optional arguments to post-pend to callback function.
  */
 ydn.db.tr.IStorage.prototype.run = goog.abstractMethod;
 
 
 /**
- * @return {IDBTransaction|SQLTransaction|Object}
+ * @return {IDBTransaction|SQLTransaction|Object} get transaction object.
  */
-ydn.db.tr.IStorage.getTx = function() {};
+ydn.db.tr.IStorage.getTx = goog.abstractMethod;
 
 
 /**
  * Get transaction count.
- * @return {number}
+ * @return {number} transaction series number.
  */
-ydn.db.tr.IStorage.prototype.getTxNo = function() {};
+ydn.db.tr.IStorage.prototype.getTxNo = goog.abstractMethod;
 
 
-/**
- * Get transaction queue number.
- * @return {number}
- */
-ydn.db.tr.IStorage.prototype.getQueueNo = function() {};
 
 

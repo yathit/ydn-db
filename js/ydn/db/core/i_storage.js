@@ -20,8 +20,8 @@ ydn.db.core.IStorage = function() {};
 
 /**
  *
- * @param {!Array.<string>|string=} store_name
- * @param {ydn.db.KeyRange=} opt_key_range
+ * @param {!Array.<string>|string=} store_name store name or names.
+ * @param {ydn.db.KeyRange=} opt_key_range key range.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.core.IStorage.prototype.count = goog.abstractMethod;
@@ -52,15 +52,16 @@ ydn.db.core.IStorage.prototype.list = goog.abstractMethod;
  * @param {string|StoreSchema} store_name_or_schema store name or
  * schema.
  * @param {!Object|!Array.<!Object>} value object to put.
- * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys
- * @return {!goog.async.Deferred}
+ * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys.
+ * @return {!goog.async.Deferred} return newly created keys in promise.
  */
 ydn.db.core.IStorage.prototype.put = goog.abstractMethod;
 
 
 /**
  * Remove a specific entry from a store or all.
- * @param {(!Array.<string>|string)=} arg1 delete the table as provided otherwise
+ * @param {(!Array.<string>|string)=} arg1 delete the table as provided
+ * otherwise
  * delete all stores.
  * @param {(string|number)=} arg2 delete a specific row.
  * @see {@link #remove}

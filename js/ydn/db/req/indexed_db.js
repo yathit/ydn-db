@@ -21,8 +21,8 @@
 goog.provide('ydn.db.req.IndexedDb');
 goog.require('goog.async.DeferredList');
 goog.require('ydn.db.req.RequestExecutor');
-goog.require('ydn.json');
 goog.require('ydn.error');
+goog.require('ydn.json');
 
 
 /**
@@ -69,14 +69,14 @@ ydn.db.req.IndexedDb.prototype.logger =
  * @throws {ydn.db.InvalidKeyException}
  * @throws {ydn.error.InternalError}
  */
-ydn.db.req.IndexedDb.prototype.getByIds = function (df, store_name, ids) {
+ydn.db.req.IndexedDb.prototype.getByIds = function(df, store_name, ids) {
   var me = this;
 
   var results = [];
   var result_count = 0;
   var store = this.tx.objectStore(store_name);
 
-  var get = function (i) {
+  var get = function(i) {
 
     if (!goog.isDefAndNotNull(ids[i])) {
       // should we just throw error ?
@@ -100,13 +100,14 @@ ydn.db.req.IndexedDb.prototype.getByIds = function (df, store_name, ids) {
         if (ydn.db.req.IndexedDb.DEBUG) {
           window.console.log([store_name, i, ids[i], e]);
         }
-        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
+        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
+        // IDBRequest-any-key
         throw new ydn.db.InvalidKeyException(ids[i]);
       } else {
         throw e;
       }
     }
-    request.onsuccess = (function (event) {
+    request.onsuccess = (function(event) {
       result_count++;
       if (ydn.db.req.IndexedDb.DEBUG) {
         window.console.log([store_name, ids, i, event]);
@@ -122,7 +123,7 @@ ydn.db.req.IndexedDb.prototype.getByIds = function (df, store_name, ids) {
       }
     });
 
-    request.onerror = function (event) {
+    request.onerror = function(event) {
       result_count++;
       if (ydn.db.req.IndexedDb.DEBUG) {
         window.console.log([store_name, ids, i, event]);
@@ -134,7 +135,8 @@ ydn.db.req.IndexedDb.prototype.getByIds = function (df, store_name, ids) {
 
   if (ids.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < ids.length; i++) {
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < ids.length; i++)
+    {
       get(i);
     }
   } else {
@@ -149,7 +151,7 @@ ydn.db.req.IndexedDb.prototype.getByIds = function (df, store_name, ids) {
 * @param {!Array.<!ydn.db.Key>} keys id to get.
 * @private
 */
-ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
+ydn.db.req.IndexedDb.prototype.getByKeys = function(df, keys) {
   var me = this;
 
   var results = [];
@@ -176,7 +178,7 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
       }
     }
 
-    request.onsuccess = function (event) {
+    request.onsuccess = function(event) {
       result_count++;
       if (ydn.db.req.IndexedDb.DEBUG) {
         window.console.log(event);
@@ -192,7 +194,7 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
       }
     };
 
-    request.onerror = function (event) {
+    request.onerror = function(event) {
       result_count++;
       if (ydn.db.req.IndexedDb.DEBUG) {
         window.console.log([keys, event]);
@@ -205,7 +207,8 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
 
   if (keys.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < keys.length; i++) {
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
+    {
       get(i);
     }
   } else {
@@ -222,7 +225,8 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function (df, keys) {
 * @param {!Object} value object to put.
 * @param {(!Array|string|number)=} opt_key
 */
-ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value, opt_key) {
+ydn.db.req.IndexedDb.prototype.putObject = function(df, table, value, opt_key)
+{
   var store = this.tx.objectStore(table);
 
   var request;
@@ -241,13 +245,13 @@ ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value, opt_key) 
       throw e;
     }
   }
-  request.onsuccess = function (event) {
+  request.onsuccess = function(event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
     df.callback(event.target.result);
   };
-  request.onerror = function (event) {
+  request.onerror = function(event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
@@ -266,7 +270,8 @@ ydn.db.req.IndexedDb.prototype.putObject = function (df, table, value, opt_key) 
  * @param {!Array.<(!Array|string|number)>=} opt_keys
  * @private
  */
-ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_keys) {
+ydn.db.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
+                                                      opt_keys) {
 
   var results = [];
   var result_count = 0;
@@ -283,7 +288,8 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_
       }
     } catch (e) {
       if (e.name == 'DataError') {
-        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-IDBRequest-any-key
+        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
+        // IDBRequest-any-key
         throw new ydn.db.InvalidKeyException(i + ' of ' + objs.length);
       } if (e.name == 'DataCloneError') {
         throw new ydn.db.DataCloneError(i + ' of ' + objs.length);
@@ -292,7 +298,7 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_
       }
     }
 
-    request.onsuccess = function (event) {
+    request.onsuccess = function(event) {
       result_count++;
       //if (ydn.db.req.IndexedDb.DEBUG) {
       //  window.console.log([store_name, event]);
@@ -308,7 +314,7 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_
       }
     };
 
-    request.onerror = function (event) {
+    request.onerror = function(event) {
       result_count++;
       if (ydn.db.req.IndexedDb.DEBUG) {
         window.console.log([store_name, event]);
@@ -321,7 +327,8 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_
 
   if (objs.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < objs.length; i++) {
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX &&
+      i < objs.length; i++) {
       put(i);
     }
   } else {
@@ -339,17 +346,17 @@ ydn.db.req.IndexedDb.prototype.putObjects = function (df, store_name, objs, opt_
 * @param {(!Array|string|number)} key object key.
 * @private
 */
-ydn.db.req.IndexedDb.prototype.clearById = function (df, store_name, key) {
+ydn.db.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
 
   var store = this.tx.objectStore(store_name);
   var request = store['delete'](key);
-  request.onsuccess = function (event) {
+  request.onsuccess = function(event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log([store_name, key, event]);
     }
     df.callback(event.target.result);
   };
-  request.onerror = function (event) {
+  request.onerror = function(event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log([store_name, key, event]);
     }
@@ -368,9 +375,10 @@ ydn.db.req.IndexedDb.prototype.clearById = function (df, store_name, key) {
  *  @param {(string|!Array.<string>)=} opt_store_name
  * @private
  */
-ydn.db.req.IndexedDb.prototype.clearByStore = function (df, opt_store_name) {
+ydn.db.req.IndexedDb.prototype.clearByStore = function(df, opt_store_name) {
 
-  var store_names_to_clear = (goog.isArray(opt_store_name) && opt_store_name.length > 0) ?
+  var store_names_to_clear = (goog.isArray(opt_store_name) &&
+    opt_store_name.length > 0) ?
     opt_store_name : goog.isString(opt_store_name) ? [opt_store_name] :
       this.schema.getStoreNames();
   var n_todo = store_names_to_clear.length;
@@ -380,7 +388,7 @@ ydn.db.req.IndexedDb.prototype.clearByStore = function (df, opt_store_name) {
     var store_name = store_names_to_clear[i];
     var store = this.tx.objectStore(store_name);
     var request = store.clear();
-    request.onsuccess = function (event) {
+    request.onsuccess = function(event) {
       n_done++;
       if (ydn.db.req.IndexedDb.DEBUG) {
         window.console.log([n_done, event]);
@@ -389,7 +397,7 @@ ydn.db.req.IndexedDb.prototype.clearByStore = function (df, opt_store_name) {
         df.callback(true);
       }
     };
-    request.onerror = function (event) {
+    request.onerror = function(event) {
       n_done++;
       if (ydn.db.req.IndexedDb.DEBUG) {
         window.console.log([n_done, event]);
@@ -408,7 +416,8 @@ ydn.db.req.IndexedDb.prototype.clearByStore = function (df, opt_store_name) {
  * @param {boolean} not_key_only query only keys.
  * @param {string|!Array.<string>=} opt_store_name table name.
  */
-ydn.db.req.IndexedDb.prototype.getKeysByStore = function(df, not_key_only, opt_store_name) {
+ydn.db.req.IndexedDb.prototype.getKeysByStore = function(df, not_key_only,
+                                                         opt_store_name) {
   var self = this;
 
   var getAll = function(store_name) {
@@ -469,14 +478,14 @@ ydn.db.req.IndexedDb.prototype.getKeysByStore = function(df, not_key_only, opt_s
 ydn.db.req.IndexedDb.prototype.getByStore = function(df, opt_store_name) {
   var me = this;
 
-  var getAll = function (store_name) {
+  var getAll = function(store_name) {
     var results = [];
     var store = me.tx.objectStore(store_name);
 
     // Get everything in the store;
     var request = store.openCursor();
 
-    request.onsuccess = function (event) {
+    request.onsuccess = function(event) {
       var cursor = event.target.result;
       if (cursor) {
         results.push(cursor['value']);
@@ -526,7 +535,8 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
     store = this.tx.objectStore(store_name);
   } catch (e) {
     if (e.name == 'NotFoundError') {
-      throw new ydn.db.NotFoundError(store_name + ' not in Tx scope: ' + this.scope);
+      throw new ydn.db.NotFoundError(store_name + ' not in Tx scope: ' +
+        this.scope);
     } else {
       throw e;
     }
@@ -544,7 +554,8 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log([store_name, id, event]);
     }
-    //me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' + event.message);
+    //me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
+    // event.message);
     df.errback(event);
   };
 };
@@ -575,7 +586,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
   var obj_store;
   try {
     obj_store = this.tx.objectStore(store.name);
-  }  catch (e) {
+  } catch (e) {
     if (goog.DEBUG && e.name == 'NotFoundError') {
       var msg = this.tx.db.objectStoreNames.contains(store.name) ?
           'store: ' + store.name + ' not in transaction.' :
@@ -605,7 +616,8 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
           var msg = obj_store.indexNames.contains(cursor.index) ?
               'index: ' + cursor.index + ' of ' + obj_store.name +
                   ' not in transaction scope' :
-              'index: ' + cursor.index + ' not found in store: ' + obj_store.name;
+              'index: ' + cursor.index + ' not found in store: ' +
+                obj_store.name;
           throw new ydn.db.NotFoundError(msg);
         } else {
           throw e;
@@ -631,7 +643,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
   } else {
     if (goog.isDefAndNotNull(dir)) {
       request = obj_store.openCursor(keyRange, dir);
-    } else if (goog.isDefAndNotNull(keyRange))  {
+    } else if (goog.isDefAndNotNull(keyRange)) {
       request = obj_store.openCursor(keyRange);
       // some browser have problem with null, even though spec said OK.
     } else {
@@ -640,7 +652,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
   }
 
   var cue = false;
-  request.onsuccess = function (event) {
+  request.onsuccess = function(event) {
     /**
      * @type {IDBCursorWithValue}
      */
@@ -693,7 +705,8 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
  * @param {function(*, *, number=): *} reduce reduce iteration function.
  * @param {*} initial initial value for reduce iteration function.
  */
-ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map, reduce, initial) {
+ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map,
+                                                  reduce, initial) {
   var me = this;
   var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(reduce);
@@ -703,7 +716,7 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map, red
   var obj_store;
   try {
     obj_store = this.tx.objectStore(store.name);
-  }  catch (e) {
+  } catch (e) {
     if (goog.DEBUG && e.name == 'NotFoundError') {
       var msg = this.tx.db.objectStoreNames.contains(store.name) ?
           'store: ' + store.name + ' not in transaction.' :
@@ -761,7 +774,7 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map, red
   } else {
     if (goog.isDefAndNotNull(dir)) {
       request = obj_store.openCursor(keyRange, dir);
-    } else if (goog.isDefAndNotNull(keyRange))  {
+    } else if (goog.isDefAndNotNull(keyRange)) {
       request = obj_store.openCursor(keyRange);
       // some browser have problem with null, even though spec said OK.
     } else {
@@ -868,7 +881,7 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   var obj_store;
   try {
     obj_store = this.tx.objectStore(store.name);
-  }  catch (e) {
+  } catch (e) {
     if (goog.DEBUG && e.name == 'NotFoundError') {
       var msg = this.tx.db.objectStoreNames.contains(store.name) ?
           'store: ' + store.name + ' not in transaction.' :
@@ -919,7 +932,7 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   } else {
     if (goog.isDefAndNotNull(dir)) {
       request = obj_store.openCursor(keyRange, dir);
-    } else if (goog.isDefAndNotNull(keyRange))  {
+    } else if (goog.isDefAndNotNull(keyRange)) {
       request = obj_store.openCursor(keyRange);
       // some browser have problem with null, even though spec said OK.
     } else {
@@ -1006,16 +1019,16 @@ ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q) {
  * @param {!goog.async.Deferred} df return a deferred function.
  * @param {!Array.<string>}  stores store name.
 */
-ydn.db.req.IndexedDb.prototype.countStores = function (df, stores) {
+ydn.db.req.IndexedDb.prototype.countStores = function(df, stores) {
 
   var me = this;
   var total = 0;
 
-  var count_store = function (i) {
+  var count_store = function(i) {
     var table = stores[i];
     var store = me.tx.objectStore(table);
     var request = store.count();
-    request.onsuccess = function (event) {
+    request.onsuccess = function(event) {
       if (ydn.db.req.IndexedDb.DEBUG) {
         window.console.log(event);
       }
@@ -1028,7 +1041,7 @@ ydn.db.req.IndexedDb.prototype.countStores = function (df, stores) {
       }
 
     };
-    request.onerror = function (event) {
+    request.onerror = function(event) {
       if (ydn.db.req.IndexedDb.DEBUG) {
         window.console.log(event);
       }
@@ -1051,7 +1064,7 @@ ydn.db.req.IndexedDb.prototype.countStores = function (df, stores) {
  * @param {string} table store name.
  * @param {ydn.db.KeyRange} keyRange
  */
-ydn.db.req.IndexedDb.prototype.countKeyRange = function (df, table, keyRange) {
+ydn.db.req.IndexedDb.prototype.countKeyRange = function(df, table, keyRange) {
 
   var self = this;
 
@@ -1060,13 +1073,13 @@ ydn.db.req.IndexedDb.prototype.countKeyRange = function (df, table, keyRange) {
 
   var store = this.tx.objectStore(table);
   var request = store.count(key_range);
-  request.onsuccess = function (event) {
+  request.onsuccess = function(event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log(event);
     }
     df.callback(event.target.result);
   };
-  request.onerror = function (event) {
+  request.onerror = function(event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log(event);
     }

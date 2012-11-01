@@ -118,7 +118,7 @@ goog.inherits(ydn.db.InvalidStateError, Error);
 /**
  * @type {string} name of error.
  */
-ydn.db.InvalidStateError.prototype.name = 'ydn.db.InvalidStateError';
+ydn.db.InvalidStateError.prototype.name = 'InvalidStateError';
 
 
 /**
@@ -145,7 +145,7 @@ goog.inherits(ydn.db.InvalidAccessError, Error);
 /**
  * @type {string} name of error.
  */
-ydn.db.InvalidAccessError.prototype.name = 'ydn.db.InvalidAccessError';
+ydn.db.InvalidAccessError.prototype.name = 'InvalidAccessError';
 
 
 /**
@@ -172,7 +172,7 @@ goog.inherits(ydn.db.NotFoundError, Error);
 /**
  * @type {string} name of error.
  */
-ydn.db.NotFoundError.prototype.name = 'ydn.db.NotFoundError';
+ydn.db.NotFoundError.prototype.name = 'NotFoundError';
 
 
 /**
@@ -199,7 +199,7 @@ goog.inherits(ydn.db.DataCloneError, Error);
 /**
  * @type {string} name of error.
  */
-ydn.db.DataCloneError.prototype.name = 'ydn.db.DataCloneError';
+ydn.db.DataCloneError.prototype.name = 'DataCloneError';
 
 
 /**
@@ -228,7 +228,7 @@ goog.inherits(ydn.db.SQLError, Error);
 /**
  * @type {string} name of error.
  */
-ydn.db.SQLError.prototype.name = 'ydn.db.SQLError';
+ydn.db.SQLError.prototype.name = 'SQLError';
 
 
 /**
@@ -257,7 +257,7 @@ goog.inherits(ydn.db.SecurityError, Error);
 /**
  * @type {string} name of error.
  */
-ydn.db.SecurityError.prototype.name = 'ydn.db.SecurityError';
+ydn.db.SecurityError.prototype.name = 'SecurityError';
 
 
 

@@ -1,25 +1,25 @@
 /**
-* @fileoverview Execute database query operations.
+* @fileoverview Provide database query operations.
 *
 *
 */
 
 
 goog.provide('ydn.db.TxStorage');
-goog.require('ydn.error.NotSupportedException');
 goog.require('ydn.db.core.TxStorage');
 goog.require('ydn.db.req.IndexedDb');
 goog.require('ydn.db.req.SimpleStore');
 goog.require('ydn.db.req.WebSql');
+goog.require('ydn.error.NotSupportedException');
 
 
 
 
 /**
- * @param {!ydn.db.Storage} storage
- * @param {number} ptx_no
- * @param {string} scope_name
- * @param {!ydn.db.schema.Database} schema
+ * @param {!ydn.db.Storage} storage storage.
+ * @param {number} ptx_no transaction queue number.
+ * @param {string} scope_name scope name.
+ * @param {!ydn.db.schema.Database} schema  schema.
  * @constructor
  * @extends {ydn.db.core.TxStorage}
 */
@@ -36,7 +36,7 @@ goog.inherits(ydn.db.TxStorage, ydn.db.core.TxStorage);
 ydn.db.TxStorage.KEY_VALUE_STORE_SCHEMA = /** @type {StoreSchema} */ ({
   'name': ydn.db.schema.Store.DEFAULT_TEXT_STORE,
   'keyPath': 'id',
-  'type':ydn.db.schema.DataType.TEXT});
+  'type': ydn.db.schema.DataType.TEXT});
 
 
 /**
@@ -125,8 +125,10 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
  * @param {function(*): *} map map iteration function.
  * @param {function(*, *, number=): *} reduce reduce iteration function.
  * @param {*} initial initial value for reduce iteration function.
+ * @return {!goog.async.Deferred} promise.
  */
-ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce, initial) {
+ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
+                                              initial) {
   var df = ydn.db.base.createDeferred();
   if (!(q instanceof ydn.db.Cursor)) {
     throw new ydn.error.ArgumentException();
@@ -141,7 +143,7 @@ ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce, ini
     [q.index] : this.schema.getStoreNames();
 
 
-  this.exec(function (executor) {
+  this.exec(function(executor) {
     executor.iterate(df, q, clear, update, map, reduce, initial);
   }, scope, tr_mode);
 
@@ -171,13 +173,13 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
         ' not exists in store: ' + store_name);
     }
 
-    this.exec(function (executor) {
+    this.exec(function(executor) {
       executor.fetchQuery(df, query);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
   } else if (q instanceof ydn.db.Cursor) {
     cursor = q;
-    this.exec(function (executor) {
+    this.exec(function(executor) {
       executor.fetchCursor(df, cursor);
     }, [cursor.store_name], ydn.db.base.TransactionMode.READ_ONLY);
 

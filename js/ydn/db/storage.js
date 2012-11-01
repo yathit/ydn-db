@@ -39,14 +39,15 @@ goog.require('ydn.db.IStorage');
  * {@link #setName} and {@link #setSchema}.
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
- * @param {(!ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database schema
+ * @param {(!ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database
+ * schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
  * @extends {ydn.db.core.Storage}
  * @constructor *
  */
-ydn.db.Storage = function (opt_dbname, opt_schema, opt_options) {
+ydn.db.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
@@ -91,7 +92,7 @@ ydn.db.Storage.prototype.newTxInstance = function(scope_name) {
 
 /**
  *
- * @param {string} secret
+ * @param {string} secret passphase.
  * @param {number=} opt_expiration default expiration time in miliseconds.
  */
 ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
@@ -108,7 +109,7 @@ ydn.db.Storage.prototype.encrypt = function(secret, opt_expiration) {
 
 /**
  *
- * @return {ydn.db.RichStorage}
+ * @return {ydn.db.RichStorage} wrapper.
  */
 ydn.db.Storage.prototype.getWrapper = function() {
   return this.wrapper || null;
@@ -182,8 +183,10 @@ ydn.db.Storage.prototype.toString = function() {
  * @param {function(*): *} map map iteration function.
  * @param {function(*, *, number=): *} reduce reduce iteration function.
  * @param {*} initial initial value for reduce iteration function.
+ * @return {!goog.async.Deferred} promise.
  */
-ydn.db.Storage.prototype.iterate = function(q, clear, update, map, reduce, initial) {
+ydn.db.Storage.prototype.iterate = function(q, clear, update, map, reduce,
+                                            initial) {
   return this.default_tx_queue_.iterate(q, clear, update, map, reduce, initial);
 };
 

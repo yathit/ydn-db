@@ -15,6 +15,10 @@
 
 /**
  * @fileoverview Cursor object.
+ *
+ * Cursors are a transient mechanism used to iterate on stream of ordered
+ * records from a store. Cursor object define exact stream of records and
+ * conditioned iteration process and retain state of cursor position.
  */
 
 
@@ -28,6 +32,7 @@ goog.require('ydn.error.ArgumentException');
 
 
 /**
+ * Create a cursor object.
  * @param {string} store store name.
  * @param {ydn.db.Cursor.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
@@ -103,7 +108,7 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
 /**
  * Cursor direction.
  * @link http://www.w3.org/TR/IndexedDB/#dfn-direction
- * @enum {string}
+ * @enum {string} Cursor direction.
  */
 ydn.db.Cursor.Direction = {
   NEXT: 'next',
@@ -116,7 +121,7 @@ ydn.db.Cursor.Direction = {
 
 /**
  * @const
- * @type {!Array.<ydn.db.Cursor.Direction>}
+ * @type {!Array.<ydn.db.Cursor.Direction>} Cursor directions.
  */
 ydn.db.Cursor.DIRECTIONS = [
   ydn.db.Cursor.Direction.NEXT,
@@ -241,7 +246,8 @@ ydn.db.Cursor.prototype.bound = function(lower, upper, lo, uo) {
 
 /**
  * @param {string?} keyPath if index is not defined, keyPath will be used.
- * @return {{sql: string, params: !Array.<string>}} return equivalent of keyRange
+ * @return {{sql: string, params: !Array.<string>}} return equivalent of
+ * keyRange
  * to SQL WHERE clause and its parameters.
  */
 ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
@@ -260,7 +266,7 @@ ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
 
 /**
  * Convert keyRange to SQL statment
- * @param {ydn.db.schema.Database} schema
+ * @param {ydn.db.schema.Database} schema schema.
  * @return {boolean} true if SQL plan changed.
  */
 ydn.db.Cursor.prototype.planSql = function(schema) {
@@ -328,14 +334,14 @@ ydn.db.Cursor.prototype.planSql = function(schema) {
 
 /**
  * SQL statement for executing.
- * @type {string}
+ * @type {string} sql string.
  */
 ydn.db.Cursor.prototype.sql = '';
 
 
 /**
  * SQL parameters for executing SQL.
- * @type {!Array.<string>}
+ * @type {!Array.<string>} sql parameters.
  */
 ydn.db.Cursor.prototype.params = [];
 
@@ -356,7 +362,7 @@ ydn.db.Cursor.prototype.toString = function() {
  * Parse resulting object of a row into original object as it 'put' into the
  * database.
  * @param {!Object} row row.
- * @param {ydn.db.schema.Store} store
+ * @param {ydn.db.schema.Store} store store schema.
  * @return {!Object} parse value.
  */
 ydn.db.Cursor.prototype.parseRow = function(row, store) {
@@ -370,7 +376,7 @@ ydn.db.Cursor.prototype.parseRow = function(row, store) {
  * database.
  * @final
  * @param {!Object} row row.
- * @param {ydn.db.schema.Store} store
+ * @param {ydn.db.schema.Store} store store schema.
  * @return {!Object} parse value.
  */
 ydn.db.Cursor.parseRow = function(row, store) {
@@ -395,10 +401,10 @@ ydn.db.Cursor.parseRow = function(row, store) {
  * Return given input row.
  * @final
  * @param {!Object} row row.
- * @param {ydn.db.schema.Store} store
+ * @param {ydn.db.schema.Store} store store schema.
  * @return {!Object} the first field of object in row value.
  */
-ydn.db.Cursor.parseRowIdentity = function (row, store) {
+ydn.db.Cursor.parseRowIdentity = function(row, store) {
   return row;
 };
 
@@ -434,16 +440,16 @@ ydn.db.Cursor.parseRowIdentity = function (row, store) {
 
 /**
  * Process where instruction into filter iteration method.
- * @param {!ydn.db.Where} where
+ * @param {!ydn.db.Where} where where.
  */
-ydn.db.Cursor.prototype.processWhereAsFilter = function (where) {
+ydn.db.Cursor.prototype.processWhereAsFilter = function(where) {
 
   var prev_filter = goog.functions.TRUE;
   if (goog.isFunction(this.filter)) {
     prev_filter = this.filter;
   }
 
-  this.filter = function (obj) {
+  this.filter = function(obj) {
     var value = obj[where.field];
     var ok1 = true;
     if (goog.isDef(where.lower)) {

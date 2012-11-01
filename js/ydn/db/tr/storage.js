@@ -12,7 +12,7 @@
 
 
 /**
- * @fileoverview Provide parallel transaction runner.
+ * @fileoverview Base database service provider.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -42,26 +42,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   this.ptx_no = 0;
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
-//
-//
-///**
-// * @override
-// */
-//ydn.db.tr.Storage.prototype.createDbInstance = function(db_type, db_name, config) {
-//  //noinspection JSValidateTypes
-//  if (db_type == ydn.db.con.IndexedDb.TYPE) {
-//    return new ydn.db.tr.IndexedDb(db_name, config);
-//  } else if (db_type == ydn.db.con.WebSql.TYPE) {
-//    return new ydn.db.tr.WebSql(db_name, config);
-//  } else if (db_type == ydn.db.con.LocalStorage.TYPE) {
-//    return new ydn.db.tr.LocalStorage(db_name, config);
-//  } else if (db_type == ydn.db.con.SessionStorage.TYPE) {
-//    return new ydn.db.tr.SessionStorage(db_name, config);
-//  } else if (db_type == ydn.db.con.SimpleStorage.TYPE)  {
-//    return new ydn.db.tr.SimpleStorage(db_name, config);
-//  }
-//  return null;
-//};
+
 
 
 /**
@@ -71,14 +52,6 @@ goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
  */
 ydn.db.tr.Storage.prototype.ptx_no = 0;
 
-
-/**
- * @inheritDoc
- */
-ydn.db.tr.Storage.prototype.getQueueNo = function() {
-  // this must be base storage
-  return 0;
-};
 
 
 /**
@@ -91,8 +64,8 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
 
 /**
  * @protected
- * @param {string} scope_name
- * @return {!ydn.db.tr.TxStorage}
+ * @param {string} scope_name scope name.
+ * @return {!ydn.db.tr.TxStorage} new transactional storage.
  */
 ydn.db.tr.Storage.prototype.newTxInstance = function(scope_name) {
   return new ydn.db.tr.TxStorage(this, this.ptx_no++, scope_name);
@@ -101,22 +74,16 @@ ydn.db.tr.Storage.prototype.newTxInstance = function(scope_name) {
 
 
 /**
- * Run a transaction.
- * @param {Function} trFn function that invoke in the transaction.
- * @param {!Array.<string>} store_names list of keys or
- * store name involved in the transaction.
- * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted
- * @param {...} opt_args
+ * @inheritDoc
  */
-ydn.db.tr.Storage.prototype.run = function (trFn, store_names, opt_mode,
+ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
   var scope_name = trFn.name || '';
   var tx_queue = this.newTxInstance(scope_name);
   if (arguments.length > 4) {
     var args = Array.prototype.slice.call(arguments, 4);
-    var outFn = function () {
+    var outFn = function() {
       // Postpend the bound arguments to the current arguments.
       var newArgs = Array.prototype.slice.call(arguments);
       //newArgs.unshift.apply(newArgs, args);

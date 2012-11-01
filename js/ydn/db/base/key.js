@@ -14,7 +14,7 @@
 
 /**
  * @fileoverview  A unique key for a datastore object supporting hierarchy of
- * parent-child relationships for an entity.
+ * parent-child relationships for a record.
  *
  * The instances are immutable.
  *
@@ -178,7 +178,7 @@ ydn.db.Key.prototype.getNormalizedId = function() {
 
 /**
  *
- * @return {ydn.db.Key}
+ * @return {ydn.db.Key} return parent key if it has.
  */
 ydn.db.Key.prototype.getParent = function() {
   return this.parent;

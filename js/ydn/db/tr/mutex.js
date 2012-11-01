@@ -1,5 +1,7 @@
 /**
- * @fileoverview Hold active Transaction object and provides mutex function.
+ * @fileoverview Transaction mutex.
+ *
+ * Record transaction mutex and execution status.
  */
 
 goog.provide('ydn.db.tr.Mutex');
@@ -9,9 +11,8 @@ goog.require('ydn.db.InvalidStateError');
 
 
 /**
- * Provide transaction object to subclass and keep a result.
- * This also serve as mutex on transaction.
- * @param {number} tr_no track number
+ * Create transaction mutex.
+ * @param {number} tr_no track number.
  * @constructor
  */
 ydn.db.tr.Mutex = function(tr_no) {
@@ -113,7 +114,7 @@ ydn.db.tr.Mutex.prototype.scope_name = '';
 
 /**
  *
- * @return {string}
+ * @return {string} scope name.
  */
 ydn.db.tr.Mutex.prototype.getScope = function() {
   return this.scope_name;
@@ -123,10 +124,10 @@ ydn.db.tr.Mutex.prototype.getScope = function() {
 /**
  * Transaction is released and mutex is unlock.
  * @final
- * @param {ydn.db.base.TransactionEventTypes} type event type
- * @param {*} event
+ * @param {ydn.db.base.TransactionEventTypes} type event type.
+ * @param {*} event event.
  */
-ydn.db.tr.Mutex.prototype.down = function (type, event) {
+ydn.db.tr.Mutex.prototype.down = function(type, event) {
 
   //goog.asserts.assertObject(this.tx_, 'mutex already unlocked');
   if (this.tx_) {
@@ -190,7 +191,7 @@ ydn.db.tr.Mutex.prototype.lock = function() {
 /**
  * Get number of transaction count.
  * @final
- * @return {number}
+ * @return {number} transaction count.
  */
 ydn.db.tr.Mutex.prototype.getTxCount = function() {
   return this.tx_count_;
@@ -199,7 +200,7 @@ ydn.db.tr.Mutex.prototype.getTxCount = function() {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} get done flag.
  */
 ydn.db.tr.Mutex.prototype.isSetDone = function() {
   return this.is_set_done_;
@@ -208,7 +209,7 @@ ydn.db.tr.Mutex.prototype.isSetDone = function() {
 /**
  * Transaction object is active.
  * @final
- * @return {boolean}
+ * @return {boolean} true if transaction is active.
  */
 ydn.db.tr.Mutex.prototype.isActive = function() {
   return !!this.tx_;
@@ -218,7 +219,7 @@ ydn.db.tr.Mutex.prototype.isActive = function() {
 /**
  * Transaction object is available.
  * @final
- * @return {boolean}
+ * @return {boolean} true if the transaction is available.
  */
 ydn.db.tr.Mutex.prototype.isAvailable = function() {
   return !this.is_set_done_;
@@ -228,7 +229,7 @@ ydn.db.tr.Mutex.prototype.isAvailable = function() {
 /**
  * Transaction object is active and not done.
  * @final
- * @return {boolean}
+ * @return {boolean} true if transaction is active and available.
  */
 ydn.db.tr.Mutex.prototype.isActiveAndAvailable = function() {
   return this.isActive() && this.isAvailable();
@@ -252,7 +253,7 @@ ydn.db.tr.Mutex.prototype.oncompleted = null;
  * Return current active transaction if available. Transaction consumer must
  * check {@link #isActiveAndAvailable} if this transaction object
  * should be used.
- * @return {IDBTransaction|SQLTransaction|Object}
+ * @return {IDBTransaction|SQLTransaction|Object} transaction object.
  */
 ydn.db.tr.Mutex.prototype.getTx = function() {
   return this.tx_;

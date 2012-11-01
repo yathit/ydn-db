@@ -6,8 +6,8 @@
  */
 
 
-goog.provide('ydn.db.events.StorageEvent');
 goog.provide('ydn.db.events.ObjectStoreEvent');
+goog.provide('ydn.db.events.StorageEvent');
 goog.provide('ydn.db.events.Types');
 
 
@@ -28,9 +28,9 @@ ydn.db.events.Types = {
 
 /**
  *
- * @param {ydn.db.events.Types} event_type
- * @param {goog.events.EventTarget} event_target
- * @param {*} source
+ * @param {ydn.db.events.Types} event_type event type.
+ * @param {goog.events.EventTarget} event_target target.
+ * @param {*} source event source.
  * @extends {goog.events.Event}
  * @constructor
  */
@@ -42,15 +42,19 @@ ydn.db.events.Event = function(event_type, event_target, source) {
 goog.inherits(ydn.db.events.Event, goog.events.Event);
 
 
+/**
+ *
+ * @type {*} event source.
+ */
 ydn.db.events.Event.prototype.source = null;
 
 
 /**
  *
- * @param {ydn.db.events.Types} event_type
- * @param {goog.events.EventTarget} event_target
- * @param {*} source
- * @param {string=} msg
+ * @param {ydn.db.events.Types} event_type type.
+ * @param {goog.events.EventTarget} event_target event target.
+ * @param {*} source source.
+ * @param {string=} msg optional message.
  * @extends {ydn.db.events.Event}
  * @constructor
  */
@@ -70,9 +74,9 @@ ydn.db.events.StorageEvent.prototype.message = '';
 
 /**
  *
- * @param {ydn.db.events.Types} event_type
- * @param {goog.events.EventTarget} event_target
- * @param {*} source
+ * @param {ydn.db.events.Types} event_type  type.
+ * @param {goog.events.EventTarget} event_target target.
+ * @param {*} source source.
  * @extends {ydn.db.events.Event}
  * @constructor
  */

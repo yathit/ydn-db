@@ -1,5 +1,5 @@
 /**
- * @fileoverview Provide non-overlapping serial transaction runner.
+ * @fileoverview Storage service provider with transaction.
  *
  *
  */
@@ -15,9 +15,9 @@ goog.require('ydn.error.NotSupportedException');
  *
  * @implements {ydn.db.con.IStorage}
  * @implements {ydn.db.tr.IStorage}
- * @param {!ydn.db.tr.Storage} storage
- * @param {number} ptx_no
- * @param {string} scope_name
+ * @param {!ydn.db.tr.Storage} storage base storage.
+ * @param {number} ptx_no transaction queue number.
+ * @param {string} scope_name scope name.
  * @constructor
  */
 ydn.db.tr.TxStorage = function(storage, ptx_no, scope_name) {
@@ -68,7 +68,8 @@ ydn.db.tr.TxStorage.DEBUG = false;
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.tr.TxStorage.prototype.logger = goog.debug.Logger.getLogger('ydn.db.tr.TxStorage');
+ydn.db.tr.TxStorage.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.tr.TxStorage');
 
 
 
@@ -85,8 +86,8 @@ ydn.db.tr.TxStorage.prototype.close = function() {
 /**
 * Add or update a store issuing a version change event.
 * @protected
-* @param {!StoreSchema|!ydn.db.schema.Store} store
-* @return {!goog.async.Deferred}
+* @param {!StoreSchema|!ydn.db.schema.Store} store schema.
+* @return {!goog.async.Deferred} promise.
 */
 ydn.db.tr.TxStorage.prototype.addStoreSchema = function(store) {
   return this.storage_.addStoreSchema(store);
@@ -96,8 +97,8 @@ ydn.db.tr.TxStorage.prototype.addStoreSchema = function(store) {
 /**
  * @inheritDoc
  */
-ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names,
-                                                   opt_mode, completed_event_handler) {
+ydn.db.tr.TxStorage.prototype.transaction = function(trFn, store_names,
+       opt_mode, completed_event_handler) {
   this.storage_.transaction(trFn, store_names,
       opt_mode, completed_event_handler);
 };
@@ -105,7 +106,7 @@ ydn.db.tr.TxStorage.prototype.transaction = function (trFn, store_names,
 
 /**
  *
- * @return {string}
+ * @return {string}  scope name.
  */
 ydn.db.tr.TxStorage.prototype.getScope = function() {
   return this.scope;
@@ -115,14 +116,14 @@ ydn.db.tr.TxStorage.prototype.getScope = function() {
 /**
  * One database can have only one transaction.
  * @private
- * @type {ydn.db.tr.Mutex}
+ * @type {ydn.db.tr.Mutex} mutex.
  */
 ydn.db.tr.TxStorage.prototype.mu_tx_ = null;
 
 
 /**
  * @protected
- * @return {ydn.db.tr.Mutex}
+ * @return {ydn.db.tr.Mutex} mutex.
  */
 ydn.db.tr.TxStorage.prototype.getMuTx = function() {
   return this.mu_tx_;
@@ -130,7 +131,7 @@ ydn.db.tr.TxStorage.prototype.getMuTx = function() {
 
 /**
  *
- * @return {number}
+ * @return {number} transaction count.
  */
 ydn.db.tr.TxStorage.prototype.getTxNo = function() {
   return this.mu_tx_.getTxCount();
@@ -138,7 +139,7 @@ ydn.db.tr.TxStorage.prototype.getTxNo = function() {
 
 /**
  *
- * @return {number}
+ * @return {number} transaction queue number.
  */
 ydn.db.tr.TxStorage.prototype.getQueueNo = function() {
   return this.q_no_;
@@ -157,7 +158,7 @@ ydn.db.tr.TxStorage.prototype.getActiveTx = function() {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} true if trnasaction is active and available.
  */
 ydn.db.tr.TxStorage.prototype.isActive = function() {
   return this.mu_tx_.isActiveAndAvailable();
@@ -166,7 +167,7 @@ ydn.db.tr.TxStorage.prototype.isActive = function() {
 
 /**
  *
- * @return {!ydn.db.tr.Storage}
+ * @return {!ydn.db.tr.Storage} storage.
  */
 ydn.db.tr.TxStorage.prototype.getStorage = function() {
   return this.storage_;
@@ -175,7 +176,7 @@ ydn.db.tr.TxStorage.prototype.getStorage = function() {
 
 /**
  * @export
- * @return {SQLTransaction|IDBTransaction|Object}
+ * @return {SQLTransaction|IDBTransaction|Object} active transaction object.
  */
 ydn.db.tr.TxStorage.prototype.getTx = function() {
   return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_.getTx() : null;
@@ -212,7 +213,7 @@ ydn.db.tr.TxStorage.prototype.last_queue_checkin_ = NaN;
 
 /**
  * @const
- * @type {number}
+ * @type {number} maximun number of transaction queue.
  */
 ydn.db.tr.TxStorage.MAX_QUEUE = 1000;
 
@@ -237,16 +238,17 @@ ydn.db.tr.TxStorage.prototype.popTxQueue_ = function() {
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} completed_event_handler
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=}
+  * completed_event_handler handler.
  * @protected
  */
-ydn.db.tr.TxStorage.prototype.pushTxQueue = function (trFn, store_names,
-                                                       opt_mode, completed_event_handler) {
+ydn.db.tr.TxStorage.prototype.pushTxQueue = function(trFn, store_names,
+                  opt_mode, completed_event_handler) {
   this.trQueue_.push({
-    fnc:trFn,
-    store_names:store_names,
-    mode:opt_mode,
-    oncompleted:completed_event_handler
+    fnc: trFn,
+    store_names: store_names,
+    mode: opt_mode,
+    oncompleted: completed_event_handler
   });
 //  var now = goog.now();
 //  if (!isNaN(this.last_queue_checkin_)) {
@@ -274,11 +276,12 @@ ydn.db.tr.TxStorage.prototype.pushTxQueue = function (trFn, store_names,
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted
- * @param {...} opt_args
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted handler.
+ * @param {...} opt_args optional arguments.
  * @override
  */
-ydn.db.tr.TxStorage.prototype.run = function (trFn, store_names, opt_mode, oncompleted, opt_args) {
+ydn.db.tr.TxStorage.prototype.run = function(trFn, store_names, opt_mode,
+                                              oncompleted, opt_args) {
 
   //console.log('tr starting ' + trFn.name);
   var scope_name = trFn.name || '';
@@ -288,19 +291,20 @@ ydn.db.tr.TxStorage.prototype.run = function (trFn, store_names, opt_mode, oncom
     names = [store_names];
   } else if (!goog.isArray(store_names) ||
     (store_names.length > 0 && !goog.isString(store_names[0]))) {
-    throw new ydn.error.ArgumentException("storeNames");
+    throw new ydn.error.ArgumentException('storeNames');
   }
-  var mode = goog.isDef(opt_mode) ? opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
+  var mode = goog.isDef(opt_mode) ?
+    opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
   var outFn = trFn;
   if (arguments.length > 4) { // handle optional parameters
     var args = Array.prototype.slice.call(arguments, 4);
-    outFn = function () {
+    outFn = function() {
       // Prepend the bound arguments to the current arguments.
       var newArgs = Array.prototype.slice.call(arguments);
        //newArgs.unshift.apply(newArgs, args); // pre-apply
       newArgs = newArgs.concat(args); // post-apply
       return trFn.apply(this, newArgs);
-    }
+    };
   }
   outFn.name = scope_name;
 
@@ -311,7 +315,7 @@ ydn.db.tr.TxStorage.prototype.run = function (trFn, store_names, opt_mode, oncom
     this.pushTxQueue(outFn, store_names, mode, oncompleted);
   } else {
     //console.log(this + ' not active')
-    var transaction_process = function (tx) {
+    var transaction_process = function(tx) {
 
       me.mu_tx_.up(tx, scope_name);
 
@@ -322,10 +326,10 @@ ydn.db.tr.TxStorage.prototype.run = function (trFn, store_names, opt_mode, oncom
       // transaction is still active and use in followup request handlers
     };
 
-    var completed_handler = function (type, event) {
+    var completed_handler = function(type, event) {
       me.mu_tx_.down(type, event);
       /**
-       * @preserve_try
+       * @preserve _try.
        */
       try {
         if (goog.isFunction(oncompleted)) {
@@ -343,9 +347,11 @@ ydn.db.tr.TxStorage.prototype.run = function (trFn, store_names, opt_mode, oncom
     };
 
     if (ydn.db.tr.TxStorage.DEBUG) {
-      window.console.log(this + ' transaction ' + mode + ' open for ' + JSON.stringify(names) + ' in ' + scope_name);
+      window.console.log(this + ' transaction ' + mode + ' open for ' +
+        JSON.stringify(names) + ' in ' + scope_name);
     }
-    this.storage_.transaction(transaction_process, names, mode, completed_handler);
+    this.storage_.transaction(transaction_process, names, mode,
+      completed_handler);
   }
 
 };
