@@ -449,24 +449,6 @@ ydn.db.con.IndexedDb.prototype.logger =
 ydn.db.con.IndexedDb.prototype.idx_db_ = null;
 
 
-
-/**
- * @private
- * @param {IDBDatabase} db DB instance.
- * @param {string} store_name store name.
- * @return {boolean} true if the store exist.
- */
-ydn.db.con.IndexedDb.prototype.hasStore_ = function(db, store_name) {
-  if ('objectStoreNames' in db) {
-    return db['objectStoreNames'].contains(store_name);
-  } else {
-    // old chrome is not following IndexedDB spec, not likely to encounter
-    throw new ydn.error.NotSupportedException('Very old IndexedDB API');
-    //return true;
-  }
-};
-
-
 /**
  * @inheritDoc
  */
@@ -622,9 +604,6 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 };
 
 
-
-
-
 /**
  * When DB is ready, fnc will be call with a fresh transaction object. Fnc must
  * put the result to 'result' field of the transaction object on success. If
@@ -641,12 +620,16 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
       completed_event_handler) {
 
-  var me = this;
+  /**
+   *
+   * @type {IDBDatabase}
+   */
+  var db = this.idx_db_;
 
   if (!scopes) {
     scopes = [];
-    for (var i = this.idx_db_.objectStoreNames.length - 1; i >= 0; i--) {
-      scopes[i] = this.idx_db_.objectStoreNames[i];
+    for (var i = db.objectStoreNames.length - 1; i >= 0; i--) {
+      scopes[i] = db.objectStoreNames[i];
     }
   }
 
@@ -657,13 +640,18 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
 
   var tx;
   try { // this try...catch block will removed on non-debug compiled.
-    tx = this.idx_db_.transaction(scopes, /** @type {number} */ (mode));
+    tx = db.transaction(scopes, /** @type {number} */ (mode));
   } catch (e) {
     if (goog.DEBUG && e.name == 'NotFoundError') {
       // http://www.w3.org/TR/IndexedDB/#widl-IDBDatabase-transaction-
       // IDBTransaction-any-storeNames-DOMString-mode
+
+      // show informative message on debug mode.
       throw new ydn.db.NotFoundError('stores not found: ' +
-        ydn.json.stringify(scopes));
+        ydn.json.stringify(scopes) + ' in ' +
+        ydn.json.stringify(db.objectStoreNames));
+
+    // InvalidAccessError will not happen with our logic.
     //}
     // if (goog.DEBUG && e.name == 'InvalidAccessError') {
     //  throw new ydn.db.NotFoundError('store names must be given: ' +
@@ -692,7 +680,6 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
 
 /**
  * Close the connection.
- * @final
  */
 ydn.db.con.IndexedDb.prototype.close = function() {
 
