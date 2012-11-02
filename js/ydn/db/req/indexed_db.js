@@ -26,9 +26,10 @@ goog.require('ydn.json');
 
 
 /**
- * @param {string} dbname
+ * Create a new IDB request executor.
+ * @param {string} dbname database name.
  * @extends {ydn.db.req.RequestExecutor}
- * @param {!ydn.db.schema.Database} schema
+ * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
  */
 ydn.db.req.IndexedDb = function(dbname, schema) {
@@ -41,14 +42,14 @@ goog.inherits(ydn.db.req.IndexedDb, ydn.db.req.RequestExecutor);
  *
  * @const {boolean} turn on debug flag to dump object.
  */
-ydn.db.req.IndexedDb.DEBUG = goog.DEBUG && false;
+ydn.db.req.IndexedDb.DEBUG = false;
 
 
 /**
- * Maximum number of requests created per transaction.
+ *
  * Large number of requests can cause memory hog without increasing performance.
  * @const
- * @type {number}
+ * @type {number} Maximum number of requests created per transaction.
  */
 ydn.db.req.IndexedDb.REQ_PER_TX = 10;
 
@@ -75,6 +76,7 @@ ydn.db.req.IndexedDb.prototype.getByIds = function(df, store_name, ids) {
   var results = [];
   var result_count = 0;
   var store = this.tx.objectStore(store_name);
+  var n = ids.length;
 
   var get = function(i) {
 
@@ -82,11 +84,11 @@ ydn.db.req.IndexedDb.prototype.getByIds = function(df, store_name, ids) {
       // should we just throw error ?
       result_count++;
       results[i] = undefined;
-      if (result_count == ids.length) {
+      if (result_count == n) {
         df.callback(results);
       } else {
         var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
-        if (next < ids.length) {
+        if (next < n) {
           get(next);
         }
       }
@@ -113,11 +115,11 @@ ydn.db.req.IndexedDb.prototype.getByIds = function(df, store_name, ids) {
         window.console.log([store_name, ids, i, event]);
       }
       results[i] = event.target.result;
-      if (result_count == ids.length) {
+      if (result_count == n) {
         df.callback(results);
       } else {
         var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
-        if (next < ids.length) {
+        if (next < n) {
           get(next);
         }
       }
@@ -133,9 +135,9 @@ ydn.db.req.IndexedDb.prototype.getByIds = function(df, store_name, ids) {
 
   };
 
-  if (ids.length > 0) {
+  if (n > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < ids.length; i++)
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < n; i++)
     {
       get(i);
     }
@@ -149,7 +151,6 @@ ydn.db.req.IndexedDb.prototype.getByIds = function(df, store_name, ids) {
 * Execute GET request callback results to df.
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {!Array.<!ydn.db.Key>} keys id to get.
-* @private
 */
 ydn.db.req.IndexedDb.prototype.getByKeys = function(df, keys) {
   var me = this;
@@ -223,7 +224,7 @@ ydn.db.req.IndexedDb.prototype.getByKeys = function(df, keys) {
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {string} table table name.
 * @param {!Object} value object to put.
-* @param {(!Array|string|number)=} opt_key
+* @param {(!Array|string|number)=} opt_key optional out-of-line key.
 */
 ydn.db.req.IndexedDb.prototype.putObject = function(df, table, value, opt_key)
 {
@@ -267,8 +268,7 @@ ydn.db.req.IndexedDb.prototype.putObject = function(df, table, value, opt_key)
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} store_name table name.
  * @param {!Array.<!Object>} objs object to put.
- * @param {!Array.<(!Array|string|number)>=} opt_keys
- * @private
+ * @param {!Array.<(!Array|string|number)>=} opt_keys optional out-of-line keys.
  */
 ydn.db.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
                                                       opt_keys) {
@@ -344,7 +344,6 @@ ydn.db.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {string} store_name store name.
 * @param {(!Array|string|number)} key object key.
-* @private
 */
 ydn.db.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
 
@@ -372,8 +371,7 @@ ydn.db.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
  * immediately.
  *
  * @param {goog.async.Deferred} df deferred to feed result.
- *  @param {(string|!Array.<string>)=} opt_store_name
- * @private
+ * @param {(string|!Array.<string>)=} opt_store_name store name.
  */
 ydn.db.req.IndexedDb.prototype.clearByStore = function(df, opt_store_name) {
 
@@ -563,10 +561,10 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 
 /**
  *
- * @param {ydn.db.Cursor} cursor
- * @param {Function} on_success
- * @param {Function} on_completed
- * @param {Function} on_error
+ * @param {ydn.db.Cursor} cursor the cursor.
+ * @param {Function} on_success success handler.
+ * @param {Function} on_completed completed handler.
+ * @param {Function} on_error error handler.
  */
 ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
                                                on_error) {
@@ -1062,7 +1060,7 @@ ydn.db.req.IndexedDb.prototype.countStores = function(df, stores) {
 /**
  * @param {!goog.async.Deferred} df return a deferred function.
  * @param {string} table store name.
- * @param {ydn.db.KeyRange} keyRange
+ * @param {ydn.db.KeyRange} keyRange key range.
  */
 ydn.db.req.IndexedDb.prototype.countKeyRange = function(df, table, keyRange) {
 

@@ -25,8 +25,8 @@ goog.require('ydn.db.req.RequestExecutor');
 
 /**
  * @extends {ydn.db.req.RequestExecutor}
- * @param {string} dbname
- * @param {!ydn.db.schema.Database} schema
+ * @param {string} dbname database name.
+ * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
  */
 ydn.db.req.SimpleStore = function(dbname, schema) {
@@ -80,9 +80,9 @@ ydn.db.req.SimpleStore.prototype.makeKey = function(store, id) {
 
 /**
  *
- * @param {!ydn.db.schema.Store|string} store_name or key.
- * @param {(string|number|Date|!Array)} id
- * @return {*}
+ * @param {!ydn.db.schema.Store|string} store_name store schema or name.
+ * @param {(string|number|Date|!Array)} id id.
+ * @return {*} the value obtained.
  * @protected
  * @final
  */
@@ -102,14 +102,14 @@ ydn.db.req.SimpleStore.prototype.getItemInternal = function(store_name, id) {
 
 /**
  *
- * @param {*} value
- * @param {string} store_name_or_key
- * @param {(string|number)=} id
+ * @param {*} value the value.
+ * @param {string} store_name_or_key store name or key.
+ * @param {(string|number)=} id key.
  * @protected
  * @final
  */
 ydn.db.req.SimpleStore.prototype.setItemInternal = function(value,
-                                                            store_name_or_key, id) {
+        store_name_or_key, id) {
   var key;
   if (goog.isDef(id)) {
     var store = this.schema.getStore(store_name_or_key);
@@ -124,8 +124,8 @@ ydn.db.req.SimpleStore.prototype.setItemInternal = function(value,
 
 /**
  *
- * @param {string} store_name_or_key
- * @param {(!Array|string|number)=} id
+ * @param {string} store_name_or_key store name or key.
+ * @param {(!Array|string|number)=} id  id.
  * @protected
  * @final
  */
@@ -165,7 +165,7 @@ ydn.db.req.SimpleStore.prototype.getKeyValue = function(id, store) {
 
 /**
  * @protected
- * @param {*} value
+ * @param {*} value value to return.
  * @return {!goog.async.Deferred} return callback with given value in async.
  */
 ydn.db.req.SimpleStore.succeed = function(value) {
@@ -219,8 +219,8 @@ ydn.db.req.SimpleStore.prototype.putObjects = function(df, table, value) {
 /**
 * Retrieve an object from store.
  * @param {!goog.async.Deferred} df return object in deferred function.
- * @param {string} store_name
-* @param {(string|number|Date|!Array)} id
+ * @param {string} store_name store name.
+* @param {(string|number|Date|!Array)} id id.
 */
 ydn.db.req.SimpleStore.prototype.getById = function(df, store_name, id) {
   df.callback(this.getItemInternal(store_name, id));
@@ -261,8 +261,8 @@ ydn.db.req.SimpleStore.prototype.getByStore = function(df, opt_store_name) {
 /**
  *
  * @param {!goog.async.Deferred} df return result in deferred function.
- * @param {string} store_name
- * @param {!Array.<string|number>} ids
+ * @param {string} store_name store name.
+ * @param {!Array.<string|number>} ids list of ids.
  */
 ydn.db.req.SimpleStore.prototype.getByIds = function(df, store_name, ids) {
   var arr = [];
@@ -272,6 +272,7 @@ ydn.db.req.SimpleStore.prototype.getByIds = function(df, store_name, ids) {
   }
   df.callback(arr);
 };
+
 
 /**
 * @inheritDoc
@@ -299,6 +300,7 @@ ydn.db.req.SimpleStore.prototype.clearById = function(df, table, id) {
   df.callback(true);
 };
 
+
 /**
  * @inheritDoc
 */
@@ -319,23 +321,6 @@ ydn.db.req.SimpleStore.prototype.clearByStore = function(df, opt_table) {
   df.callback(true);
 };
 
-
-///**
-// * Delete the database, store or an entry.
-// * @param {string=} opt_table delete a specific store.
-// * @param {(string|number)=} opt_id delete a specific row.
-// * @return {!goog.async.Deferred} return a deferred function.
-// */
-//ydn.db.req.SimpleStore.prototype.remove = function(opt_table, opt_id) {
-//  if (goog.isDef(opt_id) && goog.isDef(opt_table)) {
-//    var key = this.makeKey(opt_table, opt_id);
-//    delete this.tx[key];
-//    return ydn.db.req.SimpleStore.succeed(true);
-//  } else {
-//    return this.clear(opt_table);
-//  }
-//};
-//
 
 /**
 * Get number of items stored.
@@ -365,7 +350,7 @@ ydn.db.req.SimpleStore.prototype.countStores = function(df, tables) {
  * Get number of items stored.
  * @param {!goog.async.Deferred} df return number of items in deferred function.
  * @param {string} opt_table table name.
- *  @param {ydn.db.KeyRange} keyRange
+ *  @param {ydn.db.KeyRange} keyRange the key range.
  */
 ydn.db.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
                                                           keyRange) {
@@ -386,15 +371,4 @@ ydn.db.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
   df.callback(n);
 };
 
-
-///**
-//* @param {!ydn.db.Cursor} q query.
-//* @param {number=} limit
-//* @param {number=} offset
-//* @return {!goog.async.Deferred}
-//*/
-//ydn.db.req.SimpleStore.prototype.fetch = function(q, limit, offset) {
-//  throw new ydn.error.NotImplementedException();
-//};
-//
 

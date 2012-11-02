@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @fileoverview Implements ydn.db.io.QueryService with Web SQL storage.
+ * @fileoverview WebSQL executor.
  *
  * @see http://www.w3.org/TR/webdatabase/
  *
@@ -31,8 +31,8 @@ goog.require('ydn.json');
 
 /**
  * @extends {ydn.db.req.RequestExecutor}
- * @param {string} dbname
- * @param {!ydn.db.schema.Database} schema
+ * @param {string} dbname database name.
+ * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
  */
 ydn.db.req.WebSql = function(dbname, schema) {
@@ -60,7 +60,7 @@ ydn.db.req.WebSql.DEBUG = false;
  * Smaller number also help SQLite engine to give
  * other transaction to perform parallel requests.
  * @const
- * @type {number}
+ * @type {number} Maximum number of readonly requests created per transaction.
  */
 ydn.db.req.WebSql.REQ_PER_TX = 10;
 
@@ -71,7 +71,7 @@ ydn.db.req.WebSql.REQ_PER_TX = 10;
  * to give this number smaller. Larger number will not help to get faster
  * because it bottleneck is in SQL engine, not from JS side.
  * @const
- * @type {number}
+ * @type {number} Maximum number of read-write requests created per transaction.
  */
 ydn.db.req.WebSql.RW_REQ_PER_TX = 2;
 
@@ -85,7 +85,8 @@ ydn.db.req.WebSql.prototype.logger =
 
 
 /**
- * @return {SQLTransaction}
+ * @protected
+ * @return {SQLTransaction} transaction object.
  */
 ydn.db.req.WebSql.prototype.getTx = function() {
   return /** @type {SQLTransaction} */ (this.tx);
@@ -107,10 +108,10 @@ ydn.db.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 
 
 /**
-* @param {goog.async.Deferred} df
+* @param {goog.async.Deferred} df promise.
 * @param {string} store_name table name.
 * @param {!Object} obj object to put.
-* @param {(!Array|string|number)=} opt_key
+* @param {(!Array|string|number)=} opt_key optional out-of-line key.
 */
 ydn.db.req.WebSql.prototype.putObject = function(df, store_name, obj, opt_key)
 {
@@ -147,6 +148,7 @@ ydn.db.req.WebSql.prototype.putObject = function(df, store_name, obj, opt_key)
   /**
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
@@ -164,10 +166,10 @@ ydn.db.req.WebSql.prototype.putObject = function(df, store_name, obj, opt_key)
 
 
 /**
-* @param {goog.async.Deferred} df
+* @param {goog.async.Deferred} df  promise.
 * @param {string} store_name table name.
 * @param {!Array.<!Object>} objects object to put.
- * @param {!Array.<(!Array|string|number)>=} opt_keys
+ * @param {!Array.<(!Array|string|number)>=} opt_keys optional out-of-line keys.
 */
 ydn.db.req.WebSql.prototype.putObjects = function(
   df, store_name, objects, opt_keys) {
@@ -185,8 +187,8 @@ ydn.db.req.WebSql.prototype.putObjects = function(
    * Put and item at i. This ydn.db.con.Storage will invoke callback to df if
    * all objects
    * have been put, otherwise recursive call to itself at next i+1 item.
-   * @param {number} i
-   * @param {SQLTransaction} tx
+   * @param {number} i index.
+   * @param {SQLTransaction} tx transaction.
    */
   var put = function(i, tx) {
 
@@ -224,6 +226,7 @@ ydn.db.req.WebSql.prototype.putObjects = function(
     /**
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
      */
     var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
@@ -251,9 +254,9 @@ ydn.db.req.WebSql.prototype.putObjects = function(
 
 /**
 *
-* @param {goog.async.Deferred} d
-* @param {string} table_name
-* @param {(string|number|Date|!Array)} id
+* @param {goog.async.Deferred} d  promise.
+* @param {string} table_name store name.
+* @param {(string|number|Date|!Array)} id id.
 */
 ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
@@ -291,6 +294,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
   /**
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
@@ -308,9 +312,9 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
 
 /**
  *
- * @param {goog.async.Deferred} df
- * @param {string} table_name
- * @param {!Array.<(!Array|number|string)>} ids
+ * @param {goog.async.Deferred} df promise.
+ * @param {string} table_name store name.
+ * @param {!Array.<(!Array|number|string)>} ids ids.
  */
 ydn.db.req.WebSql.prototype.getByIds = function(df, table_name, ids) {
 
@@ -327,7 +331,7 @@ ydn.db.req.WebSql.prototype.getByIds = function(df, table_name, ids) {
    * i position. If req_done are all true, df will be invoked, if not
    * it recursively call itself to next sequence.
    * @param {number} i the index of ids.
-   * @param {SQLTransaction} tx
+   * @param {SQLTransaction} tx tx.
    */
   var get = function(i, tx) {
 
@@ -360,6 +364,7 @@ ydn.db.req.WebSql.prototype.getByIds = function(df, table_name, ids) {
     /**
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
      */
     var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
@@ -394,9 +399,8 @@ ydn.db.req.WebSql.prototype.getByIds = function(df, table_name, ids) {
 
 /**
 *
-* @param {goog.async.Deferred} df
-* @param {(string|!Array.<string>)=} opt_table_name
-* @private
+* @param {goog.async.Deferred} df promise.
+* @param {(string|!Array.<string>)=} opt_table_name store name.
 */
 ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
 
@@ -410,7 +414,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
 
   /**
    * @param {number} idx the index of table_names.
-   * @param {SQLTransaction} tx
+   * @param {SQLTransaction} tx tx.
    */
   var getAll = function(idx, tx) {
     var table_name = table_names[idx];
@@ -441,6 +445,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
     /**
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
      */
     var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
@@ -465,8 +470,8 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
 
 /**
 *
-* @param {goog.async.Deferred} df
-* @param {!Array.<!ydn.db.Key>} keys
+* @param {goog.async.Deferred} df promise.
+* @param {!Array.<!ydn.db.Key>} keys keys.
 */
 ydn.db.req.WebSql.prototype.getByKeys = function(df, keys) {
 
@@ -511,6 +516,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function(df, keys) {
     /**
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
      */
     var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
@@ -607,6 +613,7 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
   /**
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
@@ -627,7 +634,7 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
 
 
 /**
- * @param {!goog.async.Deferred} df
+ * @param {!goog.async.Deferred} df promise.
  * @param {!ydn.db.Query} q query.
  */
 ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
@@ -639,7 +646,7 @@ ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
 
 /**
 * Deletes all objects from the store.
-* @param {goog.async.Deferred} d
+* @param {goog.async.Deferred} d promise.
 * @param {(string|!Array.<string>)=} table_name table name.
 */
 ydn.db.req.WebSql.prototype.clearByStore = function(d, table_name) {
@@ -674,6 +681,7 @@ ydn.db.req.WebSql.prototype.clearByStore = function(d, table_name) {
     /**
      * @param {SQLTransaction} tr transaction.
      * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
      */
     var error_callback = function(tr, error) {
       if (ydn.db.req.WebSql.DEBUG) {
@@ -699,7 +707,7 @@ ydn.db.req.WebSql.prototype.clearByStore = function(d, table_name) {
 
 /**
 * Deletes all objects from the store.
-* @param {goog.async.Deferred} d
+* @param {goog.async.Deferred} d promise.
 * @param {string} table_name table name.
 * @param {(string|number)} key table name.
 */
@@ -723,6 +731,7 @@ ydn.db.req.WebSql.prototype.removeById = function(d, table_name, key) {
   /**
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
@@ -768,6 +777,7 @@ ydn.db.req.WebSql.prototype.clearById = function(d, table, id) {
   /**
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
@@ -790,6 +800,7 @@ ydn.db.req.WebSql.prototype.clearById = function(d, table, id) {
 /**
  * @param {!goog.async.Deferred} d return a deferred function.
  * @param {!Array.<string>} tables store name.
+ * @return {!goog.async.Deferred} d return a deferred function. ??
 */
 ydn.db.req.WebSql.prototype.countStores = function(d, tables) {
 
@@ -811,6 +822,7 @@ ydn.db.req.WebSql.prototype.countStores = function(d, tables) {
   /**
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
@@ -830,7 +842,8 @@ ydn.db.req.WebSql.prototype.countStores = function(d, tables) {
 /**
  * @param {!goog.async.Deferred} d return a deferred function.
  * @param {string} table store name.
- * @param {ydn.db.KeyRange} keyRange
+ * @param {ydn.db.KeyRange} keyRange the key range.
+ * @return {!goog.async.Deferred} d return a deferred function. ??
  */
 ydn.db.req.WebSql.prototype.countKeyRange = function(d, table, keyRange) {
 
@@ -854,6 +867,7 @@ ydn.db.req.WebSql.prototype.countKeyRange = function(d, table, keyRange) {
   /**
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
@@ -870,13 +884,11 @@ ydn.db.req.WebSql.prototype.countKeyRange = function(d, table, keyRange) {
 };
 
 
-
-
-
 /**
-* @param {string=} opt_table table name to be deleted, if not specified all
-* tables will be deleted.
-*/
+ * @param {!goog.async.Deferred} d return a deferred function.
+ * @param {string=} opt_table table name to be deleted, if not specified all
+ * tables will be deleted.
+ */
 ydn.db.req.WebSql.prototype.removeByStore = function(d, opt_table) {
 
   var me = this;
@@ -907,6 +919,7 @@ ydn.db.req.WebSql.prototype.removeByStore = function(d, opt_table) {
   /**
    * @param {SQLTransaction} tr transaction.
    * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
    */
   var error_callback = function(tr, error) {
     if (ydn.db.req.WebSql.DEBUG) {
