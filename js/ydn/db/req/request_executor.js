@@ -102,6 +102,13 @@ ydn.db.req.RequestExecutor.prototype.getByKeys = goog.abstractMethod;
 
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!ydn.db.Cursor} store_name  store name.
+ */
+ydn.db.req.RequestExecutor.prototype.getByQuery = goog.abstractMethod;
+
+
+/**
+ * @param {!goog.async.Deferred} return object in deferred function.
  * @param {(string|!Array.<string>)=} store_name  store name.
  */
 ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;

@@ -562,13 +562,13 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 /**
  *
  * @param {ydn.db.Cursor} cursor the cursor.
- * @param {Function} on_success success handler.
- * @param {Function} on_completed completed handler.
- * @param {Function} on_error error handler.
+ * @param {Function} callback icursor handler.
+ * @param {string?=} mode mode.
+ * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
-                                               on_error) {
+ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
 
+  var df = new goog.async.Deferred();
   var me = this;
   var store = this.schema.getStore(cursor.store_name);
   if (!store) {
@@ -674,15 +674,48 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
           cur['continue']();
         }
       }
+
       cursor.has_done = false;
       cursor.counter++;
       cursor.store_key = cur.key;
       cursor.index_key = cur.primaryKey;
-      on_success(cur.value);
+
+      var i_cursor = {
+        'key': cur.key,
+        'indexKey': cur.primaryKey,
+        'value': cur.value
+      };
+      if (mode === 'readwrite') {
+        // TODO: optimization
+        i_cursor['clear'] = function() {
+          var req = cur['delete']();
+          var del_df = new goog.async.Deferred();
+          req.onerror = function(e) {
+            del_df.errback(e);
+          };
+          req.onsuccess = function(x) {
+            del_df.callback(x);
+          };
+          return del_df;
+        };
+        i_cursor['update'] = function(value) {
+          var req = cur.update(value);
+          var del_df = new goog.async.Deferred();
+          req.onerror = function(e) {
+            del_df.errback(e);
+          };
+          req.onsuccess = function(x) {
+            del_df.callback(x);
+          };
+          return del_df;
+        }
+      }
+
+      callback(i_cursor);
       cur['continue']();
     } else {
       cursor.has_done = true;
-      on_completed();
+      df.callback(true);
     }
   };
 
@@ -690,7 +723,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, on_success, on_completed,
     on_error(event);
   };
 
-
+  return df;
 };
 
 
