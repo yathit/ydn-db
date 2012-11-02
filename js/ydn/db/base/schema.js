@@ -524,6 +524,34 @@ ydn.db.schema.Store.prototype.getColumns = function() {
   return this.columns_;
 };
 
+
+/**
+ *
+ * @return {string} store name.
+ */
+ydn.db.schema.Store.prototype.getName = function() {
+  return this.name;
+};
+
+
+/**
+ *
+ * @return {boolean} autoIncrement
+ */
+ydn.db.schema.Store.prototype.getAutoIncrement = function() {
+  return this.autoIncrement;
+};
+
+
+/**
+ *
+ * @return {string?} keyPath
+ */
+ydn.db.schema.Store.prototype.getKeyPath = function() {
+  return this.keyPath;
+};
+
+
 /**
  *
  * @return {!Array.<string>} list of index names.
@@ -702,7 +730,7 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
  */
 ydn.db.schema.Store.prototype.equals = function(store) {
   return this.name === store.name &&
-    ydn.object.isSame(this.toJSON(), store.toJSON());
+    ydn.object.equals(this.toJSON(), store.toJSON());
 };
 
 
@@ -934,6 +962,15 @@ ydn.db.schema.Database.prototype.getStoreNames = function() {
  */
 ydn.db.schema.Database.prototype.store = function(idx) {
   return this.stores[idx] || null;
+};
+
+
+/**
+ *
+ * @return {number} number of store.
+ */
+ydn.db.schema.Database.prototype.count = function() {
+  return this.stores.length;
 };
 
 

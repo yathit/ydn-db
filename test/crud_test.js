@@ -9,8 +9,8 @@ goog.require('goog.testing.PropertyReplacer');
 var reachedFinalContinuation, schema, debug_console, db, objs;
 
 var db_name = 'test_crud_3';
-var table_name = 'st';
-
+var table_name = 'st_inline';
+var table_name_offline = 'st_offline';
 
 
 var setUp = function () {
@@ -27,8 +27,9 @@ var setUp = function () {
   //ydn.db.con.IndexedDb.DEBUG = true;
   ydn.db.con.WebSql.DEBUG = true;
 
-  var stores = [new ydn.db.schema.Store(table_name, 'id')];
-  schema = new ydn.db.schema.Database(1, stores);
+  var stores = [new ydn.db.schema.Store(table_name, 'id'),
+    new ydn.db.schema.Store(table_name_offline)];
+  schema = new ydn.db.schema.Database(undefined, stores);
 
 
 };
@@ -149,9 +150,82 @@ var test_13_put_array = function() {
 };
 
 
+var test_21_get_inline = function() {
+  var db_name = 'test_crud_21_2';
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var key = Math.ceil(Math.random()*1000);
+  var value = {id: key, value: 'a' + Math.random()};
+
+  var done = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return done; },
+    // Continuation
+    function() {
+      assertEquals('length', value.value, result.value);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
 
 
-var test_22_get_array = function() {
+  db.put(table_name, value).addCallback(function(k) {
+    console.log('key: ' + k);
+  });
+
+  db.get(table_name, key).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    result = value;
+    done = true;
+  }).addErrback(function(e) {
+      done = true;
+      console.log('Error: ' + e);
+    });
+};
+
+
+var test_22_get_offline = function() {
+  var db_name = 'test_crud_21_2';
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var key = Math.ceil(Math.random()*1000);
+  var value = {value: 'a' + Math.random()};
+
+  var done = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return done; },
+    // Continuation
+    function() {
+      assertEquals('value', value.value, result.value);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+
+  db.put(table_name_offline, value, key);
+
+  db.get(table_name_offline, key).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    result = value;
+    done = true;
+  }).addErrback(function(e) {
+      done = true;
+      console.log('Error: ' + e);
+    });
+};
+
+
+
+var test_23_get_array = function() {
   var db_name = 'test_crud_21_2';
   var db = new ydn.db.Storage(db_name, schema, options);
 
@@ -456,7 +530,7 @@ var test_51_array_key = function() {
   var db_name = 'test_crud_41_2';
 
   var stores = [new ydn.db.schema.Store(table_name, 'id', false, ydn.db.schema.DataType.ARRAY)];
-  var schema = new ydn.db.schema.Database(1, stores);
+  var schema = new ydn.db.schema.Database(undefined, stores);
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var key_test = function(key) {

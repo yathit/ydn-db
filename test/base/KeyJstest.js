@@ -58,11 +58,11 @@ ydn.db.KeyJstest.prototype.test_parent_key = function() {
   var key2 = new ydn.db.Key(store2, id2, key1);
   var json2 = key2.toJSON();
 
-  assertTrue('parent', ydn.object.isSame(json1, json2.parent));
+  assertTrue('parent', ydn.object.equals(json1, json2.parent));
 
   var key22 = new ydn.db.Key(json2);
   var json22 = key22.toJSON();
-  assertTrue('parent', ydn.object.isSame(json1, json2.parent));
+  assertTrue('parent', ydn.object.equals(json1, json2.parent));
 };
 
 

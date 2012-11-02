@@ -35,47 +35,51 @@ ydn.db.req.SimpleStore = function(dbname, schema) {
 goog.inherits(ydn.db.req.SimpleStore, ydn.db.req.RequestExecutor);
 
 
-
 /**
-
-/**
+ * Extract key
  * @final
  * @protected
- * @param {string} store_name table name.
+ * @param {ydn.db.schema.Store} store table name.
  * @param {!Object} value object having key in keyPath field.
- * @return {string|number} canonical key name.
+ * @return {string} canonical key name.
  */
-ydn.db.req.SimpleStore.prototype.extractKey = function(store_name, value) {
-  var store = this.schema.getStore(store_name);
-  goog.asserts.assertObject(store, 'store: ' + store_name + ' not found.');
+ydn.db.req.SimpleStore.prototype.extractKey = function(store, value, opt_key) {
+
   var key;
-  // we don't need to check, because this function is not used by user.
-  goog.asserts.assertObject(value, 'id or object must be defined.');
+
   if (goog.isDef(store.keyPath)) {
     key = store.getKeyValue(value);
-  }
-  if (!goog.isDefAndNotNull(key)) {
-    key = store.generateKey();
+  } else if (goog.isDef(opt_key)) {
+    key = opt_key;
+  } else if (store.getAutoIncrement()) {
+    var store_key = this.makeKey(store);
+    var store_obj = ydn.json.parse(this.tx.getItem(store_key));
+    store_obj['autoIncrementNo']++;
+    key = store_obj['autoIncrementNo'];
+    this.tx.setItem(store_key, ydn.json.stringify(store_obj));
+  } else {
+    throw Error('No key provided.');
   }
 
-  key = ydn.db.schema.Index.js2sql(key, store.type);
-  return /** @type {string|number} */ (key);
+  return key;
 };
 
 
-
 /**
+ * Use store name and id to form a key to use in setting key to storage.
  * @protected
  * @final
  * @param {ydn.db.schema.Store} store table name.
- * @param {(string|number|Date|!Array)} id id.
+ * @param {(string|number|Date|!Array)=} id id.
  * @return {string} canonical key name.
  */
 ydn.db.req.SimpleStore.prototype.makeKey = function(store, id) {
-  var s = ydn.db.schema.Index.js2sql(id, store.type);
-  return '_database_' + this.dbname + '-' + store.name + '-' + s;
+  var parts = [ydn.db.con.SimpleStorage.NAMESPACE, this.dbname, + store.name];
+  if (goog.isDef(id)) {
+    parts.push(ydn.db.utils.encodeKey(id));
+  }
+  return parts.join(ydn.db.con.SimpleStorage.SEP);
 };
-
 
 
 /**
@@ -102,42 +106,33 @@ ydn.db.req.SimpleStore.prototype.getItemInternal = function(store_name, id) {
 
 /**
  *
- * @param {*} value the value.
- * @param {string} store_name_or_key store name or key.
- * @param {(string|number)=} id key.
+ * @param {!Object} value the value.
+ * @param {string} store_name store name.
+ * @param {*=} id key.
+ * @return {string} key
  * @protected
  * @final
  */
 ydn.db.req.SimpleStore.prototype.setItemInternal = function(value,
-        store_name_or_key, id) {
-  var key;
-  if (goog.isDef(id)) {
-    var store = this.schema.getStore(store_name_or_key);
-    key = this.makeKey(store, id);
-  } else {
-    key = store_name_or_key;
-  }
-
-  this.tx.setItem(key, value);
+        store_name, id) {
+  var store = this.schema.getStore(store_name);
+  goog.asserts.assertObject(value);
+  var key = this.extractKey(store, value, id);
+  this.tx.setItem(key, ydn.json.stringify(value));
+  return key;
 };
 
 
 /**
  *
- * @param {string} store_name_or_key store name or key.
- * @param {(!Array|string|number)=} id  id.
+ * @param {string} store_name store name or key.
+ * @param {(!Array|string|number)} id  id.
  * @protected
  * @final
  */
-ydn.db.req.SimpleStore.prototype.removeItemInternal = function(
-  store_name_or_key, id) {
-  var key;
-  if (goog.isDef(id)) {
-    var store = this.schema.getStore(store_name_or_key);
-    key = this.makeKey(store, id);
-  } else {
-    key = store_name_or_key;
-  }
+ydn.db.req.SimpleStore.prototype.removeItemInternal = function(store_name, id){
+  var store = this.schema.getStore(store_name);
+  var key = this.makeKey(store, id);
   this.tx.removeItem(key);
 };
 
@@ -147,7 +142,6 @@ ydn.db.req.SimpleStore.prototype.removeItemInternal = function(
  * @define {boolean} use sync result.
  */
 ydn.db.req.SimpleStore.SYNC = true;
-
 
 
 /**
@@ -188,11 +182,11 @@ ydn.db.req.SimpleStore.succeed = function(value) {
  * @param {!goog.async.Deferred} df return key in deferred function.
  * @param {string} table table name.
 * @param {!Object} value object to put.
+ * @param {(!Array|string|number)=} opt_key optional out-of-line key.
 */
-ydn.db.req.SimpleStore.prototype.putObject = function(df, table, value) {
-  var key = this.extractKey(table, value);
-  var value_str = ydn.json.stringify(value);
-  this.setItemInternal(value_str, table, key);
+ydn.db.req.SimpleStore.prototype.putObject = function(
+      df, table, value, opt_key) {
+  var key = this.setItemInternal(value, table, opt_key);
   df.callback(key);
 };
 
@@ -201,15 +195,14 @@ ydn.db.req.SimpleStore.prototype.putObject = function(df, table, value) {
  * @param {!goog.async.Deferred} df return key in deferred function.
  * @param {string} table table name.
  * @param {Array.<!Object>} value object to put.
+ * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
  */
-ydn.db.req.SimpleStore.prototype.putObjects = function(df, table, value) {
+ydn.db.req.SimpleStore.prototype.putObjects = function(
+      df, table, value, opt_key) {
 
   var result = [];
   for (var i = 0; i < value.length; i++) {
-    var key = this.extractKey(table, value[i]);
-    var value_str = ydn.json.stringify(value[i]);
-    this.setItemInternal(value_str, table, key);
-    result.push(key);
+    result[i] = this.setItemInternal(value[i], table, opt_key);
   }
 
   df.callback(result);
@@ -225,7 +218,6 @@ ydn.db.req.SimpleStore.prototype.putObjects = function(df, table, value) {
 ydn.db.req.SimpleStore.prototype.getById = function(df, store_name, id) {
   df.callback(this.getItemInternal(store_name, id));
 };
-
 
 
 /**

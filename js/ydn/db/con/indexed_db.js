@@ -218,16 +218,21 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
             }
           };
 
-          if (goog.isFunction(goog.global['IDBOpenDBRequest'])) {
-            var next_version = db.version + 1;
+          if ('IDBOpenDBRequest' in goog.global) {
+
+            var next_version = goog.isNumber(db.version) ? db.version + 1 : 1;
             db.close();
-            var req = ydn.db.con.IndexedDb.indexedDb.open(dbname, next_version);
+            var req = ydn.db.con.IndexedDb.indexedDb.open(dbname,
+              /** @type {string} */ (next_version));
             req.onupgradeneeded = function(ev) {
               var db = ev.target.result;
-              me.logger.finer('upgrade needed for version ' + db.version);
-              updateSchema(db, openRequest['transaction'], false);
+              me.logger.finer('re-open for version ' + db.version);
+              updateSchema(db, req['transaction'], false);
 
             };
+            req.onsuccess = function(ev) {
+              setDb(ev.target.result);
+            }
           } else if (goog.isFunction(db.setVersion)) {
             var ver_request = db.setVersion(/** @type {string} */ (version));
 
