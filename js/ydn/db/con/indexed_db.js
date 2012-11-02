@@ -232,7 +232,11 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
             };
             req.onsuccess = function(ev) {
               setDb(ev.target.result);
-            }
+            };
+            req.onerror = function(e) {
+              me.logger.finer(me + ': fail.');
+              setDb(null);
+            };
           } else if (goog.isFunction(db.setVersion)) {
             var ver_request = db.setVersion(/** @type {string} */ (version));
 

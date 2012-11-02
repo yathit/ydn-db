@@ -47,7 +47,7 @@ ydn.db.req.SimpleStore.prototype.extractKey = function(store, value, opt_key) {
 
   var key;
 
-  if (goog.isDef(store.keyPath)) {
+  if (goog.isDefAndNotNull(store.keyPath)) {
     key = store.getKeyValue(value);
   } else if (goog.isDef(opt_key)) {
     key = opt_key;
@@ -109,7 +109,7 @@ ydn.db.req.SimpleStore.prototype.getItemInternal = function(store_name, id) {
  * @param {!Object} value the value.
  * @param {string} store_name store name.
  * @param {*=} id key.
- * @return {string} key
+ * @return {string} key key.
  * @protected
  * @final
  */
@@ -117,9 +117,14 @@ ydn.db.req.SimpleStore.prototype.setItemInternal = function(value,
         store_name, id) {
   var store = this.schema.getStore(store_name);
   goog.asserts.assertObject(value);
-  var key = this.extractKey(store, value, id);
-  this.tx.setItem(key, ydn.json.stringify(value));
-  return key;
+  var obj_id = this.extractKey(store, value, id);
+  var key = this.makeKey(store, obj_id);
+  var str = ydn.json.stringify(value);
+  if (ydn.db.req.SimpleStore.DEBUG) {
+    window.console.log(['setItemInternal', obj_id, key, str]);
+  }
+  this.tx.setItem(key, str);
+  return obj_id;
 };
 
 
@@ -142,6 +147,13 @@ ydn.db.req.SimpleStore.prototype.removeItemInternal = function(store_name, id){
  * @define {boolean} use sync result.
  */
 ydn.db.req.SimpleStore.SYNC = true;
+
+
+/**
+ *
+ * @type {boolean} debug flag. should always be false.
+ */
+ydn.db.req.SimpleStore.DEBUG = false;
 
 
 /**

@@ -342,7 +342,7 @@ var test_24_get_all_no_data = function() {
 
 
   var q = new ydn.db.Cursor(table_name);
-  db.fetch(q).addCallback(function(value) {
+  db.list(q).addCallback(function(value) {
     //console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
