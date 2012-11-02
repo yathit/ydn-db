@@ -663,7 +663,8 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
           if (cue) {
             me.logger.warning('Resume corrupt on ' + cursor.store_name + ':' +
                 cursor.store_key + ':' + cursor.index_key);
-            on_error(new ydn.db.InvalidStateError());
+            df.errback(new ydn.db.InvalidStateError());
+            return;
           }
           cue = true;
           cur['continue'](cursor.key);
@@ -720,7 +721,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
   };
 
   request.onerror = function(event) {
-    on_error(event);
+    df.errback(event);
   };
 
   return df;

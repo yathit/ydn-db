@@ -2,7 +2,7 @@
 ydn.debug.log('ydn.db', 100);
 
 var options = {}; // options = {Mechanisms: ['websql']};
-var db_name_tck1 = "qunit_test_10";
+var db_name_tck1 = "qunit_test_11";
 var store_inline = "ts";    // in-line key store
 var store_inline_string = "tss";    // in-line key store
 var store_outline = "ts2"; // out-of-line key store
@@ -18,7 +18,6 @@ var data_2 = { test:"test value", name:"name 2" };
 var gdata_1 = { test:"test value", name:"name 3", id: {$t: 1} };
 
 var schema_1 = {
-  version: 1,
   Stores: [
     {
       name: store_inline,
