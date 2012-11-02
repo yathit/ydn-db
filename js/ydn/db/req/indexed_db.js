@@ -581,6 +581,9 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
     goog.asserts.assert(cursor.store_key);
   }
 
+  /**
+   * @type {IDBObjectStore}
+   */
   var obj_store;
   try {
     obj_store = this.tx.objectStore(store.name);
@@ -594,6 +597,12 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
       throw e; // InvalidStateError: we can't do anything about it ?
     }
   }
+
+  /**
+   * externs file fix.
+   * @type {DOMStringList}
+   */
+  var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
 
   if (cursor.has_done === false) {  // continue the iteration
     goog.asserts.assert(cursor.store_key);
@@ -611,7 +620,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
         index = obj_store.index(cursor.index);
       } catch (e) {
         if (goog.DEBUG && e.name == 'NotFoundError') {
-          var msg = obj_store.indexNames.contains(cursor.index) ?
+          var msg = indexNames.contains(cursor.index) ?
               'index: ' + cursor.index + ' of ' + obj_store.name +
                   ' not in transaction scope' :
               'index: ' + cursor.index + ' not found in store: ' +
@@ -768,6 +777,12 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map,
     q.counter = 0;
   }
 
+  /**
+   * externs file fix.
+   * @type {DOMStringList}
+   */
+  var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
+
   var index = null;
   if (goog.isDefAndNotNull(q.index)) {
     if (q.index != store.keyPath) {
@@ -775,7 +790,7 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map,
         index = obj_store.index(q.index);
       } catch (e) {
         if (goog.DEBUG && e.name == 'NotFoundError') {
-          var msg = obj_store.indexNames.contains(q.index) ?
+          var msg = indexNames.contains(q.index) ?
               'index: ' + q.index + ' of ' + obj_store.name +
                   ' not in transaction scope' :
               'index: ' + q.index + ' not found in store: ' + obj_store.name;
@@ -924,6 +939,12 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
     }
   }
 
+  /**
+   * externs file fix.
+   * @type {DOMStringList}
+   */
+  var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
+
   var index = null;
 
   if (goog.isDefAndNotNull(q.index)) {
@@ -932,7 +953,7 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
         index = obj_store.index(q.index);
       } catch (e) {
         if (goog.DEBUG && e.name == 'NotFoundError') {
-          var msg = obj_store.indexNames.contains(q.index) ?
+          var msg = indexNames.contains(q.index) ?
               'index: ' + q.index + ' of ' + obj_store.name +
                   ' not in transaction scope' :
               'index: ' + q.index + ' not found in store: ' + obj_store.name;

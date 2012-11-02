@@ -49,7 +49,7 @@ ydn.db.req.RequestExecutor.prototype.logger =
 
 /**
  *
- * @type {SQLTransaction|IDBTransaction|Object}
+ * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
  * @protected
  */
 ydn.db.req.RequestExecutor.prototype.tx = null;
@@ -64,7 +64,7 @@ ydn.db.req.RequestExecutor.prototype.scope = '?';
 
 /**
  *
- * @param {SQLTransaction|IDBTransaction|Object} tx transaction object.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx transaction object.
  * @param {string} scope scope for logistic purpose only.
  */
 ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {

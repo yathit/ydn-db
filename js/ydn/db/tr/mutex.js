@@ -47,7 +47,7 @@ ydn.db.tr.Mutex.DEBUG = false;
 /**
  * Newly created transaction it push to mutex and lock.
  * @final
- * @param {!IDBTransaction|!SQLTransaction|!Object} tx the transaction object.
+ * @param {!IDBTransaction|!SQLTransaction|!ydn.db.con.SimpleStorage} tx the transaction object.
  * @param {string=} scope scope name.
  */
 ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
@@ -90,7 +90,7 @@ ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
 
 /**
  * Current transaction.
- * @type {!IDBTransaction|!SQLTransaction|Object}
+ * @type {!IDBTransaction|!SQLTransaction|ydn.db.con.SimpleStorage}
  * @private
  */
 ydn.db.tr.Mutex.prototype.idb_tx_ = null;
@@ -253,7 +253,7 @@ ydn.db.tr.Mutex.prototype.oncompleted = null;
  * Return current active transaction if available. Transaction consumer must
  * check {@link #isActiveAndAvailable} if this transaction object
  * should be used.
- * @return {IDBTransaction|SQLTransaction|Object} transaction object.
+ * @return {IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage} transaction object.
  */
 ydn.db.tr.Mutex.prototype.getTx = function() {
   return this.tx_;

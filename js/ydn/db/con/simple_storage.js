@@ -241,7 +241,7 @@ ydn.db.con.SimpleStorage.prototype.getCache = function() {
  */
 ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode,
                                                             oncompleted) {
-  trFn(this.cache_);
+  trFn(this);
   oncompleted(ydn.db.base.TransactionEventTypes.COMPLETE, {});
 };
 
@@ -262,3 +262,125 @@ ydn.db.con.SimpleStorage.prototype.getSchema = function(callback) {
   var schema = new ydn.db.schema.Database(this.dbname, stores);
   callback(schema);
 };
+
+
+
+/**
+ * Extract inline key from the object, out-of-line key as provided or generate
+ * from the store key generator.
+ * @final
+ * @protected
+ * @param {ydn.db.schema.Store} store table name.
+ * @param {!Object} value object having key in keyPath field.
+ * @return {string} key as seen by user.
+ */
+ydn.db.con.SimpleStorage.prototype.extractKey = function(store, value, opt_key) {
+
+  var key;
+
+  if (goog.isDefAndNotNull(store.keyPath)) {
+    key = store.getKeyValue(value);
+  } else if (goog.isDef(opt_key)) {
+    key = opt_key;
+  } else if (store.getAutoIncrement()) {
+    var store_key = this.makeKey(store);
+    var store_obj = ydn.json.parse(this.cache_.getItem(store_key));
+    store_obj['autoIncrementNo']++;
+    key = store_obj['autoIncrementNo'];
+    this.cache_.setItem(store_key, ydn.json.stringify(store_obj));
+  } else {
+    throw Error('No key provided.');
+  }
+
+  return key;
+};
+
+
+/**
+ * Use store name and id to form a key to use in setting key to storage.
+ * @protected
+ * @final
+ * @param {ydn.db.schema.Store} store table name.
+ * @param {(string|number|Date|!Array)=} id id.
+ * @return {string} canonical key name.
+ */
+ydn.db.con.SimpleStorage.prototype.makeKey = function(store, id) {
+  var parts = [ydn.db.con.SimpleStorage.NAMESPACE, this.dbname, + store.name];
+  if (goog.isDef(id)) {
+    parts.push(ydn.db.utils.encodeKey(id));
+  }
+  return parts.join(ydn.db.con.SimpleStorage.SEP);
+};
+
+
+/**
+ *
+ * @param {!ydn.db.schema.Store|string} store_name store schema or name.
+ * @param {(string|number|Date|!Array)} id id.
+ * @return {*} the value obtained.
+ * @final
+ */
+ydn.db.con.SimpleStorage.prototype.getItemInternal = function(store_name, id) {
+  var store = store_name instanceof ydn.db.schema.Store ?
+      store_name : this.schema.getStore(store_name);
+  var key = this.makeKey(store, id);
+  var value = this.cache_.getItem(key);
+  if (!goog.isNull(value)) {
+    value = ydn.json.parse(/** @type {string} */ (value));
+  } else {
+    value = undefined; // localStorage return null for not existing value
+  }
+  return value;
+};
+
+
+/**
+ *
+ * @param {!Object} value the value.
+ * @param {string} store_name store name.
+ * @param {*=} id optional out-of-line key.
+ * @return {string} key key as seen by user.
+ * @final
+ */
+ydn.db.con.SimpleStorage.prototype.setItemInternal = function(
+    value, store_name, id) {
+  var store = this.schema.getStore(store_name);
+  goog.asserts.assertObject(value);
+  var obj_id = this.extractKey(store, value, id);
+  var key = this.makeKey(store, obj_id);
+  var str = ydn.json.stringify(value);
+  if (ydn.db.req.SimpleStore.DEBUG) {
+    window.console.log(['setItemInternal', obj_id, key, str]);
+  }
+  this.cache_.setItem(key, str);
+  return obj_id;
+};
+
+
+/**
+ *
+ * @param {string} store_name store name or key.
+ * @param {(!Array|string|number)} id  id.
+ * @final
+ */
+ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(
+    store_name, id){
+  var store = this.schema.getStore(store_name);
+  var key = this.makeKey(store, id);
+  this.cache_.removeItem(key);
+};
+
+
+
+/**
+ * @final
+ * @protected
+ * @param {string|number} id id.
+ * @param {ydn.db.schema.Store|string} store table name.
+ * @return {string} canonical key name.
+ */
+ydn.db.con.SimpleStorage.prototype.getKeyValue = function(id, store) {
+  var store_name = store instanceof ydn.db.schema.Store ? store.name : store;
+  return '_database_' + this.dbname + '-' + store_name + '-' + id;
+};
+
