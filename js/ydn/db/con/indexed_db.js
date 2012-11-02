@@ -170,11 +170,11 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
     // is not the same effect as open('name');
     openRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname);
   } else {
-    openRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname,
+    openRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname, version);
     // version could be number (new) or string (old).
     // casting is for old externs uncorrected defined as string
     // old version will think, version as description.
-    /** @type {string} */ (version));
+
   }
 
 
@@ -218,12 +218,12 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
             }
           };
 
-          if ('IDBOpenDBRequest' in goog.global) {
+          var next_version = goog.isNumber(db.version) ? db.version + 1 : 1;
 
-            var next_version = goog.isNumber(db.version) ? db.version + 1 : 1;
+          if ('IDBOpenDBRequest' in goog.global) {
             db.close();
-            var req = ydn.db.con.IndexedDb.indexedDb.open(dbname,
-              /** @type {string} */ (next_version));
+            var req = ydn.db.con.IndexedDb.indexedDb.open(
+              dbname, /** @type {number} */ (next_version));
             req.onupgradeneeded = function(ev) {
               var db = ev.target.result;
               me.logger.finer('re-open for version ' + db.version);
@@ -237,12 +237,12 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
               me.logger.finer(me + ': fail.');
               setDb(null);
             };
-          } else if (goog.isFunction(db.setVersion)) {
-            var ver_request = db.setVersion(/** @type {string} */ (version));
+          } else {
+            var ver_request = db.setVersion(next_version + '');
 
             ver_request.onfailure = function(e) {
               me.logger.warning('migrating from ' + db.version + ' to ' +
-                schema.getVersion() + ' failed.');
+                next_version + ' failed.');
               setDb(null, e);
             };
 
@@ -271,8 +271,6 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
               };
             };
 
-          } else {
-            throw new ydn.error.InternalError('Unknown standard.');
           }
 
         } else {
