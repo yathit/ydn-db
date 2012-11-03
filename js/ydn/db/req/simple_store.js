@@ -127,29 +127,23 @@ ydn.db.req.SimpleStore.prototype.getById = function(df, store_name, id) {
 * @inheritDoc
 */
 ydn.db.req.SimpleStore.prototype.getByStore = function(df, opt_store_name) {
-  var arr = [];
-  var collect = function(store_name) {
-    for (var item in this.tx) {
-      if (this.tx.hasOwnProperty(item)) {
-        if (goog.string.startsWith(item, '_database_' + this.dbname + '-' +
-            store_name)) {
-          var value = this.getTx().getItemInternal(item);
-          arr.push(ydn.json.parse(
-              /** @type {string} */ (value)));
-        }
+
+  goog.Timer.callOnce(function() {
+
+    var arr = [];
+    if (goog.isString(opt_store_name)) {
+      arr = this.tx.getKeys(opt_store_name);
+    } else {
+      var store_names = goog.isArray(opt_store_name) ?
+          opt_store_name : this.schema.getStoreNames();
+      for (var i = 0; i < store_names.length; i++) {
+        arr = arr.concat(this.tx.getKeys(store_names[i]));
       }
     }
-  };
 
-  if (goog.isString(opt_store_name)) {
-    collect(opt_store_name);
-  } else {
-    for (var i = 0; i < this.schema.stores.length; i++) {
-      collect(this.schema.stores[i].name);
-    }
-  }
+    df.callback(arr);
+  }, 0, this);
 
-  df.callback(arr);
 };
 
 
@@ -220,25 +214,19 @@ ydn.db.req.SimpleStore.prototype.clearByStore = function(df, opt_table) {
 /**
 * Get number of items stored.
  * @param {!goog.async.Deferred} df return number of items in deferred function.
- * @param {!Array.<string>}  tables table name.
+ * @param {!Array.<string>}  store_names table name.
 */
-ydn.db.req.SimpleStore.prototype.countStores = function(df, tables) {
+ydn.db.req.SimpleStore.prototype.countStores = function (df, store_names) {
 
-  var store = tables[0];
-  var pre_fix = '_database_' + this.dbname;
-  if (goog.isDef(store)) {
-    pre_fix += '-' + store;
-  }
-
-  var n = 0;
-  for (var key in this.tx) {
-    if (this.tx.hasOwnProperty(key)) {
-      if (goog.string.startsWith(key, pre_fix)) {
-        n++;
-      }
+  goog.Timer.callOnce(function () {
+    var n = 0;
+    for (var i = 0; i < store_names.length; i++) {
+      var arr = this.tx.getKeys(store_names[i]);
+      n += arr.length;
     }
-  }
-  df.callback(n);
+    df.callback(n);
+  }, 0, this);
+
 };
 
 /**

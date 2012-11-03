@@ -150,6 +150,44 @@ var test_13_put_array = function() {
 };
 
 
+var test_14_put_large_array = function() {
+  var db_name = 'test_crud_ 13_2';
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var arr = [];
+  var n = 1500;
+  for (var i = 0; i < n; i++) {
+    arr.push({id: i, value: 'a' + Math.random()});
+  }
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('length', arr.length, results.length);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put(table_name, arr).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    results = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+        hasEventFired = true;
+        console.log('Error: ' + e);
+      });
+};
+
+
+
 var test_21_get_inline = function() {
   var db_name = 'test_crud_21_2';
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -268,7 +306,7 @@ var test_23_get_array = function() {
 };
 
 
-var test_23_get_array = function() {
+var test_24_get_array = function() {
   var db_name = 'test_crud_23 _2';
   var db = new ydn.db.Storage(db_name, schema, options);
 
@@ -314,6 +352,50 @@ var test_23_get_array = function() {
     });
 };
 
+
+var test_25_get_large_array = function() {
+  var db_name = 'test_crud_23 _2';
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var arr = [];
+  var ids = [];
+  var n = 1500;
+  for (var i = 0; i < n; i++) {
+    ids[i] = i;
+    arr[i] = {id: i, value: 'a' + Math.random()};
+  }
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('length', ids.length, results.length);
+        var cids = [0, 500, 1000, 1450];
+        for (var i = 0; i < cids.length; i++) {
+          var id = cids[i];
+          assertEquals('of ' + id, arr[id].value, results[id].value);
+        }
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(table_name, arr);
+
+  db.list(table_name, ids).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    results = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+        hasEventFired = true;
+        console.log('Error: ' + e);
+      });
+};
 
 
 var test_24_get_all_no_data = function() {

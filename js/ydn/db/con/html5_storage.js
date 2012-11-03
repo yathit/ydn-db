@@ -27,6 +27,7 @@ goog.require('ydn.db.con.SimpleStorage');
  * @constructor
  */
 ydn.db.con.LocalStorage = function() {
+  goog.asserts.assertObject(window.localStorage);
   goog.base(this, window.localStorage);
 };
 goog.inherits(ydn.db.con.LocalStorage, ydn.db.con.SimpleStorage);
@@ -61,6 +62,7 @@ ydn.db.con.LocalStorage.prototype.type = function() {
  * @constructor
  */
 ydn.db.con.SessionStorage = function() {
+  goog.asserts.assertObject(window.sessionStorage);
   goog.base(this, window.sessionStorage);
 };
 goog.inherits(ydn.db.con.SessionStorage, ydn.db.con.SimpleStorage);
