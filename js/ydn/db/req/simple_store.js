@@ -193,20 +193,14 @@ ydn.db.req.SimpleStore.prototype.clearById = function(df, table, id) {
 /**
  * @inheritDoc
 */
-ydn.db.req.SimpleStore.prototype.clearByStore = function(df, opt_table) {
+ydn.db.req.SimpleStore.prototype.clearByStore = function(df, stores) {
 
-  var tables_to_clear = goog.isDef(opt_table) ?
-    [opt_table] : this.schema.listStores();
-  for (var key in this.tx) {
-    if (this.tx.hasOwnProperty(key)) {
-      for (var table, i = 0; table = tables_to_clear[i]; i++) {
-        if (goog.string.startsWith(key, '_database_' + this.dbname + '-' +
-          table)) {
-          delete this.tx[key];
-        }
-      }
-    }
+  var store_names = goog.isString(stores) ? [stores] : stores;
+
+  for (var i = 0; i < store_names.length; i++) {
+    this.tx.removeItemInternal(store_names[i]);
   }
+
   df.callback(true);
 };
 

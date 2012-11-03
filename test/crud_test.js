@@ -471,7 +471,7 @@ var test_31_count_store = function() {
   var n = Math.ceil(Math.random() * 10 + 1);
   var arr = [];
   for (var i = 0; i < n; i++) {
-    arr.push({id: i});
+    arr[i] = {id: i};
   }
 
   var store_1 = 'st1';
@@ -481,7 +481,9 @@ var test_31_count_store = function() {
   var db = new ydn.db.Storage(db_name, schema, options);
 
   db.clear(store_1);
-  db.put(store_1, arr);
+  db.put(store_1, arr).addCallback(function(keys) {
+    console.log(keys);
+  });
 
   var done = false;
   var count;
@@ -562,6 +564,7 @@ var test_33_count_database = function() {
 
 var test_41_clear_store = function() {
   var db = new ydn.db.Storage(db_name, schema, options);
+  db.put(table_name, {id: 1});
 
   var hasEventFired = false;
   var put_value;
