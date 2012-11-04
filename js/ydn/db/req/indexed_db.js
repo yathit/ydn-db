@@ -688,6 +688,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
           if (cur.primaryKey == cursor.index_key) {
             resume = false; // got it
           }
+          // we still need to skip the current position.
           cur['continue']();
           return;
         }
@@ -698,13 +699,31 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
       cursor.store_key = cur.key;
       cursor.index_key = cur.primaryKey;
 
-      var i_cursor = mode == 'keyonly' ?
-          new ydn.db.IDBCursor(cur, []) :
-          new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
+      var to_advance = goog.isFunction(cursor.advance) &&
+          cursor.advance(cur.value);
+      if (goog.isNumber(to_advance) && to_advance > 0) {
+        cur.advance(to_advance);
+        return;
+      }
 
-      callback(i_cursor);
-      cur['continue']();
-      i_cursor.dispose();
+      var to_continue = !goog.isFunction(cursor.continued) ||
+          cursor.continued(cur.value);
+
+      if (!goog.isFunction(cursor.filter) || cursor.filter(cur.value)) {
+
+        var i_cursor = mode == 'keyonly' ?
+            new ydn.db.IDBCursor(cur, []) :
+            new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
+
+        callback(i_cursor);
+        i_cursor.dispose();
+
+        if (to_continue) {
+          cur['continue']();
+        }
+      } else {
+        cur['continue']();
+      }
     } else {
       cursor.has_done = true;
       df.callback(true);
