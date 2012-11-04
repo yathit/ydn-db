@@ -635,7 +635,7 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
 
 /**
  * @param {!goog.async.Deferred} df promise.
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Sql} q query.
  */
 ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
 

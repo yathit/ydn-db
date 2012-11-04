@@ -260,10 +260,10 @@ ydn.db.tr.TxStorage.prototype.pushTxQueue = function(trFn, store_names,
 //      // pop queue will call whenever transaction is finished.
 //    }
 //  }
-  if (this.trQueue_.length > ydn.db.con.Storage.MAX_QUEUE) {
-    this.logger.warning('Maximum queue size exceed, dropping the first job.');
-    this.trQueue_.shift();
-  }
+//  if (this.trQueue_.length > ydn.db.con.Storage.MAX_QUEUE) {
+//    this.logger.warning('Maximum queue size exceed, dropping the first job.');
+//    this.trQueue_.shift();
+//  }
 
 };
 

@@ -21,25 +21,25 @@ goog.exportProperty(ydn.db.Cursor.prototype, 'key',
 goog.exportProperty(ydn.db.Cursor.prototype, 'indexKey',
   ydn.db.Cursor.prototype.indexKey);
 
-goog.exportSymbol('ydn.db.Query', ydn.db.Query);
-goog.exportProperty(ydn.db.Query.prototype, 'map',
-    ydn.db.Query.prototype.map);
-goog.exportProperty(ydn.db.Query.prototype, 'reduce',
-  ydn.db.Query.prototype.reduce);
-goog.exportProperty(ydn.db.Query.prototype, 'where',
-    ydn.db.Query.prototype.where);
-goog.exportProperty(ydn.db.Query.prototype, 'from',
-    ydn.db.Query.prototype.from);
-goog.exportProperty(ydn.db.Query.prototype, 'limit',
-  ydn.db.Query.prototype.limit);
-goog.exportProperty(ydn.db.Query.prototype, 'order',
-  ydn.db.Query.prototype.order);
-goog.exportProperty(ydn.db.Query.prototype, 'offset',
-  ydn.db.Query.prototype.offset);
-goog.exportProperty(ydn.db.Query.prototype, 'reverse',
-  ydn.db.Query.prototype.reverse);
-goog.exportProperty(ydn.db.Query.prototype, 'unique',
-  ydn.db.Query.prototype.unique);
+goog.exportSymbol('ydn.db.Sql', ydn.db.Sql);
+goog.exportProperty(ydn.db.Sql.prototype, 'map',
+    ydn.db.Sql.prototype.map);
+goog.exportProperty(ydn.db.Sql.prototype, 'reduce',
+  ydn.db.Sql.prototype.reduce);
+goog.exportProperty(ydn.db.Sql.prototype, 'where',
+    ydn.db.Sql.prototype.where);
+goog.exportProperty(ydn.db.Sql.prototype, 'from',
+    ydn.db.Sql.prototype.from);
+goog.exportProperty(ydn.db.Sql.prototype, 'limit',
+  ydn.db.Sql.prototype.limit);
+goog.exportProperty(ydn.db.Sql.prototype, 'order',
+  ydn.db.Sql.prototype.order);
+goog.exportProperty(ydn.db.Sql.prototype, 'offset',
+  ydn.db.Sql.prototype.offset);
+goog.exportProperty(ydn.db.Sql.prototype, 'reverse',
+  ydn.db.Sql.prototype.reverse);
+goog.exportProperty(ydn.db.Sql.prototype, 'unique',
+  ydn.db.Sql.prototype.unique);
 
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);

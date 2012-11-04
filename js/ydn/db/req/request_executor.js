@@ -13,7 +13,7 @@ goog.require('goog.debug.Logger');
 goog.require('ydn.db.Cursor');
 goog.require('ydn.db.InternalError');
 goog.require('ydn.db.Key');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.Sql');
 
 
 
@@ -178,7 +178,7 @@ ydn.db.req.RequestExecutor.prototype.countKeyRange = goog.abstractMethod;
 
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
- * @param {!ydn.db.Query} q the query.
+ * @param {!ydn.db.Sql} q the query.
  */
 ydn.db.req.RequestExecutor.prototype.fetchQuery = goog.abstractMethod;
 

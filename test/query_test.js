@@ -91,7 +91,7 @@ var test_11_cursor_constructor = function() {
 var test_12_query_where = function() {
   var lower = 1;
   var upper = 5;
-  var query = new ydn.db.Query().from(store_name);
+  var query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '>', lower);
   var cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
@@ -99,7 +99,7 @@ var test_12_query_where = function() {
   assertUndefined('upper', cursor.keyRange.upper);
   assertTrue('lowerOpen', cursor.keyRange.lowerOpen);
 
-  query = new ydn.db.Query().from(store_name);
+  query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '>=', lower);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
@@ -107,7 +107,7 @@ var test_12_query_where = function() {
   assertUndefined('upper', cursor.keyRange.upper);
   assertFalse('lowerOpen', cursor.keyRange.lowerOpen);
 
-  query = new ydn.db.Query().from(store_name);
+  query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '<', lower);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
@@ -115,7 +115,7 @@ var test_12_query_where = function() {
   assertUndefined('lower', cursor.keyRange.lower);
   assertTrue('upperOpen', cursor.keyRange.upperOpen);
 
-  query = new ydn.db.Query().from(store_name);
+  query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '<=', lower);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
@@ -123,7 +123,7 @@ var test_12_query_where = function() {
   assertUndefined('lower', cursor.keyRange.lower);
   assertFalse('upperOpen', cursor.keyRange.upperOpen);
 
-  query = new ydn.db.Query().from(store_name);
+  query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '=', lower);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
@@ -140,7 +140,7 @@ var test_13_query_where = function() {
   var upper = 5;
   var query, cursor;
 
-  query = new ydn.db.Query().from(store_name);
+  query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '>', lower, '<', upper);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
@@ -149,7 +149,7 @@ var test_13_query_where = function() {
   assertTrue('lowerOpen', cursor.keyRange.lowerOpen);
   assertTrue('upperOpen', cursor.keyRange.upperOpen);
 
-  query = new ydn.db.Query().from(store_name);
+  query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '>=', lower, '<=', upper);
   cursor = query.toCursor(schema);
   assertNotNull(cursor.keyRange);
@@ -295,7 +295,7 @@ var test_4_average = function() {
 
 /**
  *
- * @param {ydn.db.Query} q
+ * @param {ydn.db.Sql} q
  * @param {Array} exp_result
  */
 var where_test = function(q, exp_result) {

@@ -117,7 +117,7 @@ ydn.db.Storage.prototype.getWrapper = function() {
 
 
 /**
- * @param {!ydn.db.Cursor|!ydn.db.Query} q query.
+ * @param {!ydn.db.Cursor|!ydn.db.Sql} q query.
  * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.Storage.prototype.fetch = function(q) {

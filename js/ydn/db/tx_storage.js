@@ -152,7 +152,7 @@ ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
 
 
 /**
- * @param {!ydn.db.Cursor|!ydn.db.Query} q query.
+ * @param {!ydn.db.Cursor|!ydn.db.Sql} q query.
  * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.TxStorage.prototype.fetch = function(q) {
@@ -160,7 +160,7 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
   var df = ydn.db.base.createDeferred();
 
   var query, cursor;
-  if (q instanceof ydn.db.Query) {
+  if (q instanceof ydn.db.Sql) {
     query = q;
     var store_name = query.getStoreName();
     var store = this.schema.getStore(store_name);

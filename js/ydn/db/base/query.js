@@ -20,7 +20,7 @@
  */
 
 
-goog.provide('ydn.db.Query');
+goog.provide('ydn.db.Sql');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.schema.Database');
@@ -34,7 +34,7 @@ goog.require('ydn.string');
  * @param {string=} sql_statement The sql statement.
  * @constructor
  */
-ydn.db.Query = function(sql_statement) {
+ydn.db.Sql = function(sql_statement) {
   // Note for V8 optimization, declare all properties in constructor.
   if (goog.isDef(sql_statement) && !goog.isString(sql_statement)) {
     throw new ydn.error.ArgumentException();
@@ -61,21 +61,21 @@ ydn.db.Query = function(sql_statement) {
  *
  * @type {string}
  */
-ydn.db.Query.prototype.store_name = '';
+ydn.db.Sql.prototype.store_name = '';
 
 
 /**
  *
  * @type {string|undefined}
  */
-ydn.db.Query.prototype.index = undefined;
+ydn.db.Sql.prototype.index = undefined;
 
 
 /**
  *
  * @type {ydn.db.Cursor.Direction|undefined}
  */
-ydn.db.Query.prototype.direction = undefined;
+ydn.db.Sql.prototype.direction = undefined;
 
 
 
@@ -83,13 +83,13 @@ ydn.db.Query.prototype.direction = undefined;
  * @private
  * @type {number}
  */
-ydn.db.Query.prototype.limit_ = NaN;
+ydn.db.Sql.prototype.limit_ = NaN;
 
 /**
  * @private
  * @type {number}
  */
-ydn.db.Query.prototype.offset_ = NaN;
+ydn.db.Sql.prototype.offset_ = NaN;
 
 
 
@@ -97,23 +97,23 @@ ydn.db.Query.prototype.offset_ = NaN;
  * @private
  * @type {!Array.<!ydn.db.Where>} where clauses.
  */
-ydn.db.Query.prototype.wheres_ = [];
+ydn.db.Sql.prototype.wheres_ = [];
 
 
 
 /**
  * @private
- * @type {ydn.db.Query.Aggregate?} reduce function.
+ * @type {ydn.db.Sql.Aggregate?} reduce function.
  */
-ydn.db.Query.prototype.reduce_ = null;
+ydn.db.Sql.prototype.reduce_ = null;
 
 
 
 /**
  * @private
- * @type {ydn.db.Query.Map?} map function.
+ * @type {ydn.db.Sql.Map?} map function.
  */
-ydn.db.Query.prototype.map_ = null;
+ydn.db.Sql.prototype.map_ = null;
 
 
 /**
@@ -127,7 +127,7 @@ ydn.db.Query.prototype.map_ = null;
  *  }} functional equivalent of SQL.
  * @throws {ydn.error.ArgumentException}
  */
-ydn.db.Query.prototype.parseSql = function(sql) {
+ydn.db.Sql.prototype.parseSql = function(sql) {
   var from_parts = sql.split(/\sFROM\s/i);
   if (from_parts.length != 2) {
     throw new ydn.error.ArgumentException('FROM required.');
@@ -185,13 +185,13 @@ ydn.db.Query.prototype.parseSql = function(sql) {
  * @private
  * @type {string} sql statement.
  */
-ydn.db.Query.prototype.sql_ = '';
+ydn.db.Sql.prototype.sql_ = '';
 
 
 /**
  * @inheritDoc
  */
-ydn.db.Query.prototype.toJSON = function() {
+ydn.db.Sql.prototype.toJSON = function() {
   return {
     'sql': this.sql_
   };
@@ -201,9 +201,9 @@ ydn.db.Query.prototype.toJSON = function() {
 /**
  *
  * @param {string} store_name  store name to query from.
- * @return {ydn.db.Query} this query for chaining.
+ * @return {ydn.db.Sql} this query for chaining.
  */
-ydn.db.Query.prototype.from = function(store_name) {
+ydn.db.Sql.prototype.from = function(store_name) {
   this.store_name = store_name;
   return this;
 };
@@ -213,9 +213,9 @@ ydn.db.Query.prototype.from = function(store_name) {
  *
  * @param {boolean} value if <code>true</code>,  the cursor should not yield
  * records with the same key.
- * @return {ydn.db.Query} this query for chaining.
+ * @return {ydn.db.Sql} this query for chaining.
  */
-ydn.db.Query.prototype.unique = function(value) {
+ydn.db.Sql.prototype.unique = function(value) {
   if (this.direction == ydn.db.Cursor.Direction.NEXT ||
     this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE) {
     this.direction = !!value ? ydn.db.Cursor.Direction.NEXT_UNIQUE :
@@ -232,9 +232,9 @@ ydn.db.Query.prototype.unique = function(value) {
  *
  * @param {boolean} value if <code>true</code>,  the cursor should yield
  * monotonically decreasing order of keys..
- * @return {ydn.db.Query} this query for chaining.
+ * @return {ydn.db.Sql} this query for chaining.
  */
-ydn.db.Query.prototype.reverse = function(value) {
+ydn.db.Sql.prototype.reverse = function(value) {
   if (this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE ||
     this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE) {
     this.direction = !!value ? ydn.db.Cursor.Direction.PREV_UNIQUE :
@@ -251,7 +251,7 @@ ydn.db.Query.prototype.reverse = function(value) {
  *
  * @param {string} index name of index to order.
  */
-ydn.db.Query.prototype.order = function(index) {
+ydn.db.Sql.prototype.order = function(index) {
   this.index = index;
 };
 
@@ -263,9 +263,9 @@ ydn.db.Query.prototype.order = function(index) {
  * @param {string} value rvalue to compare.
  * @param {string=} op2 secound operator.
  * @param {string=} value2 second rvalue to compare.
- * @return {!ydn.db.Query} The query.
+ * @return {!ydn.db.Sql} The query.
  */
-ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
+ydn.db.Sql.prototype.where = function(field, op, value, op2, value2) {
 
   var already = goog.array.some(this.wheres_, function(x) {
     return x.field === field;
@@ -310,18 +310,18 @@ ydn.db.Query.prototype.where = function(field, op, value, op2, value2) {
  *   expression: (ydn.math.Expression|undefined),
  *
  * @typedef {{
- *   type: ydn.db.Query.MapType,
+ *   type: ydn.db.Sql.MapType,
  *   fields: (!Array.<string>|string)
  * }}
  */
-ydn.db.Query.Map;
+ydn.db.Sql.Map;
 
 
 
 /**
  * @enum {string}
  */
-ydn.db.Query.MapType = {
+ydn.db.Sql.MapType = {
   SELECT: 'sl',
   EXPRESSION: 'ex'
 };
@@ -331,7 +331,7 @@ ydn.db.Query.MapType = {
 /**
  * @enum {string}
  */
-ydn.db.Query.AggregateType = {
+ydn.db.Sql.AggregateType = {
   COUNT: 'ct',
   SUM: 'sm',
   AVERAGE: 'av',
@@ -345,24 +345,24 @@ ydn.db.Query.AggregateType = {
 
 /**
  * @typedef {{
- *   type: ydn.db.Query.AggregateType,
+ *   type: ydn.db.Sql.AggregateType,
  *   field: (string|undefined)
  * }}
  */
-ydn.db.Query.Aggregate;
+ydn.db.Sql.Aggregate;
 
 
 //
 ///**
 // * Convenient method for SQL <code>COUNT</code> method.
-// * @return {!ydn.db.Query} The query.
+// * @return {!ydn.db.Sql} The query.
 // */
-//ydn.db.Query.prototype.count = function() {
+//ydn.db.Sql.prototype.count = function() {
 //
 //  if (this.reduce_) {
 //    throw new ydn.error.ConstrainError('Aggregate method already defined.');
 //  }
-//  this.reduce_ = {type: ydn.db.Query.AggregateType.COUNT, field: undefined};
+//  this.reduce_ = {type: ydn.db.Sql.AggregateType.COUNT, field: undefined};
 //  return this;
 //
 //};
@@ -374,7 +374,7 @@ ydn.db.Query.Aggregate;
  * @param {string=} field field name.
  * @return {Function} count.
  */
-ydn.db.Query.reduceCount = function(field) {
+ydn.db.Sql.reduceCount = function(field) {
   return function(prev) {
     if (!prev) {
       prev = 0;
@@ -387,15 +387,15 @@ ydn.db.Query.reduceCount = function(field) {
 ///**
 // * Convenient method for SQL <code>SUM</code> method.
 // * @param {string} field name.
-// * @return {!ydn.db.Query} The query for chaining.
+// * @return {!ydn.db.Sql} The query for chaining.
 // */
-//ydn.db.Query.prototype.sum = function(field) {
+//ydn.db.Sql.prototype.sum = function(field) {
 //
 //  if (this.reduce_) {
 //    throw new ydn.error.ConstrainError('Aggregate method already defined.');
 //  }
 //  this.reduce_ = {
-//    type: ydn.db.Query.AggregateType.SUM,
+//    type: ydn.db.Sql.AggregateType.SUM,
 //    field: field
 //  };
 //  return this;
@@ -409,7 +409,7 @@ ydn.db.Query.reduceCount = function(field) {
  * @param {string} field field name.
  * @return {Function} sum.
  */
-ydn.db.Query.reduceSum = function(field) {
+ydn.db.Sql.reduceSum = function(field) {
   return function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
@@ -424,7 +424,7 @@ ydn.db.Query.reduceSum = function(field) {
  * @param {string} field name.
  * @return {Function} min.
  */
-ydn.db.Query.reduceMin = function(field) {
+ydn.db.Sql.reduceMin = function(field) {
   return function(prev, curr, i) {
     var x = curr[field];
     if (!goog.isDef(prev)) {
@@ -440,7 +440,7 @@ ydn.db.Query.reduceMin = function(field) {
  * @param {string} field name.
  * @return {Function} max.
  */
-ydn.db.Query.reduceMax = function(field) {
+ydn.db.Sql.reduceMax = function(field) {
   return function(prev, curr, i) {
     var x = curr[field];
     if (!goog.isDef(prev)) {
@@ -456,15 +456,15 @@ ydn.db.Query.reduceMax = function(field) {
 ///**
 // * Convenient method for SQL <code>AVERAGE</code> method.
 // * @param {string} field name.
-// * @return {!ydn.db.Query} The query for chaining.
+// * @return {!ydn.db.Sql} The query for chaining.
 // */
-//ydn.db.Query.prototype.average = function(field) {
+//ydn.db.Sql.prototype.average = function(field) {
 //
 //  if (this.reduce_) {
 //    throw new ydn.error.ConstrainError('Aggregate method already defined.');
 //  }
 //  this.reduce_ = {
-//    type: ydn.db.Query.AggregateType.AVERAGE,
+//    type: ydn.db.Sql.AggregateType.AVERAGE,
 //    field: field
 //  };
 //  return this;
@@ -478,7 +478,7 @@ ydn.db.Query.reduceMax = function(field) {
  * @param {string} field name.
  * @return {Function} average.
  */
-ydn.db.Query.reduceAverage = function(field) {
+ydn.db.Sql.reduceAverage = function(field) {
   return function(prev, curr, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
@@ -492,9 +492,9 @@ ydn.db.Query.reduceAverage = function(field) {
  *
  * @param {(string|ydn.math.Expression)=} opt_method selection method.
  * @param {string=} fields field names to select.
- * @return {!ydn.db.Query} The query for chaining.
+ * @return {!ydn.db.Sql} The query for chaining.
  */
-ydn.db.Query.prototype.reduce = function(opt_method, fields) {
+ydn.db.Sql.prototype.reduce = function(opt_method, fields) {
 
   if (this.reduce_) {
     throw new ydn.error.ArgumentException('too many reduce.');
@@ -503,8 +503,8 @@ ydn.db.Query.prototype.reduce = function(opt_method, fields) {
   if (opt_method instanceof ydn.math.Expression) {
     var exp = opt_method;
 
-      this.reduce_ = /** @type {ydn.db.Query.Aggregate} */ ({
-        type: ydn.db.Query.AggregateType.EXPRESSION,
+      this.reduce_ = /** @type {ydn.db.Sql.Aggregate} */ ({
+        type: ydn.db.Sql.AggregateType.EXPRESSION,
         fields: ''
       }); // why casting ??
 
@@ -522,7 +522,7 @@ ydn.db.Query.prototype.reduce = function(opt_method, fields) {
       throw new ydn.error.ArgumentException('AVG');
     }
     this.reduce_ = {
-      type: ydn.db.Query.AggregateType.AVERAGE,
+      type: ydn.db.Sql.AggregateType.AVERAGE,
       field: fields
     };
   } else if (method == 'min') {
@@ -531,7 +531,7 @@ ydn.db.Query.prototype.reduce = function(opt_method, fields) {
       throw new ydn.error.ArgumentException('MIN');
     }
     this.reduce_ = {
-      type: ydn.db.Query.AggregateType.MIN,
+      type: ydn.db.Sql.AggregateType.MIN,
       field: fields
     };
   } else if (method == 'max') {
@@ -540,7 +540,7 @@ ydn.db.Query.prototype.reduce = function(opt_method, fields) {
       throw new ydn.error.ArgumentException('MAX');
     }
     this.reduce_ = {
-      type: ydn.db.Query.AggregateType.MAX,
+      type: ydn.db.Sql.AggregateType.MAX,
       expr: null,
       field: fields
     };
@@ -550,17 +550,17 @@ ydn.db.Query.prototype.reduce = function(opt_method, fields) {
       throw new ydn.error.ArgumentException('SUM');
     }
     this.reduce_ = {
-      type: ydn.db.Query.AggregateType.SUM,
+      type: ydn.db.Sql.AggregateType.SUM,
       field: fields
     };
   } else if (method == 'count') {
 
     if (goog.isString(fields)) {
-      this.reduce_ = {type: ydn.db.Query.AggregateType.COUNT, field: fields};
+      this.reduce_ = {type: ydn.db.Sql.AggregateType.COUNT, field: fields};
     } else if (goog.isDef(fields)) {
       throw new ydn.error.ArgumentException('COUNT');
     } else {
-      this.reduce_ = {type: ydn.db.Query.AggregateType.COUNT, field: undefined};
+      this.reduce_ = {type: ydn.db.Sql.AggregateType.COUNT, field: undefined};
     }
   } else {
     throw new ydn.error.ArgumentException('Unknown reduce method: ' +
@@ -575,9 +575,9 @@ ydn.db.Query.prototype.reduce = function(opt_method, fields) {
  *
  * @param {string|ydn.math.Expression} opt_method selection method.
  * @param {(string|!Array.<string>)=} fields field names to select.
- * @return {!ydn.db.Query} The query for chaining.
+ * @return {!ydn.db.Sql} The query for chaining.
  */
-ydn.db.Query.prototype.map = function(opt_method, fields) {
+ydn.db.Sql.prototype.map = function(opt_method, fields) {
 
   if (this.map_) {
     throw new ydn.error.ConstrainError('too many call.');
@@ -587,7 +587,7 @@ ydn.db.Query.prototype.map = function(opt_method, fields) {
   if (opt_method instanceof ydn.math.Expression) {
     if (goog.isString(fields) || goog.isArray(fields)) {
     this.map_ = {
-      type: ydn.db.Query.MapType.EXPRESSION,
+      type: ydn.db.Sql.MapType.EXPRESSION,
       fields: fields
     };
     } else {
@@ -603,7 +603,7 @@ ydn.db.Query.prototype.map = function(opt_method, fields) {
 
     if (goog.isString(fields) || goog.isArray(fields)) {
       this.map_ = {
-        type: ydn.db.Query.MapType.SELECT,
+        type: ydn.db.Sql.MapType.SELECT,
         fields: fields
       };
     } else {
@@ -626,7 +626,7 @@ ydn.db.Query.prototype.map = function(opt_method, fields) {
  * @param {!Array.<string>|string} fields field names.
  * @return {Function} select projection function.
  */
-ydn.db.Query.mapSelect = function(fields) {
+ydn.db.Sql.mapSelect = function(fields) {
   return function(data) {
     if (goog.isString(fields)) {
       return data[fields];
@@ -645,7 +645,7 @@ ydn.db.Query.mapSelect = function(fields) {
  *
  * @return {string} store name.
  */
-ydn.db.Query.prototype.getStoreName = function() {
+ydn.db.Sql.prototype.getStoreName = function() {
   return this.store_name;
 };
 
@@ -657,7 +657,7 @@ ydn.db.Query.prototype.getStoreName = function() {
  * @param {ydn.db.schema.Database} schema schema.
  * @return {!ydn.db.Cursor} cursor.
  */
-ydn.db.Query.prototype.toCursor = function(schema) {
+ydn.db.Sql.prototype.toCursor = function(schema) {
 
 
   if (this.store_name.length == 0) {
@@ -698,40 +698,40 @@ ydn.db.Query.prototype.toCursor = function(schema) {
   }
 
   if (this.map_) {
-    if (this.map_.type == ydn.db.Query.MapType.SELECT) {
-      cursor.map_ = ydn.db.Query.mapSelect(this.map_.fields);
+    if (this.map_.type == ydn.db.Sql.MapType.SELECT) {
+      cursor.map_ = ydn.db.Sql.mapSelect(this.map_.fields);
     } else {
       throw new ydn.db.SqlParseError(this.map_.type);
     }
   }
 
   if (this.reduce_) {
-    if (this.reduce_.type == ydn.db.Query.AggregateType.SUM) {
+    if (this.reduce_.type == ydn.db.Sql.AggregateType.SUM) {
       if (goog.isString(this.reduce_.field)) {
-        cursor.reduce_ = ydn.db.Query.reduceSum(this.reduce_.field);
+        cursor.reduce_ = ydn.db.Sql.reduceSum(this.reduce_.field);
       } else {
         throw new ydn.db.SqlParseError('SUM: ' + this.sql_);
       }
-    } else if (this.reduce_.type == ydn.db.Query.AggregateType.MIN) {
+    } else if (this.reduce_.type == ydn.db.Sql.AggregateType.MIN) {
       if (goog.isString(this.reduce_.field)) {
-        cursor.reduce_ = ydn.db.Query.reduceMin(this.reduce_.field);
+        cursor.reduce_ = ydn.db.Sql.reduceMin(this.reduce_.field);
       } else {
         throw new ydn.db.SqlParseError('MIN: ' + this.sql_);
       }
-    } else if (this.reduce_.type == ydn.db.Query.AggregateType.MAX) {
+    } else if (this.reduce_.type == ydn.db.Sql.AggregateType.MAX) {
       if (goog.isString(this.reduce_.field)) {
-        cursor.reduce_ = ydn.db.Query.reduceMax(this.reduce_.field);
+        cursor.reduce_ = ydn.db.Sql.reduceMax(this.reduce_.field);
       } else {
         throw new ydn.db.SqlParseError('MAX: ' + this.sql_);
       }
-    } else if (this.reduce_.type == ydn.db.Query.AggregateType.AVERAGE) {
+    } else if (this.reduce_.type == ydn.db.Sql.AggregateType.AVERAGE) {
       if (goog.isString(this.reduce_.field)) {
-        cursor.reduce_ = ydn.db.Query.reduceAverage(this.reduce_.field);
+        cursor.reduce_ = ydn.db.Sql.reduceAverage(this.reduce_.field);
       } else {
         throw new ydn.db.SqlParseError('AVERAGE: ' + this.sql_);
       }
-    } else if (this.reduce_.type == ydn.db.Query.AggregateType.COUNT) {
-      cursor.reduce_ = ydn.db.Query.reduceCount(this.reduce_.field);
+    } else if (this.reduce_.type == ydn.db.Sql.AggregateType.COUNT) {
+      cursor.reduce_ = ydn.db.Sql.reduceCount(this.reduce_.field);
     } else {
       throw new ydn.db.SqlParseError(this.sql_);
     }
@@ -747,7 +747,7 @@ ydn.db.Query.prototype.toCursor = function(schema) {
  *
  * @param {number} value limit value.
  */
-ydn.db.Query.prototype.limit = function(value) {
+ydn.db.Sql.prototype.limit = function(value) {
   if (goog.isNumber(value) && value > 0) {
     this.limit_ = value;
   } else {
@@ -761,7 +761,7 @@ ydn.db.Query.prototype.limit = function(value) {
  *
  * @param {number} value offset value.
  */
-ydn.db.Query.prototype.offset = function(value) {
+ydn.db.Sql.prototype.offset = function(value) {
   if (goog.isNumber(value) && value >= 0) {
     this.offset_ = value;
   } else {
@@ -776,7 +776,7 @@ ydn.db.Query.prototype.offset = function(value) {
  * @param {!ydn.db.schema.Database} schema schema.
  * @return {!ydn.db.Cursor} cursor.
  */
-ydn.db.Query.prototype.toSqlCursor = function(schema) {
+ydn.db.Sql.prototype.toSqlCursor = function(schema) {
 
   if (this.sql_.length > 0) {
     throw new ydn.error.NotImplementedException('SQL parser not implement');
@@ -799,7 +799,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
 
   var fields_selected = false;
   if (goog.isDefAndNotNull(this.map_)) {
-    if (this.map_.type == ydn.db.Query.MapType.SELECT) {
+    if (this.map_.type == ydn.db.Sql.MapType.SELECT) {
       var fs = goog.isArray(this.map_.fields) ?
         this.map_.fields : [this.map_.fields];
       var fields = goog.array.map(fs, function(x) {
@@ -809,13 +809,13 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       fields_selected = true;
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
-      cursor.map_ = ydn.db.Query.mapSelect(this.map_.fields);
+      cursor.map_ = ydn.db.Sql.mapSelect(this.map_.fields);
     } else {
       throw new ydn.db.SqlParseError(this.map_ + ' in ' + this.sql_);
     }
   }
   if (goog.isDefAndNotNull(this.reduce_)) {
-    if (this.reduce_.type == ydn.db.Query.AggregateType.COUNT) {
+    if (this.reduce_.type == ydn.db.Sql.AggregateType.COUNT) {
       select += 'SELECT COUNT (';
       select += distinct ? 'DISTINCT ' : '';
       if (goog.isString(this.reduce_.field)) {
@@ -828,8 +828,8 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
       cursor.map_ = ydn.object.takeFirst;
-      cursor.finalize = ydn.db.Query.finalizeTakeFirst;
-    } else if (this.reduce_.type == ydn.db.Query.AggregateType.SUM) {
+      cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
+    } else if (this.reduce_.type == ydn.db.Sql.AggregateType.SUM) {
       select += 'SELECT SUM (';
       select += distinct ? 'DISTINCT ' : '';
       if (goog.isString(this.reduce_.field)) {
@@ -842,8 +842,8 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
       cursor.map_ = ydn.object.takeFirst;
-      cursor.finalize = ydn.db.Query.finalizeTakeFirst;
-    } else if (this.reduce_.type == ydn.db.Query.AggregateType.AVERAGE) {
+      cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
+    } else if (this.reduce_.type == ydn.db.Sql.AggregateType.AVERAGE) {
       select += 'SELECT AVG (';
       select += distinct ? 'DISTINCT ' : '';
       if (goog.isString(this.reduce_.field)) {
@@ -856,7 +856,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
       cursor.map_ = ydn.object.takeFirst;
-      cursor.finalize = ydn.db.Query.finalizeTakeFirst;
+      cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else {
       throw new ydn.db.SqlParseError(this.reduce_.type + ' in ' + this.sql_);
     }
@@ -914,7 +914,7 @@ ydn.db.Query.prototype.toSqlCursor = function(schema) {
 /**
  * @override
  */
-ydn.db.Query.prototype.toString = function() {
+ydn.db.Sql.prototype.toString = function() {
   if (goog.DEBUG) {
     return 'query:' + this.sql_;
   } else {
@@ -930,7 +930,7 @@ ydn.db.Query.prototype.toString = function() {
  * @param {!Object} row row.
  * @return {*} the first field of object in row value.
  */
-ydn.db.Query.parseRowTakeFirst = function(table, row) {
+ydn.db.Sql.parseRowTakeFirst = function(table, row) {
   for (var key in row) {
     if (row.hasOwnProperty(key)) {
       return row[key];
@@ -945,7 +945,7 @@ ydn.db.Query.parseRowTakeFirst = function(table, row) {
  * @param {*} arr array.
  * @return {*} get the first element of an array.
  */
-ydn.db.Query.finalizeTakeFirst = function(arr) {
+ydn.db.Sql.finalizeTakeFirst = function(arr) {
   if (goog.isArray(arr)) {
     return arr[0];
   } else {

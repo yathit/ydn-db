@@ -1057,7 +1057,7 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
 
 /**
  * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Sql} q query.
  */
 ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q) {
 
