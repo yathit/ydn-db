@@ -537,12 +537,12 @@ ydn.db.con.Storage.prototype.last_queue_checkin_ = NaN;
 ydn.db.con.Storage.timeOut = goog.DEBUG || ydn.db.con.IndexedDb.DEBUG ?
   500 : 3000;
 
-
-/**
- * @const
- * @type {number}
- */
-ydn.db.con.Storage.MAX_QUEUE = 1000;
+//
+///**
+// * @const
+// * @type {number}
+// */
+//ydn.db.con.Storage.MAX_QUEUE = 1000;
 
 
 /**
@@ -589,10 +589,10 @@ ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
       // pop queue will call whenever transaction is finished.
     //}
   //}
-  if (this.txQueue_.length > ydn.db.con.Storage.MAX_QUEUE) {
-    this.logger.warning('Maximum queue size exceed, dropping the first job.');
-    this.txQueue_.shift();
-  }
+//  if (this.txQueue_.length > ydn.db.con.Storage.MAX_QUEUE) {
+//    this.logger.warning('Maximum queue size exceed, dropping the first job.');
+//    this.txQueue_.shift();
+//  }
 
 };
 
