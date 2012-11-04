@@ -401,23 +401,31 @@ ydn.db.con.SimpleStorage.prototype.setItemInternal = function(
 
 /**
  *
- * @param {string} store_name store name or key.
+ * @param {string=} store_name store name or key.
  * @param {(!Array|string|number)=} id  id.
  * @final
  */
 ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(
     store_name, id){
-  var key = this.makeKey(store_name, id);
 
   if (goog.isDef(id)) {
-    this.cache_.removeItem(key);
+    this.cache_.removeItem(this.makeKey(store_name, id));
     var idx_arr = this.storeSchema_[store_name]['Keys'];
     if (goog.isDef(idx_arr)) {
       goog.array.remove(idx_arr, id);
     }
+  } else if (goog.isDef(store_name)) {
+    delete this.storeSchema_[store_name];
+    var base = this.makeKey(store_name) + ydn.db.con.SimpleStorage.SEP;
+    for (var i = this.cache_.length - 1; i >= 0; i--) {
+      var k = this.cache_.key(i);
+      goog.asserts.assertString(k);
+      if (goog.string.startsWith(k, base)) {
+        this.cache_.removeItem(k);
+      }
+    }
   } else {
-    this.storeSchema_[store_name]['Keys'] = undefined;
-    var base = key + ydn.db.con.SimpleStorage.SEP;
+    var base = this.makeKey() + ydn.db.con.SimpleStorage.SEP;
     for (var i = this.cache_.length - 1; i >= 0; i--) {
       var k = this.cache_.key(i);
       goog.asserts.assertString(k);

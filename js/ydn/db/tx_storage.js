@@ -119,7 +119,7 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 
 
 /**
- * @param {!ydn.db.Cursor} q query.
+ * @param {!ydn.db.Query} q query.
  * @param {function(*): boolean} clear clear iteration function.
  * @param {function(*): *} update update iteration function.
  * @param {function(*): *} map map iteration function.
@@ -130,7 +130,7 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
                                               initial) {
   var df = ydn.db.base.createDeferred();
-  if (!(q instanceof ydn.db.Cursor)) {
+  if (!(q instanceof ydn.db.Query)) {
     throw new ydn.error.ArgumentException();
   }
 
@@ -152,7 +152,7 @@ ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
 
 
 /**
- * @param {!ydn.db.Cursor|!ydn.db.Sql} q query.
+ * @param {!ydn.db.Query|!ydn.db.Sql} q query.
  * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.TxStorage.prototype.fetch = function(q) {
@@ -177,7 +177,7 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
       executor.fetchQuery(df, query);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
-  } else if (q instanceof ydn.db.Cursor) {
+  } else if (q instanceof ydn.db.Query) {
     cursor = q;
     this.exec(function(executor) {
       executor.fetchCursor(df, cursor);

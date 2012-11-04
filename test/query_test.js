@@ -57,7 +57,7 @@ var test_11_cursor_constructor = function() {
   // test query constructor
   var lower = 1;
   var upper = 5;
-  var q = new ydn.db.Cursor(store_name, 'next', 'id', lower, upper, false, true);
+  var q = new ydn.db.Query(store_name, 'next', 'id', lower, upper, false, true);
   assertEquals('store', store_name, q.store_name);
   assertEquals('index', 'id', q.index);
   assertEquals('direction', 'next', q.direction);
@@ -68,7 +68,7 @@ var test_11_cursor_constructor = function() {
   assertTrue('upperOpen', q.keyRange.upperOpen);
 
   var key_range = new ydn.db.KeyRange(lower, upper, false, true);
-  q = new ydn.db.Cursor(store_name, 'next', 'id', key_range);
+  q = new ydn.db.Query(store_name, 'next', 'id', key_range);
   assertNotNull(q.keyRange);
   assertEquals('lower', lower, q.keyRange.lower);
   assertEquals('upper', upper, q.keyRange.upper);
@@ -76,7 +76,7 @@ var test_11_cursor_constructor = function() {
   assertTrue('upperOpen', q.keyRange.upperOpen);
 
 
-  q = new ydn.db.Cursor(store_name, 'next', 'id', key_range.toJSON());
+  q = new ydn.db.Query(store_name, 'next', 'id', key_range.toJSON());
   assertNotNull(q.keyRange);
   assertEquals('lower', lower, q.keyRange.lower);
   assertEquals('upper', upper, q.keyRange.upper);

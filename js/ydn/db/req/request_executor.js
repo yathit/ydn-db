@@ -10,7 +10,7 @@
 goog.provide('ydn.db.req.RequestExecutor');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
-goog.require('ydn.db.Cursor');
+goog.require('ydn.db.Query');
 goog.require('ydn.db.InternalError');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.Sql');
@@ -102,7 +102,7 @@ ydn.db.req.RequestExecutor.prototype.getByKeys = goog.abstractMethod;
 
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
- * @param {!ydn.db.Cursor} store_name  store name.
+ * @param {!ydn.db.Query} store_name  store name.
  */
 ydn.db.req.RequestExecutor.prototype.getByQuery = goog.abstractMethod;
 
@@ -185,14 +185,14 @@ ydn.db.req.RequestExecutor.prototype.fetchQuery = goog.abstractMethod;
 
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
- * @param {!ydn.db.Cursor} q the query.
+ * @param {!ydn.db.Query} q the query.
  */
 ydn.db.req.RequestExecutor.prototype.fetchCursor = goog.abstractMethod;
 
 
 /**
  * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Cursor} q query.
+ * @param {!ydn.db.Query} q query.
  * @param {function(*): boolean} clear clear iteration function.
  * @param {function(*): *} update update iteration function.
  * @param {function(*): *} map map iteration function.

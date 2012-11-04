@@ -217,6 +217,19 @@ ydn.db.core.TxStorage.prototype.get = function(arg1, arg2) {
     this.exec(function(executor) {
       executor.getById(df, k_store_name, kid);
     }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY);
+  } else if (arg1 instanceof ydn.db.Query) {
+    /**
+     * @type {!ydn.db.Query}
+     */
+    var q = arg1;
+    var q_store_name = q.getStoreName();
+    if (!this.schema.hasStore(q_store_name)) {
+      throw new ydn.error.ArgumentException('Store: ' +
+          q_store_name + ' not found.');
+    }
+    this.exec(function(executor) {
+      executor.getByQuery(df, q);
+    }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY);
   } else if (goog.isString(arg1) && goog.isDef(arg2)) {
     var store_name = arg1;
     var store = this.schema.getStore(store_name);

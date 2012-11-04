@@ -22,8 +22,8 @@
  */
 
 
-goog.provide('ydn.db.Cursor');
-goog.provide('ydn.db.Cursor.Direction');
+goog.provide('ydn.db.Query');
+goog.provide('ydn.db.Query.Direction');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -34,7 +34,7 @@ goog.require('ydn.error.ArgumentException');
 /**
  * Create a cursor object.
  * @param {string} store store name.
- * @param {ydn.db.Cursor.Direction=} direction cursor direction.
+ * @param {ydn.db.Query.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
@@ -43,7 +43,7 @@ goog.require('ydn.error.ArgumentException');
  * @param {...} opt_args additional parameters for key range constructor.
  * @constructor
  */
-ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
+ydn.db.Query = function(store, direction, index, keyRange, opt_args) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
     throw new ydn.error.ArgumentException('store name required');
@@ -68,7 +68,7 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
   }
   /**
    * @final
-   * @type {ydn.db.Cursor.Direction|undefined}
+   * @type {ydn.db.Query.Direction|undefined}
    */
   this.direction = direction;
 
@@ -99,7 +99,7 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
   this.index_key = undefined;
   this.has_done = undefined;
 
-  this.parseRow = ydn.db.Cursor.prototype.parseRow;
+  this.parseRow = ydn.db.Query.prototype.parseRow;
   this.sql = '';
   this.params = [];
 };
@@ -110,7 +110,7 @@ ydn.db.Cursor = function(store, direction, index, keyRange, opt_args) {
  * @link http://www.w3.org/TR/IndexedDB/#dfn-direction
  * @enum {string} Cursor direction.
  */
-ydn.db.Cursor.Direction = {
+ydn.db.Query.Direction = {
   NEXT: 'next',
   NEXT_UNIQUE: 'nextunique',
   PREV: 'prev',
@@ -121,22 +121,28 @@ ydn.db.Cursor.Direction = {
 
 /**
  * @const
- * @type {!Array.<ydn.db.Cursor.Direction>} Cursor directions.
+ * @type {!Array.<ydn.db.Query.Direction>} Cursor directions.
  */
-ydn.db.Cursor.DIRECTIONS = [
-  ydn.db.Cursor.Direction.NEXT,
-  ydn.db.Cursor.Direction.NEXT_UNIQUE,
-  ydn.db.Cursor.Direction.PREV,
-  ydn.db.Cursor.Direction.PREV_UNIQUE
+ydn.db.Query.DIRECTIONS = [
+  ydn.db.Query.Direction.NEXT,
+  ydn.db.Query.Direction.NEXT_UNIQUE,
+  ydn.db.Query.Direction.PREV,
+  ydn.db.Query.Direction.PREV_UNIQUE
 ];
 
-
+/**
+ *
+ * @return {string} return store name.
+ */
+ydn.db.Query.prototype.getStoreName = function() {
+  return this.store_name;
+};
 
 
 /**
  * @inheritDoc
  */
-ydn.db.Cursor.prototype.toJSON = function() {
+ydn.db.Query.prototype.toJSON = function() {
   return {
     'store': this.store_name,
     'index': this.index,
@@ -149,55 +155,55 @@ ydn.db.Cursor.prototype.toJSON = function() {
  * Right value for query operation.
  * @type {ydn.db.IDBKeyRange|undefined}
  */
-ydn.db.Cursor.prototype.keyRange;
+ydn.db.Query.prototype.keyRange;
 
 /**
  * Cursor direction.
- * @type {(ydn.db.Cursor.Direction|undefined)}
+ * @type {(ydn.db.Query.Direction|undefined)}
  */
-ydn.db.Cursor.prototype.direction;
+ydn.db.Query.prototype.direction;
 
 /**
  * @type {?function(): *}
  */
-ydn.db.Cursor.prototype.initial = null;
+ydn.db.Query.prototype.initial = null;
 
 /**
  * @type {?function(*): boolean}
  */
-ydn.db.Cursor.prototype.filter = null;
+ydn.db.Query.prototype.filter = null;
 
 /**
  * @type {?function(*): boolean}
  */
-ydn.db.Cursor.prototype.continued = null;
+ydn.db.Query.prototype.continued = null;
 
 /**
  * @type {?function(*): *}
  */
-ydn.db.Cursor.prototype.map = null;
+ydn.db.Query.prototype.map = null;
 
 /**
  * Reduce is execute after map.
  * @type {?function(*, *, number): *}
  * function(previousValue, currentValue, index)
  */
-ydn.db.Cursor.prototype.reduce = null;
+ydn.db.Query.prototype.reduce = null;
 
 
 /**
  * @type {?function(*): *}
  */
-ydn.db.Cursor.prototype.finalize = null;
+ydn.db.Query.prototype.finalize = null;
 
 
 
 /**
  *
  * @param {*} value the only value.
- * @return {!ydn.db.Cursor} The query for chaining.
+ * @return {!ydn.db.Query} The query for chaining.
  */
-ydn.db.Cursor.prototype.only = function(value) {
+ydn.db.Query.prototype.only = function(value) {
   this.keyRange = ydn.db.IDBKeyRange.only(value);
   return this;
 };
@@ -207,9 +213,9 @@ ydn.db.Cursor.prototype.only = function(value) {
  *
  * @param {*} value The value of the upper bound.
  * @param {boolean=} is_open If true, the range excludes the upper bound value.
- * @return {!ydn.db.Cursor} The query for chaining.
+ * @return {!ydn.db.Query} The query for chaining.
  */
-ydn.db.Cursor.prototype.upperBound = function(value, is_open) {
+ydn.db.Query.prototype.upperBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.IDBKeyRange.upperBound(value, is_open);
   return this;
@@ -220,9 +226,9 @@ ydn.db.Cursor.prototype.upperBound = function(value, is_open) {
  *
  * @param {*} value  The value of the lower bound.
  * @param {boolean=} is_open  If true, the range excludes the lower bound value.
- * @return {!ydn.db.Cursor} The query for chaining.
+ * @return {!ydn.db.Query} The query for chaining.
  */
-ydn.db.Cursor.prototype.lowerBound = function(value, is_open) {
+ydn.db.Query.prototype.lowerBound = function(value, is_open) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.IDBKeyRange.lowerBound(value, is_open);
   return this;
@@ -235,9 +241,9 @@ ydn.db.Cursor.prototype.lowerBound = function(value, is_open) {
  * @param {*} upper  The value of the upper bound.
  * @param {boolean=} lo If true, the range excludes the lower bound value.
  * @param {boolean=} uo If true, the range excludes the upper bound value.
- * @return {!ydn.db.Cursor} The query for chaining.
+ * @return {!ydn.db.Query} The query for chaining.
  */
-ydn.db.Cursor.prototype.bound = function(lower, upper, lo, uo) {
+ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
   goog.asserts.assertString(this.index, 'index name must be specified.');
   this.keyRange = ydn.db.IDBKeyRange.bound(lower, upper, lo, uo);
   return this;
@@ -250,7 +256,7 @@ ydn.db.Cursor.prototype.bound = function(lower, upper, lo, uo) {
  * keyRange
  * to SQL WHERE clause and its parameters.
  */
-ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
+ydn.db.Query.prototype.toWhereClause = function(keyPath) {
 
   var index = goog.isDef(this.index) ? this.index :
       goog.isDefAndNotNull(keyPath) ? keyPath :
@@ -269,7 +275,7 @@ ydn.db.Cursor.prototype.toWhereClause = function(keyPath) {
  * @param {ydn.db.schema.Database} schema schema.
  * @return {boolean} true if SQL plan changed.
  */
-ydn.db.Cursor.prototype.planSql = function(schema) {
+ydn.db.Query.prototype.planSql = function(schema) {
 
   if (this.sql) {
     return false;
@@ -313,8 +319,8 @@ ydn.db.Cursor.prototype.planSql = function(schema) {
 
   // Note: IndexedDB key range result are always ordered.
   var dir = 'ASC';
-  if (this.direction == ydn.db.Cursor.Direction.PREV ||
-    this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE) {
+  if (this.direction == ydn.db.Query.Direction.PREV ||
+    this.direction == ydn.db.Query.Direction.PREV_UNIQUE) {
     dir = 'DESC';
   }
   var order = '';
@@ -336,14 +342,14 @@ ydn.db.Cursor.prototype.planSql = function(schema) {
  * SQL statement for executing.
  * @type {string} sql string.
  */
-ydn.db.Cursor.prototype.sql = '';
+ydn.db.Query.prototype.sql = '';
 
 
 /**
  * SQL parameters for executing SQL.
  * @type {!Array.<string>} sql parameters.
  */
-ydn.db.Cursor.prototype.params = [];
+ydn.db.Query.prototype.params = [];
 
 
 
@@ -351,7 +357,7 @@ ydn.db.Cursor.prototype.params = [];
 /**
  * @override
  */
-ydn.db.Cursor.prototype.toString = function() {
+ydn.db.Query.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
   return 'Cursor:' + this.store_name + idx;
 };
@@ -365,8 +371,8 @@ ydn.db.Cursor.prototype.toString = function() {
  * @param {ydn.db.schema.Store} store store schema.
  * @return {!Object} parse value.
  */
-ydn.db.Cursor.prototype.parseRow = function(row, store) {
-  return ydn.db.Cursor.parseRow(row, store);
+ydn.db.Query.prototype.parseRow = function(row, store) {
+  return ydn.db.Query.parseRow(row, store);
 };
 
 
@@ -379,7 +385,7 @@ ydn.db.Cursor.prototype.parseRow = function(row, store) {
  * @param {ydn.db.schema.Store} store store schema.
  * @return {!Object} parse value.
  */
-ydn.db.Cursor.parseRow = function(row, store) {
+ydn.db.Query.parseRow = function(row, store) {
   var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
   if (goog.isDefAndNotNull(store.keyPath)) {
     var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.type);
@@ -404,7 +410,7 @@ ydn.db.Cursor.parseRow = function(row, store) {
  * @param {ydn.db.schema.Store} store store schema.
  * @return {!Object} the first field of object in row value.
  */
-ydn.db.Cursor.parseRowIdentity = function(row, store) {
+ydn.db.Query.parseRowIdentity = function(row, store) {
   return row;
 };
 
@@ -416,7 +422,7 @@ ydn.db.Cursor.parseRowIdentity = function(row, store) {
 // * @param {number|string} x
 // * @return {boolean}
 // */
-//ydn.db.Cursor.op_test = function(op, lv, x) {
+//ydn.db.Query.op_test = function(op, lv, x) {
 //  if (op === '=' || op === '==') {
 //    return  x == lv;
 //  } else if (op === '===') {
@@ -442,7 +448,7 @@ ydn.db.Cursor.parseRowIdentity = function(row, store) {
  * Process where instruction into filter iteration method.
  * @param {!ydn.db.Where} where where.
  */
-ydn.db.Cursor.prototype.processWhereAsFilter = function(where) {
+ydn.db.Query.prototype.processWhereAsFilter = function(where) {
 
   var prev_filter = goog.functions.TRUE;
   if (goog.isFunction(this.filter)) {
@@ -472,7 +478,7 @@ ydn.db.Cursor.prototype.processWhereAsFilter = function(where) {
  *
  * @return {*|undefined} Current cursor key.
  */
-ydn.db.Cursor.prototype.key = function() {
+ydn.db.Query.prototype.key = function() {
   return this.store_key;
 };
 
@@ -481,7 +487,7 @@ ydn.db.Cursor.prototype.key = function() {
  *
  * @return {*|undefined} Current cursor index key.
  */
-ydn.db.Cursor.prototype.indexKey = function() {
+ydn.db.Query.prototype.indexKey = function() {
   return this.index_key;
 };
 
@@ -490,7 +496,7 @@ ydn.db.Cursor.prototype.indexKey = function() {
  *
  * @return {number} number of record iterated.
  */
-ydn.db.Cursor.prototype.count = function() {
+ydn.db.Query.prototype.count = function() {
   return this.counter;
 };
 
@@ -499,6 +505,6 @@ ydn.db.Cursor.prototype.count = function() {
  *
  * @return {boolean|undefined} number of record iterated.
  */
-ydn.db.Cursor.prototype.done = function() {
+ydn.db.Query.prototype.done = function() {
   return this.has_done;
 };

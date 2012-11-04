@@ -73,7 +73,7 @@ ydn.db.Sql.prototype.index = undefined;
 
 /**
  *
- * @type {ydn.db.Cursor.Direction|undefined}
+ * @type {ydn.db.Query.Direction|undefined}
  */
 ydn.db.Sql.prototype.direction = undefined;
 
@@ -216,13 +216,13 @@ ydn.db.Sql.prototype.from = function(store_name) {
  * @return {ydn.db.Sql} this query for chaining.
  */
 ydn.db.Sql.prototype.unique = function(value) {
-  if (this.direction == ydn.db.Cursor.Direction.NEXT ||
-    this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE) {
-    this.direction = !!value ? ydn.db.Cursor.Direction.NEXT_UNIQUE :
-      ydn.db.Cursor.Direction.NEXT;
+  if (this.direction == ydn.db.Query.Direction.NEXT ||
+    this.direction == ydn.db.Query.Direction.NEXT_UNIQUE) {
+    this.direction = !!value ? ydn.db.Query.Direction.NEXT_UNIQUE :
+      ydn.db.Query.Direction.NEXT;
   } else {
-    this.direction = !!value ? ydn.db.Cursor.Direction.PREV_UNIQUE :
-      ydn.db.Cursor.Direction.PREV;
+    this.direction = !!value ? ydn.db.Query.Direction.PREV_UNIQUE :
+      ydn.db.Query.Direction.PREV;
   }
   return this;
 };
@@ -235,13 +235,13 @@ ydn.db.Sql.prototype.unique = function(value) {
  * @return {ydn.db.Sql} this query for chaining.
  */
 ydn.db.Sql.prototype.reverse = function(value) {
-  if (this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE ||
-    this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE) {
-    this.direction = !!value ? ydn.db.Cursor.Direction.PREV_UNIQUE :
-      ydn.db.Cursor.Direction.NEXT_UNIQUE;
+  if (this.direction == ydn.db.Query.Direction.NEXT_UNIQUE ||
+    this.direction == ydn.db.Query.Direction.PREV_UNIQUE) {
+    this.direction = !!value ? ydn.db.Query.Direction.PREV_UNIQUE :
+      ydn.db.Query.Direction.NEXT_UNIQUE;
   } else {
-    this.direction = !!value ? ydn.db.Cursor.Direction.PREV :
-      ydn.db.Cursor.Direction.NEXT;
+    this.direction = !!value ? ydn.db.Query.Direction.PREV :
+      ydn.db.Query.Direction.NEXT;
   }
   return this;
 };
@@ -655,7 +655,7 @@ ydn.db.Sql.prototype.getStoreName = function() {
  * Parse SQL statement and convert to cursor object for IndexedDB execution.
  * @see #toSqlCursor
  * @param {ydn.db.schema.Database} schema schema.
- * @return {!ydn.db.Cursor} cursor.
+ * @return {!ydn.db.Query} cursor.
  */
 ydn.db.Sql.prototype.toCursor = function(schema) {
 
@@ -683,14 +683,14 @@ ydn.db.Sql.prototype.toCursor = function(schema) {
       if (store.hasIndex(where.field)) {
         index = where.field;
         key_range = where;
-        direction = direction || ydn.db.Cursor.Direction.NEXT;
+        direction = direction || ydn.db.Query.Direction.NEXT;
         this.wheres_.splice(i, 1);
         break;
       }
     }
   }
 
-  var cursor = new ydn.db.Cursor(this.store_name, direction, index, key_range);
+  var cursor = new ydn.db.Query(this.store_name, direction, index, key_range);
 
   // then, process where clauses
   for (var i = 0; i < this.wheres_.length; i++) {
@@ -774,7 +774,7 @@ ydn.db.Sql.prototype.offset = function(value) {
  * Convert this query into iterable cursor object for WebSQL execution.
  * @see #toCursor
  * @param {!ydn.db.schema.Database} schema schema.
- * @return {!ydn.db.Cursor} cursor.
+ * @return {!ydn.db.Query} cursor.
  */
 ydn.db.Sql.prototype.toSqlCursor = function(schema) {
 
@@ -790,12 +790,12 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
         ' not found.');
   }
 
-  var cursor = new ydn.db.Cursor(this.store_name);
+  var cursor = new ydn.db.Query(this.store_name);
   var from = 'FROM ' + goog.string.quote(this.store_name);
 
   var select = '';
-  var distinct = this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE ||
-    this.direction == ydn.db.Cursor.Direction.NEXT_UNIQUE;
+  var distinct = this.direction == ydn.db.Query.Direction.PREV_UNIQUE ||
+    this.direction == ydn.db.Query.Direction.NEXT_UNIQUE;
 
   var fields_selected = false;
   if (goog.isDefAndNotNull(this.map_)) {
@@ -808,7 +808,7 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
       select += 'SELECT (' + fields.join(', ') + ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
+      cursor.parseRow = ydn.db.Query.parseRowIdentity;
       cursor.map_ = ydn.db.Sql.mapSelect(this.map_.fields);
     } else {
       throw new ydn.db.SqlParseError(this.map_ + ' in ' + this.sql_);
@@ -826,7 +826,7 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
+      cursor.parseRow = ydn.db.Query.parseRowIdentity;
       cursor.map_ = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else if (this.reduce_.type == ydn.db.Sql.AggregateType.SUM) {
@@ -840,7 +840,7 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
+      cursor.parseRow = ydn.db.Query.parseRowIdentity;
       cursor.map_ = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else if (this.reduce_.type == ydn.db.Sql.AggregateType.AVERAGE) {
@@ -854,7 +854,7 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.Cursor.parseRowIdentity;
+      cursor.parseRow = ydn.db.Query.parseRowIdentity;
       cursor.map_ = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else {
@@ -889,8 +889,8 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
     goog.string.quote(store.keyPath) : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
   var order = 'ORDER BY ' + field_name;
-  if (this.direction == ydn.db.Cursor.Direction.PREV ||
-    this.direction == ydn.db.Cursor.Direction.PREV_UNIQUE) {
+  if (this.direction == ydn.db.Query.Direction.PREV ||
+    this.direction == ydn.db.Query.Direction.PREV_UNIQUE) {
     order += ' DESC';
   } else {
     order += ' ASC';

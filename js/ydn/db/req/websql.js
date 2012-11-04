@@ -282,7 +282,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
       if (goog.isDefAndNotNull(row)) {
-        d.callback(ydn.db.Cursor.parseRow(row, table));
+        d.callback(ydn.db.Query.parseRow(row, table));
       } else {
         d.callback(undefined);
       }
@@ -344,7 +344,7 @@ ydn.db.req.WebSql.prototype.getByIds = function(df, table_name, ids) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.Cursor.parseRow(row, table);
+          objects[i] = ydn.db.Query.parseRow(row, table);
         }
         // this is get function, we take only one result.
       } else {
@@ -432,7 +432,7 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
       for (var i = 0; i < results.rows.length; i++) {
         var row = results.rows.item(i);
         if (goog.isDefAndNotNull(row)) {
-          arr.push(ydn.db.Cursor.parseRow(row, table));
+          arr.push(ydn.db.Query.parseRow(row, table));
         }
       }
       if (idx == n_todo - 1) {
@@ -495,7 +495,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function(df, keys) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.Cursor.parseRow(row, table);
+          objects[i] = ydn.db.Query.parseRow(row, table);
         }
         // this is get function, we take only one result.
       } else {
@@ -550,7 +550,7 @@ ydn.db.req.WebSql.prototype.getByKeys = function(df, keys) {
 
 /**
  * @param {!goog.async.Deferred} df return object in deferred function.
- * @param {!ydn.db.Cursor} cursor the query.
+ * @param {!ydn.db.Query} cursor the query.
  */
 ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
 

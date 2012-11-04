@@ -21,6 +21,8 @@
 goog.provide('ydn.db.req.IndexedDb');
 goog.require('goog.async.DeferredList');
 goog.require('ydn.db.req.RequestExecutor');
+goog.require('ydn.db.IDBCursor');
+goog.require('ydn.db.IDBValueCursor');
 goog.require('ydn.error');
 goog.require('ydn.json');
 
@@ -238,7 +240,7 @@ ydn.db.req.IndexedDb.prototype.putObject = function(df, table, value, opt_key)
       request = store.put(value);
     }
   } catch (e) {
-    if (e.name == 'DataError') {
+    if (goog.DEBUG && e.name == 'DataError') {
       // give useful info.
       var str = ydn.json.stringify(value);
       throw new ydn.db.InvalidKeyException(table + ': ' + str.substring(0, 50));
@@ -280,6 +282,7 @@ ydn.db.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
   var put = function(i) {
 
     var request;
+    // try - catch block is only for debugging build.
     try {
       if (goog.isDef(opt_keys)) {
         request = store.put(objs[i], opt_keys[i]);
@@ -287,12 +290,15 @@ ydn.db.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
         request = store.put(objs[i]);
       }
     } catch (e) {
-      if (e.name == 'DataError') {
+      if (goog.DEBUG && e.name == 'DataError') {
+        // DataError is due to invalid key.
         // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
         // IDBRequest-any-key
-        throw new ydn.db.InvalidKeyException(i + ' of ' + objs.length);
-      } if (e.name == 'DataCloneError') {
-        throw new ydn.db.DataCloneError(i + ' of ' + objs.length);
+        throw new ydn.db.InvalidKeyException('put to "' + store_name + '": ' +
+            i + ' of ' + objs.length);
+      } if (goog.DEBUG && e.name == 'DataCloneError') {
+        throw new ydn.db.DataCloneError('put to "' + store_name + '": ' + i +
+            ' of ' + objs.length);
       } else {
         throw e;
       }
@@ -561,7 +567,7 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 
 /**
  *
- * @param {ydn.db.Cursor} cursor the cursor.
+ * @param {ydn.db.Query} cursor the cursor.
  * @param {Function} callback icursor handler.
  * @param {string?=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
@@ -677,11 +683,13 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
           }
           cue = true;
           cur['continue'](cursor.key);
+          return;
         } else {
           if (cur.primaryKey == cursor.index_key) {
             resume = false; // got it
           }
           cur['continue']();
+          return;
         }
       }
 
@@ -690,39 +698,13 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
       cursor.store_key = cur.key;
       cursor.index_key = cur.primaryKey;
 
-      var i_cursor = {
-        'key': cur.key,
-        'indexKey': cur.primaryKey,
-        'value': cur.value
-      };
-      if (mode === 'readwrite') {
-        // TODO: optimization
-        i_cursor['clear'] = function() {
-          var req = cur['delete']();
-          var del_df = new goog.async.Deferred();
-          req.onerror = function(e) {
-            del_df.errback(e);
-          };
-          req.onsuccess = function(x) {
-            del_df.callback(x);
-          };
-          return del_df;
-        };
-        i_cursor['update'] = function(value) {
-          var req = cur.update(value);
-          var del_df = new goog.async.Deferred();
-          req.onerror = function(e) {
-            del_df.errback(e);
-          };
-          req.onsuccess = function(x) {
-            del_df.callback(x);
-          };
-          return del_df;
-        }
-      }
+      var i_cursor = mode == 'keyonly' ?
+          new ydn.db.IDBCursor(cur, []) :
+          new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
 
       callback(i_cursor);
       cur['continue']();
+      i_cursor.dispose();
     } else {
       cursor.has_done = true;
       df.callback(true);
@@ -739,7 +721,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
 
 /**
  * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Cursor} q query.
+ * @param {!ydn.db.Query} q query.
  * @param {function(*): boolean} clear clear iteration function.
  * @param {function(*): *} update update iteration function.
  * @param {function(*): *} map map iteration function.
@@ -908,7 +890,7 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map,
 
 /**
 * @param {goog.async.Deferred} df deferred to feed result.
-* @param {!ydn.db.Cursor} q query.
+* @param {!ydn.db.Query} q query.
 */
 ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   var me = this;

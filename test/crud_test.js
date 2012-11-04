@@ -423,7 +423,7 @@ var test_24_get_all_no_data = function() {
     2000); // maxTimeout
 
 
-  var q = new ydn.db.Cursor(table_name);
+  var q = new ydn.db.Query(table_name);
   db.list(q).addCallback(function(value) {
     //console.log('receiving value callback.');
     put_value = value;
@@ -876,7 +876,7 @@ var test_61_query_start_with = function () {
 
 
       var key_range = ydn.db.KeyRange.starts('qs');
-      var q = new ydn.db.Cursor(store_name, 'next', 'id', key_range);
+      var q = new ydn.db.Query(store_name, 'next', 'id', key_range);
       db.fetch(q).addCallback(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         assertEquals('obj length', objs.length - 1, value.length);

@@ -9,7 +9,7 @@
 goog.provide('ydn.db.QueryJstest');
 goog.require('goog.debug.Console');
 goog.require('goog.debug.LogManager');
-goog.require('ydn.db.Cursor');
+goog.require('ydn.db.Query');
 
 ydn.db.QueryJstest = TestCase('ydn.db.QueryJstest');
 
