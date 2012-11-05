@@ -87,60 +87,10 @@ ydn.db.req.RequestExecutor.prototype.getById = goog.abstractMethod;
 
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
- * @param {string} store_name  store name.
- * @param {!Array.<!Array.<string>|string|number>} ids list of id.
- */
-ydn.db.req.RequestExecutor.prototype.getByIds = goog.abstractMethod;
-
-
-/**
- * @param {!goog.async.Deferred} return object in deferred function.
- * @param {!Array.<!ydn.db.Key>} keys  list of keys.
- */
-ydn.db.req.RequestExecutor.prototype.getByKeys = goog.abstractMethod;
-
-
-/**
- * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!ydn.db.Query} store_name  store name.
  */
 ydn.db.req.RequestExecutor.prototype.getByQuery = goog.abstractMethod;
 
-
-/**
- * @param {!goog.async.Deferred} return object in deferred function.
- * @param {(string|!Array.<string>)=} store_name  store name.
- */
-ydn.db.req.RequestExecutor.prototype.getByStore = goog.abstractMethod;
-
-
-/**
- * Put object and return key inserted.
- * @param {!goog.async.Deferred} return key in deferred function.
- * @param {string} store table name.
- * @param {!Object} obj object to put.
- * @param {(!Array|string|number)=} opt_key optional out-of-line key.
- */
-ydn.db.req.RequestExecutor.prototype.putObject = goog.abstractMethod;
-
-
-/**
- * Put objects and return list of key inserted.
- * @param {!goog.async.Deferred} return keys in deferred function.
- * @param {string} store_name store name.
- * @param {!Array.<Object>} objs object to put.
- * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
- */
-ydn.db.req.RequestExecutor.prototype.putObjects = goog.abstractMethod;
-
-
-
-/**
- * @param {!goog.async.Deferred} return object in deferred function.
- * @param {!Array.<Object>} objs object to put.
- * @param {!Array.<!ydn.db.Key>=} keys list of keys.
- */
-ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
 
 
 /**
@@ -168,12 +118,77 @@ ydn.db.req.RequestExecutor.prototype.clearByStore = goog.abstractMethod;
  */
 ydn.db.req.RequestExecutor.prototype.countStores = goog.abstractMethod;
 
+
 /**
  * @param {!goog.async.Deferred} df return a deferred function.
  * @param {string} table store name.
  * @param {ydn.db.KeyRange} keyRange the key range.
  */
 ydn.db.req.RequestExecutor.prototype.countKeyRange = goog.abstractMethod;
+
+
+/**
+ * Execute GET request callback results to df.
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {string} store_name table name.
+ * @param {!Array.<string|number>} ids id to get.
+ * @throws {ydn.db.InvalidKeyException}
+ * @throws {ydn.error.InternalError}
+ */
+ydn.db.req.RequestExecutor.prototype.listByIds = goog.abstractMethod;
+
+
+/**
+ * Execute GET request callback results to df.
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {!Array.<!ydn.db.Key>} keys id to get.
+ */
+ydn.db.req.RequestExecutor.prototype.listByKeys = goog.abstractMethod;
+
+
+/**
+ * List records from stores.
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!Array.<string>} store_name  store name.
+ */
+ydn.db.req.RequestExecutor.prototype.listByStores = goog.abstractMethod;
+
+
+/**
+ * List record in a store.
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!ydn.db.Query} store_name  store name.
+ */
+ydn.db.req.RequestExecutor.prototype.listByQuery = goog.abstractMethod;
+
+
+/**
+ * Put object and return key inserted.
+ * @param {!goog.async.Deferred} return key in deferred function.
+ * @param {string} store table name.
+ * @param {!Object} obj object to put.
+ * @param {(!Array|string|number)=} opt_key optional out-of-line key.
+ */
+ydn.db.req.RequestExecutor.prototype.putObject = goog.abstractMethod;
+
+
+/**
+ * Put objects and return list of key inserted.
+ * @param {!goog.async.Deferred} return keys in deferred function.
+ * @param {string} store_name store name.
+ * @param {!Array.<Object>} objs object to put.
+ * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
+ */
+ydn.db.req.RequestExecutor.prototype.putObjects = goog.abstractMethod;
+
+
+
+/**
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!Array.<Object>} objs object to put.
+ * @param {!Array.<!ydn.db.Key>} keys list of keys.
+ */
+ydn.db.req.RequestExecutor.prototype.putByKeys = goog.abstractMethod;
 
 
 /**

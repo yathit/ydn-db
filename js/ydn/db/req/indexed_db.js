@@ -64,162 +64,6 @@ ydn.db.req.IndexedDb.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.req.IndexedDb');
 
 
-/**
- * Execute GET request callback results to df.
- * @param {goog.async.Deferred} df deferred to feed result.
- * @param {string} store_name table name.
- * @param {!Array.<string|number>} ids id to get.
- * @throws {ydn.db.InvalidKeyException}
- * @throws {ydn.error.InternalError}
- */
-ydn.db.req.IndexedDb.prototype.getByIds = function(df, store_name, ids) {
-  var me = this;
-
-  var results = [];
-  var result_count = 0;
-  var store = this.tx.objectStore(store_name);
-  var n = ids.length;
-
-  var get = function(i) {
-
-    if (!goog.isDefAndNotNull(ids[i])) {
-      // should we just throw error ?
-      result_count++;
-      results[i] = undefined;
-      if (result_count == n) {
-        df.callback(results);
-      } else {
-        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
-        if (next < n) {
-          get(next);
-        }
-      }
-    }
-
-    var request;
-    try {
-      request = store.get(ids[i]);
-    } catch (e) {
-      if (e.name == 'DataError') {
-        if (ydn.db.req.IndexedDb.DEBUG) {
-          window.console.log([store_name, i, ids[i], e]);
-        }
-        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
-        // IDBRequest-any-key
-        throw new ydn.db.InvalidKeyException(ids[i]);
-      } else {
-        throw e;
-      }
-    }
-    request.onsuccess = (function(event) {
-      result_count++;
-      if (ydn.db.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, ids, i, event]);
-      }
-      results[i] = event.target.result;
-      if (result_count == n) {
-        df.callback(results);
-      } else {
-        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
-        if (next < n) {
-          get(next);
-        }
-      }
-    });
-
-    request.onerror = function(event) {
-      result_count++;
-      if (ydn.db.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, ids, i, event]);
-      }
-      df.errback(event);
-    };
-
-  };
-
-  if (n > 0) {
-    // send parallel requests
-    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < n; i++)
-    {
-      get(i);
-    }
-  } else {
-    df.callback([]);
-  }
-};
-
-
-/**
-* Execute GET request callback results to df.
-* @param {goog.async.Deferred} df deferred to feed result.
-* @param {!Array.<!ydn.db.Key>} keys id to get.
-*/
-ydn.db.req.IndexedDb.prototype.getByKeys = function(df, keys) {
-  var me = this;
-
-  var results = [];
-  var result_count = 0;
-
-
-  var get = function(i) {
-    /**
-     * @type {!ydn.db.Key}
-     */
-    var key = keys[i];
-    /**
-     * @type {IDBObjectStore}
-     */
-    var store = me.tx.objectStore(key.getStoreName());
-    var request;
-    try {
-      request = store.get(key.getId());
-    } catch (e) {
-      if (e.name == 'DataError') {
-        throw new ydn.db.InvalidKeyException(key + ' at ' + i);
-      } else {
-        throw e;
-      }
-    }
-
-    request.onsuccess = function(event) {
-      result_count++;
-      if (ydn.db.req.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      results[i] = event.target.result;
-      if (result_count == keys.length) {
-        df.callback(results);
-      } else {
-        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
-        if (next < keys.length) {
-          get(next);
-        }
-      }
-    };
-
-    request.onerror = function(event) {
-      result_count++;
-      if (ydn.db.req.IndexedDb.DEBUG) {
-        window.console.log([keys, event]);
-      }
-      df.errback(event);
-      // abort transaction ?
-    };
-
-  };
-
-  if (keys.length > 0) {
-    // send parallel requests
-    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
-    {
-      get(i);
-    }
-  } else {
-    df.callback([]);
-  }
-};
-
-
 
 /**
 * Execute PUT request either storing result to tx or callback to df.
@@ -475,15 +319,14 @@ ydn.db.req.IndexedDb.prototype.getKeysByStore = function(df, not_key_only,
 
 
 /**
-* Get all item in the store.
-* @param {goog.async.Deferred} df deferred to feed result.
-* @param {string|!Array.<string>=} opt_store_name table name.
+* @inheritDoc
 */
-ydn.db.req.IndexedDb.prototype.getByStore = function(df, opt_store_name) {
+ydn.db.req.IndexedDb.prototype.listByStores = function(df, store_names) {
   var me = this;
+  var results = [];
 
-  var getAll = function(store_name) {
-    var results = [];
+  var getAll = function(i) {
+    var store_name = store_names[i];
     var store = me.tx.objectStore(store_name);
 
     // Get everything in the store;
@@ -495,9 +338,11 @@ ydn.db.req.IndexedDb.prototype.getByStore = function(df, opt_store_name) {
         results.push(cursor['value']);
         cursor['continue'](); // result.continue();
       } else {
-        n_done++;
-        if (n_done == n_todo) {
+        i++;
+        if (i == store_names.length) {
           df.callback(results);
+        } else {
+          getAll(i);
         }
       }
     };
@@ -510,17 +355,8 @@ ydn.db.req.IndexedDb.prototype.getByStore = function(df, opt_store_name) {
     };
   };
 
-  var store_names = goog.isString(opt_store_name) ? [opt_store_name] :
-    goog.isArray(opt_store_name) && opt_store_name.length > 0 ?
-        opt_store_name : this.schema.getStoreNames();
-
-  var n_todo = store_names.length;
-  var n_done = 0;
-
-  if (n_todo > 0) {
-    for (var i = 0; i < store_names.length; i++) {
-      getAll(store_names[i]);
-    }
+  if (store_names.length > 0) {
+    getAll(0);
   } else {
     df.callback([]);
   }
@@ -566,6 +402,183 @@ ydn.db.req.IndexedDb.prototype.getById = function(df, store_name, id) {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.req.IndexedDb.prototype.getByQuery = function(df, q) {
+
+  var obj;
+
+  /**
+   *
+   * @param {ydn.db.ICursor} cursor
+   */
+  var next = function(cursor) {
+    obj = cursor.value();
+    return true; // to break the iteration
+  };
+
+  var req = this.open(q, next);
+  req.addCallback(function () {
+    df.callback(obj);
+  });
+  req.addErrback(function (e) {
+    df.errback(e);
+  });
+
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.req.IndexedDb.prototype.listByIds = function(df, store_name, ids) {
+  var me = this;
+
+  var results = [];
+  var result_count = 0;
+  var store = this.tx.objectStore(store_name);
+  var n = ids.length;
+
+  var get = function(i) {
+
+    if (!goog.isDefAndNotNull(ids[i])) {
+      // should we just throw error ?
+      result_count++;
+      results[i] = undefined;
+      if (result_count == n) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
+        if (next < n) {
+          get(next);
+        }
+      }
+    }
+
+    var request;
+    try {
+      request = store.get(ids[i]);
+    } catch (e) {
+      if (e.name == 'DataError') {
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          window.console.log([store_name, i, ids[i], e]);
+        }
+        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
+        // IDBRequest-any-key
+        throw new ydn.db.InvalidKeyException(ids[i]);
+      } else {
+        throw e;
+      }
+    }
+    request.onsuccess = (function(event) {
+      result_count++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, ids, i, event]);
+      }
+      results[i] = event.target.result;
+      if (result_count == n) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
+        if (next < n) {
+          get(next);
+        }
+      }
+    });
+
+    request.onerror = function(event) {
+      result_count++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, ids, i, event]);
+      }
+      df.errback(event);
+    };
+
+  };
+
+  if (n > 0) {
+    // send parallel requests
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < n; i++) {
+      get(i);
+    }
+  } else {
+    df.callback([]);
+  }
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
+  var me = this;
+
+  var results = [];
+  var result_count = 0;
+
+
+  var get = function(i) {
+    /**
+     * @type {!ydn.db.Key}
+     */
+    var key = keys[i];
+    /**
+     * @type {IDBObjectStore}
+     */
+    var store = me.tx.objectStore(key.getStoreName());
+    var request;
+    try {
+      request = store.get(key.getId());
+    } catch (e) {
+      if (e.name == 'DataError') {
+        throw new ydn.db.InvalidKeyException(key + ' at ' + i);
+      } else {
+        throw e;
+      }
+    }
+
+    request.onsuccess = function(event) {
+      result_count++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      results[i] = event.target.result;
+      if (result_count == keys.length) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
+        if (next < keys.length) {
+          get(next);
+        }
+      }
+    };
+
+    request.onerror = function(event) {
+      result_count++;
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log([keys, event]);
+      }
+      df.errback(event);
+      // abort transaction ?
+    };
+
+  };
+
+  if (keys.length > 0) {
+    // send parallel requests
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
+    {
+      get(i);
+    }
+  } else {
+    df.callback([]);
+  }
+};
+
+
+
+
+/**
  *
  * @param {ydn.db.Query} cursor the cursor.
  * @param {Function} callback icursor handler.
@@ -577,10 +590,6 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
   var df = new goog.async.Deferred();
   var me = this;
   var store = this.schema.getStore(cursor.store_name);
-  if (!store) {
-    throw new ydn.error.ArgumentException('Store "' + cursor.store_name +
-        '" not found.');
-  }
 
   var resume = cursor.has_done === false;
   if (resume) {
@@ -716,18 +725,20 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
             new ydn.db.IDBCursor(cur, []) :
             new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
 
-        callback(i_cursor);
+        var to_break = callback(i_cursor);
         i_cursor.dispose();
 
-        if (to_continue) {
+        if (to_break !== true && to_continue) {
           cur['continue']();
+        } else {
+          df.callback();
         }
       } else {
         cur['continue']();
       }
     } else {
       cursor.has_done = true;
-      df.callback(true);
+      df.callback();
     }
   };
 

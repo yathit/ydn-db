@@ -119,6 +119,35 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 
 
 /**
+ *
+ * @param {ydn.db.Query} cursor the cursor.
+ * @param {Function} callback icursor handler.
+ * @param {ydn.db.base.TransactionMode=} mode mode.
+ * @return {!goog.async.Deferred} promise on completed.
+ */
+ydn.db.TxStorage.prototype.open = function(cursor, callback, mode) {
+  if (!(cursor instanceof ydn.db.Query)) {
+    throw new ydn.error.ArgumentException();
+  }
+  var store = this.schema.getStore(cursor.store_name);
+  if (!store) {
+    throw new ydn.error.ArgumentException('Store "' + cursor.store_name +
+      '" not found.');
+  }
+  var tr_mode = mode || ydn.db.base.TransactionMode.READ_ONLY;
+
+  var df = ydn.db.base.createDeferred();
+  this.exec(function(executor) {
+    executor.open(df, cursor, callback);
+  }, cursor.stores(), tr_mode);
+
+  return df;
+
+};
+
+
+
+/**
  * @param {!ydn.db.Query} q query.
  * @param {function(*): boolean} clear clear iteration function.
  * @param {function(*): *} update update iteration function.

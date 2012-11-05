@@ -198,57 +198,6 @@ ydn.db.Query.prototype.finalize = null;
 
 
 
-/**
- *
- * @param {*} value the only value.
- * @return {!ydn.db.Query} The query for chaining.
- */
-ydn.db.Query.prototype.only = function(value) {
-  this.keyRange = ydn.db.IDBKeyRange.only(value);
-  return this;
-};
-
-
-/**
- *
- * @param {*} value The value of the upper bound.
- * @param {boolean=} is_open If true, the range excludes the upper bound value.
- * @return {!ydn.db.Query} The query for chaining.
- */
-ydn.db.Query.prototype.upperBound = function(value, is_open) {
-  goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.IDBKeyRange.upperBound(value, is_open);
-  return this;
-};
-
-
-/**
- *
- * @param {*} value  The value of the lower bound.
- * @param {boolean=} is_open  If true, the range excludes the lower bound value.
- * @return {!ydn.db.Query} The query for chaining.
- */
-ydn.db.Query.prototype.lowerBound = function(value, is_open) {
-  goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.IDBKeyRange.lowerBound(value, is_open);
-  return this;
-};
-
-
-/**
- *
- * @param {*} lower  The value of the lower bound.
- * @param {*} upper  The value of the upper bound.
- * @param {boolean=} lo If true, the range excludes the lower bound value.
- * @param {boolean=} uo If true, the range excludes the upper bound value.
- * @return {!ydn.db.Query} The query for chaining.
- */
-ydn.db.Query.prototype.bound = function(lower, upper, lo, uo) {
-  goog.asserts.assertString(this.index, 'index name must be specified.');
-  this.keyRange = ydn.db.IDBKeyRange.bound(lower, upper, lo, uo);
-  return this;
-};
-
 
 /**
  * @param {string?} keyPath if index is not defined, keyPath will be used.
@@ -508,3 +457,13 @@ ydn.db.Query.prototype.count = function() {
 ydn.db.Query.prototype.done = function() {
   return this.has_done;
 };
+
+
+/**
+ *
+ * @return {!Array.<string>}
+ */
+ydn.db.Query.prototype.stores = function() {
+  return [this.store_name];
+};
+

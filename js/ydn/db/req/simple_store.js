@@ -126,19 +126,14 @@ ydn.db.req.SimpleStore.prototype.getById = function(df, store_name, id) {
 /**
 * @inheritDoc
 */
-ydn.db.req.SimpleStore.prototype.getByStore = function(df, opt_store_name) {
+ydn.db.req.SimpleStore.prototype.listByStores = function (df, store_names) {
 
-  goog.Timer.callOnce(function() {
+  goog.Timer.callOnce(function () {
 
     var arr = [];
-    if (goog.isString(opt_store_name)) {
-      arr = this.tx.getKeys(opt_store_name);
-    } else {
-      var store_names = goog.isArray(opt_store_name) ?
-          opt_store_name : this.schema.getStoreNames();
-      for (var i = 0; i < store_names.length; i++) {
-        arr = arr.concat(this.tx.getKeys(store_names[i]));
-      }
+
+    for (var i = 0; i < store_names.length; i++) {
+      arr = arr.concat(this.tx.getKeys(store_names[i]));
     }
 
     df.callback(arr);
@@ -166,7 +161,7 @@ ydn.db.req.SimpleStore.prototype.getByIds = function(df, store_name, ids) {
 /**
 * @inheritDoc
 */
-ydn.db.req.SimpleStore.prototype.getByKeys = function(df, keys) {
+ydn.db.req.SimpleStore.prototype.listByKeys = function(df, keys) {
   var arr = [];
   for (var i = 0; i < keys.length; i++) {
     var value = this.getTx().getItemInternal(keys[i].getStoreName(), keys[i].getId());

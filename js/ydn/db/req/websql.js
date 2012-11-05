@@ -398,18 +398,13 @@ ydn.db.req.WebSql.prototype.getByIds = function(df, table_name, ids) {
 
 
 /**
-*
-* @param {goog.async.Deferred} df promise.
-* @param {(string|!Array.<string>)=} opt_table_name store name.
+* @inheritDoc
 */
-ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
+ydn.db.req.WebSql.prototype.listByStores = function(df, table_names) {
 
   var me = this;
   var arr = [];
 
-  var table_names = goog.isString(opt_table_name) ? [opt_table_name] :
-      goog.isArray(opt_table_name) && opt_table_name.length > 0 ?
-          opt_table_name : this.schema.getStoreNames();
   var n_todo = table_names.length;
 
   /**
@@ -461,7 +456,11 @@ ydn.db.req.WebSql.prototype.getByStore = function(df, opt_table_name) {
 
   // send request to the first store
   // getAll will continue to fetch one after another
-  getAll(0, this.getTx());
+  if (n_todo == 0) {
+    df.callback([]);
+  } else {
+    getAll(0, this.getTx());
+  }
 
 };
 

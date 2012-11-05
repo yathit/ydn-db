@@ -282,16 +282,15 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2) {
     if (goog.isArray(arg2)) {
       var ids = arg2;
       this.exec(function(executor) {
-        executor.getByIds(df, store_name, ids);
+        executor.listByIds(df, store_name, ids);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else if (!goog.isDef(arg2)) {
       this.exec(function(executor) {
-        executor.getByStore(df, store_name);
+        executor.listByStores(df, [store_name]);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else {
       throw new ydn.error.ArgumentException();
     }
-
   } else if (goog.isArray(arg1)) {
     if (arg1[0] instanceof ydn.db.Key) {
       var store_names = [];
@@ -318,14 +317,14 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2) {
         }
       }
       this.exec(function(executor) {
-        executor.getByKeys(df, keys);
+        executor.listByKeys(df, keys);
       }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
     } else {
       throw new ydn.error.ArgumentException();
     }
   } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
     this.exec(function(executor) {
-      executor.getByStore(df);
+      executor.listByStores(df, this.schema.getStoreNames());
     }, this.schema.getStoreNames(), ydn.db.base.TransactionMode.READ_ONLY);
   } else {
     throw new ydn.error.ArgumentException();
