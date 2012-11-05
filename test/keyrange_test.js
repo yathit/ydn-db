@@ -196,6 +196,74 @@ var test_store_string_index_wise_revrse = function () {
 
 
 
+var test_query_start_with = function () {
+  var store_name = 'ts1';
+  var db_name = 'test_crud_5';
+
+  // NOTE: key also need to be indexed.
+  var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.NUMERIC, true);
+  var stores = [new ydn.db.schema.Store(store_name, 'id', false, ydn.db.schema.DataType.TEXT, [indexSchema])];
+  //schema.addStore(new ydn.db.schema.Store(store_name, 'id'));
+  var schema = new ydn.db.schema.Database(1, stores);
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var objs = [
+    {id:'qs1', value:Math.random()},
+    {id:'qs2', value:Math.random()},
+    {id:'qt', value:Math.random()}
+  ];
+
+  var put_value_received;
+  var put_done;
+  waitForCondition(
+    // Condition
+    function () {
+      return put_done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('put objs', [objs[0].id, objs[1].id, objs[2].id],
+        put_value_received);
+
+      var get_done;
+      var get_value_received;
+      waitForCondition(
+        // Condition
+        function () {
+          return get_done;
+        },
+        // Continuation
+        function () {
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        2000); // maxTimeout
+
+
+      var key_range = ydn.db.KeyRange.starts('qs');
+      var q = new ydn.db.Query(store_name, 'next', 'id', key_range);
+      db.fetch(q).addCallback(function (value) {
+        console.log('fetch value: ' + JSON.stringify(value));
+        assertEquals('obj length', objs.length - 1, value.length);
+        assertObjectEquals('get', objs[0], value[0]);
+        assertObjectEquals('get', objs[1], value[1]);
+
+        get_done = true;
+      });
+
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(['receiving value callback.', value]);
+    put_value_received = value;
+    put_done = true;
+  });
+
+};
+
+
 
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();

@@ -665,6 +665,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
   }
 
   var cue = false;
+
   request.onsuccess = function(event) {
     /**
      * @type {IDBCursorWithValue}

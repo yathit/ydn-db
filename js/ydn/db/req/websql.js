@@ -805,35 +805,55 @@ ydn.db.req.WebSql.prototype.clearById = function(d, table, id) {
 ydn.db.req.WebSql.prototype.countStores = function(d, tables) {
 
   var me = this;
-
-  var table = tables[0];
-  var sql = 'SELECT COUNT(*) FROM ' + goog.string.quote(table);
+  var total = 0;
 
   /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
+   *
+   * @param {number} i
    */
-  var callback = function(transaction, results) {
-    var row = results.rows.item(0);
-    //console.log(['row ', row  , results]);
-    d.callback(row['COUNT(*)']);
+  var count = function (i) {
+    var table = tables[i];
+    var sql = 'SELECT COUNT(*) FROM ' + goog.string.quote(table);
+
+    /**
+     * @param {SQLTransaction} transaction transaction.
+     * @param {SQLResultSet} results results.
+     */
+    var callback = function (transaction, results) {
+      var row = results.rows.item(0);
+      //console.log(['row ', row  , results]);
+      total += parseInt(row['COUNT(*)'], 10);
+      i++;
+      if (i == tables.length) {
+        d.callback(total);
+      } else {
+        count(i);
+      }
+
+    };
+
+    /**
+     * @param {SQLTransaction} tr transaction.
+     * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
+     */
+    var error_callback = function (tr, error) {
+      if (ydn.db.req.WebSql.DEBUG) {
+        window.console.log([tr, error]);
+      }
+      me.logger.warning('count error: ' + error.message);
+      d.errback(error);
+      return true; // roll back
+    };
+
+    me.tx.executeSql(sql, [], callback, error_callback);
   };
 
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   * @return {boolean} true to roll back.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.req.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('count error: ' + error.message);
-    d.errback(error);
-    return true; // roll back
-  };
-
-  this.tx.executeSql(sql, [], callback, error_callback);
+  if (tables.length == 0) {
+    d.callback(0);
+  } else {
+    count(0);
+  }
 
   return d;
 };
