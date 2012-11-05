@@ -26,6 +26,7 @@ goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db.req.RequestExecutor');
+goog.require('ydn.db.WebsqlCursor');
 goog.require('ydn.json');
 
 
@@ -544,6 +545,113 @@ ydn.db.req.WebSql.prototype.listByKeys = function(df, keys) {
   } else {
     df.callback([]);
   }
+};
+
+
+
+/**
+ *
+ * @param {ydn.db.Query} cursor the cursor.
+ * @param {Function} next_callback icursor handler.
+ * @param {string?=} mode mode.
+ * @return {!goog.async.Deferred} promise on completed.
+ */
+ydn.db.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
+
+  var df = new goog.async.Deferred();
+  var me = this;
+  cursor.planSql(this.schema);
+
+  var store = this.schema.getStore(cursor.store_name);
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function(transaction, results) {
+
+    // http://www.w3.org/TR/webdatabase/#database-query-results
+    // Fetching the length might be expensive, and authors are thus encouraged
+    // to avoid using it (or enumerating over the object, which implicitly uses
+    // it) where possible.
+    // for (var row, i = 0; row = results.rows.item(i); i++) {
+    // Unfortunately, such enumerating don't work
+    // RangeError: Item index is out of range in Chrome.
+    // INDEX_SIZE_ERR: DOM Exception in Safari
+    var n = results.rows.length;
+    for (var i = 0; i < n; i++) {
+      var row = results.rows.item(i);
+      var value = {}; // ??
+      var key = undefined;
+      if (goog.isDefAndNotNull(row)) {
+        value = ydn.db.Query.parseRow(row, store);
+        var key_str = goog.isDefAndNotNull(store.keyPath) ?
+          row[store.keyPath] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
+        key = ydn.db.schema.Index.sql2js(key_str, store.type);
+      }
+      var to_continue = !goog.isFunction(cursor.continued) ||
+        cursor.continued(value);
+
+      if (!goog.isFunction(cursor.filter) || cursor.filter(value)) {
+        var peerKeys = [];
+        var peerIndexKeys = [];
+        var peerValues = [];
+        var tx = mode === 'readwrite' ? me.getTx() : null;
+        var icursor = new ydn.db.WebsqlCursor(tx, key, null, value,
+            peerKeys, peerIndexKeys, peerValues);
+        var to_break = next_callback(icursor);
+        icursor.dispose();
+        if (to_break === true) {
+          break;
+        }
+      }
+
+      if (!to_continue) {
+        break;
+      }
+    }
+    df.callback();
+
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
+   */
+  var error_callback = function(tr, error) {
+    if (ydn.db.req.WebSql.DEBUG) {
+      window.console.log([cursor, tr, error]);
+    }
+    me.logger.warning('Sqlite error: ' + error.message);
+    df.errback(error);
+    return true; // roll back
+  };
+
+  if (goog.DEBUG) {
+    this.logger.finest(this + ' open SQL: ' + cursor.sql + ' PARAMS:' +
+      ydn.json.stringify(cursor.params));
+  }
+  this.tx.executeSql(cursor.sql, cursor.params, callback, error_callback);
+
+  return df;
+};
+
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.req.WebSql.prototype.listByQuery = function(df, q) {
+  var arr = [];
+  var req = this.open(q, function(cursor) {
+    arr.push(cursor.value());
+  });
+  req.addCallbacks(function() {
+    df.callback(arr);
+  }, function(e) {
+    df.errback(e);
+  })
 };
 
 

@@ -50,7 +50,7 @@ ydn.db.IDBCursor.prototype.key = function(i) {
   if (!this.cursor_) {
     throw new ydn.db.InvalidStateError();
   }
-  if (!goog.isDef(0) || i == 0) {
+  if (!goog.isDef(i) || i == 0) {
     return this.cursor_.key;
   } else {
     i--;
@@ -70,7 +70,7 @@ ydn.db.IDBCursor.prototype.indexKey = function(i) {
   if (!this.cursor_) {
     throw new ydn.db.InvalidStateError();
   }
-  if (!goog.isDef(0) || i == 0) {
+  if (!goog.isDef(i) || i == 0) {
     return this.cursor_.primaryKey;
   } else {
     i--;
