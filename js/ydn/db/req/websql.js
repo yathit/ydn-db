@@ -316,7 +316,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
  * @param {string} table_name store name.
  * @param {!Array.<(!Array|number|string)>} ids ids.
  */
-ydn.db.req.WebSql.prototype.getByIds = function(df, table_name, ids) {
+ydn.db.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
 
   var me = this;
   var objects = [];
@@ -472,7 +472,7 @@ ydn.db.req.WebSql.prototype.listByStores = function(df, table_names) {
 * @param {goog.async.Deferred} df promise.
 * @param {!Array.<!ydn.db.Key>} keys keys.
 */
-ydn.db.req.WebSql.prototype.getByKeys = function(df, keys) {
+ydn.db.req.WebSql.prototype.listByKeys = function(df, keys) {
 
   var me = this;
   var objects = [];

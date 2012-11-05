@@ -243,8 +243,8 @@ var test_22_out_of_line_array = function () {
       assertArrayEquals('get back the keys', keys, put_result);
       // retrieve back by those key
 
-      db.get(store_name, put_result).addBoth(function (value) {
-        console.log('fetch value: ' + JSON.stringify(value));
+      db.list(store_name, put_result).addBoth(function (value) {
+        //console.log('fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
       });
@@ -254,7 +254,7 @@ var test_22_out_of_line_array = function () {
     1000); // maxTimeout
 
   db.put(store_name, objs, keys).addCallback(function (value) {
-    console.log(['receiving key from put', value]);
+    //console.log(['receiving key from put', value]);
     put_done = true;
     put_result = value
   });
@@ -366,8 +366,8 @@ var test_42_autoincreasement_offline = function () {
 
       // retrieve back by those key
 
-      db.get(store_name, put_result).addBoth(function (value) {
-        console.log('fetch value: ' + JSON.stringify(value));
+      db.list(store_name, put_result).addBoth(function (value) {
+        //console.log('fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
       });
@@ -377,7 +377,7 @@ var test_42_autoincreasement_offline = function () {
     1000); // maxTimeout
 
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(['receiving key from put', value]);
+    //console.log(['receiving key from put', value]);
     put_done = true;
     put_result = value
   });
@@ -428,6 +428,7 @@ var test_43_autoincreasement_inline = function () {
     function () {
       assertEquals('key length', objs.length, keys.length);
       for (var i = 0; i < keys.length; i++) {
+        assertNotNullNorUndefined('at ' + i, keys[i]);
         if (goog.isDef(objs[i].value)) {
           assertEquals('at ' + i, objs[i].value, keys[i]);
         }
@@ -435,7 +436,7 @@ var test_43_autoincreasement_inline = function () {
 
       // retrieve back by those key
 
-      db.get(store_name, keys).addBoth(function (value) {
+      db.list(store_name, keys).addBoth(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;

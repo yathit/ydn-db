@@ -303,22 +303,26 @@ ydn.db.con.SimpleStorage.prototype.getSchema = function (callback) {
  * @param {!Object} value object having key in keyPath field.
  * @return {string} key as seen by user.
  */
-ydn.db.con.SimpleStorage.prototype.extractKey = function(store, value, opt_key) {
+ydn.db.con.SimpleStorage.prototype.extractKey = function (store, value, opt_key) {
 
-  var key;
+  var key = goog.isDef(opt_key) ? opt_key :
+    goog.isDefAndNotNull(store.keyPath) ? store.getKeyValue(value) : undefined;
 
-  if (goog.isDefAndNotNull(store.keyPath)) {
-    key = store.getKeyValue(value);
-  } else if (goog.isDef(opt_key)) {
-    key = opt_key;
-  } else if (store.getAutoIncrement()) {
-    var store_key = this.makeKey(store.name);
-    var store_obj = ydn.json.parse(this.cache_.getItem(store_key));
-    store_obj['autoIncrementNo']++;
-    key = store_obj['autoIncrementNo'];
-    this.cache_.setItem(store_key, ydn.json.stringify(store_obj));
-  } else {
-    throw Error('No key provided.');
+  if (!goog.isDef(key)) {
+    if (store.getAutoIncrement()) {
+      var store_key = this.makeKey(store.name);
+      var store_obj = this.storeSchema_[store.name];
+      if (!goog.isDef(store_obj['autoIncrementNo'])) {
+        store_obj['autoIncrementNo'] = this.getKeys(store.name).length;
+      }
+      store_obj['autoIncrementNo']++;
+      key = store_obj['autoIncrementNo'];
+    } else {
+      if (ydn.db.con.SimpleStorage.DEBUG) {
+        window.console.log([store, value, opt_key]);
+      }
+      throw new ydn.db.InvalidKeyException();
+    }
   }
 
   return key;
@@ -384,7 +388,7 @@ ydn.db.con.SimpleStorage.prototype.setItemInternal = function(
   var key = this.makeKey(store_name, obj_id);
   var str = ydn.json.stringify(value);
   if (ydn.db.con.SimpleStorage.DEBUG) {
-    window.console.log(['setItemInternal', obj_id, key, str]);
+    window.console.log(['setItemInternal', store_name, id, obj_id, key, str]);
   }
   this.cache_.setItem(key, str);
   var idx_arr = this.storeSchema_[store_name]['Keys'];
@@ -399,6 +403,7 @@ ydn.db.con.SimpleStorage.prototype.setItemInternal = function(
       }
     }
   }
+
   return obj_id;
 };
 

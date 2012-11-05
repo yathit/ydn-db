@@ -441,6 +441,7 @@ ydn.db.Query.prototype.indexKey = function() {
 };
 
 
+
 /**
  *
  * @return {number} number of record iterated.

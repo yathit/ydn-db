@@ -105,7 +105,8 @@ ydn.db.req.SimpleStore.prototype.putObjects = function(
 
   var result = [];
   for (var i = 0; i < value.length; i++) {
-    result[i] = this.getTx().setItemInternal(value[i], table, opt_key);
+    var key = goog.isDef(opt_key) ? opt_key[i] : undefined;
+    result[i] = this.getTx().setItemInternal(value[i], table, key);
   }
 
   df.callback(result);
@@ -144,11 +145,9 @@ ydn.db.req.SimpleStore.prototype.listByStores = function (df, store_names) {
 
 /**
  *
- * @param {!goog.async.Deferred} df return result in deferred function.
- * @param {string} store_name store name.
- * @param {!Array.<string|number>} ids list of ids.
+ * @inheritDoc
  */
-ydn.db.req.SimpleStore.prototype.getByIds = function(df, store_name, ids) {
+ydn.db.req.SimpleStore.prototype.listByIds = function(df, store_name, ids) {
   var arr = [];
   for (var i = 0; i < ids.length; i++) {
     var value = this.getTx().getItemInternal(store_name, ids[i]);
