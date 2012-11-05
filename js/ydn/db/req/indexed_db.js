@@ -920,6 +920,22 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map,
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.req.IndexedDb.prototype.listByQuery = function(df, q) {
+  var arr = [];
+  var req = this.open(q, function(cursor) {
+    arr.push(cursor.value());
+  });
+  req.addCallbacks(function() {
+    df.callback(arr);
+  }, function(e) {
+    df.errback(e);
+  })
+};
+
+
+/**
 * @param {goog.async.Deferred} df deferred to feed result.
 * @param {!ydn.db.Query} q query.
 */

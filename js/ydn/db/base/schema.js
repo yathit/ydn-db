@@ -560,6 +560,14 @@ ydn.db.schema.Store.prototype.getIndexNames = function() {
   return this.indexes.map(function(x) {return x.name;});
 };
 
+/**
+ *
+ * @return {!Array.<string>} list of index keyPath.
+ */
+ydn.db.schema.Store.prototype.getIndexKeyPaths = function() {
+  return this.indexes.map(function(x) {return x.keyPath;});
+};
+
 
 /**
  *

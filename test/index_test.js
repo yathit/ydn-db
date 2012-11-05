@@ -79,9 +79,9 @@ var test_11_multiEntry_idb = function () {
 
   var count_for = function (tag_name, idx) {
     var keyRange = ydn.db.KeyRange.only(tag_name);
-    var q = db.cursor(store_name, 'next', 'tag', keyRange);
+    var q = new ydn.db.Query(store_name, 'next', 'tag', keyRange);
 
-    q.fetch().addBoth(function (value) {
+    db.list(q).addBoth(function (value) {
       console.log(tag_name + ' ==> ' + JSON.stringify(value));
       counts[idx] = value.length;
       done++;

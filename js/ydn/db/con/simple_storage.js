@@ -47,38 +47,46 @@ ydn.db.con.SimpleStorage = function(opt_localStorage) {
 
 
 /**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.con.SimpleStorage.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.con.SimpleStorage');
+
+
+/**
  * @const
  * @type {string}
  */
 ydn.db.con.SimpleStorage.TYPE = 'memory';
 
-
-/**
- * @deprecated
- * @return {!Object} return memory store object.
- */
-ydn.db.con.SimpleStorage.getInMemoryStorage = function() {
-
-  var memoryStorage = {};
-  memoryStorage.setItem = function(key, value) {
-    memoryStorage[key] = value;
-  };
-  memoryStorage.getItem = function(key) {
-    return memoryStorage[key] || null; // window.localStorage return null
-    // if the key don't exist.
-  };
-  memoryStorage.removeItem = function(key) {
-    delete memoryStorage[key];
-  };
-  memoryStorage.clear = function() {
-    for (var key in memoryStorage) {
-      if (memoryStorage.hasOwnProperty(key)) {
-        delete memoryStorage[key];
-      }
-    }
-  };
-  return memoryStorage;
-};
+//
+///**
+// * @deprecated
+// * @return {!Object} return memory store object.
+// */
+//ydn.db.con.SimpleStorage.getInMemoryStorage = function() {
+//
+//  var memoryStorage = {};
+//  memoryStorage.setItem = function(key, value) {
+//    memoryStorage[key] = value;
+//  };
+//  memoryStorage.getItem = function(key) {
+//    return memoryStorage[key] || null; // window.localStorage return null
+//    // if the key don't exist.
+//  };
+//  memoryStorage.removeItem = function(key) {
+//    delete memoryStorage[key];
+//  };
+//  memoryStorage.clear = function() {
+//    for (var key in memoryStorage) {
+//      if (memoryStorage.hasOwnProperty(key)) {
+//        delete memoryStorage[key];
+//      }
+//    }
+//  };
+//  return memoryStorage;
+//};
 
 
 /**
@@ -145,11 +153,15 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
 
   /**
    *
-   * @type {!Object.<ydn.db.con.SimpleStorage.StoreSchema>}
+   * @type {!Object.<StoreSchema>}
    * @final
    * @private
    */
   this.storeSchema_ = {};
+  for (var i = 0; i < schema.count(); i++) {
+    var store = schema.store(i);
+    this.storeSchema_[store.getName()] = store.toJSON();
+  }
 
   /**
    * Array of ordered key indexes.
@@ -158,54 +170,33 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
   this.indexes = {};
 
   var db_key = this.makeKey();
-  var db_value = this.cache_.getItem(db_key);
+  /**
+   *
+   * @type {DatabaseSchema}
+   */
+  var ex_schema = /** @type {DatabaseSchema} */
+    (ydn.json.parse(this.cache_.getItem(db_key)));
   var stores = schema.getStoreNames();
-  var ex_stores = stores;
-  var db_obj = {'Stores': stores};
-
-  // save stores.
-  this.cache_.setItem(db_key, ydn.json.stringify(db_obj));
-//  if (!db_value) {
-//    this.cache_.setItem(db_key, ydn.json.stringify(db_obj));
-//  } else {
-//    var ex_db_obj = ydn.json.parse(db_value);
-//    ex_stores = goog.object.getValueByKeys(ex_db_obj, ['Stores']);
-//    if (!ydn.object.equals(stores, ex_stores)) {
-//      this.cache_.setItem(db_key, ydn.json.stringify(db_obj));
-//    }
-//  }
-
-  // create or delete stores
-  for (var i = 0, n = schema.count(); i < n; i++) {
-    var store = schema.store(i);
-    var store_key = this.makeKey(store.getName());
-
-    var diff = false;
-    var store_obj = ydn.json.parse(this.cache_.getItem(store_key)) || {};
-    store_obj['name'] = store.getName();
-    if (!goog.isDef(store_obj['Indexes'])) {
-      store_obj['Indexes'] = {};
-      diff = true;
+  if (ex_schema) {
+    for (var store_name in ex_schema) {
+      if (ex_schema.hasOwnProperty(store_name)) {
+        if (!schema.hasStore(store_name)) {
+          var store_json = ex_schema[store_name];
+          if (schema.isAutoSchema()) {
+            // recover existing data
+            this.logger.finer('Adding existing store: ' + store_name);
+            this.storeSchema_[store_name] = store_json;
+          } else {
+            this.logger.finer('Deleting old store: ' + store_name);
+            this.removeItemInternal(store_name);
+          }
+        } else {
+          // TODO: recover auto generated keys
+        }
+      }
     }
-    if (store.getAutoIncrement() != store_obj['autoIncrement']) {
-      store_obj['autoIncrement'] = store.getAutoIncrement();
-      diff = true;
-    }
-    var keyPath = store.getKeyPath();
-    if (keyPath != store_obj['keyPath']) {
-      store_obj['keyPath'] = keyPath;
-
-      diff = true;
-    }
-    if (!goog.isDef(store_obj['autoIncrementNo'])) {
-      store_obj['autoIncrementNo'] = 1;
-      diff = true;
-    }
-
-    if (diff) {
-      this.cache_.setItem(store_key, ydn.json.stringify(store_obj));
-    }
-    this.storeSchema_[store_obj['name']] = store_obj;
+  } else {
+    this.cache_.setItem(db_key, ydn.json.stringify(this.storeSchema_));
   }
 
   return goog.async.Deferred.succeed(true);
@@ -313,7 +304,7 @@ ydn.db.con.SimpleStorage.prototype.extractKey = function (store, value, opt_key)
       var store_key = this.makeKey(store.name);
       var store_obj = this.storeSchema_[store.name];
       if (!goog.isDef(store_obj['autoIncrementNo'])) {
-        store_obj['autoIncrementNo'] = this.getKeys(store.name).length;
+        store_obj['autoIncrementNo'] = this.getKeys(store.name, null).length;
       }
       store_obj['autoIncrementNo']++;
       key = store_obj['autoIncrementNo'];
@@ -424,7 +415,9 @@ ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(
       goog.array.remove(idx_arr, id);
     }
   } else if (goog.isDef(store_name)) {
-    this.storeSchema_[store_name]['Keys'] = null;
+    if (this.storeSchema_[store_name]) {
+      this.storeSchema_[store_name]['Keys'] = null;
+    }
     var base = this.makeKey(store_name) + ydn.db.con.SimpleStorage.SEP;
     for (var i = this.cache_.length - 1; i >= 0; i--) {
       var k = this.cache_.key(i);
@@ -453,9 +446,15 @@ ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(
  * @return {!Array.<string>} list of keys in the store.
  */
 ydn.db.con.SimpleStorage.prototype.index = function(store_name, index_name) {
-  var keys = this.storeSchema_[store_name]['Keys'];
+  /**
+   *
+   * @type {StoreSchema}
+   */
+  var store_json = this.storeSchema_[store_name];
+  var keys = store_json['Keys'];
   if (!goog.isDefAndNotNull(keys)) {
     keys = [];
+    var indexes = {};
     var base = this.makeKey(store_name);
     base += ydn.db.con.SimpleStorage.SEP;
     //console.log(['base', store_name, base]);
@@ -465,10 +464,15 @@ ydn.db.con.SimpleStorage.prototype.index = function(store_name, index_name) {
       if (goog.string.startsWith(key, base)) {
         //console.log(['key ' + keys.length, key]);
         keys.push(key);
+        for (var j = 0, m = store_json.Indexes.length; j < m; j++) {
+          var idxKeyPath = store_json.Indexes[i];
+          // TODO: indexing
+        }
       }
     }
     goog.array.sort(keys);
-    this.storeSchema_[store_name]['Keys'] = keys;
+    store_json['Keys'] = keys;
+    store_json['Indexes'] = indexes;
   }
   return keys;
 };

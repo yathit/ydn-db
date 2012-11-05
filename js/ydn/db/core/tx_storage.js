@@ -291,6 +291,19 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2) {
     } else {
       throw new ydn.error.ArgumentException();
     }
+  } else if (arg1 instanceof ydn.db.Query) {
+    if (goog.DEBUG && arguments.length != 2) {
+      throw new ydn.error.ArgumentException();
+    }
+    /**
+     *
+     * @type {!ydn.db.Query}
+     */
+    var q = arg1;
+
+    this.exec(function(executor) {
+      executor.listByQuery(df, q);
+    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY);
   } else if (goog.isArray(arg1)) {
     if (arg1[0] instanceof ydn.db.Key) {
       var store_names = [];

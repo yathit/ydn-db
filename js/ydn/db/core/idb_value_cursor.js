@@ -59,7 +59,7 @@ ydn.db.IDBValueCursor.prototype.key = function(i) {
   if (!this.cursor_) {
     throw new ydn.error.InvalidOperationException();
   }
-  if (!goog.isDef(0) || i == 0) {
+  if (!goog.isDef(i) || i == 0) {
     return this.cursor_.key;
   } else {
     i--;
@@ -79,7 +79,7 @@ ydn.db.IDBValueCursor.prototype.indexKey = function(i) {
   if (!this.cursor_) {
     throw new ydn.error.InvalidOperationException();
   }
-  if (!goog.isDef(0) || i == 0) {
+  if (!goog.isDef(i) || i == 0) {
     return this.cursor_.primaryKey;
   } else {
     i--;
@@ -99,7 +99,7 @@ ydn.db.IDBValueCursor.prototype.value = function(i) {
   if (!this.cursor_) {
     throw new ydn.error.InvalidOperationException();
   }
-  if (!goog.isDef(0) || i == 0) {
+  if (!goog.isDef(i) || i == 0) {
     return this.cursor_.value;
   } else {
     i--;
@@ -123,7 +123,7 @@ ydn.db.IDBValueCursor.prototype.update = function(value, i) {
     throw new ydn.error.InvalidOperationException();
   }
   var cur;
-  if (!goog.isDef(0) || i == 0) {
+  if (!goog.isDef(i) || i == 0) {
     cur = this.cursor_;
   } else {
     i--;
@@ -156,7 +156,7 @@ ydn.db.IDBValueCursor.prototype.clear = function(i) {
     throw new ydn.error.InvalidOperationException();
   }
   var cur;
-  if (!goog.isDef(0) || i == 0) {
+  if (!goog.isDef(i) || i == 0) {
     cur = this.cursor_;
   } else {
     i--;
