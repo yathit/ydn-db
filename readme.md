@@ -22,7 +22,7 @@ Downloads the following three repos a directory.
 
 that should create three directories for closure-library, ydn-base and ydn-db.
 
-Run apache or a static server on that directory.
+Run local apache (recommended) or a static server on that directory.
 
     python -m SimpleHTTPServer 8001
 
@@ -37,9 +37,12 @@ configuration.
 
     java -jar JsTestDriver.jar --tests all
 
-# Using #
+Use [qunit test kits](http://dev.yathit.com/test/compatibility_test.html) for end-to-end testing.
 
-Nice documentation on [YDN](http://dev.yathit.com)
+# Documentation #
+
+* Nice API documentation on [YDN](http://dev.yathit.com/api-reference/ydn-db/storage.html)
+* [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
 
 
 # License #
