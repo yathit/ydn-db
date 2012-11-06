@@ -97,7 +97,7 @@ ydn.db.WebsqlCursor.prototype.dispose = function() {
  * @inheritDoc
  */
 ydn.db.WebsqlCursor.prototype.key = function(i) {
-  if (!this.key_) {
+  if (!goog.isDefAndNotNull(this.key_)) {
     throw new ydn.db.InvalidStateError();
   }
   if (!goog.isDef(i) || i == 0) {
@@ -117,7 +117,7 @@ ydn.db.WebsqlCursor.prototype.key = function(i) {
  * @inheritDoc
  */
 ydn.db.WebsqlCursor.prototype.indexKey = function(i) {
-  if (!this.key_) {
+  if (!goog.isDefAndNotNull(this.key_)) {
     throw new ydn.db.InvalidStateError();
   }
   if (!goog.isDef(i) || i == 0) {
@@ -137,7 +137,7 @@ ydn.db.WebsqlCursor.prototype.indexKey = function(i) {
  * @inheritDoc
  */
 ydn.db.WebsqlCursor.prototype.value = function(i) {
-  if (!this.key_) {
+  if (!goog.isDefAndNotNull(this.key_)) {
     throw new ydn.db.InvalidStateError();
   }
   if (!goog.isDef(i) || i == 0) {

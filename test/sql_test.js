@@ -182,9 +182,9 @@ var test_2_select = function() {
       100, // interval
       2000); // maxTimeout
 
-  var q = db.query().from(store_name);
-  q.select('select', 'value');
-  db.fetch(q).addCallback(function (q_result) {
+  var q = new ydn.db.Sql().from(store_name);
+  q.project('value');
+  db.execute(q).addCallback(function (q_result) {
     console.log('receiving query ' + JSON.stringify(q_result));
     result = q_result;
     hasEventFired = true;

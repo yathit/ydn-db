@@ -155,6 +155,16 @@ ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
 
 
 /**
+ * Explain query plan.
+ * @param {!ydn.db.Query} q
+ * @return {Object} plan in JSON
+ */
+ydn.db.Storage.prototype.explain = function(q) {
+  return this.default_tx_queue_.explain(q);
+};
+
+
+/**
  * Remove an item to default key-value store.
  * @export
  * @param {string} id item id to be remove.

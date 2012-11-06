@@ -306,15 +306,26 @@ ydn.db.Sql.prototype.where = function(field, op, value, op2, value2) {
 
 
 /**
- *
- *   expression: (ydn.math.Expression|undefined),
- *
- * @typedef {{
- *   type: ydn.db.Sql.MapType,
- *   fields: (!Array.<string>|string)
- * }}
+ * @param {ydn.math.Expression} expression expression.
+ * @param {Array.<string>} fields projection fields.
+ * @struct
+ * @constructor
  */
-ydn.db.Sql.Map;
+ydn.db.Sql.Map = function(expression, fields) {
+
+  /**
+   * @final
+   * @type {ydn.math.Expression}
+   */
+  this.expression = expression;
+  /**
+   * @final
+   * @type {Array.<string>}
+   */
+  this.fields = fields;
+  this.type = goog.isDefAndNotNull(expression) ?
+    ydn.db.Sql.MapType.EXPRESSION : ydn.db.Sql.MapType.SELECT;
+};
 
 
 
@@ -573,45 +584,26 @@ ydn.db.Sql.prototype.reduce = function(opt_method, fields) {
 
 /**
  *
- * @param {string|ydn.math.Expression} opt_method selection method.
- * @param {(string|!Array.<string>)=} fields field names to select.
+ * @param {(ydn.math.Expression|string|!Array.<string>)=} exp_or_fields field names to select.
  * @return {!ydn.db.Sql} The query for chaining.
  */
-ydn.db.Sql.prototype.map = function(opt_method, fields) {
+ydn.db.Sql.prototype.project = function(exp_or_fields) {
 
   if (this.map_) {
     throw new ydn.error.ConstrainError('too many call.');
   }
 
   var method = '';
-  if (opt_method instanceof ydn.math.Expression) {
-    if (goog.isString(fields) || goog.isArray(fields)) {
-    this.map_ = {
-      type: ydn.db.Sql.MapType.EXPRESSION,
-      fields: fields
-    };
+  if (exp_or_fields instanceof ydn.math.Expression) {
+    this.map_ = new ydn.db.Sql.Map(exp_or_fields, null);
+  } else {
+    if (goog.isString(exp_or_fields)) {
+      this.map_ = new ydn.db.Sql.Map(null, [exp_or_fields]);
+    } else if (goog.isArray(exp_or_fields)) {
+      this.map_ = new ydn.db.Sql.Map(null, exp_or_fields);
     } else {
       throw new ydn.error.ArgumentException();
     }
-  } else if (goog.isString(opt_method)) {
-    method = opt_method.toLowerCase();
-  } else {
-    throw new ydn.error.ArgumentException();
-  }
-
-  if (method == 'select') {
-
-    if (goog.isString(fields) || goog.isArray(fields)) {
-      this.map_ = {
-        type: ydn.db.Sql.MapType.SELECT,
-        fields: fields
-      };
-    } else {
-      throw new ydn.error.ArgumentException('SELECT fields missing');
-    }
-
-  } else {
-    throw new ydn.error.ArgumentException('Unknown query: ' + opt_method);
   }
 
   return this;
@@ -623,20 +615,18 @@ ydn.db.Sql.prototype.map = function(opt_method, fields) {
 
 /**
  *
- * @param {!Array.<string>|string} fields field names.
+ * @param {!Array.<string>} fields field names.
  * @return {Function} select projection function.
  */
-ydn.db.Sql.mapSelect = function(fields) {
-  return function(data) {
-    if (goog.isString(fields)) {
-      return data[fields];
-    } else {
-      var selected_data = {};
-      for (var i = 0; i < fields.length; i++) {
-        selected_data[fields[i]] = data[fields[i]];
-      }
-      return selected_data;
+ydn.db.Sql.mapSelect = function (fields) {
+  return function (data) {
+
+    var selected_data = {};
+    for (var i = 0; i < fields.length; i++) {
+      selected_data[fields[i]] = data[fields[i]];
     }
+    return selected_data;
+
   };
 };
 
@@ -698,10 +688,11 @@ ydn.db.Sql.prototype.toCursor = function(schema) {
   }
 
   if (this.map_) {
-    if (this.map_.type == ydn.db.Sql.MapType.SELECT) {
+    if (this.map_.type == ydn.db.Sql.MapType.SELECT &&
+        goog.isArray(this.map_.fields)) {
       cursor.map_ = ydn.db.Sql.mapSelect(this.map_.fields);
     } else {
-      throw new ydn.db.SqlParseError(this.map_.type);
+      throw new ydn.db.SqlParseError('map');
     }
   }
 
@@ -800,18 +791,17 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
   var fields_selected = false;
   if (goog.isDefAndNotNull(this.map_)) {
     if (this.map_.type == ydn.db.Sql.MapType.SELECT) {
-      var fs = goog.isArray(this.map_.fields) ?
-        this.map_.fields : [this.map_.fields];
-      var fields = goog.array.map(fs, function(x) {
+      goog.asserts.assertArray(this.map_.fields);
+      var fields = goog.array.map(this.map_.fields, function(x) {
         return goog.string.quote(x);
       });
       select += 'SELECT (' + fields.join(', ') + ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.Query.parseRowIdentity;
+      cursor.parseRow = ydn.db.req.SqlQuery.parseRowIdentity;
       cursor.map_ = ydn.db.Sql.mapSelect(this.map_.fields);
     } else {
-      throw new ydn.db.SqlParseError(this.map_ + ' in ' + this.sql_);
+      throw new ydn.error.NotImplementedException('map in ' + this.sql_);
     }
   }
   if (goog.isDefAndNotNull(this.reduce_)) {
@@ -826,7 +816,7 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.Query.parseRowIdentity;
+      cursor.parseRow = ydn.db.req.SqlQuery.parseRowIdentity;
       cursor.map_ = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else if (this.reduce_.type == ydn.db.Sql.AggregateType.SUM) {
@@ -840,7 +830,7 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.Query.parseRowIdentity;
+      cursor.parseRow = ydn.db.req.SqlQuery.parseRowIdentity;
       cursor.map_ = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else if (this.reduce_.type == ydn.db.Sql.AggregateType.AVERAGE) {
@@ -854,7 +844,7 @@ ydn.db.Sql.prototype.toSqlCursor = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.Query.parseRowIdentity;
+      cursor.parseRow = ydn.db.req.SqlQuery.parseRowIdentity;
       cursor.map_ = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else {

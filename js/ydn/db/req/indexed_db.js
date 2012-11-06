@@ -1096,6 +1096,14 @@ ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q) {
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.req.IndexedDb.prototype.explainQuery = function(query) {
+  return query.toJSON();
+};
+
+
 
 /**
  * @param {!goog.async.Deferred} df return a deferred function.

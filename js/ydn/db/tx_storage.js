@@ -220,6 +220,25 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
 };
 
 
+/**
+ * Explain query plan.
+ * @param {!ydn.db.Query} q
+ * @return {Object} plan in JSON
+ */
+ydn.db.TxStorage.prototype.explain = function(q) {
+  if (q instanceof ydn.db.Query) {
+    var cursor = q;
+    if (this.executor) {
+      return this.executor.explainQuery(q);
+    } else {
+      return {'error': 'database not ready'};
+    }
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+};
+
+
 /** @override */
 ydn.db.TxStorage.prototype.toString = function() {
   var s = 'TxStorage:' + this.getStorage().getName();

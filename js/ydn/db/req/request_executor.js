@@ -127,6 +127,16 @@ ydn.db.req.RequestExecutor.prototype.countStores = goog.abstractMethod;
 ydn.db.req.RequestExecutor.prototype.countKeyRange = goog.abstractMethod;
 
 
+
+
+/**
+ * Explain plan.
+ * @param {!ydn.db.Query} store_name  store name.
+ * @return {Object} query plan in JSON.
+ */
+ydn.db.req.RequestExecutor.prototype.explainQuery = goog.abstractMethod;
+
+
 /**
  * Execute GET request callback results to df.
  * @param {goog.async.Deferred} df deferred to feed result.

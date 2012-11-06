@@ -28,6 +28,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.req.RequestExecutor');
 goog.require('ydn.db.WebsqlCursor');
 goog.require('ydn.json');
+goog.require('ydn.db.req.SqlQuery');
 
 
 /**
@@ -283,7 +284,7 @@ ydn.db.req.WebSql.prototype.getById = function(d, table_name, id) {
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
       if (goog.isDefAndNotNull(row)) {
-        d.callback(ydn.db.Query.parseRow(row, table));
+        d.callback(ydn.db.req.SqlQuery.parseRow(row, table));
       } else {
         d.callback(undefined);
       }
@@ -345,7 +346,7 @@ ydn.db.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.Query.parseRow(row, table);
+          objects[i] = ydn.db.req.SqlQuery.parseRow(row, table);
         }
         // this is get function, we take only one result.
       } else {
@@ -428,7 +429,7 @@ ydn.db.req.WebSql.prototype.listByStores = function(df, table_names) {
       for (var i = 0; i < results.rows.length; i++) {
         var row = results.rows.item(i);
         if (goog.isDefAndNotNull(row)) {
-          arr.push(ydn.db.Query.parseRow(row, table));
+          arr.push(ydn.db.req.SqlQuery.parseRow(row, table));
         }
       }
       if (idx == n_todo - 1) {
@@ -495,7 +496,7 @@ ydn.db.req.WebSql.prototype.listByKeys = function(df, keys) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.Query.parseRow(row, table);
+          objects[i] = ydn.db.req.SqlQuery.parseRow(row, table);
         }
         // this is get function, we take only one result.
       } else {
@@ -548,7 +549,6 @@ ydn.db.req.WebSql.prototype.listByKeys = function(df, keys) {
 };
 
 
-
 /**
  *
  * @param {ydn.db.Query} cursor the cursor.
@@ -557,12 +557,25 @@ ydn.db.req.WebSql.prototype.listByKeys = function(df, keys) {
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
+  return this.openSqlQuery(this.planQuery(cursor), next_callback, mode);
+};
+
+
+
+/**
+ *
+ * @param {ydn.db.req.SqlQuery} cursor the cursor.
+ * @param {Function} next_callback icursor handler.
+ * @param {string?=} mode mode.
+ * @return {!goog.async.Deferred} promise on completed.
+ */
+ydn.db.req.WebSql.prototype.openSqlQuery = function(cursor, next_callback, mode) {
 
   var df = new goog.async.Deferred();
   var me = this;
-  cursor.planSql(this.schema);
+  var sql = cursor.sql;
 
-  var store = this.schema.getStore(cursor.store_name);
+  var store = this.schema.getStore(cursor.getStoreName());
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -584,31 +597,41 @@ ydn.db.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
       var value = {}; // ??
       var key = undefined;
       if (goog.isDefAndNotNull(row)) {
-        value = ydn.db.Query.parseRow(row, store);
-        var key_str = goog.isDefAndNotNull(store.keyPath) ?
-          row[store.keyPath] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
-        key = ydn.db.schema.Index.sql2js(key_str, store.type);
-      }
-      var to_continue = !goog.isFunction(cursor.continued) ||
-        cursor.continued(value);
+          value = ydn.db.req.SqlQuery.parseRow(row, store);
+          var key_str = goog.isDefAndNotNull(store.keyPath) ?
+            row[store.keyPath] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
+          key = ydn.db.schema.Index.sql2js(key_str, store.type);
 
-      if (!goog.isFunction(cursor.filter) || cursor.filter(value)) {
-        var peerKeys = [];
-        var peerIndexKeys = [];
-        var peerValues = [];
-        var tx = mode === 'readwrite' ? me.getTx() : null;
-        var icursor = new ydn.db.WebsqlCursor(tx, key, null, value,
-            peerKeys, peerIndexKeys, peerValues);
-        var to_break = next_callback(icursor);
-        icursor.dispose();
-        if (to_break === true) {
+        if (!goog.isDefAndNotNull(key)) {
+          var msg;
+          if (goog.DEBUG) {
+            msg = 'executing ' + sql + ' return invalid key object: ' +
+              row.toString().substr(0, 80);
+          }
+          throw new ydn.db.InvalidStateError(msg);
+        }
+        var to_continue = !goog.isFunction(cursor.continued) ||
+          cursor.continued(value);
+
+        if (!goog.isFunction(cursor.filter) || cursor.filter(value)) {
+          var peerKeys = [];
+          var peerIndexKeys = [];
+          var peerValues = [];
+          var tx = mode === 'readwrite' ? me.getTx() : null;
+          var icursor = new ydn.db.WebsqlCursor(tx, key, null, value,
+              peerKeys, peerIndexKeys, peerValues);
+          var to_break = next_callback(icursor);
+          icursor.dispose();
+          if (to_break === true) {
+            break;
+          }
+        }
+        if (!to_continue) {
           break;
         }
       }
 
-      if (!to_continue) {
-        break;
-      }
+
     }
     df.callback();
 
@@ -629,10 +652,10 @@ ydn.db.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
   };
 
   if (goog.DEBUG) {
-    this.logger.finest(this + ' open SQL: ' + cursor.sql + ' PARAMS:' +
+    this.logger.finest(this + ' open SQL: ' + sql + ' PARAMS:' +
       ydn.json.stringify(cursor.params));
   }
-  this.tx.executeSql(cursor.sql, cursor.params, callback, error_callback);
+  this.tx.executeSql(sql, cursor.params, callback, error_callback);
 
   return df;
 };
@@ -656,13 +679,83 @@ ydn.db.req.WebSql.prototype.listByQuery = function(df, q) {
 
 
 /**
- * @param {!goog.async.Deferred} df return object in deferred function.
- * @param {!ydn.db.Query} cursor the query.
+ * Convert keyRange to SQL statement.
+ * @param {ydn.db.Query} query schema.
+ * @return {ydn.db.req.SqlQuery} sql query.
  */
-ydn.db.req.WebSql.prototype.fetchCursor = function(df, cursor) {
+ydn.db.req.WebSql.prototype.planQuery = function(query) {
+
+  var store = this.schema.getStore(query.getStoreName());
+  if (!store) {
+    throw new ydn.db.SqlParseError('TABLE: ' + query.getStoreName() +
+      ' not found.');
+  }
+  var sql = new ydn.db.req.SqlQuery(query);
+
+  var select = 'SELECT';
+
+  var from = '* FROM ' + store.getQuotedName();
+
+  var index = goog.isDef(sql.index) ? store.getIndex(sql.index) : null;
+
+  var key_column = index ? index.getKeyPath() :
+    goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
+      ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  var column = goog.string.quote(key_column);
+
+  var where_clause = '';
+  if (query.keyRange) {
+
+    if (ydn.db.Where.resolvedStartsWith(query.keyRange)) {
+      where_clause = column + ' LIKE ?';
+      sql.params.push(sql.keyRange['lower'] + '%');
+    } else {
+      if (goog.isDef(sql.keyRange.lower)) {
+        var lowerOp = sql.keyRange['lowerOpen'] ? ' > ' : ' >= ';
+        where_clause += ' ' + column + lowerOp + '?';
+        sql.params.push(sql.keyRange.lower);
+      }
+      if (goog.isDef(sql.keyRange['upper'])) {
+        var upperOp = sql.keyRange['upperOpen'] ? ' < ' : ' <= ';
+        var and = where_clause.length > 0 ? ' AND ' : ' ';
+        where_clause += and + column + upperOp + '?';
+        sql.params.push(sql.keyRange.upper);
+      }
+    }
+    where_clause = ' WHERE ' + '(' + where_clause + ')';
+  }
+
+  // Note: IndexedDB key range result are always ordered.
+  var dir = 'ASC';
+  if (sql.direction == ydn.db.Query.Direction.PREV ||
+    sql.direction == ydn.db.Query.Direction.PREV_UNIQUE) {
+    dir = 'DESC';
+  }
+  var order = 'ORDER BY ' + column;
+
+  sql.sql = [select, from, where_clause, order, dir].join(' ');
+  return sql;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.req.WebSql.prototype.explainQuery = function(query) {
+  var sql = this.planQuery(query);
+  return /** @type {Object} */ (sql.toJSON());
+};
+
+
+
+/**
+ * @param {!goog.async.Deferred} df return object in deferred function.
+ * @param {!ydn.db.Query} q the query.
+ */
+ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
 
   var me = this;
-  cursor.planSql(this.schema);
+  var cursor = this.planQuery(q);
   var is_reduce = goog.isFunction(cursor.reduce);
   var store = this.schema.getStore(cursor.store_name);
 

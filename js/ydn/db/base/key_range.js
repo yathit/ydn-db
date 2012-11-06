@@ -60,6 +60,21 @@ ydn.db.KeyRange.prototype.toJSON = function() {
 
 
 /**
+ * Robust efficient cloning of a keyrnge.
+ * @param {(ydn.db.KeyRange|ydn.db.IDBKeyRange)=} kr key range to be cloned.
+ * @return {!ydn.db.KeyRange|undefined} cloned key range.
+ */
+ydn.db.KeyRange.clone = function(kr) {
+  if (goog.isDefAndNotNull(kr)) {
+    return new ydn.db.KeyRange(kr.lower, kr.upper,
+        !!kr.lowerOpen, !!kr.upperOpen);
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
  * Creates a new key range for a single value.
  *
  * @param {Object} value The single value in the range.

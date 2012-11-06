@@ -289,6 +289,16 @@ ydn.db.schema.Index.toDir = function(str) {
 };
 
 
+
+/**
+ *
+ * @return {string} keyPath
+ */
+ydn.db.schema.Index.prototype.getKeyPath = function() {
+  return this.keyPath;
+};
+
+
 /**
  *
  * @param {!IndexSchema} json object in json format.
