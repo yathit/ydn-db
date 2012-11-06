@@ -26,6 +26,8 @@ Run local apache (recommended) or a static server on that directory.
 
     python -m SimpleHTTPServer 8001
 
+Use HTML files in the /test folder for getting started. These files are also used debug development.
+
 # Testing #
 
 You should able to run /ydn-db/test/all-test.html and pass all tests. These test

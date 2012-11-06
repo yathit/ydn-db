@@ -582,7 +582,7 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
  *
  * @param {ydn.db.Query} cursor the cursor.
  * @param {Function} callback icursor handler.
- * @param {string?=} mode mode.
+ * @param {ydn.db.base.CursorMode?=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
@@ -753,168 +753,72 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
 /**
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!ydn.db.Query} q query.
- * @param {function(*): boolean} clear clear iteration function.
- * @param {function(*): *} update update iteration function.
- * @param {function(*): *} map map iteration function.
- * @param {function(*, *, number=): *} reduce reduce iteration function.
+ * @param {?function(*): boolean} clear clear iteration function.
+ * @param {?function(*): *} update update iteration function.
+ * @param {?function(*): *} map map iteration function.
+ * @param {?function(*, *, number): *} reduce reduce iteration function.
  * @param {*} initial initial value for reduce iteration function.
  */
 ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map,
                                                   reduce, initial) {
   var me = this;
-  var store = this.schema.getStore(q.store_name);
   var is_reduce = goog.isFunction(reduce);
 
-  //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
-  // ' in ' + table);
-  var obj_store;
-  try {
-    obj_store = this.tx.objectStore(store.name);
-  } catch (e) {
-    if (goog.DEBUG && e.name == 'NotFoundError') {
-      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
-          'store: ' + store.name + ' not in transaction.' :
-          'store: ' + store.name + ' not in database: ' + this.tx.db.name;
-      throw new ydn.db.NotFoundError(msg);
-    } else {
-      throw e; // InvalidStateError: we can't do anything about it ?
-    }
-  }
-
-  if (q.has_done === false) {  // continue the iteration
-    goog.asserts.assert(q.store_key);
-  } else { // start a new iteration
-    q.has_done = undefined;
-    q.sotre_key = undefined;
-    q.index_key = undefined;
-    q.counter = 0;
-  }
-
-  /**
-   * externs file fix.
-   * @type {DOMStringList}
-   */
-  var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
-
-  var index = null;
-  if (goog.isDefAndNotNull(q.index)) {
-    if (q.index != store.keyPath) {
-      try {
-        index = obj_store.index(q.index);
-      } catch (e) {
-        if (goog.DEBUG && e.name == 'NotFoundError') {
-          var msg = indexNames.contains(q.index) ?
-              'index: ' + q.index + ' of ' + obj_store.name +
-                  ' not in transaction scope' :
-              'index: ' + q.index + ' not found in store: ' + obj_store.name;
-          throw new ydn.db.NotFoundError(msg);
-        } else {
-          throw e;
-        }
-      }
-    }
-  }
-
-  //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
-  // ' of ' + column + ' in ' + table);
-  var request;
-  var dir = /** @type {number} */ (q.direction); // new standard is string.
-
-  // keyRange is nullable but cannot be undefined.
-  var keyRange = goog.isDef(q.keyRange) ? q.keyRange : null;
-
-  if (index) {
-    if (goog.isDefAndNotNull(dir)) {
-      request = index.openCursor(keyRange, dir);
-    } else if (goog.isDefAndNotNull(keyRange)) {
-      request = index.openCursor(keyRange);
-    } else {
-      request = index.openCursor();
-    }
-  } else {
-    if (goog.isDefAndNotNull(dir)) {
-      request = obj_store.openCursor(keyRange, dir);
-    } else if (goog.isDefAndNotNull(keyRange)) {
-      request = obj_store.openCursor(keyRange);
-      // some browser have problem with null, even though spec said OK.
-    } else {
-      request = obj_store.openCursor();
-    }
-  }
+  var mode = goog.isFunction(clear) || goog.isFunction(update) ?
+    ydn.db.base.CursorMode.READ_WRITE :
+    ydn.db.base.CursorMode.READ_ONLY;
 
 
   var idx = -1; // iteration index
   var results = [];
   var previousResult = initial;
 
-  request.onsuccess = function(event) {
+  var request = this.open(q, function (cursor) {
 
-    if (ydn.db.req.IndexedDb.DEBUG) {
-      window.console.log([q, idx, event]);
+    var value = cursor.value();
+    idx++;
+    //console.log([idx, cursor.key(), value]);
+
+    var consumed = false;
+
+    if (goog.isFunction(clear)) {
+      var to_clear = clear(value);
+      if (to_clear === true) {
+        consumed = true;
+        cursor.clear();
+      }
     }
-    /**
-     * @type {IDBCursorWithValue}
-     */
-    var cursor = /** @type {IDBCursorWithValue} */ (event.target.result);
-    //console.log(cursor);
-    if (cursor) {
 
-      if (idx == -1 && q.has_done === false) {
-        // check for iteration continuation
-        cursor['continue'](q.store_key);
+    if (!consumed && goog.isFunction(update)) {
+      var updated_value = update(value);
+      if (updated_value !== value) {
+        cursor.update(updated_value);
       }
+    }
 
-      q.counter++;
+    if (goog.isFunction(map)) {
+      value = map(value);
+    }
 
-      var value = cursor.value;
-
-      var to_continue = !goog.isFunction(q.continued) || q.continued(value);
-
-      // do the filtering if requested.
-      if (!goog.isFunction(q.filter) || q.filter(value)) {
-        idx++;
-
-        if (goog.isFunction(map)) {
-          value = map(value);
-        }
-
-        if (goog.isFunction(update)) {
-          var updated_value = update(value);
-          if (goog.isDef(updated_value)) {
-            cursor.update(updated_value);
-          }
-        }
-
-        if (goog.isFunction(clear)) {
-          var to_clear = update(value);
-          if (to_clear === true) {
-            cursor['delete']();
-          }
-        }
-
-        if (is_reduce) {
-          previousResult = reduce(previousResult, value, idx);
-        } else {
-          results.push(value);
-        }
-      }
-
-      if (to_continue) {
-        //cursor.continue();
-        cursor['continue'](); // Note: Must be quoted to avoid parse error.
-      }
+    if (is_reduce) {
+      previousResult = reduce(value, previousResult, idx);
     } else {
-      var result = is_reduce ? previousResult : results;
-      df.callback(result);
+      results.push(value);
     }
-  };
 
-  request.onerror = function(event) {
+  }, mode);
+
+  request.addCallback(function() {
+    var result = is_reduce ? previousResult : results;
+    df.callback(result);
+  });
+
+  request.addErrback(function(event) {
     if (ydn.db.req.IndexedDb.DEBUG) {
       window.console.log([q, event]);
     }
     df.errback(event);
-  };
+  });
 
 };
 
@@ -1085,12 +989,13 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
 
 
 /**
+ *
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!ydn.db.Sql} q query.
  */
 ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q) {
 
-  var cursor = q.toCursor(this.schema);
+  var cursor = q.toIdbQuery(this.schema);
   this.fetchCursor(df, cursor);
 
 };
@@ -1099,10 +1004,35 @@ ydn.db.req.IndexedDb.prototype.fetchQuery = function(df, q) {
 /**
  * @inheritDoc
  */
-ydn.db.req.IndexedDb.prototype.explainQuery = function(query) {
-  return query.toJSON();
+ydn.db.req.IndexedDb.prototype.executeSql = function(df, sql) {
+  var cursor = sql.toIdbQuery(this.schema);
+  var initial = goog.isFunction(cursor.initial) ? cursor.initial() : undefined;
+  this.iterate(df, cursor, null, null,
+    cursor.map, cursor.reduce, initial);
+  return df;
 };
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.req.IndexedDb.prototype.explainQuery = function(query) {
+  return /** @type {Object} */ (query.toJSON());
+};
+
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.req.IndexedDb.prototype.explainSql = function(sql) {
+  var cursor = sql.toIdbQuery(this.schema);
+  var json = /** @type {Object} */ (cursor.toJSON());
+  json['map'] = cursor.map ? cursor.map.toString() : null;
+  json['reduce'] = cursor.reduce ? cursor.reduce.toString() : null;
+  json['initial'] = cursor.initial;
+  return json;
+};
 
 
 /**

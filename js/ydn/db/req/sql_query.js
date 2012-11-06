@@ -21,7 +21,7 @@
 
 
 goog.provide('ydn.db.req.SqlQuery');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.req.IdbQuery');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -35,26 +35,27 @@ goog.require('ydn.error.ArgumentException');
  * This clone given query object and added iteration functions so that
  * query processor can mutation as part of query optimization processes.
  *
- * @param {ydn.db.Query} query query.
- * @extends {ydn.db.Query}
+ * @param {string} store store name.
+ * @param {ydn.db.Query.Direction=} direction cursor direction.
+ * @param {string=} index store field, where key query is preformed. If not
+ * provided, the first index will be used.
+ * @param {ydn.db.KeyRange=}
+  * keyRange configuration in json or native format. Alternatively key range
+ * constructor parameters can be given.
+ * @param {Function=} filter filter function.
+ * @param {Function=} continued continued function.
+ * @extends {ydn.db.req.IdbQuery}
  * @constructor
  */
-ydn.db.req.SqlQuery = function(query) {
+ydn.db.req.SqlQuery = function(store, direction, index, keyRange, filter, continued) {
   // Note for V8 optimization, declare all properties in constructor.
-  goog.base(this, query.store_name, query.direction, query.index,
-    ydn.db.KeyRange.clone(query.keyRange));
-
-  // set all null so that no surprise from inherit prototype
-  this.initial = null;
-  this.map = null;
-  this.reduce = null;
-  this.finalize = null;
+  goog.base(this, store, direction, index, keyRange, filter, continued);
 
   this.parseRow = ydn.db.req.SqlQuery.prototype.parseRow;
   this.sql = '';
   this.params = [];
 };
-goog.inherits(ydn.db.req.SqlQuery, ydn.db.Query);
+goog.inherits(ydn.db.req.SqlQuery, ydn.db.req.IdbQuery);
 
 
 
@@ -71,32 +72,6 @@ ydn.db.req.SqlQuery.prototype.toJSON = function() {
     'params': this.params
   };
 };
-
-
-/**
- * @type {?function(): *}
- */
-ydn.db.req.SqlQuery.prototype.initial = null;
-
-
-/**
- * @type {?function(*): *}
- */
-ydn.db.req.SqlQuery.prototype.map = null;
-
-/**
- * Reduce is execute after map.
- * @type {?function(*, *, number): *}
- * function(previousValue, currentValue, index)
- */
-ydn.db.req.SqlQuery.prototype.reduce = null;
-
-
-/**
- * @type {?function(*): *}
- */
-ydn.db.req.SqlQuery.prototype.finalize = null;
-
 
 
 
@@ -226,34 +201,5 @@ ydn.db.req.SqlQuery.parseRowIdentity = function(row, store) {
 //};
 
 
-
-/**
- * Process where instruction into filter iteration method.
- * @param {!ydn.db.Where} where where.
- */
-ydn.db.req.SqlQuery.prototype.processWhereAsFilter = function(where) {
-
-  var prev_filter = goog.functions.TRUE;
-  if (goog.isFunction(this.filter)) {
-    prev_filter = this.filter;
-  }
-
-  this.filter = function(obj) {
-    var value = obj[where.field];
-    var ok1 = true;
-    if (goog.isDef(where.lower)) {
-      ok1 = where.lowerOpen ? value < where.lower : value <= where.lower;
-    }
-    var ok2 = true;
-    if (goog.isDef(where.upper)) {
-      ok2 = where.upperOpen ? value > where.upper : value >= where.upper;
-    }
-
-    return prev_filter(obj) && ok1 && ok2;
-  };
-
-  //console.log([where, this.filter.toString()]);
-
-};
 
 

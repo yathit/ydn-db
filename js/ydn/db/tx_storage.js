@@ -220,19 +220,42 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
 };
 
 
+
+/**
+ * @param {!ydn.db.Query|!ydn.db.Sql} q query.
+ * @return {!goog.async.Deferred} return result as list.
+ */
+ydn.db.TxStorage.prototype.execute = function(q) {
+
+  var df = ydn.db.base.createDeferred();
+
+
+  if (q instanceof ydn.db.Sql) {
+    var sql = q;
+    this.exec(function(executor) {
+      executor.executeSql(df, sql);
+    }, sql.stores(), ydn.db.base.TransactionMode.READ_ONLY);
+
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+
+  return df;
+};
+
+
 /**
  * Explain query plan.
  * @param {!ydn.db.Query} q
  * @return {Object} plan in JSON
  */
-ydn.db.TxStorage.prototype.explain = function(q) {
-  if (q instanceof ydn.db.Query) {
-    var cursor = q;
-    if (this.executor) {
-      return this.executor.explainQuery(q);
-    } else {
-      return {'error': 'database not ready'};
-    }
+ydn.db.TxStorage.prototype.explain = function (q) {
+  if (!this.executor) {
+    return {'error':'database not ready'};
+  } else if (q instanceof ydn.db.Query) {
+    return this.executor.explainQuery(q);
+  } else if (q instanceof ydn.db.Sql) {
+    return this.executor.explainSql(q);
   } else {
     throw new ydn.error.ArgumentException();
   }

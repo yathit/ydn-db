@@ -6,8 +6,8 @@ goog.require('ydn.db.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 
-var reachedFinalContinuation, schema, db, debug_console;
-var db_name = 'test_q_18';
+var reachedFinalContinuation, schema, db, debug_console, objs;
+var db_name = 'test_q_19';
 var store_name = 'st';
 
 
@@ -25,10 +25,21 @@ var setUp = function() {
   //ydn.db.req.IndexedDb.DEBUG = false;
 
   var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
+  var typeIndex = new ydn.db.schema.Index('type', ydn.db.schema.DataType.TEXT, false);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
-    ydn.db.schema.DataType.INTEGER, [indexSchema]);
-  schema = new ydn.db.schema.Database(1, [store_schema]);
+    ydn.db.schema.DataType.INTEGER, [indexSchema, typeIndex]);
+  schema = new ydn.db.schema.Database(undefined, [store_schema]);
   db = new ydn.db.Storage(db_name, schema, options);
+
+  objs = [
+    {id: -3, value: 'ba', type: 'a', remark: 'test ' + Math.random()},
+    {id: 0, value: 'a2', type: 'a', remark: 'test ' + Math.random()},
+    {id: 1, value: 'b', type: 'b', remark: 'test ' + Math.random()},
+    {id: 3, value: 'b1', type: 'b', remark: 'test ' + Math.random()},
+    {id: 10, value: 'c', type: 'c', remark: 'test ' + Math.random()},
+    {id: 11, value: 'a3', type: 'c', remark: 'test ' + Math.random()},
+    {id: 20, value: 'ca', type: 'c', remark: 'test ' + Math.random()}
+  ];
 
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + ' ready.');
@@ -39,17 +50,6 @@ var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
-
-
-var objs = [
-  {id: -3, value: 'a0', type: 'a', remark: 'test ' + Math.random()},
-  {id: 0, value: 'a2', type: 'a', remark: 'test ' + Math.random()},
-  {id: 1, value: 'ba', type: 'b', remark: 'test ' + Math.random()},
-  {id: 3, value: 'bc', type: 'b', remark: 'test ' + Math.random()},
-  {id: 10, value: 'c', type: 'c', remark: 'test ' + Math.random()},
-  {id: 11, value: 'c1', type: 'c', remark: 'test ' + Math.random()},
-  {id: 20, value: 'ca', type: 'c', remark: 'test ' + Math.random()}
-];
 
 
 
@@ -185,6 +185,7 @@ var test_2_select = function() {
   var q = new ydn.db.Sql().from(store_name);
   q.project('value');
   db.execute(q).addCallback(function (q_result) {
+    console.log(db.explain(q));
     console.log('receiving query ' + JSON.stringify(q_result));
     result = q_result;
     hasEventFired = true;

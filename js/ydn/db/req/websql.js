@@ -553,7 +553,7 @@ ydn.db.req.WebSql.prototype.listByKeys = function(df, keys) {
  *
  * @param {ydn.db.Query} cursor the cursor.
  * @param {Function} next_callback icursor handler.
- * @param {string?=} mode mode.
+ * @param {ydn.db.base.CursorMode?=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
@@ -563,10 +563,86 @@ ydn.db.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
 
 
 /**
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {!ydn.db.Query} q query.
+ * @param {?function(*): boolean} clear clear iteration function.
+ * @param {?function(*): *} update update iteration function.
+ * @param {?function(*): *} map map iteration function.
+ * @param {?function(*, *, number): *} reduce reduce iteration function.
+ * @param {*} initial initial value for reduce iteration function.
+ */
+ydn.db.req.WebSql.prototype.iterate = function(df, q, clear, update, map,
+                                                  reduce, initial) {
+  var me = this;
+  var is_reduce = goog.isFunction(reduce);
+
+  var mode = goog.isFunction(clear) || goog.isFunction(update) ?
+    ydn.db.base.CursorMode.READ_WRITE :
+    ydn.db.base.CursorMode.READ_ONLY;
+
+
+  var idx = -1; // iteration index
+  var results = [];
+  var previousResult = initial;
+
+  var request = this.open(q, function (cursor) {
+
+    var value = cursor.value();
+    idx++;
+    //console.log([idx, cursor.key(), value]);
+
+    var consumed = false;
+
+    if (goog.isFunction(clear)) {
+      var to_clear = clear(value);
+      if (to_clear === true) {
+        consumed = true;
+        cursor.clear();
+      }
+    }
+
+    if (!consumed && goog.isFunction(update)) {
+      var updated_value = update(value);
+      if (updated_value !== value) {
+        cursor.update(updated_value);
+      }
+    }
+
+    if (goog.isFunction(map)) {
+      value = map(value);
+    }
+
+    if (is_reduce) {
+      previousResult = reduce(value, previousResult, idx);
+    } else {
+      results.push(value);
+    }
+
+  }, mode);
+
+  request.addCallback(function() {
+    var result = is_reduce ? previousResult : results;
+    df.callback(result);
+  });
+
+  request.addErrback(function(event) {
+    if (ydn.db.req.IndexedDb.DEBUG) {
+      window.console.log([q, event]);
+    }
+    df.errback(event);
+  });
+
+};
+
+
+
+
+
+/**
  *
  * @param {ydn.db.req.SqlQuery} cursor the cursor.
  * @param {Function} next_callback icursor handler.
- * @param {string?=} mode mode.
+ * @param {ydn.db.base.CursorMode?=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.req.WebSql.prototype.openSqlQuery = function(cursor, next_callback, mode) {
@@ -690,7 +766,9 @@ ydn.db.req.WebSql.prototype.planQuery = function(query) {
     throw new ydn.db.SqlParseError('TABLE: ' + query.getStoreName() +
       ' not found.');
   }
-  var sql = new ydn.db.req.SqlQuery(query);
+
+  var sql = new ydn.db.req.SqlQuery(query.store_name, query.direction, query.index,
+    ydn.db.KeyRange.clone(query.keyRange));
 
   var select = 'SELECT';
 
@@ -746,6 +824,18 @@ ydn.db.req.WebSql.prototype.explainQuery = function(query) {
   return /** @type {Object} */ (sql.toJSON());
 };
 
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.req.WebSql.prototype.executeSql = function(df, sql) {
+  var cursor = sql.toSqlQuery(this.schema);
+  var initial = goog.isFunction(cursor.initial) ? cursor.initial() : undefined;
+  this.iterate(df, cursor, null, null,
+    cursor.map, cursor.reduce, initial);
+  return df;
+};
 
 
 /**
@@ -839,7 +929,7 @@ ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
  */
 ydn.db.req.WebSql.prototype.fetchQuery = function(df, q) {
 
-  var cursor = q.toSqlCursor(this.schema);
+  var cursor = q.toSqlQuery(this.schema);
   this.fetchCursor(df, cursor);
 };
 

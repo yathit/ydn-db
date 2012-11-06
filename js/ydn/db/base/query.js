@@ -37,7 +37,7 @@ goog.require('ydn.error.ArgumentException');
  * @param {ydn.db.Query.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!KeyRangeJson|!ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
+ * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
   * keyRange configuration in json or native format. Alternatively key range
  * constructor parameters can be given.
  * @param {...} opt_args additional parameters for key range constructor.

@@ -201,3 +201,13 @@ ydn.db.Storage.prototype.iterate = function(q, clear, update, map, reduce,
 };
 
 
+
+/**
+ * @param {!ydn.db.Query|!ydn.db.Sql} q query.
+ * @return {!goog.async.Deferred} return result as list.
+ */
+ydn.db.Storage.prototype.execute = function(q) {
+  return this.default_tx_queue_.execute(q);
+};
+
+
