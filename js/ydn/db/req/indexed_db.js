@@ -577,6 +577,157 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
 };
 
 
+/**
+ * Index scanning.
+ * @param {!Array.<!ydn.db.Query>>} indexes list of indexes.
+ * @param {(function(keys: !Array, index_keys: !Array): number)=} callback
+ * @param {number=} limit limit number of match results.
+ * @param {boolean=} no_prefetch no prefetching of result.
+ * @return {!goog.async.Deferred} promise on completed.
+ */
+ydn.db.req.IndexedDb.prototype.scan = function(indexes, callback, limit, no_prefetch) {
+  var df = new goog.async.Deferred();
+  var me = this;
+  var store = this.schema.getStore(cursor.store_name);
+
+  var resume = cursor.has_done === false;
+  if (resume) {
+    goog.asserts.assert(cursor.store_key);
+  }
+
+  /**
+   * @type {IDBObjectStore}
+   */
+  var obj_store;
+  try {
+    obj_store = this.tx.objectStore(store.name);
+  } catch (e) {
+    if (goog.DEBUG && e.name == 'NotFoundError') {
+      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
+          'store: ' + store.name + ' not in transaction.' :
+          'store: ' + store.name + ' not in database: ' + this.tx.db.name;
+      throw new ydn.db.NotFoundError(msg);
+    } else {
+      // InvalidStateError: we don't have any more info for this case.
+      throw e;
+    }
+  }
+
+  return df;
+};
+
+
+/**
+ * Open an index. This will resume depending on the cursor state.
+ * @param {!ydn.db.Query} cursor The cursor.
+ * @param {ydn.db.base.CursorMode} mode mode.
+ * @return {!IDBRequest} cursor request.
+ */
+ydn.db.req.IndexedDb.prototype.openIndex = function(cursor, mode) {
+
+  var store = this.schema.getStore(cursor.store_name);
+
+  /**
+   * @type {IDBObjectStore}
+   */
+  var obj_store;
+  try {
+    obj_store = this.tx.objectStore(store.name);
+  } catch (e) {
+    if (goog.DEBUG && e.name == 'NotFoundError') {
+      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
+          'store: ' + store.name + ' not in transaction.' :
+          'store: ' + store.name + ' not in database: ' + this.tx.db.name;
+      throw new ydn.db.NotFoundError(msg);
+    } else {
+      throw e; // InvalidStateError: we can't do anything about it ?
+    }
+  }
+
+  /**
+   * externs file fix.
+   * @type {DOMStringList}
+   */
+  var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
+
+  var resume = cursor.has_done === false;
+  if (resume) {
+    // continue the iteration
+    goog.asserts.assert(cursor.store_key);
+  } else { // start a new iteration
+    cursor.counter = 0;
+  }
+  cursor.has_done = undefined; // switching to working state.
+
+  var index = null;
+  if (goog.isDefAndNotNull(cursor.index)) {
+    if (cursor.index != store.keyPath) {
+      try {
+        index = obj_store.index(cursor.index);
+      } catch (e) {
+        if (goog.DEBUG && e.name == 'NotFoundError') {
+          var msg = indexNames.contains(cursor.index) ?
+              'index: ' + cursor.index + ' of ' + obj_store.name +
+                  ' not in transaction scope' :
+              'index: ' + cursor.index + ' not found in store: ' +
+                  obj_store.name;
+          throw new ydn.db.NotFoundError(msg);
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
+  var dir = /** @type {number} */ (cursor.direction); // new standard is string.
+
+  // keyRange is nullable but cannot be undefined.
+  var keyRange = goog.isDef(cursor.keyRange) ? cursor.keyRange : null;
+
+  var request;
+
+  if (mode === ydn.db.base.CursorMode.KEY_ONLY) {
+    if (index) {
+      if (goog.isDefAndNotNull(dir)) {
+        request = index.openKeyCursor(keyRange, dir);
+      } else if (goog.isDefAndNotNull(keyRange)) {
+        request = index.openCursor(keyRange);
+      } else {
+        request = index.openCursor();
+      }
+    } else {
+      if (goog.isDefAndNotNull(dir)) {
+        request = obj_store.openCursor(keyRange, dir);
+      } else if (goog.isDefAndNotNull(keyRange)) {
+        request = obj_store.openCursor(keyRange);
+        // some browser have problem with null, even though spec said OK.
+      } else {
+        request = obj_store.openCursor();
+      }
+    }
+  } else {
+    if (index) {
+      if (goog.isDefAndNotNull(dir)) {
+        request = index.openCursor(keyRange, dir);
+      } else if (goog.isDefAndNotNull(keyRange)) {
+        request = index.openCursor(keyRange);
+      } else {
+        request = index.openCursor();
+      }
+    } else {
+      if (goog.isDefAndNotNull(dir)) {
+        request = obj_store.openCursor(keyRange, dir);
+      } else if (goog.isDefAndNotNull(keyRange)) {
+        request = obj_store.openCursor(keyRange);
+        // some browser have problem with null, even though spec said OK.
+      } else {
+        request = obj_store.openCursor();
+      }
+    }
+  }
+
+  return request;
+};
 
 
 /**
