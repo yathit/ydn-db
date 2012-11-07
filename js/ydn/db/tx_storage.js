@@ -154,10 +154,11 @@ ydn.db.TxStorage.prototype.open = function(cursor, callback, mode) {
  * @param {function(*): *} map map iteration function.
  * @param {function(*, *, number=): *} reduce reduce iteration function.
  * @param {*} initial initial value for reduce iteration function.
+ * @param {?function(*): *} finalize finalize function.
  * @return {!goog.async.Deferred} promise.
  */
 ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
-                                              initial) {
+                                              initial, finalize) {
   var df = ydn.db.base.createDeferred();
   if (!(q instanceof ydn.db.Query)) {
     throw new ydn.error.ArgumentException();
@@ -173,7 +174,7 @@ ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
 
 
   this.exec(function(executor) {
-    executor.iterate(df, q, clear, update, map, reduce, initial);
+    executor.iterate(df, q, clear, update, map, reduce, initial, finalize);
   }, scope, tr_mode);
 
   return df;

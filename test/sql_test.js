@@ -93,7 +93,7 @@ var test_12_query_where = function() {
   var upper = 5;
   var query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '>', lower);
-  var cursor = query.toCursor(schema);
+  var cursor = query.toIdbQuery(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('lower', lower, cursor.keyRange.lower);
   assertUndefined('upper', cursor.keyRange.upper);
@@ -101,7 +101,7 @@ var test_12_query_where = function() {
 
   query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '>=', lower);
-  cursor = query.toCursor(schema);
+  cursor = query.toIdbQuery(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('lower', lower, cursor.keyRange.lower);
   assertUndefined('upper', cursor.keyRange.upper);
@@ -109,7 +109,7 @@ var test_12_query_where = function() {
 
   query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '<', lower);
-  cursor = query.toCursor(schema);
+  cursor = query.toIdbQuery(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('upper', lower, cursor.keyRange.upper);
   assertUndefined('lower', cursor.keyRange.lower);
@@ -117,7 +117,7 @@ var test_12_query_where = function() {
 
   query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '<=', lower);
-  cursor = query.toCursor(schema);
+  cursor = query.toIdbQuery(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('upper', lower, cursor.keyRange.upper);
   assertUndefined('lower', cursor.keyRange.lower);
@@ -125,7 +125,7 @@ var test_12_query_where = function() {
 
   query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '=', lower);
-  cursor = query.toCursor(schema);
+  cursor = query.toIdbQuery(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('lower', lower, cursor.keyRange.lower);
   assertEquals('upper', lower, cursor.keyRange.upper);
@@ -142,7 +142,7 @@ var test_13_query_where = function() {
 
   query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '>', lower, '<', upper);
-  cursor = query.toCursor(schema);
+  cursor = query.toIdbQuery(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('lower', lower, cursor.keyRange.lower);
   assertEquals('upper', upper, cursor.keyRange.upper);
@@ -151,7 +151,7 @@ var test_13_query_where = function() {
 
   query = new ydn.db.Sql().from(store_name);
   query = query.where('id', '>=', lower, '<=', upper);
-  cursor = query.toCursor(schema);
+  cursor = query.toIdbQuery(schema);
   assertNotNull(cursor.keyRange);
   assertEquals('lower', lower, cursor.keyRange.lower);
   assertEquals('upper', upper, cursor.keyRange.upper);
@@ -185,8 +185,8 @@ var test_2_select = function() {
   var q = new ydn.db.Sql().from(store_name);
   q.project('value');
   db.execute(q).addCallback(function (q_result) {
-    console.log(db.explain(q));
-    console.log('receiving query ' + JSON.stringify(q_result));
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
     result = q_result;
     hasEventFired = true;
   })
@@ -213,10 +213,11 @@ var test_3_count = function () {
     100, // interval
     2000); // maxTimeout
 
-  var q = db.query().from(store_name);
-  q.select('COUNT');
-  db.fetch(q).addCallback(function (q_result) {
+  var q = new ydn.db.Sql().from(store_name);
+  q.aggregate('COUNT');
+  db.execute(q).addCallback(function (q_result) {
     //console.log('receiving query ' + JSON.stringify(q_result));
+    //console.log(db.explain(q));
     put_value = q_result;
     hasEventFired = true;
   })
@@ -247,9 +248,9 @@ var test_4_sum = function() {
       2000); // maxTimeout
 
 
-    var q = db.query().from(store_name);
-    q.select('sum', 'id');
-    db.fetch(q).addCallback(function(q_result) {
+    var q = new ydn.db.Sql().from(store_name);
+    q.aggregate('sum', 'id');
+    db.execute(q).addCallback(function(q_result) {
       //console.log('receiving query ' + JSON.stringify(q_result));
       put_value = q_result;
       hasEventFired = true;
@@ -283,9 +284,9 @@ var test_4_average = function() {
 
 
 
-    var q = db.query().from(store_name);
-    q.select('avg', 'id');
-    db.fetch(q).addCallback(function(q_result) {
+    var q = new ydn.db.Sql().from(store_name);
+    q.aggregate('avg', 'id');
+    db.execute(q).addCallback(function(q_result) {
       //console.log('receiving query ' + JSON.stringify(q_result));
       put_value = q_result;
       hasEventFired = true;
@@ -318,7 +319,7 @@ var where_test = function(q, exp_result) {
       2000); // maxTimeout
 
 
-    db.fetch(q).addCallback(function(q_result) {
+    db.execute(q).addCallback(function(q_result) {
       //console.log('receiving when query ' + JSON.stringify(q_result));
       result = q_result;
       hasEventFired = true;
@@ -329,7 +330,7 @@ var where_test = function(q, exp_result) {
 
 var test_51_where_indexed_eq = function () {
 
-  var q = db.query().from(store_name);
+  var q = new ydn.db.Sql().from(store_name);
   var idx = 2;
   q.where('id', '=', objs[idx].id);
   where_test(q, [objs[idx]]);
@@ -337,7 +338,7 @@ var test_51_where_indexed_eq = function () {
 
 var test_52_where_indexed_gt = function () {
 
-  var q = db.query().from(store_name);
+  var q = new ydn.db.Sql().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id > value;
@@ -348,7 +349,7 @@ var test_52_where_indexed_gt = function () {
 
 var test_53_where_indexed_gt_eq = function () {
 
-  var q = db.query().from(store_name);
+  var q = new ydn.db.Sql().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id >= value;
@@ -359,7 +360,7 @@ var test_53_where_indexed_gt_eq = function () {
 
 var test_54_where_indexed_lt = function () {
 
-  var q = db.query().from(store_name);
+  var q = new ydn.db.Sql().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id < value;
@@ -370,7 +371,7 @@ var test_54_where_indexed_lt = function () {
 
 var test_55_where_indexed_eq = function () {
 
-  var q = db.query().from(store_name);
+  var q = new ydn.db.Sql().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id == value;
@@ -381,7 +382,7 @@ var test_55_where_indexed_eq = function () {
 
 var test_56_where_indexed_gt_lt = function () {
 
-  var q = db.query().from(store_name);
+  var q = new ydn.db.Sql().from(store_name);
   var lower = 1;
   var upper = 10;
   var result = objs.filter(function(x) {
@@ -393,7 +394,7 @@ var test_56_where_indexed_gt_lt = function () {
 
 var test_57_where_indexed_eq = function () {
 
-  var q = db.query().from(store_name);
+  var q = new ydn.db.Sql().from(store_name);
   var value = 10;
   var result = objs.filter(function(x) {
     return x.id >= value && x.id <= value;
@@ -404,7 +405,7 @@ var test_57_where_indexed_eq = function () {
 
 var test_61_where_eq = function () {
 
-  var q = db.query().from(store_name);
+  var q = new ydn.db.Sql().from(store_name);
   var idx = 2;
   var arr = objs.filter(function(x) {
     return x.type == objs[idx].type;

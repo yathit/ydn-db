@@ -21,7 +21,7 @@
 
 
 goog.provide('ydn.db.req.SqlQuery');
-goog.require('ydn.db.req.IdbQuery');
+goog.require('ydn.db.req.IterableQuery');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -44,7 +44,7 @@ goog.require('ydn.error.ArgumentException');
  * constructor parameters can be given.
  * @param {Function=} filter filter function.
  * @param {Function=} continued continued function.
- * @extends {ydn.db.req.IdbQuery}
+ * @extends {ydn.db.req.IterableQuery}
  * @constructor
  */
 ydn.db.req.SqlQuery = function(store, direction, index, keyRange, filter, continued) {
@@ -55,7 +55,7 @@ ydn.db.req.SqlQuery = function(store, direction, index, keyRange, filter, contin
   this.sql = '';
   this.params = [];
 };
-goog.inherits(ydn.db.req.SqlQuery, ydn.db.req.IdbQuery);
+goog.inherits(ydn.db.req.SqlQuery, ydn.db.req.IterableQuery);
 
 
 
@@ -63,14 +63,10 @@ goog.inherits(ydn.db.req.SqlQuery, ydn.db.req.IdbQuery);
  * @inheritDoc
  */
 ydn.db.req.SqlQuery.prototype.toJSON = function() {
-  return {
-    'store': this.store_name,
-    'index': this.index,
-    'key_range': this.keyRange ? ydn.db.KeyRange.toJSON(this.keyRange) : null,
-    'direction': this.direction,
-    'sql': this.sql,
-    'params': this.params
-  };
+  var obj = goog.base(this, 'toJSON');
+  obj['sql'] = this.sql;
+  obj['params'] = ydn.object.clone(this.params);
+  return obj;
 };
 
 
@@ -199,7 +195,5 @@ ydn.db.req.SqlQuery.parseRowIdentity = function(row, store) {
 //    throw new Error('Invalid op: ' + op);
 //  }
 //};
-
-
 
 

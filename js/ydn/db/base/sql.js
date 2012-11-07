@@ -395,10 +395,7 @@ ydn.db.Sql.Aggregate;
  * @return {Function} count.
  */
 ydn.db.Sql.reduceCount = function(field) {
-  return function(prev) {
-    if (!prev) {
-      prev = 0;
-    }
+  return function(curr, prev) {
     return prev + 1;
   };
 };
@@ -430,10 +427,7 @@ ydn.db.Sql.reduceCount = function(field) {
  * @return {Function} sum.
  */
 ydn.db.Sql.reduceSum = function(field) {
-  return function(prev, curr, i) {
-    if (!goog.isDef(prev)) {
-      prev = 0;
-    }
+  return function(curr, prev, i) {
     return prev + curr[field];
   };
 };
@@ -445,7 +439,7 @@ ydn.db.Sql.reduceSum = function(field) {
  * @return {Function} min.
  */
 ydn.db.Sql.reduceMin = function(field) {
-  return function(prev, curr, i) {
+  return function(curr, prev, i) {
     var x = curr[field];
     if (!goog.isDef(prev)) {
       return x;
@@ -461,7 +455,7 @@ ydn.db.Sql.reduceMin = function(field) {
  * @return {Function} max.
  */
 ydn.db.Sql.reduceMax = function(field) {
-  return function(prev, curr, i) {
+  return function(curr, prev, i) {
     var x = curr[field];
     if (!goog.isDef(prev)) {
       return x;
@@ -499,7 +493,7 @@ ydn.db.Sql.reduceMax = function(field) {
  * @return {Function} average.
  */
 ydn.db.Sql.reduceAverage = function(field) {
-  return function(prev, curr, i) {
+  return function(curr, prev, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
     }
@@ -510,33 +504,33 @@ ydn.db.Sql.reduceAverage = function(field) {
 
 /**
  *
- * @param {(string|ydn.math.Expression)=} opt_method selection method.
+ * @param {string|ydn.math.Expression} method selection method.
  * @param {string=} fields field names to select.
  * @return {!ydn.db.Sql} The query for chaining.
  */
-ydn.db.Sql.prototype.reduce = function(opt_method, fields) {
+ydn.db.Sql.prototype.aggregate = function(method, fields) {
 
   if (this.reduce_) {
     throw new ydn.error.ArgumentException('too many reduce.');
   }
-  var method = '';
-  if (opt_method instanceof ydn.math.Expression) {
-    var exp = opt_method;
 
-      this.reduce_ = /** @type {ydn.db.Sql.Aggregate} */ ({
-        type: ydn.db.Sql.AggregateType.EXPRESSION,
-        fields: ''
-      }); // why casting ??
+  if (method instanceof ydn.math.Expression) {
+    var exp = method;
+
+    this.reduce_ = /** @type {ydn.db.Sql.Aggregate} */ ({
+      type:ydn.db.Sql.AggregateType.EXPRESSION,
+      fields:''
+    }); // why casting ??
 
     return this;
-  } else if (goog.isString(opt_method)) {
-    method = opt_method.toLowerCase();
+  } else if (goog.isString(method)) {
+    method = method.toLocaleLowerCase();
   } else {
     throw new ydn.error.ArgumentException();
   }
 
 
-  if (method == 'avg') {
+  if (method === 'avg') {
 
     if (!goog.isString(fields)) {
       throw new ydn.error.ArgumentException('AVG');
@@ -545,7 +539,7 @@ ydn.db.Sql.prototype.reduce = function(opt_method, fields) {
       type: ydn.db.Sql.AggregateType.AVERAGE,
       field: fields
     };
-  } else if (method == 'min') {
+  } else if (method === 'min') {
 
     if (!goog.isString(fields)) {
       throw new ydn.error.ArgumentException('MIN');
@@ -554,7 +548,7 @@ ydn.db.Sql.prototype.reduce = function(opt_method, fields) {
       type: ydn.db.Sql.AggregateType.MIN,
       field: fields
     };
-  } else if (method == 'max') {
+  } else if (method === 'max') {
 
     if (!goog.isString(fields)) {
       throw new ydn.error.ArgumentException('MAX');
@@ -564,7 +558,7 @@ ydn.db.Sql.prototype.reduce = function(opt_method, fields) {
       expr: null,
       field: fields
     };
-  } else if (method == 'sum') {
+  } else if (method === 'sum') {
 
     if (!goog.isString(fields)) {
       throw new ydn.error.ArgumentException('SUM');
@@ -573,7 +567,7 @@ ydn.db.Sql.prototype.reduce = function(opt_method, fields) {
       type: ydn.db.Sql.AggregateType.SUM,
       field: fields
     };
-  } else if (method == 'count') {
+  } else if (method === 'count') {
 
     if (goog.isString(fields)) {
       this.reduce_ = {type: ydn.db.Sql.AggregateType.COUNT, field: fields};
@@ -584,7 +578,7 @@ ydn.db.Sql.prototype.reduce = function(opt_method, fields) {
     }
   } else {
     throw new ydn.error.ArgumentException('Unknown reduce method: ' +
-      opt_method);
+      method);
   }
 
   return this;
@@ -737,6 +731,7 @@ ydn.db.Sql.prototype.toIdbQuery = function(schema) {
   if (this.reduce_) {
     if (this.reduce_.type == ydn.db.Sql.AggregateType.SUM) {
       if (goog.isString(this.reduce_.field)) {
+        cursor.initial = goog.functions.constant(0);
         cursor.reduce = ydn.db.Sql.reduceSum(this.reduce_.field);
       } else {
         throw new ydn.db.SqlParseError('SUM: ' + this.sql_);
@@ -760,6 +755,7 @@ ydn.db.Sql.prototype.toIdbQuery = function(schema) {
         throw new ydn.db.SqlParseError('AVERAGE: ' + this.sql_);
       }
     } else if (this.reduce_.type == ydn.db.Sql.AggregateType.COUNT) {
+      cursor.initial = goog.functions.constant(0);
       cursor.reduce = ydn.db.Sql.reduceCount(this.reduce_.field);
     } else {
       throw new ydn.db.SqlParseError(this.sql_);
@@ -819,7 +815,7 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
         ' not found.');
   }
 
-  var cursor = new ydn.db.Query(this.store_name);
+  var cursor = new ydn.db.req.SqlQuery(this.store_name);
   var from = 'FROM ' + goog.string.quote(this.store_name);
 
   var select = '';
@@ -828,13 +824,7 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
 
   var fields_selected = false;
   if (goog.isDefAndNotNull(this.map_)) {
-    if (this.map_.type == ydn.db.Sql.MapType.SELECT &&
-      goog.isString(this.map_.field)) {
-      cursor.map = ydn.db.Sql.mapSelect(this.map_.field);
-    } else if (this.map_.type == ydn.db.Sql.MapType.SELECT_MANY &&
-      goog.isArray(this.map_.fields)) {
-      cursor.map = ydn.db.Sql.mapSelectMany(this.map_.fields);
-    }
+
 
     if (this.map_.type == ydn.db.Sql.MapType.SELECT_MANY ||
       this.map_.type == ydn.db.Sql.MapType.SELECT) {
@@ -851,7 +841,13 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
       fields_selected = true;
       // parse row and then select the fields.
       cursor.parseRow = ydn.db.req.SqlQuery.parseRowIdentity;
-      cursor.map = ydn.db.Sql.mapSelectMany(fs);
+      if (this.map_.type == ydn.db.Sql.MapType.SELECT &&
+        goog.isString(this.map_.field)) {
+        cursor.map = ydn.db.Sql.mapSelect(this.map_.field);
+      } else if (this.map_.type == ydn.db.Sql.MapType.SELECT_MANY &&
+        goog.isArray(this.map_.fields)) {
+        cursor.map = ydn.db.Sql.mapSelectMany(this.map_.fields);
+      }
 
     } else {
       throw new ydn.error.NotImplementedException('map in ' + this.sql_);

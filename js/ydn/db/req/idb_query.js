@@ -21,7 +21,7 @@
 
 
 goog.provide('ydn.db.req.IdbQuery');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.req.IterableQuery');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -44,106 +44,33 @@ goog.require('ydn.error.ArgumentException');
  * constructor parameters can be given.
  * @param {Function=} filter filter function.
  * @param {Function=} continued continued function.
- * @extends {ydn.db.Query}
+ * @extends {ydn.db.req.IterableQuery}
  * @constructor
  */
 ydn.db.req.IdbQuery = function(store, direction, index, keyRange, filter, continued) {
 
-  goog.base(this, store, direction, index, keyRange);
+  goog.base(this, store, direction, index, keyRange, filter, continued);
 
-  // set all null so that no surprise from inherit prototype
-  this.initial = null;
-  this.map = null;
-  this.reduce = null;
-  this.finalize = null;
-
-  this.filter = filter || null;
-  this.continued = continued || null;
 
 };
-goog.inherits(ydn.db.req.IdbQuery, ydn.db.Query);
-
+goog.inherits(ydn.db.req.IdbQuery, ydn.db.req.IterableQuery);
 
 
 /**
- * @inheritDoc
+ * @enum {string}
  */
-ydn.db.req.IdbQuery.prototype.toJSON = function() {
-  return {
-    'store': this.store_name,
-    'index': this.index,
-    'key_range': this.keyRange ? ydn.db.KeyRange.toJSON(this.keyRange) : null,
-    'direction': this.direction
-  };
+ydn.db.req.IdbQuery.Methods = {
+  OPEN: 'op',
+  COUNT: 'cn'
 };
 
 
 /**
- * @type {?function(): *}
+ *
+ * @type {ydn.db.req.IdbQuery.Methods}
  */
-ydn.db.req.IdbQuery.prototype.initial = null;
+ydn.db.req.IdbQuery.prototype.method = ydn.db.req.IdbQuery.Methods.OPEN;
 
 
-/**
- * @type {?function(*): *}
- */
-ydn.db.req.IdbQuery.prototype.map = null;
-
-/**
- * Reduce is execute after map.
- * @type {?function(*, *, number): *}
- * function(previousValue, currentValue, index)
- */
-ydn.db.req.IdbQuery.prototype.reduce = null;
-
-
-/**
- * @type {?function(*): *}
- */
-ydn.db.req.IdbQuery.prototype.finalize = null;
-
-
-
-/**
- * @override
- */
-ydn.db.req.IdbQuery.prototype.toString = function() {
-  var idx = goog.isDef(this.index) ? ':' + this.index : '';
-  return 'Cursor:' + this.store_name + idx;
-};
-
-
-
-
-
-
-/**
- * Process where instruction into filter iteration method.
- * @param {!ydn.db.Where} where where.
- */
-ydn.db.req.IdbQuery.prototype.processWhereAsFilter = function(where) {
-
-  var prev_filter = goog.functions.TRUE;
-  if (goog.isFunction(this.filter)) {
-    prev_filter = this.filter;
-  }
-
-  this.filter = function(obj) {
-    var value = obj[where.field];
-    var ok1 = true;
-    if (goog.isDef(where.lower)) {
-      ok1 = where.lowerOpen ? value < where.lower : value <= where.lower;
-    }
-    var ok2 = true;
-    if (goog.isDef(where.upper)) {
-      ok2 = where.upperOpen ? value > where.upper : value >= where.upper;
-    }
-
-    return prev_filter(obj) && ok1 && ok2;
-  };
-
-  //console.log([where, this.filter.toString()]);
-
-};
 
 

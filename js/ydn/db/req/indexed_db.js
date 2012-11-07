@@ -23,6 +23,7 @@ goog.require('goog.async.DeferredList');
 goog.require('ydn.db.req.RequestExecutor');
 goog.require('ydn.db.IDBCursor');
 goog.require('ydn.db.IDBValueCursor');
+goog.require('ydn.db.req.IdbQuery');
 goog.require('ydn.error');
 goog.require('ydn.json');
 
@@ -758,9 +759,10 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
  * @param {?function(*): *} map map iteration function.
  * @param {?function(*, *, number): *} reduce reduce iteration function.
  * @param {*} initial initial value for reduce iteration function.
+ * @param {?function(*): *} finalize finalize function.
  */
 ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map,
-                                                  reduce, initial) {
+                                                  reduce, initial, finalize) {
   var me = this;
   var is_reduce = goog.isFunction(reduce);
 
@@ -810,6 +812,9 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map,
 
   request.addCallback(function() {
     var result = is_reduce ? previousResult : results;
+    if (goog.isFunction(finalize)) {
+      result = finalize(result);
+    }
     df.callback(result);
   });
 
@@ -1008,7 +1013,7 @@ ydn.db.req.IndexedDb.prototype.executeSql = function(df, sql) {
   var cursor = sql.toIdbQuery(this.schema);
   var initial = goog.isFunction(cursor.initial) ? cursor.initial() : undefined;
   this.iterate(df, cursor, null, null,
-    cursor.map, cursor.reduce, initial);
+    cursor.map, cursor.reduce, initial, cursor.finalize);
   return df;
 };
 

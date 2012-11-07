@@ -239,5 +239,6 @@ ydn.db.req.RequestExecutor.prototype.fetchCursor = goog.abstractMethod;
  * @param {function(*): *} map map iteration function.
  * @param {function(*, *, number=): *} reduce reduce iteration function.
  * @param {*} initial initial value for reduce iteration function.
+ * @param {?function(*): *} finalize finalize function.
  */
 ydn.db.req.RequestExecutor.prototype.iterate = goog.abstractMethod;

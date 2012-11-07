@@ -24,8 +24,8 @@ goog.exportProperty(ydn.db.Query.prototype, 'indexKey',
 goog.exportSymbol('ydn.db.Sql', ydn.db.Sql);
 goog.exportProperty(ydn.db.Sql.prototype, 'project',
     ydn.db.Sql.prototype.project);
-goog.exportProperty(ydn.db.Sql.prototype, 'reduce',
-  ydn.db.Sql.prototype.reduce);
+goog.exportProperty(ydn.db.Sql.prototype, 'aggregate',
+  ydn.db.Sql.prototype.aggregate);
 goog.exportProperty(ydn.db.Sql.prototype, 'where',
     ydn.db.Sql.prototype.where);
 goog.exportProperty(ydn.db.Sql.prototype, 'from',

@@ -117,9 +117,9 @@ ydn.db.WebsqlCursor.prototype.key = function(i) {
  * @inheritDoc
  */
 ydn.db.WebsqlCursor.prototype.indexKey = function(i) {
-  if (!goog.isDefAndNotNull(this.key_)) {
-    throw new ydn.db.InvalidStateError();
-  }
+//  if (!goog.isDefAndNotNull(this.key_)) {
+//    throw new ydn.db.InvalidStateError();
+//  }
   if (!goog.isDef(i) || i == 0) {
     return this.indexKey_;
   } else {
@@ -137,9 +137,9 @@ ydn.db.WebsqlCursor.prototype.indexKey = function(i) {
  * @inheritDoc
  */
 ydn.db.WebsqlCursor.prototype.value = function(i) {
-  if (!goog.isDefAndNotNull(this.key_)) {
-    throw new ydn.db.InvalidStateError();
-  }
+//  if (!goog.isDefAndNotNull(this.key_)) {
+//    throw new ydn.db.InvalidStateError();
+//  }
   if (!goog.isDef(i) || i == 0) {
     return this.value_;
   } else {

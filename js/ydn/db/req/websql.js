@@ -557,7 +557,9 @@ ydn.db.req.WebSql.prototype.listByKeys = function(df, keys) {
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
-  return this.openSqlQuery(this.planQuery(cursor), next_callback, mode);
+  var q = cursor instanceof ydn.db.req.SqlQuery ? cursor :
+    this.planQuery(cursor);
+  return this.openSqlQuery(q, next_callback, mode);
 };
 
 
@@ -570,9 +572,10 @@ ydn.db.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
  * @param {?function(*): *} map map iteration function.
  * @param {?function(*, *, number): *} reduce reduce iteration function.
  * @param {*} initial initial value for reduce iteration function.
+ * @param {?function(*): *} finalize finalize function.
  */
 ydn.db.req.WebSql.prototype.iterate = function(df, q, clear, update, map,
-                                                  reduce, initial) {
+                                                  reduce, initial, finalize) {
   var me = this;
   var is_reduce = goog.isFunction(reduce);
 
@@ -622,6 +625,9 @@ ydn.db.req.WebSql.prototype.iterate = function(df, q, clear, update, map,
 
   request.addCallback(function() {
     var result = is_reduce ? previousResult : results;
+    if (goog.isFunction(finalize)) {
+      result = finalize(result);
+    }
     df.callback(result);
   });
 
@@ -633,8 +639,6 @@ ydn.db.req.WebSql.prototype.iterate = function(df, q, clear, update, map,
   });
 
 };
-
-
 
 
 
@@ -673,19 +677,19 @@ ydn.db.req.WebSql.prototype.openSqlQuery = function(cursor, next_callback, mode)
       var value = {}; // ??
       var key = undefined;
       if (goog.isDefAndNotNull(row)) {
-          value = ydn.db.req.SqlQuery.parseRow(row, store);
+          value = cursor.parseRow(row, store);
           var key_str = goog.isDefAndNotNull(store.keyPath) ?
             row[store.keyPath] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
           key = ydn.db.schema.Index.sql2js(key_str, store.type);
 
-        if (!goog.isDefAndNotNull(key)) {
-          var msg;
-          if (goog.DEBUG) {
-            msg = 'executing ' + sql + ' return invalid key object: ' +
-              row.toString().substr(0, 80);
-          }
-          throw new ydn.db.InvalidStateError(msg);
-        }
+//        if (!goog.isDefAndNotNull(key)) {
+//          var msg;
+//          if (goog.DEBUG) {
+//            msg = 'executing ' + sql + ' return invalid key object: ' +
+//              row.toString().substr(0, 80);
+//          }
+//          throw new ydn.db.InvalidStateError(msg);
+//        }
         var to_continue = !goog.isFunction(cursor.continued) ||
           cursor.continued(value);
 
@@ -825,6 +829,14 @@ ydn.db.req.WebSql.prototype.explainQuery = function(query) {
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.req.WebSql.prototype.explainSql = function(query) {
+  var cursor = query.toSqlQuery(this.schema);
+  return /** @type {Object} */ (cursor.toJSON());
+};
+
 
 /**
  * @inheritDoc
@@ -833,7 +845,7 @@ ydn.db.req.WebSql.prototype.executeSql = function(df, sql) {
   var cursor = sql.toSqlQuery(this.schema);
   var initial = goog.isFunction(cursor.initial) ? cursor.initial() : undefined;
   this.iterate(df, cursor, null, null,
-    cursor.map, cursor.reduce, initial);
+    cursor.map, cursor.reduce, initial, cursor.finalize);
   return df;
 };
 
