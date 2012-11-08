@@ -576,45 +576,45 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
   }
 };
 
-
-/**
- * Index scanning.
- * @param {!Array.<!ydn.db.Query>>} indexes list of indexes.
- * @param {(function(keys: !Array, index_keys: !Array): number)=} callback
- * @param {number=} limit limit number of match results.
- * @param {boolean=} no_prefetch no prefetching of result.
- * @return {!goog.async.Deferred} promise on completed.
- */
-ydn.db.req.IndexedDb.prototype.scan = function(indexes, callback, limit, no_prefetch) {
-  var df = new goog.async.Deferred();
-  var me = this;
-  var store = this.schema.getStore(cursor.store_name);
-
-  var resume = cursor.has_done === false;
-  if (resume) {
-    goog.asserts.assert(cursor.store_key);
-  }
-
-  /**
-   * @type {IDBObjectStore}
-   */
-  var obj_store;
-  try {
-    obj_store = this.tx.objectStore(store.name);
-  } catch (e) {
-    if (goog.DEBUG && e.name == 'NotFoundError') {
-      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
-          'store: ' + store.name + ' not in transaction.' :
-          'store: ' + store.name + ' not in database: ' + this.tx.db.name;
-      throw new ydn.db.NotFoundError(msg);
-    } else {
-      // InvalidStateError: we don't have any more info for this case.
-      throw e;
-    }
-  }
-
-  return df;
-};
+//
+///**
+// * Index scanning.
+// * @param {!Array.<!ydn.db.Query>>} indexes list of indexes.
+// * @param {(function(keys: !Array, index_keys: !Array): number)=} callback
+// * @param {number=} limit limit number of match results.
+// * @param {boolean=} no_prefetch no prefetching of result.
+// * @return {!goog.async.Deferred} promise on completed.
+// */
+//ydn.db.req.IndexedDb.prototype.scan = function(indexes, callback, limit, no_prefetch) {
+//  var df = new goog.async.Deferred();
+//  var me = this;
+//  var store = this.schema.getStore(cursor.store_name);
+//
+//  var resume = cursor.has_done === false;
+//  if (resume) {
+//    goog.asserts.assert(cursor.store_key);
+//  }
+//
+//  /**
+//   * @type {IDBObjectStore}
+//   */
+//  var obj_store;
+//  try {
+//    obj_store = this.tx.objectStore(store.name);
+//  } catch (e) {
+//    if (goog.DEBUG && e.name == 'NotFoundError') {
+//      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
+//          'store: ' + store.name + ' not in transaction.' :
+//          'store: ' + store.name + ' not in database: ' + this.tx.db.name;
+//      throw new ydn.db.NotFoundError(msg);
+//    } else {
+//      // InvalidStateError: we don't have any more info for this case.
+//      throw e;
+//    }
+//  }
+//
+//  return df;
+//};
 
 
 /**
@@ -826,26 +826,53 @@ ydn.db.req.IndexedDb.prototype.scan = function(queries, join_algo, limit, no_pre
   var keys = [];
   var index_keys = [];
   var match_keys = [];
-  var open_count = 0;
+  var cur_count = 0;
+  var value_count = 0;
+  /**
+   *
+   * @param {IDBCursor} cur
+   * @param {number} i
+   */
   var next = function (cur, i) {
-    open_count++;
+    cur_count++;
+    if (goog.isDefAndNotNull(cur)) {
+      value_count++;
+    }
     keys[i] = cur;
-    if (open_count === n) {
-      while (!goog.isDef(limit) || match_keys < limit) {
+    if (cur_count === n) {
+      cur_count = 0;
+      if (value_count == n) {
+        value_count = 0;
+        // all cursor has result
         var adv = join_algo(keys, index_keys);
         if (goog.isArray(adv)) {
           goog.asserts.assert(adv.length === n);
           for (var j = 0; j < n; j++) {
             if (adv[j] === true) {
-
+              var query = queries[j];
+              keys[j] = undefined;
+              index_keys[j] = undefined;
+              cur['continue']();
+            } else if (goog.isDefAndNotNull(adv[j])) {
+              var query = queries[j];
+              keys[j] = undefined;
+              index_keys[j] = undefined;
+              cur['continue'](adv[j]);
+            } else {
+              // just pass previous result
+              cur_count++;
+              value_count++;
             }
           }
-        } else {
-          break;
         }
       }
+      // reset for next
+      cur_count = 0;
+      value_count = 0;
+      if (goog.isDef(limit) || match_keys >= limit) {
+        df.callback(match_keys);
+      }
     }
-    df.callback(match_keys);
   };
 
   var on_error = function(e) {
@@ -854,7 +881,6 @@ ydn.db.req.IndexedDb.prototype.scan = function(queries, join_algo, limit, no_pre
 
   for (var i = 0; i < queries.length; i++) {
     var query = queries[i];
-
     this.openQuery(query, next, on_error, mode, i);
   }
 
