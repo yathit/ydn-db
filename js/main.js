@@ -44,30 +44,30 @@ goog.exportProperty(ydn.db.Sql.prototype, 'unique',
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
 
-//goog.exportProperty(ydn.db.Storage.prototype, 'iterate',
-//  ydn.db.Storage.prototype.iterate);
-//goog.exportProperty(ydn.db.Storage.prototype, 'map',
-//  ydn.db.Storage.prototype.map);
-//goog.exportProperty(ydn.db.Storage.prototype, 'reduce',
-//  ydn.db.Storage.prototype.reduce);
-//goog.exportProperty(ydn.db.Storage.prototype, 'execute',
-//  ydn.db.Storage.prototype.execute);
-goog.exportProperty(ydn.db.Storage.prototype, 'fetch',
+goog.exportProperty(ydn.db.Storage.prototype, 'iterate',
+  ydn.db.Storage.prototype.iterate);
+goog.exportProperty(ydn.db.Storage.prototype, 'map',
+  ydn.db.Storage.prototype.map);
+goog.exportProperty(ydn.db.Storage.prototype, 'reduce',
+  ydn.db.Storage.prototype.reduce);
+goog.exportProperty(ydn.db.Storage.prototype, 'execute',
+  ydn.db.Storage.prototype.execute);
+goog.exportProperty(ydn.db.Storage.prototype, 'open',
     ydn.db.Storage.prototype.fetch);
 goog.exportProperty(ydn.db.Storage.prototype, 'setItem',
     ydn.db.Storage.prototype.setItem);
 goog.exportProperty(ydn.db.Storage.prototype, 'getItem',
     ydn.db.Storage.prototype.getItem);
 
-//goog.exportProperty(ydn.db.TxStorage.prototype, 'iterate',
-//  ydn.db.TxStorage.prototype.iterate);
-//goog.exportProperty(ydn.db.TxStorage.prototype, 'map',
-//  ydn.db.TxStorage.prototype.map);
-//goog.exportProperty(ydn.db.TxStorage.prototype, 'reduce',
-//  ydn.db.TxStorage.prototype.reduce);
-//goog.exportProperty(ydn.db.TxStorage.prototype, 'execute',
-//  ydn.db.TxStorage.prototype.execute);
-goog.exportProperty(ydn.db.TxStorage.prototype, 'fetch',
+goog.exportProperty(ydn.db.TxStorage.prototype, 'iterate',
+  ydn.db.TxStorage.prototype.iterate);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'map',
+  ydn.db.TxStorage.prototype.map);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'reduce',
+  ydn.db.TxStorage.prototype.reduce);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'execute',
+  ydn.db.TxStorage.prototype.execute);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'open',
     ydn.db.TxStorage.prototype.fetch);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'setItem',
     ydn.db.TxStorage.prototype.setItem);

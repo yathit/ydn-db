@@ -620,10 +620,14 @@ ydn.db.req.IndexedDb.prototype.scan = function(indexes, callback, limit, no_pref
 /**
  * Open an index. This will resume depending on the cursor state.
  * @param {!ydn.db.Query} cursor The cursor.
+ * @param {function(cursor_value: *): return *} next next callback function
+ * receive current cursor value and return next cursor position or true to
+ * advance next position.
+ * @param {Function} errback callback on error.
  * @param {ydn.db.base.CursorMode} mode mode.
- * @return {!IDBRequest} cursor request.
+ * @param {*=} opt_par optional parameter
  */
-ydn.db.req.IndexedDb.prototype.openIndex = function(cursor, mode) {
+ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode, opt_par) {
 
   var store = this.schema.getStore(cursor.store_name);
 
@@ -644,12 +648,6 @@ ydn.db.req.IndexedDb.prototype.openIndex = function(cursor, mode) {
     }
   }
 
-  /**
-   * externs file fix.
-   * @type {DOMStringList}
-   */
-  var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
-
   var resume = cursor.has_done === false;
   if (resume) {
     // continue the iteration
@@ -665,6 +663,12 @@ ydn.db.req.IndexedDb.prototype.openIndex = function(cursor, mode) {
       try {
         index = obj_store.index(cursor.index);
       } catch (e) {
+
+        /**
+         * externs file fix.
+         * @type {DOMStringList}
+         */
+        var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
         if (goog.DEBUG && e.name == 'NotFoundError') {
           var msg = indexNames.contains(cursor.index) ?
               'index: ' + cursor.index + ' of ' + obj_store.name +
@@ -691,19 +695,13 @@ ydn.db.req.IndexedDb.prototype.openIndex = function(cursor, mode) {
       if (goog.isDefAndNotNull(dir)) {
         request = index.openKeyCursor(keyRange, dir);
       } else if (goog.isDefAndNotNull(keyRange)) {
-        request = index.openCursor(keyRange);
+        request = index.openKeyCursor(keyRange);
       } else {
-        request = index.openCursor();
+        request = index.openKeyCursor();
       }
     } else {
-      if (goog.isDefAndNotNull(dir)) {
-        request = obj_store.openCursor(keyRange, dir);
-      } else if (goog.isDefAndNotNull(keyRange)) {
-        request = obj_store.openCursor(keyRange);
-        // some browser have problem with null, even though spec said OK.
-      } else {
-        request = obj_store.openCursor();
-      }
+      throw new ydn.error.InvalidOperationException(
+        'object store cannot open for key cursor');
     }
   } else {
     if (index) {
@@ -726,121 +724,17 @@ ydn.db.req.IndexedDb.prototype.openIndex = function(cursor, mode) {
     }
   }
 
-  return request;
-};
-
-
-/**
- *
- * @param {ydn.db.Query} cursor the cursor.
- * @param {Function} callback icursor handler.
- * @param {ydn.db.base.CursorMode?=} mode mode.
- * @return {!goog.async.Deferred} promise on completed.
- */
-ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
-
-  var df = new goog.async.Deferred();
-  var me = this;
-  var store = this.schema.getStore(cursor.store_name);
-
-  var resume = cursor.has_done === false;
-  if (resume) {
-    goog.asserts.assert(cursor.store_key);
-  }
-
-  /**
-   * @type {IDBObjectStore}
-   */
-  var obj_store;
-  try {
-    obj_store = this.tx.objectStore(store.name);
-  } catch (e) {
-    if (goog.DEBUG && e.name == 'NotFoundError') {
-      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
-          'store: ' + store.name + ' not in transaction.' :
-          'store: ' + store.name + ' not in database: ' + this.tx.db.name;
-      throw new ydn.db.NotFoundError(msg);
-    } else {
-      throw e; // InvalidStateError: we can't do anything about it ?
-    }
-  }
-
-  /**
-   * externs file fix.
-   * @type {DOMStringList}
-   */
-  var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
-
-  if (cursor.has_done === false) {  // continue the iteration
-    goog.asserts.assert(cursor.store_key);
-  } else { // start a new iteration
-    cursor.has_done = undefined;
-    cursor.sotre_key = undefined;
-    cursor.index_key = undefined;
-    cursor.counter = 0;
-  }
-
-  var index = null;
-  if (goog.isDefAndNotNull(cursor.index)) {
-    if (cursor.index != store.keyPath) {
-      try {
-        index = obj_store.index(cursor.index);
-      } catch (e) {
-        if (goog.DEBUG && e.name == 'NotFoundError') {
-          var msg = indexNames.contains(cursor.index) ?
-              'index: ' + cursor.index + ' of ' + obj_store.name +
-                  ' not in transaction scope' :
-              'index: ' + cursor.index + ' not found in store: ' +
-                obj_store.name;
-          throw new ydn.db.NotFoundError(msg);
-        } else {
-          throw e;
-        }
-      }
-    }
-  }
-
-  var request;
-  var dir = /** @type {number} */ (cursor.direction); // new standard is string.
-
-  // keyRange is nullable but cannot be undefined.
-  var keyRange = goog.isDef(cursor.keyRange) ? cursor.keyRange : null;
-
-  if (index) {
-    if (goog.isDefAndNotNull(dir)) {
-      request = index.openCursor(keyRange, dir);
-    } else if (goog.isDefAndNotNull(keyRange)) {
-      request = index.openCursor(keyRange);
-    } else {
-      request = index.openCursor();
-    }
-  } else {
-    if (goog.isDefAndNotNull(dir)) {
-      request = obj_store.openCursor(keyRange, dir);
-    } else if (goog.isDefAndNotNull(keyRange)) {
-      request = obj_store.openCursor(keyRange);
-      // some browser have problem with null, even though spec said OK.
-    } else {
-      request = obj_store.openCursor();
-    }
-  }
-
   var cue = false;
-
-  request.onsuccess = function(event) {
-    /**
-     * @type {IDBCursorWithValue}
-     */
-    var cur = /** @type {IDBCursorWithValue} */ (event.target.result);
-    // console.log(cursor);
+  request.onsuccess = function (event) {
+    var cur = (event.target.result);
     if (cur) {
       if (resume) {
         // cue to correct position
         if (cur.key != cursor.key) {
           if (cue) {
             me.logger.warning('Resume corrupt on ' + cursor.store_name + ':' +
-                cursor.store_key + ':' + cursor.index_key);
-            df.errback(new ydn.db.InvalidStateError());
+              cursor.store_key + ':' + cursor.index_key);
+            errback(new ydn.db.InvalidStateError());
             return;
           }
           cue = true;
@@ -856,47 +750,114 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
         }
       }
 
-      cursor.has_done = false;
+      // invoke next callback function
       cursor.counter++;
       cursor.store_key = cur.key;
       cursor.index_key = cur.primaryKey;
 
-      var to_advance = goog.isFunction(cursor.advance) &&
-          cursor.advance(cur.value);
-      if (goog.isNumber(to_advance) && to_advance > 0) {
-        cur.advance(to_advance);
-        return;
-      }
+      var adv = next(cur, opt_par);
 
-      var to_continue = !goog.isFunction(cursor.continued) ||
-          cursor.continued(cur.value);
-
-      if (!goog.isFunction(cursor.filter) || cursor.filter(cur.value)) {
-
-        var i_cursor = mode == 'keyonly' ?
-            new ydn.db.IDBCursor(cur, []) :
-            new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
-
-        var to_break = callback(i_cursor);
-        i_cursor.dispose();
-
-        if (to_break !== true && to_continue) {
-          cur['continue']();
-        } else {
-          df.callback();
-        }
-      } else {
+      if (adv === true) {
         cur['continue']();
+      } else if (goog.isDefAndNotNull(adv)) {
+        cur['continue'](adv);
+      } else {
+        cursor.has_done = false; // decided not to continue.
       }
+
     } else {
       cursor.has_done = true;
-      df.callback();
+      next(undefined, opt_par); // notify that cursor iteration is finished.
     }
+
   };
 
-  request.onerror = function(event) {
-    df.errback(event);
+  request.onerror = function (event) {
+    errback(event);
   };
+
+};
+
+
+/**
+ *
+ * @param {ydn.db.Query} cursor the cursor.
+ * @param {Function} callback icursor handler.
+ * @param {ydn.db.base.CursorMode?=} mode mode.
+ * @return {!goog.async.Deferred} promise on completed.
+ */
+ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
+
+  var df = new goog.async.Deferred();
+  var me = this;
+
+  var next = function (cur) {
+    var i_cursor = new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
+    var adv = callback(i_cursor);
+    i_cursor.dispose();
+    return adv;
+  };
+
+  var on_error = function(e) {
+    df.errback(e);
+  };
+
+  this.openQuery(cursor, next, on_error, mode);
+
+  return df;
+};
+
+
+/**
+ * Cursor scan iteration.
+ * @param {!Array.<!ydn.db.Query>} queries the cursor.
+ * @param {Function} join_algo next callback handler.
+ * @param {number=} limit limit number of matched results.
+ * @param {boolean=} no_prefetch if true not prefetch.
+ * @return {!goog.async.Deferred} promise on completed.
+ */
+ydn.db.req.IndexedDb.prototype.scan = function(queries, join_algo, limit, no_prefetch) {
+
+  var df = new goog.async.Deferred();
+  var me = this;
+  var mode = ydn.db.base.CursorMode.KEY_ONLY;
+
+  var n = queries.length;
+  var keys = [];
+  var index_keys = [];
+  var match_keys = [];
+  var open_count = 0;
+  var next = function (cur, i) {
+    open_count++;
+    keys[i] = cur;
+    if (open_count === n) {
+      while (!goog.isDef(limit) || match_keys < limit) {
+        var adv = join_algo(keys, index_keys);
+        if (goog.isArray(adv)) {
+          goog.asserts.assert(adv.length === n);
+          for (var j = 0; j < n; j++) {
+            if (adv[j] === true) {
+
+            }
+          }
+        } else {
+          break;
+        }
+      }
+    }
+    df.callback(match_keys);
+  };
+
+  var on_error = function(e) {
+    df.errback(e);
+  };
+
+  for (var i = 0; i < queries.length; i++) {
+    var query = queries[i];
+
+    this.openQuery(query, next, on_error, mode, i);
+  }
+
 
   return df;
 };
