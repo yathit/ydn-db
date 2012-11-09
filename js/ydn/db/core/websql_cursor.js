@@ -4,7 +4,7 @@
 
 
 goog.provide('ydn.db.WebsqlCursor');
-goog.require('ydn.db.ICursor');
+goog.require('ydn.db.IValueCursor');
 
 
 /**
@@ -15,7 +15,7 @@ goog.require('ydn.db.ICursor');
  * @param {!Array} peerKeys peer cursor keys.
  * @param {!Array} peerValues peer cursor values.
  * @constructor
- * @implements {ydn.db.ICursor}
+ * @implements {ydn.db.IValueCursor}
  */
 ydn.db.WebsqlCursor = function(tx, key, indexKey, value,
                                peerKeys, peerIndexKeys, peerValues) {

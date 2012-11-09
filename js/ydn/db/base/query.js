@@ -130,12 +130,22 @@ ydn.db.Query.DIRECTIONS = [
   ydn.db.Query.Direction.PREV_UNIQUE
 ];
 
+
+
 /**
  *
  * @return {string} return store name.
  */
 ydn.db.Query.prototype.getStoreName = function() {
   return this.store_name;
+};
+
+/**
+ *
+ * @return {string|undefined} return store name.
+ */
+ydn.db.Query.prototype.getIndexName = function() {
+  return this.index;
 };
 
 

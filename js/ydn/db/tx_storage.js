@@ -180,6 +180,44 @@ ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
   return df;
 };
 
+/**
+ * Cursor scan iteration.
+ * @param {!Array.<!ydn.db.Query>} queries the cursor.
+ * @param {Function} join_algo next callback handler.
+ * @param {number=} limit limit number of matched results.
+ * @param {boolean=} no_collect_key if true not prefetch.
+ * @param {boolean=} no_prefetch if true not prefetch.
+ * @return {!goog.async.Deferred} promise on completed.
+ */
+ydn.db.TxStorage.prototype.scan = function(queries, join_algo, limit, no_collect_key, no_prefetch) {
+  var df = ydn.db.base.createDeferred();
+  if (!goog.isArray(queries) || !(queries[0] instanceof ydn.db.Query)) {
+    throw new ydn.error.ArgumentException();
+  }
+
+  var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;
+
+  var scopes = [];
+  for (var i = 0; i < queries.length; i++) {
+    var index = queries[i].getIndexName();
+    if (!goog.isDef(index)) {
+      var msg = goog.DEBUG ? 'Iterator ' + i + ' be must an index iterator. ' +
+        'Use key or value filter instead.' : '';
+      throw new ydn.error.ArgumentException(msg);
+    }
+    var store = queries[i].getStoreName();
+    if (!goog.array.contains(scopes, store)) {
+      scopes.push(store);
+    }
+  }
+
+  this.exec(function(executor) {
+    executor.scan(df, queries, join_algo, limit, no_collect_key, no_prefetch);
+  }, scopes, tr_mode);
+
+  return df;
+};
+
 
 /**
  * @param {!ydn.db.Query|!ydn.db.Sql} q query.
@@ -260,6 +298,28 @@ ydn.db.TxStorage.prototype.explain = function (q) {
   } else {
     throw new ydn.error.ArgumentException();
   }
+};
+
+
+/**
+ *
+ * @param {!ydn.db.Query} iterator
+ * @param {function(*)} callback
+ */
+ydn.db.TxStorage.prototype.map = function(iterator, callback) {
+
+};
+
+
+
+/**
+ *
+ * @param {!ydn.db.Query} iterator
+ * @param {function(*)} callback
+ * @param {*=} initial
+ */
+ydn.db.TxStorage.prototype.reduce = function(iterator, callback, initial) {
+
 };
 
 

@@ -30,12 +30,13 @@ goog.addDependency("../../../ydn-db/js/ydn/db/con/simple_storage.js", ['ydn.db.c
 goog.addDependency("../../../ydn-db/js/ydn/db/con/storage.js", ['ydn.db.con.Storage'], ['goog.events.EventTarget', 'goog.userAgent.product', 'ydn.async', 'ydn.db.con.IStorage', 'ydn.db.con.IndexedDb', 'ydn.db.con.LocalStorage', 'ydn.db.con.SessionStorage', 'ydn.db.con.SimpleStorage', 'ydn.db.con.WebSql', 'ydn.db.events.StorageEvent', 'ydn.db.schema.EditableDatabase', 'ydn.error.ArgumentException', 'ydn.object']);
 goog.addDependency("../../../ydn-db/js/ydn/db/con/websql.js", ['ydn.db.con.WebSql'], ['goog.async.Deferred', 'goog.debug.Logger', 'goog.events', 'goog.functions', 'ydn.async', 'ydn.db.SecurityError', 'ydn.db.base', 'ydn.db.con.IDatabase', 'ydn.json', 'ydn.string']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/i_storage.js", ['ydn.db.core.IStorage'], ['ydn.db.req.RequestExecutor']);
+goog.addDependency("../../../ydn-db/js/ydn/db/core/i_value_cursor.js", ['ydn.db.IValueCursor'], ['ydn.db.ICursor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/icursor.js", ['ydn.db.ICursor'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/idb_cursor.js", ['ydn.db.IDBCursor'], ['ydn.db.ICursor']);
-goog.addDependency("../../../ydn-db/js/ydn/db/core/idb_value_cursor.js", ['ydn.db.IDBValueCursor'], ['ydn.db.ICursor']);
+goog.addDependency("../../../ydn-db/js/ydn/db/core/idb_value_cursor.js", ['ydn.db.IDBValueCursor'], ['ydn.db.IValueCursor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/storage.js", ['ydn.db.core.Storage'], ['goog.userAgent.product', 'ydn.async', 'ydn.db.core.IStorage', 'ydn.db.core.TxStorage', 'ydn.db.tr.Storage', 'ydn.object']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/tx_storage.js", ['ydn.db.core.TxStorage'], ['ydn.db.req.IndexedDb', 'ydn.db.req.SimpleStore', 'ydn.db.req.WebSql', 'ydn.db.tr.TxStorage', 'ydn.error.NotSupportedException']);
-goog.addDependency("../../../ydn-db/js/ydn/db/core/websql_cursor.js", ['ydn.db.WebsqlCursor'], ['ydn.db.ICursor']);
+goog.addDependency("../../../ydn-db/js/ydn/db/core/websql_cursor.js", ['ydn.db.WebsqlCursor'], ['ydn.db.IValueCursor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/req/idb_query.js", ['ydn.db.req.IdbQuery'], ['ydn.db.req.IterableQuery', 'goog.functions', 'ydn.db.KeyRange', 'ydn.db.Where', 'ydn.error.ArgumentException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/req/indexed_db.js", ['ydn.db.req.IndexedDb'], ['goog.async.DeferredList', 'ydn.db.req.RequestExecutor', 'ydn.db.IDBCursor', 'ydn.db.IDBValueCursor', 'ydn.db.req.IdbQuery', 'ydn.error', 'ydn.json']);
 goog.addDependency("../../../ydn-db/js/ydn/db/req/iterable_query.js", ['ydn.db.req.IterableQuery'], ['ydn.db.Query', 'goog.functions', 'ydn.db.KeyRange', 'ydn.db.Where', 'ydn.error.ArgumentException']);

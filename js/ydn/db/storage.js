@@ -211,3 +211,39 @@ ydn.db.Storage.prototype.execute = function(q) {
 };
 
 
+/**
+ * Cursor scan iteration.
+ * @param {!Array.<!ydn.db.Query>} queries the cursor.
+ * @param {Function} join_algo next callback handler.
+ * @param {number=} limit limit number of matched results.
+ * @param {boolean=} no_collect_key if true not prefetch.
+ * @param {boolean=} no_prefetch if true not prefetch.
+ * @return {!goog.async.Deferred} promise on completed.
+ */
+ydn.db.Storage.prototype.scan = function(queries, join_algo, limit, no_collect_key, no_prefetch) {
+  return this.default_tx_queue_.scan(queries, join_algo, limit, no_collect_key, no_prefetch);
+};
+
+
+/**
+ *
+ * @param {!ydn.db.Query} iterator
+ * @param {function(*)} callback
+ */
+ydn.db.Storage.prototype.map = function(iterator, callback) {
+
+};
+
+
+
+/**
+ *
+ * @param {!ydn.db.Query} iterator
+ * @param {function(*)} callback
+ * @param {*=} initial
+ */
+ydn.db.Storage.prototype.reduce = function(iterator, callback, initial) {
+
+};
+
+

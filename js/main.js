@@ -44,8 +44,8 @@ goog.exportProperty(ydn.db.Sql.prototype, 'unique',
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
 
-goog.exportProperty(ydn.db.Storage.prototype, 'iterate',
-  ydn.db.Storage.prototype.iterate);
+goog.exportProperty(ydn.db.Storage.prototype, 'scan',
+  ydn.db.Storage.prototype.scan);
 goog.exportProperty(ydn.db.Storage.prototype, 'map',
   ydn.db.Storage.prototype.map);
 goog.exportProperty(ydn.db.Storage.prototype, 'reduce',
@@ -59,8 +59,8 @@ goog.exportProperty(ydn.db.Storage.prototype, 'setItem',
 goog.exportProperty(ydn.db.Storage.prototype, 'getItem',
     ydn.db.Storage.prototype.getItem);
 
-goog.exportProperty(ydn.db.TxStorage.prototype, 'iterate',
-  ydn.db.TxStorage.prototype.iterate);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'scan',
+  ydn.db.TxStorage.prototype.scan);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'map',
   ydn.db.TxStorage.prototype.map);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'reduce',
@@ -74,11 +74,20 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'setItem',
 goog.exportProperty(ydn.db.TxStorage.prototype, 'getItem',
     ydn.db.TxStorage.prototype.getItem);
 
-
 goog.exportSymbol('ydn.db.KeyRange', ydn.db.KeyRange );
 goog.exportProperty(ydn.db.KeyRange, 'upperBound', ydn.db.KeyRange.upperBound);
 goog.exportProperty(ydn.db.KeyRange, 'lowerBound', ydn.db.KeyRange.lowerBound);
 goog.exportProperty(ydn.db.KeyRange, 'bound', ydn.db.KeyRange.bound);
 goog.exportProperty(ydn.db.KeyRange, 'only', ydn.db.KeyRange.only);
 goog.exportProperty(ydn.db.KeyRange, 'starts', ydn.db.KeyRange.starts);
+
+goog.exportSymbol('ydn.math.Expression', ydn.math.Expression);
+goog.exportProperty(ydn.math.Expression.prototype, 'evaluate',
+  ydn.math.Expression.prototype.evaluate);
+goog.exportProperty(ydn.math.Expression.prototype, 'compile',
+  ydn.math.Expression.prototype.compile);
+goog.exportProperty(ydn.math.Expression, 'parseRpn',
+  ydn.math.Expression.parseRpn);
+goog.exportProperty(ydn.math.Expression, 'parseInfix',
+  ydn.math.Expression.parseInfix);
 

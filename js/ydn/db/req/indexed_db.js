@@ -108,8 +108,6 @@ ydn.db.req.IndexedDb.prototype.putObject = function(df, table, value, opt_key)
 };
 
 
-
-
 /**
  * Execute PUT request either storing result to tx or callback to df.
  * @param {goog.async.Deferred} df deferred to feed result.
@@ -620,15 +618,16 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
 /**
  * Open an index. This will resume depending on the cursor state.
  * @param {!ydn.db.Query} cursor The cursor.
- * @param {function(cursor_value: *): return *} next next callback function
+ * @param {Function} next next callback function
  * receive current cursor value and return next cursor position or true to
  * advance next position.
  * @param {Function} errback callback on error.
  * @param {ydn.db.base.CursorMode} mode mode.
- * @param {*=} opt_par optional parameter
+ * @param {*=} opt_par optional parameter.
  */
 ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode, opt_par) {
 
+  var me = this;
   var store = this.schema.getStore(cursor.store_name);
 
   /**
@@ -689,8 +688,9 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode,
   var keyRange = goog.isDef(cursor.keyRange) ? cursor.keyRange : null;
 
   var request;
+  var key_only = mode === ydn.db.base.CursorMode.KEY_ONLY;
 
-  if (mode === ydn.db.base.CursorMode.KEY_ONLY) {
+  if (key_only) {
     if (index) {
       if (goog.isDefAndNotNull(dir)) {
         request = index.openKeyCursor(keyRange, dir);
@@ -751,19 +751,23 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode,
       }
 
       // invoke next callback function
+      console.log(cur);
       cursor.counter++;
-      cursor.store_key = cur.key;
-      cursor.index_key = cur.primaryKey;
+      cursor.store_key = cur.primaryKey;
+      cursor.index_key = cur.key;
+      var value = key_only ? undefined : cur['value'];
 
-      var adv = next(cur, opt_par);
+      next(cur.primaryKey, cur.key, value, function (next_position) {
+        console.log(['next_position', cur, next_position]);
+        if (next_position === true) {
+          cur['continue']();
+        } else if (goog.isDefAndNotNull(next_position)) {
+          cur['continue'](next_position);
+        } else {
+          cursor.has_done = false; // decided not to continue.
+        }
+      }, opt_par);
 
-      if (adv === true) {
-        cur['continue']();
-      } else if (goog.isDefAndNotNull(adv)) {
-        cur['continue'](adv);
-      } else {
-        cursor.has_done = false; // decided not to continue.
-      }
 
     } else {
       cursor.has_done = true;
@@ -781,7 +785,7 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode,
 
 /**
  *
- * @param {ydn.db.Query} cursor the cursor.
+ * @param {!ydn.db.Query} cursor the cursor.
  * @param {Function} callback icursor handler.
  * @param {ydn.db.base.CursorMode?=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
@@ -790,6 +794,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
 
   var df = new goog.async.Deferred();
   var me = this;
+  mode = mode || ydn.db.base.CursorMode.READ_ONLY;
 
   var next = function (cur) {
     var i_cursor = new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
@@ -808,70 +813,119 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
 };
 
 
+
+
 /**
  * Cursor scan iteration.
+ * @param {!goog.async.Deferred} df promise on completed.
  * @param {!Array.<!ydn.db.Query>} queries the cursor.
  * @param {Function} join_algo next callback handler.
  * @param {number=} limit limit number of matched results.
+ * @param {boolean=} no_collect_key if true not prefetch.
  * @param {boolean=} no_prefetch if true not prefetch.
- * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.req.IndexedDb.prototype.scan = function(queries, join_algo, limit, no_prefetch) {
+ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit, no_collect_key, no_prefetch) {
 
-  var df = new goog.async.Deferred();
   var me = this;
   var mode = ydn.db.base.CursorMode.KEY_ONLY;
 
+  var done = false;
   var n = queries.length;
   var keys = [];
   var index_keys = [];
-  var match_keys = [];
-  var cur_count = 0;
-  var value_count = 0;
+  var forward_callbacks = [];
+  var match_keys = !no_collect_key ? [] : undefined;
+  var match_index_keys = !no_collect_key ? [] : undefined;
+  var result_values = !no_prefetch ? [] : undefined;
+  var result_count = 0;
+  var has_key_count = 0;
+
   /**
    *
-   * @param {IDBCursor} cur
+   * @param {*} key
+   * @param {*} indexKey
+   * @param {*} value
+   * @param {Function} forward
    * @param {number} i
    */
-  var next = function (cur, i) {
-    cur_count++;
-    if (goog.isDefAndNotNull(cur)) {
-      value_count++;
+  var next = function (key, indexKey, value, forward, i) {
+    if (done) {
+      if (goog.DEBUG) {
+        window.console.log([key, indexKey, value, forward, queries[i]]);
+      }
+      throw new ydn.error.InternalError();
     }
-    keys[i] = cur;
-    if (cur_count === n) {
-      cur_count = 0;
-      if (value_count == n) {
-        value_count = 0;
-        // all cursor has result
+    result_count++;
+    if (goog.isDefAndNotNull(key)) {
+      has_key_count++;
+    }
+    keys[i] = key;
+    index_keys[i] = indexKey;
+    forward_callbacks[i] = forward;
+    console.log([i, key, indexKey]);
+    if (result_count === n) { // receive all cursor results
+      result_count = 0; // reset for new iteration
+      if (has_key_count == n) { // all result return with positive results
+
+        // check for match
+        if (!no_collect_key) {
+          var same_key = true;
+          for (var k = 1; k < keys.length; k++) {
+            if (goog.isArray(keys[0])) {
+              if (!goog.array.equals(keys[i-1], keys[i])) {
+                same_key = false;
+                break;
+              }
+            } else if (keys[i-1] != keys[i]) {
+              same_key = false;
+              break;
+            }
+          }
+          if (same_key) {
+            match_keys.push(keys[0]);
+            match_index_keys.push(ydn.object.clone(index_keys));
+          }
+        }
+
+        has_key_count = 0;
+        // all cursor has results, than sent to join algorithm callback.
         var adv = join_algo(keys, index_keys);
         if (goog.isArray(adv)) {
           goog.asserts.assert(adv.length === n);
           for (var j = 0; j < n; j++) {
-            if (adv[j] === true) {
-              var query = queries[j];
+            var query = queries[j];
+            if (goog.isDefAndNotNull(adv[j])) {
               keys[j] = undefined;
               index_keys[j] = undefined;
-              cur['continue']();
-            } else if (goog.isDefAndNotNull(adv[j])) {
-              var query = queries[j];
-              keys[j] = undefined;
-              index_keys[j] = undefined;
-              cur['continue'](adv[j]);
+              forward_callbacks[i](adv[j]);
             } else {
-              // just pass previous result
-              cur_count++;
-              value_count++;
+              // reuse previous result
+              // increase the result counter since we already have it
+              result_count++;
+              // increase the key count, since we have it
+              has_key_count++;
             }
           }
         }
+      } else {
+        for (var k = 0; k < queries.length; k++) {
+          if (!goog.isDef(queries[k].has_done)) {
+            // change iterators busy state to resting state.
+            queries[k].has_done = false;
+          }
+        }
+
+        done = true;
+
+        df.callback({
+          'keys': match_keys,
+          'indexKeys': match_index_keys,
+          'values': result_values});
       }
-      // reset for next
-      cur_count = 0;
-      value_count = 0;
-      if (goog.isDef(limit) || match_keys >= limit) {
-        df.callback(match_keys);
-      }
+//      if (has_key_count != n || // some iterators are completed.
+//        (goog.isDef(limit) && match_keys.length >= limit)) { // or limit reached.
+//
+//      }
     }
   };
 
@@ -885,7 +939,6 @@ ydn.db.req.IndexedDb.prototype.scan = function(queries, join_algo, limit, no_pre
   }
 
 
-  return df;
 };
 
 

@@ -82,25 +82,3 @@ ydn.db.IDBCursor.prototype.indexKey = function(i) {
   }
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.IDBCursor.prototype.value = function(i) {
-  throw new ydn.error.ArgumentException();
-};
-
-/**
- * @inheritDoc
- */
-ydn.db.IDBCursor.prototype.clear = function(i) {
-  throw new ydn.error.InvalidOperationException();
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.IDBCursor.prototype.update = function(value, i) {
-  throw new ydn.error.InvalidOperationException();
-};

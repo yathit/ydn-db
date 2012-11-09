@@ -129,6 +129,7 @@ ydn.db.tr.TxStorage.prototype.getMuTx = function() {
   return this.mu_tx_;
 };
 
+
 /**
  *
  * @return {number} transaction count.
@@ -136,6 +137,7 @@ ydn.db.tr.TxStorage.prototype.getMuTx = function() {
 ydn.db.tr.TxStorage.prototype.getTxNo = function() {
   return this.mu_tx_.getTxCount();
 };
+
 
 /**
  *
@@ -153,7 +155,6 @@ ydn.db.tr.TxStorage.prototype.getQueueNo = function() {
 ydn.db.tr.TxStorage.prototype.getActiveTx = function() {
   return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;
 };
-
 
 
 /**

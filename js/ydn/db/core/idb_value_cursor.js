@@ -4,7 +4,7 @@
 
 
 goog.provide('ydn.db.IDBValueCursor');
-goog.require('ydn.db.ICursor');
+goog.require('ydn.db.IValueCursor');
 
 
 /**
@@ -13,7 +13,7 @@ goog.require('ydn.db.ICursor');
  * @param {!Array.<IDBCursorWithValue>} peerCursors peer cursors.
  * @param {boolean} readonly true for readonly.
  * @constructor
- * @implements {ydn.db.ICursor}
+ * @implements {ydn.db.IValueCursor}
  */
 ydn.db.IDBValueCursor = function(cursor, peerCursors, readonly) {
   this.cursor_ = cursor;
