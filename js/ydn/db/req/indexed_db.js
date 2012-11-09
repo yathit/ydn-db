@@ -751,14 +751,14 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode,
       }
 
       // invoke next callback function
-      console.log(cur);
+      //console.log(cur);
       cursor.counter++;
       cursor.store_key = cur.primaryKey;
       cursor.index_key = cur.key;
       var value = key_only ? undefined : cur['value'];
 
       next(cur.primaryKey, cur.key, value, function (next_position) {
-        console.log(['next_position', cur, next_position]);
+        //console.log(['next_position', cur, next_position]);
         if (next_position === true) {
           cur['continue']();
         } else if (goog.isDefAndNotNull(next_position)) {
@@ -862,7 +862,7 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit, no
     keys[i] = key;
     index_keys[i] = indexKey;
     forward_callbacks[i] = forward;
-    console.log([i, key, indexKey]);
+    //console.log([i, key, indexKey]);
     if (result_count === n) { // receive all cursor results
       result_count = 0; // reset for new iteration
       if (has_key_count == n) { // all result return with positive results
