@@ -6,7 +6,7 @@ goog.require('ydn.db.Storage');
 
 
 
-var reachedFinalContinuation, schema, debug_console, db, objs;
+var reachedFinalContinuation, schema, debug_console, db, objs, animals;
 var store_name = 't1';
 var db_name = 'test_iteration_1';
 
@@ -29,7 +29,14 @@ var setUp = function() {
   var xIndex = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, false, true);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
       ydn.db.schema.DataType.TEXT, [valueIndex, indexSchema, xIndex]);
-  schema = new ydn.db.schema.Database(undefined, [store_schema]);
+
+  var colorIndex = new ydn.db.schema.Index('color', ydn.db.schema.DataType.TEXT);
+  var hornIndex = new ydn.db.schema.Index('horn', ydn.db.schema.DataType.TEXT);
+  var legIndex = new ydn.db.schema.Index('legs', ydn.db.schema.DataType.TEXT);
+  var anmialStore = new ydn.db.schema.Store('animals', 'id', false,
+    ydn.db.schema.DataType.TEXT, [colorIndex, hornIndex, legIndex]);
+
+  schema = new ydn.db.schema.Database(undefined, [store_schema, anmialStore]);
   db = new ydn.db.Storage(db_name, schema, options);
 
 
@@ -44,8 +51,20 @@ var setUp = function() {
   ];
 
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(db + ' ready.');
+    console.log(db + 'store: ' + store_name + ' ready.');
   });
+
+  animals = [
+    {id: 'rat', color: 'brown', horn: false, legs: 4},
+    {id: 'cow', color: 'spots', horn: true, legs: 4},
+    {id: 'galon', color: 'gold', horn: true, legs: 2},
+    {id: 'snake', color: 'spots', horn: false, legs: 0},
+    {id: 'chicken', color: 'red', horn: false, legs: 2}
+  ];
+  db.put('animals', animals).addCallback(function (value) {
+    console.log(db + 'store: animals ready.');
+  });
+
 
   reachedFinalContinuation = false;
 };
@@ -87,7 +106,10 @@ var test_11_scan_key_single = function () {
   var q = new ydn.db.Query(store_name, 'next', 'value');
 
   var req = db.scan([q], function join_algo (key, index_key) {
-    //console.log(['receiving ', key, index_key]);
+    console.log(['receiving ', key ? key[0] : key, index_key]);
+    if (!goog.isDef(key[0])) {
+      return null;
+    }
     streaming_keys.push(key[0]);
     streaming_index_keys.push(index_key[0]);
     return [true]; // continue iteration
@@ -146,17 +168,64 @@ var test_21_scan_key_dual = function () {
   var q2 = new ydn.db.Query(store_name, 'next', 'x');
 
   var req = db.scan([q1, q2], function join_algo (key, index_key) {
+    console.log(['receiving ', key, index_key]);
+    if (goog.isDef(key[0])) {
+      streaming_keys.push(key[0]);
+      streaming_index_key_0.push(index_key[0]);
+      streaming_index_key_1.push(index_key[1]);
+    }
+
+    return [goog.isDef(key[0]) ? true : null, goog.isDef(key[1]) ? true : null]; // continue iteration
+  });
+
+  req.addCallback(function (result) {
+    result_keys = result.keys;
+    result_index_keys = result.indexKeys;
+    //console.log(result);
+    done = true;
+  });
+  req.addErrback(function (e) {
+    console.log(e);
+    done = true;
+  });
+
+};
+
+
+
+var test_31_scan_mutli_query_match = function () {
+
+
+  var done, result_keys, result_index_keys;
+
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+
+      reachedFinalContinuation = true;
+
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q1 = new ydn.db.Query(store_name, 'next', 'value');
+  var q2 = new ydn.db.Query(store_name, 'next', 'x');
+
+  var req = db.scan([q1, q2], function join_algo (key, index_key) {
     //console.log(['receiving ', key, index_key]);
-    streaming_keys.push(key[0]);
-    streaming_index_key_0.push(index_key[0]);
-    streaming_index_key_1.push(index_key[1]);
+
     return [true, true]; // continue iteration
   });
 
   req.addCallback(function (result) {
     result_keys = result.keys;
     result_index_keys = result.indexKeys;
-
+    //console.log(result);
     done = true;
   });
   req.addErrback(function (e) {
