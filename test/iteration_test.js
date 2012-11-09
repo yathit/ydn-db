@@ -16,9 +16,12 @@ var setUp = function() {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+
+    ydn.db.tr.Mutex.DEBUG = true;
+    ydn.db.req.IndexedDb.DEBUG = true;
   }
 
   var indexSchema = new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT, false, true);
@@ -32,12 +35,12 @@ var setUp = function() {
 
   objs = [
     {id:'qs0', value: 0, x: 1, tag: ['a', 'b']},
-    {id:'qs1', value: 1, x: 1, tag: 'a'},
+    {id:'qs1', value: 1, x: 2, tag: 'a'},
     {id:'at2', value: 2, x: 3, tag: ['a', 'b']},
-    {id:'bs1', value: 3, x: 1, tag: 'b'},
+    {id:'bs1', value: 3, x: 6, tag: 'b'},
     {id:'bs2', value: 4, x: 14, tag: ['a', 'c', 'd']},
-    {id:'bs3', value: 5, x: 1, tag: 'c'},
-    {id:'st3', value: 6, x: 6}
+    {id:'bs3', value: 5, x: 111, tag: 'c'},
+    {id:'st3', value: 6, x: 600}
   ];
 
   db.put(store_name, objs).addCallback(function (value) {
@@ -108,8 +111,8 @@ var test_11_scan_key_single = function () {
 var test_21_scan_key_dual = function () {
 
   var actual_keys = objs.map(function(x) {return x.id;});
-  var actual_index_key_0 = objs.map(function(x) {return x.x;});
-  var actual_index_key_1 = objs.map(function(x) {return x.value;});
+  var actual_index_key_0 = objs.map(function(x) {return x.value;});
+  var actual_index_key_1 = objs.map(function(x) {return x.x;});
 
   var done, result_keys, result_index_keys;
   var streaming_keys = [];

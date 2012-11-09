@@ -618,14 +618,20 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
 /**
  * Open an index. This will resume depending on the cursor state.
  * @param {!ydn.db.Query} cursor The cursor.
- * @param {Function} next next callback function
- * receive current cursor value and return next cursor position or true to
- * advance next position.
- * @param {Function} errback callback on error.
  * @param {ydn.db.base.CursorMode} mode mode.
- * @param {*=} opt_par optional parameter.
+ * @return {{
+ *    onnext: Function,
+ *    onerror: Function,
+ *    forward: Function
+ *    }}
  */
-ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode, opt_par) {
+ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, mode) {
+
+  var result = {
+    onnext: null,
+    onerror: null,
+    forward: null
+  };
 
   var me = this;
   var store = this.schema.getStore(cursor.store_name);
@@ -725,8 +731,9 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode,
   }
 
   var cue = false;
+  var cur;
   request.onsuccess = function (event) {
-    var cur = (event.target.result);
+    cur = (event.target.result);
     if (cur) {
       if (resume) {
         // cue to correct position
@@ -734,7 +741,7 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode,
           if (cue) {
             me.logger.warning('Resume corrupt on ' + cursor.store_name + ':' +
               cursor.store_key + ':' + cursor.index_key);
-            errback(new ydn.db.InvalidStateError());
+            result.onerror(new ydn.db.InvalidStateError());
             return;
           }
           cue = true;
@@ -757,29 +764,38 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(cursor, next, errback, mode,
       cursor.index_key = cur.key;
       var value = key_only ? undefined : cur['value'];
 
-      next(cur.primaryKey, cur.key, value, function (next_position) {
-        //console.log(['next_position', cur, next_position]);
-        if (next_position === true) {
-          cur['continue']();
-        } else if (goog.isDefAndNotNull(next_position)) {
-          cur['continue'](next_position);
-        } else {
-          cursor.has_done = false; // decided not to continue.
-        }
-      }, opt_par);
+      result.onnext(cur.primaryKey, cur.key, value);
 
 
     } else {
       cursor.has_done = true;
-      next(undefined, opt_par); // notify that cursor iteration is finished.
+      result.onnext(); // notify that cursor iteration is finished.
     }
 
   };
 
-  request.onerror = function (event) {
-    errback(event);
+
+  result.forward = function (next_position) {
+    //console.log(['next_position', cur, next_position]);
+
+    if (cur) {
+      if (next_position === true) {
+        cur['continue']();
+      } else if (goog.isDefAndNotNull(next_position)) {
+        cur['continue'](next_position);
+      } else {
+        cursor.has_done = false; // decided not to continue.
+      }
+    } else {
+      throw new ydn.error.InternalError();
+    }
   };
 
+  request.onerror = function (event) {
+    result.onerror(event);
+  };
+
+  return result;
 };
 
 
@@ -796,18 +812,17 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
   var me = this;
   mode = mode || ydn.db.base.CursorMode.READ_ONLY;
 
-  var next = function (cur) {
+
+  var req = this.openQuery(cursor, mode);
+  req.onerror = function(e) {
+    df.errback(e);
+  };
+  req.onnext = function (cur) {
     var i_cursor = new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
     var adv = callback(i_cursor);
     i_cursor.dispose();
-    return adv;
+    req.forward(adv);
   };
-
-  var on_error = function(e) {
-    df.errback(e);
-  };
-
-  this.openQuery(cursor, next, on_error, mode);
 
   return df;
 };
@@ -834,6 +849,7 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit, no
   var keys = [];
   var index_keys = [];
   var forward_callbacks = [];
+  var requests = [];
   var match_keys = !no_collect_key ? [] : undefined;
   var match_index_keys = !no_collect_key ? [] : undefined;
   var result_values = !no_prefetch ? [] : undefined;
@@ -841,27 +857,26 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit, no
   var has_key_count = 0;
 
   /**
-   *
+   * Received cursor result.
+   * @param {number} i
    * @param {*} key
    * @param {*} indexKey
    * @param {*} value
-   * @param {Function} forward
-   * @param {number} i
    */
-  var next = function (key, indexKey, value, forward, i) {
+  var next = function (i, key, indexKey, value) {
     if (done) {
-      if (goog.DEBUG) {
-        window.console.log([key, indexKey, value, forward, queries[i]]);
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log(['next', i, key, indexKey, value,  queries[i]]);
       }
       throw new ydn.error.InternalError();
     }
+    //console.log(['next', i, key, indexKey, value,  queries[i]]);
     result_count++;
     if (goog.isDefAndNotNull(key)) {
       has_key_count++;
     }
     keys[i] = key;
     index_keys[i] = indexKey;
-    forward_callbacks[i] = forward;
     //console.log([i, key, indexKey]);
     if (result_count === n) { // receive all cursor results
       result_count = 0; // reset for new iteration
@@ -897,7 +912,8 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit, no
             if (goog.isDefAndNotNull(adv[j])) {
               keys[j] = undefined;
               index_keys[j] = undefined;
-              forward_callbacks[i](adv[j]);
+              //console.log('moving ' + i + ' to ' + adv[j]);
+              requests[j].forward(adv[j]);
             } else {
               // reuse previous result
               // increase the result counter since we already have it
@@ -935,7 +951,10 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit, no
 
   for (var i = 0; i < queries.length; i++) {
     var query = queries[i];
-    this.openQuery(query, next, on_error, mode, i);
+    var req = this.openQuery(query, mode);
+    req.onerror = on_error;
+    req.onnext = goog.partial(next, i);
+    requests.push(req);
   }
 
 
