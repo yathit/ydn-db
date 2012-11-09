@@ -10,24 +10,47 @@ goog.require('goog.string');
 
 /**
  * For those browser that not implemented IDBKeyRange.
- * @param {string} field
- * @param {*} lower_or_keyRange The value of the lower bound.
- * @param {*=} upper  The value of the upper bound.
- * @param {boolean=} lowerOpen  If true, the range excludes the lower bound
- * value.
- * @param {boolean=} upperOpen If true, the range excludes the lower bound
- * value.
+ * @param {string} field index field name to query from.
+ * @param {string|Object} op where operator.
+ * @param {string=} value rvalue to compare.
+ * @param {string=} op2 secound operator.
+ * @param {string=} value2 second rvalue to compare.
  * @constructor
  * @extends {ydn.db.KeyRange}
  */
-ydn.db.Where = function(field, lower_or_keyRange, upper, lowerOpen, upperOpen) {
-  var lower = lower_or_keyRange;
-  if (goog.isObject(lower_or_keyRange)) {
-    lower = lower_or_keyRange['lower'];
-    upper = lower_or_keyRange['upper'];
-    lowerOpen = lower_or_keyRange['lowerOpen'];
-    upperOpen = lower_or_keyRange['upperOpen'];
+ydn.db.Where = function(field, op, value, op2, value2) {
+
+  var upper, lower, upperOpen, lowerOpen;
+
+
+  if (goog.isObject(op)) {
+    lower = op['lower'];
+    upper = op['upper'];
+    lowerOpen = op['lowerOpen'];
+    upperOpen = op['upperOpen'];
+  } else {
+
+    if (op == '<' || op == '<=') {
+      upper = value;
+      upperOpen = op == '<';
+    } else if (op == '>' || op == '>=') {
+      lower = value;
+      lowerOpen = op == '>';
+    } else if (op == '=' || op == '==') {
+      lower = value;
+      upper = value;
+    }
+    if (op2 == '<' || op2 == '<=') {
+      upper = value2;
+      upperOpen = op2 == '<';
+    } else if (op2 == '>' || op2 == '>=') {
+      lower = value2;
+      lowerOpen = op2 == '>';
+    } else if (goog.isDef(op2)) {
+      throw new ydn.error.ArgumentException(op2);
+    }
   }
+
   goog.base(this, lower, upper, lowerOpen, upperOpen);
   this.field = field;
 };

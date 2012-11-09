@@ -275,30 +275,7 @@ ydn.db.Sql.prototype.where = function(field, op, value, op2, value2) {
     throw new ydn.error.ArgumentException(field);
   }
 
-  var upper, lower, upperOpen, lowerOpen;
-  if (op == '<' || op == '<=') {
-    upper = value;
-    upperOpen = op == '<';
-  } else if (op == '>' || op == '>=') {
-    lower = value;
-    lowerOpen = op == '>';
-  } else if (op == '=' || op == '==') {
-    lower = value;
-    upper = value;
-  }
-  if (op2 == '<' || op2 == '<=') {
-    upper = value2;
-    upperOpen = op2 == '<';
-  } else if (op2 == '>' || op2 == '>=') {
-    lower = value2;
-    lowerOpen = op2 == '>';
-  } else if (goog.isDef(op2)) {
-    throw new ydn.error.ArgumentException(op2);
-  }
-
-
-  this.wheres_.push(new ydn.db.Where(field, lower, upper, lowerOpen,
-    upperOpen));
+  this.wheres_.push(new ydn.db.Where(field, op, value, op2, value2));
 
   return this;
 

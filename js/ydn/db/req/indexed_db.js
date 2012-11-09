@@ -966,7 +966,7 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit,
 
     keys[i] = key;
     index_keys[i] = indexKey;
-    console.log([i, key, indexKey]);
+    //console.log([i, key, indexKey]);
     if (result_count === n) { // receive all cursor results
       result_count = 0; // reset for new iteration
       // check for match
@@ -993,7 +993,7 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit,
 
       // all cursor has results, than sent to join algorithm callback.
       var adv = join_algo(keys, index_keys);
-      console.log('join_algo: ' + adv + ' of ' + keys[0]);
+      //console.log('join_algo: ' + adv + ' of ' + keys[0]);
       if (goog.isArray(adv)) {
         goog.asserts.assert(adv.length === n);
 
@@ -1005,7 +1005,7 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit,
             }
             keys[j] = undefined;
             index_keys[j] = undefined;
-            console.log('moving ' + i + ' to ' + adv[j]);
+            //console.log('moving ' + i + ' to ' + adv[j]);
             requests[j].forward(adv[j]);
 
           } else {
@@ -1194,7 +1194,6 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
     }
   }
 
-
   //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
   // ' of ' + column + ' in ' + table);
   var request;
@@ -1221,7 +1220,6 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
       request = obj_store.openCursor();
     }
   }
-
 
   var idx = -1; // iteration index
   var results = [];
@@ -1372,7 +1370,6 @@ ydn.db.req.IndexedDb.prototype.countStores = function(df, stores) {
   }
 
 };
-
 
 
 /**

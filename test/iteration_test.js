@@ -55,11 +55,11 @@ var setUp = function() {
   });
 
   animals = [
-    {id: 'rat', color: 'brown', horn: false, legs: 4},
-    {id: 'cow', color: 'spots', horn: true, legs: 4},
-    {id: 'galon', color: 'gold', horn: true, legs: 2},
-    {id: 'snake', color: 'spots', horn: false, legs: 0},
-    {id: 'chicken', color: 'red', horn: false, legs: 2}
+    {id: 'rat', color: 'brown', horn: 0, legs: 4},
+    {id: 'cow', color: 'spots', horn: 1, legs: 4},
+    {id: 'galon', color: 'gold', horn: 1, legs: 2},
+    {id: 'snake', color: 'spots', horn: 0, legs: 0},
+    {id: 'chicken', color: 'red', horn: 0, legs: 2}
   ];
   db.put('animals', animals).addCallback(function (value) {
     console.log(db + 'store: animals ready.');
@@ -196,7 +196,7 @@ var test_21_scan_key_dual = function () {
 var test_31_scan_mutli_query_match = function () {
 
 
-  var done, result_keys, result_index_keys;
+  var done, result_keys, result_values;
 
 
   waitForCondition(
@@ -206,26 +206,25 @@ var test_31_scan_mutli_query_match = function () {
     },
     // Continuation
     function () {
-
+      assertEquals('number of result', 1, result_keys.length);
+      assertEquals('number of result value', 1, result_values.length);
+      assertEquals('result', 'cow', result_values[0].id);
       reachedFinalContinuation = true;
 
     },
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.Query(store_name, 'next', 'value');
-  var q2 = new ydn.db.Query(store_name, 'next', 'x');
+  var q1 = ydn.db.Query.where('animals', 'color', '=', 'spots');
+  var q2 = ydn.db.Query.where('animals', 'horn', '=', 1);
+  var q3 = ydn.db.Query.where('animals', 'legs', '=', 4);
 
-  var req = db.scan([q1, q2], function join_algo (key, index_key) {
-    //console.log(['receiving ', key, index_key]);
-
-    return [true, true]; // continue iteration
-  });
+  var req = db.scan([q1, q2, q3], ydn.db.getAlgorithm('nested-loop-join'));
 
   req.addCallback(function (result) {
     result_keys = result.keys;
-    result_index_keys = result.indexKeys;
-    //console.log(result);
+    result_values = result.values;
+    console.log(result);
     done = true;
   });
   req.addErrback(function (e) {

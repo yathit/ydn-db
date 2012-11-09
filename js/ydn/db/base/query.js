@@ -272,3 +272,20 @@ ydn.db.Query.prototype.stores = function() {
   return [this.store_name];
 };
 
+
+
+/**
+ * Convenient method for SQL <code>WHERE</code> predicate.
+ * @param {string} store_name store name.
+ * @param {string} field index field name to query from.
+ * @param {string} op where operator.
+ * @param {string} value rvalue to compare.
+ * @param {string=} op2 secound operator.
+ * @param {string=} value2 second rvalue to compare.
+ * @return {!ydn.db.Query} The query.
+ */
+ydn.db.Query.where = function(store_name, field, op, value, op2, value2) {
+  var key_range = new ydn.db.Where(field, op, value, op2, value2);
+  return new ydn.db.Query(store_name, ydn.db.Query.Direction.NEXT, field, key_range);
+};
+
