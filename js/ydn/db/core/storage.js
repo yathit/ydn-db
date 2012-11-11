@@ -135,3 +135,12 @@ ydn.db.core.Storage.prototype.toString = function() {
   return s;
 };
 
+
+
+ydn.db.core.Storage.prototype.getCursorStream = function(store_name, index_name, key_only, sink) {
+  if (this.type() === ydn.db.con.IndexedDb.TYPE) {
+    return new ydn.db.con.IdbCursorStream(this, store_name, index_name, key_only, sink);
+  } else {
+    throw new ydn.error.NotImplementedException(this.type());
+  }
+};

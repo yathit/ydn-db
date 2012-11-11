@@ -516,7 +516,7 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
   var result_count = 0;
 
 
-  var get = function(i) {
+  var getKey = function(i) {
     /**
      * @type {!ydn.db.Key}
      */
@@ -547,7 +547,7 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
       } else {
         var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
         if (next < keys.length) {
-          get(next);
+          getKey(next);
         }
       }
     };
@@ -567,7 +567,7 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
     // send parallel requests
     for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
     {
-      get(i);
+      getKey(i);
     }
   } else {
     df.callback([]);
@@ -1399,4 +1399,104 @@ ydn.db.req.IndexedDb.prototype.countKeyRange = function(df, table, keyRange) {
     df.errback(event);
   };
 
+};
+
+
+/**
+ * Get list of keys in a range.
+ * @param {!goog.async.Deferred} df result promise.
+ * @param {string} store_name store name.
+ * @param {IDBKeyRange} key_range The key range.
+ * @param {string} key_range_index Index name of key range.
+ * @param {number=} offset number of result to skip.
+ * @param {number=} limit place upper bound on results.
+ */
+ydn.db.req.IndexedDb.prototype.getKeysByIndexKeyRange = function(df, store_name,
+    key_range, key_range_index, offset, limit) {
+  var store = this.tx.objectStore(store_name);
+  var index = store.index(key_range_index);
+  var req = index.openKeyCursor(key_range);
+
+  var keys = [];
+  var cue = false;
+  req.onsuccess = function(event) {
+    var cur = /** @type {IDBCursor} */ (event.target.result);
+    if (cur) {
+      if (goog.isDef(offset) && !cue) {
+        cue = true;
+        cur.advance(offset);
+      }
+      keys.push(cur.primaryKey);
+      if (goog.isDef(limit) && keys.length >= limit) {
+        df.callback(keys);
+      } else {
+        cur.advance(1);
+      }
+    } else {
+      df.callback(keys);
+    }
+  };
+
+  req.onerror = function(ev) {
+    df.errback(ev);
+  };
+};
+
+
+
+/**
+ * Get list of keys in a range.
+ * @param {!goog.async.Deferred} df result promise.
+ * @param {string} store_name store name.
+ * @param {string} index_name Index name of key range.
+ * @param {!Array} keys The key range.
+ * @param {number=} offset number of result to skip.
+ * @param {number=} limit place upper bound on results.
+ */
+ydn.db.req.IndexedDb.prototype.getIndexKeysByKeys = function(df,
+    store_name, index_name, keys, offset, limit) {
+  var store = this.tx.objectStore(store_name);
+  var index = store.index(index_name);
+
+  var results = [];
+  var result_count = 0;
+  limit = goog.isDef(limit) ? limit : keys.length;
+
+  var getKey = function(i) {
+    var key = keys[i];
+    var req = index.get(key);
+
+    req.onsuccess = function(event) {
+      result_count++;
+      var cur = /** @type {IDBCursor} */ (event.target.result);
+      if (cur) {
+        results[i] = cur.key;
+      } else {
+        results[i] = undefined;
+      }
+
+      if (result_count === limit) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.req.IndexedDb.REQ_PER_TX;
+        if (next < limit) {
+          getKey(next);
+        }
+      }
+    };
+
+    req.onerror = function(ev) {
+      df.errback(ev);
+    };
+  };
+
+  if (keys.length > 0) {
+    // send parallel requests
+    for (var i = 0; i < ydn.db.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
+    {
+      getKey(i);
+    }
+  } else {
+    df.callback([]);
+  }
 };

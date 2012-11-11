@@ -14,8 +14,6 @@ goog.require('ydn.db.algo');
 goog.require('ydn.error.NotSupportedException');
 
 
-
-
 /**
  * @param {!ydn.db.Storage} storage storage.
  * @param {number} ptx_no transaction queue number.
@@ -70,7 +68,6 @@ ydn.db.TxStorage.prototype.setItem = function(key, value, opt_expiration) {
 };
 
 
-
 /**
  * Remove an item to default key-value store.
  * @export
@@ -82,7 +79,6 @@ ydn.db.TxStorage.prototype.removeItem = function(id) {
   return this.clear(ydn.db.schema.Store.DEFAULT_TEXT_STORE, id);
 
 };
-
 
 
 /**
@@ -116,7 +112,6 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
   });
   return df;
 };
-
 
 
 /**
@@ -260,7 +255,6 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
 };
 
 
-
 /**
  * @param {!ydn.db.Query|!ydn.db.Sql} q query.
  * @return {!goog.async.Deferred} return result as list.
@@ -302,6 +296,53 @@ ydn.db.TxStorage.prototype.explain = function (q) {
 };
 
 
+
+
+
+/**
+ * Get list of index keys in a range.
+ * @param {string} store_name store name.
+ * @param {string|ydn.db.KeyRange|IDBKeyRange} index_or_key_range index name.
+ * @param {string|!Array} keys_or_index The key range.
+ * @param {number=} offset number of result to skip.
+ * @param {number=} limit place upper bound on results.
+ */
+ydn.db.TxStorage.prototype.keys = function(store_name, index_or_key_range,
+    keys_or_index, offset, limit) {
+  var store = this.schema.getStore(store_name);
+  if (!store) {
+    throw new ydn.error.ArgumentException('store: ' + store_name +
+        ' not exists.');
+  }
+  if (goog.isDef(offset) && !goog.isNumber(offset)) {
+    throw new ydn.error.ArgumentException('offset');
+  }
+  if (goog.isDef(limit) && !goog.isNumber(limit)) {
+    throw new ydn.error.ArgumentException('limit');
+  }
+  var df = new goog.async.Deferred();
+  if (goog.isString(index_or_key_range) && goog.isArray(keys_or_index)) {
+    var index_name = index_or_key_range;
+    var keys = keys_or_index;
+    this.exec(function(executor) {
+      executor.getIndexKeysByKeys(df, store_name, index_name, keys,
+          offset, limit);
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+  } else if (goog.isString(keys_or_index) && goog.isObject(index_or_key_range)) {
+    var index_name = keys_or_index;
+    var key_range = ydn.db.KeyRange.parseKeyRange(index_or_key_range);
+    this.exec(function(executor) {
+      executor.getKeysByIndexKeyRange(df, store_name, key_range, index_name,
+          offset, limit);
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+  return df;
+};
+
+
+
 /**
  *
  * @param {!ydn.db.Query} iterator
@@ -310,7 +351,6 @@ ydn.db.TxStorage.prototype.explain = function (q) {
 ydn.db.TxStorage.prototype.map = function(iterator, callback) {
 
 };
-
 
 
 /**
@@ -322,6 +362,7 @@ ydn.db.TxStorage.prototype.map = function(iterator, callback) {
 ydn.db.TxStorage.prototype.reduce = function(iterator, callback, initial) {
 
 };
+
 
 
 /** @override */
@@ -336,6 +377,7 @@ ydn.db.TxStorage.prototype.toString = function() {
   }
   return s;
 };
+
 
 
 
