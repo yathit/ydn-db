@@ -144,3 +144,37 @@ ydn.db.Streamer.prototype.push = function(key, value) {
     this.cursor_.seek(key);
   }
 };
+
+
+/**
+ * @type {string}
+ * @private
+ */
+ydn.db.Streamer.prototype.foreign_key_store_name;
+
+
+/**
+ * @type {string}
+ * @private
+ */
+ydn.db.Streamer.prototype.foreign_key_index_name;
+
+
+/**
+ *
+ * @param {string} store_name
+ * @param {string=} index_name
+ */
+ydn.db.Streamer.prototype.setForeignKey = function(store_name, index_name) {
+  this.foreign_key_store_name = store_name;
+  this.foreign_key_index_name = index_name;
+};
+
+
+/**
+ * Both of them may be undefined.
+ * @return {!Array.<string>} return store_name and index_name.
+ */
+ydn.db.Streamer.prototype.getForeignKey = function() {
+  return [this.foreign_key_store_name, this.foreign_key_index_name];
+};

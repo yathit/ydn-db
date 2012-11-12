@@ -230,6 +230,14 @@ ydn.db.req.RequestExecutor.prototype.fetchQuery = goog.abstractMethod;
  */
 ydn.db.req.RequestExecutor.prototype.fetchCursor = goog.abstractMethod;
 
+/**
+ * Cursor scan iteration.
+ * @param {!goog.async.Deferred} df promise on completed.
+ * @param {!Array.<!ydn.db.Query>} queries the cursor.
+ * @param {!Array.<!ydn.db.Streamer>} streamers streamers.
+ * @param {!ydn.db.algo.join.AbstractSolver} solver solver.
+ */
+ydn.db.req.RequestExecutor.prototype.scan = goog.abstractMethod;
 
 /**
  * @param {goog.async.Deferred} df deferred to feed result.

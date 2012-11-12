@@ -861,16 +861,9 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
 
 
 /**
- * Cursor scan iteration.
- * @param {!goog.async.Deferred} df promise on completed.
- * @param {!Array.<!ydn.db.Query>} queries the cursor.
- * @param {Function} join_algo next callback handler.
- * @param {number=} limit limit number of matched results.
- * @param {boolean=} no_collect_key if true not prefetch.
- * @param {boolean=} no_prefetch if true not prefetch.
+ * @inheritDoc
  */
-ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit,
-                                               no_collect_key, no_prefetch) {
+ydn.db.req.IndexedDb.prototype.scan = function(df, queries, streamers, solver) {
 
   var me = this;
   var mode = ydn.db.base.CursorMode.KEY_ONLY;
@@ -879,44 +872,8 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit,
   var n = queries.length;
   var keys = [];
   var index_keys = [];
+  var values = [];
   var requests = [];
-
-  var match_keys, match_index_keys, result_values, objStore;
-  if (!no_collect_key) {
-    match_keys = [];
-    match_index_keys = [];
-  }
-  if (!no_prefetch) {
-    result_values = [];
-    objStore = this.tx.objectStore(queries[0].getStoreName());
-  }
-
-  var pre_fetch_count = 0;
-  var do_prefetch = function(i, key) {
-    var req = objStore.get(key);
-    req.onsuccess = function (event) {
-      pre_fetch_count++;
-      result_values[i] = event.target.result;
-
-      if (done && pre_fetch_count == 0) {
-        df.callback({
-          'keys': match_keys,
-          'indexKeys': match_index_keys,
-          'values': result_values});
-      }
-    };
-    req.onerror = function(e) {
-      pre_fetch_count++;
-      result_values[i] = null;
-
-      if (done && pre_fetch_count == 0) {
-        df.callback({
-          'keys': match_keys,
-          'indexKeys': match_index_keys,
-          'values': result_values});
-      }
-    };
-  };
 
   var existed = false;
   var do_exit = function() {
@@ -928,18 +885,6 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit,
         // change iterators busy state to resting state.
         queries[k].has_done = false;
       }
-    }
-
-    if (no_prefetch) {
-      df.callback({
-        'keys':match_keys,
-        'indexKeys':match_index_keys,
-        'values':result_values});
-    } else if (pre_fetch_count == 0) {
-      df.callback({
-        'keys':match_keys,
-        'indexKeys':match_index_keys,
-        'values':result_values});
     }
 
     done = true;
@@ -966,38 +911,18 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit,
 
     keys[i] = key;
     index_keys[i] = indexKey;
+    values[i] = value;
+
     //console.log([i, key, indexKey]);
     if (result_count === n) { // receive all cursor results
       result_count = 0; // reset for new iteration
-      // check for match
-      if (!no_collect_key && goog.isDefAndNotNull(keys[0])) {
-        var same_key = true;
-        for (var k = 1; k < keys.length; k++) {
-          if (goog.isArray(keys[0])) {
-            if (!goog.array.equals(keys[i - 1], keys[i])) {
-              same_key = false;
-              break;
-            }
-          } else if (keys[i - 1] != keys[i]) {
-            same_key = false;
-            break;
-          }
-        }
-        if (same_key) {
-          match_keys.push(keys[0]);
-          match_index_keys.push(ydn.object.clone(index_keys));
-          pre_fetch_count--;
-          do_prefetch(match_keys.length - 1, keys[0]);
-        }
-      }
 
       // all cursor has results, than sent to join algorithm callback.
-      var adv = join_algo(keys, index_keys);
+      var adv = solver.process(keys, index_keys, values);
       //console.log('join_algo: ' + adv + ' of ' + keys[0]);
       if (goog.isArray(adv)) {
-        goog.asserts.assert(adv.length === n);
 
-        for (var j = 0; j < n; j++) {
+        for (var j = 0; j < adv.length; j++) {
           var query = queries[j];
           if (goog.isDefAndNotNull(adv[j])) {
             if (!goog.isDefAndNotNull(keys[j])) {
@@ -1023,7 +948,6 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit,
         // end of iteration
         do_exit();
       }
-
     }
   };
 
