@@ -111,9 +111,9 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         }
         me.logger.finest(me + ': onversionchange to: ' + event.version);
         if (me.idx_db_) {
-          delete me.idx_db_.onabort;
-          delete me.idx_db_.onerror;
-          delete me.idx_db_.onversionchange;
+          me.idx_db_.onabort = null;
+          me.idx_db_.onerror = null;
+          me.idx_db_.onversionchange = null;
           me.idx_db_.close();
           me.idx_db_ = null;
           if (goog.isFunction(me.onDisconnected)) {
@@ -258,6 +258,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
               // by reopening the database, we make sure that we are not in
               // version change state since transaction cannot open during
               // version change state.
+              // db.close(); // necessary - cause error ?
               var reOpenRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname);
               reOpenRequest.onsuccess = function(rev) {
                 var db = rev.target.result;
