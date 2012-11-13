@@ -217,9 +217,9 @@ ydn.db.core.TxStorage.prototype.get = function(arg1, arg2) {
     this.exec(function(executor) {
       executor.getById(df, k_store_name, kid);
     }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY);
-  } else if (arg1 instanceof ydn.db.Query) {
+  } else if (arg1 instanceof ydn.db.Iterator) {
     /**
-     * @type {!ydn.db.Query}
+     * @type {!ydn.db.Iterator}
      */
     var q = arg1;
     var q_store_name = q.getStoreName();
@@ -291,13 +291,13 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2) {
     } else {
       throw new ydn.error.ArgumentException();
     }
-  } else if (arg1 instanceof ydn.db.Query) {
+  } else if (arg1 instanceof ydn.db.Iterator) {
     if (goog.DEBUG && arguments.length != 2) {
       throw new ydn.error.ArgumentException();
     }
     /**
      *
-     * @type {!ydn.db.Query}
+     * @type {!ydn.db.Iterator}
      */
     var q = arg1;
 

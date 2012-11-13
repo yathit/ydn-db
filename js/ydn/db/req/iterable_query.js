@@ -21,7 +21,7 @@
 
 
 goog.provide('ydn.db.req.IterableQuery');
-goog.require('ydn.db.Query');
+goog.require('ydn.db.Iterator');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -36,7 +36,7 @@ goog.require('ydn.error.ArgumentException');
  * query processor can mutation as part of query optimization processes.
  *
  * @param {string} store store name.
- * @param {ydn.db.Query.Direction=} direction cursor direction.
+ * @param {ydn.db.Iterator.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {ydn.db.KeyRange=}
@@ -44,7 +44,7 @@ goog.require('ydn.error.ArgumentException');
  * constructor parameters can be given.
  * @param {Function=} filter filter function.
  * @param {Function=} continued continued function.
- * @extends {ydn.db.Query}
+ * @extends {ydn.db.Iterator}
  * @constructor
  */
 ydn.db.req.IterableQuery = function(store, direction, index, keyRange, filter, continued) {
@@ -61,7 +61,7 @@ ydn.db.req.IterableQuery = function(store, direction, index, keyRange, filter, c
   this.continued = continued || null;
 
 };
-goog.inherits(ydn.db.req.IterableQuery, ydn.db.Query);
+goog.inherits(ydn.db.req.IterableQuery, ydn.db.Iterator);
 
 
 

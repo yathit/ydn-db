@@ -22,8 +22,8 @@
  */
 
 
-goog.provide('ydn.db.Query');
-goog.provide('ydn.db.Query.Direction');
+goog.provide('ydn.db.Iterator');
+goog.provide('ydn.db.Iterator.Direction');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -34,7 +34,7 @@ goog.require('ydn.error.ArgumentException');
 /**
  * Create a query object.
  * @param {string} store store name.
- * @param {ydn.db.Query.Direction=} direction cursor direction.
+ * @param {ydn.db.Iterator.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
@@ -43,7 +43,7 @@ goog.require('ydn.error.ArgumentException');
  * @param {...} opt_args additional parameters for key range constructor.
  * @constructor
  */
-ydn.db.Query = function(store, direction, index, keyRange, opt_args) {
+ydn.db.Iterator = function(store, direction, index, keyRange, opt_args) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
     throw new ydn.error.ArgumentException('store name required');
@@ -71,7 +71,7 @@ ydn.db.Query = function(store, direction, index, keyRange, opt_args) {
   }
   /**
    * @final
-   * @type {ydn.db.Query.Direction|undefined}
+   * @type {ydn.db.Iterator.Direction|undefined}
    */
   this.direction = direction;
 
@@ -110,7 +110,7 @@ ydn.db.Query = function(store, direction, index, keyRange, opt_args) {
  * @link http://www.w3.org/TR/IndexedDB/#dfn-direction
  * @enum {string} Cursor direction.
  */
-ydn.db.Query.Direction = {
+ydn.db.Iterator.Direction = {
   NEXT: 'next',
   NEXT_UNIQUE: 'nextunique',
   PREV: 'prev',
@@ -121,13 +121,13 @@ ydn.db.Query.Direction = {
 
 /**
  * @const
- * @type {!Array.<ydn.db.Query.Direction>} Cursor directions.
+ * @type {!Array.<ydn.db.Iterator.Direction>} Cursor directions.
  */
-ydn.db.Query.DIRECTIONS = [
-  ydn.db.Query.Direction.NEXT,
-  ydn.db.Query.Direction.NEXT_UNIQUE,
-  ydn.db.Query.Direction.PREV,
-  ydn.db.Query.Direction.PREV_UNIQUE
+ydn.db.Iterator.DIRECTIONS = [
+  ydn.db.Iterator.Direction.NEXT,
+  ydn.db.Iterator.Direction.NEXT_UNIQUE,
+  ydn.db.Iterator.Direction.PREV,
+  ydn.db.Iterator.Direction.PREV_UNIQUE
 ];
 
 
@@ -136,7 +136,7 @@ ydn.db.Query.DIRECTIONS = [
  *
  * @return {string} return store name.
  */
-ydn.db.Query.prototype.getStoreName = function() {
+ydn.db.Iterator.prototype.getStoreName = function() {
   return this.store_name;
 };
 
@@ -144,7 +144,7 @@ ydn.db.Query.prototype.getStoreName = function() {
  *
  * @return {string|undefined} return store name.
  */
-ydn.db.Query.prototype.getIndexName = function() {
+ydn.db.Iterator.prototype.getIndexName = function() {
   return this.index;
 };
 
@@ -152,7 +152,7 @@ ydn.db.Query.prototype.getIndexName = function() {
 /**
  * @inheritDoc
  */
-ydn.db.Query.prototype.toJSON = function() {
+ydn.db.Iterator.prototype.toJSON = function() {
   return {
     'store': this.store_name,
     'index': this.index,
@@ -165,23 +165,23 @@ ydn.db.Query.prototype.toJSON = function() {
  * Right value for query operation.
  * @type {ydn.db.IDBKeyRange|undefined}
  */
-ydn.db.Query.prototype.keyRange;
+ydn.db.Iterator.prototype.keyRange;
 
 /**
  * Cursor direction.
- * @type {(ydn.db.Query.Direction|undefined)}
+ * @type {(ydn.db.Iterator.Direction|undefined)}
  */
-ydn.db.Query.prototype.direction;
+ydn.db.Iterator.prototype.direction;
 
 /**
  * @type {?function(*): boolean}
  */
-ydn.db.Query.prototype.filter = null;
+ydn.db.Iterator.prototype.filter = null;
 
 /**
  * @type {?function(*): boolean}
  */
-ydn.db.Query.prototype.continued = null;
+ydn.db.Iterator.prototype.continued = null;
 
 
 
@@ -190,7 +190,7 @@ ydn.db.Query.prototype.continued = null;
 /**
  * @override
  */
-ydn.db.Query.prototype.toString = function() {
+ydn.db.Iterator.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
   return 'Cursor:' + this.store_name + idx;
 };
@@ -205,7 +205,7 @@ ydn.db.Query.prototype.toString = function() {
 // * @param {number|string} x
 // * @return {boolean}
 // */
-//ydn.db.Query.op_test = function(op, lv, x) {
+//ydn.db.Iterator.op_test = function(op, lv, x) {
 //  if (op === '=' || op === '==') {
 //    return  x == lv;
 //  } else if (op === '===') {
@@ -231,7 +231,7 @@ ydn.db.Query.prototype.toString = function() {
  *
  * @return {*|undefined} Current cursor key.
  */
-ydn.db.Query.prototype.key = function() {
+ydn.db.Iterator.prototype.key = function() {
   return this.store_key;
 };
 
@@ -240,7 +240,7 @@ ydn.db.Query.prototype.key = function() {
  *
  * @return {*|undefined} Current cursor index key.
  */
-ydn.db.Query.prototype.indexKey = function() {
+ydn.db.Iterator.prototype.indexKey = function() {
   return this.index_key;
 };
 
@@ -250,7 +250,7 @@ ydn.db.Query.prototype.indexKey = function() {
  *
  * @return {number} number of record iterated.
  */
-ydn.db.Query.prototype.count = function() {
+ydn.db.Iterator.prototype.count = function() {
   return this.counter;
 };
 
@@ -259,7 +259,7 @@ ydn.db.Query.prototype.count = function() {
  *
  * @return {boolean|undefined} number of record iterated.
  */
-ydn.db.Query.prototype.done = function() {
+ydn.db.Iterator.prototype.done = function() {
   return this.has_done;
 };
 
@@ -268,7 +268,7 @@ ydn.db.Query.prototype.done = function() {
  *
  * @return {!Array.<string>}
  */
-ydn.db.Query.prototype.stores = function() {
+ydn.db.Iterator.prototype.stores = function() {
   return [this.store_name];
 };
 
@@ -282,10 +282,10 @@ ydn.db.Query.prototype.stores = function() {
  * @param {string} value rvalue to compare.
  * @param {string=} op2 secound operator.
  * @param {string=} value2 second rvalue to compare.
- * @return {!ydn.db.Query} The query.
+ * @return {!ydn.db.Iterator} The query.
  */
-ydn.db.Query.where = function(store_name, field, op, value, op2, value2) {
+ydn.db.Iterator.where = function(store_name, field, op, value, op2, value2) {
   var key_range = new ydn.db.Where(field, op, value, op2, value2);
-  return new ydn.db.Query(store_name, ydn.db.Query.Direction.NEXT, field, key_range);
+  return new ydn.db.Iterator(store_name, ydn.db.Iterator.Direction.NEXT, field, key_range);
 };
 

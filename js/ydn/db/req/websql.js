@@ -551,7 +551,7 @@ ydn.db.req.WebSql.prototype.listByKeys = function(df, keys) {
 
 /**
  *
- * @param {ydn.db.Query} cursor the cursor.
+ * @param {ydn.db.Iterator} cursor the cursor.
  * @param {Function} next_callback icursor handler.
  * @param {ydn.db.base.CursorMode?=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
@@ -566,7 +566,7 @@ ydn.db.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
 
 /**
  * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Iterator} q query.
  * @param {?function(*): boolean} clear clear iteration function.
  * @param {?function(*): *} update update iteration function.
  * @param {?function(*): *} map map iteration function.
@@ -760,7 +760,7 @@ ydn.db.req.WebSql.prototype.listByQuery = function(df, q) {
 
 /**
  * Convert keyRange to SQL statement.
- * @param {ydn.db.Query} query schema.
+ * @param {ydn.db.Iterator} query schema.
  * @return {ydn.db.req.SqlQuery} sql query.
  */
 ydn.db.req.WebSql.prototype.planQuery = function(query) {
@@ -809,8 +809,8 @@ ydn.db.req.WebSql.prototype.planQuery = function(query) {
 
   // Note: IndexedDB key range result are always ordered.
   var dir = 'ASC';
-  if (sql.direction == ydn.db.Query.Direction.PREV ||
-    sql.direction == ydn.db.Query.Direction.PREV_UNIQUE) {
+  if (sql.direction == ydn.db.Iterator.Direction.PREV ||
+    sql.direction == ydn.db.Iterator.Direction.PREV_UNIQUE) {
     dir = 'DESC';
   }
   var order = 'ORDER BY ' + column;
@@ -852,7 +852,7 @@ ydn.db.req.WebSql.prototype.executeSql = function(df, sql) {
 
 /**
  * @param {!goog.async.Deferred} df return object in deferred function.
- * @param {!ydn.db.Query} q the query.
+ * @param {!ydn.db.Iterator} q the query.
  */
 ydn.db.req.WebSql.prototype.fetchCursor = function(df, q) {
 

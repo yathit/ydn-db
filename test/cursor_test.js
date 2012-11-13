@@ -72,7 +72,7 @@ var test_11_list_store = function () {
     100, // interval
     1000); // maxTimeout
 
-    var q = new ydn.db.Query(store_name);
+    var q = new ydn.db.Iterator(store_name);
 
     db.list(q).addBoth(function (value) {
       //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -101,7 +101,7 @@ var test_12_list_store_reverse = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.Query(store_name, 'prev');
+  var q = new ydn.db.Iterator(store_name, 'prev');
 
   db.list(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -130,7 +130,7 @@ var test_13_list_store_range = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.Query(store_name, 'next', undefined, ydn.db.KeyRange.bound(1, 10));
+  var q = new ydn.db.Iterator(store_name, 'next', undefined, ydn.db.KeyRange.bound(1, 10));
 
   db.list(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -162,7 +162,7 @@ var test_21_list_index = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.Query(store_name, 'next', 'value');
+  var q = new ydn.db.Iterator(store_name, 'next', 'value');
 
   db.list(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -195,7 +195,7 @@ var test_22_list_index_rev = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.Query(store_name, 'prev', 'value');
+  var q = new ydn.db.Iterator(store_name, 'prev', 'value');
 
   db.list(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -226,7 +226,7 @@ var test_23_list_index_range = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.bound('a', 'b');
-  var q = new ydn.db.Query(store_name, 'next', 'value', range);
+  var q = new ydn.db.Iterator(store_name, 'next', 'value', range);
 
   db.list(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));

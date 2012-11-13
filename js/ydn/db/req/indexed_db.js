@@ -577,7 +577,7 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
 //
 ///**
 // * Index scanning.
-// * @param {!Array.<!ydn.db.Query>>} indexes list of indexes.
+// * @param {!Array.<!ydn.db.Iterator>>} indexes list of indexes.
 // * @param {(function(keys: !Array, index_keys: !Array): number)=} callback
 // * @param {number=} limit limit number of match results.
 // * @param {boolean=} no_prefetch no prefetching of result.
@@ -617,7 +617,7 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {!ydn.db.Query} iterator The cursor.
+ * @param {!ydn.db.Iterator} iterator The cursor.
  * @param {ydn.db.base.CursorMode} mode mode.
  * @return {{
  *    onnext: Function,
@@ -831,7 +831,7 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
 
 /**
  *
- * @param {!ydn.db.Query} cursor the cursor.
+ * @param {!ydn.db.Iterator} cursor the cursor.
  * @param {Function} callback icursor handler.
  * @param {ydn.db.base.CursorMode?=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
@@ -968,7 +968,7 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, queries, streamers, solver) {
 
 /**
  * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Iterator} q query.
  * @param {?function(*): boolean} clear clear iteration function.
  * @param {?function(*): *} update update iteration function.
  * @param {?function(*): *} map map iteration function.
@@ -1061,7 +1061,7 @@ ydn.db.req.IndexedDb.prototype.listByQuery = function(df, q) {
 
 /**
 * @param {goog.async.Deferred} df deferred to feed result.
-* @param {!ydn.db.Query} q query.
+* @param {!ydn.db.Iterator} q query.
 */
 ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   var me = this;

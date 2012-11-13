@@ -103,7 +103,7 @@ var test_11_scan_key_single = function () {
       100, // interval
       1000); // maxTimeout
 
-  var q = new ydn.db.Query(store_name, 'next', 'value');
+  var q = new ydn.db.Iterator(store_name, 'next', 'value');
 
   var req = db.scan([q], function join_algo (key, index_key) {
     console.log(['receiving ', key ? key[0] : key, index_key]);
@@ -164,8 +164,8 @@ var test_21_scan_key_dual = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.Query(store_name, 'next', 'value');
-  var q2 = new ydn.db.Query(store_name, 'next', 'x');
+  var q1 = new ydn.db.Iterator(store_name, 'next', 'value');
+  var q2 = new ydn.db.Iterator(store_name, 'next', 'x');
 
   var req = db.scan([q1, q2], function join_algo (key, index_key) {
     console.log(['receiving ', key, index_key]);
@@ -215,9 +215,9 @@ var test_31_scan_mutli_query_match = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = ydn.db.Query.where('animals', 'color', '=', 'spots');
-  var q2 = ydn.db.Query.where('animals', 'horn', '=', 1);
-  var q3 = ydn.db.Query.where('animals', 'legs', '=', 4);
+  var q1 = ydn.db.Iterator.where('animals', 'color', '=', 'spots');
+  var q2 = ydn.db.Iterator.where('animals', 'horn', '=', 1);
+  var q3 = ydn.db.Iterator.where('animals', 'legs', '=', 4);
 
   var req = db.scan([q1, q2, q3], ydn.db.getAlgorithm('nested-loop-join'));
 

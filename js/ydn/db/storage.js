@@ -117,7 +117,7 @@ ydn.db.Storage.prototype.getWrapper = function() {
 
 
 /**
- * @param {!ydn.db.Query|!ydn.db.Sql} q query.
+ * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
  * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.Storage.prototype.fetch = function(q) {
@@ -156,7 +156,7 @@ ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
 
 /**
  * Explain query plan.
- * @param {!ydn.db.Query} q
+ * @param {!ydn.db.Iterator} q
  * @return {Object} plan in JSON
  */
 ydn.db.Storage.prototype.explain = function(q) {
@@ -187,7 +187,7 @@ ydn.db.Storage.prototype.toString = function() {
 
 
 /**
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Iterator} q query.
  * @param {function(*): boolean} clear clear iteration function.
  * @param {function(*): *} update update iteration function.
  * @param {function(*): *} map map iteration function.
@@ -203,7 +203,7 @@ ydn.db.Storage.prototype.iterate = function(q, clear, update, map, reduce,
 
 
 /**
- * @param {!ydn.db.Query|!ydn.db.Sql} q query.
+ * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
  * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.Storage.prototype.execute = function(q) {
@@ -213,7 +213,7 @@ ydn.db.Storage.prototype.execute = function(q) {
 
 /**
  * Cursor scan iteration.
- * @param {!Array.<!ydn.db.Query>} queries the cursor.
+ * @param {!Array.<!ydn.db.Iterator>} queries the cursor.
  * @param {Function} join_algo next callback handler.
  * @param {number=} limit limit number of matched results.
  * @param {boolean=} no_collect_key if true not prefetch.
@@ -227,7 +227,7 @@ ydn.db.Storage.prototype.scan = function(queries, join_algo, limit, no_collect_k
 
 /**
  *
- * @param {!ydn.db.Query} iterator
+ * @param {!ydn.db.Iterator} iterator
  * @param {function(*)} callback
  */
 ydn.db.Storage.prototype.map = function(iterator, callback) {
@@ -238,7 +238,7 @@ ydn.db.Storage.prototype.map = function(iterator, callback) {
 
 /**
  *
- * @param {!ydn.db.Query} iterator
+ * @param {!ydn.db.Iterator} iterator
  * @param {function(*)} callback
  * @param {*=} initial
  */

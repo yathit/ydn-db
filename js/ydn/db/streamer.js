@@ -6,12 +6,12 @@
  */
 
 goog.provide('ydn.db.Streamer');
-goog.require('ydn.db.req.CursorStream');
+
 
 
 /**
  *
- * @param {ydn.db.con.Storage} storage storage connector.
+ * @param {ydn.db.Storage} storage storage connector.
  * @param {string} store_name store name.
  * @param {(function(*, Function): boolean)=} pop function to received output.
  * @param {string=} index_name index name. If given output is not cursor value,
@@ -21,7 +21,7 @@ goog.require('ydn.db.req.CursorStream');
 ydn.db.Streamer = function(storage, store_name, pop, index_name) {
 
   this.store_name_ = store_name;
-  this.sink_ = pop;
+  this.sink_ = pop || null;
   this.index_name_ = index_name;
   this.stack_ = [];
   this.cursor_ =  storage.newCursorStream();
@@ -45,7 +45,7 @@ ydn.db.Streamer.prototype.store_name_;
 
 
 /**
- * @type {string}
+ * @type {string|undefined}
  * @private
  */
 ydn.db.Streamer.prototype.index_name_;
@@ -53,7 +53,7 @@ ydn.db.Streamer.prototype.index_name_;
 
 /**
  *
- * @type {function(*, Function): boolean}
+ * @type {(function(*, Function): boolean)?}
  */
 ydn.db.Streamer.prototype.sink_ = null;
 
@@ -122,7 +122,7 @@ ydn.db.Streamer.prototype.collect = function(callback) {
   this.cursor_.onFinish(function on_finish(e) {
     callback(me.stack_);
     me.stack_ = null;
-    me..is_collecting_ = false;
+    me.is_collecting_ = false;
   });
 
 };

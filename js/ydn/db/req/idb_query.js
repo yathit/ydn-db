@@ -36,7 +36,7 @@ goog.require('ydn.error.ArgumentException');
  * query processor can mutation as part of query optimization processes.
  *
  * @param {string} store store name.
- * @param {ydn.db.Query.Direction=} direction cursor direction.
+ * @param {ydn.db.Iterator.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {ydn.db.KeyRange=}

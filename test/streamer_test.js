@@ -103,7 +103,7 @@ var test_11_scan_key_single = function () {
       100, // interval
       1000); // maxTimeout
 
-  var q = new ydn.db.Query(store_name, 'next', 'value');
+  var q = new ydn.db.Iterator(store_name, 'next', 'value');
 
   var req = db.scan([q], function join_algo (key, index_key) {
     console.log(['receiving ', key ? key[0] : key, index_key]);
