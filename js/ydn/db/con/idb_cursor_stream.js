@@ -7,13 +7,13 @@
 
 goog.provide('ydn.db.con.IdbCursorStream');
 goog.require('goog.debug.Logger');
-goog.require('ydn.db.con.IndexedDb');
 goog.require('ydn.db.con.ICursorStream');
+goog.require('ydn.db.con.IStorage');
 
 
 /**
  *
- * @param {!ydn.db.con.Storage} db
+ * @param {!ydn.db.con.IStorage} db
  * @param {string} store_name store name.
  * @param {string} index_name index name.
  * @param {boolean} key_only key only.
@@ -41,7 +41,7 @@ ydn.db.con.IdbCursorStream.prototype.logger =
 
 
 /**
- * @type {!ydn.db.con.Storage}
+ * @type {!ydn.db.con.IStorage}
  * @private
  */
 ydn.db.con.IdbCursorStream.prototype.db_;
