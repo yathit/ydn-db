@@ -20,11 +20,16 @@ goog.provide('ydn.db.Streamer');
  */
 ydn.db.Streamer = function(storage, store_name, pop, index_name) {
 
+  if (this.type() === ydn.db.con.IndexedDb.TYPE) {
+    this.cursor_ = new ydn.db.con.IdbCursorStream(this, store_name, index_name);
+  } else {
+    throw new ydn.error.NotImplementedException(this.type());
+  }
+
   this.store_name_ = store_name;
   this.sink_ = pop || null;
   this.index_name_ = index_name;
   this.stack_ = [];
-  this.cursor_ =  storage.newCursorStream();
   this.is_collecting_ = false;
 };
 

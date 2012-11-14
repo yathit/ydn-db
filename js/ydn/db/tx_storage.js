@@ -380,5 +380,14 @@ ydn.db.TxStorage.prototype.toString = function() {
 
 
 
+ydn.db.TxStorage.prototype.getCursorStream = function(store_name, index_name, key_only, sink) {
+  if (this.type() === ydn.db.con.IndexedDb.TYPE) {
+    return new ydn.db.con.IdbCursorStream(this, store_name, index_name, key_only, sink);
+  } else {
+    throw new ydn.error.NotImplementedException(this.type());
+  }
+};
+
+
 
 
