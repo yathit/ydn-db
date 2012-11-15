@@ -8,27 +8,41 @@
 goog.provide('ydn.db.Streamer');
 goog.require('ydn.db.con.IdbCursorStream');
 goog.require('ydn.db.con.IStorage');
+goog.require('ydn.db.Iterator');
 
 
 
 /**
  *
- * @param {!ydn.db.con.IStorage} storage storage connector.
+ * @param {!ydn.db.con.IStorage|!ydn.db.Iterator} storage storage connector.
  * @param {string} store_name store name.
- * @param {(function(*, *, Function): boolean)=} pop function to received output.
- * @param {string=} index_name index name. If given output is not cursor value,
+ * @param {string?=} index_name index name. If given output is not cursor value,
  * but index value.
- * @param {boolean=} with_value fetch with value. By default, only key is
  * fetched.
+ * @param {string=} foreign_index_name foreign index name.
  * @constructor
  */
-ydn.db.Streamer = function(storage, store_name, pop, index_name, with_value) {
+ydn.db.Streamer = function(storage, store_name, index_name,
+                           foreign_index_name) {
 
-  this.db_ = storage;
   this.store_name_ = store_name;
-  this.sink_ = pop || null;
-  this.index_name_ = index_name;
-  this.key_only_ = !with_value;
+  this.index_name_ = goog.isString(index_name) ? index_name : undefined;
+
+  if (storage instanceof ydn.db.Iterator) {
+    this.db_ = null;
+    this.parent_ = storage;
+    if (this.parent_.isKeyOnly() && goog.isDef(this.foreign_key_index_name_) &&
+          !(this.parent_.getIndexName() == this.foreign_key_index_name_)) {
+        throw new ydn.error.ArgumentException(
+          'foreign key name must match with iterator keyPath');
+
+    }
+  } else {
+    this.db_ = storage;
+    this.parent_ = null;
+  }
+  this.key_only_ = goog.isString(index_name);
+  this.foreign_key_index_name_ = foreign_index_name;
   this.stack_value_ = [];
   this.stack_key_ = [];
   this.is_collecting_ = false;
@@ -41,6 +55,14 @@ ydn.db.Streamer = function(storage, store_name, pop, index_name, with_value) {
  */
 ydn.db.Streamer.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.Streamer');
+
+
+/**
+ *
+ * @type {ydn.db.Iterator}
+ * @private
+ */
+ydn.db.Streamer.prototype.parent_ = null;
 
 
 /**
@@ -117,6 +139,13 @@ ydn.db.Streamer.prototype.setSink = function(sink) {
   this.sink_ = sink;
 };
 
+/**
+ *
+ * @param {!ydn.db.con.Storage} db
+ */
+ydn.db.Streamer.prototype.setDb = function(db) {
+  this.db_ = db;
+};
 
 /**
  * Push the result because a result is ready. This will push until stack
@@ -204,6 +233,9 @@ ydn.db.Streamer.prototype.push = function(key, value) {
     // we have to create cursor_ object lazily because, at the time of
     // instantiation, database may not have connected yet.
     if (!this.cursor_) {
+      if (!this.db_) {
+        throw new ydn.error.InvalidOperationError('No database set.');
+      }
       var type = this.db_.type();
       if (!type) {
         throw new ydn.error.InvalidOperationError('Database not connected.');
@@ -216,6 +248,29 @@ ydn.db.Streamer.prototype.push = function(key, value) {
     }
 
     this.cursor_.seek(key);
+  }
+};
+
+
+
+/**
+ * Extract key from the parent iterator and push.
+ * @param key
+ * @param value
+ */
+ydn.db.Streamer.prototype.pull = function(key, value) {
+  goog.asserts.assertObject(this.parent_);
+  if (!goog.isDef(this.foreign_key_index_name_)) {
+    this.push(key);
+  } else if (this.parent_.isKeyOnly()) {
+    this.push(value); // index key
+  } else {
+    if (goog.isDefAndNotNull(value)) {
+      this.push(value[this.foreign_key_index_name_]);
+    } else {
+      this.push(undefined, undefined);
+    }
+
   }
 };
 

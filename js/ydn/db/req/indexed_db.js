@@ -863,7 +863,7 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
 /**
  * @inheritDoc
  */
-ydn.db.req.IndexedDb.prototype.scan = function(df, iterators_streamers, solver) {
+ydn.db.req.IndexedDb.prototype.scan = function(df, iterators, streamers, solver) {
 
   var me = this;
   var solver_ = solver instanceof ydn.db.algo.AbstractSolver ?
