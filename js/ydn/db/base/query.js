@@ -148,6 +148,14 @@ ydn.db.Iterator.prototype.getIndexName = function() {
   return this.index;
 };
 
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.Streamer.prototype.isKeyOnly = function() {
+  return goog.isString(this.index);
+};
+
 
 /**
  * @inheritDoc
@@ -289,3 +297,11 @@ ydn.db.Iterator.where = function(store_name, field, op, value, op2, value2) {
   return new ydn.db.Iterator(store_name, ydn.db.Iterator.Direction.NEXT, field, key_range);
 };
 
+
+
+/**
+ * @override
+ */
+ydn.db.Iterator.prototype.toString = function() {
+  return 'Iterator:' + this.store_name_ + (this.index_name_ || '');
+};

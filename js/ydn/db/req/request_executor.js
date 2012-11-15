@@ -12,7 +12,7 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db.Iterator');
 goog.require('ydn.db.Streamer');
-goog.require('ydn.db.algo.join.AbstractSolver');
+goog.require('ydn.db.algo.AbstractSolver');
 goog.require('ydn.db.InternalError');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.Sql');
@@ -210,7 +210,6 @@ ydn.db.req.RequestExecutor.prototype.putObject = goog.abstractMethod;
 ydn.db.req.RequestExecutor.prototype.putObjects = goog.abstractMethod;
 
 
-
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!Array.<Object>} objs object to put.
@@ -232,14 +231,16 @@ ydn.db.req.RequestExecutor.prototype.fetchQuery = goog.abstractMethod;
  */
 ydn.db.req.RequestExecutor.prototype.fetchCursor = goog.abstractMethod;
 
+
 /**
  * Cursor scan iteration.
  * @param {!goog.async.Deferred} df promise on completed.
- * @param {!Array.<!ydn.db.Iterator>} queries the cursor.
- * @param {!Array.<!ydn.db.Streamer>} streamers streamers.
- * @param {!ydn.db.algo.join.AbstractSolver} solver solver.
+ * @param {!Array.<!ydn.db.Iterator|!ydn.db.Streamer>} queries the cursor.
+ * @param {!ydn.db.algo.AbstractSolver|
+  * function(!Array, !Array): !Array} solver solver.
  */
 ydn.db.req.RequestExecutor.prototype.scan = goog.abstractMethod;
+
 
 /**
  * @param {goog.async.Deferred} df deferred to feed result.

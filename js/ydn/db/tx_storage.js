@@ -206,7 +206,7 @@ ydn.db.TxStorage.prototype.scan = function(iterators, streamers) {
   }
 
   this.exec(function(executor) {
-    executor.scan(df, iterators, streamers);
+    executor.scan(df, iterators);
   }, scopes, tr_mode);
 
   return df;
@@ -376,16 +376,6 @@ ydn.db.TxStorage.prototype.toString = function() {
     return s + ':' + this.q_no_ + scope + ':' + this.getTxNo() + mu_scope;
   }
   return s;
-};
-
-
-
-ydn.db.TxStorage.prototype.getCursorStream = function(store_name, index_name, key_only, sink) {
-  if (this.type() === ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.con.IdbCursorStream(this, store_name, index_name, key_only, sink);
-  } else {
-    throw new ydn.error.NotImplementedException(this.type());
-  }
 };
 
 

@@ -15,7 +15,7 @@ goog.require('ydn.db.con.IStorage');
  *
  * @param {!ydn.db.con.IStorage} db
  * @param {string} store_name store name.
- * @param {string} index_name index name.
+ * @param {string|undefined} index_name index name.
  * @param {boolean} key_only key only.
  * @param {Function} sink to receive value.
  * @constructor
@@ -54,7 +54,7 @@ ydn.db.con.IdbCursorStream.prototype.store_name_;
 
 
 /**
- * @type {string}
+ * @type {string|undefined}
  * @private
  */
 ydn.db.con.IdbCursorStream.prototype.index_name_;
@@ -66,7 +66,6 @@ ydn.db.con.IdbCursorStream.prototype.index_name_;
  * @private
  */
 ydn.db.con.IdbCursorStream.prototype.stack_ = [];
-
 
 
 /**
@@ -103,10 +102,10 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
     if (cursor) {
       me.cursor_ = cursor;
       if (goog.isFunction(me.sink_)) {
-        if (goog.isDef(me.index_name_)) {
-          me.sink_(cursor.key);
+        if (goog.isDef(me.key_only_)) {
+          me.sink_(cursor.primaryKey, cursor.key);
         } else {
-          me.sink_(cursor['value']);
+          me.sink_(cursor.primaryKey, cursor['value']);
         }
       } else {
         me.logger.warning('sink gone, dropping value for: ' +
@@ -158,11 +157,14 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
     if (goog.isString(me.index_name_)) {
       var index = store.index(me.index_name_);
       if (me.key_only_) {
-        me.processRequest_(store.openKeyCursor(key));
+        me.processRequest_(index.openKeyCursor(key));
       } else {
-        me.processRequest_(store.openCursor(key));
+        me.processRequest_(index.openCursor(key));
       }
     } else {
+      // as of v1, ObjectStore do not have openKeyCursor method.
+      // filed bug on:
+      // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       me.processRequest_(store.openCursor(key));
     }
   }, [this.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
@@ -173,6 +175,7 @@ ydn.db.con.IdbCursorStream.prototype.clearStack_ = function() {
   if (this.cursor_ && this.stack_.length > 0) {
     // we retain only valid request with active cursor.
     this.cursor_['continue'](this.stack_.shift());
+    this.cursor_ = null;
   } else {
     if (this.collector_) {
       this.collector_();

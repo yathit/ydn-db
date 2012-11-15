@@ -5,14 +5,14 @@
  * Date: 10/11/12
  */
 
-goog.provide('ydn.db.algo.join.AbstractSolver');
+goog.provide('ydn.db.algo.AbstractSolver');
 
 
 /**
  *
  * @constructor
  */
-ydn.db.algo.join.AbstractSolver = function() {
+ydn.db.algo.AbstractSolver = function() {
 
 };
 
@@ -23,8 +23,19 @@ ydn.db.algo.join.AbstractSolver = function() {
  * @param {!Array} iterators list of iterators feed to the scanner.
  * @param {!Array} streamers list of filter feed to the scanner.
  */
-ydn.db.algo.join.AbstractSolver.prototype.begin = function(iterators, streamers){
+ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, streamers){
 
+};
+
+
+/**
+ *
+ * @param {!Array} keys input values.
+ * @param {!Array} values output values.
+ * @return {!Array} next positions.
+ */
+ydn.db.algo.AbstractSolver.prototype.adapter = function(keys, values) {
+  return this.solver(keys, values);
 };
 
 
@@ -35,7 +46,7 @@ ydn.db.algo.join.AbstractSolver.prototype.begin = function(iterators, streamers)
  * @param {!Array} constrain constrain results.
  * @return {!Array} next positions.
  */
-ydn.db.algo.join.AbstractSolver.prototype.process = function(input, output, constrain) {
+ydn.db.algo.AbstractSolver.prototype.solver = function(input, output, constrain) {
   return [];
 };
 
@@ -43,6 +54,6 @@ ydn.db.algo.join.AbstractSolver.prototype.process = function(input, output, cons
 /**
  * Invoke at the end of the iteration process.
  */
-ydn.db.algo.join.AbstractSolver.prototype.finish = function() {
+ydn.db.algo.AbstractSolver.prototype.finish = function() {
 
 };

@@ -246,9 +246,3 @@ ydn.db.Storage.prototype.reduce = function(iterator, callback, initial) {
 
 };
 
-
-
-ydn.db.Storage.prototype.getCursorStream = function(store_name, index_name, key_only, sink) {
-  return this.default_tx_queue_.getCursorStream(store_name, index_name, key_only, sink);
-};
-

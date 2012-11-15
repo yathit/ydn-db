@@ -6,32 +6,56 @@
  */
 
 goog.provide('ydn.db.Streamer');
+goog.require('ydn.db.con.IdbCursorStream');
+goog.require('ydn.db.con.IStorage');
 
 
 
 /**
  *
- * @param {ydn.db.Storage} storage storage connector.
+ * @param {!ydn.db.con.IStorage} storage storage connector.
  * @param {string} store_name store name.
- * @param {(function(*, Function): boolean)=} pop function to received output.
+ * @param {(function(*, *, Function): boolean)=} pop function to received output.
  * @param {string=} index_name index name. If given output is not cursor value,
  * but index value.
+ * @param {boolean=} with_value fetch with value. By default, only key is
+ * fetched.
  * @constructor
  */
-ydn.db.Streamer = function(storage, store_name, pop, index_name) {
+ydn.db.Streamer = function(storage, store_name, pop, index_name, with_value) {
 
-  if (this.type() === ydn.db.con.IndexedDb.TYPE) {
-    this.cursor_ = new ydn.db.con.IdbCursorStream(this, store_name, index_name);
-  } else {
-    throw new ydn.error.NotImplementedException(this.type());
-  }
-
+  this.db_ = storage;
   this.store_name_ = store_name;
   this.sink_ = pop || null;
   this.index_name_ = index_name;
-  this.stack_ = [];
+  this.key_only_ = !with_value;
+  this.stack_value_ = [];
+  this.stack_key_ = [];
   this.is_collecting_ = false;
 };
+
+
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.Streamer.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.Streamer');
+
+
+/**
+ *
+ * @type {ydn.db.con.IStorage}
+ * @private
+ */
+ydn.db.Streamer.prototype.db_ = null;
+
+/**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.Streamer.prototype.key_only_ = true;
 
 
 /**
@@ -67,12 +91,27 @@ ydn.db.Streamer.prototype.sink_ = null;
  * @private
  * @type {Array}
  */
-ydn.db.Streamer.prototype.stack_ = [];
+ydn.db.Streamer.prototype.stack_key_ = [];
+
+/**
+ * @private
+ * @type {Array}
+ */
+ydn.db.Streamer.prototype.stack_value_ = [];
 
 
 /**
  *
- * @param {function(*, Function)} sink
+ * @return {boolean}
+ */
+ydn.db.Streamer.prototype.isKeyOnly = function() {
+  return this.key_only_;
+};
+
+
+/**
+ *
+ * @param {function(*, *, Function)} sink
  */
 ydn.db.Streamer.prototype.setSink = function(sink) {
   this.sink_ = sink;
@@ -80,34 +119,35 @@ ydn.db.Streamer.prototype.setSink = function(sink) {
 
 
 /**
- * Push the result because a result is ready. This will push untill still
+ * Push the result because a result is ready. This will push until stack
  * is empty.
  * @private
  */
-ydn.db.Streamer.prototype.push_ = function() {
-  var on_queue = this.stack_.length > 0;
-  if (on_queue && !this.is_collecting_) {
-    if (goog.isFunction(this.sink_)) {
-      var me = this;
-      var waiter = function() {
-        me.push_();
-      };
-      var value = this.stack_.shift();
-      on_queue = this.stack_.length > 0;
-      var to_wait = this.sink_(value, on_queue ? waiter : null);
-      if (on_queue) {
-        goog.asserts.assertBoolean(to_wait, 'sink must return a boolean.');
-        if (to_wait === false) {
-          this.push_();
-        }
-      } else {
-        goog.asserts.assert(!goog.isDef(to_wait), 'sink must return undefined');
-      }
+ydn.db.Streamer.prototype.push_ = function () {
+  var on_queue = this.stack_value_.length > 0;
+  if (on_queue && !this.is_collecting_ && goog.isFunction(this.sink_)) {
+
+    var me = this;
+    var waiter = function () {
+      me.push_();
+    };
+    var key = this.stack_key_.shift();
+    var value = this.stack_value_.shift();
+    on_queue = this.stack_value_.length > 0;
+    var to_wait = this.sink_(key, value, on_queue ? waiter : null);
+    if (on_queue && !to_wait) {
+      this.push_();
     }
   }
+
 };
 
 
+/**
+ *
+ * @type {boolean} Flag to indicate collection.
+ * @private
+ */
 ydn.db.Streamer.prototype.is_collecting_ = false;
 
 
@@ -119,14 +159,16 @@ ydn.db.Streamer.prototype.is_collecting_ = false;
  * @throws ydn.ArgumentException if sink function is set.
  */
 ydn.db.Streamer.prototype.collect = function(callback) {
-  if (this.sink_) {
-    throw new ydn.error.ArgumentException('already have a sink');
+  if (this.cursor_) {
+    // throw new ydn.error.InvalidOperationError('Not collected.');
+    this.logger.warning('Not collected yet.');
+    callback([]);
   }
   this.is_collecting_ = true;
   var me = this;
   this.cursor_.onFinish(function on_finish(e) {
-    callback(me.stack_);
-    me.stack_ = null;
+    callback(me.stack_value_);
+    me.stack_value_ = [];
     me.is_collecting_ = false;
   });
 
@@ -134,18 +176,45 @@ ydn.db.Streamer.prototype.collect = function(callback) {
 
 
 /**
+ * Collect value from cursor stream.
+ * @param {*} key
+ * @param {*} value
+ * @private
+ */
+ydn.db.Streamer.prototype.collector_ = function(key, value) {
+  this.stack_key_.push(key);
+  this.stack_value_.push(value);
+  this.push_();
+};
+
+
+/**
  * Push a key.
  * @param {*} key key to seek the value.
  * @param {*=} value if already got the value.
+ * @throws {ydn.error.InvalidOperationError}
  */
 ydn.db.Streamer.prototype.push = function(key, value) {
   if (this.is_collecting_) {
     throw new ydn.error.InvalidOperationError('collecting');
   }
   if (arguments.length >= 2) {
-    this.stack_.push(value);
-    this.push_();
+    this.collector_(key, value);
   } else {
+    // we have to create cursor_ object lazily because, at the time of
+    // instantiation, database may not have connected yet.
+    if (!this.cursor_) {
+      var type = this.db_.type();
+      if (!type) {
+        throw new ydn.error.InvalidOperationError('Database not connected.');
+      } else if (type === ydn.db.con.IndexedDb.TYPE) {
+        this.cursor_ = new ydn.db.con.IdbCursorStream(this.db_,
+          this.store_name_, this.index_name_, this.key_only_, this.collector_);
+      } else {
+        throw new ydn.error.NotImplementedException(type);
+      }
+    }
+
     this.cursor_.seek(key);
   }
 };
@@ -155,14 +224,14 @@ ydn.db.Streamer.prototype.push = function(key, value) {
  * @type {string}
  * @private
  */
-ydn.db.Streamer.prototype.foreign_key_store_name;
+ydn.db.Streamer.prototype.foreign_key_store_name_;
 
 
 /**
- * @type {string}
+ * @type {string|undefined}
  * @private
  */
-ydn.db.Streamer.prototype.foreign_key_index_name;
+ydn.db.Streamer.prototype.foreign_key_index_name_;
 
 
 /**
@@ -170,9 +239,9 @@ ydn.db.Streamer.prototype.foreign_key_index_name;
  * @param {string} store_name
  * @param {string=} index_name
  */
-ydn.db.Streamer.prototype.setForeignKey = function(store_name, index_name) {
-  this.foreign_key_store_name = store_name;
-  this.foreign_key_index_name = index_name;
+ydn.db.Streamer.prototype.setRelation = function(store_name, index_name) {
+  this.foreign_key_store_name_ = store_name;
+  this.foreign_key_index_name_ = index_name;
 };
 
 
@@ -180,6 +249,32 @@ ydn.db.Streamer.prototype.setForeignKey = function(store_name, index_name) {
  * Both of them may be undefined.
  * @return {!Array.<string>} return store_name and index_name.
  */
-ydn.db.Streamer.prototype.getForeignKey = function() {
-  return [this.foreign_key_store_name, this.foreign_key_index_name];
+ydn.db.Streamer.prototype.getRelation = function() {
+  return [this.foreign_key_store_name_, this.foreign_key_index_name_];
+};
+
+
+/**
+ *
+ * @return {string} return store name.
+ */
+ydn.db.Streamer.prototype.getStoreName = function() {
+  return this.store_name_;
+};
+
+
+/**
+ *
+ * @return {string|undefined} return store name.
+ */
+ydn.db.Streamer.prototype.getIndexName = function() {
+  return this.index_name_;
+};
+
+
+/**
+ * @override
+ */
+ydn.db.Streamer.prototype.toString = function() {
+  return 'Streamer:' + this.store_name_ + (this.index_name_ || '');
 };
