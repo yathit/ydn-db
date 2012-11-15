@@ -870,7 +870,6 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators, streamers, solver)
     solver.solver : solver;
 
   var done = false;
-  var total = iterators_streamers.length;
   /**
    *
    * @type {Array.<ydn.db.Iterator>}
