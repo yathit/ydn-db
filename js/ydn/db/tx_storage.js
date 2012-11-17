@@ -180,10 +180,12 @@ ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
 /**
  * Cursor scan iteration.
  * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
- * @param {!Array.<!ydn.db.Streamer>} streamers streamers.
+ * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
+ * @param {!Array.<!ydn.db.Streamer>=} streamers streamers.
+ * solver.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.TxStorage.prototype.scan = function(iterators, streamers) {
+ydn.db.TxStorage.prototype.scan = function(iterators, streamers, solver) {
   var df = ydn.db.base.createDeferred();
   if (!goog.isArray(iterators) || !(iterators[0] instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
@@ -206,7 +208,7 @@ ydn.db.TxStorage.prototype.scan = function(iterators, streamers) {
   }
 
   this.exec(function(executor) {
-    executor.scan(df, iterators);
+    executor.scan(df, iterators, streamers || [], solver);
   }, scopes, tr_mode);
 
   return df;

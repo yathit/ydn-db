@@ -65,6 +65,15 @@ ydn.db.req.IndexedDb.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.req.IndexedDb');
 
 
+/**
+ *
+ * @return {!IDBTransaction} casted tx.
+ */
+ydn.db.req.IndexedDb.prototype.getTx = function() {
+  return /** @type {!IDBTransaction} */ (this.tx);
+};
+
+
 
 /**
 * Execute PUT request either storing result to tx or callback to df.
@@ -863,164 +872,96 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
 /**
  * @inheritDoc
  */
-ydn.db.req.IndexedDb.prototype.scan = function(df, iterators, streamers, solver) {
+ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
+                                               passthrough_streamers, solver) {
 
   var me = this;
   var solver_ = solver instanceof ydn.db.algo.AbstractSolver ?
-    solver.solver : solver;
+    solver.adapter : solver;
 
   var done = false;
-  /**
-   *
-   * @type {Array.<ydn.db.Iterator>}
-   */
-  var iterators = [];
-  /**
-   *
-   * @type {Array.<ydn.db.Streamer>}
-   */
-  var streamers = [];
-  /**
-   *
-   * @type {Array.<ydn.db.Iterator>}
-   */
-  var streamer_parents = []; // parent of respective streamer
-  var total_streamer = 0;
-  var total_iterator = 0;
-  var streamer2idx = []; // convert streamer index to main index
-  var iterator2idx = []; // convert iterator index to main index
+
+  var total;
   var idx2streamer = []; // convert main index to streamer index
   var idx2iterator = []; // convert main index to iterator index
-
-  for (var i = 0; i < iterators_streamers.length; i++) {
-    if (iterators_streamers[i] instanceof ydn.db.Iterator) {
-      iterators[total_iterator] = iterators_streamers[i];
-      iterator2idx[total_iterator] = i;
-      idx2iterator[i] = total_iterator;
-      total_iterator++;
-    } else {
-      /**
-       * @type {ydn.db.Streamer}
-       */
-      var streamer = iterators_streamers[i];
-      if (i == 0) {
-        throw new ydn.error.ArgumentException(streamer +
-          ' must follow an Iterator');
-      }
-      var parents = iterators_streamers.slice(0, i - 1).reverse();
-      /**
-       *
-       * @type {ydn.db.Iterator}
-       */
-      var parent_iterator = goog.array.find(parents, function (x) {
-          return x instanceof ydn.db.Iterator;
-        }
-      );
-      if (!parent_iterator) {
-        throw new ydn.error.ArgumentException(streamer +
-          ' must follow an Iterator');
-      }
-      streamers[total_streamer] = streamer;
-      streamer_parents[total_streamer] = parent_iterator;
-      streamer2idx[total_streamer] = i;
-      idx2streamer[i] = total_streamer;
-      total_streamer++;
-    }
-  }
 
   var keys = [];
   var values = [];
   var iterator_requests = [];
+  var streamers = [];
 
   var existed = false;
   var do_exit = function() {
     if (existed) {
       throw new ydn.error.InternalError('existed');
     }
-    for (var k = 0; k < iterators_streamers.length; k++) {
-      if (!goog.isDef(iterators_streamers[k].has_done)) {
+    for (var k = 0; k < iterators.length; k++) {
+      if (!goog.isDef(iterators[k].has_done)) {
         // change iterators busy state to resting state.
-        iterators_streamers[k].has_done = false;
+        // FIXME: this dirty job should be in iterator class.
+        iterators[k].has_done = false;
       }
     }
 
     done = true;
   };
 
-  var iterator_result_count = 0;
+  var result_count = 0;
   var streamer_result_count = 0;
   var has_key_count = 0;
 
   /**
-   * Results of streamers, as well as, iterator are ready.
-   * This will invoke solvers, receieve its result and advance cursor
-   * steps.
+   * All results collected. Now invoke solver and do advancement.
    */
-  var on_streamers_ready = function() {
+  var on_result_ready = function() {
     // all cursor has results, than sent to join algorithm callback.
     var adv = solver_(keys, values);
-    //console.log('join_algo: ' + adv + ' of ' + keys[0]);
     var is_moving = false;
-    for (var j = 0; j < adv.length; j++) {
-      if (iterators_streamers[j] instanceof ydn.db.Iterator) {
-
-        if (goog.isDefAndNotNull(adv[j])) {
-          if (goog.isDefAndNotNull(keys[j]) && adv[j] !== false) {
-            // empty key means Iterator is completed. it cannot be
-            // advance, but restarting (giving false) is OK.
-            throw new ydn.error.InvalidOperationError('Iterator ' + j +
+    for (var i = 0; i < adv.length; i++) {
+      if (goog.isDefAndNotNull(adv[i])) {
+        var idx = idx2iterator[i];
+        if (!goog.isDef(idx)) {
+          throw new ydn.error.InvalidOperationException(i +
+              ' is not an iterator.');
+        }
+        var iterator = iterator[idx];
+        var req = iterator_requests[idx];
+        if (adv[i] !== false && !goog.isDef(keys[i])) {
+          throw new ydn.error.InvalidOperationError('Iterator ' + j +
               ' must not advance.');
-          }
-          keys[j] = undefined;
-          values[j] = undefined;
-          //console.log('moving ' + i + ' to ' + adv[j]);
-          iterator_requests[iterator2idx[j]].forward(adv[j]);
-          is_moving = true;
         }
-      } else {
-        // streamer.
-        if (goog.isDefAndNotNull(adv[j])) {
-          throw new ydn.error.InvalidOperationError(iterators_streamers[j] +
-              ' at ' + j + ' must not advance.');
-        }
+        keys[j] = undefined;
+        values[j] = undefined;
+        is_moving = true;
       }
     }
-
     if (!is_moving) {
       do_exit();
-    }
-  };
-
-
-  /**
-   * All results from iterators are collected. Push relevant keys to streamers.
-   */
-  var on_iterators_ready = function() {
-    for (var i = 0; i < streamers.length; i++) {
-
     }
   };
 
   /**
    * Receive streamer result. When all streamer results are received,
    * this begin on_iterators_ready.
-   * @param i
-   * @param key
-   * @param value
+   * @param {number} i
+   * @param {*} key
+   * @param {*} value
+   * @return {boolean}
    */
   var on_streamer_pop = function(i, key, value) {
     if (done) {
       if (ydn.db.req.IndexedDb.DEBUG) {
-        window.console.log(['on_streamer_next', i, key, value,
-          iterators_streamers[i]]);
+        window.console.log(['on_streamer_next', i, key, value]);
       }
       throw new ydn.error.InternalError();
     }
-    streamer_result_count ++;
-    if (streamer_result_count == total_streamer) {
-      streamer_result_count = 0;
-      on_iterators_ready();
+    keys[i] = key;
+    values[i] = value;
+    result_count++;
+    if (result_count === total) { // receive all results
+      on_result_ready();
     }
+    return false;
   };
 
   /**
@@ -1033,38 +974,60 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators, streamers, solver)
   var on_iterator_next = function (i, key, value) {
     if (done) {
       if (ydn.db.req.IndexedDb.DEBUG) {
-        window.console.log(['on_iterator_next', i, key, value,
-          iterators_streamers[i]]);
+        window.console.log(['on_iterator_next', i, key, value]);
       }
       throw new ydn.error.InternalError();
     }
     //console.log(['next', i, key, indexKey, value,  queries[i]]);
-    iterator_result_count++;
-
+    result_count++;
     keys[i] = key;
     values[i] = value;
+    if (goog.isDef(idx2iterator[i])) {
+      var iterator = iterators[idx];
+      var streamer_idx = idx2streamer[i];
+      for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
+        var streamer = streamers[streamer_idx + j];
+        streamer.pull(key, value);
+      }
+    }
 
-    //console.log([i, key, indexKey]);
-    if (iterator_result_count === total_iterator) { // receive all cursor results
-      iterator_result_count = 0; // reset for new iteration
-
-
+    if (result_count === total) { // receive all results
+      on_result_ready();
     }
 
   };
 
   var on_error = function (e) {
+    goog.array.clear(iterator_requests);
+    goog.array.clear(streamers);
     df.errback(e);
   };
 
+  var idx = 0;
   for (var i = 0; i < iterators.length; i++) {
-    var req = this.openQuery(iterators[i], mode);
+    var iterator = iterators[i];
+    var req = this.openQuery(iterator, ydn.db.base.CursorMode.READ_ONLY);
     req.onerror = on_error;
-    req.onnext = goog.partial(on_iterator_next, total_iterator);
-    iterator_requests[i] = req;
-    total_iterator++;
+    req.onnext = goog.partial(on_iterator_next, idx);
+    iterator_requests[idx] = req;
+    idx2iterator[idx] = i;
+    idx++;
+    for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
+      var streamer = new ydn.db.Streamer(this.getTx(), iterator.getPeerStoreName(j),
+          iterator.getBaseIndexName(j), iterator.getPeerIndexName(j));
+      streamer.setSink(goog.partial(on_streamer_pop, idx));
+      streamers.push(streamer);
+      idx2streamer[idx] = streamers.length;
+      idx++;
+    }
+    idx += iterator.degree();
   }
 
+  total = iterators.length + streamers.length;
+
+  for (var i = 0; i < passthrough_streamers.length; i++) {
+    passthrough_streamers[i].setTx(this.getTx());
+  }
 };
 
 

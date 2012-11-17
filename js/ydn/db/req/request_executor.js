@@ -235,7 +235,8 @@ ydn.db.req.RequestExecutor.prototype.fetchCursor = goog.abstractMethod;
 /**
  * Cursor scan iteration.
  * @param {!goog.async.Deferred} df promise on completed.
- * @param {!Array.<!ydn.db.Iterator|!ydn.db.Streamer>} queries the cursor.
+ * @param {!Array.<!ydn.db.Iterator>} queries the cursor.
+ * @param {!Array.<!ydn.db.Streamer>} passthrough_streamers streamers.
  * @param {!ydn.db.algo.AbstractSolver|
   * function(!Array, !Array): !Array} solver solver.
  */

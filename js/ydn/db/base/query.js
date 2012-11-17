@@ -148,11 +148,12 @@ ydn.db.Iterator.prototype.getIndexName = function() {
   return this.index;
 };
 
+
 /**
  *
  * @return {boolean}
  */
-ydn.db.Streamer.prototype.isKeyOnly = function() {
+ydn.db.Iterator.prototype.isKeyOnly = function() {
   return goog.isString(this.index);
 };
 
@@ -192,17 +193,13 @@ ydn.db.Iterator.prototype.filter = null;
 ydn.db.Iterator.prototype.continued = null;
 
 
-
-
-
 /**
  * @override
  */
 ydn.db.Iterator.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
-  return 'Cursor:' + this.store_name + idx;
+  return 'Iterator:' + this.store_name + idx;
 };
-
 
 
 //
@@ -274,10 +271,10 @@ ydn.db.Iterator.prototype.done = function() {
 
 /**
  *
- * @return {!Array.<string>}
+ * @return {!Array.<string|undefined>}
  */
 ydn.db.Iterator.prototype.stores = function() {
-  return [this.store_name];
+  return [this.store_name].concat(this.peer_store_names_);
 };
 
 
@@ -298,10 +295,93 @@ ydn.db.Iterator.where = function(store_name, field, op, value, op2, value2) {
 };
 
 
+/**
+ *
+ * @type {Array.<string>}
+ * @private
+ */
+ydn.db.Iterator.prototype.peer_store_names_ = [];
+
 
 /**
- * @override
+ *
+ * @type {Array.<string|undefined>}
+ * @private
  */
-ydn.db.Iterator.prototype.toString = function() {
-  return 'Iterator:' + this.store_name_ + (this.index_name_ || '');
+ydn.db.Iterator.prototype.peer_index_names_ = [];
+
+
+/**
+ *
+ * @type {Array.<string|undefined>}
+ * @private
+ */
+ydn.db.Iterator.prototype.base_index_names_ = [];
+
+
+/**
+ *
+ * @param {string} peer_store_name Peer store name to join with base store in
+ * LEFT OUTER join sense.
+ * @param {string=} base_index_name Base index name. If not provide,
+ * base primary key is taken.
+ * @param {string=} peer_index_name Peer index name. If not provide,
+ * peer primary key is assumed.
+ */
+ydn.db.Iterator.prototype.join = function(peer_store_name, base_index_name,
+                                          peer_index_name) {
+  if (!goog.isString(peer_store_name)) {
+    throw new ydn.error.ArgumentException();
+  }
+  if (!goog.isString(base_index_name) || !goog.isDef(base_index_name)) {
+    throw new ydn.error.ArgumentException();
+  }
+  if (!goog.isString(peer_index_name) || !goog.isDef(peer_index_name)) {
+    throw new ydn.error.ArgumentException();
+  }
+  this.peer_store_names_.push(peer_store_name);
+  this.peer_index_names_.push(peer_index_name);
+  this.base_index_names_.push(base_index_name);
+};
+
+
+/**
+ *
+ * @param {number} i index of peer.
+ * @return {string} peer store name.
+ */
+ydn.db.Iterator.prototype.getPeerStoreName = function(i) {
+  goog.asserts.assert(i >= 0 && i < this.peer_store_names_.length);
+  return this.peer_store_names_[i];
+};
+
+
+/**
+ *
+ * @param {number} i index of peer.
+ * @return {string|undefined} peer index name.
+ */
+ydn.db.Iterator.prototype.getPeerIndexName = function(i) {
+  goog.asserts.assert(i >= 0 && i < this.peer_index_names_.length);
+  return this.peer_index_names_[i];
+};
+
+
+/**
+ *
+ * @param {number} i index of peer.
+ * @return {string|undefined} base index name.
+ */
+ydn.db.Iterator.prototype.getBaseIndexName = function(i) {
+  goog.asserts.assert(i >= 0 && i < this.base_index_names_.length);
+  return this.base_index_names_[i];
+};
+
+
+/**
+ * Degree of iterator is the total number of stores.
+ * @return {number}
+ */
+ydn.db.Iterator.prototype.degree = function () {
+  return this.peer_store_names_.length + 1;
 };

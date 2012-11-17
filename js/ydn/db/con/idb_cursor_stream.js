@@ -13,7 +13,7 @@ goog.require('ydn.db.con.IStorage');
 
 /**
  *
- * @param {!ydn.db.con.IStorage} db
+ * @param {!ydn.db.con.IStorage|!IDBTransaction} db
  * @param {string} store_name store name.
  * @param {string|undefined} index_name index name.
  * @param {boolean} key_only key only.
@@ -22,13 +22,23 @@ goog.require('ydn.db.con.IStorage');
  * @implements {ydn.db.con.ICursorStream}
  */
 ydn.db.con.IdbCursorStream = function(db, store_name, index_name, key_only, sink) {
-  this.db_ = db;
+  if (db instanceof ydn.db.con.IStorage) {
+    this.db_ = db;
+    this.idb_ = null;
+    this.tx_ = null;
+  } else {
+    this.db_ = null;
+    this.idb_ = db.db;
+    this.tx_ = db;
+  }
+
   this.store_name_ = store_name;
   this.index_name_ = index_name;
   this.sink_ = sink;
   this.key_only_ = key_only;
   this.cursor_ = null;
   this.stack_ = [];
+  this.on_tx_request_ = false;
 };
 
 
@@ -41,10 +51,33 @@ ydn.db.con.IdbCursorStream.prototype.logger =
 
 
 /**
- * @type {!ydn.db.con.IStorage}
+ * @type {ydn.db.con.IStorage}
  * @private
  */
 ydn.db.con.IdbCursorStream.prototype.db_;
+
+
+/**
+ * @type {IDBTransaction}
+ * @private
+ */
+ydn.db.con.IdbCursorStream.prototype.tx_;
+
+
+/**
+ * @type {IDBDatabase}
+ * @private
+ */
+ydn.db.con.IdbCursorStream.prototype.idb_;
+
+
+/**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.con.IdbCursorStream.prototype.on_tx_request_ = false;
+
 
 /**
  * @type {string}
@@ -144,15 +177,19 @@ ydn.db.con.IdbCursorStream.prototype.onFinish = function(callback) {
 ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
   var me = this;
   var on_completed = function(type, ev) {
+    me.tx_ = null;
     me.cursor_ = null;
     if (type !== ydn.db.base.TransactionEventTypes.COMPLETE) {
       me.logger.warning(ev.name + ':' + ev.message);
     }
     me.logger.finest('transaction ' + type);
   };
-  this.on_tx_request_ = true;
-  this.db_.transaction(function(tx) {
-    me.on_tx_request_ = false;
+
+  /**
+   *
+   * @param {IDBTransaction} tx active tx.
+   */
+  var doRequest = function(tx) {
     var store = tx.objectStore(me.store_name_);
     if (goog.isString(me.index_name_)) {
       var index = store.index(me.index_name_);
@@ -167,7 +204,32 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
       // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       me.processRequest_(store.openCursor(key));
     }
-  }, [this.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
+  };
+  if (this.tx_) {
+    doRequest(this.tx_);
+  } else if (this.idb_) {
+    me.tx = this.idb_.transaction([this.store_name_],
+        ydn.db.base.TransactionMode.READ_ONLY);
+    me.tx.oncomplete = function(event) {
+      on_completed(ydn.db.base.TransactionEventTypes.COMPLETE, event);
+    };
+
+    me.tx.onerror = function(event) {
+      on_completed(ydn.db.base.TransactionEventTypes.ERROR, event);
+    };
+
+    me.tx.onabort = function(event) {
+      on_completed(ydn.db.base.TransactionEventTypes.ABORT, event);
+    };
+  } else {
+    this.on_tx_request_ = true;
+    this.db_.transaction(function(/** @type {IDBTransaction} */ tx) {
+      me.on_tx_request_ = false;
+      me.tx_ = tx;
+      doRequest(tx);
+    }, [this.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
+  }
+
 };
 
 

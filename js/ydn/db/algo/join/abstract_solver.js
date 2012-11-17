@@ -35,7 +35,7 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, streamers){
  * @return {!Array} next positions.
  */
 ydn.db.algo.AbstractSolver.prototype.adapter = function(keys, values) {
-  return this.solver(keys, values);
+  return this.solver(keys, values, []);
 };
 
 

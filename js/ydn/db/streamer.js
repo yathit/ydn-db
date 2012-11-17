@@ -14,7 +14,7 @@ goog.require('ydn.db.Iterator');
 
 /**
  *
- * @param {!ydn.db.con.IStorage|!ydn.db.Iterator} storage storage connector.
+ * @param {ydn.db.con.IStorage|IDBTransaction} storage storage connector.
  * @param {string} store_name store name.
  * @param {string?=} index_name index name. If given output is not cursor value,
  * but index value.
@@ -28,19 +28,19 @@ ydn.db.Streamer = function(storage, store_name, index_name,
   this.store_name_ = store_name;
   this.index_name_ = goog.isString(index_name) ? index_name : undefined;
 
-  if (storage instanceof ydn.db.Iterator) {
-    this.db_ = null;
-    this.parent_ = storage;
-    if (this.parent_.isKeyOnly() && goog.isDef(this.foreign_key_index_name_) &&
-          !(this.parent_.getIndexName() == this.foreign_key_index_name_)) {
-        throw new ydn.error.ArgumentException(
-          'foreign key name must match with iterator keyPath');
-
+  if (goog.isObject(storage)) {
+    if (storage instanceof ydn.db.con.IStorage) {
+      this.db_ = storage;
+      this.cursor_ = null;
+    } else if ('db' in storage) {
+      var tx = /** @type {!IDBTransaction} */ (storage);
+      this.db_ = null;
+      this.setTx(tx);
+    } else {
+      throw new ydn.error.ArgumentException();
     }
-  } else {
-    this.db_ = storage;
-    this.parent_ = null;
   }
+
   this.key_only_ = goog.isString(index_name);
   this.foreign_key_index_name_ = foreign_index_name;
   this.stack_value_ = [];
@@ -55,14 +55,6 @@ ydn.db.Streamer = function(storage, store_name, index_name,
  */
 ydn.db.Streamer.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.Streamer');
-
-
-/**
- *
- * @type {ydn.db.Iterator}
- * @private
- */
-ydn.db.Streamer.prototype.parent_ = null;
 
 
 /**
@@ -104,7 +96,7 @@ ydn.db.Streamer.prototype.index_name_;
 
 /**
  *
- * @type {(function(*, Function): boolean)?}
+ * @type {(function(*, *, Function): boolean)?}
  */
 ydn.db.Streamer.prototype.sink_ = null;
 
@@ -133,7 +125,7 @@ ydn.db.Streamer.prototype.isKeyOnly = function() {
 
 /**
  *
- * @param {function(*, *, Function)} sink
+ * @param {function(*, *, Function): boolean} sink
  */
 ydn.db.Streamer.prototype.setSink = function(sink) {
   this.sink_ = sink;
@@ -146,6 +138,23 @@ ydn.db.Streamer.prototype.setSink = function(sink) {
 ydn.db.Streamer.prototype.setDb = function(db) {
   this.db_ = db;
 };
+
+/**
+ *
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * transaction.
+ */
+ydn.db.Streamer.prototype.setTx = function(tx) {
+  if ('db' in tx) {
+    var idb_tx = /** @type {!IDBTransaction} */ (tx);
+    this.cursor_ = new ydn.db.con.IdbCursorStream(idb_tx,
+        this.store_name_, this.index_name_, this.key_only_, this.collector_);
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+
+};
+
 
 /**
  * Push the result because a result is ready. This will push until stack
@@ -259,10 +268,10 @@ ydn.db.Streamer.prototype.push = function(key, value) {
  * @param value
  */
 ydn.db.Streamer.prototype.pull = function(key, value) {
-  goog.asserts.assertObject(this.parent_);
+
   if (!goog.isDef(this.foreign_key_index_name_)) {
     this.push(key);
-  } else if (this.parent_.isKeyOnly()) {
+  } else if (this.key_only_) {
     this.push(value); // index key
   } else {
     if (goog.isDefAndNotNull(value)) {
