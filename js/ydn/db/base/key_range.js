@@ -170,9 +170,12 @@ ydn.db.KeyRange.toJSON = function(keyRange) {
 
 
 /**
+ * Read four primitive attributes from the input and return newly created
+ * keyRange object.
  * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} keyRange
  * keyRange.
- * @return {ydn.db.IDBKeyRange} equivalent IDBKeyRange.
+ * @return {ydn.db.IDBKeyRange} equivalent IDBKeyRange. Return null if input
+ * is null or undefined.
  */
 ydn.db.KeyRange.parseKeyRange = function(keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {
@@ -192,6 +195,34 @@ ydn.db.KeyRange.parseKeyRange = function(keyRange) {
       keyRange.lowerOpen);
   } else {
     return null;
+  }
+};
+
+
+/**
+ *
+ * @param {Object|undefined} keyRange
+ * @return {string} if not valid key range object, return a message reason.
+ */
+ydn.db.KeyRange.validate = function(keyRange) {
+  if (keyRange instanceof ydn.db.KeyRange) {
+    return '';
+  } else if (goog.isDefAndNotNull(keyRange)) {
+    if (goog.isObject(keyRange)) {
+      for (var key in keyRange) {
+        if (keyRange.hasOwnProperty(key)) {
+          if (!goog.array.contains(['lower', 'upper', 'lowerOpen', 'upperOpen'],
+              key)) {
+            return 'invalid attribute "' + key + '" in key range object';
+          }
+        }
+      }
+      return '';
+    } else {
+      return 'key range must be an object';
+    }
+  } else {
+    return '';
   }
 };
 

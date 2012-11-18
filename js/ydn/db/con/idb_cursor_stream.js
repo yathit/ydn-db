@@ -22,14 +22,21 @@ goog.require('ydn.db.con.IStorage');
  * @implements {ydn.db.con.ICursorStream}
  */
 ydn.db.con.IdbCursorStream = function(db, store_name, index_name, key_only, sink) {
-  if (db instanceof ydn.db.con.IStorage) {
-    this.db_ = db;
+  if ('transaction' in db) {
+    this.db_ = /** @type {ydn.db.con.IStorage} */ (db);
     this.idb_ = null;
     this.tx_ = null;
-  } else {
+  } else if ('objectStore' in db) { //  IDBTransaction
+    var tx = /** @type {IDBTransaction} */ (db);
     this.db_ = null;
-    this.idb_ = db.db;
-    this.tx_ = db;
+    this.idb_ = tx.db;
+    this.tx_ = tx;
+    if (goog.DEBUG && !this.tx_.db.objectStoreNames.contains(store_name)) {
+      throw new ydn.error.ArgumentException('store "' + store_name +
+          '" not in transaction.');
+    }
+  } else {
+    throw new ydn.error.ArgumentException();
   }
 
   this.store_name_ = store_name;
@@ -191,34 +198,39 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
    */
   var doRequest = function(tx) {
     var store = tx.objectStore(me.store_name_);
-    if (goog.isString(me.index_name_)) {
+    var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
+    if (goog.isDef(me.index_name_) &&
+        indexNames.contains(me.index_name_)) {
       var index = store.index(me.index_name_);
       if (me.key_only_) {
         me.processRequest_(index.openKeyCursor(key));
       } else {
         me.processRequest_(index.openCursor(key));
       }
-    } else {
+    } else if (!goog.isDef(me.index_name_) || me.index_name_ == store.keyPath) {
       // as of v1, ObjectStore do not have openKeyCursor method.
       // filed bug on:
       // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       me.processRequest_(store.openCursor(key));
+    } else {
+      throw new ydn.db.InvalidStateError();
     }
   };
+
   if (this.tx_) {
     doRequest(this.tx_);
   } else if (this.idb_) {
-    me.tx = this.idb_.transaction([this.store_name_],
+    this.tx = this.idb_.transaction([this.store_name_],
         ydn.db.base.TransactionMode.READ_ONLY);
-    me.tx.oncomplete = function(event) {
+    this.tx.oncomplete = function(event) {
       on_completed(ydn.db.base.TransactionEventTypes.COMPLETE, event);
     };
 
-    me.tx.onerror = function(event) {
+    this.tx.onerror = function(event) {
       on_completed(ydn.db.base.TransactionEventTypes.ERROR, event);
     };
 
-    me.tx.onabort = function(event) {
+    this.tx.onabort = function(event) {
       on_completed(ydn.db.base.TransactionEventTypes.ABORT, event);
     };
   } else {
@@ -227,7 +239,7 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
       me.on_tx_request_ = false;
       me.tx_ = tx;
       doRequest(tx);
-    }, [this.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
+    }, [me.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
   }
 
 };

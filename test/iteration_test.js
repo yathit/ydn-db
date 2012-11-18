@@ -1,5 +1,6 @@
 
 goog.require('goog.debug.Console');
+goog.require('ydn.db.algo.NestedLoop');
 goog.require('goog.testing.jsunit');
 
 goog.require('ydn.db.Storage');
@@ -79,7 +80,7 @@ var test_11_scan_key_single = function () {
   var actual_keys = objs.map(function(x) {return x.id;});
   var actual_index_keys = objs.map(function(x) {return x.value;});
 
-  var done, result_keys, result_index_keys;
+  var done;
   var streaming_keys = [];
   var streaming_index_keys = [];
 
@@ -93,33 +94,27 @@ var test_11_scan_key_single = function () {
         assertArrayEquals('streaming key', actual_keys, streaming_keys);
         assertArrayEquals('streaming index', actual_index_keys, streaming_index_keys);
 
-        assertArrayEquals('result key', actual_keys, result_keys);
-        var result_index_keys1 = result_index_keys.map(function(x) {return x[0]});
-        assertArrayEquals('result index', actual_index_keys, result_index_keys1);
-
         reachedFinalContinuation = true;
 
       },
       100, // interval
       1000); // maxTimeout
 
-  var q = new ydn.db.Iterator(store_name, 'next', 'value');
+  var q = new ydn.db.Iterator(store_name, 'value');
 
   var req = db.scan([q], function join_algo (key, index_key) {
-    console.log(['receiving ', key ? key[0] : key, index_key]);
+
     if (!goog.isDef(key[0])) {
-      return null;
+      return [];
     }
+    //console.log(['receiving ', key[0], index_key[0]]);
     streaming_keys.push(key[0]);
     streaming_index_keys.push(index_key[0]);
     return [true]; // continue iteration
   });
 
   req.addCallback(function (result) {
-    result_keys = result.keys;
-    result_index_keys = result.indexKeys;
-
-    done = true;
+     done = true;
   });
   req.addErrback(function (e) {
     console.log(e);
@@ -136,7 +131,7 @@ var test_21_scan_key_dual = function () {
   var actual_index_key_0 = objs.map(function(x) {return x.value;});
   var actual_index_key_1 = objs.map(function(x) {return x.x;});
 
-  var done, result_keys, result_index_keys;
+  var done;
   var streaming_keys = [];
   var streaming_index_key_0 = [];
   var streaming_index_key_1 = [];
@@ -152,20 +147,14 @@ var test_21_scan_key_dual = function () {
       assertArrayEquals('streaming index 0', actual_index_key_0, streaming_index_key_0);
       assertArrayEquals('streaming index 1', actual_index_key_1, streaming_index_key_1);
 
-      assertArrayEquals('result key', actual_keys, result_keys);
-      var result_index_key_0 = result_index_keys.map(function(x) {return x[0]});
-      var result_index_key_1 = result_index_keys.map(function(x) {return x[1]});
-      assertArrayEquals('result index', actual_index_key_0, result_index_key_0);
-      assertArrayEquals('result index', actual_index_key_1, result_index_key_1);
-
       reachedFinalContinuation = true;
 
     },
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.Iterator(store_name, 'next', 'value');
-  var q2 = new ydn.db.Iterator(store_name, 'next', 'x');
+  var q1 = new ydn.db.Iterator(store_name, 'value');
+  var q2 = new ydn.db.Iterator(store_name, 'x');
 
   var req = db.scan([q1, q2], function join_algo (key, index_key) {
     console.log(['receiving ', key, index_key]);
@@ -179,8 +168,6 @@ var test_21_scan_key_dual = function () {
   });
 
   req.addCallback(function (result) {
-    result_keys = result.keys;
-    result_index_keys = result.indexKeys;
     //console.log(result);
     done = true;
   });
@@ -195,9 +182,9 @@ var test_21_scan_key_dual = function () {
 
 var test_31_scan_mutli_query_match = function () {
 
-
-  var done, result_keys, result_values;
-
+  var done;
+  var result_keys = [];
+  var result_values = [];
 
   waitForCondition(
     // Condition
@@ -218,12 +205,17 @@ var test_31_scan_mutli_query_match = function () {
   var q1 = ydn.db.Iterator.where('animals', 'color', '=', 'spots');
   var q2 = ydn.db.Iterator.where('animals', 'horn', '=', 1);
   var q3 = ydn.db.Iterator.where('animals', 'legs', '=', 4);
+  var out = new ydn.db.Streamer(db, 'animals', 'id');
+  out.setSink(function(key, value) {
+    console.log(['streamer', key, value])
+    result_keys.push(key);
+    result_values.push(value);
+  });
 
-  var req = db.scan([q1, q2, q3], ydn.db.getAlgorithm('nested-loop-join'));
+  var solver = new ydn.db.algo.NestedLoop(out);
+  var req = db.scan([q1, q2, q3], solver);
 
   req.addCallback(function (result) {
-    result_keys = result.keys;
-    result_values = result.values;
     console.log(result);
     done = true;
   });

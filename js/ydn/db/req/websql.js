@@ -771,7 +771,7 @@ ydn.db.req.WebSql.prototype.planQuery = function(query) {
       ' not found.');
   }
 
-  var sql = new ydn.db.req.SqlQuery(query.store_name, query.direction, query.index,
+  var sql = new ydn.db.req.SqlQuery(query.store_name, query.index,
     ydn.db.KeyRange.clone(query.keyRange));
 
   var select = 'SELECT';

@@ -34,22 +34,27 @@ goog.require('ydn.error.ArgumentException');
 /**
  * Create a query object.
  * @param {string} store store name.
- * @param {ydn.db.Iterator.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange|string|number)=}
+ * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange)=}
   * keyRange configuration in json or native format. Alternatively key range
  * constructor parameters can be given.
- * @param {...} opt_args additional parameters for key range constructor.
+ * @param {boolean=} reverse reverse.
+ * @param {boolean=} unique unique.
+ * @param {boolean=} key_only true for key only iterator. Default value is
+ * true if index is specified, false if not defined.
  * @constructor
  */
-ydn.db.Iterator = function(store, direction, index, keyRange, opt_args) {
+ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
-    throw new ydn.error.ArgumentException('store name required');
+    throw new ydn.error.ArgumentException('store');
   }
   if (goog.isDef(index) && !goog.isString(index)) {
     throw new ydn.error.ArgumentException('index');
+  }
+  if (arguments.length > 6) {
+    throw new ydn.error.ArgumentException('too many input arguments.');
   }
   /**
    * Store name.
@@ -64,32 +69,44 @@ ydn.db.Iterator = function(store, direction, index, keyRange, opt_args) {
    */
   this.index = index;
 
-  if (!goog.isDefAndNotNull(direction)) {
-    direction = undefined;
-  } else if (['next', 'prev'].indexOf(direction) == -1) {
-    throw new ydn.error.ArgumentException('direction');
+  this.key_only_ = goog.isDef(key_only) ? key_only : goog.isString(this.index) ?
+      true : false;
+  if (!goog.isBoolean(this.key_only_)) {
+    throw new ydn.error.ArgumentException('key_only');
   }
+
+  if (goog.isDef(reverse) && !goog.isBoolean(reverse)) {
+    throw new ydn.error.ArgumentException('reverse');
+  }
+  if (goog.isDef(unique) && !goog.isBoolean(unique)) {
+    throw new ydn.error.ArgumentException('unique');
+  }
+  var direction = ydn.db.Iterator.Direction.NEXT;
+  if (reverse && unique) {
+    direction = ydn.db.Iterator.Direction.PREV_UNIQUE;
+  } else if (reverse) {
+    direction = ydn.db.Iterator.Direction.PREV;
+  } else if (unique) {
+    direction = ydn.db.Iterator.Direction.NEXT_UNIQUE;
+  }
+
   /**
    * @final
-   * @type {ydn.db.Iterator.Direction|undefined}
+   * @type {ydn.db.Iterator.Direction}
    */
   this.direction = direction;
 
-  var kr;
-  if (keyRange instanceof ydn.db.KeyRange) {
-    kr = ydn.db.KeyRange.parseKeyRange(keyRange);
-  } else if (goog.isObject(keyRange)) {
-    // must be JSON object
-    kr = ydn.db.KeyRange.parseKeyRange(keyRange);
-  } else if (goog.isDef(keyRange)) {
-    kr = ydn.db.IDBKeyRange.bound.apply(this,
-      Array.prototype.slice.call(arguments, 3));
+  if (goog.DEBUG) {
+    var msg = ydn.db.KeyRange.validate(keyRange);
+      if (msg) {
+        throw new ydn.error.ArgumentException(msg);
+      }
   }
   /**
    * @final
-   * @type {!ydn.db.IDBKeyRange|undefined}
+   * @type {ydn.db.IDBKeyRange}
    */
-  this.keyRange = kr;
+  this.keyRange = ydn.db.KeyRange.parseKeyRange(keyRange);
 
   // set all null so that no surprise from inherit prototype
 
@@ -151,10 +168,18 @@ ydn.db.Iterator.prototype.getIndexName = function() {
 
 /**
  *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.Iterator.prototype.key_only_ = true;
+
+
+/**
+ *
  * @return {boolean}
  */
 ydn.db.Iterator.prototype.isKeyOnly = function() {
-  return goog.isString(this.index);
+  return this.key_only_;
 };
 
 
@@ -172,7 +197,7 @@ ydn.db.Iterator.prototype.toJSON = function() {
 
 /**
  * Right value for query operation.
- * @type {ydn.db.IDBKeyRange|undefined}
+ * @type {ydn.db.IDBKeyRange}
  */
 ydn.db.Iterator.prototype.keyRange;
 
@@ -271,7 +296,7 @@ ydn.db.Iterator.prototype.done = function() {
 
 /**
  *
- * @return {!Array.<string|undefined>}
+ * @return {!Array.<string>}
  */
 ydn.db.Iterator.prototype.stores = function() {
   return [this.store_name].concat(this.peer_store_names_);
@@ -291,7 +316,7 @@ ydn.db.Iterator.prototype.stores = function() {
  */
 ydn.db.Iterator.where = function(store_name, field, op, value, op2, value2) {
   var key_range = new ydn.db.Where(field, op, value, op2, value2);
-  return new ydn.db.Iterator(store_name, ydn.db.Iterator.Direction.NEXT, field, key_range);
+  return new ydn.db.Iterator(store_name, field, key_range);
 };
 
 

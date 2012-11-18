@@ -28,19 +28,18 @@ ydn.db.Streamer = function(storage, store_name, index_name,
   this.store_name_ = store_name;
   this.index_name_ = goog.isString(index_name) ? index_name : undefined;
 
-  if (goog.isObject(storage)) {
-    if (storage instanceof ydn.db.con.IStorage) {
-      this.db_ = storage;
-      this.cursor_ = null;
-    } else if ('db' in storage) {
-      var tx = /** @type {!IDBTransaction} */ (storage);
-      this.db_ = null;
-      this.setTx(tx);
-    } else {
-      throw new ydn.error.ArgumentException();
-    }
+  if ('transaction' in storage) {
+    this.db_ = /** @type {ydn.db.con.IStorage} */ (storage);
+    this.cursor_ = null;
+  } else if ('db' in storage) {
+    var tx = /** @type {!IDBTransaction} */ (storage);
+    this.db_ = null;
+    this.setTx(tx);
+  } else {
+    throw new ydn.error.ArgumentException();
   }
 
+  this.cursor_ = null;
   this.key_only_ = goog.isString(index_name);
   this.foreign_key_index_name_ = foreign_index_name;
   this.stack_value_ = [];
@@ -148,7 +147,8 @@ ydn.db.Streamer.prototype.setTx = function(tx) {
   if ('db' in tx) {
     var idb_tx = /** @type {!IDBTransaction} */ (tx);
     this.cursor_ = new ydn.db.con.IdbCursorStream(idb_tx,
-        this.store_name_, this.index_name_, this.key_only_, this.collector_);
+        this.store_name_, this.index_name_, this.key_only_,
+        goog.bind(this.collector_, this));
   } else {
     throw new ydn.error.ArgumentException();
   }
@@ -250,7 +250,8 @@ ydn.db.Streamer.prototype.push = function(key, value) {
         throw new ydn.error.InvalidOperationError('Database not connected.');
       } else if (type === ydn.db.con.IndexedDb.TYPE) {
         this.cursor_ = new ydn.db.con.IdbCursorStream(this.db_,
-          this.store_name_, this.index_name_, this.key_only_, this.collector_);
+          this.store_name_, this.index_name_, this.key_only_,
+            goog.bind(this.collector_, this));
       } else {
         throw new ydn.error.NotImplementedException(type);
       }
@@ -259,7 +260,6 @@ ydn.db.Streamer.prototype.push = function(key, value) {
     this.cursor_.seek(key);
   }
 };
-
 
 
 /**

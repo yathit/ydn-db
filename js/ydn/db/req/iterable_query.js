@@ -36,7 +36,6 @@ goog.require('ydn.error.ArgumentException');
  * query processor can mutation as part of query optimization processes.
  *
  * @param {string} store store name.
- * @param {ydn.db.Iterator.Direction=} direction cursor direction.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {ydn.db.KeyRange=}
@@ -47,9 +46,9 @@ goog.require('ydn.error.ArgumentException');
  * @extends {ydn.db.Iterator}
  * @constructor
  */
-ydn.db.req.IterableQuery = function(store, direction, index, keyRange, filter, continued) {
+ydn.db.req.IterableQuery = function(store, index, keyRange, filter, continued) {
 
-  goog.base(this, store, direction, index, keyRange);
+  goog.base(this, store, index, keyRange);
 
   // set all null so that no surprise from inherit prototype
   this.initial = null;

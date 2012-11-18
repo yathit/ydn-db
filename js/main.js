@@ -5,6 +5,7 @@
 
 goog.require('ydn.db.Storage');
 goog.require('ydn.db.TxStorage');
+goog.require('ydn.db.algo.NestedLoop');
 
 
 goog.exportSymbol('ydn.db.Iterator', ydn.db.Iterator);
@@ -90,4 +91,8 @@ goog.exportProperty(ydn.math.Expression, 'parseRpn',
   ydn.math.Expression.parseRpn);
 goog.exportProperty(ydn.math.Expression, 'parseInfix',
   ydn.math.Expression.parseInfix);
+
+goog.exportSymbol('ydn.db.algo.NestedLoop', ydn.db.algo.NestedLoop);
+goog.exportSymbol('ydn.db.algo.AbstractSolver', ydn.db.algo.AbstractSolver);
+
 

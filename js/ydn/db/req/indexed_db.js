@@ -721,8 +721,20 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
           request = index.openKeyCursor();
         }
       } else {
-        throw new ydn.error.InvalidOperationException(
-          'object store cannot open for key cursor');
+        //throw new ydn.error.InvalidOperationException(
+        //    'object store cannot open for key cursor');
+        // IDB v1 spec do not have openKeyCursor, hopefully next version does
+      // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
+        // however, lazy serailization used at least in FF.
+        if (goog.isDefAndNotNull(dir)) {
+          request = obj_store.openCursor(keyRange, dir);
+        } else if (goog.isDefAndNotNull(keyRange)) {
+          request = obj_store.openCursor(keyRange);
+          // some browser have problem with null, even though spec said OK.
+        } else {
+          request = obj_store.openCursor();
+        }
+
       }
     } else {
       if (index) {
@@ -750,6 +762,7 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
     var cue = false;
     request.onsuccess = function (event) {
       cur = (event.target.result);
+      //console.log(['onsuccess', cur]);
       if (cur) {
         if (resume) {
           // cue to correct position
@@ -778,9 +791,9 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
         iterator.counter++;
         iterator.store_key = cur.primaryKey;
         iterator.index_key = cur.key;
-        var value = key_only ? undefined : cur['value'];
+        var value = key_only ? cur.key : cur['value'];
 
-        result.onnext(cur.primaryKey, cur.key, value);
+        result.onnext(cur.primaryKey, value);
 
       } else {
         iterator.has_done = true;
@@ -799,7 +812,7 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   open_request();
 
   result.forward = function (next_position) {
-    //console.log(['next_position', cur, next_position]);
+    console.log(['next_position', cur, next_position]);
 
     if (cur) {
       if (next_position === false) {
@@ -831,8 +844,6 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
       me.logger.severe(iterator + ' cursor gone.');
     }
   };
-
-
 
   return result;
 };
@@ -876,8 +887,6 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
                                                passthrough_streamers, solver) {
 
   var me = this;
-  var solver_ = solver instanceof ydn.db.algo.AbstractSolver ?
-    solver.adapter : solver;
 
   var done = false;
 
@@ -890,11 +899,8 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
   var iterator_requests = [];
   var streamers = [];
 
-  var existed = false;
   var do_exit = function() {
-    if (existed) {
-      throw new ydn.error.InternalError('existed');
-    }
+
     for (var k = 0; k < iterators.length; k++) {
       if (!goog.isDef(iterators[k].has_done)) {
         // change iterators busy state to resting state.
@@ -902,8 +908,11 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
         iterators[k].has_done = false;
       }
     }
-
     done = true;
+    goog.array.clear(iterator_requests);
+    goog.array.clear(streamers);
+    console.log('existing');
+    df.callback();
   };
 
   var result_count = 0;
@@ -914,28 +923,40 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
    * All results collected. Now invoke solver and do advancement.
    */
   var on_result_ready = function() {
+    result_count = 0;
     // all cursor has results, than sent to join algorithm callback.
-    var adv = solver_(keys, values);
-    var is_moving = false;
-    for (var i = 0; i < adv.length; i++) {
+    var adv;
+    if (solver instanceof ydn.db.algo.AbstractSolver) {
+      adv = solver.adapter(keys, values);
+    } else {
+      adv = solver(keys, values);
+    }
+    goog.asserts.assertArray(adv);
+    var move_count = 0;
+    for (var i = 0; i < iterators.length; i++) {
       if (goog.isDefAndNotNull(adv[i])) {
         var idx = idx2iterator[i];
         if (!goog.isDef(idx)) {
           throw new ydn.error.InvalidOperationException(i +
               ' is not an iterator.');
         }
-        var iterator = iterator[idx];
-        var req = iterator_requests[idx];
+        var iterator = iterators[idx];
+        var req = iterator_requests[i];
         if (adv[i] !== false && !goog.isDef(keys[i])) {
-          throw new ydn.error.InvalidOperationError('Iterator ' + j +
+          throw new ydn.error.InvalidOperationError('Iterator ' + i +
               ' must not advance.');
         }
-        keys[j] = undefined;
-        values[j] = undefined;
-        is_moving = true;
+        keys[i] = undefined;
+        values[i] = undefined;
+        req.forward(adv[i]);
+        move_count++;
+      } else {
+        // take non advancing iterator as already moved.
+        result_count++;
       }
     }
-    if (!is_moving) {
+    console.log(['on_result_ready', move_count, keys, adv]);
+    if (move_count == 0) {
       do_exit();
     }
   };
@@ -978,11 +999,14 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
       }
       throw new ydn.error.InternalError();
     }
-    //console.log(['next', i, key, indexKey, value,  queries[i]]);
     result_count++;
+    //console.log(['on_iterator_next', i, idx2iterator[i], result_count,
+    //
+    //  key, value]);
     keys[i] = key;
     values[i] = value;
     if (goog.isDef(idx2iterator[i])) {
+      var idx = idx2iterator[i];
       var iterator = iterators[idx];
       var streamer_idx = idx2streamer[i];
       for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
@@ -1003,30 +1027,46 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
     df.errback(e);
   };
 
-  var idx = 0;
-  for (var i = 0; i < iterators.length; i++) {
-    var iterator = iterators[i];
-    var req = this.openQuery(iterator, ydn.db.base.CursorMode.READ_ONLY);
-    req.onerror = on_error;
-    req.onnext = goog.partial(on_iterator_next, idx);
-    iterator_requests[idx] = req;
-    idx2iterator[idx] = i;
-    idx++;
-    for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
-      var streamer = new ydn.db.Streamer(this.getTx(), iterator.getPeerStoreName(j),
-          iterator.getBaseIndexName(j), iterator.getPeerIndexName(j));
-      streamer.setSink(goog.partial(on_streamer_pop, idx));
-      streamers.push(streamer);
-      idx2streamer[idx] = streamers.length;
+  var open_iterators = function() {
+    var idx = 0;
+    for (var i = 0; i < iterators.length; i++) {
+      var iterator = iterators[i];
+      var mode = iterator.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY :
+          ydn.db.base.CursorMode.READ_ONLY;
+      var req = me.openQuery(iterator, mode);
+      req.onerror = on_error;
+      req.onnext = goog.partial(on_iterator_next, idx);
+      iterator_requests[i] = req;
+      idx2iterator[idx] = i;
       idx++;
+      for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
+        var streamer = new ydn.db.Streamer(me.getTx(),
+            iterator.getPeerStoreName(j),
+            iterator.getBaseIndexName(j), iterator.getPeerIndexName(j));
+        streamer.setSink(goog.partial(on_streamer_pop, idx));
+        streamers.push(streamer);
+        idx2streamer[idx] = streamers.length;
+        idx++;
+      }
     }
-    idx += iterator.degree();
-  }
 
-  total = iterators.length + streamers.length;
+    total = iterators.length + streamers.length;
+  };
+
 
   for (var i = 0; i < passthrough_streamers.length; i++) {
     passthrough_streamers[i].setTx(this.getTx());
+  }
+
+  if (solver instanceof ydn.db.algo.AbstractSolver) {
+    var wait = solver.begin(iterators, function() {
+      open_iterators();
+    });
+    if (!wait) {
+      open_iterators();
+    }
+  } else {
+    open_iterators();
   }
 };
 
@@ -1149,7 +1189,7 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   } catch (e) {
     if (goog.DEBUG && e.name == 'NotFoundError') {
       var msg = this.tx.db.objectStoreNames.contains(store.name) ?
-          'store: ' + store.name + ' not in transaction.' :
+          'store: ' + store.name + ' not in transaction.' :  // ??
           'store: ' + store.name + ' not in database: ' + this.tx.db.name;
       throw new ydn.db.NotFoundError(msg);
     } else {

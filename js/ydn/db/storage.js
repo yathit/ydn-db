@@ -210,18 +210,16 @@ ydn.db.Storage.prototype.execute = function(q) {
   return this.default_tx_queue_.execute(q);
 };
 
-
 /**
  * Cursor scan iteration.
- * @param {!Array.<!ydn.db.Iterator>} queries the cursor.
- * @param {Function} join_algo next callback handler.
- * @param {number=} limit limit number of matched results.
- * @param {boolean=} no_collect_key if true not prefetch.
- * @param {boolean=} no_prefetch if true not prefetch.
+ * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
+ * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
+ * solver.
+ * @param {!Array.<!ydn.db.Streamer>=} streamers streamers.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.Storage.prototype.scan = function(queries, join_algo, limit, no_collect_key, no_prefetch) {
-  return this.default_tx_queue_.scan(queries, join_algo, limit, no_collect_key, no_prefetch);
+ydn.db.Storage.prototype.scan = function(iterators, solver, streamers) {
+  return this.default_tx_queue_.scan(iterators, solver, streamers);
 };
 
 

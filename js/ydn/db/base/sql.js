@@ -686,7 +686,7 @@ ydn.db.Sql.prototype.toIdbQuery = function(schema) {
     }
   }
 
-  var cursor = new ydn.db.req.IdbQuery(this.store_name, direction, index, key_range);
+  var cursor = new ydn.db.req.IdbQuery(this.store_name, index, key_range);
 
   // then, process where clauses
   for (var i = 0; i < this.wheres_.length; i++) {

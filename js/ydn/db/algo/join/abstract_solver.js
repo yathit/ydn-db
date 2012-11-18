@@ -6,25 +6,55 @@
  */
 
 goog.provide('ydn.db.algo.AbstractSolver');
+goog.require('goog.debug.Logger');
 
 
 /**
  *
+ * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
+ * @param {(function(!Array, !Array): !Array)=} adapter transform scan result
+ * to algorithm input and output.
  * @constructor
  */
-ydn.db.algo.AbstractSolver = function() {
-
+ydn.db.algo.AbstractSolver = function(out, adapter) {
+  if (goog.DEBUG && goog.isDefAndNotNull(out) && !('push' in out)) {
+    throw new ydn.error.ArgumentException();
+  }
+  this.out = out || null;
+  if (goog.isDefAndNotNull(adapter)) {
+    if (goog.DEBUG && !goog.isFunction(adapter)) {
+      throw new ydn.error.ArgumentException();
+    }
+    this.adapter = adapter;
+  }
 };
+
+
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.algo.AbstractSolver.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.algo.AbstractSolver');
+
+
+/**
+ *
+ * @protected
+ * @type {!Array|!{push: Function}|!ydn.db.Streamer|null}
+ */
+ydn.db.algo.AbstractSolver.prototype.out = null;
 
 
 /**
  * Invoke before beginning of the iteration process.
  *
  * @param {!Array} iterators list of iterators feed to the scanner.
- * @param {!Array} streamers list of filter feed to the scanner.
+ * @param {!Function} callback on finish callback function.
+ * @return {boolean}
  */
-ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, streamers){
-
+ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback){
+  return false;
 };
 
 
@@ -35,6 +65,18 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, streamers){
  * @return {!Array} next positions.
  */
 ydn.db.algo.AbstractSolver.prototype.adapter = function(keys, values) {
+  if (this.out && goog.isDefAndNotNull(keys[0])) {
+    var key = keys[0];
+    for (var i = 1; i < keys.length; i++) {
+      if (keys[i] != key) {
+        key = null;
+        break;
+      }      
+    }
+    if (!goog.isNull(key)) {
+      this.out.push(key);
+    }
+  }
   return this.solver(keys, values, []);
 };
 
@@ -45,6 +87,7 @@ ydn.db.algo.AbstractSolver.prototype.adapter = function(keys, values) {
  * @param {!Array} output output values.
  * @param {!Array} constrain constrain results.
  * @return {!Array} next positions.
+ * @protected
  */
 ydn.db.algo.AbstractSolver.prototype.solver = function(input, output, constrain) {
   return [];
@@ -53,7 +96,9 @@ ydn.db.algo.AbstractSolver.prototype.solver = function(input, output, constrain)
 
 /**
  * Invoke at the end of the iteration process.
+ * @param {!Function} callback on finish callback function.
+ * @return {boolean} true to wait
  */
-ydn.db.algo.AbstractSolver.prototype.finish = function() {
-
+ydn.db.algo.AbstractSolver.prototype.finish = function(callback) {
+  return false;
 };
