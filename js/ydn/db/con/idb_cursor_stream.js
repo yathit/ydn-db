@@ -189,7 +189,7 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
     if (type !== ydn.db.base.TransactionEventTypes.COMPLETE) {
       me.logger.warning(ev.name + ':' + ev.message);
     }
-    me.logger.finest('transaction ' + type);
+    me.logger.finest(me + ' transaction ' + type);
   };
 
   /**
@@ -197,6 +197,7 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
    * @param {IDBTransaction} tx active tx.
    */
   var doRequest = function(tx) {
+    me.logger.finest(me + ' transaction started for ' + key);
     var store = tx.objectStore(me.store_name_);
     var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
     if (goog.isDef(me.index_name_) &&
@@ -218,8 +219,10 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
   };
 
   if (this.tx_) {
+    me.logger.finest(me + ' using existing tx.');
     doRequest(this.tx_);
   } else if (this.idb_) {
+    me.logger.finest(me + ' creating tx from IDBDatabase.');
     this.tx = this.idb_.transaction([this.store_name_],
         ydn.db.base.TransactionMode.READ_ONLY);
     this.tx.oncomplete = function(event) {
@@ -233,13 +236,17 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
     this.tx.onabort = function(event) {
       on_completed(ydn.db.base.TransactionEventTypes.ABORT, event);
     };
-  } else {
+  } else if (this.db_) {
+    me.logger.finest(me + ' creating tx from ydn.db.con.IStorage.');
     this.on_tx_request_ = true;
     this.db_.transaction(function(/** @type {IDBTransaction} */ tx) {
       me.on_tx_request_ = false;
       me.tx_ = tx;
       doRequest(tx);
     }, [me.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
+  } else {
+    throw new ydn.error.InternalError(
+        'no way to create a transaction provided.');
   }
 
 };

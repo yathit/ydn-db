@@ -814,17 +814,17 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   result.forward = function (next_position) {
     console.log(['next_position', cur, next_position]);
 
-    if (cur) {
-      if (next_position === false) {
-        // restart the iterator
-        me.logger.finest('Iterator: ' + iterator + ' restarting.');
-        iterator.has_done = undefined;
-        iterator.counter = 0;
-        iterator.store_key = undefined;
-        iterator.index_key = undefined;
-        cur = null;
-        open_request();
-      } else if (next_position === true) {
+    if (next_position === false) {
+      // restart the iterator
+      me.logger.finest('Iterator: ' + iterator + ' restarting.');
+      iterator.has_done = undefined;
+      iterator.counter = 0;
+      iterator.store_key = undefined;
+      iterator.index_key = undefined;
+      cur = null;
+      open_request();
+    } else if (cur) {
+      if (next_position === true) {
         if (goog.DEBUG && iterator.has_done) {
           me.logger.warning('Iterator: ' + iterator + ' completed, ' +
             'but continuing.');
@@ -948,6 +948,10 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
         }
         keys[i] = undefined;
         values[i] = undefined;
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          var s = adv[i] === false ? 'restart' : adv[i] === true ? '' : adv[i];
+          window.console.log(iterator.toString() + ': forward ' + s);
+        }
         req.forward(adv[i]);
         move_count++;
       } else {
