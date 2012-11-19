@@ -237,6 +237,15 @@ ydn.db.schema.Index.prototype.getType = function() {
 };
 
 
+/**
+ *
+ * @return {boolean} multiEntry or not.
+ */
+ydn.db.schema.Index.prototype.isMultiEntry = function() {
+  return this.multiEntry;
+};
+
+
 
 /**
  * @inheritDoc

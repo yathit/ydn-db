@@ -140,6 +140,41 @@ ydn.db.core.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 /**
  * @inheritDoc
  */
+ydn.db.core.req.WebSql.prototype.keysByIndexKeys = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.keysByKeyRange = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.keysIndexByKeyRange = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.keysIndexByKeys = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.keysByIndexKeys = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.core.req.WebSql.prototype.putByKeys = goog.abstractMethod;
 
 

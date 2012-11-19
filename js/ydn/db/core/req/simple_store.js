@@ -82,6 +82,46 @@ ydn.db.core.req.SimpleStore.prototype.getTx = function() {
   return /** @type {ydn.db.con.SimpleStorage} */ (this.tx);
 };
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.keysByIndexKeyRange = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.keysByIndexKeys = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.keysByKeyRange = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.keysIndexByKeyRange = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.keysIndexByKeys = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.keysByIndexKeyRange = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.keysByIndexKeys = goog.abstractMethod;
+
 
 /**
  * @inheritDoc
