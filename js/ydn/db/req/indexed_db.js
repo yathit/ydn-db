@@ -1155,7 +1155,7 @@ ydn.db.req.IndexedDb.prototype.iterate = function(df, q, clear, update, map,
 /**
  * @inheritDoc
  */
-ydn.db.req.IndexedDb.prototype.listByQuery = function(df, q) {
+ydn.db.req.IndexedDb.prototype.listByIterator = function(df, q) {
   var arr = [];
   var req = this.open(q, function(cursor) {
     arr.push(cursor.value());

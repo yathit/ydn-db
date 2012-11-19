@@ -745,7 +745,7 @@ ydn.db.req.WebSql.prototype.openSqlQuery = function(cursor, next_callback, mode)
 /**
  * @inheritDoc
  */
-ydn.db.req.WebSql.prototype.listByQuery = function(df, q) {
+ydn.db.req.WebSql.prototype.listByIterator = function(df, q) {
   var arr = [];
   var req = this.open(q, function(cursor) {
     arr.push(cursor.value());

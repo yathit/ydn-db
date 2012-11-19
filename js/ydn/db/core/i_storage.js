@@ -47,6 +47,7 @@ ydn.db.core.IStorage.prototype.get = goog.abstractMethod;
  */
 ydn.db.core.IStorage.prototype.list = goog.abstractMethod;
 
+
 /**
  * Execute PUT request either storing result to tx or callback to df.
  * @param {string|StoreSchema} store_name_or_schema store name or

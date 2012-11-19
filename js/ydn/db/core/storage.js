@@ -74,7 +74,6 @@ ydn.db.core.Storage.prototype.newTxInstance = function(scope_name) {
 };
 
 
-
 /**
  * @final
  * @return {number} transaction series number.

@@ -261,28 +261,6 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
 };
 
 
-/**
- * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
- * @return {!goog.async.Deferred} return result as list.
- */
-ydn.db.TxStorage.prototype.execute = function(q) {
-
-  var df = ydn.db.base.createDeferred();
-
-
-  if (q instanceof ydn.db.Sql) {
-    var sql = q;
-    this.exec(function(executor) {
-      executor.executeSql(df, sql);
-    }, sql.stores(), ydn.db.base.TransactionMode.READ_ONLY);
-
-  } else {
-    throw new ydn.error.ArgumentException();
-  }
-
-  return df;
-};
-
 
 /**
  * Explain query plan.

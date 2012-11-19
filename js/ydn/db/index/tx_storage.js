@@ -84,7 +84,7 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2) {
     var q = arg1;
 
     this.exec(function(executor) {
-      executor.listByQuery(df, q);
+      executor.listByIterator(df, q);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY);
 
     return df;

@@ -4,6 +4,7 @@
  */
 
 goog.require('ydn.db.Storage');
+goog.require('ydn.db.sql');
 goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.algo.NestedLoop');
 
