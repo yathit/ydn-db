@@ -6,6 +6,7 @@
 
 goog.provide('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.core.req.IRequestExecutor');
+goog.require('ydn.db.Streamer');
 
 
 /**

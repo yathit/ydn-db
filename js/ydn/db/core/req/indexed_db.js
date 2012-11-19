@@ -21,6 +21,7 @@
 goog.provide('ydn.db.core.req.IndexedDb');
 goog.require('goog.async.DeferredList');
 goog.require('ydn.db.core.req.IRequestExecutor');
+goog.require('ydn.db.req.RequestExecutor');
 goog.require('ydn.error');
 goog.require('ydn.json');
 
@@ -70,6 +71,55 @@ ydn.db.core.req.IndexedDb.prototype.logger =
 ydn.db.core.req.IndexedDb.prototype.getTx = function() {
   return /** @type {!IDBTransaction} */ (this.tx);
 };
+
+
+/**
+ * @param {!goog.async.Deferred} df return a deferred function.
+ * @param {!Array.<string>}  stores store name.
+ */
+ydn.db.core.req.IndexedDb.prototype.countStores = function(df, stores) {
+
+  var me = this;
+  var total = 0;
+
+  var count_store = function(i) {
+    var table = stores[i];
+    var store = me.tx.objectStore(table);
+    var request = store.count();
+    request.onsuccess = function(event) {
+      if (ydn.db.core.req.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      total += event.target.result;
+      i++;
+      if (i == stores.length) {
+        df.callback(total);
+      } else {
+        count_store(i);
+      }
+
+    };
+    request.onerror = function(event) {
+      if (ydn.db.core.req.IndexedDb.DEBUG) {
+        window.console.log(event);
+      }
+      df.errback(event);
+    };
+  };
+
+  if (stores.length == 0) {
+    df.callback(0);
+  } else {
+    count_store(0);
+  }
+
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.putByKeys = goog.abstractMethod;
 
 
 

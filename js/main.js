@@ -76,12 +76,6 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'setItem',
 goog.exportProperty(ydn.db.TxStorage.prototype, 'getItem',
     ydn.db.TxStorage.prototype.getItem);
 
-goog.exportSymbol('ydn.db.KeyRange', ydn.db.KeyRange );
-goog.exportProperty(ydn.db.KeyRange, 'upperBound', ydn.db.KeyRange.upperBound);
-goog.exportProperty(ydn.db.KeyRange, 'lowerBound', ydn.db.KeyRange.lowerBound);
-goog.exportProperty(ydn.db.KeyRange, 'bound', ydn.db.KeyRange.bound);
-goog.exportProperty(ydn.db.KeyRange, 'only', ydn.db.KeyRange.only);
-goog.exportProperty(ydn.db.KeyRange, 'starts', ydn.db.KeyRange.starts);
 
 goog.exportSymbol('ydn.math.Expression', ydn.math.Expression);
 goog.exportProperty(ydn.math.Expression.prototype, 'evaluate',

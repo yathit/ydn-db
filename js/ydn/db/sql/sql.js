@@ -73,7 +73,7 @@ ydn.db.Sql.prototype.index = undefined;
 
 /**
  *
- * @type {ydn.db.Iterator.Direction|undefined}
+ * @type {ydn.db.base.Direction|undefined}
  */
 ydn.db.Sql.prototype.direction = undefined;
 
@@ -216,13 +216,13 @@ ydn.db.Sql.prototype.from = function(store_name) {
  * @return {ydn.db.Sql} this query for chaining.
  */
 ydn.db.Sql.prototype.unique = function(value) {
-  if (this.direction == ydn.db.Iterator.Direction.NEXT ||
-    this.direction == ydn.db.Iterator.Direction.NEXT_UNIQUE) {
-    this.direction = !!value ? ydn.db.Iterator.Direction.NEXT_UNIQUE :
-      ydn.db.Iterator.Direction.NEXT;
+  if (this.direction == ydn.db.base.Direction.NEXT ||
+    this.direction == ydn.db.base.Direction.NEXT_UNIQUE) {
+    this.direction = !!value ? ydn.db.base.Direction.NEXT_UNIQUE :
+      ydn.db.base.Direction.NEXT;
   } else {
-    this.direction = !!value ? ydn.db.Iterator.Direction.PREV_UNIQUE :
-      ydn.db.Iterator.Direction.PREV;
+    this.direction = !!value ? ydn.db.base.Direction.PREV_UNIQUE :
+      ydn.db.base.Direction.PREV;
   }
   return this;
 };
@@ -235,13 +235,13 @@ ydn.db.Sql.prototype.unique = function(value) {
  * @return {ydn.db.Sql} this query for chaining.
  */
 ydn.db.Sql.prototype.reverse = function(value) {
-  if (this.direction == ydn.db.Iterator.Direction.NEXT_UNIQUE ||
-    this.direction == ydn.db.Iterator.Direction.PREV_UNIQUE) {
-    this.direction = !!value ? ydn.db.Iterator.Direction.PREV_UNIQUE :
-      ydn.db.Iterator.Direction.NEXT_UNIQUE;
+  if (this.direction == ydn.db.base.Direction.NEXT_UNIQUE ||
+    this.direction == ydn.db.base.Direction.PREV_UNIQUE) {
+    this.direction = !!value ? ydn.db.base.Direction.PREV_UNIQUE :
+      ydn.db.base.Direction.NEXT_UNIQUE;
   } else {
-    this.direction = !!value ? ydn.db.Iterator.Direction.PREV :
-      ydn.db.Iterator.Direction.NEXT;
+    this.direction = !!value ? ydn.db.base.Direction.PREV :
+      ydn.db.base.Direction.NEXT;
   }
   return this;
 };
@@ -679,7 +679,7 @@ ydn.db.Sql.prototype.toIdbQuery = function(schema) {
       if (store.hasIndex(where.field)) {
         index = where.field;
         key_range = where;
-        direction = direction || ydn.db.Iterator.Direction.NEXT;
+        direction = direction || ydn.db.base.Direction.NEXT;
         this.wheres_.splice(i, 1);
         break;
       }
@@ -796,8 +796,8 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
   var from = 'FROM ' + goog.string.quote(this.store_name);
 
   var select = '';
-  var distinct = this.direction == ydn.db.Iterator.Direction.PREV_UNIQUE ||
-    this.direction == ydn.db.Iterator.Direction.NEXT_UNIQUE;
+  var distinct = this.direction == ydn.db.base.Direction.PREV_UNIQUE ||
+    this.direction == ydn.db.base.Direction.NEXT_UNIQUE;
 
   var fields_selected = false;
   if (goog.isDefAndNotNull(this.map_)) {
@@ -905,8 +905,8 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
     goog.string.quote(store.keyPath) : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
   var order = 'ORDER BY ' + field_name;
-  if (this.direction == ydn.db.Iterator.Direction.PREV ||
-    this.direction == ydn.db.Iterator.Direction.PREV_UNIQUE) {
+  if (this.direction == ydn.db.base.Direction.PREV ||
+    this.direction == ydn.db.base.Direction.PREV_UNIQUE) {
     order += ' DESC';
   } else {
     order += ' ASC';

@@ -125,34 +125,7 @@ ydn.db.req.SqlQuery.prototype.toString = function() {
  * @return {!Object} parse value.
  */
 ydn.db.req.SqlQuery.prototype.parseRow = function(row, store) {
-  return ydn.db.req.SqlQuery.parseRow(row, store);
-};
-
-
-
-/**
- * Parse resulting object of a row into original object as it 'put' into the
- * database.
- * @final
- * @param {!Object} row row.
- * @param {ydn.db.schema.Store} store store schema.
- * @return {!Object} parse value.
- */
-ydn.db.req.SqlQuery.parseRow = function(row, store) {
-  var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
-  if (goog.isDefAndNotNull(store.keyPath)) {
-    var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.type);
-    store.setKeyValue(value, key);
-  }
-  for (var j = 0; j < store.indexes.length; j++) {
-    var index = store.indexes[j];
-    if (index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
-      continue;
-    }
-    var x = row[index.name];
-    value[index.name] = ydn.db.schema.Index.sql2js(x, index.type);
-  }
-  return value;
+  return ydn.db.core.req.WebSql.parseRow(row, store);
 };
 
 

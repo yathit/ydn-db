@@ -18,6 +18,7 @@
 
 goog.provide('ydn.db.index.req.SimpleStore');
 goog.require('ydn.db.core.req.SimpleStore');
+goog.require('ydn.db.index.req.IRequestExecutor');
 
 
 /**
@@ -25,9 +26,52 @@ goog.require('ydn.db.core.req.SimpleStore');
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
+ * @implements {ydn.db.index.req.IRequestExecutor}
  */
 ydn.db.index.req.SimpleStore = function(dbname, schema) {
   goog.base(this, dbname, schema);
 };
 goog.inherits(ydn.db.index.req.SimpleStore, ydn.db.core.req.SimpleStore);
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.getByIterator = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.executeSql = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.explainSql = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.getIndexKeysByKeys = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.getKeysByIndexKeyRange = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.listByIterator = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.open = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.scan = goog.abstractMethod;

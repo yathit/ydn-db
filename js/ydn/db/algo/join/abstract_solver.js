@@ -7,6 +7,7 @@
 
 goog.provide('ydn.db.algo.AbstractSolver');
 goog.require('goog.debug.Logger');
+goog.require('ydn.db.Streamer');
 
 
 /**

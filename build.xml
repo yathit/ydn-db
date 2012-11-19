@@ -151,20 +151,21 @@
             description="generates compiled files for core distribution">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db"
+                input.dir="${ydn-db.dir}/js/ydn/db/core"
                 input.fn="${ydn-db.dir}/js/core.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="core-ydn.db-min-${ver}.js"
-                closure.entry="ydn.db.tr.Storage">
+                output.fn="core-ydn.db-${ver}.js"
+                closure.entry="ydn.db.core.Storage">
             <exjs.dir>
                 <arg line='-i "${ydn-db.dir}/js/con.js"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/con"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
             </exjs.dir>
         </adv-comp>
-        <copy file="${ydn-db.dir}/jsc/core-ydn.db-min-${ver}.js"
-              tofile="${out.dir}/core-ydn.db-min.js"/>
+        <copy file="${ydn-db.dir}/jsc/core-ydn.db-${ver}.js"
+              tofile="${out.dir}/core-ydn.db.js"/>
     </target>
     <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>

@@ -26,9 +26,7 @@ goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db.req.RequestExecutor');
-goog.require('ydn.db.WebsqlCursor');
 goog.require('ydn.json');
-goog.require('ydn.db.req.SqlQuery');
 goog.require('ydn.db.core.req.IRequestExecutor');
 
 
@@ -88,6 +86,34 @@ ydn.db.core.req.WebSql.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.core.req.WebSql');
 
 
+
+
+/**
+ * Parse resulting object of a row into original object as it 'put' into the
+ * database.
+ * @final
+ * @param {!Object} row row.
+ * @param {ydn.db.schema.Store} store store schema.
+ * @return {!Object} parse value.
+ */
+ydn.db.core.req.WebSql.parseRow = function(row, store) {
+  var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
+  if (goog.isDefAndNotNull(store.keyPath)) {
+    var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.type);
+    store.setKeyValue(value, key);
+  }
+  for (var j = 0; j < store.indexes.length; j++) {
+    var index = store.indexes[j];
+    if (index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
+      continue;
+    }
+    var x = row[index.name];
+    value[index.name] = ydn.db.schema.Index.sql2js(x, index.type);
+  }
+  return value;
+};
+
+
 /**
  * @protected
  * @return {SQLTransaction} transaction object.
@@ -109,6 +135,12 @@ ydn.db.core.req.WebSql.prototype.getTx = function() {
 ydn.db.core.req.WebSql.prototype.getKeyFromRow = function(table, row) {
   return row[table.keyPath || ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
 };
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.putByKeys = goog.abstractMethod;
 
 
 /**
@@ -286,7 +318,7 @@ ydn.db.core.req.WebSql.prototype.getById = function(d, table_name, id) {
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
       if (goog.isDefAndNotNull(row)) {
-        d.callback(ydn.db.req.SqlQuery.parseRow(row, table));
+        d.callback(ydn.db.core.req.WebSql.parseRow(row, table));
       } else {
         d.callback(undefined);
       }
@@ -348,7 +380,7 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.req.SqlQuery.parseRow(row, table);
+          objects[i] = ydn.db.core.req.WebSql.parseRow(row, table);
         }
         // this is get function, we take only one result.
       } else {
@@ -431,7 +463,7 @@ ydn.db.core.req.WebSql.prototype.listByStores = function(df, table_names) {
       for (var i = 0; i < results.rows.length; i++) {
         var row = results.rows.item(i);
         if (goog.isDefAndNotNull(row)) {
-          arr.push(ydn.db.req.SqlQuery.parseRow(row, table));
+          arr.push(ydn.db.core.req.WebSql.parseRow(row, table));
         }
       }
       if (idx == n_todo - 1) {
@@ -498,7 +530,7 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(df, keys) {
       if (results.rows.length > 0) {
         var row = results.rows.item(0);
         if (goog.isDefAndNotNull(row)) {
-          objects[i] = ydn.db.req.SqlQuery.parseRow(row, table);
+          objects[i] = ydn.db.core.req.WebSql.parseRow(row, table);
         }
         // this is get function, we take only one result.
       } else {

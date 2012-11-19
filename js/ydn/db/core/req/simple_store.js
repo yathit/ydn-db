@@ -84,6 +84,12 @@ ydn.db.core.req.SimpleStore.prototype.getTx = function() {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.putByKeys = goog.abstractMethod;
+
+
+/**
  * @param {!goog.async.Deferred} df return key in deferred function.
  * @param {string} table table name.
 * @param {!Object} value object to put.

@@ -23,10 +23,10 @@
 
 
 goog.provide('ydn.db.Iterator');
-goog.provide('ydn.db.Iterator.Direction');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
+goog.require('ydn.db.base');
 goog.require('ydn.error.ArgumentException');
 
 
@@ -81,18 +81,18 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   if (goog.isDef(unique) && !goog.isBoolean(unique)) {
     throw new ydn.error.ArgumentException('unique');
   }
-  var direction = ydn.db.Iterator.Direction.NEXT;
+  var direction = ydn.db.base.Direction.NEXT;
   if (reverse && unique) {
-    direction = ydn.db.Iterator.Direction.PREV_UNIQUE;
+    direction = ydn.db.base.Direction.PREV_UNIQUE;
   } else if (reverse) {
-    direction = ydn.db.Iterator.Direction.PREV;
+    direction = ydn.db.base.Direction.PREV;
   } else if (unique) {
-    direction = ydn.db.Iterator.Direction.NEXT_UNIQUE;
+    direction = ydn.db.base.Direction.NEXT_UNIQUE;
   }
 
   /**
    * @final
-   * @type {ydn.db.Iterator.Direction}
+   * @type {ydn.db.base.Direction}
    */
   this.direction = direction;
 
@@ -120,32 +120,6 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   this.has_done = undefined;
 
 };
-
-
-/**
- * Cursor direction.
- * @link http://www.w3.org/TR/IndexedDB/#dfn-direction
- * @enum {string} Cursor direction.
- */
-ydn.db.Iterator.Direction = {
-  NEXT: 'next',
-  NEXT_UNIQUE: 'nextunique',
-  PREV: 'prev',
-  PREV_UNIQUE: 'prevunique'
-};
-
-
-
-/**
- * @const
- * @type {!Array.<ydn.db.Iterator.Direction>} Cursor directions.
- */
-ydn.db.Iterator.DIRECTIONS = [
-  ydn.db.Iterator.Direction.NEXT,
-  ydn.db.Iterator.Direction.NEXT_UNIQUE,
-  ydn.db.Iterator.Direction.PREV,
-  ydn.db.Iterator.Direction.PREV_UNIQUE
-];
 
 
 
@@ -203,7 +177,7 @@ ydn.db.Iterator.prototype.keyRange;
 
 /**
  * Cursor direction.
- * @type {(ydn.db.Iterator.Direction|undefined)}
+ * @type {(ydn.db.base.Direction|undefined)}
  */
 ydn.db.Iterator.prototype.direction;
 

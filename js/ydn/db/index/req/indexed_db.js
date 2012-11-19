@@ -7,6 +7,7 @@
 
 goog.provide('ydn.db.index.req.IndexedDb');
 goog.require('ydn.db.core.req.IndexedDb');
+goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.IDBCursor');
 goog.require('ydn.db.IDBValueCursor');
 goog.require('ydn.db.req.IdbQuery');
@@ -20,6 +21,7 @@ goog.require('ydn.json');
  * @extends {ydn.db.core.req.IndexedDb}
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
+ * @implements {ydn.db.index.req.IRequestExecutor}
  */
 ydn.db.index.req.IndexedDb = function(dbname, schema) {
   goog.base(this, dbname, schema);
@@ -43,29 +45,10 @@ ydn.db.index.req.IndexedDb.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.IndexedDb');
 
 
-
-
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.getByIterator = function(df, q) {
-
-  var obj;
-
-  /**
-   *
-   * @param {ydn.db.ICursor} cursor
-   */
-  var next = function(cursor) {
-    obj = cursor.value();
-    return true; // to break the iteration
-  };
-
-  var req = this.open(df, q, next);
-
-
-};
-
+ydn.db.index.req.IndexedDb.prototype.getByIterator = goog.abstractMethod;
 
 
 /**
@@ -233,7 +216,7 @@ ydn.db.index.req.IndexedDb.prototype.fetchCursor = function(df, q) {
     }
   };
 
-  request.onerror = function(event) {
+  request.onError = function(event) {
     if (ydn.db.core.req.IndexedDb.DEBUG) {
       window.console.log([q, event]);
     }
@@ -256,47 +239,6 @@ ydn.db.index.req.IndexedDb.prototype.fetchQuery = function(df, q) {
 };
 
 
-/**
- * @param {!goog.async.Deferred} df return a deferred function.
- * @param {!Array.<string>}  stores store name.
- */
-ydn.db.index.req.IndexedDb.prototype.countStores = function(df, stores) {
-
-  var me = this;
-  var total = 0;
-
-  var count_store = function(i) {
-    var table = stores[i];
-    var store = me.tx.objectStore(table);
-    var request = store.count();
-    request.onsuccess = function(event) {
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      total += event.target.result;
-      i++;
-      if (i == stores.length) {
-        df.callback(total);
-      } else {
-        count_store(i);
-      }
-
-    };
-    request.onerror = function(event) {
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
-        window.console.log(event);
-      }
-      df.errback(event);
-    };
-  };
-
-  if (stores.length == 0) {
-    df.callback(0);
-  } else {
-    count_store(0);
-  }
-
-};
 
 
 /**
@@ -305,16 +247,16 @@ ydn.db.index.req.IndexedDb.prototype.countStores = function(df, stores) {
 ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q) {
   var arr = [];
   var req = this.openQuery(q, ydn.db.base.CursorMode.READ_ONLY);
-  req.onerror = function(e) {
+  req.onError = function(e) {
     df.errback(e);
   };
-  req.onnext = function(key, value) {
+  req.onNext = function(key, value) {
     if (goog.isDef(key)) {
       arr.push(value);
       req.forward(true);
     } else {
-      req.onerror = null;
-      req.onnext = null;
+      req.onError = null;
+      req.onNext = null;
       df.callback(arr);
     }
   };
@@ -413,10 +355,10 @@ ydn.db.index.req.IndexedDb.prototype.open = function(df, cursor, callback, mode)
 
 
   var req = this.openQuery(cursor, mode);
-  req.onerror = function(e) {
+  req.onError = function(e) {
     df.errback(e);
   };
-  req.onnext = function (cur) {
+  req.onNext = function (cur) {
     var i_cursor = new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
     var adv = callback(i_cursor);
     i_cursor.dispose();
@@ -586,8 +528,8 @@ ydn.db.index.req.IndexedDb.prototype.scan = function(df, iterators,
       var mode = iterator.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY :
         ydn.db.base.CursorMode.READ_ONLY;
       var req = me.openQuery(iterator, mode);
-      req.onerror = on_error;
-      req.onnext = goog.partial(on_iterator_next, idx);
+      req.onError = on_error;
+      req.onNext = goog.partial(on_iterator_next, idx);
       iterator_requests[i] = req;
       idx2iterator[idx] = i;
       idx++;
@@ -629,16 +571,16 @@ ydn.db.index.req.IndexedDb.prototype.scan = function(df, iterators,
  * @param {!ydn.db.Iterator} iterator The cursor.
  * @param {ydn.db.base.CursorMode} mode mode.
  * @return {{
- *    onnext: Function,
- *    onerror: Function,
+ *    onNext: Function,
+ *    onError: Function,
  *    forward: Function
  *    }}
  */
 ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
 
   var result = {
-    onnext: null,
-    onerror: null,
+    onNext: null,
+    onError: null,
     forward: null
   };
 
@@ -770,7 +712,7 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
             if (cue) {
               me.logger.warning('Resume corrupt on ' + iterator.store_name + ':' +
                 iterator.store_key + ':' + iterator.index_key);
-              result.onerror(new ydn.db.InvalidStateError());
+              result.onError(new ydn.db.InvalidStateError());
               return;
             }
             cue = true;
@@ -793,18 +735,18 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
         iterator.index_key = cur.key;
         var value = key_only ? cur.key : cur['value'];
 
-        result.onnext(cur.primaryKey, value);
+        result.onNext(cur.primaryKey, value);
 
       } else {
         iterator.has_done = true;
         me.logger.finest('Iterator: ' + iterator + ' completed.');
-        result.onnext(); // notify that cursor iteration is finished.
+        result.onNext(); // notify that cursor iteration is finished.
       }
 
     };
 
-    request.onerror = function (event) {
-      result.onerror(event);
+    request.onError = function (event) {
+      result.onError(event);
     };
 
   };

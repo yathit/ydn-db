@@ -73,7 +73,6 @@ ydn.db.core.req.IRequestExecutor.prototype.countStores = goog.abstractMethod;
 ydn.db.core.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
 
 
-
 /**
  * Execute GET request callback results to df.
  * @param {goog.async.Deferred} df deferred to feed result.
@@ -91,6 +90,7 @@ ydn.db.core.req.IRequestExecutor.prototype.listByIds = goog.abstractMethod;
  * @param {!Array.<!ydn.db.Key>} keys id to get.
  */
 ydn.db.core.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
+
 
 
 /**

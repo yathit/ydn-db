@@ -141,3 +141,32 @@ ydn.db.base.ENABLE_DEFAULT_TEXT_STORE = true;
  * @define {boolean} flag to indicate to enable encryption.
  */
 ydn.db.base.ENABLE_ENCRYPTION = false;
+
+
+
+
+/**
+ * Cursor direction.
+ * @link http://www.w3.org/TR/IndexedDB/#dfn-direction
+ * @enum {string} Cursor direction.
+ */
+ydn.db.base.Direction = {
+  NEXT: 'next',
+  NEXT_UNIQUE: 'nextunique',
+  PREV: 'prev',
+  PREV_UNIQUE: 'prevunique'
+};
+
+
+
+/**
+ * @const
+ * @type {!Array.<ydn.db.base.Direction>} Cursor directions.
+ */
+ydn.db.base.DIRECTIONS = [
+  ydn.db.base.Direction.NEXT,
+  ydn.db.base.Direction.NEXT_UNIQUE,
+  ydn.db.base.Direction.PREV,
+  ydn.db.base.Direction.PREV_UNIQUE
+];
+

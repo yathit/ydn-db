@@ -6,6 +6,7 @@
 
 goog.provide('ydn.db.core.IStorage');
 goog.require('ydn.db.req.RequestExecutor');
+goog.require('ydn.db.KeyRange');
 
 
 
@@ -28,7 +29,7 @@ ydn.db.core.IStorage.prototype.count = goog.abstractMethod;
 
 /**
  * Return object or objects of given key or keys.
- * @param {(string|!ydn.db.Key|!ydn.db.Iterator)=} arg1 table name.
+ * @param {(string|!ydn.db.Key)=} arg1 table name.
  * @param {(string|number|Date|!Array)=} arg2
  * object key to be retrieved, if not provided,
  * all entries in the store will return.

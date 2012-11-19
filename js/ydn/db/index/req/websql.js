@@ -29,13 +29,14 @@ goog.require('ydn.db.core.req.WebSql');
 goog.require('ydn.db.WebsqlCursor');
 goog.require('ydn.json');
 goog.require('ydn.db.req.SqlQuery');
-
+goog.require('ydn.db.index.req.IRequestExecutor');
 
 /**
  * @extends {ydn.db.core.req.WebSql}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
+ * @implements {ydn.db.index.req.IRequestExecutor}
  */
 ydn.db.index.req.WebSql = function(dbname, schema) {
   goog.base(this, dbname, schema);
@@ -59,111 +60,111 @@ ydn.db.index.req.WebSql.DEBUG = false;
 ydn.db.index.req.WebSql.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.WebSql');
 
-
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebSql.prototype.getByIterator = goog.abstractMethod;
 
 /**
  *
- * @param {ydn.db.Iterator} cursor the cursor.
- * @param {Function} next_callback icursor handler.
- * @param {ydn.db.base.CursorMode?=} mode mode.
- * @return {!goog.async.Deferred} promise on completed.
+ * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.open = function(cursor, next_callback, mode) {
+ydn.db.index.req.WebSql.prototype.open = function(df, cursor, next_callback, mode) {
+
   var q = cursor instanceof ydn.db.req.SqlQuery ? cursor :
     this.planQuery(cursor);
-  return this.openSqlQuery(q, next_callback, mode);
+  this.openSqlQuery(df, q, next_callback, mode);
 };
 
-
-
-/**
- * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Iterator} q query.
- * @param {?function(*): boolean} clear clear iteration function.
- * @param {?function(*): *} update update iteration function.
- * @param {?function(*): *} map map iteration function.
- * @param {?function(*, *, number): *} reduce reduce iteration function.
- * @param {*} initial initial value for reduce iteration function.
- * @param {?function(*): *} finalize finalize function.
- */
-ydn.db.index.req.WebSql.prototype.iterate = function(df, q, clear, update, map,
-                                                  reduce, initial, finalize) {
-  var me = this;
-  var is_reduce = goog.isFunction(reduce);
-
-  var mode = goog.isFunction(clear) || goog.isFunction(update) ?
-    ydn.db.base.CursorMode.READ_WRITE :
-    ydn.db.base.CursorMode.READ_ONLY;
-
-
-  var idx = -1; // iteration index
-  var results = [];
-  var previousResult = initial;
-
-  var request = this.open(q, function (cursor) {
-
-    var value = cursor.value();
-    idx++;
-    //console.log([idx, cursor.key(), value]);
-
-    var consumed = false;
-
-    if (goog.isFunction(clear)) {
-      var to_clear = clear(value);
-      if (to_clear === true) {
-        consumed = true;
-        cursor.clear();
-      }
-    }
-
-    if (!consumed && goog.isFunction(update)) {
-      var updated_value = update(value);
-      if (updated_value !== value) {
-        cursor.update(updated_value);
-      }
-    }
-
-    if (goog.isFunction(map)) {
-      value = map(value);
-    }
-
-    if (is_reduce) {
-      previousResult = reduce(value, previousResult, idx);
-    } else {
-      results.push(value);
-    }
-
-  }, mode);
-
-  request.addCallback(function() {
-    var result = is_reduce ? previousResult : results;
-    if (goog.isFunction(finalize)) {
-      result = finalize(result);
-    }
-    df.callback(result);
-  });
-
-  request.addErrback(function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
-      window.console.log([q, event]);
-    }
-    df.errback(event);
-  });
-
-};
-
+//
+//
+///**
+// * @param {goog.async.Deferred} df deferred to feed result.
+// * @param {!ydn.db.Iterator} q query.
+// * @param {?function(*): boolean} clear clear iteration function.
+// * @param {?function(*): *} update update iteration function.
+// * @param {?function(*): *} map map iteration function.
+// * @param {?function(*, *, number): *} reduce reduce iteration function.
+// * @param {*} initial initial value for reduce iteration function.
+// * @param {?function(*): *} finalize finalize function.
+// */
+//ydn.db.index.req.WebSql.prototype.iterate = function(df, q, clear, update, map,
+//                                                  reduce, initial, finalize) {
+//  var me = this;
+//  var is_reduce = goog.isFunction(reduce);
+//
+//  var mode = goog.isFunction(clear) || goog.isFunction(update) ?
+//    ydn.db.base.CursorMode.READ_WRITE :
+//    ydn.db.base.CursorMode.READ_ONLY;
+//
+//
+//  var idx = -1; // iteration index
+//  var results = [];
+//  var previousResult = initial;
+//
+//  var request = this.open(q, function (cursor) {
+//
+//    var value = cursor.value();
+//    idx++;
+//    //console.log([idx, cursor.key(), value]);
+//
+//    var consumed = false;
+//
+//    if (goog.isFunction(clear)) {
+//      var to_clear = clear(value);
+//      if (to_clear === true) {
+//        consumed = true;
+//        cursor.clear();
+//      }
+//    }
+//
+//    if (!consumed && goog.isFunction(update)) {
+//      var updated_value = update(value);
+//      if (updated_value !== value) {
+//        cursor.update(updated_value);
+//      }
+//    }
+//
+//    if (goog.isFunction(map)) {
+//      value = map(value);
+//    }
+//
+//    if (is_reduce) {
+//      previousResult = reduce(value, previousResult, idx);
+//    } else {
+//      results.push(value);
+//    }
+//
+//  }, mode);
+//
+//  request.addCallback(function() {
+//    var result = is_reduce ? previousResult : results;
+//    if (goog.isFunction(finalize)) {
+//      result = finalize(result);
+//    }
+//    df.callback(result);
+//  });
+//
+//  request.addErrback(function(event) {
+//    if (ydn.db.core.req.IndexedDb.DEBUG) {
+//      window.console.log([q, event]);
+//    }
+//    df.errback(event);
+//  });
+//
+//};
+//
 
 
 /**
  *
+ * @param {!goog.async.Deferred} df promise on completed.
  * @param {ydn.db.req.SqlQuery} cursor the cursor.
  * @param {Function} next_callback icursor handler.
  * @param {ydn.db.base.CursorMode?=} mode mode.
- * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.req.WebSql.prototype.openSqlQuery = function(cursor, next_callback, mode) {
+ydn.db.index.req.WebSql.prototype.openSqlQuery = function(df, cursor, next_callback, mode) {
 
-  var df = new goog.async.Deferred();
   var me = this;
   var sql = cursor.sql;
 
@@ -249,7 +250,6 @@ ydn.db.index.req.WebSql.prototype.openSqlQuery = function(cursor, next_callback,
   }
   this.tx.executeSql(sql, cursor.params, callback, error_callback);
 
-  return df;
 };
 
 
@@ -258,15 +258,23 @@ ydn.db.index.req.WebSql.prototype.openSqlQuery = function(cursor, next_callback,
  * @inheritDoc
  */
 ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q) {
-  var arr = [];
-  var req = this.open(q, function(cursor) {
-    arr.push(cursor.value());
-  });
-  req.addCallbacks(function() {
-    df.callback(arr);
-  }, function(e) {
-    df.errback(e);
-  })
+  throw new ydn.error.NotImplementedException();
+//  var arr = [];
+//  //var mode = q.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY : ydn.db.base.CursorMode.READ_ONLY;
+//  var req = this.fetchCursor(q);
+//  req.onnext = function(key, value) {
+//    if (goog.isDef(key)) {
+//      arr.push(value);
+//      req.forward(true);
+//    } else {
+//      req.onnext = null;
+//      req.onerror = null;
+//      df.callback(arr);
+//    }
+//  };
+//  req.onerror = function(e) {
+//    df.errback(e);
+//  };
 };
 
 
@@ -321,8 +329,8 @@ ydn.db.index.req.WebSql.prototype.planQuery = function(query) {
 
   // Note: IndexedDB key range result are always ordered.
   var dir = 'ASC';
-  if (sql.direction == ydn.db.Iterator.Direction.PREV ||
-    sql.direction == ydn.db.Iterator.Direction.PREV_UNIQUE) {
+  if (sql.direction == ydn.db.base.Direction.PREV ||
+    sql.direction == ydn.db.base.Direction.PREV_UNIQUE) {
     dir = 'DESC';
   }
   var order = 'ORDER BY ' + column;
@@ -331,14 +339,6 @@ ydn.db.index.req.WebSql.prototype.planQuery = function(query) {
   return sql;
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.index.req.WebSql.prototype.explainQuery = function(query) {
-  var sql = this.planQuery(query);
-  return /** @type {Object} */ (sql.toJSON());
-};
 
 
 /**
@@ -354,11 +354,12 @@ ydn.db.index.req.WebSql.prototype.explainSql = function(query) {
  * @inheritDoc
  */
 ydn.db.index.req.WebSql.prototype.executeSql = function(df, sql) {
-  var cursor = sql.toSqlQuery(this.schema);
-  var initial = goog.isFunction(cursor.initial) ? cursor.initial() : undefined;
-  this.iterate(df, cursor, null, null,
-    cursor.map, cursor.reduce, initial, cursor.finalize);
-  return df;
+  throw new ydn.error.NotImplementedException();
+//  var cursor = sql.toSqlQuery(this.schema);
+//  var initial = goog.isFunction(cursor.initial) ? cursor.initial() : undefined;
+//  this.iterate(df, cursor, null, null,
+//    cursor.map, cursor.reduce, initial, cursor.finalize);
+//  return df;
 };
 
 
@@ -457,3 +458,18 @@ ydn.db.index.req.WebSql.prototype.fetchQuery = function(df, q) {
   this.fetchCursor(df, cursor);
 };
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebSql.prototype.getIndexKeysByKeys = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebSql.prototype.getKeysByIndexKeyRange = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebSql.prototype.scan = goog.abstractMethod;
