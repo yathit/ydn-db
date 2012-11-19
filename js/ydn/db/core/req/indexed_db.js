@@ -462,6 +462,16 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeys = goog.abstractMethod;
  */
 ydn.db.core.req.IndexedDb.prototype.keysIndexByKeys = goog.abstractMethod;
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.keysByStore = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.keysIndexByIndexKeyRange = goog.abstractMethod;
+
 
 /**
  * @inheritDoc

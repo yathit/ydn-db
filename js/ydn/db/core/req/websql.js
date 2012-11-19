@@ -171,6 +171,16 @@ ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = goog.abstractMethod;
  */
 ydn.db.core.req.WebSql.prototype.keysByIndexKeys = goog.abstractMethod;
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.keysByStore = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.keysIndexByIndexKeyRange = goog.abstractMethod;
+
 
 /**
  * @inheritDoc

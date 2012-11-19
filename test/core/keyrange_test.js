@@ -20,26 +20,27 @@ var setUp = function () {
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
-  var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
+  var value_index = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
+  var tag_index = new ydn.db.schema.Index('type', ydn.db.schema.DataType.TEXT, false, true);
+  var id_index = new ydn.db.schema.Index('id', ydn.db.schema.DataType.NUMERIC, false);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
-    ydn.db.schema.DataType.INTEGER, [indexSchema]);
+    ydn.db.schema.DataType.INTEGER, [id_index, value_index, tag_index]);
   schema = new ydn.db.schema.Database(undefined, [store_schema]);
-  db = new ydn.db.Storage(db_name, schema, options);
+  db = new ydn.db.core.Storage(db_name, schema, options);
 
   objs = [
-    {id: -3, value: 'a0', type: 'a', remark: 'test ' + Math.random()},
-    {id: 0, value: 'a2', type: 'a', remark: 'test ' + Math.random()},
-    {id: 1, value: 'ba', type: 'b', remark: 'test ' + Math.random()},
-    {id: 3, value: 'bc', type: 'b', remark: 'test ' + Math.random()},
-    {id: 10, value: 'c', type: 'c', remark: 'test ' + Math.random()},
-    {id: 11, value: 'c1', type: 'c', remark: 'test ' + Math.random()},
-    {id: 20, value: 'ca', type: 'c', remark: 'test ' + Math.random()}
+    {id: -3, value: 'a0', type: ['a', 'b'], remark: 'test ' + Math.random()},
+    {id: 0, value: 'a2', type: ['a'], remark: 'test ' + Math.random()},
+    {id: 1, value: 'ba', type: ['b'], remark: 'test ' + Math.random()},
+    {id: 3, value: 'bc', type: ['b', 'c'], remark: 'test ' + Math.random()},
+    {id: 10, value: 'c', type: ['c'], remark: 'test ' + Math.random()},
+    {id: 11, value: 'c1', type: ['c', 'a', 'b'], remark: 'test ' + Math.random()},
+    {id: 20, value: 'ca', remark: 'test ' + Math.random()}
   ];
 
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + ' ready.');
   });
-
 
 };
 
@@ -75,7 +76,7 @@ var keyRange_test = function (key_range, index, exp_result, reverse) {
     1000); // maxTimeout
 
 
-  db.list(store_name, key_range, 'id').addBoth(function (value) {
+  db.keys(store_name, index, key_range).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;

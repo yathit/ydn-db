@@ -71,6 +71,13 @@ ydn.db.core.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
  */
 ydn.db.core.req.IRequestExecutor.prototype.getById = goog.abstractMethod;
 
+/**
+ * Retrieve primary keys from a store in a given key range.
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {string} store table name.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.keysByStore =
+    goog.abstractMethod;
 
 /**
  * Retrieve primary keys from a store in a given key range.
@@ -127,6 +134,21 @@ ydn.db.core.req.IRequestExecutor.prototype.keysByIndexKeys =
  */
 ydn.db.core.req.IRequestExecutor.prototype.keysIndexByKeyRange =
   goog.abstractMethod;
+
+/**
+ * Retrieve index keys from a store in a given primary key range.
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {string} store table name.
+ * @param {string} result index name.
+ * @param {!IDBKeyRange} key_range to retrieve.
+ * @param {string} index name.
+ * @param {boolean} reverse ordering.
+ * @param {number} limit the results.
+ * @param {number} offset skip first results.
+ * @param {boolean} distinct key only.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.keysIndexByIndexKeyRange =
+    goog.abstractMethod;
 
 /**
  * Retrieve index keys from a store in a given primary key range.
