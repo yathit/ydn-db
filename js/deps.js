@@ -2,7 +2,7 @@
 goog.addDependency("../../../ydn-db/js/con.js", [], ['ydn.db', 'ydn.db.con.Storage', 'goog.async.Deferred']);
 goog.addDependency("../../../ydn-db/js/core.js", [], ['ydn.db.core.Storage', 'ydn.db.core.TxStorage']);
 goog.addDependency("../../../ydn-db/js/dev.js", [], ['ydn.debug']);
-goog.addDependency("../../../ydn-db/js/main.js", [], ['ydn.db.Storage', 'ydn.db.TxStorage']);
+goog.addDependency("../../../ydn-db/js/main.js", [], ['ydn.db.Storage', 'ydn.db.TxStorage', 'ydn.db.algo.NestedLoop']);
 goog.addDependency("../../../ydn-db/js/test.js", [], ['ydn.db.Storage', 'goog.debug.Console']);
 goog.addDependency("../../../ydn-db/js/tr.js", [], ['ydn.db.tr.Storage', 'ydn.db.tr.TxStorage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/i_storage.js", ['ydn.db.IStorage'], ['ydn.db.req.RequestExecutor', 'ydn.db.tr.IStorage']);
@@ -11,7 +11,7 @@ goog.addDependency("../../../ydn-db/js/ydn/db/storage.js", ['ydn.db.Storage'], [
 goog.addDependency("../../../ydn-db/js/ydn/db/streamer.js", ['ydn.db.Streamer'], ['ydn.db.con.IdbCursorStream', 'ydn.db.con.IStorage', 'ydn.db.Iterator']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tx_storage.js", ['ydn.db.TxStorage'], ['ydn.db.core.TxStorage', 'ydn.db.req.IndexedDb', 'ydn.db.req.SimpleStore', 'ydn.db.req.WebSql', 'ydn.db.algo', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/algo/algo.js", ['ydn.db.algo'], ['ydn.error.ArgumentException']);
-goog.addDependency("../../../ydn-db/js/ydn/db/algo/join/abstract_solver.js", ['ydn.db.algo.AbstractSolver'], []);
+goog.addDependency("../../../ydn-db/js/ydn/db/algo/join/abstract_solver.js", ['ydn.db.algo.AbstractSolver'], ['goog.debug.Logger']);
 goog.addDependency("../../../ydn-db/js/ydn/db/algo/join/nested_loop.js", ['ydn.db.algo.NestedLoop'], ['ydn.db.algo.AbstractSolver']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/base.js", ['ydn.db.base'], ['goog.async.Deferred']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/db.js", ['ydn.db'], ['ydn.db.con.IndexedDb']);

@@ -812,7 +812,7 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   open_request();
 
   result.forward = function (next_position) {
-    console.log(['next_position', cur, next_position]);
+    //console.log(['next_position', cur, next_position]);
 
     if (next_position === false) {
       // restart the iterator
@@ -911,7 +911,7 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
     done = true;
     goog.array.clear(iterator_requests);
     goog.array.clear(streamers);
-    console.log('existing');
+    // console.log('existing');
     df.callback();
   };
 
@@ -959,7 +959,7 @@ ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
         result_count++;
       }
     }
-    console.log(['on_result_ready', move_count, keys, adv]);
+    // console.log(['on_result_ready', move_count, keys, adv]);
     if (move_count == 0) {
       do_exit();
     }
