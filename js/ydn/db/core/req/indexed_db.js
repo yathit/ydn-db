@@ -375,6 +375,118 @@ ydn.db.core.req.IndexedDb.prototype.getKeysByStore = function(df, not_key_only,
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(df, store_name,
+    key_range, reverse, limit, offset) {
+  var results = [];
+  var store = this.tx.objectStore(store_name);
+  var dir = ydn.db.base.getDirection(reverse);
+  var request = store.openCursor(key_range, dir);
+  var cued = false;
+  request.onsuccess = function(event) {
+    var cursor = event.target.result;
+    if (cursor) {
+      if (!cued && offset > 0) {
+        cued = true;
+        if (offset != 1) {
+          request.advance(offset - 1);
+        }
+        return;
+      }
+      results.push(cursor.key);
+      if (results.length < limit) {
+        request.advance(1);
+      }
+    } else {
+      df.callback(results);
+    }
+  };
+  request.onerror = function(event) {
+    if (ydn.db.core.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, event]);
+    }
+    df.errback(event);
+  };
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(df, store_name,
+      key_range, index_name, reverse, limit, offset, unique) {
+  var results = [];
+  var store = this.tx.objectStore(store_name);
+  var index = store.getIndex(index_name);
+  var dir = ydn.db.base.getDirection(reverse, unique);
+  var request = index.openKeyCursor(key_range, dir);
+  var cued = false;
+  request.onsuccess = function(event) {
+    var cursor = event.target.result;
+    if (cursor) {
+      if (!cued && offset > 0) {
+        cued = true;
+        if (offset != 1) {
+          request.advance(offset - 1);
+        }
+        return;
+      }
+      results.push(cursor.primaryKey);
+      if (results.length < limit) {
+        request.advance(1);
+      }
+    } else {
+      df.callback(results);
+    }
+  };
+  request.onerror = function(event) {
+    if (ydn.db.core.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, event]);
+    }
+    df.errback(event);
+  };
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.keysIndexByKeyRange = function(df, store_name,
+      index_name, key_range, limit, offset, distinct) {
+  var results = [];
+  var store = this.tx.objectStore(store_name);
+  var index = store.getIndex(index_name);
+  var request = index.get(key_range);
+  var cued = false;
+  request.onsuccess = function(event) {
+    var cursor = event.target.result;
+    if (cursor) {
+      if (!cued && offset > 0) {
+        cued = true;
+        if (offset != 1) {
+          request.advance(offset - 1);
+        }
+        return;
+      }
+      results.push(cursor.primaryKey);
+      if (results.length < limit) {
+        request.advance(1);
+      }
+    } else {
+      df.callback(results);
+    }
+  };
+  request.onerror = function(event) {
+    if (ydn.db.core.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, event]);
+    }
+    df.errback(event);
+  };
+};
+
+
+/**
 * @inheritDoc
 */
 ydn.db.core.req.IndexedDb.prototype.listByStores = function(df, store_names) {

@@ -1,9 +1,7 @@
 
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
-goog.require('ydn.async');
-goog.require('ydn.db.Storage');
-goog.require('goog.testing.PropertyReplacer');
+goog.require('ydn.db.core.Storage');
 
 
 var reachedFinalContinuation, schema, debug_console, db, objs;
@@ -25,7 +23,7 @@ var setUp = function () {
   var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
     ydn.db.schema.DataType.INTEGER, [indexSchema]);
-  schema = new ydn.db.schema.Database(1, [store_schema]);
+  schema = new ydn.db.schema.Database(undefined, [store_schema]);
   db = new ydn.db.Storage(db_name, schema, options);
 
   objs = [
@@ -50,8 +48,14 @@ var tearDown = function() {
 };
 
 
-
-var keyRange_test = function (q, exp_result) {
+/**
+ *
+ * @param {ydn.db.KeyRange} key_range
+ * @param {string} index
+ * @param {*} exp_result
+ * @param {boolean=} reverse
+ */
+var keyRange_test = function (key_range, index, exp_result, reverse) {
 
   var done;
   var result;
@@ -71,7 +75,7 @@ var keyRange_test = function (q, exp_result) {
     1000); // maxTimeout
 
 
-  db.fetch(q).addBoth(function (value) {
+  db.list(store_name, key_range, 'id').addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -79,114 +83,89 @@ var keyRange_test = function (q, exp_result) {
 
 };
 
-var test_store_wise = function () {
-  var q = new ydn.db.Iterator(store_name);
-  keyRange_test(q, objs);
-};
 
-
-var test_store_wise_revrse = function () {
-  var q = new ydn.db.Iterator(store_name, undefined, null, true);
-  keyRange_test(q, objs.reverse());
-};
 
 var test_integer_only = function () {
   var key_range = ydn.db.KeyRange.only(3);
-  var q = new ydn.db.Iterator(store_name, 'id', key_range);
-  keyRange_test(q, objs.slice(3, 4));
+  keyRange_test(key_range, 'id', objs.slice(3, 4));
 };
 
 
 var test_integer_lower_close = function () {
   var key_range = ydn.db.KeyRange.lowerBound(3);
-  var q = new ydn.db.Iterator(store_name, 'id', key_range);
-  keyRange_test(q, objs.slice(3, objs.length));
+  keyRange_test(key_range, 'id', objs.slice(3, objs.length));
 };
 
 var test_integer_lower_open = function () {
   var key_range = ydn.db.KeyRange.lowerBound(3, true);
-  var q = new ydn.db.Iterator(store_name, 'id', key_range);
-  keyRange_test(q, objs.slice(4, objs.length));
+  keyRange_test(key_range, 'id', objs.slice(4, objs.length));
 };
 
 var test_integer_upper_close = function () {
   var key_range = ydn.db.KeyRange.upperBound(3);
-  var q = new ydn.db.Iterator(store_name, 'id', key_range);
-  keyRange_test(q, objs.slice(0, 4));
+  keyRange_test(key_range, 'id', objs.slice(0, 4));
 };
 
 var test_integer_upper_open = function () {
   var key_range = ydn.db.KeyRange.upperBound(3, true);
-  var q = new ydn.db.Iterator(store_name, 'id', key_range);
-  keyRange_test(q, objs.slice(0, 3));
+  keyRange_test(key_range, 'id', objs.slice(0, 3));
 };
 
 var test_integer_close_close = function () {
   var key_range = ydn.db.KeyRange.bound(0, 3);
-  var q = new ydn.db.Iterator(store_name, 'id', key_range);
-  keyRange_test(q, objs.slice(1, 4));
+  keyRange_test(key_range, 'id', objs.slice(1, 4));
 };
 
 var test_integer_close_close_reverse = function () {
   var key_range = ydn.db.KeyRange.bound(0, 3);
-  var q = new ydn.db.Iterator(store_name, 'id', key_range, true);
-  keyRange_test(q, objs.slice(1, 4).reverse());
+  keyRange_test(key_range, 'id', objs.slice(1, 4).reverse());
 };
 
 var test_integer_open_close = function () {
   var key_range = ydn.db.KeyRange.bound(0, 3, true);
-  var q = new ydn.db.Iterator(store_name, 'id', key_range);
-  keyRange_test(q, objs.slice(2, 4));
+  keyRange_test(key_range, 'id', objs.slice(2, 4));
 };
 
 var test_integer_open_open = function () {
   var key_range = ydn.db.KeyRange.bound(0, 3, true, true);
-  var q = new ydn.db.Iterator(store_name, 'id', key_range);
-  keyRange_test(q, objs.slice(2, 3));
+  keyRange_test(key_range, 'id', objs.slice(2, 3));
 };
 
 
 var test_index_string_only = function () {
   var key_range = ydn.db.KeyRange.only('bc');
-  var q = new ydn.db.Iterator(store_name, 'value', key_range);
-  keyRange_test(q, objs.slice(3, 4));
+  keyRange_test(key_range, 'value', objs.slice(3, 4));
 };
 
 var test_index_string_lower_close = function () {
   var key_range = ydn.db.KeyRange.lowerBound('bc');
-  var q = new ydn.db.Iterator(store_name, 'value', key_range);
-  keyRange_test(q, objs.slice(3, objs.length));
+  keyRange_test(key_range, 'value', objs.slice(3, objs.length));
 };
 
 var test_index_string_lower_open = function () {
   var key_range = ydn.db.KeyRange.lowerBound('bc', true);
-  var q = new ydn.db.Iterator(store_name, 'value', key_range);
-  keyRange_test(q, objs.slice(4, objs.length));
+  keyRange_test(key_range, 'value', objs.slice(4, objs.length));
 };
 
 var test_index_string_close = function () {
   var key_range = ydn.db.KeyRange.upperBound('bc');
-  var q = new ydn.db.Iterator(store_name, 'value', key_range);
-  keyRange_test(q, objs.slice(0, 4));
+  keyRange_test(key_range, 'value', objs.slice(0, 4));
 };
 
 var test_index_string_upper_open = function () {
   var key_range = ydn.db.KeyRange.upperBound('bc', true);
-  var q = new ydn.db.Iterator(store_name, 'value', key_range);
-  keyRange_test(q, objs.slice(0, 3));
+  keyRange_test(key_range, 'value', objs.slice(0, 3));
 };
 
 var test_index_string_close_close = function () {
   var key_range = ydn.db.KeyRange.bound('a2', 'bc');
-  var q = new ydn.db.Iterator(store_name, 'value', key_range);
-  keyRange_test(q, objs.slice(1, 4));
+  keyRange_test(key_range, 'value', objs.slice(1, 4));
 };
 
 
 var test_index_string_close_close_reverse = function () {
   var key_range = ydn.db.KeyRange.bound('a2', 'bc');
-  var q = new ydn.db.Iterator(store_name, 'value', key_range, true);
-  keyRange_test(q, objs.slice(1, 4).reverse());
+  keyRange_test(key_range, 'value', objs.slice(1, 4).reverse(), true);
 };
 
 var test_store_string_index_wise_revrse = function () {

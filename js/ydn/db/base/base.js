@@ -170,3 +170,19 @@ ydn.db.base.DIRECTIONS = [
   ydn.db.base.Direction.PREV_UNIQUE
 ];
 
+
+/**
+ *
+ * @param {boolean=} reverse
+ * @param {boolean=} unique
+ */
+ydn.db.base.getDirection = function(reverse, unique) {
+  if (reverse) {
+    return unique ? ydn.db.base.Direction.PREV_UNIQUE :
+      ydn.db.base.Direction.PREV;
+  } else {
+    return unique ? ydn.db.base.Direction.NEXT_UNIQUE :
+      ydn.db.base.Direction.NEXT;
+  }
+};
+
