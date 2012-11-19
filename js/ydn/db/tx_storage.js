@@ -7,9 +7,9 @@
 
 goog.provide('ydn.db.TxStorage');
 goog.require('ydn.db.index.TxStorage');
-goog.require('ydn.db.req.IndexedDb');
-goog.require('ydn.db.req.SimpleStore');
-goog.require('ydn.db.req.WebSql');
+goog.require('ydn.db.core.req.IndexedDb');
+goog.require('ydn.db.core.req.SimpleStore');
+goog.require('ydn.db.core.req.WebSql');
 goog.require('ydn.db.algo');
 goog.require('ydn.error.NotSupportedException');
 
@@ -114,67 +114,39 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 };
 
 
-/**
- *
- * @param {ydn.db.Iterator} cursor the cursor.
- * @param {Function} callback icursor handler.
- * @param {ydn.db.base.TransactionMode=} mode mode.
- * @return {!goog.async.Deferred} promise on completed.
- */
-ydn.db.TxStorage.prototype.open = function(cursor, callback, mode) {
-  if (!(cursor instanceof ydn.db.Iterator)) {
-    throw new ydn.error.ArgumentException();
-  }
-  var store = this.schema.getStore(cursor.store_name);
-  if (!store) {
-    throw new ydn.error.ArgumentException('Store "' + cursor.store_name +
-      '" not found.');
-  }
-  var tr_mode = mode || ydn.db.base.TransactionMode.READ_ONLY;
-
-  var df = ydn.db.base.createDeferred();
-  this.exec(function(executor) {
-    executor.open(df, cursor, callback);
-  }, cursor.stores(), tr_mode);
-
-  return df;
-
-};
-
-
-
-/**
- * @param {!ydn.db.Iterator} q query.
- * @param {function(*): boolean} clear clear iteration function.
- * @param {function(*): *} update update iteration function.
- * @param {function(*): *} map map iteration function.
- * @param {function(*, *, number=): *} reduce reduce iteration function.
- * @param {*} initial initial value for reduce iteration function.
- * @param {?function(*): *} finalize finalize function.
- * @return {!goog.async.Deferred} promise.
- */
-ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
-                                              initial, finalize) {
-  var df = ydn.db.base.createDeferred();
-  if (!(q instanceof ydn.db.Iterator)) {
-    throw new ydn.error.ArgumentException();
-  }
-
-  var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;
-  if (goog.isDef(clear) || goog.isDef(update)) {
-    tr_mode = ydn.db.base.TransactionMode.READ_WRITE;
-  }
-
-  var scope = goog.isDef(q.index) ?
-    [q.index] : this.schema.getStoreNames();
-
-
-  this.exec(function(executor) {
-    executor.iterate(df, q, clear, update, map, reduce, initial, finalize);
-  }, scope, tr_mode);
-
-  return df;
-};
+//
+///**
+// * @param {!ydn.db.Iterator} q query.
+// * @param {function(*): boolean} clear clear iteration function.
+// * @param {function(*): *} update update iteration function.
+// * @param {function(*): *} map map iteration function.
+// * @param {function(*, *, number=): *} reduce reduce iteration function.
+// * @param {*} initial initial value for reduce iteration function.
+// * @param {?function(*): *} finalize finalize function.
+// * @return {!goog.async.Deferred} promise.
+// */
+//ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
+//                                              initial, finalize) {
+//  var df = ydn.db.base.createDeferred();
+//  if (!(q instanceof ydn.db.Iterator)) {
+//    throw new ydn.error.ArgumentException();
+//  }
+//
+//  var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;
+//  if (goog.isDef(clear) || goog.isDef(update)) {
+//    tr_mode = ydn.db.base.TransactionMode.READ_WRITE;
+//  }
+//
+//  var scope = goog.isDef(q.index) ?
+//    [q.index] : this.schema.getStoreNames();
+//
+//
+//  this.exec(function(executor) {
+//    executor.iterate(df, q, clear, update, map, reduce, initial, finalize);
+//  }, scope, tr_mode);
+//
+//  return df;
+//};
 
 
 /**
@@ -219,46 +191,46 @@ ydn.db.TxStorage.prototype.scan = function(iterators, solver, opt_streamers) {
 };
 
 
-
-
-/**
- * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
- * @return {!goog.async.Deferred} return result as list.
- */
-ydn.db.TxStorage.prototype.fetch = function(q) {
-
-  var df = ydn.db.base.createDeferred();
-
-  var query, cursor;
-  if (q instanceof ydn.db.Sql) {
-    query = q;
-    var store_name = query.getStoreName();
-    var store = this.schema.getStore(store_name);
-    if (!store) {
-      throw new ydn.error.ArgumentException('store: ' + store_name +
-        ' not exists.');
-    }
-    if (goog.isDefAndNotNull(query.index) && !store.hasIndex(query.index)) {
-      throw new ydn.error.ArgumentException('Index: ' + query.index +
-        ' not exists in store: ' + store_name);
-    }
-
-    this.exec(function(executor) {
-      executor.fetchQuery(df, query);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-
-  } else if (q instanceof ydn.db.Iterator) {
-    cursor = q;
-    this.exec(function(executor) {
-      executor.fetchCursor(df, cursor);
-    }, [cursor.store_name], ydn.db.base.TransactionMode.READ_ONLY);
-
-  } else {
-    throw new ydn.error.ArgumentException();
-  }
-
-  return df;
-};
+//
+//
+///**
+// * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
+// * @return {!goog.async.Deferred} return result as list.
+// */
+//ydn.db.TxStorage.prototype.fetch = function(q) {
+//
+//  var df = ydn.db.base.createDeferred();
+//
+//  var query, cursor;
+//  if (q instanceof ydn.db.Sql) {
+//    query = q;
+//    var store_name = query.getStoreName();
+//    var store = this.schema.getStore(store_name);
+//    if (!store) {
+//      throw new ydn.error.ArgumentException('store: ' + store_name +
+//        ' not exists.');
+//    }
+//    if (goog.isDefAndNotNull(query.index) && !store.hasIndex(query.index)) {
+//      throw new ydn.error.ArgumentException('Index: ' + query.index +
+//        ' not exists in store: ' + store_name);
+//    }
+//
+//    this.exec(function(executor) {
+//      executor.fetchQuery(df, query);
+//    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+//
+//  } else if (q instanceof ydn.db.Iterator) {
+//    cursor = q;
+//    this.exec(function(executor) {
+//      executor.fetchCursor(df, cursor);
+//    }, [cursor.store_name], ydn.db.base.TransactionMode.READ_ONLY);
+//
+//  } else {
+//    throw new ydn.error.ArgumentException();
+//  }
+//
+//  return df;
+//};
 
 
 
@@ -270,10 +242,8 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
 ydn.db.TxStorage.prototype.explain = function (q) {
   if (!this.executor) {
     return {'error':'database not ready'};
-  } else if (q instanceof ydn.db.Iterator) {
-    return this.executor.explainQuery(q);
   } else if (q instanceof ydn.db.Sql) {
-    return this.executor.explainSql(q);
+    return this.getExecutor().explainSql(q);
   } else {
     throw new ydn.error.ArgumentException();
   }
@@ -328,21 +298,21 @@ ydn.db.TxStorage.prototype.keys = function(store_name, index_or_key_range,
 
 
 /**
- *
- * @param {!ydn.db.Iterator} iterator
- * @param {function(*)} callback
- */
+*
+* @param {!ydn.db.Iterator} iterator
+* @param {function(*)} callback
+*/
 ydn.db.TxStorage.prototype.map = function(iterator, callback) {
 
 };
 
 
 /**
- *
- * @param {!ydn.db.Iterator} iterator
- * @param {function(*)} callback
- * @param {*=} initial
- */
+*
+* @param {!ydn.db.Iterator} iterator
+* @param {function(*)} callback
+* @param {*=} initial
+*/
 ydn.db.TxStorage.prototype.reduce = function(iterator, callback, initial) {
 
 };

@@ -6,9 +6,9 @@
 
 
 goog.provide('ydn.db.core.TxStorage');
-goog.require('ydn.db.req.IndexedDb');
-goog.require('ydn.db.req.SimpleStore');
-goog.require('ydn.db.req.WebSql');
+goog.require('ydn.db.core.req.IndexedDb');
+goog.require('ydn.db.core.req.SimpleStore');
+goog.require('ydn.db.core.req.WebSql');
 goog.require('ydn.db.tr.TxStorage');
 goog.require('ydn.error.NotSupportedException');
 
@@ -66,7 +66,7 @@ ydn.db.core.TxStorage.prototype.getName = function() {
 
 /**
  * @protected
- * @type {ydn.db.req.RequestExecutor} request executor.
+ * @type {ydn.db.core.req.IRequestExecutor} request executor.
  */
 ydn.db.core.TxStorage.prototype.executor = null;
 
@@ -74,9 +74,8 @@ ydn.db.core.TxStorage.prototype.executor = null;
 /**
  * Return cache executor object or create on request. This have to be crated
  * Lazily because, we can initialize it only when transaction object is active.
- * @final
  * @protected
- * @return {ydn.db.req.RequestExecutor} get executor.
+ * @return {ydn.db.core.req.IRequestExecutor} get executor.
  */
 ydn.db.core.TxStorage.prototype.getExecutor = function() {
   if (this.executor) {
@@ -85,13 +84,13 @@ ydn.db.core.TxStorage.prototype.getExecutor = function() {
 
     var type = this.type();
     if (type == ydn.db.con.IndexedDb.TYPE) {
-      this.executor = new ydn.db.req.IndexedDb(this.getName(), this.schema);
+      this.executor = new ydn.db.core.req.IndexedDb(this.getName(), this.schema);
     } else if (type == ydn.db.con.WebSql.TYPE) {
-      this.executor = new ydn.db.req.WebSql(this.db_name, this.schema);
+      this.executor = new ydn.db.core.req.WebSql(this.db_name, this.schema);
     } else if (type == ydn.db.con.SimpleStorage.TYPE ||
         type == ydn.db.con.LocalStorage.TYPE ||
         type == ydn.db.con.SessionStorage.TYPE) {
-      this.executor = new ydn.db.req.SimpleStore(this.db_name, this.schema);
+      this.executor = new ydn.db.core.req.SimpleStore(this.db_name, this.schema);
     } else {
       throw new ydn.db.InternalError('No executor for ' + type);
     }
@@ -102,16 +101,14 @@ ydn.db.core.TxStorage.prototype.getExecutor = function() {
 
 
 /**
- * @final
  * @throws {ydn.db.ScopeError}
  * @protected
- * @param {function(ydn.db.req.RequestExecutor)} callback callback when executor
+ * @param {function(ydn.db.core.req.IRequestExecutor)} callback callback when executor
  * is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  */
-ydn.db.core.TxStorage.prototype.exec = function(callback, store_names, mode)
-{
+ydn.db.core.TxStorage.prototype.exec = function(callback, store_names, mode) {
   var me = this;
   var mu_tx = this.getMuTx();
 

@@ -91,7 +91,7 @@ ydn.db.req.RequestExecutor.prototype.getById = goog.abstractMethod;
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
  */
-ydn.db.req.RequestExecutor.prototype.getByQuery = goog.abstractMethod;
+ydn.db.req.RequestExecutor.prototype.getByIterator = goog.abstractMethod;
 
 
 

@@ -19,8 +19,8 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
     //ydn.db.con.IndexedDb.DEBUG = true;
     //ydn.db.con.WebSql.DEBUG = true;
-    //ydn.db.req.IndexedDb.DEBUG = true;
-    //ydn.db.req.WebSql.DEBUG = true;
+    //ydn.db.core.req.IndexedDb.DEBUG = true;
+    //ydn.db.core.req.WebSql.DEBUG = true;
   }
 
   //   ARRAY: 'ARRAY', // out of tune here, not in WebSQL, but keyPath could be array

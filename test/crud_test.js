@@ -75,7 +75,7 @@ var test_12_put_array = function() {
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var arr = [];
-  var n = ydn.db.req.IndexedDb.REQ_PER_TX / 2;
+  var n = ydn.db.core.req.IndexedDb.REQ_PER_TX / 2;
   for (var i = 0; i < n; i++) {
     arr.push({id: i, value: 'a' + Math.random()});
   }
@@ -115,7 +115,7 @@ var test_13_put_array = function() {
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var arr = [];
-  var n = ydn.db.req.IndexedDb.REQ_PER_TX * 2.5;
+  var n = ydn.db.core.req.IndexedDb.REQ_PER_TX * 2.5;
   for (var i = 0; i < n; i++) {
     arr.push({id: i, value: 'a' + Math.random()});
   }
@@ -268,7 +268,7 @@ var test_23_get_array = function() {
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var arr = [];
-  var n = ydn.db.req.IndexedDb.REQ_PER_TX / 2;
+  var n = ydn.db.core.req.IndexedDb.REQ_PER_TX / 2;
   for (var i = 0; i < n; i++) {
     arr.push({id: i, value: 'a' + Math.random()});
   }
@@ -311,14 +311,14 @@ var test_24_get_array = function() {
   var db = new ydn.db.Storage(db_name, schema, options);
 
   var arr = [];
-  var n = ydn.db.req.IndexedDb.REQ_PER_TX * 2.5;
+  var n = ydn.db.core.req.IndexedDb.REQ_PER_TX * 2.5;
   for (var i = 0; i < n; i++) {
     arr.push({id: i, value: 'a' + Math.random()});
   }
   var ids = [2,
-    ydn.db.req.IndexedDb.REQ_PER_TX,
-    ydn.db.req.IndexedDb.REQ_PER_TX+1,
-    2*ydn.db.req.IndexedDb.REQ_PER_TX+1];
+    ydn.db.core.req.IndexedDb.REQ_PER_TX,
+    ydn.db.core.req.IndexedDb.REQ_PER_TX+1,
+    2*ydn.db.core.req.IndexedDb.REQ_PER_TX+1];
 
 
   var hasEventFired = false;
@@ -753,7 +753,7 @@ var test_53_fetch_keys = function () {
 
 
   var objs1 = [];
-  var n = ydn.db.req.IndexedDb.REQ_PER_TX * 2.5;
+  var n = ydn.db.core.req.IndexedDb.REQ_PER_TX * 2.5;
   for (var i = 0; i < n; i++) {
     objs1.push({id: 'a' + i, value: Math.random()});
   }
@@ -763,9 +763,9 @@ var test_53_fetch_keys = function () {
     objs2.push({id: 'b' + i, value: Math.random()});
   }
   var ids = [2,
-    ydn.db.req.IndexedDb.REQ_PER_TX,
-    ydn.db.req.IndexedDb.REQ_PER_TX+1,
-    2*ydn.db.req.IndexedDb.REQ_PER_TX+1];
+    ydn.db.core.req.IndexedDb.REQ_PER_TX,
+    ydn.db.core.req.IndexedDb.REQ_PER_TX+1,
+    2*ydn.db.core.req.IndexedDb.REQ_PER_TX+1];
   var keys = [];
   for (var i = 0; i < ids.length; i++) {
     keys.push(new ydn.db.Key(store_name1, objs1[ids[i]].id));

@@ -115,14 +115,14 @@ ydn.db.Storage.prototype.getWrapper = function() {
   return this.wrapper || null;
 };
 
-
-/**
- * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
- * @return {!goog.async.Deferred} return result as list.
- */
-ydn.db.Storage.prototype.fetch = function(q) {
-  return this.default_tx_queue_.fetch(q);
-};
+//
+///**
+// * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
+// * @return {!goog.async.Deferred} return result as list.
+// */
+//ydn.db.Storage.prototype.fetch = function(q) {
+//  return this.default_tx_queue_.fetch(q);
+//};
 
 
 /**
@@ -184,21 +184,21 @@ ydn.db.Storage.prototype.toString = function() {
   return s;
 };
 
-
-
-/**
- * @param {!ydn.db.Iterator} q query.
- * @param {function(*): boolean} clear clear iteration function.
- * @param {function(*): *} update update iteration function.
- * @param {function(*): *} map map iteration function.
- * @param {function(*, *, number=): *} reduce reduce iteration function.
- * @param {*} initial initial value for reduce iteration function.
- * @return {!goog.async.Deferred} promise.
- */
-ydn.db.Storage.prototype.iterate = function(q, clear, update, map, reduce,
-                                            initial) {
-  return this.default_tx_queue_.iterate(q, clear, update, map, reduce, initial);
-};
+//
+//
+///**
+// * @param {!ydn.db.Iterator} q query.
+// * @param {function(*): boolean} clear clear iteration function.
+// * @param {function(*): *} update update iteration function.
+// * @param {function(*): *} map map iteration function.
+// * @param {function(*, *, number=): *} reduce reduce iteration function.
+// * @param {*} initial initial value for reduce iteration function.
+// * @return {!goog.async.Deferred} promise.
+// */
+//ydn.db.Storage.prototype.iterate = function(q, clear, update, map, reduce,
+//                                            initial) {
+//  return this.default_tx_queue_.iterate(q, clear, update, map, reduce, initial);
+//};
 
 
 
@@ -216,10 +216,10 @@ ydn.db.Storage.prototype.scan = function(iterators, solver, streamers) {
 
 
 /**
- *
- * @param {!ydn.db.Iterator} iterator
- * @param {function(*)} callback
- */
+*
+* @param {!ydn.db.Iterator} iterator
+* @param {function(*)} callback
+*/
 ydn.db.Storage.prototype.map = function(iterator, callback) {
 
 };
@@ -227,11 +227,11 @@ ydn.db.Storage.prototype.map = function(iterator, callback) {
 
 
 /**
- *
- * @param {!ydn.db.Iterator} iterator
- * @param {function(*)} callback
- * @param {*=} initial
- */
+*
+* @param {!ydn.db.Iterator} iterator
+* @param {function(*)} callback
+* @param {*=} initial
+*/
 ydn.db.Storage.prototype.reduce = function(iterator, callback, initial) {
 
 };

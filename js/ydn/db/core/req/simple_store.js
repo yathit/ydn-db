@@ -16,11 +16,12 @@
  * @fileoverview Data store in memory.
  */
 
-goog.provide('ydn.db.req.SimpleStore');
+goog.provide('ydn.db.core.req.SimpleStore');
 goog.require('goog.Timer');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.req.RequestExecutor');
+goog.require('ydn.db.core.req.IRequestExecutor');
 
 
 /**
@@ -28,11 +29,12 @@ goog.require('ydn.db.req.RequestExecutor');
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
+ * @implements {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.req.SimpleStore = function(dbname, schema) {
+ydn.db.core.req.SimpleStore = function(dbname, schema) {
   goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.req.SimpleStore, ydn.db.req.RequestExecutor);
+goog.inherits(ydn.db.core.req.SimpleStore, ydn.db.req.RequestExecutor);
 
 
 
@@ -40,14 +42,14 @@ goog.inherits(ydn.db.req.SimpleStore, ydn.db.req.RequestExecutor);
  *
  * @define {boolean} use sync result.
  */
-ydn.db.req.SimpleStore.SYNC = true;
+ydn.db.core.req.SimpleStore.SYNC = true;
 
 
 /**
  *
  * @type {boolean} debug flag. should always be false.
  */
-ydn.db.req.SimpleStore.DEBUG = false;
+ydn.db.core.req.SimpleStore.DEBUG = false;
 
 
 
@@ -56,11 +58,11 @@ ydn.db.req.SimpleStore.DEBUG = false;
  * @param {*} value value to return.
  * @return {!goog.async.Deferred} return callback with given value in async.
  */
-ydn.db.req.SimpleStore.succeed = function(value) {
+ydn.db.core.req.SimpleStore.succeed = function(value) {
 
   var df = new goog.async.Deferred();
 
-  if (ydn.db.req.SimpleStore.SYNC) {
+  if (ydn.db.core.req.SimpleStore.SYNC) {
     df.callback(value);
   } else {
     goog.Timer.callOnce(function() {
@@ -76,7 +78,7 @@ ydn.db.req.SimpleStore.succeed = function(value) {
  *
  * @return {ydn.db.con.SimpleStorage}
  */
-ydn.db.req.SimpleStore.prototype.getTx = function() {
+ydn.db.core.req.SimpleStore.prototype.getTx = function() {
   return /** @type {ydn.db.con.SimpleStorage} */ (this.tx);
 };
 
@@ -87,7 +89,7 @@ ydn.db.req.SimpleStore.prototype.getTx = function() {
 * @param {!Object} value object to put.
  * @param {(!Array|string|number)=} opt_key optional out-of-line key.
 */
-ydn.db.req.SimpleStore.prototype.putObject = function(
+ydn.db.core.req.SimpleStore.prototype.putObject = function(
       df, table, value, opt_key) {
   var key = this.getTx().setItemInternal(value, table, opt_key);
   df.callback(key);
@@ -100,7 +102,7 @@ ydn.db.req.SimpleStore.prototype.putObject = function(
  * @param {Array.<!Object>} value object to put.
  * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
  */
-ydn.db.req.SimpleStore.prototype.putObjects = function(
+ydn.db.core.req.SimpleStore.prototype.putObjects = function(
       df, table, value, opt_key) {
 
   var result = [];
@@ -119,7 +121,7 @@ ydn.db.req.SimpleStore.prototype.putObjects = function(
  * @param {string} store_name store name.
 * @param {(string|number|Date|!Array)} id id.
 */
-ydn.db.req.SimpleStore.prototype.getById = function(df, store_name, id) {
+ydn.db.core.req.SimpleStore.prototype.getById = function(df, store_name, id) {
   df.callback(this.getTx().getItemInternal(store_name, id));
 };
 
@@ -127,7 +129,7 @@ ydn.db.req.SimpleStore.prototype.getById = function(df, store_name, id) {
 /**
 * @inheritDoc
 */
-ydn.db.req.SimpleStore.prototype.listByStores = function (df, store_names) {
+ydn.db.core.req.SimpleStore.prototype.listByStores = function (df, store_names) {
 
   goog.Timer.callOnce(function () {
 
@@ -147,7 +149,7 @@ ydn.db.req.SimpleStore.prototype.listByStores = function (df, store_names) {
  *
  * @inheritDoc
  */
-ydn.db.req.SimpleStore.prototype.listByIds = function(df, store_name, ids) {
+ydn.db.core.req.SimpleStore.prototype.listByIds = function(df, store_name, ids) {
   var arr = [];
   for (var i = 0; i < ids.length; i++) {
     var value = this.getTx().getItemInternal(store_name, ids[i]);
@@ -160,7 +162,7 @@ ydn.db.req.SimpleStore.prototype.listByIds = function(df, store_name, ids) {
 /**
 * @inheritDoc
 */
-ydn.db.req.SimpleStore.prototype.listByKeys = function(df, keys) {
+ydn.db.core.req.SimpleStore.prototype.listByKeys = function(df, keys) {
   var arr = [];
   for (var i = 0; i < keys.length; i++) {
     var value = this.getTx().getItemInternal(keys[i].getStoreName(), keys[i].getId());
@@ -176,7 +178,7 @@ ydn.db.req.SimpleStore.prototype.listByKeys = function(df, keys) {
  * @param {string} table delete a specific table or all tables.
  * @param {(!Array|string|number)} id delete a specific row.
  */
-ydn.db.req.SimpleStore.prototype.clearById = function(df, table, id) {
+ydn.db.core.req.SimpleStore.prototype.clearById = function(df, table, id) {
 
   this.getTx().removeItemInternal(table, id);
 
@@ -187,7 +189,7 @@ ydn.db.req.SimpleStore.prototype.clearById = function(df, table, id) {
 /**
  * @inheritDoc
 */
-ydn.db.req.SimpleStore.prototype.clearByStore = function(df, stores) {
+ydn.db.core.req.SimpleStore.prototype.clearByStore = function(df, stores) {
 
   var store_names = goog.isString(stores) ? [stores] : stores;
 
@@ -204,7 +206,7 @@ ydn.db.req.SimpleStore.prototype.clearByStore = function(df, stores) {
  * @param {!goog.async.Deferred} df return number of items in deferred function.
  * @param {!Array.<string>}  store_names table name.
 */
-ydn.db.req.SimpleStore.prototype.countStores = function (df, store_names) {
+ydn.db.core.req.SimpleStore.prototype.countStores = function (df, store_names) {
 
   goog.Timer.callOnce(function () {
     var n = 0;
@@ -223,7 +225,7 @@ ydn.db.req.SimpleStore.prototype.countStores = function (df, store_names) {
  * @param {string} opt_table table name.
  *  @param {ydn.db.KeyRange} keyRange the key range.
  */
-ydn.db.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
+ydn.db.core.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
                                                           keyRange) {
 
   var pre_fix = '_database_' + this.dbname;
