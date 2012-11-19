@@ -24,7 +24,7 @@ goog.require('ydn.object');
 if (ydn.db.base.ENABLE_ENCRYPTION) {
   goog.require('ydn.db.RichStorage_');
 }
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.index.Storage');
 goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.IStorage');
 
@@ -44,7 +44,7 @@ goog.require('ydn.db.IStorage');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
- * @extends {ydn.db.core.Storage}
+ * @extends {ydn.db.index.Storage}
  * @constructor *
  */
 ydn.db.Storage = function(opt_dbname, opt_schema, opt_options) {
@@ -52,7 +52,7 @@ ydn.db.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
 };
-goog.inherits(ydn.db.Storage, ydn.db.core.Storage);
+goog.inherits(ydn.db.Storage, ydn.db.index.Storage);
 
 //
 ///**

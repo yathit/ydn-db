@@ -6,7 +6,7 @@
 
 
 goog.provide('ydn.db.TxStorage');
-goog.require('ydn.db.core.TxStorage');
+goog.require('ydn.db.index.TxStorage');
 goog.require('ydn.db.req.IndexedDb');
 goog.require('ydn.db.req.SimpleStore');
 goog.require('ydn.db.req.WebSql');
@@ -20,12 +20,12 @@ goog.require('ydn.error.NotSupportedException');
  * @param {string} scope_name scope name.
  * @param {!ydn.db.schema.Database} schema  schema.
  * @constructor
- * @extends {ydn.db.core.TxStorage}
+ * @extends {ydn.db.index.TxStorage}
 */
 ydn.db.TxStorage = function(storage, ptx_no, scope_name, schema) {
   goog.base(this, storage, ptx_no, scope_name, schema);
 };
-goog.inherits(ydn.db.TxStorage, ydn.db.core.TxStorage);
+goog.inherits(ydn.db.TxStorage, ydn.db.index.TxStorage);
 
 
 /**
