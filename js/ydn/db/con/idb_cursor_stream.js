@@ -7,28 +7,45 @@
 
 goog.provide('ydn.db.con.IdbCursorStream');
 goog.require('goog.debug.Logger');
-goog.require('ydn.db.con.IndexedDb');
 goog.require('ydn.db.con.ICursorStream');
+goog.require('ydn.db.con.IStorage');
 
 
 /**
  *
- * @param {!ydn.db.con.Storage} db
+ * @param {!ydn.db.con.IStorage|!IDBTransaction} db
  * @param {string} store_name store name.
- * @param {string} index_name index name.
+ * @param {string|undefined} index_name index name.
  * @param {boolean} key_only key only.
  * @param {Function} sink to receive value.
  * @constructor
  * @implements {ydn.db.con.ICursorStream}
  */
 ydn.db.con.IdbCursorStream = function(db, store_name, index_name, key_only, sink) {
-  this.db_ = db;
+  if ('transaction' in db) {
+    this.db_ = /** @type {ydn.db.con.IStorage} */ (db);
+    this.idb_ = null;
+    this.tx_ = null;
+  } else if ('objectStore' in db) { //  IDBTransaction
+    var tx = /** @type {IDBTransaction} */ (db);
+    this.db_ = null;
+    this.idb_ = tx.db;
+    this.tx_ = tx;
+    if (goog.DEBUG && !this.tx_.db.objectStoreNames.contains(store_name)) {
+      throw new ydn.error.ArgumentException('store "' + store_name +
+          '" not in transaction.');
+    }
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+
   this.store_name_ = store_name;
   this.index_name_ = index_name;
   this.sink_ = sink;
   this.key_only_ = key_only;
   this.cursor_ = null;
   this.stack_ = [];
+  this.on_tx_request_ = false;
 };
 
 
@@ -41,10 +58,33 @@ ydn.db.con.IdbCursorStream.prototype.logger =
 
 
 /**
- * @type {!ydn.db.con.Storage}
+ * @type {ydn.db.con.IStorage}
  * @private
  */
 ydn.db.con.IdbCursorStream.prototype.db_;
+
+
+/**
+ * @type {IDBTransaction}
+ * @private
+ */
+ydn.db.con.IdbCursorStream.prototype.tx_;
+
+
+/**
+ * @type {IDBDatabase}
+ * @private
+ */
+ydn.db.con.IdbCursorStream.prototype.idb_;
+
+
+/**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.con.IdbCursorStream.prototype.on_tx_request_ = false;
+
 
 /**
  * @type {string}
@@ -54,7 +94,7 @@ ydn.db.con.IdbCursorStream.prototype.store_name_;
 
 
 /**
- * @type {string}
+ * @type {string|undefined}
  * @private
  */
 ydn.db.con.IdbCursorStream.prototype.index_name_;
@@ -66,7 +106,6 @@ ydn.db.con.IdbCursorStream.prototype.index_name_;
  * @private
  */
 ydn.db.con.IdbCursorStream.prototype.stack_ = [];
-
 
 
 /**
@@ -103,10 +142,10 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
     if (cursor) {
       me.cursor_ = cursor;
       if (goog.isFunction(me.sink_)) {
-        if (goog.isDef(me.index_name_)) {
-          me.sink_(cursor.key);
+        if (goog.isDef(me.key_only_)) {
+          me.sink_(cursor.primaryKey, cursor.key);
         } else {
-          me.sink_(cursor['value']);
+          me.sink_(cursor.primaryKey, cursor['value']);
         }
       } else {
         me.logger.warning('sink gone, dropping value for: ' +
@@ -145,27 +184,71 @@ ydn.db.con.IdbCursorStream.prototype.onFinish = function(callback) {
 ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
   var me = this;
   var on_completed = function(type, ev) {
+    me.tx_ = null;
     me.cursor_ = null;
     if (type !== ydn.db.base.TransactionEventTypes.COMPLETE) {
       me.logger.warning(ev.name + ':' + ev.message);
     }
-    me.logger.finest('transaction ' + type);
+    me.logger.finest(me + ' transaction ' + type);
   };
-  this.on_tx_request_ = true;
-  this.db_.transaction(function(tx) {
-    me.on_tx_request_ = false;
+
+  /**
+   *
+   * @param {IDBTransaction} tx active tx.
+   */
+  var doRequest = function(tx) {
+    me.logger.finest(me + ' transaction started for ' + key);
     var store = tx.objectStore(me.store_name_);
-    if (goog.isString(me.index_name_)) {
+    var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
+    if (goog.isDef(me.index_name_) &&
+        indexNames.contains(me.index_name_)) {
       var index = store.index(me.index_name_);
       if (me.key_only_) {
-        me.processRequest_(store.openKeyCursor(key));
+        me.processRequest_(index.openKeyCursor(key));
       } else {
-        me.processRequest_(store.openCursor(key));
+        me.processRequest_(index.openCursor(key));
       }
-    } else {
+    } else if (!goog.isDef(me.index_name_) || me.index_name_ == store.keyPath) {
+      // as of v1, ObjectStore do not have openKeyCursor method.
+      // filed bug on:
+      // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       me.processRequest_(store.openCursor(key));
+    } else {
+      throw new ydn.db.InvalidStateError();
     }
-  }, [this.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
+  };
+
+  if (this.tx_) {
+    me.logger.finest(me + ' using existing tx.');
+    doRequest(this.tx_);
+  } else if (this.idb_) {
+    me.logger.finest(me + ' creating tx from IDBDatabase.');
+    this.tx = this.idb_.transaction([this.store_name_],
+        ydn.db.base.TransactionMode.READ_ONLY);
+    this.tx.oncomplete = function(event) {
+      on_completed(ydn.db.base.TransactionEventTypes.COMPLETE, event);
+    };
+
+    this.tx.onerror = function(event) {
+      on_completed(ydn.db.base.TransactionEventTypes.ERROR, event);
+    };
+
+    this.tx.onabort = function(event) {
+      on_completed(ydn.db.base.TransactionEventTypes.ABORT, event);
+    };
+  } else if (this.db_) {
+    me.logger.finest(me + ' creating tx from ydn.db.con.IStorage.');
+    this.on_tx_request_ = true;
+    this.db_.transaction(function(/** @type {IDBTransaction} */ tx) {
+      me.on_tx_request_ = false;
+      me.tx_ = tx;
+      doRequest(tx);
+    }, [me.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
+  } else {
+    throw new ydn.error.InternalError(
+        'no way to create a transaction provided.');
+  }
+
 };
 
 
@@ -173,6 +256,7 @@ ydn.db.con.IdbCursorStream.prototype.clearStack_ = function() {
   if (this.cursor_ && this.stack_.length > 0) {
     // we retain only valid request with active cursor.
     this.cursor_['continue'](this.stack_.shift());
+    this.cursor_ = null;
   } else {
     if (this.collector_) {
       this.collector_();

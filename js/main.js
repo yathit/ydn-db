@@ -5,21 +5,22 @@
 
 goog.require('ydn.db.Storage');
 goog.require('ydn.db.TxStorage');
+goog.require('ydn.db.algo.NestedLoop');
 
 
-goog.exportSymbol('ydn.db.Query', ydn.db.Query);
-goog.exportProperty(ydn.db.Query.prototype, 'continued',
-    ydn.db.Query.prototype.continued);
-goog.exportProperty(ydn.db.Query.prototype, 'count',
-    ydn.db.Query.prototype.count);
-goog.exportProperty(ydn.db.Query.prototype, 'done',
-  ydn.db.Query.prototype.done);
-goog.exportProperty(ydn.db.Query.prototype, 'filter',
-  ydn.db.Query.prototype.filter);
-goog.exportProperty(ydn.db.Query.prototype, 'key',
-  ydn.db.Query.prototype.key);
-goog.exportProperty(ydn.db.Query.prototype, 'indexKey',
-  ydn.db.Query.prototype.indexKey);
+goog.exportSymbol('ydn.db.Iterator', ydn.db.Iterator);
+goog.exportProperty(ydn.db.Iterator.prototype, 'continued',
+    ydn.db.Iterator.prototype.continued);
+goog.exportProperty(ydn.db.Iterator.prototype, 'count',
+    ydn.db.Iterator.prototype.count);
+goog.exportProperty(ydn.db.Iterator.prototype, 'done',
+  ydn.db.Iterator.prototype.done);
+goog.exportProperty(ydn.db.Iterator.prototype, 'filter',
+  ydn.db.Iterator.prototype.filter);
+goog.exportProperty(ydn.db.Iterator.prototype, 'key',
+  ydn.db.Iterator.prototype.key);
+goog.exportProperty(ydn.db.Iterator.prototype, 'indexKey',
+  ydn.db.Iterator.prototype.indexKey);
 
 goog.exportSymbol('ydn.db.Sql', ydn.db.Sql);
 goog.exportProperty(ydn.db.Sql.prototype, 'project',
@@ -90,4 +91,8 @@ goog.exportProperty(ydn.math.Expression, 'parseRpn',
   ydn.math.Expression.parseRpn);
 goog.exportProperty(ydn.math.Expression, 'parseInfix',
   ydn.math.Expression.parseInfix);
+
+goog.exportSymbol('ydn.db.algo.NestedLoop', ydn.db.algo.NestedLoop);
+goog.exportSymbol('ydn.db.algo.AbstractSolver', ydn.db.algo.AbstractSolver);
+
 

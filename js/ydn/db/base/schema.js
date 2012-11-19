@@ -9,7 +9,7 @@ goog.provide('ydn.db.schema.DataType');
 goog.provide('ydn.db.schema.Database');
 goog.provide('ydn.db.schema.Index');
 goog.provide('ydn.db.schema.Store');
-goog.require('ydn.db.Query.Direction');
+goog.require('ydn.db.Iterator.Direction');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.utils');
 
@@ -280,12 +280,12 @@ ydn.db.schema.Index.prototype.difference = function(index) {
 
 /**
  *
- * @param {ydn.db.Query.Direction|string=} str direction in string format.
- * @return {ydn.db.Query.Direction|undefined} equivalent typed direction.
+ * @param {ydn.db.Iterator.Direction|string=} str direction in string format.
+ * @return {ydn.db.Iterator.Direction|undefined} equivalent typed direction.
  */
 ydn.db.schema.Index.toDir = function(str) {
-  var idx = goog.array.indexOf(ydn.db.Query.DIRECTIONS, str);
-  return ydn.db.Query.DIRECTIONS[idx]; // undefined OK.
+  var idx = goog.array.indexOf(ydn.db.Iterator.DIRECTIONS, str);
+  return ydn.db.Iterator.DIRECTIONS[idx]; // undefined OK.
 };
 
 

@@ -65,6 +65,15 @@ ydn.db.req.IndexedDb.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.req.IndexedDb');
 
 
+/**
+ *
+ * @return {!IDBTransaction} casted tx.
+ */
+ydn.db.req.IndexedDb.prototype.getTx = function() {
+  return /** @type {!IDBTransaction} */ (this.tx);
+};
+
+
 
 /**
 * Execute PUT request either storing result to tx or callback to df.
@@ -577,7 +586,7 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
 //
 ///**
 // * Index scanning.
-// * @param {!Array.<!ydn.db.Query>>} indexes list of indexes.
+// * @param {!Array.<!ydn.db.Iterator>>} indexes list of indexes.
 // * @param {(function(keys: !Array, index_keys: !Array): number)=} callback
 // * @param {number=} limit limit number of match results.
 // * @param {boolean=} no_prefetch no prefetching of result.
@@ -617,7 +626,7 @@ ydn.db.req.IndexedDb.prototype.listByKeys = function(df, keys) {
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {!ydn.db.Query} iterator The cursor.
+ * @param {!ydn.db.Iterator} iterator The cursor.
  * @param {ydn.db.base.CursorMode} mode mode.
  * @return {{
  *    onnext: Function,
@@ -712,8 +721,20 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
           request = index.openKeyCursor();
         }
       } else {
-        throw new ydn.error.InvalidOperationException(
-          'object store cannot open for key cursor');
+        //throw new ydn.error.InvalidOperationException(
+        //    'object store cannot open for key cursor');
+        // IDB v1 spec do not have openKeyCursor, hopefully next version does
+      // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
+        // however, lazy serailization used at least in FF.
+        if (goog.isDefAndNotNull(dir)) {
+          request = obj_store.openCursor(keyRange, dir);
+        } else if (goog.isDefAndNotNull(keyRange)) {
+          request = obj_store.openCursor(keyRange);
+          // some browser have problem with null, even though spec said OK.
+        } else {
+          request = obj_store.openCursor();
+        }
+
       }
     } else {
       if (index) {
@@ -741,6 +762,7 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
     var cue = false;
     request.onsuccess = function (event) {
       cur = (event.target.result);
+      //console.log(['onsuccess', cur]);
       if (cur) {
         if (resume) {
           // cue to correct position
@@ -769,9 +791,9 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
         iterator.counter++;
         iterator.store_key = cur.primaryKey;
         iterator.index_key = cur.key;
-        var value = key_only ? undefined : cur['value'];
+        var value = key_only ? cur.key : cur['value'];
 
-        result.onnext(cur.primaryKey, cur.key, value);
+        result.onnext(cur.primaryKey, value);
 
       } else {
         iterator.has_done = true;
@@ -792,17 +814,17 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   result.forward = function (next_position) {
     //console.log(['next_position', cur, next_position]);
 
-    if (cur) {
-      if (next_position === false) {
-        // restart the iterator
-        me.logger.finest('Iterator: ' + iterator + ' restarting.');
-        iterator.has_done = undefined;
-        iterator.counter = 0;
-        iterator.store_key = undefined;
-        iterator.index_key = undefined;
-        cur = null;
-        open_request();
-      } else if (next_position === true) {
+    if (next_position === false) {
+      // restart the iterator
+      me.logger.finest('Iterator: ' + iterator + ' restarting.');
+      iterator.has_done = undefined;
+      iterator.counter = 0;
+      iterator.store_key = undefined;
+      iterator.index_key = undefined;
+      cur = null;
+      open_request();
+    } else if (cur) {
+      if (next_position === true) {
         if (goog.DEBUG && iterator.has_done) {
           me.logger.warning('Iterator: ' + iterator + ' completed, ' +
             'but continuing.');
@@ -823,15 +845,13 @@ ydn.db.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
     }
   };
 
-
-
   return result;
 };
 
 
 /**
  *
- * @param {!ydn.db.Query} cursor the cursor.
+ * @param {!ydn.db.Iterator} cursor the cursor.
  * @param {Function} callback icursor handler.
  * @param {ydn.db.base.CursorMode?=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
@@ -861,190 +881,203 @@ ydn.db.req.IndexedDb.prototype.open = function(cursor, callback, mode) {
 
 
 /**
- * Cursor scan iteration.
- * @param {!goog.async.Deferred} df promise on completed.
- * @param {!Array.<!ydn.db.Query>} queries the cursor.
- * @param {Function} join_algo next callback handler.
- * @param {number=} limit limit number of matched results.
- * @param {boolean=} no_collect_key if true not prefetch.
- * @param {boolean=} no_prefetch if true not prefetch.
+ * @inheritDoc
  */
-ydn.db.req.IndexedDb.prototype.scan = function(df, queries, join_algo, limit,
-                                               no_collect_key, no_prefetch) {
+ydn.db.req.IndexedDb.prototype.scan = function(df, iterators,
+                                               passthrough_streamers, solver) {
 
   var me = this;
-  var mode = ydn.db.base.CursorMode.KEY_ONLY;
 
   var done = false;
-  var n = queries.length;
+
+  var total;
+  var idx2streamer = []; // convert main index to streamer index
+  var idx2iterator = []; // convert main index to iterator index
+
   var keys = [];
-  var index_keys = [];
-  var requests = [];
+  var values = [];
+  var iterator_requests = [];
+  var streamers = [];
 
-  var match_keys, match_index_keys, result_values, objStore;
-  if (!no_collect_key) {
-    match_keys = [];
-    match_index_keys = [];
-  }
-  if (!no_prefetch) {
-    result_values = [];
-    objStore = this.tx.objectStore(queries[0].getStoreName());
-  }
-
-  var pre_fetch_count = 0;
-  var do_prefetch = function(i, key) {
-    var req = objStore.get(key);
-    req.onsuccess = function (event) {
-      pre_fetch_count++;
-      result_values[i] = event.target.result;
-
-      if (done && pre_fetch_count == 0) {
-        df.callback({
-          'keys': match_keys,
-          'indexKeys': match_index_keys,
-          'values': result_values});
-      }
-    };
-    req.onerror = function(e) {
-      pre_fetch_count++;
-      result_values[i] = null;
-
-      if (done && pre_fetch_count == 0) {
-        df.callback({
-          'keys': match_keys,
-          'indexKeys': match_index_keys,
-          'values': result_values});
-      }
-    };
-  };
-
-  var existed = false;
   var do_exit = function() {
-    if (existed) {
-      throw new ydn.error.InternalError('existed');
-    }
-    for (var k = 0; k < queries.length; k++) {
-      if (!goog.isDef(queries[k].has_done)) {
+
+    for (var k = 0; k < iterators.length; k++) {
+      if (!goog.isDef(iterators[k].has_done)) {
         // change iterators busy state to resting state.
-        queries[k].has_done = false;
+        // FIXME: this dirty job should be in iterator class.
+        iterators[k].has_done = false;
       }
     }
-
-    if (no_prefetch) {
-      df.callback({
-        'keys':match_keys,
-        'indexKeys':match_index_keys,
-        'values':result_values});
-    } else if (pre_fetch_count == 0) {
-      df.callback({
-        'keys':match_keys,
-        'indexKeys':match_index_keys,
-        'values':result_values});
-    }
-
     done = true;
+    goog.array.clear(iterator_requests);
+    goog.array.clear(streamers);
+    // console.log('existing');
+    df.callback();
   };
 
   var result_count = 0;
+  var streamer_result_count = 0;
   var has_key_count = 0;
+
   /**
-   * Received cursor result.
+   * All results collected. Now invoke solver and do advancement.
+   */
+  var on_result_ready = function() {
+    result_count = 0;
+    // all cursor has results, than sent to join algorithm callback.
+    var adv;
+    if (solver instanceof ydn.db.algo.AbstractSolver) {
+      adv = solver.adapter(keys, values);
+    } else {
+      adv = solver(keys, values);
+    }
+    goog.asserts.assertArray(adv);
+    var move_count = 0;
+    for (var i = 0; i < iterators.length; i++) {
+      if (goog.isDefAndNotNull(adv[i])) {
+        var idx = idx2iterator[i];
+        if (!goog.isDef(idx)) {
+          throw new ydn.error.InvalidOperationException(i +
+              ' is not an iterator.');
+        }
+        var iterator = iterators[idx];
+        var req = iterator_requests[i];
+        if (adv[i] !== false && !goog.isDef(keys[i])) {
+          throw new ydn.error.InvalidOperationError('Iterator ' + i +
+              ' must not advance.');
+        }
+        keys[i] = undefined;
+        values[i] = undefined;
+        if (ydn.db.req.IndexedDb.DEBUG) {
+          var s = adv[i] === false ? 'restart' : adv[i] === true ? '' : adv[i];
+          window.console.log(iterator.toString() + ': forward ' + s);
+        }
+        req.forward(adv[i]);
+        move_count++;
+      } else {
+        // take non advancing iterator as already moved.
+        result_count++;
+      }
+    }
+    // console.log(['on_result_ready', move_count, keys, adv]);
+    if (move_count == 0) {
+      do_exit();
+    }
+  };
+
+  /**
+   * Receive streamer result. When all streamer results are received,
+   * this begin on_iterators_ready.
    * @param {number} i
    * @param {*} key
-   * @param {*} indexKey
    * @param {*} value
+   * @return {boolean}
    */
-  var next = function (i, key, indexKey, value) {
+  var on_streamer_pop = function(i, key, value) {
     if (done) {
       if (ydn.db.req.IndexedDb.DEBUG) {
-        window.console.log(['next', i, key, indexKey, value,  queries[i]]);
+        window.console.log(['on_streamer_next', i, key, value]);
       }
       throw new ydn.error.InternalError();
     }
-    //console.log(['next', i, key, indexKey, value,  queries[i]]);
-    result_count++;
-
     keys[i] = key;
-    index_keys[i] = indexKey;
-    //console.log([i, key, indexKey]);
-    if (result_count === n) { // receive all cursor results
-      result_count = 0; // reset for new iteration
-      // check for match
-      if (!no_collect_key && goog.isDefAndNotNull(keys[0])) {
-        var same_key = true;
-        for (var k = 1; k < keys.length; k++) {
-          if (goog.isArray(keys[0])) {
-            if (!goog.array.equals(keys[i - 1], keys[i])) {
-              same_key = false;
-              break;
-            }
-          } else if (keys[i - 1] != keys[i]) {
-            same_key = false;
-            break;
-          }
-        }
-        if (same_key) {
-          match_keys.push(keys[0]);
-          match_index_keys.push(ydn.object.clone(index_keys));
-          pre_fetch_count--;
-          do_prefetch(match_keys.length - 1, keys[0]);
-        }
-      }
-
-      // all cursor has results, than sent to join algorithm callback.
-      var adv = join_algo(keys, index_keys);
-      //console.log('join_algo: ' + adv + ' of ' + keys[0]);
-      if (goog.isArray(adv)) {
-        goog.asserts.assert(adv.length === n);
-
-        for (var j = 0; j < n; j++) {
-          var query = queries[j];
-          if (goog.isDefAndNotNull(adv[j])) {
-            if (!goog.isDefAndNotNull(keys[j])) {
-              throw new ydn.error.InvalidOperationError('Return value at ' + j + ' must not set.');
-            }
-            keys[j] = undefined;
-            index_keys[j] = undefined;
-            //console.log('moving ' + i + ' to ' + adv[j]);
-            requests[j].forward(adv[j]);
-
-          } else {
-            // pass
-            // reuse previous result
-            // increase the result counter since we already have it
-            result_count++;
-          }
-        }
-        var is_moving = result_count < n;
-        if (!is_moving) {
-          do_exit();
-        }
-      } else {
-        // end of iteration
-        do_exit();
-      }
-
+    values[i] = value;
+    result_count++;
+    if (result_count === total) { // receive all results
+      on_result_ready();
     }
+    return false;
+  };
+
+  /**
+   * Received iterator result. When all iterators result are collected,
+   * begin to send request to collect streamers results.
+   * @param {number} i
+   * @param {*} key
+   * @param {*} value
+   */
+  var on_iterator_next = function (i, key, value) {
+    if (done) {
+      if (ydn.db.req.IndexedDb.DEBUG) {
+        window.console.log(['on_iterator_next', i, key, value]);
+      }
+      throw new ydn.error.InternalError();
+    }
+    result_count++;
+    //console.log(['on_iterator_next', i, idx2iterator[i], result_count,
+    //
+    //  key, value]);
+    keys[i] = key;
+    values[i] = value;
+    if (goog.isDef(idx2iterator[i])) {
+      var idx = idx2iterator[i];
+      var iterator = iterators[idx];
+      var streamer_idx = idx2streamer[i];
+      for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
+        var streamer = streamers[streamer_idx + j];
+        streamer.pull(key, value);
+      }
+    }
+
+    if (result_count === total) { // receive all results
+      on_result_ready();
+    }
+
   };
 
   var on_error = function (e) {
+    goog.array.clear(iterator_requests);
+    goog.array.clear(streamers);
     df.errback(e);
   };
 
-  for (var i = 0; i < queries.length; i++) {
-    var query = queries[i];
-    var req = this.openQuery(query, mode);
-    req.onerror = on_error;
-    req.onnext = goog.partial(next, i);
-    requests[i] = req;
+  var open_iterators = function() {
+    var idx = 0;
+    for (var i = 0; i < iterators.length; i++) {
+      var iterator = iterators[i];
+      var mode = iterator.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY :
+          ydn.db.base.CursorMode.READ_ONLY;
+      var req = me.openQuery(iterator, mode);
+      req.onerror = on_error;
+      req.onnext = goog.partial(on_iterator_next, idx);
+      iterator_requests[i] = req;
+      idx2iterator[idx] = i;
+      idx++;
+      for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
+        var streamer = new ydn.db.Streamer(me.getTx(),
+            iterator.getPeerStoreName(j),
+            iterator.getBaseIndexName(j), iterator.getPeerIndexName(j));
+        streamer.setSink(goog.partial(on_streamer_pop, idx));
+        streamers.push(streamer);
+        idx2streamer[idx] = streamers.length;
+        idx++;
+      }
+    }
+
+    total = iterators.length + streamers.length;
+  };
+
+
+  for (var i = 0; i < passthrough_streamers.length; i++) {
+    passthrough_streamers[i].setTx(this.getTx());
   }
 
+  if (solver instanceof ydn.db.algo.AbstractSolver) {
+    var wait = solver.begin(iterators, function() {
+      open_iterators();
+    });
+    if (!wait) {
+      open_iterators();
+    }
+  } else {
+    open_iterators();
+  }
 };
 
 
 /**
  * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Iterator} q query.
  * @param {?function(*): boolean} clear clear iteration function.
  * @param {?function(*): *} update update iteration function.
  * @param {?function(*): *} map map iteration function.
@@ -1137,7 +1170,7 @@ ydn.db.req.IndexedDb.prototype.listByQuery = function(df, q) {
 
 /**
 * @param {goog.async.Deferred} df deferred to feed result.
-* @param {!ydn.db.Query} q query.
+* @param {!ydn.db.Iterator} q query.
 */
 ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   var me = this;
@@ -1160,7 +1193,7 @@ ydn.db.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   } catch (e) {
     if (goog.DEBUG && e.name == 'NotFoundError') {
       var msg = this.tx.db.objectStoreNames.contains(store.name) ?
-          'store: ' + store.name + ' not in transaction.' :
+          'store: ' + store.name + ' not in transaction.' :  // ??
           'store: ' + store.name + ' not in database: ' + this.tx.db.name;
       throw new ydn.db.NotFoundError(msg);
     } else {

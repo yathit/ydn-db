@@ -116,13 +116,13 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 
 /**
  *
- * @param {ydn.db.Query} cursor the cursor.
+ * @param {ydn.db.Iterator} cursor the cursor.
  * @param {Function} callback icursor handler.
  * @param {ydn.db.base.TransactionMode=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.TxStorage.prototype.open = function(cursor, callback, mode) {
-  if (!(cursor instanceof ydn.db.Query)) {
+  if (!(cursor instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
   }
   var store = this.schema.getStore(cursor.store_name);
@@ -144,7 +144,7 @@ ydn.db.TxStorage.prototype.open = function(cursor, callback, mode) {
 
 
 /**
- * @param {!ydn.db.Query} q query.
+ * @param {!ydn.db.Iterator} q query.
  * @param {function(*): boolean} clear clear iteration function.
  * @param {function(*): *} update update iteration function.
  * @param {function(*): *} map map iteration function.
@@ -156,7 +156,7 @@ ydn.db.TxStorage.prototype.open = function(cursor, callback, mode) {
 ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
                                               initial, finalize) {
   var df = ydn.db.base.createDeferred();
-  if (!(q instanceof ydn.db.Query)) {
+  if (!(q instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
   }
 
@@ -176,47 +176,53 @@ ydn.db.TxStorage.prototype.iterate = function(q, clear, update, map, reduce,
   return df;
 };
 
+
 /**
  * Cursor scan iteration.
- * @param {!Array.<!ydn.db.Query>} queries the cursor.
- * @param {Function} join_algo next callback handler.
- * @param {number=} limit limit number of matched results.
- * @param {boolean=} no_collect_key if true not prefetch.
- * @param {boolean=} no_prefetch if true not prefetch.
+ * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
+ * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
+ * solver.
+ * @param {!Array.<!ydn.db.Streamer>=} opt_streamers streamers.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.TxStorage.prototype.scan = function(queries, join_algo, limit, no_collect_key, no_prefetch) {
+ydn.db.TxStorage.prototype.scan = function(iterators, solver, opt_streamers) {
   var df = ydn.db.base.createDeferred();
-  if (!goog.isArray(queries) || !(queries[0] instanceof ydn.db.Query)) {
+  if (!goog.isArray(iterators) || !(iterators[0] instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
   }
 
   var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;
 
   var scopes = [];
-  for (var i = 0; i < queries.length; i++) {
-    var index = queries[i].getIndexName();
-    if (!goog.isDef(index)) {
-      var msg = goog.DEBUG ? 'Iterator ' + i + ' be must an index iterator. ' +
-        'Use key or value filter instead.' : '';
-      throw new ydn.error.ArgumentException(msg);
+  for (var i = 0; i < iterators.length; i++) {
+    var stores = iterators[i].stores();
+    for (var j = 0; j < stores.length; j++) {
+      if (!goog.array.contains(scopes, stores[j])) {
+        scopes.push(stores[j]);
+      }
     }
-    var store = queries[i].getStoreName();
+  }
+
+  var streamers = opt_streamers || [];
+  for (var i = 0; i < streamers.length; i++) {
+    var store = iterators[i].getStoreName();
     if (!goog.array.contains(scopes, store)) {
       scopes.push(store);
     }
   }
 
   this.exec(function(executor) {
-    executor.scan(df, queries, join_algo, limit, no_collect_key, no_prefetch);
+    executor.scan(df, iterators, streamers, solver);
   }, scopes, tr_mode);
 
   return df;
 };
 
 
+
+
 /**
- * @param {!ydn.db.Query|!ydn.db.Sql} q query.
+ * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
  * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.TxStorage.prototype.fetch = function(q) {
@@ -241,7 +247,7 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
       executor.fetchQuery(df, query);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
-  } else if (q instanceof ydn.db.Query) {
+  } else if (q instanceof ydn.db.Iterator) {
     cursor = q;
     this.exec(function(executor) {
       executor.fetchCursor(df, cursor);
@@ -256,7 +262,7 @@ ydn.db.TxStorage.prototype.fetch = function(q) {
 
 
 /**
- * @param {!ydn.db.Query|!ydn.db.Sql} q query.
+ * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
  * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.TxStorage.prototype.execute = function(q) {
@@ -280,13 +286,13 @@ ydn.db.TxStorage.prototype.execute = function(q) {
 
 /**
  * Explain query plan.
- * @param {!ydn.db.Query} q
+ * @param {!ydn.db.Iterator} q
  * @return {Object} plan in JSON
  */
 ydn.db.TxStorage.prototype.explain = function (q) {
   if (!this.executor) {
     return {'error':'database not ready'};
-  } else if (q instanceof ydn.db.Query) {
+  } else if (q instanceof ydn.db.Iterator) {
     return this.executor.explainQuery(q);
   } else if (q instanceof ydn.db.Sql) {
     return this.executor.explainSql(q);
@@ -345,7 +351,7 @@ ydn.db.TxStorage.prototype.keys = function(store_name, index_or_key_range,
 
 /**
  *
- * @param {!ydn.db.Query} iterator
+ * @param {!ydn.db.Iterator} iterator
  * @param {function(*)} callback
  */
 ydn.db.TxStorage.prototype.map = function(iterator, callback) {
@@ -355,7 +361,7 @@ ydn.db.TxStorage.prototype.map = function(iterator, callback) {
 
 /**
  *
- * @param {!ydn.db.Query} iterator
+ * @param {!ydn.db.Iterator} iterator
  * @param {function(*)} callback
  * @param {*=} initial
  */
@@ -377,7 +383,6 @@ ydn.db.TxStorage.prototype.toString = function() {
   }
   return s;
 };
-
 
 
 
