@@ -589,6 +589,16 @@ ydn.db.schema.Store.prototype.getIndexNames = function() {
   return this.indexes.map(function(x) {return x.name;});
 };
 
+
+/**
+ *
+ * @return {ydn.db.schema.DataType|undefined}
+ */
+ydn.db.schema.Store.prototype.getType = function() {
+  return this.type;
+};
+
+
 /**
  *
  * @return {!Array.<string>} list of index keyPath.

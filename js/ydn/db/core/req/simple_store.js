@@ -100,16 +100,6 @@ ydn.db.core.req.SimpleStore.prototype.keysByIndexKeys = goog.abstractMethod;
 ydn.db.core.req.SimpleStore.prototype.keysByKeyRange = goog.abstractMethod;
 
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.keysIndexByKeyRange = goog.abstractMethod;
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.keysIndexByKeys = goog.abstractMethod;
-
 
 /**
  * @inheritDoc
@@ -127,20 +117,12 @@ ydn.db.core.req.SimpleStore.prototype.keysByIndexKeys = goog.abstractMethod;
  */
 ydn.db.core.req.SimpleStore.prototype.keysByStore = goog.abstractMethod;
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.keysIndexByIndexKeyRange = goog.abstractMethod;
 
 /**
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.keysByStore = goog.abstractMethod;
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.keysIndexByIndexKeyRange = goog.abstractMethod;
 
 /**
  * @inheritDoc

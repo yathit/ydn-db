@@ -44,7 +44,6 @@ ydn.db.core.req.WebSql = function(dbname, schema) {
 goog.inherits(ydn.db.core.req.WebSql, ydn.db.req.RequestExecutor);
 
 
-
 /**
  * @const
  * @type {boolean} debug flag.
@@ -85,8 +84,6 @@ ydn.db.core.req.WebSql.RW_REQ_PER_TX = 2;
  */
 ydn.db.core.req.WebSql.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.core.req.WebSql');
-
-
 
 
 /**
@@ -147,18 +144,12 @@ ydn.db.core.req.WebSql.prototype.keysByIndexKeys = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.core.req.WebSql.prototype.keysByKeyRange = goog.abstractMethod;
+ydn.db.core.req.WebSql.prototype.keysByKeyRange = function(df, store_name,
+        key_range, reverse, limit, offset) {
+  this.primary_keys_(df, store_name, key_range, reverse, limit, offset);
+};
 
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.WebSql.prototype.keysIndexByKeyRange = goog.abstractMethod;
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.WebSql.prototype.keysIndexByKeys = goog.abstractMethod;
 
 
 /**
@@ -172,15 +163,83 @@ ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = goog.abstractMethod;
  */
 ydn.db.core.req.WebSql.prototype.keysByIndexKeys = goog.abstractMethod;
 
+
 /**
- * @inheritDoc
+ * Retrieve primary keys from a store in a given key range.
+ * @param {!goog.async.Deferred} df return object in deferred function.
+ * @param {string} store_name table name.
+ * @param {IDBKeyRange} key_range to retrieve.
+ * @param {boolean} reverse ordering.
+ * @param {number} limit the results.
+ * @param {number} offset skip first results.
+ * @private
  */
-ydn.db.core.req.WebSql.prototype.keysByStore = goog.abstractMethod;
+ydn.db.core.req.WebSql.prototype.primary_keys_ = function(df, store_name,
+      key_range, reverse, limit, offset) {
+
+  var me = this;
+  var arr = [];
+  var store = this.schema.getStore(store_name);
+
+  var column = store.getColumnName();
+  var qcolumn = goog.string.quote(column);
+  var sql = 'SELECT ' + qcolumn + ' FROM ' + store.getQuotedName();
+  var params = [];
+  if (!goog.isNull(key_range)) {
+    var where_clause = ydn.db.Where.toWhereClause(column, key_range);
+    sql += ' WHERE ' + where_clause.sql;
+    params = where_clause.params;
+  }
+
+  var order = reverse ? 'DESC' : 'ASC';
+  sql += ' ORDER BY ' + qcolumn + ' ' + order;
+
+  if (goog.isNumber(limit)) {
+    sql += ' LIMIT ' + limit;
+  }
+  if (goog.isNumber(offset)) {
+    sql += ' OFFSET ' + offset;
+  }
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function(transaction, results) {
+    for (var i = 0, n = results.rows.length; i < n; i++) {
+      var row = results.rows.item(i);
+      arr[i] = ydn.db.schema.Index.sql2js(row[column], store.getType());
+    }
+    df.callback(arr);
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
+   */
+  var error_callback = function(tr, error) {
+    if (ydn.db.core.req.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    me.logger.warning('get error: ' + error.message);
+    df.errback(error);
+    return true; // roll back
+  };
+
+  //console.log([sql, params])
+  this.tx.executeSql(sql, params, callback, error_callback);
+};
+
 
 /**
  * @inheritDoc
  */
-ydn.db.core.req.WebSql.prototype.keysIndexByIndexKeyRange = goog.abstractMethod;
+ydn.db.core.req.WebSql.prototype.keysByStore =  function(df, store_name,
+     reverse, limit, offset) {
+  this.primary_keys_(df, store_name, null, reverse, limit, offset);
+};
+
 
 
 /**
@@ -354,7 +413,6 @@ ydn.db.core.req.WebSql.prototype.getById = function(d, table_name, id) {
 
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
     column_name + ' = ?';
-
 
   /**
    * @param {SQLTransaction} transaction transaction.

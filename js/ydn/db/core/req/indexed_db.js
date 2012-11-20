@@ -455,8 +455,48 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(df, store_name,
 /**
  * @inheritDoc
  */
+ydn.db.core.req.IndexedDb.prototype.keysByStore = function(df, store_name,
+   reverse, limit, offset) {
+  var results = [];
+  var store = this.tx.objectStore(store_name);
+  var dir = ydn.db.base.getDirection(reverse);
+  var request = store.openCursor(null, dir);
+  var cued = false;
+  request.onsuccess = function(event) {
+    /**
+     * @type {IDBCursor}
+     */
+    var cursor = event.target.result;
+    if (cursor) {
+      if (!cued && offset > 0) {
+        cued = true;
+        if (offset != 1) {
+          cursor.advance(offset - 1);
+        }
+        return;
+      }
+      results.push(cursor.primaryKey);
+      if (results.length < limit) {
+        cursor.advance(1);
+      }
+    } else {
+      df.callback(results);
+    }
+  };
+  request.onerror = function(event) {
+    if (ydn.db.core.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, event]);
+    }
+    df.errback(event);
+  };
+};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(df, store_name,
-      key_range, index_name, reverse, limit, offset, unique) {
+      index_name, key_range, reverse, limit, offset, unique) {
   var results = [];
   var store = this.tx.objectStore(store_name);
   var index = store.index(index_name);
@@ -498,89 +538,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(df, store_nam
  */
 ydn.db.core.req.IndexedDb.prototype.keysByIndexKeys = goog.abstractMethod;
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.keysIndexByKeys = goog.abstractMethod;
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.keysByStore = goog.abstractMethod;
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.keysIndexByIndexKeyRange = goog.abstractMethod;
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.keysIndexByKeyRange = function(df, store_name,
-      index_name, key_range, limit) {
-  var results = [];
-  var store_schema = this.schema.getStore(store_name);
-  var store = this.tx.objectStore(store_name);
-  var index_schema = store_schema.getIndex(index_name);
-  var index = store.index(index_name);
-  var multiEntry = index_schema.isMultiEntry();
-  var key_req = store.openCursor(key_range); // openKeyCursor is not available
-  var key_collection_done = false;
-  var df_gone = false;
-  var pending = 0;
-  key_req.onsuccess = function(event) {
-    /**
-     * @type {IDBCursor}
-     */
-    var cursor_key = event.target.result;
-    if (cursor_key) {
-
-      var key = cursor_key.primaryKey;
-      cursor_key.advance(1);
-
-      pending++;
-      var request = index.get(key);
-      request.onsuccess = function(ref_value) {
-        pending--;
-        if (!df_gone && goog.isDef(ref_value)) {
-          if (multiEntry) {
-            goog.asserts.assertArray(ref_value);
-            results.push(ref_value);
-          } else {
-            results.push(ref_value);
-          }
-          if (results.length >= limit ||
-              (key_collection_done && pending === 0)) {
-
-            if (results.length > limit) {
-              results.splice(results.length, limit - results.length);
-            }
-
-            df_gone = true;
-            df.callback(results);
-          }
-        }
-      };
-      request.onerror = function(event) {
-        if (ydn.db.core.req.IndexedDb.DEBUG) {
-          window.console.log([store_name, event]);
-        }
-        df_gone = true;
-        df.errback(event);
-      };
-    } else {
-      key_collection_done = true;
-      if (pending == 0) {
-        df_gone = true;
-        df.callback(results);
-      }
-    }
-  };
-
-
-
-};
 
 
 /**
