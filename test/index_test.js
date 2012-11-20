@@ -34,7 +34,7 @@ var setUp = function() {
     {id:'at2', value: 2, tag: ['a', 'b']},
     {id:'bs1', value: 3, tag: 'b'},
     {id:'bs2', value: 4, tag: ['a', 'c', 'd']},
-    {id:'bs3', value: 5, tag: 'c'},
+    {id:'bs3', value: 5, tag: ['c']},
     {id:'st3', value: 6}
   ];
 
@@ -91,7 +91,6 @@ var test_11_multiEntry_idb = function () {
   for (var i = 0; i < total; i++) {
     count_for(tags[i], i);
   }
-
 
 };
 

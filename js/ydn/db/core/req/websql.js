@@ -243,7 +243,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
     return true; // roll back
   };
 
-  //console.log([sql, params])
+  console.log([sql, params])
   this.tx.executeSql(sql, params, callback, error_callback);
 };
 
@@ -558,7 +558,7 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
 ydn.db.core.req.WebSql.prototype.listByKeyRange = function(df, store_name,
    key_range, reverse, limit, offset) {
 
-  this.list_by_key_range_(df, false, store_name, key_range, null, reverse, limit, offset);
+  this.list_by_key_range_(df, false, store_name, undefined, key_range, reverse, limit, offset);
 };
 
 /**
