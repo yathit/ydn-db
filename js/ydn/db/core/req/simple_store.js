@@ -223,6 +223,11 @@ ydn.db.core.req.SimpleStore.prototype.listByIds = function(df, store_name, ids) 
   df.callback(arr);
 };
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.listByKeyRange = goog.abstractMethod;
+
 
 /**
 * @inheritDoc

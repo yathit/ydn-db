@@ -27,6 +27,7 @@ goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db.req.RequestExecutor');
 goog.require('ydn.json');
+goog.require('ydn.db.Where');
 goog.require('ydn.db.core.req.IRequestExecutor');
 
 
@@ -477,6 +478,54 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.listByKeyRange = function(df, store_name,
+   key_range, reverse, limit, offset) {
+
+  var me = this;
+  var arr = [];
+  var store = this.schema.getStore(store_name);
+  var where_clause = ydn.db.Where.toWhereClause(store.getColumnName(),
+    key_range);
+  var order = reverse ? 'DESC' : 'ASC';
+  var sql = 'SELECT * FROM ' + store.getQuotedName() + ' WHERE ' +
+      where_clause.sql + ' ORDER BY ' + goog.string.quote(store.getColumnName())
+      + ' ' + order;
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function(transaction, results) {
+    for (var i = 0, n = results.rows.length; i < n; i++) {
+      var row = results.rows.item(i);
+      if (goog.isDefAndNotNull(row)) {
+        arr[i] = ydn.db.core.req.WebSql.parseRow(row, store);
+      }
+    }
+    df.callback(arr);
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
+   */
+  var error_callback = function(tr, error) {
+    if (ydn.db.core.req.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    me.logger.warning('get error: ' + error.message);
+    df.errback(error);
+    return true; // roll back
+  };
+
+  //console.log([sql, where_clause.params])
+  this.tx.executeSql(sql, where_clause.params, callback, error_callback);
+};
+
 
 /**
 * @inheritDoc
@@ -505,7 +554,7 @@ ydn.db.core.req.WebSql.prototype.listByStores = function(df, table_names) {
      * @param {SQLResultSet} results results.
      */
     var callback = function(transaction, results) {
-      for (var i = 0; i < results.rows.length; i++) {
+      for (var i = 0, n = results.rows.length; i < n; i++) {
         var row = results.rows.item(i);
         if (goog.isDefAndNotNull(row)) {
           arr.push(ydn.db.core.req.WebSql.parseRow(row, table));

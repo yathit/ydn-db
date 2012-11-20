@@ -200,6 +200,19 @@ ydn.db.KeyRange.parseKeyRange = function(keyRange) {
 
 
 /**
+ * Read four primitive attributes from the input and return newly created
+ * keyRange object.
+ * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} key_range
+ * keyRange.
+ * @return {IDBKeyRange} equivalent IDBKeyRange. Return null if input
+ * is null or undefined.
+ */
+ydn.db.KeyRange.parseIDBKeyRange = function(key_range) {
+  return /** @type {IDBKeyRange} */ (ydn.db.KeyRange.parseKeyRange(key_range));
+};
+
+
+/**
  *
  * @param {Object|undefined} keyRange
  * @return {string} if not valid key range object, return a message reason.

@@ -516,6 +516,16 @@ ydn.db.schema.Store.prototype.getSQLKeyColumnName = function() {
 
 
 /**
+ * Return keyPath. In case undefined return default key column.
+ * @return {string} return keyPath or default key column name.
+ */
+ydn.db.schema.Store.prototype.getColumnName = function() {
+  return goog.isString(this.keyPath) ?
+    this.keyPath : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+};
+
+
+/**
  *
  * @return {string} return quoted name.
  */

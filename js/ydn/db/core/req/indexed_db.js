@@ -377,6 +377,47 @@ ydn.db.core.req.IndexedDb.prototype.getKeysByStore = function(df, not_key_only,
 /**
  * @inheritDoc
  */
+ydn.db.core.req.IndexedDb.prototype.listByKeyRange = function(df, store_name,
+      key_range, reverse, limit, offset) {
+  var results = [];
+  var store = this.tx.objectStore(store_name);
+  var dir = ydn.db.base.getDirection(reverse);
+  var request = store.openCursor(key_range, dir);
+  var cued = false;
+  request.onsuccess = function(event) {
+    /**
+     *
+     * @type {IDBCursorWithValue}
+     */
+    var cursor = event.target.result;
+    if (cursor) {
+      if (!cued && offset > 0) {
+        cued = true;
+        if (offset != 1) {
+          cursor.advance(offset - 1);
+        }
+        return;
+      }
+      results.push(cursor.value);
+      if (results.length < limit) {
+        cursor.advance(1);
+      }
+    } else {
+      df.callback(results);
+    }
+  };
+  request.onerror = function(event) {
+    if (ydn.db.core.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, event]);
+    }
+    df.errback(event);
+  };
+};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(df, store_name,
     key_range, reverse, limit, offset) {
   var results = [];

@@ -101,10 +101,33 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
 
 
 /**
+ *
+ * @param {string} store_name
+ * @param {(string|!IDBKeyRange)=} arg2
+ * @param {(string|!IDBKeyRange)=} arg3
+ * @param {(number|string|boolean)=} arg4
+ * @param {(number|boolean|number)=} arg5
+ * @param {(boolean|number)=} arg6
+ * @param {boolean=} arg7
+ * @return {!goog.async.Deferred} result promise.
+ */
+ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
+                                                arg4, arg5, arg6, arg7) {
+  return ydn.db.core.TxStorage.prototype.keys.apply(
+    /** @type {ydn.db.core.TxStorage} */ (this.default_tx_queue_),
+    Array.prototype.slice.call(arguments));
+
+  // above trick is the same effect as follow
+  //return this.default_tx_queue_.keys(store_name, arg2, arg3,
+  //  arg4, arg5, arg6, arg7);
+  // but it preserve argument length
+};
+
+/**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.list = function(arg1, arg2) {
-  return this.default_tx_queue_.list(arg1, arg2);
+ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3) {
+  return this.default_tx_queue_.list(arg1, arg2, arg3);
 };
 
 

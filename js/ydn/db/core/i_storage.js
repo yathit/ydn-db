@@ -44,6 +44,7 @@ ydn.db.core.IStorage.prototype.get = goog.abstractMethod;
  * @param {(!Array.<string>)=} arg2
  * object key to be retrieved, if not provided,
  * all entries in the store will return.
+ * @param {boolean=} reverse to reverse.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.core.IStorage.prototype.list = goog.abstractMethod;

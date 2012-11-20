@@ -253,7 +253,7 @@ ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT = 1000000;
  * @param {(number|string|boolean)=} arg4
  * @param {(number|boolean|number)=} arg5
  * @param {(boolean|number)=} arg6
- * @param {boolean=} arg7
+ * @param {(boolean|number)=} arg7
  * @return {!goog.async.Deferred} result promise.
  */
 ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
@@ -302,7 +302,11 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
       executor.keysByStore(df, store_name);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
   } else if (goog.isObject(arg2)) {
-    key_range = arg2;
+    var kr = ydn.db.KeyRange.parseIDBKeyRange(arg2);
+    if (goog.isNull(kr)) {
+      throw new ydn.error.ArgumentException('key range');
+    }
+    key_range = kr;
     if (goog.isString(arg3)) {
       query_index = arg3;
       // keysByIndexKeyRange
@@ -341,14 +345,14 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
       reverse = !!arg3;
       if (goog.isNumber(arg4)) {
         limit = arg4;
-      } else if (goog.isDef(arg4)) {
+      } else if (!goog.isDef(arg4)) {
         limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
       } else {
         throw new ydn.error.ArgumentException('arg4 must be number|undefined.');
       }
       if (goog.isNumber(arg5)) {
         offset = arg5;
-      } else if (goog.isDef(arg5)) {
+      } else if (!goog.isDef(arg5)) {
         offset = 0;
       } else {
         throw new ydn.error.ArgumentException('arg5 must be number|undefined.');
@@ -370,25 +374,29 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
     if (!goog.isObject(arg3)) {
       throw new ydn.error.ArgumentException('arg3 must be a key range.');
     }
-    key_range = arg3;
+    var kr = ydn.db.KeyRange.parseIDBKeyRange(arg3);
+    if (goog.isNull(kr)) {
+      throw new ydn.error.ArgumentException('key range');
+    }
+    key_range = kr;
     if (goog.isString(arg4)) {
       // keysIndexByIndexKeyRange
       query_index = arg4;
-      if (!goog.isBoolean(arg4) || !goog.isDef(arg4)) {
+      if (goog.isDef(arg4) && !goog.isBoolean(arg4)) {
         throw new ydn.error.ArgumentException(
             'arg4 must be boolean|undefined.');
       }
       reverse = !!arg4;
       if (goog.isNumber(arg5)) {
         limit = arg5;
-      } else if (goog.isDef(arg5)) {
+      } else if (!goog.isDef(arg5)) {
         limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
       } else {
         throw new ydn.error.ArgumentException('arg5 must be number|undefined.');
       }
       if (goog.isNumber(arg6)) {
         offset = arg6;
-      } else if (goog.isDef(arg6)) {
+      } else if (!goog.isDef(arg6)) {
         offset = 0;
       } else {
         throw new ydn.error.ArgumentException('arg6 must be number|undefined.');
@@ -403,10 +411,36 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
       }
       this.exec(function(executor) {
         executor.keysIndexByIndexKeyRange(df, store_name, result_index,
-            key_range, query_index,  reverse, limit, offset, distinct);
+            key_range, query_index, reverse, limit, offset, distinct);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else if (goog.isBoolean(arg4) || !goog.isDef(arg4)) {
       // keysIndexByKeyRange
+      if (goog.isDef(arg5) && !goog.isBoolean(arg5)) {
+        throw new ydn.error.ArgumentException(
+          'arg5 must be boolean|undefined.');
+      }
+      reverse = !!arg5;
+      if (goog.isNumber(arg6)) {
+        limit = arg6;
+      } else if (!goog.isDef(arg6)) {
+        limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+      } else {
+        throw new ydn.error.ArgumentException('arg6 must be number|undefined.');
+      }
+      if (goog.isNumber(arg7)) {
+        offset = arg7;
+      } else if (!goog.isDef(arg7)) {
+        offset = 0;
+      } else {
+        throw new ydn.error.ArgumentException('arg7 must be number|undefined.');
+      }
+      if (arguments.length > 7) {
+        throw new ydn.error.ArgumentException('too many arguments');
+      }
+      this.exec(function(executor) {
+        executor.keysIndexByKeyRange(df, store_name, result_index,
+          key_range, reverse, limit, offset, distinct);
+      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else {
       throw new ydn.error.ArgumentException(
           'arg4 must be boolean|string|undefined.');
@@ -417,14 +451,9 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
 
 
 /**
- * Return object or objects of given key or keys.
- * @param {(string|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(!Array.<string>)=} arg2
- * object key to be retrieved, if not provided,
- * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.list = function(arg1, arg2) {
+ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3) {
 
   var df = ydn.db.base.createDeferred();
 
@@ -445,6 +474,17 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2) {
       this.exec(function(executor) {
         executor.listByIds(df, store_name, ids);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    } else if (goog.isObject(arg2)) {
+      var key_range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
+      if (!goog.isNull(key_range)) {
+        var kr = key_range;
+        this.exec(function(executor) {
+          executor.listByKeyRange(df, store_name, kr, !!arg3, 1000000, 0);
+        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+      } else {
+        throw new ydn.error.ArgumentException('key range');
+      }
+
     } else if (!goog.isDef(arg2)) {
       this.exec(function(executor) {
         executor.listByStores(df, [store_name]);
@@ -483,6 +523,7 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2) {
     } else {
       throw new ydn.error.ArgumentException();
     }
+
   } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
     this.exec(function(executor) {
       executor.listByStores(df, this.schema.getStoreNames());

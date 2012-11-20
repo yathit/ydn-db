@@ -6,7 +6,7 @@ goog.require('ydn.db.core.Storage');
 
 var reachedFinalContinuation, schema, debug_console, db, objs;
 
-var db_name = 'test_kr_4';
+var db_name = 'test_kr_6';
 var store_name = 'st';
 
 var setUp = function () {
@@ -21,20 +21,18 @@ var setUp = function () {
   }
 
   var value_index = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
-  var tag_index = new ydn.db.schema.Index('type', ydn.db.schema.DataType.TEXT, false, true);
-  var id_index = new ydn.db.schema.Index('id', ydn.db.schema.DataType.NUMERIC, false);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
-    ydn.db.schema.DataType.INTEGER, [id_index, value_index, tag_index]);
+    ydn.db.schema.DataType.INTEGER, [value_index]);
   schema = new ydn.db.schema.Database(undefined, [store_schema]);
   db = new ydn.db.core.Storage(db_name, schema, options);
 
   objs = [
-    {id: -3, value: 'a0', type: ['a', 'b'], remark: 'test ' + Math.random()},
-    {id: 0, value: 'a2', type: ['a'], remark: 'test ' + Math.random()},
-    {id: 1, value: 'ba', type: ['b'], remark: 'test ' + Math.random()},
-    {id: 3, value: 'bc', type: ['b', 'c'], remark: 'test ' + Math.random()},
-    {id: 10, value: 'c', type: ['c'], remark: 'test ' + Math.random()},
-    {id: 11, value: 'c1', type: ['c', 'a', 'b'], remark: 'test ' + Math.random()},
+    {id: -3, value: 'a0',  remark: 'test ' + Math.random()},
+    {id: 0, value: 'a2',  remark: 'test ' + Math.random()},
+    {id: 1, value: 'ba',  remark: 'test ' + Math.random()},
+    {id: 3, value: 'bc',  remark: 'test ' + Math.random()},
+    {id: 10, value: 'c',  remark: 'test ' + Math.random()},
+    {id: 11, value: 'c1', remark: 'test ' + Math.random()},
     {id: 20, value: 'ca', remark: 'test ' + Math.random()}
   ];
 
@@ -52,11 +50,10 @@ var tearDown = function() {
 /**
  *
  * @param {ydn.db.KeyRange} key_range
- * @param {string} index
  * @param {*} exp_result
  * @param {boolean=} reverse
  */
-var keyRange_test = function (key_range, index, exp_result, reverse) {
+var keyRange_test = function (key_range, exp_result, reverse) {
 
   var done;
   var result;
@@ -67,16 +64,16 @@ var keyRange_test = function (key_range, index, exp_result, reverse) {
     },
     // Continuation
     function () {
-      assertEquals('length', exp_result.length, result.length);
-      assertArrayEquals(exp_result, result);
+      assertArrayEquals(JSON.stringify(key_range.toJSON()), exp_result, result);
 
       reachedFinalContinuation = true;
     },
     100, // interval
     1000); // maxTimeout
 
-
-  db.keys(store_name, index, key_range).addBoth(function (value) {
+  reverse = !!reverse;
+  var req = db.list(store_name, key_range, reverse);
+  req.addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -88,104 +85,67 @@ var keyRange_test = function (key_range, index, exp_result, reverse) {
 
 var test_integer_only = function () {
   var key_range = ydn.db.KeyRange.only(3);
-  keyRange_test(key_range, 'id', objs.slice(3, 4));
+  keyRange_test(key_range, objs.slice(3, 4));
 };
 
 
 var test_integer_lower_close = function () {
   var key_range = ydn.db.KeyRange.lowerBound(3);
-  keyRange_test(key_range, 'id', objs.slice(3, objs.length));
+  keyRange_test(key_range, objs.slice(3, objs.length));
 };
 
 var test_integer_lower_open = function () {
   var key_range = ydn.db.KeyRange.lowerBound(3, true);
-  keyRange_test(key_range, 'id', objs.slice(4, objs.length));
+  keyRange_test(key_range, objs.slice(4, objs.length));
 };
 
 var test_integer_upper_close = function () {
   var key_range = ydn.db.KeyRange.upperBound(3);
-  keyRange_test(key_range, 'id', objs.slice(0, 4));
+  keyRange_test(key_range, objs.slice(0, 4));
 };
 
 var test_integer_upper_open = function () {
   var key_range = ydn.db.KeyRange.upperBound(3, true);
-  keyRange_test(key_range, 'id', objs.slice(0, 3));
+  keyRange_test(key_range, objs.slice(0, 3));
 };
 
 var test_integer_close_close = function () {
   var key_range = ydn.db.KeyRange.bound(0, 3);
-  keyRange_test(key_range, 'id', objs.slice(1, 4));
+  keyRange_test(key_range, objs.slice(1, 4));
 };
 
 var test_integer_close_close_reverse = function () {
   var key_range = ydn.db.KeyRange.bound(0, 3);
-  keyRange_test(key_range, 'id', objs.slice(1, 4).reverse());
+  keyRange_test(key_range, objs.slice(1, 4).reverse(), true);
 };
 
 var test_integer_open_close = function () {
   var key_range = ydn.db.KeyRange.bound(0, 3, true);
-  keyRange_test(key_range, 'id', objs.slice(2, 4));
+  keyRange_test(key_range, objs.slice(2, 4));
 };
 
 var test_integer_open_open = function () {
   var key_range = ydn.db.KeyRange.bound(0, 3, true, true);
-  keyRange_test(key_range, 'id', objs.slice(2, 3));
+  keyRange_test(key_range, objs.slice(2, 3));
 };
 
 
-var test_index_string_only = function () {
-  var key_range = ydn.db.KeyRange.only('bc');
-  keyRange_test(key_range, 'value', objs.slice(3, 4));
-};
-
-var test_index_string_lower_close = function () {
-  var key_range = ydn.db.KeyRange.lowerBound('bc');
-  keyRange_test(key_range, 'value', objs.slice(3, objs.length));
-};
-
-var test_index_string_lower_open = function () {
-  var key_range = ydn.db.KeyRange.lowerBound('bc', true);
-  keyRange_test(key_range, 'value', objs.slice(4, objs.length));
-};
-
-var test_index_string_close = function () {
-  var key_range = ydn.db.KeyRange.upperBound('bc');
-  keyRange_test(key_range, 'value', objs.slice(0, 4));
-};
-
-var test_index_string_upper_open = function () {
-  var key_range = ydn.db.KeyRange.upperBound('bc', true);
-  keyRange_test(key_range, 'value', objs.slice(0, 3));
-};
-
-var test_index_string_close_close = function () {
-  var key_range = ydn.db.KeyRange.bound('a2', 'bc');
-  keyRange_test(key_range, 'value', objs.slice(1, 4));
-};
-
-
-var test_index_string_close_close_reverse = function () {
-  var key_range = ydn.db.KeyRange.bound('a2', 'bc');
-  keyRange_test(key_range, 'value', objs.slice(1, 4).reverse(), true);
-};
-
-var test_store_string_index_wise_revrse = function () {
-  var q = new ydn.db.Iterator(store_name, 'value', null, true);
-  keyRange_test(q, objs.reverse());
-};
+//var test_store_string_index_wise_revrse = function () {
+//  keyRange_test(null, objs.reverse(), true);
+//};
 
 
 
 var test_query_start_with = function () {
   var store_name = 'ts1';
-  var db_name = 'test_crud_5';
+  var db_name = 'test_crud_6';
 
   // NOTE: key also need to be indexed.
   var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.NUMERIC, true);
   var stores = [new ydn.db.schema.Store(store_name, 'id', false, ydn.db.schema.DataType.TEXT, [indexSchema])];
   //schema.addStore(new ydn.db.schema.Store(store_name, 'id'));
   var schema = new ydn.db.schema.Database(undefined, stores);
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs1', value:Math.random()},
@@ -221,8 +181,7 @@ var test_query_start_with = function () {
 
 
       var key_range = ydn.db.KeyRange.starts('qs');
-      var q = new ydn.db.Iterator(store_name, 'id', key_range);
-      db.fetch(q).addCallback(function (value) {
+      db.list(store_name, key_range).addCallback(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         assertEquals('obj length', objs.length - 1, value.length);
         assertObjectEquals('get', objs[0], value[0]);
