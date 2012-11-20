@@ -28,7 +28,7 @@ goog.require('ydn.db.index.req.SimpleStore');
  * @param {number} ptx_no transaction queue number.
  * @param {string} scope_name scope name.
  * @param {!ydn.db.schema.Database} schema schema.
- * @implements {ydn.db.core.IStorage}
+ * @implements {ydn.db.index.IStorage}
  * @constructor
  * @extends {ydn.db.core.TxStorage}
 */
@@ -107,19 +107,14 @@ ydn.db.index.TxStorage.prototype.get = function(arg1, arg2) {
 
 
 /**
- * Return object or objects of given key or keys.
- * @param {(string|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(!Array.<string>)=} arg2
- * object key to be retrieved, if not provided,
- * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @inheritDoc
  */
-ydn.db.index.TxStorage.prototype.list = function(arg1, arg2) {
+ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, offset) {
 
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
-    if (goog.DEBUG && arguments.length != 2) {
-      throw new ydn.error.ArgumentException();
+    if (goog.isDef(reverse) || goog.isDef(limit) || goog.isDef(offset)) {
+      throw new ydn.error.ArgumentException('too many arguments.');
     }
     /**
      *
@@ -133,7 +128,7 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2) {
 
     return df;
   } else {
-    return goog.base(this, 'list', arg1, arg2);
+    return goog.base(this, 'list', arg1, arg2, reverse, limit, offset);
   }
 
 };

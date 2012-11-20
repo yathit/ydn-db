@@ -127,7 +127,7 @@ ydn.db.core.req.IRequestExecutor.prototype.keysByIndexKeys =
 
 /**
  * Execute GET request callback results to df.
- * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {!goog.async.Deferred} df deferred to feed result.
  * @param {string} store_name table name.
  * @param {!Array.<string|number>} ids id to get.
  * @throws {ydn.db.InvalidKeyException}
@@ -138,14 +138,14 @@ ydn.db.core.req.IRequestExecutor.prototype.listByIds = goog.abstractMethod;
 
 /**
  * Execute GET request callback results to df.
- * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {!goog.async.Deferred} df deferred to feed result.
  * @param {!Array.<!ydn.db.Key>} keys id to get.
  */
 ydn.db.core.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
 
 /**
  * Execute GET request callback results to df.
- * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {!goog.async.Deferred} df deferred to feed result.
  * @param {string} store name.
  * @param {IDBKeyRange} key range to get.
  * @param {boolean} reverse to sort reverse order.

@@ -497,14 +497,14 @@ ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
     if (!this.schema.isAutoSchema()) {
       throw new ydn.error.ArgumentException('Not found: ' + store_name);
     }
-    if (goog.isObject(store_name_or_schema)) {
+    var schema = goog.isObject(store_name_or_schema) ?
+        store_name_or_schema : {'name': store_name};
+
       // this is async process, but we don't need to wait for it.
-      store = ydn.db.schema.Store.fromJSON(store_name_or_schema);
+      store = ydn.db.schema.Store.fromJSON(/** @type {!StoreSchema} */ (schema));
       this.logger.finest('Adding object store: ' + store_name);
       this.addStoreSchema(store);
-    } else {
-      throw new ydn.error.ArgumentException('store schema required.');
-    }
+
   } else if (this.schema.isAutoSchema() && goog.isObject(store_name_or_schema))
   {
     // if there is changes in schema, change accordingly.

@@ -243,7 +243,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
     return true; // roll back
   };
 
-  console.log([sql, params])
+  //console.log([sql, params])
   this.tx.executeSql(sql, params, callback, error_callback);
 };
 
