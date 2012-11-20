@@ -393,7 +393,7 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
 /**
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3) {
+ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, offset) {
 
   var df = ydn.db.base.createDeferred();
 
@@ -414,20 +414,26 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3) {
       this.exec(function(executor) {
         executor.listByIds(df, store_name, ids);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-    } else if (goog.isObject(arg2)) {
+    } else if (goog.isObject(arg2) || goog.isNull(arg2) || !goog.isDef(arg2)) {
       var key_range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
-      if (!goog.isNull(key_range)) {
-        var kr = key_range;
-        this.exec(function(executor) {
-          executor.listByKeyRange(df, store_name, kr, !!arg3, 1000000, 0);
-        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-      } else {
-        throw new ydn.error.ArgumentException('key range');
+      if (goog.isDef(reverse) && !goog.isBoolean(reverse)) {
+        throw new ydn.error.ArgumentException('reverse must be boolean|undefined.');
       }
-
-    } else if (!goog.isDef(arg2)) {
-      this.exec(function(executor) {
-        executor.listByStores(df, [store_name]);
+      if (!goog.isDef(limit)) {
+        limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+      } else if (!goog.isNumber(limit)) {
+        throw new ydn.error.ArgumentException('limit must be number|undefined.');
+      }
+      if (!goog.isDef(offset)) {
+        offset = 0;
+      } else if (!goog.isNumber(offset)) {
+        throw new ydn.error.ArgumentException('offset must be number|undefined.');
+      }
+      var kr = key_range;
+      this.exec(function (executor) {
+        executor.listByKeyRange(df, store_name, kr, !!reverse,
+          /** @type {number} */ (limit),
+          /** @type {number} */ (offset));
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else {
       throw new ydn.error.ArgumentException();
@@ -463,11 +469,6 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3) {
     } else {
       throw new ydn.error.ArgumentException();
     }
-
-  } else if (!goog.isDef(arg1) && !goog.isDef(arg2)) {
-    this.exec(function(executor) {
-      executor.listByStores(df, this.schema.getStoreNames());
-    }, this.schema.getStoreNames(), ydn.db.base.TransactionMode.READ_ONLY);
   } else {
     throw new ydn.error.ArgumentException();
   }

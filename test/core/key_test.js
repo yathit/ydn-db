@@ -146,6 +146,53 @@ var test_12_number_keys = function() {
 };
 
 
+var test_13_array_key = function () {
+  var store_name = 'st';
+  var db_name = 'test_13_1';
+  var store_schema = new ydn.db.schema.Store(store_name, 'id', false, ydn.db.schema.DataType.Array);
+  var schema = new ydn.db.schema.Database(undefined, [store_schema]);
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var objs = [
+    {id:['a', 'qs0'], value:0, type:'a'},
+    {id:['a', 'qs1'], value:1, type:'a'},
+    {id:['b', 'at2'], value:2, type:'b'},
+    {id:['b', 'bs1'], value:3, type:'b'},
+    {id:['c', 'bs2'], value:4, type:'c'},
+    {id:['c', 'bs3'], value:5, type:'c'},
+    {id:['c', 'st3'], value:6, type:'c'}
+  ];
+
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(db_name + ' ready');
+  });
+
+  var done, result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('result', objs, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  db.list(store_name).addBoth(function (value) {
+    //console.log('fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+
+};
+
+
 
 var test_21_out_of_line = function () {
 

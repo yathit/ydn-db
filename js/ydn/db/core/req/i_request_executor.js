@@ -147,17 +147,30 @@ ydn.db.core.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
  * Execute GET request callback results to df.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {string} store name.
- * @param {!IDBKeyRange} key range to get.
+ * @param {IDBKeyRange} key range to get.
  * @param {boolean} reverse to sort reverse order.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
  */
 ydn.db.core.req.IRequestExecutor.prototype.listByKeyRange = goog.abstractMethod;
 
+
+/**
+ * Retrieve primary keys from a store in a given key range.
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {string} store table name.
+ * @param {boolean} reverse ordering.
+ * @param {number} limit the results.
+ * @param {number} offset skip first results.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.listByStore = goog.abstractMethod;
+
+
 /**
  * List records from stores.
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!Array.<string>} store_name  store name.
+ * @deprecated
  */
 ydn.db.core.req.IRequestExecutor.prototype.listByStores = goog.abstractMethod;
 

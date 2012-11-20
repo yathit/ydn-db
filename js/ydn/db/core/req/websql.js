@@ -146,16 +146,18 @@ ydn.db.core.req.WebSql.prototype.keysByIndexKeys = goog.abstractMethod;
  */
 ydn.db.core.req.WebSql.prototype.keysByKeyRange = function(df, store_name,
         key_range, reverse, limit, offset) {
-  this.primary_keys_(df, store_name, key_range, reverse, limit, offset);
+  this.list_by_key_range_(df, true, store_name, undefined, key_range, reverse, limit, offset);
 };
-
 
 
 
 /**
  * @inheritDoc
  */
-ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = goog.abstractMethod;
+ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = function(df, store_name,
+      index_name, key_range, reverse, limit, offset, unique) {
+  this.list_by_key_range_(df, true, store_name, index_name, key_range, reverse, limit, offset);
+};
 
 
 /**
@@ -165,30 +167,39 @@ ydn.db.core.req.WebSql.prototype.keysByIndexKeys = goog.abstractMethod;
 
 
 /**
- * Retrieve primary keys from a store in a given key range.
+ * Retrieve primary keys or value from a store in a given key range.
  * @param {!goog.async.Deferred} df return object in deferred function.
+ * @param {boolean} key_only retrieve key only.
  * @param {string} store_name table name.
+ * @param {string|undefined} column name.
  * @param {IDBKeyRange} key_range to retrieve.
  * @param {boolean} reverse ordering.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
  * @private
  */
-ydn.db.core.req.WebSql.prototype.primary_keys_ = function(df, store_name,
-      key_range, reverse, limit, offset) {
+ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
+      store_name, column, key_range, reverse, limit, offset) {
 
   var me = this;
   var arr = [];
   var store = this.schema.getStore(store_name);
 
-  var column = store.getColumnName();
+  column = goog.isDef(column) ? column : store.getColumnName();
+
   var qcolumn = goog.string.quote(column);
-  var sql = 'SELECT ' + qcolumn + ' FROM ' + store.getQuotedName();
+  var key_column = store.getColumnName();
+  var fields = key_only ? goog.string.quote(key_column) : '*';
+  var sql = 'SELECT ' + fields +
+    ' FROM ' + store.getQuotedName();
   var params = [];
   if (!goog.isNull(key_range)) {
     var where_clause = ydn.db.Where.toWhereClause(column, key_range);
     sql += ' WHERE ' + where_clause.sql;
-    params = where_clause.params;
+    for (var i = 0; i < where_clause.params.length; i++) {
+      params[i] = ydn.db.schema.Index.js2sql(where_clause.params[i],
+        store.getType());
+    }
   }
 
   var order = reverse ? 'DESC' : 'ASC';
@@ -208,7 +219,12 @@ ydn.db.core.req.WebSql.prototype.primary_keys_ = function(df, store_name,
   var callback = function(transaction, results) {
     for (var i = 0, n = results.rows.length; i < n; i++) {
       var row = results.rows.item(i);
-      arr[i] = ydn.db.schema.Index.sql2js(row[column], store.getType());
+      if (key_only) {
+        arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType());
+      } else if (goog.isDefAndNotNull(row)) {
+        arr[i] = ydn.db.core.req.WebSql.parseRow(row, store);
+      }
+
     }
     df.callback(arr);
   };
@@ -237,7 +253,7 @@ ydn.db.core.req.WebSql.prototype.primary_keys_ = function(df, store_name,
  */
 ydn.db.core.req.WebSql.prototype.keysByStore =  function(df, store_name,
      reverse, limit, offset) {
-  this.primary_keys_(df, store_name, null, reverse, limit, offset);
+  this.list_by_key_range_(df, true, store_name, undefined, null, reverse, limit, offset);
 };
 
 
@@ -542,46 +558,15 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
 ydn.db.core.req.WebSql.prototype.listByKeyRange = function(df, store_name,
    key_range, reverse, limit, offset) {
 
-  var me = this;
-  var arr = [];
-  var store = this.schema.getStore(store_name);
-  var where_clause = ydn.db.Where.toWhereClause(store.getColumnName(),
-    key_range);
-  var order = reverse ? 'DESC' : 'ASC';
-  var sql = 'SELECT * FROM ' + store.getQuotedName() + ' WHERE ' +
-      where_clause.sql + ' ORDER BY ' + goog.string.quote(store.getColumnName())
-      + ' ' + order;
+  this.list_by_key_range_(df, false, store_name, key_range, null, reverse, limit, offset);
+};
 
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function(transaction, results) {
-    for (var i = 0, n = results.rows.length; i < n; i++) {
-      var row = results.rows.item(i);
-      if (goog.isDefAndNotNull(row)) {
-        arr[i] = ydn.db.core.req.WebSql.parseRow(row, store);
-      }
-    }
-    df.callback(arr);
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   * @return {boolean} true to roll back.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.core.req.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('get error: ' + error.message);
-    df.errback(error);
-    return true; // roll back
-  };
-
-  //console.log([sql, where_clause.params])
-  this.tx.executeSql(sql, where_clause.params, callback, error_callback);
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.listByStore = function(df, store_name,
+       reverse, limit, offset) {
+  this.list_by_key_range_(df, false, store_name, undefined, null, reverse, limit, offset);
 };
 
 

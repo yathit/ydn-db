@@ -173,6 +173,13 @@ ydn.db.core.req.SimpleStore.prototype.getById = function(df, store_name, id) {
 };
 
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.listByStore = goog.abstractMethod;
+
+
 /**
 * @inheritDoc
 */

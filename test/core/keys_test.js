@@ -4,10 +4,11 @@ goog.require('goog.testing.jsunit');
 goog.require('ydn.db.core.Storage');
 
 
-var reachedFinalContinuation, schema, debug_console, db, objs;
+var reachedFinalContinuation, schema, debug_console, db, objs, arr_objs;
 
-var db_name = 'test_kr_4';
+var db_name = 'test_keys_2';
 var store_name = 'st';
+var arr_store_name = 'st2';
 
 var setUp = function () {
   if (!debug_console) {
@@ -25,7 +26,9 @@ var setUp = function () {
   var x_index = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, false);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
     ydn.db.schema.DataType.INTEGER, [x_index, value_index, tag_index]);
-  schema = new ydn.db.schema.Database(undefined, [store_schema]);
+  var arr_store_schema = new ydn.db.schema.Store(arr_store_name, 'id', false,
+    ydn.db.schema.DataType.ARRAY);
+  schema = new ydn.db.schema.Database(undefined, [arr_store_schema, store_schema]);
   db = new ydn.db.core.Storage(db_name, schema, options);
 
   objs = [
@@ -38,6 +41,17 @@ var setUp = function () {
     {id: 20, value: 'ca', x: 2,remark: 'test ' + Math.random()}
   ];
 
+  arr_objs = [
+    {id:['a', 'qs0'], value:0, type:'a'},
+    {id:['a', 'qs1'], value:1, type:'a'},
+    {id:['b', 'at2'], value:2, type:'b'},
+    {id:['b', 'bs1'], value:3, type:'b'},
+    {id:['c', 'bs2'], value:4, type:'c'},
+    {id:['c', 'bs3'], value:5, type:'c'},
+    {id:['c', 'st3'], value:6, type:'c'}
+  ];
+
+  db.put(arr_store_name, arr_objs);
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + ' ready.');
   });
@@ -132,6 +146,64 @@ var test_by_index_key_range = function () {
     //console.log('fetch value: ' + JSON.stringify(value));
     result = value;
     get_done = true;
+  });
+
+};
+
+
+var test_array_key = function () {
+
+  var keys = arr_objs.map(function(x) {return x.id});
+  var done, result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  db.keys(arr_store_name).addBoth(function (value) {
+    //console.log('fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+
+};
+
+var test_array_key_key_range = function () {
+
+  var keys = arr_objs.slice(2, 4).map(function(x) {return x.id});
+  var done, result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  var range = ydn.db.KeyRange.starts(['b']);
+  db.keys(arr_store_name, range).addBoth(function (value) {
+    //console.log('fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
   });
 
 };
