@@ -2,7 +2,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
-goog.require('ydn.db.Storage');
+goog.require('ydn.db.core.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 
@@ -40,7 +40,7 @@ var tearDown = function() {
 
 var test_11_put = function() {
 
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -72,7 +72,7 @@ var test_11_put = function() {
 
 var test_12_put_array = function() {
   var db_name = 'test_13';
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var arr = [];
   var n = ydn.db.core.req.IndexedDb.REQ_PER_TX / 2;
@@ -112,7 +112,7 @@ var test_12_put_array = function() {
 
 var test_13_put_array = function() {
   var db_name = 'test_crud_ 13_2';
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var arr = [];
   var n = ydn.db.core.req.IndexedDb.REQ_PER_TX * 2.5;
@@ -152,7 +152,7 @@ var test_13_put_array = function() {
 
 var test_14_put_large_array = function() {
   var db_name = 'test_crud_ 13_2';
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var arr = [];
   var n = 1500;
@@ -190,7 +190,7 @@ var test_14_put_large_array = function() {
 
 var test_21_get_inline = function() {
   var db_name = 'test_crud_21_2';
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var key = Math.ceil(Math.random()*1000);
   var value = {id: key, value: 'a' + Math.random()};
@@ -228,7 +228,7 @@ var test_21_get_inline = function() {
 
 var test_22_get_offline = function() {
   var db_name = 'test_crud_21_2';
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var key = Math.ceil(Math.random()*1000);
   var value = {value: 'a' + Math.random()};
@@ -265,7 +265,7 @@ var test_22_get_offline = function() {
 
 var test_23_get_array = function() {
   var db_name = 'test_crud_21_2';
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var arr = [];
   var n = ydn.db.core.req.IndexedDb.REQ_PER_TX / 2;
@@ -308,7 +308,7 @@ var test_23_get_array = function() {
 
 var test_24_get_array = function() {
   var db_name = 'test_crud_23 _2';
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var arr = [];
   var n = ydn.db.core.req.IndexedDb.REQ_PER_TX * 2.5;
@@ -353,9 +353,83 @@ var test_24_get_array = function() {
 };
 
 
+var test_26_list = function() {
+  var db_name = 'test_crud_26_1';
+  var stores = [new ydn.db.schema.Store(table_name, 'id', false,
+    ydn.db.schema.DataType.NUMERIC)];
+  var schema = new ydn.db.schema.Database(undefined, stores);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var data = [
+    {id: 0},
+    {id: 1},
+    {id: 2},
+    {id: 3}
+  ];
+  //var rev_data = ydn.object.clone(data).reverse();
+
+
+  var whole_done, rev_done, limit_done, offset_done;
+  var whole_result, rev_result, limit_result, offset_result;
+
+  waitForCondition(
+    // Condition
+    function() { return whole_done && rev_done && limit_done && offset_done; },
+    // Continuation
+    function() {
+      assertArrayEquals('whole store', data, whole_result);
+      assertArrayEquals('limit store', data.slice(0, 3), limit_result);
+      assertArrayEquals('offset store', data.slice(1, 3), offset_result);
+      assertArrayEquals('reverse store', data.reverse(), rev_result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  db.put(table_name, data);
+
+  db.list(table_name).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    whole_result = value;
+    whole_done = true;
+  }).addErrback(function(e) {
+      whole_done = true;
+      console.log('Error: ' + e);
+    });
+
+  db.list(table_name, true).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    rev_result = value;
+    rev_done = true;
+  }).addErrback(function(e) {
+      rev_done = true;
+      console.log('Error: ' + e);
+    });
+
+  db.list(table_name, false, 3).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    limit_result = value;
+    limit_done = true;
+  }).addErrback(function(e) {
+      limit_done = true;
+      console.log('Error: ' + e);
+    });
+  db.list(table_name, false, 2, 1).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    offset_result = value;
+    offset_done = true;
+  }).addErrback(function(e) {
+      offset_done = true;
+      console.log('Error: ' + e);
+    });
+};
+
+
 var test_25_get_large_array = function() {
   var db_name = 'test_crud_23 _2';
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var arr = [];
   var ids = [];
@@ -405,7 +479,7 @@ var test_24_get_all_no_data = function() {
 
   var stores = [new ydn.db.schema.Store(table_name, 'id')];
   var schema = new ydn.db.schema.Database(1, stores);
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -432,7 +506,7 @@ var test_24_get_all_no_data = function() {
 
 var test_25_get_none_exist = function() {
 
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var put_value;
@@ -476,7 +550,7 @@ var test_31_count_store = function() {
   var stores = [new ydn.db.schema.Store(store_1, 'id', false,
     ydn.db.schema.DataType.INTEGER)];
   var schema = new ydn.db.schema.Database(1, stores);
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   db.clear(store_1);
   db.put(store_1, arr).addCallback(function(keys) {
@@ -529,7 +603,7 @@ var test_33_count_database = function() {
     new ydn.db.schema.Store(store_2, 'id', false, ydn.db.schema.DataType.INTEGER)];
 
   var schema = new ydn.db.schema.Database(1, stores);
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   db.clear(store_1);
   db.clear(store_2);
@@ -561,7 +635,7 @@ var test_33_count_database = function() {
 
 
 var test_41_clear_store = function() {
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
   db.put(table_name, {id: 1});
 
   var hasEventFired = false;
@@ -614,7 +688,7 @@ var test_51_array_key = function() {
 
   var stores = [new ydn.db.schema.Store(table_name, 'id', false, ydn.db.schema.DataType.ARRAY)];
   var schema = new ydn.db.schema.Database(undefined, stores);
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var key_test = function(key) {
     //console.log('testing ' + key);
@@ -678,7 +752,7 @@ var test_52_fetch_keys = function () {
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
     ydn.db.schema.DataType.TEXT, [indexSchema]);
   var schema = new ydn.db.schema.Database(1, [store_schema]);
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs1', value:Math.random()},
@@ -749,7 +823,7 @@ var test_53_fetch_keys = function () {
   var store_schema1 = new ydn.db.schema.Store(store_name1, 'id', false, ydn.db.schema.DataType.TEXT, [indexSchema]);
   var store_schema2 = new ydn.db.schema.Store(store_name2, 'id', false, ydn.db.schema.DataType.TEXT);
   var schema = new ydn.db.schema.Database(1, [store_schema1, store_schema2]);
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
 
   var objs1 = [];

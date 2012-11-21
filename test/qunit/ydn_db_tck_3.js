@@ -16,7 +16,7 @@ var gdata_1 = { test:"test value", name:"name 3", id: {$t: 1} };
 
 var schema_1 = {
   version: 1,
-  Stores: [
+  stores: [
     {
       name: store_inline,
       keyPath: 'id',
@@ -40,7 +40,7 @@ var schema_1 = {
       name: store_inline_index,
       keyPath: 'id',
       type: 'NUMERIC',
-      Indexes: [
+      indexes: [
         {name: 'value', type: 'TEXT'}
       ]
     }
@@ -65,19 +65,19 @@ var schema_index = JSON.parse(JSON.stringify(schema_1));
 var index_name = 'tag';
 for (var i = 0; i < 4; i++) {
   // add index for the field 'tag'
-  schema_index.Stores[i].Indexes = [
+  schema_index.store[i].indexes = [
     {name: index_name,
     type: 'TEXT'}
   ];
 }
-schema_index.Stores[4].Indexes = [
+schema_index.store[4].indexes = [
   {name: 'tag.$t'}
 ];
 var st_m_1 = 'multi_index_store';
-schema_index.Stores[5] = {
+schema_index.store[5] = {
   name: st_m_1,
   autoIncrement: true,
-  Indexes: [
+  indexes: [
     {
       name: index_name,
       multiEntry: true

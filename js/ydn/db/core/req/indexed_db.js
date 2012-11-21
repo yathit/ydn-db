@@ -380,38 +380,7 @@ ydn.db.core.req.IndexedDb.prototype.getKeysByStore = function(df, not_key_only,
  */
 ydn.db.core.req.IndexedDb.prototype.listByStore = function(df, store_name,
         reverse, limit, offset) {
-  var results = [];
-  var store = this.tx.objectStore(store_name);
-  var dir = ydn.db.base.getDirection(reverse);
-  var request = store.openCursor(null, dir);
-  var cued = false;
-  request.onsuccess = function(event) {
-    /**
-     * @type {IDBCursor}
-     */
-    var cursor = event.target.result;
-    if (cursor) {
-      if (!cued && offset > 0) {
-        cued = true;
-        if (offset != 1) {
-          cursor.advance(offset - 1);
-        }
-        return;
-      }
-      results.push(cursor.value);
-      if (results.length < limit) {
-        cursor.advance(1);
-      }
-    } else {
-      df.callback(results);
-    }
-  };
-  request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, event]);
-    }
-    df.errback(event);
-  };
+  this.listByKeyRange(df, store_name, null, reverse, limit, offset)
 };
 
 
@@ -434,14 +403,14 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange = function(df, store_name,
     if (cursor) {
       if (!cued && offset > 0) {
         cued = true;
-        if (offset != 1) {
-          cursor.advance(offset - 1);
-        }
+        cursor.advance(offset);
         return;
       }
       results.push(cursor.value);
       if (results.length < limit) {
         cursor.advance(1);
+      } else {
+        df.callback(results);
       }
     } else {
       df.callback(results);
@@ -471,14 +440,14 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(df, store_name,
     if (cursor) {
       if (!cued && offset > 0) {
         cued = true;
-        if (offset != 1) {
-          cursor.advance(offset - 1);
-        }
+        cursor.advance(offset);
         return;
       }
       results.push(cursor.key);
       if (results.length < limit) {
         cursor.advance(1);
+      } else {
+        df.callback(results);
       }
     } else {
       df.callback(results);
@@ -859,19 +828,28 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(df, keys) {
 
 
 /**
- * @param {!goog.async.Deferred} df return a deferred function.
- * @param {string} table store name.
- * @param {ydn.db.KeyRange} keyRange key range.
+ * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.countKeyRange = function(df, table, keyRange) {
-
-  var self = this;
-
-  var key_range = ydn.db.IDBKeyRange.bound(keyRange.lower, keyRange.upper,
-      keyRange.lowerOpen, keyRange.upperOpen);
+ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(df, table,
+                    keyRange, index_name) {
 
   var store = this.tx.objectStore(table);
-  var request = store.count(key_range);
+  var request;
+  if (goog.isDef(index_name)) {
+    var index = store.index(index_name);
+    if (goog.isNull(keyRange)) {
+      request = index.count();
+    } else {
+      request = index.count(keyRange);
+    }
+  } else {
+    if (goog.isNull(keyRange)) {
+      request = store.count();
+    } else {
+      request = store.count(keyRange);
+    }
+  }
+
   request.onsuccess = function(event) {
     if (ydn.db.core.req.IndexedDb.DEBUG) {
       window.console.log(event);

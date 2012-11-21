@@ -56,7 +56,8 @@ ydn.db.core.req.IRequestExecutor.prototype.countStores = goog.abstractMethod;
 /**
  * @param {!goog.async.Deferred} df return a deferred function.
  * @param {string} table store name.
- * @param {ydn.db.KeyRange} keyRange the key range.
+ * @param {IDBKeyRange} keyRange the key range.
+ * @param {string=} index name.
  */
 ydn.db.core.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
 

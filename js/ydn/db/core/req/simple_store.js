@@ -279,13 +279,10 @@ ydn.db.core.req.SimpleStore.prototype.countStores = function (df, store_names) {
 };
 
 /**
- * Get number of items stored.
- * @param {!goog.async.Deferred} df return number of items in deferred function.
- * @param {string} opt_table table name.
- *  @param {ydn.db.KeyRange} keyRange the key range.
+ * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
-                                                          keyRange) {
+                              keyRange, index_name) {
 
   var pre_fix = '_database_' + this.dbname;
   if (goog.isDef(opt_table)) {

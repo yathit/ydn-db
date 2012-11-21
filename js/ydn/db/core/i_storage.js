@@ -18,10 +18,10 @@ ydn.db.core.IStorage = function() {};
 
 
 
-
 /**
  *
- * @param {!Array.<string>|string=} store_name store name or names.
+ * @param {string} store_name store name or names.
+ * @param {string=} index name.
  * @param {ydn.db.KeyRange=} opt_key_range key range.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
@@ -41,15 +41,28 @@ ydn.db.core.IStorage.prototype.get = goog.abstractMethod;
 /**
  * Return object or objects of given key or keys.
  * @param {(string|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(ydn.db.KeyRange|!Array.<string>)=} arg2 primary key to be retrieved, if not provided,
+ * @param {(boolean|ydn.db.KeyRange|!Array.<string>)=} arg2 primary key to be retrieved, if not provided,
  * all entries in the store will return. key range
- * @param {boolean=} reverse to reverse.
+ * @param {(number|boolean)=} reverse to reverse.
  * @param {number=} limit limit.
  * @param {number=} offset offset.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.core.IStorage.prototype.list = goog.abstractMethod;
 
+
+/**
+ * List keys.
+ * @param {string} store_name
+ * @param {(boolean|string|!IDBKeyRange)=} arg2
+ * @param {(number|string|!IDBKeyRange)=} arg3
+ * @param {(number|string|boolean)=} arg4
+ * @param {(number|boolean|number)=} arg5
+ * @param {(boolean|number)=} arg6
+ * @param {(boolean|number)=} arg7
+ * @return {!goog.async.Deferred} result promise.
+ */
+ydn.db.core.IStorage.prototype.keys = goog.abstractMethod;
 
 /**
  * Execute PUT request either storing result to tx or callback to df.

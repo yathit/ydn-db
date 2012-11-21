@@ -21,7 +21,7 @@ StorageOptions.prototype.size;
  * Preferential ordering of storage mechanisms.
  * @type {!Array.<string>|undefined}
  */
-StorageOptions.prototype.Mechanisms;
+StorageOptions.prototype.mechanisms;
 
 
 /**

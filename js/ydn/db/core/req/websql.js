@@ -937,12 +937,10 @@ ydn.db.core.req.WebSql.prototype.countStores = function(d, tables) {
 
 
 /**
- * @param {!goog.async.Deferred} d return a deferred function.
- * @param {string} table store name.
- * @param {ydn.db.KeyRange} keyRange the key range.
- * @return {!goog.async.Deferred} d return a deferred function. ??
+ * @inheritDoc
  */
-ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table, keyRange) {
+ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
+                                    keyRange, index_name) {
 
   var me = this;
 

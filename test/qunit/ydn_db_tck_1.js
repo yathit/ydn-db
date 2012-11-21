@@ -18,7 +18,7 @@ var data_2 = { test:"test value", name:"name 2" };
 var gdata_1 = { test:"test value", name:"name 3", id: {$t: 1} };
 
 var schema_1 = {
-  Stores: [
+  stores: [
     {
       name: store_inline,
       keyPath: 'id',
@@ -370,31 +370,6 @@ asyncTest("store", function () {
 });
 
 
-asyncTest("database", function () {
-  expect(2);
-
-  var db = new ydn.db.Storage(db_count, schema_1);
-  db.clear();
-  var value_1 = 'get test ' + Math.random();
-  var value_2 = 'get test ' + Math.random();
-  db.put(store_inline, [{id: 1, d: value_1}, {id: 2, e: value_2}, {id: 3, e: value_2}]);
-  db.put(store_outline,
-    [{d: value_1}, {e: value_2}, {e: value_2}],
-    ['a1', 'a2', 'b']).then(function(keys) {
-    equal(3, keys.length, 'key length');
-    db.count().then(function (x) {
-      equal(6, x, 'number of records');
-      start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
-    });
-  }, function (e) {
-    ok(false, e.message);
-    start();
-  });
-
-});
 
 
 

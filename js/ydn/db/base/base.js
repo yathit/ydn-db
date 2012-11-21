@@ -133,7 +133,7 @@ ydn.db.base.CursorMode = {
  * @define {boolean} if true, a default key-value text store should be created
  * in the abscent of configuration option.
  */
-ydn.db.base.ENABLE_DEFAULT_TEXT_STORE = true;
+ydn.db.base.ENABLE_DEFAULT_TEXT_STORE = false;
 
 
 

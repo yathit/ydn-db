@@ -4,6 +4,8 @@
  * Before invoking database request, transaction object (tx) must set
  * and active. Caller must preform setting tx. This class will not check
  * it, but run immediately. Basically thinks this as a static object.
+ *
+ * These classes assume requested store or index are available in the database.
  */
 
 

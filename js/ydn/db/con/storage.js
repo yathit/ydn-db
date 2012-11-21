@@ -74,11 +74,21 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   var options = opt_options || {};
 
+  if (goog.DEBUG) {
+    var fields = ['autoSchema', 'size', 'mechanisms'];
+    for (var key in options) {
+      if (options.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
+        throw new ydn.error.ArgumentException('Unknown attribute "' + key +
+          '" in options.');
+      }
+    }
+  }
+
   /**
    * @final
    * @type {!Array.<string>}
    */
-  this.mechanisms = options.Mechanisms || ydn.db.con.Storage.PREFERENCE;
+  this.mechanisms = options.mechanisms || ydn.db.con.Storage.PREFERENCE;
 
   /**
    * @final
@@ -114,7 +124,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   if (opt_schema instanceof ydn.db.schema.Database) {
     schema = opt_schema;
   } else if (goog.isObject(opt_schema)) {
-    if (options.autoSchema || !goog.isDef(opt_schema['Stores'])) {
+    if (options.autoSchema || !goog.isDef(opt_schema['stores'])) {
       schema = new ydn.db.schema.EditableDatabase(opt_schema);
     } else {
       schema = new ydn.db.schema.Database(opt_schema);

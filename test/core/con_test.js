@@ -10,7 +10,7 @@ goog.require('goog.testing.PropertyReplacer');
 var reachedFinalContinuation, debug_console, db_name;
 var store_name = 'st';
 var stubs;
-options.usedTextStore = false;
+
 
 var setUp = function() {
   if (!debug_console) {
@@ -119,26 +119,26 @@ var test_10b_trival_schema = function() {
 };
 
 var test_12_no_db = function() {
-  var schema = {Stores: [store_schema]};
+  var schema = {stores: [store_schema]};
   schema_test(schema);
 };
 
 
 var test_13a_same_ver = function() {
-  var schema = {version: 1, Stores: [store_schema]};
+  var schema = {version: 1, stores: [store_schema]};
   schema_test(schema);
 };
 
 var test_13b_same_ver_diff_schema = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
-  var schema = {version: 1, Stores: [store_schema, new_store]};
+  var schema = {version: 1, stores: [store_schema, new_store]};
   schema_test(schema);
 };
 
 
 var test_13c_ver_update = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
-  var schema = {version: 2, Stores: [store_schema, new_store]};
+  var schema = {version: 2, stores: [store_schema, new_store]};
   schema_test(schema, true);
 };
 
@@ -162,7 +162,7 @@ var test_21_add_store = function() {
   // autoSchema database
   var db = new ydn.db.Storage(db_name, undefined, options);
   var sh = db.getSchema();
-  assertEquals('no store', 0, sh.Stores.length);
+  assertEquals('no store', 0, sh.stores.length);
   assertTrue('auto schema', db.isAutoSchema());
   var store_name = 'st' + Math.random();
   var store = {name: store_name, keyPath: 'id'};
@@ -170,7 +170,7 @@ var test_21_add_store = function() {
   db.put(store, {id: 'a', value: v});
   db.getSchema(function(sh) {
     console.log(sh);
-    sh_len = sh.Stores.length;
+    sh_len = sh.stores.length;
     done = true;
   });
 };
@@ -184,7 +184,7 @@ var test_21_add_store = function() {
 // */
 //var assert_similar_schema = function(schema, schema_json) {
 //  console.log(['testing ', schema, schema_json]);
-//  var stores = schema_json.Stores || schema_json.stores;
+//  var stores = schema_json.stores || schema_json.stores;
 //  assertEquals('# stores', schema.stores.length, stores.length);
 //  for (var i = 0; i < schema.stores.length; i++) {
 //    var store = schema.stores[i];

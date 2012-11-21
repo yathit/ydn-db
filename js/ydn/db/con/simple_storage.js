@@ -124,7 +124,7 @@ ydn.db.con.SimpleStorage.SEP = '^|';
 /**
  * @typedef {{
  *   name: string,
- *   Indexes: Object,
+ *   indexes: Object,
  *   autoIncrement: boolean,
  *   keyPath: string?,
  *   autoIncrementNo: number
@@ -273,7 +273,7 @@ ydn.db.con.SimpleStorage.prototype.getSchema = function (callback) {
   goog.Timer.callOnce(function () {
     var stores = [];
     var db_value = this.cache_.getItem(this.makeKey());
-    var store_names = db_value['Stores'];
+    var store_names = db_value['stores'];
     for (var i = 0; i < store_names.length; i++) {
       var store_obj = this.cache_.getItem(this.makeKey(store_names[i]));
       stores[i] = new ydn.db.schema.Store(store_names[i],
@@ -464,15 +464,15 @@ ydn.db.con.SimpleStorage.prototype.index = function(store_name, index_name) {
       if (goog.string.startsWith(key, base)) {
         //console.log(['key ' + keys.length, key]);
         keys.push(key);
-        for (var j = 0, m = store_json.Indexes.length; j < m; j++) {
-          var idxKeyPath = store_json.Indexes[i];
+        for (var j = 0, m = store_json.indexes.length; j < m; j++) {
+          var idxKeyPath = store_json.indexes[i];
           // TODO: indexing
         }
       }
     }
     goog.array.sort(keys);
     store_json['Keys'] = keys;
-    store_json['Indexes'] = indexes;
+    store_json['indexes'] = indexes;
   }
   return keys;
 };

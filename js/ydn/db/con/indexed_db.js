@@ -246,13 +246,16 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
               setDb(null, e);
             };
 
+
             var trans = ver_request['transaction'];
             ver_request.onsuccess = function(e) {
-              updateSchema(db, trans, true);
+
+              ver_request['transaction'].oncomplete = tr_on_complete;
+
+              updateSchema(db, ver_request['transaction'], true);
             };
 
-            //
-            trans.oncomplete = function(e) {
+            var tr_on_complete = function(e) {
 
               // for old format.
               // by reopening the database, we make sure that we are not in
@@ -271,6 +274,10 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
                 setDb(null);
               };
             };
+
+            if (goog.isDefAndNotNull(ver_request['transaction'])) {
+              ver_request['transaction'].oncomplete = tr_on_complete;
+            }
 
           }
 

@@ -76,6 +76,11 @@
                  token="dev-ydn.db-${ver}.js.map" value="dev-ydn.db.js.map"/>
         <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-${ver}.js"
               tofile="${out.dir}/jquery-ydn.db.js"/>
+        <copy todir="${out.dir}/../test/">
+            <fileset dir="${ydn-db.dir}/test/qunit">
+               <exclude name="*.html"/>
+            </fileset>
+        </copy>
     </target>
     <macrodef name="adv-comp">
         <attribute name="input.fn"/>

@@ -14,13 +14,13 @@ var data_1a = { test:"test value", name:"name 1", id: ['a', 'b']};
 var data_2 = { test:"test value", name:"name 2" };
 var gdata_1 = { test:"test value", name:"name 3", id: {$t: 1} };
 
+
 var schema_1 = {
-  version: 1,
-  Stores: [
+  stores: [
     {
       name: store_inline,
       keyPath: 'id',
-    type: 'NUMERIC'},
+      type: 'NUMERIC'},
     {
       name: store_outline,
       type: 'NUMERIC'},
@@ -40,12 +40,14 @@ var schema_1 = {
       name: store_inline_index,
       keyPath: 'id',
       type: 'NUMERIC',
-      Indexes: [
+      indexes: [
         {name: 'value', type: 'TEXT'}
       ]
     }
+
   ]
 };
+
 
 var initionalizeDB = function(callback, opt_put_schema) {
   ydn.db.deleteDatabase(db_name_put);
@@ -96,19 +98,19 @@ var schema_index = JSON.parse(JSON.stringify(schema_1));
 var index_name = 'tag';
 for (var i = 0; i < 4; i++) {
   // add index for the field 'tag'
-  schema_index.Stores[i].Indexes = [
+  schema_index.stores[i].indexes = [
     {name: index_name,
     type: 'TEXT'}
   ];
 }
-schema_index.Stores[4].Indexes = [
+schema_index.stores[4].indexes = [
   {name: 'tag.$t'}
 ];
 var st_m_1 = 'multi_index_store';
-schema_index.Stores[5] = {
+schema_index.stores[5] = {
   name: st_m_1,
   autoIncrement: true,
-  Indexes: [
+  indexes: [
     {
       name: index_name,
       multiEntry: true

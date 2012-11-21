@@ -420,7 +420,7 @@ ydn.db.schema.Store.prototype.toJSON = function() {
     'keyPath': this.keyPath,
     'autoIncrement': this.autoIncrement,
     'type': this.type,
-    'Indexes': indexes
+    'indexes': indexes
   };
 };
 
@@ -432,16 +432,15 @@ ydn.db.schema.Store.prototype.toJSON = function() {
  */
 ydn.db.schema.Store.fromJSON = function(json) {
   if (goog.DEBUG) {
-    var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'Indexes'];
+    var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'indexes'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-        throw new ydn.error.ArgumentException('Unknown field: ' + key + ' in ' +
-            ydn.json.stringify(json));
+        throw new ydn.error.ArgumentException('Unknown attribute "' + key + '"');
       }
     }
   }
   var indexes = [];
-  var indexes_json = json.Indexes || [];
+  var indexes_json = json.indexes || [];
   if (goog.isArray(indexes_json)) {
     for (var i = 0; i < indexes_json.length; i++) {
       var index = ydn.db.schema.Index.fromJSON(indexes_json[i]);
@@ -853,7 +852,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
      */
     var json = version;
     if (goog.DEBUG) {
-      var fields = ['version', 'Stores'];
+      var fields = ['version', 'stores'];
       for (var key in json) {
         if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
           throw new ydn.error.ArgumentException('Unknown field: ' + key +
@@ -864,7 +863,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
     }
     ver = json['version'];
     stores = [];
-    var stores_json = json.Stores || [];
+    var stores_json = json.stores || [];
     for (var i = 0; i < stores_json.length; i++) {
       stores.push(ydn.db.schema.Store.fromJSON(stores_json[i]));
     }
@@ -916,7 +915,7 @@ ydn.db.schema.Database.prototype.toJSON = function() {
 
   return {
     'version': this.version,
-    'Stores': stores};
+    'stores': stores};
 };
 
 
@@ -985,7 +984,7 @@ ydn.db.schema.Database.prototype.getStoreNames = function() {
 // */
 //ydn.db.schema.Database.fromJSON = function(json) {
 //  if (goog.DEBUG) {
-//    var fields = ['version', 'Stores'];
+//    var fields = ['version', 'stores'];
 //    for (var key in json) {
 //      if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
 //        throw new ydn.error.ArgumentException('Unknown field: ' + key + ' in ' +
@@ -994,7 +993,7 @@ ydn.db.schema.Database.prototype.getStoreNames = function() {
 //    }
 //  }
 //  var stores = [];
-//  var stores_json = json.Stores || [];
+//  var stores_json = json.stores || [];
 //  for (var i = 0; i < stores_json.length; i++) {
 //    stores.push(ydn.db.schema.Store.fromJSON(stores_json[i]));
 //  }

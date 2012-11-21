@@ -63,7 +63,7 @@ StoreSchema.prototype.type;
 /**
  * @type {Array.<!IndexSchema>}
  */
-StoreSchema.prototype.Indexes;
+StoreSchema.prototype.indexes;
 
 
 /**
@@ -79,4 +79,4 @@ DatabaseSchema.prototype.version;
 /**
  * @type {Array.<!StoreSchema>}
  */
-DatabaseSchema.prototype.Stores;
+DatabaseSchema.prototype.stores;

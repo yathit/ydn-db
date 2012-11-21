@@ -161,28 +161,40 @@ ydn.db.core.TxStorage.prototype.exec = function(callback, store_names, mode) {
  *
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.count = function(store_name, opt_key_range) {
+ydn.db.core.TxStorage.prototype.count = function(store_name, index_or_keyrange,
+                                                 index_key_range) {
   var df = ydn.db.base.createDeferred();
 
-  var store_names = goog.isArray(store_name) ?
-    store_name : goog.isDef(store_name) ?
-    [store_name] : this.schema.getStoreNames();
-
-  if (store_names.length == 0) {
-    // it is an error to call transaction with store names.
-    df.callback(0);
-    return df;
+  if (!goog.isString(store_name)) {
+    throw new ydn.error.ArgumentException();
   }
 
-  var count = function(executor) {
-    if (goog.isDef(opt_key_range)) {
-      executor.countKeyRange(df, store_name, opt_key_range);
-    } else {
-      executor.countStores(df, store_names);
-    }
+  /**
+   * @type {string}
+   */
+  var index_name;
+  /**
+   * @type {IDBKeyRange}
+   */
+  var key_range;
 
-  };
-  this.exec(count, store_names, ydn.db.base.TransactionMode.READ_ONLY);
+  if (goog.isString(index_or_keyrange)) {
+    index_name = index_or_keyrange;
+    key_range = ydn.db.KeyRange.parseIDBKeyRange(index_key_range);
+  } else if (goog.isObject(index_or_keyrange) || !goog.isDef(index_or_keyrange)) {
+    if (goog.isDef(index_key_range)) {
+      throw new ydn.error.ArgumentException();
+    }
+    key_range = ydn.db.KeyRange.parseIDBKeyRange(index_or_keyrange);
+  } else {
+    throw new ydn.error.ArgumentException();
+  }
+
+
+  this.exec( function(executor) {
+    executor.countKeyRange(df, store_name, key_range, index_name);
+  }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+
   return df;
 };
 
@@ -247,14 +259,7 @@ ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT = 1000000;
 
 /**
  *
- * @param {string} store_name
- * @param {(boolean|string|!IDBKeyRange)=} arg2
- * @param {(number|string|!IDBKeyRange)=} arg3
- * @param {(number|string|boolean)=} arg4
- * @param {(number|boolean|number)=} arg5
- * @param {(boolean|number)=} arg6
- * @param {(boolean|number)=} arg7
- * @return {!goog.async.Deferred} result promise.
+ * @inheritDoc
  */
 ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
                                                 arg4, arg5, arg6, arg7) {
@@ -349,11 +354,14 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
   } else if (goog.isString(arg2)) {
     // keysByIndexKeyRange
     index_name = arg2;
-    if (!goog.isDef(arg3) || goog.isNull(arg3) || !goog.isObject(arg3)) {
+    if (!goog.isDef(arg3) || goog.isNull(arg3) || goog.isObject(arg3)) {
+      key_range = ydn.db.KeyRange.parseIDBKeyRange(
+        /** @type {IDBKeyRange} */ (arg3));
+    } else {
       throw new ydn.error.ArgumentException(
         'arg3 must be IDBKeyRange|null|undefined.');
     }
-    key_range = ydn.db.KeyRange.parseIDBKeyRange(arg3);
+
     if (goog.isDef(arg4) && !goog.isBoolean(arg4)) {
       throw new ydn.error.ArgumentException('arg4 must be boolean|undefined.');
     }
@@ -393,9 +401,22 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
 /**
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, offset) {
+ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5) {
 
   var df = ydn.db.base.createDeferred();
+  /**
+   * @type {boolean}
+   */
+  var reverse;
+  /**
+   * @type {number}
+   */
+  var limit;
+  /**
+   * @type {number}
+   */
+  var offset;
+
 
   if (goog.isString(arg1)) {
     var store_name = arg1;
@@ -414,26 +435,54 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, offs
       this.exec(function(executor) {
         executor.listByIds(df, store_name, ids);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    } else if (!goog.isDef(arg2) || goog.isBoolean(arg2)) {
+      reverse = !!arg2;
+      if (!goog.isDef(arg3)) {
+        limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+      } else if (goog.isNumber(arg3)) {
+        limit = arg3;
+      } else {
+        throw new ydn.error.ArgumentException('arg3 must be number|undefined.');
+      }
+      if (!goog.isDef(arg4)) {
+        offset = 0;
+      } else if (goog.isNumber(arg4)) {
+        offset = arg4;
+      } else {
+        throw new ydn.error.ArgumentException('arg4 must be number|undefined.');
+      }
+
+      if (goog.isDef(arg5)) {
+        throw new ydn.error.ArgumentException('too many input arguments');
+      }
+      this.exec(function (executor) {
+        executor.listByKeyRange(df, store_name, null, reverse,
+          limit, offset);
+      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else if (goog.isObject(arg2) || goog.isNull(arg2) || !goog.isDef(arg2)) {
       var key_range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
-      if (goog.isDef(reverse) && !goog.isBoolean(reverse)) {
-        throw new ydn.error.ArgumentException('reverse must be boolean|undefined.');
+      if (goog.isDef(arg3) && !goog.isBoolean(arg3)) {
+        throw new ydn.error.ArgumentException('arg3 must be boolean|undefined.');
       }
-      if (!goog.isDef(limit)) {
+      reverse = !!arg3;
+      if (!goog.isDef(arg4)) {
         limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
-      } else if (!goog.isNumber(limit)) {
-        throw new ydn.error.ArgumentException('limit must be number|undefined.');
+      } else if (goog.isNumber(arg4)) {
+        limit = arg4;
+      } else {
+        throw new ydn.error.ArgumentException('arg4 must be number|undefined.');
       }
-      if (!goog.isDef(offset)) {
+      if (!goog.isDef(arg5)) {
         offset = 0;
-      } else if (!goog.isNumber(offset)) {
-        throw new ydn.error.ArgumentException('offset must be number|undefined.');
+      } else if (goog.isNumber(arg5)) {
+        offset = arg5;
+      } else {
+        throw new ydn.error.ArgumentException('arg5 must be number|undefined.');
       }
       var kr = key_range;
       this.exec(function (executor) {
-        executor.listByKeyRange(df, store_name, kr, !!reverse,
-          /** @type {number} */ (limit),
-          /** @type {number} */ (offset));
+        executor.listByKeyRange(df, store_name, kr, reverse,
+          limit, offset);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else {
       throw new ydn.error.ArgumentException();

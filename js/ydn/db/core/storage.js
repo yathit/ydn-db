@@ -87,8 +87,8 @@ ydn.db.core.Storage.prototype.getTxNo = function() {
  *
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.count = function(store_name, opt_key_range) {
-  return this.default_tx_queue_.count(store_name, opt_key_range);
+ydn.db.core.Storage.prototype.count = function(store_name, key_range, index) {
+  return this.default_tx_queue_.count(store_name, key_range, index);
 };
 
 
@@ -102,14 +102,7 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
 
 /**
  *
- * @param {string} store_name
- * @param {(string|!IDBKeyRange)=} arg2
- * @param {(string|!IDBKeyRange)=} arg3
- * @param {(number|string|boolean)=} arg4
- * @param {(number|boolean|number)=} arg5
- * @param {(boolean|number)=} arg6
- * @param {boolean=} arg7
- * @return {!goog.async.Deferred} result promise.
+ * @inheritDoc
  */
 ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
                                                 arg4, arg5, arg6, arg7) {
@@ -126,8 +119,8 @@ ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3) {
-  return this.default_tx_queue_.list(arg1, arg2, arg3);
+ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3, arg4, arg5) {
+  return this.default_tx_queue_.list(arg1, arg2, arg3, arg4, arg5);
 };
 
 
