@@ -580,59 +580,6 @@ var test_31_count_store = function() {
   });
 };
 
-var test_33_count_database = function() {
-
-  var db_name = 'test_33_count_database_1';
-
-
-  var n1 = Math.ceil(Math.random() * 10 + 1);
-  var n2 = Math.ceil(Math.random() * 10 + 1);
-  var arr1 = [];
-  var arr2 = [];
-  for (var i = 0; i < n1; i++) {
-    arr1.push({id: i});
-  }
-  for (var i = 0; i < n2; i++) {
-    arr2.push({id: i});
-  }
-
-  var store_1 = 'st1';
-  var store_2 = 'st2';
-  var stores = [
-    new ydn.db.schema.Store(store_1, 'id', false, ydn.db.schema.DataType.INTEGER),
-    new ydn.db.schema.Store(store_2, 'id', false, ydn.db.schema.DataType.INTEGER)];
-
-  var schema = new ydn.db.schema.Database(1, stores);
-  var db = new ydn.db.core.Storage(db_name, schema, options);
-
-  db.clear(store_1);
-  db.clear(store_2);
-  db.put(store_1, arr1);
-  db.put(store_2, arr2);
-
-  var done = false;
-  var count;
-
-  waitForCondition(
-    // Condition
-    function() { return done; },
-    // Continuation
-    function() {
-      assertEquals('number of record', n1+n2, count);
-      // Remember, the state of this boolean will be tested in tearDown().
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    2000); // maxTimeout
-
-
-  db.count().addCallback(function(value) {
-    //console.log('receiving value callback.');
-    count = value;
-    done = true;
-  });
-};
-
 
 var test_41_clear_store = function() {
   var db = new ydn.db.core.Storage(db_name, schema, options);
