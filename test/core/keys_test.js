@@ -87,6 +87,7 @@ var test_store = function () {
     100, // interval
     1000); // maxTimeout
 
+  goog.net.XhrIo
 
   db.keys(store_name).addCallback(function (value) {
     //console.log('fetch value: ' + JSON.stringify(value));
