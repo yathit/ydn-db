@@ -174,10 +174,10 @@ ydn.db.NotFoundError = function(opt_msg) {
 };
 goog.inherits(ydn.db.NotFoundError, Error);
 
-///**
-// * @type {string} name of error.
-// */
-//ydn.db.NotFoundError.prototype.name = 'NotFoundError';
+/**
+* @type {string} name of error.
+*/
+ydn.db.NotFoundError.prototype.name = 'NotFoundError';
 
 
 /**

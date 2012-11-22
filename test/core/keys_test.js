@@ -6,8 +6,9 @@ goog.require('ydn.db.core.Storage');
 
 var reachedFinalContinuation, schema, debug_console, db, objs, arr_objs;
 
-var db_name = 'test_keys_2';
+var db_name = 'test_keys_3';
 var store_name = 'st';
+var string_key_store = 'st3';
 var arr_store_name = 'st2';
 
 var setUp = function () {
@@ -28,7 +29,8 @@ var setUp = function () {
     ydn.db.schema.DataType.INTEGER, [x_index, value_index, tag_index]);
   var arr_store_schema = new ydn.db.schema.Store(arr_store_name, 'id', false,
     ydn.db.schema.DataType.ARRAY);
-  schema = new ydn.db.schema.Database(undefined, [arr_store_schema, store_schema]);
+  var string_store = new ydn.db.schema.Store(string_key_store, 'value');
+  schema = new ydn.db.schema.Database(undefined, [arr_store_schema, store_schema, string_store]);
   db = new ydn.db.core.Storage(db_name, schema, options);
 
   objs = [
@@ -52,6 +54,7 @@ var setUp = function () {
   ];
 
   db.put(arr_store_name, arr_objs);
+  db.put(string_key_store, objs);
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + ' ready.');
   });
@@ -172,6 +175,75 @@ var test_array_key = function () {
 
 
   db.keys(arr_store_name).addBoth(function (value) {
+    //console.log('fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+
+};
+
+var test_keyrange_starts = function () {
+
+  var keys = [];
+  for (var i = 0; i < objs.length; i++) {
+    if (goog.string.startsWith(objs[i].value, 'b')) {
+      keys.push(objs[i].id);
+    }
+  }
+  var done, result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  var range = ydn.db.KeyRange.starts('b');
+  db.keys(store_name, 'value', range).addBoth(function (value) {
+    //console.log('fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+
+};
+
+
+var test_string_key_starts = function () {
+
+  var keys = [];
+  for (var i = 0; i < objs.length; i++) {
+    if (goog.string.startsWith(objs[i].value, 'b')) {
+      keys.push(objs[i].value);
+    }
+  }
+  var done, result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  var range = ydn.db.KeyRange.starts('b');
+  db.keys(string_key_store, range).addBoth(function (value) {
     //console.log('fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;

@@ -369,8 +369,8 @@ var test_26_list = function() {
   //var rev_data = ydn.object.clone(data).reverse();
 
 
-  var whole_done, rev_done, limit_done, offset_done;
-  var whole_result, rev_result, limit_result, offset_result;
+  var whole_done, rev_done, array_done, limit_done, offset_done;
+  var whole_result, rev_result, array_result, limit_result, offset_result;
 
   waitForCondition(
     // Condition
@@ -378,6 +378,7 @@ var test_26_list = function() {
     // Continuation
     function() {
       assertArrayEquals('whole store', data, whole_result);
+      assertArrayEquals('array keys', data.slice(1, 3), array_result);
       assertArrayEquals('limit store', data.slice(0, 3), limit_result);
       assertArrayEquals('offset store', data.slice(1, 3), offset_result);
       assertArrayEquals('reverse store', data.reverse(), rev_result);
@@ -396,6 +397,15 @@ var test_26_list = function() {
     whole_done = true;
   }).addErrback(function(e) {
       whole_done = true;
+      console.log('Error: ' + e);
+    });
+
+  db.list(table_name, [1, 2]).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    array_result = value;
+    array_done = true;
+  }).addErrback(function(e) {
+      rev_done = true;
       console.log('Error: ' + e);
     });
 

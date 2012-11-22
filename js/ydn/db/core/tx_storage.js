@@ -295,6 +295,13 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
   if (!goog.isString(store_name)) {
     throw new ydn.error.ArgumentException('store_name');
   }
+  var store;
+  if (goog.DEBUG) {
+    store = this.schema.getStore(store_name);
+    if (!store) {
+      throw new ydn.db.NotFoundError(store_name);
+    }
+  }
 
   var df = new goog.async.Deferred();
   if (arguments.length == 1 || goog.isBoolean(arg2)) {
@@ -354,6 +361,9 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
   } else if (goog.isString(arg2)) {
     // keysByIndexKeyRange
     index_name = arg2;
+    if (goog.DEBUG && !store.hasIndex(index_name)) {
+      throw new ydn.db.NotFoundError(index_name + ' in ' + store_name);
+    }
     if (!goog.isDef(arg3) || goog.isNull(arg3) || goog.isObject(arg3)) {
       key_range = ydn.db.KeyRange.parseIDBKeyRange(
         /** @type {IDBKeyRange} */ (arg3));

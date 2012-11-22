@@ -27,7 +27,8 @@ goog.require('ydn.db.con.IndexedDb');
  * @param {string} db_name name of database.
  */
 ydn.db.deleteDatabase = function(db_name) {
-  if ('deleteDatabase' in ydn.db.con.IndexedDb.indexedDb) {
+  if (ydn.db.con.IndexedDb.indexedDb &&
+      ('deleteDatabase' in ydn.db.con.IndexedDb.indexedDb)) {
     ydn.db.con.IndexedDb.indexedDb.deleteDatabase(db_name);
   }
   // WebSQL database cannot be deleted. TODO: clear

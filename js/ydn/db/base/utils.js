@@ -334,7 +334,7 @@ ydn.db.utils.decodeString = function(reader) {
 
     if (layer === 0) {
       tmp = $byte >> 6;
-      if (tmp < 2) {
+      if (tmp < 2 && !isNaN($byte)) { // kyaw: add !isNaN($byte)
         buffer.push(String.fromCharCode($byte - 1));
       }
       else // tmp equals 2 or 3
