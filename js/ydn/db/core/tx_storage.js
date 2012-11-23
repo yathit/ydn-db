@@ -676,7 +676,7 @@ ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
  * @param {(!Array.<string>|string)=} arg1 delete the table as provided
  * otherwise
  * delete all stores.
- * @param {(string|number)=} arg2 delete a specific row.
+ * @param {(!Array|string|number)=} arg2 delete a specific row.
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
@@ -686,8 +686,8 @@ ydn.db.core.TxStorage.prototype.clear = function(arg1, arg2) {
 
   if (goog.isString(arg1)) {
     var store_name = arg1;
-    if (goog.isString(arg2) || goog.isNumber(arg2)) {
-      var id = arg2;
+    if (goog.isString(arg2) || goog.isNumber(arg2) || goog.isArray(arg2)) {
+      var id = /** @type {(!Array|number|string)} */  (arg2);
       this.exec(function(executor) {
         executor.clearById(df, store_name, id);
       }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);

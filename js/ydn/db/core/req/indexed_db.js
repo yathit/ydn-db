@@ -254,12 +254,24 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
 ydn.db.core.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
 
   var store = this.tx.objectStore(store_name);
-  var request = store['delete'](key);
+  var request = store.openCursor(/** @type {IDBKeyRange} */ (key));
   request.onsuccess = function(event) {
     if (ydn.db.core.req.IndexedDb.DEBUG) {
       window.console.log([store_name, key, event]);
     }
-    df.callback(event.target.result);
+    var cursor = event.target.result;
+    if (cursor) {
+      var req = cursor['delete']();
+      req.onsuccess = function(e) {
+        df.callback(true);
+      };
+      req.onerror = function(e) {
+        df.errback(event);
+      }
+    } else {
+      df.callback(false);
+    }
+
   };
   request.onerror = function(event) {
     if (ydn.db.core.req.IndexedDb.DEBUG) {
