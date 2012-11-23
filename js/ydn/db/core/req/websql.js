@@ -882,7 +882,7 @@ ydn.db.core.req.WebSql.prototype.clearById = function(d, table, id) {
 ydn.db.core.req.WebSql.prototype.countStores = function(d, tables) {
 
   var me = this;
-  var total = 0;
+  var out = [];
 
   /**
    *
@@ -899,10 +899,10 @@ ydn.db.core.req.WebSql.prototype.countStores = function(d, tables) {
     var callback = function (transaction, results) {
       var row = results.rows.item(0);
       //console.log(['row ', row  , results]);
-      total += parseInt(row['COUNT(*)'], 10);
+      out[i] = parseInt(row['COUNT(*)'], 10);
       i++;
       if (i == tables.length) {
-        d.callback(total);
+        d.callback(out);
       } else {
         count(i);
       }

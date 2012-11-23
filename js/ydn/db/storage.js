@@ -139,6 +139,7 @@ ydn.db.Storage.prototype.getItem = function(key) {
 };
 
 
+
 /**
  * Store a value to default key-value store.
  * @export
@@ -153,15 +154,6 @@ ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
   return this.default_tx_queue_.setItem(key, value, opt_expiration);
 };
 
-
-/**
- * Explain query plan.
- * @param {!ydn.db.Iterator} q
- * @return {Object} plan in JSON
- */
-ydn.db.Storage.prototype.explain = function(q) {
-  return this.default_tx_queue_.explain(q);
-};
 
 
 /**
@@ -202,37 +194,4 @@ ydn.db.Storage.prototype.toString = function() {
 
 
 
-/**
- * Cursor scan iteration.
- * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
- * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
- * solver.
- * @param {!Array.<!ydn.db.Streamer>=} streamers streamers.
- * @return {!goog.async.Deferred} promise on completed.
- */
-ydn.db.Storage.prototype.scan = function(iterators, solver, streamers) {
-  return this.default_tx_queue_.scan(iterators, solver, streamers);
-};
-
-
-/**
-*
-* @param {!ydn.db.Iterator} iterator
-* @param {function(*)} callback
-*/
-ydn.db.Storage.prototype.map = function(iterator, callback) {
-
-};
-
-
-
-/**
-*
-* @param {!ydn.db.Iterator} iterator
-* @param {function(*)} callback
-* @param {*=} initial
-*/
-ydn.db.Storage.prototype.reduce = function(iterator, callback, initial) {
-
-};
 

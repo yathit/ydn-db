@@ -170,31 +170,6 @@ ydn.db.core.TxStorage.prototype.count = function(store_name, index_or_keyrange,
    */
   var store_names;
 
-  if (goog.isArray(store_name)) {
-    store_names = store_name;
-    if (goog.isDef(index_key_range) || goog.isDef(index_or_keyrange)) {
-      throw new ydn.error.ArgumentException('too many arguments.');
-    }
-    if (store_name.length == 0) {
-      throw new ydn.error.ArgumentException('at least one store name required.');
-    }
-    for (var i = 0; i < store_names.length; i++) {
-      if (!this.schema.hasStore(store_names[i])) {
-        throw new ydn.db.NotFoundError(store_names[i]);
-      }
-    }
-    this.exec( function(executor) {
-      executor.countStores(df, store_names);
-    }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
-  } else if (goog.isString(store_name)) {
-    if (!this.schema.hasStore(store_name)) {
-      throw new ydn.db.NotFoundError(store_name);
-    }
-    store_names = [store_name];
-  } else {
-    throw new ydn.error.ArgumentException();
-  }
-
   /**
    * @type {string}
    */
@@ -204,21 +179,70 @@ ydn.db.core.TxStorage.prototype.count = function(store_name, index_or_keyrange,
    */
   var key_range;
 
-  if (goog.isString(index_or_keyrange)) {
-    index_name = index_or_keyrange;
-    key_range = ydn.db.KeyRange.parseIDBKeyRange(index_key_range);
-  } else if (goog.isObject(index_or_keyrange) || !goog.isDef(index_or_keyrange)) {
-    if (goog.isDef(index_key_range)) {
-      throw new ydn.error.ArgumentException();
+  if (!goog.isDef(store_name)) {
+    if (goog.isDef(index_key_range) || goog.isDef(index_or_keyrange)) {
+      throw new ydn.error.ArgumentException('too many arguments.');
     }
-    key_range = ydn.db.KeyRange.parseIDBKeyRange(index_or_keyrange);
+    store_names = this.schema.getStoreNames();
+
+    var dfl = new goog.async.Deferred();
+    this.exec( function(executor) {
+      executor.countStores(df, store_names);
+    }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
+
+    df.addCallbacks(function(count) {
+      var total = count.reduce(function(p, x) {
+        return x + p;
+      }, 0);
+      dfl.callback(total);
+    }, function(e) {
+      dfl.errback(e);
+    });
+
+    return dfl;
+  } else if (goog.isArray(store_name)) {
+
+    if (goog.isDef(index_key_range) || goog.isDef(index_or_keyrange)) {
+      throw new ydn.error.ArgumentException('too many arguments.');
+    }
+
+
+      store_names = store_name;
+      for (var i = 0; i < store_names.length; i++) {
+        if (!this.schema.hasStore(store_names[i])) {
+          throw new ydn.db.NotFoundError(store_names[i]);
+        }
+      }
+
+
+    this.exec( function(executor) {
+      executor.countStores(df, store_names);
+    }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
+  } else if (goog.isString(store_name)) {
+    if (!this.schema.hasStore(store_name)) {
+      throw new ydn.db.NotFoundError(store_name);
+    }
+    store_names = [store_name];
+
+    if (goog.isString(index_or_keyrange)) {
+      index_name = index_or_keyrange;
+      key_range = ydn.db.KeyRange.parseIDBKeyRange(index_key_range);
+    } else if (goog.isObject(index_or_keyrange) || !goog.isDef(index_or_keyrange)) {
+      if (goog.isDef(index_key_range)) {
+        throw new ydn.error.ArgumentException();
+      }
+      key_range = ydn.db.KeyRange.parseIDBKeyRange(index_or_keyrange);
+    } else {
+      throw new ydn.error.ArgumentException('key range');
+    }
+
+    this.exec(function (executor) {
+      executor.countKeyRange(df, store_names[0], key_range, index_name);
+    }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
+
   } else {
     throw new ydn.error.ArgumentException();
   }
-
-  this.exec( function(executor) {
-    executor.countKeyRange(df, store_names[0], key_range, index_name);
-  }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
 
   return df;
 };

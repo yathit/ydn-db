@@ -342,3 +342,4 @@ ydn.db.Streamer.prototype.getIndexName = function() {
 ydn.db.Streamer.prototype.toString = function() {
   return 'Streamer:' + this.store_name_ + (this.index_name_ || '');
 };
+

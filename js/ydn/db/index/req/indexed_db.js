@@ -8,6 +8,7 @@
 goog.provide('ydn.db.index.req.IndexedDb');
 goog.require('ydn.db.core.req.IndexedDb');
 goog.require('ydn.db.index.req.IRequestExecutor');
+goog.require('ydn.db.algo.AbstractSolver');
 goog.require('ydn.db.IDBCursor');
 goog.require('ydn.db.IDBValueCursor');
 goog.require('ydn.db.req.IdbQuery');

@@ -268,12 +268,12 @@ ydn.db.core.req.SimpleStore.prototype.clearByStore = function(df, stores) {
 ydn.db.core.req.SimpleStore.prototype.countStores = function (df, store_names) {
 
   goog.Timer.callOnce(function () {
-    var n = 0;
+    var out = [];
     for (var i = 0; i < store_names.length; i++) {
       var arr = this.tx.getKeys(store_names[i]);
-      n += arr.length;
+      out[i] = arr.length;
     }
-    df.callback(n);
+    df.callback(out);
   }, 0, this);
 
 };

@@ -149,47 +149,6 @@ ydn.db.TxStorage.prototype.getItem = function(key) {
 //};
 
 
-/**
- * Cursor scan iteration.
- * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
- * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
- * solver.
- * @param {!Array.<!ydn.db.Streamer>=} opt_streamers streamers.
- * @return {!goog.async.Deferred} promise on completed.
- */
-ydn.db.TxStorage.prototype.scan = function(iterators, solver, opt_streamers) {
-  var df = ydn.db.base.createDeferred();
-  if (!goog.isArray(iterators) || !(iterators[0] instanceof ydn.db.Iterator)) {
-    throw new ydn.error.ArgumentException();
-  }
-
-  var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;
-
-  var scopes = [];
-  for (var i = 0; i < iterators.length; i++) {
-    var stores = iterators[i].stores();
-    for (var j = 0; j < stores.length; j++) {
-      if (!goog.array.contains(scopes, stores[j])) {
-        scopes.push(stores[j]);
-      }
-    }
-  }
-
-  var streamers = opt_streamers || [];
-  for (var i = 0; i < streamers.length; i++) {
-    var store = iterators[i].getStoreName();
-    if (!goog.array.contains(scopes, store)) {
-      scopes.push(store);
-    }
-  }
-
-  this.exec(function(executor) {
-    executor.scan(df, iterators, streamers, solver);
-  }, scopes, tr_mode);
-
-  return df;
-};
-
 
 //
 //

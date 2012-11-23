@@ -80,7 +80,7 @@ ydn.db.core.req.IndexedDb.prototype.getTx = function() {
 ydn.db.core.req.IndexedDb.prototype.countStores = function(df, stores) {
 
   var me = this;
-  var total = 0;
+  var out = [];
 
   var count_store = function(i) {
     var table = stores[i];
@@ -90,10 +90,10 @@ ydn.db.core.req.IndexedDb.prototype.countStores = function(df, stores) {
       if (ydn.db.core.req.IndexedDb.DEBUG) {
         window.console.log(event);
       }
-      total += event.target.result;
+      out[i] = event.target.result;
       i++;
       if (i == stores.length) {
-        df.callback(total);
+        df.callback(out);
       } else {
         count_store(i);
       }
@@ -108,7 +108,7 @@ ydn.db.core.req.IndexedDb.prototype.countStores = function(df, stores) {
   };
 
   if (stores.length == 0) {
-    df.callback(0);
+    df.callback([]);
   } else {
     count_store(0);
   }

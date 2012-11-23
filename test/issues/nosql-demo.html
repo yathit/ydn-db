@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NoSQL demo</title>
+    <style>
+       .app-status-box {
+           border: thin solid teal;
+           padding: 2px 4px;
+
+       }
+    </style>
+</head>
+<body>
+<script src="../../../closure-library/closure/goog/base.js"></script>
+<script src="../../../closure-library/closure/goog/deps.js"></script>
+<script type="text/javascript" src="../../../ydn-base/js/deps.js"></script>
+<script type="text/javascript" src="../../js/deps.js"></script>
+<script type="text/javascript">
+    goog.require('ydn.db.Storage');
+    goog.require('ydn.testing');
+    goog.require('goog.async.Deferred');
+
+</script>
+<script type="text/javascript">
+    goog.exportProperty(goog.async.Deferred.prototype, 'done',
+            goog.async.Deferred.prototype.addCallback);
+    goog.exportProperty(goog.async.Deferred.prototype, 'fail',
+            goog.async.Deferred.prototype.addErrback);
+    goog.exportProperty(goog.async.Deferred.prototype, 'then',
+            goog.async.Deferred.prototype.addCallbacks);
+</script>
+<article class="content">
+    <h2>NoSQL query demonstration application.</h2>
+</article>
+<div >
+    <div id="app-menu_bar">
+        <div id="app-menu_bar-gen_author">
+            <input title="Number of authors to generate" id="app-menu_bar-gen_author-num_author" value="10" />
+            <button id="app-menu_bar-gen_author-btn">Generate</button>
+        </div>
+
+    </div>
+    <div id="app-content">
+
+    </div>
+    <div id="app-status_bar" style="position:absolute; bottom:0;" >
+        <span id="app-status_bar-num_authors" title="Number of authors" class="app-status-box"></span>
+        <span id="app-status_bar-num_articles" title="Number of articles" class="app-status-box"></span>
+
+        <span id="app-status_bar-msg"  ></span>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="../../../ydn-dev/public/js/ydn-db/data-seeding.js"></script>
+<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql-query_container.js"></script>
+<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql.js"></script>
+</body>
+</html>
