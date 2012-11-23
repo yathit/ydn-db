@@ -20,7 +20,7 @@ ydn.db.core.IStorage = function() {};
 
 /**
  *
- * @param {string} store_name store name or names.
+ * @param {!Array.<string>|string} store_name store name or names.
  * @param {string=} index name.
  * @param {ydn.db.KeyRange=} opt_key_range key range.
  * @return {!goog.async.Deferred} return object in deferred function.

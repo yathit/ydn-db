@@ -5,6 +5,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.schema.DataType');
 goog.require('ydn.db');
+goog.require('ydn.testing');
 
 
 var reachedFinalContinuation, debug_console, basic_schema;
