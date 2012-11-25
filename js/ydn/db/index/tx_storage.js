@@ -176,7 +176,6 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
 };
 
 
-
 /**
  *
  * @param {!ydn.db.Iterator} cursor the cursor.

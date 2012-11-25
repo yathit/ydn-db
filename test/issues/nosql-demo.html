@@ -3,11 +3,30 @@
 <head>
     <title>NoSQL demo</title>
     <style>
+        body {
+            font-family: Arial;
+        }
        .app-status-box {
-           border: thin solid teal;
-           padding: 2px 4px;
+           background: #dcdcdc;
+           padding: 2px;
 
        }
+        #app-status_bar {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            overflow: hidden;
+            border: solid thin #d3d3d3;
+            background: #d3d3d3;
+            padding: 4px;
+            margin: 2px;
+            font-size: small;
+        }
+        .summary-span {
+            padding: 2px 4px;
+        }
+
     </style>
 </head>
 <body>
@@ -19,7 +38,7 @@
     goog.require('ydn.db.Storage');
     goog.require('ydn.testing');
     goog.require('goog.async.Deferred');
-
+    goog.require('ydn.db.algo.ZigzagMerge');
 </script>
 <script type="text/javascript">
     goog.exportProperty(goog.async.Deferred.prototype, 'done',
@@ -35,24 +54,34 @@
 <div >
     <div id="app-menu_bar">
         <div id="app-menu_bar-gen_author">
-            <input title="Number of authors to generate" id="app-menu_bar-gen_author-num_author" value="10" />
+            <input title="Number of authors to generate" id="app-menu_bar-gen_author-num_author" value="10000" />
             <button id="app-menu_bar-gen_author-btn">Generate</button>
         </div>
-
+        <div id="app-menu_bar-query">
+            <select id="app-menu_bar-query-license">
+                <option value="" selected>None</option>
+                <option value="CC">CC</option>
+                <option value="ND">ND</option>
+                <option value="SA">SA</option>
+                <option value="NC">NC</option>
+                <option value="BY">BY</option>
+            </select>
+        </div>
     </div>
     <div id="app-content">
 
     </div>
-    <div id="app-status_bar" style="position:absolute; bottom:0;" >
+    <div id="app-status_bar" >
         <span id="app-status_bar-num_authors" title="Number of authors" class="app-status-box"></span>
         <span id="app-status_bar-num_articles" title="Number of articles" class="app-status-box"></span>
 
-        <span id="app-status_bar-msg"  ></span>
+        <span id="app-status_bar-msg" ></span>
     </div>
 </div>
 
 
 <script type="text/javascript" src="../../../ydn-dev/public/js/ydn-db/data-seeding.js"></script>
+<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql-generator.js"></script>
 <script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql-query_container.js"></script>
 <script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql.js"></script>
 </body>

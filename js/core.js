@@ -5,6 +5,7 @@
 
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.core.TxStorage');
+goog.require('ydn.db');
 
 
 goog.exportSymbol('ydn.db.core.Storage', ydn.db.core.Storage);
@@ -31,6 +32,7 @@ goog.exportProperty(ydn.db.core.TxStorage.prototype, 'clear',
 goog.exportProperty(ydn.db.core.TxStorage.prototype, 'count',
   ydn.db.core.TxStorage.prototype.count);
 
+goog.exportSymbol('ydn.db.cmp', ydn.db.cmp);
 
 goog.exportSymbol('ydn.db.Key', ydn.db.Key );
 goog.exportProperty(ydn.db.Key.prototype, 'id', ydn.db.Key.prototype.getId);

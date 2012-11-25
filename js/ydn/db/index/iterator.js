@@ -249,6 +249,18 @@ ydn.db.Iterator.prototype.indexKey = function() {
 };
 
 
+/**
+ * Resume from a saved position.
+ * @param key
+ * @param index_key
+ */
+ydn.db.Iterator.prototype.resume = function(key, index_key) {
+  // todo: check valid state
+  this.store_key = key;
+  this.index_key = index_key;
+};
+
+
 
 /**
  *
@@ -383,4 +395,14 @@ ydn.db.Iterator.prototype.getBaseIndexName = function(i) {
  */
 ydn.db.Iterator.prototype.degree = function () {
   return this.peer_store_names_.length + 1;
+};
+
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.Iterator.prototype.isReversed = function() {
+  return this.direction === ydn.db.base.Direction.PREV ||
+      this.direction === ydn.db.base.Direction.PREV_UNIQUE;
 };

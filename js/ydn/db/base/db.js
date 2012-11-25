@@ -20,6 +20,7 @@
 
 goog.provide('ydn.db');
 goog.require('ydn.db.con.IndexedDb');
+goog.require('ydn.db.utils');
 
 
 /**
@@ -33,4 +34,15 @@ ydn.db.deleteDatabase = function(db_name) {
   }
   // WebSQL database cannot be deleted. TODO: clear
   // TODO: clear localStorage
+};
+
+
+/**
+ * IDBFactory.cmp
+ * @type {function(*, *): number}
+ */
+ydn.db.cmp = ydn.db.con.IndexedDb.indexedDb['cmp'] || function (first, second) {
+  first = ydn.db.utils.encodeKey(first);
+  second = ydn.db.utils.encodeKey(second);
+  return first > second ? 1 : (first == second ? 0 : -1);
 };
