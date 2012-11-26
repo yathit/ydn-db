@@ -45,7 +45,7 @@ ydn.db.TxStorage.prototype.execute = function(q) {
     var sql = q;
     this.exec(function(executor) {
       executor.executeSql(df, sql);
-    }, sql.stores(), ydn.db.base.TransactionMode.READ_ONLY);
+    }, sql.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'executeSql');
 
   } else {
     throw new ydn.error.ArgumentException();

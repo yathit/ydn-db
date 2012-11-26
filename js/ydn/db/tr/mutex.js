@@ -48,24 +48,18 @@ ydn.db.tr.Mutex.DEBUG = false;
  * Newly created transaction it push to mutex and lock.
  * @final
  * @param {!IDBTransaction|!SQLTransaction|!ydn.db.con.SimpleStorage} tx the transaction object.
- * @param {string=} scope scope name.
+ * @param {string} scope scope name.
  */
 ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
-  goog.asserts.assert(!goog.isDefAndNotNull(this.tx_), 'transaction overlap ' +
-    this.tx_);
+  goog.asserts.assert(!goog.isDefAndNotNull(this.tx_),
+      this + 'transaction overlap with ' + scope);
 
   this.tx_ = tx;
 
   this.is_set_done_ = false;
-
-  /**
-   * @private
-   * @type {boolean}
-   */
-  this.has_error_ = false;
 
   /**
    *

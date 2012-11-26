@@ -11,6 +11,9 @@
            padding: 2px;
 
        }
+       #app-menu_bar{
+           margin: 1em;
+       }
         #app-status_bar {
             position: fixed;
             bottom: 0;
@@ -26,6 +29,16 @@
         .summary-span {
             padding: 2px 4px;
         }
+        .summary-span-author {
+            width: 6em;
+            display: inline-block;
+            overflow-x: hidden;
+        }
+        .menu-title {
+            min-width: 4em;
+            display: inline-block;
+            font-variant: small-caps;
+        }
 
     </style>
 </head>
@@ -39,6 +52,9 @@
     goog.require('ydn.testing');
     goog.require('goog.async.Deferred');
     goog.require('ydn.db.algo.ZigzagMerge');
+    goog.require('goog.debug.Console');
+    goog.require('goog.debug.LogManager');
+    goog.require('goog.debug.Logger');
 </script>
 <script type="text/javascript">
     goog.exportProperty(goog.async.Deferred.prototype, 'done',
@@ -47,6 +63,8 @@
             goog.async.Deferred.prototype.addErrback);
     goog.exportProperty(goog.async.Deferred.prototype, 'then',
             goog.async.Deferred.prototype.addCallbacks);
+
+
 </script>
 <article class="content">
     <h2>NoSQL query demonstration application.</h2>
@@ -54,10 +72,13 @@
 <div >
     <div id="app-menu_bar">
         <div id="app-menu_bar-gen_author">
+            <span class="menu-title">Create</span>
             <input title="Number of authors to generate" id="app-menu_bar-gen_author-num_author" value="10000" />
             <button id="app-menu_bar-gen_author-btn">Generate</button>
         </div>
         <div id="app-menu_bar-query">
+            <span class="menu-title">Filter</span>
+            <span>By license:</span>
             <select id="app-menu_bar-query-license">
                 <option value="" selected>None</option>
                 <option value="CC">CC</option>
@@ -65,6 +86,27 @@
                 <option value="SA">SA</option>
                 <option value="NC">NC</option>
                 <option value="BY">BY</option>
+            </select>
+            <span>By topic:</span>
+            <datalist id="app-menu_bar-query-topics-data">
+
+            </datalist>
+            <input type="text" id="app-menu_bar-query-topic" list="app-menu_bar-query-topics-data" />
+            <span>Publish after:</span>
+            <input id="app-menu_bar-query-publish-after"/>
+            <span>Publish before:</span>
+            <input id="app-menu_bar-query-publish-before"/>
+        </div>
+        <div id="app-menu_bar-sort">
+            <span class="menu-title">Sort</span>
+            <select id="app-menu_bar-query-sort">
+                <option value="" selected>None</option>
+                <option value="title">Title</option>
+                <option value="publish">Publish</option>
+            </select>
+            <select id="app-menu_bar-query-direction">
+                <option value="ASC">Ascending</option>
+                <option value="DES">Descending</option>
             </select>
         </div>
     </div>
@@ -81,8 +123,18 @@
 
 
 <script type="text/javascript" src="../../../ydn-dev/public/js/ydn-db/data-seeding.js"></script>
-<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql-generator.js"></script>
-<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql-query_container.js"></script>
-<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql.js"></script>
+<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql/generator.js"></script>
+<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql/query_container.js"></script>
+<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql/status_bar.js"></script>
+<script type="text/javascript" src="../../../ydn-dev/public/demo/ydn-db/nosql/app.js"></script>
+<script type="text/javascript">
+    if (false) {
+        var c = new goog.debug.Console();
+        c.setCapturing(true);
+        goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
+        goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+        console.log('logging');
+    }
+</script>
 </body>
 </html>

@@ -72,11 +72,12 @@ ydn.db.index.TxStorage.prototype.getExecutor = function() {
  * is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
+ * @param {string} scope scope name.
  */
-ydn.db.index.TxStorage.prototype.exec = function(callback, store_names, mode) {
+ydn.db.index.TxStorage.prototype.exec = function(callback, store_names, mode, scope) {
   goog.base(this, 'exec',
     /** @type {function(ydn.db.core.req.IRequestExecutor)} */ (callback),
-    store_names, mode);
+    store_names, mode, scope);
 };
 
 
@@ -98,7 +99,7 @@ ydn.db.index.TxStorage.prototype.get = function(arg1, arg2) {
     }
     this.exec(function(executor) {
       executor.getByIterator(df, q);
-    }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');
     return df;
   } else {
     return goog.base(this, 'get', arg1, arg2);
@@ -125,7 +126,7 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, off
 
     this.exec(function(executor) {
       executor.listByIterator(df, q);
-    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY);
+    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
     return df;
   } else {
@@ -171,7 +172,7 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
 
   this.exec(function(executor) {
     executor.scan(df, iterators, streamers, solver);
-  }, scopes, tr_mode);
+  }, scopes, tr_mode, 'scan');
 
   return df;
 };
@@ -198,7 +199,7 @@ ydn.db.index.TxStorage.prototype.open = function(cursor, callback, mode) {
   var df = ydn.db.base.createDeferred();
   this.exec(function(executor) {
     executor.open(df, cursor, callback, /** @type {ydn.db.base.CursorMode} */ (tr_mode));
-  }, cursor.stores(), tr_mode);
+  }, cursor.stores(), tr_mode, 'open');
 
   return df;
 
