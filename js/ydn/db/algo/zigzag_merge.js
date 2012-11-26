@@ -86,18 +86,19 @@ ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
  */
 ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
 
-  // we keep starting keys so that we know the minimum (or maximum) of the key.
-  if (this.sorted_ && !this.starting_keys_) {
-    this.starting_keys_ = [];
-    for (var i = 0; i < keys.length; i++) {
-      this.starting_keys_[i] = goog.isArray(keys[i]) ?
-          goog.array.clone(keys[i]) : keys[i];
-    }
-  }
+//  // we keep starting keys so that we know the minimum (or maximum) of the key.
+//  if (this.sorted_ && !this.starting_keys_) {
+//    this.starting_keys_ = [];
+//    for (var i = 0; i < keys.length; i++) {
+//      this.starting_keys_[i] = goog.isArray(keys[i]) ?
+//          goog.array.clone(keys[i]) : keys[i];
+//    }
+//  }
 
   var advancement = [];
 
-  var min_idx;
+  var all_match = true;
+  var skip = false;
 
   for (var i = 1; i < keys.length; ) {
     var cmp = ydn.db.cmp(keys[0], keys[i]);
@@ -107,10 +108,26 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
     } else if (cmp == 1) {
       // base key is greater than ith key, so fast forward to ith key.
       advancement[i] = keys[0];
+      all_match = false;
     } else {
-      // ith key is greater than base key. discard base key
+      // ith key is greater than base key. we are not going to get it
+      skip = true; // rewind
+      break;
+    }
+
+    if (skip) {
       advancement[0] = true;
-      advancement[i] = false; // rewind
+      // all other keys are rewind (should move forward to base key?)
+      for (var j = 1; j < keys.length; j++) {
+        advancement[i] = false;
+      }
+    } else if (all_match) {
+      // we get a match, so looking forward to next key.
+      advancement[0] = true;
+      // all other keys are rewind
+      for (var j = 1; j < keys.length; j++) {
+        advancement[i] = false;
+      }
     }
 
     i += this.degrees_[i]; // skip peer iterators.
