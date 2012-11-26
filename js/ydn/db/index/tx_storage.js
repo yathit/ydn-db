@@ -12,6 +12,7 @@ goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.index.req.IndexedDb');
 goog.require('ydn.db.index.req.WebSql');
 goog.require('ydn.db.index.req.SimpleStore');
+goog.require('ydn.db.index.IStorage');
 
 
 

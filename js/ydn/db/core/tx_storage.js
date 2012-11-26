@@ -10,6 +10,7 @@ goog.require('ydn.db.core.req.IndexedDb');
 goog.require('ydn.db.core.req.SimpleStore');
 goog.require('ydn.db.core.req.WebSql');
 goog.require('ydn.db.tr.TxStorage');
+goog.require('ydn.db.core.IStorage');
 goog.require('ydn.error.NotSupportedException');
 
 
