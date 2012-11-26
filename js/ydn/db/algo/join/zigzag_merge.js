@@ -59,14 +59,23 @@ ydn.db.algo.ZigzagMerge.prototype.starting_keys_ = null;
  */
 ydn.db.algo.ZigzagMerge.prototype.reverses_ = [];
 
+/**
+ *
+ * @type {Array.<boolean>}
+ * @private
+ */
+ydn.db.algo.ZigzagMerge.prototype.degrees_ = [];
+
 
 /**
  * @inheritDoc
  */
 ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
   this.reverses_ = [];
+  this.degrees_ = [];
   for (var i = 0; i < iterators.length; i++) {
     this.reverses_[i] = iterators[i].isReversed();
+    this.degrees_[i] = iterators[i].degree();
   }
   return false;
 };
@@ -89,9 +98,23 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
   var advancement = [];
 
   var min_idx;
-//  for (var i = 0; i < keys.length; i++) {
-//
-//  }
+
+  for (var i = 1; i < keys.length; ) {
+    var cmp = ydn.db.cmp(keys[0], keys[i]);
+    if (cmp == 0) {
+      // we get a match, so looking forward to next key.
+      advancement[i] = true;
+    } else if (cmp == 1) {
+      // base key is greater than ith key, so fast forward to ith key.
+      advancement[i] = keys[0];
+    } else {
+      // ith key is greater than base key. discard base key
+      advancement[0] = true;
+      advancement[i] = false; // rewind
+    }
+
+    i += this.degrees_[i]; // skip peer iterators.
+  }
 
 
   return advancement;
