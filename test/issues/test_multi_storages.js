@@ -19,15 +19,15 @@ goog.debug.Logger.getLogger('ydn.db.conn').setLevel(goog.debug.Logger.Level.FINE
 // NOTE: size is only used in WebSQL
 var options = {
   size: 100*1024*1024,
-  Mechanisms: ['websql', 'indexeddb']
+  mechanisms: ['websql', 'indexeddb']
 };
 
 
 // need to test '1' and 'undefined' cases.
-var ver = 1;
+var ver = undefined;
 
-var schema1 = {version: ver, Stores: [{name: 'st1', keyPath: 'id'}]};
-var schema2 = {version: ver, Stores: [{name: 'st2', keyPath: 'id'}]};
+var schema1 = {version: ver, stores: [{name: 'st1', keyPath: 'id'}]};
+var schema2 = {version: ver, stores: [{name: 'st2', keyPath: 'id'}]};
 
 var db1 = new ydn.db.Storage('db1', schema1, options);
 var db2 = new ydn.db.Storage('db2', schema2, options);
