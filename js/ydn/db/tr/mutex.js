@@ -54,12 +54,15 @@ ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
-  goog.asserts.assert(!goog.isDefAndNotNull(this.tx_),
-      this + 'transaction overlap with ' + scope);
+  if (this.tx_) {
+    this.logger.finest('tx ' + this.scope_name + ' force push by ' + scope);
+  }
+//  goog.asserts.assert(!goog.isDefAndNotNull(this.tx_),
+//      this + 'transaction overlap with ' + scope);
 
   this.tx_ = tx;
 
-  this.is_set_done_ = false;
+  this.is_locked_ = false;
 
   /**
    *
@@ -139,7 +142,7 @@ ydn.db.tr.Mutex.prototype.down = function(type, event) {
     }
     this.oncompleted = null;
   } else {
-    this.logger.severe(this + ' has no TX to be unlocked for ' + type);
+    this.logger.finest(this + ' has no TX to be unlocked for ' + type);
   }
 
 };
@@ -178,7 +181,7 @@ ydn.db.tr.Mutex.prototype.lock = function() {
   } else {
     this.logger.finest(this + ': locked');
   }
-  this.is_set_done_ = true;
+  this.is_locked_ = true;
 };
 
 
@@ -196,8 +199,8 @@ ydn.db.tr.Mutex.prototype.getTxCount = function() {
  *
  * @return {boolean} get done flag.
  */
-ydn.db.tr.Mutex.prototype.isSetDone = function() {
-  return this.is_set_done_;
+ydn.db.tr.Mutex.prototype.isLocked = function() {
+  return this.is_locked_;
 };
 
 /**
@@ -216,7 +219,7 @@ ydn.db.tr.Mutex.prototype.isActive = function() {
  * @return {boolean} true if the transaction is available.
  */
 ydn.db.tr.Mutex.prototype.isAvailable = function() {
-  return !this.is_set_done_;
+  return !this.is_locked_;
 };
 
 

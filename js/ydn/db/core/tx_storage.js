@@ -101,6 +101,9 @@ ydn.db.core.TxStorage.prototype.getExecutor = function() {
 };
 
 
+
+
+
 /**
  * @throws {ydn.db.ScopeError}
  * @protected
@@ -115,33 +118,43 @@ ydn.db.core.TxStorage.prototype.exec = function(callback, store_names, mode, sco
   var mu_tx = this.getMuTx();
 
   if (mu_tx.isActiveAndAvailable()) {
-    //window.console.log(mu_tx.getScope() + ' continuing');
+    console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
     // call within a transaction
     // continue to use existing transaction
-    me.getExecutor().setTx(mu_tx.getTx(), me.scope);
+    me.getExecutor().setTx(mu_tx.getTx(), scope);
     callback(me.getExecutor());
   } else {
-    //console.log('creating new')
-    //
-    // create a new transaction and close for invoke in non-transaction context
-    var tx_callback = function(idb) {
-      // transaction should be active now
-      if (!mu_tx.isActive()) {
-        throw new ydn.db.InternalError('Tx not active for scope: ' + me.scope);
-      }
-      if (!mu_tx.isAvailable()) {
-        throw new ydn.db.InternalError('Tx not available for scope: ' +
-          me.scope);
-      }
-      me.getExecutor().setTx(mu_tx.getTx(), me.scope);
-      callback(me.getExecutor());
-      mu_tx.lock(); // explicitly told not to use this transaction again.
-    };
-    //var cbFn = goog.partial(tx_callback, callback);
-    tx_callback.name = scope; // scope name
-    //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
-    // locked: ' + mu_tx.isSetDone());
-    this.run(tx_callback, store_names, mode);
+    console.log('creating new tx for ' + scope);
+
+      var on_complete = function() {
+        console.log(scope + ' completed');
+      };
+
+
+      //
+      // create a new transaction and close for invoke in non-transaction context
+      var tx_callback = function(idb) {
+        me.not_ready_ = true;
+        // transaction should be active now
+        if (!mu_tx.isActive()) {
+          throw new ydn.db.InternalError('Tx not active for scope: ' + scope);
+        }
+        if (!mu_tx.isAvailable()) {
+          throw new ydn.db.InternalError('Tx not available for scope: ' +
+            scope);
+        }
+        me.getExecutor().setTx(mu_tx.getTx(), scope);
+        callback(me.getExecutor());
+        mu_tx.lock(); // explicitly told not to use this transaction again.
+      };
+      //var cbFn = goog.partial(tx_callback, callback);
+      tx_callback.name = scope; // scope name
+      //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
+      // locked: ' + mu_tx.isSetDone());
+      me.run(tx_callback, store_names, mode, on_complete);
+
+
+
     // need to think about handling oncompleted and onerror callback of the
     // transaction. after executed all the requests, the transaction is not
     // completed. consider this case

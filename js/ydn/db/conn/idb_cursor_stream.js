@@ -142,7 +142,7 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
     if (cursor) {
       me.cursor_ = cursor;
       if (goog.isFunction(me.sink_)) {
-        if (goog.isDef(me.key_only_)) {
+        if (me.key_only_) {
           me.sink_(cursor.primaryKey, cursor.key);
         } else {
           me.sink_(cursor.primaryKey, cursor['value']);

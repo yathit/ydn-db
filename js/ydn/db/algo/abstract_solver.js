@@ -13,21 +13,25 @@ goog.require('ydn.db.Streamer');
 /**
  *
  * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
- * @param {(function(!Array, !Array): !Array)=} adapter transform scan result
+ * @param {number=} limit limit.
  * to algorithm input and output.
  * @constructor
  */
-ydn.db.algo.AbstractSolver = function(out, adapter) {
+ydn.db.algo.AbstractSolver = function(out, limit) {
   if (goog.DEBUG && goog.isDefAndNotNull(out) && !('push' in out)) {
     throw new ydn.error.ArgumentException();
   }
   this.out = out || null;
-  if (goog.isDefAndNotNull(adapter)) {
-    if (goog.DEBUG && !goog.isFunction(adapter)) {
-      throw new ydn.error.ArgumentException();
-    }
-    this.adapter = adapter;
-  }
+  this.limit = limit;
+  this.match_count = 0;
+//  if (goog.isDefAndNotNull(adapter)) {
+//    if (goog.DEBUG && !goog.isFunction(adapter)) {
+//      throw new ydn.error.ArgumentException();
+//    }
+//    this.adapter = function(keys, values) {
+//      adapter(keys, values);
+//    }
+//  }
 };
 
 
@@ -66,7 +70,7 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback){
  * @return {!Array} next positions.
  */
 ydn.db.algo.AbstractSolver.prototype.adapter = function(keys, values) {
-  if (this.out && goog.isDefAndNotNull(keys[0])) {
+  if (goog.isDefAndNotNull(keys[0])) {
     var key = keys[0];
     for (var i = 1; i < keys.length; i++) {
       if (keys[i] != key) {
@@ -75,7 +79,13 @@ ydn.db.algo.AbstractSolver.prototype.adapter = function(keys, values) {
       }      
     }
     if (!goog.isNull(key)) {
-      this.out.push(key);
+      this.match_count++;
+      if (this.out) {
+        this.out.push(key);
+      }
+      if (goog.isDef(this.limit) && this.match_count >= this.limit) {
+        return [];
+      }
     }
   }
   return this.solver(keys, values, []);

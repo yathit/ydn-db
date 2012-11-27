@@ -17,17 +17,13 @@ goog.require('ydn.db');
 /**
  *
  * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
- * @param {(function(!Array, !Array): !Array)=} adapter transform scan result
- * to algorithm input and output.
- * @param {boolean=} sorted if result should be sorted by primary iterator.
+ * @param {number=} limit limit.
  * @constructor
  * @extends {ydn.db.algo.AbstractSolver}
  */
-ydn.db.algo.ZigzagMerge = function(out, adapter, sorted) {
-  goog.base(this, out, adapter);
+ydn.db.algo.ZigzagMerge = function(out, limit) {
+  goog.base(this, out, limit);
 
-  this.sorted_ = !!sorted;
-  this.starting_keys_ = null;
 };
 goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
 
@@ -37,46 +33,46 @@ goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
  */
 ydn.db.algo.ZigzagMerge.DEBUG = true;
 
-/**
- *
- * @type {boolean}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.sorted_ = false;
+///**
+// *
+// * @type {boolean}
+// * @private
+// */
+//ydn.db.algo.ZigzagMerge.prototype.sorted_ = false;
+//
+///**
+// *
+// * @type {Array}
+// * @private
+// */
+//ydn.db.algo.ZigzagMerge.prototype.starting_keys_ = null;
 
-/**
- *
- * @type {Array}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.starting_keys_ = null;
 
-
-/**
- *
- * @type {Array.<boolean>}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.reverses_ = [];
-
-/**
- *
- * @type {Array.<boolean>}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.degrees_ = [];
+///**
+// *
+// * @type {Array.<boolean>}
+// * @private
+// */
+//ydn.db.algo.ZigzagMerge.prototype.reverses_ = [];
+//
+///**
+// *
+// * @type {Array.<boolean>}
+// * @private
+// */
+//ydn.db.algo.ZigzagMerge.prototype.degrees_ = [];
 
 
 /**
  * @inheritDoc
  */
 ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
-  this.reverses_ = [];
-  this.degrees_ = [];
-  for (var i = 0; i < iterators.length; i++) {
-    this.reverses_[i] = iterators[i].isReversed();
-    this.degrees_[i] = iterators[i].degree();
-  }
+//  this.reverses_ = [];
+//  this.degrees_ = [];
+//  for (var i = 0; i < iterators.length; i++) {
+//    this.reverses_[i] = iterators[i].isReversed();
+//    this.degrees_[i] = iterators[i].degree();
+//  }
   return false;
 };
 
@@ -86,6 +82,7 @@ ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
  */
 ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
 
+  //console.log(['scanning', keys]);
 //  // we keep starting keys so that we know the minimum (or maximum) of the key.
 //  if (this.sorted_ && !this.starting_keys_) {
 //    this.starting_keys_ = [];
@@ -97,10 +94,10 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
 
   var advancement = [];
 
-  var all_match = true;
+  var all_match = goog.isDef(keys[0]);
   var skip = false;
 
-  for (var i = 1; i < keys.length; ) {
+  for (var i = 1; i < keys.length; i++) {
     var cmp = ydn.db.cmp(keys[0], keys[i]);
     if (cmp == 0) {
       // we get a match, so looking forward to next key.
@@ -115,22 +112,23 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
       break;
     }
 
-    if (skip) {
-      advancement[0] = true;
-      // all other keys are rewind (should move forward to base key?)
-      for (var j = 1; j < keys.length; j++) {
-        advancement[i] = false;
-      }
-    } else if (all_match) {
-      // we get a match, so looking forward to next key.
-      advancement[0] = true;
-      // all other keys are rewind
-      for (var j = 1; j < keys.length; j++) {
-        advancement[i] = false;
-      }
-    }
 
-    i += this.degrees_[i]; // skip peer iterators.
+    //i += this.degrees_[i]; // skip peer iterators.
+  }
+
+  if (skip) {
+    advancement[0] = true;
+    // all other keys are rewind (should move forward to base key?)
+    for (var j = 1; j < keys.length; j++) {
+      advancement[i] = false;
+    }
+  } else if (all_match) {
+    // we get a match, so looking forward to next key.
+    advancement[0] = true;
+    // all other keys are rewind
+    for (var j = 1; j < keys.length; j++) {
+      advancement[i] = false;
+    }
   }
 
 

@@ -16,13 +16,12 @@ goog.require('ydn.db.algo.AbstractSolver');
 /**
  *
  * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
- * @param {(function(!Array, !Array): !Array)=} adapter transform scan result
- * to algorithm input and output.
+ * @param {number=} limit limit.
  * @constructor
  * @extends {ydn.db.algo.AbstractSolver}
  */
-ydn.db.algo.NestedLoop = function(out, adapter) {
-  goog.base(this, out, adapter);
+ydn.db.algo.NestedLoop = function(out, limit) {
+  goog.base(this, out, limit);
 };
 goog.inherits(ydn.db.algo.NestedLoop, ydn.db.algo.AbstractSolver);
 
