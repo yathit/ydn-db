@@ -54,11 +54,11 @@ ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
-  if (this.tx_) {
-    this.logger.finest('tx ' + this.scope_name + ' force push by ' + scope);
-  }
-//  goog.asserts.assert(!goog.isDefAndNotNull(this.tx_),
-//      this + 'transaction overlap with ' + scope);
+//  if (this.tx_) {
+//    this.logger.finest('tx ' + this.scope_name + ' force push by ' + scope);
+//  }
+  goog.asserts.assert(!this.tx_,
+      this + 'transaction overlap with ' + scope);
 
   this.tx_ = tx;
 
@@ -142,7 +142,7 @@ ydn.db.tr.Mutex.prototype.down = function(type, event) {
     }
     this.oncompleted = null;
   } else {
-    this.logger.finest(this + ' has no TX to be unlocked for ' + type);
+    this.logger.warning(this + ' has no TX to be unlocked for ' + type);
   }
 
 };

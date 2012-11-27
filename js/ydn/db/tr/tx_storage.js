@@ -228,6 +228,7 @@ ydn.db.tr.TxStorage.prototype.popTxQueue_ = function() {
 
   var task = this.trQueue_.shift();
   if (task) {
+    //console.log('running new task ' + task.fnc.name);
     this.run(task.fnc, task.store_names, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
@@ -306,18 +307,21 @@ ydn.db.tr.TxStorage.prototype.run = function(trFn, store_names, opt_mode,
       newArgs = newArgs.concat(args); // post-apply
       return trFn.apply(this, newArgs);
     };
+    outFn.name = scope_name;
   }
-  outFn.name = scope_name;
+
 
   var me = this;
 
   if (this.mu_tx_.isActive()) {
-    //console.log(this + ' active')
-    this.pushTxQueue(outFn, store_names, mode, oncompleted);
+    //console.log(this + ' active ' + this.mu_tx_.isActive() + ' on queue ' + (this.trQueue_.length > 0));
+    this.pushTxQueue(arguments.length > 4 ?
+        outFn : trFn, store_names, mode, oncompleted);
   } else {
-    //console.log(this + ' not active')
+    //console.log(this + ' not active ' + scope_name);
     var transaction_process = function(tx) {
-
+      me.running_transaction_process_ = true;
+      //console.log('transaction_process ' + scope_name);
       me.mu_tx_.up(tx, scope_name);
 
       // now execute transaction process
@@ -328,7 +332,7 @@ ydn.db.tr.TxStorage.prototype.run = function(trFn, store_names, opt_mode,
     };
 
     var completed_handler = function(type, event) {
-      me.mu_tx_.down(type, event);
+      //console.log('transaction_process ' + scope_name + ' completed.');
       /**
        * @preserve _try.
        */
@@ -343,6 +347,8 @@ ydn.db.tr.TxStorage.prototype.run = function(trFn, store_names, opt_mode,
           throw e;
         }
       } finally {
+        me.mu_tx_.down(type, event);
+        me.running_transaction_process_ = false;
         me.popTxQueue_();
       }
     };

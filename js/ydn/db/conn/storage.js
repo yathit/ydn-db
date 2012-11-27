@@ -662,7 +662,7 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
   }
 
   var is_ready = !!this.db_ && this.db_.isReady();
-  if (!is_ready || this.in_version_change_tx_) {
+  if (!is_ready || this.in_version_change_tx_ ) {
     // a "versionchange" transaction is still running, a InvalidStateError
     // exception will be thrown
     this.pushTxQueue_(trFn, names, opt_mode, completed_event_handler);

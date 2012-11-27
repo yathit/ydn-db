@@ -69,26 +69,37 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback){
  * @param {!Array} values output values.
  * @return {!Array} next positions.
  */
-ydn.db.algo.AbstractSolver.prototype.adapter = function(keys, values) {
-  if (goog.isDefAndNotNull(keys[0])) {
-    var key = keys[0];
-    for (var i = 1; i < keys.length; i++) {
-      if (keys[i] != key) {
-        key = null;
+ydn.db.algo.AbstractSolver.prototype.adapter = function (keys, values) {
+
+  var has_key = goog.isDefAndNotNull(keys[0]);
+  var match_key = keys[0];
+  for (var i = 1; i < keys.length; i++) {
+    if (goog.isDefAndNotNull(keys[i])) {
+      has_key = true;
+      if (goog.isDefAndNotNull(match_key) && ydn.db.cmp(keys[i], match_key) != 0) {
+        match_key = null;
         break;
-      }      
-    }
-    if (!goog.isNull(key)) {
-      this.match_count++;
-      if (this.out) {
-        this.out.push(key);
       }
-      if (goog.isDef(this.limit) && this.match_count >= this.limit) {
-        return [];
-      }
+    } else {
+      match_key = null;
     }
   }
-  return this.solver(keys, values, []);
+  if (goog.isDefAndNotNull(match_key)) {
+    this.match_count++;
+    //console.log(['match key', match_key, JSON.stringify(keys)]);
+    if (this.out) {
+      this.out.push(match_key);
+    }
+    if (goog.isDef(this.limit) && this.match_count >= this.limit) {
+      return [];
+    }
+  }
+
+  if (has_key) {
+    return this.solver(keys, values, []);
+  } else {
+    return [];
+  }
 };
 
 

@@ -38,11 +38,29 @@ ydn.db.deleteDatabase = function(db_name) {
 
 
 /**
- * IDBFactory.cmp
- * @type {function(*, *): number}
+ *
+ * @param first
+ * @param second
+ * @return {number}
+ * @private
  */
-ydn.db.cmp = ydn.db.con.IndexedDb.indexedDb['cmp'] || function (first, second) {
+ydn.db.cmp_ = function (first, second) {
   first = ydn.db.utils.encodeKey(first);
   second = ydn.db.utils.encodeKey(second);
   return first > second ? 1 : (first == second ? 0 : -1);
+};
+
+
+/**
+ * IDBFactory.cmp
+ * @type {function(*, *): number}
+ */
+ydn.db.cmp = function (first, second) {
+  if (ydn.db.con.IndexedDb.indexedDb) {
+    return ydn.db.con.IndexedDb.indexedDb['cmp'](first, second);
+  } else {
+    first = ydn.db.utils.encodeKey(first);
+    second = ydn.db.utils.encodeKey(second);
+    return first > second ? 1 : (first == second ? 0 : -1);
+  }
 };
