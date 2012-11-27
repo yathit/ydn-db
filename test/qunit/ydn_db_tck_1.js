@@ -61,7 +61,7 @@ var initionalizeDB = function(callback, opt_put_schema) {
 
 module("Put", {
   tearDown: function() {
-    ydn.db.deleteDatabase(db_name_tck1);
+    //ydn.db.deleteDatabase(db_name_tck1);
   }
 });
 
@@ -74,6 +74,7 @@ asyncTest("data", function () {
   db.put(store_inline, data_1).then(function () {
     ok(true, "data inserted");
     start();
+    db.close();
   }, function (e) {
     ok(false, e.message);
     start();
@@ -88,6 +89,7 @@ asyncTest("array data", function () {
   var db = new ydn.db.Storage(db_name_tck1, schema_1);
 
   db.put(store_inline, data_1a).then(function (x) {
+    console.log('got it');
     ok('length' in x, "array key");
     deepEqual(data_1a.id, x, 'same key');
     start();

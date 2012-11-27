@@ -543,7 +543,13 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
     // already have the store, just update indexes
 
     store = trans.objectStore(store_schema.name);
-    goog.asserts.assertObject(store, store_schema.name + ' not found.');
+
+    if (store.keyPath != store_schema.keyPath) {
+      db.deleteObjectStore(store_schema.name);
+      me.logger.warning('store: ' + store_schema.name + ' deleted due to keyPath change.');
+      db.createObjectStore(store_schema.name,
+        index.keyPath, {unique: index.unique});
+    }
 
     if (store.keyPath != store_schema.keyPath) {
       throw new ydn.error.InvalidOperationException('keyPath: ' +
