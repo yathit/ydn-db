@@ -182,7 +182,7 @@ ydn.db.index.req.IndexedDb.prototype.fetchCursor = function(df, q) {
     //console.log(cursor);
     if (cursor) {
 
-      var value = /** @type {!Object} */ cursor['value']; // should not
+      var value = /** @type {!Object} */ (cursor['value']); // should not
       // necessary if externs are
 
       var to_continue = !goog.isFunction(q.continued) || q.continued(value);
