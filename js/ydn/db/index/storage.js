@@ -96,9 +96,6 @@ ydn.db.index.Storage.prototype.reduce = function(iterator, callback, initial) {
 
 
 
-
-
-
 /**
  * Explain query plan.
  * @param {!ydn.db.Iterator} q
@@ -107,3 +104,4 @@ ydn.db.index.Storage.prototype.reduce = function(iterator, callback, initial) {
 ydn.db.index.Storage.prototype.explain = function(q) {
   return this.default_tx_queue_.explain(q);
 };
+

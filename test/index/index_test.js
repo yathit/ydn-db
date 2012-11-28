@@ -1,12 +1,13 @@
 
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
+goog.require('ydn.db');
 
 goog.require('ydn.db.Storage');
 
 
 
-var reachedFinalContinuation, schema, debug_console, db, objs;
+var reachedFinalContinuation, schema, debug_console, objs;
 var store_name = 't1';
 var db_name = 'test_index_2';
 
@@ -21,11 +22,22 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
+
+
+  reachedFinalContinuation = false;
+};
+
+var tearDown = function() {
+  assertTrue('The final continuation was not reached', reachedFinalContinuation);
+};
+
+
+var load_default = function() {
   var indexSchema = new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT, false, true);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
-      ydn.db.schema.DataType.TEXT, [indexSchema]);
+    ydn.db.schema.DataType.TEXT, [indexSchema]);
   schema = new ydn.db.schema.Database(1, [store_schema]);
-  db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
 
   objs = [
@@ -42,16 +54,13 @@ var setUp = function() {
     console.log(db + ' ready.');
   });
 
-  reachedFinalContinuation = false;
-};
-
-var tearDown = function() {
-  assertTrue('The final continuation was not reached', reachedFinalContinuation);
+  return db;
 };
 
 
-var test_11_multiEntry_idb = function () {
+var test_11_multiEntry = function () {
 
+  var db = load_default();
 
   var tags = ['d', 'b', 'c', 'a', 'e'];
   var exp_counts = [1, 3, 2, 4, 0];
@@ -82,7 +91,7 @@ var test_11_multiEntry_idb = function () {
     var q = new ydn.db.Iterator(store_name, 'tag', keyRange);
 
     db.list(q).addBoth(function (value) {
-      console.log(tag_name + ' ==> ' + JSON.stringify(value));
+      //console.log(tag_name + ' ==> ' + JSON.stringify(value));
       counts[idx] = value.length;
       done++;
     });
@@ -91,6 +100,80 @@ var test_11_multiEntry_idb = function () {
   for (var i = 0; i < total; i++) {
     count_for(tags[i], i);
   }
+
+};
+
+
+
+var test_compound_index = function () {
+
+  var objs = [
+    {
+      id: 1,
+      label1: 'a',
+      label2: 'a'
+    }, {
+      id: 2,
+      label1: 'a',
+      label2: 'b'
+    }, {
+      id: 3,
+      label1: 'b',
+      label2: 'a'
+    }, {
+      id: 4,
+      label1: 'b',
+      label2: 'b'
+    }
+  ];
+
+  var schema = {
+    stores: [{
+      name: 'st1',
+      keyPath: 'id',
+      type: 'INTEGER',
+      indexes: [
+        {
+          name: '12',
+          keyPath: ['label1', 'label2']
+        }
+      ]
+    }]
+  };
+
+  var db_name = 'test_' + Math.random();
+
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var done, result;
+
+  db.put('st1', objs).addCallbacks(function(keys) {
+    db.list('st1', '12', ydn.db.KeyRange.bound(['a'], ['b'])).addCallbacks(function(x) {
+      result = x;
+      console.log(x);
+      done = true;
+    }, function(e) {
+      throw e;
+    })
+  }, function(e) {
+    throw e;
+  });
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertEquals('length', 2, result.length);
+      assertArrayEquals(objs.slice(0, 2), result);
+      ydn.db.deleteDatabase(db_name);
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
 
 };
 

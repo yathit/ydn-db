@@ -564,6 +564,15 @@ ydn.db.core.req.WebSql.prototype.listByKeyRange = function(df, store_name,
 /**
  * @inheritDoc
  */
+ydn.db.core.req.WebSql.prototype.listByIndexKeyRange = function(df, store_name,
+                                                                     index, key_range, reverse, limit, offset) {
+  //this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset)
+};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.core.req.WebSql.prototype.listByStore = function(df, store_name,
        reverse, limit, offset) {
   this.list_by_key_range_(df, false, store_name, undefined, null, reverse, limit, offset);

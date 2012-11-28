@@ -230,6 +230,14 @@ ydn.db.core.req.SimpleStore.prototype.listByKeys = function(df, keys) {
   df.callback(arr);
 };
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.listByIndexKeyRange = function(df, store_name,
+         index, key_range, reverse, limit, offset) {
+  //this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset)
+};
+
 
 /**
  * Remove all data in a store (table).

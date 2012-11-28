@@ -111,7 +111,7 @@ ydn.db.index.TxStorage.prototype.get = function(arg1, arg2) {
 /**
  * @inheritDoc
  */
-ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, offset) {
+ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, offset, arg6) {
 
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
@@ -130,7 +130,7 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, off
 
     return df;
   } else {
-    return goog.base(this, 'list', arg1, arg2, reverse, limit, offset);
+    return goog.base(this, 'list', arg1, arg2, reverse, limit, offset, arg6);
   }
 
 };

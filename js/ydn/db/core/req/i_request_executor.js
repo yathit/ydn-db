@@ -155,6 +155,17 @@ ydn.db.core.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
  */
 ydn.db.core.req.IRequestExecutor.prototype.listByKeyRange = goog.abstractMethod;
 
+/**
+ * Execute GET request callback results to df.
+ * @param {!goog.async.Deferred} df deferred to feed result.
+ * @param {string} store name.
+ * @param {string} index name.
+ * @param {IDBKeyRange} key range to get.
+ * @param {boolean} reverse to sort reverse order.
+ * @param {number} limit the results.
+ * @param {number} offset skip first results.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.listByIndexKeyRange = goog.abstractMethod;
 
 /**
  * Retrieve primary keys from a store in a given key range.

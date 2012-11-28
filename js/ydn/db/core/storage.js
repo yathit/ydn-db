@@ -119,8 +119,8 @@ ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3, arg4, arg5) {
-  return this.default_tx_queue_.list(arg1, arg2, arg3, arg4, arg5);
+ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return this.default_tx_queue_.list(arg1, arg2, arg3, arg4, arg5, arg6);
 };
 
 

@@ -34,9 +34,10 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
   }
 
   if (goog.isArrayLike(keyPath)) {
-    keyPath = goog.array.map(keyPath, function(x) {
+    var ks = goog.array.map(/** @type {Array.<string>} */ (keyPath), function(x) {
       return x;
     });
+    keyPath = /** @type {string} */ (ks);
   } else if (goog.isString(keyPath)) {
     // OK.
   } else {
@@ -53,7 +54,7 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
    * @final
    * @type {string}
    */
-  this.name = this.keyPath;
+  this.name = goog.isDef(name) ? name : this.keyPath;
   /**
    * @final
    * @type {ydn.db.schema.DataType|undefined}
@@ -870,6 +871,9 @@ ydn.db.schema.Database = function(version, opt_stores) {
     ver = json['version'];
     stores = [];
     var stores_json = json.stores || [];
+    if (goog.DEBUG && !goog.isArray(stores_json)) {
+      throw new ydn.error.ArgumentException('stores must be array');
+    }
     for (var i = 0; i < stores_json.length; i++) {
       var store = ydn.db.schema.Store.fromJSON(stores_json[i]);
       if (goog.DEBUG) {

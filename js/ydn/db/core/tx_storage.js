@@ -470,7 +470,7 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
 /**
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5) {
+ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6) {
 
   var df = ydn.db.base.createDeferred();
   /**
@@ -553,8 +553,34 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5) {
         executor.listByKeyRange(df, store_name, kr, reverse,
           limit, offset);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
+    } else if (goog.isString(arg2)) {
+      var index = arg2;
+      var key_range = ydn.db.KeyRange.parseIDBKeyRange(
+        /** @type {ydn.db.KeyRange} */ (arg3));
+      if (goog.isDef(arg4) && !goog.isBoolean(arg4)) {
+        throw new ydn.error.ArgumentException('arg4 must be boolean|undefined.');
+      }
+      reverse = !!arg4;
+      if (!goog.isDef(arg5)) {
+        limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+      } else if (goog.isNumber(arg5)) {
+        limit = arg5;
+      } else {
+        throw new ydn.error.ArgumentException('arg5 must be number|undefined.');
+      }
+      if (!goog.isDef(arg6)) {
+        offset = 0;
+      } else if (goog.isNumber(arg6)) {
+        offset = arg6;
+      } else {
+        throw new ydn.error.ArgumentException('arg6 must be number|undefined.');
+      }
+      this.exec(function (executor) {
+        executor.listByIndexKeyRange(df, store_name, index, key_range, reverse,
+          limit, offset);
+      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
     } else {
-      throw new ydn.error.ArgumentException();
+      throw new ydn.error.ArgumentException('arg2');
     }
   } else if (goog.isArray(arg1)) {
     if (arg1[0] instanceof ydn.db.Key) {
@@ -585,7 +611,7 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5) {
         executor.listByKeys(df, keys);
       }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'listByKeys');
     } else {
-      throw new ydn.error.ArgumentException();
+      throw new ydn.error.ArgumentException('must be array of ydn.db.Key');
     }
   } else {
     throw new ydn.error.ArgumentException();

@@ -397,14 +397,27 @@ ydn.db.core.req.IndexedDb.prototype.listByStore = function(df, store_name,
 
 
 /**
- * @inheritDoc
+ * Execute GET request callback results to df.
+ * @param {!goog.async.Deferred} df deferred to feed result.
+ * @param {string} store_name name.
+ * @param {string?} index name.
+ * @param {IDBKeyRange} key_range range to get.
+ * @param {boolean} reverse to sort reverse order.
+ * @param {number} limit the results.
+ * @param {number} offset skip first results.
  */
-ydn.db.core.req.IndexedDb.prototype.listByKeyRange = function(df, store_name,
-      key_range, reverse, limit, offset) {
+ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(df, store_name,
+      index, key_range, reverse, limit, offset) {
   var results = [];
   var store = this.tx.objectStore(store_name);
   var dir = ydn.db.base.getDirection(reverse);
-  var request = store.openCursor(key_range, dir);
+  var request;
+  if (index) {
+    request = store.index(index).openCursor(key_range, dir);
+  } else {
+    request = store.openCursor(key_range, dir);
+  }
+
   var cued = false;
   request.onsuccess = function(event) {
     /**
@@ -434,6 +447,23 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange = function(df, store_name,
     }
     df.errback(event);
   };
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.listByKeyRange = function(df, store_name,
+                                                              key_range, reverse, limit, offset) {
+  this.listByKeyRange_(df, store_name, null, key_range, reverse, limit, offset)
+};
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(df, store_name,
+             index, key_range, reverse, limit, offset) {
+  this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset)
 };
 
 

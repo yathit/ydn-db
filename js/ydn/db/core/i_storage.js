@@ -41,11 +41,12 @@ ydn.db.core.IStorage.prototype.get = goog.abstractMethod;
 /**
  * Return object or objects of given key or keys.
  * @param {(string|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(boolean|ydn.db.KeyRange|!Array.<string>)=} arg2 primary key to be retrieved, if not provided,
+ * @param {(string|boolean|ydn.db.KeyRange|!Array.<string>)=} arg2 primary key to be retrieved, if not provided,
  * all entries in the store will return. key range
- * @param {(number|boolean)=} reverse to reverse.
+ * @param {(ydn.db.KeyRange|number|boolean)=} reverse to reverse.
  * @param {number=} limit limit.
  * @param {number=} offset offset.
+ * @param {number=} arg6 offset.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.core.IStorage.prototype.list = goog.abstractMethod;
