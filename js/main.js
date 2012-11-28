@@ -16,12 +16,25 @@ goog.exportProperty(ydn.db.Iterator.prototype, 'count',
     ydn.db.Iterator.prototype.count);
 goog.exportProperty(ydn.db.Iterator.prototype, 'done',
   ydn.db.Iterator.prototype.done);
-goog.exportProperty(ydn.db.Iterator.prototype, 'filter',
-  ydn.db.Iterator.prototype.filter);
-goog.exportProperty(ydn.db.Iterator.prototype, 'key',
-  ydn.db.Iterator.prototype.key);
+goog.exportProperty(ydn.db.Iterator.prototype, 'getKeyRange',
+  ydn.db.Iterator.prototype.getKeyRange);
+goog.exportProperty(ydn.db.Iterator.prototype, 'getIndexName',
+  ydn.db.Iterator.prototype.getIndexName);
+goog.exportProperty(ydn.db.Iterator.prototype, 'getStoreName',
+  ydn.db.Iterator.prototype.getStoreName);
 goog.exportProperty(ydn.db.Iterator.prototype, 'indexKey',
   ydn.db.Iterator.prototype.indexKey);
+goog.exportProperty(ydn.db.Iterator.prototype, 'isReversed',
+  ydn.db.Iterator.prototype.isReversed);
+goog.exportProperty(ydn.db.Iterator.prototype, 'isUnique',
+  ydn.db.Iterator.prototype.isUnique);
+goog.exportProperty(ydn.db.Iterator.prototype, 'isKeyOnly',
+  ydn.db.Iterator.prototype.isKeyOnly);
+goog.exportProperty(ydn.db.Iterator.prototype, 'key',
+  ydn.db.Iterator.prototype.key);
+goog.exportProperty(ydn.db.Iterator.prototype, 'resume',
+  ydn.db.Iterator.prototype.resume);
+
 
 goog.exportSymbol('ydn.db.Sql', ydn.db.Sql);
 goog.exportProperty(ydn.db.Sql.prototype, 'project',

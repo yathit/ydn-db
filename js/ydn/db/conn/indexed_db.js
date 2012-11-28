@@ -137,8 +137,8 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
   var updateSchema = function(db, trans, is_caller_setversion) {
 
     var action = is_caller_setversion ? 'changing' : 'upgrading';
-    me.logger.finer(action + ' version to ' + db.version + ' from ' +
-      schema.getVersion());
+    var old_version = schema.isAutoSchema() ? 'auto' : schema.getVersion();
+    me.logger.finer(action + ' version to ' + db.version + ' from ' + old_version);
 
 
     // create store that we don't have previously

@@ -36,8 +36,8 @@ goog.require('ydn.error.ArgumentException');
  * @param {string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange)=}
-  * keyRange configuration in json or native format. Alternatively key range
+ * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange)=} keyRange
+ * configuration in json or native format. Alternatively key range
  * constructor parameters can be given.
  * @param {boolean=} reverse reverse.
  * @param {boolean=} unique unique.
@@ -131,12 +131,22 @@ ydn.db.Iterator.prototype.getStoreName = function() {
   return this.store_name;
 };
 
+
 /**
  *
  * @return {string|undefined} return store name.
  */
 ydn.db.Iterator.prototype.getIndexName = function() {
   return this.index;
+};
+
+
+/**
+ *
+ * @return {ydn.db.IDBKeyRange} return key range.
+ */
+ydn.db.Iterator.prototype.getKeyRange = function() {
+  return this.keyRange;
 };
 
 
@@ -155,6 +165,7 @@ ydn.db.Iterator.prototype.key_only_ = true;
 ydn.db.Iterator.prototype.isKeyOnly = function() {
   return this.key_only_;
 };
+
 
 
 /**
@@ -405,4 +416,14 @@ ydn.db.Iterator.prototype.degree = function () {
 ydn.db.Iterator.prototype.isReversed = function() {
   return this.direction === ydn.db.base.Direction.PREV ||
       this.direction === ydn.db.base.Direction.PREV_UNIQUE;
+};
+
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.Iterator.prototype.isUnique = function() {
+  return this.direction === ydn.db.base.Direction.NEXT_UNIQUE ||
+    this.direction === ydn.db.base.Direction.PREV_UNIQUE;
 };

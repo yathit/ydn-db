@@ -3,55 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>NoSQL demo</title>
-    <style>
-        body {
-            font-family: Arial;
-        }
-       .app-status-box {
-           background: #dcdcdc;
-           padding: 2px;
-
-       }
-       #app-menu_bar{
-           margin: 1em;
-       }
-        #app-status_bar {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            overflow: hidden;
-            border: solid thin #d3d3d3;
-            background: #d3d3d3;
-            padding: 4px;
-            margin: 2px;
-            font-size: small;
-        }
-        .summary-span {
-            padding: 2px 4px;
-        }
-        .summary-span-author {
-            width: 6em;
-            display: inline-block;
-            overflow-x: hidden;
-        }
-        .summary-span-publish {
-            width: 6em;
-            display: inline-block;
-            overflow-x: hidden;
-        }
-        .summary-span-license {
-            width: 2em;
-            display: inline-block;
-            overflow-x: hidden;
-        }
-        .menu-title {
-            min-width: 4em;
-            display: inline-block;
-            font-variant: small-caps;
-        }
-
-    </style>
+    <link href="../../../ydn-dev/public/demo/ydn-db/nosql/app.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 <script src="../../../closure-library/closure/goog/base.js"></script>
@@ -86,6 +38,14 @@
             <span class="menu-title">Create</span>
             <input title="Number of authors to generate" id="app-menu_bar-gen_author-num_author" value="10000" />
             <button id="app-menu_bar-gen_author-btn">Generate</button>
+        </div>
+        <div id="app-menu_bar-system">
+            <span class="menu-title">System</span>
+            <select id="app-menu_bar-query-system">
+                <option value="index" selected>Compound index</option>
+                <option value="zigzag">Zigzag merge</option>
+                <!--<option value="hash">Hash merge</option>-->
+            </select>
         </div>
         <div id="app-menu_bar-query">
             <span class="menu-title">Filter</span>

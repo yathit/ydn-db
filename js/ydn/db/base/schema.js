@@ -17,7 +17,7 @@ goog.require('ydn.db.utils');
 /**
  * Schema for index.
  *
- * @param {string} keyPath the key path.
+ * @param {string|!Array.<string>} keyPath the key path.
  * @param {ydn.db.schema.DataType=} opt_type to be determined.
  * @param {boolean=} opt_unique True if the index enforces that there is only
  * one objectfor each unique value it indexes on.
@@ -37,6 +37,9 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
     var ks = goog.array.map(/** @type {Array.<string>} */ (keyPath), function(x) {
       return x;
     });
+    if (!goog.isDef(name)) {
+      name = ks.join(', ');
+    }
     keyPath = /** @type {string} */ (ks);
   } else if (goog.isString(keyPath)) {
     // OK.
@@ -279,10 +282,10 @@ ydn.db.schema.Index.prototype.difference = function(index) {
   if (this.name != index.name) {
     return 'name, expect: ' + this.name + ', but: ' + index.name;
   }
-  if (this.keyPath != index.keyPath) {
+  if (!ydn.object.equals(this.keyPath, index.keyPath)) {
     return 'keyPath, expect: ' + this.keyPath + ', but: ' + index.keyPath;
   }
-  if (this.keyPath != index.keyPath) {
+  if (this.unique != index.unique) {
     return 'unique, expect: ' + this.unique + ', but: ' + index.unique;
   }
   if (goog.isDef(this.type) && goog.isDef(index.type) &&
@@ -821,7 +824,7 @@ ydn.db.schema.Store.prototype.difference = function(store) {
     var index = store.getIndex(this.indexes[i].name);
     var msg = this.indexes[i].difference(index);
     if (msg.length > 0) {
-      return 'index: ' + this.indexes[i] + ' ' + msg;
+      return 'index "' + this.indexes[i].name + '" ' + msg;
     }
   }
 
@@ -1095,7 +1098,7 @@ ydn.db.schema.Database.prototype.difference = function(schema) {
     var store = schema.getStore(this.stores[i].name);
     var msg = this.stores[i].difference(store);
     if (msg.length > 0) {
-      return 'store: ' + this.stores[i].name + ' ' + msg;
+      return 'store: "' + this.stores[i].name + '" ' + msg;
     }
   }
 
