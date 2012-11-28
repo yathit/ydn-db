@@ -511,6 +511,7 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
        * @type {IDBIndex}
        */
       var index = objStore.index(objStore.indexNames[j]);
+
       indexes[j] = new ydn.db.schema.Index(index.keyPath, undefined,
         index.unique, index.multiEntry, index.name);
     }

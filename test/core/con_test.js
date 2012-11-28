@@ -19,11 +19,11 @@ var setUp = function() {
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-    goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
-  ydn.db.con.IndexedDb.DEBUG = true;
+  //ydn.db.con.IndexedDb.DEBUG = true;
 
   db_name = 'test_db' + Math.random();
 
@@ -35,6 +35,7 @@ var setUp = function() {
 var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
+
 
 /**
  * @param {string=} name
@@ -53,7 +54,7 @@ var deleteDb = function(name) {
 var schema_test = function(schema, to_delete, name) {
 
   name = name || db_name;
-  console.log('testing schema: ' + JSON.stringify(schema));
+  //console.log('testing schema: ' + JSON.stringify(schema));
   var db = new ydn.db.Storage(name, schema, options);
 
   var version = schema.version;
@@ -66,7 +67,7 @@ var schema_test = function(schema, to_delete, name) {
     function() {
       assertEquals('val', 1, value);
       var sh = db.getSchema();
-      console.log(JSON.stringify(sh));
+      //console.log(JSON.stringify(sh));
       assertEquals('version', version, sh.version);
       reachedFinalContinuation = true;
       if (to_delete) {
@@ -125,19 +126,19 @@ var test_10b_trival_schema = function() {
 
 var test_12_no_db = function() {
   var schema = {stores: [store_schema]};
-  schema_test(schema);
+  schema_test(schema, true, 'test_no_db' + Math.random());
 };
 
 
 var test_13a_same_ver = function() {
   var schema = {version: 1, stores: [store_schema]};
-  schema_test(schema);
+  schema_test(schema, true, 'test_same' + Math.random());
 };
 
 var test_13b_same_ver_diff_schema = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
   var schema = {version: 1, stores: [store_schema, new_store]};
-  schema_test(schema);
+  schema_test(schema, true, 'test_diff' + Math.random());
 };
 
 
@@ -174,7 +175,7 @@ var test_21_add_store = function() {
   var v = Math.random();
   db.put(store, {id: 'a', value: v});
   db.getSchema(function(sh) {
-    console.log(sh);
+    //console.log(sh);
     sh_len = sh.stores.length;
     done = true;
   });
@@ -188,7 +189,7 @@ var test_21_add_store = function() {
 * @param {ydn.db.schema.Database|DatabaseSchema} schema_json
 */
 var assert_similar_schema = function(schema, schema_json) {
-  console.log(['testing ', schema, schema_json]);
+  //console.log(['testing ', schema, schema_json]);
   var stores = schema_json.stores || schema_json.stores;
   assertEquals('# stores', schema.stores.length, stores.length);
   for (var i = 0; i < schema.stores.length; i++) {
@@ -200,8 +201,11 @@ var assert_similar_schema = function(schema, schema_json) {
     }
 
     assertEquals(i + ': keyPath', store.keyPath, store_json.keyPath);
-    assertEquals(i + ': autoIncrementt', store.autoIncrement,
+    if (goog.isDef(store.autoIncrement) && goog.isDef(store_json.autoIncrement)) {
+      assertEquals(i + ': autoIncrementt', store.autoIncrement,
         store_json.autoIncrement);
+    }
+
     var indexes = store.Indexes || store.indexes;
     assertEquals('# indexes', store.indexes.length,
         indexes.length);
@@ -221,42 +225,129 @@ var assert_similar_schema = function(schema, schema_json) {
   //console.log('test OK');
 };
 
-var test_2_schema_sniffing = function() {
 
-  var index = new ydn.db.schema.Index('id.$t', ydn.db.schema.DataType.TEXT, true);
-  var store = new ydn.db.schema.Store(store_name, 'id', false, ydn.db.schema.DataType.NUMERIC, [index]);
-  var schema = new ydn.db.schema.Database(1, [store]);
+var schema_sniff_test = function(schema) {
 
-  var db_name = 'test_2_schema_sniffing' + Math.random();
+  var db_name = 'test_schema_' + Math.random();
   var db = new ydn.db.Storage(db_name, schema, options);
 
-
   var schema_json = db.getSchema();
-
 
   var t1_fired = false;
   var sniff_schema;
 
   waitForCondition(
-      // Condition
-      function() { return t1_fired; },
-      // Continuation
-      function() {
-        console.log([schema_json, sniff_schema]);
-        //assertTrue(schema.similar(sniff_schema));
-        assert_similar_schema(schema_json, sniff_schema);
-        reachedFinalContinuation = true;
-        deleteDb(db_name);
-      },
-      100, // interval
-      1000); // maxTimeout
+    // Condition
+    function() { return t1_fired; },
+    // Continuation
+    function() {
+      console.log([schema_json, sniff_schema]);
+      //assertTrue(schema.similar(sniff_schema));
+      assert_similar_schema(schema_json, sniff_schema);
+      reachedFinalContinuation = true;
+      deleteDb(db_name);
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.getSchema(function(result) {
+    sniff_schema = result;
+    t1_fired = true;
+  });
+};
 
 
+var test_schema_store = function() {
+  var store1 = {
+    name: 'st1',
+    keyPath: 'id',
+    autoIncrement: false,
+    type: ydn.db.schema.DataType.NUMERIC
+  };
+  var store2 = {
+    name: 'st2',
+    keyPath: 'id',
+    autoIncrement: true,
+    type: ydn.db.schema.DataType.INTEGER
+  };
+  var store3 = {
+    name: 'st3',
+    keyPath: undefined,
+    autoIncrement: false
+  };
+  var store4 = {
+    name: 'st4',
+    keyPath: undefined,
+    autoIncrement: true
+  };
 
-    db.getSchema(function(result) {
-      sniff_schema = result;
-      t1_fired = true;
-    });
+  var schema = new ydn.db.schema.Database({stores: [store1, store2, store3, store4]});
+
+  schema_sniff_test(schema);
+
+};
+
+
+var test_schema_index = function() {
+
+  var index1 = {
+    keyPath: 'id1',
+    type: ydn.db.schema.DataType.TEXT,
+    unique: false
+  };
+  var index2 = {
+    keyPath: 'id2',
+    type: ydn.db.schema.DataType.TEXT,
+    unique: true
+  };
+  var index3 = {
+    keyPath: 'id3',
+    type: ydn.db.schema.DataType.TEXT,
+    unique: false,
+    multiEntry: true
+  };
+  var index4 = {
+    keyPath: 'id4',
+    type: ydn.db.schema.DataType.TEXT,
+    unique: true,
+    multiEntry: true
+  };
+
+
+  var store1 = {
+    name: 'st1',
+    keyPath: 'id',
+    autoIncrement: false,
+    type: ydn.db.schema.DataType.NUMERIC,
+    indexes: [index1, index2, index3, index4]
+  };
+  var schema = new ydn.db.schema.Database({stores: [store1]});
+
+  schema_sniff_test(schema);
+
+};
+
+
+var test_schema_compound_index = function() {
+
+  var index1 = {
+    name: 'id1-id2',
+    keyPath: ['id1', 'id2'],
+    type: ydn.db.schema.DataType.TEXT,
+    unique: false
+  };
+
+
+  var store1 = {
+    name: 'st1',
+    keyPath: 'id',
+    autoIncrement: false,
+    type: ydn.db.schema.DataType.NUMERIC,
+    indexes: [index1]
+  };
+  var schema = new ydn.db.schema.Database({stores: [store1]});
+
+  schema_sniff_test(schema);
 
 };
 

@@ -33,18 +33,21 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
     keyPath = name;
   }
 
+  if (goog.isArrayLike(keyPath)) {
+    keyPath = goog.array.map(keyPath, function(x) {
+      return x;
+    });
+  } else if (goog.isString(keyPath)) {
+    // OK.
+  } else {
+    throw new ydn.error.ArgumentException('index keyPath or name required.');
+  }
+
   /**
    * @final
    * @type {string}
    */
   this.keyPath = keyPath;
-
-  if (!goog.isDef(this.keyPath)) {
-    throw new ydn.error.ArgumentException('index keyPath or name required.');
-  }
-  if (!goog.isString(this.keyPath)) {
-    throw new ydn.error.ArgumentException('index keyPath must be string.');
-  }
 
   /**
    * @final
@@ -359,17 +362,17 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    * @type {string?}
    */
   this.keyPath = goog.isDef(keyPath) ? keyPath : null;
-  if (!goog.isNull(this.keyPath) && !goog.isString(this.keyPath)) {
-    throw new ydn.error.ArgumentException('keyPath must be a string');
+  if (!goog.isNull(this.keyPath) &&
+        (!goog.isString(this.keyPath) || goog.isArray(this.keyPath))) {
+    throw new ydn.error.ArgumentException('keyPath must be a string or array');
   }
 
   /**
+   * IE10 do not reflect autoIncrement, so that make undefined as an option.
    * @final
-   * @type {boolean}
+   * @type {boolean|undefined}
    */
-  this.autoIncrement = !!autoIncrement;
-  // Yes, correct spelling is autoIncrement not autoIncremenent, as it
-  // was written in W3C documentation.
+  this.autoIncrement = autoIncrement;
 
   var type;
   if (goog.isDef(opt_type)) {
@@ -398,7 +401,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    * @final
    * @type {!Array.<string>}
    */
-  this.keyPaths = !goog.isNull(this.keyPath) ? this.keyPath.split('.') : [];
+  this.keyPaths = goog.isString(this.keyPath) ? this.keyPath.split('.') : [];
   /**
    * @final
    * @type {!Array.<!ydn.db.schema.Index>}
@@ -566,7 +569,7 @@ ydn.db.schema.Store.prototype.getName = function() {
 
 /**
  *
- * @return {boolean} autoIncrement
+ * @return {boolean|undefined} autoIncrement
  */
 ydn.db.schema.Store.prototype.getAutoIncrement = function() {
   return this.autoIncrement;
@@ -799,7 +802,8 @@ ydn.db.schema.Store.prototype.difference = function(store) {
   if (this.keyPath != store.keyPath) {
     return 'keyPath, expect:  ' + this.keyPath + ', but: ' + store.keyPath;
   }
-  if (this.autoIncrement != store.autoIncrement) {
+  if (goog.isDef(this.autoIncrement) && goog.isDef(store.autoIncrement) &&
+    this.autoIncrement != store.autoIncrement) {
     return 'autoIncrement, expect:  ' + this.autoIncrement + ', but: ' +
       store.autoIncrement;
   }
@@ -867,7 +871,18 @@ ydn.db.schema.Database = function(version, opt_stores) {
     stores = [];
     var stores_json = json.stores || [];
     for (var i = 0; i < stores_json.length; i++) {
-      stores.push(ydn.db.schema.Store.fromJSON(stores_json[i]));
+      var store = ydn.db.schema.Store.fromJSON(stores_json[i]);
+      if (goog.DEBUG) {
+        var idx = goog.array.findIndex(stores, function(x) {
+          return x.name == store.name;
+        });
+        if (idx != -1) {
+          throw new ydn.error.ArgumentException('duplicate store name "' +
+            store.name + '".');
+        }
+
+      }
+      stores.push(store);
     }
   } else if (goog.isString(version)) {
     ver = version.length == 0 ?
