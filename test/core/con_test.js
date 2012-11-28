@@ -74,7 +74,7 @@ var schema_test = function(schema, to_delete, name) {
       }
     },
     100, // interval
-    2000); // maxTimeout
+    1000); // maxTimeout
 
   db.put(store_name, {'id': 1}).addCallback(function(ok) {
     value = ok;
@@ -104,7 +104,7 @@ var trival_schema_test = function(dbname) {
       reachedFinalContinuation = true;
     },
     100, // interval
-    2000); // maxTimeout
+    1000); // maxTimeout
 
   db.getSchema(function(v) {
     act_schema = new ydn.db.schema.Database(v);
@@ -161,7 +161,7 @@ var test_21_add_store = function() {
 
     },
     100, // interval
-    2000); // maxTimeout
+    1000); // maxTimeout
 
   var db_name = 'test_' + Math.random();
   // autoSchema database
@@ -195,9 +195,12 @@ var assert_similar_schema = function(schema, schema_json) {
     var store = schema.stores[i];
     var store_json = stores[i];
     assertEquals(i + ': name', store.name, store_json.name);
-    assertEquals(i + ': type', store.type, store_json.type);
+    if (store_json.type) {
+      assertEquals(i + ': type', store.type, store_json.type);
+    }
+
     assertEquals(i + ': keyPath', store.keyPath, store_json.keyPath);
-    assertEquals(i + ':autoIncrementt', store.autoIncrement,
+    assertEquals(i + ': autoIncrementt', store.autoIncrement,
         store_json.autoIncrement);
     var indexes = store.Indexes || store.indexes;
     assertEquals('# indexes', store.indexes.length,
@@ -207,13 +210,13 @@ var assert_similar_schema = function(schema, schema_json) {
       var index = store.indexes[i];
       var index_json = indexes[i];
       assertEquals(i + ':' + j + ': index name', index.name, index_json.name);
-      assertEquals(i + ':' + j + ': index type', index.type, index_json.type);
-      //assertEquals(i + ':' + j + ': index keyPath', index.keyPath, index_json.keyPath);
+      if (index_json.type) {
+        assertEquals(i + ':' + j + ': index type', index.type, index_json.type);
+      }
+      assertEquals(i + ':' + j + ': index keyPath', index.keyPath, index_json.keyPath);
+      assertEquals(i + ':' + j + ': index keyPath', index.multiEntry, index_json.multiEntry);
     }
 
-    store_json = store_json instanceof ydn.db.schema.Store ?
-        store_json : ydn.db.schema.Store.fromJSON(store_json);
-    assertTrue(i + ': similar', store.similar(store_json));
   }
   //console.log('test OK');
 };
@@ -224,7 +227,7 @@ var test_2_schema_sniffing = function() {
   var store = new ydn.db.schema.Store(store_name, 'id', false, ydn.db.schema.DataType.NUMERIC, [index]);
   var schema = new ydn.db.schema.Database(1, [store]);
 
-  var db_name = 'test_2_sql_schema_sniffing_8';
+  var db_name = 'test_2_schema_sniffing' + Math.random();
   var db = new ydn.db.Storage(db_name, schema, options);
 
 
@@ -239,21 +242,21 @@ var test_2_schema_sniffing = function() {
       function() { return t1_fired; },
       // Continuation
       function() {
-        console.log([schema, sniff_schema]);
-        assertTrue(schema.similar(sniff_schema));
+        console.log([schema_json, sniff_schema]);
+        //assertTrue(schema.similar(sniff_schema));
+        assert_similar_schema(schema_json, sniff_schema);
         reachedFinalContinuation = true;
+        deleteDb(db_name);
       },
       100, // interval
       1000); // maxTimeout
 
 
-  db.transaction(function(t) {
-    console.log('in tx')
-    db.db_.getSchema(function(result) {
+
+    db.getSchema(function(result) {
       sniff_schema = result;
       t1_fired = true;
-    }, t)
-  }, [], ydn.db.base.TransactionMode.READ_WRITE);
+    });
 
 };
 

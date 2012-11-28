@@ -253,8 +253,10 @@ ydn.db.schema.Index.prototype.isMultiEntry = function() {
 ydn.db.schema.Index.prototype.toJSON = function() {
   return {
     'name': this.name,
+    'keyPath': this.keyPath,
     'type': this.type,
-    'unique': this.unique
+    'unique': this.unique,
+    'multiEntry': this.multiEntry
   };
 };
 

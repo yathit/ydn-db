@@ -506,7 +506,7 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
      */
     var objStore = trans.objectStore(objectStoreNames[i]);
     var indexes = [];
-    for (var j = objStore.indexNames.length - 1; j >= 0; j--) {
+    for (var j = 0, ni = objStore.indexNames.length; j < ni; j++) {
       /**
        * @type {IDBIndex}
        */
