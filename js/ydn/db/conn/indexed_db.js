@@ -630,11 +630,11 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
  * @param {Array.<string>} scopes list of stores involved in the
  * transaction. If null, all stores is used.
  * @param {ydn.db.base.TransactionMode} mode mode.
- * @param {function(ydn.db.base.TransactionEventTypes, *)}
-  * completed_event_handler handler.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)} on_completed
+ * on complete  handler.
  */
 ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
-      completed_event_handler) {
+      on_completed) {
 
   /**
    *
@@ -654,39 +654,18 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
     // opening without object store name will cause InvalidAccessError
   }
 
-  var tx;
-  try { // this try...catch block will removed on non-debug compiled.
-    tx = db.transaction(scopes, /** @type {number} */ (mode));
-  } catch (e) {
-    if (goog.DEBUG && e.name == 'NotFoundError') {
-      // http://www.w3.org/TR/IndexedDB/#widl-IDBDatabase-transaction-
-      // IDBTransaction-any-storeNames-DOMString-mode
-
-      // show informative message on debug mode.
-      throw new ydn.db.NotFoundError('stores not found: ' +
-        ydn.json.stringify(scopes) + ' in ' +
-        ydn.json.stringify(db.objectStoreNames));
-
-    // InvalidAccessError will not happen with our logic.
-    //}
-    // if (goog.DEBUG && e.name == 'InvalidAccessError') {
-    //  throw new ydn.db.NotFoundError('store names must be given: ' +
-    // ydn.json.stringify(scopes));
-    } else {
-      throw e;
-    }
-  }
+  var tx = db.transaction(scopes, /** @type {number} */ (mode));
 
   tx.oncomplete = function(event) {
-    completed_event_handler(ydn.db.base.TransactionEventTypes.COMPLETE, event);
+    on_completed(ydn.db.base.TransactionEventTypes.COMPLETE, event);
   };
 
   tx.onerror = function(event) {
-    completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, event);
+    on_completed(ydn.db.base.TransactionEventTypes.ERROR, event);
   };
 
   tx.onabort = function(event) {
-    completed_event_handler(ydn.db.base.TransactionEventTypes.ABORT, event);
+    on_completed(ydn.db.base.TransactionEventTypes.ABORT, event);
   };
 
   fnc(tx);

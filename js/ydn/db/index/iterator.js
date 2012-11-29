@@ -28,7 +28,6 @@ goog.require('ydn.db.base');
 goog.require('ydn.error.ArgumentException');
 
 
-
 /**
  * Create an iterator object.
  * @param {string} store store name.
@@ -106,8 +105,11 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
    */
   this.key_range_ = ydn.db.KeyRange.parseKeyRange(keyRange);
 
-  // set all null so that no surprise from inherit prototype
+  this.filter_index_names_ = [];
+  this.filter_key_ranges_ = [];
+  this.filter_store_names_ = [];
 
+  // set all null so that no surprise from inherit prototype
 
   // transient properties during cursor iteration
   this.counter = 0;
@@ -209,7 +211,6 @@ ydn.db.Iterator.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
   return 'Iterator:' + this.store_name + idx;
 };
-
 
 
 /**
@@ -397,3 +398,98 @@ ydn.db.Iterator.prototype.isUnique = function() {
   return this.direction === ydn.db.base.Direction.NEXT_UNIQUE ||
     this.direction === ydn.db.base.Direction.PREV_UNIQUE;
 };
+
+
+/**
+ *
+ * @type {!Array.<string>}
+ * @private
+ */
+ydn.db.Iterator.prototype.filter_index_names_ = [];
+
+/**
+ *
+ * @type {!Array.<!IDBKeyRange>}
+ * @private
+ */
+ydn.db.Iterator.prototype.filter_key_ranges_ = [];
+
+
+/**
+ *
+ * @type {!Array.<string>}
+ * @private
+ */
+ydn.db.Iterator.prototype.filter_store_names_ = [];
+
+
+/**
+ * Filter primary key. It is assumed that primary keys running from the filter
+ * are ordered.
+ * @param {string} index_name index name.
+ * @param {ydn.db.KeyRange|*} key_range if not key range, a key is build
+ * using ydn.db.KeyRange.only().
+ * @param {string=} store_name store name if different from this iterator.
+ */
+ydn.db.Iterator.prototype.filter = function(index_name, key_range, store_name) {
+  if (arguments.length > 3) {
+    throw new ydn.error.ArgumentException('too many input arguments.');
+  }
+  if (!goog.isString(index_name)) {
+    throw new ydn.error.ArgumentException('index name');
+  }
+  ydn.db.Iterator.prototype.filter_index_names_.push(index_name);
+  var kr;
+  if (key_range instanceof ydn.db.KeyRange) {
+    kr = ydn.db.KeyRange.parseIDBKeyRange(key_range);
+  } else if (goog.isDef(key_range)) {
+    kr = ydn.db.KeyRange.only(key_range);
+  } else {
+    throw new ydn.error.ArgumentException('key range');
+  }
+  this.filter_key_ranges_.push(kr);
+  if (goog.isDef(store_name) && !goog.isString(store_name)) {
+    throw new ydn.error.ArgumentException('store name');
+  }
+  this.filter_store_names_.push(store_name);
+};
+
+
+/**
+ *
+ * @return {number}
+ */
+ydn.db.Iterator.prototype.countFilter = function() {
+  return this.filter_index_names_.length;
+};
+
+
+/**
+ *
+ * @param {number} idx
+ * @return {string} index name of idx'th filter.
+ */
+ydn.db.Iterator.prototype.getFilterIndexName = function(idx) {
+  return this.filter_index_names_[idx];
+};
+
+
+/**
+ *
+ * @param {number} idx
+ * @return {string|undefined} store name of idx'th filter.
+ */
+ydn.db.Iterator.prototype.getFilterStoreName = function(idx) {
+  return this.filter_store_names_[idx];
+};
+
+
+/**
+ *
+ * @param {number} idx
+ * @return {IDBKeyRange} key range of idx'th filter.
+ */
+ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
+  return this.filter_key_ranges_[idx];
+};
+

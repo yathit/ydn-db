@@ -99,7 +99,7 @@
                              output.fn="@{output.dir}/@{output.fn}">
                 <extrapaths>
                     <arg line='-p "${ydn-base.dir}/js"'/>
-                    <arg line='-p "${ydn-db.dir}/js/ydn/db/con"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
                     <exjs.dir/>
                 </extrapaths>
                 <options>
@@ -137,18 +137,18 @@
         <copy file="${ydn-db.dir}/jsc/ydn.db-${ver}.js"
               tofile="${out.dir}/ydn-db.js"/>
     </target>
-    <target name="compile-con"
+    <target name="compile-conn"
             description="generates compiled files for core">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db/con"
-                input.fn="${ydn-db.dir}/js/con.js"
+                input.dir="${ydn-db.dir}/js/ydn/db/conn"
+                input.fn="${ydn-db.dir}/js/conn.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="conn-ydn.db-min-${ver}.js"
+                output.fn="conn-ydn.db-${ver}.js"
                 closure.entry="ydn.db.con.Storage">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/con"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
             </exjs.dir>
         </adv-comp>
     </target>
@@ -162,9 +162,9 @@
                 output.fn="core-ydn.db-${ver}.js"
                 closure.entry="ydn.db.core.Storage">
             <exjs.dir>
-                <arg line='-i "${ydn-db.dir}/js/con.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/con"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
             </exjs.dir>
@@ -181,7 +181,7 @@
                 output.fn="ydn.db-min-${ver}.js"
                 closure.entry="ydn.db.Storage">
             <ex.opt>
-                <arg line='-i "${ydn-db.dir}/js/con.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-f "--define=ydn.db.base.ENABLE_DEFAULT_TEXT_STORE=true"'/>
@@ -231,7 +231,7 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-con,compile,simple,compile-dev,compile-core">
+            depends="compile-conn,compile,simple,compile-dev,compile-core">
 
     </target>
 </project>
