@@ -292,7 +292,7 @@ ydn.db.index.req.WebSql.prototype.planQuery = function(query) {
   }
 
   var sql = new ydn.db.req.SqlQuery(query.store_name, query.index,
-    ydn.db.KeyRange.clone(query.keyRange));
+    ydn.db.KeyRange.clone(query.keyRange()));
 
   var select = 'SELECT';
 
@@ -305,23 +305,24 @@ ydn.db.index.req.WebSql.prototype.planQuery = function(query) {
       ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   var column = goog.string.quote(key_column);
 
+  var key_range = query.keyRange();
   var where_clause = '';
-  if (query.keyRange) {
+  if (key_range) {
 
-    if (ydn.db.Where.resolvedStartsWith(query.keyRange)) {
+    if (ydn.db.Where.resolvedStartsWith(key_range)) {
       where_clause = column + ' LIKE ?';
-      sql.params.push(sql.keyRange['lower'] + '%');
+      sql.params.push(key_range['lower'] + '%');
     } else {
-      if (goog.isDef(sql.keyRange.lower)) {
-        var lowerOp = sql.keyRange['lowerOpen'] ? ' > ' : ' >= ';
+      if (goog.isDef(key_range.lower)) {
+        var lowerOp = key_range['lowerOpen'] ? ' > ' : ' >= ';
         where_clause += ' ' + column + lowerOp + '?';
-        sql.params.push(sql.keyRange.lower);
+        sql.params.push(key_range.lower);
       }
-      if (goog.isDef(sql.keyRange['upper'])) {
-        var upperOp = sql.keyRange['upperOpen'] ? ' < ' : ' <= ';
+      if (goog.isDef(key_range['upper'])) {
+        var upperOp = key_range['upperOpen'] ? ' < ' : ' <= ';
         var and = where_clause.length > 0 ? ' AND ' : ' ';
         where_clause += and + column + upperOp + '?';
-        sql.params.push(sql.keyRange.upper);
+        sql.params.push(key_range.upper);
       }
     }
     where_clause = ' WHERE ' + '(' + where_clause + ')';

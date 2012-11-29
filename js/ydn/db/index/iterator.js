@@ -67,8 +67,8 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
    */
   this.index = index;
 
-  this.key_only_ = goog.isDef(key_only) ? key_only : goog.isString(this.index) ?
-      true : false;
+  this.key_only_ = goog.isDef(key_only) ? key_only :
+      !!(goog.isString(this.index));
   if (!goog.isBoolean(this.key_only_)) {
     throw new ydn.error.ArgumentException('key_only');
   }
@@ -101,10 +101,10 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
       }
   }
   /**
+   *
    * @final
-   * @type {ydn.db.IDBKeyRange}
    */
-  this.keyRange = ydn.db.KeyRange.parseKeyRange(keyRange);
+  this.key_range_ = ydn.db.KeyRange.parseKeyRange(keyRange);
 
   // set all null so that no surprise from inherit prototype
 
@@ -141,9 +141,26 @@ ydn.db.Iterator.prototype.getIndexName = function() {
  *
  * @return {ydn.db.IDBKeyRange} return key range.
  */
-ydn.db.Iterator.prototype.getKeyRange = function() {
-  return this.keyRange;
+ydn.db.Iterator.prototype.keyRange = function() {
+  return this.key_range_;
 };
+
+
+/**
+ *
+ * @return {IDBKeyRange} return a clone of key range.
+ */
+ydn.db.Iterator.prototype.getKeyRange = function() {
+  return ydn.db.KeyRange.parseIDBKeyRange(this.key_range_);
+};
+
+
+/**
+ *
+ * @private
+ * @type {ydn.db.IDBKeyRange}
+ */
+ydn.db.Iterator.prototype.key_range_;
 
 
 /**
@@ -171,16 +188,12 @@ ydn.db.Iterator.prototype.toJSON = function() {
   return {
     'store': this.store_name,
     'index': this.index,
-    'key_range': this.keyRange ? ydn.db.KeyRange.toJSON(this.keyRange) : null,
+    'key_range': this.key_range_ ? ydn.db.KeyRange.toJSON(this.key_range_) : null,
     'direction': this.direction
   };
 };
 
-/**
- * Right value for query operation.
- * @type {ydn.db.IDBKeyRange}
- */
-ydn.db.Iterator.prototype.keyRange;
+
 
 /**
  * Cursor direction.

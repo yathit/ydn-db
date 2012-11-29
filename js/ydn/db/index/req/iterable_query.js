@@ -68,16 +68,12 @@ goog.inherits(ydn.db.req.IterableQuery, ydn.db.Iterator);
  * @inheritDoc
  */
 ydn.db.req.IterableQuery.prototype.toJSON = function() {
-  return {
-    'store': this.store_name,
-    'index': this.index,
-    'key_range': this.keyRange ? ydn.db.KeyRange.toJSON(this.keyRange) : null,
-    'direction': this.direction,
-    'initial': this.initial ? this.initial.toString() : null,
-    'map': this.map ? this.map.toString() : null,
-    'reduce': this.reduce ? this.reduce.toString() : null,
-    'finalize': this.finalize ? this.finalize.toString() : null
-  };
+  var obj = goog.base(this, 'toJSON');
+  obj['initial'] = this.initial ? this.initial.toString() : null;
+  obj['map'] = this.map ? this.map.toString() : null;
+  obj['reduce'] = this.reduce ? this.reduce.toString() : null;
+  obj['finalize'] = this.finalize ? this.finalize.toString() : null;
+  return obj;
 };
 
 

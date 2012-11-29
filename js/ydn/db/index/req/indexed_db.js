@@ -145,7 +145,7 @@ ydn.db.index.req.IndexedDb.prototype.fetchCursor = function(df, q) {
   var dir = /** @type {number} */ (q.direction); // new standard is string.
 
   // keyRange is nullable but cannot be undefined.
-  var keyRange = goog.isDef(q.keyRange) ? q.keyRange : null;
+  var keyRange = q.getKeyRange();
 
   if (index) {
     if (goog.isDefAndNotNull(dir)) {
@@ -643,7 +643,7 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   var dir = /** @type {number} */ (iterator.direction); // new standard is string.
 
   // keyRange is nullable but cannot be undefined.
-  var keyRange = goog.isDef(iterator.keyRange) ? iterator.keyRange : null;
+  var keyRange = goog.isDef(iterator.keyRange) ? iterator.keyRange() : null;
 
   var key_only = mode === ydn.db.base.CursorMode.KEY_ONLY;
 
