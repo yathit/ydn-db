@@ -116,13 +116,6 @@ ydn.db.con.IdbCursorStream.prototype.sink_;
 
 
 /**
- * @private
- * @type {IDBCursor}
- */
-ydn.db.con.IdbCursorStream.prototype.cursor_ = null;
-
-
-/**
  * Read cursor.
  * @param {!IDBRequest} req
  * @private
@@ -140,7 +133,6 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
   req.onsuccess = function(ev) {
     var cursor = ev.target.result;
     if (cursor) {
-      me.cursor_ = cursor;
       if (goog.isFunction(me.sink_)) {
         if (me.key_only_) {
           me.sink_(cursor.primaryKey, cursor.key);
@@ -151,9 +143,9 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
         me.logger.warning('sink gone, dropping value for: ' +
             cursor.primaryKey);
       }
-      me.clearStack_();
-    } else {
-      me.cursor_ = null;
+      if (me.stack_.length > 0) {
+        cursor['continue'](me.stack_.shift());
+      }
     }
   };
   req.onerror = function(ev) {
@@ -179,13 +171,17 @@ ydn.db.con.IdbCursorStream.prototype.onFinish = function(callback) {
 
 /**
  * @private
- * @param key
  */
-ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
+ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
+
+  if (this.on_tx_request_) {
+    return; // else: we should not request more than on transaction request
+  }
+
+
   var me = this;
   var on_completed = function(type, ev) {
     me.tx_ = null;
-    me.cursor_ = null;
     if (type !== ydn.db.base.TransactionEventTypes.COMPLETE) {
       me.logger.warning(ev.name + ':' + ev.message);
     }
@@ -197,6 +193,7 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
    * @param {IDBTransaction} tx active tx.
    */
   var doRequest = function(tx) {
+    var key = me.stack_.shift();
     me.logger.finest(me + ' transaction started for ' + key);
     var store = tx.objectStore(me.store_name_);
     var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
@@ -241,7 +238,6 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function(key) {
     this.on_tx_request_ = true;
     this.db_.transaction(function(/** @type {IDBTransaction} */ tx) {
       me.on_tx_request_ = false;
-      me.tx_ = tx;
       doRequest(tx);
     }, [me.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
   } else {
@@ -256,13 +252,12 @@ ydn.db.con.IdbCursorStream.prototype.clearStack_ = function() {
   if (this.cursor_ && this.stack_.length > 0) {
     // we retain only valid request with active cursor.
     this.cursor_['continue'](this.stack_.shift());
-    this.cursor_ = null;
   } else {
     if (this.collector_) {
       this.collector_();
-      this.collector_ = null;
     }
   }
+  this.cursor_ = null;
 };
 
 
@@ -270,15 +265,10 @@ ydn.db.con.IdbCursorStream.prototype.clearStack_ = function() {
  * Request to seek to a key.
  * @param key
  */
-ydn.db.con.IdbCursorStream.prototype.seek = function(key) {
+ydn.db.con.IdbCursorStream.prototype.seek = function (key) {
   this.stack_.push(key);
-  if (this.cursor_) {
-    this.clearStack_();
-  } else {
-    if (!this.on_tx_request_) {
-      this.createRequest_(this.stack_.shift());
-    } // else: we should not request more than on transaction request
-    // we just push in stack. stack will empty when request is started.
-  }
+
+  this.createRequest_();
+
 };
 

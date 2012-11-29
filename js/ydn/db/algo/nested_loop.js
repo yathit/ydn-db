@@ -55,27 +55,26 @@ ydn.db.algo.NestedLoop.prototype.solver = function (keys, values) {
 
   // initialize advancement array
   var advancement = [];
-  // the innermost loop is always iterating
-  if (goog.isDef(keys[keys.length - 1])) {
-    advancement[keys.length - 1] = false; // restart
-    advancement[this.current_loop] = true; // next
-  } else {
-    advancement[keys.length - 1] = false; // the innermost loop is always iterating
-  }
 
-  if (!goog.isDef(keys[this.current_loop])) {
-    // current loop is finished.
-    if (this.current_loop == 0) {
-      return []; // last loop. done.
+  var all_restarting = true;
+
+  var next = function (idx) {
+    if (!goog.isDef(keys[idx])) {
+      advancement[idx] = false; // restart
+      if (idx - 1 >= 0) {
+        next(idx - 1);
+      }
     } else {
-      this.current_loop--;
-      advancement[this.current_loop] = false; // restart
+      all_restarting = false;
+      advancement[idx] = true;
     }
-  }
+  };
+
+  next(keys.length - 1); // the innermost loop is always iterating
 
   if (ydn.db.algo.NestedLoop.DEBUG) {
     window.console.log([keys, values, advancement]);
   }
 
-  return advancement;
+  return all_restarting ? [] : advancement;
 };

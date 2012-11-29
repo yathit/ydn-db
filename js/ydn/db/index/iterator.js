@@ -14,11 +14,9 @@
 
 
 /**
- * @fileoverview Query to represent stream of cursor.
+ * @fileoverview Iterate cursor of an index or an object store.
  *
- * Cursors are a transient mechanism used to iterate on stream of ordered
- * records from a store. Cursor object define exact stream of records and
- * conditioned iteration process and retain state of cursor position.
+ *
  */
 
 
@@ -32,7 +30,7 @@ goog.require('ydn.error.ArgumentException');
 
 
 /**
- * Create a query object.
+ * Create an iterator object.
  * @param {string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
@@ -110,8 +108,6 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
 
   // set all null so that no surprise from inherit prototype
 
-  this.filter = null;
-  this.continued = null;
 
   // transient properties during cursor iteration
   this.counter = 0;
@@ -192,16 +188,6 @@ ydn.db.Iterator.prototype.keyRange;
  */
 ydn.db.Iterator.prototype.direction;
 
-/**
- * @type {?function(*): boolean}
- */
-ydn.db.Iterator.prototype.filter = null;
-
-/**
- * @type {?function(*): boolean}
- */
-ydn.db.Iterator.prototype.continued = null;
-
 
 /**
  * @override
@@ -210,35 +196,6 @@ ydn.db.Iterator.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
   return 'Iterator:' + this.store_name + idx;
 };
-
-
-//
-///**
-// * @final
-// * @param {string} op
-// * @param {number|string} lv
-// * @param {number|string} x
-// * @return {boolean}
-// */
-//ydn.db.Iterator.op_test = function(op, lv, x) {
-//  if (op === '=' || op === '==') {
-//    return  x == lv;
-//  } else if (op === '===') {
-//    return  x === lv;
-//  } else if (op === '>') {
-//    return  x > lv;
-//  } else if (op === '>=') {
-//    return  x >= lv;
-//  } else if (op === '<') {
-//    return  x < lv;
-//  } else if (op === '<=') {
-//    return  x <= lv;
-//  } else if (op === '!=') {
-//    return  x != lv;
-//  } else {
-//    throw new Error('Invalid op: ' + op);
-//  }
-//};
 
 
 

@@ -195,7 +195,7 @@ var test_31_scan_mutli_query_match = function () {
     function () {
       assertEquals('number of result', 1, result_keys.length);
       assertEquals('number of result value', 1, result_values.length);
-      assertEquals('result', 'cow', result_values[0].id);
+      assertEquals('result', 'cow', result_values[0]);
       reachedFinalContinuation = true;
 
     },
@@ -207,7 +207,7 @@ var test_31_scan_mutli_query_match = function () {
   var q3 = ydn.db.Iterator.where('animals', 'legs', '=', 4);
   var out = new ydn.db.Streamer(db, 'animals', 'id');
   out.setSink(function(key, value) {
-    console.log(['streamer', key, value])
+    console.log(['streamer', key, value]);
     result_keys.push(key);
     result_values.push(value);
   });
