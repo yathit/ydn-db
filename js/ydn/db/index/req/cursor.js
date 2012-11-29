@@ -28,7 +28,8 @@ ydn.db.index.req.Cursor = function(store_name, index_name, keyPath, keyRange,
     this.obj_store.index(index_name) : null;
 
   this.cur = null;
-
+  
+  this.key_range = keyRange;
 
   this.reverse = direction == ydn.db.base.Direction.PREV ||
     direction == ydn.db.base.Direction.PREV_UNIQUE;
@@ -65,6 +66,13 @@ ydn.db.index.req.Cursor.prototype.obj_store = null;
  * @type {IDBIndex}
  */
 ydn.db.index.req.Cursor.prototype.index = null;
+
+
+/**
+ * @private
+ * @type {IDBKeyRange}
+ */
+ydn.db.index.req.Cursor.prototype.key_range = null;
 
 
 /**
@@ -111,9 +119,9 @@ ydn.db.index.req.Cursor.prototype.open_request = function() {
   if (this.key_only) {
     if (this.index) {
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.index.openKeyCursor(this.keyRange, this.dir);
-      } else if (goog.isDefAndNotNull(this.keyRange)) {
-        request = this.index.openKeyCursor(this.keyRange);
+        request = this.index.openKeyCursor(this.key_range, this.dir);
+      } else if (goog.isDefAndNotNull(this.key_range)) {
+        request = this.index.openKeyCursor(this.key_range);
       } else {
         request = this.index.openKeyCursor();
       }
@@ -124,9 +132,9 @@ ydn.db.index.req.Cursor.prototype.open_request = function() {
       // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       // however, lazy serailization used at least in FF.
       if (goog.isDefAndNotNull(dir)) {
-        request = this.obj_store.openCursor(this.keyRange, this.dir);
-      } else if (goog.isDefAndNotNull(this.keyRange)) {
-        request = this.obj_store.openCursor(this.keyRange);
+        request = this.obj_store.openCursor(this.key_range, this.dir);
+      } else if (goog.isDefAndNotNull(this.key_range)) {
+        request = this.obj_store.openCursor(this.key_range);
         // some browser have problem with null, even though spec said OK.
       } else {
         request = this.obj_store.openCursor();
@@ -137,16 +145,16 @@ ydn.db.index.req.Cursor.prototype.open_request = function() {
     if (this.index) {
       if (goog.isDefAndNotNull(this.dir)) {
         request = this.index.openCursor(keyRange, this.dir);
-      } else if (goog.isDefAndNotNull(this.keyRange)) {
-        request = this.index.openCursor(this.keyRange);
+      } else if (goog.isDefAndNotNull(this.key_range)) {
+        request = this.index.openCursor(this.key_range);
       } else {
         request = this.index.openCursor();
       }
     } else {
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.obj_store.openCursor(this.keyRange, this.dir);
-      } else if (goog.isDefAndNotNull(this.keyRange)) {
-        request = this.obj_store.openCursor(this.keyRange);
+        request = this.obj_store.openCursor(this.key_range, this.dir);
+      } else if (goog.isDefAndNotNull(this.key_range)) {
+        request = this.obj_store.openCursor(this.key_range);
         // some browser have problem with null, even though spec said OK.
       } else {
         request = this.obj_store.openCursor();
@@ -155,7 +163,6 @@ ydn.db.index.req.Cursor.prototype.open_request = function() {
   }
 
   me.logger.finest('Iterator: ' + this.label + ' opened.');
-
 
   request.onsuccess = function (event) {
     var cur = (event.target.result);
@@ -170,7 +177,6 @@ ydn.db.index.req.Cursor.prototype.open_request = function() {
           this.seek_key_ = null; // we got there.
           this.onNext(this.cur.primaryKey, value);
         } else if ((cmp == 1 && !this.reverse) || (cmp == -1 && this.reverse)) {
-          this.seek_key_ = next_primary_key;
           this.cur['continue']();
         } else {
           // the seeking primary key is not in the range.
