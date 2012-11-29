@@ -7,6 +7,7 @@ goog.require('ydn.db.Storage');
 goog.require('ydn.db.sql');
 goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.algo.NestedLoop');
+goog.require('ydn.db.algo.ZigzagMerge');
 
 
 goog.exportSymbol('ydn.db.Iterator', ydn.db.Iterator);
@@ -102,5 +103,5 @@ goog.exportProperty(ydn.math.Expression, 'parseInfix',
 
 goog.exportSymbol('ydn.db.algo.NestedLoop', ydn.db.algo.NestedLoop);
 goog.exportSymbol('ydn.db.algo.AbstractSolver', ydn.db.algo.AbstractSolver);
-
+goog.exportSymbol('ydn.db.algo.ZigzagMerge', ydn.db.algo.ZigzagMerge);
 
