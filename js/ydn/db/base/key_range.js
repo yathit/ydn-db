@@ -77,7 +77,7 @@ ydn.db.KeyRange.clone = function(kr) {
 /**
  * Creates a new key range for a single value.
  *
- * @param {Object} value The single value in the range.
+ * @param {!Array|string|number} value The single value in the range.
  * @return {!ydn.db.KeyRange} The key range.
  */
 ydn.db.KeyRange.only = function(value) {

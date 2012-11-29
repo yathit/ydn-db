@@ -53,6 +53,15 @@ ydn.db.index.req.IndexedDb.prototype.getByIterator = goog.abstractMethod;
 
 
 /**
+ * @protected
+ * @return {!IDBTransaction}
+ */
+ydn.db.index.req.IndexedDb.prototype.getTx = function() {
+  return /** @type {!IDBTransaction} */ (this.tx);
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.index.req.IndexedDb.prototype.executeSql = function(df, sql) {
@@ -78,166 +87,166 @@ ydn.db.index.req.IndexedDb.prototype.explainSql = function(sql) {
   return json;
 };
 
-
-
-/**
- * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Iterator} q query.
- */
-ydn.db.index.req.IndexedDb.prototype.fetchCursor = function(df, q) {
-  var me = this;
-  var store = this.schema.getStore(q.store_name);
-  var is_reduce = goog.isFunction(q.reduce);
-
-  var on_complete = function(result) {
-    if (goog.isFunction(q.finalize)) {
-      df.callback(q.finalize(result));
-    } else {
-      df.callback(result);
-    }
-  };
-
-  //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
-  // ' in ' + table);
-  var obj_store;
-  try {
-    obj_store = this.tx.objectStore(store.name);
-  } catch (e) {
-    if (goog.DEBUG && e.name == 'NotFoundError') {
-      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
-        'store: ' + store.name + ' not in transaction.' :  // ??
-        'store: ' + store.name + ' not in database: ' + this.tx.db.name;
-      throw new ydn.db.NotFoundError(msg);
-    } else {
-      throw e; // InvalidStateError: we can't do anything about it ?
-    }
-  }
-
-  /**
-   * externs file fix.
-   * @type {DOMStringList}
-   */
-  var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
-
-  var index = null;
-
-  if (goog.isDefAndNotNull(q.index)) {
-    if (q.index != store.keyPath) {
-      try {
-        index = obj_store.index(q.index);
-      } catch (e) {
-        if (goog.DEBUG && e.name == 'NotFoundError') {
-          var msg = indexNames.contains(q.index) ?
-            'index: ' + q.index + ' of ' + obj_store.name +
-              ' not in transaction scope' :
-            'index: ' + q.index + ' not found in store: ' + obj_store.name;
-          throw new ydn.db.NotFoundError(msg);
-        } else {
-          throw e;
-        }
-      }
-    }
-  }
-
-  //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
-  // ' of ' + column + ' in ' + table);
-  var request;
-  var dir = /** @type {number} */ (q.direction); // new standard is string.
-
-  // keyRange is nullable but cannot be undefined.
-  var keyRange = q.getKeyRange();
-
-  if (index) {
-    if (goog.isDefAndNotNull(dir)) {
-      request = index.openCursor(keyRange, dir);
-    } else if (goog.isDefAndNotNull(keyRange)) {
-      request = index.openCursor(keyRange);
-    } else {
-      request = index.openCursor();
-    }
-  } else {
-    if (goog.isDefAndNotNull(dir)) {
-      request = obj_store.openCursor(keyRange, dir);
-    } else if (goog.isDefAndNotNull(keyRange)) {
-      request = obj_store.openCursor(keyRange);
-      // some browser have problem with null, even though spec said OK.
-    } else {
-      request = obj_store.openCursor();
-    }
-  }
-
-  var idx = -1; // iteration index
-  var results = [];
-  var previousResult = goog.isFunction(q.initial) ? q.initial() : undefined;
-
-  request.onsuccess = function(event) {
-
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
-      window.console.log([q, idx, event]);
-    }
-    /**
-     * @type {IDBCursor}
-     */
-    var cursor = /** @type {IDBCursor} */ (event.target.result);
-    //console.log(cursor);
-    if (cursor) {
-
-      var value = /** @type {!Object} */ (cursor['value']); // should not
-      // necessary if externs are
-
-      var to_continue = !goog.isFunction(q.continued) || q.continued(value);
-
-      // do the filtering if requested.
-      if (!goog.isFunction(q.filter) || q.filter(value)) {
-        idx++;
-
-        if (goog.isFunction(q.map)) {
-          value = q.map(value);
-        }
-
-        if (is_reduce) {
-          previousResult = q.reduce(previousResult, value, idx);
-        } else {
-          results.push(value);
-        }
-
-      }
-
-      if (to_continue) {
-        //cursor.continue();
-        cursor['continue'](); // Note: Must be quoted to avoid parse error.
-      }
-//      } else {
-//        var result = is_reduce ? previousResult : results;
-//        on_complete(result);
+//
+//
+///**
+// * @param {goog.async.Deferred} df deferred to feed result.
+// * @param {!ydn.db.Iterator} q query.
+// */
+//ydn.db.index.req.IndexedDb.prototype.fetchCursor = function(df, q) {
+//  var me = this;
+//  var store = this.schema.getStore(q.store_name);
+//  var is_reduce = goog.isFunction(q.reduce);
+//
+//  var on_complete = function(result) {
+//    if (goog.isFunction(q.finalize)) {
+//      df.callback(q.finalize(result));
+//    } else {
+//      df.callback(result);
+//    }
+//  };
+//
+//  //console.log('to open ' + q.op + ' cursor ' + value + ' of ' + column +
+//  // ' in ' + table);
+//  var obj_store;
+//  try {
+//    obj_store = this.tx.objectStore(store.name);
+//  } catch (e) {
+//    if (goog.DEBUG && e.name == 'NotFoundError') {
+//      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
+//        'store: ' + store.name + ' not in transaction.' :  // ??
+//        'store: ' + store.name + ' not in database: ' + this.tx.db.name;
+//      throw new ydn.db.NotFoundError(msg);
+//    } else {
+//      throw e; // InvalidStateError: we can't do anything about it ?
+//    }
+//  }
+//
+//  /**
+//   * externs file fix.
+//   * @type {DOMStringList}
+//   */
+//  var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
+//
+//  var index = null;
+//
+//  if (goog.isDefAndNotNull(q.index)) {
+//    if (q.index != store.keyPath) {
+//      try {
+//        index = obj_store.index(q.index);
+//      } catch (e) {
+//        if (goog.DEBUG && e.name == 'NotFoundError') {
+//          var msg = indexNames.contains(q.index) ?
+//            'index: ' + q.index + ' of ' + obj_store.name +
+//              ' not in transaction scope' :
+//            'index: ' + q.index + ' not found in store: ' + obj_store.name;
+//          throw new ydn.db.NotFoundError(msg);
+//        } else {
+//          throw e;
+//        }
 //      }
-    } else {
-      var result = is_reduce ? previousResult : results;
-      on_complete(result);
-    }
-  };
+//    }
+//  }
+//
+//  //console.log('opening ' + q.op + ' cursor ' + value + ' ' + value_upper +
+//  // ' of ' + column + ' in ' + table);
+//  var request;
+//  var dir = /** @type {number} */ (q.direction); // new standard is string.
+//
+//  // keyRange is nullable but cannot be undefined.
+//  var keyRange = q.getKeyRange();
+//
+//  if (index) {
+//    if (goog.isDefAndNotNull(dir)) {
+//      request = index.openCursor(keyRange, dir);
+//    } else if (goog.isDefAndNotNull(keyRange)) {
+//      request = index.openCursor(keyRange);
+//    } else {
+//      request = index.openCursor();
+//    }
+//  } else {
+//    if (goog.isDefAndNotNull(dir)) {
+//      request = obj_store.openCursor(keyRange, dir);
+//    } else if (goog.isDefAndNotNull(keyRange)) {
+//      request = obj_store.openCursor(keyRange);
+//      // some browser have problem with null, even though spec said OK.
+//    } else {
+//      request = obj_store.openCursor();
+//    }
+//  }
+//
+//  var idx = -1; // iteration index
+//  var results = [];
+//  var previousResult = goog.isFunction(q.initial) ? q.initial() : undefined;
+//
+//  request.onsuccess = function(event) {
+//
+//    if (ydn.db.core.req.IndexedDb.DEBUG) {
+//      window.console.log([q, idx, event]);
+//    }
+//    /**
+//     * @type {IDBCursor}
+//     */
+//    var cursor = /** @type {IDBCursor} */ (event.target.result);
+//    //console.log(cursor);
+//    if (cursor) {
+//
+//      var value = /** @type {!Object} */ (cursor['value']); // should not
+//      // necessary if externs are
+//
+//      var to_continue = !goog.isFunction(q.continued) || q.continued(value);
+//
+//      // do the filtering if requested.
+//      if (!goog.isFunction(q.filter) || q.filter(value)) {
+//        idx++;
+//
+//        if (goog.isFunction(q.map)) {
+//          value = q.map(value);
+//        }
+//
+//        if (is_reduce) {
+//          previousResult = q.reduce(previousResult, value, idx);
+//        } else {
+//          results.push(value);
+//        }
+//
+//      }
+//
+//      if (to_continue) {
+//        //cursor.continue();
+//        cursor['continue'](); // Note: Must be quoted to avoid parse error.
+//      }
+////      } else {
+////        var result = is_reduce ? previousResult : results;
+////        on_complete(result);
+////      }
+//    } else {
+//      var result = is_reduce ? previousResult : results;
+//      on_complete(result);
+//    }
+//  };
+//
+//  request.onError = function(event) {
+//    if (ydn.db.core.req.IndexedDb.DEBUG) {
+//      window.console.log([q, event]);
+//    }
+//    df.errback(event);
+//  };
+//
+//};
 
-  request.onError = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
-      window.console.log([q, event]);
-    }
-    df.errback(event);
-  };
 
-};
-
-
-/**
- *
- * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Sql} q query.
- */
-ydn.db.index.req.IndexedDb.prototype.fetchQuery = function(df, q) {
-
-  var cursor = q.toIdbQuery(this.schema);
-  this.fetchCursor(df, cursor);
-
-};
+///**
+// *
+// * @param {goog.async.Deferred} df deferred to feed result.
+// * @param {!ydn.db.Sql} q query.
+// */
+//ydn.db.index.req.IndexedDb.prototype.fetchQuery = function(df, q) {
+//
+//  var cursor = q.toIdbQuery(this.schema);
+//  this.fetchCursor(df, cursor);
+//
+//};
 
 
 
@@ -567,6 +576,7 @@ ydn.db.index.req.IndexedDb.prototype.scan = function(df, iterators,
 
 
 
+
 /**
  * Open an index. This will resume depending on the cursor state.
  * @param {!ydn.db.Iterator} iterator The cursor.
@@ -591,19 +601,7 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   /**
    * @type {IDBObjectStore}
    */
-  var obj_store;
-  try {
-    obj_store = this.tx.objectStore(store.name);
-  } catch (e) {
-    if (goog.DEBUG && e.name == 'NotFoundError') {
-      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
-        'store: ' + store.name + ' not in transaction.' :
-        'store: ' + store.name + ' not in database: ' + this.tx.db.name;
-      throw new ydn.db.NotFoundError(msg);
-    } else {
-      throw e; // InvalidStateError: we can't do anything about it ?
-    }
-  }
+  var obj_store = this.getTx().objectStore(store.name);
 
   var resume = iterator.has_done === false;
   if (resume) {
@@ -615,29 +613,8 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   iterator.has_done = undefined; // switching to working state.
 
   var index = null;
-  if (goog.isDefAndNotNull(iterator.index)) {
-    if (iterator.index != store.keyPath) {
-      try {
-        index = obj_store.index(iterator.index);
-      } catch (e) {
-
-        /**
-         * externs file fix.
-         * @type {DOMStringList}
-         */
-        var indexNames = /** @type {DOMStringList} */ (obj_store.indexNames);
-        if (goog.DEBUG && e.name == 'NotFoundError') {
-          var msg = indexNames.contains(iterator.index) ?
-            'index: ' + iterator.index + ' of ' + obj_store.name +
-              ' not in transaction scope' :
-            'index: ' + iterator.index + ' not found in store: ' +
-              obj_store.name;
-          throw new ydn.db.NotFoundError(msg);
-        } else {
-          throw e;
-        }
-      }
-    }
+  if (goog.isDefAndNotNull(iterator.index) && iterator.index != store.keyPath) {
+    index = obj_store.index(iterator.index);
   }
 
   var dir = /** @type {number} */ (iterator.direction); // new standard is string.

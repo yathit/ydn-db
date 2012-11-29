@@ -427,11 +427,11 @@ ydn.db.Iterator.prototype.filter_store_names_ = [];
  * Filter primary key. It is assumed that primary keys running from the filter
  * are ordered.
  * @param {string} index_name index name.
- * @param {ydn.db.KeyRange|*} key_range if not key range, a key is build
+ * @param {!ydn.db.KeyRange|!Array|number|string} key_range if not key range, a key is build
  * using ydn.db.KeyRange.only().
  * @param {string=} store_name store name if different from this iterator.
  */
-ydn.db.Iterator.prototype.filter = function(index_name, key_range, store_name) {
+ydn.db.Iterator.prototype.setFilter = function(index_name, key_range, store_name) {
   if (arguments.length > 3) {
     throw new ydn.error.ArgumentException('too many input arguments.');
   }
