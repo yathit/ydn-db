@@ -31,7 +31,7 @@ goog.require('ydn.error.ArgumentException');
 
 /**
  * Create an iterator object.
- * @param {string} store store name.
+ * @param {!string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange)=} keyRange
@@ -57,13 +57,11 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   /**
    * Store name.
    * @final
-   * @type {!string}
    */
   this.store_name = store;
   /**
    * Indexed field.
    * @final
-   * @type {string|undefined}
    */
   this.index = index;
 
@@ -149,13 +147,28 @@ ydn.db.Iterator.prototype.getDirection = function() {
 
 
 /**
- * private
+ * @type {!string}
+ * @private
+ */
+ydn.db.Iterator.prototype.store_name;
+
+
+
+/**
+ * @type {string|undefined}
+ * @private
+ */
+ydn.db.Iterator.prototype.index;
+
+
+/**
+ * @private
  */
 ydn.db.Iterator.prototype.store_key;
 
 
 /**
- * private
+ * @private
  */
 ydn.db.Iterator.prototype.index_key;
 
@@ -549,11 +562,7 @@ ydn.db.Iterator.prototype.iterate = function(executor) {
   }
   this.has_done = undefined; // switching to working state.
 
-  // keyRange is nullable but cannot be undefined.
-  var keyRange = this.key_range_ || null;
-
-
-  return executor.getCursor(this.store_name, this.index || null, keyRange,
-    this.direction, this.key_only_);
+  return executor.getCursor(this.store_name, this.index,
+    this.key_range_, this.direction, this.key_only_);
 };
 

@@ -106,8 +106,8 @@ ydn.db.sql.req.IterableQuery.prototype.finalize = null;
  * @override
  */
 ydn.db.sql.req.IterableQuery.prototype.toString = function() {
-  var idx = goog.isDef(this.index) ? ':' + this.index : '';
-  return 'Cursor:' + this.store_name + idx;
+  var idx = goog.isDef(this.getIndexName()) ? ':' + this.getIndexName() : '';
+  return 'Cursor:' + this.getStoreName() + idx;
 };
 
 

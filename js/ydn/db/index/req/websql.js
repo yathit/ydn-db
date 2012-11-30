@@ -190,7 +190,7 @@ ydn.db.index.req.WebSql.prototype.fetchCursor = function(df, q) {
   var me = this;
   var cursor = this.planQuery(q);
   var is_reduce = goog.isFunction(cursor.reduce);
-  var store = this.schema.getStore(cursor.store_name);
+  var store = this.schema.getStore(cursor.getStoreName());
 
   var result = is_reduce ? undefined : [];
 

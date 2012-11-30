@@ -116,7 +116,7 @@ ydn.db.index.req.IRequestExecutor.prototype.getKeysByIndexKeyRange =
 
 /**
  * @param {string} store_name the store name to open.
- * @param {?string} index_name index
+ * @param {string|undefined} index_name index
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.

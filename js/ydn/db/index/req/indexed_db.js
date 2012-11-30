@@ -367,7 +367,7 @@ ydn.db.index.req.IndexedDb.prototype.openQuery_ = function(iterator, mode) {
   var store = this.schema.getStore(iterator.getStoreName());
 
   /**
-   * @type {IDBObjectStore}
+   * @type {!IDBObjectStore}
    */
   var obj_store = this.getTx().objectStore(store.name);
 
@@ -404,7 +404,7 @@ ydn.db.index.req.IndexedDb.prototype.openQuery_ = function(iterator, mode) {
   var cur = null;
 
   var cursor = new ydn.db.index.req.IDBCursor(obj_store,
-    iterator.getStoreName(), iterator.getIndexName() || null,
+    iterator.getStoreName(), iterator.getIndexName(),
     keyRange, iterator.getDirection(), key_only);
 
 
@@ -610,7 +610,7 @@ ydn.db.index.req.IndexedDb.prototype.openQuery_ = function(iterator, mode) {
 ydn.db.index.req.IndexedDb.prototype.getCursor = function (store_name,
      index_name, keyRange, direction, key_only) {
   /**
-   * @type {IDBObjectStore}
+   * @type {!IDBObjectStore}
    */
   var obj_store = this.getTx().objectStore(store_name);
   return new ydn.db.index.req.IDBCursor(obj_store, store_name, index_name,

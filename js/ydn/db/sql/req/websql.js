@@ -67,14 +67,15 @@ ydn.db.sql.req.WebSql.prototype.planQuery = function(query) {
       ' not found.');
   }
 
-  var sql = new ydn.db.sql.req.SqlQuery(query.store_name, query.index,
+  var sql = new ydn.db.sql.req.SqlQuery(query.getStoreName(), query.getIndexName(),
     ydn.db.KeyRange.clone(query.keyRange()));
 
   var select = 'SELECT';
 
   var from = '* FROM ' + store.getQuotedName();
 
-  var index = goog.isDef(sql.index) ? store.getIndex(sql.index) : null;
+  var idx_name = sql.getIndexName();
+  var index = goog.isDef(idx_name) ? store.getIndex(idx_name) : null;
 
   var key_column = index ? index.getKeyPath() :
     goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
@@ -251,14 +252,15 @@ ydn.db.index.req.WebSql.prototype.planQuery = function(query) {
       ' not found.');
   }
 
-  var sql = new ydn.db.sql.req.SqlQuery(query.store_name, query.index,
+  var sql = new ydn.db.sql.req.SqlQuery(query.getStoreName(), query.getIndexName(),
     ydn.db.KeyRange.clone(query.keyRange()));
 
   var select = 'SELECT';
 
   var from = '* FROM ' + store.getQuotedName();
 
-  var index = goog.isDef(sql.index) ? store.getIndex(sql.index) : null;
+  var idx_name = sql.getIndexName();
+  var index = goog.isDef(idx_name) ? store.getIndex(idx_name) : null;
 
   var key_column = index ? index.getKeyPath() :
     goog.isDefAndNotNull(store.keyPath) ? store.keyPath :

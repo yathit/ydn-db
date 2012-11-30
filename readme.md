@@ -32,6 +32,7 @@ Use HTML files in the /test folder for getting started. These files are also use
 Note, we use master track version of closure tools. Compiling with pre-build jar
 may encounter compile error.
 
+
 # Testing #
 
 You should able to run /ydn-db/test/all-test.html and pass all tests. These test
@@ -55,7 +56,7 @@ All commit on master branch must pass most stringent setting compilation and all
 Few coding dialect we have as follow:
 
 * Preferred variable naming is `like_this` `notLikeThis`. For function name, `useLikeThis`.
-* Assume type (boolean, number, string) are not nullable. If nullable type is used,
+* Assume native types (boolean, number, string) are not nullable. If nullable type is used,
 it is different from `undefined`. Using `undefined` for missing value in native type
 is encourage over `null`.
 

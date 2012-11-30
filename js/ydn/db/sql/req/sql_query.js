@@ -78,7 +78,8 @@ ydn.db.sql.req.SqlQuery.prototype.toJSON = function() {
  */
 ydn.db.sql.req.SqlQuery.prototype.toWhereClause = function(keyPath) {
 
-  var index = goog.isDef(this.index) ? this.index :
+  var idx = this.getIndexName();
+  var index = goog.isDef(idx) ? idx :
       goog.isDefAndNotNull(keyPath) ? keyPath :
           ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   var column = goog.string.quote(index);
@@ -111,8 +112,8 @@ ydn.db.sql.req.SqlQuery.prototype.params = [];
  * @override
  */
 ydn.db.sql.req.SqlQuery.prototype.toString = function() {
-  var idx = goog.isDef(this.index) ? ':' + this.index : '';
-  return 'Cursor:' + this.store_name + idx;
+  var idx = goog.isDef(this.getIndexName()) ? ':' + this.getIndexName() : '';
+  return 'Cursor:' + this.getStoreName() + idx;
 };
 
 

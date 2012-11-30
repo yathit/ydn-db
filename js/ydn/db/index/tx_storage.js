@@ -377,9 +377,9 @@ ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
   if (!(iterator instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
   }
-  var store = this.schema.getStore(iterator.store_name);
+  var store = this.schema.getStore(iterator.getStoreName());
   if (!store) {
-    throw new ydn.error.ArgumentException('Store "' + iterator.store_name +
+    throw new ydn.error.ArgumentException('Store "' + iterator.getStoreName() +
       '" not found.');
   }
   var tr_mode = mode || ydn.db.base.TransactionMode.READ_ONLY;

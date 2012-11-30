@@ -11,15 +11,17 @@ goog.require('ydn.db.index.req.ICursor');
  * Open an index. This will resume depending on the cursor state.
  * @param {!IDBObjectStore} obj_store object store.
  * @param {string} store_name the store name to open.
- * @param {?string} index_name index
+ * @param {string|undefined} index_name index
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
+ * @param {*=} ini_key primary key to resume position.
+ * @param {*=} ini_index_key index key to resume position.
  * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
 ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRange,
-                                   direction, key_only) {
+                                   direction, key_only, ini_key, ini_index_key) {
 
   goog.asserts.assert(obj_store);
   this.obj_store = obj_store;
@@ -51,11 +53,10 @@ ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRang
 
   this.key_only = key_only;
 
-  this.seek_key_ = null;
-
-  this.open_request();
+  this.open_request(ini_key, ini_index_key);
 
 };
+
 
 /**
  * @protected
@@ -116,10 +117,11 @@ ydn.db.index.req.IDBCursor.prototype.key_only = true;
 
 
 /**
- * 
+ *
  * @type {Function}
  */
 ydn.db.index.req.IDBCursor.prototype.onError = null;
+
 
 /**
  *
@@ -130,9 +132,28 @@ ydn.db.index.req.IDBCursor.prototype.onNext = null;
 
 /**
  * Make cursor opening request.
+ *
+ * This will seek to given initial position if given. If only ini_key (primary
+ * key) is given, this will rewind, if not found.
+ *
+ * @param {*=} ini_key primary key to resume position.
+ * @param {*=} ini_index_key index key to resume position.
  * @private
  */
-ydn.db.index.req.IDBCursor.prototype.open_request = function() {
+ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_key) {
+
+
+  var key_range = this.key_range;
+  if (goog.isDefAndNotNull(ini_index_key)) {
+    var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.upper);
+    if (cmp == 1 || (cmp == 0 && !this.key_range.upperOpen)) {
+      this.onNext(); // out of range;
+      return;
+    }
+    key_range = ydn.db.IDBKeyRange.bound(ini_index_key,
+      this.key_range.upper, false, this.key_range.upperOpen);
+  }
+
   /**
    * @type {ydn.db.index.req.IDBCursor}
    */
@@ -141,9 +162,9 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function() {
   if (this.key_only) {
     if (this.index) {
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.index.openKeyCursor(this.key_range, this.dir);
-      } else if (goog.isDefAndNotNull(this.key_range)) {
-        request = this.index.openKeyCursor(this.key_range);
+        request = this.index.openKeyCursor(key_range, this.dir);
+      } else if (goog.isDefAndNotNull(key_range)) {
+        request = this.index.openKeyCursor(key_range);
       } else {
         request = this.index.openKeyCursor();
       }
@@ -154,9 +175,9 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function() {
       // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       // however, lazy serailization used at least in FF.
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.obj_store.openCursor(this.key_range, this.dir);
-      } else if (goog.isDefAndNotNull(this.key_range)) {
-        request = this.obj_store.openCursor(this.key_range);
+        request = this.obj_store.openCursor(key_range, this.dir);
+      } else if (goog.isDefAndNotNull(key_range)) {
+        request = this.obj_store.openCursor(key_range);
         // some browser have problem with null, even though spec said OK.
       } else {
         request = this.obj_store.openCursor();
@@ -166,17 +187,17 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function() {
   } else {
     if (this.index) {
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.index.openCursor(this.key_range, this.dir);
-      } else if (goog.isDefAndNotNull(this.key_range)) {
-        request = this.index.openCursor(this.key_range);
+        request = this.index.openCursor(key_range, this.dir);
+      } else if (goog.isDefAndNotNull(key_range)) {
+        request = this.index.openCursor(key_range);
       } else {
         request = this.index.openCursor();
       }
     } else {
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.obj_store.openCursor(this.key_range, this.dir);
-      } else if (goog.isDefAndNotNull(this.key_range)) {
-        request = this.obj_store.openCursor(this.key_range);
+        request = this.obj_store.openCursor(key_range, this.dir);
+      } else if (goog.isDefAndNotNull(key_range)) {
+        request = this.obj_store.openCursor(key_range);
         // some browser have problem with null, even though spec said OK.
       } else {
         request = this.obj_store.openCursor();
@@ -193,16 +214,26 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function() {
       me.cur = cur;
       var value = me.key_only ? cur.key : cur['value'];
 
-      if (this.seek_key_) {
-        var cmp = ydn.db.con.IndexedDb.indexedDb['cmp'](cur.primaryKey, me.seek_key_);
-        if (cmp == 0) {
-          me.seek_key_ = null; // we got there.
+      if (goog.isDefAndNotNull(ini_index_key)) {
+        var index_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cur.key, ini_index_key);
+        if (index_cmp != 0) {
+          // not in the range.
+          ini_key = null;
           me.onNext(cur.primaryKey, value);
-        } else if ((cmp == 1 && !me.reverse) || (cmp == -1 && me.reverse)) {
+          return;
+        }
+      }
+      if (goog.isDefAndNotNull(ini_key)) {
+        var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cur.primaryKey, ini_key);
+        if (primary_cmp == 0) {
+          ini_key = null; // we got there.
+          me.onNext(cur.primaryKey, value);
+        } else if ((primary_cmp == 1 && !me.reverse) || (primary_cmp == -1 && me.reverse)) {
+          // the key we are looking is not yet arrive.
           cur['continue']();
         } else {
           // the seeking primary key is not in the range.
-          me.seek_key_ = null; // we got there.
+          ini_key = null; // we got there.
           me.onNext(this.cur.primaryKey, value);
         }
       } else {
@@ -210,7 +241,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function() {
       }
 
     } else {
-      me.seek_key_ = null;
+      ini_key = null;
       me.cur = null;
       me.logger.finest('Iterator: ' + me.label + ' completed.');
       me.onNext(); // notify that cursor iteration is finished.
@@ -250,35 +281,73 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
   }
 };
 
+//
+///**
+// *
+// * @type {*}
+// * @private
+// */
+//ydn.db.index.req.IDBCursor.prototype.seek_key_ = null;
+
+
+
 
 /**
+ * Continue to next primary key position.
  *
- * @type {*}
- * @private
- */
-ydn.db.index.req.IDBCursor.prototype.seek_key_ = null;
-
-
-/**
- * Continue to next primary key position. This will continue to scan
+ *
+ * This will continue to scan
  * until the key is over the given primary key. If next_primary_key is
  * lower than current position, this will rewind.
- * @param next_primary_key
+ * @param {*} next_primary_key
+ * @param {*=} next_index_key
  */
-ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key) {
+ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key, next_index_key) {
+
 
   if (this.cur) {
-    var cmp = ydn.db.con.IndexedDb.indexedDb['cmp'](this.cur.primaryKey, next_primary_key);
-    if (cmp == 0) {
-      var value = this.key_only ? this.cur.key : this.cur['value'];
-      this.onNext(this.cur.primaryKey, value);
-    } else if ((cmp == 1 && !this.reverse) || (cmp == -1 && this.reverse)) {
-      this.seek_key_ = next_primary_key;
-      this.cur['continue']();
+    var value = this.key_only ? this.cur.key : this.cur['value'];
+    var index_cmp = goog.isDefAndNotNull(next_index_key) ?
+        ydn.db.con.IndexedDb.indexedDb.cmp(this.cur.key, next_index_key) : null;
+    var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(this.cur.primaryKey, next_primary_key);
+    var index_on_track = (index_cmp == 1 && !this.reverse) || (index_cmp == -1 && this.reverse);
+    var primary_on_track = (primary_cmp == 1 && !this.reverse) || (primary_cmp == -1 && this.reverse);
+
+    if (goog.isDefAndNotNull(next_index_key)) {
+      if (index_cmp === 0) {
+        if (primary_cmp === 0) {
+          throw new ydn.error.InternalError('cursor cannot seek to current position');
+        } else if (primary_on_track) {
+          this.cur['continue']();
+        } else {
+          // primary key not in the range
+          // this will restart the thread.
+          this.seek_key_ = null;
+          this.seek_index_key_ = null;
+          this.open_request(next_primary_key, next_index_key);
+        }
+      } else if (index_on_track) {
+        // just to index key position and continue
+        this.cur['continue'](next_index_key);
+      } else {
+        // this will restart the thread.
+        this.seek_key_ = null;
+        this.seek_index_key_ = null;
+        this.logger.finest('Iterator: ' + this.label + ' restarting for ' + next_primary_key);
+        this.open_request(next_primary_key, next_index_key);
+      }
     } else {
-      this.logger.finest('Iterator: ' + this.label + ' restarting for ' + next_primary_key);
-      this.seek_key_ = next_primary_key;
-      this.open_request();
+      if (primary_cmp === 0) {
+        throw new ydn.error.InternalError('cursor cannot seek to current position');
+      } else if (primary_on_track) {
+        this.cur['continue']();
+      } else {
+        // primary key not in the range
+        // this will restart the thread.
+        this.seek_key_ = null;
+        this.seek_index_key_ = null;
+        this.open_request(next_primary_key);
+      }
     }
   } else {
     throw new ydn.db.InternalError(this.label + ' cursor gone.');
