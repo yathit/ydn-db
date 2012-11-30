@@ -1,6 +1,6 @@
 # Overview #
 
-Beautiful API for secure robust high-performance large-scale web app.
+Beautiful database API for secure, robust, high-performance, maintainable, large-scale javascript web app.
 
 # Setup #
 
@@ -28,10 +28,13 @@ Run local apache (recommended) or a static server on that directory.
 
 Use HTML files in the /test folder for getting started. These files are also used debug development.
 
+Note, we use master track version of closure tools. Compiling with pre-build jar
+may encounter compile error.
+
 # Testing #
 
 You should able to run /ydn-db/test/all-test.html and pass all tests. These test
-file are for baisc testing and debuging.
+file are for basic testing and debugging.
 
 Coverage test is performed by [JsTestDriver](http://code.google.com/p/js-test-driver/)
 test. Notice that `ant gen-alltest-js` generate jsTestDriver.conf to prepare testing
@@ -40,6 +43,28 @@ configuration.
     java -jar JsTestDriver.jar --tests all
 
 Use [qunit test kits](http://dev.yathit.com/test/compatibility_test.html) for end-to-end testing.
+
+
+# Contributing #
+
+For interested contributor, email to one of the authors in the source code.
+We follow [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml).
+All commit on master branch must pass most stringent setting compilation and all unit tests.
+
+Few coding dialect we have as follow:
+
+* Preferred variable naming is like_this notLikeThis. For function name, useLikeThis.
+* Assume type (boolean, number, string) are not nullable. If nullable type is used,
+it is different from undefined. Using undefined for missing value in native type
+is encourage over null.
+
+# Bug report #
+
+Please [file an issue](https://bitbucket.org/ytkyaw/ydn-db/issues/new) for bug
+report describing how we could reproduce the problem. Any subtle problem,
+memory/speed performance issue and missing feature from stand point of IndexedDB
+API will be considered.
+
 
 # Documentation #
 

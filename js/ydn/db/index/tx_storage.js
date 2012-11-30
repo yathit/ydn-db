@@ -170,8 +170,6 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
     }
   }
 
-
-
   var me = this;
 
   this.exec(function(executor) {
@@ -370,26 +368,41 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
 
 /**
  *
- * @param {!ydn.db.Iterator} cursor the cursor.
+ * @param {!ydn.db.Iterator} iterator the cursor.
  * @param {Function} callback icursor handler.
  * @param {ydn.db.base.TransactionMode=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.TxStorage.prototype.open = function(cursor, callback, mode) {
-  if (!(cursor instanceof ydn.db.Iterator)) {
+ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
+  if (!(iterator instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
   }
-  var store = this.schema.getStore(cursor.store_name);
+  var store = this.schema.getStore(iterator.store_name);
   if (!store) {
-    throw new ydn.error.ArgumentException('Store "' + cursor.store_name +
+    throw new ydn.error.ArgumentException('Store "' + iterator.store_name +
       '" not found.');
   }
   var tr_mode = mode || ydn.db.base.TransactionMode.READ_ONLY;
 
   var df = ydn.db.base.createDeferred();
   this.exec(function(executor) {
-    executor.open(df, cursor, callback, /** @type {ydn.db.base.CursorMode} */ (tr_mode));
-  }, cursor.stores(), tr_mode, 'open');
+    // executor.open(df, cursor, callback, /** @type {ydn.db.base.CursorMode} */ (tr_mode));
+
+    var read_write = tr_mode == ydn.db.base.TransactionMode.READ_WRITE;
+
+    var cursor = iterator.iterate(executor);
+
+    cursor.onError = function(e) {
+      df.errback(e);
+    };
+    cursor.onNext = function (cur) {
+      var i_cursor = new ydn.db.IDBValueCursor(cur, [], !read_write);
+      var adv = callback(i_cursor);
+      i_cursor.dispose();
+      cursor.forward(adv);
+    };
+
+  }, iterator.stores(), tr_mode, 'open');
 
   return df;
 

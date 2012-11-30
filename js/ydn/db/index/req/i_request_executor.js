@@ -76,15 +76,15 @@ ydn.db.index.req.IRequestExecutor.prototype.listByIterator = goog.abstractMethod
 // */
 //ydn.db.index.req.IRequestExecutor.prototype.iterate = goog.abstractMethod;
 
-
-/**
- *
- * @param {!goog.async.Deferred} df on completed.
- * @param {!ydn.db.Iterator} cursor the cursor.
- * @param {Function} callback icursor handler.
- * @param {ydn.db.base.CursorMode?=} mode mode.
- */
-ydn.db.index.req.IRequestExecutor.prototype.open = goog.abstractMethod;
+//
+///**
+// *
+// * @param {!goog.async.Deferred} df on completed.
+// * @param {!ydn.db.Iterator} cursor the cursor.
+// * @param {Function} callback icursor handler.
+// * @param {ydn.db.base.CursorMode?=} mode mode.
+// */
+//ydn.db.index.req.IRequestExecutor.prototype.open = goog.abstractMethod;
 
 
 

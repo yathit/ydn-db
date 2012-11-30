@@ -231,7 +231,7 @@ ydn.db.index.req.IndexedDb.prototype.getTx = function() {
  */
 ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q) {
   var arr = [];
-  var req = this.openQuery(q, ydn.db.base.CursorMode.READ_ONLY);
+  var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
   req.onError = function(e) {
     df.errback(e);
   };
@@ -326,31 +326,31 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q) {
 //};
 //
 
-/**
- *
- * @param {!goog.async.Deferred} df on completed.
- * @param {!ydn.db.Iterator} cursor the cursor.
- * @param {Function} callback icursor handler.
- * @param {ydn.db.base.CursorMode?=} mode mode.
- */
-ydn.db.index.req.IndexedDb.prototype.open = function(df, cursor, callback, mode) {
-
-  var me = this;
-  mode = mode || ydn.db.base.CursorMode.READ_ONLY;
-
-
-  var req = this.openQuery(cursor, mode);
-  req.onError = function(e) {
-    df.errback(e);
-  };
-  req.onNext = function (cur) {
-    var i_cursor = new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
-    var adv = callback(i_cursor);
-    i_cursor.dispose();
-    req.forward(adv);
-  };
-
-};
+///**
+// *
+// * @param {!goog.async.Deferred} df on completed.
+// * @param {!ydn.db.Iterator} cursor the cursor.
+// * @param {Function} callback icursor handler.
+// * @param {ydn.db.base.CursorMode?=} mode mode.
+// */
+//ydn.db.index.req.IndexedDb.prototype.open = function(df, cursor, callback, mode) {
+//
+//  var me = this;
+//  mode = mode || ydn.db.base.CursorMode.READ_ONLY;
+//
+//
+//  var req = this.openQuery_(cursor, mode);
+//  req.onError = function(e) {
+//    df.errback(e);
+//  };
+//  req.onNext = function (cur) {
+//    var i_cursor = new ydn.db.IDBValueCursor(cur, [], mode == 'readonly');
+//    var adv = callback(i_cursor);
+//    i_cursor.dispose();
+//    req.forward(adv);
+//  };
+//
+//};
 
 
 
@@ -359,8 +359,9 @@ ydn.db.index.req.IndexedDb.prototype.open = function(df, cursor, callback, mode)
  * @param {!ydn.db.Iterator} iterator The cursor.
  * @param {ydn.db.base.CursorMode} mode mode.
  * @return {ydn.db.index.req.IDBCursor}
+ * @private
  */
-ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
+ydn.db.index.req.IndexedDb.prototype.openQuery_ = function(iterator, mode) {
 
   var me = this;
   var store = this.schema.getStore(iterator.getStoreName());
@@ -380,8 +381,17 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   iterator.has_done = undefined; // switching to working state.
 
   var index = null;
-  if (goog.isDefAndNotNull(iterator.index) && iterator.index != store.keyPath) {
-    index = obj_store.index(iterator.index);
+//  if (goog.isDefAndNotNull(iterator.index) && iterator.index != store.keyPath) {
+//    index = obj_store.index(iterator.index);
+//  }
+  var index_name = iterator.getIndexName();
+  if (goog.isDefAndNotNull(index_name)) {
+    if (obj_store.indexNames.contains(index_name)) {
+      this.index = obj_store.index(index_name);
+    } else if (obj_store.keyPath != index_name ) {
+      throw new ydn.db.InternalError('index "' + index_name + '" not found in ' +
+        obj_store.name);
+    }
   }
 
   var dir = /** @type {number} */ (iterator.direction); // new standard is string.

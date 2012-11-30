@@ -9,7 +9,7 @@ goog.require('ydn.db.index.req.ICursor');
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {IDBObjectStore} obj_store object store.
+ * @param {!IDBObjectStore} obj_store object store.
  * @param {string} store_name the store name to open.
  * @param {?string} index_name index
  * @param {IDBKeyRange} keyRange
@@ -21,7 +21,9 @@ goog.require('ydn.db.index.req.ICursor');
 ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRange,
                                    direction, key_only) {
 
- 
+  goog.asserts.assert(obj_store);
+  this.obj_store = obj_store;
+
   this.label = store_name + ':' + index_name;
 
   /**
@@ -131,6 +133,9 @@ ydn.db.index.req.IDBCursor.prototype.onNext = null;
  * @private
  */
 ydn.db.index.req.IDBCursor.prototype.open_request = function() {
+  /**
+   * @type {ydn.db.index.req.IDBCursor}
+   */
   var me = this;
   var request;
   if (this.key_only) {
@@ -186,19 +191,19 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function() {
     //console.log(['onsuccess', cur]);
     if (cur) {
       me.cur = cur;
-      var value = me.key_only ? this.cur.key : this.cur['value'];
+      var value = me.key_only ? cur.key : cur['value'];
 
       if (this.seek_key_) {
-        var cmp = ydn.db.con.IndexedDb.indexedDb['cmp'](this.cur.primaryKey, this.seek_key_);
+        var cmp = ydn.db.con.IndexedDb.indexedDb['cmp'](cur.primaryKey, me.seek_key_);
         if (cmp == 0) {
-          this.seek_key_ = null; // we got there.
-          this.onNext(this.cur.primaryKey, value);
-        } else if ((cmp == 1 && !this.reverse) || (cmp == -1 && this.reverse)) {
-          this.cur['continue']();
+          me.seek_key_ = null; // we got there.
+          me.onNext(cur.primaryKey, value);
+        } else if ((cmp == 1 && !me.reverse) || (cmp == -1 && me.reverse)) {
+          cur['continue']();
         } else {
           // the seeking primary key is not in the range.
-          this.seek_key_ = null; // we got there.
-          this.onNext(this.cur.primaryKey, value);
+          me.seek_key_ = null; // we got there.
+          me.onNext(this.cur.primaryKey, value);
         }
       } else {
         me.onNext(cur.primaryKey, value);

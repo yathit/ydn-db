@@ -75,10 +75,8 @@ var tearDown = function() {
 };
 
 
-var test_11_scan_key_single = function () {
+var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
 
-  var actual_keys = objs.map(function(x) {return x.id;});
-  var actual_index_keys = objs.map(function(x) {return x.value;});
 
   var done;
   var streaming_keys = [];
@@ -99,8 +97,6 @@ var test_11_scan_key_single = function () {
       },
       100, // interval
       1000); // maxTimeout
-
-  var q = new ydn.db.Iterator(store_name, 'value');
 
   var req = db.scan([q], function join_algo (key, index_key) {
 
@@ -123,6 +119,26 @@ var test_11_scan_key_single = function () {
 
 };
 
+
+
+var test_11_scan_key_single = function () {
+
+  var actual_keys = objs.map(function(x) {return x.id;});
+  var actual_index_keys = objs.map(function(x) {return x.value;});
+  var q = new ydn.db.Iterator(store_name, 'value');
+  scan_key_single_test(q, actual_keys, actual_index_keys);
+
+};
+
+
+var test_12_scan_key_single_reverse = function () {
+
+  var actual_keys = objs.map(function(x) {return x.id;});
+  var actual_index_keys = objs.map(function(x) {return x.value;});
+  var q = new ydn.db.Iterator(store_name, 'value', null, true);
+  scan_key_single_test(q, actual_keys.reverse(), actual_index_keys.reverse());
+
+};
 
 
 var test_21_scan_key_dual = function () {

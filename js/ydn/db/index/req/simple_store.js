@@ -56,10 +56,6 @@ ydn.db.index.req.SimpleStore.prototype.getKeysByIndexKeyRange = goog.abstractMet
  */
 ydn.db.index.req.SimpleStore.prototype.listByIterator = goog.abstractMethod;
 
-/**
- * @inheritDoc
- */
-ydn.db.index.req.SimpleStore.prototype.open = goog.abstractMethod;
 
 
 /**

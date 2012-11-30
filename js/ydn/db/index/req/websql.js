@@ -63,16 +63,16 @@ ydn.db.index.req.WebSql.prototype.logger =
  */
 ydn.db.index.req.WebSql.prototype.getByIterator = goog.abstractMethod;
 
-/**
- *
- * @inheritDoc
- */
-ydn.db.index.req.WebSql.prototype.open = function(df, cursor, next_callback, mode) {
-
-  var q = cursor instanceof ydn.db.sql.req.SqlQuery ? cursor :
-    this.planQuery(cursor);
-  this.openSqlQuery(df, q, next_callback, mode);
-};
+///**
+// *
+// * @inheritDoc
+// */
+//ydn.db.index.req.WebSql.prototype.open = function(df, cursor, next_callback, mode) {
+//
+//  var q = cursor instanceof ydn.db.sql.req.SqlQuery ? cursor :
+//    this.planQuery(cursor);
+//  this.openSqlQuery(df, q, next_callback, mode);
+//};
 
 //
 //
