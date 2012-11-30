@@ -25,6 +25,7 @@ goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.schema.Database');
 goog.require('ydn.error.ArgumentException');
+goog.require('ydn.db.sql.req.IdbQuery');
 goog.require('ydn.math.Expression');
 goog.require('ydn.string');
 
@@ -651,7 +652,7 @@ ydn.db.Sql.prototype.getStoreName = function() {
  * Parse SQL statement and convert to cursor object for IndexedDB execution.
  * @see #toSqlCursor
  * @param {ydn.db.schema.Database} schema schema.
- * @return {!ydn.db.req.IdbQuery} cursor.
+ * @return {!ydn.db.sql.req.IdbQuery} cursor.
  */
 ydn.db.Sql.prototype.toIdbQuery = function(schema) {
 
@@ -686,7 +687,7 @@ ydn.db.Sql.prototype.toIdbQuery = function(schema) {
     }
   }
 
-  var cursor = new ydn.db.req.IdbQuery(this.store_name, index, key_range);
+  var cursor = new ydn.db.sql.req.IdbQuery(this.store_name, index, key_range);
 
   // then, process where clauses
   for (var i = 0; i < this.wheres_.length; i++) {
@@ -792,7 +793,7 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
         ' not found.');
   }
 
-  var cursor = new ydn.db.req.SqlQuery(this.store_name);
+  var cursor = new ydn.db.sql.req.SqlQuery(this.store_name);
   var from = 'FROM ' + goog.string.quote(this.store_name);
 
   var select = '';
@@ -817,7 +818,7 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
       select += 'SELECT (' + fields.join(', ') + ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.req.SqlQuery.parseRowIdentity;
+      cursor.parseRow = ydn.db.sql.req.SqlQuery.parseRowIdentity;
       if (this.map_.type == ydn.db.Sql.MapType.SELECT &&
         goog.isString(this.map_.field)) {
         cursor.map = ydn.db.Sql.mapSelect(this.map_.field);
@@ -842,7 +843,7 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.req.SqlQuery.parseRowIdentity;
+      cursor.parseRow = ydn.db.sql.req.SqlQuery.parseRowIdentity;
       cursor.map = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else if (this.reduce_.type == ydn.db.Sql.AggregateType.SUM) {
@@ -856,7 +857,7 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.req.SqlQuery.parseRowIdentity;
+      cursor.parseRow = ydn.db.sql.req.SqlQuery.parseRowIdentity;
       cursor.map = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else if (this.reduce_.type == ydn.db.Sql.AggregateType.AVERAGE) {
@@ -870,7 +871,7 @@ ydn.db.Sql.prototype.toSqlQuery = function(schema) {
       select += ')';
       fields_selected = true;
       // parse row and then select the fields.
-      cursor.parseRow = ydn.db.req.SqlQuery.parseRowIdentity;
+      cursor.parseRow = ydn.db.sql.req.SqlQuery.parseRowIdentity;
       cursor.map = ydn.object.takeFirst;
       cursor.finalize = ydn.db.Sql.finalizeTakeFirst;
     } else {

@@ -20,8 +20,8 @@
  */
 
 
-goog.provide('ydn.db.req.IdbQuery');
-goog.require('ydn.db.req.IterableQuery');
+goog.provide('ydn.db.sql.req.IdbQuery');
+goog.require('ydn.db.sql.req.IterableQuery');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -43,22 +43,22 @@ goog.require('ydn.error.ArgumentException');
  * constructor parameters can be given.
  * @param {Function=} filter filter function.
  * @param {Function=} continued continued function.
- * @extends {ydn.db.req.IterableQuery}
+ * @extends {ydn.db.sql.req.IterableQuery}
  * @constructor
  */
-ydn.db.req.IdbQuery = function(store, index, keyRange, filter, continued) {
+ydn.db.sql.req.IdbQuery = function(store, index, keyRange, filter, continued) {
 
   goog.base(this, store, index, keyRange, filter, continued);
 
 
 };
-goog.inherits(ydn.db.req.IdbQuery, ydn.db.req.IterableQuery);
+goog.inherits(ydn.db.sql.req.IdbQuery, ydn.db.sql.req.IterableQuery);
 
 
 /**
  * @enum {string}
  */
-ydn.db.req.IdbQuery.Methods = {
+ydn.db.sql.req.IdbQuery.Methods = {
   OPEN: 'op',
   COUNT: 'cn'
 };
@@ -66,9 +66,9 @@ ydn.db.req.IdbQuery.Methods = {
 
 /**
  *
- * @type {ydn.db.req.IdbQuery.Methods}
+ * @type {ydn.db.sql.req.IdbQuery.Methods}
  */
-ydn.db.req.IdbQuery.prototype.method = ydn.db.req.IdbQuery.Methods.OPEN;
+ydn.db.sql.req.IdbQuery.prototype.method = ydn.db.sql.req.IdbQuery.Methods.OPEN;
 
 
 

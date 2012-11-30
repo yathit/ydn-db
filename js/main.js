@@ -4,7 +4,7 @@
  */
 
 goog.require('ydn.db.Storage');
-goog.require('ydn.db.sql');
+
 goog.require('ydn.db.TxStorage');
 goog.require('ydn.db.algo.NestedLoop');
 goog.require('ydn.db.algo.ZigzagMerge');
@@ -66,8 +66,7 @@ goog.exportProperty(ydn.db.Storage.prototype, 'map',
   ydn.db.Storage.prototype.map);
 goog.exportProperty(ydn.db.Storage.prototype, 'reduce',
   ydn.db.Storage.prototype.reduce);
-goog.exportProperty(ydn.db.Storage.prototype, 'execute',
-  ydn.db.Storage.prototype.execute);
+
 //goog.exportProperty(ydn.db.Storage.prototype, 'open',
 //    ydn.db.Storage.prototype.open);
 goog.exportProperty(ydn.db.Storage.prototype, 'setItem',
@@ -81,8 +80,7 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'map',
   ydn.db.TxStorage.prototype.map);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'reduce',
   ydn.db.TxStorage.prototype.reduce);
-goog.exportProperty(ydn.db.TxStorage.prototype, 'execute',
-  ydn.db.TxStorage.prototype.execute);
+
 //goog.exportProperty(ydn.db.TxStorage.prototype, 'open',
 //    ydn.db.TxStorage.prototype.open);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'setItem',

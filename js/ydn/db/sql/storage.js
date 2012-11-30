@@ -12,45 +12,61 @@
 
 
 /**
- * @fileoverview Provide SQL service.
+ * @fileoverview Provide iteration query.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.sql');
-goog.require('ydn.db.Sql');
+goog.provide('ydn.db.sql.Storage');
+goog.require('ydn.db.sql.TxStorage');
+goog.require('ydn.db.index.Storage');
+
+
+/**
+ * Construct storage providing atomic CRUD database operations on implemented
+ * storage mechanisms.
+ *
+ * This class do not execute database operation, but create a non-overlapping
+ * transaction queue on ydn.db.core.TxStorage and all operations are
+ * passed to it.
+ *
+ *
+ * @param {string=} opt_dbname database name.
+ * @param {(!ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database
+ * schema
+ * or its configuration in JSON format. If not provided, default empty schema
+ * is used.
+ * @param {!StorageOptions=} opt_options options.
+ * @extends {ydn.db.index.Storage}
+ * @implements {ydn.db.sql.IStorage}
+ * @constructor
+ */
+ydn.db.sql.Storage = function(opt_dbname, opt_schema, opt_options) {
+
+  goog.base(this, opt_dbname, opt_schema, opt_options);
+
+};
+goog.inherits(ydn.db.sql.Storage, ydn.db.index.Storage);
+
 
 
 
 /**
- * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
- * @return {!goog.async.Deferred} return result as list.
+ * @override
  */
-ydn.db.Storage.prototype.execute = function(q) {
-  return this.default_tx_queue_.execute(q);
+ydn.db.sql.Storage.prototype.newTxInstance = function(scope_name) {
+  return new ydn.db.sql.TxStorage(this, this.ptx_no++, scope_name,
+    this.schema);
 };
 
 
-
-/**
- * @param {!ydn.db.Iterator|!ydn.db.Sql} q query.
- * @return {!goog.async.Deferred} return result as list.
- */
-ydn.db.TxStorage.prototype.execute = function(q) {
-
-  var df = ydn.db.base.createDeferred();
-
-
-  if (q instanceof ydn.db.Sql) {
-    var sql = q;
-    this.exec(function(executor) {
-      executor.executeSql(df, sql);
-    }, sql.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'executeSql');
-
-  } else {
-    throw new ydn.error.ArgumentException();
-  }
-
-  return df;
-};
+//
+///**
+// * Explain query plan.
+// * @param {!ydn.db.Iterator} q
+// * @return {Object} plan in JSON
+// */
+//ydn.db.sql.Storage.prototype.explain = function(q) {
+//  return this.default_tx_queue_.explain(q);
+//};
 

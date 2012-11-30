@@ -20,8 +20,8 @@
  */
 
 
-goog.provide('ydn.db.req.SqlQuery');
-goog.require('ydn.db.req.IterableQuery');
+goog.provide('ydn.db.sql.req.SqlQuery');
+goog.require('ydn.db.sql.req.IterableQuery');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -43,25 +43,25 @@ goog.require('ydn.error.ArgumentException');
  * constructor parameters can be given.
  * @param {Function=} filter filter function.
  * @param {Function=} continued continued function.
- * @extends {ydn.db.req.IterableQuery}
+ * @extends {ydn.db.sql.req.IterableQuery}
  * @constructor
  */
-ydn.db.req.SqlQuery = function(store, index, keyRange, filter, continued) {
+ydn.db.sql.req.SqlQuery = function(store, index, keyRange, filter, continued) {
   // Note for V8 optimization, declare all properties in constructor.
   goog.base(this, store, index, keyRange, filter, continued);
 
-  this.parseRow = ydn.db.req.SqlQuery.prototype.parseRow;
+  this.parseRow = ydn.db.sql.req.SqlQuery.prototype.parseRow;
   this.sql = '';
   this.params = [];
 };
-goog.inherits(ydn.db.req.SqlQuery, ydn.db.req.IterableQuery);
+goog.inherits(ydn.db.sql.req.SqlQuery, ydn.db.sql.req.IterableQuery);
 
 
 
 /**
  * @inheritDoc
  */
-ydn.db.req.SqlQuery.prototype.toJSON = function() {
+ydn.db.sql.req.SqlQuery.prototype.toJSON = function() {
   var obj = goog.base(this, 'toJSON');
   obj['sql'] = this.sql;
   obj['params'] = ydn.object.clone(this.params);
@@ -76,7 +76,7 @@ ydn.db.req.SqlQuery.prototype.toJSON = function() {
  * keyRange
  * to SQL WHERE clause and its parameters.
  */
-ydn.db.req.SqlQuery.prototype.toWhereClause = function(keyPath) {
+ydn.db.sql.req.SqlQuery.prototype.toWhereClause = function(keyPath) {
 
   var index = goog.isDef(this.index) ? this.index :
       goog.isDefAndNotNull(keyPath) ? keyPath :
@@ -95,14 +95,14 @@ ydn.db.req.SqlQuery.prototype.toWhereClause = function(keyPath) {
  * SQL statement for executing.
  * @type {string} sql string.
  */
-ydn.db.req.SqlQuery.prototype.sql = '';
+ydn.db.sql.req.SqlQuery.prototype.sql = '';
 
 
 /**
  * SQL parameters for executing SQL.
  * @type {!Array.<string>} sql parameters.
  */
-ydn.db.req.SqlQuery.prototype.params = [];
+ydn.db.sql.req.SqlQuery.prototype.params = [];
 
 
 
@@ -110,7 +110,7 @@ ydn.db.req.SqlQuery.prototype.params = [];
 /**
  * @override
  */
-ydn.db.req.SqlQuery.prototype.toString = function() {
+ydn.db.sql.req.SqlQuery.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
   return 'Cursor:' + this.store_name + idx;
 };
@@ -124,7 +124,7 @@ ydn.db.req.SqlQuery.prototype.toString = function() {
  * @param {ydn.db.schema.Store} store store schema.
  * @return {!Object} parse value.
  */
-ydn.db.req.SqlQuery.prototype.parseRow = function(row, store) {
+ydn.db.sql.req.SqlQuery.prototype.parseRow = function(row, store) {
   return ydn.db.core.req.WebSql.parseRow(row, store);
 };
 
@@ -136,7 +136,7 @@ ydn.db.req.SqlQuery.prototype.parseRow = function(row, store) {
  * @param {ydn.db.schema.Store} store store schema.
  * @return {!Object} the first field of object in row value.
  */
-ydn.db.req.SqlQuery.parseRowIdentity = function(row, store) {
+ydn.db.sql.req.SqlQuery.parseRowIdentity = function(row, store) {
   return row;
 };
 
@@ -148,7 +148,7 @@ ydn.db.req.SqlQuery.parseRowIdentity = function(row, store) {
 // * @param {number|string} x
 // * @return {boolean}
 // */
-//ydn.db.req.SqlQuery.op_test = function(op, lv, x) {
+//ydn.db.sql.req.SqlQuery.op_test = function(op, lv, x) {
 //  if (op === '=' || op === '==') {
 //    return  x == lv;
 //  } else if (op === '===') {

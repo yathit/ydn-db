@@ -20,7 +20,7 @@
  */
 
 
-goog.provide('ydn.db.req.IterableQuery');
+goog.provide('ydn.db.sql.req.IterableQuery');
 goog.require('ydn.db.Iterator');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
@@ -46,7 +46,7 @@ goog.require('ydn.error.ArgumentException');
  * @extends {ydn.db.Iterator}
  * @constructor
  */
-ydn.db.req.IterableQuery = function(store, index, keyRange, filter, continued) {
+ydn.db.sql.req.IterableQuery = function(store, index, keyRange, filter, continued) {
 
   goog.base(this, store, index, keyRange);
 
@@ -60,14 +60,14 @@ ydn.db.req.IterableQuery = function(store, index, keyRange, filter, continued) {
   this.continued = continued || null;
 
 };
-goog.inherits(ydn.db.req.IterableQuery, ydn.db.Iterator);
+goog.inherits(ydn.db.sql.req.IterableQuery, ydn.db.Iterator);
 
 
 
 /**
  * @inheritDoc
  */
-ydn.db.req.IterableQuery.prototype.toJSON = function() {
+ydn.db.sql.req.IterableQuery.prototype.toJSON = function() {
   var obj = goog.base(this, 'toJSON');
   obj['initial'] = this.initial ? this.initial.toString() : null;
   obj['map'] = this.map ? this.map.toString() : null;
@@ -80,32 +80,32 @@ ydn.db.req.IterableQuery.prototype.toJSON = function() {
 /**
  * @type {?function(): *}
  */
-ydn.db.req.IterableQuery.prototype.initial = null;
+ydn.db.sql.req.IterableQuery.prototype.initial = null;
 
 
 /**
  * @type {?function(*): *}
  */
-ydn.db.req.IterableQuery.prototype.map = null;
+ydn.db.sql.req.IterableQuery.prototype.map = null;
 
 /**
  * Reduce is execute after map.
  * @type {?function(*, *, number): *}
  * function(previousValue, currentValue, index)
  */
-ydn.db.req.IterableQuery.prototype.reduce = null;
+ydn.db.sql.req.IterableQuery.prototype.reduce = null;
 
 
 /**
  * @type {?function(*): *}
  */
-ydn.db.req.IterableQuery.prototype.finalize = null;
+ydn.db.sql.req.IterableQuery.prototype.finalize = null;
 
 
 /**
  * @override
  */
-ydn.db.req.IterableQuery.prototype.toString = function() {
+ydn.db.sql.req.IterableQuery.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
   return 'Cursor:' + this.store_name + idx;
 };
@@ -115,7 +115,7 @@ ydn.db.req.IterableQuery.prototype.toString = function() {
  * Process where instruction into filter iteration method.
  * @param {!ydn.db.Where} where where.
  */
-ydn.db.req.IterableQuery.prototype.processWhereAsFilter = function(where) {
+ydn.db.sql.req.IterableQuery.prototype.processWhereAsFilter = function(where) {
 
   var prev_filter = goog.functions.TRUE;
   if (goog.isFunction(this.filter)) {

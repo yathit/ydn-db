@@ -7,7 +7,7 @@
 goog.provide('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.core.req.IRequestExecutor');
 goog.require('ydn.db.Streamer');
-goog.require('ydn.db.Sql');
+
 
 
 /**
@@ -26,21 +26,6 @@ ydn.db.index.req.IRequestExecutor = function() {};
 ydn.db.index.req.IRequestExecutor.prototype.getByIterator = goog.abstractMethod;
 
 
-/**
- * Explain plan.
- * @param {!ydn.db.Sql} sql  SQL object.
- * @return {Object} query plan in JSON.
- */
-ydn.db.index.req.IRequestExecutor.prototype.explainSql = goog.abstractMethod;
-
-
-
-/**
- * Explain plan.
- * @param {goog.async.Deferred} df deferred to feed result.
- * @param {!ydn.db.Sql} sql  SQL object.
- */
-ydn.db.index.req.IRequestExecutor.prototype.executeSql = goog.abstractMethod;
 
 
 
@@ -127,3 +112,15 @@ ydn.db.index.req.IRequestExecutor.prototype.getIndexKeysByKeys =
  */
 ydn.db.index.req.IRequestExecutor.prototype.getKeysByIndexKeyRange =
   goog.abstractMethod;
+
+
+/**
+ * @param {string} store_name the store name to open.
+ * @param {string} index_name index
+ * @param {string} keyPath
+ * @param {IDBKeyRange} keyRange
+ * @param {ydn.db.base.Direction} direction we are using old spec
+ * @param {boolean} key_only mode.
+ * @return {ydn.db.index.req.ICursor} cursor.
+ */
+ydn.db.index.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;

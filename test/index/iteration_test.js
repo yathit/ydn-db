@@ -21,8 +21,8 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
 
-    ydn.db.tr.Mutex.DEBUG = true;
-    ydn.db.core.req.IndexedDb.DEBUG = true;
+    //ydn.db.tr.Mutex.DEBUG = true;
+    //ydn.db.core.req.IndexedDb.DEBUG = true;
   }
 
   var indexSchema = new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT, false, true);

@@ -25,6 +25,7 @@ goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.base');
+goog.require('ydn.db.index.req.ICursor');
 goog.require('ydn.error.ArgumentException');
 
 
@@ -56,7 +57,7 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   /**
    * Store name.
    * @final
-   * @type {string}
+   * @type {!string}
    */
   this.store_name = store;
   /**
@@ -120,10 +121,9 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
 };
 
 
-
 /**
  *
- * @return {string} return store name.
+ * @return {!string} return store name.
  */
 ydn.db.Iterator.prototype.getStoreName = function() {
   return this.store_name;
@@ -136,6 +136,45 @@ ydn.db.Iterator.prototype.getStoreName = function() {
  */
 ydn.db.Iterator.prototype.getIndexName = function() {
   return this.index;
+};
+
+
+/**
+ *
+ * @return {ydn.db.base.Direction} return store name.
+ */
+ydn.db.Iterator.prototype.getDirection = function() {
+  return this.direction;
+};
+
+
+/**
+ * private
+ */
+ydn.db.Iterator.prototype.store_key;
+
+
+/**
+ * private
+ */
+ydn.db.Iterator.prototype.index_key;
+
+
+/**
+ *
+ * @return {*|undefined} return current primary key.
+ */
+ydn.db.Iterator.prototype.getPrimaryKey = function() {
+  return this.store_key;
+};
+
+
+/**
+ *
+ * @return {*|undefined} return current index key.
+ */
+ydn.db.Iterator.prototype.getIndexKey = function() {
+  return this.index_key;
 };
 
 
@@ -199,7 +238,7 @@ ydn.db.Iterator.prototype.toJSON = function() {
 
 /**
  * Cursor direction.
- * @type {(ydn.db.base.Direction|undefined)}
+ * @type {(ydn.db.base.Direction)}
  */
 ydn.db.Iterator.prototype.direction;
 
@@ -491,5 +530,15 @@ ydn.db.Iterator.prototype.getFilterStoreName = function(idx) {
  */
 ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
   return this.filter_key_ranges_[idx];
+};
+
+
+/**
+ *
+ * @param fac
+ * @return {ydn.db.index.req.ICursor}
+ */
+ydn.db.Iterator.prototype.iterate = function(fac) {
+
 };
 

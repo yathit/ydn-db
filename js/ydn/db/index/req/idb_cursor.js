@@ -3,29 +3,30 @@
  */
 
 
-goog.provide('ydn.db.index.req.Cursor');
+goog.provide('ydn.db.index.req.IDBCursor');
+goog.require('ydn.db.index.req.ICursor');
 
 
 /**
  * Open an index. This will resume depending on the cursor state.
+ * @param {IDBObjectStore} obj_store object store.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
- * @param {string|undefined} keyPath
+ * @param {string?} keyPath
  * @param {IDBKeyRange} keyRange
- * @param {string} direction we are using old spec
+ * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
+ * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
-ydn.db.index.req.Cursor = function(store_name, index_name, keyPath, keyRange,
+ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyPath, keyRange,
                                    direction, key_only) {
 
  
   this.label = store_name + ':' + index_name;
 
-  this.obj_store = this.getTx().objectStore(store_name);
-
   this.index = goog.isDefAndNotNull(index_name) && index_name != keyPath ? 
-    this.obj_store.index(index_name) : null;
+    obj_store.index(index_name) : null;
 
   this.cur = null;
   
@@ -36,7 +37,6 @@ ydn.db.index.req.Cursor = function(store_name, index_name, keyPath, keyRange,
 
   this.dir = /** @type {number} */ (direction); // new standard is string.
 
-
   this.key_only = key_only;
 
   this.seek_key_ = null;
@@ -45,12 +45,19 @@ ydn.db.index.req.Cursor = function(store_name, index_name, keyPath, keyRange,
 
 };
 
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.index.req.IDBCursor.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.index.req.IDBCursor');
+
 
 /**
  * @private
  * @type {string}
  */
-ydn.db.index.req.Cursor.prototype.label = '';
+ydn.db.index.req.IDBCursor.prototype.label = '';
 
 
 
@@ -58,62 +65,62 @@ ydn.db.index.req.Cursor.prototype.label = '';
  * @private
  * @type {IDBObjectStore}
  */
-ydn.db.index.req.Cursor.prototype.obj_store = null;
+ydn.db.index.req.IDBCursor.prototype.obj_store = null;
 
 
 /**
  * @private
  * @type {IDBIndex}
  */
-ydn.db.index.req.Cursor.prototype.index = null;
+ydn.db.index.req.IDBCursor.prototype.index = null;
 
 
 /**
  * @private
  * @type {IDBKeyRange}
  */
-ydn.db.index.req.Cursor.prototype.key_range = null;
+ydn.db.index.req.IDBCursor.prototype.key_range = null;
 
 
 /**
  * @private
  * @type {boolean}
  */
-ydn.db.index.req.Cursor.prototype.reverse = false;
+ydn.db.index.req.IDBCursor.prototype.reverse = false;
 
 
 /**
  * @private
  * @type {IDBCursor|IDBCursorWithValue}
  */
-ydn.db.index.req.Cursor.prototype.cur = null;
+ydn.db.index.req.IDBCursor.prototype.cur = null;
 
 
 /**
  * @private
  * @type {boolean}
  */
-ydn.db.index.req.Cursor.prototype.key_only = true;
+ydn.db.index.req.IDBCursor.prototype.key_only = true;
 
 
 /**
  * 
  * @type {Function}
  */
-ydn.db.index.req.Cursor.prototype.onError = null;
+ydn.db.index.req.IDBCursor.prototype.onError = null;
 
 /**
  *
  * @type {Function}
  */
-ydn.db.index.req.Cursor.prototype.onNext = null;
+ydn.db.index.req.IDBCursor.prototype.onNext = null;
 
 
 /**
  * Make cursor opening request.
  * @private
  */
-ydn.db.index.req.Cursor.prototype.open_request = function() {
+ydn.db.index.req.IDBCursor.prototype.open_request = function() {
   var me = this;
   var request;
   if (this.key_only) {
@@ -131,7 +138,7 @@ ydn.db.index.req.Cursor.prototype.open_request = function() {
       // IDB v1 spec do not have openKeyCursor, hopefully next version does
       // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       // however, lazy serailization used at least in FF.
-      if (goog.isDefAndNotNull(dir)) {
+      if (goog.isDefAndNotNull(this.dir)) {
         request = this.obj_store.openCursor(this.key_range, this.dir);
       } else if (goog.isDefAndNotNull(this.key_range)) {
         request = this.obj_store.openCursor(this.key_range);
@@ -144,7 +151,7 @@ ydn.db.index.req.Cursor.prototype.open_request = function() {
   } else {
     if (this.index) {
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.index.openCursor(keyRange, this.dir);
+        request = this.index.openCursor(this.key_range, this.dir);
       } else if (goog.isDefAndNotNull(this.key_range)) {
         request = this.index.openCursor(this.key_range);
       } else {
@@ -207,7 +214,7 @@ ydn.db.index.req.Cursor.prototype.open_request = function() {
  * Continue to next position.
  * @param {*} next_position next index key.
  */
-ydn.db.index.req.Cursor.prototype.forward = function (next_position) {
+ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
   //console.log(['next_position', cur, next_position]);
 
   if (next_position === false) {
@@ -234,7 +241,7 @@ ydn.db.index.req.Cursor.prototype.forward = function (next_position) {
  * @type {*}
  * @private
  */
-ydn.db.index.req.Cursor.prototype.seek_key_ = null;
+ydn.db.index.req.IDBCursor.prototype.seek_key_ = null;
 
 
 /**
@@ -243,12 +250,12 @@ ydn.db.index.req.Cursor.prototype.seek_key_ = null;
  * lower than current position, this will rewind.
  * @param next_primary_key
  */
-ydn.db.index.req.Cursor.prototype.seek = function(next_primary_key) {
+ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key) {
 
   if (this.cur) {
     var cmp = ydn.db.con.IndexedDb.indexedDb['cmp'](this.cur.primaryKey, next_primary_key);
     if (cmp == 0) {
-      var value = me.key_only ? this.cur.key : this.cur['value'];
+      var value = this.key_only ? this.cur.key : this.cur['value'];
       this.onNext(this.cur.primaryKey, value);
     } else if ((cmp == 1 && !this.reverse) || (cmp == -1 && this.reverse)) {
       this.seek_key_ = next_primary_key;

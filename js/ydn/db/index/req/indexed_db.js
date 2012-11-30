@@ -11,7 +11,7 @@ goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.algo.AbstractSolver');
 goog.require('ydn.db.IDBCursor');
 goog.require('ydn.db.IDBValueCursor');
-goog.require('ydn.db.req.IdbQuery');
+goog.require('ydn.db.index.req.IDBCursor');
 goog.require('ydn.error');
 goog.require('ydn.json');
 
@@ -61,31 +61,6 @@ ydn.db.index.req.IndexedDb.prototype.getTx = function() {
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.index.req.IndexedDb.prototype.executeSql = function(df, sql) {
-  throw new ydn.error.NotImplementedException();
-//  var cursor = sql.toIdbQuery(this.schema);
-//  var initial = goog.isFunction(cursor.initial) ? cursor.initial() : undefined;
-//  this.iterate(df, cursor, null, null,
-//    cursor.map, cursor.reduce, initial, cursor.finalize);
-//  return df;
-};
-
-
-
-/**
- * @inheritDoc
- */
-ydn.db.index.req.IndexedDb.prototype.explainSql = function(sql) {
-  var cursor = sql.toIdbQuery(this.schema);
-  var json = /** @type {Object} */ (cursor.toJSON());
-  json['map'] = cursor.map ? cursor.map.toString() : null;
-  json['reduce'] = cursor.reduce ? cursor.reduce.toString() : null;
-  json['initial'] = cursor.initial;
-  return json;
-};
 
 //
 //
@@ -575,6 +550,51 @@ ydn.db.index.req.IndexedDb.prototype.scan = function(df, iterators,
 };
 
 
+/**
+ * Open an index. This will resume depending on the cursor state.
+ * @param {!ydn.db.Iterator} iterator The cursor.
+ * @param {ydn.db.base.CursorMode} mode mode.
+ * @return {ydn.db.index.req.IDBCursor}
+ */
+ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
+
+  var me = this;
+  var store = this.schema.getStore(iterator.getStoreName());
+
+  /**
+   * @type {IDBObjectStore}
+   */
+  var obj_store = this.getTx().objectStore(store.name);
+
+  var resume = iterator.has_done === false;
+  if (resume) {
+    // continue the iteration
+    goog.asserts.assert(iterator.getPrimaryKey());
+  } else { // start a new iteration
+    iterator.counter = 0;
+  }
+  iterator.has_done = undefined; // switching to working state.
+
+  var index = null;
+  if (goog.isDefAndNotNull(iterator.index) && iterator.index != store.keyPath) {
+    index = obj_store.index(iterator.index);
+  }
+
+  var dir = /** @type {number} */ (iterator.direction); // new standard is string.
+
+  // keyRange is nullable but cannot be undefined.
+  var keyRange = goog.isDef(iterator.keyRange) ? iterator.keyRange() : null;
+
+  var key_only = mode === ydn.db.base.CursorMode.KEY_ONLY;
+
+  var cur = null;
+
+  var cursor = new ydn.db.index.req.IDBCursor(obj_store, iterator.getStoreName(), iterator.getIndexName(),
+    store.getKeyPath(), keyRange, iterator.getDirection(), key_only);
+
+
+  return cursor;
+};
 
 
 /**
@@ -587,7 +607,7 @@ ydn.db.index.req.IndexedDb.prototype.scan = function(df, iterators,
  *    forward: Function
  *    }}
  */
-ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
+ydn.db.index.req.IndexedDb.prototype.openQuery_old = function(iterator, mode) {
 
   var result = {
     onNext: null,
@@ -606,7 +626,7 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   var resume = iterator.has_done === false;
   if (resume) {
     // continue the iteration
-    goog.asserts.assert(iterator.store_key);
+    goog.asserts.assert(iterator.getPrimaryKey());
   } else { // start a new iteration
     iterator.counter = 0;
   }
@@ -689,7 +709,7 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
           if (cur.key != iterator.key) {
             if (cue) {
               me.logger.warning('Resume corrupt on ' + iterator.store_name + ':' +
-                iterator.store_key + ':' + iterator.index_key);
+                iterator.getPrimaryKey() + ':' + iterator.getIndexKey());
               result.onError(new ydn.db.InvalidStateError());
               return;
             }
@@ -697,7 +717,7 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
             cur['continue'](iterator.key);
             return;
           } else {
-            if (cur.primaryKey == iterator.index_key) {
+            if (cur.getPrimaryKey == iterator.getIndexKey()) {
               resume = false; // got it
             }
             // we still need to skip the current position.
@@ -766,4 +786,18 @@ ydn.db.index.req.IndexedDb.prototype.openQuery = function(iterator, mode) {
   };
 
   return result;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.IndexedDb.prototype.getCursor = function(store_name,
+     index_name, keyPath, keyRange, direction, key_only) {
+  /**
+   * @type {IDBObjectStore}
+   */
+  var obj_store = this.getTx().objectStore(store_name);
+   return new ydn.db.index.req.IDBCursor(obj_store, store_name, index_name,
+     keyPath, keyRange, direction, key_only)
 };

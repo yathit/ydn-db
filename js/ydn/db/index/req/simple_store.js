@@ -40,16 +40,6 @@ goog.inherits(ydn.db.index.req.SimpleStore, ydn.db.core.req.SimpleStore);
 ydn.db.index.req.SimpleStore.prototype.getByIterator = goog.abstractMethod;
 
 
-/**
- * @inheritDoc
- */
-ydn.db.index.req.SimpleStore.prototype.executeSql = goog.abstractMethod;
-
-
-/**
- * @inheritDoc
- */
-ydn.db.index.req.SimpleStore.prototype.explainSql = goog.abstractMethod;
 
 /**
  * @inheritDoc
@@ -75,3 +65,8 @@ ydn.db.index.req.SimpleStore.prototype.open = goog.abstractMethod;
  * @inheritDoc
  */
 ydn.db.index.req.SimpleStore.prototype.scan = goog.abstractMethod;
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.getCursor = goog.abstractMethod;
