@@ -1,6 +1,6 @@
 # Overview #
 
-Beautiful database API for secure, robust, high-performance, maintainable, large-scale javascript web app.
+Beautiful database API for secure `>` robust `>` high-performance `>` maintainable large-scale javascript web app.
 
 # Setup #
 
@@ -53,10 +53,10 @@ All commit on master branch must pass most stringent setting compilation and all
 
 Few coding dialect we have as follow:
 
-* Preferred variable naming is like_this notLikeThis. For function name, useLikeThis.
+* Preferred variable naming is `like_this` `notLikeThis`. For function name, `useLikeThis`.
 * Assume type (boolean, number, string) are not nullable. If nullable type is used,
-it is different from undefined. Using undefined for missing value in native type
-is encourage over null.
+it is different from `undefined`. Using `undefined` for missing value in native type
+is encourage over `null`.
 
 # Bug report #
 
