@@ -1,6 +1,7 @@
 # Overview #
 
-Beautiful database API for secure `>` robust `>` high-performance `>` maintainable large-scale javascript web app.
+Beautiful database API for `(` secure `>` robust `>` high-performance `>` maintainable `)`
+large-scale javascript web app.
 
 # Setup #
 
