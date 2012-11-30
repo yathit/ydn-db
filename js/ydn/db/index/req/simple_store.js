@@ -61,12 +61,14 @@ ydn.db.index.req.SimpleStore.prototype.listByIterator = goog.abstractMethod;
  */
 ydn.db.index.req.SimpleStore.prototype.open = goog.abstractMethod;
 
-/**
- * @inheritDoc
- */
-ydn.db.index.req.SimpleStore.prototype.scan = goog.abstractMethod;
 
 /**
  * @inheritDoc
  */
 ydn.db.index.req.SimpleStore.prototype.getCursor = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.SimpleStore.prototype.getStreamer = goog.abstractMethod;

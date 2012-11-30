@@ -535,10 +535,25 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
 
 /**
  *
- * @param fac
+ * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.ICursor}
  */
-ydn.db.Iterator.prototype.iterate = function(fac) {
+ydn.db.Iterator.prototype.iterate = function(executor) {
 
+  var resume = this.has_done === false;
+  if (resume) {
+    // continue the iteration
+    goog.asserts.assert(this.store_key);
+  } else { // start a new iteration
+    this.counter = 0;
+  }
+  this.has_done = undefined; // switching to working state.
+
+  // keyRange is nullable but cannot be undefined.
+  var keyRange = this.key_range_ || null;
+
+
+  return executor.getCursor(this.store_name, this.index || null, keyRange,
+    this.direction, this.key_only_);
 };
 

@@ -11,22 +11,32 @@ goog.require('ydn.db.index.req.ICursor');
  * Open an index. This will resume depending on the cursor state.
  * @param {IDBObjectStore} obj_store object store.
  * @param {string} store_name the store name to open.
- * @param {string|undefined} index_name index
- * @param {string?} keyPath
+ * @param {?string} index_name index
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
  * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
-ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyPath, keyRange,
+ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRange,
                                    direction, key_only) {
 
  
   this.label = store_name + ':' + index_name;
 
-  this.index = goog.isDefAndNotNull(index_name) && index_name != keyPath ? 
-    obj_store.index(index_name) : null;
+  /**
+   *
+   * @type {?IDBIndex}
+   */
+  this.index = null;
+  if (goog.isDefAndNotNull(index_name)) {
+    if (obj_store.indexNames.contains(index_name)) {
+      this.index = obj_store.index(index_name);
+    } else if (obj_store.keyPath != index_name ) {
+      throw new ydn.db.InternalError('index "' + index_name + '" not found in ' +
+          obj_store.name);
+    }
+  }
 
   this.cur = null;
   

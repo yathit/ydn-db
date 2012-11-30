@@ -287,12 +287,14 @@ ydn.db.index.req.WebSql.prototype.getIndexKeysByKeys = goog.abstractMethod;
  */
 ydn.db.index.req.WebSql.prototype.getKeysByIndexKeyRange = goog.abstractMethod;
 
-/**
- * @inheritDoc
- */
-ydn.db.index.req.WebSql.prototype.scan = goog.abstractMethod;
 
 /**
  * @inheritDoc
  */
 ydn.db.index.req.WebSql.prototype.getCursor = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebSql.prototype.getStreamer = goog.abstractMethod;

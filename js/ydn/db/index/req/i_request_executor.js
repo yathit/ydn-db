@@ -53,15 +53,15 @@ ydn.db.index.req.IRequestExecutor.prototype.listByIterator = goog.abstractMethod
 //ydn.db.index.req.IRequestExecutor.prototype.fetchCursor = goog.abstractMethod;
 
 
-/**
- * Cursor scan iteration.
- * @param {!goog.async.Deferred} df promise on completed.
- * @param {!Array.<!ydn.db.Iterator>} queries the cursor.
- * @param {!Array.<!ydn.db.Streamer>} passthrough_streamers streamers.
- * @param {!ydn.db.algo.AbstractSolver|
-  * function(!Array, !Array): !Array} solver solver.
- */
-ydn.db.index.req.IRequestExecutor.prototype.scan = goog.abstractMethod;
+///**
+// * Cursor scan iteration.
+// * @param {!goog.async.Deferred} df promise on completed.
+// * @param {!Array.<!ydn.db.Iterator>} queries the cursor.
+// * @param {!Array.<!ydn.db.Streamer>} passthrough_streamers streamers.
+// * @param {!ydn.db.algo.AbstractSolver|
+//  * function(!Array, !Array): !Array} solver solver.
+// */
+//ydn.db.index.req.IRequestExecutor.prototype.scan = goog.abstractMethod;
 
 //
 ///**
@@ -116,11 +116,19 @@ ydn.db.index.req.IRequestExecutor.prototype.getKeysByIndexKeyRange =
 
 /**
  * @param {string} store_name the store name to open.
- * @param {string} index_name index
- * @param {string} keyPath
+ * @param {?string} index_name index
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
- * @return {ydn.db.index.req.ICursor} cursor.
+ * @return {!ydn.db.index.req.ICursor} cursor.
  */
 ydn.db.index.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
+
+/**
+ *
+ * @param {string} store_name
+ * @param {?string=} index_name
+ * @param {?string=} foreign_index_name
+ * @return {!ydn.db.Streamer}
+ */
+ydn.db.index.req.IRequestExecutor.prototype.getStreamer = goog.abstractMethod;

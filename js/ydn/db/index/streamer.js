@@ -16,10 +16,10 @@ goog.require('ydn.db.Iterator');
  *
  * @param {ydn.db.con.IStorage|IDBTransaction} storage storage connector.
  * @param {string} store_name store name.
- * @param {string?=} index_name index name. If given output is not cursor value,
+ * @param {?string=} index_name index name. If given output is not cursor value,
  * but index value.
  * fetched.
- * @param {string=} foreign_index_name foreign index name.
+ * @param {?string=} foreign_index_name foreign index name.
  * @constructor
  */
 ydn.db.Streamer = function(storage, store_name, index_name,
@@ -41,7 +41,7 @@ ydn.db.Streamer = function(storage, store_name, index_name,
 
   this.cursor_ = null;
   this.key_only_ = goog.isString(index_name);
-  this.foreign_key_index_name_ = foreign_index_name;
+  this.foreign_key_index_name_ = foreign_index_name || undefined;
   this.stack_value_ = [];
   this.stack_key_ = [];
   this.is_collecting_ = false;
