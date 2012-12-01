@@ -340,7 +340,7 @@ var test_52_where_indexed_gt = function () {
 
   var q = new ydn.db.Sql().from(store_name);
   var value = 10;
-  var result = objs.filter(function(x) {
+  var result = objs.filter_fn(function(x) {
     return x.id > value;
   });
   q.where('id', '>', value);
@@ -351,7 +351,7 @@ var test_53_where_indexed_gt_eq = function () {
 
   var q = new ydn.db.Sql().from(store_name);
   var value = 10;
-  var result = objs.filter(function(x) {
+  var result = objs.filter_fn(function(x) {
     return x.id >= value;
   });
   q.where('id', '>=', value);
@@ -362,7 +362,7 @@ var test_54_where_indexed_lt = function () {
 
   var q = new ydn.db.Sql().from(store_name);
   var value = 10;
-  var result = objs.filter(function(x) {
+  var result = objs.filter_fn(function(x) {
     return x.id < value;
   });
   q.where('id', '<', value);
@@ -373,7 +373,7 @@ var test_55_where_indexed_eq = function () {
 
   var q = new ydn.db.Sql().from(store_name);
   var value = 10;
-  var result = objs.filter(function(x) {
+  var result = objs.filter_fn(function(x) {
     return x.id == value;
   });
   q.where('id', '=', value);
@@ -385,7 +385,7 @@ var test_56_where_indexed_gt_lt = function () {
   var q = new ydn.db.Sql().from(store_name);
   var lower = 1;
   var upper = 10;
-  var result = objs.filter(function(x) {
+  var result = objs.filter_fn(function(x) {
     return x.id >= lower && x.id <= upper;
   });
   q.where('id', '>=', lower, '<=', upper);
@@ -396,7 +396,7 @@ var test_57_where_indexed_eq = function () {
 
   var q = new ydn.db.Sql().from(store_name);
   var value = 10;
-  var result = objs.filter(function(x) {
+  var result = objs.filter_fn(function(x) {
     return x.id >= value && x.id <= value;
   });
   q.where('id', '>=', value, '<=', value);
@@ -407,7 +407,7 @@ var test_61_where_eq = function () {
 
   var q = new ydn.db.Sql().from(store_name);
   var idx = 2;
-  var arr = objs.filter(function(x) {
+  var arr = objs.filter_fn(function(x) {
     return x.type == objs[idx].type;
   });
   q.where('type', '=', objs[idx].type);

@@ -401,12 +401,9 @@ ydn.db.index.req.IndexedDb.prototype.openQuery_ = function(iterator, mode) {
 
   var key_only = mode === ydn.db.base.CursorMode.KEY_ONLY;
 
-  var cur = null;
-
   var cursor = new ydn.db.index.req.IDBCursor(obj_store,
     iterator.getStoreName(), iterator.getIndexName(),
     keyRange, iterator.getDirection(), key_only);
-
 
   return cursor;
 };
@@ -608,13 +605,13 @@ ydn.db.index.req.IndexedDb.prototype.openQuery_ = function(iterator, mode) {
  * @inheritDoc
  */
 ydn.db.index.req.IndexedDb.prototype.getCursor = function (store_name,
-     index_name, keyRange, direction, key_only) {
+     index_name, keyRange, direction, key_only, ini_key, ini_index_key) {
   /**
    * @type {!IDBObjectStore}
    */
   var obj_store = this.getTx().objectStore(store_name);
   return new ydn.db.index.req.IDBCursor(obj_store, store_name, index_name,
-    keyRange, direction, key_only);
+    keyRange, direction, key_only, ini_key, ini_index_key);
 };
 
 

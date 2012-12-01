@@ -56,7 +56,7 @@ ydn.db.sql.req.IterableQuery = function(store, index, keyRange, filter, continue
   this.reduce = null;
   this.finalize = null;
 
-  this.filter = filter || null;
+  this.filter_fn = filter || null;
   this.continued = continued || null;
 
 };
@@ -118,11 +118,11 @@ ydn.db.sql.req.IterableQuery.prototype.toString = function() {
 ydn.db.sql.req.IterableQuery.prototype.processWhereAsFilter = function(where) {
 
   var prev_filter = goog.functions.TRUE;
-  if (goog.isFunction(this.filter)) {
-    prev_filter = this.filter;
+  if (goog.isFunction(this.filter_fn)) {
+    prev_filter = this.filter_fn;
   }
 
-  this.filter = function(obj) {
+  this.filter_fn = function(obj) {
     var value = obj[where.field];
     var ok1 = true;
     if (goog.isDef(where.lower)) {

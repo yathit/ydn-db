@@ -401,6 +401,82 @@ var test_51_reduce = function() {
 };
 
 
+
+var test_61_scan_cursor_resume = function() {
+
+  var done;
+  var values = [];
+  var actual_values = [0, 1, 2, 3];
+  var q = new ydn.db.Iterator(store_name, 'value');
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+        assertArrayEquals('first half values', actual_values, values);
+        console.log('first half passed');
+
+        done = false;
+        values = [];
+        actual_values = [4, 5, 6];
+
+        waitForCondition(
+            // Condition
+            function () {
+              return done;
+            },
+            // Continuation
+            function () {
+              assertArrayEquals('second half values', actual_values, values);
+
+              reachedFinalContinuation = true;
+            },
+            100, // interval
+            1000); // maxTimeout
+
+        // pick up where letf off.
+        var req = db.scan([q], function (keys, v) {
+          if (goog.isDef(keys[0])) {
+            values.push(v[0]);
+            return [true];
+          } else {
+            return [];
+          }
+        });
+        req.addCallback(function (result) {
+          done = true;
+        });
+        req.addErrback(function (e) {
+          console.log(e);
+          done = true;
+        });
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var req = db.scan([q], function (keys, v) {
+    //console.log([keys, v]);
+    if (goog.isDef(keys[0])) {
+      values.push(v[0]);
+      // scan until value is 3.
+      return [v[0] < 3 ? true : undefined];
+    } else {
+      return [];
+    }
+  });
+  req.addCallback(function () {
+    done = true;
+  });
+  req.addErrback(function (e) {
+    console.log(e);
+    done = true;
+  });
+};
+
+
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();
 G_testRunner.initialize(testCase);

@@ -191,7 +191,7 @@ ydn.db.index.req.WebSql.prototype.openSqlQuery = function(df, cursor, next_callb
         var to_continue = !goog.isFunction(cursor.continued) ||
           cursor.continued(value);
 
-        if (!goog.isFunction(cursor.filter) || cursor.filter(value)) {
+        if (!goog.isFunction(cursor.filter_fn) || cursor.filter_fn(value)) {
           var peerKeys = [];
           var peerIndexKeys = [];
           var peerValues = [];

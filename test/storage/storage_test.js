@@ -69,8 +69,7 @@ var test_0_json_config_empty_table = function() {
   var store = {name:'todo', keyPath:"timeStamp"};
 
   var schema_ver1 = {
-    version: 2,
-    Stores:[store]
+    stores:[store]
   };
 
   var db = new ydn.db.Storage('todos_test_2', schema_ver1);
@@ -88,9 +87,9 @@ var test_0_json_config_empty_table = function() {
         reachedFinalContinuation = true;
       },
       100, // interval
-      2000); // maxTimeout
+      1000); // maxTimeout
 
-  db.get('todo').addCallback(function(value) {
+  db.list('todo').addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -137,7 +136,7 @@ var test_1_json_config = function() {
 
   var schema_ver1 = {
     version: 2,
-    Stores:[store]
+    stores:[store]
   };
 
   var db = new ydn.db.Storage('todos_test_3', schema_ver1);

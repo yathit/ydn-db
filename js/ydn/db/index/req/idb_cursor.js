@@ -127,6 +127,13 @@ ydn.db.index.req.IDBCursor.prototype.onError = null;
  *
  * @type {Function}
  */
+ydn.db.index.req.IDBCursor.prototype.onSuccess = null;
+
+
+/**
+ *
+ * @type {Function}
+ */
 ydn.db.index.req.IDBCursor.prototype.onNext = null;
 
 
@@ -142,9 +149,9 @@ ydn.db.index.req.IDBCursor.prototype.onNext = null;
  */
 ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_key) {
 
-
   var key_range = this.key_range;
   if (goog.isDefAndNotNull(ini_index_key)) {
+    if (goog.isDefAndNotNull(this.key_range)) {
     var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.upper);
     if (cmp == 1 || (cmp == 0 && !this.key_range.upperOpen)) {
       this.onNext(); // out of range;
@@ -152,6 +159,9 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
     }
     key_range = ydn.db.IDBKeyRange.bound(ini_index_key,
       this.key_range.upper, false, this.key_range.upperOpen);
+    } else {
+      key_range = ydn.db.IDBKeyRange.lowerBound(ini_index_key);
+    }
   }
 
   /**
@@ -211,6 +221,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
     var cur = (event.target.result);
     //console.log(['onsuccess', cur ? cur.key : undefined, cur ? cur.primaryKey : undefined, ini_key, ini_index_key]);
     if (cur) {
+      me.onSuccess(cur.primaryKey, cur.key);
       me.cur = cur;
       //var value = me.key_only ? cur.key : cur['value'];
 
@@ -229,7 +240,8 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
         var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cur.primaryKey, ini_key);
         if (primary_cmp == 0) {
           ini_key = null; // we got there.
-          me.onNext(cur.key, cur.primaryKey, cur.value);
+          // me.onNext(cur.key, cur.primaryKey, cur.value);
+          cur['continue'](); // resume point is exclusive
         } else if ((primary_cmp == 1 && !me.reverse) || (primary_cmp == -1 && me.reverse)) {
           // the key we are looking is not yet arrive.
           cur['continue']();
@@ -243,6 +255,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
       }
 
     } else {
+      me.onSuccess();
       ini_key = null;
       me.cur = null;
       me.logger.finest('Iterator: ' + me.label + ' completed.');
@@ -309,13 +322,12 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key, next_inde
 
   if (this.cur) {
     var value = this.key_only ? this.cur.key : this.cur['value'];
-    var index_cmp = goog.isDefAndNotNull(next_index_key) ?
-        ydn.db.con.IndexedDb.indexedDb.cmp(this.cur.key, next_index_key) : null;
     var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(this.cur.primaryKey, next_primary_key);
-    var index_on_track = (index_cmp == 1 && !this.reverse) || (index_cmp == -1 && this.reverse);
     var primary_on_track = (primary_cmp == 1 && !this.reverse) || (primary_cmp == -1 && this.reverse);
 
     if (goog.isDefAndNotNull(next_index_key)) {
+      var index_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(this.cur.key, next_index_key);
+      var index_on_track = (index_cmp == 1 && !this.reverse) || (index_cmp == -1 && this.reverse);
       if (index_cmp === 0) {
         if (primary_cmp === 0) {
           throw new ydn.error.InternalError('cursor cannot seek to current position');

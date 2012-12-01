@@ -218,7 +218,7 @@ ydn.db.index.req.WebSql.prototype.fetchCursor = function(df, q) {
       }
       var to_continue = !goog.isFunction(cursor.continued) ||
         cursor.continued(value);
-      if (!goog.isFunction(cursor.filter) || cursor.filter(value)) {
+      if (!goog.isFunction(cursor.filter_fn) || cursor.filter_fn(value)) {
         idx++;
 
           if (goog.isFunction(cursor.map)) {

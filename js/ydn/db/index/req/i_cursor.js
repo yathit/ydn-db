@@ -30,6 +30,14 @@ ydn.db.index.req.ICursor.prototype.onNext = goog.abstractMethod;
  */
 ydn.db.index.req.ICursor.prototype.onError = goog.abstractMethod;
 
+/**
+ * Callback for cursor onsuccess event.
+ *
+ * @param {*} key
+ * @param {*} primary_key
+ */
+ydn.db.index.req.ICursor.prototype.onSuccess = goog.abstractMethod;
+
 
 /**
  * Move cursor to next position.

@@ -499,6 +499,7 @@ ydn.db.Iterator.prototype.isUnique = function() {
  */
 ydn.db.Iterator.prototype.filter_index_names_ = [];
 
+
 /**
  *
  * @type {!Array.<!IDBKeyRange>}
@@ -518,12 +519,12 @@ ydn.db.Iterator.prototype.filter_store_names_ = [];
 /**
  * Filter primary key. It is assumed that primary keys running from the filter
  * are ordered.
- * @param {string} index_name index name.
+ * @param {string} index_name field name to filter.
  * @param {!ydn.db.KeyRange|!Array|number|string} key_range if not key range, a key is build
  * using ydn.db.KeyRange.only().
  * @param {string=} store_name store name if different from this iterator.
  */
-ydn.db.Iterator.prototype.setFilter = function(index_name, key_range, store_name) {
+ydn.db.Iterator.prototype.filter = function(index_name, key_range, store_name) {
   if (arguments.length > 3) {
     throw new ydn.error.ArgumentException('too many input arguments.');
   }
@@ -535,7 +536,7 @@ ydn.db.Iterator.prototype.setFilter = function(index_name, key_range, store_name
   if (key_range instanceof ydn.db.KeyRange) {
     kr = ydn.db.KeyRange.parseIDBKeyRange(key_range);
   } else if (goog.isDef(key_range)) {
-    kr = ydn.db.KeyRange.only(key_range);
+    kr = ydn.db.IDBKeyRange.only(key_range);
   } else {
     throw new ydn.error.ArgumentException('key range');
   }
@@ -593,16 +594,32 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
  */
 ydn.db.Iterator.prototype.iterate = function(executor) {
 
+  var ini_key, ini_index_key;
   var resume = this.has_done === false;
   if (resume) {
     // continue the iteration
     goog.asserts.assert(this.store_key);
+    ini_key = this.store_key;
+    ini_index_key = this.index_key;
   } else { // start a new iteration
     this.counter = 0;
   }
   this.has_done = undefined; // switching to working state.
 
-  return executor.getCursor(this.store_name, this.index,
-    this.key_range_, this.direction, this.key_only_);
+  var cursor = executor.getCursor(this.store_name, this.index,
+    this.key_range_, this.direction, this.key_only_, ini_key, ini_index_key);
+
+  var me = this;
+  cursor.onSuccess = function(primary_key, key) {
+    if (goog.isDef(primary_key)) {
+      me.store_key = primary_key;
+      me.index_key = key;
+      me.counter++;
+    } else {
+      me.has_done = true;
+    }
+  };
+
+  return cursor;
 };
 
