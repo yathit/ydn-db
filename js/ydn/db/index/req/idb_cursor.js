@@ -268,13 +268,12 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
   if (next_position === false) {
     // restart the iterator
     this.logger.finest('Iterator: ' + this.label + ' restarting.');
-
     this.open_request();
   } else if (this.cur) {
     if (next_position === true) {
       this.cur['continue']();
     } else if (goog.isDefAndNotNull(next_position)) {
-      console.log('continuing to ' + next_position)
+      //console.log('continuing to ' + next_position)
       this.cur['continue'](next_position);
     } else {
       this.onNext(); // notify that cursor iteration is finished.

@@ -321,6 +321,86 @@ var test_42_map_skip = function() {
 };
 
 
+var test_43_map_stop = function() {
+
+  var done;
+  var streaming_keys = [];
+  var streaming_values = [];
+
+  var actual_index_keys = [0, 1, 2, 3];
+  var q = new ydn.db.Iterator(store_name, 'value');
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+        assertArrayEquals('streaming index', actual_index_keys, streaming_keys);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var start = 3;
+  var req = db.map(q, function (key, primary_key, value) {
+    streaming_keys.push(key);
+    streaming_values.push(value);
+    if (key >= 3) {
+      return null;
+    }
+  });
+  req.addCallback(function (result) {
+    done = true;
+  });
+  req.addErrback(function (e) {
+    console.log(e);
+    done = true;
+  });
+};
+
+
+
+var test_51_reduce = function() {
+
+  var done, result;
+
+  var sum = objs.reduce(function(p, x) {
+    return p + x.value;
+  }, 0);
+
+  var q = new ydn.db.Iterator(store_name, 'value');
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+        assertEquals('sum', sum, result);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var req = db.reduce(q, function (prev, curr, index) {
+    return prev + curr;
+  }, 0);
+  req.addCallback(function (x) {
+    done = true;
+    result = x;
+  });
+  req.addErrback(function (e) {
+    console.log(e);
+    done = true;
+  });
+};
+
+
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();
 G_testRunner.initialize(testCase);

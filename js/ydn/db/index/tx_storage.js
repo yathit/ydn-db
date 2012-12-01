@@ -282,6 +282,7 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
      * begin to send request to collect streamers results.
      * @param {number} i
      * @param {*} key
+     * @param {*} primary_key
      * @param {*} value
      */
     var on_iterator_next = function (i, key, primary_key, value) {
@@ -295,16 +296,16 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
       //console.log(['on_iterator_next', i, idx2iterator[i], result_count,
       //
       //  key, value]);
+      var idx = idx2iterator[i];
+      var iterator = iterators[idx];
+
       keys[i] = primary_key;
-      values[i] = goog.isDef(value) ? value : key;
-      if (goog.isDef(idx2iterator[i])) {
-        var idx = idx2iterator[i];
-        var iterator = iterators[idx];
-        var streamer_idx = idx2streamer[i];
-        for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
-          var streamer = streamers[streamer_idx + j];
-          streamer.pull(key, value);
-        }
+      values[i] = iterator.isKeyOnly() ? key : value;
+
+      var streamer_idx = idx2streamer[i];
+      for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
+        var streamer = streamers[streamer_idx + j];
+        streamer.pull(key, value);
       }
 
       if (result_count === total) { // receive all results
@@ -343,7 +344,6 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
 
       total = iterators.length + streamers.length;
     };
-
 
     for (var i = 0; i < passthrough_streamers.length; i++) {
       passthrough_streamers[i].setTx(this.getTx());
@@ -412,7 +412,7 @@ ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
 /**
  *
  * @param {!ydn.db.Iterator} iterator
- * @param {function(*, *): (*|undefined)} callback
+ * @param {function(*, *, (*|undefined)): (*|undefined)} callback
  */
 ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
 
@@ -440,7 +440,9 @@ ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
           cursor.forward(true);
         } else if (goog.isBoolean(adv)) {
           throw new ydn.error.InvalidOperationException(adv);
-        } else if (!goog.isNull(adv)) {
+        } else if (goog.isNull(adv)) {
+          cursor.forward(null);
+        } else {
           cursor.forward(adv);
         }
       } else {
@@ -457,11 +459,45 @@ ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
 /**
  *
  * @param {!ydn.db.Iterator} iterator
- * @param {function(*)} callback
+ * @param {function(*, *, number): *} callback
  * @param {*=} initial
  */
 ydn.db.index.TxStorage.prototype.reduce = function(iterator, callback, initial) {
 
+  var stores = iterator.stores();
+  for (var store, i = 0; store = stores[i]; i++) {
+    if (!store) {
+      throw new ydn.error.ArgumentException('Store "' + store +
+          '" not found.');
+    }
+  }
+  var df = ydn.db.base.createDeferred();
+
+  var previous = goog.isObject(initial) ? ydn.object.clone(initial) : initial;
+
+  this.exec(function (executor) {
+
+    var cursor = iterator.iterate(executor);
+
+    cursor.onError = function(e) {
+      df.errback(e);
+    };
+    var key_only = iterator.isKeyOnly();
+    var index = 0;
+    cursor.onNext = function (key, primaryKey, value) {
+      if (goog.isDef(key)) {
+        var current_value = key_only ? key : value;
+        //console.log([previous, current_value, index]);
+        previous = callback(previous, current_value, index++);
+        cursor.forward(true);
+      } else {
+        df.callback(previous);
+      }
+    };
+
+  }, stores, ydn.db.base.TransactionMode.READ_ONLY, 'map');
+
+  return df;
 };
 
 

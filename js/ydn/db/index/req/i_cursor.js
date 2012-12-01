@@ -18,7 +18,8 @@ ydn.db.index.req.ICursor = function() {};
  * Requester must handle the cursor value synchronously and decide the
  * next move by invoking forward.
  * @param {*} key
- * @param {*} value
+ * @param {*} primary_key
+ * @param {(*|undefined)} value
  */
 ydn.db.index.req.ICursor.prototype.onNext = goog.abstractMethod;
 

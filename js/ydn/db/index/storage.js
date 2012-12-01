@@ -74,29 +74,6 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
 
 
 /**
- *
- * @param {!ydn.db.Iterator} iterator
- * @param {function(*)} callback
- */
-ydn.db.index.Storage.prototype.map = function(iterator, callback) {
-
-};
-
-
-
-/**
- *
- * @param {!ydn.db.Iterator} iterator
- * @param {function(*)} callback
- * @param {*=} initial
- */
-ydn.db.index.Storage.prototype.reduce = function(iterator, callback, initial) {
-
-};
-
-
-
-/**
  * Explain query plan.
  * @param {!ydn.db.Iterator} q
  * @return {Object} plan in JSON
@@ -115,13 +92,14 @@ ydn.db.index.Storage.prototype.map = function (iterator, callback) {
   return this.default_tx_queue_.map(iterator, callback);
 };
 
+
 /**
  *
  * @param {!ydn.db.Iterator} iterator
- * @param {function(*)} callback
+ * @param {function(*, *, number): *} callback
  * @param {*=} initial
  */
 ydn.db.index.Storage.prototype.reduce = function(iterator, callback, initial) {
-  return this.default_tx_queue_.map(iterator, callback, initial);
+  return this.default_tx_queue_.reduce(iterator, callback, initial);
 };
 

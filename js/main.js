@@ -11,6 +11,8 @@ goog.require('ydn.db.algo.ZigzagMerge');
 
 
 goog.exportSymbol('ydn.db.Iterator', ydn.db.Iterator);
+goog.exportSymbol('ydn.db.KeyIterator', ydn.db.KeyIterator);
+goog.exportSymbol('ydn.db.ValueIterator', ydn.db.ValueIterator);
 goog.exportProperty(ydn.db.Iterator.prototype, 'continued',
     ydn.db.Iterator.prototype.continued);
 goog.exportProperty(ydn.db.Iterator.prototype, 'count',

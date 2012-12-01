@@ -21,6 +21,8 @@
 
 
 goog.provide('ydn.db.Iterator');
+goog.provide('ydn.db.KeyIterator');
+goog.provide('ydn.db.ValueIterator');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -117,6 +119,44 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   this.has_done = undefined;
 
 };
+
+
+/**
+ * Create an iterator object.
+ * @param {!string} store store name.
+ * @param {string=} index store field, where key query is preformed. If not
+ * provided, the first index will be used.
+ * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange)=} keyRange
+ * configuration in json or native format. Alternatively key range
+ * constructor parameters can be given.
+ * @param {boolean=} reverse reverse.
+ * @param {boolean=} unique unique.
+ * @constructor
+ * @extends {ydn.db.Iterator}
+ */
+ydn.db.KeyIterator = function(store, index, keyRange, reverse, unique) {
+  goog.base(this, store, index, keyRange, reverse, unique, true);
+};
+goog.inherits(ydn.db.KeyIterator, ydn.db.Iterator);
+
+
+/**
+ * Create an iterator object.
+ * @param {!string} store store name.
+ * @param {string=} index store field, where key query is preformed. If not
+ * provided, the first index will be used.
+ * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange)=} keyRange
+ * configuration in json or native format. Alternatively key range
+ * constructor parameters can be given.
+ * @param {boolean=} reverse reverse.
+ * @param {boolean=} unique unique.
+ * @constructor
+ * @extends {ydn.db.Iterator}
+ */
+ydn.db.ValueIterator = function(store, index, keyRange, reverse, unique) {
+  goog.base(this, store, index, keyRange, reverse, unique, false);
+};
+goog.inherits(ydn.db.ValueIterator, ydn.db.Iterator);
 
 
 /**
