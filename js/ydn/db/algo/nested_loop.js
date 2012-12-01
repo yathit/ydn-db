@@ -29,7 +29,7 @@ goog.inherits(ydn.db.algo.NestedLoop, ydn.db.algo.AbstractSolver);
 /**
  * @define {boolean}
  */
-ydn.db.algo.NestedLoop.DEBUG = true;
+ydn.db.algo.NestedLoop.DEBUG = false;
 
 /**
  * Index of active iterator.

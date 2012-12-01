@@ -284,10 +284,10 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
      * @param {*} key
      * @param {*} value
      */
-    var on_iterator_next = function (i, key, value) {
+    var on_iterator_next = function (i, key, primary_key, value) {
       if (done) {
         if (ydn.db.core.req.IndexedDb.DEBUG) {
-          window.console.log(['on_iterator_next', i, key, value]);
+          window.console.log(['on_iterator_next', i, key, primary_key, value]);
         }
         throw new ydn.error.InternalError();
       }
@@ -295,8 +295,8 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
       //console.log(['on_iterator_next', i, idx2iterator[i], result_count,
       //
       //  key, value]);
-      keys[i] = key;
-      values[i] = value;
+      keys[i] = primary_key;
+      values[i] = goog.isDef(value) ? value : key;
       if (goog.isDef(idx2iterator[i])) {
         var idx = idx2iterator[i];
         var iterator = iterators[idx];
@@ -407,6 +407,63 @@ ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
   return df;
 
 };
+
+
+/**
+ *
+ * @param {!ydn.db.Iterator} iterator
+ * @param {function(*, *): (*|undefined)} callback
+ */
+ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
+
+  var stores = iterator.stores();
+  for (var store, i = 0; store = stores[i]; i++) {
+    if (!store) {
+      throw new ydn.error.ArgumentException('Store "' + store +
+          '" not found.');
+    }
+  }
+  var df = ydn.db.base.createDeferred();
+
+  this.exec(function (executor) {
+
+    var cursor = iterator.iterate(executor);
+
+    cursor.onError = function(e) {
+      df.errback(e);
+    };
+    cursor.onNext = function (key, primaryKey, value) {
+      if (goog.isDef(key)) {
+        var adv = callback(key, primaryKey, value);
+        //console.log(['onNext', key, primaryKey, value, adv]);
+        if (!goog.isDef(adv)) {
+          cursor.forward(true);
+        } else if (goog.isBoolean(adv)) {
+          throw new ydn.error.InvalidOperationException(adv);
+        } else if (!goog.isNull(adv)) {
+          cursor.forward(adv);
+        }
+      } else {
+        df.callback(undefined);
+      }
+    };
+
+  }, stores, ydn.db.base.TransactionMode.READ_ONLY, 'map');
+
+  return df;
+};
+
+
+/**
+ *
+ * @param {!ydn.db.Iterator} iterator
+ * @param {function(*)} callback
+ * @param {*=} initial
+ */
+ydn.db.index.TxStorage.prototype.reduce = function(iterator, callback, initial) {
+
+};
+
 
 
 

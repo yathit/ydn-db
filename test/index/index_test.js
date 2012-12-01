@@ -22,8 +22,6 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
-
-
   reachedFinalContinuation = false;
 };
 
@@ -173,7 +171,6 @@ var test_compound_index = function () {
     },
     100, // interval
     1000); // maxTimeout
-
 
 };
 

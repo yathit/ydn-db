@@ -206,27 +206,6 @@ ydn.db.TxStorage.prototype.explain = function (q) {
 };
 
 
-/**
-*
-* @param {!ydn.db.Iterator} iterator
-* @param {function(*)} callback
-*/
-ydn.db.TxStorage.prototype.map = function(iterator, callback) {
-
-};
-
-
-/**
-*
-* @param {!ydn.db.Iterator} iterator
-* @param {function(*)} callback
-* @param {*=} initial
-*/
-ydn.db.TxStorage.prototype.reduce = function(iterator, callback, initial) {
-
-};
-
-
 
 /** @override */
 ydn.db.TxStorage.prototype.toString = function() {

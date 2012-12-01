@@ -105,3 +105,23 @@ ydn.db.index.Storage.prototype.explain = function(q) {
   return this.default_tx_queue_.explain(q);
 };
 
+
+/**
+ *
+ * @param {!ydn.db.Iterator} iterator
+ * @param {function(*, *): (*|undefined)} callback
+ */
+ydn.db.index.Storage.prototype.map = function (iterator, callback) {
+  return this.default_tx_queue_.map(iterator, callback);
+};
+
+/**
+ *
+ * @param {!ydn.db.Iterator} iterator
+ * @param {function(*)} callback
+ * @param {*=} initial
+ */
+ydn.db.index.Storage.prototype.reduce = function(iterator, callback, initial) {
+  return this.default_tx_queue_.map(iterator, callback, initial);
+};
+
