@@ -4,7 +4,7 @@
 
 
 goog.provide('ydn.db.index.req.IDBCursor');
-goog.require('ydn.db.index.req.ICursor');
+goog.require('ydn.db.index.req.AbstractCursor');
 
 
 /**
@@ -17,16 +17,13 @@ goog.require('ydn.db.index.req.ICursor');
  * @param {boolean} key_only mode.
  * @param {*=} ini_key primary key to resume position.
  * @param {*=} ini_index_key index key to resume position.
- * @implements {ydn.db.index.req.ICursor}
+ * @extends {ydn.db.index.req.AbstractCursor}
  * @constructor
  */
 ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRange,
                                    direction, key_only, ini_key, ini_index_key) {
-
-  goog.asserts.assert(obj_store);
-  this.obj_store = obj_store;
-
-  this.label = store_name + ':' + index_name;
+  goog.base(this, obj_store, store_name, index_name, keyRange,
+      direction, key_only);
 
   /**
    *
@@ -43,19 +40,11 @@ ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRang
   }
 
   this.cur = null;
-  
-  this.key_range = keyRange;
-
-  this.reverse = direction == ydn.db.base.Direction.PREV ||
-    direction == ydn.db.base.Direction.PREV_UNIQUE;
-
-  this.dir = /** @type {number} */ (direction); // new standard is string.
-
-  this.key_only = key_only;
 
   this.open_request(ini_key, ini_index_key);
 
 };
+goog.inherits(ydn.db.index.req.IDBCursor, ydn.db.index.req.AbstractCursor);
 
 
 /**
@@ -64,14 +53,6 @@ ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRang
  */
 ydn.db.index.req.IDBCursor.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.IDBCursor');
-
-
-/**
- * @private
- * @type {string}
- */
-ydn.db.index.req.IDBCursor.prototype.label = '';
-
 
 
 /**
@@ -90,51 +71,9 @@ ydn.db.index.req.IDBCursor.prototype.index = null;
 
 /**
  * @private
- * @type {IDBKeyRange}
- */
-ydn.db.index.req.IDBCursor.prototype.key_range = null;
-
-
-/**
- * @private
- * @type {boolean}
- */
-ydn.db.index.req.IDBCursor.prototype.reverse = false;
-
-
-/**
- * @private
  * @type {IDBCursor|IDBCursorWithValue}
  */
 ydn.db.index.req.IDBCursor.prototype.cur = null;
-
-
-/**
- * @private
- * @type {boolean}
- */
-ydn.db.index.req.IDBCursor.prototype.key_only = true;
-
-
-/**
- *
- * @type {Function}
- */
-ydn.db.index.req.IDBCursor.prototype.onError = null;
-
-
-/**
- *
- * @type {Function}
- */
-ydn.db.index.req.IDBCursor.prototype.onSuccess = null;
-
-
-/**
- *
- * @type {Function}
- */
-ydn.db.index.req.IDBCursor.prototype.onNext = null;
 
 
 /**
@@ -154,7 +93,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
     if (goog.isDefAndNotNull(this.key_range)) {
     var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.upper);
     if (cmp == 1 || (cmp == 0 && !this.key_range.upperOpen)) {
-      this.onNext(); // out of range;
+      this.onNext(undefined, undefined, undefined); // out of range;
       return;
     }
     key_range = ydn.db.IDBKeyRange.bound(ini_index_key,
@@ -219,10 +158,11 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
 
   request.onsuccess = function (event) {
     var cur = (event.target.result);
+    me.cur = cur;
     //console.log(['onsuccess', cur ? cur.key : undefined, cur ? cur.primaryKey : undefined, ini_key, ini_index_key]);
     if (cur) {
-      me.onSuccess(cur.primaryKey, cur.key);
-      me.cur = cur;
+      me.onSuccess(cur.primaryKey, cur.key, cur.value);
+
       //var value = me.key_only ? cur.key : cur['value'];
 
       if (goog.isDefAndNotNull(ini_index_key)) {
@@ -231,7 +171,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
           // not in the range.
           ini_key = null;
           ini_index_key = null;
-          me.onNext(cur.key, cur.primaryKey, cur.value);
+          me.onNext(cur.primaryKey, cur.key, cur.value);
           return;
         }
       }
@@ -240,7 +180,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
         var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cur.primaryKey, ini_key);
         if (primary_cmp == 0) {
           ini_key = null; // we got there.
-          // me.onNext(cur.key, cur.primaryKey, cur.value);
+          // me.onNext(cur.primaryKey, cur.key, cur.value);
           cur['continue'](); // resume point is exclusive
         } else if ((primary_cmp == 1 && !me.reverse) || (primary_cmp == -1 && me.reverse)) {
           // the key we are looking is not yet arrive.
@@ -251,15 +191,16 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
           me.onNext(this.cur.key, cur.primaryKey, cur.value);
         }
       } else {
-        me.onNext(cur.key, cur.primaryKey, cur.value);
+        me.onNext(cur.primaryKey, cur.key, cur.value);
       }
 
     } else {
-      me.onSuccess();
+      me.onSuccess(undefined, undefined, undefined);
+      ini_index_key = null;
       ini_key = null;
-      me.cur = null;
       me.logger.finest('Iterator: ' + me.label + ' completed.');
-      me.onNext(); // notify that cursor iteration is finished.
+      // notify that cursor iteration is finished.
+      me.onNext(undefined, undefined, undefined);
     }
 
   };
@@ -289,7 +230,8 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
       //console.log('continuing to ' + next_position)
       this.cur['continue'](next_position);
     } else {
-      this.onNext(); // notify that cursor iteration is finished.
+      // notify that cursor iteration is finished.
+      this.onNext(undefined, undefined, undefined);
       this.logger.finest('Cursor: ' + this.label + ' resting.');
     }
   } else {
@@ -297,15 +239,22 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
   }
 };
 
-//
-///**
-// *
-// * @type {*}
-// * @private
-// */
-//ydn.db.index.req.IDBCursor.prototype.seek_key_ = null;
 
+/**
+ * This must call only when cursor is active.
+ * @return {*} return current index key.
+ */
+ydn.db.index.req.IDBCursor.prototype.getKey = function() {
+  return this.cur.key;
+};
 
+/**
+ * This must call only when cursor is active.
+ * @return {*} return current primary key.
+ */
+ydn.db.index.req.IDBCursor.prototype.getPrimaryKey = function() {
+  return this.cur.primaryKey;
+};
 
 
 /**

@@ -190,11 +190,7 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
     var do_exit = function() {
 
       for (var k = 0; k < iterators.length; k++) {
-        if (!goog.isDef(iterators[k].has_done)) {
-          // change iterators busy state to resting state.
-          // FIXME: this dirty job should be in iterator class.
-          iterators[k].has_done = false;
-        }
+        iterators[k].exit();
       }
       done = true;
       goog.array.clear(cursors);
@@ -281,14 +277,14 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
      * Received iterator result. When all iterators result are collected,
      * begin to send request to collect streamers results.
      * @param {number} i
-     * @param {*} key
      * @param {*} primary_key
+     * @param {*} key
      * @param {*} value
      */
-    var on_iterator_next = function (i, key, primary_key, value) {
+    var on_iterator_next = function (i, primary_key, key, value) {
       if (done) {
         if (ydn.db.core.req.IndexedDb.DEBUG) {
-          window.console.log(['on_iterator_next', i, key, primary_key, value]);
+          window.console.log(['on_iterator_next', i, primary_key, key, value]);
         }
         throw new ydn.error.InternalError();
       }
@@ -432,9 +428,9 @@ ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
     cursor.onError = function(e) {
       df.errback(e);
     };
-    cursor.onNext = function (key, primaryKey, value) {
+    cursor.onNext = function (primaryKey, key, value) {
       if (goog.isDef(key)) {
-        var adv = callback(key, primaryKey, value);
+        var adv = callback(primaryKey, key, value);
         //console.log(['onNext', key, primaryKey, value, adv]);
         if (!goog.isDef(adv)) {
           cursor.forward(true);
@@ -484,7 +480,7 @@ ydn.db.index.TxStorage.prototype.reduce = function(iterator, callback, initial) 
     };
     var key_only = iterator.isKeyOnly();
     var index = 0;
-    cursor.onNext = function (key, primaryKey, value) {
+    cursor.onNext = function (primaryKey, key, value) {
       if (goog.isDef(key)) {
         var current_value = key_only ? key : value;
         //console.log([previous, current_value, index]);

@@ -235,13 +235,11 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q) {
   req.onError = function(e) {
     df.errback(e);
   };
-  req.onNext = function(key, value) {
+  req.onNext = function(key, primary_key, value) {
     if (goog.isDef(key)) {
-      arr.push(value);
+      arr.push(q.isKeyOnly() ? key : value);
       req.forward(true);
     } else {
-      req.onError = null;
-      req.onNext = null;
       df.callback(arr);
     }
   };
@@ -370,15 +368,6 @@ ydn.db.index.req.IndexedDb.prototype.openQuery_ = function(iterator, mode) {
    * @type {!IDBObjectStore}
    */
   var obj_store = this.getTx().objectStore(store.name);
-
-  var resume = iterator.has_done === false;
-  if (resume) {
-    // continue the iteration
-    goog.asserts.assert(iterator.getPrimaryKey());
-  } else { // start a new iteration
-    iterator.counter = 0;
-  }
-  iterator.has_done = undefined; // switching to working state.
 
   var index = null;
 //  if (goog.isDefAndNotNull(iterator.index) && iterator.index != store.keyPath) {

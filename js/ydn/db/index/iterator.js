@@ -23,6 +23,7 @@
 goog.provide('ydn.db.Iterator');
 goog.provide('ydn.db.KeyIterator');
 goog.provide('ydn.db.ValueIterator');
+goog.provide('ydn.db.Iterator.State');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -109,6 +110,8 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   this.filter_index_names_ = [];
   this.filter_key_ranges_ = [];
   this.filter_store_names_ = [];
+  this.filter_ini_keys_ = [];
+  this.filter_ini_index_keys_ = [];
 
   // set all null so that no surprise from inherit prototype
 
@@ -117,9 +120,8 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   this.store_key = undefined;
   this.index_key = undefined;
   this.has_done = undefined;
-
+  this.iterating_ = false;
 };
-
 
 /**
  * Create an iterator object.
@@ -158,6 +160,39 @@ ydn.db.ValueIterator = function(store, index, keyRange, reverse, unique) {
 };
 goog.inherits(ydn.db.ValueIterator, ydn.db.Iterator);
 
+
+
+/**
+ * Iterator state.
+ * @enum {string}
+ */
+ydn.db.Iterator.State = {
+  INITIAL: 'initial',
+  WORKING: 'working',
+  RESTING: 'resting',
+  COMPLETED: 'completed'
+};
+
+
+/**
+ *
+ * @return {ydn.db.Iterator.State}
+ */
+ydn.db.Iterator.prototype.getState = function() {
+  if (!goog.isDef(this.has_done)) {
+    return ydn.db.Iterator.State.INITIAL;
+  } else if (this.has_done === false) {
+    goog.asserts.assert(goog.isDef(this.store_key));
+    if (this.iterating_) {
+      return ydn.db.Iterator.State.WORKING;
+    } else {
+      return ydn.db.Iterator.State.RESTING;
+    }
+  } else {
+    goog.asserts.assert(goog.isDef(this.store_key));
+    return ydn.db.Iterator.State.COMPLETED;
+  }
+};
 
 /**
  *
@@ -211,6 +246,19 @@ ydn.db.Iterator.prototype.store_key;
  * @private
  */
 ydn.db.Iterator.prototype.index_key;
+
+
+/**
+ * @type {(boolean|undefined)}
+ * @private
+ */
+ydn.db.Iterator.prototype.has_done = undefined;
+
+/**
+ * @type {boolean}
+ * @private
+ */
+ydn.db.Iterator.prototype.iterating_ = false;
 
 
 /**
@@ -517,6 +565,21 @@ ydn.db.Iterator.prototype.filter_store_names_ = [];
 
 
 /**
+ *
+ * @type {Array}
+ * @private
+ */
+ydn.db.Iterator.prototype.filter_ini_keys_ = [];
+
+/**
+ *
+ * @type {Array}
+ * @private
+ */
+ydn.db.Iterator.prototype.filter_ini_index_keys_ = [];
+
+
+/**
  * Filter primary key. It is assumed that primary keys running from the filter
  * are ordered.
  * @param {string} index_name field name to filter.
@@ -541,10 +604,17 @@ ydn.db.Iterator.prototype.filter = function(index_name, key_range, store_name) {
     throw new ydn.error.ArgumentException('key range');
   }
   this.filter_key_ranges_.push(kr);
-  if (goog.isDef(store_name) && !goog.isString(store_name)) {
-    throw new ydn.error.ArgumentException('store name');
+  if (goog.isDef(store_name)) {
+    if (goog.isString(store_name)) {
+      this.filter_store_names_.push(store_name);
+    } else {
+      throw new ydn.error.ArgumentException('store name');
+    }
+  } else {
+    this.filter_store_names_.push(undefined);
   }
-  this.filter_store_names_.push(store_name);
+
+
 };
 
 
@@ -588,12 +658,20 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
 
 
 /**
+ * Notified that iterating is exiting.
+ */
+ydn.db.Iterator.prototype.exit = function() {
+  this.iterating_ = false;
+};
+
+
+/**
  *
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.ICursor}
+ * @private
  */
-ydn.db.Iterator.prototype.iterate = function(executor) {
-
+ydn.db.Iterator.prototype.iterate_ = function(executor) {
   var ini_key, ini_index_key;
   var resume = this.has_done === false;
   if (resume) {
@@ -607,7 +685,7 @@ ydn.db.Iterator.prototype.iterate = function(executor) {
   this.has_done = undefined; // switching to working state.
 
   var cursor = executor.getCursor(this.store_name, this.index,
-    this.key_range_, this.direction, this.key_only_, ini_key, ini_index_key);
+      this.key_range_, this.direction, this.key_only_, ini_key, ini_index_key);
 
   var me = this;
   cursor.onSuccess = function(primary_key, key) {
@@ -621,5 +699,187 @@ ydn.db.Iterator.prototype.iterate = function(executor) {
   };
 
   return cursor;
+};
+
+
+/**
+ *
+ * @param {ydn.db.index.req.IRequestExecutor} executor
+ * @return {ydn.db.index.req.ICursor}
+ * @private
+ */
+ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
+  var me = this;
+  var ini_key, ini_index_key;
+  var resume = this.has_done === false;
+  if (resume) {
+    // continue the iteration
+    goog.asserts.assert(this.store_key);
+    ini_key = this.store_key;
+    ini_index_key = this.index_key;
+  } else { // start a new iteration
+    this.counter = 0;
+  }
+  this.iterating_ = true;
+
+  // this algorithm is inspired by zigzag merge algorithm as described in
+// http://www.google.com/events/io/2010/sessions/next-gen-queries-appengine.html
+
+  // We  are relying on the fact that requests are executed in order.
+  // http://www.w3.org/TR/IndexedDB/#steps-for-asynchronously-executing-a-request
+
+  // secondary cursors for filters
+  var cursors = [];
+
+  // keep track requests for primary_cursor + filter_cursors
+  // true  --> pending request
+  // false --> request done
+  // null  --> no request made
+  var pending_requests = [];
+
+  // we send primary_cursor first, so that we filtered cursor arrive, we know
+  // our target key value is.
+  var primary_cursor = executor.getCursor(this.store_name, this.index,
+      this.key_range_, this.direction, this.key_only_, ini_key, ini_index_key);
+  pending_requests[0] = true;
+
+
+  var filterCursorOnSuccess = function(i, primary_key, key, value) {
+    pending_requests[i+1] = false;
+    var all_done = isAllRequestDone();
+    if (goog.isDef(primary_key)) {
+      me.filter_ini_keys_[i] = primary_key;
+      me.filter_ini_index_keys_[i] = key;
+      return true;
+    } else {
+      return null;
+    }
+  };
+  for (var i = 0; i < this.filter_index_names_.length; i++) {
+    var store_name = this.filter_store_names_[i] || this.store_name;
+    var cursor = executor.getCursor(store_name, this.filter_index_names_[i],
+        this.filter_key_ranges_[i], this.direction, true,
+        this.filter_ini_keys_[i], this.filter_ini_index_keys_[i]);
+    cursors.push(cursor);
+    cursor.onSuccess = goog.partial(filterCursorOnSuccess, i);
+    pending_requests[i+1] = true;
+  }
+
+
+  /**
+   * Return true if all requests finished.
+   * @return {boolean}
+   */
+  var isAllRequestDone = function() {
+    var some_req_not_finished = pending_requests.some(function(req) {
+      return req === true;
+    });
+    return !some_req_not_finished;
+  };
+
+  /**
+   * 0  --> passed and matched
+   * 1  --> need primary cursor to advance
+   * -1 --> do not passed
+   * @return {number} status of filters
+   */
+  var filterStatus = function() {
+    // filter is pass if its primary key of the filter is equal to or greater
+    // than the primary cursor's primary key.
+    // greater, however means the filter condition will never met and hence
+    // primary cursor must advance.
+    var pass = false;
+    var match = true;
+    var cmps = [];
+    var higest_key = null;
+    for (var i = 0; i < cursors.length; i++) {
+      var cursor = cursors[i];
+      var cmp = ydn.db.cmp(me.store_key, cursor.getPrimaryKey());
+      cmps[i] = cmp;
+      if (cmp === 1) {
+        match = false;
+      } else if (cmp === -1) {
+        match = false;
+        pass = true;
+        if (goog.isNull(higest_key)) {
+          higest_key = cursor.getPrimaryKey();
+        } else {
+          if (ydn.db.cmp(cursor.getPrimaryKey(), higest_key)) {
+            higest_key = cursor.getPrimaryKey();
+          }
+        }
+      }
+    }
+    if (match) {
+      primary_cursor.onNext(primary_cursor.getPrimaryKey(),
+          primary_cursor.getKey(), primary_cursor.getValue());
+      // all cursors advance one step.
+      primary_cursor.forward(true);
+      for (var i = 0; i < cursors.length; i++) {
+        cursors[i].forward(true);
+      }
+    } else if (pass) {
+      // we mush skip current position.
+      primary_cursor.seek(higest_key, true);
+      for (var i = 0; i < cursors.length; i++) {
+        if (cmps[i] == 0) {
+          cursors[i].seek(higest_key);
+        } else if (cmps[i] == -1) {
+          cursors[i].seek(higest_key, true);
+        } else {
+          if (higest_key !== cursors[i].getPrimaryKey()) {
+            cursors[i].seek(higest_key, true);
+          }
+        }
+      }
+    } else {
+      for (var i = 0; i < cursors.length; i++) {
+        if (cmps[i] == -1) {
+          cursors[i].seek(primary_cursor.getPrimaryKey());
+        }
+      }
+    }
+  };
+
+  /**
+   * onSuccess handler is called before onNext callback. The purpose of
+   * onSuccess handler is apply filter. If filter condition are not meet,
+   * onSuccess return next advancement value skipping onNext callback.
+   * @param primary_key
+   * @param key
+   * @param value
+   * @return {*}
+   */
+  primary_cursor.onSuccess = function(primary_key, key, value) {
+    pending_requests[0] = false;
+    if (goog.isDef(primary_key)) {
+      me.has_done = false;
+      // check all filter condition are met.
+      me.store_key = primary_key;
+      me.index_key = key;
+      me.counter++;
+      return true;
+    } else {
+      me.has_done = true;
+      me.iterating_ = false;
+      return null;
+    }
+  };
+
+  return primary_cursor;
+};
+
+
+/**
+ *
+ * @param {ydn.db.index.req.IRequestExecutor} executor
+ * @return {ydn.db.index.req.ICursor}
+ */
+ydn.db.Iterator.prototype.iterate = function(executor) {
+  if (this.filter_index_names_.length > 0) {
+    return this.iterateWithFilters_(executor);
+  } else {
+    return this.iterate_(executor);
+  }
 };
 

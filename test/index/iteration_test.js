@@ -266,7 +266,7 @@ var test_41_map = function() {
       100, // interval
       1000); // maxTimeout
 
-  var req = db.map(q, function (key, primary_key, value) {
+  var req = db.map(q, function (primary_key, key, value) {
     streaming_keys.push(primary_key);
     streaming_values.push(key);
   });
@@ -304,7 +304,7 @@ var test_42_map_skip = function() {
       1000); // maxTimeout
 
   var start = 3;
-  var req = db.map(q, function (key, primary_key, value) {
+  var req = db.map(q, function (primary_key, key, value) {
     streaming_keys.push(key);
     streaming_values.push(value);
     if (key < 3) {
@@ -345,7 +345,7 @@ var test_43_map_stop = function() {
       1000); // maxTimeout
 
   var start = 3;
-  var req = db.map(q, function (key, primary_key, value) {
+  var req = db.map(q, function (primary_key, key, value) {
     streaming_keys.push(key);
     streaming_values.push(value);
     if (key >= 3) {
