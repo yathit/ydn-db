@@ -783,7 +783,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
    * -1 --> do not passed
    * @return {number} status of filters
    */
-  var filterStatus = function() {
+  var processNext = function() {
     // filter is pass if its primary key of the filter is equal to or greater
     // than the primary cursor's primary key.
     // greater, however means the filter condition will never met and hence
