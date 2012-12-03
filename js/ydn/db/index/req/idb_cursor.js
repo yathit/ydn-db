@@ -215,6 +215,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
 /**
  * Continue to next position.
  * @param {*} next_position next index key.
+ * @override
  */
 ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
   //console.log(['next_position', cur, next_position]);
@@ -243,6 +244,7 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
 /**
  * This must call only when cursor is active.
  * @return {*} return current index key.
+ * @override
  */
 ydn.db.index.req.IDBCursor.prototype.getKey = function() {
   return this.cur.key;
@@ -251,9 +253,19 @@ ydn.db.index.req.IDBCursor.prototype.getKey = function() {
 /**
  * This must call only when cursor is active.
  * @return {*} return current primary key.
+ * @override
  */
 ydn.db.index.req.IDBCursor.prototype.getPrimaryKey = function() {
   return this.cur.primaryKey;
+};
+
+/**
+ * This must call only when cursor is active.
+ * @return {*} return current primary key.
+ * @override
+ */
+ydn.db.index.req.IDBCursor.prototype.getValue = function() {
+  return this.cur.value;
 };
 
 
@@ -266,6 +278,7 @@ ydn.db.index.req.IDBCursor.prototype.getPrimaryKey = function() {
  * lower than current position, this will rewind.
  * @param {*} next_primary_key
  * @param {*=} next_index_key
+ * @override
  */
 ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key, next_index_key) {
 

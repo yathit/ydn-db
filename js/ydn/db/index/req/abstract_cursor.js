@@ -122,6 +122,29 @@ ydn.db.index.req.AbstractCursor.prototype.forward = goog.abstractMethod;
  * lower than current position, this will rewind.
  * @param {*} next_primary_key
  * @param {*=} next_index_key
+ * @param {boolean=} exclusive.
  */
 ydn.db.index.req.AbstractCursor.prototype.seek = goog.abstractMethod;
 
+
+/**
+ *
+ * @return {*} primary key.
+ */
+ydn.db.index.req.AbstractCursor.prototype.getPrimaryKey = goog.abstractMethod;
+
+
+
+/**
+ *
+ * @return {*} primary key.
+ */
+ydn.db.index.req.AbstractCursor.prototype.getKey = goog.abstractMethod;
+
+
+
+/**
+ *
+ * @return {*} primary key.
+ */
+ydn.db.index.req.AbstractCursor.prototype.getValue = goog.abstractMethod;
