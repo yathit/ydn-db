@@ -17,7 +17,7 @@ var setUp = function() {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
 
@@ -475,6 +475,57 @@ var test_61_scan_cursor_resume = function() {
     done = true;
   });
 };
+
+
+
+
+var test_71_filter = function () {
+
+  var actual_keys = [0, 2, 3];
+
+  var done;
+  var streaming_keys = [];
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('streaming key', actual_keys, streaming_keys);
+
+      reachedFinalContinuation = true;
+
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q1 = new ydn.db.Iterator(store_name, 'value');
+  q1.filter('tag', 'b');
+
+  var req = db.scan([q1], function (key, index_key) {
+    console.log(['receiving ', key[0], index_key[0]]);
+    if (goog.isDef(key[0])) {
+      streaming_keys.push(index_key[0]);
+      return [true];
+    } else {
+      return [];
+    }
+
+  });
+
+  req.addCallback(function (result) {
+    //console.log(result);
+    done = true;
+  });
+  req.addErrback(function (e) {
+    console.log(e);
+    done = true;
+  });
+
+};
+
 
 
 var testCase = new goog.testing.ContinuationTestCase();

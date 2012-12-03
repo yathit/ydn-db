@@ -60,7 +60,8 @@ ydn.db.index.req.ICursor.prototype.forward = goog.abstractMethod;
  * onNext callback with resulting value. If given primary key is in wrong
  * direction, this will rewind and seek.
  * @param {*} primary key.
- * @param {*=} index key.
- * @param {boolean=} exclusive.
+ * @param {*} index key.
+ * @param {boolean} inclusive.
  */
 ydn.db.index.req.ICursor.prototype.seek = goog.abstractMethod;
+

@@ -7,6 +7,7 @@
 goog.provide('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.core.req.IRequestExecutor');
 goog.require('ydn.db.Streamer');
+goog.require('ydn.db.index.req.AbstractCursor');
 
 
 
@@ -122,7 +123,7 @@ ydn.db.index.req.IRequestExecutor.prototype.getKeysByIndexKeyRange =
  * @param {boolean} key_only mode.
  * @param {*} ini_key key to resume
  * @param {*} ini_index_key key to resume
- * @return {!ydn.db.index.req.ICursor} cursor.
+ * @return {!ydn.db.index.req.AbstractCursor} cursor.
  */
 ydn.db.index.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
 

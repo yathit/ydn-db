@@ -48,6 +48,12 @@ goog.inherits(ydn.db.index.req.IDBCursor, ydn.db.index.req.AbstractCursor);
 
 
 /**
+ * @define {boolean}
+ */
+ydn.db.index.req.IDBCursor.DEBUG = true;
+
+
+/**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
@@ -84,9 +90,10 @@ ydn.db.index.req.IDBCursor.prototype.cur = null;
  *
  * @param {*=} ini_key primary key to resume position.
  * @param {*=} ini_index_key index key to resume position.
+ * @param {boolean=} inclusive
  * @private
  */
-ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_key) {
+ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_key, inclusive) {
 
   var key_range = this.key_range;
   if (goog.isDefAndNotNull(ini_index_key)) {
@@ -153,15 +160,38 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
       }
     }
   }
+  this.has_pending_request = true;
 
   me.logger.finest('Iterator: ' + this.label + ' opened.');
 
+//  var doNext = function (cur) {
+//    var adv;
+//    if (cur) {
+//      adv = me.onSuccess(cur.primaryKey, cur.key, cur.value);
+//    } else {
+//      adv = me.onSuccess(undefined, undefined, undefined);
+//    }
+//    if (adv === true) {
+//      cur['continue']();
+//    } else if (adv === false) {
+//      this.open_request(); // restart
+//    } else if (!goog.isDef(adv)) {
+//      if (cur) {
+//        me.onNext(cur.primaryKey, cur.key, cur.value);
+//      } else {
+//        me.onNext(undefined, undefined, undefined);
+//      }
+//    } else if (!goog.isNull(adv)) {
+//      me.seek(adv);
+//    } // adv === null don't do anything.
+//  };
+
   request.onsuccess = function (event) {
+    me.has_pending_request = false;
     var cur = (event.target.result);
     me.cur = cur;
     //console.log(['onsuccess', cur ? cur.key : undefined, cur ? cur.primaryKey : undefined, ini_key, ini_index_key]);
     if (cur) {
-      me.onSuccess(cur.primaryKey, cur.key, cur.value);
 
       //var value = me.key_only ? cur.key : cur['value'];
 
@@ -171,36 +201,44 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function(ini_key, ini_index_
           // not in the range.
           ini_key = null;
           ini_index_key = null;
-          me.onNext(cur.primaryKey, cur.key, cur.value);
+          //me.onNext(cur.primaryKey, cur.key, cur.value);
+          me.onSuccess(cur.primaryKey, cur.key, cur.value);
           return;
         }
       }
       ini_index_key = null;
       if (goog.isDefAndNotNull(ini_key)) {
-        var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cur.primaryKey, ini_key);
+        var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_key, cur.primaryKey);
         if (primary_cmp == 0) {
           ini_key = null; // we got there.
           // me.onNext(cur.primaryKey, cur.key, cur.value);
-          cur['continue'](); // resume point is exclusive
+          if (inclusive) {
+            me.onSuccess(cur.primaryKey, cur.key, cur.value);
+          } else {
+            cur['continue'](); // resume point is exclusive
+          }
         } else if ((primary_cmp == 1 && !me.reverse) || (primary_cmp == -1 && me.reverse)) {
           // the key we are looking is not yet arrive.
           cur['continue']();
         } else {
           // the seeking primary key is not in the range.
           ini_key = null; // we got there.
-          me.onNext(this.cur.key, cur.primaryKey, cur.value);
+          //me.onNext(this.cur.key, cur.primaryKey, cur.value);
+          me.onSuccess(cur.primaryKey, cur.key, cur.value);
         }
       } else {
-        me.onNext(cur.primaryKey, cur.key, cur.value);
+        //me.onNext(cur.primaryKey, cur.key, cur.value);
+        me.onSuccess(cur.primaryKey, cur.key, cur.value);
       }
 
     } else {
-      me.onSuccess(undefined, undefined, undefined);
+      //me.onSuccess(undefined, undefined, undefined);
       ini_index_key = null;
       ini_key = null;
       me.logger.finest('Iterator: ' + me.label + ' completed.');
       // notify that cursor iteration is finished.
-      me.onNext(undefined, undefined, undefined);
+      //me.onNext(undefined, undefined, undefined);
+      me.onSuccess(undefined, undefined, undefined);
     }
 
   };
@@ -242,6 +280,14 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.index.req.IDBCursor.prototype.hasCursor = function() {
+  return !!this.cur;
+};
+
+
+/**
  * This must call only when cursor is active.
  * @return {*} return current index key.
  * @override
@@ -278,14 +324,22 @@ ydn.db.index.req.IDBCursor.prototype.getValue = function() {
  * lower than current position, this will rewind.
  * @param {*} next_primary_key
  * @param {*=} next_index_key
+ * @param {boolean=} inclusive
  * @override
  */
-ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key, next_index_key) {
+ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
+                                         next_index_key, inclusive) {
 
   if (this.cur) {
     var value = this.key_only ? this.cur.key : this.cur['value'];
     var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(this.cur.primaryKey, next_primary_key);
-    var primary_on_track = (primary_cmp == 1 && !this.reverse) || (primary_cmp == -1 && this.reverse);
+    var primary_on_track = primary_cmp == 0 || (primary_cmp == 1 && !this.reverse) || (primary_cmp == -1 && this.reverse);
+
+    if (ydn.db.index.req.IDBCursor.DEBUG) {
+      var s = primary_cmp === 0 ? 'next' : primary_cmp === 1 ? 'on track' : 'wrong track';
+      window.console.log(this + ' seek ' + next_primary_key + ':' + next_index_key + ' ' + s);
+    }
+
 
     if (goog.isDefAndNotNull(next_index_key)) {
       var index_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(this.cur.key, next_index_key);
@@ -310,13 +364,21 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key, next_inde
       }
     } else {
       if (primary_cmp === 0) {
-        throw new ydn.error.InternalError('cursor cannot seek to current position');
-      } else if (primary_on_track) {
+        if (inclusive) {
+          throw new ydn.db.InternalError();
+        }
         this.cur['continue']();
+        this.has_pending_request = true;
+      } else if (primary_on_track) {
+        if (!inclusive) {
+          throw new ydn.db.InternalError();
+        }
+        this.cur['continue'](next_primary_key);
+        this.has_pending_request = true;
       } else {
         // primary key not in the range
         // this will restart the thread.
-        this.open_request(next_primary_key);
+        this.open_request(next_primary_key, next_index_key, inclusive);
       }
     }
   } else {

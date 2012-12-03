@@ -4,7 +4,6 @@
 
 
 goog.provide('ydn.db.index.req.AbstractCursor');
-goog.require('ydn.db.index.req.ICursor');
 
 
 /**
@@ -15,7 +14,6 @@ goog.require('ydn.db.index.req.ICursor');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
- * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
 ydn.db.index.req.AbstractCursor = function(obj_store, store_name, index_name, keyRange,
@@ -38,14 +36,6 @@ ydn.db.index.req.AbstractCursor = function(obj_store, store_name, index_name, ke
   this.key_only = key_only;
 
 };
-
-
-/**
- * @protected
- * @type {goog.debug.Logger} logger.
- */
-ydn.db.index.req.AbstractCursor.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.index.req.AbstractCursor');
 
 
 /**
@@ -87,23 +77,36 @@ ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
 
 
 /**
+ * Move cursor to a given position by primary key.
+ *
+ * This will iterate the cursor records until the primary key is found without
+ * changing index key. If index has change during iteration, this will invoke
+ * onNext callback with resulting value. If given primary key is in wrong
+ * direction, this will rewind and seek.
+ *
+ * Return value of:
+ *   undefined : will invoke onNext
+ *   null      : don't do anything
+ *   *         : seek to given primary key value, not invoke onNext.
+ *   true      : continue next cursor position, not invoke onNext
+ *   false     : restart the cursor, not invoke onNext.
  *
  * @param {*} primary_key
  * @param {*} key
  * @param {*} value
- * @return {*}
  */
-ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(
-    primary_key, key, value) {
-  return true;
-};
+ydn.db.index.req.AbstractCursor.prototype.onSuccess = goog.abstractMethod;
 
 
 /**
  *
- * @type {function(*, *, *): *}
+ * @param {*} primary_key
+ * @param {*} key
+ * @param {*} value
  */
-ydn.db.index.req.AbstractCursor.prototype.onNext = goog.abstractMethod;
+ydn.db.index.req.AbstractCursor.prototype.onNext = function(primary_key, key, value) {
+
+};
 
 
 /**
@@ -122,7 +125,7 @@ ydn.db.index.req.AbstractCursor.prototype.forward = goog.abstractMethod;
  * lower than current position, this will rewind.
  * @param {*} next_primary_key
  * @param {*=} next_index_key
- * @param {boolean=} exclusive.
+ * @param {boolean=} exclusive
  */
 ydn.db.index.req.AbstractCursor.prototype.seek = goog.abstractMethod;
 
@@ -133,6 +136,24 @@ ydn.db.index.req.AbstractCursor.prototype.seek = goog.abstractMethod;
  */
 ydn.db.index.req.AbstractCursor.prototype.getPrimaryKey = goog.abstractMethod;
 
+/**
+ * @return {boolean}
+ */
+ydn.db.index.req.AbstractCursor.prototype.hasCursor = goog.abstractMethod;
+
+
+/**
+ * @protected
+ * @type {boolean}
+ */
+ydn.db.index.req.AbstractCursor.prototype.has_pending_request = false;
+
+/**
+ * @return {boolean}
+ */
+ydn.db.index.req.AbstractCursor.prototype.isRequestPending = function() {
+  return this.has_pending_request;
+};
 
 
 /**
@@ -148,3 +169,19 @@ ydn.db.index.req.AbstractCursor.prototype.getKey = goog.abstractMethod;
  * @return {*} primary key.
  */
 ydn.db.index.req.AbstractCursor.prototype.getValue = goog.abstractMethod;
+
+
+/**
+ * @override
+ */
+ydn.db.index.req.AbstractCursor.prototype.toString = function() {
+  if (goog.DEBUG) {
+    var k = '';
+    if (this.hasCursor()) {
+      k = '[' + this.getPrimaryKey() + ':' + this.getKey() + ']';
+    }
+    return 'Cursor:' + this.label + k;
+  } else {
+    return goog.base(this, 'toString');
+  }
+};
