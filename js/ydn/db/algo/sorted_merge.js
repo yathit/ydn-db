@@ -9,7 +9,7 @@
  * Ref: http://www.google.com/events/io/2010/sessions/next-gen-queries-appengine.html
  */
 
-goog.provide('ydn.db.algo.ZigzagMerge');
+goog.provide('ydn.db.algo.SortedMerge');
 goog.require('ydn.db.algo.AbstractSolver');
 goog.require('ydn.db');
 
@@ -21,31 +21,31 @@ goog.require('ydn.db');
  * @constructor
  * @extends {ydn.db.algo.AbstractSolver}
  */
-ydn.db.algo.ZigzagMerge = function(out, limit) {
+ydn.db.algo.SortedMerge = function(out, limit) {
   goog.base(this, out, limit);
 
 };
-goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
+goog.inherits(ydn.db.algo.SortedMerge, ydn.db.algo.AbstractSolver);
 
 
 /**
  * @define {boolean}
  */
-ydn.db.algo.ZigzagMerge.DEBUG = true;
+ydn.db.algo.SortedMerge.DEBUG = true;
 
 ///**
 // *
 // * @type {boolean}
 // * @private
 // */
-//ydn.db.algo.ZigzagMerge.prototype.sorted_ = false;
+//ydn.db.algo.SortedMerge.prototype.sorted_ = false;
 //
 ///**
 // *
 // * @type {Array}
 // * @private
 // */
-//ydn.db.algo.ZigzagMerge.prototype.starting_keys_ = null;
+//ydn.db.algo.SortedMerge.prototype.starting_keys_ = null;
 
 
 ///**
@@ -53,20 +53,20 @@ ydn.db.algo.ZigzagMerge.DEBUG = true;
 // * @type {Array.<boolean>}
 // * @private
 // */
-//ydn.db.algo.ZigzagMerge.prototype.reverses_ = [];
+//ydn.db.algo.SortedMerge.prototype.reverses_ = [];
 //
 ///**
 // *
 // * @type {Array.<boolean>}
 // * @private
 // */
-//ydn.db.algo.ZigzagMerge.prototype.degrees_ = [];
+//ydn.db.algo.SortedMerge.prototype.degrees_ = [];
 
 
 /**
  * @inheritDoc
  */
-ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
+ydn.db.algo.SortedMerge.prototype.begin = function(iterators, callback) {
 //  this.reverses_ = [];
 //  this.degrees_ = [];
 //  for (var i = 0; i < iterators.length; i++) {
@@ -80,7 +80,7 @@ ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
 /**
  * @inheritDoc
  */
-ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
+ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
 
   //console.log(['scanning', keys]);
 //  // we keep starting keys so that we know the minimum (or maximum) of the key.
@@ -94,46 +94,69 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
 
   var advancement = [];
 
-  var all_match = goog.isDef(keys[0]);
-  var skip = false;
+  var base_key = keys[0];
+
+  if (!goog.isDefAndNotNull(base_key)) {
+    return [];
+  }
+  var all_match = true; // let assume
+  var skip = false;     // primary_key must be skip
+  var highest_key = base_key;
+  var cmps = [];
 
   for (var i = 1; i < keys.length; i++) {
     if (goog.isDefAndNotNull(keys[i])) {
       //console.log([keys[0], keys[i]])
-      var cmp = ydn.db.cmp(keys[0], keys[i]);
-      if (cmp == 0) {
-        // we get a match, so looking forward to next key.
-        advancement[i] = true;
-      } else if (cmp == 1) {
+      var cmp = ydn.db.cmp(base_key, keys[i]);
+      cmps[i] = cmp;
+      if (cmp === 1) {
         // base key is greater than ith key, so fast forward to ith key.
-        advancement[i] = true;
         all_match = false;
-      } else {
+      } else if (cmp === -1) {
         // ith key is greater than base key. we are not going to get it
-        skip = true; // rewind
-        break;
+        all_match = false;
+        skip = true; //
+        if (ydn.db.cmp(keys[i], highest_key) === 1) {
+          highest_key = keys[i];
+        }
       }
       //i += this.degrees_[i]; // skip peer iterators.
+    } else {
+      all_match = false;
+      skip = true;
     }
-
-    //i += this.degrees_[i]; // skip peer iterators.
   }
 
-  if (skip) {
-    advancement[0] = true;
-    // all other keys are rewind (should move forward to base key?)
-    for (var j = 1; j < keys.length; j++) {
-      advancement[i] = false;
-    }
-  } else if (all_match) {
+
+
+  if (all_match) {
     // we get a match, so looking forward to next key.
-    advancement[0] = true;
     // all other keys are rewind
+    for (var j = 0; j < keys.length; j++) {
+      if (goog.isDefAndNotNull(keys[j])) {
+        advancement[j] = true;
+      }
+    }
+  } else if (skip) {
+    // all jump to highest key position.
+    for (var j = 0; j < keys.length; j++) {
+      cmp = ydn.db.cmp(highest_key, keys[j]);
+      if (cmp === 1) {
+        advancement[j] = highest_key;
+      } else {
+        advancement[j] = true;
+      }
+    }
+  } else {
+    // some need to catch up to base key
     for (var j = 1; j < keys.length; j++) {
-      advancement[i] = false;
+      if (cmps[j] === 1) {
+        advancement[j] = base_key;
+      }
     }
   }
 
+  console.log([all_match, skip, highest_key, JSON.stringify(keys), JSON.stringify(cmps), JSON.stringify(advancement)]);
 
   return advancement;
 };

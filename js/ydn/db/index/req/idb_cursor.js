@@ -266,7 +266,7 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
     if (next_position === true) {
       this.cur['continue']();
     } else if (goog.isDefAndNotNull(next_position)) {
-      //console.log('continuing to ' + next_position)
+      console.log('continuing to ' + next_position)
       this.cur['continue'](next_position);
     } else {
       // notify that cursor iteration is finished.
@@ -296,6 +296,7 @@ ydn.db.index.req.IDBCursor.prototype.getKey = function() {
   return this.cur.key;
 };
 
+
 /**
  * This must call only when cursor is active.
  * @return {*} return current primary key.
@@ -304,6 +305,7 @@ ydn.db.index.req.IDBCursor.prototype.getKey = function() {
 ydn.db.index.req.IDBCursor.prototype.getPrimaryKey = function() {
   return this.cur.primaryKey;
 };
+
 
 /**
  * This must call only when cursor is active.
@@ -339,7 +341,6 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
       var s = primary_cmp === 0 ? 'next' : primary_cmp === 1 ? 'on track' : 'wrong track';
       window.console.log(this + ' seek ' + next_primary_key + ':' + next_index_key + ' ' + s);
     }
-
 
     if (goog.isDefAndNotNull(next_index_key)) {
       var index_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(this.cur.key, next_index_key);

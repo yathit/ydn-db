@@ -17,7 +17,7 @@ var setUp = function() {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
 
@@ -193,52 +193,6 @@ var test_21_scan_key_dual = function () {
 
 };
 
-
-var test_31_scan_mutli_query_match = function () {
-
-  var done;
-  var result_keys = [];
-  var result_values = [];
-
-  waitForCondition(
-    // Condition
-    function () {
-      return done;
-    },
-    // Continuation
-    function () {
-      assertEquals('number of result', 1, result_keys.length);
-      assertEquals('number of result value', 1, result_values.length);
-      assertEquals('result', 'cow', result_values[0]);
-      reachedFinalContinuation = true;
-
-    },
-    100, // interval
-    1000); // maxTimeout
-
-  var q1 = ydn.db.Iterator.where('animals', 'color', '=', 'spots');
-  var q2 = ydn.db.Iterator.where('animals', 'horn', '=', 1);
-  var q3 = ydn.db.Iterator.where('animals', 'legs', '=', 4);
-  var out = new ydn.db.Streamer(db, 'animals', 'id');
-  out.setSink(function(key, value) {
-    console.log(['streamer', key, value]);
-    result_keys.push(key);
-    result_values.push(value);
-  });
-
-  var solver = new ydn.db.algo.NestedLoop(out);
-  var req = db.scan([q1, q2, q3], solver);
-
-  req.addCallback(function (result) {
-    //console.log(result);
-    done = true;
-  });
-  req.addErrback(function (e) {
-    console.log(e);
-    done = true;
-  });
-
-};
 
 
 var test_41_map = function() {
@@ -475,57 +429,6 @@ var test_61_scan_cursor_resume = function() {
     done = true;
   });
 };
-
-
-
-
-var test_71_filter = function () {
-
-  var actual_keys = [0, 2, 3];
-
-  var done;
-  var streaming_keys = [];
-
-  waitForCondition(
-    // Condition
-    function () {
-      return done;
-    },
-    // Continuation
-    function () {
-      assertArrayEquals('streaming key', actual_keys, streaming_keys);
-
-      reachedFinalContinuation = true;
-
-    },
-    100, // interval
-    1000); // maxTimeout
-
-  var q1 = new ydn.db.Iterator(store_name, 'value');
-  q1.filter('tag', 'b');
-
-  var req = db.scan([q1], function (key, index_key) {
-    console.log(['receiving ', key[0], index_key[0]]);
-    if (goog.isDef(key[0])) {
-      streaming_keys.push(index_key[0]);
-      return [true];
-    } else {
-      return [];
-    }
-
-  });
-
-  req.addCallback(function (result) {
-    //console.log(result);
-    done = true;
-  });
-  req.addErrback(function (e) {
-    console.log(e);
-    done = true;
-  });
-
-};
-
 
 
 var testCase = new goog.testing.ContinuationTestCase();
