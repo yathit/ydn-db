@@ -8,7 +8,6 @@ goog.provide('ydn.db.index.req.AbstractCursor');
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {!IDBObjectStore} obj_store object store.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
  * @param {IDBKeyRange} keyRange
@@ -16,26 +15,65 @@ goog.provide('ydn.db.index.req.AbstractCursor');
  * @param {boolean} key_only mode.
  * @constructor
  */
-ydn.db.index.req.AbstractCursor = function(obj_store, store_name, index_name, keyRange,
+ydn.db.index.req.AbstractCursor = function(store_name, index_name, keyRange,
                                    direction, key_only) {
 
-  goog.asserts.assert(obj_store);
-  this.obj_store = obj_store;
-
+  /**
+   * @final
+   */
+  this.store_name = store_name;
+  /**
+   * @final
+   */
+  this.index_name = index_name;
+  /**
+   * @final
+   */
   this.label = store_name + ':' + index_name;
 
-  this.cur = null;
-  
+  /**
+   * @final
+   */
   this.key_range = keyRange;
 
+  /**
+   * @final
+   */
   this.reverse = direction == ydn.db.base.Direction.PREV ||
     direction == ydn.db.base.Direction.PREV_UNIQUE;
 
-  this.dir = /** @type {number} */ (direction); // new standard is string.
+  /**
+   * @final
+   */
+  this.dir = direction;
 
+  /**
+   * @final
+   */
   this.key_only = key_only;
 
 };
+
+
+
+/**
+ * @protected
+ * @type {string|undefined}
+ */
+ydn.db.index.req.AbstractCursor.prototype.index_name = '';
+
+
+/**
+ * @protected
+ * @type {string}
+ */
+ydn.db.index.req.AbstractCursor.prototype.store_name = '';
+
+/**
+ * @protected
+ * @type {string}
+ */
+ydn.db.index.req.AbstractCursor.prototype.dir = '';
 
 
 /**

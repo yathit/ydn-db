@@ -122,7 +122,7 @@
         <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
                          input="${ydn-db.dir}/js/ydn/db/storage.js"
-                         output.fn="${ydn-db.dir}/jsc/ydn.db-${ver}.js"
+                         output.fn="${ydn-db.dir}/jsc/raw-ydn.db-${ver}.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
                 <arg line='-p "${ydn-base.dir}/js"'/>
@@ -134,8 +134,6 @@
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
             </options>
         </closure-compile>
-        <copy file="${ydn-db.dir}/jsc/ydn.db-${ver}.js"
-              tofile="${out.dir}/ydn-db.js"/>
     </target>
     <target name="compile-conn"
             description="generates compiled files for core">
@@ -178,7 +176,7 @@
                 input.dir="${ydn-db.dir}/js"
                 input.fn="${ydn-db.dir}/js/main.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="ydn.db-min-${ver}.js"
+                output.fn="ydn.db-${ver}.js"
                 closure.entry="ydn.db.Storage">
             <ex.opt>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
@@ -188,8 +186,6 @@
                 <arg line='-f "--define=ydn.db.base.ENABLE_ENCRYPTION=true"'/>
             </ex.opt>
         </adv-comp>
-        <copy file="${ydn-db.dir}/jsc/ydn.db-min-${ver}.js"
-              tofile="${out.dir}/ydn.db-min.js"/>
     </target>
     <target name="gen-all-test-js" description="generate all test js">
         <gen-js-test base.dir="${ydn-db.dir}/test"></gen-js-test>
