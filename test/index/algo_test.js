@@ -113,16 +113,16 @@ var match_animal = function(algo) {
   var solver, req;
   if (algo == 'nested') {
     solver = new ydn.db.algo.NestedLoop(out);
-    req = db.scan([q1, q2, q3], solver);
+
   } else if (algo == 'zigzag') {
     solver = new ydn.db.algo.ZigzagMerge(out);
-    req = db.scan([q1, q2, q3], solver);
+
   } else if (algo == 'sorted') {
     solver = new ydn.db.algo.SortedMerge(out);
-    req = db.join([q1, q2, q3], solver);
+
   }
 
-
+  req = db.join([q1, q2, q3], solver);
   req.addCallback(function (result) {
     //console.log(result);
     done = true;
@@ -178,14 +178,16 @@ var match_objs = function(algo) {
   var solver, req;
   if (algo == 'nested') {
     solver = new ydn.db.algo.NestedLoop(result_keys);
-    req = db.scan([q1, q2], solver);
+
   } else if (algo == 'zigzag') {
     solver = new ydn.db.algo.ZigzagMerge(result_keys);
-    req = db.scan([q1, q2], solver);
+
   } else if (algo == 'sorted') {
     solver = new ydn.db.algo.SortedMerge(result_keys);
-    req = db.join([q1, q2], solver);
+
   }
+
+  req = db.join([q1, q2], solver);
 
   req.addCallback(function (result) {
     //console.log(result);

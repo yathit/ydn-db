@@ -50,7 +50,7 @@ goog.inherits(ydn.db.index.req.IDBCursor, ydn.db.index.req.AbstractCursor);
 /**
  * @define {boolean}
  */
-ydn.db.index.req.IDBCursor.DEBUG = true;
+ydn.db.index.req.IDBCursor.DEBUG = false;
 
 
 /**
@@ -266,7 +266,7 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
     if (next_position === true) {
       this.cur['continue']();
     } else if (goog.isDefAndNotNull(next_position)) {
-      console.log('continuing to ' + next_position)
+      //console.log('continuing to ' + next_position)
       this.cur['continue'](next_position);
     } else {
       // notify that cursor iteration is finished.

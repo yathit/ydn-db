@@ -127,7 +127,7 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
 /**
  * @define {boolean}
  */
-ydn.db.Iterator.DEBUG = true;
+ydn.db.Iterator.DEBUG = false;
 
 
 /**

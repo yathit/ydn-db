@@ -156,7 +156,7 @@ ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
     }
   }
 
-  console.log([all_match, skip, highest_key, JSON.stringify(keys), JSON.stringify(cmps), JSON.stringify(advancement)]);
+  // console.log([all_match, skip, highest_key, JSON.stringify(keys), JSON.stringify(cmps), JSON.stringify(advancement)]);
 
   return advancement;
 };

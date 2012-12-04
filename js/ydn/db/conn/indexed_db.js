@@ -606,8 +606,13 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 
     for (var j = 0; j < store_schema.indexes.length; j++) {
       var index = store_schema.indexes[j];
+
+      this.logger.finest('Creating index: ' + index.name +
+        ' multiEntry: ' + index.multiEntry);
+
       if (index.unique || index.multiEntry) {
         var idx_options = {unique: index.unique, multiEntry: index.multiEntry};
+
         store.createIndex(index.name, index.keyPath, idx_options);
       } else {
         store.createIndex(index.name, index.keyPath);
