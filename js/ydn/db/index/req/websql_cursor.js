@@ -120,10 +120,12 @@ ydn.db.index.req.WebsqlCursor.prototype.cache_values_ = null;
  *
  * @param {*=} ini_key primary key to resume position.
  * @param {*=} ini_index_key index key to resume position.
- * @param {boolean=} inclusive
+ * @param {boolean=} exclusive
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_index_key, inclusive) {
+ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_index_key, exclusive) {
+
+  var label = this.store_name + ':' + this.index_name;
 
   this.cache_primary_keys_ = [];
   this.cache_keys_ = [];
@@ -162,7 +164,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
 
   var where_clause = ydn.db.Where.toWhereClause(column_name, key_range);
   if (where_clause.sql) {
-    sqls.push(where_clause.sql);
+    sqls.push('WHERE ' + where_clause.sql);
     params = params.concat(where_clause.params);
   }
 
@@ -220,21 +222,30 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
       me.current_value_ = me.cache_values_.shift();
       me.onSuccess(me.current_primary_key_, me.current_key_, me.current_value_);
     } else {
-      me.logger.finest('Iterator: ' + me.label + ' completed.');
+      me.logger.finest('Iterator: ' + label + ' completed.');
       me.onSuccess(undefined, undefined, undefined);
     }
 
   };
 
-  var onError = function (event) {
-    me.logger.warning('get error: ' + event.message);
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
+   */
+  var onError = function(tr, error) {
+    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+      window.console.log([sql, tr, error]);
+    }
+
+    me.logger.warning('get error: ' + error.message);
     me.onError(event);
     return true; // roll back
 
   };
 
   var sql = sqls.join(' ');
-  me.logger.finest('Iterator: ' + this.label + ' opened: ' + sql);
+  me.logger.finest('Iterator: ' + label + ' opened: ' + sql);
   this.tx.executeSql(sql, params, onSuccess, onError);
 
 };
@@ -248,35 +259,57 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
  */
 ydn.db.index.req.WebsqlCursor.prototype.forward = function (next_position) {
   //console.log(['next_position', cur, next_position]);
-
+  var label = this.store_name + ':' + this.index_name;
   if (next_position === false) {
     // restart the iterator
-    this.logger.finest('Iterator: ' + this.label + ' restarting.');
+    this.logger.finest('Iterator: ' + label + ' restarting.');
     this.open_request();
   } else if (this.hasCursor()) {
-    if (next_position === true && goog.isArray(this.cache_keys_)) {
-      //this.cur['continue']();
+    if (goog.isDefAndNotNull(next_position)) {
+      if (goog.isArray(this.cache_keys_) && this.cache_keys_.length > 0) {
+        if (next_position === true) {
+          //this.cur['continue']();
 
-      this.current_primary_key_ = this.cache_primary_keys_.shift();
-      this.current_key_ = this.cache_keys_.shift();
-      this.current_value_ = this.cache_values_.shift();
+          this.current_primary_key_ = this.cache_primary_keys_.shift();
+          this.current_key_ = this.cache_keys_.shift();
+          this.current_value_ = this.cache_values_.shift();
 
-      this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
+          this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
 
-    } else if (goog.isDefAndNotNull(next_position)) {
-      //console.log('continuing to ' + next_position)
-      //this.cur['continue'](next_position);
-      throw new ydn.error.NotImplementedException();
+        } else {
+          //console.log('continuing to ' + next_position)
+          do {
+            this.current_primary_key_ = this.cache_primary_keys_.shift();
+            this.current_key_ = this.cache_keys_.shift();
+            this.current_value_ = this.cache_values_.shift();
+            if (!goog.isDef(this.current_key_)) {
+              this.open_request(null, next_position);
+              return;
+            }
+            if (ydn.db.cmp(this.current_key_, next_position) == 0) {
+              this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
+              return;
+            }
+          } while (goog.isDefAndNotNull(this.current_primary_key_));
+          this.open_request(null, next_position);
+        }
+      } else {
+        if (next_position === true) {
+          this.open_request(this.current_primary_key_, this.current_key_, true);
+        } else {
+          this.open_request(null, next_position);
+        }
+      }
     } else {
       // notify that cursor iteration is finished.
       this.onSuccess(undefined, undefined, undefined);
       this.current_key_ = null;
       this.current_primary_key_ = null;
       this.current_value_ = null;
-      this.logger.finest('Cursor: ' + this.label + ' resting.');
+      this.logger.finest('Cursor: ' + label + ' resting.');
     }
   } else {
-    throw new ydn.error.InvalidOperationError('Iterator:' + this.label + ' cursor gone.');
+    throw new ydn.error.InvalidOperationError('Iterator:' + label + ' cursor gone.');
   }
 };
 

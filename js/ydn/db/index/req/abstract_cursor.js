@@ -26,10 +26,6 @@ ydn.db.index.req.AbstractCursor = function(store_name, index_name, keyRange,
    * @final
    */
   this.index_name = index_name;
-  /**
-   * @final
-   */
-  this.label = store_name + ':' + index_name;
 
   /**
    * @final
@@ -74,13 +70,6 @@ ydn.db.index.req.AbstractCursor.prototype.store_name = '';
  * @type {string}
  */
 ydn.db.index.req.AbstractCursor.prototype.dir = '';
-
-
-/**
- * @protected
- * @type {string}
- */
-ydn.db.index.req.AbstractCursor.prototype.label = '';
 
 
 /**
@@ -218,7 +207,7 @@ ydn.db.index.req.AbstractCursor.prototype.toString = function() {
     if (this.hasCursor()) {
       k = '[' + this.getPrimaryKey() + ':' + this.getKey() + ']';
     }
-    return 'Cursor:' + this.label + k;
+    return 'Cursor:' + this.store_name + ':' + this.index_name + k;
   } else {
     return goog.base(this, 'toString');
   }

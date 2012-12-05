@@ -713,7 +713,7 @@ ydn.db.index.TxStorage.prototype.reduce = function(iterator, callback, initial) 
     var key_only = iterator.isKeyOnly();
     var index = 0;
     cursor.onNext = function (primaryKey, key, value) {
-      if (goog.isDef(key)) {
+      if (goog.isDefAndNotNull(primaryKey)) {
         var current_value = key_only ? key : value;
         //console.log([previous, current_value, index]);
         previous = callback(previous, current_value, index++);
