@@ -6,7 +6,7 @@
  */
 
 
-goog.provide('ydn.db.events.ObjectStoreEvent');
+goog.provide('ydn.db.events.StoreEvent');
 goog.provide('ydn.db.events.StorageEvent');
 goog.provide('ydn.db.events.Types');
 
@@ -80,7 +80,9 @@ ydn.db.events.StorageEvent.prototype.message = '';
  * @extends {ydn.db.events.Event}
  * @constructor
  */
-ydn.db.events.ObjectStoreEvent = function(event_type, event_target, source) {
+ydn.db.events.StoreEvent = function(event_type, event_target, source) {
   goog.base(this, event_type, event_target, source);
 };
-goog.inherits(ydn.db.events.ObjectStoreEvent, ydn.db.events.Event);
+goog.inherits(ydn.db.events.StoreEvent, ydn.db.events.Event);
+
+

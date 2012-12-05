@@ -35,10 +35,11 @@ goog.require('ydn.json');
  * @see ydn.db.Storage for schema
  *
  * @param {number=} opt_size estimated database size.
+ * @param {number=} time_out connection time out.
  * @implements {ydn.db.con.IDatabase}
  * @constructor
  */
-ydn.db.con.IndexedDb = function(opt_size) {
+ydn.db.con.IndexedDb = function(opt_size, time_out) {
 
   if (goog.isDef(opt_size)) {
     // https://developers.google.com/chrome/whitepapers/storage#asking_more
@@ -56,6 +57,8 @@ ydn.db.con.IndexedDb = function(opt_size) {
   }
 
   this.idx_db_ = null;
+
+  this.time_out_ = time_out || 3*60*1000;
 
 };
 
@@ -360,20 +363,18 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
     setDb(null, ev);
   };
 
-  // extra checking whether, database is OK
-  if (goog.DEBUG || ydn.db.con.IndexedDb.DEBUG) {
-    var timer = new goog.Timer(1000);
-    timer.addEventListener(goog.Timer.TICK, function() {
+  // check for long database connection
+  if (goog.isNumber(this.time_out_)) {
+    goog.Timer.callOnce(function() {
       if (openRequest.readyState != 'done') {
         // what we observed is chrome attached error object to openRequest
         // but did not call any of over listening events.
         var msg = me + ': database state is still ' + openRequest.readyState;
         me.logger.severe(msg);
-      } else {
-        timer.stop();
-        timer.dispose();
+        setDb(null, new Error('connection timeout after ' + me.time_out_));
       }
-    });
+    }, this.time_out_);
+
   }
 
   return df;
@@ -403,6 +404,14 @@ ydn.db.con.IndexedDb.indexedDb = goog.global.indexedDB ||
  * @type {string}
  */
 ydn.db.con.IndexedDb.TYPE = 'indexeddb';
+
+
+/**
+ * Timeout.
+ * @type {number}
+ * @private
+ */
+ydn.db.con.IndexedDb.prototype.time_out_ = 3*60*1000;
 
 
 /**
