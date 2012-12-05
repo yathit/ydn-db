@@ -74,19 +74,6 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
 
 
 /**
- * Cursor scan iteration.
- * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
- * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
- * solver.
- * @param {!Array.<!ydn.db.Streamer>=} streamers streamers.
- * @return {!goog.async.Deferred} promise on completed.
- */
-ydn.db.index.Storage.prototype.join = function(iterators, solver, streamers) {
-  return this.default_tx_queue_.join(iterators, solver, streamers);
-};
-
-
-/**
  * Explain query plan.
  * @param {!ydn.db.Iterator} q
  * @return {Object} plan in JSON

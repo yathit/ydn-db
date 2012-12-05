@@ -239,7 +239,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
     }
 
     me.logger.warning('get error: ' + error.message);
-    me.onError(event);
+    me.onError(/** @type {Error} */ (error));
     return true; // roll back
 
   };

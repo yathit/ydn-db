@@ -63,8 +63,6 @@ goog.exportProperty(ydn.db.Sql.prototype, 'unique',
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
 
-goog.exportProperty(ydn.db.Storage.prototype, 'join',
-  ydn.db.Storage.prototype.join);
 goog.exportProperty(ydn.db.Storage.prototype, 'scan',
   ydn.db.Storage.prototype.scan);
 goog.exportProperty(ydn.db.Storage.prototype, 'map',
@@ -79,8 +77,7 @@ goog.exportProperty(ydn.db.Storage.prototype, 'setItem',
 goog.exportProperty(ydn.db.Storage.prototype, 'getItem',
     ydn.db.Storage.prototype.getItem);
 
-goog.exportProperty(ydn.db.TxStorage.prototype, 'join',
-  ydn.db.TxStorage.prototype.join);
+
 goog.exportProperty(ydn.db.TxStorage.prototype, 'scan',
   ydn.db.TxStorage.prototype.scan);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'map',

@@ -122,7 +122,7 @@ var match_animal = function(algo) {
 
   }
 
-  req = db.join([q1, q2, q3], solver);
+  req = db.scan([q1, q2, q3], solver);
   req.addCallback(function (result) {
     //console.log(result);
     done = true;
@@ -187,7 +187,7 @@ var match_objs = function(algo) {
 
   }
 
-  req = db.join([q1, q2], solver);
+  req = db.scan([q1, q2], solver);
 
   req.addCallback(function (result) {
     //console.log(result);
