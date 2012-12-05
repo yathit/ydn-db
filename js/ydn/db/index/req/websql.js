@@ -161,23 +161,12 @@ ydn.db.index.req.WebSql.prototype.getByIterator = goog.abstractMethod;
  * @inheritDoc
  */
 ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q) {
-  throw new ydn.error.NotImplementedException();
-//  var arr = [];
-//  //var mode = q.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY : ydn.db.base.CursorMode.READ_ONLY;
-//  var req = this.fetchCursor(q);
-//  req.onnext = function(key, value) {
-//    if (goog.isDef(key)) {
-//      arr.push(value);
-//      req.forward(true);
-//    } else {
-//      req.onnext = null;
-//      req.onerror = null;
-//      df.callback(arr);
-//    }
-//  };
-//  req.onerror = function(e) {
-//    df.errback(e);
-//  };
+
+  var arr = [];
+  //var mode = q.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY : ydn.db.base.CursorMode.READ_ONLY;
+
+  this.fetchIterator_(df, q);
+
 };
 
 
@@ -185,8 +174,9 @@ ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q) {
 /**
  * @param {!goog.async.Deferred} df return object in deferred function.
  * @param {!ydn.db.Iterator} q the query.
+ * @private
  */
-ydn.db.index.req.WebSql.prototype.fetchCursor = function(df, q) {
+ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q) {
 
   var me = this;
   var cursor = this.planQuery(q);
@@ -258,9 +248,8 @@ ydn.db.index.req.WebSql.prototype.fetchCursor = function(df, q) {
     return true; // roll back
   };
 
-  if (goog.DEBUG) {
-    this.logger.finest(this + ' SQL: ' + cursor.sql + ' PARAMS:' +
-        ydn.json.stringify(cursor.params));
+  if (ydn.db.index.req.WebSql.DEBUG) {
+    window.console.log([cursor.sql, ydn.json.stringify(cursor.params)]);
   }
   this.tx.executeSql(cursor.sql, cursor.params, callback, error_callback);
 
@@ -274,7 +263,7 @@ ydn.db.index.req.WebSql.prototype.fetchCursor = function(df, q) {
 ydn.db.index.req.WebSql.prototype.fetchQuery = function(df, q) {
 
   var cursor = q.toSqlQuery(this.schema);
-  this.fetchCursor(df, cursor);
+  this.fetchIterator_(df, cursor);
 };
 
 

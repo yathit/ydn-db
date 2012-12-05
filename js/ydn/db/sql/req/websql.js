@@ -253,7 +253,8 @@ ydn.db.index.req.WebSql.prototype.planQuery = function(query) {
   }
 
   var sql = new ydn.db.sql.req.SqlQuery(query.getStoreName(), query.getIndexName(),
-    ydn.db.KeyRange.clone(query.keyRange()));
+    ydn.db.KeyRange.clone(query.keyRange()),
+    query.isReversed(), query.isUnique(), query.isKeyOnly());
 
   var select = 'SELECT';
 
@@ -292,8 +293,7 @@ ydn.db.index.req.WebSql.prototype.planQuery = function(query) {
 
   // Note: IndexedDB key range result are always ordered.
   var dir = 'ASC';
-  if (sql.direction == ydn.db.base.Direction.PREV ||
-    sql.direction == ydn.db.base.Direction.PREV_UNIQUE) {
+  if (query.isReversed()) {
     dir = 'DESC';
   }
   var order = 'ORDER BY ' + column;

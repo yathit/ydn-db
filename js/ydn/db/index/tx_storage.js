@@ -93,9 +93,15 @@ ydn.db.index.TxStorage.prototype.get = function(arg1, arg2) {
      */
     var q = arg1;
     var q_store_name = q.getStoreName();
-    if (!this.schema.hasStore(q_store_name)) {
-      throw new ydn.error.ArgumentException('Store: ' +
-          q_store_name + ' not found.');
+    var store = this.schema.getStore(q_store_name);
+    if (!store) {
+      throw new ydn.error.ArgumentException('store "' +
+          q_store_name + '" not found.');
+    }
+    var index_name = q.getIndexName();
+    if (goog.isDef(index_name) && !store.hasIndex(index_name)) {
+      throw new ydn.error.ArgumentException('index "' +
+        index_name + '" not found in store "' + q_store_name + '".');
     }
     this.exec(function(executor) {
       executor.getByIterator(df, q);

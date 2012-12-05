@@ -49,7 +49,17 @@ ydn.db.index.req.IndexedDb.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.getByIterator = goog.abstractMethod;
+ydn.db.index.req.IndexedDb.prototype.getByIterator = function(df, q) {
+
+  var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
+  req.onError = function(e) {
+    df.errback(e);
+  };
+  req.onNext = function(key, primary_key, value) {
+    df.callback(q.isKeyOnly() ? key : value);
+
+  };
+};
 
 
 /**

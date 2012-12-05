@@ -122,7 +122,9 @@ ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
  * @param {*} key
  * @param {*} value
  */
-ydn.db.index.req.AbstractCursor.prototype.onSuccess = goog.abstractMethod;
+ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(primary_key, key, value) {
+  this.onNext(primary_key, key, value);
+};
 
 
 /**

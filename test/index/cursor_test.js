@@ -21,6 +21,8 @@ var setUp = function () {
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
+  ydn.db.index.req.WebSql.DEBUG = true;
+
   var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
   var typeIndex = new ydn.db.schema.Index('type', ydn.db.schema.DataType.TEXT, false);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
@@ -50,6 +52,34 @@ var setUp = function () {
 var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 
+};
+
+var test_getByIterator = function () {
+
+  var done;
+  var result;
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals(objs[1], result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var range = new ydn.db.KeyRange.only('a2');
+  var q = new ydn.db.ValueIterator(store_name, 'value', range);
+
+  db.get(q).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
 };
 
 
@@ -162,7 +192,7 @@ var test_21_list_index = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.Iterator(store_name, 'value');
+  var q = new ydn.db.ValueIterator(store_name, 'value');
 
   db.list(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -195,7 +225,7 @@ var test_22_list_index_rev = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.Iterator(store_name, 'value', null, true);
+  var q = new ydn.db.ValueIterator(store_name, 'value', null, true);
 
   db.list(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -226,7 +256,7 @@ var test_23_list_index_range = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.bound('a', 'b');
-  var q = new ydn.db.Iterator(store_name, 'value', range);
+  var q = new ydn.db.ValueIterator(store_name, 'value', range);
 
   db.list(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));

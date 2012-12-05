@@ -760,7 +760,6 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
    * @param primary_key
    * @param key
    * @param value
-   * @return {*}
    */
   primary_cursor.onSuccess = function(primary_key, key, value) {
 
