@@ -16,12 +16,12 @@ var setUp = function () {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
-  ydn.db.index.req.WebSql.DEBUG = true;
+  //ydn.db.index.req.WebSql.DEBUG = true;
 
   var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
   var typeIndex = new ydn.db.schema.Index('type', ydn.db.schema.DataType.TEXT, false);
@@ -163,6 +163,34 @@ var test_13_list_store_range = function () {
   var q = new ydn.db.Iterator(store_name, undefined, ydn.db.KeyRange.bound(1, 10));
 
   db.list(q).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+
+var test_15_list_limit = function () {
+
+  var done;
+  var result;
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertEquals('length', 3, result.length);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.Iterator(store_name);
+
+  db.list(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;

@@ -34,6 +34,7 @@ ydn.db.index.req.IRequestExecutor.prototype.getByIterator = goog.abstractMethod;
  * List record in a store.
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
+ * @param {number=} limit
  */
 ydn.db.index.req.IRequestExecutor.prototype.listByIterator = goog.abstractMethod;
 //

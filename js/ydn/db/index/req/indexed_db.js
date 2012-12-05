@@ -55,7 +55,7 @@ ydn.db.index.req.IndexedDb.prototype.getByIterator = function(df, q) {
   req.onError = function(e) {
     df.errback(e);
   };
-  req.onNext = function(key, primary_key, value) {
+  req.onNext = function(primary_key, key, value) {
     df.callback(q.isKeyOnly() ? key : value);
 
   };
@@ -239,16 +239,22 @@ ydn.db.index.req.IndexedDb.prototype.getTx = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q) {
+ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q, limit) {
   var arr = [];
   var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
   req.onError = function(e) {
     df.errback(e);
   };
-  req.onNext = function(key, primary_key, value) {
+  var count = 0;
+  req.onNext = function(primary_key, key, value) {
     if (goog.isDef(key)) {
+      count++;
       arr.push(q.isKeyOnly() ? key : value);
-      req.forward(true);
+      if (!goog.isDef(limit) || count < limit) {
+        req.forward(true);
+      } else {
+        df.callback(arr);
+      }
     } else {
       df.callback(arr);
     }

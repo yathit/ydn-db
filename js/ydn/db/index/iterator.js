@@ -857,7 +857,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
 
     if (match) {
       primary_cursor.onNext(primary_cursor.getPrimaryKey(),
-          primary_cursor.getKey(), primary_cursor.getValue());
+          primary_cursor.getIndexKey(), primary_cursor.getValue());
       // all cursors advance one step.
       // primary_cursor.forward(true); // onNext will invoke
       for (var i = 0; i < cursors.length; i++) {

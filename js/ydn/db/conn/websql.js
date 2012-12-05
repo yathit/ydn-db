@@ -539,10 +539,14 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
   if (!trans) {
     var me = this;
 
+    var tx_error_callback = function(e) {
+      me.logger.severe('opening tx: ' + e.message);
+      throw e;
+    };
+
     db.readTransaction(function(tx) {
         me.getSchema(callback, tx, db);
-      },
-      function(e) {throw e;}, success_callback);
+      }, tx_error_callback, success_callback);
 
     return;
   }
@@ -720,3 +724,43 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
 
 };
 
+
+/**
+ *
+ * @param {string} db_name
+ */
+ydn.db.con.WebSql.deleteDatabase = function(db_name) {
+  // WebSQL API does not expose deleting database. so we delete tables
+  var db = new ydn.db.con.WebSql();
+  var schema = new ydn.db.schema.EditableDatabase();
+  var df = db.connect(db_name, schema);
+
+  var on_completed = function(t, e) {
+    db.logger.info('all tables in ' + db_name + ' deleted.');
+  };
+
+  df.addCallback(function() {
+
+    db.doTransaction(function delete_tables(tx) {
+
+      db.getSchema(function get_schema(existing_schema) {
+        var n = existing_schema.count();
+        if (n > 0) {
+            for (var i = 0; i < n; i++) {
+              var store = existing_schema.store(i);
+              db.logger.finer('deleting table: ' + store.getName());
+              tx.executeSql('DROP TABLE ' + store.getQuotedName());
+            }
+        } else {
+          db.logger.info('no table to delete in ' + db_name);
+        }
+      }, tx);
+
+    }, [], ydn.db.base.TransactionMode.READ_WRITE, on_completed);
+
+
+  });
+  df.addErrback(function() {
+    db.logger.warning('Connecting ' + db_name + ' failed.');
+  });
+};

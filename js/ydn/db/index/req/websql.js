@@ -62,7 +62,23 @@ ydn.db.index.req.WebSql.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.getByIterator = goog.abstractMethod;
+ydn.db.index.req.WebSql.prototype.getByIterator = function(df, q) {
+
+  var qdf = new goog.async.Deferred();
+  this.fetchIterator_(qdf, q, 1);
+
+  qdf.addCallbacks(function(results) {
+    if (goog.isArray(results)) {
+      df.callback(results[0]);
+    } else {
+      df.callback();
+    }
+
+  }, function(e) {
+    df.errback(e);
+  })
+
+};
 
 ///**
 // *
@@ -160,12 +176,9 @@ ydn.db.index.req.WebSql.prototype.getByIterator = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q) {
+ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q, limit) {
 
-  var arr = [];
-  //var mode = q.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY : ydn.db.base.CursorMode.READ_ONLY;
-
-  this.fetchIterator_(df, q);
+  this.fetchIterator_(df, q, limit);
 
 };
 
@@ -174,12 +187,16 @@ ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q) {
 /**
  * @param {!goog.async.Deferred} df return object in deferred function.
  * @param {!ydn.db.Iterator} q the query.
+ * @param {number=} limit override limit.
  * @private
  */
-ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q) {
+ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit) {
 
   var me = this;
   var cursor = this.planQuery(q);
+  if (goog.isDef(limit)) {
+    cursor.sql += ' LIMIT ' + limit;
+  }
   var is_reduce = goog.isFunction(cursor.reduce);
   var store = this.schema.getStore(cursor.getStoreName());
 

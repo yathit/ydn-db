@@ -117,13 +117,24 @@ ydn.db.index.TxStorage.prototype.get = function(arg1, arg2) {
 /**
  * @inheritDoc
  */
-ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, offset, arg6) {
+ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6) {
 
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
-    if (goog.isDef(reverse) || goog.isDef(limit) || goog.isDef(offset)) {
+    if (goog.isDef(arg3) || goog.isDef(arg4) || goog.isDef(arg5)) {
       throw new ydn.error.ArgumentException('too many arguments.');
     }
+
+    var limit;
+    if (goog.isNumber(arg2)) {
+      limit = arg2;
+      if (limit < 1) {
+        throw new ydn.error.ArgumentException('limit must be a positive value');
+      }
+    } else if (goog.isDef(arg2)) {
+      throw new ydn.error.ArgumentException('limit');
+    }
+
     /**
      *
      * @type {!ydn.db.Iterator}
@@ -131,12 +142,12 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, reverse, limit, off
     var q = arg1;
 
     this.exec(function(executor) {
-      executor.listByIterator(df, q);
+      executor.listByIterator(df, q, /** @type {number|undefined} */ (limit));
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
     return df;
   } else {
-    return goog.base(this, 'list', arg1, arg2, reverse, limit, offset, arg6);
+    return goog.base(this, 'list', arg1, arg2, arg3, arg4, arg5, arg6);
   }
 
 };
@@ -668,10 +679,10 @@ ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
       df.errback(e);
     };
     cursor.onNext = function (cur) {
-      var i_cursor = new ydn.db.IDBValueCursor(cur, [], !read_write);
-      var adv = callback(i_cursor);
-      i_cursor.dispose();
-      cursor.forward(adv);
+      if (goog.isDefAndNotNull(cur)) {
+        var adv = callback(cursor);
+        cursor.forward(true);
+      }
     };
 
   }, iterator.stores(), tr_mode, 'open');

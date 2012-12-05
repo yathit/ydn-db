@@ -274,7 +274,7 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
       this.cur['continue'](next_position);
     } else {
       // notify that cursor iteration is finished.
-      this.onNext(undefined, undefined, undefined); // todo: should be onSuccess
+      this.onSuccess(undefined, undefined, undefined);
       this.logger.finest('Cursor: ' + label + ' resting.');
     }
   } else {
@@ -296,7 +296,7 @@ ydn.db.index.req.IDBCursor.prototype.hasCursor = function() {
  * @return {*} return current index key.
  * @override
  */
-ydn.db.index.req.IDBCursor.prototype.getKey = function() {
+ydn.db.index.req.IDBCursor.prototype.getIndexKey = function() {
   return this.cur.key;
 };
 
@@ -388,6 +388,27 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
     }
   } else {
     throw new ydn.db.InternalError(label + ' cursor gone.');
+  }
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.IDBCursor.prototype.update = function(record, index) {
+  var idx = goog.isDef(index) ? index : 0;
+  if (this.cur) {
+    var df = new goog.async.Deferred();
+    var req = this.cur.update(record);
+    req.onsuccess = function(x) {
+      df.callback(x);
+    };
+    req.onerror = function(e) {
+      df.errback(e);
+    };
+    return df;
+  } else {
+    throw new ydn.db.InvalidAccessError('cursor gone');
   }
 };
 

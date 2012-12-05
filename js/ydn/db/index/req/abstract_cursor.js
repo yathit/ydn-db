@@ -189,8 +189,7 @@ ydn.db.index.req.AbstractCursor.prototype.isRequestPending = function() {
  *
  * @return {*} primary key.
  */
-ydn.db.index.req.AbstractCursor.prototype.getKey = goog.abstractMethod;
-
+ydn.db.index.req.AbstractCursor.prototype.getIndexKey = goog.abstractMethod;
 
 
 /**
@@ -201,13 +200,29 @@ ydn.db.index.req.AbstractCursor.prototype.getValue = goog.abstractMethod;
 
 
 /**
+ *
+ * @param {number=} index
+ * @return {*} primary key.
+ */
+ydn.db.index.req.AbstractCursor.prototype.clear = goog.abstractMethod;
+
+
+/**
+ * @param {*} record value
+ * @param {number=} index
+ * @return {*} primary key.
+ */
+ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
+
+
+/**
  * @override
  */
 ydn.db.index.req.AbstractCursor.prototype.toString = function() {
   if (goog.DEBUG) {
     var k = '';
     if (this.hasCursor()) {
-      k = '[' + this.getPrimaryKey() + ':' + this.getKey() + ']';
+      k = '[' + this.getPrimaryKey() + ':' + this.getIndexKey() + ']';
     }
     return 'Cursor:' + this.store_name + ':' + this.index_name + k;
   } else {

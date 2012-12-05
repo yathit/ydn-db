@@ -327,7 +327,7 @@ ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
  * @return {*} return current index key.
  * @override
  */
-ydn.db.index.req.WebsqlCursor.prototype.getKey = function() {
+ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
   return this.current_key_;
 };
 

@@ -107,8 +107,7 @@ ydn.db.sql.req.WebSql.prototype.planQuery = function(query) {
 
   // Note: IndexedDB key range result are always ordered.
   var dir = 'ASC';
-  if (sql.direction == ydn.db.base.Direction.PREV ||
-    sql.direction == ydn.db.base.Direction.PREV_UNIQUE) {
+  if (query.isReversed()) {
     dir = 'DESC';
   }
   var order = 'ORDER BY ' + column;

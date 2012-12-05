@@ -49,14 +49,24 @@ ydn.db.index.Storage = function(opt_dbname, opt_schema, opt_options) {
 goog.inherits(ydn.db.index.Storage, ydn.db.core.Storage);
 
 
-
-
 /**
  * @override
  */
 ydn.db.index.Storage.prototype.newTxInstance = function(scope_name) {
   return new ydn.db.index.TxStorage(this, this.ptx_no++, scope_name,
     this.schema);
+};
+
+
+/**
+ *
+ * @param {!ydn.db.Iterator} iterator the cursor.
+ * @param {Function} callback icursor handler.
+ * @param {ydn.db.base.TransactionMode=} mode mode.
+ * @return {!goog.async.Deferred} promise on completed.
+ */
+ydn.db.index.Storage.prototype.open = function(iterator, callback, mode) {
+  return this.default_tx_queue_.open(iterator, callback, mode);
 };
 
 

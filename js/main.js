@@ -70,8 +70,8 @@ goog.exportProperty(ydn.db.Storage.prototype, 'map',
 goog.exportProperty(ydn.db.Storage.prototype, 'reduce',
   ydn.db.Storage.prototype.reduce);
 
-//goog.exportProperty(ydn.db.Storage.prototype, 'open',
-//    ydn.db.Storage.prototype.open);
+goog.exportProperty(ydn.db.Storage.prototype, 'open',
+    ydn.db.Storage.prototype.open);
 goog.exportProperty(ydn.db.Storage.prototype, 'setItem',
     ydn.db.Storage.prototype.setItem);
 goog.exportProperty(ydn.db.Storage.prototype, 'getItem',
@@ -85,13 +85,23 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'map',
 goog.exportProperty(ydn.db.TxStorage.prototype, 'reduce',
   ydn.db.TxStorage.prototype.reduce);
 
-//goog.exportProperty(ydn.db.TxStorage.prototype, 'open',
-//    ydn.db.TxStorage.prototype.open);
+goog.exportProperty(ydn.db.TxStorage.prototype, 'open',
+    ydn.db.TxStorage.prototype.open);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'setItem',
     ydn.db.TxStorage.prototype.setItem);
 goog.exportProperty(ydn.db.TxStorage.prototype, 'getItem',
     ydn.db.TxStorage.prototype.getItem);
 
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'getPrimaryKey',
+  ydn.db.index.req.IDBCursor.prototype.getPrimaryKey);
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'getIndexKey',
+  ydn.db.index.req.IDBCursor.prototype.getIndexKey);
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'getValue',
+  ydn.db.index.req.IDBCursor.prototype.getValue);
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'update',
+  ydn.db.index.req.IDBCursor.prototype.update);
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'clear',
+  ydn.db.index.req.IDBCursor.prototype.clear);
 
 goog.exportSymbol('ydn.math.Expression', ydn.math.Expression);
 goog.exportProperty(ydn.math.Expression.prototype, 'evaluate',

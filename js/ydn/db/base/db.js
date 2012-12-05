@@ -20,6 +20,7 @@
 
 goog.provide('ydn.db');
 goog.require('ydn.db.con.IndexedDb');
+goog.require('ydn.db.con.WebSql');
 goog.require('ydn.db.utils');
 
 
@@ -32,8 +33,7 @@ ydn.db.deleteDatabase = function(db_name) {
       ('deleteDatabase' in ydn.db.con.IndexedDb.indexedDb)) {
     ydn.db.con.IndexedDb.indexedDb.deleteDatabase(db_name);
   }
-  // WebSQL database cannot be deleted. TODO: clear
-  // TODO: clear localStorage
+  ydn.db.con.WebSql.deleteDatabase(db_name);
 };
 
 
