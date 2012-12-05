@@ -50,7 +50,7 @@
         </div>
         <div id="app-menu_bar-query">
             <span class="menu-title">Filter</span>
-            <span>By license:</span>
+            <span>License:</span>
             <select id="app-menu_bar-query-license">
                 <option value="" selected>None</option>
                 <option value="CC">CC</option>
@@ -59,14 +59,18 @@
                 <option value="NC">NC</option>
                 <option value="BY">BY</option>
             </select>
-            <span>By topic:</span>
+            <span>Publisher:</span>
+            <select id="app-menu_bar-query-publisher">
+                <option value="" selected>None</option>
+            </select>
+            <span>Topic:</span>
             <datalist id="app-menu_bar-query-topics-data">
 
             </datalist>
             <input type="text" id="app-menu_bar-query-topic" list="app-menu_bar-query-topics-data" />
-            <span>Publish after:</span>
+            <span>After:</span>
             <input id="app-menu_bar-query-publish-after"/>
-            <span>Publish before:</span>
+            <span>Before:</span>
             <input id="app-menu_bar-query-publish-before"/>
         </div>
         <div id="app-menu_bar-sort">
