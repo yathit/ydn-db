@@ -272,7 +272,7 @@ ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
       this.cur['continue'](next_position);
     } else {
       // notify that cursor iteration is finished.
-      this.onNext(undefined, undefined, undefined);
+      this.onNext(undefined, undefined, undefined); // todo: should be onSuccess
       this.logger.finest('Cursor: ' + this.label + ' resting.');
     }
   } else {

@@ -73,24 +73,27 @@ ydn.db.Where.toWhereClause = function (field, key_range) {
 
   var sql = '';
   var params = [];
-  var column = goog.string.quote(field);
-  if (ydn.db.Where.resolvedStartsWith(key_range)) {
-    sql = column + ' LIKE ?';
-    params.push(key_range.lower + '%');
-  } else if (key_range.lower == key_range.upper) {
-    sql = column + ' = ?';
-    params.push(key_range.lower);
-  } else {
-    if (goog.isDef(key_range.lower)) {
-      var lowerOp = key_range.lowerOpen ? ' > ' : ' >= ';
-      sql += ' ' + column + lowerOp + '?';
+  goog.asserts.assert(!goog.string.startsWith(field, '"'));
+  if (key_range) {
+    var column = goog.string.quote(field);
+    if (ydn.db.Where.resolvedStartsWith(key_range)) {
+      sql = column + ' LIKE ?';
+      params.push(key_range.lower + '%');
+    } else if (key_range.lower == key_range.upper) {
+      sql = column + ' = ?';
       params.push(key_range.lower);
-    }
-    if (goog.isDef(key_range.upper)) {
-      var upperOp = key_range.upperOpen ? ' < ' : ' <= ';
-      var and = sql.length > 0 ? ' AND ' : ' ';
-      sql += and + column + upperOp + '?';
-      params.push(key_range.upper);
+    } else {
+      if (goog.isDef(key_range.lower)) {
+        var lowerOp = key_range.lowerOpen ? ' > ' : ' >= ';
+        sql += ' ' + column + lowerOp + '?';
+        params.push(key_range.lower);
+      }
+      if (goog.isDef(key_range.upper)) {
+        var upperOp = key_range.upperOpen ? ' < ' : ' <= ';
+        var and = sql.length > 0 ? ' AND ' : ' ';
+        sql += and + column + upperOp + '?';
+        params.push(key_range.upper);
+      }
     }
   }
 

@@ -9,7 +9,8 @@ goog.require('ydn.db.index.req.AbstractCursor');
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {!IDBTransaction} tx object store.
+ * @param {SQLTransaction} tx object store.
+ * @param {ydn.db.schema.Store} store_schema schema.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
  * @param {IDBKeyRange} keyRange
@@ -20,13 +21,20 @@ goog.require('ydn.db.index.req.AbstractCursor');
  * @extends {ydn.db.index.req.AbstractCursor}
  * @constructor
  */
-ydn.db.index.req.WebsqlCursor = function(tx, store_name, index_name, keyRange,
+ydn.db.index.req.WebsqlCursor = function(tx, store_schema, store_name, index_name, keyRange,
                                    direction, key_only, ini_key, ini_index_key) {
   goog.base(this, store_name, index_name, keyRange,
       direction, key_only);
 
   goog.asserts.assert(tx);
   this.tx = tx;
+
+  goog.asserts.assert(store_schema);
+  this.store_schema_ = store_schema;
+
+  this.cache_primary_keys_ = null;
+  this.cache_keys_ = null;
+  this.cache_values_ = null;
 
   this.open_request(ini_key, ini_index_key);
 
@@ -50,9 +58,58 @@ ydn.db.index.req.WebsqlCursor.prototype.logger =
 
 /**
  * @private
- * @type {IDBTransaction}
+ * @type {SQLTransaction}
  */
 ydn.db.index.req.WebsqlCursor.prototype.tx;
+
+
+/**
+ *
+ * @type {ydn.db.schema.Store}
+ * @private
+ */
+ydn.db.index.req.WebsqlCursor.prototype.store_schema_ = null;
+
+
+/**
+ * 
+ * @type {*}
+ * @private
+ */
+ydn.db.index.req.WebsqlCursor.prototype.current_key_ = null;
+
+/**
+ *
+ * @type {*}
+ * @private
+ */
+ydn.db.index.req.WebsqlCursor.prototype.current_primary_key_ = null;
+
+/**
+ *
+ * @type {*}
+ * @private
+ */
+ydn.db.index.req.WebsqlCursor.prototype.current_value_ = null;
+
+
+/**
+ *
+ * @type {Array}
+ */
+ydn.db.index.req.WebsqlCursor.prototype.cache_keys_ = null;
+
+/**
+ *
+ * @type {Array}
+ */
+ydn.db.index.req.WebsqlCursor.prototype.cache_primary_keys_ = null;
+
+/**
+ *
+ * @type {Array}
+ */
+ydn.db.index.req.WebsqlCursor.prototype.cache_values_ = null;
 
 
 /**
@@ -67,6 +124,10 @@ ydn.db.index.req.WebsqlCursor.prototype.tx;
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_index_key, inclusive) {
+
+  this.cache_primary_keys_ = [];
+  this.cache_keys_ = [];
+  this.cache_values_ = [];
 
   var key_range = this.key_range;
   if (goog.isDefAndNotNull(ini_index_key)) {
@@ -89,145 +150,95 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var me = this;
   var request;
   var sqls = ['SELECT'];
+  var params = [];
+  var column_name = this.index_name ?
+    this.index_name : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  var q_column_name = goog.string.quote(column_name);
+  var primary_column_name = this.store_schema_.getColumnName();
+  var q_primary_column_name = goog.string.quote(primary_column_name);
   sqls.push(this.key_only ?
-      (this.index_name ? goog.string.quote(this.index_name) :
-          ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME) : '*');
+    q_column_name + ', ' + q_primary_column_name : '*');
   sqls.push('FROM ' + goog.string.quote(this.store_name));
-//
-//  if (this.key_only) {
-//    if (this.index_name) {
-//
-//      if (goog.isDefAndNotNull(this.dir)) {
-//        request = this.index.openKeyCursor(key_range, this.dir);
-//      } else if (goog.isDefAndNotNull(key_range)) {
-//        request = this.index.openKeyCursor(key_range);
-//      } else {
-//        request = this.index.openKeyCursor();
-//      }
-//    } else {
-//      //throw new ydn.error.InvalidOperationException(
-//      //    'object store cannot open for key cursor');
-//      // IDB v1 spec do not have openKeyCursor, hopefully next version does
-//      // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
-//      // however, lazy serailization used at least in FF.
-//      if (goog.isDefAndNotNull(this.dir)) {
-//        request = this.obj_store.openCursor(key_range, this.dir);
-//      } else if (goog.isDefAndNotNull(key_range)) {
-//        request = this.obj_store.openCursor(key_range);
-//        // some browser have problem with null, even though spec said OK.
-//      } else {
-//        request = this.obj_store.openCursor();
-//      }
-//
-//    }
-//  } else {
-//    if (this.index) {
-//      if (goog.isDefAndNotNull(this.dir)) {
-//        request = this.index.openCursor(key_range, this.dir);
-//      } else if (goog.isDefAndNotNull(key_range)) {
-//        request = this.index.openCursor(key_range);
-//      } else {
-//        request = this.index.openCursor();
-//      }
-//    } else {
-//      if (goog.isDefAndNotNull(this.dir)) {
-//        request = this.obj_store.openCursor(key_range, this.dir);
-//      } else if (goog.isDefAndNotNull(key_range)) {
-//        request = this.obj_store.openCursor(key_range);
-//        // some browser have problem with null, even though spec said OK.
-//      } else {
-//        request = this.obj_store.openCursor();
-//      }
-//    }
-//  }
-//  this.has_pending_request = true;
-//
-//  me.logger.finest('Iterator: ' + this.label + ' opened.');
-//
-////  var doNext = function (cur) {
-////    var adv;
-////    if (cur) {
-////      adv = me.onSuccess(cur.primaryKey, cur.key, cur.value);
-////    } else {
-////      adv = me.onSuccess(undefined, undefined, undefined);
-////    }
-////    if (adv === true) {
-////      cur['continue']();
-////    } else if (adv === false) {
-////      this.open_request(); // restart
-////    } else if (!goog.isDef(adv)) {
-////      if (cur) {
-////        me.onNext(cur.primaryKey, cur.key, cur.value);
-////      } else {
-////        me.onNext(undefined, undefined, undefined);
-////      }
-////    } else if (!goog.isNull(adv)) {
-////      me.seek(adv);
-////    } // adv === null don't do anything.
-////  };
-//
-//  request.onsuccess = function (event) {
-//    me.has_pending_request = false;
-//    var cur = (event.target.result);
-//    me.cur = cur;
-//    //console.log(['onsuccess', cur ? cur.key : undefined, cur ? cur.primaryKey : undefined, ini_key, ini_index_key]);
-//    if (cur) {
-//
-//      //var value = me.key_only ? cur.key : cur['value'];
-//
-//      if (goog.isDefAndNotNull(ini_index_key)) {
-//        var index_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cur.key, ini_index_key);
-//        if (index_cmp != 0) {
-//          // not in the range.
-//          ini_key = null;
-//          ini_index_key = null;
-//          //me.onNext(cur.primaryKey, cur.key, cur.value);
-//          me.onSuccess(cur.primaryKey, cur.key, cur.value);
-//          return;
-//        }
-//      }
-//      ini_index_key = null;
-//      if (goog.isDefAndNotNull(ini_key)) {
-//        var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_key, cur.primaryKey);
-//        if (primary_cmp == 0) {
-//          ini_key = null; // we got there.
-//          // me.onNext(cur.primaryKey, cur.key, cur.value);
-//          if (inclusive) {
-//            me.onSuccess(cur.primaryKey, cur.key, cur.value);
-//          } else {
-//            cur['continue'](); // resume point is exclusive
-//          }
-//        } else if ((primary_cmp == 1 && !me.reverse) || (primary_cmp == -1 && me.reverse)) {
-//          // the key we are looking is not yet arrive.
-//          cur['continue']();
-//        } else {
-//          // the seeking primary key is not in the range.
-//          ini_key = null; // we got there.
-//          //me.onNext(this.cur.key, cur.primaryKey, cur.value);
-//          me.onSuccess(cur.primaryKey, cur.key, cur.value);
-//        }
-//      } else {
-//        //me.onNext(cur.primaryKey, cur.key, cur.value);
-//        me.onSuccess(cur.primaryKey, cur.key, cur.value);
-//      }
-//
-//    } else {
-//      //me.onSuccess(undefined, undefined, undefined);
-//      ini_index_key = null;
-//      ini_key = null;
-//      me.logger.finest('Iterator: ' + me.label + ' completed.');
-//      // notify that cursor iteration is finished.
-//      //me.onNext(undefined, undefined, undefined);
-//      me.onSuccess(undefined, undefined, undefined);
-//    }
-//
-//  };
-//
-//  request.onError = function (event) {
-//    me.onError(event);
-//  };
+
+  var where_clause = ydn.db.Where.toWhereClause(column_name, key_range);
+  if (where_clause.sql) {
+    sqls.push(where_clause.sql);
+    params = params.concat(where_clause.params);
+  }
+
+  if (goog.isDefAndNotNull(ini_key)) {
+    if (where_clause.sql) {
+      sqls.push('AND ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
+      params.push(ini_key);
+    } else {
+      sqls.push('WHERE ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
+      params.push(ini_key);
+    }
+  }
+
+  var order = this.reverse ? 'DESC' : 'ASC';
+  sqls.push(' ORDER BY ' + q_column_name + ' ' + order);
+
+  if (this.key_only) {
+    sqls.push(' LIMIT ' + 100);
+  } else {
+    sqls.push(' LIMIT ' + 1);
+  }
+
+  this.has_pending_request = true;
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var onSuccess = function(transaction, results) {
+    me.has_pending_request = false;
+
+    var n = results.rows.length;
+
+    for (var i = 0; i < n; i++) {
+      var row = results.rows.item(i);
+      me.cache_primary_keys_[i] = ydn.db.schema.Index.sql2js(row[primary_column_name],
+        me.store_schema_.getType());
+      if (me.key_only) {
+        me.cache_keys_[i] = ydn.db.schema.Index.sql2js(row[column_name], me.store_schema_.getType());
+      } else if (goog.isDefAndNotNull(row)) {
+        me.cache_values_[i] = ydn.db.core.req.WebSql.parseRow(row, me.store_schema_);
+      }
+    }
+
+    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+      window.console.log(['onSuccess', n, results.rows,
+        me.cache_primary_keys_, me.cache_keys_, me.cache_values_]);
+    }
+
+    //console.log(['onsuccess', cur ? cur.key : undefined, cur ? cur.primaryKey : undefined, ini_key, ini_index_key]);
+    if (n > 0) {
+      //me.onNext(cur.primaryKey, cur.key, cur.value);
+      me.current_primary_key_ = me.cache_primary_keys_.shift();
+      me.current_key_ = me.cache_keys_.shift();
+      me.current_value_ = me.cache_values_.shift();
+      me.onSuccess(me.current_primary_key_, me.current_key_, me.current_value_);
+    } else {
+      me.logger.finest('Iterator: ' + me.label + ' completed.');
+      me.onSuccess(undefined, undefined, undefined);
+    }
+
+  };
+
+  var onError = function (event) {
+    me.logger.warning('get error: ' + event.message);
+    me.onError(event);
+    return true; // roll back
+
+  };
+
+  var sql = sqls.join(' ');
+  me.logger.finest('Iterator: ' + this.label + ' opened: ' + sql);
+  this.tx.executeSql(sql, params, onSuccess, onError);
 
 };
+
 
 
 /**
@@ -237,25 +248,36 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
  */
 ydn.db.index.req.WebsqlCursor.prototype.forward = function (next_position) {
   //console.log(['next_position', cur, next_position]);
-//
-//  if (next_position === false) {
-//    // restart the iterator
-//    this.logger.finest('Iterator: ' + this.label + ' restarting.');
-//    this.open_request();
-//  } else if (this.cur) {
-//    if (next_position === true) {
-//      this.cur['continue']();
-//    } else if (goog.isDefAndNotNull(next_position)) {
-//      //console.log('continuing to ' + next_position)
-//      this.cur['continue'](next_position);
-//    } else {
-//      // notify that cursor iteration is finished.
-//      this.onNext(undefined, undefined, undefined);
-//      this.logger.finest('Cursor: ' + this.label + ' resting.');
-//    }
-//  } else {
-//    throw new ydn.error.InvalidOperationError('Iterator:' + this.label + ' cursor gone.');
-//  }
+
+  if (next_position === false) {
+    // restart the iterator
+    this.logger.finest('Iterator: ' + this.label + ' restarting.');
+    this.open_request();
+  } else if (this.hasCursor()) {
+    if (next_position === true && goog.isArray(this.cache_keys_)) {
+      //this.cur['continue']();
+
+      this.current_primary_key_ = this.cache_primary_keys_.shift();
+      this.current_key_ = this.cache_keys_.shift();
+      this.current_value_ = this.cache_values_.shift();
+
+      this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
+
+    } else if (goog.isDefAndNotNull(next_position)) {
+      //console.log('continuing to ' + next_position)
+      //this.cur['continue'](next_position);
+      throw new ydn.error.NotImplementedException();
+    } else {
+      // notify that cursor iteration is finished.
+      this.onSuccess(undefined, undefined, undefined);
+      this.current_key_ = null;
+      this.current_primary_key_ = null;
+      this.current_value_ = null;
+      this.logger.finest('Cursor: ' + this.label + ' resting.');
+    }
+  } else {
+    throw new ydn.error.InvalidOperationError('Iterator:' + this.label + ' cursor gone.');
+  }
 };
 
 
@@ -263,7 +285,7 @@ ydn.db.index.req.WebsqlCursor.prototype.forward = function (next_position) {
  * @inheritDoc
  */
 ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
-  return false;
+  return goog.isDefAndNotNull(this.current_key_);
 };
 
 
@@ -273,7 +295,7 @@ ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
  * @override
  */
 ydn.db.index.req.WebsqlCursor.prototype.getKey = function() {
-  return null;
+  return this.current_key_;
 };
 
 
@@ -283,7 +305,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getKey = function() {
  * @override
  */
 ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function() {
-  return null;
+  return this.current_primary_key_;
 };
 
 
@@ -293,7 +315,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function() {
  * @override
  */
 ydn.db.index.req.WebsqlCursor.prototype.getValue = function() {
-  return null;
+  return this.current_value_;
 };
 
 
@@ -311,6 +333,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getValue = function() {
  */
 ydn.db.index.req.WebsqlCursor.prototype.seek = function(next_primary_key,
                                          next_index_key, inclusive) {
+  throw new ydn.error.NotImplementedException();
 //
 //  if (this.cur) {
 //    var value = this.key_only ? this.cur.key : this.cur['value'];

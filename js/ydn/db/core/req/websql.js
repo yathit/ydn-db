@@ -224,7 +224,6 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
       } else if (goog.isDefAndNotNull(row)) {
         arr[i] = ydn.db.core.req.WebSql.parseRow(row, store);
       }
-
     }
     df.callback(arr);
   };
