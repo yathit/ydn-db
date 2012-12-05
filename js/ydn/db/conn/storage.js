@@ -38,8 +38,6 @@ goog.require('ydn.db.events.StorageEvent');
 goog.require('ydn.db.schema.EditableDatabase');
 goog.require('ydn.error.ArgumentException');
 goog.require('ydn.object');
-goog.require('ydn.db.con.IdbCursorStream');
-
 
 
 /**

@@ -57,6 +57,18 @@ ydn.db.con.LocalStorage.prototype.type = function() {
 
 
 /**
+ *
+ * @param {string} db_name
+ */
+ydn.db.con.LocalStorage.deleteDatabase = function(db_name) {
+  var db = new ydn.db.con.LocalStorage();
+  var schema = new ydn.db.schema.EditableDatabase();
+  db.connect(db_name, schema);
+  db.removeItemInternal();
+};
+
+
+/**
  * @extends {ydn.db.con.SimpleStorage}
  * name and keyPath.
  * @constructor
@@ -88,6 +100,17 @@ ydn.db.con.SessionStorage.TYPE = 'sessionstorage';
  */
 ydn.db.con.SessionStorage.prototype.type = function() {
   return ydn.db.con.SessionStorage.TYPE;
+};
+
+/**
+ *
+ * @param {string} db_name
+ */
+ydn.db.con.SessionStorage.deleteDatabase = function(db_name) {
+  var db = new ydn.db.con.SessionStorage();
+  var schema = new ydn.db.schema.EditableDatabase();
+  db.connect(db_name, schema);
+  db.removeItemInternal();
 };
 
 
