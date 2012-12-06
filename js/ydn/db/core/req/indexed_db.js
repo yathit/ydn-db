@@ -135,6 +135,7 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(df, table, value, opt_k
   var store = this.tx.objectStore(table);
 
   var request;
+  // this try, catch should remove on production code.
   try {
     if (goog.isDef(opt_key)) {
       request = store.put(value, opt_key);

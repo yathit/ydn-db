@@ -192,7 +192,7 @@ var test_21_get_inline = function() {
   var db_name = 'test_crud_21_2';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
-  var key = Math.ceil(Math.random()*1000);
+  var key = Math.ceil(Math.random()*10000);
   var value = {id: key, value: 'a' + Math.random()};
 
   var done = false;
@@ -203,7 +203,7 @@ var test_21_get_inline = function() {
     function() { return done; },
     // Continuation
     function() {
-      assertEquals('length', value.value, result.value);
+      assertObjectEquals('value', value, result);
 
       reachedFinalContinuation = true;
     },
@@ -216,7 +216,7 @@ var test_21_get_inline = function() {
   });
 
   db.get(table_name, key).addCallback(function(value) {
-    //console.log('receiving value callback.');
+    console.log([key, value])
     result = value;
     done = true;
   }).addErrback(function(e) {
