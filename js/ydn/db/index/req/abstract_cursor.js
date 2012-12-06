@@ -96,7 +96,7 @@ ydn.db.index.req.AbstractCursor.prototype.key_only = true;
 
 /**
  *
- * @type {function(Error)}
+ * @type {function(*)}
  */
 ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
   throw e;

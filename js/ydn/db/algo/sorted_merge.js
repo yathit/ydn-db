@@ -31,7 +31,7 @@ goog.inherits(ydn.db.algo.SortedMerge, ydn.db.algo.AbstractSolver);
 /**
  * @define {boolean}
  */
-ydn.db.algo.SortedMerge.DEBUG = true;
+ydn.db.algo.SortedMerge.DEBUG = false;
 
 ///**
 // *
@@ -97,6 +97,9 @@ ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
   var base_key = keys[0];
 
   if (!goog.isDefAndNotNull(base_key)) {
+    if (ydn.db.algo.SortedMerge.DEBUG) {
+      window.console.log('SortedMerge: done.');
+    }
     return [];
   }
   var all_match = true; // let assume
@@ -127,8 +130,6 @@ ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
     }
   }
 
-
-
   if (all_match) {
     // we get a match, so looking forward to next key.
     // all other keys are rewind
@@ -140,11 +141,12 @@ ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
   } else if (skip) {
     // all jump to highest key position.
     for (var j = 0; j < keys.length; j++) {
-      cmp = ydn.db.cmp(highest_key, keys[j]);
-      if (cmp === 1) {
-        advancement[j] = highest_key;
-      } else {
-        advancement[j] = true;
+      if (goog.isDefAndNotNull(keys[j])) {
+        // we need to compare again, because intermediate highest
+        // key might get cmp value of 0, but not the highest key
+        if (ydn.db.cmp(highest_key, keys[j]) === 1) {
+          advancement[j] = highest_key;
+        }
       }
     }
   } else {
@@ -156,7 +158,14 @@ ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
     }
   }
 
-  // console.log([all_match, skip, highest_key, JSON.stringify(keys), JSON.stringify(cmps), JSON.stringify(advancement)]);
+  if (ydn.db.algo.SortedMerge.DEBUG) {
+    window.console.log('SortedMerge: match: ' + all_match +
+      ', skip: ' + skip +
+      ', highest_key: ' + JSON.stringify(highest_key) +
+      ', keys: ' + JSON.stringify(keys) +
+      ', cmps: ' + JSON.stringify(cmps) +
+      ', advancement: ' + JSON.stringify(advancement));
+  }
 
   return advancement;
 };

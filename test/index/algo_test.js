@@ -25,6 +25,7 @@ var setUp = function() {
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
+    ydn.db.algo.SortedMerge.DEBUG = true;
   }
 
   var indexSchema = new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT, false, true);
@@ -81,8 +82,6 @@ var tearDown = function() {
 var match_animal = function(algo) {
 
   var done;
-  var result_keys = [];
-  var result_values = [];
 
   waitForCondition(
     // Condition
@@ -91,9 +90,7 @@ var match_animal = function(algo) {
     },
     // Continuation
     function () {
-      assertEquals('number of result', 1, result_keys.length);
-      assertEquals('number of result value', 1, result_values.length);
-      assertEquals('result', 'cow', result_values[0]);
+      assertArrayEquals('result', ['cow'], out);
       reachedFinalContinuation = true;
 
     },
@@ -103,28 +100,21 @@ var match_animal = function(algo) {
   var q1 = ydn.db.Iterator.where('animals', 'color', '=', 'spots');
   var q2 = ydn.db.Iterator.where('animals', 'horn', '=', 1);
   var q3 = ydn.db.Iterator.where('animals', 'legs', '=', 4);
-  var out = new ydn.db.Streamer(db, 'animals', 'id');
-  out.setSink(function(key, value) {
-    console.log(['streamer', key, value]);
-    result_keys.push(key);
-    result_values.push(value);
-  });
+  var out = [];
 
   var solver, req;
   if (algo == 'nested') {
     solver = new ydn.db.algo.NestedLoop(out);
-
   } else if (algo == 'zigzag') {
     solver = new ydn.db.algo.ZigzagMerge(out);
-
   } else if (algo == 'sorted') {
     solver = new ydn.db.algo.SortedMerge(out);
-
   }
 
   req = db.scan([q1, q2, q3], solver);
   req.addCallback(function (result) {
     //console.log(result);
+
     done = true;
   });
   req.addErrback(function (e) {
@@ -173,7 +163,6 @@ var match_objs = function(algo) {
 
   var q1 = ydn.db.Iterator.where(store_name, 'x', '=', 1);
   var q2 = ydn.db.Iterator.where(store_name, 'tag', '=', 'b');
-
 
   var solver, req;
   if (algo == 'nested') {

@@ -35,7 +35,7 @@ goog.require('ydn.error.ArgumentException');
 /**
  * Create an iterator object.
  * @param {!string} store store name.
- * @param {string=} index store field, where key query is preformed. If not
+ * @param {(!Array.<string>|string)=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange)=} keyRange
  * configuration in json or native format. Alternatively key range
@@ -51,7 +51,12 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   if (!goog.isString(store)) {
     throw new ydn.error.ArgumentException('store');
   }
-  if (goog.isDef(index) && !goog.isString(index)) {
+  var idx;
+  if (goog.isArray(index)) {
+    idx = index.join(', ');
+  } else if (goog.isString(index)) {
+    idx = index;
+  } else if (goog.isDef(index)) {
     throw new ydn.error.ArgumentException('index');
   }
   if (arguments.length > 6) {
@@ -62,11 +67,12 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
    * @final
    */
   this.store_name = store;
+
   /**
    * Indexed field.
    * @final
    */
-  this.index = index;
+  this.index = idx;
 
   this.key_only_ = goog.isDef(key_only) ? key_only :
       !!(goog.isString(this.index));
@@ -133,7 +139,7 @@ ydn.db.Iterator.DEBUG = false;
 /**
  * Create an iterator object.
  * @param {!string} store store name.
- * @param {string=} index store field, where key query is preformed. If not
+ * @param {(!Array.<string>|string)=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange)=} keyRange
  * configuration in json or native format. Alternatively key range
@@ -152,7 +158,7 @@ goog.inherits(ydn.db.KeyIterator, ydn.db.Iterator);
 /**
  * Create an iterator object.
  * @param {!string} store store name.
- * @param {string=} index store field, where key query is preformed. If not
+ * @param {(!Array.<string>|string)=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
  * @param {(!KeyRangeJson|ydn.db.KeyRange|!ydn.db.IDBKeyRange)=} keyRange
  * configuration in json or native format. Alternatively key range
@@ -434,6 +440,7 @@ ydn.db.Iterator.where = function(store_name, field, op, value, op2, value2) {
   var key_range = new ydn.db.Where(field, op, value, op2, value2);
   return new ydn.db.Iterator(store_name, field, key_range);
 };
+
 
 
 /**
