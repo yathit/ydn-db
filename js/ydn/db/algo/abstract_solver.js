@@ -65,12 +65,13 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback){
 
 
 /**
- *
+ * Push the result if all keys match.
+ * @param {!Array} advance
  * @param {!Array} keys input values.
  * @param {!Array} values output values.
- * @return {!Array} next positions.
+ * @protected
  */
-ydn.db.algo.AbstractSolver.prototype.adapter = function (keys, values) {
+ydn.db.algo.AbstractSolver.prototype.pusher = function (advance, keys, values) {
 
   var has_key = goog.isDefAndNotNull(keys[0]);
   var match_key = keys[0];
@@ -96,11 +97,7 @@ ydn.db.algo.AbstractSolver.prototype.adapter = function (keys, values) {
     }
   }
 
-  if (has_key) {
-    return this.solver(keys, values, []);
-  } else {
-    return [];
-  }
+  return advance;
 };
 
 
@@ -108,11 +105,9 @@ ydn.db.algo.AbstractSolver.prototype.adapter = function (keys, values) {
  *
  * @param {!Array} input input values.
  * @param {!Array} output output values.
- * @param {!Array} constrain constrain results.
  * @return {!Array} next positions.
- * @protected
  */
-ydn.db.algo.AbstractSolver.prototype.solver = function(input, output, constrain) {
+ydn.db.algo.AbstractSolver.prototype.solver = function(input, output) {
   return [];
 };
 

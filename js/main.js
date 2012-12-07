@@ -11,7 +11,6 @@ goog.require('ydn.db.algo.ZigzagMerge');
 goog.require('ydn.db.algo.SortedMerge');
 
 
-goog.exportSymbol('ydn.db.Iterator', ydn.db.Iterator);
 goog.exportSymbol('ydn.db.KeyIterator', ydn.db.KeyIterator);
 goog.exportSymbol('ydn.db.ValueIterator', ydn.db.ValueIterator);
 goog.exportProperty(ydn.db.Iterator.prototype, 'continued',
@@ -38,6 +37,8 @@ goog.exportProperty(ydn.db.Iterator.prototype, 'key',
   ydn.db.Iterator.prototype.key);
 goog.exportProperty(ydn.db.Iterator.prototype, 'resume',
   ydn.db.Iterator.prototype.resume);
+goog.exportProperty(ydn.db.Iterator.prototype, 'reset',
+  ydn.db.Iterator.prototype.reset);
 
 
 goog.exportSymbol('ydn.db.Sql', ydn.db.Sql);

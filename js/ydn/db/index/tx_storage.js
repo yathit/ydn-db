@@ -455,7 +455,7 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
       // all cursor has results, than sent to join algorithm callback.
       var out;
       if (solver instanceof ydn.db.algo.AbstractSolver) {
-        out = solver.adapter(keys, values);
+        out = solver.solver(keys, values);
       } else {
         out = solver(keys, values);
       }

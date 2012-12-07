@@ -45,13 +45,15 @@ var setUp = function() {
 
 
   objs = [
-    {id: 0, value: Math.random(), x: 1, tag: ['a', 'b']},
-    {id: 1, value: Math.random(), x: 2, tag: 'a'},
-    {id: 2, value: Math.random(), x: 2, tag: ['a', 'b']},
-    {id: 3, value: Math.random(), x: 3, tag: 'b'},
-    {id: 4, value: Math.random(), x: 1, tag: ['b', 'c', 'd']},
-    {id: 5, value: Math.random(), x: 1, tag: ['c']},
-    {id: 6, value: Math.random(), x: 1}
+    {id: 0, value: 21, x: 1, tag: ['a', 'b']},
+    {id: 1, value: 22, x: 2, tag: 'a'},
+    {id: 2, value: 23, x: 2, tag: ['a', 'b']},
+    {id: 3, value: 11, x: 3, tag: 'b'},
+    {id: 4, value: 12, x: 1, tag: ['b', 'c', 'd']},
+    {id: 5, value: 13, x: 1, tag: ['c']},
+    {id: 6, value: 31, x: 1},
+    {id: 7, value: 32, x: 1, tag: ['b']},
+    {id: 7, value: 33, x: 1, tag: ['b']}
   ];
 
   db.put(store_name, objs).addCallback(function (value) {
@@ -105,8 +107,6 @@ var match_animal = function(algo) {
   var solver, req;
   if (algo == 'nested') {
     solver = new ydn.db.algo.NestedLoop(out);
-  } else if (algo == 'zigzag') {
-    solver = new ydn.db.algo.ZigzagMerge(out);
   } else if (algo == 'sorted') {
     solver = new ydn.db.algo.SortedMerge(out);
   }
@@ -129,11 +129,6 @@ var test_nested_loop_1 = function () {
 };
 
 
-var test_zigzag_merge_1 = function () {
-  match_animal('zigzag');
-};
-
-
 
 var test_sorted_merge_1 = function () {
   match_animal('sorted');
@@ -145,7 +140,8 @@ var match_objs = function(algo) {
 
   var done;
   var result_keys = [];
-  var results = [0, 4];
+  // sorted by primary key
+  var results = [0, 4, 7];
 
   waitForCondition(
     // Condition
@@ -194,13 +190,57 @@ var test_nested_loop_2 = function () {
 };
 
 
-var test_zigzag_merge_2 = function () {
-  match_objs('zigzag');
+var test_sorted_merge_2 = function () {
+  match_objs('sorted');
 };
 
 
-var test_sorted_merge_2 = function () {
-  match_objs('sorted');
+
+var ordered_join = function(algo) {
+
+  var done;
+  var result_keys = [];
+  // sorted by 'value'
+  var results = [0, 7, 4];
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('result', results, result_keys);
+      reachedFinalContinuation = true;
+
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q0 = new ydn.db.KeyIterator(store_name, 'value');
+  var q1 = ydn.db.Iterator.where(store_name, 'x', '=', 1);
+  var q2 = ydn.db.Iterator.where(store_name, 'tag', '=', 'b');
+
+  var solver, req;
+  if (algo == 'zigzag') {
+    solver = new ydn.db.algo.ZigzagMerge(result_keys);
+  }
+
+  req = db.scan([q0, q1, q2], solver);
+
+  req.addCallback(function (result) {
+    //console.log(result);
+    done = true;
+  });
+  req.addErrback(function (e) {
+    console.log(e);
+    done = true;
+  });
+};
+
+
+var test_ordered_join_zigzag_merge = function() {
+  ordered_join('zigzag');
 };
 
 

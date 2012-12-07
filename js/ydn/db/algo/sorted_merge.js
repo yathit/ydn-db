@@ -78,19 +78,16 @@ ydn.db.algo.SortedMerge.prototype.begin = function(iterators, callback) {
 
 
 /**
- * @inheritDoc
+ * Sorted join algorithm.
+ * @param {Array} keys keys.
+ * @return {{
+    advance: !Array,
+    highest_key: *,
+    all_match: boolean,
+    skip: boolean
+  }} sorted results.
  */
-ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
-
-  //console.log(['scanning', keys]);
-//  // we keep starting keys so that we know the minimum (or maximum) of the key.
-//  if (this.sorted_ && !this.starting_keys_) {
-//    this.starting_keys_ = [];
-//    for (var i = 0; i < keys.length; i++) {
-//      this.starting_keys_[i] = goog.isArray(keys[i]) ?
-//          goog.array.clone(keys[i]) : keys[i];
-//    }
-//  }
+ydn.db.algo.SortedMerge.sort = function(keys) {
 
   var advancement = [];
 
@@ -100,7 +97,12 @@ ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
     if (ydn.db.algo.SortedMerge.DEBUG) {
       window.console.log('SortedMerge: done.');
     }
-    return [];
+    return  {
+      advance: [],
+      highest_key: null,
+      all_match: false,
+      skip: false
+    };
   }
   var all_match = true; // let assume
   var skip = false;     // primary_key must be skip
@@ -167,5 +169,21 @@ ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
       ', advancement: ' + JSON.stringify(advancement));
   }
 
-  return advancement;
+  return {
+    advance: advancement,
+    highest_key: highest_key,
+    all_match: all_match,
+    skip: skip
+  }
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
+
+  var sort_result = ydn.db.algo.SortedMerge.sort(keys);
+
+  return this.pusher(sort_result.advance, keys, values);
 };

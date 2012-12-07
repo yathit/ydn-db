@@ -76,5 +76,9 @@ ydn.db.algo.NestedLoop.prototype.solver = function (keys, values) {
     window.console.log([keys, values, advancement]);
   }
 
-  return all_restarting ? [] : advancement;
+  if (all_restarting) {
+    advancement = [];
+  }
+
+  return this.pusher(advancement, keys, values);
 };

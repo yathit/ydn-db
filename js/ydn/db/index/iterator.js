@@ -919,3 +919,18 @@ ydn.db.Iterator.prototype.iterate = function(executor) {
   }
 };
 
+
+/**
+ * Reset the state.
+ */
+ydn.db.Iterator.prototype.reset = function() {
+  if (this.getState() == ydn.db.Iterator.State.WORKING) {
+    throw new ydn.error.InvalidOperationError(ydn.db.Iterator.State.WORKING);
+  }
+  this.counter = 0;
+  this.store_key = undefined;
+  this.index_key = undefined;
+  this.has_done = undefined;
+
+};
+
