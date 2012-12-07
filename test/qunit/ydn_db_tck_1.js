@@ -1,8 +1,9 @@
 
-ydn.debug.log('ydn.db', 100);
+//ydn.debug.log('ydn.db', 100);
 
+var db;
 var options = {}; // options = {Mechanisms: ['websql']};
-var db_name_tck1 = "qunit_test_12";
+var db_name_tck1 = "tck_test_1_1";
 var store_inline = "ts";    // in-line key store
 var store_inline_string = "tss";    // in-line key store
 var store_outline = "ts2"; // out-of-line key store
@@ -17,6 +18,7 @@ var data_1a = { test:"test value", name:"name 1", id: ['a', 'b']};
 var data_2 = { test:"test value", name:"name 2" };
 var gdata_1 = { test:"test value", name:"name 3", id: {$t: 1} };
 
+// schema without auto increment
 var schema_1 = {
   stores: [
     {
@@ -34,47 +36,31 @@ var schema_1 = {
       name: store_outline_string,
       type: 'TEXT'},
     {
-      name: store_inline_auto,
-      keyPath: 'id',
-      autoIncrement: true,
-      type: 'INTEGER'},
-    {
-      name: store_outline_auto,
-      autoIncrement: true},
-    {
       name: store_nested_key,
       keyPath: 'id.$t', // gdata style key.
       type: 'NUMERIC'}
-
   ]
 };
 
-var initionalizeDB = function(callback, opt_put_schema) {
-  ydn.db.deleteDatabase(db_name_tck1);
-  setTimeout(function() {
-    opt_put_schema = opt_put_schema || schema_1;
-    var db = new ydn.db.Storage(db_name_tck1, opt_put_schema);
-    callback(db);
-  }, 100);
-};
 
 
 module("Put", {
-  tearDown: function() {
-    //ydn.db.deleteDatabase(db_name_tck1);
+  setup: function() {
+    db = new ydn.db.Storage('tck1_put', schema_1);
+  },
+  teardown: function() {
+    db.close();
+    //ydn.db.deleteDatabase(db.getName());
   }
 });
 
 
-asyncTest("data", function () {
+asyncTest("single data", function () {
   expect(1);
-
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
 
   db.put(store_inline, data_1).then(function () {
     ok(true, "data inserted");
     start();
-    db.close();
   }, function (e) {
     ok(false, e.message);
     start();
@@ -83,26 +69,10 @@ asyncTest("data", function () {
 });
 
 
-asyncTest("array data", function () {
-  expect(2);
-
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
-
-  db.put(store_inline, data_1a).then(function (x) {
-    console.log('got it');
-    ok('length' in x, "array key");
-    deepEqual(data_1a.id, x, 'same key');
-    start();
-  }, function (e) {
-    ok(false, e.message);
-    start();
-  });
-
-});
 
 
 asyncTest("data with off-line-key", function () {
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
+
   expect(2);
 
   var key = Math.random();
@@ -117,50 +87,9 @@ asyncTest("data with off-line-key", function () {
 
 });
 
-asyncTest("inline-key autoincrement", function () {
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
-  expect(2);
-
-  db.put(store_inline_auto, data_1).then(function (x) {
-    equal(data_1.id, x, 'key');
-    db.put(store_inline_auto, data_2).then(function (x) {
-      ok(x > data_1.id, 'key 2 greater than data_1 key');
-      start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
-    });
-  }, function (e) {
-    ok(false, e.message);
-    start();
-  });
-
-});
-
-asyncTest("offline-key autoincrement", function () {
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
-  expect(2);
-
-  db.put(store_outline_auto, data_1).then(function (x) {
-    ok(true, 'no key data insert ok');
-    var key = x;
-    // add same data.
-    db.put(store_outline_auto, data_1).then(function (x) {
-      ok(x > key, 'key 2 greater than previous key');
-      start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
-    });
-  }, function (e) {
-    ok(false, e.message);
-    start();
-  });
-});
-
 
 asyncTest("nested key", function () {
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
+
   expect(1);
 
   db.put(store_nested_key, gdata_1).then(function (x) {
@@ -176,11 +105,12 @@ asyncTest("nested key", function () {
 
 
 module("Get", {
-  setUp: function() {
-    //var db = new ydn.db.Storage(db_name_get);
+  setup: function() {
+    db = new ydn.db.Storage('tck1-get-2', schema_1);
   },
-  tearDown: function() {
-    ydn.db.deleteDatabase(db_name_tck1);
+  teardown: function() {
+    db.close();
+    //ydn.db.deleteDatabase(db_name_tck1);
   }
 });
 
@@ -188,7 +118,6 @@ module("Get", {
 asyncTest("inline-line number key", function () {
   expect(1);
 
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
   var value_1 = 'test ' + Math.random();
   db.put(store_inline, {id: 1, value: value_1});
   db.get(store_inline, 1).then(function (x) {
@@ -204,7 +133,6 @@ asyncTest("inline-line number key", function () {
 asyncTest("inline-line string key", function () {
   expect(1);
 
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
   var value_1 = Math.random();
   db.put(store_inline_string, {id: 'a', value: value_1});
   db.get(store_inline_string, 'a').then(function (x) {
@@ -220,7 +148,6 @@ asyncTest("inline-line string key", function () {
 asyncTest("outoff-line number key", function () {
   expect(2);
 
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
   var value_1 = 'test ' + Math.random();
   var key_in = Math.random();
   db.put(store_outline, {abc: value_1}, key_in).then(function(key) {
@@ -242,7 +169,6 @@ asyncTest("outoff-line number key", function () {
 asyncTest("outoff-line string key", function () {
   expect(2);
 
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
   var value_1 = 'test ' + Math.random();
   var key_in = 'id' + Math.random();
   db.put(store_outline_string, {abc: value_1}, key_in).then(function(key) {
@@ -265,7 +191,6 @@ asyncTest("outoff-line string key", function () {
 
 
 asyncTest("nested key", function () {
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
   expect(1);
 
   db.put(store_nested_key, gdata_1);
@@ -280,11 +205,12 @@ asyncTest("nested key", function () {
 });
 
 module("List", {
-  setUp: function() {
-    //var db = new ydn.db.Storage(db_name_get);
+  setup: function() {
+    db = new ydn.db.Storage('tck1-list', schema_1);
   },
-  tearDown: function() {
-    ydn.db.deleteDatabase(db_name_tck1);
+  teardown: function() {
+    db.close();
+    //ydn.db.deleteDatabase(db_name_tck1);
   }
 });
 
@@ -292,7 +218,6 @@ module("List", {
 asyncTest("inline-line key objects", function () {
   expect(3);
 
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
   var value_1 = 'test ' + Math.random();
   var value_2 = 'test ' + Math.random();
   db.put(store_inline, {id: 1, value: value_1});
@@ -315,7 +240,6 @@ asyncTest("inline-line key objects", function () {
 asyncTest("out-of-line key objects", function () {
   expect(4);
 
-  var db = new ydn.db.Storage(db_name_tck1, schema_1);
   var value_1 = 'get test ' + Math.random();
   var value_2 = 'get test ' + Math.random();
   db.put(store_outline, [{d: value_1}, {e: value_2}], ['a', 'b']).then(function(keys) {
@@ -336,22 +260,94 @@ asyncTest("out-of-line key objects", function () {
 
 });
 
+var keys_inline = [1, 2, 10, 20, 100];
+var keys_inline_string = ['ab1', 'ab2', 'ac1', 'ac2', 'b'];
 
-module("Count", {
-  setUp: function() {
-    //var db = new ydn.db.Storage(db_name_get);
+module("Keys", {
+  setup: function() {
+    db = new ydn.db.Storage('tck1-keys', schema_1);
+    var inline_data = keys_inline.map(function(x) {return {id: x}});
+    var inline_string_data = keys_inline_string.map(function(x) {return {id: x}});
+    db.put(store_inline_string, inline_string_data);
+    db.put(store_inline, inline_data).then(function(keys) {
+      console.log('tck1-keys db ready.');
+    }, function(e) {
+      throw e;
+    })
   },
-  tearDown: function() {
-    ydn.db.deleteDatabase(db_name_tck1);
+  teardown: function() {
+    db.close();
+    //ydn.db.deleteDatabase(db_name_tck1);
   }
 });
 
+asyncTest("get integer keys from a store", function () {
+  expect(1);
+
+  db.keys(store_inline).then(function (keys) {
+    deepEqual(keys_inline, keys, 'key length');
+    start();
+  }, function (e) {
+    throw e;
+  });
+});
+
+
+asyncTest("get keys from a store - reverse", function () {
+  expect(1);
+
+  db.keys(store_inline, true).then(function (keys) {
+    keys.reverse();
+    deepEqual(keys_inline, keys, 'keys');
+    start();
+  }, function (e) {
+    throw e;
+  });
+});
+
+asyncTest("get keys limit", function () {
+  expect(2);
+
+  db.keys(store_inline, false, 2).then(function (keys) {
+    equal(2, keys.length, 'key length');
+    deepEqual(keys_inline.slice(0,2), keys, 'keys');
+    start();
+  }, function (e) {
+    throw e;
+  });
+
+});
+
+
+asyncTest("get keys limit offset", function () {
+  expect(1);
+
+  db.keys(store_inline, false, 2, 1).then(function (keys) {
+    deepEqual(keys_inline.slice(1,3), keys, 'keys');
+    start();
+  }, function (e) {
+    throw e;
+  });
+
+});
+
+
 var db_count = 'ydn_db_tck1_count_1';
+
+module("Count", {
+  setup: function() {
+    db = new ydn.db.Storage(db_count, schema_1);
+  },
+  teardown: function() {
+    db.close();
+    //ydn.db.deleteDatabase(db_name_tck1);
+  }
+});
+
 
 asyncTest("store", function () {
   expect(2);
 
-  var db = new ydn.db.Storage(db_count, schema_1);
   db.clear(store_outline);
   var value_1 = 'get test ' + Math.random();
   var value_2 = 'get test ' + Math.random();

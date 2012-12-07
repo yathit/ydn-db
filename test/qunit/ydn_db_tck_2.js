@@ -58,6 +58,91 @@ var initionalizeDB = function(callback, opt_put_schema) {
   }, 100);
 };
 
+module("Put", {
+  tearDown: function() {
+    //ydn.db.deleteDatabase(db_name_tck1);
+  }
+});
+
+
+asyncTest("single data - array key", function () {
+  expect(2);
+
+  db.put(store_inline, data_1a).then(function (x) {
+    console.log('got it');
+    ok('length' in x, "array key");
+    deepEqual(data_1a.id, x, 'same key');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+asyncTest("inline-key autoincrement", function () {
+  var db = new ydn.db.Storage(store_inline, schema_1);
+  expect(2);
+
+  db.put(store_inline_auto, data_1).then(function (x) {
+    equal(data_1.id, x, 'key');
+    db.put(store_inline_auto, data_2).then(function (x) {
+      ok(x > data_1.id, 'key 2 greater than data_1 key');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+
+asyncTest("inline-key autoincrement", function () {
+  var db = new ydn.db.Storage(db_name_tck1, schema_1);
+  expect(2);
+
+  db.put(store_inline_auto, data_1).then(function (x) {
+    equal(data_1.id, x, 'key');
+    db.put(store_inline_auto, data_2).then(function (x) {
+      ok(x > data_1.id, 'key 2 greater than data_1 key');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+asyncTest("offline-key autoincrement", function () {
+  var db = new ydn.db.Storage(db_name_tck1, schema_1);
+  expect(2);
+
+  db.put(store_outline_auto, data_1).then(function (x) {
+    ok(true, 'no key data insert ok');
+    var key = x;
+    // add same data.
+    db.put(store_outline_auto, data_1).then(function (x) {
+      ok(x > key, 'key 2 greater than previous key');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+});
+
+
 
 module("Count", {
   setUp: function() {

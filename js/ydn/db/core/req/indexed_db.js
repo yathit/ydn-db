@@ -328,67 +328,6 @@ ydn.db.core.req.IndexedDb.prototype.clearByStore = function(df, opt_store_name) 
 
 
 /**
- * Get all item in the store.
- * @param {goog.async.Deferred} df deferred to feed result.
- * @param {boolean} not_key_only query only keys.
- * @param {string|!Array.<string>=} opt_store_name table name.
- */
-ydn.db.core.req.IndexedDb.prototype.getKeysByStore = function(df, not_key_only,
-                                                         opt_store_name) {
-  var self = this;
-
-  var getAll = function(store_name) {
-    var results = [];
-    var store = self.tx.objectStore(store_name);
-
-    // Get everything in the store;
-    var request = store.openCursor();
-
-    request.onsuccess = function(event) {
-      var cursor = event.target.result;
-      if (cursor) {
-        if (not_key_only) {
-          results.push(cursor['value']);
-        } else {
-          results.push(cursor['key']);
-        }
-        cursor['continue'](); // result.continue();
-      } else {
-        n_done++;
-        if (n_done == n_todo) {
-          df.callback(results);
-        }
-      }
-    };
-
-    request.onerror = function(event) {
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, event]);
-      }
-      df.errback(event);
-    };
-  };
-
-  var store_names = goog.isString(opt_store_name) ? [opt_store_name] :
-    goog.isArray(opt_store_name) && opt_store_name.length > 0 ?
-      opt_store_name : this.schema.getStoreNames();
-
-  var n_todo = store_names.length;
-  var n_done = 0;
-
-  if (n_todo > 0) {
-    for (var i = 0; i < store_names.length; i++) {
-      getAll(store_names[i]);
-    }
-  } else {
-    df.callback([]);
-  }
-
-};
-
-
-
-/**
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.listByStore = function(df, store_name,
@@ -523,14 +462,14 @@ ydn.db.core.req.IndexedDb.prototype.keysByStore = function(df, store_name,
     if (cursor) {
       if (!cued && offset > 0) {
         cued = true;
-        if (offset != 1) {
-          cursor.advance(offset - 1);
-        }
+        cursor.advance(offset);
         return;
       }
       results.push(cursor.primaryKey);
       if (results.length < limit) {
         cursor.advance(1);
+      } else {
+        df.callback(results);
       }
     } else {
       df.callback(results);
@@ -564,9 +503,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(df, store_nam
     if (cursor) {
       if (!cued && offset > 0) {
         cued = true;
-        if (offset != 1) {
-          cursor.advance(offset - 1);
-        }
+        cursor.advance(offset);
         return;
       }
       results.push(cursor.primaryKey);

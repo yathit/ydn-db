@@ -771,6 +771,77 @@ var test_52_fetch_keys = function () {
 
 
 
+var test_51_keys = function() {
+  var db_name = 'test_51_keys_1';
+  var stores = [new ydn.db.schema.Store(table_name, 'id', false,
+    ydn.db.schema.DataType.NUMERIC)];
+  var schema = new ydn.db.schema.Database(undefined, stores);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var keys = [0, 1, 2, 3];
+  var data = keys.map(function(x) {return {id: x};});
+  //var rev_data = ydn.object.clone(data).reverse();
+
+
+  var whole_done, rev_done, limit_done, offset_done;
+  var whole_result, rev_result, limit_result, offset_result;
+
+  waitForCondition(
+    // Condition
+    function() { return whole_done && rev_done && limit_done && offset_done; },
+    // Continuation
+    function() {
+      assertArrayEquals('whole store', keys, whole_result);
+      assertArrayEquals('limit store', keys.slice(0, 3), limit_result);
+      assertArrayEquals('offset store', keys.slice(1, 3), offset_result);
+      assertArrayEquals('reverse store', keys.reverse(), rev_result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  db.put(table_name, data).addCallback(function() {
+
+    db.keys(table_name).addCallback(function(value) {
+      console.log('whole value callback.');
+      whole_result = value;
+      whole_done = true;
+    }).addErrback(function(e) {
+        whole_done = true;
+        console.log('Error: ' + e);
+      });
+
+    db.keys(table_name, true).addCallback(function(value) {
+      console.log('whole rev value callback.');
+      rev_result = value;
+      rev_done = true;
+    }).addErrback(function(e) {
+        rev_done = true;
+        console.log('Error: ' + e);
+      });
+
+    db.keys(table_name, false, 3).addCallback(function(value) {
+      console.log('limit value callback.');
+      limit_result = value;
+      limit_done = true;
+    }).addErrback(function(e) {
+        limit_done = true;
+        console.log('Error: ' + e);
+      });
+    db.keys(table_name, false, 2, 1).addCallback(function(value) {
+      console.log('limit offset value callback.');
+      offset_result = value;
+      offset_done = true;
+    }).addErrback(function(e) {
+        offset_done = true;
+        console.log('Error: ' + e);
+      });
+  });
+
+};
+
 
 var test_53_fetch_keys = function () {
   var store_name1 = 'st1';

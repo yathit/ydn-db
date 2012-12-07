@@ -388,7 +388,12 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'keysByStore');
   } else if (goog.isObject(arg2) || goog.isNull(arg2)) {
     // keysByKeyRange
-    key_range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
+    if (goog.isObject(arg2)) {
+      key_range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
+      if (goog.DEBUG && goog.isNull(key_range)) {
+        throw new ydn.error.ArgumentException('key range');
+      }
+    }
     if (goog.isBoolean(arg3) || !goog.isDef(arg3)) {
       reverse = !!arg3;
       if (goog.isNumber(arg4)) {
