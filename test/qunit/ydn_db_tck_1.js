@@ -43,7 +43,6 @@ var schema_1 = {
 };
 
 
-
 module("Put", {
   setup: function() {
     db = new ydn.db.Storage('tck1_put', schema_1);
@@ -204,9 +203,23 @@ asyncTest("nested key", function () {
 
 });
 
+var data_list_inline = [];
+var data_list_outline = [];
+var keys_list_outline = [];
+
 module("List", {
   setup: function() {
     db = new ydn.db.Storage('tck1-list', schema_1);
+    db.clear();
+
+    for (var i = 0; i < 5; i++) {
+      data_list_inline[i] = {id: i, type: 'inline', value: 'test inline ' + Math.random()};
+      data_list_outline[i] = {type: 'offline', value: 'test out of line ' + Math.random()};
+      keys_list_outline[i] = i;
+    }
+    db.put(store_inline, data_list_inline);
+    db.put(store_outline, data_list_outline, keys_list_outline);
+
   },
   teardown: function() {
     db.close();
@@ -215,17 +228,82 @@ module("List", {
 });
 
 
-asyncTest("inline-line key objects", function () {
-  expect(3);
+asyncTest("Retrieve all objects from a store - inline key", function () {
+  expect(1);
 
-  var value_1 = 'test ' + Math.random();
-  var value_2 = 'test ' + Math.random();
-  db.put(store_inline, {id: 1, value: value_1});
-  db.put(store_inline, {id: 2, value: value_2});
+  db.list(store_inline).then(function (x) {
+    deepEqual(data_list_inline, x, 'from 1 to 2');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+
+asyncTest("Retrieve objects by key list - inline-key", function () {
+  expect(1);
+
   db.list(store_inline, [1, 2]).then(function (x) {
-    equal(2, x.length, 'length');
-    equal(value_1, x[0].value, 'value 1');
-    equal(value_2, x[1].value, 'value 2');
+    deepEqual(data_list_inline.slice(1, 3), x, '1 and 2');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+asyncTest("Retrieve objects by key range - inline-key", function () {
+  expect(1);
+
+  var range = new ydn.db.KeyRange(2, 5);
+  db.list(store_inline, range).then(function (x) {
+    deepEqual(data_list_inline.slice(2, 6), x, '2 to 5');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+asyncTest("Retrieve objects by key range reverse - inline-key", function () {
+  expect(1);
+
+  var range = new ydn.db.KeyRange(2, 5);
+  db.list(store_inline, range, true).then(function (x) {
+    deepEqual(data_list_inline.slice(2, 6).reverse(), x, '2 to 5');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+
+asyncTest("Retrieve objects by key range limit - inline-key", function () {
+  expect(1);
+
+  var range = new ydn.db.KeyRange(2, 5);
+  db.list(store_inline, range, false, 2).then(function (x) {
+    deepEqual(data_list_inline.slice(2, 4), x, '2 to 5 limit to 2');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+asyncTest("Retrieve objects by key range limit offset - inline-key", function () {
+  expect(1);
+
+  var range = new ydn.db.KeyRange(2, 5);
+  db.list(store_inline, range, false, 2, 1).then(function (x) {
+    deepEqual(data_list_inline.slice(3, 5), x, '2 to 5 limit to 2 offset 1');
     start();
   }, function (e) {
     ok(false, e.message);
@@ -236,23 +314,31 @@ asyncTest("inline-line key objects", function () {
 
 
 
+asyncTest("Retrieve all objects from a store - offline key", function () {
+  expect(1);
 
-asyncTest("out-of-line key objects", function () {
-  expect(4);
+  db.list(store_outline).then(function (x) {
+    deepEqual(data_list_outline, x, 'all records');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
 
-  var value_1 = 'get test ' + Math.random();
-  var value_2 = 'get test ' + Math.random();
-  db.put(store_outline, [{d: value_1}, {e: value_2}], ['a', 'b']).then(function(keys) {
-    equal(2, keys.length, 'key length');
-    db.list(store_outline, keys).then(function (x) {
-      equal(2, x.length, 'value length');
-      equal(value_1, x[0].d, 'value 1');
-      equal(value_2, x[1].e, 'value 2');
-      start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
-    });
+});
+
+asyncTest("Retrieve objects by keys from multiple stores", function () {
+  expect(3);
+
+  var keys = [
+    new ydn.db.Key(store_inline, 2),
+    new ydn.db.Key(store_inline, 3),
+    new ydn.db.Key(store_outline, 2)];
+  db.list(keys).then(function (x) {
+    equal(3, x.length, 'length');
+    deepEqual(data_list_inline.slice(2, 4), x.slice(0, 2), 'inline');
+    deepEqual(data_list_outline[2], x[2], 'offline');
+    start();
   }, function (e) {
     ok(false, e.message);
     start();
@@ -268,7 +354,10 @@ module("Keys", {
     db = new ydn.db.Storage('tck1-keys', schema_1);
     var inline_data = keys_inline.map(function(x) {return {id: x}});
     var inline_string_data = keys_inline_string.map(function(x) {return {id: x}});
-    db.put(store_inline_string, inline_string_data);
+    db.put(store_inline_string, inline_string_data).fail(function(e) {
+      throw e;
+    });
+    //console.log(inline_data);
     db.put(store_inline, inline_data).then(function(keys) {
       console.log('tck1-keys db ready.');
     }, function(e) {
@@ -332,11 +421,31 @@ asyncTest("get keys limit offset", function () {
 });
 
 
-var db_count = 'ydn_db_tck1_count_1';
+var db_count = 'ydn_db_tck1_count_2';
 
 module("Count", {
   setup: function() {
     db = new ydn.db.Storage(db_count, schema_1);
+    db.clear();
+    var data = [];
+    var data2 = [];
+    for (var i = 0; i < 5; i++) {
+      data[i] = {id: i, value: 'test' + Math.random()};
+    }
+    var keys = [];
+    for (var i = 0; i < 3; i++) {
+      keys[i] = i;
+      data2[i] = {type: 'offline', value: 'test' + Math.random()};
+    }
+    db.put(store_outline, data2, keys).fail(function(e) {
+      throw e;
+    });
+    db.put(store_inline, data).then(function(keys) {
+      console.log('count db ready.')
+    }, function(e) {
+      throw e;
+    });
+
   },
   teardown: function() {
     db.close();
@@ -345,25 +454,74 @@ module("Count", {
 });
 
 
-asyncTest("store", function () {
-  expect(2);
+asyncTest("all records in a store", function () {
+  expect(1);
 
-  db.clear(store_outline);
-  var value_1 = 'get test ' + Math.random();
-  var value_2 = 'get test ' + Math.random();
-  db.put(store_outline, [{d: value_1}, {e: value_2}, {e: value_2}], ['a1', 'a2', 'b']).then(function(keys) {
-    equal(3, keys.length, 'key length');
-    db.count(store_outline).then(function (x) {
-      equal(3, x, 'number of records');
-      start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
-    });
+  db.count(store_inline).then(function (x) {
+    equal(5, x, 'number of records in store');
+    start();
   }, function (e) {
     ok(false, e.message);
     start();
   });
+
+});
+
+asyncTest("all records in stores", function () {
+  expect(2);
+
+  db.count([store_inline, store_outline]).then(function (x) {
+    equal(5, x[0], 'inline');
+    equal(3, x[1], 'outline');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+asyncTest("in a range", function () {
+  expect(1);
+
+  var range = new ydn.db.KeyRange(2, 4);
+  db.count(store_inline, range).then(function (x) {
+    equal(3, x, 'number of records in a range');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+
+
+module("StorageEvent", {
+  setup: function() {
+
+  },
+  teardown: function() {
+    db.close();
+    //ydn.db.deleteDatabase(db.getName());
+  }
+});
+
+
+asyncTest("connected", function () {
+  expect(1);
+
+  var db = new ydn.db.Storage('tck1_put', schema_1);
+
+  db.addEventListener('connected', function(e) {
+    equal('connected', e.type, 'connected event');
+    start();
+  });
+
+  setTimeout(function() {
+    // don't wait more than 1 sec.
+    start();
+  }, 1000);
 
 });
 
