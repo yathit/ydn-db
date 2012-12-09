@@ -273,16 +273,6 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit) {
 };
 
 
-/**
- * @param {!goog.async.Deferred} df promise.
- * @param {!ydn.db.Sql} q query.
- */
-ydn.db.index.req.WebSql.prototype.fetchQuery = function(df, q) {
-
-  var cursor = q.toSqlQuery(this.schema);
-  this.fetchIterator_(df, cursor);
-};
-
 
 /**
  * @inheritDoc

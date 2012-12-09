@@ -41,27 +41,6 @@ goog.exportProperty(ydn.db.Iterator.prototype, 'reset',
   ydn.db.Iterator.prototype.reset);
 
 
-goog.exportSymbol('ydn.db.Sql', ydn.db.Sql);
-goog.exportProperty(ydn.db.Sql.prototype, 'project',
-    ydn.db.Sql.prototype.project);
-goog.exportProperty(ydn.db.Sql.prototype, 'aggregate',
-  ydn.db.Sql.prototype.aggregate);
-goog.exportProperty(ydn.db.Sql.prototype, 'where',
-    ydn.db.Sql.prototype.where);
-goog.exportProperty(ydn.db.Sql.prototype, 'from',
-    ydn.db.Sql.prototype.from);
-goog.exportProperty(ydn.db.Sql.prototype, 'limit',
-  ydn.db.Sql.prototype.limit);
-goog.exportProperty(ydn.db.Sql.prototype, 'order',
-  ydn.db.Sql.prototype.order);
-goog.exportProperty(ydn.db.Sql.prototype, 'offset',
-  ydn.db.Sql.prototype.offset);
-goog.exportProperty(ydn.db.Sql.prototype, 'reverse',
-  ydn.db.Sql.prototype.reverse);
-goog.exportProperty(ydn.db.Sql.prototype, 'unique',
-  ydn.db.Sql.prototype.unique);
-
-
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
 
 goog.exportProperty(ydn.db.Storage.prototype, 'scan',

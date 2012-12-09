@@ -28,9 +28,10 @@ ydn.db.sql.req.IRequestExecutor.prototype.explainSql = goog.abstractMethod;
 
 
 /**
- * Explain plan.
+ * Execute SQL statement.
  * @param {goog.async.Deferred} df deferred to feed result.
  * @param {!ydn.db.Sql} sql  SQL object.
+ * @param {!Array} params SQL parameters.
  */
 ydn.db.sql.req.IRequestExecutor.prototype.executeSql = goog.abstractMethod;
 

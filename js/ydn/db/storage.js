@@ -176,21 +176,7 @@ ydn.db.Storage.prototype.toString = function() {
   return s;
 };
 
-//
-//
-///**
-// * @param {!ydn.db.Iterator} q query.
-// * @param {function(*): boolean} clear clear iteration function.
-// * @param {function(*): *} update update iteration function.
-// * @param {function(*): *} map map iteration function.
-// * @param {function(*, *, number=): *} reduce reduce iteration function.
-// * @param {*} initial initial value for reduce iteration function.
-// * @return {!goog.async.Deferred} promise.
-// */
-//ydn.db.Storage.prototype.iterate = function(q, clear, update, map, reduce,
-//                                            initial) {
-//  return this.default_tx_queue_.iterate(q, clear, update, map, reduce, initial);
-//};
+
 
 
 
