@@ -134,46 +134,46 @@ ydn.db.sql.req.WebSql.prototype.explainSql = function(query) {
  */
 ydn.db.sql.req.WebSql.prototype.executeSql = function(df, sql, params) {
 
-  var me = this;
-  var out = [];
-  var store = this.schema.getStore(sql.getStoreName());
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function (transaction, results) {
-    var n = results.rows.length;
-    for (var i = 0; i < n; i++) {
-      var row = results.rows.item(i);
-      var value = ydn.db.core.req.WebSql.parseRow(row, store);
-      var key_str = goog.isDefAndNotNull(store.keyPath) ?
-          row[store.keyPath] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
-      var key = ydn.db.schema.Index.sql2js(key_str, store.type);
-      out.push(value);
-    }
-    df.callback(out)
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   * @return {boolean} true to roll back.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.sql.req.WebSql.DEBUG) {
-      window.console.log([sql, tr, error]);
-    }
-    me.logger.warning('Sqlite error: ' + error.message);
-    df.errback(error);
-    return true; // roll back
-  };
-
-  if (ydn.db.sql.req.WebSql.DEBUG) {
-    window.console.log(this + ' open SQL: ' + sql + ' PARAMS:' +
-        ydn.json.stringify(params));
-  }
-  this.tx.executeSql(sql.getSql(), params, callback, error_callback);
+//  var me = this;
+//  var out = [];
+//  var store = this.schema.getStore(sql.getStoreName());
+//
+//  /**
+//   * @param {SQLTransaction} transaction transaction.
+//   * @param {SQLResultSet} results results.
+//   */
+//  var callback = function (transaction, results) {
+//    var n = results.rows.length;
+//    for (var i = 0; i < n; i++) {
+//      var row = results.rows.item(i);
+//      var value = ydn.db.core.req.WebSql.parseRow(row, store);
+//      var key_str = goog.isDefAndNotNull(store.keyPath) ?
+//          row[store.keyPath] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
+//      var key = ydn.db.schema.Index.sql2js(key_str, store.type);
+//      out.push(value);
+//    }
+//    df.callback(out)
+//  };
+//
+//  /**
+//   * @param {SQLTransaction} tr transaction.
+//   * @param {SQLError} error error.
+//   * @return {boolean} true to roll back.
+//   */
+//  var error_callback = function(tr, error) {
+//    if (ydn.db.sql.req.WebSql.DEBUG) {
+//      window.console.log([sql, tr, error]);
+//    }
+//    me.logger.warning('Sqlite error: ' + error.message);
+//    df.errback(error);
+//    return true; // roll back
+//  };
+//
+//  if (ydn.db.sql.req.WebSql.DEBUG) {
+//    window.console.log(this + ' open SQL: ' + sql + ' PARAMS:' +
+//        ydn.json.stringify(params));
+//  }
+//  this.tx.executeSql(sql.getSql(), params, callback, error_callback);
 
 };
 

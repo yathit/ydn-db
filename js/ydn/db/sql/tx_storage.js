@@ -105,23 +105,23 @@ ydn.db.sql.TxStorage.prototype.explain = function (q) {
  * @param {!Array=} params SQL parameters.
 * @return {!goog.async.Deferred} return result as list.
 */
-ydn.db.TxStorage.prototype.execute = function (sql, params) {
+ydn.db.sql.TxStorage.prototype.execute = function (sql, params) {
 
   var df = ydn.db.base.createDeferred();
-
-  var query = new ydn.db.Sql(sql);
-
-  var store_name = query.getStoreName();
-  var store = this.schema.getStore(store_name);
-  if (!store) {
-    throw new ydn.error.ArgumentException('store: ' + store_name +
-        ' not exists.');
-  }
-
-  this.exec(function (executor) {
-    executor.executeSql(df, query, params);
-  }, query.stores(), query.getMode());
-
+//
+//  var query = new ydn.db.Sql(sql);
+//
+//  var store_name = query.getStoreName();
+//  var store = this.schema.getStore(store_name);
+//  if (!store) {
+//    throw new ydn.error.ArgumentException('store: ' + store_name +
+//        ' not exists.');
+//  }
+//
+//  this.exec(function (executor) {
+//    executor.executeSql(df, query, params);
+//  }, query.stores(), query.getMode());
+//
   return df;
 };
 

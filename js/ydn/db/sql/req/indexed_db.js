@@ -61,10 +61,11 @@ ydn.db.sql.req.IndexedDb.prototype.executeSql = function(df, sql) {
  * @inheritDoc
  */
 ydn.db.sql.req.IndexedDb.prototype.explainSql = function(sql) {
-  var cursor = sql.toIdbQuery(this.schema);
-  var json = /** @type {Object} */ (cursor.toJSON());
-  json['map'] = cursor.map ? cursor.map.toString() : null;
-  json['reduce'] = cursor.reduce ? cursor.reduce.toString() : null;
-  json['initial'] = cursor.initial;
-  return json;
+  throw new ydn.error.NotImplementedException();
+//  var cursor = sql.toIdbQuery(this.schema);
+//  var json = /** @type {Object} */ (cursor.toJSON());
+//  json['map'] = cursor.map ? cursor.map.toString() : null;
+//  json['reduce'] = cursor.reduce ? cursor.reduce.toString() : null;
+//  json['initial'] = cursor.initial;
+//  return json;
 };

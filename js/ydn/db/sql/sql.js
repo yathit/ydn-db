@@ -245,7 +245,7 @@ ydn.db.Sql.AggregateType = {
  * @return {!Array.<string>} store name.
  */
 ydn.db.Sql.prototype.stores = function() {
-  return goog.array.copy(this.store_names_);
+  return goog.array.clone(this.store_names_);
 };
 
 
