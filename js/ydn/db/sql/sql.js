@@ -14,7 +14,7 @@
 
 
 /**
- * @fileoverview SQL object.
+ * @fileoverview A SQL node represent .
  *
  * Analyze SQL statement and extract execution scope.
  */
@@ -45,8 +45,33 @@ ydn.db.Sql = function(sql) {
 
   // basic parsing
   sql = sql.replace(/\s+ORDER BY\s+/ig, ' ORDER_BY ');
-
   var tokens = ydn.string.split_space(sql);
+
+
+
+  /**
+   *
+   * @return {?string}
+   */
+  var eatTo = function(tok) {
+    var eaten = '';
+    var token;
+    while (token = tokens.shift()) {
+      if (token.toUpperCase() == tok) {
+        return eaten.trim();
+      } else {
+        eaten += token;
+      }
+    }
+    return null;
+  };
+
+  /*
+   * A query has the following form:
+   *
+   * <Query> := SELECT <SelList> FROM <FromList> WHERE <Condition>
+   *
+   */
 
   // action
   var token = tokens.shift();
@@ -63,24 +88,13 @@ ydn.db.Sql = function(sql) {
     throw new ydn.db.SqlParseError('Unknown SQL verb: ' + token);
   }
 
-  /**
-   *
-   * @return {?string}
-   */
-  var eatTo = function(tok) {
-    var token;
-    while (token = tokens.shift()) {
-      if (token.toUpperCase() == tok) {
-        return tok;
-      }
-    }
-    return null;
-  };
-
-  var from = eatTo('FROM');
-  if (!from) {
+  var selList = eatTo('FROM');
+  if (!selList) {
     throw new ydn.db.SqlParseError('SQL statement must have a keyword FROM');
   }
+  this.selList_ = selList;
+
+
 
   var store = tokens.shift();
   this.store_names_ = [store]; // currently only one is supported
@@ -124,6 +138,40 @@ ydn.db.Sql.prototype.store_names_;
  * @type {string}
  */
 ydn.db.Sql.prototype.scope_;
+
+
+/**
+ * @type {string}
+ * @private
+ */
+ydn.db.Sql.prototype.selList_;
+
+
+/**
+ * Get select field list.
+ * @return {Array.<string>} return null if selection is '*'. Field names are
+ * trimmed.
+ */
+ydn.db.Sql.prototype.getSelList = function() {
+
+  var selList = this.selList_;
+  // remove parentheses if it has
+  if (selList.charAt(0) == '(') {
+    if (selList.charAt(selList.length - 1) == ')') {
+      selList = selList.substring(1, selList.length - 1);
+    } else {
+      throw new ydn.db.SqlParseError('missing closing parentheses');
+    }
+  }
+
+  if (selList == '*') {
+    return null;
+  } else {
+    var fields = selList.split(',');
+    fields = fields.map(function(s) {return s.trim();});
+    return fields;
+  }
+};
 
 
 /**
