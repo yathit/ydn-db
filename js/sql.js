@@ -6,8 +6,8 @@ goog.require('ydn.db.sql.Storage');
 goog.require('ydn.db.sql.TxStorage');
 
 
-goog.exportProperty(ydn.db.sql.Storage.prototype, 'execute',
-  ydn.db.sql.Storage.prototype.execute);
+goog.exportProperty(ydn.db.sql.Storage.prototype, 'executeSql',
+  ydn.db.sql.Storage.prototype.executeSql);
 
-goog.exportProperty(ydn.db.sql.TxStorage.prototype, 'execute',
-  ydn.db.sql.TxStorage.prototype.execute);
+goog.exportProperty(ydn.db.sql.TxStorage.prototype, 'executeSql',
+  ydn.db.sql.TxStorage.prototype.executeSql);

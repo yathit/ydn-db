@@ -12,16 +12,15 @@ goog.require('goog.string');
  * For those browser that not implemented IDBKeyRange.
  * @param {string} field index field name to query from.
  * @param {string|Object} op where operator.
- * @param {string=} value rvalue to compare.
- * @param {string=} op2 secound operator.
- * @param {string=} value2 second rvalue to compare.
+ * @param {*=} value rvalue to compare.
+ * @param {string=} op2 second operator.
+ * @param {*=} value2 second rvalue to compare.
  * @constructor
  * @extends {ydn.db.KeyRange}
  */
 ydn.db.Where = function(field, op, value, op2, value2) {
 
   var upper, lower, upperOpen, lowerOpen;
-
 
   if (goog.isObject(op)) {
     lower = op['lower'];
@@ -62,6 +61,15 @@ goog.inherits(ydn.db.Where, ydn.db.KeyRange);
  * @type {string}
  */
 ydn.db.Where.prototype.field = '';
+
+
+/**
+ *
+ * @return {string}
+ */
+ydn.db.Where.prototype.getField = function() {
+  return this.field;
+};
 
 
 /**
@@ -125,6 +133,63 @@ ydn.db.Where.resolvedStartsWith = function(keyRange) {
     keyRange.upper[keyRange.lower.length - 1] == '\uffff';
 };
 
+
+/**
+ * Combine another where clause.
+ * @param {!ydn.db.Where} where
+ * @return {ydn.db.Where} return null if fail.
+ */
+ydn.db.Where.prototype.and = function(where) {
+  if (this.field != where.field) {
+    return null;
+  }
+  var lower, upper, lowerOpen, upperOpen;
+  if (goog.isDefAndNotNull(this.lower) && goog.isDefAndNotNull(where.lower)) {
+    if (this.lower > where.lower) {
+      lower = this.lower;
+      lowerOpen = this.lowerOpen;
+    } else if (this.lower == where.lower) {
+      lower = this.lower;
+      lowerOpen = this.lowerOpen || where.lowerOpen;
+    } else {
+      lower = where.lower;
+      lowerOpen = where.lowerOpen;
+    }
+  } else if (goog.isDefAndNotNull(this.lower)) {
+    lower = this.lower;
+    lowerOpen = this.lowerOpen;
+  }  else if (goog.isDefAndNotNull(where.lower)) {
+    lower = where.lower;
+    lowerOpen = where.lowerOpen;
+  }
+  if (goog.isDefAndNotNull(this.upper) && goog.isDefAndNotNull(where.upper)) {
+    if (this.lower > where.upper) {
+      upper = this.upper;
+      upperOpen = this.upperOpen;
+    } else if (this.lower == where.lower) {
+      upper = this.upper;
+      upperOpen = this.upperOpen || where.upperOpen;
+    } else {
+      upper = where.upper;
+      upperOpen = where.upperOpen;
+    }
+  } else if (goog.isDefAndNotNull(this.upper)) {
+    upper = this.upper;
+    upperOpen = this.upperOpen;
+  }  else if (goog.isDefAndNotNull(where.upper)) {
+    upper = where.upper;
+    upperOpen = where.upperOpen;
+  }
+
+  return new ydn.db.Where(this.field,
+      {
+        'lower': lower,
+        'upper': upper,
+        'lowerOpen': lowerOpen,
+        'upperOpen': upperOpen
+      }
+  );
+};
 
 
 

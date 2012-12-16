@@ -59,6 +59,14 @@ ydn.db.sql.Storage.prototype.newTxInstance = function(scope_name) {
     this.schema);
 };
 
+/**
+ * @param {string} sql SQL statement.
+ * @param {!Array=} params SQL parameters.
+ * @return {!goog.async.Deferred} return result as list.
+ */
+ydn.db.sql.Storage.prototype.executeSql = function (sql, params) {
+  return this.default_tx_queue_.executeSql(sql, params);
+};
 
 //
 ///**

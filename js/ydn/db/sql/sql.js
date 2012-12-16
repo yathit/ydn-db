@@ -27,6 +27,7 @@ goog.require('ydn.db.schema.Database');
 goog.require('ydn.error.ArgumentException');
 goog.require('ydn.db.sql.req.IdbQuery');
 goog.require('ydn.math.Expression');
+goog.require('ydn.db.Where');
 goog.require('ydn.string');
 
 
@@ -37,35 +38,6 @@ goog.require('ydn.string');
  */
 ydn.db.Sql = function(sql) {
 
-  if (!goog.isString(sql)) {
-    throw new ydn.error.ArgumentException();
-  }
-
-  this.sql_ = sql;
-
-  // basic parsing
-  sql = sql.replace(/\s+ORDER BY\s+/ig, ' ORDER_BY ');
-  var tokens = ydn.string.split_space(sql);
-
-
-
-  /**
-   *
-   * @return {?string}
-   */
-  var eatTo = function(tok) {
-    var eaten = '';
-    var token;
-    while (token = tokens.shift()) {
-      if (token.toUpperCase() == tok) {
-        return eaten.trim();
-      } else {
-        eaten += token;
-      }
-    }
-    return null;
-  };
-
   /*
    * A query has the following form:
    *
@@ -73,34 +45,65 @@ ydn.db.Sql = function(sql) {
    *
    */
 
+  if (!goog.isString(sql)) {
+    throw new ydn.error.ArgumentException();
+  }
+
+  var from_parts = sql.split(/\sFROM\s/i);
+  if (from_parts.length != 2) {
+    throw new ydn.db.SqlParseError('FROM required.');
+  }
+  var pre_from = from_parts[0];
+  var post_from = from_parts[1];
+
+  this.sql_ = sql;
+
+  // Parse Pre-FROM
+  var pre_from_parts = pre_from.match(
+      /\s*?(SELECT|INSERT|UPDATE|DELETE)\s*(.*)/i);
+  if (pre_from_parts.length != 3) {
+    throw new ydn.db.SqlParseError('Unable to parse: ' + sql);
+  }
+
   // action
-  var token = tokens.shift();
-  var action = token.toUpperCase();
-  if (action == 'SELECT') {
+  this.action_ = pre_from_parts[1].toUpperCase();
+  if (this.action_ == 'SELECT') {
     this.mode_ = ydn.db.base.TransactionMode.READ_ONLY;
-  } else if (action == 'INSERT') {
+  } else if (this.action_ == 'INSERT') {
     this.mode_ = ydn.db.base.TransactionMode.READ_WRITE;
-  } else if (action == 'UPDATE') {
+  } else if (this.action_ == 'UPDATE') {
     this.mode_ = ydn.db.base.TransactionMode.READ_WRITE;
-  } else if (action == 'DELETE') {
+  } else if (this.action_ == 'DELETE') {
     this.mode_ = ydn.db.base.TransactionMode.READ_WRITE;
   } else {
-    throw new ydn.db.SqlParseError('Unknown SQL verb: ' + token);
+    throw new ydn.db.SqlParseError('Unknown SQL verb: ' + this.action_);
   }
 
-  var selList = eatTo('FROM');
-  if (!selList) {
-    throw new ydn.db.SqlParseError('SQL statement must have a keyword FROM');
+  this.selList_ = pre_from_parts[2].trim();
+
+  // collect modifiers
+  var mod_idx = post_from.search(/(ORDER BY|LIMIT|OFFSET)/i);
+  if (mod_idx > 0) {
+    this.modifier_ = post_from.substring(mod_idx);
+    post_from = post_from.substring(0, mod_idx);
+  } else {
+    this.modifier_ = '';
   }
-  this.selList_ = selList;
 
+  // collect condition
+  var where_idx = post_from.search(/WHERE/i);
+  if (where_idx > 0) {
+    this.condition_ = post_from.substring(where_idx + 6).trim();
+    post_from = post_from.substring(0, where_idx);
+  } else {
+    this.condition_ = '';
+  }
 
+  var stores = post_from.trim().split(',');
+  this.store_names_ = stores.map(function(x) {return x.trim();});
 
-  var store = tokens.shift();
-  this.store_names_ = [store]; // currently only one is supported
-
-  // that is all we need to do here.
-
+  this.last_error_ = '';
+  this.has_parsed_ = false;
 };
 
 
@@ -120,24 +123,44 @@ ydn.db.Sql.prototype.mode_ = ydn.db.base.TransactionMode.READ_ONLY;
 
 
 /**
- *
- * @type {number}
- * @private
- */
-ydn.db.Sql.prototype.num_params_ = 0;
-
-/**
  * @private
  * @type {Array.<string>}
  */
 ydn.db.Sql.prototype.store_names_;
 
+/**
+ * @private
+ * @type {string}
+ */
+ydn.db.Sql.prototype.modifier_;
 
 /**
  * @private
  * @type {string}
  */
-ydn.db.Sql.prototype.scope_;
+ydn.db.Sql.prototype.condition_;
+
+/**
+ *
+ * @type {string}
+ * @private
+ */
+ydn.db.Sql.prototype.order_ = '';
+
+/**
+ *
+ * @type {number}
+ * @private
+ */
+ydn.db.Sql.prototype.limit_ = NaN;
+
+
+/**
+ *
+ * @type {number}
+ * @private
+ */
+ydn.db.Sql.prototype.offset_ = NaN;
 
 
 /**
@@ -148,26 +171,84 @@ ydn.db.Sql.prototype.selList_;
 
 
 /**
+ *
+ * @type {string}
+ * @private
+ */
+ydn.db.Sql.prototype.last_error_ = '';
+
+
+/**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.Sql.prototype.has_parsed_ = false;
+
+
+/**
+ * @return {string} empty if successfully parse
+ */
+ydn.db.Sql.prototype.parse = function() {
+
+  if (this.has_parsed_ || this.last_error_) {
+    return this.last_error_;
+  }
+
+  var selList = this.selList_;
+  // remove parentheses if it has
+  if (selList.charAt(0) == '(') {
+    if (selList.charAt(selList.length - 1) == ')') {
+      this.selList_ = selList.substring(1, selList.length - 1);
+    } else {
+      this.last_error_ = 'missing closing parentheses';
+      return this.last_error_;
+    }
+  }
+
+  this.wheres_ = this.parseConditions();
+  if (!this.wheres_) {
+    return this.last_error_;
+  }
+
+  var start_idx = this.modifier_.length;
+  var offset_result = /OFFSET\s+(\d+)/i.exec(this.modifier_);
+  if (offset_result) {
+    this.offset_ = parseInt(offset_result[1], 10);
+    start_idx  = this.modifier_.search(/OFFSET/i);
+  }
+  var limit_result = /LIMIT\s+(\d+)/i.exec(this.modifier_);
+  if (limit_result) {
+    this.limit_ = parseInt(limit_result[1], 10);
+    var idx = this.modifier_.search(/LIMIT/i);
+    if (idx < start_idx) {
+      start_idx = idx;
+    }
+  }
+  var order_str = this.modifier_.substr(0, start_idx);
+  var order_result = /ORDER BY\s+(.+)/i.exec(order_str);
+  if (order_result) {
+    this.order_ = goog.string.stripQuotes(
+        goog.string.stripQuotes(order_result[1].trim(), '"'), "'");
+  }
+
+  this.has_parsed_ = true;
+  return '';
+};
+
+
+
+/**
  * Get select field list.
  * @return {Array.<string>} return null if selection is '*'. Field names are
  * trimmed.
  */
 ydn.db.Sql.prototype.getSelList = function() {
 
-  var selList = this.selList_;
-  // remove parentheses if it has
-  if (selList.charAt(0) == '(') {
-    if (selList.charAt(selList.length - 1) == ')') {
-      selList = selList.substring(1, selList.length - 1);
-    } else {
-      throw new ydn.db.SqlParseError('missing closing parentheses');
-    }
-  }
-
-  if (selList == '*') {
+  if (this.selList_ == '*') {
     return null;
   } else {
-    var fields = selList.split(',');
+    var fields = this.selList_.split(',');
     fields = fields.map(function(s) {return s.trim();});
     return fields;
   }
@@ -181,71 +262,6 @@ ydn.db.Sql.prototype.getSelList = function() {
 ydn.db.Sql.prototype.getSql = function() {
   return this.sql_;
 };
-
-
-/**
- * @protected
- * @param {string} sql sql statement to parse.
- * @return {{
- *    action: string,
- *    fields: (string|!Array.<string>|undefined),
- *    store_name: string,
- *    wheres: !Array.<string>
- *  }} functional equivalent of SQL.
- * @throws {ydn.error.ArgumentException}
- */
-ydn.db.Sql.prototype.parseSql = function(sql) {
-  var from_parts = sql.split(/\sFROM\s/i);
-  if (from_parts.length != 2) {
-    throw new ydn.error.ArgumentException('FROM required.');
-  }
-
-  // Parse Pre-FROM
-  var pre_from_parts = from_parts[0].match(
-    /\s*?(SELECT|COUNT|MAX|AVG|MIN|CONCAT)\s*(.*)/i);
-  if (pre_from_parts.length != 3) {
-    throw new ydn.error.ArgumentException('Unable to parse: ' + sql);
-  }
-  var action = pre_from_parts[1].toUpperCase();
-  var action_arg = pre_from_parts[2].trim();
-  var fields = undefined;
-  if (action_arg.length > 0 && action_arg != '*') {
-    if (action_arg[0] == '(') {
-      action_arg = action_arg.substring(1);
-    }
-    if (action_arg[action_arg.length - 2] == ')') {
-      action_arg = action_arg.substring(0, action_arg.length - 2);
-    }
-    if (action_arg.indexOf(',') > 0) {
-      fields = ydn.string.split_comma_seperated(action_arg);
-      fields = goog.array.map(fields, function(x) {
-        return goog.string.stripQuotes(x, '"');
-      });
-    } else {
-      fields = action_arg;
-    }
-  }
-
-  // Parse FROM
-  var parts = from_parts[1].trim().match(/"(.+)"\s*(.*)/);
-  if (!parts) {
-    throw new ydn.error.ArgumentException('store name required.');
-  }
-  var store_name = parts[1];
-  var wheres = [];
-  if (parts.length > 2) {
-    wheres.push(parts[2]);
-  }
-
-  return {
-    action: action,
-    fields: fields,
-    store_name: store_name,
-    wheres: wheres
-  };
-};
-
-
 
 
 /**
@@ -286,13 +302,11 @@ ydn.db.Sql.AggregateType = {
 };
 
 
-
-
 /**
  *
  * @return {!Array.<string>} store name.
  */
-ydn.db.Sql.prototype.stores = function() {
+ydn.db.Sql.prototype.getStoreNames = function() {
   return goog.array.clone(this.store_names_);
 };
 
@@ -301,11 +315,115 @@ ydn.db.Sql.prototype.stores = function() {
  *
  * @return {ydn.db.base.TransactionMode} store name.
  */
-ydn.db.Sql.prototype.mode = function() {
+ydn.db.Sql.prototype.getMode = function() {
   return this.mode_;
 };
 
 
+/**
+ *
+ * @return {number}
+ */
+ydn.db.Sql.prototype.getLimit = function() {
+  return this.limit_;
+};
+
+
+/**
+ *
+ * @return {number}
+ */
+ydn.db.Sql.prototype.getOffset = function() {
+  return this.offset_;
+};
+
+
+/**
+ *
+ * @return {string|undefined}
+ */
+ydn.db.Sql.prototype.getOrderBy = function() {
+  return this.order_;
+};
+
+
+/**
+ * Get condition as array of Where clause.
+ * @return {!Array.<ydn.db.Where>}
+ */
+ydn.db.Sql.prototype.getConditions = function() {
+  return this.wheres_;
+};
+
+
+/**
+ * Get condition as array of Where clause.
+ * @return {Array.<ydn.db.Where>}
+ */
+ydn.db.Sql.prototype.parseConditions = function() {
+  var wheres = [];
+  var re_op = /(.+?)(<=|>=|=|>|<)(.+)/i;
+
+  var findIndex = function(field) {
+    return goog.array.findIndex(wheres, function(w) {
+      return w.getField() == field;
+    })
+  };
+
+  if (this.condition_.length > 0) {
+
+    var conds = this.condition_.split('AND');
+    for (var i = 0; i < conds.length; i++) {
+      var cond = conds[i];
+      var result = re_op.exec(cond);
+      if (result) {
+        var field = result[1].trim();
+        field = goog.string.stripQuotes(field, '"');
+        field = goog.string.stripQuotes(field, "'");
+        if (field.length > 0) {
+          var value = result[3].trim();
+          if (goog.string.startsWith(value, '"')) {
+            value = goog.string.stripQuotes(value, '"');
+          } else if (goog.string.startsWith(value, "'")) {
+            value = goog.string.stripQuotes(value, "'");
+          } else {
+            value = parseFloat(value);
+            //console.log([cond, result[1], result[2], result[3], value]);
+          }
+
+          var op = result[2];
+          var where = new ydn.db.Where(field, op, value);
+          var ex_idx = findIndex(field);
+          if (ex_idx >= 0) {
+            wheres[ex_idx] = wheres[ex_idx].and(where);
+            if (!wheres[ex_idx]) {
+              this.last_error_ = 'where clause "' + cond + '" conflict';
+              return null;
+            }
+          } else {
+            wheres.push(where);
+          }
+        } else {
+          this.last_error_ = 'Invalid clause "' + cond + '"';
+          return null;
+        }
+      } else {
+        this.last_error_ = 'Invalid clause "' + cond + '"';
+        return null;
+      }
+    }
+  }
+  return wheres;
+};
+
+
+/**
+ *
+ * @return {string} store name.
+ */
+ydn.db.Sql.prototype.getAction = function() {
+  return this.action_;
+};
 
 
 /**

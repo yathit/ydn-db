@@ -73,6 +73,8 @@ goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/simple_store.js", ['ydn.db
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/sql_old.js", ['ydn.db.Sql_'], ['goog.functions', 'ydn.db.KeyRange', 'ydn.db.schema.Database', 'ydn.error.ArgumentException', 'ydn.db.sql.req.IdbQuery', 'ydn.math.Expression', 'ydn.string']);
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/sql_query.js", ['ydn.db.sql.req.SqlQuery'], ['ydn.db.sql.req.IterableQuery', 'goog.functions', 'ydn.db.KeyRange', 'ydn.db.Where', 'ydn.error.ArgumentException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/websql.js", ['ydn.db.sql.req.WebSql'], ['ydn.db.index.req.WebSql', 'ydn.db.sql.req.SqlQuery', 'ydn.db.sql.req.IRequestExecutor']);
+goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/websql/node.js", ['ydn.db.sql.req.websql.Node'], ['ydn.db.Iterator', 'goog.functions', 'ydn.db.KeyRange', 'ydn.db.Where', 'ydn.error.ArgumentException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/websql/reduce_node.js", ['ydn.db.sql.req.websql.ReduceNode'], ['ydn.db.sql.req.websql.Node']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_storage.js", ['ydn.db.tr.IStorage'], ['ydn.db.tr.Mutex']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/mutex.js", ['ydn.db.tr.Mutex'], ['goog.array', 'goog.asserts', 'ydn.db.InvalidStateError']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/storage.js", ['ydn.db.tr.Storage'], ['ydn.db.con.Storage', 'ydn.db.tr.IStorage', 'ydn.db.tr.TxStorage']);
