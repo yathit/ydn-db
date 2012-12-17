@@ -9,6 +9,7 @@ goog.provide('ydn.db.sql.req.IndexedDb');
 goog.require('ydn.db.index.req.IndexedDb');
 goog.require('ydn.db.sql.req.IRequestExecutor');
 goog.require('ydn.db.sql.req.idb.Node');
+goog.require('ydn.db.sql.req.idb.ReduceNode');
 
 
 /**
@@ -55,8 +56,21 @@ ydn.db.sql.req.IndexedDb.prototype.executeSql = function(df, sql, params) {
     if (!store_schema) {
       throw new ydn.db.NotFoundError(store_names[0]);
     }
-
-    var node = new ydn.db.sql.req.idb.Node(store_schema, sql);
+    var fields = sql.getSelList();
+    if (fields) {
+      for (var i = 0; i < fields.length; i++) {
+        if (!store_schema.hasIndex(fields[i])) {
+          throw new ydn.db.NotFoundError('Index "' + fields[i] +
+            '" not found in ' + store_names[0]);
+        }
+      }
+    }
+    var node;
+    if (sql.getAggregate()) {
+      node = new ydn.db.sql.req.idb.ReduceNode(store_schema, sql);
+    } else {
+      node = new ydn.db.sql.req.idb.Node(store_schema, sql);
+    }
 
     node.execute(df, this);
   } else {

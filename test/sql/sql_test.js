@@ -20,8 +20,7 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
-  //ydn.db.core.req.IndexedDb.DEBUG = false;
-  ydn.db.sql.req.WebSql.DEBUG = true;
+  //ydn.db.sql.req.WebSql.DEBUG = true;
 
   var index_x = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, true);
   var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
@@ -278,6 +277,189 @@ var test_where = function() {
 
 };
 
+var test_count = function() {
+
+  var hasEventFired = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('all records', 4, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.executeSql('SELECT COUNT(*) FROM "st"').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+var test_count_where = function() {
+
+  var hasEventFired = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('all records', 2, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.executeSql('SELECT COUNT(*) FROM "st" where x > 0 AND x <= 3').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+
+var test_sum = function() {
+
+  var hasEventFired = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('sum', 6, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.executeSql('SELECT SUM(id) FROM "st"').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+
+var test_sum_where = function() {
+
+  var hasEventFired = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('sum', 5, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.executeSql('SELECT SUM(x) FROM "st" where x > 0 AND x <= 3').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+var test_max = function() {
+
+  var hasEventFired = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('sum', 3, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.executeSql('SELECT MAX(x) FROM "st"').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+var test_min = function() {
+
+  var hasEventFired = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('sum', -1, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.executeSql('SELECT MIN(x) FROM "st"').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+var test_avg = function() {
+
+  var hasEventFired = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('avg', 1, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.executeSql('SELECT AVG(x) FROM "st"').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
 
 
 var testCase = new goog.testing.ContinuationTestCase();

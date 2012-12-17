@@ -311,3 +311,39 @@ var test_order_offset = function() {
   assertNaN('limit', sql.getLimit());
   assertEquals('offset', 2, sql.getOffset());
 };
+
+var test_aggregate = function() {
+  var sql = new ydn.db.Sql('SELECT COUNT(*) FROM st1');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('action', 'SELECT', sql.getAction());
+  assertArrayEquals('stores', ['st1'], sql.getStoreNames());
+  assertEquals('aggregate', 'COUNT', sql.getAggregate());
+  assertNull('fields', sql.getSelList());
+
+  sql = new ydn.db.Sql('SELECT MAX(*) FROM st1');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('aggregate', 'MAX', sql.getAggregate());
+
+  sql = new ydn.db.Sql('SELECT MIN(*) FROM st1');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('aggregate', 'MIN', sql.getAggregate());
+
+  sql = new ydn.db.Sql('SELECT AVG(*) FROM st1');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('aggregate', 'AVG', sql.getAggregate());
+
+  sql = new ydn.db.Sql('SELECT SUM(*) FROM st1');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('aggregate', 'SUM', sql.getAggregate());
+};
+
+
+
+var test_aggregate_field = function() {
+  var sql = new ydn.db.Sql('SELECT COUNT(f2) FROM st1');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('action', 'SELECT', sql.getAction());
+  assertArrayEquals('stores', ['st1'], sql.getStoreNames());
+  assertEquals('aggregate', 'COUNT', sql.getAggregate());
+  assertArrayEquals('fields', ['f2'], sql.getSelList());
+};

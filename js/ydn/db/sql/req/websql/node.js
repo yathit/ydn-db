@@ -22,7 +22,7 @@ goog.require('ydn.db.Sql');
  */
 ydn.db.sql.req.websql.Node = function(schema, sql) {
 
-  this.sql_ = sql;
+  this.sql = sql;
   this.store_schema_ = schema;
   this.sel_fields_ = sql.getSelList();
 
@@ -45,9 +45,9 @@ ydn.db.sql.req.websql.Node.prototype.store_schema_;
 
 /**
  * @type {ydn.db.Sql}
- * @private
+ * @protected
  */
-ydn.db.sql.req.websql.Node.prototype.sql_;
+ydn.db.sql.req.websql.Node.prototype.sql;
 
 
 /**
@@ -61,7 +61,7 @@ ydn.db.sql.req.websql.Node.prototype.sel_fields_;
  * @inheritDoc
  */
 ydn.db.sql.req.websql.Node.prototype.toJSON = function() {
-  return {'sql': this.sql_.getSql()};
+  return {'sql': this.sql.getSql()};
 };
 
 
@@ -105,7 +105,7 @@ ydn.db.sql.req.websql.Node.prototype.parseRow = function(row) {
  */
 ydn.db.sql.req.websql.Node.prototype.execute = function(df, tx, params) {
 
-  var sql_stm = this.sql_.getSql();
+  var sql_stm = this.sql.getSql();
   var me = this;
   var out = [];
 

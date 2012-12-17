@@ -25,6 +25,7 @@ goog.require('ydn.db.index.req.WebSql');
 goog.require('ydn.db.sql.req.SqlQuery');
 goog.require('ydn.db.sql.req.IRequestExecutor');
 goog.require('ydn.db.sql.req.websql.Node');
+goog.require('ydn.db.sql.req.websql.ReduceNode');
 
 /**
  * @extends {ydn.db.index.req.WebSql}
@@ -140,8 +141,23 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(df, sql, params) {
     if (!store_schema) {
       throw new ydn.db.NotFoundError(store_names[0]);
     }
+    var fields = sql.getSelList();
+    if (fields) {
+      for (var i = 0; i < fields.length; i++) {
+        if (!store_schema.hasIndex(fields[i])) {
+          throw new ydn.db.NotFoundError('Index "' + fields[i] +
+            '" not found in ' + store_names[0]);
+        }
+      }
+    }
 
-    var node = new ydn.db.sql.req.websql.Node(store_schema, sql);
+    var node;
+    if (sql.getAggregate()) {
+      node = new ydn.db.sql.req.websql.ReduceNode(store_schema, sql);
+    } else {
+      node = new ydn.db.sql.req.websql.Node(store_schema, sql);
+    }
+
     node.execute(df, /** @type {SQLTransaction} */ (this.tx), params);
   } else {
     throw new ydn.error.NotSupportedException(sql.getSql());
@@ -217,7 +233,6 @@ ydn.db.index.req.WebSql.prototype.openSqlQuery = function(df, cursor, next_callb
           break;
         }
       }
-
 
     }
     df.callback();

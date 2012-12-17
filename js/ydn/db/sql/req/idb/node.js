@@ -24,8 +24,8 @@ goog.require('ydn.error.ArgumentException');
  */
 ydn.db.sql.req.idb.Node = function(schema, sql) {
 
-  this.sql_ = sql;
-  this.store_schema_ = schema;
+  this.sql = sql;
+  this.store_schema = schema;
 
 };
 
@@ -40,16 +40,16 @@ ydn.db.sql.req.idb.Node.prototype.logger =
 
 /**
  * @type {!ydn.db.schema.Store}
- * @private
+ * @protected
  */
-ydn.db.sql.req.idb.Node.prototype.store_schema_;
+ydn.db.sql.req.idb.Node.prototype.store_schema;
 
 
 /**
  * @type {ydn.db.Sql}
- * @private
+ * @protected
  */
-ydn.db.sql.req.idb.Node.prototype.sql_;
+ydn.db.sql.req.idb.Node.prototype.sql;
 
 
 
@@ -57,7 +57,7 @@ ydn.db.sql.req.idb.Node.prototype.sql_;
  * @inheritDoc
  */
 ydn.db.sql.req.idb.Node.prototype.toJSON = function() {
-  return {'sql': this.sql_};
+  return {'sql': this.sql};
 };
 
 
@@ -78,20 +78,20 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
   var me = this;
   var out = [];
 
-  var store_name = this.sql_.getStoreNames()[0];
-  var wheres = this.sql_.getConditions();
-  var limit = this.sql_.getLimit();
+  var store_name = this.sql.getStoreNames()[0];
+  var wheres = this.sql.getConditions();
+  var limit = this.sql.getLimit();
   limit = isNaN(limit) ? ydn.db.base.DEFAULT_RESULT_LIMIT : limit;
-  var offset = this.sql_.getOffset();
+  var offset = this.sql.getOffset();
   offset = isNaN(offset) ? 0 : offset;
-  var order = this.sql_.getOrderBy();
-  var sel_fields = this.sql_.getSelList();
+  var order = this.sql.getOrderBy();
+  var sel_fields = this.sql.getSelList();
   /**
    *
    * @type {IDBKeyRange}
    */
   var key_range = null;
-  var reverse = this.sql_.isReversed();
+  var reverse = this.sql.isReversed();
   if (wheres.length == 0) {
     key_range = null;
   } else if (wheres.length == 1) {
@@ -101,7 +101,7 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
   }
 
   if (goog.isNull(sel_fields) || sel_fields.length == 0)  {
-    if (goog.isDefAndNotNull(order) && order != this.store_schema_.getKeyPath()) {
+    if (goog.isDefAndNotNull(order) && order != this.store_schema.getKeyPath()) {
       var iter = new ydn.db.ValueIterator(store_name, order, key_range, reverse);
       req.listByIterator(df, iter, limit, offset);
     } else {

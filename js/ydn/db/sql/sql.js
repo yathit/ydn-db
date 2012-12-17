@@ -91,12 +91,20 @@ ydn.db.Sql.prototype.modifier_;
  */
 ydn.db.Sql.prototype.condition_;
 
+
 /**
  *
- * @type {string}
+ * @type {string|undefined}
  * @private
  */
-ydn.db.Sql.prototype.order_ = '';
+ydn.db.Sql.prototype.aggregate_;
+
+/**
+ *
+ * @type {string|undefined}
+ * @private
+ */
+ydn.db.Sql.prototype.order_;
 
 /**
  *
@@ -159,7 +167,7 @@ ydn.db.Sql.prototype.parseBasic_ = function(sql) {
 
   // Parse Pre-FROM
   var pre_from_parts = pre_from.match(
-    /\s*?(SELECT|INSERT|UPDATE|DELETE)\s*(.*)/i);
+    /\s*?(SELECT|INSERT|UPDATE|DELETE)\s+(.*)/i);
   if (pre_from_parts.length != 3) {
     throw new ydn.db.SqlParseError('Unable to parse: ' + sql);
   }
@@ -180,6 +188,13 @@ ydn.db.Sql.prototype.parseBasic_ = function(sql) {
 
   var selList = pre_from_parts[2].trim();
 
+  var agg = selList.match(/^(MIN|MAX|COUNT|AVG|SUM)/i);
+  if (agg) {
+    this.aggregate_ = agg[0].toUpperCase();
+    selList = selList.replace(/^(MIN|MAX|COUNT|AVG|SUM)/i, '').trim();
+  } else {
+    this.aggregate_ = undefined;
+  }
   // remove parentheses if it has
   if (selList.charAt(0) == '(') {
     if (selList.charAt(selList.length - 1) == ')') {
@@ -311,32 +326,6 @@ ydn.db.Sql.prototype.toJSON = function() {
 };
 
 
-
-
-/**
- * @enum {string}
- */
-ydn.db.Sql.MapType = {
-  SELECT_MANY: 'sl',
-  SELECT: 's1',
-  EXPRESSION: 'ex'
-};
-
-
-
-/**
- * @enum {string}
- */
-ydn.db.Sql.AggregateType = {
-  COUNT: 'ct',
-  SUM: 'sm',
-  AVERAGE: 'av',
-  MAX: 'mx',
-  MIN: 'mn',
-  SELECT: 'sl',
-  CONCAT: 'cc',
-  EXPRESSION: 'ex'
-};
 
 
 /**
@@ -480,6 +469,14 @@ ydn.db.Sql.prototype.toString = function() {
   } else {
     return goog.base(this, 'toString');
   }
+};
+
+
+/**
+ * @return {string|undefined} return aggregate or undefined.
+ */
+ydn.db.Sql.prototype.getAggregate = function() {
+  return this.aggregate_;
 };
 
 
