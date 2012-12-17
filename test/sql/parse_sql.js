@@ -52,6 +52,20 @@ var test_where_int = function() {
   assertEquals('upperOpen', false, wheres[0].upperOpen);
 };
 
+
+var test_where_int_param = function() {
+  var sql = new ydn.db.Sql('SELECT * FROM st1 WHERE x = ?');
+  assertEquals('parse ok', '', sql.parse([1]));
+  assertEquals('action', 'SELECT', sql.getAction());
+  assertArrayEquals('stores', ['st1'], sql.getStoreNames());
+  var wheres = sql.getConditions();
+  assertEquals('# wheres ' + wheres, 1, wheres.length);
+  assertEquals('lower', 1, wheres[0].lower);
+  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
+  assertEquals('upper', 1, wheres[0].upper);
+  assertEquals('upperOpen', false, wheres[0].upperOpen);
+};
+
 var test_where_float = function() {
   var sql = new ydn.db.Sql('SELECT * FROM st1 WHERE x = 0.5');
   assertEquals('parse ok', '', sql.parse());
@@ -155,6 +169,19 @@ var test_where_bound = function() {
   assertEquals('upperOpen', true, wheres[0].upperOpen);
 };
 
+var test_where_bound_param = function() {
+  var sql = new ydn.db.Sql('SELECT * FROM st1 WHERE x >= ? AND x < ?');
+  assertEquals('parse ok', '', sql.parse([4, 5]));
+  assertEquals('action', 'SELECT', sql.getAction());
+  assertArrayEquals('stores', ['st1'], sql.getStoreNames());
+  var wheres = sql.getConditions();
+  assertEquals('# wheres ' + wheres, 1, wheres.length);
+  assertEquals('lower', 4, wheres[0].lower);
+  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
+  assertEquals('upper', 5, wheres[0].upper);
+  assertEquals('upperOpen', true, wheres[0].upperOpen);
+};
+
 
 var test_limit = function() {
   var sql = new ydn.db.Sql('SELECT * FROM st1 LIMIT 5');
@@ -198,6 +225,16 @@ var test_order = function() {
   assertEquals('action', 'SELECT', sql.getAction());
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
   assertEquals('order by', 'f1', sql.getOrderBy());
+  assertFalse('dir', sql.isReversed());
+};
+
+var test_order_dir = function() {
+  var sql = new ydn.db.Sql('SELECT * FROM st1 ORDER BY f1 DESC');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('action', 'SELECT', sql.getAction());
+  assertArrayEquals('stores', ['st1'], sql.getStoreNames());
+  assertEquals('order by', 'f1', sql.getOrderBy());
+  assertTrue('dir', sql.isReversed());
 };
 
 var test_order_single_quote = function() {
@@ -234,6 +271,18 @@ var test_order_limit_offset = function() {
   assertEquals('order by', 'f1', sql.getOrderBy());
   assertEquals('limit', 1, sql.getLimit());
   assertEquals('offset', 2, sql.getOffset());
+  assertFalse('dir', sql.isReversed());
+};
+
+var test_order_limit_offset_dir = function() {
+  var sql = new ydn.db.Sql('SELECT * FROM st1 ORDER BY f1 DESC LIMIT 1 OFFSET 2');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('action', 'SELECT', sql.getAction());
+  assertArrayEquals('stores', ['st1'], sql.getStoreNames());
+  assertEquals('order by', 'f1', sql.getOrderBy());
+  assertEquals('limit', 1, sql.getLimit());
+  assertEquals('offset', 2, sql.getOffset());
+  assertTrue('dir', sql.isReversed());
 };
 
 var test_order_offset = function() {

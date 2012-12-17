@@ -239,15 +239,21 @@ ydn.db.index.req.IndexedDb.prototype.getTx = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q, limit) {
+ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q, limit, offset) {
   var arr = [];
   var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
   req.onError = function(e) {
     df.errback(e);
   };
   var count = 0;
+  var cued = false;
   req.onNext = function(primary_key, key, value) {
     if (goog.isDef(key)) {
+      if (!cued && offset > 0) {
+        req.advance(offset);
+        cued = true;
+        return;
+      }
       count++;
       arr.push(q.isKeyOnly() ? key : value);
       if (!goog.isDef(limit) || count < limit) {
@@ -260,6 +266,7 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q, limit) {
     }
   };
 };
+
 
 //
 //

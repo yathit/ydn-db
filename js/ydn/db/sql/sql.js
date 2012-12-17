@@ -51,61 +51,7 @@ ydn.db.Sql = function(sql) {
 
   this.sql_ = sql;
 
-  var from_parts = sql.split(/\sFROM\s/i);
-  if (from_parts.length != 2) {
-    throw new ydn.db.SqlParseError('FROM required.');
-  }
-  var pre_from = from_parts[0];
-  var post_from = from_parts[1];
-
-
-  // Parse Pre-FROM
-  var pre_from_parts = pre_from.match(
-      /\s*?(SELECT|INSERT|UPDATE|DELETE)\s*(.*)/i);
-  if (pre_from_parts.length != 3) {
-    throw new ydn.db.SqlParseError('Unable to parse: ' + sql);
-  }
-
-  // action
-  this.action_ = pre_from_parts[1].toUpperCase();
-  if (this.action_ == 'SELECT') {
-    this.mode_ = ydn.db.base.TransactionMode.READ_ONLY;
-  } else if (this.action_ == 'INSERT') {
-    this.mode_ = ydn.db.base.TransactionMode.READ_WRITE;
-  } else if (this.action_ == 'UPDATE') {
-    this.mode_ = ydn.db.base.TransactionMode.READ_WRITE;
-  } else if (this.action_ == 'DELETE') {
-    this.mode_ = ydn.db.base.TransactionMode.READ_WRITE;
-  } else {
-    throw new ydn.db.SqlParseError('Unknown SQL verb: ' + this.action_);
-  }
-
-  this.selList_ = pre_from_parts[2].trim();
-
-  // collect modifiers
-  var mod_idx = post_from.search(/(ORDER BY|LIMIT|OFFSET)/i);
-  if (mod_idx > 0) {
-    this.modifier_ = post_from.substring(mod_idx);
-    post_from = post_from.substring(0, mod_idx);
-  } else {
-    this.modifier_ = '';
-  }
-
-  // collect condition
-  var where_idx = post_from.search(/WHERE/i);
-  if (where_idx > 0) {
-    this.condition_ = post_from.substring(where_idx + 6).trim();
-    post_from = post_from.substring(0, where_idx);
-  } else {
-    this.condition_ = '';
-  }
-
-  var stores = post_from.trim().split(',');
-  this.store_names_ = stores.map(function(x) {
-    x = goog.string.stripQuotes(x, '"');
-    x = goog.string.stripQuotes(x, "'");
-    return x.trim();
-  });
+  this.parseBasic_(sql);
 
   this.last_error_ = '';
   this.has_parsed_ = false;
@@ -167,6 +113,13 @@ ydn.db.Sql.prototype.limit_ = NaN;
  */
 ydn.db.Sql.prototype.offset_ = NaN;
 
+/**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.Sql.prototype.reverse_ = false;
+
 
 /**
  * @type {string}
@@ -192,6 +145,69 @@ ydn.db.Sql.prototype.has_parsed_ = false;
 
 
 /**
+ *
+ * @param {string} sql
+ * @private
+ */
+ydn.db.Sql.prototype.parseBasic_ = function(sql) {
+  var from_parts = sql.split(/\sFROM\s/i);
+  if (from_parts.length != 2) {
+    throw new ydn.db.SqlParseError('FROM required.');
+  }
+  var pre_from = from_parts[0];
+  var post_from = from_parts[1];
+
+  // Parse Pre-FROM
+  var pre_from_parts = pre_from.match(
+    /\s*?(SELECT|INSERT|UPDATE|DELETE)\s*(.*)/i);
+  if (pre_from_parts.length != 3) {
+    throw new ydn.db.SqlParseError('Unable to parse: ' + sql);
+  }
+
+  // action
+  this.action_ = pre_from_parts[1].toUpperCase();
+  if (this.action_ == 'SELECT') {
+    this.mode_ = ydn.db.base.TransactionMode.READ_ONLY;
+  } else if (this.action_ == 'INSERT') {
+    this.mode_ = ydn.db.base.TransactionMode.READ_WRITE;
+  } else if (this.action_ == 'UPDATE') {
+    this.mode_ = ydn.db.base.TransactionMode.READ_WRITE;
+  } else if (this.action_ == 'DELETE') {
+    this.mode_ = ydn.db.base.TransactionMode.READ_WRITE;
+  } else {
+    throw new ydn.db.SqlParseError('Unknown SQL verb: ' + this.action_);
+  }
+
+  this.selList_ = pre_from_parts[2].trim();
+
+  // collect modifiers
+  var mod_idx = post_from.search(/(ORDER BY|LIMIT|OFFSET)/i);
+  if (mod_idx > 0) {
+    this.modifier_ = post_from.substring(mod_idx);
+    post_from = post_from.substring(0, mod_idx);
+  } else {
+    this.modifier_ = '';
+  }
+
+  // collect condition
+  var where_idx = post_from.search(/WHERE/i);
+  if (where_idx > 0) {
+    this.condition_ = post_from.substring(where_idx + 6).trim();
+    post_from = post_from.substring(0, where_idx);
+  } else {
+    this.condition_ = '';
+  }
+
+  var stores = post_from.trim().split(',');
+  this.store_names_ = stores.map(function(x) {
+    x = goog.string.stripQuotes(x, '"');
+    x = goog.string.stripQuotes(x, "'");
+    return x.trim();
+  });
+};
+
+
+/**
  * @param {Array=} params SQL parameters.
  * @return {string} empty if successfully parse
  */
@@ -202,10 +218,7 @@ ydn.db.Sql.prototype.parse = function(params) {
     for (var i = 0; i < params.length; i++) {
       this.sql_ = this.sql_.replace('?', params[i]);
     }
-  }
-
-  if (this.has_parsed_ || this.last_error_) {
-    return this.last_error_;
+    this.parseBasic_(this.sql_);
   }
 
   var selList = this.selList_;
@@ -225,6 +238,7 @@ ydn.db.Sql.prototype.parse = function(params) {
   }
 
   var start_idx = this.modifier_.length;
+
   var offset_result = /OFFSET\s+(\d+)/i.exec(this.modifier_);
   if (offset_result) {
     this.offset_ = parseInt(offset_result[1], 10);
@@ -241,8 +255,16 @@ ydn.db.Sql.prototype.parse = function(params) {
   var order_str = this.modifier_.substr(0, start_idx);
   var order_result = /ORDER BY\s+(.+)/i.exec(order_str);
   if (order_result) {
+    var order = order_result[1].trim();
+    var asc_desc = order.match(/(ASC|DESC)/i);
+    if (asc_desc) {
+      this.reverse_ = asc_desc[0].toUpperCase() == 'DESC';
+      order = order.replace(/\s+(ASC|DESC)/i, '');
+    } else {
+      this.reverse_ = false;
+    }
     this.order_ = goog.string.stripQuotes(
-        goog.string.stripQuotes(order_result[1].trim(), '"'), "'");
+        goog.string.stripQuotes(order, '"'), "'");
   }
 
   this.has_parsed_ = true;
@@ -357,6 +379,14 @@ ydn.db.Sql.prototype.getOffset = function() {
  */
 ydn.db.Sql.prototype.getOrderBy = function() {
   return this.order_;
+};
+
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.Sql.prototype.isReversed = function() {
+  return this.reverse_;
 };
 
 

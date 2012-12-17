@@ -138,7 +138,7 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(df, sql, params) {
   if (store_names.length == 1) {
     var store_schema = this.schema.getStore(store_names[0]);
     if (!store_schema) {
-      throw new ydn.error.InvalidOperationException(store_names[0]);
+      throw new ydn.db.NotFoundError(store_names[0]);
     }
 
     var node = new ydn.db.sql.req.websql.Node(store_schema, sql.getSql());

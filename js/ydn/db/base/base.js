@@ -36,6 +36,15 @@ ydn.db.base.DEFAULT_BLOB_COLUMN = '_default_';
 ydn.db.base.JQUERY = false;
 
 
+
+/**
+ * Default result limit during retrieving records from the database.
+ * @const
+ * @type {number}
+ */
+ydn.db.base.DEFAULT_RESULT_LIMIT = 1000000;
+
+
 /**
  * Create a new deferred instance depending on target platform.
  * @return {!goog.async.Deferred} newly created deferred object.

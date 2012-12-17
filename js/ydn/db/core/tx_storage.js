@@ -310,13 +310,6 @@ ydn.db.core.TxStorage.prototype.get = function(arg1, arg2) {
 
 
 /**
- * @const
- * @type {number}
- */
-ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT = 1000000;
-
-
-/**
  *
  * @inheritDoc
  */
@@ -372,7 +365,7 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
     if (goog.isNumber(arg3)) {
       limit = arg3;
     } else if (!goog.isDef(arg3)) {
-      limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+      limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
     } else {
       throw new ydn.error.ArgumentException('arg3 must be number|undefined.');
     }
@@ -399,7 +392,7 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
       if (goog.isNumber(arg4)) {
         limit = arg4;
       } else if (!goog.isDef(arg4)) {
-        limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+        limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
       } else {
         throw new ydn.error.ArgumentException('arg4 must be number|undefined.');
       }
@@ -443,7 +436,7 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
     if (goog.isNumber(arg5)) {
       limit = arg5;
     } else if (!goog.isDef(arg5)) {
-      limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+      limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
     } else {
       throw new ydn.error.ArgumentException('arg5 must be number|undefined.');
     }
@@ -512,7 +505,7 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, ar
     } else if (!goog.isDef(arg2) || goog.isBoolean(arg2)) {
       reverse = !!arg2;
       if (!goog.isDef(arg3)) {
-        limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+        limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
       } else if (goog.isNumber(arg3)) {
         limit = arg3;
       } else {
@@ -540,7 +533,7 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, ar
       }
       reverse = !!arg3;
       if (!goog.isDef(arg4)) {
-        limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+        limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
       } else if (goog.isNumber(arg4)) {
         limit = arg4;
       } else {
@@ -567,7 +560,7 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, ar
       }
       reverse = !!arg4;
       if (!goog.isDef(arg5)) {
-        limit = ydn.db.core.TxStorage.DEFAULT_RESULT_LIMIT;
+        limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
       } else if (goog.isNumber(arg5)) {
         limit = arg5;
       } else {

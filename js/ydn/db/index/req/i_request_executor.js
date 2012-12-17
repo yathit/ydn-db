@@ -18,8 +18,6 @@ goog.require('ydn.db.index.req.AbstractCursor');
 ydn.db.index.req.IRequestExecutor = function() {};
 
 
-
-
 /**
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
@@ -28,13 +26,12 @@ ydn.db.index.req.IRequestExecutor.prototype.getByIterator = goog.abstractMethod;
 
 
 
-
-
 /**
  * List record in a store.
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
  * @param {number=} limit
+ * @param {number=} offset
  */
 ydn.db.index.req.IRequestExecutor.prototype.listByIterator = goog.abstractMethod;
 //

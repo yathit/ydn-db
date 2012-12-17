@@ -282,6 +282,20 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
 
 
 /**
+ * Move cursor to certain steps.
+ * @param {number} count
+ */
+ydn.db.index.req.IDBCursor.prototype.advance = function(count) {
+  if (this.cur) {
+    this.cur.advance(count);
+  } else {
+    var label = 'IDBCursor:' + this.store_name + ':' + this.index_name;
+    throw new ydn.error.InvalidOperationError(label + ' cursor gone.');
+  }
+};
+
+
+/**
  * Continue to next position.
  * @param {*} next_position next index key.
  * @override
