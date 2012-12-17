@@ -49,6 +49,8 @@ ydn.db.Sql = function(sql) {
     throw new ydn.error.ArgumentException();
   }
 
+  this.sql_ = sql;
+
   var from_parts = sql.split(/\sFROM\s/i);
   if (from_parts.length != 2) {
     throw new ydn.db.SqlParseError('FROM required.');
@@ -56,7 +58,6 @@ ydn.db.Sql = function(sql) {
   var pre_from = from_parts[0];
   var post_from = from_parts[1];
 
-  this.sql_ = sql;
 
   // Parse Pre-FROM
   var pre_from_parts = pre_from.match(
@@ -100,7 +101,11 @@ ydn.db.Sql = function(sql) {
   }
 
   var stores = post_from.trim().split(',');
-  this.store_names_ = stores.map(function(x) {return x.trim();});
+  this.store_names_ = stores.map(function(x) {
+    x = goog.string.stripQuotes(x, '"');
+    x = goog.string.stripQuotes(x, "'");
+    return x.trim();
+  });
 
   this.last_error_ = '';
   this.has_parsed_ = false;
@@ -187,9 +192,17 @@ ydn.db.Sql.prototype.has_parsed_ = false;
 
 
 /**
+ * @param {Array=} params SQL parameters.
  * @return {string} empty if successfully parse
  */
-ydn.db.Sql.prototype.parse = function() {
+ydn.db.Sql.prototype.parse = function(params) {
+
+
+  if (params) {
+    for (var i = 0; i < params.length; i++) {
+      this.sql_ = this.sql_.replace('?', params[i]);
+    }
+  }
 
   if (this.has_parsed_ || this.last_error_) {
     return this.last_error_;

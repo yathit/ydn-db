@@ -41,18 +41,16 @@ ydn.db.sql.req.IndexedDb.prototype.logger =
 
 
 
-
-
 /**
  * @inheritDoc
  */
 ydn.db.sql.req.IndexedDb.prototype.executeSql = function(df, sql) {
-  throw new ydn.error.NotImplementedException();
-//  var cursor = sql.toIdbQuery(this.schema);
-//  var initial = goog.isFunction(cursor.initial) ? cursor.initial() : undefined;
-//  this.iterate(df, cursor, null, null,
-//    cursor.map, cursor.reduce, initial, cursor.finalize);
-//  return df;
+
+  var cursor = sql.toIdbQuery(this.schema);
+  var initial = goog.isFunction(cursor.initial) ? cursor.initial() : undefined;
+  this.iterate(df, cursor, null, null,
+    cursor.map, cursor.reduce, initial, cursor.finalize);
+  return df;
 };
 
 

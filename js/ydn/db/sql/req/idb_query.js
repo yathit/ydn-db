@@ -53,7 +53,6 @@ ydn.db.sql.req.IdbQuery = function(store, index, keyRange,
   goog.base(this, store, index, keyRange,  reverse, unique, key_only,
     filter, continued);
 
-
 };
 goog.inherits(ydn.db.sql.req.IdbQuery, ydn.db.sql.req.IterableQuery);
 

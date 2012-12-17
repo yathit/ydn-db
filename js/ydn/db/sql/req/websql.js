@@ -24,6 +24,7 @@ goog.provide('ydn.db.sql.req.WebSql');
 goog.require('ydn.db.index.req.WebSql');
 goog.require('ydn.db.sql.req.SqlQuery');
 goog.require('ydn.db.sql.req.IRequestExecutor');
+goog.require('ydn.db.sql.req.websql.Node');
 
 /**
  * @extends {ydn.db.index.req.WebSql}
@@ -44,7 +45,6 @@ goog.inherits(ydn.db.sql.req.WebSql, ydn.db.index.req.WebSql);
  * @type {boolean} debug flag.
  */
 ydn.db.sql.req.WebSql.DEBUG = false;
-
 
 
 /**
@@ -134,11 +134,18 @@ ydn.db.sql.req.WebSql.prototype.explainSql = function(query) {
  */
 ydn.db.sql.req.WebSql.prototype.executeSql = function(df, sql, params) {
 
-//  var store = this.schema.getStore(sql.getStoreName());
-//
-//  var node = new ydn.db.sql.req.websql.Node(this.schema, sql.getSql(), params);
-//  node.execute(df, this.tx);
+  var store_names = sql.getStoreNames();
+  if (store_names.length == 1) {
+    var store_schema = this.schema.getStore(store_names[0]);
+    if (!store_schema) {
+      throw new ydn.error.InvalidOperationException(store_names[0]);
+    }
 
+    var node = new ydn.db.sql.req.websql.Node(store_schema, sql.getSql());
+    node.execute(df, /** @type {SQLTransaction} */ (this.tx), params);
+  } else {
+    throw new ydn.error.NotSupportedException(sql.getSql());
+  }
 
 };
 

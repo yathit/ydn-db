@@ -49,7 +49,6 @@ var tearDown = function() {
 };
 
 
-
 var test_21_select_all = function() {
 
   var hasEventFired = false;
@@ -67,7 +66,7 @@ var test_21_select_all = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.execute('SELECT * FROM "st"').addCallback(function (q_result) {
+  db.executeSql('SELECT * FROM "st"').addCallback(function (q_result) {
     //console.log(db.explain(q));
     //console.log('receiving query ' + JSON.stringify(q_result));
     result = q_result;
