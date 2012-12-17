@@ -21,6 +21,7 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
   //ydn.db.core.req.IndexedDb.DEBUG = false;
+  ydn.db.sql.req.WebSql.DEBUG = true;
 
   var index_x = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, true);
   var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
@@ -49,7 +50,7 @@ var tearDown = function() {
 };
 
 
-var test_21_select_all = function() {
+var test_select_all = function() {
 
   var hasEventFired = false;
   var result;
@@ -64,7 +65,7 @@ var test_21_select_all = function() {
         reachedFinalContinuation = true;
       },
       100, // interval
-      2000); // maxTimeout
+      1000); // maxTimeout
 
   db.executeSql('SELECT * FROM "st"').addCallback(function (q_result) {
     //console.log(db.explain(q));
@@ -74,6 +75,210 @@ var test_21_select_all = function() {
   })
 
 };
+
+var test_select_field = function() {
+
+  var hasEventFired = false;
+  var result;
+  var actual_result = objs.map(function(x) {return x.value});
+  actual_result.sort();
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      result.sort();
+      assertArrayEquals('all records', actual_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.executeSql('SELECT value FROM "st"').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+
+var test_select_field_ordered = function() {
+
+  var hasEventFired = false;
+  var result;
+  var actual_result = objs.map(function(x) {return x.value});
+  actual_result.sort();
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertArrayEquals('all records', actual_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.executeSql('SELECT value FROM "st" ORDER BY value').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+var test_order_by = function() {
+
+  var hasEventFired = false;
+  var result;
+  var actual_result = objs;
+  actual_result.sort(function(a, b) {
+    return a.value > b.value ? 1 : -1;
+  });
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertArrayEquals('all records', actual_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.executeSql('SELECT * FROM "st" ORDER BY value').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+var test_select_field_order_by_other = function() {
+
+  var hasEventFired = false;
+  var result;
+  var actual_result = objs.map(function(x) {return x.value});
+  actual_result.sort(function(a, b) {
+    return a.x > b.x ? 1 : -1;
+  });
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertArrayEquals('all records', actual_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.executeSql('SELECT value FROM "st" ORDER BY x').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+
+var test_limit = function() {
+
+  var hasEventFired = false;
+  var result;
+  var actual_result = objs.slice(0, 2);
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertArrayEquals('all records', actual_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.executeSql('SELECT * FROM "st" LIMIT 2').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+
+var test_limit_offset = function() {
+
+  var hasEventFired = false;
+  var result;
+  var actual_result = objs.slice(1, 3);
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertArrayEquals('all records', actual_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.executeSql('SELECT * FROM "st" ORDER BY id LIMIT 2 OFFSET 1').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+
+var test_where = function() {
+
+  var hasEventFired = false;
+  var result;
+  var actual_result = objs.slice(1, 3);
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertArrayEquals('all records', actual_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.executeSql('SELECT * FROM "st" WHERE x >= 0 AND x < 3').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+
 
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();

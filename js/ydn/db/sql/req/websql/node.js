@@ -8,6 +8,7 @@
 
 goog.provide('ydn.db.sql.req.websql.Node');
 goog.require('ydn.db.schema.Store');
+goog.require('ydn.db.Sql');
 
 
 
@@ -16,13 +17,14 @@ goog.require('ydn.db.schema.Store');
  *
  *
  * @param {!ydn.db.schema.Store} schema store schema
- * @param {string} sql store name.
+ * @param {!ydn.db.Sql} sql store name.
  * @constructor
  */
 ydn.db.sql.req.websql.Node = function(schema, sql) {
 
   this.sql_ = sql;
   this.store_schema_ = schema;
+  this.sel_fields_ = sql.getSelList();
 
 };
 
@@ -42,17 +44,24 @@ ydn.db.sql.req.websql.Node.prototype.logger =
 ydn.db.sql.req.websql.Node.prototype.store_schema_;
 
 /**
- * @type {string}
+ * @type {ydn.db.Sql}
  * @private
  */
 ydn.db.sql.req.websql.Node.prototype.sql_;
 
 
 /**
+ * @type {Array.<string>}
+ * @private
+ */
+ydn.db.sql.req.websql.Node.prototype.sel_fields_;
+
+
+/**
  * @inheritDoc
  */
 ydn.db.sql.req.websql.Node.prototype.toJSON = function() {
-  return {'sql': this.sql_};
+  return {'sql': this.sql_.getSql()};
 };
 
 
@@ -67,13 +76,26 @@ ydn.db.sql.req.websql.Node.prototype.toString = function() {
 /**
  *
  * @param {!Object} row
- * @return {!Object}
+ * @return {*}
  */
 ydn.db.sql.req.websql.Node.prototype.parseRow = function(row) {
-  return ydn.db.core.req.WebSql.parseRow(row, this.store_schema_);
+  if (!this.sel_fields_) {
+    return ydn.db.core.req.WebSql.parseRow(row, this.store_schema_);
+  } else if (this.sel_fields_.length == 1) {
+    if (goog.isObject(row)) {
+      return goog.object.getValueByKeys(row, this.sel_fields_[0]);
+    } else {
+      return undefined;
+    }
+  } else {
+    var obj = {};
+    for (var i = 0; i < this.sel_fields_.length; i++) {
+      obj[this.sel_fields_[i]] = goog.object.getValueByKeys(row, this.sel_fields_[i]);
+    }
+    return obj;
+  }
+
 };
-
-
 
 
 /**
@@ -83,9 +105,9 @@ ydn.db.sql.req.websql.Node.prototype.parseRow = function(row) {
  */
 ydn.db.sql.req.websql.Node.prototype.execute = function(df, tx, params) {
 
+  var sql_stm = this.sql_.getSql();
   var me = this;
   var out = [];
-
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -115,7 +137,7 @@ ydn.db.sql.req.websql.Node.prototype.execute = function(df, tx, params) {
    */
   var error_callback = function(tr, error) {
     if (ydn.db.sql.req.WebSql.DEBUG) {
-      window.console.log([me.sql_, tr, error]);
+      window.console.log([sql_stm, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
     df.errback(error);
@@ -123,10 +145,10 @@ ydn.db.sql.req.websql.Node.prototype.execute = function(df, tx, params) {
   };
 
   if (ydn.db.sql.req.WebSql.DEBUG) {
-    window.console.log(this + ' open SQL: ' + this.sql_ + ' PARAMS:' +
+    window.console.log(this + ' open SQL: ' + sql_stm + ' PARAMS:' +
         ydn.json.stringify(params));
   }
-  tx.executeSql(this.sql_, params, callback, error_callback);
+  tx.executeSql(sql_stm, params, callback, error_callback);
 
 };
 

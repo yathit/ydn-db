@@ -141,7 +141,7 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(df, sql, params) {
       throw new ydn.db.NotFoundError(store_names[0]);
     }
 
-    var node = new ydn.db.sql.req.websql.Node(store_schema, sql.getSql());
+    var node = new ydn.db.sql.req.websql.Node(store_schema, sql);
     node.execute(df, /** @type {SQLTransaction} */ (this.tx), params);
   } else {
     throw new ydn.error.NotSupportedException(sql.getSql());

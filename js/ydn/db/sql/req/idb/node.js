@@ -9,6 +9,7 @@
 goog.provide('ydn.db.sql.req.idb.Node');
 goog.require('ydn.db.Iterator');
 goog.require('ydn.db.KeyRange');
+goog.require('ydn.db.Sql');
 goog.require('ydn.error.ArgumentException');
 
 
@@ -43,11 +44,13 @@ ydn.db.sql.req.idb.Node.prototype.logger =
  */
 ydn.db.sql.req.idb.Node.prototype.store_schema_;
 
+
 /**
  * @type {ydn.db.Sql}
  * @private
  */
 ydn.db.sql.req.idb.Node.prototype.sql_;
+
 
 
 /**
@@ -83,23 +86,64 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
   offset = isNaN(offset) ? 0 : offset;
   var order = this.sql_.getOrderBy();
   var sel_fields = this.sql_.getSelList();
+  /**
+   *
+   * @type {IDBKeyRange}
+   */
   var key_range = null;
   var reverse = this.sql_.isReversed();
   if (wheres.length == 0) {
     key_range = null;
   } else if (wheres.length == 1) {
-    key_range = wheres[0];
+    key_range = ydn.db.KeyRange.parseIDBKeyRange(wheres[0]);
   } else {
     throw new ydn.error.NotSupportedException('too many conditions.');
   }
 
   if (goog.isNull(sel_fields) || sel_fields.length == 0)  {
-    req.listByKeyRange(df, store_name, key_range, reverse, limit, offset);
-  }  else if (sel_fields.length == 1) {
-    var iter = new ydn.db.KeyIterator(store_name, sel_fields[0], key_range, reverse);
-    req.listByIterator(df, iter, limit, offset);
+    if (goog.isDefAndNotNull(order) && order != this.store_schema_.getKeyPath()) {
+      var iter = new ydn.db.ValueIterator(store_name, order, key_range, reverse);
+      req.listByIterator(df, iter, limit, offset);
+    } else {
+      if (key_range) {
+        req.listByIndexKeyRange(df, store_name, wheres[0].getField(), key_range, reverse, limit, offset);
+      } else {
+        req.listByKeyRange(df, store_name, key_range, reverse, limit, offset);
+      }
+    }
+  } else if (sel_fields.length == 1) {
+    if (goog.isDefAndNotNull(order) && order != sel_fields[0]) {
+      // TODO: More efficient
+      var ndf = new goog.async.Deferred();
+      var iter = new ydn.db.ValueIterator(store_name, order, key_range, reverse);
+      req.listByIterator(ndf, iter, limit, offset);
+      ndf.addCallbacks(function(values) {
+        var results = values.map(function(x) {
+          return goog.object.getValueByKeys(x, sel_fields[0]);
+        });
+        df.callback(results);
+      }, function(e) {
+        df.errback(e);
+      });
+    } else {
+      var iter = new ydn.db.KeyIterator(store_name, sel_fields[0], key_range, reverse);
+      req.listByIterator(df, iter, limit, offset);
+    }
+
   } else {
-    throw new ydn.error.NotSupportedException('too many select fields');
+    var ndf = new goog.async.Deferred();
+    req.listByKeyRange(ndf, store_name, key_range, reverse, limit, offset);
+    ndf.addCallbacks(function(records) {
+      var out = records.map(function(record) {
+        var obj = {};
+        for (var i = 0; i < sel_fields.length; i++) {
+          obj[sel_fields[i]] = goog.object.getValueByKeys(record, sel_fields[i]);
+        }
+        return obj;
+      })
+    }, function(e) {
+      df.errback(e);
+    });
   }
 
 };

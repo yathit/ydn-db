@@ -38,6 +38,23 @@ var test_select = function() {
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
 };
 
+var test_order_by_none = function() {
+  var sql = new ydn.db.Sql('SELECT * from st1');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('action', 'SELECT', sql.getAction());
+  assertEquals('selList', null, sql.getSelList());
+  assertArrayEquals('stores', ['st1'], sql.getStoreNames());
+  assertUndefined('order', sql.getOrderBy());
+};
+
+var test_order_by = function() {
+  var sql = new ydn.db.Sql('SELECT * from st1 ORDER BY f1');
+  assertEquals('parse ok', '', sql.parse());
+  assertEquals('action', 'SELECT', sql.getAction());
+  assertEquals('selList', null, sql.getSelList());
+  assertArrayEquals('stores', ['st1'], sql.getStoreNames());
+  assertEquals('order', 'f1', sql.getOrderBy());
+};
 
 var test_where_int = function() {
   var sql = new ydn.db.Sql('SELECT * FROM st1 WHERE x = 1');

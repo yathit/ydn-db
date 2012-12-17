@@ -178,7 +178,17 @@ ydn.db.Sql.prototype.parseBasic_ = function(sql) {
     throw new ydn.db.SqlParseError('Unknown SQL verb: ' + this.action_);
   }
 
-  this.selList_ = pre_from_parts[2].trim();
+  var selList = pre_from_parts[2].trim();
+
+  // remove parentheses if it has
+  if (selList.charAt(0) == '(') {
+    if (selList.charAt(selList.length - 1) == ')') {
+      selList = selList.substring(1, selList.length - 1);
+    } else {
+      new ydn.db.SqlParseError('missing closing parentheses');
+    }
+  }
+  this.selList_ = selList;
 
   // collect modifiers
   var mod_idx = post_from.search(/(ORDER BY|LIMIT|OFFSET)/i);
@@ -221,17 +231,6 @@ ydn.db.Sql.prototype.parse = function(params) {
     this.parseBasic_(this.sql_);
   }
 
-  var selList = this.selList_;
-  // remove parentheses if it has
-  if (selList.charAt(0) == '(') {
-    if (selList.charAt(selList.length - 1) == ')') {
-      this.selList_ = selList.substring(1, selList.length - 1);
-    } else {
-      this.last_error_ = 'missing closing parentheses';
-      return this.last_error_;
-    }
-  }
-
   this.wheres_ = this.parseConditions();
   if (!this.wheres_) {
     return this.last_error_;
@@ -265,6 +264,9 @@ ydn.db.Sql.prototype.parse = function(params) {
     }
     this.order_ = goog.string.stripQuotes(
         goog.string.stripQuotes(order, '"'), "'");
+    goog.asserts.assert(this.order_.length > 0, 'Invalid order by field');
+  } else {
+    this.order_ = undefined;
   }
 
   this.has_parsed_ = true;
