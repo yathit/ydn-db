@@ -25,7 +25,7 @@ var setUp = function() {
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
-    ydn.db.algo.SortedMerge.DEBUG = true;
+    //ydn.db.algo.SortedMerge.DEBUG = true;
   }
 
   var indexSchema = new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT, false, true);
@@ -239,7 +239,7 @@ var ordered_join = function(algo) {
 };
 
 
-var test_ordered_join_zigzag_merge = function() {
+var _test_ordered_join_zigzag_merge = function() {
   ordered_join('zigzag');
 };
 
