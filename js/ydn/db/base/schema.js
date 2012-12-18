@@ -18,7 +18,7 @@ goog.require('ydn.db.utils');
  * Schema for index.
  *
  * @param {string|!Array.<string>} keyPath the key path.
- * @param {ydn.db.schema.DataType=} opt_type to be determined.
+ * @param {string|ydn.db.schema.DataType=} opt_type to be determined.
  * @param {boolean=} opt_unique True if the index enforces that there is only
  * one objectfor each unique value it indexes on.
  * @param {boolean=} multiEntry  specifies whether the index's multiEntry flag
@@ -344,7 +344,7 @@ ydn.db.schema.Index.fromJSON = function(json) {
  * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to.
  * @param {boolean=} autoIncrement If true, the object store has a key
  * generator. Defaults to false.
- * @param {ydn.db.schema.DataType=} opt_type data type for keyPath. Default to
+ * @param {string|ydn.db.schema.DataType=} opt_type data type for keyPath. Default to
  * <code>ydn.db.schema.DataType.INTEGER</code> if opt_autoIncrement is
  * <code>true.</code>
  * @param {!Array.<!ydn.db.schema.Index>=} opt_indexes list of indexes.
