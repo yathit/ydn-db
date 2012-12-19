@@ -190,7 +190,6 @@ module("Index", {
 //});
 
 
-
 var db_key_range = "qunit_keyrange_2";
 module("Cursor", {
   setUp: function() {
