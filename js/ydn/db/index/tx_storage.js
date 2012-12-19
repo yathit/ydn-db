@@ -125,14 +125,26 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, a
       throw new ydn.error.ArgumentException('too many arguments.');
     }
 
+    /**
+     * @type {number}
+     */
     var limit;
     if (goog.isNumber(arg2)) {
-      limit = arg2;
+      limit = /** @type {number} */ (arg2);
       if (limit < 1) {
         throw new ydn.error.ArgumentException('limit must be a positive value');
       }
     } else if (goog.isDef(arg2)) {
       throw new ydn.error.ArgumentException('limit');
+    }
+    /**
+     * @type {number}
+     */
+    var offset;
+    if (goog.isNumber(arg3)) {
+      offset = /** @type {number} */ (arg3);
+    } else if (goog.isDef(arg3)) {
+      throw new ydn.error.ArgumentException('offset');
     }
 
     /**
@@ -142,7 +154,7 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, a
     var q = arg1;
 
     this.exec(function(executor) {
-      executor.listByIterator(df, q, /** @type {number|undefined} */ (limit));
+      executor.listByIterator(df, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
     return df;
