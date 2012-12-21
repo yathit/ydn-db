@@ -16,6 +16,8 @@
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${dev-out.fn}">
             <extrapaths>
+                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
+                <arg line='-i "${work.dir}/ydn-base/js/debug.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
@@ -147,6 +149,7 @@
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
+                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
             </exjs.dir>
         </adv-comp>
     </target>
@@ -160,6 +163,7 @@
                 output.fn="core-ydn.db-${ver}.js"
                 closure.entry="ydn.db.core.Storage">
             <exjs.dir>
+                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
@@ -179,6 +183,7 @@
                 output.fn="ydn.db-${ver}.js"
                 closure.entry="ydn.db.Storage">
             <ex.opt>
+                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
