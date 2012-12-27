@@ -5,8 +5,7 @@
 goog.require('ydn.db');
 goog.require('ydn.db.con.Storage');
 goog.require('goog.async.Deferred');
-
-
+goog.require('ydn.base');
 
 goog.exportSymbol('ydn.db.con.Storage', ydn.db.con.Storage);
 

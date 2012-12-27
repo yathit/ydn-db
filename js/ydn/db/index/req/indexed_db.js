@@ -239,6 +239,37 @@ ydn.db.index.req.IndexedDb.prototype.getTx = function() {
 /**
  * @inheritDoc
  */
+ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(df, q, limit, offset) {
+  var arr = [];
+  var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
+  req.onError = function(e) {
+    df.errback(e);
+  };
+  var count = 0;
+  var cued = false;
+  req.onNext = function(primary_key, key, value) {
+    if (goog.isDef(key)) {
+      if (!cued && offset > 0) {
+        req.advance(offset);
+        cued = true;
+        return;
+      }
+      count++;
+      arr.push(key);
+      if (!goog.isDef(limit) || count < limit) {
+        req.forward(true);
+      } else {
+        df.callback(arr);
+      }
+    } else {
+      df.callback(arr);
+    }
+  };
+};
+
+/**
+ * @inheritDoc
+ */
 ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q, limit, offset) {
   var arr = [];
   var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
@@ -255,7 +286,7 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q, limit, off
         return;
       }
       count++;
-      arr.push(q.isKeyOnly() ? key : value);
+      arr.push(value);
       if (!goog.isDef(limit) || count < limit) {
         req.forward(true);
       } else {

@@ -3,7 +3,7 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
-    <property name="code-ver" value="27"/>
+    <property name="code-ver" value="28"/>
     <property name="ver" value="0.${code-ver}"/>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
     <property name="dev-out.fn"
@@ -17,7 +17,6 @@
                          output.fn="${dev-out.fn}">
             <extrapaths>
                 <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
-                <arg line='-i "${work.dir}/ydn-base/js/debug.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>

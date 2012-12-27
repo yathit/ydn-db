@@ -114,14 +114,66 @@ ydn.db.index.TxStorage.prototype.get = function(arg1, arg2) {
 };
 
 
+
 /**
  * @inheritDoc
  */
-ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6) {
+ydn.db.index.TxStorage.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
 
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
     if (goog.isDef(arg3) || goog.isDef(arg4) || goog.isDef(arg5)) {
+      throw new ydn.error.ArgumentException('too many arguments.');
+    }
+
+    /**
+     * @type {number}
+     */
+    var limit;
+    if (goog.isNumber(arg2)) {
+      limit = /** @type {number} */ (arg2);
+      if (limit < 1) {
+        throw new ydn.error.ArgumentException('limit must be a positive value');
+      }
+    } else if (goog.isDef(arg2)) {
+      throw new ydn.error.ArgumentException('limit');
+    }
+    /**
+     * @type {number}
+     */
+    var offset;
+    if (goog.isNumber(arg3)) {
+      offset = /** @type {number} */ (arg3);
+    } else if (goog.isDef(arg3)) {
+      throw new ydn.error.ArgumentException('offset');
+    }
+
+    /**
+     *
+     * @type {!ydn.db.Iterator}
+     */
+    var q = arg1;
+
+    this.exec(function(executor) {
+      executor.keysByIterator(df, q, limit, offset);
+    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
+
+    return df;
+  } else {
+    return goog.base(this, 'keys', arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+  }
+
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+
+  if (arg1 instanceof ydn.db.Iterator) {
+    var df = ydn.db.base.createDeferred();
+    if (goog.isDef(arg4) || goog.isDef(arg5)) {
       throw new ydn.error.ArgumentException('too many arguments.');
     }
 
@@ -159,7 +211,7 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, a
 
     return df;
   } else {
-    return goog.base(this, 'list', arg1, arg2, arg3, arg4, arg5, arg6);
+    return goog.base(this, 'list', arg1, arg2, arg3, arg4, arg5, arg6, arg7);
   }
 
 };

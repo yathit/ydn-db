@@ -176,9 +176,19 @@ ydn.db.index.req.WebSql.prototype.getByIterator = function(df, q) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q, limit) {
+ydn.db.index.req.WebSql.prototype.keysByIterator = function(df, q, limit, offset) {
 
-  this.fetchIterator_(df, q, limit);
+  this.fetchIterator_(df, q, limit, offset);
+
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q, limit, offset) {
+
+  this.fetchIterator_(df, q, limit, offset);
 
 };
 
@@ -188,26 +198,92 @@ ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q, limit) {
  * @param {!goog.async.Deferred} df return object in deferred function.
  * @param {!ydn.db.Iterator} q the query.
  * @param {number=} limit override limit.
+ * @param {number=} offset
  * @private
  */
-ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit) {
+ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit, offset) {
 
   var me = this;
-  var cursor = this.planQuery(q);
-  if (goog.isDef(limit)) {
-    cursor.sql += ' LIMIT ' + limit;
-  }
-  var is_reduce = goog.isFunction(cursor.reduce);
-  var store = this.schema.getStore(cursor.getStoreName());
 
-  var result = is_reduce ? undefined : [];
+  var store = this.schema.getStore(q.getStoreName());
+
+  var select = 'SELECT';
+
+  var idx_name = q.getIndexName();
+
+  var index = goog.isDef(idx_name) ? store.getIndex(idx_name) : null;
+
+  var key_column = index ? index.getKeyPath() :
+    goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
+      ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  var column = goog.string.quote(key_column);
+
+  var fields = q.isKeyOnly() ? column : '*';
+  var from = fields + ' FROM ' + store.getQuotedName();
+
+  var key_range = q.keyRange();
+  var where_clause = '';
+  var params = [];
+  if (key_range) {
+
+    if (ydn.db.Where.resolvedStartsWith(key_range)) {
+      where_clause = column + ' LIKE ?';
+      params.push(key_range['lower'] + '%');
+    } else {
+      if (goog.isDef(key_range.lower)) {
+        var lowerOp = key_range['lowerOpen'] ? ' > ' : ' >= ';
+        where_clause += ' ' + column + lowerOp + '?';
+        params.push(key_range.lower);
+      }
+      if (goog.isDef(key_range['upper'])) {
+        var upperOp = key_range['upperOpen'] ? ' < ' : ' <= ';
+        var and = where_clause.length > 0 ? ' AND ' : ' ';
+        where_clause += and + column + upperOp + '?';
+        params.push(key_range.upper);
+      }
+    }
+    where_clause = ' WHERE ' + '(' + where_clause + ')';
+  }
+
+  // Note: IndexedDB key range result are always ordered.
+  var dir = 'ASC';
+  if (q.isReversed()) {
+    dir = 'DESC';
+  }
+  var order = 'ORDER BY ' + column;
+
+  var limit_offset = '';
+
+  if (goog.isDef(limit)) {
+    limit_offset = ' LIMIT ' + limit;
+  }
+  if (goog.isDef(offset)) {
+    limit_offset += ' OFFSET ' + offset;
+  }
+
+  var sql = [select, from, where_clause, order, dir, limit_offset].join(' ');
+
+  var row_parser;
+  if (q.isKeyOnly()) {
+    row_parser = function(row) {
+      var value =  ydn.object.takeFirst(row);
+      var type = index ? index.type : store.type;
+      return ydn.db.schema.Index.sql2js(value, type);
+    }
+  } else {
+    row_parser = function(row) {
+      return ydn.db.core.req.WebSql.parseRow(row, store);
+    }
+  }
+
 
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
-  var callback = function(transaction, results) {
+  var callback = function (transaction, results) {
 
+    var result = [];
     var idx = -1;
     // http://www.w3.org/TR/webdatabase/#database-query-results
     // Fetching the length might be expensive, and authors are thus encouraged
@@ -220,35 +296,13 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit) {
     var n = results.rows.length;
     for (var i = 0; i < n; i++) {
       var row = results.rows.item(i);
-      var value = {}; // ??
-      if (goog.isDefAndNotNull(row)) {
-        value = cursor.parseRow(row, store);
-      }
-      var to_continue = !goog.isFunction(cursor.continued) ||
-        cursor.continued(value);
-      if (!goog.isFunction(cursor.filter_fn) || cursor.filter_fn(value)) {
-        idx++;
 
-          if (goog.isFunction(cursor.map)) {
-            value = cursor.map(value);
-          }
+      result.push(row_parser(row));
 
-          if (is_reduce) {
-            result = cursor.reduce(result, value, i);
-          } else {
-            result.push(value);
-          }
-      }
-
-      if (!to_continue) {
-        break;
-      }
     }
-    if (goog.isFunction(cursor.finalize)) {
-      df.callback(cursor.finalize(result));
-    } else {
-      df.callback(result);
-    }
+
+    df.callback(result);
+
   };
 
   /**
@@ -258,7 +312,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit) {
    */
   var error_callback = function(tr, error) {
     if (ydn.db.index.req.WebSql.DEBUG) {
-      window.console.log([cursor, tr, error]);
+      window.console.log([q, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
     df.errback(error);
@@ -266,9 +320,9 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit) {
   };
 
   if (ydn.db.index.req.WebSql.DEBUG) {
-    window.console.log([cursor.sql, ydn.json.stringify(cursor.params)]);
+    window.console.log([sql, ydn.json.stringify(params)]);
   }
-  this.tx.executeSql(cursor.sql, cursor.params, callback, error_callback);
+  this.tx.executeSql(sql, params, callback, error_callback);
 
 };
 
@@ -295,6 +349,8 @@ ydn.db.index.req.WebSql.prototype.getCursor = function (store_name,
   return new ydn.db.index.req.WebsqlCursor(this.getTx(), store, store_name, index_name,
     keyRange, direction, key_only, ini_key, ini_index_key);
 };
+
+
 
 
 /**

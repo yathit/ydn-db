@@ -106,21 +106,23 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
  */
 ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
                                                 arg4, arg5, arg6, arg7) {
-  return ydn.db.core.TxStorage.prototype.keys.apply(
-    /** @type {ydn.db.core.TxStorage} */ (this.default_tx_queue_),
-    Array.prototype.slice.call(arguments));
+//  return ydn.db.core.TxStorage.prototype.keys.apply(
+//    /** @type {ydn.db.core.TxStorage} */ (this.default_tx_queue_),
+//    Array.prototype.slice.call(arguments));
 
   // above trick is the same effect as follow
   //return this.default_tx_queue_.keys(store_name, arg2, arg3,
   //  arg4, arg5, arg6, arg7);
   // but it preserve argument length
+
+  return this.default_tx_queue_.keys(store_name, arg2, arg3, arg4, arg5, arg6, arg7);
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6) {
-  return this.default_tx_queue_.list(arg1, arg2, arg3, arg4, arg5, arg6);
+ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  return this.default_tx_queue_.list(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 };
 
 

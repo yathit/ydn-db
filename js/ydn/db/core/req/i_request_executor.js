@@ -164,6 +164,7 @@ ydn.db.core.req.IRequestExecutor.prototype.listByKeyRange = goog.abstractMethod;
  * @param {boolean} reverse to sort reverse order.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
+ * @param {boolean} unique unique key.
  */
 ydn.db.core.req.IRequestExecutor.prototype.listByIndexKeyRange = goog.abstractMethod;
 

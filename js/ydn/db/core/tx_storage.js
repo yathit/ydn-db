@@ -313,7 +313,7 @@ ydn.db.core.TxStorage.prototype.get = function(arg1, arg2) {
  *
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
+ydn.db.core.TxStorage.prototype.keys = function(arg1, arg2, arg3,
                                                 arg4, arg5, arg6, arg7) {
   /**
    * @type {IDBKeyRange}
@@ -344,9 +344,13 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
    */
   var distinct;
 
-  if (!goog.isString(store_name)) {
-    throw new ydn.error.ArgumentException('store_name');
-  }
+  goog.asserts.assertString(arg1, 'store_name must be a string');
+  /**
+   *
+   * @type {string}
+   */
+  var store_name = arg1;
+
   var store;
   if (goog.DEBUG) {
     store = this.schema.getStore(store_name);
@@ -356,11 +360,9 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
   }
 
   var df = new goog.async.Deferred();
-  if (arguments.length == 1 || goog.isBoolean(arg2)) {
+  if (!goog.isDef(arg2) || goog.isBoolean(arg2)) {
     // keysByStore
-    if (goog.isDef(arg2) && !goog.isBoolean(arg2)) {
-      throw new ydn.error.ArgumentException('arg2 must be boolean|undefined.');
-    }
+
     reverse = !!arg2;
     if (goog.isNumber(arg3)) {
       limit = arg3;
@@ -403,7 +405,7 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
       } else {
         throw new ydn.error.ArgumentException('arg5 must be number|undefined.');
       }
-      if (arguments.length > 5) {
+      if (goog.isDef(arg6) || goog.isDef(arg7)) {
         throw new ydn.error.ArgumentException('too many arguments');
       }
       this.exec(function(executor) {
@@ -451,9 +453,7 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
       throw new ydn.error.ArgumentException('arg7 must be boolean|undefined.');
     }
     unique = !!arg7;
-    if (arguments.length > 7) {
-      throw new ydn.error.ArgumentException('too many arguments');
-    }
+
     this.exec(function(executor) {
       executor.keysByIndexKeyRange(df, store_name, index_name, key_range,
         reverse, limit, offset, unique);
@@ -468,7 +468,7 @@ ydn.db.core.TxStorage.prototype.keys = function(store_name, arg2, arg3,
 /**
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6) {
+ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
 
   var df = ydn.db.base.createDeferred();
   /**
@@ -483,6 +483,10 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, ar
    * @type {number}
    */
   var offset;
+  /**
+   * @type {boolean}
+   */
+  var unique;
 
 
   if (goog.isString(arg1)) {
@@ -573,9 +577,13 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, ar
       } else {
         throw new ydn.error.ArgumentException('arg6 must be number|undefined.');
       }
+      unique = !!arg7;
+      if (goog.isDef(arg7) && !goog.isBoolean(arg7)) {
+        throw new ydn.error.ArgumentException('arg7 must be boolean|undefined.');
+      }
       this.exec(function (executor) {
         executor.listByIndexKeyRange(df, store_name, index, key_range, reverse,
-          limit, offset);
+          limit, offset, unique);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
     } else {
       throw new ydn.error.ArgumentException('arg2');

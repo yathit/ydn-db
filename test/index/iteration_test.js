@@ -26,11 +26,22 @@ var setUp = function() {
     ydn.db.index.req.WebsqlCursor.DEBUG = true;
   }
 
+
+  reachedFinalContinuation = false;
+};
+
+var tearDown = function() {
+  db.close();
+  assertTrue('The final continuation was not reached', reachedFinalContinuation);
+};
+
+
+var load_default = function() {
   var indexSchema = new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT, false, true);
   var valueIndex = new ydn.db.schema.Index('value', ydn.db.schema.DataType.INTEGER, false, true);
   var xIndex = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, false, true);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
-      ydn.db.schema.DataType.TEXT, [valueIndex, indexSchema, xIndex]);
+    ydn.db.schema.DataType.TEXT, [valueIndex, indexSchema, xIndex]);
 
   var colorIndex = new ydn.db.schema.Index('color', ydn.db.schema.DataType.TEXT);
   var hornIndex = new ydn.db.schema.Index('horn', ydn.db.schema.DataType.TEXT);
@@ -39,7 +50,7 @@ var setUp = function() {
     ydn.db.schema.DataType.TEXT, [colorIndex, hornIndex, legIndex]);
 
   schema = new ydn.db.schema.Database(undefined, [store_schema, anmialStore]);
-  db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.Storage(db_name, schema, options);
 
 
   objs = [
@@ -66,19 +77,14 @@ var setUp = function() {
   db.put('animals', animals).addCallback(function (value) {
     console.log(db + 'store: animals ready.');
   });
-
-
-  reachedFinalContinuation = false;
+  return db;
 };
 
-var tearDown = function() {
-  db.close();
-  assertTrue('The final continuation was not reached', reachedFinalContinuation);
-};
 
 
 var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
 
+  var db = load_default();
   var done;
   var streaming_keys = [];
   var streaming_index_keys = [];

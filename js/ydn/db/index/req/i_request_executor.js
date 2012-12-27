@@ -24,7 +24,14 @@ ydn.db.index.req.IRequestExecutor = function() {};
  */
 ydn.db.index.req.IRequestExecutor.prototype.getByIterator = goog.abstractMethod;
 
-
+/**
+ * List record in a store.
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {!ydn.db.Iterator} store_name  store name.
+ * @param {number=} limit
+ * @param {number=} offset
+ */
+ydn.db.index.req.IRequestExecutor.prototype.keysByIterator = goog.abstractMethod;
 
 /**
  * List record in a store.

@@ -345,12 +345,13 @@ ydn.db.core.req.IndexedDb.prototype.listByStore = function(df, store_name,
  * @param {boolean} reverse to sort reverse order.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
+ * @param {boolean=} unique unique key.
  */
 ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(df, store_name,
-      index, key_range, reverse, limit, offset) {
+      index, key_range, reverse, limit, offset, unique) {
   var results = [];
   var store = this.tx.objectStore(store_name);
-  var dir = ydn.db.base.getDirection(reverse);
+  var dir = ydn.db.base.getDirection(reverse, unique);
   var request;
   if (index) {
     request = store.index(index).openCursor(key_range, dir);
@@ -393,8 +394,8 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(df, store_name,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByKeyRange = function(df, store_name,
-                                                              key_range, reverse, limit, offset) {
+ydn.db.core.req.IndexedDb.prototype.listByKeyRange =
+    function(df, store_name, key_range, reverse, limit, offset) {
   this.listByKeyRange_(df, store_name, null, key_range, reverse, limit, offset)
 };
 
@@ -402,8 +403,8 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange = function(df, store_name,
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(df, store_name,
-             index, key_range, reverse, limit, offset) {
-  this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset)
+             index, key_range, reverse, limit, offset, unique) {
+  this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset, unique)
 };
 
 

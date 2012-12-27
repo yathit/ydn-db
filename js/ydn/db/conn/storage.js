@@ -40,6 +40,7 @@ goog.require('ydn.error.ArgumentException');
 goog.require('ydn.object');
 
 
+
 /**
  * Create a storage and connect to suitable database connection.
  *

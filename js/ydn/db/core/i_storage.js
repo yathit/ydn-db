@@ -54,7 +54,7 @@ ydn.db.core.IStorage.prototype.list = goog.abstractMethod;
 
 /**
  * List keys.
- * @param {string} store_name
+ * @param {string|*} store_name
  * @param {(boolean|string|!IDBKeyRange)=} arg2
  * @param {(number|string|!IDBKeyRange)=} arg3
  * @param {(number|string|boolean)=} arg4

@@ -106,7 +106,7 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
       req.listByIterator(df, iter, limit, offset);
     } else {
       if (key_range) {
-        req.listByIndexKeyRange(df, store_name, wheres[0].getField(), key_range, reverse, limit, offset);
+        req.listByIndexKeyRange(df, store_name, wheres[0].getField(), key_range, reverse, limit, offset, false);
       } else {
         req.listByKeyRange(df, store_name, key_range, reverse, limit, offset);
       }
