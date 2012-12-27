@@ -65,7 +65,7 @@ ydn.db.index.req.WebSql.prototype.logger =
 ydn.db.index.req.WebSql.prototype.getByIterator = function(df, q) {
 
   var qdf = new goog.async.Deferred();
-  this.fetchIterator_(qdf, q, 1);
+  this.fetchIterator_(qdf, q, false, 1);
 
   qdf.addCallbacks(function(results) {
     if (goog.isArray(results)) {
@@ -178,7 +178,7 @@ ydn.db.index.req.WebSql.prototype.getByIterator = function(df, q) {
  */
 ydn.db.index.req.WebSql.prototype.keysByIterator = function(df, q, limit, offset) {
 
-  this.fetchIterator_(df, q, limit, offset);
+  this.fetchIterator_(df, q, true, limit, offset);
 
 };
 
@@ -188,7 +188,7 @@ ydn.db.index.req.WebSql.prototype.keysByIterator = function(df, q, limit, offset
  */
 ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q, limit, offset) {
 
-  this.fetchIterator_(df, q, limit, offset);
+  this.fetchIterator_(df, q, false, limit, offset);
 
 };
 
@@ -197,17 +197,16 @@ ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q, limit, offset
 /**
  * @param {!goog.async.Deferred} df return object in deferred function.
  * @param {!ydn.db.Iterator} q the query.
+ * @param {boolean} keys_method 'keys' or 'list' method.
  * @param {number=} limit override limit.
  * @param {number=} offset
  * @private
  */
-ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit, offset) {
+ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, limit, offset) {
 
   var me = this;
 
   var store = this.schema.getStore(q.getStoreName());
-
-  var select = 'SELECT';
 
   var idx_name = q.getIndexName();
 
@@ -218,7 +217,19 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit, offset
       ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   var column = goog.string.quote(key_column);
 
-  var fields = q.isKeyOnly() ? column : '*';
+  var select = 'SELECT';
+
+  var fields = '*';
+  if (keys_method) {
+    // keys method
+    fields = column;
+  } else {
+    // list method
+    if (q.isKeyOnly()) {
+      fields = goog.isDefAndNotNull(store.keyPath) ? store.getQuotedKeyPath() :
+        ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+    }
+  }
   var from = fields + ' FROM ' + store.getQuotedName();
 
   var key_range = q.keyRange();
@@ -245,6 +256,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit, offset
     where_clause = ' WHERE ' + '(' + where_clause + ')';
   }
 
+
   // Note: IndexedDB key range result are always ordered.
   var dir = 'ASC';
   if (q.isReversed()) {
@@ -261,10 +273,12 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit, offset
     limit_offset += ' OFFSET ' + offset;
   }
 
-  var sql = [select, from, where_clause, order, dir, limit_offset].join(' ');
+  var group_by =  '';
+
+  var sql = [select, from, where_clause, group_by, order, dir, limit_offset].join(' ');
 
   var row_parser;
-  if (q.isKeyOnly()) {
+  if (keys_method || q.isKeyOnly()) {
     row_parser = function(row) {
       var value =  ydn.object.takeFirst(row);
       var type = index ? index.type : store.type;
@@ -296,7 +310,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, limit, offset
     var n = results.rows.length;
     for (var i = 0; i < n; i++) {
       var row = results.rows.item(i);
-
+      // console.log(row);
       result.push(row_parser(row));
 
     }

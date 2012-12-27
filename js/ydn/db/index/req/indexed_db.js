@@ -286,7 +286,7 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q, limit, off
         return;
       }
       count++;
-      arr.push(value);
+      arr.push(q.isKeyOnly() ? primary_key : value);
       if (!goog.isDef(limit) || count < limit) {
         req.forward(true);
       } else {

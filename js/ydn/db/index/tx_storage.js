@@ -759,7 +759,7 @@ ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
 /**
  *
  * @param {!ydn.db.Iterator} iterator
- * @param {function(*, *, (*|undefined)): (*|undefined)} callback
+ * @param {function(*, *): (*|undefined)} callback
  */
 ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
 
@@ -781,7 +781,8 @@ ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
     };
     cursor.onNext = function (primaryKey, key, value) {
       if (goog.isDef(key)) {
-        var adv = callback(primaryKey, key, value);
+        var ref = iterator.isKeyOnly() ? primaryKey : value;
+        var adv = callback(key, ref);
         //console.log(['onNext', key, primaryKey, value, adv]);
         if (!goog.isDef(adv)) {
           cursor.forward(true);

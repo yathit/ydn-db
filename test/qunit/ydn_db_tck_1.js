@@ -163,6 +163,23 @@ asyncTest("nested key", function () {
 
 
 
+asyncTest("single data - array index key", function () {
+  expect(2);
+
+  db.put(store_inline, data_1a).then(function (x) {
+    console.log('got it');
+    ok('length' in x, "array key");
+    deepEqual(data_1a.id, x, 'same key');
+    start();
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+});
+
+
+
 module("Get", {
   setup: function() {
     db = new ydn.db.Storage('tck1-get-2', schema_1);
