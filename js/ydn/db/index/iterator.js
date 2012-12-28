@@ -160,7 +160,7 @@ ydn.db.KeyIterator = function(store, index, keyRange, reverse, unique) {
    * @type {!Array.<string>|string|undefined}
    */
   var idx;
-  if (goog.isObject(index)) {
+  if (goog.isObject(index) && !goog.isArray(index)) {
     goog.asserts.assert(!goog.isDef(unique), 'too many input argument');
     unique = reverse;
 
@@ -204,7 +204,7 @@ ydn.db.ValueIterator = function(store, index, keyRange, reverse, unique) {
    * @type {!Array.<string>|string|undefined}
    */
   var idx;
-  if (goog.isObject(index)) {
+  if (goog.isObject(index) && !goog.isArray(index)) {
     goog.asserts.assert(!goog.isDef(unique), 'too many input argument');
     unique = reverse;
 
