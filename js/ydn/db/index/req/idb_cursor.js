@@ -465,3 +465,22 @@ ydn.db.index.req.IDBCursor.prototype.update = function(record, index) {
   }
 };
 
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.IDBCursor.prototype.clear = function(index) {
+  var idx = goog.isDef(index) ? index : 0;
+  if (this.cur) {
+    var df = new goog.async.Deferred();
+    var req = this.cur['delete']();
+    req.onsuccess = function(x) {
+      df.callback(x);
+    };
+    req.onerror = function(e) {
+      df.errback(e);
+    };
+    return df;
+  } else {
+    throw new ydn.db.InvalidAccessError('cursor gone');
+  }
+};
