@@ -742,10 +742,12 @@ ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
     cursor.onError = function(e) {
       df.errback(e);
     };
-    cursor.onNext = function (cur) {
-      if (goog.isDefAndNotNull(cur)) {
+    cursor.onNext = function (primaryKey, key, value) {
+      if (goog.isDefAndNotNull(primaryKey)) {
         var adv = callback(cursor);
         cursor.forward(true);
+      } else {
+        df.callback();
       }
     };
 
@@ -759,7 +761,7 @@ ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
 /**
  *
  * @param {!ydn.db.Iterator} iterator
- * @param {function(*, *): (*|undefined)} callback
+ * @param {function(*): (*|undefined)} callback
  */
 ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
 
@@ -781,8 +783,21 @@ ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
     };
     cursor.onNext = function (primaryKey, key, value) {
       if (goog.isDef(key)) {
-        var ref = iterator.isKeyOnly() ? primaryKey : value;
-        var adv = callback(key, ref);
+        var ref;
+        if (iterator.isKeyOnly()) {
+          if (iterator.isIndexIterator()) {
+            ref = key;
+          } else {
+            ref = primaryKey;
+          }
+        } else {
+          if (iterator.isIndexIterator()) {
+            ref = primaryKey;
+          } else {
+            ref = value;
+          }
+        }
+        var adv = callback(ref);
         //console.log(['onNext', key, primaryKey, value, adv]);
         if (!goog.isDef(adv)) {
           cursor.forward(true);
@@ -834,7 +849,21 @@ ydn.db.index.TxStorage.prototype.reduce = function(iterator, callback, initial) 
     var index = 0;
     cursor.onNext = function (primaryKey, key, value) {
       if (goog.isDefAndNotNull(primaryKey)) {
-        var current_value = key_only ? key : value;
+        var current_value;
+        if (iterator.isKeyOnly()) {
+          if (iterator.isIndexIterator()) {
+            current_value = key;
+          } else {
+            current_value = primaryKey;
+          }
+        } else {
+          if (iterator.isIndexIterator()) {
+            current_value = primaryKey;
+          } else {
+            current_value = value;
+          }
+        }
+
         //console.log([previous, current_value, index]);
         previous = callback(previous, current_value, index++);
         cursor.forward(true);

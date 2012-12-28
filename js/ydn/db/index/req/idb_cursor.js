@@ -47,8 +47,6 @@ ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRang
   this.target_exclusive_ = false;
   this.has_pending_request_ = false;
 
-  this.open_request(ini_key, ini_index_key);
-
 };
 goog.inherits(ydn.db.index.req.IDBCursor, ydn.db.index.req.AbstractCursor);
 
@@ -98,7 +96,8 @@ ydn.db.index.req.IDBCursor.prototype.requestOnSuccess = function (event) {
   var target = /** {IDBRequest} */ (event.target);
   var cur = (event.target.result);
   this.cur = cur;
-  //console.log(['onsuccess', cur ? cur.key : undefined, cur ? cur.primaryKey : undefined, ini_key, ini_index_key]);
+  // window.console.log([this, 'onsuccess', cur ? cur.key : undefined, cur ?
+  // cur.primaryKey : undefined, this.target_key_, this.target_index_key_]);
   if (cur) {
     //var value = me.key_only ? cur.key : cur['value'];
 
@@ -196,7 +195,7 @@ ydn.db.index.req.IDBCursor.prototype.has_pending_request_ = false;
  * @param {*=} ini_key primary key to resume position.
  * @param {*=} ini_index_key index key to resume position.
  * @param {boolean=} exclusive
- * @private
+ * @inheritDoc
  */
 ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index_key, exclusive) {
 
@@ -205,11 +204,16 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
   this.target_index_key_ = ini_index_key;
   this.target_exclusive_ = !!exclusive;
 
+  //window.console.log([this, 'open_request', ini_key, ini_index_key, exclusive]);
+
   var key_range = this.key_range;
   if (goog.isDefAndNotNull(ini_index_key)) {
     if (goog.isDefAndNotNull(this.key_range)) {
-      var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.upper);
-      if (cmp == 1 || (cmp == 0 && !this.key_range.upperOpen)) {
+      // TODO: what about reverse ?
+      var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.lower);
+      if (cmp == 1) {
+        this.logger.finest(label + ' not opened, index key out of range ' +
+          ini_index_key + '>=' + this.key_range.lower);
         this.onNext(undefined, undefined, undefined); // out of range;
         return;
       }
@@ -218,12 +222,11 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
     } else {
       key_range = ydn.db.IDBKeyRange.lowerBound(ini_index_key);
     }
-  }
+  } // TODO: what about ini_key for primary iterator?
 
   /**
-   * @type {ydn.db.index.req.IDBCursor}
+   * @type {IDBRequest}
    */
-  var me = this;
   var request;
   if (this.key_only) {
     if (this.index) {
@@ -272,7 +275,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
   }
   this.has_pending_request_ = true;
 
-  me.logger.finest(label + ' opened.');
+  this.logger.finest(label + ' opened, request ' + request.readyState);
 
   request.onsuccess = goog.bind(this.requestOnSuccess, this);
 

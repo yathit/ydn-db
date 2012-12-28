@@ -146,6 +146,135 @@ var test_listByIterator = function () {
 };
 
 
+var test_listByIterator_resume = function () {
+  var db = load_default();
+  var done;
+  var result;
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('first result', objs.slice(0, 3), result);
+
+      done = false;
+      waitForCondition(
+        // Condition
+        function () {
+          return done;
+        },
+        // Continuation
+        function () {
+          assertObjectEquals('second result', objs.slice(3, 6), result);
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        1000); // maxTimeout
+
+      db.list(q, 3).addBoth(function (value) {
+        //console.log(db + ' fetch value: ' + JSON.stringify(value));
+        result = value;
+        done = true;
+      });
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.ValueIterator(store_name);
+
+  db.list(q, 3).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+
+
+var test_listBy_index_ValueIterator = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var exp_result = objs.sort(function(a, b) {
+    return a.value > b.value ? 1 : -1;
+  });
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('result', exp_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.ValueIterator(store_name, 'value');
+
+  db.list(q).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+
+var test_listBy_index_ValueIterator_resume = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var exp_result = objs.sort(function(a, b) {
+    return a.value > b.value ? 1 : -1;
+  });
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('first result', exp_result.slice(0, 3), result);
+
+      done = false;
+      waitForCondition(
+        // Condition
+        function () {
+          return done;
+        },
+        // Continuation
+        function () {
+          assertObjectEquals('second result', exp_result.slice(3, 6), result);
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        1000); // maxTimeout
+
+      db.list(q, 3).addBoth(function (value) {
+        //console.log(db + ' fetch value: ' + JSON.stringify(value));
+        result = value;
+        done = true;
+      });
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.ValueIterator(store_name, 'value');
+
+  db.list(q, 3).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+
 var test_listByKeyIterator = function () {
   var db = load_default();
   var done;
@@ -178,6 +307,56 @@ var test_listByKeyIterator = function () {
 };
 
 
+
+
+var test_listByKeyIterator_resume = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var keys = objs.map(function(x) {
+    return x.id;
+  });
+  // keys.sort();
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('first result', keys.slice(0, 3), result);
+
+      done = false;
+      waitForCondition(
+        // Condition
+        function () {
+          return done;
+        },
+        // Continuation
+        function () {
+          assertObjectEquals('second result', keys.slice(3, 6), result);
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        1000); // maxTimeout
+
+      db.list(q, 3).addBoth(function (value) {
+        //console.log(db + ' fetch value: ' + JSON.stringify(value));
+        result = value;
+        done = true;
+      });
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.KeyIterator(store_name);
+
+  db.list(q, 3).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
 
 var test_listByIterator_limit = function () {
   var db = load_default();
@@ -235,7 +414,7 @@ var test_listByIterator_limit_offset = function () {
 };
 
 
-var test_keyBy_ValueIterator = function () {
+var test_keysBy_ValueIterator = function () {
   var db = load_default();
   var done;
   var result;
@@ -265,8 +444,56 @@ var test_keyBy_ValueIterator = function () {
   });
 };
 
+var test_keysBy_ValueIterator_resume = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var keys = objs.map(function(x) {
+    return x.id;
+  });
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('first result', keys.slice(0, 3), result);
 
-var test_keyBy_index_ValueIterator = function () {
+      done = false;
+      waitForCondition(
+        // Condition
+        function () {
+          return done;
+        },
+        // Continuation
+        function () {
+          assertObjectEquals('first result', keys.slice(3, 6), result);
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        1000); // maxTimeout
+
+      db.keys(q, 3).addBoth(function (value) {
+        //console.log(db + ' fetch value: ' + JSON.stringify(value));
+        result = value;
+        done = true;
+      });
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.ValueIterator(store_name);
+
+  db.keys(q, 3).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+
+var test_keysBy_index_ValueIterator = function () {
   var db = load_default();
   var done;
   var result;
@@ -297,7 +524,7 @@ var test_keyBy_index_ValueIterator = function () {
   });
 };
 
-var test_keyBy_multiEntry_index_KeyIterator = function () {
+var test_keysBy_multiEntry_index_KeyIterator = function () {
   var db = load_default2();
   var done;
   var result;

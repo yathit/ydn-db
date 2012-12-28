@@ -369,14 +369,14 @@ ydn.db.core.TxStorage.prototype.keys = function(arg1, arg2, arg3,
     } else if (!goog.isDef(arg3)) {
       limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
     } else {
-      throw new ydn.error.ArgumentException('arg3 must be number|undefined.');
+      throw new TypeError('arg3');
     }
     if (goog.isNumber(arg4)) {
       offset = arg4;
     } else if (!goog.isDef(arg4)) {
       offset = 0;
     } else {
-      throw new ydn.error.ArgumentException('arg4 must be number|undefined.');
+      throw new TypeError('arg4');
     }
     this.exec(function(executor) {
       executor.keysByStore(df, store_name, reverse, limit, offset);

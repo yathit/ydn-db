@@ -226,7 +226,6 @@ ydn.db.ValueIterator = function(store, index, keyRange, reverse, unique) {
 goog.inherits(ydn.db.ValueIterator, ydn.db.Iterator);
 
 
-
 /**
  * Iterator state.
  * @enum {string}
@@ -258,6 +257,13 @@ ydn.db.Iterator.prototype.getState = function() {
     return ydn.db.Iterator.State.COMPLETED;
   }
 };
+
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.Iterator.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.Iterator');
 
 /**
  *
@@ -388,6 +394,14 @@ ydn.db.Iterator.prototype.isKeyOnly = function() {
 };
 
 
+/**
+ *
+ * @return {boolean}
+ */
+ydn.db.Iterator.prototype.isIndexIterator = function() {
+  return goog.isString(this.index);
+};
+
 
 /**
  * @inheritDoc
@@ -415,6 +429,21 @@ ydn.db.Iterator.prototype.direction;
  */
 ydn.db.Iterator.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
+  if (goog.DEBUG) {
+    if (goog.isDefAndNotNull(this.store_key)) {
+      var close = ']';
+      var start = '[';
+      var state = this.getState();
+      if (state == ydn.db.Iterator.State.WORKING) {
+        start = '{';
+        close = '}';
+      } else if (state == ydn.db.Iterator.State.RESTING) {
+        start = '(';
+        close = ')';
+      }
+      idx += ' ' + start + this.store_key + ', ' + this.index_key + close;
+    }
+  }
   return 'Iterator:' + this.store_name + idx;
 };
 
@@ -735,6 +764,7 @@ ydn.db.Iterator.prototype.exit = function() {
     goog.array.clone(this.index_key) : this.index_key;
   this.iterating_ = false;
   this.has_done = false;
+  this.logger.finest(this + ': exited');
 };
 
 
@@ -760,6 +790,8 @@ ydn.db.Iterator.prototype.iterate_ = function(executor) {
   var cursor = executor.getCursor(this.store_name, this.index,
       this.key_range_, this.direction, this.key_only_, ini_key, ini_index_key);
 
+  this.logger.finest(this + ' created ' + cursor);
+
   var me = this;
   cursor.onSuccess = function(primary_key, key, value) {
     if (goog.isDef(primary_key)) {
@@ -769,9 +801,12 @@ ydn.db.Iterator.prototype.iterate_ = function(executor) {
       cursor.onNext(primary_key, key, value);
     } else {
       me.has_done = true;
+      // need to save current position ??
       cursor.onNext(undefined, undefined, undefined);
     }
   };
+
+  cursor.open_request(ini_key, ini_index_key, resume);
 
   return cursor;
 };

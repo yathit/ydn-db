@@ -96,7 +96,7 @@ ydn.db.index.Storage.prototype.explain = function(q) {
 /**
  *
  * @param {!ydn.db.Iterator} iterator
- * @param {function(*, *): (*|undefined)} callback
+ * @param {function(*): (*|undefined)} callback
  */
 ydn.db.index.Storage.prototype.map = function (iterator, callback) {
   return this.default_tx_queue_.map(iterator, callback);

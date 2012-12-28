@@ -214,6 +214,17 @@ ydn.db.index.req.AbstractCursor.prototype.clear = goog.abstractMethod;
  */
 ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
 
+/**
+ * Make cursor opening request.
+ *
+ * This will seek to given initial position if given. If only ini_key (primary
+ * key) is given, this will rewind, if not found.
+ *
+ * @param {*=} ini_key primary key to resume position.
+ * @param {*=} ini_index_key index key to resume position.
+ * @param {boolean=} exclusive
+ */
+ydn.db.index.req.AbstractCursor.prototype.open_request = goog.abstractMethod;
 
 /**
  * @override
@@ -222,9 +233,10 @@ ydn.db.index.req.AbstractCursor.prototype.toString = function() {
   if (goog.DEBUG) {
     var k = '';
     if (this.hasCursor()) {
-      k = '[' + this.getPrimaryKey() + ':' + this.getIndexKey() + ']';
+      k = '{' + this.getPrimaryKey() + ':' + this.getIndexKey() + '}';
     }
-    return 'Cursor:' + this.store_name + ':' + this.index_name + k;
+    var index = goog.isDef(this.index_name) ? ':' + this.index_name : '';
+    return 'Cursor:' + this.store_name + index + k;
   } else {
     return goog.base(this, 'toString');
   }

@@ -51,11 +51,12 @@ ydn.db.index.req.IndexedDb.prototype.logger =
  */
 ydn.db.index.req.IndexedDb.prototype.getByIterator = function(df, q) {
 
-  var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
+  var req = q.iterate(this);
   req.onError = function(e) {
     df.errback(e);
   };
   req.onNext = function(primary_key, key, value) {
+    q.exit();
     df.callback(q.isKeyOnly() ? key : value);
 
   };
@@ -239,26 +240,28 @@ ydn.db.index.req.IndexedDb.prototype.getTx = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(df, q, limit, offset) {
+ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(df, iter, limit, offset) {
   var arr = [];
-  var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
-  req.onError = function(e) {
+  //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
+  var cursor = iter.iterate(this);
+  cursor.onError = function(e) {
     df.errback(e);
   };
   var count = 0;
   var cued = false;
-  req.onNext = function(primary_key, key, value) {
+  cursor.onNext = function(primary_key, key, value) {
     if (goog.isDef(key)) {
       if (!cued && offset > 0) {
-        req.advance(offset);
+        cursor.advance(offset);
         cued = true;
         return;
       }
       count++;
       arr.push(key);
       if (!goog.isDef(limit) || count < limit) {
-        req.forward(true);
+        cursor.forward(true);
       } else {
+        iter.exit();
         df.callback(arr);
       }
     } else {
@@ -270,26 +273,28 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(df, q, limit, off
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q, limit, offset) {
+ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, iter, limit, offset) {
   var arr = [];
-  var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
-  req.onError = function(e) {
+  //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
+  var cursor = iter.iterate(this);
+  cursor.onError = function(e) {
     df.errback(e);
   };
   var count = 0;
   var cued = false;
-  req.onNext = function(primary_key, key, value) {
+  cursor.onNext = function(primary_key, key, value) {
     if (goog.isDef(key)) {
       if (!cued && offset > 0) {
-        req.advance(offset);
+        cursor.advance(offset);
         cued = true;
         return;
       }
       count++;
-      arr.push(q.isKeyOnly() ? primary_key : value);
+      arr.push(iter.isKeyOnly() ? primary_key : value);
       if (!goog.isDef(limit) || count < limit) {
-        req.forward(true);
+        cursor.forward(true);
       } else {
+        iter.exit();
         df.callback(arr);
       }
     } else {
@@ -404,52 +409,54 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, q, limit, off
 //
 //};
 
-
-
-/**
- * Open an index. This will resume depending on the cursor state.
- * @param {!ydn.db.Iterator} iterator The cursor.
- * @param {ydn.db.base.CursorMode} mode mode.
- * @return {ydn.db.index.req.IDBCursor}
- * @private
- */
-ydn.db.index.req.IndexedDb.prototype.openQuery_ = function(iterator, mode) {
-
-  var me = this;
-  var store = this.schema.getStore(iterator.getStoreName());
-
-  /**
-   * @type {!IDBObjectStore}
-   */
-  var obj_store = this.getTx().objectStore(store.name);
-
-  var index = null;
-//  if (goog.isDefAndNotNull(iterator.index) && iterator.index != store.keyPath) {
-//    index = obj_store.index(iterator.index);
+//
+//
+///**
+// * Open an index. This will resume depending on the cursor state.
+// * @param {!ydn.db.Iterator} iterator The cursor.
+// * @param {ydn.db.base.CursorMode} mode mode.
+// * @return {ydn.db.index.req.IDBCursor}
+// * @private
+// * @deprecated
+// */
+//ydn.db.index.req.IndexedDb.prototype.openQuery_ = function(iterator, mode) {
+//
+//  var me = this;
+//  var store = this.schema.getStore(iterator.getStoreName());
+//
+//  /**
+//   * @type {!IDBObjectStore}
+//   */
+//  var obj_store = this.getTx().objectStore(store.name);
+//
+//  var index = null;
+////  if (goog.isDefAndNotNull(iterator.index) && iterator.index != store.keyPath) {
+////    index = obj_store.index(iterator.index);
+////  }
+//  var index_name = iterator.getIndexName();
+//  if (goog.isDefAndNotNull(index_name)) {
+//    if (obj_store.indexNames.contains(index_name)) {
+//      this.index = obj_store.index(index_name);
+//    } else if (obj_store.keyPath != index_name ) {
+//      throw new ydn.db.InternalError('index "' + index_name + '" not found in ' +
+//        obj_store.name);
+//    }
 //  }
-  var index_name = iterator.getIndexName();
-  if (goog.isDefAndNotNull(index_name)) {
-    if (obj_store.indexNames.contains(index_name)) {
-      this.index = obj_store.index(index_name);
-    } else if (obj_store.keyPath != index_name ) {
-      throw new ydn.db.InternalError('index "' + index_name + '" not found in ' +
-        obj_store.name);
-    }
-  }
-
-  var dir = /** @type {number} */ (iterator.direction); // new standard is string.
-
-  // keyRange is nullable but cannot be undefined.
-  var keyRange = goog.isDef(iterator.keyRange) ? iterator.keyRange() : null;
-
-  var key_only = mode === ydn.db.base.CursorMode.KEY_ONLY;
-
-  var cursor = new ydn.db.index.req.IDBCursor(obj_store,
-    iterator.getStoreName(), iterator.getIndexName(),
-    keyRange, iterator.getDirection(), key_only);
-
-  return cursor;
-};
+//
+//  var dir = /** @type {number} */ (iterator.direction); // new standard is string.
+//
+//  // keyRange is nullable but cannot be undefined.
+//  var keyRange = goog.isDef(iterator.keyRange) ? iterator.keyRange() : null;
+//
+//  var key_only = mode === ydn.db.base.CursorMode.KEY_ONLY;
+//
+//  var cursor = new ydn.db.index.req.IDBCursor(obj_store,
+//    iterator.getStoreName(), iterator.getIndexName(),
+//    keyRange, iterator.getDirection(), key_only, iterator.getPrimaryKey(),
+//    iterator.getIndexKey());
+//
+//  return cursor;
+//};
 
 //
 ///**
