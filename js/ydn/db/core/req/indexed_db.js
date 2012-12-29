@@ -123,6 +123,38 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = goog.abstractMethod;
 
 
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.addObject = function(df, table, value, opt_key)
+{
+  var store = this.tx.objectStore(table);
+
+  var request;
+
+  if (goog.isDef(opt_key)) {
+    request = store.add(value, opt_key);
+  } else {
+    request = store.add(value);
+  }
+
+  request.onsuccess = function(event) {
+    if (ydn.db.core.req.IndexedDb.DEBUG) {
+      window.console.log([event, table, value]);
+    }
+    df.callback(event.target.result);
+  };
+  request.onerror = function(event) {
+    if (ydn.db.core.req.IndexedDb.DEBUG) {
+      window.console.log([event, table, value]);
+    }
+    df.errback(event);
+  };
+};
+
+
+
 /**
 * Execute PUT request either storing result to tx or callback to df.
 * @param {goog.async.Deferred} df deferred to feed result.
@@ -136,21 +168,21 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(df, table, value, opt_k
 
   var request;
   // this try, catch should remove on production code.
-  try {
+  //try {
     if (goog.isDef(opt_key)) {
       request = store.put(value, opt_key);
     } else {
       request = store.put(value);
     }
-  } catch (e) {
-    if (goog.DEBUG && e.name == 'DataError') {
-      // give useful info.
-      var str = ydn.json.stringify(value);
-      throw new ydn.db.InvalidKeyException(table + ': ' + str.substring(0, 50));
-    } else {
-      throw e;
-    }
-  }
+//  } catch (e) {
+//    if (goog.DEBUG && e.name == 'DataError') {
+//      // give useful info.
+//      var str = ydn.json.stringify(value);
+//      throw new ydn.db.InvalidKeyException(table + ': ' + str.substring(0, 50));
+//    } else {
+//      throw e;
+//    }
+//  }
   request.onsuccess = function(event) {
     if (ydn.db.core.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
@@ -163,6 +195,81 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(df, table, value, opt_k
     }
     df.errback(event);
   };
+};
+
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.addObjects = function(df, store_name, objs,
+                                                          opt_keys) {
+
+  var results = [];
+  var result_count = 0;
+
+  var store = this.tx.objectStore(store_name);
+  var put = function(i) {
+
+    var request;
+    // try - catch block is only for debugging build.
+    //try {
+    if (goog.isDef(opt_keys)) {
+      request = store.add(objs[i], opt_keys[i]);
+    } else {
+      request = store.add(objs[i]);
+    }
+//    } catch (e) {
+//      if (goog.DEBUG && e.name == 'DataError') {
+//        // DataError is due to invalid key.
+//        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
+//        // IDBRequest-any-key
+//        throw new ydn.db.InvalidKeyException('put to "' + store_name + '": ' +
+//            i + ' of ' + objs.length);
+//      } if (goog.DEBUG && e.name == 'DataCloneError') {
+//        throw new ydn.db.DataCloneError('put to "' + store_name + '": ' + i +
+//            ' of ' + objs.length);
+//      } else {
+//        throw e;
+//      }
+//    }
+
+    request.onsuccess = function(event) {
+      result_count++;
+      //if (ydn.db.core.req.IndexedDb.DEBUG) {
+      //  window.console.log([store_name, event]);
+      //}
+      results[i] = event.target.result;
+      if (result_count == objs.length) {
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        if (next < objs.length) {
+          put(next);
+        }
+      }
+    };
+
+    request.onerror = function(event) {
+      result_count++;
+      if (ydn.db.core.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, event]);
+      }
+      df.errback(event);
+      // abort transaction ?
+    };
+
+  };
+
+  if (objs.length > 0) {
+    // send parallel requests
+    for (var i = 0; i < ydn.db.core.req.IndexedDb.REQ_PER_TX &&
+        i < objs.length; i++) {
+      put(i);
+    }
+  } else {
+    df.callback([]);
+  }
 };
 
 
@@ -184,26 +291,26 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
 
     var request;
     // try - catch block is only for debugging build.
-    try {
+    //try {
       if (goog.isDef(opt_keys)) {
         request = store.put(objs[i], opt_keys[i]);
       } else {
         request = store.put(objs[i]);
       }
-    } catch (e) {
-      if (goog.DEBUG && e.name == 'DataError') {
-        // DataError is due to invalid key.
-        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
-        // IDBRequest-any-key
-        throw new ydn.db.InvalidKeyException('put to "' + store_name + '": ' +
-            i + ' of ' + objs.length);
-      } if (goog.DEBUG && e.name == 'DataCloneError') {
-        throw new ydn.db.DataCloneError('put to "' + store_name + '": ' + i +
-            ' of ' + objs.length);
-      } else {
-        throw e;
-      }
-    }
+//    } catch (e) {
+//      if (goog.DEBUG && e.name == 'DataError') {
+//        // DataError is due to invalid key.
+//        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
+//        // IDBRequest-any-key
+//        throw new ydn.db.InvalidKeyException('put to "' + store_name + '": ' +
+//            i + ' of ' + objs.length);
+//      } if (goog.DEBUG && e.name == 'DataCloneError') {
+//        throw new ydn.db.DataCloneError('put to "' + store_name + '": ' + i +
+//            ' of ' + objs.length);
+//      } else {
+//        throw e;
+//      }
+//    }
 
     request.onsuccess = function(event) {
       result_count++;

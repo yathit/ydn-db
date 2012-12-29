@@ -129,6 +129,15 @@ ydn.db.core.req.SimpleStore.prototype.keysByStore = goog.abstractMethod;
  */
 ydn.db.core.req.SimpleStore.prototype.putByKeys = goog.abstractMethod;
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.addObject = function(
+    df, table, value, opt_key) {
+  // TODO: check existance
+  var key = this.getTx().setItemInternal(value, table, opt_key);
+  df.callback(key);
+};
 
 /**
  * @param {!goog.async.Deferred} df return key in deferred function.
@@ -140,6 +149,22 @@ ydn.db.core.req.SimpleStore.prototype.putObject = function(
       df, table, value, opt_key) {
   var key = this.getTx().setItemInternal(value, table, opt_key);
   df.callback(key);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.addObjects = function(
+    df, table, value, opt_key) {
+
+  var result = [];
+  for (var i = 0; i < value.length; i++) {
+    var key = goog.isDef(opt_key) ? opt_key[i] : undefined;
+    result[i] = this.getTx().setItemInternal(value[i], table, key);
+  }
+
+  df.callback(result);
 };
 
 

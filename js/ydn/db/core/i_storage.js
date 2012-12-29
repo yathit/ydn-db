@@ -66,6 +66,16 @@ ydn.db.core.IStorage.prototype.list = goog.abstractMethod;
 ydn.db.core.IStorage.prototype.keys = goog.abstractMethod;
 
 /**
+ * Execute ADD request either storing result to tx or callback to df.
+ * @param {string|StoreSchema} store_name_or_schema store name or
+ * schema.
+ * @param {!Object|!Array.<!Object>} value object to put.
+ * @param {*=} opt_keys out-of-line keys.
+ * @return {!goog.async.Deferred} return newly created keys in promise.
+ */
+ydn.db.core.IStorage.prototype.add = goog.abstractMethod;
+
+/**
  * Execute PUT request either storing result to tx or callback to df.
  * @param {string|StoreSchema} store_name_or_schema store name or
  * schema.

@@ -25,7 +25,23 @@ ydn.db.core.req.IRequestExecutor = function() {};
  */
 ydn.db.core.req.IRequestExecutor.prototype.setTx = goog.abstractMethod;
 
+/**
+ * Execute PUT request either storing result to tx or callback to df.
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {string} table table name.
+ * @param {!Object} value object to put.
+ * @param {(!Array|string|number)=} opt_key optional out-of-line key.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.addObject = goog.abstractMethod;
 
+/**
+ * Add objects and return list of key inserted.
+ * @param {!goog.async.Deferred} return keys in deferred function.
+ * @param {string} store_name store name.
+ * @param {!Array.<!Object>} objs object to put.
+ * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.addObjects = goog.abstractMethod;
 
 /**
  * Delete given key in the object store.
@@ -203,7 +219,7 @@ ydn.db.core.req.IRequestExecutor.prototype.putObject = goog.abstractMethod;
  * Put objects and return list of key inserted.
  * @param {!goog.async.Deferred} return keys in deferred function.
  * @param {string} store_name store name.
- * @param {!Array.<Object>} objs object to put.
+ * @param {!Array.<!Object>} objs object to put.
  * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
  */
 ydn.db.core.req.IRequestExecutor.prototype.putObjects = goog.abstractMethod;

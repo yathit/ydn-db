@@ -82,6 +82,13 @@ ydn.db.core.Storage.prototype.getTxNo = function() {
   return this.default_tx_queue_.getTxNo();
 };
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.Storage.prototype.add = function(store, value, opt_key) {
+  return this.default_tx_queue_.add(store, value, opt_key);
+};
+
 
 /**
  *
