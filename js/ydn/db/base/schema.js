@@ -243,6 +243,14 @@ ydn.db.schema.Index.prototype.getType = function() {
   return this.type || ydn.db.schema.DataType.BLOB;
 };
 
+/**
+ *
+ * @return {string} index name.
+ */
+ydn.db.schema.Index.prototype.getName = function() {
+  return this.name;
+};
+
 
 /**
  *
@@ -471,6 +479,25 @@ ydn.db.schema.Store.fromJSON = function(json) {
 ydn.db.schema.Store.prototype.clone = function() {
   return ydn.db.schema.Store.fromJSON(
     /** @type {!StoreSchema} */ (this.toJSON()));
+};
+
+
+/**
+ *
+ * @return {number}
+ */
+ydn.db.schema.Store.prototype.countIndex = function() {
+  return this.indexes.length;
+};
+
+
+/**
+ *
+ * @param {number} idx index of index.
+ * @return {ydn.db.schema.Index}
+ */
+ydn.db.schema.Store.prototype.index = function(idx) {
+  return this.indexes[idx] || null;
 };
 
 
