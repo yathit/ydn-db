@@ -70,7 +70,9 @@ API will be considered.
 
 # Documentation #
 
-* Nice API documentation on [YDN](http://dev.yathit.com/api-reference/ydn-db/storage.html)
+* [Using YDN-DB](http://dev.yathit.com/ydn-db/using.html)
+* [API Reference](http://dev.yathit.com/api-reference/ydn-db-storage.html)
+* [Demo applications](http://dev.yathit.com/ydn-db/demos.html)
 * [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
 
 

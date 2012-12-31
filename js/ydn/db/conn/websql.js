@@ -417,15 +417,16 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     //if (index.type != ydn.db.schema.DataType.BLOB) {
       var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS ' +
           goog.string.quote(index.name) +
-          ' ON ' + table_schema.getQuotedName() + ' (' + id_column_name + ')';
+          ' ON ' + table_schema.getQuotedName() +
+          ' (' + goog.string.quote(index.getKeyPath()) + ')';
       sqls.push(idx_sql);
     //}
 
-    if (index.keyPath == table_schema.keyPath) {
+    if (index.keyPath == table_schema.getKeyPath()) {
       continue;
     }
 
-    sql += sep + goog.string.quote(index.keyPath) + ' ' + index.getType() +
+    sql += sep + goog.string.quote(index.getKeyPath()) + ' ' + index.getType() +
       unique;
 
   }

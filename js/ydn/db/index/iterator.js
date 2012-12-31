@@ -30,6 +30,7 @@ goog.require('ydn.db.Where');
 goog.require('ydn.db.base');
 goog.require('ydn.db.index.req.ICursor');
 goog.require('ydn.error.ArgumentException');
+goog.require('goog.debug.Logger');
 
 
 /**

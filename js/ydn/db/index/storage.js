@@ -83,14 +83,14 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
 };
 
 
-/**
- * Explain query plan.
- * @param {!ydn.db.Iterator} q
- * @return {Object} plan in JSON
- */
-ydn.db.index.Storage.prototype.explain = function(q) {
-  return this.default_tx_queue_.explain(q);
-};
+///**
+// * Explain query plan.
+// * @param {!ydn.db.Iterator} q
+// * @return {Object} plan in JSON
+// */
+//ydn.db.index.Storage.prototype.explain = function(q) {
+//  return this.default_tx_queue_.explain(q);
+//};
 
 
 /**
