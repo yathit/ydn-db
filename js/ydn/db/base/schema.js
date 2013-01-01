@@ -260,6 +260,14 @@ ydn.db.schema.Index.prototype.isMultiEntry = function() {
   return this.multiEntry;
 };
 
+/**
+ *
+ * @return {boolean} unique or not.
+ */
+ydn.db.schema.Index.prototype.isUnique = function() {
+  return this.unique;
+};
+
 
 
 /**
