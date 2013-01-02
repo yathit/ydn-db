@@ -18,7 +18,7 @@ goog.require('ydn.db.utils');
  * Schema for index.
  *
  * @param {string|!Array.<string>} keyPath the key path.
- * @param {string|ydn.db.schema.DataType=} opt_type to be determined.
+ * @param {!Array.<ydn.db.schema.DataType>|string|ydn.db.schema.DataType=} opt_type to be determined.
  * @param {boolean=} opt_unique True if the index enforces that there is only
  * one objectfor each unique value it indexes on.
  * @param {boolean=} multiEntry  specifies whether the index's multiEntry flag
@@ -60,7 +60,7 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
   this.name = goog.isDef(name) ? name : this.keyPath;
   /**
    * @final
-   * @type {ydn.db.schema.DataType|undefined}
+   * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
    */
   this.type = ydn.db.schema.Index.toType(opt_type);
   if (this.type != opt_type) {
@@ -93,7 +93,6 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
  * @enum {string}
  */
 ydn.db.schema.DataType = {
-  ARRAY: 'ARRAY', // out of tune here, not in WebSQL, but keyPath could be array
   BLOB: 'BLOB',
   DATE: 'DATE',
   INTEGER: 'INTEGER', // AUTOINCREMENT is only allowed on an INTEGER
@@ -128,15 +127,11 @@ ydn.db.schema.Index.ARRAY_SEP = String.fromCharCode(0x001F);
  * Convert key value from IndexedDB value to Sqlite for storage.
  * @see #sql2js
  * @param {Array|Date|*} key key.
- * @param {ydn.db.schema.DataType|undefined} type data type.
+ * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
  * @return {*} string.
  */
 ydn.db.schema.Index.js2sql = function(key, type) {
-  if (type == ydn.db.schema.DataType.DATE) {
-    if (key instanceof Date) {
-      return +key;  // date is store as NUMERIC
-    } // else ?
-  } else if (type == ydn.db.schema.DataType.ARRAY) {
+  if (goog.isArray(type)) {
     // NOTE: we are storing these value for indexing purpose.
     // Array is not native to Sqlite. To be multiEntry searchable,
     // array values are store as TEXT and search using LIKE %q%
@@ -151,8 +146,12 @@ ydn.db.schema.Index.js2sql = function(key, type) {
       arr.join(ydn.db.schema.Index.ARRAY_SEP);
     return t + ydn.db.schema.Index.ARRAY_SEP +
       value + ydn.db.schema.Index.ARRAY_SEP;
+  } else if (type == ydn.db.schema.DataType.DATE) {
+    if (key instanceof Date) {
+      return +key;  // date is store as NUMERIC
+    } // else ?
   } else if (goog.isDef(type)) {
-    return key;
+    return key; // NUMERIC, INTEGER, and BLOB
   } else {
     var encoded = ydn.db.utils.encodeKey(key);
     return "X'" + encoded + "'";
@@ -164,13 +163,11 @@ ydn.db.schema.Index.js2sql = function(key, type) {
  * Convert key value from Sqlite value to IndexedDB for storage.
  * @see #js2sql
  * @param {string|number|*} key key.
- * @param {ydn.db.schema.DataType|undefined} type type.
+ * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type type.
  * @return {Date|Array|*} decoded key.
  */
 ydn.db.schema.Index.sql2js = function(key, type) {
-  if (type == ydn.db.schema.DataType.DATE) {
-    return new Date(key); // key is number
-  } else if (type == ydn.db.schema.DataType.ARRAY) {
+  if (goog.isArray(type)) {
     goog.asserts.assertString(key);
     /**
      * @type {string}
@@ -188,8 +185,10 @@ ydn.db.schema.Index.sql2js = function(key, type) {
         return x;
       }
     });
+  } else if (type == ydn.db.schema.DataType.DATE) {
+    return new Date(key); // key is number
   } else if (goog.isDef(type)) {
-    return key;
+    return key;   // NUMERIC, INTEGER,
   } else {
     return ydn.db.utils.decodeKey(/** @type {string} */ (key));
   }
@@ -200,7 +199,7 @@ ydn.db.schema.Index.sql2js = function(key, type) {
  * @const
  * @type {!Array.<ydn.db.schema.DataType>} column data type.
  */
-ydn.db.schema.Index.TYPES = [ydn.db.schema.DataType.ARRAY,
+ydn.db.schema.Index.TYPES = [
   ydn.db.schema.DataType.BLOB,
   ydn.db.schema.DataType.DATE, ydn.db.schema.DataType.INTEGER,
   ydn.db.schema.DataType.NUMERIC,
@@ -209,12 +208,23 @@ ydn.db.schema.Index.TYPES = [ydn.db.schema.DataType.ARRAY,
 
 /**
  *
- * @param {ydn.db.schema.DataType|string=} str data type in string.
- * @return {ydn.db.schema.DataType|undefined} data type.
+ * @param {!Array|ydn.db.schema.DataType|string=} str data type in string.
+ * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} data type.
  */
 ydn.db.schema.Index.toType = function(str) {
-  var idx = goog.array.indexOf(ydn.db.schema.Index.TYPES, str);
-  return ydn.db.schema.Index.TYPES[idx]; // undefined OK.
+  if (goog.isArray(str)) {
+    /**
+     * @type {!Array}
+     */
+    var arr = str;
+    return arr.map(function(s) {
+      return ydn.db.schema.Index.toType(s);
+    });
+  } else {
+    var idx = goog.array.indexOf(ydn.db.schema.Index.TYPES, str);
+    return ydn.db.schema.Index.TYPES[idx]; // undefined OK.
+  }
+
 };
 
 
@@ -237,7 +247,7 @@ ydn.db.schema.Index.toAbbrType = function(x) {
 
 /**
  * Return type. If not defined, BLOB type return.
- * @return {ydn.db.schema.DataType} data type.
+ * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType} data type.
  */
 ydn.db.schema.Index.prototype.getType = function() {
   return this.type || ydn.db.schema.DataType.BLOB;
@@ -360,7 +370,7 @@ ydn.db.schema.Index.fromJSON = function(json) {
  * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to.
  * @param {boolean=} autoIncrement If true, the object store has a key
  * generator. Defaults to false.
- * @param {string|ydn.db.schema.DataType=} opt_type data type for keyPath. Default to
+ * @param {!Array.<ydn.db.schema.DataType>|string|ydn.db.schema.DataType=} opt_type data type for keyPath. Default to
  * <code>ydn.db.schema.DataType.INTEGER</code> if opt_autoIncrement is
  * <code>true.</code>
  * @param {!Array.<!ydn.db.schema.Index>=} opt_indexes list of indexes.
@@ -405,7 +415,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
 
   /**
    * @final
-   * @type {ydn.db.schema.DataType|undefined} //
+   * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} //
    */
   this.type = goog.isDef(type) ? type : this.autoIncrement ?
     ydn.db.schema.DataType.INTEGER : undefined;
@@ -635,7 +645,7 @@ ydn.db.schema.Store.prototype.getIndexNames = function() {
 
 /**
  *
- * @return {ydn.db.schema.DataType|undefined}
+ * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
  */
 ydn.db.schema.Store.prototype.getType = function() {
   return this.type;
@@ -688,8 +698,10 @@ ydn.db.schema.Store.prototype.getRowValue = function(obj) {
     var value = obj[this.keyPath];
     if (this.type == ydn.db.schema.DataType.DATE) {
       value = Date.parse(value);
-    } else if (this.type == ydn.db.schema.DataType.ARRAY) {
+    } else if (this.type == ydn.db.schema.DataType.NUMERIC) {
       value = parseFloat(value);
+    } else if (this.type == ydn.db.schema.DataType.INTEGER) {
+      value = parseInt(value, 10);
     }
     return value;
   } else {

@@ -641,62 +641,59 @@ var test_41_clear_store = function() {
 
 
 var test_51_array_key = function() {
-  var db_name = 'test_crud_41_2';
+  var db_name = 'test_51_array_key_1';
 
-  var stores = [new ydn.db.schema.Store(table_name, 'id', false, ydn.db.schema.DataType.ARRAY)];
+  var stores = [new ydn.db.schema.Store(table_name, 'id', false, ['TEXT', 'TEXT'])];
   var schema = new ydn.db.schema.Database(undefined, stores);
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
-  var key_test = function(key) {
-    //console.log('testing ' + key);
-    var key_value = 'a' + Math.random();
+  var key = ['a', 'b'];
 
-    var a_done;
-    var a_value;
-    waitForCondition(
-      // Condition
-      function() { return a_done; },
-      // Continuation
-      function() {
-        assertArrayEquals('put a', key, a_value);
+  //console.log('testing ' + key);
+  var key_value = 'a' + Math.random();
 
-        var b_done;
-        var b_value;
-        waitForCondition(
-          // Condition
-          function() { return b_done; },
-          // Continuation
-          function() {
-            assertEquals('get ' + JSON.stringify(key), key_value, b_value.value);
-            reachedFinalContinuation = true;
-          },
-          100, // interval
-          2000); // maxTimeout
+  var a_done;
+  var a_value;
+  waitForCondition(
+    // Condition
+    function () {
+      return a_done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('put a', key, a_value);
 
-
-        db.get(table_name, key).addCallback(function(value) {
-          console.log(db + ' receiving get value callback ' + key + ' = ' + value);
-          b_value = value;
-          b_done = true;
-        });
-      },
-      100, // interval
-      2000); // maxTimeout
-
-    db.put(table_name, {id: key, value: key_value}).addCallback(function(value) {
-      //console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
-      a_value = value;
-      a_done = true;
-    });
+      var b_done;
+      var b_value;
+      waitForCondition(
+        // Condition
+        function () {
+          return b_done;
+        },
+        // Continuation
+        function () {
+          assertEquals('get ' + JSON.stringify(key), key_value, b_value.value);
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        2000); // maxTimeout
 
 
-  };
+      db.get(table_name, key).addCallback(function (value) {
+        console.log(db + ' receiving get value callback ' + key + ' = ' + value);
+        b_value = value;
+        b_done = true;
+      });
+    },
+    100, // interval
+    2000); // maxTimeout
 
-  key_test(['x']);
+  db.put(table_name, {id: key, value: key_value}).addCallback(function (value) {
+    //console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
+    a_value = value;
+    a_done = true;
+  });
 
-  key_test(['a', 'b']);
-
-  key_test(['a', 'b', 'c']);
 
 };
 

@@ -377,7 +377,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   // undefined type are recorded in encoded key and use BLOB data type
   // @see ydn.db.utils.encodeKey
   var type = table_schema.type || 'BLOB';
-  if (type == ydn.db.schema.DataType.ARRAY) {
+  if (goog.isArray(type)) {
     // key will be converted into string
     type = ydn.db.schema.DataType.TEXT;
   }

@@ -578,7 +578,8 @@ ydn.db.core.req.WebSql.prototype.getById = function(d, table_name, id) {
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
       if (goog.isDefAndNotNull(row)) {
-        d.callback(ydn.db.core.req.WebSql.parseRow(row, table));
+        var value = ydn.db.core.req.WebSql.parseRow(row, table);
+        d.callback(value);
       } else {
         d.callback(undefined);
       }

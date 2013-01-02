@@ -134,10 +134,57 @@ var test_01_encode_key = function () {
   test_key(1);
   test_key('abc', ydn.db.schema.DataType.TEXT);
   test_key('abc');
-  test_key(['a', 'b'], ydn.db.schema.DataType.ARRAY);
+  test_key(['a', 'b'], ['TEXT', 'TEXT']);
   test_key(['a', 'b']);
 
   reachedFinalContinuation = true;
+};
+
+var test_02_encode_blob = function () {
+
+  var test_key = function (key, type) {
+    var encoded = ydn.db.schema.Index.js2sql(key, type);
+    var decoded = ydn.db.schema.Index.sql2js(encoded, type);
+    if (goog.isArray(key)) {
+      assertArrayEquals(type + ':' + JSON.stringify(key), key, decoded);
+    } else {
+      console.log(key);
+      console.log(decoded);
+      assertEquals(type + ':' + JSON.stringify(key), key, decoded);
+    }
+
+  };
+
+  var done;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var url = 'http://upload.wikimedia.org/wikipedia/commons/6/6e/HTML5-logo.svg';
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", url, true);
+  xhr.responseType = "blob";
+  xhr.addEventListener("load", function () {
+    if (xhr.status === 200) {
+      console.log("Image retrieved");
+      var blob = xhr.response;
+      test_key(blob, ydn.db.schema.DataType.BLOB);
+      done = true;
+    }
+  }, false);
+  xhr.send();
+
+
 };
 
 
@@ -163,7 +210,7 @@ var test_11_string_keys = function() {
 
 var test_12_number_keys = function() {
 
-  var db_name = 'test_key_12_2';
+  var db_name = 'test_key_12_3';
   var basic_schema = getBasicSchema();
   var db = new ydn.db.core.Storage(db_name, basic_schema, options);
 
