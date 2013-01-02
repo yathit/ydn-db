@@ -98,7 +98,9 @@ ydn.db.core.req.WebSql.parseRow = function(row, store) {
   var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
   if (goog.isDefAndNotNull(store.keyPath)) {
     var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.type);
-    store.setKeyValue(value, key);
+    if (goog.isDefAndNotNull(key)) {
+      store.setKeyValue(value, key);
+    }
   }
   for (var j = 0; j < store.indexes.length; j++) {
     var index = store.indexes[j];
