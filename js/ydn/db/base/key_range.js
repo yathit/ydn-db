@@ -60,6 +60,15 @@ ydn.db.KeyRange.prototype.toJSON = function() {
 
 
 /**
+ *
+ * @return {IDBKeyRange}
+ */
+ydn.db.KeyRange.prototype.toIDBKeyRange = function() {
+  return ydn.db.KeyRange.parseIDBKeyRange(this);
+};
+
+
+/**
  * Robust efficient cloning of a keyrnge.
  * @param {(ydn.db.KeyRange|ydn.db.IDBKeyRange)=} kr key range to be cloned.
  * @return {!ydn.db.KeyRange|undefined} cloned key range.
