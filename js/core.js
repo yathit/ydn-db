@@ -50,4 +50,19 @@ goog.exportProperty(ydn.db.KeyRange, 'only', ydn.db.KeyRange.only);
 goog.exportProperty(ydn.db.KeyRange, 'starts', ydn.db.KeyRange.starts);
 
 
+goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'store_name',
+  ydn.db.events.RecordEvent.prototype.store_name);
+goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'key',
+  ydn.db.events.RecordEvent.prototype.key);
+goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'value',
+  ydn.db.events.RecordEvent.prototype.value);
+
+goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'store_name',
+  ydn.db.events.StoreEvent.prototype.store_name);
+goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'keys',
+  ydn.db.events.StoreEvent.prototype.keys);
+goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'values',
+  ydn.db.events.StoreEvent.prototype.values);
+
+
 

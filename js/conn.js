@@ -27,3 +27,11 @@ goog.exportProperty(ydn.db.con.Storage.prototype, 'close',
 
 goog.exportSymbol('ydn.db.deleteDatabase', ydn.db.deleteDatabase);
 
+goog.exportProperty(ydn.db.events.Event.prototype, 'name',
+  ydn.db.events.Event.prototype.name);
+goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'store_name',
+  ydn.db.events.RecordEvent.prototype.store_name);
+goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'message',
+  ydn.db.events.RecordEvent.prototype.name);
+
+

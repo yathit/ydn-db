@@ -42,10 +42,9 @@ goog.inherits(ydn.db.events.Event, goog.events.Event);
 
 
 /**
- *
- * @type {*} event source.
+ * @type {string}
  */
-ydn.db.events.Event.prototype.source = null;
+ydn.db.events.Event.prototype.name;
 
 
 /**
@@ -64,10 +63,7 @@ ydn.db.events.StorageEvent = function(event_type, event_target, version, msg) {
   this.name = 'StorageEvent';
 };
 goog.inherits(ydn.db.events.StorageEvent, ydn.db.events.Event);
-/**
- * @type {string}
- */
-ydn.db.events.StorageEvent.prototype.name = 'StorageEvent';
+
 
 /**
  *
@@ -100,10 +96,6 @@ ydn.db.events.RecordEvent = function(event_type, event_target, store_name, key, 
 };
 goog.inherits(ydn.db.events.RecordEvent, ydn.db.events.Event);
 
-/**
- * @type {string}
- */
-ydn.db.events.RecordEvent.prototype.name = 'RecordEvent';
 
 /**
  *
