@@ -42,6 +42,19 @@ var schema_1 = {
   ]
 };
 
+var events_schema = {
+  stores: [
+    {
+      name: store_inline,
+      keyPath: 'id',
+      dispatchEvents: true,
+      type: 'NUMERIC'},
+    {
+      name: store_outline,
+      dispatchEvents: true,
+      type: 'NUMERIC'}
+]};
+
 
 module("Put", {
   setup: function() {
@@ -579,7 +592,7 @@ module("StorageEvent", {
 
   },
   teardown: function() {
-    db.close();
+    //db.close();
     //ydn.db.deleteDatabase(db.getName());
   }
 });
@@ -592,6 +605,33 @@ asyncTest("connected", function () {
 
   db.addEventListener('connected', function(e) {
     equal('connected', e.type, 'connected event');
+    start();
+  });
+
+  setTimeout(function() {
+    // don't wait more than 1 sec.
+    start();
+  }, 1000);
+
+});
+
+
+asyncTest("created", function () {
+  expect(5);
+
+  var db = new ydn.db.Storage('tck1_put', events_schema);
+
+  var key = Math.ceil(Math.random() * 1000);
+  var data = { test:"random value", name:"name " + key, id:key };
+
+  db.put(store_inline, data);
+
+  db.addEventListener('created', function(e) {
+    equal('created', e.type, 'type');
+    equal('RecordEvent', e.name, 'name');
+    equal(store_inline, e.store_name, 'store name');
+    equal(key, e.key, 'key');
+    deepEqual(data, e.value, 'value');
     start();
   });
 

@@ -19,7 +19,7 @@ goog.addDependency("../../../ydn-db/js/ydn/db/base/base.js", ['ydn.db.base'], ['
 goog.addDependency("../../../ydn-db/js/ydn/db/base/db.js", ['ydn.db'], ['ydn.db.con.IndexedDb', 'ydn.db.con.WebSql', 'ydn.db.utils']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/editable_schema.js", ['ydn.db.schema.EditableDatabase'], ['ydn.db.schema.Database']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/error.js", ['ydn.db.InternalError', 'ydn.db.InvalidKeyException', 'ydn.db.InvalidStateError', 'ydn.db.NotFoundError', 'ydn.db.ScopeError', 'ydn.db.SecurityError'], []);
-goog.addDependency("../../../ydn-db/js/ydn/db/base/events.js", ['ydn.db.events.StoreEvent', 'ydn.db.events.StorageEvent', 'ydn.db.events.Types'], []);
+goog.addDependency("../../../ydn-db/js/ydn/db/base/events.js", ['ydn.db.events.StoreEvent', 'ydn.db.events.StorageEvent', 'ydn.db.events.RecordEvent', 'ydn.db.events.Types'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/key.js", ['ydn.db.Key'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/key_range.js", ['ydn.db.IDBKeyRange', 'ydn.db.KeyRange'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/schema.js", ['ydn.db.schema.DataType', 'ydn.db.schema.Database', 'ydn.db.schema.Index', 'ydn.db.schema.Store'], ['ydn.db.base', 'ydn.db.Key', 'ydn.db.utils']);

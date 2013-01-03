@@ -8,6 +8,7 @@
 
 goog.provide('ydn.db.events.StoreEvent');
 goog.provide('ydn.db.events.StorageEvent');
+goog.provide('ydn.db.events.RecordEvent');
 goog.provide('ydn.db.events.Types');
 
 
@@ -60,8 +61,13 @@ ydn.db.events.StorageEvent = function(event_type, event_target, version, msg) {
   goog.base(this, event_type, event_target);
   this.version = version;
   this.message = msg || '';
+  this.name = 'StorageEvent';
 };
 goog.inherits(ydn.db.events.StorageEvent, ydn.db.events.Event);
+/**
+ * @type {string}
+ */
+ydn.db.events.StorageEvent.prototype.name = 'StorageEvent';
 
 /**
  *
@@ -75,7 +81,6 @@ ydn.db.events.StorageEvent.prototype.version = NaN;
  */
 ydn.db.events.StorageEvent.prototype.message = '';
 
-
 /**
  *
  * @param {ydn.db.events.Types} event_type  type.
@@ -86,30 +91,79 @@ ydn.db.events.StorageEvent.prototype.message = '';
  * @extends {ydn.db.events.Event}
  * @constructor
  */
-ydn.db.events.StoreEvent = function(event_type, event_target, store_name, key, value) {
+ydn.db.events.RecordEvent = function(event_type, event_target, store_name, key, value) {
   goog.base(this, event_type, event_target);
   this.store_name = store_name;
   this.key = key;
   this.value = value;
+  this.name = 'RecordEvent';
 };
-goog.inherits(ydn.db.events.StoreEvent, ydn.db.events.Event);
+goog.inherits(ydn.db.events.RecordEvent, ydn.db.events.Event);
+
+/**
+ * @type {string}
+ */
+ydn.db.events.RecordEvent.prototype.name = 'RecordEvent';
 
 /**
  *
  * @type {string}
  */
-ydn.db.events.StorageEvent.prototype.store_name = '';
+ydn.db.events.RecordEvent.prototype.store_name;
 
 /**
  *
  * @type {*}
  */
-ydn.db.events.StorageEvent.prototype.key = '';
+ydn.db.events.RecordEvent.prototype.key;
 
 /**
  *
  * @type {*}
  */
-ydn.db.events.StorageEvent.prototype.value = '';
+ydn.db.events.RecordEvent.prototype.value;
+
+
+/**
+ *
+ * @param {ydn.db.events.Types} event_type  type.
+ * @param {goog.events.EventTarget} event_target target.
+ * @param {string} store_name source.
+ * @param {Array} keys source.
+ * @param {Array=} values source.
+ * @extends {ydn.db.events.Event}
+ * @constructor
+ */
+ydn.db.events.StoreEvent = function(event_type, event_target, store_name, keys, values) {
+  goog.base(this, event_type, event_target);
+  this.store_name = store_name;
+  this.keys = keys;
+  this.values = values;
+  this.name = 'StoreEvent';
+};
+goog.inherits(ydn.db.events.StoreEvent, ydn.db.events.Event);
+
+/**
+ * @type {string}
+ */
+ydn.db.events.StoreEvent.prototype.name = 'StoreEvent';
+
+/**
+ *
+ * @type {string}
+ */
+ydn.db.events.StoreEvent.prototype.store_name;
+
+/**
+ *
+ * @type {Array}
+ */
+ydn.db.events.StoreEvent.prototype.keys;
+
+/**
+ *
+ * @type {Array|undefined}
+ */
+ydn.db.events.StoreEvent.prototype.values;
 
 

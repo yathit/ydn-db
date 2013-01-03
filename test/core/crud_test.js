@@ -8,9 +8,10 @@ goog.require('goog.testing.PropertyReplacer');
 
 var reachedFinalContinuation, schema, debug_console, db, objs;
 
-var db_name = 'test_crud_3';
+var db_name = 'test_crud_4';
 var table_name = 'st_inline';
 var table_name_offline = 'st_offline';
+var store_name_inline_number = 'st_inline_n';
 
 
 var setUp = function () {
@@ -19,15 +20,17 @@ var setUp = function () {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
   //ydn.db.con.IndexedDb.DEBUG = true;
   //ydn.db.con.WebSql.DEBUG = true;
+  //ydn.db.core.req.IndexedDb.DEBUG = true;
 
   var stores = [new ydn.db.schema.Store(table_name, 'id'),
+    new ydn.db.schema.Store(store_name_inline_number, 'id', false, ydn.db.schema.DataType.NUMERIC, undefined, true),
     new ydn.db.schema.Store(table_name_offline)];
   schema = new ydn.db.schema.Database(undefined, stores);
 
@@ -36,6 +39,138 @@ var setUp = function () {
 
 var tearDown = function() {
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
+};
+
+var test_add = function() {
+
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var hasEventFired = false;
+  var put_value;
+  var key = Math.random();
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('add a', key, put_value);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  db.add(store_name_inline_number, {id: key, value: '1', remark: 'put test'}).addCallback(function(value) {
+    //console.log('receiving value callback.');
+    put_value = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+      hasEventFired = true;
+      console.log('Error: ' + e);
+    });
+};
+
+
+var test_add_fail = function() {
+
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var hasEventFired = false;
+  var put_value, add_ev;
+  var key = Math.random();
+
+  waitForCondition(
+    // Condition
+    function () {
+      return hasEventFired;
+    },
+    // Continuation
+    function () {
+      assertEquals('add a', key, put_value);
+      hasEventFired = false;
+
+      waitForCondition(
+        // Condition
+        function () {
+          return hasEventFired;
+
+        },
+        // Continuation
+        function () {
+          assertNull('add a again', put_value);
+          assertNotNull('error event', add_ev);
+          if (db.type() == 'indexeddb') {
+            assertEquals('add fail with constrained error', 'ConstraintError', add_ev.target.error.name);
+          } else if (db.type() == 'websql') {
+            assertEquals('add fail with constrained error', 6, add_ev.code);
+          }
+
+          reachedFinalContinuation = true;
+
+        },
+        100, // interval
+        1000); // maxTimeout
+
+      db.add(store_name_inline_number, {id: key, value: '2', remark: 'add test'}).addCallback(function (value) {
+        //console.log('receiving value callback ' + value);
+        put_value = value;
+        hasEventFired = true;
+      }).addErrback(function (e) {
+          put_value = null;
+          add_ev = e;
+          hasEventFired = true;
+          console.log(e);
+        });
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  db.add(store_name_inline_number, {id: key, value: '1', remark: 'add test'}).addCallback(function(value) {
+    //console.log('receiving value callback ' + value);
+    put_value = value;
+    hasEventFired = true;
+  }).addErrback(function(e) {
+      hasEventFired = true;
+      console.log('Error: ' + e);
+    });
+};
+
+
+var test_created_event = function() {
+
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var hasEventFired = false;
+  var ev;
+  var key = Math.random();
+  var obj =  {id: key, value: '1', remark: 'put test'};
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertNotNull(ev);
+      assertEquals('name', 'RecordEvent', ev.name);
+      assertEquals('type', 'created', ev.type);
+      assertEquals('store name', store_name_inline_number, ev.store_name);
+      assertEquals('key', key, ev.key);
+      assertEquals('value', obj, ev.value);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.addEventListener('created', function(e) {
+    ev = e;
+    hasEventFired = true;
+  });
+
+  db.add(store_name_inline_number, obj);
 };
 
 var test_11_put = function() {
@@ -66,6 +201,79 @@ var test_11_put = function() {
       hasEventFired = true;
       console.log('Error: ' + e);
     });
+};
+
+
+
+
+var test_updated_event = function() {
+
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var hasEventFired = false;
+  var ev;
+  var key = Math.random();
+  var obj =  {id: key, value: '1', remark: 'put test'};
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertNotNull(ev);
+      assertEquals('name', 'RecordEvent', ev.name);
+      assertEquals('type', 'updated', ev.type);
+      assertEquals('store name', store_name_inline_number, ev.store_name);
+      assertEquals('key', key, ev.key);
+      assertEquals('value', obj, ev.value);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.addEventListener('updated', function(e) {
+    ev = e;
+    hasEventFired = true;
+  });
+
+  db.put(store_name_inline_number, obj);
+};
+
+
+
+var test_updated_store_event = function() {
+
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var hasEventFired = false;
+  var ev;
+  var objs =  [{id: 1, value: '1', remark: 'put test'}, {id: 2, value: '2', remark: 'put test'}];
+  var keys = [1, 2];
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertNotNull(ev);
+      assertEquals('name', 'StoreEvent', ev.name);
+      assertEquals('type', 'updated', ev.type);
+      assertEquals('store name', store_name_inline_number, ev.store_name);
+      assertArrayEquals('key', keys, ev.keys);
+      assertArrayEquals('value', objs, ev.values);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.addEventListener('updated', function(e) {
+    ev = e;
+    hasEventFired = true;
+  });
+
+  db.put(store_name_inline_number, objs);
 };
 
 
@@ -640,6 +848,62 @@ var test_41_clear_store = function() {
 };
 
 
+
+var test_deleted_event = function() {
+
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var ev_count = 0;
+  var store_event, record_event;
+
+  var objs =  [{id: 1, value: '1', remark: 'put test'}, {id: 2, value: '2', remark: 'put test'}];
+  var keys = [1, 2];
+
+
+  waitForCondition(
+    // Condition
+    function() { return ev_count == 2; },
+    // Continuation
+    function() {
+      assertNotNull(store_event);
+      assertNotNull(record_event);
+
+      assertEquals('name', 'RecordEvent', record_event.name);
+      assertEquals('type', 'deleted', record_event.type);
+      assertEquals('store name', store_name_inline_number, record_event.store_name);
+      assertEquals('key', keys[0], record_event.key);
+      assertUndefined('value', record_event.value);
+
+      assertEquals('name', 'StoreEvent', store_event.name);
+      assertEquals('type', 'deleted', store_event.type);
+      assertEquals('store name', store_name_inline_number, store_event.store_name);
+      assertUndefined('key', store_event.key);
+      assertUndefined('value', store_event.value);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.addEventListener('deleted', function(e) {
+    if (e.name == 'StoreEvent') {
+      store_event = e;
+    } else {
+      record_event = e;
+    }
+
+    ev_count++;
+  });
+
+
+
+  db.put(store_name_inline_number, objs).addCallback(function() {
+    db.clear(store_name_inline_number, keys[0]);
+    db.clear(store_name_inline_number);
+  });
+};
+
+
 var test_51_array_key = function() {
   var db_name = 'test_51_array_key_1';
 
@@ -759,7 +1023,7 @@ var test_52_fetch_keys = function () {
 
 
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(['receiving value callback.', value]);
+    //console.log(['receiving value callback.', value]);
     put_value_received = value;
     put_done = true;
   });
@@ -802,7 +1066,7 @@ var test_51_keys = function() {
   db.put(table_name, data).addCallback(function() {
 
     db.keys(table_name).addCallback(function(value) {
-      console.log('whole value callback.');
+      //console.log('whole value callback.');
       whole_result = value;
       whole_done = true;
     }).addErrback(function(e) {
@@ -811,7 +1075,7 @@ var test_51_keys = function() {
       });
 
     db.keys(table_name, true).addCallback(function(value) {
-      console.log('whole rev value callback.');
+      //console.log('whole rev value callback.');
       rev_result = value;
       rev_done = true;
     }).addErrback(function(e) {
@@ -820,7 +1084,7 @@ var test_51_keys = function() {
       });
 
     db.keys(table_name, false, 3).addCallback(function(value) {
-      console.log('limit value callback.');
+      //console.log('limit value callback.');
       limit_result = value;
       limit_done = true;
     }).addErrback(function(e) {
@@ -907,7 +1171,7 @@ var test_53_fetch_keys = function () {
         2000); // maxTimeout
 
       db.list(keys).addCallback(function (value) {
-        console.log('fetch value: ' + JSON.stringify(value));
+        //console.log('fetch value: ' + JSON.stringify(value));
         results = value;
         get_done = true;
       });
@@ -917,11 +1181,11 @@ var test_53_fetch_keys = function () {
     2000); // maxTimeout
 
   db.put(store_name1, objs1).addCallback(function (value) {
-    console.log(['receiving value callback.', value]);
+    //console.log(['receiving value callback.', value]);
     put1_done = true;
   });
   db.put(store_name2, objs2).addCallback(function (value) {
-    console.log(['receiving value callback.', value]);
+    //console.log(['receiving value callback.', value]);
     put2_done = true;
   });
 

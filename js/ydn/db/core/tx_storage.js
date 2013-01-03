@@ -633,8 +633,6 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, ar
 ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
                                                opt_keys) {
 
-
-
   var store_name = goog.isString(store_name_or_schema) ?
       store_name_or_schema : goog.isObject(store_name_or_schema) ?
       store_name_or_schema['name'] : undefined;
@@ -698,6 +696,15 @@ ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
       //console.log('putObjects');
       executor.addObjects(df, store_name, objs, keys);
     }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObjects');
+
+    if (store.dispatch_events) {
+      df.addCallback(function (keys) {
+        var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.CREATED,
+          me.getStorage(), store.getName(), keys, objs);
+        me.getStorage().dispatchEvent(event);
+      });
+    }
+
   } else if (goog.isObject(value)) {
     var obj = value;
     var key = /** @type {number|string|undefined} */ (opt_keys);
@@ -705,9 +712,20 @@ ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
     this.exec(function(executor) {
       executor.addObject(df, store_name, obj, key);
     }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+
+    if (store.dispatch_events) {
+      df.addCallback(function(key) {
+        var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.CREATED,
+          me.getStorage(), store.getName(), key, obj);
+        me.getStorage().dispatchEvent(event);
+      });
+    }
+
   } else {
     throw new ydn.error.ArgumentException();
   }
+
+
 
   return df;
 
@@ -785,6 +803,15 @@ ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
       //console.log('putObjects');
       executor.putObjects(df, store_name, objs, keys);
     }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObjects');
+
+    if (store.dispatch_events) {
+      df.addCallback(function(keys) {
+        var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.UPDATED,
+          me.getStorage(), store_name, keys, objs);
+        me.getStorage().dispatchEvent(event);
+      });
+    }
+
   } else if (goog.isObject(value)) {
     var obj = value;
     var key = /** @type {number|string|undefined} */ (opt_keys);
@@ -792,6 +819,15 @@ ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
     this.exec(function(executor) {
       executor.putObject(df, store_name, obj, key);
     }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+
+    if (store.dispatch_events) {
+      df.addCallback(function(key) {
+        var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.UPDATED,
+          me.getStorage(), store_name, key, obj);
+        me.getStorage().dispatchEvent(event);
+      });
+    }
+
   } else {
     throw new ydn.error.ArgumentException();
   }
@@ -813,18 +849,40 @@ ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
 ydn.db.core.TxStorage.prototype.clear = function(arg1, arg2) {
 
   var df = ydn.db.base.createDeferred();
+  var me = this;
 
   if (goog.isString(arg1)) {
     var store_name = arg1;
+    var store = this.schema.getStore(store_name);
+    if (!store) {
+      throw new ydn.db.NotFoundError(store_name);
+    }
     if (goog.isString(arg2) || goog.isNumber(arg2) || goog.isArray(arg2)) {
       var id = /** @type {(!Array|number|string)} */  (arg2);
       this.exec(function(executor) {
         executor.clearById(df, store_name, id);
       }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearById');
+
+      if (store.dispatch_events) {
+        df.addCallback(function(key) {
+          var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.DELETED,
+            me.getStorage(), store_name, key, undefined);
+          me.getStorage().dispatchEvent(event);
+        });
+      }
+
     } else if (!goog.isDef(arg2)) {
       this.exec(function(executor) {
         executor.clearByStore(df, store_name);
       }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStore');
+
+      if (store.dispatch_events) {
+        df.addCallback(function(key) {
+          var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
+            me.getStorage(), store_name, null, undefined);
+          me.getStorage().dispatchEvent(event);
+        });
+      }
     } else {
       throw new ydn.error.ArgumentException();
     }

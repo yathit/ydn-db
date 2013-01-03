@@ -434,6 +434,10 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    * @final
    */
   this.indexes = opt_indexes || [];
+  /**
+   * @final
+   */
+  this.dispatch_events = !!dispatch_events;
 };
 
 
@@ -470,6 +474,12 @@ ydn.db.schema.Store.prototype.indexes;
 
 
 /**
+ * @type {boolean}
+ */
+ydn.db.schema.Store.prototype.dispatch_events;
+
+
+/**
  * @inheritDoc
  */
 ydn.db.schema.Store.prototype.toJSON = function() {
@@ -496,7 +506,7 @@ ydn.db.schema.Store.prototype.toJSON = function() {
  */
 ydn.db.schema.Store.fromJSON = function(json) {
   if (goog.DEBUG) {
-    var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'indexes'];
+    var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'indexes', 'dispatchEvents'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.error.ArgumentException('Unknown attribute "' + key + '"');
@@ -515,7 +525,7 @@ ydn.db.schema.Store.fromJSON = function(json) {
     }
   }
   return new ydn.db.schema.Store(json.name, json.keyPath,
-    json.autoIncrement, json.type, indexes);
+    json.autoIncrement, json.type, indexes, json.dispatchEvents);
 };
 
 

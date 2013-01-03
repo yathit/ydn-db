@@ -371,13 +371,13 @@ ydn.db.core.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
     if (cursor) {
       var req = cursor['delete']();
       req.onsuccess = function(e) {
-        df.callback(true);
+        df.callback(key);
       };
       req.onerror = function(e) {
         df.errback(event);
       }
     } else {
-      df.callback(false);
+      df.callback(undefined);
     }
 
   };

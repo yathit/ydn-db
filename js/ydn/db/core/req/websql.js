@@ -1000,7 +1000,7 @@ ydn.db.core.req.WebSql.prototype.clearById = function(d, table, id) {
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log(results);
     }
-    d.callback(true);
+    d.callback(results.rowsAffected == 1 ? id : undefined);
   };
 
   /**
