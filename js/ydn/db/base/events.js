@@ -30,14 +30,12 @@ ydn.db.events.Types = {
  *
  * @param {ydn.db.events.Types} event_type event type.
  * @param {goog.events.EventTarget} event_target target.
- * @param {*} source event source.
  * @extends {goog.events.Event}
  * @constructor
  */
-ydn.db.events.Event = function(event_type, event_target, source) {
+ydn.db.events.Event = function(event_type, event_target) {
   goog.base(this, event_type, event_target);
 
-  this.source = source;
 };
 goog.inherits(ydn.db.events.Event, goog.events.Event);
 
@@ -53,17 +51,23 @@ ydn.db.events.Event.prototype.source = null;
  *
  * @param {ydn.db.events.Types} event_type type.
  * @param {goog.events.EventTarget} event_target event target.
- * @param {*} source source.
+ * @param {number} version source.
  * @param {string=} msg optional message.
  * @extends {ydn.db.events.Event}
  * @constructor
  */
-ydn.db.events.StorageEvent = function(event_type, event_target, source, msg) {
-  goog.base(this, event_type, event_target, source);
+ydn.db.events.StorageEvent = function(event_type, event_target, version, msg) {
+  goog.base(this, event_type, event_target);
+  this.version = version;
   this.message = msg || '';
 };
 goog.inherits(ydn.db.events.StorageEvent, ydn.db.events.Event);
 
+/**
+ *
+ * @type {number}
+ */
+ydn.db.events.StorageEvent.prototype.version = NaN;
 
 /**
  *
@@ -76,13 +80,36 @@ ydn.db.events.StorageEvent.prototype.message = '';
  *
  * @param {ydn.db.events.Types} event_type  type.
  * @param {goog.events.EventTarget} event_target target.
- * @param {*} source source.
+ * @param {string} store_name source.
+ * @param {*} key source.
+ * @param {*} value source.
  * @extends {ydn.db.events.Event}
  * @constructor
  */
-ydn.db.events.StoreEvent = function(event_type, event_target, source) {
-  goog.base(this, event_type, event_target, source);
+ydn.db.events.StoreEvent = function(event_type, event_target, store_name, key, value) {
+  goog.base(this, event_type, event_target);
+  this.store_name = store_name;
+  this.key = key;
+  this.value = value;
 };
 goog.inherits(ydn.db.events.StoreEvent, ydn.db.events.Event);
+
+/**
+ *
+ * @type {string}
+ */
+ydn.db.events.StorageEvent.prototype.store_name = '';
+
+/**
+ *
+ * @type {*}
+ */
+ydn.db.events.StorageEvent.prototype.key = '';
+
+/**
+ *
+ * @type {*}
+ */
+ydn.db.events.StorageEvent.prototype.value = '';
 
 

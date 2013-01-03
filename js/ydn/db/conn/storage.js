@@ -189,7 +189,7 @@ ydn.db.con.Storage.prototype.logger =
 /**
  * Get current schema.
  * @param {function(ydn.db.schema.Database)=} opt_callback schema in database.
- * @return {DatabaseSchema} schema in memory.
+ * @return {DatabaseSchema} schema in memory. Null if not connected.
  */
 ydn.db.con.Storage.prototype.getSchema = function(opt_callback) {
   if (goog.isDef(opt_callback)) {
@@ -396,16 +396,14 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
   this.init(); // let super class to initialize.
 
-  db.connect(this.db_name, this.schema).addCallback(function(ok) {
+  db.connect(this.db_name, this.schema).addCallback(function(version) {
     me.db_ = db;
     me.logger.finest(me + ': ready.');
     me.last_queue_checkin_ = NaN;
 
-    goog.async.Deferred.succeed(true);
-
     me.popTxQueue_();
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.CONNECTED,
-      me, null);
+      me, version);
     me.dispatchEvent(event);
 
     /**

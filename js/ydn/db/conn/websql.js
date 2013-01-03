@@ -84,7 +84,8 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
     } else {
       me.sql_db_ = db;
-      df.callback(true);
+      var version = parseFloat(db.version);
+      df.callback(version);
     }
   };
 

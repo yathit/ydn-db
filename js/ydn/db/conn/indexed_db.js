@@ -124,7 +124,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
           }
         }
       };
-      df.callback(true);
+      df.callback(db.version);
     }
 
   };
