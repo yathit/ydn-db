@@ -374,14 +374,15 @@ ydn.db.schema.Index.fromJSON = function(json) {
  * <code>ydn.db.schema.DataType.INTEGER</code> if opt_autoIncrement is
  * <code>true.</code>
  * @param {!Array.<!ydn.db.schema.Index>=} opt_indexes list of indexes.
+ * @param {boolean=} dispatch_events if true, storage instance should
+ * dispatch event on changes.
  * @constructor
  */
 ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
-                               opt_indexes) {
+                               opt_indexes, dispatch_events) {
 
   /**
    * @final
-   * @type {string}
    */
   this.name = name;
   if (!goog.isString(this.name)) {
@@ -389,7 +390,6 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   }
   /**
    * @final
-   * @type {string?}
    */
   this.keyPath = goog.isDef(keyPath) ? keyPath : null;
   if (!goog.isNull(this.keyPath) &&
@@ -415,7 +415,6 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
 
   /**
    * @final
-   * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} //
    */
   this.type = goog.isDef(type) ? type : this.autoIncrement ?
     ydn.db.schema.DataType.INTEGER : undefined;
@@ -429,15 +428,45 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
 
   /**
    * @final
-   * @type {!Array.<string>}
    */
   this.keyPaths = goog.isString(this.keyPath) ? this.keyPath.split('.') : [];
   /**
    * @final
-   * @type {!Array.<!ydn.db.schema.Index>}
    */
   this.indexes = opt_indexes || [];
 };
+
+
+/**
+ * @type {string}
+ */
+ydn.db.schema.Store.prototype.name;
+
+/**
+ * @type {string?}
+ */
+ydn.db.schema.Store.prototype.keyPath;
+
+/**
+ * @type {boolean|undefined}
+ */
+ydn.db.schema.Store.prototype.autoIncrement;
+
+/**
+ * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} //
+ */
+ydn.db.schema.Store.prototype.type;
+
+/**
+ * @protected
+ * @type {!Array.<string>}
+ */
+ydn.db.schema.Store.prototype.keyPaths;
+
+/**
+ * @type {!Array.<!ydn.db.schema.Index>}
+ */
+ydn.db.schema.Store.prototype.indexes;
 
 
 /**

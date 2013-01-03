@@ -199,7 +199,7 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
     this.cache_.setItem(db_key, ydn.json.stringify(this.storeSchema_));
   }
 
-  return goog.async.Deferred.succeed(NaN);
+  return goog.async.Deferred.succeed(1);
 };
 
 

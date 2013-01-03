@@ -200,7 +200,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         // add existing object store
         if (schema.isAutoSchema()) {
           for (var i = 0; i < db_schema.stores.length; i++) {
-            if (!schema.hasStore(db_schema.stores[i].name)) {
+            if (!schema.hasStore(db_schema.stores[i].getName())) {
               schema.addStore(db_schema.stores[i].clone());
             }
           }
@@ -543,49 +543,52 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
  */
 ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 {
-  this.logger.finest('Creating Object Store for ' + store_schema.name +
-    ' keyPath: ' + store_schema.keyPath);
+  this.logger.finest('Creating Object Store for ' + store_schema.getName() +
+    ' keyPath: ' + store_schema.getKeyPath());
 
   var objectStoreNames = /** @type {DOMStringList} */ (db.objectStoreNames);
 
   var createObjectStore = function() {
     // IE10 is picky on optional parameters of keyPath. If it is undefined,
     // it must not be defined.
-    var options = {'autoIncrement': !!store_schema.autoIncrement};
-    if (goog.isDefAndNotNull(store_schema.keyPath)) {
-      options['keyPath'] = store_schema.keyPath;
+    var options = {'autoIncrement': !!store_schema.getAutoIncrement()};
+    if (goog.isDefAndNotNull(store_schema.getKeyPath())) {
+      options['keyPath'] = store_schema.getKeyPath();
     }
     try {
-      return db.createObjectStore(store_schema.name, options);
+      return db.createObjectStore(store_schema.getName(), options);
     } catch (e) {
       if (goog.DEBUG && e.name == 'InvalidAccessError') {
         throw new ydn.db.InvalidAccessError('creating store for ' +
-          store_schema.name + ' of keyPath: ' +
-          store_schema.keyPath + ' and autoIncrement: ' +
-          store_schema.autoIncrement);
+          store_schema.getName() + ' of keyPath: ' +
+          store_schema.getKeyPath() + ' and autoIncrement: ' +
+          store_schema.getAutoIncrement());
       } else if (goog.DEBUG && e.name == 'ConstraintError') {
         // store already exist.
         throw new ydn.error.ConstrainError('creating store for ' +
-          store_schema.name);
+          store_schema.getName());
       } else {
         throw e;
       }
     }
   };
 
+  /**
+   * @type {IDBObjectStore}
+   */
   var store;
-  if (objectStoreNames.contains(store_schema.name)) {
+  if (objectStoreNames.contains(store_schema.getName())) {
     // already have the store, just update indexes
 
-    store = trans.objectStore(store_schema.name);
+    store = trans.objectStore(store_schema.getName());
 
-    if (store.keyPath != store_schema.keyPath) {
-      db.deleteObjectStore(store_schema.name);
-      this.logger.warning('store: ' + store_schema.name + ' deleted due to keyPath change.');
+    if (store.keyPath != store_schema.getKeyPath()) {
+      db.deleteObjectStore(store_schema.getName());
+      this.logger.warning('store: ' + store_schema.getName() + ' deleted due to keyPath change.');
       store = createObjectStore();
-    } else if (store.autoIncrement != store_schema.autoIncrement) {
-      db.deleteObjectStore(store_schema.name);
-      this.logger.warning('store: ' + store_schema.name + ' deleted due to autoIncrement change.');
+    } else if (store.autoIncrement != store_schema.getAutoIncrement()) {
+      db.deleteObjectStore(store_schema.getName());
+      this.logger.warning('store: ' + store_schema.getName() + ' deleted due to autoIncrement change.');
       store = createObjectStore();
     }
 

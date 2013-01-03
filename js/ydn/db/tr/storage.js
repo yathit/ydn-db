@@ -20,7 +20,7 @@
 goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.tr.IStorage');
-goog.require('ydn.db.tr.TxStorage');
+goog.require('ydn.db.tr.TxQueue');
 
 
 
@@ -65,10 +65,10 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
 /**
  * @protected
  * @param {string} scope_name scope name.
- * @return {!ydn.db.tr.TxStorage} new transactional storage.
+ * @return {!ydn.db.tr.TxQueue} new transactional storage.
  */
 ydn.db.tr.Storage.prototype.newTxInstance = function(scope_name) {
-  return new ydn.db.tr.TxStorage(this, this.ptx_no++, scope_name);
+  return new ydn.db.tr.TxQueue(this, this.ptx_no++, scope_name);
 };
 
 
