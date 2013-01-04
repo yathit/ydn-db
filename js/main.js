@@ -72,11 +72,11 @@ goog.exportProperty(ydn.db.TxStorage.prototype, 'setItem',
 goog.exportProperty(ydn.db.TxStorage.prototype, 'getItem',
     ydn.db.TxStorage.prototype.getItem);
 
-goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'getPrimaryKey',
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'key',
   ydn.db.index.req.IDBCursor.prototype.getPrimaryKey);
-goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'getIndexKey',
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'indexKey',
   ydn.db.index.req.IDBCursor.prototype.getIndexKey);
-goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'getValue',
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'value',
   ydn.db.index.req.IDBCursor.prototype.getValue);
 goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'update',
   ydn.db.index.req.IDBCursor.prototype.update);
