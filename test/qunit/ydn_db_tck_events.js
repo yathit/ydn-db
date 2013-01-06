@@ -1,5 +1,14 @@
 
-//ydn.debug.log('ydn.db', 100);
+
+if (/log/.test(location.hash)) {
+  if (/ui/.test(location.hash)) {
+    var div = document.createElement('div');
+    document.body.appendChild(div);
+    ydn.debug.log('ydn.db', 100, div);
+  } else {
+    ydn.debug.log('ydn.db', 100);
+  }
+}
 
 var db;
 var options = {}; // options = {Mechanisms: ['websql']};
@@ -68,7 +77,7 @@ asyncTest("created RecordEvent", function () {
   var data = { test:"random value", name:"name " + key, id:key };
 
   db.addEventListener(['created', 'updated'], function(e) {
-    console.log(e);
+    //console.log(e);
     equal(e.name, 'RecordEvent', 'event name');
     equal(e.getStoreName(), store_inline, 'store name');
     //equal(e.store_name, store_inline, 'store name');

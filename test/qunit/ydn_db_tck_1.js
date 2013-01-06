@@ -1,5 +1,16 @@
 
-//ydn.debug.log('ydn.db', 100);
+if (/log/.test(location.hash)) {
+  if (/ui/.test(location.hash)) {
+    var div = document.createElement('div');
+    document.body.appendChild(div);
+    ydn.debug.log('ydn.db', 100, div);
+  } else {
+    ydn.debug.log('ydn.db', 100);
+  }
+}
+
+
+
 
 var db;
 var options = {}; // options = {Mechanisms: ['websql']};
