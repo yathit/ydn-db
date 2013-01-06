@@ -4,6 +4,7 @@
 var db;
 var options = {}; // options = {Mechanisms: ['websql']};
 var db_name_tck1 = "tck_test_1_1";
+var dbname_auto_increase = 'tck1_auto_increment';
 var store_inline = "ts";    // in-line key store
 var store_inline_string = "tss";    // in-line key store
 var store_outline = "ts2"; // out-of-line key store
@@ -43,6 +44,40 @@ var schema_1 = {
 };
 
 
+var schema_auto_increase = {
+  stores: [
+    {
+      name: store_inline,
+      keyPath: 'id',
+      type: 'NUMERIC'},
+    {
+      name: store_outline,
+      type: 'NUMERIC'},
+    {
+      name: store_inline_auto,
+      keyPath: 'id',
+      autoIncrement: true,
+      type: 'INTEGER'},
+    {
+      name: store_outline_auto,
+      autoIncrement: true},
+    {
+      name: store_nested_key,
+      keyPath: 'id.$t', // gdata style key.
+      type: 'NUMERIC'},
+    {
+      name: store_inline_index,
+      keyPath: 'id',
+      type: 'NUMERIC',
+      indexes: [
+        {name: 'value', type: 'TEXT'}
+      ]
+    }
+
+  ]
+};
+
+
 
 module("Put", {
   setup: function() {
@@ -69,68 +104,57 @@ asyncTest("single data", function () {
 
 });
 
-//
-//asyncTest("inline-key autoincrement", function () {
-//  var db = new ydn.db.Storage(store_inline, schema_1);
-//  expect(2);
-//
-//  db.put(store_inline_auto, data_1).then(function (x) {
-//    equal(data_1.id, x, 'key');
-//    db.put(store_inline_auto, data_2).then(function (x) {
-//      ok(x > data_1.id, 'key 2 greater than data_1 key');
-//      start();
-//    }, function (e) {
-//      ok(false, e.message);
-//      start();
-//    });
-//  }, function (e) {
-//    ok(false, e.message);
-//    start();
-//  });
-//
-//});
-//
-//
-//asyncTest("inline-key autoincrement", function () {
-//  var db = new ydn.db.Storage(db_name_tck1, schema_1);
-//  expect(2);
-//
-//  db.put(store_inline_auto, data_1).then(function (x) {
-//    equal(data_1.id, x, 'key');
-//    db.put(store_inline_auto, data_2).then(function (x) {
-//      ok(x > data_1.id, 'key 2 greater than data_1 key');
-//      start();
-//    }, function (e) {
-//      ok(false, e.message);
-//      start();
-//    });
-//  }, function (e) {
-//    ok(false, e.message);
-//    start();
-//  });
-//
-//});
-//
-//asyncTest("offline-key autoincrement", function () {
-//  var db = new ydn.db.Storage(db_name_tck1, schema_1);
-//  expect(2);
-//
-//  db.put(store_outline_auto, data_1).then(function (x) {
-//    ok(true, 'no key data insert ok');
-//    var key = x;
-//    // add same data.
-//    db.put(store_outline_auto, data_1).then(function (x) {
-//      ok(x > key, 'key 2 greater than previous key');
-//      start();
-//    }, function (e) {
-//      ok(false, e.message);
-//      start();
-//    });
-//  }, function (e) {
-//    ok(false, e.message);
-//    start();
-//  });
-//});
+
+asyncTest("inline-key autoincrement", function () {
+  var db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase);
+  expect(2);
+
+  db.put(store_inline_auto, data_1).then(function (x) {
+    equal(data_1.id, x, 'key');
+    db.put(store_inline_auto, data_2).then(function (x) {
+      ok(x > data_1.id, 'key 2 greater than data_1 key');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+  // some browser does not support autoIncrement.
+  setTimeout(function() {
+    start();
+  }, 1000);
+
+});
+
+
+asyncTest("offline-key autoincrement", function () {
+  var db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase);
+  expect(2);
+
+  db.put(store_outline_auto, data_1).then(function (x) {
+    ok(true, 'no key data insert ok');
+    var key = x;
+    // add same data.
+    db.put(store_outline_auto, data_1).then(function (x) {
+      ok(x > key, 'key 2 greater than previous key');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  }, function (e) {
+    ok(false, e.message);
+    start();
+  });
+
+  setTimeout(function() {
+    start();
+  }, 1000);
+});
 
 asyncTest("data with off-line-key", function () {
 
@@ -299,10 +323,6 @@ module("List", {
     db.put(store_inline, data_list_inline);
     db.put(store_outline, data_list_outline, keys_list_outline);
 
-    setTimeout(function() {
-      start();
-    }, 5000);
-
   },
   teardown: function() {
     db.close();
@@ -350,6 +370,10 @@ asyncTest("Retrieve objects by key range - inline-key", function () {
     start();
   });
 
+  setTimeout(function() {
+    start();
+  }, 1000);
+
 });
 
 asyncTest("Retrieve objects by key range reverse - inline-key", function () {
@@ -392,6 +416,10 @@ asyncTest("Retrieve objects by key range limit offset - inline-key", function ()
     ok(false, e.message);
     start();
   });
+
+  setTimeout(function() {
+    start();
+  }, 1000);
 
 });
 
@@ -445,11 +473,8 @@ module("Keys", {
       console.log('tck1-keys db ready.');
     }, function(e) {
       throw e;
-    })
+    });
 
-    setTimeout(function() {
-      start();
-    }, 5000);
   },
   teardown: function() {
     db.close();
@@ -492,6 +517,11 @@ asyncTest("get keys limit", function () {
     throw e;
   });
 
+  setTimeout(function() {
+    start();
+  }, 1000);
+
+
 });
 
 
@@ -505,6 +535,9 @@ asyncTest("get keys limit offset", function () {
     throw e;
   });
 
+  setTimeout(function() {
+    start();
+  }, 1000);
 });
 
 
