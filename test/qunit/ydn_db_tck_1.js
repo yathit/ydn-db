@@ -59,6 +59,10 @@ var events_schema = {
 module("Put", {
   setup: function() {
     db = new ydn.db.Storage('tck1_put', schema_1);
+
+    setTimeout(function() {
+      start();
+    }, 5000);
   },
   teardown: function() {
     db.close();
@@ -310,6 +314,10 @@ module("List", {
     db.put(store_inline, data_list_inline);
     db.put(store_outline, data_list_outline, keys_list_outline);
 
+    setTimeout(function() {
+      start();
+    }, 5000);
+
   },
   teardown: function() {
     db.close();
@@ -453,6 +461,10 @@ module("Keys", {
     }, function(e) {
       throw e;
     })
+
+    setTimeout(function() {
+      start();
+    }, 5000);
   },
   teardown: function() {
     db.close();
@@ -587,9 +599,12 @@ asyncTest("in a range", function () {
 
 
 
-module("StorageEvent", {
+module("Event", {
   setup: function() {
-
+    setTimeout(function() {
+      // don't wait more than 5 sec.
+      start();
+    }, 5000);
   },
   teardown: function() {
     //db.close();
@@ -608,10 +623,6 @@ asyncTest("connected", function () {
     start();
   });
 
-  setTimeout(function() {
-    // don't wait more than 1 sec.
-    start();
-  }, 1000);
 
 });
 
@@ -634,11 +645,6 @@ asyncTest("created", function () {
     deepEqual(data, e.value, 'value');
     start();
   });
-
-  setTimeout(function() {
-    // don't wait more than 1 sec.
-    start();
-  }, 1000);
 
 });
 

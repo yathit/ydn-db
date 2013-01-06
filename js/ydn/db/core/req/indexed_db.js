@@ -481,7 +481,7 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(df, store_name,
       }
       results.push(cursor.value);
       if (results.length < limit) {
-        cursor.advance(1);
+        cursor['continue']();
       } else {
         df.callback(results);
       }
@@ -535,7 +535,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(df, store_name,
       }
       results.push(cursor.key);
       if (results.length < limit) {
-        cursor.advance(1);
+        cursor['continue']();
       } else {
         df.callback(results);
       }
@@ -575,7 +575,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByStore = function(df, store_name,
       }
       results.push(cursor.primaryKey);
       if (results.length < limit) {
-        cursor.advance(1);
+        cursor['continue']();
       } else {
         df.callback(results);
       }
@@ -616,7 +616,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(df, store_nam
       }
       results.push(cursor.primaryKey);
       if (results.length < limit) {
-        cursor.advance(1);
+        cursor['continue']();
       }
     } else {
       df.callback(results);
@@ -982,7 +982,7 @@ ydn.db.core.req.IndexedDb.prototype.getKeysByIndexKeyRange = function(df, store_
       if (goog.isDef(limit) && keys.length >= limit) {
         df.callback(keys);
       } else {
-        cur.advance(1);
+        cur['continue']();
       }
     } else {
       df.callback(keys);

@@ -369,14 +369,14 @@ ydn.db.core.TxStorage.prototype.keys = function(arg1, arg2, arg3,
     } else if (!goog.isDef(arg3)) {
       limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
     } else {
-      throw new TypeError('arg3');
+      throw new ydn.error.ArgumentException('arg3');
     }
     if (goog.isNumber(arg4)) {
       offset = arg4;
     } else if (!goog.isDef(arg4)) {
       offset = 0;
     } else {
-      throw new TypeError('arg4');
+      throw new ydn.error.ArgumentException('arg4');
     }
     this.exec(function(executor) {
       executor.keysByStore(df, store_name, reverse, limit, offset);
@@ -637,7 +637,7 @@ ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
       store_name_or_schema : goog.isObject(store_name_or_schema) ?
       store_name_or_schema['name'] : undefined;
   if (!goog.isString(store_name)) {
-    throw new TypeError('store name');
+    throw new ydn.error.ArgumentException('store name');
   }
 
   var store = this.schema.getStore(store_name);
@@ -744,7 +744,7 @@ ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
     store_name_or_schema : goog.isObject(store_name_or_schema) ?
     store_name_or_schema['name'] : undefined;
   if (!goog.isString(store_name)) {
-    throw new TypeError('store name');
+    throw new ydn.error.ArgumentException('store name');
   }
 
   var store = this.schema.getStore(store_name);
