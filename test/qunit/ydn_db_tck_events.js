@@ -34,10 +34,7 @@ var events_schema = {
 
 module("Event", {
   setup: function() {
-    setTimeout(function() {
-      // don't wait more than 5 sec.
-      start();
-    }, 5000);
+
   },
   teardown: function() {
     //db.close();
@@ -83,6 +80,10 @@ asyncTest("created RecordEvent", function () {
 
   db.add(store_inline, data);
 
+  setTimeout(function() {
+    // don't wait more than 5 sec.
+    start();
+  }, 1000);
 });
 
 
@@ -107,6 +108,10 @@ asyncTest("created StoreEvent", function () {
   });
 
   db.add(store_inline, data);
+  setTimeout(function() {
+    // don't wait more than 5 sec.
+    start();
+  }, 1000);
 
 });
 
@@ -142,7 +147,10 @@ asyncTest("updated RecordEvent", function () {
 
   db.add(store_inline, data);
   db.put(store_inline, data);
-
+  setTimeout(function() {
+    // don't wait more than 5 sec.
+    start();
+  }, 1000);
 });
 
 
@@ -178,7 +186,10 @@ asyncTest("updated StoreEvent", function () {
 
   db.add(store_inline, data);
   db.put(store_inline, data);
-
+  setTimeout(function() {
+    // don't wait more than 5 sec.
+    start();
+  }, 1000);
 });
 
 
