@@ -6,6 +6,7 @@ goog.require('ydn.db');
 goog.require('ydn.db.con.Storage');
 goog.require('goog.async.Deferred');
 goog.require('ydn.base');
+goog.require('ydn.db.events.StorageEvent');
 
 goog.exportSymbol('ydn.db.con.Storage', ydn.db.con.Storage);
 
@@ -27,11 +28,11 @@ goog.exportProperty(ydn.db.con.Storage.prototype, 'close',
 
 goog.exportSymbol('ydn.db.deleteDatabase', ydn.db.deleteDatabase);
 
-goog.exportProperty(ydn.db.events.Event.prototype, 'name',
-  ydn.db.events.Event.prototype.name);
-goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'store_name',
-  ydn.db.events.RecordEvent.prototype.store_name);
-goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'message',
-  ydn.db.events.RecordEvent.prototype.name);
+goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'name',
+    ydn.db.events.StorageEvent.prototype.name);
+goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'version',
+  ydn.db.events.StorageEvent.prototype.version);
+goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'message',
+    ydn.db.events.StorageEvent.prototype.message);
 
 

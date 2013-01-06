@@ -704,7 +704,6 @@ ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
         me.getStorage().dispatchEvent(event);
       });
     }
-
   } else if (goog.isObject(value)) {
     var obj = value;
     var key = /** @type {number|string|undefined} */ (opt_keys);
@@ -720,12 +719,9 @@ ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
         me.getStorage().dispatchEvent(event);
       });
     }
-
   } else {
     throw new ydn.error.ArgumentException();
   }
-
-
 
   return df;
 
@@ -737,8 +733,6 @@ ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
  */
 ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
                                                 opt_keys) {
-
-
 
   var store_name = goog.isString(store_name_or_schema) ?
     store_name_or_schema : goog.isObject(store_name_or_schema) ?

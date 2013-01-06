@@ -40,11 +40,19 @@ ydn.db.events.Event = function(event_type, event_target) {
 };
 goog.inherits(ydn.db.events.Event, goog.events.Event);
 
-
 /**
+ * @final
  * @type {string}
  */
-ydn.db.events.Event.prototype.name;
+ydn.db.events.Event.prototype.store_name;
+
+/**
+ *
+ * @return {string}
+ */
+ydn.db.events.Event.prototype.getStoreName = function() {
+  return this.store_name;
+};
 
 
 /**
@@ -60,10 +68,15 @@ ydn.db.events.StorageEvent = function(event_type, event_target, version, msg) {
   goog.base(this, event_type, event_target);
   this.version = version;
   this.message = msg || '';
-  this.name = 'StorageEvent';
 };
 goog.inherits(ydn.db.events.StorageEvent, ydn.db.events.Event);
 
+
+/**
+ * @final
+ * @type {string}
+ */
+ydn.db.events.StorageEvent.prototype.name =  'StorageEvent';
 
 /**
  *
@@ -92,16 +105,16 @@ ydn.db.events.RecordEvent = function(event_type, event_target, store_name, key, 
   this.store_name = store_name;
   this.key = key;
   this.value = value;
-  this.name = 'RecordEvent';
 };
 goog.inherits(ydn.db.events.RecordEvent, ydn.db.events.Event);
 
 
 /**
- *
+ * @final
  * @type {string}
  */
-ydn.db.events.RecordEvent.prototype.store_name;
+ydn.db.events.RecordEvent.prototype.name = 'RecordEvent';
+
 
 /**
  *
@@ -118,6 +131,22 @@ ydn.db.events.RecordEvent.prototype.value;
 
 /**
  *
+ * @return {*}
+ */
+ydn.db.events.RecordEvent.prototype.getKey = function() {
+  return this.key;
+};
+
+/**
+ *
+ * @return {*}
+ */
+ydn.db.events.RecordEvent.prototype.getValue = function() {
+  return this.value;
+};
+
+/**
+ *
  * @param {ydn.db.events.Types} event_type  type.
  * @param {goog.events.EventTarget} event_target target.
  * @param {string} store_name source.
@@ -131,20 +160,15 @@ ydn.db.events.StoreEvent = function(event_type, event_target, store_name, keys, 
   this.store_name = store_name;
   this.keys = keys;
   this.values = values;
-  this.name = 'StoreEvent';
 };
 goog.inherits(ydn.db.events.StoreEvent, ydn.db.events.Event);
 
 /**
+ * @final
  * @type {string}
  */
 ydn.db.events.StoreEvent.prototype.name = 'StoreEvent';
 
-/**
- *
- * @type {string}
- */
-ydn.db.events.StoreEvent.prototype.store_name;
 
 /**
  *
@@ -157,5 +181,21 @@ ydn.db.events.StoreEvent.prototype.keys;
  * @type {Array|undefined}
  */
 ydn.db.events.StoreEvent.prototype.values;
+
+/**
+ *
+ * @return {*}
+ */
+ydn.db.events.StoreEvent.prototype.getKeys = function() {
+  return this.keys;
+};
+
+/**
+ *
+ * @return {*}
+ */
+ydn.db.events.StoreEvent.prototype.getValues = function() {
+  return this.values;
+};
 
 

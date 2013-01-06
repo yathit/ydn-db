@@ -6,10 +6,14 @@
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.core.TxStorage');
 goog.require('ydn.db');
+goog.require('ydn.db.events.RecordEvent');
+goog.require('ydn.db.events.StoreEvent');
 
 
 goog.exportSymbol('ydn.db.core.Storage', ydn.db.core.Storage);
 
+goog.exportProperty(ydn.db.core.Storage.prototype, 'add',
+    ydn.db.core.Storage.prototype.add);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'get',
     ydn.db.core.Storage.prototype.get);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'list',
@@ -21,6 +25,8 @@ goog.exportProperty(ydn.db.core.Storage.prototype, 'clear',
 goog.exportProperty(ydn.db.core.Storage.prototype, 'count',
   ydn.db.core.Storage.prototype.count);
 
+goog.exportProperty(ydn.db.core.TxStorage.prototype, 'add',
+    ydn.db.core.TxStorage.prototype.add);
 goog.exportProperty(ydn.db.core.TxStorage.prototype, 'get',
     ydn.db.core.TxStorage.prototype.get);
 goog.exportProperty(ydn.db.core.TxStorage.prototype, 'list',
@@ -50,19 +56,25 @@ goog.exportProperty(ydn.db.KeyRange, 'only', ydn.db.KeyRange.only);
 goog.exportProperty(ydn.db.KeyRange, 'starts', ydn.db.KeyRange.starts);
 
 
-goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'store_name',
-  ydn.db.events.RecordEvent.prototype.store_name);
-goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'key',
-  ydn.db.events.RecordEvent.prototype.key);
-goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'value',
-  ydn.db.events.RecordEvent.prototype.value);
+goog.exportProperty(ydn.db.events.Event.prototype, 'store_name',
+    ydn.db.events.Event.prototype.store_name); // this don't work, why?
+goog.exportProperty(ydn.db.events.Event.prototype, 'getStoreName',
+    ydn.db.events.Event.prototype.getStoreName);
 
-goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'store_name',
-  ydn.db.events.StoreEvent.prototype.store_name);
-goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'keys',
-  ydn.db.events.StoreEvent.prototype.keys);
-goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'values',
-  ydn.db.events.StoreEvent.prototype.values);
+goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'name',
+    ydn.db.events.RecordEvent.prototype.name);
+goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'getKey',
+  ydn.db.events.RecordEvent.prototype.getKey);
+goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'getValue',
+  ydn.db.events.RecordEvent.prototype.getValue);
+
+
+goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'name',
+    ydn.db.events.StoreEvent.prototype.name);
+goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'getKeys',
+  ydn.db.events.StoreEvent.prototype.getKeys);
+goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'getValues',
+    ydn.db.events.StoreEvent.prototype.getValues);
 
 
 
