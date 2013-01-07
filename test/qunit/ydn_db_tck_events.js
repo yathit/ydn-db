@@ -139,8 +139,9 @@ asyncTest("updated RecordEvent", function () {
       equal(e.type, 'updated', 'type');
       equal(e.getKey(), key, 'key');
       deepEqual(e.getValue(), data, 'value');
+      start();
     }
-    start();
+
   });
 
   db.add(store_inline, data);
@@ -178,8 +179,9 @@ asyncTest("updated StoreEvent", function () {
       equal(e.type, 'updated', 'type');
       deepEqual(e.getKeys(), keys, 'updated key');
       deepEqual(e.getValues(), data, 'updated value');
+
+      start();
     }
-    start();
   });
 
   db.add(store_inline, data);
