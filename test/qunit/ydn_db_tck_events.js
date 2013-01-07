@@ -12,20 +12,10 @@ if (/log/.test(location.hash)) {
 
 var db;
 var options = {}; // options = {Mechanisms: ['websql']};
-var db_name_tck1 = "tck_test_1_1";
+var db_name_event = "tck_test_1_1";
 var store_inline = "ts";    // in-line key store
-var store_inline_string = "tss";    // in-line key store
 var store_outline = "ts2"; // out-of-line key store
-var store_outline_string = "ts2s"; // out-of-line key store
-var store_inline_auto = "ts3"; // in-line key + auto
-var store_outline_auto = "ts4"; // out-of-line key + auto
-var store_nested_key = "ts5"; // nested keyPath
-var store_inline_index = "ts6";    // in-line key store
 
-var data_1 = { test:"test value", name:"name 1", id:1 };
-var data_1a = { test:"test value", name:"name 1", id: ['a', 'b']};
-var data_2 = { test:"test value", name:"name 2" };
-var gdata_1 = { test:"test value", name:"name 3", id: {$t: 1} };
 
 
 var events_schema = {
@@ -55,12 +45,11 @@ module("Event", {
 asyncTest("connected", function () {
   expect(2);
 
-  var db = new ydn.db.Storage('tck1_put', events_schema);
+  var db = new ydn.db.Storage(db_name_event, events_schema);
 
   db.addEventListener('connected', function(e) {
     equal(e.type, 'connected', 'connected event');
-    var type = typeof e.version;
-    equal(type, 'number', 'version number is numeric');
+    ok( e.version > 0, 'version number');
     start();
   });
 
@@ -71,7 +60,7 @@ asyncTest("connected", function () {
 asyncTest("created RecordEvent", function () {
   expect(5);
 
-  var db = new ydn.db.Storage('tck1_put', events_schema);
+  var db = new ydn.db.Storage(db_name_event, events_schema);
 
   var key = Math.ceil(Math.random() * 100000);
   var data = { test:"random value", name:"name " + key, id:key };
@@ -99,7 +88,7 @@ asyncTest("created RecordEvent", function () {
 asyncTest("created StoreEvent", function () {
   expect(5);
 
-  var db = new ydn.db.Storage('tck1_put', events_schema);
+  var db = new ydn.db.Storage(db_name_event, events_schema);
 
   var keys = [Math.ceil(Math.random() * 100000),
     Math.ceil(Math.random() * 100000)];
@@ -127,7 +116,7 @@ asyncTest("created StoreEvent", function () {
 asyncTest("updated RecordEvent", function () {
   expect(10);
 
-  var db = new ydn.db.Storage('tck1_put', events_schema);
+  var db = new ydn.db.Storage(db_name_event, events_schema);
 
   var key = Math.ceil(Math.random() * 100000);
   var data = { test:"random value", name:"name " + key, id:key };
@@ -166,7 +155,7 @@ asyncTest("updated RecordEvent", function () {
 asyncTest("updated StoreEvent", function () {
   expect(10);
 
-  var db = new ydn.db.Storage('tck1_put', events_schema);
+  var db = new ydn.db.Storage(db_name_event, events_schema);
   var keys = [Math.ceil(Math.random() * 100000),
     Math.ceil(Math.random() * 100000)];
   var data = [{name:"rand key 1", id: keys[0]}, {name:"rand key 2", id: keys[1]}];
