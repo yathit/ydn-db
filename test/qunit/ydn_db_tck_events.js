@@ -53,7 +53,6 @@ asyncTest("connected", function () {
     start();
   });
 
-
 });
 
 
@@ -139,9 +138,8 @@ asyncTest("updated RecordEvent", function () {
       equal(e.type, 'updated', 'type');
       equal(e.getKey(), key, 'key');
       deepEqual(e.getValue(), data, 'value');
-      start();
     }
-
+    start();
   });
 
   db.add(store_inline, data);
@@ -149,7 +147,7 @@ asyncTest("updated RecordEvent", function () {
   setTimeout(function() {
     // don't wait more than 5 sec.
     start();
-  }, 1000);
+  }, 2000);
 });
 
 
