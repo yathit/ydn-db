@@ -12,6 +12,7 @@ var db_name = 'test_crud_4';
 var table_name = 'st_inline';
 var table_name_offline = 'st_offline';
 var store_name_inline_number = 'st_inline_n';
+var load_store_name = 'st_load';
 
 
 var setUp = function () {
@@ -29,9 +30,12 @@ var setUp = function () {
   //ydn.db.con.WebSql.DEBUG = true;
   //ydn.db.core.req.IndexedDb.DEBUG = true;
 
+  var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
   var stores = [new ydn.db.schema.Store(table_name, 'id'),
     new ydn.db.schema.Store(store_name_inline_number, 'id', false, ydn.db.schema.DataType.NUMERIC, undefined, true),
-    new ydn.db.schema.Store(table_name_offline)];
+    new ydn.db.schema.Store(table_name_offline),
+    new ydn.db.schema.Store(load_store_name, 'id', false, ydn.db.schema.DataType.NUMERIC, indexes)
+  ];
   schema = new ydn.db.schema.Database(undefined, stores);
 
 
@@ -203,7 +207,57 @@ var test_11_put = function() {
     });
 };
 
+var test_load_data = function() {
 
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+
+  var data = [
+    {id: 1, tag: 'a', remark: 'put test'},
+    {id: 2, tag: 'b', remark: 'put test'}
+  ];
+  var text = 'id,tag,remark\n1,a,put test\n2,b,put test';
+
+  var hasEventFired = false;
+  var keys, result;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertArrayEquals('load text', [1, 2], keys);
+      hasEventFired = false;
+      waitForCondition(
+        // Condition
+        function() { return hasEventFired; },
+        // Continuation
+        function() {
+          assertArrayEquals('get data back', data, result);
+          reachedFinalContinuation = true;
+        },
+        100, // interval
+        2000); // maxTimeout
+
+      db.list(load_store_name, keys).addBoth(function(x) {
+        result = x;
+        hasEventFired = true;
+      });
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.clear();
+  db.load(load_store_name, text).addCallback(function(value) {
+    //console.log(value);
+    keys = value;
+    hasEventFired = true;
+
+  }).addErrback(function(e) {
+      hasEventFired = true;
+      console.log('Error: ' + e);
+    });
+};
 
 
 var test_updated_event = function() {

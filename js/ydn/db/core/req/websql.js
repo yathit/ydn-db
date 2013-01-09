@@ -320,6 +320,11 @@ ydn.db.core.req.WebSql.prototype.addObject = function(df, store_name, obj, opt_k
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.putData = goog.abstractMethod;
+
 
 /**
 * @param {goog.async.Deferred} df promise.

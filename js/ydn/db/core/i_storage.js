@@ -65,6 +65,7 @@ ydn.db.core.IStorage.prototype.list = goog.abstractMethod;
  */
 ydn.db.core.IStorage.prototype.keys = goog.abstractMethod;
 
+
 /**
  * Execute ADD request either storing result to tx or callback to df.
  * @param {string|StoreSchema} store_name_or_schema store name or
@@ -74,6 +75,16 @@ ydn.db.core.IStorage.prototype.keys = goog.abstractMethod;
  * @return {!goog.async.Deferred} return newly created keys in promise.
  */
 ydn.db.core.IStorage.prototype.add = goog.abstractMethod;
+
+
+/**
+ * Execute PUT request to the store of given records in delimited text.
+ * @param {string} store_name table name.
+ * @param {string} data delimited text to put. one object per line.
+ * @param {string=} delimiter field delimiter.
+ */
+ydn.db.core.IStorage.prototype.load = goog.abstractMethod;
+
 
 /**
  * Execute PUT request either storing result to tx or callback to df.

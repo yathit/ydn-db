@@ -169,6 +169,12 @@ ydn.db.core.req.SimpleStore.prototype.addObjects = function(
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.putData = goog.abstractMethod;
+
+
+/**
  * @param {!goog.async.Deferred} df return key in deferred function.
  * @param {string} table table name.
  * @param {Array.<!Object>} value object to put.

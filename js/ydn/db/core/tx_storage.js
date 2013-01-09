@@ -729,11 +729,12 @@ ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
 
 
 /**
- * @inheritDoc
+ *
+ * @param {string|StoreSchema} store_name_or_schema
+ * @return {ydn.db.schema.Store}
+ * @private
  */
-ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
-                                                opt_keys) {
-
+ydn.db.core.TxStorage.prototype.getStore_ = function(store_name_or_schema) {
   var store_name = goog.isString(store_name_or_schema) ?
     store_name_or_schema : goog.isObject(store_name_or_schema) ?
     store_name_or_schema['name'] : undefined;
@@ -747,12 +748,12 @@ ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
       throw new ydn.db.NotFoundError(store_name);
     }
     var schema = goog.isObject(store_name_or_schema) ?
-        store_name_or_schema : {'name': store_name};
+      store_name_or_schema : {'name': store_name};
 
-      // this is async process, but we don't need to wait for it.
-      store = ydn.db.schema.Store.fromJSON(/** @type {!StoreSchema} */ (schema));
-      this.logger.finest('Adding object store: ' + store_name);
-      this.addStoreSchema(store);
+    // this is async process, but we don't need to wait for it.
+    store = ydn.db.schema.Store.fromJSON(/** @type {!StoreSchema} */ (schema));
+    this.logger.finest('Adding object store: ' + store_name);
+    this.addStoreSchema(store);
 
   } else if (this.schema.isAutoSchema() && goog.isObject(store_name_or_schema))
   {
@@ -764,13 +765,46 @@ ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
       // this.addStoreSchema(store);
     }
   }
+  if (!store) {
+    throw new ydn.db.NotFoundError(store_name);
+  }
+  return store;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.TxStorage.prototype.load = function(store_name_or_schema, data, opt_delimiter) {
+
+  var delimiter = opt_delimiter || ',';
+
+  var store = this.getStore_(store_name_or_schema);
+  var store_name = store.getName();
 
   var df = ydn.db.base.createDeferred();
   var me = this;
 
-  if (!store) {
-    throw new ydn.db.NotFoundError(store_name);
-  }
+  this.exec(function(executor) {
+    executor.putData(df, store_name, data, delimiter);
+  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putData');
+  return df;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
+                                                opt_keys) {
+
+  var store = this.getStore_(store_name_or_schema);
+  var store_name = store.getName();
+
+  var df = ydn.db.base.createDeferred();
+  var me = this;
+
+
   // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
   if ((goog.isString(store.keyPath)) && goog.isDef(opt_keys)) {
     // The object store uses in-line keys or has a key generator, and a key

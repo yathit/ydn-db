@@ -203,7 +203,14 @@ ydn.db.core.req.IRequestExecutor.prototype.listByStore = goog.abstractMethod;
  */
 ydn.db.core.req.IRequestExecutor.prototype.listByStores = goog.abstractMethod;
 
-
+/**
+ * Execute PUT request to the store of given records in delimited text.
+ * @param {goog.async.Deferred} df deferred to feed result.
+ * @param {string} store_name table name.
+ * @param {string} data delimited text to put. one object per line.
+ * @param {string} delimiter field delimiter.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.putData = goog.abstractMethod;
 
 /**
  * Put object and return key inserted.

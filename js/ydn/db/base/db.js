@@ -27,16 +27,24 @@ goog.require('ydn.db.utils');
 /**
  * Delete database. This will attempt to delete in all mechanisms.
  * @param {string} db_name name of database.
+ * @param {string=} type delete only specific types.
  */
-ydn.db.deleteDatabase = function(db_name) {
+ydn.db.deleteDatabase = function(db_name, type) {
   // some IndexedDB API do not support deleting database.
-  if (ydn.db.con.IndexedDb.indexedDb &&
+  if ((!type || type == ydn.db.con.IndexedDb.TYPE) &&
+    ydn.db.con.IndexedDb.indexedDb &&
       ('deleteDatabase' in ydn.db.con.IndexedDb.indexedDb)) {
     ydn.db.con.IndexedDb.indexedDb.deleteDatabase(db_name);
   }
-  ydn.db.con.WebSql.deleteDatabase(db_name);
-  ydn.db.con.LocalStorage.deleteDatabase(db_name);
-  ydn.db.con.SessionStorage.deleteDatabase(db_name);
+  if (!type || type == ydn.db.con.WebSql.TYPE) {
+    ydn.db.con.WebSql.deleteDatabase(db_name);
+  }
+  if (!type || type == ydn.db.con.LocalStorage.TYPE) {
+    ydn.db.con.LocalStorage.deleteDatabase(db_name);
+  }
+  if (!type || type == ydn.db.con.SessionStorage.TYPE) {
+    ydn.db.con.SessionStorage.deleteDatabase(db_name);
+  }
 };
 
 
