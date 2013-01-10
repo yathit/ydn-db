@@ -14,7 +14,7 @@
 /**
  * @fileoverview Provide database query operations.
  *
- * @author kyawtun@yathit.com (Kyaw Tun)
+ * @author Kyaw Tun <kyawtun@yathit.com>
  */
 
 goog.provide('ydn.db.Storage');
@@ -139,7 +139,6 @@ ydn.db.Storage.prototype.getItem = function(key) {
 };
 
 
-
 /**
  * Store a value to default key-value store.
  * @export
@@ -153,7 +152,6 @@ ydn.db.Storage.prototype.getItem = function(key) {
 ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
   return this.default_tx_queue_.setItem(key, value, opt_expiration);
 };
-
 
 
 /**

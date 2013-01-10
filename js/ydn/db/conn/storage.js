@@ -139,7 +139,6 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    */
   this.schema = schema;
 
-
   if (goog.isDef(opt_dbname)) {
     this.setName(opt_dbname);
   }
@@ -153,37 +152,6 @@ goog.inherits(ydn.db.con.Storage, goog.events.EventTarget);
  */
 ydn.db.con.Storage.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.con.Storage');
-//
-//
-//
-///**
-// * Get configuration of this storage. This is useful from getting storage from
-// * main thread to worker thread.
-// * <pre>
-// *   var db = new ydn.db.con.Storage(...);
-// *   ... initialize ...
-// *   var config = db.getConfig();
-// *
-// *   ... in worker thread ...
-// *   var worker_db = new ydn.db.con.Storage(config.db_name, config.schema);
-// * </pre>
-// * In this way, data can be share between the two threads.
-// *
-// * @return {{name: string, schema: DatabaseSchema}?} configuration
-// * containing database and list of schema in JSON format.
-// * @export
-// * @deprecated
-// */
-//ydn.db.con.Storage.prototype.getConfig = function() {
-//  if (!this.schema) {
-//    return null;
-//  }
-//
-//  return {
-//    'name': this.db_name,
-//    'schema': this.getSchema()
-//  };
-//};
 
 
 /**

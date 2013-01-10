@@ -70,6 +70,11 @@ StoreSchema.prototype.indexes;
  */
 StoreSchema.prototype.dispatchEvents;
 
+/**
+ * @type {boolean}
+ */
+StoreSchema.prototype.sync;
+
 
 /**
  * @constructor
