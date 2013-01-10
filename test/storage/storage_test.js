@@ -5,14 +5,15 @@ goog.require('ydn.db.Storage');
 goog.require('ydn.testing');
 
 
-var reachedFinalContinuation, stubs;
+var reachedFinalContinuation, debug_console, stubs;
 
 var setUp = function() {
-  var c = new goog.debug.Console();
-  c.setCapturing(true);
-  goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
-  //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+
+  if (!debug_console) {
+    debug_console = new goog.debug.Console();
+    debug_console.setCapturing(true);
+    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+  }
 
   //stubs = new goog.testing.PropertyReplacer();
 

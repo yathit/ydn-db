@@ -113,6 +113,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     // yes READ_WRITE mode can create table and more robust. :-D
 
 
+    var executed = false;
     var updated_count = 0;
 
     /**
@@ -122,13 +123,23 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     var transaction_callback = function(tx) {
       // sniff current table info in the database.
       me.getSchema(function(table_infos) {
-
-        for (var i = 0; i < schema.stores.length; i++) {
+        executed = true;
+        for (var i = 0; i < schema.count(); i++) {
           var counter = function() {
             updated_count++;
           };
-          var table_info = table_infos.getStore(schema.stores[i].name);
-          me.update_store_with_info_(tx, schema.stores[i], counter, table_info);
+          var table_info = table_infos.getStore(schema.store(i).getName());
+          me.update_store_with_info_(tx, schema.store(i), counter, table_info);
+        }
+
+        if (schema instanceof ydn.db.schema.EditableDatabase) {
+          var edited_schema = schema;
+          for (var j = 0; j < table_infos.count(); j++) {
+            var info_store = table_infos.store(j);
+            if (!edited_schema.hasStore(info_store.getName())) {
+              edited_schema.addStore(info_store);
+            }
+          }
         }
 
       }, tx, db);
@@ -139,16 +150,20 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
      */
     var success_callback = function() {
       var has_created = updated_count == schema.stores.length;
-      if (!has_created) {
+      if (!executed) {
         // success callback without actually executing
         me.logger.warning(dbname + ': ' + action + ' voided.');
-      } else {
         //if (!me.df_sql_db_.hasFired()) { // FIXME: why need to check ?
         // this checking is necessary when browser prompt user,
         // this migration function run two times: one creating table
         // and one without creating table. How annoying ?
         // testing is in /test/test_multi_storage.html page.
-        me.logger.finest(dbname + ': ready.');
+      } else {
+        var msg = '.';
+        if (updated_count != schema.stores.length) {
+          msg = ' but unexpected stores exists.';
+        }
+        me.logger.finest(dbname + ':' + db.version + ' ready' + msg);
         setDb(db);
       }
     };
@@ -444,6 +459,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
  */
 ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 
+  var me = this;
   db = db || this.sql_db_;
 
   var version = (db && db.version) ?
@@ -458,6 +474,9 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
    */
   var success_callback = function(transaction, results) {
 
+    if (!results || !results.rows) {
+      return;
+    }
     for (var i = 0; i < results.rows.length; i++) {
 
       var info = /** @type {SqliteTableInfo} */ (results.rows.item(i));
@@ -481,39 +500,45 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
       }
       if (info.type == 'table') {
 
+        me.logger.finest('Parsing table schema from SQL: ' + info.sql);
         var str = info.sql.substr(info.sql.indexOf('('),
           info.sql.lastIndexOf(')'));
         var column_infos = ydn.string.split_comma_seperated(str);
 
-        var key_name = '';
+        var key_name = undefined;
         var key_type;
         var indexes = [];
         var autoIncrement = false;
+        var has_default_blob_column = false;
 
         for (var j = 0; j < column_infos.length; j++) {
 
           var fields = ydn.string.split_space_seperated(column_infos[j]);
+          var upper_fields = goog.array.map(fields, function(x) {return x.toUpperCase()});
           var name = goog.string.stripQuotes(fields[0], '"');
-          var type = ydn.db.schema.Index.toType(fields[1]);
+          var type = ydn.db.schema.Index.toType(upper_fields[1]);
           // console.log([fields[1], type]);
 
-          if (fields.indexOf('PRIMARY') != -1 && fields.indexOf('KEY') != -1) {
-            key_name = name;
+          if (upper_fields.indexOf('PRIMARY') != -1 && upper_fields.indexOf('KEY') != -1) {
+            if (!goog.string.isEmpty(name)) {
+              key_name = name;
+            }
             key_type = type;
-            if (fields.indexOf('AUTOINCREMENT') != -1) {
+            if (upper_fields.indexOf('AUTOINCREMENT') != -1) {
               autoIncrement = true;
             }
-          } else if (name != ydn.db.base.DEFAULT_BLOB_COLUMN) {
-            var unique = fields[2] == 'UNIQUE';
+          } else if (name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
+            has_default_blob_column = true;
+          } else {
+            var unique = upper_fields[2] == 'UNIQUE';
             var index = new ydn.db.schema.Index(name, type, unique);
             //console.log(index);
             indexes.push(index);
           }
-
         }
 
         var store = new ydn.db.schema.Store(info.name, key_name, autoIncrement,
-            key_type, indexes);
+            key_type, indexes, undefined, !has_default_blob_column);
         stores.push(store);
         //console.log([info, store]);
       }
@@ -539,7 +564,6 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 
 
   if (!trans) {
-    var me = this;
 
     var tx_error_callback = function(e) {
       me.logger.severe('opening tx: ' + e.message);

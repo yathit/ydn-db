@@ -71,6 +71,12 @@ StoreSchema.prototype.indexes;
 StoreSchema.prototype.dispatchEvents;
 
 /**
+ * A fixed schema.
+ * @type {boolean}
+ */
+StoreSchema.prototype.fixed;
+
+/**
  * @type {boolean}
  */
 StoreSchema.prototype.sync;

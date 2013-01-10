@@ -95,7 +95,9 @@ ydn.db.core.req.WebSql.prototype.logger =
  * @return {!Object} parse value.
  */
 ydn.db.core.req.WebSql.parseRow = function(row, store) {
-  var value = ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]);
+
+  var value = row[ydn.db.base.DEFAULT_BLOB_COLUMN] ?
+      ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]) : {};
   if (goog.isDefAndNotNull(store.keyPath)) {
     var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.type);
     if (goog.isDefAndNotNull(key)) {
