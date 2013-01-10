@@ -137,7 +137,7 @@ asyncTest("inline-key autoincrement", function () {
   // some browser does not support autoIncrement.
   setTimeout(function() {
     start();
-  }, 1000);
+  }, 2000);
 
 });
 
@@ -164,7 +164,7 @@ asyncTest("offline-key autoincrement", function () {
 
   setTimeout(function() {
     start();
-  }, 1000);
+  }, 2000);
 });
 
 asyncTest("data with off-line-key", function () {
@@ -383,7 +383,7 @@ asyncTest("Retrieve objects by key range - inline-key", function () {
 
   setTimeout(function() {
     start();
-  }, 1000);
+  }, 2000);
 
 });
 
@@ -430,7 +430,7 @@ asyncTest("Retrieve objects by key range limit offset - inline-key", function ()
 
   setTimeout(function() {
     start();
-  }, 1000);
+  }, 2000);
 
 });
 
@@ -530,7 +530,7 @@ asyncTest("get keys limit", function () {
 
   setTimeout(function() {
     start();
-  }, 1000);
+  }, 2000);
 
 
 });
@@ -548,7 +548,7 @@ asyncTest("get keys limit offset", function () {
 
   setTimeout(function() {
     start();
-  }, 1000);
+  }, 2000);
 });
 
 
