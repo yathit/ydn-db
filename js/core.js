@@ -4,7 +4,7 @@
  */
 
 goog.require('ydn.db.core.Storage');
-goog.require('ydn.db.core.TxStorage');
+goog.require('ydn.db.core.TxQueue');
 goog.require('ydn.db');
 goog.require('ydn.db.events.RecordEvent');
 goog.require('ydn.db.events.StoreEvent');
@@ -27,20 +27,20 @@ goog.exportProperty(ydn.db.core.Storage.prototype, 'clear',
 goog.exportProperty(ydn.db.core.Storage.prototype, 'count',
   ydn.db.core.Storage.prototype.count);
 
-goog.exportProperty(ydn.db.core.TxStorage.prototype, 'add',
-    ydn.db.core.TxStorage.prototype.add);
-goog.exportProperty(ydn.db.core.TxStorage.prototype, 'get',
-    ydn.db.core.TxStorage.prototype.get);
+goog.exportProperty(ydn.db.core.TxQueue.prototype, 'add',
+    ydn.db.core.TxQueue.prototype.add);
+goog.exportProperty(ydn.db.core.TxQueue.prototype, 'get',
+    ydn.db.core.TxQueue.prototype.get);
 //goog.exportProperty(ydn.db.core.Storage.prototype, 'load',
 //  ydn.db.core.Storage.prototype.load);
-goog.exportProperty(ydn.db.core.TxStorage.prototype, 'list',
-  ydn.db.core.TxStorage.prototype.list);
-goog.exportProperty(ydn.db.core.TxStorage.prototype, 'put',
-    ydn.db.core.TxStorage.prototype.put);
-goog.exportProperty(ydn.db.core.TxStorage.prototype, 'clear',
-    ydn.db.core.TxStorage.prototype.clear);
-goog.exportProperty(ydn.db.core.TxStorage.prototype, 'count',
-  ydn.db.core.TxStorage.prototype.count);
+goog.exportProperty(ydn.db.core.TxQueue.prototype, 'list',
+  ydn.db.core.TxQueue.prototype.list);
+goog.exportProperty(ydn.db.core.TxQueue.prototype, 'put',
+    ydn.db.core.TxQueue.prototype.put);
+goog.exportProperty(ydn.db.core.TxQueue.prototype, 'clear',
+    ydn.db.core.TxQueue.prototype.clear);
+goog.exportProperty(ydn.db.core.TxQueue.prototype, 'count',
+  ydn.db.core.TxQueue.prototype.count);
 
 goog.exportSymbol('ydn.db.cmp', ydn.db.cmp);
 

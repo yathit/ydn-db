@@ -85,7 +85,7 @@ ydn.db.Storage.prototype.init = function() {
 /**
  * @override
  */
-ydn.db.Storage.prototype.newTxInstance = function(scope_name) {
+ydn.db.Storage.prototype.newTxQueue = function(scope_name) {
   return new ydn.db.TxStorage(this, this.ptx_no++, scope_name, this.schema);
 };
 

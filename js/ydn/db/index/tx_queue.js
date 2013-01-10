@@ -5,9 +5,9 @@
 */
 
 
-goog.provide('ydn.db.index.TxStorage');
+goog.provide('ydn.db.index.TxQueue');
 goog.require('ydn.db.Iterator');
-goog.require('ydn.db.core.TxStorage');
+goog.require('ydn.db.core.TxQueue');
 goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.index.req.IndexedDb');
 goog.require('ydn.db.index.req.WebSql');
@@ -31,12 +31,12 @@ goog.require('ydn.db.index.IStorage');
  * @param {!ydn.db.schema.Database} schema schema.
  * @implements {ydn.db.index.IStorage}
  * @constructor
- * @extends {ydn.db.core.TxStorage}
+ * @extends {ydn.db.core.TxQueue}
 */
-ydn.db.index.TxStorage = function(storage, ptx_no, scope_name, schema) {
+ydn.db.index.TxQueue = function(storage, ptx_no, scope_name, schema) {
   goog.base(this, storage, ptx_no, scope_name, schema);
 };
-goog.inherits(ydn.db.index.TxStorage, ydn.db.core.TxStorage);
+goog.inherits(ydn.db.index.TxQueue, ydn.db.core.TxQueue);
 
 
 /**
@@ -45,7 +45,7 @@ goog.inherits(ydn.db.index.TxStorage, ydn.db.core.TxStorage);
  * @protected
  * @return {ydn.db.index.req.IRequestExecutor} get executor.
  */
-ydn.db.index.TxStorage.prototype.getExecutor = function() {
+ydn.db.index.TxQueue.prototype.getExecutor = function() {
   if (!this.executor) {
     var type = this.type();
     if (type == ydn.db.con.IndexedDb.TYPE) {
@@ -74,7 +74,7 @@ ydn.db.index.TxStorage.prototype.getExecutor = function() {
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  * @param {string} scope scope name.
  */
-ydn.db.index.TxStorage.prototype.exec = function(callback, store_names, mode, scope) {
+ydn.db.index.TxQueue.prototype.exec = function(callback, store_names, mode, scope) {
   goog.base(this, 'exec',
     /** @type {function(ydn.db.core.req.IRequestExecutor)} */ (callback),
     store_names, mode, scope);
@@ -84,7 +84,7 @@ ydn.db.index.TxStorage.prototype.exec = function(callback, store_names, mode, sc
 /**
  * @inheritDoc
  */
-ydn.db.index.TxStorage.prototype.get = function(arg1, arg2) {
+ydn.db.index.TxQueue.prototype.get = function(arg1, arg2) {
 
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
@@ -118,7 +118,7 @@ ydn.db.index.TxStorage.prototype.get = function(arg1, arg2) {
 /**
  * @inheritDoc
  */
-ydn.db.index.TxStorage.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+ydn.db.index.TxQueue.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
 
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
@@ -169,7 +169,7 @@ ydn.db.index.TxStorage.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, a
 /**
  * @inheritDoc
  */
-ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+ydn.db.index.TxQueue.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
 
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
@@ -225,7 +225,7 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, a
 // * @param {!Array.<!ydn.db.Streamer>=} opt_streamers streamers.
 // * @return {!goog.async.Deferred} promise on completed.
 // */
-//ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamers) {
+//ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers) {
 //  var df = ydn.db.base.createDeferred();
 //  if (!goog.isArray(iterators) || !(iterators[0] instanceof ydn.db.Iterator)) {
 //    throw new ydn.error.ArgumentException();
@@ -452,7 +452,7 @@ ydn.db.index.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, a
  * @param {!Array.<!ydn.db.Streamer>=} opt_streamers streamers.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamers) {
+ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers) {
   var df = ydn.db.base.createDeferred();
   if (!goog.isArray(iterators) || !(iterators[0] instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
@@ -720,7 +720,7 @@ ydn.db.index.TxStorage.prototype.scan = function(iterators, solver, opt_streamer
  * @param {ydn.db.base.TransactionMode=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
+ydn.db.index.TxQueue.prototype.open = function(iterator, callback, mode) {
   if (!(iterator instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
   }
@@ -763,7 +763,7 @@ ydn.db.index.TxStorage.prototype.open = function(iterator, callback, mode) {
  * @param {!ydn.db.Iterator} iterator
  * @param {function(*): (*|undefined)} callback
  */
-ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
+ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
 
   var stores = iterator.stores();
   for (var store, i = 0; store = stores[i]; i++) {
@@ -825,7 +825,7 @@ ydn.db.index.TxStorage.prototype.map = function (iterator, callback) {
  * @param {function(*, *, number): *} callback
  * @param {*=} initial
  */
-ydn.db.index.TxStorage.prototype.reduce = function(iterator, callback, initial) {
+ydn.db.index.TxQueue.prototype.reduce = function(iterator, callback, initial) {
 
   var stores = iterator.stores();
   for (var store, i = 0; store = stores[i]; i++) {

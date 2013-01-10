@@ -18,7 +18,7 @@
  */
 
 goog.provide('ydn.db.index.Storage');
-goog.require('ydn.db.index.TxStorage');
+goog.require('ydn.db.index.TxQueue');
 goog.require('ydn.db.core.Storage');
 
 
@@ -27,7 +27,7 @@ goog.require('ydn.db.core.Storage');
  * storage mechanisms.
  *
  * This class do not execute database operation, but create a non-overlapping
- * transaction queue on ydn.db.core.TxStorage and all operations are
+ * transaction queue on ydn.db.core.TxQueue and all operations are
  * passed to it.
  *
  *
@@ -52,8 +52,8 @@ goog.inherits(ydn.db.index.Storage, ydn.db.core.Storage);
 /**
  * @override
  */
-ydn.db.index.Storage.prototype.newTxInstance = function(scope_name) {
-  return new ydn.db.index.TxStorage(this, this.ptx_no++, scope_name,
+ydn.db.index.Storage.prototype.newTxQueue = function(scope_name) {
+  return new ydn.db.index.TxQueue(this, this.ptx_no++, scope_name,
     this.schema);
 };
 

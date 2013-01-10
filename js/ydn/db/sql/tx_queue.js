@@ -5,9 +5,9 @@
 */
 
 
-goog.provide('ydn.db.sql.TxStorage');
+goog.provide('ydn.db.sql.TxQueue');
 goog.require('ydn.db.Iterator');
-goog.require('ydn.db.index.TxStorage');
+goog.require('ydn.db.index.TxQueue');
 goog.require('ydn.db.sql.IStorage');
 goog.require('ydn.db.sql.req.IRequestExecutor');
 goog.require('ydn.db.sql.req.IndexedDb');
@@ -31,12 +31,12 @@ goog.require('ydn.db.sql.req.SimpleStore');
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
  * @implements {ydn.db.sql.IStorage}
- * @extends {ydn.db.index.TxStorage}
+ * @extends {ydn.db.index.TxQueue}
 */
-ydn.db.sql.TxStorage = function(storage, ptx_no, scope_name, schema) {
+ydn.db.sql.TxQueue = function(storage, ptx_no, scope_name, schema) {
   goog.base(this, storage, ptx_no, scope_name, schema);
 };
-goog.inherits(ydn.db.sql.TxStorage, ydn.db.index.TxStorage);
+goog.inherits(ydn.db.sql.TxQueue, ydn.db.index.TxQueue);
 
 
 /**
@@ -45,7 +45,7 @@ goog.inherits(ydn.db.sql.TxStorage, ydn.db.index.TxStorage);
  * @protected
  * @return {ydn.db.sql.req.IRequestExecutor} get executor.
  */
-ydn.db.sql.TxStorage.prototype.getExecutor = function() {
+ydn.db.sql.TxQueue.prototype.getExecutor = function() {
   if (!this.executor) {
     var type = this.type();
     if (type == ydn.db.con.IndexedDb.TYPE) {
@@ -74,7 +74,7 @@ ydn.db.sql.TxStorage.prototype.getExecutor = function() {
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  * @param {string} scope scope name.
  */
-ydn.db.sql.TxStorage.prototype.exec = function(callback, store_names, mode, scope) {
+ydn.db.sql.TxQueue.prototype.exec = function(callback, store_names, mode, scope) {
   goog.base(this, 'exec',
     /** @type {function(ydn.db.index.req.IRequestExecutor)} */ (callback),
     store_names, mode, scope);
@@ -88,7 +88,7 @@ ydn.db.sql.TxStorage.prototype.exec = function(callback, store_names, mode, scop
  * @param {!ydn.db.Iterator} q
  * @return {Object} plan in JSON
  */
-ydn.db.sql.TxStorage.prototype.explain = function (q) {
+ydn.db.sql.TxQueue.prototype.explain = function (q) {
   if (!this.executor) {
     return {'error':'database not ready'};
   } else if (q instanceof ydn.db.Sql) {
@@ -105,7 +105,7 @@ ydn.db.sql.TxStorage.prototype.explain = function (q) {
  * @param {!Array=} params SQL parameters.
 * @return {!goog.async.Deferred} return result as list.
 */
-ydn.db.sql.TxStorage.prototype.executeSql = function (sql, params) {
+ydn.db.sql.TxQueue.prototype.executeSql = function (sql, params) {
 
   var df = ydn.db.base.createDeferred();
 

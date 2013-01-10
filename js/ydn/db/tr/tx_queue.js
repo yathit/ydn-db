@@ -1,7 +1,8 @@
 /**
  * @fileoverview Transaction queue.
  *
- *
+ * A transaction is used to crate non-overlapping transaction so that each
+ * database methods are atomic and run in order.
  */
 
 
@@ -11,7 +12,8 @@ goog.require('ydn.error.NotSupportedException');
 
 
 /**
- * Create storage providing method to run in non-overlapping transaction.
+ * Create transaction queue providing methods to run in non-overlapping
+ * transactions.
  *
  * @implements {ydn.db.con.IStorage}
  * @implements {ydn.db.tr.IStorage}

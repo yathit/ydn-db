@@ -14,6 +14,9 @@
 /**
  * @fileoverview Provide atomic CRUD database operations.
  *
+ * The actual operation is implemented in transaction queue. This class create
+ * a new transaction queue as necessary.
+ *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
@@ -21,7 +24,7 @@ goog.provide('ydn.db.core.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.core.IStorage');
-goog.require('ydn.db.core.TxStorage');
+goog.require('ydn.db.core.TxQueue');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.object');
 
@@ -31,7 +34,7 @@ goog.require('ydn.object');
  * storage mechanisms.
  *
  * This class do not execute database operation, but create a non-overlapping
- * transaction queue on ydn.db.core.TxStorage and all operations are
+ * transaction queue on ydn.db.core.TxQueue and all operations are
  * passed to it.
  *
  *
@@ -49,7 +52,7 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
-  this.default_tx_queue_ = this.newTxInstance('base');
+  this.default_tx_queue_ = this.newTxQueue('base');
 
 };
 goog.inherits(ydn.db.core.Storage, ydn.db.tr.Storage);
@@ -68,8 +71,8 @@ ydn.db.core.Storage.prototype.init = function() {
 /**
  * @override
  */
-ydn.db.core.Storage.prototype.newTxInstance = function(scope_name) {
-  return new ydn.db.core.TxStorage(this, this.ptx_no++, scope_name,
+ydn.db.core.Storage.prototype.newTxQueue = function(scope_name) {
+  return new ydn.db.core.TxQueue(this, this.ptx_no++, scope_name,
     this.schema);
 };
 
@@ -113,8 +116,8 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
  */
 ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
                                                 arg4, arg5, arg6, arg7) {
-//  return ydn.db.core.TxStorage.prototype.keys.apply(
-//    /** @type {ydn.db.core.TxStorage} */ (this.default_tx_queue_),
+//  return ydn.db.core.TxQueue.prototype.keys.apply(
+//    /** @type {ydn.db.core.TxQueue} */ (this.default_tx_queue_),
 //    Array.prototype.slice.call(arguments));
 
   // above trick is the same effect as follow

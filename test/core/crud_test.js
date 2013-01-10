@@ -209,8 +209,12 @@ var test_11_put = function() {
 
 var test_load_data = function() {
 
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  if (options.mechanisms != ['indexeddb']) {
+    reachedFinalContinuation = true;
+    return;
+  }
 
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var data = [
     {id: 1, tag: 'a', remark: 'put test'},

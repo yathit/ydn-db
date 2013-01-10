@@ -67,7 +67,7 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
  * @param {string} scope_name scope name.
  * @return {!ydn.db.tr.TxQueue} new transactional storage.
  */
-ydn.db.tr.Storage.prototype.newTxInstance = function(scope_name) {
+ydn.db.tr.Storage.prototype.newTxQueue = function(scope_name) {
   return new ydn.db.tr.TxQueue(this, this.ptx_no++, scope_name);
 };
 
@@ -80,7 +80,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
   var scope_name = trFn.name || '';
-  var tx_queue = this.newTxInstance(scope_name);
+  var tx_queue = this.newTxQueue(scope_name);
   if (arguments.length > 4) {
     var args = Array.prototype.slice.call(arguments, 4);
     var outFn = function() {

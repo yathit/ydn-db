@@ -1,11 +1,11 @@
 /**
-* @fileoverview Provide atomic CRUD database operations.
+* @fileoverview Provide atomic CRUD database operations on a transaction queue.
 *
 *
 */
 
 
-goog.provide('ydn.db.core.TxStorage');
+goog.provide('ydn.db.core.TxQueue');
 goog.require('ydn.db.core.req.IndexedDb');
 goog.require('ydn.db.core.req.SimpleStore');
 goog.require('ydn.db.core.req.WebSql');
@@ -32,7 +32,7 @@ goog.require('ydn.error.NotSupportedException');
  * @constructor
  * @extends {ydn.db.tr.TxQueue}
 */
-ydn.db.core.TxStorage = function(storage, ptx_no, scope_name, schema) {
+ydn.db.core.TxQueue = function(storage, ptx_no, scope_name, schema) {
   goog.base(this, storage, ptx_no, scope_name);
 
   /**
@@ -42,14 +42,14 @@ ydn.db.core.TxStorage = function(storage, ptx_no, scope_name, schema) {
    */
   this.schema = schema;
 };
-goog.inherits(ydn.db.core.TxStorage, ydn.db.tr.TxQueue);
+goog.inherits(ydn.db.core.TxQueue, ydn.db.tr.TxQueue);
 
 
 /**
  * @final
  * @return {!ydn.db.core.Storage} storage.
  */
-ydn.db.core.TxStorage.prototype.getStorage = function() {
+ydn.db.core.TxQueue.prototype.getStorage = function() {
   return /** @type {!ydn.db.core.Storage} */ (goog.base(this, 'getStorage'));
 };
 
@@ -58,7 +58,7 @@ ydn.db.core.TxStorage.prototype.getStorage = function() {
  * @final
  * @return {string} database name.
  */
-ydn.db.core.TxStorage.prototype.getName = function() {
+ydn.db.core.TxQueue.prototype.getName = function() {
   // db name can be undefined during instantiation.
   this.db_name = this.db_name || this.getStorage().getName();
   return this.db_name;
@@ -69,7 +69,7 @@ ydn.db.core.TxStorage.prototype.getName = function() {
  * @protected
  * @type {ydn.db.core.req.IRequestExecutor} request executor.
  */
-ydn.db.core.TxStorage.prototype.executor = null;
+ydn.db.core.TxQueue.prototype.executor = null;
 
 
 /**
@@ -78,7 +78,7 @@ ydn.db.core.TxStorage.prototype.executor = null;
  * @protected
  * @return {ydn.db.core.req.IRequestExecutor} get executor.
  */
-ydn.db.core.TxStorage.prototype.getExecutor = function() {
+ydn.db.core.TxQueue.prototype.getExecutor = function() {
   if (this.executor) {
     return this.executor;
   } else {
@@ -110,7 +110,7 @@ ydn.db.core.TxStorage.prototype.getExecutor = function() {
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  * @param {string} scope scope.
  */
-ydn.db.core.TxStorage.prototype.exec = function (callback, store_names, mode, scope) {
+ydn.db.core.TxQueue.prototype.exec = function (callback, store_names, mode, scope) {
   var me = this;
   var mu_tx = this.getMuTx();
 
@@ -171,7 +171,7 @@ ydn.db.core.TxStorage.prototype.exec = function (callback, store_names, mode, sc
  *
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.count = function(store_name, index_or_keyrange,
+ydn.db.core.TxQueue.prototype.count = function(store_name, index_or_keyrange,
                                                  index_key_range) {
   var df = ydn.db.base.createDeferred();
 
@@ -262,7 +262,7 @@ ydn.db.core.TxStorage.prototype.count = function(store_name, index_or_keyrange,
 /**
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.get = function(arg1, arg2) {
+ydn.db.core.TxQueue.prototype.get = function(arg1, arg2) {
 
   var df = ydn.db.base.createDeferred();
 
@@ -313,7 +313,7 @@ ydn.db.core.TxStorage.prototype.get = function(arg1, arg2) {
  *
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.keys = function(arg1, arg2, arg3,
+ydn.db.core.TxQueue.prototype.keys = function(arg1, arg2, arg3,
                                                 arg4, arg5, arg6, arg7) {
   /**
    * @type {IDBKeyRange}
@@ -468,7 +468,7 @@ ydn.db.core.TxStorage.prototype.keys = function(arg1, arg2, arg3,
 /**
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+ydn.db.core.TxQueue.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
 
   var df = ydn.db.base.createDeferred();
   /**
@@ -630,7 +630,7 @@ ydn.db.core.TxStorage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, ar
 /**
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
+ydn.db.core.TxQueue.prototype.add = function(store_name_or_schema, value,
                                                opt_keys) {
 
   var store_name = goog.isString(store_name_or_schema) ?
@@ -734,7 +734,7 @@ ydn.db.core.TxStorage.prototype.add = function(store_name_or_schema, value,
  * @return {ydn.db.schema.Store}
  * @private
  */
-ydn.db.core.TxStorage.prototype.getStore_ = function(store_name_or_schema) {
+ydn.db.core.TxQueue.prototype.getStore_ = function(store_name_or_schema) {
   var store_name = goog.isString(store_name_or_schema) ?
     store_name_or_schema : goog.isObject(store_name_or_schema) ?
     store_name_or_schema['name'] : undefined;
@@ -775,7 +775,7 @@ ydn.db.core.TxStorage.prototype.getStore_ = function(store_name_or_schema) {
 /**
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.load = function(store_name_or_schema, data, opt_delimiter) {
+ydn.db.core.TxQueue.prototype.load = function(store_name_or_schema, data, opt_delimiter) {
 
   var delimiter = opt_delimiter || ',';
 
@@ -795,7 +795,7 @@ ydn.db.core.TxStorage.prototype.load = function(store_name_or_schema, data, opt_
 /**
  * @inheritDoc
  */
-ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
+ydn.db.core.TxQueue.prototype.put = function(store_name_or_schema, value,
                                                 opt_keys) {
 
   var store = this.getStore_(store_name_or_schema);
@@ -874,7 +874,7 @@ ydn.db.core.TxStorage.prototype.put = function(store_name_or_schema, value,
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.core.TxStorage.prototype.clear = function(arg1, arg2) {
+ydn.db.core.TxQueue.prototype.clear = function(arg1, arg2) {
 
   var df = ydn.db.base.createDeferred();
   var me = this;
@@ -934,7 +934,7 @@ ydn.db.core.TxStorage.prototype.clear = function(arg1, arg2) {
 
 
 /** @override */
-ydn.db.core.TxStorage.prototype.toString = function() {
+ydn.db.core.TxQueue.prototype.toString = function() {
   var s = 'TxStorage:' + this.getStorage().getName();
   if (goog.DEBUG) {
     var scope = this.getScope();
