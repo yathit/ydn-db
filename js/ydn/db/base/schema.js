@@ -864,15 +864,17 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
     }
   }
 
-  var data = {};
-  for (var item in obj) {
-    if (obj.hasOwnProperty(item) && !this.hasIndex(item)) {
-      data[item] = obj[item];
+  if (!this.fixed) {
+    var data = {};
+    for (var item in obj) {
+      if (obj.hasOwnProperty(item) && !this.hasIndex(item)) {
+        data[item] = obj[item];
+      }
     }
-  }
 
-  values.push(ydn.json.stringify(data));
-  columns.push(ydn.db.base.DEFAULT_BLOB_COLUMN);
+    values.push(ydn.json.stringify(data));
+    columns.push(ydn.db.base.DEFAULT_BLOB_COLUMN);
+  }
 
   var slots = [];
   for (var i = values.length - 1; i >= 0; i--) {
