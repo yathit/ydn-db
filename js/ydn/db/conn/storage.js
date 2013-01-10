@@ -575,17 +575,16 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
  * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=}
-  * completed_event_handler handler.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed handler.
  * @private
  */
 ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
-    opt_mode, completed_event_handler) {
+    opt_mode, on_completed) {
   this.txQueue_.push({
     fnc: trFn,
     scopes: store_names,
     mode: opt_mode,
-    oncompleted: completed_event_handler
+    oncompleted: on_completed
   });
   var now = goog.now();
   //if (!isNaN(this.last_queue_checkin_)) {
@@ -640,12 +639,11 @@ ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
  * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=}
- * completed_event_handler handler.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed handler.
  * @final
  */
 ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
-     opt_mode, completed_event_handler) {
+     opt_mode, on_completed) {
 
   var names = store_names;
 
@@ -662,7 +660,7 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
   if (!is_ready || this.in_version_change_tx_ ) {
     // a "versionchange" transaction is still running, a InvalidStateError
     // exception will be thrown
-    this.pushTxQueue_(trFn, names, opt_mode, completed_event_handler);
+    this.pushTxQueue_(trFn, names, opt_mode, on_completed);
     return;
   }
 
@@ -676,8 +674,8 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
   }
 
   var on_complete = function(type, ev) {
-    if (goog.isFunction(completed_event_handler)) {
-      completed_event_handler(type, ev);
+    if (goog.isFunction(on_completed)) {
+      on_completed(type, ev);
     }
     if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {
       me.in_version_change_tx_ = false;

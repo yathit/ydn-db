@@ -11,3 +11,7 @@ goog.exportProperty(ydn.db.tr.Storage.prototype, 'run',
     ydn.db.tr.Storage.prototype.run);
 goog.exportProperty(ydn.db.tr.TxQueue.prototype, 'run',
     ydn.db.tr.TxQueue.prototype.run);
+goog.exportProperty(ydn.db.tr.TxQueue.prototype, 'abort',
+  ydn.db.tr.TxQueue.prototype.abort);
+
+

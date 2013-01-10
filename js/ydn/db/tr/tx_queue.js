@@ -273,6 +273,21 @@ ydn.db.tr.TxQueue.prototype.pushTxQueue = function(trFn, store_names,
 
 
 /**
+ * Abort an active transaction.
+ */
+ydn.db.tr.TxQueue.prototype.abort = function() {
+  if (this.mu_tx_.isActive()) {
+    var tx = this.mu_tx_.getTx();
+    tx['abort'](); // this will cause error on SQLTransaction and WebStorage.
+    // the error is wanted because there is no way to abort a transaction in
+    // WebSql. It is somehow recommanded workaround to abort a transaction.
+  } else {
+    throw new ydn.db.InvalidStateError('No active transaction');
+  }
+};
+
+
+/**
  * Create a new isolated transaction. After creating a transaction, use
  * {@link #getTx} to received an active transaction. If transaction is not
  * active, it return null. In this case a new transaction must re-create.
