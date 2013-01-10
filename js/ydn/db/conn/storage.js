@@ -264,7 +264,7 @@ ydn.db.con.Storage.prototype.addStoreSchema = function(store_schema) {
  */
 ydn.db.con.Storage.prototype.setName = function(opt_db_name) {
   if (this.db_) {
-    throw Error('Already defined.');
+    throw Error('Already defined with ' + this.db_name);
   }
 
   /**
@@ -554,6 +554,15 @@ ydn.db.con.Storage.QUEUE_LIMIT = 100;
 
 
 /**
+ * Return number elements in tx queue.
+ * @return {number}
+ */
+ydn.db.con.Storage.prototype.countTxQueue = function() {
+  return this.txQueue_.length;
+};
+
+
+/**
  * Run the first transaction task in the queue. DB must be ready to do the
  * transaction.
  * @private
@@ -562,6 +571,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
 
   var task = this.txQueue_.shift();
   if (task) {
+    this.logger.finest('pop tx queue '  + task.fnc.name);
     ydn.db.con.Storage.prototype.transaction.call(this,
       task.fnc, task.scopes, task.mode, task.oncompleted);
   }
@@ -580,6 +590,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
  */
 ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
     opt_mode, on_completed) {
+  this.logger.finest('push tx queue ' + trFn.name);
   this.txQueue_.push({
     fnc: trFn,
     scopes: store_names,

@@ -186,7 +186,6 @@ ydn.db.tr.TxQueue.prototype.getTx = function() {
 };
 
 
-
 /**
  * Transaction is explicitly set not to do next transaction.
  */
@@ -202,8 +201,6 @@ ydn.db.tr.TxQueue.prototype.lock = function() {
 ydn.db.tr.TxQueue.prototype.type = function() {
   return this.storage_.type();
 };
-
-
 
 
 /**
@@ -230,7 +227,7 @@ ydn.db.tr.TxQueue.prototype.popTxQueue_ = function() {
 
   var task = this.trQueue_.shift();
   if (task) {
-    //console.log('running new task ' + task.fnc.name);
+    this.logger.finest('pop tx queue ' + task.fnc.name);
     this.run(task.fnc, task.store_names, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
@@ -242,17 +239,17 @@ ydn.db.tr.TxQueue.prototype.popTxQueue_ = function() {
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=}
-  * completed_event_handler handler.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed handler.
  * @protected
  */
 ydn.db.tr.TxQueue.prototype.pushTxQueue = function(trFn, store_names,
-                  opt_mode, completed_event_handler) {
+                  opt_mode, on_completed) {
+  this.logger.finest('push tx queue ' + trFn.name);
   this.trQueue_.push({
     fnc: trFn,
     store_names: store_names,
     mode: opt_mode,
-    oncompleted: completed_event_handler
+    oncompleted: on_completed
   });
 //  var now = goog.now();
 //  if (!isNaN(this.last_queue_checkin_)) {
@@ -366,7 +363,11 @@ ydn.db.tr.TxQueue.prototype.run = function(trFn, store_names, opt_mode,
       } finally {
         me.mu_tx_.down(type, event);
         me.running_transaction_process_ = false;
-        me.popTxQueue_();
+        if (me.storage_.countTxQueue() == 0) {
+          // we wait to finished all transactions in base queue,
+          // so that we get all transaction in order.
+          me.popTxQueue_();
+        }
       }
     };
 
