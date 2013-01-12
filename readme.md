@@ -23,6 +23,8 @@ Downloads the following three repos a directory.
 
 that should create three directories for closure-library, ydn-base and ydn-db.
 
+Run `ant deps` to generate closure dependency tree.
+
 Run local apache (recommended) or a static server on that directory.
 
     python -m SimpleHTTPServer 8001
@@ -70,8 +72,8 @@ API will be considered.
 
 # Documentation #
 
-* [Using YDN-DB](http://dev.yathit.com/ydn-db/using.html)
-* [API Reference](http://dev.yathit.com/api-reference/ydn-db-storage.html)
+* [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
+* [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
 * [Demo applications](http://dev.yathit.com/ydn-db/demos.html)
 * [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
 
