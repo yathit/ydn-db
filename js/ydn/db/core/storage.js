@@ -154,8 +154,8 @@ ydn.db.core.Storage.prototype.put = function(store, value, opt_key) {
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.clear = function(arg1, arg2) {
-  return this.default_tx_queue_.clear(arg1, arg2);
+ydn.db.core.Storage.prototype.clear = function(arg1, arg2, arg3) {
+  return this.default_tx_queue_.clear(arg1, arg2, arg3);
 };
 
 

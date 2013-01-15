@@ -859,7 +859,9 @@ var test_31_count_store = function() {
 
 var test_41_clear_store = function() {
   var db = new ydn.db.core.Storage(db_name, schema, options);
-  db.put(table_name, {id: 1});
+  db.put(table_name,
+    [{id: 1}, {id: 2}, {id: 3}]
+  );
 
   var hasEventFired = false;
   var put_value;
@@ -905,6 +907,35 @@ var test_41_clear_store = function() {
 
 };
 
+
+var test_42_clear_by_key_range = function() {
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  db.clear(table_name);
+  db.put(table_name,
+    [{id: 1}, {id: 2}, {id: 3}, {id: 4}]
+  );
+
+  var hasEventFired = false;
+  var countValue;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('clear result', 3, countValue);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.clear(table_name, ydn.db.KeyRange.lowerBound(2)).addCallback(function(value) {
+    countValue = value;
+    hasEventFired = true;
+  });
+
+};
 
 
 var test_deleted_event = function() {

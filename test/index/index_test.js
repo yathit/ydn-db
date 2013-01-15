@@ -359,6 +359,31 @@ var test_list_by_index_unique = function () {
 };
 
 
+var test_42_clear_by_index_key_range = function() {
+  var db = load_default();
+  var hasEventFired = false;
+  var countValue;
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      assertEquals('2 b', 2, countValue);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var range = ydn.db.KeyRange.bound('b', 'c', false, true);
+  db.clear(store_name, 'type', range).addBoth(function(value) {
+    countValue = value;
+    hasEventFired = true;
+  });
+
+};
+
 
 var test_keys_by_index_unique = function () {
 

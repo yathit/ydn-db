@@ -503,11 +503,16 @@ ydn.db.core.req.IndexedDb.prototype.clearByIndexKeyRange = function(
 
   var store = this.tx.objectStore(store_name);
   var index = store.index(index_name);
-  var request = index.openKeyCursor(key_range);
+  // var request = index.openKeyCursor(key_range);
+  // theoritically key cursor should be able to delete the record, but
+  // according to IndexedDB API spec, it is not.
+  // if this cursor was created using openKeyCursor a DOMException of type InvalidStateError is thrown.
+  var request = index.openCursor(key_range);
   var n = 0;
   request.onsuccess = function(event) {
     var cursor = event.target.result;
     if (cursor) {
+      //console.log(cursor);
       var req = cursor['delete']();
       req.onsuccess = function() {
         n++;
@@ -524,6 +529,27 @@ ydn.db.core.req.IndexedDb.prototype.clearByIndexKeyRange = function(
   request.onerror = function(event) {
     df.errback(event);
   };
+
+  // Index do not have 'delete' methods.
+//  var store = this.tx.objectStore(store_name);
+//  var index = store.index(index_name);
+//  var request = index.count(key_range);
+//  request.onsuccess = function(event) {
+//    var n = event.target.result;
+//    var req = store['delete'](key_range);
+//    req.onsuccess = function() {
+//      df.callback(n);
+//    };
+//    req.onerror = function(e) {
+//      df.errback(e);
+//    };
+//  };
+//  request.onerror = function(event) {
+//    if (ydn.db.core.req.IndexedDb.DEBUG) {
+//      window.console.log([store_name, key_range, event]);
+//    }
+//    df.errback(event);
+//  };
 
 };
 
