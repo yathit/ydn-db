@@ -69,6 +69,8 @@ report describing how we could reproduce the problem. Any subtle problem,
 memory/speed performance issue and missing feature from stand point of IndexedDB
 API will be considered.
 
+You may also ask question in Twitter [@yathit](https://twitter.com/yathit).
+
 
 # Documentation #
 
