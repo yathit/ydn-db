@@ -930,17 +930,19 @@ ydn.db.core.TxQueue.prototype.clear = function(arg1, arg2, arg3) {
           executor.clearByStores(df, [st_name]);
         }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
 
-        if (store.dispatch_events) {
-          df.addCallback(function (key) {
-            var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
-              me.getStorage(), st_name, null, undefined);
-            me.getStorage().dispatchEvent(event);
-          });
-        }
       } else {
         throw new ydn.error.ArgumentException('arg2');
       }
     }
+
+    if (store.dispatch_events) {
+      df.addCallback(function (count) {
+        var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
+          me.getStorage(), st_name, null, undefined);
+        me.getStorage().dispatchEvent(event);
+      });
+    }
+
   } else if (goog.isArray(arg1) && goog.isString(arg1[0])) {
     var store_name = arg1;
     this.exec(function(executor) {
