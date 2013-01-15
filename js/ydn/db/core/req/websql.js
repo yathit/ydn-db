@@ -715,8 +715,8 @@ ydn.db.core.req.WebSql.prototype.listByKeyRange = function(df, store_name,
  * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.listByIndexKeyRange = function(df, store_name,
-                                                                     index, key_range, reverse, limit, offset) {
-  //this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset)
+          index, key_range, reverse, limit, offset) {
+  this.list_by_key_range_(df, true, store_name, index, key_range, reverse, limit, offset)
 };
 
 
@@ -881,24 +881,15 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(df, keys) {
 
 
 /**
-* Deletes all objects from the store.
-* @param {goog.async.Deferred} d promise.
-* @param {(string|!Array.<string>)=} table_name table name.
+* @inheritDoc
 */
-ydn.db.core.req.WebSql.prototype.clearByStore = function(d, table_name) {
+ydn.db.core.req.WebSql.prototype.clearByStores = function(d, store_names) {
 
   var me = this;
-  var store_names = goog.isArray(table_name) && table_name.length > 0 ?
-      table_name : goog.isString(table_name) ?
-      [table_name] : this.schema.getStoreNames();
-
 
   var deleteStore = function(i, tx) {
 
     var store = me.schema.getStore(store_names[i]);
-    if (!store) {
-      throw new ydn.db.NotFoundError(store_names[i]);
-    }
 
     var sql = 'DELETE FROM  ' + store.getQuotedName();
 
@@ -908,7 +899,7 @@ ydn.db.core.req.WebSql.prototype.clearByStore = function(d, table_name) {
      */
     var callback = function(transaction, results) {
       if (i == store_names.length - 1) {
-        d.callback(true);
+        d.callback(store_names.length);
       } else {
         deleteStore(i + 1, transaction);
       }
@@ -936,7 +927,7 @@ ydn.db.core.req.WebSql.prototype.clearByStore = function(d, table_name) {
   if (store_names.length > 0) {
     deleteStore(0, this.tx);
   } else {
-    d.callback([]);
+    d.callback(0);
   }
 };
 
@@ -985,17 +976,13 @@ ydn.db.core.req.WebSql.prototype.removeById = function(d, table_name, key) {
 
 
 /**
- * @param {!goog.async.Deferred} d deferred result.
- * @param {string} table table name.
- * @param {(!Array|string|number)} id row name.
+ * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.clearById = function(d, table, id) {
 
 
   var store = this.schema.getStore(table);
-  if (!store) {
-    throw new ydn.db.NotFoundError(table);
-  }
+  var key = ydn.db.schema.Index.js2sql(id, store.getType());
 
   var me = this;
 
@@ -1007,7 +994,7 @@ ydn.db.core.req.WebSql.prototype.clearById = function(d, table, id) {
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log(results);
     }
-    d.callback(results.rowsAffected == 1 ? id : undefined);
+    d.callback(results.rowsAffected);
   };
 
   /**
@@ -1027,8 +1014,84 @@ ydn.db.core.req.WebSql.prototype.clearById = function(d, table, id) {
   var sql = 'DELETE FROM ' + store.getQuotedName() +
     ' WHERE ' + store.getQuotedKeyPath() + ' = ?';
   //console.log([sql, out.values])
-  this.tx.executeSql(sql, [id], success_callback, error_callback);
+  this.tx.executeSql(sql, [key], success_callback, error_callback);
 
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.clearByKeyRange = function(df, store_name, key_range) {
+  this.clear_by_key_range_(df, store_name, undefined, key_range);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.clearByIndexKeyRange = function(df, store_name,
+          index_name, key_range) {
+  this.clear_by_key_range_(df, store_name, index_name, key_range);
+};
+
+
+/**
+ * Retrieve primary keys or value from a store in a given key range.
+ * @param {!goog.async.Deferred} df return object in deferred function.
+ * @param {string} store_name table name.
+ * @param {string|undefined} column name.
+ * @param {IDBKeyRange} key_range to retrieve.
+ * @private
+ */
+ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(df,
+                    store_name, column, key_range) {
+
+  var me = this;
+  var arr = [];
+  var store = this.schema.getStore(store_name);
+
+  var type = store.getType();
+  if (goog.isDef(column)) {
+    type = store.getIndex(column).getType();
+  } else {
+    column =  store.getColumnName();
+  }
+
+  var sql = 'DELETE FROM ' + store.getQuotedName();
+  var params = [];
+  if (!goog.isNull(key_range)) {
+    var where_clause = ydn.db.Where.toWhereClause(column, key_range);
+    sql += ' WHERE ' + where_clause.sql;
+    for (var i = 0; i < where_clause.params.length; i++) {
+      params[i] = ydn.db.schema.Index.js2sql(where_clause.params[i], type);
+    }
+  }
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function(transaction, results) {
+    df.callback(results.rowsAffected);
+  };
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
+   */
+  var error_callback = function(tr, error) {
+    if (ydn.db.core.req.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    me.logger.warning('get error: ' + error.message);
+    df.errback(error);
+    return true; // roll back
+  };
+
+  //console.log([sql, params])
+  this.tx.executeSql(sql, params, callback, error_callback);
 };
 
 

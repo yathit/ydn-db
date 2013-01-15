@@ -434,12 +434,7 @@ ydn.db.core.req.IndexedDb.prototype.putData = function(df, store_name, data,
 
 
 /**
-* Get object in the store in a transaction. This return requested object
-* immediately.
-*
-* @param {goog.async.Deferred} df deferred to feed result.
-* @param {string} store_name store name.
-* @param {(!Array|string|number)} key object key.
+* @inheritDoc
 */
 ydn.db.core.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
 
@@ -453,7 +448,7 @@ ydn.db.core.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
     if (cursor) {
       var req = cursor['delete']();
       req.onsuccess = function(e) {
-        df.callback(key);
+        df.callback(1);
       };
       req.onerror = function(e) {
         df.errback(event);
@@ -473,25 +468,76 @@ ydn.db.core.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.clearByKeyRange = function(
+      df, store_name, key_range) {
+
+  var store = this.tx.objectStore(store_name);
+  var request = store.count(key_range);
+  request.onsuccess = function(event) {
+    var n = event.target.result;
+    var req = store['delete'](key_range);
+    req.onsuccess = function() {
+      df.callback(n);
+    };
+    req.onerror = function(e) {
+      df.errback(e);
+    };
+  };
+  request.onerror = function(event) {
+    if (ydn.db.core.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, key_range, event]);
+    }
+    df.errback(event);
+  };
+
+};
 
 /**
- * Get object in the store in a transaction. This return requested object
- * immediately.
- *
- * @param {goog.async.Deferred} df deferred to feed result.
- * @param {(string|!Array.<string>)=} opt_store_name store name.
+ * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.clearByStore = function(df, opt_store_name) {
+ydn.db.core.req.IndexedDb.prototype.clearByIndexKeyRange = function(
+  df, store_name, index_name, key_range) {
 
-  var store_names_to_clear = (goog.isArray(opt_store_name) &&
-    opt_store_name.length > 0) ?
-    opt_store_name : goog.isString(opt_store_name) ? [opt_store_name] :
-      this.schema.getStoreNames();
-  var n_todo = store_names_to_clear.length;
+  var store = this.tx.objectStore(store_name);
+  var index = store.index(index_name);
+  var request = index.openKeyCursor(key_range);
+  var n = 0;
+  request.onsuccess = function(event) {
+    var cursor = event.target.result;
+    if (cursor) {
+      var req = cursor['delete']();
+      req.onsuccess = function() {
+        n++;
+        cursor['continue']();
+      };
+      req.onerror = function(e) {
+        throw e;
+      };
+    } else {
+      df.callback(n);
+    }
+
+  };
+  request.onerror = function(event) {
+    df.errback(event);
+  };
+
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.clearByStores = function(df, store_names) {
+
+  var n_todo = store_names.length;
   var n_done = 0;
 
   for (var i = 0; i < n_todo; i++) {
-    var store_name = store_names_to_clear[i];
+    var store_name = store_names[i];
     var store = this.tx.objectStore(store_name);
     var request = store.clear();
     request.onsuccess = function(event) {
@@ -500,7 +546,7 @@ ydn.db.core.req.IndexedDb.prototype.clearByStore = function(df, opt_store_name) 
         window.console.log([n_done, event]);
       }
       if (n_done == n_todo) {
-        df.callback(true);
+        df.callback(n_done);
       }
     };
     request.onerror = function(event) {

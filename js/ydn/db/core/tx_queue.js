@@ -870,60 +870,87 @@ ydn.db.core.TxQueue.prototype.put = function(store_name_or_schema, value,
  * @param {(!Array.<string>|string)=} arg1 delete the table as provided
  * otherwise
  * delete all stores.
- * @param {(!Array|string|number)=} arg2 delete a specific row.
+ * @param {*=} arg2 delete a specific row.
+ * @param {*=} arg3 delete a specific row.
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.core.TxQueue.prototype.clear = function(arg1, arg2) {
+ydn.db.core.TxQueue.prototype.clear = function(arg1, arg2, arg3) {
 
   var df = ydn.db.base.createDeferred();
   var me = this;
 
   if (goog.isString(arg1)) {
-    var store_name = arg1;
-    var store = this.schema.getStore(store_name);
+    var st_name = arg1;
+    var store = this.schema.getStore(st_name);
     if (!store) {
-      throw new ydn.db.NotFoundError(store_name);
+      throw new ydn.db.NotFoundError(st_name);
     }
-    if (goog.isString(arg2) || goog.isNumber(arg2) || goog.isArray(arg2)) {
-      var id = /** @type {(!Array|number|string)} */  (arg2);
-      this.exec(function(executor) {
-        executor.clearById(df, store_name, id);
-      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearById');
-
-      if (store.dispatch_events) {
-        df.addCallback(function(key) {
-          var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.DELETED,
-            me.getStorage(), store_name, key, undefined);
-          me.getStorage().dispatchEvent(event);
-        });
-      }
-
-    } else if (!goog.isDef(arg2)) {
-      this.exec(function(executor) {
-        executor.clearByStore(df, store_name);
-      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStore');
-
-      if (store.dispatch_events) {
-        df.addCallback(function(key) {
-          var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
-            me.getStorage(), store_name, null, undefined);
-          me.getStorage().dispatchEvent(event);
-        });
+    if (goog.isDef(arg3)) {
+      if (goog.isString(arg2)) {
+        var index = store.getIndex(arg2);
+        if (!index) {
+          throw new ydn.error.ArgumentException('index: ' + arg2 + ' not found in ' + st_name);
+        }
+        if (goog.isObject(arg3) || goog.isNull(arg3)) {
+          var key_range = ydn.db.KeyRange.parseIDBKeyRange(
+            /** @type {KeyRangeJson} */ (arg3));
+          this.exec(function (executor) {
+            executor.clearByIndexKeyRange(df, st_name, index.getName(), key_range);
+          }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByIndexKeyRange');
+        } else {
+          throw new ydn.error.ArgumentException('arg3');
+        }
+      } else {
+        throw new ydn.error.ArgumentException('arg2 must be string');
       }
     } else {
-      throw new ydn.error.ArgumentException();
+      if (goog.isObject(arg2) || goog.isNull(arg2)) {
+        var key_range = ydn.db.KeyRange.parseIDBKeyRange(
+          /** @type {KeyRangeJson} */ (arg2));
+        this.exec(function (executor) {
+          executor.clearByKeyRange(df, st_name, key_range);
+        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByKeyRange');
+      } else if (goog.isString(arg2) || goog.isNumber(arg2) || goog.isArray(arg2)) {
+        var id = /** @type {(!Array|number|string)} */  (arg2);
+        this.exec(function (executor) {
+          executor.clearById(df, st_name, id);
+        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearById');
+
+        if (store.dispatch_events) {
+          df.addCallback(function (key) {
+            var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.DELETED,
+              me.getStorage(), st_name, key, undefined);
+            me.getStorage().dispatchEvent(event);
+          });
+        }
+
+      } else if (!goog.isDef(arg2)) {
+        this.exec(function (executor) {
+          executor.clearByStores(df, [st_name]);
+        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
+
+        if (store.dispatch_events) {
+          df.addCallback(function (key) {
+            var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
+              me.getStorage(), st_name, null, undefined);
+            me.getStorage().dispatchEvent(event);
+          });
+        }
+      } else {
+        throw new ydn.error.ArgumentException('arg2');
+      }
     }
   } else if (goog.isArray(arg1) && goog.isString(arg1[0])) {
-    var store_names = arg1;
+    var store_name = arg1;
     this.exec(function(executor) {
-      executor.clearByStore(df, store_names);
-    }, store_names, ydn.db.base.TransactionMode.READ_WRITE, 'clearByStore');
+      executor.clearByStores(df, [store_name]);
+    }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
   } else if (!goog.isDef(arg1)) {
     var store_names = this.schema.getStoreNames();
     this.exec(function(executor) {
-      executor.clearByStore(df, store_names);
-    }, store_names, ydn.db.base.TransactionMode.READ_WRITE, 'clearByStore');
+      executor.clearByStores(df, store_names);
+    }, store_names, ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
   } else {
     throw new ydn.error.ArgumentException();
   }

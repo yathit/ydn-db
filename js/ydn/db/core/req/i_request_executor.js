@@ -45,21 +45,42 @@ ydn.db.core.req.IRequestExecutor.prototype.addObjects = goog.abstractMethod;
 
 /**
  * Delete given key in the object store.
+ * Return number of keys deleted.
  * @param {!goog.async.Deferred} return object in deferred function.
  * @param {string} store table name.
- * @param {(!Array|string|number)} id object key to be retrieved, if not
- * provided,
- * all entries in the store will return.
+ * @param {(!Array|string|number)} id object key to be deleted.
  */
 ydn.db.core.req.IRequestExecutor.prototype.clearById = goog.abstractMethod;
+
+/**
+ * Clear records in the given key range from a store.
+ * Return number of keys deleted.
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {string} store table name.
+ * @param {IDBKeyRange} key range.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.clearByKeyRange = goog.abstractMethod;
+
+
+
+/**
+ * Clear records in the given key range from a store.
+ * Return number of keys deleted.
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {string} store table name.
+ * @param {string} index name.
+ * @param {IDBKeyRange} key range.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.clearByIndexKeyRange = goog.abstractMethod;
 
 
 /**
  * Clear a store or stores.
+ * Return number of stores deleted.
  * @param {!goog.async.Deferred} return object in deferred function.
- * @param {(!Array.<string>|string)=} store table name.
+ * @param {(!Array.<string>)=} store table name.
  */
-ydn.db.core.req.IRequestExecutor.prototype.clearByStore = goog.abstractMethod;
+ydn.db.core.req.IRequestExecutor.prototype.clearByStores = goog.abstractMethod;
 
 
 /**

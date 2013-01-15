@@ -871,7 +871,7 @@ var test_41_clear_store = function() {
     function() {
       // clear success do not return any result and hence 'undefined'.
       //console.log('cleared');
-      assertEquals('clear result', true, put_value);
+      assertEquals('clear result', 1, put_value);
     },
     100, // interval
     1000); // maxTimeout

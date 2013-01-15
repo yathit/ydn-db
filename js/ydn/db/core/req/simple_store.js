@@ -286,10 +286,19 @@ ydn.db.core.req.SimpleStore.prototype.clearById = function(df, table, id) {
 
 /**
  * @inheritDoc
-*/
-ydn.db.core.req.SimpleStore.prototype.clearByStore = function(df, stores) {
+ */
+ydn.db.core.req.SimpleStore.prototype.clearByKeyRange = goog.abstractMethod;
 
-  var store_names = goog.isString(stores) ? [stores] : stores;
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.clearByIndexKeyRange = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+*/
+ydn.db.core.req.SimpleStore.prototype.clearByStores = function(df, store_names) {
 
   for (var i = 0; i < store_names.length; i++) {
     this.tx.removeItemInternal(store_names[i]);
