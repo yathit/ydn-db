@@ -271,54 +271,9 @@ ydn.db.core.req.WebSql.prototype.putByKeys = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.core.req.WebSql.prototype.addObject = function(df, store_name, obj, opt_key)
-{
-
-  var table = this.schema.getStore(store_name);
-  if (!table) {
-    throw new ydn.db.NotFoundError(store_name);
-  }
-
-  var me = this;
-
-  var out = table.getIndexedValues(obj, opt_key);
-  //console.log([obj, JSON.stringify(obj)]);
-
-  var sql = 'INSERT INTO ' + table.getQuotedName() +
-      ' (' + out.columns.join(', ') + ') ' +
-      'VALUES (' + out.slots.join(', ') + ');';
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var success_callback = function(transaction, results) {
-    if (ydn.db.core.req.WebSql.DEBUG) {
-      window.console.log(['success', sql, out, transaction, results]);
-    }
-    // In SQLite, row id (insertId) is column and hence cab retrieved back by
-    // row ID. see in getById for details.
-    var key = goog.isDef(out.key) ? out.key : results.insertId;
-    df.callback(key);
-
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   * @return {boolean} true to roll back.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.core.req.WebSql.DEBUG) {
-      window.console.log([sql, out, tr, error]);
-    }
-    me.logger.warning('put error: ' + error.message);
-    df.errback(error);
-    return true; // roll back
-  };
-
-  //console.log([sql, out.values]);
-  this.tx.executeSql(sql, out.values, success_callback, error_callback);
+ydn.db.core.req.WebSql.prototype.addObject = function(
+    df, store_name, obj, opt_key) {
+  this.insertObjects(df, true, true, store_name, [obj], [opt_key]);
 };
 
 
@@ -329,59 +284,11 @@ ydn.db.core.req.WebSql.prototype.putData = goog.abstractMethod;
 
 
 /**
-* @param {goog.async.Deferred} df promise.
-* @param {string} store_name table name.
-* @param {!Object} obj object to put.
-* @param {(!Array|string|number)=} opt_key optional out-of-line key.
+* @inheritDoc
 */
-ydn.db.core.req.WebSql.prototype.putObject = function(df, store_name, obj, opt_key)
-{
-
-  var table = this.schema.getStore(store_name);
-  if (!table) {
-    throw new ydn.db.NotFoundError(store_name);
-  }
-
-  var me = this;
-
-  var out = table.getIndexedValues(obj, opt_key);
-  //console.log([obj, JSON.stringify(obj)]);
-
-  var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
-      ' (' + out.columns.join(', ') + ') ' +
-      'VALUES (' + out.slots.join(', ') + ');';
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var success_callback = function(transaction, results) {
-    if (ydn.db.core.req.WebSql.DEBUG) {
-      window.console.log(['success', sql, out, transaction, results]);
-    }
-    // In SQLite, row id (insertId) is column and hence cab retrieved back by
-    // row ID. see in getById for details.
-    var key = goog.isDef(out.key) ? out.key : results.insertId;
-    df.callback(key);
-
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   * @return {boolean} true to roll back.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.core.req.WebSql.DEBUG) {
-      window.console.log([sql, out, tr, error]);
-    }
-    me.logger.warning('put error: ' + error.message);
-    df.errback(error);
-    return true; // roll back
-  };
-
-  //console.log([sql, out.values]);
-  this.tx.executeSql(sql, out.values, success_callback, error_callback);
+ydn.db.core.req.WebSql.prototype.putObject = function(df,
+                                store_name, obj, opt_key) {
+  this.insertObjects(df, false, true, store_name, [obj], [opt_key]);
 };
 
 
@@ -391,11 +298,26 @@ ydn.db.core.req.WebSql.prototype.putObject = function(df, store_name, obj, opt_k
  */
 ydn.db.core.req.WebSql.prototype.addObjects = function(
     df, store_name, objects, opt_keys) {
+  this.insertObjects(df, true, false, store_name, objects, opt_keys);
+};
+
+
+
+/**
+ * @param {goog.async.Deferred} df  promise.
+ * @param {boolean} create true if insert, otherwise insert or replace.
+ * @param {boolean} single false for array input.
+ * @param {string} store_name table name.
+ * @param {!Array.<!Object>} objects object to put.
+ * @param {!Array.<(!Array|string|number)>=} opt_keys optional out-of-line keys.
+ * @private
+*/
+ydn.db.core.req.WebSql.prototype.insertObjects = function(
+  df, create, single, store_name, objects, opt_keys) {
 
   var table = this.schema.getStore(store_name);
-  if (!table) {
-    throw new ydn.db.NotFoundError(store_name);
-  }
+
+  var insert_statement = create ? 'INSERT INTO ' : 'INSERT OR REPLACE INTO ';
 
   var me = this;
   var result_keys = [];
@@ -420,7 +342,7 @@ ydn.db.core.req.WebSql.prototype.addObjects = function(
     }
     //console.log([obj, JSON.stringify(obj)]);
 
-    var sql = 'INSERT INTO ' + table.getQuotedName() +
+    var sql = insert_statement + table.getQuotedName() +
         ' (' + out.columns.join(', ') + ') ' +
         'VALUES (' + out.slots.join(', ') + ');';
 
@@ -430,15 +352,22 @@ ydn.db.core.req.WebSql.prototype.addObjects = function(
      */
     var success_callback = function(transaction, results) {
       result_count++;
-      result_keys[i] = goog.isDef(out.key) ? out.key : results.insertId;
-      if (result_count == objects.length) {
-        df.callback(result_keys);
+
+      var key = goog.isDef(out.key) ? out.key : results.insertId;
+      if (single) {
+        df.callback(key);
       } else {
-        var next = i + ydn.db.core.req.WebSql.RW_REQ_PER_TX;
-        if (next < objects.length) {
-          put(next, transaction);
+        result_keys[i] = key;
+        if (result_count == objects.length) {
+          df.callback(result_keys);
+        } else {
+          var next = i + ydn.db.core.req.WebSql.RW_REQ_PER_TX;
+          if (next < objects.length) {
+            put(next, transaction);
+          }
         }
       }
+
     };
 
     /**
@@ -472,89 +401,11 @@ ydn.db.core.req.WebSql.prototype.addObjects = function(
 
 
 /**
-* @param {goog.async.Deferred} df  promise.
-* @param {string} store_name table name.
-* @param {!Array.<!Object>} objects object to put.
- * @param {!Array.<(!Array|string|number)>=} opt_keys optional out-of-line keys.
-*/
+ * @inheritDoc
+ */
 ydn.db.core.req.WebSql.prototype.putObjects = function(
   df, store_name, objects, opt_keys) {
-
-  var table = this.schema.getStore(store_name);
-  if (!table) {
-    throw new ydn.db.NotFoundError(store_name);
-  }
-
-  var me = this;
-  var result_keys = [];
-  var result_count = 0;
-
-  /**
-   * Put and item at i. This ydn.db.con.Storage will invoke callback to df if
-   * all objects
-   * have been put, otherwise recursive call to itself at next i+1 item.
-   * @param {number} i index.
-   * @param {SQLTransaction} tx transaction.
-   */
-  var put = function(i, tx) {
-
-    // todo: handle undefined or null object
-
-    var out;
-    if (goog.isDef(opt_keys)) {
-      out = table.getIndexedValues(objects[i], opt_keys[i]);
-    } else {
-      out = table.getIndexedValues(objects[i]);
-    }
-    //console.log([obj, JSON.stringify(obj)]);
-
-    var sql = 'INSERT OR REPLACE INTO ' + table.getQuotedName() +
-        ' (' + out.columns.join(', ') + ') ' +
-        'VALUES (' + out.slots.join(', ') + ');';
-
-    /**
-     * @param {SQLTransaction} transaction transaction.
-     * @param {SQLResultSet} results results.
-     */
-    var success_callback = function(transaction, results) {
-      result_count++;
-      result_keys[i] = goog.isDef(out.key) ? out.key : results.insertId;
-      if (result_count == objects.length) {
-        df.callback(result_keys);
-      } else {
-        var next = i + ydn.db.core.req.WebSql.RW_REQ_PER_TX;
-        if (next < objects.length) {
-          put(next, transaction);
-        }
-      }
-    };
-
-    /**
-     * @param {SQLTransaction} tr transaction.
-     * @param {SQLError} error error.
-     * @return {boolean} true to roll back.
-     */
-    var error_callback = function(tr, error) {
-      if (ydn.db.core.req.WebSql.DEBUG) {
-        window.console.log([sql, out, tr, error]);
-      }
-      df.errback(error);
-      return true; // roll back
-    };
-
-    //console.log([sql, out.values]);
-    tx.executeSql(sql, out.values, success_callback, error_callback);
-  };
-
-  if (objects.length > 0) {
-    // send parallel requests
-    for (var i = 0; i < ydn.db.core.req.WebSql.RW_REQ_PER_TX && i < objects.length;
-         i++) {
-      put(i, this.getTx());
-    }
-  } else {
-    df.callback([]);
-  }
+    this.insertObjects(df, false, false, store_name, objects, opt_keys);
 };
 
 
