@@ -86,7 +86,7 @@ ydn.db.Storage.prototype.init = function() {
  * @override
  */
 ydn.db.Storage.prototype.newTxQueue = function(scope_name) {
-  return new ydn.db.TxStorage(this, this.ptx_no++, scope_name, this.schema);
+  return new ydn.db.TxStorage(this, false, this.ptx_no++, scope_name, this.schema);
 };
 
 
@@ -121,7 +121,7 @@ ydn.db.Storage.prototype.getWrapper = function() {
 // * @return {!goog.async.Deferred} return result as list.
 // */
 //ydn.db.Storage.prototype.fetch = function(q) {
-//  return this.default_tx_queue_.fetch(q);
+//  return this.base_tx_queue.fetch(q);
 //};
 
 
@@ -135,7 +135,7 @@ ydn.db.Storage.prototype.getWrapper = function() {
  * If not found, {@code undefined} is return.
  */
 ydn.db.Storage.prototype.getItem = function(key) {
-  return this.default_tx_queue_.getItem(key);
+  return this.base_tx_queue.getItem(key);
 };
 
 
@@ -150,7 +150,7 @@ ydn.db.Storage.prototype.getItem = function(key) {
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
 ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
-  return this.default_tx_queue_.setItem(key, value, opt_expiration);
+  return this.base_tx_queue.setItem(key, value, opt_expiration);
 };
 
 
@@ -161,15 +161,15 @@ ydn.db.Storage.prototype.setItem = function(key, value, opt_expiration) {
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
 ydn.db.Storage.prototype.removeItem = function(id) {
-  return this.default_tx_queue_.removeItem(id);
+  return this.base_tx_queue.removeItem(id);
 };
 
 
 /** @override */
 ydn.db.Storage.prototype.toString = function() {
   var s = 'Storage:' + this.getName();
-  if (goog.DEBUG && this.default_tx_queue_) {
-    return s + ':' + this.default_tx_queue_.getTxNo();
+  if (goog.DEBUG && this.base_tx_queue) {
+    return s + ':' + this.base_tx_queue.getTxNo();
   }
   return s;
 };

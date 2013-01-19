@@ -18,11 +18,13 @@ goog.require('ydn.error.NotSupportedException');
  * @implements {ydn.db.con.IStorage}
  * @implements {ydn.db.tr.IStorage}
  * @param {!ydn.db.tr.Storage} storage base storage.
+ * @param {boolean} blocked if true each database operation is blocked, effectively
+ * making atomic transaction operation.
  * @param {number} ptx_no transaction queue number.
  * @param {string} scope_name scope name.
  * @constructor
  */
-ydn.db.tr.TxQueue = function(storage, ptx_no, scope_name) {
+ydn.db.tr.TxQueue = function(storage, blocked, ptx_no, scope_name) {
 
   /**
    * @final
@@ -30,6 +32,13 @@ ydn.db.tr.TxQueue = function(storage, ptx_no, scope_name) {
    * @private
    */
   this.storage_ = storage;
+
+  /**
+   * @final
+   * @type {boolean}
+   * @private
+   */
+  this.blocked = blocked;
 
   /*
    * Transaction queue no.
@@ -379,6 +388,92 @@ ydn.db.tr.TxQueue.prototype.run = function(trFn, store_names, opt_mode,
       completed_handler);
   }
 
+};
+
+
+/**
+ * Return cache executor object or create on request. This have to be crated
+ * Lazily because, we can initialize it only when transaction object is active.
+ * @protected
+ * @return {ydn.db.core.req.IRequestExecutor} get executor.
+ */
+ydn.db.tr.TxQueue.prototype.getExecutor = goog.abstractMethod;
+
+/**
+ * @throws {ydn.db.ScopeError}
+ * @protected
+ * @param {function(ydn.db.core.req.IRequestExecutor)} callback callback when executor
+ * is ready.
+ * @param {!Array.<string>} store_names store name involved in the transaction.
+ * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
+ * @param {string} scope scope.
+ */
+ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope) {
+  var me = this;
+  var mu_tx = this.getMuTx();
+
+  if (mu_tx.isActiveAndAvailable()) {
+    //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
+    // call within a transaction
+    // continue to use existing transaction
+    me.getExecutor().setTx(mu_tx.getTx(), scope);
+    callback(me.getExecutor());
+  } else {
+    //console.log('creating new tx for ' + scope);
+
+    var on_complete = function () {
+      //console.log('tx ' + scope + ' completed');
+    };
+
+    //
+    // create a new transaction and close for invoke in non-transaction context
+    var tx_callback = function (idb) {
+      //console.log('tx running for ' + scope);
+      me.not_ready_ = true;
+      // transaction should be active now
+      if (!mu_tx.isActive()) {
+        throw new ydn.db.InternalError('Tx not active for scope: ' + scope);
+      }
+      if (!mu_tx.isAvailable()) {
+        throw new ydn.db.InternalError('Tx not available for scope: ' +
+            scope);
+      }
+      me.getExecutor().setTx(mu_tx.getTx(), scope);
+      callback(me.getExecutor());
+      mu_tx.lock(); // explicitly told not to use this transaction again.
+    };
+    //var cbFn = goog.partial(tx_callback, callback);
+    tx_callback.name = scope; // scope name
+    //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
+    // locked: ' + mu_tx.isSetDone());
+    me.run(tx_callback, store_names, mode, on_complete);
+
+    // need to think about handling oncompleted and onerror callback of the
+    // transaction. after executed all the requests, the transaction is not
+    // completed. consider this case
+    // db.put(data).addCallback(function(id) {
+    //    // at this stage, transaction for put request is not grantee finished.
+    //    db.get(id);
+    //    // but practically, when next transaction is open,
+    //    // the previous transaction should be finished anyways,
+    //    // due to 'readwrite' lock.
+    //    // so seems like OK. it is not necessary to listen oncompleted
+    //    // callback.
+    // });
+    // also notice, there is transaction overlap problem in mutex class.
+  }
+};
+
+
+
+/**
+ * @final
+ * @return {string} database name.
+ */
+ydn.db.tr.TxQueue.prototype.getName = function() {
+  // db name can be undefined during instantiation.
+  this.db_name = this.db_name || this.getStorage().getName();
+  return this.db_name;
 };
 
 

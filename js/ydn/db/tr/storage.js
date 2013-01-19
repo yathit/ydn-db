@@ -39,11 +39,20 @@ goog.require('ydn.db.tr.TxQueue');
  */
 ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
+
   this.ptx_no = 0;
+
+  // create blocking atomic transaction queue
+  this.base_tx_queue = this.newTxQueue('base', true);
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
 
 
+/**
+ * @protected
+ * @type {ydn.db.tr.TxQueue}
+ */
+ydn.db.tr.Storage.prototype.base_tx_queue = null;
 
 /**
  *
@@ -65,10 +74,12 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
 /**
  * @protected
  * @param {string} scope_name scope name.
+ * @param {boolean=} blocked
  * @return {!ydn.db.tr.TxQueue} new transactional storage.
  */
-ydn.db.tr.Storage.prototype.newTxQueue = function(scope_name) {
-  return new ydn.db.tr.TxQueue(this, this.ptx_no++, scope_name);
+ydn.db.tr.Storage.prototype.newTxQueue = function(scope_name, blocked) {
+  // by default, create always non-blocking transaction
+  return new ydn.db.tr.TxQueue(this, !!blocked, this.ptx_no++, scope_name);
 };
 
 

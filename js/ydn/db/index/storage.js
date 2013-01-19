@@ -52,8 +52,8 @@ goog.inherits(ydn.db.index.Storage, ydn.db.core.Storage);
 /**
  * @override
  */
-ydn.db.index.Storage.prototype.newTxQueue = function(scope_name) {
-  return new ydn.db.index.TxQueue(this, this.ptx_no++, scope_name,
+ydn.db.index.Storage.prototype.newTxQueue = function(scope_name, blocked) {
+  return new ydn.db.index.TxQueue(this, !!blocked, this.ptx_no++, scope_name,
     this.schema);
 };
 
@@ -66,7 +66,7 @@ ydn.db.index.Storage.prototype.newTxQueue = function(scope_name) {
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.index.Storage.prototype.open = function(iterator, callback, mode) {
-  return this.default_tx_queue_.open(iterator, callback, mode);
+  return this.base_tx_queue.open(iterator, callback, mode);
 };
 
 
@@ -79,7 +79,7 @@ ydn.db.index.Storage.prototype.open = function(iterator, callback, mode) {
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
-  return this.default_tx_queue_.scan(iterators, solver, streamers);
+  return this.base_tx_queue.scan(iterators, solver, streamers);
 };
 
 
@@ -89,7 +89,7 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
 // * @return {Object} plan in JSON
 // */
 //ydn.db.index.Storage.prototype.explain = function(q) {
-//  return this.default_tx_queue_.explain(q);
+//  return this.base_tx_queue.explain(q);
 //};
 
 
@@ -99,7 +99,7 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
  * @param {function(*): (*|undefined)} callback
  */
 ydn.db.index.Storage.prototype.map = function (iterator, callback) {
-  return this.default_tx_queue_.map(iterator, callback);
+  return this.base_tx_queue.map(iterator, callback);
 };
 
 
@@ -110,6 +110,6 @@ ydn.db.index.Storage.prototype.map = function (iterator, callback) {
  * @param {*=} initial
  */
 ydn.db.index.Storage.prototype.reduce = function(iterator, callback, initial) {
-  return this.default_tx_queue_.reduce(iterator, callback, initial);
+  return this.base_tx_queue.reduce(iterator, callback, initial);
 };
 

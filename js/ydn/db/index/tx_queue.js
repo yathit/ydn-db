@@ -26,6 +26,7 @@ goog.require('ydn.db.index.IStorage');
  * mutex.
  *
  * @param {!ydn.db.core.Storage} storage base storage object.
+ * @param {boolean} blocked
  * @param {number} ptx_no transaction queue number.
  * @param {string} scope_name scope name.
  * @param {!ydn.db.schema.Database} schema schema.
@@ -33,8 +34,8 @@ goog.require('ydn.db.index.IStorage');
  * @constructor
  * @extends {ydn.db.core.TxQueue}
 */
-ydn.db.index.TxQueue = function(storage, ptx_no, scope_name, schema) {
-  goog.base(this, storage, ptx_no, scope_name, schema);
+ydn.db.index.TxQueue = function(storage, blocked, ptx_no, scope_name, schema) {
+  goog.base(this, storage, blocked, ptx_no, scope_name, schema);
 };
 goog.inherits(ydn.db.index.TxQueue, ydn.db.core.TxQueue);
 

@@ -54,8 +54,8 @@ goog.inherits(ydn.db.sql.Storage, ydn.db.index.Storage);
 /**
  * @override
  */
-ydn.db.sql.Storage.prototype.newTxQueue = function(scope_name) {
-  return new ydn.db.sql.TxQueue(this, this.ptx_no++, scope_name,
+ydn.db.sql.Storage.prototype.newTxQueue = function(scope_name, blocked) {
+  return new ydn.db.sql.TxQueue(this, !!blocked, this.ptx_no++, scope_name,
     this.schema);
 };
 
@@ -65,7 +65,7 @@ ydn.db.sql.Storage.prototype.newTxQueue = function(scope_name) {
  * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.sql.Storage.prototype.executeSql = function (sql, params) {
-  return this.default_tx_queue_.executeSql(sql, params);
+  return this.base_tx_queue.executeSql(sql, params);
 };
 
 //
@@ -75,6 +75,6 @@ ydn.db.sql.Storage.prototype.executeSql = function (sql, params) {
 // * @return {Object} plan in JSON
 // */
 //ydn.db.sql.Storage.prototype.explain = function(q) {
-//  return this.default_tx_queue_.explain(q);
+//  return this.base_tx_queue.explain(q);
 //};
 

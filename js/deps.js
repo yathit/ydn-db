@@ -81,4 +81,5 @@ goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_storage.js", ['ydn.db.tr.ISto
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/mutex.js", ['ydn.db.tr.Mutex'], ['goog.array', 'goog.asserts', 'ydn.db.InvalidStateError']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/storage.js", ['ydn.db.tr.Storage'], ['ydn.db.con.Storage', 'ydn.db.tr.IStorage', 'ydn.db.tr.TxQueue']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/tx_queue.js", ['ydn.db.tr.TxQueue'], ['ydn.db.con.IStorage', 'ydn.error.NotSupportedException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/utils/reader.js", ['ydn.db.io.Reader'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/utils/test_utils.js", ['ydn.db.test'], ['ydn.db.io.QueryService']);

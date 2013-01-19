@@ -13,14 +13,15 @@ goog.require('ydn.error.NotSupportedException');
 
 /**
  * @param {!ydn.db.Storage} storage storage.
+ * @param {boolean} blocked
  * @param {number} ptx_no transaction queue number.
  * @param {string} scope_name scope name.
  * @param {!ydn.db.schema.Database} schema  schema.
  * @constructor
  * @extends {ydn.db.sql.TxQueue}
 */
-ydn.db.TxStorage = function(storage, ptx_no, scope_name, schema) {
-  goog.base(this, storage, ptx_no, scope_name, schema);
+ydn.db.TxStorage = function(storage, blocked, ptx_no, scope_name, schema) {
+  goog.base(this, storage, blocked, ptx_no, scope_name, schema);
 };
 goog.inherits(ydn.db.TxStorage, ydn.db.sql.TxQueue);
 

@@ -52,8 +52,6 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
-  this.default_tx_queue_ = this.newTxQueue('base');
-
 };
 goog.inherits(ydn.db.core.Storage, ydn.db.tr.Storage);
 
@@ -69,10 +67,19 @@ ydn.db.core.Storage.prototype.init = function() {
 
 
 /**
+ *
+ * @return {!ydn.db.core.TxQueue}
+ */
+ydn.db.core.Storage.prototype.getTxQueue = function() {
+  return /** @type {!ydn.db.core.TxQueue} */ (this.base_tx_queue);
+};
+
+
+/**
  * @override
  */
-ydn.db.core.Storage.prototype.newTxQueue = function(scope_name) {
-  return new ydn.db.core.TxQueue(this, this.ptx_no++, scope_name,
+ydn.db.core.Storage.prototype.newTxQueue = function(scope_name, blocked) {
+  return new ydn.db.core.TxQueue(this, !!blocked, this.ptx_no++, scope_name,
     this.schema);
 };
 
@@ -82,14 +89,14 @@ ydn.db.core.Storage.prototype.newTxQueue = function(scope_name) {
  * @return {number} transaction series number.
  */
 ydn.db.core.Storage.prototype.getTxNo = function() {
-  return this.default_tx_queue_.getTxNo();
+  return this.getTxQueue().getTxNo();
 };
 
 /**
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.add = function(store, value, opt_key) {
-  return this.default_tx_queue_.add(store, value, opt_key);
+  return this.getTxQueue().add(store, value, opt_key);
 };
 
 
@@ -98,7 +105,7 @@ ydn.db.core.Storage.prototype.add = function(store, value, opt_key) {
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.count = function(store_name, key_range, index) {
-  return this.default_tx_queue_.count(store_name, key_range, index);
+  return this.getTxQueue().count(store_name, key_range, index);
 };
 
 
@@ -106,7 +113,7 @@ ydn.db.core.Storage.prototype.count = function(store_name, key_range, index) {
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
-  return this.default_tx_queue_.get(arg1, arg2);
+  return this.getTxQueue().get(arg1, arg2);
 };
 
 
@@ -117,29 +124,29 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
 ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
                                                 arg4, arg5, arg6, arg7) {
 //  return ydn.db.core.TxQueue.prototype.keys.apply(
-//    /** @type {ydn.db.core.TxQueue} */ (this.default_tx_queue_),
+//    /** @type {ydn.db.core.TxQueue} */ (this.base_tx_queue),
 //    Array.prototype.slice.call(arguments));
 
   // above trick is the same effect as follow
-  //return this.default_tx_queue_.keys(store_name, arg2, arg3,
+  //return this.getTxQueue().keys(store_name, arg2, arg3,
   //  arg4, arg5, arg6, arg7);
   // but it preserve argument length
 
-  return this.default_tx_queue_.keys(store_name, arg2, arg3, arg4, arg5, arg6, arg7);
+  return this.getTxQueue().keys(store_name, arg2, arg3, arg4, arg5, arg6, arg7);
 };
 
 /**
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
-  return this.default_tx_queue_.list(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+  return this.getTxQueue().list(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 };
 
 /**
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.load = function(store_name_or_schema, data, delimiter)  {
-  return this.default_tx_queue_.load(store_name_or_schema, data, delimiter);
+  return this.getTxQueue().load(store_name_or_schema, data, delimiter);
 };
 
 
@@ -147,7 +154,7 @@ ydn.db.core.Storage.prototype.load = function(store_name_or_schema, data, delimi
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.put = function(store, value, opt_key) {
-  return this.default_tx_queue_.put(store, value, opt_key);
+  return this.getTxQueue().put(store, value, opt_key);
 };
 
 
@@ -155,16 +162,16 @@ ydn.db.core.Storage.prototype.put = function(store, value, opt_key) {
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.clear = function(arg1, arg2, arg3) {
-  return this.default_tx_queue_.clear(arg1, arg2, arg3);
+  return this.getTxQueue().clear(arg1, arg2, arg3);
 };
 
 
 /** @override */
 ydn.db.core.Storage.prototype.toString = function() {
   var s = 'Storage:' + this.getName();
-  if (goog.DEBUG && this.default_tx_queue_) { // this.default_tx_queue_ null
+  if (goog.DEBUG && this.base_tx_queue) { // this.base_tx_queue null
   // is possible while in constructor
-    return s + ':' + this.default_tx_queue_.getTxNo();
+    return s + ':' + this.base_tx_queue.getTxNo();
   }
   return s;
 };
