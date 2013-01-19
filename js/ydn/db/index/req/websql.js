@@ -360,6 +360,7 @@ ydn.db.index.req.WebSql.prototype.getCursor = function (store_name,
         index_name, keyRange, direction, key_only, ini_key, ini_index_key) {
 
   var store = this.schema.getStore(store_name);
+  goog.asserts.assertObject(store);
   return new ydn.db.index.req.WebsqlCursor(this.getTx(), store, store_name, index_name,
     keyRange, direction, key_only, ini_key, ini_index_key);
 };

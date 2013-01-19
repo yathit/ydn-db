@@ -868,35 +868,23 @@ ydn.db.core.TxQueue.prototype.clear = function(arg1, arg2, arg3) {
       }
     }
 
-
-
-  } else if (goog.isArray(arg1) && goog.isString(arg1[0])) {
-    var store_name = arg1;
-    this.exec(function(executor) {
-      executor.clearByStores(df, [store_name]);
-    }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
-
-    if (store.dispatch_events) {
-      df.addCallback(function (count) {
-        var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
-            me.getStorage(), st_name, null, undefined);
-        me.getStorage().dispatchEvent(event);
-      });
-    }
-
-  } else if (!goog.isDef(arg1)) {
-    var store_names = this.schema.getStoreNames();
+  } else if (!goog.isDef(arg1) || goog.isArray(arg1) && goog.isString(arg1[0])) {
+    var store_names = arg1 || this.schema.getStoreNames();
     this.exec(function(executor) {
       executor.clearByStores(df, store_names);
     }, store_names, ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
 
-    if (store.dispatch_events) {
-      df.addCallback(function (count) {
-        var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
-            me.getStorage(), st_name, null, undefined);
-        me.getStorage().dispatchEvent(event);
-      });
+    for (var j = 0; j < store_names.length; j++) {
+      var store_j = this.schema.getStore(store_names[j]);
+      if (store_j.dispatch_events) {
+        df.addCallback(function (count) {
+          var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
+              me.getStorage(), store_names[j], null, undefined);
+          me.getStorage().dispatchEvent(event);
+        });
+      }
     }
+
   } else {
     throw new ydn.error.ArgumentException();
   }

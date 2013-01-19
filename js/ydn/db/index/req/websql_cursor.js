@@ -10,7 +10,7 @@ goog.require('ydn.db.index.req.AbstractCursor');
 /**
  * Open an index. This will resume depending on the cursor state.
  * @param {SQLTransaction} tx object store.
- * @param {ydn.db.schema.Store} store_schema schema.
+ * @param {!ydn.db.schema.Store} store_schema schema.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
  * @param {IDBKeyRange} keyRange
@@ -21,10 +21,10 @@ goog.require('ydn.db.index.req.AbstractCursor');
  * @extends {ydn.db.index.req.AbstractCursor}
  * @constructor
  */
-ydn.db.index.req.WebsqlCursor = function(tx, store_schema, store_name, index_name, keyRange,
-                                   direction, key_only, ini_key, ini_index_key) {
-  goog.base(this, store_name, index_name, keyRange,
-      direction, key_only);
+ydn.db.index.req.WebsqlCursor = function(tx, store_schema, store_name,
+    index_name, keyRange, direction, key_only, ini_key, ini_index_key) {
+
+  goog.base(this, store_name, index_name, keyRange, direction, key_only);
 
   goog.asserts.assert(tx);
   this.tx = tx;
@@ -32,12 +32,10 @@ ydn.db.index.req.WebsqlCursor = function(tx, store_schema, store_name, index_nam
   goog.asserts.assert(store_schema);
   this.store_schema_ = store_schema;
 
-  this.cache_primary_keys_ = null;
-  this.cache_keys_ = null;
-  this.cache_values_ = null;
+  this.cursor_ = null;
+  this.current_cursor_index_ = NaN;
 
-  this.open_request(ini_key, ini_index_key);
-
+  //this.open_request(ini_key, ini_index_key);
 };
 goog.inherits(ydn.db.index.req.WebsqlCursor, ydn.db.index.req.AbstractCursor);
 
@@ -65,10 +63,10 @@ ydn.db.index.req.WebsqlCursor.prototype.tx;
 
 /**
  *
- * @type {ydn.db.schema.Store}
+ * @type {!ydn.db.schema.Store}
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.store_schema_ = null;
+ydn.db.index.req.WebsqlCursor.prototype.store_schema_;
 
 
 /**
@@ -94,22 +92,48 @@ ydn.db.index.req.WebsqlCursor.prototype.current_value_ = null;
 
 
 /**
- *
- * @type {Array}
+ * @type {SQLResultSet}
+ * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.cache_keys_ = null;
+ydn.db.index.req.WebsqlCursor.prototype.cursor_ = null;
 
 /**
  *
- * @type {Array}
+ * @type {number}
+ * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.cache_primary_keys_ = null;
+ydn.db.index.req.WebsqlCursor.prototype.current_cursor_index_ = NaN;
+
 
 /**
- *
- * @type {Array}
+ * Move cursor to next position.
+ * @return {Array} [primary_key, effective_key, reference_value]
+ * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.cache_values_ = null;
+ydn.db.index.req.WebsqlCursor.prototype.moveNext_ = function() {
+
+  this.current_cursor_index_++;
+
+  return [this.getPrimaryKey(), this.getIndexKey(), this.getValue()];
+};
+
+/**
+ * Invoke onSuccess handler with next cursor value.
+ */
+ydn.db.index.req.WebsqlCursor.prototype.invokeNextSuccess_ = function() {
+
+  var current_values = this.moveNext_();
+
+  if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+    window.console.log(['onSuccess', this.current_cursor_index_].concat(current_values));
+  }
+
+  var primary_key = current_values[0];
+  var index_key = current_values[1];
+  var value = current_values[2];
+  this.onSuccess(primary_key, index_key, value);
+
+};
 
 
 /**
@@ -127,12 +151,8 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
 
   var label = this.store_name + ':' + this.index_name;
 
-  this.cache_primary_keys_ = [];
-  this.cache_keys_ = [];
-  this.cache_values_ = [];
-
   var key_range = this.key_range;
-  if (goog.isDefAndNotNull(ini_index_key)) {
+  if (!!this.index_name && goog.isDefAndNotNull(ini_index_key)) {
     if (goog.isDefAndNotNull(this.key_range)) {
     var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.upper);
     if (cmp == 1 || (cmp == 0 && !this.key_range.upperOpen)) {
@@ -153,10 +173,10 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var request;
   var sqls = ['SELECT'];
   var params = [];
-  var column_name = this.index_name ?
-    this.index_name : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
-  var q_column_name = goog.string.quote(column_name);
   var primary_column_name = this.store_schema_.getColumnName();
+  var column_name = this.index_name ?
+      this.index_name : primary_column_name;
+  var q_column_name = goog.string.quote(column_name);
   var q_primary_column_name = goog.string.quote(primary_column_name);
   sqls.push(this.key_only ?
     q_column_name + ', ' + q_primary_column_name : '*');
@@ -168,24 +188,30 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
     params = params.concat(where_clause.params);
   }
 
-  if (goog.isDefAndNotNull(ini_key)) {
-    if (where_clause.sql) {
-      sqls.push('AND ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
-      params.push(ini_key);
-    } else {
-      sqls.push('WHERE ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
-      params.push(ini_key);
-    }
-  }
+//  if (goog.isDefAndNotNull(ini_key)) {
+//    if (where_clause.sql) {
+//      sqls.push('AND ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
+//      params.push(ini_key);
+//    } else {
+//      sqls.push('WHERE ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
+//      params.push(ini_key);
+//    }
+//  }
 
-  var order = this.reverse ? 'DESC' : 'ASC';
-  sqls.push(' ORDER BY ' + q_column_name + ' ' + order);
-
-  if (this.key_only) {
-    sqls.push(' LIMIT ' + 100);
+  var order =  ' ORDER BY ';
+  if (q_column_name != q_primary_column_name) {
+    order += q_column_name + ', ' + q_primary_column_name;
   } else {
-    sqls.push(' LIMIT ' + 1);
+    order += q_primary_column_name;
   }
+  order += this.reverse ? ' DESC' : ' ASC';
+  sqls.push(order);
+
+//  if (this.key_only) {
+//    sqls.push(' LIMIT ' + 100);
+//  } else {
+//    sqls.push(' LIMIT ' + 1);
+//  }
 
   this.has_pending_request = true;
 
@@ -196,36 +222,17 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var onSuccess = function(transaction, results) {
     me.has_pending_request = false;
 
-    var n = results.rows.length;
-
-    for (var i = 0; i < n; i++) {
-      var row = results.rows.item(i);
-      me.cache_primary_keys_[i] = ydn.db.schema.Index.sql2js(row[primary_column_name],
-        me.store_schema_.getType());
-      if (me.key_only) {
-        me.cache_keys_[i] = ydn.db.schema.Index.sql2js(row[column_name], me.store_schema_.getType());
-      } else if (goog.isDefAndNotNull(row)) {
-        me.cache_values_[i] = ydn.db.core.req.WebSql.parseRow(row, me.store_schema_);
+    me.cursor_ = results;
+    me.current_cursor_index_ = 0;
+    if (!!me.index_name && goog.isDefAndNotNull(ini_key)) {
+      // skip them
+      var cmp = ydn.db.cmp(this.getPrimaryKey(), ini_key);
+      while (cmp == -1 || (cmp == 0 && exclusive)) {
+        me.current_cursor_index_++;
+        cmp = ydn.db.cmp(this.getPrimaryKey(), ini_key);
       }
     }
-
-    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
-      window.console.log(['onSuccess', n, results.rows,
-        me.cache_primary_keys_, me.cache_keys_, me.cache_values_]);
-    }
-
-    //console.log(['onsuccess', cur ? cur.key : undefined, cur ? cur.primaryKey : undefined, ini_key, ini_index_key]);
-    if (n > 0) {
-      //me.onNext(cur.primaryKey, cur.key, cur.value);
-      me.current_primary_key_ = me.cache_primary_keys_.shift();
-      me.current_key_ = me.cache_keys_.shift();
-      me.current_value_ = me.cache_values_.shift();
-      me.onSuccess(me.current_primary_key_, me.current_key_, me.current_value_);
-    } else {
-      me.logger.finest('Iterator: ' + label + ' completed.');
-      me.onSuccess(undefined, undefined, undefined);
-    }
-
+    me.onSuccess(me.getPrimaryKey(), me.getIndexKey(), me.getValue());
   };
 
   /**
@@ -254,11 +261,11 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
 
 /**
  * Continue to next position.
- * @param {*} next_position next index key.
+ * @param {*} next_position next effective key.
  * @override
  */
 ydn.db.index.req.WebsqlCursor.prototype.forward = function (next_position) {
-  //console.log(['next_position', cur, next_position]);
+  //console.log(['forward', this.current_primary_key_, this.current_key_, next_position]);
   var label = this.store_name + ':' + this.index_name;
   if (next_position === false) {
     // restart the iterator
@@ -266,46 +273,40 @@ ydn.db.index.req.WebsqlCursor.prototype.forward = function (next_position) {
     this.open_request();
   } else if (this.hasCursor()) {
     if (goog.isDefAndNotNull(next_position)) {
-      if (goog.isArray(this.cache_keys_) && this.cache_keys_.length > 0) {
-        if (next_position === true) {
-          //this.cur['continue']();
+      //if (goog.isArray(this.cache_keys_)) {
+      if (next_position === true) {
+        //this.cur['continue']();
 
-          this.current_primary_key_ = this.cache_primary_keys_.shift();
-          this.current_key_ = this.cache_keys_.shift();
-          this.current_value_ = this.cache_values_.shift();
+        this.invokeNextSuccess_();
 
-          this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
-
-        } else {
-          //console.log('continuing to ' + next_position)
-          do {
-            this.current_primary_key_ = this.cache_primary_keys_.shift();
-            this.current_key_ = this.cache_keys_.shift();
-            this.current_value_ = this.cache_values_.shift();
-            if (!goog.isDef(this.current_key_)) {
-              this.open_request(null, next_position);
-              return;
-            }
-            if (ydn.db.cmp(this.current_key_, next_position) == 0) {
-              this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
-              return;
-            }
-          } while (goog.isDefAndNotNull(this.current_primary_key_));
-          this.open_request(null, next_position);
-        }
       } else {
-        if (next_position === true) {
-          this.open_request(this.current_primary_key_, this.current_key_, true);
-        } else {
-          this.open_request(null, next_position);
-        }
+        //console.log('continuing to ' + next_position)
+        do {
+          var values = this.moveNext_();
+          var current_primary_key_ = values[0];
+          var current_key_ = values[1];
+          var current_value_ = values[2];
+          if (!goog.isDef(current_key_)) {
+            this.open_request(null, next_position);
+            return;
+          }
+          if (ydn.db.cmp(current_key_, next_position) == 0) {
+            this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
+            return;
+          }
+        } while (goog.isDefAndNotNull(this.current_primary_key_));
+        this.open_request(null, next_position);
       }
+//      } else {
+//        if (next_position === true) {
+//          this.open_request(this.current_primary_key_, this.current_key_, true);
+//        } else {
+//          this.open_request(null, next_position);
+//        }
+//      }
     } else {
       // notify that cursor iteration is finished.
       this.onSuccess(undefined, undefined, undefined);
-      this.current_key_ = null;
-      this.current_primary_key_ = null;
-      this.current_value_ = null;
       this.logger.finest('Cursor: ' + label + ' resting.');
     }
   } else {
@@ -318,7 +319,7 @@ ydn.db.index.req.WebsqlCursor.prototype.forward = function (next_position) {
  * @inheritDoc
  */
 ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
-  return goog.isDefAndNotNull(this.current_key_);
+  return !!this.cursor_ && this.current_cursor_index_ < this.cursor_.rows.length;
 };
 
 
@@ -328,7 +329,19 @@ ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
  * @override
  */
 ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
-  return this.current_key_;
+
+  if (this.index_name) {
+    if (this.current_cursor_index_ < this.cursor_.rows.length) {
+      var row = this.cursor_.rows.item(this.current_cursor_index_);
+      var type =  this.store_schema_.getIndex(this.index_name).getType();
+      return ydn.db.schema.Index.sql2js(row[this.index_name], type);
+    } else {
+      return undefined;
+    }
+  } else {
+    return undefined;
+  }
+
 };
 
 
@@ -337,8 +350,15 @@ ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
  * @return {*} return current primary key.
  * @override
  */
-ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function() {
-  return this.current_primary_key_;
+ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
+  if (this.current_cursor_index_ < this.cursor_.rows.length) {
+    var primary_column_name = this.store_schema_.getColumnName();
+    var row = this.cursor_.rows.item(this.current_cursor_index_);
+    return ydn.db.schema.Index.sql2js(row[primary_column_name],
+        this.store_schema_.getType());
+  } else {
+    return undefined;
+  }
 };
 
 
@@ -348,7 +368,24 @@ ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function() {
  * @override
  */
 ydn.db.index.req.WebsqlCursor.prototype.getValue = function() {
-  return this.current_value_;
+  var column_name = this.index_name ?
+      this.index_name : this.store_schema_.getColumnName();
+
+  if (this.current_cursor_index_ < this.cursor_.rows.length) {
+    if (this.key_only) {
+      return undefined;
+    } else {
+      if (this.index_name) {
+        return undefined;
+      } else {
+        var row = this.cursor_.rows.item(this.current_cursor_index_);
+        return ydn.db.core.req.WebSql.parseRow(/** @type {!Object} */ (row), this.store_schema_);
+      }
+    }
+  } else {
+    return undefined;
+  }
+
 };
 
 

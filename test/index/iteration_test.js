@@ -17,13 +17,15 @@ var setUp = function() {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
-    //ydn.db.index.req.WebsqlCursor.DEBUG = true;
+    ydn.db.core.req.IndexedDb.DEBUG = true;
+    ydn.db.index.req.WebsqlCursor.DEBUG = true;
+
   }
 
   objs = [
@@ -97,8 +99,8 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
       },
       // Continuation
       function () {
-        assertArrayEquals('streaming key', actual_keys, streaming_keys);
-        assertArrayEquals('streaming index', actual_index_keys, streaming_index_keys);
+        assertArrayEquals('streaming keys', actual_keys, streaming_keys);
+        assertArrayEquals('streaming values', actual_index_keys, streaming_index_keys);
 
         reachedFinalContinuation = true;
 
@@ -127,23 +129,51 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
 
 };
 
-
-var test_11_scan_key_single = function () {
+var test_11_scan_key_iterator = function () {
 
   var actual_keys = objs.map(function(x) {return x.id;});
+  actual_keys.sort();
+  var actual_index_keys = actual_keys;
+  var q = new ydn.db.KeyIterator(store_name);
+  scan_key_single_test(q, actual_keys, actual_index_keys);
+
+};
+
+var test_12_scan_value_iterator = function () {
+
+  objs.sort(function(a, b) {
+    return a.id > b.id ? 1 : -1;
+  });
+  var actual_keys = objs.map(function(x) {return x.id;});
+
+  var q = new ydn.db.ValueIterator(store_name);
+  scan_key_single_test(q, actual_keys, objs);
+
+};
+
+var test_13_scan_index_key_iterator = function () {
+
+  objs.sort(function(a, b) {
+    return a.value > b.value ? 1 : -1;
+  });
+  var actual_keys = objs.map(function(x) {return x.value;});
   var actual_index_keys = objs.map(function(x) {return x.value;});
-  var q = new ydn.db.Iterator(store_name, 'value');
+  var q = new ydn.db.KeyIterator(store_name, 'value');
   scan_key_single_test(q, actual_keys, actual_index_keys);
 
 };
 
 
-var test_12_scan_key_single_reverse = function () {
+var test_14_scan_index_key_iterator_reverse = function () {
 
-  var actual_keys = objs.map(function(x) {return x.id;});
+  objs.sort(function(a, b) {
+    return a.value > b.value ? -1 : 1;
+  });
+  var actual_keys = objs.map(function(x) {return x.value;});
   var actual_index_keys = objs.map(function(x) {return x.value;});
-  var q = new ydn.db.Iterator(store_name, 'value', null, true);
-  scan_key_single_test(q, actual_keys.reverse(), actual_index_keys.reverse());
+  var q = new ydn.db.KeyIterator(store_name, 'value', null, true);
+
+  scan_key_single_test(q, actual_keys, actual_index_keys);
 
 };
 

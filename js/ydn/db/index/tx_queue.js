@@ -637,17 +637,33 @@ ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers)
         if (ydn.db.core.req.IndexedDb.DEBUG) {
           window.console.log(['on_iterator_next', i, primary_key, key, value]);
         }
+        // calling next to a terminated iterator
         throw new ydn.error.InternalError();
       }
       result_count++;
-      //console.log(['on_iterator_next', i, idx2iterator[i], result_count,
-      //
-      //  key, value]);
+      if (ydn.db.core.req.IndexedDb.DEBUG) {
+        window.console.log(['on_iterator_next', i, idx2iterator[i], result_count, key, value]);
+      }
       var idx = idx2iterator[i];
       var iterator = iterators[idx];
 
-      keys[i] = primary_key;
-      values[i] = iterator.isKeyOnly() ? key : value;
+      if (iterator.isIndexIterator()) {
+        if (iterator.isKeyOnly()) {
+          keys[i] = key;
+          values[i] = key;
+        } else {
+          keys[i] = key;
+          values[i] = primary_key;
+        }
+      } else {
+        if (iterator.isKeyOnly()) {
+          keys[i] = primary_key;
+          values[i] = primary_key;
+        } else {
+          keys[i] = primary_key;
+          values[i] = value;
+        }
+      }
 
       var streamer_idx = idx2streamer[i];
       for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
@@ -783,7 +799,7 @@ ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
       df.errback(e);
     };
     cursor.onNext = function (primaryKey, key, value) {
-      if (goog.isDef(key)) {
+      if (goog.isDefAndNotNull(primaryKey)) {
         var ref;
         if (iterator.isKeyOnly()) {
           if (iterator.isIndexIterator()) {
@@ -799,7 +815,7 @@ ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
           }
         }
         var adv = callback(ref);
-        //console.log(['onNext', key, primaryKey, value, adv]);
+        console.log(['onNext', key, primaryKey, value, ref, adv]);
         if (!goog.isDef(adv)) {
           cursor.forward(true);
         } else if (goog.isBoolean(adv)) {
