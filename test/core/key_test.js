@@ -25,7 +25,7 @@ var setUp = function() {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
   //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
   //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
   //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   //ydn.db.con.IndexedDb.DEBUG = true;
@@ -71,7 +71,7 @@ var createDb = function() {
 var key_test = function(db, key, table_name, callback) {
 
   table_name = table_name || string_table;
-  console.log('testing ' + key + ' on ' + table_name);
+  //console.log('testing ' + key + ' on ' + table_name);
   var key_value = 'a' + Math.random();
 
   var a_done;
@@ -140,7 +140,7 @@ var test_01_encode_key = function () {
   reachedFinalContinuation = true;
 };
 
-var test_02_encode_blob = function () {
+var _test_02_encode_blob = function () {
 
   var test_key = function (key, type) {
     var encoded = ydn.db.schema.Index.js2sql(key, type);
@@ -148,8 +148,8 @@ var test_02_encode_blob = function () {
     if (goog.isArray(key)) {
       assertArrayEquals(type + ':' + JSON.stringify(key), key, decoded);
     } else {
-      console.log(key);
-      console.log(decoded);
+      //console.log(key);
+      //console.log(decoded);
       assertEquals(type + ':' + JSON.stringify(key), key, decoded);
     }
 
@@ -168,7 +168,7 @@ var test_02_encode_blob = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   var url = 'http://upload.wikimedia.org/wikipedia/commons/6/6e/HTML5-logo.svg';
   var xhr = new XMLHttpRequest();
@@ -258,7 +258,7 @@ var test_13_array_key = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
 
   db.list(store_name).addBoth(function (value) {
@@ -291,7 +291,7 @@ var test_21_out_of_line = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   waitForCondition(
     // Condition
@@ -311,7 +311,7 @@ var test_21_out_of_line = function () {
     },
 
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   db.put(out_of_line_store, data, key).addCallback(function (value) {
     //console.log(['receiving key from put', value]);
@@ -354,7 +354,7 @@ var test_22_out_of_line_array = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   waitForCondition(
     // Condition
@@ -375,7 +375,7 @@ var test_22_out_of_line_array = function () {
     },
 
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   db.put(store_name, objs, keys).addCallback(function (value) {
     //console.log(['receiving key from put', value]);
@@ -472,7 +472,7 @@ var test_42_autoincreasement_offline = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   waitForCondition(
     // Condition
@@ -496,7 +496,7 @@ var test_42_autoincreasement_offline = function () {
     },
 
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   db.put(store_name, objs).addCallback(function (value) {
     //console.log(['receiving key from put', value]);
@@ -538,7 +538,7 @@ var test_43_autoincreasement_inline = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   waitForCondition(
     // Condition
@@ -565,7 +565,7 @@ var test_43_autoincreasement_inline = function () {
     },
 
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
 
   // last two are given different value
@@ -615,7 +615,7 @@ var test_51_autoschema_out_of_line_key = function () {
           db_name_to_delete = db_name;
         },
         100, // interval
-        1000); // maxTimeout
+        5000); // maxTimeout
 
       db.get(out_of_line_store, key).addBoth(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
@@ -626,7 +626,7 @@ var test_51_autoschema_out_of_line_key = function () {
     },
 
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   db.put(out_of_line_store, data, key).addCallback(function (value) {
     //console.log(['receiving key from put', value]);
@@ -669,7 +669,7 @@ var test_52_autoschema_in_line_key = function () {
           db_name_to_delete = db_name;
         },
         100, // interval
-        1000); // maxTimeout
+        5000); // maxTimeout
 
       db.get('st', key).addBoth(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
@@ -680,7 +680,7 @@ var test_52_autoschema_in_line_key = function () {
     },
 
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   db.put(store, data).addCallback(function (value) {
     //console.log(['receiving key from put', value]);

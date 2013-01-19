@@ -140,6 +140,8 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
               edited_schema.addStore(info_store);
             }
           }
+        } else {
+
         }
 
       }, tx, db);
@@ -496,6 +498,11 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 //      type: "index"
 
       if (info.name == '__WebKitDatabaseInfoTable__') {
+        continue;
+      }
+      if (info.name == 'sqlite_sequence') {
+        // internal table used by Sqlite
+        // http://www.sqlite.org/fileformat2.html#seqtab
         continue;
       }
       if (info.type == 'table') {

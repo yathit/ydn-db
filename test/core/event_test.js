@@ -70,7 +70,7 @@ var test_created_event = function() {
         reachedFinalContinuation = true;
       },
       100, // interval
-      1000); // maxTimeout
+      3000); // maxTimeout
 
   db.addEventListener('created', function(e) {
     ev = e;
@@ -104,7 +104,7 @@ var test_updated_event = function() {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    3000); // maxTimeout
 
   db.addEventListener('updated', function(e) {
     ev = e;
@@ -140,7 +140,7 @@ var test_updated_store_event = function() {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    3000); // maxTimeout
 
   db.addEventListener('updated', function(e) {
     ev = e;
@@ -188,9 +188,10 @@ var test_deleted_event = function() {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    3000); // maxTimeout
 
   db.addEventListener('deleted', function(e) {
+    console.log(e);
     if (e.name == 'StoreEvent') {
       store_event = e;
     } else {

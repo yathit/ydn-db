@@ -2,14 +2,13 @@
 goog.addDependency("../../../ydn-db/js/conn.js", [], ['ydn.db', 'ydn.db.con.Storage', 'goog.async.Deferred', 'ydn.base', 'ydn.db.events.StorageEvent']);
 goog.addDependency("../../../ydn-db/js/core.js", [], ['ydn.db.core.Storage', 'ydn.db.core.TxQueue', 'ydn.db', 'ydn.db.events.RecordEvent', 'ydn.db.events.StoreEvent']);
 goog.addDependency("../../../ydn-db/js/dev.js", [], ['ydn.debug']);
-goog.addDependency("../../../ydn-db/js/main.js", [], ['ydn.db.Storage', 'ydn.db.TxStorage', 'ydn.db.algo.NestedLoop', 'ydn.db.algo.ZigzagMerge', 'ydn.db.algo.SortedMerge']);
+goog.addDependency("../../../ydn-db/js/index.js", [], ['ydn.db.index.Storage', 'ydn.db.index.TxQueue', 'ydn.db.index.req.IDBCursor', 'ydn.math.Expression']);
+goog.addDependency("../../../ydn-db/js/main.js", [], ['ydn.db.Storage', 'ydn.db.algo.NestedLoop', 'ydn.db.algo.ZigzagMerge', 'ydn.db.algo.SortedMerge']);
+goog.addDependency("../../../ydn-db/js/rich.js", [], ['ydn.db.rich.Storage']);
 goog.addDependency("../../../ydn-db/js/sql.js", [], ['ydn.db.sql.Storage', 'ydn.db.sql.TxQueue']);
 goog.addDependency("../../../ydn-db/js/test.js", [], ['ydn.db.Storage', 'goog.debug.Console']);
 goog.addDependency("../../../ydn-db/js/tr.js", [], ['ydn.db.tr.Storage', 'ydn.db.tr.TxQueue']);
-goog.addDependency("../../../ydn-db/js/ydn/db/i_storage.js", ['ydn.db.IStorage'], ['ydn.db.index.IStorage']);
-goog.addDependency("../../../ydn-db/js/ydn/db/rich_storage.js", ['ydn.db.RichStorage_'], ['goog.storage.EncryptedStorage', 'goog.storage.ExpiringStorage']);
-goog.addDependency("../../../ydn-db/js/ydn/db/storage.js", ['ydn.db.Storage'], ['goog.userAgent.product', 'ydn.async', 'ydn.object', 'ydn.db.RichStorage_', 'ydn.db.sql.Storage', 'ydn.db.TxStorage', 'ydn.db.IStorage']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tx_storage.js", ['ydn.db.TxStorage'], ['ydn.db.sql.TxQueue', 'ydn.db.algo', 'ydn.error.NotSupportedException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/storage.js", ['ydn.db.Storage'], ['ydn.db.sql.Storage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/algo/abstract_solver.js", ['ydn.db.algo.AbstractSolver'], ['goog.debug.Logger', 'ydn.db.Streamer', 'ydn.db']);
 goog.addDependency("../../../ydn-db/js/ydn/db/algo/algo.js", ['ydn.db.algo'], ['ydn.error.ArgumentException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/algo/nested_loop.js", ['ydn.db.algo.NestedLoop'], ['ydn.db.algo.AbstractSolver']);
@@ -61,6 +60,9 @@ goog.addDependency("../../../ydn-db/js/ydn/db/index/req/indexed_db.js", ['ydn.db
 goog.addDependency("../../../ydn-db/js/ydn/db/index/req/simple_store.js", ['ydn.db.index.req.SimpleStore'], ['ydn.db.core.req.SimpleStore', 'ydn.db.index.req.IRequestExecutor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/index/req/websql.js", ['ydn.db.index.req.WebSql'], ['goog.async.Deferred', 'goog.debug.Logger', 'goog.events', 'ydn.async', 'ydn.db.WebsqlCursor', 'ydn.json', 'ydn.db.index.req.IRequestExecutor', 'ydn.db.index.req.WebsqlCursor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/index/req/websql_cursor.js", ['ydn.db.index.req.WebsqlCursor'], ['ydn.db.index.req.AbstractCursor']);
+goog.addDependency("../../../ydn-db/js/ydn/db/rich/rich_storage.js", ['ydn.db.RichStorage'], ['goog.storage.EncryptedStorage', 'goog.storage.ExpiringStorage']);
+goog.addDependency("../../../ydn-db/js/ydn/db/rich/storage.js", ['ydn.db.rich.Storage'], ['ydn.db.core.Storage', 'ydn.db.RichStorage']);
+goog.addDependency("../../../ydn-db/js/ydn/db/rich/tx_storage.js", ['ydn.db.rich.TxQueue'], ['ydn.db.sql.TxQueue', 'ydn.db.algo', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/i_storage.js", ['ydn.db.sql.IStorage'], ['ydn.db.sql.req.IRequestExecutor', 'ydn.db.index.IStorage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/sql.js", ['ydn.db.Sql'], ['goog.functions', 'ydn.db.KeyRange', 'ydn.db.schema.Database', 'ydn.error.ArgumentException', 'ydn.db.sql.req.IdbQuery', 'ydn.math.Expression', 'ydn.db.Where', 'ydn.string']);
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/storage.js", ['ydn.db.sql.Storage'], ['ydn.db.sql.TxQueue', 'ydn.db.index.Storage']);

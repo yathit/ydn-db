@@ -25,6 +25,8 @@ var setUp = function() {
 
   //ydn.db.con.IndexedDb.DEBUG = true;
 
+  //ydn.db.con.WebSql.DEBUG = true;
+
   db_name = 'test_db' + Math.random();
 
   store_schema = {name: store_name, keyPath: 'id'};
@@ -38,16 +40,14 @@ var tearDown = function() {
 
 
 /**
- * @param {string=} name
+ * @param {string} name
+ * @param {string} type
  */
-var deleteDb = function(name) {
-  name = name || db_name;
+var deleteDb = function(name, type) {
 
-  if (ydn.db.con.IndexedDb.indexedDb.deleteDatabase) {
-    ydn.db.con.IndexedDb.indexedDb.deleteDatabase(name);
-  } else {
-    console.log('Delete database manually: ' + name);
-  }
+  ydn.db.deleteDatabase(name, type);
+
+
 };
 
 
@@ -71,7 +71,7 @@ var schema_test = function(schema, to_delete, name) {
       assertEquals('version', version, sh.version);
       reachedFinalContinuation = true;
       if (to_delete) {
-        deleteDb();
+        deleteDb(name, db.type());
       }
     },
     100, // interval
@@ -99,7 +99,7 @@ var trival_schema_test = function(dbname) {
     // Continuation
     function() {
 
-      console.log([act_schema, validated_schema]);
+      //console.log([act_schema, validated_schema]);
       var diff = validated_schema.difference(act_schema);
       assertTrue('version diff: ' + diff, diff.length == 0);
       reachedFinalContinuation = true;
@@ -121,7 +121,7 @@ var test_10a_trival_schema = function() {
 var test_10b_trival_schema = function() {
   // this run is different because database already exists.
   trival_schema_test(trival_db_name);
-  deleteDb(trival_db_name);
+  deleteDb(trival_db_name, options.mechanisms[0]);
 };
 
 var test_12_no_db = function() {
@@ -196,14 +196,16 @@ var assert_similar_schema = function(schema, schema_json) {
     var store = schema.stores[i];
     var store_json = stores[i];
     assertEquals(i + ': name', store.name, store_json.name);
-    if (store_json.type) {
+    if (store_json.type && store.type) {
       assertEquals(i + ': type', store.type, store_json.type);
     }
 
-    assertEquals(i + ': keyPath', store.keyPath, store_json.keyPath);
-    if (goog.isDef(store.autoIncrement) && goog.isDef(store_json.autoIncrement)) {
-      assertEquals(i + ': autoIncrementt', store.autoIncrement,
-        store_json.autoIncrement);
+    if (store.keyPath) {
+      assertEquals(i + ': keyPath', store.keyPath, store_json.keyPath);
+      if (goog.isDef(store.autoIncrement) && goog.isDef(store_json.autoIncrement)) {
+        assertEquals(i + ': autoIncrementt', store.autoIncrement,
+          store_json.autoIncrement);
+      }
     }
 
     var indexes = store.Indexes || store.indexes;
@@ -245,7 +247,7 @@ var schema_sniff_test = function(schema) {
       //assertTrue(schema.similar(sniff_schema));
       assert_similar_schema(schema_json, sniff_schema);
       reachedFinalContinuation = true;
-      deleteDb(db_name);
+      deleteDb(db_name, db.type());
     },
     100, // interval
     1000); // maxTimeout
@@ -312,7 +314,6 @@ var test_schema_index = function() {
     unique: true,
     multiEntry: true
   };
-
 
   var store1 = {
     name: 'st1',
