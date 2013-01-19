@@ -168,23 +168,26 @@ ydn.db.schema.Index.js2sql = function(key, type) {
  */
 ydn.db.schema.Index.sql2js = function(key, type) {
   if (goog.isArray(type)) {
-    goog.asserts.assertString(key);
-    /**
-     * @type {string}
-     */
-    var s = key;
-    var arr = s.split(ydn.db.schema.Index.ARRAY_SEP);
-    var t = arr[0];
-    var effective_arr = arr.slice(1, arr.length - 1); // remove last and first
-    return goog.array.map(effective_arr, function(x) {
-      if (t == ydn.db.DataTypeAbbr.DATE) {
-        return new Date(parseInt(x, 10));
-      } else if (t == ydn.db.DataTypeAbbr.NUMERIC) {
-        return parseFloat(x);
-      } else {
-        return x;
-      }
-    });
+      if (goog.isString(key)) {
+      /**
+       * @type {string}
+       */
+      var s = key;
+      var arr = s.split(ydn.db.schema.Index.ARRAY_SEP);
+      var t = arr[0];
+      var effective_arr = arr.slice(1, arr.length - 1); // remove last and first
+      return goog.array.map(effective_arr, function(x) {
+        if (t == ydn.db.DataTypeAbbr.DATE) {
+          return new Date(parseInt(x, 10));
+        } else if (t == ydn.db.DataTypeAbbr.NUMERIC) {
+          return parseFloat(x);
+        } else {
+          return x;
+        }
+      });
+    } else {
+      return undefined;
+    }
   } else if (type == ydn.db.schema.DataType.DATE) {
     return new Date(key); // key is number
   } else if (goog.isDef(type)) {
@@ -853,14 +856,19 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
   }
 
   for (var i = 0; i < this.indexes.length; i++) {
-    if (this.indexes[i].name == this.keyPath ||
-      this.indexes[i].name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
+    var index = this.indexes[i];
+    if (index.name == this.keyPath ||
+        index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
       continue;
     }
-    var v = obj[this.indexes[i].name];
+    var v = obj[index.name];
     if (goog.isDef(v)) {
-      values.push(ydn.db.schema.Index.js2sql(v, this.indexes[i].type));
-      columns.push(goog.string.quote(this.indexes[i].name));
+      if (index.isMultiEntry()) {
+        values.push(ydn.db.schema.Index.js2sql(v, [index.type]));
+      } else {
+        values.push(ydn.db.schema.Index.js2sql(v, index.type));
+      }
+      columns.push(goog.string.quote(index.name));
     }
   }
 

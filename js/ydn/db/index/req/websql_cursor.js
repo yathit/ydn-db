@@ -200,7 +200,12 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
 
   var order =  ' ORDER BY ';
   if (q_column_name != q_primary_column_name) {
-    order += q_column_name + ', ' + q_primary_column_name;
+    // FIXME: how to reverse order ?
+    if (this.reverse) {
+      order += q_column_name;
+    } else {
+      order += q_column_name + ', ' + q_primary_column_name;
+    }
   } else {
     order += q_primary_column_name;
   }

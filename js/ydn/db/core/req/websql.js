@@ -110,7 +110,15 @@ ydn.db.core.req.WebSql.parseRow = function(row, store) {
       continue;
     }
     var x = row[index.name];
-    value[index.name] = ydn.db.schema.Index.sql2js(x, index.type);
+    var v;
+    if (index.isMultiEntry()) {
+      v = ydn.db.schema.Index.sql2js(x, [index.type]);
+    } else {
+      v = ydn.db.schema.Index.sql2js(x, index.type);
+    }
+    if (goog.isDef(v)) {
+      value[index.name] = v;
+    }
   }
   return value;
 };

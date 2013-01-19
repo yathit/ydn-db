@@ -30,11 +30,11 @@ var setUp = function() {
 
   objs = [
     {id:'qs0', value: 0, x: 1, tag: ['a', 'b']},
-    {id:'qs1', value: 1, x: 2, tag: 'a'},
+    {id:'qs1', value: 1, x: 2, tag: ['a']},
     {id:'at2', value: 2, x: 3, tag: ['a', 'b']},
-    {id:'bs1', value: 3, x: 6, tag: 'b'},
+    {id:'bs1', value: 3, x: 6, tag: ['b']},
     {id:'bs2', value: 4, x: 14, tag: ['a', 'c', 'd']},
-    {id:'bs3', value: 5, x: 111, tag: 'c'},
+    {id:'bs3', value: 5, x: 111, tag: ['c']},
     {id:'st3', value: 6, x: 600}
   ];
 
@@ -57,8 +57,8 @@ var tearDown = function() {
 
 var load_default = function() {
   var indexSchema = new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT, false, true);
-  var valueIndex = new ydn.db.schema.Index('value', ydn.db.schema.DataType.INTEGER, false, true);
-  var xIndex = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, false, true);
+  var valueIndex = new ydn.db.schema.Index('value', ydn.db.schema.DataType.INTEGER, false, false);
+  var xIndex = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, false, false);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
     ydn.db.schema.DataType.TEXT, [valueIndex, indexSchema, xIndex]);
 
@@ -100,6 +100,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
       // Continuation
       function () {
         assertArrayEquals('streaming keys', actual_keys, streaming_keys);
+        console.log([actual_index_keys, streaming_index_keys]);
         assertArrayEquals('streaming values', actual_index_keys, streaming_index_keys);
 
         reachedFinalContinuation = true;

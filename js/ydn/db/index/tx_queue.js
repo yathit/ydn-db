@@ -815,7 +815,7 @@ ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
           }
         }
         var adv = callback(ref);
-        console.log(['onNext', key, primaryKey, value, ref, adv]);
+        //console.log(['onNext', key, primaryKey, value, ref, adv]);
         if (!goog.isDef(adv)) {
           cursor.forward(true);
         } else if (goog.isBoolean(adv)) {
