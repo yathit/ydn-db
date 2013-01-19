@@ -3,7 +3,7 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
-    <property name="code-ver" value="32"/>
+    <property name="code-ver" value="33"/>
     <property name="ver" value="0.${code-ver}"/>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
     <property name="dev-out.fn"
@@ -20,8 +20,9 @@
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/index.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/main.js"'/>
-                <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
+                <arg line='-f "--closure_entry_point=ydn.db.sql.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
             <options>
@@ -122,7 +123,7 @@
         <!--SIMPLE_OPTIMIZATIONS-->
         <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
-                         input="${ydn-db.dir}/js/ydn/db/storage.js"
+                         input="${ydn-db.dir}/js/ydn/db/sql/storage.js"
                          output.fn="${ydn-db.dir}/jsc/raw-ydn.db-${ver}.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
@@ -132,7 +133,7 @@
             <options>
                 <arg line='-f "--formatting=PRETTY_PRINT"'/>
                 <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
-                <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
+                <arg line='-f "--closure_entry_point=ydn.db.sql.Storage"'/>
             </options>
         </closure-compile>
     </target>
@@ -179,7 +180,7 @@
                 input.fn="${ydn-db.dir}/js/main.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="ydn.db-${ver}.js"
-                closure.entry="ydn.db.Storage">
+                closure.entry="ydn.db.sql.Storage">
             <ex.opt>
                 <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>

@@ -12,9 +12,9 @@
 
 
 /**
- * @fileoverview Provide iteration query.
+ * @fileoverview Provide SQL query statement execution.
  *
- * @author kyawtun@yathit.com (Kyaw Tun)
+ * @author Kyaw Tun <kyawtun@yathit.com>
  */
 
 goog.provide('ydn.db.sql.Storage');

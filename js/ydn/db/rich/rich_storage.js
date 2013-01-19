@@ -8,7 +8,7 @@
 
 // Note: intentionally not exported.
 // This class is supposed to be inner class of ydn.db.Storage.
-goog.provide('ydn.db.RichStorage_');
+goog.provide('ydn.db.RichStorage');
 goog.require('goog.storage.EncryptedStorage');
 goog.require('goog.storage.ExpiringStorage');
 
