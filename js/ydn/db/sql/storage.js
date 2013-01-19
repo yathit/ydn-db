@@ -49,8 +49,6 @@ ydn.db.sql.Storage = function(opt_dbname, opt_schema, opt_options) {
 goog.inherits(ydn.db.sql.Storage, ydn.db.index.Storage);
 
 
-
-
 /**
  * @override
  */

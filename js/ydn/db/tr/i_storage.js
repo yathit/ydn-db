@@ -27,7 +27,7 @@ ydn.db.tr.IStorage = function() {};
  * handler on completed.
  * @param {...} opt_args optional arguments to post-pend to callback function.
  */
-ydn.db.tr.IStorage.prototype.run = goog.abstractMethod;
+ydn.db.tr.IStorage.prototype.begin = goog.abstractMethod;
 
 
 /**
