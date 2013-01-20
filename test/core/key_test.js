@@ -84,7 +84,7 @@ var key_test = function(db, key, table_name, callback) {
         assertEquals('put a', key, a_value);
       },
       100, // interval
-      2000); // maxTimeout
+      5000); // maxTimeout
 
   db.put(table_name, {id: key, value: key_value}).addCallback(function(value) {
     //console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
@@ -105,7 +105,7 @@ var key_test = function(db, key, table_name, callback) {
         }
       },
       100, // interval
-      2000); // maxTimeout
+      5000); // maxTimeout
 
   db.get(table_name, key).addCallback(function(value) {
     console.log(db + ' receiving get value callback ' + key + ' = ' + JSON.stringify(value));
@@ -408,7 +408,7 @@ var test_40_nested_keyPath = function() {
       // Remember, the state of this boolean will be tested in tearDown().
     },
     100, // interval
-    2000); // maxTimeout
+    5000); // maxTimeout
 
   db.put(store_name, put_value).addCallback(function(value) {
     console.log('put: ' + value);
@@ -427,7 +427,7 @@ var test_40_nested_keyPath = function() {
       reachedFinalContinuation = true;
     },
     100, // interval
-    2000); // maxTimeout
+    5000); // maxTimeout
 
 
   db.get(store_name, key).addCallback(function(value) {

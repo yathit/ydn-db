@@ -85,7 +85,7 @@ var test_store = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
 
   db.keys(store_name).addCallback(function (value) {
@@ -114,7 +114,7 @@ var test_primary_key_range = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   var range = ydn.db.KeyRange.bound(1, 10);
   db.keys(store_name, range).addCallback(function (value) {
@@ -142,7 +142,7 @@ var test_by_index_key_range = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   var range = ydn.db.KeyRange.bound('ba', 'c');
   db.keys(store_name, 'value', range).addCallback(function (value) {
@@ -171,7 +171,7 @@ var test_array_key = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
 
   db.keys(arr_store_name).addBoth(function (value) {
@@ -204,7 +204,7 @@ var test_keyrange_starts = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
 
   var range = ydn.db.KeyRange.starts('b');
@@ -239,7 +239,7 @@ var test_string_key_starts = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
 
   var range = ydn.db.KeyRange.starts('b');
@@ -268,7 +268,7 @@ var test_array_key_key_range = function () {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
 
   var range = ydn.db.KeyRange.starts(['b']);

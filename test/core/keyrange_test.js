@@ -69,7 +69,7 @@ var keyRange_test = function (key_range, exp_result, reverse) {
       reachedFinalContinuation = true;
     },
     100, // interval
-    1000); // maxTimeout
+    5000); // maxTimeout
 
   reverse = !!reverse;
   var req = db.list(store_name, key_range, reverse);
@@ -177,7 +177,7 @@ var test_query_start_with = function () {
           reachedFinalContinuation = true;
         },
         100, // interval
-        2000); // maxTimeout
+        5000); // maxTimeout
 
 
       var key_range = ydn.db.KeyRange.starts('qs');
@@ -192,7 +192,7 @@ var test_query_start_with = function () {
 
     },
     100, // interval
-    2000); // maxTimeout
+    5000); // maxTimeout
 
   db.put(store_name, objs).addCallback(function (value) {
     console.log(['receiving value callback.', value]);

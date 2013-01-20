@@ -9,8 +9,6 @@ goog.require('goog.testing.PropertyReplacer');
 var reachedFinalContinuation, schema, debug_console;
 
 
-options.usedTextStore = false;
-
 
 var setUp = function () {
   if (!debug_console) {
@@ -39,8 +37,8 @@ var test_11_put = function() {
   // autoSchema database
   var db = new ydn.db.Storage(db_name, undefined, options);
   var sh = db.getSchema();
-  assertEquals('no store', 0, sh.Stores.length);
-  assertTrue('auto schema', db.isAutoSchema());
+  assertEquals('no store', 0, sh.stores.length);
+  assertUndefined('auto schema', sh.version);
   var table_name = 'st1';
   var store_schema = {'name': table_name, 'keyPath': 'id', 'type': 'TEXT'};
 
@@ -53,7 +51,7 @@ var test_11_put = function() {
     function() { return hasEventFired; },
     // Continuation
     function() {
-      assertEquals('get back', value + ' not', result);
+      assertEquals('get back', value, result);
       // Remember, the state of this boolean will be tested in tearDown().
       reachedFinalContinuation = true;
     },
@@ -64,7 +62,7 @@ var test_11_put = function() {
   db.put(store_schema, {id: 'a', value: value, remark: 'put test'}).addCallback(function(y) {
     //console.log('receiving value callback.');
 
-    db.get(store_name, 'a').addCallback(function(x) {
+    db.get(table_name, 'a').addCallback(function(x) {
       result = x.value;
       hasEventFired = true;
     })
