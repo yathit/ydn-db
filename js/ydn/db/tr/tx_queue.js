@@ -237,7 +237,7 @@ ydn.db.tr.TxQueue.prototype.popTxQueue_ = function() {
   var task = this.trQueue_.shift();
   if (task) {
     this.logger.finest('pop tx queue ' + task.fnc.name);
-    this.begin(task.fnc, task.store_names, task.mode, task.oncompleted);
+    this.run(task.fnc, task.store_names, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
 };
@@ -305,7 +305,7 @@ ydn.db.tr.TxQueue.prototype.abort = function() {
  * @param {...} opt_args optional arguments.
  * @override
  */
-ydn.db.tr.TxQueue.prototype.begin = function(trFn, store_names, opt_mode,
+ydn.db.tr.TxQueue.prototype.run = function(trFn, store_names, opt_mode,
                                               oncompleted, opt_args) {
 
   //console.log('tr starting ' + trFn.name);
@@ -440,7 +440,7 @@ ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope)
     blocked_tx_callback.name = scope; // scope name
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
     // locked: ' + mu_tx.isSetDone());
-    me.begin(blocked_tx_callback, store_names, mode, blocked_on_complete);
+    me.run(blocked_tx_callback, store_names, mode, blocked_on_complete);
 
     // need to think about handling oncompleted and onerror callback of the
     // transaction. after executed all the requests, the transaction is not
@@ -487,7 +487,7 @@ ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope)
     tx_callback.name = scope; // scope name
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
     // locked: ' + mu_tx.isSetDone());
-    me.begin(tx_callback, store_names, mode, on_complete);
+    me.run(tx_callback, store_names, mode, on_complete);
   }
 };
 

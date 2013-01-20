@@ -87,7 +87,7 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(scope_name, blocked) {
 /**
  * @inheritDoc
  */
-ydn.db.tr.Storage.prototype.begin = function(trFn, store_names, opt_mode,
+ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
   var scope_name = trFn.name || '';
@@ -102,9 +102,9 @@ ydn.db.tr.Storage.prototype.begin = function(trFn, store_names, opt_mode,
       return trFn.apply(this, newArgs);
     };
     outFn.name = trFn.name;
-    tx_queue.begin(outFn, store_names, opt_mode, oncompleted);
+    tx_queue.run(outFn, store_names, opt_mode, oncompleted);
   } else { // optional are strip
-    tx_queue.begin(trFn, store_names, opt_mode, oncompleted);
+    tx_queue.run(trFn, store_names, opt_mode, oncompleted);
   }
 
 };
