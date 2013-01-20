@@ -52,9 +52,10 @@ goog.inherits(ydn.db.sql.Storage, ydn.db.index.Storage);
 /**
  * @override
  */
-ydn.db.sql.Storage.prototype.newTxQueue = function(scope_name, blocked) {
-  return new ydn.db.sql.TxQueue(this, !!blocked, this.ptx_no++, scope_name,
-    this.schema);
+ydn.db.sql.Storage.prototype.newTxQueue = function(thread, scope_name) {
+  thread = thread || this.thread;
+  return new ydn.db.sql.TxQueue(this, thread, this.ptx_no++,
+      this.schema, scope_name);
 };
 
 /**

@@ -80,8 +80,10 @@ goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/idb/reduce_node.js", ['ydn
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/websql/node.js", ['ydn.db.sql.req.websql.Node'], ['ydn.db.schema.Store', 'ydn.db.Sql']);
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/websql/reduce_node.js", ['ydn.db.sql.req.websql.ReduceNode'], ['ydn.db.sql.req.websql.Node', 'ydn.object']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_storage.js", ['ydn.db.tr.IStorage'], ['ydn.db.tr.Mutex']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_thread.js", ['ydn.db.tr.IThread', 'ydn.db.tr.IThread.Threads'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/mutex.js", ['ydn.db.tr.Mutex'], ['goog.array', 'goog.asserts', 'ydn.db.InvalidStateError']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tr/storage.js", ['ydn.db.tr.Storage'], ['ydn.db.con.Storage', 'ydn.db.tr.IStorage', 'ydn.db.tr.TxQueue']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tr/tx_queue.js", ['ydn.db.tr.TxQueue'], ['ydn.db.con.IStorage', 'ydn.error.NotSupportedException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/parallel_thread.js", ['ydn.db.tr.ParallelThread'], ['ydn.db.tr.IThread', 'ydn.error.NotSupportedException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/storage.js", ['ydn.db.tr.Storage'], ['ydn.db.con.Storage', 'ydn.db.tr.IStorage', 'ydn.db.tr.TxQueue', 'ydn.db.tr.IThread.Threads']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/tx_queue.js", ['ydn.db.tr.TxQueue'], ['ydn.db.tr.IThread', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/utils/reader.js", ['ydn.db.io.Reader'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/utils/test_utils.js", ['ydn.db.test'], ['ydn.db.io.QueryService']);

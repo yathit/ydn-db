@@ -26,16 +26,16 @@ goog.require('ydn.db.sql.req.SimpleStore');
  * mutex.
  *
  * @param {!ydn.db.core.Storage} storage base storage object.
- * @param {boolean} blocked
+ * @param {ydn.db.tr.IThread.Threads} blocked
  * @param {number} ptx_no transaction queue number.
- * @param {string} scope_name scope name.
  * @param {!ydn.db.schema.Database} schema schema.
+ * @param {string=} scope_name scope name.
  * @constructor
  * @implements {ydn.db.sql.IStorage}
  * @extends {ydn.db.index.TxQueue}
 */
-ydn.db.sql.TxQueue = function(storage, blocked, ptx_no, scope_name, schema) {
-  goog.base(this, storage, blocked, ptx_no, scope_name, schema);
+ydn.db.sql.TxQueue = function(storage, blocked, ptx_no, schema, scope_name) {
+  goog.base(this, storage, blocked, ptx_no, schema, scope_name);
 };
 goog.inherits(ydn.db.sql.TxQueue, ydn.db.index.TxQueue);
 

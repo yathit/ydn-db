@@ -7,7 +7,7 @@
 
 
 goog.provide('ydn.db.tr.TxQueue');
-goog.require('ydn.db.con.IStorage');
+goog.require('ydn.db.tr.IThread');
 goog.require('ydn.error.NotSupportedException');
 
 
@@ -15,16 +15,16 @@ goog.require('ydn.error.NotSupportedException');
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
  *
- * @implements {ydn.db.con.IStorage}
  * @implements {ydn.db.tr.IStorage}
+ * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
- * @param {boolean} blocked if true each database operation is blocked, effectively
+ * @param {ydn.db.tr.IThread.Threads} thread if true each database operation is blocked, effectively
  * making atomic transaction operation.
  * @param {number} ptx_no transaction queue number.
- * @param {string} scope_name scope name.
+ * @param {string=} scope_name scope name.
  * @constructor
  */
-ydn.db.tr.TxQueue = function(storage, blocked, ptx_no, scope_name) {
+ydn.db.tr.TxQueue = function(storage, thread, ptx_no, scope_name) {
 
   /**
    * @final
@@ -35,10 +35,10 @@ ydn.db.tr.TxQueue = function(storage, blocked, ptx_no, scope_name) {
 
   /**
    * @final
-   * @type {boolean}
+   * @type {ydn.db.tr.IThread.Threads}
    * @private
    */
-  this.blocked = blocked;
+  this.thread = thread;
 
   /*
    * Transaction queue no.
@@ -63,7 +63,7 @@ ydn.db.tr.TxQueue = function(storage, blocked, ptx_no, scope_name) {
    */
   this.mu_tx_ = new ydn.db.tr.Mutex(ptx_no);
 
-  this.scope = scope_name;
+  this.scope = scope_name || '';
 
 };
 
@@ -85,16 +85,6 @@ ydn.db.tr.TxQueue.prototype.logger =
 
 
 /**
- * @inheritDoc
- */
-ydn.db.tr.TxQueue.prototype.close = function() {
-  return this.storage_.close();
-};
-
-
-
-
-/**
 * Add or update a store issuing a version change event.
 * @protected
 * @param {!StoreSchema|!ydn.db.schema.Store} store schema.
@@ -104,15 +94,15 @@ ydn.db.tr.TxQueue.prototype.addStoreSchema = function(store) {
   return this.storage_.addStoreSchema(store);
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.tr.TxQueue.prototype.transaction = function(trFn, store_names,
-       opt_mode, completed_event_handler) {
-  this.storage_.transaction(trFn, store_names,
-      opt_mode, completed_event_handler);
-};
+//
+///**
+// * @inheritDoc
+// */
+//ydn.db.tr.TxQueue.prototype.transaction = function(trFn, store_names,
+//       opt_mode, completed_event_handler) {
+//  this.storage_.transaction(trFn, store_names,
+//      opt_mode, completed_event_handler);
+//};
 
 
 /**
@@ -205,7 +195,7 @@ ydn.db.tr.TxQueue.prototype.lock = function() {
 
 /**
  *
- * @inheritDoc
+ * @return {string}
  */
 ydn.db.tr.TxQueue.prototype.type = function() {
   return this.storage_.type();
@@ -399,20 +389,15 @@ ydn.db.tr.TxQueue.prototype.run = function(trFn, store_names, opt_mode,
  */
 ydn.db.tr.TxQueue.prototype.getExecutor = goog.abstractMethod;
 
+
 /**
- * @throws {ydn.db.ScopeError}
- * @protected
- * @param {function(ydn.db.core.req.IRequestExecutor)} callback callback when executor
- * is ready.
- * @param {!Array.<string>} store_names store name involved in the transaction.
- * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
- * @param {string} scope scope.
+ * @inheritDoc
  */
 ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope) {
   var me = this;
   var mu_tx = this.getMuTx();
 
-  if (this.blocked) {
+  if (this.thread == ydn.db.tr.IThread.Threads.SERIAL) {
     //console.log('creating new tx for ' + scope);
 
     var blocked_on_complete = function () {
