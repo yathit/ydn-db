@@ -41,12 +41,9 @@ goog.inherits(ydn.db.sql.TxQueue, ydn.db.index.TxQueue);
 
 
 /**
- * Return cache executor object or create on request. This have to be crated
- * Lazily because, we can initialize it only when transaction object is active.
- * @protected
- * @return {ydn.db.sql.req.IRequestExecutor} get executor.
+ * @return {ydn.db.sql.req.IRequestExecutor}
  */
-ydn.db.sql.TxQueue.prototype.getExecutor = function() {
+ydn.db.sql.TxQueue.prototype.getExecutor = function(tx) {
   if (!this.executor) {
     var type = this.type();
     if (type == ydn.db.con.IndexedDb.TYPE) {
@@ -61,43 +58,37 @@ ydn.db.sql.TxQueue.prototype.getExecutor = function() {
       throw new ydn.db.InternalError('No executor for ' + type);
     }
   }
+  this.executor.setTx(tx);
   return /** @type {ydn.db.sql.req.IRequestExecutor} */ (this.executor);
 };
 
 
-/**
- * @throws {ydn.db.ScopeError}
- * @protected
- * @param {function(ydn.db.sql.req.IRequestExecutor)} callback callback when
- * executor
- * is ready.
- * @param {!Array.<string>} store_names store name involved in the transaction.
- * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
- * @param {string} scope scope name.
- */
-ydn.db.sql.TxQueue.prototype.exec = function(callback, store_names, mode, scope) {
-  goog.base(this, 'exec',
-    /** @type {function(ydn.db.index.req.IRequestExecutor)} */ (callback),
-    store_names, mode, scope);
-};
+///**
+// * @inheritDoc
+// */
+//ydn.db.sql.TxQueue.prototype.exec = function(callback, store_names, mode, scope) {
+//  goog.base(this, 'exec',
+//    /** @type {function(ydn.db.index.req.IRequestExecutor)} */ (callback),
+//    store_names, mode, scope);
+//};
 
 
 
-
-/**
- * Explain query plan.
- * @param {!ydn.db.Iterator} q
- * @return {Object} plan in JSON
- */
-ydn.db.sql.TxQueue.prototype.explain = function (q) {
-  if (!this.executor) {
-    return {'error':'database not ready'};
-  } else if (q instanceof ydn.db.Sql) {
-    return this.getExecutor().explainSql(q);
-  } else {
-    throw new ydn.error.ArgumentException();
-  }
-};
+//
+///**
+// * Explain query plan.
+// * @param {!ydn.db.Iterator} q
+// * @return {Object} plan in JSON
+// */
+//ydn.db.sql.TxQueue.prototype.explain = function (q) {
+//  if (!this.executor) {
+//    return {'error':'database not ready'};
+//  } else if (q instanceof ydn.db.Sql) {
+//    return this.getExecutor().explainSql(q);
+//  } else {
+//    throw new ydn.error.ArgumentException();
+//  }
+//};
 
 
 
@@ -121,8 +112,9 @@ ydn.db.sql.TxQueue.prototype.executeSql = function (sql, params) {
     }
   }
 
-  this.exec(function (executor) {
-    executor.executeSql(df, query, params || []);
+  var me = this;
+  this.exec(function (tx) {
+    me.getExecutor(tx).executeSql(df, query, params || []);
   }, query.getStoreNames(), query.getMode(), 'executeSql');
 
   return df;

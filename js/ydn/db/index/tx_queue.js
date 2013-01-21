@@ -41,12 +41,9 @@ goog.inherits(ydn.db.index.TxQueue, ydn.db.core.TxQueue);
 
 
 /**
- * Return cache executor object or create on request. This have to be crated
- * Lazily because, we can initialize it only when transaction object is active.
- * @protected
- * @return {ydn.db.index.req.IRequestExecutor} get executor.
+ * @return {ydn.db.index.req.IRequestExecutor}
  */
-ydn.db.index.TxQueue.prototype.getExecutor = function() {
+ydn.db.index.TxQueue.prototype.getExecutor = function(tx) {
   if (!this.executor) {
     var type = this.type();
     if (type == ydn.db.con.IndexedDb.TYPE) {
@@ -61,24 +58,8 @@ ydn.db.index.TxQueue.prototype.getExecutor = function() {
       throw new ydn.db.InternalError('No executor for ' + type);
     }
   }
+  this.executor.setTx(tx);
   return /** @type {ydn.db.index.req.IRequestExecutor} */ (this.executor);
-};
-
-
-/**
- * @throws {ydn.db.ScopeError}
- * @protected
- * @param {function(ydn.db.index.req.IRequestExecutor)} callback callback when
- * executor
- * is ready.
- * @param {!Array.<string>} store_names store name involved in the transaction.
- * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
- * @param {string} scope scope name.
- */
-ydn.db.index.TxQueue.prototype.exec = function(callback, store_names, mode, scope) {
-  goog.base(this, 'exec',
-    /** @type {function(ydn.db.core.req.IRequestExecutor)} */ (callback),
-    store_names, mode, scope);
 };
 
 
@@ -87,6 +68,7 @@ ydn.db.index.TxQueue.prototype.exec = function(callback, store_names, mode, scop
  */
 ydn.db.index.TxQueue.prototype.get = function(arg1, arg2) {
 
+  var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
     /**
@@ -104,8 +86,8 @@ ydn.db.index.TxQueue.prototype.get = function(arg1, arg2) {
       throw new ydn.error.ArgumentException('index "' +
         index_name + '" not found in store "' + q_store_name + '".');
     }
-    this.exec(function(executor) {
-      executor.getByIterator(df, q);
+    this.exec(function(tx) {
+      me.getExecutor(tx).getByIterator(df, q);
     }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');
     return df;
   } else {
@@ -121,6 +103,7 @@ ydn.db.index.TxQueue.prototype.get = function(arg1, arg2) {
  */
 ydn.db.index.TxQueue.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
 
+  var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
     if (goog.isDef(arg3) || goog.isDef(arg4) || goog.isDef(arg5)) {
@@ -155,8 +138,8 @@ ydn.db.index.TxQueue.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg
      */
     var q = arg1;
 
-    this.exec(function(executor) {
-      executor.keysByIterator(df, q, limit, offset);
+    this.exec(function(tx) {
+      me.getExecutor(tx).keysByIterator(df, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
     return df;
@@ -172,6 +155,7 @@ ydn.db.index.TxQueue.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg
  */
 ydn.db.index.TxQueue.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
 
+  var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
     if (goog.isDef(arg4) || goog.isDef(arg5)) {
@@ -206,8 +190,8 @@ ydn.db.index.TxQueue.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg
      */
     var q = arg1;
 
-    this.exec(function(executor) {
-      executor.listByIterator(df, q, limit, offset);
+    this.exec(function(tx) {
+      me.getExecutor(tx).listByIterator(df, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
     return df;
@@ -481,7 +465,7 @@ ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers)
 
   var me = this;
 
-  this.exec(function(executor) {
+  this.exec(function(tx) {
     //executor.scan(df, iterators, streamers, solver);
     // do scanning
 
@@ -689,14 +673,14 @@ ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers)
         var iterator = iterators[i];
         var mode = iterator.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY :
           ydn.db.base.CursorMode.READ_ONLY;
-        var cursor = iterator.iterate(executor);
+        var cursor = iterator.iterate(this.getExecutor(tx));
         cursor.onError = on_error;
         cursor.onNext = goog.partial(on_iterator_next, idx);
         cursors[i] = cursor;
         idx2iterator[idx] = i;
         idx++;
         for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
-          var streamer = executor.getStreamer(iterator.getPeerStoreName(j),
+          var streamer = me.getExecutor(tx).getStreamer(iterator.getPeerStoreName(j),
             iterator.getBaseIndexName(j), iterator.getPeerIndexName(j));
           streamer.setSink(goog.partial(on_streamer_pop, idx));
           streamers.push(streamer);
@@ -748,13 +732,14 @@ ydn.db.index.TxQueue.prototype.open = function(iterator, callback, mode) {
   }
   var tr_mode = mode || ydn.db.base.TransactionMode.READ_ONLY;
 
+  var me = this;
   var df = ydn.db.base.createDeferred();
-  this.exec(function(executor) {
+  this.exec(function(tx) {
     // executor.open(df, cursor, callback, /** @type {ydn.db.base.CursorMode} */ (tr_mode));
 
     var read_write = tr_mode == ydn.db.base.TransactionMode.READ_WRITE;
 
-    var cursor = iterator.iterate(executor);
+    var cursor = iterator.iterate(me.getExecutor(tx));
 
     cursor.onError = function(e) {
       df.errback(e);
@@ -782,6 +767,7 @@ ydn.db.index.TxQueue.prototype.open = function(iterator, callback, mode) {
  */
 ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
 
+  var me = this;
   var stores = iterator.stores();
   for (var store, i = 0; store = stores[i]; i++) {
     if (!store) {
@@ -791,9 +777,9 @@ ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
   }
   var df = ydn.db.base.createDeferred();
 
-  this.exec(function (executor) {
+  this.exec(function (tx) {
 
-    var cursor = iterator.iterate(executor);
+    var cursor = iterator.iterate(me.getExecutor(tx));
 
     cursor.onError = function(e) {
       df.errback(e);
@@ -844,6 +830,7 @@ ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
  */
 ydn.db.index.TxQueue.prototype.reduce = function(iterator, callback, initial) {
 
+  var me = this;
   var stores = iterator.stores();
   for (var store, i = 0; store = stores[i]; i++) {
     if (!store) {
@@ -855,9 +842,9 @@ ydn.db.index.TxQueue.prototype.reduce = function(iterator, callback, initial) {
 
   var previous = goog.isObject(initial) ? ydn.object.clone(initial) : initial;
 
-  this.exec(function (executor) {
+  this.exec(function (tx) {
 
-    var cursor = iterator.iterate(executor);
+    var cursor = iterator.iterate(me.getExecutor(tx));
 
     cursor.onError = function(e) {
       df.errback(e);

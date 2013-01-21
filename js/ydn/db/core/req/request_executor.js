@@ -59,17 +59,17 @@ ydn.db.req.RequestExecutor.prototype.tx = null;
  * @protected
  * @type {string}
  */
-ydn.db.req.RequestExecutor.prototype.scope = '?';
+ydn.db.req.RequestExecutor.prototype.scope = '';
 
 
 /**
  *
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx transaction object.
- * @param {string} scope scope for logistic purpose only.
+ * @param {string=} scope scope for logistic purpose only.
  */
 ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {
   this.tx = tx;
-  this.scope_ = scope;
+  this.scope_ = scope || '';
 };
 
 

@@ -83,17 +83,6 @@ ydn.db.tr.TxQueue.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.tr.TxQueue');
 
 
-
-/**
-* Add or update a store issuing a version change event.
-* @protected
-* @param {!StoreSchema|!ydn.db.schema.Store} store schema.
-* @return {!goog.async.Deferred} promise.
-*/
-ydn.db.tr.TxQueue.prototype.addStoreSchema = function(store) {
-  return this.storage_.addStoreSchema(store);
-};
-
 //
 ///**
 // * @inheritDoc
@@ -382,15 +371,6 @@ ydn.db.tr.TxQueue.prototype.run = function(trFn, store_names, opt_mode,
 
 
 /**
- * Return cache executor object or create on request. This have to be crated
- * Lazily because, we can initialize it only when transaction object is active.
- * @protected
- * @return {ydn.db.core.req.IRequestExecutor} get executor.
- */
-ydn.db.tr.TxQueue.prototype.getExecutor = goog.abstractMethod;
-
-
-/**
  * @inheritDoc
  */
 ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope) {
@@ -417,8 +397,8 @@ ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope)
         throw new ydn.db.InternalError('Tx not available for scope: ' +
             scope);
       }
-      me.getExecutor().setTx(mu_tx.getTx(), scope);
-      callback(me.getExecutor());
+
+      callback(mu_tx.getTx());
       mu_tx.lock(); // for blocking tx.
     };
     //var cbFn = goog.partial(tx_callback, callback);
@@ -444,8 +424,7 @@ ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope)
     //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
     // call within a transaction
     // continue to use existing transaction
-    me.getExecutor().setTx(mu_tx.getTx(), scope);
-    callback(me.getExecutor());
+    callback(mu_tx.getTx());
   } else {
 
     var on_complete = function () {
@@ -465,8 +444,7 @@ ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope)
         throw new ydn.db.InternalError('Tx not available for scope: ' +
             scope);
       }
-      me.getExecutor().setTx(mu_tx.getTx(), scope);
-      callback(me.getExecutor());
+      callback(mu_tx.getTx());
     };
     //var cbFn = goog.partial(tx_callback, callback);
     tx_callback.name = scope; // scope name
