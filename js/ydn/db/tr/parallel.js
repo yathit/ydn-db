@@ -161,14 +161,14 @@ ydn.db.tr.ParallelThread.prototype.abort = function() {
   }
 };
 
-//
-///**
-// * @inheritDoc
-// */
-//ydn.db.tr.ParallelThread.prototype.run = function(trFn, store_names, opt_mode,
-//                                              oncompleted, opt_args) {
-//  throw new ydn.error.NotImplementedException();
-//};
+
+/**
+* @inheritDoc
+*/
+ydn.db.tr.ParallelThread.prototype.run = function(trFn, store_names, opt_mode,
+                                              oncompleted, opt_args) {
+  throw new ydn.error.NotImplementedException();
+};
 
 
 /**
@@ -178,6 +178,7 @@ ydn.db.tr.ParallelThread.prototype.abort = function() {
  * @return {ydn.db.core.req.IRequestExecutor} get executor.
  */
 ydn.db.tr.ParallelThread.prototype.getExecutor = goog.abstractMethod;
+
 
 /**
  * @inheritDoc

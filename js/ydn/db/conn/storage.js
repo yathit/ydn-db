@@ -74,7 +74,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   var options = opt_options || {};
 
   if (goog.DEBUG) {
-    var fields = ['autoSchema', 'size', 'mechanisms'];
+    var fields = ['autoSchema', 'size', 'mechanisms', 'thread'];
     for (var key in options) {
       if (options.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.error.ArgumentException('Unknown attribute "' + key +

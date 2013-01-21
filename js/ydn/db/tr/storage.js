@@ -44,10 +44,19 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   this.ptx_no = 0;
 
+  var th = ydn.db.tr.IThread.Threads.ATOMIC_SERIAL;
+  if (opt_options && opt_options.thread) {
+    var idx = ydn.db.tr.IThread.ThreadList.indexOf(opt_options.thread);
+    if (idx == -1) {
+      throw new ydn.error.ArgumentException('thread: ' + opt_options.thread);
+    }
+    th = ydn.db.tr.IThread.ThreadList[idx];
+  }
+
   /**
    * @final
    */
-  this.thread_name = ydn.db.tr.IThread.Threads.SERIAL;
+  this.thread_name = th;
 
   /**
    * @final
@@ -66,7 +75,7 @@ goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
  * @type {ydn.db.tr.IThread.Threads}
  * @protected
  */
-ydn.db.tr.Storage.prototype.thread_name = ydn.db.tr.IThread.Threads.SERIAL;
+ydn.db.tr.Storage.prototype.thread_name;
 
 
 /**
@@ -116,10 +125,12 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
 */
 ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
   thread = thread || this.thread_name;
-  if (thread == ydn.db.tr.IThread.Threads.PARALLEL) {
+  if (thread == ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL) {
     return new ydn.db.tr.ParallelThread(this, this.ptx_no++, scope_name);
-  } else {
+  } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_SERIAL) {
     return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, scope_name);
+  } else {
+    throw new ydn.error.ArgumentException(thread);
   }
 };
 

@@ -6,7 +6,7 @@
  */
 
 
-goog.provide('ydn.db.tr.AtomicSerial');
+goog.provide('ydn.db.tr.StrictOverflowSerial');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.db.tr.Serial');
 goog.require('ydn.error.NotSupportedException');
@@ -23,40 +23,43 @@ goog.require('ydn.error.NotSupportedException');
  * @constructor
  * @extends {ydn.db.tr.Serial}
  */
-ydn.db.tr.AtomicSerial = function(storage, ptx_no, scope_name) {
+ydn.db.tr.StrictOverflowSerial = function(storage, ptx_no, scope_name) {
 
   goog.base(this, storage, ptx_no, scope_name);
 
 };
-goog.inherits(ydn.db.tr.AtomicSerial, ydn.db.tr.Serial);
+goog.inherits(ydn.db.tr.StrictOverflowSerial, ydn.db.tr.Serial);
 
 
 /**
  * @const
  * @type {boolean}
  */
-ydn.db.tr.AtomicSerial.DEBUG = false;
-
-
+ydn.db.tr.StrictOverflowSerial.DEBUG = false;
 
 
 
 /**
  * @inheritDoc
  */
-ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode, scope) {
+ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names, opt_mode, scope) {
+  var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
   var mu_tx = this.getMuTx();
+  if (mu_tx.isActiveAndAvailable() && mu_tx.sameScope(store_names, mode)) {
+    //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
+    // call within a transaction
+    // continue to use existing transaction
+    callback(mu_tx.getTx());
+  } else {
 
-    //console.log('creating new tx for ' + scope);
-
-    var blocked_on_complete = function () {
+    var on_complete = function () {
       //console.log('tx ' + scope + ' completed');
     };
 
     //
     // create a new transaction and close for invoke in non-transaction context
-    var blocked_tx_callback = function (idb) {
+    var tx_callback = function (idb) {
       //console.log('tx running for ' + scope);
       me.not_ready_ = true;
       // transaction should be active now
@@ -65,32 +68,15 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode, s
       }
       if (!mu_tx.isAvailable()) {
         throw new ydn.db.InternalError('Tx not available for scope: ' +
-            scope);
+          scope);
       }
-
       callback(mu_tx.getTx());
-      mu_tx.lock(); // for blocking tx.
     };
     //var cbFn = goog.partial(tx_callback, callback);
-    blocked_tx_callback.name = scope; // scope name
+    tx_callback.name = scope; // scope name
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
     // locked: ' + mu_tx.isSetDone());
-    me.run(blocked_tx_callback, store_names, mode, blocked_on_complete);
-
-    // need to think about handling oncompleted and onerror callback of the
-    // transaction. after executed all the requests, the transaction is not
-    // completed. consider this case
-    // db.put(data).addCallback(function(id) {
-    //    // at this stage, transaction for put request is not grantee finished.
-    //    db.get(id);
-    //    // but practically, when next transaction is open,
-    //    // the previous transaction should be finished anyways,
-    //    // due to 'readwrite' lock.
-    //    // so seems like OK. it is not necessary to listen oncompleted
-    //    // callback.
-    // });
-    // also notice, there is transaction overlap problem in mutex class.
-
+    me.run(tx_callback, store_names, mode, on_complete);
+  }
 };
-
 

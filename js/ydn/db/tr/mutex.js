@@ -48,9 +48,11 @@ ydn.db.tr.Mutex.DEBUG = false;
  * Newly created transaction it push to mutex and lock.
  * @final
  * @param {!IDBTransaction|!SQLTransaction|!ydn.db.con.SimpleStorage} tx the transaction object.
- * @param {string} scope scope name.
+ * @param {Array.<string>} store_names scope store name.
+ * @param {ydn.db.base.TransactionMode} mode tx mode.
+ * @param {string} scope_name scope name.
  */
-ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
+ydn.db.tr.Mutex.prototype.up = function(tx, store_names, mode, scope_name) {
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
@@ -58,7 +60,7 @@ ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
 //    this.logger.finest('tx ' + this.scope_name + ' force push by ' + scope);
 //  }
   goog.asserts.assert(!this.tx_,
-      this + 'transaction overlap with ' + scope);
+      this + 'transaction overlap with ' + scope_name);
 
   this.tx_ = tx;
 
@@ -71,7 +73,11 @@ ydn.db.tr.Mutex.prototype.up = function(tx, scope) {
    */
   this.out_of_scope_ = false;
 
-  this.scope_name = goog.isDef(scope) ? scope : '';
+  this.store_names = store_names;
+
+  this.mode = mode;
+
+  this.scope_name = scope_name || '';
 
   this.tx_count_++;
 
@@ -108,13 +114,78 @@ ydn.db.tr.Mutex.prototype.is_set_done_ = false;
  */
 ydn.db.tr.Mutex.prototype.scope_name = '';
 
+/**
+ * @protected
+ * @type {Array.<string>}
+ */
+ydn.db.tr.Mutex.prototype.store_names = null;
+
+/**
+ * @protected
+ * @type {?ydn.db.base.TransactionMode}
+ */
+ydn.db.tr.Mutex.prototype.mode;
+
 
 /**
  *
  * @return {string} scope name.
  */
-ydn.db.tr.Mutex.prototype.getScope = function() {
+ydn.db.tr.Mutex.prototype.getScopeName = function() {
   return this.scope_name;
+};
+
+
+/**
+ *
+ * @param {Array.<string>} store_names
+ * @param {ydn.db.base.TransactionMode} mode
+ * @return {boolean}
+ */
+ydn.db.tr.Mutex.prototype.sameScope = function(store_names, mode) {
+  if (!this.store_names || !this.mode) {
+    return false;
+  }
+  if (mode != this.mode) {
+    return false;
+  }
+  if (this.store_names.length != store_names.length) {
+    return false;
+  }
+  for (var i = 0; i < store_names.length; i++) {
+    if (this.store_names.indexOf(store_names[i]) == -1) {
+      return false;
+    }
+  }
+  return true;
+};
+
+
+/**
+ *
+ * @param {Array.<string>} store_names
+ * @param {ydn.db.base.TransactionMode} mode
+ * @return {boolean}
+ */
+ydn.db.tr.Mutex.prototype.subScope = function(store_names, mode) {
+  if (!this.store_names || !this.mode) {
+    return false;
+  }
+  if (mode != this.mode) {
+    if (this.mode != ydn.db.base.TransactionMode.READ_WRITE ||
+      mode != ydn.db.base.TransactionMode.READ_ONLY) {
+      return false;
+    }
+  }
+  if (store_names.length > this.store_names.length) {
+    return false;
+  }
+  for (var i = 0; i < store_names.length; i++) {
+    if (this.store_names.indexOf(store_names[i]) == -1) {
+      return false;
+    }
+  }
+  return true;
 };
 
 
@@ -136,6 +207,8 @@ ydn.db.tr.Mutex.prototype.down = function(type, event) {
     }
     // down must be call only once by those who up
     this.tx_ = null;
+    this.store_names = null;
+    this.mode = null;
 
     if (goog.isFunction(this.oncompleted)) {
       this.oncompleted(type, event);

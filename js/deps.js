@@ -79,13 +79,15 @@ goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/idb/node.js", ['ydn.db.sql
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/idb/reduce_node.js", ['ydn.db.sql.req.idb.ReduceNode'], ['ydn.db.sql.req.idb.Node', 'ydn.object']);
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/websql/node.js", ['ydn.db.sql.req.websql.Node'], ['ydn.db.schema.Store', 'ydn.db.Sql']);
 goog.addDependency("../../../ydn-db/js/ydn/db/sql/req/websql/reduce_node.js", ['ydn.db.sql.req.websql.ReduceNode'], ['ydn.db.sql.req.websql.Node', 'ydn.object']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tr/atomic_serial.js", ['ydn.db.tr.AtomicSerial'], ['ydn.db.tr.IThread', 'ydn.error.NotSupportedException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/atomic_serial.js", ['ydn.db.tr.AtomicSerial'], ['ydn.db.tr.IThread', 'ydn.db.tr.Serial', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_storage.js", ['ydn.db.tr.IStorage'], ['ydn.db.tr.Mutex']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/i_thread.js", ['ydn.db.tr.IThread', 'ydn.db.tr.IThread.Threads'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/mutex.js", ['ydn.db.tr.Mutex'], ['goog.array', 'goog.asserts', 'ydn.db.InvalidStateError']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/operator.js", ['ydn.db.tr.DbOperator'], ['ydn.db.tr.AtomicSerial', 'ydn.db.tr.IThread', 'ydn.db.core.IStorage', 'ydn.error.NotSupportedException']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tr/parallel_thread.js", ['ydn.db.tr.ParallelThread'], ['ydn.db.tr.IThread', 'ydn.error.NotSupportedException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/overflow_serial.js", ['ydn.db.tr.OverflowSerial'], ['ydn.db.tr.IThread', 'ydn.db.tr.Serial', 'ydn.error.NotSupportedException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/parallel.js", ['ydn.db.tr.ParallelThread'], ['ydn.db.tr.IThread', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/serial.js", ['ydn.db.tr.Serial'], ['ydn.db.tr.IThread', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/storage.js", ['ydn.db.tr.Storage'], ['ydn.db.con.Storage', 'ydn.db.tr.IStorage', 'ydn.db.tr.AtomicSerial', 'ydn.db.tr.ParallelThread', 'ydn.db.tr.IThread.Threads']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/strict_overflow_serial.js", ['ydn.db.tr.StrictOverflowSerial'], ['ydn.db.tr.IThread', 'ydn.db.tr.Serial', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/utils/reader.js", ['ydn.db.io.Reader'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/utils/test_utils.js", ['ydn.db.test'], ['ydn.db.io.QueryService']);

@@ -16,18 +16,22 @@ function StorageOptions() {}
  */
 StorageOptions.prototype.size;
 
-
 /**
  * Preferential ordering of storage mechanisms.
  * @type {!Array.<string>|undefined}
  */
 StorageOptions.prototype.mechanisms;
 
-
 /**
  * @type {boolean}
  */
 StorageOptions.prototype.autoSchema;
+
+/**
+ * @type {string|undefined}
+ */
+StorageOptions.prototype.thread;
+
 
 /**
  * @constructor
