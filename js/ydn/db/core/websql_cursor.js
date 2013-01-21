@@ -11,8 +11,10 @@ goog.require('ydn.db.IValueCursor');
  *
  * @param {SQLTransaction} tx tx.
  * @param {*} key cursor key.
+ * @param {*} indexKey cursor key.
  * @param {*} value cursor value.
  * @param {!Array} peerKeys peer cursor keys.
+ * @param {!Array} peerIndexKeys peer cursor keys.
  * @param {!Array} peerValues peer cursor values.
  * @constructor
  * @implements {ydn.db.IValueCursor}

@@ -5,9 +5,9 @@
 */
 
 
-goog.provide('ydn.db.index.TxQueue');
+goog.provide('ydn.db.index.DbOperator');
 goog.require('ydn.db.Iterator');
-goog.require('ydn.db.core.TxQueue');
+goog.require('ydn.db.core.DbOperator');
 goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.index.req.IndexedDb');
 goog.require('ydn.db.index.req.WebSql');
@@ -26,47 +26,23 @@ goog.require('ydn.db.index.IStorage');
  * mutex.
  *
  * @param {!ydn.db.core.Storage} storage base storage object.
- * @param {ydn.db.tr.IThread.Threads} blocked
- * @param {number} ptx_no transaction queue number.
- * @param {!ydn.db.schema.Database} schema schema.
- * @param {string=} scope_name scope name.
+ * @param {!ydn.db.schema.Database} schema
+ * @param {ydn.db.tr.IThread} thread
  * @implements {ydn.db.index.IStorage}
  * @constructor
- * @extends {ydn.db.core.TxQueue}
+ * @extends {ydn.db.core.DbOperator}
 */
-ydn.db.index.TxQueue = function(storage, blocked, ptx_no, schema, scope_name) {
-  goog.base(this, storage, blocked, ptx_no, schema, scope_name);
+ydn.db.index.DbOperator = function(storage, schema, thread) {
+  goog.base(this, storage, schema, thread);
 };
-goog.inherits(ydn.db.index.TxQueue, ydn.db.core.TxQueue);
+goog.inherits(ydn.db.index.DbOperator, ydn.db.core.DbOperator);
 
-
-/**
- * @return {ydn.db.index.req.IRequestExecutor}
- */
-ydn.db.index.TxQueue.prototype.getExecutor = function(tx) {
-  if (!this.executor) {
-    var type = this.type();
-    if (type == ydn.db.con.IndexedDb.TYPE) {
-      this.executor = new ydn.db.index.req.IndexedDb(this.getName(), this.schema);
-    } else if (type == ydn.db.con.WebSql.TYPE) {
-      this.executor = new ydn.db.index.req.WebSql(this.db_name, this.schema);
-    } else if (type == ydn.db.con.SimpleStorage.TYPE ||
-      type == ydn.db.con.LocalStorage.TYPE ||
-      type == ydn.db.con.SessionStorage.TYPE) {
-      this.executor = new ydn.db.index.req.SimpleStore(this.db_name, this.schema);
-    } else {
-      throw new ydn.db.InternalError('No executor for ' + type);
-    }
-  }
-  this.executor.setTx(tx);
-  return /** @type {ydn.db.index.req.IRequestExecutor} */ (this.executor);
-};
 
 
 /**
  * @inheritDoc
  */
-ydn.db.index.TxQueue.prototype.get = function(arg1, arg2) {
+ydn.db.index.DbOperator.prototype.get = function(arg1, arg2) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
@@ -86,7 +62,7 @@ ydn.db.index.TxQueue.prototype.get = function(arg1, arg2) {
       throw new ydn.error.ArgumentException('index "' +
         index_name + '" not found in store "' + q_store_name + '".');
     }
-    this.exec(function(tx) {
+    this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).getByIterator(df, q);
     }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');
     return df;
@@ -101,7 +77,7 @@ ydn.db.index.TxQueue.prototype.get = function(arg1, arg2) {
 /**
  * @inheritDoc
  */
-ydn.db.index.TxQueue.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
@@ -138,7 +114,7 @@ ydn.db.index.TxQueue.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg
      */
     var q = arg1;
 
-    this.exec(function(tx) {
+    this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).keysByIterator(df, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
@@ -153,7 +129,7 @@ ydn.db.index.TxQueue.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, arg
 /**
  * @inheritDoc
  */
-ydn.db.index.TxQueue.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+ydn.db.index.DbOperator.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
@@ -190,7 +166,7 @@ ydn.db.index.TxQueue.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg
      */
     var q = arg1;
 
-    this.exec(function(tx) {
+    this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).listByIterator(df, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
@@ -210,7 +186,7 @@ ydn.db.index.TxQueue.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg
 // * @param {!Array.<!ydn.db.Streamer>=} opt_streamers streamers.
 // * @return {!goog.async.Deferred} promise on completed.
 // */
-//ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers) {
+//ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streamers) {
 //  var df = ydn.db.base.createDeferred();
 //  if (!goog.isArray(iterators) || !(iterators[0] instanceof ydn.db.Iterator)) {
 //    throw new ydn.error.ArgumentException();
@@ -238,7 +214,7 @@ ydn.db.index.TxQueue.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg
 //
 //  var me = this;
 //
-//  this.exec(function(executor) {
+//  this.tx_thread.exec(function(executor) {
 //    //executor.scan(df, iterators, streamers, solver);
 //    // do scanning
 //
@@ -437,7 +413,7 @@ ydn.db.index.TxQueue.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg
  * @param {!Array.<!ydn.db.Streamer>=} opt_streamers streamers.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers) {
+ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streamers) {
   var df = ydn.db.base.createDeferred();
   if (!goog.isArray(iterators) || !(iterators[0] instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
@@ -465,7 +441,7 @@ ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers)
 
   var me = this;
 
-  this.exec(function(tx) {
+  this.tx_thread.exec(function(tx) {
     //executor.scan(df, iterators, streamers, solver);
     // do scanning
 
@@ -713,6 +689,14 @@ ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers)
 };
 
 
+/**
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @return {ydn.db.index.req.IRequestExecutor}
+ */
+ydn.db.index.DbOperator.prototype.getIndexExecutor = function(tx) {
+  return /** @type {ydn.db.index.req.IRequestExecutor} */ (this.getExecutor(tx));
+};
+
 
 /**
  *
@@ -721,7 +705,7 @@ ydn.db.index.TxQueue.prototype.scan = function(iterators, solver, opt_streamers)
  * @param {ydn.db.base.TransactionMode=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.TxQueue.prototype.open = function(iterator, callback, mode) {
+ydn.db.index.DbOperator.prototype.open = function(iterator, callback, mode) {
   if (!(iterator instanceof ydn.db.Iterator)) {
     throw new ydn.error.ArgumentException();
   }
@@ -734,12 +718,12 @@ ydn.db.index.TxQueue.prototype.open = function(iterator, callback, mode) {
 
   var me = this;
   var df = ydn.db.base.createDeferred();
-  this.exec(function(tx) {
+  this.tx_thread.exec(function(tx) {
     // executor.open(df, cursor, callback, /** @type {ydn.db.base.CursorMode} */ (tr_mode));
 
     var read_write = tr_mode == ydn.db.base.TransactionMode.READ_WRITE;
 
-    var cursor = iterator.iterate(me.getExecutor(tx));
+    var cursor = iterator.iterate(me.getIndexExecutor(tx));
 
     cursor.onError = function(e) {
       df.errback(e);
@@ -765,7 +749,7 @@ ydn.db.index.TxQueue.prototype.open = function(iterator, callback, mode) {
  * @param {!ydn.db.Iterator} iterator
  * @param {function(*): (*|undefined)} callback
  */
-ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
+ydn.db.index.DbOperator.prototype.map = function (iterator, callback) {
 
   var me = this;
   var stores = iterator.stores();
@@ -777,9 +761,9 @@ ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
   }
   var df = ydn.db.base.createDeferred();
 
-  this.exec(function (tx) {
+  this.tx_thread.exec(function (tx) {
 
-    var cursor = iterator.iterate(me.getExecutor(tx));
+    var cursor = iterator.iterate(me.getIndexExecutor(tx));
 
     cursor.onError = function(e) {
       df.errback(e);
@@ -828,7 +812,7 @@ ydn.db.index.TxQueue.prototype.map = function (iterator, callback) {
  * @param {function(*, *, number): *} callback
  * @param {*=} initial
  */
-ydn.db.index.TxQueue.prototype.reduce = function(iterator, callback, initial) {
+ydn.db.index.DbOperator.prototype.reduce = function(iterator, callback, initial) {
 
   var me = this;
   var stores = iterator.stores();
@@ -842,9 +826,9 @@ ydn.db.index.TxQueue.prototype.reduce = function(iterator, callback, initial) {
 
   var previous = goog.isObject(initial) ? ydn.object.clone(initial) : initial;
 
-  this.exec(function (tx) {
+  this.tx_thread.exec(function (tx) {
 
-    var cursor = iterator.iterate(me.getExecutor(tx));
+    var cursor = iterator.iterate(me.getIndexExecutor(tx));
 
     cursor.onError = function(e) {
       df.errback(e);

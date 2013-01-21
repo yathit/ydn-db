@@ -15,7 +15,6 @@ ydn.db.tr.IThread = function() {};
 
 
 /**
- * @protected
  * @param {function((IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage))} callback callback when executor
  * is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
@@ -29,6 +28,13 @@ ydn.db.tr.IThread.prototype.exec = goog.abstractMethod;
  * Abort an active transaction.
  */
 ydn.db.tr.IThread.prototype.abort = goog.abstractMethod;
+
+
+/**
+ *
+ * @return {number}
+ */
+ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
 
 
 

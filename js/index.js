@@ -6,7 +6,7 @@
  */
 
 goog.require('ydn.db.index.Storage');
-goog.require('ydn.db.index.TxQueue');
+goog.require('ydn.db.index.DbOperator');
 goog.require('ydn.db.index.req.IDBCursor');
 goog.require('ydn.math.Expression');
 
@@ -20,14 +20,14 @@ goog.exportProperty(ydn.db.index.Storage.prototype, 'open',
     ydn.db.index.Storage.prototype.open);
 
 
-goog.exportProperty(ydn.db.index.TxQueue.prototype.open, 'scan',
-    ydn.db.index.TxQueue.prototype.scan);
-goog.exportProperty(ydn.db.index.TxQueue.prototype.open, 'map',
-    ydn.db.index.TxQueue.prototype.map);
-goog.exportProperty(ydn.db.index.TxQueue.prototype.open, 'reduce',
-    ydn.db.index.TxQueue.prototype.reduce);
-goog.exportProperty(ydn.db.index.TxQueue.prototype.open, 'open',
-    ydn.db.index.TxQueue.prototype.open);
+goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'scan',
+    ydn.db.index.DbOperator.prototype.scan);
+goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'map',
+    ydn.db.index.DbOperator.prototype.map);
+goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'reduce',
+    ydn.db.index.DbOperator.prototype.reduce);
+goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'open',
+    ydn.db.index.DbOperator.prototype.open);
 
 
 

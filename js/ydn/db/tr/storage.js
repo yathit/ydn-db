@@ -20,7 +20,8 @@
 goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.tr.IStorage');
-goog.require('ydn.db.tr.TxQueue');
+goog.require('ydn.db.tr.AtomicSerial');
+goog.require('ydn.db.tr.ParallelThread');
 goog.require('ydn.db.tr.IThread.Threads');
 
 
@@ -43,10 +44,20 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   this.ptx_no = 0;
 
-  // create blocking atomic transaction queue
-  this.thread = ydn.db.tr.IThread.Threads.SERIAL;
+  /**
+   * @final
+   */
+  this.thread_name = ydn.db.tr.IThread.Threads.SERIAL;
 
-  this.base_tx_queue = this.newTxQueue(this.thread, 'base');
+  /**
+   * @final
+   */
+  this.tx_thread = this.newTxQueue(this.thread_name, 'base');
+
+  /**
+   * @final
+   */
+  this.db_operator = this.newDbOperator();
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
 
@@ -55,14 +66,21 @@ goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
  * @type {ydn.db.tr.IThread.Threads}
  * @protected
  */
-ydn.db.tr.Storage.prototype.thread = ydn.db.tr.IThread.Threads.SERIAL;
+ydn.db.tr.Storage.prototype.thread_name = ydn.db.tr.IThread.Threads.SERIAL;
 
 
 /**
  * @protected
- * @type {ydn.db.tr.TxQueue}
+ * @type {ydn.db.tr.IThread}
  */
-ydn.db.tr.Storage.prototype.base_tx_queue = null;
+ydn.db.tr.Storage.prototype.tx_thread = null;
+
+
+/**
+ * @type {*}
+ * @protected
+ */
+ydn.db.tr.Storage.prototype.db_operator;
 
 /**
  *
@@ -72,25 +90,39 @@ ydn.db.tr.Storage.prototype.base_tx_queue = null;
 ydn.db.tr.Storage.prototype.ptx_no = 0;
 
 
+/**
+ * Create a new db operator during initialization.
+ * @return {*}
+ * @protected
+ */
+ydn.db.tr.Storage.prototype.newDbOperator = goog.abstractMethod;
+
 
 /**
- * @inheritDoc
+ * @final
+ * @return {number} transaction series number.
  */
 ydn.db.tr.Storage.prototype.getTxNo = function() {
-  return this.ptx_no;
+  return this.tx_thread.getTxNo();
 };
+
 
 
 /**
- * @protected
- * @param {ydn.db.tr.IThread.Threads=} thread
- * @param {string=} scope_name scope name.
- * @return {!ydn.db.tr.TxQueue} new transactional storage.
- */
+* @protected
+* @param {ydn.db.tr.IThread.Threads=} thread
+* @param {string=} scope_name scope name.
+* @return {!ydn.db.tr.IThread} new transactional storage.
+*/
 ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
-  thread = thread || this.thread;
-  return new ydn.db.tr.TxQueue(this, thread, this.ptx_no++, scope_name);
+  thread = thread || this.thread_name;
+  if (thread == ydn.db.tr.IThread.Threads.PARALLEL) {
+    return new ydn.db.tr.ParallelThread(this, this.ptx_no++, scope_name);
+  } else {
+    return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, scope_name);
+  }
 };
+
 
 
 

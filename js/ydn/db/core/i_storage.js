@@ -11,7 +11,6 @@ goog.require('ydn.db.KeyRange');
 
 
 /**
- * @extends {ydn.db.tr.IStorage}
  * @interface
  */
 ydn.db.core.IStorage = function() {};

@@ -5,9 +5,9 @@
 */
 
 
-goog.provide('ydn.db.sql.TxQueue');
+goog.provide('ydn.db.sql.DbOperator');
 goog.require('ydn.db.Iterator');
-goog.require('ydn.db.index.TxQueue');
+goog.require('ydn.db.index.DbOperator');
 goog.require('ydn.db.sql.IStorage');
 goog.require('ydn.db.sql.req.IRequestExecutor');
 goog.require('ydn.db.sql.req.IndexedDb');
@@ -26,47 +26,23 @@ goog.require('ydn.db.sql.req.SimpleStore');
  * mutex.
  *
  * @param {!ydn.db.core.Storage} storage base storage object.
- * @param {ydn.db.tr.IThread.Threads} blocked
- * @param {number} ptx_no transaction queue number.
- * @param {!ydn.db.schema.Database} schema schema.
- * @param {string=} scope_name scope name.
+ *  @param {!ydn.db.schema.Database} schema
+ * @param {ydn.db.tr.IThread} thread
  * @constructor
  * @implements {ydn.db.sql.IStorage}
- * @extends {ydn.db.index.TxQueue}
+ * @extends {ydn.db.index.DbOperator}
 */
-ydn.db.sql.TxQueue = function(storage, blocked, ptx_no, schema, scope_name) {
-  goog.base(this, storage, blocked, ptx_no, schema, scope_name);
+ydn.db.sql.DbOperator = function(storage, schema, thread) {
+  goog.base(this, storage, schema, thread);
 };
-goog.inherits(ydn.db.sql.TxQueue, ydn.db.index.TxQueue);
+goog.inherits(ydn.db.sql.DbOperator, ydn.db.index.DbOperator);
 
-
-/**
- * @return {ydn.db.sql.req.IRequestExecutor}
- */
-ydn.db.sql.TxQueue.prototype.getExecutor = function(tx) {
-  if (!this.executor) {
-    var type = this.type();
-    if (type == ydn.db.con.IndexedDb.TYPE) {
-      this.executor = new ydn.db.sql.req.IndexedDb(this.getName(), this.schema);
-    } else if (type == ydn.db.con.WebSql.TYPE) {
-      this.executor = new ydn.db.sql.req.WebSql(this.db_name, this.schema);
-    } else if (type == ydn.db.con.SimpleStorage.TYPE ||
-      type == ydn.db.con.LocalStorage.TYPE ||
-      type == ydn.db.con.SessionStorage.TYPE) {
-      this.executor = new ydn.db.sql.req.SimpleStore(this.db_name, this.schema);
-    } else {
-      throw new ydn.db.InternalError('No executor for ' + type);
-    }
-  }
-  this.executor.setTx(tx);
-  return /** @type {ydn.db.sql.req.IRequestExecutor} */ (this.executor);
-};
 
 
 ///**
 // * @inheritDoc
 // */
-//ydn.db.sql.TxQueue.prototype.exec = function(callback, store_names, mode, scope) {
+//ydn.db.sql.DbOperator.prototype.exec = function(callback, store_names, mode, scope) {
 //  goog.base(this, 'exec',
 //    /** @type {function(ydn.db.index.req.IRequestExecutor)} */ (callback),
 //    store_names, mode, scope);
@@ -80,7 +56,7 @@ ydn.db.sql.TxQueue.prototype.getExecutor = function(tx) {
 // * @param {!ydn.db.Iterator} q
 // * @return {Object} plan in JSON
 // */
-//ydn.db.sql.TxQueue.prototype.explain = function (q) {
+//ydn.db.sql.DbOperator.prototype.explain = function (q) {
 //  if (!this.executor) {
 //    return {'error':'database not ready'};
 //  } else if (q instanceof ydn.db.Sql) {
@@ -97,7 +73,7 @@ ydn.db.sql.TxQueue.prototype.getExecutor = function(tx) {
  * @param {!Array=} params SQL parameters.
 * @return {!goog.async.Deferred} return result as list.
 */
-ydn.db.sql.TxQueue.prototype.executeSql = function (sql, params) {
+ydn.db.sql.DbOperator.prototype.executeSql = function (sql, params) {
 
   var df = ydn.db.base.createDeferred();
 
@@ -113,7 +89,7 @@ ydn.db.sql.TxQueue.prototype.executeSql = function (sql, params) {
   }
 
   var me = this;
-  this.exec(function (tx) {
+  this.tx_thread.exec(function (tx) {
     me.getExecutor(tx).executeSql(df, query, params || []);
   }, query.getStoreNames(), query.getMode(), 'executeSql');
 

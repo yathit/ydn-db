@@ -15,15 +15,13 @@ goog.require('ydn.error.NotSupportedException');
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
  *
- * @implements {ydn.db.tr.IStorage}
+ * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
- * @param {ydn.db.tr.IThread.Threads} thread if true each database operation is blocked, effectively
- * making atomic transaction operation.
  * @param {number} ptx_no transaction queue number.
  * @param {string=} thread_name scope name.
  * @constructor
  */
-ydn.db.tr.ParallelThread = function(storage, thread, ptx_no, thread_name) {
+ydn.db.tr.ParallelThread = function(storage, ptx_no, thread_name) {
 
   /**
    * @final
@@ -31,13 +29,6 @@ ydn.db.tr.ParallelThread = function(storage, thread, ptx_no, thread_name) {
    * @private
    */
   this.storage_ = storage;
-
-  /**
-   * @final
-   * @type {ydn.db.tr.ParallelThread.Threads}
-   * @private
-   */
-  this.thread = thread;
 
   /*
    * Transaction queue no.
@@ -89,16 +80,16 @@ ydn.db.tr.ParallelThread.prototype.logger =
 ydn.db.tr.ParallelThread.prototype.addStoreSchema = function(store) {
   return this.storage_.addStoreSchema(store);
 };
-
-
-/**
- * @inheritDoc
- */
-ydn.db.tr.ParallelThread.prototype.transaction = function(trFn, store_names,
-       opt_mode, completed_event_handler) {
-  this.storage_.transaction(trFn, store_names,
-      opt_mode, completed_event_handler);
-};
+//
+//
+///**
+// * @inheritDoc
+// */
+//ydn.db.tr.ParallelThread.prototype.transaction = function(trFn, store_names,
+//       opt_mode, completed_event_handler) {
+//  this.storage_.transaction(trFn, store_names,
+//      opt_mode, completed_event_handler);
+//};
 
 
 /**
@@ -133,7 +124,7 @@ ydn.db.tr.ParallelThread.prototype.getQueueNo = function() {
  *
  * @return {string}
  */
-ydn.db.tr.TxQueue.prototype.type = function() {
+ydn.db.tr.ParallelThread.prototype.type = function() {
   return this.storage_.type();
 };
 
@@ -170,14 +161,14 @@ ydn.db.tr.ParallelThread.prototype.abort = function() {
   }
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.tr.ParallelThread.prototype.run = function(trFn, store_names, opt_mode,
-                                              oncompleted, opt_args) {
-  throw new ydn.error.NotImplementedException();
-};
+//
+///**
+// * @inheritDoc
+// */
+//ydn.db.tr.ParallelThread.prototype.run = function(trFn, store_names, opt_mode,
+//                                              oncompleted, opt_args) {
+//  throw new ydn.error.NotImplementedException();
+//};
 
 
 /**
@@ -189,13 +180,7 @@ ydn.db.tr.ParallelThread.prototype.run = function(trFn, store_names, opt_mode,
 ydn.db.tr.ParallelThread.prototype.getExecutor = goog.abstractMethod;
 
 /**
- * @throws {ydn.db.ScopeError}
- * @protected
- * @param {function(ydn.db.core.req.IRequestExecutor)} callback callback when executor
- * is ready.
- * @param {!Array.<string>} store_names store name involved in the transaction.
- * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
- * @param {string} scope_name scope.
+ * @inheritDoc
  */
 ydn.db.tr.ParallelThread.prototype.exec = function (callback, store_names, mode, scope_name) {
 
@@ -206,14 +191,14 @@ ydn.db.tr.ParallelThread.prototype.exec = function (callback, store_names, mode,
 
   var transaction_process = function(tx) {
     me.tx_ = tx;
-    me.getExecutor().setTx(tx);
+    callback(tx);
   };
 
   if (ydn.db.tr.ParallelThread.DEBUG) {
     window.console.log(this + ' transaction ' + mode + ' open for ' +
         JSON.stringify(store_names) + ' in ' + scope_name);
   }
-  this.storage_.transaction(transaction_process, names, mode,
+  this.storage_.transaction(transaction_process, store_names, mode,
       completed_handler);
   
 };

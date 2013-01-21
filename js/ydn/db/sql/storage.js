@@ -18,7 +18,7 @@
  */
 
 goog.provide('ydn.db.sql.Storage');
-goog.require('ydn.db.sql.TxQueue');
+goog.require('ydn.db.sql.DbOperator');
 goog.require('ydn.db.index.Storage');
 
 
@@ -27,7 +27,7 @@ goog.require('ydn.db.index.Storage');
  * storage mechanisms.
  *
  * This class do not execute database operation, but create a non-overlapping
- * transaction queue on ydn.db.core.TxQueue and all operations are
+ * transaction queue on ydn.db.core.DbOperator and all operations are
  * passed to it.
  *
  *
@@ -48,15 +48,54 @@ ydn.db.sql.Storage = function(opt_dbname, opt_schema, opt_options) {
 };
 goog.inherits(ydn.db.sql.Storage, ydn.db.index.Storage);
 
+//
+///**
+// * @override
+// */
+//ydn.db.sql.Storage.prototype.newTxQueue = function(thread, scope_name) {
+//  thread = thread || this.thread;
+//  return new ydn.db.sql.DbOperator(this, thread, this.ptx_no++,
+//      this.schema, scope_name);
+//};
+
 
 /**
- * @override
+ * @inheritDoc
  */
-ydn.db.sql.Storage.prototype.newTxQueue = function(thread, scope_name) {
-  thread = thread || this.thread;
-  return new ydn.db.sql.TxQueue(this, thread, this.ptx_no++,
-      this.schema, scope_name);
+ydn.db.sql.Storage.prototype.getExecutor = function () {
+
+  var type = this.type();
+  if (type == ydn.db.con.IndexedDb.TYPE) {
+    return new ydn.db.sql.req.IndexedDb(this.db_name, this.schema);
+  } else if (type == ydn.db.con.WebSql.TYPE) {
+    return new ydn.db.sql.req.WebSql(this.db_name, this.schema);
+  } else if (type == ydn.db.con.SimpleStorage.TYPE ||
+    type == ydn.db.con.LocalStorage.TYPE ||
+    type == ydn.db.con.SessionStorage.TYPE) {
+    return new ydn.db.sql.req.SimpleStore(this.db_name, this.schema);
+  } else {
+    throw new ydn.db.InternalError('No executor for ' + type);
+  }
+
 };
+
+/**
+ *
+ * @inheritDoc
+ */
+ydn.db.sql.Storage.prototype.newDbOperator = function() {
+  return new ydn.db.sql.DbOperator(this, this.schema, this.tx_thread);
+};
+
+
+/**
+ *
+ * @return {ydn.db.sql.DbOperator}
+ */
+ydn.db.sql.Storage.prototype.getSqlOperator = function() {
+  return /** @type {ydn.db.sql.DbOperator} */ (this.db_operator);
+};
+
 
 /**
  * @param {string} sql SQL statement.
@@ -64,7 +103,7 @@ ydn.db.sql.Storage.prototype.newTxQueue = function(thread, scope_name) {
  * @return {!goog.async.Deferred} return result as list.
  */
 ydn.db.sql.Storage.prototype.executeSql = function (sql, params) {
-  return this.base_tx_queue.executeSql(sql, params);
+  return this.getSqlOperator().executeSql(sql, params);
 };
 
 //

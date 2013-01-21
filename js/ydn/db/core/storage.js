@@ -24,7 +24,7 @@ goog.provide('ydn.db.core.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.core.IStorage');
-goog.require('ydn.db.core.TxQueue');
+goog.require('ydn.db.core.DbOperator');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.object');
 
@@ -34,7 +34,7 @@ goog.require('ydn.object');
  * storage mechanisms.
  *
  * This class do not execute database operation, but create a non-overlapping
- * transaction queue on ydn.db.core.TxQueue and all operations are
+ * transaction queue on ydn.db.core.DbOperator and all operations are
  * passed to it.
  *
  *
@@ -67,37 +67,59 @@ ydn.db.core.Storage.prototype.init = function() {
 
 
 /**
- *
- * @return {!ydn.db.core.TxQueue}
+ * @inheritDoc
  */
-ydn.db.core.Storage.prototype.getTxQueue = function() {
-  return /** @type {!ydn.db.core.TxQueue} */ (this.base_tx_queue);
+ydn.db.core.Storage.prototype.newDbOperator = function() {
+  return this.db_operator = new ydn.db.core.DbOperator(this, this.schema, this.tx_thread);
 };
 
 
 /**
- * @override
+ * 
+ * @return {ydn.db.core.DbOperator}
  */
-ydn.db.core.Storage.prototype.newTxQueue = function(thread, scope_name) {
-  thread = thread || this.thread;
-  return new ydn.db.core.TxQueue(this, thread, this.ptx_no++,
-      this.schema, scope_name);
+ydn.db.core.Storage.prototype.getCoreOperator = function() {
+  return /** @type {ydn.db.core.DbOperator} */ (this.db_operator);
 };
 
 
+//
+//
+///**
+// * @override
+// */
+//ydn.db.core.Storage.prototype.newTxQueue = function(thread, scope_name) {
+//  thread = thread || this.thread;
+//  return new ydn.db.core.DbOperator(this, thread, this.ptx_no++,
+//      this.schema, scope_name);
+//};
+
+
 /**
- * @final
- * @return {number} transaction series number.
+ * @return {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.core.Storage.prototype.getTxNo = function() {
-  return this.getTxQueue().getTxNo();
+ydn.db.core.Storage.prototype.getExecutor = function () {
+
+  var type = this.type();
+  if (type == ydn.db.con.IndexedDb.TYPE) {
+    return new ydn.db.core.req.IndexedDb(this.db_name, this.schema);
+  } else if (type == ydn.db.con.WebSql.TYPE) {
+    return new ydn.db.core.req.WebSql(this.db_name, this.schema);
+  } else if (type == ydn.db.con.SimpleStorage.TYPE ||
+    type == ydn.db.con.LocalStorage.TYPE ||
+    type == ydn.db.con.SessionStorage.TYPE) {
+    return new ydn.db.core.req.SimpleStore(this.db_name, this.schema);
+  } else {
+    throw new ydn.db.InternalError('No executor for ' + type);
+  }
+
 };
 
 /**
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.add = function(store, value, opt_key) {
-  return this.getTxQueue().add(store, value, opt_key);
+  return this.getCoreOperator().add(store, value, opt_key);
 };
 
 
@@ -106,7 +128,7 @@ ydn.db.core.Storage.prototype.add = function(store, value, opt_key) {
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.count = function(store_name, key_range, index) {
-  return this.getTxQueue().count(store_name, key_range, index);
+  return this.getCoreOperator().count(store_name, key_range, index);
 };
 
 
@@ -114,7 +136,7 @@ ydn.db.core.Storage.prototype.count = function(store_name, key_range, index) {
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
-  return this.getTxQueue().get(arg1, arg2);
+  return this.getCoreOperator().get(arg1, arg2);
 };
 
 
@@ -124,30 +146,30 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
  */
 ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
                                                 arg4, arg5, arg6, arg7) {
-//  return ydn.db.core.TxQueue.prototype.keys.apply(
-//    /** @type {ydn.db.core.TxQueue} */ (this.base_tx_queue),
+//  return ydn.db.core.DbOperator.prototype.keys.apply(
+//    /** @type {ydn.db.core.DbOperator} */ (this.base_tx_queue),
 //    Array.prototype.slice.call(arguments));
 
   // above trick is the same effect as follow
-  //return this.getTxQueue().keys(store_name, arg2, arg3,
+  //return this.getCoreOperator().keys(store_name, arg2, arg3,
   //  arg4, arg5, arg6, arg7);
   // but it preserve argument length
 
-  return this.getTxQueue().keys(store_name, arg2, arg3, arg4, arg5, arg6, arg7);
+  return this.getCoreOperator().keys(store_name, arg2, arg3, arg4, arg5, arg6, arg7);
 };
 
 /**
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
-  return this.getTxQueue().list(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+  return this.getCoreOperator().list(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 };
 
 /**
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.load = function(store_name_or_schema, data, delimiter)  {
-  return this.getTxQueue().load(store_name_or_schema, data, delimiter);
+  return this.getCoreOperator().load(store_name_or_schema, data, delimiter);
 };
 
 
@@ -155,7 +177,7 @@ ydn.db.core.Storage.prototype.load = function(store_name_or_schema, data, delimi
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.put = function(store, value, opt_key) {
-  return this.getTxQueue().put(store, value, opt_key);
+  return this.getCoreOperator().put(store, value, opt_key);
 };
 
 
@@ -163,16 +185,16 @@ ydn.db.core.Storage.prototype.put = function(store, value, opt_key) {
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.clear = function(arg1, arg2, arg3) {
-  return this.getTxQueue().clear(arg1, arg2, arg3);
+  return this.getCoreOperator().clear(arg1, arg2, arg3);
 };
 
 
 /** @override */
 ydn.db.core.Storage.prototype.toString = function() {
   var s = 'Storage:' + this.getName();
-  if (goog.DEBUG && this.base_tx_queue) { // this.base_tx_queue null
+  if (goog.DEBUG && this.tx_thread) { // this.base_tx_queue null
   // is possible while in constructor
-    return s + ':' + this.base_tx_queue.getTxNo();
+    return s + ':' + this.tx_thread.getTxNo();
   }
   return s;
 };

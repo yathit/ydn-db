@@ -6,7 +6,7 @@
  */
 
 
-goog.provide('ydn.db.tr.TxQueue');
+goog.provide('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.error.NotSupportedException');
 
@@ -15,16 +15,13 @@ goog.require('ydn.error.NotSupportedException');
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
  *
- * @implements {ydn.db.tr.IStorage}
  * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
- * @param {ydn.db.tr.IThread.Threads} thread if true each database operation is blocked, effectively
- * making atomic transaction operation.
  * @param {number} ptx_no transaction queue number.
  * @param {string=} scope_name scope name.
  * @constructor
  */
-ydn.db.tr.TxQueue = function(storage, thread, ptx_no, scope_name) {
+ydn.db.tr.AtomicSerial = function(storage, ptx_no, scope_name) {
 
   /**
    * @final
@@ -33,12 +30,6 @@ ydn.db.tr.TxQueue = function(storage, thread, ptx_no, scope_name) {
    */
   this.storage_ = storage;
 
-  /**
-   * @final
-   * @type {ydn.db.tr.IThread.Threads}
-   * @private
-   */
-  this.thread = thread;
 
   /*
    * Transaction queue no.
@@ -72,22 +63,22 @@ ydn.db.tr.TxQueue = function(storage, thread, ptx_no, scope_name) {
  * @const
  * @type {boolean}
  */
-ydn.db.tr.TxQueue.DEBUG = false;
+ydn.db.tr.AtomicSerial.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.tr.TxQueue.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.tr.TxQueue');
+ydn.db.tr.AtomicSerial.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.tr.AtomicSerial');
 
 
 //
 ///**
 // * @inheritDoc
 // */
-//ydn.db.tr.TxQueue.prototype.transaction = function(trFn, store_names,
+//ydn.db.tr.AtomicSerial.prototype.transaction = function(trFn, store_names,
 //       opt_mode, completed_event_handler) {
 //  this.storage_.transaction(trFn, store_names,
 //      opt_mode, completed_event_handler);
@@ -98,7 +89,7 @@ ydn.db.tr.TxQueue.prototype.logger =
  *
  * @return {string}  scope name.
  */
-ydn.db.tr.TxQueue.prototype.getScope = function() {
+ydn.db.tr.AtomicSerial.prototype.getScope = function() {
   return this.scope;
 };
 
@@ -108,14 +99,14 @@ ydn.db.tr.TxQueue.prototype.getScope = function() {
  * @private
  * @type {ydn.db.tr.Mutex} mutex.
  */
-ydn.db.tr.TxQueue.prototype.mu_tx_ = null;
+ydn.db.tr.AtomicSerial.prototype.mu_tx_ = null;
 
 
 /**
  * @protected
  * @return {ydn.db.tr.Mutex} mutex.
  */
-ydn.db.tr.TxQueue.prototype.getMuTx = function() {
+ydn.db.tr.AtomicSerial.prototype.getMuTx = function() {
   return this.mu_tx_;
 };
 
@@ -124,7 +115,7 @@ ydn.db.tr.TxQueue.prototype.getMuTx = function() {
  *
  * @return {number} transaction count.
  */
-ydn.db.tr.TxQueue.prototype.getTxNo = function() {
+ydn.db.tr.AtomicSerial.prototype.getTxNo = function() {
   return this.mu_tx_.getTxCount();
 };
 
@@ -133,7 +124,7 @@ ydn.db.tr.TxQueue.prototype.getTxNo = function() {
  *
  * @return {number} transaction queue number.
  */
-ydn.db.tr.TxQueue.prototype.getQueueNo = function() {
+ydn.db.tr.AtomicSerial.prototype.getQueueNo = function() {
   return this.q_no_;
 };
 
@@ -142,7 +133,7 @@ ydn.db.tr.TxQueue.prototype.getQueueNo = function() {
  * Obtain active consumable transaction object.
  * @return {ydn.db.tr.Mutex} transaction object if active and available.
  */
-ydn.db.tr.TxQueue.prototype.getActiveTx = function() {
+ydn.db.tr.AtomicSerial.prototype.getActiveTx = function() {
   return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_ : null;
 };
 
@@ -151,7 +142,7 @@ ydn.db.tr.TxQueue.prototype.getActiveTx = function() {
  *
  * @return {boolean} true if trnasaction is active and available.
  */
-ydn.db.tr.TxQueue.prototype.isActive = function() {
+ydn.db.tr.AtomicSerial.prototype.isActive = function() {
   return this.mu_tx_.isActiveAndAvailable();
 };
 
@@ -160,7 +151,7 @@ ydn.db.tr.TxQueue.prototype.isActive = function() {
  *
  * @return {!ydn.db.tr.Storage} storage.
  */
-ydn.db.tr.TxQueue.prototype.getStorage = function() {
+ydn.db.tr.AtomicSerial.prototype.getStorage = function() {
   return this.storage_;
 };
 
@@ -169,7 +160,7 @@ ydn.db.tr.TxQueue.prototype.getStorage = function() {
  * @export
  * @return {SQLTransaction|IDBTransaction|Object} active transaction object.
  */
-ydn.db.tr.TxQueue.prototype.getTx = function() {
+ydn.db.tr.AtomicSerial.prototype.getTx = function() {
   return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_.getTx() : null;
 };
 
@@ -177,7 +168,7 @@ ydn.db.tr.TxQueue.prototype.getTx = function() {
 /**
  * Transaction is explicitly set not to do next transaction.
  */
-ydn.db.tr.TxQueue.prototype.lock = function() {
+ydn.db.tr.AtomicSerial.prototype.lock = function() {
   this.mu_tx_.lock();
 };
 
@@ -186,7 +177,7 @@ ydn.db.tr.TxQueue.prototype.lock = function() {
  *
  * @return {string}
  */
-ydn.db.tr.TxQueue.prototype.type = function() {
+ydn.db.tr.AtomicSerial.prototype.type = function() {
   return this.storage_.type();
 };
 
@@ -196,14 +187,14 @@ ydn.db.tr.TxQueue.prototype.type = function() {
  * @type {number}
  * @private
  */
-ydn.db.tr.TxQueue.prototype.last_queue_checkin_ = NaN;
+ydn.db.tr.AtomicSerial.prototype.last_queue_checkin_ = NaN;
 
 
 /**
  * @const
  * @type {number} maximun number of transaction queue.
  */
-ydn.db.tr.TxQueue.MAX_QUEUE = 1000;
+ydn.db.tr.AtomicSerial.MAX_QUEUE = 1000;
 
 
 /**
@@ -211,7 +202,7 @@ ydn.db.tr.TxQueue.MAX_QUEUE = 1000;
  * transaction.
  * @private
  */
-ydn.db.tr.TxQueue.prototype.popTxQueue_ = function() {
+ydn.db.tr.AtomicSerial.prototype.popTxQueue_ = function() {
 
   var task = this.trQueue_.shift();
   if (task) {
@@ -230,7 +221,7 @@ ydn.db.tr.TxQueue.prototype.popTxQueue_ = function() {
  * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed handler.
  * @protected
  */
-ydn.db.tr.TxQueue.prototype.pushTxQueue = function(trFn, store_names,
+ydn.db.tr.AtomicSerial.prototype.pushTxQueue = function(trFn, store_names,
                   opt_mode, on_completed) {
   this.logger.finest('push tx queue ' + trFn.name);
   this.trQueue_.push({
@@ -260,7 +251,7 @@ ydn.db.tr.TxQueue.prototype.pushTxQueue = function(trFn, store_names,
 /**
  * Abort an active transaction.
  */
-ydn.db.tr.TxQueue.prototype.abort = function() {
+ydn.db.tr.AtomicSerial.prototype.abort = function() {
   if (this.mu_tx_.isActive()) {
     var tx = this.mu_tx_.getTx();
     tx['abort'](); // this will cause error on SQLTransaction and WebStorage.
@@ -282,9 +273,8 @@ ydn.db.tr.TxQueue.prototype.abort = function() {
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted handler.
  * @param {...} opt_args optional arguments.
- * @override
  */
-ydn.db.tr.TxQueue.prototype.run = function(trFn, store_names, opt_mode,
+ydn.db.tr.AtomicSerial.prototype.run = function(trFn, store_names, opt_mode,
                                               oncompleted, opt_args) {
 
   //console.log('tr starting ' + trFn.name);
@@ -359,7 +349,7 @@ ydn.db.tr.TxQueue.prototype.run = function(trFn, store_names, opt_mode,
       }
     };
 
-    if (ydn.db.tr.TxQueue.DEBUG) {
+    if (ydn.db.tr.AtomicSerial.DEBUG) {
       window.console.log(this + ' transaction ' + mode + ' open for ' +
         JSON.stringify(names) + ' in ' + scope_name);
     }
@@ -373,11 +363,10 @@ ydn.db.tr.TxQueue.prototype.run = function(trFn, store_names, opt_mode,
 /**
  * @inheritDoc
  */
-ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope) {
+ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode, scope) {
   var me = this;
   var mu_tx = this.getMuTx();
 
-  if (this.thread == ydn.db.tr.IThread.Threads.SERIAL) {
     //console.log('creating new tx for ' + scope);
 
     var blocked_on_complete = function () {
@@ -420,38 +409,7 @@ ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope)
     //    // callback.
     // });
     // also notice, there is transaction overlap problem in mutex class.
-  } else if (mu_tx.isActiveAndAvailable()) {
-    //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
-    // call within a transaction
-    // continue to use existing transaction
-    callback(mu_tx.getTx());
-  } else {
 
-    var on_complete = function () {
-      //console.log('tx ' + scope + ' completed');
-    };
-
-    //
-    // create a new transaction and close for invoke in non-transaction context
-    var tx_callback = function (idb) {
-      //console.log('tx running for ' + scope);
-      me.not_ready_ = true;
-      // transaction should be active now
-      if (!mu_tx.isActive()) {
-        throw new ydn.db.InternalError('Tx not active for scope: ' + scope);
-      }
-      if (!mu_tx.isAvailable()) {
-        throw new ydn.db.InternalError('Tx not available for scope: ' +
-            scope);
-      }
-      callback(mu_tx.getTx());
-    };
-    //var cbFn = goog.partial(tx_callback, callback);
-    tx_callback.name = scope; // scope name
-    //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
-    // locked: ' + mu_tx.isSetDone());
-    me.run(tx_callback, store_names, mode, on_complete);
-  }
 };
 
 
@@ -460,7 +418,7 @@ ydn.db.tr.TxQueue.prototype.exec = function (callback, store_names, mode, scope)
  * @final
  * @return {string} database name.
  */
-ydn.db.tr.TxQueue.prototype.getName = function() {
+ydn.db.tr.AtomicSerial.prototype.getName = function() {
   // db name can be undefined during instantiation.
   this.db_name = this.db_name || this.getStorage().getName();
   return this.db_name;
@@ -468,8 +426,8 @@ ydn.db.tr.TxQueue.prototype.getName = function() {
 
 
 /** @override */
-ydn.db.tr.TxQueue.prototype.toString = function() {
-  var s = 'ydn.db.tr.TxQueue:' + this.storage_.getName();
+ydn.db.tr.AtomicSerial.prototype.toString = function() {
+  var s = 'ydn.db.tr.AtomicSerial:' + this.storage_.getName();
   if (goog.DEBUG) {
     var scope = this.mu_tx_.getScope();
     scope = scope ? ' [' + scope + ']' : '';

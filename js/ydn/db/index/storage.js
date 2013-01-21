@@ -18,7 +18,7 @@
  */
 
 goog.provide('ydn.db.index.Storage');
-goog.require('ydn.db.index.TxQueue');
+goog.require('ydn.db.index.DbOperator');
 goog.require('ydn.db.core.Storage');
 
 
@@ -27,7 +27,7 @@ goog.require('ydn.db.core.Storage');
  * storage mechanisms.
  *
  * This class do not execute database operation, but create a non-overlapping
- * transaction queue on ydn.db.core.TxQueue and all operations are
+ * transaction queue on ydn.db.core.DbOperator and all operations are
  * passed to it.
  *
  *
@@ -49,13 +49,52 @@ ydn.db.index.Storage = function(opt_dbname, opt_schema, opt_options) {
 goog.inherits(ydn.db.index.Storage, ydn.db.core.Storage);
 
 
+///**
+// * @override
+// */
+//ydn.db.index.Storage.prototype.newTxQueue = function(thread, scope_name) {
+//  thread = thread || this.thread;
+//  return new ydn.db.index.DbOperator(this, thread, this.ptx_no++,
+//      this.schema, scope_name);
+//};
+
+
 /**
- * @override
+ * @inheritDoc
  */
-ydn.db.index.Storage.prototype.newTxQueue = function(thread, scope_name) {
-  thread = thread || this.thread;
-  return new ydn.db.index.TxQueue(this, thread, this.ptx_no++,
-      this.schema, scope_name);
+ydn.db.index.Storage.prototype.getExecutor = function () {
+
+  var type = this.type();
+  if (type == ydn.db.con.IndexedDb.TYPE) {
+    return new ydn.db.index.req.IndexedDb(this.db_name, this.schema);
+  } else if (type == ydn.db.con.WebSql.TYPE) {
+    return new ydn.db.index.req.WebSql(this.db_name, this.schema);
+  } else if (type == ydn.db.con.SimpleStorage.TYPE ||
+    type == ydn.db.con.LocalStorage.TYPE ||
+    type == ydn.db.con.SessionStorage.TYPE) {
+    return new ydn.db.index.req.SimpleStore(this.db_name, this.schema);
+  } else {
+    throw new ydn.db.InternalError('No executor for ' + type);
+  }
+
+};
+
+
+/**
+ * 
+ * @inheritDoc
+ */
+ydn.db.index.Storage.prototype.newDbOperator = function() {
+  return new ydn.db.index.DbOperator(this, this.schema, this.tx_thread);
+};
+
+
+/**
+ * 
+ * @return {ydn.db.index.DbOperator}
+ */
+ydn.db.index.Storage.prototype.getIndexOperator = function() {
+  return /** @type {ydn.db.index.DbOperator} */ (this.db_operator);  
 };
 
 
@@ -67,7 +106,7 @@ ydn.db.index.Storage.prototype.newTxQueue = function(thread, scope_name) {
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.index.Storage.prototype.open = function(iterator, callback, mode) {
-  return this.base_tx_queue.open(iterator, callback, mode);
+  return this.getIndexOperator().open(iterator, callback, mode);
 };
 
 
@@ -80,7 +119,7 @@ ydn.db.index.Storage.prototype.open = function(iterator, callback, mode) {
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
-  return this.base_tx_queue.scan(iterators, solver, streamers);
+  return this.getIndexOperator().scan(iterators, solver, streamers);
 };
 
 
@@ -90,7 +129,7 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
 // * @return {Object} plan in JSON
 // */
 //ydn.db.index.Storage.prototype.explain = function(q) {
-//  return this.base_tx_queue.explain(q);
+//  return this.getIndexOperator().explain(q);
 //};
 
 
@@ -100,7 +139,7 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
  * @param {function(*): (*|undefined)} callback
  */
 ydn.db.index.Storage.prototype.map = function (iterator, callback) {
-  return this.base_tx_queue.map(iterator, callback);
+  return this.getIndexOperator().map(iterator, callback);
 };
 
 
@@ -111,6 +150,6 @@ ydn.db.index.Storage.prototype.map = function (iterator, callback) {
  * @param {*=} initial
  */
 ydn.db.index.Storage.prototype.reduce = function(iterator, callback, initial) {
-  return this.base_tx_queue.reduce(iterator, callback, initial);
+  return this.getIndexOperator().reduce(iterator, callback, initial);
 };
 
