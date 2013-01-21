@@ -61,7 +61,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   /**
    * @final
    */
-  this.db_operator = this.newDbOperator(this.thread_name, 'base');
+  this.db_operator = this.thread(this.thread_name, 'base');
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
 
@@ -92,9 +92,8 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
  * @param {ydn.db.tr.IThread.Threads} thread
  * @param {string=} operator name.
  * @return {*}
- * @protected
  */
-ydn.db.tr.Storage.prototype.newDbOperator = goog.abstractMethod;
+ydn.db.tr.Storage.prototype.thread = goog.abstractMethod;
 
 
 /**

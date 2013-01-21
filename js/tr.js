@@ -3,13 +3,14 @@
  */
 
 goog.require('ydn.db.tr.Storage');
-goog.require('ydn.db.tr.AtomicSerial');
+goog.require('ydn.db.tr.DbOperator');
 
-goog.exportSymbol('ydn.db.tr.Storage', ydn.db.tr.Storage);
 
 goog.exportProperty(ydn.db.tr.Storage.prototype, 'run',
     ydn.db.tr.Storage.prototype.run);
-goog.exportProperty(ydn.db.tr.AtomicSerial.prototype, 'abort',
-  ydn.db.tr.AtomicSerial.prototype.abort);
+goog.exportProperty(ydn.db.tr.DbOperator.prototype, 'run',
+  ydn.db.tr.DbOperator.prototype.run);
+goog.exportProperty(ydn.db.tr.DbOperator.prototype, 'abort',
+  ydn.db.tr.DbOperator.prototype.abort);
 
 

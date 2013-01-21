@@ -10,6 +10,9 @@ goog.require('ydn.db.index.DbOperator');
 goog.require('ydn.db.index.req.IDBCursor');
 goog.require('ydn.math.Expression');
 
+goog.exportProperty(ydn.db.index.Storage.prototype, 'thread',
+  ydn.db.index.Storage.prototype.thread);
+
 goog.exportProperty(ydn.db.index.Storage.prototype, 'scan',
     ydn.db.index.Storage.prototype.scan);
 goog.exportProperty(ydn.db.index.Storage.prototype, 'map',

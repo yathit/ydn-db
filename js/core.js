@@ -12,6 +12,9 @@ goog.require('ydn.db.events.StoreEvent');
 
 goog.exportSymbol('ydn.db.core.Storage', ydn.db.core.Storage);
 
+goog.exportProperty(ydn.db.core.Storage.prototype, 'thread',
+  ydn.db.core.Storage.prototype.thread);
+
 goog.exportProperty(ydn.db.core.Storage.prototype, 'add',
     ydn.db.core.Storage.prototype.add);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'get',
