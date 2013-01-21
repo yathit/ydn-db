@@ -69,8 +69,9 @@ ydn.db.core.Storage.prototype.init = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.newDbOperator = function() {
-  return this.db_operator = new ydn.db.core.DbOperator(this, this.schema, this.tx_thread);
+ydn.db.core.Storage.prototype.newDbOperator = function(thread, name) {
+  var tx_thread = this.newTxQueue(thread, name);
+  return this.db_operator = new ydn.db.core.DbOperator(this, this.schema, tx_thread);
 };
 
 
@@ -192,9 +193,9 @@ ydn.db.core.Storage.prototype.clear = function(arg1, arg2, arg3) {
 /** @override */
 ydn.db.core.Storage.prototype.toString = function() {
   var s = 'Storage:' + this.getName();
-  if (goog.DEBUG && this.tx_thread) { // this.base_tx_queue null
+  if (goog.DEBUG) { // this.base_tx_queue null
   // is possible while in constructor
-    return s + ':' + this.tx_thread.getTxNo();
+    return s + ':' + this.getTxNo();
   }
   return s;
 };

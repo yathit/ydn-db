@@ -99,7 +99,6 @@ ydn.db.tr.Mutex.prototype.up = function(tx, store_names, mode, scope_name) {
 ydn.db.tr.Mutex.prototype.idb_tx_ = null;
 
 
-
 /**
  * Transaction is explicitly set not to do transaction.
  * @type {boolean}
@@ -114,11 +113,13 @@ ydn.db.tr.Mutex.prototype.is_set_done_ = false;
  */
 ydn.db.tr.Mutex.prototype.scope_name = '';
 
+
 /**
  * @protected
  * @type {Array.<string>}
  */
 ydn.db.tr.Mutex.prototype.store_names = null;
+
 
 /**
  * @protected

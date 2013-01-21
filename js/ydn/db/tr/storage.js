@@ -61,12 +61,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   /**
    * @final
    */
-  this.tx_thread = this.newTxQueue(this.thread_name, 'base');
-
-  /**
-   * @final
-   */
-  this.db_operator = this.newDbOperator();
+  this.db_operator = this.newDbOperator(this.thread_name, 'base');
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
 
@@ -76,13 +71,6 @@ goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
  * @protected
  */
 ydn.db.tr.Storage.prototype.thread_name;
-
-
-/**
- * @protected
- * @type {ydn.db.tr.IThread}
- */
-ydn.db.tr.Storage.prototype.tx_thread = null;
 
 
 /**
@@ -101,6 +89,8 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
 
 /**
  * Create a new db operator during initialization.
+ * @param {ydn.db.tr.IThread.Threads} thread
+ * @param {string=} operator name.
  * @return {*}
  * @protected
  */
@@ -112,7 +102,7 @@ ydn.db.tr.Storage.prototype.newDbOperator = goog.abstractMethod;
  * @return {number} transaction series number.
  */
 ydn.db.tr.Storage.prototype.getTxNo = function() {
-  return this.tx_thread.getTxNo();
+  return this.db_operator.getTxNo();
 };
 
 
