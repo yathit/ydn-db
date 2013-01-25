@@ -1053,46 +1053,6 @@ ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(df, table,
 };
 
 
-/**
- * Get list of keys in a range.
- * @param {!goog.async.Deferred} df result promise.
- * @param {string} store_name store name.
- * @param {IDBKeyRange} key_range The key range.
- * @param {string} key_range_index Index name of key range.
- * @param {number=} offset number of result to skip.
- * @param {number=} limit place upper bound on results.
- */
-ydn.db.core.req.IndexedDb.prototype.getKeysByIndexKeyRange = function(df, store_name,
-    key_range, key_range_index, offset, limit) {
-  var store = this.tx.objectStore(store_name);
-  var index = store.index(key_range_index);
-  var req = index.openKeyCursor(key_range);
-
-  var keys = [];
-  var cue = false;
-  req.onsuccess = function(event) {
-    var cur = /** @type {IDBCursor} */ (event.target.result);
-    if (cur) {
-      if (goog.isDef(offset) && !cue) {
-        cue = true;
-        cur.advance(offset);
-      }
-      keys.push(cur.primaryKey);
-      if (goog.isDef(limit) && keys.length >= limit) {
-        df.callback(keys);
-      } else {
-        cur['continue']();
-      }
-    } else {
-      df.callback(keys);
-    }
-  };
-
-  req.onerror = function(ev) {
-    df.errback(ev);
-  };
-};
-
 
 
 /**

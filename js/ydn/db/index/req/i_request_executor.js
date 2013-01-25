@@ -93,18 +93,6 @@ ydn.db.index.req.IRequestExecutor.prototype.listByIterator = goog.abstractMethod
 //ydn.db.index.req.IRequestExecutor.prototype.open = goog.abstractMethod;
 
 
-/**
- * Get list of keys in a range.
- * @param {!goog.async.Deferred} df result promise.
- * @param {string} store_name store name.
- * @param {IDBKeyRange} key_range The key range.
- * @param {string} key_range_index Index name of key range.
- * @param {number=} offset number of result to skip.
- * @param {number=} limit place upper bound on results.
- */
-ydn.db.index.req.IRequestExecutor.prototype.getKeysByIndexKeyRange =
-  goog.abstractMethod;
-
 
 /**
  * @param {string} store_name the store name to open.

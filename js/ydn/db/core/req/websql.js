@@ -1123,3 +1123,6 @@ ydn.db.core.req.WebSql.prototype.getIndexKeysByKeys = goog.abstractMethod;
 ydn.db.core.req.WebSql.prototype.toString = function() {
   return 'WebSqlEx:' + (this.dbname || '');
 };
+
+
+

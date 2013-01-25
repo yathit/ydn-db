@@ -343,11 +343,6 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
 
 
 
-/**
- * @inheritDoc
- */
-ydn.db.index.req.WebSql.prototype.getKeysByIndexKeyRange = goog.abstractMethod;
-
 
 /**
  * @inheritDoc

@@ -123,6 +123,7 @@ ydn.db.core.req.IRequestExecutor.prototype.getIndexKeysByKeys =
   goog.abstractMethod;
 
 
+
 /**
  * Retrieve primary keys from a store in a given key range.
  * @param {!goog.async.Deferred} return object in deferred function.

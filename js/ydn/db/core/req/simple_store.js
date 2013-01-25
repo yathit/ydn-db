@@ -349,8 +349,6 @@ ydn.db.core.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
 };
 
 
-
-
 /**
  * @inheritDoc
  */
