@@ -777,10 +777,6 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(df, store_nam
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.keysByIndexKeys = goog.abstractMethod;
 
 
 /**

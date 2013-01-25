@@ -88,11 +88,6 @@ ydn.db.core.req.SimpleStore.prototype.getTx = function() {
 ydn.db.core.req.SimpleStore.prototype.keysByIndexKeyRange = goog.abstractMethod;
 
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.keysByIndexKeys = goog.abstractMethod;
-
 
 /**
  * @inheritDoc
@@ -100,17 +95,6 @@ ydn.db.core.req.SimpleStore.prototype.keysByIndexKeys = goog.abstractMethod;
 ydn.db.core.req.SimpleStore.prototype.keysByKeyRange = goog.abstractMethod;
 
 
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.keysByIndexKeyRange = goog.abstractMethod;
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.keysByIndexKeys = goog.abstractMethod;
 
 /**
  * @inheritDoc

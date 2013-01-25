@@ -147,10 +147,6 @@ ydn.db.core.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.WebSql.prototype.keysByIndexKeys = goog.abstractMethod;
 
 
 /**
@@ -170,12 +166,6 @@ ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = function(df, store_name,
       index_name, key_range, reverse, limit, offset, unique) {
   this.list_by_key_range_(df, true, store_name, index_name, key_range, reverse, limit, offset);
 };
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.WebSql.prototype.keysByIndexKeys = goog.abstractMethod;
 
 
 /**
