@@ -1054,7 +1054,13 @@ ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(df, table,
 
 
 /**
- * @inheritDoc
+ * Get list of keys in a range.
+ * @param {!goog.async.Deferred} df result promise.
+ * @param {string} store_name store name.
+ * @param {IDBKeyRange} key_range The key range.
+ * @param {string} key_range_index Index name of key range.
+ * @param {number=} offset number of result to skip.
+ * @param {number=} limit place upper bound on results.
  */
 ydn.db.core.req.IndexedDb.prototype.getKeysByIndexKeyRange = function(df, store_name,
     key_range, key_range_index, offset, limit) {

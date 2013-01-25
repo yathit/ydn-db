@@ -349,3 +349,10 @@ ydn.db.core.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
 };
 
 
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.getIndexKeysByKeys = goog.abstractMethod;
+

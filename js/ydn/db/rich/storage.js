@@ -19,7 +19,7 @@
 
 goog.provide('ydn.db.rich.Storage');
 goog.require('ydn.db.core.Storage');
-goog.require('ydn.db.RichStorage');
+goog.require('ydn.db.rich.RichStorage');
 
 
 
@@ -53,16 +53,16 @@ ydn.db.core.Storage.prototype.encrypt = function(secret, opt_expiration) {
     /**
      * @protected
      * @final
-     * @type {ydn.db.RichStorage}
+     * @type {ydn.db.rich.RichStorage}
      */
-    this.wrapper = new ydn.db.RichStorage(this, secret, opt_expiration);
+    this.wrapper = new ydn.db.rich.RichStorage(this, secret, opt_expiration);
   }
 };
 
 
 /**
  *
- * @return {ydn.db.RichStorage} wrapper.
+ * @return {ydn.db.rich.RichStorage} wrapper.
  */
 ydn.db.core.Storage.prototype.getWrapper = function() {
   return this.wrapper || null;

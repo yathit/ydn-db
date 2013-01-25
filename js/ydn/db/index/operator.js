@@ -610,10 +610,10 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
       if (iterator.isIndexIterator()) {
         if (iterator.isKeyOnly()) {
           keys[i] = key;
-          values[i] = key;
+          values[i] = primary_key;
         } else {
           keys[i] = key;
-          values[i] = primary_key;
+          values[i] = value;
         }
       } else {
         if (iterator.isKeyOnly()) {
@@ -649,7 +649,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
         var iterator = iterators[i];
         var mode = iterator.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY :
           ydn.db.base.CursorMode.READ_ONLY;
-        var cursor = iterator.iterate(this.getExecutor(tx));
+        var cursor = iterator.iterate(me.getIndexExecutor(tx));
         cursor.onError = on_error;
         cursor.onNext = goog.partial(on_iterator_next, idx);
         cursors[i] = cursor;

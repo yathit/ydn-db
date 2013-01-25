@@ -489,8 +489,7 @@ ydn.db.con.Storage.prototype.close = function() {
 
 
 /**
- * Get database instance.
- * @see {@link #getDb}
+ * Get nati database instance.
  * @return {*} database instance.
  */
 ydn.db.con.Storage.prototype.getDbInstance = function() {

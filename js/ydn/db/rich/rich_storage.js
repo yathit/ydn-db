@@ -6,11 +6,10 @@
  */
 
 
-// Note: intentionally not exported.
-// This class is supposed to be inner class of ydn.db.Storage.
-goog.provide('ydn.db.RichStorage');
+goog.provide('ydn.db.rich.RichStorage');
 goog.require('goog.storage.EncryptedStorage');
 goog.require('goog.storage.ExpiringStorage');
+goog.require('goog.asserts');
 
 
 /**
@@ -19,7 +18,7 @@ goog.require('goog.storage.ExpiringStorage');
  * @param {number=} opt_default_expiration expiration time.
  * @constructor
  */
-ydn.db.RichStorage = function(parent, secret, opt_default_expiration) {
+ydn.db.rich.RichStorage = function(parent, secret, opt_default_expiration) {
 
   /**
    *
@@ -56,14 +55,14 @@ ydn.db.RichStorage = function(parent, secret, opt_default_expiration) {
  * @param {!Object} wrapper The wrapper.
  * @return {boolean} True if the item has expired.
  */
-ydn.db.RichStorage.isExpired = goog.storage.ExpiringStorage.isExpired;
+ydn.db.rich.RichStorage.isExpired = goog.storage.ExpiringStorage.isExpired;
 
 
 /**
  * @const
  * @type {string}
  */
-ydn.db.RichStorage.EXPIRATION_TIME_KEY =
+ydn.db.rich.RichStorage.EXPIRATION_TIME_KEY =
   goog.storage.ExpiringStorage.EXPIRATION_TIME_KEY;
 
 
@@ -71,14 +70,14 @@ ydn.db.RichStorage.EXPIRATION_TIME_KEY =
  * @const
  * @type {string}
  */
-ydn.db.RichStorage.CREATION_TIME_KEY =
+ydn.db.rich.RichStorage.CREATION_TIME_KEY =
   goog.storage.ExpiringStorage.CREATION_TIME_KEY;
 
 /**
  * @const
  * @type {string}
  */
-ydn.db.RichStorage.DATA_KEY = goog.storage.RichStorage.DATA_KEY;
+ydn.db.rich.RichStorage.DATA_KEY = goog.storage.RichStorage.DATA_KEY;
 
 
 
@@ -90,7 +89,7 @@ ydn.db.RichStorage.DATA_KEY = goog.storage.RichStorage.DATA_KEY;
  * @return {string} The hash.
  * @private
  */
-ydn.db.RichStorage.prototype.hashKeyWithSecret_ =
+ydn.db.rich.RichStorage.prototype.hashKeyWithSecret_ =
   goog.storage.EncryptedStorage.prototype.hashKeyWithSecret_;
 
 /**
@@ -103,7 +102,7 @@ ydn.db.RichStorage.prototype.hashKeyWithSecret_ =
  * @return {string} The encrypted value.
  * @private
  */
-ydn.db.RichStorage.prototype.encryptValue_ =
+ydn.db.rich.RichStorage.prototype.encryptValue_ =
   goog.storage.EncryptedStorage.prototype.encryptValue_;
 
 
@@ -118,7 +117,7 @@ ydn.db.RichStorage.prototype.encryptValue_ =
  * @return {string} The decrypted value.
  * @private
  */
-ydn.db.RichStorage.prototype.decryptValue_ =
+ydn.db.rich.RichStorage.prototype.decryptValue_ =
   goog.storage.EncryptedStorage.prototype.decryptValue_;
 
 
@@ -128,7 +127,7 @@ ydn.db.RichStorage.prototype.decryptValue_ =
  * @param {string} value value.
  * @return {string|undefined} wrapped value.
  */
-ydn.db.RichStorage.prototype.unwrapValue = function(key, value) {
+ydn.db.rich.RichStorage.prototype.unwrapValue = function(key, value) {
   var wrapper = JSON.parse(value);
   goog.asserts.assertObject(wrapper, key + ' corrupted: ' + value);
 
@@ -151,7 +150,7 @@ ydn.db.RichStorage.prototype.unwrapValue = function(key, value) {
     return undefined;
   }
 
-  var data = /** @type {string} */ (wrapper[ydn.db.RichStorage.DATA_KEY]);
+  var data = /** @type {string} */ (wrapper[ydn.db.rich.RichStorage.DATA_KEY]);
   goog.asserts.assertString(data);
   return data;
 };
@@ -164,7 +163,7 @@ ydn.db.RichStorage.prototype.unwrapValue = function(key, value) {
  * @param {number=} opt_expiration expiration.
  * @return {string} wrapped value.
  */
-ydn.db.RichStorage.prototype.wrapValue = function(key, value, opt_expiration) {
+ydn.db.rich.RichStorage.prototype.wrapValue = function(key, value, opt_expiration) {
 
   // set method in goog.storage.EncryptedStorage
   key = this.hashKeyWithSecret_(key);
@@ -177,7 +176,7 @@ ydn.db.RichStorage.prototype.wrapValue = function(key, value, opt_expiration) {
     this.cleartextSerializer_.serialize(value));
 
   var wrapper = {};
-  wrapper[ydn.db.RichStorage.DATA_KEY] = value;
+  wrapper[ydn.db.rich.RichStorage.DATA_KEY] = value;
   if (goog.isDef(opt_expiration)) {
     goog.asserts.assert(opt_expiration > 0,
       'expiration time must be a number ' +
@@ -186,9 +185,9 @@ ydn.db.RichStorage.prototype.wrapValue = function(key, value, opt_expiration) {
     opt_expiration = this.default_expiration;
   }
   if (opt_expiration) {
-    wrapper[ydn.db.RichStorage.EXPIRATION_TIME_KEY] =
+    wrapper[ydn.db.rich.RichStorage.EXPIRATION_TIME_KEY] =
       opt_expiration;
   }
-  wrapper[ydn.db.RichStorage.CREATION_TIME_KEY] = goog.now();
+  wrapper[ydn.db.rich.RichStorage.CREATION_TIME_KEY] = goog.now();
   return ydn.json.stringify(wrapper);
 };

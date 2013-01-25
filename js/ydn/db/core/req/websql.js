@@ -1112,6 +1112,12 @@ ydn.db.core.req.WebSql.prototype.removeByStore = function(d, opt_table) {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.getIndexKeysByKeys = goog.abstractMethod;
+
+
+/**
  * @override
  */
 ydn.db.core.req.WebSql.prototype.toString = function() {

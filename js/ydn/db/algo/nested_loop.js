@@ -62,7 +62,7 @@ ydn.db.algo.NestedLoop.prototype.solver = function (keys, values) {
     if (!goog.isDef(keys[idx])) {
       advancement[idx] = false; // restart
       if (idx - 1 >= 0) {
-        next(idx - 1);
+        next(idx - 1); // increase outer loop one step
       }
     } else {
       all_restarting = false;
@@ -70,14 +70,14 @@ ydn.db.algo.NestedLoop.prototype.solver = function (keys, values) {
     }
   };
 
-  next(keys.length - 1); // the innermost loop is always iterating
+  next(keys.length - 1); // increase one step to the innermost loop
 
   if (ydn.db.algo.NestedLoop.DEBUG) {
     window.console.log([keys, values, advancement]);
   }
 
   if (all_restarting) {
-    advancement = [];
+    advancement = []; // it is over.
   }
 
   return this.pusher(advancement, keys, values);

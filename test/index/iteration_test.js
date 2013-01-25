@@ -17,14 +17,14 @@ var setUp = function() {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
-    ydn.db.core.req.IndexedDb.DEBUG = true;
-    ydn.db.index.req.WebsqlCursor.DEBUG = true;
+    //ydn.db.core.req.IndexedDb.DEBUG = true;
+    //ydn.db.index.req.WebsqlCursor.DEBUG = true;
 
   }
 
@@ -158,7 +158,7 @@ var test_13_scan_index_key_iterator = function () {
     return a.value > b.value ? 1 : -1;
   });
   var actual_keys = objs.map(function(x) {return x.value;});
-  var actual_index_keys = objs.map(function(x) {return x.value;});
+  var actual_index_keys = objs.map(function(x) {return x.id;});
   var q = new ydn.db.KeyIterator(store_name, 'value');
   scan_key_single_test(q, actual_keys, actual_index_keys);
 
@@ -171,7 +171,7 @@ var test_14_scan_index_key_iterator_reverse = function () {
     return a.value > b.value ? -1 : 1;
   });
   var actual_keys = objs.map(function(x) {return x.value;});
-  var actual_index_keys = objs.map(function(x) {return x.value;});
+  var actual_index_keys = objs.map(function(x) {return x.id;});
   var q = new ydn.db.KeyIterator(store_name, 'value', null, true);
 
   scan_key_single_test(q, actual_keys, actual_index_keys);
@@ -207,11 +207,11 @@ var test_21_scan_key_dual = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.Iterator(store_name, 'value');
-  var q2 = new ydn.db.Iterator(store_name, 'x');
+  var q1 = new ydn.db.KeyIterator(store_name, 'value');
+  var q2 = new ydn.db.KeyIterator(store_name, 'x');
 
   db = load_default();
-  var req = db.scan([q1, q2], function join_algo (key, index_key) {
+  var req = db.scan([q1, q2], function join_algo (index_key, key) {
     //console.log(['receiving ', key, index_key]);
     if (goog.isDef(key[0])) {
       streaming_keys.push(key[0]);
@@ -512,7 +512,7 @@ var test_61_scan_cursor_resume = function() {
   var done;
   var values = [];
   var actual_values = [0, 1, 2, 3];
-  var q = new ydn.db.Iterator(store_name, 'value');
+  var q = new ydn.db.KeyIterator(store_name, 'value');
 
   waitForCondition(
       // Condition
@@ -545,7 +545,7 @@ var test_61_scan_cursor_resume = function() {
         // pick up where letf off.
         var req = db.scan([q], function (keys, v) {
           if (goog.isDef(keys[0])) {
-            values.push(v[0]);
+            values.push(keys[0]);
             return [true];
           } else {
             return [];
@@ -566,9 +566,9 @@ var test_61_scan_cursor_resume = function() {
   var req = db.scan([q], function (keys, v) {
     //console.log([keys, v]);
     if (goog.isDef(keys[0])) {
-      values.push(v[0]);
+      values.push(keys[0]);
       // scan until value is 3.
-      return [v[0] < 3 ? true : undefined];
+      return [keys[0] < 3 ? true : undefined];
     } else {
       return [];
     }

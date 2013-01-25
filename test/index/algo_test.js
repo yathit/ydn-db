@@ -99,9 +99,9 @@ var match_animal = function(algo) {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = ydn.db.Iterator.where('animals', 'color', '=', 'spots');
-  var q2 = ydn.db.Iterator.where('animals', 'horn', '=', 1);
-  var q3 = ydn.db.Iterator.where('animals', 'legs', '=', 4);
+  var q1 = new ydn.db.KeyIterator('animals', 'color', ydn.db.KeyRange.only('spots'));
+  var q2 = new ydn.db.KeyIterator('animals', 'horn', ydn.db.KeyRange.only(1));
+  var q3 = new ydn.db.KeyIterator('animals', 'legs', ydn.db.KeyRange.only(4));
   var out = [];
 
   var solver, req;
