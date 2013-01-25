@@ -19,9 +19,9 @@ var setUp = function() {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.index.req').setLevel(goog.debug.Logger.Level.FINEST);
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
@@ -52,8 +52,7 @@ var setUp = function() {
     {id: 4, value: 12, x: 1, tag: ['b', 'c', 'd']},
     {id: 5, value: 13, x: 1, tag: ['c']},
     {id: 6, value: 31, x: 1},
-    {id: 7, value: 32, x: 1, tag: ['b']},
-    {id: 7, value: 33, x: 1, tag: ['b']}
+    {id: 7, value: 32, x: 1, tag: ['b']}
   ];
 
   db.put(store_name, objs).addCallback(function (value) {

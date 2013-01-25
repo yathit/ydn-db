@@ -135,7 +135,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
    * @protected
    * @param {IDBDatabase} db database instance.
    * @param {IDBTransaction} trans transaction.
-   * @param {boolean=} is_caller_setversion call from set version;.
+   * @param {boolean} is_caller_setversion call from set version;
    */
   var updateSchema = function(db, trans, is_caller_setversion) {
 
@@ -150,10 +150,14 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       me.update_store_(db, trans, schema.stores[i]);
     }
 
-    //var storeNames = /** @type {DOMStringList} */ (db.objectStoreNames);
-    //this.setSchema(db, trans, storeNames, schema);
-
-    // TODO: delete unused stores ?
+    // delete stores
+    var storeNames = /** @type {DOMStringList} */ (db.objectStoreNames);
+    for (var n = storeNames.length, i = 0; i < n; i++) {
+      if (!schema.hasStore(storeNames[i])) {
+        db.deleteObjectStore(storeNames[i]);
+        me.logger.finer('store: ' + storeNames[i] + ' deleted.');
+      }
+    }
   };
 
   var version = schema.getVersion();
@@ -582,36 +586,42 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 
     store = trans.objectStore(store_schema.getName());
 
-    if (store.keyPath != store_schema.getKeyPath()) {
+    var keyPath = store_schema.getKeyPath() || '';
+    var store_keyPath = store.keyPath || '';
+
+    if (keyPath != store_keyPath) {
       db.deleteObjectStore(store_schema.getName());
       this.logger.warning('store: ' + store_schema.getName() + ' deleted due to keyPath change.');
       store = createObjectStore();
-    } else if (store.autoIncrement != store_schema.getAutoIncrement()) {
+    } else if (goog.isBoolean(store.autoIncrement) && goog.isBoolean(store_schema.getAutoIncrement()) &&
+        store.autoIncrement != store_schema.getAutoIncrement()) {
       db.deleteObjectStore(store_schema.getName());
       this.logger.warning('store: ' + store_schema.getName() + ' deleted due to autoIncrement change.');
       store = createObjectStore();
-    }
+    } else {
 
-    var indexNames = /** @type {DOMStringList} */ (store.indexNames);
+      var indexNames = /** @type {DOMStringList} */ (store.indexNames);
 
-    var created = 0;
-    var deleted = 0;
-    for (var j = 0; j < store_schema.indexes.length; j++) {
-      var index = store_schema.indexes[j];
-      if (!indexNames.contains(index.name)) {
-        store.createIndex(index.name, index.keyPath, {unique: index.unique});
-        created++;
+      var created = 0;
+      var deleted = 0;
+      for (var j = 0; j < store_schema.indexes.length; j++) {
+        var index = store_schema.indexes[j];
+        if (!indexNames.contains(index.name)) {
+          store.createIndex(index.name, index.keyPath, {unique: index.unique});
+          created++;
+        }
       }
-    }
-    for (var j = 0; j < indexNames.length; j++) {
-      if (!store_schema.hasIndex(indexNames[j])) {
-        store.deleteIndex(indexNames[j]);
-        deleted++;
+      for (var j = 0; j < indexNames.length; j++) {
+        if (!store_schema.hasIndex(indexNames[j])) {
+          store.deleteIndex(indexNames[j]);
+          deleted++;
+        }
       }
+
+      this.logger.finest('Updated store: ' + store.name + ', ' + created +
+        ' index created, ' + deleted + ' index deleted.');
     }
 
-    this.logger.finest('Updated store: ' + store.name + ', ' + created +
-      ' index created, ' + deleted + ' index deleted.');
   } else {
 
     store = createObjectStore();

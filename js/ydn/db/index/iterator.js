@@ -518,9 +518,9 @@ ydn.db.Iterator.prototype.stores = function() {
  * @param {string=} value2 second rvalue to compare.
  * @return {!ydn.db.Iterator} The query.
  */
-ydn.db.Iterator.where = function(store_name, field, op, value, op2, value2) {
+ydn.db.KeyIterator.where = function(store_name, field, op, value, op2, value2) {
   var key_range = new ydn.db.Where(field, op, value, op2, value2);
-  return new ydn.db.Iterator(store_name, field, key_range);
+  return new ydn.db.KeyIterator(store_name, field, key_range);
 };
 
 

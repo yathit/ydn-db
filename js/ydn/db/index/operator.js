@@ -490,7 +490,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
       var advance = [];
       if (goog.isArray(out)) {
         // adv vector is given
-        next_primary_keys = out;
+        next_index_keys = out;
       } else if (goog.isNull(out)) {
         // all stop
         next_primary_keys = [];
