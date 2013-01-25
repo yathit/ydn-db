@@ -444,8 +444,12 @@ ydn.db.Iterator.prototype.toString = function() {
       }
       idx += ' ' + start + this.store_key + ', ' + this.index_key + close;
     }
+    var s = this.isIndexIterator() ? 'Index' : '';
+    s +=  this.isKeyOnly() ? 'Key' : 'Value';
+    return s + 'Iterator:' + this.store_name + idx;
+  } else {
+    return 'Iterator:' + this.store_name + idx;
   }
-  return 'Iterator:' + this.store_name + idx;
 };
 
 

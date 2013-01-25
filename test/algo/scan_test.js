@@ -19,10 +19,14 @@ goog.debug.Logger.getLogger('ydn.db.con.IndexedDb').setLevel(goog.debug.Logger.L
 goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
 goog.debug.Logger.getLogger('ydn.db.index.req').setLevel(goog.debug.Logger.Level.FINEST);
 
+
 var store_name = 't1';
 var db_name = 'test_algo_scan_1';
 
 var setUp = function() {
+
+  ydn.db.core.req.IndexedDb.DEBUG = true;
+  ydn.db.index.req.IDBCursor.DEBUG = true;
 
   objs = [
     {id: 0, first: 'A', last: 'M', age: 20},

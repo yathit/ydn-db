@@ -490,7 +490,13 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
       var advance = [];
       if (goog.isArray(out)) {
         // adv vector is given
-        next_index_keys = out;
+        for (var i = 0; i < out.length; i++) {
+          if (goog.isBoolean(out[i])) {
+            advance[i] = out[i];
+          } else {
+            next_index_keys[i] = out[i];
+          }
+        }
       } else if (goog.isNull(out)) {
         // all stop
         next_primary_keys = [];
@@ -499,7 +505,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
         next_primary_keys = [];
         for (var i = 0; i < iterators.length; i++) {
           if (goog.isDef(idx2iterator[i])) {
-            next_primary_keys[i] = true;
+            advance[i] = true;
           }
         }
       } else if (goog.isObject(out)) {
@@ -517,7 +523,9 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
       }
       var move_count = 0;
       for (var i = 0; i < iterators.length; i++) {
-        if (goog.isDefAndNotNull(next_primary_keys[i])) {
+        if (goog.isDefAndNotNull(next_primary_keys[i]) ||
+            goog.isDefAndNotNull(next_index_keys[i]) ||
+            goog.isBoolean(advance[i])) {
           var idx = idx2iterator[i];
           if (!goog.isDef(idx)) {
             throw new ydn.error.InvalidOperationException(i +
@@ -532,22 +540,24 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
           keys[i] = undefined;
           values[i] = undefined;
           if (ydn.db.core.req.IndexedDb.DEBUG) {
-            var s = next_primary_keys[i] === false ? 'restart' : next_primary_keys[i] === true ? '' : next_primary_keys[i];
-            window.console.log(iterator.toString() + ': forward ' + s);
+            var s = advance[i] === false ? 'restart ' : advance[i] === true ? 'move over ' : ' to ';
+            s += goog.isDefAndNotNull(next_primary_keys[i]) ? next_primary_keys[i] + ' ' : '';
+            s += goog.isDefAndNotNull(next_index_keys[i]) ? 'index:' + next_index_keys[i] + ' ' : '';
+            window.console.log(iterator + ': ' + s);
           }
-          if (goog.isDef(next_primary_keys[i]) && goog.isDef(next_index_keys[i])) {
-            req.forward(next_primary_keys[i], next_index_keys[i], !!advance[i]);
-          } else if (goog.isDef(next_primary_keys[i])) {
-            if (goog.isBoolean(next_primary_keys[i])) {
-              req.forward(next_primary_keys[i]);
-            } else {
-              req.seek(next_primary_keys[i]);
-            }
-          } else if (goog.isDef(next_index_keys[i])) {
-            req.forward(next_index_keys[i]);
-          } else if (goog.isDef(advance[i])) {
-            req.forward(!!advance[i]);
-          }
+          //if (goog.isDef(next_primary_keys[i]) && goog.isDef(next_index_keys[i])) {
+            req.seek(next_primary_keys[i], next_index_keys[i], advance[i]);
+//          } else if (goog.isDef(next_primary_keys[i])) {
+//            if (goog.isBoolean(next_primary_keys[i])) {
+//              req.forward(next_primary_keys[i]);
+//            } else {
+//              req.seek(next_primary_keys[i]);
+//            }
+//          } else if (goog.isDef(next_index_keys[i])) {
+//            req.forward(next_index_keys[i]);
+//          } else if (goog.isDef(advance[i])) {
+//            req.forward(!!advance[i]);
+//          }
           move_count++;
         } else {
           // take non advancing iterator as already moved.

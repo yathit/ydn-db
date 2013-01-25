@@ -209,11 +209,15 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
   var key_range = this.key_range;
   if (goog.isDefAndNotNull(ini_index_key)) {
     if (goog.isDefAndNotNull(this.key_range)) {
-      // TODO: what about reverse ?
       var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.lower);
-      if (cmp == 1) {
+      if (this.reverse && cmp == 1) {
+        this.logger.finest(label + ' not opened, index key in reverse out of range ' +
+          ini_index_key + '>' + this.key_range.lower);
+        this.onNext(undefined, undefined, undefined); // out of range;
+        return;
+      } else if (!this.reverse && cmp == -1) {
         this.logger.finest(label + ' not opened, index key out of range ' +
-          ini_index_key + '>=' + this.key_range.lower);
+          ini_index_key + '<' + this.key_range.lower);
         this.onNext(undefined, undefined, undefined); // out of range;
         return;
       }
@@ -388,9 +392,21 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
   this.target_key_ = next_primary_key;
   this.target_exclusive_ = !!exclusive;
 
-  if (this.cur) {
+  if (!this.cur) {
+    throw new ydn.db.InternalError(label + ' cursor gone.');
+  }
+
+  if (exclusive === false) {
+    // restart the iterator
+    this.logger.finest(label + ' restarting.');
+    this.open_request(next_primary_key, next_index_key, true);
+  } else if (exclusive === true && !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
+    this.cur['continue']();
+  } else {
     var value = this.key_only ? this.cur.key : this.cur['value'];
-    var primary_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(next_primary_key, this.cur.primaryKey);
+    var primary_cmp = goog.isDef(next_primary_key) ?
+      ydn.db.con.IndexedDb.indexedDb.cmp(next_primary_key, this.cur.primaryKey) :
+      -1;
     var primary_on_track = primary_cmp == 0 || (primary_cmp == 1 && !this.reverse) || (primary_cmp == -1 && this.reverse);
 
     if (ydn.db.index.req.IDBCursor.DEBUG) {
@@ -439,8 +455,6 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
         this.open_request(next_primary_key, next_index_key, exclusive);
       }
     }
-  } else {
-    throw new ydn.db.InternalError(label + ' cursor gone.');
   }
 };
 

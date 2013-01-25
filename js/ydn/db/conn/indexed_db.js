@@ -184,7 +184,6 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
   }
 
-
   openRequest.onsuccess = function(ev) {
     /**
      * @type {IDBDatabase}
