@@ -13,9 +13,9 @@
 // limitations under the License.
 
 /**
- * @fileoverview Implements ydn.db.core.req.IRequestExecutor with IndexedDB.
+ * @fileoverview IndexedDB request executor.
  *
- * @author kyawtun@yathit.com (Kyaw Tun)
+ * @author Kyaw Tun <kyawtun@yathit.com>
  */
 
 goog.provide('ydn.db.core.req.IndexedDb');
@@ -42,13 +42,12 @@ goog.inherits(ydn.db.core.req.IndexedDb, ydn.db.req.RequestExecutor);
 
 /**
  *
- * @const {boolean} turn on debug flag to dump object.
+ * @const {boolean} turn on debug flag to dump debug objects.
  */
-ydn.db.core.req.IndexedDb.DEBUG = false;
+ydn.db.core.req.IndexedDb.DEBUG = false; // always false here.
 
 
 /**
- *
  * Large number of requests can cause memory hog without increasing performance.
  * @const
  * @type {number} Maximum number of requests created per transaction.
@@ -74,8 +73,7 @@ ydn.db.core.req.IndexedDb.prototype.getTx = function() {
 
 
 /**
- * @param {!goog.async.Deferred} df return a deferred function.
- * @param {!Array.<string>}  stores store name.
+ * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.countStores = function(df, stores) {
 
@@ -127,8 +125,8 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.addObject = function(df, table, value, opt_key)
-{
+ydn.db.core.req.IndexedDb.prototype.addObject = function(df, table, value,
+                                                         opt_key) {
   var store = this.tx.objectStore(table);
 
   var request;
@@ -156,11 +154,7 @@ ydn.db.core.req.IndexedDb.prototype.addObject = function(df, table, value, opt_k
 
 
 /**
-* Execute PUT request either storing result to tx or callback to df.
-* @param {goog.async.Deferred} df deferred to feed result.
-* @param {string} table table name.
-* @param {!Object} value object to put.
-* @param {(!Array|string|number)=} opt_key optional out-of-line key.
+* @inheritDoc
 */
 ydn.db.core.req.IndexedDb.prototype.putObject = function(df, table, value, opt_key)
 {
@@ -268,11 +262,7 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(df, store_name, objs,
 
 
 /**
- * Execute PUT request either storing result to tx or callback to df.
- * @param {goog.async.Deferred} df deferred to feed result.
- * @param {string} store_name table name.
- * @param {!Array.<!Object>} objs object to put.
- * @param {!Array.<(!Array|string|number)>=} opt_keys optional out-of-line keys.
+ * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
                                                       opt_keys) {
@@ -598,15 +588,15 @@ ydn.db.core.req.IndexedDb.prototype.listByStore = function(df, store_name,
 
 
 /**
- * Execute GET request callback results to df.
+ * General executor for LIST methods.
  * @param {!goog.async.Deferred} df deferred to feed result.
- * @param {string} store_name name.
- * @param {string?} index name.
- * @param {IDBKeyRange} key_range range to get.
+ * @param {string} store_name store name.
+ * @param {string?} index index name.
+ * @param {IDBKeyRange} key_range range to list.
  * @param {boolean} reverse to sort reverse order.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
- * @param {boolean=} unique unique key.
+ * @param {boolean=} unique unique attribute for index listing.
  */
 ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(df, store_name,
       index, key_range, reverse, limit, offset, unique) {
@@ -660,12 +650,14 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange =
   this.listByKeyRange_(df, store_name, null, key_range, reverse, limit, offset)
 };
 
+
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(df, store_name,
-             index, key_range, reverse, limit, offset, unique) {
-  this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset, unique)
+ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(df,
+    store_name, index, key_range, reverse, limit, offset, unique) {
+  this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset,
+      unique);
 };
 
 
@@ -791,8 +783,6 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(df, store_nam
 ydn.db.core.req.IndexedDb.prototype.keysByIndexKeys = goog.abstractMethod;
 
 
-
-
 /**
 * @inheritDoc
 */
@@ -874,8 +864,6 @@ ydn.db.core.req.IndexedDb.prototype.getById = function(df, store_name, id) {
     df.errback(event);
   };
 };
-
-
 
 
 /**
@@ -1025,49 +1013,6 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(df, keys) {
   }
 };
 
-//
-///**
-// * Index scanning.
-// * @param {!Array.<!ydn.db.Iterator>>} indexes list of indexes.
-// * @param {(function(keys: !Array, index_keys: !Array): number)=} callback
-// * @param {number=} limit limit number of match results.
-// * @param {boolean=} no_prefetch no prefetching of result.
-// * @return {!goog.async.Deferred} promise on completed.
-// */
-//ydn.db.core.req.IndexedDb.prototype.scan = function(indexes, callback, limit, no_prefetch) {
-//  var df = new goog.async.Deferred();
-//  var me = this;
-//  var store = this.schema.getStore(cursor.store_name);
-//
-//  var resume = cursor.has_done === false;
-//  if (resume) {
-//    goog.asserts.assert(cursor.store_key);
-//  }
-//
-//  /**
-//   * @type {IDBObjectStore}
-//   */
-//  var obj_store;
-//  try {
-//    obj_store = this.tx.objectStore(store.name);
-//  } catch (e) {
-//    if (goog.DEBUG && e.name == 'NotFoundError') {
-//      var msg = this.tx.db.objectStoreNames.contains(store.name) ?
-//          'store: ' + store.name + ' not in transaction.' :
-//          'store: ' + store.name + ' not in database: ' + this.tx.db.name;
-//      throw new ydn.db.NotFoundError(msg);
-//    } else {
-//      // InvalidStateError: we don't have any more info for this case.
-//      throw e;
-//    }
-//  }
-//
-//  return df;
-//};
-
-
-
-
 
 /**
  * @inheritDoc
@@ -1109,13 +1054,7 @@ ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(df, table,
 
 
 /**
- * Get list of keys in a range.
- * @param {!goog.async.Deferred} df result promise.
- * @param {string} store_name store name.
- * @param {IDBKeyRange} key_range The key range.
- * @param {string} key_range_index Index name of key range.
- * @param {number=} offset number of result to skip.
- * @param {number=} limit place upper bound on results.
+ * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.getKeysByIndexKeyRange = function(df, store_name,
     key_range, key_range_index, offset, limit) {
@@ -1151,13 +1090,7 @@ ydn.db.core.req.IndexedDb.prototype.getKeysByIndexKeyRange = function(df, store_
 
 
 /**
- * Get list of keys in a range.
- * @param {!goog.async.Deferred} df result promise.
- * @param {string} store_name store name.
- * @param {string} index_name Index name of key range.
- * @param {!Array} keys The key range.
- * @param {number=} offset number of result to skip.
- * @param {number=} limit place upper bound on results.
+ * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.getIndexKeysByKeys = function(df,
     store_name, index_name, keys, offset, limit) {

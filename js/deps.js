@@ -7,7 +7,7 @@ goog.addDependency("../../../ydn-db/js/main.js", [], ['ydn.db.Storage', 'ydn.db.
 goog.addDependency("../../../ydn-db/js/rich.js", [], ['ydn.db.rich.Storage']);
 goog.addDependency("../../../ydn-db/js/sql.js", [], ['ydn.db.sql.Storage', 'ydn.db.sql.DbOperator']);
 goog.addDependency("../../../ydn-db/js/test.js", [], ['ydn.db.Storage', 'goog.debug.Console']);
-goog.addDependency("../../../ydn-db/js/tr.js", [], ['ydn.db.tr.Storage', 'ydn.db.tr.AtomicSerial']);
+goog.addDependency("../../../ydn-db/js/tr.js", [], ['ydn.db.tr.Storage', 'ydn.db.tr.DbOperator']);
 goog.addDependency("../../../ydn-db/js/ydn/db/storage.js", ['ydn.db.Storage'], ['ydn.db.sql.Storage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/algo/abstract_solver.js", ['ydn.db.algo.AbstractSolver'], ['goog.debug.Logger', 'ydn.db.Streamer', 'ydn.db']);
 goog.addDependency("../../../ydn-db/js/ydn/db/algo/algo.js", ['ydn.db.algo'], ['ydn.error.ArgumentException']);
