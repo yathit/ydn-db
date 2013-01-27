@@ -3,7 +3,7 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
-    <property name="code-ver" value="33"/>
+    <property name="code-ver" value="34"/>
     <property name="ver" value="0.${code-ver}"/>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
     <property name="dev-out.fn"

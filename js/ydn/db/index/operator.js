@@ -509,14 +509,24 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
           }
         }
       } else if (goog.isObject(out)) {
-        if (goog.isArray(out['next_primary_keys'])) {
-          next_primary_keys = out['next_primary_keys'];
+        if (goog.isArray(out['continuePrimary'])) {
+          next_primary_keys = out['continuePrimary'];
         }
-        if (goog.isArray(out['next_index_keys'])) {
-          next_index_keys = out['next_index_keys'];
+        if (goog.isArray(out['continue'])) {
+          next_index_keys = out['continue'];
         }
-        if (goog.isArray(out['advance'])) {
-          advance = out['advance'];
+        if (goog.isArray(out['advance']) || goog.isArray(out['restart'])) {
+          var adv = out['advance'] || [];
+          var res = out['restart'] || [];
+          for (var i = 0, n = Math.max(adv.length, res.length); i < n; i++) {
+            if (res[i] === true) {
+              advance[i] = false;
+            } else if (adv[i] == 1) { // currently advance by only one step is supported
+              advance[i] = true;
+            } else if (goog.isNumber(adv[i])) {
+              throw new ydn.error.NotSupportedException();
+            }
+          }
         }
       } else {
         throw new ydn.error.InvalidOperationException('scan callback output');

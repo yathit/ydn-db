@@ -105,11 +105,11 @@ var test_scan_reference_value = function() {
     if (cmp == 0) {
       console.log('get match at ' + a + ' : ' + values[0]);
       result_keys.push(values[0]);
-      return [true, true];
+      return {advance: [1, 1]};
     } else if (cmp == 1) {
-      return {next_primary_keys: [undefined, a]};
+      return {'continuePrimary': [undefined, a]};
     } else {
-      return {next_primary_keys: [b, undefined]};
+      return {'continuePrimary': [b, undefined]};
     }
   };
 
@@ -188,13 +188,16 @@ var test_scan_advance = function() {
     console.log(JSON.stringify(keys) + ':' + JSON.stringify(values));
 
     if (keys[0] != null) {
-      if (keys[1] != null && ydn.db.cmp(values[0], values[1]) == 0) {
+      if (values[1] != null && ydn.db.cmp(values[0], values[1]) == 0) {
         result_keys.push(values[0]); // we got the matching primary key.
       }
       if (keys[1] != null) {
-        return [null, true]; // iterate on inner loop
+        return {advance: [null, 1]}; // iterate on inner loop
       } else {
-        return [true, false]; // iterate on outer loop and restart on inner loop
+        return {
+          advance: [1, null], // iterate on outer loop
+          restart: [null, true] // restart on inner loop
+        };
       }
     } else {
       return []; // no more iteration. we are done.
@@ -284,10 +287,10 @@ var test_scan_effective_key = function() {
       return [true, true];
     } else if (cmp == 1) {
       var next_pos = [keys[1][0], a];
-      return [undefined, next_pos];
+      return {'continue': [undefined, next_pos]};
     } else {
       var next_pos = [keys[0][0], b];
-      return [next_pos, undefined];
+      return {'continue': [next_pos, undefined]};
     }
   };
 
