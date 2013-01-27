@@ -558,9 +558,9 @@ ydn.db.core.req.IndexedDb.prototype.clearByStores = function(df, store_names) {
     var request = store.clear();
     request.onsuccess = function(event) {
       n_done++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
-        window.console.log([n_done, event]);
-      }
+      // if (ydn.db.core.req.IndexedDb.DEBUG) {
+      //   window.console.log([n_done, event]);
+      // }
       if (n_done == n_todo) {
         df.callback(n_done);
       }

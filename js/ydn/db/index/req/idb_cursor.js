@@ -403,11 +403,13 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
   } else if (exclusive === true && !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
     this.cur['continue']();
   } else {
-    var value = this.key_only ? this.cur.key : this.cur['value'];
+    // var value = this.key_only ? this.cur.key : this.cur['value'];
     var primary_cmp = goog.isDef(next_primary_key) ?
       ydn.db.con.IndexedDb.indexedDb.cmp(next_primary_key, this.cur.primaryKey) :
-      -1;
-    var primary_on_track = primary_cmp == 0 || (primary_cmp == 1 && !this.reverse) || (primary_cmp == -1 && this.reverse);
+      0;
+    var primary_on_track = primary_cmp == 0 ||
+        (primary_cmp == 1 && this.reverse) ||
+        (primary_cmp == -1 && !this.reverse);
 
     if (ydn.db.index.req.IDBCursor.DEBUG) {
       var s = primary_cmp === 0 ? 'next' : primary_cmp === 1 ? 'on track' : 'wrong track';
@@ -416,7 +418,9 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
 
     if (goog.isDefAndNotNull(next_index_key)) {
       var index_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(this.cur.key, next_index_key);
-      var index_on_track = (index_cmp == 1 && !this.reverse) || (index_cmp == -1 && this.reverse);
+      var index_on_track = index_cmp == 0 ||
+          (index_cmp == 1 && this.reverse) ||
+          (index_cmp == -1 && !this.reverse);
       if (index_cmp === 0) {
         if (goog.DEBUG && primary_cmp === 0) {
           throw new ydn.error.InternalError(label + ' cursor cannot seek to current position');
@@ -432,9 +436,10 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
         // just to index key position and continue
         this.cur['continue'](next_index_key);
       } else {
-        // this will restart the thread.
-        this.logger.finest(label + ' restarting for ' + next_primary_key);
-        this.open_request(next_primary_key, next_index_key);
+        // this will need to restart the thread.
+        // this.logger.finest(label + ' restarting for ' + next_primary_key);
+        // this.open_request(next_primary_key, next_index_key);
+        throw new ydn.db.InvalidOperationError();
       }
     } else {
       if (primary_cmp === 0) {
