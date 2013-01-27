@@ -655,13 +655,13 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, iter, limit, 
  * @inheritDoc
  */
 ydn.db.index.req.IndexedDb.prototype.getCursor = function (store_name,
-     index_name, keyRange, direction, key_only, ini_key, ini_index_key) {
+     index_name, keyRange, direction, key_only) {
   /**
    * @type {!IDBObjectStore}
    */
   var obj_store = this.getTx().objectStore(store_name);
   return new ydn.db.index.req.IDBCursor(obj_store, store_name, index_name,
-    keyRange, direction, key_only, ini_key, ini_index_key);
+    keyRange, direction, key_only);
 };
 
 

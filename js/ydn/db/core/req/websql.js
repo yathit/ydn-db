@@ -196,12 +196,8 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
     ' FROM ' + store.getQuotedName();
   var params = [];
   if (!goog.isNull(key_range)) {
-    var where_clause = ydn.db.Where.toWhereClause(column, key_range);
+    var where_clause = ydn.db.Where.toWhereClause(column, store.getType(), key_range);
     sql += ' WHERE ' + where_clause.sql;
-    for (var i = 0; i < where_clause.params.length; i++) {
-      params[i] = ydn.db.schema.Index.js2sql(where_clause.params[i],
-        store.getType());
-    }
   }
 
   var order = reverse ? 'DESC' : 'ASC';
@@ -910,11 +906,8 @@ ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(df,
   var sql = 'DELETE FROM ' + store.getQuotedName();
   var params = [];
   if (!goog.isNull(key_range)) {
-    var where_clause = ydn.db.Where.toWhereClause(column, key_range);
+    var where_clause = ydn.db.Where.toWhereClause(column, type, key_range);
     sql += ' WHERE ' + where_clause.sql;
-    for (var i = 0; i < where_clause.params.length; i++) {
-      params[i] = ydn.db.schema.Index.js2sql(where_clause.params[i], type);
-    }
   }
 
   /**

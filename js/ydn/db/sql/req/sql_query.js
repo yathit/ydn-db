@@ -75,11 +75,12 @@ ydn.db.sql.req.SqlQuery.prototype.toJSON = function() {
 
 /**
  * @param {string?} keyPath if index is not defined, keyPath will be used.
+ * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
  * @return {{sql: string, params: !Array.<string>}} return equivalent of
  * keyRange
  * to SQL WHERE clause and its parameters.
  */
-ydn.db.sql.req.SqlQuery.prototype.toWhereClause = function(keyPath) {
+ydn.db.sql.req.SqlQuery.prototype.toWhereClause = function(type, keyPath) {
 
   var idx = this.getIndexName();
   var index = goog.isDef(idx) ? idx :
@@ -89,7 +90,7 @@ ydn.db.sql.req.SqlQuery.prototype.toWhereClause = function(keyPath) {
 
   var where = new ydn.db.Where(column, keyPath);
 
-  return where.toWhereClause();
+  return where.toWhereClause(type);
 };
 
 

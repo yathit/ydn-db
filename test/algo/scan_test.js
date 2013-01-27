@@ -14,8 +14,6 @@ var reachedFinalContinuation;
 var debug_console = new goog.debug.Console();
 debug_console.setCapturing(true);
 goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-//goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-goog.debug.Logger.getLogger('ydn.db.con.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
 goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
 goog.debug.Logger.getLogger('ydn.db.index.req').setLevel(goog.debug.Logger.Level.FINEST);
 
@@ -55,12 +53,15 @@ var test_scan_reference_value = function() {
     stores: [{
       name: store_name,
       keyPath: 'id',
+      type: 'INTEGER',
       indexes: [{
         name: 'fa',
-        keyPath: 'first'
+        keyPath: 'first',
+        type: 'TEXT'
       }, {
         name: 'la',
-        keyPath: 'last'
+        keyPath: 'last',
+        type: 'TEXT'
       }]
     }]
   };
@@ -146,12 +147,13 @@ var test_scan_advance = function() {
     stores: [{
       name: store_name,
       keyPath: 'id',
+      type: 'INTEGER',
       indexes: [{
-        name: 'fa',
-        keyPath: 'first'
+        keyPath: 'first',
+        type: 'TEXT'
       }, {
-        name: 'la',
-        keyPath: 'last'
+        keyPath: 'last',
+        type: 'TEXT'
       }]
     }]
   };
@@ -160,6 +162,10 @@ var test_scan_advance = function() {
   db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + 'store: ' + store_name + ' ready.');
+  });
+  db.list(store_name).addCallback(function (value) {
+    console.log(value);
+    console.log(db + 'store: ' + store_name + ' has ' + value.length + ' records.');
   });
 
   var done;
@@ -181,8 +187,8 @@ var test_scan_advance = function() {
       100, // interval
       1000); // maxTimeout
 
-  var q1 = new ydn.db.KeyIndexIterator(store_name, 'fa', ydn.db.KeyRange.only('B'));
-  var q2 = new ydn.db.KeyIndexIterator(store_name, 'la', ydn.db.KeyRange.only('M'));
+  var q1 = new ydn.db.KeyIndexIterator(store_name, 'first', ydn.db.KeyRange.only('B'));
+  var q2 = new ydn.db.KeyIndexIterator(store_name, 'last', ydn.db.KeyRange.only('M'));
 
   var solver = function (keys, values) {
     console.log(JSON.stringify(keys) + ':' + JSON.stringify(values));
@@ -235,12 +241,15 @@ var test_scan_effective_key = function() {
     stores: [{
       name: store_name,
       keyPath: 'id',
+      type: 'INTEGER',
       indexes: [{
         name: 'fa',
-        keyPath: ['first', 'age']
+        keyPath: ['first', 'age'],
+        type: ['TEXT', 'TEXT']
       }, {
         name: 'la',
-        keyPath: ['last', 'age']
+        keyPath: ['last', 'age'],
+        type: ['TEXT', 'TEXT']
       }]
     }]
   };

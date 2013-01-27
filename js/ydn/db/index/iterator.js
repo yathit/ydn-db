@@ -765,7 +765,7 @@ ydn.db.Iterator.prototype.iterate_ = function(executor) {
   this.has_done = undefined; // switching to working state.
 
   var cursor = executor.getCursor(this.store_name, this.index,
-      this.key_range_, this.direction, this.key_only_, ini_key, ini_index_key);
+      this.key_range_, this.direction, this.key_only_);
 
   this.logger.finest(this + ' created ' + cursor);
 
@@ -821,8 +821,10 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
   // we send primary_cursor first, so that we filtered cursor arrive, we know
   // our target key value is.
   var primary_cursor = executor.getCursor(this.store_name, this.index,
-      this.key_range_, this.direction, this.key_only_, ini_key, ini_index_key);
+      this.key_range_, this.direction, this.key_only_);
 
+
+  primary_cursor.open_request(ini_key, ini_index_key, resume);
 
   /**
    * onSuccess handler is called before onNext callback. The purpose of
@@ -864,8 +866,8 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
   for (var i = 0; i < this.filter_index_names_.length; i++) {
     var store_name = this.filter_store_names_[i] || this.store_name;
     var cursor = executor.getCursor(store_name, this.filter_index_names_[i],
-        this.filter_key_ranges_[i], this.direction, true,
-        this.filter_ini_keys_[i], this.filter_ini_index_keys_[i]);
+        this.filter_key_ranges_[i], this.direction, true);
+    cursor.open_request(this.filter_ini_keys_[i], this.filter_ini_index_keys_[i]);
     cursors.push(cursor);
     cursor.onSuccess = goog.partial(filterCursorOnSuccess, i);
 

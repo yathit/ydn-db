@@ -100,8 +100,6 @@ ydn.db.index.req.IRequestExecutor.prototype.listByIterator = goog.abstractMethod
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
- * @param {*} ini_key key to resume
- * @param {*} ini_index_key key to resume
  * @return {!ydn.db.index.req.AbstractCursor} cursor.
  */
 ydn.db.index.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;

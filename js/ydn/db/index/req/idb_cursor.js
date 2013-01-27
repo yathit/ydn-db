@@ -15,13 +15,11 @@ goog.require('ydn.db.index.req.AbstractCursor');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
- * @param {*=} ini_key primary key to resume position.
- * @param {*=} ini_index_key index key to resume position.
  * @extends {ydn.db.index.req.AbstractCursor}
  * @constructor
  */
 ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRange,
-                                   direction, key_only, ini_key, ini_index_key) {
+                                   direction, key_only) {
   goog.base(this, store_name, index_name, keyRange, direction, key_only);
 
   goog.asserts.assert(obj_store);
@@ -394,17 +392,18 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
 
   if (exclusive === false) {
     // restart the iterator
-    this.logger.finest(label + ' restarting.');
+    this.logger.finest(this + ' restarting.');
     this.open_request(next_primary_key, next_index_key, true);
-  } else if (exclusive === true && !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
+  } else if (exclusive === true &&
+      !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
     if (!this.cur) {
-      throw new ydn.db.InternalError(label + ' cursor gone.');
+      throw new ydn.db.InternalError(this + ' cursor gone.');
     }
     this.cur['continue']();
   } else {
     // var value = this.key_only ? this.cur.key : this.cur['value'];
     if (!this.cur) {
-      throw new ydn.db.InternalError(label + ' cursor gone.');
+      throw new ydn.db.InternalError(this + ' cursor gone.');
     }
     var primary_cmp = goog.isDef(next_primary_key) ?
       ydn.db.con.IndexedDb.indexedDb.cmp(next_primary_key, this.cur.primaryKey) :

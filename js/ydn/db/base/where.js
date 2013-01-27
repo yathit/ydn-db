@@ -74,10 +74,11 @@ ydn.db.Where.prototype.getField = function() {
 
 /**
  * @param {string} field field name.
+ * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
  * @param {ydn.db.KeyRange|IDBKeyRange} key_range key range.
  * @return {{sql: string, params: !Array.<string>}}
  */
-ydn.db.Where.toWhereClause = function (field, key_range) {
+ydn.db.Where.toWhereClause = function (field, type, key_range) {
 
   var sql = '';
   var params = [];
@@ -86,21 +87,21 @@ ydn.db.Where.toWhereClause = function (field, key_range) {
     var column = goog.string.quote(field);
     if (ydn.db.Where.resolvedStartsWith(key_range)) {
       sql = column + ' LIKE ?';
-      params.push(key_range.lower + '%');
+      params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
     } else if (key_range.lower == key_range.upper) {
       sql = column + ' = ?';
-      params.push(key_range.lower);
+      params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
     } else {
       if (goog.isDef(key_range.lower)) {
         var lowerOp = key_range.lowerOpen ? ' > ' : ' >= ';
         sql += ' ' + column + lowerOp + '?';
-        params.push(key_range.lower);
+        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
       }
       if (goog.isDef(key_range.upper)) {
         var upperOp = key_range.upperOpen ? ' < ' : ' <= ';
         var and = sql.length > 0 ? ' AND ' : ' ';
         sql += and + column + upperOp + '?';
-        params.push(key_range.upper);
+        params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
       }
     }
   }
@@ -109,11 +110,11 @@ ydn.db.Where.toWhereClause = function (field, key_range) {
 };
 
 /**
- *
+ * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
  * @return {{sql: string, params: !Array.<string>}}
  */
-ydn.db.Where.prototype.toWhereClause = function () {
-  return ydn.db.Where.toWhereClause(this.field, this);
+ydn.db.Where.prototype.toWhereClause = function (type) {
+  return ydn.db.Where.toWhereClause(this.field, type, this);
 };
 
 
