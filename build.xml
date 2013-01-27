@@ -121,7 +121,7 @@
         <!--SIMPLE_OPTIMIZATIONS-->
         <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
-                         input="${ydn-db.dir}/js/ydn/db/sql/storage.js"
+                         input="${ydn-db.dir}/js/main.js"
                          output.fn="${ydn-db.dir}/jsc/raw-ydn.db-${ver}.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
@@ -131,7 +131,7 @@
             <options>
                 <arg line='-f "--formatting=PRETTY_PRINT"'/>
                 <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
-                <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
+                <arg line='-f "--closure_entry_point=ydn.db.sql.Storage"'/>
             </options>
         </closure-compile>
     </target>
@@ -155,12 +155,11 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/core"
-                input.fn="${ydn-db.dir}/js/core.js"
+                input.fn="${ydn-db.dir}/js/core_main.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="core-ydn.db-${ver}.js"
                 closure.entry="ydn.db.core.Storage">
             <exjs.dir>
-                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>

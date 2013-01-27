@@ -24,8 +24,8 @@ var db_name = 'test_algo_scan_1';
 
 var setUp = function() {
 
-  ydn.db.core.req.IndexedDb.DEBUG = true;
-  ydn.db.index.req.IDBCursor.DEBUG = true;
+  //ydn.db.core.req.IndexedDb.DEBUG = true;
+  //ydn.db.index.req.IDBCursor.DEBUG = true;
 
 
   reachedFinalContinuation = false;

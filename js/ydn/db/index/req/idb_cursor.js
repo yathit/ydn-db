@@ -439,7 +439,7 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
         // this will need to restart the thread.
         // this.logger.finest(label + ' restarting for ' + next_primary_key);
         // this.open_request(next_primary_key, next_index_key);
-        throw new ydn.db.InvalidOperationError();
+        throw new ydn.error.InvalidOperationError();
       }
     } else {
       if (primary_cmp === 0) {
