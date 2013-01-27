@@ -60,14 +60,14 @@ ydn.db.events.Event.prototype.getStoreName = function() {
  * @param {ydn.db.events.Types} event_type type.
  * @param {goog.events.EventTarget} event_target event target.
  * @param {number} version source.
- * @param {string=} msg optional message.
+ * @param {number} old_version old version.
  * @extends {ydn.db.events.Event}
  * @constructor
  */
-ydn.db.events.StorageEvent = function(event_type, event_target, version, msg) {
+ydn.db.events.StorageEvent = function(event_type, event_target, version, old_version) {
   goog.base(this, event_type, event_target);
   this.version = version;
-  this.message = msg || '';
+  this.oldVersion = old_version;
 };
 goog.inherits(ydn.db.events.StorageEvent, ydn.db.events.Event);
 
@@ -86,9 +86,10 @@ ydn.db.events.StorageEvent.prototype.version = NaN;
 
 /**
  *
- * @type {string}
+ * @type {number}
  */
-ydn.db.events.StorageEvent.prototype.message = '';
+ydn.db.events.StorageEvent.prototype.oldVersion = NaN;
+
 
 /**
  *

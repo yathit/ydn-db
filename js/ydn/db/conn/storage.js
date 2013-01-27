@@ -364,14 +364,14 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
   this.init(); // let super class to initialize.
 
-  db.connect(this.db_name, this.schema).addCallback(function(version) {
+  db.connect(this.db_name, this.schema).addCallback(function(old_version) {
     me.db_ = db;
     me.logger.finest(me + ': ready.');
     me.last_queue_checkin_ = NaN;
 
     me.popTxQueue_();
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.CONNECTED,
-      me, version);
+      me, parseFloat(db.getVersion()), old_version);
     me.dispatchEvent(event);
 
     /**
@@ -389,8 +389,8 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       goog.async.Deferred.fail(e);
       // this could happen if user do not allow to use the storage
       me.purgeTxQueue_(e);
-      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me,
-        e, 'opening database fail: ' + e.message);
+      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me, NaN, NaN);
+      event.message = e.message;
       me.dispatchEvent(event);
     });
 

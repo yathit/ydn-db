@@ -69,6 +69,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
    */
   var me = this;
 
+  var old_version = NaN;
   var init_migrated = false;
   var df = new goog.async.Deferred();
 
@@ -84,11 +85,9 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
     } else {
       me.sql_db_ = db;
-      var version = parseFloat(db.version);
-      df.callback(version);
+      df.callback(parseFloat(old_version));
     }
   };
-
 
 
   /**
@@ -290,6 +289,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     // schema as expected. If not correct, we will correct to the schema,
     // without increasing database version.
 
+    old_version = db.version;
     if (db.version === version) {
       this.logger.finest('Existing database version ' + db.version +
         ' opened.');
@@ -453,6 +453,14 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   sqls.unshift(sql);
 
   return sqls;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.con.WebSql.prototype.getVersion = function() {
+  return this.sql_db_ ? parseFloat(this.sql_db_.version) : undefined;
 };
 
 

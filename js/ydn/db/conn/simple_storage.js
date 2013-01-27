@@ -120,6 +120,13 @@ ydn.db.con.SimpleStorage.NAMESPACE = 'ydn.db';
  */
 ydn.db.con.SimpleStorage.SEP = '^|';
 
+/**
+ * @inheritDoc
+ */
+ydn.db.con.SimpleStorage.prototype.getVersion = function() {
+  return 1;
+};
+
 
 /**
  * @typedef {{

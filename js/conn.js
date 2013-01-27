@@ -32,7 +32,7 @@ goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'name',
     ydn.db.events.StorageEvent.prototype.name);
 goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'version',
   ydn.db.events.StorageEvent.prototype.version);
-goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'message',
-    ydn.db.events.StorageEvent.prototype.message);
+goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'oldVersion',
+    ydn.db.events.StorageEvent.prototype.oldVersion);
 
 

@@ -41,6 +41,11 @@ ydn.db.con.IDatabase.prototype.isReady = function() {};
 ydn.db.con.IDatabase.prototype.connect = function(name, schema) {};
 
 
+/**
+ * @return {number|undefined} return current version;
+ */
+ydn.db.con.IDatabase.prototype.getVersion = goog.abstractMethod;
+
 
 /**
  * @return {*} underlying database.

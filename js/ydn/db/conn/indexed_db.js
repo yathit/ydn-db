@@ -74,6 +74,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
    */
   var me = this;
   var df = new goog.async.Deferred();
+  var old_version = NaN;
 
   /**
    * This is final result of connection. It is either fail or connected
@@ -124,7 +125,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
           }
         }
       };
-      df.callback(db.version);
+      df.callback(parseFloat(old_version));
     }
 
   };
@@ -140,7 +141,6 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
   var updateSchema = function(db, trans, is_caller_setversion) {
 
     var action = is_caller_setversion ? 'changing' : 'upgrading';
-    var old_version = schema.isAutoSchema() ? 'auto' : schema.getVersion();
     me.logger.finer(action + ' version to ' + db.version + ' from ' + old_version);
 
 
@@ -189,6 +189,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
      * @type {IDBDatabase}
      */
     var db = ev.target.result;
+    old_version = db.version;
     var msg = 'Database: ' + db.name + ', ver: ' + db.version + ' opened.';
     me.logger.finer(msg);
 
@@ -342,6 +343,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
+    old_version = db.version;
     me.logger.finer('upgrade needed for version ' + db.version);
     updateSchema(db, openRequest['transaction'], false);
   };
@@ -467,6 +469,14 @@ ydn.db.con.IndexedDb.prototype.logger =
  * @type {IDBDatabase}
  */
 ydn.db.con.IndexedDb.prototype.idx_db_ = null;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.con.IndexedDb.prototype.getVersion = function() {
+  return this.idx_db_ ? parseFloat(this.idx_db_.version) : undefined;
+};
 
 
 /**

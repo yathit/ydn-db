@@ -76,7 +76,7 @@ You may also ask question in Twitter [@yathit](https://twitter.com/yathit).
 
 * [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
 * [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
-* [Demo applications](http://dev.yathit.com/ydn-db/demos.html)
+* [Demo applications](http://dev.yathit.com/index/demos.html)
 * [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
 
 
