@@ -102,7 +102,7 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
 
   if (goog.isNull(sel_fields) || sel_fields.length == 0)  {
     if (goog.isDefAndNotNull(order) && order != this.store_schema.getKeyPath()) {
-      var iter = new ydn.db.ValueIterator(store_name, order, key_range, reverse);
+      var iter = new ydn.db.ValueIndexIterator(store_name, order, key_range, reverse);
       req.listByIterator(df, iter, limit, offset);
     } else {
       if (key_range) {
@@ -115,7 +115,7 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
     if (goog.isDefAndNotNull(order) && order != sel_fields[0]) {
       // TODO: More efficient
       var ndf = new goog.async.Deferred();
-      var iter = new ydn.db.ValueIterator(store_name, order, key_range, reverse);
+      var iter = new ydn.db.ValueIndexIterator(store_name, order, key_range, reverse);
       req.listByIterator(ndf, iter, limit, offset);
       ndf.addCallbacks(function(values) {
         var results = values.map(function(x) {
@@ -126,7 +126,7 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
         df.errback(e);
       });
     } else {
-      var iter = new ydn.db.KeyIterator(store_name, sel_fields[0], key_range, reverse);
+      var iter = new ydn.db.KeyIndexIterator(store_name, sel_fields[0], key_range, reverse);
       req.listByIterator(df, iter, limit, offset);
     }
 

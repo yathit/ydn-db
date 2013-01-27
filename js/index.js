@@ -58,8 +58,9 @@ goog.exportProperty(ydn.math.Expression, 'parseInfix',
 
 goog.exportSymbol('ydn.db.KeyIterator', ydn.db.KeyIterator);
 goog.exportSymbol('ydn.db.ValueIterator', ydn.db.ValueIterator);
-goog.exportProperty(ydn.db.Iterator.prototype, 'continued',
-    ydn.db.Iterator.prototype.continued);
+goog.exportSymbol('ydn.db.KeyIndexIterator', ydn.db.KeyIndexIterator);
+goog.exportSymbol('ydn.db.ValueIndexIterator', ydn.db.ValueIndexIterator);
+
 goog.exportProperty(ydn.db.Iterator.prototype, 'count',
     ydn.db.Iterator.prototype.count);
 goog.exportProperty(ydn.db.Iterator.prototype, 'done',
