@@ -392,18 +392,20 @@ ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
   this.target_key_ = next_primary_key;
   this.target_exclusive_ = !!exclusive;
 
-  if (!this.cur) {
-    throw new ydn.db.InternalError(label + ' cursor gone.');
-  }
-
   if (exclusive === false) {
     // restart the iterator
     this.logger.finest(label + ' restarting.');
     this.open_request(next_primary_key, next_index_key, true);
   } else if (exclusive === true && !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
+    if (!this.cur) {
+      throw new ydn.db.InternalError(label + ' cursor gone.');
+    }
     this.cur['continue']();
   } else {
     // var value = this.key_only ? this.cur.key : this.cur['value'];
+    if (!this.cur) {
+      throw new ydn.db.InternalError(label + ' cursor gone.');
+    }
     var primary_cmp = goog.isDef(next_primary_key) ?
       ydn.db.con.IndexedDb.indexedDb.cmp(next_primary_key, this.cur.primaryKey) :
       0;

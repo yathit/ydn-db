@@ -131,9 +131,9 @@ var test_scan_reference_value = function() {
  * SELECT id WHERE first = 'B' AND last = 'M'
  * using only advance vector
  */
-var _test_scan_advance = function() {
+var test_scan_advance = function() {
 
-  var store_name = 'test_scan_reference_value';
+  var store_name = 'test_scan_advance';
   var objs = [
     {id: 0, first: 'A', last: 'M', age: 20},
     {id: 1, first: 'B', last: 'M', age: 24},
@@ -162,7 +162,6 @@ var _test_scan_advance = function() {
     console.log(db + 'store: ' + store_name + ' ready.');
   });
 
-
   var done;
   var result_keys = [];
   // sorted by primary key
@@ -185,22 +184,20 @@ var _test_scan_advance = function() {
   var q1 = new ydn.db.KeyIndexIterator(store_name, 'fa', ydn.db.KeyRange.only('B'));
   var q2 = new ydn.db.KeyIndexIterator(store_name, 'la', ydn.db.KeyRange.only('M'));
 
-  var solver = function(keys, values) {
+  var solver = function (keys, values) {
     console.log(JSON.stringify(keys) + ':' + JSON.stringify(values));
-    if (keys.some(function(x) {return !goog.isDefAndNotNull(x)})) {
-      return []; // done;
-    }
-    var a = values[0];
-    var b = values[1];
-    var cmp = ydn.db.cmp(a, b);
-    if (cmp == 0) {
-      console.log('get match at ' + a + ' : ' + values[0]);
-      result_keys.push(values[0]);
-      return [true, true];
-    } else if (cmp == 1) {
-      return {next_primary_keys: [undefined, a]};
+
+    if (keys[0] != null) {
+      if (keys[1] != null && ydn.db.cmp(values[0], values[1]) == 0) {
+        result_keys.push(values[0]); // we got the matching primary key.
+      }
+      if (keys[1] != null) {
+        return [null, true]; // iterate on inner loop
+      } else {
+        return [true, false]; // iterate on outer loop and restart on inner loop
+      }
     } else {
-      return {next_primary_keys: [b, undefined]};
+      return []; // no more iteration. we are done.
     }
   };
 

@@ -533,9 +533,16 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
           }
           var iterator = iterators[idx];
           var req = cursors[i];
-          if (next_primary_keys[i] !== false && !goog.isDef(keys[i])) {
-            throw new ydn.error.InvalidOperationError('Iterator ' + i +
-              ' must not advance.');
+//          if (next_primary_keys[i] !== false && !goog.isDef(keys[i])) {
+//            throw new ydn.error.InvalidOperationError('Iterator ' + i +
+//              ' must not advance.');
+//          }
+          if (!goog.isDefAndNotNull(keys[i]) &&
+              (advance[i] === true ||
+                  goog.isDefAndNotNull(next_index_keys[i]) ||
+                  goog.isDefAndNotNull(next_primary_keys[i]))) {
+            throw new ydn.error.InvalidOperationError(iterator + ' at ' + i +
+                ' must not advance.');
           }
           keys[i] = undefined;
           values[i] = undefined;
