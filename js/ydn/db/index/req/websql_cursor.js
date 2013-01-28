@@ -5,6 +5,7 @@
 
 goog.provide('ydn.db.index.req.WebsqlCursor');
 goog.require('ydn.db.index.req.AbstractCursor');
+goog.require('ydn.db.index.req.ICursor');
 
 
 /**
@@ -17,6 +18,7 @@ goog.require('ydn.db.index.req.AbstractCursor');
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
  * @extends {ydn.db.index.req.AbstractCursor}
+ * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
 ydn.db.index.req.WebsqlCursor = function(tx, store_schema, store_name,
@@ -426,5 +428,86 @@ ydn.db.index.req.WebsqlCursor.prototype.seek = function(next_primary_key,
   } else {
     throw new ydn.error.NotImplementedException();
   }
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebsqlCursor.prototype.restart = function(effective_key, primary_key) {
+  this.logger.finest(this + ' restarting.');
+  this.open_request(primary_key, effective_key, true);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
+  if (!this.hasCursor()) {
+    throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
+  }
+  var n = this.cursor_.rows.length;
+  for (var i = 0; i < step; i++) {
+    this.current_cursor_index_++;
+    var last_step = (i == step -1 ) ||  this.current_cursor_index_ == n - 1;
+    if (last_step) {
+      return [this.getPrimaryKey(), this.getIndexKey(), this.getValue()];
+    }
+  }
+  return [undefined, undefined, undefined];
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
+  if (!this.hasCursor()) {
+    throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
+  }
+  var cmp = ydn.db.cmp(key, this.getPrimaryKey());
+  if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
+    throw new ydn.error.InvalidOperationError(this + ' wrong direction.');
+  }
+  var index_position = this.getIndexKey();
+  var n = this.cursor_.rows.length;
+
+  for (var i = 0; i < n; i++) {
+    if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
+      return [this.getPrimaryKey(), this.getIndexKey(), this.getValue()];
+    }
+    this.current_cursor_index_++;
+    if (index_position && index_position != this.getIndexKey()) {
+      // index position must not change while continuing primary key
+      return [this.getPrimaryKey(), this.getIndexKey(), this.getValue()];
+    }
+    cmp = ydn.db.cmp(key, this.getPrimaryKey());
+  }
+  return [undefined, undefined, undefined];
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
+  if (!this.hasCursor()) {
+    throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
+  }
+  var cmp = ydn.db.cmp(key, this.getEffectiveKey());
+  if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
+    throw new ydn.error.InvalidOperationError(this + ' wrong direction.');
+  }
+  var n = this.cursor_.rows.length;
+
+  for (var i = 0; i < n; i++) {
+    if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
+      return [this.getPrimaryKey(), this.getIndexKey(), this.getValue()];
+    }
+    this.current_cursor_index_++;
+    cmp = ydn.db.cmp(key, this.getEffectiveKey());
+  }
+  return [undefined, undefined, undefined];
 };
 

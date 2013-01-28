@@ -159,7 +159,7 @@ var test_13_scan_index_key_iterator = function () {
   });
   var actual_keys = objs.map(function(x) {return x.value;});
   var actual_index_keys = objs.map(function(x) {return x.id;});
-  var q = new ydn.db.KeyIterator(store_name, 'value');
+  var q = new ydn.db.KeyIndexIterator(store_name, 'value');
   scan_key_single_test(q, actual_keys, actual_index_keys);
 
 };
@@ -172,7 +172,7 @@ var test_14_scan_index_key_iterator_reverse = function () {
   });
   var actual_keys = objs.map(function(x) {return x.value;});
   var actual_index_keys = objs.map(function(x) {return x.id;});
-  var q = new ydn.db.KeyIterator(store_name, 'value', null, true);
+  var q = new ydn.db.KeyIndexIterator(store_name, 'value', null, true);
 
   scan_key_single_test(q, actual_keys, actual_index_keys);
 
@@ -207,8 +207,8 @@ var test_21_scan_key_dual = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.KeyIterator(store_name, 'value');
-  var q2 = new ydn.db.KeyIterator(store_name, 'x');
+  var q1 = new ydn.db.KeyIndexIterator(store_name, 'value');
+  var q2 = new ydn.db.KeyIndexIterator(store_name, 'x');
 
   db = load_default();
   var req = db.scan([q1, q2], function join_algo (index_key, key) {
@@ -318,7 +318,7 @@ var test_41_map_index_key_iterator = function() {
   var streaming_keys = [];
 
   // for index key iterator, the reference value is index key.
-  var q = new ydn.db.KeyIterator(store_name, 'value');
+  var q = new ydn.db.KeyIndexIterator(store_name, 'value');
   var actual_keys = objs.map(function(x) {return x.value;});
 
   waitForCondition(
@@ -356,7 +356,7 @@ var test_41_map_index_value_iterator = function() {
 
   // for index value iterator, the reference value is primary key.
   var actual_keys = objs.map(function(x) {return x.id;});
-  var q = new ydn.db.ValueIterator(store_name, 'value');
+  var q = new ydn.db.ValueIndexIterator(store_name, 'value');
 
   waitForCondition(
       // Condition
@@ -391,7 +391,7 @@ var test_42_map_skip = function() {
   var streaming_keys = [];
 
   var actual_index_keys = [0, 4, 5, 6];
-  var q = new ydn.db.KeyIterator(store_name, 'value');
+  var q = new ydn.db.KeyIndexIterator(store_name, 'value');
 
   waitForCondition(
       // Condition
@@ -432,7 +432,7 @@ var test_43_map_stop = function() {
   var streaming_values = [];
 
   var actual_index_keys = [0, 1, 2, 3];
-  var q = new ydn.db.KeyIterator(store_name, 'value');
+  var q = new ydn.db.KeyIndexIterator(store_name, 'value');
 
   waitForCondition(
       // Condition
@@ -512,7 +512,7 @@ var test_61_scan_cursor_resume = function() {
   var done;
   var values = [];
   var actual_values = [0, 1, 2, 3];
-  var q = new ydn.db.KeyIterator(store_name, 'value');
+  var q = new ydn.db.KeyIndexIterator(store_name, 'value');
 
   waitForCondition(
       // Condition

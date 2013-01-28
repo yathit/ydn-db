@@ -86,7 +86,6 @@ ydn.db.index.req.AbstractCursor.prototype.key_range = null;
 ydn.db.index.req.AbstractCursor.prototype.reverse = false;
 
 
-
 /**
  * @protected
  * @type {boolean}
@@ -100,6 +99,28 @@ ydn.db.index.req.AbstractCursor.prototype.key_only = true;
  */
 ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
   throw e;
+};
+
+
+/**
+ *
+ * @return {boolean} return true if this is an index cursor.
+ */
+ydn.db.index.req.AbstractCursor.prototype.isIndexCursor = function() {
+  return !!this.index_name;
+};
+
+
+/**
+ *
+ * @return {*} effective key.
+ */
+ydn.db.index.req.AbstractCursor.prototype.getEffectiveKey = function() {
+  if (this.isIndexCursor()) {
+    return this.getIndexKey();
+  } else {
+    return this.getPrimaryKey();
+  }
 };
 
 
