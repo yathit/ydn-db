@@ -38,6 +38,11 @@ ydn.db.index.DbOperator = function(storage, schema, thread) {
 goog.inherits(ydn.db.index.DbOperator, ydn.db.core.DbOperator);
 
 
+/**
+ * @define {boolean}
+ */
+ydn.db.index.DbOperator.DEBUG = false;
+
 
 /**
  * @inheritDoc
@@ -274,7 +279,7 @@ ydn.db.index.DbOperator.prototype.list = function(arg1, arg2, arg3, arg4, arg5, 
 //          }
 //          keys[i] = undefined;
 //          values[i] = undefined;
-//          if (ydn.db.core.req.IndexedDb.DEBUG) {
+//          if (ydn.db.index.DbOperator.DEBUG) {
 //            var s = adv[i] === false ? 'restart' : adv[i] === true ? '' : adv[i];
 //            window.console.log(iterator.toString() + ': forward ' + s);
 //          }
@@ -301,7 +306,7 @@ ydn.db.index.DbOperator.prototype.list = function(arg1, arg2, arg3, arg4, arg5, 
 //     */
 //    var on_streamer_pop = function(i, key, value) {
 //      if (done) {
-//        if (ydn.db.core.req.IndexedDb.DEBUG) {
+//        if (ydn.db.index.DbOperator.DEBUG) {
 //          window.console.log(['on_streamer_next', i, key, value]);
 //        }
 //        throw new ydn.error.InternalError();
@@ -325,7 +330,7 @@ ydn.db.index.DbOperator.prototype.list = function(arg1, arg2, arg3, arg4, arg5, 
 //     */
 //    var on_iterator_next = function (i, primary_key, key, value) {
 //      if (done) {
-//        if (ydn.db.core.req.IndexedDb.DEBUG) {
+//        if (ydn.db.index.DbOperator.DEBUG) {
 //          window.console.log(['on_iterator_next', i, primary_key, key, value]);
 //        }
 //        throw new ydn.error.InternalError();
@@ -476,25 +481,31 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
      * All results collected. Now invoke solver and do advancement.
      */
     var on_result_ready = function() {
-      result_count = 0;
+
       // all cursor has results, than sent to join algorithm callback.
+
       var out;
       if (solver instanceof ydn.db.algo.AbstractSolver) {
         out = solver.solver(keys, values);
       } else {
         out = solver(keys, values);
       }
-
+      if (ydn.db.index.DbOperator.DEBUG) {
+        window.console.log(me + ' ready and received result from solver ' + ydn.json.stringify(out));
+      }
       var next_primary_keys = [];
-      var next_index_keys = [];
+      var next_effective_keys = [];
       var advance = [];
+      var restart = [];
       if (goog.isArray(out)) {
         // adv vector is given
         for (var i = 0; i < out.length; i++) {
-          if (goog.isBoolean(out[i])) {
-            advance[i] = out[i];
+          if (out[i] === true) {
+            advance[i] = 1;
+          } else if (out[i] === false) {
+            restart[i] = true;
           } else {
-            next_index_keys[i] = out[i];
+            next_effective_keys[i] = out[i];
           }
         }
       } else if (goog.isNull(out)) {
@@ -505,37 +516,36 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
         next_primary_keys = [];
         for (var i = 0; i < iterators.length; i++) {
           if (goog.isDef(idx2iterator[i])) {
-            advance[i] = true;
+            advance[i] = 1;
           }
         }
       } else if (goog.isObject(out)) {
-        if (goog.isArray(out['continuePrimary'])) {
-          next_primary_keys = out['continuePrimary'];
-        }
-        if (goog.isArray(out['continue'])) {
-          next_index_keys = out['continue'];
-        }
-        if (goog.isArray(out['advance']) || goog.isArray(out['restart'])) {
-          var adv = out['advance'] || [];
-          var res = out['restart'] || [];
-          for (var i = 0, n = Math.max(adv.length, res.length); i < n; i++) {
-            if (res[i] === true) {
-              advance[i] = false;
-            } else if (adv[i] == 1) { // currently advance by only one step is supported
-              advance[i] = true;
-            } else if (goog.isNumber(adv[i])) {
-              throw new ydn.error.NotSupportedException();
-            }
-          }
-        }
+        next_primary_keys = out['continuePrimary'] || [];
+        next_effective_keys = out['continue'] || [];
+        advance = out['advance'] || [];
+        restart = out['restart'] || [];
       } else {
         throw new ydn.error.InvalidOperationException('scan callback output');
       }
       var move_count = 0;
+      result_count = 0;
       for (var i = 0; i < iterators.length; i++) {
         if (goog.isDefAndNotNull(next_primary_keys[i]) ||
-            goog.isDefAndNotNull(next_index_keys[i]) ||
-            goog.isBoolean(advance[i])) {
+          goog.isDefAndNotNull(next_effective_keys[i]) ||
+          goog.isDefAndNotNull(restart[i]) ||
+          goog.isDefAndNotNull(advance[i])) {
+          // by marking non moving iterator first, both async and sync callback
+          // work.
+        } else {
+          // take non advancing iterator as already moved.
+          result_count++;
+        }
+      }
+      for (var i = 0; i < iterators.length; i++) {
+        if (goog.isDefAndNotNull(next_primary_keys[i]) ||
+            goog.isDefAndNotNull(next_effective_keys[i]) ||
+            goog.isDefAndNotNull(restart[i]) ||
+            goog.isDefAndNotNull(advance[i])) {
           var idx = idx2iterator[i];
           if (!goog.isDef(idx)) {
             throw new ydn.error.InvalidOperationException(i +
@@ -549,21 +559,42 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
 //          }
           if (!goog.isDefAndNotNull(keys[i]) &&
               (advance[i] === true ||
-                  goog.isDefAndNotNull(next_index_keys[i]) ||
+                  goog.isDefAndNotNull(next_effective_keys[i]) ||
                   goog.isDefAndNotNull(next_primary_keys[i]))) {
             throw new ydn.error.InvalidOperationError(iterator + ' at ' + i +
                 ' must not advance.');
           }
           keys[i] = undefined;
           values[i] = undefined;
-          if (ydn.db.core.req.IndexedDb.DEBUG) {
-            var s = advance[i] === false ? 'restart ' : advance[i] === true ? 'move over ' : ' to ';
-            s += goog.isDefAndNotNull(next_primary_keys[i]) ? next_primary_keys[i] + ' ' : '';
-            s += goog.isDefAndNotNull(next_index_keys[i]) ? 'index:' + next_index_keys[i] + ' ' : '';
-            window.console.log(iterator + ': ' + s);
+
+          if (goog.isDefAndNotNull(restart[i])) {
+            if (ydn.db.index.DbOperator.DEBUG) {
+              window.console.log(iterator + ': restarting.');
+            }
+            goog.asserts.assert(restart[i] === true, i + ' restart must be true');
+            req.restart();
+          } else if (goog.isDefAndNotNull(next_effective_keys[i])) {
+            if (ydn.db.index.DbOperator.DEBUG) {
+              window.console.log(iterator + ': continuing to ' + next_effective_keys[i]);
+            }
+            req.continueEffectiveKey(next_effective_keys[i]);
+          } else if (goog.isDefAndNotNull(next_primary_keys[i])) {
+            if (ydn.db.index.DbOperator.DEBUG) {
+              window.console.log(iterator + ': continuing to primary key ' + next_primary_keys[i]);
+            }
+            req.continuePrimaryKey(next_primary_keys[i]);
+          } else if (goog.isDefAndNotNull(advance[i])) {
+            if (ydn.db.index.DbOperator.DEBUG) {
+              window.console.log(iterator + ': advancing ' + advance[i] + ' steps.');
+            }
+            goog.asserts.assert(advance[i] === 1, i + ' advance value must be 1');
+            req.advance(1);
+          } else {
+            throw new ydn.error.InternalError(iterator + ': has no action');
           }
+
           //if (goog.isDef(next_primary_keys[i]) && goog.isDef(next_index_keys[i])) {
-            req.seek(next_primary_keys[i], next_index_keys[i], advance[i]);
+//            req.seek(next_primary_keys[i], next_effective_keys[i], advance[i]);
 //          } else if (goog.isDef(next_primary_keys[i])) {
 //            if (goog.isBoolean(next_primary_keys[i])) {
 //              req.forward(next_primary_keys[i]);
@@ -576,15 +607,13 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
 //            req.forward(!!advance[i]);
 //          }
           move_count++;
-        } else {
-          // take non advancing iterator as already moved.
-          result_count++;
         }
       }
       // console.log(['on_result_ready', move_count, keys, adv]);
       if (move_count == 0) {
         do_exit();
       }
+
     };
 
     /**
@@ -597,7 +626,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
      */
     var on_streamer_pop = function(i, key, value) {
       if (done) {
-        if (ydn.db.core.req.IndexedDb.DEBUG) {
+        if (ydn.db.index.DbOperator.DEBUG) {
           window.console.log(['on_streamer_next', i, key, value]);
         }
         throw new ydn.error.InternalError();
@@ -621,14 +650,14 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
      */
     var on_iterator_next = function (i, primary_key, key, value) {
       if (done) {
-        if (ydn.db.core.req.IndexedDb.DEBUG) {
+        if (ydn.db.index.DbOperator.DEBUG) {
           window.console.log(['on_iterator_next', i, primary_key, key, value]);
         }
         // calling next to a terminated iterator
         throw new ydn.error.InternalError();
       }
       result_count++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.index.DbOperator.DEBUG) {
         window.console.log(['on_iterator_next', i, idx2iterator[i], result_count, key, value]);
       }
       var idx = idx2iterator[i];

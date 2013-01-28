@@ -64,9 +64,12 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
    */
   this.type = ydn.db.schema.Index.toType(opt_type);
   if (goog.DEBUG &&
-      (goog.isArray(this.type) && !goog.array.equals(this.type, opt_type)) ||
-      (!goog.isArray(this.type) && this.type != opt_type)) {
-
+        (
+          (goog.isArray(opt_type) && !goog.isArray(this.type)) ||
+          (goog.isArray(opt_type) && !goog.array.equals(/** @type {Array} */ (this.type), opt_type)) ||
+          (!goog.isArray(opt_type) && this.type != opt_type)
+        )
+      ) {
     throw new ydn.error.ArgumentException('Invalid index type: ' + opt_type +
         ' in ' + this.name);
   }

@@ -100,7 +100,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
       // Continuation
       function () {
         assertArrayEquals('streaming keys', actual_keys, streaming_keys);
-        console.log([actual_index_keys, streaming_index_keys]);
+        //console.log([actual_index_keys, streaming_index_keys]);
         assertArrayEquals('streaming values', actual_index_keys, streaming_index_keys);
 
         reachedFinalContinuation = true;

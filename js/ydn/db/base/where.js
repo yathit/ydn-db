@@ -86,8 +86,25 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
   if (key_range) {
     var column = goog.string.quote(field);
     if (ydn.db.Where.resolvedStartsWith(key_range)) {
-      sql = column + ' LIKE ?';
-      params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
+      if (goog.isArray(type)) {
+        sql = column + ' LIKE ?';
+        if (goog.isArray(key_range.lower)) {
+          for (var i = 0; i < key_range.lower.length; i++) {
+            if (i > 0) {
+              sql += ' AND ';
+            }
+            sql += column + ' LIKE ? ';
+            params.push(ydn.db.schema.Index.ARRAY_SEP + key_range.lower[i] + ydn.db.schema.Index.ARRAY_SEP);
+          }
+
+        } else {
+          sql = ' 1 = 2 ';
+        }
+      } else {
+        // should be 'TEXT'
+        sql = column + ' LIKE ?';
+        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
+      }
     } else if (key_range.lower == key_range.upper) {
       sql = column + ' = ?';
       params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
@@ -125,13 +142,20 @@ ydn.db.Where.prototype.toWhereClause = function (type) {
  * keyRange.
  */
 ydn.db.Where.resolvedStartsWith = function(keyRange) {
-  if (!goog.isDefAndNotNull(keyRange)) {
+  if (!goog.isDefAndNotNull(keyRange) ||
+      !goog.isDef(keyRange.lower) || !goog.isDef(keyRange.upper)) {
     return false;
   }
-  return goog.isDef(keyRange.lower) && goog.isDef(keyRange.upper) &&
-    !keyRange.lowerOpen && !keyRange.upperOpen &&
-    keyRange.lower.length == keyRange.upper.length + 1 &&
-    keyRange.upper[keyRange.lower.length - 1] == '\uffff';
+  if (goog.isArray(keyRange.lower) && goog.isArray(keyRange.upper)) {
+    return (keyRange.lower.length == keyRange.upper.length - 1) &&
+        keyRange.upper[keyRange.upper.length - 1] == '\uffff' &&
+        keyRange.lower.every(function (x, i) {return x == keyRange.upper[i]});
+  } else {
+    return !keyRange.lowerOpen && !keyRange.upperOpen &&
+        keyRange.lower.length == keyRange.upper.length + 1 &&
+        keyRange.upper[keyRange.lower.length - 1] == '\uffff';
+  }
+
 };
 
 

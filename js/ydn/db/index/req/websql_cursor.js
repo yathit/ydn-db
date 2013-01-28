@@ -452,10 +452,11 @@ ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
     this.current_cursor_index_++;
     var last_step = (i == step -1 ) ||  this.current_cursor_index_ == n - 1;
     if (last_step) {
-      return [this.getPrimaryKey(), this.getIndexKey(), this.getValue()];
+      this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
+      return;
     }
   }
-  return [undefined, undefined, undefined];
+  this.onSuccess(undefined, undefined, undefined);
 };
 
 
@@ -475,16 +476,18 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
 
   for (var i = 0; i < n; i++) {
     if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
-      return [this.getPrimaryKey(), this.getIndexKey(), this.getValue()];
+      this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
+      return;
     }
     this.current_cursor_index_++;
     if (index_position && index_position != this.getIndexKey()) {
       // index position must not change while continuing primary key
-      return [this.getPrimaryKey(), this.getIndexKey(), this.getValue()];
+      this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
+      return;
     }
     cmp = ydn.db.cmp(key, this.getPrimaryKey());
   }
-  return [undefined, undefined, undefined];
+  this.onSuccess(undefined, undefined, undefined);
 };
 
 
@@ -503,11 +506,12 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
 
   for (var i = 0; i < n; i++) {
     if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
-      return [this.getPrimaryKey(), this.getIndexKey(), this.getValue()];
+      this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
+      return;
     }
     this.current_cursor_index_++;
     cmp = ydn.db.cmp(key, this.getEffectiveKey());
   }
-  return [undefined, undefined, undefined];
+  this.onSuccess(undefined, undefined, undefined);
 };
 

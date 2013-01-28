@@ -15,7 +15,7 @@ var debug_console = new goog.debug.Console();
 debug_console.setCapturing(true);
 goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
 goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
-goog.debug.Logger.getLogger('ydn.db.index.req').setLevel(goog.debug.Logger.Level.FINEST);
+goog.debug.Logger.getLogger('ydn.db.index').setLevel(goog.debug.Logger.Level.FINEST);
 
 
 var db_name = 'test_algo_scan_1';
@@ -24,6 +24,7 @@ var setUp = function() {
 
   //ydn.db.core.req.IndexedDb.DEBUG = true;
   //ydn.db.index.req.IDBCursor.DEBUG = true;
+  ydn.db.index.DbOperator.DEBUG = true;
 
 
   reachedFinalContinuation = false;
@@ -55,11 +56,11 @@ var test_scan_reference_value = function() {
       keyPath: 'id',
       type: 'INTEGER',
       indexes: [{
-        name: 'fa',
+        name: 'first',
         keyPath: 'first',
         type: 'TEXT'
       }, {
-        name: 'la',
+        name: 'last',
         keyPath: 'last',
         type: 'TEXT'
       }]
@@ -92,8 +93,8 @@ var test_scan_reference_value = function() {
       100, // interval
       1000); // maxTimeout
 
-  var q1 = new ydn.db.KeyIndexIterator(store_name, 'fa', ydn.db.KeyRange.only('B'));
-  var q2 = new ydn.db.KeyIndexIterator(store_name, 'la', ydn.db.KeyRange.only('M'));
+  var q1 = new ydn.db.KeyIndexIterator(store_name, 'first', ydn.db.KeyRange.only('B'));
+  var q2 = new ydn.db.KeyIndexIterator(store_name, 'last', ydn.db.KeyRange.only('M'));
 
   var solver = function(keys, values) {
     console.log(JSON.stringify(keys) + ':' + JSON.stringify(values));
@@ -283,7 +284,7 @@ var test_scan_effective_key = function() {
   var q2 = new ydn.db.KeyIndexIterator(store_name, 'la', ydn.db.KeyRange.starts(['M']));
 
   var solver = function(keys, values) {
-    //console.log(JSON.stringify(keys));
+    console.log(JSON.stringify(keys));
     if (keys.some(function(x) {return !goog.isDefAndNotNull(x)})) {
       return []; // done;
     }

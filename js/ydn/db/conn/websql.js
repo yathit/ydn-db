@@ -443,8 +443,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     if (index.keyPath == table_schema.getKeyPath()) {
       continue;
     }
-
-    sql += sep + goog.string.quote(index.getKeyPath()) + ' ' + index.getType() +
+    var index_type = goog.isArray(index.getType()) ? 'TEXT' : index.getType();
+    sql += sep + goog.string.quote(index.getKeyPath()) + ' ' + index_type +
       unique;
 
   }
