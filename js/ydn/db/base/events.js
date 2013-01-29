@@ -93,6 +93,23 @@ ydn.db.events.StorageEvent.prototype.oldVersion = NaN;
 
 /**
  *
+ * @return {number}
+ */
+ydn.db.events.StorageEvent.prototype.getVersion = function() {
+  return this.version;
+};
+
+/**
+ *
+ * @return {number}
+ */
+ydn.db.events.StorageEvent.prototype.getOldVersion = function() {
+  return this.oldVersion;
+};
+
+
+/**
+ *
  * @param {ydn.db.events.Types} event_type  type.
  * @param {goog.events.EventTarget} event_target target.
  * @param {string} store_name source.
