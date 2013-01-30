@@ -415,10 +415,6 @@ var schema_auto_increase = {
       start();
     });
 
-    setTimeout(function () {
-      start();
-    }, 2000);
-
   });
 
   asyncTest("Retrieve objects by key range reverse - inline-key", function () {
@@ -461,10 +457,6 @@ var schema_auto_increase = {
       ok(false, e.message);
       start();
     });
-
-    setTimeout(function () {
-      start();
-    }, 2000);
 
   });
 
@@ -593,11 +585,6 @@ var schema_auto_increase = {
       throw e;
     });
 
-    setTimeout(function () {
-      start();
-    }, 2000);
-
-
   });
 
 
@@ -611,9 +598,6 @@ var schema_auto_increase = {
       throw e;
     });
 
-    setTimeout(function () {
-      start();
-    }, 2000);
   });
 
 })();
@@ -668,17 +652,19 @@ var schema_auto_increase = {
 
   module("Count", test_env);
 
-
   asyncTest("all records in a store", function () {
-    expect(1);
 
-    db.count(store_inline).then(function (x) {
-      equal(5, x, 'number of records in store');
-      start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
-    });
+    ready.always(function() {
+
+      expect(1);
+      db.count(store_inline).then(function (x) {
+        equal(5, x, 'number of records in store');
+        start();
+      }, function (e) {
+        ok(false, e.message);
+        start();
+      });
+    })
 
   });
 
