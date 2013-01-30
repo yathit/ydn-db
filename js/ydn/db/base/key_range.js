@@ -249,6 +249,44 @@ ydn.db.KeyRange.validate = function(keyRange) {
 };
 
 
+/**
+ *
+ * @param {string} op where operator.
+ * @param {*} value rvalue to compare.
+ * @param {string=} op2 second operator.
+ * @param {*=} value2 second rvalue to compare.
+ * @return {!ydn.db.KeyRange}
+ */
+ydn.db.KeyRange.where = function(op, value, op2, value2) {
+  var upper, lower, upperOpen, lowerOpen;
+  if (op == 'LIKE%') {
+    goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'value');
+    goog.asserts.assert(!goog.isDef(op2), 'op2');
+    goog.asserts.assert(!goog.isDef(value2), 'value2');
+    ydn.db.KeyRange.starts(/** @type {string|!Array} */ (value));
+  } else if (op == '<' || op == '<=') {
+    upper = value;
+    upperOpen = op == '<';
+  } else if (op == '>' || op == '>=') {
+    lower = value;
+    lowerOpen = op == '>';
+  } else if (op == '=' || op == '==') {
+    lower = value;
+    upper = value;
+  }
+  if (op2 == '<' || op2 == '<=') {
+    upper = value2;
+    upperOpen = op2 == '<';
+  } else if (op2 == '>' || op2 == '>=') {
+    lower = value2;
+    lowerOpen = op2 == '>';
+  } else if (goog.isDef(op2)) {
+    throw new ydn.error.ArgumentException('op2');
+  }
+  return ydn.db.KeyRange.bound(lower, upper, lowerOpen, upperOpen);
+};
+
+
 
 /**
  *

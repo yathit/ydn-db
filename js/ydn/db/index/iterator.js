@@ -40,7 +40,7 @@ goog.require('goog.debug.Logger');
  * @param {!string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} keyRange key range
+ * @param {(!KeyRangeJson|ydn.db.IDBKeyRange|ydn.db.KeyRange|IDBKeyRange)=} keyRange key range
  * @param {boolean=} reverse reverse.
  * @param {boolean=} unique unique.
  * @param {boolean=} key_only true for key only iterator. Default value is
@@ -129,7 +129,7 @@ ydn.db.Iterator.DEBUG = false;
 
 /**
  * Create an iterator object.
- * @param {!string} store store name.
+ * @param {string} store store name.
  * @param {(!KeyRangeJson|ydn.db.KeyRange)=} keyRange key range
  * @param {boolean=} reverse reverse.
  * @constructor
@@ -145,8 +145,23 @@ goog.inherits(ydn.db.KeyIterator, ydn.db.Iterator);
 
 
 /**
+ *
+ * @param {string} store_name
+ * @param {string} op where operator.
+ * @param {*} value rvalue to compare.
+ * @param {string=} op2 second operator.
+ * @param {*=} value2 second rvalue to compare.
+ * @return {ydn.db.KeyIterator}
+ */
+ydn.db.KeyIterator.where = function(store_name, op, value, op2, value2) {
+  return new ydn.db.KeyIterator(store_name,
+    ydn.db.KeyRange.where(op, value, op2, value2));
+};
+
+
+/**
  * Create an iterator object.
- * @param {!string} store store name.
+ * @param {string} store store name.
  * @param {string} index index name.
  * @param {(!KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} keyRange key range.
  * @param {boolean=} reverse reverse.
@@ -164,6 +179,22 @@ goog.inherits(ydn.db.KeyIndexIterator, ydn.db.Iterator);
 
 
 /**
+ *
+ * @param {string} store_name
+ * @param {string} index index name.
+ * @param {string} op where operator.
+ * @param {*} value rvalue to compare.
+ * @param {string=} op2 second operator.
+ * @param {*=} value2 second rvalue to compare.
+ * @return {ydn.db.KeyIndexIterator}
+ */
+ydn.db.KeyIndexIterator.where = function(store_name, index, op, value, op2, value2) {
+  return new ydn.db.KeyIndexIterator(store_name, index,
+    ydn.db.KeyRange.where(op, value, op2, value2));
+};
+
+
+/**
  * Create an iterator object.
  * @param {!string} store store name.
  * @param {(!KeyRangeJson|ydn.db.KeyRange)=} keyRange key range.
@@ -178,6 +209,20 @@ ydn.db.ValueIterator = function(store, keyRange, reverse) {
   goog.base(this, store, undefined, keyRange, undefined, undefined, false);
 };
 goog.inherits(ydn.db.ValueIterator, ydn.db.Iterator);
+
+/**
+ *
+ * @param {string} store_name
+ * @param {string} op where operator.
+ * @param {*} value rvalue to compare.
+ * @param {string=} op2 second operator.
+ * @param {*=} value2 second rvalue to compare.
+ * @return {ydn.db.ValueIterator}
+ */
+ydn.db.ValueIterator.where = function(store_name, op, value, op2, value2) {
+  return new ydn.db.ValueIterator(store_name,
+    ydn.db.KeyRange.where(op, value, op2, value2));
+};
 
 
 /**
@@ -197,6 +242,21 @@ ydn.db.ValueIndexIterator = function(store, index, keyRange, reverse, unique) {
   goog.base(this, store, index, keyRange, reverse, unique, false);
 };
 goog.inherits(ydn.db.ValueIndexIterator, ydn.db.Iterator);
+
+/**
+ *
+ * @param {string} store_name
+ * @param {string} index index name.
+ * @param {string} op where operator.
+ * @param {*} value rvalue to compare.
+ * @param {string=} op2 second operator.
+ * @param {*=} value2 second rvalue to compare.
+ * @return {ydn.db.ValueIndexIterator}
+ */
+ydn.db.ValueIndexIterator.where = function(store_name, index, op, value, op2, value2) {
+  return new ydn.db.ValueIndexIterator(store_name, index,
+    ydn.db.KeyRange.where(op, value, op2, value2));
+};
 
 
 /**
@@ -325,7 +385,7 @@ ydn.db.Iterator.prototype.getIndexKey = function() {
 
 
 /**
- *
+ * @deprecated
  * @return {ydn.db.IDBKeyRange} return key range.
  */
 ydn.db.Iterator.prototype.keyRange = function() {
@@ -335,10 +395,66 @@ ydn.db.Iterator.prototype.keyRange = function() {
 
 /**
  *
- * @return {IDBKeyRange} return a clone of key range.
+ * @return {boolean}
+ */
+ydn.db.Iterator.prototype.hasKeyRange = function() {
+  return !!this.key_range_;
+};
+
+
+/**
+ *
+ * @return {*} get lower value of key range
+ */
+ydn.db.Iterator.prototype.getLower = function() {
+  return this.key_range_ ? undefined : this.key_range_.lower;
+};
+
+/**
+ *
+ * @return {*} get lower value of key range
+ */
+ydn.db.Iterator.prototype.getLowerOpen = function() {
+  return this.key_range_ ? undefined : this.key_range_.lowerOpen;
+};
+
+
+/**
+ *
+ * @return {*} get upper value of key range
+ */
+ydn.db.Iterator.prototype.getUpper = function() {
+  return this.key_range_ ? undefined : this.key_range_.upper;
+};
+
+/**
+ *
+ * @return {*} get upper value of key range
+ */
+ydn.db.Iterator.prototype.getUpperOpen = function() {
+  return this.key_range_ ? undefined : this.key_range_.upperOpen;
+};
+
+
+/**
+ * @return {ydn.db.IDBKeyRange} return key range.
  */
 ydn.db.Iterator.prototype.getKeyRange = function() {
-  return ydn.db.KeyRange.parseIDBKeyRange(this.key_range_);
+  if (this.key_range_) {
+    return ydn.db.IDBKeyRange.bound(this.key_range_.lower, this.key_range_.upper,
+      this.key_range_.lowerOpen, this.key_range_.upperOpen);
+  } else {
+    return null;
+  }
+};
+
+
+/**
+ *
+ * @return {IDBKeyRange} return a clone of key range.
+ */
+ydn.db.Iterator.prototype.getIDBKeyRange = function() {
+  return /** @type {IDBKeyRange} */ (this.getKeyRange());
 };
 
 
@@ -480,23 +596,6 @@ ydn.db.Iterator.prototype.done = function() {
  */
 ydn.db.Iterator.prototype.stores = function() {
   return [this.store_name].concat(this.peer_store_names_);
-};
-
-
-
-/**
- * Convenient method for SQL <code>WHERE</code> predicate.
- * @param {string} store_name store name.
- * @param {string} field index field name to query from.
- * @param {string} op where operator.
- * @param {string} value rvalue to compare.
- * @param {string=} op2 secound operator.
- * @param {string=} value2 second rvalue to compare.
- * @return {!ydn.db.Iterator} The query.
- */
-ydn.db.KeyIndexIterator.where = function(store_name, field, op, value, op2, value2) {
-  var key_range = new ydn.db.Where(field, op, value, op2, value2);
-  return new ydn.db.KeyIndexIterator(store_name, field, key_range);
 };
 
 

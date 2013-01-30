@@ -217,6 +217,8 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
       ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   var column = goog.string.quote(key_column);
 
+  var type = index ? index.getType() : store.getType();
+
   var select = 'SELECT';
 
   var fields = '*';
@@ -232,29 +234,36 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
   }
   var from = fields + ' FROM ' + store.getQuotedName();
 
-  var key_range = q.keyRange();
+
+
   var where_clause = '';
   var params = [];
-  if (key_range) {
-
-    if (ydn.db.Where.resolvedStartsWith(key_range)) {
-      where_clause = column + ' LIKE ?';
-      params.push(key_range['lower'] + '%');
-    } else {
-      if (goog.isDef(key_range.lower)) {
-        var lowerOp = key_range['lowerOpen'] ? ' > ' : ' >= ';
-        where_clause += ' ' + column + lowerOp + '?';
-        params.push(key_range.lower);
-      }
-      if (goog.isDef(key_range['upper'])) {
-        var upperOp = key_range['upperOpen'] ? ' < ' : ' <= ';
-        var and = where_clause.length > 0 ? ' AND ' : ' ';
-        where_clause += and + column + upperOp + '?';
-        params.push(key_range.upper);
-      }
-    }
-    where_clause = ' WHERE ' + '(' + where_clause + ')';
+  var where = ydn.db.Where.toWhereClause(column, type, q.getKeyRange());
+  if (where.sql) {
+    where_clause = 'WHERE ' + where.sql;
+    params = where.params;
   }
+
+//  if (q.hasKeyRange()) {
+//
+//    if (ydn.db.Where.resolvedStartsWith(q.getKeyRange())) {
+//      where_clause = column + ' LIKE ?';
+//      params.push(key_range['lower'] + '%');
+//    } else {
+//      if (goog.isDef(key_range.lower)) {
+//        var lowerOp = key_range['lowerOpen'] ? ' > ' : ' >= ';
+//        where_clause += ' ' + column + lowerOp + '?';
+//        params.push(key_range.lower);
+//      }
+//      if (goog.isDef(key_range['upper'])) {
+//        var upperOp = key_range['upperOpen'] ? ' < ' : ' <= ';
+//        var and = where_clause.length > 0 ? ' AND ' : ' ';
+//        where_clause += and + column + upperOp + '?';
+//        params.push(key_range.upper);
+//      }
+//    }
+//    where_clause = ' WHERE ' + '(' + where_clause + ')';
+//  }
 
 
   // Note: IndexedDB key range result are always ordered.

@@ -38,7 +38,7 @@ goog.require('ydn.error.ArgumentException');
  * @param {string} store store name.
  * @param {string=} index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {ydn.db.KeyRange=} keyRange configuration in json or native format.
+ * @param {(ydn.db.KeyRange|ydn.db.IDBKeyRange)=} keyRange configuration in json or native format.
  * @param {boolean=} reverse reverse.
  * @param {boolean=} unique unique.
  * @param {boolean=} key_only true for key only iterator.

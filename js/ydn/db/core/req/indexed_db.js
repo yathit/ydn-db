@@ -1018,18 +1018,18 @@ ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(df, table,
 
   var store = this.tx.objectStore(table);
   var request;
-  if (goog.isDef(index_name)) {
+  if (goog.isDefAndNotNull(index_name)) {
     var index = store.index(index_name);
-    if (goog.isNull(keyRange)) {
-      request = index.count();
-    } else {
+    if (goog.isDefAndNotNull(keyRange)) {
       request = index.count(keyRange);
+    } else {
+      request = index.count();
     }
   } else {
-    if (goog.isNull(keyRange)) {
-      request = store.count();
-    } else {
+    if (goog.isDefAndNotNull(keyRange)) {
       request = store.count(keyRange);
+    } else {
+      request = store.count();
     }
   }
 

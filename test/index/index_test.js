@@ -300,6 +300,67 @@ var test_23_list_index_range = function () {
 
 
 
+var test_count_by_iterator = function () {
+
+  var db = load_default();
+
+  var done, result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertEquals('result', 3, result);
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var range = ydn.db.KeyRange.bound(1, 10);
+  var iter = new ydn.db.KeyIterator(store_name, range);
+  db.count(iter).addBoth(function(x) {
+    result = x;
+    done = true;
+  }, function(e) {
+    throw e;
+  })
+
+};
+
+var test_count_by_index_iterator = function () {
+
+  var db = load_default();
+
+  var done, result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertEquals('result', 2, result);
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var range = ydn.db.KeyRange.only('a');
+  var iter = new ydn.db.KeyIndexIterator(store_name, 'type', range);
+  db.count(iter).addBoth(function(x) {
+    result = x;
+    done = true;
+  }, function(e) {
+    throw e;
+  })
+
+};
+
+
 var test_list_by_index = function () {
 
   var db = load_default();

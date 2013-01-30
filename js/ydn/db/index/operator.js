@@ -131,6 +131,37 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, 
 };
 
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.DbOperator.prototype.count = function(arg1, arg2, arg3) {
+
+  var me = this;
+  if (arg1 instanceof ydn.db.Iterator) {
+    if (goog.isDef(arg2) || goog.isDef(arg3)) {
+      throw new ydn.error.ArgumentException('too many arguments.');
+    }
+    var df = ydn.db.base.createDeferred();
+
+    /**
+     *
+     * @type {!ydn.db.Iterator}
+     */
+    var q = arg1;
+
+    this.tx_thread.exec(function(tx) {
+      me.getExecutor(tx).countKeyRange(df, q.getStoreName(), q.getKeyRange(), q.getIndexName());
+    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'countByIterator');
+
+    return df;
+  } else {
+    return goog.base(this, 'count', arg1, arg2, arg3);
+  }
+
+};
+
+
 /**
  * @inheritDoc
  */
