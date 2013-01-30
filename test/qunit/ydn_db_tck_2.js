@@ -52,14 +52,7 @@ var schema_1 = {
   ]
 };
 
-//var db_r = new ydn.db.Storage(db_name, schema_1);
-//db_r.clear();
-//db_r.put(store_inline, [
-//  {id: 1, value: 'v' + Math.random()},
-//  {id: 2, value: 'v' + Math.random()},
-//  {id: 3, value: 'v' + Math.random()},
-//  {id: 4, value: 'v' + Math.random()}
-//]);
+
 //db_r.put(store_outline, [
 //  {value: 'v' + Math.random()},
 //  {value: 'v' + Math.random()},
@@ -127,85 +120,116 @@ var schema_1 = {
 
   });
 
-//  asyncTest("by index iterator", function () {
-//    expect(2);
-//    var name_iter = ydn.db.KeyIndexIterator.where(store_inline_index, 'name', 'LIKE%', 'b');
-//    var value_iter = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '>', 1, '<=', 3);
-//    db_r.clear(store_inline_index);
-//    db_r.put(store_inline_index, [
-//        {id: 1, value: 2, name: 'a' + Math.random()},
-//        {id: 2, value: 4, name: 'b' + Math.random()},
-//        {id: 3, value: 6, name: 'b' + Math.random()},
-//        {id: 4, value: 8, name: 'c' + Math.random()}
-//      ]).then(function (keys) {
-//        equal(keys.length, 4, 'in store');
-//        db_r.count(value_iter).then(function (x) {
-//          equal(x, 1, 'number of value in the range');
-//
-//          db_r.count(name_iter).then(function (x) {
-//            equal(x, 2, 'number of name in the range');
-//            start();
-//          }, function (e) {
-//            ok(false, e.message);
-//            start();
-//          });
-//
-//        }, function (e) {
-//          ok(false, e.message);
-//          start();
-//        });
-//      }, function (e) {
-//        ok(false, e.message);
-//        start();
-//      });
-//
-//  });
+  asyncTest("by index iterator", function () {
+    expect(3);
+    var name_iter = ydn.db.KeyIndexIterator.where(store_inline_index, 'name', 'LIKE%', 'b');
+    var value_iter = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '>', 1, '<=', 3);
+    db_r.clear(store_inline_index);
+    db_r.put(store_inline_index, [
+        {id: 1, value: 2, name: 'a' + Math.random()},
+        {id: 2, value: 4, name: 'b' + Math.random()},
+        {id: 3, value: 6, name: 'b' + Math.random()},
+        {id: 4, value: 8, name: 'c' + Math.random()}
+      ]).then(function (keys) {
+        equal(keys.length, 4, 'in store');
+        db_r.count(value_iter).then(function (x) {
+          equal(x, 1, 'number of value in the range');
+
+          db_r.count(name_iter).then(function (x) {
+            equal(x, 2, 'number of name in the range');
+            start();
+          }, function (e) {
+            ok(false, e.message);
+            start();
+          });
+
+        }, function (e) {
+          ok(false, e.message);
+          start();
+        });
+      }, function (e) {
+        ok(false, e.message);
+        start();
+      });
+
+  });
 
 })();
-//
-//module("Index", {
-//  setup: function () {
-//    //var db = new ydn.db.Storage(db_name_get);
-//  },
-//  teardown: function () {
-//    ydn.db.deleteDatabase(db_index);
-//  }
-//});
-////
-////
-////asyncTest("Get index", function () {
-////  expect(4);
-////
-////  var db = new ydn.db.Storage(db_name_put, schema_index);
-////  console.log(db.getSchema());
-////  var value_1 = 'test ' + Math.random();
-////  var value_2 = 'test ' + Math.random();
-////  db.put(store_inline, {id: 1, value: value_1, tag: 'a'});
-////  db.put(store_inline, {id: 2, value: value_2, tag: 'b'});
-////  db.put(store_inline, {id: 3, value: value_2, tag: 'c'});
-////  var keyRange = ydn.db.KeyRange.only('a');
-////  var dir = 'next';
-////  var q = db.query().from(store_inline, index_name, dir, keyRange);
-////  db.list(q).then(function (x) {
-////    console.log(db.getSchema());
-////    equal(1, x.length, 'result length');
-////    equal('a', x[0].id, 'a value');
-////    var keyRange = ydn.db.KeyRange.only('c');
-////    var q = db.query().from(store_inline, index_name, dir, keyRange);
-////    db.list(q).then(function (x) {
-////      equal(1, x.length, 'result length');
-////      equal('c', x[0].id, 'c value');
-////      start();
-////    }, function (e) {
-////      ok(false, e.message);
-////      start();
-////    });
-////  }, function (e) {
-////    ok(false, e.message);
-////    start();
-////  });
-////
-////});
+
+
+(function () {
+
+  var db_r = new ydn.db.Storage(db_name, schema_1);
+
+  var objs = [
+    {id: 1, value: 2, name: 'a' + Math.random()},
+    {id: 2, value: 4, name: 'b' + Math.random()},
+    {id: 3, value: 6, name: 'b' + Math.random()},
+    {id: 4, value: 8, name: 'c' + Math.random()}
+  ];
+
+
+  module("Get", {
+    setup: function () {
+      db_r.clear(store_inline_index);
+      db_r.put(store_inline_index, objs);
+    },
+    teardown: function () {
+
+    }
+  });
+
+  asyncTest("effective key by an iterator", function () {
+    expect(1);
+    var iter = ydn.db.KeyIterator.where(store_inline_index, '>', 1, '<=', 3);
+    db_r.get(iter).then(function (x) {
+      equal(x, objs[1].id, 'get item 2 key');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  });
+
+  asyncTest("ref value by an iterator", function () {
+    expect(1);
+    var iter = ydn.db.ValueIterator.where(store_inline_index, '>', 1, '<=', 3);
+    db_r.get(iter).then(function (x) {
+      deepEqual(x, objs[1], 'get item 2 value');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  });
+
+
+  asyncTest("effective key by an index iterator", function () {
+    expect(1);
+    var iter = ydn.db.KeyIndexIterator.where(store_inline_index, 'name', 'LIKE%', 'c');
+    db_r.get(iter).then(function (x) {
+      equal(x, objs[3].name, 'get item 3 key');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  });
+
+  asyncTest("ref value by an iterator", function () {
+    expect(1);
+    var iter = ydn.db.ValueIndexIterator.where(store_inline_index, 'name', 'LIKE%', 'c');
+    db_r.get(iter).then(function (x) {
+      deepEqual(x, objs[3], 'get item 3 value');
+      start();
+    }, function (e) {
+      ok(false, e.message);
+      start();
+    });
+  });
+
+})();
+
 //
 //
 //var db_key_range = "qunit_keyrange_2";

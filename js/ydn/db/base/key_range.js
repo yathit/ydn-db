@@ -263,7 +263,7 @@ ydn.db.KeyRange.where = function(op, value, op2, value2) {
     goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'value');
     goog.asserts.assert(!goog.isDef(op2), 'op2');
     goog.asserts.assert(!goog.isDef(value2), 'value2');
-    ydn.db.KeyRange.starts(/** @type {string|!Array} */ (value));
+    return ydn.db.KeyRange.starts(/** @type {string|!Array} */ (value));
   } else if (op == '<' || op == '<=') {
     upper = value;
     upperOpen = op == '<';

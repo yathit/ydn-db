@@ -87,21 +87,28 @@ var schema_auto_increase = {
 
 
 (function () {
-  module("Put", {
-    setup: function () {
-      db = new ydn.db.Storage('tck1_put', schema_1);
 
+  var db;
+
+  var test_env = {
+    setup: function () {
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+      }, 2000);
     },
     teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
       db.close();
       //ydn.db.deleteDatabase(db.getName());
     }
-  });
+  };
+
+  module("Put", test_env);
 
 
   asyncTest("single data", function () {
     expect(1);
-
+    db = new ydn.db.Storage('tck1_put', schema_1);
     db.put(store_inline, data_1).then(function () {
       ok(true, "data inserted");
       start();
@@ -114,7 +121,7 @@ var schema_auto_increase = {
 
 
   asyncTest("inline-key autoincrement", function () {
-    var db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase);
+    db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase);
     expect(2);
 
     db.put(store_inline_auto, data_1).then(function (x) {
@@ -131,16 +138,11 @@ var schema_auto_increase = {
       start();
     });
 
-    // some browser does not support autoIncrement.
-    setTimeout(function () {
-      start();
-    }, 2000);
-
   });
 
 
   asyncTest("offline-key autoincrement", function () {
-    var db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase);
+    db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase);
     expect(2);
 
     db.put(store_outline_auto, data_1).then(function (x) {
@@ -159,13 +161,10 @@ var schema_auto_increase = {
       start();
     });
 
-    setTimeout(function () {
-      start();
-    }, 2000);
   });
 
   asyncTest("data with off-line-key", function () {
-
+    db = new ydn.db.Storage('tck1_put', schema_1);
     expect(2);
 
     var key = Math.random();
@@ -182,7 +181,7 @@ var schema_auto_increase = {
 
 
   asyncTest("nested key", function () {
-
+    db = new ydn.db.Storage('tck1_put', schema_1);
     expect(1);
 
     db.put(store_nested_key, gdata_1).then(function (x) {
@@ -198,7 +197,7 @@ var schema_auto_increase = {
 
   asyncTest("single data - array index key", function () {
     expect(2);
-
+    db = new ydn.db.Storage('tck1_put', schema_1);
     db.put(store_inline, data_1a).then(function (x) {
       //console.log('got it');
       ok('length' in x, "array key");
@@ -212,25 +211,49 @@ var schema_auto_increase = {
   });
 })();
 
+
 (function () {
-  module("Get", {
+  var db_name = 'tck1-get-1';
+  var data_store_inline = {id: 1, value: 'value ' + Math.random()};
+  var data_store_inline_string = {id: 'a', value: 'value ' + Math.random()};
+
+  // persist store data.
+  (function() {
+    var _db = new ydn.db.Storage(db_name, schema_1);
+    _db.put(store_inline, data_store_inline);
+    _db.put(store_inline_string, data_store_inline_string).always(function() {
+
+      module_get (db_name, data_store_inline, data_store_inline_string) ;
+    });
+  })();
+
+})();
+
+function  module_get (db_name, data_store_inline, data_store_inline_string) {
+
+  var db;
+
+  var test_env = {
     setup: function () {
-      db = new ydn.db.Storage('tck1-get-2', schema_1);
+      db = new ydn.db.Storage(db_name, schema_1);
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+      }, 2000);
     },
     teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
       db.close();
-      //ydn.db.deleteDatabase(db_name_tck1);
+      //ydn.db.deleteDatabase(db.getName());
     }
-  });
+  };
 
+  module("Get", test_env);
 
-  asyncTest("inline-line number key", function () {
+  asyncTest("inline-key number", function () {
     expect(1);
 
-    var value_1 = 'test ' + Math.random();
-    db.put(store_inline, {id: 1, value: value_1});
     db.get(store_inline, 1).then(function (x) {
-      equal(value_1, x.value, 'value');
+      equal(data_store_inline.value, x.value, 'value');
       start();
     }, function (e) {
       ok(false, e.message);
@@ -242,10 +265,8 @@ var schema_auto_increase = {
   asyncTest("inline-line string key", function () {
     expect(1);
 
-    var value_1 = Math.random();
-    db.put(store_inline_string, {id: 'a', value: value_1});
     db.get(store_inline_string, 'a').then(function (x) {
-      equal(value_1, x.value, 'value');
+      equal(data_store_inline_string.value, x.value, 'value');
       start();
     }, function (e) {
       ok(false, e.message);
@@ -310,6 +331,11 @@ var schema_auto_increase = {
     });
 
   });
+
+}
+
+
+(function () {
 
   var data_list_inline = [];
   var data_list_outline = [];
