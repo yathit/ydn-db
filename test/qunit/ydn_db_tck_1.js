@@ -211,27 +211,23 @@ var schema_auto_increase = {
   });
 })();
 
-
 (function () {
+
+  var db;
   var db_name = 'tck1-get-1';
   var data_store_inline = {id: 1, value: 'value ' + Math.random()};
   var data_store_inline_string = {id: 'a', value: 'value ' + Math.random()};
+
+  var ready = $.Deferred();
 
   // persist store data.
   (function() {
     var _db = new ydn.db.Storage(db_name, schema_1);
     _db.put(store_inline, data_store_inline);
     _db.put(store_inline_string, data_store_inline_string).always(function() {
-
-      module_get (db_name, data_store_inline, data_store_inline_string) ;
+      ready.resolve();
     });
   })();
-
-})();
-
-function  module_get (db_name, data_store_inline, data_store_inline_string) {
-
-  var db;
 
   var test_env = {
     setup: function () {
@@ -250,21 +246,24 @@ function  module_get (db_name, data_store_inline, data_store_inline_string) {
   module("Get", test_env);
 
   asyncTest("inline-key number", function () {
-    expect(1);
 
-    db.get(store_inline, 1).then(function (x) {
-      equal(data_store_inline.value, x.value, 'value');
-      start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
+    ready.always(function () {
+      expect(1);
+
+      db.get(store_inline, 1).then(function (x) {
+        equal(data_store_inline.value, x.value, 'value');
+        start();
+      }, function (e) {
+        ok(false, e.message);
+        start();
+      });
     });
+
 
   });
 
   asyncTest("inline-line string key", function () {
     expect(1);
-
     db.get(store_inline_string, 'a').then(function (x) {
       equal(data_store_inline_string.value, x.value, 'value');
       start();
@@ -277,7 +276,6 @@ function  module_get (db_name, data_store_inline, data_store_inline_string) {
 
   asyncTest("outoff-line number key", function () {
     expect(2);
-
     var value_1 = 'test ' + Math.random();
     var key_in = Math.random();
     db.put(store_outline, {abc: value_1}, key_in).then(function (key) {
@@ -298,7 +296,6 @@ function  module_get (db_name, data_store_inline, data_store_inline_string) {
 
   asyncTest("outoff-line string key", function () {
     expect(2);
-
     var value_1 = 'test ' + Math.random();
     var key_in = 'id' + Math.random();
     db.put(store_outline_string, {abc: value_1}, key_in).then(function (key) {
@@ -320,7 +317,6 @@ function  module_get (db_name, data_store_inline, data_store_inline_string) {
 
   asyncTest("nested key", function () {
     expect(1);
-
     db.put(store_nested_key, gdata_1);
     db.get(store_nested_key, gdata_1.id.$t).then(function (x) {
       deepEqual(gdata_1, x, 'same object ' + JSON.stringify(x));
@@ -332,8 +328,7 @@ function  module_get (db_name, data_store_inline, data_store_inline_string) {
 
   });
 
-}
-
+})();
 
 (function () {
 
