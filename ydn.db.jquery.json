@@ -1,5 +1,5 @@
 {
-  "name": "ydn-db",
+  "name": "ydn.db",
   "title": "IndexedDB wrapper library",
   "description": "Javascript database module for IndexedDB, WebDatabase (Sqlite) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
   "keywords": [
@@ -9,7 +9,7 @@
     "storage",
     "sqlite"
   ],
-  "version": "0.0.34",
+  "version": "0.0.35",
   "author": {
     "name": "YDN Authors, Yathit",
     "url": "https://raw.github.com/yathit/ydn-db/master/AUTHORS"
