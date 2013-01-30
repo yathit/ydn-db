@@ -1,0 +1,38 @@
+{
+  "name": "ydn-db",
+  "title": "IndexedDB wrapper library",
+  "description": "Javascript database module for IndexedDB, WebDatabase (Sqlite) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
+  "keywords": [
+    "indexeddb",
+    "database",
+    "query",
+    "storage",
+    "sqlite"
+  ],
+  "version": "0.0.34",
+  "author": {
+    "name": "YDN Authors, Yathit",
+    "url": "https://raw.github.com/yathit/ydn-db/master/AUTHORS"
+  },
+  "maintainers": [
+    {
+      "name": "Kyaw Tun",
+      "email": "kyawtun@yathit.com",
+      "url": "https://twitter.com/yathit"
+    }
+  ],
+  "licenses": [
+    {
+      "type": "Apache License",
+      "url": "https://raw.github.com/yathit/ydn-db/master/LICENSE"
+    }
+  ],
+  "bugs": "https://github.com/yathit/ydn-db/issues",
+  "homepage": "https://bitbucket.org/ytkyaw/ydn-db/wiki/Home",
+  "docs": "http://dev.yathit.com/api-reference/ydn-db/storage.html",
+  "download": "https://bitbucket.org/ytkyaw/ydn-db/downloads/jquery-ydn.db-0.34.js",
+  "demo": "http://dev.yathit.com/index/demos.html",
+  "dependencies": {
+    "jquery": ">=1.7"
+  }
+}
