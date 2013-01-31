@@ -173,7 +173,7 @@ ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = function(df, store_name,
  * @param {!goog.async.Deferred} df return object in deferred function.
  * @param {boolean} key_only retrieve key only.
  * @param {string} store_name table name.
- * @param {string|undefined} column name.
+ * @param {string|undefined} index_column name.
  * @param {IDBKeyRange} key_range to retrieve.
  * @param {boolean} reverse ordering.
  * @param {number} limit the results.
@@ -182,17 +182,29 @@ ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = function(df, store_name,
  * @private
  */
 ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
-      store_name, column, key_range, reverse, limit, offset, distinct) {
+      store_name, index_column, key_range, reverse, limit, offset, distinct) {
 
   var me = this;
   var arr = [];
   var store = this.schema.getStore(store_name);
 
-  column = goog.isDef(column) ? column : store.getColumnName();
+  var is_index = !goog.isDef(index_column);
+  var column = index_column || store.getColumnName();
 
   var qcolumn = goog.string.quote(column);
   var key_column = store.getColumnName();
-  var fields = key_only ? goog.string.quote(key_column) : '*';
+  var fields = '*';
+  if (is_index) {
+    if (key_only) {
+      fields = goog.string.quote(key_column);
+    } else {
+      fields = qcolumn;
+    }
+  } else {
+    if (key_only) {
+      fields = goog.string.quote(key_column);
+    }
+  }
   var dist = distinct ? 'DISTINCT' : '';
   var sql = 'SELECT ' + dist + fields +
     ' FROM ' + store.getQuotedName();

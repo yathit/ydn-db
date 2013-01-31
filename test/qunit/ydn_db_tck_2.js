@@ -53,32 +53,6 @@ var schema_1 = {
 };
 
 
-//db_r.put(store_outline, [
-//  {value: 'v' + Math.random()},
-//  {value: 'v' + Math.random()},
-//  {value: 'v' + Math.random()},
-//  {value: 'v' + Math.random()}
-//], [1, 2, 3, 4]);
-//db_r.put(store_inline_auto, [
-//  {id: 1, value: 'v' + Math.random()},
-//  {value: 'v' + Math.random()},
-//  {id: 5, value: 'v' + Math.random()},
-//  {value: 'v' + Math.random()}
-//]);
-//db_r.put(store_outline_auto, [
-//  {value: 'v' + Math.random()},
-//  {value: 'v' + Math.random()},
-//  {value: 'v' + Math.random()},
-//  {value: 'v' + Math.random()}
-//], [1, null, 3, undefined]);
-//db_r.put(store_nested_key, [
-//  {id: {$t: 'a'}, value: 'v' + Math.random()},
-//  {id: {$t: 'b'}, value: 'v' + Math.random()},
-//  {id: {$t: 'c'}, value: 'v' + Math.random()},
-//  {id: {$t: 'd'}, value: 'v' + Math.random()}
-//]);
-
-
 (function () {
 
   var db_r;
@@ -244,7 +218,7 @@ var schema_1 = {
     expect(1);
     var iter = ydn.db.KeyIndexIterator.where(store_inline_index, 'name', 'LIKE%', 'c');
     db_r.get(iter).then(function (x) {
-      equal(x, objs[3].name, 'get item 3 key');
+      equal(x, objs[3].id, 'get item 3 key');
       start();
     }, function (e) {
       ok(false, e.message);
@@ -361,7 +335,6 @@ var schema_1 = {
       db.list(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(3), 'open lowerBound');
-        start();
       });
 
       key_range = ydn.db.KeyRange.upperBound(2);
@@ -376,6 +349,7 @@ var schema_1 = {
       db.list(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(0, 2), 'open upperBound');
+        start();
       });
     })
   });
@@ -398,7 +372,6 @@ var schema_1 = {
       db.list(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(3), 'open lowerBound');
-        start();
       });
 
       q = ydn.db.ValueIndexIterator.where(store_inline_index, 'value', '<=', 4);
@@ -411,6 +384,7 @@ var schema_1 = {
       db.list(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(0, 2), 'open upperBound');
+        start();
       });
     });
 
@@ -433,7 +407,6 @@ var schema_1 = {
     db.list(q).always(function (x) {
       //console.log(q)
       deepEqual(x, keys.slice(3), 'open lowerBound');
-      start();
     });
 
     q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '<=', 4);
@@ -446,6 +419,7 @@ var schema_1 = {
     db.list(q).always(function (x) {
       //console.log(q)
       deepEqual(x, keys.slice(0, 2), 'open upperBound');
+      start();
     });
   });
 
@@ -481,3 +455,162 @@ var schema_1 = {
 
 })();
 
+
+(function () {
+
+  var db_name = 'test_tck2_key';
+  var df = $.Deferred();
+
+  var objs = [
+    {test: 't' + Math.random(), value: 0, id: 0, name: 'a'},
+    {test: 't' + Math.random(), value: 2, id: 1, name: 'b'},
+    {test: 't' + Math.random(), value: 4, id: 2, name: 'ba'},
+    {test: 't' + Math.random(), value: 6, id: 3, name: 'bc'},
+    {test: 't' + Math.random(), value: 8, id: 4, name: 'bd'},
+    {test: 't' + Math.random(), value: 10, id: 5, name: 'c'},
+    {test: 't' + Math.random(), value: 12, id: 6, name: 'c'}
+  ];
+
+  // persist store data.
+  // we don't want to share this database connection and test database connection.
+  (function() {
+    var _db = new ydn.db.Storage(db_name, schema_1);
+    _db.clear(store_inline_index);
+    _db.put(store_inline_index, objs);
+
+    _db.count(store_inline_index).always(function() {
+      df.resolve();  // this ensure all transactions are completed
+    });
+    _db.close();
+  })();
+
+  var db;
+  var test_env = {
+    setup: function () {
+      db = new ydn.db.Storage(db_name, schema_1);
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+        console.warn('List test not finished.');
+      }, 1000);
+    },
+    teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
+      db.close();
+      //ydn.db.deleteDatabase(db.getName());
+    }
+  };
+
+  module("Keys by Iterator", test_env);
+
+
+  asyncTest("1. Effective key by by primary key range", function () {
+    df.always(function () {
+
+      var keys = objs.map(function(x) {return x.id});
+
+      expect(9);
+
+      var key_range = ydn.db.KeyRange.bound(1, 3);
+      var q = new ydn.db.ValueIterator(store_inline_index, key_range);
+      db.keys(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(1, 4), 'closed bound');
+      });
+
+      key_range = ydn.db.KeyRange.bound(1, 3);
+      q = new ydn.db.ValueIterator(store_inline_index, key_range, true);
+      db.keys(q).always(function (x) {
+        var exp = keys.slice(1, 4).reverse();
+        deepEqual(x, exp, 'closed bound reverse');
+      });
+
+      key_range = ydn.db.KeyRange.bound(1, 3);
+      q = new ydn.db.ValueIterator(store_inline_index, key_range);
+      db.keys(q, 1).always(function (x) {
+        deepEqual(x, keys.slice(1, 2), 'closed bound limit');
+      });
+
+      key_range = ydn.db.KeyRange.bound(1, 3);
+      q = new ydn.db.ValueIterator(store_inline_index, key_range);
+      db.keys(q, 1, 1).always(function (x) {
+        deepEqual(x, keys.slice(2, 3), 'closed bound limit offset');
+      });
+
+      key_range = ydn.db.KeyRange.bound(1, 3);
+      q = new ydn.db.ValueIterator(store_inline_index, key_range, true);
+      db.keys(q, 1).always(function (x) {
+        deepEqual(x, keys.slice(3, 4), 'closed bound reverse limit');
+      });
+
+      key_range = ydn.db.KeyRange.lowerBound(2);
+      q = new ydn.db.ValueIterator(store_inline_index, key_range);
+      db.keys(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(2), 'lowerBound');
+      });
+
+      key_range = ydn.db.KeyRange.lowerBound(2, true);
+      q = new ydn.db.ValueIterator(store_inline_index, key_range);
+      db.keys(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(3), 'open lowerBound');
+      });
+
+      key_range = ydn.db.KeyRange.upperBound(2);
+      q = new ydn.db.ValueIterator(store_inline_index, key_range);
+      db.keys(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(0, 3), 'upperBound');
+      });
+
+      key_range = ydn.db.KeyRange.upperBound(2, true);
+      q = new ydn.db.ValueIterator(store_inline_index, key_range);
+      db.keys(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(0, 2), 'open upperBound');
+        start();
+      });
+    })
+  });
+
+
+  asyncTest("2. Effective key by index key range", function () {
+
+      var keys = objs.map(function (x) {
+        return x.id
+      });
+      expect(5);
+      var q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '>=', 2, '<=', 4);
+      db.list(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(1, 3), 'closed bound');
+      });
+
+      q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '>=', 4);
+      db.list(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(2), 'lowerBound');
+      });
+
+      q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '>', 4);
+      db.list(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(3), 'open lowerBound');
+      });
+
+      q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '<=', 4);
+      db.list(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(0, 3), 'upperBound');
+      });
+
+      q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '<', 4);
+      db.list(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, keys.slice(0, 2), 'open upperBound');
+        start();
+      });
+
+  });
+
+})();

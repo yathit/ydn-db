@@ -22,7 +22,8 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
-  ydn.db.core.req.WebSql.DEBUG = true;
+  //ydn.db.core.req.WebSql.DEBUG = true;
+  ydn.db.index.req.WebSql.DEBUG = true;
 
   reachedFinalContinuation = false;
 };

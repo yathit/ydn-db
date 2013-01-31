@@ -222,19 +222,22 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
   var select = 'SELECT';
 
   var fields = '*';
+
   if (keys_method) {
     // keys method
     fields = column;
   } else {
     // list method
-    if (q.isKeyOnly()) {
-      fields = goog.isDefAndNotNull(store.keyPath) ? store.getQuotedKeyPath() :
-        ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+    if (q.isIndexIterator()) {
+      if (q.isKeyOnly()) {
+        fields = store.getSQLKeyColumnName();
+      }
+    } else if (q.isKeyOnly()) {
+      fields = store.getSQLKeyColumnName();
     }
   }
+
   var from = fields + ' FROM ' + store.getQuotedName();
-
-
 
   var where_clause = '';
   var params = [];
@@ -243,28 +246,6 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
     where_clause = 'WHERE ' + where.sql;
     params = where.params;
   }
-
-//  if (q.hasKeyRange()) {
-//
-//    if (ydn.db.Where.resolvedStartsWith(q.getKeyRange())) {
-//      where_clause = column + ' LIKE ?';
-//      params.push(key_range['lower'] + '%');
-//    } else {
-//      if (goog.isDef(key_range.lower)) {
-//        var lowerOp = key_range['lowerOpen'] ? ' > ' : ' >= ';
-//        where_clause += ' ' + column + lowerOp + '?';
-//        params.push(key_range.lower);
-//      }
-//      if (goog.isDef(key_range['upper'])) {
-//        var upperOp = key_range['upperOpen'] ? ' < ' : ' <= ';
-//        var and = where_clause.length > 0 ? ' AND ' : ' ';
-//        where_clause += and + column + upperOp + '?';
-//        params.push(key_range.upper);
-//      }
-//    }
-//    where_clause = ' WHERE ' + '(' + where_clause + ')';
-//  }
-
 
   // Note: IndexedDB key range result are always ordered.
   var dir = 'ASC';
@@ -290,7 +271,6 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
   if (keys_method || q.isKeyOnly()) {
     row_parser = function(row) {
       var value =  ydn.object.takeFirst(row);
-      var type = index ? index.type : store.type;
       return ydn.db.schema.Index.sql2js(value, type);
     }
   } else {
@@ -299,15 +279,15 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
     }
   }
 
-
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
   var callback = function (transaction, results) {
-
+    if (ydn.db.index.req.WebSql.DEBUG) {
+      window.console.log([q, results]);
+    }
     var result = [];
-    var idx = -1;
     // http://www.w3.org/TR/webdatabase/#database-query-results
     // Fetching the length might be expensive, and authors are thus encouraged
     // to avoid using it (or enumerating over the object, which implicitly uses
@@ -321,7 +301,6 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
       var row = results.rows.item(i);
       // console.log(row);
       result.push(row_parser(row));
-
     }
 
     df.callback(result);
@@ -345,6 +324,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
   if (ydn.db.index.req.WebSql.DEBUG) {
     window.console.log([sql, ydn.json.stringify(params)]);
   }
+
   this.tx.executeSql(sql, params, callback, error_callback);
 
 };

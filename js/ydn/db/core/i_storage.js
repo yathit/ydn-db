@@ -29,7 +29,7 @@ ydn.db.core.IStorage.prototype.count = goog.abstractMethod;
 /**
  * Return object or objects of given key or keys.
  * @param {(string|!ydn.db.Key)=} arg1 table name.
- * @param {(string|number|Date|!Array)=} arg2
+ * @param {(ydn.db.KeyRange|string|number|Date|!Array)=} arg2
  * object key to be retrieved, if not provided,
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.

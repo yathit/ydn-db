@@ -178,10 +178,25 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
           ' not found.');
       }
     }
-    var id = arg2;
-    this.tx_thread.exec(function(tx) {
-      me.getExecutor(tx).getById(df, store_name, id);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
+    if (arg2 instanceof ydn.db.IDBKeyRange || arg2 instanceof ydn.db.KeyRange) {
+      var list_df = new goog.async.Deferred();
+      list_df.addCallbacks(function(x) {
+        df.callback(x[0]); // undefined OK.
+      }, function(e) {
+        df.errback(e);
+      });
+      var key_range = ydn.db.KeyRange.parseKeyRange(arg2);
+      this.tx_thread.exec(function(tx) {
+        me.getExecutor(tx).listByKeyRange(list_df, store_name, key_range, false, 1, 0);
+      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
+
+    } else {
+      var id = arg2;
+      this.tx_thread.exec(function(tx) {
+        me.getExecutor(tx).getById(df, store_name, id);
+      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
+    }
+
 
   } else {
     throw new ydn.error.ArgumentException();

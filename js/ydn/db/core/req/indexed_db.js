@@ -1049,8 +1049,6 @@ ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(df, table,
 };
 
 
-
-
 /**
  * @inheritDoc
  */

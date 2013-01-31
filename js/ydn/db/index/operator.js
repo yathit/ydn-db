@@ -67,8 +67,14 @@ ydn.db.index.DbOperator.prototype.get = function(arg1, arg2) {
       throw new ydn.error.ArgumentException('index "' +
         index_name + '" not found in store "' + q_store_name + '".');
     }
+    var list_df = new goog.async.Deferred();
+    list_df.addCallbacks(function(x) {
+      df.callback(x[0]); // undefined OK.
+    }, function(e) {
+      df.errback(e);
+    });
     this.tx_thread.exec(function(tx) {
-      me.getExecutor(tx).getByIterator(df, q);
+      me.getExecutor(tx).listByIterator(list_df, q, 1, 0);
     }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');
     return df;
   } else {
@@ -87,7 +93,7 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5, 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
-    if (goog.isDef(arg3) || goog.isDef(arg4) || goog.isDef(arg5)) {
+    if (goog.isDef(arg4) || goog.isDef(arg5) || goog.isDef(arg6) || goog.isDef(arg6)) {
       throw new ydn.error.ArgumentException('too many arguments.');
     }
 
