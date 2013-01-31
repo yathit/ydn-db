@@ -238,7 +238,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
 
   var where_clause = '';
   var params = [];
-  var where = ydn.db.Where.toWhereClause(column, type, q.getKeyRange());
+  var where = ydn.db.Where.toWhereClause(key_column, type, q.getKeyRange());
   if (where.sql) {
     where_clause = 'WHERE ' + where.sql;
     params = where.params;

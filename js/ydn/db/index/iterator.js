@@ -206,7 +206,7 @@ ydn.db.ValueIterator = function(store, keyRange, reverse) {
   if (arguments.length > 3) {
     throw new ydn.error.ArgumentException('too many argument');
   }
-  goog.base(this, store, undefined, keyRange, undefined, undefined, false);
+  goog.base(this, store, undefined, keyRange, reverse, undefined, false);
 };
 goog.inherits(ydn.db.ValueIterator, ydn.db.Iterator);
 
@@ -385,7 +385,6 @@ ydn.db.Iterator.prototype.getIndexKey = function() {
 
 
 /**
- * @deprecated
  * @return {ydn.db.IDBKeyRange} return key range.
  */
 ydn.db.Iterator.prototype.keyRange = function() {

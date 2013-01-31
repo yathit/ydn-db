@@ -22,6 +22,8 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
+  ydn.db.core.req.WebSql.DEBUG = true;
+
   reachedFinalContinuation = false;
 };
 
@@ -319,8 +321,9 @@ var test_count_by_iterator = function () {
     100, // interval
     1000); // maxTimeout
 
-  var range = ydn.db.KeyRange.bound(1, 10);
-  var iter = new ydn.db.KeyIterator(store_name, range);
+  //var range = ydn.db.KeyRange.bound(1, 10);
+  //var iter = new ydn.db.KeyIterator(store_name, range);
+  var iter = ydn.db.KeyIterator.where(store_name, '>=', 1, '<=', 10);
   db.count(iter).addBoth(function(x) {
     result = x;
     done = true;
@@ -382,6 +385,35 @@ var test_list_by_index = function () {
 
   var range = ydn.db.KeyRange.only('a');
   db.list(store_name, 'type', range, false, undefined, undefined, false).addBoth(function(x) {
+    result = x;
+    done = true;
+  }, function(e) {
+    throw e;
+  })
+
+};
+
+var test_keys_by_index = function () {
+
+  var db = load_default();
+
+  var done, result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('result', objs.slice(0, 2).map(function(x) {return x.id}), result);
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var range = ydn.db.KeyRange.only('a');
+  db.keys(store_name, 'type', range, false, undefined, undefined, false).addBoth(function(x) {
     result = x;
     done = true;
   }, function(e) {

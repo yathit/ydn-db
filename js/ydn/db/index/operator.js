@@ -151,7 +151,7 @@ ydn.db.index.DbOperator.prototype.count = function(arg1, arg2, arg3) {
     var q = arg1;
 
     this.tx_thread.exec(function(tx) {
-      me.getExecutor(tx).countKeyRange(df, q.getStoreName(), q.getKeyRange(), q.getIndexName());
+      me.getExecutor(tx).countKeyRange(df, q.getStoreName(), q.keyRange(), q.getIndexName());
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'countByIterator');
 
     return df;

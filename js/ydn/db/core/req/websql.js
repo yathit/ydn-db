@@ -154,7 +154,7 @@ ydn.db.core.req.WebSql.prototype.getKeyFromRow = function(table, row) {
  */
 ydn.db.core.req.WebSql.prototype.keysByKeyRange = function(df, store_name,
         key_range, reverse, limit, offset) {
-  this.list_by_key_range_(df, true, store_name, undefined, key_range, reverse, limit, offset);
+  this.list_by_key_range_(df, true, store_name, undefined, key_range, reverse, limit, offset, false);
 };
 
 
@@ -164,7 +164,7 @@ ydn.db.core.req.WebSql.prototype.keysByKeyRange = function(df, store_name,
  */
 ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = function(df, store_name,
       index_name, key_range, reverse, limit, offset, unique) {
-  this.list_by_key_range_(df, true, store_name, index_name, key_range, reverse, limit, offset);
+  this.list_by_key_range_(df, true, store_name, index_name, key_range, reverse, limit, offset, unique);
 };
 
 
@@ -178,10 +178,11 @@ ydn.db.core.req.WebSql.prototype.keysByIndexKeyRange = function(df, store_name,
  * @param {boolean} reverse ordering.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
+ * @param {boolean} distinct
  * @private
  */
 ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
-      store_name, column, key_range, reverse, limit, offset) {
+      store_name, column, key_range, reverse, limit, offset, distinct) {
 
   var me = this;
   var arr = [];
@@ -192,12 +193,14 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
   var qcolumn = goog.string.quote(column);
   var key_column = store.getColumnName();
   var fields = key_only ? goog.string.quote(key_column) : '*';
-  var sql = 'SELECT ' + fields +
+  var dist = distinct ? 'DISTINCT' : '';
+  var sql = 'SELECT ' + dist + fields +
     ' FROM ' + store.getQuotedName();
   var params = [];
   if (!goog.isNull(key_range)) {
     var where_clause = ydn.db.Where.toWhereClause(column, store.getType(), key_range);
     sql += ' WHERE ' + where_clause.sql;
+    params = where_clause.params;
   }
 
   var order = reverse ? 'DESC' : 'ASC';
@@ -250,7 +253,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
  */
 ydn.db.core.req.WebSql.prototype.keysByStore =  function(df, store_name,
      reverse, limit, offset) {
-  this.list_by_key_range_(df, true, store_name, undefined, null, reverse, limit, offset);
+  this.list_by_key_range_(df, true, store_name, undefined, null, reverse, limit, offset, false);
 };
 
 
@@ -553,15 +556,15 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
 ydn.db.core.req.WebSql.prototype.listByKeyRange = function(df, store_name,
    key_range, reverse, limit, offset) {
 
-  this.list_by_key_range_(df, false, store_name, undefined, key_range, reverse, limit, offset);
+  this.list_by_key_range_(df, false, store_name, undefined, key_range, reverse, limit, offset, false);
 };
 
 /**
  * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.listByIndexKeyRange = function(df, store_name,
-          index, key_range, reverse, limit, offset) {
-  this.list_by_key_range_(df, true, store_name, index, key_range, reverse, limit, offset)
+          index, key_range, reverse, limit, offset, unqiue) {
+  this.list_by_key_range_(df, false, store_name, index, key_range, reverse, limit, offset, unqiue)
 };
 
 
@@ -570,7 +573,7 @@ ydn.db.core.req.WebSql.prototype.listByIndexKeyRange = function(df, store_name,
  */
 ydn.db.core.req.WebSql.prototype.listByStore = function(df, store_name,
        reverse, limit, offset) {
-  this.list_by_key_range_(df, false, store_name, undefined, null, reverse, limit, offset);
+  this.list_by_key_range_(df, false, store_name, undefined, null, reverse, limit, offset, false);
 };
 
 
@@ -908,6 +911,7 @@ ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(df,
   if (!goog.isNull(key_range)) {
     var where_clause = ydn.db.Where.toWhereClause(column, type, key_range);
     sql += ' WHERE ' + where_clause.sql;
+    params = where_clause.params;
   }
 
   /**
@@ -1004,15 +1008,22 @@ ydn.db.core.req.WebSql.prototype.countStores = function(d, tables) {
  * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
-                                    keyRange, index_name) {
+                                                          key_range, index_name) {
 
   var me = this;
 
   var sql = 'SELECT COUNT(*) FROM ' + goog.string.quote(table);
+  var params = [];
 
-  // TODO: key_range
+  var store = this.schema.getStore(table);
 
+  var column = index_name || store.getColumnName();
 
+  if (!goog.isNull(key_range)) {
+    var where_clause = ydn.db.Where.toWhereClause(column, store.getType(), key_range);
+    sql += ' WHERE ' + where_clause.sql;
+    params = where_clause.params;
+  }
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
@@ -1037,7 +1048,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
     return true; // roll back
   };
 
-  this.tx.executeSql(sql, [], callback, error_callback);
+  this.tx.executeSql(sql, params, callback, error_callback);
 
   return d;
 };
