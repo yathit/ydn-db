@@ -287,34 +287,34 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
 };
 
 
-
-/**
- * Continue to next position.
- * @param {*} next_position next index key.
- * @override
- */
-ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
-  //console.log(['next_position', cur, next_position]);
-  var label = 'IDBCursor:' + this.store_name + ':' + this.index_name;
-  if (next_position === false) {
-    // restart the iterator
-    this.logger.finest(label + ' restarting.');
-    this.open_request();
-  } else if (this.cur_) {
-    if (next_position === true) {
-      this.cur_['continue']();
-    } else if (goog.isDefAndNotNull(next_position)) {
-      //console.log('continuing to ' + next_position)
-      this.cur_['continue'](next_position);
-    } else {
-      // notify that cursor iteration is finished.
-      this.onSuccess(undefined, undefined, undefined);
-      this.logger.finest(label + ' resting.');
-    }
-  } else {
-    throw new ydn.error.InvalidOperationError(label + ' cursor gone.');
-  }
-};
+//
+///**
+// * Continue to next position.
+// * @param {*} next_position next index key.
+// * @override
+// */
+//ydn.db.index.req.IDBCursor.prototype.forward = function (next_position) {
+//  //console.log(['next_position', cur, next_position]);
+//  var label = 'IDBCursor:' + this.store_name + ':' + this.index_name;
+//  if (next_position === false) {
+//    // restart the iterator
+//    this.logger.finest(label + ' restarting.');
+//    this.open_request();
+//  } else if (this.cur_) {
+//    if (next_position === true) {
+//      this.cur_['continue']();
+//    } else if (goog.isDefAndNotNull(next_position)) {
+//      //console.log('continuing to ' + next_position)
+//      this.cur_['continue'](next_position);
+//    } else {
+//      // notify that cursor iteration is finished.
+//      this.onSuccess(undefined, undefined, undefined);
+//      this.logger.finest(label + ' resting.');
+//    }
+//  } else {
+//    throw new ydn.error.InvalidOperationError(label + ' cursor gone.');
+//  }
+//};
 
 
 /**
@@ -353,104 +353,104 @@ ydn.db.index.req.IDBCursor.prototype.getPrimaryKey = function() {
 ydn.db.index.req.IDBCursor.prototype.getValue = function() {
   return this.cur_.value;
 };
-
-
-/**
- * Continue to next primary key position.
- *
- *
- * This will continue to scan
- * until the key is over the given primary key. If next_primary_key is
- * lower than current position, this will rewind.
- * @param {*} next_primary_key
- * @param {*=} next_index_key
- * @param {boolean=} exclusive
- * @override
- */
-ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
-                                         next_index_key, exclusive) {
-
-  var label = 'IDBCursor:' + this.store_name + ':' + this.index_name;
-  if (goog.DEBUG && this.has_pending_request_) {
-    throw new ydn.db.InternalError(label + ' has pending request.');
-  }
-  this.target_index_key_ =  next_index_key;
-  this.target_key_ = next_primary_key;
-  this.target_exclusive_ = !!exclusive;
-
-  if (exclusive === false) {
-    // restart the iterator
-    this.logger.finest(this + ' restarting.');
-    this.open_request(next_primary_key, next_index_key, true);
-  } else if (exclusive === true &&
-      !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
-    if (!this.cur_) {
-      throw new ydn.db.InternalError(this + ' cursor gone.');
-    }
-    this.cur_['continue']();
-  } else {
-    // var value = this.key_only ? this.cur_.key : this.cur_['value'];
-    if (!this.cur_) {
-      throw new ydn.db.InternalError(this + ' cursor gone.');
-    }
-    var primary_cmp = goog.isDef(next_primary_key) ?
-      ydn.db.con.IndexedDb.indexedDb.cmp(next_primary_key, this.cur_.primaryKey) :
-      0;
-    var primary_on_track = primary_cmp == 0 ||
-        (primary_cmp == 1 && this.reverse) ||
-        (primary_cmp == -1 && !this.reverse);
-
-    if (ydn.db.index.req.IDBCursor.DEBUG) {
-      var s = primary_cmp === 0 ? 'next' : primary_cmp === 1 ? 'on track' : 'wrong track';
-      window.console.log(this + ' seek ' + next_primary_key + ':' + next_index_key + ' ' + s);
-    }
-
-    if (goog.isDefAndNotNull(next_index_key)) {
-      var index_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(this.cur_.key, next_index_key);
-      var index_on_track = index_cmp == 0 ||
-          (index_cmp == 1 && this.reverse) ||
-          (index_cmp == -1 && !this.reverse);
-      if (index_cmp === 0) {
-        if (goog.DEBUG && primary_cmp === 0) {
-          throw new ydn.error.InternalError(label + ' cursor cannot seek to current position');
-        } else if (primary_on_track) {
-          this.has_pending_request_ = true;
-          this.cur_['continue']();
-        } else {
-          // primary key not in the range
-          // this will restart the thread.
-          this.open_request(next_primary_key, next_index_key);
-        }
-      } else if (index_on_track) {
-        // just to index key position and continue
-        this.cur_['continue'](next_index_key);
-      } else {
-        // this will need to restart the thread.
-        // this.logger.finest(label + ' restarting for ' + next_primary_key);
-        // this.open_request(next_primary_key, next_index_key);
-        throw new ydn.error.InvalidOperationError();
-      }
-    } else {
-      if (primary_cmp === 0) {
-        if (goog.DEBUG && !exclusive) {
-          throw new ydn.db.InternalError(label + 'cursor cannot seek to current position');
-        }
-        this.has_pending_request_ = true;
-        this.cur_['continue']();
-      } else if (primary_on_track) {
-        this.has_pending_request_ = true;
-        // IDB v1 do not expose walking on primary key, so we walk
-        // filed feature request
-        // https://www.w3.org/Bugs/Public/show_bug.cgi?id=20257
-        this.cur_['continue']();
-      } else {
-        // primary key not in the range
-        // this will restart the thread.
-        this.open_request(next_primary_key, next_index_key, exclusive);
-      }
-    }
-  }
-};
+//
+//
+///**
+// * Continue to next primary key position.
+// *
+// *
+// * This will continue to scan
+// * until the key is over the given primary key. If next_primary_key is
+// * lower than current position, this will rewind.
+// * @param {*} next_primary_key
+// * @param {*=} next_index_key
+// * @param {boolean=} exclusive
+// * @override
+// */
+//ydn.db.index.req.IDBCursor.prototype.seek = function(next_primary_key,
+//                                         next_index_key, exclusive) {
+//
+//  var label = 'IDBCursor:' + this.store_name + ':' + this.index_name;
+//  if (goog.DEBUG && this.has_pending_request_) {
+//    throw new ydn.db.InternalError(label + ' has pending request.');
+//  }
+//  this.target_index_key_ =  next_index_key;
+//  this.target_key_ = next_primary_key;
+//  this.target_exclusive_ = !!exclusive;
+//
+//  if (exclusive === false) {
+//    // restart the iterator
+//    this.logger.finest(this + ' restarting.');
+//    this.open_request(next_primary_key, next_index_key, true);
+//  } else if (exclusive === true &&
+//      !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
+//    if (!this.cur_) {
+//      throw new ydn.db.InternalError(this + ' cursor gone.');
+//    }
+//    this.cur_['continue']();
+//  } else {
+//    // var value = this.key_only ? this.cur_.key : this.cur_['value'];
+//    if (!this.cur_) {
+//      throw new ydn.db.InternalError(this + ' cursor gone.');
+//    }
+//    var primary_cmp = goog.isDef(next_primary_key) ?
+//      ydn.db.con.IndexedDb.indexedDb.cmp(next_primary_key, this.cur_.primaryKey) :
+//      0;
+//    var primary_on_track = primary_cmp == 0 ||
+//        (primary_cmp == 1 && this.reverse) ||
+//        (primary_cmp == -1 && !this.reverse);
+//
+//    if (ydn.db.index.req.IDBCursor.DEBUG) {
+//      var s = primary_cmp === 0 ? 'next' : primary_cmp === 1 ? 'on track' : 'wrong track';
+//      window.console.log(this + ' seek ' + next_primary_key + ':' + next_index_key + ' ' + s);
+//    }
+//
+//    if (goog.isDefAndNotNull(next_index_key)) {
+//      var index_cmp = ydn.db.con.IndexedDb.indexedDb.cmp(this.cur_.key, next_index_key);
+//      var index_on_track = index_cmp == 0 ||
+//          (index_cmp == 1 && this.reverse) ||
+//          (index_cmp == -1 && !this.reverse);
+//      if (index_cmp === 0) {
+//        if (goog.DEBUG && primary_cmp === 0) {
+//          throw new ydn.error.InternalError(label + ' cursor cannot seek to current position');
+//        } else if (primary_on_track) {
+//          this.has_pending_request_ = true;
+//          this.cur_['continue']();
+//        } else {
+//          // primary key not in the range
+//          // this will restart the thread.
+//          this.open_request(next_primary_key, next_index_key);
+//        }
+//      } else if (index_on_track) {
+//        // just to index key position and continue
+//        this.cur_['continue'](next_index_key);
+//      } else {
+//        // this will need to restart the thread.
+//        // this.logger.finest(label + ' restarting for ' + next_primary_key);
+//        // this.open_request(next_primary_key, next_index_key);
+//        throw new ydn.error.InvalidOperationError();
+//      }
+//    } else {
+//      if (primary_cmp === 0) {
+//        if (goog.DEBUG && !exclusive) {
+//          throw new ydn.db.InternalError(label + 'cursor cannot seek to current position');
+//        }
+//        this.has_pending_request_ = true;
+//        this.cur_['continue']();
+//      } else if (primary_on_track) {
+//        this.has_pending_request_ = true;
+//        // IDB v1 do not expose walking on primary key, so we walk
+//        // filed feature request
+//        // https://www.w3.org/Bugs/Public/show_bug.cgi?id=20257
+//        this.cur_['continue']();
+//      } else {
+//        // primary key not in the range
+//        // this will restart the thread.
+//        this.open_request(next_primary_key, next_index_key, exclusive);
+//      }
+//    }
+//  }
+//};
 
 
 /**
@@ -514,7 +514,12 @@ ydn.db.index.req.IDBCursor.prototype.advance = function(step) {
   this.target_index_key_ =  null;
   this.target_key_ = null;
   this.target_exclusive_ = false;
-  this.cur_.advance(step);
+  if (step == 1) {
+    // some browser, like mobile chrome does not implement cursor advance method.
+    this.cur_['continue']();
+  } else {
+    this.cur_.advance(step);
+  }
 };
 
 
@@ -550,7 +555,11 @@ ydn.db.index.req.IDBCursor.prototype.continueEffectiveKey = function(key) {
   this.target_index_key_ =  null;
   this.target_key_ = null;
   this.target_exclusive_ = false;
-  this.cur_['continue'](key);
+  if (goog.isDefAndNotNull(key)) {
+    this.cur_['continue'](key); // it is DataError for undefined or null key.
+  } else {
+    this.cur_['continue']();
+  }
 
 };
 

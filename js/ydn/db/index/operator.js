@@ -880,13 +880,14 @@ ydn.db.index.DbOperator.prototype.map = function (iterator, callback) {
         var adv = callback(ref);
         //console.log(['onNext', key, primaryKey, value, ref, adv]);
         if (!goog.isDef(adv)) {
-          cursor.forward(true);
+          cursor.advance(1);
         } else if (goog.isBoolean(adv)) {
-          throw new ydn.error.InvalidOperationException(adv);
+          throw new TypeError();
         } else if (goog.isNull(adv)) {
-          cursor.forward(null);
+          // break the loop
+          df.callback(undefined);
         } else {
-          cursor.forward(adv);
+          cursor.continueEffectiveKey(adv);
         }
       } else {
         df.callback(undefined);
@@ -947,7 +948,7 @@ ydn.db.index.DbOperator.prototype.reduce = function(iterator, callback, initial)
 
         //console.log([previous, current_value, index]);
         previous = callback(previous, current_value, index++);
-        cursor.forward(true);
+        cursor.advance(1);
       } else {
         df.callback(previous);
       }

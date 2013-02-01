@@ -339,96 +339,96 @@ ydn.db.index.req.WebsqlCursor.prototype.getValue = function() {
 };
 
 
-
-/**
- * Continue to next position.
- * @param {*} next_position next effective key.
- * @override
- */
-ydn.db.index.req.WebsqlCursor.prototype.forward = function (next_position) {
-  //console.log(['forward', this.current_primary_key_, this.current_key_, next_position]);
-  var label = this.store_name + ':' + this.index_name;
-  if (next_position === false) {
-    // restart the iterator
-    this.logger.finest(this + ' restarting.');
-    this.open_request();
-  } else if (this.hasCursor()) {
-    if (goog.isDefAndNotNull(next_position)) {
-      //if (goog.isArray(this.cache_keys_)) {
-      if (next_position === true) {
-        //this.cur['continue']();
-
-        this.invokeNextSuccess_();
-
-      } else {
-        //console.log('continuing to ' + next_position)
-        do {
-          var values = this.moveNext_();
-          var current_primary_key_ = values[0];
-          var current_key_ = values[1];
-          var current_value_ = values[2];
-          if (!goog.isDef(current_key_)) {
-            this.open_request(null, next_position);
-            return;
-          }
-          if (ydn.db.cmp(current_key_, next_position) == 0) {
-            this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
-            return;
-          }
-        } while (goog.isDefAndNotNull(this.current_primary_key_));
-        this.open_request(null, next_position);
-      }
+//
+///**
+// * Continue to next position.
+// * @param {*} next_position next effective key.
+// * @override
+// */
+//ydn.db.index.req.WebsqlCursor.prototype.forward = function (next_position) {
+//  //console.log(['forward', this.current_primary_key_, this.current_key_, next_position]);
+//  var label = this.store_name + ':' + this.index_name;
+//  if (next_position === false) {
+//    // restart the iterator
+//    this.logger.finest(this + ' restarting.');
+//    this.open_request();
+//  } else if (this.hasCursor()) {
+//    if (goog.isDefAndNotNull(next_position)) {
+//      //if (goog.isArray(this.cache_keys_)) {
+//      if (next_position === true) {
+//        //this.cur['continue']();
+//
+//        this.invokeNextSuccess_();
+//
 //      } else {
-//        if (next_position === true) {
-//          this.open_request(this.current_primary_key_, this.current_key_, true);
-//        } else {
-//          this.open_request(null, next_position);
-//        }
+//        //console.log('continuing to ' + next_position)
+//        do {
+//          var values = this.moveNext_();
+//          var current_primary_key_ = values[0];
+//          var current_key_ = values[1];
+//          var current_value_ = values[2];
+//          if (!goog.isDef(current_key_)) {
+//            this.open_request(null, next_position);
+//            return;
+//          }
+//          if (ydn.db.cmp(current_key_, next_position) == 0) {
+//            this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
+//            return;
+//          }
+//        } while (goog.isDefAndNotNull(this.current_primary_key_));
+//        this.open_request(null, next_position);
 //      }
-    } else {
-      // notify that cursor iteration is finished.
-      this.onSuccess(undefined, undefined, undefined);
-      this.logger.finest(this + ' resting.');
-    }
-  } else {
-    throw new ydn.error.InvalidOperationError('Iterator:' + label + ' cursor gone.');
-  }
-};
-
-
-/**
- * Continue to next primary key position.
- *
- *
- * This will continue to scan
- * until the key is over the given primary key. If next_primary_key is
- * lower than current position, this will rewind.
- * @param {*} next_primary_key
- * @param {*=} next_index_key
- * @param {boolean=} exclusive
- * @override
- */
-ydn.db.index.req.WebsqlCursor.prototype.seek = function(next_primary_key,
-                                         next_index_key, exclusive) {
-
-  if (exclusive === false) {
-    // restart the iterator
-    this.logger.finest(this + ' restarting.');
-    this.open_request(next_primary_key, next_index_key, true);
-    return;
-  }
-
-  if (!this.hasCursor()) {
-    throw new ydn.db.InternalError(this + ' cursor gone.');
-  }
-
-  if (exclusive === true &&
-      !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
-    this.invokeNextSuccess_();
-  } else {
-    throw new ydn.error.NotImplementedException();
-  }
-};
+////      } else {
+////        if (next_position === true) {
+////          this.open_request(this.current_primary_key_, this.current_key_, true);
+////        } else {
+////          this.open_request(null, next_position);
+////        }
+////      }
+//    } else {
+//      // notify that cursor iteration is finished.
+//      this.onSuccess(undefined, undefined, undefined);
+//      this.logger.finest(this + ' resting.');
+//    }
+//  } else {
+//    throw new ydn.error.InvalidOperationError('Iterator:' + label + ' cursor gone.');
+//  }
+//};
+//
+//
+///**
+// * Continue to next primary key position.
+// *
+// *
+// * This will continue to scan
+// * until the key is over the given primary key. If next_primary_key is
+// * lower than current position, this will rewind.
+// * @param {*} next_primary_key
+// * @param {*=} next_index_key
+// * @param {boolean=} exclusive
+// * @override
+// */
+//ydn.db.index.req.WebsqlCursor.prototype.seek = function(next_primary_key,
+//                                         next_index_key, exclusive) {
+//
+//  if (exclusive === false) {
+//    // restart the iterator
+//    this.logger.finest(this + ' restarting.');
+//    this.open_request(next_primary_key, next_index_key, true);
+//    return;
+//  }
+//
+//  if (!this.hasCursor()) {
+//    throw new ydn.db.InternalError(this + ' cursor gone.');
+//  }
+//
+//  if (exclusive === true &&
+//      !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
+//    this.invokeNextSuccess_();
+//  } else {
+//    throw new ydn.error.NotImplementedException();
+//  }
+//};
 
 
 /**

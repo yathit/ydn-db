@@ -259,7 +259,7 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(df, iter, limit, 
       count++;
       arr.push(key);
       if (!goog.isDef(limit) || count < limit) {
-        cursor.forward(true);
+        cursor.continueEffectiveKey();
       } else {
         iter.exit();
         df.callback(arr);
@@ -293,7 +293,7 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, iter, limit, 
       count++;
       arr.push(iter.isKeyOnly() ? primary_key : value);
       if (!goog.isDef(limit) || count < limit) {
-        cursor.forward(true);
+        cursor.continueEffectiveKey();
       } else {
         iter.exit();
         df.callback(arr);
