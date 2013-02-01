@@ -515,3 +515,11 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
   this.onSuccess(undefined, undefined, undefined);
 };
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebsqlCursor.prototype.toString = function() {
+  return 'WebsqlCursor: ' + this.store_name + ':' + this.index_name;
+};
+

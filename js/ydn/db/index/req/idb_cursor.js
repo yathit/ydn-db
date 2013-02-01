@@ -554,3 +554,11 @@ ydn.db.index.req.IDBCursor.prototype.continueEffectiveKey = function(key) {
 
 };
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.IDBCursor.prototype.toString = function() {
+  return 'IDBCursor: ' + this.store_name + ':' + this.index_name;
+};
+
