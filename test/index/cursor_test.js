@@ -553,6 +553,103 @@ var test_keysBy_multiEntry_index_KeyIterator = function () {
 };
 
 
+
+var test_keys_by_ValueIndexIterator = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var keys = objs.map(function(x) {
+    return x.type;
+  });
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.ValueIndexIterator(store_name, 'type');
+
+  db.keys(q).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+var test_keys_by_KeyIndexIterator = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var keys = objs.map(function(x) {
+    return x.type;
+  });
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.KeyIndexIterator(store_name, 'type');
+
+  db.keys(q).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+var test_keys_by_KeyIndexIterator_unqiue = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var keys = [];
+  for (var i = 0; i < objs.length; i++) {
+    var value = objs[i].value;
+    if (keys.indexOf(value) == -1) {
+      keys.push(value);
+    }
+  }
+  keys.sort();
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.KeyIndexIterator(store_name, 'value', null, false, true);
+
+  db.keys(q).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();
 G_testRunner.initialize(testCase);

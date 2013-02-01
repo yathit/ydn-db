@@ -139,7 +139,6 @@ var events_schema = {
 
   });
 
-
 })();
 
 
@@ -224,7 +223,6 @@ var events_schema = {
     db.put(store_inline, data);
 
   });
-
 
 })();
 
