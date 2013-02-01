@@ -1,3 +1,4 @@
+var options = {}; // options = {mechanisms: ['websql']};
 if (/log/.test(location.hash)) {
   if (/ui/.test(location.hash)) {
     var div = document.createElement('div');
@@ -6,6 +7,9 @@ if (/log/.test(location.hash)) {
   } else {
     ydn.debug.log('ydn.db', 100);
   }
+}
+if (/websql/.test(location.hash)) {
+  options['mechanisms'] = ['websql'];
 }
 
 var db_name = "qunit_test_8";

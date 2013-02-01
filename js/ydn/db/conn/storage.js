@@ -457,6 +457,7 @@ ydn.db.con.Storage.prototype.close = function() {
   if (this.db_) {
     this.db_.close();
     this.db_ = null;
+    this.logger.finest(this + ' closed');
   }
 };
 

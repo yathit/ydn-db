@@ -163,7 +163,8 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
   var version = schema.getVersion();
 
   // In chrome, version is taken as description.
-  me.logger.finer('Opening database: ' + dbname + ' ver: ' + version);
+  me.logger.finer('Opening database: ' + dbname + ' ver: ' +
+    (schema.isAutoVersion() ? 'auto' : version));
 
   /**
    * Currently in transaction stage, opening indexedDB return two format.

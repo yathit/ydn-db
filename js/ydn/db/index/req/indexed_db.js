@@ -51,12 +51,17 @@ ydn.db.index.req.IndexedDb.prototype.logger =
  */
 ydn.db.index.req.IndexedDb.prototype.getByIterator = function(df, q) {
 
+  var msg = 'getByIterator: ' + q;
+  var me = this;
+  this.logger.finest(msg);
   var req = q.iterate(this);
   req.onError = function(e) {
+    me.logger.warning(msg);
     df.errback(e);
   };
   req.onNext = function(primary_key, key, value) {
     q.exit();
+    me.logger.finest(msg);
     df.callback(q.isKeyOnly() ? key : value);
 
   };
@@ -243,8 +248,12 @@ ydn.db.index.req.IndexedDb.prototype.getTx = function() {
 ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(df, iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
+  var msg = 'keysByIterator:' + iter;
+  var me = this;
+  this.logger.finest(msg);
   var cursor = iter.iterate(this);
   cursor.onError = function(e) {
+    me.logger.warning('error:' + msg);
     df.errback(e);
   };
   var count = 0;
@@ -262,9 +271,11 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(df, iter, limit, 
         cursor.continueEffectiveKey();
       } else {
         iter.exit();
+        me.logger.finest('success:' + msg);
         df.callback(arr);
       }
     } else {
+      me.logger.finest('success:' + msg);
       df.callback(arr);
     }
   };
@@ -277,8 +288,12 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(df, iter, limit, 
 ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
+  var msg = 'listByIterator' + iter;
+  var me = this;
+  this.logger.finest(msg);
   var cursor = iter.iterate(this);
   cursor.onError = function(e) {
+    me.logger.warning('error:' + msg);
     df.errback(e);
   };
   var count = 0;
@@ -296,9 +311,11 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(df, iter, limit, 
         cursor.continueEffectiveKey();
       } else {
         iter.exit();
+        me.logger.finest('success:' + msg);
         df.callback(arr);
       }
     } else {
+      me.logger.finest('success:' + msg);
       df.callback(arr);
     }
   };

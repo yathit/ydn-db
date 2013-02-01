@@ -64,6 +64,7 @@ ydn.db.index.req.WebSql.prototype.logger =
  */
 ydn.db.index.req.WebSql.prototype.getByIterator = function(df, q) {
 
+
   var qdf = new goog.async.Deferred();
   this.fetchIterator_(qdf, q, false, 1);
 
@@ -205,6 +206,8 @@ ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q, limit, offset
 ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, limit, offset) {
 
   var me = this;
+  var msg = 'fetchIterator:' + q;
+  this.logger.finest(msg);
 
   var store = this.schema.getStore(q.getStoreName());
 
@@ -302,7 +305,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
       // console.log(row);
       result.push(row_parser(row));
     }
-
+    me.logger.finest('success ' + sql);
     df.callback(result);
 
   };
@@ -316,7 +319,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
     if (ydn.db.index.req.WebSql.DEBUG) {
       window.console.log([q, tr, error]);
     }
-    me.logger.warning('Sqlite error: ' + error.message);
+    me.logger.warning('error: ' + sql + ' ' + error.message);
     df.errback(error);
     return true; // roll back
   };
@@ -325,6 +328,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
     window.console.log([sql, ydn.json.stringify(params)]);
   }
 
+  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
   this.tx.executeSql(sql, params, callback, error_callback);
 
 };

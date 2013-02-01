@@ -238,6 +238,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
         arr[i] = ydn.db.core.req.WebSql.parseRow(row, store);
       }
     }
+    me.logger.finest('success ' + sql);
     df.callback(arr);
   };
 
@@ -250,12 +251,12 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('get error: ' + error.message);
+    me.logger.warning('error: ' + sql + ' ' + error.message);
     df.errback(error);
     return true; // roll back
   };
 
-  //console.log([sql, params])
+  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
   this.tx.executeSql(sql, params, callback, error_callback);
 };
 
@@ -364,10 +365,12 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
 
       var key = goog.isDef(out.key) ? out.key : results.insertId;
       if (single) {
+        me.logger.finest('success ' + sql);
         df.callback(key);
       } else {
         result_keys[i] = key;
         if (result_count == objects.length) {
+          me.logger.finest('success ' + sql);
           df.callback(result_keys);
         } else {
           var next = i + ydn.db.core.req.WebSql.RW_REQ_PER_TX;
@@ -388,11 +391,13 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
       if (ydn.db.core.req.WebSql.DEBUG) {
         window.console.log([sql, out, tr, error]);
       }
+      me.logger.warning('error: ' + sql + ' ' + error.message);
       df.errback(error);
       return true; // roll back
     };
 
     //console.log([sql, out.values]);
+    me.logger.finest('SQL: ' + sql + ' PARAMS: ' + out.values);
     tx.executeSql(sql, out.values, success_callback, error_callback);
   };
 
@@ -403,6 +408,7 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
       put(i, this.getTx());
     }
   } else {
+    this.logger.finest('success');
     df.callback([]);
   }
 };
@@ -444,8 +450,10 @@ ydn.db.core.req.WebSql.prototype.getById = function(d, table_name, id) {
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
+    me.logger.finest('success ' + sql);
     if (results.rows.length > 0) {
       var row = results.rows.item(0);
+
       if (goog.isDefAndNotNull(row)) {
         var value = ydn.db.core.req.WebSql.parseRow(row, table);
         d.callback(value);
@@ -466,12 +474,13 @@ ydn.db.core.req.WebSql.prototype.getById = function(d, table_name, id) {
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('get error: ' + error.message);
+    me.logger.warning('error: ' + sql + ' ' + error.message);
     d.errback(error);
     return true; // roll back
   };
 
   //window.console.log(['getById', sql, params]);
+  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
   this.tx.executeSql(sql, params, callback, error_callback);
 };
 
@@ -518,6 +527,7 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
       }
 
       if (result_count == ids.length) {
+        me.logger.finest('success ' + sql);
         df.callback(objects);
       } else {
         var next = i + ydn.db.core.req.WebSql.REQ_PER_TX;
@@ -536,7 +546,7 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
       if (ydn.db.core.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      me.logger.warning('get error: ' + error.message);
+      me.logger.warning('error: ' + sql + ' ' + error.message);
       // t.abort(); there is no abort
       df.errback(error);
       return true; // roll back
@@ -548,6 +558,7 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
     var params = [ydn.db.schema.Index.js2sql(id, table.type)];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
       column_name + ' = ?';
+    me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
     tx.executeSql(sql, params, callback, error_callback);
   };
 
@@ -557,6 +568,7 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
       get(i, this.getTx());
     }
   } else {
+    me.logger.finest('success');
     df.callback([]);
   }
 };
@@ -623,6 +635,7 @@ ydn.db.core.req.WebSql.prototype.listByStores = function(df, table_names) {
         }
       }
       if (idx == n_todo - 1) {
+        me.logger.finest('success ' + sql);
         df.callback(arr);
       } else {
         getAll(idx + 1, transaction);
@@ -638,17 +651,19 @@ ydn.db.core.req.WebSql.prototype.listByStores = function(df, table_names) {
       if (ydn.db.core.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      me.logger.warning('get error: ' + error.message);
+      me.logger.warning('error: ' + sql + ' ' + error.message);
       df.errback(error);
       return true; // roll back
     };
 
+    me.logger.finest('SQL: ' + sql + ' PARAMS: []');
     tx.executeSql(sql, [], callback, error_callback);
   };
 
   // send request to the first store
   // getAll will continue to fetch one after another
   if (n_todo == 0) {
+    me.logger.finest('success');
     df.callback([]);
   } else {
     getAll(0, this.getTx());
@@ -694,6 +709,7 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(df, keys) {
       }
 
       if (result_count == keys.length) {
+        me.logger.finest('success ' + sql);
         df.callback(objects);
       } else {
         var next = i + ydn.db.core.req.WebSql.REQ_PER_TX;
@@ -713,7 +729,7 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(df, keys) {
       if (ydn.db.core.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      me.logger.warning('get error: ' + error.message);
+      me.logger.warning('error: ' + sql + ' ' + error.message);
       df.errback(error);
       return true; // roll back
     };
@@ -724,6 +740,7 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(df, keys) {
     var params = [id];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
         table.getQuotedKeyPath() + ' = ?';
+    me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
     tx.executeSql(sql, params, callback, error_callback);
 
   };
@@ -734,6 +751,7 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(df, keys) {
       get(i, this.getTx());
     }
   } else {
+    this.logger.finest('success');
     df.callback([]);
   }
 };
@@ -759,6 +777,7 @@ ydn.db.core.req.WebSql.prototype.clearByStores = function(d, store_names) {
      */
     var callback = function(transaction, results) {
       if (i == store_names.length - 1) {
+        me.logger.finest('success ' + sql);
         d.callback(store_names.length);
       } else {
         deleteStore(i + 1, transaction);
@@ -774,11 +793,12 @@ ydn.db.core.req.WebSql.prototype.clearByStores = function(d, store_names) {
       if (ydn.db.core.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      me.logger.warning('Sqlite error: ' + error.message);
+      me.logger.warning('error: ' + sql + ' ' + error.message);
       d.errback(error);
       return true; // roll back
     };
 
+    me.logger.finest('SQL: ' + sql + ' PARAMS: []');
     tx.executeSql(sql, [], callback, error_callback);
 
     return d;
@@ -787,6 +807,7 @@ ydn.db.core.req.WebSql.prototype.clearByStores = function(d, store_names) {
   if (store_names.length > 0) {
     deleteStore(0, this.tx);
   } else {
+    this.logger.finest('success');
     d.callback(0);
   }
 };
@@ -812,6 +833,7 @@ ydn.db.core.req.WebSql.prototype.removeById = function(d, table_name, key) {
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
+    me.logger.finest('success ' + sql);
     d.callback(true);
   };
 
@@ -824,11 +846,12 @@ ydn.db.core.req.WebSql.prototype.removeById = function(d, table_name, key) {
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('Sqlite error: ' + error.message);
+    me.logger.warning('error: ' + sql + ' ' + error.message);
     d.errback(error);
     return true; // roll back
   };
 
+  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + [key]);
   this.tx.executeSql(sql, [key], callback, error_callback);
 
 };
@@ -854,6 +877,7 @@ ydn.db.core.req.WebSql.prototype.clearById = function(d, table, id) {
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log(results);
     }
+    me.logger.finest('success ' + sql);
     d.callback(results.rowsAffected);
   };
 
@@ -866,7 +890,7 @@ ydn.db.core.req.WebSql.prototype.clearById = function(d, table, id) {
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('put error: ' + error.message);
+    me.logger.warning('error: ' + sql + ' ' + error.message);
     d.errback(error);
     return true; // roll back
   };
@@ -874,6 +898,7 @@ ydn.db.core.req.WebSql.prototype.clearById = function(d, table, id) {
   var sql = 'DELETE FROM ' + store.getQuotedName() +
     ' WHERE ' + store.getQuotedKeyPath() + ' = ?';
   //console.log([sql, out.values])
+  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + [key]);
   this.tx.executeSql(sql, [key], success_callback, error_callback);
 
 };
@@ -931,6 +956,7 @@ ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(df,
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
+    me.logger.finest('success ' + sql);
     df.callback(results.rowsAffected);
   };
 
@@ -943,12 +969,13 @@ ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(df,
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('get error: ' + error.message);
+    me.logger.warning('error: ' + sql + ' ' + error.message);
     df.errback(error);
     return true; // roll back
   };
 
   //console.log([sql, params])
+  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
   this.tx.executeSql(sql, params, callback, error_callback);
 };
 
@@ -982,6 +1009,7 @@ ydn.db.core.req.WebSql.prototype.countStores = function(d, tables) {
       out[i] = parseInt(row['COUNT(*)'], 10);
       i++;
       if (i == tables.length) {
+        me.logger.finest('success ' + sql);
         d.callback(out);
       } else {
         count(i);
@@ -998,15 +1026,17 @@ ydn.db.core.req.WebSql.prototype.countStores = function(d, tables) {
       if (ydn.db.core.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      me.logger.warning('count error: ' + error.message);
+      me.logger.warning('error: ' + sql + ' ' + error.message);
       d.errback(error);
       return true; // roll back
     };
 
+    me.logger.finest('SQL: ' + sql + ' PARAMS: []');
     me.tx.executeSql(sql, [], callback, error_callback);
   };
 
   if (tables.length == 0) {
+    this.logger.finest('success');
     d.callback(0);
   } else {
     count(0);
@@ -1043,6 +1073,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
   var callback = function(transaction, results) {
     var row = results.rows.item(0);
     //console.log(['row ', row  , results]);
+    me.logger.finest('success ' + sql);
     d.callback(row['COUNT(*)']);
   };
 
@@ -1055,11 +1086,12 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('count error: ' + error.message);
+    me.logger.warning('error: ' + sql + ' ' + error.message);
     d.errback(error);
     return true; // roll back
   };
 
+  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
   this.tx.executeSql(sql, params, callback, error_callback);
 
   return d;
@@ -1095,6 +1127,7 @@ ydn.db.core.req.WebSql.prototype.removeByStore = function(d, opt_table) {
    */
   var callback = function(transaction, results) {
     //console.log(['row ', row  , results]);
+    me.logger.finest('success ' + sql);
     d.callback(true);
   };
 
@@ -1107,11 +1140,12 @@ ydn.db.core.req.WebSql.prototype.removeByStore = function(d, opt_table) {
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('Delete TABLE: ' + error.message);
+    me.logger.warning('error: ' + sql + ' ' + error.message);
     d.errback(error);
     return true; // roll back
   };
 
+  this.logger.finest('SQL: ' + sql + ' PARAMS: []');
   this.tx.executeSql(sql, [], callback, error_callback);
 
 };
