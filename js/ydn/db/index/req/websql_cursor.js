@@ -233,10 +233,10 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
     me.current_cursor_index_ = 0;
     if (!!me.index_name && goog.isDefAndNotNull(ini_key)) {
       // skip them
-      var cmp = ydn.db.cmp(this.getPrimaryKey(), ini_key);
+      var cmp = ydn.db.cmp(me.getPrimaryKey(), ini_key);
       while (cmp == -1 || (cmp == 0 && exclusive)) {
         me.current_cursor_index_++;
-        cmp = ydn.db.cmp(this.getPrimaryKey(), ini_key);
+        cmp = ydn.db.cmp(me.getPrimaryKey(), ini_key);
       }
     }
     me.onSuccess(me.getPrimaryKey(), me.getIndexKey(), me.getValue());
