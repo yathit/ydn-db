@@ -279,7 +279,7 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3) {
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+ydn.db.core.DbOperator.prototype.list = function(arg1, arg2, arg3) {
 
   var me = this;
   var df = ydn.db.base.createDeferred();

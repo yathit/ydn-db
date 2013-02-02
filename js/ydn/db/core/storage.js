@@ -162,9 +162,6 @@ ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3) {
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3) {
-  if (goog.DEBUG && arguments.length > 3) {
-    throw new ydn.error.ArgumentException('too many input arguments');
-  }
   return this.getCoreOperator().list(arg1, arg2, arg3);
 };
 

@@ -170,14 +170,11 @@ ydn.db.index.DbOperator.prototype.count = function(arg1, arg2, arg3) {
 /**
  * @inheritDoc
  */
-ydn.db.index.DbOperator.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+ydn.db.index.DbOperator.prototype.list = function(arg1, arg2, arg3) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
     var df = ydn.db.base.createDeferred();
-    if (goog.isDef(arg4) || goog.isDef(arg5)) {
-      throw new ydn.error.ArgumentException('too many arguments.');
-    }
 
     /**
      * @type {number}
@@ -213,7 +210,7 @@ ydn.db.index.DbOperator.prototype.list = function(arg1, arg2, arg3, arg4, arg5, 
 
     return df;
   } else {
-    return goog.base(this, 'list', arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+    return goog.base(this, 'list', arg1, arg2, arg3);
   }
 
 };
