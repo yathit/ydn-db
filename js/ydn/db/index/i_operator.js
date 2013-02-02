@@ -4,17 +4,17 @@
  */
 
 
-goog.provide('ydn.db.index.IStorage');
+goog.provide('ydn.db.index.IOperator');
 goog.require('ydn.db.index.req.IRequestExecutor');
-goog.require('ydn.db.core.IStorage');
+goog.require('ydn.db.core.IOperator');
 
 
 
 /**
- * @extends {ydn.db.core.IStorage}
+ * @extends {ydn.db.core.IOperator}
  * @interface
  */
-ydn.db.index.IStorage = function() {};
+ydn.db.index.IOperator = function() {};
 
 //
 //
@@ -25,6 +25,6 @@ ydn.db.index.IStorage = function() {};
 // * @param {!Array.<string>} store_names store name involved in the transaction.
 // * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
 // */
-//ydn.db.index.IStorage.prototype.exec = goog.abstractMethod;
+//ydn.db.index.IOperator.prototype.exec = goog.abstractMethod;
 
 

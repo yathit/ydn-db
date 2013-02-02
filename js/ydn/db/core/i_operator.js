@@ -4,7 +4,7 @@
  */
 
 
-goog.provide('ydn.db.core.IStorage');
+goog.provide('ydn.db.core.IOperator');
 goog.require('ydn.db.req.RequestExecutor');
 goog.require('ydn.db.KeyRange');
 
@@ -13,7 +13,7 @@ goog.require('ydn.db.KeyRange');
 /**
  * @interface
  */
-ydn.db.core.IStorage = function() {};
+ydn.db.core.IOperator = function() {};
 
 
 
@@ -24,7 +24,7 @@ ydn.db.core.IStorage = function() {};
  * @param {ydn.db.KeyRange=} opt_key_range key range.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.IStorage.prototype.count = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.count = goog.abstractMethod;
 
 /**
  * Return object or objects of given key or keys.
@@ -34,35 +34,28 @@ ydn.db.core.IStorage.prototype.count = goog.abstractMethod;
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.IStorage.prototype.get = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.get = goog.abstractMethod;
 
 
 /**
  * Return object or objects of given key or keys.
- * @param {(string|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(string|boolean|ydn.db.KeyRange|!Array.<string>)=} arg2 primary key to be retrieved, if not provided,
- * all entries in the store will return. key range
- * @param {(ydn.db.KeyRange|number|boolean)=} reverse to reverse.
- * @param {number=} limit limit.
+ * @param {(*|string|!Array.<!ydn.db.Key>)=} arg1 table name.
+ * @param {(number|!Array.<string|number|Date|!Array>)=} arg2 list of primary
+ * keys or limit.
  * @param {number=} offset offset.
- * @param {number=} arg6 offset.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.IStorage.prototype.list = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.list = goog.abstractMethod;
 
 
 /**
  * List keys.
- * @param {string|*} store_name
- * @param {(boolean|string|!IDBKeyRange)=} arg2
- * @param {(number|string|!IDBKeyRange)=} arg3
- * @param {(number|string|boolean)=} arg4
- * @param {(number|boolean|number)=} arg5
- * @param {(boolean|number)=} arg6
- * @param {(boolean|number)=} arg7
+ * @param {string|*} store_name or iterator
+ * @param {number=} arg6 limit
+ * @param {number=} arg7 offset
  * @return {!goog.async.Deferred} result promise.
  */
-ydn.db.core.IStorage.prototype.keys = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.keys = goog.abstractMethod;
 
 
 /**
@@ -73,7 +66,7 @@ ydn.db.core.IStorage.prototype.keys = goog.abstractMethod;
  * @param {*=} opt_keys out-of-line keys.
  * @return {!goog.async.Deferred} return newly created keys in promise.
  */
-ydn.db.core.IStorage.prototype.add = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.add = goog.abstractMethod;
 
 
 /**
@@ -82,7 +75,7 @@ ydn.db.core.IStorage.prototype.add = goog.abstractMethod;
  * @param {string} data delimited text to put. one object per line.
  * @param {string=} delimiter field delimiter.
  */
-ydn.db.core.IStorage.prototype.load = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.load = goog.abstractMethod;
 
 
 /**
@@ -93,7 +86,7 @@ ydn.db.core.IStorage.prototype.load = goog.abstractMethod;
  * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys.
  * @return {!goog.async.Deferred} return newly created keys in promise.
  */
-ydn.db.core.IStorage.prototype.put = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.put = goog.abstractMethod;
 
 
 /**
@@ -105,4 +98,4 @@ ydn.db.core.IStorage.prototype.put = goog.abstractMethod;
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.core.IStorage.prototype.clear = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.clear = goog.abstractMethod;

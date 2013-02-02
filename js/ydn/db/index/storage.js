@@ -38,7 +38,7 @@ goog.require('ydn.db.core.Storage');
  * is used.
  * @param {!StorageOptions=} opt_options options.
  * @extends {ydn.db.core.Storage}
- * @implements {ydn.db.index.IStorage}
+ * @implements {ydn.db.index.IOperator}
  * @constructor
  */
 ydn.db.index.Storage = function(opt_dbname, opt_schema, opt_options) {

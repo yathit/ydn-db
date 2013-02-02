@@ -532,19 +532,18 @@ var test_26_list = function() {
   //var rev_data = ydn.object.clone(data).reverse();
 
 
-  var whole_done, rev_done, array_done, limit_done, offset_done;
-  var whole_result, rev_result, array_result, limit_result, offset_result;
+  var whole_done, array_done, limit_done, offset_done;
+  var whole_result, array_result, limit_result, offset_result;
 
   waitForCondition(
     // Condition
-    function() { return whole_done && rev_done && limit_done && offset_done; },
+    function() { return whole_done && array_done && limit_done && offset_done; },
     // Continuation
     function() {
       assertArrayEquals('whole store', data, whole_result);
       assertArrayEquals('array keys', data.slice(1, 3), array_result);
       assertArrayEquals('limit store', data.slice(0, 3), limit_result);
       assertArrayEquals('offset store', data.slice(1, 3), offset_result);
-      assertArrayEquals('reverse store', data.reverse(), rev_result);
 
       reachedFinalContinuation = true;
     },
@@ -572,16 +571,7 @@ var test_26_list = function() {
       console.log('Error: ' + e);
     });
 
-  db.list(table_name, true).addCallback(function(value) {
-    //console.log('receiving value callback.');
-    rev_result = value;
-    rev_done = true;
-  }).addErrback(function(e) {
-      rev_done = true;
-      console.log('Error: ' + e);
-    });
-
-  db.list(table_name, false, 3).addCallback(function(value) {
+  db.list(table_name, 3).addCallback(function(value) {
     //console.log('receiving value callback.');
     limit_result = value;
     limit_done = true;
@@ -589,7 +579,7 @@ var test_26_list = function() {
       limit_done = true;
       console.log('Error: ' + e);
     });
-  db.list(table_name, false, 2, 1).addCallback(function(value) {
+  db.list(table_name, 2, 1).addCallback(function(value) {
     //console.log('receiving value callback.');
     offset_result = value;
     offset_done = true;
@@ -976,18 +966,17 @@ var test_51_keys = function() {
   //var rev_data = ydn.object.clone(data).reverse();
 
 
-  var whole_done, rev_done, limit_done, offset_done;
-  var whole_result, rev_result, limit_result, offset_result;
+  var whole_done, limit_done, offset_done;
+  var whole_result, limit_result, offset_result;
 
   waitForCondition(
     // Condition
-    function() { return whole_done && rev_done && limit_done && offset_done; },
+    function() { return whole_done && limit_done && offset_done; },
     // Continuation
     function() {
       assertArrayEquals('whole store', keys, whole_result);
       assertArrayEquals('limit store', keys.slice(0, 3), limit_result);
       assertArrayEquals('offset store', keys.slice(1, 3), offset_result);
-      assertArrayEquals('reverse store', keys.reverse(), rev_result);
 
       reachedFinalContinuation = true;
     },
@@ -995,7 +984,7 @@ var test_51_keys = function() {
     1000); // maxTimeout
 
 
-  db.put(table_name, data).addCallback(function() {
+  db.put(table_name, data);
 
     db.keys(table_name).addCallback(function(value) {
       //console.log('whole value callback.');
@@ -1006,16 +995,7 @@ var test_51_keys = function() {
         console.log('Error: ' + e);
       });
 
-    db.keys(table_name, true).addCallback(function(value) {
-      //console.log('whole rev value callback.');
-      rev_result = value;
-      rev_done = true;
-    }).addErrback(function(e) {
-        rev_done = true;
-        console.log('Error: ' + e);
-      });
-
-    db.keys(table_name, false, 3).addCallback(function(value) {
+    db.keys(table_name, 3).addCallback(function(value) {
       //console.log('limit value callback.');
       limit_result = value;
       limit_done = true;
@@ -1023,7 +1003,7 @@ var test_51_keys = function() {
         limit_done = true;
         console.log('Error: ' + e);
       });
-    db.keys(table_name, false, 2, 1).addCallback(function(value) {
+    db.keys(table_name, 2, 1).addCallback(function(value) {
       console.log('limit offset value callback.');
       offset_result = value;
       offset_done = true;
@@ -1031,7 +1011,7 @@ var test_51_keys = function() {
         offset_done = true;
         console.log('Error: ' + e);
       });
-  });
+
 
 };
 

@@ -6,12 +6,12 @@
 
 goog.provide('ydn.db.sql.IStorage');
 goog.require('ydn.db.sql.req.IRequestExecutor');
-goog.require('ydn.db.index.IStorage');
+goog.require('ydn.db.index.IOperator');
 
 
 
 /**
- * @extends {ydn.db.index.IStorage}
+ * @extends {ydn.db.index.IOperator}
  * @interface
  */
 ydn.db.sql.IStorage = function() {};

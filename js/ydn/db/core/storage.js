@@ -23,7 +23,7 @@
 goog.provide('ydn.db.core.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
-goog.require('ydn.db.core.IStorage');
+goog.require('ydn.db.core.IOperator');
 goog.require('ydn.db.core.DbOperator');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.object');
@@ -45,7 +45,7 @@ goog.require('ydn.object');
  * is used.
  * @param {!StorageOptions=} opt_options options.
  * @extends {ydn.db.tr.Storage}
- * @implements {ydn.db.core.IStorage}
+ * @implements {ydn.db.core.IOperator}
  * @constructor
  */
 ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
@@ -145,8 +145,7 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
  *
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
-                                                arg4, arg5, arg6, arg7) {
+ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3) {
 //  return ydn.db.core.DbOperator.prototype.keys.apply(
 //    /** @type {ydn.db.core.DbOperator} */ (this.base_tx_queue),
 //    Array.prototype.slice.call(arguments));
@@ -156,14 +155,17 @@ ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
   //  arg4, arg5, arg6, arg7);
   // but it preserve argument length
 
-  return this.getCoreOperator().keys(store_name, arg2, arg3, arg4, arg5, arg6, arg7);
+  return this.getCoreOperator().keys(store_name, arg2, arg3);
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
-  return this.getCoreOperator().list(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3) {
+  if (goog.DEBUG && arguments.length > 3) {
+    throw new ydn.error.ArgumentException('too many input arguments');
+  }
+  return this.getCoreOperator().list(arg1, arg2, arg3);
 };
 
 /**

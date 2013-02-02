@@ -8,7 +8,7 @@
 goog.provide('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
-goog.require('ydn.db.core.IStorage');
+goog.require('ydn.db.core.IOperator');
 goog.require('ydn.error.NotSupportedException');
 
 
