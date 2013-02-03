@@ -104,7 +104,9 @@ var schema_auto_increase = {
     },
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
+      var type = db.type();
       db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
       //ydn.db.deleteDatabase(db.getName());
     }
   };
@@ -321,6 +323,9 @@ var schema_auto_increase = {
     db.get(store_nested_key, data_nested_key.id.$t).then(function (x) {
       deepEqual(data_nested_key, x, 'same object ');
       start();
+      var type = db.type();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
     }, function (e) {
       ok(false, e.message);
       start();
@@ -450,14 +455,14 @@ var schema_auto_increase = {
       new ydn.db.Key(store_inline, 2),
       new ydn.db.Key(store_inline, 3),
       new ydn.db.Key(store_outline, 2)];
-    db.list(keys).then(function (x) {
+    db.list(keys).always(function (x) {
       equal(3, x.length, 'length');
       deepEqual(data_list_inline.slice(2, 4), x.slice(0, 2), 'inline');
       deepEqual(data_list_outline[2], x[2], 'offline');
       start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
+      var type = db.type();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
     });
 
   });
@@ -531,6 +536,9 @@ var schema_auto_increase = {
       db.keys(store_inline, 2, 2).always(function (keys) {
         deepEqual(keys_inline.slice(2, 4), keys, 'limit offset');
         start();
+        var type = db.type();
+        db.close();
+        ydn.db.deleteDatabase(db.getName(), type);
       });
     });
 
@@ -594,7 +602,7 @@ var schema_auto_increase = {
 
       expect(1);
       db.count(store_inline).then(function (x) {
-        equal(5, x, 'number of records in store');
+        equal(x, 5, 'number of records in store');
         start();
       }, function (e) {
         ok(false, e.message);
@@ -625,6 +633,9 @@ var schema_auto_increase = {
     db.count(store_inline, range).then(function (x) {
       equal(3, x, 'number of records in a range');
       start();
+      var type = db.type();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
     }, function (e) {
       ok(false, e.message);
       start();

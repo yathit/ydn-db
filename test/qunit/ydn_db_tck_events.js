@@ -1,5 +1,3 @@
-
-
 if (/log/.test(location.hash)) {
   if (/ui/.test(location.hash)) {
     var div = document.createElement('div');
@@ -17,7 +15,6 @@ var store_inline = "ts";    // in-line key store
 var store_outline = "ts2"; // out-of-line key store
 
 
-
 var events_schema = {
   stores: [
     {
@@ -31,7 +28,7 @@ var events_schema = {
       type: 'NUMERIC'}
   ]};
 
-(function(){
+(function () {
   var test_env = {
     setup: function () {
       test_env.ydnTimeoutId = setTimeout(function () {
@@ -52,10 +49,12 @@ var events_schema = {
 
     var db = new ydn.db.Storage(db_name_event, events_schema);
 
-    db.addEventListener('connected', function(e) {
+    db.addEventListener('connected', function (e) {
       equal(e.type, 'connected', 'connected event');
-      ok( e.version > 0, 'version number');
+      ok(e.version > 0, 'version number');
+      var type = db.type();
       db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
       start();
     });
 
@@ -80,25 +79,33 @@ var events_schema = {
   module("RecordEvent Event", test_env);
 
   asyncTest("created", function () {
-    expect(5);
+    expect(6);
 
     var db = new ydn.db.Storage(db_name_event, events_schema);
 
     var key = Math.ceil(Math.random() * 100000);
     var data = { test: "random value", name: "name " + key, id: key };
 
-    db.addEventListener(['created', 'updated'], function (e) {
+    db.addEventListener('created', function (e) {
       //console.log(e);
-      equal(e.name, 'RecordEvent', 'event name');
-      equal(e.getStoreName(), store_inline, 'store name');
-      //equal(e.store_name, store_inline, 'store name');
       equal(e.type, 'created', 'type');
       equal(e.getKey(), key, 'key');
       deepEqual(e.getValue(), data, 'value');
+    });
+
+    db.addEventListener('updated', function (e) {
+      //console.log(e);
+      equal(e.name, 'RecordEvent', 'event name');
+      equal(e.getStoreName(), store_inline, 'store name');
+      deepEqual(e.getValue(), data, 'value');
+      var type = db.type();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
       start();
     });
 
     db.add(store_inline, data);
+    db.put(store_inline, data);
 
   });
 
@@ -112,26 +119,33 @@ var events_schema = {
     var data = { test: "random value", name: "name " + key, id: key };
 
     var firedCreatedEvent = false;
-    db.addEventListener(['created', 'updated'], function (e) {
+    db.addEventListener(['created'], function (e) {
       //console.log(e);
-      if (!firedCreatedEvent) {
-        equal(e.name, 'RecordEvent', 'event name');
-        equal(e.getStoreName(), store_inline, 'store name');
-        //equal(e.store_name, store_inline, 'store name');
-        equal(e.type, 'created', 'type');
-        equal(e.getKey(), key, 'key');
-        deepEqual(e.getValue(), data, 'value');
-        firedCreatedEvent = true;
-      } else {
-        equal(e.name, 'RecordEvent', 'event name');
-        equal(e.getStoreName(), store_inline, 'store name');
-        //equal(e.store_name, store_inline, 'store name');
-        equal(e.type, 'updated', 'type');
-        equal(e.getKey(), key, 'key');
-        deepEqual(e.getValue(), data, 'value');
 
-        start();
-      }
+      equal(e.name, 'RecordEvent', 'event name');
+      equal(e.getStoreName(), store_inline, 'store name');
+      //equal(e.store_name, store_inline, 'store name');
+      equal(e.type, 'created', 'type');
+      equal(e.getKey(), key, 'key');
+      deepEqual(e.getValue(), data, 'value');
+      firedCreatedEvent = true;
+
+    });
+
+    db.addEventListener(['updated'], function (e) {
+      //console.log(e);
+
+      equal(e.name, 'RecordEvent', 'event name');
+      equal(e.getStoreName(), store_inline, 'store name');
+      //equal(e.store_name, store_inline, 'store name');
+      equal(e.type, 'updated', 'type');
+      equal(e.getKey(), key, 'key');
+      deepEqual(e.getValue(), data, 'value');
+      var type = db.type();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
+      start();
+
     });
 
     db.add(store_inline, data);
@@ -169,7 +183,7 @@ var events_schema = {
       {name: "rand key 2", id: keys[1]}
     ];
 
-    db.addEventListener(['created', 'updated'], function (e) {
+    db.addEventListener('created', function (e) {
       // console.log(e);
       equal(e.name, 'StoreEvent', 'event name');
       equal(e.getStoreName(), store_inline, 'store name');
@@ -177,6 +191,9 @@ var events_schema = {
       equal(e.type, 'created', 'type');
       deepEqual(e.getKeys(), keys, 'keys');
       deepEqual(e.getValues(), data, 'values');
+      var type = db.type();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
       start();
     });
 
@@ -197,26 +214,32 @@ var events_schema = {
     ];
 
     var firedCreatedEvent = false;
-    db.addEventListener(['created', 'updated'], function (e) {
+    db.addEventListener(['created'], function (e) {
       //console.log(e);
-      if (!firedCreatedEvent) {
-        equal(e.name, 'StoreEvent', 'event name');
-        equal(e.getStoreName(), store_inline, 'store name');
-        //equal(e.store_name, store_inline, 'store name');
-        equal(e.type, 'created', 'type');
-        deepEqual(e.getKeys(), keys, 'created key');
-        deepEqual(e.getValues(), data, 'created value');
-        firedCreatedEvent = true;
-      } else {
-        equal(e.name, 'StoreEvent', 'event name');
-        equal(e.getStoreName(), store_inline, 'store name');
-        //equal(e.store_name, store_inline, 'store name');
-        equal(e.type, 'updated', 'type');
-        deepEqual(e.getKeys(), keys, 'updated key');
-        deepEqual(e.getValues(), data, 'updated value');
 
-        start();
-      }
+      equal(e.name, 'StoreEvent', 'event name');
+      equal(e.getStoreName(), store_inline, 'store name');
+      //equal(e.store_name, store_inline, 'store name');
+      equal(e.type, 'created', 'type');
+      deepEqual(e.getKeys(), keys, 'created key');
+      deepEqual(e.getValues(), data, 'created value');
+
+    });
+
+    db.addEventListener(['updated'], function (e) {
+      //console.log(e);
+
+      equal(e.name, 'StoreEvent', 'event name');
+      equal(e.getStoreName(), store_inline, 'store name');
+      //equal(e.store_name, store_inline, 'store name');
+      equal(e.type, 'updated', 'type');
+      deepEqual(e.getKeys(), keys, 'updated key');
+      deepEqual(e.getValues(), data, 'updated value');
+      var type = db.type();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
+      start();
+
     });
 
     db.add(store_inline, data);
