@@ -36,7 +36,7 @@ goog.require('ydn.db.con.SimpleStorage');
 goog.require('ydn.db.con.WebSql');
 goog.require('ydn.db.events.StorageEvent');
 goog.require('ydn.db.schema.EditableDatabase');
-goog.require('ydn.error.ArgumentException');
+goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.object');
 
 
@@ -77,7 +77,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
     var fields = ['autoSchema', 'size', 'mechanisms', 'thread'];
     for (var key in options) {
       if (options.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-        throw new ydn.error.ArgumentException('Unknown attribute "' + key +
+        throw new ydn.debug.error.ArgumentException('Unknown attribute "' + key +
           '" in options.');
       }
     }
@@ -632,7 +632,7 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
     names = null;
   } else if (!goog.isArray(store_names) ||
     (!goog.isString(store_names[0]))) {
-    throw new ydn.error.ArgumentException('storeNames');
+    throw new ydn.debug.error.ArgumentException('storeNames');
   }
 
   var is_ready = !!this.db_ && this.db_.isReady();

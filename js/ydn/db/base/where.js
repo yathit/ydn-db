@@ -6,6 +6,7 @@
 goog.provide('ydn.db.Where');
 goog.require('ydn.db.KeyRange');
 goog.require('goog.string');
+goog.require('ydn.debug.error.ArgumentException');
 
 
 /**
@@ -46,7 +47,7 @@ ydn.db.Where = function(field, op, value, op2, value2) {
       lower = value2;
       lowerOpen = op2 == '>';
     } else if (goog.isDef(op2)) {
-      throw new ydn.error.ArgumentException(op2);
+      throw new ydn.debug.error.ArgumentException(op2);
     }
   }
 
