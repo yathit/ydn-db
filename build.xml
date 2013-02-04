@@ -12,7 +12,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
 
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                         input="${ydn-db.dir}/js/dev.js"
+                         input="${ydn-db.dir}/js/main.js"
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${dev-out.fn}">
             <extrapaths>
@@ -21,7 +21,7 @@
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/index.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/main.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/dev.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
@@ -181,8 +181,10 @@
             <ex.opt>
                 <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/index.js"'/>
+
             </ex.opt>
         </adv-comp>
     </target>

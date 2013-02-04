@@ -31,7 +31,8 @@ goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.base');
 goog.require('ydn.db.index.req.ICursor');
-goog.require('ydn.error.ArgumentException');
+goog.require('ydn.debug.error.ArgumentException');
+goog.require('ydn.debug.error.ArgumentException');
 goog.require('goog.debug.Logger');
 
 
@@ -50,7 +51,7 @@ goog.require('goog.debug.Logger');
 ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
-    throw new ydn.error.ArgumentException('store');
+    throw new ydn.debug.error.ArgumentException('store');
   }
 
   /**
@@ -68,14 +69,14 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   this.key_only_ = goog.isDef(key_only) ? key_only :
       !!(goog.isString(this.index));
   if (!goog.isBoolean(this.key_only_)) {
-    throw new ydn.error.ArgumentException('key_only');
+    throw new ydn.debug.error.ArgumentException('key_only');
   }
 
   if (goog.isDef(reverse) && !goog.isBoolean(reverse)) {
-    throw new ydn.error.ArgumentException('reverse');
+    throw new ydn.debug.error.ArgumentException('reverse');
   }
   if (goog.isDef(unique) && !goog.isBoolean(unique)) {
-    throw new ydn.error.ArgumentException('unique');
+    throw new ydn.debug.error.ArgumentException('unique');
   }
   var direction = ydn.db.base.Direction.NEXT;
   if (reverse && unique) {
@@ -95,7 +96,7 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   if (goog.DEBUG) {
     var msg = ydn.db.KeyRange.validate(keyRange);
     if (msg) {
-      throw new ydn.error.ArgumentException(msg);
+      throw new ydn.debug.error.ArgumentException(msg);
     }
   }
   /**
@@ -137,7 +138,7 @@ ydn.db.Iterator.DEBUG = false;
  */
 ydn.db.KeyIterator = function(store, keyRange, reverse) {
   if (arguments.length > 3) {
-    throw new ydn.error.ArgumentException('too many argument');
+    throw new ydn.debug.error.ArgumentException('too many argument');
   }
   goog.base(this, store, undefined, keyRange, reverse, undefined, true);
 };
@@ -171,7 +172,7 @@ ydn.db.KeyIterator.where = function(store_name, op, value, op2, value2) {
  */
 ydn.db.KeyIndexIterator = function(store, index, keyRange, reverse, unique) {
   if (!goog.isString(index)) {
-    throw new ydn.error.ArgumentException('index name must be string');
+    throw new ydn.debug.error.ArgumentException('index name must be string');
   }
   goog.base(this, store, index, keyRange, reverse, unique, true);
 };
@@ -204,7 +205,7 @@ ydn.db.KeyIndexIterator.where = function(store_name, index, op, value, op2, valu
  */
 ydn.db.ValueIterator = function(store, keyRange, reverse) {
   if (arguments.length > 3) {
-    throw new ydn.error.ArgumentException('too many argument');
+    throw new ydn.debug.error.ArgumentException('too many argument');
   }
   goog.base(this, store, undefined, keyRange, reverse, undefined, false);
 };
@@ -237,7 +238,7 @@ ydn.db.ValueIterator.where = function(store_name, op, value, op2, value2) {
  */
 ydn.db.ValueIndexIterator = function(store, index, keyRange, reverse, unique) {
   if (!goog.isString(index)) {
-    throw new ydn.error.ArgumentException('index name must be string');
+    throw new ydn.debug.error.ArgumentException('index name must be string');
   }
   goog.base(this, store, index, keyRange, reverse, unique, false);
 };
@@ -635,13 +636,13 @@ ydn.db.Iterator.prototype.base_index_names_ = [];
 ydn.db.Iterator.prototype.join = function(peer_store_name, base_index_name,
                                           peer_index_name) {
   if (!goog.isString(peer_store_name)) {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException();
   }
   if (!goog.isString(base_index_name) || !goog.isDef(base_index_name)) {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException();
   }
   if (!goog.isString(peer_index_name) || !goog.isDef(peer_index_name)) {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException();
   }
   this.peer_store_names_.push(peer_store_name);
   this.peer_index_names_.push(peer_index_name);
@@ -760,10 +761,10 @@ ydn.db.Iterator.prototype.filter_ini_index_keys_ = [];
  */
 ydn.db.Iterator.prototype.filter = function(index_name, key_range, store_name) {
   if (arguments.length > 3) {
-    throw new ydn.error.ArgumentException('too many input arguments.');
+    throw new ydn.debug.error.ArgumentException('too many input arguments.');
   }
   if (!goog.isString(index_name)) {
-    throw new ydn.error.ArgumentException('index name');
+    throw new ydn.debug.error.ArgumentException('index name');
   }
   this.filter_index_names_.push(index_name);
   var kr;
@@ -772,14 +773,14 @@ ydn.db.Iterator.prototype.filter = function(index_name, key_range, store_name) {
   } else if (goog.isDef(key_range)) {
     kr = ydn.db.IDBKeyRange.only(key_range);
   } else {
-    throw new ydn.error.ArgumentException('key range');
+    throw new ydn.debug.error.ArgumentException('key range');
   }
   this.filter_key_ranges_.push(kr);
   if (goog.isDef(store_name)) {
     if (goog.isString(store_name)) {
       this.filter_store_names_.push(store_name);
     } else {
-      throw new ydn.error.ArgumentException('store name');
+      throw new ydn.debug.error.ArgumentException('store name');
     }
   } else {
     this.filter_store_names_.push(undefined);

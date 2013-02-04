@@ -2,11 +2,19 @@
 var options = {}; // options = {mechanisms: ['websql']};
 if (/log/.test(location.hash)) {
   if (/ui/.test(location.hash)) {
-    var div = document.createElement('div');
-    document.body.appendChild(div);
-    ydn.debug.log('ydn.db', 100, div);
+    if (ydn.debug && ydn.debug.log) {
+      var div = document.createElement('div');
+      document.body.appendChild(div);
+      ydn.debug.log('ydn.db', 100, div);
+    } else {
+      console.log('no logging facility');
+    }
   } else {
-    ydn.debug.log('ydn.db', 100);
+    if (ydn.debug && ydn.debug.log) {
+      ydn.debug.log('ydn.db', 100);
+    } else {
+      console.log('no logging facility');
+    }
   }
 }
 if (/websql/.test(location.hash)) {
