@@ -73,7 +73,9 @@ ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names,
       callback(mu_tx.getTx());
     };
     //var cbFn = goog.partial(tx_callback, callback);
-    tx_callback.name = scope; // scope name
+    if (goog.DEBUG) {
+      tx_callback.name = scope; // scope name
+    }
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
     // locked: ' + mu_tx.isSetDone());
     me.run(tx_callback, store_names, mode, on_complete);

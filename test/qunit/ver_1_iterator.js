@@ -69,6 +69,7 @@ var schema_1 = {
 
 (function () {
 
+  var db_name = 'test_ver_1_iterator_count';
   var db_r;
 
   var df = $.Deferred();
@@ -97,6 +98,8 @@ var schema_1 = {
     _db.close();
   })();
 
+  var test_count = 0;
+
   var test_env = {
     setup: function () {
       db_r = new ydn.db.Storage(db_name, schema_1);
@@ -108,25 +111,21 @@ var schema_1 = {
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
       db_r.close();
-      //ydn.db.deleteDatabase(db.getName());
+      test_count++;
+      if (test_count >= 2) {
+        var type = db_r.type();
+        db_r.close();
+        ydn.db.deleteDatabase(db_r.getName(), type);
+      }
     }
   };
 
   module("Count by Iterator", test_env);
 
 
-  asyncTest("primary key", function () {
+  asyncTest("1. primary key", function () {
 
-    var total = 5;
-    var done = 0;
-    var begin = function() {
-      done++;
-      if (done == total) {
-        start();
-      }
-    };
-
-    expect(total);
+    expect(5);
 
     df.always(function () {
       //db_r.count(store_inline).always(function (x) {
@@ -135,33 +134,29 @@ var schema_1 = {
       var iter = ydn.db.KeyIterator.where(store_inline, '>', 1, '<=', 3);
       db_r.count(iter).always(function (x) {
         equal(x, 2, 'number of records in a bounded range');
-        begin();
       });
       iter = new ydn.db.KeyIterator(store_inline, ydn.db.KeyRange.lowerBound(2));
       db_r.count(iter).always(function (x) {
         equal(x, 3, 'number of records in lowerBound');
-        begin();
       });
       iter = new ydn.db.KeyIterator(store_inline, ydn.db.KeyRange.lowerBound(2, true));
       db_r.count(iter).always(function (x) {
         equal(x, 2, 'number of records in open lowerBound');
-        begin();
       });
       iter = new ydn.db.KeyIterator(store_inline, ydn.db.KeyRange.upperBound(2));
       db_r.count(iter).always(function (x) {
         equal(x, 2, 'number of records in upperBound');
-        begin();
       });
       iter = new ydn.db.KeyIterator(store_inline, ydn.db.KeyRange.upperBound(2, true));
       db_r.count(iter).always(function (x) {
         equal(x, 1, 'number of records in open upperBound');
-        begin();
+        start();
       });
     });
 
   });
 
-  asyncTest("by index iterator", function () {
+  asyncTest("2. by index iterator", function () {
 
     expect(2);
 
@@ -183,6 +178,8 @@ var schema_1 = {
 
 (function () {
 
+  var db_name = 'test_ver_1_iterator_get';
+  var test_count = 0;
   var db_r = new ydn.db.Storage(db_name, schema_1);
 
   var objs = [
@@ -199,7 +196,12 @@ var schema_1 = {
       db_r.put(store_inline_index, objs);
     },
     teardown: function () {
-
+      test_count++;
+      if (test_count >= 4) {
+        var type = db_r.type();
+        db_r.close();
+        ydn.db.deleteDatabase(db_r.getName(), type);
+      }
     }
   });
 
@@ -257,7 +259,8 @@ var schema_1 = {
 
 (function () {
 
-  var db_name = 'test_tck2_list';
+  var db_name = 'test_ver_1_iterator_list';
+  var test_count = 0;
   var df = $.Deferred();
 
   var objs = [
@@ -295,7 +298,11 @@ var schema_1 = {
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
       db.close();
-      //ydn.db.deleteDatabase(db.getName());
+      test_count++;
+      if (test_count >= 5) {
+        var type = db.type();
+        ydn.db.deleteDatabase(db.getName(), type);
+      }
     }
   };
 
@@ -509,6 +516,7 @@ var schema_1 = {
 
 (function () {
 
+  var test_count = 0;
   var db_name = 'test_tck2_key';
   var df = $.Deferred();
 
@@ -547,7 +555,11 @@ var schema_1 = {
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
       db.close();
-      //ydn.db.deleteDatabase(db.getName());
+      test_count++;
+      if (test_count >= 3) {
+        var type = db.type();
+        ydn.db.deleteDatabase(db.getName(), type);
+      }
     }
   };
 

@@ -55,7 +55,6 @@ var events_schema = {
 
   module("Storage Event", test_env);
 
-
   asyncTest("connected", function () {
     expect(2);
 
