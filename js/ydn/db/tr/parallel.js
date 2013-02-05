@@ -162,12 +162,36 @@ ydn.db.tr.ParallelThread.prototype.abort = function() {
 };
 
 
+
 /**
 * @inheritDoc
 */
-ydn.db.tr.ParallelThread.prototype.run = function(trFn, store_names, opt_mode,
+ydn.db.tr.ParallelThread.prototype.run = function(trFn, store_names, mode,
                                               oncompleted, opt_args) {
-  throw new ydn.error.NotImplementedException();
+  var me = this;
+  //console.log(this + ' not active ' + scope_name);
+  var transaction_process = function(tx) {
+    //console.log('transaction_process ' + scope_name);
+
+    // now execute transaction process
+    me.tx_ = tx;
+    trFn(me);
+
+  };
+
+  var completed_handler = function(type, event) {
+    me.tx_ = null;
+    if (goog.isFunction(oncompleted)) {
+      oncompleted(type, event);
+    }
+  };
+
+
+  this.logger.finest(this + ' transaction ' + mode + ' open for ' +
+      JSON.stringify(store_names) );
+
+  this.storage_.transaction(transaction_process, store_names, mode,
+    completed_handler);
 };
 
 
@@ -183,11 +207,15 @@ ydn.db.tr.ParallelThread.prototype.getExecutor = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.tr.ParallelThread.prototype.exec = function (callback, store_names, mode, scope_name) {
+ydn.db.tr.ParallelThread.prototype.exec = function (callback, store_names, mode,
+                                                    scope_name, on_completed) {
 
   var me = this;
   var completed_handler = function(type, event) {
     me.tx_ = null;
+    if (goog.isFunction(on_completed)) {
+      on_completed(type, event);
+    }
   };
 
   var transaction_process = function(tx) {

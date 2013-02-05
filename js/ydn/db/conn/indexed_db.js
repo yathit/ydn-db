@@ -74,7 +74,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
    */
   var me = this;
   var df = new goog.async.Deferred();
-  var old_version = NaN;
+  var old_version = undefined;
 
   /**
    * This is final result of connection. It is either fail or connected
@@ -190,7 +190,9 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
      * @type {IDBDatabase}
      */
     var db = ev.target.result;
-    old_version = db.version;
+    if (!goog.isDef(old_version)) {
+      old_version = db.version;
+    }
     var msg = 'Database: ' + db.name + ', ver: ' + db.version + ' opened.';
     me.logger.finer(msg);
 
@@ -344,7 +346,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
-    old_version = db.version;
+    old_version = NaN;
     me.logger.finer('upgrade needed for version ' + db.version);
     updateSchema(db, openRequest['transaction'], false);
   };

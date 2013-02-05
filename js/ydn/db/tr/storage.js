@@ -19,6 +19,7 @@
 
 goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.con.Storage');
+goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.ParallelThread');
@@ -90,10 +91,14 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
 /**
  * Create a new db operator during initialization.
  * @param {ydn.db.tr.IThread.Threads} thread
- * @param {string=} operator name.
+ * @param {string=} name operator name.
  * @return {*}
+ * @final
  */
-ydn.db.tr.Storage.prototype.thread = goog.abstractMethod;
+ydn.db.tr.Storage.prototype.thread = function(thread, name) {
+  var tx_thread = this.newTxQueue(thread, name);
+  return this.newOperator(tx_thread);
+};
 
 
 /**
@@ -102,6 +107,17 @@ ydn.db.tr.Storage.prototype.thread = goog.abstractMethod;
  */
 ydn.db.tr.Storage.prototype.getTxNo = function() {
   return this.db_operator.getTxNo();
+};
+
+
+/**
+ *
+ * @param {!ydn.db.tr.IThread} tx_thread
+ * @return {ydn.db.tr.DbOperator}
+ * @protected
+ */
+ydn.db.tr.Storage.prototype.newOperator = function(tx_thread) {
+  return new ydn.db.tr.DbOperator(this, this.schema, tx_thread);
 };
 
 
@@ -125,7 +141,6 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
 
 
 
-
 /**
  * @inheritDoc
  */
@@ -133,21 +148,23 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
   var scope_name = trFn.name || '';
-  var tx_queue = this.newTxQueue(undefined, scope_name);
-  if (arguments.length > 4) {
+  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL, scope_name);
+  var tx_queue = this.newOperator(tx_thread);
+  var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
+
+  var outFn = trFn;
+  if (arguments.length > 4) { // handle optional parameters
     var args = Array.prototype.slice.call(arguments, 4);
-    var outFn = function() {
-      // Postpend the bound arguments to the current arguments.
+    outFn = function() {
       var newArgs = Array.prototype.slice.call(arguments);
-      //newArgs.unshift.apply(newArgs, args);
-      newArgs = newArgs.concat(args);
+      newArgs = newArgs.concat(args); // post-apply
       return trFn.apply(this, newArgs);
     };
-    outFn.name = trFn.name;
-    tx_queue.run(outFn, store_names, opt_mode, oncompleted);
-  } else { // optional are strip
-    tx_queue.run(trFn, store_names, opt_mode, oncompleted);
   }
+
+  tx_thread.exec( function(tx) {
+    outFn(/** @type {!ydn.db.tr.IStorage} */ (tx_queue));
+  }, store_names, mode, scope_name, oncompleted);
 
 };
 

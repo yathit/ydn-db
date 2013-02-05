@@ -263,6 +263,14 @@ ydn.db.tr.Serial.prototype.abort = function() {
 
 
 /**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.tr.Serial.prototype.running_transaction_process_ = false;
+
+
+/**
  * Create a new isolated transaction. After creating a transaction, use
  * {@link #getTx} to received an active transaction. If transaction is not
  * active, it return null. In this case a new transaction must re-create.

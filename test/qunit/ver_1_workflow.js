@@ -41,6 +41,15 @@ var events_schema = {
   ]};
 
 (function () {
+
+  var db_name_event = 'test_tb' + Math.random();
+  db_name_event = db_name_event.replace('.', '');
+  var schema = {stores: [
+    {
+      name: store_inline
+    }
+  ]};
+
   var test_env = {
     setup: function () {
       test_env.ydnTimeoutId = setTimeout(function () {
@@ -55,18 +64,60 @@ var events_schema = {
 
   module("Storage Event", test_env);
 
-  asyncTest("connected", function () {
-    expect(2);
+  asyncTest("connected to a new database and existing", function () {
+    expect(4 * 3);
 
-    var db = new ydn.db.Storage(db_name_event, events_schema);
+    var db = new ydn.db.Storage(db_name_event, schema);
 
     db.addEventListener('connected', function (e) {
-      equal(e.type, 'connected', 'connected event');
-      ok(e.version > 0, 'version number');
-      var type = db.type();
-      db.close();
-      ydn.db.deleteDatabase(db.getName(), type);
-      start();
+      equal(e.name, 'StorageEvent', 'event name');
+      equal(e.type, 'connected', 'event type');
+      equal(e.getVersion(), 1, 'version number');
+      ok(isNaN(e.getOldVersion()), 'old version number');
+
+      db.list(store_inline).always(function () {
+
+        db.close();
+
+        db = new ydn.db.Storage(db_name_event, schema);
+
+        db.addEventListener('connected', function (e) {
+          equal(e.name, 'StorageEvent', 'event name');
+          equal(e.type, 'connected', 'event type');
+          equal(e.getVersion(), 1, 'version number');
+          equal(e.getOldVersion(), 1, 'old version number, existing');
+
+          db.list(store_inline).always(function () {
+
+            db.close();
+
+            var tb_name = 'new_tb' + Math.random();
+            tb_name = tb_name.replace('.', '');
+            var new_schema = {stores: [
+              {
+                name: tb_name
+              }
+            ]};
+
+            db = new ydn.db.Storage(db_name_event, new_schema);
+
+            db.addEventListener('connected', function (e) {
+              equal(e.name, 'StorageEvent', 'event name');
+              equal(e.type, 'connected', 'event type');
+              equal(e.getVersion(), 2, 'updated version number');
+              equal(e.getOldVersion(), 1, 'old version number, existing db, new schema');
+              var type = db.type();
+              db.list(tb_name).always(function () { // make sure all run.
+                db.close();
+                ydn.db.deleteDatabase(db.getName(), type);
+                start();
+              });
+
+            });
+          });
+
+        });
+      });
     });
 
   });
@@ -261,6 +312,48 @@ var events_schema = {
 })();
 
 
+(function () {
+  var test_env = {
+    setup: function () {
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+        console.warn('RecordEvent Event test not finished.');
+      }, 1000);
+    },
+    teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
+    }
+  };
+
+  module("Run in transaction", test_env);
+
+  asyncTest("add", function () {
+    expect(1);
+
+    var db_name = 'test_run_1';
+
+    var db = new ydn.db.Storage(db_name, events_schema);
+
+    var key = Math.ceil(Math.random() * 100000);
+    var data = { test: "random value", name: "name " + key, id: key };
+
+    db.run(function(tdb) {
+      var key1 = Math.ceil(Math.random() * 100000);
+      var obj = {test: 'first value', id: key1};
+      tdb.add(store_inline, obj).always(function(x) {
+        equal(key1, x, 'add key');
+      });
+    }, 'readwrite', function() {
+      var type = db.type();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
+    })
+
+
+  });
+
+
+})();
 
 
 

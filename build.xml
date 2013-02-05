@@ -62,7 +62,7 @@
                       files="dev-ydn.db-${ver}.js"/>
         </concat>
         <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-${ver}.js" append="true">
-            $.db = new ydn.db.Storage();
+
             })( jQuery);
         </concat>
 

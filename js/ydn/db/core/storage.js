@@ -69,9 +69,8 @@ ydn.db.core.Storage.prototype.init = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.thread = function(thread, name) {
-  var tx_thread = this.newTxQueue(thread, name);
-  return this.db_operator = new ydn.db.core.DbOperator(this, this.schema, tx_thread);
+ydn.db.core.Storage.prototype.newOperator = function(tx_thread) {
+  return new ydn.db.core.DbOperator(this, this.schema, tx_thread);
 };
 
 
