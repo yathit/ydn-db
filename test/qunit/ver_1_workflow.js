@@ -327,28 +327,37 @@ var events_schema = {
 
   module("Run in transaction", test_env);
 
-  asyncTest("add", function () {
-    expect(1);
+  asyncTest("all four crud operations in one transaction", function () {
+    expect(4);
 
     var db_name = 'test_run_1';
 
     var db = new ydn.db.Storage(db_name, events_schema);
 
-    var key = Math.ceil(Math.random() * 100000);
-    var data = { test: "random value", name: "name " + key, id: key };
-
     db.run(function(tdb) {
       var key1 = Math.ceil(Math.random() * 100000);
       var obj = {test: 'first value', id: key1};
+
       tdb.add(store_inline, obj).always(function(x) {
         equal(key1, x, 'add key');
       });
-    }, 'readwrite', function() {
+      var key = Math.ceil(Math.random() * 100000);
+      var data = { test: "random value", name: "name " + key, id: key };
+      tdb.put(store_inline, data).always(function(x) {
+        equal(key, x, 'put key');
+      });
+      tdb.list(store_inline, [key1, key]).always(function(x) {
+        deepEqual([obj, data], x, 'get objects');
+      });
+      tdb.clear(store_inline).always(function(x) {
+        equal(1, x, 'clear');
+      });
+    }, null, 'readwrite', function() {
+      start();
       var type = db.type();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
     })
-
 
   });
 

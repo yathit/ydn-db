@@ -44,14 +44,18 @@ ydn.db.tr.AtomicSerial.DEBUG = false;
 /**
  * @inheritDoc
  */
-ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode, scope) {
+ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode,
+                                   scope, on_completed) {
   var me = this;
   var mu_tx = this.getMuTx();
 
   //console.log('creating new tx for ' + scope);
 
-  var blocked_on_complete = function () {
+  var blocked_on_complete = function (type, e) {
     //console.log('tx ' + scope + ' completed');
+    if (goog.isFunction(on_completed)) {
+      on_completed(type, e);
+    }
   };
 
   //

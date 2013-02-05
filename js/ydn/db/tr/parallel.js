@@ -39,6 +39,8 @@ ydn.db.tr.ParallelThread = function(storage, ptx_no, thread_name) {
 
   this.tx_no_ = 0;
 
+  this.tx_ = null;
+
   /**
    * @final
    */
@@ -139,8 +141,15 @@ ydn.db.tr.ParallelThread.prototype.getStorage = function() {
 
 
 /**
- * @export
- * @return {SQLTransaction|IDBTransaction|Object} active transaction object.
+ * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
+ * @private
+ */
+ydn.db.tr.ParallelThread.prototype.tx_ = null;
+
+
+/**
+ *
+ * @return {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} active transaction object.
  */
 ydn.db.tr.ParallelThread.prototype.getTx = function() {
   return this.tx_;

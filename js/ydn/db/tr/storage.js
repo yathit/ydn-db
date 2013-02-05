@@ -24,6 +24,7 @@ goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.ParallelThread');
 goog.require('ydn.db.tr.IThread.Threads');
+goog.require('ydn.db.tr.Single');
 
 
 
@@ -134,6 +135,8 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
     return new ydn.db.tr.ParallelThread(this, this.ptx_no++, scope_name);
   } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_SERIAL) {
     return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, scope_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.SINGLE) {
+    return new ydn.db.tr.Single(this, this.ptx_no++, scope_name);
   } else {
     throw new ydn.error.ArgumentException(thread);
   }
@@ -148,9 +151,20 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
   var scope_name = trFn.name || '';
-  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL, scope_name);
+  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Threads.SINGLE, scope_name);
   var tx_queue = this.newOperator(tx_thread);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
+  if (goog.DEBUG && [ydn.db.base.TransactionMode.READ_ONLY,
+      ydn.db.base.TransactionMode.READ_WRITE].indexOf(mode) == -1) {
+    throw new ydn.debug.error.ArgumentException('mode');
+  }
+
+  if (!goog.isDefAndNotNull(store_names)) {
+    store_names = this.schema.getStoreNames();
+  }
+  if (goog.DEBUG && (!goog.isArray(store_names) || store_names.length == 0)) {
+    throw new ydn.debug.error.ArgumentException('store names');
+  }
 
   var outFn = trFn;
   if (arguments.length > 4) { // handle optional parameters
