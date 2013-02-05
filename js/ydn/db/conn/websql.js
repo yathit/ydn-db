@@ -783,7 +783,8 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
  * @param {string} db_name
  */
 ydn.db.con.WebSql.deleteDatabase = function(db_name) {
-  // WebSQL API does not expose deleting database. so we delete tables
+  // WebSQL API does not expose deleting database.
+  // Dropping all tables indeed delete the database.
   var db = new ydn.db.con.WebSql();
   var schema = new ydn.db.schema.EditableDatabase();
   var df = db.connect(db_name, schema);
@@ -801,7 +802,7 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
         if (n > 0) {
             for (var i = 0; i < n; i++) {
               var store = existing_schema.store(i);
-              db.logger.finer('deleting table: ' + store.getName());
+              db.logger.finest('deleting table: ' + store.getName());
               tx.executeSql('DROP TABLE ' + store.getQuotedName());
             }
         } else {

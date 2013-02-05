@@ -23,7 +23,7 @@ var setUp = function () {
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.core.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
   //ydn.db.con.IndexedDb.DEBUG = true;
@@ -426,50 +426,7 @@ var test_22_get_offline = function() {
 
 
 
-var test_23_get_array = function() {
-  var db_name = 'test_crud_21_2';
-  var db = new ydn.db.core.Storage(db_name, schema, options);
-
-  var arr = [];
-  var n = ydn.db.core.req.IndexedDb.REQ_PER_TX / 2;
-  for (var i = 0; i < n; i++) {
-    arr.push({id: i, value: 'a' + Math.random()});
-  }
-  var ids = [1, 2];
-
-
-  var hasEventFired = false;
-  var results;
-
-  waitForCondition(
-    // Condition
-    function() { return hasEventFired; },
-    // Continuation
-    function() {
-      assertEquals('length', ids.length, results.length);
-      assertEquals('1', arr[ids[0]].value, results[0].value);
-      assertEquals('1', arr[ids[1]].value, results[1].value);
-
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    2000); // maxTimeout
-
-
-  db.put(table_name, arr);
-
-  db.list(table_name, ids).addCallback(function(value) {
-    //console.log('receiving value callback.');
-    results = value;
-    hasEventFired = true;
-  }).addErrback(function(e) {
-      hasEventFired = true;
-      console.log('Error: ' + e);
-    });
-};
-
-
-var test_24_get_array = function() {
+var test_24_list_by_ids = function() {
   var db_name = 'test_crud_23 _2';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
@@ -493,8 +450,9 @@ var test_24_get_array = function() {
     // Continuation
     function() {
       assertEquals('length', ids.length, results.length);
+
       for (var i = 0; i < ids.length; i++) {
-        assertEquals('of ' + i, arr[ids[i]].value, results[i].value);
+        assertObjectEquals('of ' + i, arr[ids[i]], results[i]);
       }
 
       reachedFinalContinuation = true;
@@ -524,10 +482,10 @@ var test_26_list = function() {
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var data = [
-    {id: 0},
-    {id: 1},
-    {id: 2},
-    {id: 3}
+    {id: 0, value: 'a' + Math.random()},
+    {id: 1, value: 'a' + Math.random()},
+    {id: 2, value: 'a' + Math.random()},
+    {id: 3, value: 'a' + Math.random()}
   ];
   //var rev_data = ydn.object.clone(data).reverse();
 

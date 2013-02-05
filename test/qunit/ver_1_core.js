@@ -124,11 +124,8 @@ var schema_auto_increase = {
   asyncTest("single data", function () {
     expect(1);
     db = new ydn.db.Storage('tck1_put', schema_1, options);
-    db.put(store_inline, data_1).then(function () {
+    db.put(store_inline, data_1).always(function () {
       ok(true, "data inserted");
-      start();
-    }, function (e) {
-      ok(false, e.message);
       start();
     });
 
@@ -139,17 +136,25 @@ var schema_auto_increase = {
     db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase, options);
     expect(2);
 
-    db.put(store_inline_auto, data_1).then(function (x) {
+    db.put(store_inline_auto, data_1).always(function (x) {
       equal(data_1.id, x, 'key');
-      db.put(store_inline_auto, data_2).then(function (x) {
+      db.put(store_inline_auto, data_2).always(function (x) {
         ok(x > data_1.id, 'key 2 greater than data_1 key');
         start();
-      }, function (e) {
-        ok(false, e.message);
-        start();
       });
-    }, function (e) {
-      ok(false, e.message);
+    });
+
+  });
+
+
+  asyncTest("data with off-line-key", function () {
+    db = new ydn.db.Storage('tck1_put', schema_1, options);
+    expect(2);
+
+    var key = Math.random();
+    db.put(store_outline, data_2, key).always(function (x) {
+      ok(true, "data inserted");
+      equal(key, x, 'key');
       start();
     });
 
@@ -160,36 +165,14 @@ var schema_auto_increase = {
     db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase, options);
     expect(2);
 
-    db.put(store_outline_auto, data_1).then(function (x) {
+    db.put(store_outline_auto, data_1).always(function (x) {
       ok(true, 'no key data insert ok');
       var key = x;
       // add same data.
-      db.put(store_outline_auto, data_1).then(function (x) {
+      db.put(store_outline_auto, data_1).always(function (x) {
         ok(x > key, 'key 2 greater than previous key');
         start();
-      }, function (e) {
-        ok(false, e.message);
-        start();
       });
-    }, function (e) {
-      ok(false, e.message);
-      start();
-    });
-
-  });
-
-  asyncTest("data with off-line-key", function () {
-    db = new ydn.db.Storage('tck1_put', schema_1, options);
-    expect(2);
-
-    var key = Math.random();
-    db.put(store_outline, data_2, key).then(function (x) {
-      ok(true, "data inserted");
-      equal(key, x, 'key');
-      start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
     });
 
   });
@@ -199,11 +182,8 @@ var schema_auto_increase = {
     db = new ydn.db.Storage('tck1_put', schema_1, options);
     expect(1);
 
-    db.put(store_nested_key, gdata_1).then(function (x) {
+    db.put(store_nested_key, gdata_1).always(function (x) {
       equal(gdata_1.id.$t, x, 'key');
-      start();
-    }, function (e) {
-      ok(false, e.message);
       start();
     });
 
@@ -212,14 +192,11 @@ var schema_auto_increase = {
 
   asyncTest("single data - array index key", function () {
     expect(2);
-    db = new ydn.db.Storage('tck1_put', schema_1, options);
-    db.put(store_inline, data_1a).then(function (x) {
+    db = new ydn.db.Storage('tck1_put_2', schema_1, options);
+    db.put(store_inline, data_1a).always(function (x) {
       //console.log('got it');
       ok('length' in x, "array key");
-      deepEqual(data_1a.id, x, 'same key');
-      start();
-    }, function (e) {
-      ok(false, e.message);
+      deepEqual(x, data_1a.id, 'same key');
       start();
     });
 
@@ -362,7 +339,7 @@ var schema_auto_increase = {
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1);
+    var _db = new ydn.db.Storage(db_name, schema_1, options);
     _db.put(store_inline, data_list_inline);
     _db.put(store_outline, data_list_outline, keys_list_outline);
     _db.count(store_outline).always(function() {
@@ -373,7 +350,7 @@ var schema_auto_increase = {
 
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(db_name, schema_1);
+      db = new ydn.db.Storage(db_name, schema_1, options);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('List test not finished.');
@@ -393,19 +370,19 @@ var schema_auto_increase = {
     ready.always(function() {
       expect(4);
       db.list(store_inline).always(function (x) {
-        deepEqual(data_list_inline, x, 'all');
+        deepEqual(x, data_list_inline, 'all');
       });
 
       db.list(store_inline, 2).always(function (x) {
-        deepEqual(data_list_inline.slice(0, 2), x, 'limit');
+        deepEqual(x, data_list_inline.slice(0, 2), 'limit');
       });
 
       db.list(store_inline, 2, 2).always(function (x) {
-        deepEqual(data_list_inline.slice(2, 4), x, 'limit offset');
+        deepEqual(x, data_list_inline.slice(2, 4), 'limit offset');
       });
 
       db.list(store_inline, undefined, 2).always(function (x) {
-        deepEqual(data_list_inline.slice(2), x, 'offset');
+        deepEqual(x, data_list_inline.slice(2), 'offset');
         start();
       });
 
@@ -464,7 +441,8 @@ var schema_auto_increase = {
       new ydn.db.Key(store_inline, 3),
       new ydn.db.Key(store_outline, 2)];
     db.list(keys).always(function (x) {
-      equal(3, x.length, 'length');
+      console.log(x);
+      equal(x.length, 3, 'number of result');
       deepEqual(data_list_inline.slice(2, 4), x.slice(0, 2), 'inline');
       deepEqual(data_list_outline[2], x[2], 'offline');
       start();
@@ -634,7 +612,7 @@ var schema_auto_increase = {
 
   });
 
-  asyncTest("in a range", function () {
+  asyncTest("in a key range", function () {
     expect(1);
 
     var range = new ydn.db.KeyRange(2, 4);
@@ -650,6 +628,8 @@ var schema_auto_increase = {
     });
 
   });
+
+
 
 })();
 

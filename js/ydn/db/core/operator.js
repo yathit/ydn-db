@@ -251,6 +251,15 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3) {
       }
     }
   }
+  if (this.schema.isAutoSchema() && !this.schema.getStore(store_name)) {
+    return goog.async.Deferred.succeed([]);
+  }
+  if (goog.DEBUG && !this.schema.isAutoSchema()) {
+    store = this.schema.getStore(store_name);
+    if (!store) {
+      throw new ydn.db.NotFoundError(store_name);
+    }
+  }
 
   var df = new goog.async.Deferred();
 

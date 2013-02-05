@@ -188,7 +188,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
   var arr = [];
   var store = this.schema.getStore(store_name);
 
-  var is_index = !goog.isDef(index_column);
+  var is_index = goog.isDefAndNotNull(index_column);
   var column = index_column || store.getColumnName();
 
   var qcolumn = goog.string.quote(column);
@@ -739,7 +739,7 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(df, keys) {
 
     var params = [id];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-        table.getQuotedKeyPath() + ' = ?';
+      column_name + ' = ?';
     me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
     tx.executeSql(sql, params, callback, error_callback);
 
