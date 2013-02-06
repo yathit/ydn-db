@@ -5,13 +5,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 100, div);
+      ydn.debug.log('ydn.db', 'finest', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 100);
+      ydn.debug.log('ydn.db', 'finest');
     } else {
       console.log('no logging facility');
     }
@@ -123,7 +123,7 @@ var schema_auto_increase = {
 
   asyncTest("single data", function () {
     expect(1);
-    db = new ydn.db.Storage('tck1_put', schema_1, options);
+    db = new ydn.db.Storage('tck1_put_1', schema_1, options);
     db.put(store_inline, data_1).always(function () {
       ok(true, "data inserted");
       start();
@@ -133,7 +133,7 @@ var schema_auto_increase = {
 
 
   asyncTest("inline-key autoincrement", function () {
-    db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase, options);
+    db = new ydn.db.Storage('tck1_put_2', schema_auto_increase, options);
     expect(2);
 
     db.put(store_inline_auto, data_1).always(function (x) {
@@ -148,7 +148,7 @@ var schema_auto_increase = {
 
 
   asyncTest("data with off-line-key", function () {
-    db = new ydn.db.Storage('tck1_put', schema_1, options);
+    db = new ydn.db.Storage('tck1_put_3', schema_1, options);
     expect(2);
 
     var key = Math.random();
@@ -162,7 +162,7 @@ var schema_auto_increase = {
 
 
   asyncTest("offline-key autoincrement", function () {
-    db = new ydn.db.Storage(dbname_auto_increase, schema_auto_increase, options);
+    db = new ydn.db.Storage('tck1_put_4', schema_auto_increase, options);
     expect(2);
 
     db.put(store_outline_auto, data_1).always(function (x) {
@@ -179,7 +179,7 @@ var schema_auto_increase = {
 
 
   asyncTest("nested key", function () {
-    db = new ydn.db.Storage('tck1_put', schema_1, options);
+    db = new ydn.db.Storage('tck1_put_5', schema_1, options);
     expect(1);
 
     db.put(store_nested_key, gdata_1).always(function (x) {
@@ -192,7 +192,7 @@ var schema_auto_increase = {
 
   asyncTest("single data - array index key", function () {
     expect(2);
-    db = new ydn.db.Storage('tck1_put_2', schema_1, options);
+    db = new ydn.db.Storage('tck1_put_6', schema_1, options);
     db.put(store_inline, data_1a).always(function (x) {
       //console.log('got it');
       ok('length' in x, "array key");
