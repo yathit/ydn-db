@@ -1047,30 +1047,30 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
     } else if (pass) {
       // we mush skip current position.
       if (highest_key != me.primary_key) {
-        primary_cursor.seek(highest_key, undefined, true);
+        primary_cursor.continuePrimaryKey(highest_key);
       }
       for (var i = 0; i < cursors.length; i++) {
         if (cmps[i] == 0) {
-          cursors[i].seek(highest_key);
+          cursors[i].continueEffectiveKey(highest_key);
         } else if (cmps[i] == -1) {
-          cursors[i].seek(highest_key);
+          cursors[i].continueEffectiveKey(highest_key);
         } else {
           if (!cursors[i].hasCursor()) {
-            cursors[i].seek(highest_key);
+            cursors[i].continueEffectiveKey(highest_key);
           } else if (highest_key != cursors[i].getPrimaryKey()) {
-            cursors[i].seek(highest_key);
+            cursors[i].continueEffectiveKey(highest_key);
           }
         }
       }
     } else {
       // all cursors lower than highest_key, seek it.
       if (me.primary_key != highest_key) {
-        primary_cursor.seek(highest_key);
+        primary_cursor.continueEffectiveKey(highest_key);
       }
       for (var i = 0; i < cursors.length; i++) {
         if (!cursors[i].hasCursor() ||
             ydn.db.cmp(cursors[i].getPrimaryKey(), highest_key) !== 0) {
-          cursors[i].seek(highest_key);
+          cursors[i].continueEffectiveKey(highest_key);
         }
       }
     }

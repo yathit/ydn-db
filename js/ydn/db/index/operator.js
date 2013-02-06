@@ -596,7 +596,7 @@ ydn.db.index.DbOperator.prototype.open = function(iterator, callback, mode) {
     cursor.onNext = function (primaryKey, key, value) {
       if (goog.isDefAndNotNull(primaryKey)) {
         var adv = callback(cursor);
-        cursor.forward(true);
+        cursor.continueEffectiveKey();
       } else {
         df.callback();
       }
