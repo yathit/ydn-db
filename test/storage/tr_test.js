@@ -2,6 +2,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
+goog.require('ydn.db');
 goog.require('ydn.db.tr.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
@@ -55,7 +56,7 @@ var test_1_basic = function() {
 
   db.run(function tx_cb1 (idb) {
     console.log('tr start: ' + idb);
-    assertEquals('type', db_type, idb.type());
+    assertEquals('type', db_type, db.type());
     var tx = idb.getTx();
     assertNotUndefined(tx);
     assertNotNull(tx);
@@ -72,7 +73,7 @@ var test_1_basic = function() {
         t1_fired = true;
       };
     };
-  }, table_name, 'readwrite');
+  }, [table_name], 'readwrite');
 };
 
 
@@ -114,7 +115,7 @@ var test_2_opt_arg = function() {
     b_out = b;
     c_out = c;
     type_out = idb.type();
-  }, table_name, 'readwrite', oncompleted, 1, '3', {id: 'ok'});
+  }, [table_name], 'readwrite', oncompleted, 1, '3', {id: 'ok'});
 };
 
 

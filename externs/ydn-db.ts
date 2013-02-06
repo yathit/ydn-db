@@ -42,6 +42,15 @@ declare module goog.async
 
 declare module ydb.db
 {
+  export function cmp(first: any, second: any): number;
+
+  export function deleteDatabase(db_name: string, type?: string): void;
+
+  export class Key {
+    constructor(json: Object);
+    constructor(key_string: string);
+    constructor(store_name: string, id: any, parent_key?: Key);
+  }
   export class Iterator {
     count(): number;
     done(): bool?;
@@ -94,17 +103,17 @@ declare module ydb.db
 
     get(store_name: string, key: any) : goog.async.Deferred;
 
-    getSchema (callback) : goog.async.Deferred;
+    getName (callback) : string;
+
+    getSchema (callback) : DatabaseSchemaJson;
 
     keys(iter: ydb.db.Iterator, limit?: number, offset?: number);
-    keys(store_name: string, key_or_key_range?: any, reverse?: bool, limit?: bool, offset?: number);
-    keys(store_name: string, index_name: string, key_or_key_range?: any, reverse?: bool, limit?: bool, offset?: number);
+    keys(store_name: string, limit?: bool, offset?: number);
 
     list(iter: ydb.db.Iterator, limit?: number, offset?: number);
-    list(store_name: string, reverse?: bool, limit?: bool, offset?: number);
-    list(store_name: string, reverse?: bool, limit?: bool, offset?: number);
-    list(store_name: string, key_or_key_range?: any, reverse?: bool, limit?: bool, offset?: number);
-    list(store_name: string, index_name: string, key_or_key_range?: any, reverse?: bool, limit?: bool, offset?: number);
+    list(store_name: string, limit?: bool, offset?: number);
+    list(store_name: string, ids?: Array);
+    list(keys?: Array);
 
     map(iterator: ydb.db.Iterator, callback: (value: any): any) : goog.async.Deferred;
 
@@ -129,4 +138,5 @@ declare module ydb.db
 
     type(): string;
   }
+
 }
