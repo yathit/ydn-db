@@ -68,6 +68,8 @@
 
     </target>
     <target name="to-doc" description="copy file to documentation site">
+        <copy file="${ydn-db.dir}/jsc/ydn.db-${ver}.js"
+              tofile="${out.dir}/ydn.db.js"/>
         <copy file="${dev-out.fn}"
               tofile="${out.dir}/dev-ydn.db.js"/>
         <copy file="${dev-out.fn}.map"
