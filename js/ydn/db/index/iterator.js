@@ -115,7 +115,7 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
 
   // transient properties during cursor iteration
   this.counter = 0;
-  this.store_key = undefined;
+  this.primary_key = undefined;
   this.index_key = undefined;
   this.has_done = undefined;
   this.iterating_ = false;
@@ -280,14 +280,14 @@ ydn.db.Iterator.prototype.getState = function() {
   if (!goog.isDef(this.has_done)) {
     return ydn.db.Iterator.State.INITIAL;
   } else if (this.has_done === false) {
-    goog.asserts.assert(goog.isDef(this.store_key));
+    goog.asserts.assert(goog.isDef(this.primary_key));
     if (this.iterating_) {
       return ydn.db.Iterator.State.WORKING;
     } else {
       return ydn.db.Iterator.State.RESTING;
     }
   } else {
-    goog.asserts.assert(goog.isDef(this.store_key));
+    goog.asserts.assert(goog.isDef(this.primary_key));
     return ydn.db.Iterator.State.COMPLETED;
   }
 };
@@ -344,7 +344,7 @@ ydn.db.Iterator.prototype.index;
 /**
  * @private
  */
-ydn.db.Iterator.prototype.store_key;
+ydn.db.Iterator.prototype.primary_key;
 
 
 /**
@@ -372,7 +372,7 @@ ydn.db.Iterator.prototype.iterating_ = false;
  * @return {*|undefined} return current primary key.
  */
 ydn.db.Iterator.prototype.getPrimaryKey = function() {
-  return this.store_key;
+  return this.primary_key;
 };
 
 
@@ -382,6 +382,15 @@ ydn.db.Iterator.prototype.getPrimaryKey = function() {
  */
 ydn.db.Iterator.prototype.getIndexKey = function() {
   return this.index_key;
+};
+
+
+/**
+ * 
+ * @return {*|undefined} return current effective key.
+ */
+ydn.db.Iterator.prototype.getEffectiveKey = function() {
+  return this.isIndexIterator() ? this.index_key : this.primary_key;
 };
 
 
@@ -519,7 +528,7 @@ ydn.db.Iterator.prototype.direction;
 ydn.db.Iterator.prototype.toString = function() {
   var idx = goog.isDef(this.index) ? ':' + this.index : '';
   if (goog.DEBUG) {
-    if (goog.isDefAndNotNull(this.store_key)) {
+    if (goog.isDefAndNotNull(this.primary_key)) {
       var close = ']';
       var start = '[';
       var state = this.getState();
@@ -530,7 +539,7 @@ ydn.db.Iterator.prototype.toString = function() {
         start = '(';
         close = ')';
       }
-      idx += ' ' + start + this.store_key + ', ' + this.index_key + close;
+      idx += ' ' + start + this.primary_key + ', ' + this.index_key + close;
     }
     var s = this.isIndexIterator() ? 'Index' : '';
     s +=  this.isKeyOnly() ? 'Key' : 'Value';
@@ -546,7 +555,7 @@ ydn.db.Iterator.prototype.toString = function() {
  * @return {*|undefined} Current cursor key.
  */
 ydn.db.Iterator.prototype.key = function() {
-  return this.store_key;
+  return this.primary_key;
 };
 
 
@@ -566,7 +575,7 @@ ydn.db.Iterator.prototype.indexKey = function() {
  */
 ydn.db.Iterator.prototype.resume = function(key, index_key) {
   // todo: check valid state
-  this.store_key = key;
+  this.primary_key = key;
   this.index_key = index_key;
 };
 
@@ -834,8 +843,8 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
  */
 ydn.db.Iterator.prototype.exit = function() {
   // IndexedDB will GC the array, so we clone it.
-  this.store_key = goog.isArray(this.store_key) ?
-    goog.array.clone(this.store_key) : this.store_key;
+  this.primary_key = goog.isArray(this.primary_key) ?
+    goog.array.clone(this.primary_key) : this.primary_key;
   this.index_key = goog.isArray(this.index_key) ?
     goog.array.clone(this.index_key) : this.index_key;
   this.iterating_ = false;
@@ -855,8 +864,8 @@ ydn.db.Iterator.prototype.iterate_ = function(executor) {
   var resume = this.has_done === false;
   if (resume) {
     // continue the iteration
-    goog.asserts.assert(this.store_key);
-    ini_key = this.store_key;
+    goog.asserts.assert(this.primary_key);
+    ini_key = this.primary_key;
     ini_index_key = this.index_key;
   } else { // start a new iteration
     this.counter = 0;
@@ -871,7 +880,7 @@ ydn.db.Iterator.prototype.iterate_ = function(executor) {
   var me = this;
   cursor.onSuccess = function(primary_key, key, value) {
     if (goog.isDef(primary_key)) {
-      me.store_key = primary_key;
+      me.primary_key = primary_key;
       me.index_key = key;
       me.counter++;
       cursor.onNext(primary_key, key, value);
@@ -900,8 +909,8 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
   var resume = this.has_done === false;
   if (resume) {
     // continue the iteration
-    goog.asserts.assert(this.store_key);
-    ini_key = this.store_key;
+    goog.asserts.assert(this.primary_key);
+    ini_key = this.primary_key;
     ini_index_key = this.index_key;
   } else { // start a new iteration
     this.counter = 0;
@@ -938,7 +947,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
     if (goog.isDef(primary_key)) {
       me.has_done = false;
       // array need to be clone because
-      me.store_key = primary_key;
+      me.primary_key = primary_key;
       me.index_key = key;
       // check all filter condition are met.
       // me.counter++; // counter increase onNext callback
@@ -1004,11 +1013,11 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
     var pass = false;
     var match = true;
     var cmps = [];
-    var highest_key = me.store_key;
+    var highest_key = me.primary_key;
     for (var i = 0; i < cursors.length; i++) {
       var cursor = cursors[i];
       if (cursor.hasCursor()) {
-        var cmp = ydn.db.cmp(me.store_key, cursor.getPrimaryKey());
+        var cmp = ydn.db.cmp(me.primary_key, cursor.getPrimaryKey());
         cmps[i] = cmp;
         if (cmp === 1) {
           match = false;
@@ -1037,7 +1046,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
       }
     } else if (pass) {
       // we mush skip current position.
-      if (highest_key != me.store_key) {
+      if (highest_key != me.primary_key) {
         primary_cursor.seek(highest_key, undefined, true);
       }
       for (var i = 0; i < cursors.length; i++) {
@@ -1055,7 +1064,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
       }
     } else {
       // all cursors lower than highest_key, seek it.
-      if (me.store_key != highest_key) {
+      if (me.primary_key != highest_key) {
         primary_cursor.seek(highest_key);
       }
       for (var i = 0; i < cursors.length; i++) {
@@ -1093,7 +1102,7 @@ ydn.db.Iterator.prototype.reset = function() {
     throw new ydn.error.InvalidOperationError(ydn.db.Iterator.State.WORKING);
   }
   this.counter = 0;
-  this.store_key = undefined;
+  this.primary_key = undefined;
   this.index_key = undefined;
   this.has_done = undefined;
 

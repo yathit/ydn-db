@@ -29,8 +29,12 @@ ydn.db.Where = function(field, op, value, op2, value2) {
     lowerOpen = op['lowerOpen'];
     upperOpen = op['upperOpen'];
   } else {
-
-    if (op == '<' || op == '<=') {
+    if (op == '$') {
+      goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'value');
+      goog.asserts.assert(!goog.isDef(op2), 'op2');
+      goog.asserts.assert(!goog.isDef(value2), 'value2');
+      return ydn.db.KeyRange.starts(/** @type {string|!Array} */ (value));
+    } else if (op == '<' || op == '<=') {
       upper = value;
       upperOpen = op == '<';
     } else if (op == '>' || op == '>=') {
@@ -47,7 +51,7 @@ ydn.db.Where = function(field, op, value, op2, value2) {
       lower = value2;
       lowerOpen = op2 == '>';
     } else if (goog.isDef(op2)) {
-      throw new ydn.debug.error.ArgumentException(op2);
+      throw new ydn.debug.error.ArgumentException('op2');
     }
   }
 

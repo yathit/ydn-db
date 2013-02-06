@@ -33,11 +33,10 @@ goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'open',
     ydn.db.index.DbOperator.prototype.open);
 
 
-
 goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'key',
+    ydn.db.index.req.IDBCursor.prototype.getEffectiveKey);
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'primaryKey',
     ydn.db.index.req.IDBCursor.prototype.getPrimaryKey);
-goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'indexKey',
-    ydn.db.index.req.IDBCursor.prototype.getIndexKey);
 goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'value',
     ydn.db.index.req.IDBCursor.prototype.getValue);
 goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'update',
