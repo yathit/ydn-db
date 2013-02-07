@@ -21,10 +21,10 @@
 
 
 goog.provide('ydn.db.Iterator');
-goog.provide('ydn.db.KeyIterator');
-goog.provide('ydn.db.ValueIterator');
-goog.provide('ydn.db.KeyIndexIterator');
-goog.provide('ydn.db.ValueIndexIterator');
+goog.provide('ydn.db.KeyCursors');
+goog.provide('ydn.db.ValueCursors');
+goog.provide('ydn.db.Cursors');
+goog.provide('ydn.db.IndexValueCursors');
 goog.provide('ydn.db.Iterator.State');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
@@ -136,13 +136,13 @@ ydn.db.Iterator.DEBUG = false;
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.KeyIterator = function(store, keyRange, reverse) {
+ydn.db.KeyCursors = function(store, keyRange, reverse) {
   if (arguments.length > 3) {
     throw new ydn.debug.error.ArgumentException('too many argument');
   }
   goog.base(this, store, undefined, keyRange, reverse, undefined, true);
 };
-goog.inherits(ydn.db.KeyIterator, ydn.db.Iterator);
+goog.inherits(ydn.db.KeyCursors, ydn.db.Iterator);
 
 
 /**
@@ -152,10 +152,10 @@ goog.inherits(ydn.db.KeyIterator, ydn.db.Iterator);
  * @param {*} value rvalue to compare.
  * @param {string=} op2 second operator.
  * @param {*=} value2 second rvalue to compare.
- * @return {ydn.db.KeyIterator}
+ * @return {ydn.db.KeyCursors}
  */
-ydn.db.KeyIterator.where = function(store_name, op, value, op2, value2) {
-  return new ydn.db.KeyIterator(store_name,
+ydn.db.KeyCursors.where = function(store_name, op, value, op2, value2) {
+  return new ydn.db.KeyCursors(store_name,
     ydn.db.KeyRange.where(op, value, op2, value2));
 };
 
@@ -170,13 +170,13 @@ ydn.db.KeyIterator.where = function(store_name, op, value, op2, value2) {
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.KeyIndexIterator = function(store, index, keyRange, reverse, unique) {
+ydn.db.Cursors = function(store, index, keyRange, reverse, unique) {
   if (!goog.isString(index)) {
     throw new ydn.debug.error.ArgumentException('index name must be string');
   }
   goog.base(this, store, index, keyRange, reverse, unique, true);
 };
-goog.inherits(ydn.db.KeyIndexIterator, ydn.db.Iterator);
+goog.inherits(ydn.db.Cursors, ydn.db.Iterator);
 
 
 /**
@@ -187,10 +187,10 @@ goog.inherits(ydn.db.KeyIndexIterator, ydn.db.Iterator);
  * @param {*} value rvalue to compare.
  * @param {string=} op2 second operator.
  * @param {*=} value2 second rvalue to compare.
- * @return {ydn.db.KeyIndexIterator}
+ * @return {ydn.db.Cursors}
  */
-ydn.db.KeyIndexIterator.where = function(store_name, index, op, value, op2, value2) {
-  return new ydn.db.KeyIndexIterator(store_name, index,
+ydn.db.Cursors.where = function(store_name, index, op, value, op2, value2) {
+  return new ydn.db.Cursors(store_name, index,
     ydn.db.KeyRange.where(op, value, op2, value2));
 };
 
@@ -203,13 +203,13 @@ ydn.db.KeyIndexIterator.where = function(store_name, index, op, value, op2, valu
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.ValueIterator = function(store, keyRange, reverse) {
+ydn.db.ValueCursors = function(store, keyRange, reverse) {
   if (arguments.length > 3) {
     throw new ydn.debug.error.ArgumentException('too many argument');
   }
   goog.base(this, store, undefined, keyRange, reverse, undefined, false);
 };
-goog.inherits(ydn.db.ValueIterator, ydn.db.Iterator);
+goog.inherits(ydn.db.ValueCursors, ydn.db.Iterator);
 
 /**
  *
@@ -218,10 +218,10 @@ goog.inherits(ydn.db.ValueIterator, ydn.db.Iterator);
  * @param {*} value rvalue to compare.
  * @param {string=} op2 second operator.
  * @param {*=} value2 second rvalue to compare.
- * @return {ydn.db.ValueIterator}
+ * @return {ydn.db.ValueCursors}
  */
-ydn.db.ValueIterator.where = function(store_name, op, value, op2, value2) {
-  return new ydn.db.ValueIterator(store_name,
+ydn.db.ValueCursors.where = function(store_name, op, value, op2, value2) {
+  return new ydn.db.ValueCursors(store_name,
     ydn.db.KeyRange.where(op, value, op2, value2));
 };
 
@@ -236,13 +236,13 @@ ydn.db.ValueIterator.where = function(store_name, op, value, op2, value2) {
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.ValueIndexIterator = function(store, index, keyRange, reverse, unique) {
+ydn.db.IndexValueCursors = function(store, index, keyRange, reverse, unique) {
   if (!goog.isString(index)) {
     throw new ydn.debug.error.ArgumentException('index name must be string');
   }
   goog.base(this, store, index, keyRange, reverse, unique, false);
 };
-goog.inherits(ydn.db.ValueIndexIterator, ydn.db.Iterator);
+goog.inherits(ydn.db.IndexValueCursors, ydn.db.Iterator);
 
 /**
  *
@@ -252,10 +252,10 @@ goog.inherits(ydn.db.ValueIndexIterator, ydn.db.Iterator);
  * @param {*} value rvalue to compare.
  * @param {string=} op2 second operator.
  * @param {*=} value2 second rvalue to compare.
- * @return {ydn.db.ValueIndexIterator}
+ * @return {ydn.db.IndexValueCursors}
  */
-ydn.db.ValueIndexIterator.where = function(store_name, index, op, value, op2, value2) {
-  return new ydn.db.ValueIndexIterator(store_name, index,
+ydn.db.IndexValueCursors.where = function(store_name, index, op, value, op2, value2) {
+  return new ydn.db.IndexValueCursors(store_name, index,
     ydn.db.KeyRange.where(op, value, op2, value2));
 };
 

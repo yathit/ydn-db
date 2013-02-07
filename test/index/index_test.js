@@ -227,7 +227,7 @@ var test_21_list_index = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIndexIterator(store_name, 'value');
+  var q = new ydn.db.IndexValueCursors(store_name, 'value');
 
   db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -260,7 +260,7 @@ var test_22_list_index_rev = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIndexIterator(store_name, 'value', null, true);
+  var q = new ydn.db.IndexValueCursors(store_name, 'value', null, true);
 
   db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -291,7 +291,7 @@ var test_23_list_index_range = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.bound('a', 'b');
-  var q = new ydn.db.ValueIndexIterator(store_name, 'value', range);
+  var q = new ydn.db.IndexValueCursors(store_name, 'value', range);
 
   db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -323,8 +323,8 @@ var test_count_by_iterator = function () {
     1000); // maxTimeout
 
   //var range = ydn.db.KeyRange.bound(1, 10);
-  //var iter = new ydn.db.KeyIterator(store_name, range);
-  var iter = ydn.db.KeyIterator.where(store_name, '>=', 1, '<=', 10);
+  //var iter = new ydn.db.KeyCursors(store_name, range);
+  var iter = ydn.db.KeyCursors.where(store_name, '>=', 1, '<=', 10);
   db.count(iter).addBoth(function(x) {
     result = x;
     done = true;
@@ -354,7 +354,7 @@ var test_count_by_index_iterator = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.only('a');
-  var iter = new ydn.db.KeyIndexIterator(store_name, 'type', range);
+  var iter = new ydn.db.Cursors(store_name, 'type', range);
   db.count(iter).addBoth(function(x) {
     result = x;
     done = true;

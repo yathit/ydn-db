@@ -82,9 +82,9 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
 
     var iter;
     if (key_range) {
-      iter = new ydn.db.ValueIndexIterator(store_name, wheres[0].getField(), key_range);
+      iter = new ydn.db.IndexValueCursors(store_name, wheres[0].getField(), key_range);
     } else {
-      iter = new ydn.db.ValueIterator(store_name);
+      iter = new ydn.db.ValueCursors(store_name);
     }
 
     var cursor = iter.iterate(req);

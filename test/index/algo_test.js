@@ -98,9 +98,9 @@ var match_animal = function(algo) {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.KeyIterator('animals', 'color', ydn.db.KeyRange.only('spots'));
-  var q2 = new ydn.db.KeyIterator('animals', 'horn', ydn.db.KeyRange.only(1));
-  var q3 = new ydn.db.KeyIterator('animals', 'legs', ydn.db.KeyRange.only(4));
+  var q1 = new ydn.db.KeyCursors('animals', 'color', ydn.db.KeyRange.only('spots'));
+  var q2 = new ydn.db.KeyCursors('animals', 'horn', ydn.db.KeyRange.only(1));
+  var q3 = new ydn.db.KeyCursors('animals', 'legs', ydn.db.KeyRange.only(4));
   var out = [];
 
   var solver, req;
@@ -216,7 +216,7 @@ var ordered_join = function(algo) {
     100, // interval
     1000); // maxTimeout
 
-  var q0 = new ydn.db.KeyIterator(store_name, 'value');
+  var q0 = new ydn.db.KeyCursors(store_name, 'value');
   var q1 = ydn.db.Iterator.where(store_name, 'x', '=', 1);
   var q2 = ydn.db.Iterator.where(store_name, 'tag', '=', 'b');
 
