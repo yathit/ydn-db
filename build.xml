@@ -3,11 +3,10 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
-    <property name="code-ver" value="37"/>
-    <property name="ver" value="0.${code-ver}"/>
+    <property name="ver" value="zzz"/>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
     <property name="dev-out.fn"
-              value="${ydn-db.dir}/jsc/dev-ydn.db-${ver}.js"/>
+              value="${ydn-db.dir}/jsc/${ver}-dev-ydn.db.js"/>
     <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
 
@@ -48,7 +47,7 @@
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
                  token="/Users/kyawtun/work/ydn-db/"
-                 value="https://bitbucket.org/ytkyaw/ydn-db/raw/b${code-ver}/"/>
+                 value="https://bitbucket.org/ytkyaw/ydn-db/raw/${ver}/"/>
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
                  token="/Users/kyawtun/work/closure-library/"
@@ -144,7 +143,7 @@
                 input.dir="${ydn-db.dir}/js/ydn/db/conn"
                 input.fn="${ydn-db.dir}/js/conn.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="conn-ydn.db-${ver}.js"
+                output.fn="${ver}-conn-ydn.db.js"
                 closure.entry="ydn.db.con.Storage">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
@@ -178,7 +177,7 @@
                 input.dir="${ydn-db.dir}/js"
                 input.fn="${ydn-db.dir}/js/main.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="ydn.db-${ver}.js"
+                output.fn="${ver}-ydn.db.js"
                 closure.entry="ydn.db.Storage">
             <ex.opt>
                 <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
