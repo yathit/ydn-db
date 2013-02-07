@@ -441,7 +441,7 @@ var schema_auto_increase = {
       new ydn.db.Key(store_inline, 3),
       new ydn.db.Key(store_outline, 2)];
     db.values(keys).always(function (x) {
-      console.log(x);
+      // console.log(x);
       equal(x.length, 3, 'number of result');
       deepEqual(data_list_inline.slice(2, 4), x.slice(0, 2), 'inline');
       deepEqual(data_list_outline[2], x[2], 'offline');

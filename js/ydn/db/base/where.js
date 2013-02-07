@@ -43,6 +43,8 @@ ydn.db.Where = function(field, op, value, op2, value2) {
     } else if (op == '=' || op == '==') {
       lower = value;
       upper = value;
+    }  else {
+      throw new ydn.debug.error.ArgumentException('invalid op: ' + op);
     }
     if (op2 == '<' || op2 == '<=') {
       upper = value2;

@@ -160,7 +160,7 @@ var schema_1 = {
 
     expect(2);
 
-    var name_iter = ydn.db.Cursors.where(store_inline_index, 'name', 'LIKE%', 'b');
+    var name_iter = ydn.db.Cursors.where(store_inline_index, 'name', '$', 'b');
     var value_iter = ydn.db.Cursors.where(store_inline_index, 'value', '>', 1, '<=', 3);
 
     db_r.count(value_iter).always(function (x) {
@@ -178,7 +178,22 @@ var schema_1 = {
 
 (function () {
 
-  var db_name = 'test_ver_1_iterator_get';
+  var db_name = 'test_ver_1_iterator_get_1';
+  var schema_1 = {
+    stores: [
+      {
+        name: store_inline_index,
+        keyPath: 'id',
+        type: 'NUMERIC',
+        indexes: [
+          {name: 'name', type: 'TEXT'},
+          {name: 'value', type: 'NUMERIC'},
+          {name: 'tags', type: 'TEXT', multiEntry: true}
+        ]
+      }
+
+    ]
+  };
   var test_count = 0;
   var db_r = new ydn.db.Storage(db_name, schema_1);
 
@@ -232,7 +247,7 @@ var schema_1 = {
 
   asyncTest("effective key by an index iterator", function () {
     expect(1);
-    var iter = ydn.db.Cursors.where(store_inline_index, 'name', 'LIKE%', 'c');
+    var iter = ydn.db.Cursors.where(store_inline_index, 'name', '$', 'c');
     db_r.get(iter).then(function (x) {
       equal(x, objs[3].id, 'get item 3 key');
       start();
@@ -244,7 +259,7 @@ var schema_1 = {
 
   asyncTest("ref value by an iterator", function () {
     expect(1);
-    var iter = ydn.db.IndexValueCursors.where(store_inline_index, 'name', 'LIKE%', 'c');
+    var iter = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '$', 'c');
     db_r.get(iter).then(function (x) {
       deepEqual(x, objs[3], 'get item 3 value');
       start();
@@ -447,7 +462,7 @@ var schema_1 = {
 
   asyncTest("4. Ref value by string index key range", function () {
     expect(4);
-    var q = ydn.db.IndexValueCursors.where(store_inline_index, 'name', 'LIKE%', 'b');
+    var q = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '$', 'b');
     db.values(q).always(function (x) {
       //console.log(q)
       equal(x.length, 4, 'LIKE%');
@@ -465,7 +480,7 @@ var schema_1 = {
       deepEqual(x.length, 1, '<');
     });
 
-    q = ydn.db.IndexValueCursors.where(store_inline_index, 'name', 'LIKE%', 'd');
+    q = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '$', 'd');
     db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x.length, 0, 'LIKE% no result');
