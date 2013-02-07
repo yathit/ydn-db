@@ -100,7 +100,7 @@ ydn.db.core.Storage.prototype.getCoreOperator = function() {
  */
 ydn.db.core.Storage.prototype.getExecutor = function () {
 
-  var type = this.type();
+  var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
     return new ydn.db.core.req.IndexedDb(this.db_name, this.schema);
   } else if (type == ydn.db.con.WebSql.TYPE) {

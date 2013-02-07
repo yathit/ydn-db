@@ -51,7 +51,7 @@ ydn.db.con.LocalStorage.TYPE = 'localstorage';
 /**
  * @inheritDoc
  */
-ydn.db.con.LocalStorage.prototype.type = function() {
+ydn.db.con.LocalStorage.prototype.getType = function() {
   return ydn.db.con.LocalStorage.TYPE;
 };
 
@@ -98,7 +98,7 @@ ydn.db.con.SessionStorage.TYPE = 'sessionstorage';
 /**
  * @inheritDoc
  */
-ydn.db.con.SessionStorage.prototype.type = function() {
+ydn.db.con.SessionStorage.prototype.getType = function() {
   return ydn.db.con.SessionStorage.TYPE;
 };
 

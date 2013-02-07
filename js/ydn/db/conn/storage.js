@@ -405,9 +405,9 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
  * @return {string} database mechanism type.
  * @export
  */
-ydn.db.con.Storage.prototype.type = function() {
+ydn.db.con.Storage.prototype.getType = function() {
   if (this.db_) {
-    return this.db_.type();
+    return this.db_.getType();
   } else {
     return '';
   }

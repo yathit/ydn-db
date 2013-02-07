@@ -245,7 +245,7 @@ ydn.db.Streamer.prototype.push = function(key, value) {
       if (!this.db_) {
         throw new ydn.error.InvalidOperationError('No database set.');
       }
-      var type = this.db_.type();
+      var type = this.db_.getType();
       if (!type) {
         throw new ydn.error.InvalidOperationError('Database not connected.');
       } else if (type === ydn.db.con.IndexedDb.TYPE) {

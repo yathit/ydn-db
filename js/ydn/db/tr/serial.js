@@ -177,7 +177,7 @@ ydn.db.tr.Serial.prototype.lock = function() {
  * @return {string}
  */
 ydn.db.tr.Serial.prototype.type = function() {
-  return this.storage_.type();
+  return this.storage_.getType();
 };
 
 

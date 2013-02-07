@@ -326,7 +326,7 @@ ydn.db.con.WebSql.TYPE = 'websql';
 /**
  * @inheritDoc
  */
-ydn.db.con.WebSql.prototype.type = function() {
+ydn.db.con.WebSql.prototype.getType = function() {
   return ydn.db.con.WebSql.TYPE;
 };
 

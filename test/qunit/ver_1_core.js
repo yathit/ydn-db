@@ -112,7 +112,7 @@ var schema_auto_increase = {
     },
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
-      var type = db.type();
+      var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
       //ydn.db.deleteDatabase(db.getName());
@@ -308,7 +308,7 @@ var schema_auto_increase = {
     db.get(store_nested_key, data_nested_key.id.$t).then(function (x) {
       deepEqual(data_nested_key, x, 'same object ');
       start();
-      var type = db.type();
+      var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
     }, function (e) {
@@ -446,7 +446,7 @@ var schema_auto_increase = {
       deepEqual(data_list_inline.slice(2, 4), x.slice(0, 2), 'inline');
       deepEqual(data_list_outline[2], x[2], 'offline');
       start();
-      var type = db.type();
+      var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
     });
@@ -522,7 +522,7 @@ var schema_auto_increase = {
       db.keys(store_inline, 2, 2).always(function (keys) {
         deepEqual(keys_inline.slice(2, 4), keys, 'limit offset');
         start();
-        var type = db.type();
+        var type = db.getType();
         db.close();
         ydn.db.deleteDatabase(db.getName(), type);
       });
@@ -619,7 +619,7 @@ var schema_auto_increase = {
     db.count(store_inline, range).then(function (x) {
       equal(3, x, 'number of records in a range');
       start();
-      var type = db.type();
+      var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
     }, function (e) {

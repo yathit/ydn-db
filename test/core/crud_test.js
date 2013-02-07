@@ -105,9 +105,9 @@ var test_add_fail = function() {
         function () {
           assertNull('add a again', put_value);
           assertNotNull('error event', add_ev);
-          if (db.type() == 'indexeddb') {
+          if (db.getType() == 'indexeddb') {
             assertEquals('add fail with constrained error', 'ConstraintError', add_ev.target.error.name);
-          } else if (db.type() == 'websql') {
+          } else if (db.getType() == 'websql') {
             assertEquals('add fail with constrained error', 6, add_ev.code);
           }
 

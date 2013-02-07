@@ -113,7 +113,7 @@ var schema_1 = {
       db_r.close();
       test_count++;
       if (test_count >= 2) {
-        var type = db_r.type();
+        var type = db_r.getType();
         db_r.close();
         ydn.db.deleteDatabase(db_r.getName(), type);
       }
@@ -198,7 +198,7 @@ var schema_1 = {
     teardown: function () {
       test_count++;
       if (test_count >= 4) {
-        var type = db_r.type();
+        var type = db_r.getType();
         db_r.close();
         ydn.db.deleteDatabase(db_r.getName(), type);
       }
@@ -300,7 +300,7 @@ var schema_1 = {
       db.close();
       test_count++;
       if (test_count >= 5) {
-        var type = db.type();
+        var type = db.getType();
         ydn.db.deleteDatabase(db.getName(), type);
       }
     }
@@ -557,7 +557,7 @@ var schema_1 = {
       db.close();
       test_count++;
       if (test_count >= 3) {
-        var type = db.type();
+        var type = db.getType();
         ydn.db.deleteDatabase(db.getName(), type);
       }
     }

@@ -56,12 +56,12 @@ var test_1_basic = function() {
 
   db.run(function tx_cb1 (idb) {
     console.log('tr start: ' + idb);
-    assertEquals('type', db_type, db.type());
+    assertEquals('type', db_type, db.getType());
     var tx = idb.getTx();
     assertNotUndefined(tx);
     assertNotNull(tx);
     // assertNull(tx.error); // accessing error object will cause tx to commit ?
-    console.log(idb + ' tx started with ' + idb.type() + ' ' + tx);
+    console.log(idb + ' tx started with ' + idb.getType() + ' ' + tx);
     var store = tx.objectStore(table_name);
     var put_req = store.put(val);
     put_req.onsuccess = function(x) {
@@ -114,7 +114,7 @@ var test_2_opt_arg = function() {
     a_out = a;
     b_out = b;
     c_out = c;
-    type_out = idb.type();
+    type_out = idb.getType();
   }, [table_name], 'readwrite', oncompleted, 1, '3', {id: 'ok'});
 };
 

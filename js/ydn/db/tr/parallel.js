@@ -127,7 +127,7 @@ ydn.db.tr.ParallelThread.prototype.getQueueNo = function() {
  * @return {string}
  */
 ydn.db.tr.ParallelThread.prototype.type = function() {
-  return this.storage_.type();
+  return this.storage_.getType();
 };
 
 

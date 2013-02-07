@@ -106,7 +106,7 @@ var events_schema = {
               equal(e.type, 'connected', 'event type');
               equal(e.getVersion(), 2, 'updated version number');
               equal(e.getOldVersion(), 1, 'old version number, existing db, new schema');
-              var type = db.type();
+              var type = db.getType();
               db.list(tb_name).always(function () { // make sure all run.
                 db.close();
                 ydn.db.deleteDatabase(db.getName(), type);
@@ -160,7 +160,7 @@ var events_schema = {
       equal(e.name, 'RecordEvent', 'event name');
       equal(e.getStoreName(), store_inline, 'store name');
       deepEqual(e.getValue(), data, 'value');
-      var type = db.type();
+      var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
       start();
@@ -203,7 +203,7 @@ var events_schema = {
       equal(e.type, 'updated', 'type');
       equal(e.getKey(), key, 'key');
       deepEqual(e.getValue(), data, 'value');
-      var type = db.type();
+      var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
       start();
@@ -253,7 +253,7 @@ var events_schema = {
       equal(e.type, 'created', 'type');
       deepEqual(e.getKeys(), keys, 'keys');
       deepEqual(e.getValues(), data, 'values');
-      var type = db.type();
+      var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
       start();
@@ -297,7 +297,7 @@ var events_schema = {
       equal(e.type, 'updated', 'type');
       deepEqual(e.getKeys(), keys, 'updated key');
       deepEqual(e.getValues(), data, 'updated value');
-      var type = db.type();
+      var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
       start();
@@ -354,7 +354,7 @@ var events_schema = {
       });
     }, null, 'readwrite', function() {
       start();
-      var type = db.type();
+      var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
     })

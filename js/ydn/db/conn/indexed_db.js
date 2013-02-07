@@ -425,7 +425,7 @@ ydn.db.con.IndexedDb.prototype.time_out_ = 3*60*1000;
 /**
  * @return {string} storage mechanism type.
  */
-ydn.db.con.IndexedDb.prototype.type = function() {
+ydn.db.con.IndexedDb.prototype.getType = function() {
   return ydn.db.con.IndexedDb.TYPE;
 };
 
@@ -725,5 +725,5 @@ ydn.db.con.IndexedDb.prototype.close = function() {
  */
 ydn.db.con.IndexedDb.prototype.toString = function() {
   var s = this.idx_db_ ? this.idx_db_.name + ':' + this.idx_db_.version : '';
-  return this.type() + ':' + s;
+  return this.getType() + ':' + s;
 };

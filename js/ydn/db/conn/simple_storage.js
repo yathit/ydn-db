@@ -240,7 +240,7 @@ ydn.db.con.SimpleStorage.DEFAULT_KEY_PATH = '_id_';
 /**
  * @inheritDoc
  */
-ydn.db.con.SimpleStorage.prototype.type = function() {
+ydn.db.con.SimpleStorage.prototype.getType = function() {
   return 'memory';
 };
 
