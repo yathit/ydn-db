@@ -323,13 +323,37 @@ var schema_auto_increase = {
 (function () {
 
   var db;
-  var db_name = 'tck1-list';
+  var db_name = 'tck1-list-1';
+
+  // schema without auto increment
+  var schema_1 = {
+    stores: [
+      {
+        name: store_inline,
+        keyPath: 'id',
+        type: 'NUMERIC'},
+      {
+        name: store_outline,
+        type: 'NUMERIC'},
+      {
+        name: store_inline_index,
+        keyPath: 'id',
+        type: 'NUMERIC',
+        indexes: [
+          {name: 'value', type: 'TEXT'}
+        ]
+      }
+    ]
+  };
 
   var data_list_inline = [];
   var data_list_outline = [];
+  var data_list_index = [];
   var keys_list_outline = [];
   for (var i = 0; i < 5; i++) {
-    data_list_inline[i] = {id: i, type: 'inline', value: 'test inline ' + Math.random()};
+    data_list_inline[i] = {id: i, type: 'inline', msg: 'test inline ' + Math.random()};
+    data_list_index[i] = {id: i, type: 'index',
+      value: (i%2) == 0 ? 'a' : 'b', msg: 'test inline ' + Math.random()};
     data_list_outline[i] = {type: 'offline', value: 'test out of line ' + Math.random()};
     keys_list_outline[i] = i;
   }
@@ -340,7 +364,9 @@ var schema_auto_increase = {
   // we don't want to share this database connection and test database connection.
   (function() {
     var _db = new ydn.db.Storage(db_name, schema_1, options);
+    _db.clear();
     _db.put(store_inline, data_list_inline);
+    _db.put(store_inline_index, data_list_index);
     _db.put(store_outline, data_list_outline, keys_list_outline);
     _db.count(store_outline).always(function() {
       ready.resolve();
@@ -363,14 +389,27 @@ var schema_auto_increase = {
     }
   };
 
-  module("List", test_env);
+  module("Values", test_env);
 
   asyncTest("Retrieve all objects from a store - inline key", function () {
 
     ready.always(function() {
-      expect(4);
+      expect(7);
       db.values(store_inline).always(function (x) {
         deepEqual(x, data_list_inline, 'all');
+      });
+
+      var range = ydn.db.KeyRange.bound(1, 3);
+      db.values(store_inline, range).always(function (x) {
+        deepEqual(x, data_list_inline.slice(1, 4), 'range between 1 and 3');
+      });
+
+      db.values(store_inline, {lower: 3}).always(function (x) {
+        deepEqual(x, data_list_inline.slice(3), 'range lower 3');
+      });
+
+      db.values(store_inline, {upper: 3}).always(function (x) {
+        deepEqual(x, data_list_inline.slice(0, 4), 'range upper 3');
       });
 
       db.values(store_inline, null, 2).always(function (x) {
@@ -390,22 +429,42 @@ var schema_auto_increase = {
 
   });
 
+  asyncTest("Retrieve objects by index key", function () {
+    ready.always(function () {
+      expect(3);
+
+      db.values(store_inline_index, null, 10, 0, 'value').always(function (x) {
+        deepEqual(x.length, data_list_index.length, 'number of record');
+      });
+
+      db.values(store_inline_index, ydn.db.KeyRange.only('b'), 10, 0, 'value').always(function (x) {
+        deepEqual(x, [data_list_index[1], data_list_index[3]], 'only b');
+      });
+
+      db.values(store_inline_index, ydn.db.KeyRange.only('a'), 1, 1, 'value').always(function (x) {
+        deepEqual(x, [data_list_index[2]], 'with limit and offset');
+        start();
+      });
+    });
+  });
+
   asyncTest("Retrieve objects by key list - inline-key", function () {
-    expect(3);
+    ready.always(function () {
+      expect(3);
 
-    db.values(store_inline, [1, 2]).always(function (x) {
-      deepEqual(data_list_inline.slice(1, 3), x, '1 and 2');
+      db.values(store_inline, [1, 2]).always(function (x) {
+        deepEqual(x, data_list_inline.slice(1, 3), '1 and 2');
+      });
+
+      db.values(store_inline, []).always(function (x) {
+        deepEqual(x, [], 'empty array');
+      });
+
+      db.values(store_inline, [1, 100]).always(function (x) {
+        deepEqual(x, [data_list_inline[1], undefined], 'invalid key');
+        start();
+      });
     });
-
-    db.values(store_inline, []).always(function (x) {
-      deepEqual([], x, 'empty array');
-    });
-
-    db.values(store_inline, [1, 100]).always(function (x) {
-      deepEqual([data_list_inline[1], undefined], x, 'invalid key');
-      start();
-    });
-
   });
 
   asyncTest("Retrieve objects from a store - out-of-line key", function () {
@@ -413,44 +472,45 @@ var schema_auto_increase = {
       expect(4);
 
       db.values(store_outline).then(function (x) {
-        deepEqual(data_list_outline, x, 'all records');
+        deepEqual(x, data_list_outline, 'all records');
       }, function (e) {
         ok(false, e.message);
       });
 
-      db.values(store_outline, null, 2).then(function (x) {
-        deepEqual(data_list_outline.slice(0, 2), x, 'limit');
+      db.values(store_outline, null, 2).always(function (x) {
+        deepEqual(x, data_list_outline.slice(0, 2), 'limit');
       });
 
-      db.values(store_outline, null, 2, 1).then(function (x) {
-        deepEqual(data_list_outline.slice(1, 3), x, 'limit offset');
+      db.values(store_outline, null, 2, 1).always(function (x) {
+        deepEqual(x, data_list_outline.slice(1, 3), 'limit offset');
       });
 
-      db.values(store_outline, null, undefined, 2).then(function (x) {
-        deepEqual(data_list_outline.slice(2), x, 'offset');
+      db.values(store_outline, null, undefined, 2).always(function (x) {
+        deepEqual(x, data_list_outline.slice(2), 'offset');
         start();
       });
     });
   });
 
   asyncTest("Retrieve objects by keys from multiple stores", function () {
-    expect(3);
+    ready.always(function () {
+      expect(3);
 
-    var keys = [
-      new ydn.db.Key(store_inline, 2),
-      new ydn.db.Key(store_inline, 3),
-      new ydn.db.Key(store_outline, 2)];
-    db.values(keys).always(function (x) {
-      // console.log(x);
-      equal(x.length, 3, 'number of result');
-      deepEqual(data_list_inline.slice(2, 4), x.slice(0, 2), 'inline');
-      deepEqual(data_list_outline[2], x[2], 'offline');
-      start();
-      var type = db.getType();
-      db.close();
-      ydn.db.deleteDatabase(db.getName(), type);
+      var keys = [
+        new ydn.db.Key(store_inline, 2),
+        new ydn.db.Key(store_inline, 3),
+        new ydn.db.Key(store_outline, 2)];
+      db.values(keys).always(function (x) {
+        // console.log(x);
+        equal(x.length, 3, 'number of result');
+        deepEqual(data_list_inline.slice(2, 4), x.slice(0, 2), 'inline');
+        deepEqual(data_list_outline[2], x[2], 'offline');
+        start();
+        var type = db.getType();
+        db.close();
+        ydn.db.deleteDatabase(db.getName(), type);
+      });
     });
-
   });
 
 })();
@@ -458,8 +518,34 @@ var schema_auto_increase = {
 (function () {
 
   var db;
-  var db_name = 'tck1-keys';
+  var db_name = 'tck1-keys-1';
 
+  // schema without auto increment
+  var schema_1 = {
+    stores: [
+      {
+        name: store_inline,
+        keyPath: 'id',
+        type: 'NUMERIC'},
+      {
+        name: store_inline_string,
+        keyPath: 'id',
+        type: 'TEXT'},
+      {
+        name: store_outline,
+        type: 'NUMERIC'},
+      {
+        name: store_inline_index,
+        keyPath: 'id',
+        type: 'NUMERIC',
+        indexes: [
+          {name: 'value', type: 'TEXT'}
+        ]
+      }
+    ]
+  };
+
+  var data_list_index = [{id: 1, value: 'a'}, {id: 2, value: 'b'}, {id: 3, value: 'a'}];
   var keys_inline = [1, 2, 10, 20, 100];
   var keys_inline_string = ['ab1', 'ab2', 'ac1', 'ac2', 'b'];
   var inline_data = keys_inline.map(function (x) {
@@ -475,17 +561,19 @@ var schema_auto_increase = {
   // we don't want to share this database connection and test database connection.
   (function() {
     var _db = new ydn.db.Storage(db_name, schema_1);
-    _db.clear(store_inline);
-    _db.clear(store_inline_string);
+    _db.clear();
 
     _db.put(store_inline_string, inline_string_data).fail(function (e) {
       throw e;
     });
     //console.log(inline_data);
     _db.put(store_inline, inline_data);
-    _db.count(store_inline).always(function() {
-      ready.resolve();
+    _db.put(store_inline_index, data_list_index).always(function() {
+      _db.count().always(function() {
+        ready.resolve();
+      });
     });
+
     _db.close();
   })();
 
@@ -522,12 +610,30 @@ var schema_auto_increase = {
       db.keys(store_inline, null, 2, 2).always(function (keys) {
         deepEqual(keys_inline.slice(2, 4), keys, 'limit offset');
         start();
+
+      });
+    });
+
+  });
+
+  asyncTest("Retrieve primary key by index key", function () {
+    ready.always(function () {
+      expect(2);
+
+      db.keys(store_inline_index, null, 10, 0, 'value').always(function (x) {
+        // answer will be ['a', 'a', 'b']
+        deepEqual(x, [1, 3, 2], 'number of record');
+      });
+
+      db.keys(store_inline_index, ydn.db.KeyRange.only('a'), 10, 0, 'value').always(function (x) {
+        deepEqual(x, [1, 3], 'only a');
+        start();
         var type = db.getType();
         db.close();
         ydn.db.deleteDatabase(db.getName(), type);
       });
-    });
 
+    });
   });
 
 })();
