@@ -48,7 +48,7 @@ db.put({name: 'color', keyPath: 'id'}, colors)
             console.log('Error retrieving keys for colors.');
           });
 
-      db.list('color', false, 20).done(function(records) {
+      db.values('color', false, 20).done(function(records) {
         console.log('pouet3');
         console.log(records);
       }).fail(function() {

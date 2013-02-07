@@ -90,7 +90,7 @@ var test_0_json_config_empty_table = function() {
       100, // interval
       1000); // maxTimeout
 
-  db.list('todo').addCallback(function(value) {
+  db.values('todo').addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;

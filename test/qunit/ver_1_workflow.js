@@ -75,7 +75,7 @@ var events_schema = {
       equal(e.getVersion(), 1, 'version number');
       ok(isNaN(e.getOldVersion()), 'old version number');
 
-      db.list(store_inline).always(function () {
+      db.values(store_inline).always(function () {
 
         db.close();
 
@@ -87,7 +87,7 @@ var events_schema = {
           equal(e.getVersion(), 1, 'version number');
           equal(e.getOldVersion(), 1, 'old version number, existing');
 
-          db.list(store_inline).always(function () {
+          db.values(store_inline).always(function () {
 
             db.close();
 
@@ -107,7 +107,7 @@ var events_schema = {
               equal(e.getVersion(), 2, 'updated version number');
               equal(e.getOldVersion(), 1, 'old version number, existing db, new schema');
               var type = db.getType();
-              db.list(tb_name).always(function () { // make sure all run.
+              db.values(tb_name).always(function () { // make sure all run.
                 db.close();
                 ydn.db.deleteDatabase(db.getName(), type);
                 start();
@@ -346,7 +346,7 @@ var events_schema = {
       tdb.put(store_inline, data).always(function(x) {
         equal(key, x, 'put key');
       });
-      tdb.list(store_inline, [key1, key]).always(function(x) {
+      tdb.values(store_inline, [key1, key]).always(function(x) {
         deepEqual([obj, data], x, 'get objects');
       });
       tdb.clear(store_inline).always(function(x) {

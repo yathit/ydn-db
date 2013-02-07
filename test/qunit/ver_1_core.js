@@ -369,19 +369,19 @@ var schema_auto_increase = {
 
     ready.always(function() {
       expect(4);
-      db.list(store_inline).always(function (x) {
+      db.values(store_inline).always(function (x) {
         deepEqual(x, data_list_inline, 'all');
       });
 
-      db.list(store_inline, 2).always(function (x) {
+      db.values(store_inline, 2).always(function (x) {
         deepEqual(x, data_list_inline.slice(0, 2), 'limit');
       });
 
-      db.list(store_inline, 2, 2).always(function (x) {
+      db.values(store_inline, 2, 2).always(function (x) {
         deepEqual(x, data_list_inline.slice(2, 4), 'limit offset');
       });
 
-      db.list(store_inline, undefined, 2).always(function (x) {
+      db.values(store_inline, undefined, 2).always(function (x) {
         deepEqual(x, data_list_inline.slice(2), 'offset');
         start();
       });
@@ -393,15 +393,15 @@ var schema_auto_increase = {
   asyncTest("Retrieve objects by key list - inline-key", function () {
     expect(3);
 
-    db.list(store_inline, [1, 2]).always(function (x) {
+    db.values(store_inline, [1, 2]).always(function (x) {
       deepEqual(data_list_inline.slice(1, 3), x, '1 and 2');
     });
 
-    db.list(store_inline, []).always(function (x) {
+    db.values(store_inline, []).always(function (x) {
       deepEqual([], x, 'empty array');
     });
 
-    db.list(store_inline, [1, 100]).always(function (x) {
+    db.values(store_inline, [1, 100]).always(function (x) {
       deepEqual([data_list_inline[1], undefined], x, 'invalid key');
       start();
     });
@@ -412,21 +412,21 @@ var schema_auto_increase = {
     ready.always(function () {
       expect(4);
 
-      db.list(store_outline).then(function (x) {
+      db.values(store_outline).then(function (x) {
         deepEqual(data_list_outline, x, 'all records');
       }, function (e) {
         ok(false, e.message);
       });
 
-      db.list(store_outline, 2).then(function (x) {
+      db.values(store_outline, 2).then(function (x) {
         deepEqual(data_list_outline.slice(0, 2), x, 'limit');
       });
 
-      db.list(store_outline, 2, 1).then(function (x) {
+      db.values(store_outline, 2, 1).then(function (x) {
         deepEqual(data_list_outline.slice(1, 3), x, 'limit offset');
       });
 
-      db.list(store_outline, undefined, 2).then(function (x) {
+      db.values(store_outline, undefined, 2).then(function (x) {
         deepEqual(data_list_outline.slice(2), x, 'offset');
         start();
       });
@@ -440,7 +440,7 @@ var schema_auto_increase = {
       new ydn.db.Key(store_inline, 2),
       new ydn.db.Key(store_inline, 3),
       new ydn.db.Key(store_outline, 2)];
-    db.list(keys).always(function (x) {
+    db.values(keys).always(function (x) {
       console.log(x);
       equal(x.length, 3, 'number of result');
       deepEqual(data_list_inline.slice(2, 4), x.slice(0, 2), 'inline');

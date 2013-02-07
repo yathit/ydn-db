@@ -210,7 +210,7 @@ var test_load_data = function() {
         100, // interval
         2000); // maxTimeout
 
-      db.list(load_store_name, keys).addBoth(function(x) {
+      db.values(load_store_name, keys).addBoth(function(x) {
         result = x;
         hasEventFired = true;
       });
@@ -463,7 +463,7 @@ var test_24_list_by_ids = function() {
 
   db.put(table_name, arr);
 
-  db.list(table_name, ids).addCallback(function(value) {
+  db.values(table_name, ids).addCallback(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
@@ -511,7 +511,7 @@ var test_26_list = function() {
 
   db.put(table_name, data);
 
-  db.list(table_name).addCallback(function(value) {
+  db.values(table_name).addCallback(function(value) {
     //console.log('receiving value callback.');
     whole_result = value;
     whole_done = true;
@@ -520,7 +520,7 @@ var test_26_list = function() {
       console.log('Error: ' + e);
     });
 
-  db.list(table_name, [1, 2]).addCallback(function(value) {
+  db.values(table_name, [1, 2]).addCallback(function(value) {
     //console.log('receiving value callback.');
     array_result = value;
     array_done = true;
@@ -529,7 +529,7 @@ var test_26_list = function() {
       console.log('Error: ' + e);
     });
 
-  db.list(table_name, 3).addCallback(function(value) {
+  db.values(table_name, 3).addCallback(function(value) {
     //console.log('receiving value callback.');
     limit_result = value;
     limit_done = true;
@@ -537,7 +537,7 @@ var test_26_list = function() {
       limit_done = true;
       console.log('Error: ' + e);
     });
-  db.list(table_name, 2, 1).addCallback(function(value) {
+  db.values(table_name, 2, 1).addCallback(function(value) {
     //console.log('receiving value callback.');
     offset_result = value;
     offset_done = true;
@@ -582,7 +582,7 @@ var test_25_get_large_array = function() {
 
   db.put(table_name, arr);
 
-  db.list(table_name, ids).addCallback(function(value) {
+  db.values(table_name, ids).addCallback(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
@@ -617,7 +617,7 @@ var test_24_get_all_no_data = function() {
     100, // interval
     2000); // maxTimeout
 
-  db.list(table_name).addCallback(function(value) {
+  db.values(table_name).addCallback(function(value) {
     //console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -890,7 +890,7 @@ var test_52_fetch_keys = function () {
       var keys = [
         new ydn.db.Key(store_name, objs[1].id),
         new ydn.db.Key(store_name, objs[2].id)];
-      db.list(keys).addCallback(function (value) {
+      db.values(keys).addCallback(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         put_value_received = value;
 
@@ -1040,7 +1040,7 @@ var test_53_fetch_keys = function () {
         100, // interval
         2000); // maxTimeout
 
-      db.list(keys).addCallback(function (value) {
+      db.values(keys).addCallback(function (value) {
         //console.log('fetch value: ' + JSON.stringify(value));
         results = value;
         get_done = true;

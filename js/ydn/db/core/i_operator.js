@@ -45,7 +45,7 @@ ydn.db.core.IOperator.prototype.get = goog.abstractMethod;
  * @param {number=} offset offset.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.IOperator.prototype.list = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.values = goog.abstractMethod;
 
 
 /**

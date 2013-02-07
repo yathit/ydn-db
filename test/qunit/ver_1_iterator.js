@@ -314,60 +314,60 @@ var schema_1 = {
 
       var key_range = ydn.db.KeyRange.bound(1, 3);
       var q = new ydn.db.ValueIterator(store_inline_index, key_range);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(1, 4), 'closed bound');
       });
 
       key_range = ydn.db.KeyRange.bound(1, 3);
       q = new ydn.db.ValueIterator(store_inline_index, key_range, true);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         var exp = objs.slice(1, 4).reverse();
         deepEqual(x, exp, 'closed bound reverse');
       });
 
       key_range = ydn.db.KeyRange.bound(1, 3);
       q = new ydn.db.ValueIterator(store_inline_index, key_range);
-      db.list(q, 1).always(function (x) {
+      db.values(q, 1).always(function (x) {
         deepEqual(x, objs.slice(1, 2), 'closed bound limit');
       });
 
       key_range = ydn.db.KeyRange.bound(1, 3);
       q = new ydn.db.ValueIterator(store_inline_index, key_range);
-      db.list(q, 1, 1).always(function (x) {
+      db.values(q, 1, 1).always(function (x) {
         deepEqual(x, objs.slice(2, 3), 'closed bound limit offset');
       });
 
       key_range = ydn.db.KeyRange.bound(1, 3);
       q = new ydn.db.ValueIterator(store_inline_index, key_range, true);
-      db.list(q, 1).always(function (x) {
+      db.values(q, 1).always(function (x) {
         deepEqual(x, objs.slice(3, 4), 'closed bound reverse limit');
       });
 
       key_range = ydn.db.KeyRange.lowerBound(2);
       q = new ydn.db.ValueIterator(store_inline_index, key_range);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(2), 'lowerBound');
       });
 
       key_range = ydn.db.KeyRange.lowerBound(2, true);
       q = new ydn.db.ValueIterator(store_inline_index, key_range);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(3), 'open lowerBound');
       });
 
       key_range = ydn.db.KeyRange.upperBound(2);
       q = new ydn.db.ValueIterator(store_inline_index, key_range);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(0, 3), 'upperBound');
       });
 
       key_range = ydn.db.KeyRange.upperBound(2, true);
       q = new ydn.db.ValueIterator(store_inline_index, key_range);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(0, 2), 'open upperBound');
         start();
@@ -378,31 +378,31 @@ var schema_1 = {
   asyncTest("2. Ref value by index key range", function () {
       expect(5);
       var q = ydn.db.ValueIndexIterator.where(store_inline_index, 'value', '>=', 2, '<=', 4);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(1, 3), 'closed bound');
       });
 
       q = ydn.db.ValueIndexIterator.where(store_inline_index, 'value', '>=', 4);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(2), 'lowerBound');
       });
 
       q = ydn.db.ValueIndexIterator.where(store_inline_index, 'value', '>', 4);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(3), 'open lowerBound');
       });
 
       q = ydn.db.ValueIndexIterator.where(store_inline_index, 'value', '<=', 4);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(0, 3), 'upperBound');
       });
 
       q =  ydn.db.ValueIndexIterator.where(store_inline_index, 'value', '<', 4);
-      db.list(q).always(function (x) {
+      db.values(q).always(function (x) {
         //console.log(q)
         deepEqual(x, objs.slice(0, 2), 'open upperBound');
         start();
@@ -413,31 +413,31 @@ var schema_1 = {
     var keys = objs.map(function(x) {return x.id});
     expect(5);
     var q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '>=', 2, '<=', 4);
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, keys.slice(1, 3), 'closed bound');
     });
 
     q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '>=', 4);
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, keys.slice(2), 'lowerBound');
     });
 
     q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '>', 4);
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, keys.slice(3), 'open lowerBound');
     });
 
     q = ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '<=', 4);
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, keys.slice(0, 3), 'upperBound');
     });
 
     q =  ydn.db.KeyIndexIterator.where(store_inline_index, 'value', '<', 4);
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, keys.slice(0, 2), 'open upperBound');
       start();
@@ -448,25 +448,25 @@ var schema_1 = {
   asyncTest("4. Ref value by string index key range", function () {
     expect(4);
     var q = ydn.db.ValueIndexIterator.where(store_inline_index, 'name', 'LIKE%', 'b');
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       equal(x.length, 4, 'LIKE%');
     });
 
     q = ydn.db.ValueIndexIterator.where(store_inline_index, 'name', '=', 'b');
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x.length, 1, 'equal');
     });
 
     q = ydn.db.ValueIndexIterator.where(store_inline_index, 'name', '<', 'b');
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x.length, 1, '<');
     });
 
     q = ydn.db.ValueIndexIterator.where(store_inline_index, 'name', 'LIKE%', 'd');
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x.length, 0, 'LIKE% no result');
       start();
@@ -479,7 +479,7 @@ var schema_1 = {
     expect(4);
     var range = ydn.db.KeyRange.only('a');
     var q = new ydn.db.KeyIndexIterator(store_inline_index, 'tags', range);
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, [objs[0].id, objs[3].id, objs[6].id], 'ref value only a');
 
@@ -487,21 +487,21 @@ var schema_1 = {
 
     range = ydn.db.KeyRange.only('a');
     q = new ydn.db.ValueIndexIterator(store_inline_index, 'tags', range);
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, [objs[0], objs[3], objs[6]], 'only a');
 
     });
 
     q = new ydn.db.KeyIndexIterator(store_inline_index, 'tags', range, false, true);
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, [objs[0].id], 'only a unique');
 
     });
 
     q = new ydn.db.ValueIndexIterator(store_inline_index, 'tags', range, false, true);
-    db.list(q).always(function (x) {
+    db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, [objs[0]], 'only a unique');
       start();

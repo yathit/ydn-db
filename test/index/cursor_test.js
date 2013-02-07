@@ -138,7 +138,7 @@ var test_listByIterator = function () {
 
   var q = new ydn.db.ValueIterator(store_name);
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -173,7 +173,7 @@ var test_listByIterator_resume = function () {
         100, // interval
         1000); // maxTimeout
 
-      db.list(q, 3).addBoth(function (value) {
+      db.values(q, 3).addBoth(function (value) {
         //console.log(db + ' fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
@@ -184,7 +184,7 @@ var test_listByIterator_resume = function () {
 
   var q = new ydn.db.ValueIterator(store_name);
 
-  db.list(q, 3).addBoth(function (value) {
+  db.values(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -217,7 +217,7 @@ var test_listBy_index_ValueIterator = function () {
 
   var q = new ydn.db.ValueIndexIterator(store_name, 'value');
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -256,7 +256,7 @@ var test_listBy_index_ValueIterator_resume = function () {
         100, // interval
         1000); // maxTimeout
 
-      db.list(q, 3).addBoth(function (value) {
+      db.values(q, 3).addBoth(function (value) {
         //console.log(db + ' fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
@@ -267,7 +267,7 @@ var test_listBy_index_ValueIterator_resume = function () {
 
   var q = new ydn.db.ValueIndexIterator(store_name, 'value');
 
-  db.list(q, 3).addBoth(function (value) {
+  db.values(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -299,7 +299,7 @@ var test_listByKeyIterator = function () {
 
   var q = new ydn.db.KeyIterator(store_name);
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -340,7 +340,7 @@ var test_listByKeyIterator_resume = function () {
         100, // interval
         1000); // maxTimeout
 
-      db.list(q, 3).addBoth(function (value) {
+      db.values(q, 3).addBoth(function (value) {
         //console.log(db + ' fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
@@ -351,7 +351,7 @@ var test_listByKeyIterator_resume = function () {
 
   var q = new ydn.db.KeyIterator(store_name);
 
-  db.list(q, 3).addBoth(function (value) {
+  db.values(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -378,7 +378,7 @@ var test_listByIterator_limit = function () {
 
   var q = new ydn.db.ValueIterator(store_name);
 
-  db.list(q, 3).addBoth(function (value) {
+  db.values(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -406,7 +406,7 @@ var test_listByIterator_limit_offset = function () {
 
   var q = new ydn.db.ValueIterator(store_name);
 
-  db.list(q, 3, 2).addBoth(function (value) {
+  db.values(q, 3, 2).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;

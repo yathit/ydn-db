@@ -160,8 +160,8 @@ ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3) {
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3) {
-  return this.getCoreOperator().list(arg1, arg2, arg3);
+ydn.db.core.Storage.prototype.values = function(arg1, arg2, arg3) {
+  return this.getCoreOperator().values(arg1, arg2, arg3);
 };
 
 /**

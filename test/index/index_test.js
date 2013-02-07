@@ -111,7 +111,7 @@ var test_11_list_store = function () {
 
   var q = new ydn.db.Iterator(store_name);
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -140,7 +140,7 @@ var test_12_list_store_reverse = function () {
 
   var q = new ydn.db.Iterator(store_name, undefined, null, true);
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -169,7 +169,7 @@ var test_13_list_store_range = function () {
 
   var q = new ydn.db.Iterator(store_name, undefined, ydn.db.KeyRange.bound(1, 10));
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -197,7 +197,7 @@ var test_15_list_limit = function () {
 
   var q = new ydn.db.Iterator(store_name);
 
-  db.list(q, 3).addBoth(function (value) {
+  db.values(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -229,7 +229,7 @@ var test_21_list_index = function () {
 
   var q = new ydn.db.ValueIndexIterator(store_name, 'value');
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     //console.log(db.explain(q));
     result = value;
@@ -262,7 +262,7 @@ var test_22_list_index_rev = function () {
 
   var q = new ydn.db.ValueIndexIterator(store_name, 'value', null, true);
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     //console.log(db.explain(q));
     result = value;
@@ -293,7 +293,7 @@ var test_23_list_index_range = function () {
   var range = ydn.db.KeyRange.bound('a', 'b');
   var q = new ydn.db.ValueIndexIterator(store_name, 'value', range);
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     //console.log(db.explain(q));
     result = value;
@@ -385,7 +385,7 @@ var test_list_by_index = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.only('a');
-  db.list(store_name, 'type', range, false, undefined, undefined, false).addBoth(function(x) {
+  db.values(store_name, 'type', range, false, undefined, undefined, false).addBoth(function(x) {
     result = x;
     done = true;
   }, function(e) {
@@ -443,7 +443,7 @@ var test_list_by_index_unique = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.only('a');
-  db.list(store_name, 'type', range, false, undefined, undefined, true).addBoth(function(x) {
+  db.values(store_name, 'type', range, false, undefined, undefined, true).addBoth(function(x) {
     result = x;
     done = true;
   }, function(e) {
@@ -539,7 +539,7 @@ var test_multiEntry = function () {
     var keyRange = ydn.db.KeyRange.only(tag_name);
     var q = new ydn.db.Iterator(store_name, 'tag', keyRange);
 
-    db.list(q).addBoth(function (value) {
+    db.values(q).addBoth(function (value) {
       //console.log(tag_name + ' ==> ' + JSON.stringify(value));
       counts[idx] = value.length;
       done++;
@@ -597,7 +597,7 @@ var test_compound_index = function () {
   var done, result;
 
   db.put('st1', objs).addCallbacks(function(keys) {
-    db.list('st1', '12', ydn.db.KeyRange.bound(['a'], ['b'])).addCallbacks(function(x) {
+    db.values('st1', '12', ydn.db.KeyRange.bound(['a'], ['b'])).addCallbacks(function(x) {
       result = x;
       console.log(x);
       done = true;

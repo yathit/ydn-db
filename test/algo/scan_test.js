@@ -164,7 +164,7 @@ var test_scan_advance = function() {
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + 'store: ' + store_name + ' ready.');
   });
-  db.list(store_name).addCallback(function (value) {
+  db.values(store_name).addCallback(function (value) {
     console.log(value);
     console.log(db + 'store: ' + store_name + ' has ' + value.length + ' records.');
   });
