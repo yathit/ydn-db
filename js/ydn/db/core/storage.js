@@ -144,7 +144,7 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
  *
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3) {
+ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3, arg4, arg5) {
 //  return ydn.db.core.DbOperator.prototype.keys.apply(
 //    /** @type {ydn.db.core.DbOperator} */ (this.base_tx_queue),
 //    Array.prototype.slice.call(arguments));
@@ -154,14 +154,14 @@ ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3) {
   //  arg4, arg5, arg6, arg7);
   // but it preserve argument length
 
-  return this.getCoreOperator().keys(store_name, arg2, arg3);
+  return this.getCoreOperator().keys(store_name, arg2, arg3, arg4, arg5);
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.values = function(arg1, arg2, arg3) {
-  return this.getCoreOperator().values(arg1, arg2, arg3);
+ydn.db.core.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5) {
+  return this.getCoreOperator().values(arg1, arg2, arg3, arg4, arg5);
 };
 
 /**

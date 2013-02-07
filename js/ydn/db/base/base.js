@@ -42,7 +42,7 @@ ydn.db.base.JQUERY = false;
  * @const
  * @type {number}
  */
-ydn.db.base.DEFAULT_RESULT_LIMIT = 1000000;
+ydn.db.base.DEFAULT_RESULT_LIMIT = 100;
 
 
 /**

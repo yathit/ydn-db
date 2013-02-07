@@ -373,15 +373,15 @@ var schema_auto_increase = {
         deepEqual(x, data_list_inline, 'all');
       });
 
-      db.values(store_inline, 2).always(function (x) {
+      db.values(store_inline, null, 2).always(function (x) {
         deepEqual(x, data_list_inline.slice(0, 2), 'limit');
       });
 
-      db.values(store_inline, 2, 2).always(function (x) {
+      db.values(store_inline, null, 2, 2).always(function (x) {
         deepEqual(x, data_list_inline.slice(2, 4), 'limit offset');
       });
 
-      db.values(store_inline, undefined, 2).always(function (x) {
+      db.values(store_inline, null, undefined, 2).always(function (x) {
         deepEqual(x, data_list_inline.slice(2), 'offset');
         start();
       });
@@ -418,15 +418,15 @@ var schema_auto_increase = {
         ok(false, e.message);
       });
 
-      db.values(store_outline, 2).then(function (x) {
+      db.values(store_outline, null, 2).then(function (x) {
         deepEqual(data_list_outline.slice(0, 2), x, 'limit');
       });
 
-      db.values(store_outline, 2, 1).then(function (x) {
+      db.values(store_outline, null, 2, 1).then(function (x) {
         deepEqual(data_list_outline.slice(1, 3), x, 'limit offset');
       });
 
-      db.values(store_outline, undefined, 2).then(function (x) {
+      db.values(store_outline, null, undefined, 2).then(function (x) {
         deepEqual(data_list_outline.slice(2), x, 'offset');
         start();
       });
@@ -515,11 +515,11 @@ var schema_auto_increase = {
         deepEqual(keys_inline, keys, 'all keys');
       });
 
-      db.keys(store_inline, 2).always(function (keys) {
+      db.keys(store_inline, null, 2).always(function (keys) {
         deepEqual(keys_inline.slice(0, 2), keys, 'limit');
       });
 
-      db.keys(store_inline, 2, 2).always(function (keys) {
+      db.keys(store_inline, null, 2, 2).always(function (keys) {
         deepEqual(keys_inline.slice(2, 4), keys, 'limit offset');
         start();
         var type = db.getType();

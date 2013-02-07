@@ -89,7 +89,7 @@ ydn.db.index.DbOperator.prototype.get = function(arg1, arg2) {
 /**
  * @inheritDoc
  */
-ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3) {
+ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
@@ -130,7 +130,7 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3) {
 
     return df;
   } else {
-    return goog.base(this, 'keys', arg1, arg2, arg3);
+    return goog.base(this, 'keys', arg1, arg2, arg3, arg4, arg5);
   }
 
 };
@@ -170,7 +170,7 @@ ydn.db.index.DbOperator.prototype.count = function(arg1, arg2, arg3) {
 /**
  * @inheritDoc
  */
-ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3) {
+ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
@@ -210,7 +210,7 @@ ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3) {
 
     return df;
   } else {
-    return goog.base(this, 'values', arg1, arg2, arg3);
+    return goog.base(this, 'values', arg1, arg2, arg3, arg4, arg5);
   }
 
 };
