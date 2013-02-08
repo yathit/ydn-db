@@ -9,7 +9,6 @@
  */
 
 goog.provide('ydn.db.algo.ZigzagMerge');
-goog.require('ydn.db.algo.SortedMerge');
 goog.require('ydn.db');
 
 
@@ -22,10 +21,7 @@ goog.require('ydn.db');
  */
 ydn.db.algo.ZigzagMerge = function(out, limit) {
   goog.base(this, out, limit);
-  this.buffer_ = [];
-  this.order_ = [];
-  this.merged_ = false;
-  this.smallest_ = NaN;
+
 };
 goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
 
@@ -37,113 +33,126 @@ ydn.db.algo.ZigzagMerge.DEBUG = false;
 
 
 /**
- * Output buffer is keys from the first iterator that is not verified
- * by the filters.
- * @type {Array}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.buffer_ = [];
-
-
-/**
- * Sort order of buffer_ array.
- * This is a linked list corresponding to each buffer_.
- * @type {Array}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.order_ = [];
-
-
-/**
- *
- * @type {boolean}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.merged_ = false;
-
-/**
- *
- * @type {number}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.smallest_ = NaN;
-
-
-/**
- * @inheritDoc
- */
-ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
-  if (iterators.length == 1) {
-    throw new ydn.error.InvalidOperationException('number of iterators must be ' +
-      'more than one.');
-  }
-  if (iterators.length > 2) {
-    this.merged_ = true;
-  }
-  goog.array.clear(this.buffer_);
-  goog.array.clear(this.order_);
-  this.smallest_ = NaN;
-  return false;
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
 
-  var advance;
-  var all_match = false;
-  var skip = false;
-  var highest_key;
-  if (this.merged_) {
-    var sort_out = ydn.db.algo.SortedMerge.sort(keys.slice(1));
-    advance = sort_out.advance;
-    all_match = sort_out.all_match;
-    skip = sort_out.skip;
-    highest_key = sort_out.highest_key;
-  } else {
-    var match = goog.isDefAndNotNull(keys[1]);
-    if (match) {
-      advance = [true];
-      highest_key = keys[1];
-      all_match = true;
-    } else {
-      advance = [];
+  var advancement = [];
+
+  /**
+   * Return postfix value from the key.
+   * @param {!Array} x the key.
+   * @return {*}
+   */
+  var postfix = function(x) {
+    return x[x.length - 2];
+  };
+
+  /**
+   * Return prefix value from the key.
+   * @param {!Array} x the key.
+   * @return {!Array}
+   */
+  var prefix = function (x) {
+    return x.slice(0, x.length - 2);
+  };
+
+  /**
+   * Make full key from the prefix of given key and postfix parts.
+   * @param {!Array} key original key.
+   * @param {!Array} post_fix
+   * @return {!Array} newly constructed key.
+   */
+  var makeKey = function(key, post_fix) {
+    var new_key = prefix(key);
+    new_key.push(post_fix);
+    return new_key;
+  };
+
+  var base_key = postfix(values[0]);
+
+  if (!goog.isDefAndNotNull(base_key)) {
+    if (ydn.db.algo.SortedMerge.DEBUG) {
+      window.console.log('SortedMerge: done.');
     }
-  }
-  if (advance.length == 0) {
-    goog.array.clear(this.buffer_);
     return [];
   }
+  var all_match = true; // let assume
+  var skip = false;     // primary_key must be skip
 
+  var highest_key = base_key;
+  var cmps = [];
 
+  for (var i = 1; i < keys.length; i++) {
+    if (goog.isDefAndNotNull(values[i])) {
+      //console.log([values[0], values[i]])
+      var postfix_part = postfix(values[i]);
+      var cmp = ydn.db.cmp(base_key, postfix_part);
+      cmps[i] = cmp;
+      if (cmp === 1) {
+        // base key is greater than ith key, so fast forward to ith key.
+        all_match = false;
+      } else if (cmp === -1) {
+        // ith key is greater than base key. we are not going to get it
+        all_match = false;
+        skip = true; //
+        if (ydn.db.cmp(postfix_part, highest_key) === 1) {
+          highest_key = postfix_part;
+        }
+      }
+      //i += this.degrees_[i]; // skip peer iterators.
+    } else {
+      all_match = false;
+      skip = true;
+    }
+  }
 
-//    while (!isNaN(this.smallest_)) {
-//      var key = this.buffer_[this.smallest_];
-//      var next = this.order_[this.smallest_];
-//      if (ydn.db.cmp(key, highest_key) === 1) {
-//        this.buffer_.splice(this.smallest_, 1);
-//        this.order_.splice(this.smallest_, 1);
-//        var next_smallest = this.order_[next];
-//        this.smallest_ = goog.isDef(next_smallest) ? next_smallest : NaN;
-//      } else {
-//        break;
-//      }
-//    }
-    for (var i = this.buffer_.length - 1; i > 0; i--) {
-      if (ydn.db.cmp(this.buffer_[i], highest_key) != -1) {
-        this.buffer_.splice(i, 1);
+  if (all_match) {
+    // we get a match, so looking forward to next key.
+    // all other keys are rewind
+    for (var j = 0; j < keys.length; j++) {
+      if (goog.isDefAndNotNull(values[j])) {
+        advancement[j] = true;
       }
     }
-
-    if (all_match) {
-      advance.unshift(true); // advance it
-    } else {
-      this.buffer_.push(keys[0]);
-      advance.unshift(null); // keep it
+  } else if (skip) {
+    // all jump to highest key position.
+    for (var j = 0; j < keys.length; j++) {
+      if (goog.isDefAndNotNull(values[j])) {
+        // we need to compare again, because intermediate highest
+        // key might get cmp value of 0, but not the highest key
+        if (ydn.db.cmp(highest_key, postfix(values[j])) === 1) {
+          advancement[j] = makeKey(values[j], highest_key);
+        }
+      }
     }
+  } else {
+    // some need to catch up to base key
+    for (var j = 1; j < keys.length; j++) {
+      if (cmps[j] === 1) {
+        advancement[j] = makeKey(values[j], base_key);
+      }
+    }
+  }
 
-  return advance;
+  if (ydn.db.algo.ZigzagMerge.DEBUG) {
+    window.console.log('ZigzagMerge: match: ' + all_match +
+      ', skip: ' + skip +
+      ', highest_key: ' + JSON.stringify(highest_key) +
+      ', keys: ' + JSON.stringify(keys) +
+      ', cmps: ' + JSON.stringify(cmps) +
+      ', advancement: ' + JSON.stringify(advancement));
+  }
+
+  if (all_match) {
+    this.match_count++;
+    //console.log(['match key', match_key, JSON.stringify(keys)]);
+    if (this.out) {
+      this.out.push(highest_key);
+    }
+    return advancement;
+  } else {
+    return {'continue': advancement};
+  }
 
 };

@@ -28,6 +28,7 @@ var animals = [
   {id: 'snake', color: 'spots', horn: 0, legs: 0},
   {id: 'chicken', color: 'red', horn: 0, legs: 2}
 ];
+db.clear();
 db.put('animals', animals).addCallback(function (value) {
   console.log(db + 'store: animals ready.');
 });
@@ -101,14 +102,12 @@ var match_animal = function(algo) {
 
 var test_nested_loop_1 = function () {
   match_animal('nested');
-
 };
 
 
 
 var test_sorted_merge_1 = function () {
   match_animal('sorted');
-
 };
 
 

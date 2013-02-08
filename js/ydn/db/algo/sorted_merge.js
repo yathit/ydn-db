@@ -4,6 +4,7 @@
  * Sorted merge algorithm join reference values of given iterators (and
  * streamers) to matching value by continuing them by highest reference value.
  *
+ * http://dev.mysql.com/doc/refman/5.0/en/index-merge-optimization.html
  */
 
 goog.provide('ydn.db.algo.SortedMerge');
@@ -73,106 +74,6 @@ ydn.db.algo.SortedMerge.prototype.begin = function(iterators, callback) {
   return false;
 };
 
-
-/**
- * Sorted join algorithm.
- * @param {Array} keys keys.
- * @return {{
-    advance: !Array,
-    highest_key: *,
-    all_match: boolean,
-    skip: boolean
-  }} sorted results.
- */
-ydn.db.algo.SortedMerge.sort = function(keys) {
-
-  var advancement = [];
-
-  var base_key = keys[0];
-
-  if (!goog.isDefAndNotNull(base_key)) {
-    if (ydn.db.algo.SortedMerge.DEBUG) {
-      window.console.log('SortedMerge: done.');
-    }
-    return  {
-      advance: [],
-      highest_key: null,
-      all_match: false,
-      skip: false
-    };
-  }
-  var all_match = true; // let assume
-  var skip = false;     // primary_key must be skip
-  var highest_key = base_key;
-  var cmps = [];
-
-  for (var i = 1; i < keys.length; i++) {
-    if (goog.isDefAndNotNull(keys[i])) {
-      //console.log([keys[0], keys[i]])
-      var cmp = ydn.db.cmp(base_key, keys[i]);
-      cmps[i] = cmp;
-      if (cmp === 1) {
-        // base key is greater than ith key, so fast forward to ith key.
-        all_match = false;
-      } else if (cmp === -1) {
-        // ith key is greater than base key. we are not going to get it
-        all_match = false;
-        skip = true; //
-        if (ydn.db.cmp(keys[i], highest_key) === 1) {
-          highest_key = keys[i];
-        }
-      }
-      //i += this.degrees_[i]; // skip peer iterators.
-    } else {
-      all_match = false;
-      skip = true;
-    }
-  }
-
-  if (all_match) {
-    // we get a match, so looking forward to next key.
-    // all other keys are rewind
-    for (var j = 0; j < keys.length; j++) {
-      if (goog.isDefAndNotNull(keys[j])) {
-        advancement[j] = true;
-      }
-    }
-  } else if (skip) {
-    // all jump to highest key position.
-    for (var j = 0; j < keys.length; j++) {
-      if (goog.isDefAndNotNull(keys[j])) {
-        // we need to compare again, because intermediate highest
-        // key might get cmp value of 0, but not the highest key
-        if (ydn.db.cmp(highest_key, keys[j]) === 1) {
-          advancement[j] = highest_key;
-        }
-      }
-    }
-  } else {
-    // some need to catch up to base key
-    for (var j = 1; j < keys.length; j++) {
-      if (cmps[j] === 1) {
-        advancement[j] = base_key;
-      }
-    }
-  }
-
-  if (ydn.db.algo.SortedMerge.DEBUG) {
-    window.console.log('SortedMerge: match: ' + all_match +
-      ', skip: ' + skip +
-      ', highest_key: ' + JSON.stringify(highest_key) +
-      ', keys: ' + JSON.stringify(keys) +
-      ', cmps: ' + JSON.stringify(cmps) +
-      ', advancement: ' + JSON.stringify(advancement));
-  }
-
-  return {
-    advance: advancement,
-    highest_key: highest_key,
-    all_match: all_match,
-    skip: skip
-  }
-};
 
 
 /**
