@@ -4,7 +4,7 @@
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="buildno" value="zzz"/>
-    <property name="version" value="0.0.37"/>
+    <property name="version" value="0.1.37"/>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
     <property name="dev-out.fn"
               value="${ydn-db.dir}/jsc/${buildno}-ydn.db-dev.js"/>
@@ -55,31 +55,35 @@
                  value="https://raw.github.com/yathit/google-closure-library/master/"/>
 
         <concat
-                destfile="${ydn-db.dir}/jsc/ydn.db-jquery-${version}.js">
+                destfile="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js">
             <header>
                 (function($) {
             </header>
             <filelist dir="${ydn-db.dir}/jsc"
                       files="${buildno}-ydn.db-dev.js"/>
         </concat>
-        <concat destfile="${ydn-db.dir}/jsc/ydn.db-jquery-${version}.js"
+        <concat destfile="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js"
                 append="true">
 
             })(jQuery);
         </concat>
-
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js"
+              tofile="${ydn-db.dir}/jsc/ydn.db-jquery-${version}.js"/>
     </target>
     <target name="to-doc" description="copy file to documentation site">
-        <copy file="${ydn-db.dir}/jsc/ydn.db-${buildno}.js"
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db.js"
               tofile="${out.dir}/ydn.db.js"/>
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-core.js"
+              tofile="${out.dir}/ydn.db-core.js"/>
         <copy file="${dev-out.fn}"
-              tofile="${out.dir}/dev-ydn.db.js"/>
+              tofile="${out.dir}/ydn.db-dev.js"/>
         <copy file="${dev-out.fn}.map"
-              tofile="${out.dir}/dev-ydn.db.js.map"/>
-        <replace file="${out.dir}/dev-ydn.db.js"
-                 token="dev-ydn.db-${buildno}.js.map" value="dev-ydn.db.js.map"/>
-        <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-${buildno}.js"
-              tofile="${out.dir}/jquery-ydn.db.js"/>
+              tofile="${out.dir}/ydn.db-dev.js.map"/>
+        <replace file="${out.dir}/ydn.db-dev.js"
+                 token="-${buildno}-ydn.db-dev.js.map"
+                 value="ydn.db-dev.js.map"/>
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js"
+              tofile="${out.dir}/ydn.db-jquery.js"/>
         <copy todir="${out.dir}/../test/">
             <fileset dir="${ydn-db.dir}/test/qunit">
                <exclude name="*.html"/>
@@ -171,8 +175,7 @@
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
             </exjs.dir>
         </adv-comp>
-        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-core.js"
-              tofile="${out.dir}/core-ydn.db.js"/>
+
     </target>
     <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
