@@ -1,12 +1,9 @@
 /**
- * @fileoverview Zigzag merge algorithm.
+ * @fileoverview Sorted merge algorithm.
  *
- * The first iterator is primary iterator. The result come from ordering the
- * primary iterator.
- * This algorithm require monotoniously ascending or descending key from
- * iterators.
+ * Sorted merge algorithm join reference values of given iterators (and
+ * streamers) to matching value by continuing them by highest reference value.
  *
- * Ref: http://www.google.com/events/io/2010/sessions/next-gen-queries-appengine.html
  */
 
 goog.provide('ydn.db.algo.SortedMerge');
@@ -184,6 +181,7 @@ ydn.db.algo.SortedMerge.sort = function(keys) {
 ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
 
   var sort_result = ydn.db.algo.SortedMerge.sort(keys);
+  var match_key = sort_result.all_match ? sort_result.highest_key : null;
 
-  return this.pusher(sort_result.advance, keys, values);
+  return this.pusher(sort_result.advance, keys, values, match_key);
 };

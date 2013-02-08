@@ -1,8 +1,9 @@
 /**
  * @fileoverview Zigzag merge algorithm.
  *
- * This is same as sorted merge algorithm, except the first role is not
- * participate in joining.
+ * Zigzag merge join reference values of given composite index iterators (and
+ * streamers) to matching value by continuing the last highest element of
+ * effective values.
  *
  * Ref: http://www.google.com/events/io/2010/sessions/next-gen-queries-appengine.html
  */

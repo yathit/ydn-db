@@ -65,28 +65,29 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback){
 
 
 /**
- * Push the result if all keys match.
+ * Push the result if all keys match. Break the limit if the number of results
+ * reach the limit.
  * @param {!Array} advance
  * @param {!Array} keys input values.
  * @param {!Array} values output values.
+ * @param {*=} match_key match key.
  * @protected
  */
-ydn.db.algo.AbstractSolver.prototype.pusher = function (advance, keys, values) {
+ydn.db.algo.AbstractSolver.prototype.pusher = function (advance, keys, values, match_key) {
 
-  var has_key = goog.isDefAndNotNull(keys[0]);
-  var match_key = keys[0];
-  for (var i = 1; i < keys.length; i++) {
-    if (goog.isDefAndNotNull(keys[i])) {
-      has_key = true;
-      if (goog.isDefAndNotNull(match_key) && ydn.db.cmp(keys[i], match_key) != 0) {
-        match_key = null;
-        break;
+  var matched = goog.isDefAndNotNull(match_key);
+  if (!goog.isDef(match_key)) {
+    match_key = values[0];
+    matched = true;
+    for (var i = 1; matched && i < values.length; i++) {
+      if (!goog.isDefAndNotNull(values[i]) ||
+        ydn.db.cmp(values[i], match_key) != 0) {
+        matched = false;
       }
-    } else {
-      match_key = null;
     }
   }
-  if (goog.isDefAndNotNull(match_key)) {
+
+  if (matched) {
     this.match_count++;
     //console.log(['match key', match_key, JSON.stringify(keys)]);
     if (this.out) {

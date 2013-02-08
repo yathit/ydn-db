@@ -106,6 +106,7 @@ ydn.db.Streamer.prototype.sink_ = null;
  */
 ydn.db.Streamer.prototype.stack_key_ = [];
 
+
 /**
  * @private
  * @type {Array}
@@ -130,6 +131,7 @@ ydn.db.Streamer.prototype.setSink = function(sink) {
   this.sink_ = sink;
 };
 
+
 /**
  *
  * @param {!ydn.db.con.Storage} db
@@ -137,6 +139,7 @@ ydn.db.Streamer.prototype.setSink = function(sink) {
 ydn.db.Streamer.prototype.setDb = function(db) {
   this.db_ = db;
 };
+
 
 /**
  *
@@ -234,7 +237,8 @@ ydn.db.Streamer.prototype.collector_ = function(key, value) {
  */
 ydn.db.Streamer.prototype.push = function(key, value) {
   if (this.is_collecting_) {
-    throw new ydn.error.InvalidOperationError('collecting');
+    var msg = goog.DEBUG ? 'push not allowed after a collection is started' : '';
+    throw new ydn.error.InvalidOperationError(msg);
   }
   if (arguments.length >= 2) {
     this.collector_(key, value);
@@ -243,11 +247,13 @@ ydn.db.Streamer.prototype.push = function(key, value) {
     // instantiation, database may not have connected yet.
     if (!this.cursor_) {
       if (!this.db_) {
-        throw new ydn.error.InvalidOperationError('No database set.');
+        var msg2 = goog.DEBUG ? 'Database is not setup.' : '';
+        throw new ydn.error.InvalidOperationError(msg2);
       }
       var type = this.db_.getType();
       if (!type) {
-        throw new ydn.error.InvalidOperationError('Database not connected.');
+        var msg3 = goog.DEBUG ? 'Database is not connected.' : '';
+        throw new ydn.error.InvalidOperationError(msg3);
       } else if (type === ydn.db.con.IndexedDb.TYPE) {
         this.cursor_ = new ydn.db.con.IdbCursorStream(this.db_,
           this.store_name_, this.index_name_, this.key_only_,
