@@ -78,7 +78,7 @@ ydn.db.algo.AbstractSolver.prototype.pusher = function (advance, keys, values, m
   var matched = goog.isDefAndNotNull(match_key);
   if (!goog.isDef(match_key)) {
     match_key = values[0];
-    matched = true;
+    matched =  goog.isDefAndNotNull(match_key);
     for (var i = 1; matched && i < values.length; i++) {
       if (!goog.isDefAndNotNull(values[i]) ||
         ydn.db.cmp(values[i], match_key) != 0) {
@@ -106,7 +106,7 @@ ydn.db.algo.AbstractSolver.prototype.pusher = function (advance, keys, values, m
  *
  * @param {!Array} input input values.
  * @param {!Array} output output values.
- * @return {!Array} next positions.
+ * @return {!Array|!Object} next positions.
  */
 ydn.db.algo.AbstractSolver.prototype.solver = function(input, output) {
   return [];

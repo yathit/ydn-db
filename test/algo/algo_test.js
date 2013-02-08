@@ -39,13 +39,13 @@ var setUp = function() {
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db.index.req').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.index.req').setLevel(goog.debug.Logger.Level.FINEST);
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
-    //ydn.db.algo.SortedMerge.DEBUG = true;
-    ydn.db.algo.NestedLoop.DEBUG = true;
+    ydn.db.algo.SortedMerge.DEBUG = true;
+    //ydn.db.algo.NestedLoop.DEBUG = true;
   }
 
 
@@ -53,7 +53,6 @@ var setUp = function() {
 };
 
 var tearDown = function() {
-  db.close();
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
@@ -90,8 +89,7 @@ var match_animal = function(algo) {
 
   req = db.scan([q1, q2, q3], solver);
   req.addCallback(function (result) {
-    console.log(result);
-
+    //console.log(result);
     done = true;
   });
   req.addErrback(function (e) {
@@ -103,12 +101,14 @@ var match_animal = function(algo) {
 
 var test_nested_loop_1 = function () {
   match_animal('nested');
+
 };
 
 
 
 var test_sorted_merge_1 = function () {
   match_animal('sorted');
+
 };
 
 
