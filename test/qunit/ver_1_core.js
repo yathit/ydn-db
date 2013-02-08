@@ -101,8 +101,6 @@ var schema_auto_increase = {
 
 (function () {
 
-  var db;
-
   var test_env = {
     setup: function () {
       test_env.ydnTimeoutId = setTimeout(function () {
@@ -112,10 +110,7 @@ var schema_auto_increase = {
     },
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
-      var type = db.getType();
-      db.close();
-      ydn.db.deleteDatabase(db.getName(), type);
-      //ydn.db.deleteDatabase(db.getName());
+
     }
   };
 
@@ -123,17 +118,20 @@ var schema_auto_increase = {
 
   asyncTest("single data", function () {
     expect(1);
-    db = new ydn.db.Storage('tck1_put_1', schema_1, options);
+    var db = new ydn.db.Storage('tck1_put_1', schema_1, options);
     db.put(store_inline, data_1).always(function () {
       ok(true, "data inserted");
       start();
+      var type = db.getType();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
     });
 
   });
 
 
   asyncTest("inline-key autoincrement", function () {
-    db = new ydn.db.Storage('tck1_put_2', schema_auto_increase, options);
+    var db = new ydn.db.Storage('tck1_put_2', schema_auto_increase, options);
     expect(2);
 
     db.put(store_inline_auto, data_1).always(function (x) {
@@ -141,6 +139,9 @@ var schema_auto_increase = {
       db.put(store_inline_auto, data_2).always(function (x) {
         ok(x > data_1.id, 'key 2 greater than data_1 key');
         start();
+        var type = db.getType();
+        db.close();
+        ydn.db.deleteDatabase(db.getName(), type);
       });
     });
 
@@ -148,7 +149,7 @@ var schema_auto_increase = {
 
 
   asyncTest("data with off-line-key", function () {
-    db = new ydn.db.Storage('tck1_put_3', schema_1, options);
+    var db = new ydn.db.Storage('tck1_put_3', schema_1, options);
     expect(2);
 
     var key = Math.random();
@@ -156,13 +157,16 @@ var schema_auto_increase = {
       ok(true, "data inserted");
       equal(key, x, 'key');
       start();
+      var type = db.getType();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
     });
 
   });
 
 
   asyncTest("offline-key autoincrement", function () {
-    db = new ydn.db.Storage('tck1_put_4', schema_auto_increase, options);
+    var db = new ydn.db.Storage('tck1_put_4', schema_auto_increase, options);
     expect(2);
 
     db.put(store_outline_auto, data_1).always(function (x) {
@@ -172,6 +176,9 @@ var schema_auto_increase = {
       db.put(store_outline_auto, data_1).always(function (x) {
         ok(x > key, 'key 2 greater than previous key');
         start();
+        var type = db.getType();
+        db.close();
+        ydn.db.deleteDatabase(db.getName(), type);
       });
     });
 
@@ -179,12 +186,15 @@ var schema_auto_increase = {
 
 
   asyncTest("nested key", function () {
-    db = new ydn.db.Storage('tck1_put_5', schema_1, options);
+    var db = new ydn.db.Storage('tck1_put_5', schema_1, options);
     expect(1);
 
     db.put(store_nested_key, gdata_1).always(function (x) {
       equal(gdata_1.id.$t, x, 'key');
       start();
+      var type = db.getType();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
     });
 
   });
@@ -192,12 +202,15 @@ var schema_auto_increase = {
 
   asyncTest("single data - array index key", function () {
     expect(2);
-    db = new ydn.db.Storage('tck1_put_6', schema_1, options);
+    var db = new ydn.db.Storage('tck1_put_6', schema_1, options);
     db.put(store_inline, data_1a).always(function (x) {
       //console.log('got it');
       ok('length' in x, "array key");
       deepEqual(x, data_1a.id, 'same key');
       start();
+      var type = db.getType();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
     });
 
   });
