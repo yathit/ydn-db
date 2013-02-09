@@ -60,7 +60,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
   /**
    * Make full key from the prefix of given key and postfix parts.
    * @param {!Array} key original key.
-   * @param {!Array} post_fix
+   * @param {*} post_fix
    * @return {!Array} newly constructed key.
    */
   var makeKey = function(key, post_fix) {
@@ -69,7 +69,8 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
     return new_key;
   };
 
-  var base_key = postfix(values[0]);
+  goog.asserts.assertArray(keys[0]);
+  var base_key = postfix(keys[0]);
 
   if (!goog.isDefAndNotNull(base_key)) {
     if (ydn.db.algo.SortedMerge.DEBUG) {
@@ -84,9 +85,9 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
   var cmps = [];
 
   for (var i = 1; i < keys.length; i++) {
-    if (goog.isDefAndNotNull(values[i])) {
-      //console.log([values[0], values[i]])
-      var postfix_part = postfix(values[i]);
+    if (goog.isDefAndNotNull(keys[i])) {
+      //console.log([values[0], keys[i]])
+      var postfix_part = postfix(keys[i]);
       var cmp = ydn.db.cmp(base_key, postfix_part);
       cmps[i] = cmp;
       if (cmp === 1) {
@@ -111,18 +112,19 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
     // we get a match, so looking forward to next key.
     // all other keys are rewind
     for (var j = 0; j < keys.length; j++) {
-      if (goog.isDefAndNotNull(values[j])) {
+      if (goog.isDefAndNotNull(keys[j])) {
         advancement[j] = true;
       }
     }
   } else if (skip) {
     // all jump to highest key position.
     for (var j = 0; j < keys.length; j++) {
-      if (goog.isDefAndNotNull(values[j])) {
+      if (goog.isDefAndNotNull(keys[j])) {
         // we need to compare again, because intermediate highest
         // key might get cmp value of 0, but not the highest key
-        if (ydn.db.cmp(highest_key, postfix(values[j])) === 1) {
-          advancement[j] = makeKey(values[j], highest_key);
+        goog.asserts.assertArray(keys[j]);
+        if (ydn.db.cmp(highest_key, postfix(keys[j])) === 1) {
+          advancement[j] = makeKey(keys[j], highest_key);
         }
       }
     }
@@ -130,7 +132,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
     // some need to catch up to base key
     for (var j = 1; j < keys.length; j++) {
       if (cmps[j] === 1) {
-        advancement[j] = makeKey(values[j], base_key);
+        advancement[j] = makeKey(keys[j], base_key);
       }
     }
   }
@@ -138,7 +140,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
   if (ydn.db.algo.ZigzagMerge.DEBUG) {
     window.console.log('ZigzagMerge: match: ' + all_match +
       ', skip: ' + skip +
-      ', highest_key: ' + JSON.stringify(highest_key) +
+      ', highest_key: ' + JSON.stringify(/** @type {Object} */ (highest_key)) +
       ', keys: ' + JSON.stringify(keys) +
       ', cmps: ' + JSON.stringify(cmps) +
       ', advancement: ' + JSON.stringify(advancement));

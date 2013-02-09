@@ -29,11 +29,19 @@ ydn.db.Where = function(field, op, value, op2, value2) {
     lowerOpen = op['lowerOpen'];
     upperOpen = op['upperOpen'];
   } else {
-    if (op == '$') {
+    if (op == '^') {
       goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'value');
       goog.asserts.assert(!goog.isDef(op2), 'op2');
       goog.asserts.assert(!goog.isDef(value2), 'value2');
-      return ydn.db.KeyRange.starts(/** @type {string|!Array} */ (value));
+      if (goog.isArray(value)) {
+        upper = ydn.object.clone(value);
+        // Note on ordering: array > string > data > number
+        upper.push('\uffff');
+      } else if (goog.isString(value)) {
+        upper = value + '\uffff';
+      } else {
+        throw new ydn.debug.error.ArgumentException();
+      }
     } else if (op == '<' || op == '<=') {
       upper = value;
       upperOpen = op == '<';

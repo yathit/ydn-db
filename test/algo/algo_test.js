@@ -1,7 +1,6 @@
 
 goog.require('goog.debug.Console');
 goog.require('ydn.db.algo.NestedLoop');
-goog.require('ydn.db.algo.ZigzagMerge');
 goog.require('ydn.db.algo.SortedMerge');
 goog.require('goog.testing.jsunit');
 
@@ -26,6 +25,7 @@ var animals = [
   {id: 'cow', color: 'spots', horn: 1, legs: 4},
   {id: 'galon', color: 'gold', horn: 1, legs: 2},
   {id: 'snake', color: 'spots', horn: 0, legs: 0},
+  {id: 'leopard', color: 'spots', horn: 1, legs: 4},
   {id: 'chicken', color: 'red', horn: 0, legs: 2}
 ];
 db.clear();
@@ -49,7 +49,6 @@ var setUp = function() {
     //ydn.db.algo.NestedLoop.DEBUG = true;
   }
 
-
   reachedFinalContinuation = false;
 };
 
@@ -69,7 +68,7 @@ var match_animal = function(algo) {
     },
     // Continuation
     function () {
-      assertArrayEquals('result', ['cow'], out);
+      assertArrayEquals('result', ['cow', 'leopard'], out);
       reachedFinalContinuation = true;
 
     },

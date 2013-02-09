@@ -259,7 +259,7 @@ ydn.db.KeyRange.validate = function(keyRange) {
  */
 ydn.db.KeyRange.where = function(op, value, op2, value2) {
   var upper, lower, upperOpen, lowerOpen;
-  if (op == '$') {
+  if (op == '^') {
     goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'value');
     goog.asserts.assert(!goog.isDef(op2), 'op2');
     goog.asserts.assert(!goog.isDef(value2), 'value2');
