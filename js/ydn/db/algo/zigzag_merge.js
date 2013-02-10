@@ -45,7 +45,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
    * @return {*}
    */
   var postfix = function(x) {
-    return x[x.length - 2];
+    return x[x.length - 1];
   };
 
   /**
@@ -54,7 +54,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
    * @return {!Array}
    */
   var prefix = function (x) {
-    return x.slice(0, x.length - 2);
+    return x.slice(0, x.length - 1);
   };
 
   /**

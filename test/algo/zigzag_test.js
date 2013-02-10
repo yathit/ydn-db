@@ -26,9 +26,9 @@ var db = new ydn.db.Storage(db_name, schema, options);
 
 var animals = [
   {name: 'rat', color: 'brown', horn: 0, legs: 4},
-  {name: 'cat', color: 'spots', horn: 0, legs: 4},
   {name: 'cow', color: 'spots', horn: 1, legs: 4},
   {name: 'galon', color: 'gold', horn: 1, legs: 2},
+  {name: 'cat', color: 'spots', horn: 0, legs: 4},
   {name: 'snake', color: 'spots', horn: 0, legs: 0},
   {name: 'leopard', color: 'spots', horn: 1, legs: 4},
   {name: 'chicken', color: 'red', horn: 0, legs: 2}
@@ -71,7 +71,7 @@ var test_simple = function() {
     },
     // Continuation
     function () {
-      assertArrayEquals('result', ['cow', 'leopard'], out);
+      assertArrayEquals('result', ['cat', 'cow', 'leopard'], out);
       reachedFinalContinuation = true;
 
     },
