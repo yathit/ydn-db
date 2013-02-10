@@ -100,12 +100,16 @@ var test_streamer = function() {
       1000); // maxTimeout
 
   var streamer = new ydn.db.Streamer(db, store_name);
-  streamer.collect(function(x) {
-    result = x;
-    done = true;
+
+  db.addEventListener('connected', function() {  // to make sure
+    streamer.push(objs[1].id);
+    streamer.push(objs[4].id);
+    streamer.collect(function(x) {
+      result = x;
+      done = true;
+    });
   });
-  streamer.push(objs[1].id);
-  streamer.push(objs[4].id);
+
 };
 
 var scan_key_single_test = function (q, actual_keys, actual_index_keys) {

@@ -45,6 +45,7 @@ ydn.db.con.IdbCursorStream = function(db, store_name, index_name, key_only, sink
   this.key_only_ = key_only;
   this.cursor_ = null;
   this.stack_ = [];
+  this.running_ = 0;
   this.on_tx_request_ = false;
 };
 
@@ -129,6 +130,7 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
   // even if we don't keep the req, this req.onsuccess and req.onerror callbacks
   // are still active when cursor invoke advance method.
 
+  this.running_ ++;
   var me = this;
   req.onsuccess = function(ev) {
     var cursor = ev.target.result;
@@ -143,8 +145,11 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
         me.logger.warning('sink gone, dropping value for: ' +
             cursor.primaryKey);
       }
-      if (me.stack_.length > 0) {
+      if (cursor && me.stack_.length > 0) {
         cursor['continue'](me.stack_.shift());
+      } else {
+        me.running_ --;
+        me.clearStack_();
       }
     }
   };
@@ -152,6 +157,8 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
     var msg = 'error' in req ?
         req['error'].name + ':' + req['error'].message : '';
     me.logger.warning('seeking fail. ' + msg);
+    me.running_ --;
+    me.clearStack_();
   };
 };
 
@@ -161,7 +168,7 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
  * @param {Function} callback
  */
 ydn.db.con.IdbCursorStream.prototype.onFinish = function(callback) {
-  if (this.stack_.length == 0 && !this.cursor_) {
+  if (this.stack_.length == 0 && this.running_ == 0) {
     callback(); // we have nothing.
   } else {
     this.collector_ = callback;
@@ -253,11 +260,12 @@ ydn.db.con.IdbCursorStream.prototype.clearStack_ = function() {
     // we retain only valid request with active cursor.
     this.cursor_['continue'](this.stack_.shift());
   } else {
-    if (this.collector_) {
-      this.collector_();
+    if (this.running_ == 0) {
+      if (this.collector_) {
+        this.collector_();
+      }
     }
   }
-  this.cursor_ = null;
 };
 
 

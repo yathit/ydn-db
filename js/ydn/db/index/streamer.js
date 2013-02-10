@@ -201,17 +201,19 @@ ydn.db.Streamer.prototype.is_collecting_ = false;
  */
 ydn.db.Streamer.prototype.collect = function(callback) {
   if (this.cursor_) {
+    this.is_collecting_ = true;
+    var me = this;
+    this.cursor_.onFinish(function on_finish(e) {
+      callback(me.stack_value_);
+      me.stack_value_ = [];
+      me.is_collecting_ = false;
+    });
+  } else {
     // throw new ydn.error.InvalidOperationError('Not collected.');
     this.logger.warning('Not collected yet.');
     callback([]);
   }
-  this.is_collecting_ = true;
-  var me = this;
-  this.cursor_.onFinish(function on_finish(e) {
-    callback(me.stack_value_);
-    me.stack_value_ = [];
-    me.is_collecting_ = false;
-  });
+
 
 };
 
