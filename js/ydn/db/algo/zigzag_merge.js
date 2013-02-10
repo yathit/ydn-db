@@ -39,6 +39,10 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
 
   var advancement = [];
 
+  if (keys.length == 0 || !goog.isDefAndNotNull(keys[0])) {
+    return [];
+  }
+
   /**
    * Return postfix value from the key.
    * @param {!Array} x the key.

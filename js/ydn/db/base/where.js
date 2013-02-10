@@ -34,7 +34,7 @@ ydn.db.Where = function(field, op, value, op2, value2) {
       goog.asserts.assert(!goog.isDef(op2), 'op2');
       goog.asserts.assert(!goog.isDef(value2), 'value2');
       if (goog.isArray(value)) {
-        upper = ydn.object.clone(value);
+        upper = ydn.object.clone(/** @type {Object} */ (value));
         // Note on ordering: array > string > data > number
         upper.push('\uffff');
       } else if (goog.isString(value)) {
