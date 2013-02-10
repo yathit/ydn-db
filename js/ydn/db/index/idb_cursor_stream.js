@@ -1,5 +1,5 @@
 /**
- * @fileoverview Cursor stream accept key and pop to a sink.
+ * @fileoverview Cursor stream accept pirmary key and pop reference value to a sink.
  *
  * User: kyawtun
  * Date: 11/11/12
