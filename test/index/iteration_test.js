@@ -71,7 +71,6 @@ var load_default = function() {
   schema = new ydn.db.schema.Database(undefined, [store_schema, anmialStore]);
   var db = new ydn.db.index.Storage(db_name, schema, options);
 
-
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + 'store: ' + store_name + ' ready.');
   });
@@ -84,6 +83,30 @@ var load_default = function() {
 };
 
 
+var test_streamer = function() {
+  db = load_default();
+  var done, result;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      function () {
+        assertArrayEquals('result', [objs[1], objs[4]], result);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var streamer = new ydn.db.Streamer(db, store_name);
+  streamer.collect(function(x) {
+    result = x;
+    done = true;
+  });
+  streamer.push(objs[1].id);
+  streamer.push(objs[4].id);
+};
 
 var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
 

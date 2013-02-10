@@ -1,5 +1,5 @@
 /**
- * @fileoverview About this file.
+ * @fileoverview Export additional symbols for index distribution.
  *
  * User: kyawtun
  * Date: 19/1/13
@@ -21,7 +21,6 @@ goog.exportProperty(ydn.db.index.Storage.prototype, 'reduce',
     ydn.db.index.Storage.prototype.reduce);
 goog.exportProperty(ydn.db.index.Storage.prototype, 'open',
     ydn.db.index.Storage.prototype.open);
-
 
 goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'scan',
     ydn.db.index.DbOperator.prototype.scan);
@@ -94,3 +93,9 @@ goog.exportProperty(ydn.db.Cursors, 'where',
   ydn.db.Cursors.where);
 goog.exportProperty(ydn.db.IndexValueCursors, 'where',
   ydn.db.IndexValueCursors.where);
+
+goog.exportSymbol('ydn.db.Streamer', ydn.db.Streamer);
+goog.exportProperty(ydn.db.Streamer.prototype, 'collect',
+    ydn.db.Streamer.prototype.collect);
+goog.exportProperty(ydn.db.Streamer.prototype, 'setSink',
+    ydn.db.Streamer.prototype.setSink);
