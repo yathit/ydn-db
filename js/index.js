@@ -95,6 +95,8 @@ goog.exportProperty(ydn.db.IndexValueCursors, 'where',
   ydn.db.IndexValueCursors.where);
 
 goog.exportSymbol('ydn.db.Streamer', ydn.db.Streamer);
+goog.exportProperty(ydn.db.Streamer.prototype, 'push',
+    ydn.db.Streamer.prototype.push);
 goog.exportProperty(ydn.db.Streamer.prototype, 'collect',
     ydn.db.Streamer.prototype.collect);
 goog.exportProperty(ydn.db.Streamer.prototype, 'setSink',

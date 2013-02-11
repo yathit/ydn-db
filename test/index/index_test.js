@@ -17,7 +17,7 @@ var setUp = function() {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
@@ -385,7 +385,7 @@ var test_list_by_index = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.only('a');
-  db.values(store_name, 'type', range, false, undefined, undefined, false).addBoth(function(x) {
+  db.values(store_name, range, undefined, undefined, 'type').addBoth(function(x) {
     result = x;
     done = true;
   }, function(e) {
@@ -414,36 +414,7 @@ var test_keys_by_index = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.only('a');
-  db.keys(store_name, 'type', range, false, undefined, undefined, false).addBoth(function(x) {
-    result = x;
-    done = true;
-  }, function(e) {
-    throw e;
-  })
-
-};
-
-var test_list_by_index_unique = function () {
-
-  var db = load_default();
-
-  var done, result;
-
-  waitForCondition(
-    // Condition
-    function () {
-      return done;
-    },
-    // Continuation
-    function () {
-      assertArrayEquals('result', objs.slice(0, 1), result);
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    1000); // maxTimeout
-
-  var range = ydn.db.KeyRange.only('a');
-  db.values(store_name, 'type', range, false, undefined, undefined, true).addBoth(function(x) {
+  db.keys(store_name, range, 100, 0, 'type').addBoth(function(x) {
     result = x;
     done = true;
   }, function(e) {
@@ -478,34 +449,6 @@ var test_42_clear_by_index_key_range = function() {
 
 };
 
-
-var test_keys_by_index_unique = function () {
-
-  var db = load_default();
-
-  var done, result;
-
-  waitForCondition(
-    // Condition
-    function () {
-      return done;
-    },
-    // Continuation
-    function () {
-      assertArrayEquals('result', [-3, 1, 10], result);
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    1000); // maxTimeout
-
-  db.keys(store_name, 'type', null, false, undefined, undefined, true).addBoth(function(x) {
-    result = x;
-    done = true;
-  }, function(e) {
-    throw e;
-  })
-
-};
 
 var test_multiEntry = function () {
 
@@ -597,7 +540,7 @@ var test_compound_index = function () {
   var done, result;
 
   db.put('st1', objs).addCallbacks(function(keys) {
-    db.values('st1', '12', ydn.db.KeyRange.bound(['a'], ['b'])).addCallbacks(function(x) {
+    db.values('st1', ydn.db.KeyRange.bound(['a'], ['b']), 100, 0, '12').addCallbacks(function(x) {
       result = x;
       console.log(x);
       done = true;

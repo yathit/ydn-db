@@ -204,7 +204,7 @@ ydn.db.Streamer.prototype.collect = function(callback) {
     this.is_collecting_ = true;
     var me = this;
     this.cursor_.onFinish(function on_finish(e) {
-      callback(me.stack_value_);
+      callback(this.stack_key_, me.stack_value_);
       me.stack_value_ = [];
       me.is_collecting_ = false;
     });

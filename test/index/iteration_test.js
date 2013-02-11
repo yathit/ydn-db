@@ -83,7 +83,7 @@ var load_default = function() {
 };
 
 
-var test_streamer = function() {
+var test_streamer_collect = function() {
   db = load_default();
   var done, result;
 
@@ -104,10 +104,42 @@ var test_streamer = function() {
   db.addEventListener('connected', function() {  // to make sure
     streamer.push(objs[1].id);
     streamer.push(objs[4].id);
-    streamer.collect(function(x) {
+    streamer.collect(function(keys, x) {
       result = x;
       done = true;
     });
+  });
+
+};
+
+var test_streamer_sink = function() {
+  db = load_default();
+  var done;
+  var result = [];
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      function () {
+        assertArrayEquals('result', [objs[1], objs[4]], result);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var streamer = new ydn.db.Streamer(db, store_name);
+  streamer.setSink(function(key, value) {
+    result.push(value);
+    if (result.length == 2) {
+      done = true;
+    }
+  });
+
+  db.addEventListener('connected', function() {  // to make sure
+    streamer.push(objs[1].id);
+    streamer.push(objs[4].id);
   });
 
 };
