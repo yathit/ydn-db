@@ -699,7 +699,6 @@ ydn.db.index.DbOperator.prototype.reduce = function(iterator, callback, initial)
     cursor.onError = function(e) {
       df.errback(e);
     };
-    var key_only = iterator.isKeyOnly();
     var index = 0;
     cursor.onNext = function (primaryKey, key, value) {
       if (goog.isDefAndNotNull(primaryKey)) {

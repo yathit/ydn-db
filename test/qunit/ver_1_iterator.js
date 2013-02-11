@@ -113,6 +113,7 @@ var schema_1 = {
       db_r.close();
       test_count++;
       if (test_count >= 2) {
+        //console.log(db_r.getName() + ' deleted.')
         var type = db_r.getType();
         db_r.close();
         ydn.db.deleteDatabase(db_r.getName(), type);
@@ -157,18 +158,20 @@ var schema_1 = {
   });
 
   asyncTest("2. by index iterator", function () {
+    df.always(function () {
+      expect(2);
 
-    expect(2);
+      var value_iter = ydn.db.Cursors.where(store_inline_index, 'value', '>', 1, '<=', 3);
+      var name_iter = ydn.db.Cursors.where(store_inline_index, 'name', '^', 'b');
 
-    var name_iter = ydn.db.Cursors.where(store_inline_index, 'name', '$', 'b');
-    var value_iter = ydn.db.Cursors.where(store_inline_index, 'value', '>', 1, '<=', 3);
-
-    db_r.count(value_iter).always(function (x) {
-      equal(x, 1, 'number of value in the range');
-    });
-    db_r.count(name_iter).always(function (x) {
-      equal(x, 2, 'number of name in the range');
-      start();
+      db_r.count(value_iter).always(function (x) {
+        //console.log('count value')
+        equal(x, 1, 'number of values in the range');
+      });
+      db_r.count(name_iter).always(function (x) {
+        equal(x, 2, 'number of name in the range');
+        start();
+      });
     });
 
   });
@@ -247,7 +250,7 @@ var schema_1 = {
 
   asyncTest("effective key by an index iterator", function () {
     expect(1);
-    var iter = ydn.db.Cursors.where(store_inline_index, 'name', '$', 'c');
+    var iter = ydn.db.Cursors.where(store_inline_index, 'name', '^', 'c');
     db_r.get(iter).then(function (x) {
       equal(x, objs[3].id, 'get item 3 key');
       start();
@@ -259,7 +262,7 @@ var schema_1 = {
 
   asyncTest("ref value by an iterator", function () {
     expect(1);
-    var iter = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '$', 'c');
+    var iter = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '^', 'c');
     db_r.get(iter).then(function (x) {
       deepEqual(x, objs[3], 'get item 3 value');
       start();
@@ -462,7 +465,7 @@ var schema_1 = {
 
   asyncTest("4. Ref value by string index key range", function () {
     expect(4);
-    var q = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '$', 'b');
+    var q = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '^', 'b');
     db.values(q).always(function (x) {
       //console.log(q)
       equal(x.length, 4, 'LIKE%');
@@ -480,7 +483,7 @@ var schema_1 = {
       deepEqual(x.length, 1, '<');
     });
 
-    q = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '$', 'd');
+    q = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '^', 'd');
     db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x.length, 0, 'LIKE% no result');
