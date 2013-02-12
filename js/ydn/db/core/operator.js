@@ -123,7 +123,7 @@ ydn.db.core.DbOperator.prototype.count = function(store_name, index_or_keyrange,
       key_range = ydn.db.KeyRange.parseIDBKeyRange(index_key_range);
     } else if (goog.isObject(index_or_keyrange) || !goog.isDef(index_or_keyrange)) {
       if (goog.isDef(index_key_range)) {
-        throw new ydn.debug.error.ArgumentException();
+        throw new ydn.debug.error.ArgumentException("Invalid key range or index");
       }
       key_range = ydn.db.KeyRange.parseIDBKeyRange(index_or_keyrange);
     } else {
@@ -137,7 +137,7 @@ ydn.db.core.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'countKeyRange');
 
   } else {
-    throw new ydn.debug.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException("Invalid store name or store names.");
   }
 
   return df;

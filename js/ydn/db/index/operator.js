@@ -4,7 +4,6 @@
 *
 */
 
-
 goog.provide('ydn.db.index.DbOperator');
 goog.require('ydn.db.Iterator');
 goog.require('ydn.db.core.DbOperator');
@@ -13,6 +12,7 @@ goog.require('ydn.db.index.req.IndexedDb');
 goog.require('ydn.db.index.req.WebSql');
 goog.require('ydn.db.index.req.SimpleStore');
 goog.require('ydn.db.index.IOperator');
+goog.require('ydn.debug.error.ArgumentException');
 
 
 
@@ -38,6 +38,15 @@ ydn.db.index.DbOperator = function(storage, schema, thread) {
 goog.inherits(ydn.db.index.DbOperator, ydn.db.core.DbOperator);
 
 
+
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.index.DbOperator.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.index.DbOperator');
+
+
 /**
  * @define {boolean}
  */
@@ -59,12 +68,12 @@ ydn.db.index.DbOperator.prototype.get = function(arg1, arg2) {
     var q_store_name = q.getStoreName();
     var store = this.schema.getStore(q_store_name);
     if (!store) {
-      throw new ydn.error.ArgumentException('store "' +
+      throw new ydn.debug.error.ArgumentException('store "' +
           q_store_name + '" not found.');
     }
     var index_name = q.getIndexName();
     if (goog.isDef(index_name) && !store.hasIndex(index_name)) {
-      throw new ydn.error.ArgumentException('index "' +
+      throw new ydn.debug.error.ArgumentException('index "' +
         index_name + '" not found in store "' + q_store_name + '".');
     }
     var list_df = new goog.async.Deferred();
@@ -102,10 +111,10 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
     if (goog.isNumber(arg2)) {
       limit = /** @type {number} */ (arg2);
       if (limit < 1) {
-        throw new ydn.error.ArgumentException('limit must be a positive value');
+        throw new ydn.debug.error.ArgumentException('limit must be a positive value');
       }
     } else if (goog.isDef(arg2)) {
-      throw new ydn.error.ArgumentException('limit');
+      throw new ydn.debug.error.ArgumentException('limit');
     }
     /**
      * @type {number}
@@ -114,7 +123,7 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
     if (goog.isNumber(arg3)) {
       offset = /** @type {number} */ (arg3);
     } else if (goog.isDef(arg3)) {
-      throw new ydn.error.ArgumentException('offset');
+      throw new ydn.debug.error.ArgumentException('offset');
     }
 
     /**
@@ -145,7 +154,7 @@ ydn.db.index.DbOperator.prototype.count = function(arg1, arg2, arg3) {
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
     if (goog.isDef(arg2) || goog.isDef(arg3)) {
-      throw new ydn.error.ArgumentException('too many arguments.');
+      throw new ydn.debug.error.ArgumentException('too many arguments.');
     }
     var df = ydn.db.base.createDeferred();
 
@@ -183,10 +192,10 @@ ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5
     if (goog.isNumber(arg2)) {
       limit = /** @type {number} */ (arg2);
       if (limit < 1) {
-        throw new ydn.error.ArgumentException('limit must be a positive value');
+        throw new ydn.debug.error.ArgumentException('limit must be a positive value');
       }
     } else if (goog.isDef(arg2)) {
-      throw new ydn.error.ArgumentException('limit');
+      throw new ydn.debug.error.ArgumentException('limit');
     }
     /**
      * @type {number}
@@ -195,7 +204,7 @@ ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5
     if (goog.isNumber(arg3)) {
       offset = /** @type {number} */ (arg3);
     } else if (goog.isDef(arg3)) {
-      throw new ydn.error.ArgumentException('offset');
+      throw new ydn.debug.error.ArgumentException('offset');
     }
 
     /**
@@ -225,9 +234,20 @@ ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streamers) {
+
   var df = ydn.db.base.createDeferred();
-  if (!goog.isArray(iterators) || !(iterators[0] instanceof ydn.db.Iterator)) {
-    throw new ydn.error.ArgumentException();
+  if (goog.DEBUG) {
+    if (!goog.isArray(iterators)) {
+      throw new ydn.debug.error.ArgumentException('First argument must be array.');
+    }
+    for (var i = 0; i < iterators.length; i++) {
+      var is_iter = iterators[i] instanceof ydn.db.Iterator;
+      var is_streamer = iterators[i] instanceof ydn.db.Streamer;
+      if (!is_iter || !is_streamer) {
+        throw new ydn.debug.error.ArgumentException('First argument at ' + i +
+            ' must be cursor range iterator or streamer.');
+      }
+    }
   }
 
   var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;
@@ -242,6 +262,8 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
     }
   }
 
+  this.logger.finest(this + ': scan for ' + iterators.length + ' iterators on ' + scopes);
+
   var passthrough_streamers = opt_streamers || [];
   for (var i = 0; i < passthrough_streamers.length; i++) {
     var store = passthrough_streamers[i].getStoreName();
@@ -252,9 +274,9 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
 
   var me = this;
 
-  this.logger.finest('scan:' + iterators.length + ' iterators on ' + scopes);
-
   this.tx_thread.exec(function(tx) {
+
+    me.logger.finest(me + ': scanning started.');
     //executor.scan(df, iterators, streamers, solver);
     // do scanning
 
@@ -278,6 +300,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
       goog.array.clear(cursors);
       goog.array.clear(streamers);
       // console.log('existing');
+      me.logger.finest(me + ': scanning finished.');
       df.callback();
     };
 
@@ -571,11 +594,11 @@ ydn.db.index.DbOperator.prototype.getIndexExecutor = function(tx) {
  */
 ydn.db.index.DbOperator.prototype.open = function(iterator, callback, mode) {
   if (!(iterator instanceof ydn.db.Iterator)) {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException('First argument must be cursor range iterator.');
   }
   var store = this.schema.getStore(iterator.getStoreName());
   if (!store) {
-    throw new ydn.error.ArgumentException('Store "' + iterator.getStoreName() +
+    throw new ydn.debug.error.ArgumentException('Store "' + iterator.getStoreName() +
       '" not found.');
   }
   var tr_mode = mode || ydn.db.base.TransactionMode.READ_ONLY;
@@ -620,7 +643,7 @@ ydn.db.index.DbOperator.prototype.map = function (iterator, callback) {
   var stores = iterator.stores();
   for (var store, i = 0; store = stores[i]; i++) {
     if (!store) {
-      throw new ydn.error.ArgumentException('Store "' + store +
+      throw new ydn.debug.error.ArgumentException('Store "' + store +
           '" not found.');
     }
   }
@@ -684,7 +707,7 @@ ydn.db.index.DbOperator.prototype.reduce = function(iterator, callback, initial)
   var stores = iterator.stores();
   for (var store, i = 0; store = stores[i]; i++) {
     if (!store) {
-      throw new ydn.error.ArgumentException('Store "' + store +
+      throw new ydn.debug.error.ArgumentException('Store "' + store +
           '" not found.');
     }
   }

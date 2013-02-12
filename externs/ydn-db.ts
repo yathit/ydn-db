@@ -61,14 +61,30 @@ declare module ydb.db
     resume(key: any, index_key: any);
   }
 
-  export class KeyIterator extends Iterator {
+  export class KeyCursors extends Iterator {
     constructor(store_name: string, key_range?: any, reverse?: bool);
+  }
+
+  export class Cursors extends Iterator {
     constructor(store_name: string, index_name: string, key_range?: any, reverse?: bool);
   }
 
-  export class ValueIterator extends Iterator {
+  export class ValueCursors extends Iterator {
     constructor(store_name: string, key_range?: any, reverse?: bool);
+  }
+
+  export class IndexValueCursors extends Iterator {
     constructor(store_name: string, index_name: string, key_range?: any, reverse?: bool);
+  }
+
+  export class Streamer {
+    constructor(storage?: ydn.db.Storage, store_name: string, index_name?: string, foreign_index_name?: string);
+
+    push(key: any, value?: any);
+
+    collect(callback: (values: any[]));
+
+    setSink(callback: (key: any, value: any, toWait: (): bool));
   }
 
   export class ICursor {
@@ -126,7 +142,8 @@ declare module ydb.db
 
     reduce(iterator: ydb.db.Iterator, callback: (value: any, prev_value: any, index: number), initial: any) : goog.async.Deferred;
 
-    scan(iterators: ydb.db.Iterator, solver: (keys: any[], values: any[])) : goog.async.Deferred;
+    scan(iterators: ydb.db.Iterator[], solver: (keys: any[], values: any[])) : goog.async.Deferred;
+    scan(iterators: ydb.db.Iterator[], solver: ydn.db.algo.Solver) : goog.async.Deferred;
 
     setName(name: string);
 
@@ -139,4 +156,24 @@ declare module ydb.db
     type(): string;
   }
 
+}
+
+
+declare module ydb.db.algo {
+
+  export class Solver {
+
+  }
+
+  export class NestedLoop extends Solver {
+    constructor(out: {push: (value: any)}, limit?: number);
+  }
+
+  export class SortedMerge extends Solver {
+    constructor(out: {push: (value: any)}, limit?: number);
+  }
+
+  export class ZigzagMerge extends Solver {
+    constructor(out: {push: (value: any)}, limit?: number);
+  }
 }

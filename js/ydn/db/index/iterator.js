@@ -51,7 +51,7 @@ goog.require('goog.debug.Logger');
 ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
-    throw new ydn.debug.error.ArgumentException('store');
+    throw new ydn.debug.error.ArgumentException('store name must be a string');
   }
 
   /**
@@ -96,7 +96,7 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   if (goog.DEBUG) {
     var msg = ydn.db.KeyRange.validate(keyRange);
     if (msg) {
-      throw new ydn.debug.error.ArgumentException(msg);
+      throw new ydn.debug.error.ArgumentException("Invalid key range: " + msg);
     }
   }
   /**

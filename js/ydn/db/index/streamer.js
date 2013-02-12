@@ -28,15 +28,16 @@ ydn.db.Streamer = function(storage, store_name, index_name,
   this.store_name_ = store_name;
   this.index_name_ = goog.isString(index_name) ? index_name : undefined;
 
-  if ('transaction' in storage) {
+  if (goog.isObject(storage) && 'transaction' in storage) {
     this.db_ = /** @type {ydn.db.con.IStorage} */ (storage);
     this.cursor_ = null;
-  } else if ('db' in storage) {
+  } else if (goog.isObject(storage) && 'db' in storage) {
     var tx = /** @type {!IDBTransaction} */ (storage);
     this.db_ = null;
     this.setTx(tx);
   } else {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException(
+        'ydn.db.Streamer: First argument requires storage or transaction instance required.');
   }
 
   this.cursor_ = null;
@@ -153,7 +154,7 @@ ydn.db.Streamer.prototype.setTx = function(tx) {
         this.store_name_, this.index_name_, this.key_only_,
         goog.bind(this.collector_, this));
   } else {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException('Invalid IndexedDB Transaction.');
   }
 
 };

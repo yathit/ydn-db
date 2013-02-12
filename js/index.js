@@ -9,9 +9,9 @@ goog.require('ydn.db.index.Storage');
 goog.require('ydn.db.index.DbOperator');
 goog.require('ydn.db.index.req.IDBCursor');
 goog.require('ydn.math.Expression');
-
-goog.exportProperty(ydn.db.index.Storage.prototype, 'thread',
-  ydn.db.index.Storage.prototype.thread);
+//
+//goog.exportProperty(ydn.db.index.Storage.prototype, 'thread',
+//  ydn.db.index.Storage.prototype.thread);
 
 goog.exportProperty(ydn.db.index.Storage.prototype, 'scan',
     ydn.db.index.Storage.prototype.scan);
@@ -70,16 +70,16 @@ goog.exportProperty(ydn.db.Iterator.prototype, 'getIndexName',
     ydn.db.Iterator.prototype.getIndexName);
 goog.exportProperty(ydn.db.Iterator.prototype, 'getStoreName',
     ydn.db.Iterator.prototype.getStoreName);
-goog.exportProperty(ydn.db.Iterator.prototype, 'indexKey',
-    ydn.db.Iterator.prototype.indexKey);
 goog.exportProperty(ydn.db.Iterator.prototype, 'isReversed',
     ydn.db.Iterator.prototype.isReversed);
 goog.exportProperty(ydn.db.Iterator.prototype, 'isUnique',
     ydn.db.Iterator.prototype.isUnique);
 goog.exportProperty(ydn.db.Iterator.prototype, 'isKeyOnly',
     ydn.db.Iterator.prototype.isKeyOnly);
+goog.exportProperty(ydn.db.Iterator.prototype, 'primaryKey',
+    ydn.db.Iterator.prototype.getPrimaryKey);
 goog.exportProperty(ydn.db.Iterator.prototype, 'key',
-    ydn.db.Iterator.prototype.key);
+    ydn.db.Iterator.prototype.getEffectiveKey);
 goog.exportProperty(ydn.db.Iterator.prototype, 'resume',
     ydn.db.Iterator.prototype.resume);
 goog.exportProperty(ydn.db.Iterator.prototype, 'reset',
