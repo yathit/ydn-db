@@ -15,7 +15,6 @@ goog.require('ydn.db.index.IOperator');
 goog.require('ydn.debug.error.ArgumentException');
 
 
-
 /**
  * Construct storage to execute CRUD database operations.
  *
@@ -36,7 +35,6 @@ ydn.db.index.DbOperator = function(storage, schema, thread) {
   goog.base(this, storage, schema, thread);
 };
 goog.inherits(ydn.db.index.DbOperator, ydn.db.core.DbOperator);
-
 
 
 /**
@@ -94,7 +92,6 @@ ydn.db.index.DbOperator.prototype.get = function(arg1, arg2) {
 };
 
 
-
 /**
  * @inheritDoc
  */
@@ -143,7 +140,6 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
   }
 
 };
-
 
 
 /**
@@ -238,13 +234,13 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
   var df = ydn.db.base.createDeferred();
   if (goog.DEBUG) {
     if (!goog.isArray(iterators)) {
-      throw new ydn.debug.error.ArgumentException('First argument must be array.');
+      throw new TypeError('First argument must be array.');
     }
     for (var i = 0; i < iterators.length; i++) {
       var is_iter = iterators[i] instanceof ydn.db.Iterator;
       var is_streamer = iterators[i] instanceof ydn.db.Streamer;
-      if (!is_iter || !is_streamer) {
-        throw new ydn.debug.error.ArgumentException('First argument at ' + i +
+      if (!is_iter && !is_streamer) {
+        throw new TypeError('Iterator at ' + i +
             ' must be cursor range iterator or streamer.');
       }
     }

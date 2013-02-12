@@ -16,12 +16,11 @@ goog.require('ydn.db.con.IStorage');
  * @param {!ydn.db.con.IStorage|!IDBTransaction} db
  * @param {string} store_name store name.
  * @param {string|undefined} index_name index name.
- * @param {boolean} key_only key only.
  * @param {Function} sink to receive value.
  * @constructor
  * @implements {ydn.db.con.ICursorStream}
  */
-ydn.db.con.IdbCursorStream = function(db, store_name, index_name, key_only, sink) {
+ydn.db.con.IdbCursorStream = function(db, store_name, index_name, sink) {
   if ('transaction' in db) {
     this.db_ = /** @type {ydn.db.con.IStorage} */ (db);
     this.idb_ = null;
@@ -36,13 +35,12 @@ ydn.db.con.IdbCursorStream = function(db, store_name, index_name, key_only, sink
           '" not in transaction.');
     }
   } else {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.error.ArgumentException('storage instance require.');
   }
 
   this.store_name_ = store_name;
   this.index_name_ = index_name;
   this.sink_ = sink;
-  this.key_only_ = key_only;
   this.cursor_ = null;
   this.stack_ = [];
   this.running_ = 0;
@@ -117,6 +115,15 @@ ydn.db.con.IdbCursorStream.prototype.sink_;
 
 
 /**
+ *
+ * @return {boolean}
+ */
+ydn.db.con.IdbCursorStream.prototype.isIndex = function() {
+  return goog.isDefAndNotNull(this.index_name_);
+};
+
+
+/**
  * Read cursor.
  * @param {!IDBRequest} req
  * @private
@@ -136,7 +143,7 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
     var cursor = ev.target.result;
     if (cursor) {
       if (goog.isFunction(me.sink_)) {
-        if (me.key_only_) {
+        if (me.isIndex()) {
           me.sink_(cursor.primaryKey, cursor.key);
         } else {
           me.sink_(cursor.primaryKey, cursor['value']);
@@ -203,22 +210,19 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
     var key = me.stack_.shift();
     me.logger.finest(me + ' transaction started for ' + key);
     var store = tx.objectStore(me.store_name_);
-    var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
-    if (goog.isDef(me.index_name_) &&
-        indexNames.contains(me.index_name_)) {
-      var index = store.index(me.index_name_);
-      if (me.key_only_) {
-        me.processRequest_(index.openKeyCursor(key));
-      } else {
-        me.processRequest_(index.openCursor(key));
+    if (goog.isString(me.index_name_)) {
+      var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
+      if (goog.DEBUG && !indexNames.contains(me.index_name_)) {
+        throw new ydn.db.InvalidStateError('object store ' + me.store_name_ +
+            ' does not have require index ' + me.index_name_);
       }
-    } else if (!goog.isDef(me.index_name_) || me.index_name_ == store.keyPath) {
+      var index = store.index(me.index_name_);
+      me.processRequest_(index.openKeyCursor(key));
+    } else {
       // as of v1, ObjectStore do not have openKeyCursor method.
       // filed bug on:
       // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       me.processRequest_(store.openCursor(key));
-    } else {
-      throw new ydn.db.InvalidStateError();
     }
   };
 
@@ -245,11 +249,12 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
     this.on_tx_request_ = true;
     this.db_.transaction(function(/** @type {IDBTransaction} */ tx) {
       me.on_tx_request_ = false;
+      //console.log(tx)
       doRequest(tx);
     }, [me.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
   } else {
-    throw new ydn.error.InternalError(
-        'no way to create a transaction provided.');
+    var msg = goog.DEBUG ? 'no way to create a transaction provided.' : '';
+    throw new ydn.error.InternalError(msg);
   }
 
 };

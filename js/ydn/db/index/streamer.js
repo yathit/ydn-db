@@ -151,8 +151,7 @@ ydn.db.Streamer.prototype.setTx = function(tx) {
   if ('db' in tx) {
     var idb_tx = /** @type {!IDBTransaction} */ (tx);
     this.cursor_ = new ydn.db.con.IdbCursorStream(idb_tx,
-        this.store_name_, this.index_name_, this.key_only_,
-        goog.bind(this.collector_, this));
+        this.store_name_, this.index_name_, goog.bind(this.collector_, this));
   } else {
     throw new ydn.debug.error.ArgumentException('Invalid IndexedDB Transaction.');
   }
@@ -259,7 +258,7 @@ ydn.db.Streamer.prototype.push = function(key, value) {
         throw new ydn.error.InvalidOperationError(msg3);
       } else if (type === ydn.db.con.IndexedDb.TYPE) {
         this.cursor_ = new ydn.db.con.IdbCursorStream(this.db_,
-          this.store_name_, this.index_name_, this.key_only_,
+          this.store_name_, this.index_name_,
             goog.bind(this.collector_, this));
       } else {
         throw new ydn.error.NotImplementedException(type);

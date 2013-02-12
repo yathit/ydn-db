@@ -5,7 +5,12 @@ goog.require('goog.testing.jsunit');
 
 
 
-var reachedFinalContinuation, debug_console;
+var reachedFinalContinuation;
+
+var debug_console = new goog.debug.Console();
+debug_console.setCapturing(true);
+goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
+goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
 
 var db_name = 'test_zigzag_test_1';
 
@@ -13,7 +18,7 @@ var schema = {
   stores: [
     {
       name: 'animals',
-      autoIncrement: true,
+      keyPath: 'id',
       indexes: [
         {
           keyPath: ['color', 'name']
@@ -25,32 +30,24 @@ var schema = {
 var db = new ydn.db.Storage(db_name, schema, options);
 
 var animals = [
-  {name: 'rat', color: 'brown', horn: 0, legs: 4},
-  {name: 'cow', color: 'spots', horn: 1, legs: 4},
-  {name: 'galon', color: 'gold', horn: 1, legs: 2},
-  {name: 'cat', color: 'spots', horn: 0, legs: 4},
-  {name: 'snake', color: 'spots', horn: 0, legs: 0},
-  {name: 'leopard', color: 'spots', horn: 1, legs: 4},
-  {name: 'chicken', color: 'red', horn: 0, legs: 2}
+  {id: 1, name: 'rat', color: 'brown', horn: 0, legs: 4},
+  {id: 2, name: 'cow', color: 'spots', horn: 1, legs: 4},
+  {id: 3, name: 'galon', color: 'gold', horn: 1, legs: 2},
+  {id: 4, name: 'cat', color: 'spots', horn: 0, legs: 4},
+  {id: 5, name: 'snake', color: 'spots', horn: 0, legs: 0},
+  {id: 6, name: 'leopard', color: 'spots', horn: 1, legs: 4},
+  {id: 7, name: 'chicken', color: 'red', horn: 0, legs: 2}
 ];
 db.clear();
 db.put('animals', animals).addCallback(function (value) {
   console.log(db + 'store: animals ready.');
 });
 
-var setUp = function() {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.index.req').setLevel(goog.debug.Logger.Level.FINEST);
+var setUp = function () {
 
-    //ydn.db.tr.Mutex.DEBUG = true;
-    //ydn.db.core.req.IndexedDb.DEBUG = true;
-    ydn.db.algo.ZigzagMerge.DEBUG = true;
-  }
+  //ydn.db.tr.Mutex.DEBUG = true;
+  //ydn.db.core.req.IndexedDb.DEBUG = true;
+  ydn.db.algo.ZigzagMerge.DEBUG = true;
 
   reachedFinalContinuation = false;
 };
@@ -71,7 +68,8 @@ var test_simple = function() {
     },
     // Continuation
     function () {
-      assertArrayEquals('result', ['cat', 'cow', 'leopard'], out);
+      // ['cat', 'cow', 'leopard']
+      assertArrayEquals('result', [4, 2, 6], out);
       reachedFinalContinuation = true;
 
     },
@@ -94,6 +92,45 @@ var test_simple = function() {
     done = true;
   });
 };
+
+
+var test_simple_streamer_out = function() {
+
+  var done;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+        assertArrayEquals('result', ['cat', 'cow', 'leopard'], out);
+        reachedFinalContinuation = true;
+
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var q1 = new ydn.db.Cursors('animals', 'color, name', ydn.db.KeyRange.starts(['spots']));
+  var q2 = new ydn.db.Cursors('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
+  var out = new ydn.db.Streamer(db, 'animals', 'name');
+
+  var solver = new ydn.db.algo.ZigzagMerge(out);
+
+  var req = db.scan([q1, q2], solver);
+  req.addCallback(function (result) {
+    out.collect(function(x) {
+      result = x;
+      done = true;
+    });
+  });
+  req.addErrback(function (e) {
+    console.log(e);
+    done = true;
+  });
+};
+
 
 
 var testCase = new goog.testing.ContinuationTestCase();

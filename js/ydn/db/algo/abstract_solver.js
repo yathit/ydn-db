@@ -60,6 +60,20 @@ ydn.db.algo.AbstractSolver.prototype.out = null;
  * @return {boolean}
  */
 ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback){
+  if (goog.DEBUG) {
+    if (!goog.isArray(iterators)) {
+      throw new TypeError('iterators must be array');
+    }
+    if (iterators.length < 2) {
+      throw new RangeError('ZigzagMerge require at least 2 iterators, but ' +
+          ' only ' + iterators.length + ' found.');
+    }
+    for (var i = 0; i < iterators.length; i++) {
+      if (!(iterators[i] instanceof ydn.db.Iterator)) {
+        throw new TypeError('item at iterators ' + i + ' is not an iterator.');
+      }
+    }
+  }
   return false;
 };
 
