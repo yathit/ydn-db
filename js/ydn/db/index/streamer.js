@@ -9,24 +9,17 @@ goog.provide('ydn.db.Streamer');
 goog.require('ydn.db.con.IdbCursorStream');
 goog.require('ydn.db.con.IStorage');
 goog.require('ydn.db.Iterator');
-
+goog.require('ydn.debug.error.ArgumentException');
 
 
 /**
  *
  * @param {ydn.db.con.IStorage|IDBTransaction} storage storage connector.
  * @param {string} store_name store name.
- * @param {?string=} index_name index name. If given output is not cursor value,
- * but index value.
- * fetched.
- * @param {?string=} foreign_index_name foreign index name.
+ * @param {string=} field_name projection field name.
  * @constructor
  */
-ydn.db.Streamer = function(storage, store_name, index_name,
-                           foreign_index_name) {
-
-  this.store_name_ = store_name;
-  this.index_name_ = goog.isString(index_name) ? index_name : undefined;
+ydn.db.Streamer = function(storage, store_name, field_name) {
 
   if (goog.isObject(storage) && 'transaction' in storage) {
     this.db_ = /** @type {ydn.db.con.IStorage} */ (storage);
@@ -40,9 +33,16 @@ ydn.db.Streamer = function(storage, store_name, index_name,
         'ydn.db.Streamer: First argument requires storage or transaction instance required.');
   }
 
+  if (!goog.isString(store_name)) {
+    throw new ydn.debug.error.ArgumentException('a store name required.');
+  }
+  this.store_name_ = store_name;
+  if (goog.isDef(field_name) && !goog.isString(field_name)) {
+    throw new ydn.debug.error.ArgumentException('index name must be a string.');
+  }
+  this.index_name_ = field_name;
+
   this.cursor_ = null;
-  this.key_only_ = goog.isString(index_name);
-  this.foreign_key_index_name_ = foreign_index_name || undefined;
   this.stack_value_ = [];
   this.stack_key_ = [];
   this.is_collecting_ = false;
@@ -117,6 +117,23 @@ ydn.db.Streamer.prototype.stack_value_ = [];
 
 /**
  *
+ * @return {string|undefined}
+ */
+ydn.db.Streamer.prototype.getFieldName = function() {
+  return this.index_name_;
+};
+
+
+/**
+ *
+ * @type {ydn.db.con.ICursorStream}
+ * @private
+ */
+ydn.db.Streamer.prototype.cursor_ = null;
+
+
+/**
+ *
  * @return {boolean}
  */
 ydn.db.Streamer.prototype.isKeyOnly = function() {
@@ -130,15 +147,6 @@ ydn.db.Streamer.prototype.isKeyOnly = function() {
  */
 ydn.db.Streamer.prototype.setSink = function(sink) {
   this.sink_ = sink;
-};
-
-
-/**
- *
- * @param {!ydn.db.con.Storage} db
- */
-ydn.db.Streamer.prototype.setDb = function(db) {
-  this.db_ = db;
 };
 
 
@@ -204,14 +212,17 @@ ydn.db.Streamer.prototype.collect = function(callback) {
     this.is_collecting_ = true;
     var me = this;
     this.cursor_.onFinish(function on_finish(e) {
-      callback(this.stack_key_, me.stack_value_);
+      callback(me.stack_key_, me.stack_value_);
+      me.stack_key_ = [];
       me.stack_value_ = [];
       me.is_collecting_ = false;
     });
   } else {
     // throw new ydn.error.InvalidOperationError('Not collected.');
-    this.logger.warning('Not collected yet.');
-    callback([]);
+    // this.logger.warning('Not collected yet.');
+    callback(this.stack_key_, this.stack_value_);
+    me.stack_key_ = [];
+    me.stack_value_ = [];
   }
 
 

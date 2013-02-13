@@ -22,6 +22,8 @@ goog.require('ydn.db');
 ydn.db.algo.ZigzagMerge = function(out, limit) {
   goog.base(this, out, limit);
 
+  this.is_duplex_output_ = out instanceof ydn.db.Streamer &&
+    !!out.getFieldName();
 };
 goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
 
@@ -30,6 +32,43 @@ goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
  * @define {boolean}
  */
 ydn.db.algo.ZigzagMerge.DEBUG = false;
+
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.algo.ZigzagMerge.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.algo.ZigzagMerge');
+
+
+/**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.algo.ZigzagMerge.prototype.is_duplex_output_ = false;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback){
+  var result = goog.base(this, 'begin', iterators, callback);
+  if (this.is_duplex_output_) {
+    var iter_index = iterators[0].getIndexName().split(', ');
+    if (iter_index.length > 1) {
+      if (iter_index[iter_index.length - 1] != this.out.getFieldName()) {
+        throw new ydn.error.InvalidOperationError('Output streamer ' +
+          'projection field must be same as postfix field in the iterator');
+      }
+    } else {
+      if (goog.DEBUG) {
+        this.logger.warning('Unable to check correctness of output streamer.');
+      }
+    }
+  }
+  return result;
+};
 
 
 /**
@@ -122,14 +161,18 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
     // all postfix key matched.
     // however result is the one when all primary keys are match.
     // since postfix key is index key, it may not be unique.
-
+    // TODO: check matching primary keys and advance as necessary
     for (var j = 0; j < keys.length; j++) {
       if (goog.isDefAndNotNull(keys[j])) {
         advancement[j] = true;
       }
     }
     if (this.out) {
-      this.out.push(values[0]);
+      if (this.is_duplex_output_) {
+        this.out.push(values[0], highest_postfix);
+      } else {
+        this.out.push(values[0]);
+      }
     }
     return advancement;
   } else if (highest_idx == 0) {

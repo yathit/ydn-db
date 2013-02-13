@@ -144,6 +144,37 @@ var test_streamer_sink = function() {
 
 };
 
+
+var test_index_streamer_collect = function() {
+  db = load_default();
+  var done, result;
+  var exp_result = [objs[1].x, objs[4].x];
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    function () {
+      assertArrayEquals('result', exp_result, result);
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var streamer = new ydn.db.Streamer(db, store_name, 'x');
+
+  db.addEventListener('connected', function() {  // to make sure
+    streamer.push(objs[1].id);
+    streamer.push(objs[4].id);
+    streamer.collect(function(keys, x) {
+      result = x;
+      done = true;
+    });
+  });
+
+};
+
 var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
 
   db = load_default();

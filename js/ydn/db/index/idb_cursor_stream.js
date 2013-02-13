@@ -143,11 +143,10 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
     var cursor = ev.target.result;
     if (cursor) {
       if (goog.isFunction(me.sink_)) {
-        if (me.isIndex()) {
-          me.sink_(cursor.primaryKey, cursor.key);
-        } else {
-          me.sink_(cursor.primaryKey, cursor['value']);
-        }
+        //console.log(cursor);
+        var cursor_value = cursor['value'];
+        var value = me.isIndex() ? cursor_value[me.index_name_] : cursor_value;
+        me.sink_(cursor.primaryKey, value);
       } else {
         me.logger.warning('sink gone, dropping value for: ' +
             cursor.primaryKey);
@@ -210,20 +209,25 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
     var key = me.stack_.shift();
     me.logger.finest(me + ' transaction started for ' + key);
     var store = tx.objectStore(me.store_name_);
-    if (goog.isString(me.index_name_)) {
-      var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
-      if (goog.DEBUG && !indexNames.contains(me.index_name_)) {
-        throw new ydn.db.InvalidStateError('object store ' + me.store_name_ +
-            ' does not have require index ' + me.index_name_);
-      }
-      var index = store.index(me.index_name_);
-      me.processRequest_(index.openKeyCursor(key));
-    } else {
+    /**
+     * We cannot use index here, because index is useful to loopup from
+     * index key to primary key. Here we need to lookup from primary key
+     * to index key.
+     */
+//    if (goog.isString(me.index_name_)) {
+//      var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
+//      if (goog.DEBUG && !indexNames.contains(me.index_name_)) {
+//        throw new ydn.db.InvalidStateError('object store ' + me.store_name_ +
+//            ' does not have require index ' + me.index_name_);
+//      }
+//      var index = store.index(me.index_name_);
+//      me.processRequest_(index.openKeyCursor(key));
+//    } else {
       // as of v1, ObjectStore do not have openKeyCursor method.
       // filed bug on:
       // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       me.processRequest_(store.openCursor(key));
-    }
+    //}
   };
 
   if (this.tx_) {

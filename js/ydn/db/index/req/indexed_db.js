@@ -686,12 +686,9 @@ ydn.db.index.req.IndexedDb.prototype.getCursor = function (store_name,
 /**
  *
  * @param {string} store_name
- * @param {?string=} index_name
- * @param {?string=} foreign_index_name
+ * @param {string=} index_name
  * @return {!ydn.db.Streamer}
  */
-ydn.db.index.req.IndexedDb.prototype.getStreamer = function(store_name,
-      index_name, foreign_index_name) {
-  return new ydn.db.Streamer(this.getTx(), store_name, index_name,
-                                    foreign_index_name);
+ydn.db.index.req.IndexedDb.prototype.getStreamer = function(store_name, index_name) {
+  return new ydn.db.Streamer(this.getTx(), store_name, index_name);
 };
