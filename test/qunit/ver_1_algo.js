@@ -75,7 +75,7 @@ var num_horn = animals.reduce(function (p, x) {
     setup: function () {
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
-        console.warn('Storage Event test not finished.');
+        console.warn('Algo test not finished.');
       }, 1000);
     },
     teardown: function () {
@@ -137,7 +137,7 @@ var num_horn = animals.reduce(function (p, x) {
     var result = [];
     var solver = new ydn.db.algo.ZigzagMerge(result);
     var req = db.scan([iter_horn_name, iter_legs_name], solver);
-    var exp_result = ['cow', 'leopard', 'ox'];
+    var exp_result = [7, 2, 6]; // ['cow', 'leopard', 'ox'];
     req.always(function() {
       deepEqual(result, exp_result, 'correct result');
       ok(iter_horn_name.count() >= exp_result.length, 'horn table scan count larger or equal to ' + exp_result.length);
@@ -145,6 +145,32 @@ var num_horn = animals.reduce(function (p, x) {
       ok(iter_legs_name.count() >= exp_result.length, 'legs table scan count larger or equal to ' + exp_result.length);
       ok(iter_legs_name.count() <= num_legs, 'legs table scan count less than or equal to ' + num_legs);
       start();
+    });
+
+  });
+
+  asyncTest("ZigzagMerge with streamer output", function () {
+    expect(5);
+
+    var iter_horn_name = new ydn.db.Cursors('animals', 'horn, name', ydn.db.KeyRange.starts([2]));
+    var iter_legs_name = new ydn.db.Cursors('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
+
+    var streamer = new ydn.db.Streamer(db, 'animals', 'name');
+    var solver = new ydn.db.algo.ZigzagMerge(streamer);
+    var req = db.scan([iter_horn_name, iter_legs_name], solver);
+    var exp_result = ['cow', 'leopard', 'ox'];
+    req.then(function() {
+      streamer.collect(function(keys, values) {
+        deepEqual(values, exp_result, 'correct result');
+        ok(iter_horn_name.count() >= exp_result.length, 'horn table scan count larger or equal to ' + exp_result.length);
+        ok(iter_horn_name.count() <= num_horn, 'horn table scan count less than or equal to ' + num_horn);
+        ok(iter_legs_name.count() >= exp_result.length, 'legs table scan count larger or equal to ' + exp_result.length);
+        ok(iter_legs_name.count() <= num_legs, 'legs table scan count less than or equal to ' + num_legs);
+        start();
+      });
+
+    }, function(e) {
+      throw e;
     });
 
   });

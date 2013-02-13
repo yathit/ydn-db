@@ -221,10 +221,9 @@ ydn.db.Streamer.prototype.collect = function(callback) {
     // throw new ydn.error.InvalidOperationError('Not collected.');
     // this.logger.warning('Not collected yet.');
     callback(this.stack_key_, this.stack_value_);
-    me.stack_key_ = [];
-    me.stack_value_ = [];
+    this.stack_key_ = [];
+    this.stack_value_ = [];
   }
-
 
 };
 
