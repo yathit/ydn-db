@@ -443,6 +443,17 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, opt_i
 
 
 /**
+ *
+ * @param {string} method one of 'get', 'add', 'put', 'delete'
+ * @param object
+ * @param key
+ */
+ydn.db.core.DbOperator.prototype.syncObject = function(method, object, key) {
+
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
@@ -468,8 +479,7 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
     this.logger.finest('Adding object store: ' + store_name);
     this.addStoreSchema(store);
 
-  } else if (this.schema.isAutoSchema() && goog.isObject(store_name_or_schema))
-  {
+  } else if (this.schema.isAutoSchema() && goog.isObject(store_name_or_schema)) {
     // if there is changes in schema, change accordingly.
     var new_schema = ydn.db.schema.Store.fromJSON(store_name_or_schema);
     var diff = store.difference(new_schema);
@@ -521,6 +531,11 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
         me.getStorage().dispatchEvent(event);
       });
     }
+    if (store.sync) {
+      for (var i = 0; i < objs.length; i++) {
+        this.syncObject('add', objs[i], keys ? keys[i] : undefined);
+      }
+    }
   } else if (goog.isObject(value)) {
     var obj = value;
     var key = /** @type {number|string|undefined} */ (opt_keys);
@@ -536,6 +551,9 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
           me.getStorage(), store.getName(), key, obj);
         me.getStorage().dispatchEvent(event);
       });
+    }
+    if (store.sync) {
+      this.syncObject('add', obj, key);
     }
   } else {
     throw new ydn.debug.error.ArgumentException();

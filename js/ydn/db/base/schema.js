@@ -386,7 +386,7 @@ ydn.db.schema.Index.fromJSON = function(json) {
  * @param {boolean=} dispatch_events if true, storage instance should
  * dispatch event on changes.
  * @param {boolean=} fixed sync with backend server.
- * @param {boolean=} sync sync with backend server.
+ * @param {string=} sync sync with backend server.
  * @constructor
  */
 ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
@@ -436,7 +436,6 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
       sqlite_msg);
   }
 
-
   /**
    * @final
    */
@@ -456,7 +455,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   /**
    * @final
    */
-  this.sync = !!sync;
+  this.sync = sync;
 
 };
 
@@ -492,7 +491,6 @@ ydn.db.schema.Store.prototype.keyPaths;
  */
 ydn.db.schema.Store.prototype.indexes;
 
-
 /**
  * @type {boolean}
  */
@@ -506,9 +504,9 @@ ydn.db.schema.Store.prototype.dispatch_events = false;
 ydn.db.schema.Store.prototype.fixed = false;
 
 /**
- * @type {boolean}
+ * @type {string|undefined}
  */
-ydn.db.schema.Store.prototype.sync = false;
+ydn.db.schema.Store.prototype.sync;
 
 
 /**
