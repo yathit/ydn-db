@@ -66,9 +66,7 @@ ydn.db.sync.AbstractSynchronizer.prototype.getTransport = function(uri) {
 };
 
 
-ydn.db.sync.AbstractSynchronizer.prototype.putToDB = function (object) {
-
-};
+ydn.db.sync.AbstractSynchronizer.prototype.putToDB = goog.abstractMethod;
 
 
 /**
