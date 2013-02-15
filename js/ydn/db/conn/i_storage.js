@@ -34,3 +34,5 @@ ydn.db.con.IStorage.prototype.close = goog.abstractMethod;
 ydn.db.con.IStorage.prototype.transaction = goog.abstractMethod;
 
 
+
+

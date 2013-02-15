@@ -123,11 +123,23 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   if (opt_schema instanceof ydn.db.schema.Database) {
     schema = opt_schema;
   } else if (goog.isObject(opt_schema)) {
-    if (options.autoSchema || !goog.isDef(opt_schema['stores'])) {
-      schema = new ydn.db.schema.EditableDatabase(opt_schema);
+    /**
+     * @type {!DatabaseSchema}
+     */
+    var schema_json = opt_schema;
+    if (options.autoSchema || !goog.isDef(schema_json.stores)) {
+      schema = new ydn.db.schema.EditableDatabase(schema_json);
     } else {
-      schema = new ydn.db.schema.Database(opt_schema);
+      schema = new ydn.db.schema.Database(schema_json);
     }
+
+    for (var i = 0, n = schema_json.stores ? schema_json.stores.length : 0; i < n; i++) {
+      var store = schema.getStore(schema_json.stores[i].name);
+      if (schema_json.stores[i].sync) {
+        this.addSynchronizer(store, schema_json.stores[i].sync);
+      }
+    }
+
   } else {
     schema = new ydn.db.schema.EditableDatabase();
   }
@@ -678,12 +690,24 @@ ydn.db.con.Storage.prototype.isAutoVersion = function() {
   return this.schema.isAutoVersion();
 };
 
+
 /**
  *
  * @return {boolean} true if auto schema mode.
  */
 ydn.db.con.Storage.prototype.isAutoSchema = function() {
   return this.schema.isAutoSchema();
+};
+
+
+/**
+ *
+ * @param {ydn.db.schema.Store} store
+ * @param {StoreSyncOptions} option
+ * @protected
+ */
+ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
+  this.logger.warning('Synchronization option for ' + store.getName() + ' ignored.');
 };
 
 

@@ -443,17 +443,6 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, opt_i
 
 
 /**
- *
- * @param {string} method one of 'get', 'add', 'put', 'delete'
- * @param object
- * @param key
- */
-ydn.db.core.DbOperator.prototype.syncObject = function(method, object, key) {
-
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
@@ -531,10 +520,8 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
         me.getStorage().dispatchEvent(event);
       });
     }
-    if (store.sync) {
-      for (var i = 0; i < objs.length; i++) {
-        this.syncObject('add', objs[i], keys ? keys[i] : undefined);
-      }
+    if (goog.isFunction(store.syncObjects)) {
+      store.syncObjects(ydn.db.schema.Store.SyncMethod.ADD, objs, keys);
     }
   } else if (goog.isObject(value)) {
     var obj = value;
@@ -552,8 +539,8 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
         me.getStorage().dispatchEvent(event);
       });
     }
-    if (store.sync) {
-      this.syncObject('add', obj, key);
+    if (goog.isFunction(store.syncObject)) {
+      store.syncObject(ydn.db.schema.Store.SyncMethod.ADD, obj, key);
     }
   } else {
     throw new ydn.debug.error.ArgumentException();

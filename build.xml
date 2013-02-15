@@ -3,11 +3,28 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
-    <property name="buildno" value="zzy"/>
-    <property name="version" value="0.1.37"/>
+    <property name="ver-major" value="0"/>
+    <property name="ver-minor" value="2"/>
+    <property name="ver-patch" value="0"/>
+    <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
+    <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
+    <script language="javascript" description="Generate ascending order build no
+    , so that last version are sorted at top on blob file server."><![CDATA[
+            var toChar = function(x) {
+                return String.fromCharCode(122 - x);
+            };
+            var major = parseInt(project.getProperty("ver-major"), 10);
+            var minor = parseInt(project.getProperty("ver-minor"), 10);
+            var patch = parseInt(project.getProperty("ver-patch"), 10);
+            var buildno = toChar(major) + toChar(minor) + toChar(patch);
+            project.setProperty("buildno", buildno);
+            ]]></script>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
     <property name="dev-out.fn"
               value="${ydn-db.dir}/jsc/${buildno}-ydn.db-dev.js"/>
+
+
+
     <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
 
@@ -175,7 +192,26 @@
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
             </exjs.dir>
         </adv-comp>
-
+    </target>
+    <target name="compile-core-sync"
+            description="generates compiled files for core-sync distribution">
+        <mkdir dir="${ydn-db.dir}/jsc"/>
+        <adv-comp
+                input.dir="${ydn-db.dir}/js/ydn/db/core"
+                input.fn="${ydn-db.dir}/js/core_main.js"
+                output.dir="${ydn-db.dir}/jsc"
+                output.fn="${buildno}-ydn.db-core-sync.js"
+                closure.entry="ydn.db.core.Storage">
+            <exjs.dir>
+                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/sync.js"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/sync"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
+            </exjs.dir>
+        </adv-comp>
     </target>
     <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
@@ -235,7 +271,7 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-conn,compile,simple,compile-dev,compile-core">
+            depends="compile-conn,compile,simple,compile-dev,compile-core,compile-core-sync">
 
     </target>
 </project>

@@ -38,6 +38,18 @@ IndexSchema.prototype.multiEntry;
 /**
  * @constructor
  */
+function StoreSyncOptions() {}
+
+
+/**
+ * @type {string}
+ */
+StoreSyncOptions.prototype.format;
+
+
+/**
+ * @constructor
+ */
 function StoreSchema() {}
 
 /**
@@ -77,7 +89,8 @@ StoreSchema.prototype.dispatchEvents;
 StoreSchema.prototype.fixed;
 
 /**
- * @type {boolean}
+ * Name of sync
+ * @type {StoreSyncOptions}
  */
 StoreSchema.prototype.sync;
 
