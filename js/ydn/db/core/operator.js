@@ -691,6 +691,23 @@ ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
 
 
 /**
+ * Dump object into the database. Use only by synchronization process when updating from
+ * server.
+ * @param {string} store_name store name.
+ * @param {!Array.<Object>} objs objects.
+ * @return {goog.async.Deferred} df
+ */
+ydn.db.core.DbOperator.prototype.dump = function(store_name, objs) {
+  var df = new goog.async.Deferred();
+  var me = this;
+  this.tx_thread.exec(function(tx) {
+    me.getExecutor(tx).putObjects(df, store_name, objs);
+  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'dump');
+  return df;
+};
+
+
+/**
  * Remove a specific entry from a store or all.
  * @param {(!Array.<string>|string)=} arg1 delete the table as provided
  * otherwise

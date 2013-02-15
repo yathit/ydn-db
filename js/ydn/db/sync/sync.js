@@ -12,6 +12,8 @@ goog.provide('ydn.db.sync');
 goog.require('ydn.db.schema.Store');
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.sync.Atom');
+goog.require('ydn.db.sync.GData');
+goog.require('ydn.debug.error.NotSupportedException');
 
 
 
@@ -30,6 +32,8 @@ ydn.db.schema.Store.prototype.syncObject = function(method, object, key) {
   if (this.synchronizer) {
     if (method == ydn.db.schema.Store.SyncMethod.ADD) {
       this.synchronizer.addToServer(object);
+    } else if (method == ydn.db.schema.Store.SyncMethod.PUT) {
+      this.synchronizer.putToServer(object);
     }
   }
 };
@@ -61,23 +65,12 @@ ydn.db.schema.Store.prototype.synchronizer = null;
  * @override
  */
 ydn.db.core.Storage.prototype.addSynchronizer = function(store, option) {
-  if (option.format == 'atom') {
-    store.synchronizer = new ydn.db.sync.Atom(this, null, '');
+  if (option.format == 'gdata') {
+    store.synchronizer = new ydn.db.sync.GData(this, store, null, '');
+  } else if (option.format == 'atom') {
+    store.synchronizer = new ydn.db.sync.Atom(this, store, null, '');
+  } else {
+    throw new ydn.debug.error.NotSupportedException('Sync format: ' + option.format)
   }
 };
 
-
-/**
- * Receive updated object from the server.
- * @param {!Array} objs
- */
-ydn.db.schema.Store.prototype.receiveObjects = function(objs) {
-
-//  var on_completed = function(type, e) {
-//
-//  };
-//
-//  this.getStorage().transaction(function(tx) {
-//
-//  }, [this.store_name], ydn.db.base.TransactionMode.READ_WRITE, on_completed);
-};

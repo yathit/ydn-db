@@ -17,18 +17,31 @@ goog.require('ydn.db.sync.EventTypes');
 
 /**
  * @param {ydn.db.core.Storage} storage
+ * @param {ydn.db.schema.Store} store
  * @param {ydn.http.Transport} tr
  * @constructor
  */
-ydn.db.sync.AbstractSynchronizer = function(storage, tr) {
+ydn.db.sync.AbstractSynchronizer = function(storage, store, tr) {
 
   /**
    * @final
    */
   this.storage = storage;
 
+  /**
+   * @final
+   */
+  this.store = store;
+
   this.transport = tr;
 };
+
+/**
+ *
+ * @type {ydn.db.schema.Store}
+ * @protected
+ */
+ydn.db.sync.AbstractSynchronizer.prototype.store;
 
 
 /**
@@ -66,7 +79,16 @@ ydn.db.sync.AbstractSynchronizer.prototype.getTransport = function(uri) {
 };
 
 
-ydn.db.sync.AbstractSynchronizer.prototype.putToDB = goog.abstractMethod;
+/**
+ *
+ * @param {Object|!Array.<Object>} obj
+ */
+ydn.db.sync.AbstractSynchronizer.prototype.putToDB = function(obj) {
+  if (goog.isArray(obj)) {
+    var objs = goog.isArray(obj) ? obj : [obj];
+    this.storage.dump(this.store.getName(), objs);
+  }
+};
 
 
 /**
@@ -75,3 +97,11 @@ ydn.db.sync.AbstractSynchronizer.prototype.putToDB = goog.abstractMethod;
  * @param {string=} uri
  */
 ydn.db.sync.AbstractSynchronizer.prototype.addToServer = goog.abstractMethod;
+
+
+/**
+ * Sync given object back to server.
+ * @param {!Object} object
+ * @param {string=} uri
+ */
+ydn.db.sync.AbstractSynchronizer.prototype.putToServer = goog.abstractMethod;

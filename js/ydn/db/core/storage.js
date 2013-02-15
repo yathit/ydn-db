@@ -179,6 +179,17 @@ ydn.db.core.Storage.prototype.put = function(store, value, opt_key) {
   return this.getCoreOperator().put(store, value, opt_key);
 };
 
+/**
+ * Dump object into the database. Use only by synchronization process when updating from
+ * server.
+ * @param {string} store_name store name.
+ * @param {!Array.<Object>} objs objects.
+ * @return {goog.async.Deferred} df
+ */
+ydn.db.core.Storage.prototype.dump = function(store_name, objs) {
+  return this.getCoreOperator().dump(store_name, objs);
+};
+
 
 /**
  * @inheritDoc
