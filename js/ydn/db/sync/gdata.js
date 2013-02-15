@@ -26,6 +26,16 @@ ydn.db.sync.GData = function(storage, store, tr, base_uri) {
 goog.inherits(ydn.db.sync.GData, ydn.db.sync.Atom);
 
 
+
+/**
+ *
+ * @inheritDoc
+ */
+ydn.db.sync.GData.prototype.getId = function(obj) {
+  return obj ? obj['id'] ? obj['id']['$t'] : '' : '';
+};
+
+
 /**
  *
  * @inheritDoc

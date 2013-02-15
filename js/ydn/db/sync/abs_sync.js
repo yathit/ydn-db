@@ -81,13 +81,10 @@ ydn.db.sync.AbstractSynchronizer.prototype.getTransport = function(uri) {
 
 /**
  *
- * @param {Object|!Array.<Object>} obj
+ * @param {!Array.<Object>} objs
  */
-ydn.db.sync.AbstractSynchronizer.prototype.putToDB = function(obj) {
-  if (goog.isArray(obj)) {
-    var objs = goog.isArray(obj) ? obj : [obj];
-    this.storage.dump(this.store.getName(), objs);
-  }
+ydn.db.sync.AbstractSynchronizer.prototype.putToDB = function(objs) {
+   this.storage.dump(this.store.getName(), objs);
 };
 
 
@@ -104,4 +101,20 @@ ydn.db.sync.AbstractSynchronizer.prototype.addToServer = goog.abstractMethod;
  * @param {!Object} object
  * @param {string=} uri
  */
+ydn.db.sync.AbstractSynchronizer.prototype.getFromServer = goog.abstractMethod;
+
+
+/**
+ * Sync given object back to server.
+ * @param {!Object} object
+ * @param {string=} uri
+ */
 ydn.db.sync.AbstractSynchronizer.prototype.putToServer = goog.abstractMethod;
+
+
+/**
+ * Sync given object back to server.
+ * @param {!Object} object
+ * @param {string=} uri
+ */
+ydn.db.sync.AbstractSynchronizer.prototype.clearToServer = goog.abstractMethod;
