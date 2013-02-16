@@ -105,6 +105,15 @@ ydn.db.sync.AbstractSynchronizer.prototype.getFromServer = goog.abstractMethod;
 
 
 /**
+ * Fetch collection of objects from server.
+ * Caveat: The list of object is in ascending order of updated time.
+ * @param {!Array} object
+ * @param {string=} uri
+ */
+ydn.db.sync.AbstractSynchronizer.prototype.fetchFromServer = goog.abstractMethod;
+
+
+/**
  * Sync given object back to server.
  * @param {!Object} object
  * @param {string=} uri

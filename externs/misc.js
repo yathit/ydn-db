@@ -57,3 +57,45 @@ KeyRangeJson.prototype.upper;
  * @type {*}
  */
 KeyRangeJson.prototype.upperOpen;
+
+
+
+/**
+ * @constructor
+ */
+var AtomOptions = function() {};
+
+
+/**
+ * @type {string}
+ */
+AtomOptions.prototype.baseUri;
+
+/**
+ * @extends {AtomOptions}
+ * @constructor
+ */
+var GDataOptions = function() {};
+
+
+/**
+ * @extends {AtomOptions}
+ * @constructor
+ */
+var ODataOptions = function() {};
+
+/**
+ * @type {(string|number|!Array.<number|string>)}
+ */
+ODataOptions.prototype.pathId;
+
+/**
+ * @type {(string|number|!Array.<number|string>)}
+ */
+ODataOptions.prototype.pathEtag;
+
+/**
+ * @type {(string|number|!Array.<number|string>)}
+ */
+ODataOptions.prototype.pathUpdated;
+
