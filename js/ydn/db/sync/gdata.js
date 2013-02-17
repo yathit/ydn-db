@@ -17,22 +17,15 @@ goog.require('ydn.atom.Link');
  * @param {ydn.db.core.Storage} storage
  * @param {ydn.db.schema.Store} store
  * @param {ydn.http.Transport} tr
- * @param {GDataOptions} options
+ * @param {!GDataOptions} options
  * @constructor
  * @extends {ydn.db.sync.Atom}
  */
 ydn.db.sync.GData = function(storage, store, tr, options) {
   goog.base(this, storage, store, tr, options);
-  this.options = options;
 };
 goog.inherits(ydn.db.sync.GData, ydn.db.sync.Atom);
 
-
-/**
- *
- * @type {GDataOptions}
- */
-ydn.db.sync.GData.prototype.options = null;
 
 /**
  *

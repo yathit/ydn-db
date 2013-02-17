@@ -37,23 +37,6 @@ goog.inherits(ydn.db.sync.OData, ydn.db.sync.Atom);
  */
 ydn.db.sync.OData.prototype.options = null;
 
-/**
- *
- * @inheritDoc
- */
-ydn.db.sync.OData.prototype.getId = function(obj) {
-  return /** @type {string} */ (goog.object.getValueByKeys(obj, this.options.pathId));
-};
-
-
-/**
- *
- * @inheritDoc
- */
-ydn.db.sync.OData.prototype.getEtag = function(obj) {
-  return /** @type {string} */ (goog.object.getValueByKeys(obj, this.options.pathEtag));
-};
-
 
 /**
  * @inheritDoc
@@ -66,10 +49,3 @@ ydn.db.sync.OData.prototype.getFetchUrl = function(last_updated) {
   return url;
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.sync.OData.prototype.getUpdated = function(obj) {
-  return /** @type {string} */ (goog.object.getValueByKeys(obj, this.options.pathUpdated));
-};

@@ -71,6 +71,22 @@ var AtomOptions = function() {};
  */
 AtomOptions.prototype.baseUri;
 
+
+/**
+ * @type {(string|number|!Array.<number|string>)}
+ */
+AtomOptions.prototype.pathId;
+
+/**
+ * @type {(string|number|!Array.<number|string>)}
+ */
+AtomOptions.prototype.pathEtag;
+
+/**
+ * @type {(string|number|!Array.<number|string>)}
+ */
+AtomOptions.prototype.pathUpdated;
+
 /**
  * @extends {AtomOptions}
  * @constructor
@@ -84,18 +100,4 @@ var GDataOptions = function() {};
  */
 var ODataOptions = function() {};
 
-/**
- * @type {(string|number|!Array.<number|string>)}
- */
-ODataOptions.prototype.pathId;
-
-/**
- * @type {(string|number|!Array.<number|string>)}
- */
-ODataOptions.prototype.pathEtag;
-
-/**
- * @type {(string|number|!Array.<number|string>)}
- */
-ODataOptions.prototype.pathUpdated;
 

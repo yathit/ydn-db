@@ -16,7 +16,7 @@ goog.require('ydn.json');
  * @param {ydn.db.core.Storage} storage
  * @param {ydn.db.schema.Store} store
  * @param {ydn.http.Transport} tr
- * @param {AtomOptions=} options
+ * @param {!AtomOptions} options
  * @constructor
  * @extends {ydn.db.sync.AbstractSynchronizer}
  */
@@ -25,7 +25,11 @@ ydn.db.sync.Atom = function(storage, store, tr, options) {
   /**
    * @final
    */
-  this.base_uri = options ? options.baseUri : '';
+  this.options = options;
+  /**
+   * @final
+   */
+  this.base_uri = this.options.baseUri || '';
 
 };
 goog.inherits(ydn.db.sync.Atom, ydn.db.sync.AbstractSynchronizer);
@@ -38,13 +42,23 @@ goog.inherits(ydn.db.sync.Atom, ydn.db.sync.AbstractSynchronizer);
 ydn.db.sync.Atom.prototype.base_uri;
 
 
+
+/**
+ *
+ * @type {AtomOptions}
+ */
+ydn.db.sync.Atom.prototype.options = null;
+
+
 /**
  *
  * @param {!Object} obj
  * @return {string} return etag from the object.
  */
 ydn.db.sync.Atom.prototype.getEtag = function(obj) {
-  return obj['etag'];
+  var etag = goog.object.getValueByKeys(obj, this.options.pathEtag);
+  goog.asserts.assertString(etag, 'etag missing in ' + ydn.json.toShortString(obj));
+  return etag;
 };
 
 
@@ -54,7 +68,9 @@ ydn.db.sync.Atom.prototype.getEtag = function(obj) {
  * @return {string}
  */
 ydn.db.sync.Atom.prototype.getId = function(obj) {
-  return obj ? obj['ID'] : '';
+  var id = goog.object.getValueByKeys(obj, this.options.pathId);
+  goog.asserts.assertString(id, 'ID missing in ' + ydn.json.toShortString(obj));
+  return id;
 };
 
 
@@ -92,7 +108,9 @@ ydn.db.sync.Atom.prototype.getEditLink = function(obj) {
  * @return {string} Return updated value from the Atom object.
  */
 ydn.db.sync.Atom.prototype.getUpdated = function(obj) {
-  return obj['updated'];
+  var date = goog.object.getValueByKeys(obj, this.options.pathUpdated);
+  goog.asserts.assertString(date, 'updated date missing in ' + ydn.json.toShortString(obj));
+  return date;
 };
 
 
