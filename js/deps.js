@@ -4,6 +4,7 @@ goog.addDependency("../../../ydn-db/js/core.js", [], ['ydn.db.core.Storage', 'yd
 goog.addDependency("../../../ydn-db/js/core_main.js", [], ['ydn.db.core.Storage']);
 goog.addDependency("../../../ydn-db/js/dev.js", [], ['ydn.debug', 'ydn.db.con.Storage']);
 goog.addDependency("../../../ydn-db/js/index.js", [], ['ydn.db.index.Storage', 'ydn.db.index.DbOperator', 'ydn.db.index.req.IDBCursor', 'ydn.math.Expression']);
+goog.addDependency("../../../ydn-db/js/index_main.js", [], ['ydn.db.index.Storage']);
 goog.addDependency("../../../ydn-db/js/main.js", [], ['ydn.db.Storage', 'ydn.db.algo.NestedLoop', 'ydn.db.algo.ZigzagMerge', 'ydn.db.algo.SortedMerge']);
 goog.addDependency("../../../ydn-db/js/rich.js", [], ['ydn.db.rich.Storage']);
 goog.addDependency("../../../ydn-db/js/sql.js", [], ['ydn.db.sql.Storage', 'ydn.db.sql.DbOperator']);

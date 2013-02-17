@@ -382,7 +382,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
     me.last_queue_checkin_ = NaN;
 
     me.popTxQueue_();
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.CONNECTED,
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.DONE,
       me, parseFloat(db.getVersion()), old_version);
     me.dispatchEvent(event);
 
