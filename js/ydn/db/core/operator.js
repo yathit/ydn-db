@@ -693,6 +693,7 @@ ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
 /**
  * Dump object into the database. Use only by synchronization process when updating from
  * server.
+ * This is friendly module use only.
  * @param {string} store_name store name.
  * @param {!Array.<Object>} objs objects.
  * @return {goog.async.Deferred} df
