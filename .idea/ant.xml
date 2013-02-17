@@ -10,7 +10,7 @@
       <maximumStackSize value="2" />
       <properties />
     </buildFile>
-    <buildFile url="file://$PROJECT_DIR$/../ydn-dev/build.xml">
+    <buildFile url="file://$PROJECT_DIR$/../ydn-db-sync/build.xml">
       <additionalClassPath />
       <antReference projectDefault="true" />
       <customJdkName value="" />

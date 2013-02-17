@@ -19,10 +19,10 @@ goog.provide('ydn.db.events.Types');
  * @enum {string}
  */
 ydn.db.events.Types = {
-  CONNECTED: 'connected',
+  DONE: 'done',
   CREATED: 'created',
   DELETED: 'deleted',
-  FAIL: 'failed',
+  FAIL: 'fail',
   UPDATED: 'updated'
 };
 
