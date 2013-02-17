@@ -35,7 +35,6 @@
             <extrapaths>
                 <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/sync.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/index.js"'/>
@@ -196,26 +195,7 @@
             </exjs.dir>
         </adv-comp>
     </target>
-    <target name="compile-core-sync"
-            description="generates compiled files for core-sync distribution">
-        <mkdir dir="${ydn-db.dir}/jsc"/>
-        <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db/core"
-                input.fn="${ydn-db.dir}/js/core_main.js"
-                output.dir="${ydn-db.dir}/jsc"
-                output.fn="${buildno}-ydn.db-core-sync.js"
-                closure.entry="ydn.db.core.Storage">
-            <exjs.dir>
-                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/sync.js"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/sync"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
-            </exjs.dir>
-        </adv-comp>
-    </target>
+
     <target name="compile-iter" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
@@ -234,25 +214,7 @@
             </ex.opt>
         </adv-comp>
     </target>
-    <target name="compile-iter-sync" description="generates compiled files for client js">
-        <mkdir dir="${ydn-db.dir}/jsc"/>
-        <adv-comp
-                input.dir="${ydn-db.dir}/js"
-                input.fn="${ydn-db.dir}/js/index_main.js"
-                output.dir="${ydn-db.dir}/jsc"
-                output.fn="${buildno}-ydn.db-iter-sync.js"
-                closure.entry="ydn.db.index.Storage">
-            <ex.opt>
-                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/sync.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/index.js"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/sync"'/>
-            </ex.opt>
-        </adv-comp>
-    </target>
+
     <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
@@ -264,7 +226,6 @@
             <ex.opt>
                 <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/sync.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/index.js"'/>
@@ -312,8 +273,8 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-conn,compile,simple,compile-dev,compile-core,compile-core-sync,
-            compile-iter,compile-iter-sync">
+            depends="compile-conn,compile,simple,compile-dev,compile-core,
+            compile-iter">
 
     </target>
 </project>
