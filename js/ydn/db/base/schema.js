@@ -455,7 +455,11 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   /**
    * @final
    */
-  this.syncFormat = sync ? sync.format : undefined;
+  this.sync = !!sync;
+
+//  if (this.sync && this.addSynchronizer) {
+//    this.addSynchronizer(sync);
+//  }
 
 };
 
@@ -504,9 +508,9 @@ ydn.db.schema.Store.prototype.dispatch_events = false;
 ydn.db.schema.Store.prototype.fixed = false;
 
 /**
- * @type {string|undefined}
+ * @type {boolean}
  */
-ydn.db.schema.Store.prototype.syncFormat;
+ydn.db.schema.Store.prototype.sync;
 
 
 /**
@@ -527,6 +531,7 @@ ydn.db.schema.Store.prototype.toJSON = function() {
     'indexes': indexes
   };
 };
+
 
 
 /**

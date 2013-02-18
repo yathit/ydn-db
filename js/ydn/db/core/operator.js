@@ -12,6 +12,7 @@ goog.require('ydn.db.core.req.WebSql');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.db.core.IOperator');
+goog.require('ydn.db.ISyncOperator');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.error.NotSupportedException');
 goog.require('ydn.debug.error.ArgumentException');
@@ -31,6 +32,7 @@ goog.require('ydn.debug.error.ArgumentException');
  * @param {!ydn.db.schema.Database} schema
  * @param {ydn.db.tr.IThread} tx_thread
  * @implements {ydn.db.core.IOperator}
+ * @implements {ydn.db.ISyncOperator}
  * @constructor
  * @extends {ydn.db.tr.DbOperator}
 */
@@ -400,6 +402,10 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, opt_i
         }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
       }
 
+      if (store.sync && goog.isFunction(store.syncObjects)) { // inject sync module function.
+        df = store.syncObjects(df, ydn.db.schema.Store.SyncMethod.GET, []);
+      }
+
     }
   } else if (goog.isArray(arg1)) {
     if (arg1[0] instanceof ydn.db.Key) {
@@ -521,7 +527,7 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
       });
     }
     if (goog.isFunction(store.syncObjects)) {
-      store.syncObjects(ydn.db.schema.Store.SyncMethod.ADD, objs, keys);
+      df = store.syncObjects(df, ydn.db.schema.Store.SyncMethod.ADD, objs, keys);
     }
   } else if (goog.isObject(value)) {
     var obj = value;
@@ -540,7 +546,7 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
       });
     }
     if (goog.isFunction(store.syncObject)) {
-      store.syncObject(ydn.db.schema.Store.SyncMethod.ADD, obj, key);
+      df = store.syncObject(df, ydn.db.schema.Store.SyncMethod.ADD, obj, key);
     }
   } else {
     throw new ydn.debug.error.ArgumentException();
@@ -697,6 +703,7 @@ ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
  * @param {string} store_name store name.
  * @param {!Array.<Object>} objs objects.
  * @return {goog.async.Deferred} df
+ * @override
  */
 ydn.db.core.DbOperator.prototype.dump = function(store_name, objs) {
   var df = new goog.async.Deferred();
