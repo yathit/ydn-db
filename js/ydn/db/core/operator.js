@@ -421,10 +421,24 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
         throw new ydn.debug.error.ArgumentException('reverse must be a boolean, but ' + arg6);
       }
       this.logger.finer('listByIndexKeyRange: ' + store_name + ':' + index_name);
-      this.tx_thread.exec(function (tx) {
-        me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
-          range, reverse, limit, offset, false);
-      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByIndexKeyRange');
+
+      // inject sync module function.
+      if (ydn.db.base.SYNC && goog.isFunction(store.syncObject) && store.sync &&
+          offset == 0 && reverse == true && index_name == store.sync.options.keyPathUpdated) {
+        store.syncObject(ydn.db.schema.Store.SyncMethod.LIST, function() {
+          me.sync_thread.exec(function (tx) {
+            me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
+                range, reverse, limit, offset, false);
+          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByIndexKeyRange');
+        }, []);
+
+      } else {
+        this.tx_thread.exec(function (tx) {
+          me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
+              range, reverse, limit, offset, false);
+        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByIndexKeyRange');
+      }
+
     } else {
       if (goog.DEBUG) {
         var msg = ydn.db.KeyRange.validate(arg2);
@@ -457,22 +471,10 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
       }
       this.logger.finer((range ? 'listByKeyRange: ' : 'listByStore: ') + store_name);
 
-      // inject sync module function.
-      if (ydn.db.base.SYNC && store.sync && offset == 0 && goog.isFunction(store.syncObject)) {
-        var sync_df = store.syncObject(ydn.db.schema.Store.SyncMethod.LIST, function() {
-          me.tx_thread.exec(function (tx) {
-            me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
-              limit, offset);
-          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
-        }, []);
-
-      } else {
-        this.tx_thread.exec(function (tx) {
+      this.tx_thread.exec(function (tx) {
           me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
             limit, offset);
         }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
-      }
-
 
     }
   } else if (goog.isArray(arg1)) {
