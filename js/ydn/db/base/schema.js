@@ -455,11 +455,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   /**
    * @final
    */
-  this.sync = !!sync;
-
-//  if (this.sync && this.addSynchronizer) {
-//    this.addSynchronizer(sync);
-//  }
+  this.sync = sync || null;
 
 };
 
@@ -508,9 +504,9 @@ ydn.db.schema.Store.prototype.dispatch_events = false;
 ydn.db.schema.Store.prototype.fixed = false;
 
 /**
- * @type {boolean}
+ * @type {StoreSyncOptions}
  */
-ydn.db.schema.Store.prototype.sync;
+ydn.db.schema.Store.prototype.sync = null;
 
 
 /**

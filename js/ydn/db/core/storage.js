@@ -69,8 +69,8 @@ ydn.db.core.Storage.prototype.init = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.newOperator = function(tx_thread) {
-  return new ydn.db.core.DbOperator(this, this.schema, tx_thread);
+ydn.db.core.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.core.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 
@@ -81,18 +81,6 @@ ydn.db.core.Storage.prototype.newOperator = function(tx_thread) {
 ydn.db.core.Storage.prototype.getCoreOperator = function() {
   return /** @type {ydn.db.core.DbOperator} */ (this.db_operator);
 };
-
-
-//
-//
-///**
-// * @override
-// */
-//ydn.db.core.Storage.prototype.newTxQueue = function(thread, scope_name) {
-//  thread = thread || this.thread;
-//  return new ydn.db.core.DbOperator(this, thread, this.ptx_no++,
-//      this.schema, scope_name);
-//};
 
 
 /**
@@ -114,6 +102,7 @@ ydn.db.core.Storage.prototype.getExecutor = function () {
   }
 
 };
+
 
 /**
  * @inheritDoc

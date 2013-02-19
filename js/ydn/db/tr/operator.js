@@ -25,9 +25,10 @@ goog.require('ydn.error.NotSupportedException');
  * @param {!ydn.db.tr.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema
  * @param {ydn.db.tr.IThread} tx_thread
+ * @param {ydn.db.tr.IThread} sync_thread
  * @constructor
  */
-ydn.db.tr.DbOperator = function(storage, schema, tx_thread) {
+ydn.db.tr.DbOperator = function(storage, schema, tx_thread, sync_thread) {
 
   /**
    * @final
@@ -47,6 +48,11 @@ ydn.db.tr.DbOperator = function(storage, schema, tx_thread) {
    * @final
    */
   this.tx_thread = tx_thread;
+
+  /**
+   * @final
+   */
+  this.sync_thread = sync_thread;
 };
 
 
@@ -63,6 +69,12 @@ ydn.db.tr.DbOperator.prototype.logger =
  * @protected
  */
 ydn.db.tr.DbOperator.prototype.tx_thread;
+
+/**
+ * @type {ydn.db.tr.IThread}
+ * @protected
+ */
+ydn.db.tr.DbOperator.prototype.sync_thread;
 
 
 /**

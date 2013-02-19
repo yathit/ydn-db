@@ -63,6 +63,12 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   /**
    * @final
    */
+  this.sync_thread = ydn.db.base.SYNC ?
+    this.newTxQueue(ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL, 'sync') : null;
+
+  /**
+   * @final
+   */
   this.db_operator = this.thread(this.thread_name, 'base');
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
@@ -73,6 +79,13 @@ goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
  * @protected
  */
 ydn.db.tr.Storage.prototype.thread_name;
+
+
+/**
+ * @type {ydn.db.tr.IThread}
+ * @protected
+ */
+ydn.db.tr.Storage.prototype.sync_thread;
 
 
 /**
@@ -98,7 +111,7 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
  */
 ydn.db.tr.Storage.prototype.thread = function(thread, name) {
   var tx_thread = this.newTxQueue(thread, name);
-  return this.newOperator(tx_thread);
+  return this.newOperator(tx_thread, this.sync_thread);
 };
 
 
@@ -114,17 +127,17 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
 /**
  *
  * @param {!ydn.db.tr.IThread} tx_thread
+ * @param {ydn.db.tr.IThread} sync_thread
  * @return {ydn.db.tr.DbOperator}
  * @protected
  */
-ydn.db.tr.Storage.prototype.newOperator = function(tx_thread) {
-  return new ydn.db.tr.DbOperator(this, this.schema, tx_thread);
+ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.tr.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 
 
 /**
-* @protected
 * @param {ydn.db.tr.IThread.Threads=} thread
 * @param {string=} scope_name scope name.
 * @return {!ydn.db.tr.IThread} new transactional storage.
@@ -152,7 +165,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
 
   var scope_name = trFn.name || '';
   var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Threads.SINGLE, scope_name);
-  var tx_queue = this.newOperator(tx_thread);
+  var tx_queue = this.newOperator(tx_thread, this.sync_thread);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   if (goog.DEBUG && [ydn.db.base.TransactionMode.READ_ONLY,
       ydn.db.base.TransactionMode.READ_WRITE].indexOf(mode) == -1) {

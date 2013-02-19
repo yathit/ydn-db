@@ -31,13 +31,14 @@ goog.require('ydn.debug.error.ArgumentException');
  * @param {!ydn.db.core.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema
  * @param {ydn.db.tr.IThread} tx_thread
+ * @param {ydn.db.tr.IThread} sync_thread
  * @implements {ydn.db.core.IOperator}
  * @implements {ydn.db.ISyncOperator}
  * @constructor
  * @extends {ydn.db.tr.DbOperator}
 */
-ydn.db.core.DbOperator = function(storage, schema, tx_thread) {
-  goog.base(this, storage, schema, tx_thread);
+ydn.db.core.DbOperator = function(storage, schema, tx_thread, sync_thread) {
+  goog.base(this, storage, schema, tx_thread, sync_thread);
 };
 goog.inherits(ydn.db.core.DbOperator, ydn.db.tr.DbOperator);
 
@@ -455,15 +456,23 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
         }
       }
       this.logger.finer((range ? 'listByKeyRange: ' : 'listByStore: ') + store_name);
-      this.tx_thread.exec(function (tx) {
-        me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
-          limit, offset);
-      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
 
       // inject sync module function.
       if (ydn.db.base.SYNC && store.sync && offset == 0 && goog.isFunction(store.syncObject)) {
-        df = store.syncObject(df, ydn.db.schema.Store.SyncMethod.LIST, []);
+        var sync_df = store.syncObject(ydn.db.schema.Store.SyncMethod.LIST, function() {
+          me.tx_thread.exec(function (tx) {
+            me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
+              limit, offset);
+          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
+        }, []);
+
+      } else {
+        this.tx_thread.exec(function (tx) {
+          me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
+            limit, offset);
+        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
       }
+
 
     }
   } else if (goog.isArray(arg1)) {
@@ -604,9 +613,7 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
         me.getStorage().dispatchEvent(event);
       });
     }
-    if (ydn.db.base.SYNC && store.sync && goog.isFunction(store.syncObject)) {
-      df = store.syncObject(df, ydn.db.schema.Store.SyncMethod.ADD, obj);
-    }
+
   } else {
     throw new ydn.debug.error.ArgumentException();
   }
@@ -767,9 +774,32 @@ ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
 ydn.db.core.DbOperator.prototype.dump = function(store_name, objs) {
   var df = new goog.async.Deferred();
   var me = this;
-  this.tx_thread.exec(function(tx) {
+  this.sync_thread.exec(function(tx) {
     me.getExecutor(tx).putObjects(df, store_name, objs);
   }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'dump');
+  return df;
+};
+
+
+/**
+ * List records from the database. Use only by synchronization process when updating from
+ * server.
+ * This is friendly module use only.
+ * @param {string} store_name
+ * @param {string} index_name
+ * @param {IDBKeyRange} key_range
+ * @param {boolean} reverse
+ * @param {number} limit
+ * @return {goog.async.Deferred} df
+ * @override
+ */
+ydn.db.core.DbOperator.prototype.list = function(store_name, index_name, key_range, reverse, limit) {
+  var df = new goog.async.Deferred();
+  var me = this;
+  this.sync_thread.exec(function (tx) {
+    me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
+      key_range, reverse, limit, 0, false);
+  }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'list');
   return df;
 };
 

@@ -51,17 +51,19 @@ AtomOptions.prototype.baseUri;
 /**
  * @type {(string|number|!Array.<number|string>)}
  */
-AtomOptions.prototype.pathId;
+AtomOptions.prototype.keyPathId;
 
 /**
  * @type {(string|number|!Array.<number|string>)}
  */
-AtomOptions.prototype.pathEtag;
+AtomOptions.prototype.keyPathEtag;
 
 /**
- * @type {(string|number|!Array.<number|string>)}
+ * This need to be a string because, the value is used as dual purpose of index name.
+ * The string can be use dotted notation for nested key path.
+ * @type {string}
  */
-AtomOptions.prototype.pathUpdated;
+AtomOptions.prototype.keyPathUpdated;
 
 
 /**

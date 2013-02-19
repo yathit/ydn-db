@@ -27,12 +27,13 @@ goog.require('ydn.debug.error.ArgumentException');
  * @param {!ydn.db.core.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema
  * @param {ydn.db.tr.IThread} thread
+ * @param {ydn.db.tr.IThread} sync_thread
  * @implements {ydn.db.index.IOperator}
  * @constructor
  * @extends {ydn.db.core.DbOperator}
 */
-ydn.db.index.DbOperator = function(storage, schema, thread) {
-  goog.base(this, storage, schema, thread);
+ydn.db.index.DbOperator = function(storage, schema, thread, sync_thread) {
+  goog.base(this, storage, schema, thread, sync_thread);
 };
 goog.inherits(ydn.db.index.DbOperator, ydn.db.core.DbOperator);
 
@@ -530,8 +531,6 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
       var idx = 0;
       for (var i = 0; i < iterators.length; i++) {
         var iterator = iterators[i];
-        var mode = iterator.isKeyOnly() ? ydn.db.base.CursorMode.KEY_ONLY :
-          ydn.db.base.CursorMode.READ_ONLY;
         var cursor = iterator.iterate(me.getIndexExecutor(tx));
         cursor.onError = on_error;
         cursor.onNext = goog.partial(on_iterator_next, idx);

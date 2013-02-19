@@ -138,8 +138,7 @@ ydn.db.base.TransactionMode = {
  */
 ydn.db.base.CursorMode = {
   READ_ONLY: ydn.db.base.TransactionMode.READ_ONLY,
-  READ_WRITE: ydn.db.base.TransactionMode.READ_WRITE,
-  KEY_ONLY: 'keyonly'
+  READ_WRITE: ydn.db.base.TransactionMode.READ_WRITE
 };
 
 
