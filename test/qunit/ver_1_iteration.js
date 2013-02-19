@@ -4,13 +4,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finest', div);
+      ydn.debug.log('ydn.db', 'finer', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finest');
+      ydn.debug.log('ydn.db', 'finer');
     } else {
       console.log('no logging facility');
     }

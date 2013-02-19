@@ -144,7 +144,7 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
  *
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3, arg4, arg5) {
+ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3, arg4, arg5, arg6) {
 //  return ydn.db.core.DbOperator.prototype.keys.apply(
 //    /** @type {ydn.db.core.DbOperator} */ (this.base_tx_queue),
 //    Array.prototype.slice.call(arguments));
@@ -154,14 +154,14 @@ ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3, arg4, arg5
   //  arg4, arg5, arg6, arg7);
   // but it preserve argument length
 
-  return this.getCoreOperator().keys(store_name, arg2, arg3, arg4, arg5);
+  return this.getCoreOperator().keys(store_name, arg2, arg3, arg4, arg5, arg6);
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5) {
-  return this.getCoreOperator().values(arg1, arg2, arg3, arg4, arg5);
+ydn.db.core.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return this.getCoreOperator().values(arg1, arg2, arg3, arg4, arg5, arg6);
 };
 
 /**
@@ -177,17 +177,6 @@ ydn.db.core.Storage.prototype.load = function(store_name_or_schema, data, delimi
  */
 ydn.db.core.Storage.prototype.put = function(store, value, opt_key) {
   return this.getCoreOperator().put(store, value, opt_key);
-};
-
-/**
- * Dump object into the database. Use only by synchronization process when updating from
- * server.
- * @param {string} store_name store name.
- * @param {!Array.<Object>} objs objects.
- * @return {goog.async.Deferred} df
- */
-ydn.db.core.Storage.prototype.dump = function(store_name, objs) {
-  return this.getCoreOperator().dump(store_name, objs);
 };
 
 

@@ -261,15 +261,6 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.WebSql.prototype.keysByStore =  function(df, store_name,
-     reverse, limit, offset) {
-  this.list_by_key_range_(df, true, store_name, undefined, null, reverse, limit, offset, false);
-};
-
-
 
 /**
  * @inheritDoc
@@ -591,14 +582,6 @@ ydn.db.core.req.WebSql.prototype.listByIndexKeyRange = function(df, store_name,
   this.list_by_key_range_(df, false, store_name, index, key_range, reverse, limit, offset, unqiue)
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.WebSql.prototype.listByStore = function(df, store_name,
-       reverse, limit, offset) {
-  this.list_by_key_range_(df, false, store_name, undefined, null, reverse, limit, offset, false);
-};
 
 
 /**

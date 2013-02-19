@@ -5,13 +5,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finest', div);
+      ydn.debug.log('ydn.db', 'finer', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finest');
+      ydn.debug.log('ydn.db', 'finer');
     } else {
       console.log('no logging facility');
     }
@@ -446,15 +446,15 @@ var schema_auto_increase = {
     ready.always(function () {
       expect(3);
 
-      db.values(store_inline_index, null, 10, 0, 'value').always(function (x) {
+      db.values(store_inline_index, 'value', null, 10, 0).always(function (x) {
         deepEqual(x.length, data_list_index.length, 'number of record');
       });
 
-      db.values(store_inline_index, ydn.db.KeyRange.only('b'), 10, 0, 'value').always(function (x) {
+      db.values(store_inline_index, 'value', ydn.db.KeyRange.only('b'), 10, 0).always(function (x) {
         deepEqual(x, [data_list_index[1], data_list_index[3]], 'only b');
       });
 
-      db.values(store_inline_index, ydn.db.KeyRange.only('a'), 1, 1, 'value').always(function (x) {
+      db.values(store_inline_index, 'value', ydn.db.KeyRange.only('a'), 1, 1).always(function (x) {
         deepEqual(x, [data_list_index[2]], 'with limit and offset');
         start();
       });
@@ -633,12 +633,12 @@ var schema_auto_increase = {
     ready.always(function () {
       expect(2);
 
-      db.keys(store_inline_index, null, 10, 0, 'value').always(function (x) {
+      db.keys(store_inline_index, 'value', null, 10, 0).always(function (x) {
         // answer will be ['a', 'a', 'b']
         deepEqual(x, [1, 3, 2], 'number of record');
       });
 
-      db.keys(store_inline_index, ydn.db.KeyRange.only('a'), 10, 0, 'value').always(function (x) {
+      db.keys(store_inline_index, 'value', ydn.db.KeyRange.only('a'), 10, 0).always(function (x) {
         deepEqual(x, [1, 3], 'only a');
         start();
         var type = db.getType();

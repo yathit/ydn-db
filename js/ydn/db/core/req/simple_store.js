@@ -99,18 +99,6 @@ ydn.db.core.req.SimpleStore.prototype.keysByKeyRange = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.keysByStore = goog.abstractMethod;
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.keysByStore = goog.abstractMethod;
-
-
-/**
- * @inheritDoc
- */
 ydn.db.core.req.SimpleStore.prototype.putByKeys = goog.abstractMethod;
 
 /**
@@ -187,12 +175,6 @@ ydn.db.core.req.SimpleStore.prototype.getById = function(df, store_name, id) {
   df.callback(this.getTx().getItemInternal(store_name, id));
 };
 
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.listByStore = goog.abstractMethod;
 
 
 /**

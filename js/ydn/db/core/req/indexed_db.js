@@ -629,14 +629,6 @@ ydn.db.core.req.IndexedDb.prototype.clearByStores = function(df, store_names) {
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.listByStore = function(df, store_name,
-        reverse, limit, offset) {
-  this.listByKeyRange(df, store_name, null, reverse, limit, offset)
-};
-
 
 /**
  * General executor for LIST methods.
@@ -762,51 +754,51 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(df, store_name,
   };
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.keysByStore = function(df, store_name,
-    reverse, limit, offset) {
-  var me = this;
-  var results = [];
-  var store = this.tx.objectStore(store_name);
-  var dir = ydn.db.base.getDirection(reverse);
-  var msg = 'keysByStore: ' + store_name;
-  this.logger.finest(msg);
-  var request = store.openCursor(null, dir);
-  var cued = false;
-  request.onsuccess = function(event) {
-    /**
-     * @type {IDBCursor}
-     */
-    var cursor = event.target.result;
-    if (cursor) {
-      if (!cued && offset > 0) {
-        cued = true;
-        cursor.advance(offset);
-        return;
-      }
-      results.push(cursor.primaryKey);
-      if (results.length < limit) {
-        cursor['continue']();
-      } else {
-        me.logger.finest('success ' + msg);
-        df.callback(results);
-      }
-    } else {
-      me.logger.finest('success ' + msg);
-      df.callback(results);
-    }
-  };
-  request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, event]);
-    }
-    me.logger.finest('error ' + msg);
-    df.errback(event);
-  };
-};
+//
+///**
+// * @inheritDoc
+// */
+//ydn.db.core.req.IndexedDb.prototype.keysByStore = function(df, store_name,
+//    reverse, limit, offset) {
+//  var me = this;
+//  var results = [];
+//  var store = this.tx.objectStore(store_name);
+//  var dir = ydn.db.base.getDirection(reverse);
+//  var msg = 'keysByStore: ' + store_name;
+//  this.logger.finest(msg);
+//  var request = store.openCursor(null, dir);
+//  var cued = false;
+//  request.onsuccess = function(event) {
+//    /**
+//     * @type {IDBCursor}
+//     */
+//    var cursor = event.target.result;
+//    if (cursor) {
+//      if (!cued && offset > 0) {
+//        cued = true;
+//        cursor.advance(offset);
+//        return;
+//      }
+//      results.push(cursor.primaryKey);
+//      if (results.length < limit) {
+//        cursor['continue']();
+//      } else {
+//        me.logger.finest('success ' + msg);
+//        df.callback(results);
+//      }
+//    } else {
+//      me.logger.finest('success ' + msg);
+//      df.callback(results);
+//    }
+//  };
+//  request.onerror = function(event) {
+//    if (ydn.db.core.req.IndexedDb.DEBUG) {
+//      window.console.log([store_name, event]);
+//    }
+//    me.logger.finest('error ' + msg);
+//    df.errback(event);
+//  };
+//};
 
 
 /**
