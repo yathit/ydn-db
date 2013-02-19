@@ -402,8 +402,9 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, opt_i
         }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
       }
 
-      if (store.sync && goog.isFunction(store.syncObjects)) { // inject sync module function.
-        df = store.syncObjects(df, ydn.db.schema.Store.SyncMethod.GET, []);
+      // inject sync module function.
+      if (ydn.db.base.SYNC && store.sync && offset == 0 && goog.isFunction(store.syncObjects)) {
+        df = store.syncObjects(df, ydn.db.schema.Store.SyncMethod.LIST);
       }
 
     }
@@ -526,8 +527,8 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
         me.getStorage().dispatchEvent(event);
       });
     }
-    if (goog.isFunction(store.syncObjects)) {
-      df = store.syncObjects(df, ydn.db.schema.Store.SyncMethod.ADD, objs, keys);
+    if (ydn.db.base.SYNC && store.sync && goog.isFunction(store.syncObjects)) {
+      df = store.syncObjects(df, ydn.db.schema.Store.SyncMethod.ADD, objs);
     }
   } else if (goog.isObject(value)) {
     var obj = value;
@@ -545,8 +546,8 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
         me.getStorage().dispatchEvent(event);
       });
     }
-    if (goog.isFunction(store.syncObject)) {
-      df = store.syncObject(df, ydn.db.schema.Store.SyncMethod.ADD, obj, key);
+    if (ydn.db.base.SYNC && store.sync && goog.isFunction(store.syncObject)) {
+      df = store.syncObject(df, ydn.db.schema.Store.SyncMethod.ADD, obj);
     }
   } else {
     throw new ydn.debug.error.ArgumentException();

@@ -36,6 +36,12 @@ ydn.db.base.DEFAULT_BLOB_COLUMN = '_default_';
 ydn.db.base.JQUERY = false;
 
 
+/**
+ * Normally false, set to true only on compile flag when compile togather with sync
+ * module.
+ * @define {boolean} Enable sync module.
+ */
+ydn.db.base.SYNC = false;
 
 /**
  * Default result limit during retrieving records from the database.

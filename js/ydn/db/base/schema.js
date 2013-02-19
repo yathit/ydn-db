@@ -979,7 +979,8 @@ ydn.db.schema.Store.SyncMethod = {
   ADD: 'add',
   GET: 'get',
   PUT: 'put',
-  CLEAR: 'clear'
+  CLEAR: 'clear',
+  LIST: 'list'
 };
 
 
