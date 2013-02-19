@@ -36,10 +36,11 @@ goog.addDependency("../../../ydn-db/js/ydn/db/conn/web_storage.js", ['ydn.db.con
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/websql.js", ['ydn.db.con.WebSql'], ['goog.async.Deferred', 'goog.debug.Logger', 'goog.events', 'goog.functions', 'ydn.async', 'ydn.db.SecurityError', 'ydn.db.base', 'ydn.db.con.IDatabase', 'ydn.json', 'ydn.string']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/i_cursor.js", ['ydn.db.ICursor'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/i_operator.js", ['ydn.db.core.IOperator'], ['ydn.db.req.RequestExecutor', 'ydn.db.KeyRange']);
+goog.addDependency("../../../ydn-db/js/ydn/db/core/i_sync_operator.js", ['ydn.db.ISyncOperator'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/i_value_cursor.js", ['ydn.db.IValueCursor'], ['ydn.db.ICursor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/idb_cursor.js", ['ydn.db.IDBCursor'], ['ydn.db.ICursor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/idb_value_cursor.js", ['ydn.db.IDBValueCursor'], ['ydn.db.IValueCursor']);
-goog.addDependency("../../../ydn-db/js/ydn/db/core/operator.js", ['ydn.db.core.DbOperator'], ['ydn.db.core.req.IndexedDb', 'ydn.db.core.req.SimpleStore', 'ydn.db.core.req.WebSql', 'ydn.db.tr.AtomicSerial', 'ydn.db.tr.IThread', 'ydn.db.core.IOperator', 'ydn.db.tr.DbOperator', 'ydn.error.NotSupportedException', 'ydn.debug.error.ArgumentException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/core/operator.js", ['ydn.db.core.DbOperator'], ['ydn.db.core.req.IndexedDb', 'ydn.db.core.req.SimpleStore', 'ydn.db.core.req.WebSql', 'ydn.db.tr.AtomicSerial', 'ydn.db.tr.IThread', 'ydn.db.core.IOperator', 'ydn.db.ISyncOperator', 'ydn.db.tr.DbOperator', 'ydn.error.NotSupportedException', 'ydn.debug.error.ArgumentException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/storage.js", ['ydn.db.core.Storage'], ['goog.userAgent.product', 'ydn.async', 'ydn.db.core.IOperator', 'ydn.db.core.DbOperator', 'ydn.db.tr.Storage', 'ydn.object']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/websql_cursor.js", ['ydn.db.WebsqlCursor'], ['ydn.db.IValueCursor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/core/req/i_request_executor.js", ['ydn.db.core.req.IRequestExecutor'], []);
