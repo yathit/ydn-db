@@ -70,6 +70,7 @@ ydn.db.tr.DbOperator.prototype.logger =
  */
 ydn.db.tr.DbOperator.prototype.tx_thread;
 
+
 /**
  * @type {ydn.db.tr.IThread}
  * @protected
@@ -145,8 +146,6 @@ ydn.db.tr.DbOperator.prototype.getStorage = function() {
 ydn.db.tr.DbOperator.prototype.addStoreSchema = function(store) {
   return this.getStorage().addStoreSchema(store);
 };
-
-
 
 
 /** @override */

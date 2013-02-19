@@ -84,8 +84,8 @@ ydn.db.index.Storage.prototype.getExecutor = function () {
  * 
  * @inheritDoc
  */
-ydn.db.index.Storage.prototype.newOperator = function(tx_thread) {
-  return new ydn.db.index.DbOperator(this, this.schema, tx_thread);
+ydn.db.index.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.index.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 
