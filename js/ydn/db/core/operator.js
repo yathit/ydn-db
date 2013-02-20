@@ -203,9 +203,22 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
     } else {
       var id = arg2;
       this.logger.finer('getById: ' + store_name + ':' + id);
+
+
+      var req_df = ydn.db.base.SYNC && store.sync ? new goog.async.Deferred() : df;
       this.tx_thread.exec(function(tx) {
-        me.getExecutor(tx).getById(df, store_name, id);
+        me.getExecutor(tx).getById(req_df, store_name, id);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
+
+//      if (ydn.db.base.SYNC && goog.isFunction(store.syncObject) && store.sync) {
+//        req_df.addCallbacks(function(record) {
+//          store.syncObject(ydn.db.schema.Store.SyncMethod.GET, function(x) {
+//            df.callback(x);
+//          }, record, id);
+//        }, function(e) {
+//          df.errback(e);
+//        });
+//      }
     }
 
   } else {
@@ -423,10 +436,10 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
       this.logger.finer('listByIndexKeyRange: ' + store_name + ':' + index_name);
 
       // inject sync module function.
-      if (ydn.db.base.SYNC && goog.isFunction(store.syncObject) && store.sync &&
+      if (ydn.db.base.SYNC && goog.isFunction(store.syncObjects) && store.sync &&
           store.sync.fetchStrategies.indexOf(ydn.db.schema.Store.FetchStrategy.LAST_UPDATED) >= 0 &&
           offset == 0 && reverse == true && index_name == store.sync.options.keyPathUpdated) {
-        store.syncObject(ydn.db.schema.Store.SyncMethod.LIST, function() {
+        store.syncObjects(ydn.db.schema.Store.SyncMethod.LIST, function() {
           me.sync_thread.exec(function (tx) {
             me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
                 range, reverse, limit, offset, false);
@@ -597,9 +610,7 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
         me.getStorage().dispatchEvent(event);
       });
     }
-    if (ydn.db.base.SYNC && store.sync && goog.isFunction(store.syncObjects)) {
-      df = store.syncObjects(df, ydn.db.schema.Store.SyncMethod.ADD, objs);
-    }
+
   } else if (goog.isObject(value)) {
     var obj = value;
     var key = /** @type {number|string|undefined} */ (opt_keys);
@@ -771,7 +782,7 @@ ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
  * This is friendly module use only.
  * @param {string} store_name store name.
  * @param {!Array.<Object>} objs objects.
- * @return {goog.async.Deferred} df return no result.
+ * @return {!goog.async.Deferred} df return no result.
  * @override
  */
 ydn.db.core.DbOperator.prototype.dump = function(store_name, objs) {
