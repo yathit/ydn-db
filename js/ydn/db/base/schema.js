@@ -510,6 +510,24 @@ ydn.db.schema.Store.prototype.sync = null;
 
 
 /**
+ * @enum {string}
+ */
+ydn.db.schema.Store.FetchStrategy = {
+  LAST_UPDATED: 'last-updated',
+  DESCENDING_KEY: 'descending-key'
+};
+
+
+/**
+ * @const
+ * @type {Array.<ydn.db.schema.Store.FetchStrategy>}
+ */
+ydn.db.schema.Store.FetchStrategies = [
+  ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
+  ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
+
+
+/**
  * @inheritDoc
  */
 ydn.db.schema.Store.prototype.toJSON = function() {

@@ -134,6 +134,13 @@ StoreSyncOptions.prototype.transport;
  */
 StoreSyncOptions.prototype.options;
 
+/**
+ * Entry list fetch strategy. Supported method are
+ * ['last-updated', 'descending-key']
+ * @type {Array}
+ */
+StoreSyncOptions.prototype.fetchStrategies;
+
 
 /**
  * @constructor

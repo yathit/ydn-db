@@ -424,6 +424,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
 
       // inject sync module function.
       if (ydn.db.base.SYNC && goog.isFunction(store.syncObject) && store.sync &&
+          store.sync.fetchStrategies.indexOf(ydn.db.schema.Store.FetchStrategy.LAST_UPDATED) >= 0 &&
           offset == 0 && reverse == true && index_name == store.sync.options.keyPathUpdated) {
         store.syncObject(ydn.db.schema.Store.SyncMethod.LIST, function() {
           me.sync_thread.exec(function (tx) {
@@ -770,15 +771,22 @@ ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
  * This is friendly module use only.
  * @param {string} store_name store name.
  * @param {!Array.<Object>} objs objects.
- * @return {goog.async.Deferred} df
+ * @return {goog.async.Deferred} df return no result.
  * @override
  */
 ydn.db.core.DbOperator.prototype.dump = function(store_name, objs) {
   var df = new goog.async.Deferred();
   var me = this;
+  var on_completed = function(t, e) {
+    if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
+      df.callback();
+    } else {
+      df.errback();
+    }
+  };
   this.sync_thread.exec(function(tx) {
-    me.getExecutor(tx).putObjects(df, store_name, objs);
-  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'dump');
+    me.getExecutor(tx).putObjects(new goog.async.Deferred(), store_name, objs);
+  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'dump', on_completed);
   return df;
 };
 
@@ -798,10 +806,23 @@ ydn.db.core.DbOperator.prototype.dump = function(store_name, objs) {
 ydn.db.core.DbOperator.prototype.list = function(store_name, index_name, key_range, reverse, limit) {
   var df = new goog.async.Deferred();
   var me = this;
+  var out;
+  var on_completed = function(t, e) {
+    if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
+      df.callback(out);
+    } else {
+      df.errback(e);
+    }
+    out = null;
+  };
+  var req_df = new goog.async.Deferred();
+  req_df.addBoth(function(x) {
+    out = x;
+  });
   this.sync_thread.exec(function (tx) {
-    me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
+    me.getExecutor(tx).listByIndexKeyRange(req_df, store_name, index_name,
       key_range, reverse, limit, 0, false);
-  }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'list');
+  }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'list', on_completed);
   return df;
 };
 
