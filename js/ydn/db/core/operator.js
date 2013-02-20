@@ -176,6 +176,9 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
     this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).getById(df, k_store_name, kid);
     }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
+
+
+
   } else if (goog.isString(arg1) && goog.isDef(arg2)) {
     var store_name = arg1;
     var store = this.schema.getStore(store_name);
@@ -205,20 +208,24 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
       this.logger.finer('getById: ' + store_name + ':' + id);
 
 
-      var req_df = ydn.db.base.SYNC && store.sync ? new goog.async.Deferred() : df;
+      var req_df = df;
+      if (ydn.db.base.SYNC && store.sync) {
+        req_df = new goog.async.Deferred();
+        req_df.addCallbacks(function(record) {
+          if (goog.isFunction(store.syncObject)) { // inject syncObject function from sync module.
+            store.syncObject(ydn.db.schema.Store.SyncMethod.GET, function(x) {
+              df.callback(x);
+            }, record, id);
+          }
+        }, function(e) {
+          df.errback(e);
+        });
+      }
+
       this.tx_thread.exec(function(tx) {
         me.getExecutor(tx).getById(req_df, store_name, id);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
 
-//      if (ydn.db.base.SYNC && goog.isFunction(store.syncObject) && store.sync) {
-//        req_df.addCallbacks(function(record) {
-//          store.syncObject(ydn.db.schema.Store.SyncMethod.GET, function(x) {
-//            df.callback(x);
-//          }, record, id);
-//        }, function(e) {
-//          df.errback(e);
-//        });
-//      }
     }
 
   } else {
