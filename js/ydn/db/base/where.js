@@ -125,15 +125,43 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
       params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
     } else {
       if (goog.isDef(key_range.lower)) {
-        var lowerOp = key_range.lowerOpen ? ' > ' : ' >= ';
-        sql += ' ' + column + lowerOp + '?';
-        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
+        if (goog.isArray(type)) {
+          var op = '=';
+          for (var i = 0; i < key_range.lower.length; i++) {
+            if (i > 0) {
+              sql += ' AND ';
+            }
+            if (i == key_range.lower.length-1) {
+              op = key_range.lowerOpen ? ' > ' : ' >= ';
+            }
+            sql += ' ' + field[i] + op + '?';
+            params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
+          }
+        } else {
+          var op = key_range.lowerOpen ? ' > ' : ' >= ';
+          sql += ' ' + column + op + '?';
+          params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
+        }
       }
       if (goog.isDef(key_range.upper)) {
-        var upperOp = key_range.upperOpen ? ' < ' : ' <= ';
-        var and = sql.length > 0 ? ' AND ' : ' ';
-        sql += and + column + upperOp + '?';
-        params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
+        sql += sql.length > 0 ? ' AND ' : ' ';
+        if (goog.isArray(type)) {
+          var op = '=';
+          for (var i = 0; i < key_range.upper.length; i++) {
+            if (i > 0) {
+              sql += ' AND ';
+            }
+            if (i == key_range.upper.length-1) {
+              op = key_range.upperOpen ? ' < ' : ' <= ';
+            }
+            sql += ' ' + field[i] + op + '?';
+            params.push(ydn.db.schema.Index.js2sql(key_range.upper[i], type[i]));
+          }
+        } else {
+          var op = key_range.upperOpen ? ' < ' : ' <= ';
+          sql += and + column + op + '?';
+          params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
+        }
       }
     }
   }
