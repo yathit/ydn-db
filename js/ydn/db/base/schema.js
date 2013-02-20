@@ -884,15 +884,33 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
         index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
       continue;
     }
-    var v = obj[index.name];
+
+    var v = index.keyPath;
     if (goog.isDef(v)) {
-      if (index.isMultiEntry()) {
-        values.push(ydn.db.schema.Index.js2sql(v, [index.type]));
+      var type = index.type;
+      if (goog.isArray(v)) {
+        for(var j = 0; j < v.length; j++) {
+          if (goog.isDef(obj[v[j]])) { 
+            if (index.isMultiEntry()) {
+              values.push(ydn.db.schema.Index.js2sql(obj[v[j]], [type[j]]));
+            } else {
+              values.push(ydn.db.schema.Index.js2sql(obj[v[j]], type[j]));
+            }
+            columns.push(goog.string.quote(v[j]));
+          }
+        }
       } else {
-        values.push(ydn.db.schema.Index.js2sql(v, index.type));
+        if (goog.isDef(obj[v])) {
+          if (index.isMultiEntry()) {
+            values.push(ydn.db.schema.Index.js2sql(obj[v], [type]));
+          } else {
+            values.push(ydn.db.schema.Index.js2sql(obj[v], type));
+          }
+          columns.push(goog.string.quote(v));
+        }
       }
-      columns.push(goog.string.quote(index.name));
     }
+
   }
 
   if (!this.fixed) {
