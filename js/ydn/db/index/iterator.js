@@ -450,7 +450,12 @@ ydn.db.Iterator.prototype.getUpperOpen = function() {
  */
 ydn.db.Iterator.prototype.getKeyRange = function() {
   if (this.key_range_) {
-    return this.key_range_;
+    if (this.key_range_ instanceof ydn.db.IDBKeyRange) {
+      return this.key_range_;
+    } else {
+      return ydn.db.IDBKeyRange.bound(this.key_range_.lower, this.key_range_.upper,
+        this.key_range_.lowerOpen, this.key_range_.upperOpen);
+    }
   } else {
     return null;
   }
