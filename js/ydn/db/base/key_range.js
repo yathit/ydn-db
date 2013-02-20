@@ -190,6 +190,9 @@ ydn.db.KeyRange.parseKeyRange = function(keyRange) {
   if (!goog.isDefAndNotNull(keyRange)) {
     return null;
   }
+  if(keyRange instanceof ydn.db.IDBKeyRange) {
+    return keyRange;
+  }
   if (goog.isDef(keyRange['upper']) && goog.isDef(keyRange['lower'])) {
 
     return ydn.db.IDBKeyRange.bound(
