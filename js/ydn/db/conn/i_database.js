@@ -24,7 +24,7 @@ ydn.db.con.IDatabase.prototype.close = function() {};
  * case and use in type checking.
  * @return {string} connected database type.
  */
-ydn.db.con.IDatabase.prototype.type = function() {};
+ydn.db.con.IDatabase.prototype.getType = function() {};
 
 
 /**

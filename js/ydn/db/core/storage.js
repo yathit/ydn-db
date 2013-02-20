@@ -23,7 +23,7 @@
 goog.provide('ydn.db.core.Storage');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
-goog.require('ydn.db.core.IStorage');
+goog.require('ydn.db.core.IOperator');
 goog.require('ydn.db.core.DbOperator');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.object');
@@ -45,7 +45,7 @@ goog.require('ydn.object');
  * is used.
  * @param {!StorageOptions=} opt_options options.
  * @extends {ydn.db.tr.Storage}
- * @implements {ydn.db.core.IStorage}
+ * @implements {ydn.db.core.IOperator}
  * @constructor
  */
 ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
@@ -69,9 +69,8 @@ ydn.db.core.Storage.prototype.init = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.thread = function(thread, name) {
-  var tx_thread = this.newTxQueue(thread, name);
-  return this.db_operator = new ydn.db.core.DbOperator(this, this.schema, tx_thread);
+ydn.db.core.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.core.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 
@@ -84,24 +83,12 @@ ydn.db.core.Storage.prototype.getCoreOperator = function() {
 };
 
 
-//
-//
-///**
-// * @override
-// */
-//ydn.db.core.Storage.prototype.newTxQueue = function(thread, scope_name) {
-//  thread = thread || this.thread;
-//  return new ydn.db.core.DbOperator(this, thread, this.ptx_no++,
-//      this.schema, scope_name);
-//};
-
-
 /**
  * @return {ydn.db.core.req.IRequestExecutor}
  */
 ydn.db.core.Storage.prototype.getExecutor = function () {
 
-  var type = this.type();
+  var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
     return new ydn.db.core.req.IndexedDb(this.db_name, this.schema);
   } else if (type == ydn.db.con.WebSql.TYPE) {
@@ -115,6 +102,7 @@ ydn.db.core.Storage.prototype.getExecutor = function () {
   }
 
 };
+
 
 /**
  * @inheritDoc
@@ -145,8 +133,7 @@ ydn.db.core.Storage.prototype.get = function(arg1, arg2) {
  *
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
-                                                arg4, arg5, arg6, arg7) {
+ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3, arg4, arg5, arg6) {
 //  return ydn.db.core.DbOperator.prototype.keys.apply(
 //    /** @type {ydn.db.core.DbOperator} */ (this.base_tx_queue),
 //    Array.prototype.slice.call(arguments));
@@ -156,14 +143,14 @@ ydn.db.core.Storage.prototype.keys = function(store_name, arg2, arg3,
   //  arg4, arg5, arg6, arg7);
   // but it preserve argument length
 
-  return this.getCoreOperator().keys(store_name, arg2, arg3, arg4, arg5, arg6, arg7);
+  return this.getCoreOperator().keys(store_name, arg2, arg3, arg4, arg5, arg6);
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.list = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
-  return this.getCoreOperator().list(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+ydn.db.core.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return this.getCoreOperator().values(arg1, arg2, arg3, arg4, arg5, arg6);
 };
 
 /**

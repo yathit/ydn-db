@@ -9,39 +9,40 @@ goog.provide('ydn.db.Streamer');
 goog.require('ydn.db.con.IdbCursorStream');
 goog.require('ydn.db.con.IStorage');
 goog.require('ydn.db.Iterator');
-
+goog.require('ydn.debug.error.ArgumentException');
 
 
 /**
  *
  * @param {ydn.db.con.IStorage|IDBTransaction} storage storage connector.
  * @param {string} store_name store name.
- * @param {?string=} index_name index name. If given output is not cursor value,
- * but index value.
- * fetched.
- * @param {?string=} foreign_index_name foreign index name.
+ * @param {string=} field_name projection field name.
  * @constructor
  */
-ydn.db.Streamer = function(storage, store_name, index_name,
-                           foreign_index_name) {
+ydn.db.Streamer = function(storage, store_name, field_name) {
 
-  this.store_name_ = store_name;
-  this.index_name_ = goog.isString(index_name) ? index_name : undefined;
-
-  if ('transaction' in storage) {
+  if (goog.isObject(storage) && 'transaction' in storage) {
     this.db_ = /** @type {ydn.db.con.IStorage} */ (storage);
     this.cursor_ = null;
-  } else if ('db' in storage) {
+  } else if (goog.isObject(storage) && 'db' in storage) {
     var tx = /** @type {!IDBTransaction} */ (storage);
     this.db_ = null;
     this.setTx(tx);
   } else {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException(
+        'ydn.db.Streamer: First argument requires storage or transaction instance required.');
   }
 
+  if (!goog.isString(store_name)) {
+    throw new ydn.debug.error.ArgumentException('a store name required.');
+  }
+  this.store_name_ = store_name;
+  if (goog.isDef(field_name) && !goog.isString(field_name)) {
+    throw new ydn.debug.error.ArgumentException('index name must be a string.');
+  }
+  this.index_name_ = field_name;
+
   this.cursor_ = null;
-  this.key_only_ = goog.isString(index_name);
-  this.foreign_key_index_name_ = foreign_index_name || undefined;
   this.stack_value_ = [];
   this.stack_key_ = [];
   this.is_collecting_ = false;
@@ -106,11 +107,29 @@ ydn.db.Streamer.prototype.sink_ = null;
  */
 ydn.db.Streamer.prototype.stack_key_ = [];
 
+
 /**
  * @private
  * @type {Array}
  */
 ydn.db.Streamer.prototype.stack_value_ = [];
+
+
+/**
+ *
+ * @return {string|undefined}
+ */
+ydn.db.Streamer.prototype.getFieldName = function() {
+  return this.index_name_;
+};
+
+
+/**
+ *
+ * @type {ydn.db.con.ICursorStream}
+ * @private
+ */
+ydn.db.Streamer.prototype.cursor_ = null;
 
 
 /**
@@ -130,13 +149,6 @@ ydn.db.Streamer.prototype.setSink = function(sink) {
   this.sink_ = sink;
 };
 
-/**
- *
- * @param {!ydn.db.con.Storage} db
- */
-ydn.db.Streamer.prototype.setDb = function(db) {
-  this.db_ = db;
-};
 
 /**
  *
@@ -147,10 +159,9 @@ ydn.db.Streamer.prototype.setTx = function(tx) {
   if ('db' in tx) {
     var idb_tx = /** @type {!IDBTransaction} */ (tx);
     this.cursor_ = new ydn.db.con.IdbCursorStream(idb_tx,
-        this.store_name_, this.index_name_, this.key_only_,
-        goog.bind(this.collector_, this));
+        this.store_name_, this.index_name_, goog.bind(this.collector_, this));
   } else {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException('Invalid IndexedDB Transaction.');
   }
 
 };
@@ -198,17 +209,21 @@ ydn.db.Streamer.prototype.is_collecting_ = false;
  */
 ydn.db.Streamer.prototype.collect = function(callback) {
   if (this.cursor_) {
+    this.is_collecting_ = true;
+    var me = this;
+    this.cursor_.onFinish(function on_finish(e) {
+      callback(me.stack_key_, me.stack_value_);
+      me.stack_key_ = [];
+      me.stack_value_ = [];
+      me.is_collecting_ = false;
+    });
+  } else {
     // throw new ydn.error.InvalidOperationError('Not collected.');
-    this.logger.warning('Not collected yet.');
-    callback([]);
+    // this.logger.warning('Not collected yet.');
+    callback(this.stack_key_, this.stack_value_);
+    this.stack_key_ = [];
+    this.stack_value_ = [];
   }
-  this.is_collecting_ = true;
-  var me = this;
-  this.cursor_.onFinish(function on_finish(e) {
-    callback(me.stack_value_);
-    me.stack_value_ = [];
-    me.is_collecting_ = false;
-  });
 
 };
 
@@ -234,7 +249,8 @@ ydn.db.Streamer.prototype.collector_ = function(key, value) {
  */
 ydn.db.Streamer.prototype.push = function(key, value) {
   if (this.is_collecting_) {
-    throw new ydn.error.InvalidOperationError('collecting');
+    var msg = goog.DEBUG ? 'push not allowed after a collection is started' : '';
+    throw new ydn.error.InvalidOperationError(msg);
   }
   if (arguments.length >= 2) {
     this.collector_(key, value);
@@ -243,14 +259,16 @@ ydn.db.Streamer.prototype.push = function(key, value) {
     // instantiation, database may not have connected yet.
     if (!this.cursor_) {
       if (!this.db_) {
-        throw new ydn.error.InvalidOperationError('No database set.');
+        var msg2 = goog.DEBUG ? 'Database is not setup.' : '';
+        throw new ydn.error.InvalidOperationError(msg2);
       }
-      var type = this.db_.type();
+      var type = this.db_.getType();
       if (!type) {
-        throw new ydn.error.InvalidOperationError('Database not connected.');
+        var msg3 = goog.DEBUG ? 'Database is not connected.' : '';
+        throw new ydn.error.InvalidOperationError(msg3);
       } else if (type === ydn.db.con.IndexedDb.TYPE) {
         this.cursor_ = new ydn.db.con.IdbCursorStream(this.db_,
-          this.store_name_, this.index_name_, this.key_only_,
+          this.store_name_, this.index_name_,
             goog.bind(this.collector_, this));
       } else {
         throw new ydn.error.NotImplementedException(type);

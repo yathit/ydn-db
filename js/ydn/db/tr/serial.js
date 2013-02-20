@@ -177,7 +177,7 @@ ydn.db.tr.Serial.prototype.lock = function() {
  * @return {string}
  */
 ydn.db.tr.Serial.prototype.type = function() {
-  return this.storage_.type();
+  return this.storage_.getType();
 };
 
 
@@ -260,6 +260,14 @@ ydn.db.tr.Serial.prototype.abort = function() {
     throw new ydn.db.InvalidStateError('No active transaction');
   }
 };
+
+
+/**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.tr.Serial.prototype.running_transaction_process_ = false;
 
 
 /**

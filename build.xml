@@ -3,16 +3,33 @@
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
-    <property name="code-ver" value="35"/>
-    <property name="ver" value="0.${code-ver}"/>
+    <property name="ver-major" value="0"/>
+    <property name="ver-minor" value="2"/>
+    <property name="ver-patch" value="0"/>
+    <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
+    <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
+    <script language="javascript" description="Generate ascending order build no
+    , so that last version are sorted at top on blob file server."><![CDATA[
+            var toChar = function(x) {
+                return String.fromCharCode(122 - x);
+            };
+            var major = parseInt(project.getProperty("ver-major"), 10);
+            var minor = parseInt(project.getProperty("ver-minor"), 10);
+            var patch = parseInt(project.getProperty("ver-patch"), 10);
+            var buildno = toChar(major) + toChar(minor) + toChar(patch);
+            project.setProperty("buildno", buildno);
+            ]]></script>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
     <property name="dev-out.fn"
-              value="${ydn-db.dir}/jsc/dev-ydn.db-${ver}.js"/>
+              value="${ydn-db.dir}/jsc/${buildno}-ydn.db-dev.js"/>
+
+
+
     <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
 
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                         input="${ydn-db.dir}/js/dev.js"
+                         input="${ydn-db.dir}/js/main.js"
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${dev-out.fn}">
             <extrapaths>
@@ -21,7 +38,7 @@
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/index.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/main.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/dev.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
@@ -33,12 +50,13 @@
                 <arg line='-f "--externs=${ydn-db.dir}/externs/misc.js"'/>
                 <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
                 <arg line='-f "--externs=${ydn-db.dir}/externs/schema.js"'/>
+                <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
                 <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
             </options>
         </closure-compile>
 
         <concat destfile="${dev-out.fn}" append="true">
-            //@ sourceMappingURL=dev-ydn.db-${ver}.js.map
+            //@ sourceMappingURL=${buildno}-ydn.db-dev.js.map
         </concat>
 
         <replace description="replace so with online repo path"
@@ -48,34 +66,42 @@
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
                  token="/Users/kyawtun/work/ydn-db/"
-                 value="https://bitbucket.org/ytkyaw/ydn-db/raw/v${code-ver}/"/>
+                 value="https://bitbucket.org/ytkyaw/ydn-db/raw/${buildno}/"/>
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
                  token="/Users/kyawtun/work/closure-library/"
                  value="https://raw.github.com/yathit/google-closure-library/master/"/>
 
-        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-${ver}.js">
+        <concat
+                destfile="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js">
             <header>
-                (function( $ ) {
+                (function($) {
             </header>
             <filelist dir="${ydn-db.dir}/jsc"
-                      files="dev-ydn.db-${ver}.js"/>
+                      files="${buildno}-ydn.db-dev.js"/>
         </concat>
-        <concat destfile="${ydn-db.dir}/jsc/jquery-ydn.db-${ver}.js" append="true">
-            $.db = new ydn.db.Storage();
-            })( jQuery);
-        </concat>
+        <concat destfile="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js"
+                append="true">
 
+            })(jQuery);
+        </concat>
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js"
+              tofile="${ydn-db.dir}/jsc/ydn.db-jquery-${version}.js"/>
     </target>
     <target name="to-doc" description="copy file to documentation site">
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db.js"
+              tofile="${out.dir}/ydn.db.js"/>
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-core.js"
+              tofile="${out.dir}/ydn.db-core.js"/>
         <copy file="${dev-out.fn}"
-              tofile="${out.dir}/dev-ydn.db.js"/>
+              tofile="${out.dir}/ydn.db-dev.js"/>
         <copy file="${dev-out.fn}.map"
-              tofile="${out.dir}/dev-ydn.db.js.map"/>
-        <replace file="${out.dir}/dev-ydn.db.js"
-                 token="dev-ydn.db-${ver}.js.map" value="dev-ydn.db.js.map"/>
-        <copy file="${ydn-db.dir}/jsc/jquery-ydn.db-${ver}.js"
-              tofile="${out.dir}/jquery-ydn.db.js"/>
+              tofile="${out.dir}/ydn.db-dev.js.map"/>
+        <replace file="${out.dir}/ydn.db-dev.js"
+                 token="${buildno}-ydn.db-dev.js.map"
+                 value="ydn.db-dev.js.map"/>
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js"
+              tofile="${out.dir}/ydn.db-jquery.js"/>
         <copy todir="${out.dir}/../test/">
             <fileset dir="${ydn-db.dir}/test/qunit">
                <exclude name="*.html"/>
@@ -108,6 +134,7 @@
                     <arg line='-f "--externs=${ydn-db.dir}/externs/schema.js"'/>
                     <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
+                    <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
                     <arg line='-f "--closure_entry_point=@{closure.entry}"'/>
                     <arg line='-f "--define=goog.DEBUG=false"'/>
                     <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
@@ -122,7 +149,7 @@
         <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
                          input="${ydn-db.dir}/js/main.js"
-                         output.fn="${ydn-db.dir}/jsc/raw-ydn.db-${ver}.js"
+                         output.fn="${ydn-db.dir}/jsc/${buildno}-ydn.db-raw.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
                 <arg line='-p "${ydn-base.dir}/js"'/>
@@ -142,7 +169,7 @@
                 input.dir="${ydn-db.dir}/js/ydn/db/conn"
                 input.fn="${ydn-db.dir}/js/conn.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="conn-ydn.db-${ver}.js"
+                output.fn="${buildno}-ydn.db-conn.js"
                 closure.entry="ydn.db.con.Storage">
             <exjs.dir>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
@@ -157,7 +184,7 @@
                 input.dir="${ydn-db.dir}/js/ydn/db/core"
                 input.fn="${ydn-db.dir}/js/core_main.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="core-ydn.db-${ver}.js"
+                output.fn="${buildno}-ydn.db-core.js"
                 closure.entry="ydn.db.core.Storage">
             <exjs.dir>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
@@ -167,22 +194,42 @@
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
             </exjs.dir>
         </adv-comp>
-        <copy file="${ydn-db.dir}/jsc/core-ydn.db-${ver}.js"
-              tofile="${out.dir}/core-ydn.db.js"/>
     </target>
+
+    <target name="compile-iter" description="generates compiled files for client js">
+        <mkdir dir="${ydn-db.dir}/jsc"/>
+        <adv-comp
+                input.dir="${ydn-db.dir}/js"
+                input.fn="${ydn-db.dir}/js/index_main.js"
+                output.dir="${ydn-db.dir}/jsc"
+                output.fn="${buildno}-ydn.db-iter.js"
+                closure.entry="ydn.db.index.Storage">
+            <ex.opt>
+                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/index.js"'/>
+
+            </ex.opt>
+        </adv-comp>
+    </target>
+
     <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js"
                 input.fn="${ydn-db.dir}/js/main.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="ydn.db-${ver}.js"
+                output.fn="${buildno}-ydn.db.js"
                 closure.entry="ydn.db.Storage">
             <ex.opt>
                 <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/index.js"'/>
+
             </ex.opt>
         </adv-comp>
     </target>
@@ -226,7 +273,8 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-conn,compile,simple,compile-dev,compile-core">
+            depends="compile-conn,compile,simple,compile-dev,compile-core,
+            compile-iter">
 
     </target>
 </project>

@@ -93,8 +93,8 @@ var test_scan_reference_value = function() {
       100, // interval
       1000); // maxTimeout
 
-  var q1 = new ydn.db.KeyIndexIterator(store_name, 'first', ydn.db.KeyRange.only('B'));
-  var q2 = new ydn.db.KeyIndexIterator(store_name, 'last', ydn.db.KeyRange.only('M'));
+  var q1 = new ydn.db.Cursors(store_name, 'first', ydn.db.KeyRange.only('B'));
+  var q2 = new ydn.db.Cursors(store_name, 'last', ydn.db.KeyRange.only('M'));
 
   var solver = function(keys, values) {
     console.log(JSON.stringify(keys) + ':' + JSON.stringify(values));
@@ -164,7 +164,7 @@ var test_scan_advance = function() {
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + 'store: ' + store_name + ' ready.');
   });
-  db.list(store_name).addCallback(function (value) {
+  db.values(store_name).addCallback(function (value) {
     console.log(value);
     console.log(db + 'store: ' + store_name + ' has ' + value.length + ' records.');
   });
@@ -188,8 +188,8 @@ var test_scan_advance = function() {
       100, // interval
       1000); // maxTimeout
 
-  var q1 = new ydn.db.KeyIndexIterator(store_name, 'first', ydn.db.KeyRange.only('B'));
-  var q2 = new ydn.db.KeyIndexIterator(store_name, 'last', ydn.db.KeyRange.only('M'));
+  var q1 = new ydn.db.Cursors(store_name, 'first', ydn.db.KeyRange.only('B'));
+  var q2 = new ydn.db.Cursors(store_name, 'last', ydn.db.KeyRange.only('M'));
 
   var solver = function (keys, values) {
     console.log(JSON.stringify(keys) + ':' + JSON.stringify(values));
@@ -280,8 +280,8 @@ var test_scan_effective_key = function() {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.KeyIndexIterator(store_name, 'fa', ydn.db.KeyRange.starts(['B']));
-  var q2 = new ydn.db.KeyIndexIterator(store_name, 'la', ydn.db.KeyRange.starts(['M']));
+  var q1 = new ydn.db.Cursors(store_name, 'fa', ydn.db.KeyRange.starts(['B']));
+  var q2 = new ydn.db.Cursors(store_name, 'la', ydn.db.KeyRange.starts(['M']));
 
   var solver = function(keys, values) {
     console.log(JSON.stringify(keys));

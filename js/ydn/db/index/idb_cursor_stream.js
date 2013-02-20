@@ -1,5 +1,5 @@
 /**
- * @fileoverview Cursor stream accept key and pop to a sink.
+ * @fileoverview Cursor stream accept pirmary key and pop reference value to a sink.
  *
  * User: kyawtun
  * Date: 11/11/12
@@ -16,12 +16,11 @@ goog.require('ydn.db.con.IStorage');
  * @param {!ydn.db.con.IStorage|!IDBTransaction} db
  * @param {string} store_name store name.
  * @param {string|undefined} index_name index name.
- * @param {boolean} key_only key only.
  * @param {Function} sink to receive value.
  * @constructor
  * @implements {ydn.db.con.ICursorStream}
  */
-ydn.db.con.IdbCursorStream = function(db, store_name, index_name, key_only, sink) {
+ydn.db.con.IdbCursorStream = function(db, store_name, index_name, sink) {
   if ('transaction' in db) {
     this.db_ = /** @type {ydn.db.con.IStorage} */ (db);
     this.idb_ = null;
@@ -36,15 +35,15 @@ ydn.db.con.IdbCursorStream = function(db, store_name, index_name, key_only, sink
           '" not in transaction.');
     }
   } else {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.error.ArgumentException('storage instance require.');
   }
 
   this.store_name_ = store_name;
   this.index_name_ = index_name;
   this.sink_ = sink;
-  this.key_only_ = key_only;
   this.cursor_ = null;
   this.stack_ = [];
+  this.running_ = 0;
   this.on_tx_request_ = false;
 };
 
@@ -116,6 +115,15 @@ ydn.db.con.IdbCursorStream.prototype.sink_;
 
 
 /**
+ *
+ * @return {boolean}
+ */
+ydn.db.con.IdbCursorStream.prototype.isIndex = function() {
+  return goog.isDefAndNotNull(this.index_name_);
+};
+
+
+/**
  * Read cursor.
  * @param {!IDBRequest} req
  * @private
@@ -129,22 +137,25 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
   // even if we don't keep the req, this req.onsuccess and req.onerror callbacks
   // are still active when cursor invoke advance method.
 
+  this.running_ ++;
   var me = this;
   req.onsuccess = function(ev) {
     var cursor = ev.target.result;
     if (cursor) {
       if (goog.isFunction(me.sink_)) {
-        if (me.key_only_) {
-          me.sink_(cursor.primaryKey, cursor.key);
-        } else {
-          me.sink_(cursor.primaryKey, cursor['value']);
-        }
+        //console.log(cursor);
+        var cursor_value = cursor['value'];
+        var value = me.isIndex() ? cursor_value[me.index_name_] : cursor_value;
+        me.sink_(cursor.primaryKey, value);
       } else {
         me.logger.warning('sink gone, dropping value for: ' +
             cursor.primaryKey);
       }
-      if (me.stack_.length > 0) {
+      if (cursor && me.stack_.length > 0) {
         cursor['continue'](me.stack_.shift());
+      } else {
+        me.running_ --;
+        me.clearStack_();
       }
     }
   };
@@ -152,6 +163,8 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
     var msg = 'error' in req ?
         req['error'].name + ':' + req['error'].message : '';
     me.logger.warning('seeking fail. ' + msg);
+    me.running_ --;
+    me.clearStack_();
   };
 };
 
@@ -161,7 +174,7 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
  * @param {Function} callback
  */
 ydn.db.con.IdbCursorStream.prototype.onFinish = function(callback) {
-  if (this.stack_.length == 0 && !this.cursor_) {
+  if (this.stack_.length == 0 && this.running_ == 0) {
     callback(); // we have nothing.
   } else {
     this.collector_ = callback;
@@ -196,23 +209,25 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
     var key = me.stack_.shift();
     me.logger.finest(me + ' transaction started for ' + key);
     var store = tx.objectStore(me.store_name_);
-    var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
-    if (goog.isDef(me.index_name_) &&
-        indexNames.contains(me.index_name_)) {
-      var index = store.index(me.index_name_);
-      if (me.key_only_) {
-        me.processRequest_(index.openKeyCursor(key));
-      } else {
-        me.processRequest_(index.openCursor(key));
-      }
-    } else if (!goog.isDef(me.index_name_) || me.index_name_ == store.keyPath) {
+    /**
+     * We cannot use index here, because index is useful to loopup from
+     * index key to primary key. Here we need to lookup from primary key
+     * to index key.
+     */
+//    if (goog.isString(me.index_name_)) {
+//      var indexNames = /** @type {DOMStringList} */ (store['indexNames']);
+//      if (goog.DEBUG && !indexNames.contains(me.index_name_)) {
+//        throw new ydn.db.InvalidStateError('object store ' + me.store_name_ +
+//            ' does not have require index ' + me.index_name_);
+//      }
+//      var index = store.index(me.index_name_);
+//      me.processRequest_(index.openKeyCursor(key));
+//    } else {
       // as of v1, ObjectStore do not have openKeyCursor method.
       // filed bug on:
       // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       me.processRequest_(store.openCursor(key));
-    } else {
-      throw new ydn.db.InvalidStateError();
-    }
+    //}
   };
 
   if (this.tx_) {
@@ -238,11 +253,12 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
     this.on_tx_request_ = true;
     this.db_.transaction(function(/** @type {IDBTransaction} */ tx) {
       me.on_tx_request_ = false;
+      //console.log(tx)
       doRequest(tx);
     }, [me.store_name_], ydn.db.base.TransactionMode.READ_ONLY, on_completed);
   } else {
-    throw new ydn.error.InternalError(
-        'no way to create a transaction provided.');
+    var msg = goog.DEBUG ? 'no way to create a transaction provided.' : '';
+    throw new ydn.error.InternalError(msg);
   }
 
 };
@@ -253,11 +269,12 @@ ydn.db.con.IdbCursorStream.prototype.clearStack_ = function() {
     // we retain only valid request with active cursor.
     this.cursor_['continue'](this.stack_.shift());
   } else {
-    if (this.collector_) {
-      this.collector_();
+    if (this.running_ == 0) {
+      if (this.collector_) {
+        this.collector_();
+      }
     }
   }
-  this.cursor_ = null;
 };
 
 

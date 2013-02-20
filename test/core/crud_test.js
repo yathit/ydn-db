@@ -23,7 +23,7 @@ var setUp = function () {
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.core.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
   //ydn.db.con.IndexedDb.DEBUG = true;
@@ -105,9 +105,9 @@ var test_add_fail = function() {
         function () {
           assertNull('add a again', put_value);
           assertNotNull('error event', add_ev);
-          if (db.type() == 'indexeddb') {
+          if (db.getType() == 'indexeddb') {
             assertEquals('add fail with constrained error', 'ConstraintError', add_ev.target.error.name);
-          } else if (db.type() == 'websql') {
+          } else if (db.getType() == 'websql') {
             assertEquals('add fail with constrained error', 6, add_ev.code);
           }
 
@@ -210,7 +210,7 @@ var test_load_data = function() {
         100, // interval
         2000); // maxTimeout
 
-      db.list(load_store_name, keys).addBoth(function(x) {
+      db.values(load_store_name, keys).addBoth(function(x) {
         result = x;
         hasEventFired = true;
       });
@@ -426,50 +426,7 @@ var test_22_get_offline = function() {
 
 
 
-var test_23_get_array = function() {
-  var db_name = 'test_crud_21_2';
-  var db = new ydn.db.core.Storage(db_name, schema, options);
-
-  var arr = [];
-  var n = ydn.db.core.req.IndexedDb.REQ_PER_TX / 2;
-  for (var i = 0; i < n; i++) {
-    arr.push({id: i, value: 'a' + Math.random()});
-  }
-  var ids = [1, 2];
-
-
-  var hasEventFired = false;
-  var results;
-
-  waitForCondition(
-    // Condition
-    function() { return hasEventFired; },
-    // Continuation
-    function() {
-      assertEquals('length', ids.length, results.length);
-      assertEquals('1', arr[ids[0]].value, results[0].value);
-      assertEquals('1', arr[ids[1]].value, results[1].value);
-
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    2000); // maxTimeout
-
-
-  db.put(table_name, arr);
-
-  db.list(table_name, ids).addCallback(function(value) {
-    //console.log('receiving value callback.');
-    results = value;
-    hasEventFired = true;
-  }).addErrback(function(e) {
-      hasEventFired = true;
-      console.log('Error: ' + e);
-    });
-};
-
-
-var test_24_get_array = function() {
+var test_24_list_by_ids = function() {
   var db_name = 'test_crud_23 _2';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
@@ -493,8 +450,9 @@ var test_24_get_array = function() {
     // Continuation
     function() {
       assertEquals('length', ids.length, results.length);
+
       for (var i = 0; i < ids.length; i++) {
-        assertEquals('of ' + i, arr[ids[i]].value, results[i].value);
+        assertObjectEquals('of ' + i, arr[ids[i]], results[i]);
       }
 
       reachedFinalContinuation = true;
@@ -505,7 +463,7 @@ var test_24_get_array = function() {
 
   db.put(table_name, arr);
 
-  db.list(table_name, ids).addCallback(function(value) {
+  db.values(table_name, ids).addCallback(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
@@ -524,27 +482,26 @@ var test_26_list = function() {
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var data = [
-    {id: 0},
-    {id: 1},
-    {id: 2},
-    {id: 3}
+    {id: 0, value: 'a' + Math.random()},
+    {id: 1, value: 'a' + Math.random()},
+    {id: 2, value: 'a' + Math.random()},
+    {id: 3, value: 'a' + Math.random()}
   ];
   //var rev_data = ydn.object.clone(data).reverse();
 
 
-  var whole_done, rev_done, array_done, limit_done, offset_done;
-  var whole_result, rev_result, array_result, limit_result, offset_result;
+  var whole_done, array_done, limit_done, offset_done;
+  var whole_result, array_result, limit_result, offset_result;
 
   waitForCondition(
     // Condition
-    function() { return whole_done && rev_done && limit_done && offset_done; },
+    function() { return whole_done && array_done && limit_done && offset_done; },
     // Continuation
     function() {
       assertArrayEquals('whole store', data, whole_result);
       assertArrayEquals('array keys', data.slice(1, 3), array_result);
       assertArrayEquals('limit store', data.slice(0, 3), limit_result);
       assertArrayEquals('offset store', data.slice(1, 3), offset_result);
-      assertArrayEquals('reverse store', data.reverse(), rev_result);
 
       reachedFinalContinuation = true;
     },
@@ -554,7 +511,7 @@ var test_26_list = function() {
 
   db.put(table_name, data);
 
-  db.list(table_name).addCallback(function(value) {
+  db.values(table_name).addCallback(function(value) {
     //console.log('receiving value callback.');
     whole_result = value;
     whole_done = true;
@@ -563,7 +520,7 @@ var test_26_list = function() {
       console.log('Error: ' + e);
     });
 
-  db.list(table_name, [1, 2]).addCallback(function(value) {
+  db.values(table_name, [1, 2]).addCallback(function(value) {
     //console.log('receiving value callback.');
     array_result = value;
     array_done = true;
@@ -572,16 +529,7 @@ var test_26_list = function() {
       console.log('Error: ' + e);
     });
 
-  db.list(table_name, true).addCallback(function(value) {
-    //console.log('receiving value callback.');
-    rev_result = value;
-    rev_done = true;
-  }).addErrback(function(e) {
-      rev_done = true;
-      console.log('Error: ' + e);
-    });
-
-  db.list(table_name, false, 3).addCallback(function(value) {
+  db.values(table_name, 3).addCallback(function(value) {
     //console.log('receiving value callback.');
     limit_result = value;
     limit_done = true;
@@ -589,7 +537,7 @@ var test_26_list = function() {
       limit_done = true;
       console.log('Error: ' + e);
     });
-  db.list(table_name, false, 2, 1).addCallback(function(value) {
+  db.values(table_name, 2, 1).addCallback(function(value) {
     //console.log('receiving value callback.');
     offset_result = value;
     offset_done = true;
@@ -634,7 +582,7 @@ var test_25_get_large_array = function() {
 
   db.put(table_name, arr);
 
-  db.list(table_name, ids).addCallback(function(value) {
+  db.values(table_name, ids).addCallback(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
@@ -669,7 +617,7 @@ var test_24_get_all_no_data = function() {
     100, // interval
     2000); // maxTimeout
 
-  db.list(table_name).addCallback(function(value) {
+  db.values(table_name).addCallback(function(value) {
     //console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -942,7 +890,7 @@ var test_52_fetch_keys = function () {
       var keys = [
         new ydn.db.Key(store_name, objs[1].id),
         new ydn.db.Key(store_name, objs[2].id)];
-      db.list(keys).addCallback(function (value) {
+      db.values(keys).addCallback(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         put_value_received = value;
 
@@ -976,18 +924,17 @@ var test_51_keys = function() {
   //var rev_data = ydn.object.clone(data).reverse();
 
 
-  var whole_done, rev_done, limit_done, offset_done;
-  var whole_result, rev_result, limit_result, offset_result;
+  var whole_done, limit_done, offset_done;
+  var whole_result, limit_result, offset_result;
 
   waitForCondition(
     // Condition
-    function() { return whole_done && rev_done && limit_done && offset_done; },
+    function() { return whole_done && limit_done && offset_done; },
     // Continuation
     function() {
       assertArrayEquals('whole store', keys, whole_result);
       assertArrayEquals('limit store', keys.slice(0, 3), limit_result);
       assertArrayEquals('offset store', keys.slice(1, 3), offset_result);
-      assertArrayEquals('reverse store', keys.reverse(), rev_result);
 
       reachedFinalContinuation = true;
     },
@@ -995,7 +942,7 @@ var test_51_keys = function() {
     1000); // maxTimeout
 
 
-  db.put(table_name, data).addCallback(function() {
+  db.put(table_name, data);
 
     db.keys(table_name).addCallback(function(value) {
       //console.log('whole value callback.');
@@ -1006,16 +953,7 @@ var test_51_keys = function() {
         console.log('Error: ' + e);
       });
 
-    db.keys(table_name, true).addCallback(function(value) {
-      //console.log('whole rev value callback.');
-      rev_result = value;
-      rev_done = true;
-    }).addErrback(function(e) {
-        rev_done = true;
-        console.log('Error: ' + e);
-      });
-
-    db.keys(table_name, false, 3).addCallback(function(value) {
+    db.keys(table_name, 3).addCallback(function(value) {
       //console.log('limit value callback.');
       limit_result = value;
       limit_done = true;
@@ -1023,7 +961,7 @@ var test_51_keys = function() {
         limit_done = true;
         console.log('Error: ' + e);
       });
-    db.keys(table_name, false, 2, 1).addCallback(function(value) {
+    db.keys(table_name, 2, 1).addCallback(function(value) {
       console.log('limit offset value callback.');
       offset_result = value;
       offset_done = true;
@@ -1031,7 +969,7 @@ var test_51_keys = function() {
         offset_done = true;
         console.log('Error: ' + e);
       });
-  });
+
 
 };
 
@@ -1102,7 +1040,7 @@ var test_53_fetch_keys = function () {
         100, // interval
         2000); // maxTimeout
 
-      db.list(keys).addCallback(function (value) {
+      db.values(keys).addCallback(function (value) {
         //console.log('fetch value: ' + JSON.stringify(value));
         results = value;
         get_done = true;

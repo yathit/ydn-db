@@ -19,13 +19,6 @@ ydn.db.con.IStorage = function() {};
 ydn.db.con.IStorage.prototype.close = goog.abstractMethod;
 
 
-/**
- * Return readable representation of storage mechanism. It should be all lower
- * case and use in type checking.
- * @return {string} database type connected.
- */
-ydn.db.con.IStorage.prototype.type = goog.abstractMethod;
-
 
 /**
  * Run a transaction.
@@ -39,5 +32,7 @@ ydn.db.con.IStorage.prototype.type = goog.abstractMethod;
   * completed_event_handler handler for completed event.
  */
 ydn.db.con.IStorage.prototype.transaction = goog.abstractMethod;
+
+
 
 

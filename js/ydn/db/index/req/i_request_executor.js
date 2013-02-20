@@ -109,8 +109,7 @@ ydn.db.index.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
 /**
  *
  * @param {string} store_name
- * @param {?string=} index_name
- * @param {?string=} foreign_index_name
+ * @param {string=} index_name
  * @return {!ydn.db.Streamer}
  */
 ydn.db.index.req.IRequestExecutor.prototype.getStreamer = goog.abstractMethod;

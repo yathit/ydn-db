@@ -57,3 +57,4 @@ KeyRangeJson.prototype.upper;
  * @type {*}
  */
 KeyRangeJson.prototype.upperOpen;
+

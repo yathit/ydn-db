@@ -326,7 +326,7 @@ ydn.db.con.WebSql.TYPE = 'websql';
 /**
  * @inheritDoc
  */
-ydn.db.con.WebSql.prototype.type = function() {
+ydn.db.con.WebSql.prototype.getType = function() {
   return ydn.db.con.WebSql.TYPE;
 };
 
@@ -431,13 +431,25 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     var index = table_schema.indexes[i];
     var unique = index.unique ? ' UNIQUE ' : ' ';
 
+
     // http://sqlite.org/lang_createindex.html
+    // http://www.sqlite.org/lang_createtable.html
+    // Indexing just the column seems like counter productive. ?
+    /*
+     INTEGER PRIMARY KEY columns aside, both UNIQUE and PRIMARY KEY constraints
+     are implemented by creating an index in the database (in the same way as a
+     "CREATE UNIQUE INDEX" statement would). Such an index is used like any
+     other index in the database to optimize queries. As a result, there often
+     no advantage (but significant overhead) in creating an index on a set of
+     columns that are already collectively subject to a UNIQUE or PRIMARY KEY
+     constraint.
+     */
     //if (index.type != ydn.db.schema.DataType.BLOB) {
-      var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS ' +
-          goog.string.quote(index.name) +
-          ' ON ' + table_schema.getQuotedName() +
-          ' (' + goog.string.quote(index.getKeyPath()) + ')';
-      sqls.push(idx_sql);
+    //  var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS ' +
+    //      goog.string.quote(index.name) +
+    //      ' ON ' + table_schema.getQuotedName() +
+    //      ' (' + goog.string.quote(index.getKeyPath()) + ')';
+    //  sqls.push(idx_sql);
     //}
 
     if (index.keyPath == table_schema.getKeyPath()) {
@@ -771,7 +783,8 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
  * @param {string} db_name
  */
 ydn.db.con.WebSql.deleteDatabase = function(db_name) {
-  // WebSQL API does not expose deleting database. so we delete tables
+  // WebSQL API does not expose deleting database.
+  // Dropping all tables indeed delete the database.
   var db = new ydn.db.con.WebSql();
   var schema = new ydn.db.schema.EditableDatabase();
   var df = db.connect(db_name, schema);
@@ -789,7 +802,7 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
         if (n > 0) {
             for (var i = 0; i < n; i++) {
               var store = existing_schema.store(i);
-              db.logger.finer('deleting table: ' + store.getName());
+              db.logger.finest('deleting table: ' + store.getName());
               tx.executeSql('DROP TABLE ' + store.getQuotedName());
             }
         } else {

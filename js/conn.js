@@ -10,10 +10,12 @@ goog.require('ydn.db.events.StorageEvent');
 
 goog.exportSymbol('ydn.db.con.Storage', ydn.db.con.Storage);
 
-goog.exportProperty(ydn.db.con.Storage.prototype, 'type',
-  ydn.db.con.Storage.prototype.type);
+goog.exportProperty(ydn.db.con.Storage.prototype, 'getType',
+  ydn.db.con.Storage.prototype.getType);
 goog.exportProperty(ydn.db.con.Storage.prototype, 'setName',
   ydn.db.con.Storage.prototype.setName);
+goog.exportProperty(ydn.db.con.Storage.prototype, 'getName',
+    ydn.db.con.Storage.prototype.getName);
 goog.exportProperty(ydn.db.con.Storage.prototype, 'getSchema',
   ydn.db.con.Storage.prototype.getSchema);
 goog.exportProperty(ydn.db.con.Storage.prototype, 'transaction',

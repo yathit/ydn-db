@@ -44,7 +44,7 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
   } else if (goog.isString(keyPath)) {
     // OK.
   } else {
-    throw new ydn.error.ArgumentException('index keyPath or name required.');
+    throw new ydn.debug.error.ArgumentException('index keyPath or name required.');
   }
 
   /**
@@ -70,7 +70,7 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
           (!goog.isArray(opt_type) && this.type != opt_type)
         )
       ) {
-    throw new ydn.error.ArgumentException('Invalid index type: ' + opt_type +
+    throw new ydn.debug.error.ArgumentException('Invalid index type: ' + opt_type +
         ' in ' + this.name);
   }
   /**
@@ -362,7 +362,7 @@ ydn.db.schema.Index.fromJSON = function(json) {
     var fields = ['name', 'unique', 'type', 'keyPath', 'multiEntry'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-        throw new ydn.error.ArgumentException('Unknown field: ' + key + ' in ' +
+        throw new ydn.debug.error.ArgumentException('Unknown field: ' + key + ' in ' +
             ydn.json.stringify(json));
       }
     }
@@ -386,7 +386,7 @@ ydn.db.schema.Index.fromJSON = function(json) {
  * @param {boolean=} dispatch_events if true, storage instance should
  * dispatch event on changes.
  * @param {boolean=} fixed sync with backend server.
- * @param {boolean=} sync sync with backend server.
+ * @param {StoreSyncOptions=} sync sync with backend server.
  * @constructor
  */
 ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
@@ -397,7 +397,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    */
   this.name = name;
   if (!goog.isString(this.name)) {
-    throw new ydn.error.ArgumentException('store name must be a string');
+    throw new ydn.debug.error.ArgumentException('store name must be a string');
   }
   /**
    * @final
@@ -405,7 +405,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   this.keyPath = goog.isDef(keyPath) ? keyPath : null;
   if (!goog.isNull(this.keyPath) &&
         (!goog.isString(this.keyPath) || goog.isArray(this.keyPath))) {
-    throw new ydn.error.ArgumentException('keyPath must be a string or array');
+    throw new ydn.debug.error.ArgumentException('keyPath must be a string or array');
   }
 
   /**
@@ -419,7 +419,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   if (goog.isDef(opt_type)) {
     type = ydn.db.schema.Index.toType(opt_type);
     if (!goog.isDef(type)) {
-      throw new ydn.error.ArgumentException('type invalid in store: ' +
+      throw new ydn.debug.error.ArgumentException('type invalid in store: ' +
         this.name);
     }
   }
@@ -435,7 +435,6 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
     goog.asserts.assert(this.type == ydn.db.schema.DataType.INTEGER,
       sqlite_msg);
   }
-
 
   /**
    * @final
@@ -456,7 +455,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   /**
    * @final
    */
-  this.sync = !!sync;
+  this.sync = sync || null;
 
 };
 
@@ -492,7 +491,6 @@ ydn.db.schema.Store.prototype.keyPaths;
  */
 ydn.db.schema.Store.prototype.indexes;
 
-
 /**
  * @type {boolean}
  */
@@ -506,9 +504,27 @@ ydn.db.schema.Store.prototype.dispatch_events = false;
 ydn.db.schema.Store.prototype.fixed = false;
 
 /**
- * @type {boolean}
+ * @type {StoreSyncOptions}
  */
-ydn.db.schema.Store.prototype.sync = false;
+ydn.db.schema.Store.prototype.sync = null;
+
+
+/**
+ * @enum {string}
+ */
+ydn.db.schema.Store.FetchStrategy = {
+  LAST_UPDATED: 'last-updated',
+  DESCENDING_KEY: 'descending-key'
+};
+
+
+/**
+ * @const
+ * @type {Array.<ydn.db.schema.Store.FetchStrategy>}
+ */
+ydn.db.schema.Store.FetchStrategies = [
+  ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
+  ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
 
 
 /**
@@ -531,6 +547,7 @@ ydn.db.schema.Store.prototype.toJSON = function() {
 };
 
 
+
 /**
  *
  * @param {!StoreSchema} json Restore from json stream.
@@ -542,7 +559,7 @@ ydn.db.schema.Store.fromJSON = function(json) {
       'dispatchEvents', 'fixed', 'sync'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-        throw new ydn.error.ArgumentException('Unknown attribute "' + key + '"');
+        throw new ydn.debug.error.ArgumentException('Unknown attribute "' + key + '"');
       }
     }
   }
@@ -970,6 +987,18 @@ ydn.db.schema.Store.prototype.similar = function(store) {
 
 
 /**
+ * @enum {string}
+ */
+ydn.db.schema.Store.SyncMethod = {
+  ADD: 'add',
+  GET: 'get',
+  PUT: 'put',
+  CLEAR: 'clear',
+  LIST: 'list'
+};
+
+
+/**
  *
  * @param {DatabaseSchema|number|string=} version version, if string, it must
  * be parse to int.
@@ -992,7 +1021,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
       var fields = ['version', 'stores'];
       for (var key in json) {
         if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-          throw new ydn.error.ArgumentException('Unknown field: ' + key +
+          throw new ydn.debug.error.ArgumentException('Unknown field: ' + key +
             ' in schema.');
         }
       }
@@ -1001,7 +1030,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
     stores = [];
     var stores_json = json.stores || [];
     if (goog.DEBUG && !goog.isArray(stores_json)) {
-      throw new ydn.error.ArgumentException('stores must be array');
+      throw new ydn.debug.error.ArgumentException('stores must be array');
     }
     for (var i = 0; i < stores_json.length; i++) {
       var store = ydn.db.schema.Store.fromJSON(stores_json[i]);
@@ -1010,7 +1039,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
           return x.name == store.name;
         });
         if (idx != -1) {
-          throw new ydn.error.ArgumentException('duplicate store name "' +
+          throw new ydn.debug.error.ArgumentException('duplicate store name "' +
             store.name + '".');
         }
 
@@ -1027,7 +1056,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
 
   if (goog.isDef(ver)) {
     if (!goog.isNumber(ver) || ver < 0) {
-      throw new ydn.error.ArgumentException('Invalid version: ' + ver + ' (' +
+      throw new ydn.debug.error.ArgumentException('Invalid version: ' + ver + ' (' +
           version + ')');
     }
     if (isNaN(ver)) {
@@ -1037,7 +1066,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
   if (goog.isDef(opt_stores) && (!goog.isArray(opt_stores) ||
       opt_stores.length > 0 && !(opt_stores[0] instanceof ydn.db.schema.Store)))
   {
-    throw new ydn.error.ArgumentException('stores');
+    throw new ydn.debug.error.ArgumentException('stores');
   }
 
   /**
@@ -1137,7 +1166,7 @@ ydn.db.schema.Database.prototype.getStoreNames = function() {
 //    var fields = ['version', 'stores'];
 //    for (var key in json) {
 //      if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-//        throw new ydn.error.ArgumentException('Unknown field: ' + key + ' in ' +
+//        throw new ydn.debug.error.ArgumentException('Unknown field: ' + key + ' in ' +
 //            ydn.json.stringify(json));
 //      }
 //    }

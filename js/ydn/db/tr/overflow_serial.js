@@ -42,7 +42,8 @@ ydn.db.tr.OverflowSerial.DEBUG = false;
 /**
  * @inheritDoc
  */
-ydn.db.tr.OverflowSerial.prototype.exec = function (callback, store_names, opt_mode, scope) {
+ydn.db.tr.OverflowSerial.prototype.exec = function (callback, store_names,
+      opt_mode, scope, on_completed) {
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
   var mu_tx = this.getMuTx();
@@ -53,8 +54,11 @@ ydn.db.tr.OverflowSerial.prototype.exec = function (callback, store_names, opt_m
     callback(mu_tx.getTx());
   } else {
 
-    var on_complete = function () {
+    var on_complete = function (type, e) {
       //console.log('tx ' + scope + ' completed');
+      if (goog.isFunction(on_completed)) {
+        on_completed(type, e);
+      }
     };
 
     //
@@ -73,7 +77,9 @@ ydn.db.tr.OverflowSerial.prototype.exec = function (callback, store_names, opt_m
       callback(mu_tx.getTx());
     };
     //var cbFn = goog.partial(tx_callback, callback);
-    tx_callback.name = scope; // scope name
+    if (goog.DEBUG) {
+      tx_callback.name = scope; // scope name
+    }
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
     // locked: ' + mu_tx.isSetDone());
     me.run(tx_callback, store_names, mode, on_complete);

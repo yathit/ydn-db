@@ -64,7 +64,7 @@ goog.inherits(ydn.db.sql.Storage, ydn.db.index.Storage);
  */
 ydn.db.sql.Storage.prototype.getExecutor = function () {
 
-  var type = this.type();
+  var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
     return new ydn.db.sql.req.IndexedDb(this.db_name, this.schema);
   } else if (type == ydn.db.con.WebSql.TYPE) {
@@ -79,13 +79,13 @@ ydn.db.sql.Storage.prototype.getExecutor = function () {
 
 };
 
+
 /**
  *
  * @inheritDoc
  */
-ydn.db.sql.Storage.prototype.thread = function(thread, name) {
-  var tx_thread = this.newTxQueue(thread, name);
-  return new ydn.db.sql.DbOperator(this, this.schema, tx_thread);
+ydn.db.sql.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.sql.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 

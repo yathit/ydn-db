@@ -20,6 +20,7 @@ ydn.db.tr.IThread = function() {};
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  * @param {string} scope_name scope.
+ * @param {Function=} on_completed transaction on completed handler
  */
 ydn.db.tr.IThread.prototype.exec = goog.abstractMethod;
 

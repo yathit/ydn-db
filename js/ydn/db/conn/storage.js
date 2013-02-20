@@ -36,7 +36,7 @@ goog.require('ydn.db.con.SimpleStorage');
 goog.require('ydn.db.con.WebSql');
 goog.require('ydn.db.events.StorageEvent');
 goog.require('ydn.db.schema.EditableDatabase');
-goog.require('ydn.error.ArgumentException');
+goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.object');
 
 
@@ -77,7 +77,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
     var fields = ['autoSchema', 'size', 'mechanisms', 'thread'];
     for (var key in options) {
       if (options.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-        throw new ydn.error.ArgumentException('Unknown attribute "' + key +
+        throw new ydn.debug.error.ArgumentException('Unknown attribute "' + key +
           '" in options.');
       }
     }
@@ -123,11 +123,23 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   if (opt_schema instanceof ydn.db.schema.Database) {
     schema = opt_schema;
   } else if (goog.isObject(opt_schema)) {
-    if (options.autoSchema || !goog.isDef(opt_schema['stores'])) {
-      schema = new ydn.db.schema.EditableDatabase(opt_schema);
+    /**
+     * @type {!DatabaseSchema}
+     */
+    var schema_json = opt_schema;
+    if (options.autoSchema || !goog.isDef(schema_json.stores)) {
+      schema = new ydn.db.schema.EditableDatabase(schema_json);
     } else {
-      schema = new ydn.db.schema.Database(opt_schema);
+      schema = new ydn.db.schema.Database(schema_json);
     }
+
+    for (var i = 0, n = schema_json.stores ? schema_json.stores.length : 0; i < n; i++) {
+      var store = schema.getStore(schema_json.stores[i].name);
+      if (schema_json.stores[i].sync) {
+        this.addSynchronizer(store, schema_json.stores[i].sync);
+      }
+    }
+
   } else {
     schema = new ydn.db.schema.EditableDatabase();
   }
@@ -370,7 +382,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
     me.last_queue_checkin_ = NaN;
 
     me.popTxQueue_();
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.CONNECTED,
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.DONE,
       me, parseFloat(db.getVersion()), old_version);
     me.dispatchEvent(event);
 
@@ -405,9 +417,9 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
  * @return {string} database mechanism type.
  * @export
  */
-ydn.db.con.Storage.prototype.type = function() {
+ydn.db.con.Storage.prototype.getType = function() {
   if (this.db_) {
-    return this.db_.type();
+    return this.db_.getType();
   } else {
     return '';
   }
@@ -457,6 +469,7 @@ ydn.db.con.Storage.prototype.close = function() {
   if (this.db_) {
     this.db_.close();
     this.db_ = null;
+    this.logger.finest(this + ' closed');
   }
 };
 
@@ -631,7 +644,7 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
     names = null;
   } else if (!goog.isArray(store_names) ||
     (!goog.isString(store_names[0]))) {
-    throw new ydn.error.ArgumentException('storeNames');
+    throw new ydn.debug.error.ArgumentException('storeNames');
   }
 
   var is_ready = !!this.db_ && this.db_.isReady();
@@ -677,12 +690,24 @@ ydn.db.con.Storage.prototype.isAutoVersion = function() {
   return this.schema.isAutoVersion();
 };
 
+
 /**
  *
  * @return {boolean} true if auto schema mode.
  */
 ydn.db.con.Storage.prototype.isAutoSchema = function() {
   return this.schema.isAutoSchema();
+};
+
+
+/**
+ *
+ * @param {ydn.db.schema.Store} store
+ * @param {StoreSyncOptions} option
+ * @protected
+ */
+ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
+  this.logger.warning('Synchronization option for ' + store.getName() + ' ignored.');
 };
 
 

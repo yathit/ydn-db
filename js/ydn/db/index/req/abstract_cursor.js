@@ -160,27 +160,6 @@ ydn.db.index.req.AbstractCursor.prototype.onNext = function(primary_key, key, va
 
 
 /**
- * Continue to next position.
- * @param {*} next_position next index key.
- */
-ydn.db.index.req.AbstractCursor.prototype.forward = goog.abstractMethod;
-
-
-/**
- * Continue to next primary key position.
- *
- *
- * This will continue to scan
- * until the key is over the given primary key. If next_primary_key is
- * lower than current position, this will rewind.
- * @param {*} next_primary_key
- * @param {*=} next_index_key
- * @param {boolean=} exclusive
- */
-ydn.db.index.req.AbstractCursor.prototype.seek = goog.abstractMethod;
-
-
-/**
  *
  * @return {*} primary key.
  */

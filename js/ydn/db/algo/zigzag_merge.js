@@ -1,14 +1,14 @@
 /**
  * @fileoverview Zigzag merge algorithm.
  *
- * This is same as sorted merge algorithm, except the first role is not
- * participate in joining.
+ * Zigzag merge join reference values of given composite index iterators (and
+ * streamers) to matching value by continuing the last highest element of
+ * effective values.
  *
  * Ref: http://www.google.com/events/io/2010/sessions/next-gen-queries-appengine.html
  */
 
 goog.provide('ydn.db.algo.ZigzagMerge');
-goog.require('ydn.db.algo.SortedMerge');
 goog.require('ydn.db');
 
 
@@ -21,10 +21,9 @@ goog.require('ydn.db');
  */
 ydn.db.algo.ZigzagMerge = function(out, limit) {
   goog.base(this, out, limit);
-  this.buffer_ = [];
-  this.order_ = [];
-  this.merged_ = false;
-  this.smallest_ = NaN;
+
+  this.is_duplex_output_ = out instanceof ydn.db.Streamer &&
+    !!out.getFieldName();
 };
 goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
 
@@ -34,23 +33,12 @@ goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
  */
 ydn.db.algo.ZigzagMerge.DEBUG = false;
 
-
 /**
- * Output buffer is keys from the first iterator that is not verified
- * by the filters.
- * @type {Array}
- * @private
+ * @protected
+ * @type {goog.debug.Logger} logger.
  */
-ydn.db.algo.ZigzagMerge.prototype.buffer_ = [];
-
-
-/**
- * Sort order of buffer_ array.
- * This is a linked list corresponding to each buffer_.
- * @type {Array}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.order_ = [];
+ydn.db.algo.ZigzagMerge.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.algo.ZigzagMerge');
 
 
 /**
@@ -58,31 +46,28 @@ ydn.db.algo.ZigzagMerge.prototype.order_ = [];
  * @type {boolean}
  * @private
  */
-ydn.db.algo.ZigzagMerge.prototype.merged_ = false;
-
-/**
- *
- * @type {number}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.smallest_ = NaN;
+ydn.db.algo.ZigzagMerge.prototype.is_duplex_output_ = false;
 
 
 /**
  * @inheritDoc
  */
-ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
-  if (iterators.length == 1) {
-    throw new ydn.error.InvalidOperationException('number of iterators must be ' +
-      'more than one.');
+ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback){
+  var result = goog.base(this, 'begin', iterators, callback);
+  if (this.is_duplex_output_) {
+    var iter_index = iterators[0].getIndexName().split(', ');
+    if (iter_index.length > 1) {
+      if (iter_index[iter_index.length - 1] != this.out.getFieldName()) {
+        throw new ydn.error.InvalidOperationError('Output streamer ' +
+          'projection field must be same as postfix field in the iterator');
+      }
+    } else {
+      if (goog.DEBUG) {
+        this.logger.warning('Unable to check correctness of output streamer.');
+      }
+    }
   }
-  if (iterators.length > 2) {
-    this.merged_ = true;
-  }
-  goog.array.clear(this.buffer_);
-  goog.array.clear(this.order_);
-  this.smallest_ = NaN;
-  return false;
+  return result;
 };
 
 
@@ -91,58 +76,129 @@ ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
  */
 ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
 
-  var advance;
-  var all_match = false;
-  var skip = false;
-  var highest_key;
-  if (this.merged_) {
-    var sort_out = ydn.db.algo.SortedMerge.sort(keys.slice(1));
-    advance = sort_out.advance;
-    all_match = sort_out.all_match;
-    skip = sort_out.skip;
-    highest_key = sort_out.highest_key;
-  } else {
-    var match = goog.isDefAndNotNull(keys[1]);
-    if (match) {
-      advance = [true];
-      highest_key = keys[1];
-      all_match = true;
-    } else {
-      advance = [];
-    }
-  }
-  if (advance.length == 0) {
-    goog.array.clear(this.buffer_);
+  var advancement = [];
+
+  if (keys.length == 0 || !goog.isDefAndNotNull(keys[0])) {
     return [];
   }
 
+  /**
+   * Return postfix value from the key.
+   * @param {!Array} x the key.
+   * @return {*}
+   */
+  var postfix = function(x) {
+    return x[x.length - 1];
+  };
 
+  /**
+   * Return prefix value from the key.
+   * @param {!Array} x the key.
+   * @return {!Array}
+   */
+  var prefix = function (x) {
+    return x.slice(0, x.length - 1);
+  };
 
-//    while (!isNaN(this.smallest_)) {
-//      var key = this.buffer_[this.smallest_];
-//      var next = this.order_[this.smallest_];
-//      if (ydn.db.cmp(key, highest_key) === 1) {
-//        this.buffer_.splice(this.smallest_, 1);
-//        this.order_.splice(this.smallest_, 1);
-//        var next_smallest = this.order_[next];
-//        this.smallest_ = goog.isDef(next_smallest) ? next_smallest : NaN;
-//      } else {
-//        break;
-//      }
-//    }
-    for (var i = this.buffer_.length - 1; i > 0; i--) {
-      if (ydn.db.cmp(this.buffer_[i], highest_key) != -1) {
-        this.buffer_.splice(i, 1);
+  /**
+   * Make full key from the prefix of given key and postfix parts.
+   * @param {!Array} key original key.
+   * @param {*} post_fix
+   * @return {!Array} newly constructed key.
+   */
+  var makeKey = function(key, post_fix) {
+    var new_key = prefix(key);
+    new_key.push(post_fix);
+    return new_key;
+  };
+
+  if (!goog.isDefAndNotNull(keys[0])) {
+    if (ydn.db.algo.SortedMerge.DEBUG) {
+      window.console.log('SortedMerge: done.');
+    }
+    return [];
+  }
+  var all_match = true; // let assume
+
+  goog.asserts.assertArray(keys[0]);
+  var highest_idx = 0;
+  var highest_postfix = postfix(keys[highest_idx]);
+  var cmps = [];
+
+  for (var i = 1; i < keys.length; i++) {
+    if (goog.isDefAndNotNull(keys[i])) {
+      //console.log([values[0], keys[i]])
+      var postfix_part = postfix(keys[i]);
+      var cmp = ydn.db.cmp(highest_postfix, postfix_part);
+      cmps[i] = cmp;
+      if (cmp === 1) {
+        // base key is greater than ith key, so fast forward to ith key.
+        all_match = false;
+      } else if (cmp === -1) {
+        // ith key is greater than base key. we are not going to get it
+        all_match = false;
+        highest_postfix = postfix_part;
+        highest_idx = 1;
+      }
+      //i += this.degrees_[i]; // skip peer iterators.
+    } else {
+      if (ydn.db.algo.ZigzagMerge.DEBUG) {
+        window.console.log(this + ': iterator ' + i + ' reach the end');
+      }
+      return [];
+    }
+  }
+
+  if (ydn.db.algo.ZigzagMerge.DEBUG) {
+    window.console.log('ZigzagMerge: match: ' + all_match +
+        ', highest_key: ' + JSON.stringify(/** @type {Object} */ (highest_postfix)) +
+        ', keys: ' + JSON.stringify(keys) +
+        ', cmps: ' + JSON.stringify(cmps) +
+        ', advancement: ' + JSON.stringify(advancement));
+  }
+
+  if (all_match) {
+    // all postfix key matched.
+    // however result is the one when all primary keys are match.
+    // since postfix key is index key, it may not be unique.
+    // TODO: check matching primary keys and advance as necessary
+    for (var j = 0; j < keys.length; j++) {
+      if (goog.isDefAndNotNull(keys[j])) {
+        advancement[j] = true;
       }
     }
-
-    if (all_match) {
-      advance.unshift(true); // advance it
-    } else {
-      this.buffer_.push(keys[0]);
-      advance.unshift(null); // keep it
+    if (this.out) {
+      if (this.is_duplex_output_) {
+        this.out.push(values[0], highest_postfix);
+      } else {
+        this.out.push(values[0]);
+      }
     }
+    return advancement;
+  } else if (highest_idx == 0) {
+    // some need to catch up to base key
+    for (var j = 1; j < keys.length; j++) {
+      if (cmps[j] === 1) {
+        advancement[j] = makeKey(keys[j], highest_postfix);
+      }
+    }
+  } else {
+    // all jump to highest key position.
+    for (var j = 0; j < keys.length; j++) {
+      if (j == highest_idx) {
+        continue;
+      }
+      if (goog.isDefAndNotNull(keys[j])) {
+        // we need to compare again, because intermediate highest
+        // key might get cmp value of 0, but not the highest key
+        goog.asserts.assertArray(keys[j]);
+        if (ydn.db.cmp(highest_postfix, postfix(keys[j])) === 1) {
+          advancement[j] = makeKey(keys[j], highest_postfix);
+        }
+      }
+    }
+  }
 
-  return advance;
+  return {'continue': advancement};
 
 };

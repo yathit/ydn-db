@@ -153,7 +153,7 @@ ydn.db.KeyRange.starts = function(value) {
   } else if (goog.isString(value)) {
     value_upper = value + '\uffff';
   } else {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException();
   }
 
   return ydn.db.KeyRange.bound(value, value_upper, false, true);
@@ -259,7 +259,7 @@ ydn.db.KeyRange.validate = function(keyRange) {
  */
 ydn.db.KeyRange.where = function(op, value, op2, value2) {
   var upper, lower, upperOpen, lowerOpen;
-  if (op == 'LIKE%') {
+  if (op == '^') {
     goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'value');
     goog.asserts.assert(!goog.isDef(op2), 'op2');
     goog.asserts.assert(!goog.isDef(value2), 'value2');
@@ -273,6 +273,8 @@ ydn.db.KeyRange.where = function(op, value, op2, value2) {
   } else if (op == '=' || op == '==') {
     lower = value;
     upper = value;
+  } else {
+    throw new ydn.debug.error.ArgumentException('invalid op: ' + op);
   }
   if (op2 == '<' || op2 == '<=') {
     upper = value2;
@@ -281,7 +283,7 @@ ydn.db.KeyRange.where = function(op, value, op2, value2) {
     lower = value2;
     lowerOpen = op2 == '>';
   } else if (goog.isDef(op2)) {
-    throw new ydn.error.ArgumentException('op2');
+    throw new ydn.debug.error.ArgumentException('invalid op2: ' + op2);
   }
   return ydn.db.KeyRange.bound(lower, upper, lowerOpen, upperOpen);
 };

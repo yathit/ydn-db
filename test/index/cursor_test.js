@@ -20,7 +20,7 @@ var setUp = function () {
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
 
-    ydn.db.index.req.WebSql.DEBUG = true;
+    //ydn.db.index.req.WebSql.DEBUG = true;
   }
 
   reachedFinalContinuation = false;
@@ -108,7 +108,7 @@ var test_getByIterator = function () {
     1000); // maxTimeout
 
   var range = new ydn.db.KeyRange.only('a2');
-  var q = new ydn.db.ValueIndexIterator(store_name, 'value', range);
+  var q = new ydn.db.IndexValueCursors(store_name, 'value', range);
 
   db.get(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -136,9 +136,9 @@ var test_listByIterator = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIterator(store_name);
+  var q = new ydn.db.ValueCursors(store_name);
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -173,7 +173,7 @@ var test_listByIterator_resume = function () {
         100, // interval
         1000); // maxTimeout
 
-      db.list(q, 3).addBoth(function (value) {
+      db.values(q, 3).addBoth(function (value) {
         //console.log(db + ' fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
@@ -182,9 +182,9 @@ var test_listByIterator_resume = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIterator(store_name);
+  var q = new ydn.db.ValueCursors(store_name);
 
-  db.list(q, 3).addBoth(function (value) {
+  db.values(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -215,9 +215,9 @@ var test_listBy_index_ValueIterator = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIndexIterator(store_name, 'value');
+  var q = new ydn.db.IndexValueCursors(store_name, 'value');
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -256,7 +256,7 @@ var test_listBy_index_ValueIterator_resume = function () {
         100, // interval
         1000); // maxTimeout
 
-      db.list(q, 3).addBoth(function (value) {
+      db.values(q, 3).addBoth(function (value) {
         //console.log(db + ' fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
@@ -265,9 +265,9 @@ var test_listBy_index_ValueIterator_resume = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIndexIterator(store_name, 'value');
+  var q = new ydn.db.IndexValueCursors(store_name, 'value');
 
-  db.list(q, 3).addBoth(function (value) {
+  db.values(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -297,9 +297,9 @@ var test_listByKeyIterator = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.KeyIterator(store_name);
+  var q = new ydn.db.KeyCursors(store_name);
 
-  db.list(q).addBoth(function (value) {
+  db.values(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -340,7 +340,7 @@ var test_listByKeyIterator_resume = function () {
         100, // interval
         1000); // maxTimeout
 
-      db.list(q, 3).addBoth(function (value) {
+      db.values(q, 3).addBoth(function (value) {
         //console.log(db + ' fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
@@ -349,9 +349,9 @@ var test_listByKeyIterator_resume = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.KeyIterator(store_name);
+  var q = new ydn.db.KeyCursors(store_name);
 
-  db.list(q, 3).addBoth(function (value) {
+  db.values(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -376,9 +376,9 @@ var test_listByIterator_limit = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIterator(store_name);
+  var q = new ydn.db.ValueCursors(store_name);
 
-  db.list(q, 3).addBoth(function (value) {
+  db.values(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -404,9 +404,9 @@ var test_listByIterator_limit_offset = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIterator(store_name);
+  var q = new ydn.db.ValueCursors(store_name);
 
-  db.list(q, 3, 2).addBoth(function (value) {
+  db.values(q, 3, 2).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -435,7 +435,7 @@ var test_keysBy_ValueIterator = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIterator(store_name);
+  var q = new ydn.db.ValueCursors(store_name);
 
   db.keys(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -483,7 +483,7 @@ var test_keysBy_ValueIterator_resume = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIterator(store_name);
+  var q = new ydn.db.ValueCursors(store_name);
 
   db.keys(q, 3).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -515,7 +515,7 @@ var test_keysBy_index_ValueIterator = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.ValueIndexIterator(store_name, 'value');
+  var q = new ydn.db.IndexValueCursors(store_name, 'value');
 
   db.keys(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
@@ -543,7 +543,104 @@ var test_keysBy_multiEntry_index_KeyIterator = function () {
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.KeyIndexIterator(store_name, 'tag', null, false, true);
+  var q = new ydn.db.Cursors(store_name, 'tag', null, false, true);
+
+  db.keys(q).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+
+
+var test_keys_by_ValueIndexIterator = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var keys = objs.map(function(x) {
+    return x.type;
+  });
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.IndexValueCursors(store_name, 'type');
+
+  db.keys(q).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+var test_keys_by_KeyIndexIterator = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var keys = objs.map(function(x) {
+    return x.type;
+  });
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.Cursors(store_name, 'type');
+
+  db.keys(q).addBoth(function (value) {
+    //console.log(db + ' fetch value: ' + JSON.stringify(value));
+    result = value;
+    done = true;
+  });
+};
+
+var test_keys_by_KeyIndexIterator_unqiue = function () {
+  var db = load_default();
+  var done;
+  var result;
+  var keys = [];
+  for (var i = 0; i < objs.length; i++) {
+    var value = objs[i].value;
+    if (keys.indexOf(value) == -1) {
+      keys.push(value);
+    }
+  }
+  keys.sort();
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertObjectEquals('result', keys, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q = new ydn.db.Cursors(store_name, 'value', null, false, true);
 
   db.keys(q).addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));

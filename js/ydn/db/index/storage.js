@@ -38,7 +38,7 @@ goog.require('ydn.db.core.Storage');
  * is used.
  * @param {!StorageOptions=} opt_options options.
  * @extends {ydn.db.core.Storage}
- * @implements {ydn.db.index.IStorage}
+ * @implements {ydn.db.index.IOperator}
  * @constructor
  */
 ydn.db.index.Storage = function(opt_dbname, opt_schema, opt_options) {
@@ -64,7 +64,7 @@ goog.inherits(ydn.db.index.Storage, ydn.db.core.Storage);
  */
 ydn.db.index.Storage.prototype.getExecutor = function () {
 
-  var type = this.type();
+  var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
     return new ydn.db.index.req.IndexedDb(this.db_name, this.schema);
   } else if (type == ydn.db.con.WebSql.TYPE) {
@@ -84,9 +84,8 @@ ydn.db.index.Storage.prototype.getExecutor = function () {
  * 
  * @inheritDoc
  */
-ydn.db.index.Storage.prototype.thread = function(thread, name) {
-  var tx_thread = this.newTxQueue(thread, name);
-  return new ydn.db.index.DbOperator(this, this.schema, tx_thread);
+ydn.db.index.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.index.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 

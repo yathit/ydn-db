@@ -261,7 +261,7 @@ var test_13_array_key = function () {
     5000); // maxTimeout
 
 
-  db.list(store_name).addBoth(function (value) {
+  db.values(store_name).addBoth(function (value) {
     console.log('fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -367,7 +367,7 @@ var test_22_out_of_line_array = function () {
       assertArrayEquals('get back the keys', keys, put_result);
       // retrieve back by those key
 
-      db.list(store_name, put_result).addBoth(function (value) {
+      db.values(store_name, put_result).addBoth(function (value) {
         //console.log('fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
@@ -488,7 +488,7 @@ var test_42_autoincreasement_offline = function () {
 
       // retrieve back by those key
 
-      db.list(store_name, put_result).addBoth(function (value) {
+      db.values(store_name, put_result).addBoth(function (value) {
         //console.log('fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
@@ -557,7 +557,7 @@ var test_43_autoincreasement_inline = function () {
 
       // retrieve back by those key
 
-      db.list(store_name, keys).addBoth(function (value) {
+      db.values(store_name, keys).addBoth(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;

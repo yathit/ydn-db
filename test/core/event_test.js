@@ -151,9 +151,6 @@ var test_updated_store_event = function() {
 };
 
 
-
-
-
 var test_deleted_event = function() {
 
   var db = new ydn.db.core.Storage(db_name, schema, options);
@@ -191,7 +188,7 @@ var test_deleted_event = function() {
     3000); // maxTimeout
 
   db.addEventListener('deleted', function(e) {
-    console.log(e);
+    // console.log(e);
     if (e.name == 'StoreEvent') {
       store_event = e;
     } else {
@@ -202,11 +199,69 @@ var test_deleted_event = function() {
   });
 
 
-
   db.put(store_name_inline_number, objs).addCallback(function() {
     db.clear(store_name_inline_number, keys[0]);
     db.clear(store_name_inline_number);
   });
+};
+
+
+var test_run = function() {
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var done = false;
+  var result;
+  var objs =  [{id: 1, value: '1', remark: 'put test'}, {id: 2, value: '2', remark: 'put test'}];
+  var keys = [1, 2];
+
+
+  waitForCondition(
+    // Condition
+    function() { return done; },
+    // Continuation
+    function() {
+      assertArrayEquals('put', keys, result);
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.run(function (tdb) {
+    tdb.put(store_name_inline_number, objs).addBoth(function(x) {
+      result = x;
+    });
+  }, [store_name_inline_number], 'readwrite', function() {
+    done = true;
+  });
+
+};
+
+var test_run_opt_args = function() {
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var done = false;
+  var result;
+  var objs =  [{id: 1, value: '1', remark: 'put test'}, {id: 2, value: '2', remark: 'put test'}];
+  var keys = [1, 2];
+
+
+  waitForCondition(
+    // Condition
+    function() { return done; },
+    // Continuation
+    function() {
+      assertArrayEquals('put', keys, result);
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.run(function (tdb, arg1) {
+    tdb.put(store_name_inline_number, arg1).addBoth(function(x) {
+      result = x;
+    });
+  }, [store_name_inline_number], 'readwrite', function() {
+    done = true;
+  }, objs);
+
 };
 
 

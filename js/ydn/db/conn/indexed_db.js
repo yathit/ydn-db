@@ -21,12 +21,12 @@
 goog.provide('ydn.db.con.IndexedDb');
 goog.require('goog.Timer');
 goog.require('goog.async.DeferredList');
-goog.require('goog.debug.Error');
 goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.db.schema.Database');
+goog.require('ydn.error.ConstrainError');
 goog.require('ydn.json');
 
 
@@ -74,7 +74,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
    */
   var me = this;
   var df = new goog.async.Deferred();
-  var old_version = NaN;
+  var old_version = undefined;
 
   /**
    * This is final result of connection. It is either fail or connected
@@ -163,7 +163,8 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
   var version = schema.getVersion();
 
   // In chrome, version is taken as description.
-  me.logger.finer('Opening database: ' + dbname + ' ver: ' + version);
+  me.logger.finer('Opening database: ' + dbname + ' ver: ' +
+    (schema.isAutoVersion() ? 'auto' : version));
 
   /**
    * Currently in transaction stage, opening indexedDB return two format.
@@ -189,7 +190,9 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
      * @type {IDBDatabase}
      */
     var db = ev.target.result;
-    old_version = db.version;
+    if (!goog.isDef(old_version)) {
+      old_version = db.version;
+    }
     var msg = 'Database: ' + db.name + ', ver: ' + db.version + ' opened.';
     me.logger.finer(msg);
 
@@ -343,7 +346,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
   openRequest.onupgradeneeded = function(ev) {
     var db = ev.target.result;
-    old_version = db.version;
+    old_version = NaN;
     me.logger.finer('upgrade needed for version ' + db.version);
     updateSchema(db, openRequest['transaction'], false);
   };
@@ -422,7 +425,7 @@ ydn.db.con.IndexedDb.prototype.time_out_ = 3*60*1000;
 /**
  * @return {string} storage mechanism type.
  */
-ydn.db.con.IndexedDb.prototype.type = function() {
+ydn.db.con.IndexedDb.prototype.getType = function() {
   return ydn.db.con.IndexedDb.TYPE;
 };
 
@@ -616,7 +619,12 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
       for (var j = 0; j < store_schema.indexes.length; j++) {
         var index = store_schema.indexes[j];
         if (!indexNames.contains(index.name)) {
-          store.createIndex(index.name, index.keyPath, {unique: index.unique});
+          if (index.unique || index.multiEntry) {
+            var idx_options = {unique: index.unique, multiEntry: index.multiEntry};
+            store.createIndex(index.name, index.keyPath, idx_options);
+          } else {
+            store.createIndex(index.name, index.keyPath);
+          }
           created++;
         }
       }
@@ -722,5 +730,5 @@ ydn.db.con.IndexedDb.prototype.close = function() {
  */
 ydn.db.con.IndexedDb.prototype.toString = function() {
   var s = this.idx_db_ ? this.idx_db_.name + ':' + this.idx_db_.version : '';
-  return this.type() + ':' + s;
+  return this.getType() + ':' + s;
 };

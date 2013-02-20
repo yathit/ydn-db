@@ -1,12 +1,10 @@
 /**
- * @fileoverview Zigzag merge algorithm.
+ * @fileoverview Sorted merge algorithm.
  *
- * The first iterator is primary iterator. The result come from ordering the
- * primary iterator.
- * This algorithm require monotoniously ascending or descending key from
- * iterators.
+ * Sorted merge algorithm join reference values of given iterators (and
+ * streamers) to matching value by continuing them by highest reference value.
  *
- * Ref: http://www.google.com/events/io/2010/sessions/next-gen-queries-appengine.html
+ * http://dev.mysql.com/doc/refman/5.0/en/index-merge-optimization.html
  */
 
 goog.provide('ydn.db.algo.SortedMerge');
@@ -77,32 +75,22 @@ ydn.db.algo.SortedMerge.prototype.begin = function(iterators, callback) {
 };
 
 
+
 /**
- * Sorted join algorithm.
- * @param {Array} keys keys.
- * @return {{
-    advance: !Array,
-    highest_key: *,
-    all_match: boolean,
-    skip: boolean
-  }} sorted results.
+ * @inheritDoc
  */
-ydn.db.algo.SortedMerge.sort = function(keys) {
+ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
+
 
   var advancement = [];
 
-  var base_key = keys[0];
+  var base_key = values[0];
 
   if (!goog.isDefAndNotNull(base_key)) {
     if (ydn.db.algo.SortedMerge.DEBUG) {
       window.console.log('SortedMerge: done.');
     }
-    return  {
-      advance: [],
-      highest_key: null,
-      all_match: false,
-      skip: false
-    };
+    return [];
   }
   var all_match = true; // let assume
   var skip = false;     // primary_key must be skip
@@ -110,9 +98,9 @@ ydn.db.algo.SortedMerge.sort = function(keys) {
   var cmps = [];
 
   for (var i = 1; i < keys.length; i++) {
-    if (goog.isDefAndNotNull(keys[i])) {
-      //console.log([keys[0], keys[i]])
-      var cmp = ydn.db.cmp(base_key, keys[i]);
+    if (goog.isDefAndNotNull(values[i])) {
+      //console.log([values[0], values[i]])
+      var cmp = ydn.db.cmp(base_key, values[i]);
       cmps[i] = cmp;
       if (cmp === 1) {
         // base key is greater than ith key, so fast forward to ith key.
@@ -121,8 +109,8 @@ ydn.db.algo.SortedMerge.sort = function(keys) {
         // ith key is greater than base key. we are not going to get it
         all_match = false;
         skip = true; //
-        if (ydn.db.cmp(keys[i], highest_key) === 1) {
-          highest_key = keys[i];
+        if (ydn.db.cmp(values[i], highest_key) === 1) {
+          highest_key = values[i];
         }
       }
       //i += this.degrees_[i]; // skip peer iterators.
@@ -136,17 +124,17 @@ ydn.db.algo.SortedMerge.sort = function(keys) {
     // we get a match, so looking forward to next key.
     // all other keys are rewind
     for (var j = 0; j < keys.length; j++) {
-      if (goog.isDefAndNotNull(keys[j])) {
+      if (goog.isDefAndNotNull(values[j])) {
         advancement[j] = true;
       }
     }
   } else if (skip) {
     // all jump to highest key position.
     for (var j = 0; j < keys.length; j++) {
-      if (goog.isDefAndNotNull(keys[j])) {
+      if (goog.isDefAndNotNull(values[j])) {
         // we need to compare again, because intermediate highest
         // key might get cmp value of 0, but not the highest key
-        if (ydn.db.cmp(highest_key, keys[j]) === 1) {
+        if (ydn.db.cmp(highest_key, values[j]) === 1) {
           advancement[j] = highest_key;
         }
       }
@@ -169,21 +157,14 @@ ydn.db.algo.SortedMerge.sort = function(keys) {
       ', advancement: ' + JSON.stringify(advancement));
   }
 
-  return {
-    advance: advancement,
-    highest_key: highest_key,
-    all_match: all_match,
-    skip: skip
+  if (all_match) {
+    this.match_count++;
+    //console.log(['match key', match_key, JSON.stringify(keys)]);
+    if (this.out) {
+      this.out.push(highest_key);
+    }
+    return advancement;
+  } else {
+    return {'continuePrimary': advancement};
   }
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
-
-  var sort_result = ydn.db.algo.SortedMerge.sort(keys);
-
-  return this.pusher(sort_result.advance, keys, values);
 };

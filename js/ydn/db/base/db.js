@@ -31,12 +31,12 @@ goog.require('ydn.db.utils');
  */
 ydn.db.deleteDatabase = function(db_name, type) {
   // some IndexedDB API do not support deleting database.
-  if ((!type || type == ydn.db.con.IndexedDb.TYPE) &&
+  if (ydn.db.con.IndexedDb.isSupported() && (!type || type == ydn.db.con.IndexedDb.TYPE) &&
     ydn.db.con.IndexedDb.indexedDb &&
       ('deleteDatabase' in ydn.db.con.IndexedDb.indexedDb)) {
     ydn.db.con.IndexedDb.indexedDb.deleteDatabase(db_name);
   }
-  if (!type || type == ydn.db.con.WebSql.TYPE) {
+  if (ydn.db.con.WebSql.isSupported() && (!type || type == ydn.db.con.WebSql.TYPE)) {
     ydn.db.con.WebSql.deleteDatabase(db_name);
   }
   if (!type || type == ydn.db.con.LocalStorage.TYPE) {

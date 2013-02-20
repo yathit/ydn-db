@@ -71,7 +71,7 @@ var schema_test = function(schema, to_delete, name) {
       assertEquals('version', version, sh.version);
       reachedFinalContinuation = true;
       if (to_delete) {
-        deleteDb(name, db.type());
+        deleteDb(name, db.getType());
       }
     },
     100, // interval
@@ -247,7 +247,7 @@ var schema_sniff_test = function(schema) {
       //assertTrue(schema.similar(sniff_schema));
       assert_similar_schema(schema_json, sniff_schema);
       reachedFinalContinuation = true;
-      deleteDb(db_name, db.type());
+      deleteDb(db_name, db.getType());
     },
     100, // interval
     1000); // maxTimeout

@@ -35,6 +35,113 @@ IndexSchema.prototype.keyPath;
 IndexSchema.prototype.multiEntry;
 
 
+
+/**
+ * @constructor
+ */
+var AtomOptions = function() {};
+
+
+/**
+ * @type {string}
+ */
+AtomOptions.prototype.baseUri;
+
+
+/**
+ * @type {(string|number|!Array.<number|string>)}
+ */
+AtomOptions.prototype.keyPathId;
+
+/**
+ * @type {(string|number|!Array.<number|string>)}
+ */
+AtomOptions.prototype.keyPathEtag;
+
+/**
+ * This need to be a string because, the value is used as dual purpose of index name.
+ * The string can be use dotted notation for nested key path.
+ * @type {string}
+ */
+AtomOptions.prototype.keyPathUpdated;
+
+
+/**
+ * @extends {AtomOptions}
+ * @constructor
+ */
+var GDataOptions = function() {};
+
+
+/**
+ * @type {string?}
+ */
+GDataOptions.prototype.version;
+
+
+/**
+ * @type {string?}
+ */
+GDataOptions.prototype.projection;
+
+
+/**
+ * @extends {AtomOptions}
+ * @constructor
+ */
+var ODataOptions = function() {};
+
+
+/**
+ * @constructor
+ */
+function StoreSyncOptions() {}
+
+
+/**
+ * @constructor
+ */
+function Transport() {}
+
+/**
+ * @type {Function}
+ */
+Transport.prototype.send;
+
+
+/**
+ * @type {string}
+ */
+StoreSyncOptions.prototype.format;
+
+/**
+ * @type {number}
+ */
+StoreSyncOptions.prototype.readRequestTimeout;
+
+/**
+ * @type {number}
+ */
+StoreSyncOptions.prototype.writeRequestTimeout;
+
+/**
+ * @type {Function}
+ */
+StoreSyncOptions.prototype.transport;
+
+/**
+ * @type {AtomOptions|GDataOptions|ODataOptions}
+ */
+StoreSyncOptions.prototype.options;
+
+/**
+ * Entry list fetch strategy. Supported method are
+ * ['last-updated', 'descending-key']
+ * @type {Array}
+ */
+StoreSyncOptions.prototype.fetchStrategies;
+
+
 /**
  * @constructor
  */
@@ -77,7 +184,8 @@ StoreSchema.prototype.dispatchEvents;
 StoreSchema.prototype.fixed;
 
 /**
- * @type {boolean}
+ * Name of sync
+ * @type {StoreSyncOptions}
  */
 StoreSchema.prototype.sync;
 
