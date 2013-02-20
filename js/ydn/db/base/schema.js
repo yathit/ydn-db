@@ -885,28 +885,28 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
       continue;
     }
 
-    var v = index.keyPath;
-    if (goog.isDef(v)) {
+    var key_path = index.keyPath;
+    if (goog.isDef(key_path)) {
       var type = index.type;
-      if (goog.isArray(v)) {
-        for(var j = 0; j < v.length; j++) {
-          if (goog.isDef(obj[v[j]])) { 
+      if (goog.isArray(key_path)) {
+        for(var j = 0; j < key_path.length; j++) {
+          if (goog.isDef(obj[key_path[j]])) {
             if (index.isMultiEntry()) {
-              values.push(ydn.db.schema.Index.js2sql(obj[v[j]], [type[j]]));
+              values.push(ydn.db.schema.Index.js2sql(obj[key_path[j]], [type[j]]));
             } else {
-              values.push(ydn.db.schema.Index.js2sql(obj[v[j]], type[j]));
+              values.push(ydn.db.schema.Index.js2sql(obj[key_path[j]], type[j]));
             }
-            columns.push(goog.string.quote(v[j]));
+            columns.push(goog.string.quote(key_path[j]));
           }
         }
       } else {
-        if (goog.isDef(obj[v])) {
+        if (goog.isDef(obj[key_path])) {
           if (index.isMultiEntry()) {
-            values.push(ydn.db.schema.Index.js2sql(obj[v], [type]));
+            values.push(ydn.db.schema.Index.js2sql(obj[key_path], [type]));
           } else {
-            values.push(ydn.db.schema.Index.js2sql(obj[v], type));
+            values.push(ydn.db.schema.Index.js2sql(obj[key_path], type));
           }
-          columns.push(goog.string.quote(v));
+          columns.push(goog.string.quote(key_path));
         }
       }
     }

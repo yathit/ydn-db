@@ -1041,13 +1041,13 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
   var params = [];
 
   var store = this.schema.getStore(table);
-  var index = store.getIndex(index_name);
   if (!goog.isNull(key_range)) {
-    if (goog.isDef(index)) {
+    if (goog.isDef(index_name)) {
+      var index = store.getIndex(index_name);
       var keyPath = index.keyPath;
       var type = index.type;
       if (goog.isArray(type)) {
-        sql += ' WHERE '
+        sql += ' WHERE ';
         if (goog.isDef(key_range.lower)) {
           if (goog.isArray(type)) {
             var op = '=';
@@ -1083,7 +1083,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
             }
           } else {
             var op = key_range.upperOpen ? ' < ' : ' <= ';
-            sql += and + column + op + '?';
+            sql += ' AND ' + column + op + '?';
             params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
           }
         }
