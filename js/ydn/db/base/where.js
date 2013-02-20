@@ -159,7 +159,7 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
           }
         } else {
           var op = key_range.upperOpen ? ' < ' : ' <= ';
-          sql += and + column + op + '?';
+          sql += ' ' + column + op + '?';
           params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
         }
       }
