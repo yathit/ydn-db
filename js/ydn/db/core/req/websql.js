@@ -1043,6 +1043,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
   var store = this.schema.getStore(table);
   if (!goog.isNull(key_range)) {
     if (goog.isDef(index_name)) {
+      var column = index_name;
       var index = store.getIndex(index_name);
       var keyPath = index.keyPath;
       var type = index.type;
@@ -1093,7 +1094,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
         params = where_clause.params;
       }
     } else {
-      var column = index_name || store.getColumnName();
+      var column = store.getColumnName();
       var where_clause = ydn.db.Where.toWhereClause(column, store.getType(), key_range);
       sql += ' WHERE ' + where_clause.sql;
       params = where_clause.params;

@@ -120,8 +120,7 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
         sql = column + ' LIKE ?';
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
       }
-    } else if (key_range.lower == key_range.upper ||
-        goog.array.equals(key_range.lower, key_range.upper)) {
+    } else if (ydn.db.cmp(key_range.lower, key_range.upper) == 0) {
       if (goog.isArray(key_range.lower)) {
         for(var i = 0; i < key_range.lower.length; i++) {
           if (i > 0) {
