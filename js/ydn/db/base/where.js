@@ -88,7 +88,7 @@ ydn.db.Where.prototype.getField = function() {
 
 
 /**
- * @param {string} field field name.
+ * @param {!Array.<string>|string} field field name.
  * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
  * @param {ydn.db.KeyRange|IDBKeyRange} key_range key range.
  * @return {{sql: string, params: !Array.<string>}}
