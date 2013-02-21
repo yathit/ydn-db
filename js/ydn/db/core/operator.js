@@ -147,7 +147,6 @@ ydn.db.core.DbOperator.prototype.count = function(store_name, index_or_keyrange,
 };
 
 
-
 /**
  * @inheritDoc
  */

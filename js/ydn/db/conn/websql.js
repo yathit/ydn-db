@@ -394,6 +394,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   // undefined type are recorded in encoded key and use BLOB data type
   // @see ydn.db.utils.encodeKey
+  var column_names = [];
   var type = table_schema.type || 'BLOB';
   if (goog.isArray(type)) {
     // key will be converted into string
@@ -407,6 +408,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     if (table_schema.autoIncrement) {
       sql += ' AUTOINCREMENT ';
     }
+
+    column_names.push(table_schema.keyPath);
 
   } else if (table_schema.autoIncrement) {
     sql += ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
@@ -459,12 +462,17 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     if (goog.isArray(index.getType())) {
       var types = index.getType();
       var keyPaths = index.getKeyPath();
-      for(var i = 0; i<keyPaths.length; i++) {
-        sql += sep + goog.string.quote(keyPaths[i]) + ' ' + types[i] + unique;
+      for(var j = 0; j<keyPaths.length; j++) {
+        if (column_names.indexOf(keyPaths[j]) >= 0) {
+          continue;
+        }
+        // we cant say about uniqueness here.
+        sql += sep + goog.string.quote(keyPaths[j]) + ' ' + types[j];
       }
     } else {
       sql += sep + goog.string.quote(index.getKeyPath()) + ' ' + index.getType() +
         unique;
+      column_names.push(index.getKeyPath());
     }
 
   }

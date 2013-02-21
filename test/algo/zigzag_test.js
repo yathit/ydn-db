@@ -12,18 +12,33 @@ debug_console.setCapturing(true);
 goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
 //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
 
-var db_name = 'test_zigzag_test_1';
+var db_name = 'test_zigzag_test_4';
 
 var schema = {
   stores: [
     {
       name: 'animals',
       keyPath: 'id',
+      type: 'TEXT',
       indexes: [
         {
-          keyPath: ['color', 'name']
+          keyPath: 'name',
+          type: 'TEXT'
+        },
+        {
+          keyPath: 'color',
+          type: 'TEXT'
+        },
+        {
+          keyPath: 'legs',
+          type: 'TEXT'
+        },
+        {
+          keyPath: ['color', 'name'],
+          type: ['TEXT', 'TEXT']
         }, {
-          keyPath: ['legs', 'name']
+          keyPath: ['legs', 'name'],
+          type: ['TEXT', 'TEXT']
         }]
     }]
 };
