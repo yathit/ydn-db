@@ -466,13 +466,15 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
         if (column_names.indexOf(keyPaths[j]) >= 0) {
           continue;
         }
-        // we cant say about uniqueness here.
         sql += sep + goog.string.quote(keyPaths[j]) + ' ' + types[j];
+        column_names.push(keyPaths[j]);
       }
     } else {
-      sql += sep + goog.string.quote(index.getKeyPath()) + ' ' + index.getType() +
-        unique;
-      column_names.push(index.getKeyPath());
+      if (column_names.indexOf(index.getKeyPath()) == -1) {
+        sql += sep + goog.string.quote(index.getKeyPath()) + ' ' + index.getType() +
+          unique;
+        column_names.push(index.getKeyPath());
+      }
     }
 
   }
