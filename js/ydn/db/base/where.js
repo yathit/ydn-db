@@ -120,9 +120,20 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
         sql = column + ' LIKE ?';
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
       }
-    } else if (key_range.lower == key_range.upper) {
-      sql = column + ' = ?';
-      params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
+    } else if (key_range.lower == key_range.upper ||
+        goog.array.equals(key_range.lower, key_range.upper)) {
+      if (goog.isArray(key_range.lower)) {
+        for(var i = 0; i < key_range.lower.length; i++) {
+          if (i > 0) {
+            sql += ' AND ';
+          }
+          sql += field[i] + ' = ?';
+          params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
+        }
+      } else {
+        sql = column + ' = ?';
+        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
+      }
     } else {
       if (goog.isDef(key_range.lower)) {
         if (goog.isArray(type)) {
