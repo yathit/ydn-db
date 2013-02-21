@@ -255,7 +255,16 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
   if (q.isReversed()) {
     dir = 'DESC';
   }
+
   var order = 'ORDER BY ' + column;
+  if (goog.isArray(key_column)) {
+    order = 'ORDER BY ';
+    var sep = '';
+    for (var i = 0; i < key_column.length; i++) {
+      order += sep + '"'+key_column[i]+'"';
+      sep = ', ';
+    }
+  }
 
   var limit_offset = '';
 
@@ -334,9 +343,6 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
 };
 
 
-
-
-
 /**
  * @inheritDoc
  */
@@ -356,3 +362,4 @@ ydn.db.index.req.WebSql.prototype.getCursor = function (store_name,
  * @inheritDoc
  */
 ydn.db.index.req.WebSql.prototype.getStreamer = goog.abstractMethod;
+
