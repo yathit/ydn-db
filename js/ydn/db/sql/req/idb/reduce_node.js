@@ -44,7 +44,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
   if (wheres.length == 0) {
     key_range = null;
   } else if (wheres.length == 1) {
-    key_range = ydn.db.KeyRange.parseIDBKeyRange(wheres[0]);
+    key_range = ydn.db.KeyRange.parseIDBKeyRange(wheres[0].getKeyRange());
   } else {
     throw new ydn.error.NotSupportedException('too many conditions.');
   }

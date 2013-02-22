@@ -19,8 +19,8 @@ goog.require('ydn.db.index.req.AbstractCursor');
  * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
-ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name, keyRange,
-                                   direction, key_only) {
+ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name,
+    keyRange, direction, key_only) {
   goog.base(this, store_name, index_name, keyRange, direction, key_only);
 
   goog.asserts.assert(obj_store);

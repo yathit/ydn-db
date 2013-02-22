@@ -12,7 +12,7 @@ goog.require('ydn.debug.error.ArgumentException');
 /**
  * For those browser that not implemented IDBKeyRange.
  * @param {string} field index field name to query from.
- * @param {string|Object} op where operator.
+ * @param {string|KeyRangeJson} op where operator.
  * @param {*=} value rvalue to compare.
  * @param {string=} op2 second operator.
  * @param {*=} value2 second rvalue to compare.
@@ -22,13 +22,14 @@ ydn.db.Where = function(field, op, value, op2, value2) {
   /**
    * @final
    */
-  this.key_range_ = new ydn.db.KeyRange(op, value, op2, value2);
+  this.key_range_ = goog.isString(op) ?
+    ydn.db.KeyRange.where(op, value, op2, value2) :
+    ydn.db.KeyRange.parseKeyRange(op);
   /**
    * @final
    */
   this.field = field;
 };
-goog.inherits(ydn.db.Where, ydn.db.KeyRange);
 
 
 /**
@@ -40,7 +41,7 @@ ydn.db.Where.prototype.field = '';
 
 /**
  *
- * @type {ydn.db.KeyRange}
+ * @type {ydn.db.KeyRange|ydn.db.IDBKeyRange}
  * @private
  */
 ydn.db.Where.prototype.key_range_;
@@ -57,7 +58,7 @@ ydn.db.Where.prototype.getField = function() {
 
 /**
  *
- * @return {ydn.db.KeyRange}
+ * @return {ydn.db.KeyRange|ydn.db.IDBKeyRange}
  */
 ydn.db.Where.prototype.getKeyRange = function() {
   return this.key_range_;
@@ -201,50 +202,60 @@ ydn.db.Where.prototype.and = function(where) {
     return null;
   }
   var lower, upper, lowerOpen, upperOpen;
-  if (goog.isDefAndNotNull(this.lower) && goog.isDefAndNotNull(where.lower)) {
-    if (this.lower > where.lower) {
-      lower = this.lower;
-      lowerOpen = this.lowerOpen;
-    } else if (this.lower == where.lower) {
-      lower = this.lower;
-      lowerOpen = this.lowerOpen || where.lowerOpen;
+
+  if (goog.isDefAndNotNull(this.key_range_) &&
+        goog.isDefAndNotNull(this.key_range_.lower) &&
+    goog.isDefAndNotNull(where.key_range_) &&
+    goog.isDefAndNotNull(where.key_range_.lower)) {
+    if (this.key_range_.lower > where.key_range_.lower) {
+      lower = this.key_range_.lower;
+      lowerOpen = this.key_range_.lowerOpen;
+    } else if (this.key_range_.lower == where.key_range_.lower) {
+      lower = this.key_range_.lower;
+      lowerOpen = this.key_range_.lowerOpen || where.key_range_.lowerOpen;
     } else {
-      lower = where.lower;
-      lowerOpen = where.lowerOpen;
+      lower = where.key_range_.lower;
+      lowerOpen = where.key_range_.lowerOpen;
     }
-  } else if (goog.isDefAndNotNull(this.lower)) {
-    lower = this.lower;
-    lowerOpen = this.lowerOpen;
-  }  else if (goog.isDefAndNotNull(where.lower)) {
-    lower = where.lower;
-    lowerOpen = where.lowerOpen;
+  } else if (goog.isDefAndNotNull(this.key_range_) &&
+      goog.isDefAndNotNull(this.lower)) {
+    lower = this.key_range_.lower;
+    lowerOpen = this.key_range_.lowerOpen;
+  } else if (goog.isDefAndNotNull(where.key_range_) &&
+      goog.isDefAndNotNull(where.key_range_.lower)) {
+    lower = where.key_range_.lower;
+    lowerOpen = where.key_range_.lowerOpen;
   }
-  if (goog.isDefAndNotNull(this.upper) && goog.isDefAndNotNull(where.upper)) {
-    if (this.lower > where.upper) {
-      upper = this.upper;
-      upperOpen = this.upperOpen;
-    } else if (this.lower == where.lower) {
-      upper = this.upper;
-      upperOpen = this.upperOpen || where.upperOpen;
+  if (goog.isDefAndNotNull(this.key_range_) &&
+      goog.isDefAndNotNull(this.key_range_.lower) &&
+    goog.isDefAndNotNull(where.key_range_) &&
+    goog.isDefAndNotNull(where.key_range_.upper)) {
+    if (this.key_range_.lower > where.key_range_.upper) {
+      upper = this.key_range_.upper;
+      upperOpen = this.key_range_.upperOpen;
+    } else if (this.key_range_.lower == where.key_range_.lower) {
+      upper = this.key_range_.upper;
+      upperOpen = this.key_range_.upperOpen || where.key_range_.upperOpen;
     } else {
-      upper = where.upper;
-      upperOpen = where.upperOpen;
+      upper = where.key_range_.upper;
+      upperOpen = where.key_range_.upperOpen;
     }
-  } else if (goog.isDefAndNotNull(this.upper)) {
-    upper = this.upper;
-    upperOpen = this.upperOpen;
-  }  else if (goog.isDefAndNotNull(where.upper)) {
-    upper = where.upper;
-    upperOpen = where.upperOpen;
+  } else if (goog.isDefAndNotNull(this.key_range_) &&
+      goog.isDefAndNotNull(this.upper)) {
+    upper = this.key_range_.upper;
+    upperOpen = this.key_range_.upperOpen;
+  }  else if (goog.isDefAndNotNull(where.key_range_) && goog.isDefAndNotNull(where.upper)) {
+    upper = where.key_range_.upper;
+    upperOpen = where.key_range_.upperOpen;
   }
 
   return new ydn.db.Where(this.field,
-      {
+      /** @type {KeyRangeJson} */ ({
         'lower': lower,
         'upper': upper,
         'lowerOpen': lowerOpen,
         'upperOpen': upperOpen
-      }
+      })
   );
 };
 

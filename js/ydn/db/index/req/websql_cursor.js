@@ -292,7 +292,18 @@ ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
     if (this.current_cursor_index_ < this.cursor_.rows.length) {
       var row = this.cursor_.rows.item(this.current_cursor_index_);
       var type =  this.store_schema_.getIndex(this.index_name).getType();
-      return ydn.db.schema.Index.sql2js(row[this.index_name], type);
+      if (goog.isArray(type)) {
+        // FIXME: here we need to get back from index name to composite key path
+        // we ASSUME that index name is comma separated value of key path.
+        var key_path = this.index_name.split(', ');
+        var key = [];
+        for (var i = 0; i < key_path.length; i++) {
+          key[i] = ydn.db.schema.Index.sql2js(row[key_path[i]], type[i]);
+        }
+        return key;
+      } else {
+        return ydn.db.schema.Index.sql2js(row[this.index_name], type);
+      }
     } else {
       return undefined;
     }
