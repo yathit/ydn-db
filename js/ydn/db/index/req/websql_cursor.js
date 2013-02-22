@@ -14,6 +14,7 @@ goog.require('ydn.db.index.req.ICursor');
  * @param {!ydn.db.schema.Store} store_schema schema.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
+ * @param {!Array.<string>|string|undefined} index_key_path index
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
@@ -22,12 +23,16 @@ goog.require('ydn.db.index.req.ICursor');
  * @constructor
  */
 ydn.db.index.req.WebsqlCursor = function(tx, store_schema, store_name,
-    index_name, keyRange, direction, key_only) {
+    index_name, index_key_path, keyRange, direction, key_only) {
 
   goog.base(this, store_name, index_name, keyRange, direction, key_only);
 
   goog.asserts.assert(tx);
   this.tx = tx;
+  /**
+   * @final
+   */
+  this.index_key_path = index_key_path;
 
   goog.asserts.assert(store_schema);
   this.store_schema_ = store_schema;
@@ -59,6 +64,12 @@ ydn.db.index.req.WebsqlCursor.prototype.logger =
  * @type {SQLTransaction}
  */
 ydn.db.index.req.WebsqlCursor.prototype.tx;
+
+/**
+ * @private
+ * @type {!Array.<string>|string|undefined}
+ */
+ydn.db.index.req.WebsqlCursor.prototype.index_key_path;
 
 
 /**
@@ -293,9 +304,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
       var row = this.cursor_.rows.item(this.current_cursor_index_);
       var type =  this.store_schema_.getIndex(this.index_name).getType();
       if (goog.isArray(type)) {
-        // FIXME: here we need to get back from index name to composite key path
-        // we ASSUME that index name is comma separated value of key path.
-        var key_path = this.index_name.split(', ');
+        var key_path = this.index_key_path; // this.index_name.split(', ');
         var key = [];
         for (var i = 0; i < key_path.length; i++) {
           key[i] = ydn.db.schema.Index.sql2js(row[key_path[i]], type[i]);
