@@ -17,55 +17,15 @@ goog.require('ydn.debug.error.ArgumentException');
  * @param {string=} op2 second operator.
  * @param {*=} value2 second rvalue to compare.
  * @constructor
- * @extends {ydn.db.KeyRange}
  */
 ydn.db.Where = function(field, op, value, op2, value2) {
-
-  var upper, lower, upperOpen, lowerOpen;
-
-  if (goog.isObject(op)) {
-    lower = op['lower'];
-    upper = op['upper'];
-    lowerOpen = op['lowerOpen'];
-    upperOpen = op['upperOpen'];
-  } else {
-    if (op == '^') {
-      goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'value');
-      goog.asserts.assert(!goog.isDef(op2), 'op2');
-      goog.asserts.assert(!goog.isDef(value2), 'value2');
-      if (goog.isArray(value)) {
-        upper = ydn.object.clone(/** @type {Object} */ (value));
-        // Note on ordering: array > string > data > number
-        upper.push('\uffff');
-      } else if (goog.isString(value)) {
-        upper = value + '\uffff';
-      } else {
-        throw new ydn.debug.error.ArgumentException();
-      }
-    } else if (op == '<' || op == '<=') {
-      upper = value;
-      upperOpen = op == '<';
-    } else if (op == '>' || op == '>=') {
-      lower = value;
-      lowerOpen = op == '>';
-    } else if (op == '=' || op == '==') {
-      lower = value;
-      upper = value;
-    }  else {
-      throw new ydn.debug.error.ArgumentException('invalid op: ' + op);
-    }
-    if (op2 == '<' || op2 == '<=') {
-      upper = value2;
-      upperOpen = op2 == '<';
-    } else if (op2 == '>' || op2 == '>=') {
-      lower = value2;
-      lowerOpen = op2 == '>';
-    } else if (goog.isDef(op2)) {
-      throw new ydn.debug.error.ArgumentException('op2');
-    }
-  }
-
-  goog.base(this, lower, upper, lowerOpen, upperOpen);
+  /**
+   * @final
+   */
+  this.key_range_ = new ydn.db.KeyRange(op, value, op2, value2);
+  /**
+   * @final
+   */
   this.field = field;
 };
 goog.inherits(ydn.db.Where, ydn.db.KeyRange);
@@ -74,8 +34,16 @@ goog.inherits(ydn.db.Where, ydn.db.KeyRange);
 /**
  *
  * @type {string}
+ * @private
  */
 ydn.db.Where.prototype.field = '';
+
+/**
+ *
+ * @type {ydn.db.KeyRange}
+ * @private
+ */
+ydn.db.Where.prototype.key_range_;
 
 
 /**
@@ -88,32 +56,43 @@ ydn.db.Where.prototype.getField = function() {
 
 
 /**
- * @param {!Array.<string>|string} field field name.
+ *
+ * @return {ydn.db.KeyRange}
+ */
+ydn.db.Where.prototype.getKeyRange = function() {
+  return this.key_range_;
+};
+
+
+/**
+ * @param {!Array.<string>|string} key_path field name.
  * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
  * @param {ydn.db.KeyRange|IDBKeyRange} key_range key range.
  * @return {{sql: string, params: !Array.<string>}}
  */
-ydn.db.Where.toWhereClause = function (field, type, key_range) {
+ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
+
+  // NOTE: this.field is different from key_path in general.
 
   var sql = '';
   var params = [];
   if (key_range) {
     if (ydn.db.Where.resolvedStartsWith(key_range)) {
-      if (goog.isString(field)) {
-        goog.asserts.assert(!goog.string.startsWith(field, '"'));
-        var column = goog.string.quote(field);
+      if (goog.isString(key_path)) {
+        goog.asserts.assert(!goog.string.startsWith(key_path, '"'));
+        var column = goog.string.quote(key_path);
         // should be 'TEXT'
         sql = column + ' LIKE ?';
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
       } else {
-        goog.asserts.assertArray(field);
+        goog.asserts.assertArray(key_path);
         sql = column + ' LIKE ?';
         if (goog.isArray(key_range.lower)) {
           for (var i = 0; i < key_range.lower.length; i++) {
             if (i > 0) {
               sql += ' AND ';
             }
-            sql += column + ' LIKE ? ';
+            sql += key_path + ' LIKE ? ';
             params.push(ydn.db.schema.Index.ARRAY_SEP + key_range.lower[i] +
               ydn.db.schema.Index.ARRAY_SEP);
           }
@@ -128,11 +107,11 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
           if (i > 0) {
             sql += ' AND ';
           }
-          sql += field[i] + ' = ?';
+          sql += key_path[i] + ' = ?';
           params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
         }
       } else {
-        sql = column + ' = ?';
+        sql = key_path + ' = ?';
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
       }
     } else {
@@ -146,12 +125,12 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
             if (i == key_range.lower.length-1) {
               op = key_range.lowerOpen ? ' > ' : ' >= ';
             }
-            sql += ' ' + field[i] + op + '?';
+            sql += ' ' + key_path[i] + op + '?';
             params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
           }
         } else {
           var op = key_range.lowerOpen ? ' > ' : ' >= ';
-          sql += ' ' + column + op + '?';
+          sql += ' ' + key_path + op + '?';
           params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
         }
       }
@@ -166,12 +145,12 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
             if (i == key_range.upper.length-1) {
               op = key_range.upperOpen ? ' < ' : ' <= ';
             }
-            sql += ' ' + field[i] + op + '?';
+            sql += ' ' + key_path[i] + op + '?';
             params.push(ydn.db.schema.Index.js2sql(key_range.upper[i], type[i]));
           }
         } else {
           var op = key_range.upperOpen ? ' < ' : ' <= ';
-          sql += ' ' + column + op + '?';
+          sql += ' ' + key_path + op + '?';
           params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
         }
       }
@@ -186,7 +165,7 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
  * @return {{sql: string, params: !Array.<string>}}
  */
 ydn.db.Where.prototype.toWhereClause = function (type) {
-  return ydn.db.Where.toWhereClause(this.field, type, this);
+  return ydn.db.Where.toWhereClause(this.field, type, this.key_range_);
 };
 
 

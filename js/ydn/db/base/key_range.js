@@ -19,6 +19,10 @@ goog.provide('ydn.db.KeyRange');
  * @constructor
  */
 ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
+
+  // todo: make all fields final.
+  // todo: use new dict type annotation.
+
   this['lower'] = lower;
   this['upper'] = upper;
   this['lowerOpen'] = !!lowerOpen;
@@ -301,4 +305,5 @@ ydn.db.KeyRange.where = function(op, value, op2, value2) {
  */
 ydn.db.IDBKeyRange = goog.global.IDBKeyRange ||
   goog.global.webkitIDBKeyRange || ydn.db.KeyRange;
+// FIXME: the problem with our key range is mutable, whereas IDBKeyRange is not.
 

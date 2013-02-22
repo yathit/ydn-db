@@ -30,6 +30,10 @@ goog.require('ydn.db.utils');
  * @param {string=} type delete only specific types.
  */
 ydn.db.deleteDatabase = function(db_name, type) {
+
+  // todo: deleteDatabase must return deferred object as per with w3c
+  // http://www.w3.org/TR/IndexedDB/#widl-IDBFactory-deleteDatabase-IDBOpenDBRequest-DOMString-name
+
   // some IndexedDB API do not support deleting database.
   if (ydn.db.con.IndexedDb.isSupported() && (!type || type == ydn.db.con.IndexedDb.TYPE) &&
     ydn.db.con.IndexedDb.indexedDb &&
@@ -49,33 +53,18 @@ ydn.db.deleteDatabase = function(db_name, type) {
 
 
 /**
- *
- * @param first
- * @param second
- * @return {number}
- * @private
- * @deprecated
- */
-ydn.db.cmp_ = function (first, second) {
-  first = ydn.db.utils.encodeKey(first);
-  second = ydn.db.utils.encodeKey(second);
-  return first > second ? 1 : (first == second ? 0 : -1);
-};
-
-
-/**
- * IDBFactory.cmp with fail back key encoding fail back.
- * @type {function(*, *): number} returns 1 if the first key is greater than
- * the second, -1 if the first is less than the second, and 0 if the first is
- * equal to the second.
+ * IDBFactory.cmp with fallback for websql.
+ * @type {function(*, *): number} returns 1 if the first key is
+ * greater than the second, -1 if the first is less than the second, and 0 if
+ * the first is equal to the second.
  */
 ydn.db.cmp = ydn.db.con.IndexedDb.indexedDb ?
     goog.bind(ydn.db.con.IndexedDb.indexedDb.cmp,
       ydn.db.con.IndexedDb.indexedDb) :
   function (first, second) {
-    first = ydn.db.utils.encodeKey(first);
-    second = ydn.db.utils.encodeKey(second);
-    return first > second ? 1 : (first == second ? 0 : -1);
+    var key1 = ydn.db.utils.encodeKey(first);
+    var key2 = ydn.db.utils.encodeKey(second);
+    return key1 > key2 ? 1 : (key1 == key2 ? 0 : -1);
   };
 
 
