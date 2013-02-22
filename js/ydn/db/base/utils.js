@@ -12,6 +12,40 @@
 
 goog.provide('ydn.db.utils');
 
+
+/**
+ * Grandfathered function to goog.object.getValueByKeys with supporting for dotted key path.
+ * Example usage: getValueByKeys(jsonObj, 'foo.entries')
+ *
+ * @param {!Object} obj An object to get the value from.  Can be array-like.
+ * @param {...(string|number|!Array.<number|string>)} var_args A number of keys
+ *     (as strings, or nubmers, for array-like objects).  Can also be
+ *     specified as a single array of keys.
+ * @return {*} The resulting value.  If, at any point, the value for a key
+ *     is undefined, returns undefined.
+ * @see goog.object.getValueByKeys
+ */
+ydn.db.utils.getValueByKeys = function(obj, var_args) {
+  var isArrayLike, keys;
+  if (arguments.length == 2 && goog.isString(arguments[1])) {
+    isArrayLike = true;
+    keys = arguments[1].split('.');
+  } else {
+    isArrayLike = goog.isArrayLike(var_args);
+    keys = isArrayLike ? var_args : arguments;
+  }
+
+  // Start with the 2nd parameter for the variable parameters syntax.
+  for (var i = isArrayLike ? 0 : 1; i < keys.length; i++) {
+    obj = obj[keys[i]];
+    if (!goog.isDef(obj)) {
+      break;
+    }
+  }
+
+  return obj;
+};
+
 /**
  * @const
  * @type {Object}

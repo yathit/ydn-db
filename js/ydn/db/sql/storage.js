@@ -79,12 +79,13 @@ ydn.db.sql.Storage.prototype.getExecutor = function () {
 
 };
 
+
 /**
  *
  * @inheritDoc
  */
-ydn.db.sql.Storage.prototype.newOperator = function(tx_thread) {
-  return new ydn.db.sql.DbOperator(this, this.schema, tx_thread);
+ydn.db.sql.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.sql.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 

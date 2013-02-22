@@ -125,14 +125,19 @@ ydn.db.sql.req.IterableQuery.prototype.processWhereAsFilter = function(where) {
   }
 
   this.filter_fn = function(obj) {
-    var value = obj[where.field];
+    var value = obj[where.getField()];
     var ok1 = true;
-    if (goog.isDef(where.lower)) {
-      ok1 = where.lowerOpen ? value < where.lower : value <= where.lower;
-    }
-    var ok2 = true;
-    if (goog.isDef(where.upper)) {
-      ok2 = where.upperOpen ? value > where.upper : value >= where.upper;
+    var key_range = where.getKeyRange();
+    if (key_range) {
+      if (goog.isDef(key_range.lower)) {
+        ok1 = key_range.lowerOpen ? value < key_range.lower :
+          value <= key_range.lower;
+      }
+      var ok2 = true;
+      if (goog.isDef(key_range.upper)) {
+        ok2 = key_range.upperOpen ? value > key_range.upper :
+          value >= key_range.upper;
+      }
     }
 
     return prev_filter(obj) && ok1 && ok2;

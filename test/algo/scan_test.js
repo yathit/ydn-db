@@ -16,16 +16,17 @@ debug_console.setCapturing(true);
 goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
 goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
 goog.debug.Logger.getLogger('ydn.db.index').setLevel(goog.debug.Logger.Level.FINEST);
+goog.debug.Logger.getLogger('ydn.db.con.WebSql').setLevel(goog.debug.Logger.Level.FINEST);
 
 
-var db_name = 'test_algo_scan_1';
 
 var setUp = function() {
 
   //ydn.db.core.req.IndexedDb.DEBUG = true;
   //ydn.db.index.req.IDBCursor.DEBUG = true;
   ydn.db.index.DbOperator.DEBUG = true;
-
+  ydn.db.con.WebSql.DEBUG = true;
+  ydn.db.index.req.WebsqlCursor.DEBUG = true;
 
   reachedFinalContinuation = false;
 };
@@ -41,6 +42,7 @@ var tearDown = function() {
  */
 var test_scan_reference_value = function() {
 
+  var db_name = 'test_algo_scan_3';
   var store_name = 'test_scan_reference_value';
   var objs = [
     {id: 0, first: 'A', last: 'M', age: 20},
@@ -135,7 +137,8 @@ var test_scan_reference_value = function() {
  */
 var test_scan_advance = function() {
 
-  var store_name = 'test_scan_advance';
+  var db_name = 'test_scan_advance_1';
+  var store_name = 'st';
   var objs = [
     {id: 0, first: 'A', last: 'M', age: 20},
     {id: 1, first: 'B', last: 'M', age: 24},
@@ -229,7 +232,8 @@ var test_scan_advance = function() {
  */
 var test_scan_effective_key = function() {
 
-  var store_name = 'test_scan_effective_key';
+  var db_name = 'test_scan_effective_key_3';
+  var store_name = 'st';
   var objs = [
     {id: 0, first: 'A', last: 'M', age: 20},
     {id: 1, first: 'B', last: 'M', age: 24},
@@ -243,19 +247,30 @@ var test_scan_effective_key = function() {
       name: store_name,
       keyPath: 'id',
       type: 'INTEGER',
-      indexes: [{
-        name: 'fa',
+      indexes: [
+        {
+          keyPath: 'first',
+          type: 'TEXT'
+        },
+        {
+          keyPath: 'last',
+          type: 'TEXT'
+        },
+        {
+          keyPath: 'age',
+          type: 'INTEGER'
+        },
+        {
         keyPath: ['first', 'age'],
-        type: ['TEXT', 'TEXT']
+        type: ['TEXT', 'INTEGER']
       }, {
-        name: 'la',
         keyPath: ['last', 'age'],
-        type: ['TEXT', 'TEXT']
+        type: ['TEXT', 'INTEGER']
       }]
     }]
   };
   var db = new ydn.db.Storage(db_name, schema, options);
-
+  db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + 'store: ' + store_name + ' ready.');
   });
@@ -280,13 +295,17 @@ var test_scan_effective_key = function() {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors(store_name, 'fa', ydn.db.KeyRange.starts(['B']));
-  var q2 = new ydn.db.Cursors(store_name, 'la', ydn.db.KeyRange.starts(['M']));
+  var q1 = new ydn.db.Cursors(store_name, 'first, age', ydn.db.KeyRange.starts(['B']));
+  var q2 = new ydn.db.Cursors(store_name, 'last, age', ydn.db.KeyRange.starts(['M']));
 
+  var max = 1000; var cnt = 0;
   var solver = function(keys, values) {
     console.log(JSON.stringify(keys));
     if (keys.some(function(x) {return !goog.isDefAndNotNull(x)})) {
       return []; // done;
+    }
+    if (cnt++ > max) {
+      return []; // break
     }
     var a = keys[0][1];
     var b = keys[1][1];

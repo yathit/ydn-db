@@ -4,13 +4,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finest', div);
+      ydn.debug.log('ydn.db', 'finer', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finest');
+      ydn.debug.log('ydn.db', 'finer');
     } else {
       console.log('no logging facility');
     }
@@ -69,9 +69,9 @@ var events_schema = {
 
     var db = new ydn.db.Storage(db_name_event, schema);
 
-    db.addEventListener('connected', function (e) {
+    db.addEventListener('done', function (e) {
       equal(e.name, 'StorageEvent', 'event name');
-      equal(e.type, 'connected', 'event type');
+      equal(e.type, 'done', 'event type');
       equal(e.getVersion(), 1, 'version number');
       ok(isNaN(e.getOldVersion()), 'old version number');
 
@@ -81,9 +81,9 @@ var events_schema = {
 
         db = new ydn.db.Storage(db_name_event, schema);
 
-        db.addEventListener('connected', function (e) {
+        db.addEventListener('done', function (e) {
           equal(e.name, 'StorageEvent', 'event name');
-          equal(e.type, 'connected', 'event type');
+          equal(e.type, 'done', 'event type');
           equal(e.getVersion(), 1, 'version number');
           equal(e.getOldVersion(), 1, 'old version number, existing');
 
@@ -101,9 +101,9 @@ var events_schema = {
 
             db = new ydn.db.Storage(db_name_event, new_schema);
 
-            db.addEventListener('connected', function (e) {
+            db.addEventListener('done', function (e) {
               equal(e.name, 'StorageEvent', 'event name');
-              equal(e.type, 'connected', 'event type');
+              equal(e.type, 'done', 'event type');
               equal(e.getVersion(), 2, 'updated version number');
               equal(e.getOldVersion(), 1, 'old version number, existing db, new schema');
               var type = db.getType();

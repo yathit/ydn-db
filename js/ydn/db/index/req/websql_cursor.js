@@ -14,6 +14,7 @@ goog.require('ydn.db.index.req.ICursor');
  * @param {!ydn.db.schema.Store} store_schema schema.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
+ * @param {!Array.<string>|string|undefined} index_key_path index
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
@@ -22,12 +23,16 @@ goog.require('ydn.db.index.req.ICursor');
  * @constructor
  */
 ydn.db.index.req.WebsqlCursor = function(tx, store_schema, store_name,
-    index_name, keyRange, direction, key_only) {
+    index_name, index_key_path, keyRange, direction, key_only) {
 
   goog.base(this, store_name, index_name, keyRange, direction, key_only);
 
   goog.asserts.assert(tx);
   this.tx = tx;
+  /**
+   * @final
+   */
+  this.index_key_path = index_key_path;
 
   goog.asserts.assert(store_schema);
   this.store_schema_ = store_schema;
@@ -59,6 +64,12 @@ ydn.db.index.req.WebsqlCursor.prototype.logger =
  * @type {SQLTransaction}
  */
 ydn.db.index.req.WebsqlCursor.prototype.tx;
+
+/**
+ * @private
+ * @type {!Array.<string>|string|undefined}
+ */
+ydn.db.index.req.WebsqlCursor.prototype.index_key_path;
 
 
 /**
@@ -176,29 +187,34 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var primary_column_name = this.store_schema_.getColumnName();
   var index = this.index_name ? this.store_schema_.getIndex(this.index_name) : null;
   var type = index ? index.getType() : this.store_schema_.getType();
-  var column_name = this.index_name ?
-      this.index_name : primary_column_name;
-  var q_column_name = goog.string.quote(column_name);
+  var key_path = index.getKeyPath();
+  var field;
+  var q_column_name = '';
   var q_primary_column_name = goog.string.quote(primary_column_name);
+
+  if (goog.isArray(type)) {
+    field = key_path;
+    var sep = '';
+    for(var i = 0; i < field.length; i++) {
+      q_column_name += sep + goog.string.quote(field[i]);
+      sep = ', ';
+    } 
+  } else {
+    field = this.index_name ?
+        this.index_name : primary_column_name;
+    q_column_name = goog.string.quote(field);
+  }
+
   sqls.push(this.key_only ?
     q_column_name + ', ' + q_primary_column_name : '*');
+
   sqls.push('FROM ' + goog.string.quote(this.store_name));
 
-  var where_clause = ydn.db.Where.toWhereClause(column_name, type, key_range);
+  var where_clause = ydn.db.Where.toWhereClause(field, type, key_range);
   if (where_clause.sql) {
     sqls.push('WHERE ' + where_clause.sql);
     params = params.concat(where_clause.params);
   }
-
-//  if (goog.isDefAndNotNull(ini_key)) {
-//    if (where_clause.sql) {
-//      sqls.push('AND ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
-//      params.push(ini_key);
-//    } else {
-//      sqls.push('WHERE ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
-//      params.push(ini_key);
-//    }
-//  }
 
   var order =  ' ORDER BY ';
   if (q_column_name != q_primary_column_name) {
@@ -211,6 +227,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   } else {
     order += q_primary_column_name;
   }
+
   order += this.reverse ? ' DESC' : ' ASC';
   sqls.push(order);
 
@@ -227,8 +244,10 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
    * @param {SQLResultSet} results results.
    */
   var onSuccess = function(transaction, results) {
+    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+      window.console.log([sql, results]);
+    }
     me.has_pending_request = false;
-
     me.cursor_ = results;
     me.current_cursor_index_ = 0;
     if (!!me.index_name && goog.isDefAndNotNull(ini_key)) {
@@ -284,7 +303,16 @@ ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
     if (this.current_cursor_index_ < this.cursor_.rows.length) {
       var row = this.cursor_.rows.item(this.current_cursor_index_);
       var type =  this.store_schema_.getIndex(this.index_name).getType();
-      return ydn.db.schema.Index.sql2js(row[this.index_name], type);
+      if (goog.isArray(type)) {
+        var key_path = this.index_key_path; // this.index_name.split(', ');
+        var key = [];
+        for (var i = 0; i < key_path.length; i++) {
+          key[i] = ydn.db.schema.Index.sql2js(row[key_path[i]], type[i]);
+        }
+        return key;
+      } else {
+        return ydn.db.schema.Index.sql2js(row[this.index_name], type);
+      }
     } else {
       return undefined;
     }
@@ -485,7 +513,8 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
       this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
       return;
     }
-    cmp = ydn.db.cmp(key, this.getPrimaryKey());
+    var eff_key = this.getPrimaryKey();
+    cmp = goog.isDefAndNotNull(eff_key) ? ydn.db.cmp(key, eff_key) : 1;
   }
   this.onSuccess(undefined, undefined, undefined);
 };
@@ -510,7 +539,8 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
       return;
     }
     this.current_cursor_index_++;
-    cmp = ydn.db.cmp(key, this.getEffectiveKey());
+    var eff_key = this.getEffectiveKey();
+    cmp = goog.isDefAndNotNull(eff_key) ? ydn.db.cmp(key, eff_key) : 1;
   }
   this.onSuccess(undefined, undefined, undefined);
 };

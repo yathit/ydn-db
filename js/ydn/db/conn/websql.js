@@ -394,6 +394,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   // undefined type are recorded in encoded key and use BLOB data type
   // @see ydn.db.utils.encodeKey
+  var column_names = [];
   var type = table_schema.type || 'BLOB';
   if (goog.isArray(type)) {
     // key will be converted into string
@@ -407,6 +408,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     if (table_schema.autoIncrement) {
       sql += ' AUTOINCREMENT ';
     }
+
+    column_names.push(table_schema.keyPath);
 
   } else if (table_schema.autoIncrement) {
     sql += ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
@@ -455,9 +458,24 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     if (index.keyPath == table_schema.getKeyPath()) {
       continue;
     }
-    var index_type = goog.isArray(index.getType()) ? 'TEXT' : index.getType();
-    sql += sep + goog.string.quote(index.getKeyPath()) + ' ' + index_type +
-      unique;
+
+    if (goog.isArray(index.getType())) {
+      var types = index.getType();
+      var keyPaths = index.getKeyPath();
+      for(var j = 0; j<keyPaths.length; j++) {
+        if (column_names.indexOf(keyPaths[j]) >= 0) {
+          continue;
+        }
+        sql += sep + goog.string.quote(keyPaths[j]) + ' ' + types[j];
+        column_names.push(keyPaths[j]);
+      }
+    } else {
+      if (column_names.indexOf(index.getKeyPath()) == -1) {
+        sql += sep + goog.string.quote(index.getKeyPath()) + ' ' + index.getType() +
+          unique;
+        column_names.push(index.getKeyPath());
+      }
+    }
 
   }
 
@@ -526,10 +544,9 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
         continue;
       }
       if (info.type == 'table') {
-
-        me.logger.finest('Parsing table schema from SQL: ' + info.sql);
-        var str = info.sql.substr(info.sql.indexOf('('),
-          info.sql.lastIndexOf(')'));
+        var sql = goog.object.get(info, 'sql');
+        me.logger.finest('Parsing table schema from SQL: ' + sql);
+        var str = sql.substr(sql.indexOf('('), sql.lastIndexOf(')'));
         var column_infos = ydn.string.split_comma_seperated(str);
 
         var key_name = undefined;

@@ -4,13 +4,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finest', div);
+      ydn.debug.log('ydn.db', 'finer', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finest');
+      ydn.debug.log('ydn.db', 'finer');
     } else {
       console.log('no logging facility');
     }
@@ -19,7 +19,7 @@ if (/log/.test(location.hash)) {
 if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
-
+var reporter = new ydn.testing.Reporter('ydn-db');
 
 var db_name = "qunit_test_8";
 var db_name_put = "qunit_test_8_rw";
@@ -121,7 +121,8 @@ var schema_1 = {
     }
   };
 
-  module("Count by Iterator", test_env);
+  module("Count", test_env);
+  reporter.createTestSuite('iterator', 'Count', ydn.db.version);
 
 
   asyncTest("1. primary key", function () {
@@ -208,7 +209,7 @@ var schema_1 = {
   ];
 
 
-  module("Get by Iterator", {
+  module("Get", {
     setup: function () {
       db_r.clear(store_inline_index);
       db_r.put(store_inline_index, objs);
@@ -222,6 +223,7 @@ var schema_1 = {
       }
     }
   });
+  reporter.createTestSuite('iterator', 'Get', ydn.db.version);
 
   asyncTest("effective key by an iterator", function () {
     expect(1);
@@ -324,7 +326,8 @@ var schema_1 = {
     }
   };
 
-  module("List by Iterator", test_env);
+  module("values", test_env);
+  reporter.createTestSuite('iterator', 'values', ydn.db.version);
 
   asyncTest("1. Ref value by primary key range", function () {
     df.always(function () {
@@ -581,7 +584,8 @@ var schema_1 = {
     }
   };
 
-  module("Keys by Iterator", test_env);
+  module("keys", test_env);
+  reporter.createTestSuite('iterator', 'keys', ydn.db.version);
 
 
   asyncTest("1. Effective key by by primary key range", function () {
@@ -745,3 +749,18 @@ var schema_1 = {
   });
 
 })();
+
+
+QUnit.testDone(function(result) {
+  reporter.addResult('iterator', result.module,
+    result.name, result.failed, result.passed, result.duration);
+});
+
+QUnit.moduleDone(function(result) {
+  reporter.endTestSuite('iterator', result.name,
+    {passed: result.passed, failed: result.failed});
+});
+
+QUnit.done(function(results) {
+  reporter.report();
+});

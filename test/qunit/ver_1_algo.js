@@ -4,13 +4,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finest', div);
+      ydn.debug.log('ydn.db', 'finer', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finest');
+      ydn.debug.log('ydn.db', 'finer');
     } else {
       console.log('no logging facility');
     }
@@ -20,6 +20,8 @@ if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
 
+
+var reporter = new ydn.testing.Reporter('ydn-db');
 
 var schema = {
   stores: [
@@ -83,7 +85,8 @@ var num_horn = animals.reduce(function (p, x) {
     }
   };
 
-  module("Algo", test_env);
+  module("join", test_env);
+  reporter.createTestSuite('algo', 'join', ydn.db.version);
 
   asyncTest("NestedLoop", function () {
     expect(4);
@@ -179,4 +182,17 @@ var num_horn = animals.reduce(function (p, x) {
 
 
 
+QUnit.testDone(function(result) {
+  reporter.addResult('algo', result.module,
+    result.name, result.failed, result.passed, result.duration);
+});
+
+QUnit.moduleDone(function(result) {
+  reporter.endTestSuite('algo', result.name,
+    {passed: result.passed, failed: result.failed});
+});
+
+QUnit.done(function(results) {
+  reporter.report();
+});
 

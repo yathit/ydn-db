@@ -15,8 +15,8 @@ goog.provide('ydn.db.index.req.AbstractCursor');
  * @param {boolean} key_only mode.
  * @constructor
  */
-ydn.db.index.req.AbstractCursor = function(store_name, index_name, keyRange,
-                                   direction, key_only) {
+ydn.db.index.req.AbstractCursor = function(store_name, index_name,
+      keyRange, direction, key_only) {
 
   /**
    * @final
@@ -57,6 +57,12 @@ ydn.db.index.req.AbstractCursor = function(store_name, index_name, keyRange,
  * @type {string|undefined}
  */
 ydn.db.index.req.AbstractCursor.prototype.index_name = '';
+
+/**
+ * @protected
+ * @type {!Array.<string>|string|undefined}
+ */
+ydn.db.index.req.AbstractCursor.prototype.index_key_path = '';
 
 
 /**

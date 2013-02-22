@@ -255,7 +255,16 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
   if (q.isReversed()) {
     dir = 'DESC';
   }
+
   var order = 'ORDER BY ' + column;
+  if (goog.isArray(key_column)) {
+    order = 'ORDER BY ';
+    var sep = '';
+    for (var i = 0; i < key_column.length; i++) {
+      order += sep + '"'+key_column[i]+'"';
+      sep = ', ';
+    }
+  }
 
   var limit_offset = '';
 
@@ -334,9 +343,6 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
 };
 
 
-
-
-
 /**
  * @inheritDoc
  */
@@ -345,8 +351,13 @@ ydn.db.index.req.WebSql.prototype.getCursor = function (store_name,
 
   var store = this.schema.getStore(store_name);
   goog.asserts.assertObject(store);
-  return new ydn.db.index.req.WebsqlCursor(this.getTx(), store, store_name, index_name,
-    keyRange, direction, key_only);
+  var index_key_path = index_name;
+  if (index_name) {
+    var index = store.getIndex(index_name);
+    index_key_path = index.getKeyPath();
+  }
+  return new ydn.db.index.req.WebsqlCursor(this.getTx(), store, store_name,
+    index_name, index_key_path, keyRange, direction, key_only);
 };
 
 
@@ -356,3 +367,4 @@ ydn.db.index.req.WebSql.prototype.getCursor = function (store_name,
  * @inheritDoc
  */
 ydn.db.index.req.WebSql.prototype.getStreamer = goog.abstractMethod;
+

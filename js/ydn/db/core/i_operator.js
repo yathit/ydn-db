@@ -40,11 +40,12 @@ ydn.db.core.IOperator.prototype.get = goog.abstractMethod;
 /**
  * Return object or objects of given key or keys.
  * @param {(*|string|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(ydn.db.KeyRange|!Array.<string|number|Date|!Array>)=} arg2 list of primary
+ * @param {(string|KeyRangeJson|ydn.db.KeyRange|!Array.<string|number|Date|!Array>)=} arg2 list of primary
  * keys or key range.
- * @param {number=} limit limit.
- * @param {number=} offset offset.
- * @param {string=} index index name.
+ * @param {(number|KeyRangeJson|ydn.db.KeyRange)=} arg3 limit.
+ * @param {number=} arg4 offset.
+ * @param {(boolean|number)=} arg5 index name.
+ * @param {boolean=} arg6 reverse.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.core.IOperator.prototype.values = goog.abstractMethod;
@@ -53,10 +54,11 @@ ydn.db.core.IOperator.prototype.values = goog.abstractMethod;
 /**
  * List keys.
  * @param {string|*} store_name or iterator
- * @param {ydn.db.KeyRange=} key_range key range.
- * @param {number=} limit limit
- * @param {number=} offset offset
- * @param {string=} index index name.
+ * @param {(string|ydn.db.KeyRange|KeyRangeJson)=} arg1 key range or index name.
+ * @param {(number|ydn.db.KeyRange|KeyRangeJson)=} arg2 limit or key range
+ * @param {number=} arg3 offset or limit
+ * @param {(boolean|number)=} arg4 reverse or offset.
+ * @param {boolean=} arg5 reverse.
  * @return {!goog.async.Deferred} result promise.
  */
 ydn.db.core.IOperator.prototype.keys = goog.abstractMethod;

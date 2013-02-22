@@ -56,7 +56,7 @@ declare module ydb.db
     done(): bool?;
     join(on_field_name: string, peer_store_name: string, peer_field_name?: string);
     key(): any;
-    indexKey(): any;
+    primaryKey(): any;
     reset();
     resume(key: any, index_key: any);
   }
@@ -124,12 +124,15 @@ declare module ydb.db
     getSchema (callback) : DatabaseSchemaJson;
 
     keys(iter: ydb.db.Iterator, limit?: number, offset?: number);
+    keys(store_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: boolean);
+    keys(store_name: string, index_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: boolean);
     keys(store_name: string, limit?: bool, offset?: number);
 
-    list(iter: ydb.db.Iterator, limit?: number, offset?: number);
-    list(store_name: string, limit?: bool, offset?: number);
-    list(store_name: string, ids?: Array);
-    list(keys?: Array);
+    values(iter: ydb.db.Iterator, limit?: number, offset?: number);
+    values(store_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool);
+    values(store_name: string, index_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool);
+    values(store_name: string, ids?: Array);
+    values(keys?: Array);
 
     map(iterator: ydb.db.Iterator, callback: (value: any): any) : goog.async.Deferred;
 

@@ -261,15 +261,6 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.WebSql.prototype.keysByStore =  function(df, store_name,
-     reverse, limit, offset) {
-  this.list_by_key_range_(df, true, store_name, undefined, null, reverse, limit, offset, false);
-};
-
-
 
 /**
  * @inheritDoc
@@ -591,14 +582,6 @@ ydn.db.core.req.WebSql.prototype.listByIndexKeyRange = function(df, store_name,
   this.list_by_key_range_(df, false, store_name, index, key_range, reverse, limit, offset, unqiue)
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.WebSql.prototype.listByStore = function(df, store_name,
-       reverse, limit, offset) {
-  this.list_by_key_range_(df, false, store_name, undefined, null, reverse, limit, offset, false);
-};
 
 
 /**
@@ -1058,13 +1041,64 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
   var params = [];
 
   var store = this.schema.getStore(table);
-
-  var column = index_name || store.getColumnName();
-
   if (!goog.isNull(key_range)) {
-    var where_clause = ydn.db.Where.toWhereClause(column, store.getType(), key_range);
-    sql += ' WHERE ' + where_clause.sql;
-    params = where_clause.params;
+    if (goog.isDef(index_name)) {
+      var column = index_name;
+      var index = store.getIndex(index_name);
+      var keyPath = index.keyPath;
+      var type = index.type;
+      if (goog.isArray(type)) {
+        sql += ' WHERE ';
+        if (goog.isDef(key_range.lower)) {
+          if (goog.isArray(type)) {
+            var op = '=';
+            for (var i = 0; i < key_range.lower.length; i++) {
+              if (i > 0) {
+                sql += ' AND ';
+              }
+              if (i == key_range.lower.length-1) {
+                op = key_range.lowerOpen ? ' > ' : ' >= ';
+              }
+              sql += ' ' + keyPath[i] + op + '?';
+              params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
+            }
+          } else {
+            var op = key_range.lowerOpen ? ' > ' : ' >= ';
+            sql += ' ' + column + op + '?';
+            params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
+          }
+        }
+        if (goog.isDef(key_range.upper)) {
+          sql += sql.length > 0 ? ' AND ' : ' ';
+          if (goog.isArray(type)) {
+            var op = '=';
+            for (var i = 0; i < key_range.upper.length; i++) {
+              if (i > 0) {
+                sql += ' AND ';
+              }
+              if (i == key_range.upper.length-1) {
+                op = key_range.upperOpen ? ' < ' : ' <= ';
+              }
+              sql += ' ' + keyPath[i] + op + '?';
+              params.push(ydn.db.schema.Index.js2sql(key_range.upper[i], type[i]));
+            }
+          } else {
+            var op = key_range.upperOpen ? ' < ' : ' <= ';
+            sql += ' AND ' + column + op + '?';
+            params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
+          }
+        }
+      } else {
+        var where_clause = ydn.db.Where.toWhereClause(keyPath, type, key_range);
+        sql += ' WHERE ' + where_clause.sql;
+        params = where_clause.params;
+      }
+    } else {
+      var column = store.getColumnName();
+      var where_clause = ydn.db.Where.toWhereClause(column, store.getType(), key_range);
+      sql += ' WHERE ' + where_clause.sql;
+      params = where_clause.params;
+    }
   }
   /**
    * @param {SQLTransaction} transaction transaction.

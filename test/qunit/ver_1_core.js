@@ -5,13 +5,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finest', div);
+      ydn.debug.log('ydn.db', 'finer', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finest');
+      ydn.debug.log('ydn.db', 'finer');
     } else {
       console.log('no logging facility');
     }
@@ -98,6 +98,7 @@ var schema_auto_increase = {
   ]
 };
 
+var reporter = new ydn.testing.Reporter('ydn-db');
 
 (function () {
 
@@ -115,6 +116,7 @@ var schema_auto_increase = {
   };
 
   module("Put", test_env);
+  reporter.createTestSuite('core', 'Put', ydn.db.version);
 
   asyncTest("single data", function () {
     expect(1);
@@ -260,6 +262,7 @@ var schema_auto_increase = {
   };
 
   module("Get", test_env);
+  reporter.createTestSuite('core', 'Get', ydn.db.version);
 
   asyncTest("inline-key number", function () {
 
@@ -403,6 +406,7 @@ var schema_auto_increase = {
   };
 
   module("Values", test_env);
+  reporter.createTestSuite('core', 'Values', ydn.db.version);
 
   asyncTest("Retrieve all objects from a store - inline key", function () {
 
@@ -446,15 +450,15 @@ var schema_auto_increase = {
     ready.always(function () {
       expect(3);
 
-      db.values(store_inline_index, null, 10, 0, 'value').always(function (x) {
+      db.values(store_inline_index, 'value', null, 10, 0).always(function (x) {
         deepEqual(x.length, data_list_index.length, 'number of record');
       });
 
-      db.values(store_inline_index, ydn.db.KeyRange.only('b'), 10, 0, 'value').always(function (x) {
+      db.values(store_inline_index, 'value', ydn.db.KeyRange.only('b'), 10, 0).always(function (x) {
         deepEqual(x, [data_list_index[1], data_list_index[3]], 'only b');
       });
 
-      db.values(store_inline_index, ydn.db.KeyRange.only('a'), 1, 1, 'value').always(function (x) {
+      db.values(store_inline_index, 'value', ydn.db.KeyRange.only('a'), 1, 1).always(function (x) {
         deepEqual(x, [data_list_index[2]], 'with limit and offset');
         start();
       });
@@ -606,6 +610,7 @@ var schema_auto_increase = {
   };
 
   module("Keys", test_env);
+  reporter.createTestSuite('core', 'Keys', ydn.db.version);
 
   asyncTest("from a store", function () {
 
@@ -633,12 +638,12 @@ var schema_auto_increase = {
     ready.always(function () {
       expect(2);
 
-      db.keys(store_inline_index, null, 10, 0, 'value').always(function (x) {
+      db.keys(store_inline_index, 'value', null, 10, 0).always(function (x) {
         // answer will be ['a', 'a', 'b']
         deepEqual(x, [1, 3, 2], 'number of record');
       });
 
-      db.keys(store_inline_index, ydn.db.KeyRange.only('a'), 10, 0, 'value').always(function (x) {
+      db.keys(store_inline_index, 'value', ydn.db.KeyRange.only('a'), 10, 0).always(function (x) {
         deepEqual(x, [1, 3], 'only a');
         start();
         var type = db.getType();
@@ -700,6 +705,7 @@ var schema_auto_increase = {
   };
 
   module("Count", test_env);
+  reporter.createTestSuite('core', 'Count', ydn.db.version);
 
   asyncTest("all records in a store", function () {
 
@@ -748,9 +754,21 @@ var schema_auto_increase = {
 
   });
 
-
-
 })();
+
+QUnit.testDone(function(result) {
+  reporter.addResult('core', result.module,
+    result.name, result.failed, result.passed, result.duration);
+});
+
+QUnit.moduleDone(function(result) {
+  reporter.endTestSuite('core', result.name,
+    {passed: result.passed, failed: result.failed});
+});
+
+QUnit.done(function(results) {
+  reporter.report();
+});
 
 
 

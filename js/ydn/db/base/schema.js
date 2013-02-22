@@ -455,11 +455,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   /**
    * @final
    */
-  this.sync = !!sync;
-
-//  if (this.sync && this.addSynchronizer) {
-//    this.addSynchronizer(sync);
-//  }
+  this.sync = sync || null;
 
 };
 
@@ -508,9 +504,27 @@ ydn.db.schema.Store.prototype.dispatch_events = false;
 ydn.db.schema.Store.prototype.fixed = false;
 
 /**
- * @type {boolean}
+ * @type {StoreSyncOptions}
  */
-ydn.db.schema.Store.prototype.sync;
+ydn.db.schema.Store.prototype.sync = null;
+
+
+/**
+ * @enum {string}
+ */
+ydn.db.schema.Store.FetchStrategy = {
+  LAST_UPDATED: 'last-updated',
+  DESCENDING_KEY: 'descending-key'
+};
+
+
+/**
+ * @const
+ * @type {Array.<ydn.db.schema.Store.FetchStrategy>}
+ */
+ydn.db.schema.Store.FetchStrategies = [
+  ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
+  ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
 
 
 /**
@@ -870,15 +884,33 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
         index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
       continue;
     }
-    var v = obj[index.name];
-    if (goog.isDef(v)) {
-      if (index.isMultiEntry()) {
-        values.push(ydn.db.schema.Index.js2sql(v, [index.type]));
+
+    var key_path = index.keyPath;
+    if (goog.isDef(key_path)) {
+      var type = index.type;
+      if (goog.isArray(key_path)) {
+        for(var j = 0; j < key_path.length; j++) {
+          if (goog.isDef(obj[key_path[j]])) {
+            if (index.isMultiEntry()) {
+              values.push(ydn.db.schema.Index.js2sql(obj[key_path[j]], [type[j]]));
+            } else {
+              values.push(ydn.db.schema.Index.js2sql(obj[key_path[j]], type[j]));
+            }
+            columns.push(goog.string.quote(key_path[j]));
+          }
+        }
       } else {
-        values.push(ydn.db.schema.Index.js2sql(v, index.type));
+        if (goog.isDef(obj[key_path])) {
+          if (index.isMultiEntry()) {
+            values.push(ydn.db.schema.Index.js2sql(obj[key_path], [type]));
+          } else {
+            values.push(ydn.db.schema.Index.js2sql(obj[key_path], type));
+          }
+          columns.push(goog.string.quote(key_path));
+        }
       }
-      columns.push(goog.string.quote(index.name));
     }
+
   }
 
   if (!this.fixed) {
@@ -979,7 +1011,8 @@ ydn.db.schema.Store.SyncMethod = {
   ADD: 'add',
   GET: 'get',
   PUT: 'put',
-  CLEAR: 'clear'
+  CLEAR: 'clear',
+  LIST: 'list'
 };
 
 

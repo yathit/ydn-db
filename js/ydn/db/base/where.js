@@ -12,70 +12,39 @@ goog.require('ydn.debug.error.ArgumentException');
 /**
  * For those browser that not implemented IDBKeyRange.
  * @param {string} field index field name to query from.
- * @param {string|Object} op where operator.
+ * @param {string|KeyRangeJson} op where operator.
  * @param {*=} value rvalue to compare.
  * @param {string=} op2 second operator.
  * @param {*=} value2 second rvalue to compare.
  * @constructor
- * @extends {ydn.db.KeyRange}
  */
 ydn.db.Where = function(field, op, value, op2, value2) {
-
-  var upper, lower, upperOpen, lowerOpen;
-
-  if (goog.isObject(op)) {
-    lower = op['lower'];
-    upper = op['upper'];
-    lowerOpen = op['lowerOpen'];
-    upperOpen = op['upperOpen'];
-  } else {
-    if (op == '^') {
-      goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'value');
-      goog.asserts.assert(!goog.isDef(op2), 'op2');
-      goog.asserts.assert(!goog.isDef(value2), 'value2');
-      if (goog.isArray(value)) {
-        upper = ydn.object.clone(/** @type {Object} */ (value));
-        // Note on ordering: array > string > data > number
-        upper.push('\uffff');
-      } else if (goog.isString(value)) {
-        upper = value + '\uffff';
-      } else {
-        throw new ydn.debug.error.ArgumentException();
-      }
-    } else if (op == '<' || op == '<=') {
-      upper = value;
-      upperOpen = op == '<';
-    } else if (op == '>' || op == '>=') {
-      lower = value;
-      lowerOpen = op == '>';
-    } else if (op == '=' || op == '==') {
-      lower = value;
-      upper = value;
-    }  else {
-      throw new ydn.debug.error.ArgumentException('invalid op: ' + op);
-    }
-    if (op2 == '<' || op2 == '<=') {
-      upper = value2;
-      upperOpen = op2 == '<';
-    } else if (op2 == '>' || op2 == '>=') {
-      lower = value2;
-      lowerOpen = op2 == '>';
-    } else if (goog.isDef(op2)) {
-      throw new ydn.debug.error.ArgumentException('op2');
-    }
-  }
-
-  goog.base(this, lower, upper, lowerOpen, upperOpen);
+  /**
+   * @final
+   */
+  this.key_range_ = goog.isString(op) ?
+    ydn.db.KeyRange.where(op, value, op2, value2) :
+    ydn.db.KeyRange.parseKeyRange(op);
+  /**
+   * @final
+   */
   this.field = field;
 };
-goog.inherits(ydn.db.Where, ydn.db.KeyRange);
 
 
 /**
  *
  * @type {string}
+ * @private
  */
 ydn.db.Where.prototype.field = '';
+
+/**
+ *
+ * @type {ydn.db.KeyRange|ydn.db.IDBKeyRange}
+ * @private
+ */
+ydn.db.Where.prototype.key_range_;
 
 
 /**
@@ -88,52 +57,103 @@ ydn.db.Where.prototype.getField = function() {
 
 
 /**
- * @param {string} field field name.
+ *
+ * @return {ydn.db.KeyRange|ydn.db.IDBKeyRange}
+ */
+ydn.db.Where.prototype.getKeyRange = function() {
+  return this.key_range_;
+};
+
+
+/**
+ * @param {!Array.<string>|string} key_path field name.
  * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
  * @param {ydn.db.KeyRange|IDBKeyRange} key_range key range.
  * @return {{sql: string, params: !Array.<string>}}
  */
-ydn.db.Where.toWhereClause = function (field, type, key_range) {
+ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
+
+  // NOTE: this.field is different from key_path in general.
 
   var sql = '';
   var params = [];
-  goog.asserts.assert(!goog.string.startsWith(field, '"'));
   if (key_range) {
-    var column = goog.string.quote(field);
     if (ydn.db.Where.resolvedStartsWith(key_range)) {
-      if (goog.isArray(type)) {
+      if (goog.isString(key_path)) {
+        goog.asserts.assert(!goog.string.startsWith(key_path, '"'));
+        var column = goog.string.quote(key_path);
+        // should be 'TEXT'
         sql = column + ' LIKE ?';
-        if (goog.isArray(key_range.lower)) {
+        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
+      } else {
+        goog.asserts.assertArray(key_path);
+        goog.asserts.assertArray(key_range.lower,
+          'lower value of key range must be an array, but ' + key_range.lower);
+
+        for (var i = 0; i < key_range.lower.length; i++) {
+          if (i > 0) {
+            sql += ' AND ';
+          }
+          sql += goog.string.quote(key_path[i]) + ' = ?';
+          params.push(key_range.lower[i]);
+        }
+
+        // NOTE: we don't need to care about upper value for LIKE
+      }
+    } else if (goog.isDefAndNotNull(key_range.lower) &&
+        goog.isDefAndNotNull(key_range.upper) &&
+        ydn.db.cmp(key_range.lower, key_range.upper) == 0) {
+      if (goog.isArray(key_range.lower)) {
+        for(var i = 0; i < key_range.lower.length; i++) {
+          if (i > 0) {
+            sql += ' AND ';
+          }
+          sql += key_path[i] + ' = ?';
+          params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
+        }
+      } else {
+        sql = key_path + ' = ?';
+        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
+      }
+    } else {
+      if (goog.isDef(key_range.lower)) {
+        if (goog.isArray(type)) {
+          var op = '=';
           for (var i = 0; i < key_range.lower.length; i++) {
             if (i > 0) {
               sql += ' AND ';
             }
-            sql += column + ' LIKE ? ';
-            params.push(ydn.db.schema.Index.ARRAY_SEP + key_range.lower[i] + ydn.db.schema.Index.ARRAY_SEP);
+            if (i == key_range.lower.length-1) {
+              op = key_range.lowerOpen ? ' > ' : ' >= ';
+            }
+            sql += ' ' + key_path[i] + op + '?';
+            params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
           }
-
         } else {
-          sql = ' 1 = 2 ';
+          var op = key_range.lowerOpen ? ' > ' : ' >= ';
+          sql += ' ' + key_path + op + '?';
+          params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
         }
-      } else {
-        // should be 'TEXT'
-        sql = column + ' LIKE ?';
-        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
-      }
-    } else if (key_range.lower == key_range.upper) {
-      sql = column + ' = ?';
-      params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
-    } else {
-      if (goog.isDef(key_range.lower)) {
-        var lowerOp = key_range.lowerOpen ? ' > ' : ' >= ';
-        sql += ' ' + column + lowerOp + '?';
-        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
       }
       if (goog.isDef(key_range.upper)) {
-        var upperOp = key_range.upperOpen ? ' < ' : ' <= ';
-        var and = sql.length > 0 ? ' AND ' : ' ';
-        sql += and + column + upperOp + '?';
-        params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
+        sql += sql.length > 0 ? ' AND ' : ' ';
+        if (goog.isArray(type)) {
+          var op = '=';
+          for (var i = 0; i < key_range.upper.length; i++) {
+            if (i > 0) {
+              sql += ' AND ';
+            }
+            if (i == key_range.upper.length-1) {
+              op = key_range.upperOpen ? ' < ' : ' <= ';
+            }
+            sql += ' ' + key_path[i] + op + '?';
+            params.push(ydn.db.schema.Index.js2sql(key_range.upper[i], type[i]));
+          }
+        } else {
+          var op = key_range.upperOpen ? ' < ' : ' <= ';
+          sql += ' ' + key_path + op + '?';
+          params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
+        }
       }
     }
   }
@@ -146,7 +166,7 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
  * @return {{sql: string, params: !Array.<string>}}
  */
 ydn.db.Where.prototype.toWhereClause = function (type) {
-  return ydn.db.Where.toWhereClause(this.field, type, this);
+  return ydn.db.Where.toWhereClause(this.field, type, this.key_range_);
 };
 
 
@@ -184,50 +204,60 @@ ydn.db.Where.prototype.and = function(where) {
     return null;
   }
   var lower, upper, lowerOpen, upperOpen;
-  if (goog.isDefAndNotNull(this.lower) && goog.isDefAndNotNull(where.lower)) {
-    if (this.lower > where.lower) {
-      lower = this.lower;
-      lowerOpen = this.lowerOpen;
-    } else if (this.lower == where.lower) {
-      lower = this.lower;
-      lowerOpen = this.lowerOpen || where.lowerOpen;
+
+  if (goog.isDefAndNotNull(this.key_range_) &&
+        goog.isDefAndNotNull(this.key_range_.lower) &&
+    goog.isDefAndNotNull(where.key_range_) &&
+    goog.isDefAndNotNull(where.key_range_.lower)) {
+    if (this.key_range_.lower > where.key_range_.lower) {
+      lower = this.key_range_.lower;
+      lowerOpen = this.key_range_.lowerOpen;
+    } else if (this.key_range_.lower == where.key_range_.lower) {
+      lower = this.key_range_.lower;
+      lowerOpen = this.key_range_.lowerOpen || where.key_range_.lowerOpen;
     } else {
-      lower = where.lower;
-      lowerOpen = where.lowerOpen;
+      lower = where.key_range_.lower;
+      lowerOpen = where.key_range_.lowerOpen;
     }
-  } else if (goog.isDefAndNotNull(this.lower)) {
-    lower = this.lower;
-    lowerOpen = this.lowerOpen;
-  }  else if (goog.isDefAndNotNull(where.lower)) {
-    lower = where.lower;
-    lowerOpen = where.lowerOpen;
+  } else if (goog.isDefAndNotNull(this.key_range_) &&
+      goog.isDefAndNotNull(this.lower)) {
+    lower = this.key_range_.lower;
+    lowerOpen = this.key_range_.lowerOpen;
+  } else if (goog.isDefAndNotNull(where.key_range_) &&
+      goog.isDefAndNotNull(where.key_range_.lower)) {
+    lower = where.key_range_.lower;
+    lowerOpen = where.key_range_.lowerOpen;
   }
-  if (goog.isDefAndNotNull(this.upper) && goog.isDefAndNotNull(where.upper)) {
-    if (this.lower > where.upper) {
-      upper = this.upper;
-      upperOpen = this.upperOpen;
-    } else if (this.lower == where.lower) {
-      upper = this.upper;
-      upperOpen = this.upperOpen || where.upperOpen;
+  if (goog.isDefAndNotNull(this.key_range_) &&
+      goog.isDefAndNotNull(this.key_range_.lower) &&
+    goog.isDefAndNotNull(where.key_range_) &&
+    goog.isDefAndNotNull(where.key_range_.upper)) {
+    if (this.key_range_.lower > where.key_range_.upper) {
+      upper = this.key_range_.upper;
+      upperOpen = this.key_range_.upperOpen;
+    } else if (this.key_range_.lower == where.key_range_.lower) {
+      upper = this.key_range_.upper;
+      upperOpen = this.key_range_.upperOpen || where.key_range_.upperOpen;
     } else {
-      upper = where.upper;
-      upperOpen = where.upperOpen;
+      upper = where.key_range_.upper;
+      upperOpen = where.key_range_.upperOpen;
     }
-  } else if (goog.isDefAndNotNull(this.upper)) {
-    upper = this.upper;
-    upperOpen = this.upperOpen;
-  }  else if (goog.isDefAndNotNull(where.upper)) {
-    upper = where.upper;
-    upperOpen = where.upperOpen;
+  } else if (goog.isDefAndNotNull(this.key_range_) &&
+      goog.isDefAndNotNull(this.upper)) {
+    upper = this.key_range_.upper;
+    upperOpen = this.key_range_.upperOpen;
+  }  else if (goog.isDefAndNotNull(where.key_range_) && goog.isDefAndNotNull(where.upper)) {
+    upper = where.key_range_.upper;
+    upperOpen = where.key_range_.upperOpen;
   }
 
   return new ydn.db.Where(this.field,
-      {
+      /** @type {KeyRangeJson} */ ({
         'lower': lower,
         'upper': upper,
         'lowerOpen': lowerOpen,
         'upperOpen': upperOpen
-      }
+      })
   );
 };
 

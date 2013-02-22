@@ -4,13 +4,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finest', div);
+      ydn.debug.log('ydn.db', 'finer', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finest');
+      ydn.debug.log('ydn.db', 'finer');
     } else {
       console.log('no logging facility');
     }
@@ -20,6 +20,7 @@ if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
 
+var reporter = new ydn.testing.Reporter('ydn-db');
 
 var db_name = 'test_iteration_1';
 var store_name = 'st';
@@ -72,6 +73,7 @@ db.put(store_name, data).done(function (value) {
   };
 
   module("open", test_env);
+  reporter.createTestSuite('iteration', 'open', ydn.db.version);
 
   asyncTest("readonly table scan", function () {
     expect(3 * data.length);
@@ -125,6 +127,7 @@ db.put(store_name, data).done(function (value) {
   };
 
   module("Streamer", test_env);
+  reporter.createTestSuite('iteration', 'Streamer', ydn.db.version);
 
   asyncTest("synchronous push", function () {
     expect(2);
@@ -138,8 +141,21 @@ db.put(store_name, data).done(function (value) {
     streamer.push(data[3].id);
   });
 
-
 })();
+
+QUnit.testDone(function(result) {
+  reporter.addResult('iteration', result.module,
+    result.name, result.failed, result.passed, result.duration);
+});
+
+QUnit.moduleDone(function(result) {
+  reporter.endTestSuite('iteration', result.name,
+    {passed: result.passed, failed: result.failed});
+});
+
+QUnit.done(function(results) {
+  reporter.report();
+});
 
 
 
