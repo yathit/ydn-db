@@ -176,15 +176,30 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var primary_column_name = this.store_schema_.getColumnName();
   var index = this.index_name ? this.store_schema_.getIndex(this.index_name) : null;
   var type = index ? index.getType() : this.store_schema_.getType();
-  var column_name = this.index_name ?
-      this.index_name : primary_column_name;
-  var q_column_name = goog.string.quote(column_name);
+  var key_path = index.getKeyPath();
+  var field;
+  var q_column_name = '';
   var q_primary_column_name = goog.string.quote(primary_column_name);
+
+  if (goog.isArray(type)) {
+    field = key_path;
+    var sep = '';
+    for(var i = 0; i < field.length; i++) {
+      q_column_name += sep + goog.string.quote(field[i]);
+      sep = ', ';
+    } 
+  } else {
+    field = this.index_name ?
+        this.index_name : primary_column_name;
+    q_column_name = goog.string.quote(field);
+  }
+
   sqls.push(this.key_only ?
     q_column_name + ', ' + q_primary_column_name : '*');
+
   sqls.push('FROM ' + goog.string.quote(this.store_name));
 
-  var where_clause = ydn.db.Where.toWhereClause(column_name, type, key_range);
+  var where_clause = ydn.db.Where.toWhereClause(field, type, key_range);
   if (where_clause.sql) {
     sqls.push('WHERE ' + where_clause.sql);
     params = params.concat(where_clause.params);
@@ -211,6 +226,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   } else {
     order += q_primary_column_name;
   }
+
   order += this.reverse ? ' DESC' : ' ASC';
   sqls.push(order);
 

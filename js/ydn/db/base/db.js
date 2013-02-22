@@ -67,11 +67,13 @@ ydn.db.cmp_ = function (first, second) {
  * @type {function(*, *): number}
  */
 ydn.db.cmp = function (first, second) {
-  if (ydn.db.con.IndexedDb.indexedDb) {
+  try {
     return ydn.db.con.IndexedDb.indexedDb['cmp'](first, second);
-  } else {
+  } catch (e) {
     first = ydn.db.utils.encodeKey(first);
     second = ydn.db.utils.encodeKey(second);
     return first > second ? 1 : (first == second ? 0 : -1);
+
   }
 };
+
