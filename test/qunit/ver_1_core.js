@@ -748,9 +748,12 @@ var schema_auto_increase = {
 
   });
 
-
-
 })();
+
+QUnit.done(function(results) {
+  console.log('result is')
+  console.log(results)
+});
 
 
 

@@ -97,11 +97,16 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
 
   var sql = '';
   var params = [];
-  goog.asserts.assert(!goog.string.startsWith(field, '"'));
   if (key_range) {
-    var column = goog.string.quote(field);
     if (ydn.db.Where.resolvedStartsWith(key_range)) {
-      if (goog.isArray(type)) {
+      if (goog.isString(field)) {
+        goog.asserts.assert(!goog.string.startsWith(field, '"'));
+        var column = goog.string.quote(field);
+        // should be 'TEXT'
+        sql = column + ' LIKE ?';
+        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
+      } else {
+        goog.asserts.assertArray(field);
         sql = column + ' LIKE ?';
         if (goog.isArray(key_range.lower)) {
           for (var i = 0; i < key_range.lower.length; i++) {
@@ -109,16 +114,13 @@ ydn.db.Where.toWhereClause = function (field, type, key_range) {
               sql += ' AND ';
             }
             sql += column + ' LIKE ? ';
-            params.push(ydn.db.schema.Index.ARRAY_SEP + key_range.lower[i] + ydn.db.schema.Index.ARRAY_SEP);
+            params.push(ydn.db.schema.Index.ARRAY_SEP + key_range.lower[i] +
+              ydn.db.schema.Index.ARRAY_SEP);
           }
 
         } else {
-          sql = ' 1 = 2 ';
+          sql = ' 1 = 2 '; // ? should we just throw error
         }
-      } else {
-        // should be 'TEXT'
-        sql = column + ' LIKE ?';
-        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
       }
     } else if (ydn.db.cmp(key_range.lower, key_range.upper) == 0) {
       if (goog.isArray(key_range.lower)) {
