@@ -100,7 +100,9 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
 
         // NOTE: we don't need to care about upper value for LIKE
       }
-    } else if (ydn.db.cmp(key_range.lower, key_range.upper) == 0) {
+    } else if (goog.isDefAndNotNull(key_range.lower) &&
+        goog.isDefAndNotNull(key_range.upper) &&
+        ydn.db.cmp(key_range.lower, key_range.upper) == 0) {
       if (goog.isArray(key_range.lower)) {
         for(var i = 0; i < key_range.lower.length; i++) {
           if (i > 0) {

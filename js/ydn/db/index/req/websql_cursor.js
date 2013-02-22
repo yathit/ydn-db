@@ -504,7 +504,8 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
       this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
       return;
     }
-    cmp = ydn.db.cmp(key, this.getPrimaryKey());
+    var eff_key = this.getPrimaryKey();
+    cmp = goog.isDefAndNotNull(eff_key) ? ydn.db.cmp(key, eff_key) : 1;
   }
   this.onSuccess(undefined, undefined, undefined);
 };
@@ -529,7 +530,8 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
       return;
     }
     this.current_cursor_index_++;
-    cmp = ydn.db.cmp(key, this.getEffectiveKey());
+    var eff_key = this.getEffectiveKey();
+    cmp = goog.isDefAndNotNull(eff_key) ? ydn.db.cmp(key, eff_key) : 1;
   }
   this.onSuccess(undefined, undefined, undefined);
 };

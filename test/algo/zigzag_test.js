@@ -12,14 +12,14 @@ debug_console.setCapturing(true);
 goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
 //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
 
-var db_name = 'test_zigzag_test_4';
+var db_name = 'test_zigzag_test_5';
 
 var schema = {
   stores: [
     {
       name: 'animals',
       keyPath: 'id',
-      type: 'TEXT',
+      type: 'INTEGER',
       indexes: [
         {
           keyPath: 'name',
