@@ -110,8 +110,8 @@ ydn.db.base.DefaultTransactionMode = {
 ydn.db.base.IDBTransaction = (goog.global.webkitIDBRequest && (
     'LOADING' in goog.global.webkitIDBRequest) ?
   (goog.global.webkitIDBTransaction || goog.global.IDBTransaction) :
-  ydn.db.base.DefaultTransactionMode);
-
+  (goog.global.IDBRequest && ('LOADING' in goog.global.IDBRequest)) ?
+  goog.global.IDBTransaction :  ydn.db.base.DefaultTransactionMode);
 
 
 // The fun fact with current Chrome 22 defines
