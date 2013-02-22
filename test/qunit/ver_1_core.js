@@ -98,6 +98,7 @@ var schema_auto_increase = {
   ]
 };
 
+var reporter = new ydn.testing.Reporter('ydn-db');
 
 (function () {
 
@@ -115,6 +116,7 @@ var schema_auto_increase = {
   };
 
   module("Put", test_env);
+  reporter.createTestSuite('core', 'Put', ydn.db.version);
 
   asyncTest("single data", function () {
     expect(1);
@@ -260,6 +262,7 @@ var schema_auto_increase = {
   };
 
   module("Get", test_env);
+  reporter.createTestSuite('core', 'Get', ydn.db.version);
 
   asyncTest("inline-key number", function () {
 
@@ -403,6 +406,7 @@ var schema_auto_increase = {
   };
 
   module("Values", test_env);
+  reporter.createTestSuite('core', 'Values', ydn.db.version);
 
   asyncTest("Retrieve all objects from a store - inline key", function () {
 
@@ -606,6 +610,7 @@ var schema_auto_increase = {
   };
 
   module("Keys", test_env);
+  reporter.createTestSuite('core', 'Keys', ydn.db.version);
 
   asyncTest("from a store", function () {
 
@@ -700,6 +705,7 @@ var schema_auto_increase = {
   };
 
   module("Count", test_env);
+  reporter.createTestSuite('core', 'Count', ydn.db.version);
 
   asyncTest("all records in a store", function () {
 
@@ -750,9 +756,18 @@ var schema_auto_increase = {
 
 })();
 
+QUnit.testDone(function(result) {
+  reporter.addResult('core', result.module,
+    result.name, result.failed, result.passed, result.duration);
+});
+
+QUnit.moduleDone(function(result) {
+  reporter.endTestSuite('core', result.name,
+    {passed: result.passed, failed: result.failed});
+});
+
 QUnit.done(function(results) {
-  console.log('result is')
-  console.log(results)
+  reporter.report();
 });
 
 

@@ -7,6 +7,7 @@
     <property name="ver-minor" value="2"/>
     <property name="ver-patch" value="1"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
+
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
     <script language="javascript" description="Generate ascending order build no
     , so that last version are sorted at top on blob file server."><![CDATA[
@@ -24,7 +25,7 @@
               value="${ydn-db.dir}/jsc/${buildno}-ydn.db-dev.js"/>
 
 
-
+    <property name="quoted-version" value="'${version}'"/>
     <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
 
@@ -46,6 +47,7 @@
                 <arg line='-f "--generate_exports"'/>
                 <arg line='-f "--source_map_format=V3"'/>
                 <arg line='-f "--create_source_map=${dev-out.fn}.map"'/>
+                <arg line='-f "--define=ydn.db.version=${quoted-version}"'/>
                 <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
                 <arg line='-f "--externs=${ydn-db.dir}/externs/misc.js"'/>
                 <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
@@ -91,10 +93,14 @@
     <target name="to-doc" description="copy file to documentation site">
         <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db.js"
               tofile="${out.dir}/ydn.db.js"/>
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db.js"
+              tofile="${ydn-db.dir}/jsc/ydn.db.js"/>
         <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-core.js"
               tofile="${out.dir}/ydn.db-core.js"/>
         <copy file="${dev-out.fn}"
               tofile="${out.dir}/ydn.db-dev.js"/>
+        <copy file="${dev-out.fn}"
+              tofile="${ydn-db.dir}/jsc/ydn.db-dev.js"/>
         <copy file="${dev-out.fn}.map"
               tofile="${out.dir}/ydn.db-dev.js.map"/>
         <replace file="${out.dir}/ydn.db-dev.js"
@@ -136,6 +142,7 @@
                     <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
                     <arg line='-f "--closure_entry_point=@{closure.entry}"'/>
+                    <arg line='-f "--define=ydn.db.version=${quoted-version}"'/>
                     <arg line='-f "--define=goog.DEBUG=false"'/>
                     <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
                     <ex.opt/>
@@ -229,7 +236,6 @@
                 <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/index.js"'/>
-
             </ex.opt>
         </adv-comp>
     </target>

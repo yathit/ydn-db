@@ -23,6 +23,11 @@ goog.require('ydn.db.con.IndexedDb');
 goog.require('ydn.db.con.WebSql');
 goog.require('ydn.db.utils');
 
+/**
+ *
+ * @define {string}
+ */
+ydn.db.version = '0';
 
 /**
  * Delete database. This will attempt to delete in all mechanisms.

@@ -28,6 +28,7 @@ goog.exportProperty(ydn.db.con.Storage.prototype, 'close',
 //goog.exportProperty(ydn.db.con.Storage.prototype, 'db',
 //    ydn.db.con.Storage.prototype.getDbInstance);
 
+goog.exportSymbol('ydn.db.version', ydn.db.version);
 goog.exportSymbol('ydn.db.deleteDatabase', ydn.db.deleteDatabase);
 
 goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'name',
