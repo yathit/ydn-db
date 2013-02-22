@@ -86,20 +86,18 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
       } else {
         goog.asserts.assertArray(key_path);
-        sql = column + ' LIKE ?';
-        if (goog.isArray(key_range.lower)) {
-          for (var i = 0; i < key_range.lower.length; i++) {
-            if (i > 0) {
-              sql += ' AND ';
-            }
-            sql += key_path + ' LIKE ? ';
-            params.push(ydn.db.schema.Index.ARRAY_SEP + key_range.lower[i] +
-              ydn.db.schema.Index.ARRAY_SEP);
-          }
+        goog.asserts.assertArray(key_range.lower,
+          'lower value of key range must be an array, but ' + key_range.lower);
 
-        } else {
-          sql = ' 1 = 2 '; // ? should we just throw error
+        for (var i = 0; i < key_range.lower.length; i++) {
+          if (i > 0) {
+            sql += ' AND ';
+          }
+          sql += goog.string.quote(key_path[i]) + ' = ?';
+          params.push(key_range.lower[i]);
         }
+
+        // NOTE: we don't need to care about upper value for LIKE
       }
     } else if (ydn.db.cmp(key_range.lower, key_range.upper) == 0) {
       if (goog.isArray(key_range.lower)) {

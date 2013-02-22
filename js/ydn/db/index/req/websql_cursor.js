@@ -205,16 +205,6 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
     params = params.concat(where_clause.params);
   }
 
-//  if (goog.isDefAndNotNull(ini_key)) {
-//    if (where_clause.sql) {
-//      sqls.push('AND ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
-//      params.push(ini_key);
-//    } else {
-//      sqls.push('WHERE ' + ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' = ?');
-//      params.push(ini_key);
-//    }
-//  }
-
   var order =  ' ORDER BY ';
   if (q_column_name != q_primary_column_name) {
     // FIXME: how to reverse order ?
@@ -243,8 +233,10 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
    * @param {SQLResultSet} results results.
    */
   var onSuccess = function(transaction, results) {
+    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+      window.console.log([sql, results]);
+    }
     me.has_pending_request = false;
-
     me.cursor_ = results;
     me.current_cursor_index_ = 0;
     if (!!me.index_name && goog.isDefAndNotNull(ini_key)) {
