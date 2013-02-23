@@ -224,12 +224,14 @@ ydn.db.tr.ParallelThread.prototype.exec = function (callback, store_names, mode,
     me.tx_ = null;
     if (goog.isFunction(on_completed)) {
       on_completed(type, event);
+      on_completed = null; // release circular reference.
     }
   };
 
   var transaction_process = function(tx) {
     me.tx_ = tx;
     callback(tx);
+    callback = null; // release circular reference.
   };
 
   if (ydn.db.tr.ParallelThread.DEBUG) {

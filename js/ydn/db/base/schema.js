@@ -210,7 +210,8 @@ ydn.db.schema.Index.sql2js = function(key, type) {
  */
 ydn.db.schema.Index.TYPES = [
   ydn.db.schema.DataType.BLOB,
-  ydn.db.schema.DataType.DATE, ydn.db.schema.DataType.INTEGER,
+  ydn.db.schema.DataType.DATE,
+  ydn.db.schema.DataType.INTEGER,
   ydn.db.schema.DataType.NUMERIC,
   ydn.db.schema.DataType.TEXT];
 
@@ -514,6 +515,7 @@ ydn.db.schema.Store.prototype.sync = null;
  */
 ydn.db.schema.Store.FetchStrategy = {
   LAST_UPDATED: 'last-updated',
+  ASCENDING_KEY: 'ascending-key',
   DESCENDING_KEY: 'descending-key'
 };
 
@@ -1011,8 +1013,10 @@ ydn.db.schema.Store.SyncMethod = {
   ADD: 'add',
   GET: 'get',
   PUT: 'put',
-  CLEAR: 'clear',
-  LIST: 'list'
+  CLEAR: 'cl',
+  LIST_BY_ASCENDING_KEY: 'la',
+  LIST_BY_DESCENDING_KEY: 'ld',
+  LIST_BY_UPDATED: 'lu'
 };
 
 

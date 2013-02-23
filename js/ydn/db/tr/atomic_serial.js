@@ -55,6 +55,7 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode,
     //console.log('tx ' + scope + ' completed');
     if (goog.isFunction(on_completed)) {
       on_completed(type, e);
+      on_completed = null; // release circular reference.
     }
   };
 
@@ -73,6 +74,7 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode,
     }
 
     callback(mu_tx.getTx());
+    callback = null; // release circular reference.
     mu_tx.lock(); // for blocking tx.
   };
   //var cbFn = goog.partial(tx_callback, callback);

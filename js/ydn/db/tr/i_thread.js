@@ -15,7 +15,7 @@ ydn.db.tr.IThread = function() {};
 
 
 /**
- * @param {function((IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage))} callback callback when executor
+ * @param {?function((IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage))} callback callback when executor
  * is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.

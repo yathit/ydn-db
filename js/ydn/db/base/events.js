@@ -140,6 +140,7 @@ ydn.db.events.RecordEvent.prototype.name = 'RecordEvent';
  */
 ydn.db.events.RecordEvent.prototype.key;
 
+
 /**
  *
  * @type {*}
@@ -155,6 +156,7 @@ ydn.db.events.RecordEvent.prototype.getKey = function() {
   return this.key;
 };
 
+
 /**
  *
  * @return {*}
@@ -162,6 +164,7 @@ ydn.db.events.RecordEvent.prototype.getKey = function() {
 ydn.db.events.RecordEvent.prototype.getValue = function() {
   return this.value;
 };
+
 
 /**
  *
@@ -181,6 +184,7 @@ ydn.db.events.StoreEvent = function(event_type, event_target, store_name, keys, 
 };
 goog.inherits(ydn.db.events.StoreEvent, ydn.db.events.Event);
 
+
 /**
  * @final
  * @type {string}
@@ -194,11 +198,13 @@ ydn.db.events.StoreEvent.prototype.name = 'StoreEvent';
  */
 ydn.db.events.StoreEvent.prototype.keys;
 
+
 /**
  *
  * @type {Array|undefined}
  */
 ydn.db.events.StoreEvent.prototype.values;
+
 
 /**
  *
@@ -207,6 +213,7 @@ ydn.db.events.StoreEvent.prototype.values;
 ydn.db.events.StoreEvent.prototype.getKeys = function() {
   return this.keys;
 };
+
 
 /**
  *
