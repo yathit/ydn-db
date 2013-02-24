@@ -95,7 +95,7 @@ var ODataOptions = function() {};
 /**
  * @constructor
  */
-function StoreSyncOptions() {}
+function StoreSyncOptionJson() {}
 
 
 /**
@@ -112,34 +112,34 @@ Transport.prototype.send;
 /**
  * @type {string}
  */
-StoreSyncOptions.prototype.format;
+StoreSyncOptionJson.prototype.format;
 
 /**
  * @type {number}
  */
-StoreSyncOptions.prototype.readRequestTimeout;
+StoreSyncOptionJson.prototype.readRequestTimeout;
 
 /**
  * @type {number}
  */
-StoreSyncOptions.prototype.writeRequestTimeout;
+StoreSyncOptionJson.prototype.writeRequestTimeout;
 
 /**
- * @type {Function}
+ * @type {?Function}
  */
-StoreSyncOptions.prototype.transport;
+StoreSyncOptionJson.prototype.transport;
 
 /**
  * @type {AtomOptions|GDataOptions|ODataOptions}
  */
-StoreSyncOptions.prototype.options;
+StoreSyncOptionJson.prototype.options;
 
 /**
  * Entry list fetch strategy. Supported method are
  * ['last-updated', 'descending-key']
  * @type {Array}
  */
-StoreSyncOptions.prototype.fetchStrategies;
+StoreSyncOptionJson.prototype.fetchStrategies;
 
 
 /**
@@ -185,7 +185,7 @@ StoreSchema.prototype.fixed;
 
 /**
  * Name of sync
- * @type {StoreSyncOptions}
+ * @type {StoreSyncOptionJson}
  */
 StoreSchema.prototype.sync;
 
