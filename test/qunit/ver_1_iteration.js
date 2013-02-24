@@ -130,16 +130,17 @@ db.put(store_name, data).done(function (value) {
   reporter.createTestSuite('iteration', 'Streamer', ydn.db.version);
 
   asyncTest("synchronous push", function () {
-    expect(2);
+    expect(1);
 
     var streamer = new ydn.db.Streamer(db, store_name);
-    streamer.collect(function(x) {
-      deepEqual(x, [data[1], data[3]], 'value of id 1 and 3');
-      start();
-    });
     streamer.push(data[1].id);
     streamer.push(data[3].id);
-  });
+    streamer.collect(function (keys, values) {
+      deepEqual(keys, [data[1].id, data[3].id], 'key of id 1 and 3');
+      // deepEqual(values, [data[1], data[3]], 'value of id 1 and 3');
+      start();
+    });
+});
 
 })();
 
