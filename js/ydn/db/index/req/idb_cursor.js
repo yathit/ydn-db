@@ -462,7 +462,7 @@ ydn.db.index.req.IDBCursor.prototype.update = function(record, index) {
     var df = new goog.async.Deferred();
     var req = this.cur_.update(record);
     req.onsuccess = function(x) {
-      df.callback(x);
+      df.callback(x.target.result);
     };
     req.onerror = function(e) {
       df.errback(e);
@@ -483,7 +483,7 @@ ydn.db.index.req.IDBCursor.prototype.clear = function(index) {
     var df = new goog.async.Deferred();
     var req = this.cur_['delete']();
     req.onsuccess = function(x) {
-      df.callback(x);
+      df.callback(1);
     };
     req.onerror = function(e) {
       df.errback(e);

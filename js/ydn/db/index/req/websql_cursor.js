@@ -7,6 +7,7 @@ goog.provide('ydn.db.index.req.WebsqlCursor');
 goog.require('ydn.db.index.req.AbstractCursor');
 goog.require('ydn.db.index.req.ICursor');
 
+// TODO: release memory on result rows.
 
 /**
  * Open an index. This will resume depending on the cursor state.
@@ -270,7 +271,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
     if (ydn.db.index.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, tr, error]);
     }
-
+    me.has_pending_request = false;
     me.logger.warning('get error: ' + error.message);
     me.onError(/** @type {Error} */ (error));
     return true; // roll back
@@ -364,6 +365,119 @@ ydn.db.index.req.WebsqlCursor.prototype.getValue = function() {
     return undefined;
   }
 
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
+
+  if (!this.hasCursor()) {
+    throw new ydn.db.InvalidAccessError();
+  }
+
+  if (idx) {
+    throw new ydn.error.NotImplementedException();
+  } else {
+    var df = new goog.async.Deferred();
+    var me = this;
+    this.has_pending_request = true;
+
+    /**
+     * @param {SQLTransaction} transaction transaction.
+     * @param {SQLResultSet} results results.
+     */
+    var onSuccess = function(transaction, results) {
+      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+        window.console.log([sql, results]);
+      }
+      me.has_pending_request = false;
+      df.callback(results.rowsAffected);
+    };
+
+    /**
+     * @param {SQLTransaction} tr transaction.
+     * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
+     */
+    var onError = function(tr, error) {
+      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+        window.console.log([sql, tr, error]);
+      }
+      me.has_pending_request = false;
+      me.logger.warning('get error: ' + error.message);
+      df.errback(error);
+      return true; // roll back
+
+    };
+
+    var primary_column_name = this.store_schema_.getColumnName();
+    var sql = 'DELETE FROM ' + this.store_schema_.getQuotedName() +
+        ' WHERE ' + primary_column_name + ' = ?';
+    var params = [this.getPrimaryKey()];
+    me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(params));
+    this.tx.executeSql(sql, params, onSuccess, onError);
+    return df;
+  }
+};
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebsqlCursor.prototype.update = function(obj, idx) {
+
+  if (!this.hasCursor()) {
+    throw new ydn.db.InvalidAccessError();
+  }
+
+  if (idx) {
+    throw new ydn.error.NotImplementedException();
+  } else {
+    var df = new goog.async.Deferred();
+    var me = this;
+    this.has_pending_request = true;
+    var primary_key = /** @type {!Array|number|string} */(this.getPrimaryKey());
+
+    /**
+     * @param {SQLTransaction} transaction transaction.
+     * @param {SQLResultSet} results results.
+     */
+    var onSuccess = function(transaction, results) {
+      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+        window.console.log([sql, results]);
+      }
+      me.has_pending_request = false;
+      df.callback(primary_key);
+    };
+
+    /**
+     * @param {SQLTransaction} tr transaction.
+     * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
+     */
+    var onError = function(tr, error) {
+      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+        window.console.log([sql, tr, error]);
+      }
+      me.has_pending_request = false;
+      me.logger.warning('get error: ' + error.message);
+      df.errback(error);
+      return true; // roll back
+    };
+
+    goog.asserts.assertObject(obj);
+    var out = me.store_schema_.getIndexedValues(obj, primary_key);
+
+    var sql = 'REPLACE INTO ' + this.store_schema_.getQuotedName()+
+        ' (' + out.columns.join(', ') + ')' +
+        ' VALUES (' + out.slots.join(', ') + ')' +
+        ' ON CONFLICT FAIL';
+
+    me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(out.values));
+    this.tx.executeSql(sql, out.values, onSuccess, onError);
+    return df;
+  }
 };
 
 
