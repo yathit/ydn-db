@@ -6,6 +6,7 @@
  */
 
 goog.provide('ydn.db.schema.Store');
+goog.require('ydn.db.schema.SyncOption');
 
 goog.require('ydn.db.schema.Index');
 

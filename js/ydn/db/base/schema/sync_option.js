@@ -7,11 +7,12 @@
 
 goog.provide('ydn.db.schema.SyncOption');
 goog.require('ydn.debug.error.ArgumentException');
+goog.require('ydn.http.ITransport');
 
 
 /**
  *
- * @type {!StoreSyncOptionJson} json sync option in json format 
+ * @param {!StoreSyncOptionJson} json sync option in json format
  * @constructor
  */
 ydn.db.schema.SyncOption = function(json) {
@@ -25,9 +26,9 @@ ydn.db.schema.SyncOption = function(json) {
   this.writeRequestTimeout = json['writeRequestTimeout'] ||
       ydn.db.schema.SyncOption.DEFAULT_WRITE_REQUEST_TIMEOUT;
   this.writeRequestTimeout = json['fetchStrategies'] || [];
-  if (json['transport']) {
-
-  }
+//  if (json['transport']) {
+//
+//  }
 };
 
 
@@ -57,11 +58,11 @@ ydn.db.schema.SyncOption.FetchStrategy = {
 
 /**
  * @const
- * @type {Array.<ydn.db.schema.Store.FetchStrategy>}
+ * @type {Array.<ydn.db.schema.SyncOption.FetchStrategy>}
  */
 ydn.db.schema.SyncOption.FetchStrategies = [
-  ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
-  ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
+  ydn.db.schema.SyncOption.FetchStrategy.LAST_UPDATED,
+  ydn.db.schema.SyncOption.FetchStrategy.DESCENDING_KEY];
 
 
 /**

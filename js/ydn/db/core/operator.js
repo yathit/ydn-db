@@ -443,7 +443,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
 
       // inject sync module function.
       if (ydn.db.base.SYNC && goog.isFunction(store.syncObjects) && store.sync &&
-          store.sync.fetchStrategies.indexOf(ydn.db.schema.Store.FetchStrategy.LAST_UPDATED) >= 0 &&
+          store.sync.fetchStrategies.indexOf(ydn.db.schema.SyncOption.FetchStrategy.LAST_UPDATED) >= 0 &&
           offset == 0 && reverse == true && index_name == store.sync.options.keyPathUpdated) {
         store.syncObjects(ydn.db.schema.Store.SyncMethod.LIST_BY_UPDATED, function() {
           me.sync_thread.exec(function (tx) {
@@ -493,7 +493,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
 
       // inject sync module function.
       if (ydn.db.base.SYNC && goog.isFunction(store.syncObjects) && store.sync &&
-          store.sync.fetchStrategies.indexOf(ydn.db.schema.Store.FetchStrategy.ASCENDING_KEY) >= 0 &&
+          store.sync.fetchStrategies.indexOf(ydn.db.schema.SyncOption.FetchStrategy.ASCENDING_KEY) >= 0 &&
           offset == 0 && reverse == false) {
         store.syncObjects(ydn.db.schema.Store.SyncMethod.LIST_BY_ASCENDING_KEY, function() {
           me.tx_thread.exec(function (tx) {
@@ -502,7 +502,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
           }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
         }, []);
       } else if (ydn.db.base.SYNC && goog.isFunction(store.syncObjects) && store.sync &&
-            store.sync.fetchStrategies.indexOf(ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY) >= 0 &&
+            store.sync.fetchStrategies.indexOf(ydn.db.schema.SyncOption.FetchStrategy.DESCENDING_KEY) >= 0 &&
             offset == 0 && reverse == true) {
           store.syncObjects(ydn.db.schema.Store.SyncMethod.LIST_BY_DESCENDING_KEY, function() {
             me.tx_thread.exec(function (tx) {
