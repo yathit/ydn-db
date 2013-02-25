@@ -47,7 +47,7 @@ var data = [
   {id: 3, value: 3, tags: ['a', 'c'], msg: 'msg:' + Math.random()},
   {id: 4, value: 3, tags: ['c', 'b'], msg: 'msg:' + Math.random()},
   {id: 5, value: 2, tags: ['a', 'd'], msg: 'msg:' + Math.random()},
-  {id: 6, value: 8, tags: [], msg: 'msg:' + Math.random()},
+  {id: 6, value: 8, tags: ['a'], msg: 'msg:' + Math.random()},
   {id: 7, value: 2, tags: ['a', 'b'], msg: 'msg:' + Math.random()}
 ];
 var value_order = [2, 1, 5, 7, 0, 3, 4, 6];
@@ -84,6 +84,24 @@ db.put(store_name, data).done(function (value) {
       deepEqual(x.key(), data[idx].id, 'table scan effective key at ' + idx);
       deepEqual(x.primaryKey(), data[idx].id, 'table scan primary key at ' + idx);
       deepEqual(x.value(), data[idx], 'table scan value at ' + idx);
+      idx++;
+    });
+    req.always(function() {
+      start();
+    });
+  });
+
+  asyncTest("readonly table scan on index key", function () {
+    expect(3 * data.length);
+
+    var iter = new ydn.db.Cursors(store_name, 'value');
+
+    var idx = 0;
+    var req = db.open(iter, function(x) {
+      var exp_obj = data[value_order[idx]];
+      deepEqual(x.key(), exp_obj.value, 'table index scan effective key at ' + idx);
+      deepEqual(x.primaryKey(), exp_obj.id, 'table index scan primary key at ' + idx);
+      equal(x.value(), undefined, 'table index scan value at ' + idx);
       idx++;
     });
     req.always(function() {
@@ -130,16 +148,17 @@ db.put(store_name, data).done(function (value) {
   reporter.createTestSuite('iteration', 'Streamer', ydn.db.version);
 
   asyncTest("synchronous push", function () {
-    expect(2);
+    expect(1);
 
     var streamer = new ydn.db.Streamer(db, store_name);
-    streamer.collect(function(x) {
-      deepEqual(x, [data[1], data[3]], 'value of id 1 and 3');
-      start();
-    });
     streamer.push(data[1].id);
     streamer.push(data[3].id);
-  });
+    streamer.collect(function (keys, values) {
+      deepEqual(keys, [data[1].id, data[3].id], 'key of id 1 and 3');
+      // deepEqual(values, [data[1], data[3]], 'value of id 1 and 3');
+      start();
+    });
+});
 
 })();
 
@@ -155,6 +174,8 @@ QUnit.moduleDone(function(result) {
 
 QUnit.done(function(results) {
   reporter.report();
+  var type = db.getType();
+  ydn.db.deleteDatabase(db_name, type);
 });
 
 

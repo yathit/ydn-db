@@ -7,6 +7,8 @@ goog.provide('ydn.db.index.req.WebsqlCursor');
 goog.require('ydn.db.index.req.AbstractCursor');
 goog.require('ydn.db.index.req.ICursor');
 
+// TODO: release memory on result rows.
+// ? it seems release properly at least in chrome.
 
 /**
  * Open an index. This will resume depending on the cursor state.
@@ -160,8 +162,6 @@ ydn.db.index.req.WebsqlCursor.prototype.invokeNextSuccess_ = function() {
  */
 ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_index_key, exclusive) {
 
-  var label = this.store_name + ':' + this.index_name;
-
   var key_range = this.key_range;
   if (!!this.index_name && goog.isDefAndNotNull(ini_index_key)) {
     if (goog.isDefAndNotNull(this.key_range)) {
@@ -187,48 +187,75 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var primary_column_name = this.store_schema_.getColumnName();
   var index = this.index_name ? this.store_schema_.getIndex(this.index_name) : null;
   var type = index ? index.getType() : this.store_schema_.getType();
-  var key_path = index.getKeyPath();
-  var field;
-  var q_column_name = '';
+
+  var key_path = index ? index.getKeyPath() :
+    this.store_schema_.getKeyPath() || primary_column_name;
   var q_primary_column_name = goog.string.quote(primary_column_name);
 
-  if (goog.isArray(type)) {
-    field = key_path;
-    var sep = '';
-    for(var i = 0; i < field.length; i++) {
-      q_column_name += sep + goog.string.quote(field[i]);
-      sep = ', ';
-    } 
-  } else {
-    field = this.index_name ?
-        this.index_name : primary_column_name;
-    q_column_name = goog.string.quote(field);
-  }
+  var order =  ' ORDER BY ';
 
-  sqls.push(this.key_only ?
-    q_column_name + ', ' + q_primary_column_name : '*');
+  if (this.key_only) {
+
+    if (goog.isArray(type)) {
+      var column_names = [];
+      var column_orders = [];
+
+      for(var i = 0; i < key_path.length; i++) {
+        var q_name = goog.string.quote(key_path[i]);
+        column_names.push(q_name);
+        if (this.reverse) {
+          q_name += ' DESC';
+        } else {
+          q_name += ' ASC';
+        }
+        column_orders.push(q_name);
+      }
+      if (index) {
+        column_names.push(q_primary_column_name);
+        column_orders.push(q_primary_column_name +
+          this.reverse ? ' DESC' : ' ASC');
+      }
+      sqls.push(column_names.join(', '));
+      order += column_orders.join(', ');
+
+    } else {
+      if (index) {
+        sqls.push(goog.string.quote(key_path) + ', ' + q_primary_column_name);
+        order += this.reverse ?
+          goog.string.quote(key_path) + ' DESC, ' +
+          q_primary_column_name + ' DESC ' :
+          goog.string.quote(key_path) + ' ASC, ' +
+          q_primary_column_name + ' ASC ' ;
+      } else {
+        sqls.push(q_primary_column_name);
+        order += q_primary_column_name;
+        order += this.reverse ? ' DESC' : ' ASC';
+      }
+    }
+  } else {
+    sqls.push('*');
+    if (index) {
+      order += this.reverse ?
+        goog.string.quote(key_path) + ' DESC, ' +
+          q_primary_column_name + ' DESC ' :
+        goog.string.quote(key_path) + ' ASC, ' +
+          q_primary_column_name + ' ASC ' ;
+
+    } else {
+      order += q_primary_column_name;
+      order += this.reverse ? ' DESC' : ' ASC';
+    }
+
+  }
 
   sqls.push('FROM ' + goog.string.quote(this.store_name));
 
-  var where_clause = ydn.db.Where.toWhereClause(field, type, key_range);
+  var where_clause = ydn.db.Where.toWhereClause(key_path, type, key_range);
   if (where_clause.sql) {
     sqls.push('WHERE ' + where_clause.sql);
     params = params.concat(where_clause.params);
   }
 
-  var order =  ' ORDER BY ';
-  if (q_column_name != q_primary_column_name) {
-    // FIXME: how to reverse order ?
-    if (this.reverse) {
-      order += q_column_name;
-    } else {
-      order += q_column_name + ', ' + q_primary_column_name;
-    }
-  } else {
-    order += q_primary_column_name;
-  }
-
-  order += this.reverse ? ' DESC' : ' ASC';
   sqls.push(order);
 
 //  if (this.key_only) {
@@ -270,7 +297,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
     if (ydn.db.index.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, tr, error]);
     }
-
+    me.has_pending_request = false;
     me.logger.warning('get error: ' + error.message);
     me.onError(/** @type {Error} */ (error));
     return true; // roll back
@@ -278,7 +305,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   };
 
   var sql = sqls.join(' ');
-  me.logger.finest('Iterator: ' + label + ' opened: ' + sql + ' : ' + ydn.json.stringify(params));
+  me.logger.finest(this + ': opened: ' + sql + ' : ' + ydn.json.stringify(params));
   this.tx.executeSql(sql, params, onSuccess, onError);
 
 };
@@ -345,25 +372,135 @@ ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
  * @return {*} return current primary key.
  * @override
  */
-ydn.db.index.req.WebsqlCursor.prototype.getValue = function() {
+ydn.db.index.req.WebsqlCursor.prototype.getValue = function () {
   var column_name = this.index_name ?
-      this.index_name : this.store_schema_.getColumnName();
+    this.index_name : this.store_schema_.getColumnName();
 
   if (this.current_cursor_index_ < this.cursor_.rows.length) {
     if (this.key_only) {
       return undefined;
     } else {
-      if (this.index_name) {
-        return undefined;
-      } else {
-        var row = this.cursor_.rows.item(this.current_cursor_index_);
-        return ydn.db.core.req.WebSql.parseRow(/** @type {!Object} */ (row), this.store_schema_);
-      }
+      var row = this.cursor_.rows.item(this.current_cursor_index_);
+      return ydn.db.core.req.WebSql.parseRow(/** @type {!Object} */ (row), this.store_schema_);
+
     }
   } else {
     return undefined;
   }
 
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
+
+  if (!this.hasCursor()) {
+    throw new ydn.db.InvalidAccessError();
+  }
+
+  if (idx) {
+    throw new ydn.error.NotImplementedException();
+  } else {
+    var df = new goog.async.Deferred();
+    var me = this;
+    this.has_pending_request = true;
+
+    /**
+     * @param {SQLTransaction} transaction transaction.
+     * @param {SQLResultSet} results results.
+     */
+    var onSuccess = function(transaction, results) {
+      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+        window.console.log([sql, results]);
+      }
+      me.has_pending_request = false;
+      df.callback(results.rowsAffected);
+    };
+
+    /**
+     * @param {SQLTransaction} tr transaction.
+     * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
+     */
+    var onError = function(tr, error) {
+      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+        window.console.log([sql, tr, error]);
+      }
+      me.has_pending_request = false;
+      me.logger.warning('get error: ' + error.message);
+      df.errback(error);
+      return true; // roll back
+
+    };
+
+    var primary_column_name = this.store_schema_.getColumnName();
+    var sql = 'DELETE FROM ' + this.store_schema_.getQuotedName() +
+        ' WHERE ' + primary_column_name + ' = ?';
+    var params = [this.getPrimaryKey()];
+    me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(params));
+    this.tx.executeSql(sql, params, onSuccess, onError);
+    return df;
+  }
+};
+
+/**
+ * @inheritDoc
+ */
+ydn.db.index.req.WebsqlCursor.prototype.update = function(obj, idx) {
+
+  if (!this.hasCursor()) {
+    throw new ydn.db.InvalidAccessError();
+  }
+
+  if (idx) {
+    throw new ydn.error.NotImplementedException();
+  } else {
+    var df = new goog.async.Deferred();
+    var me = this;
+    this.has_pending_request = true;
+    var primary_key = /** @type {!Array|number|string} */(this.getPrimaryKey());
+
+    /**
+     * @param {SQLTransaction} transaction transaction.
+     * @param {SQLResultSet} results results.
+     */
+    var onSuccess = function(transaction, results) {
+      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+        window.console.log([sql, results]);
+      }
+      me.has_pending_request = false;
+      df.callback(primary_key);
+    };
+
+    /**
+     * @param {SQLTransaction} tr transaction.
+     * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
+     */
+    var onError = function(tr, error) {
+      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+        window.console.log([sql, tr, error]);
+      }
+      me.has_pending_request = false;
+      me.logger.warning('get error: ' + error.message);
+      df.errback(error);
+      return true; // roll back
+    };
+
+    goog.asserts.assertObject(obj);
+    var out = me.store_schema_.getIndexedValues(obj, primary_key);
+
+    var sql = 'REPLACE INTO ' + this.store_schema_.getQuotedName()+
+        ' (' + out.columns.join(', ') + ')' +
+        ' VALUES (' + out.slots.join(', ') + ')' +
+        ' ON CONFLICT FAIL';
+
+    me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(out.values));
+    this.tx.executeSql(sql, out.values, onSuccess, onError);
+    return df;
+  }
 };
 
 
@@ -476,15 +613,9 @@ ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
     throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
   }
   var n = this.cursor_.rows.length;
-  for (var i = 0; i < step; i++) {
-    this.current_cursor_index_++;
-    var last_step = (i == step -1 ) ||  this.current_cursor_index_ == n - 1;
-    if (last_step) {
-      this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
-      return;
-    }
-  }
-  this.onSuccess(undefined, undefined, undefined);
+  this.current_cursor_index_ += step;
+  this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
+
 };
 
 

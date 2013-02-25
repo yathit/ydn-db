@@ -614,7 +614,21 @@ ydn.db.index.DbOperator.prototype.open = function(iterator, callback, mode) {
     cursor.onNext = function (primaryKey, key, value) {
       if (goog.isDefAndNotNull(primaryKey)) {
         var adv = callback(cursor);
-        cursor.continueEffectiveKey();
+        if (adv === true) {
+          cursor.restart(null, null);
+        } else if (goog.isObject(adv)) {
+          if (adv['restart'] === true) {
+            cursor.restart(adv['continue'], adv['continuePrimary']);
+          } else if (goog.isDefAndNotNull(adv['continue'])) {
+            cursor.continueEffectiveKey(adv['continue']);
+          } else if (goog.isDefAndNotNull(adv['continuePrimary'])) {
+            cursor.continuePrimaryKey(adv['continuePrimary']);
+          } else {
+            df.callback(); // break the loop
+          }
+        } else {
+          cursor.advance(1);
+        }
       } else {
         df.callback();
       }

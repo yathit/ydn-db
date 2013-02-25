@@ -13,6 +13,7 @@ goog.provide('ydn.db.index.req.AbstractCursor');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
+ * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
 ydn.db.index.req.AbstractCursor = function(store_name, index_name,
@@ -231,6 +232,37 @@ ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
  * @param {boolean=} exclusive
  */
 ydn.db.index.req.AbstractCursor.prototype.open_request = goog.abstractMethod;
+
+
+/**
+ * Move cursor position to the primary key while remaining on same index key.
+ * @param {*} primary_key
+ */
+ydn.db.index.req.AbstractCursor.prototype.continuePrimaryKey = goog.abstractMethod;
+
+
+/**
+ * Move cursor position to the effective key.
+ * @param {*=} effective_key
+ */
+ydn.db.index.req.AbstractCursor.prototype.continueEffectiveKey = goog.abstractMethod;
+
+
+/**
+ * Move cursor position to the effective key.
+ * @param {number} number_of_step
+ */
+ydn.db.index.req.AbstractCursor.prototype.advance = goog.abstractMethod;
+
+
+/**
+ * Restart the cursor. If previous cursor position is given,
+ * the position is skip.
+ * @param {*} effective_key previous position.
+ * @param {*} primary_key
+ */
+ydn.db.index.req.AbstractCursor.prototype.restart = goog.abstractMethod;
+
 
 /**
  * @override

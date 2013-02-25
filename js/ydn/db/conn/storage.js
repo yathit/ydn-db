@@ -703,7 +703,7 @@ ydn.db.con.Storage.prototype.isAutoSchema = function() {
 /**
  *
  * @param {ydn.db.schema.Store} store
- * @param {StoreSyncOptions} option
+ * @param {StoreSyncOptionJson} option
  * @protected
  */
 ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
