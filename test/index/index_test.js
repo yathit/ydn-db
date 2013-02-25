@@ -18,11 +18,11 @@ var setUp = function() {
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.core').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.sql').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
-  //ydn.db.core.req.WebSql.DEBUG = true;
+  // ydn.db.core.req.WebSql.DEBUG = true;
   //ydn.db.index.req.WebSql.DEBUG = true;
 
   reachedFinalContinuation = false;
@@ -525,8 +525,9 @@ var test_compound_index = function () {
       type: 'INTEGER',
       indexes: [
         {
-          name: '12',
-          keyPath: ['label1', 'label2']
+          name: 'label1, label2',
+          keyPath: ['label1', 'label2'],
+          type: ['TEXT', 'TEXT']
         }
       ]
     }]
@@ -538,8 +539,9 @@ var test_compound_index = function () {
 
   var done, result;
 
+  db.clear('st1');
   db.put('st1', objs).addCallbacks(function(keys) {
-    db.values('st1', '12', ydn.db.KeyRange.bound(['a'], ['b']), 100, 0).addCallbacks(function(x) {
+    db.values('st1', 'label1, label2', ydn.db.KeyRange.bound(['a'], ['b']), 100, 0).addCallbacks(function(x) {
       result = x;
       console.log(x);
       done = true;

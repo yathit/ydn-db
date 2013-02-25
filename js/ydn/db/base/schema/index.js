@@ -48,7 +48,7 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
 
   /**
    * @final
-   * @type {string}
+   * @type {string}  TODO: must keep as array (websql need this)
    */
   this.keyPath = keyPath;
 

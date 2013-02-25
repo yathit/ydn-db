@@ -21,7 +21,7 @@
 goog.provide('ydn.db.core.req.IndexedDb');
 goog.require('goog.async.DeferredList');
 goog.require('ydn.db.core.req.IRequestExecutor');
-goog.require('ydn.db.req.RequestExecutor');
+goog.require('ydn.db.core.req.RequestExecutor');
 goog.require('ydn.error');
 goog.require('ydn.json');
 
@@ -29,7 +29,7 @@ goog.require('ydn.json');
 /**
  * Create a new IDB request executor.
  * @param {string} dbname database name.
- * @extends {ydn.db.req.RequestExecutor}
+ * @extends {ydn.db.core.req.RequestExecutor}
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
  * @implements {ydn.db.core.req.IRequestExecutor}
@@ -37,7 +37,7 @@ goog.require('ydn.json');
 ydn.db.core.req.IndexedDb = function(dbname, schema) {
   goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.core.req.IndexedDb, ydn.db.req.RequestExecutor);
+goog.inherits(ydn.db.core.req.IndexedDb, ydn.db.core.req.RequestExecutor);
 
 
 /**

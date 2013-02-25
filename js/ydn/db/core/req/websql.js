@@ -25,14 +25,14 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.req.RequestExecutor');
+goog.require('ydn.db.core.req.RequestExecutor');
 goog.require('ydn.json');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.core.req.IRequestExecutor');
 
 
 /**
- * @extends {ydn.db.req.RequestExecutor}
+ * @extends {ydn.db.core.req.RequestExecutor}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
@@ -41,7 +41,7 @@ goog.require('ydn.db.core.req.IRequestExecutor');
 ydn.db.core.req.WebSql = function(dbname, schema) {
   goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.core.req.WebSql, ydn.db.req.RequestExecutor);
+goog.inherits(ydn.db.core.req.WebSql, ydn.db.core.req.RequestExecutor);
 
 
 /**
@@ -189,7 +189,9 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
   var store = this.schema.getStore(store_name);
 
   var is_index = goog.isDefAndNotNull(index_column);
+  var index = goog.isString(index_column) ? store.getIndex(index_column) : null;
   var column = index_column || store.getColumnName();
+  var key_path = index ? index.getKeyPath() : store.getKeyPath();
 
   var qcolumn = goog.string.quote(column);
   var key_column = store.getColumnName();
@@ -205,12 +207,15 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
       fields = goog.string.quote(key_column);
     }
   }
+  // FIXME: DISTINCT is not equivalent to IndexedDB unique
   var dist = distinct ? 'DISTINCT' : '';
   var sql = 'SELECT ' + dist + fields +
     ' FROM ' + store.getQuotedName();
   var params = [];
   if (!goog.isNull(key_range)) {
-    var where_clause = ydn.db.Where.toWhereClause(column, store.getType(), key_range);
+    var where_clause = ydn.db.Where.toWhereClause(
+        /** @type {string} */ (key_path), // FIXME: shouldn't need cast.
+        store.getType(), key_range);
     sql += ' WHERE ' + where_clause.sql;
     params = where_clause.params;
   }
