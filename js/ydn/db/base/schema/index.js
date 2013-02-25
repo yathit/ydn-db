@@ -28,35 +28,34 @@ goog.require('ydn.db.utils');
 ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
 {
 
+
+  if (!goog.isDef(name)) {
+    if (goog.isArray(keyPath)) {
+      name = keyPath.join(', ');
+    } else {
+      name = keyPath;
+    }
+  }
+
+  if (!goog.isString(keyPath) || !goog.isArray(keyPath)) {
+    throw new ydn.debug.error.ArgumentException('index keyPath for ' + name +
+        ' must be a string or array');
+  }
+
   if (!goog.isDef(keyPath) && goog.isDef(name)) {
     keyPath = name;
   }
 
-  if (goog.isArrayLike(keyPath)) {
-    var ks = goog.array.map(/** @type {Array.<string>} */ (keyPath), function(x) {
-      return x;
-    });
-    if (!goog.isDef(name)) {
-      name = ks.join(', ');
-    }
-    keyPath = /** @type {string} */ (ks);
-  } else if (goog.isString(keyPath)) {
-    // OK.
-  } else {
-    throw new ydn.debug.error.ArgumentException('index keyPath or name required.');
-  }
-
   /**
    * @final
-   * @type {string}  TODO: must keep as array (websql need this)
    */
   this.keyPath = keyPath;
 
+
   /**
    * @final
-   * @type {string}
    */
-  this.name = goog.isDef(name) ? name : this.keyPath;
+  this.name = name;
   /**
    * @final
    * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
@@ -65,26 +64,45 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
   if (goog.DEBUG &&
       (
           (goog.isArray(opt_type) && !goog.isArray(this.type)) ||
-              (goog.isArray(opt_type) && !goog.array.equals(/** @type {Array} */ (this.type), opt_type)) ||
+              (goog.isArray(opt_type) && !goog.array.equals(
+                  /** @type {Array} */ (this.type), opt_type)) ||
               (!goog.isArray(opt_type) && this.type != opt_type)
           )
       ) {
-    throw new ydn.debug.error.ArgumentException('Invalid index type: ' + opt_type +
-        ' in ' + this.name);
+    throw new ydn.debug.error.ArgumentException('Invalid index type: ' +
+        opt_type + ' in ' + this.name);
   }
   /**
    * @final
-   * @type {boolean}
    */
   this.unique = !!opt_unique;
 
   /**
    * @final
-   * @type {boolean}
    */
   this.multiEntry = !!multiEntry;
 };
 
+
+/**
+ * @type {string}
+ */
+ydn.db.schema.Index.prototype.name;
+
+/**
+ * @type {(string|!Array.<string>)}
+ */
+ydn.db.schema.Index.prototype.keyPath;
+
+/**
+ * @type {boolean}
+ */
+ydn.db.schema.Index.prototype.multiEntry;
+
+/**
+ * @type {boolean}
+ */
+ydn.db.schema.Index.prototype.unique;
 
 
 /**
@@ -253,7 +271,6 @@ ydn.db.schema.Index.toAbbrType = function(x) {
 };
 
 
-
 /**
  * Return type.
  * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} data type.
@@ -345,7 +362,7 @@ ydn.db.schema.Index.toDir = function(str) {
 
 /**
  *
- * @return {string} keyPath
+ * @return {(string|!Array.<string>)} keyPath
  */
 ydn.db.schema.Index.prototype.getKeyPath = function() {
   return this.keyPath;
