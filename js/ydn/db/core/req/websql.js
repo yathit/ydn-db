@@ -1043,7 +1043,6 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
   var store = this.schema.getStore(table);
   if (!goog.isNull(key_range)) {
     if (goog.isDef(index_name)) {
-      var column = index_name;
       var index = store.getIndex(index_name);
       var keyPath = index.keyPath;
       var type = index.type;
@@ -1059,11 +1058,13 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
               if (i == key_range.lower.length-1) {
                 op = key_range.lowerOpen ? ' > ' : ' >= ';
               }
-              sql += ' ' + keyPath[i] + op + '?';
+              var column = goog.string.quote(keyPath[i]);
+              sql += ' ' + column + op + '?';
               params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
             }
           } else {
             var op = key_range.lowerOpen ? ' > ' : ' >= ';
+            var column = goog.string.quote(index_name);
             sql += ' ' + column + op + '?';
             params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
           }
@@ -1079,11 +1080,13 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
               if (i == key_range.upper.length-1) {
                 op = key_range.upperOpen ? ' < ' : ' <= ';
               }
-              sql += ' ' + keyPath[i] + op + '?';
+              var column = goog.string.quote(keyPath[i]);
+              sql += ' ' + column + op + '?';
               params.push(ydn.db.schema.Index.js2sql(key_range.upper[i], type[i]));
             }
           } else {
             var op = key_range.upperOpen ? ' < ' : ' <= ';
+            var column = goog.string.quote(index_name);
             sql += ' AND ' + column + op + '?';
             params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
           }

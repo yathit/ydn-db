@@ -261,7 +261,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
     order = 'ORDER BY ';
     var sep = '';
     for (var i = 0; i < key_column.length; i++) {
-      order += sep + '"'+key_column[i]+'"';
+      order += sep + '"'+goog.string.quote(key_column[i])+'"';
       sep = ', ';
     }
   }
