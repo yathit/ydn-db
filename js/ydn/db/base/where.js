@@ -114,6 +114,8 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
           params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
         }
       } else {
+        // todo: what if key_range.lower is not array, but key_path is array
+        goog.asserts.assertString(key_path);
         var column = goog.string.quote(key_path);
         sql = column + ' = ?';
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
@@ -134,6 +136,8 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
             params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
           }
         } else {
+          // todo: what if type is undefined, but key_path is array?
+          goog.asserts.assertString(key_path);
           var op = key_range.lowerOpen ? ' > ' : ' >= ';
           var column = goog.string.quote(key_path);
           sql += ' ' + column + op + '?';
@@ -156,6 +160,7 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
             params.push(ydn.db.schema.Index.js2sql(key_range.upper[i], type[i]));
           }
         } else {
+          goog.asserts.assertString(key_path);
           var op = key_range.upperOpen ? ' < ' : ' <= ';
           var column = goog.string.quote(key_path);
           sql += ' ' + column + op + '?';
