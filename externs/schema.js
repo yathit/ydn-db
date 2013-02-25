@@ -125,7 +125,7 @@ StoreSyncOptionJson.prototype.readRequestTimeout;
 StoreSyncOptionJson.prototype.writeRequestTimeout;
 
 /**
- * @type {?Function}
+ * @type {{request: Function}}
  */
 StoreSyncOptionJson.prototype.transport;
 

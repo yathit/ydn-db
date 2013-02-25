@@ -141,6 +141,7 @@
                     <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
+                    <arg line='-f "--externs=${ydn-base.dir}/externs/gapi.js"'/>
                     <arg line='-f "--closure_entry_point=@{closure.entry}"'/>
                     <arg line='-f "--define=ydn.db.version=${quoted-version}"'/>
                     <arg line='-f "--define=goog.DEBUG=false"'/>
