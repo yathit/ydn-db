@@ -91,6 +91,24 @@ db.put(store_name, data).done(function (value) {
     });
   });
 
+  asyncTest("readonly table scan on index key", function () {
+    expect(3 * data.length);
+
+    var iter = new ydn.db.Cursors(store_name, 'value');
+
+    var idx = 0;
+    var req = db.open(iter, function(x) {
+      var exp_obj = data[value_order[idx]];
+      deepEqual(x.key(), exp_obj.value, 'table index scan effective key at ' + idx);
+      deepEqual(x.primaryKey(), exp_obj.id, 'table index scan primary key at ' + idx);
+      equal(x.value(), undefined, 'table index scan value at ' + idx);
+      idx++;
+    });
+    req.always(function() {
+      start();
+    });
+  });
+
   asyncTest("readonly table scan on index", function () {
     expect(3 * data.length);
 

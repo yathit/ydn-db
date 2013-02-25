@@ -16,7 +16,6 @@ goog.require('ydn.db.index.req.AbstractCursor');
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
  * @extends {ydn.db.index.req.AbstractCursor}
- * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
 ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name,
