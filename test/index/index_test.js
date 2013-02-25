@@ -385,7 +385,7 @@ var test_list_by_index = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.only('a');
-  db.values(store_name, range, undefined, undefined, 'type').addBoth(function(x) {
+  db.values(store_name, 'type', range, undefined, undefined).addBoth(function(x) {
     result = x;
     done = true;
   }, function(e) {
@@ -414,7 +414,7 @@ var test_keys_by_index = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.only('a');
-  db.keys(store_name, range, 100, 0, 'type').addBoth(function(x) {
+  db.keys(store_name, 'type', range, 100, 0).addBoth(function(x) {
     result = x;
     done = true;
   }, function(e) {
@@ -496,7 +496,6 @@ var test_multiEntry = function () {
 };
 
 
-
 var test_compound_index = function () {
 
   var objs = [
@@ -540,7 +539,7 @@ var test_compound_index = function () {
   var done, result;
 
   db.put('st1', objs).addCallbacks(function(keys) {
-    db.values('st1', ydn.db.KeyRange.bound(['a'], ['b']), 100, 0, '12').addCallbacks(function(x) {
+    db.values('st1', '12', ydn.db.KeyRange.bound(['a'], ['b']), 100, 0).addCallbacks(function(x) {
       result = x;
       console.log(x);
       done = true;

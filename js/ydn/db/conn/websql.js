@@ -31,6 +31,7 @@ goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.json');
 goog.require('ydn.string');
+goog.require('ydn.debug.error.NotImplementedException');
 
 
 /**
@@ -652,22 +653,16 @@ ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
 /**
  * Alter or create table with given table schema.
  * @param {SQLTransaction} trans transaction.
- * @param {ydn.db.schema.Store} store_schema table schema to be upgrade.
+ * @param {ydn.db.schema.Store} table_schema table schema to be upgrade.
  * @param {Function} callback callback on finished.
- * @param {ydn.db.schema.Store|undefined} table_info table information in the
+ * @param {ydn.db.schema.Store|undefined} existing_table_schema table information in the
  * existing database.
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
-     store_schema, callback, table_info) {
+     table_schema, callback, existing_table_schema) {
 
   var me = this;
-
-  var sqls = this.prepareCreateTable_(store_schema);
-
-  if (ydn.db.con.WebSql.DEBUG) {
-    window.console.log([sqls, table_info]);
-  }
 
   var count = 0;
 
@@ -692,31 +687,41 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
         window.console.log([tr, error]);
       }
       throw new ydn.db.SQLError(error, 'Error creating table: ' +
-          store_schema.name + ' ' + sql);
+          table_schema.name + ' ' + sql);
     };
 
     trans.executeSql(sql, [], success_callback, error_callback);
   };
 
+  var sqls = this.prepareCreateTable_(table_schema);
+
   var action = 'Create';
-  if (table_info) {
+  if (existing_table_schema) {
     // table already exists.
-    if (store_schema.similar(table_info)) {
-      me.logger.finest(store_schema.name + ' exists.');
+    if (table_schema.similar(existing_table_schema)) {
+      me.logger.finest(table_schema.name + ' exists.');
       callback(true);
-      return;
     } else {
       action = 'Modify';
 
       // TODO: use ALTER
+      this.logger.warning(
+          'table: ' + table_schema.name + ' has changed,' +
+          'but TABLE ALTERATION is not implemented, dropping old table.');
+      sqls.unshift('DROP TABLE ' + goog.string.quote(table_schema.name));
     }
   }
 
-  me.logger.finest(action + ' table: ' + store_schema.name + ': ' +
-    sqls.join(';'));
+  if (ydn.db.con.WebSql.DEBUG) {
+    window.console.log([sqls, existing_table_schema]);
+  }
+
+  me.logger.finest(action + ' table: ' + table_schema.name + ': ' +
+      sqls.join(';'));
   for (var i = 0; i < sqls.length; i++) {
     exe_sql(sqls[i]);
   }
+
 
 };
 
