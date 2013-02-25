@@ -161,8 +161,6 @@ ydn.db.index.req.WebsqlCursor.prototype.invokeNextSuccess_ = function() {
  */
 ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_index_key, exclusive) {
 
-  var label = this.store_name + ':' + this.index_name;
-
   var key_range = this.key_range;
   if (!!this.index_name && goog.isDefAndNotNull(ini_index_key)) {
     if (goog.isDefAndNotNull(this.key_range)) {
@@ -188,48 +186,75 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var primary_column_name = this.store_schema_.getColumnName();
   var index = this.index_name ? this.store_schema_.getIndex(this.index_name) : null;
   var type = index ? index.getType() : this.store_schema_.getType();
-  var key_path = index.getKeyPath();
-  var field;
-  var q_column_name = '';
+
+  var key_path = index ? index.getKeyPath() :
+    this.store_schema_.getKeyPath() || primary_column_name;
   var q_primary_column_name = goog.string.quote(primary_column_name);
 
-  if (goog.isArray(type)) {
-    field = key_path;
-    var sep = '';
-    for(var i = 0; i < field.length; i++) {
-      q_column_name += sep + goog.string.quote(field[i]);
-      sep = ', ';
-    } 
-  } else {
-    field = this.index_name ?
-        this.index_name : primary_column_name;
-    q_column_name = goog.string.quote(field);
-  }
+  var order =  ' ORDER BY ';
 
-  sqls.push(this.key_only ?
-    q_column_name + ', ' + q_primary_column_name : '*');
+  if (this.key_only) {
+
+    if (goog.isArray(type)) {
+      var column_names = [];
+      var column_orders = [];
+
+      for(var i = 0; i < key_path.length; i++) {
+        var q_name = goog.string.quote(key_path[i]);
+        column_names.push(q_name);
+        if (this.reverse) {
+          q_name += ' DESC';
+        } else {
+          q_name += ' ASC';
+        }
+        column_orders.push(q_name);
+      }
+      if (index) {
+        column_names.push(q_primary_column_name);
+        column_orders.push(q_primary_column_name +
+          this.reverse ? ' DESC' : ' ASC');
+      }
+      sqls.push(column_names.join(', '));
+      order += column_orders.join(', ');
+
+    } else {
+      if (index) {
+        sqls.push(goog.string.quote(key_path) + ', ' + q_primary_column_name);
+        order += this.reverse ?
+          goog.string.quote(key_path) + ' DESC, ' +
+          q_primary_column_name + ' DESC ' :
+          goog.string.quote(key_path) + ' ASC, ' +
+          q_primary_column_name + ' ASC ' ;
+      } else {
+        sqls.push(q_primary_column_name);
+        order += q_primary_column_name;
+        order += this.reverse ? ' DESC' : ' ASC';
+      }
+    }
+  } else {
+    sqls.push('*');
+    if (index) {
+      order += this.reverse ?
+        goog.string.quote(key_path) + ' DESC, ' +
+          q_primary_column_name + ' DESC ' :
+        goog.string.quote(key_path) + ' ASC, ' +
+          q_primary_column_name + ' ASC ' ;
+
+    } else {
+      order += q_primary_column_name;
+      order += this.reverse ? ' DESC' : ' ASC';
+    }
+
+  }
 
   sqls.push('FROM ' + goog.string.quote(this.store_name));
 
-  var where_clause = ydn.db.Where.toWhereClause(field, type, key_range);
+  var where_clause = ydn.db.Where.toWhereClause(key_path, type, key_range);
   if (where_clause.sql) {
     sqls.push('WHERE ' + where_clause.sql);
     params = params.concat(where_clause.params);
   }
 
-  var order =  ' ORDER BY ';
-  if (q_column_name != q_primary_column_name) {
-    // FIXME: how to reverse order ?
-    if (this.reverse) {
-      order += q_column_name;
-    } else {
-      order += q_column_name + ', ' + q_primary_column_name;
-    }
-  } else {
-    order += q_primary_column_name;
-  }
-
-  order += this.reverse ? ' DESC' : ' ASC';
   sqls.push(order);
 
 //  if (this.key_only) {
@@ -279,7 +304,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   };
 
   var sql = sqls.join(' ');
-  me.logger.finest('Iterator: ' + label + ' opened: ' + sql + ' : ' + ydn.json.stringify(params));
+  me.logger.finest(this + ': opened: ' + sql + ' : ' + ydn.json.stringify(params));
   this.tx.executeSql(sql, params, onSuccess, onError);
 
 };

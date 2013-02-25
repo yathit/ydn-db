@@ -19,12 +19,12 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.index.req.WebsqlCursor').setLevel(goog.debug.Logger.Level.FINEST);
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
-    //ydn.db.index.req.WebsqlCursor.DEBUG = true;
+    ydn.db.index.req.WebsqlCursor.DEBUG = true;
 
   }
 
@@ -101,7 +101,7 @@ var test_streamer_collect = function() {
 
   var streamer = new ydn.db.Streamer(db, store_name);
 
-  db.addEventListener('connected', function() {  // to make sure
+  db.addEventListener('done', function() {  // to make sure
     streamer.push(objs[1].id);
     streamer.push(objs[4].id);
     streamer.collect(function(keys, x) {
@@ -137,7 +137,7 @@ var test_streamer_sink = function() {
     }
   });
 
-  db.addEventListener('connected', function() {  // to make sure
+  db.addEventListener('done', function() {  // to make sure
     streamer.push(objs[1].id);
     streamer.push(objs[4].id);
   });
@@ -164,7 +164,7 @@ var test_index_streamer_collect = function() {
 
   var streamer = new ydn.db.Streamer(db, store_name, 'x');
 
-  db.addEventListener('connected', function() {  // to make sure
+  db.addEventListener('done', function() {  // to make sure
     streamer.push(objs[1].id);
     streamer.push(objs[4].id);
     streamer.collect(function(keys, x) {
@@ -199,14 +199,14 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
       100, // interval
       1000); // maxTimeout
 
-  var req = db.scan([q], function join_algo (key, index_key) {
-
-    if (!goog.isDef(key[0])) {
+  var req = db.scan([q], function join_algo (keys, values) {
+    console.log(JSON.stringify([keys, values]));
+    if (!goog.isDef(keys[0])) {
       return [];
     }
-    //console.log(['receiving ', key[0], index_key[0]]);
-    streaming_keys.push(key[0]);
-    streaming_index_keys.push(index_key[0]);
+
+    streaming_keys.push(keys[0]);
+    streaming_index_keys.push(values[0]);
     return [true]; // continue iteration
   });
 
@@ -248,7 +248,9 @@ var test_13_scan_index_key_iterator = function () {
     return a.value > b.value ? 1 : -1;
   });
   var actual_keys = objs.map(function(x) {return x.value;});
-  var actual_index_keys = objs.map(function(x) {return x.id;});
+  var actual_index_keys = objs.map(function(x) {
+    return x.id;
+  });
   var q = new ydn.db.Cursors(store_name, 'value');
   scan_key_single_test(q, actual_keys, actual_index_keys);
 
