@@ -371,20 +371,17 @@ ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
  * @return {*} return current primary key.
  * @override
  */
-ydn.db.index.req.WebsqlCursor.prototype.getValue = function() {
+ydn.db.index.req.WebsqlCursor.prototype.getValue = function () {
   var column_name = this.index_name ?
-      this.index_name : this.store_schema_.getColumnName();
+    this.index_name : this.store_schema_.getColumnName();
 
   if (this.current_cursor_index_ < this.cursor_.rows.length) {
     if (this.key_only) {
       return undefined;
     } else {
-      if (this.index_name) {
-        return undefined;
-      } else {
-        var row = this.cursor_.rows.item(this.current_cursor_index_);
-        return ydn.db.core.req.WebSql.parseRow(/** @type {!Object} */ (row), this.store_schema_);
-      }
+      var row = this.cursor_.rows.item(this.current_cursor_index_);
+      return ydn.db.core.req.WebSql.parseRow(/** @type {!Object} */ (row), this.store_schema_);
+
     }
   } else {
     return undefined;
@@ -615,15 +612,9 @@ ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
     throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
   }
   var n = this.cursor_.rows.length;
-  for (var i = 0; i < step; i++) {
-    this.current_cursor_index_++;
-    var last_step = (i == step -1 ) ||  this.current_cursor_index_ == n - 1;
-    if (last_step) {
-      this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
-      return;
-    }
-  }
-  this.onSuccess(undefined, undefined, undefined);
+  this.current_cursor_index_ += step;
+  this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
+
 };
 
 

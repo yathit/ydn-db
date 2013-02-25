@@ -477,6 +477,54 @@ var test_41_map_index_value_iterator = function() {
   });
 };
 
+
+var test_51_open_index_value_iterator = function() {
+
+  var done;
+  var streaming_keys = [];
+  var streaming_eff_keys = [];
+  var streaming_values = [];
+
+  // for index value iterator, the reference value is primary key.
+  var actual_values = objs.map(function(x) {return x});
+  actual_values.sort(function(a, b) {
+    return a > b ? 1 : -1;
+  });
+  var actual_keys = objs.map(function(x) {return x.id;});
+  var actual_eff_keys = objs.map(function(x) {return x.value;});
+  var q = new ydn.db.IndexValueCursors(store_name, 'value');
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('eff key', actual_eff_keys, streaming_eff_keys);
+      assertArrayEquals('pri key', actual_keys, streaming_keys);
+      assertArrayEquals('values', actual_values, streaming_values);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db = load_default();
+  var req = db.open(q, function (cursor) {
+    streaming_eff_keys.push(cursor.getEffectiveKey());
+    streaming_keys.push(cursor.getPrimaryKey());
+    streaming_values.push(cursor.getValue());
+  });
+  req.addCallback(function (result) {
+    done = true;
+  });
+  req.addErrback(function (e) {
+    console.log(e);
+    done = true;
+  });
+};
+
 var test_42_map_skip = function() {
 
   var done;
