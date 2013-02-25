@@ -8,6 +8,7 @@ goog.require('ydn.db.index.req.AbstractCursor');
 goog.require('ydn.db.index.req.ICursor');
 
 // TODO: release memory on result rows.
+// ? it seems release properly at least in chrome.
 
 /**
  * Open an index. This will resume depending on the cursor state.
