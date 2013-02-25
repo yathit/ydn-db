@@ -95,7 +95,7 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
             sql += ' AND ';
           }
           var column = goog.string.quote(key_path[i]);
-          sql += goog.string.quote(column) + ' = ?';
+          sql += column + ' = ?';
           params.push(key_range.lower[i]);
         }
 
