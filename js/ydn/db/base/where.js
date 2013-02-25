@@ -94,7 +94,8 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
           if (i > 0) {
             sql += ' AND ';
           }
-          sql += goog.string.quote(key_path[i]) + ' = ?';
+          var column = goog.string.quote(key_path[i]);
+          sql += column + ' = ?';
           params.push(key_range.lower[i]);
         }
 
@@ -108,11 +109,13 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
           if (i > 0) {
             sql += ' AND ';
           }
-          sql += key_path[i] + ' = ?';
+          var column = goog.string.quote(key_path[i]);
+          sql += column + ' = ?';
           params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
         }
       } else {
-        sql = key_path + ' = ?';
+        var column = goog.string.quote(key_path);
+        sql = column + ' = ?';
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
       }
     } else {
@@ -126,12 +129,14 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
             if (i == key_range.lower.length-1) {
               op = key_range.lowerOpen ? ' > ' : ' >= ';
             }
-            sql += ' ' + key_path[i] + op + '?';
+            var column = goog.string.quote(key_path[i]);
+            sql += ' ' + column + op + '?';
             params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
           }
         } else {
           var op = key_range.lowerOpen ? ' > ' : ' >= ';
-          sql += ' ' + key_path + op + '?';
+          var column = goog.string.quote(key_path);
+          sql += ' ' + column + op + '?';
           params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
         }
       }
@@ -146,12 +151,14 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
             if (i == key_range.upper.length-1) {
               op = key_range.upperOpen ? ' < ' : ' <= ';
             }
-            sql += ' ' + key_path[i] + op + '?';
+            var column = goog.string.quote(key_path[i]);
+            sql += ' ' + column + op + '?';
             params.push(ydn.db.schema.Index.js2sql(key_range.upper[i], type[i]));
           }
         } else {
           var op = key_range.upperOpen ? ' < ' : ' <= ';
-          sql += ' ' + key_path + op + '?';
+          var column = goog.string.quote(key_path);
+          sql += ' ' + column + op + '?';
           params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
         }
       }
