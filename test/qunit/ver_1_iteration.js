@@ -47,7 +47,7 @@ var data = [
   {id: 3, value: 3, tags: ['a', 'c'], msg: 'msg:' + Math.random()},
   {id: 4, value: 3, tags: ['c', 'b'], msg: 'msg:' + Math.random()},
   {id: 5, value: 2, tags: ['a', 'd'], msg: 'msg:' + Math.random()},
-  {id: 6, value: 8, tags: [], msg: 'msg:' + Math.random()},
+  {id: 6, value: 8, tags: ['a'], msg: 'msg:' + Math.random()},
   {id: 7, value: 2, tags: ['a', 'b'], msg: 'msg:' + Math.random()}
 ];
 var value_order = [2, 1, 5, 7, 0, 3, 4, 6];
