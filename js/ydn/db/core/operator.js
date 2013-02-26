@@ -450,7 +450,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
             me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
                 range, reverse, limit, offset, false);
           }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByIndexKeyRange');
-        }, []);
+        }, 100);
 
       } else {
         this.tx_thread.exec(function (tx) {
@@ -503,7 +503,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
             me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
                 limit, offset);
           }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
-        }, []);
+        }, 100);
       } else {
         this.tx_thread.exec(function (tx) {
           me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
