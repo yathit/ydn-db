@@ -10,6 +10,14 @@ interface IndexSchemaJson {
   multiEntry?: bool;
 }
 
+interface IndexSchemaJson {
+  name?: string;
+  keyPath: string[]; // FIXME: keyPath can be array, how to union type?
+  type?: string;
+  unique?: bool;
+  multiEntry?: bool;
+}
+
 interface StoreSchemaJson {
   name?: string;
   keyPath?: string;
@@ -92,7 +100,7 @@ declare module ydb.db
     key(i?: number): any;
     clear(i?: number) : goog.async.Deferred;
     merge(): Object;
-    update(value?: any, i?: number) : goog.async.Deferred;
+    update(value: Object, i?: number) : goog.async.Deferred;
   }
 
   export class Storage {
@@ -158,9 +166,7 @@ declare module ydb.db
 
     type(): string;
   }
-
 }
-
 
 declare module ydb.db.algo {
 
@@ -169,14 +175,15 @@ declare module ydb.db.algo {
   }
 
   export class NestedLoop extends Solver {
-    constructor(out: {push: (value: any)}, limit?: number);
+    constructor(out:{push: (value:any)}, limit?:number);
   }
 
   export class SortedMerge extends Solver {
-    constructor(out: {push: (value: any)}, limit?: number);
+    constructor(out:{push: (value:any)}, limit?:number);
   }
 
   export class ZigzagMerge extends Solver {
-    constructor(out: {push: (value: any)}, limit?: number);
+    constructor(out:{push: (value:any)}, limit?:number);
   }
+
 }

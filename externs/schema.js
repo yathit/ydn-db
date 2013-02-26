@@ -34,7 +34,30 @@ IndexSchema.prototype.keyPath;
  */
 IndexSchema.prototype.multiEntry;
 
+/**
+ * @constructor
+ */
+var KeyPaths = function() {};
 
+/**
+ * @type {string}
+ */
+KeyPaths.prototype.id;
+
+/**
+ * @type {string}
+ */
+KeyPaths.prototype.etag;
+
+/**
+ * @type {string}
+ */
+KeyPaths.prototype.nextUrl;
+
+/**
+ * @type {string}
+ */
+KeyPaths.prototype.updated;
 
 /**
  * @constructor
@@ -49,21 +72,9 @@ AtomOptions.prototype.baseUri;
 
 
 /**
- * @type {(string|number|!Array.<number|string>)}
+ * @type {KeyPaths}
  */
-AtomOptions.prototype.keyPathId;
-
-/**
- * @type {(string|number|!Array.<number|string>)}
- */
-AtomOptions.prototype.keyPathEtag;
-
-/**
- * This need to be a string because, the value is used as dual purpose of index name.
- * The string can be use dotted notation for nested key path.
- * @type {string}
- */
-AtomOptions.prototype.keyPathUpdated;
+AtomOptions.prototype.keyPaths;
 
 
 /**
@@ -96,17 +107,6 @@ var ODataOptions = function() {};
  * @constructor
  */
 function StoreSyncOptionJson() {}
-
-
-/**
- * @constructor
- */
-function Transport() {}
-
-/**
- * @type {Function}
- */
-Transport.prototype.send;
 
 
 /**

@@ -7,14 +7,13 @@ maintainable large-scale javascript web app.
 
 * Library API should be very similar to IndexedDB API and use exact
 terminology with IndexedDB specification.
-* Simple operation should be easy to use as well as optimized for it.
+* Simple operations should be easy to use as well as optimized for it.
 * Error and exception should throw as soon as possible,
 preferable before async callback.
 * Fallback to WebSQL should be seamless, but optimization is not priority.
 * Memory efficient and must not use buffer memory. If buffer is used, it must
  be explicit.
-* Complex query should be possible, but core library should not expose complex
-query language or syntax.
+* Provide foundation for full-text search and synchornization.
 
 
 # Setup #

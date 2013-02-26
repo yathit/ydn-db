@@ -6,7 +6,7 @@
  */
 
 goog.provide('ydn.db.schema.Store');
-goog.require('ydn.db.schema.SyncOption');
+goog.require('ydn.db.sync.SyncOption');
 
 goog.require('ydn.db.schema.Index');
 
@@ -93,7 +93,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   /**
    * @final
    */
-  this.sync = sync || null;
+  this.sync = !!sync;
 
 };
 
@@ -142,9 +142,9 @@ ydn.db.schema.Store.prototype.dispatch_events = false;
 ydn.db.schema.Store.prototype.fixed = false;
 
 /**
- * @type {StoreSyncOptionJson}
+ * @type {boolean}
  */
-ydn.db.schema.Store.prototype.sync = null;
+ydn.db.schema.Store.prototype.sync = false;
 
 
 
