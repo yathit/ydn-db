@@ -175,8 +175,19 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
   if (!goog.isDefAndNotNull(store_names)) {
     store_names = this.schema.getStoreNames();
   }
-  if (goog.DEBUG && (!goog.isArray(store_names) || store_names.length == 0)) {
-    throw new ydn.debug.error.ArgumentException('store names');
+  if (goog.DEBUG) {
+    if (!goog.isArray(store_names)) {
+      throw new ydn.debug.error.ArgumentException('store names must be an array');
+    } else if (store_names.length == 0) {
+        throw new ydn.debug.error.ArgumentException('number of store names must more than 0');
+    } else {
+      for (var i = 0; i < store_names.length; i++) {
+        if (!goog.isString(store_names[i])) {
+          throw new ydn.debug.error.ArgumentException('store name at ' + i +
+              ' must be string but found ' + typeof store_names[i]);
+        }
+      }
+    }
   }
 
   var outFn = trFn;
@@ -191,6 +202,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
 
   tx_thread.exec( function(tx) {
     outFn(/** @type {!ydn.db.tr.IStorage} */ (tx_queue));
+    outFn = null;
   }, store_names, mode, scope_name, oncompleted);
 
 };

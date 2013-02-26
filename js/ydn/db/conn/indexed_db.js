@@ -698,7 +698,8 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
   }
 
   if (scopes.length == 0) {
-    fnc(null);
+    fnc(null); // should we just throw error?
+    return;
     // opening without object store name will cause InvalidAccessError
   }
 
@@ -717,6 +718,7 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
   };
 
   fnc(tx);
+  fnc = null;
 
 };
 
