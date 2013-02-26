@@ -63,7 +63,7 @@ ydn.db.deleteDatabase = function(db_name, type) {
  * greater than the second, -1 if the first is less than the second, and 0 if
  * the first is equal to the second.
  */
-ydn.db.cmp = ydn.db.con.IndexedDb.indexedDb ?
+ydn.db.cmp = (ydn.db.con.IndexedDb.indexedDb && ydn.db.con.IndexedDb.indexedDb.cmp) ?
     goog.bind(ydn.db.con.IndexedDb.indexedDb.cmp,
       ydn.db.con.IndexedDb.indexedDb) :
   function (first, second) {
