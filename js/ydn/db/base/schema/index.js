@@ -42,6 +42,14 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
         ' must be a string or array');
   }
 
+  if (goog.DEBUG && goog.isArray(keyPath) && Object.freeze) {
+    // NOTE: due to performance penalty (in Chrome) of using freeze and
+    // hard to debug on different browser we don't want to use freeze
+    // this is experimental.
+    // http://news.ycombinator.com/item?id=4415981
+    Object.freeze(/** @type {!Object} */ (keyPath));
+  }
+
   if (!goog.isDef(keyPath) && goog.isDef(name)) {
     keyPath = name;
   }
@@ -234,19 +242,20 @@ ydn.db.schema.Index.TYPES = [
 
 
 /**
- *
+ * Return an immutable type.
  * @param {!Array|ydn.db.schema.DataType|string=} str data type in string.
- * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} data type.
+ * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
+ * data type.
  */
 ydn.db.schema.Index.toType = function(str) {
   if (goog.isArray(str)) {
-    /**
-     * @type {!Array}
-     */
-    var arr = str;
-    return arr.map(function(s) {
+    var out = goog.array.map(str, function(s) {
       return ydn.db.schema.Index.toType(s);
     });
+    if (goog.DEBUG && Object.freeze) {
+      Object.freeze(/** @type {!Object} */ (out));
+    }
+    return out;
   } else {
     var idx = goog.array.indexOf(ydn.db.schema.Index.TYPES, str);
     return ydn.db.schema.Index.TYPES[idx]; // undefined OK.

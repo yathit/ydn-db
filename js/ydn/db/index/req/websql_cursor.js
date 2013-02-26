@@ -220,6 +220,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
 
     } else {
       if (index) {
+        goog.asserts.assertString(key_path);
         sqls.push(goog.string.quote(key_path) + ', ' + q_primary_column_name);
         order += this.reverse ?
           goog.string.quote(key_path) + ' DESC, ' +
@@ -235,6 +236,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   } else {
     sqls.push('*');
     if (index) {
+      goog.asserts.assertString(key_path);
       order += this.reverse ?
         goog.string.quote(key_path) + ' DESC, ' +
           q_primary_column_name + ' DESC ' :

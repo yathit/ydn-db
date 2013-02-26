@@ -472,9 +472,11 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
       }
     } else {
       if (column_names.indexOf(index.getKeyPath()) == -1) {
-        sql += sep + goog.string.quote(index.getKeyPath()) + ' ' + index.getType() +
+        var key_path = index.getKeyPath();
+        goog.asserts.assertString(key_path);
+        sql += sep + goog.string.quote(key_path) + ' ' + index.getType() +
           unique;
-        column_names.push(index.getKeyPath());
+        column_names.push(key_path);
       }
     }
 

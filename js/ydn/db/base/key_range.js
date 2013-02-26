@@ -27,6 +27,14 @@ ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
   this['upper'] = upper;
   this['lowerOpen'] = !!lowerOpen;
   this['upperOpen'] = !!upperOpen;
+
+  if (Object.freeze) {
+    // NOTE: due to performance penalty (in Chrome) of using freeze and
+    // hard to debug on different browser we don't want to use freeze
+    // this is experimental.
+    // http://news.ycombinator.com/item?id=4415981
+    Object.freeze(/** @type {!Object} */ (this));
+  }
 };
 
 
