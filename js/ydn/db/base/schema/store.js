@@ -42,7 +42,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    */
   this.keyPath = goog.isDef(keyPath) ? keyPath : null;
   if (!goog.isNull(this.keyPath) &&
-      (!goog.isString(this.keyPath) || !goog.isArray(this.keyPath))) {
+      !goog.isString(this.keyPath) && !goog.isArray(this.keyPath)) {
     throw new ydn.debug.error.ArgumentException('keyPath must be a string or array');
   }
 

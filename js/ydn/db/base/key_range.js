@@ -20,12 +20,23 @@ goog.provide('ydn.db.KeyRange');
  */
 ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
 
-  // todo: make all fields final.
-  // todo: use new dict type annotation.
+  // todo: use new @dict type annotation.
 
+  /**
+   * @final
+   */
   this['lower'] = lower;
+  /**
+   * @final
+   */
   this['upper'] = upper;
+  /**
+   * @final
+   */
   this['lowerOpen'] = !!lowerOpen;
+  /**
+   * @final
+   */
   this['upperOpen'] = !!upperOpen;
 
   if (Object.freeze) {
@@ -54,13 +65,13 @@ ydn.db.KeyRange.prototype.upper = undefined;
  *
  * @type {boolean}
  */
-ydn.db.KeyRange.prototype.lowerOpen = false;
+ydn.db.KeyRange.prototype.lowerOpen;
 
 /**
  *
  * @type {boolean}
  */
-ydn.db.KeyRange.prototype.upperOpen = false;
+ydn.db.KeyRange.prototype.upperOpen;
 
 /**
  * @override
