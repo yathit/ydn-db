@@ -1,7 +1,21 @@
 # Overview #
 
-Beautiful database API for `(` secure `>` robust `>` high-performance `>` maintainable `)`
-large-scale javascript web app.
+Beautiful database API for secure, robust, high-performance,
+maintainable large-scale javascript web app.
+
+# Goals #
+
+* Library API should be very similar to IndexedDB API and use exact
+terminology with IndexedDB specification.
+* Simple operation should be easy to use as well as optimized for it.
+* Error and exception should throw as soon as possible,
+preferable before async callback.
+* Fallback to WebSQL should be seamless, but optimization is not priority.
+* Memory efficient and must not use buffer memory. If buffer is used, it must
+ be explicit.
+* Complex query should be possible, but core library should not expose complex
+query language or syntax.
+
 
 # Setup #
 
@@ -27,9 +41,8 @@ Run `ant deps` to generate closure dependency tree.
 
 Run local apache (recommended) or a static server on that directory.
 
-    python -m SimpleHTTPServer 8001
-
-Use HTML files in the /test folder for getting started. These files are also used debug development.
+Use HTML files in the /test folder for getting started. These files are also
+used for debug development.
 
 Note, we use master track version of closure tools. Compiling with pre-build jar
 may encounter compile error.
@@ -46,7 +59,7 @@ configuration.
 
     java -jar JsTestDriver.jar --tests all
 
-Use [qunit test kits](http://dev.yathit.com/test/compatibility_test.html) for end-to-end testing.
+Use [qunit test kits](http://dev.yathit.com/index/demos.html) for end-to-end testing.
 
 
 # Contributing #
