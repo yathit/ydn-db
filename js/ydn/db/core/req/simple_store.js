@@ -20,12 +20,12 @@ goog.provide('ydn.db.core.req.SimpleStore');
 goog.require('goog.Timer');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
-goog.require('ydn.db.req.RequestExecutor');
+goog.require('ydn.db.core.req.RequestExecutor');
 goog.require('ydn.db.core.req.IRequestExecutor');
 
 
 /**
- * @extends {ydn.db.req.RequestExecutor}
+ * @extends {ydn.db.core.req.RequestExecutor}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
@@ -34,7 +34,7 @@ goog.require('ydn.db.core.req.IRequestExecutor');
 ydn.db.core.req.SimpleStore = function(dbname, schema) {
   goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.core.req.SimpleStore, ydn.db.req.RequestExecutor);
+goog.inherits(ydn.db.core.req.SimpleStore, ydn.db.core.req.RequestExecutor);
 
 
 

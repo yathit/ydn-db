@@ -5,7 +5,7 @@
 
 
 goog.provide('ydn.db.core.IOperator');
-goog.require('ydn.db.req.RequestExecutor');
+goog.require('ydn.db.core.req.RequestExecutor');
 goog.require('ydn.db.KeyRange');
 
 

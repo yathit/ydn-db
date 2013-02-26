@@ -9,7 +9,7 @@
  */
 
 
-goog.provide('ydn.db.req.RequestExecutor');
+goog.provide('ydn.db.core.req.RequestExecutor');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db.InternalError');
@@ -22,7 +22,7 @@ goog.require('ydn.db.Key');
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
  */
-ydn.db.req.RequestExecutor = function(dbname, schema) {
+ydn.db.core.req.RequestExecutor = function(dbname, schema) {
   /**
    * @protected
    * @final
@@ -43,8 +43,8 @@ ydn.db.req.RequestExecutor = function(dbname, schema) {
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.req.RequestExecutor.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.req.RequestExecutor');
+ydn.db.core.req.RequestExecutor.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.core.req.RequestExecutor');
 
 
 /**
@@ -52,14 +52,14 @@ ydn.db.req.RequestExecutor.prototype.logger =
  * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
  * @protected
  */
-ydn.db.req.RequestExecutor.prototype.tx = null;
+ydn.db.core.req.RequestExecutor.prototype.tx = null;
 
 
 /**
  * @protected
  * @type {string}
  */
-ydn.db.req.RequestExecutor.prototype.scope = '';
+ydn.db.core.req.RequestExecutor.prototype.scope = '';
 
 
 /**
@@ -67,7 +67,7 @@ ydn.db.req.RequestExecutor.prototype.scope = '';
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx transaction object.
  * @param {string=} scope scope for logistic purpose only.
  */
-ydn.db.req.RequestExecutor.prototype.setTx = function(tx, scope) {
+ydn.db.core.req.RequestExecutor.prototype.setTx = function(tx, scope) {
   this.tx = tx;
   this.scope_ = scope || '';
 };

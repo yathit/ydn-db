@@ -218,6 +218,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
   var key_column = index ? index.getKeyPath() :
     goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
       ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  goog.asserts.assertString(key_column);
   var column = goog.string.quote(key_column);
 
   var type = index ? index.getType() : store.getType();
@@ -261,7 +262,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
     order = 'ORDER BY ';
     var sep = '';
     for (var i = 0; i < key_column.length; i++) {
-      order += sep + '"'+key_column[i]+'"';
+      order += sep + '"'+goog.string.quote(key_column[i])+'"';
       sep = ', ';
     }
   }

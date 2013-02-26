@@ -28,35 +28,43 @@ goog.require('ydn.db.utils');
 ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
 {
 
+
+  if (!goog.isDef(name)) {
+    if (goog.isArray(keyPath)) {
+      name = keyPath.join(', ');
+    } else {
+      name = keyPath;
+    }
+  }
+
+  if (goog.isDefAndNotNull(keyPath) && !goog.isString(keyPath) &&
+    !goog.isArrayLike(keyPath)) {
+    throw new ydn.debug.error.ArgumentException('index keyPath for ' + name +
+        ' must be a string or array, but ' + keyPath + ' is ' + typeof keyPath);
+  }
+
+  if (goog.DEBUG && goog.isArray(keyPath) && Object.freeze) {
+    // NOTE: due to performance penalty (in Chrome) of using freeze and
+    // hard to debug on different browser we don't want to use freeze
+    // this is experimental.
+    // http://news.ycombinator.com/item?id=4415981
+    Object.freeze(/** @type {!Object} */ (keyPath));
+  }
+
   if (!goog.isDef(keyPath) && goog.isDef(name)) {
     keyPath = name;
   }
 
-  if (goog.isArrayLike(keyPath)) {
-    var ks = goog.array.map(/** @type {Array.<string>} */ (keyPath), function(x) {
-      return x;
-    });
-    if (!goog.isDef(name)) {
-      name = ks.join(', ');
-    }
-    keyPath = /** @type {string} */ (ks);
-  } else if (goog.isString(keyPath)) {
-    // OK.
-  } else {
-    throw new ydn.debug.error.ArgumentException('index keyPath or name required.');
-  }
-
   /**
    * @final
-   * @type {string}
    */
   this.keyPath = keyPath;
 
+
   /**
    * @final
-   * @type {string}
    */
-  this.name = goog.isDef(name) ? name : this.keyPath;
+  this.name = name;
   /**
    * @final
    * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
@@ -65,26 +73,45 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
   if (goog.DEBUG &&
       (
           (goog.isArray(opt_type) && !goog.isArray(this.type)) ||
-              (goog.isArray(opt_type) && !goog.array.equals(/** @type {Array} */ (this.type), opt_type)) ||
+              (goog.isArray(opt_type) && !goog.array.equals(
+                  /** @type {Array} */ (this.type), opt_type)) ||
               (!goog.isArray(opt_type) && this.type != opt_type)
           )
       ) {
-    throw new ydn.debug.error.ArgumentException('Invalid index type: ' + opt_type +
-        ' in ' + this.name);
+    throw new ydn.debug.error.ArgumentException('Invalid index type: ' +
+        opt_type + ' in ' + this.name);
   }
   /**
    * @final
-   * @type {boolean}
    */
   this.unique = !!opt_unique;
 
   /**
    * @final
-   * @type {boolean}
    */
   this.multiEntry = !!multiEntry;
 };
 
+
+/**
+ * @type {string}
+ */
+ydn.db.schema.Index.prototype.name;
+
+/**
+ * @type {(string|!Array.<string>)}
+ */
+ydn.db.schema.Index.prototype.keyPath;
+
+/**
+ * @type {boolean}
+ */
+ydn.db.schema.Index.prototype.multiEntry;
+
+/**
+ * @type {boolean}
+ */
+ydn.db.schema.Index.prototype.unique;
 
 
 /**
@@ -216,19 +243,20 @@ ydn.db.schema.Index.TYPES = [
 
 
 /**
- *
+ * Return an immutable type.
  * @param {!Array|ydn.db.schema.DataType|string=} str data type in string.
- * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} data type.
+ * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
+ * data type.
  */
 ydn.db.schema.Index.toType = function(str) {
   if (goog.isArray(str)) {
-    /**
-     * @type {!Array}
-     */
-    var arr = str;
-    return arr.map(function(s) {
+    var out = goog.array.map(str, function(s) {
       return ydn.db.schema.Index.toType(s);
     });
+    if (goog.DEBUG && Object.freeze) {
+      Object.freeze(/** @type {!Object} */ (out));
+    }
+    return out;
   } else {
     var idx = goog.array.indexOf(ydn.db.schema.Index.TYPES, str);
     return ydn.db.schema.Index.TYPES[idx]; // undefined OK.
@@ -251,7 +279,6 @@ ydn.db.schema.Index.toAbbrType = function(x) {
     return ydn.db.DataTypeAbbr.TEXT;
   }
 };
-
 
 
 /**
@@ -345,7 +372,7 @@ ydn.db.schema.Index.toDir = function(str) {
 
 /**
  *
- * @return {string} keyPath
+ * @return {(string|!Array.<string>)} keyPath
  */
 ydn.db.schema.Index.prototype.getKeyPath = function() {
   return this.keyPath;

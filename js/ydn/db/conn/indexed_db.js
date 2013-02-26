@@ -621,9 +621,13 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
         if (!indexNames.contains(index.name)) {
           if (index.unique || index.multiEntry) {
             var idx_options = {unique: index.unique, multiEntry: index.multiEntry};
-            store.createIndex(index.name, index.keyPath, idx_options);
+            store.createIndex(index.name,
+              // todo: remove this casting after externs is updated.
+              /** @type  {string} */ (index.keyPath),
+              idx_options);
           } else {
-            store.createIndex(index.name, index.keyPath);
+            store.createIndex(index.name,
+              /** @type  {string} */ (index.keyPath));
           }
           created++;
         }

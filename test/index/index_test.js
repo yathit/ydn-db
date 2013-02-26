@@ -18,11 +18,11 @@ var setUp = function() {
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.core').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.sql').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
-  //ydn.db.core.req.WebSql.DEBUG = true;
+  // ydn.db.core.req.WebSql.DEBUG = true;
   //ydn.db.index.req.WebSql.DEBUG = true;
 
   reachedFinalContinuation = false;
@@ -385,7 +385,7 @@ var test_list_by_index = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.only('a');
-  db.values(store_name, range, undefined, undefined, 'type').addBoth(function(x) {
+  db.values(store_name, 'type', range, undefined, undefined).addBoth(function(x) {
     result = x;
     done = true;
   }, function(e) {
@@ -414,7 +414,7 @@ var test_keys_by_index = function () {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.only('a');
-  db.keys(store_name, range, 100, 0, 'type').addBoth(function(x) {
+  db.keys(store_name, 'type', range, 100, 0).addBoth(function(x) {
     result = x;
     done = true;
   }, function(e) {
@@ -495,61 +495,55 @@ var test_multiEntry = function () {
 
 };
 
+var compound_index_data = [
+  {
+    id: 1,
+    label1: 'a', label2: 'a'
+  }, {
+    id: 2,
+    label1: 'a', label2: 'b'
+  }, {
+    id: 3,
+    label1: 'b', label2: 'a'
+  }, {
+    id: 4,
+    label1: 'b', label2: 'b'
+  }
+];
 
+var compound_index_schema = {
+  stores: [{
+    name: 'st1',
+    keyPath: 'id',
+    type: 'INTEGER',
+    indexes: [
+      {
+        name: 'label1, label2',
+        keyPath: ['label1', 'label2'],
+        type: ['TEXT', 'TEXT']
+      }
+    ]
+  }]
+};
 
-var test_compound_index = function () {
+var compound_index_db_name = 'test_compound_index';
+var compound_index_db = new ydn.db.Storage(compound_index_db_name, compound_index_schema, options);
+compound_index_db.clear('st1');
+compound_index_db.put('st1', compound_index_data);
 
-  var objs = [
-    {
-      id: 1,
-      label1: 'a',
-      label2: 'a'
-    }, {
-      id: 2,
-      label1: 'a',
-      label2: 'b'
-    }, {
-      id: 3,
-      label1: 'b',
-      label2: 'a'
-    }, {
-      id: 4,
-      label1: 'b',
-      label2: 'b'
-    }
-  ];
+var compound_index_test = function (key_range, len, exp_result) {
 
-  var schema = {
-    stores: [{
-      name: 'st1',
-      keyPath: 'id',
-      type: 'INTEGER',
-      indexes: [
-        {
-          name: '12',
-          keyPath: ['label1', 'label2']
-        }
-      ]
-    }]
-  };
-
-  var db_name = 'test_' + Math.random();
-
-  var db = new ydn.db.Storage(db_name, schema, options);
 
   var done, result;
 
-  db.put('st1', objs).addCallbacks(function(keys) {
-    db.values('st1', ydn.db.KeyRange.bound(['a'], ['b']), 100, 0, '12').addCallbacks(function(x) {
-      result = x;
-      console.log(x);
-      done = true;
-    }, function(e) {
-      throw e;
-    })
-  }, function(e) {
+  compound_index_db.values('st1', 'label1, label2', key_range, 100, 0).addCallbacks(function (x) {
+    result = x;
+    console.log(x);
+    done = true;
+  }, function (e) {
     throw e;
   });
+
 
   waitForCondition(
     // Condition
@@ -558,14 +552,47 @@ var test_compound_index = function () {
     },
     // Continuation
     function () {
-      assertEquals('length', 2, result.length);
-      assertArrayEquals(objs.slice(0, 2), result);
-      ydn.db.deleteDatabase(db_name);
+      assertEquals('length', len, result.length);
+      assertArrayEquals(exp_result, result);
       reachedFinalContinuation = true;
     },
     100, // interval
     1000); // maxTimeout
 
+};
+
+
+var test_compound_text_open_open = function() {
+  var key_range = ydn.db.KeyRange.bound(['a', 'a'], ['b', 'b'], true, true);
+  var len = 2;
+  var exp_result = compound_index_data.slice(1, 3);
+  compound_index_test(key_range, len, exp_result);
+};
+
+var test_compound_text_open_close = function() {
+  var key_range = ydn.db.KeyRange.bound(['a', 'a'], ['b', 'b'], true);
+  var len = 3;
+  var exp_result = compound_index_data.slice(1, 4);
+  compound_index_test(key_range, len, exp_result);
+};
+
+var test_compound_text_close_close = function() {
+  var key_range = ydn.db.KeyRange.bound(['a', 'a'], ['b', 'b']);
+  var len = 4;
+  var exp_result = compound_index_data.slice();
+  compound_index_test(key_range, len, exp_result);
+};
+
+var test_compound_text_starts = function() {
+  var key_range = ydn.db.KeyRange.starts(['a']);
+  var len = 2;
+  var exp_result = compound_index_data.slice(0, 2);
+  compound_index_test(key_range, len, exp_result);
+};
+
+var tearDownPage = function() {
+  var type = compound_index_db.getType();
+  ydn.db.deleteDatabase(compound_index_db_name, type);
 };
 
 

@@ -6,9 +6,10 @@
  */
 
 goog.provide('ydn.db.schema.Store');
-goog.require('ydn.db.schema.SyncOption');
 
 goog.require('ydn.db.schema.Index');
+
+
 
 
 /**
@@ -42,7 +43,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    */
   this.keyPath = goog.isDef(keyPath) ? keyPath : null;
   if (!goog.isNull(this.keyPath) &&
-      (!goog.isString(this.keyPath) || goog.isArray(this.keyPath))) {
+      !goog.isString(this.keyPath) && !goog.isArrayLike(this.keyPath)) {
     throw new ydn.debug.error.ArgumentException('keyPath must be a string or array');
   }
 
@@ -90,12 +91,29 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    * @final
    */
   this.fixed = !!fixed;
-  /**
-   * @final
-   */
-  this.sync = sync || null;
 
 };
+
+
+
+/**
+ * @enum {string}
+ */
+ydn.db.schema.Store.FetchStrategy = {
+  LAST_UPDATED: 'last-updated',
+  ASCENDING_KEY: 'ascending-key',
+  DESCENDING_KEY: 'descending-key'
+};
+
+
+
+/**
+ * @const
+ * @type {Array.<ydn.db.schema.Store.FetchStrategy>}
+ */
+ydn.db.schema.Store.FetchStrategies = [
+  ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
+  ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
 
 
 /**
@@ -141,11 +159,16 @@ ydn.db.schema.Store.prototype.dispatch_events = false;
  */
 ydn.db.schema.Store.prototype.fixed = false;
 
-/**
- * @type {StoreSyncOptionJson}
- */
-ydn.db.schema.Store.prototype.sync = null;
 
+/**
+ *
+ * @param {ydn.db.schema.Store.FetchStrategy|ydn.db.schema.Store.SyncMethod} strategy
+ * @param {{index: string?, offset: number, reverse: boolean}=} opt
+ * @return {boolean} return whether need to sync with the situation.
+ */
+ydn.db.schema.Store.prototype.toSync = function(strategy, opt) {
+  return false;
+};
 
 
 /**

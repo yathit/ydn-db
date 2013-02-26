@@ -208,7 +208,7 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
 
 
       var req_df = df;
-      if (ydn.db.base.SYNC && store.sync) {
+      if (ydn.db.base.SYNC && store.toSync(ydn.db.schema.Store.SyncMethod.GET)) {
         req_df = new goog.async.Deferred();
         req_df.addCallbacks(function(record) {
           if (goog.isFunction(store.syncObject)) { // inject syncObject function from sync module.
@@ -442,10 +442,10 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
       this.logger.finer('listByIndexKeyRange: ' + store_name + ':' + index_name);
 
       // inject sync module function.
-      if (ydn.db.base.SYNC && goog.isFunction(store.syncObjects) && store.sync &&
-          store.sync.fetchStrategies.indexOf(ydn.db.schema.SyncOption.FetchStrategy.LAST_UPDATED) >= 0 &&
-          offset == 0 && reverse == true && index_name == store.sync.options.keyPathUpdated) {
-        store.syncObjects(ydn.db.schema.Store.SyncMethod.LIST_BY_UPDATED, function() {
+      if (ydn.db.base.SYNC && goog.isFunction(store.syncObjects) &&
+          store.toSync(ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
+            {index: index_name, reverse: reverse, offset: offset})) {
+        store.syncObjects(ydn.db.schema.Store.FetchStrategy.LAST_UPDATED, function() {
           me.sync_thread.exec(function (tx) {
             me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
                 range, reverse, limit, offset, false);
@@ -492,24 +492,18 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
       this.logger.finer((range ? 'listByKeyRange: ' : 'listByStore: ') + store_name);
 
       // inject sync module function.
-      if (ydn.db.base.SYNC && goog.isFunction(store.syncObjects) && store.sync &&
-          store.sync.fetchStrategies.indexOf(ydn.db.schema.SyncOption.FetchStrategy.ASCENDING_KEY) >= 0 &&
-          offset == 0 && reverse == false) {
-        store.syncObjects(ydn.db.schema.Store.SyncMethod.LIST_BY_ASCENDING_KEY, function() {
+      var strategy = reverse ?
+        ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY :
+        ydn.db.schema.Store.FetchStrategy.ASCENDING_KEY;
+      if (ydn.db.base.SYNC && goog.isFunction(store.syncObjects) &&
+        store.toSync(strategy,
+          {index: null, offset: offset, reverse: reverse})) {
+        store.syncObjects(strategy, function() {
           me.tx_thread.exec(function (tx) {
             me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
                 limit, offset);
           }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
         }, []);
-      } else if (ydn.db.base.SYNC && goog.isFunction(store.syncObjects) && store.sync &&
-            store.sync.fetchStrategies.indexOf(ydn.db.schema.SyncOption.FetchStrategy.DESCENDING_KEY) >= 0 &&
-            offset == 0 && reverse == true) {
-          store.syncObjects(ydn.db.schema.Store.SyncMethod.LIST_BY_DESCENDING_KEY, function() {
-            me.tx_thread.exec(function (tx) {
-              me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
-                  limit, offset);
-            }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
-          }, []);
       } else {
         this.tx_thread.exec(function (tx) {
           me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,

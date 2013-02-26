@@ -25,14 +25,14 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.req.RequestExecutor');
+goog.require('ydn.db.core.req.RequestExecutor');
 goog.require('ydn.json');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.core.req.IRequestExecutor');
 
 
 /**
- * @extends {ydn.db.req.RequestExecutor}
+ * @extends {ydn.db.core.req.RequestExecutor}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
@@ -41,7 +41,7 @@ goog.require('ydn.db.core.req.IRequestExecutor');
 ydn.db.core.req.WebSql = function(dbname, schema) {
   goog.base(this, dbname, schema);
 };
-goog.inherits(ydn.db.core.req.WebSql, ydn.db.req.RequestExecutor);
+goog.inherits(ydn.db.core.req.WebSql, ydn.db.core.req.RequestExecutor);
 
 
 /**
@@ -189,7 +189,9 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
   var store = this.schema.getStore(store_name);
 
   var is_index = goog.isDefAndNotNull(index_column);
+  var index = goog.isString(index_column) ? store.getIndex(index_column) : null;
   var column = index_column || store.getColumnName();
+  var key_path = index ? index.getKeyPath() : store.getKeyPath();
 
   var qcolumn = goog.string.quote(column);
   var key_column = store.getColumnName();
@@ -205,12 +207,15 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
       fields = goog.string.quote(key_column);
     }
   }
+  // FIXME: DISTINCT is not equivalent to IndexedDB unique
   var dist = distinct ? 'DISTINCT' : '';
   var sql = 'SELECT ' + dist + fields +
     ' FROM ' + store.getQuotedName();
   var params = [];
   if (!goog.isNull(key_range)) {
-    var where_clause = ydn.db.Where.toWhereClause(column, store.getType(), key_range);
+    var where_clause = ydn.db.Where.toWhereClause(
+        /** @type {string} */ (key_path), // FIXME: shouldn't need cast.
+        store.getType(), key_range);
     sql += ' WHERE ' + where_clause.sql;
     params = where_clause.params;
   }
@@ -256,7 +261,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
     return true; // roll back
   };
 
-  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
+  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + ydn.json.stringify(params));
   this.tx.executeSql(sql, params, callback, error_callback);
 };
 
@@ -571,7 +576,8 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(df, table_name, ids) {
 ydn.db.core.req.WebSql.prototype.listByKeyRange = function(df, store_name,
    key_range, reverse, limit, offset) {
 
-  this.list_by_key_range_(df, false, store_name, undefined, key_range, reverse, limit, offset, false);
+  this.list_by_key_range_(df, false, store_name, undefined, key_range, reverse,
+      limit, offset, false);
 };
 
 /**
@@ -579,7 +585,8 @@ ydn.db.core.req.WebSql.prototype.listByKeyRange = function(df, store_name,
  */
 ydn.db.core.req.WebSql.prototype.listByIndexKeyRange = function(df, store_name,
           index, key_range, reverse, limit, offset, unqiue) {
-  this.list_by_key_range_(df, false, store_name, index, key_range, reverse, limit, offset, unqiue)
+  this.list_by_key_range_(df, false, store_name, index, key_range, reverse,
+      limit, offset, unqiue)
 };
 
 
@@ -1043,7 +1050,6 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
   var store = this.schema.getStore(table);
   if (!goog.isNull(key_range)) {
     if (goog.isDef(index_name)) {
-      var column = index_name;
       var index = store.getIndex(index_name);
       var keyPath = index.keyPath;
       var type = index.type;
@@ -1059,11 +1065,13 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
               if (i == key_range.lower.length-1) {
                 op = key_range.lowerOpen ? ' > ' : ' >= ';
               }
-              sql += ' ' + keyPath[i] + op + '?';
+              var column = goog.string.quote(keyPath[i]);
+              sql += ' ' + column + op + '?';
               params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
             }
           } else {
             var op = key_range.lowerOpen ? ' > ' : ' >= ';
+            var column = goog.string.quote(index_name);
             sql += ' ' + column + op + '?';
             params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
           }
@@ -1079,11 +1087,13 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
               if (i == key_range.upper.length-1) {
                 op = key_range.upperOpen ? ' < ' : ' <= ';
               }
-              sql += ' ' + keyPath[i] + op + '?';
+              var column = goog.string.quote(keyPath[i]);
+              sql += ' ' + column + op + '?';
               params.push(ydn.db.schema.Index.js2sql(key_range.upper[i], type[i]));
             }
           } else {
             var op = key_range.upperOpen ? ' < ' : ' <= ';
+            var column = goog.string.quote(index_name);
             sql += ' AND ' + column + op + '?';
             params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
           }
