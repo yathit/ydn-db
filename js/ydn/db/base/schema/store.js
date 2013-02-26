@@ -6,9 +6,10 @@
  */
 
 goog.provide('ydn.db.schema.Store');
-goog.require('ydn.db.sync.SyncOption');
 
 goog.require('ydn.db.schema.Index');
+
+
 
 
 /**
@@ -96,6 +97,27 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   this.sync = !!sync;
 
 };
+
+
+
+/**
+ * @enum {string}
+ */
+ydn.db.schema.Store.FetchStrategy = {
+  LAST_UPDATED: 'last-updated',
+  ASCENDING_KEY: 'ascending-key',
+  DESCENDING_KEY: 'descending-key'
+};
+
+
+
+/**
+ * @const
+ * @type {Array.<ydn.db.schema.Store.FetchStrategy>}
+ */
+ydn.db.schema.Store.FetchStrategies = [
+  ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
+  ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
 
 
 /**
