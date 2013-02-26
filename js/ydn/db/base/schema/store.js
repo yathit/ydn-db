@@ -91,10 +91,6 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    * @final
    */
   this.fixed = !!fixed;
-  /**
-   * @final
-   */
-  this.sync = !!sync;
 
 };
 
@@ -163,11 +159,16 @@ ydn.db.schema.Store.prototype.dispatch_events = false;
  */
 ydn.db.schema.Store.prototype.fixed = false;
 
-/**
- * @type {boolean}
- */
-ydn.db.schema.Store.prototype.sync = false;
 
+/**
+ *
+ * @param {ydn.db.schema.Store.FetchStrategy|ydn.db.schema.Store.SyncMethod} strategy
+ * @param {{index: string?, offset: number, reverse: boolean}=} opt
+ * @return {boolean} return whether need to sync with the situation.
+ */
+ydn.db.schema.Store.prototype.toSync = function(strategy, opt) {
+  return false;
+};
 
 
 /**
