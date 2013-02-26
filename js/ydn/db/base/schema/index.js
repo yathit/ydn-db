@@ -37,7 +37,7 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
     }
   }
 
-  if (!goog.isString(keyPath) && !goog.isArray(keyPath)) {
+  if (!goog.isString(keyPath) && !goog.isArrayLike(keyPath)) {
     throw new ydn.debug.error.ArgumentException('index keyPath for ' + name +
         ' must be a string or array');
   }
