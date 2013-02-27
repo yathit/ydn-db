@@ -642,9 +642,21 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
     names = [store_names];
   } else if (!goog.isDefAndNotNull(store_names)) {
     names = null;
-  } else if (!goog.isArray(store_names) ||
-    (!goog.isString(store_names[0]))) {
-    throw new ydn.debug.error.ArgumentException('storeNames');
+  } else {
+    if (goog.DEBUG) {
+      if (!goog.isArray(store_names)) {
+        throw new ydn.debug.error.ArgumentException('store names must be an array');
+      } else if (store_names.length == 0) {
+        throw new ydn.debug.error.ArgumentException('number of store names must more than 0');
+      } else {
+        for (var i = 0; i < store_names.length; i++) {
+          if (!goog.isString(store_names[i])) {
+            throw new ydn.debug.error.ArgumentException('store name at ' + i +
+              ' must be string but found ' + typeof store_names[i]);
+          }
+        }
+      }
+    }
   }
 
   var is_ready = !!this.db_ && this.db_.isReady();
@@ -667,6 +679,7 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
   var on_complete = function(type, ev) {
     if (goog.isFunction(on_completed)) {
       on_completed(type, ev);
+      on_completed = undefined;
     }
     if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {
       me.in_version_change_tx_ = false;
@@ -677,6 +690,7 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
   //console.log('core running ' + trFn.name);
   this.db_.doTransaction(function(tx) {
     trFn(tx);
+    trFn = null;
   }, names, mode, on_complete);
 
 };

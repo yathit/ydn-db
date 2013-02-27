@@ -163,20 +163,32 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
 ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
+  var me = this;
   var scope_name = trFn.name || '';
   var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Threads.SINGLE, scope_name);
   var tx_queue = this.newOperator(tx_thread, this.sync_thread);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   if (goog.DEBUG && [ydn.db.base.TransactionMode.READ_ONLY,
       ydn.db.base.TransactionMode.READ_WRITE].indexOf(mode) == -1) {
-    throw new ydn.debug.error.ArgumentException('mode');
+    throw new ydn.debug.error.ArgumentException('invalid mode');
   }
 
   if (!goog.isDefAndNotNull(store_names)) {
     store_names = this.schema.getStoreNames();
   }
-  if (goog.DEBUG && (!goog.isArray(store_names) || store_names.length == 0)) {
-    throw new ydn.debug.error.ArgumentException('store names');
+  if (goog.DEBUG) {
+    if (!goog.isArray(store_names)) {
+      throw new ydn.debug.error.ArgumentException('store names must be an array');
+    } else if (store_names.length == 0) {
+        throw new ydn.debug.error.ArgumentException('number of store names must more than 0');
+    } else {
+      for (var i = 0; i < store_names.length; i++) {
+        if (!goog.isString(store_names[i])) {
+          throw new ydn.debug.error.ArgumentException('store name at ' + i +
+              ' must be string but found ' + typeof store_names[i]);
+        }
+      }
+    }
   }
 
   var outFn = trFn;
@@ -189,8 +201,11 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
     };
   }
 
+  this.logger.finest('scheduling run in transaction ' + scope_name + ' with ' + tx_thread);
   tx_thread.exec( function(tx) {
+    me.logger.finest('executing run in transaction ' + scope_name);
     outFn(/** @type {!ydn.db.tr.IStorage} */ (tx_queue));
+    outFn = null;
   }, store_names, mode, scope_name, oncompleted);
 
 };
