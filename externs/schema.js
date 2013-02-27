@@ -74,7 +74,7 @@ AtomOptions.prototype.baseUri;
 /**
  * @type {KeyPaths}
  */
-AtomOptions.prototype.keyPaths;
+AtomOptions.prototype.KeyPaths;
 
 
 /**
@@ -132,7 +132,7 @@ StoreSyncOptionJson.prototype.transport;
 /**
  * @type {AtomOptions|GDataOptions|ODataOptions}
  */
-StoreSyncOptionJson.prototype.options;
+StoreSyncOptionJson.prototype.Options;
 
 /**
  * Entry list fetch strategy. Supported method are
@@ -187,7 +187,7 @@ StoreSchema.prototype.fixed;
  * Name of sync
  * @type {StoreSyncOptionJson}
  */
-StoreSchema.prototype.sync;
+StoreSchema.prototype.Sync;
 
 
 /**

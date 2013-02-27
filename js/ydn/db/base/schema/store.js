@@ -224,7 +224,7 @@ ydn.db.schema.Store.fromJSON = function(json) {
   }
   return new ydn.db.schema.Store(json.name, json.keyPath,
       json.autoIncrement, json.type, indexes, json.dispatchEvents, json.fixed,
-      json.sync);
+      json.Sync);
 };
 
 
