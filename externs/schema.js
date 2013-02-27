@@ -78,6 +78,34 @@ AtomOptions.prototype.KeyPaths;
 
 
 /**
+ * @see http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html
+ * @extends {AtomOptions}
+ * @constructor
+ */
+var S3Options = function() {};
+
+/**
+ * @type {string?}
+ */
+S3Options.prototype.marker;
+
+/**
+ * @type {string?}
+ */
+S3Options.prototype.delimiter;
+
+/**
+ * @type {string?}
+ */
+S3Options.prototype.maxKeys;
+
+/**
+ * @type {string?}
+ */
+S3Options.prototype.prefix;
+
+
+/**
  * @extends {AtomOptions}
  * @constructor
  */
@@ -130,7 +158,7 @@ StoreSyncOptionJson.prototype.writeRequestTimeout;
 StoreSyncOptionJson.prototype.transport;
 
 /**
- * @type {AtomOptions|GDataOptions|ODataOptions}
+ * @type {AtomOptions|GDataOptions|ODataOptions|S3Options}
  */
 StoreSyncOptionJson.prototype.Options;
 

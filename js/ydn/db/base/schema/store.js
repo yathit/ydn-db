@@ -204,7 +204,7 @@ ydn.db.schema.Store.prototype.toJSON = function() {
 ydn.db.schema.Store.fromJSON = function(json) {
   if (goog.DEBUG) {
     var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'indexes',
-      'dispatchEvents', 'fixed', 'sync'];
+      'dispatchEvents', 'fixed', 'Sync'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.debug.error.ArgumentException('Unknown attribute "' + key + '"');

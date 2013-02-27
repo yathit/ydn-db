@@ -831,10 +831,11 @@ ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
  * This is friendly module use only.
  * @param {string} store_name store name.
  * @param {!Array.<Object>} objs objects.
+ * @param {!Array.<Object>=} keys keys.
  * @return {!goog.async.Deferred} df return no result.
  * @override
  */
-ydn.db.core.DbOperator.prototype.dump = function(store_name, objs) {
+ydn.db.core.DbOperator.prototype.dump = function(store_name, objs, keys) {
   var df = new goog.async.Deferred();
   var me = this;
   var on_completed = function(t, e) {
@@ -845,7 +846,7 @@ ydn.db.core.DbOperator.prototype.dump = function(store_name, objs) {
     }
   };
   this.sync_thread.exec(function(tx) {
-    me.getExecutor(tx).putObjects(new goog.async.Deferred(), store_name, objs);
+    me.getExecutor(tx).putObjects(new goog.async.Deferred(), store_name, objs, keys);
   }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'dump', on_completed);
   return df;
 };

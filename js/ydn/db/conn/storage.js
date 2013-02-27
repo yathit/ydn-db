@@ -135,7 +135,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
     for (var i = 0, n = schema_json.stores ? schema_json.stores.length : 0; i < n; i++) {
       var store = schema.getStore(schema_json.stores[i].name);
-      if (schema_json.stores[i].sync) {
+      if (schema_json.stores[i].Sync) {
         this.addSynchronizer(store, schema_json.stores[i].Sync);
       }
     }
