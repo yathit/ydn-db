@@ -241,12 +241,12 @@ ydn.db.sql.req.WebSql.prototype.planQuery = function(query) {
       where_clause = column + ' LIKE ?';
       sql.params.push(key_range['lower'] + '%');
     } else {
-      if (goog.isDef(key_range.lower)) {
+      if (goog.isDefAndNotNull(key_range.lower)) {
         var lowerOp = key_range['lowerOpen'] ? ' > ' : ' >= ';
         where_clause += ' ' + column + lowerOp + '?';
         sql.params.push(key_range.lower);
       }
-      if (goog.isDef(key_range['upper'])) {
+      if (goog.isDefAndNotNull(key_range['upper'])) {
         var upperOp = key_range['upperOpen'] ? ' < ' : ' <= ';
         var and = where_clause.length > 0 ? ' AND ' : ' ';
         where_clause += and + column + upperOp + '?';

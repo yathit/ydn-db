@@ -129,12 +129,12 @@ ydn.db.sql.req.IterableQuery.prototype.processWhereAsFilter = function(where) {
     var ok1 = true;
     var key_range = where.getKeyRange();
     if (key_range) {
-      if (goog.isDef(key_range.lower)) {
+      if (goog.isDefAndNotNull(key_range.lower)) {
         ok1 = key_range.lowerOpen ? value < key_range.lower :
           value <= key_range.lower;
       }
       var ok2 = true;
-      if (goog.isDef(key_range.upper)) {
+      if (goog.isDefAndNotNull(key_range.upper)) {
         ok2 = key_range.upperOpen ? value > key_range.upper :
           value >= key_range.upper;
       }

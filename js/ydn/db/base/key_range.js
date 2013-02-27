@@ -216,16 +216,16 @@ ydn.db.KeyRange.parseKeyRange = function(keyRange) {
   if(keyRange instanceof ydn.db.IDBKeyRange) {
     return keyRange;
   }
-  if (goog.isDef(keyRange['upper']) && goog.isDef(keyRange['lower'])) {
+  if (goog.isDefAndNotNull(keyRange['upper']) && goog.isDefAndNotNull(keyRange['lower'])) {
 
     return ydn.db.IDBKeyRange.bound(
       keyRange.lower, keyRange.upper,
       !!keyRange['lowerOpen'], !!keyRange['upperOpen']);
 
-  } else if (goog.isDef(keyRange.upper)) {
+  } else if (goog.isDefAndNotNull(keyRange.upper)) {
     return ydn.db.IDBKeyRange.upperBound(keyRange.upper,
       keyRange.upperOpen);
-  } else if (goog.isDef(keyRange.lower)) {
+  } else if (goog.isDefAndNotNull(keyRange.lower)) {
     return ydn.db.IDBKeyRange.lowerBound(keyRange.lower,
       keyRange.lowerOpen);
   } else {
