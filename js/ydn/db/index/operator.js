@@ -165,7 +165,8 @@ ydn.db.index.DbOperator.prototype.count = function(arg1, arg2, arg3) {
     var q = arg1;
     this.logger.finest('countKeyRange:' + q);
     this.tx_thread.exec(function(tx) {
-      me.getExecutor(tx).countKeyRange(df, q.getStoreName(), q.keyRange(), q.getIndexName());
+      me.getExecutor(tx).countKeyRange(df, q.getStoreName(), q.keyRange(),
+        q.getIndexName());
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'countByIterator');
 
     return df;
@@ -325,7 +326,8 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
         out = solver(keys, values);
       }
       if (ydn.db.index.DbOperator.DEBUG) {
-        window.console.log(me + ' ready and received result from solver ' + ydn.json.stringify(out));
+        window.console.log(me + ' ready and received result from solver ' +
+          ydn.json.stringify(out));
       }
       var next_primary_keys = [];
       var next_effective_keys = [];

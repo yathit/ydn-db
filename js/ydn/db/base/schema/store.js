@@ -163,8 +163,12 @@ ydn.db.schema.Store.prototype.fixed = false;
 /**
  *
  * @param {ydn.db.schema.Store.FetchStrategy|ydn.db.schema.Store.SyncMethod} strategy
- * @param {{index: string?, offset: number, reverse: boolean}=} opt
- * @return {boolean} return whether need to sync with the situation.
+ * @param {{
+   *   index: (string?|undefined),
+   *   offset: number,
+   *   reverse: boolean
+   * }=}  opt
+ * @return {boolean}
  */
 ydn.db.schema.Store.prototype.toSync = function(strategy, opt) {
   return false;
