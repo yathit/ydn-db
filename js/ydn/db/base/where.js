@@ -121,7 +121,7 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
       }
     } else {
-      if (goog.isDef(key_range.lower)) {
+      if (goog.isDefAndNotNull(key_range.lower)) {
         if (goog.isArray(key_path)) {
           goog.asserts.assert(goog.isArrayLike(key_range.lower),
               'lower value of keyRange must be array for ' + key_path);
@@ -146,7 +146,7 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
           params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
         }
       }
-      if (goog.isDef(key_range.upper)) {
+      if (goog.isDefAndNotNull(key_range.upper)) {
         sql += sql.length > 0 ? ' AND ' : ' ';
         if (goog.isArray(key_path)) {
           goog.asserts.assert(goog.isArrayLike(key_range.upper),
@@ -197,7 +197,7 @@ ydn.db.Where.prototype.toWhereClause = function (type) {
  */
 ydn.db.Where.resolvedStartsWith = function(keyRange) {
   if (!goog.isDefAndNotNull(keyRange) ||
-      !goog.isDef(keyRange.lower) || !goog.isDef(keyRange.upper)) {
+      !goog.isDefAndNotNull(keyRange.lower) || !goog.isDefAndNotNull(keyRange.upper)) {
     return false;
   }
   if (goog.isArray(keyRange.lower) && goog.isArray(keyRange.upper)) {
