@@ -1055,7 +1055,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
       var type = index.type;
       if (goog.isArray(type)) {
         sql += ' WHERE ';
-        if (goog.isDef(key_range.lower)) {
+        if (goog.isDefAndNotNull(key_range.lower)) {
           if (goog.isArray(type)) {
             var op = '=';
             for (var i = 0; i < key_range.lower.length; i++) {
@@ -1076,7 +1076,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(d, table,
             params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
           }
         }
-        if (goog.isDef(key_range.upper)) {
+        if (goog.isDefAndNotNull(key_range.upper)) {
           sql += sql.length > 0 ? ' AND ' : ' ';
           if (goog.isArray(type)) {
             var op = '=';
