@@ -163,13 +163,14 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
 ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
+  var me = this;
   var scope_name = trFn.name || '';
   var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Threads.SINGLE, scope_name);
   var tx_queue = this.newOperator(tx_thread, this.sync_thread);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   if (goog.DEBUG && [ydn.db.base.TransactionMode.READ_ONLY,
       ydn.db.base.TransactionMode.READ_WRITE].indexOf(mode) == -1) {
-    throw new ydn.debug.error.ArgumentException('mode');
+    throw new ydn.debug.error.ArgumentException('invalid mode');
   }
 
   if (!goog.isDefAndNotNull(store_names)) {
@@ -200,7 +201,9 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
     };
   }
 
+  this.logger.finest('scheduling run in transaction ' + scope_name + ' with ' + tx_thread);
   tx_thread.exec( function(tx) {
+    me.logger.finest('executing run in transaction ' + scope_name);
     outFn(/** @type {!ydn.db.tr.IStorage} */ (tx_queue));
     outFn = null;
   }, store_names, mode, scope_name, oncompleted);
