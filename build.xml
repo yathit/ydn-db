@@ -68,7 +68,7 @@
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
                  token="/Users/kyawtun/work/ydn-db/"
-                 value="https://bitbucket.org/ytkyaw/ydn-db/raw/${buildno}/"/>
+                 value="https://bitbucket.org/ytkyaw/ydn-db/raw/${version}/"/>
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
                  token="/Users/kyawtun/work/closure-library/"
