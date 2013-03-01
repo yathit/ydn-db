@@ -174,7 +174,7 @@ ydn.db.tr.Serial.prototype.lock = function() {
 
 /**
  *
- * @return {string}
+ * @return {string|undefined}
  */
 ydn.db.tr.Serial.prototype.type = function() {
   return this.storage_.getType();
@@ -206,9 +206,44 @@ ydn.db.tr.Serial.prototype.popTxQueue_ = function() {
   var task = this.trQueue_.shift();
   if (task) {
     this.logger.finest('pop tx queue ' + task.fnc.name);
-    this.run(task.fnc, task.store_names, task.mode, task.oncompleted);
+    this.processTx(task.fnc, task.store_names, task.mode, task.oncompleted);
   }
-  this.last_queue_checkin_ = goog.now();
+  //this.last_queue_checkin_ = goog.now();
+};
+
+
+/**
+ *
+ * @return {Array}
+ */
+ydn.db.tr.Serial.prototype.peekScopes = function() {
+  if (this.trQueue_.length > 0) {
+    return this.trQueue_[0].store_names;
+  } else {
+    return null;
+  }
+};
+
+/**
+ *
+ * @return {ydn.db.base.TransactionMode?}
+ */
+ydn.db.tr.Serial.prototype.peekMode = function() {
+  if (this.trQueue_.length > 0) {
+    return this.trQueue_[0].mode;
+  } else {
+    return null;
+  }
+};
+
+
+/**
+ * Check next transaction
+ * @protected
+ * @return {boolean}
+ */
+ydn.db.tr.Serial.prototype.isNextTxCompatible = function() {
+  return false;
 };
 
 /**
@@ -281,19 +316,28 @@ ydn.db.tr.Serial.prototype.running_transaction_process_ = false;
  * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted handler.
  * @param {...} opt_args optional arguments.
  */
-ydn.db.tr.Serial.prototype.run = function(trFn, store_names, opt_mode,
+ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
                                               oncompleted, opt_args) {
 
   //console.log('tr starting ' + trFn.name);
   var scope_name = trFn.name || '';
 
-  var names = store_names;
-  if (goog.isString(store_names)) {
-    names = [store_names];
-  } else if (!goog.isArray(store_names) ||
-    (store_names.length > 0 && !goog.isString(store_names[0]))) {
-    throw new ydn.error.ArgumentException('storeNames');
+  var names = goog.isString(store_names) ? [store_names] : store_names;
+  if (goog.DEBUG) {
+    if (!goog.isArrayLike(names)) { // could be  DOMStringList or Array
+      throw new ydn.debug.error.ArgumentException('store names must be an array');
+    } else if (names.length == 0) {
+      throw new ydn.debug.error.ArgumentException('number of store names must more than 0');
+    } else {
+      for (var i = 0; i < names.length; i++) {
+        if (!goog.isString(names[i])) {
+          throw new ydn.debug.error.ArgumentException('store name at ' + i +
+              ' must be string but found ' + typeof names[i]);
+        }
+      }
+    }
   }
+
   var mode = goog.isDef(opt_mode) ?
     opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
   var outFn = trFn;
@@ -311,9 +355,9 @@ ydn.db.tr.Serial.prototype.run = function(trFn, store_names, opt_mode,
 
 
   var me = this;
+  //console.log(this + ' active ' + this.mu_tx_.isActive() + ' queue length ' + this.trQueue_.length);
 
   if (this.mu_tx_.isActive()) {
-    //console.log(this + ' active ' + this.mu_tx_.isActive() + ' on queue ' + (this.trQueue_.length > 0));
     this.pushTxQueue(arguments.length > 4 ?
         outFn : trFn, store_names, mode, oncompleted);
   } else {
@@ -325,9 +369,25 @@ ydn.db.tr.Serial.prototype.run = function(trFn, store_names, opt_mode,
 
       // now execute transaction process
       outFn(me);
+      outFn = null;
 
       me.mu_tx_.out(); // flag transaction callback scope is over.
       // transaction is still active and use in followup request handlers
+
+      if (me.isNextTxCompatible()) {
+        var task = this.trQueue_.shift();
+        if (goog.isFunction(oncompleted) && goog.isFunction(task.oncompleted)) {
+          oncompleted = function(t, e) {
+            oncompleted(t, e);
+            task.oncompleted(t, e);
+          }
+        } else if (goog.isFunction(task.oncompleted)) {
+          oncompleted = task.oncompleted;
+        }
+        me.logger.finest('pop tx queue in continue ' + task.fnc.name);
+        task.fnc();
+        oncompleted = task.oncompleted;
+      }
     };
 
     var completed_handler = function(type, event) {
@@ -338,6 +398,7 @@ ydn.db.tr.Serial.prototype.run = function(trFn, store_names, opt_mode,
       try {
         if (goog.isFunction(oncompleted)) {
           oncompleted(type, event);
+          oncompleted = undefined;
         }
       } catch (e) {
         // swallow error. document it publicly.
@@ -373,9 +434,7 @@ ydn.db.tr.Serial.prototype.run = function(trFn, store_names, opt_mode,
  * @return {string} database name.
  */
 ydn.db.tr.Serial.prototype.getName = function() {
-  // db name can be undefined during instantiation.
-  this.db_name = this.db_name || this.getStorage().getName();
-  return this.db_name;
+  return this.getStorage().getName();
 };
 
 

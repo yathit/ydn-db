@@ -83,7 +83,7 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode,
   }
   //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
   // locked: ' + mu_tx.isSetDone());
-  me.run(blocked_tx_callback, store_names, mode, blocked_on_complete);
+  me.processTx(blocked_tx_callback, store_names, mode, blocked_on_complete);
 
   // need to think about handling oncompleted and onerror callback of the
   // transaction. after executed all the requests, the transaction is not

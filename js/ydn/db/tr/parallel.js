@@ -124,7 +124,7 @@ ydn.db.tr.ParallelThread.prototype.getQueueNo = function() {
 
 /**
  *
- * @return {string}
+ * @return {string|undefined}
  */
 ydn.db.tr.ParallelThread.prototype.type = function() {
   return this.storage_.getType();
@@ -175,7 +175,7 @@ ydn.db.tr.ParallelThread.prototype.abort = function() {
 /**
 * @inheritDoc
 */
-ydn.db.tr.ParallelThread.prototype.run = function(trFn, store_names, mode,
+ydn.db.tr.ParallelThread.prototype.processTx = function(trFn, store_names, mode,
                                               oncompleted, opt_args) {
   var me = this;
   //console.log(this + ' not active ' + scope_name);

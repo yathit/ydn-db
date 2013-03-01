@@ -82,7 +82,7 @@ ydn.db.tr.OverflowSerial.prototype.exec = function (callback, store_names,
     }
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
     // locked: ' + mu_tx.isSetDone());
-    me.run(tx_callback, store_names, mode, on_complete);
+    me.processTx(tx_callback, store_names, mode, on_complete);
   }
 };
 

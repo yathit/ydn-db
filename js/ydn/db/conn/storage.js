@@ -1,5 +1,6 @@
 /**
  * @license Copyright 2012 YDN Authors, Yathit. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
  */
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -414,14 +415,14 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
 /**
  *
- * @return {string} database mechanism type.
+ * @return {string|undefined} database mechanism type.
  * @export
  */
 ydn.db.con.Storage.prototype.getType = function() {
   if (this.db_) {
     return this.db_.getType();
   } else {
-    return '';
+    return undefined;
   }
 };
 
@@ -644,7 +645,7 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
     names = null;
   } else {
     if (goog.DEBUG) {
-      if (!goog.isArray(store_names)) {
+      if (!goog.isArrayLike(store_names)) {  // could be  DOMStringList or Array
         throw new ydn.debug.error.ArgumentException('store names must be an array');
       } else if (store_names.length == 0) {
         throw new ydn.debug.error.ArgumentException('number of store names must more than 0');

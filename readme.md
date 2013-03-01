@@ -41,7 +41,7 @@ test files are for basic testing and debugging.
 
 Coverage test is performed by [JsTestDriver](http://code.google.com/p/js-test-driver/)
 test. Notice that `ant gen-alltest-js` generate jsTestDriver.conf to prepare testing
-configuration.
+configuration. Since all test are async, disable run inparallel check box.
 
     java -jar JsTestDriver.jar --tests all
 

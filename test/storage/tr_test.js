@@ -50,25 +50,27 @@ var test_1_basic = function() {
       function() {
         assertEquals('correct obj', val.value, result.value);
         reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
       },
       100, // interval
       2000); // maxTimeout
 
-  db.run(function tx_cb1 (idb) {
-    console.log('tr start: ' + idb);
+  db.transaction(function tx_cb1 (tx) {
+    console.log('tr start: ' + tx);
     assertEquals('type', db_type, db.getType());
-    var tx = idb.getTx();
+
     assertNotUndefined(tx);
     assertNotNull(tx);
     // assertNull(tx.error); // accessing error object will cause tx to commit ?
-    console.log(idb + ' tx started with ' + idb.getType() + ' ' + tx);
+    console.log(' tx started with ' + db.getType() + ' ' + tx);
     var store = tx.objectStore(table_name);
     var put_req = store.put(val);
     put_req.onsuccess = function(x) {
-      console.log(idb + ' put ' + x);
+      console.log(' put ' + x);
       var get_req = store.get(val.id);
       get_req.onsuccess = function(e) {
-        console.log(idb + ' get ' + e);
+        console.log(' get ' + e);
         result = e.target.result;
         t1_fired = true;
       };
@@ -100,6 +102,8 @@ var test_2_opt_arg = function() {
       assertEquals('b', '3', b_out);
       assertEquals('c', 'ok', c_out.id);
       reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
     },
     100, // interval
     2000); // maxTimeout
@@ -117,6 +121,9 @@ var test_2_opt_arg = function() {
     type_out = idb.getType();
   }, [table_name], 'readwrite', oncompleted, 1, '3', {id: 'ok'});
 };
+
+
+
 
 
 var testCase = new goog.testing.ContinuationTestCase();

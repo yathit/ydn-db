@@ -24,6 +24,7 @@ goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.ParallelThread');
 goog.require('ydn.db.tr.IThread.Threads');
+goog.require('ydn.db.tr.StrictOverflowSerial');
 goog.require('ydn.db.tr.Single');
 
 
@@ -148,6 +149,8 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
     return new ydn.db.tr.ParallelThread(this, this.ptx_no++, scope_name);
   } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_SERIAL) {
     return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, scope_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL) {
+    return new ydn.db.tr.StrictOverflowSerial(this, this.ptx_no++, scope_name);
   } else if (thread == ydn.db.tr.IThread.Threads.SINGLE) {
     return new ydn.db.tr.Single(this, this.ptx_no++, scope_name);
   } else {
@@ -177,7 +180,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
     store_names = this.schema.getStoreNames();
   }
   if (goog.DEBUG) {
-    if (!goog.isArray(store_names)) {
+    if (!goog.isArrayLike(store_names)) { // could be  DOMStringList or Array
       throw new ydn.debug.error.ArgumentException('store names must be an array');
     } else if (store_names.length == 0) {
         throw new ydn.debug.error.ArgumentException('number of store names must more than 0');
