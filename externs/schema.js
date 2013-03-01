@@ -87,11 +87,6 @@ var S3Options = function() {};
 /**
  * @type {string?}
  */
-S3Options.prototype.marker;
-
-/**
- * @type {string?}
- */
 S3Options.prototype.delimiter;
 
 /**

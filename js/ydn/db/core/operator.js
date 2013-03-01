@@ -464,7 +464,11 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
 
       // inject sync module function.
       if (ydn.db.base.USE_HOOK) {
-        var opt = {index: index_name, reverse: reverse, offset: offset};
+        var opt = {
+          index: index_name,
+          reverse: reverse,
+          offset: offset,
+          limit: limit};
         store.preHook(ydn.db.schema.Store.SyncMethod.LIST, opt, function() {
           me.sync_thread.exec(function (tx) {
             me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
