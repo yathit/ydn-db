@@ -72,7 +72,7 @@ var keyRange_test = function (key_range, exp_result, reverse) {
     5000); // maxTimeout
 
   reverse = !!reverse;
-  var req = db.values(store_name, key_range, reverse);
+  var req = db.values(store_name, key_range, undefined, undefined, reverse);
   req.addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;

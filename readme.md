@@ -36,12 +36,13 @@ may encounter compile error.
 
 # Testing #
 
-You should able to run /ydn-db/test/all-test.html or run individually. These
-test files are for basic testing and debugging.
+You should able to run /ydn-db/test/all-test.html or run individually.
+Since all test are async, disable run inparallel check box.
+These test files are for basic testing and debugging.
 
 Coverage test is performed by [JsTestDriver](http://code.google.com/p/js-test-driver/)
 test. Notice that `ant gen-alltest-js` generate jsTestDriver.conf to prepare testing
-configuration. Since all test are async, disable run inparallel check box.
+configuration.
 
     java -jar JsTestDriver.jar --tests all
 

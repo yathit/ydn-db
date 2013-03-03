@@ -438,3 +438,18 @@ ydn.db.utils.HexStringWriter = function() {
     return this;
   };
 };
+
+
+/**
+ *
+ * @param {*} first
+ * @param {*} second
+ * @return {number} returns 1 if the first key is
+ * greater than the second, -1 if the first is less than the second, and 0 if
+ * the first is equal to the second.
+ */
+ydn.db.utils.cmp = function (first, second) {
+  var key1 = ydn.db.utils.encodeKey(first);
+  var key2 = ydn.db.utils.encodeKey(second);
+  return key1 > key2 ? 1 : (key1 == key2 ? 0 : -1);
+};
