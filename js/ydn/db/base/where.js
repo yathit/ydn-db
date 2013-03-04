@@ -6,6 +6,7 @@
 goog.provide('ydn.db.Where');
 goog.require('ydn.db.KeyRange');
 goog.require('goog.string');
+goog.require('ydn.db.utils');
 goog.require('ydn.debug.error.ArgumentException');
 
 
@@ -103,7 +104,7 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
       }
     } else if (goog.isDefAndNotNull(key_range.lower) &&
         goog.isDefAndNotNull(key_range.upper) &&
-        ydn.db.cmp(key_range.lower, key_range.upper) == 0) {
+        ydn.db.utils.cmp(key_range.lower, key_range.upper) == 0) {
       if (goog.isArrayLike(key_range.lower)) {
         for(var i = 0; i < key_range.lower.length; i++) {
           if (i > 0) {

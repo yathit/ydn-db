@@ -32,7 +32,7 @@ var setUp = function() {
 
 
   var dn_name = 'test_key_encoding_2';
-  var options = {Mechanisms: ['websql']};
+  var options = {mechanisms: ['websql']};
   db = new ydn.db.Storage(dn_name, schema, options);
 
   reachedFinalContinuation = false;
@@ -103,8 +103,7 @@ var text_store = function(table_name, key) {
 
 
 var schema = {
-  version: 1,
-  Stores: [
+  stores: [
     {
       name: 'st_text',
       keyPath: 'id',
@@ -124,7 +123,7 @@ var schema = {
     }, {
       name: 'st_array',
       keyPath: 'id',
-      type: 'ARRAY'
+      type: ['TEXT']
     }, {
       name: 'st_any',
       keyPath: 'id'
@@ -163,6 +162,12 @@ var test_any_int = function() {
 
 var test_any_num = function() {
   text_store('st_any', Math.random());
+};
+
+
+var tearDownPage = function() {
+  ydn.db.deleteDatabase(db.getName(), db.getType());
+  db.close();
 };
 
 

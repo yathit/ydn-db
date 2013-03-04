@@ -2,6 +2,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.db.core.Storage');
+goog.require('ydn.db');
 
 
 var reachedFinalContinuation, schema, debug_console, db, objs, arr_objs;
@@ -20,45 +21,45 @@ var setUp = function () {
     goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+
+
+    var value_index = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
+    var tag_index = new ydn.db.schema.Index('type', ydn.db.schema.DataType.TEXT, false, true);
+    var x_index = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, false);
+    var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
+      ydn.db.schema.DataType.INTEGER, [x_index, value_index, tag_index]);
+    var arr_store_schema = new ydn.db.schema.Store(arr_store_name, 'id', false,
+      ydn.db.schema.DataType.ARRAY);
+    var string_store = new ydn.db.schema.Store(string_key_store, 'value');
+    schema = new ydn.db.schema.Database(undefined, [arr_store_schema, store_schema, string_store]);
+    db = new ydn.db.core.Storage(db_name, schema, options);
+
+    objs = [
+      {id: -3, value: 'a0', x: 1, type: ['a', 'b'], remark: 'test ' + Math.random()},
+      {id: 0, value: 'a2', x: 3, type: ['a'], remark: 'test ' + Math.random()},
+      {id: 1, value: 'ba', x: 2, type: ['b'], remark: 'test ' + Math.random()},
+      {id: 3, value: 'bc', x: 2, type: ['b', 'c'], remark: 'test ' + Math.random()},
+      {id: 10, value: 'c', type: ['c'], remark: 'test ' + Math.random()},
+      {id: 11, value: 'c1', type: ['c', 'a', 'b'], remark: 'test ' + Math.random()},
+      {id: 20, value: 'ca', x: 2, remark: 'test ' + Math.random()}
+    ];
+
+    arr_objs = [
+      {id: ['a', 'qs0'], value: 0, type: 'a'},
+      {id: ['a', 'qs1'], value: 1, type: 'a'},
+      {id: ['b', 'at2'], value: 2, type: 'b'},
+      {id: ['b', 'bs1'], value: 3, type: 'b'},
+      {id: ['c', 'bs2'], value: 4, type: 'c'},
+      {id: ['c', 'bs3'], value: 5, type: 'c'},
+      {id: ['c', 'st3'], value: 6, type: 'c'}
+    ];
+
+    db.put(arr_store_name, arr_objs);
+    db.put(string_key_store, objs);
+    db.put(store_name, objs).addCallback(function (value) {
+      console.log(db + ' ready.');
+    });
   }
-
-  var value_index = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
-  var tag_index = new ydn.db.schema.Index('type', ydn.db.schema.DataType.TEXT, false, true);
-  var x_index = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, false);
-  var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
-    ydn.db.schema.DataType.INTEGER, [x_index, value_index, tag_index]);
-  var arr_store_schema = new ydn.db.schema.Store(arr_store_name, 'id', false,
-    ydn.db.schema.DataType.ARRAY);
-  var string_store = new ydn.db.schema.Store(string_key_store, 'value');
-  schema = new ydn.db.schema.Database(undefined, [arr_store_schema, store_schema, string_store]);
-  db = new ydn.db.core.Storage(db_name, schema, options);
-
-  objs = [
-    {id: -3, value: 'a0', x: 1, type: ['a', 'b'], remark: 'test ' + Math.random()},
-    {id: 0, value: 'a2', x: 3,type: ['a'], remark: 'test ' + Math.random()},
-    {id: 1, value: 'ba', x: 2,type: ['b'], remark: 'test ' + Math.random()},
-    {id: 3, value: 'bc', x: 2,type: ['b', 'c'], remark: 'test ' + Math.random()},
-    {id: 10, value: 'c', type: ['c'], remark: 'test ' + Math.random()},
-    {id: 11, value: 'c1', type: ['c', 'a', 'b'], remark: 'test ' + Math.random()},
-    {id: 20, value: 'ca', x: 2,remark: 'test ' + Math.random()}
-  ];
-
-  arr_objs = [
-    {id:['a', 'qs0'], value:0, type:'a'},
-    {id:['a', 'qs1'], value:1, type:'a'},
-    {id:['b', 'at2'], value:2, type:'b'},
-    {id:['b', 'bs1'], value:3, type:'b'},
-    {id:['c', 'bs2'], value:4, type:'c'},
-    {id:['c', 'bs3'], value:5, type:'c'},
-    {id:['c', 'st3'], value:6, type:'c'}
-  ];
-
-  db.put(arr_store_name, arr_objs);
-  db.put(string_key_store, objs);
-  db.put(store_name, objs).addCallback(function (value) {
-    console.log(db + ' ready.');
-  });
-
 };
 
 var tearDown = function() {
@@ -278,6 +279,12 @@ var test_array_key_key_range = function () {
     done = true;
   });
 
+};
+
+
+var tearDownPage = function() {
+  ydn.db.deleteDatabase(db.getName(), db.getType());
+  db.close();
 };
 
 

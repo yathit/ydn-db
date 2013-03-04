@@ -39,17 +39,6 @@ var tearDown = function() {
 };
 
 
-/**
- * @param {string} name
- * @param {string} type
- */
-var deleteDb = function(name, type) {
-
-  ydn.db.deleteDatabase(name, type);
-
-
-};
-
 
 var schema_test = function(schema, to_delete, name) {
 
@@ -71,7 +60,9 @@ var schema_test = function(schema, to_delete, name) {
       assertEquals('version', version, sh.version);
       reachedFinalContinuation = true;
       if (to_delete) {
-        deleteDb(name, db.getType());
+        var type = db.getType();
+        db.close();
+        ydn.db.deleteDatabase(name, type);
       }
     },
     100, // interval
@@ -121,7 +112,7 @@ var test_10a_trival_schema = function() {
 var test_10b_trival_schema = function() {
   // this run is different because database already exists.
   trival_schema_test(trival_db_name);
-  deleteDb(trival_db_name, options.mechanisms[0]);
+  ydn.db.deleteDatabase(trival_db_name, options.mechanisms[0]);
 };
 
 var test_12_no_db = function() {
@@ -247,7 +238,10 @@ var schema_sniff_test = function(schema) {
       //assertTrue(schema.similar(sniff_schema));
       assert_similar_schema(schema_json, sniff_schema);
       reachedFinalContinuation = true;
-      deleteDb(db_name, db.getType());
+      var type = db.getType();
+      db.close();
+      ydn.db.deleteDatabase(db_name, type);
+
     },
     100, // interval
     1000); // maxTimeout
@@ -334,7 +328,7 @@ var test_schema_compound_index = function() {
   var index1 = {
     name: 'id1-id2',
     keyPath: ['id1', 'id2'],
-    type: ydn.db.schema.DataType.TEXT,
+    type: [ydn.db.schema.DataType.TEXT, ydn.db.schema.DataType.TEXT],
     unique: false
   };
 

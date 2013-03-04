@@ -121,7 +121,7 @@ ydn.db.tr.Storage.prototype.thread = function(thread, name) {
  * @return {number} transaction series number.
  */
 ydn.db.tr.Storage.prototype.getTxNo = function() {
-  return this.db_operator.getTxNo();
+  return this.db_operator ? this.db_operator.getTxNo() : NaN;
 };
 
 
