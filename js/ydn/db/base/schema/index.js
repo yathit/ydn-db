@@ -1,5 +1,5 @@
 /**
- * @fileoverview About this file.
+ * @fileoverview Database index schema.
  *
  * User: kyawtun
  * Date: 24/2/13
