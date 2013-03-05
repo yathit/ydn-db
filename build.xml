@@ -241,7 +241,7 @@
         </adv-comp>
     </target>
     <target name="gen-all-test-js" description="generate all test js">
-        <gen-js-test base.dir="${ydn-db.dir}/test"></gen-js-test>
+        <gen-js-test base.dir="${ydn-db.dir}/test" ext="db"></gen-js-test>
     </target>
     <target name="deps" description="list dependency files">
         <delete file="${ydn-db.dir}/js/deps.js"/>

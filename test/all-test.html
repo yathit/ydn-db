@@ -60,9 +60,14 @@ See the COPYING file for details.
   }
 </script>
 
-<h1>Closure - All JsUnit Tests</h1>
+<h1>YDN-DB - All JsUnit Tests</h1>
 <p id="header">
-  <a href="http://wiki/Main/ClosureUnitTests">Closure JS Testing HOWTO</a>
+  <label for="idb">IDB</label>
+  <input type="checkbox" name="idb" id="idb" checked>
+    <label for="websql">WebSQL</label>
+  <input type="checkbox" name="websql" id="websql"  checked>
+    <label for="ls">localStorage</label>
+  <input type="checkbox" name="ls" id="ls"  checked>
 </p>
 <div id="runner"></div>
 <!--  Use a form so browser persists input values -->
@@ -81,6 +86,10 @@ See the COPYING file for details.
   var parallelInput = document.getElementById('parallel');
   var filterInput = document.getElementById('filter');
 
+  var chk_idb = document.getElementById('idb');
+  var chk_websql = document.getElementById('websql');
+  var chk_ls = document.getElementById('ls');
+
   function setFilterFunction() {
     var matchValue = filterInput.value || '';
     testRunner.setFilterFunction(function(testPath) {
@@ -97,7 +106,30 @@ See the COPYING file for details.
       .setHidePasses(hidePassesInput.checked)
     //.setVerbosePasses(true)
       .addTests(_allTests);
+
   testRunner.render(document.getElementById('runner'));
+
+  var change_test = function() {
+      var all_tests = testRunner.getAllTests();
+      goog.array.clear(all_tests);
+      if (chk_idb.checked && chk_websql.checked && chk_ls.checked) {
+          testRunner.addTests(_allTests);
+      } else {
+          if (chk_idb.checked) testRunner.addTests(_idb_allTests);
+          if (chk_websql.checked) testRunner.addTests(_websql_allTests);
+          if (chk_ls.checked) testRunner.addTests(_ls_allTests);
+      }
+  };
+  goog.events.listen(chk_idb, 'click', function(e) {
+      change_test();
+  });
+  goog.events.listen(chk_websql, 'click', function(e) {
+      change_test();
+  });
+  goog.events.listen(chk_ls, 'click', function(e) {
+      change_test();
+  });
+
 
   goog.events.listen(hidePassesInput, 'click', function(e) {
     testRunner.setHidePasses(e.target.checked);
