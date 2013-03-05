@@ -95,7 +95,6 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
 };
 
 
-
 /**
  * @enum {string}
  */
@@ -113,6 +112,7 @@ ydn.db.schema.Store.FetchStrategy = {
  */
 ydn.db.schema.Store.FetchStrategies = [
   ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
+  ydn.db.schema.Store.FetchStrategy.ASCENDING_KEY,
   ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
 
 

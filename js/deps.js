@@ -18,7 +18,6 @@ goog.addDependency("../../../ydn-db/js/ydn/db/algo/sorted_merge.js", ['ydn.db.al
 goog.addDependency("../../../ydn-db/js/ydn/db/algo/zigzag_merge.js", ['ydn.db.algo.ZigzagMerge'], ['ydn.db']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/base.js", ['ydn.db.base'], ['goog.async.Deferred']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/db.js", ['ydn.db'], ['ydn.db.con.IndexedDb', 'ydn.db.con.WebSql', 'ydn.db.utils']);
-goog.addDependency("../../../ydn-db/js/ydn/db/base/editable_schema.js", ['ydn.db.schema.EditableDatabase'], ['ydn.db.schema.Database']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/error.js", ['ydn.db.InternalError', 'ydn.db.InvalidKeyException', 'ydn.db.InvalidStateError', 'ydn.db.NotFoundError', 'ydn.db.ScopeError', 'ydn.db.SecurityError'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/events.js", ['ydn.db.events.StoreEvent', 'ydn.db.events.StorageEvent', 'ydn.db.events.RecordEvent', 'ydn.db.events.Types'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/key.js", ['ydn.db.Key'], []);
@@ -26,6 +25,7 @@ goog.addDependency("../../../ydn-db/js/ydn/db/base/key_range.js", ['ydn.db.IDBKe
 goog.addDependency("../../../ydn-db/js/ydn/db/base/utils.js", ['ydn.db.utils'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/where.js", ['ydn.db.Where'], ['ydn.db.KeyRange', 'goog.string', 'ydn.db.utils', 'ydn.debug.error.ArgumentException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/schema/database.js", ['ydn.db.schema.Database'], ['ydn.db.schema.Store', 'ydn.db.Key']);
+goog.addDependency("../../../ydn-db/js/ydn/db/base/schema/editable_schema.js", ['ydn.db.schema.EditableDatabase'], ['ydn.db.schema.Database']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/schema/index.js", ['ydn.db.schema.Index', 'ydn.db.schema.DataType'], ['ydn.db.base', 'ydn.debug.error.ArgumentException', 'ydn.db.utils']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/schema/store.js", ['ydn.db.schema.Store'], ['ydn.db.schema.Index']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/i_database.js", ['ydn.db.con.IDatabase'], ['goog.async.Deferred']);

@@ -879,10 +879,10 @@ ydn.db.core.DbOperator.prototype.dumpInternal = function(store_name, objs, keys)
  * This is friendly module use only.
  * @param {string} store_name
  * @param {?string} index_name
- * @param {?IDBKeyRange} key_range
+ * @param {?IDBKeyRange|ydn.db.KeyRange} key_range
  * @param {boolean} reverse
  * @param {number} limit
- * @return {goog.async.Deferred} df
+ * @return {!goog.async.Deferred} df
  * @override
  */
 ydn.db.core.DbOperator.prototype.listInternal = function(store_name, index_name,
@@ -902,17 +902,18 @@ ydn.db.core.DbOperator.prototype.listInternal = function(store_name, index_name,
   req_df.addBoth(function(x) {
     out = x;
   });
+  var kr = ydn.db.KeyRange.parseIDBKeyRange(key_range);
   if (goog.isString(index_name)) {
     var index = index_name;
     this.sync_thread.exec(function (tx) {
       me.getExecutor(tx).listByIndexKeyRange(req_df, store_name, index,
-        key_range, reverse, limit, 0, false);
+        kr, reverse, limit, 0, false);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listInternal',
       on_completed);
   } else {
     this.sync_thread.exec(function (tx) {
       me.getExecutor(tx).listByKeyRange(req_df, store_name,
-          key_range, reverse, limit, 0);
+          kr, reverse, limit, 0);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listInternal',
       on_completed);
   }

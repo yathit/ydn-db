@@ -76,6 +76,11 @@ AtomOptions.prototype.baseUri;
  */
 AtomOptions.prototype.KeyPaths;
 
+/**
+ * @type {string}
+ */
+AtomOptions.prototype.metaStoreName;
+
 
 /**
  * @see http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html
