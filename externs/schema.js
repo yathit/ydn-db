@@ -136,6 +136,10 @@ var ODataOptions = function() {};
  */
 function StoreSyncOptionJson() {}
 
+/**
+ * @type {boolean}
+ */
+StoreSyncOptionJson.prototype.publicRead;
 
 /**
  * @type {string}
