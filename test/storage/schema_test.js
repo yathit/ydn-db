@@ -75,32 +75,21 @@ var test_auto_schema = function() {
 };
 
 
-
-var test_composite_key_schema = function() {
+var version_change_test = function(schema) {
   var db_name = 'test' + Math.random();
-  var schema = {
-    stores: [
-      {
-        name: 'st',
-        keyPath: ['x', 'y'],
-        type: ['TEXT', 'TEXT']
-      }
-    ]
-  };
 
   var ver, oldVer, ver2, oldVer2;
   var done = false;
-
 
   waitForCondition(
       // Condition
       function() { return done; },
       // Continuation
       function() {
-        assertEquals('version 1', 1, ver);
+        assertNotNaN('version 1', ver);
         assertNaN('old version 1', oldVer);
-        assertEquals('version 2', 1, ver2);
-        assertEquals('old version 2', 1, oldVer2);
+        assertEquals('version 2', ver, ver2);
+        assertEquals('old version 2', ver, oldVer2);
 
         reachedFinalContinuation = true;
 
@@ -126,8 +115,23 @@ var test_composite_key_schema = function() {
 };
 
 
+var test_composite_key_schema = function() {
+
+  var schema = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: ['x', 'y'],
+        type: ['TEXT', 'TEXT']
+      }
+    ]
+  };
+  version_change_test(schema);
+};
+
+
 var test_composite_index_schema = function() {
-  var db_name = 'test' + Math.random();
+
   var schema = {
     stores: [{
       name: 'st',
@@ -139,41 +143,8 @@ var test_composite_index_schema = function() {
     }]
   };
 
-  var ver, oldVer, ver2, oldVer2;
-  var done = false;
+  version_change_test(schema);
 
-
-  waitForCondition(
-      // Condition
-      function() { return done; },
-      // Continuation
-      function() {
-        assertEquals('version 1', 1, ver);
-        assertNaN('old version 1', oldVer);
-        assertEquals('version 2', 1, ver2);
-        assertEquals('old version 2', 1, oldVer2);
-
-        reachedFinalContinuation = true;
-
-      },
-      100, // interval
-      2000); // maxTimeout
-
-
-  var db = new ydn.db.Storage(db_name, schema, options);
-  db.addEventListener('done', function(e) {
-    ver = e.getVersion();
-    oldVer = e.getOldVersion();
-    db.close();
-    var db2 = new ydn.db.Storage(db_name, schema, options);
-    db2.addEventListener('done', function (e) {
-      ver2 = e.getVersion();
-      oldVer2 = e.getOldVersion();
-      ydn.db.deleteDatabase(db2.getName(), db2.getType());
-      db2.close();
-      done = true;
-    })
-  })
 };
 
 
