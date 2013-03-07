@@ -803,33 +803,44 @@ ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
 
   } else if (goog.isObject(value)) {
     var obj = value;
-      var key = /** @type {number|string|undefined} */ (opt_keys);
-      this.logger.finer('putObject: ' + store_name + ' ' + key);
-
-      if (ydn.db.base.USE_HOOK) {
-        var post_df = new goog.async.Deferred();
-        var opt = {};
-        store.preHook(ydn.db.schema.Store.SyncMethod.PUT, opt, function(key) {
-          me.tx_thread.exec(function (tx) {
-            //console.log('putObjects');
-            me.getExecutor(tx).putObject(post_df, store_name, obj, key);
-          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
-        }, obj, key);
-
-        post_df.addCallbacks(function (key) {  // todo: use chain
-          df.callback(key);
-        }, function (e) {
-          df.errback(e);
-        });
-
-      } else {
-        this.tx_thread.exec(function (tx) {
-          me.getExecutor(tx).putObject(df, store_name, obj, key);
-        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+    var key = /** @type {number|string|undefined} */ (opt_keys);
+    if (goog.DEBUG) {
+      if (goog.isDef(key)) {
+        goog.asserts.assert(ydn.db.Key.isValidKey(key), key +
+          ' of type ' + (typeof key) + ' is invalid key for ' +
+          ydn.json.toShortString(obj));
+      } else if (!store.getAutoIncrement() && store.usedInlineKey()) {
+        goog.asserts.assert(ydn.db.Key.isValidKey(store.getKeyValue(obj)),
+          'in-line key on ' + store.getKeyPath() + ' must provided in ' +
+            ydn.json.toShortString(obj));
       }
+    }
+    this.logger.finer('putObject: ' + store_name + ' ' + key);
 
-      if (store.dispatch_events) {
-      df.addCallback(function(key) {
+    if (ydn.db.base.USE_HOOK) {
+      var post_df = new goog.async.Deferred();
+      var opt = {};
+      store.preHook(ydn.db.schema.Store.SyncMethod.PUT, opt, function (key) {
+        me.tx_thread.exec(function (tx) {
+          //console.log('putObjects');
+          me.getExecutor(tx).putObject(post_df, store_name, obj, key);
+        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+      }, obj, key);
+
+      post_df.addCallbacks(function (key) {  // todo: use chain
+        df.callback(key);
+      }, function (e) {
+        df.errback(e);
+      });
+
+    } else {
+      this.tx_thread.exec(function (tx) {
+        me.getExecutor(tx).putObject(df, store_name, obj, key);
+      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+    }
+
+    if (store.dispatch_events) {
+      df.addCallback(function (key) {
         var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.UPDATED,
           me.getStorage(), store_name, key, obj);
         me.getStorage().dispatchEvent(event);
@@ -837,7 +848,8 @@ ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
     }
 
   } else {
-    throw new ydn.debug.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException('put record value must be ' +
+      'Object or array of Objects');
   }
 
   return df;

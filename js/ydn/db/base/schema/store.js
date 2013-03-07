@@ -360,6 +360,15 @@ ydn.db.schema.Store.prototype.getKeyPath = function() {
 
 /**
  *
+ * @return {boolean} true if inline key is in used.
+ */
+ydn.db.schema.Store.prototype.usedInlineKey = function() {
+  return !!this.keyPath;
+};
+
+
+/**
+ *
  * @return {!Array.<string>} list of index names.
  */
 ydn.db.schema.Store.prototype.getIndexNames = function() {

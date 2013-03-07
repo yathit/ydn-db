@@ -184,3 +184,15 @@ ydn.db.Key.prototype.getParent = function() {
   return this.parent;
 };
 
+
+/**
+ *
+ * @param {*} key
+ * @return {boolean} return true if given key is a valid key for IndexedDB.
+ */
+ydn.db.Key.isValidKey = function(key) {
+  return goog.isNumber(key) || goog.isString(key) ||
+    (goog.isArray(key) && goog.array.every(/** @type {Array} */ (key), ydn.db.Key.isValidKey)) ||
+    key instanceof Date;
+};
+
