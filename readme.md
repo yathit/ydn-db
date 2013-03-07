@@ -3,19 +3,6 @@
 Beautiful database API for secure, robust, high-performance,
 maintainable large-scale javascript web app.
 
-# Goals #
-
-* Library API should be very similar to IndexedDB API and use exact
-terminology with IndexedDB specification.
-* Simple operations should be easy to use as well as optimized for it.
-* Error and exception should throw as soon as possible,
-preferable before async callback.
-* Fallback to WebSQL should be seamless, but optimization is not priority.
-* Memory efficient and must not use buffer memory. If buffer is used, it must
- be explicit.
-* Provide foundation for full-text search and synchornization.
-
-
 # Setup #
 
 If you haven't try [Closure Tools](https://developers.google.com/closure/) before,
@@ -49,8 +36,9 @@ may encounter compile error.
 
 # Testing #
 
-You should able to run /ydn-db/test/all-test.html and pass all tests. These test
-file are for basic testing and debugging.
+You should able to run /ydn-db/test/all-test.html or run individually.
+Since all test are async, disable run inparallel check box.
+These test files are for basic testing and debugging.
 
 Coverage test is performed by [JsTestDriver](http://code.google.com/p/js-test-driver/)
 test. Notice that `ant gen-alltest-js` generate jsTestDriver.conf to prepare testing
@@ -58,12 +46,14 @@ configuration.
 
     java -jar JsTestDriver.jar --tests all
 
-Use [qunit test kits](http://dev.yathit.com/index/demos.html) for end-to-end testing.
+End-to-end testing for disteribution can be found in test/qunit folder as well
+ as online [qunit test kits] (http://dev.yathit.com/index/demos.html).
 
 
 # Contributing #
 
-For interested contributor, email to one of the authors in the source code.
+Sending pull request is easiest way. For more, email to one of the authors in
+the source code.
 We follow [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml).
 All commit on master branch must pass most stringent setting compilation and all unit tests.
 
@@ -73,6 +63,29 @@ Few coding dialect we have as follow:
 * Assume native types (boolean, number, string) are not nullable. If nullable type is used,
 it is different from `undefined`. Using `undefined` for missing value in native type
 is encourage over `null`.
+
+
+## Library design ##
+
+* Library API should be similar to IndexedDB API and use exact
+terminology and concept in the IndexedDB specification. So that, people
+ who already familiar with it can pick up immediately as well as go forward
+ with native API.
+* Simple operations should be easy to use as well as optimized for it.
+Also impose user to use efficient
+methods while making inefficient ways very difficult or impossible.
+* For complex query, helper utility functions and classes will be provided.
+Storage class has deep understanding about these helper classes and do
+optimization behind the sense.
+* Memory efficient and must not use buffer memory. If buffer is used, it must
+ be explicit. Memory leak is unacceptable.
+* Provide extensive error and log message in debug mode, spare no expense since
+ we will strip them in production binary. Error and exception should be
+thrown as soon as possible, preferable before async callback.
+* Since this API is very simple, fallback to WebSQL and WebStorage should
+be straight forward. This library design have no consideration for these
+storage mechanisms.
+
 
 # Bug report #
 

@@ -65,11 +65,7 @@ ydn.db.deleteDatabase = function(db_name, type) {
  */
 ydn.db.cmp = (ydn.db.con.IndexedDb.indexedDb && ydn.db.con.IndexedDb.indexedDb.cmp) ?
     goog.bind(ydn.db.con.IndexedDb.indexedDb.cmp,
-      ydn.db.con.IndexedDb.indexedDb) :
-  function (first, second) {
-    var key1 = ydn.db.utils.encodeKey(first);
-    var key2 = ydn.db.utils.encodeKey(second);
-    return key1 > key2 ? 1 : (key1 == key2 ? 0 : -1);
-  };
+      ydn.db.con.IndexedDb.indexedDb) : ydn.db.utils.cmp;
+
 
 

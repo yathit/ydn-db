@@ -5,7 +5,7 @@
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver-major" value="0"/>
     <property name="ver-minor" value="2"/>
-    <property name="ver-patch" value="2"/>
+    <property name="ver-patch" value="4"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
@@ -30,16 +30,16 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
 
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                         input="${ydn-db.dir}/js/main.js"
+                         input="${ydn-db.dir}/js/config/main.js"
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${dev-out.fn}">
             <extrapaths>
-                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/index.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/dev.js"'/>
+                <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/index.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/dev.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
@@ -68,7 +68,7 @@
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
                  token="/Users/kyawtun/work/ydn-db/"
-                 value="https://bitbucket.org/ytkyaw/ydn-db/raw/${buildno}/"/>
+                 value="https://bitbucket.org/ytkyaw/ydn-db/raw/${version}/"/>
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
                  token="/Users/kyawtun/work/closure-library/"
@@ -156,7 +156,7 @@
         <!--SIMPLE_OPTIMIZATIONS-->
         <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
-                         input="${ydn-db.dir}/js/main.js"
+                         input="${ydn-db.dir}/js/config/main.js"
                          output.fn="${ydn-db.dir}/jsc/${buildno}-ydn.db-raw.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
@@ -175,7 +175,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/conn"
-                input.fn="${ydn-db.dir}/js/conn.js"
+                input.fn="${ydn-db.dir}/js/config/conn.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db-conn.js"
                 closure.entry="ydn.db.con.Storage">
@@ -190,12 +190,12 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/core"
-                input.fn="${ydn-db.dir}/js/core_main.js"
+                input.fn="${ydn-db.dir}/js/config/core_main.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db-core.js"
                 closure.entry="ydn.db.core.Storage">
             <exjs.dir>
-                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
@@ -213,11 +213,11 @@
                 output.fn="${buildno}-ydn.db-iter.js"
                 closure.entry="ydn.db.index.Storage">
             <ex.opt>
-                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/index.js"'/>
+                <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/index.js"'/>
 
             </ex.opt>
         </adv-comp>
@@ -227,21 +227,21 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js"
-                input.fn="${ydn-db.dir}/js/main.js"
+                input.fn="${ydn-db.dir}/js/config/main.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db.js"
                 closure.entry="ydn.db.Storage">
             <ex.opt>
-                <arg line='-i "${work.dir}/ydn-base/js/main.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/tr.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/core.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/index.js"'/>
+                <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/index.js"'/>
             </ex.opt>
         </adv-comp>
     </target>
     <target name="gen-all-test-js" description="generate all test js">
-        <gen-js-test base.dir="${ydn-db.dir}/test"></gen-js-test>
+        <gen-js-test base.dir="${ydn-db.dir}/test" ext="db"></gen-js-test>
     </target>
     <target name="deps" description="list dependency files">
         <delete file="${ydn-db.dir}/js/deps.js"/>

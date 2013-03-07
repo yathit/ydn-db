@@ -62,19 +62,54 @@ KeyPaths.prototype.updated;
 /**
  * @constructor
  */
-var AtomOptions = function() {};
+var BaseOptions = function() {};
 
 
 /**
  * @type {string}
  */
-AtomOptions.prototype.baseUri;
+BaseOptions.prototype.baseUri;
 
 
 /**
  * @type {KeyPaths}
  */
-AtomOptions.prototype.keyPaths;
+BaseOptions.prototype.KeyPaths;
+
+
+/**
+ * @type {string}
+ */
+BaseOptions.prototype.metaStoreName;
+
+/**
+ * @constructor
+ * @extends {BaseOptions}
+ */
+var AtomOptions = function() {};
+
+
+/**
+ * @see http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html
+ * @extends {AtomOptions}
+ * @constructor
+ */
+var S3Options = function() {};
+
+/**
+ * @type {string?}
+ */
+S3Options.prototype.delimiter;
+
+/**
+ * @type {string?}
+ */
+S3Options.prototype.maxKeys;
+
+/**
+ * @type {string?}
+ */
+S3Options.prototype.prefix;
 
 
 /**
@@ -108,6 +143,10 @@ var ODataOptions = function() {};
  */
 function StoreSyncOptionJson() {}
 
+/**
+ * @type {boolean}
+ */
+StoreSyncOptionJson.prototype.publicRead;
 
 /**
  * @type {string}
@@ -130,9 +169,9 @@ StoreSyncOptionJson.prototype.writeRequestTimeout;
 StoreSyncOptionJson.prototype.transport;
 
 /**
- * @type {AtomOptions|GDataOptions|ODataOptions}
+ * @type {AtomOptions|GDataOptions|ODataOptions|S3Options}
  */
-StoreSyncOptionJson.prototype.options;
+StoreSyncOptionJson.prototype.Options;
 
 /**
  * Entry list fetch strategy. Supported method are
@@ -187,7 +226,7 @@ StoreSchema.prototype.fixed;
  * Name of sync
  * @type {StoreSyncOptionJson}
  */
-StoreSchema.prototype.sync;
+StoreSchema.prototype.Sync;
 
 
 /**

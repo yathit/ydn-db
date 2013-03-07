@@ -212,7 +212,10 @@ ydn.db.core.req.SimpleStore.prototype.listByIds = function(df, store_name, ids) 
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.listByKeyRange = goog.abstractMethod;
+ydn.db.core.req.SimpleStore.prototype.listByKeyRange =
+    function(df, store_name, key_range, reverse, limit, offset) {
+
+};
 
 
 /**

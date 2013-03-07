@@ -49,7 +49,7 @@ ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
  * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted handler.
  * @param {...} opt_args optional arguments.
  */
-ydn.db.tr.IThread.prototype.run = goog.abstractMethod;
+ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
 
 /**
  * Threading type

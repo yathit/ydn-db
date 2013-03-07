@@ -140,7 +140,7 @@ ydn.db.tr.Mutex.prototype.getScopeName = function() {
 /**
  *
  * @param {Array.<string>} store_names
- * @param {ydn.db.base.TransactionMode} mode
+ * @param {ydn.db.base.TransactionMode?} mode
  * @return {boolean}
  */
 ydn.db.tr.Mutex.prototype.sameScope = function(store_names, mode) {

@@ -24,6 +24,7 @@ goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.ParallelThread');
 goog.require('ydn.db.tr.IThread.Threads');
+goog.require('ydn.db.tr.StrictOverflowSerial');
 goog.require('ydn.db.tr.Single');
 
 
@@ -46,7 +47,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   this.ptx_no = 0;
 
-  var th = ydn.db.tr.IThread.Threads.ATOMIC_SERIAL;
+  var th = ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL;
   if (opt_options && opt_options.thread) {
     var idx = ydn.db.tr.IThread.ThreadList.indexOf(opt_options.thread);
     if (idx == -1) {
@@ -63,7 +64,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   /**
    * @final
    */
-  this.sync_thread = ydn.db.base.SYNC ?
+  this.sync_thread = ydn.db.base.USE_HOOK ?
     this.newTxQueue(ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL, 'sync') : null;
 
   /**
@@ -120,7 +121,7 @@ ydn.db.tr.Storage.prototype.thread = function(thread, name) {
  * @return {number} transaction series number.
  */
 ydn.db.tr.Storage.prototype.getTxNo = function() {
-  return this.db_operator.getTxNo();
+  return this.db_operator ? this.db_operator.getTxNo() : NaN;
 };
 
 
@@ -148,6 +149,8 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
     return new ydn.db.tr.ParallelThread(this, this.ptx_no++, scope_name);
   } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_SERIAL) {
     return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, scope_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL) {
+    return new ydn.db.tr.StrictOverflowSerial(this, this.ptx_no++, scope_name);
   } else if (thread == ydn.db.tr.IThread.Threads.SINGLE) {
     return new ydn.db.tr.Single(this, this.ptx_no++, scope_name);
   } else {
@@ -177,7 +180,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
     store_names = this.schema.getStoreNames();
   }
   if (goog.DEBUG) {
-    if (!goog.isArray(store_names)) {
+    if (!goog.isArrayLike(store_names)) { // could be  DOMStringList or Array
       throw new ydn.debug.error.ArgumentException('store names must be an array');
     } else if (store_names.length == 0) {
         throw new ydn.debug.error.ArgumentException('number of store names must more than 0');

@@ -40,7 +40,7 @@ ydn.db.con.SimpleStorage = function(opt_localStorage) {
    * @type {!Storage}
    * @private
    */
-  this.cache_ = opt_localStorage ||
+  this.storage_ = opt_localStorage ||
       /** @type {!Storage} */ (new ydn.db.req.InMemoryStorage());
 
 };
@@ -182,8 +182,8 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
    * @type {DatabaseSchema}
    */
   var ex_schema = /** @type {DatabaseSchema} */
-    (ydn.json.parse(this.cache_.getItem(db_key)));
-  var stores = schema.getStoreNames();
+    (ydn.json.parse(this.storage_.getItem(db_key)));
+
   if (ex_schema) {
     for (var store_name in ex_schema) {
       if (ex_schema.hasOwnProperty(store_name)) {
@@ -203,7 +203,7 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
       }
     }
   } else {
-    this.cache_.setItem(db_key, ydn.json.stringify(this.storeSchema_));
+    this.storage_.setItem(db_key, ydn.json.stringify(this.storeSchema_));
   }
 
   return goog.async.Deferred.succeed(1);
@@ -223,7 +223,7 @@ ydn.db.con.SimpleStorage.prototype.isReady = function() {
  * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.getDbInstance = function() {
-  return this.cache_ || null;
+  return this.storage_ || null;
 };
 
 
@@ -258,7 +258,7 @@ ydn.db.con.SimpleStorage.prototype.close = function() {
  * @return {!Object}
  */
 ydn.db.con.SimpleStorage.prototype.getStorage = function() {
-  return this.cache_;
+  return this.storage_;
 };
 
 
@@ -279,10 +279,10 @@ ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode,
 ydn.db.con.SimpleStorage.prototype.getSchema = function (callback) {
   goog.Timer.callOnce(function () {
     var stores = [];
-    var db_value = this.cache_.getItem(this.makeKey());
+    var db_value = this.storage_.getItem(this.makeKey());
     var store_names = db_value['stores'];
     for (var i = 0; i < store_names.length; i++) {
-      var store_obj = this.cache_.getItem(this.makeKey(store_names[i]));
+      var store_obj = this.storage_.getItem(this.makeKey(store_names[i]));
       stores[i] = new ydn.db.schema.Store(store_names[i],
         store_obj['keyPath'], store_obj['autoIncrement']);
     }
@@ -299,6 +299,7 @@ ydn.db.con.SimpleStorage.prototype.getSchema = function (callback) {
  * @protected
  * @param {ydn.db.schema.Store} store table name.
  * @param {!Object} value object having key in keyPath field.
+ * @param {*=} opt_key
  * @return {string} key as seen by user.
  */
 ydn.db.con.SimpleStorage.prototype.extractKey = function (store, value, opt_key) {
@@ -358,7 +359,7 @@ ydn.db.con.SimpleStorage.prototype.getItemInternal = function(store_name, id) {
   var store = store_name instanceof ydn.db.schema.Store ?
       store_name.name : store_name;
   var key = this.makeKey(store, id);
-  var value = this.cache_.getItem(key);
+  var value = this.storage_.getItem(key);
   if (!goog.isNull(value)) {
     value = ydn.json.parse(/** @type {string} */ (value));
   } else {
@@ -366,6 +367,7 @@ ydn.db.con.SimpleStorage.prototype.getItemInternal = function(store_name, id) {
   }
   return value;
 };
+
 
 
 /**
@@ -379,8 +381,7 @@ ydn.db.con.SimpleStorage.prototype.getItemInternal = function(store_name, id) {
 ydn.db.con.SimpleStorage.prototype.setItemInternal = function(
     value, store_name, id) {
   var store = this.schema.getStore(store_name);
-  var index_name = store.getKeyPath() ||
-      ydn.db.con.SimpleStorage.DEFAULT_KEY_PATH;
+
   goog.asserts.assertObject(value);
   var obj_id = this.extractKey(store, value, id);
   var key = this.makeKey(store_name, obj_id);
@@ -388,7 +389,7 @@ ydn.db.con.SimpleStorage.prototype.setItemInternal = function(
   if (ydn.db.con.SimpleStorage.DEBUG) {
     window.console.log(['setItemInternal', store_name, id, obj_id, key, str]);
   }
-  this.cache_.setItem(key, str);
+  this.storage_.setItem(key, str);
   var idx_arr = this.storeSchema_[store_name]['Keys'];
   if (idx_arr) {
     goog.asserts.assertArray(idx_arr);
@@ -416,7 +417,7 @@ ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(
     store_name, id){
 
   if (goog.isDef(id)) {
-    this.cache_.removeItem(this.makeKey(store_name, id));
+    this.storage_.removeItem(this.makeKey(store_name, id));
     var idx_arr = this.storeSchema_[store_name]['Keys'];
     if (goog.isDef(idx_arr)) {
       goog.array.remove(idx_arr, id);
@@ -426,20 +427,20 @@ ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(
       this.storeSchema_[store_name]['Keys'] = null;
     }
     var base = this.makeKey(store_name) + ydn.db.con.SimpleStorage.SEP;
-    for (var i = this.cache_.length - 1; i >= 0; i--) {
-      var k = this.cache_.key(i);
+    for (var i = this.storage_.length - 1; i >= 0; i--) {
+      var k = this.storage_.key(i);
       goog.asserts.assertString(k);
       if (goog.string.startsWith(k, base)) {
-        this.cache_.removeItem(k);
+        this.storage_.removeItem(k);
       }
     }
   } else {
     var base = this.makeKey() + ydn.db.con.SimpleStorage.SEP;
-    for (var i = this.cache_.length - 1; i >= 0; i--) {
-      var k = this.cache_.key(i);
+    for (var i = this.storage_.length - 1; i >= 0; i--) {
+      var k = this.storage_.key(i);
       goog.asserts.assertString(k);
       if (goog.string.startsWith(k, base)) {
-        this.cache_.removeItem(k);
+        this.storage_.removeItem(k);
       }
     }
   }
@@ -465,8 +466,8 @@ ydn.db.con.SimpleStorage.prototype.index = function(store_name, index_name) {
     var base = this.makeKey(store_name);
     base += ydn.db.con.SimpleStorage.SEP;
     //console.log(['base', store_name, base]);
-    for (var i = 0, n = this.cache_.length; i < n; i++) {
-      var key = this.cache_.key(i);
+    for (var i = 0, n = this.storage_.length; i < n; i++) {
+      var key = this.storage_.key(i);
       goog.asserts.assertString(key);
       if (goog.string.startsWith(key, base)) {
         //console.log(['key ' + keys.length, key]);

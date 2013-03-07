@@ -22,12 +22,12 @@ ydn.db.ISyncOperator = function() {
  * @param {!Array.<Object>} objs objects.
  * @return {goog.async.Deferred} df
  */
-ydn.db.ISyncOperator.prototype.dump = goog.abstractMethod;
+ydn.db.ISyncOperator.prototype.dumpInternal = goog.abstractMethod;
 
 
 /**
- * List records from the database. Use only by synchronization process when updating from
- * server.
+ * List records from the database. Use only by synchronization process when
+ * updating from server.
  * This is friendly module use only.
  * @param {string} store_name
  * @param {string} index_name
@@ -36,7 +36,22 @@ ydn.db.ISyncOperator.prototype.dump = goog.abstractMethod;
  * @param {number} limit
  * @return {goog.async.Deferred} df
  */
-ydn.db.ISyncOperator.prototype.list = goog.abstractMethod;
+ydn.db.ISyncOperator.prototype.listInternal = goog.abstractMethod;
+
+
+
+/**
+ * List keys from the database. Use only by synchronization process when
+ * updating from server.
+ * This is friendly module use only.
+ * @param {string} store_name
+ * @param {string} index_name
+ * @param {IDBKeyRange} key_range
+ * @param {boolean} reverse
+ * @param {number} limit
+ * @return {goog.async.Deferred} df
+ */
+ydn.db.ISyncOperator.prototype.keysInternal = goog.abstractMethod;
 
 
 

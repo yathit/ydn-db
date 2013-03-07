@@ -95,7 +95,6 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
 };
 
 
-
 /**
  * @enum {string}
  */
@@ -113,6 +112,7 @@ ydn.db.schema.Store.FetchStrategy = {
  */
 ydn.db.schema.Store.FetchStrategies = [
   ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
+  ydn.db.schema.Store.FetchStrategy.ASCENDING_KEY,
   ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
 
 
@@ -161,21 +161,6 @@ ydn.db.schema.Store.prototype.fixed = false;
 
 
 /**
- *
- * @param {ydn.db.schema.Store.FetchStrategy|ydn.db.schema.Store.SyncMethod} strategy
- * @param {{
-   *   index: (string?|undefined),
-   *   offset: number,
-   *   reverse: boolean
-   * }=}  opt
- * @return {boolean}
- */
-ydn.db.schema.Store.prototype.toSync = function(strategy, opt) {
-  return false;
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.schema.Store.prototype.toJSON = function() {
@@ -204,10 +189,11 @@ ydn.db.schema.Store.prototype.toJSON = function() {
 ydn.db.schema.Store.fromJSON = function(json) {
   if (goog.DEBUG) {
     var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'indexes',
-      'dispatchEvents', 'fixed', 'sync'];
+      'dispatchEvents', 'fixed', 'Sync'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-        throw new ydn.debug.error.ArgumentException('Unknown attribute "' + key + '"');
+        throw new ydn.debug.error.ArgumentException('Unknown attribute "' +
+          key + '"');
       }
     }
   }
@@ -224,7 +210,7 @@ ydn.db.schema.Store.fromJSON = function(json) {
   }
   return new ydn.db.schema.Store(json.name, json.keyPath,
       json.autoIncrement, json.type, indexes, json.dispatchEvents, json.fixed,
-      json.sync);
+      json.Sync);
 };
 
 
@@ -369,6 +355,15 @@ ydn.db.schema.Store.prototype.getAutoIncrement = function() {
  */
 ydn.db.schema.Store.prototype.getKeyPath = function() {
   return this.keyPath;
+};
+
+
+/**
+ *
+ * @return {boolean} true if inline key is in used.
+ */
+ydn.db.schema.Store.prototype.usedInlineKey = function() {
+  return !!this.keyPath;
 };
 
 
@@ -540,9 +535,11 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
         for(var j = 0; j < key_path.length; j++) {
           if (goog.isDef(obj[key_path[j]])) {
             if (index.isMultiEntry()) {
-              values.push(ydn.db.schema.Index.js2sql(obj[key_path[j]], [type[j]]));
+              values.push(ydn.db.schema.Index.js2sql(
+                obj[key_path[j]], [type[j]]));
             } else {
-              values.push(ydn.db.schema.Index.js2sql(obj[key_path[j]], type[j]));
+              values.push(ydn.db.schema.Index.js2sql(
+                obj[key_path[j]], type[j]));
             }
             columns.push(goog.string.quote(key_path[j]));
           }
@@ -660,8 +657,46 @@ ydn.db.schema.Store.SyncMethod = {
   GET: 'get',
   PUT: 'put',
   CLEAR: 'cl',
-  LIST_BY_ASCENDING_KEY: 'la',
-  LIST_BY_DESCENDING_KEY: 'ld',
-  LIST_BY_UPDATED: 'lu'
+  LIST: 'li'
+};
+
+
+/**
+ * Database hook to call before persisting into the database.
+ * Override this function to attach the hook. The default implementation is
+ * immediately invoke the given callback with first variable argument.
+ * @param {ydn.db.schema.Store.SyncMethod} method
+ * @param {{
+   *   index: (string?|undefined),
+   *   limit: (number|undefined),
+   *   offset: (number|undefined),
+   *   reverse: (boolean|undefined)
+   * }}  opt
+ * @param {Function} callback
+ * @param {...} varargin
+ */
+ydn.db.schema.Store.prototype.preHook = function(method, opt, callback,
+                                                 varargin) {
+  callback(varargin);
+};
+
+
+/**
+ * Database hook to call before after retrieval into the database.
+ * Override this function to attach the hook. The default implementation is
+ * immediately invoke the given callback with first variable argument.
+ * @param {ydn.db.schema.Store.SyncMethod} method
+ * @param {{
+   *   index: (string|undefined),
+   *   limit: (number|undefined),
+   *   offset: (number|undefined),
+   *   reverse: (boolean|undefined)
+   * }}  opt
+ * @param {Function} callback
+ * @param {...} varargin
+ */
+ydn.db.schema.Store.prototype.postHook = function(method, opt, callback,
+                                                  varargin) {
+  callback(varargin);
 };
 

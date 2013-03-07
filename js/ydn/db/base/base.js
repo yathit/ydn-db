@@ -37,11 +37,13 @@ ydn.db.base.JQUERY = false;
 
 
 /**
- * Normally false, set to true only on compile flag when compile togather with sync
- * module.
+ * Normally false, set to true only on compile flag when compile together with
+ * module employ database hooks. There are two hooks define in
+ * {@link ydn.db.schema.Store#preHook} and {@link ydn.db.schema.Store#postHook}
  * @define {boolean} Enable sync module.
  */
-ydn.db.base.SYNC = false;
+ydn.db.base.USE_HOOK = false;
+
 
 /**
  * Default result limit during retrieving records from the database.

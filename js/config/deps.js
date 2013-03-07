@@ -18,14 +18,14 @@ goog.addDependency("../../../ydn-db/js/ydn/db/algo/sorted_merge.js", ['ydn.db.al
 goog.addDependency("../../../ydn-db/js/ydn/db/algo/zigzag_merge.js", ['ydn.db.algo.ZigzagMerge'], ['ydn.db']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/base.js", ['ydn.db.base'], ['goog.async.Deferred']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/db.js", ['ydn.db'], ['ydn.db.con.IndexedDb', 'ydn.db.con.WebSql', 'ydn.db.utils']);
-goog.addDependency("../../../ydn-db/js/ydn/db/base/editable_schema.js", ['ydn.db.schema.EditableDatabase'], ['ydn.db.schema.Database']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/error.js", ['ydn.db.InternalError', 'ydn.db.InvalidKeyException', 'ydn.db.InvalidStateError', 'ydn.db.NotFoundError', 'ydn.db.ScopeError', 'ydn.db.SecurityError'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/events.js", ['ydn.db.events.StoreEvent', 'ydn.db.events.StorageEvent', 'ydn.db.events.RecordEvent', 'ydn.db.events.Types'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/key.js", ['ydn.db.Key'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/key_range.js", ['ydn.db.IDBKeyRange', 'ydn.db.KeyRange'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/utils.js", ['ydn.db.utils'], []);
-goog.addDependency("../../../ydn-db/js/ydn/db/base/where.js", ['ydn.db.Where'], ['ydn.db.KeyRange', 'goog.string', 'ydn.debug.error.ArgumentException']);
+goog.addDependency("../../../ydn-db/js/ydn/db/base/where.js", ['ydn.db.Where'], ['ydn.db.KeyRange', 'goog.string', 'ydn.db.utils', 'ydn.debug.error.ArgumentException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/schema/database.js", ['ydn.db.schema.Database'], ['ydn.db.schema.Store', 'ydn.db.Key']);
+goog.addDependency("../../../ydn-db/js/ydn/db/base/schema/editable_schema.js", ['ydn.db.schema.EditableDatabase'], ['ydn.db.schema.Database']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/schema/index.js", ['ydn.db.schema.Index', 'ydn.db.schema.DataType'], ['ydn.db.base', 'ydn.debug.error.ArgumentException', 'ydn.db.utils']);
 goog.addDependency("../../../ydn-db/js/ydn/db/base/schema/store.js", ['ydn.db.schema.Store'], ['ydn.db.schema.Index']);
 goog.addDependency("../../../ydn-db/js/ydn/db/conn/i_database.js", ['ydn.db.con.IDatabase'], ['goog.async.Deferred']);
@@ -93,7 +93,7 @@ goog.addDependency("../../../ydn-db/js/ydn/db/tr/overflow_serial.js", ['ydn.db.t
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/parallel.js", ['ydn.db.tr.ParallelThread'], ['ydn.db.tr.IThread', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/serial.js", ['ydn.db.tr.Serial'], ['ydn.db.tr.IThread', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/single.js", ['ydn.db.tr.Single'], ['ydn.db.tr.IThread', 'ydn.db.tr.ParallelThread', 'ydn.error.NotSupportedException']);
-goog.addDependency("../../../ydn-db/js/ydn/db/tr/storage.js", ['ydn.db.tr.Storage'], ['ydn.db.con.Storage', 'ydn.db.tr.DbOperator', 'ydn.db.tr.IStorage', 'ydn.db.tr.AtomicSerial', 'ydn.db.tr.ParallelThread', 'ydn.db.tr.IThread.Threads', 'ydn.db.tr.Single']);
+goog.addDependency("../../../ydn-db/js/ydn/db/tr/storage.js", ['ydn.db.tr.Storage'], ['ydn.db.con.Storage', 'ydn.db.tr.DbOperator', 'ydn.db.tr.IStorage', 'ydn.db.tr.AtomicSerial', 'ydn.db.tr.ParallelThread', 'ydn.db.tr.IThread.Threads', 'ydn.db.tr.StrictOverflowSerial', 'ydn.db.tr.Single']);
 goog.addDependency("../../../ydn-db/js/ydn/db/tr/strict_overflow_serial.js", ['ydn.db.tr.StrictOverflowSerial'], ['ydn.db.tr.IThread', 'ydn.db.tr.Serial', 'ydn.error.NotSupportedException']);
 goog.addDependency("../../../ydn-db/js/ydn/db/utils/reader.js", ['ydn.db.io.Reader'], []);
 goog.addDependency("../../../ydn-db/js/ydn/db/utils/test_utils.js", ['ydn.db.test'], ['ydn.db.io.QueryService']);
