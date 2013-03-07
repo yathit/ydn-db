@@ -331,6 +331,33 @@ ydn.db.schema.Index.prototype.toJSON = function() {
 
 
 /**
+ * Compare two keyPath.
+ * @see #equals
+ * @param {*} keyPath1 key path 1.
+ * @param {*} keyPath2 key path 1.
+ * @return {string?} description where is different between the two. null
+ * indicate similar schema.
+ */
+ydn.db.schema.Index.compareKeyPath = function(keyPath1, keyPath2) {
+  if (!goog.isDefAndNotNull(keyPath1) && !goog.isDefAndNotNull(keyPath2)) {
+    return null;
+  } else if (!goog.isDefAndNotNull(keyPath1)) {
+    return 'newly define ' + keyPath2;
+  } else if (!goog.isDefAndNotNull(keyPath2)) {
+    return 'no keyPath';
+  } else if (goog.isArrayLike(keyPath1) && goog.isArrayLike(keyPath2)) {
+    return goog.array.equals(/** @type {goog.array.ArrayLike} */ (keyPath1),
+        /** @type {goog.array.ArrayLike} */ (keyPath2)) ?
+        null : 'expect: ' + keyPath1 + ', but: ' + keyPath2;
+  } else if (!ydn.object.equals(keyPath1, keyPath2)) {
+    return 'expect: ' + keyPath1 + ', but: ' + keyPath2;
+  } else {
+    return null;
+  }
+};
+
+
+/**
  * Compare two stores.
  * @see #equals
  * @param {ydn.db.schema.Index} index index schema to test.
@@ -344,8 +371,9 @@ ydn.db.schema.Index.prototype.difference = function(index) {
   if (this.name != index.name) {
     return 'name, expect: ' + this.name + ', but: ' + index.name;
   }
-  if (!ydn.object.equals(this.keyPath, index.keyPath)) {
-    return 'keyPath, expect: ' + this.keyPath + ', but: ' + index.keyPath;
+  var msg = ydn.db.schema.Index.compareKeyPath(this.keyPath, index.keyPath);
+  if (msg) {
+    return 'keyPath, ' + msg;
   }
   if (this.unique != index.unique) {
     return 'unique, expect: ' + this.unique + ', but: ' + index.unique;

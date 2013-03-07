@@ -11,6 +11,7 @@ goog.require('ydn.db.core.req.SimpleStore');
 goog.require('ydn.db.core.req.WebSql');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
+goog.require('ydn.db.Key');
 goog.require('ydn.db.core.IOperator');
 goog.require('ydn.db.ISyncOperator');
 goog.require('ydn.db.tr.DbOperator');

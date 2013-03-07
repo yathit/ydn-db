@@ -610,8 +610,9 @@ ydn.db.schema.Store.prototype.difference = function(store) {
   if (this.name != store.name) {
     return 'store name, expect: ' + this.name + ', but: ' + store.name;
   }
-  if (this.keyPath != store.keyPath) {
-    return 'keyPath, expect:  ' + this.keyPath + ', but: ' + store.keyPath;
+  var msg = ydn.db.schema.Index.compareKeyPath(this.keyPath, store.keyPath);
+  if (msg) {
+    return 'keyPath, ' + msg;
   }
   if (goog.isDef(this.autoIncrement) && goog.isDef(store.autoIncrement) &&
       this.autoIncrement != store.autoIncrement) {
@@ -629,9 +630,9 @@ ydn.db.schema.Store.prototype.difference = function(store) {
   }
   for (var i = 0; i < this.indexes.length; i++) {
     var index = store.getIndex(this.indexes[i].name);
-    var msg = this.indexes[i].difference(index);
-    if (msg.length > 0) {
-      return 'index "' + this.indexes[i].name + '" ' + msg;
+    var index_msg = this.indexes[i].difference(index);
+    if (index_msg.length > 0) {
+      return 'index "' + this.indexes[i].name + '" ' + index_msg;
     }
   }
 
