@@ -62,24 +62,31 @@ KeyPaths.prototype.updated;
 /**
  * @constructor
  */
-var AtomOptions = function() {};
+var BaseOptions = function() {};
 
 
 /**
  * @type {string}
  */
-AtomOptions.prototype.baseUri;
+BaseOptions.prototype.baseUri;
 
 
 /**
  * @type {KeyPaths}
  */
-AtomOptions.prototype.KeyPaths;
+BaseOptions.prototype.KeyPaths;
+
 
 /**
  * @type {string}
  */
-AtomOptions.prototype.metaStoreName;
+BaseOptions.prototype.metaStoreName;
+
+/**
+ * @constructor
+ * @extends {BaseOptions}
+ */
+var AtomOptions = function() {};
 
 
 /**
