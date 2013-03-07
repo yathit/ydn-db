@@ -470,6 +470,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
           offset: offset,
           limit: limit};
         store.preHook(ydn.db.schema.Store.SyncMethod.LIST, opt, function() {
+          me.logger.finest('listByIndexKeyRange: continue from preHook');
           me.sync_thread.exec(function (tx) {
             me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
                 range, reverse, limit, offset, false);
