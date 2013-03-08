@@ -208,7 +208,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js"
-                input.fn="${ydn-db.dir}/js/index_main.js"
+                input.fn="${ydn-db.dir}/js/config/index_main.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db-iter.js"
                 closure.entry="ydn.db.index.Storage">

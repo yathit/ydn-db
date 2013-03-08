@@ -102,7 +102,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
     var action = is_version_change ? 'changing version' : 'setting version';
 
-    var current_version = db.version ? parseFloat(db.version) : 0;
+    var current_version = db.version ? parseInt(db.version, 10) : 0;
     var new_version = schema.isAutoVersion() ?
         is_version_change ? isNaN(current_version) ?
             0 : (current_version + 1) : current_version
@@ -596,7 +596,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
           // console.log([fields[1], type]);
 
           if (upper_fields.indexOf('PRIMARY') != -1 && upper_fields.indexOf('KEY') != -1) {
-            if (!goog.string.isEmpty(name)) {
+            if (!goog.string.isEmpty(name) && name != ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME) {
               key_name = name;
             }
             key_type = type;
