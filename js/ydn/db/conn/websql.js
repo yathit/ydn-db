@@ -102,9 +102,10 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
     var action = is_version_change ? 'changing version' : 'setting version';
 
-    var current_version = db.version || 0;
+    var current_version = db.version ? parseFloat(db.version) : 0;
     var new_version = schema.isAutoVersion() ?
-        is_version_change ? (current_version + 1) : current_version
+        is_version_change ? isNaN(current_version) ?
+            0 : (current_version + 1) : current_version
         : schema.version;
     me.logger.finest(dbname + ': ' + action + ' from ' +
       db.version + ' to ' + new_version);
@@ -121,8 +122,10 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
       me.getSchema(function(table_infos) {
         executed = true;
         for (var i = 0; i < schema.count(); i++) {
-          var counter = function() {
-            updated_count++;
+          var counter = function(ok) {
+            if (ok) {
+              updated_count++;
+            }
           };
           var table_info = table_infos.getStore(schema.store(i).getName());
           me.update_store_with_info_(tx, schema.store(i), counter, table_info);
@@ -301,7 +304,14 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
       me.logger.finest('Upgrading to version: ' + version);
     }
 
-    doVersionChange_(db, schema, false);
+    this.getSchema(function(existing_schema) {
+      var msg = schema.difference(existing_schema);
+      if (msg) {
+        me.logger.finer('version change for ' + msg);
+      }
+      doVersionChange_(db, schema, !!msg);
+    }, null, db);
+
   }
 
   return df;
@@ -309,8 +319,8 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
 
 /**
- * @define {boolean} gentle opening do not specify version number on open
- * method invokation.
+ * @define {boolean} gentle opening do not specify version number on
+ * database open method call.
  */
 ydn.db.con.WebSql.GENTLE_OPENING = true;
 
@@ -525,7 +535,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
   db = db || this.sql_db_;
 
   var version = (db && db.version) ?
-      parseInt(db.version, 10) : undefined;
+      parseFloat(db.version) : undefined;
   version = isNaN(version) ? undefined : version;
   var stores = [];
 
@@ -743,7 +753,6 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
   for (var i = 0; i < sqls.length; i++) {
     exe_sql(sqls[i]);
   }
-
 
 };
 

@@ -216,7 +216,6 @@ var version_unchange_test = function(schema) {
       100, // interval
       2000); // maxTimeout
 
-
   var db = new ydn.db.Storage(db_name, schema, options);
   db.addEventListener('done', function(e) {
     ver = e.getVersion();
