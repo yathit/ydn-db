@@ -273,12 +273,13 @@ var test_12_put_array = function() {
 };
 
 
-var test_13_put_array = function() {
-  var db_name = 'test_crud_ 13_2';
+
+var test_12_put_array_key = function() {
+  var db_name = 'test_13';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var arr = [];
-  var n = ydn.db.core.req.IndexedDb.REQ_PER_TX * 2.5;
+  var n = ydn.db.core.req.IndexedDb.REQ_PER_TX / 2;
   for (var i = 0; i < n; i++) {
     arr.push({id: i, value: 'a' + Math.random()});
   }
@@ -310,6 +311,83 @@ var test_13_put_array = function() {
       hasEventFired = true;
       console.log('Error: ' + e);
     });
+};
+
+
+var test_13_put_key = function() {
+  var db_name = 'test_crud_ 13_2';
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var key = new ydn.db.Key(store_name_inline_number, 1);
+  var value =
+    {id: 1, msg: Math.random()};
+
+  var done = false;
+  var results, keys;
+
+  waitForCondition(
+    // Condition
+    function() { return done; },
+    // Continuation
+    function() {
+      assertEquals('key', 1, keys);
+      assertObjectEquals('value', value, results);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+
+  db.put(key, value).addBoth(function(x) {
+    console.log('receiving value callback.');
+    keys = x;
+    db.get(key).addBoth(function(x) {
+      results = x;
+      done = true;
+    })
+  });
+};
+
+
+var test_13_put_array = function() {
+  var db_name = 'test_crud_ 13_2';
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+
+  var arr = [
+    new ydn.db.Key(store_name_inline_number, 1),
+    new ydn.db.Key(store_name_inline_number, 2),
+    new ydn.db.Key(table_name_offline, 3)];
+  var values = [
+    {id: 1, msg: Math.random()},
+    {msg: Math.random()},
+    {key: Math.random()}];
+
+  var done = false;
+  var results, keys;
+
+  waitForCondition(
+    // Condition
+    function() { return done; },
+    // Continuation
+    function() {
+      assertArrayEquals('keys', [1, 2, 3], keys);
+      assertArrayEquals('values', values, results);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+
+  db.put(arr, values).addBoth(function(value) {
+    //console.log('receiving value callback.');
+    keys = value;
+    db.values(arr).addBoth(function(x) {
+      results = x;
+      done = true;
+    })
+  });
 };
 
 

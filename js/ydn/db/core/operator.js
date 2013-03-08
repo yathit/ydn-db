@@ -187,7 +187,6 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
     this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).getById(df, k_store_name, kid);
     }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
-
   } else if (goog.isString(arg1) && goog.isDef(arg2)) {
     var store_name = arg1;
     var store = this.schema.getStore(store_name);
@@ -247,7 +246,7 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
     }
 
   } else {
-    throw new ydn.debug.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException('get require valid input arguments.');
   }
 
   return df;
@@ -757,101 +756,144 @@ ydn.db.core.DbOperator.prototype.load = function(store_name_or_schema, data, opt
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.put = function(store_name_or_schema, value,
-                                                opt_keys) {
-
-  var store = this.getStore_(store_name_or_schema);
-  var store_name = store.getName();
+ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
 
   var df = ydn.db.base.createDeferred();
   var me = this;
 
-
-  // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
-  if ((goog.isString(store.keyPath)) && goog.isDef(opt_keys)) {
-    // The object store uses in-line keys or has a key generator, and a key
-    // parameter was provided.
-    throw new ydn.debug.error.ArgumentException(
-      'key cannot provide while in-line key ' + 'is in used.');
-  } else if (store.autoIncrement && goog.isDef(opt_keys)) {
-    // The object store uses in-line keys or has a key generator, and a key
-    // parameter was provided.
-    throw new ydn.debug.error.ArgumentException('key cannot provide while ' +
-      'autoIncrement is true.');
-  } else if (!goog.isString(store.keyPath) && !store.autoIncrement &&
-    !goog.isDef(opt_keys)) {
-    // The object store uses out-of-line keys and has no key generator, and no
-    // key parameter was provided.
-    throw new ydn.debug.error.ArgumentException('out-of-line key must be provided.');
-  }
-
-  if (goog.isArray(value)) {
-    var objs = value;
-    var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
-    this.logger.finer('putObjects: ' + store_name + ' ' +
-      objs.length + ' objects');
-    this.tx_thread.exec(function(tx) {
-      //console.log('putObjects');
-      me.getExecutor(tx).putObjects(df, store_name, objs, keys);
-    }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObjects');
-
-    if (store.dispatch_events) {
-      df.addCallback(function(keys) {
-        var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.UPDATED,
-          me.getStorage(), store_name, keys, objs);
-        me.getStorage().dispatchEvent(event);
-      });
+  if (arg1 instanceof ydn.db.Key) {
+    var df1 = this.put([arg1], [value]);
+    df1.addCallbacks(function(x) {
+      df.callback(x[0]);
+    }, function(e) {
+      df.errback(e);
+    });
+  } else if (goog.isArray(arg1)) { // array of keys
+    if (goog.isDef(opt_keys)) {
+      throw new ydn.debug.error.ArgumentException('too many arguments');
     }
-
-  } else if (goog.isObject(value)) {
-    var obj = value;
-    var key = /** @type {number|string|undefined} */ (opt_keys);
-    if (goog.DEBUG) {
-      if (goog.isDef(key)) {
-        goog.asserts.assert(ydn.db.Key.isValidKey(key), key +
-          ' of type ' + (typeof key) + ' is invalid key for ' +
-          ydn.json.toShortString(obj));
-      } else if (!store.getAutoIncrement() && store.usedInlineKey()) {
-        goog.asserts.assert(ydn.db.Key.isValidKey(store.getKeyValue(obj)),
-          'in-line key on ' + store.getKeyPath() + ' must provided in ' +
-            ydn.json.toShortString(obj));
+    var db_keys = /** @type {!Array.<!ydn.db.Key>} */ (arg1);
+    if (goog.DEBUG && !goog.isDef(value)) {
+      throw new ydn.debug.error.ArgumentException('record values required');
+    }
+    goog.asserts.assertArray(value, 'record values must also be in an array');
+    var values = /** @type {!Array} */ (value);
+    goog.asserts.assert(db_keys.length === values.length, 'number of keys ' +
+      'and number of object must be same, but found ' + db_keys.length +
+      ' vs. ' + values.length);
+    var store_names = [];
+    for (var i = 0, n = db_keys.length; i < n; i++) {
+      var s_name = db_keys[i].getStoreName();
+      if (goog.array.indexOf(store_names, s_name) == -1) {
+        store_names.push(s_name);
+      }
+      var store = this.schema.getStore(s_name);
+      if (!store) {
+        throw new ydn.debug.error.ArgumentException('store "' + s_name +
+          '" not found.');
+      }
+      if (store.usedInlineKey()) {
+        store.setKeyValue(values[i], db_keys[i].getId());
       }
     }
-    this.logger.finer('putObject: ' + store_name + ' ' + key);
+    this.logger.finer('putByKeys: to ' + ydn.json.stringify(store_names) + ' ' +
+      values.length + ' objects');
+    this.tx_thread.exec(function (tx) {
+      me.getExecutor(tx).putByKeys(df, values, db_keys);
+    }, store_names, ydn.db.base.TransactionMode.READ_WRITE, 'putByKeys');
+  } else if (goog.isString(arg1) || goog.isObject(arg1)) {
 
-    if (ydn.db.base.USE_HOOK) {
-      var post_df = new goog.async.Deferred();
-      var opt = {};
-      store.preHook(ydn.db.schema.Store.SyncMethod.PUT, opt, function (key) {
-        me.tx_thread.exec(function (tx) {
-          //console.log('putObjects');
-          me.getExecutor(tx).putObject(post_df, store_name, obj, key);
+    var store = this.getStore_(arg1);
+    var store_name = store.getName();
+
+    // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
+    if ((goog.isString(store.keyPath)) && goog.isDef(opt_keys)) {
+      // The object store uses in-line keys or has a key generator, and a key
+      // parameter was provided.
+      throw new ydn.debug.error.ArgumentException(
+        'key cannot provide while in-line key ' + 'is in used.');
+    } else if (store.autoIncrement && goog.isDef(opt_keys)) {
+      // The object store uses in-line keys or has a key generator, and a key
+      // parameter was provided.
+      throw new ydn.debug.error.ArgumentException('key cannot provide while ' +
+        'autoIncrement is true.');
+    } else if (!goog.isString(store.keyPath) && !store.autoIncrement && !goog.isDef(opt_keys)) {
+      // The object store uses out-of-line keys and has no key generator, and no
+      // key parameter was provided.
+      throw new ydn.debug.error.ArgumentException('out-of-line key must be provided.');
+    }
+
+    if (goog.isArray(value)) {
+      var objs = value;
+      var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
+      this.logger.finer('putObjects: ' + store_name + ' ' +
+        objs.length + ' objects');
+      this.tx_thread.exec(function (tx) {
+        //console.log('putObjects');
+        me.getExecutor(tx).putObjects(df, store_name, objs, keys);
+      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObjects');
+
+      if (store.dispatch_events) {
+        df.addCallback(function (keys) {
+          var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.UPDATED,
+            me.getStorage(), store_name, keys, objs);
+          me.getStorage().dispatchEvent(event);
+        });
+      }
+
+    } else if (goog.isObject(value)) {
+      var obj = value;
+      var key = /** @type {number|string|undefined} */ (opt_keys);
+      if (goog.DEBUG) {
+        if (goog.isDef(key)) {
+          goog.asserts.assert(ydn.db.Key.isValidKey(key), key +
+            ' of type ' + (typeof key) + ' is invalid key for ' +
+            ydn.json.toShortString(obj));
+        } else if (!store.getAutoIncrement() && store.usedInlineKey()) {
+          goog.asserts.assert(ydn.db.Key.isValidKey(store.getKeyValue(obj)),
+            'in-line key on ' + store.getKeyPath() + ' must provided in ' +
+              ydn.json.toShortString(obj));
+        }
+      }
+      this.logger.finer('putObject: ' + store_name + ' ' + key);
+
+      if (ydn.db.base.USE_HOOK) {
+        var post_df = new goog.async.Deferred();
+        var opt = {};
+        store.preHook(ydn.db.schema.Store.SyncMethod.PUT, opt, function (key) {
+          me.tx_thread.exec(function (tx) {
+            //console.log('putObjects');
+            me.getExecutor(tx).putObject(post_df, store_name, obj, key);
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+        }, obj, key);
+
+        post_df.addCallbacks(function (key) {  // todo: use chain
+          df.callback(key);
+        }, function (e) {
+          df.errback(e);
+        });
+
+      } else {
+        this.tx_thread.exec(function (tx) {
+          me.getExecutor(tx).putObject(df, store_name, obj, key);
         }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
-      }, obj, key);
+      }
 
-      post_df.addCallbacks(function (key) {  // todo: use chain
-        df.callback(key);
-      }, function (e) {
-        df.errback(e);
-      });
+      if (store.dispatch_events) {
+        df.addCallback(function (key) {
+          var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.UPDATED,
+            me.getStorage(), store_name, key, obj);
+          me.getStorage().dispatchEvent(event);
+        });
+      }
 
     } else {
-      this.tx_thread.exec(function (tx) {
-        me.getExecutor(tx).putObject(df, store_name, obj, key);
-      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+      throw new ydn.debug.error.ArgumentException('put record value must be ' +
+        'Object or array of Objects');
     }
-
-    if (store.dispatch_events) {
-      df.addCallback(function (key) {
-        var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.UPDATED,
-          me.getStorage(), store_name, key, obj);
-        me.getStorage().dispatchEvent(event);
-      });
-    }
-
   } else {
-    throw new ydn.debug.error.ArgumentException('put record value must be ' +
-      'Object or array of Objects');
+    throw new ydn.debug.error.ArgumentException('the first argument of put ' +
+      'must be store name, store schema or array of keys.');
   }
 
   return df;

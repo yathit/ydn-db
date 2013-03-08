@@ -86,8 +86,8 @@ ydn.db.core.IOperator.prototype.load = goog.abstractMethod;
 
 /**
  * Execute PUT request either storing result to tx or callback to df.
- * @param {string|StoreSchema} store_name_or_schema store name or
- * schema.
+ * @param {string|StoreSchema|ydn.db.Key|!Array.<!ydn.db.Key>} arg1 store name
+ * or schema, key or array of keys.
  * @param {!Object|!Array.<!Object>} value object to put.
  * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys.
  * @return {!goog.async.Deferred} return newly created keys in promise.

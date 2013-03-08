@@ -361,6 +361,90 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
 /**
  * @inheritDoc
  */
+ydn.db.core.req.IndexedDb.prototype.putByKeys = function(df, objs,
+                                                          keys) {
+
+  var results = [];
+  var result_count = 0;
+
+  var me = this;
+
+  var msg = 'putByKeys: of ' + objs.length + ' objects';
+  this.logger.finest(msg);
+
+  var put = function(i) {
+    /**
+     * @type {!ydn.db.Key}
+     */
+    var key = keys[i];
+    var store_name = key.getStoreName();
+    var store = me.tx.objectStore(store_name);
+
+    var request;
+
+    if (goog.isNull(store.keyPath)) {
+      request = store.put(objs[i], key.getId());
+    } else {
+      request = store.put(objs[i]);
+    }
+
+    request.onsuccess = function(event) {
+      result_count++;
+      //if (ydn.db.core.req.IndexedDb.DEBUG) {
+      //  window.console.log([store_name, event]);
+      //}
+      results[i] = event.target.result;
+      if (result_count == objs.length) {
+        me.logger.finest('success ' + msg);
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        if (next < objs.length) {
+          put(next);
+        }
+      }
+    };
+
+    request.onerror = function(event) {
+      result_count++;
+      if (ydn.db.core.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, event]);
+      }
+      if (goog.DEBUG) {
+        if (event.name == 'DataError') {
+          // DataError is due to invalid key.
+          // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
+          // IDBRequest-any-key
+          event = new ydn.db.InvalidKeyException('put to "' + store_name + '": ' +
+            i + ' of ' + objs.length);
+        } else if (event.name == 'DataCloneError') {
+          event = new ydn.db.DataCloneError('put to "' + store_name + '": ' + i +
+            ' of ' + objs.length);
+        }
+      }
+      me.logger.finest('error ' + msg);
+      df.errback(event);
+      // abort transaction ?
+    };
+
+  };
+
+  if (objs.length > 0) {
+    // send parallel requests
+    for (var i = 0; i < ydn.db.core.req.IndexedDb.REQ_PER_TX &&
+      i < objs.length; i++) {
+      put(i);
+    }
+  } else {
+    df.callback([]);
+  }
+};
+
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.core.req.IndexedDb.prototype.putData = function(df, store_name, data,
                                                        delimiter) {
   var me = this;
