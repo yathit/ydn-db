@@ -92,7 +92,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
 
   /**
-   * Migrate from current version to the last version.
+   * Migrate from current version to the new version.
    * @private
    * @param {Database} db database.
    * @param {ydn.db.schema.Database} schema  schema.
@@ -101,17 +101,13 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
   var doVersionChange_ = function(db, schema, is_version_change) {
 
     var action = is_version_change ? 'changing version' : 'setting version';
+
+    var current_version = db.version || 0;
+    var new_version = schema.isAutoVersion() ?
+        is_version_change ? (current_version + 1) : current_version
+        : schema.version;
     me.logger.finest(dbname + ': ' + action + ' from ' +
-      db.version + ' to ' + schema.version);
-
-    //var mode = is_version_change ?
-    //    ydn.db.base.TransactionMode.VERSION_CHANGE :
-    // ydn.db.base.TransactionMode.READ_WRITE;
-
-    // HACK: VERSION_CHANGE can cause subtle error.
-    var mode = ydn.db.base.TransactionMode.READ_WRITE;
-    // yes READ_WRITE mode can create table and more robust. :-D
-
+      db.version + ' to ' + new_version);
 
     var executed = false;
     var updated_count = 0;
@@ -178,7 +174,9 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
       throw e;
     };
 
-    db.transaction(transaction_callback, error_callback, success_callback);
+    // db.transaction(transaction_callback, error_callback, success_callback);
+    db.changeVersion(db.version, new_version + '', transaction_callback,
+        error_callback, success_callback);
 
   };
 
@@ -387,15 +385,15 @@ ydn.db.con.WebSql.prototype.logger =
  */
 ydn.db.con.WebSql.prototype.prepareTableSchema_ = function(table_schema) {
 
-  var schema = {};
-  schema.name = table_schema.getName();
-  schema.keyPath = table_schema.getKeyPath() || ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
-  schema.type = table_schema.type || 'BLOB';
-  if (goog.isArray(schema.type)) {
-    schema.type = ydn.db.schema.DataType.TEXT;
-  }
-  schema.autoIncrement = table_schema.autoIncrement
-  schema.indexes = [];
+
+  var name = table_schema.getName();
+  var key_path = table_schema.getKeyPath() || ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  var type = table_schema.type || 'BLOB';
+//  if (goog.isArray(type)) {
+//    type = ydn.db.schema.DataType.TEXT;
+//  }
+  var autoIncrement = table_schema.autoIncrement;
+  var indexes = [];
 
   var column_names = [];
   column_names.push(table_schema.keyPath);
@@ -416,24 +414,26 @@ ydn.db.con.WebSql.prototype.prepareTableSchema_ = function(table_schema) {
         if (column_names.indexOf(keyPaths[j]) >= 0) {
           continue;
         }
-        var idx = {name:keyPaths[j], keyPath: keyPaths[j], type: types[j]};
-        schema.indexes.push(idx);
+        var idx = new ydn.db.schema.Index(keyPaths[j], types[j]);
+        indexes.push(idx);
         column_names.push(keyPaths[j]);
       }
     } else {
       if (column_names.indexOf(index.getKeyPath()) == -1) {
         var keyPath = index.getKeyPath();
-        var idx = {name:keyPath, keyPath: keyPath, type: index.getType()};
-        schema.indexes.push(idx);
+        var idx = new ydn.db.schema.Index(keyPath, index.getType());
+        indexes.push(idx);
         column_names.push(keyPath);
       }
     }
 
   }
 
-  return ydn.db.schema.Store.fromJSON(schema);
+  return new ydn.db.schema.Store(name, key_path, autoIncrement, type, indexes);
 
-}
+};
+
+
 /**
  * Initialize variable to the schema and prepare SQL statement for creating
  * the table.
@@ -463,11 +463,11 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var sqls = [];
   var sep = ', ';
-  for (var i = 0; i < table_schema.indexes.length; i++) {
+  for (var i = 0, n = table_schema.countIndex(); i < n; i++) {
     /**
      * @type {ydn.db.schema.Index}
      */
-    var index = table_schema.indexes[i];
+    var index = table_schema.index(i);
     var unique = index.unique ? ' UNIQUE ' : ' ';
 
 

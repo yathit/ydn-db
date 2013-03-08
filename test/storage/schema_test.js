@@ -75,7 +75,7 @@ var test_auto_schema = function() {
 };
 
 
-var version_change_test = function(schema) {
+var version_change_test = function(schema1, schema2) {
   var db_name = 'test' + Math.random();
 
   var ver, oldVer, ver2, oldVer2;
@@ -88,8 +88,127 @@ var version_change_test = function(schema) {
       function() {
         assertNotNaN('version 1', ver);
         assertNaN('old version 1', oldVer);
-        assertEquals('version 2', ver, ver2);
+        assertEquals('version 2', (ver + 1), ver2);
         assertEquals('old version 2', ver, oldVer2);
+
+        reachedFinalContinuation = true;
+
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  var db = new ydn.db.Storage(db_name, schema1, options);
+  db.addEventListener('done', function(e) {
+    ver = e.getVersion();
+    oldVer = e.getOldVersion();
+    db.close();
+    var db2 = new ydn.db.Storage(db_name, schema2, options);
+    db2.addEventListener('done', function (e) {
+      ver2 = e.getVersion();
+      oldVer2 = e.getOldVersion();
+      ydn.db.deleteDatabase(db2.getName(), db2.getType());
+      db2.close();
+      done = true;
+    })
+  })
+};
+
+
+var test_add_store = function () {
+  var schema1 = {
+    stores: [
+      {
+        name: 'st'
+      }
+    ]
+  };
+  var schema2 = {
+    stores: [
+      {
+        name: 'st'
+      },
+      {
+        name: 'st2'
+      }
+    ]
+  };
+  version_change_test(schema1, schema2);
+};
+
+var test_remove_store = function () {
+  var schema2 = {
+    stores: [
+      {
+        name: 'st'
+      }
+    ]
+  };
+  var schema1 = {
+    stores: [
+      {
+        name: 'st'
+      },
+      {
+        name: 'st2'
+      }
+    ]
+  };
+  version_change_test(schema1, schema2);
+};
+
+var test_rename_store = function () {
+  var schema2 = {
+    stores: [
+      {
+        name: 'st'
+      }
+    ]
+  };
+  var schema1 = {
+    stores: [
+      {
+        name: 'st2'
+      }
+    ]
+  };
+  version_change_test(schema1, schema2);
+};
+
+var test_out_of_line_to_in_line_key = function () {
+  var schema1 = {
+    stores: [
+      {
+        name: 'st'
+      }
+    ]
+  };
+  var schema2 = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'id'
+      }
+    ]
+  };
+  version_change_test(schema1, schema2);
+};
+
+var version_unchange_test = function(schema) {
+  var db_name = 'test' + Math.random();
+
+  var ver, oldVer, ver2, oldVer2;
+  var done = false;
+
+  waitForCondition(
+      // Condition
+      function() { return done; },
+      // Continuation
+      function() {
+        assertNotNaN('version 1', ver);
+        assertNaN('old version 1', oldVer);
+        assertEquals('version 2, no change', ver, ver2);
+        assertEquals('old version 2, no change', ver, oldVer2);
 
         reachedFinalContinuation = true;
 
@@ -126,7 +245,7 @@ var test_composite_key_schema = function() {
       }
     ]
   };
-  version_change_test(schema);
+  version_unchange_test(schema);
 };
 
 
@@ -143,7 +262,7 @@ var test_composite_index_schema = function() {
     }]
   };
 
-  version_change_test(schema);
+  version_unchange_test(schema);
 
 };
 
