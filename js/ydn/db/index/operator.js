@@ -81,7 +81,7 @@ ydn.db.index.DbOperator.prototype.get = function(arg1, arg2) {
     }, function(e) {
       df.errback(e);
     });
-    this.logger.finest('listByIterator:' + q);
+    this.logger.finer('listByIterator:' + q);
     this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).listByIterator(list_df, q, 1, 0);
     }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');
@@ -133,7 +133,7 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
      */
     var q = arg1;
 
-    this.logger.finest('keysByIterator:' + q);
+    this.logger.finer('keysByIterator:' + q);
     this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).keysByIterator(df, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
@@ -163,7 +163,7 @@ ydn.db.index.DbOperator.prototype.count = function(arg1, arg2, arg3) {
      * @type {!ydn.db.Iterator}
      */
     var q = arg1;
-    this.logger.finest('countKeyRange:' + q);
+    this.logger.finer('countKeyRange:' + q);
     this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).countKeyRange(df, q.getStoreName(), q.keyRange(),
         q.getIndexName());
@@ -216,7 +216,7 @@ ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5
      * @type {!ydn.db.Iterator}
      */
     var q = arg1;
-    this.logger.finest('listByIterator:' + q);
+    this.logger.finer('listByIterator:' + q);
     this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).listByIterator(df, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
@@ -608,7 +608,7 @@ ydn.db.index.DbOperator.prototype.open = function(iterator, callback, mode) {
 
   var me = this;
   var df = ydn.db.base.createDeferred();
-  this.logger.finest('open:' + tr_mode + ' ' + iterator);
+  this.logger.finer('open:' + tr_mode + ' ' + iterator);
   this.tx_thread.exec(function(tx) {
     // executor.open(df, cursor, callback, /** @type {ydn.db.base.CursorMode} */ (tr_mode));
 
@@ -731,7 +731,7 @@ ydn.db.index.DbOperator.prototype.reduce = function(iterator, callback, initial)
   var df = ydn.db.base.createDeferred();
 
   var previous = goog.isObject(initial) ? ydn.object.clone(initial) : initial;
-  this.logger.finest('reduce:' + iterator);
+  this.logger.finer('reduce:' + iterator);
   this.tx_thread.exec(function (tx) {
 
     var cursor = iterator.iterate(me.getIndexExecutor(tx));

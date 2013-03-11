@@ -13,6 +13,7 @@ goog.require('ydn.db.sql.req.IRequestExecutor');
 goog.require('ydn.db.sql.req.IndexedDb');
 goog.require('ydn.db.sql.req.WebSql');
 goog.require('ydn.db.sql.req.SimpleStore');
+goog.require('ydn.debug.error.ArgumentException');
 
 
 
@@ -84,12 +85,13 @@ ydn.db.sql.DbOperator.prototype.executeSql = function (sql, params) {
   for (var i = 0; i < stores.length; i++) {
     var store = this.schema.getStore(stores[i]);
     if (!store) {
-      throw new ydn.error.ArgumentException('store: ' + store +
+      throw new ydn.debug.error.ArgumentException('store: ' + store +
           ' not exists.');
     }
   }
 
   var me = this;
+  this.logger.finer('executeSql: ' + sql + " params: " + params);
   this.tx_thread.exec(function (tx) {
     me.getExecutor(tx).executeSql(df, query, params || []);
   }, query.getStoreNames(), query.getMode(), 'executeSql');

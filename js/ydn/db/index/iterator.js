@@ -103,7 +103,7 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
    *
    * @final
    */
-  this.key_range_ = ydn.db.KeyRange.parseKeyRange(keyRange);
+  this.key_range_ = ydn.db.KeyRange.parseIDBKeyRange(keyRange);
 
   this.filter_index_names_ = [];
   this.filter_key_ranges_ = [];

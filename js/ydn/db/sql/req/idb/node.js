@@ -100,50 +100,38 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
     throw new ydn.error.NotSupportedException('too many conditions.');
   }
 
-  if (goog.isNull(sel_fields) || sel_fields.length == 0)  {
-    if (goog.isDefAndNotNull(order) && order != this.store_schema.getKeyPath()) {
-      var iter = new ydn.db.IndexValueCursors(store_name, order, key_range, reverse);
-      req.listByIterator(df, iter, limit, offset);
-    } else {
-      if (key_range) {
-        req.listByIndexKeyRange(df, store_name, wheres[0].getField(), key_range, reverse, limit, offset, false);
-      } else {
-        req.listByKeyRange(df, store_name, key_range, reverse, limit, offset);
-      }
-    }
-  } else if (sel_fields.length == 1) {
-    if (goog.isDefAndNotNull(order) && order != sel_fields[0]) {
-      // TODO: More efficient
-      var ndf = new goog.async.Deferred();
-      var iter = new ydn.db.IndexValueCursors(store_name, order, key_range, reverse);
-      req.listByIterator(ndf, iter, limit, offset);
-      ndf.addCallbacks(function(values) {
-        var results = values.map(function(x) {
-          return goog.object.getValueByKeys(x, sel_fields[0]);
-        });
-        df.callback(results);
-      }, function(e) {
-        df.errback(e);
-      });
-    } else {
-      var iter = new ydn.db.Cursors(store_name, sel_fields[0], key_range, reverse);
-      req.listByIterator(df, iter, limit, offset);
-    }
-
-  } else {
-    var ndf = new goog.async.Deferred();
-    req.listByKeyRange(ndf, store_name, key_range, reverse, limit, offset);
+  var ndf = df;
+  if (!goog.isNull(sel_fields)) {
+    ndf = new goog.async.Deferred();
     ndf.addCallbacks(function(records) {
       var out = records.map(function(record) {
-        var obj = {};
-        for (var i = 0; i < sel_fields.length; i++) {
-          obj[sel_fields[i]] = goog.object.getValueByKeys(record, sel_fields[i]);
+        var n = sel_fields.length;
+        if (n == 1) {
+          return ydn.db.utils.getValueByKeys(record, sel_fields[0]);
+        } else {
+          var obj = {};
+          for (var i = 0; i < n; i++) {
+            obj[sel_fields[i]] = ydn.db.utils.getValueByKeys(record,
+              sel_fields[i]);
+          }
+          return obj;
         }
-        return obj;
-      })
+      });
+      df.callback(out);
     }, function(e) {
       df.errback(e);
     });
+
+  }
+  if (order && order != this.store_schema.getKeyPath()) {
+    req.listByIndexKeyRange(ndf, store_name, order, key_range,
+      reverse, limit, offset, false);
+  } else if (wheres.length > 0 && wheres[0].getField() !=
+    this.store_schema.getKeyPath()) {
+    req.listByIndexKeyRange(ndf, store_name, wheres[0].getField(), key_range,
+      reverse, limit, offset, false);
+  } else {
+    req.listByKeyRange(ndf, store_name, key_range, reverse, limit, offset);
   }
 
 };

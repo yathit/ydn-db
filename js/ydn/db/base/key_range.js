@@ -298,11 +298,13 @@ ydn.db.KeyRange.prototype.and = function(that) {
   var upper = this.upper;
   var lowerOpen = this.lowerOpen;
   var upperOpen = this.upperOpen;
-  if (goog.isDefAndNotNull(that.lower) && that.lower >= this.lower) {
+  if (goog.isDefAndNotNull(that.lower) &&
+      (!goog.isDefAndNotNull(this.lower) || that.lower >= this.lower)) {
     lower = that.lower;
     lowerOpen = that.lowerOpen || this.lowerOpen;
   }
-  if (goog.isDefAndNotNull(that.upper) && that.upper <= this.upper) {
+  if (goog.isDefAndNotNull(that.upper) &&
+    (!goog.isDefAndNotNull(this.upper) || that.upper <= this.upper)) {
     upper = that.upper;
     upperOpen = that.upperOpen || this.upperOpen;
   }
