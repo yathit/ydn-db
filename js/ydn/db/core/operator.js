@@ -570,7 +570,8 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
       }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'listByKeys');
     } else {
       throw new ydn.debug.error.ArgumentException('first argument' +
-        'must be array of ydn.db.Key, but ' + arg1[0] + ' is not.');
+        'must be array of ydn.db.Key, but ' + arg1[0] + ' of ' +
+        typeof arg1[0] + ' found.');
     }
   } else {
     throw new ydn.debug.error.ArgumentException('first argument ' + arg1 +
@@ -762,12 +763,30 @@ ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
   var me = this;
 
   if (arg1 instanceof ydn.db.Key) {
-    var df1 = this.put([arg1], [value]);
-    df1.addCallbacks(function(x) {
-      df.callback(x[0]);
-    }, function(e) {
-      df.errback(e);
-    });
+    /**
+     * @type {!ydn.db.Key}
+     */
+    var k = arg1;
+    var k_s_name = k.getStoreName();
+    var k_store = this.schema.getStore(k_s_name);
+    if (!k_store) {
+      throw new ydn.debug.error.ArgumentException('store "' + k_s_name +
+        '" not found.');
+    }
+    if (k_store.usedInlineKey()) {
+      var v_k = k_store.getKeyValue(value);
+      if (goog.isDefAndNotNull(v_k)) {
+        if (ydn.db.cmp(v_k, k.getId()) != 0) {
+          throw new ydn.debug.error.ArgumentException('Inline key must be ' +
+            k + ' but ' + v_k + ' found.');
+        }
+      } else {
+        k_store.setKeyValue(value, k.getId());
+      }
+      this.put(k_s_name, value);
+    } else {
+      this.put(k_s_name, value, k.getId());
+    }
   } else if (goog.isArray(arg1)) { // array of keys
     if (goog.isDef(opt_keys)) {
       throw new ydn.debug.error.ArgumentException('too many arguments');

@@ -135,6 +135,99 @@ db.put(store_name, data).always(function (value) {
     setup: function () {
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
+        console.warn('SELECT test not finished.');
+      }, 1000);
+    },
+    teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
+    }
+  };
+
+  module("Paging", test_env);
+  reporter.createTestSuite('sql', 'Paging', ydn.db.version);
+
+  var ids = data.map(function(x) {
+      return x.id;
+    }
+  );
+
+  asyncTest("LIMIT", function () {
+    expect(1);
+
+    var sql = 'SELECT id FROM st LIMIT 3';
+    var exp_result = ids.slice(0, 3);
+    var req = db.executeSql(sql);
+    req.always(function(x) {
+      deepEqual(x, exp_result, sql);
+      start();
+    });
+  });
+
+
+  asyncTest("LIMIT OFFSET", function () {
+    expect(1);
+
+    var sql = 'SELECT id FROM st LIMIT 3 OFFSET 2';
+    var exp_result = ids.slice(2, 5);
+    var req = db.executeSql(sql);
+    req.always(function(x) {
+      deepEqual(x, exp_result, sql);
+      start();
+    });
+  });
+
+
+  asyncTest("LIMIT with WHERE", function () {
+    expect(1);
+
+    var sql = 'SELECT * FROM st WHERE x > 0 ORDER BY x LIMIT 2';
+
+    var exp_result = data.filter(function (x) {
+      return x.x > 0;
+    });
+    exp_result.sort(function (a, b) {
+      return a.x > b.x ? 1 : -1;
+    });
+    exp_result = exp_result.slice(0, 2);
+
+
+    var req = db.executeSql(sql);
+    req.always(function(x) {
+      deepEqual(x, exp_result, sql);
+      start();
+    });
+  });
+
+
+  asyncTest("LIMIT OFFSET with WHERE", function () {
+    expect(1);
+
+    var sql = 'SELECT * FROM st WHERE x > 0 ORDER BY x LIMIT 2 OFFSET 1';
+
+    var exp_result = data.filter(function (x) {
+      return x.x > 0;
+    });
+    exp_result.sort(function (a, b) {
+      return a.x > b.x ? 1 : -1;
+    });
+    exp_result = exp_result.slice(1, 3);
+
+
+    var req = db.executeSql(sql);
+    req.always(function(x) {
+      deepEqual(x, exp_result, sql);
+      start();
+    });
+  });
+
+})();
+
+
+(function () {
+  var test_env = {
+    setup: function () {
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
         console.warn('ORDER test not finished.');
       }, 1000);
     },

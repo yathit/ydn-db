@@ -375,7 +375,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       // transaction is still active and use in followup request handlers
 
       if (me.isNextTxCompatible()) {
-        var task = this.trQueue_.shift();
+        var task = me.trQueue_.shift();
         if (goog.isFunction(oncompleted) && goog.isFunction(task.oncompleted)) {
           oncompleted = function(t, e) {
             oncompleted(t, e);
