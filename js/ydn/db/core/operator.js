@@ -212,7 +212,7 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
             arg2 + ' ' + msg);
         }
       }
-      var key_range = ydn.db.KeyRange.parseKeyRange(arg2);
+      var key_range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
       this.logger.finer('getById: ' + store_name + ':' + ydn.json.stringify(key_range));
       this.tx_thread.exec(function(tx) {
         me.getExecutor(tx).listByKeyRange(list_df, store_name, key_range, false, 1, 0);
@@ -320,7 +320,7 @@ ydn.db.core.DbOperator.prototype.keys = function(opt_store_name, arg1,
           arg2 + ' ' + msg);
       }
     }
-    range = ydn.db.KeyRange.parseKeyRange(/** @type {KeyRangeJson} */ (arg2));
+    range = ydn.db.KeyRange.parseIDBKeyRange(/** @type {KeyRangeJson} */ (arg2));
 
     if (goog.isNumber(arg3)) {
       limit = arg3;
@@ -356,7 +356,7 @@ ydn.db.core.DbOperator.prototype.keys = function(opt_store_name, arg1,
           arg1 + ' ' + msg);
       }
     }
-    range = ydn.db.KeyRange.parseKeyRange(arg1);
+    range = ydn.db.KeyRange.parseIDBKeyRange(arg1);
     if (goog.isNumber(arg2)) {
       limit = arg2;
     } else if (!goog.isDef(arg2)) {
@@ -440,7 +440,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
             arg3 + ' ' + msg);
         }
       }
-      var range = ydn.db.KeyRange.parseKeyRange(/** @type {KeyRangeJson} */ (arg3));
+      var range = ydn.db.KeyRange.parseIDBKeyRange(/** @type {KeyRangeJson} */ (arg3));
       if (!goog.isDef(arg4)) {
         limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
       } else if (goog.isNumber(arg4)) {
@@ -492,7 +492,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
             arg2 + ' ' + msg);
         }
       }
-      var range = ydn.db.KeyRange.parseKeyRange(arg2);
+      var range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
       if (!goog.isDef(arg3)) {
         limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
       } else if (goog.isNumber(arg3)) {

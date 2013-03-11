@@ -13,19 +13,20 @@ goog.require('ydn.debug.error.ArgumentException');
 /**
  * For those browser that not implemented IDBKeyRange.
  * @param {string} field index field name to query from.
- * @param {string|KeyRangeJson} op where operator.
+ * @param {string|KeyRangeJson|ydn.db.KeyRange} op where operator.
  * @param {*=} value rvalue to compare.
  * @param {string=} op2 second operator.
  * @param {*=} value2 second rvalue to compare.
  * @constructor
  */
-ydn.db.Where = function(field, op, value, op2, value2) {
+ydn.db.Where = function (field, op, value, op2, value2) {
   /**
    * @final
    */
-  this.key_range_ = goog.isString(op) ?
-    ydn.db.KeyRange.where(op, value, op2, value2) :
-    ydn.db.KeyRange.parseKeyRange(op);
+  this.key_range_ = op instanceof ydn.db.KeyRange ?
+    op : goog.isString(op) ?
+      ydn.db.KeyRange.where(op, value, op2, value2) :
+      ydn.db.KeyRange.parseKeyRange(op);
   /**
    * @final
    */
@@ -42,7 +43,7 @@ ydn.db.Where.prototype.field = '';
 
 /**
  *
- * @type {ydn.db.KeyRange|ydn.db.IDBKeyRange}
+ * @type {ydn.db.KeyRange}
  * @private
  */
 ydn.db.Where.prototype.key_range_;
@@ -59,7 +60,7 @@ ydn.db.Where.prototype.getField = function() {
 
 /**
  *
- * @return {ydn.db.KeyRange|ydn.db.IDBKeyRange}
+ * @return {ydn.db.KeyRange}
  */
 ydn.db.Where.prototype.getKeyRange = function() {
   return this.key_range_;
@@ -216,69 +217,20 @@ ydn.db.Where.resolvedStartsWith = function(keyRange) {
 
 /**
  * Combine another where clause.
- * @param {!ydn.db.Where} where
+ * @param {!ydn.db.Where} that
  * @return {ydn.db.Where} return null if fail.
  */
-ydn.db.Where.prototype.and = function(where) {
-  if (this.field != where.field) {
+ydn.db.Where.prototype.and = function(that) {
+  if (this.field != that.field) {
     return null;
   }
-  var lower, upper, lowerOpen, upperOpen;
 
-  if (goog.isDefAndNotNull(this.key_range_) &&
-        goog.isDefAndNotNull(this.key_range_.lower) &&
-    goog.isDefAndNotNull(where.key_range_) &&
-    goog.isDefAndNotNull(where.key_range_.lower)) {
-    if (this.key_range_.lower > where.key_range_.lower) {
-      lower = this.key_range_.lower;
-      lowerOpen = this.key_range_.lowerOpen;
-    } else if (this.key_range_.lower == where.key_range_.lower) {
-      lower = this.key_range_.lower;
-      lowerOpen = this.key_range_.lowerOpen || where.key_range_.lowerOpen;
-    } else {
-      lower = where.key_range_.lower;
-      lowerOpen = where.key_range_.lowerOpen;
-    }
-  } else if (goog.isDefAndNotNull(this.key_range_) &&
-      goog.isDefAndNotNull(this.lower)) {
-    lower = this.key_range_.lower;
-    lowerOpen = this.key_range_.lowerOpen;
-  } else if (goog.isDefAndNotNull(where.key_range_) &&
-      goog.isDefAndNotNull(where.key_range_.lower)) {
-    lower = where.key_range_.lower;
-    lowerOpen = where.key_range_.lowerOpen;
-  }
-  if (goog.isDefAndNotNull(this.key_range_) &&
-      goog.isDefAndNotNull(this.key_range_.lower) &&
-    goog.isDefAndNotNull(where.key_range_) &&
-    goog.isDefAndNotNull(where.key_range_.upper)) {
-    if (this.key_range_.lower > where.key_range_.upper) {
-      upper = this.key_range_.upper;
-      upperOpen = this.key_range_.upperOpen;
-    } else if (this.key_range_.lower == where.key_range_.lower) {
-      upper = this.key_range_.upper;
-      upperOpen = this.key_range_.upperOpen || where.key_range_.upperOpen;
-    } else {
-      upper = where.key_range_.upper;
-      upperOpen = where.key_range_.upperOpen;
-    }
-  } else if (goog.isDefAndNotNull(this.key_range_) &&
-      goog.isDefAndNotNull(this.upper)) {
-    upper = this.key_range_.upper;
-    upperOpen = this.key_range_.upperOpen;
-  }  else if (goog.isDefAndNotNull(where.key_range_) && goog.isDefAndNotNull(where.upper)) {
-    upper = where.key_range_.upper;
-    upperOpen = where.key_range_.upperOpen;
-  }
+  var key_range = goog.isDefAndNotNull(this.key_range_) &&
+      goog.isDefAndNotNull(that.key_range_) ?
+    this.key_range_.and(that.key_range_) : this.key_range_ || that.key_range_;
 
-  return new ydn.db.Where(this.field,
-      /** @type {KeyRangeJson} */ ({
-        'lower': lower,
-        'upper': upper,
-        'lowerOpen': lowerOpen,
-        'upperOpen': upperOpen
-      })
-  );
+
+  return new ydn.db.Where(this.field, key_range);
 };
 
 
