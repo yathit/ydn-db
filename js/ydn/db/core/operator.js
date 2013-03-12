@@ -879,7 +879,8 @@ ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
       if (ydn.db.base.USE_HOOK) {
         var post_df = new goog.async.Deferred();
         var opt = {};
-        store.preHook(ydn.db.schema.Store.SyncMethod.PUT, opt, function (key) {
+        store.preHook(ydn.db.schema.Store.SyncMethod.PUT, opt, function (obj) {
+          goog.asserts.assertObject(obj);
           me.tx_thread.exec(function (tx) {
             //console.log('putObjects');
             me.getExecutor(tx).putObject(post_df, store_name, obj, key);

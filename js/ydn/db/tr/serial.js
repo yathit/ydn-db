@@ -428,7 +428,6 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
 };
 
 
-
 /**
  * @final
  * @return {string} database name.

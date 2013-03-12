@@ -179,6 +179,7 @@ QUnit.done(function(results) {
   reporter.report();
   var type = db.getType();
   ydn.db.deleteDatabase(db_name, type);
+  db.close();
 });
 
 

@@ -317,11 +317,11 @@ var schema_1 = {
     },
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
+      var type = db.getType();
       db.close();
       test_count++;
       if (test_count >= 5) {
-        var type = db.getType();
-        ydn.db.deleteDatabase(db.getName(), type);
+        ydn.db.deleteDatabase(db_name, type);
       }
     }
   };
@@ -579,7 +579,7 @@ var schema_1 = {
       test_count++;
       if (test_count >= 3) {
         var type = db.getType();
-        ydn.db.deleteDatabase(db.getName(), type);
+        ydn.db.deleteDatabase(db_name, type);
       }
     }
   };
