@@ -127,12 +127,15 @@ ydn.db.core.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     if (goog.isString(index_or_keyrange)) {
       index_name = index_or_keyrange;
       key_range = ydn.db.KeyRange.parseIDBKeyRange(index_key_range);
-    } else if (goog.isObject(index_or_keyrange) || !goog.isDef(index_or_keyrange)) {
+    } else if (goog.isObject(index_or_keyrange) ||
+      !goog.isDef(index_or_keyrange)) {
       if (goog.isDef(index_key_range)) {
-        throw new ydn.debug.error.ArgumentException("Invalid key range or index");
+        throw new ydn.debug.error.ArgumentException(
+          "Invalid key range or index");
       }
       if (goog.DEBUG) {
-        var msg = ydn.db.KeyRange.validate(/** @type {KeyRangeJson} */ (index_or_keyrange));
+        var msg = ydn.db.KeyRange.validate(
+          /** @type {KeyRangeJson} */ (index_or_keyrange));
         if (msg) {
           throw new ydn.debug.error.ArgumentException('invalid key range: ' +
             index_or_keyrange + ' ' + msg);
@@ -148,11 +151,13 @@ ydn.db.core.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     this.logger.finer('countKeyRange: ' + store_names[0] + ' ' +
       (index_name ? index_name : '') + ydn.json.stringify(key_range));
     this.tx_thread.exec(function (tx) {
-      me.getExecutor(tx).countKeyRange(df, store_names[0], key_range, index_name);
+      me.getExecutor(tx).countKeyRange(df, store_names[0], key_range,
+        index_name);
     }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'countKeyRange');
 
   } else {
-    throw new ydn.debug.error.ArgumentException("Invalid store name or store names.");
+    throw new ydn.debug.error.ArgumentException(
+      "Invalid store name or store names.");
   }
 
   return df;
@@ -194,8 +199,8 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
       if (this.schema.isAutoSchema()) {
         return goog.async.Deferred.succeed(undefined);
       } else {
-        throw new ydn.debug.error.ArgumentException('Store name "' + store_name +
-          '" not found.');
+        throw new ydn.debug.error.ArgumentException('Store name "' +
+          store_name + '" not found.');
       }
     }
     if (arg2 instanceof ydn.db.IDBKeyRange || arg2 instanceof ydn.db.KeyRange) {
@@ -213,9 +218,11 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
         }
       }
       var key_range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
-      this.logger.finer('getById: ' + store_name + ':' + ydn.json.stringify(key_range));
+      this.logger.finer('getById: ' + store_name + ':' +
+        ydn.json.stringify(key_range));
       this.tx_thread.exec(function(tx) {
-        me.getExecutor(tx).listByKeyRange(list_df, store_name, key_range, false, 1, 0);
+        me.getExecutor(tx).listByKeyRange(list_df, store_name, key_range, false,
+          1, 0);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
 
     } else {
@@ -246,7 +253,8 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
     }
 
   } else {
-    throw new ydn.debug.error.ArgumentException('get require valid input arguments.');
+    throw new ydn.debug.error.ArgumentException(
+      'get require valid input arguments.');
   }
 
   return df;
@@ -287,7 +295,8 @@ ydn.db.core.DbOperator.prototype.keys = function(opt_store_name, arg1,
 
   if (goog.DEBUG) {
     if (!goog.isString(store_name)) {
-      throw new ydn.debug.error.ArgumentException('store name must be a string, ' +
+      throw new ydn.debug.error.ArgumentException(
+        'store name must be a string, ' +
         'but ' + store_name + ' of type ' + typeof store_name + ' is not.');
     }
     if (!this.schema.isAutoSchema()) {
@@ -320,7 +329,8 @@ ydn.db.core.DbOperator.prototype.keys = function(opt_store_name, arg1,
           arg2 + ' ' + msg);
       }
     }
-    range = ydn.db.KeyRange.parseIDBKeyRange(/** @type {KeyRangeJson} */ (arg2));
+    range = ydn.db.KeyRange.parseIDBKeyRange(
+      /** @type {KeyRangeJson} */ (arg2));
 
     if (goog.isNumber(arg3)) {
       limit = arg3;
@@ -340,14 +350,16 @@ ydn.db.core.DbOperator.prototype.keys = function(opt_store_name, arg1,
       if (goog.isBoolean) {
         reverse = arg5;
       } else {
-        throw new ydn.debug.error.ArgumentException('reverse must be a boolean');
+        throw new ydn.debug.error.ArgumentException(
+          'reverse must be a boolean');
       }
     }
     this.logger.finer('keysByIndexKeyRange: ' + store_name);
     this.tx_thread.exec(function (tx) {
       me.getExecutor(tx).keysByIndexKeyRange(df, store_name, index_name,
         range, reverse, limit, offset, false);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'keysByIndexKeyRange');
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
+      'keysByIndexKeyRange');
   } else {
     if (goog.DEBUG) {
       var msg = ydn.db.KeyRange.validate(arg1);
@@ -375,12 +387,14 @@ ydn.db.core.DbOperator.prototype.keys = function(opt_store_name, arg1,
       if (goog.isBoolean(arg4)) {
         reverse = arg4;
       } else {
-        throw new ydn.debug.error.ArgumentException('reverse must be a boolean');
+        throw new ydn.debug.error.ArgumentException(
+          'reverse must be a boolean');
       }
     }
     this.logger.finer('keysByKeyRange: ' + store_name);
     this.tx_thread.exec(function (tx) {
-      me.getExecutor(tx).keysByKeyRange(df, store_name, range, reverse, limit, offset);
+      me.getExecutor(tx).keysByKeyRange(df, store_name, range, reverse, limit,
+        offset);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'keysByKeyRange');
 
   }
@@ -392,7 +406,8 @@ ydn.db.core.DbOperator.prototype.keys = function(opt_store_name, arg1,
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5, arg6) {
+ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
+                                                   arg6) {
 
   var me = this;
   var df = ydn.db.base.createDeferred();
@@ -440,7 +455,8 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
             arg3 + ' ' + msg);
         }
       }
-      var range = ydn.db.KeyRange.parseIDBKeyRange(/** @type {KeyRangeJson} */ (arg3));
+      var range = ydn.db.KeyRange.parseIDBKeyRange(
+        /** @type {KeyRangeJson} */ (arg3));
       if (!goog.isDef(arg4)) {
         limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
       } else if (goog.isNumber(arg4)) {
@@ -458,9 +474,11 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
       if (goog.isBoolean(arg6)) {
         reverse = arg6;
       } else if (goog.isDef(arg6)) {
-        throw new ydn.debug.error.ArgumentException('reverse must be a boolean, but ' + arg6);
+        throw new ydn.debug.error.ArgumentException(
+          'reverse must be a boolean, but ' + arg6);
       }
-      this.logger.finer('listByIndexKeyRange: ' + store_name + ':' + index_name);
+      this.logger.finer('listByIndexKeyRange: ' + store_name + ':' +
+        index_name);
 
       // inject sync module function.
       if (ydn.db.base.USE_HOOK) {
@@ -474,14 +492,16 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
           me.sync_thread.exec(function (tx) {
             me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
                 range, reverse, limit, offset, false);
-          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByIndexKeyRange');
+          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
+            'listByIndexKeyRange');
         }, 100);
 
       } else {
         this.tx_thread.exec(function (tx) {
           me.getExecutor(tx).listByIndexKeyRange(df, store_name, index_name,
               range, reverse, limit, offset, false);
-        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByIndexKeyRange');
+        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
+          'listByIndexKeyRange');
       }
 
     } else {
@@ -506,8 +526,8 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
       } else if (goog.isNumber(arg4)) {
         offset = arg4;
       } else {
-        throw new ydn.debug.error.ArgumentException('offset must be a number, ' +
-          'but ' + arg4 + ' is ' + typeof arg4);
+        throw new ydn.debug.error.ArgumentException(
+          'offset must be a number, ' +  'but ' + arg4 + ' is ' + typeof arg4);
       }
       if (goog.isDef(arg5)) {
         if (goog.isBoolean(arg5)) {
@@ -517,7 +537,8 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
             'boolean, but ' + arg5 + ' is ' + typeof arg5);
         }
       }
-      this.logger.finer((range ? 'listByKeyRange: ' : 'listByStore: ') + store_name);
+      this.logger.finer((range ? 'listByKeyRange: ' : 'listByStore: ') +
+        store_name);
 
       // inject sync module function.
       if (ydn.db.base.USE_HOOK) {
@@ -526,13 +547,15 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
           me.tx_thread.exec(function (tx) {
             me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
                 limit, offset);
-          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
+          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
+            'listByKeyRange');
         });
       } else {
         this.tx_thread.exec(function (tx) {
           me.getExecutor(tx).listByKeyRange(df, store_name, range, reverse,
               limit, offset);
-        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByKeyRange');
+        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
+          'listByKeyRange');
 
       }
 
@@ -555,8 +578,8 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
             fail_array[keys.length - 1] = undefined;
             return goog.async.Deferred.succeed(fail_array);
           } else {
-            throw new ydn.debug.error.ArgumentException('Store: ' + i_store_name +
-              ' not found.');
+            throw new ydn.debug.error.ArgumentException('Store: ' +
+              i_store_name + ' not found.');
           }
         }
         if (!goog.array.contains(store_names, i_store_name)) {
@@ -610,7 +633,8 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
     this.logger.finer('Adding object store: ' + store_name);
     this.addStoreSchema(store);
 
-  } else if (this.schema.isAutoSchema() && goog.isObject(store_name_or_schema)) {
+  } else if (this.schema.isAutoSchema() &&
+      goog.isObject(store_name_or_schema)) {
     // if there is changes in schema, change accordingly.
     var new_schema = ydn.db.schema.Store.fromJSON(store_name_or_schema);
     var diff = store.difference(new_schema);
@@ -642,7 +666,8 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
       !goog.isDef(opt_keys)) {
     // The object store uses out-of-line keys and has no key generator, and no
     // key parameter was provided.
-    throw new ydn.debug.error.ArgumentException('out-of-line key must be provided.');
+    throw new ydn.debug.error.ArgumentException(
+      'out-of-line key must be provided.');
   }
 
   if (goog.isArray(value)) {
@@ -760,7 +785,8 @@ ydn.db.core.DbOperator.prototype.getStore_ = function(store_name_or_schema) {
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.load = function(store_name_or_schema, data, opt_delimiter) {
+ydn.db.core.DbOperator.prototype.load = function(store_name_or_schema, data,
+                                                 opt_delimiter) {
 
   var delimiter = opt_delimiter || ',';
 
@@ -859,10 +885,12 @@ ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
       // parameter was provided.
       throw new ydn.debug.error.ArgumentException('key cannot provide while ' +
         'autoIncrement is true.');
-    } else if (!goog.isString(store.keyPath) && !store.autoIncrement && !goog.isDef(opt_keys)) {
+    } else if (!goog.isString(store.keyPath) && !store.autoIncrement &&
+      !goog.isDef(opt_keys)) {
       // The object store uses out-of-line keys and has no key generator, and no
       // key parameter was provided.
-      throw new ydn.debug.error.ArgumentException('out-of-line key must be provided.');
+      throw new ydn.debug.error.ArgumentException(
+        'out-of-line key must be provided.');
     }
 
     if (goog.isArray(value)) {
@@ -945,7 +973,8 @@ ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
 
 
 /**
- * Dump object into the database. Use only by synchronization process when updating from
+ * Dump object into the database. Use only by synchronization process when
+ * updating from
  * server.
  * This is friendly module use only.
  * @param {string} store_name store name.
@@ -954,7 +983,8 @@ ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
  * @return {!goog.async.Deferred} df return no result.
  * @override
  */
-ydn.db.core.DbOperator.prototype.dumpInternal = function(store_name, objs, keys) {
+ydn.db.core.DbOperator.prototype.dumpInternal = function(store_name, objs,
+                                                         keys) {
   var df = new goog.async.Deferred();
   var me = this;
   var on_completed = function(t, e) {
@@ -965,7 +995,8 @@ ydn.db.core.DbOperator.prototype.dumpInternal = function(store_name, objs, keys)
     }
   };
   this.sync_thread.exec(function(tx) {
-    me.getExecutor(tx).putObjects(new goog.async.Deferred(), store_name, objs, keys);
+    me.getExecutor(tx).putObjects(new goog.async.Deferred(), store_name, objs,
+      keys);
   }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'dumpInternal',
     on_completed);
   return df;
@@ -973,8 +1004,8 @@ ydn.db.core.DbOperator.prototype.dumpInternal = function(store_name, objs, keys)
 
 
 /**
- * List records from the database. Use only by synchronization process when updating from
- * server.
+ * List records from the database. Use only by synchronization process when
+ * updating from server.
  * This is friendly module use only.
  * @param {string} store_name
  * @param {?string} index_name
@@ -1035,7 +1066,7 @@ ydn.db.core.DbOperator.prototype.listInternal = function(store_name, index_name,
  * @override
  */
 ydn.db.core.DbOperator.prototype.keysInternal = function(store_name, index_name,
-                                                         key_range, reverse, limit) {
+      key_range, reverse, limit) {
   var df = new goog.async.Deferred();
   var me = this;
   var out;
@@ -1126,7 +1157,8 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
 
         if (store.dispatch_events) {
           df.addCallback(function (key) {
-            var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.DELETED,
+            var event = new ydn.db.events.RecordEvent(
+              ydn.db.events.Types.DELETED,
               me.getStorage(), st_name, key, undefined);
             me.getStorage().dispatchEvent(event);
           });
@@ -1139,7 +1171,8 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
           ydn.json.stringify(key_range));
         this.tx_thread.exec(function (tx) {
           me.getExecutor(tx).clearByKeyRange(df, st_name, key_range);
-        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByKeyRange');
+        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE,
+          'clearByKeyRange');
       } else if (!goog.isDef(arg2)) {
         this.logger.finer('clearByStore: ' + st_name);
         this.tx_thread.exec(function (tx) {
@@ -1148,18 +1181,21 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
 
         if (store.dispatch_events) {
           df.addCallback(function (count) {
-            var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
-                me.getStorage(), st_name, null, undefined);
+            var event = new ydn.db.events.StoreEvent(
+              ydn.db.events.Types.DELETED, me.getStorage(),
+              st_name, null, undefined);
             me.getStorage().dispatchEvent(event);
           });
         }
 
       } else {
-        throw new ydn.debug.error.ArgumentException(arg2 + ' is an invalid key.');
+        throw new ydn.debug.error.ArgumentException(arg2 +
+          ' is an invalid key.');
       }
     }
 
-  } else if (!goog.isDef(arg1) || goog.isArray(arg1) && goog.isString(arg1[0])) {
+  } else if (!goog.isDef(arg1) || goog.isArray(arg1) &&
+      goog.isString(arg1[0])) {
     var store_names = arg1 || this.schema.getStoreNames();
     this.logger.finer('clearByStores: ' + ydn.json.stringify(store_names));
     this.tx_thread.exec(function(tx) {
