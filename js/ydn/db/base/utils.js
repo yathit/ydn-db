@@ -14,7 +14,8 @@ goog.provide('ydn.db.utils');
 
 
 /**
- * Grandfathered function to goog.object.getValueByKeys with supporting for dotted key path.
+ * Grandfathered function to goog.object.getValueByKeys with supporting for
+ * dotted key path.
  * Example usage: getValueByKeys(jsonObj, 'foo.entries')
  *
  * @param {!Object} obj An object to get the value from.  Can be array-like.

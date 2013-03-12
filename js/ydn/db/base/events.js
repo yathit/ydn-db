@@ -64,7 +64,8 @@ ydn.db.events.Event.prototype.getStoreName = function() {
  * @extends {ydn.db.events.Event}
  * @constructor
  */
-ydn.db.events.StorageEvent = function(event_type, event_target, version, old_version) {
+ydn.db.events.StorageEvent = function(event_type, event_target, version,
+                                      old_version) {
   goog.base(this, event_type, event_target);
   this.version = version;
   this.oldVersion = old_version;
@@ -118,7 +119,8 @@ ydn.db.events.StorageEvent.prototype.getOldVersion = function() {
  * @extends {ydn.db.events.Event}
  * @constructor
  */
-ydn.db.events.RecordEvent = function(event_type, event_target, store_name, key, value) {
+ydn.db.events.RecordEvent = function(event_type, event_target, store_name, key,
+                                     value) {
   goog.base(this, event_type, event_target);
   this.store_name = store_name;
   this.key = key;
@@ -176,7 +178,8 @@ ydn.db.events.RecordEvent.prototype.getValue = function() {
  * @extends {ydn.db.events.Event}
  * @constructor
  */
-ydn.db.events.StoreEvent = function(event_type, event_target, store_name, keys, values) {
+ydn.db.events.StoreEvent = function(event_type, event_target, store_name, keys,
+                                    values) {
   goog.base(this, event_type, event_target);
   this.store_name = store_name;
   this.keys = keys;

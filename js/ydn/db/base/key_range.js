@@ -39,7 +39,7 @@ ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
    */
   this['upperOpen'] = !!upperOpen;
 
-  if (Object.freeze) {
+  if (goog.DEBUG && goog.isFunction(Object.freeze)) {
     // NOTE: due to performance penalty (in Chrome) of using freeze and
     // hard to debug on different browser we don't want to use freeze
     // this is experimental.
@@ -92,7 +92,7 @@ ydn.db.KeyRange.prototype.toIDBKeyRange = function() {
 
 
 /**
- * Robust efficient cloning of a keyrnge.
+ * Robust efficient cloning.
  * @param {(ydn.db.KeyRange|ydn.db.IDBKeyRange)=} kr key range to be cloned.
  * @return {!ydn.db.KeyRange|undefined} cloned key range.
  */
@@ -242,7 +242,8 @@ ydn.db.KeyRange.parseIDBKeyRange = function(key_range) {
   if(key_range instanceof ydn.db.IDBKeyRange) {
     return key_range;
   }
-  if (goog.isDefAndNotNull(key_range['upper']) && goog.isDefAndNotNull(key_range['lower'])) {
+  if (goog.isDefAndNotNull(key_range['upper']) && goog.isDefAndNotNull(
+    key_range['lower'])) {
 
     return ydn.db.IDBKeyRange.bound(
       key_range.lower, key_range.upper,
@@ -362,5 +363,4 @@ ydn.db.KeyRange.where = function(op, value, op2, value2) {
  */
 ydn.db.IDBKeyRange = goog.global.IDBKeyRange ||
   goog.global.webkitIDBKeyRange || ydn.db.KeyRange;
-// FIXME: the problem with our key range is mutable, whereas IDBKeyRange is not.
 

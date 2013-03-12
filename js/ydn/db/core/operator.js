@@ -624,7 +624,8 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
   var me = this;
 
   if (!store) {
-    throw new ydn.db.NotFoundError(store_name);
+    throw new ydn.debug.error.ArgumentException('store name "' + store_name +
+      '" not found.');
   }
   // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
   if ((goog.isString(store.keyPath)) && goog.isDef(opt_keys)) {
@@ -648,8 +649,8 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
     var objs = value;
     var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
     //console.log('waiting to putObjects');
-    this.logger.finer('addObjects: ' + store_name +
-      ' ' + objs.length + ' objects');
+    this.logger.finer('addObjects: ' + store_name + ' ' + objs.length +
+      ' objects');
     this.tx_thread.exec(function(tx) {
       //console.log('putObjects');
       me.getExecutor(tx).addObjects(df, store_name, objs, keys);
@@ -668,9 +669,29 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
     var key = /** @type {number|string|undefined} */ (opt_keys);
 
     this.logger.finer('addObject: ' + store_name + ' ' + key);
-    this.tx_thread.exec(function(tx) {
-      me.getExecutor(tx).addObject(df, store_name, obj, key);
-    }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+
+    if (ydn.db.base.USE_HOOK) {
+      var post_df = new goog.async.Deferred();
+      var opt = {};
+      store.preHook(ydn.db.schema.Store.SyncMethod.ADD, opt, function (obj) {
+        goog.asserts.assertObject(obj);
+        me.tx_thread.exec(function (tx) {
+          //console.log('putObjects');
+          me.getExecutor(tx).addObject(post_df, store_name, obj, key);
+        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'addObject');
+      }, obj, key);
+
+      post_df.addCallbacks(function (key) {  // todo: use chain
+        df.callback(key);
+      }, function (e) {
+        df.errback(e);
+      });
+
+    } else {
+      this.tx_thread.exec(function (tx) {
+        me.getExecutor(tx).addObject(df, store_name, obj, key);
+      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+    }
 
     if (store.dispatch_events) {
       df.addCallback(function(key) {
@@ -681,7 +702,9 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
     }
 
   } else {
-    throw new ydn.debug.error.ArgumentException();
+    throw new ydn.debug.error.ArgumentException('record must be an object or ' +
+      'array list of objects' +
+      ', but ' + value + ' of type ' + typeof value + ' found.');
   }
 
   return df;

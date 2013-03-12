@@ -192,7 +192,8 @@ ydn.db.Key.prototype.getParent = function() {
  */
 ydn.db.Key.isValidKey = function(key) {
   return goog.isNumber(key) || goog.isString(key) ||
-    (goog.isArray(key) && goog.array.every(/** @type {Array} */ (key), ydn.db.Key.isValidKey)) ||
+    (goog.isArray(key) && goog.array.every(/** @type {Array} */ (key),
+      ydn.db.Key.isValidKey)) ||
     key instanceof Date;
 };
 

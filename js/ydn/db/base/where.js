@@ -199,7 +199,8 @@ ydn.db.Where.prototype.toWhereClause = function (type) {
  */
 ydn.db.Where.resolvedStartsWith = function(keyRange) {
   if (!goog.isDefAndNotNull(keyRange) ||
-      !goog.isDefAndNotNull(keyRange.lower) || !goog.isDefAndNotNull(keyRange.upper)) {
+      !goog.isDefAndNotNull(keyRange.lower) ||
+      !goog.isDefAndNotNull(keyRange.upper)) {
     return false;
   }
   if (goog.isArray(keyRange.lower) && goog.isArray(keyRange.upper)) {
