@@ -52,6 +52,7 @@ ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names,
     // call within a transaction
     // continue to use existing transaction
     callback(mu_tx.getTx());
+    callback = null;
   } else {
 
     var on_complete = function () {
@@ -75,6 +76,7 @@ ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names,
         tx_callback.name = scope; // scope name
       }
       callback(mu_tx.getTx());
+      callback = null; // we don't call again.
     };
     //var cbFn = goog.partial(tx_callback, callback);
     //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '

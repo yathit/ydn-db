@@ -826,8 +826,6 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
       error_callback, success_callback);
   }
 
-  // TODO: deleting tables.
-
 };
 
 
@@ -864,7 +862,6 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
       }, tx);
 
     }, [], ydn.db.base.TransactionMode.READ_WRITE, on_completed);
-
 
   });
   df.addErrback(function() {

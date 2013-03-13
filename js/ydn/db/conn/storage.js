@@ -726,6 +726,23 @@ ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
 };
 
 
+if (goog.DEBUG) { // don't allow to added non existing event type
+/**
+ * @inheritDoc
+ */
+ydn.db.con.Storage.prototype.addEventListener = function(
+    type, handler, opt_capture, opt_handlerScope) {
+  if (!goog.array.contains(['created', 'done', 'deleted', 'fail', 'updated'],
+      type)) {
+    throw new ydn.debug.error.ArgumentException('Invalid event type "' +
+      type + '"');
+  }
+  goog.base(this, 'addEventListener', type, handler, opt_capture,
+    opt_handlerScope);
+};
+}
+
+
 /**
  * @inheritDoc
  */
