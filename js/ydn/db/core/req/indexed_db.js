@@ -361,8 +361,7 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.putByKeys = function(df, objs,
-                                                          keys) {
+ydn.db.core.req.IndexedDb.prototype.putByKeys = function(df, objs, keys) {
 
   var results = [];
   var result_count = 0;
@@ -538,7 +537,7 @@ ydn.db.core.req.IndexedDb.prototype.putData = function(df, store_name, data,
 /**
 * @inheritDoc
 */
-ydn.db.core.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
+ydn.db.core.req.IndexedDb.prototype.removeById = function(df, store_name, key) {
 
   var me = this;
   var store = this.tx.objectStore(store_name);
@@ -579,8 +578,8 @@ ydn.db.core.req.IndexedDb.prototype.clearById = function(df, store_name, key) {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.clearByKeyRange = function(
-      df, store_name, key_range) {
+ydn.db.core.req.IndexedDb.prototype.removeByKeyRange = function(
+    df, store_name, key_range) {
 
   var me = this;
   var store = this.tx.objectStore(store_name);
@@ -609,11 +608,37 @@ ydn.db.core.req.IndexedDb.prototype.clearByKeyRange = function(
 
 };
 
+
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.clearByIndexKeyRange = function(
-  df, store_name, index_name, key_range) {
+ydn.db.core.req.IndexedDb.prototype.clearByKeyRange = function (
+    df, store_name, key_range) {
+
+  var me = this;
+  var store = this.tx.objectStore(store_name);
+
+  var msg = 'clearByKeyRange: ' + store_name + ' ' + key_range;
+  this.logger.finest(msg);
+
+  var req = store['delete'](key_range);
+  req.onsuccess = function () {
+    me.logger.finest('success ' + msg);
+    df.callback();
+  };
+  req.onerror = function (e) {
+    me.logger.finest('error ' + msg);
+    df.errback(e);
+  };
+
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.removeByIndexKeyRange = function(
+    df, store_name, index_name, key_range) {
 
   var me = this;
   var store = this.tx.objectStore(store_name);
@@ -650,27 +675,6 @@ ydn.db.core.req.IndexedDb.prototype.clearByIndexKeyRange = function(
     me.logger.finest('error ' + msg);
     df.errback(event);
   };
-
-  // Index do not have 'delete' methods.
-//  var store = this.tx.objectStore(store_name);
-//  var index = store.index(index_name);
-//  var request = index.count(key_range);
-//  request.onsuccess = function(event) {
-//    var n = event.target.result;
-//    var req = store['delete'](key_range);
-//    req.onsuccess = function() {
-//      df.callback(n);
-//    };
-//    req.onerror = function(e) {
-//      df.errback(e);
-//    };
-//  };
-//  request.onerror = function(event) {
-//    if (ydn.db.core.req.IndexedDb.DEBUG) {
-//      window.console.log([store_name, key_range, event]);
-//    }
-//    df.errback(event);
-//  };
 
 };
 

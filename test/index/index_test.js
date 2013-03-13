@@ -424,7 +424,7 @@ var test_keys_by_index = function () {
 };
 
 
-var test_42_clear_by_index_key_range = function() {
+var test_42_remove_by_index_key_range = function() {
   var db = load_default();
   var hasEventFired = false;
   var countValue;
@@ -442,7 +442,7 @@ var test_42_clear_by_index_key_range = function() {
     1000); // maxTimeout
 
   var range = ydn.db.KeyRange.bound('b', 'c', false, true);
-  db.clear(store_name, 'type', range).addBoth(function(value) {
+  db.remove(store_name, 'type', range).addBoth(function(value) {
     countValue = value;
     hasEventFired = true;
   });

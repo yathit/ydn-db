@@ -50,7 +50,17 @@ ydn.db.core.req.IRequestExecutor.prototype.addObjects = goog.abstractMethod;
  * @param {string} store table name.
  * @param {(!Array|string|number)} id object key to be deleted.
  */
-ydn.db.core.req.IRequestExecutor.prototype.clearById = goog.abstractMethod;
+ydn.db.core.req.IRequestExecutor.prototype.removeById = goog.abstractMethod;
+
+
+/**
+ * Clear records in the given key range from a store.
+ * Return number of keys deleted.
+ * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {string} store table name.
+ * @param {IDBKeyRange} key range.
+ */
+ydn.db.core.req.IRequestExecutor.prototype.removeByKeyRange = goog.abstractMethod;
 
 /**
  * Clear records in the given key range from a store.
@@ -61,8 +71,6 @@ ydn.db.core.req.IRequestExecutor.prototype.clearById = goog.abstractMethod;
  */
 ydn.db.core.req.IRequestExecutor.prototype.clearByKeyRange = goog.abstractMethod;
 
-
-
 /**
  * Clear records in the given key range from a store.
  * Return number of keys deleted.
@@ -71,7 +79,7 @@ ydn.db.core.req.IRequestExecutor.prototype.clearByKeyRange = goog.abstractMethod
  * @param {string} index name.
  * @param {IDBKeyRange} key range.
  */
-ydn.db.core.req.IRequestExecutor.prototype.clearByIndexKeyRange = goog.abstractMethod;
+ydn.db.core.req.IRequestExecutor.prototype.removeByIndexKeyRange = goog.abstractMethod;
 
 
 /**

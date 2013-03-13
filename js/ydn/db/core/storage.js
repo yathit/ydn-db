@@ -176,6 +176,13 @@ ydn.db.core.Storage.prototype.clear = function(arg1, arg2, arg3) {
   return this.getCoreOperator().clear(arg1, arg2, arg3);
 };
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.Storage.prototype.remove = function(arg1, arg2, arg3) {
+  return this.getCoreOperator().remove(arg1, arg2, arg3);
+};
+
 
 /** @override */
 ydn.db.core.Storage.prototype.toString = function() {

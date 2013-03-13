@@ -11,6 +11,7 @@ goog.require('ydn.db.core.req.SimpleStore');
 goog.require('ydn.db.core.req.WebSql');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
+goog.require('ydn.db');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.core.IOperator');
 goog.require('ydn.db.ISyncOperator');
@@ -832,9 +833,9 @@ ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
       } else {
         k_store.setKeyValue(value, k.getId());
       }
-      this.put(k_s_name, value);
+      return this.put(k_s_name, value);
     } else {
-      this.put(k_s_name, value, k.getId());
+      return this.put(k_s_name, value, k.getId());
     }
   } else if (goog.isArray(arg1)) { // array of keys
     if (goog.isDef(opt_keys)) {
@@ -1101,16 +1102,13 @@ ydn.db.core.DbOperator.prototype.keysInternal = function(store_name, index_name,
 
 
 /**
- * Remove a specific entry from a store or all.
- * @param {(!Array.<string>|string)=} arg1 delete the table as provided
- * otherwise
- * delete all stores.
- * @param {*=} arg2 delete a specific row.
- * @param {*=} arg3 delete a specific row.
- * @see {@link #remove}
- * @return {!goog.async.Deferred} return a deferred function.
+ * @inheritDoc
  */
 ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
+
+  if (goog.DEBUG && goog.isDef(arg3)) {
+    throw new ydn.debug.error.ArgumentException('too many input arguments');
+  }
 
   var df = ydn.db.base.createDeferred();
   var me = this;
@@ -1122,49 +1120,8 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
       throw new ydn.debug.error.ArgumentException('store name "' + st_name +
           '" not found.');
     }
-    if (goog.isDef(arg3)) {
-      if (goog.isString(arg2)) {
-        var index = store.getIndex(arg2);
-        if (!index) {
-          throw new ydn.debug.error.ArgumentException('index: ' + arg2 +
-            ' not found in ' + st_name);
-        }
-        if (goog.isObject(arg3) || goog.isNull(arg3)) {
-          var key_range = ydn.db.KeyRange.parseIDBKeyRange(
-            /** @type {KeyRangeJson} */ (arg3));
-          this.logger.finer('clearByIndexKeyRange: ' + st_name + ':' +
-            index.getName() + ' ' + ydn.json.stringify(key_range));
-          this.tx_thread.exec(function (tx) {
-            me.getExecutor(tx).clearByIndexKeyRange(df, st_name, index.getName(), key_range);
-          }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByIndexKeyRange');
-        } else {
-          throw new ydn.debug.error.ArgumentException('key range ' + arg3 +
-            ' is invalid type "' + typeof arg3 + '".');
-        }
-      } else {
-        throw new ydn.debug.error.ArgumentException('index name "' + arg2 +
-          '" must be a string, but ' + typeof arg2 + ' found.');
-      }
-    } else {
-      if (goog.isString(arg2) || goog.isNumber(arg2) ||
-          arg2 instanceof DOMStringList ||
-          goog.isArray(arg2) || arg2 instanceof Date) {
-        var id = /** @type {(!Array|number|string)} */  (arg2);
-        this.logger.finer('clearById: ' + st_name + ':' + id);
-        this.tx_thread.exec(function (tx) {
-          me.getExecutor(tx).clearById(df, st_name, id);
-        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearById');
 
-        if (store.dispatch_events) {
-          df.addCallback(function (key) {
-            var event = new ydn.db.events.RecordEvent(
-              ydn.db.events.Types.DELETED,
-              me.getStorage(), st_name, key, undefined);
-            me.getStorage().dispatchEvent(event);
-          });
-        }
-
-      } else if (goog.isObject(arg2) || goog.isNull(arg2)) {
+      if (goog.isObject(arg2)) {
         var key_range = ydn.db.KeyRange.parseIDBKeyRange(
           /** @type {KeyRangeJson} */ (arg2));
         this.logger.finer('clearByKeyRange: ' + st_name + ':' +
@@ -1192,7 +1149,7 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
         throw new ydn.debug.error.ArgumentException(arg2 +
           ' is an invalid key.');
       }
-    }
+
 
   } else if (!goog.isDef(arg1) || goog.isArray(arg1) &&
       goog.isString(arg1[0])) {
@@ -1214,8 +1171,91 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
     }
 
   } else {
-    throw new ydn.debug.error.ArgumentException('first argument ' + arg1 +
-      ' is invalid.');
+    throw new ydn.debug.error.ArgumentException('first argument "' + arg1 +
+      '" is invalid.');
+  }
+
+  return df;
+};
+
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.DbOperator.prototype.remove = function(store_name, arg2, arg3) {
+
+  var df = ydn.db.base.createDeferred();
+  var me = this;
+
+  if (goog.isString(store_name)) {
+    var store = this.schema.getStore(store_name);
+    if (!store) {
+      throw new ydn.debug.error.ArgumentException('store name "' + store_name +
+        '" not found.');
+    }
+    if (goog.isDef(arg3)) {
+      if (goog.isString(arg2)) {
+        var index = store.getIndex(arg2);
+        if (!index) {
+          throw new ydn.debug.error.ArgumentException('index: ' + arg2 +
+            ' not found in ' + store_name);
+        }
+        if (goog.isObject(arg3) || goog.isNull(arg3)) {
+          var key_range = ydn.db.KeyRange.parseIDBKeyRange(
+            /** @type {KeyRangeJson} */ (arg3));
+          this.logger.finer('removeByIndexKeyRange: ' + store_name + ':' +
+            index.getName() + ' ' + store_name);
+          this.tx_thread.exec(function (tx) {
+            me.getExecutor(tx).removeByIndexKeyRange(df, store_name,
+              index.getName(), key_range);
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
+            'removeByIndexKeyRange');
+        } else {
+          throw new ydn.debug.error.ArgumentException('key range ' + arg3 +
+            ' is invalid type "' + typeof arg3 + '".');
+        }
+      } else {
+        throw new ydn.debug.error.ArgumentException('index name "' + arg2 +
+          '" must be a string, but ' + typeof arg2 + ' found.');
+      }
+    } else {
+      if (goog.isString(arg2) || goog.isNumber(arg2) ||
+        arg2 instanceof DOMStringList ||
+        goog.isArray(arg2) || arg2 instanceof Date) {
+        var id = /** @type {(!Array|number|string)} */  (arg2);
+        this.logger.finer('removeById: ' + store_name + ':' + id);
+        this.tx_thread.exec(function (tx) {
+          me.getExecutor(tx).removeById(df, store_name, id);
+        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'removeById');
+
+        if (store.dispatch_events) {
+          df.addCallback(function (key) {
+            var event = new ydn.db.events.RecordEvent(
+              ydn.db.events.Types.DELETED,
+              me.getStorage(), store_name, key, undefined);
+            me.getStorage().dispatchEvent(event);
+          });
+        }
+
+      } else if (goog.isObject(arg2)) {
+        var key_range = ydn.db.KeyRange.parseIDBKeyRange(
+          /** @type {KeyRangeJson} */ (arg2));
+        this.logger.finer('removeByKeyRange: ' + store_name + ':' +
+          ydn.json.stringify(key_range));
+        this.tx_thread.exec(function (tx) {
+            me.getExecutor(tx).removeByKeyRange(df, store_name, key_range);
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
+          'removeByKeyRange');
+
+
+      } else {
+        throw new ydn.debug.error.ArgumentException(
+          'Invalid key or key range "' + arg2 + '" of type ' + typeof arg2);
+      }
+    }
+  } else {
+    throw new ydn.debug.error.ArgumentException('store name required.');
   }
 
   return df;

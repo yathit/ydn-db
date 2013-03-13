@@ -319,7 +319,7 @@ ydn.db.core.req.WebSql.prototype.addObjects = function(
  * @private
 */
 ydn.db.core.req.WebSql.prototype.insertObjects = function(
-  df, create, single, store_name, objects, opt_keys) {
+    df, create, single, store_name, objects, opt_keys) {
 
   var table = this.schema.getStore(store_name);
 
@@ -415,10 +415,88 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
  * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.putObjects = function(
-  df, store_name, objects, opt_keys) {
-    this.insertObjects(df, false, false, store_name, objects, opt_keys);
+    df, store_name, objects, opt_keys) {
+  this.insertObjects(df, false, false, store_name, objects, opt_keys);
 };
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.putByKeys = function (df, objs, keys) {
+
+  if (keys.length == 0) {
+    df.callback([]);
+    return;
+  }
+
+  var results = [];
+  var count = 0;
+  var total = 0;
+  var me = this;
+
+  /**
+   *
+   * @param {string} store_name
+   * @param {!Array.<number>} idx
+   */
+  var execute_on_store = function (store_name, idx) {
+    var idf = new goog.async.Deferred();
+    var idx_objs = [];
+    me.logger.finest('put ' + idx.length + ' objects to ' + store_name);
+    var store = me.schema.getStore(store_name);
+    var inline = store.usedInlineKey();
+    var idx_keys = inline ? undefined : [];
+    for (var i = 0; i < idx.length; i++) {
+      idx_objs.push(objs[idx[i]]);
+      if (!inline) {
+        idx_keys.push(keys[idx[i]].getId());
+      }
+    }
+    me.insertObjects(idf, false, false, store_name, idx_objs, idx_keys);
+    idf.addCallbacks(function (xs) {
+      for (var i = 0; i < idx.length; i++) {
+        results[idx[i]] = xs[i];
+      }
+      count++;
+      if (count == total) {
+        df.callback(results);
+      }
+    }, function (e) {
+      count++;
+      if (count == total) {
+        df.errback(e);
+      }
+    })
+  };
+
+  var store_name = '';
+  var store;
+  var idx = [];
+  var ids = [];
+  for (var i = 0; i < keys.length; i++) {
+    var name = keys[i].getStoreName();
+    var id = keys[i].getId();
+
+    if (name != store_name) {
+      total++;
+      if (idx.length > 0) {
+        execute_on_store(store_name, idx);
+      }
+      idx = [i];
+      ids = [id];
+      store_name = name;
+    } else {
+      idx.push(i);
+      ids.push(id);
+    }
+
+  }
+
+  if (idx.length > 0) {
+    execute_on_store(store_name, idx);
+  }
+
+};
 
 /**
 *
@@ -803,55 +881,11 @@ ydn.db.core.req.WebSql.prototype.clearByStores = function(d, store_names) {
 };
 
 
-/**
-* Deletes all objects from the store.
-* @param {goog.async.Deferred} d promise.
-* @param {string} table_name table name.
-* @param {(string|number)} key table name.
-*/
-ydn.db.core.req.WebSql.prototype.removeById = function(d, table_name, key) {
-
-  var me = this;
-  var store = this.schema.getStore(table_name);
-  var key_column = store.getSQLKeyColumnName();
-
-  var sql = 'DELETE FROM  ' + store.getQuotedName() + ' WHERE ' +
-      key_column + ' = ?';
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function(transaction, results) {
-    me.logger.finest('success ' + sql);
-    d.callback(true);
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   * @return {boolean} true to roll back.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.core.req.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('error: ' + sql + ' ' + error.message);
-    d.errback(error);
-    return true; // roll back
-  };
-
-  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + [key]);
-  this.tx.executeSql(sql, [key], callback, error_callback);
-
-};
-
-
 
 /**
  * @inheritDoc
  */
-ydn.db.core.req.WebSql.prototype.clearById = function(d, table, id) {
+ydn.db.core.req.WebSql.prototype.removeById = function(d, table, id) {
 
 
   var store = this.schema.getStore(table);
@@ -901,11 +935,18 @@ ydn.db.core.req.WebSql.prototype.clearByKeyRange = function(df, store_name, key_
   this.clear_by_key_range_(df, store_name, undefined, key_range);
 };
 
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebSql.prototype.removeByKeyRange = function(df, store_name, key_range) {
+  this.clear_by_key_range_(df, store_name, undefined, key_range);
+};
+
 
 /**
  * @inheritDoc
  */
-ydn.db.core.req.WebSql.prototype.clearByIndexKeyRange = function(df, store_name,
+ydn.db.core.req.WebSql.prototype.removeByIndexKeyRange = function(df, store_name,
           index_name, key_range) {
   this.clear_by_key_range_(df, store_name, index_name, key_range);
 };

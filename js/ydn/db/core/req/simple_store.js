@@ -245,7 +245,7 @@ ydn.db.core.req.SimpleStore.prototype.listByIndexKeyRange = function(df, store_n
  * @param {string} table delete a specific table or all tables.
  * @param {(!Array|string|number)} id delete a specific row.
  */
-ydn.db.core.req.SimpleStore.prototype.clearById = function(df, table, id) {
+ydn.db.core.req.SimpleStore.prototype.removeById = function(df, table, id) {
 
   this.getTx().removeItemInternal(table, id);
 
@@ -256,12 +256,18 @@ ydn.db.core.req.SimpleStore.prototype.clearById = function(df, table, id) {
 /**
  * @inheritDoc
  */
+ydn.db.core.req.SimpleStore.prototype.removeByKeyRange = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.core.req.SimpleStore.prototype.clearByKeyRange = goog.abstractMethod;
 
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.clearByIndexKeyRange = goog.abstractMethod;
+ydn.db.core.req.SimpleStore.prototype.removeByIndexKeyRange = goog.abstractMethod;
 
 
 /**

@@ -96,12 +96,28 @@ ydn.db.core.IOperator.prototype.put = goog.abstractMethod;
 
 
 /**
- * Remove a specific entry from a store or all.
+ * Clear a specific entry from a store or all.
  * @param {(!Array.<string>|string)=} arg1 delete the table as provided
  * otherwise
  * delete all stores.
- * @param {(string|number)=} arg2 delete a specific row.
+ * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=}  arg2 delete a
+ * specific row.
+ * @param {*=} arg3 argument control
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
 ydn.db.core.IOperator.prototype.clear = goog.abstractMethod;
+
+
+
+/**
+ * Remove a specific entry from a store or all.
+ * @param {string} store_name store name
+ * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} arg2 delete a specific key or
+ * key range.
+ * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} arg3 delete a specific key or
+ * key range.
+ * @see {@link #remove}
+ * @return {!goog.async.Deferred} return number of record removed a deferred function.
+ */
+ydn.db.core.IOperator.prototype.remove = goog.abstractMethod;
