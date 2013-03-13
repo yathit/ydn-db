@@ -736,7 +736,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     var msg = table_schema.difference(existing_table_schema);
     if (msg.length == 0) {
       me.logger.finest('same table ' + table_schema.name + ' exists.');
-      callback(true);
+      /// callback(true);
     } else {
       action = 'Modify';
 
