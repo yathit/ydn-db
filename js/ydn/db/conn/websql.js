@@ -709,6 +709,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
       count++;
       if (count == sqls.length) {
         callback(true);
+        callback = null; // must call only once.
       }
     };
 
