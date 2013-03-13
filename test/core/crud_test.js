@@ -17,12 +17,12 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  //ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
   var stores = [new ydn.db.schema.Store(table_name, 'id'),
     new ydn.db.schema.Store(store_name_inline_number, 'id', false, ydn.db.schema.DataType.NUMERIC, undefined, true),
-    new ydn.db.schema.Store(table_name_offline),
+    new ydn.db.schema.Store(table_name_offline, undefined, false, ydn.db.schema.DataType.NUMERIC),
     new ydn.db.schema.Store(load_store_name, 'id', false, ydn.db.schema.DataType.NUMERIC, indexes)
   ];
   schema = new ydn.db.schema.Database(undefined, stores);
@@ -398,7 +398,7 @@ var test_13_put_array_by_keys = function() {
 };
 
 
-var test_14_put_large_array = function() {
+var _test_14_put_large_array = function() {
   var db_name = 'test_crud_ 13_2';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
@@ -755,7 +755,6 @@ var test_31_count_store = function() {
 
   var db_name = 'test_31_count_store_2';
 
-
   var n = Math.ceil(Math.random() * 10 + 1);
   var arr = [];
   for (var i = 0; i < n; i++) {
@@ -796,6 +795,91 @@ var test_31_count_store = function() {
     count = value;
     done = true;
   });
+};
+
+
+
+var test_32_count_stores = function() {
+
+  var db_name = 'test_32_count_store_1';
+
+  var store_inline = "ts";    // in-line key store
+  var store_inline_string = "tss";    // in-line key store
+  var store_outline = "ts2"; // out-of-line key store
+  var store_outline_string = "ts2s"; // out-of-line key store
+  var store_inline_auto = "ts3"; // in-line key + auto
+  var store_outline_auto = "ts4"; // out-of-line key + auto
+  var store_nested_key = "ts5"; // nested keyPath
+  var store_inline_index = "ts6";    // in-line key store
+
+  var schema_1 = {
+    stores: [
+      {
+        name: store_inline,
+        keyPath: 'id',
+        type: 'NUMERIC'},
+      {
+        name: store_inline_string,
+        keyPath: 'id',
+        type: 'TEXT'},
+      {
+        name: store_outline,
+        type: 'NUMERIC'},
+      {
+        name: store_outline_string,
+        type: 'TEXT'},
+      {
+        name: store_nested_key,
+        keyPath: 'id.$t', // gdata style key.
+        type: 'TEXT'}
+    ]
+  };
+
+  var _db = new ydn.db.core.Storage(db_name, schema_1, options);
+  _db.clear();
+  var data = [];
+  var data2 = [];
+  for (var i = 0; i < 5; i++) {
+    data[i] = {id: i, value: 'test' + Math.random()};
+  }
+  var keys = [];
+  for (var i = 0; i < 3; i++) {
+    keys[i] = i;
+    data2[i] = {type: 'offline', value: 'test' + Math.random()};
+  }
+
+  var done = false;
+  var count, type;
+  _db.put(store_outline, data2, keys);
+  _db.put(store_inline, data);
+  _db.count(store_inline).addBoth(function() {
+    type = _db.getType();
+    var db = new ydn.db.core.Storage(db_name, schema_1, options);
+
+    db.count([store_inline, store_outline]).addCallback(function(value) {
+      //console.log('receiving value callback.');
+      count = value;
+      done = true;
+      db.close();
+    });
+  });
+  _db.close();
+
+  waitForCondition(
+    // Condition
+    function() { return done; },
+    // Continuation
+    function() {
+      assertEquals('store_inline', 5, count[0]);
+      assertEquals('store_outline', 3, count[1]);
+      // Remember, the state of this boolean will be tested in tearDown().
+      reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(db_name, type);
+
+    },
+    100, // interval
+    2000); // maxTimeout
+
 };
 
 

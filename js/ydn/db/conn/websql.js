@@ -596,7 +596,9 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
           // console.log([fields[1], type]);
 
           if (upper_fields.indexOf('PRIMARY') != -1 && upper_fields.indexOf('KEY') != -1) {
-            if (!goog.string.isEmpty(name) && name != ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME) {
+            if (goog.isString(name) && !goog.string.isEmpty(name) &&
+                name != ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME) {
+              // console.log('PRIMARY ' + name + ' on ' + info.name);
               key_name = name;
             }
             key_type = type;
@@ -624,6 +626,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 //    }
 
     var out = new ydn.db.schema.Database(version, stores);
+    // console.log(out.toJSON());
     callback(out);
   };
 
@@ -730,16 +733,18 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
   var action = 'Create';
   if (existing_table_schema) {
     // table already exists.
-    if (schema.similar(existing_table_schema)) {
-      me.logger.finest(table_schema.name + ' exists.');
+    var msg = table_schema.difference(existing_table_schema);
+    if (msg.length == 0) {
+      me.logger.finest('same table ' + table_schema.name + ' exists.');
       callback(true);
     } else {
       action = 'Modify';
 
       // TODO: use ALTER
       this.logger.warning(
-          'table: ' + table_schema.name + ' has changed,' +
-          'but TABLE ALTERATION is not implemented, dropping old table.');
+          'table: ' + table_schema.name + ' has changed by ' + msg +
+          ' additionallly TABLE ALTERATION is not implemented, ' +
+            'dropping old table.');
       sqls.unshift('DROP TABLE ' + goog.string.quote(table_schema.name));
     }
   }

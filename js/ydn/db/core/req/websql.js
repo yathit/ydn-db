@@ -196,17 +196,10 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
   var qcolumn = goog.string.quote(column);
   var key_column = store.getColumnName();
   var fields = '*';
-  if (is_index) {
-    if (key_only) {
-      fields = goog.string.quote(key_column);
-    } else {
-      fields = qcolumn;
-    }
-  } else {
-    if (key_only) {
-      fields = goog.string.quote(key_column);
-    }
+  if (key_only) {
+    fields = goog.string.quote(key_column);
   }
+
   // FIXME: DISTINCT is not equivalent to IndexedDB unique
   var dist = distinct ? 'DISTINCT' : '';
   var sql = 'SELECT ' + dist + fields +
@@ -1036,11 +1029,11 @@ ydn.db.core.req.WebSql.prototype.countStores = function(d, tables) {
      */
     var callback = function (transaction, results) {
       var row = results.rows.item(0);
-      //console.log(['row ', row  , results]);
+      // console.log(['row ', row  , results]);
       out[i] = parseInt(row['COUNT(*)'], 10);
       i++;
+      me.logger.finest(i + '. success ' + sql);
       if (i == tables.length) {
-        me.logger.finest('success ' + sql);
         d.callback(out);
       } else {
         count(i);

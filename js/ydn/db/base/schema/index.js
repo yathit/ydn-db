@@ -344,7 +344,7 @@ ydn.db.schema.Index.compareKeyPath = function(keyPath1, keyPath2) {
   } else if (!goog.isDefAndNotNull(keyPath1)) {
     return 'newly define ' + keyPath2;
   } else if (!goog.isDefAndNotNull(keyPath2)) {
-    return 'no keyPath';
+    return 'keyPath: ' + keyPath1 + ' no longer defined';
   } else if (goog.isArrayLike(keyPath1) && goog.isArrayLike(keyPath2)) {
     return goog.array.equals(/** @type {goog.array.ArrayLike} */ (keyPath1),
         /** @type {goog.array.ArrayLike} */ (keyPath2)) ?
