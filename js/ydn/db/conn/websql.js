@@ -721,6 +721,11 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
       if (ydn.db.con.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
+      count++;
+      if (count == sqls.length) {
+        callback(true);
+        callback = null; // must call only once.
+      }
       throw new ydn.db.SQLError(error, 'Error creating table: ' +
           table_schema.name + ' ' + sql);
     };
