@@ -330,6 +330,27 @@ ydn.db.schema.Index.prototype.toJSON = function() {
 };
 
 
+
+/**
+ *
+ * @return {!ydn.db.schema.Index} a clone.
+ */
+ydn.db.schema.Index.prototype.clone = function() {
+  var keyPath = goog.isArray(this.keyPath) ?
+    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
+      this.keyPath;
+  var type = goog.isArray(this.type) ?
+    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.type)) :
+      this.type;
+  return new ydn.db.schema.Index(
+    keyPath,
+    type,
+    this.unique,
+    this.multiEntry,
+    this.name);
+};
+
+
 /**
  * Compare two keyPath.
  * @see #equals
@@ -379,10 +400,37 @@ ydn.db.schema.Index.prototype.difference = function(index) {
     return 'unique, expect: ' + this.unique + ', but: ' + index.unique;
   }
   if (goog.isDef(this.type) && goog.isDef(index.type) &&
-      this.type != index.type) {
+      (goog.isArrayLike(this.type) ? !goog.array.equals(this.type, index.type) :
+        this.type != index.type)) {
     return 'data type, expect: ' + this.type + ', but: ' + index.type;
   }
   return '';
+};
+
+
+/**
+ *
+ * @return {boolean} true if keyPath is an array.
+ */
+ydn.db.schema.Index.prototype.isArrayKeyPath = function() {
+  return goog.isArray(this.keyPath);
+};
+
+
+
+/**
+ * Create a new update index schema with given guided index schema.
+ * NOTE: This is used in websql for checking table schema sniffed from the
+ * connection is similar to requested table schema. The fact is that
+ * some schema information are not able to reconstruct from the connection,
+ * these include:
+ *   1. composite index: in which a composite index is blown up to multiple
+ *     columns. @see ydn.db.con.WebSql.prototype.prepareTableSchema_.
+ * @param {!ydn.db.schema.Index} that guided index schema
+ * @return {!ydn.db.schema.Index} updated index schema
+ */
+ydn.db.schema.Index.prototype.hint = function(that) {
+  throw new ydn.error.NotImplementedException();
 };
 
 

@@ -205,6 +205,7 @@ var version_unchange_test = function(schema) {
       function() { return done; },
       // Continuation
       function() {
+        console.log([ver, oldVer, ver2, oldVer2]);
         assertNotNaN('version 1', ver);
         assertNaN('old version 1', oldVer);
         assertEquals('version 2, no change', ver, ver2);

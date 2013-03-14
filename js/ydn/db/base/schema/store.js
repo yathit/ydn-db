@@ -15,7 +15,7 @@ goog.require('ydn.db.schema.Index');
 /**
  *
  * @param {string} name table name.
- * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to.
+ * @param {(Array.<string>|string)=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to.
  * @param {boolean=} autoIncrement If true, the object store has a key
  * generator. Defaults to false.
  * @param {!Array.<ydn.db.schema.DataType>|string|ydn.db.schema.DataType=} opt_type data type for keyPath. Default to
@@ -69,7 +69,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   this.type = goog.isDef(type) ? type : this.autoIncrement ?
       ydn.db.schema.DataType.INTEGER : undefined;
 
-  if (this.autoIncrement) {
+  if (ydn.db.base.ONLY_IDB && this.autoIncrement) {
     var sqlite_msg = 'AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY';
     goog.asserts.assert(this.type == ydn.db.schema.DataType.INTEGER,
         sqlite_msg);
@@ -122,7 +122,7 @@ ydn.db.schema.Store.FetchStrategies = [
 ydn.db.schema.Store.prototype.name;
 
 /**
- * @type {string?}
+ * @type {(!Array.<string>|string)?}
  */
 ydn.db.schema.Store.prototype.keyPath;
 
@@ -257,9 +257,9 @@ ydn.db.schema.Store.prototype.getIndex = function(name) {
 
 
 /**
- *
+ * @see #hasIndexByKeyPath
  * @param {string} name index name.
- * @return {boolean} return true if name is found in the index, including
+ * @return {boolean} return true if name is found in the index or primary
  * keyPath.
  */
 ydn.db.schema.Store.prototype.hasIndex = function(name) {
@@ -269,6 +269,24 @@ ydn.db.schema.Store.prototype.hasIndex = function(name) {
 
   return goog.array.some(this.indexes, function(x) {
     return x.name == name;
+  });
+};
+
+
+/**
+ * @see #hasIndex
+ * @param {string|!Array.<string>} key_path index key path.
+ * @return {boolean} return true if key_path is found in the index including
+ * primary keyPath.
+ */
+ydn.db.schema.Store.prototype.hasIndexByKeyPath = function(key_path) {
+  if (this.keyPath &&
+      goog.isNull(ydn.db.schema.Index.compareKeyPath(this.keyPath, key_path))) {
+    return true;
+  }
+  return goog.array.some(this.indexes, function(x) {
+    return goog.isDefAndNotNull(x.keyPath) &&
+      goog.isNull(ydn.db.schema.Index.compareKeyPath(x.keyPath, key_path));
   });
 };
 
@@ -332,6 +350,61 @@ ydn.db.schema.Store.prototype.getColumns = function() {
 
 
 /**
+ * Create a new update store schema with given guided store schema.
+ * NOTE: This is used in websql for checking table schema sniffed from the
+ * connection is similar to requested table schema. The fact is that
+ * some schema information are not able to reconstruct from the connection,
+ * these include:
+ *   1. composite index: in which a composite index is blown up to multiple
+ *     columns. @see ydn.db.con.WebSql.prototype.prepareTableSchema_.
+ * @param {!ydn.db.schema.Store} that guided store schema
+ * @return {!ydn.db.schema.Store} updated store schema
+ */
+ydn.db.schema.Store.prototype.hint = function(that) {
+  goog.asserts.assert(this.name == that.name);
+  var autoIncrement = this.autoIncrement;
+  var keyPath = goog.isArray(this.keyPath) ?
+    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
+      this.keyPath;
+  var type = goog.isArray(this.type) ?
+    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.type)) :
+      this.type;
+  var indexes = goog.array.map(this.indexes, function (index) {
+    return index.clone();
+  });
+//  if (goog.isArray(that.keyPath)) {
+//    // check composite index have blown up
+//    keyPath = that.keyPath;
+//    for (var i = indexes.length - 1; i >= 0; i--) {
+//      if (that.keyPath.indexOf(indexes[i].getKeyPath()) >= 0
+//          && !that.hasIndex(indexes[i].getName())) {
+//        indexes.splice(i, 1); // blown up index are removed.
+//      }
+//    }
+//  }
+
+  for (var i = 0, n = that.indexes.length; i < n; i++) {
+    if (that.indexes[i].isArrayKeyPath()) {
+      var key_path = that.indexes[i].getKeyPath();
+      var composite_index_added = false;
+      for (var j = indexes.length - 1; j >= 0; j--) {
+        if (key_path.indexOf(indexes[j].getKeyPath()) >= 0
+          && !that.hasIndex(indexes[j].getName())) {
+          indexes.splice(j, 1); // blown up index are removed.
+          if (!composite_index_added) {
+            indexes.push(that.indexes[i].clone());
+            composite_index_added = true;
+          }
+        }
+      }
+    }
+  }
+
+  return new ydn.db.schema.Store(that.name, keyPath, autoIncrement, type, indexes);
+};
+
+
+/**
  *
  * @return {string} store name.
  */
@@ -351,7 +424,7 @@ ydn.db.schema.Store.prototype.getAutoIncrement = function() {
 
 /**
  *
- * @return {string?} keyPath
+ * @return {Array.<string>|string?} keyPath
  */
 ydn.db.schema.Store.prototype.getKeyPath = function() {
   return this.keyPath;

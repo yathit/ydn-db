@@ -46,6 +46,13 @@ ydn.db.base.USE_HOOK = false;
 
 
 /**
+ * For stripping non IndexedDB code and unlocking IDB feature.
+ * @define {boolean} compiled only for IndexedDB.
+ */
+ydn.db.base.ONLY_IDB = false;
+
+
+/**
  * Default result limit during retrieving records from the database.
  * @const
  * @type {number}

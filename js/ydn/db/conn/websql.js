@@ -119,7 +119,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
      */
     var transaction_callback = function(tx) {
       // sniff current table info in the database.
-      me.getSchema(function(table_infos) {
+      me.getSchema(function(existing_schema) {
         executed = true;
         for (var i = 0; i < schema.count(); i++) {
           var counter = function(ok) {
@@ -127,14 +127,19 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
               updated_count++;
             }
           };
-          var table_info = table_infos.getStore(schema.store(i).getName());
-          me.update_store_with_info_(tx, schema.store(i), counter, table_info);
+          var table_info = existing_schema.getStore(schema.store(i).getName());
+          // hint to sniffed schema, so that some lost info are recovered.
+          var hinted_store_schema = table_info ?
+            table_info.hint(schema.store(i)) : null;
+
+          me.update_store_with_info_(tx, schema.store(i), counter,
+            hinted_store_schema);
         }
 
         if (schema instanceof ydn.db.schema.EditableDatabase) {
           var edited_schema = schema;
-          for (var j = 0; j < table_infos.count(); j++) {
-            var info_store = table_infos.store(j);
+          for (var j = 0; j < existing_schema.count(); j++) {
+            var info_store = existing_schema.store(j);
             if (!edited_schema.hasStore(info_store.getName())) {
               edited_schema.addStore(info_store);
             }
@@ -183,7 +188,6 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
   };
 
-
   /**
    * @type {Database}
    */
@@ -204,7 +208,6 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
       doVersionChange_(db, schema, use_version_change_request);
     //}
   };
-
 
   try {
     /**
@@ -292,25 +295,42 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     // without increasing database version.
 
     old_version = db.version;
-    if (db.version === version) {
-      this.logger.finest('Existing database version ' + db.version +
-        ' opened.');
+
+    var db_info = 'database ' + dbname +
+      (db.version.length == 0 ? '' : ' version ' + db.version);
+
+    if (goog.isDefAndNotNull(schema.version) && schema.version == db.version) {
+      me.logger.fine('Existing ' + db_info + ' opened as requested.');
+      setDb(db);
     } else {
-      me.logger.finest('Database version ' + db.version +
-        ' opened, but require ' + version + ' version.');
+      // require upgrade check
+      this.getSchema(function(existing_schema) {
+        var msg = schema.difference(existing_schema, true);
+        if (msg) {
+          if (db.version.length == 0) {
+            me.logger.fine('New ' + db_info + ' created.');
+
+            doVersionChange_(db, schema, false);
+          } else if (!schema.isAutoVersion()) {
+            me.logger.fine('Existing ' + db_info + ' opened and ' +
+              ' schema change to version ' + schema.version + ' for ' + msg);
+
+            doVersionChange_(db, schema, true);
+          } else {
+            me.logger.fine('Existing ' + db_info + ' opened and ' +
+              ' schema change for ' + msg);
+
+            doVersionChange_(db, schema, true);
+          }
+
+        } else {
+          // same schema.
+          me.logger.fine('Existing ' + db_info + ' with same schema opened.');
+          setDb(db);
+        }
+      }, null, db);
     }
 
-    if (!schema.isAutoVersion() && db.version < version) {
-      me.logger.finest('Upgrading to version: ' + version);
-    }
-
-    this.getSchema(function(existing_schema) {
-      var msg = schema.difference(existing_schema);
-      if (msg) {
-        me.logger.finer('version change for ' + msg);
-      }
-      doVersionChange_(db, schema, !!msg);
-    }, null, db);
 
   }
 
@@ -670,7 +690,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
  *
  * @param {SQLTransaction} trans transaction.
  * @param {ydn.db.schema.Store} store_schema schema.
- * @param {Function} callback callback on finished.
+ * @param {function(boolean)} callback callback on finished.
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
@@ -688,9 +708,10 @@ ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
  * Alter or create table with given table schema.
  * @param {SQLTransaction} trans transaction.
  * @param {ydn.db.schema.Store} table_schema table schema to be upgrade.
- * @param {Function} callback callback on finished.
- * @param {ydn.db.schema.Store|undefined} existing_table_schema table information in the
- * existing database.
+ * @param {function(boolean)?} callback callback on finished. return true
+ * if table is updated.
+ * @param {ydn.db.schema.Store|undefined} existing_table_schema table
+ * information in the existing database.
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
@@ -723,7 +744,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
       }
       count++;
       if (count == sqls.length) {
-        callback(true);
+        callback(false); // false for no change
         callback = null; // must call only once.
       }
       throw new ydn.db.SQLError(error, 'Error creating table: ' +
@@ -742,7 +763,9 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     var msg = table_schema.difference(existing_table_schema);
     if (msg.length == 0) {
       me.logger.finest('same table ' + table_schema.name + ' exists.');
-      /// callback(true);
+      callback(true);
+      callback = null;
+      return;
     } else {
       action = 'Modify';
 
