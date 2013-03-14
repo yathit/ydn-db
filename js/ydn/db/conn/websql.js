@@ -425,42 +425,6 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   if (goog.isArray(type)) {
     type = ydn.db.schema.DataType.TEXT;
   }
-  var autoIncrement = table_schema.autoIncrement;
-  var indexes = [];
-
-  var column_names = [];
-  column_names.push(table_schema.keyPath);
-  for (var i = 0; i < table_schema.indexes.length; i++) {
-    /**
-     * @type {ydn.db.schema.Index}
-     */
-    var index = table_schema.indexes[i];
-
-    if (index.keyPath == table_schema.getKeyPath()) {
-      continue;
-    }
-
-    if (goog.isArray(index.getType())) {
-      var types = index.getType();
-      var keyPaths = index.getKeyPath();
-      for(var j = 0; j<keyPaths.length; j++) {
-        if (column_names.indexOf(keyPaths[j]) >= 0) {
-          continue;
-        }
-        var idx = new ydn.db.schema.Index(keyPaths[j], types[j]);
-        indexes.push(idx);
-        column_names.push(keyPaths[j]);
-      }
-    } else {
-      if (column_names.indexOf(index.getKeyPath()) == -1) {
-        var keyPath = index.getKeyPath();
-        var idx = new ydn.db.schema.Index(keyPath, index.getType());
-        indexes.push(idx);
-        column_names.push(keyPath);
-      }
-    }
-  }
-
 
   var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
 
@@ -478,14 +442,23 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var sqls = [];
   var sep = ', ';
-  column_names = [table_schema.getKeyPath()];
-  for (var i = 0, n = indexes.length; i < n; i++) {
+  var column_names = [table_schema.getKeyPath()];
+
+  for (var i = 0, n = table_schema.countIndex(); i < n; i++) {
     /**
      * @type {ydn.db.schema.Index}
      */
-    var i_index = indexes[i];
-    var unique = i_index.unique ? ' UNIQUE ' : ' ';
-
+    var index = table_schema.index(i);
+    var unique = '';
+    if (index.isUnique()) {
+      if (index.isMultiEntry()) {
+        this.logger.warning('store "' + table_schema.getName() +
+          '" has both multiEntry and unique set true, ' +
+          'but it is not supported under websql');
+      } else {
+        unique =  ' UNIQUE ';
+      }
+    }
 
     // http://sqlite.org/lang_createindex.html
     // http://www.sqlite.org/lang_createtable.html
@@ -507,14 +480,28 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     //  sqls.push(idx_sql);
     //}
 
-    var index_key_path = i_index.getKeyPath();
-    if (column_names.indexOf(index_key_path) == -1) {
+    var index_key_path = index.getKeyPath();
+    var idx_type = index.getType();
+
+    if (goog.isArray(idx_type)) {
+      goog.asserts.assertArray(index_key_path);
+      for(var j = 0; j < index_key_path.length; j++) {
+        var index_name = index_key_path[j];
+        if (column_names.indexOf(index_name) == -1) {
+          sql += sep + goog.string.quote(index_name) + ' ' + idx_type[j];
+          column_names.push(index_name);
+        }
+      }
+    } else  if (column_names.indexOf(index_key_path) == -1) {
       // store keyPath can also be indexed in IndexedDB spec
+
+      var i_type = index.isMultiEntry() ? 'TEXT' : index.getType() || 'BLOB';
       goog.asserts.assertString(index_key_path);
-      sql += sep + goog.string.quote(index_key_path) + ' ' + i_index.getType() +
+      sql += sep + goog.string.quote(index_key_path) + ' ' + i_type +
         unique;
       column_names.push(index_key_path);
     }
+
 
   }
 
@@ -858,6 +845,7 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
   // Dropping all tables indeed delete the database.
   var db = new ydn.db.con.WebSql();
   var schema = new ydn.db.schema.EditableDatabase();
+  db.logger.finer('deleting websql database: ' + db_name);
   var df = db.connect(db_name, schema);
 
   var on_completed = function(t, e) {

@@ -73,9 +73,9 @@ var load_default2 = function() {
 
   objs = [
     {id:'qs0', value: 0, tag: ['a', 'b']},
-    {id:'qs1', value: 1, tag: 'a'},
+    {id:'qs1', value: 1, tag: ['a']},
     {id:'at2', value: 2, tag: ['a', 'b']},
-    {id:'bs1', value: 3, tag: 'b'},
+    {id:'bs1', value: 3, tag: ['b']},
     {id:'bs2', value: 4, tag: ['a', 'c', 'd']},
     {id:'bs3', value: 5, tag: ['c']},
     {id:'st3', value: 6}
@@ -454,8 +454,11 @@ var test_multiEntry = function () {
 
   var db = load_default2();
 
-  var tags = ['d', 'b', 'c', 'a', 'e'];
-  var exp_counts = [1, 3, 2, 4, 0];
+  // var tags = ['d', 'b', 'c', 'a', 'e'];
+  // var exp_counts = [1, 3, 2, 4, 0];
+  var tags = ['d'];
+  var exp_counts = [1];
+
   var counts = [];
   var total = tags.length;
   var done = 0;
@@ -480,9 +483,8 @@ var test_multiEntry = function () {
 
   var count_for = function (tag_name, idx) {
     var keyRange = ydn.db.KeyRange.only(tag_name);
-    var q = new ydn.db.Iterator(store_name, 'tag', keyRange);
 
-    db.values(q).addBoth(function (value) {
+    db.values(store_name, 'tag', keyRange).addBoth(function (value) {
       //console.log(tag_name + ' ==> ' + JSON.stringify(value));
       counts[idx] = value.length;
       done++;

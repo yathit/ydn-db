@@ -106,7 +106,14 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
     } else if (goog.isDefAndNotNull(key_range.lower) &&
         goog.isDefAndNotNull(key_range.upper) &&
         ydn.db.utils.cmp(key_range.lower, key_range.upper) == 0) {
-      if (goog.isArrayLike(key_range.lower)) {
+      if (goog.isArray(type)) { // multiEntry = true
+        goog.asserts.assertString(key_path);
+        var column = goog.string.quote(key_path);
+        sql = column + ' LIKE ?';
+        params.push('%' + ydn.db.schema.Index.ARRAY_SEP +
+          key_range.lower + // this should be string
+          ydn.db.schema.Index.ARRAY_SEP + '%');
+      } else if (goog.isArrayLike(key_range.lower)) {
         for(var i = 0; i < key_range.lower.length; i++) {
           if (i > 0) {
             sql += ' AND ';
@@ -116,9 +123,8 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
           params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
         }
       } else {
-        // todo: what if key_range.lower is not array, but key_path is array
-        goog.asserts.assertString(key_path);
-        var column = goog.string.quote(key_path);
+        var column = goog.string.quote(
+          goog.isArray(key_path) ? this.field : key_path);
         sql = column + ' = ?';
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
       }

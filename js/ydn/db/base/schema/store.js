@@ -318,8 +318,10 @@ ydn.db.schema.Store.prototype.getSQLKeyColumnName = function () {
  * Return keyPath. In case undefined return default key column.
  * @return {string} return keyPath or default key column name.
  */
-ydn.db.schema.Store.prototype.getColumnName = function() {
-  return goog.isString(this.keyPath) ?
+ydn.db.schema.Store.prototype.getColumnName = function () {
+  return goog.isArray(this.keyPath) ?
+    goog.string.quote(this.keyPath.join(',')) :
+    goog.isString(this.keyPath) ?
       this.keyPath : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 };
 
@@ -366,7 +368,7 @@ ydn.db.schema.Store.prototype.getColumns = function() {
  */
 ydn.db.schema.Store.prototype.hint = function(that) {
   if (!that) {
-    return this.clone();
+    return this;
   }
   goog.asserts.assert(this.name == that.name);
   var autoIncrement = this.autoIncrement;
@@ -417,7 +419,15 @@ ydn.db.schema.Store.prototype.hint = function(that) {
     }
   }
 
-  return new ydn.db.schema.Store(that.name, keyPath, autoIncrement, type, indexes);
+  for (var i = 0; i < indexes.length; i++) {
+    var that_index = that.getIndex(indexes[i].getName());
+    if (that_index) {
+      indexes[i] = indexes[i].hint(that_index);
+    }
+  }
+
+  return new ydn.db.schema.Store(
+    that.name, keyPath, autoIncrement, type, indexes);
 };
 
 
@@ -618,9 +628,9 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
       continue;
     }
 
-    var key_path = index.keyPath;
+    var key_path = index.getKeyPath();
     if (goog.isDef(key_path)) {
-      var type = index.type;
+      var type = index.getType();
       if (goog.isArray(key_path)) {
         for(var j = 0; j < key_path.length; j++) {
           if (goog.isDef(obj[key_path[j]])) {

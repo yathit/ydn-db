@@ -16,13 +16,13 @@ var setUp = function () {
     debug_console.setCapturing(true);
     goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-    goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
 
   //ydn.db.con.IndexedDb.DEBUG = true;
-  ydn.db.con.IndexedDb.DEBUG = true;
+  //ydn.db.con.IndexedDb.DEBUG = true;
   reachedFinalContinuation = false;
 
 };
@@ -75,8 +75,9 @@ var test_auto_schema = function() {
 };
 
 
-var version_change_test = function(schema1, schema2) {
+var version_change_test = function(schema1, schema2, is_final, msg) {
   var db_name = 'test' + Math.random();
+  msg = msg || '';
 
   var ver, oldVer, ver2, oldVer2;
   var done = false;
@@ -86,12 +87,14 @@ var version_change_test = function(schema1, schema2) {
       function() { return done; },
       // Continuation
       function() {
-        assertNotNaN('version 1', ver);
-        assertNaN('old version 1', oldVer);
-        assertEquals('version 2', (ver + 1), ver2);
-        assertEquals('old version 2', ver, oldVer2);
+        assertNotNaN(msg + 'change_test version 1', ver);
+        assertNaN(msg + 'change_test old version 1', oldVer);
+        assertEquals(msg + 'change_test version 2', (ver + 1), ver2);
+        assertEquals(msg + 'change_test old version 2', ver, oldVer2);
 
-        reachedFinalContinuation = true;
+        if (is_final) {
+          reachedFinalContinuation = true;
+        }
 
       },
       100, // interval
@@ -133,7 +136,7 @@ var test_add_store = function () {
       }
     ]
   };
-  version_change_test(schema1, schema2);
+  version_change_test(schema1, schema2, true);
 };
 
 var test_remove_store = function () {
@@ -154,7 +157,7 @@ var test_remove_store = function () {
       }
     ]
   };
-  version_change_test(schema1, schema2);
+  version_change_test(schema1, schema2, true);
 };
 
 var test_rename_store = function () {
@@ -172,7 +175,7 @@ var test_rename_store = function () {
       }
     ]
   };
-  version_change_test(schema1, schema2);
+  version_change_test(schema1, schema2, true);
 };
 
 var test_out_of_line_to_in_line_key = function () {
@@ -191,11 +194,12 @@ var test_out_of_line_to_in_line_key = function () {
       }
     ]
   };
-  version_change_test(schema1, schema2);
+  version_change_test(schema1, schema2, true);
 };
 
-var version_unchange_test = function(schema) {
+var version_unchange_test = function(schema, is_final, msg) {
   var db_name = 'test' + Math.random();
+  msg = msg || '';
 
   var ver, oldVer, ver2, oldVer2;
   var done = false;
@@ -205,13 +209,15 @@ var version_unchange_test = function(schema) {
       function() { return done; },
       // Continuation
       function() {
-        console.log([ver, oldVer, ver2, oldVer2]);
-        assertNotNaN('version 1', ver);
-        assertNaN('old version 1', oldVer);
-        assertEquals('version 2, no change', ver, ver2);
-        assertEquals('old version 2, no change', ver, oldVer2);
+        // console.log([ver, oldVer, ver2, oldVer2]);
+        assertNotNaN(msg + 'unchange_test version 1', ver);
+        assertNaN(msg + 'unchange_test old version 1', oldVer);
+        assertEquals(msg + 'unchange_test version 2, no change', ver, ver2);
+        assertEquals(msg + 'unchange_test old version 2, no change', ver, oldVer2);
 
-        reachedFinalContinuation = true;
+        if (is_final) {
+          reachedFinalContinuation = true;
+        }
 
       },
       100, // interval
@@ -233,10 +239,79 @@ var version_unchange_test = function(schema) {
   })
 };
 
+var test_keyPath = function() {
+
+  var schema = {
+    stores: [
+      {
+        name: 'st'
+      }
+    ]
+  };
+  var schema2 = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'id',
+        type: 'TEXT'
+      }
+    ]
+  };
+  version_unchange_test(schema);
+  version_unchange_test(schema2);
+  version_change_test(schema, schema2);
+  version_change_test(schema2, schema, true);
+};
+
+var test_multiEntry = function() {
+
+  var schema = {
+    stores: [
+      {
+        name: 'st',
+        indexes: [{
+          name: 'idx',
+          type: 'TEXT'
+        }]
+      }
+    ]
+  };
+  var schema2 = {
+    stores: [
+      {
+        name: 'st',
+        indexes: [{
+          name: 'idx',
+          type: 'TEXT',
+          multiEntry: true
+        }]
+      }
+    ]
+  };
+
+  if (options.mechanisms[0] != 'websql') {  // know issue
+    version_change_test(schema2, schema, false, 'from multiEntry');
+    version_change_test(schema, schema2, false, 'to multiEntry');
+  }
+  version_unchange_test(schema, false, 'multiEntry=false:');
+  version_unchange_test(schema2, true, 'multiEntry=true:');
+};
+
+
 
 var test_composite_key_schema = function() {
 
   var schema = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'x',
+        type: 'TEXT'
+      }
+    ]
+  };
+
+  var schema2 = {
     stores: [
       {
         name: 'st',
@@ -245,7 +320,11 @@ var test_composite_key_schema = function() {
       }
     ]
   };
-  version_unchange_test(schema);
+
+  version_unchange_test(schema, false, '1:');
+  version_unchange_test(schema2, false, '2:');
+  version_change_test(schema, schema2, false, '3:');
+  version_change_test(schema2, schema, true, '4:');
 };
 
 
@@ -255,14 +334,27 @@ var test_composite_index_schema = function() {
     stores: [{
       name: 'st',
       indexes: [{
-        name: 'x, y',
+        name: 'xy'
+      }]
+    }]
+  };
+
+  var schema2 = {
+    stores: [{
+      name: 'st',
+      indexes: [{
+        name: 'xy',
         keyPath: ['x', 'y'],
         type: ['TEXT', 'TEXT']
       }]
     }]
   };
 
-  version_unchange_test(schema);
+  version_unchange_test(schema, false, '1:');
+  version_unchange_test(schema2, false, '2:');
+  version_change_test(schema, schema2, false, '3:');
+  version_change_test(schema2, schema, true, '4:');
+
 
 };
 

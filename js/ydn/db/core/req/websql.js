@@ -133,7 +133,6 @@ ydn.db.core.req.WebSql.prototype.getTx = function() {
 };
 
 
-
 /**
  * Extract key from row result.
  * @final
@@ -147,8 +146,6 @@ ydn.db.core.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 };
 
 
-
-
 /**
  * @inheritDoc
  */
@@ -156,7 +153,6 @@ ydn.db.core.req.WebSql.prototype.keysByKeyRange = function(df, store_name,
         key_range, reverse, limit, offset) {
   this.list_by_key_range_(df, true, store_name, undefined, key_range, reverse, limit, offset, false);
 };
-
 
 
 /**
@@ -192,6 +188,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
   var index = goog.isString(index_column) ? store.getIndex(index_column) : null;
   var column = index_column || store.getColumnName();
   var key_path = index ? index.getKeyPath() : store.getKeyPath();
+  var type = is_index ? index.getType() : store.getType();
 
   var qcolumn = goog.string.quote(column);
   var key_column = store.getColumnName();
@@ -206,9 +203,10 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
     ' FROM ' + store.getQuotedName();
   var params = [];
   if (!goog.isNull(key_range)) {
+    goog.asserts.assert(key_path); // not null.
+    var t = is_index && index.isMultiEntry() ? [type] : type;
     var where_clause = ydn.db.Where.toWhereClause(
-        /** @type {string} */ (key_path), // FIXME: shouldn't need cast.
-        store.getType(), key_range);
+        key_path, t, key_range);
     sql += ' WHERE ' + where_clause.sql;
     params = where_clause.params;
   }
@@ -259,12 +257,10 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(df, key_only,
 };
 
 
-
 /**
  * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.putByKeys = goog.abstractMethod;
-
 
 
 /**
@@ -291,7 +287,6 @@ ydn.db.core.req.WebSql.prototype.putObject = function(df,
 };
 
 
-
 /**
  * @inheritDoc
  */
@@ -299,7 +294,6 @@ ydn.db.core.req.WebSql.prototype.addObjects = function(
     df, store_name, objects, opt_keys) {
   this.insertObjects(df, true, false, store_name, objects, opt_keys);
 };
-
 
 
 /**

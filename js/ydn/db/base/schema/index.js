@@ -152,7 +152,7 @@ ydn.db.DataTypeAbbr = {
  * @const
  * @type {string}
  */
-ydn.db.schema.Index.ARRAY_SEP = String.fromCharCode(0x001F);
+ydn.db.schema.Index.ARRAY_SEP = '|'; // String.fromCharCode(0x001F);
 
 
 /**
@@ -396,8 +396,16 @@ ydn.db.schema.Index.prototype.difference = function(index) {
   if (msg) {
     return 'keyPath, ' + msg;
   }
-  if (this.unique != index.unique) {
+  if (goog.isDefAndNotNull(this.unique) &&
+      goog.isDefAndNotNull(index.unique) &&
+      this.unique != index.unique) {
     return 'unique, expect: ' + this.unique + ', but: ' + index.unique;
+  }
+  if (goog.isDefAndNotNull(this.multiEntry) &&
+      goog.isDefAndNotNull(index.multiEntry) &&
+      this.multiEntry != index.multiEntry) {
+    return 'multiEntry, expect: ' + this.multiEntry +
+      ', but: ' + index.multiEntry;
   }
   if (goog.isDef(this.type) && goog.isDef(index.type) &&
       (goog.isArrayLike(this.type) ? !goog.array.equals(
@@ -428,11 +436,26 @@ ydn.db.schema.Index.prototype.isArrayKeyPath = function() {
  * these include:
  *   1. composite index: in which a composite index is blown up to multiple
  *     columns. @see ydn.db.con.WebSql.prototype.prepareTableSchema_.
- * @param {!ydn.db.schema.Index} that guided index schema
+ * @param {ydn.db.schema.Index} that guided index schema
  * @return {!ydn.db.schema.Index} updated index schema
  */
 ydn.db.schema.Index.prototype.hint = function(that) {
-  throw new ydn.error.NotImplementedException();
+  if (!that) {
+    return this;
+  }
+  goog.asserts.assert(this.name == that.name);
+  var keyPath = goog.isArray(this.keyPath) ?
+    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
+    this.keyPath;
+  var type = goog.isArray(this.type) ?
+    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.type)) :
+    this.type;
+  var multiEntry = this.multiEntry;
+  if (that.multiEntry === true && this.type == 'TEXT') {
+    multiEntry = true; // multiEntry info was lost
+  }
+  return new ydn.db.schema.Index(keyPath, type, this.unique, multiEntry,
+    that.name);
 };
 
 

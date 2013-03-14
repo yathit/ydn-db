@@ -650,6 +650,56 @@ var test_keys_by_KeyIndexIterator_unqiue = function () {
 };
 
 
+
+var test_multiEntry = function () {
+
+  var db = load_default2();
+
+  // var tags = ['d', 'b', 'c', 'a', 'e'];
+  // var exp_counts = [1, 3, 2, 4, 0];
+  var tags = ['d'];
+  var exp_counts = [1];
+
+  var counts = [];
+  var total = tags.length;
+  var done = 0;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done == total;
+    },
+    // Continuation
+    function () {
+
+      for (var i = 0; i < total; i++) {
+        assertEquals('for tag: ' + tags[i] + ' count', exp_counts[i], counts[i]);
+      }
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    1000); // maxTimeout
+
+
+  var count_for = function (tag_name, idx) {
+    var keyRange = ydn.db.KeyRange.only(tag_name);
+    var q = new ydn.db.IndexValueCursors(store_name, 'tag', keyRange);
+
+    db.values(q).addBoth(function (value) {
+      //console.log(tag_name + ' ==> ' + JSON.stringify(value));
+      counts[idx] = value.length;
+      done++;
+    });
+  };
+
+  for (var i = 0; i < total; i++) {
+    count_for(tags[i], i);
+  }
+
+};
+
+
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();
 G_testRunner.initialize(testCase);
