@@ -408,20 +408,23 @@ ydn.db.con.WebSql.prototype.logger =
 
 
 /**
- * Clone and transform the schema to be compatible with websql datastructure.
+ * Initialize variable to the schema and prepare SQL statement for creating
+ * the table.
  * @private
- * @param {ydn.db.schema.Store} table_schema Original schema.
- * @return {ydn.db.schema.Store} Schema to use to generate sql commands.
+ * @param {ydn.db.schema.Store} table_schema name of table in the schema.
+ * @return {!Array.<string>} SQL statement for creating the table.
  */
-ydn.db.con.WebSql.prototype.prepareTableSchema_ = function(table_schema) {
+ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
 
-  var name = table_schema.getName();
-  var key_path = table_schema.getKeyPath() || ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  // prepare schema
+
+  var key_path = table_schema.getKeyPath() ||
+    ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   var type = table_schema.type || 'BLOB';
-//  if (goog.isArray(type)) {
-//    type = ydn.db.schema.DataType.TEXT;
-//  }
+  if (goog.isArray(type)) {
+    type = ydn.db.schema.DataType.TEXT;
+  }
   var autoIncrement = table_schema.autoIncrement;
   var indexes = [];
 
@@ -456,36 +459,18 @@ ydn.db.con.WebSql.prototype.prepareTableSchema_ = function(table_schema) {
         column_names.push(keyPath);
       }
     }
-
   }
 
-  return new ydn.db.schema.Store(name, key_path, autoIncrement, type, indexes);
-
-};
-
-
-/**
- * Initialize variable to the schema and prepare SQL statement for creating
- * the table.
- * @private
- * @param {ydn.db.schema.Store} table_schema name of table in the schema.
- * @return {!Array.<string>} SQL statement for creating the table.
- */
-ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
 
-  // undefined type are recorded in encoded key and use BLOB data type
-  // @see ydn.db.utils.encodeKey
-  var column_names = [];
-
-  sql += table_schema.getQuotedKeyPath() + ' ' + table_schema.type + ' UNIQUE PRIMARY KEY ';
+  sql += table_schema.getSQLKeyColumnName() + ' ' + type +
+    ' UNIQUE PRIMARY KEY ';
 
   if (table_schema.autoIncrement) {
     sql += ' AUTOINCREMENT ';
   }
 
-  column_names.push(table_schema.keyPath);
 
   // every table must has a default field to store schemaless fields
   sql += ' ,' + ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' +
@@ -493,12 +478,13 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var sqls = [];
   var sep = ', ';
-  for (var i = 0, n = table_schema.countIndex(); i < n; i++) {
+  column_names = [table_schema.getKeyPath()];
+  for (var i = 0, n = indexes.length; i < n; i++) {
     /**
      * @type {ydn.db.schema.Index}
      */
-    var index = table_schema.index(i);
-    var unique = index.unique ? ' UNIQUE ' : ' ';
+    var i_index = indexes[i];
+    var unique = i_index.unique ? ' UNIQUE ' : ' ';
 
 
     // http://sqlite.org/lang_createindex.html
@@ -521,12 +507,13 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     //  sqls.push(idx_sql);
     //}
 
-    if (column_names.indexOf(index.getKeyPath()) == -1) {
-      var key_path = index.getKeyPath();
-      goog.asserts.assertString(key_path);
-      sql += sep + goog.string.quote(key_path) + ' ' + index.getType() +
+    var index_key_path = i_index.getKeyPath();
+    if (column_names.indexOf(index_key_path) == -1) {
+      // store keyPath can also be indexed in IndexedDB spec
+      goog.asserts.assertString(index_key_path);
+      sql += sep + goog.string.quote(index_key_path) + ' ' + i_index.getType() +
         unique;
-      column_names.push(key_path);
+      column_names.push(index_key_path);
     }
 
   }
@@ -754,8 +741,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     trans.executeSql(sql, [], success_callback, error_callback);
   };
 
-  var schema = this.prepareTableSchema_(table_schema);
-  var sqls = this.prepareCreateTable_(schema);
+  var sqls = this.prepareCreateTable_(table_schema);
 
   var action = 'Create';
   if (existing_table_schema) {

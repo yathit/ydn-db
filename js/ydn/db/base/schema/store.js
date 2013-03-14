@@ -302,11 +302,15 @@ ydn.db.schema.Store.prototype.getQuotedKeyPath = function() {
 
 /**
  * Return quoted keyPath. In case undefined return default key column.
- * @return {string} return quoted keyPath.
+ * @return {string} return quoted keyPath. If keyPath is array, they are
+ * join by ',' and quoted. If keyPath is not define, default sqlite column
+ * name is used.
  */
-ydn.db.schema.Store.prototype.getSQLKeyColumnName = function() {
+ydn.db.schema.Store.prototype.getSQLKeyColumnName = function () {
   return goog.isString(this.keyPath) ?
-      goog.string.quote(this.keyPath) : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+    goog.string.quote(this.keyPath) :
+    goog.isArray(this.keyPath) ? goog.string.quote(this.keyPath.join(',')) :
+      ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 };
 
 
@@ -357,10 +361,13 @@ ydn.db.schema.Store.prototype.getColumns = function() {
  * these include:
  *   1. composite index: in which a composite index is blown up to multiple
  *     columns. @see ydn.db.con.WebSql.prototype.prepareTableSchema_.
- * @param {!ydn.db.schema.Store} that guided store schema
+ * @param {ydn.db.schema.Store} that guided store schema
  * @return {!ydn.db.schema.Store} updated store schema
  */
 ydn.db.schema.Store.prototype.hint = function(that) {
+  if (!that) {
+    return this.clone();
+  }
   goog.asserts.assert(this.name == that.name);
   var autoIncrement = this.autoIncrement;
   var keyPath = goog.isArray(this.keyPath) ?
@@ -382,6 +389,16 @@ ydn.db.schema.Store.prototype.hint = function(that) {
 //      }
 //    }
 //  }
+  if (goog.isArray(that.type) && type == 'TEXT') {
+    // array keyPath are converted into TEXT
+    // NOTE: not blown up unlike indexes.
+    type = goog.array.clone(/** @type {goog.array.ArrayLike} */ (that.type));
+  }
+  if (goog.isArray(that.keyPath) && goog.isString(keyPath) &&
+      keyPath == that.keyPath.join(',')) {
+    keyPath = goog.array.clone(
+      /** @type {goog.array.ArrayLike} */ (that.keyPath));
+  }
 
   for (var i = 0, n = that.indexes.length; i < n; i++) {
     if (that.indexes[i].isArrayKeyPath()) {
@@ -698,7 +715,10 @@ ydn.db.schema.Store.prototype.difference = function(store) {
   }
 
   if (goog.isDef(this.type) && goog.isDef(store.type) &&
-      this.type != store.type) {
+    (goog.isArrayLike(this.type) ? !goog.array.equals(
+      /** @type {goog.array.ArrayLike} */ (this.type),
+      /** @type {goog.array.ArrayLike} */ (store.type)) :
+      this.type != store.type)) {
     return 'data type, expect:  ' + this.type + ', but: ' + store.type;
   }
   for (var i = 0; i < this.indexes.length; i++) {

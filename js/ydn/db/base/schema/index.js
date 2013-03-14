@@ -400,7 +400,9 @@ ydn.db.schema.Index.prototype.difference = function(index) {
     return 'unique, expect: ' + this.unique + ', but: ' + index.unique;
   }
   if (goog.isDef(this.type) && goog.isDef(index.type) &&
-      (goog.isArrayLike(this.type) ? !goog.array.equals(this.type, index.type) :
+      (goog.isArrayLike(this.type) ? !goog.array.equals(
+        /** @type {goog.array.ArrayLike} */ (this.type),
+        /** @type {goog.array.ArrayLike} */ (index.type)) :
         this.type != index.type)) {
     return 'data type, expect: ' + this.type + ', but: ' + index.type;
   }
