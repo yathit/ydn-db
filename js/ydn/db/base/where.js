@@ -124,7 +124,7 @@ ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
         }
       } else {
         var column = goog.string.quote(
-          goog.isArray(key_path) ? this.field : key_path);
+          goog.isArray(key_path) ? key_path.join(', ') : key_path);
         sql = column + ' = ?';
         params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
       }

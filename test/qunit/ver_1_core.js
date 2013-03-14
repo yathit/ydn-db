@@ -38,6 +38,7 @@ var store_inline_index = "ts6";    // in-line key store
 
 var get_db_name = 'tck1-get-1';
 var count_db_name ='ydn_db_tck1_count_2';
+var values_db_name = 'tck1-values-1';
 
 var data_1 = { test: "test value", name: "name 1", id: 1 };
 var data_1a = { test: "test value", name: "name 1", id: ['a', 'b']};
@@ -514,7 +515,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 (function () {
 
   var db;
-  var db_name = 'tck1-list-1';
 
   // schema without auto increment
   var schema_1 = {
@@ -554,7 +554,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1, options);
+    var _db = new ydn.db.Storage(values_db_name, schema_1, options);
     _db.clear();
     _db.put(store_inline, data_list_inline);
     _db.put(store_inline_index, data_list_index);
@@ -567,7 +567,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(db_name, schema_1, options);
+      db = new ydn.db.Storage(values_db_name, schema_1, options);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('List test not finished.');
@@ -576,7 +576,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
       db.close();
-      //ydn.db.deleteDatabase(db.getName());
     }
   };
 
@@ -703,6 +702,43 @@ var reporter = new ydn.testing.Reporter('ydn-db');
         ydn.db.deleteDatabase(db.getName(), type);
       });
     });
+  });
+
+  asyncTest("Retrieve objects by multiEntry key", 1, function () {
+
+    var db_name = 'test-multiEntry-1';
+    var data = [
+      {id: 0, tag: ['a'], msg: Math.random()},
+      {id: 1, tag: ['b', 'a'], msg: Math.random()},
+      {id: 2, tag: ['b', 'c'], msg: Math.random()},
+      {id: 3, tag: ['d', 'b', 'c'], msg: Math.random()}
+    ];
+    var schema = {
+      stores: [
+        {name: 'st',
+          keyPath: 'id',
+          type: 'INTEGER',
+          indexes: [
+            {name: 'tag',
+              type: 'TEXT',
+              multiEntry: true}
+          ]
+        }
+      ]
+    };
+    var db = new ydn.db.Storage(db_name, schema, options);
+    db.put('st', data);
+    db.count('st').always(function(cnt) {
+
+      db.close();
+      var db2 = new ydn.db.Storage(db_name, schema, options);
+      db2.values('st', 'tag', ydn.db.KeyRange.only('c')).always(function (x) {
+        deepEqual(x, data.slice(2, 4), 'records having tag c');
+        start();
+        ydn.db.deleteDatabase(db_name, db2.getType());
+        db2.close();
+      })
+    })
   });
 
 })();
@@ -958,6 +994,8 @@ QUnit.moduleDone(function(result) {
     ydn.db.deleteDatabase(get_db_name);
   } else if (result.name == 'Count') {
     ydn.db.deleteDatabase(count_db_name);
+  } else if (result.name == 'Values') {
+    ydn.db.deleteDatabase(values_db_name);
   }
 });
 
