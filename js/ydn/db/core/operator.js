@@ -693,18 +693,25 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
   } else if (goog.isObject(value)) {
     var obj = value;
     var key = /** @type {number|string|undefined} */ (opt_keys);
+    var label = 'store: ' + store_name + ' key: ' +
+      store.usedInlineKey() ? store.getKeyValue(obj) : key;
 
-    this.logger.finer('addObject: ' + store_name + ' ' + key);
+    this.logger.finer('addObject: ' + label);
 
     if (ydn.db.base.USE_HOOK) {
       var post_df = new goog.async.Deferred();
       var opt = {};
       store.preHook(ydn.db.schema.Store.SyncMethod.ADD, opt, function (obj) {
-        goog.asserts.assertObject(obj);
-        me.tx_thread.exec(function (tx) {
-          //console.log('putObjects');
-          me.getExecutor(tx).addObject(post_df, store_name, obj, key);
-        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'addObject');
+        if (goog.isObject(obj)) {
+          me.logger.finest('addObject prehook: ' + label);
+          me.tx_thread.exec(function (tx) {
+            //console.log('putObjects');
+            me.getExecutor(tx).addObject(post_df, store_name, obj, key);
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'addObject');
+        } else {
+          me.logger.finer('prehook reject add: ' + label);
+          post_df.errback();
+        }
       }, obj, key);
 
       post_df.addCallbacks(function (key) {  // todo: use chain
@@ -1118,38 +1125,42 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
     var store = this.schema.getStore(st_name);
     if (!store) {
       throw new ydn.debug.error.ArgumentException('store name "' + st_name +
-          '" not found.');
+        '" not found.');
     }
 
-      if (goog.isObject(arg2)) {
-        var key_range = ydn.db.KeyRange.parseIDBKeyRange(
-          /** @type {KeyRangeJson} */ (arg2));
-        this.logger.finer('clearByKeyRange: ' + st_name + ':' +
-          ydn.json.stringify(key_range));
-        this.tx_thread.exec(function (tx) {
+    if (goog.isObject(arg2)) {
+      var key_range = ydn.db.KeyRange.parseIDBKeyRange(
+        /** @type {KeyRangeJson} */ (arg2));
+      if (goog.isNull(key_range)) {
+        throw new ydn.debug.error.ArgumentException('clear method requires' +
+          ' a valid non-null KeyRange object.');
+      }
+      this.logger.finer('clearByKeyRange: ' + st_name + ':' +
+        ydn.json.stringify(key_range));
+      this.tx_thread.exec(function (tx) {
           me.getExecutor(tx).clearByKeyRange(df, st_name, key_range);
         }, [st_name], ydn.db.base.TransactionMode.READ_WRITE,
-          'clearByKeyRange');
-      } else if (!goog.isDef(arg2)) {
-        this.logger.finer('clearByStore: ' + st_name);
-        this.tx_thread.exec(function (tx) {
-          me.getExecutor(tx).clearByStores(df, [st_name]);
-        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
+        'clearByKeyRange');
+    } else if (!goog.isDef(arg2)) {
+      this.logger.finer('clearByStore: ' + st_name);
+      this.tx_thread.exec(function (tx) {
+        me.getExecutor(tx).clearByStores(df, [st_name]);
+      }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
 
-        if (store.dispatch_events) {
-          df.addCallback(function (count) {
-            var event = new ydn.db.events.StoreEvent(
-              ydn.db.events.Types.DELETED, me.getStorage(),
-              st_name, null, undefined);
-            me.getStorage().dispatchEvent(event);
-          });
-        }
-
-      } else {
-        throw new ydn.debug.error.ArgumentException(arg2 +
-          ' is an invalid key.');
+      if (store.dispatch_events) {
+        df.addCallback(function (count) {
+          var event = new ydn.db.events.StoreEvent(
+            ydn.db.events.Types.DELETED, me.getStorage(),
+            st_name, null, undefined);
+          me.getStorage().dispatchEvent(event);
+        });
       }
 
+    } else {
+      throw new ydn.debug.error.ArgumentException('clear method requires' +
+        ' a valid KeyRange object as second argument, but found ' + arg2 +
+        ' of type ' + typeof arg2);
+    }
 
   } else if (!goog.isDef(arg1) || goog.isArray(arg1) &&
       goog.isString(arg1[0])) {
@@ -1225,9 +1236,31 @@ ydn.db.core.DbOperator.prototype.remove = function(store_name, arg2, arg3) {
         goog.isArray(arg2) || arg2 instanceof Date) {
         var id = /** @type {(!Array|number|string)} */  (arg2);
         this.logger.finer('removeById: ' + store_name + ':' + id);
-        this.tx_thread.exec(function (tx) {
-          me.getExecutor(tx).removeById(df, store_name, id);
-        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'removeById');
+        if (ydn.db.base.USE_HOOK) {
+          var post_df = new goog.async.Deferred();
+          var opt = {};
+          store.preHook(ydn.db.schema.Store.SyncMethod.REMOVE, opt,
+              function (server_id) {
+            if (server_id === id) {
+              me.tx_thread.exec(function (tx) {
+                  me.getExecutor(tx).removeById(post_df, store_name, id);
+                }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
+                'removeById');
+            } else {
+              post_df.callback(0); // number of remove is 0.
+            }
+          }, null, id);
+          post_df.addCallbacks(function (key) {
+            df.callback(key);
+          }, function (e) {
+            df.errback(e);
+          });
+        } else {
+          this.tx_thread.exec(function (tx) {
+            me.getExecutor(tx).removeById(df, store_name, id);
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
+            'removeById');
+        }
 
         if (store.dispatch_events) {
           df.addCallback(function (key) {
@@ -1255,7 +1288,8 @@ ydn.db.core.DbOperator.prototype.remove = function(store_name, arg2, arg3) {
       }
     }
   } else {
-    throw new ydn.debug.error.ArgumentException('store name required.');
+    throw new ydn.debug.error.ArgumentException('store name required, but "' +
+      store_name + '" of type ' + typeof store_name + ' found.');
   }
 
   return df;
