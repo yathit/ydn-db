@@ -200,8 +200,8 @@ var test_deleted_event = function() {
 
 
   db.put(store_name_inline_number, objs).addCallback(function() {
-    db.clear(store_name_inline_number, keys[0]);
-    db.clear(store_name_inline_number);
+    db.remove(store_name_inline_number, keys[0]);
+    db.remove(store_name_inline_number, ydn.db.KeyRange.lowerBound(-1));
   });
 };
 

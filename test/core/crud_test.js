@@ -35,7 +35,7 @@ var tearDown = function() {
 };
 
 var test_add = function() {
-
+  var db_name = 'test_add';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var hasEventFired = false;
@@ -70,9 +70,9 @@ var test_add = function() {
 
 
 var test_add_fail = function() {
-
+  var db_name = 'test_add_fail';
   var db = new ydn.db.core.Storage(db_name, schema, options);
-
+  // ydn.db.core.req.WebSql.DEBUG = true;
   var hasEventFired = false;
   var put_value, add_ev;
   var key = Math.random();
@@ -119,27 +119,24 @@ var test_add_fail = function() {
           put_value = null;
           add_ev = e;
           hasEventFired = true;
-          console.log(e);
+          // console.log(e);
         });
     },
     100, // interval
     1000); // maxTimeout
 
 
-  db.add(store_name_inline_number, {id: key, value: '1', remark: 'add test'}).addCallback(function(value) {
+  db.add(store_name_inline_number, {id: key, value: '1', remark: 'add test'}).addBoth(function(value) {
     //console.log('receiving value callback ' + value);
     put_value = value;
     hasEventFired = true;
-  }).addErrback(function(e) {
-      hasEventFired = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 
 
 var test_11_put = function() {
-
+  var db_name = 'test_11_put';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var hasEventFired = false;
@@ -160,18 +157,15 @@ var test_11_put = function() {
     2000); // maxTimeout
 
 
-  db.put(table_name, {id: 'a', value: '1', remark: 'put test'}).addCallback(function(value) {
+  db.put(table_name, {id: 'a', value: '1', remark: 'put test'}).addBoth(function(value) {
     //console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
-  }).addErrback(function(e) {
-      hasEventFired = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 var test_load_data = function() {
-
+  var db_name = 'test_load_data';
   if (options.mechanisms != ['indexeddb']) {
     reachedFinalContinuation = true;
     return;
@@ -217,15 +211,12 @@ var test_load_data = function() {
     2000); // maxTimeout
 
   db.clear();
-  db.load(load_store_name, text).addCallback(function(value) {
+  db.load(load_store_name, text).addBoth(function(value) {
     //console.log(value);
     keys = value;
     hasEventFired = true;
 
-  }).addErrback(function(e) {
-      hasEventFired = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 
@@ -262,20 +253,17 @@ var test_12_put_array = function() {
     2000); // maxTimeout
 
 
-  db.put(table_name, arr).addCallback(function(value) {
+  db.put(table_name, arr).addBoth(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
-  }).addErrback(function(e) {
-      hasEventFired = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 
 
 var test_12_put_array_key = function() {
-  var db_name = 'test_13';
+  var db_name = 'test_12_put_array_key';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var arr = [];
@@ -305,19 +293,16 @@ var test_12_put_array_key = function() {
     2000); // maxTimeout
 
 
-  db.put(table_name, arr).addCallback(function(value) {
-    //console.log('receiving value callback.');
+  db.put(table_name, arr).addBoth(function(value) {
+    console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
-  }).addErrback(function(e) {
-      hasEventFired = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 
 var test_13_put_key = function() {
-  var db_name = 'test_crud_ 13_2';
+  var db_name = 'test_13_put_key';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var key = new ydn.db.Key(store_name_inline_number, 1);
@@ -426,14 +411,11 @@ var _test_14_put_large_array = function() {
       2000); // maxTimeout
 
 
-  db.put(table_name, arr).addCallback(function(value) {
+  db.put(table_name, arr).addBoth(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
-  }).addErrback(function(e) {
-        hasEventFired = true;
-        console.log('Error: ' + e);
-      });
+  });
 };
 
 
@@ -467,19 +449,16 @@ var test_21_get_inline = function() {
     console.log('key: ' + k);
   });
 
-  db.get(table_name, key).addCallback(function(value) {
-    console.log([key, value])
+  db.get(table_name, key).addBoth(function(value) {
+    // console.log([key, value])
     result = value;
     done = true;
-  }).addErrback(function(e) {
-      done = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 
 var test_22_get_offline = function() {
-  var db_name = 'test_crud_21_2';
+  var db_name = 'test_22_get_offline';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var key = Math.ceil(Math.random()*1000);
@@ -505,14 +484,11 @@ var test_22_get_offline = function() {
 
   db.put(table_name_offline, value, key);
 
-  db.get(table_name_offline, key).addCallback(function(value) {
+  db.get(table_name_offline, key).addBoth(function(value) {
     //console.log('receiving value callback.');
     result = value;
     done = true;
-  }).addErrback(function(e) {
-      done = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 
@@ -556,14 +532,11 @@ var test_24_list_by_ids = function() {
 
   db.put(table_name, arr);
 
-  db.values(table_name, ids).addCallback(function(value) {
+  db.values(table_name, ids).addBoth(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
-  }).addErrback(function(e) {
-      hasEventFired = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 
@@ -626,14 +599,11 @@ var test_26_list = function() {
     limit_result = value;
     limit_done = true;
   });
-  db.values(table_name, null, 2, 1).addCallback(function(value) {
+  db.values(table_name, null, 2, 1).addBoth(function(value) {
     //console.log('receiving value callback.');
     offset_result = value;
     offset_done = true;
-  }).addErrback(function(e) {
-      offset_done = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 
@@ -673,14 +643,11 @@ var _test_25_get_large_array = function() {
 
   db.put(table_name, arr);
 
-  db.values(table_name, ids).addCallback(function(value) {
+  db.values(table_name, ids).addBoth(function(value) {
     //console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
-  }).addErrback(function(e) {
-        hasEventFired = true;
-        console.log('Error: ' + e);
-      });
+  });
 };
 
 
@@ -710,7 +677,7 @@ var test_24_get_all_no_data = function() {
     100, // interval
     2000); // maxTimeout
 
-  db.values(table_name).addCallback(function(value) {
+  db.values(table_name).addBoth(function(value) {
     //console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -719,7 +686,7 @@ var test_24_get_all_no_data = function() {
 
 
 var test_25_get_none_exist = function() {
-
+  var db_name = 'test_25_get_none_exist';
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var hasEventFired = false;
@@ -740,14 +707,11 @@ var test_25_get_none_exist = function() {
     2000); // maxTimeout
 
 
-  db.get(table_name, 'no_data').addCallback(function(value) {
+  db.get(table_name, 'no_data').addBoth(function(value) {
     //console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
-  }).addErrback(function(e) {
-      hasEventFired = true;
-      console.log('Error: ' + e);
-    });
+  });
 };
 
 
@@ -790,7 +754,7 @@ var test_31_count_store = function() {
     2000); // maxTimeout
 
 
-  db.count(store_1).addCallback(function(value) {
+  db.count(store_1).addBoth(function(value) {
     //console.log('receiving value callback.');
     count = value;
     done = true;
@@ -801,7 +765,7 @@ var test_31_count_store = function() {
 
 var test_32_count_stores = function() {
 
-  var db_name = 'test_32_count_store_1';
+  var db_name = 'test_32_count_stores';
 
   var store_inline = "ts";    // in-line key store
   var store_inline_string = "tss";    // in-line key store
@@ -856,7 +820,7 @@ var test_32_count_stores = function() {
     type = _db.getType();
     var db = new ydn.db.core.Storage(db_name, schema_1, options);
 
-    db.count([store_inline, store_outline]).addCallback(function(value) {
+    db.count([store_inline, store_outline]).addBoth(function(value) {
       //console.log('receiving value callback.');
       count = value;
       done = true;
@@ -875,7 +839,6 @@ var test_32_count_stores = function() {
       // Remember, the state of this boolean will be tested in tearDown().
       reachedFinalContinuation = true;
       ydn.db.deleteDatabase(db_name, type);
-
     },
     100, // interval
     2000); // maxTimeout
@@ -884,6 +847,7 @@ var test_32_count_stores = function() {
 
 
 var test_40_clear_store = function() {
+  var db_name = 'test_40_clear_store';
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.put(table_name,
     [{id: 1}, {id: 2}, {id: 3}]
@@ -905,12 +869,10 @@ var test_40_clear_store = function() {
     1000); // maxTimeout
 
   var dfl = db.clear(table_name);
-  dfl.addCallback(function(value) {
+  dfl.addBoth(function(value) {
     put_value = value;
     hasEventFired = true;
-  }).addErrback(function(v) {
-      fail('should not get error.');
-    });
+  });
 
   var countValue;
   var countDone;
@@ -928,7 +890,7 @@ var test_40_clear_store = function() {
     100, // interval
     1000); // maxTimeout
 
-  db.count(table_name).addCallback(function(value) {
+  db.count(table_name).addBoth(function(value) {
     countValue = value;
     countDone = true;
   });
@@ -937,6 +899,7 @@ var test_40_clear_store = function() {
 
 
 var test_41_remove_by_key = function() {
+  var db_name = 'test_41_remove_by_key';
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear(table_name);
   db.put(table_name,
@@ -974,6 +937,7 @@ var test_41_remove_by_key = function() {
 
 
 var test_42_remove_by_key_range = function() {
+  var db_name = 'test_42_remove_by_key_range';
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear(table_name);
   db.put(table_name,
@@ -1081,8 +1045,8 @@ var test_51_array_key = function() {
         2000); // maxTimeout
 
 
-      db.get(table_name, key).addCallback(function (value) {
-        console.log(db + ' receiving get value callback ' + key + ' = ' + value);
+      db.get(table_name, key).addBoth(function (value) {
+        //console.log(db + ' receiving get value callback ' + key + ' = ' + value);
         b_value = value;
         b_done = true;
       });
@@ -1090,7 +1054,7 @@ var test_51_array_key = function() {
     100, // interval
     2000); // maxTimeout
 
-  db.put(table_name, {id: key, value: key_value}).addCallback(function (value) {
+  db.put(table_name, {id: key, value: key_value}).addBoth(function (value) {
     //console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
     a_value = value;
     a_done = true;
@@ -1150,8 +1114,8 @@ var test_52_fetch_keys = function () {
       var keys = [
         new ydn.db.Key(store_name, objs[1].id),
         new ydn.db.Key(store_name, objs[2].id)];
-      db.values(keys).addCallback(function (value) {
-        console.log('fetch value: ' + JSON.stringify(value));
+      db.values(keys).addBoth(function (value) {
+        //console.log('fetch value: ' + JSON.stringify(value));
         put_value_received = value;
 
         get_done = true;
@@ -1162,7 +1126,7 @@ var test_52_fetch_keys = function () {
     2000); // maxTimeout
 
 
-  db.put(store_name, objs).addCallback(function (value) {
+  db.put(store_name, objs).addBoth(function (value) {
     //console.log(['receiving value callback.', value]);
     put_value_received = value;
     put_done = true;
@@ -1206,7 +1170,7 @@ var test_51_keys = function() {
 
   db.put(table_name, data);
 
-    db.keys(table_name).addCallback(function(value) {
+    db.keys(table_name).addBoth(function(value) {
       //console.log('whole value callback.');
       whole_result = value;
       whole_done = true;
@@ -1215,22 +1179,16 @@ var test_51_keys = function() {
         console.log('Error: ' + e);
       });
 
-    db.keys(table_name, null, 3).addCallback(function(value) {
+    db.keys(table_name, null, 3).addBoth(function(value) {
       //console.log('limit value callback.');
       limit_result = value;
       limit_done = true;
-    }).addErrback(function(e) {
-        limit_done = true;
-        console.log('Error: ' + e);
-      });
-    db.keys(table_name, null, 2, 1).addCallback(function(value) {
-      console.log('limit offset value callback.');
+    });
+    db.keys(table_name, null, 2, 1).addBoth(function(value) {
+      //console.log('limit offset value callback.');
       offset_result = value;
       offset_done = true;
-    }).addErrback(function(e) {
-        offset_done = true;
-        console.log('Error: ' + e);
-      });
+    });
 
 
 };
@@ -1304,7 +1262,7 @@ var test_53_fetch_keys = function () {
         100, // interval
         2000); // maxTimeout
 
-      db.values(keys).addCallback(function (value) {
+      db.values(keys).addBoth(function (value) {
         //console.log('fetch value: ' + JSON.stringify(value));
         results = value;
         get_done = true;
@@ -1314,11 +1272,11 @@ var test_53_fetch_keys = function () {
     100, // interval
     2000); // maxTimeout
 
-  db.put(store_name1, objs1).addCallback(function (value) {
+  db.put(store_name1, objs1).addBoth(function (value) {
     //console.log(['receiving value callback.', value]);
     put1_done = true;
   });
-  db.put(store_name2, objs2).addCallback(function (value) {
+  db.put(store_name2, objs2).addBoth(function (value) {
     //console.log(['receiving value callback.', value]);
     put2_done = true;
   });

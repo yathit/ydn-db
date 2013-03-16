@@ -1147,15 +1147,6 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
         me.getExecutor(tx).clearByStores(df, [st_name]);
       }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
 
-      if (store.dispatch_events) {
-        df.addCallback(function (count) {
-          var event = new ydn.db.events.StoreEvent(
-            ydn.db.events.Types.DELETED, me.getStorage(),
-            st_name, null, undefined);
-          me.getStorage().dispatchEvent(event);
-        });
-      }
-
     } else {
       throw new ydn.debug.error.ArgumentException('clear method requires' +
         ' a valid KeyRange object as second argument, but found ' + arg2 +
@@ -1169,17 +1160,6 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
     this.tx_thread.exec(function(tx) {
       me.getExecutor(tx).clearByStores(df, store_names);
     }, store_names, ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
-
-    for (var j = 0; j < store_names.length; j++) {
-      var store_j = this.schema.getStore(store_names[j]);
-      if (store_j.dispatch_events) {
-        df.addCallback(function (count) {
-          var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.DELETED,
-              me.getStorage(), store_names[j], null, undefined);
-          me.getStorage().dispatchEvent(event);
-        });
-      }
-    }
 
   } else {
     throw new ydn.debug.error.ArgumentException('first argument "' + arg1 +
@@ -1281,7 +1261,14 @@ ydn.db.core.DbOperator.prototype.remove = function(store_name, arg2, arg3) {
           }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
           'removeByKeyRange');
 
-
+        if (store.dispatch_events) {
+          df.addCallback(function (key) {
+            var event = new ydn.db.events.StoreEvent(
+                ydn.db.events.Types.DELETED,
+                me.getStorage(), store_name, key, undefined);
+            me.getStorage().dispatchEvent(event);
+          });
+        }
       } else {
         throw new ydn.debug.error.ArgumentException(
           'Invalid key or key range "' + arg2 + '" of type ' + typeof arg2);

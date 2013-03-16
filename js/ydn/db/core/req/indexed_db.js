@@ -155,6 +155,7 @@ ydn.db.core.req.IndexedDb.prototype.addObject = function(df, table, value,
       window.console.log([event, table, value]);
     }
     me.logger.finest('error ' + msg);
+    me.getTx().abort();
     df.errback(event);
   };
 };
@@ -197,6 +198,7 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(df, table, value, opt_k
       event = new ydn.db.InvalidKeyException(table + ': ' + str.substring(0, 70));
     }
     me.logger.finest('error ' + msg);
+    me.getTx().abort();
     df.errback(event);
   };
 };
@@ -262,8 +264,8 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(df, store_name, objs,
         }
       }
       me.logger.finest('error ' + msg);
+      me.getTx().abort();
       df.errback(event);
-      // abort transaction ?
     };
 
   };

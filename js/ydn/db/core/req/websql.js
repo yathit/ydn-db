@@ -353,7 +353,7 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
       } else {
         result_keys[i] = key;
         if (result_count == objects.length) {
-          me.logger.finest('success ' + sql);
+          me.logger.finest('success ' + msg);
           df.callback(result_keys);
         } else {
           var next = i + ydn.db.core.req.WebSql.RW_REQ_PER_TX;
@@ -374,13 +374,34 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
       if (ydn.db.core.req.WebSql.DEBUG) {
         window.console.log([sql, out, tr, error]);
       }
-      me.logger.warning('error: ' + sql + ' ' + error.message);
-      df.errback(error);
-      return true; // roll back
+      result_count++;
+      if (error.code == 6) { // constraint failed
+        if (single) {
+          me.logger.finest('success ' + sql);
+          df.errback(error);
+        } else {
+          result_keys[i] = error;
+          if (result_count == objects.length) {
+            me.logger.finest('success ' + msg); // still success message ?
+            df.callback(result_keys);
+          } else {
+            var next = i + ydn.db.core.req.WebSql.RW_REQ_PER_TX;
+            if (next < objects.length) {
+              put(next, tr);
+            }
+          }
+        }
+        return false; // do not roll back
+      } else {
+        me.logger.warning('error: ' + error.message + ' ' + msg);
+        df.errback(error);
+        return true; // roll back
+      }
     };
 
     //console.log([sql, out.values]);
-    me.logger.finest('SQL: ' + sql + ' PARAMS: ' + out.values);
+    var msg = 'SQL: ' + sql + ' PARAMS: ' + out.values;
+    me.logger.finest(msg);
     tx.executeSql(sql, out.values, success_callback, error_callback);
   };
 

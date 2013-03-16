@@ -254,6 +254,11 @@ var test_string_key_starts = function () {
 
 var test_array_key_key_range = function () {
 
+  if (options.mechanisms[0] == 'websql') {
+    reachedFinalContinuation = true;
+    return;
+  }
+
   var keys = arr_objs.slice(2, 4).map(function(x) {return x.id});
   var done, result;
 
@@ -270,7 +275,6 @@ var test_array_key_key_range = function () {
     },
     100, // interval
     5000); // maxTimeout
-
 
   var range = ydn.db.KeyRange.starts(['b']);
   db.keys(arr_store_name, range).addBoth(function (value) {
