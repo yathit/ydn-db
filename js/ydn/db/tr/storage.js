@@ -22,6 +22,7 @@ goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.IThread.Threads');
+goog.require('ydn.db.tr.Serial');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.AtomicParallel');
 goog.require('ydn.db.tr.StrictOverflowSerial');
@@ -148,7 +149,9 @@ ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
 */
 ydn.db.tr.Storage.prototype.newTxQueue = function(thread, thread_name) {
   thread = thread || this.thread_name;
-  if (thread == ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL) {
+  if (thread == ydn.db.tr.IThread.Threads.SERIAL) {
+    return new ydn.db.tr.Serial(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL) {
     return new ydn.db.tr.AtomicParallel(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_SERIAL) {
     return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, thread_name);
