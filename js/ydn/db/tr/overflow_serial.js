@@ -42,7 +42,7 @@ ydn.db.tr.OverflowSerial.DEBUG = false;
 /**
  * @inheritDoc
  */
-ydn.db.tr.OverflowSerial.prototype.exec = function (callback, store_names,
+ydn.db.tr.OverflowSerial.prototype.exec = function (df, callback, store_names,
       opt_mode, scope, on_completed) {
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
@@ -51,7 +51,7 @@ ydn.db.tr.OverflowSerial.prototype.exec = function (callback, store_names,
     //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
     // call within a transaction
     // continue to use existing transaction
-    callback(mu_tx.getTx());
+    callback(df, mu_tx.getTx());
   } else {
 
     var on_complete = function (type, e) {
@@ -74,7 +74,7 @@ ydn.db.tr.OverflowSerial.prototype.exec = function (callback, store_names,
         throw new ydn.db.InternalError('Tx not available for scope: ' +
           scope);
       }
-      callback(mu_tx.getTx());
+      callback(df, mu_tx.getTx());
     };
     //var cbFn = goog.partial(tx_callback, callback);
     if (goog.DEBUG) {

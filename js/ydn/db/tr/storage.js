@@ -215,11 +215,11 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
   }
 
   this.logger.finest('scheduling run in transaction ' + scope_name + ' with ' + tx_thread);
-  tx_thread.exec( function(tx) {
+  tx_thread.processTx( function(tx) {
     me.logger.finest('executing run in transaction ' + scope_name);
     outFn(/** @type {!ydn.db.tr.IStorage} */ (tx_queue));
     outFn = null;
-  }, store_names, mode, scope_name, oncompleted);
+  }, store_names, mode, oncompleted);
 
 };
 

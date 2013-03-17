@@ -15,8 +15,10 @@ ydn.db.tr.IThread = function() {};
 
 
 /**
- * @param {?function((IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage))} callback callback when executor
- * is ready.
+ * @param {!goog.async.Deferred} df deferred object to intersect the request
+ * @param {?function(!goog.async.Deferred,
+ *   (IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage))} callback
+ *   callback when executor is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  * @param {string} scope_name scope.
@@ -47,7 +49,6 @@ ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted handler.
- * @param {...} opt_args optional arguments.
  */
 ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
 

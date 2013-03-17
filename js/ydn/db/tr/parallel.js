@@ -393,9 +393,12 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
 /**
  * @inheritDoc
  */
-ydn.db.tr.Parallel.prototype.exec = function (callback, store_names, mode,
+ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
                                                    scope_name, on_completed) {
-  this.processTx(callback, store_names, mode, on_completed);
+
+  this.processTx(function(tx) {
+    callback(df, tx);
+  }, store_names, mode, on_completed);
 };
 
 

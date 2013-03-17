@@ -82,7 +82,7 @@ ydn.db.index.DbOperator.prototype.get = function(arg1, arg2) {
       df.errback(e);
     });
     this.logger.finer('listByIterator:' + q);
-    this.tx_thread.exec(function(tx) {
+    this.tx_thread.exec(list_df, function(list_df, tx) {
       me.getExecutor(tx).listByIterator(list_df, q, 1, 0);
     }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');
     return df;
@@ -134,7 +134,7 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
     var q = arg1;
 
     this.logger.finer('keysByIterator:' + q);
-    this.tx_thread.exec(function(tx) {
+    this.tx_thread.exec(df, function(df, tx) {
       me.getExecutor(tx).keysByIterator(df, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
@@ -164,7 +164,7 @@ ydn.db.index.DbOperator.prototype.count = function(arg1, arg2, arg3) {
      */
     var q = arg1;
     this.logger.finer('countKeyRange:' + q);
-    this.tx_thread.exec(function(tx) {
+    this.tx_thread.exec(df, function(df, tx) {
       me.getExecutor(tx).countKeyRange(df, q.getStoreName(), q.keyRange(),
         q.getIndexName());
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'countByIterator');
@@ -217,7 +217,7 @@ ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5
      */
     var q = arg1;
     this.logger.finer('listByIterator:' + q);
-    this.tx_thread.exec(function(tx) {
+    this.tx_thread.exec(df, function(df, tx) {
       me.getExecutor(tx).listByIterator(df, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
@@ -278,7 +278,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
 
   var me = this;
 
-  this.tx_thread.exec(function(tx) {
+  this.tx_thread.exec(df, function(df, tx) {
 
     me.logger.finest(me + ': scanning started.');
     //executor.scan(df, iterators, streamers, solver);
@@ -609,7 +609,7 @@ ydn.db.index.DbOperator.prototype.open = function(iterator, callback, mode) {
   var me = this;
   var df = ydn.db.base.createDeferred();
   this.logger.finer('open:' + tr_mode + ' ' + iterator);
-  this.tx_thread.exec(function(tx) {
+  this.tx_thread.exec(df, function(df, tx) {
     // executor.open(df, cursor, callback, /** @type {ydn.db.base.CursorMode} */ (tr_mode));
 
     var read_write = tr_mode == ydn.db.base.TransactionMode.READ_WRITE;
@@ -666,7 +666,7 @@ ydn.db.index.DbOperator.prototype.map = function (iterator, callback) {
   }
   var df = ydn.db.base.createDeferred();
   this.logger.finest('map:' + iterator);
-  this.tx_thread.exec(function (tx) {
+  this.tx_thread.exec(df, function (df, tx) {
 
     var cursor = iterator.iterate(me.getIndexExecutor(tx));
 
@@ -732,7 +732,7 @@ ydn.db.index.DbOperator.prototype.reduce = function(iterator, callback, initial)
 
   var previous = goog.isObject(initial) ? ydn.object.clone(initial) : initial;
   this.logger.finer('reduce:' + iterator);
-  this.tx_thread.exec(function (tx) {
+  this.tx_thread.exec(df, function (df, tx) {
 
     var cursor = iterator.iterate(me.getIndexExecutor(tx));
 

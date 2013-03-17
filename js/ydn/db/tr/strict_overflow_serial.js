@@ -42,8 +42,8 @@ ydn.db.tr.StrictOverflowSerial.DEBUG = false;
 /**
  * @inheritDoc
  */
-ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names,
-    opt_mode, scope, on_complete) {
+ydn.db.tr.StrictOverflowSerial.prototype.exec = function (df, callback,
+    store_names, opt_mode, scope, on_complete) {
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
   var mu_tx = this.getMuTx();
@@ -52,7 +52,7 @@ ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names,
     //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
     // call within a transaction
     // continue to use existing transaction
-    callback(mu_tx.getTx());
+    callback(df, mu_tx.getTx());
     callback = null;
   } else {
 
@@ -72,7 +72,7 @@ ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names,
         }
         tx_callback.name = scope; // scope name
       }
-      callback(mu_tx.getTx());
+      callback(df, mu_tx.getTx());
       callback = null; // we don't call again.
     };
     //var cbFn = goog.partial(tx_callback, callback);

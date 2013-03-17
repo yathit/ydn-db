@@ -51,18 +51,22 @@ ydn.db.tr.Single.prototype.done_ = false;
 /**
  * @inheritDoc
  */
-ydn.db.tr.Single.prototype.exec = function (callback, store_names, mode,
+ydn.db.tr.Single.prototype.exec = function (df, callback, store_names, mode,
                                    scope, on_completed) {
   var tx = this.getTx();
   if (tx) {
-    callback(tx);
+    callback(df, tx);
+    callback = null;
   } else if (this.done_) {
     this.logger.severe(this + ' single thread has already committed the transaction');
     throw new ydn.db.InvalidStateError();
   } else {
     this.done_ = true;
-    goog.base(this, 'exec', callback, store_names, mode,
-      scope, on_completed);
+    var tx_callback = function (tx) {
+      callback(df, tx);
+    };
+    this.processTx(tx_callback, store_names, mode,
+      on_completed);
   }
 };
 

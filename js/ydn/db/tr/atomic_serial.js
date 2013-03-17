@@ -42,7 +42,7 @@ ydn.db.tr.AtomicSerial.DEBUG = false;
 /**
  * @inheritDoc
  */
-ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode,
+ydn.db.tr.AtomicSerial.prototype.exec = function (df, callback, store_names, mode,
                                    scope, on_completed) {
   var me = this;
   var mu_tx = this.getMuTx();
@@ -71,7 +71,7 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode,
         scope);
     }
 
-    callback(mu_tx.getTx());
+    callback(df, mu_tx.getTx());
     callback = null; // release circular reference.
     mu_tx.lock(); // for blocking tx.
   };
