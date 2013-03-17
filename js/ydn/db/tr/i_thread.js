@@ -57,6 +57,7 @@ ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
  * @enum {string}
  */
 ydn.db.tr.IThread.Threads = {
+  SERIAL: 'serial',
   ATOMIC_SERIAL: 'atomic-serial',
   OVERFLOW_SERIAL: 'overflow-serial',
   STRICT_OVERFLOW_SERIAL: 'strict-overflow-serial',
@@ -73,6 +74,7 @@ ydn.db.tr.IThread.Threads = {
  * @type {Array.<ydn.db.tr.IThread.Threads>}
  */
 ydn.db.tr.IThread.ThreadList = [
+  ydn.db.tr.IThread.Threads.SERIAL,
   ydn.db.tr.IThread.Threads.ATOMIC_SERIAL,
   ydn.db.tr.IThread.Threads.OVERFLOW_SERIAL,
   ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL,
