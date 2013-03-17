@@ -45,6 +45,8 @@ ydn.db.tr.Serial = function(storage, ptx_no, scope_name) {
    */
   this.trQueue_ = [];
 
+  this.completed_handlers = [];
+
   /**
    *
    * @type {!ydn.db.tr.Mutex}
@@ -252,7 +254,8 @@ ydn.db.tr.Serial.prototype.isNextTxCompatible = function() {
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed handler.
+ * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed
+ * handler.
  * @protected
  */
 ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
@@ -296,13 +299,10 @@ ydn.db.tr.Serial.prototype.abort = function() {
   }
 };
 
-
 /**
- *
- * @type {boolean}
- * @private
+ * @type {Array.<Function>}
  */
-ydn.db.tr.Serial.prototype.running_transaction_process_ = false;
+ydn.db.tr.Serial.prototype.completed_handlers;
 
 
 /**
@@ -325,14 +325,17 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
   var names = goog.isString(store_names) ? [store_names] : store_names;
   if (goog.DEBUG) {
     if (!goog.isArrayLike(names)) { // could be  DOMStringList or Array
-      throw new ydn.debug.error.ArgumentException('store names must be an array');
+      throw new ydn.debug.error.ArgumentException(
+          'store names must be an array');
     } else if (names.length == 0) {
-      throw new ydn.debug.error.ArgumentException('number of store names must more than 0');
+      throw new ydn.debug.error.ArgumentException(
+          'number of store names must more than 0');
     } else {
       for (var i = 0; i < names.length; i++) {
         if (!goog.isString(names[i])) {
           throw new ydn.debug.error.ArgumentException('store name at ' + i +
-              ' must be string but found ' + typeof names[i]);
+              ' must be string but found ' + names[i] +
+              ' of type ' + typeof names[i]);
         }
       }
     }
@@ -363,7 +366,6 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
   } else {
     //console.log(this + ' not active ' + scope_name);
     var transaction_process = function(tx) {
-      me.running_transaction_process_ = true;
       //console.log('transaction_process ' + scope_name);
       me.mu_tx_.up(tx, store_names, mode, scope_name);
 
@@ -374,19 +376,13 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       me.mu_tx_.out(); // flag transaction callback scope is over.
       // transaction is still active and use in followup request handlers
 
-      if (me.isNextTxCompatible()) {
+      while (me.isNextTxCompatible()) {
         var task = me.trQueue_.shift();
-        if (goog.isFunction(oncompleted) && goog.isFunction(task.oncompleted)) {
-          oncompleted = function(t, e) {
-            oncompleted(t, e);
-            task.oncompleted(t, e);
-          }
-        } else if (goog.isFunction(task.oncompleted)) {
-          oncompleted = task.oncompleted;
+        if (task.oncompleted) {
+          me.completed_handlers.push(task.oncompleted);
         }
         me.logger.finest('pop tx queue in continue ' + task.fnc.name);
         task.fnc();
-        oncompleted = task.oncompleted;
       }
     };
 
@@ -396,9 +392,9 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
        * @preserve _try.
        */
       try {
-        if (goog.isFunction(oncompleted)) {
-          oncompleted(type, event);
-          oncompleted = undefined;
+        var fn;
+        while (fn = me.completed_handlers.shift()) {
+          fn(type, event);
         }
       } catch (e) {
         // swallow error. document it publicly.
@@ -408,7 +404,6 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         }
       } finally {
         me.mu_tx_.down(type, event);
-        me.running_transaction_process_ = false;
         if (me.storage_.countTxQueue() == 0) {
           // we wait to finished all transactions in base queue,
           // so that we get all transaction in order.
@@ -416,6 +411,8 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         }
       }
     };
+
+    this.completed_handlers = oncompleted ? [oncompleted] : [];
 
     if (ydn.db.tr.Serial.DEBUG) {
       window.console.log(this + ' transaction ' + mode + ' open for ' +

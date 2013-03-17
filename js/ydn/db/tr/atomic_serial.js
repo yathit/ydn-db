@@ -53,7 +53,7 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (callback, store_names, mode,
     //console.log('tx ' + scope + ' completed');
     if (goog.isFunction(on_completed)) {
       on_completed(type, e);
-      on_completed = null; // release circular reference.
+      on_completed = undefined; // release circular reference.
     }
   };
 

@@ -42,7 +42,8 @@ ydn.db.tr.StrictOverflowSerial.DEBUG = false;
 /**
  * @inheritDoc
  */
-ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names, opt_mode, scope) {
+ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names,
+    opt_mode, scope, on_complete) {
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
   var mu_tx = this.getMuTx();
@@ -54,10 +55,6 @@ ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names,
     callback(mu_tx.getTx());
     callback = null;
   } else {
-
-    var on_complete = function () {
-      //console.log('tx ' + scope + ' completed');
-    };
 
     //
     // create a new transaction and close for invoke in non-transaction context
@@ -91,8 +88,6 @@ ydn.db.tr.StrictOverflowSerial.prototype.exec = function (callback, store_names,
  */
 ydn.db.tr.StrictOverflowSerial.prototype.isNextTxCompatible = function() {
   var mu_tx = this.getMuTx();
-  var scopes = this.peekScopes();
-  var mode = this.peekMode();
-  return !!mu_tx && mu_tx.sameScope(scopes, mode);
+  return !!mu_tx && mu_tx.sameScope(this.peekScopes(), this.peekMode());
 };
 
