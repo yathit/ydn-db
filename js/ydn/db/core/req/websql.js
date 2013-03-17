@@ -375,12 +375,13 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
         window.console.log([sql, out, tr, error]);
       }
       result_count++;
-      if (error.code == 6) { // constraint failed
+      if (error.code == 6 && // constraint failed
+          create) { // rollback for add, continue for put
         if (single) {
           me.logger.finest('success ' + sql);
           df.errback(error);
         } else {
-          result_keys[i] = error;
+          result_keys[i] = null;
           if (result_count == objects.length) {
             me.logger.finest('success ' + msg); // still success message ?
             df.callback(result_keys);
@@ -391,8 +392,11 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
             }
           }
         }
-        return false; // do not roll back
+        return false; // roll back
       } else {
+
+      // rollback for any error including constraint error.
+
         me.logger.warning('error: ' + error.message + ' ' + msg);
         df.errback(error);
         return true; // roll back

@@ -223,7 +223,7 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(df, store_name, objs,
 
     var request;
 
-    if (goog.isDef(opt_keys)) {
+    if (goog.isDefAndNotNull(opt_keys)) {
       request = store.add(objs[i], opt_keys[i]);
     } else {
       request = store.add(objs[i]);
@@ -300,7 +300,7 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
 
     var request;
 
-    if (goog.isDef(opt_keys)) {
+    if (goog.isDefAndNotNull(opt_keys)) {
       request = store.put(objs[i], opt_keys[i]);
     } else {
       request = store.put(objs[i]);
@@ -341,8 +341,16 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
         }
       }
       me.logger.finest('error ' + msg);
-      df.errback(event);
-      // abort transaction ?
+      results[i] = null;
+      if (result_count == objs.length) {
+        me.logger.finest('success ' + msg);
+        df.callback(results);
+      } else {
+        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        if (next < objs.length) {
+          put(next);
+        }
+      }
     };
 
   };

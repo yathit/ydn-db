@@ -7,7 +7,7 @@
 
 goog.provide('ydn.db.tr.Single');
 goog.require('ydn.db.tr.IThread');
-goog.require('ydn.db.tr.ParallelThread');
+goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.error.NotSupportedException');
 
 
@@ -20,7 +20,7 @@ goog.require('ydn.error.NotSupportedException');
  * @param {number} ptx_no transaction queue number.
  * @param {string=} scope_name scope name.
  * @constructor
- * @extends {ydn.db.tr.ParallelThread}
+ * @extends {ydn.db.tr.Parallel}
  */
 ydn.db.tr.Single = function(storage, ptx_no, scope_name) {
 
@@ -29,7 +29,7 @@ ydn.db.tr.Single = function(storage, ptx_no, scope_name) {
   this.done_ = false;
 
 };
-goog.inherits(ydn.db.tr.Single, ydn.db.tr.ParallelThread);
+goog.inherits(ydn.db.tr.Single, ydn.db.tr.Parallel);
 
 
 /**

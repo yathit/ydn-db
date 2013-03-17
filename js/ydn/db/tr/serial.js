@@ -88,7 +88,7 @@ ydn.db.tr.Serial.prototype.logger =
  *
  * @return {string}  scope name.
  */
-ydn.db.tr.Serial.prototype.getScope = function() {
+ydn.db.tr.Serial.prototype.getThreadName = function() {
   return this.scope;
 };
 
@@ -441,7 +441,7 @@ ydn.db.tr.Serial.prototype.getName = function() {
 ydn.db.tr.Serial.prototype.toString = function() {
   var s = 'ydn.db.tr.Serial:' + this.storage_.getName();
   if (goog.DEBUG) {
-    var scope = this.mu_tx_.getScopeName();
+    var scope = this.mu_tx_.getThreadName();
     scope = scope ? ' [' + scope + ']' : '';
     return s + ':' + this.q_no_ + ':' + this.getTxNo() + scope;
   }

@@ -22,9 +22,10 @@ goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.AtomicSerial');
-goog.require('ydn.db.tr.ParallelThread');
+goog.require('ydn.db.tr.AtomicParallel');
 goog.require('ydn.db.tr.IThread.Threads');
 goog.require('ydn.db.tr.StrictOverflowSerial');
+goog.require('ydn.db.tr.StrictOverflowParallel');
 goog.require('ydn.db.tr.Single');
 
 
@@ -140,21 +141,24 @@ ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
 
 /**
 * @param {ydn.db.tr.IThread.Threads=} thread
-* @param {string=} scope_name scope name.
+* @param {string=} thread_name scope name.
 * @return {!ydn.db.tr.IThread} new transactional storage.
 */
-ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
+ydn.db.tr.Storage.prototype.newTxQueue = function(thread, thread_name) {
   thread = thread || this.thread_name;
   if (thread == ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL) {
-    return new ydn.db.tr.ParallelThread(this, this.ptx_no++, scope_name);
+    return new ydn.db.tr.AtomicParallel(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_SERIAL) {
-    return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, scope_name);
+    return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_PARALLEL) {
+    return new ydn.db.tr.StrictOverflowParallel(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL) {
-    return new ydn.db.tr.StrictOverflowSerial(this, this.ptx_no++, scope_name);
+    return new ydn.db.tr.StrictOverflowSerial(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.SINGLE) {
-    return new ydn.db.tr.Single(this, this.ptx_no++, scope_name);
+    return new ydn.db.tr.Single(this, this.ptx_no++, thread_name);
   } else {
-    throw new ydn.error.ArgumentException(thread);
+    throw new ydn.debug.error.ArgumentException(
+        'invalid transaction policy thread type "' + thread + '"');
   }
 };
 

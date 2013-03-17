@@ -31,16 +31,18 @@ var tearDown = function() {
 };
 
 
-var test_1_basic = function() {
 
-  var db_name = 'test_tr_basic_2';
-  options.thread = 'strict-overflow-serial';
+var nested_request_test = function(thread, exp_tx_no) {
+
+  var db_name = 'nested_request_test' + Math.random();
+  options.thread = thread;
   var db = new ydn.db.core.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
 
   var t1_fired = false;
   var result;
+  var tx_no = [];
 
   waitForCondition(
       // Condition
@@ -48,6 +50,7 @@ var test_1_basic = function() {
       // Continuation
       function() {
         assertEquals('correct obj', val.value, result.value);
+        assertArrayEquals('tx no', exp_tx_no, tx_no);
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db.getName(), db.getType());
         db.close();
@@ -55,18 +58,38 @@ var test_1_basic = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.put(table_name, val);
+  db.put(table_name, val).addBoth(function() {
+    tx_no.push(db.getTxNo());
+  });
   db.get(table_name, 'a').addBoth(function (r) {
-    var div = document.createElement('div');
-    r.textContent = r.id + ' ' + r.value;
-    document.body.appendChild(div);
-    console.log('div added ' + r.textContent);
+    tx_no.push(db.getTxNo());
+    // do some heavy DOM
+    for (var i = 0; i < 1000; i++) {
+      var div = document.createElement('div');
+      r.textContent = r.id + ' ' + r.value;
+      document.body.appendChild(div);
+    }
+
     db.get(table_name, 'a').addBoth(function (x) {
       result = x;
+      tx_no.push(db.getTxNo());
       t1_fired = true;
     });
   });
 
+};
+
+
+var test_serial_atomic = function() {
+  nested_request_test('atomic-serial', [1, 2, 3]);
+};
+
+var test_serial_strict_overflow = function() {
+  nested_request_test('strict-overflow-serial', [1, 2, 2]);
+};
+
+var test_parallel_strict_overflow = function() {
+  nested_request_test('strict-overflow-parallel', [1, 2, 2]);
 };
 
 

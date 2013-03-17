@@ -132,7 +132,7 @@ ydn.db.tr.Mutex.prototype.mode;
  *
  * @return {string} scope name.
  */
-ydn.db.tr.Mutex.prototype.getScopeName = function() {
+ydn.db.tr.Mutex.prototype.getThreadName = function() {
   return this.scope_name;
 };
 
