@@ -153,6 +153,14 @@ var test_nested_request_parallel_strict_overflow = function() {
   nested_request_test('strict-overflow-parallel', [1, 2, 3]);
 };
 
+
+var test_nested_request_parallel_overflow = function() {
+  // first create readwrite tx  (running tx)
+  // reuse running tx
+  // reuse running tx
+  nested_request_test('overflow-parallel', [1, 1, 1]);
+};
+
 var test_continuous_request_parallel_strict_overflow  = function() {
   // first create readwrite tx (running tx)
   // second create readonly tx because not same as running tx

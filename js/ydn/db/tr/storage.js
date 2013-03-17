@@ -21,11 +21,13 @@ goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IStorage');
+goog.require('ydn.db.tr.IThread.Threads');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.AtomicParallel');
-goog.require('ydn.db.tr.IThread.Threads');
 goog.require('ydn.db.tr.StrictOverflowSerial');
 goog.require('ydn.db.tr.StrictOverflowParallel');
+goog.require('ydn.db.tr.OverflowSerial');
+goog.require('ydn.db.tr.OverflowParallel');
 goog.require('ydn.db.tr.Single');
 
 
@@ -154,6 +156,10 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(thread, thread_name) {
     return new ydn.db.tr.StrictOverflowParallel(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL) {
     return new ydn.db.tr.StrictOverflowSerial(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.OVERFLOW_PARALLEL) {
+    return new ydn.db.tr.OverflowParallel(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.OVERFLOW_SERIAL) {
+    return new ydn.db.tr.OverflowSerial(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.SINGLE) {
     return new ydn.db.tr.Single(this, this.ptx_no++, thread_name);
   } else {
