@@ -361,10 +361,76 @@ var events_schema = {
 
   });
 
-
 })();
 
 
 
+(function () {
+  var test_env = {
+    setup: function () {
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+        console.warn('RecordEvent Event test not finished.');
+      }, 1000);
+    },
+    teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
+    }
+  };
+
+  module("Abort", test_env);
+
+  asyncTest("abort a put operation request method", 4, function () {
+
+    var db_name = 'test_abort_1';
+    var st1 = 's' + Math.random();
+    var st2 = 's' + Math.random();
+    var done1, done2;
+    var schema = {
+      stores: [
+        {
+          name: st1,
+          keyPath: 'id',
+          type: 'NUMERIC'
+        }, {
+          name: st2,
+          keyPath: 'id',
+          type: 'NUMERIC'
+        }]
+    };
+    var obj = {
+      id: Math.random(),
+      value: 'msg' + Math.random()
+    };
+
+    var db = new ydn.db.Storage(db_name, schema);
+
+    db.put(st1, obj).always(function (key) {
+      equal(obj.id, key, 'aborted store key');
+      db.abort();
+    });
+    db.get(st1, obj.id).always(function (result) {
+      equal(undefined, result, 'aborted store result');
+      done1 = true;
+      if (done2) {
+        start();
+      }
+    });
+
+    db.put(st2, obj).always(function (key) {
+      equal(obj.id, key, 'store 2 key');
+    });
+    db.get(st2, obj.id).always(function (result) {
+      equal(obj.value, result.value, 'store 2 result');
+      done2 = true;
+      if (done1) {
+        start();
+      }
+    });
+
+  });
+
+
+})();
 
 

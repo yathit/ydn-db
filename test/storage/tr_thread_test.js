@@ -75,6 +75,50 @@ var continuous_request_test = function(thread, exp_tx_no) {
 
 };
 
+
+var committed_continuous_request_test = function(thread, exp_tx_no) {
+
+  var db_name = 'nested_request_test' + Math.random();
+  options.thread = thread;
+  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+
+  var val = {id: 'a', value: Math.random()};
+
+  var t1_fired = false;
+  var result;
+  var tx_no = [];
+
+  waitForCondition(
+    // Condition
+    function() { return t1_fired; },
+    // Continuation
+    function() {
+      assertNotNullNorUndefined('has result', result);
+      assertEquals('correct obj', val.value, result.value);
+      assertArrayEquals('tx no', exp_tx_no, tx_no);
+      reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.run(function (tdb) {
+    tdb.put(table_name, val);
+  }, [table_name], 'readwrite', function (t) {
+    db.get(table_name, 'a').addBoth(function (r) {
+      tx_no.push(db.getTxNo());
+    });
+    db.get(table_name, 'a').addBoth(function (x) {
+      result = x;
+      tx_no.push(db.getTxNo());
+      t1_fired = true;
+    });
+  })
+
+
+};
+
 var nested_request_test = function(thread, exp_tx_no) {
 
   var db_name = 'nested_request_test' + Math.random();
@@ -154,9 +198,10 @@ var test_continuous_request_serial_strict_overflow = function() {
 };
 
 var test_nested_request_parallel_strict_overflow = function() {
-  // first create readwrite tx  (running tx)
-  // second create readonly tx because not same as running tx
-  // third create readonly tx because not same as running tx
+  // first create readwrite tx
+  // second create readonly tx because not same as previous tx
+  // third create readonly tx because although it is same as preivous tx
+  // the tx might have committed.
   nested_request_test('samescope-multirequest-parallel', [1, 2, 3]);
 };
 
@@ -169,10 +214,9 @@ var test_nested_request_parallel_overflow = function() {
 };
 
 var test_continuous_request_parallel_strict_overflow  = function() {
-  // first create readwrite tx (running tx)
-  // second create readonly tx because not same as running tx
-  // third create readonly tx because not same as running tx
-  continuous_request_test('samescope-multirequest-parallel', [1, 2, 3]);
+  // websql is slow in opening request.
+  var exp_tx_no = options.mechanisms[0] == 'websql' ? [1, 2] : [2, 2];
+  committed_continuous_request_test('samescope-multirequest-parallel', exp_tx_no);
 };
 
 

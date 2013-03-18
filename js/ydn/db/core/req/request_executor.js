@@ -92,11 +92,22 @@ ydn.db.core.req.RequestExecutor.prototype.setTx = function(tx, scope) {
  */
 ydn.db.core.req.RequestExecutor.prototype.abort = function() {
   if (this.request_tx) {
+    this.logger.finer(this + ': abort transaction');
     this.request_tx['abort']();
   } else {
     throw new ydn.error.InvalidOperationError();
   }
 };
+
+
+if (goog.DEBUG) {
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.RequestExecutor.prototype.toString = function() {
+  return 'RequestExecutor';
+};
+}
 
 
 

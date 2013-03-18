@@ -232,7 +232,7 @@ ydn.db.tr.Parallel.prototype.reusedTx = function(store_names, mode) {
  * @inheritDoc
  */
 ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
-    opt_mode, scope_name, on_completed) {
+    opt_mode, on_completed) {
 
   var mode = goog.isDef(opt_mode) ?
       opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
@@ -261,7 +261,7 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
         ' ' + this.pl_tx_ex_ +
         (reused ? ' reusing transaction' : ' opening transaction ') +
          ' for mode:' + mode + ' scopes:' +
-        ydn.json.stringify(store_names) + ' in ' + scope_name);
+        ydn.json.stringify(store_names));
   }
 
   if (reused) {
