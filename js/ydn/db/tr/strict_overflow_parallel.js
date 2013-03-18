@@ -41,7 +41,10 @@ ydn.db.tr.StrictOverflowParallel.DEBUG = false;
  * @inheritDoc
  */
 ydn.db.tr.StrictOverflowParallel.prototype.reusedTx = function(scopes, mode) {
-  return  this.sameScope(scopes, mode);
+
+  var reuse = this.sameScope(scopes, mode);
+  console.log('reuse ' + reuse + ' ' + scopes + ' ' + mode);
+  return reuse;
 };
 
 

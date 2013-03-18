@@ -176,7 +176,7 @@ ydn.db.tr.Parallel.prototype.isActive = function() {
  * @protected
  */
 ydn.db.tr.Parallel.prototype.sameScope = function(store_names, mode) {
-  return !!this.pl_tx_ex_ && this.pl_tx_ex_.sameScope(store_names, mode);
+  return this.pl_tx_ex_.sameScope(store_names, mode);
 };
 
 
@@ -188,7 +188,7 @@ ydn.db.tr.Parallel.prototype.sameScope = function(store_names, mode) {
  * @protected
  */
 ydn.db.tr.Parallel.prototype.subScope = function(store_names, mode) {
-  return !!this.pl_tx_ex_ && this.pl_tx_ex_.subScope(store_names, mode);
+  return this.pl_tx_ex_.subScope(store_names, mode);
 };
 
 
@@ -222,7 +222,9 @@ ydn.db.tr.Parallel.prototype.getExecutor = goog.abstractMethod;
  * active transaction and should be reuse.
  * @protected
  */
-ydn.db.tr.Parallel.prototype.reusedTx = goog.abstractMethod;
+ydn.db.tr.Parallel.prototype.reusedTx = function(store_names, mode) {
+  return false;
+};
 
 
 
