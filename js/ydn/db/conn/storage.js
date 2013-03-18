@@ -377,15 +377,19 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
   this.init(); // let super class to initialize.
 
-  db.connect(this.db_name, this.schema).addCallback(function(old_version) {
+  db.connect(this.db_name, this.schema).addCallbacks(function(old_version) {
     me.db_ = db;
     me.logger.finest(me + ': ready.');
     me.last_queue_checkin_ = NaN;
 
-    me.popTxQueue_();
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.DONE,
       me, parseFloat(db.getVersion()), old_version);
-    me.dispatchEvent(event);
+    goog.Timer.callOnce(function () {
+      // dispatch asynchroniously so that any err on running db request
+      // are not caught under deferred object.
+      me.popTxQueue_();
+      me.dispatchEvent(event);
+    });
 
     /**
      *
@@ -397,15 +401,18 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       // no event for disconnected.
 
     };
-  }).addErrback(function(e) {
-      me.logger.warning(me + ': opening fail: ' + e.message);
-      goog.async.Deferred.fail(e);
-      // this could happen if user do not allow to use the storage
+  }, function (e) {
+    me.logger.warning(me + ': opening fail: ' + e.message);
+    goog.async.Deferred.fail(e);
+    // this could happen if user do not allow to use the storage
+
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me, NaN, NaN);
+    event.message = e.message;
+    goog.Timer.callOnce(function () {
       me.purgeTxQueue_(e);
-      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me, NaN, NaN);
-      event.message = e.message;
       me.dispatchEvent(event);
     });
+  });
 
   return df;
 

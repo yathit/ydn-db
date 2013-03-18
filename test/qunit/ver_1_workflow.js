@@ -380,12 +380,12 @@ var events_schema = {
 
   module("Abort", test_env);
 
-  asyncTest("abort a put operation request method", 4, function () {
+  asyncTest("abort a put operation request method", 7, function () {
 
     var db_name = 'test_abort_1';
     var st1 = 's' + Math.random();
     var st2 = 's' + Math.random();
-    var done1, done2;
+
     var schema = {
       stores: [
         {
@@ -404,6 +404,15 @@ var events_schema = {
     };
 
     var db = new ydn.db.Storage(db_name, schema);
+    var adb = db.branch('atomic-serial');
+
+    var done_count = 0;
+    var done = function() {
+      done_count++;
+      if (done_count >= 3) {
+        start();
+      }
+    };
 
     db.put(st1, obj).always(function (key) {
       equal(obj.id, key, 'aborted store key');
@@ -411,10 +420,7 @@ var events_schema = {
     });
     db.get(st1, obj.id).always(function (result) {
       equal(undefined, result, 'aborted store result');
-      done1 = true;
-      if (done2) {
-        start();
-      }
+      done();
     });
 
     db.put(st2, obj).always(function (key) {
@@ -422,10 +428,19 @@ var events_schema = {
     });
     db.get(st2, obj.id).always(function (result) {
       equal(obj.value, result.value, 'store 2 result');
-      done2 = true;
-      if (done1) {
-        start();
-      }
+      done();
+    });
+
+    adb.put(st2, obj).always(function (key) {
+      equal(obj.id, key, 'atomic store key');
+      throws (function () { // this is an assertion too
+        db.abort();
+      }, undefined, 'atomic tx cannot be aborted');
+    });
+
+    adb.get(st2, obj.id).always(function (result) {
+      equal(obj.value, result.value, 'atomic store result');
+      done();
     });
 
   });

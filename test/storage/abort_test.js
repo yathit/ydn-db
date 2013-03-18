@@ -125,6 +125,75 @@ var test_abort_put  = function() {
 };
 
 
+var test_abort_put_data_error  = function() {
+  var db_name = 'test_abort' + Math.random();
+  options.thread = 'samescope-multirequest-serial';
+  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+
+  var keys = ['a', 'b', 'c'];
+  var objs = [
+    {id: 'a', value: Math.random()},
+    {id: 'b', value: document.createElement('div')},
+    {id: 'c', value: Math.random()}
+  ];
+
+  var t1_fired, t2_fired;
+  var t1_count, t2_count;
+  var t1_result, t2_result, t1_keys, t2_keys;
+
+  waitForCondition(
+    // Condition
+    function() { return t1_fired && t2_fired; },
+    // Continuation
+    function() {
+      assertArrayEquals('t1 keys', t1_keys, keys);
+      assertArrayEquals('t2 keys', t1_keys, keys);
+      assertUndefined('t1 result', t1_result);
+      assertNotNullNorUndefined('has result', t2_result);
+      assertEquals('correct value', objs[2].value, t2_result.value);
+      assertEquals('t1 count', 0);
+      assertEquals('t2 count', 3);
+
+      reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.addEventListener('done', function () {
+
+
+    db.put('t2', objs).addBoth(function (x) {
+      t2_keys = x;
+    });
+    db.get('t2', 'a').addBoth(function (x) {
+      t2_result = x;
+    });
+    db.count('t2').addBoth(function(x) {
+      t2_count = x;
+      t2_fired = true;
+    });
+
+    db.put('t1', objs).addCallback(function (x) {
+      t1_keys = x;
+      db.abort();
+    });
+    db.get('t1', 'a').addBoth(function (x) {
+      t1_result = x;
+    });
+    db.count('t1').addBoth(function(x) {
+      t1_count = x;
+      t1_fired = true;
+    });
+
+  });
+
+
+};
+
+
+
 
 
 var testCase = new goog.testing.ContinuationTestCase();
