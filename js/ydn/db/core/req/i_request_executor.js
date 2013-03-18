@@ -16,6 +16,10 @@ goog.provide('ydn.db.core.req.IRequestExecutor');
 ydn.db.core.req.IRequestExecutor = function() {};
 
 
+/**
+ *
+ */
+ydn.db.core.req.IRequestExecutor.prototype.abort = goog.abstractMethod;
 
 
 /**

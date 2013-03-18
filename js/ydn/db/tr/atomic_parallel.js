@@ -64,19 +64,12 @@ ydn.db.tr.AtomicParallel.prototype.exec = function (df, callback, store_names,
   });
   var completed_handler = function(t, e) {
     // console.log('completed_handler ' + t + ' ' + e);
-    if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
-      if (is_error) {
-        df.errback(result);
-      } else {
-        df.callback(result);
-      }
+    if (is_error) {
+      df.errback(result);
     } else {
-      if (is_error) {
-        df.errback(result);
-      } else {
-        df.callback(result);
-      }
+      df.callback(result);
     }
+
     if (on_completed) {
       on_completed(t, e);
       on_completed = undefined;

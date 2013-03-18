@@ -53,6 +53,8 @@ ydn.db.tr.DbOperator = function(storage, schema, tx_thread, sync_thread) {
    * @final
    */
   this.sync_thread = sync_thread;
+
+  this.executor = null;
 };
 
 
@@ -62,6 +64,13 @@ ydn.db.tr.DbOperator = function(storage, schema, tx_thread, sync_thread) {
  */
 ydn.db.tr.DbOperator.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.tr.DbOperator');
+
+
+/**
+ * @type {ydn.db.core.req.IRequestExecutor}
+ * @protected
+ */
+ydn.db.tr.DbOperator.prototype.executor;
 
 
 /**

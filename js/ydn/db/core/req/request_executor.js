@@ -35,6 +35,10 @@ ydn.db.core.req.RequestExecutor = function(dbname, schema) {
    * @type {!ydn.db.schema.Database}
    */
   this.schema = schema;
+
+  this.tx = null;
+  this.request_tx = null;
+  this.scope = '';
 };
 
 
@@ -48,11 +52,21 @@ ydn.db.core.req.RequestExecutor.prototype.logger =
 
 
 /**
- *
+ * Running tx.
  * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
  * @protected
  */
 ydn.db.core.req.RequestExecutor.prototype.tx = null;
+
+/**
+ * Transaction object is sed when receiving a request before result df
+ * callback and set null after that callback so that it can be aborted
+ * in the callback.
+ * In general, this tx may be different from running tx.
+ * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
+ * @protected
+ */
+ydn.db.core.req.RequestExecutor.prototype.request_tx = null;
 
 
 /**
@@ -70,6 +84,18 @@ ydn.db.core.req.RequestExecutor.prototype.scope = '';
 ydn.db.core.req.RequestExecutor.prototype.setTx = function(tx, scope) {
   this.tx = tx;
   this.scope_ = scope || '';
+};
+
+
+/**
+ * Abort current request transaction.
+ */
+ydn.db.core.req.RequestExecutor.prototype.abort = function() {
+  if (this.request_tx) {
+    this.request_tx['abort']();
+  } else {
+    throw new ydn.error.InvalidOperationError();
+  }
 };
 
 

@@ -18,6 +18,11 @@ ydn.db.core.IOperator = function() {};
 
 
 /**
+ * Abort current request transaction.
+ */
+ydn.db.core.IOperator.prototype.abort = goog.abstractMethod;
+
+/**
  *
  * @param {!Array.<string>|string} store_name store name or names.
  * @param {string=} index name.

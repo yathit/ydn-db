@@ -81,10 +81,11 @@ ydn.db.core.req.IndexedDb.prototype.countStores = function(df, stores) {
   var out = [];
   var msg = 'countStores: ' + stores;
   this.logger.finest(msg);
+  var tx = this.tx;
 
   var count_store = function(i) {
     var table = stores[i];
-    var store = me.tx.objectStore(table);
+    var store = tx.objectStore(table);
     var request = store.count();
     request.onsuccess = function(event) {
       if (ydn.db.core.req.IndexedDb.DEBUG) {
@@ -155,7 +156,7 @@ ydn.db.core.req.IndexedDb.prototype.addObject = function(df, table, value,
       window.console.log([event, table, value]);
     }
     me.logger.finest('error ' + msg);
-    me.getTx().abort();
+    // me.getTx().abort();
     df.errback(event);
   };
 };
@@ -185,7 +186,9 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(df, table, value, opt_k
       window.console.log([event, table, value]);
     }
     me.logger.finest('success ' + msg);
+    me.request_tx = event.target.transaction;
     df.callback(event.target.result);
+    me.request_tx = null;
   };
 
   request.onerror = function (event) {
@@ -198,8 +201,9 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(df, table, value, opt_k
       event = new ydn.db.InvalidKeyException(table + ': ' + str.substring(0, 70));
     }
     me.logger.finest('error ' + msg);
-    me.getTx().abort();
+    me.request_tx = event.target.transaction;
     df.errback(event);
+    me.request_tx = null;
   };
 };
 
@@ -237,7 +241,9 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(df, store_name, objs,
       results[i] = event.target.result;
       if (result_count == objs.length) {
         me.logger.finest('success ' + msg);
+        me.request_tx = event.target.transaction;
         df.callback(results);
+        me.request_tx = null;
       } else {
         var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -264,8 +270,9 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(df, store_name, objs,
         }
       }
       me.logger.finest('error ' + msg);
-      me.getTx().abort();
+      me.request_tx = event.target.transaction;
       df.errback(event);
+      me.request_tx = null;
     };
 
   };
@@ -290,11 +297,28 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
 
   var results = [];
   var result_count = 0;
+  var has_error = false;
 
   var me = this;
   var store = this.tx.objectStore(store_name);
   var msg = 'putObjects: ' + store_name + ' ' + objs.length + ' objects';
   this.logger.finest(msg);
+
+  /**
+   *
+   * @param {IDBTransaction} tx
+   */
+  var out = function(tx) {
+    me.request_tx = tx;
+    if (has_error) {
+      me.logger.finest('error ' + msg);
+      df.errback(results);
+    } else {
+      me.logger.finest('success ' + msg);
+      df.callback(results);
+    }
+    me.request_tx = null;
+  };
 
   var put = function(i) {
 
@@ -313,8 +337,7 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
       //}
       results[i] = event.target.result;
       if (result_count == objs.length) {
-        me.logger.finest('success ' + msg);
-        df.callback(results);
+        out(event.target.transaction);
       } else {
         var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -329,22 +352,24 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(df, store_name, objs,
         window.console.log([store_name, event]);
       }
       if (goog.DEBUG) {
-        if (event.name == 'DataError') {
-          // DataError is due to invalid key.
-          // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
-          // IDBRequest-any-key
-          event = new ydn.db.InvalidKeyException('put to "' + store_name + '": ' +
-            i + ' of ' + objs.length);
-        } else if (event.name == 'DataCloneError') {
-          event = new ydn.db.DataCloneError('put to "' + store_name + '": ' + i +
-            ' of ' + objs.length);
-        }
+        var name = event.name;
+//        try {
+//          name = request.error.name;
+//        } catch (e) {
+//          name = 'UnknownError';
+//        }
+        me.logger.warning('request result ' + name +
+          ' error when put to "' + store_name + '" for object "' +
+          ydn.json.toShortString(objs[i]) + '" at index ' +
+          i + ' of ' + objs.length + ' objects.');
       }
-      me.logger.finest('error ' + msg);
-      results[i] = null;
+      // accessing request.error can cause InvalidStateError,
+      // although it is not possible here since request has already done flag.
+      // http://www.w3.org/TR/IndexedDB/#widl-IDBRequest-error
+      results[i] = request['error'] || event.target.result;
+      has_error = true;
       if (result_count == objs.length) {
-        me.logger.finest('success ' + msg);
-        df.callback(results);
+        out(event.target.transaction);
       } else {
         var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -375,6 +400,22 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(df, objs, keys) {
 
   var results = [];
   var result_count = 0;
+  var has_error = false;
+  /**
+   *
+   * @param {IDBTransaction} tx
+   */
+  var out = function(tx) {
+    me.request_tx = tx;
+    if (has_error) {
+      me.logger.finest('error ' + msg);
+      df.errback(results);
+    } else {
+      me.logger.finest('success ' + msg);
+      df.callback(results);
+    }
+    me.request_tx = null;
+  };
 
   var me = this;
 
@@ -405,7 +446,7 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(df, objs, keys) {
       results[i] = event.target.result;
       if (result_count == objs.length) {
         me.logger.finest('success ' + msg);
-        df.callback(results);
+        out(event.target.transaction);
       } else {
         var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -419,21 +460,23 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(df, objs, keys) {
       if (ydn.db.core.req.IndexedDb.DEBUG) {
         window.console.log([store_name, event]);
       }
+      var name = event.name;
       if (goog.DEBUG) {
-        if (event.name == 'DataError') {
-          // DataError is due to invalid key.
-          // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
-          // IDBRequest-any-key
-          event = new ydn.db.InvalidKeyException('put to "' + store_name + '": ' +
-            i + ' of ' + objs.length);
-        } else if (event.name == 'DataCloneError') {
-          event = new ydn.db.DataCloneError('put to "' + store_name + '": ' + i +
-            ' of ' + objs.length);
+        me.logger.warning('request result ' + name +
+          ' error when put keys to "' + store_name + '" for object "' +
+          ydn.json.toShortString(objs[i]) + '" at index ' +
+          i + ' of ' + objs.length + ' objects.');
+      }
+      results[i] = request['error'] || event.target.result;
+      has_error = true;
+      if (result_count == objs.length) {
+        out(event.target.transaction);
+      } else {
+        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        if (next < objs.length) {
+          put(next);
         }
       }
-      me.logger.finest('error ' + msg);
-      df.errback(event);
-      // abort transaction ?
     };
 
   };

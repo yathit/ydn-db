@@ -177,6 +177,14 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(thread, thread_name) {
 
 
 /**
+ * Abort current request transaction.
+ */
+ydn.db.tr.Storage.prototype.abort = function() {
+  return this.db_operator.abort();
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,

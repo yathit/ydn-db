@@ -57,6 +57,19 @@ ydn.db.core.DbOperator.prototype.logger =
  *
  * @inheritDoc
  */
+ydn.db.core.DbOperator.prototype.abort = function() {
+  if (!this.executor) {
+    throw new ydn.error.InvalidOperationError();
+  } else {
+    this.executor.abort();
+  }
+};
+
+
+/**
+ *
+ * @inheritDoc
+ */
 ydn.db.core.DbOperator.prototype.count = function(store_name, index_or_keyrange,
                                                  index_key_range) {
   var df = ydn.db.base.createDeferred();
