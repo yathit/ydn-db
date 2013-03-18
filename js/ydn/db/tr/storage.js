@@ -23,6 +23,7 @@ goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.IThread.Threads');
 goog.require('ydn.db.tr.Serial');
+goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.AtomicParallel');
 goog.require('ydn.db.tr.StrictOverflowSerial');
@@ -51,7 +52,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   this.ptx_no = 0;
 
-  var th = ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL;
+  var th = ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_SERIAL;
   if (opt_options && opt_options.thread) {
     var idx = ydn.db.tr.IThread.ThreadList.indexOf(opt_options.thread);
     if (idx == -1) {
@@ -151,17 +152,19 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(thread, thread_name) {
   thread = thread || this.thread_name;
   if (thread == ydn.db.tr.IThread.Threads.SERIAL) {
     return new ydn.db.tr.Serial(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.PARALLEL) {
+      return new ydn.db.tr.Parallel(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL) {
     return new ydn.db.tr.AtomicParallel(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_SERIAL) {
     return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, thread_name);
-  } else if (thread == ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_PARALLEL) {
+  } else if (thread == ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_PARALLEL) {
     return new ydn.db.tr.StrictOverflowParallel(this, this.ptx_no++, thread_name);
-  } else if (thread == ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL) {
+  } else if (thread == ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_SERIAL) {
     return new ydn.db.tr.StrictOverflowSerial(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.OVERFLOW_PARALLEL) {
     return new ydn.db.tr.OverflowParallel(this, this.ptx_no++, thread_name);
-  } else if (thread == ydn.db.tr.IThread.Threads.OVERFLOW_SERIAL) {
+  } else if (thread == ydn.db.tr.IThread.Threads.MULTI_REQUEST_SERIAL) {
     return new ydn.db.tr.OverflowSerial(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.SINGLE) {
     return new ydn.db.tr.Single(this, this.ptx_no++, thread_name);

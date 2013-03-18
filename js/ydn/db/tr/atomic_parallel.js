@@ -45,3 +45,47 @@ ydn.db.tr.AtomicParallel.prototype.reusedTx = function(scopes, mode) {
   return false;
 };
 
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.AtomicParallel.prototype.exec = function (df, callback, store_names,
+     mode, scope, on_completed) {
+  // intersect request result to make atomic
+  var result;
+  var is_error = false;
+  var cdf = new goog.async.Deferred();
+  cdf.addCallbacks(function (x) {
+    result = x;
+  }, function (e) {
+    is_error = true;
+    result = e;
+  });
+  var completed_handler = function(t, e) {
+    if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
+      if (is_error) {
+        df.errback(result);
+      } else {
+        df.callback(result);
+      }
+    } else {
+      if (!(result instanceof Error)) {
+        if (t == ydn.db.base.TransactionEventTypes.ABORT) {
+          result = new ydn.db.TxAbortedError(result);
+        } else { // tx error
+          result = new ydn.db.TxError(result);
+        }
+      }
+      df.errback(result);
+    }
+    if (on_completed) {
+      on_completed(t, e);
+      on_completed = undefined;
+    }
+  };
+  goog.base(this, 'exec', cdf, callback, store_names, mode,
+    scope, completed_handler);
+};
+
+

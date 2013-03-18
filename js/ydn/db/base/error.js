@@ -291,8 +291,54 @@ ydn.db.SqlParseError = function(opt_msg) {
 };
 goog.inherits(ydn.db.SqlParseError, Error);
 
-///**
-// * @type {string} name of error.
-// */
-//ydn.db.SqlParseError.prototype.name = 'ydn.db.SqlParseError';
+/**
+ * @param {*} result request result.
+ * @param {*=} opt_msg optional message.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.TxError = function(result, opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.TxError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+  this.name = 'TxError';
+  this.result = result;
+};
+goog.inherits(ydn.db.TxError, Error);
+
+/**
+ * @type {*}
+ */
+ydn.db.TxError.prototype.result;
+
+/**
+ * @return {*} request result
+ */
+ydn.db.TxError.prototype.getResult = function() {
+  return this.result;
+};
+
+
+/**
+ *
+ * @param {*} result request result.
+ * @param {*=} opt_msg optional message.
+ * @constructor
+ * @extends {ydn.db.TxError}
+ */
+ydn.db.TxAbortedError = function(result, opt_msg) {
+  goog.base(this, result, opt_msg);
+  this.name = 'TxAbortedError';
+};
+goog.inherits(ydn.db.TxAbortedError, ydn.db.TxError);
+
+
 

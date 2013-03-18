@@ -58,12 +58,13 @@ ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
  */
 ydn.db.tr.IThread.Threads = {
   SERIAL: 'serial',
+  PARALLEL: 'parallel',
   ATOMIC_SERIAL: 'atomic-serial',
-  OVERFLOW_SERIAL: 'overflow-serial',
-  STRICT_OVERFLOW_SERIAL: 'strict-overflow-serial',
+  MULTI_REQUEST_SERIAL: 'multirequest-serial',
+  SAME_SCOPE_MULTI_REQUEST_SERIAL: 'samescope-multirequest-serial',
   ATOMIC_PARALLEL: 'atomic-parallel',
-  OVERFLOW_PARALLEL: 'overflow-parallel',
-  STRICT_OVERFLOW_PARALLEL: 'strict-overflow-parallel',
+  OVERFLOW_PARALLEL: 'multirequest-parallel',
+  SAME_SCOPE_MULTI_REQUEST_PARALLEL: 'samescope-multirequest-parallel',
   OPEN: 'open',
   SINGLE: 'single'
 };
@@ -75,12 +76,13 @@ ydn.db.tr.IThread.Threads = {
  */
 ydn.db.tr.IThread.ThreadList = [
   ydn.db.tr.IThread.Threads.SERIAL,
+  ydn.db.tr.IThread.Threads.PARALLEL,
   ydn.db.tr.IThread.Threads.ATOMIC_SERIAL,
-  ydn.db.tr.IThread.Threads.OVERFLOW_SERIAL,
-  ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL,
+  ydn.db.tr.IThread.Threads.MULTI_REQUEST_SERIAL,
+  ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_SERIAL,
   ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL,
   ydn.db.tr.IThread.Threads.OVERFLOW_PARALLEL,
-  ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_PARALLEL,
+  ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_PARALLEL,
   ydn.db.tr.IThread.Threads.OPEN,
   ydn.db.tr.IThread.Threads.SINGLE
 ];

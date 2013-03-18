@@ -14,4 +14,6 @@ goog.exportProperty(ydn.db.tr.DbOperator.prototype, 'abort',
   ydn.db.tr.DbOperator.prototype.abort);
 
 
+goog.exportProperty(ydn.db.TxError.prototype, 'getResult',
+  ydn.db.TxError.prototype.getResult);
 
