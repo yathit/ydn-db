@@ -43,7 +43,8 @@ ydn.db.con.IndexedDb = function(opt_size, time_out) {
 
   if (goog.isDef(opt_size)) {
     // https://developers.google.com/chrome/whitepapers/storage#asking_more
-    // IndexedDB is yet to implement in Quota Management API.
+    // Quota Management API is not IndexedDB API and
+    // this should not implement in this database API.
     /*
     webkitStorageInfo.requestQuota(
         webkitStorageInfo.PERSISTENT
@@ -52,7 +53,8 @@ ydn.db.con.IndexedDb = function(opt_size, time_out) {
         errorCallback);
     */
     if (opt_size > 5 * 1024 * 1024) { // no need to ask for 5 MB.
-      this.logger.warning('storage size request ignored.');
+      this.logger.warning('storage size request ignored, ' +
+        'use Quota Management API instead');
     }
   }
 

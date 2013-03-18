@@ -9,6 +9,7 @@
 goog.provide('ydn.db.tr.Parallel');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.error.NotSupportedException');
+goog.require('ydn.db.tr.ParallelTxExecutor');
 
 
 /**
@@ -38,11 +39,8 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
   this.q_no_ = ptx_no;
 
   this.tx_no_ = 0;
-  this.tx_ = null;
-  this.scopes_ = null;
-  this.mode_ = null;
 
-  this.oncompleted_handlers = [];
+  this.pl_tx_ex_ = null;
 
   /**
    * @final
@@ -58,17 +56,14 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
  */
 ydn.db.tr.Parallel.DEBUG = false;
 
-/**
- * @private
- * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
- */
-ydn.db.tr.Parallel.prototype.tx_;
 
 /**
+ *
+ * @type {ydn.db.tr.ParallelTxExecutor}
  * @private
- * @type {Array.<string>}
  */
-ydn.db.tr.Parallel.prototype.oncompleted_handlers;
+ydn.db.tr.Parallel.prototype.pl_tx_ex_ = null;
+
 
 
 /**
@@ -156,49 +151,11 @@ ydn.db.tr.Parallel.prototype.getStorage = function() {
 
 
 /**
- * @type {Array.<string>} list of sorted store names as transaction scope
- * @private
- */
-ydn.db.tr.Parallel.prototype.scopes_;
-
-/**
- * @type {ydn.db.base.TransactionMode?}
- * @private
- */
-ydn.db.tr.Parallel.prototype.mode_;
-
-
-/**
- * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
- * @private
- */
-ydn.db.tr.Parallel.prototype.tx_ = null;
-
-
-/**
  *
- * @return {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} active transaction object.
- * @protected
+ * @return {ydn.db.tr.ParallelTxExecutor}
  */
-ydn.db.tr.Parallel.prototype.getTx = function() {
-  return this.tx_;
-};
-
-
-/**
- *
- * @return {ydn.db.base.TransactionMode?}
- */
-ydn.db.tr.Parallel.prototype.getMode = function() {
-  return this.mode_;
-};
-
-/**
- *
- * @return {Array.<string>}
- */
-ydn.db.tr.Parallel.prototype.getTxScope = function() {
-  return this.scopes_;
+ydn.db.tr.Parallel.prototype.getPlTx = function() {
+  return this.pl_tx_ex_;
 };
 
 
@@ -207,35 +164,20 @@ ydn.db.tr.Parallel.prototype.getTxScope = function() {
  * @return {boolean} return true if thread has active transaction.
  */
 ydn.db.tr.Parallel.prototype.isActive = function() {
-  return !!this.tx_;
+  return !!this.pl_tx_ex_ && this.pl_tx_ex_.isActive();
 };
 
 
 /**
  *
- * @param {!Array.<string>} scopes
+ * @param {!Array.<string>} store_names
  * @param {ydn.db.base.TransactionMode} mode
  * @return {boolean}
  * @protected
  */
-ydn.db.tr.Parallel.prototype.sameScope = function(scopes, mode) {
-  if (!this.store_names || !this.mode_) {
-    return false;
-  }
-  if (mode != this.mode_) {
-    return false;
-  }
-  if (this.scopes_.length != scopes.length) {
-    return false;
-  }
-  for (var i = 0; i < scopes.length; i++) {
-    if (this.scopes_.indexOf(scopes[i]) == -1) {
-      return false;
-    }
-  }
-  return true;
+ydn.db.tr.Parallel.prototype.sameScope = function(store_names, mode) {
+  return !!this.pl_tx_ex_ && this.pl_tx_ex_.sameScope(store_names, mode);
 };
-
 
 
 /**
@@ -246,38 +188,20 @@ ydn.db.tr.Parallel.prototype.sameScope = function(scopes, mode) {
  * @protected
  */
 ydn.db.tr.Parallel.prototype.subScope = function(store_names, mode) {
-  if (!this.scopes_ || !this.mode_) {
-    return false;
-  }
-  if (mode != this.mode_) {
-    if (this.mode_ != ydn.db.base.TransactionMode.READ_WRITE ||
-        mode != ydn.db.base.TransactionMode.READ_ONLY) {
-      return false;
-    }
-  }
-  if (store_names.length > this.scopes_.length) {
-    return false;
-  }
-  for (var i = 0; i < store_names.length; i++) {
-    if (this.scopes_.indexOf(store_names[i]) == -1) {
-      return false;
-    }
-  }
-  return true;
+  return !!this.pl_tx_ex_ && this.pl_tx_ex_.subScope(store_names, mode);
 };
 
 
 
 /**
  * Abort an active transaction.
- * @throws InvalidOperationException if transaction is not active.
+ * @throws InvalidStateError if transaction is not active.
  */
 ydn.db.tr.Parallel.prototype.abort = function() {
-  if (this.tx_) {
-    this.tx_['abort']();
+  if (this.pl_tx_ex_) {
+    this.pl_tx_ex_.abort();
   } else {
-    throw new ydn.debug.error.InvalidOperationException(
-        this + ': no active transaction');
+    throw new ydn.db.InvalidStateError('No transaction');
   }
 };
 
@@ -301,23 +225,6 @@ ydn.db.tr.Parallel.prototype.getExecutor = goog.abstractMethod;
 ydn.db.tr.Parallel.prototype.reusedTx = goog.abstractMethod;
 
 
-ydn.db.tr.Parallel.prototype.pushTx = function(tx, store_names, mode,
-                                               on_completed) {
-  this.tx_ = tx;
-  this.tx_no_++;
-  this.scopes_ = goog.array.clone(store_names);
-  this.mode_ = mode;
-  return this.tx_no_;
-};
-
-ydn.db.tr.Parallel.prototype.purgeTx = function(tx_no) {
-  if (tx_no == this.tx_no_) {
-    this.tx_ = null;
-    this.scopes_ = null;
-    this.mode_ = null;
-  }
-};
-
 
 /**
  * @inheritDoc
@@ -329,62 +236,37 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
       opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
 
   var me = this;
+  var pl_tx_ex;
+
   var completed_handler = function(type, event) {
-    if (ydn.db.tr.Parallel.DEBUG) {
-      window.console.log(this + ': transaction ' + me.tx_no_ + ' committed');
-    }
-    if (goog.isFunction(on_completed)) {
-      on_completed(type, event);
-      on_completed = undefined;
-    }
+    me.logger.finest(me + ': transaction ' + pl_tx_ex.getTxNo() + ' committed');
+    pl_tx_ex.onCompleted(type, event);
   };
 
   var transaction_process = function(tx) {
-    me.tx_ = tx;
     me.tx_no_++;
-    me.tx_locked_ = false;
-    me.scopes_ = goog.array.clone(store_names);
-    me.mode_ = mode;
-
-    if (ydn.db.tr.Parallel.DEBUG) {
-      window.console.log(me + ': transaction ' + me.tx_no_ + ' begin');
-    }
-    callback(tx);
-    callback = null; // release circular reference.
+    me.logger.finest(me + ': transaction ' + me.tx_no_ + ' begin');
+    pl_tx_ex = new ydn.db.tr.ParallelTxExecutor(
+      tx, me.tx_no_, store_names, mode);
+    me.pl_tx_ex_ = pl_tx_ex;
+    me.pl_tx_ex_.executeTx(callback, on_completed);
   };
 
-  var reused = this.isActive() && !this.tx_locked_ &&
-      this.reusedTx(store_names, mode);
+  var reused = this.isActive() && this.reusedTx(store_names, mode);
   if (ydn.db.tr.Parallel.DEBUG) {
-    var tx = this.isActive() ? 'active ' : 'inactive ';
-    tx += this.tx_locked_ ? 'locked transaction' : 'transaction';
+    var act = this.isActive() ? 'active' : 'inactive';
     window.console.log(this +
-        ' mode:' + this.mode_ + ' scopes:' + ydn.json.stringify(this.scopes_) +
-        (reused ? ' reusing transaction' : ' opening transaction after ') +
-        tx + ':' + this.tx_no_ + ' for ' +
-        ' mode:' + mode + ' scopes:' +
+        ' ' + this.pl_tx_ex_ +
+        (reused ? ' reusing transaction' : ' opening transaction ') +
+         ' for mode:' + mode + ' scopes:' +
         ydn.json.stringify(store_names) + ' in ' + scope_name);
   }
 
   if (reused) {
-    if (goog.isFunction(on_completed)) {
-
-    }
-    callback(me.tx_);
-    callback = null; // release circular reference.
-  } else if (!!this.tx_) { // has active transaction, skip it.
-    this.tx_locked_ = true;
-    var tx_callback = function(tx) {
-      me.tx_no_++;
-      callback(tx);
-    };
-    this.storage_.transaction(tx_callback, store_names, mode,
-        on_completed);
+    this.pl_tx_ex_.executeTx(callback, on_completed);
   } else {
-    this.scopes_ = goog.array.clone(store_names);
-    this.mode_ = mode;
     this.storage_.transaction(transaction_process, store_names, mode,
-        completed_handler);
+      completed_handler);
   }
 
 };

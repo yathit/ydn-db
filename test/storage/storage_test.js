@@ -277,7 +277,7 @@ var test_atomic_serial_thread = function() {
 
 var test_strict_overflow_serial_thread = function() {
 
-  thread_test('strict-overflow-serial', [1, 1, 1, 2]);
+  thread_test('samescope-multirequest-serial', [1, 1, 1, 2]);
 
 };
 

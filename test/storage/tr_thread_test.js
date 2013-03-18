@@ -51,6 +51,7 @@ var continuous_request_test = function(thread, exp_tx_no) {
       function() { return t1_fired; },
       // Continuation
       function() {
+        assertNotNullNorUndefined('has result', result);
         assertEquals('correct obj', val.value, result.value);
         assertArrayEquals('tx no', exp_tx_no, tx_no);
         reachedFinalContinuation = true;
@@ -105,15 +106,21 @@ var nested_request_test = function(thread, exp_tx_no) {
     db.get(table_name, 'a').addBoth(function (r) {
       tx_no.push(db.getTxNo());
       // do some heavy DOM
+      var root = document.createElement('div');
+      root.textContent = thread;
+      document.body.appendChild(root);
+      var parent = root;
       for (var i = 0; i < 1000; i++) {
         var div = document.createElement('div');
-        r.textContent = r.id + ' ' + r.value;
-        document.body.appendChild(div);
+        div.textContent = i + '.';
+        parent.appendChild(div);
+        parent = div;
       }
 
       db.get(table_name, 'a').addBoth(function (x) {
         result = x;
         tx_no.push(db.getTxNo());
+        document.body.removeChild(root);
         t1_fired = true;
       });
     });
@@ -136,21 +143,21 @@ var test_nested_request_serial_strict_overflow = function() {
   // first create readwrite tx
   // second create readonly tx
   // third reuse
-  nested_request_test('strict-overflow-serial', [1, 2, 2]);
+  nested_request_test('samescope-multirequest-serial', [1, 2, 2]);
 };
 
 var test_continuous_request_serial_strict_overflow = function() {
   // first create readwrite tx
   // second create readonly tx
   // third reuse
-  continuous_request_test('strict-overflow-serial', [1, 2, 2]);
+  continuous_request_test('samescope-multirequest-serial', [1, 2, 2]);
 };
 
 var test_nested_request_parallel_strict_overflow = function() {
   // first create readwrite tx  (running tx)
   // second create readonly tx because not same as running tx
   // third create readonly tx because not same as running tx
-  nested_request_test('strict-overflow-parallel', [1, 2, 3]);
+  nested_request_test('samescope-multirequest-parallel', [1, 2, 3]);
 };
 
 
@@ -158,14 +165,14 @@ var test_nested_request_parallel_overflow = function() {
   // first create readwrite tx  (running tx)
   // reuse running tx
   // reuse running tx
-  nested_request_test('overflow-parallel', [1, 1, 1]);
+  nested_request_test('multirequest-parallel', [1, 1, 1]);
 };
 
 var test_continuous_request_parallel_strict_overflow  = function() {
   // first create readwrite tx (running tx)
   // second create readonly tx because not same as running tx
   // third create readonly tx because not same as running tx
-  continuous_request_test('strict-overflow-parallel', [1, 2, 3]);
+  continuous_request_test('samescope-multirequest-parallel', [1, 2, 3]);
 };
 
 

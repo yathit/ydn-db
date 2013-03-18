@@ -53,20 +53,21 @@ ydn.db.tr.Single.prototype.done_ = false;
  */
 ydn.db.tr.Single.prototype.exec = function (df, callback, store_names, mode,
                                    scope, on_completed) {
-  var tx = this.getTx();
-  if (tx) {
+
+  var tx_callback = function (tx) {
     callback(df, tx);
     callback = null;
+  };
+
+  if (this.isActive()) {
+    this.getPlTx().executeTx(tx_callback, on_completed);
   } else if (this.done_) {
-    this.logger.severe(this + ' single thread has already committed the transaction');
+    this.logger.severe(
+      'single thread has already committed the transaction');
     throw new ydn.db.InvalidStateError();
   } else {
     this.done_ = true;
-    var tx_callback = function (tx) {
-      callback(df, tx);
-    };
-    this.processTx(tx_callback, store_names, mode,
-      on_completed);
+    this.processTx(tx_callback, store_names, mode, on_completed);
   }
 };
 
