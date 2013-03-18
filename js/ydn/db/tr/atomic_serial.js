@@ -44,6 +44,7 @@ ydn.db.tr.AtomicSerial.DEBUG = false;
  */
 ydn.db.tr.AtomicSerial.prototype.exec = function (df, callback, store_names, mode,
                                    scope, on_completed) {
+
   // intersect request result to make atomic
   var result;
   var is_error = false;
@@ -55,6 +56,7 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (df, callback, store_names, mod
     result = e;
   });
   var completed_handler = function(t, e) {
+    // console.log('completed_handler ' + t + ' ' + e);
     if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
       if (is_error) {
         df.errback(result);
@@ -62,14 +64,11 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (df, callback, store_names, mod
         df.callback(result);
       }
     } else {
-      if (!(result instanceof Error)) {
-        if (t == ydn.db.base.TransactionEventTypes.ABORT) {
-          result = new ydn.db.TxAbortedError(result);
-        } else { // tx error
-          result = new ydn.db.TxError(result);
-        }
+      if (is_error) {
+        df.errback(result);
+      } else {
+        df.callback(result);
       }
-      df.errback(result);
     }
     if (on_completed) {
       on_completed(t, e);

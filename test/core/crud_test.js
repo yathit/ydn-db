@@ -17,7 +17,8 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
+  ydn.db.tr.Serial.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
   var stores = [new ydn.db.schema.Store(table_name, 'id'),
@@ -445,7 +446,7 @@ var test_21_get_inline = function() {
     2000); // maxTimeout
 
 
-  db.put(table_name, value).addCallback(function(k) {
+  db.put(table_name, value).addBoth(function(k) {
     console.log('key: ' + k);
   });
 

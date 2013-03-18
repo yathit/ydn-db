@@ -230,7 +230,6 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
       var id = arg2;
       this.logger.finer('getById: ' + store_name + ':' + id);
 
-
       if (ydn.db.base.USE_HOOK) {
         var req_df = new goog.async.Deferred();
         this.tx_thread.exec(df, function(df, tx) {

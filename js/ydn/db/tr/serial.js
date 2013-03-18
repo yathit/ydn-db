@@ -261,7 +261,7 @@ ydn.db.tr.Serial.prototype.isNextTxCompatible = function() {
  */
 ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
                   opt_mode, on_completed) {
-  this.logger.finest('push tx queue ' + trFn.name);
+  this.logger.finest('Serial push tx queue ' + trFn.name);
   this.trQueue_.push({
     fnc: trFn,
     store_names: store_names,
@@ -302,6 +302,7 @@ ydn.db.tr.Serial.prototype.abort = function() {
 
 /**
  * @type {Array.<Function>}
+ * @private
  */
 ydn.db.tr.Serial.prototype.completed_handlers;
 
@@ -345,15 +346,19 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
     opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
 
   var me = this;
-  //console.log(this + ' active ' + this.mu_tx_.isActive() + ' queue length ' + this.trQueue_.length);
 
-  if (this.mu_tx_.isActive()) {
+  if (this.mu_tx_.isActive() || // we are serial, one tx at a time
+      // if db is not ready and we already send one tx request, we keep
+      // our tx request in our queue
+      (!this.getStorage().isReady() && this.completed_handlers.length > 0)) {
     this.pushTxQueue(trFn, store_names, mode, oncompleted);
   } else {
     //console.log(this + ' not active ' + scope_name);
     var transaction_process = function(tx) {
       //console.log('transaction_process ' + scope_name);
       me.mu_tx_.up(tx, store_names, mode, scope_name);
+      me.logger.finest(me + ': transaction ' + me.mu_tx_.getTxCount() +
+        ' created.');
 
       // now execute transaction process
       trFn(me);
@@ -374,11 +379,14 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
 
     var completed_handler = function(type, event) {
       //console.log('transaction_process ' + scope_name + ' completed.');
+      me.logger.finest(me + ': transaction ' + me.mu_tx_.getTxCount() +
+        ' committed with ' + type);
       /**
        * @preserve _try.
        */
       try {
         var fn;
+        // console.log(me + ' ' + me.completed_handlers.length + ' found.');
         while (fn = me.completed_handlers.shift()) {
           fn(type, event);
         }
@@ -401,7 +409,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
     this.completed_handlers = oncompleted ? [oncompleted] : [];
 
     if (ydn.db.tr.Serial.DEBUG) {
-      window.console.log(this + ' transaction ' + mode + ' open for ' +
+      window.console.log(this + ' opening transaction ' + mode + ' for ' +
         JSON.stringify(names) + ' in ' + scope_name);
     }
     this.storage_.transaction(transaction_process, names, mode,

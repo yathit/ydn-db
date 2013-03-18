@@ -85,8 +85,6 @@ ydn.db.tr.Mutex.prototype.up = function(tx, store_names, mode, scope_name) {
 
   if (ydn.db.tr.Mutex.DEBUG) {
     window.console.log(this + ': open');
-  } else {
-    this.logger.finest(this + ': open');
   }
 };
 
@@ -203,8 +201,6 @@ ydn.db.tr.Mutex.prototype.down = function(type, event) {
 
     if (ydn.db.tr.Mutex.DEBUG) {
       window.console.log(this + ': close');
-    } else {
-      this.logger.finest(this + ': close');
     }
     // down must be call only once by those who up
     this.tx_ = null;
@@ -252,8 +248,6 @@ ydn.db.tr.Mutex.prototype.inScope = function() {
 ydn.db.tr.Mutex.prototype.lock = function() {
   if (ydn.db.tr.Mutex.DEBUG) {
     window.console.log(this + ': locked');
-  } else {
-    this.logger.finest(this + ': locked');
   }
   this.is_locked_ = true;
 };

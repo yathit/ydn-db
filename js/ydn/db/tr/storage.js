@@ -75,7 +75,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   /**
    * @final
    */
-  this.db_operator = this.thread(this.thread_name, 'base');
+  this.db_operator = this.branch(this.thread_name, 'base');
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
 
@@ -115,7 +115,7 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
  * @return {*}
  * @final
  */
-ydn.db.tr.Storage.prototype.thread = function(thread, name) {
+ydn.db.tr.Storage.prototype.branch = function(thread, name) {
   var tx_thread = this.newTxQueue(thread, name);
   return this.newOperator(tx_thread, this.sync_thread);
 };
