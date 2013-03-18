@@ -149,15 +149,18 @@ ydn.db.core.req.IndexedDb.prototype.addObject = function(df, table, value,
       window.console.log([event, table, value]);
     }
     me.logger.finest('success ' + msg);
+    me.request_tx = event.target.transaction;
     df.callback(event.target.result);
+    me.request_tx = null;
   };
   request.onerror = function(event) {
     if (ydn.db.core.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
     me.logger.finest('error ' + msg);
-    // me.getTx().abort();
+    me.request_tx = event.target.transaction;
     df.errback(event);
+    me.request_tx = null;
   };
 };
 
@@ -607,10 +610,14 @@ ydn.db.core.req.IndexedDb.prototype.removeById = function(df, store_name, key) {
       var req = cursor['delete']();
       req.onsuccess = function(e) {
         me.logger.finest('success ' + msg);
+        me.request_tx = event.target.transaction;
         df.callback(1);
+        me.request_tx = null;
       };
       req.onerror = function(e) {
+        me.request_tx = event.target.transaction;
         df.errback(event);
+        me.request_tx = null;
       }
     } else {
       df.callback(undefined);
@@ -622,7 +629,9 @@ ydn.db.core.req.IndexedDb.prototype.removeById = function(df, store_name, key) {
       window.console.log([store_name, key, event]);
     }
     me.logger.finest('error ' + msg);
+    me.request_tx = event.target.transaction;
     df.errback(event);
+    me.request_tx = null;
   };
 
 };
@@ -644,19 +653,25 @@ ydn.db.core.req.IndexedDb.prototype.removeByKeyRange = function(
     var req = store['delete'](key_range);
     req.onsuccess = function() {
       me.logger.finest('success ' + msg);
+      me.request_tx = event.target.transaction;
       df.callback(n);
+      me.request_tx = null;
     };
     req.onerror = function(e) {
       me.logger.finest('error ' + msg);
+      me.request_tx = event.target.transaction;
       df.errback(e);
+      me.request_tx = null;
     };
   };
   request.onerror = function(event) {
     if (ydn.db.core.req.IndexedDb.DEBUG) {
       window.console.log([store_name, key_range, event]);
     }
-    me.logger.finest('error ' + msg);
+    me.logger.finest('count error ' + msg);
+    me.request_tx = event.target.transaction;
     df.errback(event);
+    me.request_tx = null;
   };
 
 };
@@ -675,13 +690,17 @@ ydn.db.core.req.IndexedDb.prototype.clearByKeyRange = function (
   this.logger.finest(msg);
 
   var req = store['delete'](key_range);
-  req.onsuccess = function () {
+  req.onsuccess = function (event) {
     me.logger.finest('success ' + msg);
+    me.request_tx = event.target.transaction;
     df.callback();
+    me.request_tx = null;
   };
-  req.onerror = function (e) {
+  req.onerror = function (event) {
     me.logger.finest('error ' + msg);
-    df.errback(e);
+    me.request_tx = event.target.transaction;
+    df.errback(event);
+    me.request_tx = null;
   };
 
 };
@@ -720,13 +739,17 @@ ydn.db.core.req.IndexedDb.prototype.removeByIndexKeyRange = function(
       };
     } else {
       me.logger.finest('success ' + msg);
+      me.request_tx = event.target.transaction;
       df.callback(n);
+      me.request_tx = null;
     }
 
   };
   request.onerror = function(event) {
     me.logger.finest('error ' + msg);
+    me.request_tx = event.target.transaction;
     df.errback(event);
+    me.request_tx = null;
   };
 
 };
@@ -753,7 +776,9 @@ ydn.db.core.req.IndexedDb.prototype.clearByStores = function(df, store_names) {
       // }
       if (n_done == n_todo) {
         me.logger.finest('success ' + msg);
+        me.request_tx = event.target.transaction;
         df.callback(n_done);
+        me.request_tx = null;
       }
     };
     request.onerror = function(event) {
@@ -763,7 +788,9 @@ ydn.db.core.req.IndexedDb.prototype.clearByStores = function(df, store_names) {
       }
       if (n_done == n_todo) {
         me.logger.finest('error ' + msg);
+        me.request_tx = event.target.transaction;
         df.errback(event);
+        me.request_tx = null;
       }
     };
   }
@@ -879,11 +906,15 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(df, store_name,
         cursor['continue']();
       } else {
         me.logger.finest('success ' + msg);
+        me.request_tx = event.target.transaction;
         df.callback(results);
+        me.request_tx = null;
       }
     } else {
       me.logger.finest('success ' + msg);
+      me.request_tx = event.target.transaction;
       df.callback(results);
+      me.request_tx = null;
     }
   };
   request.onerror = function(event) {
@@ -891,7 +922,9 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(df, store_name,
       window.console.log([store_name, event]);
     }
     me.logger.finest('error ' + msg);
+    me.request_tx = event.target.transaction;
     df.errback(event);
+    me.request_tx = null;
   };
 };
 
@@ -973,7 +1006,9 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(df, store_nam
       }
     } else {
       me.logger.finest('success ' + msg);
+      me.request_tx = event.target.transaction;
       df.callback(results);
+      me.request_tx = null;
     }
   };
   request.onerror = function(event) {
@@ -981,7 +1016,9 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(df, store_nam
       window.console.log([store_name, event]);
     }
     me.logger.finest('error ' + msg);
+    me.request_tx = event.target.transaction;
     df.errback(event);
+    me.request_tx = null;
   };
 };
 
@@ -1013,7 +1050,9 @@ ydn.db.core.req.IndexedDb.prototype.listByStores = function(df, store_names) {
         i++;
         if (i == store_names.length) {
           me.logger.finest('success ' + msg);
+          me.request_tx = event.target.transaction;
           df.callback(results);
+          me.request_tx = null;
         } else {
           getAll(i);
         }
@@ -1025,7 +1064,9 @@ ydn.db.core.req.IndexedDb.prototype.listByStores = function(df, store_names) {
         window.console.log([store_name, event]);
       }
       me.logger.finest('error ' + msg);
+      me.request_tx = event.target.transaction;
       df.errback(event);
+      me.request_tx = null;
     };
   };
 
@@ -1063,7 +1104,9 @@ ydn.db.core.req.IndexedDb.prototype.getById = function(df, store_name, id) {
       window.console.log([store_name, id, event]);
     }
     me.logger.finest('success ' + msg);
+    me.request_tx = event.target.transaction;
     df.callback(event.target.result);
+    me.request_tx = null;
   };
 
   request.onerror = function(event) {
@@ -1073,7 +1116,9 @@ ydn.db.core.req.IndexedDb.prototype.getById = function(df, store_name, id) {
     //me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
     // event.message);
     me.logger.finest('error ' + msg);
+    me.request_tx = event.target.transaction;
     df.errback(event);
+    me.request_tx = null;
   };
 };
 
@@ -1131,7 +1176,9 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(df, store_name, ids) {
       results[i] = event.target.result;
       if (result_count == n) {
         me.logger.finest('success ' + msg);
+        me.request_tx = event.target.transaction;
         df.callback(results);
+        me.request_tx = null;
       } else {
         var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
         if (next < n) {
@@ -1146,7 +1193,9 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(df, store_name, ids) {
         window.console.log([store_name, ids, i, event]);
       }
       me.logger.finest('error ' + msg);
+      me.request_tx = event.target.transaction;
       df.errback(event);
+      me.request_tx = null;
     };
 
   };
@@ -1202,7 +1251,9 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(df, keys) {
       results[i] = event.target.result;
       if (result_count == keys.length) {
         me.logger.finest('success ' + msg);
+        me.request_tx = event.target.transaction;
         df.callback(results);
+        me.request_tx = null;
       } else {
         var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
         if (next < keys.length) {
@@ -1217,8 +1268,9 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(df, keys) {
         window.console.log([keys, event]);
       }
       me.logger.finest('error ' + msg);
+      me.request_tx = event.target.transaction;
       df.errback(event);
-      // abort transaction ?
+      me.request_tx =null;
     };
 
   };
@@ -1268,14 +1320,18 @@ ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(df, table,
       window.console.log(event);
     }
     me.logger.finest('success ' + msg);
+    me.request_tx = event.target.transaction;
     df.callback(event.target.result);
+    me.request_tx = null;
   };
   request.onerror = function(event) {
     if (ydn.db.core.req.IndexedDb.DEBUG) {
       window.console.log(event);
     }
     me.logger.finest('error ' + msg);
+    me.request_tx = event.target.transaction;
     df.errback(event);
+    me.request_tx = null;
   };
 
 };
@@ -1311,7 +1367,9 @@ ydn.db.core.req.IndexedDb.prototype.getIndexKeysByKeys = function(df,
 
       if (result_count === limit) {
         me.logger.finest('success ' + msg);
+        me.request_tx = event.target.transaction;
         df.callback(results);
+        me.request_tx = null;
       } else {
         var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
         if (next < limit) {
@@ -1322,7 +1380,9 @@ ydn.db.core.req.IndexedDb.prototype.getIndexKeysByKeys = function(df,
 
     req.onerror = function(ev) {
       me.logger.finest('error ' + msg);
+      me.request_tx = ev.target.transaction;
       df.errback(ev);
+      me.request_tx = null;
     };
   };
 
