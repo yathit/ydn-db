@@ -86,7 +86,7 @@ ydn.db.core.Storage.prototype.getCoreOperator = function() {
 /**
  * @return {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.core.Storage.prototype.getExecutor = function () {
+ydn.db.core.Storage.prototype.newExecutor = function () {
 
   var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {

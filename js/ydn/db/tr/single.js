@@ -54,8 +54,24 @@ ydn.db.tr.Single.prototype.done_ = false;
 ydn.db.tr.Single.prototype.exec = function (df, callback, store_names, mode,
                                    scope, on_completed) {
 
+  var me = this;
   var tx_callback = function (tx) {
-    callback(df, tx);
+    /**
+     *
+     * @param {*} result
+     * @param {boolean=} is_error
+     */
+    var resultCallback = function(result, is_error) {
+      me.request_tx_ = tx; // so that we can abort it.
+      if (is_error) {
+        df.errback(result);
+      } else {
+        df.callback(result);
+      }
+      me.request_tx_ = null;
+      resultCallback = /** @type {function (*, boolean=)} */ (null);
+    };
+    callback(resultCallback, tx);
     callback = null;
   };
 

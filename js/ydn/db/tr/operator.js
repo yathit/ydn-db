@@ -124,15 +124,13 @@ ydn.db.tr.DbOperator.prototype.abort = function() {
 
 /**
  * @final
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  * @return {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.tr.DbOperator.prototype.getExecutor = function(tx) {
+ydn.db.tr.DbOperator.prototype.getExecutor = function() {
   if (!this.executor) {
-    this.executor = this.storage_.getExecutor();
+    this.executor = this.storage_.newExecutor();
   }
 
-  this.executor.setTx(tx);
   return this.executor;
 };
 

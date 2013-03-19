@@ -38,48 +38,11 @@ goog.inherits(ydn.db.tr.StrictOverflowSerial, ydn.db.tr.Serial);
 ydn.db.tr.StrictOverflowSerial.DEBUG = false;
 
 
-
 /**
  * @inheritDoc
  */
-ydn.db.tr.StrictOverflowSerial.prototype.exec = function (df, callback,
-    store_names, opt_mode, scope, on_complete) {
-  var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
-  var me = this;
-  var mu_tx = this.getMuTx();
-
-  if (mu_tx.isActiveAndAvailable() && mu_tx.sameScope(store_names, mode)) {
-    //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
-    // call within a transaction
-    // continue to use existing transaction
-    callback(df, mu_tx.getTx());
-    callback = null;
-  } else {
-
-    //
-    // create a new transaction and close for invoke in non-transaction context
-    var tx_callback = function (idb) {
-      //console.log('tx running for ' + scope);
-      // me.not_ready_ = true;
-      // transaction should be active now
-      if (goog.DEBUG) {
-        if (!mu_tx.isActive()) {
-          throw new ydn.db.InternalError('Tx not active for scope: ' + scope);
-        }
-        if (!mu_tx.isAvailable()) {
-          throw new ydn.db.InternalError('Tx not available for scope: ' +
-              scope);
-        }
-        tx_callback.name = scope; // scope name
-      }
-      callback(df, mu_tx.getTx());
-      callback = null; // we don't call again.
-    };
-    //var cbFn = goog.partial(tx_callback, callback);
-    //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
-    // locked: ' + mu_tx.isSetDone());
-    me.processTx(tx_callback, store_names, mode, on_complete);
-  }
+ydn.db.tr.StrictOverflowSerial.prototype.reusedTx = function(store_names, mode) {
+  return this.getMuTx().sameScope(store_names, mode);
 };
 
 

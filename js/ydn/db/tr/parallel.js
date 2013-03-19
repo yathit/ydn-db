@@ -42,6 +42,8 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
 
   this.pl_tx_ex_ = null;
 
+  this.request_tx_ = null;
+
   /**
    * @final
    */
@@ -63,6 +65,18 @@ ydn.db.tr.Parallel.DEBUG = false;
  * @private
  */
 ydn.db.tr.Parallel.prototype.pl_tx_ex_ = null;
+
+
+
+/**
+ * Transaction object is sed when receiving a request before result df
+ * callback and set null after that callback so that it can be aborted
+ * in the callback.
+ * In general, this tx may be different from running tx.
+ * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
+ * @protected
+ */
+ydn.db.tr.Parallel.prototype.request_tx_ = null;
 
 
 
@@ -198,10 +212,12 @@ ydn.db.tr.Parallel.prototype.subScope = function(store_names, mode) {
  * @throws InvalidStateError if transaction is not active.
  */
 ydn.db.tr.Parallel.prototype.abort = function() {
-  if (this.pl_tx_ex_) {
-    this.pl_tx_ex_.abort();
+  if (this.request_tx_) {
+    this.request_tx_['abort'](); // this will cause error on SQLTransaction and WebStorage.
+    // the error is wanted because there is no way to abort a transaction in
+    // WebSql. It is somehow recommanded workaround to abort a transaction.
   } else {
-    throw new ydn.db.InvalidStateError('No transaction');
+    throw new ydn.db.InvalidStateError('No active transaction');
   }
 };
 
@@ -280,8 +296,26 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
 ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
                                                    scope_name, on_completed) {
 
+  var me = this;
   this.processTx(function(tx) {
-    callback(df, tx);
+
+    /**
+     *
+     * @param {*} result
+     * @param {boolean=} is_error
+     */
+    var resultCallback = function(result, is_error) {
+      me.request_tx_ = tx; // so that we can abort it.
+      if (is_error) {
+        df.errback(result);
+      } else {
+        df.callback(result);
+      }
+      me.request_tx_ = null;
+      resultCallback = /** @type {function (*, boolean=)} */ (null);
+    };
+
+    callback(resultCallback, tx);
   }, store_names, mode, on_completed);
 };
 

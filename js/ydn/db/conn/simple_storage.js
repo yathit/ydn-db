@@ -489,7 +489,7 @@ ydn.db.con.SimpleStorage.prototype.index = function(store_name, index_name) {
 /**
  * Get list of primary key between given range.
  * @param {string} store_name store name.
- * @param {string?} index_name index name.
+ * @param {string?=} index_name index name.
  * @param {string=} lower lower bound of key range.
  * @param {string=} upper upper bound of key range.
  * @param {boolean=} lowerOpen true if lower bound is open.

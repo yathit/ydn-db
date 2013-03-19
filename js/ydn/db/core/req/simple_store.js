@@ -105,22 +105,19 @@ ydn.db.core.req.SimpleStore.prototype.putByKeys = goog.abstractMethod;
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.addObject = function(
-    df, table, value, opt_key) {
+    tx, df, table, value, opt_key) {
   // TODO: check existance
-  var key = this.getTx().setItemInternal(value, table, opt_key);
-  df.callback(key);
+  var key = tx.setItemInternal(value, table, opt_key);
+  df(key);
 };
 
 /**
- * @param {!goog.async.Deferred} df return key in deferred function.
- * @param {string} table table name.
-* @param {!Object} value object to put.
- * @param {(!Array|string|number)=} opt_key optional out-of-line key.
-*/
+ * @inheritDoc
+ */
 ydn.db.core.req.SimpleStore.prototype.putObject = function(
-      df, table, value, opt_key) {
-  var key = this.getTx().setItemInternal(value, table, opt_key);
-  df.callback(key);
+      tx, df, table, value, opt_key) {
+  var key = tx.setItemInternal(value, table, opt_key);
+  df(key);
 };
 
 
@@ -128,15 +125,15 @@ ydn.db.core.req.SimpleStore.prototype.putObject = function(
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.addObjects = function(
-    df, table, value, opt_key) {
+    tx, df, table, value, opt_key) {
 
   var result = [];
   for (var i = 0; i < value.length; i++) {
     var key = goog.isDef(opt_key) ? opt_key[i] : undefined;
-    result[i] = this.getTx().setItemInternal(value[i], table, key);
+    result[i] = tx.setItemInternal(value[i], table, key);
   }
 
-  df.callback(result);
+  df(result);
 };
 
 
@@ -147,32 +144,26 @@ ydn.db.core.req.SimpleStore.prototype.putData = goog.abstractMethod;
 
 
 /**
- * @param {!goog.async.Deferred} df return key in deferred function.
- * @param {string} table table name.
- * @param {Array.<!Object>} value object to put.
- * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
+ * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.putObjects = function(
-      df, table, value, opt_key) {
+      tx, df, table, value, opt_key) {
 
   var result = [];
   for (var i = 0; i < value.length; i++) {
     var key = goog.isDef(opt_key) ? opt_key[i] : undefined;
-    result[i] = this.getTx().setItemInternal(value[i], table, key);
+    result[i] = tx.setItemInternal(value[i], table, key);
   }
 
-  df.callback(result);
+  df(result);
 };
 
 
 /**
-* Retrieve an object from store.
- * @param {!goog.async.Deferred} df return object in deferred function.
- * @param {string} store_name store name.
-* @param {(string|number|Date|!Array)} id id.
-*/
-ydn.db.core.req.SimpleStore.prototype.getById = function(df, store_name, id) {
-  df.callback(this.getTx().getItemInternal(store_name, id));
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.getById = function(tx, df, store_name, id) {
+  df(tx.getItemInternal(store_name, id));
 };
 
 
@@ -180,17 +171,17 @@ ydn.db.core.req.SimpleStore.prototype.getById = function(df, store_name, id) {
 /**
 * @inheritDoc
 */
-ydn.db.core.req.SimpleStore.prototype.listByStores = function (df, store_names) {
-
+ydn.db.core.req.SimpleStore.prototype.listByStores = function (tx, df, store_names) {
+  var tx_ =  /** {ydn.db.con.SimpleStorage} */ (tx);
   goog.Timer.callOnce(function () {
 
     var arr = [];
 
     for (var i = 0; i < store_names.length; i++) {
-      arr = arr.concat(this.tx.getKeys(store_names[i]));
+      arr = arr.concat(tx_.getKeys(store_names[i]));
     }
 
-    df.callback(arr);
+    df(arr);
   }, 0, this);
 
 };
@@ -200,20 +191,20 @@ ydn.db.core.req.SimpleStore.prototype.listByStores = function (df, store_names) 
  *
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.listByIds = function(df, store_name, ids) {
+ydn.db.core.req.SimpleStore.prototype.listByIds = function(tx, df, store_name, ids) {
   var arr = [];
   for (var i = 0; i < ids.length; i++) {
-    var value = this.getTx().getItemInternal(store_name, ids[i]);
+    var value = tx.getItemInternal(store_name, ids[i]);
     arr.push(value);
   }
-  df.callback(arr);
+  df(arr);
 };
 
 /**
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.listByKeyRange =
-    function(df, store_name, key_range, reverse, limit, offset) {
+    function(tx, df, store_name, key_range, reverse, limit, offset) {
 
 };
 
@@ -221,35 +212,32 @@ ydn.db.core.req.SimpleStore.prototype.listByKeyRange =
 /**
 * @inheritDoc
 */
-ydn.db.core.req.SimpleStore.prototype.listByKeys = function(df, keys) {
+ydn.db.core.req.SimpleStore.prototype.listByKeys = function(tx, df, keys) {
   var arr = [];
   for (var i = 0; i < keys.length; i++) {
-    var value = this.getTx().getItemInternal(keys[i].getStoreName(), keys[i].getId());
+    var value = tx.getItemInternal(keys[i].getStoreName(), keys[i].getId());
     arr.push(value);
   }
-  df.callback(arr);
+  df(arr);
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.listByIndexKeyRange = function(df, store_name,
+ydn.db.core.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, df, store_name,
          index, key_range, reverse, limit, offset) {
   //this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset)
 };
 
 
 /**
- * Remove all data in a store (table).
- * @param {!goog.async.Deferred} df return a deferred function.
- * @param {string} table delete a specific table or all tables.
- * @param {(!Array|string|number)} id delete a specific row.
+ * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.removeById = function(df, table, id) {
+ydn.db.core.req.SimpleStore.prototype.removeById = function(tx, df, table, id) {
 
-  this.getTx().removeItemInternal(table, id);
+  tx.removeItemInternal(table, id);
 
-  df.callback(true);
+  df(true);
 };
 
 
@@ -273,30 +261,28 @@ ydn.db.core.req.SimpleStore.prototype.removeByIndexKeyRange = goog.abstractMetho
 /**
  * @inheritDoc
 */
-ydn.db.core.req.SimpleStore.prototype.clearByStores = function(df, store_names) {
+ydn.db.core.req.SimpleStore.prototype.clearByStores = function(tx, df, store_names) {
 
   for (var i = 0; i < store_names.length; i++) {
-    this.tx.removeItemInternal(store_names[i]);
+    tx.removeItemInternal(store_names[i]);
   }
 
-  df.callback(true);
+  df(true);
 };
 
 
 /**
-* Get number of items stored.
- * @param {!goog.async.Deferred} df return number of items in deferred function.
- * @param {!Array.<string>}  store_names table name.
-*/
-ydn.db.core.req.SimpleStore.prototype.countStores = function (df, store_names) {
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.countStores = function (tx, df, store_names) {
 
   goog.Timer.callOnce(function () {
     var out = [];
     for (var i = 0; i < store_names.length; i++) {
-      var arr = this.tx.getKeys(store_names[i]);
+      var arr = tx.getKeys(store_names[i]);
       out[i] = arr.length;
     }
-    df.callback(out);
+    df(out);
   }, 0, this);
 
 };
@@ -304,7 +290,7 @@ ydn.db.core.req.SimpleStore.prototype.countStores = function (df, store_names) {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
+ydn.db.core.req.SimpleStore.prototype.countKeyRange = function(tx, df, opt_table,
                               keyRange, index_name) {
 
   var pre_fix = '_database_' + this.dbname;
@@ -313,14 +299,14 @@ ydn.db.core.req.SimpleStore.prototype.countKeyRange = function(df, opt_table,
   }
 
   var n = 0;
-  for (var key in this.tx) {
-    if (this.tx.hasOwnProperty(key)) {
+  for (var key in tx) {
+    if (tx.hasOwnProperty(key)) {
       if (goog.string.startsWith(key, pre_fix)) {
         n++;
       }
     }
   }
-  df.callback(n);
+  df(n);
 };
 
 

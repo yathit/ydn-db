@@ -16,7 +16,7 @@ ydn.db.tr.IThread = function() {};
 
 /**
  * @param {!goog.async.Deferred} df deferred object to intersect the request
- * @param {?function(!goog.async.Deferred,
+ * @param {?function(?function(*, boolean=),
  *   (IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage))} callback
  *   callback when executor is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.

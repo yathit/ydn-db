@@ -38,7 +38,6 @@ goog.inherits(ydn.db.tr.AtomicSerial, ydn.db.tr.Serial);
 ydn.db.tr.AtomicSerial.DEBUG = false;
 
 
-
 /**
  * @inheritDoc
  */

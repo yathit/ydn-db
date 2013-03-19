@@ -62,7 +62,7 @@ goog.inherits(ydn.db.index.Storage, ydn.db.core.Storage);
 /**
  * @inheritDoc
  */
-ydn.db.index.Storage.prototype.getExecutor = function () {
+ydn.db.index.Storage.prototype.newExecutor = function () {
 
   var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
