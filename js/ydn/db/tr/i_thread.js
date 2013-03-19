@@ -40,6 +40,7 @@ ydn.db.tr.IThread.prototype.abort = goog.abstractMethod;
 ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
 
 
+
 /**
  * Create a new isolated transaction. After creating a transaction, use
  * {@link #getTx} to received an active transaction. If transaction is not

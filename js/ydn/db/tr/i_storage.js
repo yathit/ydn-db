@@ -14,8 +14,6 @@ goog.require('ydn.db.tr.Mutex');
 ydn.db.tr.IStorage = function() {};
 
 
-
-
 /**
  * Run a new transaction.
  * @param {function(!ydn.db.tr.IStorage)} trFn function that invoke in the

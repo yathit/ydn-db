@@ -17,8 +17,8 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  ydn.debug.log('ydn.db', 'finest');
-  ydn.db.tr.Serial.DEBUG = true;
+  //ydn.debug.log('ydn.db', 'finest');
+  //ydn.db.tr.Serial.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
   var stores = [new ydn.db.schema.Store(table_name, 'id'),
@@ -99,7 +99,7 @@ var test_add_fail = function() {
           assertNull('add a again', put_value);
           assertNotNull('error event', add_ev);
           if (db.getType() == 'indexeddb') {
-            assertEquals('add fail with constrained error', 'ConstraintError', add_ev.target.error.name);
+            assertEquals('add fail with constrained error', 'ConstraintError', add_ev.name);
           } else if (db.getType() == 'websql') {
             assertEquals('add fail with constrained error', 6, add_ev.code);
           }
@@ -970,6 +970,7 @@ var test_42_remove_by_key_range = function() {
     100, // interval
     1000); // maxTimeout
 
+  db.count(table_name); // break tx merge.
   db.remove(table_name, ydn.db.KeyRange.lowerBound(2)).addCallback(function(value) {
     countValue = value;
     hasEventFired = true;
@@ -1002,6 +1003,7 @@ var test_43_clear_by_key_range = function() {
     100, // interval
     1000); // maxTimeout
 
+  db.count(table_name); // break tx merge for websql, this should be fixed.
   db.clear(table_name, ydn.db.KeyRange.lowerBound(2)).addBoth(function(value) {
     db.count(table_name).addBoth(function (value) {
 
