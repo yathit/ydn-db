@@ -92,8 +92,8 @@ ydn.db.sql.DbOperator.prototype.executeSql = function (sql, params) {
 
   var me = this;
   this.logger.finer('executeSql: ' + sql + " params: " + params);
-  this.tx_thread.exec(df, function (df, tx) {
-    me.getExecutor(tx).executeSql(df, query, params || []);
+  this.tx_thread.exec(df, function (cb, tx) {
+    me.getExecutor().executeSql(tx, cb, query, params || []);
   }, query.getStoreNames(), query.getMode(), 'executeSql');
 
   return df;

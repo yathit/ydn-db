@@ -37,6 +37,13 @@ goog.inherits(ydn.db.tr.StrictOverflowSerial, ydn.db.tr.Serial);
  */
 ydn.db.tr.StrictOverflowSerial.DEBUG = false;
 
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.tr.StrictOverflowSerial.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.tr.StrictOverflowSerial');
+
 
 /**
  * @inheritDoc

@@ -25,10 +25,11 @@ goog.inherits(ydn.db.sql.req.idb.ReduceNode, ydn.db.sql.req.idb.Node);
 
 
 /**
- * @param {!goog.async.Deferred} df
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {ydn.db.index.req.IRequestExecutor} req
  */
-ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
+ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, df, req) {
 
   var me = this;
   var out;
@@ -52,9 +53,9 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
   var aggregate = this.sql.getAggregate();
   if (aggregate == 'COUNT') {
     if (key_range) {
-      req.countKeyRange(df, store_name, key_range, wheres[0].getField());
+      req.countKeyRange(tx, df, store_name, key_range, wheres[0].getField());
     } else {
-      req.countKeyRange(df, store_name, null);
+      req.countKeyRange(tx, df, store_name, null);
     }
   } else {
     var reduce;
@@ -89,10 +90,10 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
       iter = new ydn.db.ValueCursors(store_name);
     }
 
-    var cursor = iter.iterate(req);
+    var cursor = iter.iterate(tx, req);
 
     cursor.onError = function (e) {
-      df.errback(e);
+      df(e, true);
     };
     var i = 0;
     cursor.onNext = function (primaryKey, key, value) {
@@ -101,7 +102,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
         cursor.advance(1);
         i++;
       } else {
-        df.callback(out);
+        df(out);
       }
     };
   }

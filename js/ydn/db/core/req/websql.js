@@ -241,7 +241,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, df, key_only,
     }
     me.logger.warning('error: ' + sql + ' ' + error.message);
     df(error, true);
-    return true; // roll back
+    return false;
   };
 
   this.logger.finest('SQL: ' + sql + ' PARAMS: ' + ydn.json.stringify(params));
@@ -392,7 +392,7 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
 
         me.logger.warning('error: ' + error.message + ' ' + msg);
         df(error, true);
-        return true; // roll back
+        return false;
       }
     };
 
@@ -560,7 +560,7 @@ ydn.db.core.req.WebSql.prototype.getById = function(tx, d, table_name, id) {
     }
     me.logger.warning('error: ' + sql + ' ' + error.message);
     d(error, true);
-    return true; // roll back
+    return false;
   };
 
   //window.console.log(['getById', sql, params]);
@@ -631,7 +631,7 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(tx, df, table_name, ids) {
       me.logger.warning('error: ' + sql + ' ' + error.message);
       // t.abort(); there is no abort
       df(error, true);
-      return true; // roll back
+      return false;
     };
 
     var id = ids[i];
@@ -729,7 +729,7 @@ ydn.db.core.req.WebSql.prototype.listByStores = function(tx, df, table_names) {
       }
       me.logger.warning('error: ' + sql + ' ' + error.message);
       df(error, true);
-      return true; // roll back
+      return false;
     };
 
     me.logger.finest('SQL: ' + sql + ' PARAMS: []');
@@ -806,7 +806,7 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(tx, df, keys) {
       }
       me.logger.warning('error: ' + sql + ' ' + error.message);
       df(error, true);
-      return true; // roll back
+      return false;
     };
 
     var id = key.getNormalizedId();
@@ -870,7 +870,7 @@ ydn.db.core.req.WebSql.prototype.clearByStores = function(tx, d, store_names) {
       }
       me.logger.warning('error: ' + sql + ' ' + error.message);
       d(error, true);
-      return true; // roll back
+      return false;
     };
 
     me.logger.finest('SQL: ' + sql + ' PARAMS: []');
@@ -1010,7 +1010,7 @@ ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(tx, df,
     }
     me.logger.warning('error: ' + sql + ' ' + error.message);
     df(error, true);
-    return true; // roll back
+    return false;
   };
 
   //console.log([sql, params])
@@ -1065,7 +1065,7 @@ ydn.db.core.req.WebSql.prototype.countStores = function(tx, d, tables) {
       }
       me.logger.warning('error: ' + sql + ' ' + error.message);
       d(error, true);
-      return true; // roll back
+      return false;
     };
 
     me.logger.finest('SQL: ' + sql + ' PARAMS: []');
@@ -1163,7 +1163,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(tx, d, table,
    */
   var callback = function(transaction, results) {
     var row = results.rows.item(0);
-    //console.log(['row ', row  , results]);
+    // console.log(['row ', row  , results]);
     me.logger.finest('success ' + sql);
     d(row['COUNT(*)']);
   };
@@ -1179,7 +1179,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(tx, d, table,
     }
     me.logger.warning('error: ' + sql + ' ' + error.message);
     d(error, true);
-    return true; // roll back
+    return false;
   };
 
   this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);

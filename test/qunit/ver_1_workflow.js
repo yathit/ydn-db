@@ -385,6 +385,7 @@ var events_schema = {
     var db_name = 'test_abort_1';
     var st1 = 's' + Math.random();
     var st2 = 's' + Math.random();
+    var st3 = 's' + Math.random();
 
     var schema = {
       stores: [
@@ -394,6 +395,10 @@ var events_schema = {
           type: 'NUMERIC'
         }, {
           name: st2,
+          keyPath: 'id',
+          type: 'NUMERIC'
+        }, {
+          name: st3,
           keyPath: 'id',
           type: 'NUMERIC'
         }]
@@ -411,6 +416,8 @@ var events_schema = {
       done_count++;
       if (done_count >= 3) {
         start();
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
       }
     };
 
@@ -431,20 +438,72 @@ var events_schema = {
       done();
     });
 
-    adb.put(st2, obj).always(function (key) {
+    adb.put(st3, obj).always(function (key) {
       equal(obj.id, key, 'atomic store key');
       throws (function () { // this is an assertion too
         db.abort();
       }, undefined, 'atomic tx cannot be aborted');
     });
 
-    adb.get(st2, obj.id).always(function (result) {
+    adb.get(st3, obj.id).always(function (result) {
       equal(obj.value, result.value, 'atomic store result');
       done();
     });
 
   });
 
+})();
+
+
+
+(function () {
+  var test_env = {
+    setup: function () {
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+        console.warn('Error test not finished.');
+      }, 1000);
+    },
+    teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
+    }
+  };
+
+  module("Error", test_env);
+
+  var db_name = 'test_constrained_error' + Math.random();
+  var schema = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'id',
+        type: 'TEXT'
+      }]
+  };
+  var db = new ydn.db.Storage(db_name, schema);
+  var obj = {id: 1, value: 'v' + Math.random()};
+
+  asyncTest("ConstraintError on adding existing key", 2, function () {
+    db.add('st', obj).always(function (k) {
+      equal(k, 1, 'key 1 added')
+    });
+    db.add('st', obj).then(function (x) {
+      ok(false, 'should not add again with existing key');
+      start();
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
+    }, function (e) {
+      if (db.getType() == 'websql') {
+        console.log(e);
+        equal(e.code, 6, 'got ConstraintError');
+      } else {
+        equal(e.name, 'ConstraintError', 'got ConstraintError');
+      }
+      start();
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
+    });
+  });
 
 })();
 

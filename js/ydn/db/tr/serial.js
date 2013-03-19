@@ -46,7 +46,7 @@ ydn.db.tr.Serial = function(storage, ptx_no, scope_name) {
    */
   this.trQueue_ = [];
 
-  this.completed_handlers = [];
+  this.completed_handlers = null;
 
   this.request_tx_ = null;
 
@@ -221,7 +221,8 @@ ydn.db.tr.Serial.prototype.popTxQueue_ = function() {
 
   var task = this.trQueue_.shift();
   if (task) {
-    this.logger.finest('pop tx queue ' + task.fnc.name);
+    this.logger.finest('pop tx queue of ' + this.trQueue_.length + ' ' +
+      task.fnc.name);
     this.processTx(task.fnc, task.store_names, task.mode, task.oncompleted);
   }
   //this.last_queue_checkin_ = goog.now();
@@ -303,13 +304,8 @@ ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
  * Abort an active transaction.
  */
 ydn.db.tr.Serial.prototype.abort = function() {
-  if (this.request_tx_) {
-    this.request_tx_['abort'](); // this will cause error on SQLTransaction and WebStorage.
-    // the error is wanted because there is no way to abort a transaction in
-    // WebSql. It is somehow recommanded workaround to abort a transaction.
-  } else {
-    throw new ydn.db.InvalidStateError('No active transaction');
-  }
+  this.logger.finer(this + ': aborting');
+  ydn.db.tr.IThread.abort(this.request_tx_);
 };
 
 /**
@@ -362,7 +358,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
   if (this.mu_tx_.isActive() || // we are serial, one tx at a time
       // if db is not ready and we already send one tx request, we keep
       // our tx request in our queue
-      (!this.getStorage().isReady() && this.completed_handlers.length > 0)) {
+      (!this.getStorage().isReady() && !goog.isNull(this.completed_handlers) > 0)) {
     this.pushTxQueue(trFn, store_names, mode, oncompleted);
   } else {
     //console.log(this + ' not active ' + scope_name);
@@ -410,11 +406,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         }
       } finally {
         me.mu_tx_.down(type, event);
-        if (me.storage_.countTxQueue() == 0) {
-          // we wait to finished all transactions in base queue,
-          // so that we get all transaction in order.
-          me.popTxQueue_();
-        }
+        me.popTxQueue_();
       }
     };
 

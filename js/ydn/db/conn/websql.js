@@ -105,7 +105,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     var current_version = db.version ? parseInt(db.version, 10) : 0;
     var new_version = schema.isAutoVersion() ?
         is_version_change ? isNaN(current_version) ?
-            0 : (current_version + 1) : current_version
+            1 : (current_version + 1) : current_version
         : schema.version;
     me.logger.finest(dbname + ': ' + action + ' from ' +
       db.version + ' to ' + new_version);
@@ -310,7 +310,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
           if (db.version.length == 0) {
             me.logger.fine('New ' + db_info + ' created.');
 
-            doVersionChange_(db, schema, false);
+            doVersionChange_(db, schema, true);
           } else if (!schema.isAutoVersion()) {
             me.logger.fine('Existing ' + db_info + ' opened and ' +
               ' schema change to version ' + schema.version + ' for ' + msg);
@@ -330,7 +330,6 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
         }
       }, null, db);
     }
-
 
   }
 

@@ -864,10 +864,18 @@ var test_40_clear_store = function() {
     function() {
       // clear success do not return any result and hence 'undefined'.
       //console.log('cleared');
-      assertEquals('clear result', 1, put_value);
+      assertEquals('store cleared', 1, put_value);
+      assertEquals('count in store', 0, countValue);
     },
     100, // interval
     1000); // maxTimeout
+
+  // note, without this, preivous put and next clear method will go into
+  // same transaction and will cause clearing the database happen
+  // before inserting is complete.
+  db.count(table_name).addBoth(function(value) {
+
+  });
 
   var dfl = db.clear(table_name);
   dfl.addBoth(function(value) {
@@ -1282,6 +1290,51 @@ var test_53_fetch_keys = function () {
     put2_done = true;
   });
 
+};
+
+
+var test_constrained_error = function () {
+  var db_name = 'test_constrained_error' + Math.random();
+  var schema = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'id',
+        type: 'TEXT'
+      }]
+  };
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var obj = {id: 1, value: 'v' + Math.random()};
+
+  var done, result, result2;
+
+  waitForCondition(
+    // Condition
+    function() { return done; },
+    // Continuation
+    function() {
+      assertEquals('key', 1, result);
+      assertNotNullNorUndefined('is an error', result2);
+      if (options.mechanisms[0] == 'websql') {
+        assertEquals('is an ConstraintError', 6, result2.code);
+      } else {
+        assertEquals('is an ConstraintError', 'ConstraintError', result2.name);
+      }
+
+      reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  db.add('st', obj).addBoth(function (k) {
+    result = k;
+  });
+  db.add('st', obj).addBoth(function (x) {
+    result2 = x;
+    done = true;
+  });
 };
 
 

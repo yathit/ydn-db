@@ -212,13 +212,8 @@ ydn.db.tr.Parallel.prototype.subScope = function(store_names, mode) {
  * @throws InvalidStateError if transaction is not active.
  */
 ydn.db.tr.Parallel.prototype.abort = function() {
-  if (this.request_tx_) {
-    this.request_tx_['abort'](); // this will cause error on SQLTransaction and WebStorage.
-    // the error is wanted because there is no way to abort a transaction in
-    // WebSql. It is somehow recommanded workaround to abort a transaction.
-  } else {
-    throw new ydn.db.InvalidStateError('No active transaction');
-  }
+  this.logger.finer(this + ': aborting');
+  ydn.db.tr.IThread.abort(this.request_tx_);
 };
 
 

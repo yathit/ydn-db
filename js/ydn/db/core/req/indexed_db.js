@@ -158,7 +158,8 @@ ydn.db.core.req.IndexedDb.prototype.addObject = function(tx, df, table, value,
       window.console.log([event, table, value]);
     }
     me.logger.finest('error ' + msg);
-    df(event, true);
+    var err = request['error'] || new Error();
+    df(err, true);
   };
 };
 

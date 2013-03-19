@@ -118,7 +118,7 @@ var test_2_opt_arg = function() {
     a_out = a;
     b_out = b;
     c_out = c;
-    type_out = idb.getType();
+    type_out = db.getType();
   }, [table_name], 'readwrite', oncompleted, 1, '3', {id: 'ok'});
 };
 

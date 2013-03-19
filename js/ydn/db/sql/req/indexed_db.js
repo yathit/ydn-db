@@ -44,7 +44,7 @@ ydn.db.sql.req.IndexedDb.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.sql.req.IndexedDb.prototype.executeSql = function(df, sql, params) {
+ydn.db.sql.req.IndexedDb.prototype.executeSql = function(tx, df, sql, params) {
 
   var msg = sql.parse(params);
   if (msg) {
@@ -72,7 +72,7 @@ ydn.db.sql.req.IndexedDb.prototype.executeSql = function(df, sql, params) {
       node = new ydn.db.sql.req.idb.Node(store_schema, sql);
     }
 
-    node.execute(df, this);
+    node.execute(tx, df, this);
   } else {
     throw new ydn.error.NotSupportedException(sql.getSql());
   }

@@ -70,10 +70,11 @@ ydn.db.sql.req.idb.Node.prototype.toString = function() {
 
 
 /**
- * @param {!goog.async.Deferred} df
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {ydn.db.index.req.IRequestExecutor} req
  */
-ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
+ydn.db.sql.req.idb.Node.prototype.execute = function(tx, df, req) {
 
   var me = this;
   var out = [];
@@ -102,36 +103,36 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
 
   var ndf = df;
   if (!goog.isNull(sel_fields)) {
-    ndf = new goog.async.Deferred();
-    ndf.addCallbacks(function(records) {
-      var out = records.map(function(record) {
-        var n = sel_fields.length;
-        if (n == 1) {
-          return ydn.db.utils.getValueByKeys(record, sel_fields[0]);
-        } else {
-          var obj = {};
-          for (var i = 0; i < n; i++) {
-            obj[sel_fields[i]] = ydn.db.utils.getValueByKeys(record,
-              sel_fields[i]);
+    ndf = function (records, is_error) {
+      if (is_error) {
+        df(records, true);
+      } else {
+        var out = records.map(function(record) {
+          var n = sel_fields.length;
+          if (n == 1) {
+            return ydn.db.utils.getValueByKeys(record, sel_fields[0]);
+          } else {
+            var obj = {};
+            for (var i = 0; i < n; i++) {
+              obj[sel_fields[i]] = ydn.db.utils.getValueByKeys(record,
+                sel_fields[i]);
+            }
+            return obj;
           }
-          return obj;
-        }
-      });
-      df.callback(out);
-    }, function(e) {
-      df.errback(e);
-    });
-
+        });
+        df(out);
+      }
+    };
   }
   if (order && order != this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(ndf, store_name, order, key_range,
+    req.listByIndexKeyRange(tx, ndf, store_name, order, key_range,
       reverse, limit, offset, false);
   } else if (wheres.length > 0 && wheres[0].getField() !=
-    this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(ndf, store_name, wheres[0].getField(), key_range,
+      this.store_schema.getKeyPath()) {
+    req.listByIndexKeyRange(tx, ndf, store_name, wheres[0].getField(), key_range,
       reverse, limit, offset, false);
   } else {
-    req.listByKeyRange(ndf, store_name, key_range, reverse, limit, offset);
+    req.listByKeyRange(tx, ndf, store_name, key_range, reverse, limit, offset);
   }
 
 };

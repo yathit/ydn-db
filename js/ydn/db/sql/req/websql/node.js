@@ -99,7 +99,7 @@ ydn.db.sql.req.websql.Node.prototype.parseRow = function(row) {
 
 
 /**
- * @param {!goog.async.Deferred} df
+ * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {SQLTransaction} tx
  * @param {Array} params
  */
@@ -127,7 +127,7 @@ ydn.db.sql.req.websql.Node.prototype.execute = function(df, tx, params) {
         out.push(value);
       }
     }
-    df.callback(out);
+    df(out);
   };
 
   /**
@@ -140,7 +140,7 @@ ydn.db.sql.req.websql.Node.prototype.execute = function(df, tx, params) {
       window.console.log([sql_stm, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
-    df.errback(error);
+    df(error, true);
     return true; // roll back
   };
 

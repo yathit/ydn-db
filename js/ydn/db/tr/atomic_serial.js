@@ -37,6 +37,13 @@ goog.inherits(ydn.db.tr.AtomicSerial, ydn.db.tr.Serial);
  */
 ydn.db.tr.AtomicSerial.DEBUG = false;
 
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.tr.AtomicSerial.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.tr.AtomicSerial');
+
 
 /**
  * @inheritDoc
@@ -55,13 +62,12 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (df, callback, store_names, mod
     result = e;
   });
   var completed_handler = function(t, e) {
-    // console.log('completed_handler ' + t + ' ' + e);
+  //  console.log('AtomicSerial completed_handler ' + t + ' ' + e);
     if (is_error) {
       df.errback(result);
     } else {
       df.callback(result);
     }
-
     if (on_completed) {
       on_completed(t, e);
       on_completed = undefined;

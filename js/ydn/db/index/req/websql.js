@@ -62,22 +62,25 @@ ydn.db.index.req.WebSql.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.getByIterator = function(df, q) {
+ydn.db.index.req.WebSql.prototype.getByIterator = function(tx, df, q) {
 
-
-  var qdf = new goog.async.Deferred();
-  this.fetchIterator_(qdf, q, false, 1);
-
-  qdf.addCallbacks(function(results) {
-    if (goog.isArray(results)) {
-      df.callback(results[0]);
+  /**
+   * @param {*} results
+   * @param {boolean=} is_error
+   */
+  var qdf = function (results, is_error) {
+    if (is_error) {
+      df(results, true);
     } else {
-      df.callback();
+      if (goog.isArray(results)) {
+        df(results[0]);
+      } else {
+        df(undefined);
+      }
     }
+  };
 
-  }, function(e) {
-    df.errback(e);
-  })
+  this.fetchIterator_(tx, qdf, q, false, 1);
 
 };
 
@@ -177,9 +180,9 @@ ydn.db.index.req.WebSql.prototype.getByIterator = function(df, q) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.keysByIterator = function(df, q, limit, offset) {
+ydn.db.index.req.WebSql.prototype.keysByIterator = function(tx, df, q, limit, offset) {
 
-  this.fetchIterator_(df, q, true, limit, offset);
+  this.fetchIterator_(tx, df, q, true, limit, offset);
 
 };
 
@@ -187,23 +190,24 @@ ydn.db.index.req.WebSql.prototype.keysByIterator = function(df, q, limit, offset
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.listByIterator = function(df, q, limit, offset) {
+ydn.db.index.req.WebSql.prototype.listByIterator = function(tx, df, q, limit, offset) {
 
-  this.fetchIterator_(df, q, false, limit, offset);
+  this.fetchIterator_(tx, df, q, false, limit, offset);
 
 };
 
 
 
 /**
- * @param {!goog.async.Deferred} df return object in deferred function.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {!ydn.db.Iterator} q the query.
  * @param {boolean} keys_method 'keys' or 'list' method.
  * @param {number=} limit override limit.
  * @param {number=} offset
  * @private
  */
-ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, limit, offset) {
+ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, df, q, keys_method, limit, offset) {
 
   var me = this;
   var msg = 'fetchIterator:' + q;
@@ -316,7 +320,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
       result.push(row_parser(row));
     }
     me.logger.finest('success ' + sql);
-    df.callback(result);
+    df(result);
 
   };
 
@@ -330,8 +334,8 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
       window.console.log([q, tr, error]);
     }
     me.logger.warning('error: ' + sql + ' ' + error.message);
-    df.errback(error);
-    return true; // roll back
+    df(error, true);
+    return false; // roll back
   };
 
   if (ydn.db.index.req.WebSql.DEBUG) {
@@ -339,7 +343,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
   }
 
   this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
-  this.tx.executeSql(sql, params, callback, error_callback);
+  tx.executeSql(sql, params, callback, error_callback);
 
 };
 
@@ -347,7 +351,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(df, q, keys_method, 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.getCursor = function (store_name,
+ydn.db.index.req.WebSql.prototype.getCursor = function (tx, store_name,
         index_name, keyRange, direction, key_only) {
 
   var store = this.schema.getStore(store_name);
@@ -357,7 +361,8 @@ ydn.db.index.req.WebSql.prototype.getCursor = function (store_name,
     var index = store.getIndex(index_name);
     index_key_path = index.getKeyPath();
   }
-  return new ydn.db.index.req.WebsqlCursor(this.getTx(), store, store_name,
+  return new ydn.db.index.req.WebsqlCursor(/** @type {SQLTransaction} */ (tx),
+    store, store_name,
     index_name, index_key_path, keyRange, direction, key_only);
 };
 

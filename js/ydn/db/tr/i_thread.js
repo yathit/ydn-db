@@ -87,3 +87,43 @@ ydn.db.tr.IThread.ThreadList = [
   ydn.db.tr.IThread.Threads.SINGLE
 ];
 
+
+
+
+/**
+ * Abort an active transaction.
+ */
+ydn.db.tr.IThread.abort = function(tx) {
+  if (tx) {
+    if ('abort' in tx) {
+      tx['abort']();
+    } else if ('executeSql' in tx) {
+
+      /**
+       * @param {SQLTransaction} transaction transaction.
+       * @param {SQLResultSet} results results.
+       */
+      var callback = function(transaction, results) {
+
+      };
+      /**
+       * @param {SQLTransaction} tr transaction.
+       * @param {SQLError} error error.
+       * @return {boolean} true to roll back.
+       */
+      var error_callback = function(tr, error) {
+        // console.log(error);
+        return true; // roll back
+      };
+      tx.executeSql('ABORT', [], callback, error_callback);
+      // this will cause error on SQLTransaction and WebStorage.
+      // the error is wanted because there is no way to abort a transaction in
+      // WebSql. It is somehow recommanded workaround to abort a transaction.
+    }  else {
+      throw new ydn.error.NotSupportedException();
+    }
+
+  } else {
+    throw new ydn.db.InvalidStateError('No active transaction');
+  }
+};

@@ -25,7 +25,7 @@ goog.inherits(ydn.db.sql.req.websql.ReduceNode, ydn.db.sql.req.websql.Node);
 
 
 /**
- * @param {!goog.async.Deferred} df
+ * @param {?function(*, boolean=)} df key in deferred function.
  * @param {SQLTransaction} tx
  * @param {Array} params
  * @override
@@ -44,9 +44,9 @@ ydn.db.sql.req.websql.ReduceNode.prototype.execute = function(df, tx, params) {
     var n = results.rows.length;
     if (n == 1) {
       var value = ydn.object.takeFirst(results.rows.item(0));
-      df.callback(value);
+      df(value);
     } else if (n == 0) {
-      df.callback(undefined);
+      df(undefined);
     } else {
       throw new ydn.db.InternalError();
     }
@@ -63,7 +63,7 @@ ydn.db.sql.req.websql.ReduceNode.prototype.execute = function(df, tx, params) {
       window.console.log([sql_stm, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
-    df.errback(error);
+    df(error, true);
     return true; // roll back
   };
 

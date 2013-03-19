@@ -858,12 +858,12 @@ ydn.db.Iterator.prototype.exit = function() {
 
 
 /**
- *
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.AbstractCursor}
  * @private
  */
-ydn.db.Iterator.prototype.iterate_ = function(executor) {
+ydn.db.Iterator.prototype.iterate_ = function(tx, executor) {
   var ini_key, ini_index_key;
   var resume = this.has_done === false;
   if (resume) {
@@ -876,7 +876,7 @@ ydn.db.Iterator.prototype.iterate_ = function(executor) {
   }
   this.has_done = undefined; // switching to working state.
 
-  var cursor = executor.getCursor(this.store_name, this.index,
+  var cursor = executor.getCursor(tx, this.store_name, this.index,
       this.key_range_, this.direction, this.key_only_);
 
   this.logger.finest(this + ' created ' + cursor);
@@ -902,12 +902,12 @@ ydn.db.Iterator.prototype.iterate_ = function(executor) {
 
 
 /**
- *
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.AbstractCursor}
  * @private
  */
-ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
+ydn.db.Iterator.prototype.iterateWithFilters_ = function(tx, executor) {
   var me = this;
   var ini_key, ini_index_key;
   var resume = this.has_done === false;
@@ -932,7 +932,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
 
   // we send primary_cursor first, so that we filtered cursor arrive, we know
   // our target key value is.
-  var primary_cursor = executor.getCursor(this.store_name, this.index,
+  var primary_cursor = executor.getCursor(tx, this.store_name, this.index,
       this.key_range_, this.direction, this.key_only_);
 
 
@@ -977,7 +977,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
   };
   for (var i = 0; i < this.filter_index_names_.length; i++) {
     var store_name = this.filter_store_names_[i] || this.store_name;
-    var cursor = executor.getCursor(store_name, this.filter_index_names_[i],
+    var cursor = executor.getCursor(tx, store_name, this.filter_index_names_[i],
         this.filter_key_ranges_[i], this.direction, true);
     cursor.open_request(this.filter_ini_keys_[i], this.filter_ini_index_keys_[i]);
     cursors.push(cursor);
@@ -1085,15 +1085,15 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
 };
 
 /**
- *
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.AbstractCursor}
  */
-ydn.db.Iterator.prototype.iterate = function(executor) {
+ydn.db.Iterator.prototype.iterate = function(tx, executor) {
   if (this.filter_index_names_.length > 0) {
-    return this.iterateWithFilters_(executor);
+    return this.iterateWithFilters_(tx, executor);
   } else {
-    return this.iterate_(executor);
+    return this.iterate_(tx, executor);
   }
 };
 
