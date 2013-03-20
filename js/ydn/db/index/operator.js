@@ -83,7 +83,7 @@ ydn.db.index.DbOperator.prototype.get = function(arg1, arg2) {
     });
     this.logger.finer('listByIterator:' + q);
     this.tx_thread.exec(list_df, function(cb, tx) {
-      me.getExecutor().listByIterator(cb, q, 1, 0);
+      me.getIndexExecutor().listByIterator(tx, cb, q, 1, 0);
     }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');
     return df;
   } else {
@@ -135,7 +135,7 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
 
     this.logger.finer('keysByIterator:' + q);
     this.tx_thread.exec(df, function(cb, tx) {
-      me.getExecutor().keysByIterator(tx, cb, q, limit, offset);
+      me.getIndexExecutor().keysByIterator(tx, cb, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
     return df;
@@ -165,7 +165,7 @@ ydn.db.index.DbOperator.prototype.count = function(arg1, arg2, arg3) {
     var q = arg1;
     this.logger.finer('countKeyRange:' + q);
     this.tx_thread.exec(df, function(cb, tx) {
-      me.getExecutor().countKeyRange(tx, cb, q.getStoreName(), q.keyRange(),
+      me.getIndexExecutor().countKeyRange(tx, cb, q.getStoreName(), q.keyRange(),
         q.getIndexName());
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'countByIterator');
 
@@ -218,7 +218,7 @@ ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5
     var q = arg1;
     this.logger.finer('listByIterator:' + q);
     this.tx_thread.exec(df, function(cb, tx) {
-      me.getExecutor().listByIterator(tx, cb, q, limit, offset);
+      me.getIndexExecutor().listByIterator(tx, cb, q, limit, offset);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
     return df;
@@ -546,8 +546,8 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
         idx2iterator[idx] = i;
         idx++;
         for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
-          var streamer = me.getExecutor().getStreamer(tx, iterator.getPeerStoreName(j),
-            iterator.getBaseIndexName(j), iterator.getPeerIndexName(j));
+          var streamer = me.getIndexExecutor().getStreamer(tx, iterator.getPeerStoreName(j),
+            iterator.getBaseIndexName(j));
           streamer.setSink(goog.partial(on_streamer_pop, idx));
           streamers.push(streamer);
           idx2streamer[idx] = streamers.length;

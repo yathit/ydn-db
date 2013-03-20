@@ -101,7 +101,7 @@ var test_streamer_collect = function() {
 
   var streamer = new ydn.db.Streamer(db, store_name);
 
-  db.addEventListener('done', function() {  // to make sure
+  db.addEventListener('ready', function() {  // to make sure
     streamer.push(objs[1].id);
     streamer.push(objs[4].id);
     streamer.collect(function(keys, x) {
@@ -137,7 +137,7 @@ var test_streamer_sink = function() {
     }
   });
 
-  db.addEventListener('done', function() {  // to make sure
+  db.addEventListener('ready', function() {  // to make sure
     streamer.push(objs[1].id);
     streamer.push(objs[4].id);
   });
@@ -164,7 +164,7 @@ var test_index_streamer_collect = function() {
 
   var streamer = new ydn.db.Streamer(db, store_name, 'x');
 
-  db.addEventListener('done', function() {  // to make sure
+  db.addEventListener('ready', function() {  // to make sure
     streamer.push(objs[1].id);
     streamer.push(objs[4].id);
     streamer.collect(function(keys, x) {

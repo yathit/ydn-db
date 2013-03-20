@@ -19,10 +19,9 @@ goog.provide('ydn.db.events.Types');
  * @enum {string}
  */
 ydn.db.events.Types = {
-  DONE: 'done',
+  READY: 'ready',
   CREATED: 'created',
   DELETED: 'deleted',
-  FAIL: 'fail',
   UPDATED: 'updated'
 };
 
@@ -61,14 +60,16 @@ ydn.db.events.Event.prototype.getStoreName = function() {
  * @param {goog.events.EventTarget} event_target event target.
  * @param {number} version source.
  * @param {number} old_version old version.
+ * @param {Error} error error object in case of error.
  * @extends {ydn.db.events.Event}
  * @constructor
  */
 ydn.db.events.StorageEvent = function(event_type, event_target, version,
-                                      old_version) {
+                                      old_version, error) {
   goog.base(this, event_type, event_target);
   this.version = version;
   this.oldVersion = old_version;
+  this.error = error;
 };
 goog.inherits(ydn.db.events.StorageEvent, ydn.db.events.Event);
 
@@ -91,6 +92,12 @@ ydn.db.events.StorageEvent.prototype.version = NaN;
  */
 ydn.db.events.StorageEvent.prototype.oldVersion = NaN;
 
+/**
+ *
+ * @type {Error}
+ */
+ydn.db.events.StorageEvent.prototype.error = null;
+
 
 /**
  *
@@ -106,6 +113,14 @@ ydn.db.events.StorageEvent.prototype.getVersion = function() {
  */
 ydn.db.events.StorageEvent.prototype.getOldVersion = function() {
   return this.oldVersion;
+};
+
+/**
+ *
+ * @return {Error}
+ */
+ydn.db.events.StorageEvent.prototype.getError = function() {
+  return this.error;
 };
 
 

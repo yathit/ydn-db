@@ -75,7 +75,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   var options = opt_options || {};
 
   if (goog.DEBUG) {
-    var fields = ['autoSchema', 'size', 'mechanisms', 'thread'];
+    var fields = ['autoSchema', 'connectionTimeout', 'size', 'mechanisms', 'thread'];
     for (var key in options) {
       if (options.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.debug.error.ArgumentException('Unknown attribute "' + key +
@@ -92,9 +92,14 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   /**
    * @final
-   * @type {number|undefined}
    */
   this.size = options.size;
+
+  /**
+   * @final
+   */
+  this.connectionTimeout = options.connectionTimeout ||
+    ydn.db.base.DEFAULT_CONNECTION_TIMEOUT;
 
   /**
    * @final
@@ -102,6 +107,8 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    */
   this.use_text_store = goog.isDef(options.use_text_store) ?
     options.use_text_store : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
+
+  this.onReady = null;
 
   /**
    * @type {ydn.db.con.IDatabase}
@@ -260,6 +267,19 @@ ydn.db.con.Storage.prototype.setName = function(opt_db_name) {
 
 
 /**
+ * @type {number|undefined}
+ * @protected
+ */
+ydn.db.con.Storage.prototype.size;
+
+/**
+ * @type {number}
+ * @protected
+ */
+ydn.db.con.Storage.prototype.connectionTimeout;
+
+
+/**
  * Super class must not mutate schema data.
  * @type {!ydn.db.schema.Database} database schema as requested.
  */
@@ -382,13 +402,18 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
     me.logger.finest(me + ': ready.');
     me.last_queue_checkin_ = NaN;
 
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.DONE,
-      me, parseFloat(db.getVersion()), old_version);
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY,
+      me, parseFloat(db.getVersion()), parseFloat(old_version), null);
+
     goog.Timer.callOnce(function () {
       // dispatch asynchroniously so that any err on running db request
       // are not caught under deferred object.
-      me.popTxQueue_();
+
+      if (me.onReady) {
+        me.onReady(event);
+      }
       me.dispatchEvent(event);
+      me.popTxQueue_();
     });
 
     /**
@@ -406,11 +431,15 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
     goog.async.Deferred.fail(e);
     // this could happen if user do not allow to use the storage
 
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me, NaN, NaN);
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, me,
+      NaN, NaN, e);
     event.message = e.message;
     goog.Timer.callOnce(function () {
-      me.purgeTxQueue_(e);
+      if (me.onReady) {
+        me.onReady(event);
+      }
       me.dispatchEvent(event);
+      me.purgeTxQueue_(e);
     });
   });
 
@@ -432,6 +461,13 @@ ydn.db.con.Storage.prototype.getType = function() {
     return undefined;
   }
 };
+
+
+/**
+ *
+ * @type {?function(ydn.db.events.StorageEvent)}
+ */
+ydn.db.con.Storage.prototype.onReady = null;
 
 
 /**
@@ -740,7 +776,7 @@ if (goog.DEBUG) { // don't allow to added non existing event type
 ydn.db.con.Storage.prototype.addEventListener = function(
     type, handler, opt_capture, opt_handlerScope) {
   var checkType = function (type) {
-    if (!goog.array.contains(['created', 'done', 'deleted', 'fail', 'updated'],
+    if (!goog.array.contains(['created', 'ready', 'deleted', 'updated'],
       type)) {
       throw new ydn.debug.error.ArgumentException('Invalid event type "' +
         type + '"');

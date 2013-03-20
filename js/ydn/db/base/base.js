@@ -61,6 +61,13 @@ ydn.db.base.DEFAULT_RESULT_LIMIT = 100;
 
 
 /**
+ * Default connection time interval in ms.
+ * @define {number}
+ */
+ydn.db.base.DEFAULT_CONNECTION_TIMEOUT = 1*60*1000;
+
+
+/**
  * Create a new deferred instance depending on target platform.
  * @return {!goog.async.Deferred} newly created deferred object.
  */

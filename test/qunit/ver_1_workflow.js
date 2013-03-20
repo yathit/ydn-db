@@ -64,15 +64,15 @@ var events_schema = {
 
   module("Storage Event", test_env);
 
-  asyncTest("connected to a new database and existing", function () {
-    expect(4 * 3);
+  asyncTest("connected to a new database and existing", 15, function () {
 
     var db = new ydn.db.Storage(db_name_event, schema);
 
-    db.addEventListener('done', function (e) {
+    db.addEventListener('ready', function (e) {
       equal(e.name, 'StorageEvent', 'event name');
-      equal(e.type, 'done', 'event type');
+      equal(e.type, 'ready', 'event type');
       equal(e.getVersion(), 1, 'version number');
+      equal(e.getError(), null, 'no error');
       ok(isNaN(e.getOldVersion()), 'old version number');
 
       db.values(store_inline).always(function () {
@@ -81,12 +81,12 @@ var events_schema = {
 
         db = new ydn.db.Storage(db_name_event, schema);
 
-        db.addEventListener('done', function (e) {
+        db.addEventListener('ready', function (e) {
           equal(e.name, 'StorageEvent', 'event name');
-          equal(e.type, 'done', 'event type');
+          equal(e.type, 'ready', 'event type');
           equal(e.getVersion(), 1, 'version number');
           equal(e.getOldVersion(), 1, 'old version number, existing');
-
+          equal(e.getError(), null, 'no error');
           db.values(store_inline).always(function () {
 
             db.close();
@@ -101,11 +101,12 @@ var events_schema = {
 
             db = new ydn.db.Storage(db_name_event, new_schema);
 
-            db.addEventListener('done', function (e) {
+            db.addEventListener('ready', function (e) {
               equal(e.name, 'StorageEvent', 'event name');
-              equal(e.type, 'done', 'event type');
+              equal(e.type, 'ready', 'event type');
               equal(e.getVersion(), 2, 'updated version number');
               equal(e.getOldVersion(), 1, 'old version number, existing db, new schema');
+              equal(e.getError(), null, 'no error');
               var type = db.getType();
               db.values(tb_name).always(function () { // make sure all run.
                 db.close();
@@ -507,7 +508,7 @@ var events_schema = {
 
     }, ['s1'], 'readwrite', function (t, e) {
       db.get('s1', obj.id).always(function (result) {
-        equal(undefined, result, 'aborted store 1 result');
+        equal(undefined, result, 'aborted store 1 done result');
         done();
       });
     });
