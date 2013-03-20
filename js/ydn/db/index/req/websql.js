@@ -363,7 +363,7 @@ ydn.db.index.req.WebSql.prototype.getCursor = function (tx, tx_no, store_name,
     var index = store.getIndex(index_name);
     index_key_path = index.getKeyPath();
   }
-  return new ydn.db.index.req.WebsqlCursor(/** @type {SQLTransaction} */ (tx),
+  return new ydn.db.index.req.WebsqlCursor(
     store, store_name,
     index_name, index_key_path, keyRange, direction, key_only);
 };

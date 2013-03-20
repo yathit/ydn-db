@@ -623,10 +623,10 @@ ydn.db.index.DbOperator.prototype.open = function(iterator, callback, mode) {
       if (goog.isDefAndNotNull(primaryKey)) {
         var adv = callback(cursor);
         if (adv === true) {
-          cursor.restart(null, null);
+          cursor.restart(tx, tx_no, null, null);
         } else if (goog.isObject(adv)) {
           if (adv['restart'] === true) {
-            cursor.restart(adv['continue'], adv['continuePrimary']);
+            cursor.restart(tx, tx_no, adv['continue'], adv['continuePrimary']);
           } else if (goog.isDefAndNotNull(adv['continue'])) {
             cursor.continueEffectiveKey(adv['continue']);
           } else if (goog.isDefAndNotNull(adv['continuePrimary'])) {

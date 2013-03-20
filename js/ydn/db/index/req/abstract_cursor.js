@@ -226,7 +226,8 @@ ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
  *
  * This will seek to given initial position if given. If only ini_key (primary
  * key) is given, this will rewind, if not found.
- *
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
  * @param {*=} ini_key primary key to resume position.
  * @param {*=} ini_index_key index key to resume position.
  * @param {boolean=} exclusive
@@ -258,6 +259,8 @@ ydn.db.index.req.AbstractCursor.prototype.advance = goog.abstractMethod;
 /**
  * Restart the cursor. If previous cursor position is given,
  * the position is skip.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
  * @param {*} effective_key previous position.
  * @param {*} primary_key
  */
