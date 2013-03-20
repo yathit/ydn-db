@@ -12,6 +12,8 @@ goog.require('ydn.db.index.req.ICursor');
 
 /**
  * Open an index. This will resume depending on the cursor state.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
  * @param {!ydn.db.schema.Store} store_schema schema.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
@@ -23,10 +25,10 @@ goog.require('ydn.db.index.req.ICursor');
  * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
-ydn.db.index.req.WebsqlCursor = function(store_schema, store_name,
+ydn.db.index.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
     index_name, index_key_path, keyRange, direction, key_only) {
 
-  goog.base(this, store_name, index_name, keyRange, direction, key_only);
+  goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction, key_only);
 
   /**
    * @final
@@ -56,6 +58,7 @@ ydn.db.index.req.WebsqlCursor.DEBUG = false;
  */
 ydn.db.index.req.WebsqlCursor.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.WebsqlCursor');
+
 
 /**
  * @private
@@ -140,9 +143,17 @@ ydn.db.index.req.WebsqlCursor.prototype.invokeNextSuccess_ = function() {
 
 
 /**
- * @inheritDoc
+ * Make cursor opening request.
+ *
+ * This will seek to given initial position if given. If only ini_key (primary
+ * key) is given, this will rewind, if not found.
+ *
+ * @param {*=} ini_key primary key to resume position.
+ * @param {*=} ini_index_key index key to resume position.
+ * @param {boolean=} exclusive
+ * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.open_request = function(tx, tx_no, ini_key, ini_index_key, exclusive) {
+ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_index_key, exclusive) {
 
   var key_range = this.key_range;
   if (!!this.index_name && goog.isDefAndNotNull(ini_index_key)) {
@@ -290,7 +301,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(tx, tx_no, ini_k
 
   var sql = sqls.join(' ');
   me.logger.finest(this + ': opened: ' + sql + ' : ' + ydn.json.stringify(params));
-  tx.executeSql(sql, params, onSuccess, onError);
+  this.tx.executeSql(sql, params, onSuccess, onError);
 
 };
 
@@ -378,7 +389,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getValue = function () {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.clear = function(tx, tx_no, idx) {
+ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
 
   if (!this.hasCursor()) {
     throw new ydn.db.InvalidAccessError();
@@ -424,7 +435,7 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function(tx, tx_no, idx) {
         ' WHERE ' + primary_column_name + ' = ?';
     var params = [this.getPrimaryKey()];
     me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(params));
-    tx.executeSql(sql, params, onSuccess, onError);
+    this.tx.executeSql(sql, params, onSuccess, onError);
     return df;
   }
 };
@@ -583,9 +594,9 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj, idx) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.restart = function(tx, tx_no, effective_key, primary_key) {
+ydn.db.index.req.WebsqlCursor.prototype.restart = function(effective_key, primary_key) {
   this.logger.finest(this + ' restarting.');
-  this.open_request(tx, tx_no, primary_key, effective_key, true);
+  this.open_request(primary_key, effective_key, true);
 };
 
 
@@ -661,10 +672,4 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.index.req.WebsqlCursor.prototype.toString = function() {
-  return 'WebsqlCursor: ' + this.store_name + ':' + this.index_name;
-};
 

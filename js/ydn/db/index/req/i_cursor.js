@@ -67,8 +67,6 @@ ydn.db.index.req.ICursor.prototype.advance = goog.abstractMethod;
 /**
  * Restart the cursor. If previous cursor position is given,
  * the position is skip.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no tx no
  * @param {*} effective_key previous position.
  * @param {*} primary_key
  */

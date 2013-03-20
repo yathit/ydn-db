@@ -50,20 +50,23 @@ ydn.db.index.req.IndexedDb.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.getByIterator = function(tx, tx_no, df, q) {
+ydn.db.index.req.IndexedDb.prototype.getByIterator = function(tx, tx_no, df, iter) {
 
-  var msg = 'getByIterator: ' + q;
+  var msg = 'getByIterator: ' + iter;
   var me = this;
   this.logger.finest(msg);
-  var req = q.iterate(tx, tx_no, this);
-  req.onError = function(e) {
+  var cursor = iter.iterate(tx, tx_no, this);
+  cursor.onError = function(e) {
     me.logger.warning(msg);
+    iter.exit();
+    cursor.dispose();
     df(e, false);
   };
-  req.onNext = function(primary_key, key, value) {
-    q.exit();
+  cursor.onNext = function(primary_key, key, value) {
     me.logger.finest(msg);
-    df(q.isKeyOnly() ? key : value);
+    iter.exit();
+    cursor.dispose();
+    df(iter.isKeyOnly() ? key : value);
 
   };
 };
@@ -81,6 +84,8 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df, it
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onError = function(e) {
     me.logger.warning('error:' + msg);
+    iter.exit();
+    cursor.dispose();
     df(e, true);
   };
   var count = 0;
@@ -98,10 +103,13 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df, it
         cursor.continueEffectiveKey();
       } else {
         iter.exit();
+        cursor.dispose();
         me.logger.finest('success:' + msg);
         df(arr);
       }
     } else {
+      iter.exit();
+      cursor.dispose();
       me.logger.finest('success:' + msg);
       df(arr);
     }
@@ -115,12 +123,14 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df, it
 ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df, iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
-  var msg = 'listByIterator' + iter;
+  var msg = 'listByIterator' + iter + ':tx' + tx_no;
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onError = function(e) {
     me.logger.warning('error:' + msg);
+    iter.exit();
+    cursor.dispose();
     df(e, false);
   };
   var count = 0;
@@ -139,10 +149,13 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df, it
       } else {
         iter.exit();
         me.logger.finest('success:' + msg);
+        cursor.dispose();
         df(arr);
       }
     } else {
+      iter.exit();
       me.logger.finest('success:' + msg);
+      cursor.dispose();
       df(arr);
     }
   };
@@ -154,7 +167,8 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df, it
  */
 ydn.db.index.req.IndexedDb.prototype.getCursor = function (tx, tx_no, store_name,
      index_name, keyRange, direction, key_only) {
-  return new ydn.db.index.req.IDBCursor(store_name, index_name,
+
+  return new ydn.db.index.req.IDBCursor(tx, tx_no, store_name, index_name,
     keyRange, direction, key_only);
 };
 

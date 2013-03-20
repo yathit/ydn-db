@@ -301,6 +301,9 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
       for (var k = 0; k < iterators.length; k++) {
         iterators[k].exit();
       }
+      for (var k = 0; k < cursors.length; k++) {
+        cursors[k].dispose();
+      }
       done = true;
       goog.array.clear(cursors);
       goog.array.clear(streamers);
@@ -488,32 +491,30 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
     var on_iterator_next = function (i, primary_key, key, value) {
       if (done) {
         if (ydn.db.index.DbOperator.DEBUG) {
-          window.console.log(['on_iterator_next', i, primary_key, key, value]);
+          window.console.log(['on_iterator_next done', i, primary_key, key, value]);
         }
         // calling next to a terminated iterator
         throw new ydn.error.InternalError();
       }
       result_count++;
       if (ydn.db.index.DbOperator.DEBUG) {
-        window.console.log(['on_iterator_next', i, idx2iterator[i], result_count, key, value]);
+        window.console.log(['on_iterator_next', i, primary_key, key, value, idx2iterator[i], result_count]);
       }
       var idx = idx2iterator[i];
       var iterator = iterators[idx];
 
       if (iterator.isIndexIterator()) {
+        keys[i] = key;
         if (iterator.isKeyOnly()) {
-          keys[i] = key;
           values[i] = primary_key;
         } else {
-          keys[i] = key;
           values[i] = value;
         }
       } else {
+        keys[i] = primary_key;
         if (iterator.isKeyOnly()) {
-          keys[i] = primary_key;
           values[i] = primary_key;
         } else {
-          keys[i] = primary_key;
           values[i] = value;
         }
       }
@@ -590,59 +591,65 @@ ydn.db.index.DbOperator.prototype.getIndexExecutor = function() {
 
 /**
  *
- * @param {!ydn.db.Iterator} iterator the cursor.
+ * @param {!ydn.db.Iterator} iter the cursor.
  * @param {Function} callback icursor handler.
  * @param {ydn.db.base.TransactionMode=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.DbOperator.prototype.open = function(iterator, callback, mode) {
-  if (!(iterator instanceof ydn.db.Iterator)) {
+ydn.db.index.DbOperator.prototype.open = function(iter, callback, mode) {
+  if (!(iter instanceof ydn.db.Iterator)) {
     throw new ydn.debug.error.ArgumentException('First argument must be cursor range iterator.');
   }
-  var store = this.schema.getStore(iterator.getStoreName());
+  var store = this.schema.getStore(iter.getStoreName());
   if (!store) {
-    throw new ydn.debug.error.ArgumentException('Store "' + iterator.getStoreName() +
+    throw new ydn.debug.error.ArgumentException('Store "' + iter.getStoreName() +
       '" not found.');
   }
   var tr_mode = mode || ydn.db.base.TransactionMode.READ_ONLY;
 
   var me = this;
   var df = ydn.db.base.createDeferred();
-  this.logger.finer('open:' + tr_mode + ' ' + iterator);
+  this.logger.finer('open:' + tr_mode + ' ' + iter);
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
     // executor.open(df, cursor, callback, /** @type {ydn.db.base.CursorMode} */ (tr_mode));
 
     var read_write = tr_mode == ydn.db.base.TransactionMode.READ_WRITE;
 
-    var cursor = iterator.iterate(tx, tx_no, me.getIndexExecutor());
+    var cursor = iter.iterate(tx, tx_no, me.getIndexExecutor());
 
     cursor.onError = function(e) {
+      iter.exit();
+      cursor.dispose();
       cb(e, true);
     };
     cursor.onNext = function (primaryKey, key, value) {
       if (goog.isDefAndNotNull(primaryKey)) {
         var adv = callback(cursor);
         if (adv === true) {
-          cursor.restart(tx, tx_no, null, null);
+          cursor.restart(null, null);
         } else if (goog.isObject(adv)) {
           if (adv['restart'] === true) {
-            cursor.restart(tx, tx_no, adv['continue'], adv['continuePrimary']);
+            cursor.restart(adv['continue'], adv['continuePrimary']);
           } else if (goog.isDefAndNotNull(adv['continue'])) {
             cursor.continueEffectiveKey(adv['continue']);
           } else if (goog.isDefAndNotNull(adv['continuePrimary'])) {
             cursor.continuePrimaryKey(adv['continuePrimary']);
           } else {
+            iter.exit();
+            cursor.dispose();
             cb(undefined); // break the loop
           }
         } else {
           cursor.advance(1);
         }
       } else {
+        iter.exit();
+        cursor.dispose();
         cb(undefined);
       }
     };
 
-  }, iterator.stores(), tr_mode, 'open');
+  }, iter.stores(), tr_mode, 'open');
 
   return df;
 

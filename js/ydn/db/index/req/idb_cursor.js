@@ -9,6 +9,8 @@ goog.require('ydn.db.index.req.AbstractCursor');
 
 /**
  * Open an index. This will resume depending on the cursor state.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
  * @param {IDBKeyRange} keyRange
@@ -17,9 +19,9 @@ goog.require('ydn.db.index.req.AbstractCursor');
  * @extends {ydn.db.index.req.AbstractCursor}
  * @constructor
  */
-ydn.db.index.req.IDBCursor = function(store_name, index_name,
+ydn.db.index.req.IDBCursor = function(tx, tx_no, store_name, index_name,
     keyRange, direction, key_only) {
-  goog.base(this, store_name, index_name, keyRange, direction, key_only);
+  goog.base(this, tx, tx_no,  store_name, index_name, keyRange, direction, key_only);
 
   this.cur_ = null;
   this.target_key_ = null;
@@ -45,18 +47,7 @@ ydn.db.index.req.IDBCursor.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.IDBCursor');
 
 
-/**
- * @private
- * @type {string}
- */
-ydn.db.index.req.IDBCursor.prototype.store_name;
 
-
-/**
- * @private
- * @type {string}
- */
-ydn.db.index.req.IDBCursor.prototype.index_name;
 
 
 /**
@@ -167,9 +158,17 @@ ydn.db.index.req.IDBCursor.prototype.has_pending_request_ = false;
 
 
 /**
+ * Make cursor opening request.
+ *
+ * This will seek to given initial position if given. If only ini_key (primary
+ * key) is given, this will rewind, if not found.
+ *
+ * @param {*=} ini_key primary key to resume position.
+ * @param {*=} ini_index_key index key to resume position.
+ * @param {boolean=} exclusive
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.open_request = function (tx, tx_no, ini_key, ini_index_key, exclusive) {
+ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index_key, exclusive) {
 
   var label = 'IDBCursor: ' + this.store_name + ':' + this.index_name;
   this.target_key_ = ini_key;
@@ -177,8 +176,6 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (tx, tx_no, ini_key
   this.target_exclusive_ = !!exclusive;
 
   //window.console.log([this, 'open_request', ini_key, ini_index_key, exclusive]);
-  var obj_store = tx.objectStore(this.store_name);
-  var index = this.index_name ? obj_store.index(this.index_name) : null;
 
   var key_range = this.key_range;
   if (goog.isDefAndNotNull(ini_index_key)) {
@@ -202,12 +199,16 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (tx, tx_no, ini_key
     }
   } // TODO: what about ini_key for primary iterator?
 
+
+  var obj_store = this.tx.objectStore(this.store_name);
+  var index = this.index_name ? obj_store.index(this.index_name) : null;
+
   /**
    * @type {IDBRequest}
    */
   var request;
   if (this.key_only) {
-    if (this.index) {
+    if (index) {
       if (goog.isDefAndNotNull(this.dir)) {
         request = index.openKeyCursor(key_range, this.dir);
       } else if (goog.isDefAndNotNull(key_range)) {
@@ -232,7 +233,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (tx, tx_no, ini_key
 
     }
   } else {
-    if (this.index) {
+    if (index) {
       if (goog.isDefAndNotNull(this.dir)) {
         request = index.openCursor(key_range, this.dir);
       } else if (goog.isDefAndNotNull(key_range)) {
@@ -473,9 +474,9 @@ ydn.db.index.req.IDBCursor.prototype.clear = function(index) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.restart = function(tx, tx_no, effective_key, primary_key) {
+ydn.db.index.req.IDBCursor.prototype.restart = function(effective_key, primary_key) {
   this.logger.finest(this + ' restarting.');
-  this.open_request(tx, tx_no, primary_key, effective_key, true);
+  this.open_request(primary_key, effective_key, true);
 };
 
 
@@ -538,13 +539,14 @@ ydn.db.index.req.IDBCursor.prototype.continueEffectiveKey = function(key) {
 
 };
 
-
-if (goog.DEBUG) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.toString = function() {
-  return 'IDBCursor: ' + this.store_name + ':' + this.index_name;
+ydn.db.index.req.IDBCursor.prototype.disposeInternal = function() {
+  goog.base(this, 'disposeInternal');
+  this.cur_ = null;
 };
-}
+
+
+
 

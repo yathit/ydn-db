@@ -19,12 +19,12 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db.index.req.WebsqlCursor').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.index.req.WebsqlCursor').setLevel(goog.debug.Logger.Level.FINEST);
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
-    ydn.db.index.req.WebsqlCursor.DEBUG = true;
+    //ydn.db.index.req.WebsqlCursor.DEBUG = true;
 
   }
 
@@ -180,7 +180,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
   db = load_default();
   var done;
   var streaming_keys = [];
-  var streaming_index_keys = [];
+  var streaming_values_keys = [];
 
   waitForCondition(
       // Condition
@@ -191,7 +191,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
       function () {
         assertArrayEquals('streaming keys', actual_keys, streaming_keys);
         //console.log([actual_index_keys, streaming_index_keys]);
-        assertArrayEquals('streaming values', actual_index_keys, streaming_index_keys);
+        assertArrayEquals('streaming values', actual_index_keys, streaming_values_keys);
 
         reachedFinalContinuation = true;
 
@@ -200,13 +200,13 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
       1000); // maxTimeout
 
   var req = db.scan([q], function join_algo (keys, values) {
-    console.log(JSON.stringify([keys, values]));
+    //console.log(JSON.stringify([keys, values]));
     if (!goog.isDef(keys[0])) {
       return [];
     }
 
     streaming_keys.push(keys[0]);
-    streaming_index_keys.push(values[0]);
+    streaming_values_keys.push(values[0]);
     return [true]; // continue iteration
   });
 
@@ -248,11 +248,11 @@ var test_13_scan_index_key_iterator = function () {
     return a.value > b.value ? 1 : -1;
   });
   var actual_keys = objs.map(function(x) {return x.value;});
-  var actual_index_keys = objs.map(function(x) {
+  var actual_values = objs.map(function(x) {
     return x.id;
   });
   var q = new ydn.db.Cursors(store_name, 'value');
-  scan_key_single_test(q, actual_keys, actual_index_keys);
+  scan_key_single_test(q, actual_keys, actual_values);
 
 };
 
