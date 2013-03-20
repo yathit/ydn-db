@@ -31,11 +31,12 @@ goog.require('ydn.db.sql.req.websql.ReduceNode');
  * @extends {ydn.db.index.req.WebSql}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
+ * @param {string} scope
  * @constructor
  * @implements {ydn.db.sql.req.IRequestExecutor}
  */
-ydn.db.sql.req.WebSql = function(dbname, schema) {
-  goog.base(this, dbname, schema);
+ydn.db.sql.req.WebSql = function(dbname, schema, scope) {
+  goog.base(this, dbname, schema, scope);
 };
 goog.inherits(ydn.db.sql.req.WebSql, ydn.db.index.req.WebSql);
 
@@ -60,18 +61,7 @@ ydn.db.sql.req.WebSql.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.sql.req.WebSql.prototype.explainSql = function(query) {
-
-  return {
-    'sql': query.getSql()
-  };
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.sql.req.WebSql.prototype.executeSql = function(tx, df, sql, params) {
+ydn.db.sql.req.WebSql.prototype.executeSql = function(tx, tx_no, df, sql, params) {
 
   var store_names = sql.getStoreNames();
   if (store_names.length == 1) {

@@ -69,8 +69,9 @@ ydn.db.core.Storage.prototype.init = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
-  return new ydn.db.core.DbOperator(this, this.schema, tx_thread, sync_thread);
+ydn.db.core.Storage.prototype.newOperator = function(tx_thread, sync_thread, scope_name) {
+  scope_name = scope_name || '';
+  return new ydn.db.core.DbOperator(this, this.schema, scope_name, tx_thread, sync_thread);
 };
 
 
@@ -84,19 +85,20 @@ ydn.db.core.Storage.prototype.getCoreOperator = function() {
 
 
 /**
+ * @param {string} scope
  * @return {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.core.Storage.prototype.newExecutor = function () {
+ydn.db.core.Storage.prototype.newExecutor = function (scope) {
 
   var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.core.req.IndexedDb(this.db_name, this.schema);
+    return new ydn.db.core.req.IndexedDb(this.db_name, this.schema, scope);
   } else if (type == ydn.db.con.WebSql.TYPE) {
-    return new ydn.db.core.req.WebSql(this.db_name, this.schema);
+    return new ydn.db.core.req.WebSql(this.db_name, this.schema, scope);
   } else if (type == ydn.db.con.SimpleStorage.TYPE ||
     type == ydn.db.con.LocalStorage.TYPE ||
     type == ydn.db.con.SessionStorage.TYPE) {
-    return new ydn.db.core.req.SimpleStore(this.db_name, this.schema);
+    return new ydn.db.core.req.SimpleStore(this.db_name, this.schema, scope);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
   }

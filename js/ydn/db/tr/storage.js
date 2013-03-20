@@ -131,14 +131,15 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
 
 
 /**
- *
  * @param {!ydn.db.tr.IThread} tx_thread
  * @param {ydn.db.tr.IThread} sync_thread
  * @return {ydn.db.tr.DbOperator}
+ * @param {string=} scope_name
  * @protected
  */
-ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
-  return new ydn.db.tr.DbOperator(this, this.schema, tx_thread, sync_thread);
+ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread, scope_name) {
+  scope_name = scope_name || '';
+  return new ydn.db.tr.DbOperator(this, this.schema, scope_name, tx_thread, sync_thread);
 };
 
 

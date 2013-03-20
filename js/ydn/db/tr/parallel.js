@@ -310,7 +310,7 @@ ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
 
-    callback(resultCallback, tx);
+    callback(tx, me.getTxNo(), resultCallback);
   }, store_names, mode, on_completed);
 };
 

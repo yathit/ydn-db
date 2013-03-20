@@ -28,11 +28,12 @@ goog.require('ydn.db.core.req.IRequestExecutor');
  * @extends {ydn.db.core.req.RequestExecutor}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
+ *  @param {string} scope
  * @constructor
  * @implements {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.core.req.SimpleStore = function(dbname, schema) {
-  goog.base(this, dbname, schema);
+ydn.db.core.req.SimpleStore = function(dbname, schema, scope) {
+  goog.base(this, dbname, schema, scope);
 };
 goog.inherits(ydn.db.core.req.SimpleStore, ydn.db.core.req.RequestExecutor);
 
@@ -105,7 +106,7 @@ ydn.db.core.req.SimpleStore.prototype.putByKeys = goog.abstractMethod;
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.addObject = function(
-    tx, df, table, value, opt_key) {
+    tx, tx_no, df, table, value, opt_key) {
   // TODO: check existance
   var key = tx.setItemInternal(value, table, opt_key);
   df(key);
@@ -115,7 +116,7 @@ ydn.db.core.req.SimpleStore.prototype.addObject = function(
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.putObject = function(
-      tx, df, table, value, opt_key) {
+      tx, tx_no, df, table, value, opt_key) {
   var key = tx.setItemInternal(value, table, opt_key);
   df(key);
 };
@@ -125,7 +126,7 @@ ydn.db.core.req.SimpleStore.prototype.putObject = function(
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.addObjects = function(
-    tx, df, table, value, opt_key) {
+    tx, tx_no, df, table, value, opt_key) {
 
   var result = [];
   for (var i = 0; i < value.length; i++) {
@@ -147,7 +148,7 @@ ydn.db.core.req.SimpleStore.prototype.putData = goog.abstractMethod;
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.putObjects = function(
-      tx, df, table, value, opt_key) {
+      tx, tx_no,  df, table, value, opt_key) {
 
   var result = [];
   for (var i = 0; i < value.length; i++) {
@@ -162,7 +163,7 @@ ydn.db.core.req.SimpleStore.prototype.putObjects = function(
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.getById = function(tx, df, store_name, id) {
+ydn.db.core.req.SimpleStore.prototype.getById = function(tx, tx_no, df, store_name, id) {
   df(tx.getItemInternal(store_name, id));
 };
 
@@ -171,7 +172,7 @@ ydn.db.core.req.SimpleStore.prototype.getById = function(tx, df, store_name, id)
 /**
 * @inheritDoc
 */
-ydn.db.core.req.SimpleStore.prototype.listByStores = function (tx, df, store_names) {
+ydn.db.core.req.SimpleStore.prototype.listByStores = function (tx, tx_no, df, store_names) {
   var tx_ =  /** {ydn.db.con.SimpleStorage} */ (tx);
   goog.Timer.callOnce(function () {
 
@@ -191,7 +192,7 @@ ydn.db.core.req.SimpleStore.prototype.listByStores = function (tx, df, store_nam
  *
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.listByIds = function(tx, df, store_name, ids) {
+ydn.db.core.req.SimpleStore.prototype.listByIds = function(tx, tx_no, df, store_name, ids) {
   var arr = [];
   for (var i = 0; i < ids.length; i++) {
     var value = tx.getItemInternal(store_name, ids[i]);
@@ -212,7 +213,7 @@ ydn.db.core.req.SimpleStore.prototype.listByKeyRange =
 /**
 * @inheritDoc
 */
-ydn.db.core.req.SimpleStore.prototype.listByKeys = function(tx, df, keys) {
+ydn.db.core.req.SimpleStore.prototype.listByKeys = function(tx, tx_no, df, keys) {
   var arr = [];
   for (var i = 0; i < keys.length; i++) {
     var value = tx.getItemInternal(keys[i].getStoreName(), keys[i].getId());
@@ -224,7 +225,7 @@ ydn.db.core.req.SimpleStore.prototype.listByKeys = function(tx, df, keys) {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, df, store_name,
+ydn.db.core.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, tx_no, df, store_name,
          index, key_range, reverse, limit, offset) {
   //this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset)
 };
@@ -233,7 +234,7 @@ ydn.db.core.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, df, sto
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.removeById = function(tx, df, table, id) {
+ydn.db.core.req.SimpleStore.prototype.removeById = function(tx, tx_no, df, table, id) {
 
   tx.removeItemInternal(table, id);
 
@@ -261,7 +262,7 @@ ydn.db.core.req.SimpleStore.prototype.removeByIndexKeyRange = goog.abstractMetho
 /**
  * @inheritDoc
 */
-ydn.db.core.req.SimpleStore.prototype.clearByStores = function(tx, df, store_names) {
+ydn.db.core.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df, store_names) {
 
   for (var i = 0; i < store_names.length; i++) {
     tx.removeItemInternal(store_names[i]);
@@ -274,7 +275,7 @@ ydn.db.core.req.SimpleStore.prototype.clearByStores = function(tx, df, store_nam
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.countStores = function (tx, df, store_names) {
+ydn.db.core.req.SimpleStore.prototype.countStores = function (tx, tx_no, df, store_names) {
 
   goog.Timer.callOnce(function () {
     var out = [];
@@ -290,7 +291,7 @@ ydn.db.core.req.SimpleStore.prototype.countStores = function (tx, df, store_name
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.countKeyRange = function(tx, df, opt_table,
+ydn.db.core.req.SimpleStore.prototype.countKeyRange = function(tx, tx_no, df, opt_table,
                               keyRange, index_name) {
 
   var pre_fix = '_database_' + this.dbname;

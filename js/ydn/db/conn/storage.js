@@ -409,8 +409,8 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       // dispatch asynchroniously so that any err on running db request
       // are not caught under deferred object.
 
-      if (me.onReady) {
-        me.onReady(event);
+      if (me['onReady']) {
+        me['onReady'](event);
       }
       me.dispatchEvent(event);
       me.popTxQueue_();

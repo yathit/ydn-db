@@ -62,17 +62,17 @@ goog.inherits(ydn.db.index.Storage, ydn.db.core.Storage);
 /**
  * @inheritDoc
  */
-ydn.db.index.Storage.prototype.newExecutor = function () {
+ydn.db.index.Storage.prototype.newExecutor = function (scope_name) {
 
   var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.index.req.IndexedDb(this.db_name, this.schema);
+    return new ydn.db.index.req.IndexedDb(this.db_name, this.schema, scope_name);
   } else if (type == ydn.db.con.WebSql.TYPE) {
-    return new ydn.db.index.req.WebSql(this.db_name, this.schema);
+    return new ydn.db.index.req.WebSql(this.db_name, this.schema, scope_name);
   } else if (type == ydn.db.con.SimpleStorage.TYPE ||
     type == ydn.db.con.LocalStorage.TYPE ||
     type == ydn.db.con.SessionStorage.TYPE) {
-    return new ydn.db.index.req.SimpleStore(this.db_name, this.schema);
+    return new ydn.db.index.req.SimpleStore(this.db_name, this.schema, scope_name);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
   }
@@ -84,8 +84,9 @@ ydn.db.index.Storage.prototype.newExecutor = function () {
  * 
  * @inheritDoc
  */
-ydn.db.index.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
-  return new ydn.db.index.DbOperator(this, this.schema, tx_thread, sync_thread);
+ydn.db.index.Storage.prototype.newOperator = function(tx_thread, sync_thread, scope_name) {
+  scope_name = scope_name || '';
+  return new ydn.db.index.DbOperator(this, this.schema, scope_name, tx_thread, sync_thread);
 };
 
 

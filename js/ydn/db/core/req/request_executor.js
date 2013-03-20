@@ -20,23 +20,22 @@ goog.require('ydn.db.Key');
 /**
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
+ * @param {string} scope
  * @constructor
  */
-ydn.db.core.req.RequestExecutor = function(dbname, schema) {
+ydn.db.core.req.RequestExecutor = function(dbname, schema, scope) {
   /**
-   * @protected
    * @final
-   * @type {string}
    */
   this.dbname = dbname;
   /**
-   * @protected
    * @final
-   * @type {!ydn.db.schema.Database}
    */
   this.schema = schema;
-
-  this.scope = '';
+  /**
+   * @final
+   */
+  this.scope = scope;
 };
 
 
@@ -49,6 +48,17 @@ ydn.db.core.req.RequestExecutor.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.core.req.RequestExecutor');
 
 
+/**
+ * @protected
+ * @type {!ydn.db.schema.Database}
+ */
+ydn.db.core.req.RequestExecutor.prototype.schema;
+
+/**
+ * @protected
+ * @type {string}
+ */
+ydn.db.core.req.RequestExecutor.prototype.dbname = '';
 
 /**
  * @protected
@@ -64,7 +74,7 @@ if (goog.DEBUG) {
  * @inheritDoc
  */
 ydn.db.core.req.RequestExecutor.prototype.toString = function() {
-  return 'RequestExecutor ' + this.scope;
+  return 'RequestExecutor:' + this.scope;
 };
 }
 

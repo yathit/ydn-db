@@ -71,10 +71,11 @@ ydn.db.sql.req.idb.Node.prototype.toString = function() {
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {ydn.db.index.req.IRequestExecutor} req
  */
-ydn.db.sql.req.idb.Node.prototype.execute = function(tx, df, req) {
+ydn.db.sql.req.idb.Node.prototype.execute = function(tx, tx_no, df, req) {
 
   var me = this;
   var out = [];
@@ -125,14 +126,14 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(tx, df, req) {
     };
   }
   if (order && order != this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(tx, ndf, store_name, order, key_range,
+    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, order, key_range,
       reverse, limit, offset, false);
   } else if (wheres.length > 0 && wheres[0].getField() !=
       this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(tx, ndf, store_name, wheres[0].getField(), key_range,
+    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, wheres[0].getField(), key_range,
       reverse, limit, offset, false);
   } else {
-    req.listByKeyRange(tx, ndf, store_name, key_range, reverse, limit, offset);
+    req.listByKeyRange(tx, tx_no, ndf, store_name, key_range, reverse, limit, offset);
   }
 
 };

@@ -28,14 +28,15 @@ goog.require('ydn.debug.error.ArgumentException');
  *
  * @param {!ydn.db.core.Storage} storage base storage object.
  *  @param {!ydn.db.schema.Database} schema
+ *  @param {string} scope_name
  * @param {ydn.db.tr.IThread} thread
  * @param {ydn.db.tr.IThread} sync_thread
  * @constructor
  * @implements {ydn.db.sql.IStorage}
  * @extends {ydn.db.index.DbOperator}
 */
-ydn.db.sql.DbOperator = function(storage, schema, thread, sync_thread) {
-  goog.base(this, storage, schema, thread, sync_thread);
+ydn.db.sql.DbOperator = function(storage, schema, scope_name, thread, sync_thread) {
+  goog.base(this, storage, schema, scope_name, thread, sync_thread);
 };
 goog.inherits(ydn.db.sql.DbOperator, ydn.db.index.DbOperator);
 

@@ -466,7 +466,7 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
       me.request_tx_ = null;
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
-    callback(resultCallback, tx);
+    callback(tx, me.getTxNo(), resultCallback);
     callback = null;
   } else {
     //
@@ -496,7 +496,7 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
         me.request_tx_ = null;
         resultCallback2 =  /** @type {function (*, boolean=)} */ (null);
       };
-      callback(resultCallback2, tx);
+      callback(tx, me.getTxNo(), resultCallback2);
       callback = null; // we don't call again.
     };
     //var cbFn = goog.partial(tx_callback, callback);

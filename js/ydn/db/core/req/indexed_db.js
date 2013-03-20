@@ -31,11 +31,12 @@ goog.require('ydn.json');
  * @param {string} dbname database name.
  * @extends {ydn.db.core.req.RequestExecutor}
  * @param {!ydn.db.schema.Database} schema schema.
+ * @param {string} scope
  * @constructor
  * @implements {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.core.req.IndexedDb = function(dbname, schema) {
-  goog.base(this, dbname, schema);
+ydn.db.core.req.IndexedDb = function(dbname, schema, scope) {
+  goog.base(this, dbname, schema, scope);
 };
 goog.inherits(ydn.db.core.req.IndexedDb, ydn.db.core.req.RequestExecutor);
 
@@ -75,11 +76,11 @@ ydn.db.core.req.IndexedDb.prototype.getTx = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.countStores = function(tx, df, stores) {
+ydn.db.core.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores) {
 
   var me = this;
   var out = [];
-  var msg = 'countStores: ' + stores;
+  var msg = 'TxNo:' + tx_no + ' countStores: ' + stores;
   this.logger.finest(msg);
 
   var count_store = function(i) {
@@ -93,7 +94,7 @@ ydn.db.core.req.IndexedDb.prototype.countStores = function(tx, df, stores) {
       out[i] = event.target.result;
       i++;
       if (i == stores.length) {
-        me.logger.finest('success ' + msg);
+        me.logger.finer('success ' + msg);
         df(out);
         df = null;
       } else {
@@ -132,10 +133,10 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.addObject = function(tx, df, table, value,
+ydn.db.core.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, value,
                                                          opt_key) {
   var store = tx.objectStore(table);
-  var msg = 'addObject: ' + table + ' ' + opt_key;
+  var msg = 'TxNo:' + tx_no + ' addObject: ' + table + ' ' + opt_key;
   this.logger.finest(msg);
   var me = this;
   var request;
@@ -169,9 +170,9 @@ ydn.db.core.req.IndexedDb.prototype.addObject = function(tx, df, table, value,
 * @inheritDoc
 */
 ydn.db.core.req.IndexedDb.prototype.putObject = function(
-    tx, df, table, value, opt_key) {
+    tx, tx_no, df, table, value, opt_key) {
   var store = tx.objectStore(table);
-  var msg = 'putObject: ' + table + ' ' + opt_key;
+  var msg = 'TxNo:' + tx_no + ' putObject: ' + table + ' ' + opt_key;
   this.logger.finest(msg);
 
   var me = this;
@@ -211,14 +212,14 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.addObjects = function(
-    tx, df, store_name, objs, opt_keys) {
+    tx, tx_no, df, store_name, objs, opt_keys) {
 
   var results = [];
   var result_count = 0;
 
   var me = this;
   var store = tx.objectStore(store_name);
-  var msg = 'addObjects: ' + store_name + ' ' + objs.length + ' objects';
+  var msg = 'TxNo:' + tx_no + ' addObjects: ' + store_name + ' ' + objs.length + ' objects';
   this.logger.finest(msg);
 
   var put = function(i) {
@@ -286,7 +287,7 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, df, store_name,
+ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_name,
                                                           objs, opt_keys) {
 
   var results = [];
@@ -295,7 +296,7 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, df, store_name,
 
   var me = this;
   var store = tx.objectStore(store_name);
-  var msg = 'putObjects: ' + store_name + ' ' + objs.length + ' objects';
+  var msg = 'TxNo:' + tx_no + ' putObjects: ' + store_name + ' ' + objs.length + ' objects';
   this.logger.finest(msg);
 
   /**
@@ -388,7 +389,7 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, df, store_name,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, df, objs, keys) {
+ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs, keys) {
 
   var results = [];
   var result_count = 0;
@@ -406,7 +407,7 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, df, objs, keys) {
 
   var me = this;
 
-  var msg = 'putByKeys: of ' + objs.length + ' objects';
+  var msg = 'TxNo:' + tx_no + ' putByKeys: of ' + objs.length + ' objects';
   this.logger.finest(msg);
 
   var put = function(i) {
@@ -483,7 +484,7 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, df, objs, keys) {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.putData = function(tx, df, store_name, data,
+ydn.db.core.req.IndexedDb.prototype.putData = function(tx, tx_no, df, store_name, data,
                                                        delimiter) {
   var me = this;
   var store = this.schema.getStore(store_name);
@@ -502,7 +503,7 @@ ydn.db.core.req.IndexedDb.prototype.putData = function(tx, df, store_name, data,
   }
   prev_pos++;
 
-  var msg = 'Loading data '+ ' of ' + fields.length +
+  var msg = 'TxNo:' + tx_no + ' Loading data '+ ' of ' + fields.length +
     '-fields record to ' + store_name;
   this.logger.finest(msg);
 
@@ -576,12 +577,12 @@ ydn.db.core.req.IndexedDb.prototype.putData = function(tx, df, store_name, data,
 /**
 * @inheritDoc
 */
-ydn.db.core.req.IndexedDb.prototype.removeById = function(tx, df,
+ydn.db.core.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
                                                           store_name, key) {
 
   var me = this;
   var store = tx.objectStore(store_name);
-  var msg = 'clearById: ' + store_name + ' ' + key;
+  var msg = 'TxNo:' + tx_no + ' clearById: ' + store_name + ' ' + key;
   this.logger.finest(msg);
 
   var request = store.openCursor(/** @type {IDBKeyRange} */ (key));
@@ -619,12 +620,12 @@ ydn.db.core.req.IndexedDb.prototype.removeById = function(tx, df,
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.removeByKeyRange = function(
-    tx, df, store_name, key_range) {
+    tx, tx_no, df, store_name, key_range) {
 
   var me = this;
   var store = tx.objectStore(store_name);
   var request = store.count(key_range);
-  var msg = 'clearByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = 'TxNo:' + tx_no + ' clearByKeyRange: ' + store_name + ' ' + key_range;
   this.logger.finest(msg);
   request.onsuccess = function(event) {
     var n = event.target.result;
@@ -653,12 +654,12 @@ ydn.db.core.req.IndexedDb.prototype.removeByKeyRange = function(
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.clearByKeyRange = function (
-    tx, df, store_name, key_range) {
+    tx, tx_no, df, store_name, key_range) {
 
   var me = this;
   var store = tx.objectStore(store_name);
 
-  var msg = 'clearByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = 'TxNo:' + tx_no + ' clearByKeyRange: ' + store_name + ' ' + key_range;
   this.logger.finest(msg);
 
   var req = store['delete'](key_range);
@@ -678,12 +679,12 @@ ydn.db.core.req.IndexedDb.prototype.clearByKeyRange = function (
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.removeByIndexKeyRange = function(
-    tx, df, store_name, index_name, key_range) {
+    tx, tx_no, df, store_name, index_name, key_range) {
 
   var me = this;
   var store = tx.objectStore(store_name);
   var index = store.index(index_name);
-  var msg = 'clearByIndexKeyRange: ' + store_name + ':' + index_name +
+  var msg = 'TxNo:' + tx_no + ' clearByIndexKeyRange: ' + store_name + ':' + index_name +
     ' ' + key_range;
   this.logger.finest(msg);
   // var request = index.openKeyCursor(key_range);
@@ -722,13 +723,13 @@ ydn.db.core.req.IndexedDb.prototype.removeByIndexKeyRange = function(
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.clearByStores = function(tx, df,
+ydn.db.core.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
                                                              store_names) {
 
   var me = this;
   var n_todo = store_names.length;
   var n_done = 0;
-  var msg = 'clearByStores: ' + store_names;
+  var msg = 'TxNo:' + tx_no + ' clearByStores: ' + store_names;
   this.logger.finest(msg);
   for (var i = 0; i < n_todo; i++) {
     var store_name = store_names[i];
@@ -771,13 +772,13 @@ ydn.db.core.req.IndexedDb.prototype.clearByStores = function(tx, df,
  * @param {number} offset skip first results.
  * @param {boolean=} unique unique attribute for index listing.
  */
-ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(tx, df,
+ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
      store_name, index, key_range, reverse, limit, offset, unique) {
   var me = this;
   var results = [];
   var store = tx.objectStore(store_name);
   var dir = ydn.db.base.getDirection(reverse, unique);
-  var msg = 'listByKeyRange: ' + store_name +
+  var msg = 'TxNo:' + tx_no + ' listByKeyRange: ' + store_name +
     (index ? ':' + index : '') +
     (key_range ? ydn.json.stringify(key_range) : '');
   this.logger.finest(msg);
@@ -827,17 +828,17 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(tx, df,
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.listByKeyRange =
-    function(tx, df, store_name, key_range, reverse, limit, offset) {
-  this.listByKeyRange_(tx, df, store_name, null, key_range, reverse, limit, offset)
+    function(tx, tx_no, df, store_name, key_range, reverse, limit, offset) {
+  this.listByKeyRange_(tx, tx_no, df, store_name, null, key_range, reverse, limit, offset)
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, df,
+ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, tx_no, df,
     store_name, index, key_range, reverse, limit, offset, unique) {
-  this.listByKeyRange_(tx, df,
+  this.listByKeyRange_(tx, tx_no, df,
     store_name, index, key_range, reverse, limit, offset, unique);
 };
 
@@ -845,13 +846,13 @@ ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, df,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, df, store_name,
+ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df, store_name,
     key_range, reverse, limit, offset) {
   var results = [];
   var me = this;
   var store = tx.objectStore(store_name);
   var dir = ydn.db.base.getDirection(reverse);
-  var msg = 'keysByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = 'TxNo:' + tx_no + ' keysByKeyRange: ' + store_name + ' ' + key_range;
   this.logger.finest(msg);
   var request = store.openCursor(key_range, dir);
   var cued = false;
@@ -934,13 +935,13 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, df, store_name
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, df,
+ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df,
     store_name, index_name, key_range, reverse, limit, offset, unique) {
   var results = [];
   var me = this;
   var store = tx.objectStore(store_name);
   var index = store.index(index_name);
-  var msg = 'keysByStore: ' + store_name + ':' + index_name + ' ' + key_range;
+  var msg = 'TxNo:' + tx_no + ' keysByStore: ' + store_name + ':' + index_name + ' ' + key_range;
   this.logger.finest(msg);
   var dir = ydn.db.base.getDirection(reverse, unique);
   var request = index.openKeyCursor(key_range, dir);
@@ -980,11 +981,11 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, df,
 /**
 * @inheritDoc
 */
-ydn.db.core.req.IndexedDb.prototype.listByStores = function(tx, df,
+ydn.db.core.req.IndexedDb.prototype.listByStores = function(tx, tx_no, df,
                                                             store_names) {
   var me = this;
   var results = [];
-  var msg = 'listByStores: ' + store_names;
+  var msg = 'TxNo:' + tx_no + ' listByStores: ' + store_names;
   this.logger.finest(msg);
 
   var getAll = function(i) {
@@ -1030,10 +1031,10 @@ ydn.db.core.req.IndexedDb.prototype.listByStores = function(tx, df,
 /**
 * @inheritDoc
 */
-ydn.db.core.req.IndexedDb.prototype.getById = function(tx, df, store_name, id) {
+ydn.db.core.req.IndexedDb.prototype.getById = function(tx, tx_no, df, store_name, id) {
 
   var me = this;
-  var msg = 'getById: ' + store_name + ':' + id;
+  var msg = 'TxNo:' + tx_no + ' getById: ' + store_name + ':' + id;
   this.logger.finest(msg);
   var store = tx.objectStore(store_name);
 
@@ -1062,7 +1063,7 @@ ydn.db.core.req.IndexedDb.prototype.getById = function(tx, df, store_name, id) {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, df,
+ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
                                                          store_name, ids) {
   var me = this;
 
@@ -1070,7 +1071,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, df,
   var result_count = 0;
   var store = tx.objectStore(store_name);
   var n = ids.length;
-  var msg = 'listByIds: ' + store_name + ':' + n + ' ids';
+  var msg = 'TxNo:' + tx_no + ' listByIds: ' + store_name + ':' + n + ' ids';
   this.logger.finest(msg);
 
   var get = function(i) {
@@ -1147,12 +1148,12 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, df,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByKeys = function(tx, df, keys) {
+ydn.db.core.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
   var me = this;
 
   var results = [];
   var result_count = 0;
-  var msg = 'listByKeys: ' + keys.length + ' ids';
+  var msg = 'TxNo:' + tx_no + ' listByKeys: ' + keys.length + ' ids';
   this.logger.finest(msg);
 
   var getKey = function(i) {
@@ -1209,12 +1210,12 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(tx, df, keys) {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(tx, df, table,
+ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(tx, tx_no, df, table,
                     keyRange, index_name) {
 
   var me = this;
   var store = tx.objectStore(table);
-  var msg = 'countKeyRange: ' + table +
+  var msg = 'TxNo:' + tx_no + ' countKeyRange: ' + table +
     (index_name ? ':' + index_name : '') +
     (keyRange ? ':' + ydn.json.stringify(keyRange) : '');
   this.logger.finest(msg);
@@ -1255,12 +1256,12 @@ ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(tx, df, table,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, df,
+ydn.db.core.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
     store_name, index_name, keys, offset, limit) {
   var me = this;
   var store = tx.objectStore(store_name);
   var index = store.index(index_name);
-  var msg = 'getIndexKeysByKeys: ' + store_name +
+  var msg = 'TxNo:' + tx_no + ' getIndexKeysByKeys: ' + store_name +
     (index_name ? ':' + index_name + ' ' : ' ') + keys.length + ' keys';
   this.logger.finest(msg);
   var results = [];

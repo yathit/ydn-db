@@ -19,17 +19,9 @@ ydn.db.sql.req.IRequestExecutor = function() {};
 
 
 /**
- * Explain plan.
- * @param {!ydn.db.Sql} sql  SQL object.
- * @return {Object} query plan in JSON.
- */
-ydn.db.sql.req.IRequestExecutor.prototype.explainSql = goog.abstractMethod;
-
-
-
-/**
  * Execute SQL statement.
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {!ydn.db.Sql} sql  SQL object.
  * @param {!Array} params SQL parameters.
