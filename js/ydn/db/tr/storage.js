@@ -116,8 +116,10 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
  * @final
  */
 ydn.db.tr.Storage.prototype.branch = function(thread, name) {
+  this.ptx_no++;
+  name = name || 'branch' + this.ptx_no;
   var tx_thread = this.newTxQueue(thread, name);
-  return this.newOperator(tx_thread, this.sync_thread);
+  return this.newOperator(tx_thread, this.sync_thread, name);
 };
 
 
@@ -192,9 +194,11 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
   var me = this;
-  var scope_name = trFn.name || '';
+  this.ptx_no++;
+  var scope_name = (goog.isString(trFn.name) && trFn.name.length > 0) ?
+    trFn.name : 'run' + this.ptx_no;
   var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Threads.SINGLE, scope_name);
-  var tx_queue = this.newOperator(tx_thread, this.sync_thread);
+  var tx_queue = this.newOperator(tx_thread, this.sync_thread, scope_name);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   if (goog.DEBUG && [ydn.db.base.TransactionMode.READ_ONLY,
       ydn.db.base.TransactionMode.READ_WRITE].indexOf(mode) == -1) {

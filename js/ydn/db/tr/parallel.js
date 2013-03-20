@@ -252,15 +252,17 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
   var pl_tx_ex;
 
   var completed_handler = function(type, event) {
-    me.logger.finest(me + ': transaction ' + pl_tx_ex.getTxNo() + ' committed');
+    me.logger.finest(me + ':tx' + pl_tx_ex.getTxNo() + ' committed');
     pl_tx_ex.onCompleted(type, event);
   };
 
   var transaction_process = function(tx) {
     me.tx_no_++;
-    me.logger.finest(me + ': transaction ' + me.tx_no_ + ' begin');
     pl_tx_ex = new ydn.db.tr.ParallelTxExecutor(
       tx, me.tx_no_, store_names, mode);
+
+    me.logger.finest(me + ':tx' +  pl_tx_ex.getTxNo() +
+      ydn.json.stringify(store_names) + mode + ' begin');
     me.pl_tx_ex_ = pl_tx_ex;
     me.pl_tx_ex_.executeTx(callback, on_completed);
   };
@@ -317,10 +319,11 @@ ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
 
 /** @override */
 ydn.db.tr.Parallel.prototype.toString = function() {
-  var s = 'ydn.db.tr.Parallel:' + this.storage_.getName();
+  var s = 'Parallel';
   if (goog.DEBUG) {
+    s += ':' + this.storage_.getName();
     var scope = this.getThreadName();
-    scope = scope ? ' [' + scope + ']' : '';
+    scope = scope ? ' :' + scope : '';
     return s + ':' + this.q_no_ + ':' + this.getTxNo() + scope;
   }
   return s;

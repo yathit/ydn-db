@@ -62,7 +62,7 @@ ydn.db.index.req.IDBCursor.prototype.cur_ = null;
  * @param {Event} event
  */
 ydn.db.index.req.IDBCursor.prototype.requestOnSuccess = function (event) {
-  var label = 'IDBCursor: ' + this.store_name + ':' + this.index_name;
+  var label = 'IDB' + this;
   this.has_pending_request_ = false;
   var target = /** {IDBRequest} */ (event.target);
   var cur = (event.target.result);
@@ -170,7 +170,7 @@ ydn.db.index.req.IDBCursor.prototype.has_pending_request_ = false;
  */
 ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index_key, exclusive) {
 
-  var label = 'IDBCursor: ' + this.store_name + ':' + this.index_name;
+  var label = 'IDB' + this;
   this.target_key_ = ini_key;
   this.target_index_key_ = ini_index_key;
   this.target_exclusive_ = !!exclusive;
@@ -202,6 +202,8 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
 
   var obj_store = this.tx.objectStore(this.store_name);
   var index = this.index_name ? obj_store.index(this.index_name) : null;
+
+  this.logger.finest(label + ' opening ');
 
   /**
    * @type {IDBRequest}
@@ -254,7 +256,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
   }
   this.has_pending_request_ = true;
 
-  this.logger.finest(label + ' opened, request ' + request.readyState);
+  this.logger.finer(label + ' opened, request ' + request.readyState);
 
   request.onsuccess = goog.bind(this.requestOnSuccess, this);
 

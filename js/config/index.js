@@ -22,13 +22,13 @@ goog.exportProperty(ydn.db.index.Storage.prototype, 'reduce',
 goog.exportProperty(ydn.db.index.Storage.prototype, 'open',
     ydn.db.index.Storage.prototype.open);
 
-goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'scan',
+goog.exportProperty(ydn.db.index.DbOperator.prototype, 'scan',
     ydn.db.index.DbOperator.prototype.scan);
-goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'map',
+goog.exportProperty(ydn.db.index.DbOperator.prototype, 'map',
     ydn.db.index.DbOperator.prototype.map);
-goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'reduce',
+goog.exportProperty(ydn.db.index.DbOperator.prototype, 'reduce',
     ydn.db.index.DbOperator.prototype.reduce);
-goog.exportProperty(ydn.db.index.DbOperator.prototype.open, 'open',
+goog.exportProperty(ydn.db.index.DbOperator.prototype, 'open',
     ydn.db.index.DbOperator.prototype.open);
 
 goog.exportProperty(ydn.db.index.req.AbstractCursor.prototype, 'key',

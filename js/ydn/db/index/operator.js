@@ -281,7 +281,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
 
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
-    me.logger.finest(me + ': scanning started.');
+    me.logger.finest(me + ':tx' + tx_no + ': scanning started.');
     //executor.scan(df, iterators, streamers, solver);
     // do scanning
 
@@ -308,7 +308,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
       goog.array.clear(cursors);
       goog.array.clear(streamers);
       // console.log('existing');
-      me.logger.finest(me + ': scanning finished.');
+      me.logger.finer(me + ':tx' + tx_no + ': scanning success.');
       cb(undefined);
     };
 
@@ -532,8 +532,15 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
     };
 
     var on_error = function (e) {
+      for (var k = 0; k < iterators.length; k++) {
+        iterators[k].exit();
+      }
+      for (var k = 0; k < cursors.length; k++) {
+        cursors[k].dispose();
+      }
       goog.array.clear(cursors);
       goog.array.clear(streamers);
+      me.logger.finer(me + ':tx' + tx_no + ': scanning error.');
       cb(e, true);
     };
 
@@ -561,7 +568,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver, opt_streame
     };
 
     for (var i = 0; i < passthrough_streamers.length; i++) {
-      passthrough_streamers[i].setTx(this.getTx());
+      passthrough_streamers[i].setTx(tx);
     }
 
     if (solver instanceof ydn.db.algo.AbstractSolver) {

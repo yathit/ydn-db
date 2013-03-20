@@ -289,10 +289,11 @@ ydn.db.index.req.AbstractCursor.prototype.toString = function () {
 
   var k = '';
   if (this.hasCursor()) {
-    k = '{' + this.getPrimaryKey() + ':' + this.getIndexKey() + '}';
+    k = ' {' + this.getPrimaryKey() + ':' + this.getIndexKey() + '}';
   }
   var index = goog.isDef(this.index_name) ? ':' + this.index_name : '';
-  return 'Cursor:' + this.store_name + index + k;
+  var active = this.tx ? '' : '~';
+  return active + 'Cursor:' + this.store_name + index + ':tx' + this.tx_no + k;
 
 };
 }

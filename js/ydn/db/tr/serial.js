@@ -365,8 +365,8 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
     var transaction_process = function(tx) {
       //console.log('transaction_process ' + scope_name);
       me.mu_tx_.up(tx, store_names, mode, scope_name);
-      me.logger.finest(me + ': transaction ' + me.mu_tx_.getTxCount() +
-        ' created.');
+      me.logger.finest(me + ':tx' + me.mu_tx_.getTxCount() +
+        ydn.json.stringify(store_names) + mode + ' begin');
 
       // now execute transaction process
       trFn(me);
@@ -387,7 +387,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
 
     var completed_handler = function(type, event) {
       //console.log('transaction_process ' + scope_name + ' completed.');
-      me.logger.finest(me + ': transaction ' + me.mu_tx_.getTxCount() +
+      me.logger.finest(me + ':tx' + me.mu_tx_.getTxCount() +
         ' committed with ' + type);
       /**
        * @preserve _try.
@@ -596,8 +596,9 @@ ydn.db.tr.Serial.prototype.getName = function() {
 
 /** @override */
 ydn.db.tr.Serial.prototype.toString = function() {
-  var s = 'ydn.db.tr.Serial:' + this.storage_.getName();
+  var s = 'Serial';
   if (goog.DEBUG) {
+    s += ':' + this.storage_.getName();
     var scope = this.mu_tx_.getThreadName();
     scope = scope ? ' [' + scope + ']' : '';
     return s + ':' + this.q_no_ + ':' + this.getTxNo() + scope;

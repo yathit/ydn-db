@@ -165,14 +165,14 @@ ydn.db.core.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, v
 };
 
 
-
 /**
 * @inheritDoc
 */
 ydn.db.core.req.IndexedDb.prototype.putObject = function(
     tx, tx_no, df, table, value, opt_key) {
   var store = tx.objectStore(table);
-  var msg = 'TxNo:' + tx_no + ' putObject: ' + table + ' ' + opt_key;
+  var msg = 'TxNo:' + tx_no + ' putObject: ' + table + ' ' +
+    (goog.isDef(opt_key) ? opt_key : '');
   this.logger.finest(msg);
 
   var me = this;
