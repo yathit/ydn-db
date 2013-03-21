@@ -64,7 +64,7 @@ ydn.db.base.DEFAULT_RESULT_LIMIT = 100;
  * Default connection time interval in ms.
  * @define {number}
  */
-ydn.db.base.DEFAULT_CONNECTION_TIMEOUT = 1*60*1000;
+ydn.db.base.DEFAULT_CONNECTION_TIMEOUT = 30*60*1000;
 
 
 /**

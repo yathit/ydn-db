@@ -8,6 +8,7 @@ goog.provide('ydn.db.InvalidStateError');
 goog.provide('ydn.db.NotFoundError');
 goog.provide('ydn.db.ScopeError');
 goog.provide('ydn.db.SecurityError');
+goog.provide('ydn.db.TimeoutError');
 
 
 
@@ -290,6 +291,28 @@ ydn.db.SqlParseError = function(opt_msg) {
   this.name = 'ydn.db.SqlParseError';
 };
 goog.inherits(ydn.db.SqlParseError, Error);
+
+/**
+ *
+ * @param {*=} opt_msg optional message.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.TimeoutError = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.TimeoutError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+  this.name = 'ydn.db.TimeoutError';
+};
+goog.inherits(ydn.db.TimeoutError, Error);
 
 /**
  * @param {*} result request result.

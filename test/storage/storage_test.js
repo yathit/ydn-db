@@ -226,26 +226,36 @@ var test_4_lazy_init = function() {
   db.setName('lazy-db');
 };
 
-
-var thread_test = function(thread, exp_tx_no) {
-  var options = {
-    thread: thread
-  };
+var test_connection_timeout = function () {
   var schema = {
-    stores: [
-      {
-        name: 'st'
-      }]
+    stores: [{
+      name: 's1',
+      autoIncrement: true
+    }]
   };
-  var db = new ydn.db.Storage('test_strict_overflow_serial_thread', schema, options);
+  // assuming that database cannot be opened
+  // within 1 ms, this *might* throw timeout error.
+  var opt = {
+   connectionTimeout: 1,
+   thread: 'atomic-serial' // only atomic can receive request in case of error
+  };
 
-  var get_done;
+  var db = new ydn.db.Storage('test_connection_timeout', schema, opt);
+
+  var done, done2, event, key, has_error;
+
   waitForCondition(
       // Condition
-      function() { return get_done; },
+      function() { return done + done2; },
       // Continuation
       function() {
-        assertArrayEquals('tx no ', exp_tx_no, tx_no);
+        assertTrue('receive StorageEvent assuming database cannot be opened within 1ms',
+            event instanceof ydn.db.events.StorageEvent);
+        var err = event.getError();
+        assertNotNull('got error', err);
+        assertEquals('time out error', 'ydn.db.TimeoutError', err.name);
+        assertTrue('put request receive error', has_error);
+        assertTrue('error instead of a key', key instanceof Error);
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db.getName(), db.getType());
         db.close();
@@ -253,32 +263,20 @@ var thread_test = function(thread, exp_tx_no) {
       100, // interval
       1000); // maxTimeout
 
-  var tx_no = [];
-  db.addEventListener(ydn.db.events.Types.DONE, function() {
-    for (var i = 1; i <= 3; i++) {
-      db.put('st', {foo: 'bar'}, i).addBoth(function(x) {
-        tx_no.push(db.getTxNo());
+  db.onReady = function (e) {
+    event = e;
+    done = true;
+  };
+
+  db.put('s1', {id: 1}).addCallback(function (x) {
+    key = x;
+    has_error = false;
+    done2 = true;
+  }).addErrback(function (x) {
+        key = x;
+        has_error = true;
+        done2 = true;
       });
-    }
-    db.get('st', 1).addBoth(function(x) {
-      tx_no.push(db.getTxNo());
-      get_done = true;
-    });
-
-  });
-};
-
-var test_atomic_serial_thread = function() {
-
-  thread_test('atomic-serial', [1, 2, 3, 4]);
-
-};
-
-
-var test_strict_overflow_serial_thread = function() {
-
-  thread_test('samescope-multirequest-serial', [1, 1, 1, 2]);
-
 };
 
 

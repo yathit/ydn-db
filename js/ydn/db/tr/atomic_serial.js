@@ -53,9 +53,10 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (df, callback, store_names, mod
 
   // intersect request result to make atomic
   var result;
-  var is_error = false;
+  var is_error;
   var cdf = new goog.async.Deferred();
   cdf.addCallbacks(function (x) {
+    is_error = false;
     result = x;
   }, function (e) {
     is_error = true;
@@ -63,10 +64,13 @@ ydn.db.tr.AtomicSerial.prototype.exec = function (df, callback, store_names, mod
   });
   var completed_handler = function(t, e) {
   //  console.log('AtomicSerial completed_handler ' + t + ' ' + e);
-    if (is_error) {
+    if (is_error === true) {
       df.errback(result);
-    } else {
+    } else if (is_error === false) {
       df.callback(result);
+    } else {
+      var err = new ydn.db.TimeoutError();
+      df.errback(err);
     }
     if (on_completed) {
       on_completed(t, e);
