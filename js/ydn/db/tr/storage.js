@@ -52,7 +52,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   this.ptx_no = 0;
 
-  var th = ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_SERIAL;
+  var th = ydn.db.tr.IThread.Threads.SERIAL;
   if (opt_options && opt_options.thread) {
     var idx = ydn.db.tr.IThread.ThreadList.indexOf(opt_options.thread);
     if (idx == -1) {
