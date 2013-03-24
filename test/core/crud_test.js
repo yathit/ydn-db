@@ -9,7 +9,6 @@ goog.require('goog.testing.PropertyReplacer');
 
 var reachedFinalContinuation, schema, debug_console, db, objs;
 
-var db_name = 'test_crud_4';
 var table_name = 'st_inline';
 var table_name_offline = 'st_offline';
 var store_name_inline_number = 'st_inline_n';
@@ -980,6 +979,7 @@ var test_42_remove_by_key_range = function() {
 
 
 var test_43_clear_by_key_range = function() {
+  var db_name = 'test_43_clear_by_key_range';
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear(table_name);
   db.put(table_name,
@@ -1339,6 +1339,13 @@ var test_constrained_error = function () {
   });
 };
 
+
+
+
+
+var tearDownPage = function() {
+
+};
 
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();

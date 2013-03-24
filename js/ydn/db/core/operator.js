@@ -885,7 +885,7 @@ ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
     var store_name = store.getName();
 
     // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
-    if ((goog.isString(store.keyPath)) && goog.isDef(opt_keys)) {
+    if (store.usedInlineKey() && goog.isDef(opt_keys)) {
       // The object store uses in-line keys or has a key generator, and a key
       // parameter was provided.
       throw new ydn.debug.error.ArgumentException(
@@ -895,7 +895,7 @@ ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
       // parameter was provided.
       throw new ydn.debug.error.ArgumentException('key cannot provide while ' +
         'autoIncrement is true.');
-    } else if (!goog.isString(store.keyPath) && !store.autoIncrement &&
+    } else if (!store.usedInlineKey() && !store.autoIncrement &&
       !goog.isDef(opt_keys)) {
       // The object store uses out-of-line keys and has no key generator, and no
       // key parameter was provided.

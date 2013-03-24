@@ -5,44 +5,26 @@ goog.require('ydn.async');
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.schema.DataType');
 goog.require('ydn.db');
+goog.require('ydn.debug');
 goog.require('ydn.testing');
 
 
-var reachedFinalContinuation, debug_console, basic_schema;
-var db_name = 'test_key_11_4';
+var reachedFinalContinuation, basic_schema;
+
 var string_table = 't1';
 var number_table = 't2';
 var date_table = 't3';
 var array_table = 't4';
 var out_of_line_store = 't5';
 
-var db_name_to_delete;
-
 
 var setUp = function() {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-  //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-  //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-  //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
-  //ydn.db.con.IndexedDb.DEBUG = true;
-  //ydn.db.con.WebSql.DEBUG = true;
-  //ydn.db.core.req.IndexedDb.DEBUG = true;
-  //ydn.db.core.req.WebSql.DEBUG = true;
-  }
 
-
-  db_name_to_delete = null;
   reachedFinalContinuation = false;
 };
 
 var tearDown = function() {
-  if (goog.isString(db_name_to_delete)) {
-    ydn.db.deleteDatabase(db_name_to_delete);
-  }
+
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
 
@@ -59,21 +41,13 @@ var getBasicSchema = function () {
   return basic_schema;
 };
 
-var createDb = function() {
-
-  var basic_schema = getBasicSchema();
-
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
-  return db;
-};
 
 
 var key_test = function(db, key, table_name, callback) {
-
+  var db_name = 'key-test' + Math.random();
   table_name = table_name || string_table;
   //console.log('testing ' + key + ' on ' + table_name);
   var key_value = 'a' + Math.random();
-
   var a_done;
   var a_value;
   waitForCondition(
@@ -84,7 +58,7 @@ var key_test = function(db, key, table_name, callback) {
         assertEquals('put a', key, a_value);
       },
       100, // interval
-      5000); // maxTimeout
+      2000); // maxTimeout
 
   db.put(table_name, {id: key, value: key_value}).addCallback(function(value) {
     //console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
@@ -100,6 +74,7 @@ var key_test = function(db, key, table_name, callback) {
       // Continuation
       function() {
         assertEquals('get', key_value, b_value.value);
+
         if (callback) {
           callback(true);
         }
@@ -108,7 +83,7 @@ var key_test = function(db, key, table_name, callback) {
       5000); // maxTimeout
 
   db.get(table_name, key).addCallback(function(value) {
-    console.log(db + ' receiving get value callback ' + key + ' = ' + JSON.stringify(value));
+    // console.log(db + ' receiving get value callback ' + key + ' = ' + JSON.stringify(value));
     b_value = value;
     b_done = true;
   });
@@ -176,7 +151,7 @@ var _test_02_encode_blob = function () {
   xhr.responseType = "blob";
   xhr.addEventListener("load", function () {
     if (xhr.status === 200) {
-      console.log("Image retrieved");
+      //console.log("Image retrieved");
       var blob = xhr.response;
       test_key(blob, ydn.db.schema.DataType.BLOB);
       done = true;
@@ -191,10 +166,12 @@ var _test_02_encode_blob = function () {
 /**
  */
 var test_11_string_keys = function() {
-
-  var db = createDb();
-
+  var db_name = 'test_11_string_keys';
+  var basic_schema = getBasicSchema();
+  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
   var on_completed = function() {
+    ydn.db.deleteDatabase(db_name, db.getType());
+    db.close();
     reachedFinalContinuation = true;
   };
 
@@ -215,6 +192,8 @@ var test_12_number_keys = function() {
   var db = new ydn.db.core.Storage(db_name, basic_schema, options);
 
   var on_completed = function() {
+    ydn.db.deleteDatabase(db_name, db.getType());
+    db.close();
     reachedFinalContinuation = true;
   };
 
@@ -237,11 +216,11 @@ var test_13_array_key = function () {
 
   var objs = [
     {id:['a', 'qs0'], value:0, type:'a'},
-    {id:['a', 'qs1'], value:1, type:'a'},
+    {id:['a', 'qs1'], value:1, type:'a'}
   ];
 
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(db_name + ' ready');
+    //console.log(db_name + ' ready');
   });
 
   var done, result;
@@ -254,7 +233,8 @@ var test_13_array_key = function () {
     // Continuation
     function () {
       assertArrayEquals('result', objs, result);
-
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
       reachedFinalContinuation = true;
     },
     100, // interval
@@ -272,8 +252,9 @@ var test_13_array_key = function () {
 
 
 var test_21_out_of_line = function () {
-
-  var db = createDb();
+  var db_name = 'test_21_out_of_line';
+  var basic_schema = getBasicSchema();
+  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
   var key = Math.random();
   var data = {test: 'some random ' + Math.random(), type: Math.random()};
 
@@ -287,7 +268,8 @@ var test_21_out_of_line = function () {
     // Continuation
     function () {
       assertEquals('value', data.test, result.test);
-
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
       reachedFinalContinuation = true;
     },
     100, // interval
@@ -350,7 +332,8 @@ var test_22_out_of_line_array = function () {
     function () {
       assertEquals('length', objs.length, result.length);
       assertArrayEquals('get back', objs, result);
-
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
       reachedFinalContinuation = true;
     },
     100, // interval
@@ -425,6 +408,8 @@ var test_40_nested_keyPath = function() {
     function() {
       assertObjectEquals('get', put_value, get_value_received);
       reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
     },
     100, // interval
     5000); // maxTimeout
@@ -468,7 +453,8 @@ var test_42_autoincreasement_offline = function () {
     function () {
       assertEquals('length', objs.length, result.length);
       assertArrayEquals('get back', objs, result);
-
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
       reachedFinalContinuation = true;
     },
     100, // interval
@@ -534,7 +520,8 @@ var test_43_autoincreasement_inline = function () {
       for (var i = 0; i < objs.length; i++) {
         assertEquals('obj ' + i, objs[i].id, result[i].id);
       }
-
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
       reachedFinalContinuation = true;
     },
     100, // interval
@@ -558,7 +545,7 @@ var test_43_autoincreasement_inline = function () {
       // retrieve back by those key
 
       db.values(store_name, keys).addBoth(function (value) {
-        console.log('fetch value: ' + JSON.stringify(value));
+        //console.log('fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
       });
@@ -570,7 +557,7 @@ var test_43_autoincreasement_inline = function () {
 
   // last two are given different value
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(['receiving key from put', value]);
+    //console.log(['receiving key from put', value]);
     keys = value;
     put_done = true;
   }).addErrback(function(e) {
@@ -610,15 +597,16 @@ var test_51_autoschema_out_of_line_key = function () {
         // Continuation
         function () {
           assertEquals('value', data.test, result.test);
-
+          ydn.db.deleteDatabase(db_name, db.getType());
+          db.close();
           reachedFinalContinuation = true;
-          db_name_to_delete = db_name;
+
         },
         100, // interval
         5000); // maxTimeout
 
       db.get(out_of_line_store, key).addBoth(function (value) {
-        console.log('fetch value: ' + JSON.stringify(value));
+        //console.log('fetch value: ' + JSON.stringify(value));
         result = value;
         done = true;
 
@@ -664,9 +652,10 @@ var test_52_autoschema_in_line_key = function () {
         // Continuation
         function () {
           assertEquals('value', data.test, result.test);
-
+          ydn.db.deleteDatabase(db_name, db.getType());
+          db.close();
           reachedFinalContinuation = true;
-          db_name_to_delete = db_name;
+
         },
         100, // interval
         5000); // maxTimeout
@@ -686,6 +675,49 @@ var test_52_autoschema_in_line_key = function () {
     //console.log(['receiving key from put', value]);
     put_done = true;
     put_result = value
+  });
+};
+
+
+var test_composite_primary_key = function () {
+
+  ydn.debug.log('ydn.db.core.req', 'finest');
+
+  var db_name = 'test_composite_primary_key';
+  var schema = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: ['id1', 'id2'],
+        type: ['TEXT', 'TEXT']
+      }]
+  };
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var done, result;
+
+  waitForCondition(
+      // Condition
+      function() { return done; },
+      // Continuation
+      function() {
+        assertObjectEquals('get result', data, result);
+
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var data = {
+    id1: 'a',
+    id2: 'b',
+    value: 'm' + Math.random()
+  };
+  db.put('st', data);
+  db.get('st', ['a', 'b']).addBoth(function (x) {
+    result = x;
+    done = true;
   });
 };
 

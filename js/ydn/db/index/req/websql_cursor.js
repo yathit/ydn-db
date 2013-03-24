@@ -177,13 +177,11 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var request;
   var sqls = ['SELECT'];
   var params = [];
-  var primary_column_name = this.store_schema_.getColumnName();
+  var primary_column_name = this.store_schema_.getSQLKeyColumnName();
   var index = this.index_name ? this.store_schema_.getIndex(this.index_name) : null;
   var type = index ? index.getType() : this.store_schema_.getType();
 
-  var key_path = index ? index.getKeyPath() :
-    this.store_schema_.getKeyPath() || primary_column_name;
-  var q_primary_column_name = goog.string.quote(primary_column_name);
+  var key_path = index ? index.getSQLIndexColumnName() : primary_column_name;
 
   var order =  ' ORDER BY ';
 

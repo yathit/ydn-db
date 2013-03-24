@@ -66,135 +66,133 @@ ydn.db.Where.prototype.getKeyRange = function() {
   return this.key_range_;
 };
 
-
-/**
- * @param {!Array.<string>|string} key_path field name.
- * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
- * @param {ydn.db.KeyRange|IDBKeyRange} key_range key range.
- * @return {{sql: string, params: !Array.<string>}}
- */
-ydn.db.Where.toWhereClause = function (key_path, type, key_range) {
-
-  // NOTE: this.field is different from key_path in general.
-
-  var sql = '';
-  var params = [];
-  if (key_range) {
-    if (ydn.db.Where.resolvedStartsWith(key_range)) {
-      if (goog.isString(key_path)) {
-        goog.asserts.assert(!goog.string.startsWith(key_path, '"'));
-        var column = goog.string.quote(key_path);
-        // should be 'TEXT'
-        sql = column + ' LIKE ?';
-        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
-      } else {
-        goog.asserts.assertArray(key_path);
-        goog.asserts.assertArray(key_range.lower,
-          'lower value of key range must be an array, but ' + key_range.lower);
-
-        for (var i = 0; i < key_range.lower.length; i++) {
-          if (i > 0) {
-            sql += ' AND ';
-          }
-          var column = goog.string.quote(key_path[i]);
-          sql += column + ' = ?';
-          params.push(key_range.lower[i]);
-        }
-
-        // NOTE: we don't need to care about upper value for LIKE
-      }
-    } else if (goog.isDefAndNotNull(key_range.lower) &&
-        goog.isDefAndNotNull(key_range.upper) &&
-        ydn.db.utils.cmp(key_range.lower, key_range.upper) == 0) {
-      if (goog.isArray(type)) { // multiEntry = true
-        goog.asserts.assertString(key_path);
-        var column = goog.string.quote(key_path);
-        sql = column + ' LIKE ?';
-        params.push('%' + ydn.db.schema.Index.ARRAY_SEP +
-          key_range.lower + // this should be string
-          ydn.db.schema.Index.ARRAY_SEP + '%');
-      } else if (goog.isArrayLike(key_range.lower)) {
-        for(var i = 0; i < key_range.lower.length; i++) {
-          if (i > 0) {
-            sql += ' AND ';
-          }
-          var column = goog.string.quote(key_path[i]);
-          sql += column + ' = ?';
-          params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
-        }
-      } else {
-        var column = goog.string.quote(
-          goog.isArray(key_path) ? key_path.join(', ') : key_path);
-        sql = column + ' = ?';
-        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
-      }
-    } else {
-      if (goog.isDefAndNotNull(key_range.lower)) {
-        if (goog.isArray(key_path)) {
-          goog.asserts.assert(goog.isArrayLike(key_range.lower),
-              'lower value of keyRange must be array for ' + key_path);
-          var op = '=';
-          for (var i = 0; i < key_range.lower.length; i++) {
-            if (i > 0) {
-              sql += ' AND ';
-            }
-            if (i == key_range.lower.length-1) {
-              op = key_range.lowerOpen ? ' > ' : ' >= ';
-            }
-            var column = goog.string.quote(key_path[i]);
-            sql += ' ' + column + op + '?';
-            var t = type ? type[i] : undefined;
-            params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], t));
-          }
-        } else {
-          goog.asserts.assertString(key_path);
-          var op = key_range.lowerOpen ? ' > ' : ' >= ';
-          var column = goog.string.quote(key_path);
-          sql += ' ' + column + op + '?';
-          params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
-        }
-      }
-      if (goog.isDefAndNotNull(key_range.upper)) {
-        sql += sql.length > 0 ? ' AND ' : ' ';
-        if (goog.isArray(key_path)) {
-          goog.asserts.assert(goog.isArrayLike(key_range.upper),
-            'upper value of keyRange must be array for ' + key_path);
-          var op = '=';
-          for (var i = 0; i < key_path.length; i++) {
-            if (i > 0) {
-              sql += ' AND ';
-            }
-            if (i >= key_range.upper.length-1) {
-              op = key_range.upperOpen ? ' < ' : ' <= ';
-            }
-            var column = goog.string.quote(key_path[i]);
-            sql += ' ' + column + op + '?';
-            var t = type ? type[i] : undefined;
-            var v = key_range.upper[i];
-            v = goog.isDefAndNotNull(v) ? v : '\uffff';
-            params.push(ydn.db.schema.Index.js2sql(v, t));
-          }
-        } else {
-          goog.asserts.assertString(key_path);
-          var op = key_range.upperOpen ? ' < ' : ' <= ';
-          var column = goog.string.quote(key_path);
-          sql += ' ' + column + op + '?';
-          params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
-        }
-      }
-    }
-  }
-
-  return {sql: sql, params: params};
-};
-
-/**
- * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
- * @return {{sql: string, params: !Array.<string>}}
- */
-ydn.db.Where.prototype.toWhereClause = function (type) {
-  return ydn.db.Where.toWhereClause(this.field, type, this.key_range_);
-};
+//
+///**
+// * @param {string} column_name column name
+// * @param {!Array.<string>|string} key_path field name.
+// * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
+// * @param {ydn.db.KeyRange|IDBKeyRange} key_range key range.
+// * @return {{sql: string, params: !Array.<string>}}
+// */
+//ydn.db.Where.toWhereClause = function (column_name, key_path, type, key_range) {
+//
+//  // NOTE: this.field is different from key_path in general.
+//
+//  var sql = '';
+//  var params = [];
+//  if (key_range) {
+//    if (ydn.db.Where.resolvedStartsWith(key_range)) {
+//      if (goog.isString(key_path)) {
+//        goog.asserts.assert(!goog.string.startsWith(key_path, '"'));
+//        // should be 'TEXT'
+//        sql = column_name + ' LIKE ?';
+//        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type) + '%');
+//      } else {
+//        goog.asserts.assertArray(key_path);
+//        goog.asserts.assertArray(key_range.lower,
+//          'lower value of key range must be an array, but ' + key_range.lower);
+//
+//        for (var i = 0; i < key_range.lower.length; i++) {
+//          if (i > 0) {
+//            sql += ' AND ';
+//          }
+//          sql += column_name + ' = ?';
+//          params.push(key_range.lower[i]);
+//        }
+//
+//        // NOTE: we don't need to care about upper value for LIKE
+//      }
+//    } else if (goog.isDefAndNotNull(key_range.lower) &&
+//        goog.isDefAndNotNull(key_range.upper) &&
+//        ydn.db.utils.cmp(key_range.lower, key_range.upper) == 0) {
+//      if (goog.isArray(type)) { // multiEntry = true
+//        goog.asserts.assertString(key_path);
+//        sql = column_name + ' LIKE ?';
+//        params.push('%' + ydn.db.schema.Index.ARRAY_SEP +
+//          key_range.lower + // this should be string
+//          ydn.db.schema.Index.ARRAY_SEP + '%');
+//      } else if (goog.isArrayLike(key_range.lower)) {
+//        for(var i = 0; i < key_range.lower.length; i++) {
+//          if (i > 0) {
+//            sql += ' AND ';
+//          }
+//          var column = goog.string.quote(key_path[i]);
+//          sql += column_name + ' = ?';
+//          params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
+//        }
+//      } else {
+//        var column = goog.string.quote(
+//          goog.isArray(key_path) ? key_path.join(', ') : key_path);
+//        sql = column + ' = ?';
+//        params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
+//      }
+//    } else {
+//      if (goog.isDefAndNotNull(key_range.lower)) {
+//        if (goog.isArray(key_path)) {
+//          goog.asserts.assert(goog.isArrayLike(key_range.lower),
+//              'lower value of keyRange must be array for ' + key_path);
+//          var op = '=';
+//          for (var i = 0; i < key_range.lower.length; i++) {
+//            if (i > 0) {
+//              sql += ' AND ';
+//            }
+//            if (i == key_range.lower.length-1) {
+//              op = key_range.lowerOpen ? ' > ' : ' >= ';
+//            }
+//            var column = goog.string.quote(key_path[i]);
+//            sql += ' ' + column + op + '?';
+//            var t = type ? type[i] : undefined;
+//            params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], t));
+//          }
+//        } else {
+//          goog.asserts.assertString(key_path);
+//          var op = key_range.lowerOpen ? ' > ' : ' >= ';
+//          var column = goog.string.quote(key_path);
+//          sql += ' ' + column + op + '?';
+//          params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
+//        }
+//      }
+//      if (goog.isDefAndNotNull(key_range.upper)) {
+//        sql += sql.length > 0 ? ' AND ' : ' ';
+//        if (goog.isArray(key_path)) {
+//          goog.asserts.assert(goog.isArrayLike(key_range.upper),
+//            'upper value of keyRange must be array for ' + key_path);
+//          var op = '=';
+//          for (var i = 0; i < key_path.length; i++) {
+//            if (i > 0) {
+//              sql += ' AND ';
+//            }
+//            if (i >= key_range.upper.length-1) {
+//              op = key_range.upperOpen ? ' < ' : ' <= ';
+//            }
+//            var column = goog.string.quote(key_path[i]);
+//            sql += ' ' + column + op + '?';
+//            var t = type ? type[i] : undefined;
+//            var v = key_range.upper[i];
+//            v = goog.isDefAndNotNull(v) ? v : '\uffff';
+//            params.push(ydn.db.schema.Index.js2sql(v, t));
+//          }
+//        } else {
+//          goog.asserts.assertString(key_path);
+//          var op = key_range.upperOpen ? ' < ' : ' <= ';
+//          var column = goog.string.quote(key_path);
+//          sql += ' ' + column + op + '?';
+//          params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
+//        }
+//      }
+//    }
+//  }
+//
+//  return {sql: sql, params: params};
+//};
+//
+///**
+// * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
+// * @return {{sql: string, params: !Array.<string>}}
+// */
+//ydn.db.Where.prototype.toWhereClause = function (type) {
+//  return ydn.db.Where.toWhereClause(this.field, type, this.key_range_);
+//};
 
 
 /**

@@ -180,15 +180,14 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
 
   var is_index = goog.isDefAndNotNull(index_column);
   var index = goog.isString(index_column) ? store.getIndex(index_column) : null;
-  var column = index_column || store.getColumnName();
+  var key_column = store.getSQLKeyColumnName();
+  var effective_column = index_column || key_column;
   var key_path = index ? index.getKeyPath() : store.getKeyPath();
   var type = is_index ? index.getType() : store.getType();
 
-  var qcolumn = goog.string.quote(column);
-  var key_column = store.getColumnName();
   var fields = '*';
   if (key_only) {
-    fields = goog.string.quote(key_column);
+    fields = goog.string.quote(effective_column);
   }
 
   // FIXME: DISTINCT is not equivalent to IndexedDB unique
@@ -196,17 +195,19 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
   var sql = 'SELECT ' + dist + fields +
     ' FROM ' + store.getQuotedName();
   var params = [];
-  if (!goog.isNull(key_range)) {
+  if (!goog.isDefAndNotNull(key_range)) {
     goog.asserts.assert(key_path); // not null.
-    var t = is_index && index.isMultiEntry() ? [type] : type;
-    var where_clause = ydn.db.Where.toWhereClause(
-        key_path, t, key_range);
-    sql += ' WHERE ' + where_clause.sql;
-    params = where_clause.params;
+    var wheres = [];
+
+    var is_multi_entry = is_index && index.isMultiEntry();
+    ydn.db.KeyRange.toSql(effective_column, is_multi_entry, key_range,
+        wheres, params);
+
+    sql += ' WHERE ' + wheres.join(' AND ');
   }
 
   var order = reverse ? 'DESC' : 'ASC';
-  sql += ' ORDER BY ' + qcolumn + ' ' + order;
+  sql += ' ORDER BY ' + effective_column + ' ' + order;
 
   if (goog.isNumber(limit)) {
     sql += ' LIMIT ' + limit;
@@ -337,7 +338,7 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
         ' (' + out.columns.join(', ') + ') ' +
         'VALUES (' + out.slots.join(', ') + ');';
 
-    var msg = 'TxNo:' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + out.values;
+    var msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + out.values;
 
     /**
      * @param {SQLTransaction} transaction transaction.
@@ -981,32 +982,33 @@ ydn.db.core.req.WebSql.prototype.removeByIndexKeyRange = function(tx, tx_no, df,
 /**
  * Retrieve primary keys or value from a store in a given key range.
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no.
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {string} store_name table name.
- * @param {string|undefined} column name.
+ * @param {string|undefined} column_name name.
  * @param {IDBKeyRange} key_range to retrieve.
  * @private
  */
 ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
-                    store_name, column, key_range) {
+                    store_name, column_name, key_range) {
 
   var me = this;
   var arr = [];
   var store = this.schema.getStore(store_name);
 
-  var type = store.getType();
-  if (goog.isDef(column)) {
-    type = store.getIndex(column).getType();
-  } else {
-    column =  store.getColumnName();
-  }
-
-  var sql = 'DELETE FROM ' + store.getQuotedName();
+   var sql = 'DELETE FROM ' + store.getQuotedName();
   var params = [];
   if (!goog.isNull(key_range)) {
-    var where_clause = ydn.db.Where.toWhereClause(column, type, key_range);
-    sql += ' WHERE ' + where_clause.sql;
-    params = where_clause.params;
+    var wheres = [];
+    if (goog.isDef(column_name)) {
+      var index = store.getIndex(column_name);
+      ydn.db.KeyRange.toSql(index.getSQLIndexColumnName(), index.isMultiEntry(),
+          key_range, wheres, params);
+    } else {
+      ydn.db.KeyRange.toSql(store.getSQLKeyColumnName(), false, key_range,
+          wheres, params);
+    }
+    sql += ' WHERE ' + wheres.join(' AND ');
   }
 
   /**
@@ -1115,66 +1117,16 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
 
   var store = this.schema.getStore(table);
   if (!goog.isNull(key_range)) {
+    var wheres = [];
     if (goog.isDef(index_name)) {
       var index = store.getIndex(index_name);
-      var keyPath = index.keyPath;
-      var type = index.type;
-      if (goog.isArray(type)) {
-        sql += ' WHERE ';
-        if (goog.isDefAndNotNull(key_range.lower)) {
-          if (goog.isArray(type)) {
-            var op = '=';
-            for (var i = 0; i < key_range.lower.length; i++) {
-              if (i > 0) {
-                sql += ' AND ';
-              }
-              if (i == key_range.lower.length-1) {
-                op = key_range.lowerOpen ? ' > ' : ' >= ';
-              }
-              var column = goog.string.quote(keyPath[i]);
-              sql += ' ' + column + op + '?';
-              params.push(ydn.db.schema.Index.js2sql(key_range.lower[i], type[i]));
-            }
-          } else {
-            var op = key_range.lowerOpen ? ' > ' : ' >= ';
-            var column = goog.string.quote(index_name);
-            sql += ' ' + column + op + '?';
-            params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
-          }
-        }
-        if (goog.isDefAndNotNull(key_range.upper)) {
-          sql += sql.length > 0 ? ' AND ' : ' ';
-          if (goog.isArray(type)) {
-            var op = '=';
-            for (var i = 0; i < key_range.upper.length; i++) {
-              if (i > 0) {
-                sql += ' AND ';
-              }
-              if (i == key_range.upper.length-1) {
-                op = key_range.upperOpen ? ' < ' : ' <= ';
-              }
-              var column = goog.string.quote(keyPath[i]);
-              sql += ' ' + column + op + '?';
-              params.push(ydn.db.schema.Index.js2sql(key_range.upper[i], type[i]));
-            }
-          } else {
-            var op = key_range.upperOpen ? ' < ' : ' <= ';
-            var column = goog.string.quote(index_name);
-            sql += ' AND ' + column + op + '?';
-            params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
-          }
-        }
-      } else {
-        var where_clause = ydn.db.Where.toWhereClause(keyPath, type, key_range);
-        sql += ' WHERE ' + where_clause.sql;
-        params = where_clause.params;
-      }
+      ydn.db.KeyRange.toSql(index.getSQLIndexColumnName(), index.isMultiEntry(),
+          key_range, wheres, params);
     } else {
-      var column = store.getColumnName();
-      var where_clause = ydn.db.Where.toWhereClause(column, store.getType(), key_range);
-      sql += ' WHERE ' + where_clause.sql;
-      params = where_clause.params;
+      ydn.db.KeyRange.toSql(store.getSQLKeyColumnName(), false,
+          key_range, wheres, params);
     }
+    sql += ' WHERE ' + wheres.join(' AND ');
   }
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -1183,7 +1135,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
   var callback = function(transaction, results) {
     var row = results.rows.item(0);
     // console.log(['row ', row  , results]);
-    me.logger.finest('success ' + sql);
+    me.logger.finest('success ' + msg);
     d(row['COUNT(*)']);
   };
 
@@ -1196,12 +1148,13 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('error: ' + sql + ' ' + error.message);
+    me.logger.warning('error: ' + msg + error.message);
     d(error, true);
     return false;
   };
 
-  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
+  var msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
+  this.logger.finest(msg);
   tx.executeSql(sql, params, callback, error_callback);
 
   return d;

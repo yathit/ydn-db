@@ -405,6 +405,7 @@ ydn.db.utils.decodeString = function(reader) {
  * @constructor
  */
 ydn.db.utils.HexStringReader = function(string) {
+  // todo: use prototype please
   this.current = null;
 
   //var string = string;
@@ -422,6 +423,7 @@ ydn.db.utils.HexStringReader = function(string) {
  * @constructor
  */
 ydn.db.utils.HexStringWriter = function() {
+  // todo: use prototype please
   var buffer = [], c;
   this.write = function($byte) {
     for (var i = 0; i < arguments.length; i++) {

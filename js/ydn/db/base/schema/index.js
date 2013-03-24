@@ -61,6 +61,7 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
   this.keyPath = keyPath;
 
 
+
   /**
    * @final
    */
@@ -90,6 +91,13 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
    * @final
    */
   this.multiEntry = !!multiEntry;
+
+
+  this.index_column_name_ = goog.isArray(name) ?
+      goog.string.quote(name) :
+      goog.isArray(keyPath) ?
+          goog.string.quote(this.keyPath.join(',')) :
+          keyPath;
 };
 
 
@@ -478,6 +486,26 @@ ydn.db.schema.Index.toDir = function(str) {
 ydn.db.schema.Index.prototype.getKeyPath = function() {
   return this.keyPath;
 };
+
+
+
+/**
+ * Return quoted keyPath. In case undefined return default key column.
+ * @return {string} return quoted keyPath. If keyPath is array, they are
+ * join by ',' and quoted. If keyPath is not define, default sqlite column
+ * name is used.
+ */
+ydn.db.schema.Index.prototype.getSQLIndexColumnName = function () {
+  return this.index_column_name_;
+};
+
+
+/**
+ * @type {string}
+ * @private
+ */
+ydn.db.schema.Index.prototype.index_column_name_;
+
 
 
 /**
