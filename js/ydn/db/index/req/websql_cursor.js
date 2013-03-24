@@ -178,6 +178,7 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var sqls = ['SELECT'];
   var params = [];
   var primary_column_name = this.store_schema_.getSQLKeyColumnName();
+  var q_primary_column_name = goog.string.quote(primary_column_name);
   var index = this.index_name ? this.store_schema_.getIndex(this.index_name) : null;
   var type = index ? index.getType() : this.store_schema_.getType();
 

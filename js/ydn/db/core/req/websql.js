@@ -113,9 +113,9 @@ ydn.db.core.req.WebSql.parseRow = function(row, store) {
     var x = row[index.name];
     var v;
     if (index.isMultiEntry()) {
-      v = ydn.db.schema.Index.sql2js(x, [index.type]);
+      v = ydn.db.schema.Index.sql2js(x, [index.getSqlType()]);
     } else {
-      v = ydn.db.schema.Index.sql2js(x, index.type);
+      v = ydn.db.schema.Index.sql2js(x, index.getSqlType());
     }
     if (goog.isDef(v)) {
       value[index.name] = v;
@@ -182,12 +182,13 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
   var index = goog.isString(index_column) ? store.getIndex(index_column) : null;
   var key_column = store.getSQLKeyColumnName();
   var effective_column = index_column || key_column;
+  var effective_column_quoted =  goog.string.quote(effective_column);
   var key_path = index ? index.getKeyPath() : store.getKeyPath();
   var type = is_index ? index.getType() : store.getType();
 
   var fields = '*';
   if (key_only) {
-    fields = goog.string.quote(effective_column);
+    fields = effective_column_quoted;
   }
 
   // FIXME: DISTINCT is not equivalent to IndexedDB unique
@@ -195,19 +196,19 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
   var sql = 'SELECT ' + dist + fields +
     ' FROM ' + store.getQuotedName();
   var params = [];
-  if (!goog.isDefAndNotNull(key_range)) {
+  if (goog.isDefAndNotNull(key_range)) {
     goog.asserts.assert(key_path); // not null.
     var wheres = [];
 
     var is_multi_entry = is_index && index.isMultiEntry();
-    ydn.db.KeyRange.toSql(effective_column, is_multi_entry, key_range,
-        wheres, params);
+    ydn.db.KeyRange.toSql(effective_column_quoted, is_multi_entry,
+        key_range, wheres, params);
 
     sql += ' WHERE ' + wheres.join(' AND ');
   }
 
   var order = reverse ? 'DESC' : 'ASC';
-  sql += ' ORDER BY ' + effective_column + ' ' + order;
+  sql += ' ORDER BY ' + effective_column_quoted + ' ' + order;
 
   if (goog.isNumber(limit)) {
     sql += ' LIMIT ' + limit;
@@ -224,7 +225,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
     for (var i = 0, n = results.rows.length; i < n; i++) {
       var row = results.rows.item(i);
       if (key_only) {
-        arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType());
+        arr[i] = ydn.db.schema.Index.sql2js(row[effective_column], store.getSqlType());
       } else if (goog.isDefAndNotNull(row)) {
         arr[i] = ydn.db.core.req.WebSql.parseRow(row, store);
       }
@@ -314,6 +315,7 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
   var me = this;
   var result_keys = [];
   var result_count = 0;
+  var msg = 'TX' + tx_no + ' inserting ' + objects.length + ' objects.';
 
   /**
    * Put and item at i. This ydn.db.con.Storage will invoke callback to df if
@@ -338,7 +340,9 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
         ' (' + out.columns.join(', ') + ') ' +
         'VALUES (' + out.slots.join(', ') + ');';
 
-    var msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + out.values;
+    var i_msg = 'TX' + tx_no +
+        ' SQL: ' + sql + ' PARAMS: ' + out.values +
+        ' REQ: ' + i + ' of ' + objects.length;
 
     /**
      * @param {SQLTransaction} transaction transaction.
@@ -349,12 +353,12 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
 
       var key = goog.isDef(out.key) ? out.key : results.insertId;
       if (single) {
-        me.logger.finest('success ' + sql);
+        me.logger.finer('success ' + msg);
         df(key);
       } else {
         result_keys[i] = key;
         if (result_count == objects.length) {
-          me.logger.finest('success ' + msg);
+          me.logger.finer('success ' + msg);
           df(result_keys);
         } else {
           var next = i + ydn.db.core.req.WebSql.RW_REQ_PER_TX;
@@ -379,7 +383,7 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
       if (error.code == 6 && // constraint failed
           create) { // rollback for add, continue for put
         if (single) {
-          me.logger.finer('success ' + msg);
+          me.logger.finer('success ' + i_msg);
           df(error, true);
         } else {
           result_keys[i] = null;
@@ -405,7 +409,7 @@ ydn.db.core.req.WebSql.prototype.insertObjects = function(
     };
 
     //console.log([sql, out.values]);
-    me.logger.finest(msg);
+    me.logger.finest(i_msg);
     tx.executeSql(sql, out.values, success_callback, error_callback);
   };
 
@@ -529,7 +533,7 @@ ydn.db.core.req.WebSql.prototype.getById = function(tx, tx_no, d, table_name, id
 
   var me = this;
 
-  var column_name = table.getSQLKeyColumnName();
+  var column_name = table.getSQLKeyColumnNameQuoted();
 
   var params = [ydn.db.schema.Index.js2sql(id, table.type)];
 
@@ -655,7 +659,7 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name,
     };
 
     var id = ids[i];
-    var column_name = table.getSQLKeyColumnName();
+    var column_name = table.getSQLKeyColumnNameQuoted();
 
     var params = [ydn.db.schema.Index.js2sql(id, table.type)];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
@@ -830,7 +834,7 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(tx, tx_no, df, keys) {
     };
 
     var id = key.getNormalizedId();
-    var column_name = table.getSQLKeyColumnName();
+    var column_name = table.getSQLKeyColumnNameQuoted();
 
     var params = [id];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
@@ -928,7 +932,7 @@ ydn.db.core.req.WebSql.prototype.removeById = function(tx, tx_no, d, table, id) 
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log(results);
     }
-    me.logger.finest('success ' + sql);
+    me.logger.finest('success ' + msg);
     d(results.rowsAffected);
   };
 
@@ -941,15 +945,16 @@ ydn.db.core.req.WebSql.prototype.removeById = function(tx, tx_no, d, table, id) 
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('error: ' + sql + ' ' + error.message);
+    me.logger.warning('error: ' + msg + error.message);
     d(error, true);
     return false; // not rollback yet.
   };
 
   var sql = 'DELETE FROM ' + store.getQuotedName() +
-    ' WHERE ' + store.getQuotedKeyPath() + ' = ?';
+    ' WHERE ' + store.getSQLKeyColumnNameQuoted() + ' = ?';
   //console.log([sql, out.values])
-  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + [key]);
+  var msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + [key];
+  this.logger.finest(msg);
   tx.executeSql(sql, [key], success_callback, error_callback);
 
 };
@@ -998,14 +1003,14 @@ ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
 
    var sql = 'DELETE FROM ' + store.getQuotedName();
   var params = [];
-  if (!goog.isNull(key_range)) {
+  if (goog.isDefAndNotNull(key_range)) {
     var wheres = [];
     if (goog.isDef(column_name)) {
       var index = store.getIndex(column_name);
       ydn.db.KeyRange.toSql(index.getSQLIndexColumnName(), index.isMultiEntry(),
           key_range, wheres, params);
     } else {
-      ydn.db.KeyRange.toSql(store.getSQLKeyColumnName(), false, key_range,
+      ydn.db.KeyRange.toSql(store.getSQLKeyColumnNameQuoted(), false, key_range,
           wheres, params);
     }
     sql += ' WHERE ' + wheres.join(' AND ');
@@ -1016,7 +1021,7 @@ ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
-    me.logger.finest('success ' + sql);
+    me.logger.finest('success ' + msg);
     df(results.rowsAffected);
   };
 
@@ -1029,13 +1034,14 @@ ydn.db.core.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
     if (ydn.db.core.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('error: ' + sql + ' ' + error.message);
+    me.logger.warning('error: ' + msg + error.message);
     df(error, true);
     return false;
   };
 
   //console.log([sql, params])
-  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
+  var msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
+  this.logger.finest(msg);
   tx.executeSql(sql, params, callback, error_callback);
 };
 
@@ -1110,6 +1116,7 @@ ydn.db.core.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
 ydn.db.core.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
                                                           key_range, index_name) {
 
+
   var me = this;
 
   var sql = 'SELECT COUNT(*) FROM ' + goog.string.quote(table);
@@ -1123,7 +1130,7 @@ ydn.db.core.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
       ydn.db.KeyRange.toSql(index.getSQLIndexColumnName(), index.isMultiEntry(),
           key_range, wheres, params);
     } else {
-      ydn.db.KeyRange.toSql(store.getSQLKeyColumnName(), false,
+      ydn.db.KeyRange.toSql(store.getSQLKeyColumnNameQuoted(), false,
           key_range, wheres, params);
     }
     sql += ' WHERE ' + wheres.join(' AND ');

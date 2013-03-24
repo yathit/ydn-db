@@ -16,7 +16,8 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  //ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db.con', 'finest');
+  ydn.debug.log('ydn.db.core.req', 'finest');
   //ydn.db.tr.Serial.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
@@ -946,6 +947,9 @@ var test_41_remove_by_key = function() {
 
 var test_42_remove_by_key_range = function() {
   var db_name = 'test_42_remove_by_key_range';
+
+  ydn.debug.log('ydn.db', 'finest');
+
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear(table_name);
   db.put(table_name,
@@ -1092,55 +1096,44 @@ var test_52_fetch_keys = function () {
     {id:'st', value:Math.random()}
   ];
 
-  var put_value_received;
-  var put_done;
+  var put_value_received, results;
+  var put_done, get_done;
   waitForCondition(
-    // Condition
-    function () {
-      return put_done;
-    },
-    // Continuation
-    function () {
+      // Condition
+      function () {
+        return put_done && get_done;
+      },
+      // Continuation
+      function () {
 
-      var get_done;
-      var get_value_received;
-      waitForCondition(
-        // Condition
-        function () {
-          return get_done;
-        },
-        // Continuation
-        function () {
-          assertEquals('obj length', keys.length, put_value_received.length);
-          assertObjectEquals('get', objs[1], put_value_received[0]);
-          assertObjectEquals('get', objs[2], put_value_received[1]);
 
-          reachedFinalContinuation = true;
-          ydn.db.deleteDatabase(db_name, db.getType());
-          db.close();
-        },
-        100, // interval
-        2000); // maxTimeout
+        assertEquals('obj length', keys.length, results.length);
+        assertObjectEquals('get 0', objs[1], results[0]);
+        assertObjectEquals('get 1', objs[2], results[1]);
 
-      var keys = [
-        new ydn.db.Key(store_name, objs[1].id),
-        new ydn.db.Key(store_name, objs[2].id)];
-      db.values(keys).addBoth(function (value) {
-        //console.log('fetch value: ' + JSON.stringify(value));
-        put_value_received = value;
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
 
-        get_done = true;
-      });
-
-    },
-    100, // interval
-    2000); // maxTimeout
+      },
+      100, // interval
+      2000); // maxTimeout
 
 
   db.put(store_name, objs).addBoth(function (value) {
     //console.log(['receiving value callback.', value]);
     put_value_received = value;
     put_done = true;
+  });
+
+  var keys = [
+    new ydn.db.Key(store_name, objs[1].id),
+    new ydn.db.Key(store_name, objs[2].id)];
+  db.values(keys).addBoth(function (value) {
+    //console.log('fetch value: ' + JSON.stringify(value));
+    results = value;
+
+    get_done = true;
   });
 
 };
@@ -1155,7 +1148,7 @@ var test_51_keys = function() {
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var keys = [0, 1, 2, 3];
-  var data = keys.map(function(x) {return {id: x};});
+  var data = keys.map(function(x) {return {id: x, msg: 'msg' + Math.random()};});
   //var rev_data = ydn.object.clone(data).reverse();
 
 

@@ -19,6 +19,7 @@ var out_of_line_store = 't5';
 
 
 var setUp = function() {
+  // ydn.debug.log('ydn.db.core.req', 'finest');
 
   reachedFinalContinuation = false;
 };
@@ -37,7 +38,7 @@ var getBasicSchema = function () {
   var s4 = new ydn.db.schema.Store(array_table, 'id', false,
       ydn.db.schema.DataType.ARRAY);
   var s5 = new ydn.db.schema.Store(out_of_line_store, undefined,  false);
-  basic_schema = new ydn.db.schema.Database(1, [s1, s2, s3, s4, s5]);
+  basic_schema = new ydn.db.schema.Database(undefined, [s1, s2, s3, s4, s5]);
   return basic_schema;
 };
 
@@ -166,6 +167,7 @@ var _test_02_encode_blob = function () {
 /**
  */
 var test_11_string_keys = function() {
+  ydn.debug.log('ydn.db.core.req', 'finest');
   var db_name = 'test_11_string_keys';
   var basic_schema = getBasicSchema();
   var db = new ydn.db.core.Storage(db_name, basic_schema, options);
@@ -210,8 +212,14 @@ var test_12_number_keys = function() {
 var test_13_array_key = function () {
   var store_name = 'st';
   var db_name = 'test_13_2';
-  var store_schema = new ydn.db.schema.Store(store_name, 'id', false, ydn.db.schema.DataType.Array);
-  var schema = new ydn.db.schema.Database(undefined, [store_schema]);
+
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id'
+    }]
+  };
+
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
@@ -307,7 +315,7 @@ var test_22_out_of_line_array = function () {
   var store_name = 'demoOS';
   var db_name = 'test_22_2';
   var store_schema = new ydn.db.schema.Store(store_name, undefined,  false);
-  var schema = new ydn.db.schema.Database(1, [store_schema]);
+  var schema = new ydn.db.schema.Database(undefined, [store_schema]);
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
@@ -372,7 +380,7 @@ var test_40_nested_keyPath = function() {
   var store_name = 'ts1';
   var db_name = 'test_key_40_4';
   var store = new ydn.db.schema.Store(store_name, 'id.$t', false, ydn.db.schema.DataType.TEXT);
-  var schema = new ydn.db.schema.Database(1, [store]);
+  var schema = new ydn.db.schema.Database(undefined, [store]);
 
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
@@ -427,8 +435,13 @@ var test_40_nested_keyPath = function() {
 var test_42_autoincreasement_offline = function () {
   var store_name = 'demoOS';
   var db_name = 'test_42_26';
-  var store_schema = new ydn.db.schema.Store(store_name, undefined, true);
-  var schema = new ydn.db.schema.Database(1, [store_schema]);
+  var schema = {
+    stores: [
+      {
+        name: store_name,
+        autoIncrement: true
+      }]
+  };
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
@@ -482,7 +495,7 @@ var test_42_autoincreasement_offline = function () {
     },
 
     100, // interval
-    5000); // maxTimeout
+    2000); // maxTimeout
 
   db.put(store_name, objs).addCallback(function (value) {
     //console.log(['receiving key from put', value]);
@@ -497,7 +510,7 @@ var test_43_autoincreasement_inline = function () {
   var db_name = 'test_key_43_5';
   var store_schema = new ydn.db.schema.Store(store_name, 'value', true,
       ydn.db.schema.DataType.INTEGER);
-  var schema = new ydn.db.schema.Database(1, [store_schema]);
+  var schema = new ydn.db.schema.Database(undefined, [store_schema]);
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
@@ -681,15 +694,12 @@ var test_52_autoschema_in_line_key = function () {
 
 var test_composite_primary_key = function () {
 
-  ydn.debug.log('ydn.db.core.req', 'finest');
-
   var db_name = 'test_composite_primary_key';
   var schema = {
     stores: [
       {
         name: 'st',
-        keyPath: ['id1', 'id2'],
-        type: ['TEXT', 'TEXT']
+        keyPath: ['id1', 'id2']
       }]
   };
   var db = new ydn.db.core.Storage(db_name, schema, options);

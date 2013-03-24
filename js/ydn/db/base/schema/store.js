@@ -66,7 +66,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
     }
     if (goog.isArray(this.keyPath)) {
       throw new ydn.debug.error.ArgumentException(
-          'composite key must not specified type');
+          'composite key for store "' + this.name + '" must not specified type');
     }
   }
 
@@ -98,13 +98,21 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    * @final
    */
   this.fixed = !!fixed;
-
+  /**
+   * @final
+   */
+  this.keyColumnType_ = goog.isString(this.type) ?
+      this.type : ydn.db.schema.DataType.TEXT;
+  /**
+   * @final
+   */
   this.primary_column_name_ = goog.isArray(this.keyPath) ?
-      goog.string.quote(this.keyPath.join(',')) :
+      this.keyPath.join(',') :
       goog.isString(this.keyPath) ?
-          goog.string.quote(this.keyPath) :
+          this.keyPath :
           ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
+  this.primary_column_name_quoted_ = goog.string.quote(this.primary_column_name_);
 };
 
 
@@ -148,6 +156,12 @@ ydn.db.schema.Store.prototype.autoIncrement;
  * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} //
  */
 ydn.db.schema.Store.prototype.type;
+
+/**
+ * @private
+ * @type {ydn.db.schema.DataType}
+ */
+ydn.db.schema.Store.prototype.keyColumnType_;
 
 /**
  * @protected
@@ -305,19 +319,14 @@ ydn.db.schema.Store.prototype.hasIndexByKeyPath = function(key_path) {
 
 
 /**
- * 
- * @return {string|undefined} return quoted keyPath.
+ * Return quoted keyPath. In case undefined return default key column.
+ * @return {string} return quoted keyPath. If keyPath is array, they are
+ * join by ',' and quoted. If keyPath is not define, default sqlite column
+ * name is used.
  */
-ydn.db.schema.Store.prototype.getQuotedKeyPath = function() {
-  if (goog.isArray(this.keyPath)) {
-    this.quoted_key_path_ = goog.string.quote(this.keyPath.join(','));
-  } else if (goog.isString(this.keyPath))  {
-    this.quoted_key_path_ = goog.string.quote(this.keyPath);
-  } else {
-    return undefined;
-  }
+ydn.db.schema.Store.prototype.getSQLKeyColumnNameQuoted = function () {
+  return this.primary_column_name_quoted_;
 };
-
 
 /**
  * Return quoted keyPath. In case undefined return default key column.
@@ -335,6 +344,13 @@ ydn.db.schema.Store.prototype.getSQLKeyColumnName = function () {
  * @private
  */
 ydn.db.schema.Store.prototype.primary_column_name_;
+
+/**
+ * @type {string}
+ * @private
+ */
+ydn.db.schema.Store.prototype.primary_column_name_quoted_;
+
 //
 //
 ///**
@@ -414,10 +430,9 @@ ydn.db.schema.Store.prototype.hint = function(that) {
 //      }
 //    }
 //  }
-  if (goog.isArray(that.type) && type == 'TEXT') {
-    // array keyPath are converted into TEXT
-    // NOTE: not blown up unlike indexes.
-    type = goog.array.clone(/** @type {goog.array.ArrayLike} */ (that.type));
+  if (!goog.isDef(that.type) && type == 'TEXT') {
+    // composite are converted into TEXT
+    type = undefined;
   }
   if (goog.isArray(that.keyPath) && goog.isString(keyPath) &&
       keyPath == that.keyPath.join(',')) {
@@ -510,6 +525,15 @@ ydn.db.schema.Store.prototype.getType = function() {
 
 /**
  *
+ * @return {ydn.db.schema.DataType}
+ */
+ydn.db.schema.Store.prototype.getSqlType = function() {
+  return this.keyColumnType_;
+};
+
+
+/**
+ *
  * @return {!Array.<string>} list of index keyPath.
  */
 ydn.db.schema.Store.prototype.getIndexKeyPaths = function() {
@@ -540,13 +564,15 @@ ydn.db.schema.Store.prototype.addIndex = function(name, opt_unique, opt_type,
  */
 ydn.db.schema.Store.prototype.getKeyValue = function(obj) {
   // http://www.w3.org/TR/IndexedDB/#key-construct
-  if (goog.isArrayLike(this.keyPath) && goog.isObject(obj)) {
+  if (!goog.isObject(obj)) {
+    return undefined;
+  } else if (goog.isArrayLike(this.keyPath)) {
     var key = [];
     for (var i = 0, n = this.keyPath.length; i < n; i++) {
       key[i] = obj[this.keyPath[i]];
     }
     return key;
-  } else {
+  } else if (this.usedInlineKey()) {
     return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
   }
 };
@@ -639,54 +665,27 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
   // here we don't check again. this method should not throw error for
   // these reason. If error must be throw it has to be InternalError.
 
-  var key_column;
   var values = [];
-
-  var normalized_key;
-  var key = goog.isDef(opt_key) ? opt_key :
-      goog.isString(this.keyPath) ? this.getKeyValue(obj) : undefined;
   var columns = [];
+
+  var key = goog.isDef(opt_key) ? opt_key : this.getKeyValue(obj);
   if (goog.isDef(key)) {
-    columns = goog.isDefAndNotNull(this.keyPath) ? [this.getQuotedKeyPath()] :
-        [ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
-    values = [ydn.db.schema.Index.js2sql(key, this.type)];
+    columns.push(this.getSQLKeyColumnNameQuoted());
+    values.push(ydn.db.schema.Index.js2sql(key, this.getSqlType()));
   }
 
   for (var i = 0; i < this.indexes.length; i++) {
     var index = this.indexes[i];
-    if (index.name == this.keyPath ||
+    if (index.name === this.keyPath ||
         index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
       continue;
     }
 
-    var key_path = index.getKeyPath();
-    if (goog.isDef(key_path)) {
-      var type = index.getType();
-      if (goog.isArray(key_path)) {
-        for(var j = 0; j < key_path.length; j++) {
-          if (goog.isDef(obj[key_path[j]])) {
-            if (index.isMultiEntry()) {
-              values.push(ydn.db.schema.Index.js2sql(
-                obj[key_path[j]], [type[j]]));
-            } else {
-              values.push(ydn.db.schema.Index.js2sql(
-                obj[key_path[j]], type[j]));
-            }
-            columns.push(goog.string.quote(key_path[j]));
-          }
-        }
-      } else {
-        if (goog.isDef(obj[key_path])) {
-          if (index.isMultiEntry()) {
-            values.push(ydn.db.schema.Index.js2sql(obj[key_path], [type]));
-          } else {
-            values.push(ydn.db.schema.Index.js2sql(obj[key_path], type));
-          }
-          columns.push(goog.string.quote(key_path));
-        }
-      }
+    var idx_key = index.getKeyValue(obj);
+    if (goog.isDefAndNotNull(idx_key)) {
+      values.push(idx_key);
+      columns.push(index.getSQLIndexColumnName());
     }
-
   }
 
   if (!this.fixed) {

@@ -25,9 +25,8 @@ goog.require('ydn.db.utils');
  * @param {string=} name index name.
  * @constructor
  */
-ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
-{
-
+ydn.db.schema.Index = function(
+    keyPath, opt_type, opt_unique, multiEntry, name) {
 
   if (!goog.isDef(name)) {
     if (goog.isArray(keyPath)) {
@@ -60,8 +59,6 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
    */
   this.keyPath = keyPath;
 
-
-
   /**
    * @final
    */
@@ -91,8 +88,14 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
    * @final
    */
   this.multiEntry = !!multiEntry;
-
-
+  /**
+   * @final
+   */
+  this.keyColumnType_ = goog.isString(this.type) ? this.type :
+      ydn.db.schema.DataType.TEXT;
+  /**
+   * @final
+   */
   this.index_column_name_ = goog.isArray(name) ?
       goog.string.quote(name) :
       goog.isArray(keyPath) ?
@@ -102,9 +105,36 @@ ydn.db.schema.Index = function(keyPath, opt_type, opt_unique, multiEntry, name)
 
 
 /**
+ * Extract value of keyPath from a given object.
+ * @see #getKeyValue
+ * @param {!Object} obj object to extract from.
+ * @return {!Array|number|string|undefined} return key value.
+ */
+ydn.db.schema.Index.prototype.getKeyValue = function(obj) {
+  if (goog.isDefAndNotNull(obj)) {
+    if (goog.isArrayLike(this.keyPath)) {
+      var key = [];
+      for (var i = 0, n = this.keyPath.length; i < n; i++) {
+        key[i] = ydn.db.utils.getValueByKeys(obj, this.keyPath[i]);
+      }
+      return key;
+    } else {
+      return /** @type {!Array|number|string|undefined} */ (ydn.db.utils.getValueByKeys(obj, this.keyPath));
+    }
+  }
+};
+
+
+/**
  * @type {string}
  */
 ydn.db.schema.Index.prototype.name;
+
+/**
+ * @private
+ * @type {ydn.db.schema.DataType}
+ */
+ydn.db.schema.Index.prototype.keyColumnType_;
 
 /**
  * @type {(string|!Array.<string>)}
@@ -193,8 +223,7 @@ ydn.db.schema.Index.js2sql = function(key, type) {
   } else if (goog.isDef(type)) {
     return key; // NUMERIC, INTEGER, and BLOB
   } else {
-    var encoded = ydn.db.utils.encodeKey(key);
-    return "X'" + encoded + "'";
+    return ydn.db.utils.encodeKey(key);
   }
 };
 
@@ -296,6 +325,16 @@ ydn.db.schema.Index.toAbbrType = function(x) {
 ydn.db.schema.Index.prototype.getType = function() {
   return this.type;
 };
+
+
+/**
+ *
+ * @return {ydn.db.schema.DataType}
+ */
+ydn.db.schema.Index.prototype.getSqlType = function() {
+  return this.keyColumnType_;
+};
+
 
 /**
  *

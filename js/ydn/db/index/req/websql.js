@@ -227,7 +227,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
   goog.asserts.assertString(key_column);
   var column = goog.string.quote(key_column);
 
-  var type = index ? index.getType() : store.getType();
+  var type = index ? index.getSqlType() : store.getSqlType();
 
   var select = 'SELECT';
 
@@ -240,10 +240,10 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
     // list method
     if (q.isIndexIterator()) {
       if (q.isKeyOnly()) {
-        fields = store.getSQLKeyColumnName();
+        fields = store.getSQLKeyColumnNameQuoted();
       }
     } else if (q.isKeyOnly()) {
-      fields = store.getSQLKeyColumnName();
+      fields = store.getSQLKeyColumnNameQuoted();
     }
   }
 

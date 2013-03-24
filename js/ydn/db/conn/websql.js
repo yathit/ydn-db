@@ -417,17 +417,11 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
 
   // prepare schema
-
-  var key_path = table_schema.getKeyPath() ||
-    ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
-  var type = table_schema.type || 'BLOB';
-  if (goog.isArray(type)) {
-    type = ydn.db.schema.DataType.TEXT;
-  }
+  var type = table_schema.getSqlType();
 
   var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
 
-  sql += table_schema.getSQLKeyColumnName() + ' ' + type +
+  sql += table_schema.getSQLKeyColumnNameQuoted() + ' ' + type +
     ' UNIQUE PRIMARY KEY ';
 
   if (table_schema.autoIncrement) {
@@ -479,24 +473,12 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     //  sqls.push(idx_sql);
     //}
 
-    var index_key_path = index.getKeyPath();
-    var idx_type = index.getType();
+    var index_key_path = index.getSQLIndexColumnName();
 
-    if (goog.isArray(idx_type)) {
-      goog.asserts.assertArray(index_key_path);
-      for(var j = 0; j < index_key_path.length; j++) {
-        var index_name = index_key_path[j];
-        if (column_names.indexOf(index_name) == -1) {
-          sql += sep + goog.string.quote(index_name) + ' ' + idx_type[j];
-          column_names.push(index_name);
-        }
-      }
-    } else  if (column_names.indexOf(index_key_path) == -1) {
+    if (column_names.indexOf(index_key_path) == -1) {
       // store keyPath can also be indexed in IndexedDB spec
 
-      var i_type = index.isMultiEntry() ? 'TEXT' : index.getType() || 'BLOB';
-      goog.asserts.assertString(index_key_path);
-      sql += sep + goog.string.quote(index_key_path) + ' ' + i_type +
+      sql += sep + index_key_path + ' ' + index.getSqlType() +
         unique;
       column_names.push(index_key_path);
     }
