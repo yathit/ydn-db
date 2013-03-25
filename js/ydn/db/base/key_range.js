@@ -317,11 +317,13 @@ ydn.db.KeyRange.prototype.and = function(that) {
 /**
  *
  * @param {string} quoted_column_name quoted column name
+ * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type
  * @param {boolean} is_multi_entry
  * @param {ydn.db.IDBKeyRange} key_range
  * @param {!Array.<string>} wheres where clauses
  * @param {!Array.<string>} params params */
-ydn.db.KeyRange.toSql = function(quoted_column_name, is_multi_entry, key_range, wheres, params) {
+ydn.db.KeyRange.toSql = function(quoted_column_name, type, is_multi_entry,
+                                 key_range, wheres, params) {
 
   if (!key_range) {
     return;
@@ -332,7 +334,7 @@ ydn.db.KeyRange.toSql = function(quoted_column_name, is_multi_entry, key_range, 
       goog.isDefAndNotNull(key_range.upper) &&
       ydn.db.cmp(key_range.lower, key_range.upper) === 0) {
     wheres.push(quoted_column_name + ' = ?');
-    params.push(ydn.db.utils.encodeKey(key_range.lower));
+    params.push( ydn.db.schema.Index.js2sql(key_range.lower, type));
   } else {
     if (is_multi_entry) {
       throw new ydn.error.NotSupportedException('MultiEntryInequalQuery');
@@ -340,12 +342,12 @@ ydn.db.KeyRange.toSql = function(quoted_column_name, is_multi_entry, key_range, 
     if (goog.isDefAndNotNull(key_range.lower)) {
       var op = key_range.lowerOpen ? ' > ' : ' >= ';
       wheres.push(quoted_column_name + op + '?');
-      params.push(ydn.db.utils.encodeKey(key_range.lower));
+      params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
     }
     if (goog.isDefAndNotNull(key_range.upper)) {
       var op = key_range.upperOpen ? ' < ' : ' <= ';
       wheres.push(quoted_column_name + op + '?');
-      params.push(ydn.db.utils.encodeKey(key_range.upper));
+      params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
     }
   }
 

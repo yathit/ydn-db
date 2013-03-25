@@ -2,6 +2,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.db.core.Storage');
+goog.require('ydn.debug');
 
 
 var reachedFinalContinuation, schema, debug_console, db, objs;
@@ -10,15 +11,7 @@ var db_name = 'test_kr_6';
 var store_name = 'st';
 
 var setUp = function () {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-    //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
-  }
+  // ydn.debug.log('ydn.db', 'finest');
 
   var value_index = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,

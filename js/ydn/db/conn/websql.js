@@ -473,7 +473,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     //  sqls.push(idx_sql);
     //}
 
-    var index_key_path = index.getSQLIndexColumnName();
+    var index_key_path = index.getSQLIndexColumnNameQuoted();
 
     if (column_names.indexOf(index_key_path) == -1) {
       // store keyPath can also be indexed in IndexedDB spec

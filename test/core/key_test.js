@@ -167,7 +167,7 @@ var _test_02_encode_blob = function () {
 /**
  */
 var test_11_string_keys = function() {
-  ydn.debug.log('ydn.db.core.req', 'finest');
+  // ydn.debug.log('ydn.db.core.req', 'finest');
   var db_name = 'test_11_string_keys';
   var basic_schema = getBasicSchema();
   var db = new ydn.db.core.Storage(db_name, basic_schema, options);
@@ -211,7 +211,7 @@ var test_12_number_keys = function() {
 
 var test_13_array_key = function () {
   var store_name = 'st';
-  var db_name = 'test_13_2';
+  var db_name = 'test_13_array_key';
 
   var schema = {
     stores: [{
@@ -250,7 +250,7 @@ var test_13_array_key = function () {
 
 
   db.values(store_name).addBoth(function (value) {
-    console.log('fetch value: ' + JSON.stringify(value));
+    // console.log('fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
   });

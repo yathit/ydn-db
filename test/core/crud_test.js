@@ -16,8 +16,8 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  ydn.debug.log('ydn.db.con', 'finest');
-  ydn.debug.log('ydn.db.core.req', 'finest');
+  //ydn.debug.log('ydn.db.con', 'finest');
+  //ydn.debug.log('ydn.db.core.req', 'finest');
   //ydn.db.tr.Serial.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
@@ -422,7 +422,13 @@ var _test_14_put_large_array = function() {
 
 
 var test_21_get_inline = function() {
-  var db_name = 'test_crud_21_2';
+  var db_name = 'test_21_get_inline';
+  var schema = {
+    stores: [{
+      name: table_name,
+      keyPath: 'id'
+    }]
+  };
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var key = Math.ceil(Math.random()*10000);
@@ -948,7 +954,6 @@ var test_41_remove_by_key = function() {
 var test_42_remove_by_key_range = function() {
   var db_name = 'test_42_remove_by_key_range';
 
-  ydn.debug.log('ydn.db', 'finest');
 
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear(table_name);
@@ -1082,11 +1087,17 @@ var test_51_array_key = function() {
 
 var test_52_fetch_keys = function () {
   var store_name = 'st';
-  var db_name = 'test_crud_52_3';
-  var indexSchema = new ydn.db.schema.Index('value', undefined, true);
-  var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
-    ydn.db.schema.DataType.TEXT, [indexSchema]);
-  var schema = new ydn.db.schema.Database(1, [store_schema]);
+  var db_name = 'test_crud_52_4';
+
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id',
+      indexes: [{
+        name: 'value'
+      }]
+    }]
+  };
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
