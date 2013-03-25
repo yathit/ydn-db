@@ -65,7 +65,13 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
    * @final
    */
   this.index = index;
-
+  /**
+   * @final
+   */
+  this.is_index_iterator_ = goog.isString(this.index)
+  /**
+   * @final
+   */
   this.key_only_ = goog.isDef(key_only) ? key_only :
       !!(goog.isString(this.index));
   if (!goog.isBoolean(this.key_only_)) {
@@ -333,12 +339,17 @@ ydn.db.Iterator.prototype.getDirection = function() {
 ydn.db.Iterator.prototype.store_name;
 
 
-
 /**
  * @type {string|undefined}
  * @private
  */
 ydn.db.Iterator.prototype.index;
+
+/**
+ * @type {boolean}
+ * @private
+ */
+ydn.db.Iterator.prototype.is_index_iterator_;
 
 
 /**
@@ -446,7 +457,7 @@ ydn.db.Iterator.prototype.getUpperOpen = function() {
 
 
 /**
- * @return {ydn.db.IDBKeyRange} return key range.
+ * @return {ydn.db.IDBKeyRange} return a clone of key range.
  */
 ydn.db.Iterator.prototype.getKeyRange = function() {
   if (this.key_range_) {
@@ -464,17 +475,17 @@ ydn.db.Iterator.prototype.getKeyRange = function() {
 
 /**
  *
- * @return {IDBKeyRange} return a clone of key range.
+ * @return {IDBKeyRange} return *the* key range.
  */
 ydn.db.Iterator.prototype.getIDBKeyRange = function() {
-  return /** @type {IDBKeyRange} */ (this.getKeyRange());
+  return this.key_range_;
 };
 
 
 /**
  *
  * @private
- * @type {ydn.db.IDBKeyRange}
+ * @type {IDBKeyRange}
  */
 ydn.db.Iterator.prototype.key_range_;
 
@@ -501,7 +512,7 @@ ydn.db.Iterator.prototype.isKeyOnly = function() {
  * @return {boolean}
  */
 ydn.db.Iterator.prototype.isIndexIterator = function() {
-  return goog.isString(this.index);
+  return this.is_index_iterator_;
 };
 
 
@@ -543,7 +554,8 @@ ydn.db.Iterator.prototype.toString = function() {
         start = '(';
         close = ')';
       }
-      idx += ' ' + start + this.primary_key + ', ' + this.index_key + close;
+      var idx_key = this.isIndexIterator() ? ', ' + this.index_key : '';
+        idx += ' ' + start + this.primary_key + idx_key + close;
     }
     var s = this.isIndexIterator() ? 'Index' : '';
     s +=  this.isKeyOnly() ? 'Key' : 'Value';

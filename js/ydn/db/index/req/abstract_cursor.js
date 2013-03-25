@@ -31,6 +31,10 @@ ydn.db.index.req.AbstractCursor = function(tx, tx_no, store_name, index_name,
    * @final
    */
   this.index_name = index_name;
+  /**
+   * @final
+   */
+  this.is_index = goog.isString(this.index_name);
 
   /**
    * @final
@@ -66,13 +70,19 @@ goog.inherits(ydn.db.index.req.AbstractCursor, goog.Disposable);
  * @protected
  * @type {string|undefined}
  */
-ydn.db.index.req.AbstractCursor.prototype.index_name = '';
+ydn.db.index.req.AbstractCursor.prototype.index_name;
+
+/**
+ * @private
+ * @type {boolean}
+ */
+ydn.db.index.req.AbstractCursor.prototype.is_index;
 
 /**
  * @protected
  * @type {!Array.<string>|string|undefined}
  */
-ydn.db.index.req.AbstractCursor.prototype.index_key_path = '';
+ydn.db.index.req.AbstractCursor.prototype.index_key_path;
 
 
 /**
@@ -123,7 +133,7 @@ ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
  * @return {boolean} return true if this is an index cursor.
  */
 ydn.db.index.req.AbstractCursor.prototype.isIndexCursor = function() {
-  return !!this.index_name;
+  return this.is_index;
 };
 
 
@@ -289,11 +299,15 @@ ydn.db.index.req.AbstractCursor.prototype.toString = function () {
 
   var k = '';
   if (this.hasCursor()) {
-    k = ' {' + this.getPrimaryKey() + ':' + this.getIndexKey() + '}';
+    if (this.isIndexCursor()) {
+      k = ' {' + this.getEffectiveKey() + ':' + this.getPrimaryKey() + '} ';
+    } else {
+      k = ' {' + this.getPrimaryKey() + '} ';
+    }
   }
   var index = goog.isDef(this.index_name) ? ':' + this.index_name : '';
   var active = this.tx ? '' : '~';
-  return active + 'Cursor:' + this.store_name + index + ':tx' + this.tx_no + k;
+  return active  + ' TX' + this.tx_no + ' Cursor:' + k + this.store_name + index;
 
 };
 }

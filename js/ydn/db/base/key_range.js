@@ -232,15 +232,16 @@ ydn.db.KeyRange.parseKeyRange = function(key_range) {
  * keyRange object.
  * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} key_range
  * keyRange.
- * @return {IDBKeyRange} equivalent IDBKeyRange. Return null if input
- * is null or undefined.
+ * @return {?IDBKeyRange} equivalent IDBKeyRange. Newly created IDBKeyRange.
+ * null if input is null or undefined.
  */
 ydn.db.KeyRange.parseIDBKeyRange = function(key_range) {
   if (!goog.isDefAndNotNull(key_range)) {
     return null;
   }
   if(key_range instanceof ydn.db.IDBKeyRange) {
-    return key_range;
+    return ydn.db.IDBKeyRange.bound(key_range.lower, key_range.upper,
+      key_range.lowerOpen, key_range.upperOpen);
   }
   if (goog.isDefAndNotNull(key_range['upper']) && goog.isDefAndNotNull(
     key_range['lower'])) {
@@ -319,7 +320,7 @@ ydn.db.KeyRange.prototype.and = function(that) {
  * @param {string} quoted_column_name quoted column name
  * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type
  * @param {boolean} is_multi_entry
- * @param {ydn.db.IDBKeyRange} key_range
+ * @param {IDBKeyRange} key_range
  * @param {!Array.<string>} wheres where clauses
  * @param {!Array.<string>} params params */
 ydn.db.KeyRange.toSql = function(quoted_column_name, type, is_multi_entry,

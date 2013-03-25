@@ -846,13 +846,13 @@ ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, tx_no, df
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df, store_name,
-    key_range, reverse, limit, offset) {
+ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
+    store_name, key_range, reverse, limit, offset) {
   var results = [];
   var me = this;
   var store = tx.objectStore(store_name);
   var dir = ydn.db.base.getDirection(reverse);
-  var msg = 'TxNo:' + tx_no + ' keysByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = 'TX' + tx_no + ' keysByKeyRange: ' + store_name + ' ' + key_range;
   this.logger.finest(msg);
   var request = store.openCursor(key_range, dir);
   var cued = false;

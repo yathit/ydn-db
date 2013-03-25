@@ -155,21 +155,6 @@ ydn.db.index.req.WebsqlCursor.prototype.invokeNextSuccess_ = function() {
  */
 ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_index_key, exclusive) {
 
-  var key_range = this.key_range;
-  if (!!this.index_name && goog.isDefAndNotNull(ini_index_key)) {
-    if (goog.isDefAndNotNull(this.key_range)) {
-    var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.upper);
-    if (cmp == 1 || (cmp == 0 && !this.key_range.upperOpen)) {
-      this.onNext(undefined, undefined, undefined); // out of range;
-      return;
-    }
-    key_range = ydn.db.IDBKeyRange.bound(ini_index_key,
-      this.key_range.upper, false, this.key_range.upperOpen);
-    } else {
-      key_range = ydn.db.IDBKeyRange.lowerBound(ini_index_key);
-    }
-  }
-
   /**
    * @type {ydn.db.index.req.WebsqlCursor}
    */
@@ -179,52 +164,29 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var params = [];
   var primary_column_name = this.store_schema_.getSQLKeyColumnName();
   var q_primary_column_name = goog.string.quote(primary_column_name);
-  var index = this.index_name ? this.store_schema_.getIndex(this.index_name) : null;
+  var index = !!this.index_name ?
+    this.store_schema_.getIndex(this.index_name) : null;
   var type = index ? index.getType() : this.store_schema_.getType();
 
-  var effective_col_name = index ? index.getSQLIndexColumnName() : primary_column_name;
+  var effective_col_name = index ?
+    index.getSQLIndexColumnName() : primary_column_name;
   var q_effective_col_name = goog.string.quote(effective_col_name);
 
   var order =  ' ORDER BY ';
 
   if (this.key_only) {
-
-    if (goog.isArray(type)) {
-      var column_names = [];
-      var column_orders = [];
-
-      for(var i = 0; i < effective_col_name.length; i++) {
-        var q_name = goog.string.quote(effective_col_name[i]);
-        column_names.push(q_name);
-        if (this.reverse) {
-          q_name += ' DESC';
-        } else {
-          q_name += ' ASC';
-        }
-        column_orders.push(q_name);
-      }
-      if (index) {
-        column_names.push(q_primary_column_name);
-        column_orders.push(q_primary_column_name +
-          this.reverse ? ' DESC' : ' ASC');
-      }
-      sqls.push(column_names.join(', '));
-      order += column_orders.join(', ');
-
-    } else {
-      if (index) {
-        goog.asserts.assertString(effective_col_name);
-        sqls.push(goog.string.quote(effective_col_name) + ', ' + q_primary_column_name);
-        order += this.reverse ?
-          goog.string.quote(effective_col_name) + ' DESC, ' +
+    if (index) {
+      goog.asserts.assertString(effective_col_name);
+      sqls.push(goog.string.quote(effective_col_name) + ', ' + q_primary_column_name);
+      order += this.reverse ?
+        goog.string.quote(effective_col_name) + ' DESC, ' +
           q_primary_column_name + ' DESC ' :
-          goog.string.quote(effective_col_name) + ' ASC, ' +
-          q_primary_column_name + ' ASC ' ;
-      } else {
-        sqls.push(q_primary_column_name);
-        order += q_primary_column_name;
-        order += this.reverse ? ' DESC' : ' ASC';
-      }
+        goog.string.quote(effective_col_name) + ' ASC, ' +
+          q_primary_column_name + ' ASC ';
+    } else {
+      sqls.push(q_primary_column_name);
+      order += q_primary_column_name;
+      order += this.reverse ? ' DESC' : ' ASC';
     }
   } else {
     sqls.push('*');
@@ -247,8 +209,39 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
 
   var wheres = [];
   var is_multi_entry = !!index && index.isMultiEntry();
-  ydn.db.KeyRange.toSql(q_effective_col_name, type,
-    is_multi_entry, key_range, wheres, params);
+
+
+  var key_range = this.key_range;
+  if (goog.isDefAndNotNull(ini_key)) {
+
+    if (!!this.index_name) {
+      goog.asserts.assert(goog.isDefAndNotNull(ini_index_key));
+      if (goog.isDefAndNotNull(this.key_range)) {
+        var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.upper);
+        if (cmp == 1 || (cmp == 0 && !this.key_range.upperOpen)) {
+          this.onNext(undefined, undefined, undefined); // out of range;
+          return;
+        }
+        key_range = ydn.db.IDBKeyRange.bound(ini_index_key,
+          this.key_range.upper, false, this.key_range.upperOpen);
+      } else {
+        key_range = ydn.db.IDBKeyRange.lowerBound(ini_index_key);
+      }
+
+      ydn.db.KeyRange.toSql(q_effective_col_name, type,
+        is_multi_entry, key_range, wheres, params);
+    }
+
+    if (this.reverse) {
+      key_range = ydn.db.IDBKeyRange.upperBound(ini_key, true);
+    } else {
+      key_range = ydn.db.IDBKeyRange.lowerBound(ini_key, true);
+    }
+
+    ydn.db.KeyRange.toSql(q_primary_column_name, this.store_schema_.getType(),
+      false, key_range, wheres, params);
+  }
+
 
   if (wheres.length > 0) {
     sqls.push('WHERE ' + wheres.join(' AND '));
@@ -324,21 +317,14 @@ ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
  */
 ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
 
-  if (this.index_name) {
+  if (this.isIndexCursor()) {
     if (this.current_cursor_index_ < this.cursor_.rows.length) {
       var row = this.cursor_.rows.item(this.current_cursor_index_);
-      var index = this.store_schema_.getIndex(this.index_name);
+      var index = this.store_schema_.getIndex(
+        /** @type {string} */ (this.index_name));
       var type =  index.getType();
-      if (goog.isArray(type)) {
-        var key_path = this.index_key_path; // this.index_name.split(', ');
-        var key = [];
-        for (var i = 0; i < key_path.length; i++) {
-          key[i] = ydn.db.schema.Index.sql2js(row[key_path[i]], type[i], index.isMultiEntry());
-        }
-        return key;
-      } else {
-        return ydn.db.schema.Index.sql2js(row[this.index_name], type, index.isMultiEntry());
-      }
+      return ydn.db.schema.Index.sql2js(row[index.getSQLIndexColumnName()],
+        type, index.isMultiEntry());
     } else {
       return undefined;
     }
@@ -377,7 +363,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getValue = function () {
 
   if (this.current_cursor_index_ < this.cursor_.rows.length) {
     if (this.key_only) {
-      return undefined;
+      return this.getPrimaryKey();
     } else {
       var row = this.cursor_.rows.item(this.current_cursor_index_);
       return ydn.db.core.req.WebSql.parseRow(/** @type {!Object} */ (row), this.store_schema_);
@@ -613,7 +599,14 @@ ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
   }
   var n = this.cursor_.rows.length;
   this.current_cursor_index_ += step;
-  this.onSuccess(this.getPrimaryKey(), this.getIndexKey(), this.getValue());
+  var p_key = this.getPrimaryKey();
+  var key = this.getIndexKey();
+  var value = this.getValue();
+  goog.Timer.callOnce(function () {
+    // we must invoke async just like IndexedDB advance, otherwise
+    // run-to-completion logic will not work as expected.
+    this.onSuccess(p_key, key, value);
+  }, 0, this);
 
 };
 
@@ -657,6 +650,10 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
   if (!this.hasCursor()) {
     throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
   }
+  if (!goog.isDefAndNotNull(key)) {
+    this.advance(1);
+    return;
+  }
   var cmp = ydn.db.cmp(key, this.getEffectiveKey());
   if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
     throw new ydn.error.InvalidOperationError(this + ' wrong direction.');
@@ -674,6 +671,5 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
   }
   this.onSuccess(undefined, undefined, undefined);
 };
-
 
 

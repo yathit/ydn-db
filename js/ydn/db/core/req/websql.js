@@ -175,12 +175,13 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
   var arr = [];
   var store = this.schema.getStore(store_name);
 
-  var is_index = goog.isDefAndNotNull(index_column);
-  var index = goog.isString(index_column) ? store.getIndex(index_column) : null;
   var key_column = store.getSQLKeyColumnName();
+  var index = goog.isDefAndNotNull(index_column) &&
+    (index_column !== key_column) ? store.getIndex(index_column) : null;
+  var is_index = !!index;
   var effective_column = index_column || key_column;
   var effective_column_quoted =  goog.string.quote(effective_column);
-  var key_path = index ? index.getKeyPath() : store.getKeyPath();
+  var key_path = is_index ? index.getKeyPath() : store.getKeyPath();
   var type = is_index ? index.getType() : store.getType();
   var is_multi_entry = is_index && index.isMultiEntry();
 
@@ -209,6 +210,9 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
 
   var order = reverse ? 'DESC' : 'ASC';
   sql += ' ORDER BY ' + effective_column_quoted + ' ' + order;
+  if (is_index) {
+    sql += ', ' + goog.string.quote(key_column) + ' ' + order;
+  }
 
   if (goog.isNumber(limit)) {
     sql += ' LIMIT ' + limit;

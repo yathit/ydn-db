@@ -14,7 +14,7 @@ var db_name = 'test_index_2';
 
 var setUp = function () {
 
-  ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
 
 
   // ydn.db.core.req.WebSql.DEBUG = true;
@@ -524,7 +524,7 @@ var test_multiEntry = function () {
 
 var test_multiEntry_text = function () {
 
-  var db_name = 'test_multiEntry';
+  var db_name = 'test_multiEntry_text';
   var store_name = 's1';
   var schema = {
     stores: [{

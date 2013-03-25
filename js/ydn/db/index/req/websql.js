@@ -177,15 +177,13 @@ ydn.db.index.req.WebSql.prototype.getByIterator = function(tx, tx_no, df, q) {
 
 
 
-
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.keysByIterator = function(tx, tx_no, df, q, limit, offset) {
-
-  this.fetchIterator_(tx, tx_no, df, q, true, limit, offset);
-
+ydn.db.index.req.WebSql.prototype.keysByIterator = function(tx, tx_no, df, iter, limit, offset) {
+  this.fetchIterator_(tx, tx_no, df, iter, true, limit, offset);
 };
+
 
 
 /**
@@ -203,143 +201,235 @@ ydn.db.index.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q, li
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  * @param {number} tx_no
  * @param {?function(*, boolean=)} df return key in deferred function.
- * @param {!ydn.db.Iterator} q the query.
+ * @param {!ydn.db.Iterator} iter the query.
  * @param {boolean} keys_method 'keys' or 'list' method.
  * @param {number=} limit override limit.
  * @param {number=} offset
  * @private
  */
-ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, keys_method, limit, offset) {
+ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
+     keys_method, limit, offset) {
 
+  var arr = [];
+  //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
+  var mth = keys_method ? ' keys' : ' values';
+  var msg = 'TX' + tx_no + mth + 'ByIterator ' + iter;
   var me = this;
-  var msg = 'fetchIterator:' + q;
   this.logger.finest(msg);
-
-  var store = this.schema.getStore(q.getStoreName());
-
-  var idx_name = q.getIndexName();
-
-  var index = goog.isDef(idx_name) ? store.getIndex(idx_name) : null;
-
-  var key_column = index ? index.getSQLIndexColumnName() :
-    store.getSQLKeyColumnName();
-  var q_key_column = goog.string.quote(key_column);
-
-  var type = index ? index.getType() : store.getType();
-  var is_multi_entry = !!index && index.isMultiEntry();
-
-  var select = 'SELECT';
-
-  var fields = '*';
-
-  if (keys_method) {
-    // keys method
-    fields = q_key_column;
-  } else {
-    // list method
-    if (q.isIndexIterator()) {
-      if (q.isKeyOnly()) {
-        fields = store.getSQLKeyColumnNameQuoted();
+  var cursor = iter.iterate(tx, tx_no, this);
+  cursor.onError = function(e) {
+    me.logger.warning('error:' + msg);
+    iter.exit();
+    cursor.dispose();
+    df(e, true);
+  };
+  var count = 0;
+  var cued = false;
+  cursor.onNext = function(primary_key, key, value) {
+    if (goog.isDef(primary_key)) {
+      if (!cued && offset > 0) {
+        cursor.advance(offset);
+        cued = true;
+        return;
       }
-    } else if (q.isKeyOnly()) {
-      fields = store.getSQLKeyColumnNameQuoted();
+      count++;
+      var out = keys_method ?
+        cursor.isIndexCursor() ?
+          key : primary_key :
+        value;
+      arr.push(out);
+      if (!goog.isDef(limit) || count < limit) {
+        cursor.continueEffectiveKey();
+      } else {
+        iter.exit();
+        cursor.dispose();
+        me.logger.finest('success:' + msg);
+        df(arr);
+      }
+    } else {
+      iter.exit();
+      cursor.dispose();
+      me.logger.finest('success:' + msg);
+      df(arr);
     }
-  }
-
-  var from = fields + ' FROM ' + store.getQuotedName();
-
-  var where_clause = '';
-  var wheres = [];
-  var params = [];
-  ydn.db.KeyRange.toSql(q_key_column, type, is_multi_entry,
-    q.getKeyRange(), wheres, params);
-  if (wheres.length > 0) {
-    where_clause = 'WHERE ' + wheres.join(' AND ');
-  }
-
-  // Note: IndexedDB key range result are always ordered.
-  var dir = 'ASC';
-  if (q.isReversed()) {
-    dir = 'DESC';
-  }
-
-  var order = 'ORDER BY ' + q_key_column;
-
-  var limit_offset = '';
-
-  if (goog.isDef(limit)) {
-    limit_offset = ' LIMIT ' + limit;
-  }
-  if (goog.isDef(offset)) {
-    limit_offset += ' OFFSET ' + offset;
-  }
-
-  var group_by =  '';
-
-  var sql = [select, from, where_clause, group_by, order, dir, limit_offset].join(' ');
-
-  var row_parser;
-  if (keys_method || q.isKeyOnly()) {
-    row_parser = function(row) {
-      var value =  ydn.object.takeFirst(row);
-      return ydn.db.schema.Index.sql2js(value, type, is_multi_entry);
-    }
-  } else {
-    row_parser = function(row) {
-      return ydn.db.core.req.WebSql.parseRow(row, store);
-    }
-  }
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function (transaction, results) {
-    if (ydn.db.index.req.WebSql.DEBUG) {
-      window.console.log([q, results]);
-    }
-    var result = [];
-    // http://www.w3.org/TR/webdatabase/#database-query-results
-    // Fetching the length might be expensive, and authors are thus encouraged
-    // to avoid using it (or enumerating over the object, which implicitly uses
-    // it) where possible.
-    // for (var row, i = 0; row = results.rows.item(i); i++) {
-    // Unfortunately, such enumerating don't work
-    // RangeError: Item index is out of range in Chrome.
-    // INDEX_SIZE_ERR: DOM Exception in Safari
-    var n = results.rows.length;
-    for (var i = 0; i < n; i++) {
-      var row = results.rows.item(i);
-      // console.log(row);
-      result.push(row_parser(row));
-    }
-    me.logger.finest('success ' + sql);
-    df(result);
-
   };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   * @return {boolean} true to roll back.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.index.req.WebSql.DEBUG) {
-      window.console.log([q, tr, error]);
-    }
-    me.logger.warning('error: ' + sql + ' ' + error.message);
-    df(error, true);
-    return false; // roll back
-  };
-
-  if (ydn.db.index.req.WebSql.DEBUG) {
-    window.console.log([sql, ydn.json.stringify(params)]);
-  }
-
-  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
-  tx.executeSql(sql, params, callback, error_callback);
-
 };
+
+//
+//
+///**
+// * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+// * @param {number} tx_no
+// * @param {?function(*, boolean=)} df return key in deferred function.
+// * @param {!ydn.db.Iterator} q the query.
+// * @param {boolean} keys_method 'keys' or 'list' method.
+// * @param {number=} limit override limit.
+// * @param {number=} offset
+// * @private
+// */
+//ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, keys_method, limit, offset) {
+//
+//  var me = this;
+//  var msg = 'fetchIterator:' + q;
+//  this.logger.finest(msg);
+//
+//  var store = this.schema.getStore(q.getStoreName());
+//
+//  var idx_name = q.getIndexName();
+//
+//  var index = goog.isDef(idx_name) ? store.getIndex(idx_name) : null;
+//
+//  var key_column = index ? index.getSQLIndexColumnName() :
+//    store.getSQLKeyColumnName();
+//  var q_key_column = goog.string.quote(key_column);
+//  var q_primary_column = store.getSQLKeyColumnNameQuoted();
+//  var type = index ? index.getType() : store.getType();
+//  var is_multi_entry = !!index && index.isMultiEntry();
+//
+//  var select = 'SELECT';
+//
+//  var fields = '*';
+//
+//  if (keys_method) {
+//    // keys method
+//    fields = q_key_column;
+//    if (q.isIndexIterator()) {
+//      fields += ', ' + q_primary_column;
+//    }
+//  } else {
+//    // list method
+//    if (q.isIndexIterator()) {
+//      if (q.isKeyOnly()) {
+//        fields = q_primary_column;
+//      }
+//    } else if (q.isKeyOnly()) {
+//      fields = q_primary_column;
+//    }
+//  }
+//
+//  var from = fields + ' FROM ' + store.getQuotedName();
+//
+//  var where_clause = '';
+//  var wheres = [];
+//  var params = [];
+//  var key_range = q.getIDBKeyRange();
+//  var key = q.getEffectiveKey();
+//  var p_key = q.getPrimaryKey();
+//  if (key_range) {
+//    if (goog.isDefAndNotNull(key)) {
+//      key_range = ydn.db.IDBKeyRange.bound(key, true,
+//        key_range.upper, key_range.upperOpen);
+//      ydn.db.KeyRange.toSql(q_key_column, type, is_multi_entry,
+//        key_range, wheres, params);
+//      key_range = ydn.db.IDBKeyRange.lowerBound(p_key, false);
+//      ydn.db.KeyRange.toSql(q_primary_column, store.getType(), false,
+//        key_range, wheres, params);
+//    }  else {
+//      ydn.db.KeyRange.toSql(q_key_column, type, is_multi_entry,
+//        key_range, wheres, params);
+//    }
+//
+//  } else if (goog.isDefAndNotNull(key)) {
+//    key_range = ydn.db.IDBKeyRange.lowerBound(key, true);
+//    ydn.db.KeyRange.toSql(q_key_column, type, is_multi_entry,
+//      key_range, wheres, params);
+//    key_range = ydn.db.IDBKeyRange.lowerBound(p_key, false);
+//    ydn.db.KeyRange.toSql(q_primary_column, store.getType(), false,
+//      key_range, wheres, params);
+//  }
+//
+//
+//  if (wheres.length > 0) {
+//    where_clause = 'WHERE ' + wheres.join(' AND ');
+//  }
+//
+//
+//  // Note: IndexedDB key range result are always ordered.
+//  var dir = 'ASC';
+//  if (q.isReversed()) {
+//    dir = 'DESC';
+//  }
+//
+//  var order = 'ORDER BY ' + q_key_column + ' ' + dir;
+//  if (q.isIndexIterator()) {
+//    order += ', ' + q_primary_column + ' ' + dir;
+//  }
+//
+//  var limit_offset = '';
+//
+//  if (goog.isDef(limit)) {
+//    limit_offset = ' LIMIT ' + limit;
+//  }
+//  if (goog.isDef(offset)) {
+//    limit_offset += ' OFFSET ' + offset;
+//  }
+//
+//  var group_by =  '';
+//
+//  var sql = [select, from, where_clause, group_by, order, limit_offset].join(' ');
+//
+//  var row_parser;
+//  if (keys_method || q.isKeyOnly()) {
+//    row_parser = function(row) {
+//      var value =  ydn.object.takeFirst(row);
+//      return ydn.db.schema.Index.sql2js(value, type, is_multi_entry);
+//    }
+//  } else {
+//    row_parser = function(row) {
+//      return ydn.db.core.req.WebSql.parseRow(row, store);
+//    }
+//  }
+//
+//  /**
+//   * @param {SQLTransaction} transaction transaction.
+//   * @param {SQLResultSet} results results.
+//   */
+//  var callback = function (transaction, results) {
+//    if (ydn.db.index.req.WebSql.DEBUG) {
+//      window.console.log([q, results]);
+//    }
+//    var result = [];
+//    // http://www.w3.org/TR/webdatabase/#database-query-results
+//    // Fetching the length might be expensive, and authors are thus encouraged
+//    // to avoid using it (or enumerating over the object, which implicitly uses
+//    // it) where possible.
+//    // for (var row, i = 0; row = results.rows.item(i); i++) {
+//    // Unfortunately, such enumerating don't work
+//    // RangeError: Item index is out of range in Chrome.
+//    // INDEX_SIZE_ERR: DOM Exception in Safari
+//    var n = results.rows.length;
+//    for (var i = 0; i < n; i++) {
+//      var row = results.rows.item(i);
+//      // console.log(row);
+//      result.push(row_parser(row));
+//    }
+//    me.logger.finest('success ' + sql);
+//    df(result);
+//
+//  };
+//
+//  /**
+//   * @param {SQLTransaction} tr transaction.
+//   * @param {SQLError} error error.
+//   * @return {boolean} true to roll back.
+//   */
+//  var error_callback = function(tr, error) {
+//    if (ydn.db.index.req.WebSql.DEBUG) {
+//      window.console.log([q, tr, error]);
+//    }
+//    me.logger.warning('error: ' + sql + ' ' + error.message);
+//    df(error, true);
+//    return false; // roll back
+//  };
+//
+//  if (ydn.db.index.req.WebSql.DEBUG) {
+//    window.console.log([sql, ydn.json.stringify(params)]);
+//  }
+//
+//  this.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
+//  tx.executeSql(sql, params, callback, error_callback);
+//
+//};
 
 
 /**
