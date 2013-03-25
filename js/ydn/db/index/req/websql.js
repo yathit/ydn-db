@@ -223,9 +223,10 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
 
   var key_column = index ? index.getSQLIndexColumnName() :
     store.getSQLKeyColumnName();
-  var column = goog.string.quote(key_column);
+  var q_key_column = goog.string.quote(key_column);
 
-  var type = index ? index.getSqlType() : store.getSqlType();
+  var type = index ? index.getType() : store.getType();
+  var is_multi_entry = !!index && index.isMultiEntry();
 
   var select = 'SELECT';
 
@@ -233,7 +234,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
 
   if (keys_method) {
     // keys method
-    fields = column;
+    fields = q_key_column;
   } else {
     // list method
     if (q.isIndexIterator()) {
@@ -250,7 +251,8 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
   var where_clause = '';
   var wheres = [];
   var params = [];
-  ydn.db.KeyRange.toSql(column, false, q.getKeyRange(), wheres, params);
+  ydn.db.KeyRange.toSql(q_key_column, type, is_multi_entry,
+    q.getKeyRange(), wheres, params);
   if (wheres.length > 0) {
     where_clause = 'WHERE ' + wheres.join(' AND ');
   }
@@ -261,7 +263,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
     dir = 'DESC';
   }
 
-  var order = 'ORDER BY ' + column;
+  var order = 'ORDER BY ' + q_key_column;
 
   var limit_offset = '';
 
@@ -280,7 +282,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
   if (keys_method || q.isKeyOnly()) {
     row_parser = function(row) {
       var value =  ydn.object.takeFirst(row);
-      return ydn.db.schema.Index.sql2js(value, type);
+      return ydn.db.schema.Index.sql2js(value, type, is_multi_entry);
     }
   } else {
     row_parser = function(row) {

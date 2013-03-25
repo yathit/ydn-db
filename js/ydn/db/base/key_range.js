@@ -334,7 +334,7 @@ ydn.db.KeyRange.toSql = function(quoted_column_name, type, is_multi_entry,
       goog.isDefAndNotNull(key_range.upper) &&
       ydn.db.cmp(key_range.lower, key_range.upper) === 0) {
     wheres.push(quoted_column_name + ' = ?');
-    params.push( ydn.db.schema.Index.js2sql(key_range.lower, type));
+    params.push( ydn.db.schema.Index.js2sql(key_range.lower, type, is_multi_entry));
   } else {
     if (is_multi_entry) {
       throw new ydn.error.NotSupportedException('MultiEntryInequalQuery');
@@ -342,12 +342,12 @@ ydn.db.KeyRange.toSql = function(quoted_column_name, type, is_multi_entry,
     if (goog.isDefAndNotNull(key_range.lower)) {
       var op = key_range.lowerOpen ? ' > ' : ' >= ';
       wheres.push(quoted_column_name + op + '?');
-      params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
+      params.push(ydn.db.schema.Index.js2sql(key_range.lower, type, is_multi_entry));
     }
     if (goog.isDefAndNotNull(key_range.upper)) {
       var op = key_range.upperOpen ? ' < ' : ' <= ';
       wheres.push(quoted_column_name + op + '?');
-      params.push(ydn.db.schema.Index.js2sql(key_range.upper, type));
+      params.push(ydn.db.schema.Index.js2sql(key_range.upper, type, is_multi_entry));
     }
   }
 

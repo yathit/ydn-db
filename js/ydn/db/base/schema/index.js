@@ -58,6 +58,10 @@ ydn.db.schema.Index = function(
    * @final
    */
   this.keyPath = keyPath;
+  /**
+   * @final
+   */
+  this.is_composite_ = goog.isArrayLike(this.keyPath);
 
   /**
    * @final
@@ -68,16 +72,15 @@ ydn.db.schema.Index = function(
    * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
    */
   this.type = ydn.db.schema.Index.toType(opt_type);
-  if (goog.DEBUG &&
-      (
-          (goog.isArray(opt_type) && !goog.isArray(this.type)) ||
-              (goog.isArray(opt_type) && !goog.array.equals(
-                  /** @type {Array} */ (this.type), opt_type)) ||
-              (!goog.isArray(opt_type) && this.type != opt_type)
-          )
-      ) {
-    throw new ydn.debug.error.ArgumentException('Invalid index type: ' +
-        opt_type + ' in ' + this.name);
+  if (goog.isDef(opt_type)) {
+    if (!goog.isDef(this.type)) {
+      throw new ydn.debug.error.ArgumentException('type invalid in index: ' +
+        this.name);
+    }
+    if (goog.isArray(this.keyPath)) {
+      throw new ydn.debug.error.ArgumentException(
+        'composite key for store "' + this.name + '" must not specified type');
+    }
   }
   /**
    * @final
@@ -96,9 +99,8 @@ ydn.db.schema.Index = function(
   /**
    * @final
    */
-  this.index_column_name_ = goog.isArray(name) ?
-      goog.string.quote(name) :
-      goog.isArray(keyPath) ?
+  this.index_column_name_ = goog.isString(name) ?
+      name : goog.isArray(keyPath) ?
           this.keyPath.join(',') : keyPath;
 
   this.index_column_name_quoted_ = goog.string.quote(this.index_column_name_);
@@ -146,6 +148,12 @@ ydn.db.schema.Index.prototype.keyPath;
  * @type {boolean}
  */
 ydn.db.schema.Index.prototype.multiEntry;
+
+/**
+ * @type {boolean}
+ * @private
+ */
+ydn.db.schema.Index.prototype.is_composite_;
 
 /**
  * @type {boolean}
@@ -199,24 +207,29 @@ ydn.db.schema.Index.ARRAY_SEP = '|'; // String.fromCharCode(0x001F);
  * @see #sql2js
  * @param {Array|Date|*} key key.
  * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
+ * @param {boolean} is_multi_entry
  * @return {*} string.
  */
-ydn.db.schema.Index.js2sql = function(key, type) {
-  if (goog.isArray(type)) {
+ydn.db.schema.Index.js2sql = function(key, type, is_multi_entry) {
+  if (is_multi_entry) {
     // NOTE: we are storing these value for indexing purpose.
     // Array is not native to Sqlite. To be multiEntry searchable,
     // array values are store as TEXT and search using LIKE %q%
     // where q is ARRAY_SEP + search_term + ARRAY_SEP
     // for type preserve conversion, type information is prepended at the
     // front with ydn.db.DataTypeAbbr.
-    var arr = !goog.isDefAndNotNull(key) ? [''] :
-        goog.isArray(key) ? key : [key];
-    var t = ydn.db.schema.Index.toAbbrType(arr[0]);
-    var value = (t == ydn.db.DataTypeAbbr.DATE) ?
+    if (goog.isArray(key)) {
+      var arr = key;
+      var t = ydn.db.schema.Index.toAbbrType(arr[0]);
+      var value = (t == ydn.db.DataTypeAbbr.DATE) ?
         arr.reduce(function(p, x) {return p + (+x);}, '') :
         arr.join(ydn.db.schema.Index.ARRAY_SEP);
-    return t + ydn.db.schema.Index.ARRAY_SEP +
+      return t + ydn.db.schema.Index.ARRAY_SEP +
         value + ydn.db.schema.Index.ARRAY_SEP;
+    } else {
+      return '';
+    }
+
   } else if (type == ydn.db.schema.DataType.DATE) {
     if (key instanceof Date) {
       return +key;  // date is store as NUMERIC
@@ -234,10 +247,11 @@ ydn.db.schema.Index.js2sql = function(key, type) {
  * @see #js2sql
  * @param {string|number|*} key key.
  * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type type.
+ * @param {boolean} is_multi_entry
  * @return {Date|Array|*} decoded key.
  */
-ydn.db.schema.Index.sql2js = function(key, type) {
-  if (goog.isArray(type)) {
+ydn.db.schema.Index.sql2js = function(key, type, is_multi_entry) {
+  if (!!is_multi_entry) {
     if (goog.isString(key)) {
       /**
        * @type {string}
@@ -352,6 +366,15 @@ ydn.db.schema.Index.prototype.getName = function() {
  */
 ydn.db.schema.Index.prototype.isMultiEntry = function() {
   return this.multiEntry;
+};
+
+
+/**
+ *
+ * @return {boolean} composite index or not.
+ */
+ydn.db.schema.Index.prototype.isComposite = function() {
+  return this.is_composite_;
 };
 
 /**

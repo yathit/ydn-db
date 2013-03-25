@@ -247,7 +247,8 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
 
   var wheres = [];
   var is_multi_entry = !!index && index.isMultiEntry();
-  ydn.db.KeyRange.toSql(q_effective_col_name, is_multi_entry, key_range, wheres, params);
+  ydn.db.KeyRange.toSql(q_effective_col_name, type,
+    is_multi_entry, key_range, wheres, params);
 
   if (wheres.length > 0) {
     sqls.push('WHERE ' + wheres.join(' AND '));
@@ -326,16 +327,17 @@ ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
   if (this.index_name) {
     if (this.current_cursor_index_ < this.cursor_.rows.length) {
       var row = this.cursor_.rows.item(this.current_cursor_index_);
-      var type =  this.store_schema_.getIndex(this.index_name).getType();
+      var index = this.store_schema_.getIndex(this.index_name);
+      var type =  index.getType();
       if (goog.isArray(type)) {
         var key_path = this.index_key_path; // this.index_name.split(', ');
         var key = [];
         for (var i = 0; i < key_path.length; i++) {
-          key[i] = ydn.db.schema.Index.sql2js(row[key_path[i]], type[i]);
+          key[i] = ydn.db.schema.Index.sql2js(row[key_path[i]], type[i], index.isMultiEntry());
         }
         return key;
       } else {
-        return ydn.db.schema.Index.sql2js(row[this.index_name], type);
+        return ydn.db.schema.Index.sql2js(row[this.index_name], type, index.isMultiEntry());
       }
     } else {
       return undefined;
@@ -357,7 +359,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
     var primary_column_name = this.store_schema_.getSQLKeyColumnName();
     var row = this.cursor_.rows.item(this.current_cursor_index_);
     return ydn.db.schema.Index.sql2js(row[primary_column_name],
-        this.store_schema_.getType());
+        this.store_schema_.getType(), false);
   } else {
     return undefined;
   }

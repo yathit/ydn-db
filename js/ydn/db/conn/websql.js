@@ -421,7 +421,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
 
-  sql += table_schema.getSQLKeyColumnNameQuoted() + ' ' + type +
+  var q_primary_column = table_schema.getSQLKeyColumnNameQuoted();
+  sql += q_primary_column + ' ' + type +
     ' UNIQUE PRIMARY KEY ';
 
   if (table_schema.autoIncrement) {
@@ -435,7 +436,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var sqls = [];
   var sep = ', ';
-  var column_names = [table_schema.getKeyPath()];
+  var column_names = [q_primary_column];
 
   for (var i = 0, n = table_schema.countIndex(); i < n; i++) {
     /**

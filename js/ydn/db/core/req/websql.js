@@ -100,23 +100,20 @@ ydn.db.core.req.WebSql.parseRow = function(row, store) {
   var value = row[ydn.db.base.DEFAULT_BLOB_COLUMN] ?
       ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]) : {};
   if (goog.isDefAndNotNull(store.keyPath)) {
-    var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.getType());
+    var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.getType(), false);
     if (goog.isDefAndNotNull(key)) {
       store.setKeyValue(value, key);
     }
   }
   for (var j = 0; j < store.indexes.length; j++) {
     var index = store.indexes[j];
-    if (index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
+    var column_name = index.getSQLIndexColumnName();
+    if (column_name == ydn.db.base.DEFAULT_BLOB_COLUMN || index.isComposite()) {
       continue;
     }
-    var x = row[index.name];
-    var v;
-    if (index.isMultiEntry()) {
-      v = ydn.db.schema.Index.sql2js(x, [index.getType()]);
-    } else {
-      v = ydn.db.schema.Index.sql2js(x, index.getType());
-    }
+    var x = row[column_name];
+    var v = ydn.db.schema.Index.sql2js(x, index.getType(), index.isMultiEntry());
+
     if (goog.isDef(v)) {
       value[index.name] = v;
     }
@@ -185,11 +182,12 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
   var effective_column_quoted =  goog.string.quote(effective_column);
   var key_path = index ? index.getKeyPath() : store.getKeyPath();
   var type = is_index ? index.getType() : store.getType();
+  var is_multi_entry = is_index && index.isMultiEntry();
 
   var fields = '*';
   if (key_only) {
     fields = goog.string.quote(key_column);
-    if (is_index && index_column != key_column) {
+    if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
       fields += ', ' + goog.string.quote(index_column);
     }
   }
@@ -203,7 +201,6 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
     goog.asserts.assert(key_path); // not null.
     var wheres = [];
 
-    var is_multi_entry = is_index && index.isMultiEntry();
     ydn.db.KeyRange.toSql(effective_column_quoted, type, is_multi_entry,
         key_range, wheres, params);
 
@@ -228,7 +225,7 @@ ydn.db.core.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
     for (var i = 0, n = results.rows.length; i < n; i++) {
       var row = results.rows.item(i);
       if (key_only) {
-        arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType());
+        arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType(), is_multi_entry);
       } else if (goog.isDefAndNotNull(row)) {
         arr[i] = ydn.db.core.req.WebSql.parseRow(row, store);
       }
@@ -538,7 +535,7 @@ ydn.db.core.req.WebSql.prototype.getById = function(tx, tx_no, d, table_name, id
 
   var column_name = table.getSQLKeyColumnNameQuoted();
 
-  var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
+  var params = [ydn.db.schema.Index.js2sql(id, table.getType(), false)];
 
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
     column_name + ' = ?';
@@ -664,7 +661,7 @@ ydn.db.core.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name,
     var id = ids[i];
     var column_name = table.getSQLKeyColumnNameQuoted();
 
-    var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
+    var params = [ydn.db.schema.Index.js2sql(id, table.getType(), false)];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
       column_name + ' = ?';
     me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
@@ -837,7 +834,7 @@ ydn.db.core.req.WebSql.prototype.listByKeys = function(tx, tx_no, df, keys) {
     var id = key.getNormalizedId();
     var column_name = table.getSQLKeyColumnNameQuoted();
 
-    var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
+    var params = [ydn.db.schema.Index.js2sql(id, table.getType(), false)];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
       column_name + ' = ?';
     me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
@@ -921,7 +918,7 @@ ydn.db.core.req.WebSql.prototype.removeById = function(tx, tx_no, d, table, id) 
 
 
   var store = this.schema.getStore(table);
-  var key = ydn.db.schema.Index.js2sql(id, store.getType());
+  var key = ydn.db.schema.Index.js2sql(id, store.getType(), false);
 
   var me = this;
 
