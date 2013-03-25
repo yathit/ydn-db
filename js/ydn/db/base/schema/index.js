@@ -190,7 +190,8 @@ ydn.db.schema.DataType = {
 ydn.db.DataTypeAbbr = {
   DATE: 'd',
   NUMERIC: 'n',
-  TEXT: 't'
+  TEXT: 't',
+  BLOB: 'b'
 };
 
 
@@ -220,10 +221,21 @@ ydn.db.schema.Index.js2sql = function(key, type, is_multi_entry) {
     // front with ydn.db.DataTypeAbbr.
     if (goog.isArray(key)) {
       var arr = key;
-      var t = ydn.db.schema.Index.toAbbrType(arr[0]);
-      var value = (t == ydn.db.DataTypeAbbr.DATE) ?
-        arr.reduce(function(p, x) {return p + (+x);}, '') :
-        arr.join(ydn.db.schema.Index.ARRAY_SEP);
+      var t = goog.isDef(type) ? ydn.db.schema.Index.type2AbbrType(type) :
+        ydn.db.DataTypeAbbr.BLOB;
+
+      var value;
+      if (t == ydn.db.DataTypeAbbr.DATE) {
+        value = arr.reduce(function (p, x) {
+            return p + (+x);
+          }, '');
+      } else  if (t == ydn.db.DataTypeAbbr.BLOB) {
+        value = arr.reduce(function (p, x) {
+          return p + ydn.db.utils.encodeKey(x);
+        }, '');
+      } else {
+        value = arr.join(ydn.db.schema.Index.ARRAY_SEP);
+      }
       return t + ydn.db.schema.Index.ARRAY_SEP +
         value + ydn.db.schema.Index.ARRAY_SEP;
     } else {
@@ -258,11 +270,14 @@ ydn.db.schema.Index.sql2js = function(key, type, is_multi_entry) {
        */
       var s = key;
       var arr = s.split(ydn.db.schema.Index.ARRAY_SEP);
-      var t = arr[0];
+      var t = goog.isDef(type) ? ydn.db.schema.Index.type2AbbrType(type) :
+        ydn.db.schema.Index.toAbbrType(arr[0]);
       var effective_arr = arr.slice(1, arr.length - 1); // remove last and first
       return goog.array.map(effective_arr, function(x) {
         if (t == ydn.db.DataTypeAbbr.DATE) {
           return new Date(parseInt(x, 10));
+        } else if (t == ydn.db.DataTypeAbbr.BLOB) {
+          return ydn.db.utils.decodeKey(x);
         } else if (t == ydn.db.DataTypeAbbr.NUMERIC) {
           return parseFloat(x);
         } else {
@@ -327,8 +342,28 @@ ydn.db.schema.Index.toAbbrType = function(x) {
     return ydn.db.DataTypeAbbr.DATE;
   } else if (goog.isNumber(x)) {
     return ydn.db.DataTypeAbbr.NUMERIC;
-  } else {
+  } else if (goog.isString(x)) {
     return ydn.db.DataTypeAbbr.TEXT;
+  } else {
+    return ydn.db.DataTypeAbbr.BLOB;
+  }
+};
+
+
+/**
+ *
+ * @param {*} x object to test.
+ * @return {ydn.db.DataTypeAbbr} type of object type.
+ */
+ydn.db.schema.Index.type2AbbrType = function(x) {
+  if (x === ydn.db.schema.DataType.DATE) {
+    return ydn.db.DataTypeAbbr.DATE;
+  } else if (x === ydn.db.schema.DataType.NUMERIC) {
+    return ydn.db.DataTypeAbbr.NUMERIC;
+  } else if (x === ydn.db.schema.DataType.TEXT) {
+    return ydn.db.DataTypeAbbr.TEXT;
+  } else {
+    return ydn.db.DataTypeAbbr.BLOB;
   }
 };
 

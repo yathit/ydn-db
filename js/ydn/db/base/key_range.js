@@ -333,8 +333,14 @@ ydn.db.KeyRange.toSql = function(quoted_column_name, type, is_multi_entry,
       goog.isDefAndNotNull(key_range.lower) &&
       goog.isDefAndNotNull(key_range.upper) &&
       ydn.db.cmp(key_range.lower, key_range.upper) === 0) {
-    wheres.push(quoted_column_name + ' = ?');
-    params.push( ydn.db.schema.Index.js2sql(key_range.lower, type, is_multi_entry));
+
+    if (is_multi_entry) {
+      wheres.push(quoted_column_name + ' LIKE ?');
+      params.push('%' + ydn.db.schema.Index.js2sql(key_range.lower, type, false) + '%');
+    } else {
+      wheres.push(quoted_column_name + ' = ?');
+      params.push( ydn.db.schema.Index.js2sql(key_range.lower, type, false));
+    }
   } else {
     if (is_multi_entry) {
       throw new ydn.error.NotSupportedException('MultiEntryInequalQuery');
