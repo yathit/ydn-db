@@ -182,7 +182,8 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   var index = this.index_name ? this.store_schema_.getIndex(this.index_name) : null;
   var type = index ? index.getType() : this.store_schema_.getType();
 
-  var key_path = index ? index.getSQLIndexColumnName() : primary_column_name;
+  var effective_col_name = index ? index.getSQLIndexColumnName() : primary_column_name;
+  var q_effective_col_name = goog.string.quote(effective_col_name);
 
   var order =  ' ORDER BY ';
 
@@ -192,8 +193,8 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
       var column_names = [];
       var column_orders = [];
 
-      for(var i = 0; i < key_path.length; i++) {
-        var q_name = goog.string.quote(key_path[i]);
+      for(var i = 0; i < effective_col_name.length; i++) {
+        var q_name = goog.string.quote(effective_col_name[i]);
         column_names.push(q_name);
         if (this.reverse) {
           q_name += ' DESC';
@@ -212,12 +213,12 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
 
     } else {
       if (index) {
-        goog.asserts.assertString(key_path);
-        sqls.push(goog.string.quote(key_path) + ', ' + q_primary_column_name);
+        goog.asserts.assertString(effective_col_name);
+        sqls.push(goog.string.quote(effective_col_name) + ', ' + q_primary_column_name);
         order += this.reverse ?
-          goog.string.quote(key_path) + ' DESC, ' +
+          goog.string.quote(effective_col_name) + ' DESC, ' +
           q_primary_column_name + ' DESC ' :
-          goog.string.quote(key_path) + ' ASC, ' +
+          goog.string.quote(effective_col_name) + ' ASC, ' +
           q_primary_column_name + ' ASC ' ;
       } else {
         sqls.push(q_primary_column_name);
@@ -228,11 +229,11 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
   } else {
     sqls.push('*');
     if (index) {
-      goog.asserts.assertString(key_path);
+      goog.asserts.assertString(effective_col_name);
       order += this.reverse ?
-        goog.string.quote(key_path) + ' DESC, ' +
+        goog.string.quote(effective_col_name) + ' DESC, ' +
           q_primary_column_name + ' DESC ' :
-        goog.string.quote(key_path) + ' ASC, ' +
+        goog.string.quote(effective_col_name) + ' ASC, ' +
           q_primary_column_name + ' ASC ' ;
 
     } else {
@@ -244,10 +245,12 @@ ydn.db.index.req.WebsqlCursor.prototype.open_request = function(ini_key, ini_ind
 
   sqls.push('FROM ' + goog.string.quote(this.store_name));
 
-  var where_clause = ydn.db.Where.toWhereClause(key_path, type, key_range);
-  if (where_clause.sql) {
-    sqls.push('WHERE ' + where_clause.sql);
-    params = params.concat(where_clause.params);
+  var wheres = [];
+  var is_multi_entry = !!index && index.isMultiEntry();
+  ydn.db.KeyRange.toSql(q_effective_col_name, is_multi_entry, key_range, wheres, params);
+
+  if (wheres.length > 0) {
+    sqls.push('WHERE ' + wheres.join(' AND '));
   }
 
   sqls.push(order);
@@ -351,7 +354,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
  */
 ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
   if (this.current_cursor_index_ < this.cursor_.rows.length) {
-    var primary_column_name = this.store_schema_.getColumnName();
+    var primary_column_name = this.store_schema_.getSQLKeyColumnName();
     var row = this.cursor_.rows.item(this.current_cursor_index_);
     return ydn.db.schema.Index.sql2js(row[primary_column_name],
         this.store_schema_.getType());
@@ -368,7 +371,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
  */
 ydn.db.index.req.WebsqlCursor.prototype.getValue = function () {
   var column_name = this.index_name ?
-    this.index_name : this.store_schema_.getColumnName();
+    this.index_name : this.store_schema_.getSQLKeyColumnName();
 
   if (this.current_cursor_index_ < this.cursor_.rows.length) {
     if (this.key_only) {
@@ -429,7 +432,7 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
 
     };
 
-    var primary_column_name = this.store_schema_.getColumnName();
+    var primary_column_name = this.store_schema_.getSQLKeyColumnName();
     var sql = 'DELETE FROM ' + this.store_schema_.getQuotedName() +
         ' WHERE ' + primary_column_name + ' = ?';
     var params = [this.getPrimaryKey()];

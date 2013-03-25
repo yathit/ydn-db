@@ -221,10 +221,8 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
 
   var index = goog.isDef(idx_name) ? store.getIndex(idx_name) : null;
 
-  var key_column = index ? index.getKeyPath() :
-    goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
-      ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
-  goog.asserts.assertString(key_column);
+  var key_column = index ? index.getSQLIndexColumnName() :
+    store.getSQLKeyColumnName();
   var column = goog.string.quote(key_column);
 
   var type = index ? index.getSqlType() : store.getSqlType();
@@ -250,11 +248,11 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
   var from = fields + ' FROM ' + store.getQuotedName();
 
   var where_clause = '';
+  var wheres = [];
   var params = [];
-  var where = ydn.db.Where.toWhereClause(key_column, type, q.getKeyRange());
-  if (where.sql) {
-    where_clause = 'WHERE ' + where.sql;
-    params = where.params;
+  ydn.db.KeyRange.toSql(column, false, q.getKeyRange(), wheres, params);
+  if (wheres.length > 0) {
+    where_clause = 'WHERE ' + wheres.join(' AND ');
   }
 
   // Note: IndexedDB key range result are always ordered.
@@ -264,14 +262,6 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, q, ke
   }
 
   var order = 'ORDER BY ' + column;
-  if (goog.isArray(key_column)) {
-    order = 'ORDER BY ';
-    var sep = '';
-    for (var i = 0; i < key_column.length; i++) {
-      order += sep + '"'+goog.string.quote(key_column[i])+'"';
-      sep = ', ';
-    }
-  }
 
   var limit_offset = '';
 
