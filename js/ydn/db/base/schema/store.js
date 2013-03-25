@@ -19,7 +19,7 @@ goog.require('ydn.db.schema.Index');
  * 'feed.id.$t'. Default to.
  * @param {boolean=} autoIncrement If true, the object store has a key
  * generator. Defaults to false.
- * @param {!Array.<ydn.db.schema.DataType>|string|ydn.db.schema.DataType=} opt_type
+ * @param {string|ydn.db.schema.DataType=} opt_type
  * data type for keyPath. Default to
  * <code>ydn.db.schema.DataType.INTEGER</code> if opt_autoIncrement is
  * <code>true.</code>
@@ -153,7 +153,7 @@ ydn.db.schema.Store.prototype.keyPath;
 ydn.db.schema.Store.prototype.autoIncrement;
 
 /**
- * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} //
+ * @type {ydn.db.schema.DataType|undefined} //
  */
 ydn.db.schema.Store.prototype.type;
 
@@ -414,9 +414,7 @@ ydn.db.schema.Store.prototype.hint = function(that) {
   var keyPath = goog.isArray(this.keyPath) ?
     goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
       this.keyPath;
-  var type = goog.isArray(this.type) ?
-    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.type)) :
-      this.type;
+  var type = this.type;
   var indexes = goog.array.map(this.indexes, function (index) {
     return index.clone();
   });
@@ -440,18 +438,14 @@ ydn.db.schema.Store.prototype.hint = function(that) {
       /** @type {goog.array.ArrayLike} */ (that.keyPath));
   }
 
+  // update composite index
   for (var i = 0, n = that.indexes.length; i < n; i++) {
-    if (that.indexes[i].isArrayKeyPath()) {
-      var key_path = that.indexes[i].getKeyPath();
-      var composite_index_added = false;
+    if (that.indexes[i].isComposite()) {
+      var name = that.indexes[i].getName();
       for (var j = indexes.length - 1; j >= 0; j--) {
-        if (key_path.indexOf(indexes[j].getKeyPath()) >= 0
-          && !that.hasIndex(indexes[j].getName())) {
-          indexes.splice(j, 1); // blown up index are removed.
-          if (!composite_index_added) {
-            indexes.push(that.indexes[i].clone());
-            composite_index_added = true;
-          }
+        if (name.indexOf(indexes[j].getName()) >= 0) {
+          indexes[j] = that.indexes[i].clone();
+          break;
         }
       }
     }
@@ -516,7 +510,7 @@ ydn.db.schema.Store.prototype.getIndexNames = function() {
 
 /**
  *
- * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
+ * @return {ydn.db.schema.DataType|undefined}
  */
 ydn.db.schema.Store.prototype.getType = function() {
   return this.type;

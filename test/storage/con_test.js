@@ -13,15 +13,7 @@ var stubs;
 
 
 var setUp = function() {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-    //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
-  }
+
 
   //ydn.db.con.IndexedDb.DEBUG = true;
 
@@ -326,7 +318,6 @@ var test_schema_compound_index = function() {
   var index1 = {
     name: 'id1-id2',
     keyPath: ['id1', 'id2'],
-    type: [ydn.db.schema.DataType.TEXT, ydn.db.schema.DataType.TEXT],
     unique: false
   };
 

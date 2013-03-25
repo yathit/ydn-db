@@ -17,7 +17,7 @@ goog.require('ydn.db.utils');
  * Schema for index.
  *
  * @param {string|!Array.<string>} keyPath the key path.
- * @param {!Array.<ydn.db.schema.DataType>|string|ydn.db.schema.DataType=} opt_type to be determined.
+ * @param {string|ydn.db.schema.DataType=} opt_type to be determined.
  * @param {boolean=} opt_unique True if the index enforces that there is only
  * one objectfor each unique value it indexes on.
  * @param {boolean=} multiEntry  specifies whether the index's multiEntry flag
@@ -69,7 +69,7 @@ ydn.db.schema.Index = function(
   this.name = name;
   /**
    * @final
-   * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
+   * @type {ydn.db.schema.DataType|undefined}
    */
   this.type = ydn.db.schema.Index.toType(opt_type);
   if (goog.isDef(opt_type)) {
@@ -200,14 +200,14 @@ ydn.db.DataTypeAbbr = {
  * @const
  * @type {string}
  */
-ydn.db.schema.Index.ARRAY_SEP = '|'; // String.fromCharCode(0x001F);
+ydn.db.schema.Index.ARRAY_SEP = String.fromCharCode(0x001F);
 
 
 /**
  * Convert key value from IndexedDB value to Sqlite for storage.
  * @see #sql2js
  * @param {Array|Date|*} key key.
- * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
+ * @param {ydn.db.schema.DataType|undefined} type data type.
  * @param {boolean} is_multi_entry
  * @return {*} string.
  */
@@ -258,7 +258,7 @@ ydn.db.schema.Index.js2sql = function(key, type, is_multi_entry) {
  * Convert key value from Sqlite value to IndexedDB for storage.
  * @see #js2sql
  * @param {string|number|*} key key.
- * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type type.
+ * @param {ydn.db.schema.DataType|undefined} type type.
  * @param {boolean} is_multi_entry
  * @return {Date|Array|*} decoded key.
  */
@@ -311,19 +311,13 @@ ydn.db.schema.Index.TYPES = [
 
 /**
  * Return an immutable type.
- * @param {!Array|ydn.db.schema.DataType|string=} str data type in string.
- * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
+ * @param {ydn.db.schema.DataType|string=} str data type in string.
+ * @return {ydn.db.schema.DataType|undefined}
  * data type.
  */
 ydn.db.schema.Index.toType = function(str) {
-  if (goog.isArray(str)) {
-    var out = goog.array.map(str, function(s) {
-      return ydn.db.schema.Index.toType(s);
-    });
-    if (goog.DEBUG && Object.freeze) {
-      Object.freeze(/** @type {!Object} */ (out));
-    }
-    return out;
+  if (goog.isArray(str)) { // todo: remove this
+    throw new Error();
   } else {
     var idx = goog.array.indexOf(ydn.db.schema.Index.TYPES, str);
     return ydn.db.schema.Index.TYPES[idx]; // undefined OK.
@@ -370,7 +364,7 @@ ydn.db.schema.Index.type2AbbrType = function(x) {
 
 /**
  * Return type.
- * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} data type.
+ * @return {ydn.db.schema.DataType|undefined} data type.
  */
 ydn.db.schema.Index.prototype.getType = function() {
   return this.type;
@@ -445,12 +439,10 @@ ydn.db.schema.Index.prototype.clone = function() {
   var keyPath = goog.isArray(this.keyPath) ?
     goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
       this.keyPath;
-  var type = goog.isArray(this.type) ?
-    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.type)) :
-      this.type;
+
   return new ydn.db.schema.Index(
     keyPath,
-    type,
+    this.type,
     this.unique,
     this.multiEntry,
     this.name);
@@ -524,15 +516,6 @@ ydn.db.schema.Index.prototype.difference = function(index) {
 };
 
 
-/**
- *
- * @return {boolean} true if keyPath is an array.
- */
-ydn.db.schema.Index.prototype.isArrayKeyPath = function() {
-  return goog.isArray(this.keyPath);
-};
-
-
 
 /**
  * Create a new update index schema with given guided index schema.
@@ -553,9 +536,11 @@ ydn.db.schema.Index.prototype.hint = function(that) {
   var keyPath = goog.isArray(this.keyPath) ?
     goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
     this.keyPath;
-  var type = goog.isArray(this.type) ?
-    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.type)) :
-    this.type;
+  var type = this.type;
+  if (!goog.isDef(that.type) && type == 'TEXT') {
+    // composite are converted into TEXT
+    type = undefined;
+  }
   var multiEntry = this.multiEntry;
   if (that.multiEntry === true && this.type == 'TEXT') {
     multiEntry = true; // multiEntry info was lost

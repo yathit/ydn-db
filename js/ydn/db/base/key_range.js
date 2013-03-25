@@ -318,7 +318,7 @@ ydn.db.KeyRange.prototype.and = function(that) {
 /**
  *
  * @param {string} quoted_column_name quoted column name
- * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type
+ * @param {ydn.db.schema.DataType|undefined} type
  * @param {boolean} is_multi_entry
  * @param {IDBKeyRange} key_range
  * @param {!Array.<string>} wheres where clauses
