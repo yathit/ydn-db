@@ -61,30 +61,6 @@ ydn.db.index.req.WebSql.DEBUG = false;
 ydn.db.index.req.WebSql.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.WebSql');
 
-/**
- * @inheritDoc
- */
-ydn.db.index.req.WebSql.prototype.getByIterator = function(tx, tx_no, df, q) {
-
-  /**
-   * @param {*} results
-   * @param {boolean=} is_error
-   */
-  var qdf = function (results, is_error) {
-    if (is_error) {
-      df(results, true);
-    } else {
-      if (goog.isArray(results)) {
-        df(results[0]);
-      } else {
-        df(undefined);
-      }
-    }
-  };
-
-  this.fetchIterator_(tx, tx_no, qdf, q, false, 1);
-
-};
 
 ///**
 // *

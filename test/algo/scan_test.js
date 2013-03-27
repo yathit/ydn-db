@@ -14,9 +14,9 @@ var reachedFinalContinuation;
 var debug_console = new goog.debug.Console();
 debug_console.setCapturing(true);
 goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
-goog.debug.Logger.getLogger('ydn.db.index').setLevel(goog.debug.Logger.Level.FINEST);
-goog.debug.Logger.getLogger('ydn.db.con.WebSql').setLevel(goog.debug.Logger.Level.FINEST);
+//goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
+// goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+//goog.debug.Logger.getLogger('ydn.db.con.WebSql').setLevel(goog.debug.Logger.Level.FINEST);
 
 
 
@@ -24,9 +24,9 @@ var setUp = function() {
 
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
   //ydn.db.index.req.IDBCursor.DEBUG = true;
-  ydn.db.index.DbOperator.DEBUG = true;
-  ydn.db.con.WebSql.DEBUG = true;
-  ydn.db.index.req.CachedWebsqlCursor.DEBUG = true;
+  //ydn.db.index.DbOperator.DEBUG = true;
+  //ydn.db.con.WebSql.DEBUG = true;
+  //ydn.db.index.req.CachedWebsqlCursor.DEBUG = true;
 
   reachedFinalContinuation = false;
 };
@@ -90,6 +90,7 @@ var test_scan_reference_value = function() {
       function () {
         assertArrayEquals('result', results, result_keys);
         reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
         db.close();
       },
       100, // interval
@@ -165,10 +166,10 @@ var test_scan_advance = function() {
 
   db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(db + 'store: ' + store_name + ' ready.');
+    // console.log(db + 'store: ' + store_name + ' ready.');
   });
   db.values(store_name).addCallback(function (value) {
-    console.log(value);
+    // console.log(value);
     console.log(db + 'store: ' + store_name + ' has ' + value.length + ' records.');
   });
 
@@ -186,6 +187,7 @@ var test_scan_advance = function() {
       function () {
         assertArrayEquals('result', results, result_keys);
         reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
         db.close();
       },
       100, // interval
@@ -195,23 +197,26 @@ var test_scan_advance = function() {
   var q2 = new ydn.db.Cursors(store_name, 'last', ydn.db.KeyRange.only('M'));
 
   var solver = function (keys, values) {
-    console.log(JSON.stringify(keys) + ':' + JSON.stringify(values));
+    var out;
 
     if (keys[0] != null) {
       if (values[1] != null && ydn.db.cmp(values[0], values[1]) == 0) {
         result_keys.push(values[0]); // we got the matching primary key.
       }
       if (keys[1] != null) {
-        return {advance: [null, 1]}; // iterate on inner loop
+        out = {advance: [null, 1]}; // iterate on inner loop
       } else {
-        return {
+        out = {
           advance: [1, null], // iterate on outer loop
           restart: [null, true] // restart on inner loop
         };
       }
     } else {
-      return []; // no more iteration. we are done.
+      out = []; // no more iteration. we are done.
     }
+
+    // console.log(keys+ ' ' + values + ' ' + JSON.stringify(out));
+    return out;
   };
 
   var req = db.scan([q1, q2], solver);
@@ -232,7 +237,7 @@ var test_scan_advance = function() {
  */
 var test_scan_effective_key = function() {
 
-  var db_name = 'test_scan_effective_key_3';
+  var db_name = 'test_scan_effective_key_4';
   var store_name = 'st';
   var objs = [
     {id: 0, first: 'A', last: 'M', age: 20},
@@ -249,24 +254,81 @@ var test_scan_effective_key = function() {
       type: 'INTEGER',
       indexes: [
         {
-          keyPath: 'first',
-          type: 'TEXT'
-        },
-        {
-          keyPath: 'last',
-          type: 'TEXT'
-        },
-        {
-          keyPath: 'age',
-          type: 'INTEGER'
-        },
-        {
-        keyPath: ['first', 'age'],
-        type: ['TEXT', 'INTEGER']
+          name: 'first-age',
+        keyPath: ['first', 'age']
       }, {
-        keyPath: ['last', 'age'],
-        type: ['TEXT', 'INTEGER']
+          name: 'last-age',
+        keyPath: ['last', 'age']
       }]
+    }]
+  };
+  var db = new ydn.db.Storage(db_name, schema, options);
+  db.clear(store_name);
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(db + 'store: ' + store_name + ' ready.');
+  });
+
+
+  var done;
+  var result_keys = [];
+  // sorted by primary key
+  var results = [2, 4, 1];
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+      assertArrayEquals('result', results, result_keys);
+      reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var q1 = new ydn.db.Cursors(store_name, 'first-age', ydn.db.KeyRange.starts(['B']));
+  db.values(new ydn.db.Cursors(store_name, 'first-age')).addBoth(function (x) {
+    console.log(x);
+  })
+  db.values(q1).addBoth(function (x) {
+    result_keys = x;
+    done = true;
+  });
+};
+
+
+/**
+ * Query for
+ * SELECT age WHERE first = 'B' AND last = 'M' ORDER BY age
+ */
+var test_scan_effective_key_dual = function() {
+
+  var db_name = 'test_scan_effective_key_dual';
+  var store_name = 'st';
+  var objs = [
+    {id: 0, first: 'A', last: 'M', age: 20},
+    {id: 1, first: 'B', last: 'M', age: 24},
+    {id: 2, first: 'B', last: 'L', age: 16},
+    {id: 3, first: 'D', last: 'P', age: 49},
+    {id: 4, first: 'B', last: 'M', age: 21}
+  ];
+
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id',
+      type: 'INTEGER',
+      indexes: [
+        {
+          name: 'first-age',
+          keyPath: ['first', 'age']
+        }, {
+          name: 'last-age',
+          keyPath: ['last', 'age']
+        }]
     }]
   };
   var db = new ydn.db.Storage(db_name, schema, options);
@@ -282,45 +344,52 @@ var test_scan_effective_key = function() {
   var results = [4, 1];
 
   waitForCondition(
-    // Condition
-    function () {
-      return done;
-    },
-    // Continuation
-    function () {
-      assertArrayEquals('result', results, result_keys);
-      reachedFinalContinuation = true;
-      db.close();
-    },
-    100, // interval
-    1000); // maxTimeout
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+        assertArrayEquals('result', results, result_keys);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors(store_name, 'first, age', ydn.db.KeyRange.starts(['B']));
-  var q2 = new ydn.db.Cursors(store_name, 'last, age', ydn.db.KeyRange.starts(['M']));
+  var q1 = new ydn.db.Cursors(store_name, 'first-age', ydn.db.KeyRange.starts(['B']));
+  var q2 = new ydn.db.Cursors(store_name, 'last-age', ydn.db.KeyRange.starts(['M']));
 
-  var max = 1000; var cnt = 0;
-  var solver = function(keys, values) {
-    console.log(JSON.stringify(keys));
-    if (keys.some(function(x) {return !goog.isDefAndNotNull(x)})) {
-      return []; // done;
-    }
-    if (cnt++ > max) {
-      return []; // break
-    }
-    var a = keys[0][1];
-    var b = keys[1][1];
-    var cmp = ydn.db.cmp(a, b);
-    if (cmp == 0) {
-      //console.log('get match at ' + a + ' : ' + values[0]);
-      result_keys.push(values[0]);
-      return [true, true];
-    } else if (cmp == 1) {
-      var next_pos = [keys[1][0], a];
-      return {'continue': [undefined, next_pos]};
+  var max = 100;
+  var cnt = 0;
+  var solver = function (keys, values) {
+    var out;
+    var some_null = keys.some(function (x) {
+      return !goog.isDefAndNotNull(x)
+    });
+    if (some_null) {
+      out = []; // done;
+    } else if (cnt++ > max) {
+      out = []; // break
     } else {
-      var next_pos = [keys[0][0], b];
-      return {'continue': [next_pos, undefined]};
+      var a = keys[0][1];
+      var b = keys[1][1];
+      var cmp = ydn.db.cmp(a, b);
+      if (cmp == 0) {
+        //console.log('get match at ' + a + ' : ' + values[0]);
+        result_keys.push(values[0]);
+        out = [true, true];
+      } else if (cmp == 1) {
+        var next_pos = [keys[1][0], a];
+        out = {'continue': [undefined, next_pos]};
+      } else {
+        var next_pos = [keys[0][0], b];
+        out = {'continue': [next_pos, undefined]};
+      }
     }
+    console.log(keys + ' ' + values + ' ' + JSON.stringify(out));
+    return out;
   };
 
   var req = db.scan([q1, q2], solver);
@@ -334,7 +403,6 @@ var test_scan_effective_key = function() {
     done = true;
   });
 };
-
 
 
 var testCase = new goog.testing.ContinuationTestCase();

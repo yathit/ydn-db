@@ -47,29 +47,6 @@ ydn.db.index.req.IndexedDb.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.IndexedDb');
 
 
-/**
- * @inheritDoc
- */
-ydn.db.index.req.IndexedDb.prototype.getByIterator = function(tx, tx_no, df, iter) {
-
-  var msg = 'getByIterator: ' + iter;
-  var me = this;
-  this.logger.finest(msg);
-  var cursor = iter.iterate(tx, tx_no, this);
-  cursor.onError = function(e) {
-    me.logger.warning(msg);
-    iter.exit();
-    cursor.dispose();
-    df(e, false);
-  };
-  cursor.onNext = function(primary_key, key, value) {
-    me.logger.finest(msg);
-    iter.exit();
-    cursor.dispose();
-    df(iter.isKeyOnly() ? key : value);
-
-  };
-};
 
 
 /**
@@ -124,12 +101,12 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
 ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df, iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
-  var msg = 'listByIterator' + iter + ':tx' + tx_no;
+  var msg = 'TX' + tx_no + ' listByIterator' + iter;
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onError = function(e) {
-    me.logger.warning('error:' + msg);
+    me.logger.finer('error:' + msg);
     iter.exit();
     cursor.dispose();
     df(e, false);
@@ -149,7 +126,7 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df, it
         cursor.continueEffectiveKey();
       } else {
         iter.exit();
-        me.logger.finest('success:' + msg);
+        me.logger.finer('success:' + msg);
         cursor.dispose();
         df(arr);
       }

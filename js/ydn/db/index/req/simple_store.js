@@ -38,13 +38,6 @@ goog.inherits(ydn.db.index.req.SimpleStore, ydn.db.crud.req.SimpleStore);
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleStore.prototype.getByIterator = goog.abstractMethod;
-
-
-
-/**
- * @inheritDoc
- */
 ydn.db.index.req.SimpleStore.prototype.keysByIterator = goog.abstractMethod;
 
 /**

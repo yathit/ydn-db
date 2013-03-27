@@ -111,18 +111,22 @@ ydn.db.schema.Index = function(
  * Extract value of keyPath from a given object.
  * @see #getKeyValue
  * @param {!Object} obj object to extract from.
- * @return {!Array|number|string|undefined} return key value.
+ * @return {IDBKey|undefined} return key value.
  */
 ydn.db.schema.Index.prototype.getKeyValue = function(obj) {
   if (goog.isDefAndNotNull(obj)) {
     if (goog.isArrayLike(this.keyPath)) {
       var key = [];
       for (var i = 0, n = this.keyPath.length; i < n; i++) {
-        key[i] = ydn.db.utils.getValueByKeys(obj, this.keyPath[i]);
+        var i_key = ydn.db.utils.getValueByKeys(obj, this.keyPath[i]);
+        goog.asserts.assert(!!i_key, ydn.json.toShortString(obj) +
+            ' does not issue require composite key value ' + i + ' of ' +
+            n + ' on index "' + this.name + '"');
+        key[i] = i_key;
       }
       return key;
     } else {
-      return /** @type {!Array|number|string|undefined} */ (ydn.db.utils.getValueByKeys(obj, this.keyPath));
+      return /** @type {IDBKey} */ (ydn.db.utils.getValueByKeys(obj, this.keyPath));
     }
   }
 };

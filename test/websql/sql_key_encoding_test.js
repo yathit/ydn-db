@@ -26,7 +26,7 @@ var tearDown = function() {
 var encoding_test = function(key) {
   var encodedKey = ydn.db.utils.encodeKey(key);
   var re_key = ydn.db.utils.decodeKey(encodedKey);
-  console.log([key, encodedKey]);
+  //console.log([key, encodedKey]);
   if (goog.isArray(key)) {
     assertArrayEquals(key + ' ' + encodedKey, key, re_key)
   } else {
@@ -37,6 +37,7 @@ var encoding_test = function(key) {
 
 var test_encoding = function() {
   // these value are taken from FB polyfill test.
+  encoding_test(0);
   encoding_test(2);  // "01C0"
   encoding_test(8);  // "01C020"
   encoding_test(8.3); // ["01C02099999999999A", 8.3]
@@ -44,6 +45,41 @@ var test_encoding = function() {
   encoding_test('n2'); // "036F33"
   encoding_test('n3'); // ["036F34", "n3"]
   encoding_test([[2], 'abc']); // "09C000000000000000072441250008037C217E00000001C0390000000000000003626364"
+  reachedFinalContinuation = true;
+};
+
+
+var starts_test = function (start, test, not_start) {
+  var key_range = ydn.db.KeyRange.starts(start);
+  var lower = ydn.db.utils.encodeKey(key_range.lower);
+  var upper = ydn.db.utils.encodeKey(key_range.upper);
+  var e_test = ydn.db.utils.encodeKey(test);
+  var is_between = e_test <= upper && e_test >= lower;
+  if (not_start) {
+    assertFalse(test + ' is not between ' + key_range.lower + ' or ' + key_range.upper +
+        ' because ' + (e_test <= upper) + ' and ' + (e_test >= lower),
+        is_between);
+  } else {
+    assertTrue(key_range.lower + ' is > then ' + test, e_test <= upper);
+    assertTrue(key_range.upper + ' is < then ' + test, e_test >= lower);
+    assertTrue(test + ' is between ' + key_range.lower + ' or ' + key_range.upper,
+        is_between);
+  }
+};
+
+var test_starts = function() {
+  starts_test('a', 'ab');
+  starts_test('a', 'c', true);
+  starts_test('b', 'a', true);
+  starts_test('b', 'b');
+
+  starts_test(['a'], ['a', 'b']);
+  starts_test(['a'], ['b'], true);
+  starts_test(['b'], ['a'], true);
+  starts_test(['b'], ['b']);
+
+  starts_test(['M'], ['M', 20]);
+
   reachedFinalContinuation = true;
 };
 

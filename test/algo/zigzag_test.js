@@ -34,11 +34,9 @@ var schema = {
           type: 'TEXT'
         },
         {
-          keyPath: ['color', 'name'],
-          type: ['TEXT', 'TEXT']
+          keyPath: ['color', 'name']
         }, {
-          keyPath: ['legs', 'name'],
-          type: ['TEXT', 'TEXT']
+          keyPath: ['legs', 'name']
         }]
     }]
 };

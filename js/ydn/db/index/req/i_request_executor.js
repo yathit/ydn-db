@@ -19,14 +19,6 @@ ydn.db.index.req.IRequestExecutor = function() {};
 
 
 /**
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no transaction number
- * @param {?function(*, boolean=)} return key in deferred function.
- * @param {!ydn.db.Iterator} store_name  store name.
- */
-ydn.db.index.req.IRequestExecutor.prototype.getByIterator = goog.abstractMethod;
-
-/**
  * List record in a store.
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  * @param {number} tx_no transaction number

@@ -201,32 +201,30 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
   var is_multi_entry = !!index && index.isMultiEntry();
 
   var key_range = this.key_range;
-  if (goog.isDefAndNotNull(this.ini_key_)) {
-    if (!!this.index_name) {
-      goog.asserts.assert(goog.isDefAndNotNull(this.ini_index_key_));
-      if (goog.isDefAndNotNull(this.key_range)) {
-        key_range = ydn.db.IDBKeyRange.bound(this.ini_index_key_,
-          this.key_range.upper, false, this.key_range.upperOpen);
-      } else {
-        key_range = ydn.db.IDBKeyRange.lowerBound(this.ini_index_key_);
-      }
+  if (!!index && goog.isDefAndNotNull(this.ini_index_key_)) {
 
-      ydn.db.KeyRange.toSql(q_effective_col_name, type,
-        is_multi_entry, key_range, wheres, params);
+    if (goog.isDefAndNotNull(this.key_range)) {
+      key_range = ydn.db.IDBKeyRange.bound(this.ini_index_key_,
+          this.key_range.upper, false, this.key_range.upperOpen);
     } else {
-      if (this.reverse) {
-        key_range = ydn.db.IDBKeyRange.upperBound(this.ini_key_, false);
-      } else {
-        key_range = ydn.db.IDBKeyRange.lowerBound(this.ini_key_, false);
-      }
-      ydn.db.KeyRange.toSql(q_primary_column_name, type,
-        false, key_range, wheres, params);
+      key_range = ydn.db.IDBKeyRange.lowerBound(this.ini_index_key_);
     }
+
+    ydn.db.KeyRange.toSql(q_effective_col_name, type,
+        is_multi_entry, key_range, wheres, params);
+  } else if (!index && goog.isDefAndNotNull(this.ini_key_)) {
+    if (this.reverse) {
+      key_range = ydn.db.IDBKeyRange.upperBound(this.ini_key_, false);
+    } else {
+      key_range = ydn.db.IDBKeyRange.lowerBound(this.ini_key_, false);
+    }
+    ydn.db.KeyRange.toSql(q_primary_column_name, type,
+        false, key_range, wheres, params);
+
   } else {
     ydn.db.KeyRange.toSql(q_effective_col_name, type,
       is_multi_entry, key_range, wheres, params);
   }
-
 
   if (wheres.length > 0) {
     sqls.push('WHERE ' + wheres.join(' AND '));
@@ -238,7 +236,6 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
   if (this.current_cursor_offset_ > 0) {
     sqls.push('OFFSET ' + this.current_cursor_offset_);
   }
-
 
 //  if (this.key_only) {
 //    sqls.push(' LIMIT ' + 100);
@@ -264,14 +261,14 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     if (results.rows.length > 0) {
       var row = /** @type {!Object} */ (results.rows.item(0));
       me.current_primary_key_ = ydn.db.schema.Index.sql2js(row[primary_column_name],
-        type, false);
+          me.store_schema_.getType(), false);
       me.current_key_ = is_index ? ydn.db.schema.Index.sql2js(row[effective_col_name],
         type, is_multi_entry) : me.current_primary_key_;
       me.current_value_ = me.key_only ? me.current_primary_key_ :
         ydn.db.crud.req.WebSql.parseRow(row, me.store_schema_);
     }
 
-    callback.call(me, me.current_key_, me.current_primary_key_, me.current_value_);
+    callback.call(me, me.current_primary_key_, me.current_key_, me.current_value_);
     callback = null;
   };
 
@@ -290,7 +287,7 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     me.current_key_ = undefined;
     me.current_primary_key_ = undefined;
     me.current_value_ = undefined;
-    callback.call(me, me.current_key_, me.current_primary_key_, me.current_value_);
+    callback.call(me, me.current_primary_key_, me.current_key_, me.current_value_);
     callback = null;
     return false;
 
@@ -378,7 +375,7 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj, idx) {
 ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
 
   this.current_cursor_offset_ += step;
-  this.move_(this.onNext);
+  this.move_(this.onSuccess);
 
 };
 
@@ -390,14 +387,18 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
   if (!this.hasCursor()) {
     throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
   }
-  if (!goog.isDefAndNotNull(key)) {
-    this.advance(1);
-    return;
+  if (goog.isDefAndNotNull(key)) {
+    if (this.isIndexCursor()) {
+      this.ini_index_key_ = key;
+    } else {
+      this.ini_key_ = key;
+    }
+  } else {
+    this.current_cursor_offset_++;
   }
 
-  this.ini_key_ = null;
-  this.ini_index_key_ = key;
-  this.move_(this.onNext);
+  this.move_(this.onSuccess);
+
 };
 
 
@@ -418,7 +419,7 @@ ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(ini_key, ini_index
   if (exclusive) {
     this.current_cursor_offset_++;
   }
-  this.move_(this.onNext);
+  this.move_(this.onSuccess);
 };
 
 
@@ -483,7 +484,8 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
  */
 ydn.db.index.req.WebsqlCursor.prototype.restart = function(effective_key, primary_key) {
   this.logger.finest(this + ' restarting.');
-  this.openCursor(primary_key, effective_key, true);
+  this.current_cursor_offset_ = 0;
+  this.openCursor(primary_key, effective_key, false);
 };
 
 
@@ -500,17 +502,22 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function (key) {
   }
   var cmp = ydn.db.cmp(key, this.current_primary_key_);
   if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
-    throw new ydn.error.InvalidOperationError(this + ' wrong direction.');
-  }
-
-  if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
-    this.onSuccess(this.current_primary_key_, this.current_key_, this.current_value_);
-    return;
+    throw new ydn.error.InvalidOperationError(this + ' to continuePrimaryKey for "' +
+        key + '" on ' + this.dir + ' direction is wrong');
   }
 
   this.current_cursor_offset_++;
-  this.move_(function() {
-    this.continuePrimaryKey(key);
+  this.move_(function (primary_key, index_key, value) {
+    if (goog.isDefAndNotNull(primary_key)) {
+      var cmp2 = ydn.db.cmp(key, primary_key);
+      if (cmp2 == 0 || (cmp2 == 1 && this.reverse) || (cmp2 == -1 && !this.reverse)) {
+        this.onSuccess(primary_key, index_key, value);
+      } else {
+        this.continuePrimaryKey(key);
+      }
+    } else {
+      this.onSuccess(undefined, undefined, undefined);
+    }
   });
 
 };
