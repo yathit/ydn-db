@@ -110,8 +110,6 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   this.use_text_store = goog.isDef(options.use_text_store) ?
     options.use_text_store : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
 
-  this.onReady = null;
-
   this.db_ = null;
 
   /**
@@ -367,9 +365,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
         // dispatch asynchroniously so that any err on running db request
         // are not caught under deferred object.
 
-        if (me['onReady']) {
-          me['onReady'](ev);
-        }
+        me.onReady(ev);
         me.dispatchEvent(ev);
         me.popTxQueue_();
       });
@@ -379,10 +375,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       me.logger.warning(me + ': database connection fail ' + ev.name);
 
       goog.Timer.callOnce(function () {
-        if (me.onReady) {
-          me.onReady(ev);
-        }
-        me.dispatchEvent(ev);
+        me.onReady(ev);
         me.purgeTxQueue_(ev);
       });
 
@@ -488,10 +481,12 @@ ydn.db.con.Storage.prototype.getType = function() {
 
 
 /**
- *
- * @type {?function(ydn.db.events.StorageEvent)}
+ * Handle ready event by dispatching 'ready' event.
+ * @param {ydn.db.events.StorageEvent} ev event
  */
-ydn.db.con.Storage.prototype.onReady = null;
+ydn.db.con.Storage.prototype.onReady = function (ev) {
+  this.dispatchEvent(ev);
+};
 
 
 /**
