@@ -38,7 +38,7 @@
                 <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/index.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/dev.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
@@ -204,20 +204,20 @@
         </adv-comp>
     </target>
 
-    <target name="compile-iter" description="generates compiled files for client js">
+    <target name="compile-core" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js"
-                input.fn="${ydn-db.dir}/js/config/index_main.js"
+                input.fn="${ydn-db.dir}/js/config/core_main.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="${buildno}-ydn.db-iter.js"
+                output.fn="${buildno}-ydn.db-core.js"
                 closure.entry="ydn.db.index.Storage">
             <ex.opt>
                 <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/index.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
 
             </ex.opt>
         </adv-comp>
@@ -236,7 +236,7 @@
                 <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/index.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
             </ex.opt>
         </adv-comp>
     </target>
@@ -281,7 +281,7 @@
     </target>
     <target name="build" description="build all distribution"
             depends="compile-conn,compile,simple,compile-dev,compile-crud,
-            compile-iter">
+            compile-core">
 
     </target>
 </project>
