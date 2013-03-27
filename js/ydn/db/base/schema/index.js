@@ -260,7 +260,7 @@ ydn.db.schema.Index.js2sql = function(key, type, is_multi_entry) {
  * @param {string|number|*} key key.
  * @param {ydn.db.schema.DataType|undefined} type type.
  * @param {boolean} is_multi_entry
- * @return {Date|Array|*} decoded key.
+ * @return {IDBKey|undefined} decoded key.
  */
 ydn.db.schema.Index.sql2js = function(key, type, is_multi_entry) {
   if (!!is_multi_entry) {
@@ -290,7 +290,7 @@ ydn.db.schema.Index.sql2js = function(key, type, is_multi_entry) {
   } else if (type == ydn.db.schema.DataType.DATE) {
     return new Date(key); // key is number
   } else if (goog.isDef(type)) {
-    return key;   // NUMERIC, INTEGER,
+    return /** @type {number} */ (key);   // NUMERIC, INTEGER,
   } else {
     return ydn.db.utils.decodeKey(/** @type {string} */ (key));
   }

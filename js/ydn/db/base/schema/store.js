@@ -645,12 +645,12 @@ ydn.db.schema.Store.DEFAULT_TEXT_STORE = 'default_text_store';
 /**
  * This is for WebSQL.
  * @param {!Object} obj get values of indexed fields.
- * @param {(!Array|string|number)=} opt_key optional key.
+ * @param {IDBKey=} opt_key optional key.
  * @return {{
  *    columns: Array.<string>,
  *    slots: Array.<string>,
  *    values: Array.<string>,
- *    key: (!Array|string|number|undefined)
+ *    key: (IDBKey|undefined)
  *  }} return list of values as it appear on the indexed fields.
  */
 ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {

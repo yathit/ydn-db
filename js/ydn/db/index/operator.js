@@ -663,7 +663,7 @@ ydn.db.index.DbOperator.prototype.open = function(iter, callback, mode) {
 /**
  *
  * @param {!ydn.db.Iterator} iterator
- * @param {function(*): (*|undefined)} callback
+ * @param {?function(*): (*|undefined)} callback
  */
 ydn.db.index.DbOperator.prototype.map = function (iterator, callback) {
 
@@ -700,20 +700,13 @@ ydn.db.index.DbOperator.prototype.map = function (iterator, callback) {
             ref = value;
           }
         }
-        var adv = callback(ref);
+        callback(ref);
         //console.log(['onNext', key, primaryKey, value, ref, adv]);
-        if (!goog.isDef(adv)) {
-          cursor.advance(1);
-        } else if (goog.isBoolean(adv)) {
-          throw new TypeError();
-        } else if (goog.isNull(adv)) {
-          // break the loop
-          cb(undefined);
-        } else {
-          cursor.continueEffectiveKey(adv);
-        }
+        cursor.advance(1);
+
       } else {
         cb(undefined);
+        callback = null;
       }
     };
 

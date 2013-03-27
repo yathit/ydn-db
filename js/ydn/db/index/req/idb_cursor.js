@@ -304,19 +304,15 @@ ydn.db.index.req.IDBCursor.prototype.hasCursor = function() {
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current index key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.IDBCursor.prototype.getIndexKey = function() {
-  return this.cur_.key;
+  return /** @type {IDBKey} */ (this.cur_.key);
 };
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current primary key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.IDBCursor.prototype.getPrimaryKey = function() {
   return this.cur_.primaryKey;
@@ -324,9 +320,7 @@ ydn.db.index.req.IDBCursor.prototype.getPrimaryKey = function() {
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current primary key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.IDBCursor.prototype.getValue = function() {
   return this.cur_.value;

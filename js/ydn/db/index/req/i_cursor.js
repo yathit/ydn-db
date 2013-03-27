@@ -45,14 +45,14 @@ ydn.db.index.req.ICursor.prototype.onSuccess = goog.abstractMethod;
 
 /**
  * Move cursor position to the primary key while remaining on same index key.
- * @param {*} primary_key
+ * @param {IDBKey=} primary_key
  */
 ydn.db.index.req.ICursor.prototype.continuePrimaryKey = goog.abstractMethod;
 
 
 /**
  * Move cursor position to the effective key.
- * @param {*=} effective_key
+ * @param {IDBKey=} effective_key
  */
 ydn.db.index.req.ICursor.prototype.continueEffectiveKey = goog.abstractMethod;
 
@@ -67,7 +67,7 @@ ydn.db.index.req.ICursor.prototype.advance = goog.abstractMethod;
 /**
  * Restart the cursor. If previous cursor position is given,
  * the position is skip.
- * @param {*} effective_key previous position.
- * @param {*} primary_key
+ * @param {IDBKey=} effective_key previous position.
+ * @param {IDBKey=} primary_key
  */
 ydn.db.index.req.ICursor.prototype.restart = goog.abstractMethod;

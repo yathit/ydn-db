@@ -148,7 +148,7 @@ ydn.db.index.req.AbstractCursor.prototype.isIndexCursor = function() {
 
 /**
  *
- * @return {*} effective key.
+ * @return {IDBKey|undefined} effective key.
  */
 ydn.db.index.req.AbstractCursor.prototype.getEffectiveKey = function() {
   if (this.isIndexCursor()) {
@@ -196,7 +196,7 @@ ydn.db.index.req.AbstractCursor.prototype.onNext = function(primary_key, key, va
 
 /**
  *
- * @return {*} primary key.
+ * @return {IDBKey|undefined} primary key.
  */
 ydn.db.index.req.AbstractCursor.prototype.getPrimaryKey = goog.abstractMethod;
 
@@ -222,7 +222,7 @@ ydn.db.index.req.AbstractCursor.prototype.isRequestPending = function() {
 
 /**
  *
- * @return {*} primary key.
+ * @return {IDBKey|undefined} primary key.
  */
 ydn.db.index.req.AbstractCursor.prototype.getIndexKey = goog.abstractMethod;
 
@@ -237,7 +237,7 @@ ydn.db.index.req.AbstractCursor.prototype.getValue = goog.abstractMethod;
 /**
  *
  * @param {number=} index
- * @return {*} primary key.
+ * @return {!goog.async.Deferred} deferred object.
  */
 ydn.db.index.req.AbstractCursor.prototype.clear = goog.abstractMethod;
 
@@ -245,7 +245,7 @@ ydn.db.index.req.AbstractCursor.prototype.clear = goog.abstractMethod;
 /**
  * @param {*} record value
  * @param {number=} index
- * @return {*} primary key.
+ * @return {!goog.async.Deferred} primary key.
  */
 ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
 
@@ -264,14 +264,14 @@ ydn.db.index.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
 
 /**
  * Move cursor position to the primary key while remaining on same index key.
- * @param {*} primary_key
+ * @param {IDBKey=} primary_key
  */
 ydn.db.index.req.AbstractCursor.prototype.continuePrimaryKey = goog.abstractMethod;
 
 
 /**
  * Move cursor position to the effective key.
- * @param {*=} effective_key
+ * @param {IDBKey=} effective_key
  */
 ydn.db.index.req.AbstractCursor.prototype.continueEffectiveKey = goog.abstractMethod;
 
@@ -286,8 +286,8 @@ ydn.db.index.req.AbstractCursor.prototype.advance = goog.abstractMethod;
 /**
  * Restart the cursor. If previous cursor position is given,
  * the position is skip.
- * @param {*} effective_key previous position.
- * @param {*} primary_key
+ * @param {IDBKey=} effective_key previous position.
+ * @param {IDBKey=} primary_key
  */
 ydn.db.index.req.AbstractCursor.prototype.restart = goog.abstractMethod;
 

@@ -322,9 +322,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.hasCursor = function() {
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current index key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.CachedWebsqlCursor.prototype.getIndexKey = function() {
 
@@ -347,9 +345,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.getIndexKey = function() {
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current primary key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.CachedWebsqlCursor.prototype.getPrimaryKey = function () {
   if (this.current_cursor_index_ < this.cursor_.rows.length) {

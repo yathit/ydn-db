@@ -11,6 +11,7 @@
  */
 
 goog.provide('ydn.db.utils');
+goog.require('ydn.db.base');
 
 
 /**
@@ -139,7 +140,7 @@ ydn.db.utils.encodeKey = function(key) {
 /**
  *
  * @param {string} encodedKey key to decoded.
- * @return {*} decoded key.
+ * @return {IDBKey} decoded key.
  */
 ydn.db.utils.decodeKey = function(encodedKey) {
   var rootArray = []; // one-element root array that contains the result
