@@ -235,7 +235,7 @@ var test_abort_put_data  = function() {
     100, // interval
     2000); // maxTimeout
 
-  db.addEventListener('done', function () {
+  db.addEventListener('ready', function () {
 
     db.put('t2', objs).addBoth(function (x) {
       t2_keys = x;

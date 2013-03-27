@@ -1027,7 +1027,7 @@ var test_43_clear_by_key_range = function() {
 var test_51_array_key = function() {
   var db_name = 'test_51_array_key_1';
 
-  var stores = [new ydn.db.schema.Store(table_name, 'id', false, ['TEXT', 'TEXT'])];
+  var stores = [new ydn.db.schema.Store(table_name, 'id')];
   var schema = new ydn.db.schema.Database(undefined, stores);
   var db = new ydn.db.core.Storage(db_name, schema, options);
 

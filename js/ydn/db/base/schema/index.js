@@ -316,11 +316,11 @@ ydn.db.schema.Index.TYPES = [
  * data type.
  */
 ydn.db.schema.Index.toType = function(str) {
-  if (goog.isArray(str)) { // todo: remove this
-    throw new Error();
-  } else {
+  if (goog.isString(str)) {
     var idx = goog.array.indexOf(ydn.db.schema.Index.TYPES, str);
     return ydn.db.schema.Index.TYPES[idx]; // undefined OK.
+  } else {
+    return undefined;
   }
 
 };
