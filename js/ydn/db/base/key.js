@@ -86,6 +86,12 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
 
 
 /**
+ * @typedef {number|string|Date|!Array.<number|string|Date>}
+ */
+var IDBKey;
+
+
+/**
  * @typedef {{
  *  store: string,
  *  id: (string|number),

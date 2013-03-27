@@ -251,8 +251,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     {msg: Math.random()}
   ];
 
-  asyncTest("by store", function () {
-    expect(3);
+  asyncTest("by store", 3, function () {
+
     var db_name = 'test-clear-' + Math.random();
     var db = new ydn.db.Storage(db_name, schema_1, options);
     db.put(store_inline, data_inline);

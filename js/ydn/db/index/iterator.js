@@ -908,7 +908,7 @@ ydn.db.Iterator.prototype.iterate_ = function(tx, tx_no, executor) {
     }
   };
 
-  cursor.open_request(ini_key, ini_index_key, resume);
+  cursor.openCursor(ini_key, ini_index_key, resume);
 
   return cursor;
 };
@@ -950,7 +950,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(tx, tx_no, executor) {
       this.key_range_, this.direction, this.key_only_);
 
 
-  primary_cursor.open_request(ini_key, ini_index_key, resume);
+  primary_cursor.openCursor(ini_key, ini_index_key, resume);
 
   /**
    * onSuccess handler is called before onNext callback. The purpose of
@@ -993,7 +993,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(tx, tx_no, executor) {
     var store_name = this.filter_store_names_[i] || this.store_name;
     var cursor = executor.getCursor(tx, tx_no, store_name, this.filter_index_names_[i],
         this.filter_key_ranges_[i], this.direction, true);
-    cursor.open_request(this.filter_ini_keys_[i], this.filter_ini_index_keys_[i]);
+    cursor.openCursor(this.filter_ini_keys_[i], this.filter_ini_index_keys_[i]);
     cursors.push(cursor);
     cursor.onSuccess = goog.partial(filterCursorOnSuccess, i);
 

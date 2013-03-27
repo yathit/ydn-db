@@ -168,7 +168,7 @@ ydn.db.index.req.IDBCursor.prototype.has_pending_request_ = false;
  * @param {boolean=} exclusive
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index_key, exclusive) {
+ydn.db.index.req.IDBCursor.prototype.openCursor = function (ini_key, ini_index_key, exclusive) {
 
   var label = 'IDB' + this;
   this.target_key_ = ini_key;
@@ -277,7 +277,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
 //  if (next_position === false) {
 //    // restart the iterator
 //    this.logger.finest(label + ' restarting.');
-//    this.open_request();
+//    this.openCursor();
 //  } else if (this.cur_) {
 //    if (next_position === true) {
 //      this.cur_['continue']();
@@ -359,7 +359,7 @@ ydn.db.index.req.IDBCursor.prototype.getValue = function() {
 //  if (exclusive === false) {
 //    // restart the iterator
 //    this.logger.finest(this + ' restarting.');
-//    this.open_request(next_primary_key, next_index_key, true);
+//    this.openCursor(next_primary_key, next_index_key, true);
 //  } else if (exclusive === true &&
 //      !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
 //    if (!this.cur_) {
@@ -397,7 +397,7 @@ ydn.db.index.req.IDBCursor.prototype.getValue = function() {
 //        } else {
 //          // primary key not in the range
 //          // this will restart the thread.
-//          this.open_request(next_primary_key, next_index_key);
+//          this.openCursor(next_primary_key, next_index_key);
 //        }
 //      } else if (index_on_track) {
 //        // just to index key position and continue
@@ -405,7 +405,7 @@ ydn.db.index.req.IDBCursor.prototype.getValue = function() {
 //      } else {
 //        // this will need to restart the thread.
 //        // this.logger.finest(label + ' restarting for ' + next_primary_key);
-//        // this.open_request(next_primary_key, next_index_key);
+//        // this.openCursor(next_primary_key, next_index_key);
 //        throw new ydn.error.InvalidOperationError();
 //      }
 //    } else {
@@ -424,7 +424,7 @@ ydn.db.index.req.IDBCursor.prototype.getValue = function() {
 //      } else {
 //        // primary key not in the range
 //        // this will restart the thread.
-//        this.open_request(next_primary_key, next_index_key, exclusive);
+//        this.openCursor(next_primary_key, next_index_key, exclusive);
 //      }
 //    }
 //  }
@@ -478,7 +478,7 @@ ydn.db.index.req.IDBCursor.prototype.clear = function(index) {
  */
 ydn.db.index.req.IDBCursor.prototype.restart = function(effective_key, primary_key) {
   this.logger.finest(this + ' restarting.');
-  this.open_request(primary_key, effective_key, true);
+  this.openCursor(primary_key, effective_key, true);
 };
 
 

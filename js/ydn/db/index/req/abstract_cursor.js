@@ -130,6 +130,15 @@ ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
 
 /**
  *
+ * @return {boolean} true if transaction is active
+ */
+ydn.db.index.req.AbstractCursor.prototype.isActive = function() {
+  return !!this.tx;
+};
+
+
+/**
+ *
  * @return {boolean} return true if this is an index cursor.
  */
 ydn.db.index.req.AbstractCursor.prototype.isIndexCursor = function() {
@@ -250,7 +259,7 @@ ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
  * @param {*=} ini_index_key index key to resume position.
  * @param {boolean=} exclusive
  */
-ydn.db.index.req.AbstractCursor.prototype.open_request = goog.abstractMethod;
+ydn.db.index.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
 
 
 /**

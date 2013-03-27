@@ -43,14 +43,14 @@ goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'update',
 goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'clear',
     ydn.db.index.req.IDBCursor.prototype.clear);
 
-goog.exportProperty(ydn.db.index.req.WebsqlCursor.prototype, 'primaryKey',
-    ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey);
-goog.exportProperty(ydn.db.index.req.WebsqlCursor.prototype, 'value',
-    ydn.db.index.req.WebsqlCursor.prototype.getValue);
-goog.exportProperty(ydn.db.index.req.WebsqlCursor.prototype, 'update',
-    ydn.db.index.req.WebsqlCursor.prototype.update);
-goog.exportProperty(ydn.db.index.req.WebsqlCursor.prototype, 'clear',
-    ydn.db.index.req.WebsqlCursor.prototype.clear);
+goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'primaryKey',
+    ydn.db.index.req.CachedWebsqlCursor.prototype.getPrimaryKey);
+goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'value',
+    ydn.db.index.req.CachedWebsqlCursor.prototype.getValue);
+goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'update',
+    ydn.db.index.req.CachedWebsqlCursor.prototype.update);
+goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'clear',
+    ydn.db.index.req.CachedWebsqlCursor.prototype.clear);
 
 goog.exportSymbol('ydn.math.Expression', ydn.math.Expression);
 goog.exportProperty(ydn.math.Expression.prototype, 'evaluate',

@@ -63,8 +63,8 @@ goog.addDependency("../../../ydn-db/js/ydn/db/index/req/i_request_executor.js", 
 goog.addDependency("../../../ydn-db/js/ydn/db/index/req/idb_cursor.js", ['ydn.db.index.req.IDBCursor'], ['ydn.db.index.req.AbstractCursor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/index/req/indexed_db.js", ['ydn.db.index.req.IndexedDb'], ['ydn.db.core.req.IndexedDb', 'ydn.db.index.req.IRequestExecutor', 'ydn.db.algo.AbstractSolver', 'ydn.db.IDBCursor', 'ydn.db.IDBValueCursor', 'ydn.db.index.req.IDBCursor', 'ydn.error', 'ydn.json']);
 goog.addDependency("../../../ydn-db/js/ydn/db/index/req/simple_store.js", ['ydn.db.index.req.SimpleStore'], ['ydn.db.core.req.SimpleStore', 'ydn.db.index.req.IRequestExecutor']);
-goog.addDependency("../../../ydn-db/js/ydn/db/index/req/websql.js", ['ydn.db.index.req.WebSql'], ['goog.async.Deferred', 'goog.debug.Logger', 'goog.events', 'ydn.async', 'ydn.db.WebsqlCursor', 'ydn.json', 'ydn.db.index.req.IRequestExecutor', 'ydn.db.index.req.WebsqlCursor']);
-goog.addDependency("../../../ydn-db/js/ydn/db/index/req/websql_cursor.js", ['ydn.db.index.req.WebsqlCursor'], ['ydn.db.index.req.AbstractCursor', 'ydn.db.index.req.ICursor']);
+goog.addDependency("../../../ydn-db/js/ydn/db/index/req/websql.js", ['ydn.db.index.req.WebSql'], ['goog.async.Deferred', 'goog.debug.Logger', 'goog.events', 'ydn.async', 'ydn.db.WebsqlCursor', 'ydn.json', 'ydn.db.index.req.IRequestExecutor', 'ydn.db.index.req.CachedWebsqlCursor']);
+goog.addDependency("../../../ydn-db/js/ydn/db/index/req/websql_cursor.js", ['ydn.db.index.req.CachedWebsqlCursor'], ['ydn.db.index.req.AbstractCursor', 'ydn.db.index.req.ICursor']);
 goog.addDependency("../../../ydn-db/js/ydn/db/rich/rich_storage.js", ['ydn.db.rich.RichStorage'], ['goog.storage.EncryptedStorage', 'goog.storage.ExpiringStorage', 'goog.asserts']);
 goog.addDependency("../../../ydn-db/js/ydn/db/rich/storage.js", ['ydn.db.rich.Storage'], ['ydn.db.core.Storage', 'ydn.db.rich.RichStorage']);
 goog.addDependency("../../../ydn-db/js/ydn/db/rich/tx_storage.js", ['ydn.db.rich.TxQueue'], ['ydn.db.sql.DbOperator', 'ydn.db.algo', 'ydn.error.NotSupportedException']);

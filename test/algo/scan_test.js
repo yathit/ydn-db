@@ -26,7 +26,7 @@ var setUp = function() {
   //ydn.db.index.req.IDBCursor.DEBUG = true;
   ydn.db.index.DbOperator.DEBUG = true;
   ydn.db.con.WebSql.DEBUG = true;
-  ydn.db.index.req.WebsqlCursor.DEBUG = true;
+  ydn.db.index.req.CachedWebsqlCursor.DEBUG = true;
 
   reachedFinalContinuation = false;
 };

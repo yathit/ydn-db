@@ -19,12 +19,12 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.index.req.WebsqlCursor').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.index.req.CachedWebsqlCursor').setLevel(goog.debug.Logger.Level.FINEST);
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
     //ydn.db.core.req.IndexedDb.DEBUG = true;
-    //ydn.db.index.req.WebsqlCursor.DEBUG = true;
+    //ydn.db.index.req.CachedWebsqlCursor.DEBUG = true;
 
   }
 

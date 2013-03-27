@@ -618,9 +618,6 @@ ydn.db.index.DbOperator.prototype.open = function(iter, callback, mode) {
   var df = ydn.db.base.createDeferred();
   this.logger.finer('open:' + tr_mode + ' ' + iter);
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
-    // executor.open(df, cursor, callback, /** @type {ydn.db.base.CursorMode} */ (tr_mode));
-
-    var read_write = tr_mode == ydn.db.base.TransactionMode.READ_WRITE;
 
     var cursor = iter.iterate(tx, tx_no, me.getIndexExecutor());
 
