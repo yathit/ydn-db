@@ -5,7 +5,7 @@
 
 
 goog.provide('ydn.db.index.req.IRequestExecutor');
-goog.require('ydn.db.core.req.IRequestExecutor');
+goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.Streamer');
 goog.require('ydn.db.index.req.AbstractCursor');
 
@@ -13,7 +13,7 @@ goog.require('ydn.db.index.req.AbstractCursor');
 
 /**
  * @interface
- * @extends {ydn.db.core.req.IRequestExecutor}
+ * @extends {ydn.db.crud.req.IRequestExecutor}
  */
 ydn.db.index.req.IRequestExecutor = function() {};
 

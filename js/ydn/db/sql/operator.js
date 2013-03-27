@@ -26,7 +26,7 @@ goog.require('ydn.debug.error.ArgumentException');
  * is not active or locked. Active transaction can be locked by using
  * mutex.
  *
- * @param {!ydn.db.core.Storage} storage base storage object.
+ * @param {!ydn.db.crud.Storage} storage base storage object.
  *  @param {!ydn.db.schema.Database} schema
  *  @param {string} scope_name
  * @param {ydn.db.tr.IThread} thread

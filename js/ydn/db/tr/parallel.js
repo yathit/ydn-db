@@ -221,7 +221,7 @@ ydn.db.tr.Parallel.prototype.abort = function() {
  * Return cache executor object or create on request. This have to be crated
  * Lazily because, we can initialize it only when transaction object is active.
  * @protected
- * @return {ydn.db.core.req.IRequestExecutor} get executor.
+ * @return {ydn.db.crud.req.IRequestExecutor} get executor.
  */
 ydn.db.tr.Parallel.prototype.getExecutor = goog.abstractMethod;
 

@@ -5,15 +5,15 @@
 */
 
 
-goog.provide('ydn.db.core.DbOperator');
-goog.require('ydn.db.core.req.IndexedDb');
-goog.require('ydn.db.core.req.SimpleStore');
-goog.require('ydn.db.core.req.WebSql');
+goog.provide('ydn.db.crud.DbOperator');
+goog.require('ydn.db.crud.req.IndexedDb');
+goog.require('ydn.db.crud.req.SimpleStore');
+goog.require('ydn.db.crud.req.WebSql');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.db');
 goog.require('ydn.db.Key');
-goog.require('ydn.db.core.IOperator');
+goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.db.ISyncOperator');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.error.NotSupportedException');
@@ -30,28 +30,28 @@ goog.require('ydn.debug.error.ArgumentException');
  * is not active or locked. Active transaction can be locked by using
  * mutex.
  *
- * @param {!ydn.db.core.Storage} storage base storage object.
+ * @param {!ydn.db.crud.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema
  * @param {ydn.db.tr.IThread} tx_thread
  * @param {string} scope_name
  * @param {ydn.db.tr.IThread} sync_thread
- * @implements {ydn.db.core.IOperator}
+ * @implements {ydn.db.crud.IOperator}
  * @implements {ydn.db.ISyncOperator}
  * @constructor
  * @extends {ydn.db.tr.DbOperator}
 */
-ydn.db.core.DbOperator = function(storage, schema, scope_name, tx_thread, sync_thread) {
+ydn.db.crud.DbOperator = function(storage, schema, scope_name, tx_thread, sync_thread) {
   goog.base(this, storage, schema, scope_name, tx_thread, sync_thread);
 };
-goog.inherits(ydn.db.core.DbOperator, ydn.db.tr.DbOperator);
+goog.inherits(ydn.db.crud.DbOperator, ydn.db.tr.DbOperator);
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.core.DbOperator.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.core.DbOperator');
+ydn.db.crud.DbOperator.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.crud.DbOperator');
 
 
 
@@ -60,7 +60,7 @@ ydn.db.core.DbOperator.prototype.logger =
  *
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.count = function(store_name, index_or_keyrange,
+ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
                                                  index_key_range) {
   var df = ydn.db.base.createDeferred();
   var me = this;
@@ -171,7 +171,7 @@ ydn.db.core.DbOperator.prototype.count = function(store_name, index_or_keyrange,
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
+ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
 
   var me = this;
   var df = ydn.db.base.createDeferred();
@@ -268,7 +268,7 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
  *
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.keys = function(opt_store_name, arg1,
+ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
      arg2, arg3, arg4, arg5) {
   var me = this;
 
@@ -409,7 +409,7 @@ ydn.db.core.DbOperator.prototype.keys = function(opt_store_name, arg1,
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
+ydn.db.crud.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
                                                    arg6) {
 
   var me = this;
@@ -611,7 +611,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
+ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
                                                opt_keys) {
 
   var store_name = goog.isString(store_name_or_schema) ?
@@ -753,7 +753,7 @@ ydn.db.core.DbOperator.prototype.add = function(store_name_or_schema, value,
  * @return {ydn.db.schema.Store}
  * @private
  */
-ydn.db.core.DbOperator.prototype.getStore_ = function(store_name_or_schema) {
+ydn.db.crud.DbOperator.prototype.getStore_ = function(store_name_or_schema) {
 
   var store_name = goog.isString(store_name_or_schema) ?
     store_name_or_schema : goog.isObject(store_name_or_schema) ?
@@ -795,7 +795,7 @@ ydn.db.core.DbOperator.prototype.getStore_ = function(store_name_or_schema) {
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.load = function(store_name_or_schema, data,
+ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
                                                  opt_delimiter) {
 
   var delimiter = opt_delimiter || ',';
@@ -816,7 +816,7 @@ ydn.db.core.DbOperator.prototype.load = function(store_name_or_schema, data,
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
+ydn.db.crud.DbOperator.prototype.put = function (arg1, value, opt_keys) {
 
   var df = ydn.db.base.createDeferred();
   var me = this;
@@ -993,7 +993,7 @@ ydn.db.core.DbOperator.prototype.put = function (arg1, value, opt_keys) {
  * @return {!goog.async.Deferred} df return no result.
  * @override
  */
-ydn.db.core.DbOperator.prototype.dumpInternal = function(store_name, objs,
+ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
                                                          keys) {
   var df = new goog.async.Deferred();
   var me = this;
@@ -1025,7 +1025,7 @@ ydn.db.core.DbOperator.prototype.dumpInternal = function(store_name, objs,
  * @return {!goog.async.Deferred} df
  * @override
  */
-ydn.db.core.DbOperator.prototype.listInternal = function(store_name, index_name,
+ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
      key_range, reverse, limit) {
   var df = new goog.async.Deferred();
   var me = this;
@@ -1075,7 +1075,7 @@ ydn.db.core.DbOperator.prototype.listInternal = function(store_name, index_name,
  * @return {goog.async.Deferred} df
  * @override
  */
-ydn.db.core.DbOperator.prototype.keysInternal = function(store_name, index_name,
+ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
       key_range, reverse, limit) {
   var df = new goog.async.Deferred();
   var me = this;
@@ -1113,7 +1113,7 @@ ydn.db.core.DbOperator.prototype.keysInternal = function(store_name, index_name,
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
+ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
 
   if (goog.DEBUG && goog.isDef(arg3)) {
     throw new ydn.debug.error.ArgumentException('too many input arguments');
@@ -1176,7 +1176,7 @@ ydn.db.core.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.remove = function(store_name, arg2, arg3) {
+ydn.db.crud.DbOperator.prototype.remove = function(store_name, arg2, arg3) {
 
   var df = ydn.db.base.createDeferred();
   var me = this;
@@ -1287,7 +1287,7 @@ ydn.db.core.DbOperator.prototype.remove = function(store_name, arg2, arg3) {
 
 
 /** @override */
-ydn.db.core.DbOperator.prototype.toString = function() {
+ydn.db.crud.DbOperator.prototype.toString = function() {
   var s = 'DbOperator:' + this.getStorage().getName();
 //  if (goog.DEBUG) {
 //    var scope = this.getScope();

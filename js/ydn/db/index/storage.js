@@ -19,7 +19,7 @@
 
 goog.provide('ydn.db.index.Storage');
 goog.require('ydn.db.index.DbOperator');
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.crud.Storage');
 
 
 /**
@@ -27,7 +27,7 @@ goog.require('ydn.db.core.Storage');
  * storage mechanisms.
  *
  * This class do not execute database operation, but create a non-overlapping
- * transaction queue on ydn.db.core.DbOperator and all operations are
+ * transaction queue on ydn.db.crud.DbOperator and all operations are
  * passed to it.
  *
  *
@@ -37,7 +37,7 @@ goog.require('ydn.db.core.Storage');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
- * @extends {ydn.db.core.Storage}
+ * @extends {ydn.db.crud.Storage}
  * @implements {ydn.db.index.IOperator}
  * @constructor
  */
@@ -46,7 +46,7 @@ ydn.db.index.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
 };
-goog.inherits(ydn.db.index.Storage, ydn.db.core.Storage);
+goog.inherits(ydn.db.index.Storage, ydn.db.crud.Storage);
 
 
 ///**

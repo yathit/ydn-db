@@ -18,10 +18,10 @@
  * @author Kyaw Tun <kyawtun@yathit.com>
  */
 
-goog.provide('ydn.db.core.req.IndexedDb');
+goog.provide('ydn.db.crud.req.IndexedDb');
 goog.require('goog.async.DeferredList');
-goog.require('ydn.db.core.req.IRequestExecutor');
-goog.require('ydn.db.core.req.RequestExecutor');
+goog.require('ydn.db.crud.req.IRequestExecutor');
+goog.require('ydn.db.crud.req.RequestExecutor');
 goog.require('ydn.error');
 goog.require('ydn.json');
 
@@ -29,23 +29,23 @@ goog.require('ydn.json');
 /**
  * Create a new IDB request executor.
  * @param {string} dbname database name.
- * @extends {ydn.db.core.req.RequestExecutor}
+ * @extends {ydn.db.crud.req.RequestExecutor}
  * @param {!ydn.db.schema.Database} schema schema.
  * @param {string} scope
  * @constructor
- * @implements {ydn.db.core.req.IRequestExecutor}
+ * @implements {ydn.db.crud.req.IRequestExecutor}
  */
-ydn.db.core.req.IndexedDb = function(dbname, schema, scope) {
+ydn.db.crud.req.IndexedDb = function(dbname, schema, scope) {
   goog.base(this, dbname, schema, scope);
 };
-goog.inherits(ydn.db.core.req.IndexedDb, ydn.db.core.req.RequestExecutor);
+goog.inherits(ydn.db.crud.req.IndexedDb, ydn.db.crud.req.RequestExecutor);
 
 
 /**
  *
  * @const {boolean} turn on debug flag to dump debug objects.
  */
-ydn.db.core.req.IndexedDb.DEBUG = false; // always false here.
+ydn.db.crud.req.IndexedDb.DEBUG = false; // always false here.
 
 
 /**
@@ -53,22 +53,22 @@ ydn.db.core.req.IndexedDb.DEBUG = false; // always false here.
  * @const
  * @type {number} Maximum number of requests created per transaction.
  */
-ydn.db.core.req.IndexedDb.REQ_PER_TX = 10;
+ydn.db.crud.req.IndexedDb.REQ_PER_TX = 10;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.core.req.IndexedDb.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.core.req.IndexedDb');
+ydn.db.crud.req.IndexedDb.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.crud.req.IndexedDb');
 
 
 /**
  *
  * @return {!IDBTransaction} casted tx.
  */
-ydn.db.core.req.IndexedDb.prototype.getTx = function() {
+ydn.db.crud.req.IndexedDb.prototype.getTx = function() {
   return /** @type {!IDBTransaction} */ (this.tx);
 };
 
@@ -76,7 +76,7 @@ ydn.db.core.req.IndexedDb.prototype.getTx = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores) {
+ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores) {
 
   var me = this;
   var out = [];
@@ -88,7 +88,7 @@ ydn.db.core.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores
     var store = tx.objectStore(table);
     var request = store.count();
     request.onsuccess = function(event) {
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log(event);
       }
       out[i] = event.target.result;
@@ -103,7 +103,7 @@ ydn.db.core.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores
 
     };
     request.onerror = function(event) {
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log(event);
       }
       me.logger.warning('error ' + msg);
@@ -125,7 +125,7 @@ ydn.db.core.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.putByKeys = goog.abstractMethod;
+ydn.db.crud.req.IndexedDb.prototype.putByKeys = goog.abstractMethod;
 
 
 
@@ -133,7 +133,7 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, value,
+ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, value,
                                                          opt_key) {
   var store = tx.objectStore(table);
   var msg = 'TxNo:' + tx_no + ' addObject: ' + table + ' ' + opt_key;
@@ -148,14 +148,14 @@ ydn.db.core.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, v
   }
 
   request.onsuccess = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
     me.logger.finest('success ' + msg);
     df(event.target.result)
   };
   request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
     me.logger.finest('error ' + msg);
@@ -168,7 +168,7 @@ ydn.db.core.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, v
 /**
 * @inheritDoc
 */
-ydn.db.core.req.IndexedDb.prototype.putObject = function(
+ydn.db.crud.req.IndexedDb.prototype.putObject = function(
     tx, tx_no, df, table, value, opt_key) {
   var store = tx.objectStore(table);
   var msg = 'TxNo:' + tx_no + ' putObject: ' + table + ' ' +
@@ -185,7 +185,7 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(
   }
 
   request.onsuccess = function (event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
     me.logger.finest('success ' + msg);
@@ -193,7 +193,7 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(
   };
 
   request.onerror = function (event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
     if (goog.DEBUG && event.name == 'DataError') {
@@ -211,7 +211,7 @@ ydn.db.core.req.IndexedDb.prototype.putObject = function(
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.addObjects = function(
+ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
     tx, tx_no, df, store_name, objs, opt_keys) {
 
   var results = [];
@@ -234,7 +234,7 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(
 
     request.onsuccess = function(event) {
       result_count++;
-      //if (ydn.db.core.req.IndexedDb.DEBUG) {
+      //if (ydn.db.crud.req.IndexedDb.DEBUG) {
       //  window.console.log([store_name, event]);
       //}
       results[i] = event.target.result;
@@ -242,7 +242,7 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(
         me.logger.finest('success ' + msg);
         df(results);
       } else {
-        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
           put(next);
         }
@@ -251,7 +251,7 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(
 
     request.onerror = function(event) {
       result_count++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, event]);
       }
       if (goog.DEBUG) {
@@ -274,7 +274,7 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(
 
   if (objs.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.core.req.IndexedDb.REQ_PER_TX &&
+    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX &&
         i < objs.length; i++) {
       put(i);
     }
@@ -287,7 +287,7 @@ ydn.db.core.req.IndexedDb.prototype.addObjects = function(
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_name,
+ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_name,
                                                           objs, opt_keys) {
 
   var results = [];
@@ -325,14 +325,14 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
 
     request.onsuccess = function(event) {
       result_count++;
-      //if (ydn.db.core.req.IndexedDb.DEBUG) {
+      //if (ydn.db.crud.req.IndexedDb.DEBUG) {
       //  window.console.log([store_name, event]);
       //}
       results[i] = event.target.result;
       if (result_count == objs.length) {
         out(event.target.transaction);
       } else {
-        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
           put(next);
         }
@@ -341,7 +341,7 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
 
     request.onerror = function(event) {
       result_count++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, event]);
       }
       if (goog.DEBUG) {
@@ -364,7 +364,7 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
       if (result_count == objs.length) {
         out(event.target.transaction);
       } else {
-        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
           put(next);
         }
@@ -375,7 +375,7 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
 
   if (objs.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.core.req.IndexedDb.REQ_PER_TX &&
+    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX &&
       i < objs.length; i++) {
       put(i);
     }
@@ -389,7 +389,7 @@ ydn.db.core.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs, keys) {
+ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs, keys) {
 
   var results = [];
   var result_count = 0;
@@ -428,14 +428,14 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs, ke
 
     request.onsuccess = function(event) {
       result_count++;
-      //if (ydn.db.core.req.IndexedDb.DEBUG) {
+      //if (ydn.db.crud.req.IndexedDb.DEBUG) {
       //  window.console.log([store_name, event]);
       //}
       results[i] = event.target.result;
       if (result_count == objs.length) {
         out();
       } else {
-        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
           put(next);
         }
@@ -444,7 +444,7 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs, ke
 
     request.onerror = function(event) {
       result_count++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, event]);
       }
       var name = event.name;
@@ -459,7 +459,7 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs, ke
       if (result_count == objs.length) {
         out();
       } else {
-        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
           put(next);
         }
@@ -470,7 +470,7 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs, ke
 
   if (objs.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.core.req.IndexedDb.REQ_PER_TX &&
+    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX &&
       i < objs.length; i++) {
       put(i);
     }
@@ -484,7 +484,7 @@ ydn.db.core.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs, ke
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.putData = function(tx, tx_no, df, store_name, data,
+ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df, store_name, data,
                                                        delimiter) {
   var me = this;
   var store = this.schema.getStore(store_name);
@@ -542,7 +542,7 @@ ydn.db.core.req.IndexedDb.prototype.putData = function(tx, tx_no, df, store_name
 
     request.onsuccess = function(event) {
 
-      //if (ydn.db.core.req.IndexedDb.DEBUG) {
+      //if (ydn.db.crud.req.IndexedDb.DEBUG) {
       //  window.console.log([store_name, event]);
       //}
       results.push(event.target.result);
@@ -556,7 +556,7 @@ ydn.db.core.req.IndexedDb.prototype.putData = function(tx, tx_no, df, store_name
 
     request.onerror = function(event) {
 
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, event]);
       }
       if (goog.DEBUG && event.name == 'DataError') {
@@ -577,7 +577,7 @@ ydn.db.core.req.IndexedDb.prototype.putData = function(tx, tx_no, df, store_name
 /**
 * @inheritDoc
 */
-ydn.db.core.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
                                                           store_name, key) {
 
   var me = this;
@@ -587,7 +587,7 @@ ydn.db.core.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
 
   var request = store.openCursor(/** @type {IDBKeyRange} */ (key));
   request.onsuccess = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, key, event]);
     }
     var cursor = event.target.result;
@@ -606,7 +606,7 @@ ydn.db.core.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
 
   };
   request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, key, event]);
     }
     me.logger.finest('error ' + msg);
@@ -619,7 +619,7 @@ ydn.db.core.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.removeByKeyRange = function(
+ydn.db.crud.req.IndexedDb.prototype.removeByKeyRange = function(
     tx, tx_no, df, store_name, key_range) {
 
   var me = this;
@@ -640,7 +640,7 @@ ydn.db.core.req.IndexedDb.prototype.removeByKeyRange = function(
     };
   };
   request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, key_range, event]);
     }
     me.logger.finest('count error ' + msg);
@@ -653,7 +653,7 @@ ydn.db.core.req.IndexedDb.prototype.removeByKeyRange = function(
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.clearByKeyRange = function (
+ydn.db.crud.req.IndexedDb.prototype.clearByKeyRange = function (
     tx, tx_no, df, store_name, key_range) {
 
   var me = this;
@@ -678,7 +678,7 @@ ydn.db.core.req.IndexedDb.prototype.clearByKeyRange = function (
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.removeByIndexKeyRange = function(
+ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
     tx, tx_no, df, store_name, index_name, key_range) {
 
   var me = this;
@@ -723,7 +723,7 @@ ydn.db.core.req.IndexedDb.prototype.removeByIndexKeyRange = function(
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
                                                              store_names) {
 
   var me = this;
@@ -737,7 +737,7 @@ ydn.db.core.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
     var request = store.clear();
     request.onsuccess = function(event) {
       n_done++;
-      // if (ydn.db.core.req.IndexedDb.DEBUG) {
+      // if (ydn.db.crud.req.IndexedDb.DEBUG) {
       //   window.console.log([n_done, event]);
       // }
       if (n_done == n_todo) {
@@ -747,7 +747,7 @@ ydn.db.core.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
     };
     request.onerror = function(event) {
       n_done++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([n_done, event]);
       }
       if (n_done == n_todo) {
@@ -772,7 +772,7 @@ ydn.db.core.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
  * @param {number} offset skip first results.
  * @param {boolean=} unique unique attribute for index listing.
  */
-ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
      store_name, index, key_range, reverse, limit, offset, unique) {
   var me = this;
   var results = [];
@@ -815,7 +815,7 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
     }
   };
   request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, event]);
     }
     me.logger.finest('error ' + msg);
@@ -827,7 +827,7 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByKeyRange =
+ydn.db.crud.req.IndexedDb.prototype.listByKeyRange =
     function(tx, tx_no, df, store_name, key_range, reverse, limit, offset) {
   this.listByKeyRange_(tx, tx_no, df, store_name, null, key_range, reverse, limit, offset)
 };
@@ -836,7 +836,7 @@ ydn.db.core.req.IndexedDb.prototype.listByKeyRange =
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, tx_no, df,
     store_name, index, key_range, reverse, limit, offset, unique) {
   this.listByKeyRange_(tx, tx_no, df,
     store_name, index, key_range, reverse, limit, offset, unique);
@@ -846,7 +846,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, tx_no, df
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
     store_name, key_range, reverse, limit, offset) {
   var results = [];
   var me = this;
@@ -877,7 +877,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
     }
   };
   request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, event]);
     }
     me.logger.finest('error ' + msg);
@@ -889,7 +889,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
 ///**
 // * @inheritDoc
 // */
-//ydn.db.core.req.IndexedDb.prototype.keysByStore = function(df, store_name,
+//ydn.db.crud.req.IndexedDb.prototype.keysByStore = function(df, store_name,
 //    reverse, limit, offset) {
 //  var me = this;
 //  var results = [];
@@ -923,7 +923,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
 //    }
 //  };
 //  request.onerror = function(event) {
-//    if (ydn.db.core.req.IndexedDb.DEBUG) {
+//    if (ydn.db.crud.req.IndexedDb.DEBUG) {
 //      window.console.log([store_name, event]);
 //    }
 //    me.logger.finest('error ' + msg);
@@ -935,7 +935,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df,
     store_name, index_name, key_range, reverse, limit, offset, unique) {
   var results = [];
   var me = this;
@@ -967,7 +967,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df
     }
   };
   request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, event]);
     }
     me.logger.finest('error ' + msg);
@@ -981,7 +981,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df
 /**
 * @inheritDoc
 */
-ydn.db.core.req.IndexedDb.prototype.listByStores = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.listByStores = function(tx, tx_no, df,
                                                             store_names) {
   var me = this;
   var results = [];
@@ -1012,7 +1012,7 @@ ydn.db.core.req.IndexedDb.prototype.listByStores = function(tx, tx_no, df,
     };
 
     request.onerror = function(event) {
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, event]);
       }
       me.logger.finest('error ' + msg);
@@ -1031,7 +1031,7 @@ ydn.db.core.req.IndexedDb.prototype.listByStores = function(tx, tx_no, df,
 /**
 * @inheritDoc
 */
-ydn.db.core.req.IndexedDb.prototype.getById = function(tx, tx_no, df, store_name, id) {
+ydn.db.crud.req.IndexedDb.prototype.getById = function(tx, tx_no, df, store_name, id) {
 
   var me = this;
   var msg = 'TxNo:' + tx_no + ' getById: ' + store_name + ':' + id;
@@ -1041,7 +1041,7 @@ ydn.db.core.req.IndexedDb.prototype.getById = function(tx, tx_no, df, store_name
   var request = store.get(id);
 
   request.onsuccess = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, id, event]);
     }
     me.logger.finest('success ' + msg);
@@ -1049,7 +1049,7 @@ ydn.db.core.req.IndexedDb.prototype.getById = function(tx, tx_no, df, store_name
   };
 
   request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, id, event]);
     }
     //me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
@@ -1063,7 +1063,7 @@ ydn.db.core.req.IndexedDb.prototype.getById = function(tx, tx_no, df, store_name
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
                                                          store_name, ids) {
   var me = this;
 
@@ -1084,7 +1084,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
         me.logger.finest('success ' + msg);
         df(results);
       } else {
-        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < n) {
           get(next);
         }
@@ -1096,7 +1096,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
       request = store.get(ids[i]);
     } catch (e) {
       if (e.name == 'DataError') {
-        if (ydn.db.core.req.IndexedDb.DEBUG) {
+        if (ydn.db.crud.req.IndexedDb.DEBUG) {
           window.console.log([store_name, i, ids[i], e]);
         }
         // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
@@ -1108,7 +1108,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
     }
     request.onsuccess = (function(event) {
       result_count++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, ids, i, event]);
       }
       results[i] = event.target.result;
@@ -1116,7 +1116,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
         me.logger.finest('success ' + msg);
         df(results);
       } else {
-        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < n) {
           get(next);
         }
@@ -1125,7 +1125,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
 
     request.onerror = function(event) {
       result_count++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, ids, i, event]);
       }
       me.logger.finest('error ' + msg);
@@ -1136,7 +1136,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
 
   if (n > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.core.req.IndexedDb.REQ_PER_TX && i < n; i++) {
+    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX && i < n; i++) {
       get(i);
     }
   } else {
@@ -1148,7 +1148,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
+ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
   var me = this;
 
   var results = [];
@@ -1169,7 +1169,7 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
 
     request.onsuccess = function(event) {
       result_count++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log(event);
       }
       results[i] = event.target.result;
@@ -1177,7 +1177,7 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
         me.logger.finest('success ' + msg);
         df(results);
       } else {
-        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < keys.length) {
           getKey(next);
         }
@@ -1186,7 +1186,7 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
 
     request.onerror = function(event) {
       result_count++;
-      if (ydn.db.core.req.IndexedDb.DEBUG) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([keys, event]);
       }
       me.logger.finest('error ' + msg);
@@ -1197,7 +1197,7 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
 
   if (keys.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.core.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
+    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
     {
       getKey(i);
     }
@@ -1210,7 +1210,7 @@ ydn.db.core.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(tx, tx_no, df, table,
+ydn.db.crud.req.IndexedDb.prototype.countKeyRange =  function(tx, tx_no, df, table,
                     keyRange, index_name) {
 
   var me = this;
@@ -1236,14 +1236,14 @@ ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(tx, tx_no, df, tab
   }
 
   request.onsuccess = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log(event);
     }
     me.logger.finest('success ' + msg);
     df(event.target.result);
   };
   request.onerror = function(event) {
-    if (ydn.db.core.req.IndexedDb.DEBUG) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log(event);
     }
     me.logger.finest('error ' + msg);
@@ -1256,7 +1256,7 @@ ydn.db.core.req.IndexedDb.prototype.countKeyRange =  function(tx, tx_no, df, tab
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
     store_name, index_name, keys, offset, limit) {
   var me = this;
   var store = tx.objectStore(store_name);
@@ -1285,7 +1285,7 @@ ydn.db.core.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
         me.logger.finest('success ' + msg);
         df(results);
       } else {
-        var next = i + ydn.db.core.req.IndexedDb.REQ_PER_TX;
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < limit) {
           getKey(next);
         }
@@ -1300,7 +1300,7 @@ ydn.db.core.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
 
   if (keys.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.core.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
+    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
     {
       getKey(i);
     }

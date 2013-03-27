@@ -373,7 +373,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.getValue = function () {
       return this.getPrimaryKey();
     } else {
       var row = this.cursor_.rows.item(this.current_cursor_index_);
-      return ydn.db.core.req.WebSql.parseRow(/** @type {!Object} */ (row), this.store_schema_);
+      return ydn.db.crud.req.WebSql.parseRow(/** @type {!Object} */ (row), this.store_schema_);
 
     }
   } else {

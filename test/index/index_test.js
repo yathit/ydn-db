@@ -17,7 +17,7 @@ var setUp = function () {
   // ydn.debug.log('ydn.db', 'finest');
 
 
-  // ydn.db.core.req.WebSql.DEBUG = true;
+  // ydn.db.crud.req.WebSql.DEBUG = true;
   //ydn.db.index.req.WebSql.DEBUG = true;
 
   reachedFinalContinuation = false;
@@ -634,7 +634,7 @@ var compound_index_schema = {
 var comp_cnt = 0;
 var load_compound_index_db = function (cb) {
   var compound_index_db_name = 'test-cmp' + (comp_cnt++);
-  var db = new ydn.db.core.Storage(compound_index_db_name, compound_index_schema, options);
+  var db = new ydn.db.crud.Storage(compound_index_db_name, compound_index_schema, options);
   db.clear('st1');
   db.put('st1', compound_index_data);
   cb(db);

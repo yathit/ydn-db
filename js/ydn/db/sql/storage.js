@@ -27,7 +27,7 @@ goog.require('ydn.db.index.Storage');
  * storage mechanisms.
  *
  * This class do not execute database operation, but create a non-overlapping
- * transaction queue on ydn.db.core.DbOperator and all operations are
+ * transaction queue on ydn.db.crud.DbOperator and all operations are
  * passed to it.
  *
  *

@@ -2,7 +2,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.crud.Storage');
 goog.require('ydn.db.schema.DataType');
 goog.require('ydn.db');
 goog.require('ydn.debug');
@@ -19,7 +19,7 @@ var out_of_line_store = 't5';
 
 
 var setUp = function() {
-  // ydn.debug.log('ydn.db.core.req', 'finest');
+  // ydn.debug.log('ydn.db.crud.req', 'finest');
 
   reachedFinalContinuation = false;
 };
@@ -167,10 +167,10 @@ var _test_02_encode_blob = function () {
 /**
  */
 var test_11_string_keys = function() {
-  // ydn.debug.log('ydn.db.core.req', 'finest');
+  // ydn.debug.log('ydn.db.crud.req', 'finest');
   var db_name = 'test_11_string_keys';
   var basic_schema = getBasicSchema();
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
   var on_completed = function() {
     ydn.db.deleteDatabase(db_name, db.getType());
     db.close();
@@ -191,7 +191,7 @@ var test_12_number_keys = function() {
 
   var db_name = 'test_key_12_3';
   var basic_schema = getBasicSchema();
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
   var on_completed = function() {
     ydn.db.deleteDatabase(db_name, db.getType());
@@ -220,7 +220,7 @@ var test_13_array_key = function () {
     }]
   };
 
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var objs = [
     {id:['a', 'qs0'], value:0, type:'a'},
@@ -262,7 +262,7 @@ var test_13_array_key = function () {
 var test_21_out_of_line = function () {
   var db_name = 'test_21_out_of_line';
   var basic_schema = getBasicSchema();
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
   var key = Math.random();
   var data = {test: 'some random ' + Math.random(), type: Math.random()};
 
@@ -316,7 +316,7 @@ var test_22_out_of_line_array = function () {
   var db_name = 'test_22_2';
   var store_schema = new ydn.db.schema.Store(store_name, undefined,  false);
   var schema = new ydn.db.schema.Database(undefined, [store_schema]);
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs0', value:0, type:'a'},
@@ -382,7 +382,7 @@ var test_40_nested_keyPath = function() {
   var store = new ydn.db.schema.Store(store_name, 'id.$t', false, ydn.db.schema.DataType.TEXT);
   var schema = new ydn.db.schema.Database(undefined, [store]);
 
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var key = 'a';
   var put_done = false;
@@ -442,7 +442,7 @@ var test_42_autoincreasement_offline = function () {
         autoIncrement: true
       }]
   };
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs0', value:0, type:'a'},
@@ -511,7 +511,7 @@ var test_43_autoincreasement_inline = function () {
   var store_schema = new ydn.db.schema.Store(store_name, 'value', true,
       ydn.db.schema.DataType.INTEGER);
   var schema = new ydn.db.schema.Database(undefined, [store_schema]);
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs0', value:0, type:'a'},
@@ -586,7 +586,7 @@ var test_43_autoincreasement_inline = function () {
 var test_51_autoschema_out_of_line_key = function () {
 
   var db_name = 'test_51_no_type_key_1';
-  var db = new ydn.db.core.Storage(db_name);
+  var db = new ydn.db.crud.Storage(db_name);
   var key = Math.random();
   var data = {test: 'some random ' + Math.random(), type: Math.random()};
 
@@ -640,7 +640,7 @@ var test_51_autoschema_out_of_line_key = function () {
 var test_52_autoschema_in_line_key = function () {
 
   var db_name = 'test_52_autoschema_in_line_key_1';
-  var db = new ydn.db.core.Storage(db_name);
+  var db = new ydn.db.crud.Storage(db_name);
   var key = Math.random();
   var store = {name: 'st', keyPath: 'id'};
   var data = {id: key, test: 'some random ' + Math.random(), type: Math.random()};
@@ -702,7 +702,7 @@ var test_composite_primary_key = function () {
         keyPath: ['id1', 'id2']
       }]
   };
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
   var done, result;
 
   waitForCondition(

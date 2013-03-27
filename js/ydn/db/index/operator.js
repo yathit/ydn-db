@@ -6,7 +6,7 @@
 
 goog.provide('ydn.db.index.DbOperator');
 goog.require('ydn.db.Iterator');
-goog.require('ydn.db.core.DbOperator');
+goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.index.req.IndexedDb');
 goog.require('ydn.db.index.req.WebSql');
@@ -24,19 +24,19 @@ goog.require('ydn.debug.error.ArgumentException');
  * is not active or locked. Active transaction can be locked by using
  * mutex.
  *
- * @param {!ydn.db.core.Storage} storage base storage object.
+ * @param {!ydn.db.crud.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema
  * @param {string} scope_name
  * @param {ydn.db.tr.IThread} thread
  * @param {ydn.db.tr.IThread} sync_thread
  * @implements {ydn.db.index.IOperator}
  * @constructor
- * @extends {ydn.db.core.DbOperator}
+ * @extends {ydn.db.crud.DbOperator}
 */
 ydn.db.index.DbOperator = function(storage, schema, scope_name, thread, sync_thread) {
   goog.base(this, storage, schema, scope_name, thread, sync_thread);
 };
-goog.inherits(ydn.db.index.DbOperator, ydn.db.core.DbOperator);
+goog.inherits(ydn.db.index.DbOperator, ydn.db.crud.DbOperator);
 
 
 /**

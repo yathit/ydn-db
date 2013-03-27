@@ -7,13 +7,13 @@
  */
 
 
-goog.provide('ydn.db.core.req.IRequestExecutor');
+goog.provide('ydn.db.crud.req.IRequestExecutor');
 
 
 /**
  * @interface
  */
-ydn.db.core.req.IRequestExecutor = function() {};
+ydn.db.crud.req.IRequestExecutor = function() {};
 
 
 /**
@@ -25,7 +25,7 @@ ydn.db.core.req.IRequestExecutor = function() {};
  * @param {!Object} value object to put.
  * @param {(!Array|string|number)=} opt_key optional out-of-line key.
  */
-ydn.db.core.req.IRequestExecutor.prototype.addObject = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.addObject = goog.abstractMethod;
 
 /**
  * Add objects and return list of key inserted.
@@ -36,7 +36,7 @@ ydn.db.core.req.IRequestExecutor.prototype.addObject = goog.abstractMethod;
  * @param {!Array.<!Object>} objs object to put.
  * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
  */
-ydn.db.core.req.IRequestExecutor.prototype.addObjects = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.addObjects = goog.abstractMethod;
 
 /**
  * Delete given key in the object store.
@@ -47,7 +47,7 @@ ydn.db.core.req.IRequestExecutor.prototype.addObjects = goog.abstractMethod;
  * @param {string} store table name.
  * @param {(!Array|string|number)} id object key to be deleted.
  */
-ydn.db.core.req.IRequestExecutor.prototype.removeById = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.removeById = goog.abstractMethod;
 
 
 /**
@@ -59,7 +59,7 @@ ydn.db.core.req.IRequestExecutor.prototype.removeById = goog.abstractMethod;
  * @param {string} store table name.
  * @param {IDBKeyRange} key range.
  */
-ydn.db.core.req.IRequestExecutor.prototype.removeByKeyRange = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.removeByKeyRange = goog.abstractMethod;
 
 /**
  * Clear records in the given key range from a store.
@@ -70,7 +70,7 @@ ydn.db.core.req.IRequestExecutor.prototype.removeByKeyRange = goog.abstractMetho
  * @param {string} store table name.
  * @param {IDBKeyRange} key range.
  */
-ydn.db.core.req.IRequestExecutor.prototype.clearByKeyRange = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.clearByKeyRange = goog.abstractMethod;
 
 /**
  * Clear records in the given key range from a store.
@@ -82,7 +82,7 @@ ydn.db.core.req.IRequestExecutor.prototype.clearByKeyRange = goog.abstractMethod
  * @param {string} index name.
  * @param {IDBKeyRange} key range.
  */
-ydn.db.core.req.IRequestExecutor.prototype.removeByIndexKeyRange = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.removeByIndexKeyRange = goog.abstractMethod;
 
 
 /**
@@ -93,7 +93,7 @@ ydn.db.core.req.IRequestExecutor.prototype.removeByIndexKeyRange = goog.abstract
  * @param {?function(*, boolean=)} return object in deferred function.
  * @param {(!Array.<string>)=} store table name.
  */
-ydn.db.core.req.IRequestExecutor.prototype.clearByStores = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.clearByStores = goog.abstractMethod;
 
 
 /**
@@ -102,7 +102,7 @@ ydn.db.core.req.IRequestExecutor.prototype.clearByStores = goog.abstractMethod;
  * @param {?function(*, boolean=)} df return a deferred function.
  * @param {!Array.<string>} table store name.
  */
-ydn.db.core.req.IRequestExecutor.prototype.countStores = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.countStores = goog.abstractMethod;
 
 
 /**
@@ -113,7 +113,7 @@ ydn.db.core.req.IRequestExecutor.prototype.countStores = goog.abstractMethod;
  * @param {IDBKeyRange} keyRange the key range.
  * @param {string=} index name.
  */
-ydn.db.core.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
 
 
 /**
@@ -126,7 +126,7 @@ ydn.db.core.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
  * provided,
  * all entries in the store will return.
  */
-ydn.db.core.req.IRequestExecutor.prototype.getById = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.getById = goog.abstractMethod;
 
 
 /**
@@ -140,7 +140,7 @@ ydn.db.core.req.IRequestExecutor.prototype.getById = goog.abstractMethod;
  * @param {number=} offset number of result to skip.
  * @param {number=} limit place upper bound on results.
  */
-ydn.db.core.req.IRequestExecutor.prototype.getIndexKeysByKeys =
+ydn.db.crud.req.IRequestExecutor.prototype.getIndexKeysByKeys =
   goog.abstractMethod;
 
 
@@ -155,7 +155,7 @@ ydn.db.core.req.IRequestExecutor.prototype.getIndexKeysByKeys =
  * @param {number} limit the results.
  * @param {number} offset skip first results.
  */
-ydn.db.core.req.IRequestExecutor.prototype.keysByKeyRange =
+ydn.db.crud.req.IRequestExecutor.prototype.keysByKeyRange =
   goog.abstractMethod;
 
 
@@ -172,7 +172,7 @@ ydn.db.core.req.IRequestExecutor.prototype.keysByKeyRange =
  * @param {number} offset skip first results.
  * @param {boolean} unique unique key.
  */
-ydn.db.core.req.IRequestExecutor.prototype.keysByIndexKeyRange =
+ydn.db.crud.req.IRequestExecutor.prototype.keysByIndexKeyRange =
   goog.abstractMethod;
 
 
@@ -186,7 +186,7 @@ ydn.db.core.req.IRequestExecutor.prototype.keysByIndexKeyRange =
  * @throws {ydn.db.InvalidKeyException}
  * @throws {ydn.error.InternalError}
  */
-ydn.db.core.req.IRequestExecutor.prototype.listByIds = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.listByIds = goog.abstractMethod;
 
 
 /**
@@ -196,7 +196,7 @@ ydn.db.core.req.IRequestExecutor.prototype.listByIds = goog.abstractMethod;
  * @param {?function(*, boolean=)} df deferred to feed result.
  * @param {!Array.<!ydn.db.Key>} keys id to get.
  */
-ydn.db.core.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
 
 /**
  * Execute GET request callback results to df.
@@ -209,7 +209,7 @@ ydn.db.core.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
  * @param {number} limit the results.
  * @param {number} offset skip first results.
  */
-ydn.db.core.req.IRequestExecutor.prototype.listByKeyRange = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.listByKeyRange = goog.abstractMethod;
 
 /**
  * Execute GET request callback results to df.
@@ -224,7 +224,7 @@ ydn.db.core.req.IRequestExecutor.prototype.listByKeyRange = goog.abstractMethod;
  * @param {number} offset skip first results.
  * @param {boolean} unique unique key.
  */
-ydn.db.core.req.IRequestExecutor.prototype.listByIndexKeyRange = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.listByIndexKeyRange = goog.abstractMethod;
 
 
 /**
@@ -235,7 +235,7 @@ ydn.db.core.req.IRequestExecutor.prototype.listByIndexKeyRange = goog.abstractMe
  * @param {!Array.<string>} store_name  store name.
  * @deprecated
  */
-ydn.db.core.req.IRequestExecutor.prototype.listByStores = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.listByStores = goog.abstractMethod;
 
 /**
  * Execute PUT request to the store of given records in delimited text.
@@ -246,7 +246,7 @@ ydn.db.core.req.IRequestExecutor.prototype.listByStores = goog.abstractMethod;
  * @param {string} data delimited text to put. one object per line.
  * @param {string} delimiter field delimiter.
  */
-ydn.db.core.req.IRequestExecutor.prototype.putData = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.putData = goog.abstractMethod;
 
 /**
  * Put object and return key inserted.
@@ -257,7 +257,7 @@ ydn.db.core.req.IRequestExecutor.prototype.putData = goog.abstractMethod;
  * @param {!Object} obj object to put.
  * @param {(!Array|string|number)=} opt_key optional out-of-line key.
  */
-ydn.db.core.req.IRequestExecutor.prototype.putObject = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.putObject = goog.abstractMethod;
 
 
 /**
@@ -269,7 +269,7 @@ ydn.db.core.req.IRequestExecutor.prototype.putObject = goog.abstractMethod;
  * @param {!Array.<!Object>} objs object to put.
  * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
  */
-ydn.db.core.req.IRequestExecutor.prototype.putObjects = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.putObjects = goog.abstractMethod;
 
 
 /**
@@ -279,7 +279,7 @@ ydn.db.core.req.IRequestExecutor.prototype.putObjects = goog.abstractMethod;
  * @param {!Array.<Object>} objs object to put.
  * @param {!Array.<!ydn.db.Key>} keys list of keys.
  */
-ydn.db.core.req.IRequestExecutor.prototype.putByKeys = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.putByKeys = goog.abstractMethod;
 
 
 

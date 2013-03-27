@@ -4,7 +4,7 @@ goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
 goog.require('ydn.debug');
 goog.require('ydn.db');
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.crud.Storage');
 
 
 var reachedFinalContinuation;
@@ -46,7 +46,7 @@ var committed_continuous_request_test = function(thread, exp_tx_no) {
 
   var db_name = 'nested_request_test' + Math.random();
   options.thread = thread;
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -90,9 +90,9 @@ var test_abort_put  = function() {
   var db_name = 'test_abort' + Math.random();
   var opt = ydn.object.clone(options);
   opt.thread = 'samescope-multirequest-serial';
-  var db = new ydn.db.core.Storage(db_name, basic_schema, opt);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, opt);
 
- // ydn.db.core.req.WebSql.DEBUG = true;
+ // ydn.db.crud.req.WebSql.DEBUG = true;
 
 
   var adb = db.branch('atomic-serial');
@@ -160,7 +160,7 @@ var test_abort_put  = function() {
 var _test_invalid_data  = function() {
   var db_name = 'test_invalid_data' + Math.random();
   options.thread = 'samescope-multirequest-serial';
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
 
   var obj = {id: 'a', value: document.createElement('div')};
@@ -201,7 +201,7 @@ var _test_invalid_data  = function() {
 var test_abort_put_data  = function() {
   var db_name = 'test_abort' + Math.random();
   options.thread = 'samescope-multirequest-serial';
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
 
   var keys = ['a', 'b', 'c'];

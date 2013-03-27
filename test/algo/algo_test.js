@@ -44,7 +44,7 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.index.req').setLevel(goog.debug.Logger.Level.FINEST);
 
     //ydn.db.tr.Mutex.DEBUG = true;
-    //ydn.db.core.req.IndexedDb.DEBUG = true;
+    //ydn.db.crud.req.IndexedDb.DEBUG = true;
     ydn.db.algo.SortedMerge.DEBUG = true;
     //ydn.db.algo.NestedLoop.DEBUG = true;
   }

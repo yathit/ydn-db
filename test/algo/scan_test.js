@@ -22,7 +22,7 @@ goog.debug.Logger.getLogger('ydn.db.con.WebSql').setLevel(goog.debug.Logger.Leve
 
 var setUp = function() {
 
-  //ydn.db.core.req.IndexedDb.DEBUG = true;
+  //ydn.db.crud.req.IndexedDb.DEBUG = true;
   //ydn.db.index.req.IDBCursor.DEBUG = true;
   ydn.db.index.DbOperator.DEBUG = true;
   ydn.db.con.WebSql.DEBUG = true;

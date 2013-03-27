@@ -4,8 +4,8 @@
  */
 
 
-goog.provide('ydn.db.core.IOperator');
-goog.require('ydn.db.core.req.RequestExecutor');
+goog.provide('ydn.db.crud.IOperator');
+goog.require('ydn.db.crud.req.RequestExecutor');
 goog.require('ydn.db.KeyRange');
 
 
@@ -13,14 +13,14 @@ goog.require('ydn.db.KeyRange');
 /**
  * @interface
  */
-ydn.db.core.IOperator = function() {};
+ydn.db.crud.IOperator = function() {};
 
 
 
 /**
  * Abort current request transaction.
  */
-ydn.db.core.IOperator.prototype.abort = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.abort = goog.abstractMethod;
 
 /**
  *
@@ -29,7 +29,7 @@ ydn.db.core.IOperator.prototype.abort = goog.abstractMethod;
  * @param {ydn.db.KeyRange=} opt_key_range key range.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.IOperator.prototype.count = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.count = goog.abstractMethod;
 
 /**
  * Return object or objects of given key or keys.
@@ -39,7 +39,7 @@ ydn.db.core.IOperator.prototype.count = goog.abstractMethod;
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.IOperator.prototype.get = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.get = goog.abstractMethod;
 
 
 /**
@@ -53,7 +53,7 @@ ydn.db.core.IOperator.prototype.get = goog.abstractMethod;
  * @param {boolean=} arg6 reverse.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
-ydn.db.core.IOperator.prototype.values = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.values = goog.abstractMethod;
 
 
 /**
@@ -66,7 +66,7 @@ ydn.db.core.IOperator.prototype.values = goog.abstractMethod;
  * @param {boolean=} arg5 reverse.
  * @return {!goog.async.Deferred} result promise.
  */
-ydn.db.core.IOperator.prototype.keys = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.keys = goog.abstractMethod;
 
 
 /**
@@ -77,7 +77,7 @@ ydn.db.core.IOperator.prototype.keys = goog.abstractMethod;
  * @param {*=} opt_keys out-of-line keys.
  * @return {!goog.async.Deferred} return newly created keys in promise.
  */
-ydn.db.core.IOperator.prototype.add = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.add = goog.abstractMethod;
 
 
 /**
@@ -86,7 +86,7 @@ ydn.db.core.IOperator.prototype.add = goog.abstractMethod;
  * @param {string} data delimited text to put. one object per line.
  * @param {string=} delimiter field delimiter.
  */
-ydn.db.core.IOperator.prototype.load = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.load = goog.abstractMethod;
 
 
 /**
@@ -97,7 +97,7 @@ ydn.db.core.IOperator.prototype.load = goog.abstractMethod;
  * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys.
  * @return {!goog.async.Deferred} return newly created keys in promise.
  */
-ydn.db.core.IOperator.prototype.put = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.put = goog.abstractMethod;
 
 
 /**
@@ -111,7 +111,7 @@ ydn.db.core.IOperator.prototype.put = goog.abstractMethod;
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
-ydn.db.core.IOperator.prototype.clear = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.clear = goog.abstractMethod;
 
 
 
@@ -125,4 +125,4 @@ ydn.db.core.IOperator.prototype.clear = goog.abstractMethod;
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return number of record removed a deferred function.
  */
-ydn.db.core.IOperator.prototype.remove = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.remove = goog.abstractMethod;

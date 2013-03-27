@@ -18,7 +18,7 @@
  */
 
 goog.provide('ydn.db.rich.Storage');
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.crud.Storage');
 goog.require('ydn.db.rich.RichStorage');
 
 
@@ -30,7 +30,7 @@ goog.require('ydn.db.rich.RichStorage');
 // * starting in the following order of preference.
 // * @override
 // */
-//ydn.db.core.Storage.prototype.initDatabase = function () {
+//ydn.db.crud.Storage.prototype.initDatabase = function () {
 //  // handle version change
 //  if (goog.isDef(this.schema) &&
 //    (ydn.db.base.ENABLE_DEFAULT_TEXT_STORE &&
@@ -48,7 +48,7 @@ goog.require('ydn.db.rich.RichStorage');
  * @param {string} secret passphase.
  * @param {number=} opt_expiration default expiration time in miliseconds.
  */
-ydn.db.core.Storage.prototype.encrypt = function(secret, opt_expiration) {
+ydn.db.crud.Storage.prototype.encrypt = function(secret, opt_expiration) {
   if (ydn.db.base.ENABLE_ENCRYPTION) {
     /**
      * @protected
@@ -64,7 +64,7 @@ ydn.db.core.Storage.prototype.encrypt = function(secret, opt_expiration) {
  *
  * @return {ydn.db.rich.RichStorage} wrapper.
  */
-ydn.db.core.Storage.prototype.getWrapper = function() {
+ydn.db.crud.Storage.prototype.getWrapper = function() {
   return this.wrapper || null;
 };
 
@@ -91,7 +91,7 @@ ydn.db.rich.Storage.KEY_VALUE_STORE_SCHEMA = /** @type {StoreSchema} */ ({
  *     time is not provided, the value will persist as long as possible.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.core.Storage.prototype.setItem = function(key, value, opt_expiration) {
+ydn.db.crud.Storage.prototype.setItem = function(key, value, opt_expiration) {
 
   var wrapper = this.getStorage().getWrapper();
   if (wrapper) {
@@ -117,7 +117,7 @@ ydn.db.core.Storage.prototype.setItem = function(key, value, opt_expiration) {
  * @param {string} id item id to be remove.
  * @return {!goog.async.Deferred} true on success. undefined on fail.
  */
-ydn.db.core.Storage.prototype.removeItem = function(id) {
+ydn.db.crud.Storage.prototype.removeItem = function(id) {
 
   return this.clear(ydn.db.schema.Store.DEFAULT_TEXT_STORE, id);
 
@@ -133,7 +133,7 @@ ydn.db.core.Storage.prototype.removeItem = function(id) {
  * @return {!goog.async.Deferred} return resulting object in deferred function.
  * If not found, {@code undefined} is return.
  */
-ydn.db.core.Storage.prototype.getItem = function(key) {
+ydn.db.crud.Storage.prototype.getItem = function(key) {
   // if the table not exist, <code>get</code> will throw error.
   var out = this.get(ydn.db.schema.Store.DEFAULT_TEXT_STORE, key);
   var df = new goog.async.Deferred();

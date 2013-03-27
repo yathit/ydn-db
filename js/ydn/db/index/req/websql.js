@@ -31,7 +31,7 @@ goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.index.req.CachedWebsqlCursor');
 
 /**
- * @extends {ydn.db.core.req.WebSql}
+ * @extends {ydn.db.crud.req.WebSql}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
  * @param {string} scope
@@ -41,7 +41,7 @@ goog.require('ydn.db.index.req.CachedWebsqlCursor');
 ydn.db.index.req.WebSql = function(dbname, schema, scope) {
   goog.base(this, dbname, schema, scope);
 };
-goog.inherits(ydn.db.index.req.WebSql, ydn.db.core.req.WebSql);
+goog.inherits(ydn.db.index.req.WebSql, ydn.db.crud.req.WebSql);
 
 
 
@@ -166,7 +166,7 @@ ydn.db.index.req.WebSql.prototype.getByIterator = function(tx, tx_no, df, q) {
 //  });
 //
 //  request.addErrback(function(event) {
-//    if (ydn.db.core.req.IndexedDb.DEBUG) {
+//    if (ydn.db.crud.req.IndexedDb.DEBUG) {
 //      window.console.log([q, event]);
 //    }
 //    df.errback(event);
@@ -376,7 +376,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
 //    }
 //  } else {
 //    row_parser = function(row) {
-//      return ydn.db.core.req.WebSql.parseRow(row, store);
+//      return ydn.db.crud.req.WebSql.parseRow(row, store);
 //    }
 //  }
 //

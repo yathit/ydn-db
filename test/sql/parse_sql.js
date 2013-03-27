@@ -62,11 +62,12 @@ var test_where_int = function() {
   assertEquals('action', 'SELECT', sql.getAction());
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
   var wheres = sql.getConditions();
+  var kr = wheres[0].getKeyRange();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertEquals('lower', 1, wheres[0].lower);
-  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
-  assertEquals('upper', 1, wheres[0].upper);
-  assertEquals('upperOpen', false, wheres[0].upperOpen);
+  assertEquals('lower', 1, kr.lower);
+  assertEquals('lowerOpen', false, kr.lowerOpen);
+  assertEquals('upper', 1, kr.upper);
+  assertEquals('upperOpen', false, kr.upperOpen);
 };
 
 
@@ -77,10 +78,11 @@ var test_where_int_param = function() {
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
   var wheres = sql.getConditions();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertEquals('lower', 1, wheres[0].lower);
-  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
-  assertEquals('upper', 1, wheres[0].upper);
-  assertEquals('upperOpen', false, wheres[0].upperOpen);
+  var kr = wheres[0].getKeyRange();
+  assertEquals('lower', 1, kr.lower);
+  assertEquals('lowerOpen', false, kr.lowerOpen);
+  assertEquals('upper', 1, kr.upper);
+  assertEquals('upperOpen', false, kr.upperOpen);
 };
 
 var test_where_float = function() {
@@ -90,10 +92,11 @@ var test_where_float = function() {
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
   var wheres = sql.getConditions();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertEquals('lower', 0.5, wheres[0].lower);
-  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
-  assertEquals('upper', 0.5, wheres[0].upper);
-  assertEquals('upperOpen', false, wheres[0].upperOpen);
+  var kr = wheres[0].getKeyRange();
+  assertEquals('lower', 0.5, kr.lower);
+  assertEquals('lowerOpen', false, kr.lowerOpen);
+  assertEquals('upper', 0.5, kr.upper);
+  assertEquals('upperOpen', false, kr.upperOpen);
 };
 
 var test_where_double_quoted_string = function() {
@@ -103,10 +106,11 @@ var test_where_double_quoted_string = function() {
   assertArrayEquals('stores', ['st2'], sql.getStoreNames());
   var wheres = sql.getConditions();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertEquals('lower', '1', wheres[0].lower);
-  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
-  assertEquals('upper', '1', wheres[0].upper);
-  assertEquals('upperOpen', false, wheres[0].upperOpen);
+  var kr = wheres[0].getKeyRange();
+  assertEquals('lower', '1', kr.lower);
+  assertEquals('lowerOpen', false, kr.lowerOpen);
+  assertEquals('upper', '1', kr.upper);
+  assertEquals('upperOpen', false, kr.upperOpen);
 };
 
 var test_where_single_quoted_string = function() {
@@ -116,10 +120,11 @@ var test_where_single_quoted_string = function() {
   assertArrayEquals('stores', ['st2'], sql.getStoreNames());
   var wheres = sql.getConditions();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertEquals('lower', '1', wheres[0].lower);
-  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
-  assertEquals('upper', '1', wheres[0].upper);
-  assertEquals('upperOpen', false, wheres[0].upperOpen);
+  var kr = wheres[0].getKeyRange();
+  assertEquals('lower', '1', kr.lower);
+  assertEquals('lowerOpen', false, kr.lowerOpen);
+  assertEquals('upper', '1', kr.upper);
+  assertEquals('upperOpen', false, kr.upperOpen);
 };
 
 
@@ -130,9 +135,10 @@ var test_where_gt = function() {
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
   var wheres = sql.getConditions();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertEquals('lower', 2, wheres[0].lower);
-  assertEquals('lowerOpen', true, wheres[0].lowerOpen);
-  assertUndefined('upper', wheres[0].upper);
+  var kr = wheres[0].getKeyRange();
+  assertEquals('lower', 2, kr.lower);
+  assertEquals('lowerOpen', true, kr.lowerOpen);
+  assertUndefined('upper', kr.upper);
 };
 
 var test_where_gte = function() {
@@ -143,9 +149,10 @@ var test_where_gte = function() {
   var wheres = sql.getConditions();
   //console.log(wheres[0])
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertEquals('lower', 2, wheres[0].lower);
-  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
-  assertUndefined('upper', wheres[0].upper);
+  var kr = wheres[0].getKeyRange();
+  assertEquals('lower', 2, kr.lower);
+  assertEquals('lowerOpen', false, kr.lowerOpen);
+  assertUndefined('upper', kr.upper);
 };
 
 var test_where_lt = function() {
@@ -155,9 +162,10 @@ var test_where_lt = function() {
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
   var wheres = sql.getConditions();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertUndefined('lower', wheres[0].lower);
-  assertEquals('upper', 2, wheres[0].upper);
-  assertEquals('upperOpen', true, wheres[0].upperOpen);
+  var kr = wheres[0].getKeyRange();
+  assertUndefined('lower', kr.lower);
+  assertEquals('upper', 2, kr.upper);
+  assertEquals('upperOpen', true, kr.upperOpen);
 };
 
 var test_where_lte = function() {
@@ -167,9 +175,10 @@ var test_where_lte = function() {
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
   var wheres = sql.getConditions();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertUndefined('lower', wheres[0].lower);
-  assertEquals('upper', 2, wheres[0].upper);
-  assertEquals('upperOpen', false, wheres[0].upperOpen);
+  var kr = wheres[0].getKeyRange();
+  assertUndefined('lower', kr.lower);
+  assertEquals('upper', 2, kr.upper);
+  assertEquals('upperOpen', false, kr.upperOpen);
 };
 
 
@@ -180,10 +189,11 @@ var test_where_bound = function() {
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
   var wheres = sql.getConditions();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertEquals('lower', 2, wheres[0].lower);
-  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
-  assertEquals('upper', 4, wheres[0].upper);
-  assertEquals('upperOpen', true, wheres[0].upperOpen);
+  var kr = wheres[0].getKeyRange();
+  assertEquals('lower', 2, kr.lower);
+  assertEquals('lowerOpen', false, kr.lowerOpen);
+  assertEquals('upper', 4, kr.upper);
+  assertEquals('upperOpen', true, kr.upperOpen);
 };
 
 var test_where_bound_param = function() {
@@ -193,10 +203,11 @@ var test_where_bound_param = function() {
   assertArrayEquals('stores', ['st1'], sql.getStoreNames());
   var wheres = sql.getConditions();
   assertEquals('# wheres ' + wheres, 1, wheres.length);
-  assertEquals('lower', 4, wheres[0].lower);
-  assertEquals('lowerOpen', false, wheres[0].lowerOpen);
-  assertEquals('upper', 5, wheres[0].upper);
-  assertEquals('upperOpen', true, wheres[0].upperOpen);
+  var kr = wheres[0].getKeyRange();
+  assertEquals('lower', 4, kr.lower);
+  assertEquals('lowerOpen', false, kr.lowerOpen);
+  assertEquals('upper', 5, kr.upper);
+  assertEquals('upperOpen', true, kr.upperOpen);
 };
 
 

@@ -289,7 +289,7 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
       me.current_key_ = is_index ? ydn.db.schema.Index.sql2js(row[effective_col_name],
         type, is_multi_entry) : me.current_primary_key_;
       me.current_value_ = me.key_only ? me.current_primary_key_ :
-        ydn.db.core.req.WebSql.parseRow(row, me.store_schema_);
+        ydn.db.crud.req.WebSql.parseRow(row, me.store_schema_);
     }
 
     callback.call(me, me.current_key_, me.current_primary_key_, me.current_value_);

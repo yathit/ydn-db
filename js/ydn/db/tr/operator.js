@@ -8,7 +8,7 @@
 goog.provide('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
-goog.require('ydn.db.core.IOperator');
+goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.error.NotSupportedException');
 
 
@@ -73,7 +73,7 @@ ydn.db.tr.DbOperator.prototype.logger =
 
 
 /**
- * @type {ydn.db.core.req.IRequestExecutor}
+ * @type {ydn.db.crud.req.IRequestExecutor}
  * @protected
  */
 ydn.db.tr.DbOperator.prototype.executor;
@@ -118,7 +118,7 @@ ydn.db.tr.DbOperator.prototype.abort = function() {
 
 /**
  * @final
- * @return {ydn.db.core.req.IRequestExecutor}
+ * @return {ydn.db.crud.req.IRequestExecutor}
  */
 ydn.db.tr.DbOperator.prototype.getExecutor = function() {
   if (!this.executor) {

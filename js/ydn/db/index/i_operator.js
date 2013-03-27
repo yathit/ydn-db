@@ -6,12 +6,12 @@
 
 goog.provide('ydn.db.index.IOperator');
 goog.require('ydn.db.index.req.IRequestExecutor');
-goog.require('ydn.db.core.IOperator');
+goog.require('ydn.db.crud.IOperator');
 
 
 
 /**
- * @extends {ydn.db.core.IOperator}
+ * @extends {ydn.db.crud.IOperator}
  * @interface
  */
 ydn.db.index.IOperator = function() {};

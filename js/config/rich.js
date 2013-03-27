@@ -7,11 +7,11 @@
 
 goog.require('ydn.db.rich.Storage');
 
-goog.exportProperty(ydn.db.core.Storage.prototype, 'encrypt',
-    ydn.db.core.Storage.prototype.encrypt);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'setItem',
-    ydn.db.core.Storage.prototype.setItem);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'getItem',
-    ydn.db.core.Storage.prototype.getItem);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'removeItem',
-    ydn.db.core.Storage.prototype.removeItem);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'encrypt',
+    ydn.db.crud.Storage.prototype.encrypt);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'setItem',
+    ydn.db.crud.Storage.prototype.setItem);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'getItem',
+    ydn.db.crud.Storage.prototype.getItem);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'removeItem',
+    ydn.db.crud.Storage.prototype.removeItem);

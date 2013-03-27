@@ -3,51 +3,51 @@
  *
  */
 
-goog.require('ydn.db.core.Storage');
-goog.require('ydn.db.core.DbOperator');
+goog.require('ydn.db.crud.Storage');
+goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.db');
 goog.require('ydn.db.events.RecordEvent');
 goog.require('ydn.db.events.StoreEvent');
 
 
-goog.exportSymbol('ydn.db.core.Storage', ydn.db.core.Storage);
+goog.exportSymbol('ydn.db.crud.Storage', ydn.db.crud.Storage);
 
-goog.exportProperty(ydn.db.core.Storage.prototype, 'branch',
-  ydn.db.core.Storage.prototype.branch);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'branch',
+  ydn.db.crud.Storage.prototype.branch);
 
-goog.exportProperty(ydn.db.core.Storage.prototype, 'add',
-    ydn.db.core.Storage.prototype.add);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'get',
-    ydn.db.core.Storage.prototype.get);
-//goog.exportProperty(ydn.db.core.Storage.prototype, 'load',
-//  ydn.db.core.Storage.prototype.load);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'values',
-  ydn.db.core.Storage.prototype.values);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'put',
-    ydn.db.core.Storage.prototype.put);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'clear',
-    ydn.db.core.Storage.prototype.clear);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'remove',
-  ydn.db.core.Storage.prototype.remove);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'count',
-  ydn.db.core.Storage.prototype.count);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'add',
+    ydn.db.crud.Storage.prototype.add);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'get',
+    ydn.db.crud.Storage.prototype.get);
+//goog.exportProperty(ydn.db.crud.Storage.prototype, 'load',
+//  ydn.db.crud.Storage.prototype.load);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'values',
+  ydn.db.crud.Storage.prototype.values);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'put',
+    ydn.db.crud.Storage.prototype.put);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'clear',
+    ydn.db.crud.Storage.prototype.clear);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'remove',
+  ydn.db.crud.Storage.prototype.remove);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'count',
+  ydn.db.crud.Storage.prototype.count);
 
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'add',
-    ydn.db.core.DbOperator.prototype.add);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'get',
-    ydn.db.core.DbOperator.prototype.get);
-//goog.exportProperty(ydn.db.core.Storage.prototype, 'load',
-//  ydn.db.core.Storage.prototype.load);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'values',
-  ydn.db.core.DbOperator.prototype.values);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'put',
-    ydn.db.core.DbOperator.prototype.put);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'clear',
-    ydn.db.core.DbOperator.prototype.clear);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'remove',
-  ydn.db.core.DbOperator.prototype.remove);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'count',
-  ydn.db.core.DbOperator.prototype.count);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'add',
+    ydn.db.crud.DbOperator.prototype.add);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'get',
+    ydn.db.crud.DbOperator.prototype.get);
+//goog.exportProperty(ydn.db.crud.Storage.prototype, 'load',
+//  ydn.db.crud.Storage.prototype.load);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'values',
+  ydn.db.crud.DbOperator.prototype.values);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'put',
+    ydn.db.crud.DbOperator.prototype.put);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'clear',
+    ydn.db.crud.DbOperator.prototype.clear);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'remove',
+  ydn.db.crud.DbOperator.prototype.remove);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'count',
+  ydn.db.crud.DbOperator.prototype.count);
 
 goog.exportSymbol('ydn.db.cmp', ydn.db.cmp);
 

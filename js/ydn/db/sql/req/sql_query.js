@@ -130,7 +130,7 @@ ydn.db.sql.req.SqlQuery.prototype.toString = function() {
  * @return {!Object} parse value.
  */
 ydn.db.sql.req.SqlQuery.prototype.parseRow = function(row, store) {
-  return ydn.db.core.req.WebSql.parseRow(row, store);
+  return ydn.db.crud.req.WebSql.parseRow(row, store);
 };
 
 

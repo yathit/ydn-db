@@ -9,7 +9,7 @@
  */
 
 
-goog.provide('ydn.db.core.req.RequestExecutor');
+goog.provide('ydn.db.crud.req.RequestExecutor');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db.InternalError');
@@ -23,7 +23,7 @@ goog.require('ydn.db.Key');
  * @param {string} scope
  * @constructor
  */
-ydn.db.core.req.RequestExecutor = function(dbname, schema, scope) {
+ydn.db.crud.req.RequestExecutor = function(dbname, schema, scope) {
   /**
    * @final
    */
@@ -44,27 +44,27 @@ ydn.db.core.req.RequestExecutor = function(dbname, schema, scope) {
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.core.req.RequestExecutor.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.core.req.RequestExecutor');
+ydn.db.crud.req.RequestExecutor.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.crud.req.RequestExecutor');
 
 
 /**
  * @protected
  * @type {!ydn.db.schema.Database}
  */
-ydn.db.core.req.RequestExecutor.prototype.schema;
+ydn.db.crud.req.RequestExecutor.prototype.schema;
 
 /**
  * @protected
  * @type {string}
  */
-ydn.db.core.req.RequestExecutor.prototype.dbname = '';
+ydn.db.crud.req.RequestExecutor.prototype.dbname = '';
 
 /**
  * @protected
  * @type {string}
  */
-ydn.db.core.req.RequestExecutor.prototype.scope = '';
+ydn.db.crud.req.RequestExecutor.prototype.scope = '';
 
 
 
@@ -73,7 +73,7 @@ if (goog.DEBUG) {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.RequestExecutor.prototype.toString = function() {
+ydn.db.crud.req.RequestExecutor.prototype.toString = function() {
   return 'RequestExecutor:' + this.scope;
 };
 }

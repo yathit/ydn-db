@@ -3,7 +3,7 @@ goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
 goog.require('ydn.db');
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.crud.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 
@@ -141,7 +141,7 @@ var thread_test = function(thread, exp_tx_no) {
         name: 'st'
       }]
   };
-  var db = new ydn.db.core.Storage('test_strict_overflow_serial_thread', schema, options);
+  var db = new ydn.db.crud.Storage('test_strict_overflow_serial_thread', schema, options);
 
   var get_done;
   waitForCondition(

@@ -80,7 +80,7 @@ ydn.db.sql.req.websql.Node.prototype.toString = function() {
  */
 ydn.db.sql.req.websql.Node.prototype.parseRow = function(row) {
   if (!this.sel_fields_) {
-    return ydn.db.core.req.WebSql.parseRow(row, this.store_schema_);
+    return ydn.db.crud.req.WebSql.parseRow(row, this.store_schema_);
   } else if (this.sel_fields_.length == 1) {
     if (goog.isObject(row)) {
       return goog.object.getValueByKeys(row, this.sel_fields_[0]);

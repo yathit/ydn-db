@@ -37,7 +37,7 @@
                 <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/index.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/dev.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
@@ -95,8 +95,8 @@
               tofile="${out.dir}/ydn.db.js"/>
         <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db.js"
               tofile="${ydn-db.dir}/jsc/ydn.db.js"/>
-        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-core.js"
-              tofile="${out.dir}/ydn.db-core.js"/>
+        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-crud.js"
+              tofile="${out.dir}/ydn.db-crud.js"/>
         <copy file="${dev-out.fn}"
               tofile="${out.dir}/ydn.db-dev.js"/>
         <copy file="${dev-out.fn}"
@@ -171,7 +171,7 @@
         </closure-compile>
     </target>
     <target name="compile-conn"
-            description="generates compiled files for core">
+            description="generates compiled files for conn">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/conn"
@@ -185,20 +185,20 @@
             </exjs.dir>
         </adv-comp>
     </target>
-    <target name="compile-core"
-            description="generates compiled files for core distribution">
+    <target name="compile-crud"
+            description="generates compiled files for crud distribution">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db/core"
-                input.fn="${ydn-db.dir}/js/config/core_main.js"
+                input.dir="${ydn-db.dir}/js/ydn/db/crud"
+                input.fn="${ydn-db.dir}/js/config/crud_main.js"
                 output.dir="${ydn-db.dir}/jsc"
-                output.fn="${buildno}-ydn.db-core.js"
-                closure.entry="ydn.db.core.Storage">
+                output.fn="${buildno}-ydn.db-crud.js"
+                closure.entry="ydn.db.crud.Storage">
             <exjs.dir>
                 <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
+                <arg line='-p "${ydn-db.dir}/js/ydn/db/crud"'/>
                 <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
             </exjs.dir>
         </adv-comp>
@@ -216,7 +216,7 @@
                 <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/index.js"'/>
 
             </ex.opt>
@@ -235,7 +235,7 @@
                 <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
+                <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/index.js"'/>
             </ex.opt>
         </adv-comp>
@@ -280,7 +280,7 @@
         </java>
     </target>
     <target name="build" description="build all distribution"
-            depends="compile-conn,compile,simple,compile-dev,compile-core,
+            depends="compile-conn,compile,simple,compile-dev,compile-crud,
             compile-iter">
 
     </target>

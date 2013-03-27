@@ -4,7 +4,7 @@ goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
 goog.require('ydn.debug');
 goog.require('ydn.db');
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.crud.Storage');
 
 
 var reachedFinalContinuation;
@@ -38,7 +38,7 @@ var continuous_request_test = function(thread, exp_tx_no) {
 
   var db_name = 'nested_request_test' + Math.random();
   options.thread = thread;
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -80,7 +80,7 @@ var committed_continuous_request_test = function(thread, exp_tx_no) {
 
   var db_name = 'nested_request_test' + Math.random();
   options.thread = thread;
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -123,7 +123,7 @@ var nested_request_test = function(thread, exp_tx_no) {
 
   var db_name = 'nested_request_test' + Math.random();
   options.thread = thread;
-  var db = new ydn.db.core.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
 

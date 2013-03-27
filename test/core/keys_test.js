@@ -1,7 +1,7 @@
 
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.crud.Storage');
 goog.require('ydn.db');
 goog.require('ydn.debug');
 
@@ -34,7 +34,7 @@ var test_primary_key_range = function () {
       type: 'INTEGER'
     }]
   };
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var objs = [
     {id: -3, value: 'a0', x: 1, type: ['a', 'b'], remark: 'test ' + Math.random()},
@@ -91,7 +91,7 @@ var test_by_index_key_range = function () {
       }]
     }]
   };
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var objs = [
     {id: -3, value: 'a0', x: 1, type: ['a', 'b'], remark: 'test ' + Math.random()},
@@ -148,7 +148,7 @@ var test_array_key = function () {
       keyPath: 'id'
     }]
   };
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var arr_objs = [
     {id: ['a', 'qs0'], value: 0, type: 'a'},
@@ -206,7 +206,7 @@ var test_keyrange_starts = function () {
       }]
     }]
   };
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var objs = [
     {id: -3, value: 'a0', x: 1, type: ['a', 'b'], remark: 'test ' + Math.random()},
@@ -267,7 +267,7 @@ var test_string_key_starts = function () {
       type: 'TEXT'
     }]
   };
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var objs = [
     {id: -3, value: 'a0', x: 1, type: ['a', 'b'], remark: 'test ' + Math.random()},
@@ -326,7 +326,7 @@ var test_array_key_key_range = function () {
       keyPath: 'id'
     }]
   };
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var arr_objs = [
     {id: ['a', 'qs0'], value: 0, type: 'a'},

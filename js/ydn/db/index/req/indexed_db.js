@@ -6,7 +6,7 @@
  */
 
 goog.provide('ydn.db.index.req.IndexedDb');
-goog.require('ydn.db.core.req.IndexedDb');
+goog.require('ydn.db.crud.req.IndexedDb');
 goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.algo.AbstractSolver');
 goog.require('ydn.db.IDBCursor');
@@ -23,12 +23,12 @@ goog.require('ydn.json');
  * @param {string} scope_name
  * @constructor
  * @implements {ydn.db.index.req.IRequestExecutor}
- * @extends {ydn.db.core.req.IndexedDb}
+ * @extends {ydn.db.crud.req.IndexedDb}
  */
 ydn.db.index.req.IndexedDb = function(dbname, schema, scope_name) {
   goog.base(this, dbname, schema, scope_name);
 };
-goog.inherits(ydn.db.index.req.IndexedDb, ydn.db.core.req.IndexedDb);
+goog.inherits(ydn.db.index.req.IndexedDb, ydn.db.crud.req.IndexedDb);
 
 
 /**

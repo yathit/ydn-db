@@ -5,7 +5,7 @@
 
 
 goog.provide('ydn.db.sql.req.IRequestExecutor');
-goog.require('ydn.db.core.req.IRequestExecutor');
+goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.Streamer');
 goog.require('ydn.db.Sql');
 
