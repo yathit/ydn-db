@@ -17,9 +17,9 @@ ydn.db.index.req.ICursor = function() {};
  *
  * Requester must handle the cursor value synchronously and decide the
  * next move by invoking forward.
- * @param {*} primary_key
- * @param {*} key
- * @param {*} value
+ * @param {IDBKey|undefined} primary_key
+ * @param {IDBKey|undefined} key
+ * @param {*|undefined} value
  */
 ydn.db.index.req.ICursor.prototype.onNext = goog.abstractMethod;
 
@@ -35,8 +35,8 @@ ydn.db.index.req.ICursor.prototype.onError = goog.abstractMethod;
  * onSuccess handler is apply filter. If filter condition are not meet,
  * onSuccess return next advancement value skipping onNext callback.
  *
- * @param {*} primary_key
- * @param {*} key
+ * @param {IDBKey|undefined} primary_key
+ * @param {IDBKey|undefined} key
  * @param {*} value
  * @return {*}
  */

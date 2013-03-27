@@ -28,6 +28,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.WebsqlCursor');
 goog.require('ydn.json');
 goog.require('ydn.db.index.req.IRequestExecutor');
+goog.require('ydn.db.index.req.WebsqlCursor');
 goog.require('ydn.db.index.req.CachedWebsqlCursor');
 
 /**
@@ -440,13 +441,9 @@ ydn.db.index.req.WebSql.prototype.getCursor = function (tx, tx_no, store_name,
 
   var store = this.schema.getStore(store_name);
   goog.asserts.assertObject(store);
-  var index_key_path = index_name;
-  if (index_name) {
-    var index = store.getIndex(index_name);
-    index_key_path = index.getKeyPath();
-  }
-  return new ydn.db.index.req.CachedWebsqlCursor(tx, tx_no,
-    store, store_name, index_name, index_key_path, keyRange, direction, key_only);
+
+  return new ydn.db.index.req.WebsqlCursor(tx, tx_no,
+    store, store_name, index_name, keyRange, direction, key_only);
 };
 
 

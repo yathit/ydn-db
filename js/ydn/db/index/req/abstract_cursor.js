@@ -174,9 +174,9 @@ ydn.db.index.req.AbstractCursor.prototype.getEffectiveKey = function() {
  *   true      : continue next cursor position, not invoke onNext
  *   false     : restart the cursor, not invoke onNext.
  *
- * @param {*} primary_key
- * @param {*} key
- * @param {*} value
+ * @param {IDBKey|undefined} primary_key
+ * @param {IDBKey|undefined} key
+ * @param {*|undefined} value
  */
 ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(primary_key, key, value) {
   this.onNext(primary_key, key, value);
@@ -184,10 +184,7 @@ ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(primary_key, key,
 
 
 /**
- *
- * @param {*} primary_key
- * @param {*} key
- * @param {*} value
+ * @inheritDoc
  */
 ydn.db.index.req.AbstractCursor.prototype.onNext = function(primary_key, key, value) {
 

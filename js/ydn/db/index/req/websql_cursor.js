@@ -83,24 +83,24 @@ ydn.db.index.req.WebsqlCursor.prototype.ini_primary_key_ = null;
 
 /**
  *
- * @type {*}
+ * @type {IDBKey|undefined}
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.current_key_ = null;
+ydn.db.index.req.WebsqlCursor.prototype.current_key_;
+
+/**
+ *
+ * @type {IDBKey|undefined}
+ * @private
+ */
+ydn.db.index.req.WebsqlCursor.prototype.current_primary_key_;
 
 /**
  *
  * @type {*}
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.current_primary_key_ = null;
-
-/**
- *
- * @type {*}
- * @private
- */
-ydn.db.index.req.WebsqlCursor.prototype.current_value_ = null;
+ydn.db.index.req.WebsqlCursor.prototype.current_value_;
 
 /**
  *
@@ -112,9 +112,7 @@ ydn.db.index.req.WebsqlCursor.prototype.current_cursor_offset_ = NaN;
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current index key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
 
@@ -124,9 +122,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current primary key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
   return this.current_primary_key_;
@@ -134,9 +130,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current primary key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.WebsqlCursor.prototype.getValue = function () {
   return this.current_value_;
@@ -144,24 +138,8 @@ ydn.db.index.req.WebsqlCursor.prototype.getValue = function () {
 
 
 /**
- * Make cursor opening request.
- *
- * This will seek to given initial position if given. If only ini_key (primary
- * key) is given, this will rewind, if not found.
- *
- * @param {*=} ini_key primary key to resume position.
- * @param {*=} ini_index_key index key to resume position.
- * @param {boolean=} exclusive
- * @private
- */
-ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(ini_key, ini_index_key, exclusive) {
-
-};
-
-
-/**
  * Move cursor to the position as defined.
- * @param {?function (key, primary_key, value)} callback invoke with this context
+ * @param {?function (this:ydn.db.index.req.AbstractCursor, (IDBKey|undefined), (IDBKey|undefined), *)} callback invoke with this context
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
@@ -175,9 +153,10 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
   var params = [];
   var primary_column_name = this.store_schema_.getSQLKeyColumnName();
   var q_primary_column_name = goog.string.quote(primary_column_name);
-  var is_index = !!this.index_name;
-  var index = is_index ?
+
+  var index = goog.isString(this.index_name) ?
     this.store_schema_.getIndex(this.index_name) : null;
+  var is_index = !!index;
   var type = index ? index.getType() : this.store_schema_.getType();
 
   var effective_col_name = index ?
@@ -214,7 +193,6 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
       order += q_primary_column_name;
       order += this.reverse ? ' DESC' : ' ASC';
     }
-
   }
 
   sqls.push('FROM ' + goog.string.quote(this.store_name));
@@ -254,12 +232,13 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     sqls.push('WHERE ' + wheres.join(' AND '));
   }
 
+  sqls.push(order);
+
   sqls.push('LIMIT 1'); // cursor move only one step at a time.
   if (this.current_cursor_offset_ > 0) {
     sqls.push('OFFSET ' + this.current_cursor_offset_);
   }
 
-  sqls.push(order);
 
 //  if (this.key_only) {
 //    sqls.push(' LIMIT ' + 100);
@@ -334,64 +313,6 @@ ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
 };
 
 
-
-
-/**
- * @inheritDoc
- */
-ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
-
-  if (!this.hasCursor()) {
-    throw new ydn.db.InvalidAccessError();
-  }
-
-  if (idx) {
-    throw new ydn.error.NotImplementedException();
-  } else {
-    var df = new goog.async.Deferred();
-    var me = this;
-    this.has_pending_request = true;
-
-    /**
-     * @param {SQLTransaction} transaction transaction.
-     * @param {SQLResultSet} results results.
-     */
-    var onSuccess = function(transaction, results) {
-      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
-        window.console.log([sql, results]);
-      }
-      me.has_pending_request = false;
-      me.logger.finer('success: ' + msg);
-      df.callback(results.rowsAffected);
-    };
-
-    /**
-     * @param {SQLTransaction} tr transaction.
-     * @param {SQLError} error error.
-     * @return {boolean} true to roll back.
-     */
-    var onError = function(tr, error) {
-      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
-        window.console.log([sql, tr, error]);
-      }
-      me.has_pending_request = false;
-      me.logger.warning('error: ' + msg + ' ' + error.message);
-      df.errback(error);
-      return true; // roll back
-
-    };
-
-    var primary_column_name = this.store_schema_.getSQLKeyColumnName();
-    var sql = 'DELETE FROM ' + this.store_schema_.getQuotedName() +
-      ' WHERE ' + primary_column_name + ' = ?';
-    var params = [this.getPrimaryKey()];
-    var msg = this + ': clear "' + sql + '" : ' + ydn.json.stringify(params);
-    me.logger.finest(msg);
-    this.tx.executeSql(sql, params, onSuccess, onError);
-    return df;
-  }
-};
-
 /**
  * @inheritDoc
  */
@@ -462,7 +383,6 @@ ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
 };
 
 
-
 /**
  * @inheritDoc
  */
@@ -479,52 +399,6 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
   this.ini_index_key_ = key;
   this.move_(this.onNext);
 };
-
-
-
-
-
-
-/**
- * @define {boolean}
- */
-ydn.db.index.req.WebsqlCursor.DEBUG = false;
-
-
-/**
- * @protected
- * @type {goog.debug.Logger} logger.
- */
-ydn.db.index.req.WebsqlCursor.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.index.req.WebsqlCursor');
-
-
-
-
-/**
- * 
- * @type {*}
- * @private
- */
-ydn.db.index.req.WebsqlCursor.prototype.current_key_ = null;
-
-/**
- *
- * @type {*}
- * @private
- */
-ydn.db.index.req.WebsqlCursor.prototype.current_primary_key_ = null;
-
-/**
- *
- * @type {*}
- * @private
- */
-ydn.db.index.req.WebsqlCursor.prototype.current_value_ = null;
-
-
-
-
 
 
 /**
@@ -589,7 +463,7 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
       me.has_pending_request = false;
       me.logger.warning('get error: ' + error.message);
       df.errback(error);
-      return true; // roll back
+      return false;
 
     };
 
@@ -599,65 +473,6 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
     var params = [this.getPrimaryKey()];
     me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(params));
     this.tx.executeSql(sql, params, onSuccess, onError);
-    return df;
-  }
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.index.req.WebsqlCursor.prototype.update = function(obj, idx) {
-
-  if (!this.hasCursor()) {
-    throw new ydn.db.InvalidAccessError();
-  }
-
-  if (idx) {
-    throw new ydn.error.NotImplementedException();
-  } else {
-    var df = new goog.async.Deferred();
-    var me = this;
-    this.has_pending_request = true;
-    var primary_key = /** @type {!Array|number|string} */(this.getPrimaryKey());
-
-    /**
-     * @param {SQLTransaction} transaction transaction.
-     * @param {SQLResultSet} results results.
-     */
-    var onSuccess = function(transaction, results) {
-      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
-        window.console.log([sql, results]);
-      }
-      me.has_pending_request = false;
-      df.callback(primary_key);
-    };
-
-    /**
-     * @param {SQLTransaction} tr transaction.
-     * @param {SQLError} error error.
-     * @return {boolean} true to roll back.
-     */
-    var onError = function(tr, error) {
-      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
-        window.console.log([sql, tr, error]);
-      }
-      me.has_pending_request = false;
-      me.logger.warning('get error: ' + error.message);
-      df.errback(error);
-      return true; // roll back
-    };
-
-    goog.asserts.assertObject(obj);
-    var out = me.store_schema_.getIndexedValues(obj, primary_key);
-
-    var sql = 'REPLACE INTO ' + this.store_schema_.getQuotedName()+
-        ' (' + out.columns.join(', ') + ')' +
-        ' VALUES (' + out.slots.join(', ') + ')' +
-        ' ON CONFLICT FAIL';
-
-    me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(out.values));
-    this.tx.executeSql(sql, out.values, onSuccess, onError);
     return df;
   }
 };

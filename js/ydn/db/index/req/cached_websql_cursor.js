@@ -17,7 +17,6 @@ goog.require('ydn.db.index.req.ICursor');
  * @param {!ydn.db.schema.Store} store_schema schema.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
- * @param {!Array.<string>|string|undefined} index_key_path index
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
@@ -26,14 +25,10 @@ goog.require('ydn.db.index.req.ICursor');
  * @constructor
  */
 ydn.db.index.req.CachedWebsqlCursor = function(tx, tx_no, store_schema, store_name,
-    index_name, index_key_path, keyRange, direction, key_only) {
+    index_name, keyRange, direction, key_only) {
 
   goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction, key_only);
 
-  /**
-   * @final
-   */
-  this.index_key_path = index_key_path;
 
   goog.asserts.assert(store_schema);
   this.store_schema_ = store_schema;
@@ -58,13 +53,6 @@ ydn.db.index.req.CachedWebsqlCursor.DEBUG = false;
  */
 ydn.db.index.req.CachedWebsqlCursor.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.CachedWebsqlCursor');
-
-
-/**
- * @private
- * @type {!Array.<string>|string|undefined}
- */
-ydn.db.index.req.CachedWebsqlCursor.prototype.index_key_path;
 
 
 /**
