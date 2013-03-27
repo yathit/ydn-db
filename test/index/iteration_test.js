@@ -542,86 +542,86 @@ var test_51_open_index_value_iterator = function() {
     done = true;
   });
 };
-
-var test_42_map_skip = function() {
-
-  var done;
-  var streaming_keys = [];
-
-  var actual_index_keys = [0, 4, 5, 6];
-  var q = new ydn.db.Cursors(store_name, 'value');
-
-  waitForCondition(
-      // Condition
-      function () {
-        return done;
-      },
-      // Continuation
-      function () {
-        assertArrayEquals('streaming index', actual_index_keys, streaming_keys);
-
-        reachedFinalContinuation = true;
-      },
-      100, // interval
-      1000); // maxTimeout
-
-  var start = 3;
-  db = load_default();
-  var req = db.map(q, function (key) {
-    streaming_keys.push(key);
-    if (key < 3) {
-      return 4;
-    }
-  });
-  req.addCallback(function (result) {
-    done = true;
-  });
-  req.addErrback(function (e) {
-    console.log(e);
-    done = true;
-  });
-};
-
-
-var test_43_map_stop = function() {
-
-  var done;
-  var streaming_keys = [];
-  var streaming_values = [];
-
-  var actual_index_keys = [0, 1, 2, 3];
-  var q = new ydn.db.Cursors(store_name, 'value');
-
-  waitForCondition(
-      // Condition
-      function () {
-        return done;
-      },
-      // Continuation
-      function () {
-        assertArrayEquals('streaming index', actual_index_keys, streaming_keys);
-
-        reachedFinalContinuation = true;
-      },
-      100, // interval
-      1000); // maxTimeout
-
-  var start = 3;
-  db = load_default();
-  var req = db.map(q, function (key) {
-    streaming_keys.push(key);
-    if (key >= 3) {
-      return null;
-    }
-  });
-  req.addCallback(function (result) {
-    done = true;
-  });
-  req.addErrback(function (e) {
-    console.log(e);
-    done = true;
-  });
-};
+//
+//var test_42_map_skip = function() {
+//
+//  var done;
+//  var streaming_keys = [];
+//
+//  var actual_index_keys = [0, 4, 5, 6];
+//  var q = new ydn.db.Cursors(store_name, 'value');
+//
+//  waitForCondition(
+//      // Condition
+//      function () {
+//        return done;
+//      },
+//      // Continuation
+//      function () {
+//        assertArrayEquals('streaming index', actual_index_keys, streaming_keys);
+//
+//        reachedFinalContinuation = true;
+//      },
+//      100, // interval
+//      1000); // maxTimeout
+//
+//  var start = 3;
+//  db = load_default();
+//  var req = db.map(q, function (key) {
+//    streaming_keys.push(key);
+//    if (key < 3) {
+//      return 4;
+//    }
+//  });
+//  req.addCallback(function (result) {
+//    done = true;
+//  });
+//  req.addErrback(function (e) {
+//    console.log(e);
+//    done = true;
+//  });
+//};
+//
+//
+//var test_43_map_stop = function() {
+//
+//  var done;
+//  var streaming_keys = [];
+//  var streaming_values = [];
+//
+//  var actual_index_keys = [0, 1, 2, 3];
+//  var q = new ydn.db.Cursors(store_name, 'value');
+//
+//  waitForCondition(
+//      // Condition
+//      function () {
+//        return done;
+//      },
+//      // Continuation
+//      function () {
+//        assertArrayEquals('streaming index', actual_index_keys, streaming_keys);
+//
+//        reachedFinalContinuation = true;
+//      },
+//      100, // interval
+//      1000); // maxTimeout
+//
+//  var start = 3;
+//  db = load_default();
+//  var req = db.map(q, function (key) {
+//    streaming_keys.push(key);
+//    if (key >= 3) {
+//      return null;
+//    }
+//  });
+//  req.addCallback(function (result) {
+//    done = true;
+//  });
+//  req.addErrback(function (e) {
+//    console.log(e);
+//    done = true;
+//  });
+//};
 
 
 
