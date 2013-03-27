@@ -35,6 +35,11 @@ var store_outline_auto = "ts4"; // out-of-line key + auto
 var store_nested_key = "ts5"; // nested keyPath
 var store_inline_index = "ts6";    // in-line key store
 
+
+var get_db_name = 'tck1-get-1';
+var count_db_name ='ydn_db_tck1_count_2';
+var values_db_name = 'tck1-values-1';
+
 var data_1 = { test: "test value", name: "name 1", id: 1 };
 var data_1a = { test: "test value", name: "name 1", id: ['a', 'b']};
 var data_2 = { test: "test value", name: "name 2" };
@@ -220,8 +225,180 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
 (function () {
 
+  var test_env = {
+    setup: function () {
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+        console.warn('Put test not finished.');
+      }, 1000);
+    },
+    teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
+
+    }
+  };
+
+  module("Clear", test_env);
+  reporter.createTestSuite('core', 'Clear', ydn.db.version);
+  var data_inline = [
+    {id: 1, msg: Math.random()},
+    {id: 2, msg: Math.random()},
+    {id: 3, msg: Math.random()}
+  ];
+  var data_offline = [
+    {msg: Math.random()},
+    {msg: Math.random()},
+    {msg: Math.random()}
+  ];
+
+  asyncTest("by store", 3, function () {
+
+    var db_name = 'test-clear-' + Math.random();
+    var db = new ydn.db.Storage(db_name, schema_1, options);
+    db.put(store_inline, data_inline);
+    db.put(store_outline, data_offline, [1, 2, 3]);
+    db.count(store_inline).always(function (cnt) {
+      equal(cnt, 3, '3 entries');
+      db.clear(store_inline).always(function (x) {
+        equal(x, 1, "1 store cleared");
+        db.count(store_inline).always(function (cnt) {
+          equal(cnt, 0, '0 left');
+          start();
+          ydn.db.deleteDatabase(db.getName(), db.getType());
+          db.close();
+        });
+      });
+    });
+
+  });
+
+
+  asyncTest("by database", function () {
+    expect(3);
+    var db_name = 'test-clear-' + Math.random();
+    var db = new ydn.db.Storage(db_name, schema_1, options);
+    db.put(store_inline, data_inline);
+    db.put(store_outline, data_offline, [1, 2, 3]);
+    db.count().always(function (cnt) {
+      equal(cnt, 6, '6 entries');
+      db.clear().always(function (x) {
+        equal(x, schema_1.stores.length, schema_1.stores.length + " stores cleared");
+        db.count(store_inline).always(function (cnt) {
+          equal(cnt, 0, '0 left');
+          start();
+          ydn.db.deleteDatabase(db.getName(), db.getType());
+          db.close();
+        });
+      });
+    });
+
+  });
+
+})();
+
+
+(function () {
+
+  var test_env = {
+    setup: function () {
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+        console.warn('Put test not finished.');
+      }, 1000);
+    },
+    teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
+
+    }
+  };
+
+  module("Remove", test_env);
+  reporter.createTestSuite('core', 'Remove', ydn.db.version);
+  var data = [
+    {id: 1, msg: Math.random()},
+    {id: 2, msg: Math.random()},
+    {id: 3, msg: Math.random()}
+  ];
+  var data_offline = [
+    {msg: Math.random()},
+    {msg: Math.random()},
+    {msg: Math.random()}
+  ];
+
+  asyncTest("by id", function () {
+    expect(3);
+    var db_name = 'test-remove-1' + Math.random();
+    var db = new ydn.db.Storage(db_name, schema_1, options);
+    db.put(store_inline, data);
+    db.count(store_inline).always(function (cnt) {
+      equal(cnt, 3, '3 entries');
+
+      db.remove(store_inline, 1).always(function (x) {
+        equal(x, 1, "1 entry cleared");
+        db.count(store_inline).always(function (cnt) {
+          equal(cnt, 2, '2 left');
+          start();
+          ydn.db.deleteDatabase(db.getName(), db.getType());
+          db.close();
+        });
+      });
+    });
+
+  });
+
+//  asyncTest("by keys", function () {
+//    expect(3);
+//    var db_name = 'test-remove-1' + Math.random();
+//    var db = new ydn.db.Storage(db_name, schema_1, options);
+//    var keys = [
+//      new ydn.db.Key(store_inline, 1),
+//      new ydn.db.Key(store_outline, 2),
+//      new ydn.db.Key(store_inline, 3)];
+//    db.put(store_inline, data);
+//    db.put(store_outline, data_offline, [1, 2, 3]);
+//
+//    db.count([store_inline, store_outline]).always(function (cnt) {
+//      equal(cnt, [3, 3], '6 entries');
+//
+//      db.remove(keys).always(function (x) {
+//        equal(x, 3, "3 entry removed");
+//        db.count([store_inline, store_outline]).always(function (cnt) {
+//          equal(cnt, [1, 2], '3 left');
+//          start();
+//          ydn.db.deleteDatabase(db.getName(), db.getType());
+//          db.close();
+//        });
+//      });
+//    });
+//
+//  });
+
+  asyncTest("by key range", function () {
+    expect(3);
+    var db_name = 'test-remove-' + Math.random();
+    var db = new ydn.db.Storage(db_name, schema_1, options);
+    db.put(store_inline, data);
+    db.count(store_inline).always(function (cnt) {
+      equal(cnt, 3, '3 entries');
+
+      db.remove(store_inline, ydn.db.KeyRange.bound(2, 3)).always(function (x) {
+        equal(x, 2, "2 entry cleared");
+        db.count(store_inline).always(function (cnt) {
+          equal(cnt, 1, '1 left');
+          start();
+          ydn.db.deleteDatabase(db.getName(), db.getType());
+          db.close();
+        });
+      });
+    });
+
+  });
+
+})();
+
+(function () {
+
   var db;
-  var db_name = 'tck1-get-1';
   var data_store_inline = {id: 1, value: 'value ' + Math.random()};
   var data_store_inline_string = {id: 'a', value: 'value ' + Math.random()};
   var value_store_outline = 'value ' + Math.random();
@@ -235,7 +412,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1);
+    var _db = new ydn.db.Storage(get_db_name, schema_1);
     _db.put(store_inline, data_store_inline);
     _db.put(store_outline, {abc: value_store_outline}, key_store_outline);
     _db.put(store_outline_string, {abc: value_store_outline_string}, key_store_outline_string);
@@ -248,7 +425,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(db_name, schema_1);
+      db = new ydn.db.Storage(get_db_name, schema_1);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('Get test not finished.');
@@ -257,7 +434,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
       db.close();
-      //ydn.db.deleteDatabase(db.getName());
     }
   };
 
@@ -295,7 +471,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   asyncTest("out-off-line number key", function () {
     expect(1);
     db.get(store_outline, key_store_outline).then(function (x) {
-      equal(value_store_outline, x && x.abc, 'value');
+      equal(x && x.abc, value_store_outline, 'value');
       start();
     }, function (e) {
       ok(false, e.message);
@@ -308,7 +484,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     expect(1);
 
     db.get(store_outline_string, key_store_outline_string).then(function (x) {
-      equal(value_store_outline_string, x && x.abc, 'value');
+      equal(x && x.abc, value_store_outline_string, 'value');
       start();
     }, function (e) {
       ok(false, e.message);
@@ -339,7 +515,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 (function () {
 
   var db;
-  var db_name = 'tck1-list-1';
 
   // schema without auto increment
   var schema_1 = {
@@ -379,7 +554,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1, options);
+    var _db = new ydn.db.Storage(values_db_name, schema_1, options);
     _db.clear();
     _db.put(store_inline, data_list_inline);
     _db.put(store_inline_index, data_list_index);
@@ -392,7 +567,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(db_name, schema_1, options);
+      db = new ydn.db.Storage(values_db_name, schema_1, options);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('List test not finished.');
@@ -401,7 +576,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
       db.close();
-      //ydn.db.deleteDatabase(db.getName());
     }
   };
 
@@ -528,6 +702,43 @@ var reporter = new ydn.testing.Reporter('ydn-db');
         ydn.db.deleteDatabase(db.getName(), type);
       });
     });
+  });
+
+  asyncTest("Retrieve objects by multiEntry key", 1, function () {
+
+    var db_name = 'test-multiEntry-1';
+    var data = [
+      {id: 0, tag: ['a'], msg: Math.random()},
+      {id: 1, tag: ['b', 'a'], msg: Math.random()},
+      {id: 2, tag: ['b', 'c'], msg: Math.random()},
+      {id: 3, tag: ['d', 'b', 'c'], msg: Math.random()}
+    ];
+    var schema = {
+      stores: [
+        {name: 'st',
+          keyPath: 'id',
+          type: 'INTEGER',
+          indexes: [
+            {name: 'tag',
+              type: 'TEXT',
+              multiEntry: true}
+          ]
+        }
+      ]
+    };
+    var db = new ydn.db.Storage(db_name, schema, options);
+    db.put('st', data);
+    db.count('st').always(function(cnt) {
+
+      db.close();
+      var db2 = new ydn.db.Storage(db_name, schema, options);
+      db2.values('st', 'tag', ydn.db.KeyRange.only('c')).always(function (x) {
+        deepEqual(x, data.slice(2, 4), 'records having tag c');
+        start();
+        ydn.db.deleteDatabase(db_name, db2.getType());
+        db2.close();
+      })
+    })
   });
 
 })();
@@ -660,14 +871,13 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
 
   var db;
-  var db_name ='ydn_db_tck1_count_2';
 
   var ready = $.Deferred();
 
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1);
+    var _db = new ydn.db.Storage(count_db_name, schema_1);
     _db.clear();
     var data = [];
     var data2 = [];
@@ -691,7 +901,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(db_name, schema_1);
+      db = new ydn.db.Storage(count_db_name, schema_1);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('Count test not finished.');
@@ -723,18 +933,35 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   });
 
+  asyncTest("all records in a out-of-line store", function () {
+
+    ready.always(function() {
+
+      expect(1);
+      db.count(store_outline).then(function (x) {
+        equal(x, 3, 'number of records in store');
+        start();
+      }, function (e) {
+        ok(false, e.message);
+        start();
+      });
+    })
+
+  });
+
   asyncTest("all records in stores", function () {
-    expect(2);
 
-    db.count([store_inline, store_outline]).then(function (x) {
-      equal(5, x[0], 'inline');
-      equal(3, x[1], 'outline');
-      start();
-    }, function (e) {
-      ok(false, e.message);
-      start();
+    ready.always(function () {
+      expect(2);
+      db.count([store_inline, store_outline]).then(function (x) {
+        equal(x[0], 5, 'inline');
+        equal(x[1], 3, 'outline');
+        start();
+      }, function (e) {
+        ok(false, e.message);
+        start();
+      });
     });
-
   });
 
   asyncTest("in a key range", function () {
@@ -746,7 +973,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
       start();
       var type = db.getType();
       db.close();
-      ydn.db.deleteDatabase(db.getName(), type);
     }, function (e) {
       ok(false, e.message);
       start();
@@ -764,6 +990,13 @@ QUnit.testDone(function(result) {
 QUnit.moduleDone(function(result) {
   reporter.endTestSuite('core', result.name,
     {passed: result.passed, failed: result.failed});
+  if (result.name == 'Get') {
+    ydn.db.deleteDatabase(get_db_name);
+  } else if (result.name == 'Count') {
+    ydn.db.deleteDatabase(count_db_name);
+  } else if (result.name == 'Values') {
+    ydn.db.deleteDatabase(values_db_name);
+  }
 });
 
 QUnit.done(function(results) {

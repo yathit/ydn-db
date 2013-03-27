@@ -9,7 +9,8 @@ goog.require('ydn.db.index.req.AbstractCursor');
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {!IDBObjectStore} obj_store object store.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
  * @param {IDBKeyRange} keyRange
@@ -18,26 +19,9 @@ goog.require('ydn.db.index.req.AbstractCursor');
  * @extends {ydn.db.index.req.AbstractCursor}
  * @constructor
  */
-ydn.db.index.req.IDBCursor = function(obj_store, store_name, index_name,
+ydn.db.index.req.IDBCursor = function(tx, tx_no, store_name, index_name,
     keyRange, direction, key_only) {
-  goog.base(this, store_name, index_name, keyRange, direction, key_only);
-
-  goog.asserts.assert(obj_store);
-  this.obj_store = obj_store;
-
-  /**
-   *
-   * @type {?IDBIndex}
-   */
-  this.index = null;
-  if (goog.isDefAndNotNull(index_name)) {
-    if (obj_store.indexNames.contains(index_name)) {
-      this.index = obj_store.index(index_name);
-    } else if (obj_store.keyPath != index_name ) {
-      throw new ydn.db.InternalError('index "' + index_name + '" not found in ' +
-          obj_store.name);
-    }
-  }
+  goog.base(this, tx, tx_no,  store_name, index_name, keyRange, direction, key_only);
 
   this.cur_ = null;
   this.target_key_ = null;
@@ -63,18 +47,7 @@ ydn.db.index.req.IDBCursor.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.IDBCursor');
 
 
-/**
- * @private
- * @type {IDBObjectStore}
- */
-ydn.db.index.req.IDBCursor.prototype.obj_store = null;
 
-
-/**
- * @private
- * @type {IDBIndex}
- */
-ydn.db.index.req.IDBCursor.prototype.index = null;
 
 
 /**
@@ -89,7 +62,7 @@ ydn.db.index.req.IDBCursor.prototype.cur_ = null;
  * @param {Event} event
  */
 ydn.db.index.req.IDBCursor.prototype.requestOnSuccess = function (event) {
-  var label = 'IDBCursor: ' + this.store_name + ':' + this.index_name;
+  var label = 'IDB' + this;
   this.has_pending_request_ = false;
   var target = /** {IDBRequest} */ (event.target);
   var cur = (event.target.result);
@@ -195,9 +168,9 @@ ydn.db.index.req.IDBCursor.prototype.has_pending_request_ = false;
  * @param {boolean=} exclusive
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index_key, exclusive) {
+ydn.db.index.req.IDBCursor.prototype.openCursor = function (ini_key, ini_index_key, exclusive) {
 
-  var label = 'IDBCursor: ' + this.store_name + ':' + this.index_name;
+  var label = 'IDB' + this;
   this.target_key_ = ini_key;
   this.target_index_key_ = ini_index_key;
   this.target_exclusive_ = !!exclusive;
@@ -226,18 +199,24 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
     }
   } // TODO: what about ini_key for primary iterator?
 
+
+  var obj_store = this.tx.objectStore(this.store_name);
+  var index = this.index_name ? obj_store.index(this.index_name) : null;
+
+  this.logger.finest(label + ' opening ');
+
   /**
    * @type {IDBRequest}
    */
   var request;
   if (this.key_only) {
-    if (this.index) {
+    if (index) {
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.index.openKeyCursor(key_range, this.dir);
+        request = index.openKeyCursor(key_range, this.dir);
       } else if (goog.isDefAndNotNull(key_range)) {
-        request = this.index.openKeyCursor(key_range);
+        request = index.openKeyCursor(key_range);
       } else {
-        request = this.index.openKeyCursor();
+        request = index.openKeyCursor();
       }
     } else {
       //throw new ydn.error.InvalidOperationException(
@@ -246,38 +225,38 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
       // http://lists.w3.org/Archives/Public/public-webapps/2012OctDec/0466.html
       // however, lazy serailization used at least in FF.
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.obj_store.openCursor(key_range, this.dir);
+        request = obj_store.openCursor(key_range, this.dir);
       } else if (goog.isDefAndNotNull(key_range)) {
-        request = this.obj_store.openCursor(key_range);
+        request = obj_store.openCursor(key_range);
         // some browser have problem with null, even though spec said OK.
       } else {
-        request = this.obj_store.openCursor();
+        request = obj_store.openCursor();
       }
 
     }
   } else {
-    if (this.index) {
+    if (index) {
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.index.openCursor(key_range, this.dir);
+        request = index.openCursor(key_range, this.dir);
       } else if (goog.isDefAndNotNull(key_range)) {
-        request = this.index.openCursor(key_range);
+        request = index.openCursor(key_range);
       } else {
-        request = this.index.openCursor();
+        request = index.openCursor();
       }
     } else {
       if (goog.isDefAndNotNull(this.dir)) {
-        request = this.obj_store.openCursor(key_range, this.dir);
+        request = obj_store.openCursor(key_range, this.dir);
       } else if (goog.isDefAndNotNull(key_range)) {
-        request = this.obj_store.openCursor(key_range);
+        request = obj_store.openCursor(key_range);
         // some browser have problem with null, even though spec said OK.
       } else {
-        request = this.obj_store.openCursor();
+        request = obj_store.openCursor();
       }
     }
   }
   this.has_pending_request_ = true;
 
-  this.logger.finest(label + ' opened, request ' + request.readyState);
+  this.logger.finer(label + ' opened, request ' + request.readyState);
 
   request.onsuccess = goog.bind(this.requestOnSuccess, this);
 
@@ -298,7 +277,7 @@ ydn.db.index.req.IDBCursor.prototype.open_request = function (ini_key, ini_index
 //  if (next_position === false) {
 //    // restart the iterator
 //    this.logger.finest(label + ' restarting.');
-//    this.open_request();
+//    this.openCursor();
 //  } else if (this.cur_) {
 //    if (next_position === true) {
 //      this.cur_['continue']();
@@ -325,19 +304,15 @@ ydn.db.index.req.IDBCursor.prototype.hasCursor = function() {
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current index key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.IDBCursor.prototype.getIndexKey = function() {
-  return this.cur_.key;
+  return /** @type {IDBKey} */ (this.cur_.key);
 };
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current primary key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.IDBCursor.prototype.getPrimaryKey = function() {
   return this.cur_.primaryKey;
@@ -345,9 +320,7 @@ ydn.db.index.req.IDBCursor.prototype.getPrimaryKey = function() {
 
 
 /**
- * This must call only when cursor is active.
- * @return {*} return current primary key.
- * @override
+ * @inheritDoc
  */
 ydn.db.index.req.IDBCursor.prototype.getValue = function() {
   return this.cur_.value;
@@ -380,7 +353,7 @@ ydn.db.index.req.IDBCursor.prototype.getValue = function() {
 //  if (exclusive === false) {
 //    // restart the iterator
 //    this.logger.finest(this + ' restarting.');
-//    this.open_request(next_primary_key, next_index_key, true);
+//    this.openCursor(next_primary_key, next_index_key, true);
 //  } else if (exclusive === true &&
 //      !goog.isDefAndNotNull(next_index_key) && !goog.isDefAndNotNull(next_primary_key)) {
 //    if (!this.cur_) {
@@ -418,7 +391,7 @@ ydn.db.index.req.IDBCursor.prototype.getValue = function() {
 //        } else {
 //          // primary key not in the range
 //          // this will restart the thread.
-//          this.open_request(next_primary_key, next_index_key);
+//          this.openCursor(next_primary_key, next_index_key);
 //        }
 //      } else if (index_on_track) {
 //        // just to index key position and continue
@@ -426,7 +399,7 @@ ydn.db.index.req.IDBCursor.prototype.getValue = function() {
 //      } else {
 //        // this will need to restart the thread.
 //        // this.logger.finest(label + ' restarting for ' + next_primary_key);
-//        // this.open_request(next_primary_key, next_index_key);
+//        // this.openCursor(next_primary_key, next_index_key);
 //        throw new ydn.error.InvalidOperationError();
 //      }
 //    } else {
@@ -445,7 +418,7 @@ ydn.db.index.req.IDBCursor.prototype.getValue = function() {
 //      } else {
 //        // primary key not in the range
 //        // this will restart the thread.
-//        this.open_request(next_primary_key, next_index_key, exclusive);
+//        this.openCursor(next_primary_key, next_index_key, exclusive);
 //      }
 //    }
 //  }
@@ -499,7 +472,7 @@ ydn.db.index.req.IDBCursor.prototype.clear = function(index) {
  */
 ydn.db.index.req.IDBCursor.prototype.restart = function(effective_key, primary_key) {
   this.logger.finest(this + ' restarting.');
-  this.open_request(primary_key, effective_key, true);
+  this.openCursor(primary_key, effective_key, true);
 };
 
 
@@ -562,11 +535,14 @@ ydn.db.index.req.IDBCursor.prototype.continueEffectiveKey = function(key) {
 
 };
 
-
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.toString = function() {
-  return 'IDBCursor: ' + this.store_name + ':' + this.index_name;
+ydn.db.index.req.IDBCursor.prototype.disposeInternal = function() {
+  goog.base(this, 'disposeInternal');
+  this.cur_ = null;
 };
+
+
+
 

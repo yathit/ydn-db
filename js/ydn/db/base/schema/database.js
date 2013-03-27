@@ -257,17 +257,20 @@ ydn.db.schema.Database.prototype.hasStore = function(name) {
 
 /**
  * Return an explination what is different between the schemas.
- * @param {ydn.db.schema.Database} schema schema.
+ * @param {ydn.db.schema.Database} schema schema from sniffing.
+ * @param {boolean=} hint hint the give schema.
  * @return {string} return empty string if the two are similar.
  */
-ydn.db.schema.Database.prototype.difference = function(schema) {
+ydn.db.schema.Database.prototype.difference = function(schema, hint) {
   if (!schema || this.stores.length != schema.stores.length) {
     return 'Number of store: ' + this.stores.length + ' vs ' +
       schema.stores.length;
   }
   for (var i = 0; i < this.stores.length; i++) {
     var store = schema.getStore(this.stores[i].name);
-    var msg = this.stores[i].difference(store);
+    // hint to sniffed schema, so that some lost info are recovered.
+    var hinted_store = (!!store && !!hint) ? store.hint(this.stores[i]) : store;
+    var msg = this.stores[i].difference(hinted_store);
     if (msg.length > 0) {
       return 'store: "' + this.stores[i].name + '" ' + msg;
     }

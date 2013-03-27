@@ -40,12 +40,14 @@ ydn.db.deleteDatabase = function(db_name, type) {
   // http://www.w3.org/TR/IndexedDB/#widl-IDBFactory-deleteDatabase-IDBOpenDBRequest-DOMString-name
 
   // some IndexedDB API do not support deleting database.
-  if (ydn.db.con.IndexedDb.isSupported() && (!type || type == ydn.db.con.IndexedDb.TYPE) &&
+  if (ydn.db.con.IndexedDb.isSupported() && (!type ||
+    type == ydn.db.con.IndexedDb.TYPE) &&
     ydn.db.con.IndexedDb.indexedDb &&
       ('deleteDatabase' in ydn.db.con.IndexedDb.indexedDb)) {
     ydn.db.con.IndexedDb.indexedDb.deleteDatabase(db_name);
   }
-  if (ydn.db.con.WebSql.isSupported() && (!type || type == ydn.db.con.WebSql.TYPE)) {
+  if (ydn.db.con.WebSql.isSupported() && (!type ||
+    type == ydn.db.con.WebSql.TYPE)) {
     ydn.db.con.WebSql.deleteDatabase(db_name);
   }
   if (!type || type == ydn.db.con.LocalStorage.TYPE) {
@@ -63,7 +65,8 @@ ydn.db.deleteDatabase = function(db_name, type) {
  * greater than the second, -1 if the first is less than the second, and 0 if
  * the first is equal to the second.
  */
-ydn.db.cmp = (ydn.db.con.IndexedDb.indexedDb && ydn.db.con.IndexedDb.indexedDb.cmp) ?
+ydn.db.cmp = (ydn.db.con.IndexedDb.indexedDb &&
+  ydn.db.con.IndexedDb.indexedDb.cmp) ?
     goog.bind(ydn.db.con.IndexedDb.indexedDb.cmp,
       ydn.db.con.IndexedDb.indexedDb) : ydn.db.utils.cmp;
 

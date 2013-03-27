@@ -4,10 +4,13 @@
 
 
 goog.provide('ydn.db.index.req.AbstractCursor');
+goog.require('goog.Disposable');
 
 
 /**
  * Open an index. This will resume depending on the cursor state.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
  * @param {IDBKeyRange} keyRange
@@ -15,10 +18,11 @@ goog.provide('ydn.db.index.req.AbstractCursor');
  * @param {boolean} key_only mode.
  * @implements {ydn.db.index.req.ICursor}
  * @constructor
+ * @extends {goog.Disposable}
  */
-ydn.db.index.req.AbstractCursor = function(store_name, index_name,
+ydn.db.index.req.AbstractCursor = function(tx, tx_no, store_name, index_name,
       keyRange, direction, key_only) {
-
+  goog.base(this);
   /**
    * @final
    */
@@ -27,11 +31,19 @@ ydn.db.index.req.AbstractCursor = function(store_name, index_name,
    * @final
    */
   this.index_name = index_name;
+  /**
+   * @final
+   */
+  this.is_index = goog.isString(this.index_name);
 
   /**
    * @final
    */
   this.key_range = keyRange;
+
+  this.tx = tx;
+
+  this.tx_no = tx_no;
 
   /**
    * @final
@@ -50,6 +62,7 @@ ydn.db.index.req.AbstractCursor = function(store_name, index_name,
   this.key_only = key_only;
 
 };
+goog.inherits(ydn.db.index.req.AbstractCursor, goog.Disposable);
 
 
 
@@ -57,13 +70,19 @@ ydn.db.index.req.AbstractCursor = function(store_name, index_name,
  * @protected
  * @type {string|undefined}
  */
-ydn.db.index.req.AbstractCursor.prototype.index_name = '';
+ydn.db.index.req.AbstractCursor.prototype.index_name;
+
+/**
+ * @private
+ * @type {boolean}
+ */
+ydn.db.index.req.AbstractCursor.prototype.is_index;
 
 /**
  * @protected
  * @type {!Array.<string>|string|undefined}
  */
-ydn.db.index.req.AbstractCursor.prototype.index_key_path = '';
+ydn.db.index.req.AbstractCursor.prototype.index_key_path;
 
 
 /**
@@ -111,16 +130,25 @@ ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
 
 /**
  *
- * @return {boolean} return true if this is an index cursor.
+ * @return {boolean} true if transaction is active
  */
-ydn.db.index.req.AbstractCursor.prototype.isIndexCursor = function() {
-  return !!this.index_name;
+ydn.db.index.req.AbstractCursor.prototype.isActive = function() {
+  return !!this.tx;
 };
 
 
 /**
  *
- * @return {*} effective key.
+ * @return {boolean} return true if this is an index cursor.
+ */
+ydn.db.index.req.AbstractCursor.prototype.isIndexCursor = function() {
+  return this.is_index;
+};
+
+
+/**
+ *
+ * @return {IDBKey|undefined} effective key.
  */
 ydn.db.index.req.AbstractCursor.prototype.getEffectiveKey = function() {
   if (this.isIndexCursor()) {
@@ -168,7 +196,7 @@ ydn.db.index.req.AbstractCursor.prototype.onNext = function(primary_key, key, va
 
 /**
  *
- * @return {*} primary key.
+ * @return {IDBKey|undefined} primary key.
  */
 ydn.db.index.req.AbstractCursor.prototype.getPrimaryKey = goog.abstractMethod;
 
@@ -194,7 +222,7 @@ ydn.db.index.req.AbstractCursor.prototype.isRequestPending = function() {
 
 /**
  *
- * @return {*} primary key.
+ * @return {IDBKey|undefined} primary key.
  */
 ydn.db.index.req.AbstractCursor.prototype.getIndexKey = goog.abstractMethod;
 
@@ -209,7 +237,7 @@ ydn.db.index.req.AbstractCursor.prototype.getValue = goog.abstractMethod;
 /**
  *
  * @param {number=} index
- * @return {*} primary key.
+ * @return {!goog.async.Deferred} deferred object.
  */
 ydn.db.index.req.AbstractCursor.prototype.clear = goog.abstractMethod;
 
@@ -217,7 +245,7 @@ ydn.db.index.req.AbstractCursor.prototype.clear = goog.abstractMethod;
 /**
  * @param {*} record value
  * @param {number=} index
- * @return {*} primary key.
+ * @return {!goog.async.Deferred} primary key.
  */
 ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
 
@@ -231,19 +259,19 @@ ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
  * @param {*=} ini_index_key index key to resume position.
  * @param {boolean=} exclusive
  */
-ydn.db.index.req.AbstractCursor.prototype.open_request = goog.abstractMethod;
+ydn.db.index.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
 
 
 /**
  * Move cursor position to the primary key while remaining on same index key.
- * @param {*} primary_key
+ * @param {IDBKey=} primary_key
  */
 ydn.db.index.req.AbstractCursor.prototype.continuePrimaryKey = goog.abstractMethod;
 
 
 /**
  * Move cursor position to the effective key.
- * @param {*=} effective_key
+ * @param {IDBKey=} effective_key
  */
 ydn.db.index.req.AbstractCursor.prototype.continueEffectiveKey = goog.abstractMethod;
 
@@ -258,24 +286,37 @@ ydn.db.index.req.AbstractCursor.prototype.advance = goog.abstractMethod;
 /**
  * Restart the cursor. If previous cursor position is given,
  * the position is skip.
- * @param {*} effective_key previous position.
- * @param {*} primary_key
+ * @param {IDBKey=} effective_key previous position.
+ * @param {IDBKey=} primary_key
  */
 ydn.db.index.req.AbstractCursor.prototype.restart = goog.abstractMethod;
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.index.req.AbstractCursor.prototype.disposeInternal = function() {
+  this.tx = null;
+};
+
+
+if (goog.DEBUG) {
+/**
  * @override
  */
-ydn.db.index.req.AbstractCursor.prototype.toString = function() {
-  if (goog.DEBUG) {
-    var k = '';
-    if (this.hasCursor()) {
-      k = '{' + this.getPrimaryKey() + ':' + this.getIndexKey() + '}';
+ydn.db.index.req.AbstractCursor.prototype.toString = function () {
+
+  var k = '';
+  if (this.hasCursor()) {
+    if (this.isIndexCursor()) {
+      k = ' {' + this.getEffectiveKey() + ':' + this.getPrimaryKey() + '} ';
+    } else {
+      k = ' {' + this.getPrimaryKey() + '} ';
     }
-    var index = goog.isDef(this.index_name) ? ':' + this.index_name : '';
-    return 'Cursor:' + this.store_name + index + k;
-  } else {
-    return goog.base(this, 'toString');
   }
+  var index = goog.isDef(this.index_name) ? ':' + this.index_name : '';
+  var active = this.tx ? '' : '~';
+  return active  + ' TX' + this.tx_no + ' Cursor:' + k + this.store_name + index;
+
 };
+}

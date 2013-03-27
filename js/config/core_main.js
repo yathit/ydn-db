@@ -3,6 +3,6 @@
  *
  */
 
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.index.Storage');
 
-goog.exportSymbol('ydn.db.Storage', ydn.db.core.Storage);
+goog.exportSymbol('ydn.db.Storage', ydn.db.index.Storage);

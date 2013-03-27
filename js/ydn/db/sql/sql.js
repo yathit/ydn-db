@@ -301,7 +301,9 @@ ydn.db.Sql.prototype.getSelList = function() {
     return null;
   } else {
     var fields = this.selList_.split(',');
-    fields = fields.map(function(s) {return s.trim();});
+    fields = fields.map(function(s) {
+      return goog.string.stripQuotes(s.trim(), '"');
+    });
     return fields;
   }
 };

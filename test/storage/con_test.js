@@ -13,15 +13,7 @@ var stubs;
 
 
 var setUp = function() {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-    //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
-  }
+
 
   //ydn.db.con.IndexedDb.DEBUG = true;
 
@@ -75,9 +67,7 @@ var schema_test = function(schema, to_delete, name) {
 };
 
 
-var trival_db_name = 'test_' + Math.random();
-
-var trival_schema_test = function(dbname) {
+var trival_schema_test = function(dbname, cb) {
   var schema = {};
 
   var db = new ydn.db.Storage(dbname, schema, options);
@@ -93,7 +83,7 @@ var trival_schema_test = function(dbname) {
       //console.log([act_schema, validated_schema]);
       var diff = validated_schema.difference(act_schema);
       assertTrue('version diff: ' + diff, diff.length == 0);
-      reachedFinalContinuation = true;
+      cb()
     },
     100, // interval
     1000); // maxTimeout
@@ -105,14 +95,14 @@ var trival_schema_test = function(dbname) {
 
 };
 
-var test_10a_trival_schema = function() {
-  trival_schema_test(trival_db_name);
-};
-
-var test_10b_trival_schema = function() {
-  // this run is different because database already exists.
-  trival_schema_test(trival_db_name);
-  ydn.db.deleteDatabase(trival_db_name, options.mechanisms[0]);
+var test_10_trival_schema = function() {
+  var trival_db_name = 'test_' + Math.random();
+  trival_schema_test(trival_db_name, function() {
+    trival_schema_test(trival_db_name, function() {
+      reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(trival_db_name, options.mechanisms[0]);
+    });
+  });
 };
 
 var test_12_no_db = function() {
@@ -328,7 +318,6 @@ var test_schema_compound_index = function() {
   var index1 = {
     name: 'id1-id2',
     keyPath: ['id1', 'id2'],
-    type: [ydn.db.schema.DataType.TEXT, ydn.db.schema.DataType.TEXT],
     unique: false
   };
 

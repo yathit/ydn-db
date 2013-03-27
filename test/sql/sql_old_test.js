@@ -22,7 +22,7 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
   }
-  //ydn.db.core.req.IndexedDb.DEBUG = false;
+  //ydn.db.crud.req.IndexedDb.DEBUG = false;
 
   var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
   var typeIndex = new ydn.db.schema.Index('type', ydn.db.schema.DataType.TEXT, false);

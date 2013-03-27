@@ -13,6 +13,7 @@ goog.require('ydn.db.sql.req.IRequestExecutor');
 goog.require('ydn.db.sql.req.IndexedDb');
 goog.require('ydn.db.sql.req.WebSql');
 goog.require('ydn.db.sql.req.SimpleStore');
+goog.require('ydn.debug.error.ArgumentException');
 
 
 
@@ -25,16 +26,17 @@ goog.require('ydn.db.sql.req.SimpleStore');
  * is not active or locked. Active transaction can be locked by using
  * mutex.
  *
- * @param {!ydn.db.core.Storage} storage base storage object.
+ * @param {!ydn.db.crud.Storage} storage base storage object.
  *  @param {!ydn.db.schema.Database} schema
+ *  @param {string} scope_name
  * @param {ydn.db.tr.IThread} thread
  * @param {ydn.db.tr.IThread} sync_thread
  * @constructor
  * @implements {ydn.db.sql.IStorage}
  * @extends {ydn.db.index.DbOperator}
 */
-ydn.db.sql.DbOperator = function(storage, schema, thread, sync_thread) {
-  goog.base(this, storage, schema, thread, sync_thread);
+ydn.db.sql.DbOperator = function(storage, schema, scope_name, thread, sync_thread) {
+  goog.base(this, storage, schema, scope_name, thread, sync_thread);
 };
 goog.inherits(ydn.db.sql.DbOperator, ydn.db.index.DbOperator);
 
@@ -84,14 +86,15 @@ ydn.db.sql.DbOperator.prototype.executeSql = function (sql, params) {
   for (var i = 0; i < stores.length; i++) {
     var store = this.schema.getStore(stores[i]);
     if (!store) {
-      throw new ydn.error.ArgumentException('store: ' + store +
+      throw new ydn.debug.error.ArgumentException('store: ' + store +
           ' not exists.');
     }
   }
 
   var me = this;
-  this.tx_thread.exec(function (tx) {
-    me.getExecutor(tx).executeSql(df, query, params || []);
+  this.logger.finer('executeSql: ' + sql + " params: " + params);
+  this.tx_thread.exec(df, function (tx, tx_no, cb) {
+    me.getExecutor().executeSql(tx, tx_no, cb, query, params || []);
   }, query.getStoreNames(), query.getMode(), 'executeSql');
 
   return df;

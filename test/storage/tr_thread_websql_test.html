@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Test for IndexedDB auto schema</title>
+	<title>Test for Transaction module</title>
 </head>
 <body>
 
@@ -12,9 +12,9 @@
     <script>
 	    goog.require('goog.testing.ContinuationTestCase');
 	    goog.require('goog.testing.jsunit');
-      options = {mechanisms: ['indexeddb']};
+        options = {mechanisms: ['websql']};
     </script>
-	<script type="text/javascript" src="auto_schema_test.js"></script>
+	<script type="text/javascript" src="tr_thread_test.js"></script>
 
 </body>
 </html>

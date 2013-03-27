@@ -285,11 +285,11 @@ var schema_1 = {
 
   var objs = [
     {test: 't' + Math.random(), value: 0, id: 0, name: 'a', tags: ['a', 'b']},
-    {test: 't' + Math.random(), value: 2, id: 1, name: 'b', tags: []},
+    {test: 't' + Math.random(), value: 2, id: 1, name: 'b', tags: ['x']},
     {test: 't' + Math.random(), value: 4, id: 2, name: 'ba', tags: ['z']},
     {test: 't' + Math.random(), value: 6, id: 3, name: 'bc', tags: ['a', 'd', 'c']},
     {test: 't' + Math.random(), value: 8, id: 4, name: 'bd', tags: ['e', 'c']},
-    {test: 't' + Math.random(), value: 10, id: 5, name: 'c', tags: []},
+    {test: 't' + Math.random(), value: 10, id: 5, name: 'c', tags: ['b']},
     {test: 't' + Math.random(), value: 12, id: 6, name: 'c', tags: ['a']}
   ];
 
@@ -317,11 +317,11 @@ var schema_1 = {
     },
     teardown: function () {
       clearTimeout(test_env.ydnTimeoutId);
+      var type = db.getType();
       db.close();
       test_count++;
       if (test_count >= 5) {
-        var type = db.getType();
-        ydn.db.deleteDatabase(db.getName(), type);
+        ydn.db.deleteDatabase(db_name, type);
       }
     }
   };
@@ -579,7 +579,7 @@ var schema_1 = {
       test_count++;
       if (test_count >= 3) {
         var type = db.getType();
-        ydn.db.deleteDatabase(db.getName(), type);
+        ydn.db.deleteDatabase(db_name, type);
       }
     }
   };

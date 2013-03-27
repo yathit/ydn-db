@@ -43,7 +43,8 @@ ydn.db.con.IndexedDb = function(opt_size, time_out) {
 
   if (goog.isDef(opt_size)) {
     // https://developers.google.com/chrome/whitepapers/storage#asking_more
-    // IndexedDB is yet to implement in Quota Management API.
+    // Quota Management API is not IndexedDB API and
+    // this should not implement in this database API.
     /*
     webkitStorageInfo.requestQuota(
         webkitStorageInfo.PERSISTENT
@@ -52,13 +53,14 @@ ydn.db.con.IndexedDb = function(opt_size, time_out) {
         errorCallback);
     */
     if (opt_size > 5 * 1024 * 1024) { // no need to ask for 5 MB.
-      this.logger.warning('storage size request ignored.');
+      this.logger.warning('storage size request ignored, ' +
+        'use Quota Management API instead');
     }
   }
 
   this.idx_db_ = null;
 
-  this.time_out_ = time_out || 3*60*1000;
+  this.time_out_ = time_out || NaN;
 
 };
 
@@ -84,7 +86,9 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
    */
   var setDb = function(db, e) {
 
-    if (goog.isDef(e)) {
+    if (df.hasFired()) {
+      me.logger.warning('database already set.');
+    } else if (goog.isDef(e)) {
       me.logger.warning(e ? e.message : 'Error received.');
       me.idx_db_ = null;
       df.errback(e);
@@ -372,14 +376,14 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
   };
 
   // check for long database connection
-  if (goog.isNumber(this.time_out_)) {
+  if (goog.isNumber(this.time_out_) && !isNaN(this.time_out_)) {
     goog.Timer.callOnce(function() {
       if (openRequest.readyState != 'done') {
         // what we observed is chrome attached error object to openRequest
         // but did not call any of over listening events.
         var msg = me + ': database state is still ' + openRequest.readyState;
         me.logger.severe(msg);
-        setDb(null, new Error('connection timeout after ' + me.time_out_));
+        setDb(null, new ydn.db.TimeoutError('connection timeout after ' + me.time_out_));
       }
     }, this.time_out_);
 

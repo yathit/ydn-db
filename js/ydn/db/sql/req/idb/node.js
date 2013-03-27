@@ -70,10 +70,12 @@ ydn.db.sql.req.idb.Node.prototype.toString = function() {
 
 
 /**
- * @param {!goog.async.Deferred} df
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no
+ * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {ydn.db.index.req.IRequestExecutor} req
  */
-ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
+ydn.db.sql.req.idb.Node.prototype.execute = function(tx, tx_no, df, req) {
 
   var me = this;
   var out = [];
@@ -100,50 +102,38 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(df, req) {
     throw new ydn.error.NotSupportedException('too many conditions.');
   }
 
-  if (goog.isNull(sel_fields) || sel_fields.length == 0)  {
-    if (goog.isDefAndNotNull(order) && order != this.store_schema.getKeyPath()) {
-      var iter = new ydn.db.IndexValueCursors(store_name, order, key_range, reverse);
-      req.listByIterator(df, iter, limit, offset);
-    } else {
-      if (key_range) {
-        req.listByIndexKeyRange(df, store_name, wheres[0].getField(), key_range, reverse, limit, offset, false);
+  var ndf = df;
+  if (!goog.isNull(sel_fields)) {
+    ndf = function (records, is_error) {
+      if (is_error) {
+        df(records, true);
       } else {
-        req.listByKeyRange(df, store_name, key_range, reverse, limit, offset);
-      }
-    }
-  } else if (sel_fields.length == 1) {
-    if (goog.isDefAndNotNull(order) && order != sel_fields[0]) {
-      // TODO: More efficient
-      var ndf = new goog.async.Deferred();
-      var iter = new ydn.db.IndexValueCursors(store_name, order, key_range, reverse);
-      req.listByIterator(ndf, iter, limit, offset);
-      ndf.addCallbacks(function(values) {
-        var results = values.map(function(x) {
-          return goog.object.getValueByKeys(x, sel_fields[0]);
+        var out = records.map(function(record) {
+          var n = sel_fields.length;
+          if (n == 1) {
+            return ydn.db.utils.getValueByKeys(record, sel_fields[0]);
+          } else {
+            var obj = {};
+            for (var i = 0; i < n; i++) {
+              obj[sel_fields[i]] = ydn.db.utils.getValueByKeys(record,
+                sel_fields[i]);
+            }
+            return obj;
+          }
         });
-        df.callback(results);
-      }, function(e) {
-        df.errback(e);
-      });
-    } else {
-      var iter = new ydn.db.Cursors(store_name, sel_fields[0], key_range, reverse);
-      req.listByIterator(df, iter, limit, offset);
-    }
-
+        df(out);
+      }
+    };
+  }
+  if (order && order != this.store_schema.getKeyPath()) {
+    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, order, key_range,
+      reverse, limit, offset, false);
+  } else if (wheres.length > 0 && wheres[0].getField() !=
+      this.store_schema.getKeyPath()) {
+    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, wheres[0].getField(), key_range,
+      reverse, limit, offset, false);
   } else {
-    var ndf = new goog.async.Deferred();
-    req.listByKeyRange(ndf, store_name, key_range, reverse, limit, offset);
-    ndf.addCallbacks(function(records) {
-      var out = records.map(function(record) {
-        var obj = {};
-        for (var i = 0; i < sel_fields.length; i++) {
-          obj[sel_fields[i]] = goog.object.getValueByKeys(record, sel_fields[i]);
-        }
-        return obj;
-      })
-    }, function(e) {
-      df.errback(e);
-    });
+    req.listByKeyRange(tx, tx_no, ndf, store_name, key_range, reverse, limit, offset);
   }
 
 };

@@ -22,19 +22,22 @@ if (/websql/.test(location.hash)) {
 
 var reporter = new ydn.testing.Reporter('ydn-db');
 
-var db_name = 'test_iteration_1';
+var db_name = 'test_iteration_2';
 var store_name = 'st';
 var schema = {
   stores: [
     {
       name: store_name,
       keyPath: 'id',
+      type: 'INTEGER',
       indexes: [
         {
-          keyPath: 'value'
+          keyPath: 'value',
+          type: 'INTEGER'
         },
         {
           keyPath: 'tags',
+          type: 'TEXT',
           multiEntry: true
         }
       ]
@@ -176,6 +179,7 @@ QUnit.done(function(results) {
   reporter.report();
   var type = db.getType();
   ydn.db.deleteDatabase(db_name, type);
+  db.close();
 });
 
 

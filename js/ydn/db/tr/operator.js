@@ -8,7 +8,7 @@
 goog.provide('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
-goog.require('ydn.db.core.IOperator');
+goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.error.NotSupportedException');
 
 
@@ -24,11 +24,12 @@ goog.require('ydn.error.NotSupportedException');
  *
  * @param {!ydn.db.tr.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema
+ * @param {string} scope_name
  * @param {ydn.db.tr.IThread} tx_thread
  * @param {ydn.db.tr.IThread} sync_thread
  * @constructor
  */
-ydn.db.tr.DbOperator = function(storage, schema, tx_thread, sync_thread) {
+ydn.db.tr.DbOperator = function(storage, schema, scope_name, tx_thread, sync_thread) {
 
   /**
    * @final
@@ -52,7 +53,14 @@ ydn.db.tr.DbOperator = function(storage, schema, tx_thread, sync_thread) {
   /**
    * @final
    */
+  this.scope_name = scope_name;
+
+  /**
+   * @final
+   */
   this.sync_thread = sync_thread;
+
+  this.executor = null;
 };
 
 
@@ -62,6 +70,19 @@ ydn.db.tr.DbOperator = function(storage, schema, tx_thread, sync_thread) {
  */
 ydn.db.tr.DbOperator.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.tr.DbOperator');
+
+
+/**
+ * @type {ydn.db.crud.req.IRequestExecutor}
+ * @protected
+ */
+ydn.db.tr.DbOperator.prototype.executor;
+
+/**
+ * @type {string}
+ * @protected
+ */
+ydn.db.tr.DbOperator.prototype.scope_name;
 
 
 /**
@@ -95,35 +116,15 @@ ydn.db.tr.DbOperator.prototype.abort = function() {
 };
 
 
-///**
-// * Create a new isolated transaction. After creating a transaction, use
-// * {@link #getTx} to received an active transaction. If transaction is not
-// * active, it return null. In this case a new transaction must re-create.
-// * @param {Function} trFn function that invoke in the transaction.
-// * @param {!Array.<string>} store_names list of keys or
-// * store name involved in the transaction.
-// * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
-// * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted handler.
-// * @param {...} opt_args optional arguments.
-// */
-//ydn.db.tr.DbOperator.prototype.run = function(trFn, store_names, opt_mode,
-//                                              oncompleted, opt_args) {
-//    return this.tx_thread.run.apply(this.tx_thread,
-//    Array.prototype.slice.call(arguments));
-//};
-
-
 /**
  * @final
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @return {ydn.db.core.req.IRequestExecutor}
+ * @return {ydn.db.crud.req.IRequestExecutor}
  */
-ydn.db.tr.DbOperator.prototype.getExecutor = function(tx) {
+ydn.db.tr.DbOperator.prototype.getExecutor = function() {
   if (!this.executor) {
-    this.executor = this.storage_.getExecutor();
+    this.executor = this.storage_.newExecutor(this.scope_name);
   }
 
-  this.executor.setTx(tx);
   return this.executor;
 };
 
@@ -146,6 +147,8 @@ ydn.db.tr.DbOperator.prototype.getStorage = function() {
 ydn.db.tr.DbOperator.prototype.addStoreSchema = function(store) {
   return this.getStorage().addStoreSchema(store);
 };
+
+
 
 
 /** @override */

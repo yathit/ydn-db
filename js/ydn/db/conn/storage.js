@@ -75,7 +75,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   var options = opt_options || {};
 
   if (goog.DEBUG) {
-    var fields = ['autoSchema', 'size', 'mechanisms', 'thread'];
+    var fields = ['autoSchema', 'connectionTimeout', 'size', 'mechanisms', 'thread'];
     for (var key in options) {
       if (options.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.debug.error.ArgumentException('Unknown attribute "' + key +
@@ -92,9 +92,16 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   /**
    * @final
-   * @type {number|undefined}
    */
   this.size = options.size;
+
+  /**
+   * @final
+   */
+  this.connectionTimeout = goog.isDef(options.connectionTimeout) ?
+      options.connectionTimeout :
+      ydn.db.con.IndexedDb.DEBUG ?
+      1000 : goog.DEBUG ? 30*1000 : 30*60*1000;
 
   /**
    * @final
@@ -103,10 +110,6 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   this.use_text_store = goog.isDef(options.use_text_store) ?
     options.use_text_store : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
 
-  /**
-   * @type {ydn.db.con.IDatabase}
-   * @private
-   */
   this.db_ = null;
 
   /**
@@ -250,13 +253,39 @@ ydn.db.con.Storage.prototype.setName = function(opt_db_name) {
 
   /**
    * @final
-   * @protected
-   * @type {string}
    */
   this.db_name = opt_db_name;
   this.connectDatabase();
 
 };
+
+
+/**
+ * @type {string}
+ * @protected
+ */
+ydn.db.con.Storage.prototype.db_name;
+
+
+/**
+ * @type {ydn.db.con.IDatabase}
+ * @private
+ */
+ydn.db.con.Storage.prototype.db_;
+
+
+/**
+ * @type {number|undefined}
+ * @protected
+ */
+ydn.db.con.Storage.prototype.size;
+
+
+/**
+ * @type {number}
+ * @protected
+ */
+ydn.db.con.Storage.prototype.connectionTimeout;
 
 
 /**
@@ -300,7 +329,7 @@ ydn.db.con.Storage.PREFERENCE = [
 ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
 
   if (db_type == ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.con.IndexedDb(this.size);
+    return new ydn.db.con.IndexedDb(this.size, this.connectionTimeout);
   } else if (db_type == ydn.db.con.WebSql.TYPE) {
     return new ydn.db.con.WebSql(this.size);
   } else if (db_type == ydn.db.con.LocalStorage.TYPE) {
@@ -323,9 +352,36 @@ ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
 ydn.db.con.Storage.prototype.connectDatabase = function() {
   // handle version change
 
+  var me = this;
   goog.asserts.assertString(this.db_name);
 
   var df = new goog.async.Deferred();
+  var resolve = function (is_connected, ev) {
+    if (is_connected) {
+      me.logger.finest(me + ': ready.');
+      me.last_queue_checkin_ = NaN;
+
+      goog.Timer.callOnce(function () {
+        // dispatch asynchroniously so that any err on running db request
+        // are not caught under deferred object.
+
+        me.onReady(ev);
+        me.dispatchEvent(ev);
+        me.popTxQueue_();
+      });
+      df.callback(ev);
+
+    } else {
+      me.logger.warning(me + ': database connection fail ' + ev.name);
+
+      goog.Timer.callOnce(function () {
+        me.onReady(ev);
+        me.purgeTxQueue_(ev);
+      });
+
+      df.errback(ev);
+    }
+  };
 
   /**
    * The connected database instance.
@@ -369,23 +425,22 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
   }
 
   if (goog.isNull(db)) {
-    // TODO: use fail event
-    throw new ydn.error.ConstrainError('No storage mechanism found.');
-  }
 
-  var me = this;
+    var e = new ydn.error.ConstrainError('No storage mechanism found.');
+
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, me,
+        NaN, NaN, e);
+    resolve(false, event);
+  }
 
   this.init(); // let super class to initialize.
 
-  db.connect(this.db_name, this.schema).addCallback(function(old_version) {
+  db.connect(this.db_name, this.schema).addCallbacks(function(old_version) {
     me.db_ = db;
-    me.logger.finest(me + ': ready.');
-    me.last_queue_checkin_ = NaN;
 
-    me.popTxQueue_();
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.DONE,
-      me, parseFloat(db.getVersion()), old_version);
-    me.dispatchEvent(event);
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY,
+        me, parseFloat(db.getVersion()), parseFloat(old_version), null);
+    resolve(true, event);
 
     /**
      *
@@ -397,15 +452,13 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       // no event for disconnected.
 
     };
-  }).addErrback(function(e) {
-      me.logger.warning(me + ': opening fail: ' + e.message);
-      goog.async.Deferred.fail(e);
-      // this could happen if user do not allow to use the storage
-      me.purgeTxQueue_(e);
-      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.FAIL, me, NaN, NaN);
-      event.message = e.message;
-      me.dispatchEvent(event);
-    });
+  }, function (e) {
+    me.logger.warning(me + ': opening fail: ' + e.message);
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, me,
+      NaN, NaN, e);
+    event.message = e.message;
+    resolve(false, event);
+  });
 
   return df;
 
@@ -428,27 +481,21 @@ ydn.db.con.Storage.prototype.getType = function() {
 
 
 /**
+ * Handle ready event by dispatching 'ready' event.
+ * @param {ydn.db.events.StorageEvent} ev event
+ */
+ydn.db.con.Storage.prototype.onReady = function (ev) {
+  this.dispatchEvent(ev);
+};
+
+
+/**
  *
  * @return {boolean} true on ready.
  */
 ydn.db.con.Storage.prototype.isReady = function() {
   return !!this.db_ && this.db_.isReady();
 };
-
-//
-///**
-// *
-// * @enum {string}
-// */
-//ydn.db.con.Storage.EventTypes = {
-//  CONNECTED: 'conneted',
-//  FAIL: 'fail',
-//  CREATED: 'created',
-//  UPDATED: 'updated',
-//  DELETED: 'deleted'
-//};
-
-
 
 
 /**
@@ -474,33 +521,6 @@ ydn.db.con.Storage.prototype.close = function() {
   }
 };
 
-//
-//
-///**
-// * Access readied database instance asynchronously.
-// * @param {function(!ydn.db.con.IDatabase)} callback
-// * @export
-// */
-//ydn.db.con.Storage.prototype.onReady = function(callback) {
-//  if (this.db_ && !this.db_.getDbInstance()) {
-//    // we can skip this check, but it saves one function wrap.
-//    callback(this.db_);
-//  } else {
-//    this.deferredDb_.addCallback(callback);
-//  }
-//};
-
-//
-///**
-// * Get database instance.
-// * @protected
-// * @return {ydn.db.con.IDatabase} database connector.
-// */
-//ydn.db.con.Storage.prototype.getDb = function() {
-//  return this.db_;
-//};
-
-
 
 /**
  * Get nati database instance.
@@ -517,14 +537,6 @@ ydn.db.con.Storage.prototype.getDbInstance = function() {
  * @private
  */
 ydn.db.con.Storage.prototype.last_queue_checkin_ = NaN;
-
-
-/**
- * @const
- * @type {number}
- */
-ydn.db.con.Storage.timeOut = goog.DEBUG || ydn.db.con.IndexedDb.DEBUG ?
-  500 : 3000;
 
 
 /**
@@ -553,8 +565,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
   var task = this.txQueue_.shift();
   if (task) {
     this.logger.finest('pop tx queue '  + task.fnc.name);
-    ydn.db.con.Storage.prototype.transaction.call(this,
-      task.fnc, task.scopes, task.mode, task.oncompleted);
+    this.transaction(task.fnc, task.scopes, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
 };
@@ -606,10 +617,12 @@ ydn.db.con.Storage.prototype.purgeTxQueue_ = function(e) {
   if (this.txQueue_) {
     this.logger.info('Purging ' + this.txQueue_.length +
       ' transactions request.');
-    var task = this.txQueue_.shift();
-    while (task) {
-      task.oncompleted(ydn.db.base.TransactionEventTypes.ERROR, e);
-      task = this.txQueue_.shift();
+    var task;
+    while (task = this.txQueue_.shift()) {
+      // task.fnc(null); this will cause error
+      if (task.oncompleted) {
+        task.oncompleted(ydn.db.base.TransactionEventTypes.ERROR, e);
+      }
     }
   }
 };
@@ -724,6 +737,32 @@ ydn.db.con.Storage.prototype.isAutoSchema = function() {
 ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
   this.logger.warning('Synchronization option for ' + store.getName() + ' ignored.');
 };
+
+
+if (goog.DEBUG) { // don't allow to added non existing event type
+/**
+ * @inheritDoc
+ */
+ydn.db.con.Storage.prototype.addEventListener = function(
+    type, handler, opt_capture, opt_handlerScope) {
+  var checkType = function (type) {
+    if (!goog.array.contains(['created', 'ready', 'deleted', 'updated'],
+      type)) {
+      throw new ydn.debug.error.ArgumentException('Invalid event type "' +
+        type + '"');
+    }
+  };
+  if (goog.isArrayLike(type)) {
+    for (var i = 0; i < type.length; i++) {
+      checkType(type[i]);
+    }
+  } else {
+    checkType(type);
+  }
+  goog.base(this, 'addEventListener', type, handler, opt_capture,
+    opt_handlerScope);
+};
+}
 
 
 /**

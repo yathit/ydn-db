@@ -20,8 +20,8 @@ ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME = '_ROWID_';
 
 
 /**
- * Non-indexed field are store in this default field. There is always a column
- * in each table.
+ * SQLite store serialized object into this default column. This library
+ * always create table with this default column of type BLOB.
  * @const
  * @type {string}
  */
@@ -46,11 +46,25 @@ ydn.db.base.USE_HOOK = false;
 
 
 /**
+ * For stripping non IndexedDB code and unlocking IDB feature.
+ * @define {boolean} compiled only for IndexedDB.
+ */
+ydn.db.base.ONLY_IDB = false;
+
+
+/**
  * Default result limit during retrieving records from the database.
  * @const
  * @type {number}
  */
 ydn.db.base.DEFAULT_RESULT_LIMIT = 100;
+
+
+/**
+ * Default connection time interval in ms.
+ * @define {number}
+ */
+ydn.db.base.DEFAULT_CONNECTION_TIMEOUT = 30*60*1000;
 
 
 /**
@@ -86,6 +100,7 @@ ydn.db.base.TransactionEventTypes = {
 /**
  * The three possible transaction modes.
  * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
+ * @enum {string|number}
  * @private
  */
 ydn.db.base.DefaultTransactionMode = {
@@ -120,7 +135,7 @@ ydn.db.base.IDBTransaction = (goog.global.webkitIDBRequest && (
 /**
  * The three possible transaction modes.
  * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
- * @enum {string|number}
+ * @enum {string|number} string in new standard, number in old.
  */
 ydn.db.base.TransactionMode = {
   READ_ONLY: ydn.db.base.IDBTransaction.READ_ONLY,
@@ -184,9 +199,10 @@ ydn.db.base.DIRECTIONS = [
 
 
 /**
- *
+ * Convert flag to direction enum.
  * @param {boolean=} reverse
  * @param {boolean=} unique
+ * @return {ydn.db.base.Direction}
  */
 ydn.db.base.getDirection = function(reverse, unique) {
   if (reverse) {

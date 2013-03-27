@@ -17,11 +17,12 @@ goog.require('ydn.db.sql.req.idb.ReduceNode');
  * @param {string} dbname database name.
  * @extends {ydn.db.index.req.IndexedDb}
  * @param {!ydn.db.schema.Database} schema schema.
+ * @param {string} scope_name
  * @constructor
  * @implements {ydn.db.sql.req.IRequestExecutor}
  */
-ydn.db.sql.req.IndexedDb = function(dbname, schema) {
-  goog.base(this, dbname, schema);
+ydn.db.sql.req.IndexedDb = function(dbname, schema, scope_name) {
+  goog.base(this, dbname, schema, scope_name);
 };
 goog.inherits(ydn.db.sql.req.IndexedDb, ydn.db.index.req.IndexedDb);
 
@@ -44,7 +45,7 @@ ydn.db.sql.req.IndexedDb.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.sql.req.IndexedDb.prototype.executeSql = function(df, sql, params) {
+ydn.db.sql.req.IndexedDb.prototype.executeSql = function(tx, tx_no, df, sql, params) {
 
   var msg = sql.parse(params);
   if (msg) {
@@ -72,23 +73,9 @@ ydn.db.sql.req.IndexedDb.prototype.executeSql = function(df, sql, params) {
       node = new ydn.db.sql.req.idb.Node(store_schema, sql);
     }
 
-    node.execute(df, this);
+    node.execute(tx, tx_no, df, this);
   } else {
     throw new ydn.error.NotSupportedException(sql.getSql());
   }
 };
 
-
-
-/**
- * @inheritDoc
- */
-ydn.db.sql.req.IndexedDb.prototype.explainSql = function(sql) {
-  throw new ydn.error.NotImplementedException();
-//  var cursor = sql.toIdbQuery(this.schema);
-//  var json = /** @type {Object} */ (cursor.toJSON());
-//  json['map'] = cursor.map ? cursor.map.toString() : null;
-//  json['reduce'] = cursor.reduce ? cursor.reduce.toString() : null;
-//  json['initial'] = cursor.initial;
-//  return json;
-};

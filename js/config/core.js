@@ -1,87 +1,112 @@
 /**
- * @fileoverview Exports for core ydn-db module.
+ * @fileoverview Export additional symbols for index distribution.
  *
+ * User: kyawtun
+ * Date: 19/1/13
  */
 
-goog.require('ydn.db.core.Storage');
-goog.require('ydn.db.core.DbOperator');
-goog.require('ydn.db');
-goog.require('ydn.db.events.RecordEvent');
-goog.require('ydn.db.events.StoreEvent');
+goog.require('ydn.db.index.Storage');
+goog.require('ydn.db.index.DbOperator');
+goog.require('ydn.db.index.req.IDBCursor');
+goog.require('ydn.math.Expression');
+//
+//goog.exportProperty(ydn.db.index.Storage.prototype, 'thread',
+//  ydn.db.index.Storage.prototype.thread);
+
+goog.exportProperty(ydn.db.index.Storage.prototype, 'scan',
+    ydn.db.index.Storage.prototype.scan);
+goog.exportProperty(ydn.db.index.Storage.prototype, 'map',
+    ydn.db.index.Storage.prototype.map);
+goog.exportProperty(ydn.db.index.Storage.prototype, 'reduce',
+    ydn.db.index.Storage.prototype.reduce);
+goog.exportProperty(ydn.db.index.Storage.prototype, 'open',
+    ydn.db.index.Storage.prototype.open);
+
+goog.exportProperty(ydn.db.index.DbOperator.prototype, 'scan',
+    ydn.db.index.DbOperator.prototype.scan);
+goog.exportProperty(ydn.db.index.DbOperator.prototype, 'map',
+    ydn.db.index.DbOperator.prototype.map);
+goog.exportProperty(ydn.db.index.DbOperator.prototype, 'reduce',
+    ydn.db.index.DbOperator.prototype.reduce);
+goog.exportProperty(ydn.db.index.DbOperator.prototype, 'open',
+    ydn.db.index.DbOperator.prototype.open);
+
+goog.exportProperty(ydn.db.index.req.AbstractCursor.prototype, 'key',
+    ydn.db.index.req.AbstractCursor.prototype.getEffectiveKey);
+
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'primaryKey',
+    ydn.db.index.req.IDBCursor.prototype.getPrimaryKey);
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'value',
+    ydn.db.index.req.IDBCursor.prototype.getValue);
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'update',
+    ydn.db.index.req.IDBCursor.prototype.update);
+goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'clear',
+    ydn.db.index.req.IDBCursor.prototype.clear);
+
+goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'primaryKey',
+    ydn.db.index.req.CachedWebsqlCursor.prototype.getPrimaryKey);
+goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'value',
+    ydn.db.index.req.CachedWebsqlCursor.prototype.getValue);
+goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'update',
+    ydn.db.index.req.CachedWebsqlCursor.prototype.update);
+goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'clear',
+    ydn.db.index.req.CachedWebsqlCursor.prototype.clear);
+
+goog.exportSymbol('ydn.math.Expression', ydn.math.Expression);
+goog.exportProperty(ydn.math.Expression.prototype, 'evaluate',
+    ydn.math.Expression.prototype.evaluate);
+goog.exportProperty(ydn.math.Expression.prototype, 'compile',
+    ydn.math.Expression.prototype.compile);
+goog.exportProperty(ydn.math.Expression, 'parseRpn',
+    ydn.math.Expression.parseRpn);
+goog.exportProperty(ydn.math.Expression, 'parseInfix',
+    ydn.math.Expression.parseInfix);
 
 
-goog.exportSymbol('ydn.db.core.Storage', ydn.db.core.Storage);
+goog.exportSymbol('ydn.db.Iterator', ydn.db.Iterator);
+goog.exportSymbol('ydn.db.KeyCursors', ydn.db.KeyCursors);
+goog.exportSymbol('ydn.db.ValueCursors', ydn.db.ValueCursors);
+goog.exportSymbol('ydn.db.Cursors', ydn.db.Cursors);
+goog.exportSymbol('ydn.db.IndexValueCursors', ydn.db.IndexValueCursors);
 
-goog.exportProperty(ydn.db.core.Storage.prototype, 'thread',
-  ydn.db.core.Storage.prototype.thread);
+goog.exportProperty(ydn.db.Iterator.prototype, 'count',
+    ydn.db.Iterator.prototype.count);
+goog.exportProperty(ydn.db.Iterator.prototype, 'done',
+    ydn.db.Iterator.prototype.done);
+goog.exportProperty(ydn.db.Iterator.prototype, 'getKeyRange',
+    ydn.db.Iterator.prototype.getKeyRange);
+goog.exportProperty(ydn.db.Iterator.prototype, 'getIndexName',
+    ydn.db.Iterator.prototype.getIndexName);
+goog.exportProperty(ydn.db.Iterator.prototype, 'getStoreName',
+    ydn.db.Iterator.prototype.getStoreName);
+goog.exportProperty(ydn.db.Iterator.prototype, 'isReversed',
+    ydn.db.Iterator.prototype.isReversed);
+goog.exportProperty(ydn.db.Iterator.prototype, 'isUnique',
+    ydn.db.Iterator.prototype.isUnique);
+goog.exportProperty(ydn.db.Iterator.prototype, 'isKeyOnly',
+    ydn.db.Iterator.prototype.isKeyOnly);
+goog.exportProperty(ydn.db.Iterator.prototype, 'primaryKey',
+    ydn.db.Iterator.prototype.getPrimaryKey);
+goog.exportProperty(ydn.db.Iterator.prototype, 'key',
+    ydn.db.Iterator.prototype.getEffectiveKey);
+goog.exportProperty(ydn.db.Iterator.prototype, 'resume',
+    ydn.db.Iterator.prototype.resume);
+goog.exportProperty(ydn.db.Iterator.prototype, 'reset',
+    ydn.db.Iterator.prototype.reset);
 
-goog.exportProperty(ydn.db.core.Storage.prototype, 'add',
-    ydn.db.core.Storage.prototype.add);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'get',
-    ydn.db.core.Storage.prototype.get);
-//goog.exportProperty(ydn.db.core.Storage.prototype, 'load',
-//  ydn.db.core.Storage.prototype.load);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'values',
-  ydn.db.core.Storage.prototype.values);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'put',
-    ydn.db.core.Storage.prototype.put);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'clear',
-    ydn.db.core.Storage.prototype.clear);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'count',
-  ydn.db.core.Storage.prototype.count);
+goog.exportProperty(ydn.db.KeyCursors, 'where',
+  ydn.db.KeyCursors.where);
+goog.exportProperty(ydn.db.ValueCursors, 'where',
+  ydn.db.ValueCursors.where);
+goog.exportProperty(ydn.db.Cursors, 'where',
+  ydn.db.Cursors.where);
+goog.exportProperty(ydn.db.IndexValueCursors, 'where',
+  ydn.db.IndexValueCursors.where);
 
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'add',
-    ydn.db.core.DbOperator.prototype.add);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'get',
-    ydn.db.core.DbOperator.prototype.get);
-//goog.exportProperty(ydn.db.core.Storage.prototype, 'load',
-//  ydn.db.core.Storage.prototype.load);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'values',
-  ydn.db.core.DbOperator.prototype.values);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'put',
-    ydn.db.core.DbOperator.prototype.put);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'clear',
-    ydn.db.core.DbOperator.prototype.clear);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'count',
-  ydn.db.core.DbOperator.prototype.count);
-
-goog.exportSymbol('ydn.db.cmp', ydn.db.cmp);
-
-goog.exportSymbol('ydn.db.Key', ydn.db.Key );
-goog.exportProperty(ydn.db.Key.prototype, 'id', ydn.db.Key.prototype.getId);
-goog.exportProperty(ydn.db.Key.prototype, 'parent',
-  ydn.db.Key.prototype.getParent);
-goog.exportProperty(ydn.db.Key.prototype, 'storeName',
-  ydn.db.Key.prototype.getStoreName);
-
-
-goog.exportSymbol('ydn.db.KeyRange', ydn.db.KeyRange );
-goog.exportProperty(ydn.db.KeyRange, 'upperBound', ydn.db.KeyRange.upperBound);
-goog.exportProperty(ydn.db.KeyRange, 'lowerBound', ydn.db.KeyRange.lowerBound);
-goog.exportProperty(ydn.db.KeyRange, 'bound', ydn.db.KeyRange.bound);
-goog.exportProperty(ydn.db.KeyRange, 'only', ydn.db.KeyRange.only);
-goog.exportProperty(ydn.db.KeyRange, 'starts', ydn.db.KeyRange.starts);
-
-
-goog.exportProperty(ydn.db.events.Event.prototype, 'store_name',
-    ydn.db.events.Event.prototype.store_name); // this don't work, why?
-goog.exportProperty(ydn.db.events.Event.prototype, 'getStoreName',
-    ydn.db.events.Event.prototype.getStoreName);
-
-goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'name',
-    ydn.db.events.RecordEvent.prototype.name);
-goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'getKey',
-  ydn.db.events.RecordEvent.prototype.getKey);
-goog.exportProperty(ydn.db.events.RecordEvent.prototype, 'getValue',
-  ydn.db.events.RecordEvent.prototype.getValue);
-
-
-goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'name',
-    ydn.db.events.StoreEvent.prototype.name);
-goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'getKeys',
-  ydn.db.events.StoreEvent.prototype.getKeys);
-goog.exportProperty(ydn.db.events.StoreEvent.prototype, 'getValues',
-    ydn.db.events.StoreEvent.prototype.getValues);
-
-
-
+goog.exportSymbol('ydn.db.Streamer', ydn.db.Streamer);
+goog.exportProperty(ydn.db.Streamer.prototype, 'push',
+    ydn.db.Streamer.prototype.push);
+goog.exportProperty(ydn.db.Streamer.prototype, 'collect',
+    ydn.db.Streamer.prototype.collect);
+goog.exportProperty(ydn.db.Streamer.prototype, 'setSink',
+    ydn.db.Streamer.prototype.setSink);

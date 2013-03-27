@@ -9,7 +9,7 @@
  */
 
 
-goog.provide('ydn.db.core.req.RequestExecutor');
+goog.provide('ydn.db.crud.req.RequestExecutor');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db.InternalError');
@@ -20,21 +20,22 @@ goog.require('ydn.db.Key');
 /**
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
+ * @param {string} scope
  * @constructor
  */
-ydn.db.core.req.RequestExecutor = function(dbname, schema) {
+ydn.db.crud.req.RequestExecutor = function(dbname, schema, scope) {
   /**
-   * @protected
    * @final
-   * @type {string}
    */
   this.dbname = dbname;
   /**
-   * @protected
    * @final
-   * @type {!ydn.db.schema.Database}
    */
   this.schema = schema;
+  /**
+   * @final
+   */
+  this.scope = scope;
 };
 
 
@@ -43,34 +44,39 @@ ydn.db.core.req.RequestExecutor = function(dbname, schema) {
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.core.req.RequestExecutor.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.core.req.RequestExecutor');
+ydn.db.crud.req.RequestExecutor.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.crud.req.RequestExecutor');
 
 
 /**
- *
- * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
  * @protected
+ * @type {!ydn.db.schema.Database}
  */
-ydn.db.core.req.RequestExecutor.prototype.tx = null;
-
+ydn.db.crud.req.RequestExecutor.prototype.schema;
 
 /**
  * @protected
  * @type {string}
  */
-ydn.db.core.req.RequestExecutor.prototype.scope = '';
-
+ydn.db.crud.req.RequestExecutor.prototype.dbname = '';
 
 /**
- *
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx transaction object.
- * @param {string=} scope scope for logistic purpose only.
+ * @protected
+ * @type {string}
  */
-ydn.db.core.req.RequestExecutor.prototype.setTx = function(tx, scope) {
-  this.tx = tx;
-  this.scope_ = scope || '';
+ydn.db.crud.req.RequestExecutor.prototype.scope = '';
+
+
+
+
+if (goog.DEBUG) {
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.req.RequestExecutor.prototype.toString = function() {
+  return 'RequestExecutor:' + this.scope;
 };
+}
 
 
 

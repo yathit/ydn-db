@@ -1,7 +1,5 @@
-# Overview #
+# Developer guide #
 
-Beautiful database API for secure, robust, high-performance,
-maintainable large-scale javascript web app.
 
 # Setup #
 
@@ -54,6 +52,7 @@ End-to-end testing for disteribution can be found in test/qunit folder as well
 
 Sending pull request is easiest way. For more, email to one of the authors in
 the source code.
+
 We follow [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml).
 All commit on master branch must pass most stringent setting compilation and all unit tests.
 

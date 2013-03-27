@@ -32,6 +32,10 @@ StorageOptions.prototype.autoSchema;
  */
 StorageOptions.prototype.thread;
 
+/**
+ * @type {number|undefined}
+ */
+StorageOptions.prototype.connectionTimeout;
 
 /**
  * @constructor

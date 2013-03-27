@@ -15,10 +15,12 @@ goog.require('ydn.db.schema.Index');
 /**
  *
  * @param {string} name table name.
- * @param {string=} keyPath indexedDB keyPath, like 'feed.id.$t'. Default to.
+ * @param {(Array.<string>|string)=} keyPath indexedDB keyPath, like
+ * 'feed.id.$t'. Default to.
  * @param {boolean=} autoIncrement If true, the object store has a key
  * generator. Defaults to false.
- * @param {!Array.<ydn.db.schema.DataType>|string|ydn.db.schema.DataType=} opt_type data type for keyPath. Default to
+ * @param {string|ydn.db.schema.DataType=} opt_type
+ * data type for keyPath. Default to
  * <code>ydn.db.schema.DataType.INTEGER</code> if opt_autoIncrement is
  * <code>true.</code>
  * @param {!Array.<!ydn.db.schema.Index>=} opt_indexes list of indexes.
@@ -44,7 +46,8 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   this.keyPath = goog.isDef(keyPath) ? keyPath : null;
   if (!goog.isNull(this.keyPath) &&
       !goog.isString(this.keyPath) && !goog.isArrayLike(this.keyPath)) {
-    throw new ydn.debug.error.ArgumentException('keyPath must be a string or array');
+    throw new ydn.debug.error.ArgumentException(
+        'keyPath must be a string or array');
   }
 
   /**
@@ -61,6 +64,10 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
       throw new ydn.debug.error.ArgumentException('type invalid in store: ' +
           this.name);
     }
+    if (goog.isArray(this.keyPath)) {
+      throw new ydn.debug.error.ArgumentException(
+          'composite key for store "' + this.name + '" must not specified type');
+    }
   }
 
   /**
@@ -69,7 +76,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   this.type = goog.isDef(type) ? type : this.autoIncrement ?
       ydn.db.schema.DataType.INTEGER : undefined;
 
-  if (this.autoIncrement) {
+  if (!ydn.db.base.ONLY_IDB && this.autoIncrement) {
     var sqlite_msg = 'AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY';
     goog.asserts.assert(this.type == ydn.db.schema.DataType.INTEGER,
         sqlite_msg);
@@ -91,7 +98,21 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    * @final
    */
   this.fixed = !!fixed;
+  /**
+   * @final
+   */
+  this.keyColumnType_ = goog.isString(this.type) ?
+      this.type : ydn.db.schema.DataType.TEXT;
+  /**
+   * @final
+   */
+  this.primary_column_name_ = goog.isArray(this.keyPath) ?
+      this.keyPath.join(',') :
+      goog.isString(this.keyPath) ?
+          this.keyPath :
+          ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
+  this.primary_column_name_quoted_ = goog.string.quote(this.primary_column_name_);
 };
 
 
@@ -122,7 +143,7 @@ ydn.db.schema.Store.FetchStrategies = [
 ydn.db.schema.Store.prototype.name;
 
 /**
- * @type {string?}
+ * @type {(!Array.<string>|string)?}
  */
 ydn.db.schema.Store.prototype.keyPath;
 
@@ -132,9 +153,15 @@ ydn.db.schema.Store.prototype.keyPath;
 ydn.db.schema.Store.prototype.autoIncrement;
 
 /**
- * @type {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} //
+ * @type {ydn.db.schema.DataType|undefined} //
  */
 ydn.db.schema.Store.prototype.type;
+
+/**
+ * @private
+ * @type {ydn.db.schema.DataType}
+ */
+ydn.db.schema.Store.prototype.keyColumnType_;
 
 /**
  * @protected
@@ -257,9 +284,9 @@ ydn.db.schema.Store.prototype.getIndex = function(name) {
 
 
 /**
- *
+ * @see #hasIndexByKeyPath
  * @param {string} name index name.
- * @return {boolean} return true if name is found in the index, including
+ * @return {boolean} return true if name is found in the index or primary
  * keyPath.
  */
 ydn.db.schema.Store.prototype.hasIndex = function(name) {
@@ -274,32 +301,68 @@ ydn.db.schema.Store.prototype.hasIndex = function(name) {
 
 
 /**
- * @return {string|undefined} return quoted keyPath.
+ * @see #hasIndex
+ * @param {string|!Array.<string>} key_path index key path.
+ * @return {boolean} return true if key_path is found in the index including
+ * primary keyPath.
  */
-ydn.db.schema.Store.prototype.getQuotedKeyPath = function() {
-  return goog.isString(this.keyPath) ?
-      goog.string.quote(this.keyPath) : undefined;
+ydn.db.schema.Store.prototype.hasIndexByKeyPath = function(key_path) {
+  if (this.keyPath &&
+      goog.isNull(ydn.db.schema.Index.compareKeyPath(this.keyPath, key_path))) {
+    return true;
+  }
+  return goog.array.some(this.indexes, function(x) {
+    return goog.isDefAndNotNull(x.keyPath) &&
+      goog.isNull(ydn.db.schema.Index.compareKeyPath(x.keyPath, key_path));
+  });
 };
 
 
 /**
  * Return quoted keyPath. In case undefined return default key column.
- * @return {string} return quoted keyPath.
+ * @return {string} return quoted keyPath. If keyPath is array, they are
+ * join by ',' and quoted. If keyPath is not define, default sqlite column
+ * name is used.
  */
-ydn.db.schema.Store.prototype.getSQLKeyColumnName = function() {
-  return goog.isString(this.keyPath) ?
-      goog.string.quote(this.keyPath) : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+ydn.db.schema.Store.prototype.getSQLKeyColumnNameQuoted = function () {
+  return this.primary_column_name_quoted_;
+};
+
+/**
+ * Return quoted keyPath. In case undefined return default key column.
+ * @return {string} return quoted keyPath. If keyPath is array, they are
+ * join by ',' and quoted. If keyPath is not define, default sqlite column
+ * name is used.
+ */
+ydn.db.schema.Store.prototype.getSQLKeyColumnName = function () {
+  return this.primary_column_name_;
 };
 
 
 /**
- * Return keyPath. In case undefined return default key column.
- * @return {string} return keyPath or default key column name.
+ * @type {string}
+ * @private
  */
-ydn.db.schema.Store.prototype.getColumnName = function() {
-  return goog.isString(this.keyPath) ?
-      this.keyPath : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
-};
+ydn.db.schema.Store.prototype.primary_column_name_;
+
+/**
+ * @type {string}
+ * @private
+ */
+ydn.db.schema.Store.prototype.primary_column_name_quoted_;
+
+//
+//
+///**
+//* Return keyPath. In case undefined return default key column.
+//* @return {string} return keyPath or default key column name.
+//*/
+//ydn.db.schema.Store.prototype.getColumnName = function () {
+//  return goog.isArray(this.keyPath) ?
+//    goog.string.quote(this.keyPath.join(',')) :
+//    goog.isString(this.keyPath) ?
+//      this.keyPath : ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+//};
 
 
 /**
@@ -332,6 +395,75 @@ ydn.db.schema.Store.prototype.getColumns = function() {
 
 
 /**
+ * Create a new update store schema with given guided store schema.
+ * NOTE: This is used in websql for checking table schema sniffed from the
+ * connection is similar to requested table schema. The fact is that
+ * some schema information are not able to reconstruct from the connection,
+ * these include:
+ *   1. composite index: in which a composite index is blown up to multiple
+ *     columns. @see ydn.db.con.WebSql.prototype.prepareTableSchema_.
+ * @param {ydn.db.schema.Store} that guided store schema
+ * @return {!ydn.db.schema.Store} updated store schema
+ */
+ydn.db.schema.Store.prototype.hint = function(that) {
+  if (!that) {
+    return this;
+  }
+  goog.asserts.assert(this.name == that.name);
+  var autoIncrement = this.autoIncrement;
+  var keyPath = goog.isArray(this.keyPath) ?
+    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
+      this.keyPath;
+  var type = this.type;
+  var indexes = goog.array.map(this.indexes, function (index) {
+    return index.clone();
+  });
+//  if (goog.isArray(that.keyPath)) {
+//    // check composite index have blown up
+//    keyPath = that.keyPath;
+//    for (var i = indexes.length - 1; i >= 0; i--) {
+//      if (that.keyPath.indexOf(indexes[i].getKeyPath()) >= 0
+//          && !that.hasIndex(indexes[i].getName())) {
+//        indexes.splice(i, 1); // blown up index are removed.
+//      }
+//    }
+//  }
+  if (!goog.isDef(that.type) && type == 'TEXT') {
+    // composite are converted into TEXT
+    type = undefined;
+  }
+  if (goog.isArray(that.keyPath) && goog.isString(keyPath) &&
+      keyPath == that.keyPath.join(',')) {
+    keyPath = goog.array.clone(
+      /** @type {goog.array.ArrayLike} */ (that.keyPath));
+  }
+
+  // update composite index
+  for (var i = 0, n = that.indexes.length; i < n; i++) {
+    if (that.indexes[i].isComposite()) {
+      var name = that.indexes[i].getName();
+      for (var j = indexes.length - 1; j >= 0; j--) {
+        if (name.indexOf(indexes[j].getName()) >= 0) {
+          indexes[j] = that.indexes[i].clone();
+          break;
+        }
+      }
+    }
+  }
+
+  for (var i = 0; i < indexes.length; i++) {
+    var that_index = that.getIndex(indexes[i].getName());
+    if (that_index) {
+      indexes[i] = indexes[i].hint(that_index);
+    }
+  }
+
+  return new ydn.db.schema.Store(
+    that.name, keyPath, autoIncrement, type, indexes);
+};
+
+
+/**
  *
  * @return {string} store name.
  */
@@ -351,7 +483,7 @@ ydn.db.schema.Store.prototype.getAutoIncrement = function() {
 
 /**
  *
- * @return {string?} keyPath
+ * @return {Array.<string>|string?} keyPath
  */
 ydn.db.schema.Store.prototype.getKeyPath = function() {
   return this.keyPath;
@@ -378,10 +510,19 @@ ydn.db.schema.Store.prototype.getIndexNames = function() {
 
 /**
  *
- * @return {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined}
+ * @return {ydn.db.schema.DataType|undefined}
  */
 ydn.db.schema.Store.prototype.getType = function() {
   return this.type;
+};
+
+
+/**
+ *
+ * @return {ydn.db.schema.DataType}
+ */
+ydn.db.schema.Store.prototype.getSqlType = function() {
+  return this.keyColumnType_;
 };
 
 
@@ -417,7 +558,17 @@ ydn.db.schema.Store.prototype.addIndex = function(name, opt_unique, opt_type,
  */
 ydn.db.schema.Store.prototype.getKeyValue = function(obj) {
   // http://www.w3.org/TR/IndexedDB/#key-construct
-  return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
+  if (!goog.isObject(obj)) {
+    return undefined;
+  } else if (goog.isArrayLike(this.keyPath)) {
+    var key = [];
+    for (var i = 0, n = this.keyPath.length; i < n; i++) {
+      key[i] = obj[this.keyPath[i]];
+    }
+    return key;
+  } else if (this.usedInlineKey()) {
+    return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
+  }
 };
 
 
@@ -494,12 +645,12 @@ ydn.db.schema.Store.DEFAULT_TEXT_STORE = 'default_text_store';
 /**
  * This is for WebSQL.
  * @param {!Object} obj get values of indexed fields.
- * @param {(!Array|string|number)=} opt_key optional key.
+ * @param {IDBKey=} opt_key optional key.
  * @return {{
  *    columns: Array.<string>,
  *    slots: Array.<string>,
  *    values: Array.<string>,
- *    key: (!Array|string|number|undefined)
+ *    key: (IDBKey|undefined)
  *  }} return list of values as it appear on the indexed fields.
  */
 ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
@@ -508,54 +659,27 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
   // here we don't check again. this method should not throw error for
   // these reason. If error must be throw it has to be InternalError.
 
-  var key_column;
   var values = [];
-
-  var normalized_key;
-  var key = goog.isDef(opt_key) ? opt_key :
-      goog.isString(this.keyPath) ? this.getKeyValue(obj) : undefined;
   var columns = [];
+
+  var key = goog.isDef(opt_key) ? opt_key : this.getKeyValue(obj);
   if (goog.isDef(key)) {
-    columns = goog.isDefAndNotNull(this.keyPath) ? [this.getQuotedKeyPath()] :
-        [ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
-    values = [ydn.db.schema.Index.js2sql(key, this.type)];
+    columns.push(this.getSQLKeyColumnNameQuoted());
+    values.push(ydn.db.schema.Index.js2sql(key, this.getType(), false));
   }
 
   for (var i = 0; i < this.indexes.length; i++) {
     var index = this.indexes[i];
-    if (index.name == this.keyPath ||
+    if (index.name === this.keyPath ||
         index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
       continue;
     }
 
-    var key_path = index.keyPath;
-    if (goog.isDef(key_path)) {
-      var type = index.type;
-      if (goog.isArray(key_path)) {
-        for(var j = 0; j < key_path.length; j++) {
-          if (goog.isDef(obj[key_path[j]])) {
-            if (index.isMultiEntry()) {
-              values.push(ydn.db.schema.Index.js2sql(
-                obj[key_path[j]], [type[j]]));
-            } else {
-              values.push(ydn.db.schema.Index.js2sql(
-                obj[key_path[j]], type[j]));
-            }
-            columns.push(goog.string.quote(key_path[j]));
-          }
-        }
-      } else {
-        if (goog.isDef(obj[key_path])) {
-          if (index.isMultiEntry()) {
-            values.push(ydn.db.schema.Index.js2sql(obj[key_path], [type]));
-          } else {
-            values.push(ydn.db.schema.Index.js2sql(obj[key_path], type));
-          }
-          columns.push(goog.string.quote(key_path));
-        }
-      }
+    var idx_key = index.getKeyValue(obj);
+    if (goog.isDefAndNotNull(idx_key)) {
+      values.push(ydn.db.schema.Index.js2sql(idx_key, index.getType(), index.isMultiEntry()));
+      columns.push(index.getSQLIndexColumnNameQuoted());
     }
-
   }
 
   if (!this.fixed) {
@@ -610,8 +734,9 @@ ydn.db.schema.Store.prototype.difference = function(store) {
   if (this.name != store.name) {
     return 'store name, expect: ' + this.name + ', but: ' + store.name;
   }
-  if (this.keyPath != store.keyPath) {
-    return 'keyPath, expect:  ' + this.keyPath + ', but: ' + store.keyPath;
+  var msg = ydn.db.schema.Index.compareKeyPath(this.keyPath, store.keyPath);
+  if (msg) {
+    return 'keyPath, ' + msg;
   }
   if (goog.isDef(this.autoIncrement) && goog.isDef(store.autoIncrement) &&
       this.autoIncrement != store.autoIncrement) {
@@ -624,14 +749,17 @@ ydn.db.schema.Store.prototype.difference = function(store) {
   }
 
   if (goog.isDef(this.type) && goog.isDef(store.type) &&
-      this.type != store.type) {
+    (goog.isArrayLike(this.type) ? !goog.array.equals(
+      /** @type {goog.array.ArrayLike} */ (this.type),
+      /** @type {goog.array.ArrayLike} */ (store.type)) :
+      this.type != store.type)) {
     return 'data type, expect:  ' + this.type + ', but: ' + store.type;
   }
   for (var i = 0; i < this.indexes.length; i++) {
     var index = store.getIndex(this.indexes[i].name);
-    var msg = this.indexes[i].difference(index);
-    if (msg.length > 0) {
-      return 'index "' + this.indexes[i].name + '" ' + msg;
+    var index_msg = this.indexes[i].difference(index);
+    if (index_msg.length > 0) {
+      return 'index "' + this.indexes[i].name + '" ' + index_msg;
     }
   }
 
@@ -656,7 +784,7 @@ ydn.db.schema.Store.SyncMethod = {
   ADD: 'add',
   GET: 'get',
   PUT: 'put',
-  CLEAR: 'cl',
+  REMOVE: 'rm',
   LIST: 'li'
 };
 

@@ -25,10 +25,12 @@ goog.inherits(ydn.db.sql.req.idb.ReduceNode, ydn.db.sql.req.idb.Node);
 
 
 /**
- * @param {!goog.async.Deferred} df
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no
+ * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {ydn.db.index.req.IRequestExecutor} req
  */
-ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
+ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
 
   var me = this;
   var out;
@@ -52,15 +54,16 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
   var aggregate = this.sql.getAggregate();
   if (aggregate == 'COUNT') {
     if (key_range) {
-      req.countKeyRange(df, store_name, key_range, wheres[0].getField());
+      req.countKeyRange(tx, tx_no, df, store_name, key_range, wheres[0].getField());
     } else {
-      req.countKeyRange(df, store_name, null);
+      req.countKeyRange(tx, tx_no, df, store_name, null);
     }
   } else {
     var reduce;
     var fields = this.sql.getSelList();
     if (!fields || fields.length == 0) {
-      throw new ydn.error.InvalidOperationError('field name require for reduce operation: ' + aggregate);
+      throw new ydn.error.InvalidOperationError(
+          'field name require for reduce operation: ' + aggregate);
     }
     var field_name = fields[0];
     if (aggregate == 'MIN') {
@@ -82,15 +85,16 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
 
     var iter;
     if (key_range) {
-      iter = new ydn.db.IndexValueCursors(store_name, wheres[0].getField(), key_range);
+      iter = new ydn.db.IndexValueCursors(store_name, wheres[0].getField(),
+          key_range);
     } else {
       iter = new ydn.db.ValueCursors(store_name);
     }
 
-    var cursor = iter.iterate(req);
+    var cursor = iter.iterate(tx, tx_no, req);
 
     cursor.onError = function (e) {
-      df.errback(e);
+      df(e, true);
     };
     var i = 0;
     cursor.onNext = function (primaryKey, key, value) {
@@ -99,7 +103,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(df, req) {
         cursor.advance(1);
         i++;
       } else {
-        df.callback(out);
+        df(out);
       }
     };
   }

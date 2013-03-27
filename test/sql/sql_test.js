@@ -18,7 +18,7 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
     //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
+    goog.debug.Logger.getLogger('ydn.db.sql').setLevel(goog.debug.Logger.Level.FINEST);
   }
   //ydn.db.sql.req.WebSql.DEBUG = true;
 
@@ -104,6 +104,64 @@ var test_select_field = function() {
 
 };
 
+var test_select_primary_field = function() {
+
+  var hasEventFired = false;
+  var result;
+  var actual_result =  objs.map(function(x) {return x.id});
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      result.sort();
+      assertArrayEquals('all records', actual_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.executeSql('SELECT "id" FROM "st"').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
+
+
+var test_select_fields = function() {
+
+  var hasEventFired = false;
+  var result;
+  var actual_result =  objs.map(function(x) {
+    return {id: x.id, value: x.value};
+  });
+
+  waitForCondition(
+    // Condition
+    function() { return hasEventFired; },
+    // Continuation
+    function() {
+      result.sort();
+      assertArrayEquals('all records', actual_result, result);
+
+      reachedFinalContinuation = true;
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  db.executeSql('SELECT id, "value" FROM "st"').addCallback(function (q_result) {
+    //console.log(db.explain(q));
+    //console.log('receiving query ' + JSON.stringify(q_result));
+    result = q_result;
+    hasEventFired = true;
+  })
+
+};
 
 var test_select_field_ordered = function() {
 
@@ -254,14 +312,15 @@ var test_where = function() {
 
   var hasEventFired = false;
   var result;
-  var actual_result = objs.slice(1, 3);
+  var exp_result = objs.slice(1, 3);
 
   waitForCondition(
     // Condition
     function() { return hasEventFired; },
     // Continuation
     function() {
-      assertArrayEquals('all records', actual_result, result);
+      console.log([exp_result, result]);
+      assertArrayEquals('all records', exp_result, result);
 
       reachedFinalContinuation = true;
     },

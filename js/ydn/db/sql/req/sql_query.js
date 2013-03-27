@@ -70,28 +70,28 @@ ydn.db.sql.req.SqlQuery.prototype.toJSON = function() {
   obj['params'] = ydn.object.clone(this.params);
   return obj;
 };
-
-
-
-/**
- * @param {string?} keyPath if index is not defined, keyPath will be used.
- * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
- * @return {{sql: string, params: !Array.<string>}} return equivalent of
- * keyRange
- * to SQL WHERE clause and its parameters.
- */
-ydn.db.sql.req.SqlQuery.prototype.toWhereClause = function(type, keyPath) {
-
-  var idx = this.getIndexName();
-  var index = goog.isDef(idx) ? idx :
-      goog.isDefAndNotNull(keyPath) ? keyPath :
-          ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
-  var column = goog.string.quote(index);
-
-  var where = new ydn.db.Where(column, keyPath);
-
-  return where.toWhereClause(type);
-};
+//
+//
+//
+///**
+// * @param {string?} keyPath if index is not defined, keyPath will be used.
+// * @param {!Array.<ydn.db.schema.DataType>|ydn.db.schema.DataType|undefined} type data type.
+// * @return {{sql: string, params: !Array.<string>}} return equivalent of
+// * keyRange
+// * to SQL WHERE clause and its parameters.
+// */
+//ydn.db.sql.req.SqlQuery.prototype.toWhereClause = function(type, keyPath) {
+//
+//  var idx = this.getIndexName();
+//  var index = goog.isDef(idx) ? idx :
+//      goog.isDefAndNotNull(keyPath) ? keyPath :
+//          ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+//  var column = goog.string.quote(index);
+//
+//  var where = new ydn.db.Where(column, keyPath);
+//
+//  return where.toWhereClause(type);
+//};
 
 
 
@@ -130,7 +130,7 @@ ydn.db.sql.req.SqlQuery.prototype.toString = function() {
  * @return {!Object} parse value.
  */
 ydn.db.sql.req.SqlQuery.prototype.parseRow = function(row, store) {
-  return ydn.db.core.req.WebSql.parseRow(row, store);
+  return ydn.db.crud.req.WebSql.parseRow(row, store);
 };
 
 

@@ -1,6 +1,7 @@
 
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
+goog.require('ydn.debug');
 goog.require('ydn.async');
 goog.require('ydn.db.Storage');
 goog.require('goog.testing.PropertyReplacer');
@@ -10,30 +11,7 @@ var reachedFinalContinuation, debug_console, db;
 
 
 var setUp = function() {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-    goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
-    //ydn.db.con.IndexedDb.DEBUG = true;
-    //ydn.db.con.WebSql.DEBUG = true;
-    //ydn.db.core.req.IndexedDb.DEBUG = true;
-    //ydn.db.core.req.WebSql.DEBUG = true;
-  }
-
-  //   ARRAY: 'ARRAY', // out of tune here, not in WebSQL, but keyPath could be array
-//  BLOB: 'BLOB',
-//    DATE: 'DATE',
-//    INTEGER: 'INTEGER', // AUTOINCREMENT is only allowed on an INTEGER
-//    NUMERIC: 'NUMERIC',
-//    TEXT: 'TEXT'
-
-
-  var dn_name = 'test_key_encoding_2';
-  var options = {mechanisms: ['websql']};
-  db = new ydn.db.Storage(dn_name, schema, options);
+  ydn.debug.log('ydn.db', 'finest');
 
   reachedFinalContinuation = false;
 
@@ -123,7 +101,7 @@ var schema = {
     }, {
       name: 'st_array',
       keyPath: 'id',
-      type: ['TEXT']
+      type: 'TEXT'
     }, {
       name: 'st_any',
       keyPath: 'id'
@@ -162,6 +140,14 @@ var test_any_int = function() {
 
 var test_any_num = function() {
   text_store('st_any', Math.random());
+};
+
+
+var setUpPage = function() {
+
+  var dn_name = 'test_key_encoding_2';
+  var options = {mechanisms: ['websql']};
+  db = new ydn.db.Storage(dn_name, schema, options);
 };
 
 

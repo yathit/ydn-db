@@ -3,7 +3,7 @@ goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
 goog.require('ydn.db');
-goog.require('ydn.db.tr.Storage');
+goog.require('ydn.db.crud.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 
@@ -33,10 +33,17 @@ var tearDown = function() {
 
 var test_1_basic = function() {
 
+  var schema = {
+    stores: [{
+      name: table_name,
+      keyPath: 'id',
+      type: 'TEXT'
+    }]
+  };
   var db_type =  'indexeddb';
   var options = {mechanisms: [db_type]};
   var db_name = 'test_tr_basic_2';
-  var db = new ydn.db.tr.Storage(db_name, basic_schema, options);
+  var db = new ydn.db.tr.Storage(db_name, schema, options);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -118,12 +125,65 @@ var test_2_opt_arg = function() {
     a_out = a;
     b_out = b;
     c_out = c;
-    type_out = idb.getType();
+    type_out = db.getType();
   }, [table_name], 'readwrite', oncompleted, 1, '3', {id: 'ok'});
 };
 
 
 
+var thread_test = function(thread, exp_tx_no) {
+  var options = {
+    thread: thread
+  };
+  var schema = {
+    stores: [
+      {
+        name: 'st'
+      }]
+  };
+  var db = new ydn.db.crud.Storage('test_strict_overflow_serial_thread', schema, options);
+
+  var get_done;
+  waitForCondition(
+      // Condition
+      function() { return get_done; },
+      // Continuation
+      function() {
+        assertArrayEquals('tx no ', exp_tx_no, tx_no);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var tx_no = [];
+  db.addEventListener(ydn.db.events.Types.READY, function() {
+    for (var i = 1; i <= 3; i++) {
+      db.put('st', {foo: 'bar'}, i).addBoth(function(x) {
+        tx_no.push(db.getTxNo());
+      });
+    }
+    db.get('st', 1).addBoth(function(x) {
+      tx_no.push(db.getTxNo());
+      get_done = true;
+    });
+
+  });
+};
+
+var test_atomic_serial_thread = function() {
+
+  thread_test('atomic-serial', [1, 2, 3, 4]);
+
+};
+
+
+var test_strict_overflow_serial_thread = function() {
+
+  thread_test('samescope-multirequest-serial', [1, 1, 1, 2]);
+
+};
 
 
 var testCase = new goog.testing.ContinuationTestCase();

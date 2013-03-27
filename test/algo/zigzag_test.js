@@ -61,7 +61,7 @@ db.put('animals', animals).addCallback(function (value) {
 var setUp = function () {
 
   //ydn.db.tr.Mutex.DEBUG = true;
-  //ydn.db.core.req.IndexedDb.DEBUG = true;
+  //ydn.db.crud.req.IndexedDb.DEBUG = true;
   //ydn.db.algo.ZigzagMerge.DEBUG = true;
 
   reachedFinalContinuation = false;

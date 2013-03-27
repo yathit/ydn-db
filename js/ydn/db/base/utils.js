@@ -11,10 +11,12 @@
  */
 
 goog.provide('ydn.db.utils');
+goog.require('ydn.db.base');
 
 
 /**
- * Grandfathered function to goog.object.getValueByKeys with supporting for dotted key path.
+ * Grandfathered function to goog.object.getValueByKeys with supporting for
+ * dotted key path.
  * Example usage: getValueByKeys(jsonObj, 'foo.entries')
  *
  * @param {!Object} obj An object to get the value from.  Can be array-like.
@@ -138,7 +140,7 @@ ydn.db.utils.encodeKey = function(key) {
 /**
  *
  * @param {string} encodedKey key to decoded.
- * @return {*} decoded key.
+ * @return {IDBKey} decoded key.
  */
 ydn.db.utils.decodeKey = function(encodedKey) {
   var rootArray = []; // one-element root array that contains the result
@@ -404,6 +406,7 @@ ydn.db.utils.decodeString = function(reader) {
  * @constructor
  */
 ydn.db.utils.HexStringReader = function(string) {
+  // todo: use prototype please
   this.current = null;
 
   //var string = string;
@@ -421,6 +424,7 @@ ydn.db.utils.HexStringReader = function(string) {
  * @constructor
  */
 ydn.db.utils.HexStringWriter = function() {
+  // todo: use prototype please
   var buffer = [], c;
   this.write = function($byte) {
     for (var i = 0; i < arguments.length; i++) {

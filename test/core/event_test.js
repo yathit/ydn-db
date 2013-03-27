@@ -2,7 +2,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
-goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.crud.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 
@@ -28,7 +28,7 @@ var setUp = function () {
 
   //ydn.db.con.IndexedDb.DEBUG = true;
   //ydn.db.con.WebSql.DEBUG = true;
-  //ydn.db.core.req.IndexedDb.DEBUG = true;
+  //ydn.db.crud.req.IndexedDb.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
   var stores = [new ydn.db.schema.Store(table_name, 'id'),
@@ -48,7 +48,7 @@ var tearDown = function() {
 
 var test_created_event = function() {
 
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var ev;
@@ -82,7 +82,7 @@ var test_created_event = function() {
 
 var test_updated_event = function() {
 
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var ev;
@@ -118,7 +118,7 @@ var test_updated_event = function() {
 
 var test_updated_store_event = function() {
 
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var hasEventFired = false;
   var ev;
@@ -153,7 +153,7 @@ var test_updated_store_event = function() {
 
 var test_deleted_event = function() {
 
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var ev_count = 0;
   var store_event, record_event;
@@ -200,14 +200,14 @@ var test_deleted_event = function() {
 
 
   db.put(store_name_inline_number, objs).addCallback(function() {
-    db.clear(store_name_inline_number, keys[0]);
-    db.clear(store_name_inline_number);
+    db.remove(store_name_inline_number, keys[0]);
+    db.remove(store_name_inline_number, ydn.db.KeyRange.lowerBound(-1));
   });
 };
 
 
 var test_run = function() {
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
   var done = false;
   var result;
   var objs =  [{id: 1, value: '1', remark: 'put test'}, {id: 2, value: '2', remark: 'put test'}];
@@ -236,7 +236,7 @@ var test_run = function() {
 };
 
 var test_run_opt_args = function() {
-  var db = new ydn.db.core.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
   var done = false;
   var result;
   var objs =  [{id: 1, value: '1', remark: 'put test'}, {id: 2, value: '2', remark: 'put test'}];

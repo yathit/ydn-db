@@ -65,7 +65,13 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
    * @final
    */
   this.index = index;
-
+  /**
+   * @final
+   */
+  this.is_index_iterator_ = goog.isString(this.index)
+  /**
+   * @final
+   */
   this.key_only_ = goog.isDef(key_only) ? key_only :
       !!(goog.isString(this.index));
   if (!goog.isBoolean(this.key_only_)) {
@@ -103,7 +109,7 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
    *
    * @final
    */
-  this.key_range_ = ydn.db.KeyRange.parseKeyRange(keyRange);
+  this.key_range_ = ydn.db.KeyRange.parseIDBKeyRange(keyRange);
 
   this.filter_index_names_ = [];
   this.filter_key_ranges_ = [];
@@ -333,12 +339,17 @@ ydn.db.Iterator.prototype.getDirection = function() {
 ydn.db.Iterator.prototype.store_name;
 
 
-
 /**
  * @type {string|undefined}
  * @private
  */
 ydn.db.Iterator.prototype.index;
+
+/**
+ * @type {boolean}
+ * @private
+ */
+ydn.db.Iterator.prototype.is_index_iterator_;
 
 
 /**
@@ -446,7 +457,7 @@ ydn.db.Iterator.prototype.getUpperOpen = function() {
 
 
 /**
- * @return {ydn.db.IDBKeyRange} return key range.
+ * @return {ydn.db.IDBKeyRange} return a clone of key range.
  */
 ydn.db.Iterator.prototype.getKeyRange = function() {
   if (this.key_range_) {
@@ -464,17 +475,17 @@ ydn.db.Iterator.prototype.getKeyRange = function() {
 
 /**
  *
- * @return {IDBKeyRange} return a clone of key range.
+ * @return {IDBKeyRange} return *the* key range.
  */
 ydn.db.Iterator.prototype.getIDBKeyRange = function() {
-  return /** @type {IDBKeyRange} */ (this.getKeyRange());
+  return this.key_range_;
 };
 
 
 /**
  *
  * @private
- * @type {ydn.db.IDBKeyRange}
+ * @type {IDBKeyRange}
  */
 ydn.db.Iterator.prototype.key_range_;
 
@@ -501,7 +512,7 @@ ydn.db.Iterator.prototype.isKeyOnly = function() {
  * @return {boolean}
  */
 ydn.db.Iterator.prototype.isIndexIterator = function() {
-  return goog.isString(this.index);
+  return this.is_index_iterator_;
 };
 
 
@@ -543,7 +554,8 @@ ydn.db.Iterator.prototype.toString = function() {
         start = '(';
         close = ')';
       }
-      idx += ' ' + start + this.primary_key + ', ' + this.index_key + close;
+      var idx_key = this.isIndexIterator() ? ', ' + this.index_key : '';
+        idx += ' ' + start + this.primary_key + idx_key + close;
     }
     var s = this.isIndexIterator() ? 'Index' : '';
     s +=  this.isKeyOnly() ? 'Key' : 'Value';
@@ -858,12 +870,13 @@ ydn.db.Iterator.prototype.exit = function() {
 
 
 /**
- *
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.AbstractCursor}
  * @private
  */
-ydn.db.Iterator.prototype.iterate_ = function(executor) {
+ydn.db.Iterator.prototype.iterate_ = function(tx, tx_no, executor) {
   var ini_key, ini_index_key;
   var resume = this.has_done === false;
   if (resume) {
@@ -876,7 +889,7 @@ ydn.db.Iterator.prototype.iterate_ = function(executor) {
   }
   this.has_done = undefined; // switching to working state.
 
-  var cursor = executor.getCursor(this.store_name, this.index,
+  var cursor = executor.getCursor(tx, tx_no, this.store_name, this.index,
       this.key_range_, this.direction, this.key_only_);
 
   this.logger.finest(this + ' created ' + cursor);
@@ -895,19 +908,20 @@ ydn.db.Iterator.prototype.iterate_ = function(executor) {
     }
   };
 
-  cursor.open_request(ini_key, ini_index_key, resume);
+  cursor.openCursor(ini_key, ini_index_key, resume);
 
   return cursor;
 };
 
 
 /**
- *
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.AbstractCursor}
  * @private
  */
-ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
+ydn.db.Iterator.prototype.iterateWithFilters_ = function(tx, tx_no, executor) {
   var me = this;
   var ini_key, ini_index_key;
   var resume = this.has_done === false;
@@ -932,11 +946,11 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
 
   // we send primary_cursor first, so that we filtered cursor arrive, we know
   // our target key value is.
-  var primary_cursor = executor.getCursor(this.store_name, this.index,
+  var primary_cursor = executor.getCursor(tx, tx_no, this.store_name, this.index,
       this.key_range_, this.direction, this.key_only_);
 
 
-  primary_cursor.open_request(ini_key, ini_index_key, resume);
+  primary_cursor.openCursor(ini_key, ini_index_key, resume);
 
   /**
    * onSuccess handler is called before onNext callback. The purpose of
@@ -977,9 +991,9 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
   };
   for (var i = 0; i < this.filter_index_names_.length; i++) {
     var store_name = this.filter_store_names_[i] || this.store_name;
-    var cursor = executor.getCursor(store_name, this.filter_index_names_[i],
+    var cursor = executor.getCursor(tx, tx_no, store_name, this.filter_index_names_[i],
         this.filter_key_ranges_[i], this.direction, true);
-    cursor.open_request(this.filter_ini_keys_[i], this.filter_ini_index_keys_[i]);
+    cursor.openCursor(this.filter_ini_keys_[i], this.filter_ini_index_keys_[i]);
     cursors.push(cursor);
     cursor.onSuccess = goog.partial(filterCursorOnSuccess, i);
 
@@ -1085,15 +1099,16 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(executor) {
 };
 
 /**
- *
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.AbstractCursor}
  */
-ydn.db.Iterator.prototype.iterate = function(executor) {
+ydn.db.Iterator.prototype.iterate = function(tx, tx_no, executor) {
   if (this.filter_index_names_.length > 0) {
-    return this.iterateWithFilters_(executor);
+    return this.iterateWithFilters_(tx, tx_no, executor);
   } else {
-    return this.iterate_(executor);
+    return this.iterate_(tx, tx_no, executor);
   }
 };
 

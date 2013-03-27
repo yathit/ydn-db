@@ -21,10 +21,15 @@ goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IStorage');
-goog.require('ydn.db.tr.AtomicSerial');
-goog.require('ydn.db.tr.ParallelThread');
 goog.require('ydn.db.tr.IThread.Threads');
+goog.require('ydn.db.tr.Serial');
+goog.require('ydn.db.tr.Parallel');
+goog.require('ydn.db.tr.AtomicSerial');
+goog.require('ydn.db.tr.AtomicParallel');
 goog.require('ydn.db.tr.StrictOverflowSerial');
+goog.require('ydn.db.tr.StrictOverflowParallel');
+goog.require('ydn.db.tr.OverflowSerial');
+goog.require('ydn.db.tr.OverflowParallel');
 goog.require('ydn.db.tr.Single');
 
 
@@ -47,7 +52,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   this.ptx_no = 0;
 
-  var th = ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL;
+  var th = ydn.db.tr.IThread.Threads.SERIAL;
   if (opt_options && opt_options.thread) {
     var idx = ydn.db.tr.IThread.ThreadList.indexOf(opt_options.thread);
     if (idx == -1) {
@@ -70,7 +75,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   /**
    * @final
    */
-  this.db_operator = this.thread(this.thread_name, 'base');
+  this.db_operator = this.branch(this.thread_name, 'base');
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
 
@@ -110,9 +115,11 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
  * @return {*}
  * @final
  */
-ydn.db.tr.Storage.prototype.thread = function(thread, name) {
+ydn.db.tr.Storage.prototype.branch = function(thread, name) {
+  this.ptx_no++;
+  name = name || 'branch' + this.ptx_no;
   var tx_thread = this.newTxQueue(thread, name);
-  return this.newOperator(tx_thread, this.sync_thread);
+  return this.newOperator(tx_thread, this.sync_thread, name);
 };
 
 
@@ -126,38 +133,58 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
 
 
 /**
- *
  * @param {!ydn.db.tr.IThread} tx_thread
  * @param {ydn.db.tr.IThread} sync_thread
  * @return {ydn.db.tr.DbOperator}
+ * @param {string=} scope_name
  * @protected
  */
-ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
-  return new ydn.db.tr.DbOperator(this, this.schema, tx_thread, sync_thread);
+ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread, scope_name) {
+  scope_name = scope_name || '';
+  return new ydn.db.tr.DbOperator(this, this.schema, scope_name, tx_thread, sync_thread);
 };
 
 
 
 /**
 * @param {ydn.db.tr.IThread.Threads=} thread
-* @param {string=} scope_name scope name.
+* @param {string=} thread_name scope name.
 * @return {!ydn.db.tr.IThread} new transactional storage.
 */
-ydn.db.tr.Storage.prototype.newTxQueue = function(thread, scope_name) {
+ydn.db.tr.Storage.prototype.newTxQueue = function(thread, thread_name) {
   thread = thread || this.thread_name;
-  if (thread == ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL) {
-    return new ydn.db.tr.ParallelThread(this, this.ptx_no++, scope_name);
+  if (thread == ydn.db.tr.IThread.Threads.SERIAL) {
+    return new ydn.db.tr.Serial(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.PARALLEL) {
+      return new ydn.db.tr.Parallel(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL) {
+    return new ydn.db.tr.AtomicParallel(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.ATOMIC_SERIAL) {
-    return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, scope_name);
-  } else if (thread == ydn.db.tr.IThread.Threads.STRICT_OVERFLOW_SERIAL) {
-    return new ydn.db.tr.StrictOverflowSerial(this, this.ptx_no++, scope_name);
+    return new ydn.db.tr.AtomicSerial(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_PARALLEL) {
+    return new ydn.db.tr.StrictOverflowParallel(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_SERIAL) {
+    return new ydn.db.tr.StrictOverflowSerial(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.OVERFLOW_PARALLEL) {
+    return new ydn.db.tr.OverflowParallel(this, this.ptx_no++, thread_name);
+  } else if (thread == ydn.db.tr.IThread.Threads.MULTI_REQUEST_SERIAL) {
+    return new ydn.db.tr.OverflowSerial(this, this.ptx_no++, thread_name);
   } else if (thread == ydn.db.tr.IThread.Threads.SINGLE) {
-    return new ydn.db.tr.Single(this, this.ptx_no++, scope_name);
+    return new ydn.db.tr.Single(this, this.ptx_no++, thread_name);
   } else {
-    throw new ydn.error.ArgumentException(thread);
+    throw new ydn.debug.error.ArgumentException(
+        'invalid transaction policy thread type "' + thread + '"');
   }
 };
 
+
+
+/**
+ * Abort current request transaction.
+ */
+ydn.db.tr.Storage.prototype.abort = function() {
+  return this.db_operator.abort();
+};
 
 
 /**
@@ -167,9 +194,11 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
                                                     oncompleted, opt_args) {
 
   var me = this;
-  var scope_name = trFn.name || '';
+  this.ptx_no++;
+  var scope_name = (goog.isString(trFn.name) && trFn.name.length > 0) ?
+    trFn.name : 'run' + this.ptx_no;
   var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Threads.SINGLE, scope_name);
-  var tx_queue = this.newOperator(tx_thread, this.sync_thread);
+  var tx_queue = this.newOperator(tx_thread, this.sync_thread, scope_name);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   if (goog.DEBUG && [ydn.db.base.TransactionMode.READ_ONLY,
       ydn.db.base.TransactionMode.READ_WRITE].indexOf(mode) == -1) {
@@ -204,12 +233,13 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
     };
   }
 
-  this.logger.finest('scheduling run in transaction ' + scope_name + ' with ' + tx_thread);
-  tx_thread.exec( function(tx) {
+  this.logger.finest('scheduling run in transaction ' + scope_name + ' with ' +
+    tx_thread);
+  tx_thread.processTx( function(tx) {
     me.logger.finest('executing run in transaction ' + scope_name);
     outFn(/** @type {!ydn.db.tr.IStorage} */ (tx_queue));
     outFn = null;
-  }, store_names, mode, scope_name, oncompleted);
+  }, store_names, mode, oncompleted);
 
 };
 

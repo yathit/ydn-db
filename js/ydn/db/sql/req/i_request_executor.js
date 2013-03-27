@@ -5,7 +5,7 @@
 
 
 goog.provide('ydn.db.sql.req.IRequestExecutor');
-goog.require('ydn.db.core.req.IRequestExecutor');
+goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.Streamer');
 goog.require('ydn.db.Sql');
 
@@ -19,17 +19,10 @@ ydn.db.sql.req.IRequestExecutor = function() {};
 
 
 /**
- * Explain plan.
- * @param {!ydn.db.Sql} sql  SQL object.
- * @return {Object} query plan in JSON.
- */
-ydn.db.sql.req.IRequestExecutor.prototype.explainSql = goog.abstractMethod;
-
-
-
-/**
  * Execute SQL statement.
- * @param {!goog.async.Deferred} df deferred to feed result.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx no
+ * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {!ydn.db.Sql} sql  SQL object.
  * @param {!Array} params SQL parameters.
  */

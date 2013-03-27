@@ -5,7 +5,7 @@
 
 
 goog.provide('ydn.db.index.req.IRequestExecutor');
-goog.require('ydn.db.core.req.IRequestExecutor');
+goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.Streamer');
 goog.require('ydn.db.index.req.AbstractCursor');
 
@@ -13,20 +13,24 @@ goog.require('ydn.db.index.req.AbstractCursor');
 
 /**
  * @interface
- * @extends {ydn.db.core.req.IRequestExecutor}
+ * @extends {ydn.db.crud.req.IRequestExecutor}
  */
 ydn.db.index.req.IRequestExecutor = function() {};
 
 
 /**
- * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no transaction number
+ * @param {?function(*, boolean=)} return key in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
  */
 ydn.db.index.req.IRequestExecutor.prototype.getByIterator = goog.abstractMethod;
 
 /**
  * List record in a store.
- * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no transaction number
+ * @param {?function(*, boolean=)} return key in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
  * @param {number=} limit
  * @param {number=} offset
@@ -35,7 +39,9 @@ ydn.db.index.req.IRequestExecutor.prototype.keysByIterator = goog.abstractMethod
 
 /**
  * List record in a store.
- * @param {!goog.async.Deferred} return object in deferred function.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no transaction number
+ * @param {?function(*, boolean=)} df key in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
  * @param {number=} limit
  * @param {number=} offset
@@ -97,6 +103,8 @@ ydn.db.index.req.IRequestExecutor.prototype.listByIterator = goog.abstractMethod
 
 
 /**
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no transaction number
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
  * @param {IDBKeyRange} keyRange
@@ -107,7 +115,8 @@ ydn.db.index.req.IRequestExecutor.prototype.listByIterator = goog.abstractMethod
 ydn.db.index.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
 
 /**
- *
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no transaction number
  * @param {string} store_name
  * @param {string=} index_name
  * @return {!ydn.db.Streamer}

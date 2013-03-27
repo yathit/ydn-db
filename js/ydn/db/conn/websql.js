@@ -92,7 +92,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
 
   /**
-   * Migrate from current version to the last version.
+   * Migrate from current version to the new version.
    * @private
    * @param {Database} db database.
    * @param {ydn.db.schema.Database} schema  schema.
@@ -101,17 +101,14 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
   var doVersionChange_ = function(db, schema, is_version_change) {
 
     var action = is_version_change ? 'changing version' : 'setting version';
+
+    var current_version = db.version ? parseInt(db.version, 10) : 0;
+    var new_version = schema.isAutoVersion() ?
+        is_version_change ? isNaN(current_version) ?
+            1 : (current_version + 1) : current_version
+        : schema.version;
     me.logger.finest(dbname + ': ' + action + ' from ' +
-      db.version + ' to ' + schema.version);
-
-    //var mode = is_version_change ?
-    //    ydn.db.base.TransactionMode.VERSION_CHANGE :
-    // ydn.db.base.TransactionMode.READ_WRITE;
-
-    // HACK: VERSION_CHANGE can cause subtle error.
-    var mode = ydn.db.base.TransactionMode.READ_WRITE;
-    // yes READ_WRITE mode can create table and more robust. :-D
-
+      db.version + ' to ' + new_version);
 
     var executed = false;
     var updated_count = 0;
@@ -122,20 +119,27 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
      */
     var transaction_callback = function(tx) {
       // sniff current table info in the database.
-      me.getSchema(function(table_infos) {
+      me.getSchema(function(existing_schema) {
         executed = true;
         for (var i = 0; i < schema.count(); i++) {
-          var counter = function() {
-            updated_count++;
+          var counter = function(ok) {
+            if (ok) {
+              updated_count++;
+            }
           };
-          var table_info = table_infos.getStore(schema.store(i).getName());
-          me.update_store_with_info_(tx, schema.store(i), counter, table_info);
+          var table_info = existing_schema.getStore(schema.store(i).getName());
+          // hint to sniffed schema, so that some lost info are recovered.
+          var hinted_store_schema = table_info ?
+            table_info.hint(schema.store(i)) : null;
+
+          me.update_store_with_info_(tx, schema.store(i), counter,
+            hinted_store_schema);
         }
 
         if (schema instanceof ydn.db.schema.EditableDatabase) {
           var edited_schema = schema;
-          for (var j = 0; j < table_infos.count(); j++) {
-            var info_store = table_infos.store(j);
+          for (var j = 0; j < existing_schema.count(); j++) {
+            var info_store = existing_schema.store(j);
             if (!edited_schema.hasStore(info_store.getName())) {
               edited_schema.addStore(info_store);
             }
@@ -178,10 +182,11 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
       throw e;
     };
 
-    db.transaction(transaction_callback, error_callback, success_callback);
+    // db.transaction(transaction_callback, error_callback, success_callback);
+    db.changeVersion(db.version, new_version + '', transaction_callback,
+        error_callback, success_callback);
 
   };
-
 
   /**
    * @type {Database}
@@ -203,7 +208,6 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
       doVersionChange_(db, schema, use_version_change_request);
     //}
   };
-
 
   try {
     /**
@@ -291,19 +295,42 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     // without increasing database version.
 
     old_version = db.version;
-    if (db.version === version) {
-      this.logger.finest('Existing database version ' + db.version +
-        ' opened.');
+
+    var db_info = 'database ' + dbname +
+      (db.version.length == 0 ? '' : ' version ' + db.version);
+
+    if (goog.isDefAndNotNull(schema.version) && schema.version == db.version) {
+      me.logger.fine('Existing ' + db_info + ' opened as requested.');
+      setDb(db);
     } else {
-      me.logger.finest('Database version ' + db.version +
-        ' opened, but require ' + version + ' version.');
+      // require upgrade check
+      this.getSchema(function(existing_schema) {
+        var msg = schema.difference(existing_schema, true);
+        if (msg) {
+          if (db.version.length == 0) {
+            me.logger.fine('New ' + db_info + ' created.');
+
+            doVersionChange_(db, schema, true);
+          } else if (!schema.isAutoVersion()) {
+            me.logger.fine('Existing ' + db_info + ' opened and ' +
+              ' schema change to version ' + schema.version + ' for ' + msg);
+
+            doVersionChange_(db, schema, true);
+          } else {
+            me.logger.fine('Existing ' + db_info + ' opened and ' +
+              ' schema change for ' + msg);
+
+            doVersionChange_(db, schema, true);
+          }
+
+        } else {
+          // same schema.
+          me.logger.fine('Existing ' + db_info + ' with same schema opened.');
+          setDb(db);
+        }
+      }, null, db);
     }
 
-    if (!schema.isAutoVersion() && db.version < version) {
-      me.logger.finest('Upgrading to version: ' + version);
-    }
-
-    doVersionChange_(db, schema, false);
   }
 
   return df;
@@ -311,8 +338,8 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
 
 /**
- * @define {boolean} gentle opening do not specify version number on open
- * method invokation.
+ * @define {boolean} gentle opening do not specify version number on
+ * database open method call.
  */
 ydn.db.con.WebSql.GENTLE_OPENING = true;
 
@@ -388,39 +415,20 @@ ydn.db.con.WebSql.prototype.logger =
  */
 ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
+
+  // prepare schema
+  var type = table_schema.getSqlType();
+
   var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
 
-  var id_column_name = table_schema.getQuotedKeyPath() ||
-    ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  var q_primary_column = table_schema.getSQLKeyColumnNameQuoted();
+  sql += q_primary_column + ' ' + type +
+    ' UNIQUE PRIMARY KEY ';
 
-  // undefined type are recorded in encoded key and use BLOB data type
-  // @see ydn.db.utils.encodeKey
-  var column_names = [];
-  var type = table_schema.type || 'BLOB';
-  if (goog.isArray(type)) {
-    // key will be converted into string
-    type = ydn.db.schema.DataType.TEXT;
+  if (table_schema.autoIncrement) {
+    sql += ' AUTOINCREMENT ';
   }
 
-  if (goog.isDefAndNotNull(table_schema.keyPath)) {
-    sql += table_schema.getQuotedKeyPath() + ' ' + type +
-      ' UNIQUE PRIMARY KEY ';
-
-    if (table_schema.autoIncrement) {
-      sql += ' AUTOINCREMENT ';
-    }
-
-    column_names.push(table_schema.keyPath);
-
-  } else if (table_schema.autoIncrement) {
-    sql += ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
-      ' UNIQUE PRIMARY KEY AUTOINCREMENT ';
-  } else { // using out of line key.
-    // it still has _ROWID_ as column name
-    sql += ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME + ' ' + type +
-      ' UNIQUE PRIMARY KEY ';
-
-  }
 
   // every table must has a default field to store schemaless fields
   sql += ' ,' + ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' +
@@ -428,13 +436,23 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var sqls = [];
   var sep = ', ';
-  for (var i = 0; i < table_schema.indexes.length; i++) {
+  var column_names = [q_primary_column];
+
+  for (var i = 0, n = table_schema.countIndex(); i < n; i++) {
     /**
      * @type {ydn.db.schema.Index}
      */
-    var index = table_schema.indexes[i];
-    var unique = index.unique ? ' UNIQUE ' : ' ';
-
+    var index = table_schema.index(i);
+    var unique = '';
+    if (index.isUnique()) {
+      if (index.isMultiEntry()) {
+        this.logger.warning('store "' + table_schema.getName() +
+          '" has both multiEntry and unique set true, ' +
+          'but it is not supported under websql');
+      } else {
+        unique =  ' UNIQUE ';
+      }
+    }
 
     // http://sqlite.org/lang_createindex.html
     // http://www.sqlite.org/lang_createtable.html
@@ -456,29 +474,16 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
     //  sqls.push(idx_sql);
     //}
 
-    if (index.keyPath == table_schema.getKeyPath()) {
-      continue;
+    var index_key_path = index.getSQLIndexColumnNameQuoted();
+
+    if (column_names.indexOf(index_key_path) == -1) {
+      // store keyPath can also be indexed in IndexedDB spec
+
+      sql += sep + index_key_path + ' ' + index.getSqlType() +
+        unique;
+      column_names.push(index_key_path);
     }
 
-    if (goog.isArray(index.getType())) {
-      var types = index.getType();
-      var keyPaths = index.getKeyPath();
-      for(var j = 0; j<keyPaths.length; j++) {
-        if (column_names.indexOf(keyPaths[j]) >= 0) {
-          continue;
-        }
-        sql += sep + goog.string.quote(keyPaths[j]) + ' ' + types[j];
-        column_names.push(keyPaths[j]);
-      }
-    } else {
-      if (column_names.indexOf(index.getKeyPath()) == -1) {
-        var key_path = index.getKeyPath();
-        goog.asserts.assertString(key_path);
-        sql += sep + goog.string.quote(key_path) + ' ' + index.getType() +
-          unique;
-        column_names.push(key_path);
-      }
-    }
 
   }
 
@@ -506,7 +511,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
   db = db || this.sql_db_;
 
   var version = (db && db.version) ?
-      parseInt(db.version, 10) : undefined;
+      parseFloat(db.version) : undefined;
   version = isNaN(version) ? undefined : version;
   var stores = [];
 
@@ -567,7 +572,9 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
           // console.log([fields[1], type]);
 
           if (upper_fields.indexOf('PRIMARY') != -1 && upper_fields.indexOf('KEY') != -1) {
-            if (!goog.string.isEmpty(name)) {
+            if (goog.isString(name) && !goog.string.isEmpty(name) &&
+                name != ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME) {
+              // console.log('PRIMARY ' + name + ' on ' + info.name);
               key_name = name;
             }
             key_type = type;
@@ -595,6 +602,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 //    }
 
     var out = new ydn.db.schema.Database(version, stores);
+    // console.log(out.toJSON());
     callback(out);
   };
 
@@ -638,7 +646,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
  *
  * @param {SQLTransaction} trans transaction.
  * @param {ydn.db.schema.Store} store_schema schema.
- * @param {Function} callback callback on finished.
+ * @param {function(boolean)} callback callback on finished.
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
@@ -656,9 +664,10 @@ ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
  * Alter or create table with given table schema.
  * @param {SQLTransaction} trans transaction.
  * @param {ydn.db.schema.Store} table_schema table schema to be upgrade.
- * @param {Function} callback callback on finished.
- * @param {ydn.db.schema.Store|undefined} existing_table_schema table information in the
- * existing database.
+ * @param {function(boolean)?} callback callback on finished. return true
+ * if table is updated.
+ * @param {ydn.db.schema.Store|undefined} existing_table_schema table
+ * information in the existing database.
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
@@ -677,6 +686,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
       count++;
       if (count == sqls.length) {
         callback(true);
+        callback = null; // must call only once.
       }
     };
 
@@ -687,6 +697,11 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     var error_callback = function(tr, error) {
       if (ydn.db.con.WebSql.DEBUG) {
         window.console.log([tr, error]);
+      }
+      count++;
+      if (count == sqls.length) {
+        callback(false); // false for no change
+        callback = null; // must call only once.
       }
       throw new ydn.db.SQLError(error, 'Error creating table: ' +
           table_schema.name + ' ' + sql);
@@ -700,16 +715,20 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
   var action = 'Create';
   if (existing_table_schema) {
     // table already exists.
-    if (table_schema.similar(existing_table_schema)) {
-      me.logger.finest(table_schema.name + ' exists.');
+    var msg = table_schema.difference(existing_table_schema);
+    if (msg.length == 0) {
+      me.logger.finest('same table ' + table_schema.name + ' exists.');
       callback(true);
+      callback = null;
+      return;
     } else {
       action = 'Modify';
 
       // TODO: use ALTER
       this.logger.warning(
-          'table: ' + table_schema.name + ' has changed,' +
-          'but TABLE ALTERATION is not implemented, dropping old table.');
+          'table: ' + table_schema.name + ' has changed by ' + msg +
+          ' additionallly TABLE ALTERATION is not implemented, ' +
+            'dropping old table.');
       sqls.unshift('DROP TABLE ' + goog.string.quote(table_schema.name));
     }
   }
@@ -723,7 +742,6 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
   for (var i = 0; i < sqls.length; i++) {
     exe_sql(sqls[i]);
   }
-
 
 };
 
@@ -797,8 +815,6 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
       error_callback, success_callback);
   }
 
-  // TODO: deleting tables.
-
 };
 
 
@@ -811,6 +827,7 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
   // Dropping all tables indeed delete the database.
   var db = new ydn.db.con.WebSql();
   var schema = new ydn.db.schema.EditableDatabase();
+  db.logger.finer('deleting websql database: ' + db_name);
   var df = db.connect(db_name, schema);
 
   var on_completed = function(t, e) {
@@ -835,7 +852,6 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
       }, tx);
 
     }, [], ydn.db.base.TransactionMode.READ_WRITE, on_completed);
-
 
   });
   df.addErrback(function() {

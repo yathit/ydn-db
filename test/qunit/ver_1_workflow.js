@@ -64,15 +64,15 @@ var events_schema = {
 
   module("Storage Event", test_env);
 
-  asyncTest("connected to a new database and existing", function () {
-    expect(4 * 3);
+  asyncTest("connected to a new database and existing", 15, function () {
 
     var db = new ydn.db.Storage(db_name_event, schema);
 
-    db.addEventListener('done', function (e) {
+    db.addEventListener('ready', function (e) {
       equal(e.name, 'StorageEvent', 'event name');
-      equal(e.type, 'done', 'event type');
+      equal(e.type, 'ready', 'event type');
       equal(e.getVersion(), 1, 'version number');
+      equal(e.getError(), null, 'no error');
       ok(isNaN(e.getOldVersion()), 'old version number');
 
       db.values(store_inline).always(function () {
@@ -81,12 +81,12 @@ var events_schema = {
 
         db = new ydn.db.Storage(db_name_event, schema);
 
-        db.addEventListener('done', function (e) {
+        db.addEventListener('ready', function (e) {
           equal(e.name, 'StorageEvent', 'event name');
-          equal(e.type, 'done', 'event type');
+          equal(e.type, 'ready', 'event type');
           equal(e.getVersion(), 1, 'version number');
           equal(e.getOldVersion(), 1, 'old version number, existing');
-
+          equal(e.getError(), null, 'no error');
           db.values(store_inline).always(function () {
 
             db.close();
@@ -101,11 +101,12 @@ var events_schema = {
 
             db = new ydn.db.Storage(db_name_event, new_schema);
 
-            db.addEventListener('done', function (e) {
+            db.addEventListener('ready', function (e) {
               equal(e.name, 'StorageEvent', 'event name');
-              equal(e.type, 'done', 'event type');
+              equal(e.type, 'ready', 'event type');
               equal(e.getVersion(), 2, 'updated version number');
               equal(e.getOldVersion(), 1, 'old version number, existing db, new schema');
+              equal(e.getError(), null, 'no error');
               var type = db.getType();
               db.values(tb_name).always(function () { // make sure all run.
                 db.close();
@@ -361,10 +362,227 @@ var events_schema = {
 
   });
 
+})();
+
+
+
+(function () {
+  var test_env = {
+    setup: function () {
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+        console.warn('RecordEvent Event test not finished.');
+      }, 1000);
+    },
+    teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
+    }
+  };
+
+  module("Abort", test_env);
+
+  asyncTest("abort a put operation request method", 7, function () {
+
+    var db_name = 'test_abort_1';
+    var st1 = 's' + Math.random();
+    var st2 = 's' + Math.random();
+    var st3 = 's' + Math.random();
+
+    var schema = {
+      stores: [
+        {
+          name: st1,
+          keyPath: 'id',
+          type: 'NUMERIC'
+        }, {
+          name: st2,
+          keyPath: 'id',
+          type: 'NUMERIC'
+        }, {
+          name: st3,
+          keyPath: 'id',
+          type: 'NUMERIC'
+        }]
+    };
+    var obj = {
+      id: Math.random(),
+      value: 'msg' + Math.random()
+    };
+
+    var db = new ydn.db.Storage(db_name, schema);
+    var adb = db.branch('atomic-serial');
+
+    var done_count = 0;
+    var done = function() {
+      done_count++;
+      if (done_count >= 3) {
+        start();
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      }
+    };
+
+    db.put(st1, obj).always(function (key) {
+      equal(obj.id, key, 'aborted store key');
+      db.abort();
+    });
+    db.get(st1, obj.id).always(function (result) {
+      equal(undefined, result, 'aborted store result');
+      done();
+    });
+
+    db.put(st2, obj).always(function (key) {
+      equal(obj.id, key, 'store 2 key');
+    });
+    db.get(st2, obj.id).always(function (result) {
+      equal(obj.value, result.value, 'store 2 result');
+      done();
+    });
+
+    adb.put(st3, obj).always(function (key) {
+      equal(obj.id, key, 'atomic store key');
+      throws (function () { // this is an assertion too
+        db.abort();
+      }, undefined, 'atomic tx cannot be aborted');
+    });
+
+    adb.get(st3, obj.id).always(function (result) {
+      equal(obj.value, result.value, 'atomic store result');
+      done();
+    });
+
+  });
+
+
+  asyncTest("abort in run", 4, function () {
+
+    var db_name = 'test_abort_2';
+
+    var schema = {
+      stores: [
+        {
+          name: 's1',
+          keyPath: 'id',
+          type: 'NUMERIC'
+        }, {
+          name: 's2',
+          keyPath: 'id',
+          type: 'NUMERIC'
+        }, {
+          name: 's3',
+          keyPath: 'id',
+          type: 'NUMERIC'
+        }]
+    };
+    var obj = {
+      id: Math.random(),
+      value: 'msg' + Math.random()
+    };
+    var obj2 = {
+      id: Math.random(),
+      value: 'msg' + Math.random()
+    };
+
+    var db = new ydn.db.Storage(db_name, schema);
+    var adb = db.branch('atomic-serial');
+
+    var done_count = 0;
+    var done = function() {
+      done_count++;
+      if (done_count >= 2) {
+        start();
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      }
+    };
+
+    db.run(function (tdb) {
+      tdb.put('s1', obj).always(function (key) {
+        tdb.get('s1', obj.id).then(function (result) {
+          equal(obj.value, result.value, 'store 1 result');
+          tdb.abort();
+        }, function (e) {
+          ok(false, 'store 1 get not error');
+        });
+      });
+
+    }, ['s1'], 'readwrite', function (t, e) {
+      db.get('s1', obj.id).always(function (result) {
+        equal(undefined, result, 'aborted store 1 done result');
+        done();
+      });
+    });
+
+    db.run(function (tdb) {
+      tdb.put('s2', obj).always(function (key) {
+        tdb.get('s2', obj.id).always(function (result) {
+          equal(obj.value, result.value, 'store 2 result');
+        });
+      });
+
+    }, ['s2'], 'readwrite', function (t, e) {
+      db.get('s2', obj.id).always(function (result) {
+        equal(obj.value, result.value, 'store 2 done result');
+        done();
+      });
+    });
+
+
+  });
 
 })();
 
 
 
+(function () {
+  var test_env = {
+    setup: function () {
+      test_env.ydnTimeoutId = setTimeout(function () {
+        start();
+        console.warn('Error test not finished.');
+      }, 1000);
+    },
+    teardown: function () {
+      clearTimeout(test_env.ydnTimeoutId);
+    }
+  };
+
+  module("Error", test_env);
+
+  var db_name = 'test_constrained_error' + Math.random();
+  var schema = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'id',
+        type: 'TEXT'
+      }]
+  };
+  var db = new ydn.db.Storage(db_name, schema);
+  var obj = {id: 1, value: 'v' + Math.random()};
+
+  asyncTest("ConstraintError on adding existing key", 2, function () {
+    db.add('st', obj).always(function (k) {
+      equal(k, 1, 'key 1 added')
+    });
+    db.add('st', obj).then(function (x) {
+      ok(false, 'should not add again with existing key');
+      start();
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
+    }, function (e) {
+      if (db.getType() == 'websql') {
+        console.log(e);
+        equal(e.code, 6, 'got ConstraintError');
+      } else {
+        equal(e.name, 'ConstraintError', 'got ConstraintError');
+      }
+      start();
+      ydn.db.deleteDatabase(db_name, db.getType());
+      db.close();
+    });
+  });
+
+})();
 
 
