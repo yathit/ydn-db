@@ -1009,7 +1009,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
     var wheres = [];
     if (goog.isDef(column_name)) {
       var index = store.getIndex(column_name);
-      ydn.db.KeyRange.toSql(index.getSQLIndexColumnName(), index.getType(),
+      ydn.db.KeyRange.toSql(index.getSQLIndexColumnNameQuoted(), index.getType(),
         index.isMultiEntry(), key_range, wheres, params);
     } else {
       ydn.db.KeyRange.toSql(store.getSQLKeyColumnNameQuoted(), store.getType(),
@@ -1129,7 +1129,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
     var wheres = [];
     if (goog.isDef(index_name)) {
       var index = store.getIndex(index_name);
-      ydn.db.KeyRange.toSql(index.getSQLIndexColumnName(), index.getType(),
+      ydn.db.KeyRange.toSql(index.getSQLIndexColumnNameQuoted(), index.getType(),
         index.isMultiEntry(),  key_range, wheres, params);
     } else {
       ydn.db.KeyRange.toSql(store.getSQLKeyColumnNameQuoted(), store.getType(),
