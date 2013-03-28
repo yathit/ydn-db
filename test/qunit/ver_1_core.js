@@ -123,8 +123,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   module("Put", test_env);
   reporter.createTestSuite('core', 'Put', ydn.db.version);
 
-  asyncTest("single data", function () {
-    expect(1);
+  asyncTest("single data", 1, function () {
     var db = new ydn.db.Storage('tck1_put_1', schema_1, options);
     db.put(store_inline, data_1).always(function () {
       ok(true, "data inserted");
@@ -137,9 +136,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   });
 
 
-  asyncTest("inline-key autoincrement", function () {
+  asyncTest("inline-key autoincrement", 2, function () {
     var db = new ydn.db.Storage('tck1_put_2', schema_auto_increase, options);
-    expect(2);
 
     db.put(store_inline_auto, data_1).always(function (x) {
       equal(data_1.id, x, 'key');
@@ -155,9 +153,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   });
 
 
-  asyncTest("data with off-line-key", function () {
+  asyncTest("data with off-line-key", 2, function () {
     var db = new ydn.db.Storage('tck1_put_3', schema_1, options);
-    expect(2);
 
     var key = Math.random();
     db.put(store_outline, data_2, key).always(function (x) {
@@ -172,9 +169,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   });
 
 
-  asyncTest("offline-key autoincrement", function () {
+  asyncTest("offline-key autoincrement", 2, function () {
     var db = new ydn.db.Storage('tck1_put_4', schema_auto_increase, options);
-    expect(2);
 
     db.put(store_outline_auto, data_1).always(function (x) {
       ok(true, 'no key data insert ok');
@@ -192,9 +188,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   });
 
 
-  asyncTest("nested key", function () {
+  asyncTest("nested key", 1, function () {
     var db = new ydn.db.Storage('tck1_put_5', schema_1, options);
-    expect(1);
 
     db.put(store_nested_key, gdata_1).always(function (x) {
       equal(gdata_1.id.$t, x, 'key');
@@ -207,8 +202,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   });
 
 
-  asyncTest("single data - array index key", function () {
-    expect(2);
+  asyncTest("single data - array index key", 2, function () {
     var db = new ydn.db.Storage('tck1_put_6', schema_1, options);
     db.put(store_inline, data_1a).always(function (x) {
       //console.log('got it');
@@ -273,8 +267,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   });
 
 
-  asyncTest("by database", function () {
-    expect(3);
+  asyncTest("by database", 3, function () {
+
     var db_name = 'test-clear-' + Math.random();
     var db = new ydn.db.Storage(db_name, schema_1, options);
     db.put(store_inline, data_inline);
@@ -325,8 +319,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     {msg: Math.random()}
   ];
 
-  asyncTest("by id", function () {
-    expect(3);
+  asyncTest("by id", 3, function () {
+
     var db_name = 'test-remove-1' + Math.random();
     var db = new ydn.db.Storage(db_name, schema_1, options);
     db.put(store_inline, data);
@@ -373,8 +367,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 //
 //  });
 
-  asyncTest("by key range", function () {
-    expect(3);
+  asyncTest("by key range", 3, function () {
+
     var db_name = 'test-remove-' + Math.random();
     var db = new ydn.db.Storage(db_name, schema_1, options);
     db.put(store_inline, data);
@@ -440,10 +434,9 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   module("Get", test_env);
   reporter.createTestSuite('core', 'Get', ydn.db.version);
 
-  asyncTest("inline-key number", function () {
+  asyncTest("inline-key number", 1, function () {
 
     ready.always(function () {
-      expect(1);
 
       db.get(store_inline, 1).then(function (x) {
         equal(data_store_inline.value, x.value, 'value');
@@ -456,8 +449,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   });
 
-  asyncTest("inline-line string key", function () {
-    expect(1);
+  asyncTest("inline-line string key", 1, function () {
+
     db.get(store_inline_string, 'a').then(function (x) {
       equal(data_store_inline_string.value, x.value, 'value');
       start();
@@ -468,8 +461,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   });
 
-  asyncTest("out-off-line number key", function () {
-    expect(1);
+  asyncTest("out-off-line number key", 1, function () {
+
     db.get(store_outline, key_store_outline).then(function (x) {
       equal(x && x.abc, value_store_outline, 'value');
       start();
@@ -480,8 +473,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   });
 
-  asyncTest("out-off-line string key", function () {
-    expect(1);
+  asyncTest("out-off-line string key", 1, function () {
 
     db.get(store_outline_string, key_store_outline_string).then(function (x) {
       equal(x && x.abc, value_store_outline_string, 'value');
@@ -494,8 +486,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   });
 
 
-  asyncTest("nested key path", function () {
-    expect(1);
+  asyncTest("nested key path", 1, function () {
 
     db.get(store_nested_key, data_nested_key.id.$t).then(function (x) {
       deepEqual(data_nested_key, x, 'same object ');
@@ -582,10 +573,9 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   module("Values", test_env);
   reporter.createTestSuite('core', 'Values', ydn.db.version);
 
-  asyncTest("Retrieve all objects from a store - inline key", function () {
+  asyncTest("Retrieve all objects from a store - inline key", 7, function () {
 
     ready.always(function() {
-      expect(7);
       db.values(store_inline).always(function (x) {
         deepEqual(x, data_list_inline, 'all');
       });
@@ -620,9 +610,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   });
 
-  asyncTest("Retrieve objects by index key", function () {
+  asyncTest("Retrieve objects by index key", 3, function () {
     ready.always(function () {
-      expect(3);
 
       db.values(store_inline_index, 'value', null, 10, 0).always(function (x) {
         deepEqual(x.length, data_list_index.length, 'number of record');
@@ -639,9 +628,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     });
   });
 
-  asyncTest("Retrieve objects by key list - inline-key", function () {
+  asyncTest("Retrieve objects by key list - inline-key", 3, function () {
     ready.always(function () {
-      expect(3);
 
       db.values(store_inline, [1, 2]).always(function (x) {
         deepEqual(x, data_list_inline.slice(1, 3), '1 and 2');
@@ -658,9 +646,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     });
   });
 
-  asyncTest("Retrieve objects from a store - out-of-line key", function () {
+  asyncTest("Retrieve objects from a store - out-of-line key", 4, function () {
     ready.always(function () {
-      expect(4);
 
       db.values(store_outline).then(function (x) {
         deepEqual(x, data_list_outline, 'all records');
@@ -683,9 +670,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     });
   });
 
-  asyncTest("Retrieve objects by keys from multiple stores", function () {
+  asyncTest("Retrieve objects by keys from multiple stores", 3, function () {
     ready.always(function () {
-      expect(3);
 
       var keys = [
         new ydn.db.Key(store_inline, 2),
@@ -823,10 +809,9 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   module("Keys", test_env);
   reporter.createTestSuite('core', 'Keys', ydn.db.version);
 
-  asyncTest("from a store", function () {
+  asyncTest("from a store", 3, function () {
 
     ready.always(function() {
-      expect(3);
 
       db.keys(store_inline).always(function (keys) {
         deepEqual(keys_inline, keys, 'all keys');
@@ -845,9 +830,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   });
 
-  asyncTest("Retrieve primary key by index key", function () {
+  asyncTest("Retrieve primary key by index key", 2, function () {
     ready.always(function () {
-      expect(2);
 
       db.keys(store_inline_index, 'value', null, 10, 0).always(function (x) {
         // answer will be ['a', 'a', 'b']
@@ -917,11 +901,10 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   module("Count", test_env);
   reporter.createTestSuite('core', 'Count', ydn.db.version);
 
-  asyncTest("all records in a store", function () {
+  asyncTest("all records in a store", 1, function () {
 
     ready.always(function() {
 
-      expect(1);
       db.count(store_inline).then(function (x) {
         equal(x, 5, 'number of records in store');
         start();
@@ -933,11 +916,10 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   });
 
-  asyncTest("all records in a out-of-line store", function () {
+  asyncTest("all records in a out-of-line store", 1, function () {
 
     ready.always(function() {
 
-      expect(1);
       db.count(store_outline).then(function (x) {
         equal(x, 3, 'number of records in store');
         start();
@@ -949,10 +931,10 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   });
 
-  asyncTest("all records in stores", function () {
+  asyncTest("all records in stores", 2, function () {
 
     ready.always(function () {
-      expect(2);
+
       db.count([store_inline, store_outline]).then(function (x) {
         equal(x[0], 5, 'inline');
         equal(x[1], 3, 'outline');
@@ -964,8 +946,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     });
   });
 
-  asyncTest("in a key range", function () {
-    expect(1);
+  asyncTest("in a key range", 1, function () {
 
     var range = new ydn.db.KeyRange(2, 4);
     db.count(store_inline, range).then(function (x) {
