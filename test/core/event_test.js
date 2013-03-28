@@ -1,6 +1,7 @@
 
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
+goog.require('ydn.debug');
 goog.require('ydn.async');
 goog.require('ydn.db.crud.Storage');
 goog.require('goog.testing.PropertyReplacer');
@@ -16,15 +17,7 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-    //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.req').setLevel(goog.debug.Logger.Level.FINEST);
-  }
+  ydn.debug.log('ydn.db', 'finest');
 
   //ydn.db.con.IndexedDb.DEBUG = true;
   //ydn.db.con.WebSql.DEBUG = true;
@@ -262,6 +255,45 @@ var test_run_opt_args = function() {
     done = true;
   }, objs);
 
+};
+
+
+var test_store_event = function() {
+  var db_name_event = 'test_tb' + Math.random();
+  var schema = {
+    stores: [{
+      name: 'st'
+    }
+  ]};
+
+  var done1 = false;
+  var result;
+
+  waitForCondition(
+    // Condition
+    function() { return done1; },
+    // Continuation
+    function() {
+      assertEquals('event name', 'StorageEvent', result.name);
+      assertEquals('event type', 'ready', result.type);
+      assertEquals('version number', 1, result.getVersion());
+      assertNull('no error', result.getError());
+      assertNaN('old version number', result.getOldVersion());
+
+      reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    },
+    100, // interval
+    2000); // maxTimeout
+
+  var db = new ydn.db.crud.Storage(db_name_event, schema);
+  db.addEventListener('ready', function (e) {
+    //console.log(e);
+    assertFalse('1. already called ready event', done1);
+    result = e;
+    done1 = true;
+  });
 };
 
 

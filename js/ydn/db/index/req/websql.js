@@ -210,10 +210,20 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
         return;
       }
       count++;
-      var out = keys_method ?
-        cursor.isIndexCursor() ?
-          key : primary_key :
-        value;
+      var out;
+      if (keys_method) { // call by keys() method
+        if (cursor.isIndexCursor()) {
+          out = key;
+        } else {
+          out = primary_key;
+        }
+      } else {           // call by values() method
+        if (iter.isKeyOnly()) {
+          out = primary_key;
+        } else {
+          out = value;
+        }
+      }
       arr.push(out);
       if (!goog.isDef(limit) || count < limit) {
         cursor.continueEffectiveKey();

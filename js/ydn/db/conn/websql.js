@@ -423,7 +423,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
 
   var q_primary_column = table_schema.getSQLKeyColumnNameQuoted();
   sql += q_primary_column + ' ' + type +
-    ' UNIQUE PRIMARY KEY ';
+    ' PRIMARY KEY ';
 
   if (table_schema.autoIncrement) {
     sql += ' AUTOINCREMENT ';

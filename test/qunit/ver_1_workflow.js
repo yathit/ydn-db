@@ -1,16 +1,17 @@
 var options = {}; // options = {mechanisms: ['websql']};
 if (/log/.test(location.hash)) {
+  var level = /finest/.test(location.hash) ? 'finest' : 'finer';
   if (/ui/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finer', div);
+      ydn.debug.log('ydn.db', level, div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finer');
+      ydn.debug.log('ydn.db', level);
     } else {
       console.log('no logging facility');
     }
@@ -555,10 +556,10 @@ var events_schema = {
       {
         name: 'st',
         keyPath: 'id',
-        type: 'TEXT'
+        type: 'NUMERIC'
       }]
   };
-  var db = new ydn.db.Storage(db_name, schema);
+  var db = new ydn.db.Storage(db_name, schema, options);
   var obj = {id: 1, value: 'v' + Math.random()};
 
   asyncTest("ConstraintError on adding existing key", 2, function () {
@@ -574,6 +575,8 @@ var events_schema = {
       if (db.getType() == 'websql') {
         console.log(e);
         equal(e.code, 6, 'got ConstraintError');
+        // this test fail on Safari OS X lion, getting code value of 1 instead
+        // of 6. I believe this is Safari bug.
       } else {
         equal(e.name, 'ConstraintError', 'got ConstraintError');
       }

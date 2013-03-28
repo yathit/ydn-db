@@ -366,7 +366,6 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
         // are not caught under deferred object.
 
         me.onReady(ev);
-        me.dispatchEvent(ev);
         me.popTxQueue_();
       });
       df.callback(ev);
@@ -437,7 +436,6 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
   db.connect(this.db_name, this.schema).addCallbacks(function(old_version) {
     me.db_ = db;
-
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY,
         me, parseFloat(db.getVersion()), parseFloat(old_version), null);
     resolve(true, event);
