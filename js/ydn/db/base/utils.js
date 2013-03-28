@@ -406,17 +406,44 @@ ydn.db.utils.decodeString = function(reader) {
  * @constructor
  */
 ydn.db.utils.HexStringReader = function(string) {
-  // todo: use prototype please
   this.current = null;
+  this.string = string;
+  this.lastIndex = this.string.length - 1;
+  this.index = -1;
+};
 
-  //var string = string;
-  var lastIndex = string.length - 1;
-  var index = -1;
+/**
+ * @type {number?}
+ */
+ydn.db.utils.HexStringReader.prototype.current;
 
-  this.read = function() {
-    return this.current = index < lastIndex ? parseInt(string[++index] +
-      string[++index], 16) : null;
-  };
+/**
+ * @type {number}
+ * @private
+ */
+ydn.db.utils.HexStringReader.prototype.index;
+
+/**
+ * @type {number}
+ * @private
+ */
+ydn.db.utils.HexStringReader.prototype.lastIndex;
+
+/**
+ * @type {string}
+ * @private
+ */
+ydn.db.utils.HexStringReader.prototype.string;
+
+
+/**
+ *
+ * @return {number?}
+ */
+ydn.db.utils.HexStringReader.prototype.read = function() {
+
+  return this.current = this.index < this.lastIndex ? parseInt(this.string[++this.index] +
+    this.string[++this.index], 16) : null;
 };
 
 /**
@@ -424,23 +451,55 @@ ydn.db.utils.HexStringReader = function(string) {
  * @constructor
  */
 ydn.db.utils.HexStringWriter = function() {
-  // todo: use prototype please
-  var buffer = [], c;
-  this.write = function($byte) {
-    for (var i = 0; i < arguments.length; i++) {
-      c = arguments[i].toString(16);
-      buffer.push(c.length === 2 ? c : c = '0' + c);
-    }
-  };
-  this.toString = function() {
-    return buffer.length ? buffer.join('') : null;
-  };
-  this.trim = function() {
-    var length = buffer.length;
-    while (buffer[--length] === '00') {}
-    buffer.length = ++length;
-    return this;
-  };
+
+  this.buffer = [];
+  this.c = undefined;
+
+};
+
+
+/**
+ * @type {string|undefined}
+ * @private
+ */
+ydn.db.utils.HexStringWriter.prototype.c;
+
+/**
+ * @type {Array}
+ * @private
+ */
+ydn.db.utils.HexStringWriter.prototype.buffer;
+
+/**
+ *
+ * @param $byte
+ */
+ydn.db.utils.HexStringWriter.prototype.write = function($byte) {
+  for (var i = 0; i < arguments.length; i++) {
+    this.c = arguments[i].toString(16);
+    this.buffer.push(this.c.length === 2 ? this.c : this.c = '0' + this.c);
+  }
+};
+
+
+/**
+ *
+ * @return {*}
+ */
+ydn.db.utils.HexStringWriter.prototype.trim = function() {
+  var length = this.buffer.length;
+  while (this.buffer[--length] === '00') {}
+  this.buffer.length = ++length;
+  return this;
+};
+
+
+/**
+ * @return {string}
+ */
+ydn.db.utils.HexStringWriter.prototype.toString = function() {
+  var s = this.buffer.length ? this.buffer.join('') : null; // whey null?
+  return /** @type {string} */ (s);
 };
 
 
