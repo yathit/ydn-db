@@ -484,7 +484,7 @@ ydn.db.utils.HexStringWriter.prototype.write = function($byte) {
 
 /**
  *
- * @return {*}
+ * @return {ydn.db.utils.HexStringWriter}
  */
 ydn.db.utils.HexStringWriter.prototype.trim = function() {
   var length = this.buffer.length;
@@ -498,8 +498,7 @@ ydn.db.utils.HexStringWriter.prototype.trim = function() {
  * @return {string}
  */
 ydn.db.utils.HexStringWriter.prototype.toString = function() {
-  var s = this.buffer.length ? this.buffer.join('') : null; // whey null?
-  return /** @type {string} */ (s);
+  return this.buffer.length ? this.buffer.join('') : '';
 };
 
 
