@@ -100,7 +100,8 @@ ydn.db.crud.req.WebSql.parseRow = function(row, store) {
   var value = row[ydn.db.base.DEFAULT_BLOB_COLUMN] ?
       ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]) : {};
   if (goog.isDefAndNotNull(store.keyPath)) {
-    var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.getType(), false);
+    var key = ydn.db.schema.Index.sql2js(row[store.keyPath], store.getType(),
+        false);
     if (goog.isDefAndNotNull(key)) {
       store.setKeyValue(value, key);
     }
@@ -112,7 +113,8 @@ ydn.db.crud.req.WebSql.parseRow = function(row, store) {
       continue;
     }
     var x = row[column_name];
-    var v = ydn.db.schema.Index.sql2js(x, index.getType(), index.isMultiEntry());
+    var v = ydn.db.schema.Index.sql2js(x, index.getType(),
+        index.isMultiEntry());
 
     if (goog.isDef(v)) {
       value[index.name] = v;
@@ -138,18 +140,20 @@ ydn.db.crud.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.keysByKeyRange = function(tx, tx_no, df, store_name,
-        key_range, reverse, limit, offset) {
-  this.list_by_key_range_(tx, tx_no, df, true, store_name, undefined, key_range, reverse, limit, offset, false);
+ydn.db.crud.req.WebSql.prototype.keysByKeyRange = function(tx, tx_no, df,
+    store_name, key_range, reverse, limit, offset) {
+  this.list_by_key_range_(tx, tx_no, df, true, store_name, undefined, key_range,
+      reverse, limit, offset, false);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.keysByIndexKeyRange = function(tx, tx_no, df, store_name,
-      index_name, key_range, reverse, limit, offset, unique) {
-  this.list_by_key_range_(tx, tx_no, df, true, store_name, index_name, key_range, reverse, limit, offset, unique);
+ydn.db.crud.req.WebSql.prototype.keysByIndexKeyRange = function(tx, tx_no, df,
+    store_name, index_name, key_range, reverse, limit, offset, unique) {
+  this.list_by_key_range_(tx, tx_no, df, true, store_name, index_name,
+      key_range, reverse, limit, offset, unique);
 };
 
 
@@ -168,8 +172,9 @@ ydn.db.crud.req.WebSql.prototype.keysByIndexKeyRange = function(tx, tx_no, df, s
  * @param {boolean} distinct
  * @private
  */
-ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, key_only,
-      store_name, index_column, key_range, reverse, limit, offset, distinct) {
+ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df,
+    key_only, store_name, index_column, key_range, reverse, limit, offset,
+    distinct) {
 
   var me = this;
   var arr = [];
@@ -229,7 +234,8 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
     for (var i = 0, n = results.rows.length; i < n; i++) {
       var row = results.rows.item(i);
       if (key_only) {
-        arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType(), is_multi_entry);
+        arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType(),
+            is_multi_entry);
       } else if (goog.isDefAndNotNull(row)) {
         arr[i] = ydn.db.crud.req.WebSql.parseRow(row, store);
       }
@@ -238,7 +244,8 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df, ke
     df(arr);
   };
 
-  var msg = 'TxNo:' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + ydn.json.stringify(params);
+  var msg = 'TxNo:' + tx_no + ' SQL: ' + sql + ' PARAMS: ' +
+      ydn.json.stringify(params);
 
   /**
    * @param {SQLTransaction} tr transaction.
@@ -419,8 +426,8 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
 
   if (objects.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.crud.req.WebSql.RW_REQ_PER_TX && i < objects.length;
-         i++) {
+    for (var i = 0;
+         i < ydn.db.crud.req.WebSql.RW_REQ_PER_TX && i < objects.length; i++) {
       put(i, /** @type {SQLTransaction} */ (tx));
     }
   } else {
@@ -436,13 +443,15 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
  */
 ydn.db.crud.req.WebSql.prototype.putObjects = function(
     tx, tx_no, df, store_name, objects, opt_keys) {
-  this.insertObjects(tx, tx_no, df, false, false, store_name, objects, opt_keys);
+  this.insertObjects(tx, tx_no, df, false, false, store_name, objects,
+      opt_keys);
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.putByKeys = function (tx, tx_no, df, objs, keys) {
+ydn.db.crud.req.WebSql.prototype.putByKeys = function (tx, tx_no, df, objs,
+                                                       keys) {
 
   if (keys.length == 0) {
     df([]);
@@ -492,7 +501,8 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function (tx, tx_no, df, objs, keys
         idx_keys.push(keys[idx[i]].getId());
       }
     }
-    me.insertObjects(tx, tx_no, idf, false, false, store_name, idx_objs, idx_keys);
+    me.insertObjects(tx, tx_no, idf, false, false, store_name, idx_objs,
+        idx_keys);
 
   };
 
@@ -529,7 +539,8 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function (tx, tx_no, df, objs, keys
 *
 * @inheritDoc
 */
-ydn.db.crud.req.WebSql.prototype.getById = function(tx, tx_no, d, table_name, id) {
+ydn.db.crud.req.WebSql.prototype.getById = function(tx, tx_no, d, table_name,
+                                                    id) {
 
   var table = this.schema.getStore(table_name);
   goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
@@ -592,7 +603,8 @@ ydn.db.crud.req.WebSql.prototype.getById = function(tx, tx_no, d, table_name, id
  *
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name, ids) {
+ydn.db.crud.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name,
+                                                      ids) {
 
   var me = this;
   var objects = [];
@@ -674,7 +686,8 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name,
 
   if (ids.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.crud.req.WebSql.REQ_PER_TX && i < ids.length; i++) {
+    for (var i = 0; i < ydn.db.crud.req.WebSql.REQ_PER_TX && i < ids.length;
+         i++) {
       get(i, /** @type {SQLTransaction} */ (tx));
     }
   } else {
@@ -687,20 +700,20 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.listByKeyRange = function(tx, tx_no, df, store_name,
-   key_range, reverse, limit, offset) {
+ydn.db.crud.req.WebSql.prototype.listByKeyRange = function(tx, tx_no, df,
+   store_name, key_range, reverse, limit, offset) {
 
-  this.list_by_key_range_(tx, tx_no, df, false, store_name, undefined, key_range, reverse,
-      limit, offset, false);
+  this.list_by_key_range_(tx, tx_no, df, false, store_name, undefined,
+      key_range, reverse, limit, offset, false);
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.listByIndexKeyRange = function(tx, tx_no, df, store_name,
-          index, key_range, reverse, limit, offset, unqiue) {
-  this.list_by_key_range_(tx, tx_no, df, false, store_name, index, key_range, reverse,
-      limit, offset, unqiue)
+ydn.db.crud.req.WebSql.prototype.listByIndexKeyRange = function(tx, tx_no, df,
+    store_name, index, key_range, reverse, limit, offset, unqiue) {
+  this.list_by_key_range_(tx, tx_no, df, false, store_name, index, key_range,
+      reverse, limit, offset, unqiue)
 };
 
 
@@ -708,7 +721,8 @@ ydn.db.crud.req.WebSql.prototype.listByIndexKeyRange = function(tx, tx_no, df, s
 /**
 * @inheritDoc
 */
-ydn.db.crud.req.WebSql.prototype.listByStores = function(tx, tx_no, df, table_names) {
+ydn.db.crud.req.WebSql.prototype.listByStores = function(tx, tx_no, df,
+                                                         table_names) {
 
   var me = this;
   var arr = [];
@@ -848,7 +862,8 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(tx, tx_no, df, keys) {
 
   if (keys.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.crud.req.WebSql.REQ_PER_TX && i < keys.length; i++) {
+    for (var i = 0; i < ydn.db.crud.req.WebSql.REQ_PER_TX && i < keys.length;
+         i++) {
       get(i, tx);
     }
   } else {
@@ -862,7 +877,8 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(tx, tx_no, df, keys) {
 /**
 * @inheritDoc
 */
-ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d, store_names) {
+ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d,
+                                                          store_names) {
 
   var me = this;
 
@@ -918,7 +934,8 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d, store_na
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table, id) {
+ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
+                                                       id) {
 
 
   var store = this.schema.getStore(table);
@@ -965,14 +982,16 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table, id) 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.clearByKeyRange = function(tx, tx_no, df, store_name, key_range) {
+ydn.db.crud.req.WebSql.prototype.clearByKeyRange = function(tx, tx_no, df,
+     store_name, key_range) {
   this.clear_by_key_range_(tx, tx_no, df, store_name, undefined, key_range);
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.removeByKeyRange = function(tx, tx_no, df, store_name, key_range) {
+ydn.db.crud.req.WebSql.prototype.removeByKeyRange = function(tx, tx_no, df,
+     store_name, key_range) {
   this.clear_by_key_range_(tx, tx_no, df, store_name, undefined, key_range);
 };
 
@@ -980,8 +999,8 @@ ydn.db.crud.req.WebSql.prototype.removeByKeyRange = function(tx, tx_no, df, stor
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.removeByIndexKeyRange = function(tx, tx_no, df, store_name,
-          index_name, key_range) {
+ydn.db.crud.req.WebSql.prototype.removeByIndexKeyRange = function(tx, tx_no, df,
+    store_name, index_name, key_range) {
   this.clear_by_key_range_(tx, tx_no, df, store_name, index_name, key_range);
 };
 
@@ -1009,8 +1028,8 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
     var wheres = [];
     if (goog.isDef(column_name)) {
       var index = store.getIndex(column_name);
-      ydn.db.KeyRange.toSql(index.getSQLIndexColumnNameQuoted(), index.getType(),
-        index.isMultiEntry(), key_range, wheres, params);
+      ydn.db.KeyRange.toSql(index.getSQLIndexColumnNameQuoted(),
+          index.getType(), index.isMultiEntry(), key_range, wheres, params);
     } else {
       ydn.db.KeyRange.toSql(store.getSQLKeyColumnNameQuoted(), store.getType(),
         false, key_range, wheres, params);
@@ -1116,8 +1135,7 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
-                                                          key_range, index_name) {
-
+      key_range, index_name) {
 
   var me = this;
 
@@ -1129,8 +1147,8 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
     var wheres = [];
     if (goog.isDef(index_name)) {
       var index = store.getIndex(index_name);
-      ydn.db.KeyRange.toSql(index.getSQLIndexColumnNameQuoted(), index.getType(),
-        index.isMultiEntry(),  key_range, wheres, params);
+      ydn.db.KeyRange.toSql(index.getSQLIndexColumnNameQuoted(),
+          index.getType(), index.isMultiEntry(),  key_range, wheres, params);
     } else {
       ydn.db.KeyRange.toSql(store.getSQLKeyColumnNameQuoted(), store.getType(),
         false, key_range, wheres, params);
