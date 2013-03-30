@@ -407,25 +407,33 @@ ydn.db.con.WebSql.prototype.logger =
 
 
 /**
+ * @const
+ * @type {string} column name prefix for multiEntry index.
+ */
+ydn.db.con.WebSql.PREFIX_MULTIENTRY = 'ydn.db.me:';
+
+
+/**
  * Initialize variable to the schema and prepare SQL statement for creating
  * the table.
  * @private
- * @param {ydn.db.schema.Store} table_schema name of table in the schema.
+ * @param {ydn.db.schema.Store} table table schema.
  * @return {!Array.<string>} SQL statement for creating the table.
  */
-ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
+ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
 
 
   // prepare schema
-  var type = table_schema.getSqlType();
+  var primary_type = table.getSqlType();
 
-  var sql = 'CREATE TABLE IF NOT EXISTS ' + table_schema.getQuotedName() + ' (';
+  var insert_statement = 'CREATE TABLE IF NOT EXISTS ';
+  var sql = insert_statement + table.getQuotedName() + ' (';
 
-  var q_primary_column = table_schema.getSQLKeyColumnNameQuoted();
-  sql += q_primary_column + ' ' + type +
+  var q_primary_column = table.getSQLKeyColumnNameQuoted();
+  sql += q_primary_column + ' ' + primary_type +
     ' PRIMARY KEY ';
 
-  if (table_schema.autoIncrement) {
+  if (table.autoIncrement) {
     sql += ' AUTOINCREMENT ';
   }
 
@@ -438,20 +446,25 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
   var sep = ', ';
   var column_names = [q_primary_column];
 
-  for (var i = 0, n = table_schema.countIndex(); i < n; i++) {
+  for (var i = 0, n = table.countIndex(); i < n; i++) {
     /**
      * @type {ydn.db.schema.Index}
      */
-    var index = table_schema.index(i);
+    var index = table.index(i);
     var unique = '';
-    if (index.isUnique()) {
-      if (index.isMultiEntry()) {
-        this.logger.warning('store "' + table_schema.getName() +
-          '" has both multiEntry and unique set true, ' +
-          'but it is not supported under websql');
-      } else {
-        unique =  ' UNIQUE ';
-      }
+    if (index.isMultiEntry()) {
+      // create separate table for multiEntry
+      var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+          table.getName() + ':' + index.getName();
+      var idx_unique = index.isUnique() ? ' UNIQUE ' : '';
+      var multi_entry_sql = insert_statement +
+          goog.string.quote(idx_name) + ' (' +
+          q_primary_column + ' ' + primary_type + ' PRIMARY KEY ' + ', ' +
+          index.getSQLIndexColumnNameQuoted() + ' ' + index.getSqlType() +
+          idx_unique + ')';
+      sqls.push(multi_entry_sql);
+    } else if (index.isUnique()) {
+      unique =  ' UNIQUE ';
     }
 
     // http://sqlite.org/lang_createindex.html
@@ -484,11 +497,12 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table_schema) {
       column_names.push(index_key_path);
     }
 
-
   }
 
   sql += ');';
-  sqls.unshift(sql);
+  sqls.push(sql);
+
+
 
   return sqls;
 };

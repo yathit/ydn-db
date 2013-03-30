@@ -665,7 +665,7 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
   var key = goog.isDef(opt_key) ? opt_key : this.getKeyValue(obj);
   if (goog.isDef(key)) {
     columns.push(this.getSQLKeyColumnNameQuoted());
-    values.push(ydn.db.schema.Index.js2sql(key, this.getType(), false));
+    values.push(ydn.db.schema.Index.js2sql(key, this.getType()));
   }
 
   for (var i = 0; i < this.indexes.length; i++) {
@@ -677,7 +677,7 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
 
     var idx_key = index.getKeyValue(obj);
     if (goog.isDefAndNotNull(idx_key)) {
-      values.push(ydn.db.schema.Index.js2sql(idx_key, index.getType(), index.isMultiEntry()));
+      values.push(ydn.db.schema.Index.js2sql(idx_key, index.getType()));
       columns.push(index.getSQLIndexColumnNameQuoted());
     }
   }

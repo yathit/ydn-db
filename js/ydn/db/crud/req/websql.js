@@ -337,7 +337,13 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
    */
   var put = function(i, tx) {
 
-    // todo: handle undefined or null object
+    if (goog.DEBUG && !goog.isDefAndNotNull(objects[i])) {
+      var t = goog.isDef(objects[i]) ? 'null' : 'undefined';
+      var at = objects.length == 1 ? '': ' at ' + i + ' of ' + objects.length;
+      throw new ydn.debug.error.InvalidOperationException('inserting ' + t +
+          'object ' + at + ' "' + ydn.json.toShortString(objects[i]));
+    }
+
 
     var out;
     if (goog.isDef(opt_keys)) {
@@ -345,6 +351,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
     } else {
       out = table.getIndexedValues(objects[i]);
     }
+
     //console.log([obj, JSON.stringify(obj)]);
 
     var sql = insert_statement + table.getQuotedName() +
@@ -363,6 +370,54 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       result_count++;
 
       var key = goog.isDef(out.key) ? out.key : results.insertId;
+
+      /**
+       * Insert a row for each multi entry index.
+       * @param {ydn.db.schema.Index} index multi entry index.
+       * @param {number} value index at
+       */
+      var insertMultiEntryIndex = function(index, value) {
+        var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+            table.getName() + ':' + index.getName();
+        var idx_sql = insert_statement + goog.string.quote(idx_name) + ' (' +
+            table.getSQLKeyColumnNameQuoted() + ', ' +
+            index.getSQLIndexColumnNameQuoted() + ') VALUES (?, ?)';
+        var idx_params = [ydn.db.schema.Index.js2sql(key, table.getType()),
+          value];
+
+        /**
+         * @param {SQLTransaction} tx transaction.
+         * @param {SQLResultSet} rs results.
+         */
+        var idx_success = function(tx, rs) {
+
+        }
+        /**
+         * @param {SQLTransaction} tr transaction.
+         * @param {SQLError} error error.
+         * @return {boolean} true to roll back.
+         */
+        var idx_error = function(tr, error) {
+          me.logger.warning('multiEntry index insert error: ' + error.message);
+          return false;
+        }
+
+        me.logger.finest('TX' + tx_no + ' multiEntry ' + idx_sql +
+            ' ' + idx_params);
+        tx.executeSql(idx_sql, idx_params, idx_success, idx_error);
+      };
+      for (var j = 0, n = table.countIndex(); j < n; j++) {
+        var idx = table.index(i);
+        if (idx.isMultiEntry()) {
+          var index_values = ydn.db.utils.getValueByKeys(objects[i],
+              idx.getKeyPath());
+          var n = (!!index_values ? 0 : index_values.length) || 0;
+          for (var k = 0; k < n; k++) {
+            insertMultiEntryIndex(idx, index_values[n]);
+          }
+        }
+      }
+
       if (single) {
         me.logger.finer('success ' + msg);
         df(key);
@@ -378,7 +433,6 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
           }
         }
       }
-
     };
 
     /**
@@ -410,9 +464,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         }
         return false; // roll back
       } else {
-
       // rollback for any error including constraint error.
-
         me.logger.warning('error: ' + error.message + ' ' + msg);
         df(error, true);
         return false;
@@ -550,7 +602,7 @@ ydn.db.crud.req.WebSql.prototype.getById = function(tx, tx_no, d, table_name,
 
   var column_name = table.getSQLKeyColumnNameQuoted();
 
-  var params = [ydn.db.schema.Index.js2sql(id, table.getType(), false)];
+  var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
 
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
     column_name + ' = ?';
@@ -677,7 +729,7 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name,
     var id = ids[i];
     var column_name = table.getSQLKeyColumnNameQuoted();
 
-    var params = [ydn.db.schema.Index.js2sql(id, table.getType(), false)];
+    var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
       column_name + ' = ?';
     me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
@@ -852,7 +904,7 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(tx, tx_no, df, keys) {
     var id = key.getNormalizedId();
     var column_name = table.getSQLKeyColumnNameQuoted();
 
-    var params = [ydn.db.schema.Index.js2sql(id, table.getType(), false)];
+    var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
       column_name + ' = ?';
     me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
@@ -939,7 +991,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
 
 
   var store = this.schema.getStore(table);
-  var key = ydn.db.schema.Index.js2sql(id, store.getType(), false);
+  var key = ydn.db.schema.Index.js2sql(id, store.getType());
 
   var me = this;
 
