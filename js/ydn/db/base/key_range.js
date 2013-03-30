@@ -330,21 +330,19 @@ ydn.db.KeyRange.toSql = function(quoted_column_name, type, is_multi_entry,
     return;
   }
 
+  if (is_multi_entry) {
+    throw new ydn.error.NotSupportedException('MultiEntryInequalQuery');
+  }
+
   if (!key_range.lowerOpen && !key_range.upperOpen &&
       goog.isDefAndNotNull(key_range.lower) &&
       goog.isDefAndNotNull(key_range.upper) &&
       ydn.db.cmp(key_range.lower, key_range.upper) === 0) {
 
-    if (is_multi_entry) {
-      throw new ydn.error.NotSupportedException('MultiEntryInequalQuery');
-    } else {
-      wheres.push(quoted_column_name + ' = ?');
-      params.push( ydn.db.schema.Index.js2sql(key_range.lower, type));
-    }
+    wheres.push(quoted_column_name + ' = ?');
+    params.push( ydn.db.schema.Index.js2sql(key_range.lower, type));
   } else {
-    if (is_multi_entry) {
-      throw new ydn.error.NotSupportedException('MultiEntryInequalQuery');
-    }
+
     if (goog.isDefAndNotNull(key_range.lower)) {
       var op = key_range.lowerOpen ? ' > ' : ' >= ';
       wheres.push(quoted_column_name + op + '?');

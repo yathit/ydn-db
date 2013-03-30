@@ -463,6 +463,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
           index.getSQLIndexColumnNameQuoted() + ' ' + index.getSqlType() +
           idx_unique + ')';
       sqls.push(multi_entry_sql);
+      continue;
     } else if (index.isUnique()) {
       unique =  ' UNIQUE ';
     }

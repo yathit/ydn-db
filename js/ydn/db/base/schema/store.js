@@ -670,7 +670,8 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
 
   for (var i = 0; i < this.indexes.length; i++) {
     var index = this.indexes[i];
-    if (index.name === this.keyPath ||
+    if (index.isMultiEntry() ||
+        index.name === this.keyPath ||
         index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
       continue;
     }

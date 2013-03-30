@@ -181,42 +181,63 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df,
   var store = this.schema.getStore(store_name);
 
   var key_column = store.getSQLKeyColumnName();
+  var q_key_column = goog.string.quote(key_column);
   var index = goog.isDefAndNotNull(index_column) &&
     (index_column !== key_column) ? store.getIndex(index_column) : null;
   var is_index = !!index;
   var effective_column = index_column || key_column;
-  var effective_column_quoted =  goog.string.quote(effective_column);
+  var q_effective_column =  goog.string.quote(effective_column);
   var key_path = is_index ? index.getKeyPath() : store.getKeyPath();
   var type = is_index ? index.getType() : store.getType();
   var is_multi_entry = is_index && index.isMultiEntry();
 
-  var fields = '*';
-  if (key_only) {
-    fields = goog.string.quote(key_column);
-    if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
-      fields += ', ' + goog.string.quote(index_column);
-    }
-  }
+  var select = '*';
+  var from = store.getQuotedName();
 
-  // FIXME: DISTINCT is not equivalent to IndexedDB unique
-  var dist = distinct ? 'DISTINCT' : '';
-  var sql = 'SELECT ' + dist + fields +
-    ' FROM ' + store.getQuotedName();
   var params = [];
   if (goog.isDefAndNotNull(key_range)) {
     goog.asserts.assert(key_path); // not null.
     var wheres = [];
 
-    ydn.db.KeyRange.toSql(effective_column_quoted, type, is_multi_entry,
-        key_range, wheres, params);
+    if (is_multi_entry) {
+      var idx_store_name = goog.string.quote(
+          ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+              store.getName() + ':' + index.getName());
+      if (key_only) {
+        select = store.getQuotedName() + '.' + q_key_column + ', ' +
+            idx_store_name + '.' + q_effective_column;
+      } else {
+        select = store.getQuotedName() + '.*';
+      }
+      from = store.getQuotedName() + ' NATURAL JOIN ' + idx_store_name;
+      var col = idx_store_name + '.' + q_effective_column;
+      ydn.db.KeyRange.toSql(col, type, false, key_range, wheres, params);
+      if (wheres.length > 0) {
+        from += ' WHERE ' + wheres.join(' AND ');
+      }
+    } else {
+      if (key_only) {
+        select = q_key_column;
+        if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
+          select += ', ' + q_effective_column;
+        }
+      }
+      ydn.db.KeyRange.toSql(q_effective_column, type, false,
+          key_range, wheres, params);
+      if (wheres.length > 0) {
+        from += ' WHERE ' + wheres.join(' AND ');
+      }
+    }
 
-    sql += ' WHERE ' + wheres.join(' AND ');
   }
 
+  var sql = 'SELECT ' + select + ' FROM ' + from;
+
+
   var order = reverse ? 'DESC' : 'ASC';
-  sql += ' ORDER BY ' + effective_column_quoted + ' ' + order;
+  sql += ' ORDER BY ' + q_effective_column + ' ' + order;
   if (is_index) {
-    sql += ', ' + goog.string.quote(key_column) + ' ' + order;
+    sql += ', ' + q_key_column + ' ' + order;
   }
 
   if (goog.isNumber(limit)) {
@@ -231,8 +252,15 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df,
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
-    for (var i = 0, n = results.rows.length; i < n; i++) {
+    var n = results.rows.length;
+    if (ydn.db.crud.req.WebSql.DEBUG) {
+      window.console.log(results);
+    }
+    for (var i = 0; i < n; i++) {
       var row = results.rows.item(i);
+      if (ydn.db.crud.req.WebSql.DEBUG) {
+        window.console.log(row);
+      }
       if (key_only) {
         arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType(),
             is_multi_entry);
@@ -344,7 +372,6 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
           'object ' + at + ' "' + ydn.json.toShortString(objects[i]));
     }
 
-
     var out;
     if (goog.isDef(opt_keys)) {
       out = table.getIndexedValues(objects[i], opt_keys[i]);
@@ -391,7 +418,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
          */
         var idx_success = function(tx, rs) {
 
-        }
+        };
         /**
          * @param {SQLTransaction} tr transaction.
          * @param {SQLError} error error.
@@ -400,20 +427,20 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         var idx_error = function(tr, error) {
           me.logger.warning('multiEntry index insert error: ' + error.message);
           return false;
-        }
+        };
 
         me.logger.finest('TX' + tx_no + ' multiEntry ' + idx_sql +
             ' ' + idx_params);
         tx.executeSql(idx_sql, idx_params, idx_success, idx_error);
       };
-      for (var j = 0, n = table.countIndex(); j < n; j++) {
-        var idx = table.index(i);
+      for (var j = 0, nj = table.countIndex(); j < nj; j++) {
+        var idx = table.index(j);
         if (idx.isMultiEntry()) {
           var index_values = ydn.db.utils.getValueByKeys(objects[i],
               idx.getKeyPath());
-          var n = (!!index_values ? 0 : index_values.length) || 0;
+          var n = (!index_values ? 0 : index_values.length) || 0;
           for (var k = 0; k < n; k++) {
-            insertMultiEntryIndex(idx, index_values[n]);
+            insertMultiEntryIndex(idx, index_values[k]);
           }
         }
       }
