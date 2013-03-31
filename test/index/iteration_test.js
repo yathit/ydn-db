@@ -13,7 +13,7 @@ var db_name = 'test_iteration_1';
 
 var setUp = function() {
 
-  ydn.debug.log('ydn.db');
+  // ydn.debug.log('ydn.db');
 
   objs = [
     {id:'qs0', value: 0, x: 1, tag: ['a', 'b']},
