@@ -2,31 +2,18 @@
 goog.require('goog.debug.Console');
 goog.require('ydn.db.algo.NestedLoop');
 goog.require('goog.testing.jsunit');
-
+goog.require('ydn.debug');
 goog.require('ydn.db.index.Storage');
 
 
 
-var reachedFinalContinuation, schema, debug_console, db, objs, animals;
+var reachedFinalContinuation, schema, db, objs, animals;
 var store_name = 't1';
 var db_name = 'test_iteration_1';
 
 var setUp = function() {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-    //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.index.req.CachedWebsqlCursor').setLevel(goog.debug.Logger.Level.FINEST);
 
-    //ydn.db.tr.Mutex.DEBUG = true;
-    //ydn.db.crud.req.IndexedDb.DEBUG = true;
-    //ydn.db.crud.req.IndexedDb.DEBUG = true;
-    //ydn.db.index.req.CachedWebsqlCursor.DEBUG = true;
-
-  }
+  ydn.debug.log('ydn.db');
 
   objs = [
     {id:'qs0', value: 0, x: 1, tag: ['a', 'b']},
@@ -738,6 +725,10 @@ var test_61_scan_cursor_resume = function() {
     console.log(e);
     done = true;
   });
+};
+
+tearDownPage = function() {
+  ydn.db.deleteDatabase(db_name, options.mechanisms[0]);
 };
 
 

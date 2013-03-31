@@ -177,9 +177,9 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
   var sql = this.store_schema_.toSql(params, this.key_only, this.index_name,
       key_range, this.reverse, this.unique);
 
-  sql += 'LIMIT 1'; // cursor move only one step at a time.
+  sql += ' LIMIT 1'; // cursor move only one step at a time.
   if (this.current_cursor_offset_ > 0) {
-    sql += 'OFFSET ' + this.current_cursor_offset_;
+    sql += ' OFFSET ' + this.current_cursor_offset_;
   }
 
 //  if (this.key_only) {
