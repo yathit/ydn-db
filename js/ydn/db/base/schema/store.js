@@ -243,6 +243,79 @@ ydn.db.schema.Store.fromJSON = function(json) {
 
 /**
  *
+ * @param {!Array} params sql parameter list
+ * @param {boolean} key_only retrieve key only.
+ * @param {string|undefined} index_column name.
+ * @param {IDBKeyRange} key_range to retrieve.
+ * @param {boolean} reverse ordering.
+ * @param {boolean} distinct
+ */
+ydn.db.schema.Store.prototype.toSql = function(params, key_only, index_column,
+                 key_range, reverse, distinct) {
+
+  var key_column = this.getSQLKeyColumnName();
+  var q_key_column = goog.string.quote(key_column);
+  var index = goog.isDefAndNotNull(index_column) &&
+      (index_column !== key_column) ? this.getIndex(index_column) : null;
+  var is_index = !!index;
+  var effective_column = index_column || key_column;
+  var q_effective_column =  goog.string.quote(effective_column);
+  var key_path = is_index ? index.getKeyPath() : this.getKeyPath();
+  var type = is_index ? index.getType() : this.getType();
+  var is_multi_entry = is_index && index.isMultiEntry();
+
+  var select = '*';
+  var from = this.getQuotedName();
+
+  if (goog.isDefAndNotNull(key_range)) {
+    goog.asserts.assert(key_path); // not null.
+    var wheres = [];
+
+    if (is_multi_entry) {
+      var idx_store_name = goog.string.quote(
+          ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+              this.getName() + ':' + index.getName());
+      if (key_only) {
+        select = this.getQuotedName() + '.' + q_key_column + ', ' +
+            idx_store_name + '.' + q_effective_column;
+      } else {
+        select = this.getQuotedName() + '.*';
+      }
+      from = this.getQuotedName() + ' NATURAL JOIN ' + idx_store_name;
+      var col = idx_store_name + '.' + q_effective_column;
+      ydn.db.KeyRange.toSql(col, type, key_range, wheres, params);
+      if (wheres.length > 0) {
+        from += ' WHERE ' + wheres.join(' AND ');
+      }
+    } else {
+      if (key_only) {
+        select = q_key_column;
+        if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
+          select += ', ' + q_effective_column;
+        }
+      }
+      ydn.db.KeyRange.toSql(q_effective_column, type, key_range, wheres,
+          params);
+      if (wheres.length > 0) {
+        from += ' WHERE ' + wheres.join(' AND ');
+      }
+    }
+
+  }
+
+  var dir = reverse ? 'DESC' : 'ASC';
+  var order = q_effective_column + ' ' + dir;
+  if (is_index) {
+    order += ', ' + q_key_column + ' ' + dir;
+  }
+
+  var sql = 'SELECT ' + select + ' FROM ' + from + ' ORDER BY ' + order;
+  return sql;
+};
+
+
+/**
+ *
  * @return {!ydn.db.schema.Store} clone this database schema.
  */
 ydn.db.schema.Store.prototype.clone = function() {

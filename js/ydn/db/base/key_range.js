@@ -319,21 +319,15 @@ ydn.db.KeyRange.prototype.and = function(that) {
  *
  * @param {string} quoted_column_name quoted column name
  * @param {ydn.db.schema.DataType|undefined} type
- * @param {boolean} is_multi_entry
  * @param {IDBKeyRange} key_range
  * @param {!Array.<string>} wheres where clauses
  * @param {!Array.<string>} params params */
-ydn.db.KeyRange.toSql = function(quoted_column_name, type, is_multi_entry,
+ydn.db.KeyRange.toSql = function(quoted_column_name, type,
                                  key_range, wheres, params) {
 
   if (!key_range) {
     return;
   }
-
-  if (is_multi_entry) {
-    throw new ydn.error.NotSupportedException('MultiEntryInequalQuery');
-  }
-
   if (!key_range.lowerOpen && !key_range.upperOpen &&
       goog.isDefAndNotNull(key_range.lower) &&
       goog.isDefAndNotNull(key_range.upper) &&

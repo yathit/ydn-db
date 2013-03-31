@@ -514,11 +514,7 @@ ydn.db.schema.Index.prototype.hint = function(that) {
     // composite are converted into TEXT
     type = undefined;
   }
-  var multiEntry = this.multiEntry;
-  if (that.multiEntry === true && this.type == 'TEXT') {
-    multiEntry = true; // multiEntry info was lost
-  }
-  return new ydn.db.schema.Index(keyPath, type, this.unique, multiEntry,
+  return new ydn.db.schema.Index(keyPath, type, this.unique, this.multiEntry,
     that.name);
 };
 

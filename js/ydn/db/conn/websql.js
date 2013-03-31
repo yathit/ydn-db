@@ -528,8 +528,12 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
   var version = (db && db.version) ?
       parseFloat(db.version) : undefined;
   version = isNaN(version) ? undefined : version;
-  var stores = [];
 
+  /**
+   * @final
+   * @type {!Array.<ydn.db.schema.Store>}
+   */
+  var stores = [];
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -606,9 +610,51 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
           }
         }
 
-        var store = new ydn.db.schema.Store(info.name, key_name, autoIncrement,
-            key_type, indexes, undefined, !has_default_blob_column);
-        stores.push(store);
+        // multiEntry store, which store in separated table
+        if (goog.string.startsWith(info.name,
+            ydn.db.con.WebSql.PREFIX_MULTIENTRY)) {
+          var names = info.name.split(':');
+          if (!!names && names.length >= 3) {
+            var st_name = names[1];
+            var store_index = goog.array.findIndex(stores, function (x) {
+              return x.getName() === st_name;
+            });
+            var multi_index = new ydn.db.schema.Index(names[2], type,
+                unique, true);
+            if (store_index >= 0) { // main table exist, add this index
+              var ex_store = stores[store_index];
+              indexes.push(multi_index);
+              stores[store_index] = new ydn.db.schema.Store(ex_store.getName(),
+                  ex_store.getKeyPath(), autoIncrement,
+                  key_type, indexes, undefined, !has_default_blob_column);
+            } else { // main table don't exist, create a temporary table
+
+              stores.push(new ydn.db.schema.Store(st_name, undefined, false,
+                  undefined, [multi_index]))
+            }
+          } else {
+            me.logger.warning('Invalid multiEntry store name "' + info.name +
+                '"');
+          }
+        }  else {
+          var i_store = goog.array.findIndex(stores, function (x) {
+            return x.getName() === info.name;
+          });
+          if (i_store >= 0) {
+            var ex_index = stores[i_store].index(0);
+            goog.asserts.assertInstanceof(ex_index, ydn.db.schema.Index);
+            indexes.push(ex_index);
+            stores[i_store] = new ydn.db.schema.Store(info.name, key_name,
+                autoIncrement, key_type, indexes, undefined,
+                !has_default_blob_column);
+          } else {
+            var store = new ydn.db.schema.Store(info.name, key_name,
+                autoIncrement, key_type, indexes, undefined,
+                !has_default_blob_column);
+            stores.push(store);
+          }
+        }
+
         //console.log([info, store]);
       }
     }
@@ -631,7 +677,6 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
     }
     throw error;
   };
-
 
   if (!trans) {
 

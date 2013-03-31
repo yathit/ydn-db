@@ -54,6 +54,12 @@ ydn.db.index.req.AbstractCursor = function(tx, tx_no, store_name, index_name,
   /**
    * @final
    */
+  this.unique = direction == ydn.db.base.Direction.NEXT_UNIQUE ||
+      direction == ydn.db.base.Direction.PREV_UNIQUE;
+
+  /**
+   * @final
+   */
   this.dir = direction;
 
   /**
@@ -78,12 +84,6 @@ ydn.db.index.req.AbstractCursor.prototype.index_name;
  */
 ydn.db.index.req.AbstractCursor.prototype.is_index;
 
-/**
- * @protected
- * @type {!Array.<string>|string|undefined}
- */
-ydn.db.index.req.AbstractCursor.prototype.index_key_path;
-
 
 /**
  * @protected
@@ -104,6 +104,11 @@ ydn.db.index.req.AbstractCursor.prototype.dir = '';
  */
 ydn.db.index.req.AbstractCursor.prototype.key_range = null;
 
+/**
+ * @protected
+ * @type {boolean}
+ */
+ydn.db.index.req.AbstractCursor.prototype.unique = false;
 
 /**
  * @protected

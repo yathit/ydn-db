@@ -95,11 +95,13 @@ var version_change_test = function(schema1, schema2, is_final, msg) {
 
   var db = new ydn.db.Storage(db_name, schema1, options);
   db.addEventListener('ready', function(e) {
+    // console.log(db.getSchema(function (s) {console.log(s)}));
     ver = e.getVersion();
     oldVer = e.getOldVersion();
     db.close();
     var db2 = new ydn.db.Storage(db_name, schema2, options);
     db2.addEventListener('ready', function (e) {
+      // console.log(db.getSchema(function (s) {console.log(s)}));
       ver2 = e.getVersion();
       oldVer2 = e.getOldVersion();
       ydn.db.deleteDatabase(db2.getName(), db2.getType());
@@ -281,10 +283,9 @@ var test_multiEntry = function() {
     ]
   };
 
-  if (options.mechanisms[0] != 'websql') {  // know issue
-    version_change_test(schema2, schema, false, 'from multiEntry');
-    version_change_test(schema, schema2, false, 'to multiEntry');
-  }
+  version_change_test(schema2, schema, false, 'from multiEntry');
+  version_change_test(schema, schema2, false, 'to multiEntry');
+
   version_unchange_test(schema, false, 'multiEntry=false:');
   version_unchange_test(schema2, true, 'multiEntry=true:');
 };
@@ -351,7 +352,6 @@ var test_composite_index_schema = function() {
   version_unchange_test(schema2, false, '2:');
   version_change_test(schema, schema2, false, '3:');
   version_change_test(schema2, schema, true, '4:');
-
 
 };
 

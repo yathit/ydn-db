@@ -179,66 +179,14 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df,
   var me = this;
   var arr = [];
   var store = this.schema.getStore(store_name);
-
   var key_column = store.getSQLKeyColumnName();
-  var q_key_column = goog.string.quote(key_column);
   var index = goog.isDefAndNotNull(index_column) &&
-    (index_column !== key_column) ? store.getIndex(index_column) : null;
+      (index_column !== key_column) ? store.getIndex(index_column) : null;
   var is_index = !!index;
   var effective_column = index_column || key_column;
-  var q_effective_column =  goog.string.quote(effective_column);
-  var key_path = is_index ? index.getKeyPath() : store.getKeyPath();
-  var type = is_index ? index.getType() : store.getType();
-  var is_multi_entry = is_index && index.isMultiEntry();
-
-  var select = '*';
-  var from = store.getQuotedName();
-
   var params = [];
-  if (goog.isDefAndNotNull(key_range)) {
-    goog.asserts.assert(key_path); // not null.
-    var wheres = [];
-
-    if (is_multi_entry) {
-      var idx_store_name = goog.string.quote(
-          ydn.db.con.WebSql.PREFIX_MULTIENTRY +
-              store.getName() + ':' + index.getName());
-      if (key_only) {
-        select = store.getQuotedName() + '.' + q_key_column + ', ' +
-            idx_store_name + '.' + q_effective_column;
-      } else {
-        select = store.getQuotedName() + '.*';
-      }
-      from = store.getQuotedName() + ' NATURAL JOIN ' + idx_store_name;
-      var col = idx_store_name + '.' + q_effective_column;
-      ydn.db.KeyRange.toSql(col, type, false, key_range, wheres, params);
-      if (wheres.length > 0) {
-        from += ' WHERE ' + wheres.join(' AND ');
-      }
-    } else {
-      if (key_only) {
-        select = q_key_column;
-        if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
-          select += ', ' + q_effective_column;
-        }
-      }
-      ydn.db.KeyRange.toSql(q_effective_column, type, false,
-          key_range, wheres, params);
-      if (wheres.length > 0) {
-        from += ' WHERE ' + wheres.join(' AND ');
-      }
-    }
-
-  }
-
-  var sql = 'SELECT ' + select + ' FROM ' + from;
-
-
-  var order = reverse ? 'DESC' : 'ASC';
-  sql += ' ORDER BY ' + q_effective_column + ' ' + order;
-  if (is_index) {
-    sql += ', ' + q_key_column + ' ' + order;
-  }
+  var sql = store.toSql(params, key_only, effective_column,
+      key_range, reverse, distinct);
 
   if (goog.isNumber(limit)) {
     sql += ' LIMIT ' + limit;
@@ -263,7 +211,7 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df,
       }
       if (key_only) {
         arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType(),
-            is_multi_entry);
+            false);
       } else if (goog.isDefAndNotNull(row)) {
         arr[i] = ydn.db.crud.req.WebSql.parseRow(row, store);
       }
@@ -1108,10 +1056,10 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
     if (goog.isDef(column_name)) {
       var index = store.getIndex(column_name);
       ydn.db.KeyRange.toSql(index.getSQLIndexColumnNameQuoted(),
-          index.getType(), index.isMultiEntry(), key_range, wheres, params);
+          index.getType(), key_range, wheres, params);
     } else {
       ydn.db.KeyRange.toSql(store.getSQLKeyColumnNameQuoted(), store.getType(),
-        false, key_range, wheres, params);
+        key_range, wheres, params);
     }
     sql += ' WHERE ' + wheres.join(' AND ');
   }
@@ -1227,10 +1175,10 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
     if (goog.isDef(index_name)) {
       var index = store.getIndex(index_name);
       ydn.db.KeyRange.toSql(index.getSQLIndexColumnNameQuoted(),
-          index.getType(), index.isMultiEntry(),  key_range, wheres, params);
+          index.getType(), key_range, wheres, params);
     } else {
       ydn.db.KeyRange.toSql(store.getSQLKeyColumnNameQuoted(), store.getType(),
-        false, key_range, wheres, params);
+        key_range, wheres, params);
     }
     sql += ' WHERE ' + wheres.join(' AND ');
   }
