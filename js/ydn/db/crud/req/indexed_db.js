@@ -616,6 +616,73 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
 };
 
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
+                                                          keys) {
+
+  var me = this;
+  var count = 0;
+  var has_failed = false;
+  var store_name, store, key;
+  var msg = 'TX' + tx_no + ' removeByKeys: ' + keys.length + ' keys';
+  this.logger.finest(msg);
+
+  var removeAt = function (i) {
+
+    if (i >= keys.length) {
+      me.logger.finest('success ' + msg);
+      df(count, has_failed);
+      return;
+    }
+
+    if (keys[i].getStoreName() != store_name) {
+      store_name = keys[i].getStoreName();
+      store = tx.objectStore(store_name);
+    }
+
+    // todo: optimize request by reusing for continuous keys
+    var request = store.openCursor(/** @type {null} */ (keys[i].getId()));
+    // casting to null is weired, but argument of openCursor can be IDBKeyRange
+    // or key. But annotation only allow IDBKeyRange or null.
+
+    request.onsuccess = function (event) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, i, keys[i], event]);
+      }
+      i++;
+      var cursor = event.target.result;
+      if (cursor) {
+        var req = cursor['delete']();
+        req.onsuccess = function (e) {
+          count++;
+          removeAt(i);
+        };
+        req.onerror = function (e) {
+          has_failed = true;
+          removeAt(i);
+        }
+      } else {
+        removeAt(i);
+      }
+
+    };
+    request.onerror = function (event) {
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, key, event]);
+      }
+      me.logger.finest('error ' + msg);
+      df(event, true);
+    };
+  };
+
+  removeAt(0);
+
+};
+
+
 /**
  * @inheritDoc
  */

@@ -17,8 +17,8 @@ var load_store_name = 'st_load';
 
 var setUp = function () {
   // ydn.debug.log('ydn.db', 'finest');
-  //ydn.debug.log('ydn.db.crud.req', 'finest');
-  //ydn.db.tr.Serial.DEBUG = true;
+  // ydn.debug.log('ydn.db.crud.req', 'finest');
+  // ydn.db.tr.Serial.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
   var stores = [new ydn.db.schema.Store(table_name, 'id'),
@@ -913,7 +913,7 @@ var test_40_clear_store = function() {
 };
 
 
-var test_41_remove_by_key = function() {
+var test_remove_by_id = function() {
   var db_name = 'test_41_remove_by_key';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
   db.clear(table_name);
@@ -951,7 +951,113 @@ var test_41_remove_by_key = function() {
 };
 
 
-var test_42_remove_by_key_range = function() {
+var test_remove_by_key = function() {
+  var db_name = 'test_remove_by_key';
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id'
+    }]
+  };
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var ids = [Math.random(), Math.random(), Math.random()];
+  var objs = [];
+
+  for (var i = 0; i < ids.length; i++) {
+    objs[i] = {id: ids[i]};
+  }
+
+  var done = false;
+  var delCount, keys_before, keys_after;
+
+  waitForCondition(
+      // Condition
+      function() { return done; },
+      // Continuation
+      function() {
+        assertEquals('3 keys before', 3, keys_before.length);
+        assertEquals('delete count', 1, delCount);
+        assertEquals('2 keys after', 2, keys_after.length);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  db.clear('st').addBoth(function (x) {
+    //console.log('cleared');
+  });
+  db.put('st', objs).addBoth(function (x) {
+    // console.log(x);
+  });
+  db.keys('st').addBoth(function (x) {
+    keys_before = x;
+  });
+  db.remove(new ydn.db.Key('st', ids[1])).addBoth(function (x) {
+    delCount = x;
+  });
+  db.keys('st').addBoth(function (x) {
+    keys_after = x;
+    done = true;
+  });
+};
+
+
+var test_remove_by_key_array = function() {
+  // ydn.db.crud.req.IndexedDb.DEBUG = true;
+  var db_name = 'test_41_remove_by_key_array';
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id'
+    }]
+  };
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var ids = [Math.random(), Math.random(), Math.random()];
+  var objs = [];
+  var keys = [];
+  for (var i = 0; i < ids.length; i++) {
+    objs[i] = {id: ids[i]};
+    keys[i] = new ydn.db.Key('st', ids[i]);
+  }
+
+  var done = false;
+  var delCount, keys_before, keys_after;
+
+  waitForCondition(
+      // Condition
+      function() { return done; },
+      // Continuation
+      function() {
+        assertEquals('3 keys before', 3, keys_before.length);
+        assertEquals('delete count', 3, delCount);
+        assertEquals('0 keys after', 0, keys_after.length);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  db.clear('st');
+  db.put('st', objs);
+  db.keys('st').addBoth(function (x) {
+    keys_before = x;
+  });
+  db.remove(keys).addBoth(function (x) {
+    delCount = x;
+  });
+  db.keys('st').addBoth(function (x) {
+    keys_after = x;
+    done = true;
+  });
+};
+
+
+var test_remove_by_key_range = function() {
   var db_name = 'test_42_remove_by_key_range';
 
 

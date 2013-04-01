@@ -96,7 +96,7 @@ ydn.db.crud.IOperator.prototype.load = goog.abstractMethod;
  * @param {string|StoreSchema|ydn.db.Key|!Array.<!ydn.db.Key>} arg1 store name
  * or schema, key or array of keys.
  * @param {!Object|!Array.<!Object>} value object to put.
- * @param {string|number|!Array.<(string|number)>=} opt_keys out-of-line keys.
+ * @param {IDBKey|!Array.<IDBKey>=} opt_keys out-of-line keys.
  * @return {!goog.async.Deferred} return newly created keys in promise.
  */
 ydn.db.crud.IOperator.prototype.put = goog.abstractMethod;
@@ -119,7 +119,7 @@ ydn.db.crud.IOperator.prototype.clear = goog.abstractMethod;
 
 /**
  * Remove a specific entry from a store or all.
- * @param {string} store_name store name
+ * @param {string|ydn.db.Key|!Array.<!ydn.db.Key>} store_name store name
  * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} arg2 delete a specific key or
  * key range.
  * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} arg3 delete a specific key or

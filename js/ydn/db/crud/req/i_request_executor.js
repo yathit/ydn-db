@@ -34,7 +34,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.addObject = goog.abstractMethod;
  * @param {?function(*, boolean=)} return keys in deferred function.
  * @param {string} store_name store name.
  * @param {!Array.<!Object>} objs object to put.
- * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
+ * @param {!Array.<IDBKey>=} opt_key optional out-of-line keys.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.addObjects = goog.abstractMethod;
 
@@ -45,9 +45,22 @@ ydn.db.crud.req.IRequestExecutor.prototype.addObjects = goog.abstractMethod;
  *  @param {number} tx_no transaction number
  * @param {?function(*, boolean=)} return object in deferred function.
  * @param {string} store table name.
- * @param {(!Array|string|number)} id object key to be deleted.
+ * @param {(IDBKey)} id object key to be deleted.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.removeById = goog.abstractMethod;
+
+
+/**
+ * Delete given key in the object store.
+ * Return number of keys deleted.
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ *  @param {number} tx_no transaction number
+ * @param {?function(*, boolean=)} return object in deferred function.
+ * @param {(!Array.<!ydn.db.Key>)} id object key to be deleted.
+ */
+ydn.db.crud.req.IRequestExecutor.prototype.removeByKeys = goog.abstractMethod;
+
+
 
 
 /**

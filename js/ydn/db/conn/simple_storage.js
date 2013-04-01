@@ -410,7 +410,7 @@ ydn.db.con.SimpleStorage.prototype.setItemInternal = function(
 /**
  *
  * @param {string=} store_name store name or key.
- * @param {(!Array|string|number)=} id  id.
+ * @param {IDBKey=} id  id.
  * @final
  */
 ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(

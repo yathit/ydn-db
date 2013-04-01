@@ -1190,12 +1190,16 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
 /**
  * @inheritDoc
  */
-ydn.db.crud.DbOperator.prototype.remove = function(store_name, arg2, arg3) {
+ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
 
   var df = ydn.db.base.createDeferred();
   var me = this;
 
-  if (goog.isString(store_name)) {
+  if (goog.isString(arg1)) {
+    /**
+     * @type {string}
+     */
+    var store_name = arg1;
     var store = this.schema.getStore(store_name);
     if (!store) {
       throw new ydn.debug.error.ArgumentException('store name "' + store_name +
@@ -1290,9 +1294,47 @@ ydn.db.crud.DbOperator.prototype.remove = function(store_name, arg2, arg3) {
           'Invalid key or key range "' + arg2 + '" of type ' + typeof arg2);
       }
     }
+  } else if (arg1 instanceof ydn.db.Key) {
+    /**
+     * @type {!ydn.db.Key}
+     */
+    var key = arg1;
+    this.tx_thread.exec(df, function (tx, tx_no, cb) {
+          me.getExecutor().removeById(tx, tx_no, cb, key.getStoreName(),
+              arg1.getId());
+        }, [key.getStoreName()], ydn.db.base.TransactionMode.READ_WRITE,
+        'removeByKey');
+  } else if (goog.isArray(arg1)) {
+    /**
+     * @type {!Array.<!ydn.db.Key>}
+     */
+    var arr = arg1;
+    var store_names = [];
+    for (var i = 0, n = arr.length; i < n; i++) {
+      if (goog.DEBUG && !(arr[i] instanceof ydn.db.Key)) {
+        throw new ydn.debug.error.ArgumentException('key list element at ' + i +
+            ' of ' + n + ' must be yn.db.Key, but "' +
+            ydn.json.toShortString(arg1[i]) +
+            '" (' + goog.typeOf(arg1[i]) + ') ' +
+            'is not ydn.db.Key.');
+      }
+      var st = arr[i].getStoreName();
+      if (store_names.indexOf(st) == -1) {
+        store_names.push(st);
+      }
+    }
+    if (store_names.length < 1) {
+      throw new ydn.debug.error.ArgumentException('at least one valid key ' +
+          'required in key list "' + ydn.json.toShortString(arg1) + '"');
+    }
+    this.tx_thread.exec(df, function (tx, tx_no, cb) {
+          me.getExecutor().removeByKeys(tx, tx_no, cb, arr);
+        }, store_names, ydn.db.base.TransactionMode.READ_WRITE,
+        'removeByKeys');
   } else {
-    throw new ydn.debug.error.ArgumentException('store name required, but "' +
-      store_name + '" of type ' + typeof store_name + ' found.');
+    throw new ydn.debug.error.ArgumentException('first argument requires ' +
+      'store name (string), key (ydn.db.Key) or list of keys (array) , but "' +
+      ydn.json.toShortString(arg1) + '" (' + goog.typeOf(arg1) + ') found.');
   }
 
   return df;

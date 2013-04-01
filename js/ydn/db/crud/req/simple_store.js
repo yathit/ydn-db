@@ -241,6 +241,11 @@ ydn.db.crud.req.SimpleStore.prototype.removeById = function(tx, tx_no, df, table
   df(true);
 };
 
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.req.SimpleStore.prototype.removeByKeys = goog.abstractMethod;
+
 
 /**
  * @inheritDoc

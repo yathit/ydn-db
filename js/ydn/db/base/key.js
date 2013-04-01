@@ -29,7 +29,7 @@ goog.provide('ydn.db.Key');
  *
  * @param {string|!ydn.db.Key.Json} store_or_json_or_value store name of key
  * object in JSON format.
- * @param {(!Array|string|number)=} id key id.
+ * @param {!IDBKey=} id key id.
  * @param {ydn.db.Key=} opt_parent optional parent key.
  * @constructor
  */
@@ -67,18 +67,15 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
   }
 
   /**
-   * @protected
-   * @type {string}
+   * @final
    */
   this.store_name = store_name;
   /**
-   * @protected
-   * @type {(!Array|string|number)}
+   * @final
    */
   this.id = id;
   /**
-   * @protected
-   * @type {ydn.db.Key}
+   * @final
    */
   this.parent = opt_parent || null;
 
@@ -99,6 +96,26 @@ var IDBKey;
  * }}
  */
 ydn.db.Key.Json;
+
+
+/**
+ * @private
+ * @type {!IDBKey}
+ */
+ydn.db.Key.prototype.id;
+
+
+/**
+ * @private
+ * @type {string}
+ */
+ydn.db.Key.prototype.store_name;
+
+/**
+ * @private
+ * @type {ydn.db.Key?}
+ */
+ydn.db.Key.prototype.parent;
 
 
 
@@ -162,7 +179,7 @@ ydn.db.Key.prototype.getStoreName = function() {
 
 /**
  *
- * @return {!Array|string|number} key id.
+ * @return {!IDBKey} key id.
  */
 ydn.db.Key.prototype.getId = function() {
   return this.id;
@@ -176,8 +193,10 @@ ydn.db.Key.prototype.getId = function() {
 ydn.db.Key.prototype.getNormalizedId = function() {
   if (goog.isArray(this.id)) {
     return this.id.join(ydn.db.Key.SEP_PARENT);
+  } else if (this.id instanceof Date) {
+    return +(this.id);
   } else {
-    return this.id;
+    return /** @type {string|number} */ (this.id);
   }
 };
 

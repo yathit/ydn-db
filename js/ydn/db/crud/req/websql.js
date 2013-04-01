@@ -977,6 +977,93 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d,
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
+                                                            keys) {
+
+  var me = this;
+  var count = 0;
+  var has_failed = false;
+  var store_name, store, key;
+  var msg = 'TX' + tx_no + ' removeByKeys: ' + keys.length + ' keys';
+  this.logger.finest(msg);
+
+  var removeAt = function (i) {
+
+    if (i >= keys.length) {
+      me.logger.finest('success ' + msg);
+      df(count, has_failed);
+      return;
+    }
+
+    var store = me.schema.getStore(keys[i].getStoreName());
+
+    var key = ydn.db.schema.Index.js2sql(keys[i].getId(), store.getType());
+
+    /**
+     * @param {SQLTransaction} transaction transaction.
+     * @param {SQLResultSet} results results.
+     */
+    var success_callback = function(transaction, results) {
+      if (ydn.db.crud.req.WebSql.DEBUG) {
+        window.console.log(results);
+      }
+      count++;
+      removeAt(i);
+    };
+
+    /**
+     * @param {SQLTransaction} tr transaction.
+     * @param {SQLError} error error.
+     * @return {boolean} true to roll back.
+     */
+    var error_callback = function(tr, error) {
+      if (ydn.db.crud.req.WebSql.DEBUG) {
+        window.console.log([tr, error]);
+      }
+      me.logger.warning('error: ' + i_msg + error.message);
+      has_failed = true;
+      removeAt(i);
+      return false;
+    };
+
+    var where = ' WHERE ' + store.getSQLKeyColumnNameQuoted() + ' = ?';
+    var sql = 'DELETE FROM ' + store.getQuotedName() + where;
+    //console.log([sql, out.values])
+    var i_msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + [key];
+    if (ydn.db.crud.req.WebSql.DEBUG) {
+      window.console.log(i_msg);
+    }
+    tx.executeSql(sql, [key], success_callback, error_callback);
+    i++;
+
+    /**
+     *
+     * @param {ydn.db.schema.Index} index
+     */
+    var deleteMultiEntryIndex = function(index) {
+      var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+          store.getName() + ':' + index.getName();
+
+      var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
+      me.logger.finest('TX' + tx_no +  + ' SQL: ' + idx_sql);
+      tx.executeSql(idx_sql, [key]);
+    };
+
+    for (var j = 0, n = store.countIndex(); j < n; j++) {
+      var index = store.index(j);
+      if (index.isMultiEntry()) {
+        deleteMultiEntryIndex(index);
+      }
+    }
+  };
+
+  removeAt(0);
+
+};
+
 
 /**
  * @inheritDoc
