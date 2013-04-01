@@ -5,7 +5,7 @@
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver-major" value="0"/>
     <property name="ver-minor" value="4"/>
-    <property name="ver-patch" value="6"/>
+    <property name="ver-patch" value="7"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
@@ -23,9 +23,14 @@
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
     <property name="dev-out.fn"
               value="${ydn-db.dir}/jsc/${buildno}-ydn.db-dev.js"/>
-
-
     <property name="quoted-version" value="'${version}'"/>
+
+    <target name="count-test" description="count number of test functions">
+        <exec executable="echo">
+            <arg value="grep -c -h '^var test_' -r test --include='*.js' | paste -sd+ - | bc"/>
+        </exec>
+    </target>
+
     <target name="compile-dev" description="compile JS">
         <mkdir dir="${ydn-db.dir}/jsc"/>
 

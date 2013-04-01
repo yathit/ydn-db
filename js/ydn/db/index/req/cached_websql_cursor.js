@@ -217,7 +217,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini
       }
 
       ydn.db.KeyRange.toSql(q_effective_col_name, type,
-        is_multi_entry, key_range, wheres, params);
+        key_range, wheres, params);
     } else {
       if (this.reverse) {
         key_range = ydn.db.IDBKeyRange.upperBound(ini_key, !!exclusive);
@@ -225,15 +225,15 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini
         key_range = ydn.db.IDBKeyRange.lowerBound(ini_key, !!exclusive);
       }
       ydn.db.KeyRange.toSql(q_primary_column_name, this.store_schema_.getType(),
-          false, key_range, wheres, params);
+          key_range, wheres, params);
     }
   } else {
     if (!!this.index_name) {
       ydn.db.KeyRange.toSql(q_effective_col_name, type,
-          is_multi_entry, key_range, wheres, params);
+          key_range, wheres, params);
     } else {
       ydn.db.KeyRange.toSql(q_primary_column_name, this.store_schema_.getType(),
-          false, key_range, wheres, params);
+          key_range, wheres, params);
     }
   }
 

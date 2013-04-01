@@ -212,41 +212,10 @@ ydn.db.schema.Index.ARRAY_SEP = String.fromCharCode(0x001F);
  * @see #sql2js
  * @param {Array|Date|*} key key.
  * @param {ydn.db.schema.DataType|undefined} type data type.
- * @param {boolean} is_multi_entry
  * @return {*} string.
  */
-ydn.db.schema.Index.js2sql = function(key, type, is_multi_entry) {
-  if (is_multi_entry) {
-    // NOTE: we are storing these value for indexing purpose.
-    // Array is not native to Sqlite. To be multiEntry searchable,
-    // array values are store as TEXT and search using LIKE %q%
-    // where q is ARRAY_SEP + search_term + ARRAY_SEP
-    // for type preserve conversion, type information is prepended at the
-    // front with ydn.db.DataTypeAbbr.
-    if (goog.isArray(key)) {
-      var arr = key;
-      var t = goog.isDef(type) ? ydn.db.schema.Index.type2AbbrType(type) :
-        ydn.db.DataTypeAbbr.BLOB;
-
-      var value;
-      if (t == ydn.db.DataTypeAbbr.DATE) {
-        value = arr.reduce(function (p, x) {
-            return p + (+x);
-          }, '');
-      } else  if (t == ydn.db.DataTypeAbbr.BLOB) {
-        value = arr.reduce(function (p, x) {
-          return p + ydn.db.utils.encodeKey(x);
-        }, '');
-      } else {
-        value = arr.join(ydn.db.schema.Index.ARRAY_SEP);
-      }
-      return t + ydn.db.schema.Index.ARRAY_SEP +
-        value + ydn.db.schema.Index.ARRAY_SEP;
-    } else {
-      return '';
-    }
-
-  } else if (type == ydn.db.schema.DataType.DATE) {
+ydn.db.schema.Index.js2sql = function(key, type) {
+  if (type == ydn.db.schema.DataType.DATE) {
     if (key instanceof Date) {
       return +key;  // date is store as NUMERIC
     } // else ?
@@ -545,11 +514,7 @@ ydn.db.schema.Index.prototype.hint = function(that) {
     // composite are converted into TEXT
     type = undefined;
   }
-  var multiEntry = this.multiEntry;
-  if (that.multiEntry === true && this.type == 'TEXT') {
-    multiEntry = true; // multiEntry info was lost
-  }
-  return new ydn.db.schema.Index(keyPath, type, this.unique, multiEntry,
+  return new ydn.db.schema.Index(keyPath, type, this.unique, this.multiEntry,
     that.name);
 };
 

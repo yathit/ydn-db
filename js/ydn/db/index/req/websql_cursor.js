@@ -52,13 +52,6 @@ ydn.db.index.req.WebsqlCursor.prototype.logger =
 
 
 /**
- * @private
- * @type {!Array.<string>|string|undefined}
- */
-ydn.db.index.req.WebsqlCursor.prototype.index_key_path;
-
-
-/**
  *
  * @type {!ydn.db.schema.Store}
  * @private
@@ -149,7 +142,7 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
    */
   var me = this;
   var request;
-  var sqls = ['SELECT'];
+  var select, from, order;
   var params = [];
   var primary_column_name = this.store_schema_.getSQLKeyColumnName();
   var q_primary_column_name = goog.string.quote(primary_column_name);
@@ -163,43 +156,6 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     index.getSQLIndexColumnName() : primary_column_name;
   var q_effective_col_name = goog.string.quote(effective_col_name);
 
-  var order =  ' ORDER BY ';
-
-  if (this.key_only) {
-    if (is_index) {
-      goog.asserts.assertString(effective_col_name);
-      sqls.push(goog.string.quote(effective_col_name) + ', ' + q_primary_column_name);
-      order += this.reverse ?
-        goog.string.quote(effective_col_name) + ' DESC, ' +
-          q_primary_column_name + ' DESC ' :
-        goog.string.quote(effective_col_name) + ' ASC, ' +
-          q_primary_column_name + ' ASC ';
-    } else {
-      sqls.push(q_primary_column_name);
-      order += q_primary_column_name;
-      order += this.reverse ? ' DESC' : ' ASC';
-    }
-  } else {
-    sqls.push('*');
-    if (is_index) {
-      goog.asserts.assertString(effective_col_name);
-      order += this.reverse ?
-        goog.string.quote(effective_col_name) + ' DESC, ' +
-          q_primary_column_name + ' DESC ' :
-        goog.string.quote(effective_col_name) + ' ASC, ' +
-          q_primary_column_name + ' ASC ' ;
-
-    } else {
-      order += q_primary_column_name;
-      order += this.reverse ? ' DESC' : ' ASC';
-    }
-  }
-
-  sqls.push('FROM ' + goog.string.quote(this.store_name));
-
-  var wheres = [];
-  var is_multi_entry = !!index && index.isMultiEntry();
-
   var key_range = this.key_range;
   if (!!index && goog.isDefAndNotNull(this.ini_index_key_)) {
 
@@ -210,31 +166,20 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
       key_range = ydn.db.IDBKeyRange.lowerBound(this.ini_index_key_);
     }
 
-    ydn.db.KeyRange.toSql(q_effective_col_name, type,
-        is_multi_entry, key_range, wheres, params);
   } else if (!index && goog.isDefAndNotNull(this.ini_key_)) {
     if (this.reverse) {
       key_range = ydn.db.IDBKeyRange.upperBound(this.ini_key_, false);
     } else {
       key_range = ydn.db.IDBKeyRange.lowerBound(this.ini_key_, false);
     }
-    ydn.db.KeyRange.toSql(q_primary_column_name, type,
-        false, key_range, wheres, params);
-
-  } else {
-    ydn.db.KeyRange.toSql(q_effective_col_name, type,
-      is_multi_entry, key_range, wheres, params);
   }
 
-  if (wheres.length > 0) {
-    sqls.push('WHERE ' + wheres.join(' AND '));
-  }
+  var sql = this.store_schema_.toSql(params, this.key_only, this.index_name,
+      key_range, this.reverse, this.unique);
 
-  sqls.push(order);
-
-  sqls.push('LIMIT 1'); // cursor move only one step at a time.
+  sql += ' LIMIT 1'; // cursor move only one step at a time.
   if (this.current_cursor_offset_ > 0) {
-    sqls.push('OFFSET ' + this.current_cursor_offset_);
+    sql += ' OFFSET ' + this.current_cursor_offset_;
   }
 
 //  if (this.key_only) {
@@ -263,7 +208,7 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
       me.current_primary_key_ = ydn.db.schema.Index.sql2js(row[primary_column_name],
           me.store_schema_.getType(), false);
       me.current_key_ = is_index ? ydn.db.schema.Index.sql2js(row[effective_col_name],
-        type, is_multi_entry) : me.current_primary_key_;
+        type, false) : me.current_primary_key_;
       me.current_value_ = me.key_only ? undefined :
         ydn.db.crud.req.WebSql.parseRow(row, me.store_schema_);
     }
@@ -292,8 +237,6 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     return false;
 
   };
-
-  var sql = sqls.join(' ');
 
   me.logger.finest(this + ': move: ' + ' SQL: ' +
     sql + ' : ' + ydn.json.stringify(params));

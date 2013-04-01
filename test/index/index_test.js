@@ -14,7 +14,7 @@ var db_name = 'test_index_2';
 
 var setUp = function () {
 
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
 
 
   // ydn.db.crud.req.WebSql.DEBUG = true;
@@ -445,16 +445,96 @@ var test_42_remove_by_index_key_range = function() {
 };
 
 
-var test_multiEntry = function () {
+var test_multiEntry_simple = function () {
 
-  var db_name = 'test_multiEntry';
+  ydn.db.crud.req.WebSql.DEBUG = true;
+
+  var db_name = 'test_multiEntry_simple_1';
   var store_name = 's1';
   var schema = {
     stores: [{
       name: store_name,
       keyPath: 'id',
+      type: 'TEXT',
       indexes: [{
         name: 'tag',
+        type: 'TEXT',
+        multiEntry: true
+      }]
+    }]
+  };
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+
+  var objs = [
+    {id:'qs0', value: 0, tag: ['a', 'b']},
+    {id:'qs1', value: 1, tag: ['a']}
+  ];
+
+  db.clear(store_name);
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(db + ' ready.');
+  });
+
+  // var tags = ['d', 'b', 'c', 'a', 'e'];
+  // var exp_counts = [1, 3, 2, 4, 0];
+  var tags = ['b'];
+  var exp_counts = [1];
+
+  var counts = [];
+  var total = tags.length;
+  var done = 0;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done == total;
+      },
+      // Continuation
+      function () {
+
+        for (var i = 0; i < total; i++) {
+          assertEquals('for tag: ' + tags[i] + ' count', exp_counts[i], counts[i]);
+        }
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+
+  var count_for = function (tag_name, idx) {
+    var keyRange = ydn.db.KeyRange.only(tag_name);
+
+    db.values(store_name, 'tag', keyRange).addBoth(function (value) {
+      //console.log(tag_name + ' ==> ' + JSON.stringify(value));
+      counts[idx] = value.length;
+      done++;
+    });
+  };
+
+  for (var i = 0; i < total; i++) {
+    count_for(tags[i], i);
+  }
+
+};
+
+
+var test_multiEntry = function () {
+
+  ydn.db.crud.req.WebSql.DEBUG = true;
+
+  var db_name = 'test_multiEntry_1';
+  var store_name = 's1';
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id',
+      type: 'TEXT',
+      indexes: [{
+        name: 'tag',
+        type: 'TEXT',
         multiEntry: true
       }]
     }]
@@ -524,7 +604,7 @@ var test_multiEntry = function () {
 
 var test_multiEntry_text = function () {
 
-  var db_name = 'test_multiEntry_text';
+  var db_name = 'test_multiEntry_text_1';
   var store_name = 's1';
   var schema = {
     stores: [{
