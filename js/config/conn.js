@@ -10,8 +10,9 @@ goog.require('ydn.db.events.StorageEvent');
 
 goog.exportSymbol('ydn.db.con.Storage', ydn.db.con.Storage);
 
-goog.exportProperty(ydn.db.con.Storage.prototype, 'onReady',
-  ydn.db.con.Storage.prototype.onReady);
+// does not work for overridable function, use @expose instead
+// goog.exportProperty(ydn.db.con.Storage.prototype, 'onReady',
+//  ydn.db.con.Storage.prototype.onReady);
 goog.exportProperty(ydn.db.con.Storage.prototype, 'getType',
   ydn.db.con.Storage.prototype.getType);
 goog.exportProperty(ydn.db.con.Storage.prototype, 'setName',

@@ -109,6 +109,11 @@ var test_simple = function() {
 
 var test_simple_streamer_out = function() {
 
+  if (options.mechanisms[0] == 'websql') {
+    reachedFinalContinuation = true;
+    return;
+  }
+
   var done, result, result_keys;
 
   waitForCondition(

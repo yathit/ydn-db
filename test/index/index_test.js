@@ -619,7 +619,6 @@ var test_multiEntry_text = function () {
   };
   var db = new ydn.db.Storage(db_name, schema, options);
 
-
   var objs = [
     {id:'qs0', value: 0, tag: ['a', 'b']},
     {id:'qs1', value: 1, tag: ['a']},
@@ -635,10 +634,8 @@ var test_multiEntry_text = function () {
     console.log(db + ' ready.');
   });
 
-  // var tags = ['d', 'b', 'c', 'a', 'e'];
-  // var exp_counts = [1, 3, 2, 4, 0];
-  var tags = ['d'];
-  var exp_counts = [1];
+  var tags = ['d', 'b', 'c', 'a', 'e'];
+  var exp_counts = [1, 3, 2, 4, 0];
 
   var counts = [];
   var total = tags.length;
@@ -678,6 +675,64 @@ var test_multiEntry_text = function () {
   }
 
 };
+
+
+
+var test_multiEntry_unique = function () {
+
+  var db_name = 'test_multiEntry_unique';
+  var store_name = 's1';
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id',
+      type: 'INTEGER',
+      indexes: [{
+        name: 'tag',
+        multiEntry: true,
+        type: 'TEXT'
+      }]
+    }]
+  };
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var objs = [
+    {id: 1, value: Math.random(), tag: ['a', 'b']},
+    {id: 2, value: Math.random(), tag: ['b']},
+    {id: 3, value: Math.random(), tag: ['c']}
+  ];
+
+  db.clear(store_name);
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(db + ' ready.');
+  });
+
+  var done, result;
+
+  waitForCondition(
+    // Condition
+    function () {
+      return done;
+    },
+    // Continuation
+    function () {
+
+      assertArrayEquals('unique tag', ['a', 'b', 'c'], result);
+      reachedFinalContinuation = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    },
+    100, // interval
+    1000); // maxTimeout
+
+  var iter = new ydn.db.Cursors(store_name, 'tag', null, false, true);
+  db.keys(iter).addBoth(function (x) {
+    result = x;
+    done = true;
+  });
+
+};
+
 
 var compound_index_data = [
   {

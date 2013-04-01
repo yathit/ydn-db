@@ -8,8 +8,7 @@
 goog.provide('ydn.db.schema.Store');
 
 goog.require('ydn.db.schema.Index');
-
-
+goog.require('ydn.db.KeyRange');
 
 
 /**
@@ -757,14 +756,7 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
   }
 
   if (!this.fixed) {
-    var data = {};
-    for (var item in obj) {
-      if (obj.hasOwnProperty(item) && !this.hasIndex(item)) {
-        data[item] = obj[item];
-      }
-    }
-
-    values.push(ydn.json.stringify(data));
+    values.push(ydn.json.stringify(obj));
     columns.push(ydn.db.base.DEFAULT_BLOB_COLUMN);
   }
 

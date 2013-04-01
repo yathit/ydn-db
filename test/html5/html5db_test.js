@@ -26,7 +26,7 @@ var tearDown = function() {
 };
 
 var db_name = 'test12';
-var options = {Mechanisms: ['localstorage']};
+var options = {mechanisms: ['localstorage']};
 
 
 var test_1_put = function() {

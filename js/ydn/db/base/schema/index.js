@@ -119,7 +119,8 @@ ydn.db.schema.Index.prototype.getKeyValue = function(obj) {
       var key = [];
       for (var i = 0, n = this.keyPath.length; i < n; i++) {
         var i_key = ydn.db.utils.getValueByKeys(obj, this.keyPath[i]);
-        goog.asserts.assert(!!i_key, ydn.json.toShortString(obj) +
+        goog.asserts.assert(goog.isDefAndNotNull(i_key),
+          ydn.json.toShortString(obj) +
             ' does not issue require composite key value ' + i + ' of ' +
             n + ' on index "' + this.name + '"');
         key[i] = i_key;
@@ -236,31 +237,7 @@ ydn.db.schema.Index.js2sql = function(key, type) {
  * @return {IDBKey|undefined} decoded key.
  */
 ydn.db.schema.Index.sql2js = function(key, type, is_multi_entry) {
-  if (!!is_multi_entry) {
-    if (goog.isString(key)) {
-      /**
-       * @type {string}
-       */
-      var s = key;
-      var arr = s.split(ydn.db.schema.Index.ARRAY_SEP);
-      var t = goog.isDef(type) ? ydn.db.schema.Index.type2AbbrType(type) :
-        ydn.db.schema.Index.toAbbrType(arr[0]);
-      var effective_arr = arr.slice(1, arr.length - 1); // remove last and first
-      return goog.array.map(effective_arr, function(x) {
-        if (t == ydn.db.DataTypeAbbr.DATE) {
-          return new Date(parseInt(x, 10));
-        } else if (t == ydn.db.DataTypeAbbr.BLOB) {
-          return ydn.db.utils.decodeKey(x);
-        } else if (t == ydn.db.DataTypeAbbr.NUMERIC) {
-          return parseFloat(x);
-        } else {
-          return x;
-        }
-      });
-    } else {
-      return undefined;
-    }
-  } else if (type == ydn.db.schema.DataType.DATE) {
+  if (type == ydn.db.schema.DataType.DATE) {
     return new Date(key); // key is number
   } else if (goog.isDef(type)) {
     return /** @type {number} */ (key);   // NUMERIC, INTEGER,

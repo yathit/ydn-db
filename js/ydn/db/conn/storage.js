@@ -481,6 +481,8 @@ ydn.db.con.Storage.prototype.getType = function() {
 /**
  * Handle ready event by dispatching 'ready' event.
  * @param {ydn.db.events.StorageEvent} ev event
+ * @expose since we want this function to be overidable, we have to use expose
+ * instead of goog.exportProperty.
  */
 ydn.db.con.Storage.prototype.onReady = function (ev) {
   this.dispatchEvent(ev);

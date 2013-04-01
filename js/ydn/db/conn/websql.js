@@ -763,8 +763,10 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
         callback(false); // false for no change
         callback = null; // must call only once.
       }
-      throw new ydn.db.SQLError(error, 'Error creating table: ' +
-          table_schema.name + ' ' + sql);
+      var msg = goog.DEBUG ? 'SQLError creating table: ' +
+        table_schema.name + ' ' + error.message + ' for executing "' +
+        sql : '"';
+      throw new ydn.db.SQLError(error, msg);
     };
 
     trans.executeSql(sql, [], success_callback, error_callback);
@@ -789,7 +791,8 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
           'table: ' + table_schema.name + ' has changed by ' + msg +
           ' additionallly TABLE ALTERATION is not implemented, ' +
             'dropping old table.');
-      sqls.unshift('DROP TABLE ' + goog.string.quote(table_schema.name));
+      sqls.unshift('DROP TABLE IF EXISTS ' +
+        goog.string.quote(table_schema.name));
     }
   }
 
