@@ -242,18 +242,29 @@ ydn.db.schema.Store.fromJSON = function(json) {
 
 /**
  *
+ * @enum {number}
+ */
+ydn.db.schema.Store.QueryMethod = {
+  KEYS: 1,
+  VALUES: 2,
+  COUNT: 3
+};
+
+
+/**
+ *
  * @param {!Array} params sql parameter list
- * @param {boolean} key_only retrieve key only.
+ * @param {ydn.db.schema.Store.QueryMethod} method retrieve key only.
  * @param {string|undefined} index_column name.
  * @param {IDBKeyRange} key_range to retrieve.
  * @param {boolean} reverse ordering.
- * @param {boolean} distinct
+ * @param {boolean} unique
  */
-ydn.db.schema.Store.prototype.toSql = function(params, key_only, index_column,
-                 key_range, reverse, distinct) {
+ydn.db.schema.Store.prototype.toSql = function(params, method, index_column,
+                 key_range, reverse, unique) {
 
-  var key_column = this.getSQLKeyColumnName();
-  var q_key_column = goog.string.quote(key_column);
+  var key_column = this.primary_column_name_;
+  var q_key_column = this.primary_column_name_quoted_;
   var index = goog.isDefAndNotNull(index_column) &&
       (index_column !== key_column) ? this.getIndex(index_column) : null;
   var is_index = !!index;
@@ -266,40 +277,50 @@ ydn.db.schema.Store.prototype.toSql = function(params, key_only, index_column,
   var select = '*';
   var from = this.getQuotedName();
 
-  if (goog.isDefAndNotNull(key_range)) {
-    goog.asserts.assert(key_path); // not null.
-    var wheres = [];
+  var dist = unique ? 'DISTINCT ' : '';
 
-    if (is_multi_entry) {
-      var idx_store_name = goog.string.quote(
-          ydn.db.con.WebSql.PREFIX_MULTIENTRY +
-              this.getName() + ':' + index.getName());
-      if (key_only) {
-        select = this.getQuotedName() + '.' + q_key_column + ', ' +
-            idx_store_name + '.' + q_effective_column;
-      } else {
-        select = this.getQuotedName() + '.*';
-      }
-      from = this.getQuotedName() + ' NATURAL JOIN ' + idx_store_name;
-      var col = idx_store_name + '.' + q_effective_column;
+  var wheres = [];
+
+  if (is_multi_entry) {
+    var idx_store_name = goog.string.quote(
+      ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+        this.getName() + ':' + index.getName());
+
+    if (method === ydn.db.schema.Store.QueryMethod.COUNT) {
+      select = 'COUNT(' + dist +
+        idx_store_name + '.' + q_effective_column + ')';
+    } else if (method === ydn.db.schema.Store.QueryMethod.KEYS) {
+      select = this.getQuotedName() + '.' + q_key_column + ', ' +
+        idx_store_name + '.' + q_effective_column;
+    } else {
+      select = this.getQuotedName() + '.*';
+    }
+    from = idx_store_name + ' INNER JOIN ' +  this.getQuotedName() +
+      ' USING (' + q_key_column + ')';
+    var col = idx_store_name + '.' + q_effective_column;
+    if (goog.isDefAndNotNull(key_range)) {
       ydn.db.KeyRange.toSql(col, type, key_range, wheres, params);
       if (wheres.length > 0) {
         from += ' WHERE ' + wheres.join(' AND ');
       }
-    } else {
-      if (key_only) {
-        select = q_key_column;
-        if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
-          select += ', ' + q_effective_column;
-        }
+    }
+  } else {
+    if (method === ydn.db.schema.Store.QueryMethod.COUNT) {
+      // primary key is always unqiue.
+      select = 'COUNT(' + q_key_column + ')';
+    } else if (method === ydn.db.schema.Store.QueryMethod.KEYS) {
+      select = q_key_column;
+      if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
+        select += ', ' + q_effective_column;
       }
+    }
+    if (goog.isDefAndNotNull(key_range)) {
       ydn.db.KeyRange.toSql(q_effective_column, type, key_range, wheres,
-          params);
+        params);
       if (wheres.length > 0) {
         from += ' WHERE ' + wheres.join(' AND ');
       }
     }
-
   }
 
   var dir = reverse ? 'DESC' : 'ASC';
@@ -308,8 +329,7 @@ ydn.db.schema.Store.prototype.toSql = function(params, key_only, index_column,
     order += ', ' + q_key_column + ' ' + dir;
   }
 
-  var sql = 'SELECT ' + select + ' FROM ' + from + ' ORDER BY ' + order;
-  return sql;
+  return 'SELECT ' + select + ' FROM ' + from + ' ORDER BY ' + order;
 };
 
 

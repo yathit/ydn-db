@@ -16,7 +16,7 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  //ydn.debug.log('ydn.db.con', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
   //ydn.debug.log('ydn.db.crud.req', 'finest');
   //ydn.db.tr.Serial.DEBUG = true;
 

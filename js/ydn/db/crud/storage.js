@@ -118,8 +118,9 @@ ydn.db.crud.Storage.prototype.add = function(store, value, opt_key) {
  *
  * @inheritDoc
  */
-ydn.db.crud.Storage.prototype.count = function(store_name, key_range, index) {
-  return this.getCoreOperator().count(store_name, key_range, index);
+ydn.db.crud.Storage.prototype.count = function(store_name, key_range, index,
+                                               unique) {
+  return this.getCoreOperator().count(store_name, key_range, index, unique);
 };
 
 

@@ -132,7 +132,7 @@ ydn.db.sql.req.WebSql.prototype.openSqlQuery = function(tx, df, cursor, next_cal
         value = cursor.parseRow(row, store);
         var key_str = goog.isDefAndNotNull(store.keyPath) ?
           row[store.keyPath] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
-        key = ydn.db.schema.Index.sql2js(key_str, store.getType(), false);
+        key = ydn.db.schema.Index.sql2js(key_str, store.getType());
 
 //        if (!goog.isDefAndNotNull(key)) {
 //          var msg;

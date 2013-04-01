@@ -174,7 +174,9 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     }
   }
 
-  var sql = this.store_schema_.toSql(params, this.key_only, this.index_name,
+  var mth = this.key_only ? ydn.db.schema.Store.QueryMethod.KEYS :
+    ydn.db.schema.Store.QueryMethod.VALUES;
+  var sql = this.store_schema_.toSql(params, mth, this.index_name,
       key_range, this.reverse, this.unique);
 
   sql += ' LIMIT 1'; // cursor move only one step at a time.
@@ -205,15 +207,16 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     me.current_value_ = undefined;
     if (results.rows.length > 0) {
       var row = /** @type {!Object} */ (results.rows.item(0));
-      me.current_primary_key_ = ydn.db.schema.Index.sql2js(row[primary_column_name],
-          me.store_schema_.getType(), false);
-      me.current_key_ = is_index ? ydn.db.schema.Index.sql2js(row[effective_col_name],
-        type, false) : me.current_primary_key_;
+      me.current_primary_key_ = ydn.db.schema.Index.sql2js(
+        row[primary_column_name], me.store_schema_.getType());
+      me.current_key_ = is_index ? ydn.db.schema.Index.sql2js(
+        row[effective_col_name], type) : me.current_primary_key_;
       me.current_value_ = me.key_only ? undefined :
         ydn.db.crud.req.WebSql.parseRow(row, me.store_schema_);
     }
 
-    callback.call(me, me.current_primary_key_, me.current_key_, me.current_value_);
+    callback.call(me, me.current_primary_key_, me.current_key_,
+      me.current_value_);
     callback = null;
   };
 
@@ -232,7 +235,8 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     me.current_key_ = undefined;
     me.current_primary_key_ = undefined;
     me.current_value_ = undefined;
-    callback.call(me, me.current_primary_key_, me.current_key_, me.current_value_);
+    callback.call(me, me.current_primary_key_, me.current_key_,
+      me.current_value_);
     callback = null;
     return false;
 
@@ -305,7 +309,8 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj, idx) {
       ' VALUES (' + out.slots.join(', ') + ')' +
       ' ON CONFLICT FAIL';
 
-    me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(out.values));
+    me.logger.finest(this + ': clear "' + sql + '" : ' +
+      ydn.json.stringify(out.values));
     this.tx.executeSql(sql, out.values, onSuccess, onError);
     return df;
   }
@@ -356,7 +361,8 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
  * @param {boolean=} exclusive
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(ini_key, ini_index_key, exclusive) {
+ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(ini_key,
+     ini_index_key, exclusive) {
   this.ini_key_ = ini_key;
   this.ini_index_key_ = ini_index_key;
   if (exclusive) {
@@ -415,7 +421,8 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
     var sql = 'DELETE FROM ' + this.store_schema_.getQuotedName() +
         ' WHERE ' + primary_column_name + ' = ?';
     var params = [this.getPrimaryKey()];
-    me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(params));
+    me.logger.finest(this + ': clear "' + sql + '" : ' +
+      ydn.json.stringify(params));
     this.tx.executeSql(sql, params, onSuccess, onError);
     return df;
   }
@@ -425,7 +432,8 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.restart = function(effective_key, primary_key) {
+ydn.db.index.req.WebsqlCursor.prototype.restart = function(effective_key,
+                                                           primary_key) {
   this.logger.finest(this + ' restarting.');
   this.current_cursor_offset_ = 0;
   this.openCursor(primary_key, effective_key, false);
@@ -445,7 +453,8 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function (key) {
   }
   var cmp = ydn.db.cmp(key, this.current_primary_key_);
   if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
-    throw new ydn.error.InvalidOperationError(this + ' to continuePrimaryKey for "' +
+    throw new ydn.error.InvalidOperationError(this +
+      ' to continuePrimaryKey for "' +
         key + '" on ' + this.dir + ' direction is wrong');
   }
 
@@ -453,7 +462,8 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function (key) {
   this.move_(function (primary_key, index_key, value) {
     if (goog.isDefAndNotNull(primary_key)) {
       var cmp2 = ydn.db.cmp(key, primary_key);
-      if (cmp2 == 0 || (cmp2 == 1 && this.reverse) || (cmp2 == -1 && !this.reverse)) {
+      if (cmp2 == 0 || (cmp2 == 1 && this.reverse) ||
+          (cmp2 == -1 && !this.reverse)) {
         this.onSuccess(primary_key, index_key, value);
       } else {
         this.continuePrimaryKey(key);

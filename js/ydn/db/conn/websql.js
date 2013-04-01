@@ -459,7 +459,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
       var idx_unique = index.isUnique() ? ' UNIQUE ' : '';
       var multi_entry_sql = insert_statement +
           goog.string.quote(idx_name) + ' (' +
-          q_primary_column + ' ' + primary_type + ' PRIMARY KEY ' + ', ' +
+          q_primary_column + ' ' + primary_type + ', ' +
           index.getSQLIndexColumnNameQuoted() + ' ' + index.getSqlType() +
           idx_unique + ')';
       sqls.push(multi_entry_sql);
@@ -901,18 +901,44 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
 
     db.doTransaction(function delete_tables(tx) {
 
-      db.getSchema(function get_schema(existing_schema) {
-        var n = existing_schema.count();
-        if (n > 0) {
-            for (var i = 0; i < n; i++) {
-              var store = existing_schema.store(i);
-              db.logger.finest('deleting table: ' + store.getName());
-              tx.executeSql('DROP TABLE ' + store.getQuotedName());
-            }
-        } else {
-          db.logger.info('no table to delete in ' + db_name);
+      /**
+       * @param {SQLTransaction} transaction transaction.
+       * @param {SQLResultSet} results results.
+       */
+      var success_callback = function(transaction, results) {
+        if (!results || !results.rows) {
+          return;
         }
-      }, tx);
+        var n = results.rows.length;
+        var del = 0;
+        for (var i = 0; i < n; i++) {
+          var info = /** @type {SqliteTableInfo} */ (results.rows.item(i));
+          if (info.name == '__WebKitDatabaseInfoTable__' ||
+              info.name == 'sqlite_sequence') {
+            continue;
+          }
+          del++;
+          db.logger.finest('deleting table: ' + info.name);
+          tx.executeSql('DROP TABLE ' + info.name);
+        }
+        db.logger.finer(del + ' tables deleted from "' + db_name + '"');
+      };
+
+      /**
+       * @param {SQLTransaction} tr transaction.
+       * @param {SQLError} error error.
+       */
+      var error_callback = function(tr, error) {
+        if (ydn.db.con.WebSql.DEBUG) {
+          window.console.log([tr, error]);
+        }
+        throw error;
+      };
+
+
+      var sql = 'SELECT * FROM sqlite_master WHERE type = "table"';
+
+      tx.executeSql(sql, [], success_callback, error_callback);
 
     }, [], ydn.db.base.TransactionMode.READ_WRITE, on_completed);
 

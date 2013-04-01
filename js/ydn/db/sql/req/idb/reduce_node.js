@@ -54,9 +54,10 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
   var aggregate = this.sql.getAggregate();
   if (aggregate == 'COUNT') {
     if (key_range) {
-      req.countKeyRange(tx, tx_no, df, store_name, key_range, wheres[0].getField());
+      req.countKeyRange(tx, tx_no, df, store_name, key_range,
+        wheres[0].getField(), false);
     } else {
-      req.countKeyRange(tx, tx_no, df, store_name, null);
+      req.countKeyRange(tx, tx_no, df, store_name, null, undefined, false);
     }
   } else {
     var reduce;

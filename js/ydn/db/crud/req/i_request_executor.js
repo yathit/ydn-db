@@ -98,7 +98,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.clearByStores = goog.abstractMethod;
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- *  @param {number} tx_no transaction number
+ * @param {number} tx_no transaction number
  * @param {?function(*, boolean=)} df return a deferred function.
  * @param {!Array.<string>} table store name.
  */
@@ -107,11 +107,12 @@ ydn.db.crud.req.IRequestExecutor.prototype.countStores = goog.abstractMethod;
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- *  @param {number} tx_no transaction number
+ * @param {number} tx_no transaction number
  * @param {?function(*, boolean=)} df return a deferred function.
  * @param {string} table store name.
  * @param {IDBKeyRange} keyRange the key range.
- * @param {string=} index name.
+ * @param {(string|undefined)} index name.
+ * @param {boolean} unique count unique index key.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
 
@@ -119,7 +120,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
 /**
  * Return object
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- *  @param {number} tx_no transaction number
+ * @param {number} tx_no transaction number
  * @param {?function(*, boolean=)} return object in deferred function.
  * @param {string} store table name.
  * @param {(string|number|Date|!Array)} id object key to be retrieved, if not

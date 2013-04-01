@@ -233,10 +233,9 @@ ydn.db.schema.Index.js2sql = function(key, type) {
  * @see #js2sql
  * @param {string|number|*} key key.
  * @param {ydn.db.schema.DataType|undefined} type type.
- * @param {boolean} is_multi_entry
  * @return {IDBKey|undefined} decoded key.
  */
-ydn.db.schema.Index.sql2js = function(key, type, is_multi_entry) {
+ydn.db.schema.Index.sql2js = function(key, type) {
   if (type == ydn.db.schema.DataType.DATE) {
     return new Date(key); // key is number
   } else if (goog.isDef(type)) {

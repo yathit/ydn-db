@@ -17,6 +17,7 @@ var setUp = function () {
   ydn.debug.log('ydn.db', 'finest');
 
 
+  // ydn.db.con.WebSql.DEBUG = true;
   // ydn.db.crud.req.WebSql.DEBUG = true;
   //ydn.db.index.req.WebSql.DEBUG = true;
 
@@ -604,7 +605,9 @@ var test_multiEntry = function () {
 
 var test_multiEntry_text = function () {
 
-  var db_name = 'test_multiEntry_text_1';
+  ydn.db.crud.req.WebSql.DEBUG = true;
+
+  var db_name = 'test_multiEntry_text_2';
   var store_name = 's1';
   var schema = {
     stores: [{
@@ -634,8 +637,15 @@ var test_multiEntry_text = function () {
     console.log(db + ' ready.');
   });
 
+  var signle_test = true;
   var tags = ['d', 'b', 'c', 'a', 'e'];
   var exp_counts = [1, 3, 2, 4, 0];
+  if (signle_test) {
+    tags = ['d'];
+    exp_counts = [1];
+
+  } else {
+  }
 
   var counts = [];
   var total = tags.length;
@@ -664,7 +674,7 @@ var test_multiEntry_text = function () {
     var keyRange = ydn.db.KeyRange.only(tag_name);
 
     db.values(store_name, 'tag', keyRange).addBoth(function (value) {
-      //console.log(tag_name + ' ==> ' + JSON.stringify(value));
+      console.log(tag_name + '[' + tags[idx] + '] ==> ' + JSON.stringify(value));
       counts[idx] = value.length;
       done++;
     });

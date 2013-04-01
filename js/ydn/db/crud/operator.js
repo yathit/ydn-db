@@ -61,7 +61,7 @@ ydn.db.crud.DbOperator.prototype.logger =
  * @inheritDoc
  */
 ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
-                                                 index_key_range) {
+                                                 index_key_range, unique) {
   var df = ydn.db.base.createDeferred();
   var me = this;
 
@@ -126,29 +126,43 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
       throw new ydn.debug.error.ArgumentException('store name "' + store_name +
         '" not found.');
     }
+    if (goog.DEBUG && goog.isDef(unique) && !goog.isBoolean(unique)) {
+      throw new TypeError('unique value "' + unique +
+        '" must be boolean, but found ' + typeof unique + '.');
+    }
     store_names = [store_name];
 
     if (goog.isString(index_or_keyrange)) {
       index_name = index_or_keyrange;
-      key_range = ydn.db.KeyRange.parseIDBKeyRange(index_key_range);
+      if (goog.DEBUG) {
+        var msg1 = ydn.db.KeyRange.validate(
+          /** @type {KeyRangeJson} */ (index_or_keyrange));
+        if (msg1) {
+          throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+            ydn.json.toShortString(index_key_range) + ' ' + msg1);
+        }
+      }
+      key_range = ydn.db.KeyRange.parseIDBKeyRange(
+        /** @type {ydn.db.IDBKeyRange} */ (index_key_range));
     } else if (goog.isObject(index_or_keyrange) ||
       !goog.isDef(index_or_keyrange)) {
       if (goog.isDef(index_key_range)) {
         throw new ydn.debug.error.ArgumentException(
-          "Invalid key range or index");
+          'Invalid key range "' + ydn.json.toShortString(index_key_range) +
+            '"');
       }
       if (goog.DEBUG) {
         var msg = ydn.db.KeyRange.validate(
           /** @type {KeyRangeJson} */ (index_or_keyrange));
         if (msg) {
           throw new ydn.debug.error.ArgumentException('invalid key range: ' +
-            index_or_keyrange + ' ' + msg);
+            ydn.json.toShortString(index_key_range) + ' ' + msg);
         }
       }
       key_range = ydn.db.KeyRange.parseIDBKeyRange(index_or_keyrange);
     } else {
       throw new ydn.debug.error.ArgumentException('key range must be an ' +
-        'object, but ' + index_or_keyrange + ' of type ' +
+        'object, but ' + ydn.json.toShortString(index_key_range) + ' of type ' +
         typeof index_or_keyrange + ' found.');
     }
 
@@ -156,7 +170,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
       (index_name ? index_name : '') + ydn.json.stringify(key_range));
     this.tx_thread.exec(df, function (tx, tx_no, cb) {
       me.getExecutor().countKeyRange(tx, tx_no, cb, store_names[0], key_range,
-        index_name);
+        index_name, !!unique);
     }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'countKeyRange');
 
   } else {

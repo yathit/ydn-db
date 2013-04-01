@@ -26,7 +26,9 @@ ydn.db.crud.IOperator.prototype.abort = goog.abstractMethod;
  *
  * @param {!Array.<string>|string} store_name store name or names.
  * @param {string=} index name.
+ * @param {(string|ydn.db.KeyRange)=} key_range_index key range.
  * @param {ydn.db.KeyRange=} opt_key_range key range.
+ * @param {boolean=} unique count unique index key.
  * @return {!goog.async.Deferred} return object in deferred function.
  */
 ydn.db.crud.IOperator.prototype.count = goog.abstractMethod;

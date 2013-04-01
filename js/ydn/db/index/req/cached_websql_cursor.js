@@ -321,7 +321,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.getIndexKey = function() {
         /** @type {string} */ (this.index_name));
       var type =  index.getType();
       return ydn.db.schema.Index.sql2js(row[index.getSQLIndexColumnName()],
-        type, index.isMultiEntry());
+        type);
     } else {
       return undefined;
     }
@@ -340,7 +340,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.getPrimaryKey = function () {
     var primary_column_name = this.store_schema_.getSQLKeyColumnName();
     var row = this.cursor_.rows.item(this.current_cursor_index_);
     return ydn.db.schema.Index.sql2js(row[primary_column_name],
-        this.store_schema_.getType(), false);
+        this.store_schema_.getType());
   } else {
     return undefined;
   }
