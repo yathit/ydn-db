@@ -159,6 +159,10 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
    */
   var ex_schema_json = /** @type {DatabaseSchema} */
     (ydn.json.parse(this.storage_.getItem(db_key)));
+  if (goog.isDef(ex_schema_json.version)
+      && !goog.isNumber(ex_schema_json.version)) {
+    ex_schema_json.version = NaN; // NaN is not serializable.
+  }
 
   if (ex_schema_json) {
     var ex_schema = new ydn.db.schema.Database(ex_schema_json);
@@ -177,28 +181,22 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
           (ex_schema.getVersion() + 1);
         for (var i = 0; i < this.schema.count(); i++) {
           var store = this.schema.store(i);
-          this.simple_stores_[store.getName()] =
-            new ydn.db.con.simple.Store(this.dbname, this.storage_, store);
         }
         if (this.schema instanceof ydn.db.schema.EditableDatabase) {
           for (var i = 0; i < ex_schema.count(); i++) {
             var store = ex_schema.store(i);
             goog.asserts.assert(!goog.isNull(store));
             this.schema.addStore(store);
-            this.simple_stores_[store.getName()] =
-              new ydn.db.con.simple.Store(this.dbname, this.storage_, store);
           }
         }
         var schema_json = this.schema.toJSON();
-        schema_json.version = this.version;
+        schema_json.version = this.version || NaN;
         this.storage_.setItem(db_key, ydn.json.stringify(schema_json));
         callDf(ex_schema.getVersion());
       }
     } else {
       for (var i = 0; i < this.schema.count(); i++) {
         var store = this.schema.store(i);
-        this.simple_stores_[store.getName()] =
-          new ydn.db.con.simple.Store(this.dbname, this.storage_, store);
       }
       this.version = ex_schema.getVersion();
       callDf(this.version);
@@ -305,6 +303,16 @@ ydn.db.con.SimpleStorage.prototype.getSchema = function (callback) {
  * @return {!ydn.db.con.simple.Store}
  */
 ydn.db.con.SimpleStorage.prototype.getSimpleStore = function (store_name) {
+  var store = this.schema.getStore(store_name);
+  if (store) {
+    if (!this.simple_stores_[store_name]) {
+      this.simple_stores_[store_name] =
+        new ydn.db.con.simple.Store(this.dbname, this.storage_, store);
+    }
+  } else {
+    throw new ydn.debug.error.InternalError('store name "' + store_name +
+      '" not found.');
+  }
   return this.simple_stores_[store_name];
 };
 

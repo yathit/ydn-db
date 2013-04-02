@@ -630,7 +630,7 @@ ydn.db.index.DbOperator.prototype.open = function(iter, callback, mode) {
       if (goog.isDefAndNotNull(primaryKey)) {
         var adv = callback(cursor);
         if (adv === true) {
-          cursor.restart(null, null);
+          cursor.restart();
         } else if (goog.isObject(adv)) {
           if (adv['restart'] === true) {
             cursor.restart(adv['continue'], adv['continuePrimary']);

@@ -16,7 +16,7 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
   // ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
 
@@ -373,7 +373,7 @@ var test_13_put_array_by_keys = function() {
 
 
   db.put(arr, values).addBoth(function(value) {
-    //console.log('receiving value callback.');
+    console.log('receiving value callback: ' + value);
     keys = value;
     db.values(arr).addBoth(function(x) {
       console.log(x);
@@ -413,7 +413,7 @@ var _test_14_put_large_array = function() {
 
 
   db.put(table_name, arr).addBoth(function(value) {
-    //console.log('receiving value callback.');
+    console.log('receiving value callback.');
     results = value;
     hasEventFired = true;
   });

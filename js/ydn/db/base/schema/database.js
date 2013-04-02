@@ -103,15 +103,18 @@ ydn.db.schema.Database = function(version, opt_stores) {
 
 /**
  * @override
- * @return {!Object}
+ * @return {!DatabaseSchema}
  */
 ydn.db.schema.Database.prototype.toJSON = function() {
 
   var stores = this.stores.map(function(x) {return x.toJSON()});
 
-  return {
-    'version': this.version,
-    'stores': stores};
+  var sch = /** @type {DatabaseSchema} */ ({});
+  sch.stores = stores;
+  if (goog.isDef(this.version)) {
+    sch.version = this.version;
+  }
+  return sch;
 };
 
 

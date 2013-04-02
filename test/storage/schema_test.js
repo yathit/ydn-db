@@ -12,7 +12,7 @@ var reachedFinalContinuation, schema, debug_console;
 
 
 var setUp = function () {
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
   //ydn.db.con.IndexedDb.DEBUG = true;
   //ydn.db.con.IndexedDb.DEBUG = true;
   reachedFinalContinuation = false;
@@ -52,9 +52,8 @@ var test_auto_schema = function() {
     100, // interval
     2000); // maxTimeout
 
-
   db.put(store_schema, {id: 'a', value: value, remark: 'put test'}).addCallback(function(y) {
-    //console.log('receiving value callback.');
+    console.log('put key ' + y);
 
     db.get(table_name, 'a').addCallback(function(x) {
       result = x.value;

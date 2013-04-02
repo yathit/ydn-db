@@ -100,22 +100,78 @@ ydn.db.crud.req.SimpleStore.prototype.keysByKeyRange = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.putByKeys = goog.abstractMethod;
+ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(tx, tx_no, df, objs,
+                                                           keys) {
+  this.insertRecord_(tx, tx_no, df, null, objs, keys, true, false);
+};
+
+
+/**
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {number} tx_no tx number.
+ * @param {?function(*, boolean=)} df deferred to feed result.
+ * @param {string?} store_name table name.
+ * @param {!Object|!Array.<!Object>} value object to put.
+ * @param {(!IDBKey|!Array.<IDBKey>|!Array.<!ydn.db.Key>)=} opt_key optional
+ * out-of-line key.
+ * @param {boolean=} is_update true if call from put.
+ * @param {boolean=} single true if call from put.
+ * @private
+ */
+ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
+    store_name, value, opt_key, is_update, single) {
+
+  var msg = tx_no + ' ' + (is_update ? 'put' : 'add') + 'Object' +
+    (single ? '' : 's ' + value.length + ' objects');
+
+  this.logger.finest(msg);
+  var me = this;
+
+  goog.Timer.callOnce(function () {
+    var store;
+    if (single) {
+      store = tx.getSimpleStore(store_name);
+      var key = store.addRecord(opt_key, value);
+      df(key, !goog.isDefAndNotNull(key));
+    } else {
+      var st = store_name;
+      var arr = [];
+      var has_error = false;
+      var keys = opt_key || {};
+      for (var i = 0; i < value.length; i++) {
+        var id;
+        if (!store_name) {
+          /**
+           * @type {ydn.db.Key}
+           */
+          var db_key = opt_key[i];
+          id = db_key.getId();
+          st = db_key.getStoreName();
+        } else {
+          id = keys[i];
+        }
+        if (!store || store.getName() != st) {
+          store =  tx.getSimpleStore(st);
+        }
+        var result_key = store.addRecord(id, value[i]);
+        if (!goog.isDefAndNotNull(result_key)) {
+          has_error = true;
+        }
+        arr.push(result_key);
+      }
+      me.logger.finer((has_error ? 'error: ' : 'success: ') + msg);
+      df(arr, has_error);
+    }
+  }, 0, this);
+};
 
 /**
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.addObject = function(
     tx, tx_no, df, store_name, value, opt_key) {
-  goog.Timer.callOnce(function () {
-    /**
-     * @type  {!ydn.db.con.simple.Store}
-     */
-    var store = tx.getSimpleStore(store_name);
-    var key = store.addRecord(null, opt_key, value);
-    df(key, goog.isDefAndNotNull(key));
-  }, 0, this);
 
+  this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, false, true);
 };
 
 /**
@@ -123,14 +179,7 @@ ydn.db.crud.req.SimpleStore.prototype.addObject = function(
  */
 ydn.db.crud.req.SimpleStore.prototype.putObject = function(
       tx, tx_no, df, store_name, value, opt_key) {
-  goog.Timer.callOnce(function () {
-    /**
-     * @type  {!ydn.db.con.simple.Store}
-     */
-    var store = tx.getSimpleStore(store_name);
-    var key = store.addRecord(null, opt_key, value);
-    df(key, goog.isDefAndNotNull(key));
-  }, 0, this);
+  this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, true, true);
 };
 
 
@@ -140,19 +189,7 @@ ydn.db.crud.req.SimpleStore.prototype.putObject = function(
 ydn.db.crud.req.SimpleStore.prototype.addObjects = function(
     tx, tx_no, df, store_name, value, opt_key) {
 
-  var result = [];
-
-  goog.Timer.callOnce(function () {
-    /**
-     * @type  {!ydn.db.con.simple.Store}
-     */
-    var store = tx.getSimpleStore(store_name);
-    for (var i = 0; i < value.length; i++) {
-      var key = goog.isDef(opt_key) ? opt_key[i] : undefined;
-      result[i] = store.addRecord(null, key, value[i]);
-    }
-    df(result);
-  }, 0, this);
+  this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, false, false);
 };
 
 
@@ -166,8 +203,8 @@ ydn.db.crud.req.SimpleStore.prototype.putData = goog.abstractMethod;
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.putObjects = function(
-      tx, tx_no,  df, table, value, opt_key) {
-  this.addObjects(tx, tx_no,  df, table, value, opt_key);
+      tx, tx_no,  df, store_name, value, opt_key) {
+  this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, true, false);
 };
 
 
@@ -204,27 +241,77 @@ ydn.db.crud.req.SimpleStore.prototype.listByStore = function (tx, tx_no, df,
 
 /**
  *
- * @inheritDoc
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ *  @param {number} tx_no transaction number
+ * @param {?function(*, boolean=)} df deferred to feed result.
+ * @param {string?} store_name table name.
+ * @param {!Array.<(IDBKey|!ydn.db.Key)>} ids id to get.
+ * @private
  */
-ydn.db.crud.req.SimpleStore.prototype.listByIds = function(tx, tx_no, df, store_name, ids) {
-  throw 'impl';
+ydn.db.crud.req.SimpleStore.prototype.list_ = function (tx, tx_no, df,
+                                                        store_name, ids) {
+  goog.Timer.callOnce(function () {
+    var arr = [];
+    var has_error = false;
+    var st = store_name;
+    /**
+     * @type  {!ydn.db.con.simple.Store}
+     */
+    var store;
+
+    for (var i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      if (id instanceof ydn.db.Key) {
+        /**
+         * @type {ydn.db.Key}
+         */
+        var db_key = id;
+        id = db_key.getId();
+        st = db_key.getStoreName();
+      }
+      if (!store || store.getName() != st) {
+        store = tx.getSimpleStore(st);
+      }
+      var key = store.getRecord(null, id);
+      if (!goog.isDefAndNotNull(key)) {
+        has_error = true;
+      }
+      arr.push(key);
+    }
+
+    df(arr, has_error);
+  }, 0, this);
 };
 
+
 /**
+ *
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.listByKeyRange =
-    function(tx, df, store_name, key_range, reverse, limit, offset) {
-
+ydn.db.crud.req.SimpleStore.prototype.listByIds = function(tx, tx_no, df,
+                                                           store_name, ids) {
+  this.list_(tx, tx_no, df, store_name, ids);
 };
 
 
 /**
 * @inheritDoc
 */
-ydn.db.crud.req.SimpleStore.prototype.listByKeys = function(tx, tx_no, df, keys) {
-  throw 'impl';
+ydn.db.crud.req.SimpleStore.prototype.listByKeys = function(tx, tx_no, df,
+                                                            keys) {
+  this.list_(tx, tx_no, df, null, keys);
 };
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, df,
+      store_name, key_range, reverse, limit, offset) {
+
+};
+
+
 
 /**
  * @inheritDoc

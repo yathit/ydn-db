@@ -125,14 +125,6 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.putByKeys = goog.abstractMethod;
-
-
-
-
-/**
- * @inheritDoc
- */
 ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, value,
                                                          opt_key) {
   var store = tx.objectStore(table);
@@ -385,11 +377,11 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
 };
 
 
-
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs, keys) {
+ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs,
+                                                         keys) {
 
   var results = [];
   var result_count = 0;

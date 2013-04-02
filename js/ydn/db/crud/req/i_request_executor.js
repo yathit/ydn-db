@@ -196,7 +196,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.keysByIndexKeyRange =
  *  @param {number} tx_no transaction number
  * @param {?function(*, boolean=)} df deferred to feed result.
  * @param {string} store_name table name.
- * @param {!Array.<string|number>} ids id to get.
+ * @param {!Array.<!IDBKey>} ids id to get.
  * @throws {ydn.db.InvalidKeyException}
  * @throws {ydn.error.InternalError}
  */

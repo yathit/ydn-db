@@ -109,47 +109,44 @@ ydn.db.con.simple.Store.prototype.generateKey = function() {
 
 
 /**
- * 
- * @param {string?} index_name default to primary index.
+ *
  * @param {IDBKey|undefined} key
  * @param {!Object} value
  * @return {IDBKey} key
  */
-ydn.db.con.simple.Store.prototype.addRecord = function(index_name, key, value) {
-  index_name = index_name || this.primary_index; 
-  goog.asserts.assert(!goog.isDef(this.key_indexes[index_name]), 'index "' +
-    index_name + '" not found in ' + this);
-  for (var idx in this.key_indexes) {
-    var cache = this.key_indexes[idx];
-    if (idx == this.primary_index) {
-      var key_path = this.schema.getKeyPath();
-      if (!goog.isDefAndNotNull(key)) {
-        if (goog.isDefAndNotNull(key_path)) {
-          key = ydn.db.utils.getValueByKeys(value, key_path);
-        } 
-        if (this.schema.getAutoIncrement() && !goog.isDefAndNotNull(key)) {
-          key = this.generateKey();
-        }
-      }
-      goog.asserts.assert(goog.isDefAndNotNull(key), 
-        this + 'primary key not provided in ' + ydn.json.toShortString(value));
-      this.storage.setItem(ydn.db.utils.encodeKey(key), ydn.json.stringify(value));
-    } 
-    if (!goog.isNull(cache)) {
-      if (index_name != this.primary_index) {
-        var index = this.schema.getIndex(index_name);
-        key_path = index.getKeyPath();
-        var index_key = ydn.db.utils.getValueByKeys(value, key_path);
-        goog.asserts.assert(goog.isDefAndNotNull(index_key), this +
-          ': index key for ' + index_name + ' not provided in ' +
-          ydn.json.toShortString(value));
-      } else {
-        index_key = key;
-      }
-      cache.add(index_key);
+ydn.db.con.simple.Store.prototype.addRecord = function(key, value) {
+
+  var key_path = this.schema.getKeyPath();
+  if (!goog.isDefAndNotNull(key)) {
+    if (goog.isDefAndNotNull(key_path)) {
+      key = ydn.db.utils.getValueByKeys(value, key_path);
+    }
+    if (this.schema.getAutoIncrement() && !goog.isDefAndNotNull(key)) {
+      key = this.generateKey();
     }
   }
-  goog.asserts.assert(goog.isDef(key));
+
+  goog.asserts.assert(goog.isDefAndNotNull(key),
+    this + 'primary key not provided in ' + ydn.json.toShortString(value));
+  this.storage.setItem(this.makeKey(key),
+    ydn.json.stringify(value));
+
+  for (var idx in this.key_indexes) {
+    var cache = this.key_indexes[idx];
+//    if (!goog.isNull(cache)) {
+//      if (idx == this.primary_index) {
+//        var index = this.schema.getIndex(index_name);
+//        key_path = index.getKeyPath();
+//        var index_key = ydn.db.utils.getValueByKeys(value, key_path);
+//        goog.asserts.assert(goog.isDefAndNotNull(index_key), this +
+//          ': index key for ' + index_name + ' not provided in ' +
+//          ydn.json.toShortString(value));
+//      } else {
+//        index_key = key;
+//      }
+//      cache.add(index_key);
+//    }
+  }
   return key;
 };
 
@@ -162,7 +159,7 @@ ydn.db.con.simple.Store.prototype.addRecord = function(index_name, key, value) {
  */
 ydn.db.con.simple.Store.prototype.removeRecord = function(index_name, key) {
   if (!index_name || index_name == this.primary_index) {
-    var eKey = ydn.db.utils.encodeKey(key);
+    var eKey = this.makeKey(key);
     var del_count = this.storage.getItem(eKey) ? 1 : 0;
     this.storage.removeItem(eKey);
     var cache = this.key_indexes[this.primary_index];
@@ -215,7 +212,6 @@ ydn.db.con.simple.Store.prototype.listByKeyRange = function(index_name, key_rang
 };
 
 
-
 /**
  *
  * @param {string?} index_name
@@ -223,10 +219,22 @@ ydn.db.con.simple.Store.prototype.listByKeyRange = function(index_name, key_rang
  * @return {*}
  */
 ydn.db.con.simple.Store.prototype.getRecord = function(index_name, key) {
-  index_name = index_name || this.primary_index;
-  goog.asserts.assert(!goog.isDef(this.key_indexes[index_name]), 'index "' +
-    index_name + '" not found in ' + this);
-  return this.storage.getItem(this.makeKey(key));
+  if (!index_name || index_name == this.primary_index) {
+    return ydn.json.parse(this.storage.getItem(this.makeKey(key)));
+  } else {
+    goog.asserts.assert(this.schema.hasIndex(index_name), 'index "' +
+      index_name + '" not found in ' + this);
+    throw 'impl';
+  }
+};
+
+
+/**
+ *
+ * @return {string} return store name.
+ */
+ydn.db.con.simple.Store.prototype.getName = function() {
+  return this.schema.getName();
 };
 
 
