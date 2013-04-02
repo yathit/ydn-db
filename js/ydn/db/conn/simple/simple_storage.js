@@ -27,6 +27,7 @@ goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.db.con.simple');
 goog.require('ydn.db.req.InMemoryStorage');
 goog.require('ydn.db.VersionError');
+goog.require('ydn.db.con.simple.Store');
 
 
 /**
@@ -82,7 +83,7 @@ ydn.db.con.SimpleStorage.prototype.dbname;
 
 /**
  * @private
- * @type {string}
+ * @type {number}
  */
 ydn.db.con.SimpleStorage.prototype.version_;
 
@@ -118,6 +119,20 @@ ydn.db.con.SimpleStorage.prototype.getVersion = function() {
 ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
 
   var df = new goog.async.Deferred();
+  /**
+   *
+   * @param {*} x
+   * @param {*=} e
+   */
+  var callDf = function (x, e) {
+    goog.Timer.callOnce(function () {
+      if (e) {
+        df.errback(e);
+      } else {
+        df.callback(x);
+      }
+    });
+  };
 
   /**
    * @final
@@ -134,7 +149,7 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
    */
   this.simple_stores_ = {};
 
-  var db_key = this.makeKey();
+  var db_key = ydn.db.con.simple.makeKey(this.dbname);
 
   this.version_ = NaN;
 
@@ -154,7 +169,7 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
         (this.schema.getVersion() < ex_schema.getVersion())) {
         var msg = goog.DEBUG ? 'existing version ' + ex_schema.getVersion() +
           'is larger than ' + this.schema.getVersion() : '';
-        df.errback(new ydn.db.VersionError(msg));
+        callDf(null, new ydn.db.VersionError(msg));
       } else {
         // upgrade schema
         this.version = goog.isDef(this.schema.getVersion()) ?
@@ -163,29 +178,30 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
         for (var i = 0; i < this.schema.count(); i++) {
           var store = this.schema.store(i);
           this.simple_stores_[store.getName()] =
-            new ydn.db.con.simple.Store(this.dbname, this, store);
+            new ydn.db.con.simple.Store(this.dbname, this.storage_, store);
         }
         if (this.schema instanceof ydn.db.schema.EditableDatabase) {
           for (var i = 0; i < ex_schema.count(); i++) {
             var store = ex_schema.store(i);
+            goog.asserts.assert(!goog.isNull(store));
             this.schema.addStore(store);
             this.simple_stores_[store.getName()] =
-              new ydn.db.con.simple.Store(this.dbname, this, store);
+              new ydn.db.con.simple.Store(this.dbname, this.storage_, store);
           }
         }
         var schema_json = this.schema.toJSON();
         schema_json.version = this.version;
-        this.storage_.setItem(db_key, ydn.json.stringify(json));
-        df.callback(ex_schema.getVersion());
+        this.storage_.setItem(db_key, ydn.json.stringify(schema_json));
+        callDf(ex_schema.getVersion());
       }
     } else {
       for (var i = 0; i < this.schema.count(); i++) {
         var store = this.schema.store(i);
         this.simple_stores_[store.getName()] =
-          new ydn.db.con.simple.Store(this.dbname, this, store);
+          new ydn.db.con.simple.Store(this.dbname, this.storage_, store);
       }
       this.version = ex_schema.getVersion();
-      df.callback(this.version);
+      callDf(this.version);
     }
   } else {
     var json = schema.toJSON();
@@ -193,7 +209,7 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
     var old_version = NaN;
     json.version = this.version_;
     this.storage_.setItem(db_key, ydn.json.stringify(json));
-    df.callback(old_version);
+    callDf(old_version);
   }
 
   return df;
@@ -252,7 +268,7 @@ ydn.db.con.SimpleStorage.prototype.close = function() {
 
 /**
  *
- * @return {!Object}
+ * @return {!Storage}
  */
 ydn.db.con.SimpleStorage.prototype.getStorage = function() {
   return this.storage_;
@@ -275,269 +291,25 @@ ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode,
  */
 ydn.db.con.SimpleStorage.prototype.getSchema = function (callback) {
   goog.Timer.callOnce(function () {
-    var stores = [];
-    var db_value = this.storage_.getItem(this.makeKey());
-    var store_names = db_value['stores'];
-    for (var i = 0; i < store_names.length; i++) {
-      var store_obj = this.storage_.getItem(this.makeKey(store_names[i]));
-      stores[i] = new ydn.db.schema.Store(store_names[i],
-        store_obj['keyPath'], store_obj['autoIncrement']);
-    }
-    var schema = new ydn.db.schema.Database(this.dbname, stores);
+    var db_key = ydn.db.con.simple.makeKey(this.dbname);
+    var db_value = this.storage_.getItem(db_key);
+    var schema = new ydn.db.schema.Database(db_value);
     callback(schema);
   }, 0, this);
 };
 
 
 /**
- * Extract inline key from the object, out-of-line key as provided or generate
- * from the store key generator.
- * @final
  * @protected
- * @param {ydn.db.schema.Store} store table name.
- * @param {!Object} value object having key in keyPath field.
- * @param {*=} opt_key
- * @return {string} key as seen by user.
+ * @param store_name
+ * @return {!ydn.db.con.simple.Store}
  */
-ydn.db.con.SimpleStorage.prototype.extractKey = function (store, value, opt_key) {
-
-  var key = goog.isDef(opt_key) ? opt_key :
-    goog.isDefAndNotNull(store.keyPath) ? store.getKeyValue(value) : undefined;
-
-  if (!goog.isDef(key)) {
-    if (store.getAutoIncrement()) {
-      var store_key = this.makeKey(store.name);
-      var store_obj = this.storeSchema_[store.name];
-      if (!goog.isDef(store_obj['autoIncrementNo'])) {
-        store_obj['autoIncrementNo'] = this.getKeys(store.name, null).length;
-      }
-      store_obj['autoIncrementNo']++;
-      key = store_obj['autoIncrementNo'];
-    } else {
-      if (ydn.db.con.SimpleStorage.DEBUG) {
-        window.console.log([store, value, opt_key]);
-      }
-      throw new ydn.db.InvalidKeyException();
-    }
-  }
-
-  return key;
-};
-
-
-/**
- * Use store name and id to form a key to use in setting key to storage.
- * @protected
- * @final
- * @param {string=} store_name table name. If no store name is given, key for
- * the database return.
- * @param {IDBKey=} id id. If not given, key for store return.
- * @return {string} canonical key name.
- */
-ydn.db.con.SimpleStorage.prototype.makeKey = function(store_name, id) {
-  return ydn.db.con.simple.makeKey(this.dbname, store_name, id);
-};
-
-
 ydn.db.con.SimpleStorage.prototype.getSimpleStore = function (store_name) {
   return this.simple_stores_[store_name];
 };
 
 
-/**
- *
- * @param {!ydn.db.schema.Store|string} store_name store schema or name.
- * @param {(string|number|Date|!Array)} id id.
- * @return {*} the value obtained.
- * @final
- */
-ydn.db.con.SimpleStorage.prototype.getItemInternal = function(store_name, id) {
-  var store = store_name instanceof ydn.db.schema.Store ?
-      store_name.name : store_name;
-  var key = this.makeKey(store, id);
-  var value = this.storage_.getItem(key);
-  if (!goog.isNull(value)) {
-    value = ydn.json.parse(/** @type {string} */ (value));
-  } else {
-    value = undefined; // localStorage return null for not existing value
-  }
-  return value;
-};
 
-
-
-/**
- *
- * @param {!Object} value the value.
- * @param {string} store_name store name.
- * @param {*=} id optional out-of-line key.
- * @return {string} key key as seen by user.
- * @final
- */
-ydn.db.con.SimpleStorage.prototype.setItemInternal = function(
-    value, store_name, id) {
-  var store = this.schema.getStore(store_name);
-
-  goog.asserts.assertObject(value);
-  var obj_id = this.extractKey(store, value, id);
-  var key = this.makeKey(store_name, obj_id);
-  var str = ydn.json.stringify(value);
-  if (ydn.db.con.SimpleStorage.DEBUG) {
-    window.console.log(['setItemInternal', store_name, id, obj_id, key, str]);
-  }
-  this.storage_.setItem(key, str);
-  var idx_arr = this.storeSchema_[store_name]['Keys'];
-  if (idx_arr) {
-    goog.asserts.assertArray(idx_arr);
-    for (var i = 0, n = idx_arr.length; i < n; i++) {
-      if (obj_id == idx_arr[i]) {
-        break;
-      } else if (obj_id > idx_arr[i]) {
-        goog.array.insertAt(idx_arr, obj_id, i);
-        break;
-      }
-    }
-  }
-
-  return obj_id;
-};
-
-
-/**
- *
- * @param {string=} store_name store name or key.
- * @param {IDBKey=} id  id.
- * @final
- */
-ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(
-    store_name, id){
-
-  if (goog.isDef(id)) {
-    this.storage_.removeItem(this.makeKey(store_name, id));
-    var idx_arr = this.storeSchema_[store_name]['Keys'];
-    if (goog.isDef(idx_arr)) {
-      goog.array.remove(idx_arr, id);
-    }
-  } else if (goog.isDef(store_name)) {
-    if (this.storeSchema_[store_name]) {
-      this.storeSchema_[store_name]['Keys'] = null;
-    }
-    var base = this.makeKey(store_name) + ydn.db.con.simple.SEP;
-    for (var i = this.storage_.length - 1; i >= 0; i--) {
-      var k = this.storage_.key(i);
-      goog.asserts.assertString(k);
-      if (goog.string.startsWith(k, base)) {
-        this.storage_.removeItem(k);
-      }
-    }
-  } else {
-    var base = this.makeKey() + ydn.db.con.simple.SEP;
-    for (var i = this.storage_.length - 1; i >= 0; i--) {
-      var k = this.storage_.key(i);
-      goog.asserts.assertString(k);
-      if (goog.string.startsWith(k, base)) {
-        this.storage_.removeItem(k);
-      }
-    }
-  }
-};
-
-
-/**
- * Index a given store.
- * @param {string} store_name store name.
- * @param {string=} index_name index name. Default to primary key.
- * @return {!Array.<string>} list of keys in the store.
- */
-ydn.db.con.SimpleStorage.prototype.index = function(store_name, index_name) {
-  /**
-   *
-   * @type {StoreSchema}
-   */
-  var store_json = this.storeSchema_[store_name];
-  var keys = store_json['Keys'];
-  if (!goog.isDefAndNotNull(keys)) {
-    keys = [];
-    var indexes = {};
-    var base = this.makeKey(store_name);
-    base += ydn.db.con.simple.SEP;
-    //console.log(['base', store_name, base]);
-    for (var i = 0, n = this.storage_.length; i < n; i++) {
-      var key = this.storage_.key(i);
-      goog.asserts.assertString(key);
-      if (goog.string.startsWith(key, base)) {
-        //console.log(['key ' + keys.length, key]);
-        keys.push(key);
-        for (var j = 0, m = store_json.indexes.length; j < m; j++) {
-          var idxKeyPath = store_json.indexes[i];
-          // TODO: indexing
-        }
-      }
-    }
-    goog.array.sort(keys);
-    store_json['Keys'] = keys;
-    store_json['indexes'] = indexes;
-  }
-  return keys;
-};
-
-
-/**
- * Get list of primary key between given range.
- * @param {string} store_name store name.
- * @param {string?=} index_name index name.
- * @param {string=} lower lower bound of key range.
- * @param {string=} upper upper bound of key range.
- * @param {boolean=} lowerOpen true if lower bound is open.
- * @param {boolean=} upperOpen true if upper bound is open.
- * @return {!Array.<string>} keys.
- * @final
- */
-ydn.db.con.SimpleStorage.prototype.getKeys = function(store_name, index_name,
-    lower, upper, lowerOpen, upperOpen) {
-  if (goog.isDefAndNotNull(index_name)) {
-    throw new ydn.error.NotImplementedException();
-  }
-  var keys = this.index(store_name);
-
-  var cmp_upper = function () {
-    if (upperOpen) {
-      return function (x) {
-        return x <= upper;
-      }
-    } else {
-      return function (x) {
-        return x < upper;
-      }
-    }
-  };
-
-  var cmp_lower = function () {
-    if (lowerOpen) {
-      return function (x) {
-        return x > lower;
-      }
-    } else {
-      return function (x) {
-        return x >= lower;
-      }
-    }
-  };
-
-  if (!goog.isDef(lower) && !goog.isDef(upper)) {
-    return keys;
-  } else if (!goog.isDef(lower)) {
-    var idx = goog.array.findIndex(keys, cmp_upper());
-    return keys.slice(0, idx);
-  } else if (!goog.isDef(upper)) {
-    var idx = goog.array.findIndex(keys, cmp_lower());
-    return keys.slice(idx);
-  } else {
-    var idx1 = goog.array.findIndex(keys, cmp_upper());
-    var idx2 = goog.array.findIndex(keys, cmp_lower());
-    return keys.slice(idx1, idx2);
-  }
-};
 
 
 

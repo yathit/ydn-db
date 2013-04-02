@@ -747,72 +747,49 @@ ydn.db.crud.req.WebSql.prototype.listByIndexKeyRange = function(tx, tx_no, df,
 
 /**
 * @inheritDoc
-*/
-ydn.db.crud.req.WebSql.prototype.listByStores = function(tx, tx_no, df,
-                                                         table_names) {
+ */
+ydn.db.crud.req.WebSql.prototype.listByStore = function (tx, tx_no, df, table_name) {
 
   var me = this;
   var arr = [];
 
-  var n_todo = table_names.length;
+  var table = me.schema.getStore(table_name);
+  goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
+    ' not found.');
+
+  var sql = 'SELECT * FROM ' + table.getQuotedName();
 
   /**
-   * @param {number} idx the index of table_names.
-   * @param {SQLTransaction} tx tx.
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
    */
-  var getAll = function(idx, tx) {
-    var table_name = table_names[idx];
-    var table = me.schema.getStore(table_name);
-    goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
-      ' not found.');
-
-    var sql = 'SELECT * FROM ' + table.getQuotedName();
-
-    /**
-     * @param {SQLTransaction} transaction transaction.
-     * @param {SQLResultSet} results results.
-     */
-    var callback = function(transaction, results) {
-      for (var i = 0, n = results.rows.length; i < n; i++) {
-        var row = results.rows.item(i);
-        if (goog.isDefAndNotNull(row)) {
-          arr.push(ydn.db.crud.req.WebSql.parseRow(row, table));
-        }
+  var callback = function (transaction, results) {
+    for (var i = 0, n = results.rows.length; i < n; i++) {
+      var row = results.rows.item(i);
+      if (goog.isDefAndNotNull(row)) {
+        arr.push(ydn.db.crud.req.WebSql.parseRow(row, table));
       }
-      if (idx == n_todo - 1) {
-        me.logger.finest('success ' + sql);
-        df(arr);
-      } else {
-        getAll(idx + 1, transaction);
-      }
-    };
-
-    /**
-     * @param {SQLTransaction} tr transaction.
-     * @param {SQLError} error error.
-     * @return {boolean} true to roll back.
-     */
-    var error_callback = function(tr, error) {
-      if (ydn.db.crud.req.WebSql.DEBUG) {
-        window.console.log([tr, error]);
-      }
-      me.logger.warning('error: ' + sql + ' ' + error.message);
-      df(error, true);
-      return false;
-    };
-
-    me.logger.finest('SQL: ' + sql + ' PARAMS: []');
-    tx.executeSql(sql, [], callback, error_callback);
+    }
+    df(arr);
   };
 
-  // send request to the first store
-  // getAll will continue to fetch one after another
-  if (n_todo == 0) {
-    me.logger.finest('success');
-    df([]);
-  } else {
-    getAll(0, /** @type {SQLTransaction} */(tx));
-  }
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
+   */
+  var error_callback = function (tr, error) {
+    if (ydn.db.crud.req.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    me.logger.warning('error: ' + sql + ' ' + error.message);
+    df(error, true);
+    return false;
+  };
+
+  me.logger.finest('SQL: ' + sql + ' PARAMS: []');
+  tx.executeSql(sql, [], callback, error_callback);
 
 };
 

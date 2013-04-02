@@ -36,7 +36,7 @@ ydn.db.crud.IOperator.prototype.count = goog.abstractMethod;
 /**
  * Return object or objects of given key or keys.
  * @param {(string|!ydn.db.Key)=} arg1 table name.
- * @param {(ydn.db.KeyRange|string|number|Date|!Array)=} arg2
+ * @param {(!ydn.db.KeyRange|!IDBKey)=} arg2
  * object key to be retrieved, if not provided,
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
@@ -47,7 +47,7 @@ ydn.db.crud.IOperator.prototype.get = goog.abstractMethod;
 /**
  * Return object or objects of given key or keys.
  * @param {(*|string|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(string|KeyRangeJson|ydn.db.KeyRange|!Array.<string|number|Date|!Array>)=} arg2 list of primary
+ * @param {(string|KeyRangeJson|ydn.db.KeyRange|!Array.<!IDBKey>)=} arg2 list of primary
  * keys or key range.
  * @param {(number|KeyRangeJson|ydn.db.KeyRange)=} arg3 limit.
  * @param {number=} arg4 offset.

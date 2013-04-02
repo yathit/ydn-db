@@ -2,7 +2,7 @@
  * @fileoverview basic utilities.
  */
 
-goog.provide('ydn.db.com.simple');
+goog.provide('ydn.db.con.simple');
 
 
 

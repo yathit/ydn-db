@@ -102,7 +102,8 @@ ydn.db.schema.Database = function(version, opt_stores) {
 
 
 /**
- * @inheritDoc
+ * @override
+ * @return {!Object}
  */
 ydn.db.schema.Database.prototype.toJSON = function() {
 

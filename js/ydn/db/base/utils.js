@@ -23,8 +23,8 @@ goog.require('ydn.db.base');
  * @param {...(string|number|!Array.<number|string>)} var_args A number of keys
  *     (as strings, or nubmers, for array-like objects).  Can also be
  *     specified as a single array of keys.
- * @return {*} The resulting value.  If, at any point, the value for a key
- *     is undefined, returns undefined.
+ * @return {IDBKey|undefined} The resulting value.  If, at any point, the value
+ * for a key is undefined, returns undefined.
  * @see goog.object.getValueByKeys
  */
 ydn.db.utils.getValueByKeys = function(obj, var_args) {
@@ -45,7 +45,7 @@ ydn.db.utils.getValueByKeys = function(obj, var_args) {
     }
   }
 
-  return obj;
+  return /** @type {IDBKey} */ (obj);
 };
 
 /**

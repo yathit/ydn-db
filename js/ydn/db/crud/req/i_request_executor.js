@@ -136,7 +136,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
  * @param {number} tx_no transaction number
  * @param {?function(*, boolean=)} return object in deferred function.
  * @param {string} store table name.
- * @param {(string|number|Date|!Array)} id object key to be retrieved, if not
+ * @param {!IDBKey} id object key to be retrieved, if not
  * provided,
  * all entries in the store will return.
  */
@@ -246,10 +246,10 @@ ydn.db.crud.req.IRequestExecutor.prototype.listByIndexKeyRange = goog.abstractMe
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  *  @param {number} tx_no transaction number
  * @param {?function(*, boolean=)} return object in deferred function.
- * @param {!Array.<string>} store_name  store name.
+ * @param {string} store_name  store name.
  * @deprecated
  */
-ydn.db.crud.req.IRequestExecutor.prototype.listByStores = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.listByStore = goog.abstractMethod;
 
 /**
  * Execute PUT request to the store of given records in delimited text.

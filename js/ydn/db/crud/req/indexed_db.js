@@ -1047,51 +1047,39 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df
 
 /**
 * @inheritDoc
-*/
-ydn.db.crud.req.IndexedDb.prototype.listByStores = function(tx, tx_no, df,
-                                                            store_names) {
+ */
+ydn.db.crud.req.IndexedDb.prototype.listByStore = function (tx, tx_no, df, store_name) {
   var me = this;
   var results = [];
-  var msg = 'TxNo:' + tx_no + ' listByStores: ' + store_names;
+  var msg = 'TxNo:' + tx_no + ' listByStore: ' + store_name;
   this.logger.finest(msg);
 
-  var getAll = function(i) {
-    var store_name = store_names[i];
-    var store = tx.objectStore(store_name);
+  var store = tx.objectStore(store_name);
 
-    // Get everything in the store;
-    var request = store.openCursor();
+  // Get everything in the store;
+  var request = store.openCursor();
 
-    request.onsuccess = function(event) {
-      var cursor = event.target.result;
-      if (cursor) {
-        results.push(cursor['value']);
-        cursor['continue'](); // result.continue();
-      } else {
-        i++;
-        if (i == store_names.length) {
-          me.logger.finest('success ' + msg);
-          df(results);
-        } else {
-          getAll(i);
-        }
-      }
-    };
+  request.onsuccess = function (event) {
+    var cursor = event.target.result;
+    if (cursor) {
+      results.push(cursor['value']);
+      cursor['continue'](); // result.continue();
+    } else {
 
-    request.onerror = function(event) {
-      if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, event]);
-      }
-      me.logger.finest('error ' + msg);
-      df(event, true);
-    };
+      me.logger.finest('success ' + msg);
+      df(results);
+
+    }
   };
 
-  if (store_names.length > 0) {
-    getAll(0);
-  } else {
-    df([]);
-  }
+  request.onerror = function (event) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, event]);
+    }
+    me.logger.finest('error ' + msg);
+    df(event, true);
+  };
+
 };
 
 

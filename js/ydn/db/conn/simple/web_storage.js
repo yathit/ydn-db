@@ -64,7 +64,13 @@ ydn.db.con.LocalStorage.deleteDatabase = function(db_name) {
   var db = new ydn.db.con.LocalStorage();
   var schema = new ydn.db.schema.EditableDatabase();
   db.connect(db_name, schema);
-  db.removeItemInternal();
+  db.getSchema(function (sch) {
+    for (var i = 0; i < sch.stores.length; i++) {
+      var store = db.getSimpleStore(sch.stores[i].name);
+      store.clear();
+    }
+  });
+
 };
 
 
@@ -110,7 +116,12 @@ ydn.db.con.SessionStorage.deleteDatabase = function(db_name) {
   var db = new ydn.db.con.SessionStorage();
   var schema = new ydn.db.schema.EditableDatabase();
   db.connect(db_name, schema);
-  db.removeItemInternal();
+  db.getSchema(function (sch) {
+    for (var i = 0; i < sch.stores.length; i++) {
+      var store = db.getSimpleStore(sch.stores[i].name);
+      store.clear();
+    }
+  });
 };
 
 
