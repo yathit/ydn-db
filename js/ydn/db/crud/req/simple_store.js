@@ -107,7 +107,7 @@ ydn.db.crud.req.SimpleStore.prototype.putByKeys = goog.abstractMethod;
  */
 ydn.db.crud.req.SimpleStore.prototype.addObject = function(
     tx, tx_no, df, table, value, opt_key) {
-  // TODO: check existance
+  tx.getSimpleStore(table)
   var key = tx.setItemInternal(value, table, opt_key);
   df(key);
 };

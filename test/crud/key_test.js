@@ -83,6 +83,7 @@ var key_test = function(db, key, table_name, callback) {
       100, // interval
       5000); // maxTimeout
 
+  db.close();
   db.get(table_name, key).addCallback(function(value) {
     // console.log(db + ' receiving get value callback ' + key + ' = ' + JSON.stringify(value));
     b_value = value;

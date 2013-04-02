@@ -17,7 +17,6 @@
  * @fileoverview Data store in memory.
  */
 
-// TODO: in memory indexing.
 
 goog.provide('ydn.db.con.SimpleStorage');
 goog.require('goog.Timer');
@@ -25,7 +24,9 @@ goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.con.IDatabase');
+goog.require('ydn.db.con.simple');
 goog.require('ydn.db.req.InMemoryStorage');
+goog.require('ydn.db.VersionError');
 
 
 /**
@@ -37,8 +38,6 @@ ydn.db.con.SimpleStorage = function(opt_localStorage) {
 
   /**
    * @final
-   * @type {!Storage}
-   * @private
    */
   this.storage_ = opt_localStorage ||
       /** @type {!Storage} */ (new ydn.db.req.InMemoryStorage());
@@ -60,33 +59,32 @@ ydn.db.con.SimpleStorage.prototype.logger =
  */
 ydn.db.con.SimpleStorage.TYPE = 'memory';
 
-//
-///**
-// * @deprecated
-// * @return {!Object} return memory store object.
-// */
-//ydn.db.con.SimpleStorage.getInMemoryStorage = function() {
-//
-//  var memoryStorage = {};
-//  memoryStorage.setItem = function(key, value) {
-//    memoryStorage[key] = value;
-//  };
-//  memoryStorage.getItem = function(key) {
-//    return memoryStorage[key] || null; // window.localStorage return null
-//    // if the key don't exist.
-//  };
-//  memoryStorage.removeItem = function(key) {
-//    delete memoryStorage[key];
-//  };
-//  memoryStorage.clear = function() {
-//    for (var key in memoryStorage) {
-//      if (memoryStorage.hasOwnProperty(key)) {
-//        delete memoryStorage[key];
-//      }
-//    }
-//  };
-//  return memoryStorage;
-//};
+/**
+ * @type {!Storage}
+ * @private
+ */
+ydn.db.con.SimpleStorage.prototype.storage_;
+
+
+/**
+ * @protected
+ * @type {!ydn.db.schema.Database}
+ */
+ydn.db.con.SimpleStorage.prototype.schema;
+
+
+/**
+ * @protected
+ * @type {string}
+ */
+ydn.db.con.SimpleStorage.prototype.dbname;
+
+
+/**
+ * @private
+ * @type {string}
+ */
+ydn.db.con.SimpleStorage.prototype.version_;
 
 
 /**
@@ -105,39 +103,13 @@ ydn.db.con.SimpleStorage.isSupported = function() {
 ydn.db.con.SimpleStorage.DEBUG = false;
 
 
-/**
- * Storage key namespace.
- * @const
- * @type {string}  Storage key namespace.
- */
-ydn.db.con.SimpleStorage.NAMESPACE = 'ydn.db';
-
-
-/**
- *
- * @const
- * @type {string} seperator.
- */
-ydn.db.con.SimpleStorage.SEP = '^|';
 
 /**
  * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.getVersion = function() {
-  return 1;
+  return this.version_;
 };
-
-
-/**
- * @typedef {{
- *   name: string,
- *   indexes: Object,
- *   autoIncrement: boolean,
- *   keyPath: string?,
- *   autoIncrementNo: number
- * }}
- */
-ydn.db.con.SimpleStorage.StoreSchema;
 
 
 /**
@@ -145,69 +117,94 @@ ydn.db.con.SimpleStorage.StoreSchema;
  */
 ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
 
+  var df = new goog.async.Deferred();
+
   /**
    * @final
-   * @type {string}
    */
   this.dbname = dbname;
 
   /**
-   * @protected
    * @final
-   * @type {!ydn.db.schema.Database}
    */
-  this.schema = schema; // TODO: remove referencing to schema.
+  this.schema = schema;
 
   /**
-   *
-   * @type {!Object.<StoreSchema>}
    * @final
-   * @private
    */
-  this.storeSchema_ = {};
-  for (var i = 0; i < schema.count(); i++) {
-    var store = schema.store(i);
-    this.storeSchema_[store.getName()] = store.toJSON();
-  }
-
-  /**
-   * Array of ordered key indexes.
-   * @type {Object}
-   */
-  this.indexes = {};
+  this.simple_stores_ = {};
 
   var db_key = this.makeKey();
+
+  this.version_ = NaN;
+
   /**
    *
    * @type {DatabaseSchema}
    */
-  var ex_schema = /** @type {DatabaseSchema} */
+  var ex_schema_json = /** @type {DatabaseSchema} */
     (ydn.json.parse(this.storage_.getItem(db_key)));
 
-  if (ex_schema) {
-    for (var store_name in ex_schema) {
-      if (ex_schema.hasOwnProperty(store_name)) {
-        if (!schema.hasStore(store_name)) {
-          var store_json = ex_schema[store_name];
-          if (schema.isAutoSchema()) {
-            // recover existing data
-            this.logger.finer('Adding existing store: ' + store_name);
-            this.storeSchema_[store_name] = store_json;
-          } else {
-            this.logger.finer('Deleting old store: ' + store_name);
-            this.removeItemInternal(store_name);
-          }
-        } else {
-          // TODO: recover auto generated keys
+  if (ex_schema_json) {
+    var ex_schema = new ydn.db.schema.Database(ex_schema_json);
+
+    var diff_msg = this.schema.difference(ex_schema);
+    if (diff_msg) {
+      if (!this.schema.isAutoVersion() ||
+        (this.schema.getVersion() < ex_schema.getVersion())) {
+        var msg = goog.DEBUG ? 'existing version ' + ex_schema.getVersion() +
+          'is larger than ' + this.schema.getVersion() : '';
+        df.errback(new ydn.db.VersionError(msg));
+      } else {
+        // upgrade schema
+        this.version = goog.isDef(this.schema.getVersion()) ?
+          this.schema.getVersion() :
+          (ex_schema.getVersion() + 1);
+        for (var i = 0; i < this.schema.count(); i++) {
+          var store = this.schema.store(i);
+          this.simple_stores_[store.getName()] =
+            new ydn.db.con.simple.Store(this.dbname, this, store);
         }
+        if (this.schema instanceof ydn.db.schema.EditableDatabase) {
+          for (var i = 0; i < ex_schema.count(); i++) {
+            var store = ex_schema.store(i);
+            this.schema.addStore(store);
+            this.simple_stores_[store.getName()] =
+              new ydn.db.con.simple.Store(this.dbname, this, store);
+          }
+        }
+        var schema_json = this.schema.toJSON();
+        schema_json.version = this.version;
+        this.storage_.setItem(db_key, ydn.json.stringify(json));
+        df.callback(ex_schema.getVersion());
       }
+    } else {
+      for (var i = 0; i < this.schema.count(); i++) {
+        var store = this.schema.store(i);
+        this.simple_stores_[store.getName()] =
+          new ydn.db.con.simple.Store(this.dbname, this, store);
+      }
+      this.version = ex_schema.getVersion();
+      df.callback(this.version);
     }
   } else {
-    this.storage_.setItem(db_key, ydn.json.stringify(this.storeSchema_));
+    var json = schema.toJSON();
+    this.version_ = 1;
+    var old_version = NaN;
+    json.version = this.version_;
+    this.storage_.setItem(db_key, ydn.json.stringify(json));
+    df.callback(old_version);
   }
 
-  return goog.async.Deferred.succeed(1);
+  return df;
 };
+
+
+/**
+ * @type {Object.<!ydn.db.con.simple.Store>}
+ * @private
+ */
+ydn.db.con.SimpleStorage.prototype.simple_stores_;
 
 
 /**
@@ -332,19 +329,18 @@ ydn.db.con.SimpleStorage.prototype.extractKey = function (store, value, opt_key)
  * Use store name and id to form a key to use in setting key to storage.
  * @protected
  * @final
- * @param {string=} store_name table name.
- * @param {(string|number|Date|!Array)=} id id.
+ * @param {string=} store_name table name. If no store name is given, key for
+ * the database return.
+ * @param {IDBKey=} id id. If not given, key for store return.
  * @return {string} canonical key name.
  */
 ydn.db.con.SimpleStorage.prototype.makeKey = function(store_name, id) {
-  var parts = [ydn.db.con.SimpleStorage.NAMESPACE, this.dbname];
-  if (goog.isDef(store_name)) {
-    parts.push(store_name);
-    if (goog.isDef(id)) {
-      parts.push(ydn.db.utils.encodeKey(id));
-    }
-  }
-  return parts.join(ydn.db.con.SimpleStorage.SEP);
+  return ydn.db.con.simple.makeKey(this.dbname, store_name, id);
+};
+
+
+ydn.db.con.SimpleStorage.prototype.getSimpleStore = function (store_name) {
+  return this.simple_stores_[store_name];
 };
 
 
@@ -426,7 +422,7 @@ ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(
     if (this.storeSchema_[store_name]) {
       this.storeSchema_[store_name]['Keys'] = null;
     }
-    var base = this.makeKey(store_name) + ydn.db.con.SimpleStorage.SEP;
+    var base = this.makeKey(store_name) + ydn.db.con.simple.SEP;
     for (var i = this.storage_.length - 1; i >= 0; i--) {
       var k = this.storage_.key(i);
       goog.asserts.assertString(k);
@@ -435,7 +431,7 @@ ydn.db.con.SimpleStorage.prototype.removeItemInternal = function(
       }
     }
   } else {
-    var base = this.makeKey() + ydn.db.con.SimpleStorage.SEP;
+    var base = this.makeKey() + ydn.db.con.simple.SEP;
     for (var i = this.storage_.length - 1; i >= 0; i--) {
       var k = this.storage_.key(i);
       goog.asserts.assertString(k);
@@ -464,7 +460,7 @@ ydn.db.con.SimpleStorage.prototype.index = function(store_name, index_name) {
     keys = [];
     var indexes = {};
     var base = this.makeKey(store_name);
-    base += ydn.db.con.SimpleStorage.SEP;
+    base += ydn.db.con.simple.SEP;
     //console.log(['base', store_name, base]);
     for (var i = 0, n = this.storage_.length; i < n; i++) {
       var key = this.storage_.key(i);

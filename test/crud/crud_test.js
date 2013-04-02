@@ -453,14 +453,17 @@ var test_21_get_inline = function() {
 
 
   db.put(table_name, value).addBoth(function(k) {
-    console.log('key: ' + k);
+    // console.log('key: ' + k);
+    db = new ydn.db.crud.Storage(db_name, schema, options);
+    db.get(table_name, key).addBoth(function(value) {
+      // console.log([key, value])
+      result = value;
+      done = true;
+    });
   });
 
-  db.get(table_name, key).addBoth(function(value) {
-    // console.log([key, value])
-    result = value;
-    done = true;
-  });
+  db.close();
+
 };
 
 
@@ -489,13 +492,16 @@ var test_22_get_offline = function() {
     2000); // maxTimeout
 
 
-  db.put(table_name_offline, value, key);
-
-  db.get(table_name_offline, key).addBoth(function(value) {
-    //console.log('receiving value callback.');
-    result = value;
-    done = true;
+  db.put(table_name_offline, value, key).addBoth(function (k) {
+    db = new ydn.db.crud.Storage(db_name, schema, options);
+    db.get(table_name_offline, key).addBoth(function(value) {
+      //console.log('receiving value callback.');
+      result = value;
+      done = true;
+    });
   });
+
+  db.close();
 };
 
 
@@ -537,13 +543,16 @@ var test_24_list_by_ids = function() {
     2000); // maxTimeout
 
 
-  db.put(table_name, arr);
-
-  db.values(table_name, ids).addBoth(function(value) {
-    //console.log('receiving value callback.');
-    results = value;
-    hasEventFired = true;
+  db.put(table_name, arr).addBoth(function (x) {
+    db = new ydn.db.crud.Storage(db_name, schema, options);
+    db.values(table_name, ids).addBoth(function(value) {
+      //console.log('receiving value callback.');
+      results = value;
+      hasEventFired = true;
+    });
   });
+
+  db.close();
 };
 
 
@@ -584,33 +593,36 @@ var test_26_list = function() {
     1000); // maxTimeout
 
 
-  db.put(table_name, data);
-
-  db.values(table_name).addCallback(function(value) {
-    //console.log('receiving value callback.');
-    whole_result = value;
-    whole_done = true;
-  }).addErrback(function(e) {
+  db.put(table_name, data).addBoth(function (x) {
+    db = new ydn.db.crud.Storage(db_name, schema, options);
+    db.values(table_name).addCallback(function(value) {
+      //console.log('receiving value callback.');
+      whole_result = value;
       whole_done = true;
-      console.log('Error: ' + e);
+    }).addErrback(function(e) {
+        whole_done = true;
+        console.log('Error: ' + e);
+      });
+
+    db.values(table_name, [1, 2]).addBoth(function(value) {
+      //console.log('receiving value callback.');
+      array_result = value;
+      array_done = true;
     });
 
-  db.values(table_name, [1, 2]).addBoth(function(value) {
-    //console.log('receiving value callback.');
-    array_result = value;
-    array_done = true;
+    db.values(table_name, null, 3).addBoth(function(value) {
+      //console.log('receiving value callback.');
+      limit_result = value;
+      limit_done = true;
+    });
+    db.values(table_name, null, 2, 1).addBoth(function(value) {
+      //console.log('receiving value callback.');
+      offset_result = value;
+      offset_done = true;
+    });
   });
+  db.close();
 
-  db.values(table_name, null, 3).addBoth(function(value) {
-    //console.log('receiving value callback.');
-    limit_result = value;
-    limit_done = true;
-  });
-  db.values(table_name, null, 2, 1).addBoth(function(value) {
-    //console.log('receiving value callback.');
-    offset_result = value;
-    offset_done = true;
-  });
 };
 
 

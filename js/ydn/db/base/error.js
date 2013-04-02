@@ -9,6 +9,7 @@ goog.provide('ydn.db.NotFoundError');
 goog.provide('ydn.db.ScopeError');
 goog.provide('ydn.db.SecurityError');
 goog.provide('ydn.db.TimeoutError');
+goog.provide('ydn.db.VersionError');
 
 
 
@@ -41,6 +42,32 @@ goog.inherits(ydn.db.InvalidKeyException, Error);
 //ydn.db.InvalidKeyException.prototype.name = 'ydn.db.InvalidKeyException';
 
 
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.VersionError = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.VersionError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+  this.name = 'ydn.db.VersionError';
+};
+goog.inherits(ydn.db.VersionError, Error);
+
+/**
+ * @type {string} name of error.
+ */
+ydn.db.VersionError.prototype.name = 'ydn.db.VersionError';
 
 /**
  * Base class for custom error objects.
