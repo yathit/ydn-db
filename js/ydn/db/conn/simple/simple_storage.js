@@ -169,10 +169,11 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
 
     var diff_msg = this.schema.difference(ex_schema);
     if (diff_msg) {
-      if (!this.schema.isAutoVersion() ||
-        (this.schema.getVersion() < ex_schema.getVersion())) {
+      if (!this.schema.isAutoVersion() &&
+          !isNaN(ex_schema.getVersion()) &&
+          this.schema.getVersion() > ex_schema.getVersion()) {
         var msg = goog.DEBUG ? 'existing version ' + ex_schema.getVersion() +
-          'is larger than ' + this.schema.getVersion() : '';
+          ' is larger than ' + this.schema.getVersion() : '';
         callDf(null, new ydn.db.VersionError(msg));
       } else {
         // upgrade schema

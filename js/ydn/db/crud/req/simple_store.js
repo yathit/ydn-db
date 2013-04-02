@@ -233,7 +233,7 @@ ydn.db.crud.req.SimpleStore.prototype.listByStore = function (tx, tx_no, df,
   var tx_ =  /** {ydn.db.con.SimpleStorage} */ (tx);
   goog.Timer.callOnce(function () {
     var store = tx_.getSimpleStore(store_name);
-    df(store.listByKeyRange());
+    df(store.getRecords());
   }, 0, this);
 
 };
@@ -248,7 +248,7 @@ ydn.db.crud.req.SimpleStore.prototype.listByStore = function (tx, tx_no, df,
  * @param {!Array.<(IDBKey|!ydn.db.Key)>} ids id to get.
  * @private
  */
-ydn.db.crud.req.SimpleStore.prototype.list_ = function (tx, tx_no, df,
+ydn.db.crud.req.SimpleStore.prototype.listByIds_ = function (tx, tx_no, df,
                                                         store_name, ids) {
   goog.Timer.callOnce(function () {
     var arr = [];
@@ -290,7 +290,7 @@ ydn.db.crud.req.SimpleStore.prototype.list_ = function (tx, tx_no, df,
  */
 ydn.db.crud.req.SimpleStore.prototype.listByIds = function(tx, tx_no, df,
                                                            store_name, ids) {
-  this.list_(tx, tx_no, df, store_name, ids);
+  this.listByIds_(tx, tx_no, df, store_name, ids);
 };
 
 
@@ -299,16 +299,19 @@ ydn.db.crud.req.SimpleStore.prototype.listByIds = function(tx, tx_no, df,
 */
 ydn.db.crud.req.SimpleStore.prototype.listByKeys = function(tx, tx_no, df,
                                                             keys) {
-  this.list_(tx, tx_no, df, null, keys);
+  this.listByIds_(tx, tx_no, df, null, keys);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, df,
+ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
       store_name, key_range, reverse, limit, offset) {
-
+  goog.Timer.callOnce(function () {
+    var store = tx.getSimpleStore(store_name);
+    df(store.getRecords(null, key_range, reverse, limit, offset));
+  }, 0, this);
 };
 
 
@@ -316,9 +319,12 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, tx_no, df, store_name,
-         index, key_range, reverse, limit, offset) {
-  //this.listByKeyRange_(df, store_name, index, key_range, reverse, limit, offset)
+ydn.db.crud.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, tx_no,
+      df, store_name, index, key_range, reverse, limit, offset) {
+  goog.Timer.callOnce(function () {
+    var store = tx.getSimpleStore(store_name);
+    df(store.getRecords(index, key_range, reverse, limit, offset));
+  }, 0, this);
 };
 
 
@@ -358,10 +364,11 @@ ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = goog.abstractMetho
 */
 ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df, store_names) {
 
+  var me = this;
   goog.Timer.callOnce(function () {
     for (var i = 0; i < store_names.length; i++) {
-      var store = this.getSimpleStore(store_names[i]);
-      df(store.clear());
+      var store = tx.getSimpleStore(store_names[i]);
+      store.clear();
     }
     df(store_names.length);
   }, 0, this);
@@ -376,9 +383,10 @@ ydn.db.crud.req.SimpleStore.prototype.countStores = function (tx, tx_no, df, sto
   goog.Timer.callOnce(function () {
     var arr = [];
     for (var i = 0; i < store_names.length; i++) {
-      var store = this.getSimpleStore(store_names[i]);
-      df(store.countRecords());
+      var store = tx.getSimpleStore(store_names[i]);
+      arr.push(store.countRecords());
     }
+    df(arr);
   }, 0, this);
 
 };
@@ -390,7 +398,7 @@ ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(tx, tx_no, df,
       store_name, keyRange, index_name) {
 
   goog.Timer.callOnce(function () {
-    var store = this.getSimpleStore(store_name);
+    var store = tx.getSimpleStore(store_name);
     df(store.countRecords(index_name, keyRange));
   }, 0, this);
 };

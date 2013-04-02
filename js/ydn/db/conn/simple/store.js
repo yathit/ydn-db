@@ -87,7 +87,8 @@ ydn.db.con.simple.Store.prototype.key_indexes;
  * @return {string} canonical key name.
  */
 ydn.db.con.simple.Store.prototype.makeKey = function(id) {
-  return ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(), id);
+  return ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
+      this.primary_index, id);
 };
 
 
@@ -194,26 +195,6 @@ ydn.db.con.simple.Store.prototype.clear = function() {
 
 /**
  *
- * @param {string?=} index_name
- * @param {IDBKeyRange=} key_range
- * @return {Array}
- */
-ydn.db.con.simple.Store.prototype.listByKeyRange = function(index_name, key_range) {
-  var arr = [];
-  if (!index_name || index_name == this.primary_index) {
-    var cache = this.getIndexCache(this.primary_index);
-    cache.inOrderTraverse(function (x) {
-      arr.push(x);
-    });
-  } else {
-    throw 'implementing';
-  }
-  return arr;
-};
-
-
-/**
- *
  * @param {string?} index_name
  * @param {!IDBKey} key
  * @return {*}
@@ -246,7 +227,8 @@ ydn.db.con.simple.Store.prototype.getName = function() {
  */
 ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
   if (!this.key_indexes[index_name]) {
-    var starts = this.makeKey(index_name);
+    var starts = ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
+        index_name);
     this.key_indexes[index_name] = new goog.structs.AvlTree(ydn.db.cmp);
     var n = this.storage.length;
     for (var i = 0; i < n; i++) {
@@ -282,17 +264,17 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
 
 /**
  *
- * @param {string?} index_name
+ * @param {string?=} index_name
  * @param {IDBKeyRange=} key_range
  * @param {boolean=} reverse
+ * @param {number=} limit
+ * @param {number=} offset
  * @return {!Array} results
  */
 ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
-                                                        reverse) {
+    reverse, limit, offset) {
   var results = [];
   index_name = index_name || this.primary_index;
-  goog.asserts.assert(!goog.isDef(this.key_indexes[index_name]), 'index "' +
-    index_name + '" not found in ' + this);
   var cache = this.getIndexCache(index_name);
   /**
    * @type {null}
@@ -302,6 +284,10 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
    * @type {null}
    */
   var end = null;
+  if (!goog.isDef(offset)) {
+    offset = 0;
+  }
+  var offsetted = -1;
   if (goog.isDefAndNotNull(key_range)) {
     if (goog.isDefAndNotNull(key_range.lower)) {
       start = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.lower));
@@ -313,10 +299,14 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
   var me = this;
   if (reverse) {
     cache.reverseOrderTraverse(function (x) {
-      if (!goog.isDef(x)) {
+      offsetted++;
+      if (offsetted < offset) {
         return;
       }
-      if (goog.isDef(start)) {
+      if (!goog.isDefAndNotNull(x)) {
+        return;
+      }
+      if (goog.isDefAndNotNull(start)) {
         var cmp = ydn.db.cmp(x, start);
         if (cmp === -1) {
           return true;
@@ -326,13 +316,20 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
         }
       }
       results.push(me.storage.getItem(x));
+      if (goog.isDef(limit) && results.length >= limit) {
+        return true;
+      }
     }, end);
   } else {
     cache.inOrderTraverse(function (x) {
-      if (!goog.isDef(x)) {
+      offsetted++;
+      if (offsetted < offset) {
         return;
       }
-      if (goog.isDef(end)) {
+      if (!goog.isDefAndNotNull(x)) {
+        return;
+      }
+      if (goog.isDefAndNotNull(end)) {
         var cmp = ydn.db.cmp(x, end);
         if (cmp === 1) {
           return true;
@@ -341,7 +338,10 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
           return true;
         }
       }
-      results.push(me.storage.getItem(x));
+      results.push(ydn.json.parse(me.storage.getItem(x)));
+      if (goog.isDef(limit) && results.length >= limit) {
+        return true;
+      }
     }, start);
   }
   return results;
