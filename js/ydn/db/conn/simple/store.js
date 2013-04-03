@@ -4,7 +4,7 @@
 
 goog.provide('ydn.db.con.simple.Store');
 goog.require('ydn.db.con.simple');
-goog.require('goog.structs.AvlTree');
+goog.require('ydn.db.con.simple.AvlTree');
 goog.require('ydn.db.con.simple.Node');
 
 
@@ -87,7 +87,7 @@ ydn.db.con.simple.Store.prototype.primary_index;
 
 /**
  * List of ascending ordered key for each index and primary key.
- * @type {!Object.<!goog.structs.AvlTree>}
+ * @type {!Object.<!ydn.db.con.simple.AvlTree>}
  * @private
  */
 ydn.db.con.simple.Store.prototype.key_indexes;
@@ -146,12 +146,12 @@ ydn.db.con.simple.Store.prototype.generateKey = function() {
 /**
  *
  * @param {string} index_name
- * @return {!goog.structs.AvlTree}
+ * @return {!ydn.db.con.simple.AvlTree}
  */
 ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
   if (!this.key_indexes[index_name]) {
     this.key_indexes[index_name] =
-      new goog.structs.AvlTree(ydn.db.con.simple.Node.cmp);
+      new ydn.db.con.simple.AvlTree();
     var n = this.storage.length;
     for (var i = 0; i < n; i++) {
       var key_str = this.storage.key(i);
@@ -380,13 +380,17 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
 
   /**
    *
-   * @param {ydn.db.con.simple.Node} x
+   * @param {ydn.db.con.simple.AvlTree.Node} node
    * @return {boolean|undefined}
    */
-  var tr_fn = function (x) {
-    if (!goog.isDefAndNotNull(x)) {
+  var tr_fn = function (node) {
+    if (!goog.isDefAndNotNull(node)) {
       return;
     }
+    /**
+     * @type {ydn.db.con.simple.Node}
+     */
+    var x = node.value;
     if (lowerOpen && goog.isDefAndNotNull(start) &&
       ydn.db.con.simple.Node.cmp(x, start) == 0) {
       return;
@@ -445,13 +449,17 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
 
   /**
    *
-   * @param {ydn.db.con.simple.Node} x
+   * @param {ydn.db.con.simple.AvlTree.Node} node
    * @return {boolean|undefined}
    */
-  var tr_fn = function (x) {
-    if (!goog.isDefAndNotNull(x)) {
+  var tr_fn = function (node) {
+    if (!goog.isDefAndNotNull(node)) {
       return;
     }
+    /**
+     * @type {ydn.db.con.simple.Node}
+     */
+    var x = node.value;
     if (lowerOpen && goog.isDefAndNotNull(start) &&
       ydn.db.con.simple.Node.cmp(x, start) == 0) {
       return;
@@ -552,18 +560,21 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
   var me = this;
 
   /**
-   *
-   * @param {ydn.db.con.simple.Node} x
+   * @param {ydn.db.con.simple.AvlTree.Node} node
    * @return {boolean|undefined}
    */
-  var tr_fn = function (x) {
+  var tr_fn = function (node) {
     offsetted++;
     if (offsetted < offset) {
       return;
     }
-    if (!goog.isDefAndNotNull(x)) {
+    if (!goog.isDefAndNotNull(node)) {
       return;
     }
+    /**
+     * @type {ydn.db.con.simple.Node}
+     */
+    var x = node.value;
     if (reverse) {
       if (upperOpen && goog.isDefAndNotNull(end) &&
           ydn.db.con.simple.Node.cmp(x, end) == 0) {
