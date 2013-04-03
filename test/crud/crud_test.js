@@ -420,7 +420,6 @@ var _test_14_put_large_array = function() {
 };
 
 
-
 var test_21_get_inline = function() {
   var db_name = 'test_21_get_inline';
   var schema = {

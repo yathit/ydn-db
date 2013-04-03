@@ -105,20 +105,7 @@ ydn.db.crud.req.WebSql.parseRow = function(row, store) {
       store.setKeyValue(value, key);
     }
   }
-  for (var j = 0; j < store.indexes.length; j++) {
-    var index = store.indexes[j];
-    var column_name = index.getSQLIndexColumnName();
-    if (column_name == ydn.db.base.DEFAULT_BLOB_COLUMN ||
-      index.isComposite() || index.isMultiEntry()) {
-      continue;
-    }
-    var x = row[column_name];
-    var v = ydn.db.schema.Index.sql2js(x, index.getType());
 
-    if (goog.isDef(v)) {
-      value[index.name] = v;
-    }
-  }
   return value;
 };
 

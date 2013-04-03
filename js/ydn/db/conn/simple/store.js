@@ -417,6 +417,10 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
       if (!goog.isDefAndNotNull(x)) {
         return;
       }
+      if (key_range.upperOpen && goog.isDefAndNotNull(end) &&
+        ydn.db.cmp(x, end) == 0) {
+        return;
+      }
       if (goog.isDefAndNotNull(start)) {
         var cmp = ydn.db.cmp(x, start);
         if (cmp === -1) {
@@ -443,6 +447,10 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
         return;
       }
       if (!goog.isDefAndNotNull(x)) {
+        return;
+      }
+      if (key_range.lowerOpen && goog.isDefAndNotNull(start) &&
+        ydn.db.cmp(x, start) == 0) {
         return;
       }
       if (goog.isDefAndNotNull(end)) {
