@@ -20,6 +20,9 @@ if (/log/.test(location.hash)) {
 if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
+if (/localstorage/.test(location.hash)) {
+  options['mechanisms'] = ['localstorage'];
+}
 
 
 var db;

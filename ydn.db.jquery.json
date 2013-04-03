@@ -9,7 +9,7 @@
     "storage",
     "sqlite"
   ],
-  "version": "0.4.6",
+  "version": "0.4.9",
   "author": {
     "name": "YDN Authors, Yathit",
     "url": "https://raw.github.com/yathit/ydn-db/master/AUTHORS"
@@ -30,7 +30,7 @@
   "bugs": "https://github.com/yathit/ydn-db/issues",
   "homepage": "https://bitbucket.org/ytkyaw/ydn-db/wiki/Home",
   "docs": "http://dev.yathit.com/api-reference/ydn-db/storage.html",
-  "download": "https://bitbucket.org/ytkyaw/ydn-db/downloads/ydn.db-jquery-0.4.6.js",
+  "download": "https://bitbucket.org/ytkyaw/ydn-db/downloads/ydn.db-jquery-0.4.9.js",
   "demo": "http://dev.yathit.com/index/demos.html",
   "dependencies": {
     "jquery": ">=1.7"

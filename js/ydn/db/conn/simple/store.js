@@ -399,6 +399,8 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
     offset = 0;
   }
   var offsetted = -1;
+  var lowerOpen = false;
+  var upperOpen = false;
   if (goog.isDefAndNotNull(key_range)) {
     if (goog.isDefAndNotNull(key_range.lower)) {
       start = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.lower));
@@ -406,6 +408,8 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
     if (goog.isDefAndNotNull(key_range.upper)) {
       end = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.upper));
     }
+    lowerOpen = key_range.lowerOpen;
+    upperOpen = key_range.upperOpen;
   }
   var me = this;
   if (reverse) {
@@ -417,7 +421,7 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
       if (!goog.isDefAndNotNull(x)) {
         return;
       }
-      if (key_range.upperOpen && goog.isDefAndNotNull(end) &&
+      if (upperOpen && goog.isDefAndNotNull(end) &&
         ydn.db.cmp(x, end) == 0) {
         return;
       }
@@ -426,7 +430,7 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
         if (cmp === -1) {
           return true;
         }
-        if (cmp === 0 && key_range.lowerOpen) {
+        if (cmp === 0 && lowerOpen) {
           return true;
         }
       }
@@ -449,7 +453,7 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
       if (!goog.isDefAndNotNull(x)) {
         return;
       }
-      if (key_range.lowerOpen && goog.isDefAndNotNull(start) &&
+      if (lowerOpen && goog.isDefAndNotNull(start) &&
         ydn.db.cmp(x, start) == 0) {
         return;
       }
@@ -458,7 +462,7 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
         if (cmp === 1) {
           return true;
         }
-        if (cmp === 0 && key_range.upperOpen) {
+        if (cmp === 0 && upperOpen) {
           return true;
         }
       }
