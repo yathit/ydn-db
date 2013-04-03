@@ -25,8 +25,6 @@ ydn.db.tr.Serial = function(storage, ptx_no, scope_name) {
 
   /**
    * @final
-   * @type {!ydn.db.tr.Storage}
-   * @private
    */
   this.storage_ = storage;
 
@@ -34,15 +32,13 @@ ydn.db.tr.Serial = function(storage, ptx_no, scope_name) {
   /*
    * Transaction queue no.
    * @final
-   * @type {number}
    */
   this.q_no_ = ptx_no;
 
+  this.r_no_ = 0;
+
   /**
    * @final
-   * @type {!Array.<{fnc: Function, scope: string, store_names: Array.<string>,
-   * mode: ydn.db.base.TransactionMode, oncompleted: Function}>}
-   * @private
    */
   this.trQueue_ = [];
 
@@ -58,8 +54,6 @@ ydn.db.tr.Serial = function(storage, ptx_no, scope_name) {
    */
   this.mu_tx_ = new ydn.db.tr.Mutex(ptx_no);
 
-  this.scope = scope_name || '';
-
 };
 
 
@@ -69,6 +63,38 @@ ydn.db.tr.Serial = function(storage, ptx_no, scope_name) {
  */
 ydn.db.tr.Serial.DEBUG = false;
 
+/**
+ * @private
+ * @type {number} request number.
+ */
+ydn.db.tr.Serial.prototype.r_no_;
+
+/**
+ * @private
+ * @type {number} thread number.
+ */
+ydn.db.tr.Serial.prototype.q_no_;
+
+/**
+ * @type {!ydn.db.tr.Storage}
+ * @private
+ */
+ydn.db.tr.Serial.prototype.storage_;
+
+
+/**
+ * One database can have only one transaction.
+ * @private
+ * @type {ydn.db.tr.Mutex} mutex.
+ */
+ydn.db.tr.Serial.prototype.mu_tx_ = null;
+
+/**
+ * @type {!Array.<{fnc: Function, scope: string, store_names: Array.<string>,
+   * mode: ydn.db.base.TransactionMode, oncompleted: Function}>}
+ * @private
+ */
+ydn.db.tr.Serial.prototype.trQueue_ = [];
 
 /**
  * @protected
@@ -88,22 +114,6 @@ ydn.db.tr.Serial.prototype.logger =
 //      opt_mode, completed_event_handler);
 //};
 
-
-/**
- *
- * @return {string}  scope name.
- */
-ydn.db.tr.Serial.prototype.getThreadName = function() {
-  return this.scope;
-};
-
-
-/**
- * One database can have only one transaction.
- * @private
- * @type {ydn.db.tr.Mutex} mutex.
- */
-ydn.db.tr.Serial.prototype.mu_tx_ = null;
 
 
 /**
@@ -364,7 +374,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
     //console.log(this + ' not active ' + scope_name);
     var transaction_process = function(tx) {
       //console.log('transaction_process ' + scope_name);
-      me.mu_tx_.up(tx, store_names, mode, scope_name);
+      me.mu_tx_.up(tx, store_names, mode);
       me.logger.finest(me + ':tx' + me.mu_tx_.getTxCount() +
         ydn.json.stringify(store_names) + mode + ' begin');
 
@@ -435,6 +445,13 @@ ydn.db.tr.Serial.prototype.reusedTx = function(store_names, mode) {
 };
 
 
+/**
+ *
+ * @return {string}
+ */
+ydn.db.tr.Serial.prototype.getLabel = function() {
+  return this.mu_tx_.getLabel() + 'R' + this.r_no_;
+};
 
 
 /**
@@ -444,13 +461,12 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
                                                           store_names, opt_mode, scope, on_complete) {
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
-  var mu_tx = this.getMuTx();
 
-  if (mu_tx.isActiveAndAvailable() && this.reusedTx(store_names, mode)) {
+  if (me.mu_tx_.isActiveAndAvailable() && this.reusedTx(store_names, mode)) {
     //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
     // call within a transaction
     // continue to use existing transaction
-    var tx = mu_tx.getTx();
+    var tx = me.mu_tx_.getTx();
     /**
      *
      * @param {*} result
@@ -466,6 +482,7 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
       me.request_tx_ = null;
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
+    me.r_no_++;
     callback(tx, me.getTxNo(), resultCallback);
     callback = null;
   } else {
@@ -476,16 +493,16 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
       // me.not_ready_ = true;
       // transaction should be active now
       if (goog.DEBUG) {
-        if (!mu_tx.isActive()) {
+        if (!me.mu_tx_.isActive()) {
           throw new ydn.db.InternalError('Tx not active for scope: ' + scope);
         }
-        if (!mu_tx.isAvailable()) {
+        if (!me.mu_tx_.isAvailable()) {
           throw new ydn.db.InternalError('Tx not available for scope: ' +
             scope);
         }
         tx_callback.name = scope; // scope name
       }
-      var tx = mu_tx.getTx();
+      var tx = me.mu_tx_.getTx();
       var resultCallback2 = function(result, is_error) {
         me.request_tx_ = tx; // so that we can abort it.
         if (is_error) {
@@ -506,84 +523,6 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
   }
 };
 
-/*
-
-
-*/
-/**
- * @inheritDoc
- *//*
-
-ydn.db.tr.Serial.prototype.exec = function (df, callback, store_names, mode,
-                                                  scope, on_completed) {
-  var me = this;
-  var mu_tx = this.getMuTx();
-
-  //console.log('creating new tx for ' + scope);
-
-  var blocked_on_complete = function (type, e) {
-    //console.log('tx ' + scope + ' completed');
-    if (goog.isFunction(on_completed)) {
-      on_completed(type, e);
-      on_completed = undefined; // release circular reference.
-    }
-  };
-
-  //
-  // create a new transaction and close for invoke in non-transaction context
-  var blocked_tx_callback = function (idb) {
-    //console.log('tx running for ' + scope);
-    me.not_ready_ = true;
-    // transaction should be active now
-    if (goog.DEBUG && !mu_tx.isActive()) {
-      throw new ydn.db.InternalError('Tx not active for scope: ' + scope);
-    }
-    if (goog.DEBUG && !mu_tx.isAvailable()) {
-      throw new ydn.db.InternalError('Tx not available for scope: ' +
-          scope);
-    }
-
-    var tx = mu_tx.getTx();
-    var resultCallback = function(result, is_error) {
-      me.request_tx_ = tx; // so that we can abort it.
-      if (is_error) {
-        df.errback(result);
-      } else {
-        df.callback(result);
-      }
-      me.request_tx_ = null;
-    };
-
-    callback(resultCallback, tx);
-    callback = null; // release circular reference.
-    mu_tx.lock(); // for blocking tx.
-  };
-  //var cbFn = goog.partial(tx_callback, callback);
-  if (goog.DEBUG) {
-    blocked_tx_callback.name = scope; // scope name
-  }
-  //window.console.log(mu_tx.getScope() +  ' active: ' + mu_tx.isActive() + '
-  // locked: ' + mu_tx.isSetDone());
-  me.processTx(blocked_tx_callback, store_names, mode, blocked_on_complete);
-
-  // need to think about handling oncompleted and onerror callback of the
-  // transaction. after executed all the requests, the transaction is not
-  // completed. consider this case
-  // db.put(data).addCallback(function(id) {
-  //    // at this stage, transaction for put request is not grantee finished.
-  //    db.get(id);
-  //    // but practically, when next transaction is open,
-  //    // the previous transaction should be finished anyways,
-  //    // due to 'readwrite' lock.
-  //    // so seems like OK. it is not necessary to listen oncompleted
-  //    // callback.
-  // });
-  // also notice, there is transaction overlap problem in mutex class.
-
-};
-*/
-
-
 
 /**
  * @final
@@ -594,15 +533,11 @@ ydn.db.tr.Serial.prototype.getName = function() {
 };
 
 
+if (goog.DEBUG) {
 /** @override */
-ydn.db.tr.Serial.prototype.toString = function() {
-  var s = 'Serial';
-  if (goog.DEBUG) {
-    s += ':' + this.storage_.getName();
-    var scope = this.mu_tx_.getThreadName();
-    scope = scope ? ' [' + scope + ']' : '';
-    return s + ':' + this.q_no_ + ':' + this.getTxNo() + scope;
-  }
-  return s;
+ydn.db.tr.Serial.prototype.toString = function () {
+  var s = !!this.request_tx_ ? '*' : '';
+  return 'Serial' + ':' + this.getLabel() + s;
 };
+}
 

@@ -32,13 +32,13 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
   this.storage_ = storage;
 
   /*
-   * Transaction queue no.
    * @final
-   * @type {number}
    */
   this.q_no_ = ptx_no;
 
   this.tx_no_ = 0;
+
+  this.r_no_ = 0;
 
   this.pl_tx_ex_ = null;
 
@@ -57,6 +57,24 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
  * @type {boolean}
  */
 ydn.db.tr.Parallel.DEBUG = false;
+
+/**
+ * @private
+ * @type {number} request number.
+ */
+ydn.db.tr.Parallel.prototype.r_no_;
+
+/**
+ * @private
+ * @type {number} transaction number.
+ */
+ydn.db.tr.Parallel.prototype.q_no_;
+
+/**
+ * @private
+ * @type {number} thread number.
+ */
+ydn.db.tr.Parallel.prototype.tx_no_;
 
 
 /**
@@ -317,15 +335,20 @@ ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
 };
 
 
+/**
+ *
+ * @return {string}
+ */
+ydn.db.tr.Parallel.prototype.getLabel = function() {
+  return 'B' + this.q_no_ + 'T' + this.tx_no_ + 'R' + this.r_no_;
+};
+
+
+if (goog.DEBUG) {
 /** @override */
 ydn.db.tr.Parallel.prototype.toString = function() {
-  var s = 'Parallel';
-  if (goog.DEBUG) {
-    s += ':' + this.storage_.getName();
-    var scope = this.getThreadName();
-    scope = scope ? ' :' + scope : '';
-    return s + ':' + this.q_no_ + ':' + this.getTxNo() + scope;
-  }
-  return s;
+  var s = this.request_tx_ ? '*' : '';
+  return 'Parallel:' + this.getLabel() + s;
 };
+}
 
