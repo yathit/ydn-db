@@ -372,10 +372,12 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
     this.pushTxQueue(trFn, store_names, mode, oncompleted);
   } else {
     //console.log(this + ' not active ' + scope_name);
+    var label = this.getLabel();
     var transaction_process = function(tx) {
       //console.log('transaction_process ' + scope_name);
       me.mu_tx_.up(tx, store_names, mode);
-      me.logger.finest(me + ':tx' + me.mu_tx_.getTxCount() +
+      label = me.getLabel();
+      me.logger.finest(label + ': '  +
         ydn.json.stringify(store_names) + mode + ' begin');
 
       // now execute transaction process
@@ -397,8 +399,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
 
     var completed_handler = function(type, event) {
       //console.log('transaction_process ' + scope_name + ' completed.');
-      me.logger.finest(me + ':tx' + me.mu_tx_.getTxCount() +
-        ' committed with ' + type);
+      me.logger.finest(label + ':' + ' committed with ' + type);
       /**
        * @preserve _try.
        */
@@ -483,7 +484,7 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
     me.r_no_++;
-    callback(tx, me.getTxNo(), resultCallback);
+    callback(tx, me.getLabel(), resultCallback);
     callback = null;
   } else {
     //
@@ -513,7 +514,8 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
         me.request_tx_ = null;
         resultCallback2 =  /** @type {function (*, boolean=)} */ (null);
       };
-      callback(tx, me.getTxNo(), resultCallback2);
+      me.r_no_++;
+      callback(tx, me.getLabel(), resultCallback2);
       callback = null; // we don't call again.
     };
     //var cbFn = goog.partial(tx_callback, callback);

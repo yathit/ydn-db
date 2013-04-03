@@ -80,7 +80,7 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores
 
   var me = this;
   var out = [];
-  var msg = 'TxNo:' + tx_no + ' countStores: ' + stores;
+  var msg = tx_no + ' countStores: ' + stores;
   this.logger.finest(msg);
 
   var count_store = function(i) {
@@ -128,7 +128,7 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores
 ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, value,
                                                          opt_key) {
   var store = tx.objectStore(table);
-  var msg = 'TxNo:' + tx_no + ' addObject: ' + table + ' ' + opt_key;
+  var msg = tx_no + ' addObject: ' + table + ' ' + opt_key;
   this.logger.finest(msg);
   var me = this;
   var request;
@@ -163,7 +163,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, v
 ydn.db.crud.req.IndexedDb.prototype.putObject = function(
     tx, tx_no, df, table, value, opt_key) {
   var store = tx.objectStore(table);
-  var msg = 'TxNo:' + tx_no + ' putObject: ' + table + ' ' +
+  var msg = tx_no + ' putObject: ' + table + ' ' +
     (goog.isDef(opt_key) ? opt_key : '');
   this.logger.finest(msg);
 
@@ -211,7 +211,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
 
   var me = this;
   var store = tx.objectStore(store_name);
-  var msg = 'TxNo:' + tx_no + ' addObjects: ' + store_name + ' ' + objs.length + ' objects';
+  var msg = tx_no + ' addObjects: ' + store_name + ' ' + objs.length + ' objects';
   this.logger.finest(msg);
 
   var put = function(i) {
@@ -288,7 +288,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
 
   var me = this;
   var store = tx.objectStore(store_name);
-  var msg = 'TxNo:' + tx_no + ' putObjects: ' + store_name + ' ' + objs.length + ' objects';
+  var msg = tx_no + ' putObjects: ' + store_name + ' ' + objs.length + ' objects';
   this.logger.finest(msg);
 
   /**
@@ -399,7 +399,7 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs,
 
   var me = this;
 
-  var msg = 'TxNo:' + tx_no + ' putByKeys: of ' + objs.length + ' objects';
+  var msg = tx_no + ' putByKeys: of ' + objs.length + ' objects';
   this.logger.finest(msg);
 
   var put = function(i) {
@@ -495,7 +495,7 @@ ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df, store_name
   }
   prev_pos++;
 
-  var msg = 'TxNo:' + tx_no + ' Loading data '+ ' of ' + fields.length +
+  var msg = tx_no + ' Loading data '+ ' of ' + fields.length +
     '-fields record to ' + store_name;
   this.logger.finest(msg);
 
@@ -574,7 +574,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
 
   var me = this;
   var store = tx.objectStore(store_name);
-  var msg = 'TxNo:' + tx_no + ' clearById: ' + store_name + ' ' + key;
+  var msg = tx_no + ' clearById: ' + store_name + ' ' + key;
   this.logger.finest(msg);
 
   var request = store.openCursor(/** @type {IDBKeyRange} */ (key));
@@ -619,7 +619,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
   var count = 0;
   var has_failed = false;
   var store_name, store, key;
-  var msg = 'TX' + tx_no + ' removeByKeys: ' + keys.length + ' keys';
+  var msg = tx_no + ' removeByKeys: ' + keys.length + ' keys';
   this.logger.finest(msg);
 
   var removeAt = function (i) {
@@ -684,7 +684,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeyRange = function(
   var me = this;
   var store = tx.objectStore(store_name);
   var request = store.count(key_range);
-  var msg = 'TxNo:' + tx_no + ' clearByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = tx_no + ' clearByKeyRange: ' + store_name + ' ' + key_range;
   this.logger.finest(msg);
   request.onsuccess = function(event) {
     var n = event.target.result;
@@ -718,7 +718,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByKeyRange = function (
   var me = this;
   var store = tx.objectStore(store_name);
 
-  var msg = 'TxNo:' + tx_no + ' clearByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = tx_no + ' clearByKeyRange: ' + store_name + ' ' + key_range;
   this.logger.finest(msg);
 
   var req = store['delete'](key_range);
@@ -743,7 +743,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
   var me = this;
   var store = tx.objectStore(store_name);
   var index = store.index(index_name);
-  var msg = 'TxNo:' + tx_no + ' clearByIndexKeyRange: ' + store_name + ':' + index_name +
+  var msg = tx_no + ' clearByIndexKeyRange: ' + store_name + ':' + index_name +
     ' ' + key_range;
   this.logger.finest(msg);
   // var request = index.openKeyCursor(key_range);
@@ -788,7 +788,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
   var me = this;
   var n_todo = store_names.length;
   var n_done = 0;
-  var msg = 'TxNo:' + tx_no + ' clearByStores: ' + store_names;
+  var msg = tx_no + ' clearByStores: ' + store_names;
   this.logger.finest(msg);
   for (var i = 0; i < n_todo; i++) {
     var store_name = store_names[i];
@@ -837,7 +837,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
   var results = [];
   var store = tx.objectStore(store_name);
   var dir = ydn.db.base.getDirection(reverse, unique);
-  var msg = 'TxNo:' + tx_no + ' listByKeyRange: ' + store_name +
+  var msg = tx_no + ' listByKeyRange: ' + store_name +
     (index ? ':' + index : '') +
     (key_range ? ydn.json.stringify(key_range) : '');
   this.logger.finest(msg);
@@ -911,7 +911,7 @@ ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
   var me = this;
   var store = tx.objectStore(store_name);
   var dir = ydn.db.base.getDirection(reverse);
-  var msg = 'TX' + tx_no + ' keysByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = tx_no + ' keysByKeyRange: ' + store_name + ' ' + key_range;
   this.logger.finest(msg);
   var request = store.openCursor(key_range, dir);
   var cued = false;
@@ -1000,7 +1000,7 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df
   var me = this;
   var store = tx.objectStore(store_name);
   var index = store.index(index_name);
-  var msg = 'TxNo:' + tx_no + ' keysByStore: ' + store_name + ':' + index_name + ' ' + key_range;
+  var msg = tx_no + ' keysByStore: ' + store_name + ':' + index_name + ' ' + key_range;
   this.logger.finest(msg);
   var dir = ydn.db.base.getDirection(reverse, unique);
   var request = index.openKeyCursor(key_range, dir);
@@ -1043,7 +1043,7 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df
 ydn.db.crud.req.IndexedDb.prototype.listByStore = function (tx, tx_no, df, store_name) {
   var me = this;
   var results = [];
-  var msg = 'TxNo:' + tx_no + ' listByStore: ' + store_name;
+  var msg = tx_no + ' listByStore: ' + store_name;
   this.logger.finest(msg);
 
   var store = tx.objectStore(store_name);
@@ -1081,7 +1081,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByStore = function (tx, tx_no, df, store
 ydn.db.crud.req.IndexedDb.prototype.getById = function(tx, tx_no, df, store_name, id) {
 
   var me = this;
-  var msg = 'TxNo:' + tx_no + ' getById: ' + store_name + ':' + id;
+  var msg = tx_no + ' getById: ' + store_name + ':' + id;
   this.logger.finest(msg);
   var store = tx.objectStore(store_name);
 
@@ -1118,7 +1118,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
   var result_count = 0;
   var store = tx.objectStore(store_name);
   var n = ids.length;
-  var msg = 'TxNo:' + tx_no + ' listByIds: ' + store_name + ':' + n + ' ids';
+  var msg = tx_no + ' listByIds: ' + store_name + ':' + n + ' ids';
   this.logger.finest(msg);
 
   var get = function(i) {
@@ -1200,7 +1200,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
 
   var results = [];
   var result_count = 0;
-  var msg = 'TxNo:' + tx_no + ' listByKeys: ' + keys.length + ' ids';
+  var msg = tx_no + ' listByKeys: ' + keys.length + ' ids';
   this.logger.finest(msg);
 
   var getKey = function(i) {
@@ -1262,7 +1262,7 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange =  function(tx, tx_no, df, tab
 
   var me = this;
   var store = tx.objectStore(table);
-  var msg = 'TxNo:' + tx_no + ' countKeyRange: ' + table +
+  var msg = tx_no + ' countKeyRange: ' + table +
     (index_name ? ':' + index_name : '') +
     (keyRange ? ':' + ydn.json.stringify(keyRange) : '');
   this.logger.finest(msg);
@@ -1308,7 +1308,7 @@ ydn.db.crud.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
   var me = this;
   var store = tx.objectStore(store_name);
   var index = store.index(index_name);
-  var msg = 'TxNo:' + tx_no + ' getIndexKeysByKeys: ' + store_name +
+  var msg = tx_no + ' getIndexKeysByKeys: ' + store_name +
     (index_name ? ':' + index_name + ' ' : ' ') + keys.length + ' keys';
   this.logger.finest(msg);
   var results = [];

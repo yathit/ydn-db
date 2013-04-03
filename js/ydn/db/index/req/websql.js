@@ -176,7 +176,7 @@ ydn.db.index.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q, li
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no
+ * @param {string} tx_no
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {!ydn.db.Iterator} iter the query.
  * @param {boolean} keys_method 'keys' or 'list' method.

@@ -108,7 +108,7 @@ ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(tx, tx_no, df, objs,
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no tx number.
+ * @param {string} tx_no tx number.
  * @param {?function(*, boolean=)} df deferred to feed result.
  * @param {string?} store_name table name.
  * @param {!Object|!Array.<!Object>} value object to put.
@@ -242,7 +242,7 @@ ydn.db.crud.req.SimpleStore.prototype.listByStore = function (tx, tx_no, df,
 /**
  *
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- *  @param {number} tx_no transaction number
+ *  @param {string} tx_no transaction number
  * @param {?function(*, boolean=)} df deferred to feed result.
  * @param {string?} store_name table name.
  * @param {!Array.<(IDBKey|!ydn.db.Key)>} ids id to get.
@@ -345,13 +345,36 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeys = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = goog.abstractMethod;
+ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function (
+  tx, tx_no, df, store_name, key_range) {
+  var msg = tx_no + ' removeByKeyRange';
+  this.logger.finest(msg);
+  var me = this;
+  goog.Timer.callOnce(function () {
+    var store = tx.getSimpleStore(store_name);
+    var cnt = store.removeRecords(key_range);
+    me.logger.finer('success ' + msg);
+    df(cnt);
+  }, 0, this);
+};
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = goog.abstractMethod;
+ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function (
+    tx, tx_no, df, store_name, key_range) {
+  var msg = tx_no + ' clearByKeyRange ' +
+    (key_range ? ydn.json.stringify(key_range) : '');
+  this.logger.finest(msg);
+  var me = this;
+  goog.Timer.callOnce(function () {
+    var store = tx.getSimpleStore(store_name);
+    var cnt = store.removeRecords(key_range);
+    me.logger.finer('success ' + msg);
+    df(undefined);
+  }, 0, this);
+};
 
 /**
  * @inheritDoc
@@ -363,13 +386,15 @@ ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = goog.abstractMetho
  * @inheritDoc
 */
 ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df, store_names) {
-
+  var msg = tx_no + ' clearByStores';
+  this.logger.finest(msg);
   var me = this;
   goog.Timer.callOnce(function () {
     for (var i = 0; i < store_names.length; i++) {
       var store = tx.getSimpleStore(store_names[i]);
       store.clear();
     }
+    me.logger.finer('success ' + msg);
     df(store_names.length);
   }, 0, this);
 };

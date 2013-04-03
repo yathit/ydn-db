@@ -71,7 +71,7 @@ ydn.db.tr.Single.prototype.exec = function (df, callback, store_names, mode,
       me.request_tx_ = null;
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
-    callback(tx, me.getTxNo(), resultCallback);
+    callback(tx, 'T' + me.getTxNo(), resultCallback);
     callback = null;
   };
 

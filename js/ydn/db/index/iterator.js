@@ -871,7 +871,7 @@ ydn.db.Iterator.prototype.exit = function() {
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no
+ * @param {string} tx_no
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.AbstractCursor}
  * @private
@@ -916,7 +916,7 @@ ydn.db.Iterator.prototype.iterate_ = function(tx, tx_no, executor) {
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no tx no
+ * @param {string} tx_no tx no
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.AbstractCursor}
  * @private
@@ -1100,7 +1100,7 @@ ydn.db.Iterator.prototype.iterateWithFilters_ = function(tx, tx_no, executor) {
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no tx no
+ * @param {string} tx_no tx no
  * @param {ydn.db.index.req.IRequestExecutor} executor
  * @return {ydn.db.index.req.AbstractCursor}
  */

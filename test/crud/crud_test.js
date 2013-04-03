@@ -867,23 +867,29 @@ var test_32_count_stores = function() {
 
 var test_40_clear_store = function() {
   var db_name = 'test_40_clear_store';
+  var schema = {
+    stores: [{
+      name: table_name,
+      keyPath: 'id'
+    }]
+  };
   var db = new ydn.db.crud.Storage(db_name, schema, options);
   db.put(table_name,
     [{id: 1}, {id: 2}, {id: 3}]
   );
 
-  var hasEventFired = false;
+  var done = false;
   var put_value;
 
   waitForCondition(
     // Condition
-    function() { return hasEventFired; },
+    function() { return done; },
     // Continuation
     function() {
       // clear success do not return any result and hence 'undefined'.
       //console.log('cleared');
       assertEquals('store cleared', 1, put_value);
-      assertEquals('count in store', 0, countValue);
+      assertEquals('count in store', 0, count);
     },
     100, // interval
     1000); // maxTimeout
@@ -898,17 +904,18 @@ var test_40_clear_store = function() {
   var dfl = db.clear(table_name);
   dfl.addBoth(function(value) {
     put_value = value;
-    hasEventFired = true;
+    done = true;
   });
 
-  var countValue;
+  var count, recount;
   var countDone;
   waitForCondition(
     // Condition
     function() { return countDone; },
     // Continuation
     function() {
-      assertEquals('count 0 after clear', 0, countValue);
+      assertEquals('count 0 after clear', 0, count);
+      assertEquals('recount 0 after clear', 0, recount);
       // Remember, the state of this boolean will be tested in tearDown().
       reachedFinalContinuation = true;
       ydn.db.deleteDatabase(db_name, db.getType());
@@ -918,8 +925,13 @@ var test_40_clear_store = function() {
     1000); // maxTimeout
 
   db.count(table_name).addBoth(function(value) {
-    countValue = value;
-    countDone = true;
+    count = value;
+    db.close();
+    db = new ydn.db.crud.Storage(db_name, schema, options);
+    db.count(table_name).addBoth(function(value) {
+      recount = value;
+      countDone = true;
+    });
   });
 
 };
@@ -1106,22 +1118,30 @@ var test_remove_by_key_range = function() {
 
 
 var test_43_clear_by_key_range = function() {
+  // ydn.db.con.simple.Store.DEBUG = true;
   var db_name = 'test_43_clear_by_key_range';
+  var schema = {
+    stores: [{
+      name: table_name,
+      keyPath: 'id'
+    }]
+  };
   var db = new ydn.db.crud.Storage(db_name, schema, options);
   db.clear(table_name);
   db.put(table_name,
     [{id: 1}, {id: 2}, {id: 3}, {id: 4}]
   );
 
-  var hasEventFired = false;
-  var countValue;
+  var done = false;
+  var countValue, recountValue;
 
   waitForCondition(
     // Condition
-    function() { return hasEventFired; },
+    function() { return done; },
     // Continuation
     function() {
       assertEquals('clear result', 1, countValue);
+      assertEquals('clear result after reconnection', 1, recountValue);
       // Remember, the state of this boolean will be tested in tearDown().
       reachedFinalContinuation = true;
       ydn.db.deleteDatabase(db_name, db.getType());
@@ -1135,7 +1155,14 @@ var test_43_clear_by_key_range = function() {
     db.count(table_name).addBoth(function (value) {
 
       countValue = value;
-      hasEventFired = true;
+
+      db.close();
+      db = new ydn.db.crud.Storage(db_name, schema, options);
+      db.count(table_name).addBoth(function (value) {
+        recountValue = value;
+        done = true;
+      });
+
     });
   });
 

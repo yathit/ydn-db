@@ -45,6 +45,13 @@ ydn.db.con.simple.Store = function(db_name, storage, store_schema) {
 
 
 /**
+ *
+ * @define {boolean}
+ */
+ydn.db.con.simple.Store.DEBUG = false;
+
+
+/**
  * @type {!Storage}
  * @private
  */
@@ -90,6 +97,23 @@ ydn.db.con.simple.Store.prototype.makeKey = function(id) {
   return ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
       this.primary_index, id);
 };
+
+
+/**
+ * Extract key from encoded form.
+ * @final
+ * @protected
+ * @param {string} eKey key as it stored in the cache.
+ * @return {*} the key
+ */
+ydn.db.con.simple.Store.prototype.extractKey = function (eKey) {
+  var tokens = eKey.split(ydn.db.con.simple.SEP);
+  goog.asserts.assert(tokens.length == 5, 'the key ' + eKey +
+    ' must have 5 tokens but ' + tokens.length + ' found');
+  var id = tokens[4];
+  return ydn.db.utils.decodeKey(id);
+};
+
 
 
 /**
@@ -179,17 +203,7 @@ ydn.db.con.simple.Store.prototype.removeRecord = function(index_name, key) {
  * Clear all record in stores.
  */
 ydn.db.con.simple.Store.prototype.clear = function() {
-  var cache = this.getIndexCache(this.primary_index);
-  var me = this;
-  cache.inOrderTraverse(function (x) {
-    me.storage.removeItem(x);
-  });
-  for (var i in this.key_indexes) {
-    if (this.key_indexes[i]) {
-      this.key_indexes[i].clear();
-    }
-  }
-  this.key_indexes = {};
+  this.removeRecords();
 };
 
 
@@ -229,13 +243,14 @@ ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
   if (!this.key_indexes[index_name]) {
     var starts = ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
         index_name);
+    var len = starts.length + ydn.db.con.simple.SEP.length;
     this.key_indexes[index_name] = new goog.structs.AvlTree(ydn.db.cmp);
     var n = this.storage.length;
     for (var i = 0; i < n; i++) {
       var key = this.storage.key(i);
       if (!goog.isNull(key)) {
         if (goog.string.startsWith(key, starts)) {
-          this.key_indexes[index_name].add(key);
+          this.key_indexes[index_name].add(key.substr(len));
         }
       }
     }
@@ -264,6 +279,73 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
 
 /**
  *
+ * @param {IDBKeyRange=} key_range
+ * @return {number}
+ */
+ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
+  var me = this;
+  var cache = this.getIndexCache(this.primary_index);
+  var starts = ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
+    this.primary_index) + ydn.db.con.simple.SEP;
+  /**
+   * @type {null}
+   */
+  var start = null;
+  /**
+   * @type {null}
+   */
+  var end = null;
+  var count = 0;
+  var removed_ids = [];
+  if (goog.isDefAndNotNull(key_range)) {
+    if (goog.isDefAndNotNull(key_range.lower)) {
+      start = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.lower));
+    }
+    if (goog.isDefAndNotNull(key_range.upper)) {
+      end = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.upper));
+    }
+  }
+  // console.log([start, end])
+  cache.inOrderTraverse(function (x) {
+    if (!goog.isDefAndNotNull(x)) {
+      return;
+    }
+    if (goog.isDefAndNotNull(end)) {
+      var cmp = ydn.db.cmp(x, end);
+      if (cmp === 1) {
+        return true;
+      }
+      if (cmp === 0 && key_range.upperOpen) {
+        return true;
+      }
+    }
+    me.storage.removeItem(starts + x);
+    count++;
+    if (ydn.db.con.simple.Store.DEBUG) {
+      window.console.log(count + '. remove ' + ydn.db.utils.decodeKey(x) + ' ' + x);
+    }
+    if (removed_ids.length < 10) {
+      removed_ids.push(x);
+    }
+  }, start);
+
+  // update tree
+  if (removed_ids.length < 10) {
+    for (var i = 0; i < removed_ids.length; i++) {
+      cache.remove(removed_ids[i]);
+    }
+  } else {
+    // to many node removed, just clear the tree.
+    cache.clear();
+    this.key_indexes[this.primary_index] = null;
+  }
+
+  return count;
+};
+
+
+/**
+ *
  * @param {string?=} index_name
  * @param {IDBKeyRange=} key_range
  * @param {boolean=} reverse
@@ -276,6 +358,7 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
   var results = [];
   index_name = index_name || this.primary_index;
   var cache = this.getIndexCache(index_name);
+  // FIXME: remove these weired null type and casting.
   /**
    * @type {null}
    */
@@ -284,6 +367,14 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
    * @type {null}
    */
   var end = null;
+  if (goog.isDefAndNotNull(key_range)) {
+    if (goog.isDefAndNotNull(key_range.lower)) {
+      start = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.lower));
+    }
+    if (goog.isDefAndNotNull(key_range.upper)) {
+      end = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.upper));
+    }
+  }
   if (!goog.isDef(offset)) {
     offset = 0;
   }

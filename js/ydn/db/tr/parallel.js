@@ -44,11 +44,6 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
 
   this.request_tx_ = null;
 
-  /**
-   * @final
-   */
-  this.thread_name_ = thread_name || '';
-
 };
 
 
@@ -98,12 +93,6 @@ ydn.db.tr.Parallel.prototype.request_tx_ = null;
 
 
 
-/**
- * @private
- * @type {string}
- */
-ydn.db.tr.Parallel.prototype.thread_name_;
-
 
 /**
  * @protected
@@ -141,7 +130,7 @@ ydn.db.tr.Parallel.prototype.addStoreSchema = function(store) {
  * @return {string}  scope name.
  */
 ydn.db.tr.Parallel.prototype.getThreadName = function() {
-  return this.thread_name_;
+  return this.getLabel();
 };
 
 
@@ -330,7 +319,7 @@ ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
 
-    callback(tx, me.getTxNo(), resultCallback);
+    callback(tx, me.getLabel(), resultCallback);
   }, store_names, mode, on_completed);
 };
 

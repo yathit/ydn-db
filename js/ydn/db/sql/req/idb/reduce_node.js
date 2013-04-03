@@ -26,7 +26,7 @@ goog.inherits(ydn.db.sql.req.idb.ReduceNode, ydn.db.sql.req.idb.Node);
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no
+ * @param {string} tx_no
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {ydn.db.index.req.IRequestExecutor} req
  */

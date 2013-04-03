@@ -159,7 +159,7 @@ ydn.db.crud.req.WebSql.prototype.keysByIndexKeyRange = function(tx, tx_no, df,
 /**
  * Retrieve primary keys or value from a store in a given key range.
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no
+ * @param {string} tx_no
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {boolean} key_only retrieve key only.
  * @param {string} store_name table name.
@@ -220,7 +220,7 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df,
     df(arr);
   };
 
-  var msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' +
+  var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' +
       ydn.json.stringify(params);
 
   /**
@@ -283,7 +283,7 @@ ydn.db.crud.req.WebSql.prototype.addObjects = function(
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no
+ * @param {string} tx_no
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {boolean} create true if insert, otherwise insert or replace.
  * @param {boolean} single false for array input.
@@ -302,7 +302,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
   var me = this;
   var result_keys = [];
   var result_count = 0;
-  var msg = 'TX' + tx_no + ' inserting ' + objects.length + ' objects.';
+  var msg = tx_no + ' inserting ' + objects.length + ' objects.';
 
   /**
    * Put and item at i. This ydn.db.con.Storage will invoke callback to df if
@@ -333,7 +333,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         ' (' + out.columns.join(', ') + ') ' +
         'VALUES (' + out.slots.join(', ') + ');';
 
-    var i_msg = 'TX' + tx_no +
+    var i_msg = tx_no +
         ' SQL: ' + sql + ' PARAMS: ' + out.values +
         ' REQ: ' + i + ' of ' + objects.length;
 
@@ -377,7 +377,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
           return false;
         };
 
-        me.logger.finest('TX' + tx_no + ' multiEntry ' + idx_sql +
+        me.logger.finest(tx_no + ' multiEntry ' + idx_sql +
             ' ' + idx_params);
         tx.executeSql(idx_sql, idx_params, idx_success, idx_error);
       };
@@ -582,7 +582,7 @@ ydn.db.crud.req.WebSql.prototype.getById = function(tx, tx_no, d, table_name,
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
     column_name + ' = ?';
 
-  var msg = 'TxNo' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
+  var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -964,7 +964,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
   var count = 0;
   var has_failed = false;
   var store_name, store, key;
-  var msg = 'TX' + tx_no + ' removeByKeys: ' + keys.length + ' keys';
+  var msg = tx_no + ' removeByKeys: ' + keys.length + ' keys';
   this.logger.finest(msg);
 
   var removeAt = function (i) {
@@ -1009,7 +1009,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
     var where = ' WHERE ' + store.getSQLKeyColumnNameQuoted() + ' = ?';
     var sql = 'DELETE FROM ' + store.getQuotedName() + where;
     //console.log([sql, out.values])
-    var i_msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + [key];
+    var i_msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + [key];
     if (ydn.db.crud.req.WebSql.DEBUG) {
       window.console.log(i_msg);
     }
@@ -1025,7 +1025,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
           store.getName() + ':' + index.getName();
 
       var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-      me.logger.finest('TX' + tx_no +  + ' SQL: ' + idx_sql);
+      me.logger.finest(tx_no +  + ' SQL: ' + idx_sql);
       tx.executeSql(idx_sql, [key]);
     };
 
@@ -1083,7 +1083,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
   var where = ' WHERE ' + store.getSQLKeyColumnNameQuoted() + ' = ?';
   var sql = 'DELETE FROM ' + store.getQuotedName() + where;
   //console.log([sql, out.values])
-  var msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + [key];
+  var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + [key];
   this.logger.finest(msg);
   tx.executeSql(sql, [key], success_callback, error_callback);
 
@@ -1096,7 +1096,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
       store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-    me.logger.finest('TX' + tx_no +  + ' SQL: ' + idx_sql);
+    me.logger.finest(tx_no +  + ' SQL: ' + idx_sql);
     tx.executeSql(idx_sql, [key]);
   };
 
@@ -1139,7 +1139,7 @@ ydn.db.crud.req.WebSql.prototype.removeByIndexKeyRange = function(tx, tx_no, df,
 /**
  * Retrieve primary keys or value from a store in a given key range.
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {number} tx_no tx no.
+ * @param {string} tx_no tx no.
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {string} store_name table name.
  * @param {string|undefined} column_name name.
@@ -1194,7 +1194,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
   };
 
   //console.log([sql, params])
-  var msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
+  var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
   this.logger.finest(msg);
   tx.executeSql(sql, params, callback, error_callback);
 
@@ -1207,7 +1207,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
       store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-    me.logger.finest('TX' + tx_no +  + ' SQL: ' + idx_sql);
+    me.logger.finest(tx_no +  + ' SQL: ' + idx_sql);
     tx.executeSql(idx_sql, where_params);
   };
 
@@ -1325,7 +1325,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
     return false;
   };
 
-  var msg = 'TX' + tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
+  var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
   this.logger.finest(msg);
   tx.executeSql(sql, params, callback, error_callback);
 
