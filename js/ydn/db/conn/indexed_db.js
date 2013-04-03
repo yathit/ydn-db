@@ -26,7 +26,7 @@ goog.require('ydn.async');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.db.schema.Database');
-goog.require('ydn.error.ConstrainError');
+goog.require('ydn.error.ConstraintError');
 goog.require('ydn.json');
 
 
@@ -336,7 +336,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         var diff_msg = schema.difference(db_schema);
         if (diff_msg.length > 0) {
           me.logger.finer(diff_msg);
-          setDb(null, new ydn.error.ConstrainError('different schema: ' +
+          setDb(null, new ydn.error.ConstraintError('different schema: ' +
             diff_msg));
         } else {
           setDb(db);
@@ -585,7 +585,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
           store_schema.getAutoIncrement());
       } else if (goog.DEBUG && e.name == 'ConstraintError') {
         // store already exist.
-        throw new ydn.error.ConstrainError('creating store for ' +
+        throw new ydn.error.ConstraintError('creating store for ' +
           store_schema.getName());
       } else {
         throw e;

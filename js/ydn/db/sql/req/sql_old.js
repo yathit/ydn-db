@@ -356,7 +356,7 @@ ydn.db.Sql_.Aggregate;
 //ydn.db.Sql_.prototype.count = function() {
 //
 //  if (this.reduce_) {
-//    throw new ydn.error.ConstrainError('Aggregate method already defined.');
+//    throw new ydn.error.ConstraintError('Aggregate method already defined.');
 //  }
 //  this.reduce_ = {type: ydn.db.Sql_.AggregateType.COUNT, field: undefined};
 //  return this;
@@ -385,7 +385,7 @@ ydn.db.Sql_.reduceCount = function(field) {
 //ydn.db.Sql_.prototype.sum = function(field) {
 //
 //  if (this.reduce_) {
-//    throw new ydn.error.ConstrainError('Aggregate method already defined.');
+//    throw new ydn.error.ConstraintError('Aggregate method already defined.');
 //  }
 //  this.reduce_ = {
 //    type: ydn.db.Sql_.AggregateType.SUM,
@@ -451,7 +451,7 @@ ydn.db.Sql_.reduceMax = function(field) {
 //ydn.db.Sql_.prototype.average = function(field) {
 //
 //  if (this.reduce_) {
-//    throw new ydn.error.ConstrainError('Aggregate method already defined.');
+//    throw new ydn.error.ConstraintError('Aggregate method already defined.');
 //  }
 //  this.reduce_ = {
 //    type: ydn.db.Sql_.AggregateType.AVERAGE,
@@ -569,7 +569,7 @@ ydn.db.Sql_.prototype.aggregate = function(method, fields) {
 ydn.db.Sql_.prototype.project = function(exp_or_fields) {
 
   if (this.map_) {
-    throw new ydn.error.ConstrainError('too many call.');
+    throw new ydn.error.ConstraintError('too many call.');
   }
 
   var method = '';

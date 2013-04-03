@@ -10,8 +10,33 @@ goog.provide('ydn.db.ScopeError');
 goog.provide('ydn.db.SecurityError');
 goog.provide('ydn.db.TimeoutError');
 goog.provide('ydn.db.VersionError');
+goog.provide('ydn.db.ConstraintError');
 
 
+
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+ydn.db.ConstraintError = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, ydn.db.ConstraintError);
+  } else {
+    this.stack = new Error().stack || '';
+  }
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+  this.name = 'ConstraintError';
+};
+goog.inherits(ydn.db.ConstraintError, Error);
+
+ydn.db.ConstraintError.prototype.name = 'ConstraintError';
 
 
 /**

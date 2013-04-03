@@ -16,7 +16,7 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
   // ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
 
@@ -727,7 +727,7 @@ var test_25_get_none_exist = function() {
 
 
   db.get(table_name, 'no_data').addBoth(function(value) {
-    //console.log('receiving value callback.');
+    console.log(value);
     put_value = value;
     hasEventFired = true;
   });
@@ -1118,7 +1118,7 @@ var test_remove_by_key_range = function() {
 
 
 var test_43_clear_by_key_range = function() {
-  // ydn.db.con.simple.Store.DEBUG = true;
+  //ydn.db.con.simple.Store.DEBUG = true;
   var db_name = 'test_43_clear_by_key_range';
   var schema = {
     stores: [{
@@ -1133,13 +1133,14 @@ var test_43_clear_by_key_range = function() {
   );
 
   var done = false;
-  var countValue, recountValue;
+  var count, countValue, recountValue;
 
   waitForCondition(
     // Condition
     function() { return done; },
     // Continuation
     function() {
+      assertEquals('before clear', 4, count);
       assertEquals('clear result', 1, countValue);
       assertEquals('clear result after reconnection', 1, recountValue);
       // Remember, the state of this boolean will be tested in tearDown().
@@ -1150,7 +1151,9 @@ var test_43_clear_by_key_range = function() {
     100, // interval
     1000); // maxTimeout
 
-  db.count(table_name); // break tx merge for websql, this should be fixed.
+  db.count(table_name).addBoth(function (x) {
+    count = x;
+  });
   db.clear(table_name, ydn.db.KeyRange.lowerBound(2)).addBoth(function(value) {
     db.count(table_name).addBoth(function (value) {
 

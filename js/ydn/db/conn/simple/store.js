@@ -137,9 +137,10 @@ ydn.db.con.simple.Store.prototype.generateKey = function() {
  *
  * @param {IDBKey|undefined} key
  * @param {!Object} value
- * @return {IDBKey} key
+ * @param {boolean=} is_add for add method, the key must not already exist.
+ * @return {IDBKey?} key in case of unique key constraint, return null
  */
-ydn.db.con.simple.Store.prototype.addRecord = function(key, value) {
+ydn.db.con.simple.Store.prototype.addRecord = function(key, value, is_add) {
 
   var key_path = this.schema.getKeyPath();
   if (!goog.isDefAndNotNull(key)) {
@@ -153,24 +154,36 @@ ydn.db.con.simple.Store.prototype.addRecord = function(key, value) {
 
   goog.asserts.assert(goog.isDefAndNotNull(key),
     this + 'primary key not provided in ' + ydn.json.toShortString(value));
+
+  if (ydn.db.con.simple.Store.DEBUG) {
+    window.console.log('add ' + key);
+  }
+  if (is_add) {
+    if (this.key_indexes[this.primary_index]) {
+      var cache = this.key_indexes[this.primary_index];
+      if (cache.contains(ydn.db.utils.encodeKey(key))) {
+        return null; // primary key constraint
+      }
+    } else {
+      if (!goog.isNull(this.storage.getItem(this.makeKey(key)))) {
+        return null;
+      }
+    }
+  }
   this.storage.setItem(this.makeKey(key),
     ydn.json.stringify(value));
 
   for (var idx in this.key_indexes) {
     var cache = this.key_indexes[idx];
-//    if (!goog.isNull(cache)) {
-//      if (idx == this.primary_index) {
-//        var index = this.schema.getIndex(index_name);
-//        key_path = index.getKeyPath();
-//        var index_key = ydn.db.utils.getValueByKeys(value, key_path);
-//        goog.asserts.assert(goog.isDefAndNotNull(index_key), this +
-//          ': index key for ' + index_name + ' not provided in ' +
-//          ydn.json.toShortString(value));
-//      } else {
-//        index_key = key;
-//      }
-//      cache.add(index_key);
-//    }
+    if (goog.isDefAndNotNull(cache)) {
+      if (idx == this.primary_index) {
+        cache.add(ydn.db.utils.encodeKey(key));
+      } else {
+        var index = this.schema.getIndex(idx);
+        var index_key = ydn.db.utils.getValueByKeys(value, index.getKeyPath());
+        cache.add(ydn.db.utils.encodeKey(index_key));
+      }
+    }
   }
   return key;
 };
@@ -178,22 +191,32 @@ ydn.db.con.simple.Store.prototype.addRecord = function(key, value) {
 
 /**
  *
- * @param {string?} index_name default to primary index.
  * @param {IDBKey} key
  * @return {number} number deleted.
  */
-ydn.db.con.simple.Store.prototype.removeRecord = function(index_name, key) {
-  if (!index_name || index_name == this.primary_index) {
-    var eKey = this.makeKey(key);
-    var del_count = this.storage.getItem(eKey) ? 1 : 0;
-    this.storage.removeItem(eKey);
-    var cache = this.key_indexes[this.primary_index];
-    if (cache) {
-      cache.remove(eKey);
-    }
-    return del_count;
+ydn.db.con.simple.Store.prototype.removeRecord = function (key) {
+
+  var eKey = this.makeKey(key);
+  var obj = this.storage.getItem(eKey);
+  var value;
+  if (goog.isNull(obj)) {
+    return 0;
   } else {
-    throw 'not implemented';
+    this.storage.removeItem(eKey);
+    for (var idx in this.key_indexes) {
+      var cache = this.key_indexes[idx];
+      if (cache) {
+        if (idx == this.primary_index) {
+          cache.remove(ydn.db.utils.encodeKey(key));
+        } else {
+          var index = this.schema.getIndex(idx);
+          value = goog.isDef(value) ? value : ydn.json.parse(obj);
+          var index_key = ydn.db.utils.getValueByKeys(value, index.getKeyPath());
+          cache.remove(ydn.db.utils.encodeKey(index_key));
+        }
+      }
+    }
+    return 1;
   }
 
 };
@@ -215,7 +238,8 @@ ydn.db.con.simple.Store.prototype.clear = function() {
  */
 ydn.db.con.simple.Store.prototype.getRecord = function(index_name, key) {
   if (!index_name || index_name == this.primary_index) {
-    return ydn.json.parse(this.storage.getItem(this.makeKey(key)));
+    var v = this.storage.getItem(this.makeKey(key));
+    return goog.isNull(v) ? undefined : ydn.json.parse(v);
   } else {
     goog.asserts.assert(this.schema.hasIndex(index_name), 'index "' +
       index_name + '" not found in ' + this);
@@ -346,15 +370,19 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
 
 /**
  *
+ * @param {boolean} key_only
  * @param {string?=} index_name
  * @param {IDBKeyRange=} key_range
  * @param {boolean=} reverse
  * @param {number=} limit
  * @param {number=} offset
  * @return {!Array} results
+ * @private
  */
-ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
-    reverse, limit, offset) {
+ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
+     key_range, reverse, limit, offset) {
+  var starts = ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
+    this.primary_index) + ydn.db.con.simple.SEP;
   var results = [];
   index_name = index_name || this.primary_index;
   var cache = this.getIndexCache(index_name);
@@ -367,14 +395,6 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
    * @type {null}
    */
   var end = null;
-  if (goog.isDefAndNotNull(key_range)) {
-    if (goog.isDefAndNotNull(key_range.lower)) {
-      start = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.lower));
-    }
-    if (goog.isDefAndNotNull(key_range.upper)) {
-      end = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.upper));
-    }
-  }
   if (!goog.isDef(offset)) {
     offset = 0;
   }
@@ -406,7 +426,12 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
           return true;
         }
       }
-      results.push(me.storage.getItem(x));
+      if (key_only) {
+        results.push(ydn.db.utils.decodeKey(x));
+      } else {
+        var v = me.storage.getItem(starts + x);
+        results.push(goog.isNull(v) ? undefined : ydn.json.parse(v));
+      }
       if (goog.isDef(limit) && results.length >= limit) {
         return true;
       }
@@ -429,13 +454,49 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
           return true;
         }
       }
-      results.push(ydn.json.parse(me.storage.getItem(x)));
+      if (key_only) {
+        results.push(ydn.db.utils.decodeKey(x));
+      } else {
+        var v = me.storage.getItem(starts + x);
+        results.push(goog.isNull(v) ? undefined : ydn.json.parse(v));
+      }
       if (goog.isDef(limit) && results.length >= limit) {
         return true;
       }
     }, start);
   }
   return results;
+};
+
+
+
+/**
+ *
+ * @param {string?=} index_name
+ * @param {IDBKeyRange=} key_range
+ * @param {boolean=} reverse
+ * @param {number=} limit
+ * @param {number=} offset
+ * @return {!Array} results
+ */
+ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
+    reverse, limit, offset) {
+  return this.getItems_(false, index_name, key_range, reverse, limit, offset);
+};
+
+
+/**
+ *
+ * @param {string?=} index_name
+ * @param {IDBKeyRange=} key_range
+ * @param {boolean=} reverse
+ * @param {number=} limit
+ * @param {number=} offset
+ * @return {!Array} results
+ */
+ydn.db.con.simple.Store.prototype.getKeys = function(index_name, key_range,
+                                                        reverse, limit, offset) {
+  return this.getItems_(true, index_name, key_range, reverse, limit, offset);
 };
 
 

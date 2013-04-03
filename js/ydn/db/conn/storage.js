@@ -231,7 +231,7 @@ ydn.db.con.Storage.prototype.addStoreSchema = function(store_schema) {
         return goog.async.Deferred.succeed(false);
       }
     } else {
-      throw new ydn.error.ConstrainError('Cannot ' + action + ' store: ' +
+      throw new ydn.error.ConstraintError('Cannot ' + action + ' store: ' +
         store_name + '. Not auto schema generation mode.');
     }
   } else {
@@ -425,7 +425,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
   if (goog.isNull(db)) {
 
-    var e = new ydn.error.ConstrainError('No storage mechanism found.');
+    var e = new ydn.error.ConstraintError('No storage mechanism found.');
 
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, me,
         NaN, NaN, e);
