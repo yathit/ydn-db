@@ -168,7 +168,8 @@ ydn.db.index.req.IDBCursor.prototype.has_pending_request_ = false;
  * @param {boolean=} exclusive
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.openCursor = function (ini_key, ini_index_key, exclusive) {
+ydn.db.index.req.IDBCursor.prototype.openCursor = function (
+    ini_key, ini_index_key, exclusive) {
 
   var label = 'IDB' + this;
   this.target_key_ = ini_key;

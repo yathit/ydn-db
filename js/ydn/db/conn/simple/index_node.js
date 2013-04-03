@@ -8,12 +8,12 @@ goog.provide('ydn.db.con.simple.Node');
 
 /**
  *
- * @param {!IDBKey|!Object|boolean} key must be valid IDBKey.
+ * @param {!IDBKey} key must be valid IDBKey.
  * @param {*=} primary_key
  * @constructor
  */
 ydn.db.con.simple.Node = function(key, primary_key) {
-  goog.asserts.assert(goog.isDefAndNotNull(key));
+
   /**
    * @final
    */

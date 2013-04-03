@@ -87,7 +87,7 @@ ydn.db.con.simple.Store.prototype.primary_index;
 
 /**
  * List of ascending ordered key for each index and primary key.
- * @type {!Object.<goog.structs.AvlTree>}
+ * @type {!Object.<!goog.structs.AvlTree>}
  * @private
  */
 ydn.db.con.simple.Store.prototype.key_indexes;
@@ -143,12 +143,10 @@ ydn.db.con.simple.Store.prototype.generateKey = function() {
 };
 
 
-
 /**
  *
  * @param {string} index_name
- * @return {goog.structs.AvlTree}
- * @private
+ * @return {!goog.structs.AvlTree}
  */
 ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
   if (!this.key_indexes[index_name]) {
@@ -168,7 +166,7 @@ ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
             if (!goog.isNull(obj_str)) {
               var index = this.schema.getIndex(index_name);
               var obj = ydn.json.parse(obj_str);
-              var index_key = index.extractKey(obj);
+              var index_key = /** @type {IDBKey} */ (index.extractKey(obj));
               var index_node = new ydn.db.con.simple.Node(index_key, key);
               this.key_indexes[index_name].add(index_node);
             }
@@ -369,10 +367,12 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
   var upperOpen = false;
   if (goog.isDefAndNotNull(key_range)) {
     if (goog.isDefAndNotNull(key_range.lower)) {
-      start = new ydn.db.con.simple.Node(key_range.lower);
+      start = new ydn.db.con.simple.Node(
+        /** @type {!IDBKey} */ (key_range.lower));
     }
     if (goog.isDefAndNotNull(key_range.upper)) {
-      end = new ydn.db.con.simple.Node(key_range.upper);
+      end = new ydn.db.con.simple.Node(
+        /** @type {!IDBKey} */ (key_range.upper));
     }
     lowerOpen = key_range.lowerOpen;
     upperOpen = key_range.upperOpen;
@@ -432,10 +432,12 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
   var upperOpen = false;
   if (goog.isDefAndNotNull(key_range)) {
     if (goog.isDefAndNotNull(key_range.lower)) {
-      start = new ydn.db.con.simple.Node(key_range.lower);
+      start = new ydn.db.con.simple.Node(
+        /** @type {!IDBKey} */ (key_range.lower));
     }
     if (goog.isDefAndNotNull(key_range.upper)) {
-      end = new ydn.db.con.simple.Node(key_range.upper);
+      end = new ydn.db.con.simple.Node(
+        /** @type {!IDBKey} */ (key_range.upper));
     }
     lowerOpen = key_range.lowerOpen;
     upperOpen = key_range.upperOpen;
@@ -528,16 +530,20 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
   if (goog.isDefAndNotNull(key_range)) {
     if (goog.isDefAndNotNull(key_range.lower)) {
       if (is_index && reverse) {
-        start = new ydn.db.con.simple.Node(key_range.lower, '\uffff');
+        start = new ydn.db.con.simple.Node(
+          /** @type {!IDBKey} */ (key_range.lower), '\uffff');
       } else {
-        start = new ydn.db.con.simple.Node(key_range.lower);
+        start = new ydn.db.con.simple.Node(
+          /** @type {!IDBKey} */ (key_range.lower));
       }
     }
     if (goog.isDefAndNotNull(key_range.upper)) {
       if (is_index && !reverse) {
-        end = new ydn.db.con.simple.Node(key_range.upper, '\uffff');
+        end = new ydn.db.con.simple.Node(
+          /** @type {!IDBKey} */ (key_range.upper), '\uffff');
       } else {
-        end = new ydn.db.con.simple.Node(key_range.upper);
+        end = new ydn.db.con.simple.Node(
+          /** @type {!IDBKey} */ (key_range.upper));
       }
     }
     lowerOpen = key_range.lowerOpen;
@@ -588,7 +594,8 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
       }
     }
     var key = x.getKey();
-    var primary_key = is_index ? x.getPrimaryKey() : key;
+    var primary_key = /** @type {!IDBKey} */ (is_index ?
+      x.getPrimaryKey() : key);
     if (key_only) {
       results.push(primary_key);
     } else {
