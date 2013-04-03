@@ -10,7 +10,7 @@ var reachedFinalContinuation;
 
 
 var setUp = function () {
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
 
 
 };
@@ -125,8 +125,6 @@ var test_by_index_key_range = function () {
     },
     100, // interval
     5000); // maxTimeout
-
-
 
   var range = ydn.db.KeyRange.bound('ba', 'c');
   db.keys(store_name, 'value', range).addCallback(function (value) {

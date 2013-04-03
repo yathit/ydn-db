@@ -54,28 +54,6 @@ ydn.db.crud.req.SimpleStore.SYNC = true;
 ydn.db.crud.req.SimpleStore.DEBUG = false;
 
 
-
-/**
- * @protected
- * @param {*} value value to return.
- * @return {!goog.async.Deferred} return callback with given value in async.
- */
-ydn.db.crud.req.SimpleStore.succeed = function(value) {
-
-  var df = new goog.async.Deferred();
-
-  if (ydn.db.crud.req.SimpleStore.SYNC) {
-    df.callback(value);
-  } else {
-    goog.Timer.callOnce(function() {
-      df.callback(value);
-    }, 0);
-  }
-
-  return df;
-};
-
-
 /**
  *
  * @return {ydn.db.con.SimpleStorage}
@@ -88,7 +66,18 @@ ydn.db.crud.req.SimpleStore.prototype.getTx = function() {
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.keysByIndexKeyRange = goog.abstractMethod;
+ydn.db.crud.req.SimpleStore.prototype.keysByIndexKeyRange = function(tx, tx_no,
+      df, store_name, index_name, key_range, reverse, limit, offset) {
+  var msg = tx_no + ' keysByIndexKeyRange ' + store_name + ':' + index_name +
+    ' ' + (key_range ? ydn.json.toShortString(key_range) : '');
+  this.logger.finest(msg);
+  goog.Timer.callOnce(function () {
+    var store = tx.getSimpleStore(store_name);
+    var arr = store.getKeys(index_name, key_range, reverse, limit, offset);
+    this.logger.finer('success ' + msg);
+    df(arr);
+  }, 0, this);
+};
 
 
 /**
@@ -96,9 +85,14 @@ ydn.db.crud.req.SimpleStore.prototype.keysByIndexKeyRange = goog.abstractMethod;
  */
 ydn.db.crud.req.SimpleStore.prototype.keysByKeyRange =  function(tx, tx_no, df,
    store_name, key_range, reverse, limit, offset) {
+  var msg = tx_no + ' keysByKeyRange ' + store_name + ' ' +
+    (key_range ? ydn.json.toShortString(key_range) : '');
+  this.logger.finest(msg);
   goog.Timer.callOnce(function () {
     var store = tx.getSimpleStore(store_name);
-    df(store.getKeys(null, key_range, reverse, limit, offset));
+    var arr = store.getKeys(null, key_range, reverse, limit, offset);
+    this.logger.finer('success ' + msg);
+    df(arr);
   }, 0, this);
 };
 

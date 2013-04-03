@@ -38,15 +38,12 @@ goog.inherits(ydn.db.index.req.IndexedDb, ydn.db.crud.req.IndexedDb);
 ydn.db.index.req.IndexedDb.DEBUG = false;
 
 
-
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.index.req.IndexedDb.prototype.logger =
   goog.debug.Logger.getLogger('ydn.db.index.req.IndexedDb');
-
-
 
 
 /**
@@ -56,7 +53,7 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
                   iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
-  var msg = 'TX' + tx_no + ' keysByIterator:' + iter;
+  var msg = tx_no + ' keysByIterator:' + iter;
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
@@ -98,10 +95,11 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df, iter, limit, offset) {
+ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df, 
+     iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
-  var msg = 'TX' + tx_no + ' listByIterator' + iter;
+  var msg = tx_no + ' listByIterator' + iter;
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);

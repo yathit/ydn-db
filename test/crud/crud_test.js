@@ -28,7 +28,6 @@ var setUp = function () {
   ];
   schema = new ydn.db.schema.Database(undefined, stores);
 
-
 };
 
 var tearDown = function() {

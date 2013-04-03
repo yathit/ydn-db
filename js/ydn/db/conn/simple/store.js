@@ -160,8 +160,19 @@ ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
       if (!goog.isNull(key_str)) {
         if (goog.string.startsWith(key_str, this.key_prefix)) {
           var key = this.extractKey(key_str);
-          var node = new ydn.db.con.simple.Node(key);
-          this.key_indexes[index_name].add(node);
+          if (index_name == this.primary_index) {
+            var node = new ydn.db.con.simple.Node(key);
+            this.key_indexes[index_name].add(node);
+          } else {
+            var obj_str = this.storage.getItem(key_str);
+            if (!goog.isNull(obj_str)) {
+              var index = this.schema.getIndex(index_name);
+              var obj = ydn.json.parse(obj_str);
+              var index_key = index.extractKey(obj);
+              var index_node = new ydn.db.con.simple.Node(index_key, key);
+              this.key_indexes[index_name].add(index_node);
+            }
+          }
         }
       }
     }
@@ -239,10 +250,9 @@ ydn.db.con.simple.Store.prototype.clearIndexCache = function() {
  */
 ydn.db.con.simple.Store.prototype.addRecord = function(key, value, is_add) {
 
-  var key_path = this.schema.getKeyPath();
   if (!goog.isDefAndNotNull(key)) {
-    if (goog.isDefAndNotNull(key_path)) {
-      key = ydn.db.utils.getValueByKeys(value, key_path);
+    if (this.schema.usedInlineKey()) {
+      key = this.schema.extractKey(value);
     }
     if (this.schema.getAutoIncrement() && !goog.isDefAndNotNull(key)) {
       key = this.generateKey();
@@ -517,10 +527,18 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
   var upperOpen = false;
   if (goog.isDefAndNotNull(key_range)) {
     if (goog.isDefAndNotNull(key_range.lower)) {
-      start = new ydn.db.con.simple.Node(key_range.lower);
+      if (is_index && reverse) {
+        start = new ydn.db.con.simple.Node(key_range.lower, '\uffff');
+      } else {
+        start = new ydn.db.con.simple.Node(key_range.lower);
+      }
     }
     if (goog.isDefAndNotNull(key_range.upper)) {
-      end = new ydn.db.con.simple.Node(key_range.upper);
+      if (is_index && !reverse) {
+        end = new ydn.db.con.simple.Node(key_range.upper, '\uffff');
+      } else {
+        end = new ydn.db.con.simple.Node(key_range.upper);
+      }
     }
     lowerOpen = key_range.lowerOpen;
     upperOpen = key_range.upperOpen;
@@ -570,13 +588,14 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
       }
     }
     var key = x.getKey();
+    var primary_key = is_index ? x.getPrimaryKey() : key;
     if (key_only) {
-      results.push(key);
+      results.push(primary_key);
     } else {
       if (is_index) {
-        results.push(x.getPrimaryKey());
+        results.push(primary_key);
       } else {
-        var v = me.storage.getItem(me.makeKey(key));
+        var v = me.storage.getItem(me.makeKey(primary_key));
         results.push(goog.isNull(v) ? undefined : ydn.json.parse(v));
       }
     }
@@ -619,7 +638,7 @@ ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
  * @return {!Array} results
  */
 ydn.db.con.simple.Store.prototype.getKeys = function(index_name, key_range,
-                                                        reverse, limit, offset) {
+      reverse, limit, offset) {
   return this.getItems_(true, index_name, key_range, reverse, limit, offset);
 };
 

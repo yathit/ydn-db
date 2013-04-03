@@ -373,8 +373,8 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
     }
     this.logger.finer('keysByIndexKeyRange: ' + store_name);
     this.tx_thread.exec(df, function (tx, tx_no, cb) {
-      me.getExecutor().keysByIndexKeyRange(tx, tx_no, cb, store_name, index_name,
-        range, reverse, limit, offset, false);
+      me.getExecutor().keysByIndexKeyRange(tx, tx_no, cb, store_name,
+        index_name, range, reverse, limit, offset, false);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
       'keysByIndexKeyRange');
   } else {
@@ -710,7 +710,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     var obj = value;
     var key = /** @type {number|string|undefined} */ (opt_keys);
     var label = 'store: ' + store_name + ' key: ' +
-      store.usedInlineKey() ? store.getKeyValue(obj) : key;
+      store.usedInlineKey() ? store.extractKey(obj) : key;
 
     this.logger.finer('addObject: ' + label);
 
@@ -847,7 +847,7 @@ ydn.db.crud.DbOperator.prototype.put = function (arg1, value, opt_keys) {
         '" not found.');
     }
     if (k_store.usedInlineKey()) {
-      var v_k = k_store.getKeyValue(value);
+      var v_k = k_store.extractKey(value);
       if (goog.isDefAndNotNull(v_k)) {
         if (ydn.db.cmp(v_k, k.getId()) != 0) {
           throw new ydn.debug.error.ArgumentException('Inline key must be ' +
@@ -944,7 +944,7 @@ ydn.db.crud.DbOperator.prototype.put = function (arg1, value, opt_keys) {
             ' of type ' + (typeof key) + ' is invalid key for ' +
             ydn.json.toShortString(obj));
         } else if (!store.getAutoIncrement() && store.usedInlineKey()) {
-          goog.asserts.assert(ydn.db.Key.isValidKey(store.getKeyValue(obj)),
+          goog.asserts.assert(ydn.db.Key.isValidKey(store.extractKey(obj)),
             'in-line key on ' + store.getKeyPath() + ' must provided in ' +
               ydn.json.toShortString(obj));
         }

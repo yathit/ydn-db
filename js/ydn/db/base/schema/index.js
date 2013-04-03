@@ -109,11 +109,10 @@ ydn.db.schema.Index = function(
 
 /**
  * Extract value of keyPath from a given object.
- * @see #getKeyValue
  * @param {!Object} obj object to extract from.
  * @return {IDBKey|undefined} return key value.
  */
-ydn.db.schema.Index.prototype.getKeyValue = function(obj) {
+ydn.db.schema.Index.prototype.extractKey = function(obj) {
   if (goog.isDefAndNotNull(obj)) {
     if (goog.isArrayLike(this.keyPath)) {
       var key = [];

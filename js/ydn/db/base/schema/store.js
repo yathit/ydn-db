@@ -43,8 +43,13 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    * @final
    */
   this.keyPath = goog.isDef(keyPath) ? keyPath : null;
+  /**
+   * @final
+   */
+  this.isComposite = goog.isArrayLike(this.keyPath);
+
   if (!goog.isNull(this.keyPath) &&
-      !goog.isString(this.keyPath) && !goog.isArrayLike(this.keyPath)) {
+      !goog.isString(this.keyPath) && !this.isComposite) {
     throw new ydn.debug.error.ArgumentException(
         'keyPath must be a string or array');
   }
@@ -63,7 +68,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
       throw new ydn.debug.error.ArgumentException('type invalid in store: ' +
           this.name);
     }
-    if (goog.isArray(this.keyPath)) {
+    if (this.isComposite) {
       throw new ydn.debug.error.ArgumentException(
           'composite key for store "' + this.name + '" must not specified type');
     }
@@ -140,6 +145,12 @@ ydn.db.schema.Store.FetchStrategies = [
  * @type {string}
  */
 ydn.db.schema.Store.prototype.name;
+
+/**
+ * @type {boolean}
+ * @private
+ */
+ydn.db.schema.Store.prototype.isComposite;
 
 /**
  * @type {(!Array.<string>|string)?}
@@ -641,25 +652,49 @@ ydn.db.schema.Store.prototype.addIndex = function(name, opt_unique, opt_type,
       opt_multiEntry));
 };
 
+//
+///**
+// * Extract value of keyPath from a given object.
+// * @see #getKeyValue
+// * @param {!Object} obj object to extract from.
+// * @return {!Array|number|string|undefined} return key value.
+// */
+//ydn.db.schema.Store.prototype.getKeyValue = function(obj) {
+//  // http://www.w3.org/TR/IndexedDB/#key-construct
+//  if (!goog.isObject(obj)) {
+//    return undefined;
+//  } else if (goog.isArrayLike(this.keyPath)) {
+//    var key = [];
+//    for (var i = 0, n = this.keyPath.length; i < n; i++) {
+//      key[i] = obj[this.keyPath[i]];
+//    }
+//    return key;
+//  } else if (this.usedInlineKey()) {
+//    return /** @type {string} */ (goog.object.getValueByKeys(obj,
+//      this.keyPaths));
+//  }
+//};
+
+
 
 /**
- * Extract value of keyPath from a given object.
- * @see #getKeyValue
- * @param {!Object} obj object to extract from.
- * @return {!Array|number|string|undefined} return key value.
+ * Extract primary key value of keyPath from a given object.
+ * @param {!Object} record record value
+ * @return {!IDBKey|undefined} extracted primary key
  */
-ydn.db.schema.Store.prototype.getKeyValue = function(obj) {
+ydn.db.schema.Store.prototype.extractKey = function(record) {
   // http://www.w3.org/TR/IndexedDB/#key-construct
-  if (!goog.isObject(obj)) {
-    return undefined;
-  } else if (goog.isArrayLike(this.keyPath)) {
-    var key = [];
-    for (var i = 0, n = this.keyPath.length; i < n; i++) {
-      key[i] = obj[this.keyPath[i]];
+  if (this.isComposite) {
+    var arr = [];
+    for (var i = 0; i < this.keyPath.length; i++) {
+      arr.push(ydn.db.utils.getValueByKeys(record, this.keyPath[i]));
     }
-    return key;
-  } else if (this.usedInlineKey()) {
-    return /** @type {string} */ (goog.object.getValueByKeys(obj, this.keyPaths));
+    return arr;
+  } else if (this.keyPath) {
+    return /** @type {!IDBKey} */ (goog.object.getValueByKeys(
+      record, this.keyPaths));
+  } else {
+    return undefined;
   }
 };
 
@@ -754,7 +789,7 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
   var values = [];
   var columns = [];
 
-  var key = goog.isDef(opt_key) ? opt_key : this.getKeyValue(obj);
+  var key = goog.isDef(opt_key) ? opt_key : this.extractKey(obj);
   if (goog.isDef(key)) {
     columns.push(this.getSQLKeyColumnNameQuoted());
     values.push(ydn.db.schema.Index.js2sql(key, this.getType()));
@@ -768,7 +803,7 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
       continue;
     }
 
-    var idx_key = index.getKeyValue(obj);
+    var idx_key = index.extractKey(obj);
     if (goog.isDefAndNotNull(idx_key)) {
       values.push(ydn.db.schema.Index.js2sql(idx_key, index.getType()));
       columns.push(index.getSQLIndexColumnNameQuoted());
