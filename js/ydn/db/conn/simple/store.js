@@ -5,6 +5,7 @@
 goog.provide('ydn.db.con.simple.Store');
 goog.require('ydn.db.con.simple');
 goog.require('goog.structs.AvlTree');
+goog.require('ydn.db.con.simple.Node');
 
 
 /**
@@ -40,6 +41,12 @@ ydn.db.con.simple.Store = function(db_name, storage, store_schema) {
     kp || ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
   this.key_indexes[this.primary_index] = null;
+
+  /**
+   * @final
+   */
+  this.key_prefix = ydn.db.con.simple.makeKey(this.db_name,
+    this.schema.getName(), this.primary_index)+ ydn.db.con.simple.SEP;
 
 };
 
@@ -80,7 +87,7 @@ ydn.db.con.simple.Store.prototype.primary_index;
 
 /**
  * List of ascending ordered key for each index and primary key.
- * @type {!Object.<goog.structs.AvlTree?>}
+ * @type {!Object.<goog.structs.AvlTree>}
  * @private
  */
 ydn.db.con.simple.Store.prototype.key_indexes;
@@ -94,24 +101,27 @@ ydn.db.con.simple.Store.prototype.key_indexes;
  * @return {string} canonical key name.
  */
 ydn.db.con.simple.Store.prototype.makeKey = function(id) {
-  return ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
-      this.primary_index, id);
+  return this.key_prefix + ydn.db.utils.encodeKey(id);
 };
+
+
+/**
+ * @type {string}
+ * @private
+ */
+ydn.db.con.simple.Store.prototype.key_prefix;
 
 
 /**
  * Extract key from encoded form.
  * @final
  * @protected
- * @param {string} eKey key as it stored in the cache.
- * @return {*} the key
+ * @param {string} eKey key as it stored in the storage.
+ * @return {!IDBKey} the key
  */
 ydn.db.con.simple.Store.prototype.extractKey = function (eKey) {
-  var tokens = eKey.split(ydn.db.con.simple.SEP);
-  goog.asserts.assert(tokens.length == 5, 'the key ' + eKey +
-    ' must have 5 tokens but ' + tokens.length + ' found');
-  var id = tokens[4];
-  return ydn.db.utils.decodeKey(id);
+  var key = ydn.db.utils.decodeKey(eKey.substr(this.key_prefix.length));
+  return /** @type  {!IDBKey} */ (key);
 };
 
 
@@ -119,7 +129,7 @@ ydn.db.con.simple.Store.prototype.extractKey = function (eKey) {
 /**
  * Key generator for autoIncrement key.
  * @see http://www.w3.org/TR/IndexedDB/#key-generator-concept
- * @return {IDBKey}
+ * @return {!IDBKey}
  */
 ydn.db.con.simple.Store.prototype.generateKey = function() {
   var store_key = this.makeKey();
@@ -130,6 +140,93 @@ ydn.db.con.simple.Store.prototype.generateKey = function() {
   sch['key_count']++;
   this.storage.setItem(store_key, ydn.json.stringify(sch));
   return sch['key_count'];
+};
+
+
+
+/**
+ *
+ * @param {string} index_name
+ * @return {goog.structs.AvlTree}
+ * @private
+ */
+ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
+  if (!this.key_indexes[index_name]) {
+    this.key_indexes[index_name] =
+      new goog.structs.AvlTree(ydn.db.con.simple.Node.cmp);
+    var n = this.storage.length;
+    for (var i = 0; i < n; i++) {
+      var key_str = this.storage.key(i);
+      if (!goog.isNull(key_str)) {
+        if (goog.string.startsWith(key_str, this.key_prefix)) {
+          var key = this.extractKey(key_str);
+          var node = new ydn.db.con.simple.Node(key);
+          this.key_indexes[index_name].add(node);
+        }
+      }
+    }
+  }
+  return this.key_indexes[index_name];
+};
+
+
+/**
+ *
+ * @param {!IDBKey} key  primary key
+ * @param {!Object} value  record value
+ */
+ydn.db.con.simple.Store.prototype.updateIndex = function(key, value) {
+  for (var idx in this.key_indexes) {
+    var cache = this.key_indexes[idx];
+    if (cache) {
+      if (idx == this.primary_index) {
+        cache.add(new ydn.db.con.simple.Node(key));
+      } else {
+        var index = this.schema.getIndex(idx);
+        var index_key = ydn.db.utils.getValueByKeys(value, index.getKeyPath());
+        if (goog.isDefAndNotNull(index_key)) {
+          var node = new ydn.db.con.simple.Node(key, index_key);
+          cache.add(node);
+        }
+      }
+    }
+  }
+};
+
+
+/**
+ *
+ * @param {!IDBKey} key primary key
+ * @param {!Object} value record value
+ */
+ydn.db.con.simple.Store.prototype.removeIndex = function(key, value) {
+  for (var idx in this.key_indexes) {
+    var cache = this.key_indexes[idx];
+    if (cache) {
+      if (idx == this.primary_index) {
+        cache.remove(new ydn.db.con.simple.Node(key));
+      } else {
+        var index = this.schema.getIndex(idx);
+        var index_key = ydn.db.utils.getValueByKeys(value, index.getKeyPath());
+        var node = new ydn.db.con.simple.Node(key, index_key);
+        cache.remove(node);
+      }
+    }
+  }
+};
+
+
+/**
+ * @private
+ */
+ydn.db.con.simple.Store.prototype.clearIndexCache = function() {
+  for (var idx in this.key_indexes) {
+    var cache = this.key_indexes[idx];
+    if (cache) {
+      cache.clear();
+    }
+  }
+  this.key_indexes = {};
 };
 
 
@@ -173,18 +270,7 @@ ydn.db.con.simple.Store.prototype.addRecord = function(key, value, is_add) {
   this.storage.setItem(this.makeKey(key),
     ydn.json.stringify(value));
 
-  for (var idx in this.key_indexes) {
-    var cache = this.key_indexes[idx];
-    if (goog.isDefAndNotNull(cache)) {
-      if (idx == this.primary_index) {
-        cache.add(ydn.db.utils.encodeKey(key));
-      } else {
-        var index = this.schema.getIndex(idx);
-        var index_key = ydn.db.utils.getValueByKeys(value, index.getKeyPath());
-        cache.add(ydn.db.utils.encodeKey(index_key));
-      }
-    }
-  }
+  this.updateIndex(key, value);
   return key;
 };
 
@@ -198,24 +284,13 @@ ydn.db.con.simple.Store.prototype.removeRecord = function (key) {
 
   var eKey = this.makeKey(key);
   var obj = this.storage.getItem(eKey);
-  var value;
+
   if (goog.isNull(obj)) {
     return 0;
   } else {
     this.storage.removeItem(eKey);
-    for (var idx in this.key_indexes) {
-      var cache = this.key_indexes[idx];
-      if (cache) {
-        if (idx == this.primary_index) {
-          cache.remove(ydn.db.utils.encodeKey(key));
-        } else {
-          var index = this.schema.getIndex(idx);
-          value = goog.isDef(value) ? value : ydn.json.parse(obj);
-          var index_key = ydn.db.utils.getValueByKeys(value, index.getKeyPath());
-          cache.remove(ydn.db.utils.encodeKey(index_key));
-        }
-      }
-    }
+    var value = ydn.json.parse(obj);
+    this.removeIndex(key, value);
     return 1;
   }
 
@@ -226,6 +301,7 @@ ydn.db.con.simple.Store.prototype.removeRecord = function (key) {
  * Clear all record in stores.
  */
 ydn.db.con.simple.Store.prototype.clear = function() {
+  this.clearIndexCache();
   this.removeRecords();
 };
 
@@ -259,32 +335,6 @@ ydn.db.con.simple.Store.prototype.getName = function() {
 
 /**
  *
- * @param {string} index_name
- * @return {goog.structs.AvlTree}
- * @private
- */
-ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
-  if (!this.key_indexes[index_name]) {
-    var starts = ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
-        index_name);
-    var len = starts.length + ydn.db.con.simple.SEP.length;
-    this.key_indexes[index_name] = new goog.structs.AvlTree(ydn.db.cmp);
-    var n = this.storage.length;
-    for (var i = 0; i < n; i++) {
-      var key = this.storage.key(i);
-      if (!goog.isNull(key)) {
-        if (goog.string.startsWith(key, starts)) {
-          this.key_indexes[index_name].add(key.substr(len));
-        }
-      }
-    }
-  }
-  return this.key_indexes[index_name];
-};
-
-
-/**
- *
  * @param {string?=} index_name
  * @param {IDBKeyRange=} key_range
  * @return {number}
@@ -292,12 +342,60 @@ ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
 ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
      key_range) {
   index_name = index_name || this.primary_index;
+
+  var me = this;
   var cache =  this.getIndexCache(index_name);
+
+  /**
+   * @type {ydn.db.con.simple.Node}
+   */
+  var start = null;
+  /**
+   * @type {ydn.db.con.simple.Node}
+   */
+  var end = null;
+  var count = 0;
+  var lowerOpen = false;
+  var upperOpen = false;
   if (goog.isDefAndNotNull(key_range)) {
-    throw 'impl';
-  } else {
-    return cache.getCount();
+    if (goog.isDefAndNotNull(key_range.lower)) {
+      start = new ydn.db.con.simple.Node(key_range.lower);
+    }
+    if (goog.isDefAndNotNull(key_range.upper)) {
+      end = new ydn.db.con.simple.Node(key_range.upper);
+    }
+    lowerOpen = key_range.lowerOpen;
+    upperOpen = key_range.upperOpen;
   }
+
+  /**
+   *
+   * @param {ydn.db.con.simple.Node} x
+   * @return {boolean|undefined}
+   */
+  var tr_fn = function (x) {
+    if (!goog.isDefAndNotNull(x)) {
+      return;
+    }
+    if (lowerOpen && goog.isDefAndNotNull(start) &&
+      ydn.db.con.simple.Node.cmp(x, start) == 0) {
+      return;
+    }
+    if (goog.isDefAndNotNull(end)) {
+      var cmp = ydn.db.con.simple.Node.cmp(x, end);
+      if (cmp === 1) {
+        return true;
+      }
+      if (cmp === 0 && upperOpen) {
+        return true;
+      }
+    }
+    count++;
+
+  };
+  cache.inOrderTraverse(tr_fn, start);
+
+  return count;
 };
 
 
@@ -309,59 +407,77 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
 ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
   var me = this;
   var cache = this.getIndexCache(this.primary_index);
-  var starts = ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
-    this.primary_index) + ydn.db.con.simple.SEP;
   /**
-   * @type {null}
+   * @type {ydn.db.con.simple.Node}
    */
   var start = null;
   /**
-   * @type {null}
+   * @type {ydn.db.con.simple.Node}
    */
   var end = null;
   var count = 0;
   var removed_ids = [];
+  var removed_objs = [];
+  var lowerOpen = false;
+  var upperOpen = false;
   if (goog.isDefAndNotNull(key_range)) {
     if (goog.isDefAndNotNull(key_range.lower)) {
-      start = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.lower));
+      start = new ydn.db.con.simple.Node(key_range.lower);
     }
     if (goog.isDefAndNotNull(key_range.upper)) {
-      end = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.upper));
+      end = new ydn.db.con.simple.Node(key_range.upper);
     }
+    lowerOpen = key_range.lowerOpen;
+    upperOpen = key_range.upperOpen;
   }
-  // console.log([start, end])
-  cache.inOrderTraverse(function (x) {
+
+  /**
+   *
+   * @param {ydn.db.con.simple.Node} x
+   * @return {boolean|undefined}
+   */
+  var tr_fn = function (x) {
     if (!goog.isDefAndNotNull(x)) {
       return;
     }
+    if (lowerOpen && goog.isDefAndNotNull(start) &&
+      ydn.db.con.simple.Node.cmp(x, start) == 0) {
+      return;
+    }
     if (goog.isDefAndNotNull(end)) {
-      var cmp = ydn.db.cmp(x, end);
+      var cmp = ydn.db.con.simple.Node.cmp(x, end);
       if (cmp === 1) {
         return true;
       }
-      if (cmp === 0 && key_range.upperOpen) {
+      if (cmp === 0 && upperOpen) {
         return true;
       }
     }
-    me.storage.removeItem(starts + x);
-    count++;
-    if (ydn.db.con.simple.Store.DEBUG) {
-      window.console.log(count + '. remove ' + ydn.db.utils.decodeKey(x) + ' ' + x);
+    var key = me.makeKey(x.getKey());
+    var obj = me.storage.getItem(key);
+    if (!goog.isNull(obj)) {
+      me.storage.removeItem(key);
+      count++;
+      if (ydn.db.con.simple.Store.DEBUG) {
+        window.console.log(count + '. remove ' + x.getKey() + ' ' + key);
+      }
+      if (removed_ids.length < 10) {
+        removed_ids.push(x.getKey());
+        removed_objs.push(ydn.json.parse(obj));
+      }
     }
-    if (removed_ids.length < 10) {
-      removed_ids.push(x);
-    }
-  }, start);
+
+  };
+  cache.inOrderTraverse(tr_fn, start);
 
   // update tree
   if (removed_ids.length < 10) {
     for (var i = 0; i < removed_ids.length; i++) {
-      cache.remove(removed_ids[i]);
+      this.removeIndex(removed_ids[i], removed_objs[i]);
     }
   } else {
     // to many node removed, just clear the tree.
-    cache.clear();
-    this.key_indexes[this.primary_index] = null;
+    this.clearIndexCache();
   }
 
   return count;
@@ -381,18 +497,16 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
  */
 ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
      key_range, reverse, limit, offset) {
-  var starts = ydn.db.con.simple.makeKey(this.db_name, this.schema.getName(),
-    this.primary_index) + ydn.db.con.simple.SEP;
   var results = [];
   index_name = index_name || this.primary_index;
+  var is_index = index_name != this.primary_index;
   var cache = this.getIndexCache(index_name);
-  // FIXME: remove these weired null type and casting.
   /**
-   * @type {null}
+   * @type {ydn.db.con.simple.Node}
    */
   var start = null;
   /**
-   * @type {null}
+   * @type {ydn.db.con.simple.Node}
    */
   var end = null;
   if (!goog.isDef(offset)) {
@@ -403,30 +517,36 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
   var upperOpen = false;
   if (goog.isDefAndNotNull(key_range)) {
     if (goog.isDefAndNotNull(key_range.lower)) {
-      start = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.lower));
+      start = new ydn.db.con.simple.Node(key_range.lower);
     }
     if (goog.isDefAndNotNull(key_range.upper)) {
-      end = /** @type {null} */ (ydn.db.utils.encodeKey(key_range.upper));
+      end = new ydn.db.con.simple.Node(key_range.upper);
     }
     lowerOpen = key_range.lowerOpen;
     upperOpen = key_range.upperOpen;
   }
   var me = this;
-  if (reverse) {
-    cache.reverseOrderTraverse(function (x) {
-      offsetted++;
-      if (offsetted < offset) {
-        return;
-      }
-      if (!goog.isDefAndNotNull(x)) {
-        return;
-      }
+
+  /**
+   *
+   * @param {ydn.db.con.simple.Node} x
+   * @return {boolean|undefined}
+   */
+  var tr_fn = function (x) {
+    offsetted++;
+    if (offsetted < offset) {
+      return;
+    }
+    if (!goog.isDefAndNotNull(x)) {
+      return;
+    }
+    if (reverse) {
       if (upperOpen && goog.isDefAndNotNull(end) &&
-        ydn.db.cmp(x, end) == 0) {
+          ydn.db.con.simple.Node.cmp(x, end) == 0) {
         return;
       }
       if (goog.isDefAndNotNull(start)) {
-        var cmp = ydn.db.cmp(x, start);
+        var cmp = ydn.db.con.simple.Node.cmp(x, start);
         if (cmp === -1) {
           return true;
         }
@@ -434,31 +554,13 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
           return true;
         }
       }
-      if (key_only) {
-        results.push(ydn.db.utils.decodeKey(x));
-      } else {
-        var v = me.storage.getItem(starts + x);
-        results.push(goog.isNull(v) ? undefined : ydn.json.parse(v));
-      }
-      if (goog.isDef(limit) && results.length >= limit) {
-        return true;
-      }
-    }, end);
-  } else {
-    cache.inOrderTraverse(function (x) {
-      offsetted++;
-      if (offsetted < offset) {
-        return;
-      }
-      if (!goog.isDefAndNotNull(x)) {
-        return;
-      }
+    } else {
       if (lowerOpen && goog.isDefAndNotNull(start) &&
-        ydn.db.cmp(x, start) == 0) {
+          ydn.db.con.simple.Node.cmp(x, start) == 0) {
         return;
       }
       if (goog.isDefAndNotNull(end)) {
-        var cmp = ydn.db.cmp(x, end);
+        var cmp = ydn.db.con.simple.Node.cmp(x, end);
         if (cmp === 1) {
           return true;
         }
@@ -466,20 +568,30 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
           return true;
         }
       }
-      if (key_only) {
-        results.push(ydn.db.utils.decodeKey(x));
+    }
+    var key = x.getKey();
+    if (key_only) {
+      results.push(key);
+    } else {
+      if (is_index) {
+        results.push(x.getPrimaryKey());
       } else {
-        var v = me.storage.getItem(starts + x);
+        var v = me.storage.getItem(me.makeKey(key));
         results.push(goog.isNull(v) ? undefined : ydn.json.parse(v));
       }
-      if (goog.isDef(limit) && results.length >= limit) {
-        return true;
-      }
-    }, start);
+    }
+    if (goog.isDef(limit) && results.length >= limit) {
+      return true;
+    }
+  };
+
+  if (reverse) {
+    cache.reverseOrderTraverse(tr_fn, end);
+  } else {
+    cache.inOrderTraverse(tr_fn, start);
   }
   return results;
 };
-
 
 
 /**
@@ -517,7 +629,8 @@ if (goog.DEBUG) {
  * @inheritDoc
  */
 ydn.db.con.simple.Store.prototype.toString = function () {
-  return 'ydn.db.con.simple.Store:' + this.schema.getName();
+  return 'ydn.db.con.simple.Store:' + this.db_name + ':' +
+    this.schema.getName();
 };
 }
 

@@ -127,10 +127,10 @@ ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(tx, tx_no, df, objs,
 ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
     store_name, value, opt_key, is_update, single) {
 
-  var msg = tx_no + ' ' + (is_update ? 'put' : 'add') + 'Object' +
+  var label = tx_no + ' ' + (is_update ? 'put' : 'add') + 'Object' +
     (single ? '' : 's ' + value.length + ' objects');
 
-  this.logger.finest(msg);
+  this.logger.finest(label);
   var me = this;
 
   goog.Timer.callOnce(function () {
@@ -171,7 +171,7 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
         }
         arr.push(result_key);
       }
-      me.logger.finer((has_error ? 'error: ' : 'success: ') + msg);
+      me.logger.finer((has_error ? 'error ' : 'success ') + label);
       df(arr, has_error);
     }
   }, 0, this);
@@ -320,9 +320,14 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeys = function(tx, tx_no, df,
  */
 ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
       store_name, key_range, reverse, limit, offset) {
+  var msg = tx_no + ' listByKeyRange ' + store_name + ' ' +
+    (key_range ? ydn.json.toShortString(key_range) : '');
+  this.logger.finest(msg);
   goog.Timer.callOnce(function () {
     var store = tx.getSimpleStore(store_name);
-    df(store.getRecords(null, key_range, reverse, limit, offset));
+    var results = store.getRecords(null, key_range, reverse, limit, offset);
+    this.logger.finer('success ' + msg + results.length + ' records found.');
+    df(results);
   }, 0, this);
 };
 
@@ -427,13 +432,12 @@ ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = goog.abstractMetho
 ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df, store_names) {
   var msg = tx_no + ' clearByStores';
   this.logger.finest(msg);
-  var me = this;
   goog.Timer.callOnce(function () {
     for (var i = 0; i < store_names.length; i++) {
       var store = tx.getSimpleStore(store_names[i]);
       store.clear();
     }
-    me.logger.finer('success ' + msg);
+    this.logger.finer('success ' + msg);
     df(store_names.length);
   }, 0, this);
 };
@@ -442,14 +446,17 @@ ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df, st
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.countStores = function (tx, tx_no, df, store_names) {
-
+ydn.db.crud.req.SimpleStore.prototype.countStores = function (tx, tx_no, df,
+                                                              store_names) {
+  var msg = tx_no + ' countStores';
+  this.logger.finest(msg);
   goog.Timer.callOnce(function () {
     var arr = [];
     for (var i = 0; i < store_names.length; i++) {
       var store = tx.getSimpleStore(store_names[i]);
       arr.push(store.countRecords());
     }
+    this.logger.finer('success ' + msg);
     df(arr);
   }, 0, this);
 
@@ -460,10 +467,16 @@ ydn.db.crud.req.SimpleStore.prototype.countStores = function (tx, tx_no, df, sto
  */
 ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(tx, tx_no, df,
       store_name, keyRange, index_name) {
-
+  var msg = tx_no + ' count' +
+    (goog.isDefAndNotNull(index_name) ? 'Index' : '') +
+    (goog.isDefAndNotNull(keyRange) ? 'KeyRange' : 'Store');
+  var me = this;
+  this.logger.finest(msg);
   goog.Timer.callOnce(function () {
     var store = tx.getSimpleStore(store_name);
-    df(store.countRecords(index_name, keyRange));
+    var no = store.countRecords(index_name, keyRange);
+    this.logger.finer('success ' + msg);
+    df(no);
   }, 0, this);
 };
 
