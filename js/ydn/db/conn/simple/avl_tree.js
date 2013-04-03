@@ -12,7 +12,6 @@ goog.provide('ydn.db.con.simple.AvlTree.Node');
 
 goog.require('goog.structs');
 goog.require('goog.structs.Collection');
-goog.require('ydn.db.con.simple.Node');
 
 // Copyright 2007 The Closure Library Authors. All Rights Reserved.
 //
@@ -68,7 +67,7 @@ goog.require('ydn.db.con.simple.Node');
  */
 ydn.db.con.simple.AvlTree = function(opt_comparator) {
   this.comparator_ = opt_comparator ||
-      ydn.db.con.simple.Node.cmp;
+      ydn.db.con.simple.AvlTree.DEFAULT_COMPARATOR_;
 };
 
 
@@ -347,9 +346,9 @@ ydn.db.con.simple.AvlTree.prototype.getValues = function() {
  * the specified start value. The traversal ends after traversing the tree's
  * maximum node or when {@code func} returns a value that evaluates to true.
  *
- * @param {function(ydn.db.con.simple.AvlTree.Node)} func Function to call on each
+ * @param {Function} func Function to call on each
  * traversed node.
- * @param {ydn.db.con.simple.Node|ydn.db.con.simple.AvlTree.Node=} opt_startValue If
+ * @param {Object=} opt_startValue If
  * specified, traversal will begin on the node with the smallest
  * value >= opt_startValue. If AvlTree.Node, this will start immediately
  * from the node exclusive.
@@ -412,9 +411,9 @@ ydn.db.con.simple.AvlTree.prototype.inOrderTraverse =
  * <= to the specified start value. The traversal ends after traversing the
  * tree's minimum node or when func returns a value that evaluates to true.
  *
- * @param {function(ydn.db.con.simple.AvlTree.Node)} func Function to call on each
+ * @param {Function} func Function to call on each
  * traversed node.
- * @param {ydn.db.con.simple.Node|ydn.db.con.simple.AvlTree.Node=} opt_startValue If
+ * @param {Object=} opt_startValue If
  * specified, traversal will begin on the node with the smallest
  * value >= opt_startValue. If AvlTree.Node, this will start immediately
  * from the node exclusive.
@@ -794,7 +793,7 @@ ydn.db.con.simple.AvlTree.Node = function(value, opt_parent) {
   /**
    * The value stored by the node.
    *
-   * @type {ydn.db.con.simple.Node}
+   * @type {*}
    */
   this.value = value;
 

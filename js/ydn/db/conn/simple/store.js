@@ -387,10 +387,7 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
     if (!goog.isDefAndNotNull(node)) {
       return;
     }
-    /**
-     * @type {ydn.db.con.simple.Node}
-     */
-    var x = node.value;
+    var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
     if (lowerOpen && goog.isDefAndNotNull(start) &&
       ydn.db.con.simple.Node.cmp(x, start) == 0) {
       return;
@@ -456,10 +453,7 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
     if (!goog.isDefAndNotNull(node)) {
       return;
     }
-    /**
-     * @type {ydn.db.con.simple.Node}
-     */
-    var x = node.value;
+    var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
     if (lowerOpen && goog.isDefAndNotNull(start) &&
       ydn.db.con.simple.Node.cmp(x, start) == 0) {
       return;
@@ -571,10 +565,7 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
     if (!goog.isDefAndNotNull(node)) {
       return;
     }
-    /**
-     * @type {ydn.db.con.simple.Node}
-     */
-    var x = node.value;
+    var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
     if (reverse) {
       if (upperOpen && goog.isDefAndNotNull(end) &&
           ydn.db.con.simple.Node.cmp(x, end) == 0) {

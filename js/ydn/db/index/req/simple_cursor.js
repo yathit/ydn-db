@@ -108,10 +108,11 @@ ydn.db.index.req.SimpleCursor.prototype.getValue = function () {
 
 /**
  * @private
- * @return {!goog.structs.AvlTree}
+ * @return {!ydn.db.con.simple.AvlTree}
  */
 ydn.db.index.req.SimpleCursor.prototype.getIndexCache = function() {
-  return this.getTx().getSimpleStore(this.store_name).getIndexCache(this.index_name);
+  return this.getTx().getSimpleStore(this.store_name).getIndexCache(
+      this.index_name);
 };
 
 
@@ -193,7 +194,23 @@ ydn.db.index.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
  */
 ydn.db.index.req.SimpleCursor.prototype.openCursor = function(ini_key,
      ini_index_key, exclusive) {
-  this.move_(this.onSuccess, ini_key, ini_index_key, exclusive);
+  var avl_index = this.getIndexCache();
+  var start = null;
+  if (this.isIndexCursor()) {
+    if (goog.isDefAndNotNull(ini_index_key)) {
+      start = new ydn.db.con.simple.Node(ini_index_key, ini_key);
+    } else if (goog.isDefAndNotNull(ini_key)) {
+      start = new ydn.db.con.simple.Node(ini_key);
+    }
+  }
+  /**
+   *
+   * @param node
+   */
+  var tr_fn = function (node) {
+
+  };
+  avl_index.inOrderTraverse(tr_fn, start);
 };
 
 
