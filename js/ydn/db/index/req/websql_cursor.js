@@ -231,7 +231,7 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     }
     me.has_pending_request = false;
     me.logger.warning('get error: ' + error.message);
-    me.onError(/** @type {Error} */ (error));
+    me.onError(/** @type {!Error} */ (error));
     me.current_key_ = undefined;
     me.current_primary_key_ = undefined;
     me.current_value_ = undefined;

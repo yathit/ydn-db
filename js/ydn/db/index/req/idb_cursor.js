@@ -157,6 +157,7 @@ ydn.db.index.req.IDBCursor.prototype.has_pending_request_ = false;
 
 
 
+
 /**
  * Make cursor opening request.
  *
@@ -261,7 +262,11 @@ ydn.db.index.req.IDBCursor.prototype.openCursor = function (
 
   request.onsuccess = goog.bind(this.requestOnSuccess, this);
 
-  request.onerror = goog.bind(this.onError, this);
+  var me = this;
+  request.onerror = function(ev) {
+    var err = ev.target.error;
+    me.onError(err);
+  };
 
 };
 

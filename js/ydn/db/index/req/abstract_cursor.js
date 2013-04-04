@@ -7,21 +7,22 @@ goog.provide('ydn.db.index.req.AbstractCursor');
 goog.require('goog.Disposable');
 
 
+
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {string} tx_no tx no
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
+ * @param {string} tx_no tx no.
  * @param {string} store_name the store name to open.
- * @param {string|undefined} index_name index
- * @param {IDBKeyRange} keyRange
- * @param {ydn.db.base.Direction} direction we are using old spec
+ * @param {string|undefined} index_name index name.
+ * @param {IDBKeyRange} keyRange key range.
+ * @param {ydn.db.base.Direction} direction cursor direction.
  * @param {boolean} key_only mode.
  * @implements {ydn.db.index.req.ICursor}
  * @constructor
  * @extends {goog.Disposable}
  */
 ydn.db.index.req.AbstractCursor = function(tx, tx_no, store_name, index_name,
-      keyRange, direction, key_only) {
+    keyRange, direction, key_only) {
   goog.base(this);
   /**
    * @final
@@ -49,7 +50,7 @@ ydn.db.index.req.AbstractCursor = function(tx, tx_no, store_name, index_name,
    * @final
    */
   this.reverse = direction == ydn.db.base.Direction.PREV ||
-    direction == ydn.db.base.Direction.PREV_UNIQUE;
+      direction == ydn.db.base.Direction.PREV_UNIQUE;
 
   /**
    * @final
@@ -71,12 +72,12 @@ ydn.db.index.req.AbstractCursor = function(tx, tx_no, store_name, index_name,
 goog.inherits(ydn.db.index.req.AbstractCursor, goog.Disposable);
 
 
-
 /**
  * @protected
  * @type {string|undefined}
  */
 ydn.db.index.req.AbstractCursor.prototype.index_name;
+
 
 /**
  * @private
@@ -91,6 +92,7 @@ ydn.db.index.req.AbstractCursor.prototype.is_index;
  */
 ydn.db.index.req.AbstractCursor.prototype.store_name = '';
 
+
 /**
  * @protected
  * @type {string}
@@ -104,11 +106,13 @@ ydn.db.index.req.AbstractCursor.prototype.dir = '';
  */
 ydn.db.index.req.AbstractCursor.prototype.key_range = null;
 
+
 /**
  * @protected
  * @type {boolean}
  */
 ydn.db.index.req.AbstractCursor.prototype.unique = false;
+
 
 /**
  * @protected
@@ -126,7 +130,7 @@ ydn.db.index.req.AbstractCursor.prototype.key_only = true;
 
 /**
  *
- * @type {function(*)}
+ * @param {!Error} e error object.
  */
 ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
   throw e;
@@ -135,7 +139,7 @@ ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
 
 /**
  *
- * @return {boolean} true if transaction is active
+ * @return {boolean} true if transaction is active.
  */
 ydn.db.index.req.AbstractCursor.prototype.isActive = function() {
   return !!this.tx;
@@ -183,7 +187,8 @@ ydn.db.index.req.AbstractCursor.prototype.getEffectiveKey = function() {
  * @param {IDBKey|undefined} key
  * @param {*|undefined} value
  */
-ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(primary_key, key, value) {
+ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(
+    primary_key, key, value) {
   this.onNext(primary_key, key, value);
 };
 
@@ -191,7 +196,8 @@ ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(primary_key, key,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.AbstractCursor.prototype.onNext = function(primary_key, key, value) {
+ydn.db.index.req.AbstractCursor.prototype.onNext = function(primary_key, key,
+                                                            value) {
 
 };
 
@@ -238,18 +244,19 @@ ydn.db.index.req.AbstractCursor.prototype.getValue = goog.abstractMethod;
 
 /**
  *
- * @param {number=} index
+ * @param {number=} opt_index peer store index.
  * @return {!goog.async.Deferred} deferred object.
  */
 ydn.db.index.req.AbstractCursor.prototype.clear = goog.abstractMethod;
 
 
 /**
- * @param {*} record value
- * @param {number=} index
+ * @param {*} record value.
+ * @param {number=} opt_index peer store index.
  * @return {!goog.async.Deferred} primary key.
  */
 ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
+
 
 /**
  * Make cursor opening request.
@@ -257,9 +264,9 @@ ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
  * This will seek to given initial position if given. If only ini_key (primary
  * key) is given, this will rewind, if not found.
  *
- * @param {*=} ini_key primary key to resume position.
- * @param {*=} ini_index_key index key to resume position.
- * @param {boolean=} exclusive
+ * @param {*=} opt_ini_key primary key to resume position.
+ * @param {*=} opt_ini_index_key index key to resume position.
+ * @param {boolean=} exclusive exclusive.
  */
 ydn.db.index.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
 
@@ -273,7 +280,7 @@ ydn.db.index.req.AbstractCursor.prototype.continuePrimaryKey = goog.abstractMeth
 
 /**
  * Move cursor position to the effective key.
- * @param {IDBKey=} effective_key
+ * @param {IDBKey=} opt_effective_key effective key.
  */
 ydn.db.index.req.AbstractCursor.prototype.continueEffectiveKey = goog.abstractMethod;
 
@@ -288,8 +295,8 @@ ydn.db.index.req.AbstractCursor.prototype.advance = goog.abstractMethod;
 /**
  * Restart the cursor. If previous cursor position is given,
  * the position is skip.
- * @param {IDBKey=} effective_key previous position.
- * @param {IDBKey=} primary_key
+ * @param {IDBKey=} opt_effective_key previous position.
+ * @param {IDBKey=} opt_primary_key  primary key.
  */
 ydn.db.index.req.AbstractCursor.prototype.restart = goog.abstractMethod;
 

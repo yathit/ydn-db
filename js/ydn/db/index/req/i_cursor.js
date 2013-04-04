@@ -26,9 +26,10 @@ ydn.db.index.req.ICursor.prototype.onNext = goog.abstractMethod;
 
 /**
  *
- * @param {Error} error
+ * @param {!Error} error
  */
 ydn.db.index.req.ICursor.prototype.onError = goog.abstractMethod;
+
 
 /**
  * onSuccess handler is called before onNext callback. The purpose of
@@ -45,14 +46,14 @@ ydn.db.index.req.ICursor.prototype.onSuccess = goog.abstractMethod;
 
 /**
  * Move cursor position to the primary key while remaining on same index key.
- * @param {IDBKey=} primary_key
+ * @param {IDBKey=} primary_key primary key position to continue.
  */
 ydn.db.index.req.ICursor.prototype.continuePrimaryKey = goog.abstractMethod;
 
 
 /**
  * Move cursor position to the effective key.
- * @param {IDBKey=} effective_key
+ * @param {IDBKey=} effective_key effective key position to continue.
  */
 ydn.db.index.req.ICursor.prototype.continueEffectiveKey = goog.abstractMethod;
 

@@ -534,19 +534,19 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
     if (goog.isDefAndNotNull(key_range.lower)) {
       if (is_index && reverse) {
         start = new ydn.db.con.simple.Node(
-          /** @type {!IDBKey} */ (key_range.lower), '\uffff');
+            /** @type {!IDBKey} */ (key_range.lower), '\uffff');
       } else {
         start = new ydn.db.con.simple.Node(
-          /** @type {!IDBKey} */ (key_range.lower));
+            /** @type {!IDBKey} */ (key_range.lower));
       }
     }
     if (goog.isDefAndNotNull(key_range.upper)) {
       if (is_index && !reverse) {
         end = new ydn.db.con.simple.Node(
-          /** @type {!IDBKey} */ (key_range.upper), '\uffff');
+            /** @type {!IDBKey} */ (key_range.upper), '\uffff');
       } else {
         end = new ydn.db.con.simple.Node(
-          /** @type {!IDBKey} */ (key_range.upper));
+            /** @type {!IDBKey} */ (key_range.upper));
       }
     }
     lowerOpen = key_range.lowerOpen;
@@ -558,12 +558,12 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
    * @param {goog.structs.AvlTree.Node} node
    * @return {boolean|undefined}
    */
-  var tr_fn = function (node) {
-    offsetted++;
-    if (offsetted < offset) {
+  var tr_fn = function(node) {
+    if (!node) {
       return;
     }
-    if (!goog.isDefAndNotNull(node)) {
+    offsetted++;
+    if (offsetted < offset) {
       return;
     }
     var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
@@ -598,7 +598,7 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
     }
     var key = x.getKey();
     var primary_key = /** @type {!IDBKey} */ (is_index ?
-      x.getPrimaryKey() : key);
+        x.getPrimaryKey() : key);
     if (key_only) {
       results.push(primary_key);
     } else {
