@@ -516,10 +516,12 @@ ydn.db.index.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
     this.target_exclusive_ = false;
     this.cur_['continue']();
   } else {
-    this.target_index_key_ =  null;
-    this.target_key_ = null;
-    this.target_exclusive_ = false;
-    this.cur_['continue'](key);
+    throw new ydn.debug.error.InvalidOperationException(
+      'primary iterator must not continue primary key');
+//    this.target_index_key_ =  null;
+//    this.target_key_ = null;
+//    this.target_exclusive_ = false;
+//    this.cur_['continue'](key);
   }
 
 };

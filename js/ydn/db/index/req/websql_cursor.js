@@ -26,7 +26,8 @@ goog.require('ydn.db.index.req.ICursor');
 ydn.db.index.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
        index_name, keyRange, direction, key_only) {
 
-  goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction, key_only);
+  goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
+    key_only);
 
   goog.asserts.assert(store_schema);
   this.store_schema_ = store_schema;
