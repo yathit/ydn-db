@@ -6,9 +6,6 @@
 
 
 goog.provide('ydn.db.crud.DbOperator');
-goog.require('ydn.db.crud.req.IndexedDb');
-goog.require('ydn.db.crud.req.SimpleStore');
-goog.require('ydn.db.crud.req.WebSql');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.db');
@@ -18,6 +15,7 @@ goog.require('ydn.db.ISyncOperator');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.error.NotSupportedException');
 goog.require('ydn.debug.error.ArgumentException');
+
 
 
 

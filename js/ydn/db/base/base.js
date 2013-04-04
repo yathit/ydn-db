@@ -47,9 +47,22 @@ ydn.db.base.USE_HOOK = false;
 
 /**
  * For stripping non IndexedDB code and unlocking IDB feature.
- * @define {boolean} compiled only for IndexedDB.
+ * @define {boolean} remove IndexedDB module.
  */
-ydn.db.base.ONLY_IDB = false;
+ydn.db.base.NO_IDB = false;
+
+/**
+ *
+ * @define {boolean} remove simple storage (webstorage) module.
+ */
+ydn.db.base.NO_SIMPLE = false;
+
+
+/**
+ *
+ * @define {boolean} remove webstorage module.
+ */
+ydn.db.base.NO_WEBSQL = false;
 
 
 /**

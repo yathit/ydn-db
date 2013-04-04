@@ -30,15 +30,21 @@ goog.require('goog.events.EventTarget');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.con.IStorage');
-goog.require('ydn.db.con.IndexedDb');
-goog.require('ydn.db.con.LocalStorage');
-goog.require('ydn.db.con.SessionStorage');
-goog.require('ydn.db.con.SimpleStorage');
-goog.require('ydn.db.con.WebSql');
-goog.require('ydn.db.events.StorageEvent');
 goog.require('ydn.db.schema.EditableDatabase');
 goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.object');
+goog.require('ydn.db.events.StorageEvent');
+if (!ydn.db.base.NO_SIMPLE) {
+  goog.require('ydn.db.con.LocalStorage');
+  goog.require('ydn.db.con.SessionStorage');
+  goog.require('ydn.db.con.SimpleStorage');
+}
+if (!ydn.db.base.NO_IDB) {
+  goog.require('ydn.db.con.IndexedDb');
+}
+if (!ydn.db.base.NO_WEBSQL) {
+  goog.require('ydn.db.con.WebSql');
+}
 
 
 
@@ -328,15 +334,15 @@ ydn.db.con.Storage.PREFERENCE = [
  */
 ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
 
-  if (db_type == ydn.db.con.IndexedDb.TYPE) {
+  if (!ydn.db.base.NO_IDB && db_type == ydn.db.con.IndexedDb.TYPE) {
     return new ydn.db.con.IndexedDb(this.size, this.connectionTimeout);
-  } else if (db_type == ydn.db.con.WebSql.TYPE) {
+  } else if (!ydn.db.base.NO_WEBSQL && db_type == ydn.db.con.WebSql.TYPE) {
     return new ydn.db.con.WebSql(this.size);
-  } else if (db_type == ydn.db.con.LocalStorage.TYPE) {
+  } else if (!ydn.db.base.NO_SIMPLE && db_type == ydn.db.con.LocalStorage.TYPE) {
     return new ydn.db.con.LocalStorage();
-  } else if (db_type == ydn.db.con.SessionStorage.TYPE) {
+  } else if (!ydn.db.base.NO_SIMPLE && db_type == ydn.db.con.SessionStorage.TYPE) {
     return new ydn.db.con.SessionStorage();
-  } else if (db_type == ydn.db.con.SimpleStorage.TYPE) {
+  } else if (!ydn.db.base.NO_SIMPLE && db_type == ydn.db.con.SimpleStorage.TYPE) {
     return new ydn.db.con.SimpleStorage();
   }
   return null;

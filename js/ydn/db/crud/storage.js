@@ -27,6 +27,15 @@ goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.object');
+if (!ydn.db.base.NO_IDB) {
+  goog.require('ydn.db.crud.req.IndexedDb');
+}
+if (!ydn.db.base.NO_SIMPLE) {
+  goog.require('ydn.db.crud.req.SimpleStore');
+}
+if (!ydn.db.base.NO_WEBSQL) {
+  goog.require('ydn.db.crud.req.WebSql');
+}
 
 
 /**
@@ -91,11 +100,11 @@ ydn.db.crud.Storage.prototype.getCoreOperator = function() {
 ydn.db.crud.Storage.prototype.newExecutor = function (scope) {
 
   var type = this.getType();
-  if (type == ydn.db.con.IndexedDb.TYPE) {
+  if (!ydn.db.base.NO_IDB && type == ydn.db.con.IndexedDb.TYPE) {
     return new ydn.db.crud.req.IndexedDb(this.db_name, this.schema, scope);
-  } else if (type == ydn.db.con.WebSql.TYPE) {
+  } else if (!ydn.db.base.NO_WEBSQL && type == ydn.db.con.WebSql.TYPE) {
     return new ydn.db.crud.req.WebSql(this.db_name, this.schema, scope);
-  } else if (type == ydn.db.con.SimpleStorage.TYPE ||
+  } else if (!ydn.db.base.NO_SIMPLE && type == ydn.db.con.SimpleStorage.TYPE ||
     type == ydn.db.con.LocalStorage.TYPE ||
     type == ydn.db.con.SessionStorage.TYPE) {
     return new ydn.db.crud.req.SimpleStore(this.db_name, this.schema, scope);

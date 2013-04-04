@@ -80,12 +80,6 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   this.type = goog.isDef(type) ? type : this.autoIncrement ?
       ydn.db.schema.DataType.INTEGER : undefined;
 
-  if (!ydn.db.base.ONLY_IDB && this.autoIncrement) {
-    var sqlite_msg = 'AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY';
-    goog.asserts.assert(this.type == ydn.db.schema.DataType.INTEGER,
-        sqlite_msg);
-  }
-
   /**
    * @final
    */

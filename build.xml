@@ -190,25 +190,68 @@
             </exjs.dir>
         </adv-comp>
     </target>
+    <macrodef name="crud" description="compile CRUD module">
+        <element name="module-option" optional="yes"/>
+        <attribute name="postfix" default=""/>
+        <sequential>
+            <adv-comp
+                    input.dir="${ydn-db.dir}/js/ydn/db/crud"
+                    input.fn="${ydn-db.dir}/js/config/crud_main.js"
+                    output.dir="${ydn-db.dir}/jsc"
+                    output.fn="${buildno}-ydn.db-crud@{postfix}.js"
+                    closure.entry="ydn.db.crud.Storage">
+                <exjs.dir>
+                    <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/crud"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
+                    <module-option/>
+                </exjs.dir>
+            </adv-comp>
+
+        </sequential>
+    </macrodef>
     <target name="compile-crud"
             description="generates compiled files for crud distribution">
         <mkdir dir="${ydn-db.dir}/jsc"/>
-        <adv-comp
-                input.dir="${ydn-db.dir}/js/ydn/db/crud"
-                input.fn="${ydn-db.dir}/js/config/crud_main.js"
-                output.dir="${ydn-db.dir}/jsc"
-                output.fn="${buildno}-ydn.db-crud.js"
-                closure.entry="ydn.db.crud.Storage">
-            <exjs.dir>
-                <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/crud"'/>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
-            </exjs.dir>
-        </adv-comp>
+        <crud></crud>
     </target>
-
+    <target name="compile-crud-idb"
+            description="generates compiled files for crud Indexeddb only distribution">
+        <crud postfix="-idb">
+            <module-option>
+                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
+                <arg line='-f "--define=ydn.db.base.NO_WEBSQL=true"'/>
+            </module-option>
+        </crud>
+    </target>
+    <target name="compile-crud-websql"
+            description="generates compiled files for crud websql only distribution">
+        <crud postfix="-websql">
+            <module-option>
+                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
+                <arg line='-f "--define=ydn.db.base.NO_IDB=true"'/>
+            </module-option>
+        </crud>
+    </target>
+    <target name="compile-crud-db"
+            description="generates compiled files for crud with IDB and websql distribution">
+        <crud postfix="-db">
+            <module-option>
+                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
+            </module-option>
+        </crud>
+    </target>
+    <target name="compile-crud-simple"
+            description="generates compiled files for crud simple only distribution">
+        <crud postfix="-simple">
+            <module-option>
+                <arg line='-f "--define=ydn.db.base.NO_IDB=true"'/>
+                <arg line='-f "--define=ydn.db.base.NO_WEBSQL=true"'/>
+            </module-option>
+        </crud>
+    </target>
     <target name="compile-core" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
@@ -284,9 +327,9 @@
             <arg line="--directory=${work.dir}/ydn-dev/out/ydn-db/docs"/>
         </java>
     </target>
-    <target name="build" description="build all distribution"
+    <target name="build" description="build all distributions"
             depends="compile-conn,compile,simple,compile-dev,compile-crud,
-            compile-core">
+            compile-core,compile-crud-db,compile-crud-simple,compile-crud-idb,compile-crud-websql">
 
     </target>
 </project>
