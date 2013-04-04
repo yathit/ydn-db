@@ -92,7 +92,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'countStores');
 
     df.addCallbacks(function(count) {
-      var total = count.reduce(function(p, x) {
+      var total = goog.array.reduce(count, function(p, x) {
         return x + p;
       }, 0);
       dfl.callback(total);
@@ -1232,8 +1232,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
       }
     } else {
       if (goog.isString(arg2) || goog.isNumber(arg2) ||
-        arg2 instanceof DOMStringList ||
-        goog.isArray(arg2) || arg2 instanceof Date) {
+        goog.isArrayLike(arg2) || arg2 instanceof Date) {
         var id = /** @type {(!Array|number|string)} */  (arg2);
         this.logger.finer('removeById: ' + store_name + ':' + id);
         if (ydn.db.base.USE_HOOK) {
@@ -1319,7 +1318,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
             'is not ydn.db.Key.');
       }
       var st = arr[i].getStoreName();
-      if (store_names.indexOf(st) == -1) {
+      if (goog.array.indexOf(store_names, st) == -1) {
         store_names.push(st);
       }
     }

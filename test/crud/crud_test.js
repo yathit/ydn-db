@@ -1179,7 +1179,6 @@ var test_51_array_key = function() {
 
   var key = ['a', 'b'];
 
-  //console.log('testing ' + key);
   var key_value = 'a' + Math.random();
 
   var a_done;
@@ -1305,7 +1304,7 @@ var test_51_keys = function() {
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var keys = [0, 1, 2, 3];
-  var data = keys.map(function(x) {return {id: x, msg: 'msg' + Math.random()};});
+  var data = goog.array.map(keys, function(x) {return {id: x, msg: 'msg' + Math.random()};});
   //var rev_data = ydn.object.clone(data).reverse();
 
 

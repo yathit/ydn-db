@@ -21,7 +21,9 @@ goog.require('ydn.db.index.req.AbstractCursor');
  */
 ydn.db.index.req.IDBCursor = function(tx, tx_no, store_name, index_name,
     keyRange, direction, key_only) {
-  goog.base(this, tx, tx_no,  store_name, index_name, keyRange, direction, key_only);
+
+  goog.base(this, tx, tx_no,  store_name, index_name, keyRange, direction,
+    key_only);
 
   this.cur_ = null;
   this.target_key_ = null;

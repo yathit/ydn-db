@@ -107,7 +107,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
  */
 ydn.db.schema.Database.prototype.toJSON = function() {
 
-  var stores = this.stores.map(function(x) {return x.toJSON()});
+  var stores = goog.array.map(this.stores, function(x) {return x.toJSON()});
 
   var sch = /** @type {DatabaseSchema} */ ({});
   sch.stores = stores;
@@ -171,7 +171,7 @@ ydn.db.schema.Database.prototype.isAutoSchema = function() {
  * @return {!Array.<string>} list of store names.
  */
 ydn.db.schema.Database.prototype.getStoreNames = function() {
-  return this.stores.map(function(x) {return x.name;});
+  return goog.array.map(this.stores, function(x) {return x.name;});
 };
 //
 //

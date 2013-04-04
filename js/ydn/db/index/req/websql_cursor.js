@@ -8,10 +8,11 @@ goog.require('ydn.db.index.req.AbstractCursor');
 goog.require('ydn.db.index.req.ICursor');
 
 
+
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {string} tx_no tx no
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
+ * @param {string} tx_no tx no.
  * @param {!ydn.db.schema.Store} store_schema schema.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index
@@ -32,13 +33,12 @@ ydn.db.index.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
 
   this.current_cursor_offset_ = 0;
 
-  //this.openCursor(ini_key, ini_index_key);
 };
 goog.inherits(ydn.db.index.req.WebsqlCursor, ydn.db.index.req.AbstractCursor);
 
 
 /**
- * @define {boolean}
+ * @define {boolean} for debugging this file.
  */
 ydn.db.index.req.WebsqlCursor.DEBUG = false;
 
@@ -48,7 +48,7 @@ ydn.db.index.req.WebsqlCursor.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.index.req.WebsqlCursor.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.index.req.WebsqlCursor');
+    goog.debug.Logger.getLogger('ydn.db.index.req.WebsqlCursor');
 
 
 /**
@@ -57,6 +57,7 @@ ydn.db.index.req.WebsqlCursor.prototype.logger =
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.store_schema_;
+
 
 /**
  *
@@ -81,12 +82,14 @@ ydn.db.index.req.WebsqlCursor.prototype.ini_primary_key_ = null;
  */
 ydn.db.index.req.WebsqlCursor.prototype.current_key_;
 
+
 /**
  *
  * @type {IDBKey|undefined}
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.current_primary_key_;
+
 
 /**
  *
@@ -95,13 +98,13 @@ ydn.db.index.req.WebsqlCursor.prototype.current_primary_key_;
  */
 ydn.db.index.req.WebsqlCursor.prototype.current_value_;
 
+
 /**
  *
  * @type {number}
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.current_cursor_offset_ = NaN;
-
 
 
 /**
