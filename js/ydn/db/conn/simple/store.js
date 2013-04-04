@@ -6,6 +6,7 @@ goog.provide('ydn.db.con.simple.Store');
 goog.require('ydn.db.con.simple');
 goog.require('ydn.db.con.simple.AvlTree');
 goog.require('ydn.db.con.simple.Node');
+goog.require('ydn.db.base');
 
 
 /**
@@ -151,7 +152,7 @@ ydn.db.con.simple.Store.prototype.generateKey = function() {
 ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
   if (!this.key_indexes[index_name]) {
     this.key_indexes[index_name] =
-      new ydn.db.con.simple.AvlTree();
+      new ydn.db.con.simple.AvlTree(ydn.db.con.simple.Node.cmp);
     var n = this.storage.length;
     for (var i = 0; i < n; i++) {
       var key_str = this.storage.key(i);
@@ -380,7 +381,7 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
 
   /**
    *
-   * @param {ydn.db.con.simple.AvlTree.Node} node
+   * @param {goog.structs.AvlTree.Node} node
    * @return {boolean|undefined}
    */
   var tr_fn = function (node) {
@@ -404,7 +405,7 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
     count++;
 
   };
-  cache.inOrderTraverse(tr_fn, start);
+  cache.traverse(tr_fn, start);
 
   return count;
 };
@@ -446,7 +447,7 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
 
   /**
    *
-   * @param {ydn.db.con.simple.AvlTree.Node} node
+   * @param {goog.structs.AvlTree.Node} node
    * @return {boolean|undefined}
    */
   var tr_fn = function (node) {
@@ -482,7 +483,7 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
     }
 
   };
-  cache.inOrderTraverse(tr_fn, start);
+  cache.traverse(tr_fn, start);
 
   // update tree
   if (removed_ids.length < 10) {
@@ -554,7 +555,7 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
   var me = this;
 
   /**
-   * @param {ydn.db.con.simple.AvlTree.Node} node
+   * @param {goog.structs.AvlTree.Node} node
    * @return {boolean|undefined}
    */
   var tr_fn = function (node) {
@@ -614,9 +615,9 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
   };
 
   if (reverse) {
-    cache.reverseOrderTraverse(tr_fn, end);
+    cache.reverseTraverse(tr_fn, end);
   } else {
-    cache.inOrderTraverse(tr_fn, start);
+    cache.traverse(tr_fn, start);
   }
   return results;
 };

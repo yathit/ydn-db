@@ -31,6 +31,9 @@ ydn.db.index.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
   goog.asserts.assert(store_schema);
   this.store_schema_ = store_schema;
 
+  this.current_key_ = undefined;
+  this.current_avl_node_ = null;
+
   //this.openCursor(ini_key, ini_index_key);
 };
 goog.inherits(ydn.db.index.req.SimpleCursor, ydn.db.index.req.AbstractCursor);
@@ -78,6 +81,13 @@ ydn.db.index.req.SimpleCursor.prototype.current_primary_key_;
  * @private
  */
 ydn.db.index.req.SimpleCursor.prototype.current_value_;
+
+
+/**
+ * @type {goog.structs.AvlTree.Node}
+ * @private
+ */
+ydn.db.index.req.SimpleCursor.prototype.current_avl_node_;
 
 
 /**
@@ -187,32 +197,30 @@ ydn.db.index.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
  * This will seek to given initial position if given. If only ini_key (primary
  * key) is given, this will rewind, if not found.
  *
- * @param {*=} ini_key primary key to resume position.
- * @param {*=} ini_index_key index key to resume position.
- * @param {boolean=} exclusive
- * @private
+ * @param {*=} opt_ini_key primary key to resume position.
+ * @param {*=} opt_ini_index_key index key to resume position.
+ * @param {boolean=} opt_exclusive
  */
-ydn.db.index.req.SimpleCursor.prototype.openCursor = function(ini_key,
-     ini_index_key, exclusive) {
+ydn.db.index.req.SimpleCursor.prototype.openCursor = function(opt_ini_key,
+     opt_ini_index_key, opt_exclusive) {
   var avl_index = this.getIndexCache();
   var start = null;
   if (this.isIndexCursor()) {
-    if (goog.isDefAndNotNull(ini_index_key)) {
-      start = new ydn.db.con.simple.Node(ini_index_key, ini_key);
-    } else if (goog.isDefAndNotNull(ini_key)) {
-      start = new ydn.db.con.simple.Node(ini_key);
+    if (goog.isDefAndNotNull(opt_ini_index_key)) {
+      start = new ydn.db.con.simple.Node(opt_ini_index_key, opt_ini_key);
+    } else if (goog.isDefAndNotNull(opt_ini_key)) {
+      start = new ydn.db.con.simple.Node(opt_ini_key);
     }
   }
   /**
    *
-   * @param node
+   * @param {goog.structs.AvlTree.Node} node
    */
   var tr_fn = function (node) {
 
   };
   avl_index.inOrderTraverse(tr_fn, start);
 };
-
 
 
 /**
