@@ -5,6 +5,7 @@
 
 goog.provide('ydn.db.index.req.AbstractCursor');
 goog.require('goog.Disposable');
+goog.require('ydn.debug.error.InternalError');
 
 
 

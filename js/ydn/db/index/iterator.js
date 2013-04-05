@@ -850,7 +850,7 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
  */
 ydn.db.Iterator.prototype.iterate = function(tx, tx_no, executor) {
   var ini_key, ini_index_key;
-  var resume = this.has_done === false;
+  var resume = !!this.cursor_;
   if (resume) {
     // continue the iteration
     goog.asserts.assert(this.primary_key);

@@ -5,6 +5,7 @@
 
 goog.provide('ydn.db.index.req.IDBCursor');
 goog.require('ydn.db.index.req.AbstractCursor');
+goog.require('ydn.debug.error.InternalError');
 
 
 /**
@@ -170,7 +171,8 @@ ydn.db.index.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
       }
     };
   } else {
-    requestReady();
+    me.request_ = request;
+    me.request_.onsuccess = goog.bind(me.defaultOnSuccess, me);
   }
 
 };

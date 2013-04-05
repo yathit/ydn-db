@@ -56,9 +56,8 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
-  cursor.onError = function(e) {
+  cursor.onFail = function(e) {
     me.logger.warning('error:' + msg);
-    cursor.exit();
     df(e, true);
   };
   var count = 0;
@@ -68,14 +67,13 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
    */
   cursor.onNext = function(key) {
     if (goog.isDef(key)) {
-      var primary_key = cursor.getPrimaryKey();
       if (!cued && offset > 0) {
         cursor.advance(offset);
         cued = true;
         return;
       }
       count++;
-      arr.push(iter.isIndexIterator() ? key : primary_key);
+      arr.push(key);
       if (!goog.isDef(limit) || count < limit) {
         cursor.continueEffectiveKey();
       } else {
@@ -103,7 +101,7 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
-  cursor.onError = function(e) {
+  cursor.onFail = function(e) {
     me.logger.finer('error:' + msg);
     cursor.exit();
     df(e, false);

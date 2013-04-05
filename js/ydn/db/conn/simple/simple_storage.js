@@ -28,6 +28,7 @@ goog.require('ydn.db.con.simple');
 goog.require('ydn.db.req.InMemoryStorage');
 goog.require('ydn.db.VersionError');
 goog.require('ydn.db.con.simple.Store');
+goog.require('ydn.debug.error.InternalError');
 
 
 /**

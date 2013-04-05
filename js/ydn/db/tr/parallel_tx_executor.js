@@ -3,9 +3,10 @@
  */
 
 goog.provide('ydn.db.tr.ParallelTxExecutor');
+goog.require('ydn.debug.error.InternalError');
 
 /**
- * 
+ *
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  * @param {number} tx_no
  * @param {Array.<string>} store_names
@@ -108,7 +109,7 @@ ydn.db.tr.ParallelTxExecutor.prototype.onCompleted = function(t, e) {
  * @param {Function} on_tx
  * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed
  */
-ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function (on_tx, on_completed) {
+ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function(on_tx, on_completed) {
   if (this.tx_) {
     on_tx(this.tx_);
     if (on_completed) {
@@ -125,7 +126,7 @@ ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function (on_tx, on_completed
 //*//**
 // *
 // * @return {ydn.db.base.TransactionMode?}
-// *//*
+//. *//*
 //ydn.db.tr.ParallelTxExecutor.prototype.getMode = function() {
 //  return this.mode_;
 //};
@@ -133,7 +134,7 @@ ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function (on_tx, on_completed
 //*//**
 // *
 // * @return {Array.<string>}
-// *//*
+//. *//*
 //ydn.db.tr.ParallelTxExecutor.prototype.getTxScope = function() {
 //  return this.scopes_;
 //};
