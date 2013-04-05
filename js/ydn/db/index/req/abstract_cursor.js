@@ -17,12 +17,11 @@ goog.require('goog.Disposable');
  * @param {IDBKeyRange} keyRange key range.
  * @param {ydn.db.base.Direction} direction cursor direction.
  * @param {boolean} key_only mode.
- * @implements {ydn.db.index.req.ICursor}
  * @constructor
  * @extends {goog.Disposable}
  */
-ydn.db.index.req.AbstractCursor = function(tx, tx_no, store_name, index_name,
-    keyRange, direction, key_only) {
+ydn.db.index.req.AbstractCursor = function(tx, tx_no,
+    store_name, index_name, keyRange, direction, key_only) {
   goog.base(this);
   /**
    * @final
@@ -40,7 +39,7 @@ ydn.db.index.req.AbstractCursor = function(tx, tx_no, store_name, index_name,
   /**
    * @final
    */
-  this.key_range = keyRange;
+  this.key_range = keyRange || null;
 
   this.tx = tx;
 
@@ -71,6 +70,11 @@ ydn.db.index.req.AbstractCursor = function(tx, tx_no, store_name, index_name,
 };
 goog.inherits(ydn.db.index.req.AbstractCursor, goog.Disposable);
 
+/**
+ * @protected
+ * @type {function(IDBKey=, IDBKey=)}
+ */
+ydn.db.index.req.AbstractCursor.prototype.cursor_position_listener;
 
 /**
  * @protected
@@ -130,15 +134,6 @@ ydn.db.index.req.AbstractCursor.prototype.key_only = true;
 
 /**
  *
- * @param {!Error} e error object.
- */
-ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
-  throw e;
-};
-
-
-/**
- *
  * @return {boolean} true if transaction is active.
  */
 ydn.db.index.req.AbstractCursor.prototype.isActive = function() {
@@ -157,14 +152,10 @@ ydn.db.index.req.AbstractCursor.prototype.isIndexCursor = function() {
 
 /**
  *
- * @return {IDBKey|undefined} effective key.
+ * @param {!Error} e error object.
  */
-ydn.db.index.req.AbstractCursor.prototype.getEffectiveKey = function() {
-  if (this.isIndexCursor()) {
-    return this.getIndexKey();
-  } else {
-    return this.getPrimaryKey();
-  }
+ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
+  throw new ydn.debug.error.InternalError();
 };
 
 
@@ -183,122 +174,14 @@ ydn.db.index.req.AbstractCursor.prototype.getEffectiveKey = function() {
  *   true      : continue next cursor position, not invoke onNext
  *   false     : restart the cursor, not invoke onNext.
  *
- * @param {IDBKey|undefined} primary_key
- * @param {IDBKey|undefined} key
- * @param {*|undefined} value
+ * @param {IDBKey=} opt_key
+ * @param {IDBKey=} opt_primary_key
+ * @param {*=} opt_value
  */
 ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(
-    primary_key, key, value) {
-  this.onNext(primary_key, key, value);
+    opt_key, opt_primary_key, opt_value) {
+ throw new ydn.debug.error.InternalError();
 };
-
-
-/**
- * @inheritDoc
- */
-ydn.db.index.req.AbstractCursor.prototype.onNext = function(primary_key, key,
-                                                            value) {
-
-};
-
-
-/**
- *
- * @return {IDBKey|undefined} primary key.
- */
-ydn.db.index.req.AbstractCursor.prototype.getPrimaryKey = goog.abstractMethod;
-
-/**
- * @return {boolean}
- */
-ydn.db.index.req.AbstractCursor.prototype.hasCursor = goog.abstractMethod;
-
-
-/**
- * @protected
- * @type {boolean}
- */
-ydn.db.index.req.AbstractCursor.prototype.has_pending_request = false;
-
-/**
- * @return {boolean}
- */
-ydn.db.index.req.AbstractCursor.prototype.isRequestPending = function() {
-  return this.has_pending_request;
-};
-
-
-/**
- *
- * @return {IDBKey|undefined} primary key.
- */
-ydn.db.index.req.AbstractCursor.prototype.getIndexKey = goog.abstractMethod;
-
-
-/**
- *
- * @return {*} primary key.
- */
-ydn.db.index.req.AbstractCursor.prototype.getValue = goog.abstractMethod;
-
-
-/**
- *
- * @param {number=} opt_index peer store index.
- * @return {!goog.async.Deferred} deferred object.
- */
-ydn.db.index.req.AbstractCursor.prototype.clear = goog.abstractMethod;
-
-
-/**
- * @param {*} record value.
- * @param {number=} opt_index peer store index.
- * @return {!goog.async.Deferred} primary key.
- */
-ydn.db.index.req.AbstractCursor.prototype.update = goog.abstractMethod;
-
-
-/**
- * Make cursor opening request.
- *
- * This will seek to given initial position if given. If only ini_key (primary
- * key) is given, this will rewind, if not found.
- *
- * @param {*=} opt_ini_key primary key to resume position.
- * @param {*=} opt_ini_index_key index key to resume position.
- * @param {boolean=} exclusive exclusive.
- */
-ydn.db.index.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
-
-
-/**
- * Move cursor position to the primary key while remaining on same index key.
- * @param {IDBKey=} primary_key
- */
-ydn.db.index.req.AbstractCursor.prototype.continuePrimaryKey = goog.abstractMethod;
-
-
-/**
- * Move cursor position to the effective key.
- * @param {IDBKey=} opt_effective_key effective key.
- */
-ydn.db.index.req.AbstractCursor.prototype.continueEffectiveKey = goog.abstractMethod;
-
-
-/**
- * Move cursor position to the effective key.
- * @param {number} number_of_step
- */
-ydn.db.index.req.AbstractCursor.prototype.advance = goog.abstractMethod;
-
-
-/**
- * Restart the cursor. If previous cursor position is given,
- * the position is skip.
- * @param {IDBKey=} opt_effective_key previous position.
- * @param {IDBKey=} opt_primary_key  primary key.
- */
-ydn.db.index.req.AbstractCursor.prototype.restart = goog.abstractMethod;
 
 
 /**
@@ -310,22 +193,15 @@ ydn.db.index.req.AbstractCursor.prototype.disposeInternal = function() {
 
 
 if (goog.DEBUG) {
-/**
- * @override
- */
-ydn.db.index.req.AbstractCursor.prototype.toString = function () {
-
-  var k = '';
-  if (this.hasCursor()) {
-    if (this.isIndexCursor()) {
-      k = ' {' + this.getEffectiveKey() + ':' + this.getPrimaryKey() + '} ';
-    } else {
-      k = ' {' + this.getPrimaryKey() + '} ';
-    }
-  }
-  var index = goog.isDef(this.index_name) ? ':' + this.index_name : '';
-  var active = this.tx ? '' : '~';
-  return active  + ' TX' + this.tx_no + ' Cursor:' + k + this.store_name + index;
-
-};
+  /**
+   *
+   * @return {string}
+   */
+  ydn.db.index.req.AbstractCursor.prototype.toString = function() {
+    var k = '';
+    var index = goog.isDef(this.index_name) ? ':' + this.index_name : '';
+    var active = this.tx ? '' : '~';
+    return active + ' TX' + this.tx_no + ' Cursor:' + k + this.store_name +
+        index;
+  };
 }

@@ -9,11 +9,10 @@ goog.provide('ydn.db.index.req.IndexedDb');
 goog.require('ydn.db.crud.req.IndexedDb');
 goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.algo.AbstractSolver');
-goog.require('ydn.db.IDBCursor');
-goog.require('ydn.db.IDBValueCursor');
 goog.require('ydn.db.index.req.IDBCursor');
 goog.require('ydn.error');
 goog.require('ydn.json');
+
 
 
 /**
@@ -59,32 +58,33 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onError = function(e) {
     me.logger.warning('error:' + msg);
-    iter.exit();
-    cursor.dispose();
+    cursor.exit();
     df(e, true);
   };
   var count = 0;
   var cued = false;
-  cursor.onNext = function(primary_key, key, value) {
-    if (goog.isDef(primary_key)) {
+  /**
+   * @param {IDBKey=} key
+   */
+  cursor.onNext = function(key) {
+    if (goog.isDef(key)) {
+      var primary_key = cursor.getPrimaryKey();
       if (!cued && offset > 0) {
         cursor.advance(offset);
         cued = true;
         return;
       }
       count++;
-      arr.push(cursor.isIndexCursor() ? key : primary_key);
+      arr.push(iter.isIndexIterator() ? key : primary_key);
       if (!goog.isDef(limit) || count < limit) {
         cursor.continueEffectiveKey();
       } else {
-        iter.exit();
-        cursor.dispose();
+        cursor.exit();
         me.logger.finest('success:' + msg);
         df(arr);
       }
     } else {
-      iter.exit();
-      cursor.dispose();
+      cursor.exit();
       me.logger.finest('success:' + msg);
       df(arr);
     }
@@ -105,14 +105,18 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onError = function(e) {
     me.logger.finer('error:' + msg);
-    iter.exit();
-    cursor.dispose();
+    cursor.exit();
     df(e, false);
   };
   var count = 0;
   var cued = false;
-  cursor.onNext = function(primary_key, key, value) {
+  /**
+   * @param {IDBKey=} key
+   */
+  cursor.onNext = function(key) {
     if (goog.isDef(key)) {
+      var primary_key = cursor.getPrimaryKey();
+      var value = cursor.getValue();
       if (!cued && offset > 0) {
         cursor.advance(offset);
         cued = true;
@@ -123,15 +127,13 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
       if (!goog.isDef(limit) || count < limit) {
         cursor.continueEffectiveKey();
       } else {
-        iter.exit();
         me.logger.finer('success:' + msg);
-        cursor.dispose();
+        cursor.exit();
         df(arr);
       }
     } else {
-      iter.exit();
       me.logger.finest('success:' + msg);
-      cursor.dispose();
+      cursor.exit();
       df(arr);
     }
   };

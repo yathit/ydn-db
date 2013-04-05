@@ -136,8 +136,7 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
 
 /**
  *
- * @param {!ydn.db.Iterator} iterator
- * @param {function(*): (*|undefined)} callback
+ * @inheritDoc
  */
 ydn.db.index.Storage.prototype.map = function (iterator, callback) {
   return this.getIndexOperator().map(iterator, callback);

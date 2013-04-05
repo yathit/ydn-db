@@ -269,7 +269,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
   }
 
   this.logger.finest(this + ': scan for ' + iterators.length +
-    ' iterators on ' + scopes);
+      ' iterators on ' + scopes);
 
   var passthrough_streamers = opt_streamers || [];
   for (var i = 0; i < passthrough_streamers.length; i++) {
@@ -283,10 +283,8 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
 
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
-    me.logger.finest(me + ':tx' + tx_no + ': scanning started.');
-    //executor.scan(df, iterators, streamers, solver);
-    // do scanning
-
+    var lbl = tx_no + ' ' + me + ' scanning'
+    me.logger.finest(lbl);
     var done = false;
 
     var total;
@@ -300,17 +298,14 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
 
     var do_exit = function() {
 
-      for (var k = 0; k < iterators.length; k++) {
-        iterators[k].exit();
-      }
       for (var k = 0; k < cursors.length; k++) {
-        cursors[k].dispose();
+        cursors[k].exit();
       }
       done = true;
       goog.array.clear(cursors);
       goog.array.clear(streamers);
       // console.log('existing');
-      me.logger.finer(me + ':tx' + tx_no + ': scanning success.');
+      me.logger.finer('success ' + lbl);
       cb(undefined);
     };
 
@@ -333,7 +328,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
       }
       if (ydn.db.index.DbOperator.DEBUG) {
         window.console.log(me + ' ready and received result from solver ' +
-          ydn.json.stringify(out));
+            ydn.json.stringify(out));
       }
       var next_primary_keys = [];
       var next_effective_keys = [];
@@ -373,9 +368,9 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
       result_count = 0;
       for (var i = 0; i < iterators.length; i++) {
         if (goog.isDefAndNotNull(next_primary_keys[i]) ||
-          goog.isDefAndNotNull(next_effective_keys[i]) ||
-          goog.isDefAndNotNull(restart[i]) ||
-          goog.isDefAndNotNull(advance[i])) {
+            goog.isDefAndNotNull(next_effective_keys[i]) ||
+            goog.isDefAndNotNull(restart[i]) ||
+            goog.isDefAndNotNull(advance[i])) {
           // by marking non moving iterator first, both async and sync callback
           // work.
         } else {
@@ -391,14 +386,10 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
           var idx = idx2iterator[i];
           if (!goog.isDef(idx)) {
             throw new ydn.error.InvalidOperationException(i +
-              ' is not an iterator.');
+                ' is not an iterator.');
           }
           var iterator = iterators[idx];
           var req = cursors[i];
-//          if (next_primary_keys[i] !== false && !goog.isDef(keys[i])) {
-//            throw new ydn.error.InvalidOperationError('Iterator ' + i +
-//              ' must not advance.');
-//          }
           if (!goog.isDefAndNotNull(keys[i]) &&
               (advance[i] === true ||
                   goog.isDefAndNotNull(next_effective_keys[i]) ||
@@ -471,25 +462,27 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
     /**
      * Received iterator result. When all iterators result are collected,
      * begin to send request to collect streamers results.
-     * @param {number} i
-     * @param {*} primary_key
-     * @param {*} key
-     * @param {*} value
+     * @param {number} i index.
+     * @param {IDBKey=} key effective key.
      */
-    var on_iterator_next = function(i, primary_key, key, value) {
+    var on_iterator_next = function(i, key) {
       if (done) {
         if (ydn.db.index.DbOperator.DEBUG) {
-          window.console.log(['on_iterator_next done', i, primary_key, key, value]);
+          window.console.log('iterator ' + i + ' done');
         }
         // calling next to a terminated iterator
         throw new ydn.error.InternalError();
       }
       result_count++;
-      if (ydn.db.index.DbOperator.DEBUG) {
-        window.console.log(['on_iterator_next', i, primary_key, key, value, idx2iterator[i], result_count]);
-      }
       var idx = idx2iterator[i];
       var iterator = iterators[idx];
+      var cursor = cursors[idx];
+      var primary_key = cursor.getPrimaryKey();
+      var value = cursor.getValue();
+      if (ydn.db.index.DbOperator.DEBUG) {
+        window.console.log(['on_iterator_next', i, primary_key, key, value,
+          idx2iterator[i], result_count]);
+      }
 
       if (iterator.isIndexIterator()) {
         keys[i] = key;
@@ -520,15 +513,12 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
     };
 
     var on_error = function(e) {
-      for (var k = 0; k < iterators.length; k++) {
-        iterators[k].exit();
-      }
       for (var k = 0; k < cursors.length; k++) {
-        cursors[k].dispose();
+        cursors[k].exit();
       }
       goog.array.clear(cursors);
       goog.array.clear(streamers);
-      me.logger.finer(me + ':tx' + tx_no + ': scanning error.');
+      me.logger.finer(lbl + ' error');
       cb(e, true);
     };
 
@@ -537,14 +527,14 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
       for (var i = 0; i < iterators.length; i++) {
         var iterator = iterators[i];
         var cursor = iterator.iterate(tx, tx_no, me.getIndexExecutor());
-        cursor.onError = on_error;
+        cursor.onFail = on_error;
         cursor.onNext = goog.partial(on_iterator_next, idx);
         cursors[i] = cursor;
         idx2iterator[idx] = i;
         idx++;
         for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
-          var streamer = me.getIndexExecutor().getStreamer(tx, tx_no, iterator.getPeerStoreName(j),
-            iterator.getBaseIndexName(j));
+          var streamer = me.getIndexExecutor().getStreamer(tx, tx_no,
+              iterator.getPeerStoreName(j), iterator.getBaseIndexName(j));
           streamer.setSink(goog.partial(on_streamer_pop, idx));
           streamers.push(streamer);
           idx2streamer[idx] = streamers.length;
@@ -588,34 +578,38 @@ ydn.db.index.DbOperator.prototype.getIndexExecutor = function() {
  *
  * @param {!ydn.db.Iterator} iter the cursor.
  * @param {Function} callback icursor handler.
- * @param {ydn.db.base.TransactionMode=} mode mode.
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.DbOperator.prototype.open = function(iter, callback, mode) {
+ydn.db.index.DbOperator.prototype.open = function(iter, callback, opt_mode) {
   if (!(iter instanceof ydn.db.Iterator)) {
-    throw new ydn.debug.error.ArgumentException('First argument must be cursor range iterator.');
+    throw new ydn.debug.error.ArgumentException(
+        'First argument must be cursor range iterator.');
   }
   var store = this.schema.getStore(iter.getStoreName());
   if (!store) {
-    throw new ydn.debug.error.ArgumentException('Store "' + iter.getStoreName() +
-      '" not found.');
+    throw new ydn.debug.error.ArgumentException('Store "' +
+        iter.getStoreName() + '" not found.');
   }
-  var tr_mode = mode || ydn.db.base.TransactionMode.READ_ONLY;
+  var tr_mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
 
   var me = this;
   var df = ydn.db.base.createDeferred();
   this.logger.finer('open:' + tr_mode + ' ' + iter);
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
-
+    var lbl = tx_no + ' iterating ' + iter;
+    me.logger.finest(lbl);
     var cursor = iter.iterate(tx, tx_no, me.getIndexExecutor());
 
-    cursor.onError = function(e) {
-      iter.exit();
-      cursor.dispose();
+    cursor.onFail = function(e) {
       cb(e, true);
     };
-    cursor.onNext = function(primaryKey, key, value) {
-      if (goog.isDefAndNotNull(primaryKey)) {
+    /**
+     * callback.
+     * @param {IDBKey=} opt_key effective key.
+     */
+    cursor.onNext = function(opt_key) {
+      if (goog.isDefAndNotNull(opt_key)) {
         var adv = callback(cursor);
         if (adv === true) {
           cursor.restart();
@@ -627,16 +621,14 @@ ydn.db.index.DbOperator.prototype.open = function(iter, callback, mode) {
           } else if (goog.isDefAndNotNull(adv['continuePrimary'])) {
             cursor.continuePrimaryKey(adv['continuePrimary']);
           } else {
-            iter.exit();
-            cursor.dispose();
+            cursor.exit();
             cb(undefined); // break the loop
           }
         } else {
           cursor.advance(1);
         }
       } else {
-        iter.exit();
-        cursor.dispose();
+        cursor.exit();
         cb(undefined);
       }
     };
@@ -649,9 +641,7 @@ ydn.db.index.DbOperator.prototype.open = function(iter, callback, mode) {
 
 
 /**
- *
- * @param {!ydn.db.Iterator} iterator
- * @param {?function(*): (*|undefined)} callback
+ * @inheritDoc
  */
 ydn.db.index.DbOperator.prototype.map = function(iterator, callback) {
 
@@ -667,25 +657,31 @@ ydn.db.index.DbOperator.prototype.map = function(iterator, callback) {
   this.logger.finest('map:' + iterator);
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
+    var lbl = tx_no + ' iterating ' + iterator;
+    me.logger.finest(lbl);
     var cursor = iterator.iterate(tx, tx_no, me.getIndexExecutor());
 
-    cursor.onError = function(e) {
+    cursor.onFail = function(e) {
       cb(e, false);
     };
-    cursor.onNext = function(primaryKey, key, value) {
-      if (goog.isDefAndNotNull(primaryKey)) {
+    /**
+     *
+     * @param {IDBKey=} key
+     */
+    cursor.onNext = function(key) {
+      if (goog.isDefAndNotNull(key)) {
         var ref;
         if (iterator.isKeyOnly()) {
           if (iterator.isIndexIterator()) {
             ref = key;
           } else {
-            ref = primaryKey;
+            ref = cursor.getPrimaryKey();
           }
         } else {
           if (iterator.isIndexIterator()) {
-            ref = primaryKey;
+            ref = cursor.getPrimaryKey();
           } else {
-            ref = value;
+            ref = cursor.getValue();
           }
         }
         callback(ref);
@@ -728,24 +724,32 @@ ydn.db.index.DbOperator.prototype.reduce = function(iterator, callback, initial)
 
     var cursor = iterator.iterate(tx, tx_no, me.getIndexExecutor());
 
+    /**
+     *
+     * @param {!Error} e
+     */
     cursor.onError = function(e) {
       cb(e, true);
     };
     var index = 0;
-    cursor.onNext = function(primaryKey, key, value) {
-      if (goog.isDefAndNotNull(primaryKey)) {
+    /**
+     *
+     * @param {IDBKey=} key
+     */
+    cursor.onNext = function(key) {
+      if (goog.isDefAndNotNull(key)) {
         var current_value;
         if (iterator.isKeyOnly()) {
           if (iterator.isIndexIterator()) {
-            current_value = key;
+            current_value = cursor.getPrimaryKey();
           } else {
-            current_value = primaryKey;
+            current_value = key;
           }
         } else {
           if (iterator.isIndexIterator()) {
-            current_value = primaryKey;
+            current_value = cursor.getPrimaryKey();
           } else {
-            current_value = value;
+            current_value = cursor.getValue();
           }
         }
 

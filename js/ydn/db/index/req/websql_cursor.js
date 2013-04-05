@@ -109,7 +109,7 @@ ydn.db.index.req.WebsqlCursor.prototype.current_cursor_offset_ = NaN;
 
 
 /**
- * @inheritDoc
+ * @return {IDBKey|undefined}
  */
 ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
 
@@ -119,7 +119,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
 
 
 /**
- * @inheritDoc
+ *  @return {IDBKey|undefined}
  */
 ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
   return this.current_primary_key_;
@@ -127,7 +127,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function () {
 
 
 /**
- * @inheritDoc
+ * @return {*}
  */
 ydn.db.index.req.WebsqlCursor.prototype.getValue = function () {
   return this.current_value_;
@@ -264,15 +264,13 @@ ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.update = function(obj, idx) {
+ydn.db.index.req.WebsqlCursor.prototype.update = function(obj) {
 
   if (!this.hasCursor()) {
     throw new ydn.db.InvalidAccessError();
   }
 
-  if (idx) {
-    throw new ydn.error.NotImplementedException();
-  } else {
+
     var df = new goog.async.Deferred();
     var me = this;
     this.has_pending_request = true;
@@ -317,7 +315,7 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj, idx) {
       ydn.json.stringify(out.values));
     this.tx.executeSql(sql, out.values, onSuccess, onError);
     return df;
-  }
+
 };
 
 
@@ -380,15 +378,13 @@ ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(ini_key,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
+ydn.db.index.req.WebsqlCursor.prototype.clear = function() {
 
   if (!this.hasCursor()) {
     throw new ydn.db.InvalidAccessError();
   }
 
-  if (idx) {
-    throw new ydn.error.NotImplementedException();
-  } else {
+
     var df = new goog.async.Deferred();
     var me = this;
     this.has_pending_request = true;
@@ -429,7 +425,7 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function(idx) {
       ydn.json.stringify(params));
     this.tx.executeSql(sql, params, onSuccess, onError);
     return df;
-  }
+
 };
 
 

@@ -4,24 +4,14 @@
 
 
 goog.provide('ydn.db.index.req.ICursor');
+goog.require('goog.disposable.IDisposable');
 
 
 /**
  * @interface
+ * @extends {goog.disposable.IDisposable}
  */
 ydn.db.index.req.ICursor = function() {};
-
-
-/**
- * Callback to receive requested cursor value.
- *
- * Requester must handle the cursor value synchronously and decide the
- * next move by invoking forward.
- * @param {IDBKey|undefined} primary_key
- * @param {IDBKey|undefined} key
- * @param {*|undefined} value
- */
-ydn.db.index.req.ICursor.prototype.onNext = goog.abstractMethod;
 
 
 /**
@@ -36,12 +26,25 @@ ydn.db.index.req.ICursor.prototype.onError = goog.abstractMethod;
  * onSuccess handler is apply filter. If filter condition are not meet,
  * onSuccess return next advancement value skipping onNext callback.
  *
- * @param {IDBKey|undefined} primary_key
- * @param {IDBKey|undefined} key
- * @param {*} value
+ * @param {IDBKey=} primary_key
+ * @param {IDBKey=} key
+ * @param {*=} value
  * @return {*}
  */
 ydn.db.index.req.ICursor.prototype.onSuccess = goog.abstractMethod;
+
+
+/**
+ * Make cursor opening request.
+ *
+ * This will seek to given initial position if given. If only ini_key (primary
+ * key) is given, this will rewind, if not found.
+ *
+ * @param {*=} opt_ini_key effective key to resume position.
+ * @param {*=} opt_ini_primary_key primary key to resume position.
+ */
+ydn.db.index.req.ICursor.prototype.openCursor = goog.abstractMethod;
+
 
 
 /**
@@ -72,3 +75,23 @@ ydn.db.index.req.ICursor.prototype.advance = goog.abstractMethod;
  * @param {IDBKey=} primary_key
  */
 ydn.db.index.req.ICursor.prototype.restart = goog.abstractMethod;
+
+
+/**
+ * @return {boolean}
+ */
+ydn.db.index.req.ICursor.prototype.hasCursor =  goog.abstractMethod;
+
+
+/**
+ * @param {!Object} obj record value.
+ * @return {!goog.async.Deferred} value.
+ */
+ydn.db.index.req.ICursor.prototype.update = goog.abstractMethod;
+
+
+/**
+ * Clear record
+ * @return {!goog.async.Deferred} value.
+ */
+ydn.db.index.req.ICursor.prototype.clear = goog.abstractMethod;

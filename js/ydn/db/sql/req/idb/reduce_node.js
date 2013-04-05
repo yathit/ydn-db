@@ -94,12 +94,22 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
 
     var cursor = iter.iterate(tx, tx_no, req);
 
-    cursor.onError = function (e) {
+    /**
+     *
+     * @param {!Error} e
+     */
+    cursor.onError = function(e) {
       df(e, true);
     };
     var i = 0;
-    cursor.onNext = function (primaryKey, key, value) {
-      if (goog.isDef(key)) {
+    /**
+     *
+     * @param {IDBKey=} opt_key
+     */
+    cursor.onNext = function(opt_key) {
+      if (goog.isDef(opt_key)) {
+        var value = iter.isIndexIterator() ?
+            cursor.getPrimaryKey() : cursor.getValue();
         out = reduce(value, out, i);
         cursor.advance(1);
         i++;

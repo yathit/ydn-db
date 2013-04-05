@@ -21,11 +21,11 @@
  */
 
 goog.provide('ydn.db.index.req.WebSql');
+goog.require('ydn.db.crud.req.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.WebsqlCursor');
 goog.require('ydn.json');
 goog.require('ydn.db.index.req.IRequestExecutor');
 goog.require('ydn.db.index.req.WebsqlCursor');
@@ -196,14 +196,18 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onError = function(e) {
     me.logger.warning('error:' + msg);
-    iter.exit();
-    cursor.dispose();
+    cursor.exit();
     df(e, true);
   };
   var count = 0;
   var cued = false;
-  cursor.onNext = function(primary_key, key, value) {
-    if (goog.isDef(primary_key)) {
+  /**
+   * @param {IDBKey=} key
+   */
+  cursor.onNext = function(key) {
+    if (goog.isDef(key)) {
+      var primary_key = cursor.getPrimaryKey();
+      var value = cursor.getValue();
       if (!cued && offset > 0) {
         cursor.advance(offset);
         cued = true;
@@ -212,7 +216,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
       count++;
       var out;
       if (keys_method) { // call by keys() method
-        if (cursor.isIndexCursor()) {
+        if (iter.isIndexIterator()) {
           out = key;
         } else {
           out = primary_key;
@@ -228,14 +232,12 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
       if (!goog.isDef(limit) || count < limit) {
         cursor.continueEffectiveKey();
       } else {
-        iter.exit();
-        cursor.dispose();
+        cursor.exit();
         me.logger.finest('success:' + msg);
         df(arr);
       }
     } else {
-      iter.exit();
-      cursor.dispose();
+      cursor.exit();
       me.logger.finest('success:' + msg);
       df(arr);
     }

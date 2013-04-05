@@ -207,7 +207,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini
       if (goog.isDefAndNotNull(this.key_range)) {
         var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.upper);
         if (cmp == 1 || (cmp == 0 && !this.key_range.upperOpen)) {
-          this.onNext(undefined, undefined, undefined); // out of range;
+          this.onSuccess(undefined, undefined, undefined); // out of range;
           return;
         }
         key_range = ydn.db.IDBKeyRange.bound(ini_index_key,
@@ -310,7 +310,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.hasCursor = function() {
 
 
 /**
- * @inheritDoc
+ * @return {IDBKey|undefined} get index key.
  */
 ydn.db.index.req.CachedWebsqlCursor.prototype.getIndexKey = function() {
 
@@ -333,7 +333,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.getIndexKey = function() {
 
 
 /**
- * @inheritDoc
+ * @return {IDBKey|undefined}
  */
 ydn.db.index.req.CachedWebsqlCursor.prototype.getPrimaryKey = function () {
   if (this.current_cursor_index_ < this.cursor_.rows.length) {
@@ -347,10 +347,18 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.getPrimaryKey = function () {
 };
 
 
+ydn.db.index.req.CachedWebsqlCursor.prototype.getEffectiveKey = function() {
+  if (this.isIndexCursor()) {
+    return this.getIndexKey();
+  } else {
+    return this.getPrimaryKey();
+  }
+}
+
+
 /**
  * This must call only when cursor is active.
  * @return {*} return current primary key.
- * @override
  */
 ydn.db.index.req.CachedWebsqlCursor.prototype.getValue = function () {
   var column_name = this.index_name ?
@@ -374,15 +382,12 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.getValue = function () {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.CachedWebsqlCursor.prototype.clear = function(idx) {
+ydn.db.index.req.CachedWebsqlCursor.prototype.clear = function() {
 
   if (!this.hasCursor()) {
     throw new ydn.db.InvalidAccessError();
   }
 
-  if (idx) {
-    throw new ydn.error.NotImplementedException();
-  } else {
     var df = new goog.async.Deferred();
     var me = this;
     this.has_pending_request = true;
@@ -422,21 +427,18 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.clear = function(idx) {
     me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(params));
     this.tx.executeSql(sql, params, onSuccess, onError);
     return df;
-  }
+
 };
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.CachedWebsqlCursor.prototype.update = function(obj, idx) {
+ydn.db.index.req.CachedWebsqlCursor.prototype.update = function(obj) {
 
   if (!this.hasCursor()) {
     throw new ydn.db.InvalidAccessError();
   }
 
-  if (idx) {
-    throw new ydn.error.NotImplementedException();
-  } else {
     var df = new goog.async.Deferred();
     var me = this;
     this.has_pending_request = true;
@@ -480,7 +482,7 @@ ydn.db.index.req.CachedWebsqlCursor.prototype.update = function(obj, idx) {
     me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(out.values));
     this.tx.executeSql(sql, out.values, onSuccess, onError);
     return df;
-  }
+
 };
 
 

@@ -93,103 +93,103 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(tx, tx_no, df, sql, params
 
 };
 
-
-/**
- *
- * @param {SQLTransaction} tx
- * @param {?function(*, boolean=)} df key in deferred function.
- * @param {ydn.db.sql.req.SqlQuery} cursor the cursor.
- * @param {Function} next_callback icursor handler.
- * @param {ydn.db.base.CursorMode?=} mode mode.
- */
-ydn.db.sql.req.WebSql.prototype.openSqlQuery = function(tx, df, cursor, next_callback, mode) {
-
-  var me = this;
-  var sql = cursor.sql;
-
-  var store = this.schema.getStore(cursor.getStoreName());
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function(transaction, results) {
-
-    // http://www.w3.org/TR/webdatabase/#database-query-results
-    // Fetching the length might be expensive, and authors are thus encouraged
-    // to avoid using it (or enumerating over the object, which implicitly uses
-    // it) where possible.
-    // for (var row, i = 0; row = results.rows.item(i); i++) {
-    // Unfortunately, such enumerating don't work
-    // RangeError: Item index is out of range in Chrome.
-    // INDEX_SIZE_ERR: DOM Exception in Safari
-    var n = results.rows.length;
-    for (var i = 0; i < n; i++) {
-      var row = results.rows.item(i);
-      var value = {}; // ??
-      var key = undefined;
-      if (goog.isDefAndNotNull(row)) {
-        value = cursor.parseRow(row, store);
-        var key_str = goog.isDefAndNotNull(store.keyPath) ?
-          row[store.keyPath] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
-        key = ydn.db.schema.Index.sql2js(key_str, store.getType());
-
-//        if (!goog.isDefAndNotNull(key)) {
-//          var msg;
-//          if (goog.DEBUG) {
-//            msg = 'executing ' + sql + ' return invalid key object: ' +
-//              row.toString().substr(0, 80);
+//
+///**
+// *
+// * @param {SQLTransaction} tx
+// * @param {?function(*, boolean=)} df key in deferred function.
+// * @param {ydn.db.sql.req.SqlQuery} cursor the cursor.
+// * @param {Function} next_callback icursor handler.
+// * @param {ydn.db.base.CursorMode?=} mode mode.
+// */
+//ydn.db.sql.req.WebSql.prototype.openSqlQuery = function(tx, df, cursor, next_callback, mode) {
+//
+//  var me = this;
+//  var sql = cursor.sql;
+//
+//  var store = this.schema.getStore(cursor.getStoreName());
+//
+//  /**
+//   * @param {SQLTransaction} transaction transaction.
+//   * @param {SQLResultSet} results results.
+//   */
+//  var callback = function(transaction, results) {
+//
+//    // http://www.w3.org/TR/webdatabase/#database-query-results
+//    // Fetching the length might be expensive, and authors are thus encouraged
+//    // to avoid using it (or enumerating over the object, which implicitly uses
+//    // it) where possible.
+//    // for (var row, i = 0; row = results.rows.item(i); i++) {
+//    // Unfortunately, such enumerating don't work
+//    // RangeError: Item index is out of range in Chrome.
+//    // INDEX_SIZE_ERR: DOM Exception in Safari
+//    var n = results.rows.length;
+//    for (var i = 0; i < n; i++) {
+//      var row = results.rows.item(i);
+//      var value = {}; // ??
+//      var key = undefined;
+//      if (goog.isDefAndNotNull(row)) {
+//        value = cursor.parseRow(row, store);
+//        var key_str = goog.isDefAndNotNull(store.keyPath) ?
+//          row[store.keyPath] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
+//        key = ydn.db.schema.Index.sql2js(key_str, store.getType());
+//
+////        if (!goog.isDefAndNotNull(key)) {
+////          var msg;
+////          if (goog.DEBUG) {
+////            msg = 'executing ' + sql + ' return invalid key object: ' +
+////              row.toString().substr(0, 80);
+////          }
+////          throw new ydn.db.InvalidStateError(msg);
+////        }
+//        var to_continue = !goog.isFunction(cursor.continued) ||
+//          cursor.continued(value);
+//
+//        if (!goog.isFunction(cursor.filter_fn) || cursor.filter_fn(value)) {
+//          var peerKeys = [];
+//          var peerIndexKeys = [];
+//          var peerValues = [];
+//          // var tx = mode === 'readwrite' ? tx : null;
+//          var icursor = new ydn.db.WebsqlCursor(tx, key, null, value,
+//            peerKeys, peerIndexKeys, peerValues);
+//          var to_break = next_callback(icursor);
+//          icursor.dispose();
+//          if (to_break === true) {
+//            break;
 //          }
-//          throw new ydn.db.InvalidStateError(msg);
 //        }
-        var to_continue = !goog.isFunction(cursor.continued) ||
-          cursor.continued(value);
-
-        if (!goog.isFunction(cursor.filter_fn) || cursor.filter_fn(value)) {
-          var peerKeys = [];
-          var peerIndexKeys = [];
-          var peerValues = [];
-          // var tx = mode === 'readwrite' ? tx : null;
-          var icursor = new ydn.db.WebsqlCursor(tx, key, null, value,
-            peerKeys, peerIndexKeys, peerValues);
-          var to_break = next_callback(icursor);
-          icursor.dispose();
-          if (to_break === true) {
-            break;
-          }
-        }
-        if (!to_continue) {
-          break;
-        }
-      }
-
-    }
-    df(undefined);
-
-  };
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   * @return {boolean} true to roll back.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.index.req.WebSql.DEBUG) {
-      window.console.log([cursor, tr, error]);
-    }
-    me.logger.warning('Sqlite error: ' + error.message);
-    df(error, true);
-    return true; // roll back
-  };
-
-  if (goog.DEBUG) {
-    this.logger.finest(this + ' open SQL: ' + sql + ' PARAMS:' +
-      ydn.json.stringify(cursor.params));
-  }
-  tx.executeSql(sql, cursor.params, callback, error_callback);
-
-};
-
+//        if (!to_continue) {
+//          break;
+//        }
+//      }
+//
+//    }
+//    df(undefined);
+//
+//  };
+//
+//  /**
+//   * @param {SQLTransaction} tr transaction.
+//   * @param {SQLError} error error.
+//   * @return {boolean} true to roll back.
+//   */
+//  var error_callback = function(tr, error) {
+//    if (ydn.db.index.req.WebSql.DEBUG) {
+//      window.console.log([cursor, tr, error]);
+//    }
+//    me.logger.warning('Sqlite error: ' + error.message);
+//    df(error, true);
+//    return true; // roll back
+//  };
+//
+//  if (goog.DEBUG) {
+//    this.logger.finest(this + ' open SQL: ' + sql + ' PARAMS:' +
+//      ydn.json.stringify(cursor.params));
+//  }
+//  tx.executeSql(sql, cursor.params, callback, error_callback);
+//
+//};
+//
 
 
 /**

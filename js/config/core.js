@@ -32,35 +32,16 @@ goog.exportProperty(ydn.db.index.DbOperator.prototype, 'reduce',
 goog.exportProperty(ydn.db.index.DbOperator.prototype, 'open',
     ydn.db.index.DbOperator.prototype.open);
 
-goog.exportProperty(ydn.db.index.req.AbstractCursor.prototype, 'key',
-    ydn.db.index.req.AbstractCursor.prototype.getEffectiveKey);
-
-goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'primaryKey',
-    ydn.db.index.req.IDBCursor.prototype.getPrimaryKey);
-goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'value',
-    ydn.db.index.req.IDBCursor.prototype.getValue);
-goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'update',
-    ydn.db.index.req.IDBCursor.prototype.update);
-goog.exportProperty(ydn.db.index.req.IDBCursor.prototype, 'clear',
-    ydn.db.index.req.IDBCursor.prototype.clear);
-
-goog.exportProperty(ydn.db.index.req.WebsqlCursor.prototype, 'primaryKey',
-    ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey);
-goog.exportProperty(ydn.db.index.req.WebsqlCursor.prototype, 'value',
-    ydn.db.index.req.WebsqlCursor.prototype.getValue);
-goog.exportProperty(ydn.db.index.req.WebsqlCursor.prototype, 'update',
-    ydn.db.index.req.WebsqlCursor.prototype.update);
-goog.exportProperty(ydn.db.index.req.WebsqlCursor.prototype, 'clear',
-    ydn.db.index.req.WebsqlCursor.prototype.clear);
-
-goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'primaryKey',
-    ydn.db.index.req.CachedWebsqlCursor.prototype.getPrimaryKey);
-goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'value',
-    ydn.db.index.req.CachedWebsqlCursor.prototype.getValue);
-goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'update',
-    ydn.db.index.req.CachedWebsqlCursor.prototype.update);
-goog.exportProperty(ydn.db.index.req.CachedWebsqlCursor.prototype, 'clear',
-    ydn.db.index.req.CachedWebsqlCursor.prototype.clear);
+goog.exportProperty(ydn.db.Cursor.prototype, 'key',
+    ydn.db.Cursor.prototype.getKey);
+goog.exportProperty(ydn.db.Cursor.prototype, 'primaryKey',
+    ydn.db.Cursor.prototype.getPrimaryKey);
+goog.exportProperty(ydn.db.Cursor.prototype, 'value',
+    ydn.db.Cursor.prototype.getValue);
+goog.exportProperty(ydn.db.Cursor.prototype, 'update',
+    ydn.db.Cursor.prototype.update);
+goog.exportProperty(ydn.db.Cursor.prototype, 'clear',
+    ydn.db.Cursor.prototype.clear);
 
 goog.exportSymbol('ydn.math.Expression', ydn.math.Expression);
 goog.exportProperty(ydn.math.Expression.prototype, 'evaluate',
