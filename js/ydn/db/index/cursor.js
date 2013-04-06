@@ -14,13 +14,11 @@ goog.require('ydn.db');
 
 /**
  *
- * @param {string} lbl transaction label.
  * @param {Array.<ydn.db.index.req.ICursor>} cursors cursors.
  * @constructor
  */
 ydn.db.Cursor = function(cursors) {
 
-  this.tx_lbl = lbl;
   this.cursors_ = cursors;
   this.keys_ = [];
   this.primary_keys_ = [];
@@ -39,13 +37,6 @@ ydn.db.Cursor = function(cursors) {
  * @define {boolean} debug flag.
  */
 ydn.db.Cursor.DEBUG = false;
-
-
-/**
- * @type {string}
- * @protected
- */
-ydn.db.Cursor.prototype.tx_lbl;
 
 
 /**

@@ -78,11 +78,11 @@ ydn.db.index.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
 
   var key_range = this.key_range;
   var obj_store = this.tx.objectStore(this.store_name);
-  var index = this.index_name ? obj_store.index(this.index_name) : null;
+  var index = this.isIndexCursor() ? obj_store.index(this.index_name) : null;
 
   var request;
   if (this.key_only) {
-    if (this.index) {
+    if (index) {
       if (goog.isDefAndNotNull(this.dir)) {
         request = index.openKeyCursor(key_range, this.dir);
       } else if (goog.isDefAndNotNull(key_range)) {
@@ -151,7 +151,7 @@ ydn.db.index.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
     request.onsuccess = function(ev) {
       var cursor = ev.target.result;
       if (cursor) {
-        var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(key, cursor.key);
+        var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cursor.key, key);
         if (cmp == 1) {
           requestReady(cursor.key, cursor.primaryKey, cursor.value);
         } else if (cmp == -1) {
@@ -159,8 +159,8 @@ ydn.db.index.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
         } else {
           if (goog.isDefAndNotNull(primary_key)) {
             var cmp2 = ydn.db.con.IndexedDb.indexedDb.cmp(
-                primary_key, cursor.primaryKey);
-            if (cmp == -1) {
+                cursor.primaryKey, primary_key);
+            if (cmp == 1) {
               requestReady(cursor.key, cursor.primaryKey, cursor.value);
             } else {
               cursor['continue']();

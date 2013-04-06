@@ -195,14 +195,12 @@ ydn.db.index.req.AbstractCursor.prototype.disposeInternal = function() {
 
 if (goog.DEBUG) {
   /**
-   *
-   * @return {string}
+   * @inheritDoc
    */
   ydn.db.index.req.AbstractCursor.prototype.toString = function() {
-    var k = '';
     var index = goog.isDef(this.index_name) ? ':' + this.index_name : '';
     var active = this.tx ? '' : '~';
-    return active + ' TX' + this.tx_no + ' Cursor:' + k + this.store_name +
-        index;
+    return 'Cursor:' + this.store_name +
+        index + '[' + active + this.tx_no + ']';
   };
 }

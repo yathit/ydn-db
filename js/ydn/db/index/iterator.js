@@ -850,7 +850,7 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor) {
       this.key_range_, this.direction, this.key_only_);
 
   if (!this.cursor_) {
-    this.cursor_ = new ydn.db.Cursor(tx_lbl, [cursor]);
+    this.cursor_ = new ydn.db.Cursor([cursor]);
     this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_);
   } else {
     this.cursor_.resume([cursor]);
