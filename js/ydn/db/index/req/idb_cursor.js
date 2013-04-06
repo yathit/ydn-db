@@ -78,7 +78,8 @@ ydn.db.index.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
 
   var key_range = this.key_range;
   var obj_store = this.tx.objectStore(this.store_name);
-  var index = this.isIndexCursor() ? obj_store.index(this.index_name) : null;
+  var index = goog.isString(this.index_name) ?
+      obj_store.index(this.index_name) : null;
 
   var request;
   if (this.key_only) {

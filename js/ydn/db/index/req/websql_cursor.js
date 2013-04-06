@@ -211,16 +211,19 @@ ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
     me.current_value_ = undefined;
     if (results.rows.length > 0) {
       var row = /** @type {!Object} */ (results.rows.item(0));
-      me.current_primary_key_ = ydn.db.schema.Index.sql2js(
-        row[primary_column_name], me.store_schema_.getType());
-      me.current_key_ = is_index ? ydn.db.schema.Index.sql2js(
-        row[effective_col_name], type) : me.current_primary_key_;
-      me.current_value_ = me.key_only ? undefined :
-        ydn.db.crud.req.WebSql.parseRow(row, me.store_schema_);
+      var primary_key = ydn.db.schema.Index.sql2js(
+          row[primary_column_name], me.store_schema_.getType());
+      if (is_index) {
+        me.current_primary_key_ = primary_key;
+      }
+      me.current_key_ = ydn.db.schema.Index.sql2js(
+          row[effective_col_name], type);
+      me.current_value_ = me.key_only ? primary_key :
+          ydn.db.crud.req.WebSql.parseRow(row, me.store_schema_);
     }
 
-    callback.call(me, me.current_primary_key_, me.current_key_,
-      me.current_value_);
+    callback.call(me, me.current_key_, me.current_primary_key_,
+        me.current_value_);
     callback = null;
   };
 

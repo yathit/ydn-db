@@ -190,7 +190,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
   var mth = keys_method ? ' keys' : ' values';
-  var msg = 'TX' + tx_no + mth + 'ByIterator ' + iter;
+  var msg = tx_no + mth + 'ByIterator ' + iter;
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
@@ -216,13 +216,9 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
       count++;
       var out;
       if (keys_method) { // call by keys() method
-        if (iter.isIndexIterator()) {
-          out = key;
-        } else {
-          out = primary_key;
-        }
+        out = key;
       } else {           // call by values() method
-        if (iter.isKeyOnly()) {
+        if (iter.isIndexIterator() && iter.isKeyOnly()) {
           out = primary_key;
         } else {
           out = value;
