@@ -55,9 +55,10 @@ ydn.db.index.req.IDBCursor.prototype.logger =
 ydn.db.index.req.IDBCursor.prototype.defaultOnSuccess = function(ev) {
   var cursor = ev.target.result;
   if (cursor) {
-    this.onSuccess(cursor.primaryKey, cursor.key, cursor.value);
+    var p_key = this.isIndexCursor() ? cursor.primaryKey : undefined;
+    this.onSuccess(cursor.key, p_key, cursor.value);
   } else {
-    this.onSuccess(undefined, undefined, undefined);
+    this.onSuccess();
   }
 
 };
@@ -140,7 +141,8 @@ ydn.db.index.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
    */
   var requestReady = function(key, primaryKey, value) {
     me.request_ = request;
-    me.onSuccess(key, primaryKey, value);
+    var p_key = me.isIndexCursor() ? primaryKey : undefined;
+    me.onSuccess(key, p_key, value);
     me.request_.onsuccess = goog.bind(me.defaultOnSuccess, me);
   };
 
@@ -232,7 +234,8 @@ ydn.db.index.req.IDBCursor.prototype.clear = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.restart = function(effective_key, primary_key) {
+ydn.db.index.req.IDBCursor.prototype.restart = function(
+    effective_key, primary_key) {
   this.logger.finest(this + ' restarting.');
   this.openCursor(primary_key, effective_key);
 };
@@ -245,7 +248,7 @@ ydn.db.index.req.IDBCursor.prototype.advance = function(step) {
   var cursor = this.request_.result;
 
   if (step == 1) {
-    // some browser, like mobile chrome does not implement cursor advance method.
+    //some browser, like mobile chrome does not implement cursor advance method.
     cursor['continue']();
   } else {
     cursor.advance(step);
@@ -264,7 +267,7 @@ ydn.db.index.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
     var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(key, cursor.primaryKey);
     if (cmp != 1) { // key must higher than primary key
       throw new ydn.debug.error.InternalError('continuing primary key "' + key +
-        '" must higher than current primary key "' + cursor.primaryKey + '"');
+          '" must higher than current primary key "' + cursor.primaryKey + '"');
     }
   }
 
@@ -275,18 +278,17 @@ ydn.db.index.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
       cmp = ydn.db.con.IndexedDb.indexedDb.cmp(key, cursor.primaryKey);
       if (cmp >= 0) {
         me.request_.onsuccess = goog.bind(me.defaultOnSuccess, me);
-        me.onSuccess(cursor.primaryKey, cursor.key, cursor.value);
+        var p_key = me.isIndexCursor() ? cursor.primaryKey : undefined;
+        me.onSuccess(cursor.key, p_key, cursor.value);
       } else {
         cursor['continue'](); // take another step.
       }
     } else {
       me.request_.onsuccess = goog.bind(me.defaultOnSuccess, me);
-      me.onSuccess(undefined, undefined, undefined);
+      me.onSuccess();
     }
   };
-
   cursor['continue'](); // take one step.
-
 };
 
 
@@ -294,7 +296,6 @@ ydn.db.index.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
  * @inheritDoc
  */
 ydn.db.index.req.IDBCursor.prototype.continueEffectiveKey = function(key) {
-
   var cursor = this.request_.result;
   if (goog.isDefAndNotNull(key)) {
     // it is an DataError for undefined or null key.
@@ -303,8 +304,8 @@ ydn.db.index.req.IDBCursor.prototype.continueEffectiveKey = function(key) {
   } else {
     cursor['continue']();
   }
-
 };
+
 
 /**
  * @inheritDoc

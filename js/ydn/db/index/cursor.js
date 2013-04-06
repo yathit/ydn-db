@@ -14,11 +14,13 @@ goog.require('ydn.db');
 
 /**
  *
+ * @param {string} lbl transaction label.
  * @param {Array.<ydn.db.index.req.ICursor>} cursors cursors.
  * @constructor
  */
 ydn.db.Cursor = function(cursors) {
 
+  this.tx_lbl = lbl;
   this.cursors_ = cursors;
   this.keys_ = [];
   this.primary_keys_ = [];
@@ -30,6 +32,20 @@ ydn.db.Cursor = function(cursors) {
   this.init_();
 
 };
+
+
+/**
+ *
+ * @define {boolean} debug flag.
+ */
+ydn.db.Cursor.DEBUG = false;
+
+
+/**
+ * @type {string}
+ * @protected
+ */
+ydn.db.Cursor.prototype.tx_lbl;
 
 
 /**
@@ -109,11 +125,11 @@ ydn.db.Cursor.prototype.init_ = function() {
   var n = this.cursors_.length;
   var result_count = 0;
   var me = this;
+  if (ydn.db.Cursor.DEBUG) {
+    this.logger.finest('Initializing ' + this.cursors_.length + ' cursors');
+  }
   var listenCursor = function(i) {
     var cursor = me.cursors_[i];
-    // if there is previous position, the cursor must advance over previous
-    // position.
-    var cued = !goog.isDefAndNotNull(me.keys_[i]);
     /**
      * On success handler.
      * @param {IDBKey=} opt_key effective key.
@@ -125,27 +141,6 @@ ydn.db.Cursor.prototype.init_ = function() {
       result_count++;
       if (!goog.isDefAndNotNull(opt_key)) {
         me.done_ = true;
-      } else if (!cued) {
-        var cmp = ydn.db.cmp(opt_key, me.keys_[i]);
-        if (cmp === 1) {
-          cued = true;
-        } else if (cmp === -1) {
-          cursor.continueEffectiveKey(me.keys_[i]);
-        } else {
-          if (goog.isDefAndNotNull(me.primary_keys_[i])) {
-            goog.asserts.assert(opt_p_key);
-            var cmp2 = ydn.db.cmp(opt_p_key, me.primary_keys_[i]);
-            if (cmp2 === 1) {
-              cued = true;
-            } else if (cmp2 === -1) {
-              cursor.continuePrimaryKey(me.primary_keys_[i]);
-            } else {
-              cursor.advance(1);
-            }
-          } else {
-            cursor.advance(1);
-          }
-        }
       }
       me.keys_[i] = opt_key;
       me.primary_keys_[i] = opt_p_key;
@@ -173,11 +168,28 @@ ydn.db.Cursor.prototype.init_ = function() {
       result_count = 0;
     };
 
+    // if there is previous position, the cursor must advance over previous
+    // position.
+    var msg = goog.isDefAndNotNull(me.primary_keys_[i]) ?
+        ', ' + me.primary_keys_[i] : '';
+    msg = goog.isDefAndNotNull(me.keys_[i]) ? ' resume from {' +
+        me.keys_[i] + msg + '}' : '';
+    me.logger.finest(cursor + msg + ' opening');
     cursor.openCursor(me.keys_[i], me.primary_keys_[i]);
   };
   for (var i = 0; i < n; i++) {
     listenCursor(i);
   }
+};
+
+
+/**
+ *
+ * @param {Array.<ydn.db.index.req.ICursor>} cursors active cursors.
+ */
+ydn.db.Cursor.prototype.resume = function(cursors) {
+  this.cursors_ = cursors;
+  this.init_();
 };
 
 
@@ -311,8 +323,8 @@ ydn.db.Cursor.prototype.isExited = function() {
  */
 ydn.db.Cursor.prototype.exit = function() {
   this.exited_ = true;
-  this.finalize_();
   this.logger.finest(this + ': exit');
+  this.finalize_();
 };
 
 
@@ -345,3 +357,18 @@ ydn.db.Cursor.prototype.finalize_ = function() {
   goog.array.clear(this.values_);
   goog.array.clear(this.cursors_);
 };
+
+
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.Cursor.prototype.toString = function() {
+    var s = '[';
+    for (var i = 0; i < this.cursors_.length; i++) {
+      s += this.cursors_[i].toString();
+    }
+    s += ']';
+    return 'Cursor ' + s;
+  };
+}

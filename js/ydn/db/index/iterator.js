@@ -840,18 +840,22 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
 
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
- * @param {string} tx_no tx label.
+ * @param {string} tx_lbl tx label.
  * @param {ydn.db.index.req.IRequestExecutor} executor executor.
  * @return {ydn.db.Cursor}
  */
-ydn.db.Iterator.prototype.iterate = function(tx, tx_no, executor) {
+ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor) {
 
-  var cursor = executor.getCursor(tx, tx_no, this.store_name, this.index,
-    this.key_range_, this.direction, this.key_only_);
+  var cursor = executor.getCursor(tx, tx_lbl, this.store_name, this.index,
+      this.key_range_, this.direction, this.key_only_);
 
-  this.cursor_ = new ydn.db.Cursor([cursor]);
-
-  this.logger.finest(this + ' created ' + cursor);
+  if (!this.cursor_) {
+    this.cursor_ = new ydn.db.Cursor(tx_lbl, [cursor]);
+    this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_);
+  } else {
+    this.cursor_.resume([cursor]);
+    this.logger.finest(tx_lbl + ' ' + this + ' reused cursor ' + this.cursor_);
+  }
 
   return this.cursor_;
 };
