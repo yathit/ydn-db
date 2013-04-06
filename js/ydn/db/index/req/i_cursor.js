@@ -95,3 +95,4 @@ ydn.db.index.req.ICursor.prototype.update = goog.abstractMethod;
  * @return {!goog.async.Deferred} value.
  */
 ydn.db.index.req.ICursor.prototype.clear = goog.abstractMethod;
+

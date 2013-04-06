@@ -1,30 +1,34 @@
 /**
+ *
  * @fileoverview Front-end cursor.
+ *
  */
 
 goog.provide('ydn.db.Cursor');
+goog.require('goog.debug.Logger');
 goog.require('ydn.db.index.req.ICursor');
 goog.require('ydn.debug.error.InternalError');
-goog.require('goog.debug.Logger');
+goog.require('ydn.db');
 
 
 
 /**
  *
- * @param {Array.<ydn.db.index.req.ICursor>} cursors
+ * @param {Array.<ydn.db.index.req.ICursor>} cursors cursors.
  * @constructor
  */
 ydn.db.Cursor = function(cursors) {
 
   this.cursors_ = cursors;
-  this.cached_effective_keys_ = [];
-  this.cached_primary_keys_ = [];
+  this.keys_ = [];
+  this.primary_keys_ = [];
   this.values_ = [];
   this.merges_value_ = null;
   this.count_ = 0;
   this.done_ = false;
-  this.exited_ = true;
+  this.exited_ = false;
   this.init_();
+
 };
 
 
@@ -32,21 +36,21 @@ ydn.db.Cursor = function(cursors) {
  * @type {Array.<ydn.db.index.req.ICursor>}
  * @private
  */
-ydn.db.Cursor.prototype.cursors_ = [];
+ydn.db.Cursor.prototype.cursors_;
 
 
 /**
  * @type {Array.<IDBKey|undefined>} current cursor keys.
  * @private
  */
-ydn.db.Cursor.prototype.cached_effective_keys_ = [];
+ydn.db.Cursor.prototype.keys_;
 
 
 /**
  * @type {Array.<IDBKey|undefined>} current cursor primary keys.
  * @private
  */
-ydn.db.Cursor.prototype.cached_primary_keys_ = [];
+ydn.db.Cursor.prototype.primary_keys_;
 
 
 /**
@@ -107,37 +111,69 @@ ydn.db.Cursor.prototype.init_ = function() {
   var me = this;
   var listenCursor = function(i) {
     var cursor = me.cursors_[i];
+    // if there is previous position, the cursor must advance over previous
+    // position.
+    var cued = !goog.isDefAndNotNull(me.keys_[i]);
     /**
      * On success handler.
-     * @param {IDBKey=} opt_key
-     * @param {IDBKey=} opt_p_key
-     * @param {*=} opt_value
+     * @param {IDBKey=} opt_key effective key.
+     * @param {IDBKey=} opt_p_key primary key.
+     * @param {*=} opt_value reference value.
+     * @this {ydn.db.index.req.ICursor}
      */
     cursor.onSuccess = function(opt_key, opt_p_key, opt_value) {
       result_count++;
-      me.cached_effective_keys_[i] = opt_key;
-      me.cached_primary_keys_[i] = opt_p_key;
-      me.values_[i] = opt_value;
       if (!goog.isDefAndNotNull(opt_key)) {
         me.done_ = true;
+      } else if (!cued) {
+        var cmp = ydn.db.cmp(opt_key, me.keys_[i]);
+        if (cmp === 1) {
+          cued = true;
+        } else if (cmp === -1) {
+          cursor.continueEffectiveKey(me.keys_[i]);
+        } else {
+          if (goog.isDefAndNotNull(me.primary_keys_[i])) {
+            goog.asserts.assert(opt_p_key);
+            var cmp2 = ydn.db.cmp(opt_p_key, me.primary_keys_[i]);
+            if (cmp2 === 1) {
+              cued = true;
+            } else if (cmp2 === -1) {
+              cursor.continuePrimaryKey(me.primary_keys_[i]);
+            } else {
+              cursor.advance(1);
+            }
+          } else {
+            cursor.advance(1);
+          }
+        }
       }
+      me.keys_[i] = opt_key;
+      me.primary_keys_[i] = opt_p_key;
+      me.values_[i] = opt_value;
       if (result_count == n) {
-        this.count_++;
+        me.count_++;
         if (me.done_) {
           me.onNext();
-          me.dispose_();
+          me.finalize_();
         } else {
-          me.onNext(me.cached_effective_keys_[0]);
+          me.onNext(me.keys_[0]);
         }
         result_count = 0;
       }
     };
+    /**
+     * On error handler.
+     * @param {!Error} e error.
+     * @this {ydn.db.index.req.ICursor}
+     */
     cursor.onError = function(e) {
       me.onFail(e);
-      me.dispose_();
+      me.finalize_();
       me.done_ = true;
       result_count = 0;
     };
+
+    cursor.openCursor(me.keys_[i], me.primary_keys_[i]);
   };
   for (var i = 0; i < n; i++) {
     listenCursor(i);
@@ -151,7 +187,7 @@ ydn.db.Cursor.prototype.init_ = function() {
  */
 ydn.db.Cursor.prototype.getKey = function(opt_idx) {
   var index = opt_idx || 0;
-  return this.cached_effective_keys_[index];
+  return this.keys_[index];
 };
 
 
@@ -161,7 +197,7 @@ ydn.db.Cursor.prototype.getKey = function(opt_idx) {
  */
 ydn.db.Cursor.prototype.getPrimaryKey = function(opt_idx) {
   var index = opt_idx || 0;
-  return this.cached_primary_keys_[index];
+  return this.primary_keys_[index];
 };
 
 
@@ -179,7 +215,7 @@ ydn.db.Cursor.prototype.getValue = function(opt_idx) {
  * Restart the cursor. If previous cursor position is given,
  * the position is skip.
  * @param {IDBKey=} opt_key previous position.
- * @param {IDBKey=} opt_primary_key
+ * @param {IDBKey=} opt_primary_key primary key.
  */
 ydn.db.Cursor.prototype.restart = function(opt_key, opt_primary_key) {
   this.cursors_[0].restart(opt_primary_key, opt_key);
@@ -274,22 +310,34 @@ ydn.db.Cursor.prototype.isExited = function() {
  * Exit cursor
  */
 ydn.db.Cursor.prototype.exit = function() {
-  this.exited_ = false;
-  this.dispose_();
+  this.exited_ = true;
+  this.finalize_();
   this.logger.finest(this + ': exit');
 };
 
 
 /**
- * Dispose cursors and its value.
+ *  Copy keys from cursors before dispose them and dispose cursors and
+ *  its reference value. Keys are used to resume cursors position.
  * @private
  */
-ydn.db.Cursor.prototype.dispose_ = function() {
-  // IndexedDB will GC the array, so we clone it.
-  this.cached_primary_keys_ = goog.isArrayLike(this.cached_primary_keys_) ?
-      goog.array.clone(this.cached_primary_keys_) : this.cached_primary_keys_;
-  this.cached_effective_keys_ = goog.isArrayLike(this.cached_effective_keys_) ?
-      goog.array.clone(this.cached_effective_keys_) : this.cached_effective_keys_;
+ydn.db.Cursor.prototype.finalize_ = function() {
+
+  // IndexedDB will GC array keys, so we clone it.
+  this.primary_keys_ = goog.array.map(this.primary_keys_, function(x) {
+    if (goog.isDefAndNotNull(x)) {
+      return ydn.db.Key.clone(x);
+    } else {
+      return undefined;
+    }
+  });
+  this.keys_ = goog.array.map(this.keys_, function(x) {
+    if (goog.isDefAndNotNull(x)) {
+      return ydn.db.Key.clone(x);
+    } else {
+      return undefined;
+    }
+  });
 
   for (var i = 0; i < this.cursors_.length; i++) {
     this.cursors_[i].dispose();

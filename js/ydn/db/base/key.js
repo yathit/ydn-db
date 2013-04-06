@@ -222,3 +222,21 @@ ydn.db.Key.isValidKey = function(key) {
     key instanceof Date;
 };
 
+
+/**
+ * Clone IDBKey.
+ * @param {IDBKey} key given key.
+ * @return {IDBKey} key to clone.
+ */
+ydn.db.Key.clone = function(key) {
+  if (goog.isArrayLike(key)) {
+    var clone = [];
+    for (var i = 0, n = key.length; i < n; i++) {
+      clone[i] = key[i];
+    }
+    return /** @type {IDBKey} */ (clone);
+  } else {
+    return key;
+  }
+};
+

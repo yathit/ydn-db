@@ -115,10 +115,6 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   this.filter_index_names_ = [];
   this.filter_key_ranges_ = [];
   this.filter_store_names_ = [];
-  this.filter_ini_keys_ = [];
-  this.filter_ini_index_keys_ = [];
-
-  // set all null so that no surprise from inherit prototype
 
   // transient properties during cursor iteration
   this.cursor_ = null
@@ -129,6 +125,57 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
  * @define {boolean} to debug this file.
  */
 ydn.db.Iterator.DEBUG = false;
+
+
+/**
+ * @type {!string}
+ * @private
+ */
+ydn.db.Iterator.prototype.store_name;
+
+
+/**
+ * @type {string|undefined}
+ * @private
+ */
+ydn.db.Iterator.prototype.index;
+
+
+/**
+ * @type {ydn.db.Cursor}
+ * @private
+ */
+ydn.db.Iterator.prototype.cursor_;
+
+
+/**
+ * @type {boolean}
+ * @private
+ */
+ydn.db.Iterator.prototype.is_index_iterator_;
+
+
+/**
+ *
+ * @private
+ * @type {IDBKeyRange}
+ */
+ydn.db.Iterator.prototype.key_range_;
+
+
+/**
+ *
+ * @type {boolean}
+ * @private
+ */
+ydn.db.Iterator.prototype.key_only_ = true;
+
+
+/**
+ * Cursor direction.
+ * @type {(ydn.db.base.Direction)}
+ */
+ydn.db.Iterator.prototype.direction;
 
 
 /**
@@ -277,13 +324,6 @@ ydn.db.Iterator.State = {
 
 
 /**
- * @type {ydn.db.Cursor}
- * @private
- */
-ydn.db.Iterator.prototype.cursor_;
-
-
-/**
  *
  * @return {ydn.db.Iterator.State}
  */
@@ -335,27 +375,6 @@ ydn.db.Iterator.prototype.getIndexName = function() {
 ydn.db.Iterator.prototype.getDirection = function() {
   return this.direction;
 };
-
-
-/**
- * @type {!string}
- * @private
- */
-ydn.db.Iterator.prototype.store_name;
-
-
-/**
- * @type {string|undefined}
- * @private
- */
-ydn.db.Iterator.prototype.index;
-
-
-/**
- * @type {boolean}
- * @private
- */
-ydn.db.Iterator.prototype.is_index_iterator_;
 
 
 /**
@@ -458,22 +477,6 @@ ydn.db.Iterator.prototype.getIDBKeyRange = function() {
 
 /**
  *
- * @private
- * @type {IDBKeyRange}
- */
-ydn.db.Iterator.prototype.key_range_;
-
-
-/**
- *
- * @type {boolean}
- * @private
- */
-ydn.db.Iterator.prototype.key_only_ = true;
-
-
-/**
- *
  * @return {boolean}
  */
 ydn.db.Iterator.prototype.isKeyOnly = function() {
@@ -502,13 +505,6 @@ ydn.db.Iterator.prototype.toJSON = function() {
     'direction': this.direction
   };
 };
-
-
-/**
- * Cursor direction.
- * @type {(ydn.db.base.Direction)}
- */
-ydn.db.Iterator.prototype.direction;
 
 
 if (goog.DEBUG) {
@@ -849,19 +845,6 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
  * @return {ydn.db.Cursor}
  */
 ydn.db.Iterator.prototype.iterate = function(tx, tx_no, executor) {
-  var ini_key, ini_index_key;
-  var resume = !!this.cursor_;
-  if (resume) {
-    // continue the iteration
-    goog.asserts.assert(this.primary_key);
-    ini_key = this.primary_key;
-    ini_index_key = this.index_key;
-  } else { // start a new iteration
-    this.counter = 0;
-  }
-  this.has_done = undefined; // switching to working state.
-
-  var me = this;
 
   var cursor = executor.getCursor(tx, tx_no, this.store_name, this.index,
     this.key_range_, this.direction, this.key_only_);
@@ -869,8 +852,6 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_no, executor) {
   this.cursor_ = new ydn.db.Cursor([cursor]);
 
   this.logger.finest(this + ' created ' + cursor);
-
-  cursor.openCursor(ini_key, ini_index_key);
 
   return this.cursor_;
 };
