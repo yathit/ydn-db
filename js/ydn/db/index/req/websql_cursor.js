@@ -227,7 +227,7 @@ ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
         ' ORDER BY ' + e_sql.order;
     cued = true;
   } else {
-    if (goog.DEBUG && !goog.isDefAndNotNull(opt_primary_key)) {
+    if (goog.DEBUG && !cued && !goog.isDefAndNotNull(opt_primary_key)) {
       this.logger.warning('primary key must not be specified when iterating ' +
           'UNIQUE secondary key');
     }

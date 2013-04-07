@@ -326,7 +326,15 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
   var is_multi_entry = is_index && index.isMultiEntry();
 
   out.from = this.getQuotedName();
-  if (method != ydn.db.schema.Store.QueryMethod.NONE) {
+  if (method === ydn.db.schema.Store.QueryMethod.COUNT) {
+    // primary key is always unqiue.
+    out.select = 'COUNT(' + q_key_column + ')';
+  } else if (method === ydn.db.schema.Store.QueryMethod.KEYS) {
+    out.select = q_key_column;
+    if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
+      out.select += ', ' + q_effective_column;
+    }
+  } else {
     out.select = '*';
   }
 
@@ -362,15 +370,6 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
       }
     }
   } else {
-    if (method === ydn.db.schema.Store.QueryMethod.COUNT) {
-      // primary key is always unqiue.
-      out.select = 'COUNT(' + q_key_column + ')';
-    } else if (method === ydn.db.schema.Store.QueryMethod.KEYS) {
-      out.select = q_key_column;
-      if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
-        out.select += ', ' + q_effective_column;
-      }
-    }
     if (goog.isDefAndNotNull(key_range)) {
       ydn.db.KeyRange.toSql(q_effective_column, type, key_range, wheres,
           params);
