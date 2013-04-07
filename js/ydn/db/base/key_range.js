@@ -1,5 +1,7 @@
 /**
+ *
  * @fileoverview Wrapper for a IndexedDB key range.
+ *
  */
 
 
@@ -55,11 +57,13 @@ ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
  */
 ydn.db.KeyRange.prototype.lower = undefined;
 
+
 /**
  *
  * @type {*}
  */
 ydn.db.KeyRange.prototype.upper = undefined;
+
 
 /**
  *
@@ -67,11 +71,13 @@ ydn.db.KeyRange.prototype.upper = undefined;
  */
 ydn.db.KeyRange.prototype.lowerOpen;
 
+
 /**
  *
  * @type {boolean}
  */
 ydn.db.KeyRange.prototype.upperOpen;
+
 
 /**
  * @override
@@ -161,7 +167,6 @@ ydn.db.KeyRange.lowerBound = function(lower, opt_lowerOpen) {
 };
 
 
-
 /**
  * Helper method for creating useful KeyRange.
  * @param {string|!Array} value value.
@@ -213,15 +218,15 @@ ydn.db.KeyRange.parseKeyRange = function(key_range) {
   if (!goog.isDefAndNotNull(key_range)) {
     return null;
   }
-  if(key_range instanceof ydn.db.KeyRange) {
+  if (key_range instanceof ydn.db.KeyRange) {
     return key_range;
   }
   if (goog.isObject(key_range)) {
     return new ydn.db.KeyRange(key_range['lower'], key_range['upper'],
-      key_range['lowerOpen'], key_range['upperOpen']);
+        key_range['lowerOpen'], key_range['upperOpen']);
   } else {
     throw new ydn.debug.error.ArgumentException("Invalid key range: " +
-      key_range + ' of type ' + typeof key_range);
+        key_range + ' of type ' + typeof key_range);
   }
 
 };

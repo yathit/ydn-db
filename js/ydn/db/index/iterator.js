@@ -28,8 +28,8 @@ goog.provide('ydn.db.KeyCursors');
 goog.provide('ydn.db.ValueCursors');
 goog.require('goog.debug.Logger');
 goog.require('goog.functions');
-goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Cursor');
+goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.base');
 goog.require('ydn.db.index.req.ICursor');
@@ -117,7 +117,7 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   this.filter_store_names_ = [];
 
   // transient properties during cursor iteration
-  this.cursor_ = null
+  this.cursor_ = null;
 };
 
 

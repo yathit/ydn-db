@@ -1,7 +1,10 @@
 /**
+ *
  * @fileoverview Error classes for the database module.
+ *
  */
 
+goog.provide('ydn.db.ConstraintError');
 goog.provide('ydn.db.InternalError');
 goog.provide('ydn.db.InvalidKeyException');
 goog.provide('ydn.db.InvalidStateError');
@@ -10,7 +13,6 @@ goog.provide('ydn.db.ScopeError');
 goog.provide('ydn.db.SecurityError');
 goog.provide('ydn.db.TimeoutError');
 goog.provide('ydn.db.VersionError');
-goog.provide('ydn.db.ConstraintError');
 
 
 
@@ -36,7 +38,13 @@ ydn.db.ConstraintError = function(opt_msg) {
 };
 goog.inherits(ydn.db.ConstraintError, Error);
 
+
+/**
+ *
+ * @type {string}
+ */
 ydn.db.ConstraintError.prototype.name = 'ConstraintError';
+
 
 
 /**
@@ -61,10 +69,6 @@ ydn.db.InvalidKeyException = function(opt_msg) {
 };
 goog.inherits(ydn.db.InvalidKeyException, Error);
 
-///**
-// * @type {string} name of error.
-// */
-//ydn.db.InvalidKeyException.prototype.name = 'ydn.db.InvalidKeyException';
 
 
 /**
@@ -89,10 +93,13 @@ ydn.db.VersionError = function(opt_msg) {
 };
 goog.inherits(ydn.db.VersionError, Error);
 
+
 /**
  * @type {string} name of error.
  */
 ydn.db.VersionError.prototype.name = 'ydn.db.VersionError';
+
+
 
 /**
  * Base class for custom error objects.
@@ -115,10 +122,12 @@ ydn.db.InternalError = function(opt_msg) {
 };
 goog.inherits(ydn.db.InternalError, Error);
 
+
 /**
  * @type {string} name of error.
  */
 ydn.db.InternalError.prototype.name = 'ydn.db.InternalError';
+
 
 
 /**
@@ -142,11 +151,7 @@ ydn.db.ScopeError = function(opt_msg) {
   this.name = 'ydn.db.ScopeError';
 };
 goog.inherits(ydn.db.ScopeError, Error);
-//
-///**
-// * @type {string} name of error.
-// */
-//ydn.db.ScopeError.prototype.name = 'ydn.db.ScopeError';
+
 
 
 /**
@@ -171,10 +176,6 @@ ydn.db.InvalidStateError = function(opt_msg) {
 };
 goog.inherits(ydn.db.InvalidStateError, Error);
 
-///**
-// * @type {string} name of error.
-// */
-//ydn.db.InvalidStateError.prototype.name = 'InvalidStateError';
 
 
 /**
@@ -198,11 +199,7 @@ ydn.db.InvalidAccessError = function(opt_msg) {
   this.name = 'InvalidAccessError';
 };
 goog.inherits(ydn.db.InvalidAccessError, Error);
-//
-///**
-// * @type {string} name of error.
-// */
-//ydn.db.InvalidAccessError.prototype.name = 'InvalidAccessError';
+
 
 
 /**
@@ -227,10 +224,12 @@ ydn.db.NotFoundError = function(opt_msg) {
 };
 goog.inherits(ydn.db.NotFoundError, Error);
 
+
 /**
 * @type {string} name of error.
 */
 ydn.db.NotFoundError.prototype.name = 'NotFoundError';
+
 
 
 /**
@@ -255,10 +254,6 @@ ydn.db.DataCloneError = function(opt_msg) {
 };
 goog.inherits(ydn.db.DataCloneError, Error);
 
-///**
-// * @type {string} name of error.
-// */
-//ydn.db.DataCloneError.prototype.name = 'DataCloneError';
 
 
 /**
@@ -285,10 +280,6 @@ ydn.db.SQLError = function(e, opt_msg) {
 };
 goog.inherits(ydn.db.SQLError, Error);
 
-///**
-// * @type {string} name of error.
-// */
-//ydn.db.SQLError.prototype.name = 'SQLError';
 
 
 /**
@@ -315,11 +306,6 @@ ydn.db.SecurityError = function(e, opt_msg) {
 };
 goog.inherits(ydn.db.SecurityError, Error);
 
-///**
-// * @type {string} name of error.
-// */
-//ydn.db.SecurityError.prototype.name = 'SecurityError';
-
 
 
 /**
@@ -344,6 +330,8 @@ ydn.db.SqlParseError = function(opt_msg) {
 };
 goog.inherits(ydn.db.SqlParseError, Error);
 
+
+
 /**
  *
  * @param {*=} opt_msg optional message.
@@ -365,6 +353,8 @@ ydn.db.TimeoutError = function(opt_msg) {
   this.name = 'ydn.db.TimeoutError';
 };
 goog.inherits(ydn.db.TimeoutError, Error);
+
+
 
 /**
  * @param {*} result request result.
@@ -389,17 +379,20 @@ ydn.db.TxError = function(result, opt_msg) {
 };
 goog.inherits(ydn.db.TxError, Error);
 
+
 /**
  * @type {*}
  */
 ydn.db.TxError.prototype.result;
 
+
 /**
- * @return {*} request result
+ * @return {*} request result.
  */
 ydn.db.TxError.prototype.getResult = function() {
   return this.result;
 };
+
 
 
 /**

@@ -1,5 +1,7 @@
 /**
+ *
  * @fileoverview Define base constants.
+ *
  */
 
 
@@ -51,6 +53,7 @@ ydn.db.base.USE_HOOK = false;
  */
 ydn.db.base.NO_IDB = false;
 
+
 /**
  *
  * @define {boolean} remove simple storage (webstorage) module.
@@ -75,9 +78,9 @@ ydn.db.base.DEFAULT_RESULT_LIMIT = 100;
 
 /**
  * Default connection time interval in ms.
- * @define {number}
+ * @define {number} ms.
  */
-ydn.db.base.DEFAULT_CONNECTION_TIMEOUT = 30*60*1000;
+ydn.db.base.DEFAULT_CONNECTION_TIMEOUT = 30 * 60 * 1000;
 
 
 /**
@@ -114,7 +117,6 @@ ydn.db.base.TransactionEventTypes = {
  * The three possible transaction modes.
  * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
  * @enum {string|number}
- * @private
  */
 ydn.db.base.DefaultTransactionMode = {
   'READ_ONLY': 'readonly',
@@ -135,14 +137,13 @@ ydn.db.base.DefaultTransactionMode = {
  * http://code.google.com/p/chromium/issues/detail?id=155171
  * https://bitbucket.org/ytkyaw/ydn-db/pull-request/8 Old firefox has them too.
  * @const
- * @private
  * @type {*}
  */
 ydn.db.base.IDBTransaction = (goog.global.webkitIDBRequest && (
     'LOADING' in goog.global.webkitIDBRequest) ?
-  (goog.global.webkitIDBTransaction || goog.global.IDBTransaction) :
-  (goog.global.IDBRequest && ('LOADING' in goog.global.IDBRequest)) ?
-  goog.global.IDBTransaction :  ydn.db.base.DefaultTransactionMode);
+    (goog.global.webkitIDBTransaction || goog.global.IDBTransaction) :
+    (goog.global.IDBRequest && ('LOADING' in goog.global.IDBRequest)) ?
+    goog.global.IDBTransaction :  ydn.db.base.DefaultTransactionMode);
 
 
 /**
@@ -157,7 +158,6 @@ ydn.db.base.TransactionMode = {
 };
 
 
-
 /**
  * Mode for opening cursor
  * @enum {string|number}
@@ -168,7 +168,6 @@ ydn.db.base.CursorMode = {
 };
 
 
-
 /**
  * @define {boolean} if true, a default key-value text store should be created
  * in the abscent of configuration option.
@@ -176,13 +175,10 @@ ydn.db.base.CursorMode = {
 ydn.db.base.ENABLE_DEFAULT_TEXT_STORE = false;
 
 
-
 /**
  * @define {boolean} flag to indicate to enable encryption.
  */
 ydn.db.base.ENABLE_ENCRYPTION = false;
-
-
 
 
 /**
@@ -196,7 +192,6 @@ ydn.db.base.Direction = {
   PREV: 'prev',
   PREV_UNIQUE: 'prevunique'
 };
-
 
 
 /**
@@ -213,17 +208,17 @@ ydn.db.base.DIRECTIONS = [
 
 /**
  * Convert flag to direction enum.
- * @param {boolean=} reverse
- * @param {boolean=} unique
- * @return {ydn.db.base.Direction}
+ * @param {boolean=} opt_reverse true to reverse direction.
+ * @param {boolean=} opt_unique true to unique.
+ * @return {ydn.db.base.Direction} IndexedDB cursor direction value.
  */
-ydn.db.base.getDirection = function(reverse, unique) {
-  if (reverse) {
-    return unique ? ydn.db.base.Direction.PREV_UNIQUE :
-      ydn.db.base.Direction.PREV;
+ydn.db.base.getDirection = function(opt_reverse, opt_unique) {
+  if (opt_reverse) {
+    return opt_unique ? ydn.db.base.Direction.PREV_UNIQUE :
+        ydn.db.base.Direction.PREV;
   } else {
-    return unique ? ydn.db.base.Direction.NEXT_UNIQUE :
-      ydn.db.base.Direction.NEXT;
+    return opt_unique ? ydn.db.base.Direction.NEXT_UNIQUE :
+        ydn.db.base.Direction.NEXT;
   }
 };
 

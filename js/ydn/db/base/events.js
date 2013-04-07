@@ -26,6 +26,7 @@ ydn.db.events.Types = {
 };
 
 
+
 /**
  *
  * @param {ydn.db.events.Types} event_type event type.
@@ -39,19 +40,21 @@ ydn.db.events.Event = function(event_type, event_target) {
 };
 goog.inherits(ydn.db.events.Event, goog.events.Event);
 
+
 /**
- * @final
  * @type {string}
  */
 ydn.db.events.Event.prototype.store_name;
 
+
 /**
  *
- * @return {string}
+ * @return {string} effected store name.
  */
 ydn.db.events.Event.prototype.getStoreName = function() {
   return this.store_name;
 };
+
 
 
 /**
@@ -78,7 +81,8 @@ goog.inherits(ydn.db.events.StorageEvent, ydn.db.events.Event);
  * @final
  * @type {string}
  */
-ydn.db.events.StorageEvent.prototype.name =  'StorageEvent';
+ydn.db.events.StorageEvent.prototype.name = 'StorageEvent';
+
 
 /**
  *
@@ -86,11 +90,13 @@ ydn.db.events.StorageEvent.prototype.name =  'StorageEvent';
  */
 ydn.db.events.StorageEvent.prototype.version = NaN;
 
+
 /**
  *
  * @type {number}
  */
 ydn.db.events.StorageEvent.prototype.oldVersion = NaN;
+
 
 /**
  *
@@ -101,27 +107,30 @@ ydn.db.events.StorageEvent.prototype.error = null;
 
 /**
  *
- * @return {number}
+ * @return {number} return current version.
  */
 ydn.db.events.StorageEvent.prototype.getVersion = function() {
   return this.version;
 };
 
+
 /**
  *
- * @return {number}
+ * @return {number} return previous version.
  */
 ydn.db.events.StorageEvent.prototype.getOldVersion = function() {
   return this.oldVersion;
 };
 
+
 /**
  *
- * @return {Error}
+ * @return {Error} return error if connection was an error.
  */
 ydn.db.events.StorageEvent.prototype.getError = function() {
   return this.error;
 };
+
 
 
 /**
@@ -167,7 +176,7 @@ ydn.db.events.RecordEvent.prototype.value;
 
 /**
  *
- * @return {*}
+ * @return {*} key.
  */
 ydn.db.events.RecordEvent.prototype.getKey = function() {
   return this.key;
@@ -176,11 +185,12 @@ ydn.db.events.RecordEvent.prototype.getKey = function() {
 
 /**
  *
- * @return {*}
+ * @return {*} value.
  */
 ydn.db.events.RecordEvent.prototype.getValue = function() {
   return this.value;
 };
+
 
 
 /**
@@ -189,16 +199,16 @@ ydn.db.events.RecordEvent.prototype.getValue = function() {
  * @param {goog.events.EventTarget} event_target target.
  * @param {string} store_name source.
  * @param {Array} keys source.
- * @param {Array=} values source.
+ * @param {Array=} opt_values source.
  * @extends {ydn.db.events.Event}
  * @constructor
  */
 ydn.db.events.StoreEvent = function(event_type, event_target, store_name, keys,
-                                    values) {
+                                    opt_values) {
   goog.base(this, event_type, event_target);
   this.store_name = store_name;
   this.keys = keys;
-  this.values = values;
+  this.values = opt_values;
 };
 goog.inherits(ydn.db.events.StoreEvent, ydn.db.events.Event);
 
@@ -226,7 +236,7 @@ ydn.db.events.StoreEvent.prototype.values;
 
 /**
  *
- * @return {*}
+ * @return {*} get list of keys.
  */
 ydn.db.events.StoreEvent.prototype.getKeys = function() {
   return this.keys;
@@ -235,7 +245,7 @@ ydn.db.events.StoreEvent.prototype.getKeys = function() {
 
 /**
  *
- * @return {*}
+ * @return {*} get list of values.
  */
 ydn.db.events.StoreEvent.prototype.getValues = function() {
   return this.values;

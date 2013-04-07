@@ -24,27 +24,28 @@
 goog.provide('ydn.db.Key');
 
 
+
 /**
  * Builds a new Key object of known id.
  *
  * @param {string|!ydn.db.Key.Json} store_or_json_or_value store name of key
  * object in JSON format.
- * @param {!IDBKey=} id key id.
+ * @param {!IDBKey=} opt_id key id.
  * @param {ydn.db.Key=} opt_parent optional parent key.
  * @constructor
  */
-ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
+ydn.db.Key = function(store_or_json_or_value, opt_id, opt_parent) {
 
   var store_name;
   if (goog.isObject(store_or_json_or_value)) {
     store_name = store_or_json_or_value['store'];
-    id = store_or_json_or_value['id'];
+    opt_id = store_or_json_or_value['id'];
     if (goog.isDefAndNotNull(store_or_json_or_value['parent'])) {
       opt_parent = new ydn.db.Key(store_or_json_or_value['parent']);
     }
   } else {
     goog.asserts.assertString(store_or_json_or_value);
-    if (!goog.isDef(id)) {
+    if (!goog.isDef(opt_id)) {
       // must be valueOf string
       var idx = store_or_json_or_value.lastIndexOf(ydn.db.Key.SEP_PARENT);
       /**
@@ -57,8 +58,8 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
       }
       var parts = store_and_id.split(ydn.db.Key.SEP_STORE);
       store_name = parts[0];
-      id = parts[1];
-      if (!goog.isDef(id)) {
+      opt_id = parts[1];
+      if (!goog.isDef(opt_id)) {
         throw Error('Invalid key value: ' + store_or_json_or_value);
       }
     } else {
@@ -73,7 +74,7 @@ ydn.db.Key = function(store_or_json_or_value, id, opt_parent) {
   /**
    * @final
    */
-  this.id = id;
+  this.id = opt_id;
   /**
    * @final
    */
@@ -111,12 +112,12 @@ ydn.db.Key.prototype.id;
  */
 ydn.db.Key.prototype.store_name;
 
+
 /**
  * @private
  * @type {ydn.db.Key?}
  */
 ydn.db.Key.prototype.parent;
-
 
 
 /**
@@ -212,14 +213,14 @@ ydn.db.Key.prototype.getParent = function() {
 
 /**
  *
- * @param {*} key
+ * @param {*} key key to test.
  * @return {boolean} return true if given key is a valid key for IndexedDB.
  */
 ydn.db.Key.isValidKey = function(key) {
   return goog.isNumber(key) || goog.isString(key) ||
-    (goog.isArray(key) && goog.array.every(/** @type {Array} */ (key),
+      (goog.isArray(key) && goog.array.every(/** @type {Array} */ (key),
       ydn.db.Key.isValidKey)) ||
-    key instanceof Date;
+      key instanceof Date;
 };
 
 
