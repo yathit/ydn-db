@@ -40,23 +40,22 @@ ydn.db.index.req.ICursor.prototype.onSuccess = goog.abstractMethod;
  * This will seek to given initial position if given. If only ini_key (primary
  * key) is given, this will rewind, if not found.
  *
- * @param {*=} opt_ini_key effective key to resume position.
- * @param {*=} opt_ini_primary_key primary key to resume position.
+ * @param {IDBKey=} opt_ini_key effective key to resume position.
+ * @param {IDBKey=} opt_ini_primary_key primary key to resume position.
  */
 ydn.db.index.req.ICursor.prototype.openCursor = goog.abstractMethod;
 
 
-
 /**
  * Move cursor position to the primary key while remaining on same index key.
- * @param {IDBKey=} primary_key primary key position to continue.
+ * @param {IDBKey=} opt_primary_key primary key position to continue.
  */
 ydn.db.index.req.ICursor.prototype.continuePrimaryKey = goog.abstractMethod;
 
 
 /**
  * Move cursor position to the effective key.
- * @param {IDBKey=} effective_key effective key position to continue.
+ * @param {IDBKey=} opt_effective_key effective key position to continue.
  */
 ydn.db.index.req.ICursor.prototype.continueEffectiveKey = goog.abstractMethod;
 

@@ -159,10 +159,11 @@ ydn.db.index.req.WebsqlCursor.prototype.collect = function(opt_row) {
  * @param {IDBKey=} opt_key index key.
  * @param {IDBKey=} opt_primary_key primary key.
  * @param {boolean=} opt_inclusive position is inclusive.
+ * @param {number=} opt_offset offset.
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
-    callback, opt_key, opt_primary_key, opt_inclusive) {
+    callback, opt_key, opt_primary_key, opt_inclusive, opt_offset) {
 
   goog.asserts.assertString(this.index_name);
   var index = this.store_schema_.getIndex(this.index_name);
@@ -206,27 +207,25 @@ ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
       key_range, this.reverse, this.unique);
 
   var sql;
-  if (!cued) {
-    if (goog.isDefAndNotNull(opt_primary_key)) {
-      var p_key = opt_primary_key;
-      var p_key_range = this.reverse ?
-          ydn.db.IDBKeyRange.upperBound(p_key, true) :
-          ydn.db.IDBKeyRange.lowerBound(p_key, true);
-      var p_sql = this.store_schema_.inSql(params, mth, undefined,
-          p_key_range, this.reverse, this.unique);
-      var where = e_sql.where;
-      if (p_sql.where) {
-        if (where) {
-          where += ' AND ' + p_sql.where;
-        } else {
-          where = p_sql.where;
-        }
+  if (!cued && goog.isDefAndNotNull(opt_primary_key)) {
+    var p_key = opt_primary_key;
+    var p_key_range = this.reverse ?
+        ydn.db.IDBKeyRange.upperBound(p_key, true) :
+        ydn.db.IDBKeyRange.lowerBound(p_key, true);
+    var p_sql = this.store_schema_.inSql(params, mth, undefined,
+        p_key_range, this.reverse, this.unique);
+    var where = e_sql.where;
+    if (p_sql.where) {
+      if (where) {
+        where += ' AND ' + p_sql.where;
+      } else {
+        where = p_sql.where;
       }
-      sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
-          (where ? ' WHERE ' + where : '') +
-          ' ORDER BY ' + e_sql.order;
-      cued = true;
     }
+    sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
+        (where ? ' WHERE ' + where : '') +
+        ' ORDER BY ' + e_sql.order;
+    cued = true;
   } else {
     if (goog.DEBUG && !goog.isDefAndNotNull(opt_primary_key)) {
       this.logger.warning('primary key must not be specified when iterating ' +
@@ -240,7 +239,9 @@ ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
   if (cued) {
     sql += ' LIMIT 1'; // cursor move only one step at a time.
   }
-
+  if (opt_offset > 0) {
+    sql += ' OFFSET ' + opt_offset;
+  }
 
   var me = this;
   /**
@@ -255,6 +256,8 @@ ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
     if (cued) {
       if (results.rows.length > 0) {
         me.collect(results.rows.item(0));
+      } else {
+        me.collect();
       }
     } else {
       me.collect();
@@ -295,10 +298,11 @@ ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
  * @param {?ydn.db.index.req.WebsqlCursor.callback} callback invoke.
  * @param {IDBKey=} opt_key effective key.
  * @param {boolean=} opt_inclusive position is inclusive.
+ * @param {number=} opt_offset offset.
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.openPrimary_ = function(
-    callback, opt_key, opt_inclusive) {
+    callback, opt_key, opt_inclusive, opt_offset) {
   var key_range = this.key_range;
   if (goog.isDefAndNotNull(opt_key)) {
     var key = opt_key;
@@ -324,8 +328,8 @@ ydn.db.index.req.WebsqlCursor.prototype.openPrimary_ = function(
       key_range, this.reverse, this.unique);
 
   sql += ' LIMIT 1'; // cursor move only one step at a time.
-  if (this.current_cursor_offset_ > 0) {
-    sql += ' OFFSET ' + this.current_cursor_offset_;
+  if (opt_offset > 0) {
+    sql += ' OFFSET ' + opt_offset;
   }
 
   var me = this;
@@ -383,21 +387,6 @@ ydn.db.index.req.WebsqlCursor.prototype.openPrimary_ = function(
  * }
  */
 ydn.db.index.req.WebsqlCursor.callback;
-
-
-/**
- * Move cursor to the position as defined.
- * @param {?ydn.db.index.req.WebsqlCursor.callback} callback invoke.
- * @private
- */
-ydn.db.index.req.WebsqlCursor.prototype.move_ = function(callback) {
-
-  if (this.isIndexCursor()) {
-    this.openIndex_(callback, this.ini_index_key_, this.ini_key_);
-  } else {
-    this.openPrimary_(callback, this.ini_key_);
-  }
-};
 
 
 /**
@@ -471,8 +460,7 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj) {
  */
 ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
 
-  this.current_cursor_offset_ += step;
-  this.move_(this.onSuccess);
+  this.openCursor(this.current_key_, this.current_primary_key_, false, step);
 
 };
 
@@ -481,20 +469,12 @@ ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
  * @inheritDoc
  */
 ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
-  if (!this.hasCursor()) {
-    throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
-  }
-  if (goog.isDefAndNotNull(key)) {
-    if (this.isIndexCursor()) {
-      this.ini_index_key_ = key;
-    } else {
-      this.ini_key_ = key;
-    }
-  } else {
-    this.current_cursor_offset_++;
-  }
 
-  this.move_(this.onSuccess);
+  if (goog.isDefAndNotNull(key)) {
+    this.openCursor(key, undefined, true);
+  } else {
+    this.openCursor(this.current_key_, this.current_primary_key_);
+  }
 
 };
 
@@ -503,17 +483,19 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
  * Make cursor opening request.
  *
  *
- * @param {*=} opt_key primary key to resume position.
- * @param {*=} opt_primary_key index key to resume position.
+ * @param {IDBKey=} opt_key primary key to resume position.
+ * @param {IDBKey=} opt_primary_key index key to resume position.
  * @param {boolean=} opt_inclusive position is inclusive.
+ * @param {number=} opt_offset offset.
  */
 ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(
-    opt_key,  opt_primary_key, opt_inclusive) {
+    opt_key,  opt_primary_key, opt_inclusive, opt_offset) {
 
   if (this.isIndexCursor()) {
-    this.openIndex_(this.onSuccess, opt_key, opt_primary_key);
+    this.openIndex_(this.onSuccess, opt_key, opt_primary_key, opt_inclusive,
+        opt_offset);
   } else {
-    this.openPrimary_(this.onSuccess, opt_key);
+    this.openPrimary_(this.onSuccess, opt_key, opt_inclusive, opt_offset);
   }
 
 };
@@ -603,20 +585,27 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
         key + '" on ' + this.dir + ' direction is wrong');
   }
 
-  this.current_cursor_offset_++;
-  this.openCursor(function (primary_key, index_key, value) {
+  var me = this;
+  /**
+   *
+   * @param {IDBKey=} primary_key
+   * @param {IDBKey=} index_key
+   * @param {*=} value
+   */
+  var fnc = function(primary_key, index_key, value) {
     if (goog.isDefAndNotNull(primary_key)) {
       var cmp2 = ydn.db.cmp(key, primary_key);
-      if (cmp2 == 0 || (cmp2 == 1 && this.reverse) ||
-          (cmp2 == -1 && !this.reverse)) {
-        this.onSuccess(primary_key, index_key, value);
+      if (cmp2 == 0 || (cmp2 == 1 && me.reverse) ||
+          (cmp2 == -1 && !me.reverse)) {
+        me.onSuccess(primary_key, index_key, value);
       } else {
         this.continuePrimaryKey(key);
       }
     } else {
-      this.onSuccess(undefined, undefined, undefined);
+      me.onSuccess(undefined, undefined, undefined);
     }
-  }, this.current_key_, key);
+  };
+  this.openIndex_(fnc, this.current_key_, key);
 
 };
 

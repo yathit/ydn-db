@@ -74,13 +74,6 @@ goog.inherits(ydn.db.index.req.AbstractCursor, goog.Disposable);
 
 /**
  * @protected
- * @type {function(IDBKey=, IDBKey=)}
- */
-ydn.db.index.req.AbstractCursor.prototype.cursor_position_listener;
-
-
-/**
- * @protected
  * @type {string|undefined}
  */
 ydn.db.index.req.AbstractCursor.prototype.index_name;
