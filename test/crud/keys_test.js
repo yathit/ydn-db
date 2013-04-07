@@ -10,7 +10,7 @@ var reachedFinalContinuation;
 
 
 var setUp = function () {
-  ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
 
 
 };

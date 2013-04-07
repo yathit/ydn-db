@@ -250,6 +250,7 @@ ydn.db.schema.Store.fromJSON = function(json) {
  * @enum {number}
  */
 ydn.db.schema.Store.QueryMethod = {
+  NONE: 0,
   KEYS: 1,
   VALUES: 2,
   COUNT: 3
@@ -258,29 +259,76 @@ ydn.db.schema.Store.QueryMethod = {
 
 /**
  *
- * @param {!Array} params sql parameter list
- * @param {ydn.db.schema.Store.QueryMethod} method retrieve key only.
+ * @param {!Array} params sql parameter list.
+ * @param {ydn.db.schema.Store.QueryMethod} method query method.
  * @param {string|undefined} index_column name.
  * @param {IDBKeyRange} key_range to retrieve.
  * @param {boolean} reverse ordering.
- * @param {boolean} unique
+ * @param {boolean} unique unique column.
+ * @return {string} sql statement.
  */
 ydn.db.schema.Store.prototype.toSql = function(params, method, index_column,
-                 key_range, reverse, unique) {
+    key_range, reverse, unique) {
+  var out = this.inSql(params, method, index_column,
+      key_range, reverse, unique);
+  var sql = '';
 
+  if (method != ydn.db.schema.Store.QueryMethod.NONE) {
+    sql += 'SELECT ' + out.select;
+  }
+  sql += ' FROM ' + out.from;
+  if (out.where) {
+    sql += ' WHERE ' + out.where;
+  }
+  if (out.order) {
+    sql += ' ORDER BY ' + out.order;
+  }
+
+  return sql;
+};
+
+
+/**
+ *
+ * @param {!Array} params sql parameter list.
+ * @param {ydn.db.schema.Store.QueryMethod} method query method.
+ * @param {string|undefined} index_column name.
+ * @param {IDBKeyRange} key_range to retrieve.
+ * @param {boolean} reverse ordering.
+ * @param {boolean} unique unique.
+ * @return {{
+ *   select: string,
+ *   from: string,
+ *   where: string,
+ *   order: string
+ * }}
+ */
+ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
+    key_range, reverse, unique) {
+
+  var out = {
+    select: '',
+    from: '',
+    where: '',
+    order: ''
+  };
   var key_column = this.primary_column_name_;
   var q_key_column = this.primary_column_name_quoted_;
-  var index = goog.isDefAndNotNull(index_column) &&
-      (index_column !== key_column) ? this.getIndex(index_column) : null;
+  var index = null;
+  if (index_column !== key_column && goog.isString(index_column)) {
+    index = this.getIndex(index_column);
+  }
   var is_index = !!index;
   var effective_column = index_column || key_column;
-  var q_effective_column =  goog.string.quote(effective_column);
+  var q_effective_column = goog.string.quote(effective_column);
   var key_path = is_index ? index.getKeyPath() : this.getKeyPath();
   var type = is_index ? index.getType() : this.getType();
   var is_multi_entry = is_index && index.isMultiEntry();
 
-  var select = '*';
-  var from = this.getQuotedName();
+  out.from = this.getQuotedName();
+  if (method != ydn.db.schema.Store.QueryMethod.NONE) {
+    out.select = '*';
+  }
 
   var dist = unique ? 'DISTINCT ' : '';
 
@@ -288,53 +336,61 @@ ydn.db.schema.Store.prototype.toSql = function(params, method, index_column,
 
   if (is_multi_entry) {
     var idx_store_name = goog.string.quote(
-      ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+        ydn.db.con.WebSql.PREFIX_MULTIENTRY +
         this.getName() + ':' + index.getName());
 
     if (method === ydn.db.schema.Store.QueryMethod.COUNT) {
-      select = 'COUNT(' + dist +
-        idx_store_name + '.' + q_effective_column + ')';
+      out.select = 'COUNT(' + dist +
+          idx_store_name + '.' + q_effective_column + ')';
     } else if (method === ydn.db.schema.Store.QueryMethod.KEYS) {
-      select = this.getQuotedName() + '.' + q_key_column + ', ' +
-        idx_store_name + '.' + q_effective_column;
+      out.select = this.getQuotedName() + '.' + q_key_column +
+          ', ' + idx_store_name + '.' + q_effective_column;
     } else {
-      select = this.getQuotedName() + '.*';
+      out.select = this.getQuotedName() + '.*';
     }
-    from = idx_store_name + ' INNER JOIN ' +  this.getQuotedName() +
-      ' USING (' + q_key_column + ')';
+    out.from = idx_store_name + ' INNER JOIN ' + this.getQuotedName() +
+        ' USING (' + q_key_column + ')';
     var col = idx_store_name + '.' + q_effective_column;
     if (goog.isDefAndNotNull(key_range)) {
       ydn.db.KeyRange.toSql(col, type, key_range, wheres, params);
       if (wheres.length > 0) {
-        from += ' WHERE ' + wheres.join(' AND ');
+        if (out.where) {
+          out.where += ' AND ' + wheres.join(' AND ');
+        } else {
+          out.where = wheres.join(' AND ');
+        }
       }
     }
   } else {
     if (method === ydn.db.schema.Store.QueryMethod.COUNT) {
       // primary key is always unqiue.
-      select = 'COUNT(' + q_key_column + ')';
+      out.select = 'COUNT(' + q_key_column + ')';
     } else if (method === ydn.db.schema.Store.QueryMethod.KEYS) {
-      select = q_key_column;
+      out.select = q_key_column;
       if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
-        select += ', ' + q_effective_column;
+        out.select += ', ' + q_effective_column;
       }
     }
     if (goog.isDefAndNotNull(key_range)) {
       ydn.db.KeyRange.toSql(q_effective_column, type, key_range, wheres,
-        params);
+          params);
       if (wheres.length > 0) {
-        from += ' WHERE ' + wheres.join(' AND ');
+        if (out.where) {
+          out.where += ' AND ' + wheres.join(' AND ');
+        } else {
+          out.where = wheres.join(' AND ');
+        }
       }
     }
   }
 
   var dir = reverse ? 'DESC' : 'ASC';
-  var order = q_effective_column + ' ' + dir;
+  out.order = q_effective_column + ' ' + dir;
   if (is_index) {
-    order += ', ' + q_key_column + ' ' + dir;
+    out.order += ', ' + q_key_column + ' ' + dir;
   }
 
-  return 'SELECT ' + select + ' FROM ' + from + ' ORDER BY ' + order;
+  return out;
 };
 
 

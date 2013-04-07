@@ -145,8 +145,8 @@ ydn.db.crud.req.WebSql.prototype.keysByIndexKeyRange = function(tx, tx_no, df,
 
 /**
  * Retrieve primary keys or value from a store in a given key range.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {string} tx_no
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
+ * @param {string} tx_no tx label.
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {boolean} key_only retrieve key only.
  * @param {string} store_name table name.
@@ -155,7 +155,7 @@ ydn.db.crud.req.WebSql.prototype.keysByIndexKeyRange = function(tx, tx_no, df,
  * @param {boolean} reverse ordering.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
- * @param {boolean} distinct
+ * @param {boolean} distinct unique key only.
  * @private
  */
 ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df,
@@ -172,7 +172,7 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df,
   var effective_column = index_column || key_column;
   var params = [];
   var mth = key_only ? ydn.db.schema.Store.QueryMethod.KEYS :
-    ydn.db.schema.Store.QueryMethod.VALUES;
+      ydn.db.schema.Store.QueryMethod.VALUES;
   var sql = store.toSql(params, mth, effective_column,
       key_range, reverse, distinct);
 
@@ -207,7 +207,7 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(tx, tx_no, df,
     df(arr);
   };
 
-  var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' +
+  var msg = tx_no + ' SQL: ' + sql + ' ;params= ' +
       ydn.json.stringify(params);
 
   /**
@@ -715,11 +715,12 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name,
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.listByKeyRange = function(tx, tx_no, df,
-   store_name, key_range, reverse, limit, offset) {
+    store_name, key_range, reverse, limit, offset) {
 
   this.list_by_key_range_(tx, tx_no, df, false, store_name, undefined,
       key_range, reverse, limit, offset, false);
 };
+
 
 /**
  * @inheritDoc
@@ -1291,6 +1292,9 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
+    if (ydn.db.crud.req.WebSql.DEBUG) {
+      window.console.log([sql, results]);
+    }
     var row = results.rows.item(0);
     // console.log(['row ', row  , results]);
     me.logger.finest('success ' + msg);
@@ -1305,7 +1309,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
    */
   var error_callback = function(tr, error) {
     if (ydn.db.crud.req.WebSql.DEBUG) {
-      window.console.log([tr, error]);
+      window.console.log([sql, error]);
     }
     me.logger.warning('error: ' + msg + error.message);
     d(error, true);

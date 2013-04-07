@@ -71,11 +71,13 @@ ydn.db.index.req.AbstractCursor = function(tx, tx_no,
 };
 goog.inherits(ydn.db.index.req.AbstractCursor, goog.Disposable);
 
+
 /**
  * @protected
  * @type {function(IDBKey=, IDBKey=)}
  */
 ydn.db.index.req.AbstractCursor.prototype.cursor_position_listener;
+
 
 /**
  * @protected
