@@ -7,7 +7,7 @@ goog.provide('ydn.db.index.req.CachedWebsqlCursor');
 goog.require('ydn.db.index.req.AbstractCursor');
 goog.require('ydn.db.index.req.ICursor');
 
-// TODO: release memory on result rows.
+
 // ? it seems release properly at least in chrome.
 
 /**
@@ -20,14 +20,16 @@ goog.require('ydn.db.index.req.ICursor');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
+ * @param {boolean} key_query true for keys query method.
  * @extends {ydn.db.index.req.AbstractCursor}
  * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
-ydn.db.index.req.CachedWebsqlCursor = function(tx, tx_no, store_schema, store_name,
-    index_name, keyRange, direction, key_only) {
+ydn.db.index.req.CachedWebsqlCursor = function(tx, tx_no, store_schema,
+    store_name, index_name, keyRange, direction, key_only, key_query) {
 
-  goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction, key_only);
+  goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
+      key_only, key_query);
 
 
   goog.asserts.assert(store_schema);

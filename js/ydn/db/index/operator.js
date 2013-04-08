@@ -111,11 +111,11 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
       limit = /** @type {number} */ (arg2);
       if (limit < 1) {
         throw new ydn.debug.error.ArgumentException('limit must be ' +
-          'a positive value, but ' + arg2);
+            'a positive value, but ' + arg2);
       }
     } else if (goog.isDef(arg2)) {
       throw new ydn.debug.error.ArgumentException('limit must be a number, ' +
-        ' but ' + arg2);
+          ' but ' + arg2);
     }
     /**
      * @type {number}
@@ -125,7 +125,7 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
       offset = /** @type {number} */ (arg3);
     } else if (goog.isDef(arg3)) {
       throw new ydn.debug.error.ArgumentException('offset must be a number, ' +
-        ' but ' + arg3);
+          ' but ' + arg3);
     }
 
     /**

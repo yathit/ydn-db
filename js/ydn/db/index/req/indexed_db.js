@@ -143,17 +143,18 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.getCursor = function (tx, tx_no, store_name,
-     index_name, keyRange, direction, key_only) {
+ydn.db.index.req.IndexedDb.prototype.getCursor = function(tx, tx_no,
+        store_name, index_name, keyRange, direction, key_only, key_query) {
 
   return new ydn.db.index.req.IDBCursor(tx, tx_no, store_name, index_name,
-    keyRange, direction, key_only);
+      keyRange, direction, key_only, key_query);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.getStreamer = function(tx, tx_no, store_name, index_name) {
+ydn.db.index.req.IndexedDb.prototype.getStreamer = function(tx, tx_no,
+    store_name, index_name) {
   return new ydn.db.Streamer(tx, store_name, index_name);
 };

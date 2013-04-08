@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Cursor.
  */
@@ -18,11 +19,12 @@ goog.require('ydn.debug.error.InternalError');
  * @param {IDBKeyRange} keyRange key range.
  * @param {ydn.db.base.Direction} direction cursor direction.
  * @param {boolean} key_only mode.
+ * @param {boolean} key_query true for keys query method.
  * @constructor
  * @extends {goog.Disposable}
  */
 ydn.db.index.req.AbstractCursor = function(tx, tx_no,
-    store_name, index_name, keyRange, direction, key_only) {
+    store_name, index_name, keyRange, direction, key_only, key_query) {
   goog.base(this);
   /**
    * @final
@@ -68,6 +70,11 @@ ydn.db.index.req.AbstractCursor = function(tx, tx_no,
    */
   this.key_only = key_only;
 
+  /**
+   * @final
+   */
+  this.key_query = key_query;
+
 };
 goog.inherits(ydn.db.index.req.AbstractCursor, goog.Disposable);
 
@@ -80,7 +87,7 @@ ydn.db.index.req.AbstractCursor.prototype.index_name;
 
 
 /**
- * @private
+ * @protected
  * @type {boolean}
  */
 ydn.db.index.req.AbstractCursor.prototype.is_index;
@@ -126,6 +133,13 @@ ydn.db.index.req.AbstractCursor.prototype.reverse = false;
  * @type {boolean}
  */
 ydn.db.index.req.AbstractCursor.prototype.key_only = true;
+
+
+/**
+ * @protected
+ * @type {boolean}
+ */
+ydn.db.index.req.AbstractCursor.prototype.key_query = true;
 
 
 /**
@@ -176,7 +190,7 @@ ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
  */
 ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(
     opt_key, opt_primary_key, opt_value) {
- throw new ydn.debug.error.InternalError();
+  throw new ydn.debug.error.InternalError();
 };
 
 

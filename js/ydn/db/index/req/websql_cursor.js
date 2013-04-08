@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Cursor.
  */
@@ -19,23 +20,22 @@ goog.require('ydn.db.index.req.ICursor');
  * @param {IDBKeyRange} keyRange key range.
  * @param {ydn.db.base.Direction} direction cursor direction.
  * @param {boolean} key_only mode.
+ * @param {boolean} key_query true for keys query method.
  * @extends {ydn.db.index.req.AbstractCursor}
  * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
 ydn.db.index.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
-    index_name, keyRange, direction, key_only) {
+    index_name, keyRange, direction, key_only, key_query) {
 
   goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
-      key_only);
+      key_only, key_query);
 
   goog.asserts.assert(store_schema);
   this.store_schema_ = store_schema;
 
   this.current_key_ = undefined;
   this.current_primary_key_ = undefined;
-
-  this.current_cursor_offset_ = 0;
 
 };
 goog.inherits(ydn.db.index.req.WebsqlCursor, ydn.db.index.req.AbstractCursor);
@@ -85,14 +85,6 @@ ydn.db.index.req.WebsqlCursor.prototype.current_primary_key_;
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.current_value_;
-
-
-/**
- *
- * @type {number}
- * @private
- */
-ydn.db.index.req.WebsqlCursor.prototype.current_cursor_offset_ = NaN;
 
 
 /**
@@ -200,7 +192,7 @@ ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
   }
 
   var params = [];
-  var mth = this.key_only ? ydn.db.schema.Store.QueryMethod.KEYS :
+  var mth = this.key_query ? ydn.db.schema.Store.QueryMethod.KEYS :
       ydn.db.schema.Store.QueryMethod.VALUES;
   var index_name = this.index_name;
   var e_sql = this.store_schema_.inSql(params, mth, index_name,
@@ -393,7 +385,7 @@ ydn.db.index.req.WebsqlCursor.callback;
  * @inheritDoc
  */
 ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
-  return this.isActive() && this.current_cursor_offset_ >= 0;
+  return this.isActive();
 };
 
 
@@ -560,7 +552,6 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function () {
 ydn.db.index.req.WebsqlCursor.prototype.restart = function(effective_key,
                                                            primary_key) {
   this.logger.finest(this + ' restarting.');
-  this.current_cursor_offset_ = 0;
   this.openCursor(primary_key, effective_key);
 };
 

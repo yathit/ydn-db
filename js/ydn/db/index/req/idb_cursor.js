@@ -1,5 +1,6 @@
+
 /**
- * @fileoverview Cursor.
+ * @fileoverview Cursor for IndexedDB.
  */
 
 
@@ -18,15 +19,16 @@ goog.require('ydn.debug.error.InternalError');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec.
  * @param {boolean} key_only mode.
+ * @param {boolean} key_query true for keys query method.
  * @extends {ydn.db.index.req.AbstractCursor}
  * @implements {ydn.db.index.req.ICursor}
  * @constructor
  */
 ydn.db.index.req.IDBCursor = function(tx, tx_no,
-    store_name, index_name, keyRange, direction, key_only) {
+    store_name, index_name, keyRange, direction, key_only, key_query) {
 
   goog.base(this, tx, tx_no, store_name, index_name,
-      keyRange, direction, key_only);
+      keyRange, direction, key_only, key_query);
 
   this.request_ = null;
 

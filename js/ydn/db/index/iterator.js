@@ -842,12 +842,14 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
  * @param {string} tx_lbl tx label.
  * @param {ydn.db.index.req.IRequestExecutor} executor executor.
+ * @param {boolean=} opt_key_query true for keys query method.
  * @return {ydn.db.Cursor}
  */
-ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor) {
+ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
+                                             opt_key_query) {
 
   var cursor = executor.getCursor(tx, tx_lbl, this.store_name, this.index,
-      this.key_range_, this.direction, this.key_only_);
+      this.key_range_, this.direction, this.key_only_, !!opt_key_query);
 
   if (!this.cursor_) {
     this.cursor_ = new ydn.db.Cursor([cursor]);
