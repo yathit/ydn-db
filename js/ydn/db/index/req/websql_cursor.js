@@ -535,7 +535,7 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj) {
  */
 ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
 
-  this.openCursor(this.current_key_, this.current_primary_key_, false, step);
+  this.openCursor(this.current_key_, this.current_primary_key_, true, step);
 
 };
 

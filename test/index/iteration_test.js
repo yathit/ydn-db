@@ -1,5 +1,4 @@
 
-goog.require('goog.debug.Console');
 goog.require('ydn.db.algo.NestedLoop');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.debug');
@@ -11,9 +10,31 @@ var reachedFinalContinuation, schema, db, objs, animals;
 var store_name = 't1';
 var db_name = 'test_iteration_1';
 
+var obj_schema = {
+  stores: [
+    {
+      name: store_name,
+      keyPath: 'id',
+      type: 'TEXT',
+      indexes: [{
+        name: 'tag',
+        type: 'TEXT',
+        multiEntry: true
+      }, {
+        name: 'value',
+        type: 'NUMERIC'
+      }, {
+        name: 'x',
+        type: 'NUMERIC'
+      }]
+    }
+  ]
+};
+
 var setUp = function() {
 
-  // ydn.debug.log('ydn.db');
+  ydn.debug.log('ydn.db', 'finest');
+  ydn.db.index.DbOperator.DEBUG = true;
 
   objs = [
     {id:'qs0', value: 0, x: 1, tag: ['a', 'b']},
@@ -37,9 +58,10 @@ var setUp = function() {
 };
 
 var tearDown = function() {
-  db.close();
+
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
+
 
 
 var load_default = function() {
@@ -180,12 +202,16 @@ var test_index_streamer_collect = function() {
 
 };
 
+var db_single_cnt = 0;
 var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
 
-  db = load_default();
   var done;
   var streaming_keys = [];
   var streaming_values_keys = [];
+
+  var db_name = 'scan_key_single_test_' + (db_single_cnt++);
+
+  var db = new ydn.db.index.Storage(db_name, obj_schema, options);
 
   waitForCondition(
       // Condition
@@ -199,12 +225,18 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
         assertArrayEquals('streaming values', actual_index_keys, streaming_values_keys);
 
         reachedFinalContinuation = true;
-
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
       },
       100, // interval
       1000); // maxTimeout
 
-  var req = db.scan([q], function join_algo (keys, values) {
+
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(db + ' ready.');
+  });
+
+  var req = db.scan([q], function join_algo(keys, values) {
     //console.log(JSON.stringify([keys, values]));
     if (!goog.isDef(keys[0])) {
       return [];
@@ -216,7 +248,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
   });
 
   req.addCallback(function (result) {
-     done = true;
+    done = true;
   });
   req.addErrback(function (e) {
     console.log(e);
@@ -517,7 +549,7 @@ var test_51_open_index_value_iterator = function() {
 
   db = load_default();
   var req = db.open(q, function (cursor) {
-    streaming_eff_keys.push(cursor.getEffectiveKey());
+    streaming_eff_keys.push(cursor.getKey());
     streaming_keys.push(cursor.getPrimaryKey());
     streaming_values.push(cursor.getValue());
   });
@@ -727,9 +759,6 @@ var test_61_scan_cursor_resume = function() {
   });
 };
 
-tearDownPage = function() {
-  ydn.db.deleteDatabase(db_name, options.mechanisms[0]);
-};
 
 
 var testCase = new goog.testing.ContinuationTestCase();

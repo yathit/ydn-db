@@ -269,7 +269,7 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
 
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
-    var lbl = tx_no + ' ' + me + ' scanning'
+    var lbl = tx_no + ' ' + me + ' scanning';
     me.logger.finest(lbl);
     var done = false;
 
@@ -279,6 +279,10 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
 
     var keys = [];
     var values = [];
+    /**
+     *
+     * @type {Array.<!ydn.db.Cursor>}
+     */
     var cursors = [];
     var streamers = [];
 
@@ -461,7 +465,13 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
       }
       result_count++;
       var idx = idx2iterator[i];
+      /**
+       * @type {!ydn.db.Iterator}
+       */
       var iterator = iterators[idx];
+      /**
+       * @type {!ydn.db.Cursor}
+       */
       var cursor = cursors[idx];
       var primary_key = cursor.getPrimaryKey();
       var value = cursor.getValue();
@@ -478,9 +488,9 @@ ydn.db.index.DbOperator.prototype.scan = function(iterators, solver,
           values[i] = value;
         }
       } else {
-        keys[i] = primary_key;
+        keys[i] = key;
         if (iterator.isKeyOnly()) {
-          values[i] = primary_key;
+          values[i] = key;
         } else {
           values[i] = value;
         }
@@ -654,18 +664,18 @@ ydn.db.index.DbOperator.prototype.map = function(iterator, callback) {
      *
      * @param {IDBKey=} key
      */
-    cursor.onNext = function(key) {
+    cursor.onNext = function (key) {
       if (goog.isDefAndNotNull(key)) {
         var ref;
-        if (iterator.isKeyOnly()) {
-          if (iterator.isIndexIterator()) {
+        if (iterator.isIndexIterator()) {
+          if (iterator.isKeyOnly()) {
             ref = key;
           } else {
             ref = cursor.getPrimaryKey();
           }
         } else {
-          if (iterator.isIndexIterator()) {
-            ref = cursor.getPrimaryKey();
+          if (iterator.isKeyOnly()) {
+            ref = key;
           } else {
             ref = cursor.getValue();
           }
@@ -725,15 +735,15 @@ ydn.db.index.DbOperator.prototype.reduce = function(iterator, callback, initial)
     cursor.onNext = function(key) {
       if (goog.isDefAndNotNull(key)) {
         var current_value;
-        if (iterator.isKeyOnly()) {
-          if (iterator.isIndexIterator()) {
-            current_value = cursor.getPrimaryKey();
-          } else {
+        if (iterator.isIndexIterator()) {
+          if (iterator.isKeyOnly()) {
             current_value = key;
+          } else {
+            current_value = cursor.getPrimaryKey();
           }
         } else {
-          if (iterator.isIndexIterator()) {
-            current_value = cursor.getPrimaryKey();
+          if (iterator.isKeyOnly()) {
+            current_value = key;
           } else {
             current_value = cursor.getValue();
           }
