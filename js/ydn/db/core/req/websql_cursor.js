@@ -572,9 +572,10 @@ ydn.db.core.req.WebsqlCursor.prototype.openCursor = function(
 
   if (goog.isDefAndNotNull(opt_primary_key)) {
     var primary_key = opt_primary_key;
+    goog.asserts.assert(goog.isDefAndNotNull(opt_key));
     if (goog.isDefAndNotNull(this.current_key_) &&
-        ydn.db.cmp(primary_key, this.current_key_) == 0) {
-      this.continuePrimaryKey_(me.onSuccess, primary_key,
+        ydn.db.cmp(opt_key, this.current_key_) == 0) {
+      this.continuePrimaryKey_(this.onSuccess, primary_key,
           opt_inclusive, opt_offset);
     } else {
       var me = this;
