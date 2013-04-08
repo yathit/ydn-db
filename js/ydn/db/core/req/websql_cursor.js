@@ -165,11 +165,12 @@ ydn.db.core.req.WebsqlCursor.prototype.collect = function(opt_row) {
  *
  * @param {?ydn.db.core.req.WebsqlCursor.callback} callback invoke.
  * @param {IDBKey} primary_key primary key.
- * @param {boolean=} opt_exclusive exclude given key.
+ * @param {boolean=} opt_inclusive position is inclusive.
+ * @param {number=} opt_offset offset.
  * @private
  */
 ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
-    callback, primary_key, opt_exclusive) {
+    callback, primary_key, opt_inclusive, opt_offset) {
 
   // this is define only for index iterator.
   goog.asserts.assertString(this.index_name);
@@ -211,17 +212,17 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
     }
   } else {
     if (this.reverse) {
-      key_range = ydn.db.IDBKeyRange.upperBound(key, upperOpen);
+      key_range = ydn.db.IDBKeyRange.upperBound(key);
     } else {
-      key_range = ydn.db.IDBKeyRange.lowerBound(key, lowerOpen);
+      key_range = ydn.db.IDBKeyRange.lowerBound(key);
     }
   }
   var e_sql = this.store_schema_.inSql(params, mth, index_name,
       key_range, this.reverse, this.unique);
 
   var p_key_range = this.reverse ?
-      ydn.db.IDBKeyRange.upperBound(primary_key, !!opt_exclusive) :
-      ydn.db.IDBKeyRange.lowerBound(primary_key, !!opt_exclusive);
+      ydn.db.IDBKeyRange.upperBound(primary_key, !opt_inclusive) :
+      ydn.db.IDBKeyRange.lowerBound(primary_key, !opt_inclusive);
   var p_sql = this.store_schema_.inSql(params, mth,
       this.store_schema_.getSQLKeyColumnName(),
       p_key_range, this.reverse, this.unique);
@@ -237,6 +238,9 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
       ' ORDER BY ' + e_sql.order;
 
   sql += ' LIMIT 1'; // cursor move only one step at a time.
+  if (opt_offset > 0) {
+    sql += ' OFFSET ' + opt_offset;
+  }
 
   var me = this;
   /**
@@ -568,30 +572,36 @@ ydn.db.core.req.WebsqlCursor.prototype.openCursor = function(
 
   if (goog.isDefAndNotNull(opt_primary_key)) {
     var primary_key = opt_primary_key;
-    goog.asserts.assert(!opt_offset);
-    var me = this;
-    /**
-     *
-     * @param {IDBKey=} opt_key key.
-     * @param {IDBKey=} opt_p_key primary key.
-     * @param {*=} opt_value value.
-     */
-    var on_success = function(opt_key, opt_p_key, opt_value) {
-      if (goog.isDefAndNotNull(opt_p_key)) {
-        var cmp = ydn.db.cmp(opt_primary_key, opt_p_key);
-        if (cmp == 1 || (cmp == 0 && !!opt_inclusive)) {
-          this.current_key_ = opt_key;
-          this.current_primary_key_ = opt_p_key;
-          this.current_value_ = opt_value;
-          me.onSuccess(opt_key, opt_p_key, opt_value);
+    if (goog.isDefAndNotNull(this.current_key_) &&
+        ydn.db.cmp(primary_key, this.current_key_) == 0) {
+      this.continuePrimaryKey_(me.onSuccess, primary_key,
+          opt_inclusive, opt_offset);
+    } else {
+      var me = this;
+      /**
+       *
+       * @param {IDBKey=} opt_key key.
+       * @param {IDBKey=} opt_p_key primary key.
+       * @param {*=} opt_value value.
+       */
+      var on_success = function(opt_key, opt_p_key, opt_value) {
+        if (goog.isDefAndNotNull(opt_p_key)) {
+          var cmp = ydn.db.cmp(opt_primary_key, opt_p_key);
+          if (cmp == 1 || (cmp == 0 && !opt_inclusive)) {
+            me.current_key_ = opt_key;
+            me.current_primary_key_ = opt_p_key;
+            me.current_value_ = opt_value;
+            me.onSuccess(opt_key, opt_p_key, opt_value);
+          } else {
+            me.continuePrimaryKey_(me.onSuccess, primary_key,
+                opt_inclusive, opt_offset);
+          }
         } else {
-          me.continuePrimaryKey_(me.onSuccess, primary_key, true);
+          me.onSuccess();
         }
-      } else {
-        me.onSuccess();
-      }
-    };
-    this.continueEffectiveKey_(on_success, opt_key, true);
+      };
+      this.continueEffectiveKey_(on_success, opt_key, true);
+    }
   } else {
     this.continueEffectiveKey_(this.onSuccess, opt_key, opt_inclusive,
         opt_offset);
