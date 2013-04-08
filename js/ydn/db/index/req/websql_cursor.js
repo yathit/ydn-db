@@ -253,7 +253,6 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
     } else {
       me.collect();
     }
-
     callback.call(me, me.current_key_, me.current_primary_key_,
         me.current_value_);
     callback = null;
@@ -446,7 +445,6 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
     return false;
 
   };
-
 
   this.logger.finest(this + ': continue: ' + ' SQL: ' +
       sql + ' : ' + ydn.json.stringify(params));

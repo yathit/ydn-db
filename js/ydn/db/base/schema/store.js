@@ -354,7 +354,9 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
       out.select = this.getQuotedName() + '.' + q_key_column +
           ', ' + idx_store_name + '.' + q_effective_column;
     } else {
-      out.select = this.getQuotedName() + '.*';
+      out.select = this.getQuotedName() + '.*' +
+          ', ' + idx_store_name + '.' + q_effective_column +
+          ' AS ' + effective_column;
     }
     out.from = idx_store_name + ' INNER JOIN ' + this.getQuotedName() +
         ' USING (' + q_key_column + ')';

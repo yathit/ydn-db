@@ -231,8 +231,10 @@ ydn.db.tr.Serial.prototype.popTxQueue_ = function() {
 
   var task = this.trQueue_.shift();
   if (task) {
-    this.logger.finest('pop tx queue of ' + this.trQueue_.length + ' ' +
-      task.fnc.name);
+    if (ydn.db.tr.Serial.DEBUG) {
+      this.logger.finest('pop tx queue of ' + this.trQueue_.length + ' ' +
+          task.fnc.name);
+    }
     this.processTx(task.fnc, task.store_names, task.mode, task.oncompleted);
   }
   //this.last_queue_checkin_ = goog.now();
@@ -419,6 +421,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         me.mu_tx_.down(type, event);
         me.popTxQueue_();
       }
+      me.r_no_ = 0;
     };
 
     this.completed_handlers = oncompleted ? [oncompleted] : [];
