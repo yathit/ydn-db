@@ -4,8 +4,8 @@
  */
 
 
-goog.provide('ydn.db.index.req.IDBCursor');
-goog.require('ydn.db.index.req.AbstractCursor');
+goog.provide('ydn.db.core.req.IDBCursor');
+goog.require('ydn.db.core.req.AbstractCursor');
 goog.require('ydn.debug.error.InternalError');
 
 
@@ -20,11 +20,11 @@ goog.require('ydn.debug.error.InternalError');
  * @param {ydn.db.base.Direction} direction we are using old spec.
  * @param {boolean} key_only mode.
  * @param {boolean} key_query true for keys query method.
- * @extends {ydn.db.index.req.AbstractCursor}
- * @implements {ydn.db.index.req.ICursor}
+ * @extends {ydn.db.core.req.AbstractCursor}
+ * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
-ydn.db.index.req.IDBCursor = function(tx, tx_no,
+ydn.db.core.req.IDBCursor = function(tx, tx_no,
     store_name, index_name, keyRange, direction, key_only, key_query) {
 
   goog.base(this, tx, tx_no, store_name, index_name,
@@ -33,28 +33,28 @@ ydn.db.index.req.IDBCursor = function(tx, tx_no,
   this.request_ = null;
 
 };
-goog.inherits(ydn.db.index.req.IDBCursor, ydn.db.index.req.AbstractCursor);
+goog.inherits(ydn.db.core.req.IDBCursor, ydn.db.core.req.AbstractCursor);
 
 
 /**
  * @define {boolean} debug flag.
  */
-ydn.db.index.req.IDBCursor.DEBUG = false;
+ydn.db.core.req.IDBCursor.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.index.req.IDBCursor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.index.req.IDBCursor');
+ydn.db.core.req.IDBCursor.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.core.req.IDBCursor');
 
 
 /**
  *
  * @param {Event} ev event.
  */
-ydn.db.index.req.IDBCursor.prototype.defaultOnSuccess = function(ev) {
+ydn.db.core.req.IDBCursor.prototype.defaultOnSuccess = function(ev) {
   var cursor = ev.target.result;
   if (cursor) {
     var p_key = this.isIndexCursor() ? cursor.primaryKey : undefined;
@@ -70,13 +70,13 @@ ydn.db.index.req.IDBCursor.prototype.defaultOnSuccess = function(ev) {
  * @type {IDBRequest} cursor request object.
  * @private
  */
-ydn.db.index.req.IDBCursor.prototype.request_ = null;
+ydn.db.core.req.IDBCursor.prototype.request_ = null;
 
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
+ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
 
   var key_range = this.key_range;
   var obj_store = this.tx.objectStore(this.store_name);
@@ -186,7 +186,7 @@ ydn.db.index.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.hasCursor = function() {
+ydn.db.core.req.IDBCursor.prototype.hasCursor = function() {
   return !!this.request_;
 };
 
@@ -194,7 +194,7 @@ ydn.db.index.req.IDBCursor.prototype.hasCursor = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.update = function(record) {
+ydn.db.core.req.IDBCursor.prototype.update = function(record) {
   var cursor = this.request_.result;
   if (cursor) {
     var df = new goog.async.Deferred();
@@ -215,7 +215,7 @@ ydn.db.index.req.IDBCursor.prototype.update = function(record) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.clear = function() {
+ydn.db.core.req.IDBCursor.prototype.clear = function() {
 
   var cursor = this.request_.result;
   if (cursor) {
@@ -237,7 +237,7 @@ ydn.db.index.req.IDBCursor.prototype.clear = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.restart = function(
+ydn.db.core.req.IDBCursor.prototype.restart = function(
     effective_key, primary_key) {
   this.logger.finest(this + ' restarting.');
   this.openCursor(primary_key, effective_key);
@@ -247,7 +247,7 @@ ydn.db.index.req.IDBCursor.prototype.restart = function(
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.advance = function(step) {
+ydn.db.core.req.IDBCursor.prototype.advance = function(step) {
   var cursor = this.request_.result;
 
   if (step == 1) {
@@ -262,7 +262,7 @@ ydn.db.index.req.IDBCursor.prototype.advance = function(step) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
+ydn.db.core.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
 
   var cursor = this.request_.result;
 
@@ -298,7 +298,7 @@ ydn.db.index.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.continueEffectiveKey = function(key) {
+ydn.db.core.req.IDBCursor.prototype.continueEffectiveKey = function(key) {
   var cursor = this.request_.result;
   if (goog.isDefAndNotNull(key)) {
     // it is an DataError for undefined or null key.
@@ -313,7 +313,7 @@ ydn.db.index.req.IDBCursor.prototype.continueEffectiveKey = function(key) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IDBCursor.prototype.disposeInternal = function() {
+ydn.db.core.req.IDBCursor.prototype.disposeInternal = function() {
   goog.base(this, 'disposeInternal');
   this.request_ = null;
 };

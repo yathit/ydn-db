@@ -23,10 +23,10 @@ goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
 var setUp = function() {
 
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
-  //ydn.db.index.req.IDBCursor.DEBUG = true;
-  //ydn.db.index.DbOperator.DEBUG = true;
+  //ydn.db.core.req.IDBCursor.DEBUG = true;
+  //ydn.db.core.DbOperator.DEBUG = true;
   //ydn.db.con.WebSql.DEBUG = true;
-  //ydn.db.index.req.CachedWebsqlCursor.DEBUG = true;
+  //ydn.db.core.req.CachedWebsqlCursor.DEBUG = true;
 
   reachedFinalContinuation = false;
 };

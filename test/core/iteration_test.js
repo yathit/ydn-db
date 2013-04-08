@@ -2,7 +2,7 @@
 goog.require('ydn.db.algo.NestedLoop');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.debug');
-goog.require('ydn.db.index.Storage');
+goog.require('ydn.db.core.Storage');
 
 
 
@@ -34,7 +34,7 @@ var obj_schema = {
 var setUp = function() {
 
   ydn.debug.log('ydn.db', 'finest');
-  ydn.db.index.DbOperator.DEBUG = true;
+  ydn.db.core.DbOperator.DEBUG = true;
 
   objs = [
     {id:'qs0', value: 0, x: 1, tag: ['a', 'b']},
@@ -78,7 +78,7 @@ var load_default = function() {
     ydn.db.schema.DataType.TEXT, [colorIndex, hornIndex, legIndex]);
 
   schema = new ydn.db.schema.Database(undefined, [store_schema, anmialStore]);
-  var db = new ydn.db.index.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + 'store: ' + store_name + ' ready.');
@@ -211,7 +211,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
 
   var db_name = 'scan_key_single_test_' + (db_single_cnt++);
 
-  var db = new ydn.db.index.Storage(db_name, obj_schema, options);
+  var db = new ydn.db.core.Storage(db_name, obj_schema, options);
 
   waitForCondition(
       // Condition

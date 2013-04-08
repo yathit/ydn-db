@@ -32,7 +32,7 @@ goog.require('ydn.db.Cursor');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.base');
-goog.require('ydn.db.index.req.ICursor');
+goog.require('ydn.db.core.req.ICursor');
 goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.debug.error.ArgumentException');
 
@@ -841,7 +841,7 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
 /**
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
  * @param {string} tx_lbl tx label.
- * @param {ydn.db.index.req.IRequestExecutor} executor executor.
+ * @param {ydn.db.core.req.IRequestExecutor} executor executor.
  * @param {boolean=} opt_key_query true for keys query method.
  * @return {ydn.db.Cursor}
  */
@@ -867,8 +867,8 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
 ///**
 // * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
 // * @param {string} tx_no tx no.
-// * @param {ydn.db.index.req.IRequestExecutor} executor
-// * @return {ydn.db.index.req.AbstractCursor}
+// * @param {ydn.db.core.req.IRequestExecutor} executor
+// * @return {ydn.db.core.req.AbstractCursor}
 // * @private
 // */
 //ydn.db.Iterator.prototype.iterateWithFilters_ = function(tx, tx_no, executor) {

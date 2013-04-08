@@ -5,10 +5,10 @@
  */
 
 
-goog.provide('ydn.db.index.req.IRequestExecutor');
+goog.provide('ydn.db.core.req.IRequestExecutor');
 goog.require('ydn.db.Streamer');
 goog.require('ydn.db.crud.req.IRequestExecutor');
-goog.require('ydn.db.index.req.AbstractCursor');
+goog.require('ydn.db.core.req.AbstractCursor');
 
 
 
@@ -16,7 +16,7 @@ goog.require('ydn.db.index.req.AbstractCursor');
  * @interface
  * @extends {ydn.db.crud.req.IRequestExecutor}
  */
-ydn.db.index.req.IRequestExecutor = function() {};
+ydn.db.core.req.IRequestExecutor = function() {};
 
 
 /**
@@ -27,7 +27,7 @@ ydn.db.index.req.IRequestExecutor = function() {};
  * @param {!ydn.db.Iterator} store_name  store name.
  * @param {number=} opt_limit limit.
  */
-ydn.db.index.req.IRequestExecutor.prototype.keysByIterator =
+ydn.db.core.req.IRequestExecutor.prototype.keysByIterator =
     goog.abstractMethod;
 
 
@@ -39,7 +39,7 @@ ydn.db.index.req.IRequestExecutor.prototype.keysByIterator =
  * @param {!ydn.db.Iterator} store_name  store name.
  * @param {number=} opt_limit limit.
  */
-ydn.db.index.req.IRequestExecutor.prototype.listByIterator =
+ydn.db.core.req.IRequestExecutor.prototype.listByIterator =
     goog.abstractMethod;
 
 
@@ -52,9 +52,9 @@ ydn.db.index.req.IRequestExecutor.prototype.listByIterator =
  * @param {ydn.db.base.Direction} direction we are using old spec.
  * @param {boolean} key_only mode.
  * @param {boolean} key_query true for keys query method.
- * @return {!ydn.db.index.req.AbstractCursor} cursor.
+ * @return {!ydn.db.core.req.AbstractCursor} cursor.
  */
-ydn.db.index.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
+ydn.db.core.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
 
 
 /**
@@ -64,5 +64,5 @@ ydn.db.index.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
  * @param {string=} opt_index_name
  * @return {!ydn.db.Streamer}
  */
-ydn.db.index.req.IRequestExecutor.prototype.getStreamer = goog.abstractMethod;
+ydn.db.core.req.IRequestExecutor.prototype.getStreamer = goog.abstractMethod;
 

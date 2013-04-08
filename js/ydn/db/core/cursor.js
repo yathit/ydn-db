@@ -6,7 +6,7 @@
 
 goog.provide('ydn.db.Cursor');
 goog.require('goog.debug.Logger');
-goog.require('ydn.db.index.req.ICursor');
+goog.require('ydn.db.core.req.ICursor');
 goog.require('ydn.debug.error.InternalError');
 goog.require('ydn.db');
 
@@ -14,7 +14,7 @@ goog.require('ydn.db');
 
 /**
  *
- * @param {Array.<ydn.db.index.req.ICursor>} cursors cursors.
+ * @param {Array.<ydn.db.core.req.ICursor>} cursors cursors.
  * @constructor
  */
 ydn.db.Cursor = function(cursors) {
@@ -40,7 +40,7 @@ ydn.db.Cursor.DEBUG = false;
 
 
 /**
- * @type {Array.<ydn.db.index.req.ICursor>}
+ * @type {Array.<ydn.db.core.req.ICursor>}
  * @private
  */
 ydn.db.Cursor.prototype.cursors_;
@@ -126,7 +126,7 @@ ydn.db.Cursor.prototype.init_ = function() {
      * @param {IDBKey=} opt_key effective key.
      * @param {IDBKey=} opt_p_key primary key.
      * @param {*=} opt_value reference value.
-     * @this {ydn.db.index.req.ICursor}
+     * @this {ydn.db.core.req.ICursor}
      */
     cursor.onSuccess = function(opt_key, opt_p_key, opt_value) {
       result_count++;
@@ -152,7 +152,7 @@ ydn.db.Cursor.prototype.init_ = function() {
     /**
      * On error handler.
      * @param {!Error} e error.
-     * @this {ydn.db.index.req.ICursor}
+     * @this {ydn.db.core.req.ICursor}
      */
     cursor.onError = function(e) {
       me.onFail(e);
@@ -178,7 +178,7 @@ ydn.db.Cursor.prototype.init_ = function() {
 
 /**
  *
- * @param {Array.<ydn.db.index.req.ICursor>} cursors active cursors.
+ * @param {Array.<ydn.db.core.req.ICursor>} cursors active cursors.
  */
 ydn.db.Cursor.prototype.resume = function(cursors) {
   this.cursors_ = cursors;

@@ -17,8 +17,8 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.index.Storage');
-goog.require('ydn.db.index.DbOperator');
+goog.provide('ydn.db.core.Storage');
+goog.require('ydn.db.core.DbOperator');
 goog.require('ydn.db.crud.Storage');
 
 
@@ -38,23 +38,23 @@ goog.require('ydn.db.crud.Storage');
  * is used.
  * @param {!StorageOptions=} opt_options options.
  * @extends {ydn.db.crud.Storage}
- * @implements {ydn.db.index.IOperator}
+ * @implements {ydn.db.core.IOperator}
  * @constructor
  */
-ydn.db.index.Storage = function(opt_dbname, opt_schema, opt_options) {
+ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
 };
-goog.inherits(ydn.db.index.Storage, ydn.db.crud.Storage);
+goog.inherits(ydn.db.core.Storage, ydn.db.crud.Storage);
 
 
 ///**
 // * @override
 // */
-//ydn.db.index.Storage.prototype.newTxQueue = function(thread, scope_name) {
+//ydn.db.core.Storage.prototype.newTxQueue = function(thread, scope_name) {
 //  thread = thread || this.thread;
-//  return new ydn.db.index.DbOperator(this, thread, this.ptx_no++,
+//  return new ydn.db.core.DbOperator(this, thread, this.ptx_no++,
 //      this.schema, scope_name);
 //};
 
@@ -62,17 +62,17 @@ goog.inherits(ydn.db.index.Storage, ydn.db.crud.Storage);
 /**
  * @inheritDoc
  */
-ydn.db.index.Storage.prototype.newExecutor = function (scope_name) {
+ydn.db.core.Storage.prototype.newExecutor = function (scope_name) {
 
   var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.index.req.IndexedDb(this.db_name, this.schema, scope_name);
+    return new ydn.db.core.req.IndexedDb(this.db_name, this.schema, scope_name);
   } else if (type == ydn.db.con.WebSql.TYPE) {
-    return new ydn.db.index.req.WebSql(this.db_name, this.schema, scope_name);
+    return new ydn.db.core.req.WebSql(this.db_name, this.schema, scope_name);
   } else if (type == ydn.db.con.SimpleStorage.TYPE ||
     type == ydn.db.con.LocalStorage.TYPE ||
     type == ydn.db.con.SessionStorage.TYPE) {
-    return new ydn.db.index.req.SimpleStore(this.db_name, this.schema, scope_name);
+    return new ydn.db.core.req.SimpleStore(this.db_name, this.schema, scope_name);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
   }
@@ -84,18 +84,18 @@ ydn.db.index.Storage.prototype.newExecutor = function (scope_name) {
  * 
  * @inheritDoc
  */
-ydn.db.index.Storage.prototype.newOperator = function(tx_thread, sync_thread, scope_name) {
+ydn.db.core.Storage.prototype.newOperator = function(tx_thread, sync_thread, scope_name) {
   scope_name = scope_name || '';
-  return new ydn.db.index.DbOperator(this, this.schema, scope_name, tx_thread, sync_thread);
+  return new ydn.db.core.DbOperator(this, this.schema, scope_name, tx_thread, sync_thread);
 };
 
 
 /**
  * 
- * @return {ydn.db.index.DbOperator}
+ * @return {ydn.db.core.DbOperator}
  */
-ydn.db.index.Storage.prototype.getIndexOperator = function() {
-  return /** @type {ydn.db.index.DbOperator} */ (this.db_operator);  
+ydn.db.core.Storage.prototype.getIndexOperator = function() {
+  return /** @type {ydn.db.core.DbOperator} */ (this.db_operator);
 };
 
 
@@ -106,7 +106,7 @@ ydn.db.index.Storage.prototype.getIndexOperator = function() {
  * @param {ydn.db.base.TransactionMode=} mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.Storage.prototype.open = function(iterator, callback, mode) {
+ydn.db.core.Storage.prototype.open = function(iterator, callback, mode) {
   return this.getIndexOperator().open(iterator, callback, mode);
 };
 
@@ -119,7 +119,7 @@ ydn.db.index.Storage.prototype.open = function(iterator, callback, mode) {
  * @param {!Array.<!ydn.db.Streamer>=} streamers streamers.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
+ydn.db.core.Storage.prototype.scan = function(iterators, solver, streamers) {
   return this.getIndexOperator().scan(iterators, solver, streamers);
 };
 
@@ -129,7 +129,7 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
 // * @param {!ydn.db.Iterator} q
 // * @return {Object} plan in JSON
 // */
-//ydn.db.index.Storage.prototype.explain = function(q) {
+//ydn.db.core.Storage.prototype.explain = function(q) {
 //  return this.getIndexOperator().explain(q);
 //};
 
@@ -138,7 +138,7 @@ ydn.db.index.Storage.prototype.scan = function(iterators, solver, streamers) {
  *
  * @inheritDoc
  */
-ydn.db.index.Storage.prototype.map = function (iterator, callback) {
+ydn.db.core.Storage.prototype.map = function (iterator, callback) {
   return this.getIndexOperator().map(iterator, callback);
 };
 
@@ -149,7 +149,7 @@ ydn.db.index.Storage.prototype.map = function (iterator, callback) {
  * @param {function(*, *, number): *} callback
  * @param {*=} initial
  */
-ydn.db.index.Storage.prototype.reduce = function(iterator, callback, initial) {
+ydn.db.core.Storage.prototype.reduce = function(iterator, callback, initial) {
   return this.getIndexOperator().reduce(iterator, callback, initial);
 };
 

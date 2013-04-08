@@ -41,7 +41,7 @@ var setUp = function() {
     //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
     //goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.index.req').setLevel(goog.debug.Logger.Level.FINEST);
+    //goog.debug.Logger.getLogger('ydn.db.core.req').setLevel(goog.debug.Logger.Level.FINEST);
 
     //ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.crud.req.IndexedDb.DEBUG = true;

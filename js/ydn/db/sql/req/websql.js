@@ -21,14 +21,14 @@
  */
 
 goog.provide('ydn.db.sql.req.WebSql');
-goog.require('ydn.db.index.req.WebSql');
+goog.require('ydn.db.core.req.WebSql');
 goog.require('ydn.db.sql.req.SqlQuery');
 goog.require('ydn.db.sql.req.IRequestExecutor');
 goog.require('ydn.db.sql.req.websql.Node');
 goog.require('ydn.db.sql.req.websql.ReduceNode');
 
 /**
- * @extends {ydn.db.index.req.WebSql}
+ * @extends {ydn.db.core.req.WebSql}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
  * @param {string} scope
@@ -38,7 +38,7 @@ goog.require('ydn.db.sql.req.websql.ReduceNode');
 ydn.db.sql.req.WebSql = function(dbname, schema, scope) {
   goog.base(this, dbname, schema, scope);
 };
-goog.inherits(ydn.db.sql.req.WebSql, ydn.db.index.req.WebSql);
+goog.inherits(ydn.db.sql.req.WebSql, ydn.db.core.req.WebSql);
 
 
 
@@ -174,7 +174,7 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(tx, tx_no, df, sql, params
 //   * @return {boolean} true to roll back.
 //   */
 //  var error_callback = function(tr, error) {
-//    if (ydn.db.index.req.WebSql.DEBUG) {
+//    if (ydn.db.core.req.WebSql.DEBUG) {
 //      window.console.log([cursor, tr, error]);
 //    }
 //    me.logger.warning('Sqlite error: ' + error.message);

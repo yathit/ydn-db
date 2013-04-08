@@ -5,32 +5,32 @@
  * Date: 19/1/13
  */
 
-goog.require('ydn.db.index.Storage');
-goog.require('ydn.db.index.DbOperator');
-goog.require('ydn.db.index.req.IDBCursor');
-goog.require('ydn.db.index.req.CachedWebsqlCursor');
+goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.core.DbOperator');
+goog.require('ydn.db.core.req.IDBCursor');
+goog.require('ydn.db.core.req.CachedWebsqlCursor');
 goog.require('ydn.math.Expression');
 //
-//goog.exportProperty(ydn.db.index.Storage.prototype, 'thread',
-//  ydn.db.index.Storage.prototype.thread);
+//goog.exportProperty(ydn.db.core.Storage.prototype, 'thread',
+//  ydn.db.core.Storage.prototype.thread);
 
-goog.exportProperty(ydn.db.index.Storage.prototype, 'scan',
-    ydn.db.index.Storage.prototype.scan);
-goog.exportProperty(ydn.db.index.Storage.prototype, 'map',
-    ydn.db.index.Storage.prototype.map);
-goog.exportProperty(ydn.db.index.Storage.prototype, 'reduce',
-    ydn.db.index.Storage.prototype.reduce);
-goog.exportProperty(ydn.db.index.Storage.prototype, 'open',
-    ydn.db.index.Storage.prototype.open);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'scan',
+    ydn.db.core.Storage.prototype.scan);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'map',
+    ydn.db.core.Storage.prototype.map);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'reduce',
+    ydn.db.core.Storage.prototype.reduce);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'open',
+    ydn.db.core.Storage.prototype.open);
 
-goog.exportProperty(ydn.db.index.DbOperator.prototype, 'scan',
-    ydn.db.index.DbOperator.prototype.scan);
-goog.exportProperty(ydn.db.index.DbOperator.prototype, 'map',
-    ydn.db.index.DbOperator.prototype.map);
-goog.exportProperty(ydn.db.index.DbOperator.prototype, 'reduce',
-    ydn.db.index.DbOperator.prototype.reduce);
-goog.exportProperty(ydn.db.index.DbOperator.prototype, 'open',
-    ydn.db.index.DbOperator.prototype.open);
+goog.exportProperty(ydn.db.core.DbOperator.prototype, 'scan',
+    ydn.db.core.DbOperator.prototype.scan);
+goog.exportProperty(ydn.db.core.DbOperator.prototype, 'map',
+    ydn.db.core.DbOperator.prototype.map);
+goog.exportProperty(ydn.db.core.DbOperator.prototype, 'reduce',
+    ydn.db.core.DbOperator.prototype.reduce);
+goog.exportProperty(ydn.db.core.DbOperator.prototype, 'open',
+    ydn.db.core.DbOperator.prototype.open);
 
 goog.exportProperty(ydn.db.Cursor.prototype, 'key',
     ydn.db.Cursor.prototype.getKey);

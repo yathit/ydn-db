@@ -19,7 +19,7 @@
 
 goog.provide('ydn.db.sql.Storage');
 goog.require('ydn.db.sql.DbOperator');
-goog.require('ydn.db.index.Storage');
+goog.require('ydn.db.core.Storage');
 
 
 /**
@@ -37,7 +37,7 @@ goog.require('ydn.db.index.Storage');
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
- * @extends {ydn.db.index.Storage}
+ * @extends {ydn.db.core.Storage}
  * @implements {ydn.db.sql.IStorage}
  * @constructor
  */
@@ -46,7 +46,7 @@ ydn.db.sql.Storage = function(opt_dbname, opt_schema, opt_options) {
   goog.base(this, opt_dbname, opt_schema, opt_options);
 
 };
-goog.inherits(ydn.db.sql.Storage, ydn.db.index.Storage);
+goog.inherits(ydn.db.sql.Storage, ydn.db.core.Storage);
 
 //
 ///**

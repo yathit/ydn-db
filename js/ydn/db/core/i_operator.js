@@ -4,7 +4,7 @@
  */
 
 
-goog.provide('ydn.db.index.IOperator');
+goog.provide('ydn.db.core.IOperator');
 goog.require('ydn.db.crud.IOperator');
 
 
@@ -13,7 +13,7 @@ goog.require('ydn.db.crud.IOperator');
  * @extends {ydn.db.crud.IOperator}
  * @interface
  */
-ydn.db.index.IOperator = function() {};
+ydn.db.core.IOperator = function() {};
 
 
 /**
@@ -22,6 +22,6 @@ ydn.db.index.IOperator = function() {};
  * @param {?function(*): (*|undefined)} callback
  * @return {!goog.async.Deferred} deferred.
  */
-ydn.db.index.IOperator.prototype.map = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.map = goog.abstractMethod;
 
 

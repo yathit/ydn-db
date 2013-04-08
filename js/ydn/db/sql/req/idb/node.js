@@ -73,7 +73,7 @@ ydn.db.sql.req.idb.Node.prototype.toString = function() {
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  * @param {string} tx_no
  * @param {?function(*, boolean=)} df return key in deferred function.
- * @param {ydn.db.index.req.IRequestExecutor} req
+ * @param {ydn.db.core.req.IRequestExecutor} req
  */
 ydn.db.sql.req.idb.Node.prototype.execute = function(tx, tx_no, df, req) {
 

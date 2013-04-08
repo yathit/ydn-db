@@ -4,7 +4,7 @@
  */
 
 
-goog.provide('ydn.db.index.req.AbstractCursor');
+goog.provide('ydn.db.core.req.AbstractCursor');
 goog.require('goog.Disposable');
 goog.require('ydn.debug.error.InternalError');
 
@@ -23,7 +23,7 @@ goog.require('ydn.debug.error.InternalError');
  * @constructor
  * @extends {goog.Disposable}
  */
-ydn.db.index.req.AbstractCursor = function(tx, tx_no,
+ydn.db.core.req.AbstractCursor = function(tx, tx_no,
     store_name, index_name, keyRange, direction, key_only, key_query) {
   goog.base(this);
   /**
@@ -76,77 +76,77 @@ ydn.db.index.req.AbstractCursor = function(tx, tx_no,
   this.key_query = key_query;
 
 };
-goog.inherits(ydn.db.index.req.AbstractCursor, goog.Disposable);
+goog.inherits(ydn.db.core.req.AbstractCursor, goog.Disposable);
 
 
 /**
  * @protected
  * @type {string|undefined}
  */
-ydn.db.index.req.AbstractCursor.prototype.index_name;
+ydn.db.core.req.AbstractCursor.prototype.index_name;
 
 
 /**
  * @protected
  * @type {boolean}
  */
-ydn.db.index.req.AbstractCursor.prototype.is_index;
+ydn.db.core.req.AbstractCursor.prototype.is_index;
 
 
 /**
  * @protected
  * @type {string}
  */
-ydn.db.index.req.AbstractCursor.prototype.store_name = '';
+ydn.db.core.req.AbstractCursor.prototype.store_name = '';
 
 
 /**
  * @protected
  * @type {string}
  */
-ydn.db.index.req.AbstractCursor.prototype.dir = '';
+ydn.db.core.req.AbstractCursor.prototype.dir = '';
 
 
 /**
  * @protected
  * @type {IDBKeyRange}
  */
-ydn.db.index.req.AbstractCursor.prototype.key_range = null;
+ydn.db.core.req.AbstractCursor.prototype.key_range = null;
 
 
 /**
  * @protected
  * @type {boolean}
  */
-ydn.db.index.req.AbstractCursor.prototype.unique = false;
+ydn.db.core.req.AbstractCursor.prototype.unique = false;
 
 
 /**
  * @protected
  * @type {boolean}
  */
-ydn.db.index.req.AbstractCursor.prototype.reverse = false;
+ydn.db.core.req.AbstractCursor.prototype.reverse = false;
 
 
 /**
  * @protected
  * @type {boolean}
  */
-ydn.db.index.req.AbstractCursor.prototype.key_only = true;
+ydn.db.core.req.AbstractCursor.prototype.key_only = true;
 
 
 /**
  * @protected
  * @type {boolean}
  */
-ydn.db.index.req.AbstractCursor.prototype.key_query = true;
+ydn.db.core.req.AbstractCursor.prototype.key_query = true;
 
 
 /**
  *
  * @return {boolean} true if transaction is active.
  */
-ydn.db.index.req.AbstractCursor.prototype.isActive = function() {
+ydn.db.core.req.AbstractCursor.prototype.isActive = function() {
   return !!this.tx;
 };
 
@@ -155,7 +155,7 @@ ydn.db.index.req.AbstractCursor.prototype.isActive = function() {
  *
  * @return {boolean} return true if this is an index cursor.
  */
-ydn.db.index.req.AbstractCursor.prototype.isIndexCursor = function() {
+ydn.db.core.req.AbstractCursor.prototype.isIndexCursor = function() {
   return this.is_index;
 };
 
@@ -164,7 +164,7 @@ ydn.db.index.req.AbstractCursor.prototype.isIndexCursor = function() {
  *
  * @param {!Error} e error object.
  */
-ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
+ydn.db.core.req.AbstractCursor.prototype.onError = function(e) {
   throw new ydn.debug.error.InternalError();
 };
 
@@ -188,7 +188,7 @@ ydn.db.index.req.AbstractCursor.prototype.onError = function(e) {
  * @param {IDBKey=} opt_primary_key
  * @param {*=} opt_value
  */
-ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(
+ydn.db.core.req.AbstractCursor.prototype.onSuccess = function(
     opt_key, opt_primary_key, opt_value) {
   throw new ydn.debug.error.InternalError();
 };
@@ -197,7 +197,7 @@ ydn.db.index.req.AbstractCursor.prototype.onSuccess = function(
 /**
  * @inheritDoc
  */
-ydn.db.index.req.AbstractCursor.prototype.disposeInternal = function() {
+ydn.db.core.req.AbstractCursor.prototype.disposeInternal = function() {
   this.tx = null;
 };
 
@@ -206,7 +206,7 @@ if (goog.DEBUG) {
   /**
    * @inheritDoc
    */
-  ydn.db.index.req.AbstractCursor.prototype.toString = function() {
+  ydn.db.core.req.AbstractCursor.prototype.toString = function() {
     var index = goog.isDef(this.index_name) ? ':' + this.index_name : '';
     var active = this.tx ? '' : '~';
     return 'Cursor:' + this.store_name +

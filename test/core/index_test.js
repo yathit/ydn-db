@@ -19,7 +19,7 @@ var setUp = function () {
 
   // ydn.db.con.WebSql.DEBUG = true;
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  //ydn.db.index.req.WebSql.DEBUG = true;
+  //ydn.db.core.req.WebSql.DEBUG = true;
 
   reachedFinalContinuation = false;
 };
@@ -38,7 +38,7 @@ var load_default = function(cb) {
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
     ydn.db.schema.DataType.INTEGER, [indexSchema, typeIndex]);
   schema = new ydn.db.schema.Database(undefined, [store_schema]);
-  var db = new ydn.db.index.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   objs = [
     {id: -3, value: 'ba', type: 'a', remark: 'test ' + Math.random()},

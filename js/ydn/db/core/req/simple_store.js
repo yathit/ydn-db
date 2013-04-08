@@ -16,9 +16,9 @@
  * @fileoverview Data store in memory.
  */
 
-goog.provide('ydn.db.index.req.SimpleStore');
+goog.provide('ydn.db.core.req.SimpleStore');
 goog.require('ydn.db.crud.req.SimpleStore');
-goog.require('ydn.db.index.req.IRequestExecutor');
+goog.require('ydn.db.core.req.IRequestExecutor');
 
 
 /**
@@ -27,33 +27,33 @@ goog.require('ydn.db.index.req.IRequestExecutor');
  * @param {!ydn.db.schema.Database} schema schema.
  * @param {string} scope
  * @constructor
- * @implements {ydn.db.index.req.IRequestExecutor}
+ * @implements {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.index.req.SimpleStore = function(dbname, schema, scope) {
+ydn.db.core.req.SimpleStore = function(dbname, schema, scope) {
   goog.base(this, dbname, schema, scope);
 };
-goog.inherits(ydn.db.index.req.SimpleStore, ydn.db.crud.req.SimpleStore);
+goog.inherits(ydn.db.core.req.SimpleStore, ydn.db.crud.req.SimpleStore);
 
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleStore.prototype.keysByIterator = goog.abstractMethod;
+ydn.db.core.req.SimpleStore.prototype.keysByIterator = goog.abstractMethod;
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleStore.prototype.listByIterator = goog.abstractMethod;
+ydn.db.core.req.SimpleStore.prototype.listByIterator = goog.abstractMethod;
 
-
-
-/**
- * @inheritDoc
- */
-ydn.db.index.req.SimpleStore.prototype.getCursor = goog.abstractMethod;
 
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleStore.prototype.getStreamer = goog.abstractMethod;
+ydn.db.core.req.SimpleStore.prototype.getCursor = goog.abstractMethod;
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.getStreamer = goog.abstractMethod;

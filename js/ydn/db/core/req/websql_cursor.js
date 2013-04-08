@@ -4,9 +4,9 @@
  */
 
 
-goog.provide('ydn.db.index.req.WebsqlCursor');
-goog.require('ydn.db.index.req.AbstractCursor');
-goog.require('ydn.db.index.req.ICursor');
+goog.provide('ydn.db.core.req.WebsqlCursor');
+goog.require('ydn.db.core.req.AbstractCursor');
+goog.require('ydn.db.core.req.ICursor');
 
 
 
@@ -21,11 +21,11 @@ goog.require('ydn.db.index.req.ICursor');
  * @param {ydn.db.base.Direction} direction cursor direction.
  * @param {boolean} key_only mode.
  * @param {boolean} key_query true for keys query method.
- * @extends {ydn.db.index.req.AbstractCursor}
- * @implements {ydn.db.index.req.ICursor}
+ * @extends {ydn.db.core.req.AbstractCursor}
+ * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
-ydn.db.index.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
+ydn.db.core.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
     index_name, keyRange, direction, key_only, key_query) {
 
   goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
@@ -46,21 +46,21 @@ ydn.db.index.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
   this.current_primary_key_ = undefined;
 
 };
-goog.inherits(ydn.db.index.req.WebsqlCursor, ydn.db.index.req.AbstractCursor);
+goog.inherits(ydn.db.core.req.WebsqlCursor, ydn.db.core.req.AbstractCursor);
 
 
 /**
  * @define {boolean} for debugging this file.
  */
-ydn.db.index.req.WebsqlCursor.DEBUG = false;
+ydn.db.core.req.WebsqlCursor.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.index.req.WebsqlCursor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.index.req.WebsqlCursor');
+ydn.db.core.req.WebsqlCursor.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.core.req.WebsqlCursor');
 
 
 /**
@@ -68,7 +68,7 @@ ydn.db.index.req.WebsqlCursor.prototype.logger =
  * @type {!ydn.db.schema.Store}
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.store_schema_;
+ydn.db.core.req.WebsqlCursor.prototype.store_schema_;
 
 
 /**
@@ -76,7 +76,7 @@ ydn.db.index.req.WebsqlCursor.prototype.store_schema_;
  * @type {ydn.db.schema.Index}
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.index_;
+ydn.db.core.req.WebsqlCursor.prototype.index_;
 
 
 /**
@@ -84,7 +84,7 @@ ydn.db.index.req.WebsqlCursor.prototype.index_;
  * @type {IDBKey|undefined}
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.current_key_;
+ydn.db.core.req.WebsqlCursor.prototype.current_key_;
 
 
 /**
@@ -92,7 +92,7 @@ ydn.db.index.req.WebsqlCursor.prototype.current_key_;
  * @type {IDBKey|undefined}
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.current_primary_key_;
+ydn.db.core.req.WebsqlCursor.prototype.current_primary_key_;
 
 
 /**
@@ -100,13 +100,13 @@ ydn.db.index.req.WebsqlCursor.prototype.current_primary_key_;
  * @type {*}
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.current_value_;
+ydn.db.core.req.WebsqlCursor.prototype.current_value_;
 
 
 /**
  * @return {IDBKey|undefined}
  */
-ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
+ydn.db.core.req.WebsqlCursor.prototype.getIndexKey = function() {
 
   return this.current_key_;
 
@@ -116,7 +116,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getIndexKey = function() {
 /**
  *  @return {IDBKey|undefined} primary key for index iterator.
  */
-ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function() {
+ydn.db.core.req.WebsqlCursor.prototype.getPrimaryKey = function() {
   return this.current_primary_key_;
 };
 
@@ -124,7 +124,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getPrimaryKey = function() {
 /**
  * @return {*}
  */
-ydn.db.index.req.WebsqlCursor.prototype.getValue = function() {
+ydn.db.core.req.WebsqlCursor.prototype.getValue = function() {
   return this.current_value_;
 };
 
@@ -133,7 +133,7 @@ ydn.db.index.req.WebsqlCursor.prototype.getValue = function() {
  * Collect result.
  * @param {Object=} opt_row a row result.
  */
-ydn.db.index.req.WebsqlCursor.prototype.collect = function(opt_row) {
+ydn.db.core.req.WebsqlCursor.prototype.collect = function(opt_row) {
   this.current_key_ = undefined;
   this.current_primary_key_ = undefined;
   this.current_value_ = undefined;
@@ -163,12 +163,12 @@ ydn.db.index.req.WebsqlCursor.prototype.collect = function(opt_row) {
 
 /**
  *
- * @param {?ydn.db.index.req.WebsqlCursor.callback} callback invoke.
+ * @param {?ydn.db.core.req.WebsqlCursor.callback} callback invoke.
  * @param {IDBKey} primary_key primary key.
  * @param {boolean=} opt_exclusive exclude given key.
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
+ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
     callback, primary_key, opt_exclusive) {
 
   // this is define only for index iterator.
@@ -244,7 +244,7 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
    * @param {SQLResultSet} results results.
    */
   var onSuccess = function(tx, results) {
-    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, results]);
     }
 
@@ -264,7 +264,7 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
    * @return {boolean} true to roll back.
    */
   var onError = function(tr, error) {
-    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, error]);
     }
     me.logger.warning('get error: ' + error.message);
@@ -284,13 +284,13 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
 
 /**
  *
- * @param {?ydn.db.index.req.WebsqlCursor.callback} callback invoke.
+ * @param {?ydn.db.core.req.WebsqlCursor.callback} callback invoke.
  * @param {IDBKey=} opt_key effective key.
  * @param {boolean=} opt_inclusive position is inclusive.
  * @param {number=} opt_offset offset.
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
+ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
     callback, opt_key, opt_inclusive, opt_offset) {
 
   var key_range = this.key_range;
@@ -413,7 +413,7 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
    * @param {SQLResultSet} results results.
    */
   var onSuccess = function(tx, results) {
-    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, results]);
     }
     if (results.rows.length > 0) {
@@ -433,7 +433,7 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
    * @return {boolean} true to roll back.
    */
   var onError = function(tr, error) {
-    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, tr, error]);
     }
     me.logger.warning('get error: ' + error.message);
@@ -456,18 +456,18 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
 /**
  * @typedef {
  *   function (
- *     this:ydn.db.index.req.AbstractCursor,
+ *     this:ydn.db.core.req.AbstractCursor,
  *     (IDBKey|undefined),
  *     (IDBKey|undefined), *)
  * }
  */
-ydn.db.index.req.WebsqlCursor.callback;
+ydn.db.core.req.WebsqlCursor.callback;
 
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
+ydn.db.core.req.WebsqlCursor.prototype.hasCursor = function() {
   return this.isActive();
 };
 
@@ -475,7 +475,7 @@ ydn.db.index.req.WebsqlCursor.prototype.hasCursor = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.update = function(obj) {
+ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
 
   if (!this.hasCursor()) {
     throw new ydn.db.InvalidAccessError();
@@ -492,7 +492,7 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj) {
    * @param {SQLResultSet} results results.
    */
   var onSuccess = function(transaction, results) {
-    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, results]);
     }
     me.has_pending_request = false;
@@ -505,7 +505,7 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj) {
    * @return {boolean} true to roll back.
    */
   var onError = function(tr, error) {
-    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, tr, error]);
     }
     me.has_pending_request = false;
@@ -533,7 +533,7 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
+ydn.db.core.req.WebsqlCursor.prototype.advance = function(step) {
 
   this.openCursor(this.current_key_, this.current_primary_key_, true, step);
 
@@ -543,7 +543,7 @@ ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
+ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
 
   if (goog.isDefAndNotNull(key)) {
     this.continueEffectiveKey_(this.onSuccess, key, true);
@@ -563,7 +563,7 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
  * @param {boolean=} opt_inclusive position is inclusive.
  * @param {number=} opt_offset offset.
  */
-ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(
+ydn.db.core.req.WebsqlCursor.prototype.openCursor = function(
     opt_key,  opt_primary_key, opt_inclusive, opt_offset) {
 
   if (goog.isDefAndNotNull(opt_primary_key)) {
@@ -603,7 +603,7 @@ ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.clear = function() {
+ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
 
   if (!this.hasCursor()) {
     throw new ydn.db.InvalidAccessError();
@@ -618,7 +618,7 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function() {
    * @param {SQLResultSet} results results.
    */
   var onSuccess = function(transaction, results) {
-    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, results]);
     }
     me.has_pending_request = false;
@@ -631,7 +631,7 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function() {
    * @return {boolean} true to roll back.
    */
   var onError = function(tr, error) {
-    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, tr, error]);
     }
     me.has_pending_request = false;
@@ -656,7 +656,7 @@ ydn.db.index.req.WebsqlCursor.prototype.clear = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.restart = function(effective_key,
+ydn.db.core.req.WebsqlCursor.prototype.restart = function(effective_key,
                                                            primary_key) {
   this.logger.finest(this + ' restarting.');
   this.openCursor(primary_key, effective_key);
@@ -666,7 +666,7 @@ ydn.db.index.req.WebsqlCursor.prototype.restart = function(effective_key,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
+ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
 
   goog.asserts.assert(this.isIndexCursor());
   goog.asserts.assert(goog.isDefAndNotNull(this.current_key_));

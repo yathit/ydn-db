@@ -5,11 +5,11 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.index.req.IndexedDb');
+goog.provide('ydn.db.core.req.IndexedDb');
 goog.require('ydn.db.crud.req.IndexedDb');
-goog.require('ydn.db.index.req.IRequestExecutor');
+goog.require('ydn.db.core.req.IRequestExecutor');
 goog.require('ydn.db.algo.AbstractSolver');
-goog.require('ydn.db.index.req.IDBCursor');
+goog.require('ydn.db.core.req.IDBCursor');
 goog.require('ydn.error');
 goog.require('ydn.json');
 
@@ -21,34 +21,34 @@ goog.require('ydn.json');
  * @param {!ydn.db.schema.Database} schema schema.
  * @param {string} scope_name
  * @constructor
- * @implements {ydn.db.index.req.IRequestExecutor}
+ * @implements {ydn.db.core.req.IRequestExecutor}
  * @extends {ydn.db.crud.req.IndexedDb}
  */
-ydn.db.index.req.IndexedDb = function(dbname, schema, scope_name) {
+ydn.db.core.req.IndexedDb = function(dbname, schema, scope_name) {
   goog.base(this, dbname, schema, scope_name);
 };
-goog.inherits(ydn.db.index.req.IndexedDb, ydn.db.crud.req.IndexedDb);
+goog.inherits(ydn.db.core.req.IndexedDb, ydn.db.crud.req.IndexedDb);
 
 
 /**
  *
  * @const {boolean} turn on debug flag to dump object.
  */
-ydn.db.index.req.IndexedDb.DEBUG = false;
+ydn.db.core.req.IndexedDb.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.index.req.IndexedDb.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.index.req.IndexedDb');
+ydn.db.core.req.IndexedDb.prototype.logger =
+  goog.debug.Logger.getLogger('ydn.db.core.req.IndexedDb');
 
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
+ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
      iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
@@ -94,7 +94,7 @@ ydn.db.index.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df, 
+ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
      iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
@@ -143,10 +143,10 @@ ydn.db.index.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.getCursor = function(tx, tx_no,
+ydn.db.core.req.IndexedDb.prototype.getCursor = function(tx, tx_no,
         store_name, index_name, keyRange, direction, key_only, key_query) {
 
-  return new ydn.db.index.req.IDBCursor(tx, tx_no, store_name, index_name,
+  return new ydn.db.core.req.IDBCursor(tx, tx_no, store_name, index_name,
       keyRange, direction, key_only, key_query);
 };
 
@@ -154,7 +154,7 @@ ydn.db.index.req.IndexedDb.prototype.getCursor = function(tx, tx_no,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.IndexedDb.prototype.getStreamer = function(tx, tx_no,
+ydn.db.core.req.IndexedDb.prototype.getStreamer = function(tx, tx_no,
     store_name, index_name) {
   return new ydn.db.Streamer(tx, store_name, index_name);
 };

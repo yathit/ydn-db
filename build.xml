@@ -259,7 +259,7 @@
                 input.fn="${ydn-db.dir}/js/config/core_main.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db-core.js"
-                closure.entry="ydn.db.index.Storage">
+                closure.entry="ydn.db.core.Storage">
             <ex.opt>
                 <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>

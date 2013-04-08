@@ -6,7 +6,7 @@
  */
 
 goog.provide('ydn.db.sql.req.IndexedDb');
-goog.require('ydn.db.index.req.IndexedDb');
+goog.require('ydn.db.core.req.IndexedDb');
 goog.require('ydn.db.sql.req.IRequestExecutor');
 goog.require('ydn.db.sql.req.idb.Node');
 goog.require('ydn.db.sql.req.idb.ReduceNode');
@@ -15,7 +15,7 @@ goog.require('ydn.db.sql.req.idb.ReduceNode');
 /**
  * Create a new IDB request executor.
  * @param {string} dbname database name.
- * @extends {ydn.db.index.req.IndexedDb}
+ * @extends {ydn.db.core.req.IndexedDb}
  * @param {!ydn.db.schema.Database} schema schema.
  * @param {string} scope_name
  * @constructor
@@ -24,7 +24,7 @@ goog.require('ydn.db.sql.req.idb.ReduceNode');
 ydn.db.sql.req.IndexedDb = function(dbname, schema, scope_name) {
   goog.base(this, dbname, schema, scope_name);
 };
-goog.inherits(ydn.db.sql.req.IndexedDb, ydn.db.index.req.IndexedDb);
+goog.inherits(ydn.db.sql.req.IndexedDb, ydn.db.core.req.IndexedDb);
 
 
 /**

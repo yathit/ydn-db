@@ -20,15 +20,15 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.index.req.WebSql');
+goog.provide('ydn.db.core.req.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
 goog.require('ydn.db.crud.req.WebSql');
-goog.require('ydn.db.index.req.CachedWebsqlCursor');
-goog.require('ydn.db.index.req.IRequestExecutor');
-goog.require('ydn.db.index.req.WebsqlCursor');
+goog.require('ydn.db.core.req.CachedWebsqlCursor');
+goog.require('ydn.db.core.req.IRequestExecutor');
+goog.require('ydn.db.core.req.WebsqlCursor');
 goog.require('ydn.json');
 
 
@@ -39,33 +39,33 @@ goog.require('ydn.json');
  * @param {!ydn.db.schema.Database} schema schema.
  * @param {string} scope
  * @constructor
- * @implements {ydn.db.index.req.IRequestExecutor}
+ * @implements {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.index.req.WebSql = function(dbname, schema, scope) {
+ydn.db.core.req.WebSql = function(dbname, schema, scope) {
   goog.base(this, dbname, schema, scope);
 };
-goog.inherits(ydn.db.index.req.WebSql, ydn.db.crud.req.WebSql);
+goog.inherits(ydn.db.core.req.WebSql, ydn.db.crud.req.WebSql);
 
 
 /**
  * @const
  * @type {boolean} debug flag.
  */
-ydn.db.index.req.WebSql.DEBUG = false;
+ydn.db.core.req.WebSql.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.index.req.WebSql.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.index.req.WebSql');
+ydn.db.core.req.WebSql.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.core.req.WebSql');
 
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.keysByIterator = function(tx, tx_no, df, iter,
+ydn.db.core.req.WebSql.prototype.keysByIterator = function(tx, tx_no, df, iter,
                                                             limit, offset) {
   this.fetchIterator_(tx, tx_no, df, iter, true, limit, offset);
 };
@@ -74,7 +74,7 @@ ydn.db.index.req.WebSql.prototype.keysByIterator = function(tx, tx_no, df, iter,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q,
+ydn.db.core.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q,
                                                             limit, offset) {
 
   this.fetchIterator_(tx, tx_no, df, q, false, limit, offset);
@@ -92,7 +92,7 @@ ydn.db.index.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q,
  * @param {number=} opt_offset offset.
  * @private
  */
-ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
+ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
     key_query, opt_limit, opt_offset) {
 
   var arr = [];
@@ -154,13 +154,13 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.getCursor = function(tx, tx_no, store_name,
+ydn.db.core.req.WebSql.prototype.getCursor = function(tx, tx_no, store_name,
         index_name, keyRange, direction, key_only, key_query) {
 
   var store = this.schema.getStore(store_name);
   goog.asserts.assertObject(store);
 
-  return new ydn.db.index.req.WebsqlCursor(tx, tx_no,
+  return new ydn.db.core.req.WebsqlCursor(tx, tx_no,
       store, store_name, index_name, keyRange, direction, key_only, key_query);
 };
 
@@ -168,5 +168,5 @@ ydn.db.index.req.WebSql.prototype.getCursor = function(tx, tx_no, store_name,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebSql.prototype.getStreamer = goog.abstractMethod;
+ydn.db.core.req.WebSql.prototype.getStreamer = goog.abstractMethod;
 

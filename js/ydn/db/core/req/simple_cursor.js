@@ -3,9 +3,9 @@
  */
 
 
-goog.provide('ydn.db.index.req.SimpleCursor');
-goog.require('ydn.db.index.req.AbstractCursor');
-goog.require('ydn.db.index.req.ICursor');
+goog.provide('ydn.db.core.req.SimpleCursor');
+goog.require('ydn.db.core.req.AbstractCursor');
+goog.require('ydn.db.core.req.ICursor');
 
 
 
@@ -19,11 +19,11 @@ goog.require('ydn.db.index.req.ICursor');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec.
  * @param {boolean} key_only mode.
- * @extends {ydn.db.index.req.AbstractCursor}
- * @implements {ydn.db.index.req.ICursor}
+ * @extends {ydn.db.core.req.AbstractCursor}
+ * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
-ydn.db.index.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
+ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
     index_name, keyRange, direction, key_only) {
 
   goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
@@ -38,21 +38,21 @@ ydn.db.index.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
   this.current_avl_node_ = null;
 
 };
-goog.inherits(ydn.db.index.req.SimpleCursor, ydn.db.index.req.AbstractCursor);
+goog.inherits(ydn.db.core.req.SimpleCursor, ydn.db.core.req.AbstractCursor);
 
 
 /**
  * @define {boolean} for debug.
  */
-ydn.db.index.req.SimpleCursor.DEBUG = false;
+ydn.db.core.req.SimpleCursor.DEBUG = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.index.req.SimpleCursor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.index.req.SimpleCursor');
+ydn.db.core.req.SimpleCursor.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.core.req.SimpleCursor');
 
 
 /**
@@ -60,7 +60,7 @@ ydn.db.index.req.SimpleCursor.prototype.logger =
  * @type {!ydn.db.schema.Store}
  * @private
  */
-ydn.db.index.req.SimpleCursor.prototype.store_schema_;
+ydn.db.core.req.SimpleCursor.prototype.store_schema_;
 
 
 /**
@@ -68,7 +68,7 @@ ydn.db.index.req.SimpleCursor.prototype.store_schema_;
  * @type {IDBKey|undefined}
  * @private
  */
-ydn.db.index.req.SimpleCursor.prototype.current_key_;
+ydn.db.core.req.SimpleCursor.prototype.current_key_;
 
 
 /**
@@ -76,7 +76,7 @@ ydn.db.index.req.SimpleCursor.prototype.current_key_;
  * @type {IDBKey|undefined}
  * @private
  */
-ydn.db.index.req.SimpleCursor.prototype.current_primary_key_;
+ydn.db.core.req.SimpleCursor.prototype.current_primary_key_;
 
 
 /**
@@ -84,20 +84,20 @@ ydn.db.index.req.SimpleCursor.prototype.current_primary_key_;
  * @type {*}
  * @private
  */
-ydn.db.index.req.SimpleCursor.prototype.current_value_;
+ydn.db.core.req.SimpleCursor.prototype.current_value_;
 
 
 /**
  * @type {goog.structs.AvlTree.Node}
  * @private
  */
-ydn.db.index.req.SimpleCursor.prototype.current_avl_node_;
+ydn.db.core.req.SimpleCursor.prototype.current_avl_node_;
 
 
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.getIndexKey = function() {
+ydn.db.core.req.SimpleCursor.prototype.getIndexKey = function() {
 
   return this.current_key_;
 
@@ -107,7 +107,7 @@ ydn.db.index.req.SimpleCursor.prototype.getIndexKey = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.getPrimaryKey = function() {
+ydn.db.core.req.SimpleCursor.prototype.getPrimaryKey = function() {
   return this.current_primary_key_;
 };
 
@@ -115,7 +115,7 @@ ydn.db.index.req.SimpleCursor.prototype.getPrimaryKey = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.getValue = function() {
+ydn.db.core.req.SimpleCursor.prototype.getValue = function() {
   return this.current_value_;
 };
 
@@ -125,7 +125,7 @@ ydn.db.index.req.SimpleCursor.prototype.getValue = function() {
  * @return {!ydn.db.con.simple.AvlTree}
  * @protected
  */
-ydn.db.index.req.SimpleCursor.prototype.getIndexCache = function() {
+ydn.db.core.req.SimpleCursor.prototype.getIndexCache = function() {
   return this.getTx().getSimpleStore(this.store_name).getIndexCache(
       this.index_name);
 };
@@ -134,7 +134,7 @@ ydn.db.index.req.SimpleCursor.prototype.getIndexCache = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.hasCursor = function() {
+ydn.db.core.req.SimpleCursor.prototype.hasCursor = function() {
   return this.isActive();
 };
 
@@ -142,7 +142,7 @@ ydn.db.index.req.SimpleCursor.prototype.hasCursor = function() {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.update = function(obj, idx) {
+ydn.db.core.req.SimpleCursor.prototype.update = function(obj, idx) {
   throw 'no update';
 };
 
@@ -150,7 +150,7 @@ ydn.db.index.req.SimpleCursor.prototype.update = function(obj, idx) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.advance = function(step) {
+ydn.db.core.req.SimpleCursor.prototype.advance = function(step) {
 
   this.move_(this.onSuccess);
 
@@ -160,7 +160,7 @@ ydn.db.index.req.SimpleCursor.prototype.advance = function(step) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
+ydn.db.core.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
   if (!this.hasCursor()) {
     throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
   }
@@ -189,7 +189,7 @@ ydn.db.index.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
  * @param {*=} opt_ini_index_key index key to resume position.
  * @param {boolean=} opt_exclusive
  */
-ydn.db.index.req.SimpleCursor.prototype.openCursor = function(
+ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
     opt_ini_key, opt_ini_index_key, opt_exclusive) {
   var start = null;
   if (this.isIndexCursor()) {
@@ -219,7 +219,7 @@ ydn.db.index.req.SimpleCursor.prototype.openCursor = function(
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.clear = function(idx) {
+ydn.db.core.req.SimpleCursor.prototype.clear = function(idx) {
 
   throw 'no clear';
 };
@@ -228,7 +228,7 @@ ydn.db.index.req.SimpleCursor.prototype.clear = function(idx) {
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.restart = function(effective_key,
+ydn.db.core.req.SimpleCursor.prototype.restart = function(effective_key,
                                                            primary_key) {
   throw 'no restart';
 };
@@ -237,7 +237,7 @@ ydn.db.index.req.SimpleCursor.prototype.restart = function(effective_key,
 /**
  * @inheritDoc
  */
-ydn.db.index.req.SimpleCursor.prototype.continuePrimaryKey = function(key) {
+ydn.db.core.req.SimpleCursor.prototype.continuePrimaryKey = function(key) {
   throw 'no p cont';
 
 };

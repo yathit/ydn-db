@@ -12,7 +12,7 @@ goog.require('ydn.db.Sql');
 
 /**
  * @interface
- * @extends {ydn.db.index.req.IRequestExecutor}
+ * @extends {ydn.db.core.req.IRequestExecutor}
  */
 ydn.db.sql.req.IRequestExecutor = function() {};
 
