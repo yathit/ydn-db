@@ -39,7 +39,7 @@ ydn.db.index.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
   /**
    * @final
    */
-  this.index_ = goog.isString(index_name) && index_name != this.store_schema_.getName() ?
+  this.index_ = goog.isString(index_name) ?
       store_schema.getIndex(index_name) : null;
 
   this.current_key_ = undefined;
@@ -165,10 +165,11 @@ ydn.db.index.req.WebsqlCursor.prototype.collect = function(opt_row) {
  *
  * @param {?ydn.db.index.req.WebsqlCursor.callback} callback invoke.
  * @param {IDBKey} primary_key primary key.
+ * @param {boolean=} opt_exclusive exclude given key.
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
-    callback, primary_key) {
+    callback, primary_key, opt_exclusive) {
 
   // this is define only for index iterator.
   goog.asserts.assertString(this.index_name);
@@ -219,9 +220,10 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
       key_range, this.reverse, this.unique);
 
   var p_key_range = this.reverse ?
-      ydn.db.IDBKeyRange.upperBound(primary_key) :
-      ydn.db.IDBKeyRange.lowerBound(primary_key);
-  var p_sql = this.store_schema_.inSql(params, mth, index_name,
+      ydn.db.IDBKeyRange.upperBound(primary_key, !!opt_exclusive) :
+      ydn.db.IDBKeyRange.lowerBound(primary_key, !!opt_exclusive);
+  var p_sql = this.store_schema_.inSql(params, mth,
+      this.store_schema_.getSQLKeyColumnName(),
       p_key_range, this.reverse, this.unique);
 
   if (e_sql.where) {
@@ -585,7 +587,7 @@ ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(
           this.current_value_ = opt_value;
           me.onSuccess(opt_key, opt_p_key, opt_value);
         } else {
-          me.continuePrimaryKey_(me.onSuccess, primary_key);
+          me.continuePrimaryKey_(me.onSuccess, primary_key, true);
         }
       } else {
         me.onSuccess();
