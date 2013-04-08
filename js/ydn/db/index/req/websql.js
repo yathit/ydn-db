@@ -116,6 +116,7 @@ ydn.db.index.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
     if (goog.isDef(opt_key)) {
       var key = opt_key;
       var primary_key = cursor.getPrimaryKey();
+      // console.log([key, primary_key]);
       var value = cursor.getValue();
       if (!cued && opt_offset > 0) {
         cursor.advance(opt_offset);

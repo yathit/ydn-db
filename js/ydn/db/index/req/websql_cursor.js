@@ -32,7 +32,15 @@ ydn.db.index.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
       key_only, key_query);
 
   goog.asserts.assert(store_schema);
+  /**
+   * @final
+   */
   this.store_schema_ = store_schema;
+  /**
+   * @final
+   */
+  this.index_ = goog.isString(index_name) && index_name != this.store_schema_.getName() ?
+      store_schema.getIndex(index_name) : null;
 
   this.current_key_ = undefined;
   this.current_primary_key_ = undefined;
@@ -61,6 +69,14 @@ ydn.db.index.req.WebsqlCursor.prototype.logger =
  * @private
  */
 ydn.db.index.req.WebsqlCursor.prototype.store_schema_;
+
+
+/**
+ *
+ * @type {ydn.db.schema.Index}
+ * @private
+ */
+ydn.db.index.req.WebsqlCursor.prototype.index_;
 
 
 /**
@@ -148,92 +164,77 @@ ydn.db.index.req.WebsqlCursor.prototype.collect = function(opt_row) {
 /**
  *
  * @param {?ydn.db.index.req.WebsqlCursor.callback} callback invoke.
- * @param {IDBKey=} opt_key index key.
- * @param {IDBKey=} opt_primary_key primary key.
- * @param {boolean=} opt_inclusive position is inclusive.
- * @param {number=} opt_offset offset.
+ * @param {IDBKey} primary_key primary key.
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
-    callback, opt_key, opt_primary_key, opt_inclusive, opt_offset) {
+ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
+    callback, primary_key) {
 
+  // this is define only for index iterator.
   goog.asserts.assertString(this.index_name);
+  // continuing primary key can only happen if there is a effective key.
+  goog.asserts.assert(goog.isDefAndNotNull(this.current_key_));
   var index = this.store_schema_.getIndex(this.index_name);
-  var key_range = this.key_range;
-  var cued = true;
-
-  if (goog.isDefAndNotNull(opt_key)) {
-    /**
-     * @type {IDBKey}
-     */
-    var key = opt_key;
-    if (goog.isDefAndNotNull(key_range) &&
-        goog.isDefAndNotNull(key_range.lower) &&
-        ydn.db.cmp(key, key_range.lower) >= 0) {
-      key_range = ydn.db.IDBKeyRange.bound(key,
-          this.key_range.upper, false, this.key_range.upperOpen);
-    } else {
-      if (this.reverse) {
-        if (this.unique) {
-          key_range = ydn.db.IDBKeyRange.upperBound(key, !opt_inclusive);
-        } else {
-          key_range = ydn.db.IDBKeyRange.upperBound(key);
-          cued = false;
-        }
-      } else {
-        if (this.unique) {
-          key_range = ydn.db.IDBKeyRange.lowerBound(key, !opt_inclusive);
-        } else {
-          key_range = ydn.db.IDBKeyRange.lowerBound(key);
-          cued = false;
-        }
-      }
-    }
-  }
-
   var params = [];
   var mth = this.key_query ? ydn.db.schema.Store.QueryMethod.KEYS :
       ydn.db.schema.Store.QueryMethod.VALUES;
   var index_name = this.index_name;
+
+  var key_range = this.key_range;
+
+  /**
+   * @type {IDBKey}
+   */
+  var key = this.current_key_;
+  if (goog.isDefAndNotNull(key_range)) {
+    var lower = key_range.lower;
+    var upper = key_range.upper;
+    var lowerOpen = key_range.lowerOpen;
+    var upperOpen = key_range.upperOpen;
+    if (this.reverse) {
+      upper = (goog.isDefAndNotNull(upper) &&
+          ydn.db.cmp(upper, key) == -1) ?
+          upper : key;
+    } else {
+      lower = (goog.isDefAndNotNull(lower) &&
+          ydn.db.cmp(lower, key) == 1) ?
+          lower : key;
+    }
+    if (goog.isDefAndNotNull(lower) && goog.isDefAndNotNull(upper)) {
+      key_range = ydn.db.IDBKeyRange.bound(lower, upper,
+          lowerOpen, upperOpen);
+    } else if (goog.isDefAndNotNull(lower)) {
+      key_range = ydn.db.IDBKeyRange.lowerBound(lower, lowerOpen);
+    } else {
+      key_range = ydn.db.IDBKeyRange.upperBound(upper, upperOpen);
+    }
+  } else {
+    if (this.reverse) {
+      key_range = ydn.db.IDBKeyRange.upperBound(key, upperOpen);
+    } else {
+      key_range = ydn.db.IDBKeyRange.lowerBound(key, lowerOpen);
+    }
+  }
   var e_sql = this.store_schema_.inSql(params, mth, index_name,
       key_range, this.reverse, this.unique);
 
-  var sql;
-  if (!cued && goog.isDefAndNotNull(opt_primary_key)) {
-    var p_key = opt_primary_key;
-    var p_key_range = this.reverse ?
-        ydn.db.IDBKeyRange.upperBound(p_key, true) :
-        ydn.db.IDBKeyRange.lowerBound(p_key, true);
-    var p_sql = this.store_schema_.inSql(params, mth, undefined,
-        p_key_range, this.reverse, this.unique);
-    var where = e_sql.where;
-    if (p_sql.where) {
-      if (where) {
-        where += ' AND ' + p_sql.where;
-      } else {
-        where = p_sql.where;
-      }
-    }
-    sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
-        (where ? ' WHERE ' + where : '') +
-        ' ORDER BY ' + e_sql.order;
-    cued = true;
+  var p_key_range = this.reverse ?
+      ydn.db.IDBKeyRange.upperBound(primary_key) :
+      ydn.db.IDBKeyRange.lowerBound(primary_key);
+  var p_sql = this.store_schema_.inSql(params, mth, index_name,
+      p_key_range, this.reverse, this.unique);
+
+  if (e_sql.where) {
+    e_sql.where += ' AND ' + p_sql.where;
   } else {
-    if (goog.DEBUG && !cued && !goog.isDefAndNotNull(opt_primary_key)) {
-      this.logger.warning('primary key must not be specified when iterating ' +
-          'UNIQUE secondary key');
-    }
-    sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
-        (e_sql.where ? ' WHERE ' + e_sql.where : '') +
-        ' ORDER BY ' + e_sql.order;
+    e_sql.where = p_sql.where;
   }
 
-  if (cued) {
-    sql += ' LIMIT 1'; // cursor move only one step at a time.
-  }
-  if (opt_offset > 0) {
-    sql += ' OFFSET ' + opt_offset;
-  }
+  var sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
+      (e_sql.where ? ' WHERE ' + e_sql.where : '') +
+      ' ORDER BY ' + e_sql.order;
+
+  sql += ' LIMIT 1'; // cursor move only one step at a time.
 
   var me = this;
   /**
@@ -245,12 +246,8 @@ ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
       window.console.log([sql, results]);
     }
 
-    if (cued) {
-      if (results.rows.length > 0) {
-        me.collect(results.rows.item(0));
-      } else {
-        me.collect();
-      }
+    if (results.rows.length > 0) {
+      me.collect(results.rows.item(0));
     } else {
       me.collect();
     }
@@ -278,8 +275,7 @@ ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
     return false;
   };
 
-
-  this.logger.finest(this + ': move: ' + ' SQL: ' +
+  this.logger.finest(this + ': continuePrimary: ' + ' SQL: ' +
       sql + ' : ' + ydn.json.stringify(params));
   this.tx.executeSql(sql, params, onSuccess, onError);
 };
@@ -293,31 +289,116 @@ ydn.db.index.req.WebsqlCursor.prototype.openIndex_ = function(
  * @param {number=} opt_offset offset.
  * @private
  */
-ydn.db.index.req.WebsqlCursor.prototype.openPrimary_ = function(
+ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
     callback, opt_key, opt_inclusive, opt_offset) {
+
   var key_range = this.key_range;
-  if (goog.isDefAndNotNull(opt_key)) {
-    var key = opt_key;
-    if (this.reverse) {
-      if (!!key_range && goog.isDefAndNotNull(key_range.upper) &&
-          ydn.db.cmp(key_range.upper, key) == 1) {
-        key = /** @type {IDBKey} */ (key_range.upper);
+  var reverse = this.reverse;
+  var p_sql;
+  var params = [];
+  var where = '';
+  var mth = this.key_query ? ydn.db.schema.Store.QueryMethod.KEYS :
+      ydn.db.schema.Store.QueryMethod.VALUES;
+
+  /**
+   * Helper to build key range.
+   * @param {IDBKey} key effective key.
+   * @param {boolean} open inclusive.
+   * @return {IDBKeyRange} effective key range.
+   */
+  var buildEffectiveKeyRange = function(key, open) {
+    if (goog.isDefAndNotNull(key_range)) {
+      var lower = key_range.lower;
+      var upper = key_range.upper;
+      var lowerOpen = key_range.lowerOpen;
+      var upperOpen = key_range.upperOpen;
+      if (reverse) {
+        if (goog.isDefAndNotNull(upper)) {
+          var u_cmp = ydn.db.cmp(key, upper);
+          if (u_cmp == -1) {
+            upper = key;
+            upperOpen = open;
+          } else if (u_cmp == 0) {
+            lowerOpen = open || upperOpen;
+          }
+        }
+      } else {
+        if (goog.isDefAndNotNull(lower)) {
+          var l_cmp = ydn.db.cmp(key, lower);
+          if (l_cmp == 1) {
+            lower = key;
+            lowerOpen = open;
+          } else if (l_cmp == 0) {
+            lowerOpen = open || lowerOpen;
+          }
+        }
       }
-      key_range = ydn.db.IDBKeyRange.upperBound(key, !opt_inclusive);
+      // console.log([lower, upper, lowerOpen, upperOpen])
+      // if lower == upper and one of the boundOpen is true,
+      // the range condition cannot be met and it is DataError for KeyRange.
+      // We rely this invalid key range for SQL query that return no results.
+      var kr = new ydn.db.KeyRange(lower, upper, !!lowerOpen, !!upperOpen);
+      return /** @type {IDBKeyRange} */ (kr);
+
     } else {
-      if (!!key_range && ydn.db.cmp(key_range.upper, key) == -1) {
-        key = key_range.lower;
+      if (reverse) {
+        return ydn.db.IDBKeyRange.upperBound(key, open);
+      } else {
+        return ydn.db.IDBKeyRange.lowerBound(key, open);
       }
-      key_range = ydn.db.IDBKeyRange.lowerBound(key, !opt_inclusive);
+    }
+  };
+
+  if (goog.isDefAndNotNull(opt_key)) {
+    key_range = buildEffectiveKeyRange(opt_key, !opt_inclusive);
+    if (!key_range) { // the condition cannot be met.
+      this.collect();
+      callback.call(this, this.current_key_, this.current_primary_key_,
+          this.current_value_);
+      callback = null;
+      return;
+    }
+  } else {
+    if (goog.isDefAndNotNull(this.current_key_)) {
+      if (this.is_index && goog.isDefAndNotNull(this.current_primary_key_)) {
+        var c_key_range = ydn.db.IDBKeyRange.only(this.current_key_);
+        var c_sql = this.store_schema_.inSql(params, mth,
+            this.index_.getSQLIndexColumnName(), c_key_range,
+            this.reverse, this.unique);
+        var p_key_range = this.reverse ?
+            ydn.db.IDBKeyRange.upperBound(this.current_primary_key_, true) :
+            ydn.db.IDBKeyRange.lowerBound(this.current_primary_key_, true);
+        p_sql = this.store_schema_.inSql(params, mth,
+            this.store_schema_.getSQLKeyColumnName(), p_key_range,
+            this.reverse, this.unique);
+        where = '(' + c_sql.where + ' AND ' + p_sql.where + ')';
+      }
+      key_range = buildEffectiveKeyRange(this.current_key_, true);
+      if (!key_range) { // the condition cannot be met.
+        this.collect();
+        callback.call(this, this.current_key_, this.current_primary_key_,
+            this.current_value_);
+        callback = null;
+        return;
+      }
     }
   }
 
-  var params = [];
-  var mth = this.key_only ? ydn.db.schema.Store.QueryMethod.KEYS :
-      ydn.db.schema.Store.QueryMethod.VALUES;
-  var sql = this.store_schema_.toSql(params, mth,
-      this.store_schema_.getSQLKeyColumnName(),
-      key_range, this.reverse, this.unique);
+  var column = this.index_ ? this.index_.getSQLIndexColumnName() :
+      this.store_schema_.getSQLKeyColumnName();
+  var e_sql = this.store_schema_.inSql(params, mth,
+      column, key_range, this.reverse, this.unique);
+
+  if (e_sql.where) {
+    if (where) {
+      where += ' OR ' + e_sql.where;
+    } else {
+      where = e_sql.where;
+    }
+  }
+
+  var sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
+      (where ? ' WHERE ' + where : '') + ' ORDER BY ' + e_sql.order;
 
   sql += ' LIMIT 1'; // cursor move only one step at a time.
   if (opt_offset > 0) {
@@ -364,8 +445,10 @@ ydn.db.index.req.WebsqlCursor.prototype.openPrimary_ = function(
 
   };
 
-  this.logger.finest(this + ': move: ' + ' SQL: ' +
+
+  this.logger.finest(this + ': continue: ' + ' SQL: ' +
       sql + ' : ' + ydn.json.stringify(params));
+
   this.tx.executeSql(sql, params, onSuccess, onError);
 };
 
@@ -399,50 +482,50 @@ ydn.db.index.req.WebsqlCursor.prototype.update = function(obj) {
   }
 
 
-    var df = new goog.async.Deferred();
-    var me = this;
-    this.has_pending_request = true;
-    var primary_key = /** @type {!Array|number|string} */(this.getPrimaryKey());
+  var df = new goog.async.Deferred();
+  var me = this;
+  this.has_pending_request = true;
+  var primary_key = /** @type {!Array|number|string} */(this.getPrimaryKey());
 
-    /**
-     * @param {SQLTransaction} transaction transaction.
-     * @param {SQLResultSet} results results.
-     */
-    var onSuccess = function(transaction, results) {
-      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
-        window.console.log([sql, results]);
-      }
-      me.has_pending_request = false;
-      df.callback(primary_key);
-    };
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var onSuccess = function(transaction, results) {
+    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+      window.console.log([sql, results]);
+    }
+    me.has_pending_request = false;
+    df.callback(primary_key);
+  };
 
-    /**
-     * @param {SQLTransaction} tr transaction.
-     * @param {SQLError} error error.
-     * @return {boolean} true to roll back.
-     */
-    var onError = function(tr, error) {
-      if (ydn.db.index.req.WebsqlCursor.DEBUG) {
-        window.console.log([sql, tr, error]);
-      }
-      me.has_pending_request = false;
-      me.logger.warning('get error: ' + error.message);
-      df.errback(error);
-      return false;
-    };
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
+   */
+  var onError = function(tr, error) {
+    if (ydn.db.index.req.WebsqlCursor.DEBUG) {
+      window.console.log([sql, tr, error]);
+    }
+    me.has_pending_request = false;
+    me.logger.warning('get error: ' + error.message);
+    df.errback(error);
+    return false;
+  };
 
-    goog.asserts.assertObject(obj);
-    var out = me.store_schema_.getIndexedValues(obj, primary_key);
+  goog.asserts.assertObject(obj);
+  var out = me.store_schema_.getIndexedValues(obj, primary_key);
 
-    var sql = 'REPLACE INTO ' + this.store_schema_.getQuotedName()+
+  var sql = 'REPLACE INTO ' + this.store_schema_.getQuotedName() +
       ' (' + out.columns.join(', ') + ')' +
       ' VALUES (' + out.slots.join(', ') + ')' +
       ' ON CONFLICT FAIL';
 
-    me.logger.finest(this + ': clear "' + sql + '" : ' +
+  me.logger.finest(this + ': clear "' + sql + '" : ' +
       ydn.json.stringify(out.values));
-    this.tx.executeSql(sql, out.values, onSuccess, onError);
-    return df;
+  this.tx.executeSql(sql, out.values, onSuccess, onError);
+  return df;
 
 };
 
@@ -463,9 +546,9 @@ ydn.db.index.req.WebsqlCursor.prototype.advance = function(step) {
 ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
 
   if (goog.isDefAndNotNull(key)) {
-    this.openCursor(key, undefined, true);
+    this.continueEffectiveKey_(this.onSuccess, key, true);
   } else {
-    this.openCursor(this.current_key_, this.current_primary_key_);
+    this.continueEffectiveKey_(this.onSuccess);
   }
 
 };
@@ -483,11 +566,35 @@ ydn.db.index.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
 ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(
     opt_key,  opt_primary_key, opt_inclusive, opt_offset) {
 
-  if (this.isIndexCursor()) {
-    this.openIndex_(this.onSuccess, opt_key, opt_primary_key, opt_inclusive,
-        opt_offset);
+  if (goog.isDefAndNotNull(opt_primary_key)) {
+    var primary_key = opt_primary_key;
+    goog.asserts.assert(!opt_offset);
+    var me = this;
+    /**
+     *
+     * @param {IDBKey=} opt_key key.
+     * @param {IDBKey=} opt_p_key primary key.
+     * @param {*=} opt_value value.
+     */
+    var on_success = function(opt_key, opt_p_key, opt_value) {
+      if (goog.isDefAndNotNull(opt_p_key)) {
+        var cmp = ydn.db.cmp(opt_primary_key, opt_p_key);
+        if (cmp == 1 || (cmp == 0 && !!opt_inclusive)) {
+          this.current_key_ = opt_key;
+          this.current_primary_key_ = opt_p_key;
+          this.current_value_ = opt_value;
+          me.onSuccess(opt_key, opt_p_key, opt_value);
+        } else {
+          me.continuePrimaryKey_(me.onSuccess, primary_key);
+        }
+      } else {
+        me.onSuccess();
+      }
+    };
+    this.continueEffectiveKey_(on_success, opt_key, true);
   } else {
-    this.openPrimary_(this.onSuccess, opt_key, opt_inclusive, opt_offset);
+    this.continueEffectiveKey_(this.onSuccess, opt_key, opt_inclusive,
+        opt_offset);
   }
 
 };
@@ -496,7 +603,7 @@ ydn.db.index.req.WebsqlCursor.prototype.openCursor = function(
 /**
  * @inheritDoc
  */
-ydn.db.index.req.WebsqlCursor.prototype.clear = function () {
+ydn.db.index.req.WebsqlCursor.prototype.clear = function() {
 
   if (!this.hasCursor()) {
     throw new ydn.db.InvalidAccessError();
@@ -596,7 +703,8 @@ ydn.db.index.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
       me.onSuccess(undefined, undefined, undefined);
     }
   };
-  this.openIndex_(fnc, this.current_key_, key);
+
+  this.continuePrimaryKey_(fnc, key)
 
 };
 

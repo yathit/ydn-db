@@ -235,32 +235,31 @@ ydn.db.KeyRange.parseKeyRange = function(key_range) {
 /**
  * Read four primitive attributes from the input and return newly created
  * keyRange object.
- * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} key_range
+ * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} opt_key_range
  * keyRange.
  * @return {?IDBKeyRange} equivalent IDBKeyRange. Newly created IDBKeyRange.
  * null if input is null or undefined.
  */
-ydn.db.KeyRange.parseIDBKeyRange = function(key_range) {
-  if (!goog.isDefAndNotNull(key_range)) {
-    return null;
-  }
-  if(key_range instanceof ydn.db.IDBKeyRange) {
-    return ydn.db.IDBKeyRange.bound(key_range.lower, key_range.upper,
-      key_range.lowerOpen, key_range.upperOpen);
-  }
-  if (goog.isDefAndNotNull(key_range['upper']) && goog.isDefAndNotNull(
-    key_range['lower'])) {
+ydn.db.KeyRange.parseIDBKeyRange = function(opt_key_range) {
+  if (goog.isDefAndNotNull(opt_key_range)) {
+    var key_range = opt_key_range;
 
-    return ydn.db.IDBKeyRange.bound(
-      key_range.lower, key_range.upper,
-      !!key_range['lowerOpen'], !!key_range['upperOpen']);
+    if (goog.isDefAndNotNull(key_range['upper']) && goog.isDefAndNotNull(
+        key_range['lower'])) {
 
-  } else if (goog.isDefAndNotNull(key_range.upper)) {
-    return ydn.db.IDBKeyRange.upperBound(key_range.upper,
-      key_range.upperOpen);
-  } else if (goog.isDefAndNotNull(key_range.lower)) {
-    return ydn.db.IDBKeyRange.lowerBound(key_range.lower,
-      key_range.lowerOpen);
+      return ydn.db.IDBKeyRange.bound(
+          key_range.lower, key_range.upper,
+          !!key_range['lowerOpen'], !!key_range['upperOpen']);
+
+    } else if (goog.isDefAndNotNull(key_range.upper)) {
+      return ydn.db.IDBKeyRange.upperBound(key_range.upper,
+          key_range.upperOpen);
+    } else if (goog.isDefAndNotNull(key_range.lower)) {
+      return ydn.db.IDBKeyRange.lowerBound(key_range.lower,
+          key_range.lowerOpen);
+    } else {
+      return null;
+    }
   } else {
     return null;
   }

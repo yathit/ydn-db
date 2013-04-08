@@ -426,34 +426,6 @@ var test_listByIterator_limit = function () {
 };
 
 
-var test_listByIterator_limit_offset = function () {
-  var db = load_default();
-  var done;
-  var result;
-  waitForCondition(
-    // Condition
-    function () {
-      return done;
-    },
-    // Continuation
-    function () {
-      assertObjectEquals('result', objs.slice(2, 5), result);
-      ydn.db.deleteDatabase(db.getName(), db.getType());
-      db.close();
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    1000); // maxTimeout
-
-  var q = new ydn.db.ValueCursors(store_name);
-
-  db.values(q, 3, 2).addBoth(function (value) {
-    //console.log(db + ' fetch value: ' + JSON.stringify(value));
-    result = value;
-    done = true;
-  });
-};
-
 
 var test_keysBy_ValueIterator = function () {
   var db = load_default();
@@ -537,7 +509,7 @@ var test_keysBy_ValueIterator_resume = function () {
 };
 
 
-var test_keysBy_index_ValueIterator = function () {
+var test_keysBy_index_ValueIterator = function() {
   var db = load_default();
   var done;
   var result;
@@ -546,23 +518,23 @@ var test_keysBy_index_ValueIterator = function () {
   });
   keys.sort();
   waitForCondition(
-    // Condition
-    function () {
-      return done;
-    },
-    // Continuation
-    function () {
-      assertObjectEquals('result', keys, result);
-      ydn.db.deleteDatabase(db.getName(), db.getType());
-      db.close();
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    1000); // maxTimeout
+      // Condition
+      function() {
+        return done;
+      },
+      // Continuation
+      function() {
+        assertObjectEquals('result', keys, result);
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
 
   var q = new ydn.db.IndexValueCursors(store_name, 'value');
 
-  db.keys(q).addBoth(function (value) {
+  db.keys(q).addBoth(function(value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;

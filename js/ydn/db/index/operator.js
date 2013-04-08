@@ -84,7 +84,7 @@ ydn.db.index.DbOperator.prototype.get = function(arg1, arg2) {
     });
     this.logger.finer('listByIterator:' + q);
     this.tx_thread.exec(list_df, function(tx, tx_no, cb) {
-      me.getIndexExecutor().listByIterator(tx, tx_no, cb, q, 1, 0);
+      me.getIndexExecutor().listByIterator(tx, tx_no, cb, q, 1);
     }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');
     return df;
   } else {
@@ -117,15 +117,8 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
       throw new ydn.debug.error.ArgumentException('limit must be a number, ' +
           ' but ' + arg2);
     }
-    /**
-     * @type {number}
-     */
-    var offset = 0;
-    if (goog.isNumber(arg3)) {
-      offset = /** @type {number} */ (arg3);
-    } else if (goog.isDef(arg3)) {
-      throw new ydn.debug.error.ArgumentException('offset must be a number, ' +
-          ' but ' + arg3);
+    if (goog.isDef(arg3)) {
+      throw new ydn.debug.error.ArgumentException('offset must be specified');
     }
 
     /**
@@ -136,7 +129,7 @@ ydn.db.index.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) 
 
     this.logger.finer('keysByIterator:' + q);
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getIndexExecutor().keysByIterator(tx, tx_no, cb, q, limit, offset);
+      me.getIndexExecutor().keysByIterator(tx, tx_no, cb, q, limit);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
     return df;
@@ -201,15 +194,8 @@ ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5
       throw new ydn.debug.error.ArgumentException('limit must be a number, ' +
           'but ' + arg2);
     }
-    /**
-     * @type {number}
-     */
-    var offset;
-    if (goog.isNumber(arg3)) {
-      offset = /** @type {number} */ (arg3);
-    } else if (goog.isDef(arg3)) {
-      throw new ydn.debug.error.ArgumentException('offset must be a number, ' +
-          'but ' + arg3);
+    if (goog.isDef(arg3)) {
+      throw new ydn.debug.error.ArgumentException('offset must be specified');
     }
 
     /**
@@ -219,7 +205,7 @@ ydn.db.index.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5
     var q = arg1;
     this.logger.finer('listByIterator:' + q);
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getIndexExecutor().listByIterator(tx, tx_no, cb, q, limit, offset);
+      me.getIndexExecutor().listByIterator(tx, tx_no, cb, q, limit);
     }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
 
     return df;

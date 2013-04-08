@@ -26,7 +26,6 @@ ydn.db.index.req.IRequestExecutor = function() {};
  * @param {?function(*, boolean=)} return key in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
  * @param {number=} opt_limit limit.
- * @param {number=} opt_offset offset.
  */
 ydn.db.index.req.IRequestExecutor.prototype.keysByIterator =
     goog.abstractMethod;
@@ -39,7 +38,6 @@ ydn.db.index.req.IRequestExecutor.prototype.keysByIterator =
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
  * @param {number=} opt_limit limit.
- * @param {number=} opt_offset offset.
  */
 ydn.db.index.req.IRequestExecutor.prototype.listByIterator =
     goog.abstractMethod;

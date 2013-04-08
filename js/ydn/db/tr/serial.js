@@ -451,7 +451,7 @@ ydn.db.tr.Serial.prototype.reusedTx = function(store_names, mode) {
  * @return {string}
  */
 ydn.db.tr.Serial.prototype.getLabel = function() {
-  return this.mu_tx_.getLabel() + 'R' + this.r_no_;
+  return this.mu_tx_.getLabel();
 };
 
 
@@ -459,7 +459,7 @@ ydn.db.tr.Serial.prototype.getLabel = function() {
  * @inheritDoc
  */
 ydn.db.tr.Serial.prototype.exec = function (df, callback,
-                                                          store_names, opt_mode, scope, on_complete) {
+     store_names, opt_mode, scope, on_complete) {
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
 
@@ -484,7 +484,7 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
     me.r_no_++;
-    callback(tx, me.getLabel(), resultCallback);
+    callback(tx, me.getLabel() + 'R' + me.r_no_, resultCallback);
     callback = null;
   } else {
     //
@@ -515,7 +515,7 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
         resultCallback2 =  /** @type {function (*, boolean=)} */ (null);
       };
       me.r_no_++;
-      callback(tx, me.getLabel(), resultCallback2);
+      callback(tx, me.getLabel() + 'R' + me.r_no_, resultCallback2);
       callback = null; // we don't call again.
     };
     //var cbFn = goog.partial(tx_callback, callback);

@@ -48,7 +48,7 @@ ydn.db.index.req.ICursor.prototype.openCursor = goog.abstractMethod;
 
 /**
  * Move cursor position to the primary key while remaining on same index key.
- * @param {IDBKey=} opt_primary_key primary key position to continue.
+ * @param {IDBKey} opt_primary_key primary key position to continue.
  */
 ydn.db.index.req.ICursor.prototype.continuePrimaryKey = goog.abstractMethod;
 

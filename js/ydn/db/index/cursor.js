@@ -113,7 +113,7 @@ ydn.db.Cursor.prototype.logger =
  * @private
  */
 ydn.db.Cursor.prototype.init_ = function() {
-  var n = this.cursors_.length;
+  var total = this.cursors_.length;
   var result_count = 0;
   var me = this;
   if (ydn.db.Cursor.DEBUG) {
@@ -130,13 +130,15 @@ ydn.db.Cursor.prototype.init_ = function() {
      */
     cursor.onSuccess = function(opt_key, opt_p_key, opt_value) {
       result_count++;
+      //console.log([result_count, opt_key, opt_p_key]);
       if (!goog.isDefAndNotNull(opt_key)) {
         me.done_ = true;
       }
       me.keys_[i] = opt_key;
       me.primary_keys_[i] = opt_p_key;
       me.values_[i] = opt_value;
-      if (result_count == n) {
+      if (result_count >= total) {
+        goog.asserts.assert(result_count == total);
         me.count_++;
         if (me.done_) {
           me.onNext();
@@ -168,7 +170,7 @@ ydn.db.Cursor.prototype.init_ = function() {
     me.logger.finest(cursor + msg + ' opening');
     cursor.openCursor(me.keys_[i], me.primary_keys_[i]);
   };
-  for (var i = 0; i < n; i++) {
+  for (var i = 0; i < total; i++) {
     listenCursor(i);
   }
 };
@@ -227,10 +229,10 @@ ydn.db.Cursor.prototype.restart = function(opt_key, opt_primary_key) {
 
 /**
  * Move cursor position to the primary key while remaining on same index key.
- * @param {IDBKey=} opt_key primary key position to continue.
+ * @param {IDBKey} key primary key position to continue.
  */
-ydn.db.Cursor.prototype.continuePrimaryKey = function(opt_key) {
-  this.cursors_[0].continuePrimaryKey(opt_key);
+ydn.db.Cursor.prototype.continuePrimaryKey = function(key) {
+  this.cursors_[0].continuePrimaryKey(key);
 };
 
 
