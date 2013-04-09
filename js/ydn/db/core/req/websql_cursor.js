@@ -572,7 +572,8 @@ ydn.db.core.req.WebsqlCursor.prototype.openCursor = function(
 
   if (goog.isDefAndNotNull(opt_primary_key)) {
     var primary_key = opt_primary_key;
-    goog.asserts.assert(goog.isDefAndNotNull(opt_key));
+    goog.asserts.assert(goog.isDefAndNotNull(opt_key),
+        'primary key be defined only when effective is defined.');
     if (goog.isDefAndNotNull(this.current_key_) &&
         ydn.db.cmp(opt_key, this.current_key_) == 0) {
       this.continuePrimaryKey_(this.onSuccess, primary_key,
@@ -587,16 +588,29 @@ ydn.db.core.req.WebsqlCursor.prototype.openCursor = function(
        */
       var on_success = function(opt_key, opt_p_key, opt_value) {
         if (goog.isDefAndNotNull(opt_p_key)) {
-          var cmp = ydn.db.cmp(opt_primary_key, opt_p_key);
-          if (cmp == 1 || (cmp == 0 && !opt_inclusive)) {
-            me.current_key_ = opt_key;
-            me.current_primary_key_ = opt_p_key;
-            me.current_value_ = opt_value;
-            me.onSuccess(opt_key, opt_p_key, opt_value);
+          var cmp = ydn.db.cmp(opt_p_key, opt_primary_key);
+          if (me.reverse) {
+            if (cmp == -1 || (cmp == 0 && !!opt_inclusive)) {
+              me.current_key_ = opt_key;
+              me.current_primary_key_ = opt_p_key;
+              me.current_value_ = opt_value;
+              me.onSuccess(opt_key, opt_p_key, opt_value);
+            } else {
+              me.continuePrimaryKey_(me.onSuccess, primary_key,
+                  opt_inclusive, opt_offset);
+            }
           } else {
-            me.continuePrimaryKey_(me.onSuccess, primary_key,
-                opt_inclusive, opt_offset);
+            if (cmp == 1 || (cmp == 0 && !!opt_inclusive)) {
+              me.current_key_ = opt_key;
+              me.current_primary_key_ = opt_p_key;
+              me.current_value_ = opt_value;
+              me.onSuccess(opt_key, opt_p_key, opt_value);
+            } else {
+              me.continuePrimaryKey_(me.onSuccess, primary_key,
+                  opt_inclusive, opt_offset);
+            }
           }
+
         } else {
           me.onSuccess();
         }

@@ -232,6 +232,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
       1000); // maxTimeout
 
 
+  db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + ' ready.');
   });
