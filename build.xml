@@ -5,7 +5,7 @@
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver-major" value="0"/>
     <property name="ver-minor" value="5"/>
-    <property name="ver-patch" value="1"/>
+    <property name="ver-patch" value="0"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
@@ -201,7 +201,10 @@
                     output.fn="${buildno}-ydn.db-crud@{postfix}.js"
                     closure.entry="ydn.db.crud.Storage">
                 <exjs.dir>
+                    <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
+                    <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
                     <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
+                    <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/crud"'/>
@@ -252,25 +255,55 @@
             </module-option>
         </crud>
     </target>
+    <macrodef name="core" description="compile core module">
+        <element name="module-option" optional="yes"/>
+        <attribute name="postfix" default=""/>
+        <sequential>
+            <adv-comp
+                    input.dir="${ydn-db.dir}/js/ydn/db/crud"
+                    input.fn="${ydn-db.dir}/js/config/core_main.js"
+                    output.dir="${ydn-db.dir}/jsc"
+                    output.fn="${buildno}-ydn.db-core@{postfix}.js"
+                    closure.entry="ydn.db.core.Storage">
+                <exjs.dir>
+                    <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/crud"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/algo"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
+                    <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
+                    <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
+                    <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
+                    <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
+                    <module-option/>
+                </exjs.dir>
+            </adv-comp>
+
+        </sequential>
+    </macrodef>
     <target name="compile-core" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
-        <adv-comp
-                input.dir="${ydn-db.dir}/js"
-                input.fn="${ydn-db.dir}/js/config/core_main.js"
-                output.dir="${ydn-db.dir}/jsc"
-                output.fn="${buildno}-ydn.db-core.js"
-                closure.entry="ydn.db.core.Storage">
-            <ex.opt>
-                <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/conn.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
-
-            </ex.opt>
-        </adv-comp>
+        <core></core>
     </target>
-
+    <target name="compile-core-idb"
+            description="generates compiled files for core Indexeddb only distribution">
+        <core postfix="-idb">
+            <module-option>
+                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
+                <arg line='-f "--define=ydn.db.base.NO_WEBSQL=true"'/>
+            </module-option>
+        </core>
+    </target>
+    <target name="compile-core-db"
+            description="generates compiled files for core database only distribution">
+        <core postfix="-db">
+            <module-option>
+                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
+            </module-option>
+        </core>
+    </target>
     <target name="compile" description="generates compiled files for client js">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp

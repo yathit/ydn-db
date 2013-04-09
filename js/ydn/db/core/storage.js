@@ -22,6 +22,7 @@ goog.require('ydn.db.core.DbOperator');
 goog.require('ydn.db.crud.Storage');
 
 
+
 /**
  * Construct storage providing atomic CRUD database operations on implemented
  * storage mechanisms.
