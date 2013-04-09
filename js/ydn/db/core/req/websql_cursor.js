@@ -235,6 +235,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
 
   var sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
       (e_sql.where ? ' WHERE ' + e_sql.where : '') +
+      (e_sql.group ? ' GROUP BY ' + e_sql.group : '') +
       ' ORDER BY ' + e_sql.order;
 
   sql += ' LIMIT 1'; // cursor move only one step at a time.
@@ -388,6 +389,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
 
   var sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
       (e_sql.where ? ' WHERE ' + e_sql.where : '') +
+      (e_sql.group ? ' GROUP BY ' + e_sql.group : '') +
       ' ORDER BY ' + e_sql.order;
 
   sql += ' LIMIT 1'; // cursor move only one step at a time.

@@ -280,6 +280,9 @@ ydn.db.schema.Store.prototype.toSql = function(params, method, index_column,
   if (out.where) {
     sql += ' WHERE ' + out.where;
   }
+  if (out.group) {
+    sql += ' GROUP BY ' + out.group;
+  }
   if (out.order) {
     sql += ' ORDER BY ' + out.order;
   }
@@ -300,6 +303,7 @@ ydn.db.schema.Store.prototype.toSql = function(params, method, index_column,
  *   select: string,
  *   from: string,
  *   where: string,
+ *   group: string,
  *   order: string
  * }}
  */
@@ -310,6 +314,7 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
     select: '',
     from: '',
     where: '',
+    group: '',
     order: ''
   };
   var key_column = this.primary_column_name_;
@@ -360,6 +365,7 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
     }
     out.from = idx_store_name + ' INNER JOIN ' + this.getQuotedName() +
         ' USING (' + q_key_column + ')';
+
     var col = idx_store_name + '.' + q_effective_column;
     if (goog.isDefAndNotNull(key_range)) {
       ydn.db.KeyRange.toSql(col, type, key_range, wheres, params);
@@ -383,6 +389,10 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
         }
       }
     }
+  }
+
+  if (is_index && !index.isUnique() && unique) {
+    out.group = q_effective_column;
   }
 
   var dir = reverse ? 'DESC' : 'ASC';

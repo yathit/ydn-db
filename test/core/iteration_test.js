@@ -33,8 +33,8 @@ var obj_schema = {
 
 var setUp = function() {
 
-  ydn.debug.log('ydn.db', 'finest');
-  ydn.db.core.DbOperator.DEBUG = true;
+  // ydn.debug.log('ydn.db', 'finest');
+  // ydn.db.core.DbOperator.DEBUG = true;
 
   objs = [
     {id:'qs0', value: 0, x: 1, tag: ['a', 'b']},
