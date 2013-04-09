@@ -85,7 +85,7 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
     }, function(e) {
       df.errback(e);
     });
-    this.logger.finer('listByIterator:' + q);
+    this.logger.finer('getByIterator:' + q);
     this.tx_thread.exec(list_df, function(tx, tx_no, cb) {
       me.getIndexExecutor().listByIterator(tx, tx_no, cb, q, 1);
     }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');

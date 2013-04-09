@@ -91,6 +91,7 @@ ydn.db.Buffer.prototype.traverse = function(func, opt_startValue) {
       prev = temp;
     }
   }
+  func(null); // let know, no more traversal
 };
 
 
@@ -155,6 +156,7 @@ ydn.db.Buffer.prototype.reverseTraverse = function(func, opt_startValue) {
       prev = temp;
     }
   }
+  func(null); // let know, no more traversal
 };
 
 

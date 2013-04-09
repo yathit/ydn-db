@@ -36,7 +36,7 @@ ydn.db.core.req.IRequestExecutor.prototype.keysByIterator =
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
  * @param {string} tx_no transaction number.
  * @param {?function(*, boolean=)} df key in deferred function.
- * @param {!ydn.db.Iterator} store_name  store name.
+ * @param {!ydn.db.Iterator} iter  store name.
  * @param {number=} opt_limit limit.
  */
 ydn.db.core.req.IRequestExecutor.prototype.listByIterator =

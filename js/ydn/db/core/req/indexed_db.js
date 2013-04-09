@@ -95,7 +95,7 @@ ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
-     iter, limit, offset) {
+    iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
   var msg = tx_no + ' listByIterator' + iter;
@@ -110,12 +110,12 @@ ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
   var count = 0;
   var cued = false;
   /**
-   * @param {IDBKey=} key
+   * @param {IDBKey=} opt_key
    */
-  cursor.onNext = function(key) {
-    if (goog.isDef(key)) {
+  cursor.onNext = function(opt_key) {
+    if (goog.isDef(opt_key)) {
       var primary_key = iter.isIndexIterator() ?
-          cursor.getPrimaryKey() : key;
+          cursor.getPrimaryKey() : opt_key;
       var value = cursor.getValue();
       if (!cued && offset > 0) {
         cursor.advance(offset);

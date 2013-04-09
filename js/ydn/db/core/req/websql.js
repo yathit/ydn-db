@@ -66,7 +66,7 @@ ydn.db.core.req.WebSql.prototype.logger =
  * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.keysByIterator = function(tx, tx_no, df, iter,
-                                                            limit, offset) {
+                                                           limit, offset) {
   this.fetchIterator_(tx, tx_no, df, iter, true, limit, offset);
 };
 
@@ -75,7 +75,7 @@ ydn.db.core.req.WebSql.prototype.keysByIterator = function(tx, tx_no, df, iter,
  * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q,
-                                                            limit, offset) {
+                                                           limit, offset) {
 
   this.fetchIterator_(tx, tx_no, df, q, false, limit, offset);
 

@@ -163,10 +163,11 @@ ydn.db.con.simple.Store.prototype.generateKey = function() {
 
 /**
  *
- * @param {string} index_name
+ * @param {string=} opt_index_name index name, default to primary key index.
  * @return {!ydn.db.Buffer}
  */
-ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
+ydn.db.con.simple.Store.prototype.getIndexCache = function(opt_index_name) {
+  var index_name = opt_index_name || this.primary_index;
   if (!this.key_indexes[index_name]) {
     this.key_indexes[index_name] =
         new ydn.db.Buffer(ydn.db.con.simple.Node.cmp);
@@ -192,6 +193,11 @@ ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
         }
       }
     }
+    if (ydn.db.con.simple.Store.DEBUG) {
+      window.console.log('index ' + index_name + ' of ' +
+          this.schema.getName() + ' for ' +
+          this.key_indexes[index_name].getCount() + ' records.');
+    }
   }
   return this.key_indexes[index_name];
 };
@@ -206,6 +212,10 @@ ydn.db.con.simple.Store.prototype.updateIndex = function(key, value) {
   for (var idx in this.key_indexes) {
     var cache = this.key_indexes[idx];
     if (cache) {
+      if (ydn.db.con.simple.Store.DEBUG) {
+        window.console.log('updating ' + key + ' in index ' + idx + ' of ' +
+            this.schema.getName());
+      }
       if (idx == this.primary_index) {
         cache.add(new ydn.db.con.simple.Node(key));
       } else {
@@ -230,6 +240,10 @@ ydn.db.con.simple.Store.prototype.removeIndex = function(key, value) {
   for (var idx in this.key_indexes) {
     var cache = this.key_indexes[idx];
     if (cache) {
+      if (ydn.db.con.simple.Store.DEBUG) {
+        window.console.log('removing ' + key + ' in index ' + idx + ' of ' +
+            this.schema.getName());
+      }
       if (idx == this.primary_index) {
         cache.remove(new ydn.db.con.simple.Node(key));
       } else {
@@ -251,6 +265,10 @@ ydn.db.con.simple.Store.prototype.clearIndexCache = function() {
     var cache = this.key_indexes[idx];
     if (cache) {
       cache.clear();
+      if (ydn.db.con.simple.Store.DEBUG) {
+        window.console.log('index ' + idx + ' of ' +
+            this.schema.getName() + ' cleared.');
+      }
     }
   }
   this.key_indexes = {};

@@ -4,6 +4,7 @@
 
 
 goog.provide('ydn.db.core.req.SimpleCursor');
+goog.require('goog.Timer');
 goog.require('ydn.db.core.req.AbstractCursor');
 goog.require('ydn.db.core.req.ICursor');
 
@@ -19,23 +20,24 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec.
  * @param {boolean} key_only mode.
+ * @param {boolean} key_query true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
 ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
-    index_name, keyRange, direction, key_only) {
+    index_name, keyRange, direction, key_only, key_query) {
 
   goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
-      key_only);
+      key_only, key_query);
 
   goog.asserts.assert(store_schema);
   this.store_schema_ = store_schema;
 
-  this.current_key_ = null;
-  this.current_primary_key_ = null;
-  this.current_value_ = null;
-  this.current_avl_node_ = null;
+  this.key_ = undefined;
+  this.primary_key_ = undefined;
+  this.value_ = undefined;
+  this.current_ = null;
 
 };
 goog.inherits(ydn.db.core.req.SimpleCursor, ydn.db.core.req.AbstractCursor);
@@ -68,7 +70,7 @@ ydn.db.core.req.SimpleCursor.prototype.store_schema_;
  * @type {IDBKey|undefined}
  * @private
  */
-ydn.db.core.req.SimpleCursor.prototype.current_key_;
+ydn.db.core.req.SimpleCursor.prototype.key_;
 
 
 /**
@@ -76,7 +78,7 @@ ydn.db.core.req.SimpleCursor.prototype.current_key_;
  * @type {IDBKey|undefined}
  * @private
  */
-ydn.db.core.req.SimpleCursor.prototype.current_primary_key_;
+ydn.db.core.req.SimpleCursor.prototype.primary_key_;
 
 
 /**
@@ -84,50 +86,32 @@ ydn.db.core.req.SimpleCursor.prototype.current_primary_key_;
  * @type {*}
  * @private
  */
-ydn.db.core.req.SimpleCursor.prototype.current_value_;
+ydn.db.core.req.SimpleCursor.prototype.value_;
 
 
 /**
  * @type {goog.structs.AvlTree.Node}
  * @private
  */
-ydn.db.core.req.SimpleCursor.prototype.current_avl_node_;
+ydn.db.core.req.SimpleCursor.prototype.current_;
 
 
 /**
- * @inheritDoc
+ * @return {ydn.db.Buffer}
+ * @protected
  */
-ydn.db.core.req.SimpleCursor.prototype.getIndexKey = function() {
-
-  return this.current_key_;
-
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleCursor.prototype.getPrimaryKey = function() {
-  return this.current_primary_key_;
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleCursor.prototype.getValue = function() {
-  return this.current_value_;
+ydn.db.core.req.SimpleCursor.prototype.getBuffer = function() {
+  return this.getSimpleStore().getIndexCache(this.index_name);
 };
 
 
 /**
  *
- * @return {!ydn.db.Buffer}
+ * @return {ydn.db.con.simple.Store}
  * @protected
  */
-ydn.db.core.req.SimpleCursor.prototype.getIndexCache = function() {
-  return this.getTx().getSimpleStore(this.store_name).getIndexCache(
-      this.index_name);
+ydn.db.core.req.SimpleCursor.prototype.getSimpleStore = function() {
+  return this.tx.getSimpleStore(this.store_name);
 };
 
 
@@ -142,7 +126,7 @@ ydn.db.core.req.SimpleCursor.prototype.hasCursor = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleCursor.prototype.update = function(obj, idx) {
+ydn.db.core.req.SimpleCursor.prototype.update = function(obj) {
   throw 'no update';
 };
 
@@ -152,7 +136,25 @@ ydn.db.core.req.SimpleCursor.prototype.update = function(obj, idx) {
  */
 ydn.db.core.req.SimpleCursor.prototype.advance = function(step) {
 
-  this.move_(this.onSuccess);
+  var me = this;
+  var cnt = this.current_ ? -1 : 0;
+  /**
+   * Node traversal function.
+   * @param {goog.structs.AvlTree.Node} node
+   * @return {boolean|undefined} continuation.
+   */
+  var tr_fn = function(node) {
+    cnt++;
+    if (!node || cnt >= step) {
+      me.defaultOnSuccess_(node);
+      return true;
+    }
+  };
+  if (this.reverse) {
+    this.getBuffer().reverseTraverse(tr_fn, this.current_);
+  } else {
+    this.getBuffer().traverse(tr_fn, this.current_);
+  }
 
 };
 
@@ -161,65 +163,114 @@ ydn.db.core.req.SimpleCursor.prototype.advance = function(step) {
  * @inheritDoc
  */
 ydn.db.core.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
-  if (!this.hasCursor()) {
-    throw new ydn.error.InvalidOperationError(this + ' cursor gone.');
-  }
+
   if (goog.isDefAndNotNull(key)) {
-    if (this.isIndexCursor()) {
-      this.ini_index_key_ = key;
+    var me = this;
+    var start_node = new ydn.db.con.simple.Node(key);
+    /**
+     * Node traversal function.
+     * @param {goog.structs.AvlTree.Node} node
+     * @return {boolean|undefined} continuation.
+     */
+    var tr_fn = function(node) {
+      me.current_ = node;
+      if (!node) {
+        me.defaultOnSuccess_(node);
+        return true;
+      }
+      var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
+      var e_key = x.getKey();
+      var cmp = ydn.db.cmp(e_key, key);
+      if (me.reverse) {
+        if (cmp != 1) {
+          me.defaultOnSuccess_(node);
+          return true;
+        }
+      } else {
+        if (cmp != -1) {
+          me.defaultOnSuccess_(node);
+          return true;
+        }
+      }
+    };
+    if (this.reverse) {
+      this.getBuffer().reverseTraverse(tr_fn, start_node);
     } else {
-      this.ini_key_ = key;
+      this.getBuffer().traverse(tr_fn, start_node);
     }
-    // this.move_(this.onSuccess);
   } else {
     this.advance(1);
   }
-
 
 };
 
 
 /**
- * Make cursor opening request.
- *
- * This will seek to given initial position if given. If only ini_key (primary
- * key) is given, this will rewind, if not found.
- *
- * @param {*=} opt_ini_key primary key to resume position.
- * @param {*=} opt_ini_index_key index key to resume position.
- * @param {boolean=} opt_exclusive
+ * Node traversal function.
+ * @param {goog.structs.AvlTree.Node} node
+ * @return {boolean|undefined} continuation.
+ * @private
  */
-ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
-    opt_ini_key, opt_ini_index_key, opt_exclusive) {
-  var start = null;
-  if (this.isIndexCursor()) {
-    if (goog.isDefAndNotNull(opt_ini_index_key)) {
-      start = new ydn.db.con.simple.Node(opt_ini_index_key, opt_ini_key);
-    } else if (goog.isDefAndNotNull(opt_ini_key)) {
-      start = new ydn.db.con.simple.Node(opt_ini_key);
-    }
-  }
-  /**
-   *
-   * @param {goog.structs.AvlTree.Node} node
-   * @return {boolean|undefined} continuation.
-   */
-  var tr_fn = function(node) {
-    if (!node) {
-      return;
-    }
-    var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
+ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
 
-  };
-  var avl_index = this.getIndexCache();
-  avl_index.traverse(tr_fn, start);
+  this.current_ = node;
+
+  if (node) {
+    var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
+    this.key_ = x.getKey();
+    this.primary_key_ = this.is_index ? x.getPrimaryKey() : this.key_;
+    if (!this.key_query) {
+      if (this.key_only) {
+        this.value_ = this.primary_key_;
+      } else {
+        goog.asserts.assert(goog.isDefAndNotNull(this.primary_key_));
+        this.value_ = this.getSimpleStore().getRecord(null, this.primary_key_);
+      }
+    }
+  } else {
+    this.key_ = undefined;
+    this.primary_key_ = undefined;
+    this.value_ = undefined;
+  }
+
+  goog.Timer.callOnce(function() {
+    this.onSuccess(this.key_, this.primary_key_, this.value_);
+  }, 0, this);
+  return true;
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleCursor.prototype.clear = function(idx) {
+ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
+    opt_key, opt_primary_key) {
+  var start_node = null;
+  if (goog.isDefAndNotNull(opt_key)) {
+    if (this.isIndexCursor()) {
+      if (goog.isDefAndNotNull(opt_primary_key)) {
+        start_node = new ydn.db.con.simple.Node(opt_key,
+            opt_primary_key);
+      } else {
+        start_node = new ydn.db.con.simple.Node(opt_key);
+      }
+    }
+  }
+
+  if (this.reverse) {
+    this.getBuffer().reverseTraverse(goog.bind(this.defaultOnSuccess_, this),
+        start_node);
+  } else {
+    this.getBuffer().traverse(goog.bind(this.defaultOnSuccess_, this),
+        start_node);
+  }
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleCursor.prototype.clear = function() {
 
   throw 'no clear';
 };
@@ -229,7 +280,7 @@ ydn.db.core.req.SimpleCursor.prototype.clear = function(idx) {
  * @inheritDoc
  */
 ydn.db.core.req.SimpleCursor.prototype.restart = function(effective_key,
-                                                           primary_key) {
+                                                          primary_key) {
   throw 'no restart';
 };
 

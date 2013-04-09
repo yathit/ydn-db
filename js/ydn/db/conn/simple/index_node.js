@@ -6,13 +6,14 @@
 goog.provide('ydn.db.con.simple.Node');
 
 
+
 /**
  *
  * @param {!IDBKey} key must be valid IDBKey.
- * @param {*=} primary_key
+ * @param {IDBKey=} opt_primary_key
  * @constructor
  */
-ydn.db.con.simple.Node = function(key, primary_key) {
+ydn.db.con.simple.Node = function(key, opt_primary_key) {
 
   /**
    * @final
@@ -21,7 +22,7 @@ ydn.db.con.simple.Node = function(key, primary_key) {
   /**
    * @final
    */
-  this.primary_key = primary_key;
+  this.primary_key = opt_primary_key;
 };
 
 
@@ -34,7 +35,7 @@ ydn.db.con.simple.Node.prototype.key;
 
 /**
  * @private
- * @type {*}
+ * @type {IDBKey|undefined}
  */
 ydn.db.con.simple.Node.prototype.primary_key;
 
@@ -50,7 +51,7 @@ ydn.db.con.simple.Node.prototype.getKey = function() {
 
 /**
  *
- * @return {*}
+ * @return {IDBKey|undefined}
  */
 ydn.db.con.simple.Node.prototype.getPrimaryKey = function() {
   return this.primary_key;
@@ -58,13 +59,13 @@ ydn.db.con.simple.Node.prototype.getPrimaryKey = function() {
 
 
 if (goog.DEBUG) {
-/**
- * @override
- */
-ydn.db.con.simple.Node.prototype.toString = function() {
-  return 'ydn.db.con.simple.Node:' + this.key +
-    (goog.isDefAndNotNull(this.primary_key) ? ':' + this.primary_key : '');
-};
+  /**
+   * @override
+   */
+  ydn.db.con.simple.Node.prototype.toString = function() {
+    return 'ydn.db.con.simple.Node:' + this.key +
+        (goog.isDefAndNotNull(this.primary_key) ? ':' + this.primary_key : '');
+  };
 }
 
 
@@ -74,7 +75,7 @@ ydn.db.con.simple.Node.prototype.toString = function() {
  * @param {ydn.db.con.simple.Node} b
  * @return {number} -1 if a < b, 1 if a > b, 0 if a = b.
  */
-ydn.db.con.simple.Node.cmp = function (a,b) {
+ydn.db.con.simple.Node.cmp = function(a, b) {
   var cmp = ydn.db.cmp(a.key, b.key);
   if (cmp === 0) {
     if (goog.isDefAndNotNull(a.primary_key)) {
