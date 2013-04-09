@@ -1,17 +1,34 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview Object store for simple storage.
+ *
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.con.simple.Store');
-goog.require('ydn.db.con.simple');
-goog.require('ydn.db.con.simple.AvlTree');
-goog.require('ydn.db.con.simple.Node');
+goog.require('ydn.db.Buffer');
 goog.require('ydn.db.base');
+goog.require('ydn.db.con.simple');
+goog.require('ydn.db.con.simple.Node');
+
 
 
 /**
  *
- * @param {string} db_name database name
+ * @param {string} db_name database name.
  * @param {!Storage} storage
  * @param {!ydn.db.schema.Store} store_schema
  * @constructor
@@ -33,13 +50,13 @@ ydn.db.con.simple.Store = function(db_name, storage, store_schema) {
    * @final
    */
   this.key_indexes = {};
-  
+
   var kp = this.schema.getKeyPath();
   /**
    * @final
    */
-  this.primary_index = goog.isArray(kp) ? kp.join(',') : 
-    kp || ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
+  this.primary_index = goog.isArray(kp) ? kp.join(',') :
+      kp || ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
   this.key_indexes[this.primary_index] = null;
 
@@ -47,14 +64,14 @@ ydn.db.con.simple.Store = function(db_name, storage, store_schema) {
    * @final
    */
   this.key_prefix = ydn.db.con.simple.makeKey(this.db_name,
-    this.schema.getName(), this.primary_index)+ ydn.db.con.simple.SEP;
+      this.schema.getName(), this.primary_index) + ydn.db.con.simple.SEP;
 
 };
 
 
 /**
  *
- * @define {boolean}
+ * @define {boolean} debug flag.
  */
 ydn.db.con.simple.Store.DEBUG = false;
 
@@ -79,6 +96,7 @@ ydn.db.con.simple.Store.prototype.db_name;
  */
 ydn.db.con.simple.Store.prototype.schema;
 
+
 /**
  * @private
  * @type {string}
@@ -88,7 +106,7 @@ ydn.db.con.simple.Store.prototype.primary_index;
 
 /**
  * List of ascending ordered key for each index and primary key.
- * @type {!Object.<!ydn.db.con.simple.AvlTree>}
+ * @type {!Object.<!ydn.db.Buffer>}
  * @private
  */
 ydn.db.con.simple.Store.prototype.key_indexes;
@@ -98,11 +116,11 @@ ydn.db.con.simple.Store.prototype.key_indexes;
  * Use store name and id to form a key to use in setting key to storage.
  * @protected
  * @final
- * @param {IDBKey=} id id. If not given, key for store return.
+ * @param {IDBKey=} opt_id id. If not given, key for store return.
  * @return {string} canonical key name.
  */
-ydn.db.con.simple.Store.prototype.makeKey = function(id) {
-  return this.key_prefix + ydn.db.utils.encodeKey(id);
+ydn.db.con.simple.Store.prototype.makeKey = function(opt_id) {
+  return this.key_prefix + ydn.db.utils.encodeKey(opt_id);
 };
 
 
@@ -118,13 +136,12 @@ ydn.db.con.simple.Store.prototype.key_prefix;
  * @final
  * @protected
  * @param {string} eKey key as it stored in the storage.
- * @return {!IDBKey} the key
+ * @return {!IDBKey} the key.
  */
-ydn.db.con.simple.Store.prototype.extractKey = function (eKey) {
+ydn.db.con.simple.Store.prototype.extractKey = function(eKey) {
   var key = ydn.db.utils.decodeKey(eKey.substr(this.key_prefix.length));
   return /** @type  {!IDBKey} */ (key);
 };
-
 
 
 /**
@@ -147,12 +164,12 @@ ydn.db.con.simple.Store.prototype.generateKey = function() {
 /**
  *
  * @param {string} index_name
- * @return {!ydn.db.con.simple.AvlTree}
+ * @return {!ydn.db.Buffer}
  */
 ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
   if (!this.key_indexes[index_name]) {
     this.key_indexes[index_name] =
-      new ydn.db.con.simple.AvlTree(ydn.db.con.simple.Node.cmp);
+        new ydn.db.Buffer(ydn.db.con.simple.Node.cmp);
     var n = this.storage.length;
     for (var i = 0; i < n; i++) {
       var key_str = this.storage.key(i);
@@ -182,8 +199,8 @@ ydn.db.con.simple.Store.prototype.getIndexCache = function(index_name) {
 
 /**
  *
- * @param {!IDBKey} key  primary key
- * @param {!Object} value  record value
+ * @param {!IDBKey} key  primary key.
+ * @param {!Object} value  record value.
  */
 ydn.db.con.simple.Store.prototype.updateIndex = function(key, value) {
   for (var idx in this.key_indexes) {
@@ -206,8 +223,8 @@ ydn.db.con.simple.Store.prototype.updateIndex = function(key, value) {
 
 /**
  *
- * @param {!IDBKey} key primary key
- * @param {!Object} value record value
+ * @param {!IDBKey} key primary key.
+ * @param {!Object} value record value.
  */
 ydn.db.con.simple.Store.prototype.removeIndex = function(key, value) {
   for (var idx in this.key_indexes) {
@@ -227,7 +244,7 @@ ydn.db.con.simple.Store.prototype.removeIndex = function(key, value) {
 
 
 /**
- * @private
+ * @protected
  */
 ydn.db.con.simple.Store.prototype.clearIndexCache = function() {
   for (var idx in this.key_indexes) {
@@ -244,10 +261,10 @@ ydn.db.con.simple.Store.prototype.clearIndexCache = function() {
  *
  * @param {IDBKey|undefined} key
  * @param {!Object} value
- * @param {boolean=} is_add for add method, the key must not already exist.
- * @return {IDBKey?} key in case of unique key constraint, return null
+ * @param {boolean=} opt_is_add for add method, the key must not already exist.
+ * @return {IDBKey?} key in case of unique key constraint, return null.
  */
-ydn.db.con.simple.Store.prototype.addRecord = function(key, value, is_add) {
+ydn.db.con.simple.Store.prototype.addRecord = function(key, value, opt_is_add) {
 
   if (!goog.isDefAndNotNull(key)) {
     if (this.schema.usedInlineKey()) {
@@ -259,12 +276,12 @@ ydn.db.con.simple.Store.prototype.addRecord = function(key, value, is_add) {
   }
 
   goog.asserts.assert(goog.isDefAndNotNull(key),
-    this + 'primary key not provided in ' + ydn.json.toShortString(value));
+      this + 'primary key not provided in ' + ydn.json.toShortString(value));
 
   if (ydn.db.con.simple.Store.DEBUG) {
     window.console.log('add ' + key);
   }
-  if (is_add) {
+  if (opt_is_add) {
     if (this.key_indexes[this.primary_index]) {
       var cache = this.key_indexes[this.primary_index];
       if (cache.contains(ydn.db.utils.encodeKey(key))) {
@@ -277,7 +294,7 @@ ydn.db.con.simple.Store.prototype.addRecord = function(key, value, is_add) {
     }
   }
   this.storage.setItem(this.makeKey(key),
-    ydn.json.stringify(value));
+      ydn.json.stringify(value));
 
   this.updateIndex(key, value);
   return key;
@@ -289,7 +306,7 @@ ydn.db.con.simple.Store.prototype.addRecord = function(key, value, is_add) {
  * @param {IDBKey} key
  * @return {number} number deleted.
  */
-ydn.db.con.simple.Store.prototype.removeRecord = function (key) {
+ydn.db.con.simple.Store.prototype.removeRecord = function(key) {
 
   var eKey = this.makeKey(key);
   var obj = this.storage.getItem(eKey);
@@ -327,7 +344,7 @@ ydn.db.con.simple.Store.prototype.getRecord = function(index_name, key) {
     return goog.isNull(v) ? undefined : ydn.json.parse(v);
   } else {
     goog.asserts.assert(this.schema.hasIndex(index_name), 'index "' +
-      index_name + '" not found in ' + this);
+        index_name + '" not found in ' + this);
     throw 'impl';
   }
 };
@@ -344,16 +361,16 @@ ydn.db.con.simple.Store.prototype.getName = function() {
 
 /**
  *
- * @param {string?=} index_name
- * @param {IDBKeyRange=} key_range
+ * @param {string?=} opt_index_name index name.
+ * @param {IDBKeyRange=} opt_key_range key range.
  * @return {number}
  */
-ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
-     key_range) {
-  index_name = index_name || this.primary_index;
+ydn.db.con.simple.Store.prototype.countRecords = function(opt_index_name,
+    opt_key_range) {
+  opt_index_name = opt_index_name || this.primary_index;
 
   var me = this;
-  var cache =  this.getIndexCache(index_name);
+  var cache = this.getIndexCache(opt_index_name);
 
   /**
    * @type {ydn.db.con.simple.Node}
@@ -366,17 +383,17 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
   var count = 0;
   var lowerOpen = false;
   var upperOpen = false;
-  if (goog.isDefAndNotNull(key_range)) {
-    if (goog.isDefAndNotNull(key_range.lower)) {
+  if (goog.isDefAndNotNull(opt_key_range)) {
+    if (goog.isDefAndNotNull(opt_key_range.lower)) {
       start = new ydn.db.con.simple.Node(
-        /** @type {!IDBKey} */ (key_range.lower));
+          /** @type {!IDBKey} */ (opt_key_range.lower));
     }
-    if (goog.isDefAndNotNull(key_range.upper)) {
+    if (goog.isDefAndNotNull(opt_key_range.upper)) {
       end = new ydn.db.con.simple.Node(
-        /** @type {!IDBKey} */ (key_range.upper));
+          /** @type {!IDBKey} */ (opt_key_range.upper));
     }
-    lowerOpen = key_range.lowerOpen;
-    upperOpen = key_range.upperOpen;
+    lowerOpen = opt_key_range.lowerOpen;
+    upperOpen = opt_key_range.upperOpen;
   }
 
   /**
@@ -384,13 +401,13 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
    * @param {goog.structs.AvlTree.Node} node
    * @return {boolean|undefined}
    */
-  var tr_fn = function (node) {
+  var tr_fn = function(node) {
     if (!goog.isDefAndNotNull(node)) {
       return;
     }
     var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
     if (lowerOpen && goog.isDefAndNotNull(start) &&
-      ydn.db.con.simple.Node.cmp(x, start) == 0) {
+        ydn.db.con.simple.Node.cmp(x, start) == 0) {
       return;
     }
     if (goog.isDefAndNotNull(end)) {
@@ -413,10 +430,10 @@ ydn.db.con.simple.Store.prototype.countRecords = function(index_name,
 
 /**
  *
- * @param {IDBKeyRange=} key_range
+ * @param {IDBKeyRange=} opt_key_range
  * @return {number}
  */
-ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
+ydn.db.con.simple.Store.prototype.removeRecords = function(opt_key_range) {
   var me = this;
   var cache = this.getIndexCache(this.primary_index);
   /**
@@ -432,17 +449,17 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
   var removed_objs = [];
   var lowerOpen = false;
   var upperOpen = false;
-  if (goog.isDefAndNotNull(key_range)) {
-    if (goog.isDefAndNotNull(key_range.lower)) {
+  if (goog.isDefAndNotNull(opt_key_range)) {
+    if (goog.isDefAndNotNull(opt_key_range.lower)) {
       start = new ydn.db.con.simple.Node(
-        /** @type {!IDBKey} */ (key_range.lower));
+          /** @type {!IDBKey} */ (opt_key_range.lower));
     }
-    if (goog.isDefAndNotNull(key_range.upper)) {
+    if (goog.isDefAndNotNull(opt_key_range.upper)) {
       end = new ydn.db.con.simple.Node(
-        /** @type {!IDBKey} */ (key_range.upper));
+          /** @type {!IDBKey} */ (opt_key_range.upper));
     }
-    lowerOpen = key_range.lowerOpen;
-    upperOpen = key_range.upperOpen;
+    lowerOpen = opt_key_range.lowerOpen;
+    upperOpen = opt_key_range.upperOpen;
   }
 
   /**
@@ -450,13 +467,13 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
    * @param {goog.structs.AvlTree.Node} node
    * @return {boolean|undefined}
    */
-  var tr_fn = function (node) {
+  var tr_fn = function(node) {
     if (!goog.isDefAndNotNull(node)) {
       return;
     }
     var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
     if (lowerOpen && goog.isDefAndNotNull(start) &&
-      ydn.db.con.simple.Node.cmp(x, start) == 0) {
+        ydn.db.con.simple.Node.cmp(x, start) == 0) {
       return;
     }
     if (goog.isDefAndNotNull(end)) {
@@ -502,20 +519,20 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(key_range) {
 /**
  *
  * @param {boolean} key_only
- * @param {string?=} index_name
- * @param {IDBKeyRange=} key_range
- * @param {boolean=} reverse
- * @param {number=} limit
- * @param {number=} offset
- * @return {!Array} results
+ * @param {string?=} opt_index_name
+ * @param {IDBKeyRange=} opt_key_range
+ * @param {boolean=} opt_reverse
+ * @param {number=} opt_limit
+ * @param {number=} opt_offset
+ * @return {!Array} results.
  * @private
  */
-ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
-     key_range, reverse, limit, offset) {
+ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, opt_index_name,
+    opt_key_range, opt_reverse, opt_limit, opt_offset) {
   var results = [];
-  index_name = index_name || this.primary_index;
-  var is_index = index_name != this.primary_index;
-  var cache = this.getIndexCache(index_name);
+  opt_index_name = opt_index_name || this.primary_index;
+  var is_index = opt_index_name != this.primary_index;
+  var cache = this.getIndexCache(opt_index_name);
   /**
    * @type {ydn.db.con.simple.Node}
    */
@@ -524,33 +541,33 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
    * @type {ydn.db.con.simple.Node}
    */
   var end = null;
-  if (!goog.isDef(offset)) {
-    offset = 0;
+  if (!goog.isDef(opt_offset)) {
+    opt_offset = 0;
   }
   var offsetted = -1;
   var lowerOpen = false;
   var upperOpen = false;
-  if (goog.isDefAndNotNull(key_range)) {
-    if (goog.isDefAndNotNull(key_range.lower)) {
-      if (is_index && reverse) {
+  if (goog.isDefAndNotNull(opt_key_range)) {
+    if (goog.isDefAndNotNull(opt_key_range.lower)) {
+      if (is_index && opt_reverse) {
         start = new ydn.db.con.simple.Node(
-            /** @type {!IDBKey} */ (key_range.lower), '\uffff');
+            /** @type {!IDBKey} */ (opt_key_range.lower), '\uffff');
       } else {
         start = new ydn.db.con.simple.Node(
-            /** @type {!IDBKey} */ (key_range.lower));
+            /** @type {!IDBKey} */ (opt_key_range.lower));
       }
     }
-    if (goog.isDefAndNotNull(key_range.upper)) {
-      if (is_index && !reverse) {
+    if (goog.isDefAndNotNull(opt_key_range.upper)) {
+      if (is_index && !opt_reverse) {
         end = new ydn.db.con.simple.Node(
-            /** @type {!IDBKey} */ (key_range.upper), '\uffff');
+            /** @type {!IDBKey} */ (opt_key_range.upper), '\uffff');
       } else {
         end = new ydn.db.con.simple.Node(
-            /** @type {!IDBKey} */ (key_range.upper));
+            /** @type {!IDBKey} */ (opt_key_range.upper));
       }
     }
-    lowerOpen = key_range.lowerOpen;
-    upperOpen = key_range.upperOpen;
+    lowerOpen = opt_key_range.lowerOpen;
+    upperOpen = opt_key_range.upperOpen;
   }
   var me = this;
 
@@ -563,11 +580,11 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
       return;
     }
     offsetted++;
-    if (offsetted < offset) {
+    if (offsetted < opt_offset) {
       return;
     }
     var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
-    if (reverse) {
+    if (opt_reverse) {
       if (upperOpen && goog.isDefAndNotNull(end) &&
           ydn.db.con.simple.Node.cmp(x, end) == 0) {
         return;
@@ -609,12 +626,12 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
         results.push(goog.isNull(v) ? undefined : ydn.json.parse(v));
       }
     }
-    if (goog.isDef(limit) && results.length >= limit) {
+    if (goog.isDef(opt_limit) && results.length >= opt_limit) {
       return true;
     }
   };
 
-  if (reverse) {
+  if (opt_reverse) {
     cache.reverseTraverse(tr_fn, end);
   } else {
     cache.traverse(tr_fn, start);
@@ -625,42 +642,44 @@ ydn.db.con.simple.Store.prototype.getItems_ = function(key_only, index_name,
 
 /**
  *
- * @param {string?=} index_name
- * @param {IDBKeyRange=} key_range
- * @param {boolean=} reverse
- * @param {number=} limit
- * @param {number=} offset
- * @return {!Array} results
+ * @param {string?=} opt_index_name
+ * @param {IDBKeyRange=} opt_key_range
+ * @param {boolean=} opt_reverse
+ * @param {number=} opt_limit
+ * @param {number=} opt_offset
+ * @return {!Array} results.
  */
-ydn.db.con.simple.Store.prototype.getRecords = function(index_name, key_range,
-    reverse, limit, offset) {
-  return this.getItems_(false, index_name, key_range, reverse, limit, offset);
+ydn.db.con.simple.Store.prototype.getRecords = function(opt_index_name,
+    opt_key_range, opt_reverse, opt_limit, opt_offset) {
+  return this.getItems_(false, opt_index_name, opt_key_range, opt_reverse,
+      opt_limit, opt_offset);
 };
 
 
 /**
  *
- * @param {string?=} index_name
- * @param {IDBKeyRange=} key_range
- * @param {boolean=} reverse
- * @param {number=} limit
- * @param {number=} offset
- * @return {!Array} results
+ * @param {string?=} opt_index_name
+ * @param {IDBKeyRange=} opt_key_range
+ * @param {boolean=} opt_reverse
+ * @param {number=} opt_limit
+ * @param {number=} opt_offset
+ * @return {!Array} results.
  */
-ydn.db.con.simple.Store.prototype.getKeys = function(index_name, key_range,
-      reverse, limit, offset) {
-  return this.getItems_(true, index_name, key_range, reverse, limit, offset);
+ydn.db.con.simple.Store.prototype.getKeys = function(opt_index_name,
+    opt_key_range, opt_reverse, opt_limit, opt_offset) {
+  return this.getItems_(true, opt_index_name, opt_key_range, opt_reverse,
+      opt_limit, opt_offset);
 };
 
 
 if (goog.DEBUG) {
-/**
- * @inheritDoc
- */
-ydn.db.con.simple.Store.prototype.toString = function () {
-  return 'ydn.db.con.simple.Store:' + this.db_name + ':' +
-    this.schema.getName();
-};
+  /**
+   * @inheritDoc
+   */
+  ydn.db.con.simple.Store.prototype.toString = function() {
+    return 'ydn.db.con.simple.Store:' + this.db_name + ':' +
+        this.schema.getName();
+  };
 }
 
 

@@ -15,7 +15,7 @@
 /**
  * @fileoverview IndexedDB request executor.
  *
- * @author Kyaw Tun <kyawtun@yathit.com>
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.crud.req.IndexedDb');
@@ -24,6 +24,7 @@ goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.crud.req.RequestExecutor');
 goog.require('ydn.error');
 goog.require('ydn.json');
+
 
 
 /**
@@ -61,7 +62,7 @@ ydn.db.crud.req.IndexedDb.REQ_PER_TX = 10;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.req.IndexedDb.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.crud.req.IndexedDb');
+    goog.debug.Logger.getLogger('ydn.db.crud.req.IndexedDb');
 
 
 /**
@@ -76,7 +77,8 @@ ydn.db.crud.req.IndexedDb.prototype.getTx = function() {
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores) {
+ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df,
+                                                           stores) {
 
   var me = this;
   var out = [];
@@ -125,8 +127,8 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df, stores
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, value,
-                                                         opt_key) {
+ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table,
+                                                         value, opt_key) {
   var store = tx.objectStore(table);
   var msg = tx_no + ' addObject: ' + table + ' ' + opt_key;
   this.logger.finest(msg);
@@ -144,7 +146,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table, v
       window.console.log([event, table, value]);
     }
     me.logger.finest('success ' + msg);
-    df(event.target.result)
+    df(event.target.result);
   };
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
@@ -164,7 +166,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObject = function(
     tx, tx_no, df, table, value, opt_key) {
   var store = tx.objectStore(table);
   var msg = tx_no + ' putObject: ' + table + ' ' +
-    (goog.isDef(opt_key) ? opt_key : '');
+      (goog.isDef(opt_key) ? opt_key : '');
   this.logger.finest(msg);
 
   var me = this;
@@ -176,7 +178,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObject = function(
     request = store.put(value);
   }
 
-  request.onsuccess = function (event) {
+  request.onsuccess = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
@@ -184,20 +186,20 @@ ydn.db.crud.req.IndexedDb.prototype.putObject = function(
     df(event.target.result);
   };
 
-  request.onerror = function (event) {
+  request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
     if (goog.DEBUG && event.name == 'DataError') {
       // give useful info.
       var str = ydn.json.stringify(value);
-      event = new ydn.db.InvalidKeyException(table + ': ' + str.substring(0, 70));
+      event = new ydn.db.InvalidKeyException(table + ': ' +
+          str.substring(0, 70));
     }
     me.logger.finest('error ' + msg);
     df(event, true);
   };
 };
-
 
 
 /**
@@ -211,7 +213,8 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
 
   var me = this;
   var store = tx.objectStore(store_name);
-  var msg = tx_no + ' addObjects: ' + store_name + ' ' + objs.length + ' objects';
+  var msg = tx_no + ' addObjects: ' + store_name + ' ' +
+      objs.length + ' objects';
   this.logger.finest(msg);
 
   var put = function(i) {
@@ -251,11 +254,11 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
           // DataError is due to invalid key.
           // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
           // IDBRequest-any-key
-          event = new ydn.db.InvalidKeyException('put to "' + store_name + '": ' +
-            i + ' of ' + objs.length);
+          event = new ydn.db.InvalidKeyException('put to "' + store_name +
+              '": ' + i + ' of ' + objs.length);
         } else if (event.name == 'DataCloneError') {
-          event = new ydn.db.DataCloneError('put to "' + store_name + '": ' + i +
-            ' of ' + objs.length);
+          event = new ydn.db.DataCloneError('put to "' + store_name + '": ' +
+              i + ' of ' + objs.length);
         }
       }
       me.logger.finest('error ' + msg);
@@ -279,8 +282,8 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_name,
-                                                          objs, opt_keys) {
+ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
+    store_name, objs, opt_keys) {
 
   var results = [];
   var result_count = 0;
@@ -288,7 +291,8 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
 
   var me = this;
   var store = tx.objectStore(store_name);
-  var msg = tx_no + ' putObjects: ' + store_name + ' ' + objs.length + ' objects';
+  var msg = tx_no + ' putObjects: ' + store_name + ' ' +
+      objs.length + ' objects';
   this.logger.finest(msg);
 
   /**
@@ -338,15 +342,10 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
       }
       if (goog.DEBUG) {
         var name = event.name;
-//        try {
-//          name = request.error.name;
-//        } catch (e) {
-//          name = 'UnknownError';
-//        }
         me.logger.warning('request result ' + name +
-          ' error when put to "' + store_name + '" for object "' +
-          ydn.json.toShortString(objs[i]) + '" at index ' +
-          i + ' of ' + objs.length + ' objects.');
+            ' error when put to "' + store_name + '" for object "' +
+            ydn.json.toShortString(objs[i]) + '" at index ' +
+            i + ' of ' + objs.length + ' objects.');
       }
       // accessing request.error can cause InvalidStateError,
       // although it is not possible here since request has already done flag.
@@ -368,7 +367,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df, store_n
   if (objs.length > 0) {
     // send parallel requests
     for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX &&
-      i < objs.length; i++) {
+        i < objs.length; i++) {
       put(i);
     }
   } else {
@@ -442,9 +441,9 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs,
       var name = event.name;
       if (goog.DEBUG) {
         me.logger.warning('request result ' + name +
-          ' error when put keys to "' + store_name + '" for object "' +
-          ydn.json.toShortString(objs[i]) + '" at index ' +
-          i + ' of ' + objs.length + ' objects.');
+            ' error when put keys to "' + store_name + '" for object "' +
+            ydn.json.toShortString(objs[i]) + '" at index ' +
+            i + ' of ' + objs.length + ' objects.');
       }
       results[i] = request['error'] || event.target.result;
       has_error = true;
@@ -463,7 +462,7 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs,
   if (objs.length > 0) {
     // send parallel requests
     for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX &&
-      i < objs.length; i++) {
+        i < objs.length; i++) {
       put(i);
     }
   } else {
@@ -472,12 +471,11 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs,
 };
 
 
-
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df, store_name, data,
-                                                       delimiter) {
+ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df,
+    store_name, data, delimiter) {
   var me = this;
   var store = this.schema.getStore(store_name);
   var objectStore = tx.objectStore(store_name);
@@ -496,7 +494,7 @@ ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df, store_name
   prev_pos++;
 
   var msg = tx_no + ' Loading data '+ ' of ' + fields.length +
-    '-fields record to ' + store_name;
+      '-fields record to ' + store_name;
   this.logger.finest(msg);
 
   var put = function() {
@@ -591,7 +589,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
       };
       req.onerror = function(e) {
         df(event, true);
-      }
+      };
     } else {
       df(undefined);
     }
@@ -608,12 +606,11 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
 };
 
 
-
 /**
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
-                                                          keys) {
+                                                            keys) {
 
   var me = this;
   var count = 0;
@@ -712,7 +709,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeyRange = function(
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.clearByKeyRange = function (
+ydn.db.crud.req.IndexedDb.prototype.clearByKeyRange = function(
     tx, tx_no, df, store_name, key_range) {
 
   var me = this;
@@ -722,11 +719,11 @@ ydn.db.crud.req.IndexedDb.prototype.clearByKeyRange = function (
   this.logger.finest(msg);
 
   var req = store['delete'](key_range);
-  req.onsuccess = function (event) {
+  req.onsuccess = function(event) {
     me.logger.finest('success ' + msg);
     df(undefined);
   };
-  req.onerror = function (event) {
+  req.onerror = function(event) {
     me.logger.finest('error ' + msg);
     df(event, true);
   };
@@ -818,10 +815,10 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
 };
 
 
-
 /**
  * General executor for LIST methods.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
+ * @param {string} tx_no tx label.
  * @param {?function(*, boolean=)} df object in deferred function.
  * @param {string} store_name store name.
  * @param {string?} index index name.
@@ -829,17 +826,18 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
  * @param {boolean} reverse to sort reverse order.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
- * @param {boolean=} unique unique attribute for index listing.
+ * @param {boolean=} opt_unique unique attribute for index listing.
+ * @private
  */
 ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
-     store_name, index, key_range, reverse, limit, offset, unique) {
+    store_name, index, key_range, reverse, limit, offset, opt_unique) {
   var me = this;
   var results = [];
   var store = tx.objectStore(store_name);
-  var dir = ydn.db.base.getDirection(reverse, unique);
+  var dir = ydn.db.base.getDirection(reverse, opt_unique);
   var msg = tx_no + ' listByKeyRange: ' + store_name +
-    (index ? ':' + index : '') +
-    (key_range ? ydn.json.stringify(key_range) : '');
+      (index ? ':' + index : '') +
+      (key_range ? ydn.json.stringify(key_range) : '');
   this.logger.finest(msg);
   var request;
   if (index) {
@@ -888,17 +886,18 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
  */
 ydn.db.crud.req.IndexedDb.prototype.listByKeyRange =
     function(tx, tx_no, df, store_name, key_range, reverse, limit, offset) {
-  this.listByKeyRange_(tx, tx_no, df, store_name, null, key_range, reverse, limit, offset)
+  this.listByKeyRange_(tx, tx_no, df, store_name, null, key_range, reverse,
+      limit, offset);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, tx_no, df,
-    store_name, index, key_range, reverse, limit, offset, unique) {
+ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, tx_no,
+    df, store_name, index, key_range, reverse, limit, offset, unique) {
   this.listByKeyRange_(tx, tx_no, df,
-    store_name, index, key_range, reverse, limit, offset, unique);
+      store_name, index, key_range, reverse, limit, offset, unique);
 };
 
 
@@ -994,13 +993,14 @@ ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, lbl, df,
     store_name, index_name, key_range, reverse, limit, offset, unique) {
   var results = [];
   var me = this;
   var store = tx.objectStore(store_name);
   var index = store.index(index_name);
-  var msg = tx_no + ' keysByStore: ' + store_name + ':' + index_name + ' ' + key_range;
+  var msg = lbl + ' keysByStore: ' + store_name + ':' + index_name + ' ' +
+      key_range;
   this.logger.finest(msg);
   var dir = ydn.db.base.getDirection(reverse, unique);
   var request = index.openKeyCursor(key_range, dir);
@@ -1035,12 +1035,11 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, tx_no, df
 };
 
 
-
-
 /**
 * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.listByStore = function (tx, tx_no, df, store_name) {
+ydn.db.crud.req.IndexedDb.prototype.listByStore = function (tx, tx_no, df,
+                                                            store_name) {
   var me = this;
   var results = [];
   var msg = tx_no + ' listByStore: ' + store_name;
@@ -1078,7 +1077,8 @@ ydn.db.crud.req.IndexedDb.prototype.listByStore = function (tx, tx_no, df, store
 /**
 * @inheritDoc
 */
-ydn.db.crud.req.IndexedDb.prototype.getById = function(tx, tx_no, df, store_name, id) {
+ydn.db.crud.req.IndexedDb.prototype.getById = function(tx, tx_no, df,
+                                                       store_name, id) {
 
   var me = this;
   var msg = tx_no + ' getById: ' + store_name + ':' + id;
@@ -1244,8 +1244,8 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
 
   if (keys.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
-    {
+    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX && i < keys.length;
+         i++) {
       getKey(i);
     }
   } else {
@@ -1257,14 +1257,14 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.countKeyRange =  function(tx, tx_no, df, table,
-                    keyRange, index_name) {
+ydn.db.crud.req.IndexedDb.prototype.countKeyRange =  function(tx, tx_no, df,
+    table, keyRange, index_name) {
 
   var me = this;
   var store = tx.objectStore(table);
   var msg = tx_no + ' countKeyRange: ' + table +
-    (index_name ? ':' + index_name : '') +
-    (keyRange ? ':' + ydn.json.stringify(keyRange) : '');
+      (index_name ? ':' + index_name : '') +
+      (keyRange ? ':' + ydn.json.stringify(keyRange) : '');
   this.logger.finest(msg);
   var request;
   if (goog.isDefAndNotNull(index_name)) {
@@ -1347,8 +1347,8 @@ ydn.db.crud.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
 
   if (keys.length > 0) {
     // send parallel requests
-    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX && i < keys.length; i++)
-    {
+    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX && i < keys.length;
+         i++) {
       getKey(i);
     }
   } else {

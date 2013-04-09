@@ -14,15 +14,20 @@
 
 /**
  * @fileoverview Data store in memory.
+ *
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
+
+
 
 goog.provide('ydn.db.crud.req.SimpleStore');
 goog.require('goog.Timer');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
-goog.require('ydn.db.crud.req.RequestExecutor');
-goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.ConstraintError');
+goog.require('ydn.db.crud.req.IRequestExecutor');
+goog.require('ydn.db.crud.req.RequestExecutor');
+
 
 
 /**
@@ -37,7 +42,6 @@ ydn.db.crud.req.SimpleStore = function(dbname, schema, scope) {
   goog.base(this, dbname, schema, scope);
 };
 goog.inherits(ydn.db.crud.req.SimpleStore, ydn.db.crud.req.RequestExecutor);
-
 
 
 /**
@@ -67,11 +71,11 @@ ydn.db.crud.req.SimpleStore.prototype.getTx = function() {
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.keysByIndexKeyRange = function(tx, tx_no,
-      df, store_name, index_name, key_range, reverse, limit, offset) {
+    df, store_name, index_name, key_range, reverse, limit, offset) {
   var msg = tx_no + ' keysByIndexKeyRange ' + store_name + ':' + index_name +
-    ' ' + (key_range ? ydn.json.toShortString(key_range) : '');
+      ' ' + (key_range ? ydn.json.toShortString(key_range) : '');
   this.logger.finest(msg);
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store = tx.getSimpleStore(store_name);
     var arr = store.getKeys(index_name, key_range, reverse, limit, offset);
     this.logger.finer('success ' + msg);
@@ -83,12 +87,12 @@ ydn.db.crud.req.SimpleStore.prototype.keysByIndexKeyRange = function(tx, tx_no,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.keysByKeyRange =  function(tx, tx_no, df,
-   store_name, key_range, reverse, limit, offset) {
+ydn.db.crud.req.SimpleStore.prototype.keysByKeyRange = function(tx, tx_no, df,
+    store_name, key_range, reverse, limit, offset) {
   var msg = tx_no + ' keysByKeyRange ' + store_name + ' ' +
-    (key_range ? ydn.json.toShortString(key_range) : '');
+      (key_range ? ydn.json.toShortString(key_range) : '');
   this.logger.finest(msg);
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store = tx.getSimpleStore(store_name);
     var arr = store.getKeys(null, key_range, reverse, limit, offset);
     this.logger.finer('success ' + msg);
@@ -114,24 +118,24 @@ ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(tx, tx_no, df, objs,
  * @param {!Object|!Array.<!Object>} value object to put.
  * @param {(!IDBKey|!Array.<IDBKey>|!Array.<!ydn.db.Key>)=} opt_key optional
  * out-of-line key.
- * @param {boolean=} is_update true if call from put.
- * @param {boolean=} single true if call from put.
+ * @param {boolean=} opt_is_update true if call from put.
+ * @param {boolean=} opt_single true if call from put.
  * @private
  */
 ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
-    store_name, value, opt_key, is_update, single) {
+    store_name, value, opt_key, opt_is_update, opt_single) {
 
-  var label = tx_no + ' ' + (is_update ? 'put' : 'add') + 'Object' +
-    (single ? '' : 's ' + value.length + ' objects');
+  var label = tx_no + ' ' + (opt_is_update ? 'put' : 'add') + 'Object' +
+      (opt_single ? '' : 's ' + value.length + ' objects');
 
   this.logger.finest(label);
   var me = this;
 
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store;
-    if (single) {
+    if (opt_single) {
       store = tx.getSimpleStore(store_name);
-      var key = store.addRecord(opt_key, value, !is_update);
+      var key = store.addRecord(opt_key, value, !opt_is_update);
       if (goog.isDefAndNotNull(key)) {
         df(key);
       } else {
@@ -157,9 +161,9 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
           id = keys[i];
         }
         if (!store || store.getName() != st) {
-          store =  tx.getSimpleStore(st);
+          store = tx.getSimpleStore(st);
         }
-        var result_key = store.addRecord(id, value[i], !is_update);
+        var result_key = store.addRecord(id, value[i], !opt_is_update);
         if (!goog.isDefAndNotNull(result_key)) {
           has_error = true;
         }
@@ -171,6 +175,7 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
   }, 0, this);
 };
 
+
 /**
  * @inheritDoc
  */
@@ -180,11 +185,12 @@ ydn.db.crud.req.SimpleStore.prototype.addObject = function(
   this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, false, true);
 };
 
+
 /**
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.putObject = function(
-      tx, tx_no, df, store_name, value, opt_key) {
+    tx, tx_no, df, store_name, value, opt_key) {
   this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, true, true);
 };
 
@@ -209,7 +215,7 @@ ydn.db.crud.req.SimpleStore.prototype.putData = goog.abstractMethod;
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.putObjects = function(
-      tx, tx_no,  df, store_name, value, opt_key) {
+    tx, tx_no,  df, store_name, value, opt_key) {
   this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, true, false);
 };
 
@@ -219,7 +225,7 @@ ydn.db.crud.req.SimpleStore.prototype.putObjects = function(
  */
 ydn.db.crud.req.SimpleStore.prototype.getById = function(tx, tx_no, df,
                                                          store_name, id) {
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     /**
      * @type  {!ydn.db.con.simple.Store}
      */
@@ -230,14 +236,13 @@ ydn.db.crud.req.SimpleStore.prototype.getById = function(tx, tx_no, df,
 };
 
 
-
 /**
 * @inheritDoc
 */
-ydn.db.crud.req.SimpleStore.prototype.listByStore = function (tx, tx_no, df,
-                                                               store_name) {
+ydn.db.crud.req.SimpleStore.prototype.listByStore = function(tx, tx_no, df,
+                                                             store_name) {
   var tx_ =  /** {ydn.db.con.SimpleStorage} */ (tx);
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store = tx_.getSimpleStore(store_name);
     df(store.getRecords());
   }, 0, this);
@@ -248,15 +253,15 @@ ydn.db.crud.req.SimpleStore.prototype.listByStore = function (tx, tx_no, df,
 /**
  *
  * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- *  @param {string} tx_no transaction number
+ *  @param {string} tx_no transaction number.
  * @param {?function(*, boolean=)} df deferred to feed result.
  * @param {string?} store_name table name.
  * @param {!Array.<(IDBKey|!ydn.db.Key)>} ids id to get.
  * @private
  */
-ydn.db.crud.req.SimpleStore.prototype.listByIds_ = function (tx, tx_no, df,
-                                                        store_name, ids) {
-  goog.Timer.callOnce(function () {
+ydn.db.crud.req.SimpleStore.prototype.listByIds_ = function(tx, tx_no, df,
+    store_name, ids) {
+  goog.Timer.callOnce(function() {
     var arr = [];
     var has_error = false;
     var st = store_name;
@@ -313,11 +318,11 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeys = function(tx, tx_no, df,
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
-      store_name, key_range, reverse, limit, offset) {
+    store_name, key_range, reverse, limit, offset) {
   var msg = tx_no + ' listByKeyRange ' + store_name + ' ' +
-    (key_range ? ydn.json.toShortString(key_range) : '');
+      (key_range ? ydn.json.toShortString(key_range) : '');
   this.logger.finest(msg);
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store = tx.getSimpleStore(store_name);
     var results = store.getRecords(null, key_range, reverse, limit, offset);
     this.logger.finer('success ' + msg + results.length + ' records found.');
@@ -326,13 +331,12 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
 };
 
 
-
 /**
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, tx_no,
       df, store_name, index, key_range, reverse, limit, offset) {
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store = tx.getSimpleStore(store_name);
     df(store.getRecords(index, key_range, reverse, limit, offset));
   }, 0, this);
@@ -347,13 +351,14 @@ ydn.db.crud.req.SimpleStore.prototype.removeById = function(tx, tx_no, df,
   var msg = tx_no + ' removeById ' + store_name + ' ' + id;
   this.logger.finest(msg);
   var me = this;
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store = tx.getSimpleStore(store_name);
     var cnt = store.removeRecord(id);
     me.logger.finer('success ' + msg + (cnt == 0 ? ' [not found]' : ''));
     df(cnt);
   }, 0, this);
 };
+
 
 /**
  * @inheritDoc
@@ -365,7 +370,7 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeys = function(tx, tx_no, df,
   var me = this;
   var store;
   var deleted = 0;
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     for (var i = 0; i < keys.length; i++) {
       var store_name = keys[i].getStoreName();
       var id = keys[i].getId();
@@ -383,12 +388,12 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeys = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function (
-  tx, tx_no, df, store_name, key_range) {
+ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function(
+    tx, tx_no, df, store_name, key_range) {
   var msg = tx_no + ' removeByKeyRange';
   this.logger.finest(msg);
   var me = this;
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store = tx.getSimpleStore(store_name);
     var cnt = store.removeRecords(key_range);
     me.logger.finer('success ' + msg);
@@ -400,13 +405,13 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function (
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function (
+ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function(
     tx, tx_no, df, store_name, key_range) {
   var msg = tx_no + ' clearByKeyRange ' +
-    (key_range ? ydn.json.stringify(key_range) : '');
+      (key_range ? ydn.json.stringify(key_range) : '');
   this.logger.finest(msg);
   var me = this;
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store = tx.getSimpleStore(store_name);
     var cnt = store.removeRecords(key_range);
     me.logger.finer('success ' + msg);
@@ -414,19 +419,22 @@ ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function (
   }, 0, this);
 };
 
+
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = goog.abstractMethod;
+ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange =
+    goog.abstractMethod;
 
 
 /**
  * @inheritDoc
 */
-ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df, store_names) {
+ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df,
+                                                               store_names) {
   var msg = tx_no + ' clearByStores';
   this.logger.finest(msg);
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     for (var i = 0; i < store_names.length; i++) {
       var store = tx.getSimpleStore(store_names[i]);
       store.clear();
@@ -440,11 +448,11 @@ ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df, st
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.countStores = function (tx, tx_no, df,
-                                                              store_names) {
+ydn.db.crud.req.SimpleStore.prototype.countStores = function(tx, tx_no, df,
+                                                             store_names) {
   var msg = tx_no + ' countStores';
   this.logger.finest(msg);
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var arr = [];
     for (var i = 0; i < store_names.length; i++) {
       var store = tx.getSimpleStore(store_names[i]);
@@ -456,17 +464,18 @@ ydn.db.crud.req.SimpleStore.prototype.countStores = function (tx, tx_no, df,
 
 };
 
+
 /**
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(tx, tx_no, df,
-      store_name, keyRange, index_name) {
+    store_name, keyRange, index_name) {
   var msg = tx_no + ' count' +
-    (goog.isDefAndNotNull(index_name) ? 'Index' : '') +
-    (goog.isDefAndNotNull(keyRange) ? 'KeyRange' : 'Store');
+      (goog.isDefAndNotNull(index_name) ? 'Index' : '') +
+      (goog.isDefAndNotNull(keyRange) ? 'KeyRange' : 'Store');
   var me = this;
   this.logger.finest(msg);
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     var store = tx.getSimpleStore(store_name);
     var no = store.countRecords(index_name, keyRange);
     this.logger.finer('success ' + msg);

@@ -13,12 +13,6 @@ var store_name = 'st';
 var setUp = function () {
   // ydn.debug.log('ydn.db', 'finest');
 
-  var value_index = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
-  var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
-    ydn.db.schema.DataType.INTEGER, [value_index]);
-  schema = new ydn.db.schema.Database(undefined, [store_schema]);
-  db = new ydn.db.crud.Storage(db_name, schema, options);
-
   objs = [
     {id: -3, value: 'a0',  remark: 'test ' + Math.random()},
     {id: 0, value: 'a2',  remark: 'test ' + Math.random()},
@@ -29,15 +23,32 @@ var setUp = function () {
     {id: 20, value: 'ca', remark: 'test ' + Math.random()}
   ];
 
+  db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + ' ready.');
   });
 
 };
 
+
+var setUpPage = function () {
+  var value_index = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
+  var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
+      ydn.db.schema.DataType.INTEGER, [value_index]);
+  schema = new ydn.db.schema.Database(undefined, [store_schema]);
+  db = new ydn.db.crud.Storage(db_name, schema, options);
+};
+
 var tearDown = function() {
+
   assertTrue('The final continuation was not reached', reachedFinalContinuation);
 };
+
+
+var tearDownPage = function() {
+  ydn.db.deleteDatabase(db.getName(), db.getType());
+  db.close();
+}
 
 
 /**

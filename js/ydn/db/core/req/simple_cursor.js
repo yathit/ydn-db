@@ -122,7 +122,7 @@ ydn.db.core.req.SimpleCursor.prototype.getValue = function() {
 
 /**
  *
- * @return {!ydn.db.con.simple.AvlTree}
+ * @return {!ydn.db.Buffer}
  * @protected
  */
 ydn.db.core.req.SimpleCursor.prototype.getIndexCache = function() {

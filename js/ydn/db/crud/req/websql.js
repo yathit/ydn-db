@@ -25,10 +25,11 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.crud.req.RequestExecutor');
-goog.require('ydn.json');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.crud.req.IRequestExecutor');
+goog.require('ydn.db.crud.req.RequestExecutor');
+goog.require('ydn.json');
+
 
 
 /**
@@ -302,7 +303,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
 
     if (goog.DEBUG && !goog.isDefAndNotNull(objects[i])) {
       var t = goog.isDef(objects[i]) ? 'null' : 'undefined';
-      var at = objects.length == 1 ? '': ' at ' + i + ' of ' + objects.length;
+      var at = objects.length == 1 ? '' : ' at ' + i + ' of ' + objects.length;
       throw new ydn.debug.error.InvalidOperationException('inserting ' + t +
           'object ' + at + ' "' + ydn.json.toShortString(objects[i]));
     }
@@ -336,7 +337,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       /**
        * Insert a row for each multi entry index.
        * @param {ydn.db.schema.Index} index multi entry index.
-       * @param {number} value index at
+       * @param {number} value index at.
        */
       var insertMultiEntryIndex = function(index, value) {
         var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
@@ -464,7 +465,7 @@ ydn.db.crud.req.WebSql.prototype.putObjects = function(
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.putByKeys = function (tx, tx_no, df, objs,
+ydn.db.crud.req.WebSql.prototype.putByKeys = function(tx, tx_no, df, objs,
                                                        keys) {
 
   if (keys.length == 0) {
@@ -482,13 +483,13 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function (tx, tx_no, df, objs,
    * @param {string} store_name
    * @param {!Array.<number>} idx
    */
-  var execute_on_store = function (store_name, idx) {
+  var execute_on_store = function(store_name, idx) {
     /**
      *
      * @param {*} xs
      * @param {boolean=} is_error
      */
-    var idf = function (xs, is_error) {
+    var idf = function(xs, is_error) {
       if (is_error) {
         count++;
         if (count == total) {
@@ -728,7 +729,7 @@ ydn.db.crud.req.WebSql.prototype.listByKeyRange = function(tx, tx_no, df,
 ydn.db.crud.req.WebSql.prototype.listByIndexKeyRange = function(tx, tx_no, df,
     store_name, index, key_range, reverse, limit, offset, unqiue) {
   this.list_by_key_range_(tx, tx_no, df, false, store_name, index, key_range,
-      reverse, limit, offset, unqiue)
+      reverse, limit, offset, unqiue);
 };
 
 
@@ -736,7 +737,7 @@ ydn.db.crud.req.WebSql.prototype.listByIndexKeyRange = function(tx, tx_no, df,
 /**
 * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.listByStore = function (tx, tx_no, df, table_name) {
+ydn.db.crud.req.WebSql.prototype.listByStore = function(tx, tx_no, df, table_name) {
 
   var me = this;
   var arr = [];
@@ -751,7 +752,7 @@ ydn.db.crud.req.WebSql.prototype.listByStore = function (tx, tx_no, df, table_na
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     for (var i = 0, n = results.rows.length; i < n; i++) {
       var row = results.rows.item(i);
       if (goog.isDefAndNotNull(row)) {
@@ -767,7 +768,7 @@ ydn.db.crud.req.WebSql.prototype.listByStore = function (tx, tx_no, df, table_na
    * @param {SQLError} error error.
    * @return {boolean} true to roll back.
    */
-  var error_callback = function (tr, error) {
+  var error_callback = function(tr, error) {
     if (ydn.db.crud.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
@@ -955,7 +956,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
   var msg = tx_no + ' removeByKeys: ' + keys.length + ' keys';
   this.logger.finest(msg);
 
-  var removeAt = function (i) {
+  var removeAt = function(i) {
 
     if (i >= keys.length) {
       me.logger.finest('success ' + msg);
@@ -1013,7 +1014,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
           store.getName() + ':' + index.getName();
 
       var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-      me.logger.finest(tx_no +  + ' SQL: ' + idx_sql);
+      me.logger.finest(tx_no + + ' SQL: ' + idx_sql);
       tx.executeSql(idx_sql, [key]);
     };
 
@@ -1084,7 +1085,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
       store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-    me.logger.finest(tx_no +  + ' SQL: ' + idx_sql);
+    me.logger.finest(tx_no + + ' SQL: ' + idx_sql);
     tx.executeSql(idx_sql, [key]);
   };
 
@@ -1195,7 +1196,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
       store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-    me.logger.finest(tx_no +  + ' SQL: ' + idx_sql);
+    me.logger.finest(tx_no + + ' SQL: ' + idx_sql);
     tx.executeSql(idx_sql, where_params);
   };
 
@@ -1221,7 +1222,7 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
    *
    * @param {number} i
    */
-  var count = function (i) {
+  var count = function(i) {
     var table = tables[i];
     var sql = 'SELECT COUNT(*) FROM ' + goog.string.quote(table);
 
@@ -1229,7 +1230,7 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
      * @param {SQLTransaction} transaction transaction.
      * @param {SQLResultSet} results results.
      */
-    var callback = function (transaction, results) {
+    var callback = function(transaction, results) {
       var row = results.rows.item(0);
       // console.log(['row ', row  , results]);
       out[i] = parseInt(row['COUNT(*)'], 10);
@@ -1248,7 +1249,7 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
      * @param {SQLError} error error.
      * @return {boolean} true to roll back.
      */
-    var error_callback = function (tr, error) {
+    var error_callback = function(tr, error) {
       if (ydn.db.crud.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
