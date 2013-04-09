@@ -293,7 +293,7 @@ ydn.db.schema.Store.prototype.toSql = function(params, method, index_column,
  * @param {!Array} params sql parameter list.
  * @param {ydn.db.schema.Store.QueryMethod} method query method.
  * @param {string|undefined} index_column name.
- * @param {IDBKeyRange} key_range to retrieve.
+ * @param {ydn.db.KeyRange|IDBKeyRange} key_range to retrieve.
  * @param {boolean} reverse ordering.
  * @param {boolean} unique unique.
  * @return {{

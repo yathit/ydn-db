@@ -321,11 +321,12 @@ ydn.db.KeyRange.prototype.and = function(that) {
 
 /**
  *
- * @param {string} quoted_column_name quoted column name
- * @param {ydn.db.schema.DataType|undefined} type
- * @param {IDBKeyRange} key_range
- * @param {!Array.<string>} wheres where clauses
- * @param {!Array.<string>} params params */
+ * @param {string} quoted_column_name quoted column name.
+ * @param {ydn.db.schema.DataType|undefined} type column type.
+ * @param {ydn.db.KeyRange|IDBKeyRange} key_range key range.
+ * @param {!Array.<string>} wheres where clauses.
+ * @param {!Array.<string>} params SQL params to output by appending.
+ */
 ydn.db.KeyRange.toSql = function(quoted_column_name, type,
                                  key_range, wheres, params) {
 
@@ -338,7 +339,7 @@ ydn.db.KeyRange.toSql = function(quoted_column_name, type,
       ydn.db.cmp(key_range.lower, key_range.upper) === 0) {
 
     wheres.push(quoted_column_name + ' = ?');
-    params.push( ydn.db.schema.Index.js2sql(key_range.lower, type));
+    params.push(ydn.db.schema.Index.js2sql(key_range.lower, type));
   } else {
 
     if (goog.isDefAndNotNull(key_range.lower)) {

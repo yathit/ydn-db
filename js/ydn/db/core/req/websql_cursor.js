@@ -309,7 +309,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
    * Helper to build key range.
    * @param {IDBKey} key effective key.
    * @param {boolean} open inclusive.
-   * @return {IDBKeyRange} effective key range.
+   * @return {ydn.db.KeyRange|IDBKeyRange} effective key range.
    */
   var buildEffectiveKeyRange = function(key, open) {
     if (goog.isDefAndNotNull(key_range)) {
