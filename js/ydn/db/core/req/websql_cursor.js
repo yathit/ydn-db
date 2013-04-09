@@ -292,23 +292,23 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
  * @param {IDBKey=} opt_key effective key.
  * @param {boolean=} opt_inclusive position is inclusive.
  * @param {number=} opt_offset offset.
+ * @param {IDBKey=} opt_primary_key primary key.
  * @private
  */
 ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
-    callback, opt_key, opt_inclusive, opt_offset) {
+    callback, opt_key, opt_inclusive, opt_offset, opt_primary_key) {
 
   var key_range = this.key_range;
   var reverse = this.reverse;
   var p_sql;
   var params = [];
-  var where = '';
   var mth = this.key_query ? ydn.db.schema.Store.QueryMethod.KEYS :
       ydn.db.schema.Store.QueryMethod.VALUES;
 
   /**
    * Helper to build key range.
    * @param {IDBKey} key effective key.
-   * @param {boolean} open inclusive.
+   * @param {boolean} open not inclusive.
    * @return {ydn.db.KeyRange|IDBKeyRange} effective key range.
    */
   var buildEffectiveKeyRange = function(key, open) {
@@ -354,39 +354,10 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
     }
   };
 
-  if (goog.isDefAndNotNull(opt_key)) {
-    key_range = buildEffectiveKeyRange(opt_key, !opt_inclusive);
-    if (!key_range) { // the condition cannot be met.
-      this.collect();
-      callback.call(this, this.current_key_, this.current_primary_key_,
-          this.current_value_);
-      callback = null;
-      return;
-    }
-  } else {
-    if (goog.isDefAndNotNull(this.current_key_)) {
-      if (this.is_index && goog.isDefAndNotNull(this.current_primary_key_)) {
-        var c_key_range = ydn.db.IDBKeyRange.only(this.current_key_);
-        var c_sql = this.store_schema_.inSql(params, mth,
-            this.index_.getSQLIndexColumnName(), c_key_range,
-            this.reverse, this.unique);
-        var p_key_range = this.reverse ?
-            ydn.db.IDBKeyRange.upperBound(this.current_primary_key_, true) :
-            ydn.db.IDBKeyRange.lowerBound(this.current_primary_key_, true);
-        p_sql = this.store_schema_.inSql(params, mth,
-            this.store_schema_.getSQLKeyColumnName(), p_key_range,
-            this.reverse, this.unique);
-        where = '(' + c_sql.where + ' AND ' + p_sql.where + ')';
-      }
-      key_range = buildEffectiveKeyRange(this.current_key_, true);
-      if (!key_range) { // the condition cannot be met.
-        this.collect();
-        callback.call(this, this.current_key_, this.current_primary_key_,
-            this.current_value_);
-        callback = null;
-        return;
-      }
-    }
+  var key = goog.isDefAndNotNull(opt_key) ? opt_key : this.current_key_;
+  if (goog.isDefAndNotNull(key)) {
+    var open = !opt_inclusive;
+    key_range = buildEffectiveKeyRange(key, open);
   }
 
   var column = this.index_ ? this.index_.getSQLIndexColumnName() :
@@ -394,16 +365,30 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
   var e_sql = this.store_schema_.inSql(params, mth,
       column, key_range, this.reverse, this.unique);
 
-  if (e_sql.where) {
-    if (where) {
-      where += ' OR ' + e_sql.where;
+  if (this.is_index && goog.isDefAndNotNull(opt_primary_key)) {
+    var primary_key = opt_primary_key;
+    var c_key_range = ydn.db.IDBKeyRange.only(key);
+    var c_sql = this.store_schema_.inSql(params, mth,
+        this.index_.getSQLIndexColumnName(), c_key_range,
+        this.reverse, this.unique);
+    var p_key_range = this.reverse ?
+        ydn.db.IDBKeyRange.upperBound(primary_key, true) :
+        ydn.db.IDBKeyRange.lowerBound(primary_key, true);
+    p_sql = this.store_schema_.inSql(params, mth,
+        this.store_schema_.getSQLKeyColumnName(), p_key_range,
+        this.reverse, this.unique);
+    var where = '(' + c_sql.where + ' AND ' + p_sql.where + ')';
+    if (e_sql.where) {
+      e_sql.where += ' OR ' + where;
     } else {
-      where = e_sql.where;
+      e_sql.where = where;
     }
+
   }
 
   var sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
-      (where ? ' WHERE ' + where : '') + ' ORDER BY ' + e_sql.order;
+      (e_sql.where ? ' WHERE ' + e_sql.where : '') +
+      ' ORDER BY ' + e_sql.order;
 
   sql += ' LIMIT 1'; // cursor move only one step at a time.
   if (opt_offset > 0) {
@@ -539,7 +524,10 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
  */
 ydn.db.core.req.WebsqlCursor.prototype.advance = function(step) {
 
-  this.openCursor(this.current_key_, this.current_primary_key_, true, step);
+  goog.asserts.assert(step > 0);
+  step = step - 1;
+  this.continueEffectiveKey_(this.onSuccess, this.current_key_, false, step,
+      this.current_primary_key_);
 
 };
 
@@ -552,7 +540,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
   if (goog.isDefAndNotNull(key)) {
     this.continueEffectiveKey_(this.onSuccess, key, true);
   } else {
-    this.continueEffectiveKey_(this.onSuccess);
+    this.advance(1);
   }
 
 };
@@ -564,64 +552,11 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
  *
  * @param {IDBKey=} opt_key primary key to resume position.
  * @param {IDBKey=} opt_primary_key index key to resume position.
- * @param {boolean=} opt_inclusive position is inclusive.
- * @param {number=} opt_offset offset.
  */
 ydn.db.core.req.WebsqlCursor.prototype.openCursor = function(
-    opt_key,  opt_primary_key, opt_inclusive, opt_offset) {
-
-  if (goog.isDefAndNotNull(opt_primary_key)) {
-    var primary_key = opt_primary_key;
-    goog.asserts.assert(goog.isDefAndNotNull(opt_key),
-        'primary key be defined only when effective is defined.');
-    if (goog.isDefAndNotNull(this.current_key_) &&
-        ydn.db.cmp(opt_key, this.current_key_) == 0) {
-      this.continuePrimaryKey_(this.onSuccess, primary_key,
-          opt_inclusive, opt_offset);
-    } else {
-      var me = this;
-      /**
-       *
-       * @param {IDBKey=} opt_key key.
-       * @param {IDBKey=} opt_p_key primary key.
-       * @param {*=} opt_value value.
-       */
-      var on_success = function(opt_key, opt_p_key, opt_value) {
-        if (goog.isDefAndNotNull(opt_p_key)) {
-          var cmp = ydn.db.cmp(opt_p_key, opt_primary_key);
-          if (me.reverse) {
-            if (cmp == -1 || (cmp == 0 && !!opt_inclusive)) {
-              me.current_key_ = opt_key;
-              me.current_primary_key_ = opt_p_key;
-              me.current_value_ = opt_value;
-              me.onSuccess(opt_key, opt_p_key, opt_value);
-            } else {
-              me.continuePrimaryKey_(me.onSuccess, primary_key,
-                  opt_inclusive, opt_offset);
-            }
-          } else {
-            if (cmp == 1 || (cmp == 0 && !!opt_inclusive)) {
-              me.current_key_ = opt_key;
-              me.current_primary_key_ = opt_p_key;
-              me.current_value_ = opt_value;
-              me.onSuccess(opt_key, opt_p_key, opt_value);
-            } else {
-              me.continuePrimaryKey_(me.onSuccess, primary_key,
-                  opt_inclusive, opt_offset);
-            }
-          }
-
-        } else {
-          me.onSuccess();
-        }
-      };
-      this.continueEffectiveKey_(on_success, opt_key, true);
-    }
-  } else {
-    this.continueEffectiveKey_(this.onSuccess, opt_key, opt_inclusive,
-        opt_offset);
-  }
-
+    opt_key,  opt_primary_key) {
+  this.continueEffectiveKey_(this.onSuccess, opt_key, false,
+      0, opt_primary_key);
 };
 
 
