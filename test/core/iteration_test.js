@@ -33,7 +33,7 @@ var obj_schema = {
 
 var setUp = function() {
 
-  // ydn.debug.log('ydn.db', 'finest');
+   ydn.debug.log('ydn.db', 'finest');
   // ydn.db.core.DbOperator.DEBUG = true;
 
   objs = [
@@ -89,6 +89,86 @@ var load_default = function() {
     console.log(db + 'store: animals ready.');
   });
   return db;
+};
+
+
+var test_cursor_resume = function() {
+  var done1, done2;
+  var keys1, values1;
+  var keys2 = [];
+  var values2 = [];
+
+  var data = [{
+    id: 1,
+    tag: 'z',
+    msg: Math.random()
+  }, {
+    id: 3,
+    tag: 'y',
+    msg: Math.random()
+  }, {
+    id: 2,
+    tag: 'x',
+    msg: Math.random()
+  }];
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      type: 'NUMERIC',
+      indexes: [
+        {
+          name: 'tag',
+          type: 'TEXT'
+        }]
+    }]
+  };
+  var db_name = 'test_cursor_resume-1';
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  db.put('st', data);
+  var q = new ydn.db.ValueCursors('st');
+  db.scan([q], function (keys, values) {
+    keys1 = keys;
+    values1 = values;
+    done1 = true;
+    return []; // break at first call
+  });
+
+  db.scan([q], function (keys, values) {
+    if (goog.isDef(keys[0])) {
+      keys2.push(keys[0]);
+      values2.push(values[0]);
+    } else {
+      done2 = true;
+    }
+  });
+
+  waitForCondition(
+      // Condition
+      function() {
+        return done1;
+      },
+      function() {
+        assertArrayEquals('keys1', [1], keys1);
+        assertArrayEquals('values1', data.slice(0, 1), values1);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+
+  waitForCondition(
+      // Condition
+      function() {
+        return done2;
+      },
+      function() {
+        assertArrayEquals('keys2', [2, 3], keys2);
+        assertArrayEquals('values2', [data[3], data[2]], values2);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
 };
 
 

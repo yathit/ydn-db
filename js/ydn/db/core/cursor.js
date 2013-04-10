@@ -1,14 +1,27 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
- *
  * @fileoverview Front-end cursor.
  *
  */
 
 goog.provide('ydn.db.Cursor');
 goog.require('goog.debug.Logger');
+goog.require('ydn.db');
 goog.require('ydn.db.core.req.ICursor');
 goog.require('ydn.debug.error.InternalError');
-goog.require('ydn.db');
 
 
 
@@ -318,6 +331,7 @@ ydn.db.Cursor.prototype.exit = function() {
   this.exited_ = true;
   this.logger.finest(this + ': exit');
   this.finalize_();
+  this.dispose_();
 };
 
 
@@ -343,13 +357,22 @@ ydn.db.Cursor.prototype.finalize_ = function() {
       return undefined;
     }
   });
+};
+
+
+/**
+ *  Copy keys from cursors before dispose them and dispose cursors and
+ *  its reference value. Keys are used to resume cursors position.
+ * @private
+ */
+ydn.db.Cursor.prototype.dispose_ = function() {
 
   for (var i = 0; i < this.cursors_.length; i++) {
     this.cursors_[i].dispose();
   }
+  this.logger.finest(this + ' disposed');
   goog.array.clear(this.values_);
   goog.array.clear(this.cursors_);
-  this.logger.finest(this + ' disposed');
 };
 
 

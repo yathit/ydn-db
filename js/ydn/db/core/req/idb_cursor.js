@@ -56,6 +56,9 @@ ydn.db.core.req.IDBCursor.prototype.logger =
  */
 ydn.db.core.req.IDBCursor.prototype.defaultOnSuccess = function(ev) {
   var cursor = ev.target.result;
+  if (ydn.db.core.req.IDBCursor.DEBUG) {
+    window.console.log(this + ' onSuccess ' + (cursor ? cursor.key : ''));
+  }
   if (cursor) {
     var p_key = this.isIndexCursor() ? cursor.primaryKey : undefined;
     this.onSuccess(cursor.key, p_key, cursor.value);

@@ -12,6 +12,7 @@ goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.error.NotSupportedException');
 
 
+
 /**
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
@@ -19,20 +20,19 @@ goog.require('ydn.error.NotSupportedException');
  * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
- * @param {string=} scope_name scope name.
  * @constructor
  * @extends {ydn.db.tr.Parallel}
  */
-ydn.db.tr.StrictOverflowParallel = function(storage, ptx_no, scope_name) {
+ydn.db.tr.StrictOverflowParallel = function(storage, ptx_no) {
 
-  goog.base(this, storage, ptx_no, scope_name);
+  goog.base(this, storage, ptx_no);
 
 };
 goog.inherits(ydn.db.tr.StrictOverflowParallel, ydn.db.tr.Parallel);
 
 
 /**
- * @define {boolean}
+ * @define {boolean} debug flag.
  */
 ydn.db.tr.StrictOverflowParallel.DEBUG = false;
 
@@ -43,7 +43,9 @@ ydn.db.tr.StrictOverflowParallel.DEBUG = false;
 ydn.db.tr.StrictOverflowParallel.prototype.reusedTx = function(scopes, mode) {
 
   var reuse = this.sameScope(scopes, mode);
-  // console.log('reuse ' + reuse + ' ' + scopes + ' ' + mode);
+  if (ydn.db.tr.StrictOverflowParallel.DEBUG) {
+    window.console.log('reuse ' + reuse + ' ' + scopes + ' ' + mode);
+  }
   return reuse;
 };
 

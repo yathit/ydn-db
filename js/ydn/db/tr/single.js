@@ -11,6 +11,7 @@ goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.error.NotSupportedException');
 
 
+
 /**
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
@@ -18,13 +19,12 @@ goog.require('ydn.error.NotSupportedException');
  * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
- * @param {string=} scope_name scope name.
  * @constructor
  * @extends {ydn.db.tr.Parallel}
  */
-ydn.db.tr.Single = function(storage, ptx_no, scope_name) {
+ydn.db.tr.Single = function(storage, ptx_no) {
 
-  goog.base(this, storage, ptx_no, scope_name);
+  goog.base(this, storage, ptx_no);
 
   this.done_ = false;
 

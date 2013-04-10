@@ -12,6 +12,7 @@ goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.error.NotSupportedException');
 
 
+
 /**
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
@@ -19,13 +20,12 @@ goog.require('ydn.error.NotSupportedException');
  * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
- * @param {string=} scope_name scope name.
  * @constructor
  * @extends {ydn.db.tr.Parallel}
  */
-ydn.db.tr.AtomicParallel = function(storage, ptx_no, scope_name) {
+ydn.db.tr.AtomicParallel = function(storage, ptx_no) {
 
-  goog.base(this, storage, ptx_no, scope_name);
+  goog.base(this, storage, ptx_no);
 
 };
 goog.inherits(ydn.db.tr.AtomicParallel, ydn.db.tr.Parallel);
@@ -46,20 +46,19 @@ ydn.db.tr.AtomicParallel.prototype.reusedTx = function(scopes, mode) {
 };
 
 
-
 /**
  * @inheritDoc
  */
 ydn.db.tr.AtomicParallel.prototype.exec = function (df, callback, store_names,
-     mode, scope, on_completed) {
+     mode, on_completed) {
   // intersect request result to make atomic
   var result;
   var is_error;
   var cdf = new goog.async.Deferred();
-  cdf.addCallbacks(function (x) {
+  cdf.addCallbacks(function(x) {
     is_error = false;
     result = x;
-  }, function (e) {
+  }, function(e) {
     is_error = true;
     result = e;
   });
@@ -79,7 +78,7 @@ ydn.db.tr.AtomicParallel.prototype.exec = function (df, callback, store_names,
     }
   };
   goog.base(this, 'exec', cdf, callback, store_names, mode,
-    scope, completed_handler);
+      completed_handler);
 };
 
 

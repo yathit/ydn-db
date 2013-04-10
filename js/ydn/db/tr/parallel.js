@@ -12,6 +12,7 @@ goog.require('ydn.error.NotSupportedException');
 goog.require('ydn.db.tr.ParallelTxExecutor');
 
 
+
 /**
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
@@ -19,10 +20,9 @@ goog.require('ydn.db.tr.ParallelTxExecutor');
  * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
- * @param {string=} thread_name scope name.
  * @constructor
  */
-ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
+ydn.db.tr.Parallel = function(storage, ptx_no) {
 
   /**
    * @final
@@ -42,7 +42,7 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
 
   this.pl_tx_ex_ = null;
 
-  this.request_tx_ = null;
+  this.p_request_tx = null;
 
 };
 
@@ -53,17 +53,20 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
  */
 ydn.db.tr.Parallel.DEBUG = false;
 
+
 /**
  * @private
  * @type {number} request number.
  */
 ydn.db.tr.Parallel.prototype.r_no_;
 
+
 /**
  * @private
  * @type {number} transaction number.
  */
 ydn.db.tr.Parallel.prototype.q_no_;
+
 
 /**
  * @private
@@ -80,7 +83,6 @@ ydn.db.tr.Parallel.prototype.tx_no_;
 ydn.db.tr.Parallel.prototype.pl_tx_ex_ = null;
 
 
-
 /**
  * Transaction object is sed when receiving a request before result df
  * callback and set null after that callback so that it can be aborted
@@ -89,9 +91,7 @@ ydn.db.tr.Parallel.prototype.pl_tx_ex_ = null;
  * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
  * @protected
  */
-ydn.db.tr.Parallel.prototype.request_tx_ = null;
-
-
+ydn.db.tr.Parallel.prototype.p_request_tx = null;
 
 
 /**
@@ -99,9 +99,7 @@ ydn.db.tr.Parallel.prototype.request_tx_ = null;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.Parallel.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.tr.Parallel');
-
-
+    goog.debug.Logger.getLogger('ydn.db.tr.Parallel');
 
 
 /**
@@ -132,7 +130,6 @@ ydn.db.tr.Parallel.prototype.addStoreSchema = function(store) {
 ydn.db.tr.Parallel.prototype.getThreadName = function() {
   return this.getLabel();
 };
-
 
 
 /**
@@ -213,14 +210,13 @@ ydn.db.tr.Parallel.prototype.subScope = function(store_names, mode) {
 };
 
 
-
 /**
  * Abort an active transaction.
  * @throws InvalidStateError if transaction is not active.
  */
 ydn.db.tr.Parallel.prototype.abort = function() {
   this.logger.finer(this + ': aborting');
-  ydn.db.tr.IThread.abort(this.request_tx_);
+  ydn.db.tr.IThread.abort(this.p_request_tx);
 };
 
 
@@ -245,11 +241,10 @@ ydn.db.tr.Parallel.prototype.reusedTx = function(store_names, mode) {
 };
 
 
-
 /**
  * @inheritDoc
  */
-ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
+ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
     opt_mode, on_completed) {
 
   var mode = goog.isDef(opt_mode) ?
@@ -259,17 +254,21 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
   var pl_tx_ex;
 
   var completed_handler = function(type, event) {
-    me.logger.finest(me + ':tx' + pl_tx_ex.getTxNo() + ' committed');
+    if (type != ydn.db.base.TxEventTypes.COMPLETE) {
+      me.logger.finer(me.getLabel() + ' COMMITTED');
+    } else {
+      me.logger.warning(me.getLabel() + ' COMMITTED with ' + type);
+    }
     pl_tx_ex.onCompleted(type, event);
   };
 
   var transaction_process = function(tx) {
     me.tx_no_++;
     pl_tx_ex = new ydn.db.tr.ParallelTxExecutor(
-      tx, me.tx_no_, store_names, mode);
+        tx, me.tx_no_, store_names, mode);
 
-    me.logger.finest(me + ':tx' +  pl_tx_ex.getTxNo() +
-      ydn.json.stringify(store_names) + mode + ' begin');
+    me.logger.finer(me.getLabel() + ' BEGIN ' +
+        ydn.json.stringify(store_names) + ' ' + mode);
     me.pl_tx_ex_ = pl_tx_ex;
     me.pl_tx_ex_.executeTx(callback, on_completed);
   };
@@ -280,7 +279,7 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
     window.console.log(this +
         ' ' + this.pl_tx_ex_ +
         (reused ? ' reusing transaction' : ' opening transaction ') +
-         ' for mode:' + mode + ' scopes:' +
+        ' for mode:' + mode + ' scopes:' +
         ydn.json.stringify(store_names));
   }
 
@@ -288,7 +287,7 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
     this.pl_tx_ex_.executeTx(callback, on_completed);
   } else {
     this.storage_.transaction(transaction_process, store_names, mode,
-      completed_handler);
+        completed_handler);
   }
 
 };
@@ -297,8 +296,8 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
 /**
  * @inheritDoc
  */
-ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
-                                                   scope_name, on_completed) {
+ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
+                                             on_completed) {
 
   var me = this;
   this.processTx(function(tx) {
@@ -306,16 +305,16 @@ ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
     /**
      *
      * @param {*} result
-     * @param {boolean=} is_error
+     * @param {boolean=} opt_is_error
      */
-    var resultCallback = function(result, is_error) {
-      me.request_tx_ = tx; // so that we can abort it.
-      if (is_error) {
+    var resultCallback = function(result, opt_is_error) {
+      me.p_request_tx = tx; // so that we can abort it.
+      if (opt_is_error) {
         df.errback(result);
       } else {
         df.callback(result);
       }
-      me.request_tx_ = null;
+      me.p_request_tx = null;
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
 
@@ -329,15 +328,15 @@ ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
  * @return {string}
  */
 ydn.db.tr.Parallel.prototype.getLabel = function() {
-  return 'B' + this.q_no_ + 'T' + this.tx_no_ + 'R' + this.r_no_;
+  return 'B' + this.q_no_ + 'T' + this.tx_no_;
 };
 
 
 if (goog.DEBUG) {
-/** @override */
-ydn.db.tr.Parallel.prototype.toString = function() {
-  var s = this.request_tx_ ? '*' : '';
-  return 'Parallel:' + this.getLabel() + s;
-};
+  /** @override */
+  ydn.db.tr.Parallel.prototype.toString = function() {
+    var s = this.p_request_tx ? '*' : '';
+    return 'Parallel:' + this.getLabel() + s;
+  };
 }
 

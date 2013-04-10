@@ -395,7 +395,8 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
 
           if (goog.isDefAndNotNull(restart[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
-              window.console.log(iterator + ': restarting.');
+              window.console.log('cursor ' + cursor + ' of iterator ' +
+                  iterator + ': restarting.');
             }
             goog.asserts.assert(restart[i] === true, i +
                 ' restart must be true');
@@ -670,10 +671,11 @@ ydn.db.core.DbOperator.prototype.map = function(iterator, callback) {
     };
     /**
      *
-     * @param {IDBKey=} key
+     * @param {IDBKey=} opt_key effective key.
      */
-    cursor.onNext = function (key) {
-      if (goog.isDefAndNotNull(key)) {
+    cursor.onNext = function(opt_key) {
+      if (goog.isDefAndNotNull(opt_key)) {
+        var key = opt_key;
         var ref;
         if (iterator.isIndexIterator()) {
           if (iterator.isKeyOnly()) {
@@ -705,10 +707,7 @@ ydn.db.core.DbOperator.prototype.map = function(iterator, callback) {
 
 
 /**
- *
- * @param {!ydn.db.Iterator} iterator iterator.
- * @param {function(*, *, number): *} callback callback.
- * @param {*=} opt_initial initial value.
+ * @inheritDoc
  */
 ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
                                                    opt_initial) {
