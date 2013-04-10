@@ -27,30 +27,17 @@ goog.require('ydn.debug.error.ArgumentException');
  * mutex.
  *
  * @param {!ydn.db.crud.Storage} storage base storage object.
- *  @param {!ydn.db.schema.Database} schema
- *  @param {string} scope_name
+ * @param {!ydn.db.schema.Database} schema
  * @param {ydn.db.tr.IThread} thread
  * @param {ydn.db.tr.IThread} sync_thread
  * @constructor
  * @implements {ydn.db.sql.IStorage}
  * @extends {ydn.db.core.DbOperator}
 */
-ydn.db.sql.DbOperator = function(storage, schema, scope_name, thread, sync_thread) {
-  goog.base(this, storage, schema, scope_name, thread, sync_thread);
+ydn.db.sql.DbOperator = function(storage, schema, thread, sync_thread) {
+  goog.base(this, storage, schema, thread, sync_thread);
 };
 goog.inherits(ydn.db.sql.DbOperator, ydn.db.core.DbOperator);
-
-
-
-///**
-// * @inheritDoc
-// */
-//ydn.db.sql.DbOperator.prototype.exec = function(callback, store_names, mode, scope) {
-//  goog.base(this, 'exec',
-//    /** @type {function(ydn.db.core.req.IRequestExecutor)} */ (callback),
-//    store_names, mode, scope);
-//};
-
 
 
 //
@@ -68,15 +55,12 @@ goog.inherits(ydn.db.sql.DbOperator, ydn.db.core.DbOperator);
 //    throw new ydn.error.ArgumentException();
 //  }
 //};
-
-
-
 /**
-* @param {string} sql SQL statement.
- * @param {!Array=} params SQL parameters.
-* @return {!goog.async.Deferred} return result as list.
+ * @param {string} sql SQL statement.
+ * @param {!Array=} opt_params SQL parameters.
+ * @return {!goog.async.Deferred} return result as list.
 */
-ydn.db.sql.DbOperator.prototype.executeSql = function (sql, params) {
+ydn.db.sql.DbOperator.prototype.executeSql = function (sql, opt_params) {
 
   var df = ydn.db.base.createDeferred();
 
@@ -92,10 +76,10 @@ ydn.db.sql.DbOperator.prototype.executeSql = function (sql, params) {
   }
 
   var me = this;
-  this.logger.finer('executeSql: ' + sql + " params: " + params);
+  this.logger.finer('executeSql: ' + sql + " params: " + opt_params);
   this.tx_thread.exec(df, function (tx, tx_no, cb) {
-    me.getExecutor().executeSql(tx, tx_no, cb, query, params || []);
-  }, query.getStoreNames(), query.getMode(), 'executeSql');
+    me.getExecutor().executeSql(tx, tx_no, cb, query, opt_params || []);
+  }, query.getStoreNames(), query.getMode());
 
   return df;
 };

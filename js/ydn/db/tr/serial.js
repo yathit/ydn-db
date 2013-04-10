@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview Transaction queue.
  *
@@ -11,20 +25,21 @@ goog.require('ydn.db.tr.IThread');
 goog.require('ydn.error.NotSupportedException');
 
 
+
 /**
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
  *
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
- * @param {string=} scope_name scope name.
  * @constructor
  * @implements {ydn.db.tr.IThread}
  */
-ydn.db.tr.Serial = function(storage, ptx_no, scope_name) {
+ydn.db.tr.Serial = function(storage, ptx_no) {
 
   /**
    * @final
+   * @private
    */
   this.storage_ = storage;
 
@@ -39,6 +54,7 @@ ydn.db.tr.Serial = function(storage, ptx_no, scope_name) {
 
   /**
    * @final
+   * @private
    */
   this.trQueue_ = [];
 
@@ -63,17 +79,20 @@ ydn.db.tr.Serial = function(storage, ptx_no, scope_name) {
  */
 ydn.db.tr.Serial.DEBUG = false;
 
+
 /**
  * @private
  * @type {number} request number.
  */
 ydn.db.tr.Serial.prototype.r_no_;
 
+
 /**
  * @private
  * @type {number} thread number.
  */
 ydn.db.tr.Serial.prototype.q_no_;
+
 
 /**
  * @type {!ydn.db.tr.Storage}
@@ -89,31 +108,21 @@ ydn.db.tr.Serial.prototype.storage_;
  */
 ydn.db.tr.Serial.prototype.mu_tx_ = null;
 
+
 /**
  * @type {!Array.<{fnc: Function, scope: string, store_names: Array.<string>,
    * mode: ydn.db.base.TransactionMode, oncompleted: Function}>}
  * @private
  */
-ydn.db.tr.Serial.prototype.trQueue_ = [];
+ydn.db.tr.Serial.prototype.trQueue_;
+
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.Serial.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.tr.Serial');
-
-
-//
-///**
-// * @inheritDoc
-// */
-//ydn.db.tr.Serial.prototype.transaction = function(trFn, store_names,
-//       opt_mode, completed_event_handler) {
-//  this.storage_.transaction(trFn, store_names,
-//      opt_mode, completed_event_handler);
-//};
-
+    goog.debug.Logger.getLogger('ydn.db.tr.Serial');
 
 
 /**
@@ -193,7 +202,7 @@ ydn.db.tr.Serial.prototype.lock = function() {
  * in the callback.
  * In general, this tx may be different from running tx.
  * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
- * @protected
+ * @private
  */
 ydn.db.tr.Serial.prototype.request_tx_ = null;
 
@@ -253,6 +262,7 @@ ydn.db.tr.Serial.prototype.peekScopes = function() {
   }
 };
 
+
 /**
  *
  * @return {ydn.db.base.TransactionMode?}
@@ -275,39 +285,26 @@ ydn.db.tr.Serial.prototype.isNextTxCompatible = function() {
   return false;
 };
 
+
 /**
  * Push a transaction job to the queue.
  * @param {Function} trFn function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_on_completed
  * handler.
  * @protected
  */
 ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
-                  opt_mode, on_completed) {
+    opt_mode, opt_on_completed) {
   this.logger.finest('Serial push tx queue ' + trFn.name);
   this.trQueue_.push({
     fnc: trFn,
     store_names: store_names,
     mode: opt_mode,
-    oncompleted: on_completed
+    oncompleted: opt_on_completed
   });
-//  var now = goog.now();
-//  if (!isNaN(this.last_queue_checkin_)) {
-//    if ((now - this.last_queue_checkin_) > ydn.db.con.Storage.timeOut) {
-//      this.logger.warning('queue is not moving.');
-//      // todo: actively push the queue if transaction object is available
-//      // this will make robustness to the app.
-//      // in normal situation, queue will automatically empty since
-//      // pop queue will call whenever transaction is finished.
-//    }
-//  }
-//  if (this.trQueue_.length > ydn.db.con.Storage.MAX_QUEUE) {
-//    this.logger.warning('Maximum queue size exceed, dropping the first job.');
-//    this.trQueue_.shift();
-//  }
 
 };
 
@@ -319,6 +316,7 @@ ydn.db.tr.Serial.prototype.abort = function() {
   this.logger.finer(this + ': aborting');
   ydn.db.tr.IThread.abort(this.request_tx_);
 };
+
 
 /**
  * @type {Array.<Function>}
@@ -335,10 +333,11 @@ ydn.db.tr.Serial.prototype.completed_handlers;
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted handler.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted
+ * handler.
  */
 ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
-                                              oncompleted) {
+                                              opt_oncompleted) {
 
   //console.log('tr starting ' + trFn.name);
   var scope_name = trFn.name || '';
@@ -371,7 +370,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       // if db is not ready and we already send one tx request, we keep
       // our tx request in our queue
       (!this.getStorage().isReady() && !goog.isNull(this.completed_handlers) > 0)) {
-    this.pushTxQueue(trFn, store_names, mode, oncompleted);
+    this.pushTxQueue(trFn, store_names, mode, opt_oncompleted);
   } else {
     //console.log(this + ' not active ' + scope_name);
     var label = this.getLabel();
@@ -424,7 +423,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       me.r_no_ = 0;
     };
 
-    this.completed_handlers = oncompleted ? [oncompleted] : [];
+    this.completed_handlers = opt_oncompleted ? [opt_oncompleted] : [];
 
     if (ydn.db.tr.Serial.DEBUG) {
       window.console.log(this + ' opening transaction ' + mode + ' for ' +
@@ -462,7 +461,7 @@ ydn.db.tr.Serial.prototype.getLabel = function() {
  * @inheritDoc
  */
 ydn.db.tr.Serial.prototype.exec = function (df, callback,
-     store_names, opt_mode, scope, on_complete) {
+     store_names, opt_mode, on_complete) {
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
 
@@ -496,16 +495,6 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
       //console.log('tx running for ' + scope);
       // me.not_ready_ = true;
       // transaction should be active now
-      if (goog.DEBUG) {
-        if (!me.mu_tx_.isActive()) {
-          throw new ydn.db.InternalError('Tx not active for scope: ' + scope);
-        }
-        if (!me.mu_tx_.isAvailable()) {
-          throw new ydn.db.InternalError('Tx not available for scope: ' +
-            scope);
-        }
-        tx_callback.name = scope; // scope name
-      }
       var tx = me.mu_tx_.getTx();
       var resultCallback2 = function(result, is_error) {
         me.request_tx_ = tx; // so that we can abort it.

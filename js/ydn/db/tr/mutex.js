@@ -195,7 +195,7 @@ ydn.db.tr.Mutex.prototype.subScope = function(store_names, mode) {
 /**
  * Transaction is released and mutex is unlock.
  * @final
- * @param {ydn.db.base.TransactionEventTypes} type event type.
+ * @param {ydn.db.base.TxEventTypes} type event type.
  * @param {*} event event.
  */
 ydn.db.tr.Mutex.prototype.down = function(type, event) {

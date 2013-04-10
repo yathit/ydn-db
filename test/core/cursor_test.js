@@ -12,7 +12,7 @@ var store_name = 't1';
 var db_name = 'test_cursor_4';
 
 var setUp = function () {
-   ydn.debug.log('ydn.db', 'finest');
+   //ydn.debug.log('ydn.db', 'finest');
   // ydn.db.core.req.WebsqlCursor.DEBUG = true;
   ydn.db.con.simple.Store.DEBUG = true;
   reachedFinalContinuation = false;

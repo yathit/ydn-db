@@ -846,8 +846,8 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
    * SQLVoidCallback
    */
   var success_callback = function() {
-    completed_event_handler(ydn.db.base.TransactionEventTypes.COMPLETE,
-      {'type': ydn.db.base.TransactionEventTypes.COMPLETE});
+    completed_event_handler(ydn.db.base.TxEventTypes.COMPLETE,
+      {'type': ydn.db.base.TxEventTypes.COMPLETE});
   };
 
   /**
@@ -856,13 +856,13 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
    */
   var error_callback = function(e) {
     me.logger.finest(me + ': Tx ' + mode + ' request cause error.');
-    completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR, e);
+    completed_event_handler(ydn.db.base.TxEventTypes.ERROR, e);
   };
 
   if (goog.isNull(this.sql_db_)) {
     // this happen on SECURITY_ERR
     trFn(null);
-    completed_event_handler(ydn.db.base.TransactionEventTypes.ERROR,
+    completed_event_handler(ydn.db.base.TxEventTypes.ERROR,
       this.last_error_);
   }
 

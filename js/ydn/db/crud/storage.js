@@ -78,14 +78,13 @@ ydn.db.crud.Storage.prototype.init = function() {
 /**
  * @inheritDoc
  */
-ydn.db.crud.Storage.prototype.newOperator = function(tx_thread, sync_thread, scope_name) {
-  scope_name = scope_name || '';
-  return new ydn.db.crud.DbOperator(this, this.schema, scope_name, tx_thread, sync_thread);
+ydn.db.crud.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.crud.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 
 /**
- * 
+ * Cast operator.
  * @return {ydn.db.crud.DbOperator}
  */
 ydn.db.crud.Storage.prototype.getCoreOperator = function() {
@@ -97,7 +96,7 @@ ydn.db.crud.Storage.prototype.getCoreOperator = function() {
  * @param {string} scope
  * @return {ydn.db.crud.req.IRequestExecutor}
  */
-ydn.db.crud.Storage.prototype.newExecutor = function (scope) {
+ydn.db.crud.Storage.prototype.newExecutor = function(scope) {
 
   var type = this.getType();
   if (!ydn.db.base.NO_IDB && type == ydn.db.con.IndexedDb.TYPE) {
@@ -105,8 +104,8 @@ ydn.db.crud.Storage.prototype.newExecutor = function (scope) {
   } else if (!ydn.db.base.NO_WEBSQL && type == ydn.db.con.WebSql.TYPE) {
     return new ydn.db.crud.req.WebSql(this.db_name, this.schema, scope);
   } else if (!ydn.db.base.NO_SIMPLE && type == ydn.db.con.SimpleStorage.TYPE ||
-    type == ydn.db.con.LocalStorage.TYPE ||
-    type == ydn.db.con.SessionStorage.TYPE) {
+      type == ydn.db.con.LocalStorage.TYPE ||
+      type == ydn.db.con.SessionStorage.TYPE) {
     return new ydn.db.crud.req.SimpleStore(this.db_name, this.schema, scope);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
@@ -145,10 +144,11 @@ ydn.db.crud.Storage.prototype.get = function(arg1, arg2) {
  *
  * @inheritDoc
  */
-ydn.db.crud.Storage.prototype.keys = function(store_name, arg2, arg3, arg4, arg5, arg6) {
-//  return ydn.db.crud.DbOperator.prototype.keys.apply(
-//    /** @type {ydn.db.crud.DbOperator} */ (this.base_tx_queue),
-//    Array.prototype.slice.call(arguments));
+ydn.db.crud.Storage.prototype.keys = function(store_name, arg2, arg3, arg4,
+                                              arg5, arg6) {
+  //  return ydn.db.crud.DbOperator.prototype.keys.apply(
+  //    /** @type {ydn.db.crud.DbOperator} */ (this.base_tx_queue),
+  //    Array.prototype.slice.call(arguments));
 
   // above trick is the same effect as follow
   //return this.getCoreOperator().keys(store_name, arg2, arg3,
@@ -158,17 +158,21 @@ ydn.db.crud.Storage.prototype.keys = function(store_name, arg2, arg3, arg4, arg5
   return this.getCoreOperator().keys(store_name, arg2, arg3, arg4, arg5, arg6);
 };
 
-/**
- * @inheritDoc
- */
-ydn.db.crud.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5, arg6) {
-  return this.getCoreOperator().values(arg1, arg2, arg3, arg4, arg5, arg6);
-};
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.Storage.prototype.load = function(store_name_or_schema, data, delimiter)  {
+ydn.db.crud.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
+                                                arg6) {
+  return this.getCoreOperator().values(arg1, arg2, arg3, arg4, arg5, arg6);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.Storage.prototype.load = function(store_name_or_schema, data,
+                                              delimiter)  {
   return this.getCoreOperator().load(store_name_or_schema, data, delimiter);
 };
 
@@ -188,6 +192,7 @@ ydn.db.crud.Storage.prototype.clear = function(arg1, arg2, arg3) {
   return this.getCoreOperator().clear(arg1, arg2, arg3);
 };
 
+
 /**
  * @inheritDoc
  */
@@ -200,7 +205,7 @@ ydn.db.crud.Storage.prototype.remove = function(arg1, arg2, arg3) {
 ydn.db.crud.Storage.prototype.toString = function() {
   var s = 'Storage:' + this.getName();
   if (goog.DEBUG) { // this.base_tx_queue null
-  // is possible while in constructor
+    // is possible while in constructor
     return s + ':' + this.getTxNo();
   }
   return s;

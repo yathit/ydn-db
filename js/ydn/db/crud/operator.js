@@ -31,15 +31,14 @@ goog.require('ydn.debug.error.ArgumentException');
  * @param {!ydn.db.crud.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema
  * @param {ydn.db.tr.IThread} tx_thread
- * @param {string} scope_name
  * @param {ydn.db.tr.IThread} sync_thread
  * @implements {ydn.db.crud.IOperator}
  * @implements {ydn.db.ISyncOperator}
  * @constructor
  * @extends {ydn.db.tr.DbOperator}
 */
-ydn.db.crud.DbOperator = function(storage, schema, scope_name, tx_thread, sync_thread) {
-  goog.base(this, storage, schema, scope_name, tx_thread, sync_thread);
+ydn.db.crud.DbOperator = function(storage, schema, tx_thread, sync_thread) {
+  goog.base(this, storage, schema, tx_thread, sync_thread);
 };
 goog.inherits(ydn.db.crud.DbOperator, ydn.db.tr.DbOperator);
 
@@ -49,9 +48,7 @@ goog.inherits(ydn.db.crud.DbOperator, ydn.db.tr.DbOperator);
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.DbOperator.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.crud.DbOperator');
-
-
+    goog.debug.Logger.getLogger('ydn.db.crud.DbOperator');
 
 
 /**
@@ -87,7 +84,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     this.logger.finer('countStores: ' + ydn.json.stringify(store_names));
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       me.getExecutor().countStores(tx, tx_no, cb, store_names);
-    }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'countStores');
+    }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
 
     df.addCallbacks(function(count) {
       var total = goog.array.reduce(count, function(p, x) {
@@ -118,7 +115,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       //console.log('counting');
       me.getExecutor().countStores(tx, tx_no, cb, store_names);
-    }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'countStores');
+    }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
   } else if (goog.isString(store_name)) {
     if (!this.schema.hasStore(store_name)) {
       throw new ydn.debug.error.ArgumentException('store name "' + store_name +
@@ -169,7 +166,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     this.tx_thread.exec(df, function (tx, tx_no, cb) {
       me.getExecutor().countKeyRange(tx, tx_no, cb, store_names[0], key_range,
         index_name, !!unique);
-    }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'countKeyRange');
+    }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
 
   } else {
     throw new ydn.debug.error.ArgumentException(
@@ -207,7 +204,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     this.logger.finer('getById: ' + k_store_name + ':' + kid);
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       me.getExecutor().getById(tx, tx_no, cb, k_store_name, kid);
-    }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
+    }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY);
   } else if (goog.isString(arg1) && goog.isDef(arg2)) {
     var store_name = arg1;
     var store = this.schema.getStore(store_name);
@@ -239,7 +236,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
       this.tx_thread.exec(list_df, function(tx, tx_no, cb) {
         me.getExecutor().listByKeyRange(tx, tx_no, cb, store_name, key_range, false,
           1, 0);
-      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
+      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
     } else {
       var id = arg2;
@@ -249,7 +246,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
         var req_df = new goog.async.Deferred();
         this.tx_thread.exec(req_df, function(tx, tx_no, cb) {
           me.getExecutor().getById(tx, tx_no, cb, store_name, id);
-        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
+        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
         req_df.addCallbacks(function (record) {
           store.postHook(ydn.db.schema.Store.SyncMethod.GET, {}, function (x) {
@@ -262,7 +259,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
       } else {
         this.tx_thread.exec(df, function(tx, tx_no, cb) {
           me.getExecutor().getById(tx, tx_no, cb, store_name, id);
-        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getById');
+        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
       }
 
     }
@@ -373,8 +370,7 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
     this.tx_thread.exec(df, function (tx, tx_no, cb) {
       me.getExecutor().keysByIndexKeyRange(tx, tx_no, cb, store_name,
         index_name, range, reverse, limit, offset, false);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
-      'keysByIndexKeyRange');
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
   } else {
     if (goog.DEBUG) {
       var msg = ydn.db.KeyRange.validate(arg1);
@@ -410,7 +406,7 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
     this.tx_thread.exec(df, function (tx, tx_no, cb) {
       me.getExecutor().keysByKeyRange(tx, tx_no, cb, store_name, range, reverse, limit,
         offset);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'keysByKeyRange');
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
   }
 
@@ -460,7 +456,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
         ids.length + ' ids');
       this.tx_thread.exec(df, function(tx, tx_no, cb) {
         me.getExecutor().listByIds(tx, tx_no, cb, store_name, ids);
-      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listByIds');
+      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else if (goog.isString(arg2)) { // index name
       var index_name = arg2;
       if (goog.DEBUG) {
@@ -507,16 +503,14 @@ ydn.db.crud.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
           me.sync_thread.exec(df, function (tx, tx_no, cb) {
             me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name, index_name,
                 range, reverse, limit, offset, false);
-          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
-            'listByIndexKeyRange');
+          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
         }, 100);
 
       } else {
         this.tx_thread.exec(df, function (tx, tx_no, cb) {
           me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name, index_name,
               range, reverse, limit, offset, false);
-        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
-          'listByIndexKeyRange');
+        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
       }
 
     } else {
@@ -562,15 +556,13 @@ ydn.db.crud.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
           me.tx_thread.exec(df, function (tx, tx_no, cb) {
             me.getExecutor().listByKeyRange(tx, tx_no, cb, store_name, range, reverse,
                 limit, offset);
-          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
-            'listByKeyRange');
+          }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
         });
       } else {
         this.tx_thread.exec(df, function (tx, tx_no, cb) {
           me.getExecutor().listByKeyRange(tx, tx_no, cb, store_name, range, reverse,
               limit, offset);
-        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
-          'listByKeyRange');
+        }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
       }
 
@@ -605,7 +597,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
           ' ' + keys.length + ' keys');
       this.tx_thread.exec(df, function(tx, tx_no, cb) {
         me.getExecutor().listByKeys(tx, tx_no, cb, keys);
-      }, store_names, ydn.db.base.TransactionMode.READ_ONLY, 'listByKeys');
+      }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
     } else {
       throw new ydn.debug.error.ArgumentException('first argument' +
         'must be array of ydn.db.Key, but ' + arg1[0] + ' of ' +
@@ -694,7 +686,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       //console.log('putObjects');
       me.getExecutor().addObjects(tx, tx_no, cb, store_name, objs, keys);
-    }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObjects');
+    }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
 
     if (store.dispatch_events) {
       df.addCallback(function (keys) {
@@ -721,7 +713,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
           me.tx_thread.exec(post_df, function (tx, tx_no, cb) {
             //console.log('putObjects');
             me.getExecutor().addObject(tx, tx_no, cb, store_name, obj, key);
-          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'addObject');
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
         } else {
           me.logger.finer('prehook reject add: ' + label);
           post_df.errback();
@@ -737,7 +729,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     } else {
       this.tx_thread.exec(df, function (tx, tx_no, cb) {
         me.getExecutor().addObject(tx, tx_no, cb, store_name, obj, key);
-      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
     }
 
     if (store.dispatch_events) {
@@ -820,7 +812,7 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
 
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
     me.getExecutor().putData(tx, tx_no, cb, store_name, data, delimiter);
-  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putData');
+  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
   return df;
 };
 
@@ -890,7 +882,7 @@ ydn.db.crud.DbOperator.prototype.put = function (arg1, value, opt_keys) {
       values.length + ' objects');
     this.tx_thread.exec(df, function (tx, tx_no, cb) {
       me.getExecutor().putByKeys(tx, tx_no, cb, values, db_keys);
-    }, store_names, ydn.db.base.TransactionMode.READ_WRITE, 'putByKeys');
+    }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
   } else if (goog.isString(arg1) || goog.isObject(arg1)) {
 
     var store = this.getStore_(arg1);
@@ -923,7 +915,7 @@ ydn.db.crud.DbOperator.prototype.put = function (arg1, value, opt_keys) {
       this.tx_thread.exec(df, function (tx, tx_no, cb) {
         //console.log('putObjects');
         me.getExecutor().putObjects(tx, tx_no, cb, store_name, objs, keys);
-      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObjects');
+      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
 
       if (store.dispatch_events) {
         df.addCallback(function (keys) {
@@ -957,7 +949,7 @@ ydn.db.crud.DbOperator.prototype.put = function (arg1, value, opt_keys) {
           me.tx_thread.exec(df, function (tx, tx_no, cb) {
             //console.log('putObjects');
             me.getExecutor().putObject(tx, tx_no, cb, store_name, obj, key);
-          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
         }, obj, key);
 
         post_df.addCallbacks(function (key) {  // todo: use chain
@@ -969,7 +961,7 @@ ydn.db.crud.DbOperator.prototype.put = function (arg1, value, opt_keys) {
       } else {
         this.tx_thread.exec(df, function (tx, tx_no, cb) {
           me.getExecutor().putObject(tx, tx_no, cb, store_name, obj, key);
-        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'putObject');
+        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
       }
 
       if (store.dispatch_events) {
@@ -1010,7 +1002,7 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
   var df = new goog.async.Deferred();
   var me = this;
   var on_completed = function(t, e) {
-    if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
+    if (t == ydn.db.base.TxEventTypes.COMPLETE) {
       df.callback();
     } else {
       df.errback();
@@ -1019,7 +1011,7 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
   this.sync_thread.exec(df, function(tx, tx_no, cb) {
     me.getExecutor().putObjects(tx, tx_no, cb, store_name, objs,
       keys);
-  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, 'dumpInternal',
+  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
     on_completed);
   return df;
 };
@@ -1043,7 +1035,7 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
   var me = this;
   var out;
   var on_completed = function(t, e) {
-    if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
+    if (t == ydn.db.base.TxEventTypes.COMPLETE) {
       df.callback(out);
     } else {
       df.errback(e);
@@ -1060,13 +1052,13 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
     this.sync_thread.exec(req_df, function (tx, tx_no, cb) {
       me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name, index,
         kr, reverse, limit, 0, false);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listInternal',
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
       on_completed);
   } else {
     this.sync_thread.exec(req_df, function (tx, tx_no, cb) {
       me.getExecutor().listByKeyRange(tx, tx_no, cb, store_name,
           kr, reverse, limit, 0);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'listInternal',
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
       on_completed);
   }
   return df;
@@ -1093,7 +1085,7 @@ ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
   var me = this;
   var out;
   var on_completed = function(t, e) {
-    if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
+    if (t == ydn.db.base.TxEventTypes.COMPLETE) {
       df.callback(out);
     } else {
       df.errback(e);
@@ -1109,13 +1101,13 @@ ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
     this.sync_thread.exec(req_df, function (tx, tx_no, cb) {
       me.getExecutor().keysByIndexKeyRange(tx, tx_no, cb, store_name, index,
         key_range, reverse, limit, 0, false);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'keysInternal',
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
       on_completed);
   } else {
     this.sync_thread.exec(req_df, function (tx, tx_no, cb) {
       me.getExecutor().keysByKeyRange(tx, tx_no, cb, store_name,
         key_range, reverse, limit, 0);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY, 'keysInternal',
+    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY,
       on_completed);
   }
   return df;
@@ -1153,13 +1145,12 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
         ydn.json.stringify(key_range));
       this.tx_thread.exec(df, function (tx, tx_no, cb) {
           me.getExecutor().clearByKeyRange(tx, tx_no, cb, st_name, key_range);
-        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE,
-        'clearByKeyRange');
+        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
     } else if (!goog.isDef(arg2)) {
       this.logger.finer('clearByStore: ' + st_name);
       this.tx_thread.exec(df, function (tx, tx_no, cb) {
         me.getExecutor().clearByStores(tx, tx_no, cb, [st_name]);
-      }, [st_name], ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
+      }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
 
     } else {
       throw new ydn.debug.error.ArgumentException('clear method requires' +
@@ -1173,7 +1164,7 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
     this.logger.finer('clearByStores: ' + ydn.json.stringify(store_names));
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       me.getExecutor().clearByStores(tx, tx_no, cb, store_names);
-    }, store_names, ydn.db.base.TransactionMode.READ_WRITE, 'clearByStores');
+    }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
 
   } else {
     throw new ydn.debug.error.ArgumentException('first argument "' + arg1 +
@@ -1218,8 +1209,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
           this.tx_thread.exec(df, function (tx, tx_no, cb) {
             me.getExecutor().removeByIndexKeyRange(tx, tx_no, cb, store_name,
               index.getName(), key_range);
-          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
-            'removeByIndexKeyRange');
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
         } else {
           throw new ydn.debug.error.ArgumentException('key range ' + arg3 +
             ' is invalid type "' + typeof arg3 + '".');
@@ -1241,8 +1231,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
             if (server_id === id) {
               me.tx_thread.exec(post_df, function (tx, tx_no, cb) {
                   me.getExecutor().removeById(tx, tx_no, cb, store_name, id);
-                }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
-                'removeById');
+                }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
             } else {
               post_df.callback(0); // number of remove is 0.
             }
@@ -1255,8 +1244,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
         } else {
           this.tx_thread.exec(df, function (tx, tx_no, cb) {
             me.getExecutor().removeById(tx, tx_no, cb, store_name, id);
-          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
-            'removeById');
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
         }
 
         if (store.dispatch_events) {
@@ -1275,8 +1263,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
           ydn.json.stringify(key_range));
         this.tx_thread.exec(df, function (tx, tx_no, cb) {
             me.getExecutor().removeByKeyRange(tx, tx_no, cb, store_name, key_range);
-          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE,
-          'removeByKeyRange');
+          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
 
         if (store.dispatch_events) {
           df.addCallback(function (key) {
@@ -1299,8 +1286,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
     this.tx_thread.exec(df, function (tx, tx_no, cb) {
           me.getExecutor().removeById(tx, tx_no, cb, key.getStoreName(),
               arg1.getId());
-        }, [key.getStoreName()], ydn.db.base.TransactionMode.READ_WRITE,
-        'removeByKey');
+        }, [key.getStoreName()], ydn.db.base.TransactionMode.READ_WRITE);
   } else if (goog.isArray(arg1)) {
     /**
      * @type {!Array.<!ydn.db.Key>}
@@ -1326,8 +1312,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
     }
     this.tx_thread.exec(df, function (tx, tx_no, cb) {
           me.getExecutor().removeByKeys(tx, tx_no, cb, arr);
-        }, store_names, ydn.db.base.TransactionMode.READ_WRITE,
-        'removeByKeys');
+        }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
   } else {
     throw new ydn.debug.error.ArgumentException('first argument requires ' +
       'store name (string), key (ydn.db.Key) or list of keys (array) , but "' +

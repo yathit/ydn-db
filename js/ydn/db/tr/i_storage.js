@@ -21,7 +21,7 @@ ydn.db.tr.IStorage = function() {};
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted event
+ * @param {function(ydn.db.base.TxEventTypes, *)=} oncompleted event
  * handler on completed.
  * @param {...} opt_args optional arguments to post-pend to callback function.
  */

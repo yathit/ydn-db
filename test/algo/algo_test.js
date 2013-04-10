@@ -3,6 +3,7 @@ goog.require('goog.debug.Console');
 goog.require('ydn.db.algo.NestedLoop');
 goog.require('ydn.db.algo.SortedMerge');
 goog.require('goog.testing.jsunit');
+goog.require('ydn.debug');
 
 
 
@@ -34,20 +35,11 @@ db.put('animals', animals).addCallback(function (value) {
 });
 
 var setUp = function() {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-    //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db.core.req').setLevel(goog.debug.Logger.Level.FINEST);
-
-    //ydn.db.tr.Mutex.DEBUG = true;
+  ydn.debug.log('ydn.db', 'finest');
+  ydn.db.tr.Mutex.DEBUG = true;
     //ydn.db.crud.req.IndexedDb.DEBUG = true;
-    ydn.db.algo.SortedMerge.DEBUG = true;
-    //ydn.db.algo.NestedLoop.DEBUG = true;
-  }
+    //ydn.db.algo.SortedMerge.DEBUG = true;
+
 
   reachedFinalContinuation = false;
 };

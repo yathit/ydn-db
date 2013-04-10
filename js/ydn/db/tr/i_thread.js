@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview About this file.
  *
@@ -21,8 +35,7 @@ ydn.db.tr.IThread = function() {};
  *   callback when executor is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
- * @param {string} scope_name scope.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted handler.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} oncompleted handler.
  */
 ydn.db.tr.IThread.prototype.exec = goog.abstractMethod;
 
@@ -49,7 +62,7 @@ ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} oncompleted handler.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} oncompleted handler.
  */
 ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
 

@@ -281,7 +281,7 @@ ydn.db.con.SimpleStorage.prototype.getStorage = function() {
 ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode,
                                                             oncompleted) {
   trFn(this);
-  oncompleted(ydn.db.base.TransactionEventTypes.COMPLETE, {});
+  oncompleted(ydn.db.base.TxEventTypes.COMPLETE, {});
 };
 
 

@@ -28,7 +28,7 @@ ydn.db.con.IStorage.prototype.close = goog.abstractMethod;
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=}
+ * @param {function(ydn.db.base.TxEventTypes, *)=}
   * completed_event_handler handler for completed event.
  */
 ydn.db.con.IStorage.prototype.transaction = goog.abstractMethod;

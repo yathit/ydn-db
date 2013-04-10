@@ -67,7 +67,7 @@ ydn.db.con.IDatabase.prototype.getDbInstance = function() {};
  * @param {Array.<string>} store_names list of store names involved in the
  * transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'read_write'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)}
+ * @param {function(ydn.db.base.TxEventTypes, *)}
   * completed_event_handler handler for on completed event.
  */
 ydn.db.con.IDatabase.prototype.doTransaction = goog.abstractMethod;

@@ -583,7 +583,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
  * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed handler.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} on_completed handler.
  * @private
  */
 ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
@@ -627,7 +627,7 @@ ydn.db.con.Storage.prototype.purgeTxQueue_ = function(e) {
     while (task = this.txQueue_.shift()) {
       // task.fnc(null); this will cause error
       if (task.oncompleted) {
-        task.oncompleted(ydn.db.base.TransactionEventTypes.ERROR, e);
+        task.oncompleted(ydn.db.base.TxEventTypes.ERROR, e);
       }
     }
   }
@@ -650,7 +650,7 @@ ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
  * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed handler.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} on_completed handler.
  * @final
  */
 ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,

@@ -4,7 +4,7 @@ goog.require('ydn.db.algo.NestedLoop');
 goog.require('ydn.db.algo.ZigzagMerge');
 goog.require('ydn.db.algo.SortedMerge');
 goog.require('goog.testing.jsunit');
-
+goog.require('ydn.debug');
 goog.require('ydn.db.Storage');
 
 
@@ -21,7 +21,7 @@ goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
 
 
 var setUp = function() {
-
+  ydn.debug.log('ydn.db', 'finest');
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
   //ydn.db.core.req.IDBCursor.DEBUG = true;
   //ydn.db.core.DbOperator.DEBUG = true;

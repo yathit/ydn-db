@@ -107,7 +107,7 @@ ydn.db.tr.ParallelTxExecutor.prototype.onCompleted = function(t, e) {
 /**
  *
  * @param {Function} on_tx
- * @param {function(ydn.db.base.TransactionEventTypes, *)=} on_completed
+ * @param {function(ydn.db.base.TxEventTypes, *)=} on_completed
  */
 ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function(on_tx, on_completed) {
   if (this.tx_) {

@@ -82,17 +82,16 @@ ydn.db.core.Storage.prototype.newExecutor = function (scope_name) {
 
 
 /**
- * 
+ * Create a new operator.
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.newOperator = function(tx_thread, sync_thread, scope_name) {
-  scope_name = scope_name || '';
-  return new ydn.db.core.DbOperator(this, this.schema, scope_name, tx_thread, sync_thread);
+ydn.db.core.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.core.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 
 /**
- * 
+ * Get casted operator.
  * @return {ydn.db.core.DbOperator}
  */
 ydn.db.core.Storage.prototype.getIndexOperator = function() {

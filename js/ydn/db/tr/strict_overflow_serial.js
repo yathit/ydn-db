@@ -12,6 +12,7 @@ goog.require('ydn.db.tr.Serial');
 goog.require('ydn.error.NotSupportedException');
 
 
+
 /**
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
@@ -19,13 +20,12 @@ goog.require('ydn.error.NotSupportedException');
  * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
- * @param {string=} scope_name scope name.
  * @constructor
  * @extends {ydn.db.tr.Serial}
  */
-ydn.db.tr.StrictOverflowSerial = function(storage, ptx_no, scope_name) {
+ydn.db.tr.StrictOverflowSerial = function(storage, ptx_no) {
 
-  goog.base(this, storage, ptx_no, scope_name);
+  goog.base(this, storage, ptx_no);
 
 };
 goog.inherits(ydn.db.tr.StrictOverflowSerial, ydn.db.tr.Serial);
@@ -37,18 +37,20 @@ goog.inherits(ydn.db.tr.StrictOverflowSerial, ydn.db.tr.Serial);
  */
 ydn.db.tr.StrictOverflowSerial.DEBUG = false;
 
+
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.StrictOverflowSerial.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.tr.StrictOverflowSerial');
+    goog.debug.Logger.getLogger('ydn.db.tr.StrictOverflowSerial');
 
 
 /**
  * @inheritDoc
  */
-ydn.db.tr.StrictOverflowSerial.prototype.reusedTx = function(store_names, mode) {
+ydn.db.tr.StrictOverflowSerial.prototype.reusedTx = function(
+    store_names, mode) {
   return this.getMuTx().sameScope(store_names, mode);
 };
 

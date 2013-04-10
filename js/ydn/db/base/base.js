@@ -106,7 +106,7 @@ ydn.db.base.createDeferred = function() {
  *
  * @enum {string}
  */
-ydn.db.base.TransactionEventTypes = {
+ydn.db.base.TxEventTypes = {
   COMPLETE: 'complete',
   ABORT: 'abort',
   ERROR: 'error'

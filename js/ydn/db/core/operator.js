@@ -28,16 +28,15 @@ goog.require('ydn.debug.error.ArgumentException');
  *
  * @param {!ydn.db.crud.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema schema.
- * @param {string} scope_name thread name.
  * @param {ydn.db.tr.IThread} thread execution thread.
  * @param {ydn.db.tr.IThread} sync_thread synchronization thread.
  * @implements {ydn.db.core.IOperator}
  * @constructor
  * @extends {ydn.db.crud.DbOperator}
 */
-ydn.db.core.DbOperator = function(storage, schema, scope_name, thread,
+ydn.db.core.DbOperator = function(storage, schema, thread,
                                   sync_thread) {
-  goog.base(this, storage, schema, scope_name, thread, sync_thread);
+  goog.base(this, storage, schema, thread, sync_thread);
 };
 goog.inherits(ydn.db.core.DbOperator, ydn.db.crud.DbOperator);
 
@@ -88,7 +87,7 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
     this.logger.finer('getByIterator:' + q);
     this.tx_thread.exec(list_df, function(tx, tx_no, cb) {
       me.getIndexExecutor().listByIterator(tx, tx_no, cb, q, 1);
-    }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY, 'getByIterator');
+    }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY);
     return df;
   } else {
     return goog.base(this, 'get', arg1, arg2);
@@ -133,7 +132,7 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) {
     this.logger.finer('keysByIterator:' + q);
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       me.getIndexExecutor().keysByIterator(tx, tx_no, cb, q, limit);
-    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
+    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY);
 
     return df;
   } else {
@@ -164,7 +163,7 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3) {
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       me.getIndexExecutor().countKeyRange(tx, tx_no, cb, q.getStoreName(),
           q.keyRange(), q.getIndexName(), q.isUnique());
-    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'countByIterator');
+    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY);
 
     return df;
   } else {
@@ -210,7 +209,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
     this.logger.finer('listByIterator:' + q);
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       me.getIndexExecutor().listByIterator(tx, tx_no, cb, q, limit);
-    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY, 'listByIterator');
+    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY);
 
     return df;
   } else {
@@ -383,7 +382,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
                 ' is not an iterator.');
           }
           var iterator = iterators[idx];
-          var req = cursors[i];
+          var cursor = cursors[i];
           if (!goog.isDefAndNotNull(keys[i]) &&
               (advance[i] === true ||
                   goog.isDefAndNotNull(next_effective_keys[i]) ||
@@ -400,19 +399,19 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
             }
             goog.asserts.assert(restart[i] === true, i +
                 ' restart must be true');
-            req.restart();
+            cursor.restart();
           } else if (goog.isDefAndNotNull(next_effective_keys[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
               window.console.log(iterator + ': continuing to ' +
                   next_effective_keys[i]);
             }
-            req.continueEffectiveKey(next_effective_keys[i]);
+            cursor.continueEffectiveKey(next_effective_keys[i]);
           } else if (goog.isDefAndNotNull(next_primary_keys[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
               window.console.log(iterator + ': continuing to primary key ' +
                   next_primary_keys[i]);
             }
-            req.continuePrimaryKey(next_primary_keys[i]);
+            cursor.continuePrimaryKey(next_primary_keys[i]);
           } else if (goog.isDefAndNotNull(advance[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
               window.console.log(iterator + ': advancing ' + advance[i] +
@@ -420,7 +419,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
             }
             goog.asserts.assert(advance[i] === 1, i +
                 ' advance value must be 1');
-            req.advance(1);
+            cursor.advance(1);
           } else {
             throw new ydn.error.InternalError(iterator + ': has no action');
           }
@@ -565,7 +564,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
       open_iterators();
     }
 
-  }, scopes, tr_mode, 'join');
+  }, scopes, tr_mode);
 
   return df;
 };
@@ -638,7 +637,7 @@ ydn.db.core.DbOperator.prototype.open = function(iter, callback, opt_mode) {
       }
     };
 
-  }, iter.stores(), tr_mode, 'open');
+  }, iter.stores(), tr_mode);
 
   return df;
 
@@ -699,7 +698,7 @@ ydn.db.core.DbOperator.prototype.map = function(iterator, callback) {
       }
     };
 
-  }, stores, ydn.db.base.TransactionMode.READ_ONLY, 'map');
+  }, stores, ydn.db.base.TransactionMode.READ_ONLY);
 
   return df;
 };
@@ -768,7 +767,7 @@ ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
       }
     };
 
-  }, stores, ydn.db.base.TransactionMode.READ_ONLY, 'map');
+  }, stores, ydn.db.base.TransactionMode.READ_ONLY);
 
   return df;
 };

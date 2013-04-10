@@ -18,8 +18,8 @@
  */
 
 goog.provide('ydn.db.sql.Storage');
-goog.require('ydn.db.sql.DbOperator');
 goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.sql.DbOperator');
 
 
 /**
@@ -62,7 +62,7 @@ goog.inherits(ydn.db.sql.Storage, ydn.db.core.Storage);
 /**
  * @inheritDoc
  */
-ydn.db.sql.Storage.prototype.newExecutor = function (scope) {
+ydn.db.sql.Storage.prototype.newExecutor = function(scope) {
 
   var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
@@ -84,9 +84,8 @@ ydn.db.sql.Storage.prototype.newExecutor = function (scope) {
  *
  * @inheritDoc
  */
-ydn.db.sql.Storage.prototype.newOperator = function(tx_thread, sync_thread, scope_name) {
-  scope_name = scope_name || '';
-  return new ydn.db.sql.DbOperator(this, this.schema, scope_name, tx_thread, sync_thread);
+ydn.db.sql.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
+  return new ydn.db.sql.DbOperator(this, this.schema, tx_thread, sync_thread);
 };
 
 
@@ -104,7 +103,7 @@ ydn.db.sql.Storage.prototype.getSqlOperator = function() {
  * @param {!Array=} params SQL parameters.
  * @return {!goog.async.Deferred} return result as list.
  */
-ydn.db.sql.Storage.prototype.executeSql = function (sql, params) {
+ydn.db.sql.Storage.prototype.executeSql = function(sql, params) {
   return this.getSqlOperator().executeSql(sql, params);
 };
 

@@ -195,7 +195,7 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
   var me = this;
   var on_completed = function(type, ev) {
     me.tx_ = null;
-    if (type !== ydn.db.base.TransactionEventTypes.COMPLETE) {
+    if (type !== ydn.db.base.TxEventTypes.COMPLETE) {
       me.logger.warning(ev.name + ':' + ev.message);
     }
     me.logger.finest(me + ' transaction ' + type);
@@ -238,15 +238,15 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
     this.tx = this.idb_.transaction([this.store_name_],
         ydn.db.base.TransactionMode.READ_ONLY);
     this.tx.oncomplete = function(event) {
-      on_completed(ydn.db.base.TransactionEventTypes.COMPLETE, event);
+      on_completed(ydn.db.base.TxEventTypes.COMPLETE, event);
     };
 
     this.tx.onerror = function(event) {
-      on_completed(ydn.db.base.TransactionEventTypes.ERROR, event);
+      on_completed(ydn.db.base.TxEventTypes.ERROR, event);
     };
 
     this.tx.onabort = function(event) {
-      on_completed(ydn.db.base.TransactionEventTypes.ABORT, event);
+      on_completed(ydn.db.base.TxEventTypes.ABORT, event);
     };
   } else if (this.db_) {
     me.logger.finest(me + ' creating tx from ydn.db.con.IStorage.');

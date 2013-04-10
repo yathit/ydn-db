@@ -223,7 +223,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
             diff_msg);
 
           var on_completed = function(t, e) {
-            if (t == ydn.db.base.TransactionEventTypes.COMPLETE) {
+            if (t == ydn.db.base.TxEventTypes.COMPLETE) {
               setDb(db);
             } else {
               me.logger.severe('Fail to update version on ' + db.name + ':' +
@@ -682,7 +682,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
  * @param {Array.<string>} scopes list of stores involved in the
  * transaction. If null, all stores is used.
  * @param {ydn.db.base.TransactionMode} mode mode.
- * @param {function(ydn.db.base.TransactionEventTypes, *)} on_completed
+ * @param {function(ydn.db.base.TxEventTypes, *)} on_completed
  * on complete  handler.
  */
 ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
@@ -710,15 +710,15 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
   var tx = db.transaction(scopes, /** @type {number} */ (mode));
 
   tx.oncomplete = function(event) {
-    on_completed(ydn.db.base.TransactionEventTypes.COMPLETE, event);
+    on_completed(ydn.db.base.TxEventTypes.COMPLETE, event);
   };
 
   tx.onerror = function(event) {
-    on_completed(ydn.db.base.TransactionEventTypes.ERROR, event);
+    on_completed(ydn.db.base.TxEventTypes.ERROR, event);
   };
 
   tx.onabort = function(event) {
-    on_completed(ydn.db.base.TransactionEventTypes.ABORT, event);
+    on_completed(ydn.db.base.TxEventTypes.ABORT, event);
   };
 
   fnc(tx);

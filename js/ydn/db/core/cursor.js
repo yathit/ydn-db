@@ -349,6 +349,7 @@ ydn.db.Cursor.prototype.finalize_ = function() {
   }
   goog.array.clear(this.values_);
   goog.array.clear(this.cursors_);
+  this.logger.finest(this + ' disposed');
 };
 
 

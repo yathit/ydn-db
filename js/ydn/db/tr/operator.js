@@ -24,12 +24,11 @@ goog.require('ydn.error.NotSupportedException');
  *
  * @param {!ydn.db.tr.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema
- * @param {string} scope_name
  * @param {ydn.db.tr.IThread} tx_thread
  * @param {ydn.db.tr.IThread} sync_thread
  * @constructor
  */
-ydn.db.tr.DbOperator = function(storage, schema, scope_name, tx_thread, sync_thread) {
+ydn.db.tr.DbOperator = function(storage, schema, tx_thread, sync_thread) {
 
   /**
    * @final
@@ -53,11 +52,6 @@ ydn.db.tr.DbOperator = function(storage, schema, scope_name, tx_thread, sync_thr
   /**
    * @final
    */
-  this.scope_name = scope_name;
-
-  /**
-   * @final
-   */
   this.sync_thread = sync_thread;
 
   this.executor = null;
@@ -69,7 +63,7 @@ ydn.db.tr.DbOperator = function(storage, schema, scope_name, tx_thread, sync_thr
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.DbOperator.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.tr.DbOperator');
+    goog.debug.Logger.getLogger('ydn.db.tr.DbOperator');
 
 
 /**
@@ -77,12 +71,6 @@ ydn.db.tr.DbOperator.prototype.logger =
  * @protected
  */
 ydn.db.tr.DbOperator.prototype.executor;
-
-/**
- * @type {string}
- * @protected
- */
-ydn.db.tr.DbOperator.prototype.scope_name;
 
 
 /**
@@ -122,7 +110,7 @@ ydn.db.tr.DbOperator.prototype.abort = function() {
  */
 ydn.db.tr.DbOperator.prototype.getExecutor = function() {
   if (!this.executor) {
-    this.executor = this.storage_.newExecutor(this.scope_name);
+    this.executor = this.storage_.newExecutor();
   }
 
   return this.executor;
