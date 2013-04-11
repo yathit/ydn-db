@@ -1,3 +1,16 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
 * @fileoverview Database operator providing index and table scan query.
@@ -7,12 +20,12 @@
 
 goog.provide('ydn.db.core.DbOperator');
 goog.require('ydn.db.Iterator');
-goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.db.core.IOperator');
 goog.require('ydn.db.core.req.IRequestExecutor');
 goog.require('ydn.db.core.req.IndexedDb');
 goog.require('ydn.db.core.req.SimpleStore');
 goog.require('ydn.db.core.req.WebSql');
+goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.debug.error.ArgumentException');
 
 
@@ -672,7 +685,7 @@ ydn.db.core.DbOperator.prototype.map = function(iterator, callback) {
      *
      * @param {IDBKey=} key
      */
-    cursor.onNext = function (key) {
+    cursor.onNext = function(key) {
       if (goog.isDefAndNotNull(key)) {
         var ref;
         if (iterator.isIndexIterator()) {

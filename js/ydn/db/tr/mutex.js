@@ -275,6 +275,7 @@ ydn.db.tr.Mutex.prototype.isLocked = function() {
   return this.is_locked_;
 };
 
+
 /**
  * Transaction object is active.
  * @final
@@ -322,7 +323,8 @@ ydn.db.tr.Mutex.prototype.oncompleted = null;
  * Return current active transaction if available. Transaction consumer must
  * check {@link #isActiveAndAvailable} if this transaction object
  * should be used.
- * @return {IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage} transaction object.
+ * @return {IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage} transaction
+ * object.
  */
 ydn.db.tr.Mutex.prototype.getTx = function() {
   return this.tx_;
@@ -331,7 +333,7 @@ ydn.db.tr.Mutex.prototype.getTx = function() {
 
 /**
  *
- * @return {string}
+ * @return {string} label.
  */
 ydn.db.tr.Mutex.prototype.getLabel = function() {
   return 'B' + this.tr_no + 'T' + this.tx_count_;
@@ -339,11 +341,11 @@ ydn.db.tr.Mutex.prototype.getLabel = function() {
 
 
 if (goog.DEBUG) {
-/** @override */
-ydn.db.tr.Mutex.prototype.toString = function() {
-  var s = !!this.tx_ ? '*' : '';
-  return 'Mutex:' + this.getLabel()  + s;
-};
+  /** @override */
+  ydn.db.tr.Mutex.prototype.toString = function() {
+    var s = !!this.tx_ ? '*' : '';
+    return 'Mutex:' + this.getLabel() + s;
+  };
 }
 
 

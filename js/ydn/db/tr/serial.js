@@ -19,7 +19,6 @@
  * database methods are atomic and run in order.
  */
 
-
 goog.provide('ydn.db.tr.Serial');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.error.NotSupportedException');
@@ -42,7 +41,6 @@ ydn.db.tr.Serial = function(storage, ptx_no) {
    * @private
    */
   this.storage_ = storage;
-
 
   /*
    * Transaction queue no.
@@ -209,7 +207,7 @@ ydn.db.tr.Serial.prototype.request_tx_ = null;
 
 /**
  *
- * @return {string|undefined}
+ * @return {string|undefined} mechanism type.
  */
 ydn.db.tr.Serial.prototype.type = function() {
   return this.storage_.getType();
@@ -333,11 +331,11 @@ ydn.db.tr.Serial.prototype.completed_handlers;
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_on_completed
  * handler.
  */
 ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
-                                              opt_oncompleted) {
+                                                opt_on_completed) {
 
   //console.log('tr starting ' + trFn.name);
   var scope_name = trFn.name || '';
@@ -362,15 +360,16 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
   }
 
   var mode = goog.isDef(opt_mode) ?
-    opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
+      opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
 
   var me = this;
 
   if (this.mu_tx_.isActive() || // we are serial, one tx at a time
       // if db is not ready and we already send one tx request, we keep
       // our tx request in our queue
-      (!this.getStorage().isReady() && !goog.isNull(this.completed_handlers) > 0)) {
-    this.pushTxQueue(trFn, store_names, mode, opt_oncompleted);
+      (!this.getStorage().isReady() &&
+      !goog.isNull(this.completed_handlers) > 0)) {
+    this.pushTxQueue(trFn, store_names, mode, opt_on_completed);
   } else {
     //console.log(this + ' not active ' + scope_name);
     var label = this.getLabel();
@@ -378,8 +377,8 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       //console.log('transaction_process ' + scope_name);
       me.mu_tx_.up(tx, store_names, mode);
       label = me.getLabel();
-      me.logger.finest(label + ': '  +
-        ydn.json.stringify(store_names) + mode + ' begin');
+      me.logger.fine(label + ' BEGIN ' +
+          ydn.json.stringify(store_names) + ' ' + mode);
 
       // now execute transaction process
       trFn(me);
@@ -400,7 +399,11 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
 
     var completed_handler = function(type, event) {
       //console.log('transaction_process ' + scope_name + ' completed.');
-      me.logger.finest(label + ':' + ' committed with ' + type);
+      if (type == ydn.db.base.TxEventTypes.COMPLETE) {
+        me.logger.fine(label + ' COMMITTED');
+      } else {
+        me.logger.fine(label + ' COMMITTED' + ' with ' + type);
+      }
       /**
        * @preserve _try.
        */
@@ -423,14 +426,14 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       me.r_no_ = 0;
     };
 
-    this.completed_handlers = opt_oncompleted ? [opt_oncompleted] : [];
+    this.completed_handlers = opt_on_completed ? [opt_on_completed] : [];
 
     if (ydn.db.tr.Serial.DEBUG) {
       window.console.log(this + ' opening transaction ' + mode + ' for ' +
-        JSON.stringify(names) + ' in ' + scope_name);
+          JSON.stringify(names) + ' in ' + scope_name);
     }
     this.storage_.transaction(transaction_process, names, mode,
-      completed_handler);
+        completed_handler);
   }
 
 };
@@ -450,7 +453,7 @@ ydn.db.tr.Serial.prototype.reusedTx = function(store_names, mode) {
 
 /**
  *
- * @return {string}
+ * @return {string} return label.
  */
 ydn.db.tr.Serial.prototype.getLabel = function() {
   return this.mu_tx_.getLabel();
@@ -460,10 +463,11 @@ ydn.db.tr.Serial.prototype.getLabel = function() {
 /**
  * @inheritDoc
  */
-ydn.db.tr.Serial.prototype.exec = function (df, callback,
-     store_names, opt_mode, on_complete) {
+ydn.db.tr.Serial.prototype.exec = function(df, callback,
+    store_names, opt_mode, on_complete) {
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
+  var rq_label;
 
   if (me.mu_tx_.isActiveAndAvailable() && this.reusedTx(store_names, mode)) {
     //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
@@ -472,26 +476,35 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
     var tx = me.mu_tx_.getTx();
     /**
      *
-     * @param {*} result
-     * @param {boolean=} is_error
+     * @param {*} result result.
+     * @param {boolean=} opt_is_error true if request has error.
      */
-    var resultCallback = function(result, is_error) {
+    var resultCallback = function(result, opt_is_error) {
       me.request_tx_ = tx; // so that we can abort it.
-      if (is_error) {
+      if (opt_is_error) {
+        me.logger.finer(rq_label + ' ERROR');
         df.errback(result);
       } else {
+        me.logger.finer(rq_label + ' SUCCESS');
         df.callback(result);
       }
       me.request_tx_ = null;
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
     me.r_no_++;
-    callback(tx, me.getLabel() + 'R' + me.r_no_, resultCallback);
+    rq_label = me.getLabel() + 'R' + me.r_no_;
+    me.logger.finer(rq_label + ' BEGIN');
+    callback(tx, rq_label, resultCallback);
+    me.logger.finer(rq_label + ' END');
     callback = null;
   } else {
     //
-    // create a new transaction and close for invoke in non-transaction context
-    var tx_callback = function (idb) {
+    //
+    /**
+     * create a new transaction and close for invoke in non-transaction context
+     * @param {Function} cb callback to process tx.
+     */
+    var tx_callback = function(cb) {
       //console.log('tx running for ' + scope);
       // me.not_ready_ = true;
       // transaction should be active now
@@ -499,15 +512,20 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
       var resultCallback2 = function(result, is_error) {
         me.request_tx_ = tx; // so that we can abort it.
         if (is_error) {
+          me.logger.finer(rq_label + ' ERROR');
           df.errback(result);
         } else {
+          me.logger.finer(rq_label + ' SUCCESS');
           df.callback(result);
         }
         me.request_tx_ = null;
         resultCallback2 =  /** @type {function (*, boolean=)} */ (null);
       };
       me.r_no_++;
-      callback(tx, me.getLabel() + 'R' + me.r_no_, resultCallback2);
+      rq_label = me.getLabel() + 'R' + me.r_no_;
+      me.logger.finer(rq_label + ' BEGIN');
+      callback(tx, rq_label, resultCallback2);
+      me.logger.finer(rq_label + ' END');
       callback = null; // we don't call again.
     };
     //var cbFn = goog.partial(tx_callback, callback);
@@ -528,10 +546,10 @@ ydn.db.tr.Serial.prototype.getName = function() {
 
 
 if (goog.DEBUG) {
-/** @override */
-ydn.db.tr.Serial.prototype.toString = function () {
-  var s = !!this.request_tx_ ? '*' : '';
-  return 'Serial' + ':' + this.getLabel() + s;
-};
+  /** @override */
+  ydn.db.tr.Serial.prototype.toString = function() {
+    var s = !!this.request_tx_ ? '*' : '';
+    return 'Serial' + ':' + this.getLabel() + s;
+  };
 }
 

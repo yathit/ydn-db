@@ -245,13 +245,13 @@ ydn.db.tr.Parallel.prototype.reusedTx = function(store_names, mode) {
 };
 
 
-
 /**
  * @inheritDoc
  */
-ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
+ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
     opt_mode, on_completed) {
 
+  var label;
   var mode = goog.isDef(opt_mode) ?
       opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
 
@@ -259,17 +259,21 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
   var pl_tx_ex;
 
   var completed_handler = function(type, event) {
-    me.logger.finest(me + ':tx' + pl_tx_ex.getTxNo() + ' committed');
+    if (type == ydn.db.base.TxEventTypes.COMPLETE) {
+      me.logger.fine(label + ' COMMITTED');
+    } else {
+      me.logger.fine(label + ' COMMITTED' + ' with ' + type);
+    }
     pl_tx_ex.onCompleted(type, event);
   };
 
   var transaction_process = function(tx) {
     me.tx_no_++;
     pl_tx_ex = new ydn.db.tr.ParallelTxExecutor(
-      tx, me.tx_no_, store_names, mode);
-
-    me.logger.finest(me + ':tx' +  pl_tx_ex.getTxNo() +
-      ydn.json.stringify(store_names) + mode + ' begin');
+        tx, me.tx_no_, store_names, mode);
+    label = me.getLabel();
+    me.logger.fine(label + ' BEGIN ' +
+        ydn.json.stringify(store_names) + ' ' + mode);
     me.pl_tx_ex_ = pl_tx_ex;
     me.pl_tx_ex_.executeTx(callback, on_completed);
   };
@@ -280,15 +284,15 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
     window.console.log(this +
         ' ' + this.pl_tx_ex_ +
         (reused ? ' reusing transaction' : ' opening transaction ') +
-         ' for mode:' + mode + ' scopes:' +
-        ydn.json.stringify(store_names));
+            ' for mode:' + mode + ' scopes:' +
+            ydn.json.stringify(store_names));
   }
 
   if (reused) {
     this.pl_tx_ex_.executeTx(callback, on_completed);
   } else {
     this.storage_.transaction(transaction_process, store_names, mode,
-      completed_handler);
+        completed_handler);
   }
 
 };
@@ -297,47 +301,52 @@ ydn.db.tr.Parallel.prototype.processTx = function (callback, store_names,
 /**
  * @inheritDoc
  */
-ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
-                                                   scope_name, on_completed) {
+ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
+                                              scope_name, on_completed) {
 
   var me = this;
-  this.processTx(function(tx) {
+  var rq_label;
 
+  this.processTx(function(tx) {
+    me.r_no_++;
+    rq_label = me.getLabel() + 'R' + me.r_no_;
     /**
-     *
      * @param {*} result
      * @param {boolean=} is_error
      */
     var resultCallback = function(result, is_error) {
       me.request_tx_ = tx; // so that we can abort it.
       if (is_error) {
+        me.logger.finer(rq_label + ' ERROR');
         df.errback(result);
       } else {
+        me.logger.finer(rq_label + ' SUCCESS');
         df.callback(result);
       }
       me.request_tx_ = null;
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
-
+    me.logger.finer(rq_label + ' BEGIN');
     callback(tx, me.getLabel(), resultCallback);
+    me.logger.finer(rq_label + ' END');
   }, store_names, mode, on_completed);
 };
 
 
 /**
  *
- * @return {string}
+ * @return {string} label.
  */
 ydn.db.tr.Parallel.prototype.getLabel = function() {
-  return 'B' + this.q_no_ + 'T' + this.tx_no_ + 'R' + this.r_no_;
+  return 'B' + this.q_no_ + 'T' + this.tx_no_;
 };
 
 
 if (goog.DEBUG) {
-/** @override */
-ydn.db.tr.Parallel.prototype.toString = function() {
-  var s = this.request_tx_ ? '*' : '';
-  return 'Parallel:' + this.getLabel() + s;
-};
+  /** @override */
+  ydn.db.tr.Parallel.prototype.toString = function() {
+    var s = this.request_tx_ ? '*' : '';
+    return 'Parallel:' + this.getLabel() + s;
+  };
 }
 

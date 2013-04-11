@@ -11,14 +11,6 @@ goog.require('ydn.db.Storage');
 
 var reachedFinalContinuation;
 
-var debug_console = new goog.debug.Console();
-debug_console.setCapturing(true);
-goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-//goog.debug.Logger.getLogger('ydn.db.algo').setLevel(goog.debug.Logger.Level.FINEST);
-// goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-//goog.debug.Logger.getLogger('ydn.db.con.WebSql').setLevel(goog.debug.Logger.Level.FINEST);
-
-
 
 var setUp = function() {
   ydn.debug.log('ydn.db', 'finest');
