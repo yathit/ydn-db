@@ -60,7 +60,7 @@ ydn.db.tr.Serial = function(storage, ptx_no) {
 
   this.completed_handlers = null;
 
-  this.s_request_tx = null;
+  this.request_tx_ = null;
 
   /**
    *
@@ -204,7 +204,7 @@ ydn.db.tr.Serial.prototype.lock = function() {
  * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
  * @private
  */
-ydn.db.tr.Serial.prototype.s_request_tx = null;
+ydn.db.tr.Serial.prototype.request_tx_ = null;
 
 
 /**
@@ -314,7 +314,7 @@ ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
  */
 ydn.db.tr.Serial.prototype.abort = function() {
   this.logger.finer(this + ': aborting');
-  ydn.db.tr.IThread.abort(this.s_request_tx);
+  ydn.db.tr.IThread.abort(this.request_tx_);
 };
 
 
@@ -337,7 +337,7 @@ ydn.db.tr.Serial.prototype.completed_handlers;
  * handler.
  */
 ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
-                                                opt_oncompleted) {
+                                              opt_oncompleted) {
 
   //console.log('tr starting ' + trFn.name);
   var scope_name = trFn.name || '';
@@ -362,15 +362,14 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
   }
 
   var mode = goog.isDef(opt_mode) ?
-      opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
+    opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
 
   var me = this;
 
   if (this.mu_tx_.isActive() || // we are serial, one tx at a time
       // if db is not ready and we already send one tx request, we keep
       // our tx request in our queue
-      (!this.getStorage().isReady() &&
-          !goog.isNull(this.completed_handlers) > 0)) {
+      (!this.getStorage().isReady() && !goog.isNull(this.completed_handlers) > 0)) {
     this.pushTxQueue(trFn, store_names, mode, opt_oncompleted);
   } else {
     //console.log(this + ' not active ' + scope_name);
@@ -379,8 +378,8 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       //console.log('transaction_process ' + scope_name);
       me.mu_tx_.up(tx, store_names, mode);
       label = me.getLabel();
-      me.logger.finer(label + ' BEGIN ' +
-          ydn.json.stringify(store_names) + ' ' + mode);
+      me.logger.finest(label + ': '  +
+        ydn.json.stringify(store_names) + mode + ' begin');
 
       // now execute transaction process
       trFn(me);
@@ -401,11 +400,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
 
     var completed_handler = function(type, event) {
       //console.log('transaction_process ' + scope_name + ' completed.');
-      if (type == ydn.db.base.TxEventTypes.COMPLETE) {
-        me.logger.finer(label + ' COMMITTED');
-      } else {
-        me.logger.warning(label + ' COMMITTED with ' + type);
-      }
+      me.logger.finest(label + ':' + ' committed with ' + type);
       /**
        * @preserve _try.
        */
@@ -432,10 +427,10 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
 
     if (ydn.db.tr.Serial.DEBUG) {
       window.console.log(this + ' opening transaction ' + mode + ' for ' +
-          JSON.stringify(names) + ' in ' + scope_name);
+        JSON.stringify(names) + ' in ' + scope_name);
     }
     this.storage_.transaction(transaction_process, names, mode,
-        completed_handler);
+      completed_handler);
   }
 
 };
@@ -481,13 +476,13 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
      * @param {boolean=} is_error
      */
     var resultCallback = function(result, is_error) {
-      me.s_request_tx = tx; // so that we can abort it.
+      me.request_tx_ = tx; // so that we can abort it.
       if (is_error) {
         df.errback(result);
       } else {
         df.callback(result);
       }
-      me.s_request_tx = null;
+      me.request_tx_ = null;
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
     me.r_no_++;
@@ -502,13 +497,13 @@ ydn.db.tr.Serial.prototype.exec = function (df, callback,
       // transaction should be active now
       var tx = me.mu_tx_.getTx();
       var resultCallback2 = function(result, is_error) {
-        me.s_request_tx = tx; // so that we can abort it.
+        me.request_tx_ = tx; // so that we can abort it.
         if (is_error) {
           df.errback(result);
         } else {
           df.callback(result);
         }
-        me.s_request_tx = null;
+        me.request_tx_ = null;
         resultCallback2 =  /** @type {function (*, boolean=)} */ (null);
       };
       me.r_no_++;
@@ -535,7 +530,7 @@ ydn.db.tr.Serial.prototype.getName = function() {
 if (goog.DEBUG) {
 /** @override */
 ydn.db.tr.Serial.prototype.toString = function () {
-  var s = !!this.s_request_tx ? '*' : '';
+  var s = !!this.request_tx_ ? '*' : '';
   return 'Serial' + ':' + this.getLabel() + s;
 };
 }

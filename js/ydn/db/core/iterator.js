@@ -16,7 +16,7 @@
 /**
  * @fileoverview Iterate cursor of an index or an object store.
  *
- *
+ * Cursor range iterator.
  */
 
 
@@ -41,16 +41,16 @@ goog.require('ydn.debug.error.ArgumentException');
 /**
  * Create an iterator object.
  * @param {!string} store store name.
- * @param {string=} index store field, where key query is preformed. If not
+ * @param {string=} opt_index store field, where key query is preformed. If not
  * provided, the first index will be used.
- * @param {(!KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} keyRange key range.
- * @param {boolean=} reverse reverse.
- * @param {boolean=} unique unique.
- * @param {boolean=} key_only true for key only iterator. Default value is
+ * @param {(KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} opt_key_range key range.
+ * @param {boolean=} opt_reverse reverse.
+ * @param {boolean=} opt_unique unique.
+ * @param {boolean=} opt_key_only true for key only iterator. Default value is
  * true if index is specified, false if not defined.
  * @constructor
  */
-ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
+ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse, opt_unique, opt_key_only) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
     throw new ydn.debug.error.ArgumentException('store name must be a string');
@@ -66,32 +66,34 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
    * Indexed field.
    * @final
    */
-  this.index = index;
+  this.index = opt_index;
   /**
    * @final
+   * @private
    */
   this.is_index_iterator_ = goog.isString(this.index);
   /**
    * @final
+   * @private
    */
-  this.key_only_ = goog.isDef(key_only) ? key_only :
-      !!(goog.isString(this.index));
+  this.key_only_ = goog.isDef(opt_key_only) ?
+      opt_key_only : !!(goog.isString(this.index));
   if (!goog.isBoolean(this.key_only_)) {
     throw new ydn.debug.error.ArgumentException('key_only');
   }
 
-  if (goog.isDef(reverse) && !goog.isBoolean(reverse)) {
+  if (goog.isDef(opt_reverse) && !goog.isBoolean(opt_reverse)) {
     throw new ydn.debug.error.ArgumentException('reverse');
   }
-  if (goog.isDef(unique) && !goog.isBoolean(unique)) {
+  if (goog.isDef(opt_unique) && !goog.isBoolean(opt_unique)) {
     throw new ydn.debug.error.ArgumentException('unique');
   }
   var direction = ydn.db.base.Direction.NEXT;
-  if (reverse && unique) {
+  if (opt_reverse && opt_unique) {
     direction = ydn.db.base.Direction.PREV_UNIQUE;
-  } else if (reverse) {
+  } else if (opt_reverse) {
     direction = ydn.db.base.Direction.PREV;
-  } else if (unique) {
+  } else if (opt_unique) {
     direction = ydn.db.base.Direction.NEXT_UNIQUE;
   }
 
@@ -102,15 +104,16 @@ ydn.db.Iterator = function(store, index, keyRange, reverse, unique, key_only) {
   this.direction = direction;
 
   if (goog.DEBUG) {
-    var msg = ydn.db.KeyRange.validate(keyRange);
+    var msg = ydn.db.KeyRange.validate(opt_key_range);
     if (msg) {
       throw new ydn.debug.error.ArgumentException('Invalid key range: ' + msg);
     }
   }
   /**
    * @final
+   * @private
    */
-  this.key_range_ = ydn.db.KeyRange.parseIDBKeyRange(keyRange);
+  this.key_range_ = ydn.db.KeyRange.parseIDBKeyRange(opt_key_range);
 
   this.filter_index_names_ = [];
   this.filter_key_ranges_ = [];
@@ -178,136 +181,149 @@ ydn.db.Iterator.prototype.key_only_ = true;
 ydn.db.Iterator.prototype.direction;
 
 
+
 /**
  * Create an iterator object.
  * @param {string} store store name.
- * @param {(!KeyRangeJson|ydn.db.KeyRange)=} keyRange key range.
- * @param {boolean=} reverse reverse.
+ * @param {(!KeyRangeJson|ydn.db.KeyRange)=} opt_key_range key range.
+ * @param {boolean=} opt_reverse reverse.
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.KeyCursors = function(store, keyRange, reverse) {
+ydn.db.KeyCursors = function(store, opt_key_range, opt_reverse) {
   if (arguments.length > 3) {
     throw new ydn.debug.error.ArgumentException('too many argument');
   }
-  goog.base(this, store, undefined, keyRange, reverse, undefined, true);
+  goog.base(this, store, undefined, opt_key_range, opt_reverse, undefined, true);
 };
 goog.inherits(ydn.db.KeyCursors, ydn.db.Iterator);
 
 
+
 /**
- *
- * @param {string} store_name
+ * Create a new key cursor iterator.
+ * @param {string} store_name store name.
  * @param {string} op where operator.
  * @param {*} value rvalue to compare.
- * @param {string=} op2 second operator.
- * @param {*=} value2 second rvalue to compare.
- * @return {ydn.db.KeyCursors}
+ * @param {string=} opt_op2 second operator.
+ * @param {*=} opt_value2 second rvalue to compare.
+ * @return {ydn.db.KeyCursors} newly created iterator.
  */
-ydn.db.KeyCursors.where = function(store_name, op, value, op2, value2) {
+ydn.db.KeyCursors.where = function(store_name, op, value, opt_op2, opt_value2) {
   return new ydn.db.KeyCursors(store_name,
-    ydn.db.KeyRange.where(op, value, op2, value2));
+      ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
+
 
 
 /**
  * Create an iterator object.
  * @param {string} store store name.
  * @param {string} index index name.
- * @param {(!KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} keyRange key range.
- * @param {boolean=} reverse reverse.
- * @param {boolean=} unique unique.
+ * @param {(KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} opt_key_range key range.
+ * @param {boolean=} opt_reverse reverse.
+ * @param {boolean=} opt_unique unique.
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.Cursors = function(store, index, keyRange, reverse, unique) {
+ydn.db.Cursors = function(store, index, opt_key_range, opt_reverse,
+                          opt_unique) {
   if (!goog.isString(index)) {
     throw new ydn.debug.error.ArgumentException('index name must be string');
   }
-  goog.base(this, store, index, keyRange, reverse, unique, true);
+  goog.base(this, store, index, opt_key_range, opt_reverse, opt_unique, true);
 };
 goog.inherits(ydn.db.Cursors, ydn.db.Iterator);
 
 
+
 /**
- *
- * @param {string} store_name
+ * Create an iterator object.
+ * @param {string} store_name store name.
  * @param {string} index index name.
  * @param {string} op where operator.
  * @param {*} value rvalue to compare.
- * @param {string=} op2 second operator.
- * @param {*=} value2 second rvalue to compare.
+ * @param {string=} opt_op2 second operator.
+ * @param {*=} opt_value2 second rvalue to compare.
  * @return {ydn.db.Cursors}
  */
-ydn.db.Cursors.where = function(store_name, index, op, value, op2, value2) {
+ydn.db.Cursors.where = function(store_name, index, op, value, opt_op2,
+                                opt_value2) {
   return new ydn.db.Cursors(store_name, index,
-    ydn.db.KeyRange.where(op, value, op2, value2));
+    ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
+
 
 
 /**
  * Create an iterator object.
  * @param {!string} store store name.
- * @param {(!KeyRangeJson|ydn.db.KeyRange)=} keyRange key range.
- * @param {boolean=} reverse reverse.
+ * @param {(!KeyRangeJson|ydn.db.KeyRange)=} opt_key_range key range.
+ * @param {boolean=} opt_reverse reverse.
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.ValueCursors = function(store, keyRange, reverse) {
+ydn.db.ValueCursors = function(store, opt_key_range, opt_reverse) {
   if (arguments.length > 3) {
     throw new ydn.debug.error.ArgumentException('too many argument');
   }
-  goog.base(this, store, undefined, keyRange, reverse, undefined, false);
+  goog.base(this, store, undefined, opt_key_range, opt_reverse, undefined,
+      false);
 };
 goog.inherits(ydn.db.ValueCursors, ydn.db.Iterator);
 
+
 /**
- *
- * @param {string} store_name
+ * Create a new value cursor range iterator using where clause condition.
+ * @param {string} store_name store name.
  * @param {string} op where operator.
  * @param {*} value rvalue to compare.
- * @param {string=} op2 second operator.
- * @param {*=} value2 second rvalue to compare.
- * @return {ydn.db.ValueCursors}
+ * @param {string=} opt_op2 second operator.
+ * @param {*=} opt_value2 second rvalue to compare.
+ * @return {ydn.db.ValueCursors} newly craeted cursor.
  */
-ydn.db.ValueCursors.where = function(store_name, op, value, op2, value2) {
+ydn.db.ValueCursors.where = function(store_name, op, value, opt_op2,
+                                     opt_value2) {
   return new ydn.db.ValueCursors(store_name,
-    ydn.db.KeyRange.where(op, value, op2, value2));
+      ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
+
 
 
 /**
  * Create an iterator object.
  * @param {!string} store store name.
  * @param {string} index index name.
- * @param {(!KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} keyRange key range.
- * @param {boolean=} reverse reverse.
- * @param {boolean=} unique unique.
+ * @param {(KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} opt_key_range key range.
+ * @param {boolean=} opt_reverse reverse.
+ * @param {boolean=} opt_unique unique.
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.IndexValueCursors = function(store, index, keyRange, reverse, unique) {
+ydn.db.IndexValueCursors = function(store, index, opt_key_range, opt_reverse,
+                                    opt_unique) {
   if (!goog.isString(index)) {
     throw new ydn.debug.error.ArgumentException('index name must be string');
   }
-  goog.base(this, store, index, keyRange, reverse, unique, false);
+  goog.base(this, store, index, opt_key_range, opt_reverse, opt_unique, false);
 };
 goog.inherits(ydn.db.IndexValueCursors, ydn.db.Iterator);
 
 
 /**
  *
- * @param {string} store_name
+ * @param {string} store_name store name.
  * @param {string} index index name.
  * @param {string} op where operator.
  * @param {*} value rvalue to compare.
- * @param {string=} op2 second operator.
- * @param {*=} value2 second rvalue to compare.
+ * @param {string=} opt_op2 second operator.
+ * @param {*=} opt_value2 second rvalue to compare.
  * @return {ydn.db.IndexValueCursors}
  */
-ydn.db.IndexValueCursors.where = function(store_name, index, op, value, op2, value2) {
+ydn.db.IndexValueCursors.where = function(store_name, index, op, value, opt_op2,
+                                          opt_value2) {
   return new ydn.db.IndexValueCursors(store_name, index,
-    ydn.db.KeyRange.where(op, value, op2, value2));
+    ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
 
 
@@ -325,7 +341,7 @@ ydn.db.Iterator.State = {
 
 /**
  *
- * @return {ydn.db.Iterator.State}
+ * @return {ydn.db.Iterator.State} iterator state.
  */
 ydn.db.Iterator.prototype.getState = function() {
   if (!this.cursor_) {
@@ -405,7 +421,7 @@ ydn.db.Iterator.prototype.keyRange = function() {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} true if this iterator has key range restriction.
  */
 ydn.db.Iterator.prototype.hasKeyRange = function() {
   return !!this.key_range_;
@@ -477,7 +493,7 @@ ydn.db.Iterator.prototype.getIDBKeyRange = function() {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} true if key iterator.
  */
 ydn.db.Iterator.prototype.isKeyOnly = function() {
   return this.key_only_;
@@ -486,7 +502,7 @@ ydn.db.Iterator.prototype.isKeyOnly = function() {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} true if index iterator.
  */
 ydn.db.Iterator.prototype.isIndexIterator = function() {
   return this.is_index_iterator_;
@@ -554,15 +570,15 @@ ydn.db.Iterator.prototype.indexKey = function() {
 
 /**
  * Resume from a saved position.
- * @param key
- * @param index_key
+ * @param {IDBKey=} opt_key effective key as start position.
+ * @param {IDBKey=} opt_primary_key primary key as start position for index
+ * iterator.
  */
-ydn.db.Iterator.prototype.resume = function(key, index_key) {
+ydn.db.Iterator.prototype.resume = function(opt_key, opt_primary_key) {
   // todo: check valid state
-  this.primary_key = key;
-  this.index_key = index_key;
+  this.primary_key = opt_key;
+  this.index_key = opt_primary_key;
 };
-
 
 
 /**
@@ -570,7 +586,7 @@ ydn.db.Iterator.prototype.resume = function(key, index_key) {
  * @return {number} number of record iterated.
  */
 ydn.db.Iterator.prototype.count = function() {
-  return this.counter;
+  return this.cursor_ ? this.cursor_.getCount() : NaN;
 };
 
 
@@ -585,12 +601,11 @@ ydn.db.Iterator.prototype.done = function() {
 
 /**
  *
- * @return {!Array.<string>}
+ * @return {!Array.<string>} list of peer stores.
  */
 ydn.db.Iterator.prototype.stores = function() {
   return [this.store_name].concat(this.peer_store_names_);
 };
-
 
 
 /**
@@ -598,7 +613,7 @@ ydn.db.Iterator.prototype.stores = function() {
  * @type {Array.<string>}
  * @private
  */
-ydn.db.Iterator.prototype.peer_store_names_ = [];
+ydn.db.Iterator.prototype.peer_store_names_;
 
 
 /**
@@ -606,7 +621,7 @@ ydn.db.Iterator.prototype.peer_store_names_ = [];
  * @type {Array.<string|undefined>}
  * @private
  */
-ydn.db.Iterator.prototype.peer_index_names_ = [];
+ydn.db.Iterator.prototype.peer_index_names_;
 
 
 /**
@@ -614,32 +629,32 @@ ydn.db.Iterator.prototype.peer_index_names_ = [];
  * @type {Array.<string|undefined>}
  * @private
  */
-ydn.db.Iterator.prototype.base_index_names_ = [];
+ydn.db.Iterator.prototype.base_index_names_;
 
 
 /**
  *
  * @param {string} peer_store_name Peer store name to join with base store in
  * LEFT OUTER join sense.
- * @param {string=} base_index_name Base index name. If not provide,
+ * @param {string=} opt_base_index_name Base index name. If not provide,
  * base primary key is taken.
- * @param {string=} peer_index_name Peer index name. If not provide,
+ * @param {string=} opt_peer_index_name Peer index name. If not provide,
  * peer primary key is assumed.
  */
-ydn.db.Iterator.prototype.join = function(peer_store_name, base_index_name,
-                                          peer_index_name) {
+ydn.db.Iterator.prototype.join = function(peer_store_name, opt_base_index_name,
+                                          opt_peer_index_name) {
   if (!goog.isString(peer_store_name)) {
     throw new ydn.debug.error.ArgumentException();
   }
-  if (!goog.isString(base_index_name) || !goog.isDef(base_index_name)) {
+  if (!goog.isString(opt_base_index_name) || !goog.isDef(opt_base_index_name)) {
     throw new ydn.debug.error.ArgumentException();
   }
-  if (!goog.isString(peer_index_name) || !goog.isDef(peer_index_name)) {
+  if (!goog.isString(opt_peer_index_name) || !goog.isDef(opt_peer_index_name)) {
     throw new ydn.debug.error.ArgumentException();
   }
   this.peer_store_names_.push(peer_store_name);
-  this.peer_index_names_.push(peer_index_name);
-  this.base_index_names_.push(base_index_name);
+  this.peer_index_names_.push(opt_peer_index_name);
+  this.base_index_names_.push(opt_base_index_name);
 };
 
 
@@ -678,7 +693,7 @@ ydn.db.Iterator.prototype.getBaseIndexName = function(i) {
 
 /**
  * Degree of iterator is the total number of stores.
- * @return {number}
+ * @return {number} number of peer store.
  */
 ydn.db.Iterator.prototype.degree = function() {
   return this.peer_store_names_.length + 1;
@@ -687,7 +702,7 @@ ydn.db.Iterator.prototype.degree = function() {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} true if iteration direction is reverse.
  */
 ydn.db.Iterator.prototype.isReversed = function() {
   return this.direction === ydn.db.base.Direction.PREV ||
@@ -697,7 +712,7 @@ ydn.db.Iterator.prototype.isReversed = function() {
 
 /**
  *
- * @return {boolean}
+ * @return {boolean} true if cursor is iterator unique key.
  */
 ydn.db.Iterator.prototype.isUnique = function() {
   return this.direction === ydn.db.base.Direction.NEXT_UNIQUE ||
@@ -710,7 +725,7 @@ ydn.db.Iterator.prototype.isUnique = function() {
  * @type {!Array.<string>}
  * @private
  */
-ydn.db.Iterator.prototype.filter_index_names_ = [];
+ydn.db.Iterator.prototype.filter_index_names_;
 
 
 /**
@@ -718,7 +733,7 @@ ydn.db.Iterator.prototype.filter_index_names_ = [];
  * @type {!Array.<!IDBKeyRange>}
  * @private
  */
-ydn.db.Iterator.prototype.filter_key_ranges_ = [];
+ydn.db.Iterator.prototype.filter_key_ranges_;
 
 
 /**
@@ -726,7 +741,7 @@ ydn.db.Iterator.prototype.filter_key_ranges_ = [];
  * @type {!Array.<string>}
  * @private
  */
-ydn.db.Iterator.prototype.filter_store_names_ = [];
+ydn.db.Iterator.prototype.filter_store_names_;
 
 
 /**
@@ -734,14 +749,14 @@ ydn.db.Iterator.prototype.filter_store_names_ = [];
  * @type {Array}
  * @private
  */
-ydn.db.Iterator.prototype.filter_ini_keys_ = [];
+ydn.db.Iterator.prototype.filter_ini_keys_;
 
 /**
  *
  * @type {Array}
  * @private
  */
-ydn.db.Iterator.prototype.filter_ini_index_keys_ = [];
+ydn.db.Iterator.prototype.filter_ini_index_keys_;
 
 
 /**
@@ -778,7 +793,6 @@ ydn.db.Iterator.prototype.filter = function(index_name, key_range, store_name) {
   } else {
     this.filter_store_names_.push(undefined);
   }
-
 
 };
 

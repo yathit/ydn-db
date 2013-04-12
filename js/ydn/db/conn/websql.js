@@ -29,9 +29,10 @@ goog.require('ydn.async');
 goog.require('ydn.db.SecurityError');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
+goog.require('ydn.debug.error.NotImplementedException');
 goog.require('ydn.json');
 goog.require('ydn.string');
-goog.require('ydn.debug.error.NotImplementedException');
+
 
 
 /**
@@ -42,7 +43,6 @@ goog.require('ydn.debug.error.NotImplementedException');
  * @constructor
  */
 ydn.db.con.WebSql = function(opt_size) {
-
 
   // Safari default limit is slightly over 4 MB, so we ask the largest storage
   // size but, still not don't bother to user.
@@ -63,7 +63,6 @@ ydn.db.con.WebSql = function(opt_size) {
 ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
   var description = dbname;
-
 
   /**
    * @type {ydn.db.con.WebSql}
@@ -105,10 +104,9 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     var current_version = db.version ? parseInt(db.version, 10) : 0;
     var new_version = schema.isAutoVersion() ?
         is_version_change ? isNaN(current_version) ?
-            1 : (current_version + 1) : current_version
-        : schema.version;
+            1 : (current_version + 1) : current_version : schema.version;
     me.logger.finest(dbname + ': ' + action + ' from ' +
-      db.version + ' to ' + new_version);
+        db.version + ' to ' + new_version);
 
     var executed = false;
     var updated_count = 0;
@@ -130,10 +128,10 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
           var table_info = existing_schema.getStore(schema.store(i).getName());
           // hint to sniffed schema, so that some lost info are recovered.
           var hinted_store_schema = table_info ?
-            table_info.hint(schema.store(i)) : null;
+              table_info.hint(schema.store(i)) : null;
 
           me.update_store_with_info_(tx, schema.store(i), counter,
-            hinted_store_schema);
+              hinted_store_schema);
         }
 
         if (schema instanceof ydn.db.schema.EditableDatabase) {
@@ -195,7 +193,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
   var creationCallback = function(e) {
     var msg = init_migrated ?
-      ' and already migrated, but migrating again.' : ', migrating.';
+        ' and already migrated, but migrating again.' : ', migrating.';
     me.logger.finest('receiving creation callback ' + msg);
 
     // the standard state that we should call VERSION_CHANGE request on
@@ -204,8 +202,8 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     var use_version_change_request = true;
 
     //if (!init_migrated) {
-      // yeah, to make sure.
-      doVersionChange_(db, schema, use_version_change_request);
+    // yeah, to make sure.
+    doVersionChange_(db, schema, use_version_change_request);
     //}
   };
 
@@ -238,19 +236,19 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     if (ydn.db.con.WebSql.GENTLE_OPENING) {
       // this works in Chrome, Safari and Opera
       db = goog.global.openDatabase(dbname, '', description,
-        this.size_);
+          this.size_);
     } else {
       try {
         // this works in Chrome and OS X Safari even if the specified
         // database version does not exist. Other browsers throw
         // INVALID_STATE_ERR
         db = goog.global.openDatabase(dbname, version, description,
-          this.size_, creationCallback);
+            this.size_, creationCallback);
       } catch (e) {
         if (e.name == 'INVALID_STATE_ERR') {
           // fail back to gentle opening.
           db = goog.global.openDatabase(dbname, '', description,
-            this.size_);
+              this.size_);
         } else {
           throw e;
         }
@@ -313,12 +311,12 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
             doVersionChange_(db, schema, true);
           } else if (!schema.isAutoVersion()) {
             me.logger.fine('Existing ' + db_info + ' opened and ' +
-              ' schema change to version ' + schema.version + ' for ' + msg);
+                ' schema change to version ' + schema.version + ' for ' + msg);
 
             doVersionChange_(db, schema, true);
           } else {
             me.logger.fine('Existing ' + db_info + ' opened and ' +
-              ' schema change for ' + msg);
+                'schema change for ' + msg);
 
             doVersionChange_(db, schema, true);
           }
@@ -403,7 +401,7 @@ ydn.db.con.WebSql.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.con.WebSql.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.con.WebSql');
+    goog.debug.Logger.getLogger('ydn.db.con.WebSql');
 
 
 /**
@@ -431,7 +429,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
 
   var q_primary_column = table.getSQLKeyColumnNameQuoted();
   sql += q_primary_column + ' ' + primary_type +
-    ' PRIMARY KEY ';
+      ' PRIMARY KEY ';
 
   if (table.autoIncrement) {
     sql += ' AUTOINCREMENT ';
@@ -440,7 +438,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
 
   // every table must has a default field to store schemaless fields
   sql += ' ,' + ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' +
-    ydn.db.schema.DataType.BLOB;
+      ydn.db.schema.DataType.BLOB;
 
   var sqls = [];
   var sep = ', ';
@@ -465,7 +463,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
       sqls.push(multi_entry_sql);
       continue;
     } else if (index.isUnique()) {
-      unique =  ' UNIQUE ';
+      unique = ' UNIQUE ';
     }
 
     // http://sqlite.org/lang_createindex.html
@@ -494,7 +492,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
       // store keyPath can also be indexed in IndexedDB spec
 
       sql += sep + index_key_path + ' ' + index.getSqlType() +
-        unique;
+          unique;
       column_names.push(index_key_path);
     }
 
@@ -585,12 +583,15 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
         for (var j = 0; j < column_infos.length; j++) {
 
           var fields = ydn.string.split_space_seperated(column_infos[j]);
-          var upper_fields = goog.array.map(fields, function(x) {return x.toUpperCase()});
+          var upper_fields = goog.array.map(fields, function(x) {
+            return x.toUpperCase();
+          });
           var name = goog.string.stripQuotes(fields[0], '"');
           var type = ydn.db.schema.Index.toType(upper_fields[1]);
           // console.log([fields[1], type]);
 
-          if (upper_fields.indexOf('PRIMARY') != -1 && upper_fields.indexOf('KEY') != -1) {
+          if (upper_fields.indexOf('PRIMARY') != -1 &&
+              upper_fields.indexOf('KEY') != -1) {
             if (goog.isString(name) && !goog.string.isEmpty(name) &&
                 name != ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME) {
               // console.log('PRIMARY ' + name + ' on ' + info.name);
@@ -616,7 +617,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
           var names = info.name.split(':');
           if (!!names && names.length >= 3) {
             var st_name = names[1];
-            var store_index = goog.array.findIndex(stores, function (x) {
+            var store_index = goog.array.findIndex(stores, function(x) {
               return x.getName() === st_name;
             });
             var multi_index = new ydn.db.schema.Index(names[2], type,
@@ -630,14 +631,14 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             } else { // main table don't exist, create a temporary table
 
               stores.push(new ydn.db.schema.Store(st_name, undefined, false,
-                  undefined, [multi_index]))
+                  undefined, [multi_index]));
             }
           } else {
             me.logger.warning('Invalid multiEntry store name "' + info.name +
                 '"');
           }
-        }  else {
-          var i_store = goog.array.findIndex(stores, function (x) {
+        } else {
+          var i_store = goog.array.findIndex(stores, function(x) {
             return x.getName() === info.name;
           });
           if (i_store >= 0) {
@@ -658,9 +659,6 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
         //console.log([info, store]);
       }
     }
-//    if (ydn.db.con.WebSql.DEBUG) {
-//      window.console.log(out);
-//    }
 
     var out = new ydn.db.schema.Database(version, stores);
     // console.log(out.toJSON());
@@ -686,8 +684,8 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
     };
 
     db.readTransaction(function(tx) {
-        me.getSchema(callback, tx, db);
-      }, tx_error_callback, success_callback);
+      me.getSchema(callback, tx, db);
+    }, tx_error_callback, success_callback);
 
     return;
   }
@@ -710,12 +708,12 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
-                                                      callback) {
+                                                     callback) {
   var me = this;
   this.getSchema(function(table_infos) {
     var table_info = table_infos.getStore(store_schema.name);
     me.update_store_with_info_(trans, store_schema,
-      callback, table_info);
+        callback, table_info);
   }, trans);
 };
 
@@ -731,7 +729,7 @@ ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
-     table_schema, callback, existing_table_schema) {
+    table_schema, callback, existing_table_schema) {
 
   var me = this;
 
@@ -764,8 +762,8 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
         callback = null; // must call only once.
       }
       var msg = goog.DEBUG ? 'SQLError creating table: ' +
-        table_schema.name + ' ' + error.message + ' for executing "' +
-        sql : '"';
+          table_schema.name + ' ' + error.message + ' for executing "' +
+          sql : '"';
       throw new ydn.db.SQLError(error, msg);
     };
 
@@ -790,9 +788,9 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
       this.logger.warning(
           'table: ' + table_schema.name + ' has changed by ' + msg +
           ' additionallly TABLE ALTERATION is not implemented, ' +
-            'dropping old table.');
+          'dropping old table.');
       sqls.unshift('DROP TABLE IF EXISTS ' +
-        goog.string.quote(table_schema.name));
+          goog.string.quote(table_schema.name));
     }
   }
 
@@ -830,7 +828,7 @@ ydn.db.con.WebSql.prototype.close = function() {
  * @protected
  */
 ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
-                                                      completed_event_handler) {
+                                                     completed_event_handler) {
 
   var me = this;
 
@@ -863,19 +861,19 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
     // this happen on SECURITY_ERR
     trFn(null);
     completed_event_handler(ydn.db.base.TxEventTypes.ERROR,
-      this.last_error_);
+        this.last_error_);
   }
 
   if (mode == ydn.db.base.TransactionMode.READ_ONLY) {
     this.sql_db_.readTransaction(transaction_callback,
-      error_callback, success_callback);
+        error_callback, success_callback);
   } else if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {
     var next_version = this.sql_db_.version + 1;
     this.sql_db_.changeVersion(this.sql_db_.version, next_version + '',
-      transaction_callback, error_callback, success_callback);
+        transaction_callback, error_callback, success_callback);
   } else {
     this.sql_db_.transaction(transaction_callback,
-      error_callback, success_callback);
+        error_callback, success_callback);
   }
 
 };
@@ -883,7 +881,7 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
 
 /**
  *
- * @param {string} db_name
+ * @param {string} db_name database name to be deleted.
  */
 ydn.db.con.WebSql.deleteDatabase = function(db_name) {
   // WebSQL API does not expose deleting database.
