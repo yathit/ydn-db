@@ -9,10 +9,20 @@
     <script src="../../../closure-library/closure/goog/deps.js"></script>
     <script type="text/javascript" src="../../../ydn-base/js/deps.js"></script>
     <script type="text/javascript" src="../../js/deps.js"></script>
-    <script>
+    <script type="text/javascript" >
+        goog.require('ydn.debug');
+        goog.require('goog.userAgent');
+    </script>
+    <script type="text/javascript" >
 	    goog.require('goog.testing.ContinuationTestCase');
 	    goog.require('goog.testing.jsunit');
       options = {mechanisms: ['indexeddb']};
+        if (goog.userAgent.MOBILE) {
+            var div = document.createElement('div');
+            console.log('running on mobile');
+            document.body.appendChild(div);
+            ydn.debug.log('ydn.db', 'finest', div);
+        }
     </script>
 	<script type="text/javascript" src="crud_test.js"></script>
 

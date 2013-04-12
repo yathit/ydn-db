@@ -143,7 +143,7 @@ ydn.db.base.IDBTransaction = (goog.global.webkitIDBRequest && (
     'LOADING' in goog.global.webkitIDBRequest) ?
     (goog.global.webkitIDBTransaction || goog.global.IDBTransaction) :
     (goog.global.IDBRequest && ('LOADING' in goog.global.IDBRequest)) ?
-    goog.global.IDBTransaction :  ydn.db.base.DefaultTransactionMode);
+    goog.global.IDBTransaction : ydn.db.base.DefaultTransactionMode);
 
 
 /**
@@ -155,16 +155,6 @@ ydn.db.base.TransactionMode = {
   READ_ONLY: ydn.db.base.IDBTransaction.READ_ONLY,
   READ_WRITE: ydn.db.base.IDBTransaction.READ_WRITE,
   VERSION_CHANGE: ydn.db.base.IDBTransaction.VERSION_CHANGE
-};
-
-
-/**
- * Mode for opening cursor
- * @enum {string|number}
- */
-ydn.db.base.CursorMode = {
-  READ_ONLY: ydn.db.base.TransactionMode.READ_ONLY,
-  READ_WRITE: ydn.db.base.TransactionMode.READ_WRITE
 };
 
 

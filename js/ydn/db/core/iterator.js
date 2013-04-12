@@ -119,6 +119,8 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse, opt_uni
   this.filter_key_ranges_ = [];
   this.filter_store_names_ = [];
 
+  this.peer_store_names_ = [];
+
   // transient properties during cursor iteration
   this.cursor_ = null;
 };
