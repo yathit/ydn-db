@@ -54,17 +54,20 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
  */
 ydn.db.tr.Parallel.DEBUG = false;
 
+
 /**
  * @private
  * @type {number} request number.
  */
 ydn.db.tr.Parallel.prototype.r_no_;
 
+
 /**
  * @private
  * @type {number} transaction number.
  */
 ydn.db.tr.Parallel.prototype.q_no_;
+
 
 /**
  * @private
@@ -302,7 +305,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
 /**
  * @inheritDoc
  */
-ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
+ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
                                                    scope_name, on_completed) {
 
   var me = this;
@@ -311,7 +314,7 @@ ydn.db.tr.Parallel.prototype.exec = function (df, callback, store_names, mode,
     /**
      *
      * @param {*} result
-     * @param {boolean=} is_error
+     * @param {boolean=} opt_is_error
      */
     var resultCallback = function(result, opt_is_error) {
       me.p_request_tx = tx; // so that we can abort it.
