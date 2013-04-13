@@ -103,12 +103,12 @@ var test_cursor_resume = function() {
     tag: 'z',
     msg: Math.random()
   }, {
-    id: 3,
-    tag: 'y',
-    msg: Math.random()
-  }, {
     id: 2,
     tag: 'x',
+    msg: Math.random()
+  }, {
+    id: 3,
+    tag: 'y',
     msg: Math.random()
   }];
   var schema = {
@@ -123,7 +123,7 @@ var test_cursor_resume = function() {
         }]
     }]
   };
-  var db_name = 'test_cursor_resume-1';
+  var db_name = 'test_cursor_resume-2';
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.put('st', data);
   var q = new ydn.db.ValueCursors('st');
@@ -151,7 +151,6 @@ var test_cursor_resume = function() {
       function() {
         assertArrayEquals('keys1', [1], keys1);
         assertArrayEquals('values1', data.slice(0, 1), values1);
-        reachedFinalContinuation = true;
       },
       100, // interval
       1000); // maxTimeout
@@ -164,7 +163,7 @@ var test_cursor_resume = function() {
       },
       function() {
         assertArrayEquals('keys2', [2, 3], keys2);
-        assertArrayEquals('values2', [data[3], data[2]], values2);
+        assertArrayEquals('values2', data.slice(1, 3), values2);
         reachedFinalContinuation = true;
       },
       100, // interval

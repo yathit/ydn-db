@@ -92,7 +92,7 @@ ydn.db.sql.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
 
 /**
  *
- * @return {ydn.db.sql.DbOperator}
+ * @return {ydn.db.sql.DbOperator} operator.
  */
 ydn.db.sql.Storage.prototype.getSqlOperator = function() {
   return /** @type {ydn.db.sql.DbOperator} */ (this.db_operator);
@@ -101,11 +101,11 @@ ydn.db.sql.Storage.prototype.getSqlOperator = function() {
 
 /**
  * @param {string} sql SQL statement.
- * @param {!Array=} params SQL parameters.
+ * @param {!Array=} opt_params SQL parameters.
  * @return {!goog.async.Deferred} return result as list.
  */
-ydn.db.sql.Storage.prototype.executeSql = function(sql, params) {
-  return this.getSqlOperator().executeSql(sql, params);
+ydn.db.sql.Storage.prototype.executeSql = function(sql, opt_params) {
+  return this.getSqlOperator().executeSql(sql, opt_params);
 };
 
 //
