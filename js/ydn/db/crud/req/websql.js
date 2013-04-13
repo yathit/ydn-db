@@ -36,12 +36,11 @@ goog.require('ydn.json');
  * @extends {ydn.db.crud.req.RequestExecutor}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
- * @param {string} scope
  * @constructor
  * @implements {ydn.db.crud.req.IRequestExecutor}
  */
-ydn.db.crud.req.WebSql = function(dbname, schema, scope) {
-  goog.base(this, dbname, schema, scope);
+ydn.db.crud.req.WebSql = function(dbname, schema) {
+  goog.base(this, dbname, schema);
 };
 goog.inherits(ydn.db.crud.req.WebSql, ydn.db.crud.req.RequestExecutor);
 
@@ -85,7 +84,7 @@ ydn.db.crud.req.WebSql.RW_REQ_PER_TX = 2;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.req.WebSql.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.crud.req.WebSql');
+    goog.debug.Logger.getLogger('ydn.db.crud.req.WebSql');
 
 
 /**
@@ -255,7 +254,7 @@ ydn.db.crud.req.WebSql.prototype.putData = goog.abstractMethod;
 * @inheritDoc
 */
 ydn.db.crud.req.WebSql.prototype.putObject = function(tx, tx_no, df,
-                                store_name, obj, opt_key) {
+    store_name, obj, opt_key) {
   this.insertObjects(tx, tx_no, df, false, true, store_name, [obj], [opt_key]);
 };
 
@@ -270,7 +269,7 @@ ydn.db.crud.req.WebSql.prototype.addObjects = function(
 
 
 /**
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
  * @param {string} tx_no
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {boolean} create true if insert, otherwise insert or replace.

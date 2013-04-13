@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview Execute data request.
  *
@@ -20,10 +34,9 @@ goog.require('ydn.db.Key');
 /**
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
- * @param {string} scope
  * @constructor
  */
-ydn.db.crud.req.RequestExecutor = function(dbname, schema, scope) {
+ydn.db.crud.req.RequestExecutor = function(dbname, schema) {
   /**
    * @final
    */
@@ -32,12 +45,7 @@ ydn.db.crud.req.RequestExecutor = function(dbname, schema, scope) {
    * @final
    */
   this.schema = schema;
-  /**
-   * @final
-   */
-  this.scope = scope;
 };
-
 
 
 /**
@@ -45,7 +53,7 @@ ydn.db.crud.req.RequestExecutor = function(dbname, schema, scope) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.req.RequestExecutor.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.crud.req.RequestExecutor');
+    goog.debug.Logger.getLogger('ydn.db.crud.req.RequestExecutor');
 
 
 /**
@@ -54,28 +62,21 @@ ydn.db.crud.req.RequestExecutor.prototype.logger =
  */
 ydn.db.crud.req.RequestExecutor.prototype.schema;
 
+
 /**
  * @protected
  * @type {string}
  */
 ydn.db.crud.req.RequestExecutor.prototype.dbname = '';
 
-/**
- * @protected
- * @type {string}
- */
-ydn.db.crud.req.RequestExecutor.prototype.scope = '';
-
-
-
 
 if (goog.DEBUG) {
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.RequestExecutor.prototype.toString = function() {
-  return 'RequestExecutor:' + this.scope;
-};
+  /**
+   * @inheritDoc
+   */
+  ydn.db.crud.req.RequestExecutor.prototype.toString = function() {
+    return 'RequestExecutor';
+  };
 }
 
 

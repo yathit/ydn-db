@@ -718,7 +718,7 @@ ydn.db.Iterator.prototype.isReversed = function() {
  */
 ydn.db.Iterator.prototype.isUnique = function() {
   return this.direction === ydn.db.base.Direction.NEXT_UNIQUE ||
-    this.direction === ydn.db.base.Direction.PREV_UNIQUE;
+      this.direction === ydn.db.base.Direction.PREV_UNIQUE;
 };
 
 
@@ -765,7 +765,8 @@ ydn.db.Iterator.prototype.filter_ini_index_keys_;
  * Filter primary key. It is assumed that primary keys running from the filter
  * are ordered.
  * @param {string} index_name field name to filter.
- * @param {!ydn.db.KeyRange|!Array|number|string} key_range if not key range, a key is build
+ * @param {!ydn.db.KeyRange|!Array|number|string} key_range if not key range,
+ * a key is build
  * using ydn.db.KeyRange.only().
  * @param {string=} store_name store name if different from this iterator.
  */
@@ -859,7 +860,7 @@ ydn.db.Iterator.prototype.getFilterKeyRange = function(idx) {
  * @param {string} tx_lbl tx label.
  * @param {ydn.db.core.req.IRequestExecutor} executor executor.
  * @param {boolean=} opt_key_query true for keys query method.
- * @return {ydn.db.Cursor}
+ * @return {ydn.db.Cursor} newly created cursor.
  */
 ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
                                              opt_key_query) {

@@ -27,19 +27,19 @@ goog.require('ydn.db.sql.req.IRequestExecutor');
 goog.require('ydn.db.sql.req.websql.Node');
 goog.require('ydn.db.sql.req.websql.ReduceNode');
 
+
+
 /**
  * @extends {ydn.db.core.req.WebSql}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
- * @param {string} scope
  * @constructor
  * @implements {ydn.db.sql.req.IRequestExecutor}
  */
-ydn.db.sql.req.WebSql = function(dbname, schema, scope) {
-  goog.base(this, dbname, schema, scope);
+ydn.db.sql.req.WebSql = function(dbname, schema) {
+  goog.base(this, dbname, schema);
 };
 goog.inherits(ydn.db.sql.req.WebSql, ydn.db.core.req.WebSql);
-
 
 
 /**
@@ -54,8 +54,7 @@ ydn.db.sql.req.WebSql.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.sql.req.WebSql.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.sql.req.WebSql');
-
+    goog.debug.Logger.getLogger('ydn.db.sql.req.WebSql');
 
 
 /**
@@ -74,7 +73,7 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(tx, tx_no, df, sql, params
       for (var i = 0; i < fields.length; i++) {
         if (!store_schema.hasIndex(fields[i])) {
           throw new ydn.db.NotFoundError('Index "' + fields[i] +
-            '" not found in ' + store_names[0]);
+              '" not found in ' + store_names[0]);
         }
       }
     }

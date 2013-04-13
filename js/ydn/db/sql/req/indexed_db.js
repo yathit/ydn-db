@@ -17,12 +17,11 @@ goog.require('ydn.db.sql.req.idb.ReduceNode');
  * @param {string} dbname database name.
  * @extends {ydn.db.core.req.IndexedDb}
  * @param {!ydn.db.schema.Database} schema schema.
- * @param {string} scope_name
  * @constructor
  * @implements {ydn.db.sql.req.IRequestExecutor}
  */
-ydn.db.sql.req.IndexedDb = function(dbname, schema, scope_name) {
-  goog.base(this, dbname, schema, scope_name);
+ydn.db.sql.req.IndexedDb = function(dbname, schema) {
+  goog.base(this, dbname, schema);
 };
 goog.inherits(ydn.db.sql.req.IndexedDb, ydn.db.core.req.IndexedDb);
 

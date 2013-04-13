@@ -21,20 +21,18 @@ goog.require('ydn.db.core.req.SimpleStore');
 goog.require('ydn.db.sql.req.IRequestExecutor');
 
 
+
 /**
  * @extends {ydn.db.core.req.SimpleStore}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
- * @param {string} scope_name
  * @constructor
  * @implements {ydn.db.sql.req.IRequestExecutor}
  */
-ydn.db.sql.req.SimpleStore = function(dbname, schema, scope_name) {
-  goog.base(this, dbname, schema, scope_name);
+ydn.db.sql.req.SimpleStore = function(dbname, schema) {
+  goog.base(this, dbname, schema);
 };
 goog.inherits(ydn.db.sql.req.SimpleStore, ydn.db.core.req.SimpleStore);
-
-
 
 
 /**

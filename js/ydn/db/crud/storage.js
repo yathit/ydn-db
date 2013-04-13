@@ -93,20 +93,19 @@ ydn.db.crud.Storage.prototype.getCoreOperator = function() {
 
 
 /**
- * @param {string} scope
  * @return {ydn.db.crud.req.IRequestExecutor}
  */
-ydn.db.crud.Storage.prototype.newExecutor = function(scope) {
+ydn.db.crud.Storage.prototype.newExecutor = function() {
 
   var type = this.getType();
   if (!ydn.db.base.NO_IDB && type == ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.crud.req.IndexedDb(this.db_name, this.schema, scope);
+    return new ydn.db.crud.req.IndexedDb(this.db_name, this.schema);
   } else if (!ydn.db.base.NO_WEBSQL && type == ydn.db.con.WebSql.TYPE) {
-    return new ydn.db.crud.req.WebSql(this.db_name, this.schema, scope);
+    return new ydn.db.crud.req.WebSql(this.db_name, this.schema);
   } else if (!ydn.db.base.NO_SIMPLE && type == ydn.db.con.SimpleStorage.TYPE ||
       type == ydn.db.con.LocalStorage.TYPE ||
       type == ydn.db.con.SessionStorage.TYPE) {
-    return new ydn.db.crud.req.SimpleStore(this.db_name, this.schema, scope);
+    return new ydn.db.crud.req.SimpleStore(this.db_name, this.schema);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
   }

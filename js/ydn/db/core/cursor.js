@@ -200,7 +200,7 @@ ydn.db.Cursor.prototype.resume = function(cursors) {
 
 
 /**
- * @returns {number} Number of steps iterated.
+ * @return {number} Number of steps iterated.
  */
 ydn.db.Cursor.prototype.getCount = function() {
   return this.count_;

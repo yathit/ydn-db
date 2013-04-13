@@ -63,17 +63,17 @@ goog.inherits(ydn.db.core.Storage, ydn.db.crud.Storage);
 /**
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.newExecutor = function (scope_name) {
+ydn.db.core.Storage.prototype.newExecutor = function() {
 
   var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.core.req.IndexedDb(this.db_name, this.schema, scope_name);
+    return new ydn.db.core.req.IndexedDb(this.db_name, this.schema);
   } else if (type == ydn.db.con.WebSql.TYPE) {
-    return new ydn.db.core.req.WebSql(this.db_name, this.schema, scope_name);
+    return new ydn.db.core.req.WebSql(this.db_name, this.schema);
   } else if (type == ydn.db.con.SimpleStorage.TYPE ||
-    type == ydn.db.con.LocalStorage.TYPE ||
-    type == ydn.db.con.SessionStorage.TYPE) {
-    return new ydn.db.core.req.SimpleStore(this.db_name, this.schema, scope_name);
+      type == ydn.db.con.LocalStorage.TYPE ||
+      type == ydn.db.con.SessionStorage.TYPE) {
+    return new ydn.db.core.req.SimpleStore(this.db_name, this.schema);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
   }
@@ -92,7 +92,7 @@ ydn.db.core.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
 
 /**
  * Get casted operator.
- * @return {ydn.db.core.DbOperator}
+ * @return {ydn.db.core.DbOperator} casted operator.
  */
 ydn.db.core.Storage.prototype.getIndexOperator = function() {
   return /** @type {ydn.db.core.DbOperator} */ (this.db_operator);
@@ -103,11 +103,11 @@ ydn.db.core.Storage.prototype.getIndexOperator = function() {
  *
  * @param {!ydn.db.Iterator} iterator the cursor.
  * @param {Function} callback icursor handler.
- * @param {ydn.db.base.TransactionMode=} mode mode.
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.core.Storage.prototype.open = function(iterator, callback, mode) {
-  return this.getIndexOperator().open(iterator, callback, mode);
+ydn.db.core.Storage.prototype.open = function(iterator, callback, opt_mode) {
+  return this.getIndexOperator().open(iterator, callback, opt_mode);
 };
 
 
@@ -138,18 +138,19 @@ ydn.db.core.Storage.prototype.scan = function(iterators, solver, streamers) {
  *
  * @inheritDoc
  */
-ydn.db.core.Storage.prototype.map = function (iterator, callback) {
+ydn.db.core.Storage.prototype.map = function(iterator, callback) {
   return this.getIndexOperator().map(iterator, callback);
 };
 
 
 /**
  *
- * @param {!ydn.db.Iterator} iterator
- * @param {function(*, *, number): *} callback
- * @param {*=} initial
+ * @param {!ydn.db.Iterator} iterator iterator.
+ * @param {function(*, *, number): *} callback callback.
+ * @param {*=} opt_initial initial value.
  */
-ydn.db.core.Storage.prototype.reduce = function(iterator, callback, initial) {
-  return this.getIndexOperator().reduce(iterator, callback, initial);
+ydn.db.core.Storage.prototype.reduce = function(iterator, callback,
+                                                opt_initial) {
+  return this.getIndexOperator().reduce(iterator, callback, opt_initial);
 };
 

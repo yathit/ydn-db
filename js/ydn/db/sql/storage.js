@@ -14,12 +14,13 @@
 /**
  * @fileoverview Provide SQL query statement execution.
  *
- * @author Kyaw Tun <kyawtun@yathit.com>
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.sql.Storage');
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.sql.DbOperator');
+
 
 
 /**
@@ -62,17 +63,17 @@ goog.inherits(ydn.db.sql.Storage, ydn.db.core.Storage);
 /**
  * @inheritDoc
  */
-ydn.db.sql.Storage.prototype.newExecutor = function(scope) {
+ydn.db.sql.Storage.prototype.newExecutor = function() {
 
   var type = this.getType();
   if (type == ydn.db.con.IndexedDb.TYPE) {
-    return new ydn.db.sql.req.IndexedDb(this.db_name, this.schema, scope);
+    return new ydn.db.sql.req.IndexedDb(this.db_name, this.schema);
   } else if (type == ydn.db.con.WebSql.TYPE) {
-    return new ydn.db.sql.req.WebSql(this.db_name, this.schema, scope);
+    return new ydn.db.sql.req.WebSql(this.db_name, this.schema);
   } else if (type == ydn.db.con.SimpleStorage.TYPE ||
-    type == ydn.db.con.LocalStorage.TYPE ||
-    type == ydn.db.con.SessionStorage.TYPE) {
-    return new ydn.db.sql.req.SimpleStore(this.db_name, this.schema, scope);
+      type == ydn.db.con.LocalStorage.TYPE ||
+      type == ydn.db.con.SessionStorage.TYPE) {
+    return new ydn.db.sql.req.SimpleStore(this.db_name, this.schema);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
   }

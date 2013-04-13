@@ -37,12 +37,11 @@ goog.require('ydn.json');
  * @extends {ydn.db.crud.req.WebSql}
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
- * @param {string} scope
  * @constructor
  * @implements {ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.core.req.WebSql = function(dbname, schema, scope) {
-  goog.base(this, dbname, schema, scope);
+ydn.db.core.req.WebSql = function(dbname, schema) {
+  goog.base(this, dbname, schema);
 };
 goog.inherits(ydn.db.core.req.WebSql, ydn.db.crud.req.WebSql);
 
@@ -83,8 +82,8 @@ ydn.db.core.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q,
 
 
 /**
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
- * @param {string} tx_no
+ * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
+ * @param {string} tx_no tx label.
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {!ydn.db.Iterator} iter the query.
  * @param {boolean} key_query true for key query. 'keys' or 'list' method.

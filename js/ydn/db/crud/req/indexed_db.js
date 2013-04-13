@@ -30,14 +30,13 @@ goog.require('ydn.json');
 /**
  * Create a new IDB request executor.
  * @param {string} dbname database name.
- * @extends {ydn.db.crud.req.RequestExecutor}
  * @param {!ydn.db.schema.Database} schema schema.
- * @param {string} scope
  * @constructor
+ * @extends {ydn.db.crud.req.RequestExecutor}
  * @implements {ydn.db.crud.req.IRequestExecutor}
  */
-ydn.db.crud.req.IndexedDb = function(dbname, schema, scope) {
-  goog.base(this, dbname, schema, scope);
+ydn.db.crud.req.IndexedDb = function(dbname, schema) {
+  goog.base(this, dbname, schema);
 };
 goog.inherits(ydn.db.crud.req.IndexedDb, ydn.db.crud.req.RequestExecutor);
 
