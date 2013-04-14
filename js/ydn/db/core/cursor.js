@@ -145,6 +145,7 @@ ydn.db.Cursor.prototype.init_ = function() {
       result_count++;
       //console.log([result_count, opt_key, opt_p_key]);
       if (!goog.isDefAndNotNull(opt_key)) {
+        me.logger.finest('cursor ' + cursor + ' finished.');
         me.done_ = true;
       }
       me.keys_[i] = opt_key;

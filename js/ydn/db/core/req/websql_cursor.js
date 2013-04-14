@@ -1,3 +1,16 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Cursor.
@@ -34,10 +47,12 @@ ydn.db.core.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
   goog.asserts.assert(store_schema);
   /**
    * @final
+   * @private
    */
   this.store_schema_ = store_schema;
   /**
    * @final
+   * @private
    */
   this.index_ = goog.isString(index_name) ?
       store_schema.getIndex(index_name) : null;
@@ -288,7 +303,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
 
 
 /**
- *
+ * Continue to given effective key position.
  * @param {?ydn.db.core.req.WebsqlCursor.callback} callback invoke.
  * @param {IDBKey=} opt_key effective key.
  * @param {boolean=} opt_inclusive position is inclusive.
@@ -355,10 +370,9 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
     }
   };
 
-  var key = goog.isDefAndNotNull(opt_key) ? opt_key : this.current_key_;
-  if (goog.isDefAndNotNull(key)) {
+  if (goog.isDefAndNotNull(opt_key)) {
     var open = !opt_inclusive;
-    key_range = buildEffectiveKeyRange(key, open);
+    key_range = buildEffectiveKeyRange(opt_key, open);
   }
 
   var column = this.index_ ? this.index_.getSQLIndexColumnName() :
@@ -368,7 +382,9 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
 
   if (this.is_index && goog.isDefAndNotNull(opt_primary_key)) {
     var primary_key = opt_primary_key;
-    var c_key_range = ydn.db.IDBKeyRange.only(key);
+    // var key = goog.isDefAndNotNull(opt_key) ? opt_key : this.current_key_;
+    goog.asserts.assert(goog.isDefAndNotNull(opt_key));
+    var c_key_range = ydn.db.IDBKeyRange.only(opt_key);
     var c_sql = this.store_schema_.inSql(params, mth,
         this.index_.getSQLIndexColumnName(), c_key_range,
         this.reverse, this.unique);
@@ -645,28 +661,28 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
         key + '" on ' + this.dir + ' direction is wrong');
   }
 
-  var me = this;
   /**
    *
-   * @param {IDBKey=} primary_key
-   * @param {IDBKey=} index_key
-   * @param {*=} value
+   * @param {IDBKey=} opt_effective_key effective key.
+   * @param {IDBKey=} opt_primary_key primary key.
+   * @param {*=} opt_value recrod value.
+   * @this {ydn.db.core.req.WebsqlCursor}
    */
-  var fnc = function(primary_key, index_key, value) {
-    if (goog.isDefAndNotNull(primary_key)) {
-      var cmp2 = ydn.db.cmp(key, primary_key);
-      if (cmp2 == 0 || (cmp2 == 1 && me.reverse) ||
-          (cmp2 == -1 && !me.reverse)) {
-        me.onSuccess(primary_key, index_key, value);
+  var fnc = function(opt_effective_key, opt_primary_key, opt_value) {
+    if (goog.isDefAndNotNull(opt_effective_key)) {
+      var cmp2 = ydn.db.cmp(key, opt_effective_key);
+      if (cmp2 == 0 || (cmp2 == 1 && this.reverse) ||
+          (cmp2 == -1 && !this.reverse)) {
+        this.onSuccess(opt_effective_key, opt_primary_key, opt_value);
       } else {
         this.continuePrimaryKey(key);
       }
     } else {
-      me.onSuccess(undefined, undefined, undefined);
+      this.onSuccess(undefined, undefined, undefined);
     }
   };
 
-  this.continuePrimaryKey_(fnc, key)
+  this.continuePrimaryKey_(fnc, key);
 
 };
 

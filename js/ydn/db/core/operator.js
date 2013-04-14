@@ -321,7 +321,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
       }
       if (ydn.db.core.DbOperator.DEBUG) {
         window.console.log(me + ' ready and received result from solver ' +
-            ydn.json.stringify(out));
+            ydn.json.stringify(out) + ' for keys ' + ydn.json.stringify(keys));
       }
       var next_primary_keys = [];
       var next_effective_keys = [];
@@ -350,6 +350,16 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
           }
         }
       } else if (goog.isObject(out)) {
+        if (goog.DEBUG) {
+          var valid_att = ['advance', 'continue', 'continuePrimary', 'restart'];
+          for (var key in out) {
+            if (!goog.array.contains(valid_att, key)) {
+              throw new ydn.debug.error.InvalidOperationException(
+                  'Unknown attribute "' + key +
+                  '" in cursor advancement object');
+            }
+          }
+        }
         next_primary_keys = out['continuePrimary'] || [];
         next_effective_keys = out['continue'] || [];
         advance = out['advance'] || [];
@@ -383,13 +393,19 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
           }
           var iterator = iterators[idx];
           var cursor = cursors[i];
-          if (!goog.isDefAndNotNull(keys[i]) &&
-              (advance[i] === true ||
-                  goog.isDefAndNotNull(next_effective_keys[i]) ||
-                  goog.isDefAndNotNull(next_primary_keys[i]))) {
-            throw new ydn.error.InvalidOperationError(iterator + ' at ' + i +
-                ' must not advance.');
+          if (goog.DEBUG && !goog.isDefAndNotNull(keys[i])) {
+            if (goog.isDefAndNotNull(advance[i])) {
+              throw new ydn.error.InvalidOperationError(iterator + ' at ' + i +
+                  ' must not advance ' + advance[i] + ' steps');
+            } else if (goog.isDefAndNotNull(next_effective_keys[i])) {
+              throw new ydn.error.InvalidOperationError(iterator + ' at ' + i +
+                  ' must not continue to key ' + next_effective_keys[i]);
+            } else if (goog.isDefAndNotNull(next_primary_keys[i])) {
+              throw new ydn.error.InvalidOperationError(iterator + ' at ' + i +
+                  ' must not continue to primary key ' + next_primary_keys[i]);
+            }
           }
+
           keys[i] = undefined;
           values[i] = undefined;
 
@@ -420,6 +436,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
             }
             goog.asserts.assert(advance[i] === 1, i +
                 ' advance value must be 1');
+
             cursor.advance(1);
           } else {
             throw new ydn.error.InternalError(iterator + ': has no action');
@@ -485,8 +502,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
       var primary_key = cursor.getPrimaryKey();
       var value = cursor.getValue();
       if (ydn.db.core.DbOperator.DEBUG) {
-        window.console.log(['on_iterator_next', i, primary_key, opt_key, value,
-          idx2iterator[i], result_count]);
+        window.console.log(iterator + ' move to ' + opt_key);
       }
 
       if (iterator.isIndexIterator()) {
