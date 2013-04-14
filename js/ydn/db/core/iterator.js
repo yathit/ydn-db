@@ -49,8 +49,10 @@ goog.require('ydn.debug.error.ArgumentException');
  * @param {boolean=} opt_key_only true for key only iterator. Default value is
  * true if index is specified, false if not defined.
  * @constructor
+ * @struct
  */
-ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse, opt_unique, opt_key_only) {
+ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
+                           opt_unique, opt_key_only) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
     throw new ydn.debug.error.ArgumentException('store name must be a string');
@@ -396,24 +398,6 @@ ydn.db.Iterator.prototype.getDirection = function() {
 
 
 /**
- *
- * @return {*|undefined} return current primary key.
- */
-ydn.db.Iterator.prototype.getPrimaryKey = function() {
-  return this.cursor_ ? this.cursor_.getPrimaryKey() : undefined;
-};
-
-
-/**
- *
- * @return {*|undefined} return current effective key.
- */
-ydn.db.Iterator.prototype.getEffectiveKey = function() {
-  return this.cursor_ ? this.cursor_.getKey() : undefined;
-};
-
-
-/**
  * @return {ydn.db.IDBKeyRange} return key range.
  */
 ydn.db.Iterator.prototype.keyRange = function() {
@@ -531,7 +515,7 @@ if (goog.DEBUG) {
    */
   ydn.db.Iterator.prototype.toString = function() {
     var idx = goog.isDef(this.index) ? ':' + this.index : '';
-    if (goog.isDefAndNotNull(this.primary_key)) {
+    if (this.cursor_) {
       var close = ']';
       var start = '[';
       var state = this.getState();
@@ -542,8 +526,12 @@ if (goog.DEBUG) {
         start = '(';
         close = ')';
       }
-      var idx_key = this.isIndexIterator() ? ', ' + this.index_key : '';
-      idx += ' ' + start + this.primary_key + idx_key + close;
+      var key_str = this.cursor_.getKey();
+      var p_key = this.cursor_.getPrimaryKey();
+      if (goog.isDefAndNotNull(p_key)) {
+        key_str += ', ' + p_key;
+      }
+      idx = start + key_str + close;
     }
     var s = this.isIndexIterator() ? 'Index' : '';
     s += this.isKeyOnly() ? 'Key' : 'Value';
@@ -556,8 +544,8 @@ if (goog.DEBUG) {
  *
  * @return {*|undefined} Current cursor key.
  */
-ydn.db.Iterator.prototype.key = function() {
-  return this.primary_key;
+ydn.db.Iterator.prototype.getKey = function() {
+  return this.cursor_ ? this.cursor_.getKey() : undefined;
 };
 
 
@@ -565,8 +553,8 @@ ydn.db.Iterator.prototype.key = function() {
  *
  * @return {*|undefined} Current cursor index key.
  */
-ydn.db.Iterator.prototype.indexKey = function() {
-  return this.index_key;
+ydn.db.Iterator.prototype.getPrimaryKey = function() {
+  return this.cursor_ ? this.cursor_.getPrimaryKey() : undefined;
 };
 
 
@@ -577,9 +565,7 @@ ydn.db.Iterator.prototype.indexKey = function() {
  * iterator.
  */
 ydn.db.Iterator.prototype.resume = function(opt_key, opt_primary_key) {
-  // todo: check valid state
-  this.primary_key = opt_key;
-  this.index_key = opt_primary_key;
+  throw 'not impl';
 };
 
 
@@ -589,15 +575,6 @@ ydn.db.Iterator.prototype.resume = function(opt_key, opt_primary_key) {
  */
 ydn.db.Iterator.prototype.count = function() {
   return this.cursor_ ? this.cursor_.getCount() : NaN;
-};
-
-
-/**
- *
- * @return {boolean|undefined} number of record iterated.
- */
-ydn.db.Iterator.prototype.done = function() {
-  return this.has_done;
 };
 
 
@@ -1073,10 +1050,6 @@ ydn.db.Iterator.prototype.reset = function() {
   if (this.getState() == ydn.db.Iterator.State.WORKING) {
     throw new ydn.error.InvalidOperationError(ydn.db.Iterator.State.WORKING);
   }
-  this.counter = 0;
-  this.primary_key = undefined;
-  this.index_key = undefined;
-  this.has_done = undefined;
-
+  this.cursor_ = null;
 };
 

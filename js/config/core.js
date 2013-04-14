@@ -62,8 +62,8 @@ goog.exportSymbol('ydn.db.IndexValueCursors', ydn.db.IndexValueCursors);
 
 goog.exportProperty(ydn.db.Iterator.prototype, 'count',
     ydn.db.Iterator.prototype.count);
-goog.exportProperty(ydn.db.Iterator.prototype, 'done',
-    ydn.db.Iterator.prototype.done);
+goog.exportProperty(ydn.db.Iterator.prototype, 'getState',
+    ydn.db.Iterator.prototype.getState);
 goog.exportProperty(ydn.db.Iterator.prototype, 'getKeyRange',
     ydn.db.Iterator.prototype.getKeyRange);
 goog.exportProperty(ydn.db.Iterator.prototype, 'getIndexName',
@@ -76,23 +76,20 @@ goog.exportProperty(ydn.db.Iterator.prototype, 'isUnique',
     ydn.db.Iterator.prototype.isUnique);
 goog.exportProperty(ydn.db.Iterator.prototype, 'isKeyOnly',
     ydn.db.Iterator.prototype.isKeyOnly);
-goog.exportProperty(ydn.db.Iterator.prototype, 'primaryKey',
+goog.exportProperty(ydn.db.Iterator.prototype, 'getPrimaryKey',
     ydn.db.Iterator.prototype.getPrimaryKey);
-goog.exportProperty(ydn.db.Iterator.prototype, 'key',
-    ydn.db.Iterator.prototype.getEffectiveKey);
+goog.exportProperty(ydn.db.Iterator.prototype, 'getKey',
+    ydn.db.Iterator.prototype.getKey);
 goog.exportProperty(ydn.db.Iterator.prototype, 'resume',
     ydn.db.Iterator.prototype.resume);
 goog.exportProperty(ydn.db.Iterator.prototype, 'reset',
     ydn.db.Iterator.prototype.reset);
 
-goog.exportProperty(ydn.db.KeyCursors, 'where',
-  ydn.db.KeyCursors.where);
-goog.exportProperty(ydn.db.ValueCursors, 'where',
-  ydn.db.ValueCursors.where);
-goog.exportProperty(ydn.db.Cursors, 'where',
-  ydn.db.Cursors.where);
+goog.exportProperty(ydn.db.KeyCursors, 'where', ydn.db.KeyCursors.where);
+goog.exportProperty(ydn.db.ValueCursors, 'where', ydn.db.ValueCursors.where);
+goog.exportProperty(ydn.db.Cursors, 'where', ydn.db.Cursors.where);
 goog.exportProperty(ydn.db.IndexValueCursors, 'where',
-  ydn.db.IndexValueCursors.where);
+    ydn.db.IndexValueCursors.where);
 
 goog.exportSymbol('ydn.db.Streamer', ydn.db.Streamer);
 goog.exportProperty(ydn.db.Streamer.prototype, 'push',

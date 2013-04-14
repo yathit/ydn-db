@@ -20,6 +20,7 @@
 
 
 goog.provide('ydn.db.crud.DbOperator');
+goog.require('goog.debug.Logger');
 goog.require('ydn.db');
 goog.require('ydn.db.ISyncOperator');
 goog.require('ydn.db.Key');
@@ -27,7 +28,6 @@ goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IThread');
-goog.require('goog.debug.Logger');
 goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.error.NotSupportedException');
 
@@ -155,7 +155,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
         }
         key_range = ydn.db.KeyRange.parseIDBKeyRange(index_key_range);
       } else {
-        if (goog.DEBUG && goog.isDef(index_key_range)) {
+        if (goog.DEBUG && goog.isDefAndNotNull(index_key_range)) {
           throw new ydn.debug.error.ArgumentException('invalid key range: ' +
               ydn.json.toShortString(index_key_range) +
               ' of type ' + typeof index_key_range);
@@ -175,7 +175,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
         }
         key_range = ydn.db.KeyRange.parseIDBKeyRange(index_or_keyrange);
       } else {
-        if (goog.isDef(index_or_keyrange)) {
+        if (goog.isDefAndNotNull(index_or_keyrange)) {
           throw new ydn.debug.error.ArgumentException('key range must be ' +
               ' an object but found ' +
               ydn.json.toShortString(index_or_keyrange) + ' of type ' +

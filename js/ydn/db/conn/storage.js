@@ -81,11 +81,13 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   var options = opt_options || {};
 
   if (goog.DEBUG) {
-    var fields = ['autoSchema', 'connectionTimeout', 'size', 'mechanisms', 'thread'];
+    var fields = ['autoSchema', 'connectionTimeout', 'size', 'mechanisms',
+      'thread'];
     for (var key in options) {
-      if (options.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-        throw new ydn.debug.error.ArgumentException('Unknown attribute "' + key +
-          '" in options.');
+      if (options.hasOwnProperty(key) &&
+          goog.array.indexOf(fields, key) == -1) {
+        throw new ydn.debug.error.ArgumentException('Unknown attribute "' +
+            key + '" in options.');
       }
     }
   }
