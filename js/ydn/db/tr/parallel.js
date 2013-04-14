@@ -43,7 +43,7 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
 
   this.pl_tx_ex_ = null;
 
-  this.request_tx_ = null;
+  this.p_request_tx = null;
 
 };
 
@@ -82,7 +82,6 @@ ydn.db.tr.Parallel.prototype.tx_no_;
  * @private
  */
 ydn.db.tr.Parallel.prototype.pl_tx_ex_ = null;
-
 
 
 /**
@@ -138,7 +137,6 @@ ydn.db.tr.Parallel.prototype.getThreadName = function() {
 };
 
 
-
 /**
  *
  * @return {number} transaction count.
@@ -159,7 +157,7 @@ ydn.db.tr.Parallel.prototype.getQueueNo = function() {
 
 /**
  *
- * @return {string|undefined}
+ * @return {string|undefined} mechansim type.
  */
 ydn.db.tr.Parallel.prototype.type = function() {
   return this.storage_.getType();
@@ -217,7 +215,6 @@ ydn.db.tr.Parallel.prototype.subScope = function(store_names, mode) {
 };
 
 
-
 /**
  * Abort an active transaction.
  * @throws InvalidStateError if transaction is not active.
@@ -238,8 +235,8 @@ ydn.db.tr.Parallel.prototype.getExecutor = goog.abstractMethod;
 
 
 /**
- * @param {!Array.<string>} store_names
- * @param {ydn.db.base.TransactionMode} mode
+ * @param {!Array.<string>} store_names store names for scope.
+ * @param {ydn.db.base.TransactionMode} mode tx mode.
  * @return {boolean} return true if given scope and mode is compatible with
  * active transaction and should be reuse.
  * @protected
@@ -288,7 +285,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
     window.console.log(this +
         ' ' + this.pl_tx_ex_ +
         (reused ? ' reusing transaction' : ' opening transaction ') +
-         ' for mode:' + mode + ' scopes:' +
+        ' for mode:' + mode + ' scopes:' +
         ydn.json.stringify(store_names));
   }
 
@@ -296,7 +293,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
     this.pl_tx_ex_.executeTx(callback, on_completed);
   } else {
     this.storage_.transaction(transaction_process, store_names, mode,
-      completed_handler);
+        completed_handler);
   }
 
 };
@@ -306,38 +303,45 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
  * @inheritDoc
  */
 ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
-                                                   scope_name, on_completed) {
+                                             on_completed) {
 
   var me = this;
-  this.processTx(function(tx) {
+  var rq_label;
 
+  this.processTx(function(tx) {
+    me.r_no_++;
+    rq_label = me.getLabel() + 'R' + me.r_no_;
     /**
      *
      * @param {*} result
-     * @param {boolean=} opt_is_error
+     * @param {boolean=} is_error
      */
-    var resultCallback = function(result, opt_is_error) {
+    var resultCallback = function(result, is_error) {
       me.p_request_tx = tx; // so that we can abort it.
-      if (opt_is_error) {
+      rq_label = me.getLabel() + 'R' + me.r_no_;
+      if (is_error) {
+        me.logger.finer(rq_label + ' ERROR');
         df.errback(result);
       } else {
+        me.logger.finer(rq_label + ' SUCCESS');
         df.callback(result);
       }
       me.p_request_tx = null;
       resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
-
+    me.logger.finer(rq_label + ' BEGIN');
     callback(tx, me.getLabel(), resultCallback);
+    me.logger.finer(rq_label + ' END');
   }, store_names, mode, on_completed);
 };
 
 
 /**
  *
- * @return {string}
+ * @return {string} label.
  */
 ydn.db.tr.Parallel.prototype.getLabel = function() {
-  return 'B' + this.q_no_ + 'T' + this.tx_no_ + 'R' + this.r_no_;
+  return 'B' + this.q_no_ + 'T' + this.tx_no_;
 };
 
 
