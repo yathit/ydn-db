@@ -47,8 +47,8 @@ ydn.db.crud.IOperator.prototype.get = goog.abstractMethod;
 /**
  * Return object or objects of given key or keys.
  * @param {(*|string|!Array.<!ydn.db.Key>)=} arg1 table name.
- * @param {(string|KeyRangeJson|ydn.db.KeyRange|!Array.<!IDBKey>)=} arg2 list of primary
- * keys or key range.
+ * @param {(string|KeyRangeJson|ydn.db.KeyRange|!Array.<!IDBKey>|number)=} arg2
+ * list of primary keys or key range.
  * @param {(number|KeyRangeJson|ydn.db.KeyRange)=} arg3 limit.
  * @param {number=} arg4 offset.
  * @param {(boolean|number)=} arg5 index name.
@@ -59,9 +59,10 @@ ydn.db.crud.IOperator.prototype.values = goog.abstractMethod;
 
 
 /**
- * List keys.
+ * List keys or effective keys.
  * @param {string|*} store_name or iterator
- * @param {(string|ydn.db.KeyRange|KeyRangeJson)=} arg1 key range or index name.
+ * @param {(string|ydn.db.KeyRange|KeyRangeJson|number)=} arg1 key range
+ * or index name or limit for iterator.
  * @param {(number|ydn.db.KeyRange|KeyRangeJson)=} arg2 limit or key range
  * @param {number=} arg3 offset or limit
  * @param {(boolean|number)=} arg4 reverse or offset.

@@ -155,9 +155,13 @@ ydn.db.Cursor.prototype.init_ = function() {
         goog.asserts.assert(result_count == total);
         me.count_++;
         if (me.done_) {
+          me.logger.finest(me + ' DONE.');
           me.onNext();
           me.finalize_();
         } else {
+          var key_str = me.is_index ?
+              me.keys_[0] + ' ' + me.primary_keys_[0] : me.keys_[0];
+          me.logger.finest(me + ' responding new cursor step ' + key_str);
           me.onNext(me.keys_[0]);
         }
         result_count = 0;

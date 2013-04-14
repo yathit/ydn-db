@@ -65,15 +65,6 @@ ydn.db.crud.req.IndexedDb.prototype.logger =
 
 
 /**
- *
- * @return {!IDBTransaction} casted tx.
- */
-ydn.db.crud.req.IndexedDb.prototype.getTx = function() {
-  return /** @type {!IDBTransaction} */ (this.tx);
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df,
@@ -574,7 +565,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
   var msg = tx_no + ' clearById: ' + store_name + ' ' + key;
   this.logger.finest(msg);
 
-  var request = store.openCursor(/** @type {IDBKeyRange} */ (key));
+  var request = store.openCursor(ydn.db.IDBKeyRange.only(key));
   request.onsuccess = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, key, event]);
@@ -631,8 +622,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
       store = tx.objectStore(store_name);
     }
 
-    // todo: optimize request by reusing for continuous keys
-    var request = store.openCursor(/** @type {null} */ (keys[i].getId()));
+    var request = store.openCursor(ydn.db.IDBKeyRange.only(keys[i].getId()));
     // casting to null is weired, but argument of openCursor can be IDBKeyRange
     // or key. But annotation only allow IDBKeyRange or null.
 

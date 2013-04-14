@@ -58,15 +58,6 @@ ydn.db.crud.req.SimpleStore.DEBUG = false;
 
 
 /**
- *
- * @return {ydn.db.con.SimpleStorage}
- */
-ydn.db.crud.req.SimpleStore.prototype.getTx = function() {
-  return /** @type {ydn.db.con.SimpleStorage} */ (this.tx);
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.keysByIndexKeyRange = function(tx, tx_no,

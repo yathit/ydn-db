@@ -251,7 +251,7 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
   } else if (this.db_) {
     me.logger.finest(me + ' creating tx from ydn.db.con.IStorage.');
     this.on_tx_request_ = true;
-    this.db_.transaction(function(/** @type {IDBTransaction} */ tx) {
+    this.db_.transaction(function(tx) {
       me.on_tx_request_ = false;
       //console.log(tx)
       doRequest(tx);

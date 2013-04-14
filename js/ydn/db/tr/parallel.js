@@ -20,10 +20,11 @@ goog.require('ydn.db.tr.ParallelTxExecutor');
  * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
- * @param {string=} thread_name scope name.
+ * @param {number=} opt_max_tx_no limit number of transaction created.
  * @constructor
+ * @struct
  */
-ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
+ydn.db.tr.Parallel = function(storage, ptx_no, opt_max_tx_no) {
 
   /**
    * @final
@@ -44,6 +45,8 @@ ydn.db.tr.Parallel = function(storage, ptx_no, thread_name) {
   this.pl_tx_ex_ = null;
 
   this.p_request_tx = null;
+
+  this.max_tx_no_ = opt_max_tx_no || 0;
 
 };
 
@@ -74,6 +77,13 @@ ydn.db.tr.Parallel.prototype.q_no_;
  * @type {number} thread number.
  */
 ydn.db.tr.Parallel.prototype.tx_no_;
+
+
+/**
+ * @type {number} limit number of transactions.
+ * @private
+ */
+ydn.db.tr.Parallel.prototype.max_tx_no_ = 0;
 
 
 /**
@@ -292,6 +302,10 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
   if (reused) {
     this.pl_tx_ex_.executeTx(callback, on_completed);
   } else {
+    if (this.max_tx_no_ && me.tx_no_ > this.max_tx_no_) {
+      throw new ydn.debug.error.InvalidOperationException(
+          'Exceed maximum number of transactions of ' + this.max_tx_no_);
+    }
     this.storage_.transaction(transaction_process, store_names, mode,
         completed_handler);
   }
@@ -327,10 +341,10 @@ ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
         df.callback(result);
       }
       me.p_request_tx = null;
-      resultCallback = /** @type {function (*, boolean=)} */ (null);
     };
     me.logger.finer(rq_label + ' BEGIN');
     callback(tx, me.getLabel(), resultCallback);
+    callback = null;
     me.logger.finer(rq_label + ' END');
   }, store_names, mode, on_completed);
 };

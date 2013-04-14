@@ -192,7 +192,7 @@ ydn.db.KeyRange.starts = function(value) {
  *
  * @param {ydn.db.IDBKeyRange|ydn.db.KeyRange|KeyRangeJson} keyRange
  * IDBKeyRange.
- * @return {!KeyRangeJson} IDBKeyRange in JSON format.
+ * @return {!Object} IDBKeyRange in JSON format.
  */
 ydn.db.KeyRange.toJSON = function(keyRange) {
   keyRange = keyRange || /** @type {KeyRangeJson} */ ({});
@@ -202,7 +202,7 @@ ydn.db.KeyRange.toJSON = function(keyRange) {
     'lowerOpen': keyRange['lowerOpen'],
     'upperOpen': keyRange['upperOpen']
   };
-  return /** @type {!KeyRangeJson} */ (out);
+  return out;
 };
 
 
@@ -235,7 +235,7 @@ ydn.db.KeyRange.parseKeyRange = function(key_range) {
 /**
  * Read four primitive attributes from the input and return newly created
  * keyRange object.
- * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} opt_key_range
+ * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange|Object)=} opt_key_range
  * keyRange.
  * @return {?IDBKeyRange} equivalent IDBKeyRange. Newly created IDBKeyRange.
  * null if input is null or undefined.

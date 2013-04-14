@@ -37,13 +37,11 @@ ydn.db.tr.ParallelTxExecutor.prototype.tx_ = null;
 ydn.db.tr.ParallelTxExecutor.prototype.tx_no_;
 
 
-
 /**
  * @private
- * @type {Array.<string>}
+ * @type {Array.<Function>}
  */
 ydn.db.tr.ParallelTxExecutor.prototype.oncompleted_handlers;
-
 
 
 /**
@@ -52,11 +50,13 @@ ydn.db.tr.ParallelTxExecutor.prototype.oncompleted_handlers;
  */
 ydn.db.tr.ParallelTxExecutor.prototype.scopes_;
 
+
 /**
  * @type {ydn.db.base.TransactionMode?}
  * @private
  */
 ydn.db.tr.ParallelTxExecutor.prototype.mode_;
+
 
 /**
  *
@@ -65,6 +65,7 @@ ydn.db.tr.ParallelTxExecutor.prototype.mode_;
 ydn.db.tr.ParallelTxExecutor.prototype.isActive = function() {
   return !!this.tx_;
 };
+
 
 /**
  *

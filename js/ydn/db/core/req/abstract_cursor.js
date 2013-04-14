@@ -162,7 +162,7 @@ ydn.db.core.req.AbstractCursor.prototype.isIndexCursor = function() {
 
 /**
  *
- * @param {!Error} e error object.
+ * @param {!Error|SQLError} e error object.
  */
 ydn.db.core.req.AbstractCursor.prototype.onError = function(e) {
   throw new ydn.debug.error.InternalError();

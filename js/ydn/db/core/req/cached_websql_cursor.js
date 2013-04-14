@@ -287,7 +287,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
     }
     me.has_pending_request = false;
     me.logger.warning('get error: ' + error.message);
-    me.onError(/** @type {!Error} */ (error));
+    me.onError(error);
     return true; // roll back
 
   };

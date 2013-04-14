@@ -142,33 +142,47 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     store_names = [store_name];
 
     if (goog.isString(index_or_keyrange)) {
+      // index key range count.
       index_name = index_or_keyrange;
-      if (goog.DEBUG) {
-        var msg1 = ydn.db.KeyRange.validate(
-          /** @type {KeyRangeJson} */ (index_or_keyrange));
-        if (msg1) {
-          throw new ydn.debug.error.ArgumentException('invalid key range: ' +
-            ydn.json.toShortString(index_key_range) + ' ' + msg1);
+
+      if (goog.isObject(index_key_range)) {
+        if (goog.DEBUG) {
+          var msg1 = ydn.db.KeyRange.validate(index_key_range);
+          if (msg1) {
+            throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+                ydn.json.toShortString(index_key_range) + ' ' + msg1);
+          }
         }
+        key_range = ydn.db.KeyRange.parseIDBKeyRange(index_key_range);
+      } else {
+        if (goog.DEBUG && goog.isDef(index_key_range)) {
+          throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+              ydn.json.toShortString(index_key_range) +
+              ' of type ' + typeof index_key_range);
+        }
+        key_range = null;
       }
-      key_range = ydn.db.KeyRange.parseIDBKeyRange(
-        /** @type {ydn.db.IDBKeyRange} */ (index_key_range));
     } else if (goog.isObject(index_or_keyrange) ||
-      !goog.isDef(index_or_keyrange)) {
-      if (goog.isDef(index_key_range)) {
-        throw new ydn.debug.error.ArgumentException(
-            'Invalid key range "' + ydn.json.toShortString(index_key_range) +
-            '"');
-      }
-      if (goog.DEBUG) {
-        var msg = ydn.db.KeyRange.validate(
-          /** @type {KeyRangeJson} */ (index_or_keyrange));
-        if (msg) {
-          throw new ydn.debug.error.ArgumentException('invalid key range: ' +
-            ydn.json.toShortString(index_key_range) + ' ' + msg);
+        !goog.isDef(index_or_keyrange)) {
+
+      if (goog.isObject(index_or_keyrange)) {
+        if (goog.DEBUG) {
+          var msg = ydn.db.KeyRange.validate(index_or_keyrange);
+          if (msg) {
+            throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+                ydn.json.toShortString(index_or_keyrange) + ' ' + msg);
+          }
         }
+        key_range = ydn.db.KeyRange.parseIDBKeyRange(index_or_keyrange);
+      } else {
+        if (goog.isDef(index_or_keyrange)) {
+          throw new ydn.debug.error.ArgumentException('key range must be ' +
+              ' an object but found ' +
+              ydn.json.toShortString(index_or_keyrange) + ' of type ' +
+              typeof index_or_keyrange);
+        }
+        key_range = null;
       }
-      key_range = ydn.db.KeyRange.parseIDBKeyRange(index_or_keyrange);
     } else {
       throw new ydn.debug.error.ArgumentException('key range must be an ' +
           'object, but ' + ydn.json.toShortString(index_key_range) +
@@ -176,7 +190,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     }
 
     this.logger.finer('countKeyRange: ' + store_names[0] + ' ' +
-      (index_name ? index_name : '') + ydn.json.stringify(key_range));
+        (index_name ? index_name : '') + ydn.json.stringify(key_range));
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       me.getExecutor().countKeyRange(tx, tx_no, cb, store_names[0], key_range,
         index_name, !!unique);
@@ -238,7 +252,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
         df.errback(e);
       });
       if (goog.DEBUG) {
-        var msg = ydn.db.KeyRange.validate(/** @type {KeyRangeJson} */ (arg2));
+        var msg = ydn.db.KeyRange.validate(arg2);
         if (msg) {
           throw new ydn.debug.error.ArgumentException('invalid key range: ' +
               arg2 + ' ' + msg);
@@ -386,14 +400,22 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
           index_name, range, reverse, limit, offset, false);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
   } else {
-    if (goog.DEBUG) {
-      var msg = ydn.db.KeyRange.validate(arg1);
-      if (msg) {
-        throw new ydn.debug.error.ArgumentException('invalid key range: ' +
-            arg1 + ' ' + msg);
+    if (goog.isObject(arg1)) {
+      if (goog.DEBUG) {
+        var msg = ydn.db.KeyRange.validate(arg1);
+        if (msg) {
+          throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+              ydn.json.toShortString(arg1) + ' ' + msg);
+        }
       }
+      range = ydn.db.KeyRange.parseIDBKeyRange(arg1);
+    } else {
+      if (goog.DEBUG && goog.isDefAndNotNull(arg1)) {
+        throw new TypeError('invalid key range: ' +
+            ydn.json.toShortString(arg1) + ' of type ' + typeof arg1);
+      }
+      range = null;
     }
-    range = ydn.db.KeyRange.parseIDBKeyRange(arg1);
     if (goog.isNumber(arg2)) {
       limit = arg2;
     } else if (!goog.isDef(arg2)) {
@@ -528,14 +550,20 @@ ydn.db.crud.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
       }
 
     } else {
-      if (goog.DEBUG) {
-        var msg = ydn.db.KeyRange.validate(arg2);
-        if (msg) {
-          throw new ydn.debug.error.ArgumentException('invalid key range: ' +
-              arg2 + ' ' + msg);
+      var range = null;
+      if (goog.isObject(arg2)) {
+        if (goog.DEBUG) {
+          var msg = ydn.db.KeyRange.validate(arg2);
+          if (msg) {
+            throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+                arg2 + ' ' + msg);
+          }
         }
+        range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
+      } else if (goog.DEBUG && goog.isDefAndNotNull(arg2)) {
+        throw new TypeError('expect key range object, but found "' +
+            ydn.json.toShortString(arg2) + '" of type ' + typeof arg2);
       }
-      var range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
       if (!goog.isDef(arg3)) {
         limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
       } else if (goog.isNumber(arg3)) {
@@ -1004,7 +1032,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
  * This is friendly module use only.
  * @param {string} store_name store name.
  * @param {!Array.<Object>} objs objects.
- * @param {!Array.<Object>=} opt_keys keys.
+ * @param {!Array.<!IDBKey>=} opt_keys keys.
  * @return {!goog.async.Deferred} df return no result.
  * @override
  */

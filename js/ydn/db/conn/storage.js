@@ -122,8 +122,12 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    * Transaction queue
    * @private
    * @final
-   * @type {!Array.<{fnc: Function, scopes: Array.<string>,
-   * mode: ydn.db.base.TransactionMode, oncompleted: Function}>}
+   * @type {!Array.<{
+   *    fnc: Function,
+   *    scopes: Array.<string>,
+   *    mode: ydn.db.base.TransactionMode,
+   *    oncompleted: function(ydn.db.base.TxEventTypes, *)
+   *  }>}
    */
   this.txQueue_ = [];
 

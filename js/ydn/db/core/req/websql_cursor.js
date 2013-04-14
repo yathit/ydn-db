@@ -288,7 +288,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
       window.console.log([sql, error]);
     }
     me.logger.warning('get error: ' + error.message);
-    me.onError(/** @type {!Error} */ (error));
+    me.onError(error);
     me.collect();
     callback.call(me, me.current_primary_key_, me.current_key_,
         me.current_value_);
@@ -358,8 +358,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
       // if lower == upper and one of the boundOpen is true,
       // the range condition cannot be met and it is DataError for KeyRange.
       // We rely this invalid key range for SQL query that return no results.
-      var kr = new ydn.db.KeyRange(lower, upper, !!lowerOpen, !!upperOpen);
-      return /** @type {IDBKeyRange} */ (kr);
+      return new ydn.db.KeyRange(lower, upper, !!lowerOpen, !!upperOpen);
 
     } else {
       if (reverse) {
@@ -444,7 +443,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
       window.console.log([sql, tr, error]);
     }
     me.logger.warning('get error: ' + error.message);
-    me.onError(/** @type {!Error} */ (error));
+    me.onError(error);
     me.collect();
     callback.call(me, me.current_primary_key_, me.current_key_,
         me.current_value_);
