@@ -41,14 +41,14 @@ ydn.db.core.req.IndexedDb.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.core.req.IndexedDb.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.core.req.IndexedDb');
+    goog.debug.Logger.getLogger('ydn.db.core.req.IndexedDb');
 
 
 /**
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
-     iter, limit, offset) {
+    iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
   var msg = tx_no + ' keysByIterator:' + iter;

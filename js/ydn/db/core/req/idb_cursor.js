@@ -70,7 +70,8 @@ ydn.db.core.req.IDBCursor.prototype.logger =
 ydn.db.core.req.IDBCursor.prototype.defaultOnSuccess = function(ev) {
   var cursor = ev.target.result;
   if (ydn.db.core.req.IDBCursor.DEBUG) {
-    window.console.log(this + ' onSuccess ' + (cursor ? cursor.key : ''));
+    window.console.log(this + ' onSuccess ' + (cursor ?
+        cursor.key + ', ' + cursor.primaryKey : ''));
   }
   if (cursor) {
     var p_key = this.isIndexCursor() ? cursor.primaryKey : undefined;
@@ -148,7 +149,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
 
   var me = this;
   request.onerror = function(ev) {
-    var err = ev.target.error;
+    var err = request.error;
     me.onError(err);
   };
 

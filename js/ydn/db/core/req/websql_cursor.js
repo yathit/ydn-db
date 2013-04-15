@@ -218,12 +218,15 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
           lower : key;
     }
     if (goog.isDefAndNotNull(lower) && goog.isDefAndNotNull(upper)) {
-      key_range = ydn.db.IDBKeyRange.bound(lower, upper,
-          lowerOpen, upperOpen);
+      // here, sometime, we rely unvalid key range such as
+      // lower = upper, lowerPen = true, upperOpen = false
+      // IDBKeyRange will not accept such invalid key range.
+      key_range = ydn.db.KeyRange.bound(lower, upper,
+          !!lowerOpen, !!upperOpen);
     } else if (goog.isDefAndNotNull(lower)) {
-      key_range = ydn.db.IDBKeyRange.lowerBound(lower, lowerOpen);
+      key_range = ydn.db.IDBKeyRange.lowerBound(lower, !!lowerOpen);
     } else {
-      key_range = ydn.db.IDBKeyRange.upperBound(upper, upperOpen);
+      key_range = ydn.db.IDBKeyRange.upperBound(upper, !!upperOpen);
     }
   } else {
     if (this.reverse) {
@@ -490,7 +493,6 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
 
   var df = new goog.async.Deferred();
   var me = this;
-  this.has_pending_request = true;
   var primary_key = /** @type {!Array|number|string} */(this.getPrimaryKey());
 
   /**
@@ -501,7 +503,6 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, results]);
     }
-    me.has_pending_request = false;
     df.callback(primary_key);
   };
 
@@ -514,7 +515,6 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, tr, error]);
     }
-    me.has_pending_request = false;
     me.logger.warning('get error: ' + error.message);
     df.errback(error);
     return false;
@@ -588,7 +588,6 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
 
   var df = new goog.async.Deferred();
   var me = this;
-  this.has_pending_request = true;
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -598,7 +597,6 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, results]);
     }
-    me.has_pending_request = false;
     df.callback(results.rowsAffected);
   };
 
@@ -611,7 +609,6 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, tr, error]);
     }
-    me.has_pending_request = false;
     me.logger.warning('get error: ' + error.message);
     df.errback(error);
     return false;
@@ -648,16 +645,13 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
   goog.asserts.assert(this.isIndexCursor());
   goog.asserts.assert(goog.isDefAndNotNull(this.current_key_));
   goog.asserts.assert(goog.isDefAndNotNull(this.current_primary_key_));
-  if (!goog.isDefAndNotNull(this.current_primary_key_)) {
-    // primary key can continue only if there was previous key
-    this.onSuccess(undefined, undefined, undefined);
-    return;
-  }
+  console.log(this + ' continuePrimaryKey ' + key);
   var cmp = ydn.db.cmp(key, this.current_primary_key_);
   if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
     throw new ydn.error.InvalidOperationError(this +
-        ' to continuePrimaryKey for "' +
-        key + '" on ' + this.dir + ' direction is wrong');
+        ' to continuePrimaryKey ' +
+        ' from ' + this.current_primary_key_ + ' to ' + key +
+        ' on ' + this.dir + ' direction is wrong');
   }
 
   /**
@@ -669,19 +663,20 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
    */
   var fnc = function(opt_effective_key, opt_primary_key, opt_value) {
     if (goog.isDefAndNotNull(opt_effective_key)) {
+      // effective key must not change
       var cmp2 = ydn.db.cmp(key, opt_effective_key);
       if (cmp2 == 0 || (cmp2 == 1 && this.reverse) ||
           (cmp2 == -1 && !this.reverse)) {
         this.onSuccess(opt_effective_key, opt_primary_key, opt_value);
       } else {
-        this.continuePrimaryKey(key);
+        this.continuePrimaryKey_(key);
       }
     } else {
       this.onSuccess(undefined, undefined, undefined);
     }
   };
 
-  this.continuePrimaryKey_(fnc, key);
+  this.continuePrimaryKey_(fnc, key, true);
 
 };
 

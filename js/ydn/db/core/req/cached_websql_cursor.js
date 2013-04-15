@@ -252,8 +252,6 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
 //    sqls.push(' LIMIT ' + 1);
 //  }
 
-  this.has_pending_request = true;
-
   /**
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.

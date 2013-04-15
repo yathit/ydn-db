@@ -159,9 +159,9 @@ ydn.db.Cursor.prototype.init_ = function() {
           me.onNext();
           me.finalize_();
         } else {
-          var key_str = me.is_index ?
-              me.keys_[0] + ' ' + me.primary_keys_[0] : me.keys_[0];
-          me.logger.finest(me + ' responding new cursor step ' + key_str);
+          var key_str = goog.isDefAndNotNull(me.primary_keys_[0]) ?
+              me.keys_[0] + ', ' + me.primary_keys_[0] : me.keys_[0];
+          me.logger.finest(me + ' new cursor position {' + key_str + '}');
           me.onNext(me.keys_[0]);
         }
         result_count = 0;
@@ -249,6 +249,7 @@ ydn.db.Cursor.prototype.getValue = function(opt_idx) {
  * @param {IDBKey=} opt_primary_key primary key.
  */
 ydn.db.Cursor.prototype.restart = function(opt_key, opt_primary_key) {
+  this.done_ = false;
   this.cursors_[0].restart(opt_primary_key, opt_key);
 };
 
@@ -258,6 +259,7 @@ ydn.db.Cursor.prototype.restart = function(opt_key, opt_primary_key) {
  * @param {IDBKey} key primary key position to continue.
  */
 ydn.db.Cursor.prototype.continuePrimaryKey = function(key) {
+  console.log(this + ' continuePrimaryKey ' + key)
   this.cursors_[0].continuePrimaryKey(key);
 };
 

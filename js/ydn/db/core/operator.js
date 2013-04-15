@@ -320,7 +320,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
         out = solver(keys, values);
       }
       if (ydn.db.core.DbOperator.DEBUG) {
-        window.console.log(me + ' ready and received result from solver ' +
+        window.console.log(me + ' received result from solver ' +
             ydn.json.stringify(out) + ' for keys ' + ydn.json.stringify(keys));
       }
       var next_primary_keys = [];
@@ -371,7 +371,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
       result_count = 0;
       for (var i = 0; i < iterators.length; i++) {
         if (goog.isDefAndNotNull(next_primary_keys[i]) ||
-            goog.isDefAndNotNull(next_effective_keys[i]) ||
+            goog.isDef(next_effective_keys[i]) ||
             goog.isDefAndNotNull(restart[i]) ||
             goog.isDefAndNotNull(advance[i])) {
           // by marking non moving iterator first, both async and sync callback
@@ -383,7 +383,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
       }
       for (var i = 0; i < iterators.length; i++) {
         if (goog.isDefAndNotNull(next_primary_keys[i]) ||
-            goog.isDefAndNotNull(next_effective_keys[i]) ||
+            goog.isDef(next_effective_keys[i]) ||
             goog.isDefAndNotNull(restart[i]) ||
             goog.isDefAndNotNull(advance[i])) {
           var idx = idx2iterator[i];
@@ -408,6 +408,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
 
           keys[i] = undefined;
           values[i] = undefined;
+          console.log(i)
 
           if (goog.isDefAndNotNull(restart[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
@@ -417,7 +418,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
             goog.asserts.assert(restart[i] === true, i +
                 ' restart must be true');
             cursor.restart();
-          } else if (goog.isDefAndNotNull(next_effective_keys[i])) {
+          } else if (goog.isDef(next_effective_keys[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
               window.console.log(iterator + ': continuing to ' +
                   next_effective_keys[i]);
@@ -425,7 +426,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
             cursor.continueEffectiveKey(next_effective_keys[i]);
           } else if (goog.isDefAndNotNull(next_primary_keys[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
-              window.console.log(iterator + ': continuing to primary key ' +
+              window.console.log(cursor + ': continuing to primary key ' +
                   next_primary_keys[i]);
             }
             cursor.continuePrimaryKey(next_primary_keys[i]);
@@ -490,6 +491,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
         throw new ydn.error.InternalError();
       }
       result_count++;
+      var is_result_ready = result_count === total;
       var idx = idx2iterator[i];
       /**
        * @type {!ydn.db.Iterator}
@@ -502,24 +504,27 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
       var primary_key = cursor.getPrimaryKey();
       var value = cursor.getValue();
       if (ydn.db.core.DbOperator.DEBUG) {
-        window.console.log(iterator + ' move to ' + opt_key);
+        var key_str = opt_key +
+            (goog.isDefAndNotNull(primary_key) ? ', ' + primary_key : '');
+        var ready_str = is_result_ready ? ' (all result done)' : '';
+        window.console.log(cursor + ' new position ' + key_str + ready_str);
       }
 
+      keys[i] = opt_key;
       if (iterator.isIndexIterator()) {
-        keys[i] = opt_key;
         if (iterator.isKeyOnly()) {
           values[i] = primary_key;
         } else {
           values[i] = value;
         }
       } else {
-        keys[i] = opt_key;
         if (iterator.isKeyOnly()) {
           values[i] = opt_key;
         } else {
           values[i] = value;
         }
       }
+      // console.log([i, JSON.stringify(keys), JSON.stringify(values)])
 
       var streamer_idx = idx2streamer[i];
       for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
@@ -527,7 +532,7 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
         streamer.pull(opt_key, value);
       }
 
-      if (result_count === total) { // receive all results
+      if (is_result_ready) { // receive all results
         on_result_ready();
       }
 

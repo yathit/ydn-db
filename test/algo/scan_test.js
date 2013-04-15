@@ -13,9 +13,9 @@ var reachedFinalContinuation;
 
 
 var setUp = function() {
-  ydn.debug.log('ydn.db', 'finest');
-  ydn.db.core.req.IDBCursor.DEBUG = true;
-  ydn.db.core.DbOperator.DEBUG = true;
+  // ydn.debug.log('ydn.db', 'finest');
+  // ydn.db.core.req.IDBCursor.DEBUG = true;
+  // ydn.db.core.DbOperator.DEBUG = true;
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
   //ydn.db.con.WebSql.DEBUG = true;
   //ydn.db.core.req.CachedWebsqlCursor.DEBUG = true;
@@ -196,14 +196,17 @@ var test_scan_advance = function() {
         result_keys.push(values[0]); // we got the matching primary key.
       }
       if (keys[1] != null) {
+        //console.log('advance one step to inner loop')
         out = {advance: [null, 1]}; // iterate on inner loop
       } else {
+        //console.log('advance one step to outer loop and restart inner loop')
         out = {
-          advance: [1, null], // iterate on outer loop
-          restart: [null, true] // restart on inner loop
+          advance: [1, undefined], // iterate on outer loop
+          restart: [undefined, true] // restart on inner loop
         };
       }
     } else {
+      //console.log('scanning done')
       out = []; // no more iteration. we are done.
     }
 
@@ -257,7 +260,7 @@ var test_scan_effective_key = function() {
   var db = new ydn.db.Storage(db_name, schema, options);
   db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
-    console.log(db + 'store: ' + store_name + ' ready.');
+    // console.log(db + 'store: ' + store_name + ' ready.');
   });
 
 
