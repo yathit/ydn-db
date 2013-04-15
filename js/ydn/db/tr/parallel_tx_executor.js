@@ -118,7 +118,7 @@ ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function(on_tx, on_completed)
     }
   } else {
     throw new ydn.debug.error.InternalError(
-      'tx committed on ParallelTxExecutor');
+        'tx committed on ParallelTxExecutor');
   }
 };
 

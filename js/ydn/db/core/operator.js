@@ -408,7 +408,6 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
 
           keys[i] = undefined;
           values[i] = undefined;
-          console.log(i)
 
           if (goog.isDefAndNotNull(restart[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {

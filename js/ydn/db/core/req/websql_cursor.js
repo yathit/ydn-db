@@ -645,7 +645,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
   goog.asserts.assert(this.isIndexCursor());
   goog.asserts.assert(goog.isDefAndNotNull(this.current_key_));
   goog.asserts.assert(goog.isDefAndNotNull(this.current_primary_key_));
-  console.log(this + ' continuePrimaryKey ' + key);
+  // console.log(this + ' continuePrimaryKey ' + key);
   var cmp = ydn.db.cmp(key, this.current_primary_key_);
   if (cmp == 0 || (cmp == 1 && this.reverse) || (cmp == -1 && !this.reverse)) {
     throw new ydn.error.InvalidOperationError(this +
@@ -669,7 +669,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
           (cmp2 == -1 && !this.reverse)) {
         this.onSuccess(opt_effective_key, opt_primary_key, opt_value);
       } else {
-        this.continuePrimaryKey_(key);
+        throw 'not impl';
       }
     } else {
       this.onSuccess(undefined, undefined, undefined);

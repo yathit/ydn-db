@@ -259,7 +259,7 @@ ydn.db.Cursor.prototype.restart = function(opt_key, opt_primary_key) {
  * @param {IDBKey} key primary key position to continue.
  */
 ydn.db.Cursor.prototype.continuePrimaryKey = function(key) {
-  console.log(this + ' continuePrimaryKey ' + key)
+  // console.log(this + ' continuePrimaryKey ' + key)
   this.cursors_[0].continuePrimaryKey(key);
 };
 
