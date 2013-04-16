@@ -152,7 +152,10 @@ ydn.db.base.IDBTransaction =
             ydn.db.base.StandardTransactionMode :
             // old chrome use predefined enum, it can be string or numeric.
             (goog.global.webkitIDBRequest &&
-                ('LOADING' in goog.global.webkitIDBRequest)) ? // enum
+                // old webkit
+                ('LOADING' in goog.global.webkitIDBRequest &&
+                // old Chrome use 1; Android Webkit define 0, but not used
+                goog.global.webkitIDBTransaction.READ_WRITE === 1)) ?
                 goog.global.webkitIDBTransaction :
                 // for all others, assume standard.
                 ydn.db.base.StandardTransactionMode;

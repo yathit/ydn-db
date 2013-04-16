@@ -752,37 +752,38 @@ ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
 
 
 if (goog.DEBUG) { // don't allow to added non existing event type
-/**
- * @inheritDoc
- */
-ydn.db.con.Storage.prototype.addEventListener = function(
-    type, handler, opt_capture, opt_handlerScope) {
-  var checkType = function (type) {
-    if (!goog.array.contains(['created', 'ready', 'deleted', 'updated'],
-      type)) {
-      throw new ydn.debug.error.ArgumentException('Invalid event type "' +
-        type + '"');
+  /**
+   * @inheritDoc
+   */
+  ydn.db.con.Storage.prototype.addEventListener = function(
+      type, handler, opt_capture, opt_handlerScope) {
+    var checkType = function (type) {
+      if (!goog.array.contains(['created', 'ready', 'deleted', 'updated'],
+        type)) {
+        throw new ydn.debug.error.ArgumentException('Invalid event type "' +
+          type + '"');
+      }
+    };
+    if (goog.isArrayLike(type)) {
+      for (var i = 0; i < type.length; i++) {
+        checkType(type[i]);
+      }
+    } else {
+      checkType(type);
     }
+    goog.base(this, 'addEventListener', type, handler, opt_capture,
+      opt_handlerScope);
   };
-  if (goog.isArrayLike(type)) {
-    for (var i = 0; i < type.length; i++) {
-      checkType(type[i]);
-    }
-  } else {
-    checkType(type);
-  }
-  goog.base(this, 'addEventListener', type, handler, opt_capture,
-    opt_handlerScope);
-};
 }
 
-
-/**
- * @inheritDoc
- */
-ydn.db.con.Storage.prototype.toString = function() {
-  return 'ydn.db.con.Storage:' + this.db_;
-};
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.con.Storage.prototype.toString = function() {
+    return 'ydn.db.con.Storage:' + this.db_;
+  };
+}
 
 
 

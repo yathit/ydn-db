@@ -735,10 +735,12 @@ ydn.db.con.IndexedDb.prototype.close = function() {
 };
 
 
-/**
- * @override
- */
-ydn.db.con.IndexedDb.prototype.toString = function() {
-  var s = this.idx_db_ ? this.idx_db_.name + ':' + this.idx_db_.version : '';
-  return this.getType() + ':' + s;
-};
+if (goog.DEBUG) {
+  /**
+   * @override
+   */
+  ydn.db.con.IndexedDb.prototype.toString = function() {
+    var s = this.idx_db_ ? this.idx_db_.name + ':' + this.idx_db_.version : '';
+    return this.getType() + ':' + s;
+  };
+}
