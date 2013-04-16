@@ -326,7 +326,7 @@ var test_13_put_key = function() {
       db.close();
     },
     100, // interval
-    2000); // maxTimeout
+    1000); // maxTimeout
 
 
   db.put(key, value).addBoth(function(x) {
@@ -335,7 +335,7 @@ var test_13_put_key = function() {
     db.get(key).addBoth(function(x) {
       results = x;
       done = true;
-    })
+    });
   });
 };
 

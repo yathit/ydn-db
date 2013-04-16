@@ -285,10 +285,10 @@ ydn.db.con.SimpleStorage.prototype.getTxStorage = function(tx_fn) {
  */
 ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode,
                                                             oncompleted) {
-  goog.Timer.callOnce(function() {
-    var tx = new ydn.db.con.simple.TxStorage(this, oncompleted);
-    trFn(tx);
-  }, 0, this);
+  var tx = new ydn.db.con.simple.TxStorage(this, function (t, e) {
+    oncompleted(t, e);
+  });
+  trFn(tx);
 };
 
 

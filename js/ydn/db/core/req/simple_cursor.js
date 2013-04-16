@@ -50,6 +50,12 @@ ydn.db.core.req.SimpleCursor.DEBUG = false;
 
 
 /**
+ *
+ */
+ydn.db.core.req.SimpleCursor.storage_;
+
+
+/**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
@@ -95,24 +101,24 @@ ydn.db.core.req.SimpleCursor.prototype.value_;
  */
 ydn.db.core.req.SimpleCursor.prototype.current_;
 
-
-/**
- * @return {ydn.db.Buffer}
- * @protected
- */
-ydn.db.core.req.SimpleCursor.prototype.getBuffer = function() {
-  return this.getSimpleStore().getIndexCache(this.index_name);
-};
-
-
-/**
- *
- * @return {ydn.db.con.simple.Store}
- * @protected
- */
-ydn.db.core.req.SimpleCursor.prototype.getSimpleStore = function() {
-  return this.tx.getSimpleStore(this.store_name);
-};
+//
+///**
+// * @return {ydn.db.Buffer}
+// * @protected
+// */
+//ydn.db.core.req.SimpleCursor.prototype.getBuffer = function() {
+//  return this.getSimpleStore().getIndexCache(this.index_name);
+//};
+//
+//
+///**
+// *
+// * @return {ydn.db.con.simple.Store}
+// * @protected
+// */
+//ydn.db.core.req.SimpleCursor.prototype.getSimpleStore = function() {
+//  return this.tx.getSimpleStore(this.store_name);
+//};
 
 
 /**

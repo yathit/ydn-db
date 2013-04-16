@@ -14,7 +14,7 @@ goog.require('ydn.debug.error.ArgumentException');
 
 /**
  *
- * @param {ydn.db.con.IStorage|SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} storage storage connector.
+ * @param {ydn.db.con.IStorage|ydn.db.con.IDatabase.Transaction} storage storage connector.
  * @param {string} store_name store name.
  * @param {string=} field_name projection field name.
  * @constructor

@@ -139,8 +139,6 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
         var msg = goog.DEBUG ? ydn.json.toShortString(key) : '';
         var e = new ydn.db.ConstraintError(msg);
         df(e, true);
-        on_comp();
-        on_comp = null;
       }
     } else {
       var st = store_name;
@@ -170,9 +168,9 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
       }
       me.logger.finer((has_error ? 'error ' : 'success ') + label);
       df(arr, has_error);
-      on_comp();
-      on_comp = null;
     }
+    on_comp();
+    on_comp = null;
   }, this);
 };
 
