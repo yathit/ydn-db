@@ -74,9 +74,9 @@ ydn.db.tr.Parallel.prototype.q_no_;
 
 /**
  * @private
- * @type {number} thread number.
+ * @type {number} transaction count.
  */
-ydn.db.tr.Parallel.prototype.tx_no_;
+ydn.db.tr.Parallel.prototype.tx_no_ = 0;
 
 
 /**

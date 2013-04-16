@@ -438,7 +438,7 @@ var test_sum_where = function() {
     //console.log('receiving query ' + JSON.stringify(q_result));
     result = q_result;
     hasEventFired = true;
-  })
+  });
 
 };
 

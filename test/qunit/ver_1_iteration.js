@@ -4,13 +4,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finer', div);
+      ydn.debug.log('ydn.db', 'finest', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finer');
+      ydn.debug.log('ydn.db', 'finest');
     } else {
       console.log('no logging facility');
     }
@@ -78,15 +78,15 @@ db.put(store_name, data).done(function (value) {
   module("open", test_env);
   reporter.createTestSuite('iteration', 'open', ydn.db.version);
 
-  asyncTest("readonly table scan", function () {
+  asyncTest("readonly table scan for value iterator", function () {
     expect(3 * data.length);
 
     var iter = new ydn.db.ValueCursors(store_name);
     var idx = 0;
     var req = db.open(iter, function(x) {
-      deepEqual(x.key(), data[idx].id, 'table scan effective key at ' + idx);
-      deepEqual(x.primaryKey(), data[idx].id, 'table scan primary key at ' + idx);
-      deepEqual(x.value(), data[idx], 'table scan value at ' + idx);
+      deepEqual(x.getKey(), data[idx].id, 'table scan effective key at ' + idx);
+      deepEqual(x.getPrimaryKey(), data[idx].id, 'table scan primary key at ' + idx);
+      deepEqual(x.getValue(), data[idx], 'table scan value at ' + idx);
       idx++;
     });
     req.always(function() {
@@ -102,9 +102,9 @@ db.put(store_name, data).done(function (value) {
     var idx = 0;
     var req = db.open(iter, function(x) {
       var exp_obj = data[value_order[idx]];
-      deepEqual(x.key(), exp_obj.value, 'table index scan effective key at ' + idx);
-      deepEqual(x.primaryKey(), exp_obj.id, 'table index scan primary key at ' + idx);
-      equal(x.value(), undefined, 'table index scan value at ' + idx);
+      deepEqual(x.getKey(), exp_obj.value, 'table index scan effective key at ' + idx);
+      deepEqual(x.getPrimaryKey(), exp_obj.id, 'table index scan primary key at ' + idx);
+      equal(x.getValue(), undefined, 'table index scan value at ' + idx);
       idx++;
     });
     req.always(function() {
@@ -120,9 +120,9 @@ db.put(store_name, data).done(function (value) {
     var idx = 0;
     var req = db.open(iter, function(x) {
       var exp_obj = data[value_order[idx]];
-      deepEqual(x.key(), exp_obj.value, 'table index scan effective key at ' + idx);
-      deepEqual(x.primaryKey(), exp_obj.id, 'table index scan primary key at ' + idx);
-      deepEqual(x.value(), exp_obj, 'table index scan value at ' + idx);
+      deepEqual(x.getKey(), exp_obj.value, 'table index scan effective key at ' + idx);
+      deepEqual(x.getPrimaryKey(), exp_obj.id, 'table index scan primary key at ' + idx);
+      deepEqual(x.getValue(), exp_obj, 'table index scan value at ' + idx);
       idx++;
     });
     req.always(function() {

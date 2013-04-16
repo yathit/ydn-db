@@ -329,9 +329,8 @@ var schema_1 = {
   module("values", test_env);
   reporter.createTestSuite('iterator', 'values', ydn.db.version);
 
-  asyncTest("1. Ref value by primary key range", function () {
+  asyncTest("1. Ref value by primary key range", 8, function () {
     df.always(function () {
-      expect(9);
 
       var key_range = ydn.db.KeyRange.bound(1, 3);
       var q = new ydn.db.ValueCursors(store_inline_index, key_range);
@@ -351,12 +350,6 @@ var schema_1 = {
       q = new ydn.db.ValueCursors(store_inline_index, key_range);
       db.values(q, 1).always(function (x) {
         deepEqual(x, objs.slice(1, 2), 'closed bound limit');
-      });
-
-      key_range = ydn.db.KeyRange.bound(1, 3);
-      q = new ydn.db.ValueCursors(store_inline_index, key_range);
-      db.values(q, 1, 1).always(function (x) {
-        deepEqual(x, objs.slice(2, 3), 'closed bound limit offset');
       });
 
       key_range = ydn.db.KeyRange.bound(1, 3);
@@ -588,12 +581,11 @@ var schema_1 = {
   reporter.createTestSuite('iterator', 'keys', ydn.db.version);
 
 
-  asyncTest("1. Effective key by by primary key range", function () {
+  asyncTest("1. Effective key by by primary key range", 8, function () {
     df.always(function () {
 
       var keys = objs.map(function(x) {return x.id});
 
-      expect(9);
 
       var key_range = ydn.db.KeyRange.bound(1, 3);
       var q = new ydn.db.ValueCursors(store_inline_index, key_range);
@@ -613,12 +605,6 @@ var schema_1 = {
       q = new ydn.db.ValueCursors(store_inline_index, key_range);
       db.keys(q, 1).always(function (x) {
         deepEqual(x, keys.slice(1, 2), 'closed bound limit');
-      });
-
-      key_range = ydn.db.KeyRange.bound(1, 3);
-      q = new ydn.db.ValueCursors(store_inline_index, key_range);
-      db.keys(q, 1, 1).always(function (x) {
-        deepEqual(x, keys.slice(2, 3), 'closed bound limit offset');
       });
 
       key_range = ydn.db.KeyRange.bound(1, 3);

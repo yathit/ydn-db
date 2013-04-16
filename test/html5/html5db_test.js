@@ -9,12 +9,6 @@ var reachedFinalContinuation, basic_schema;
 var table_name = 't1';
 
 var setUp = function() {
-  var c = new goog.debug.Console();
-  c.setCapturing(true);
-  goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
-  //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.LocalStorage').setLevel(goog.debug.Logger.Level.FINEST);
 
   var store = new ydn.db.schema.Store(table_name, 'id');
 	basic_schema = new ydn.db.schema.Database(1, [store]);
@@ -141,7 +135,7 @@ var test_4_get_all = function() {
       2000); // maxTimeout
 
 
-  db.get(table_name).addCallback(function(value) {
+  db.values(table_name).addCallback(function(value) {
     console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
@@ -161,7 +155,7 @@ var test_5_clear = function() {
       function() { return hasEventFired; },
       // Continuation
       function() {
-        assertEquals('clear', true, put_value);
+        assertEquals('clear one store', 1, put_value);
         // Remember, the state of this boolean will be tested in tearDown().
       },
       100, // interval

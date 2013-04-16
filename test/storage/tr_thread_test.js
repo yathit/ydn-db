@@ -21,9 +21,9 @@ var basic_schema = {
 
 
 var setUp = function() {
-  ydn.debug.log('ydn.db', 'finest');
-  ydn.db.tr.StrictOverflowParallel.DEBUG = true;
-  ydn.db.tr.Parallel.DEBUG = true;
+  //ydn.debug.log('ydn.db', 'finest');
+  //ydn.db.tr.StrictOverflowParallel.DEBUG = true;
+  //ydn.db.tr.Parallel.DEBUG = true;
 // ydn.db.con.IndexedDb.DEBUG = true;
 
 };

@@ -162,6 +162,15 @@ ydn.db.core.req.AbstractCursor.prototype.isIndexCursor = function() {
 
 /**
  *
+ * @return {boolean} return true if this is an value cursor.
+ */
+ydn.db.core.req.AbstractCursor.prototype.isValueCursor = function() {
+  return !this.key_only;
+};
+
+
+/**
+ *
  * @param {!Error|SQLError} e error object.
  */
 ydn.db.core.req.AbstractCursor.prototype.onError = function(e) {

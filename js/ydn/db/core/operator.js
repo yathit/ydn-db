@@ -7,12 +7,12 @@
 
 goog.provide('ydn.db.core.DbOperator');
 goog.require('ydn.db.Iterator');
-goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.db.core.IOperator');
 goog.require('ydn.db.core.req.IRequestExecutor');
 goog.require('ydn.db.core.req.IndexedDb');
 goog.require('ydn.db.core.req.SimpleStore');
 goog.require('ydn.db.core.req.WebSql');
+goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.debug.error.ArgumentException');
 
 
@@ -120,7 +120,8 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) {
           ' but ' + arg2);
     }
     if (goog.isDef(arg3)) {
-      throw new ydn.debug.error.ArgumentException('offset must be specified');
+      throw new ydn.debug.error.ArgumentException(
+          'offset must not be specified');
     }
 
     /**
@@ -198,7 +199,8 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
           'but ' + arg2);
     }
     if (goog.isDef(arg3)) {
-      throw new ydn.debug.error.ArgumentException('offset must be specified');
+      throw new ydn.debug.error.ArgumentException(
+          'offset must not be specified');
     }
 
     /**

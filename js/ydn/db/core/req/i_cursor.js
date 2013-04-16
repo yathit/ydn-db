@@ -95,3 +95,16 @@ ydn.db.core.req.ICursor.prototype.update = goog.abstractMethod;
  */
 ydn.db.core.req.ICursor.prototype.clear = goog.abstractMethod;
 
+
+/**
+ *
+ * @return {boolean} return true if this is an index cursor.
+ */
+ydn.db.core.req.ICursor.prototype.isIndexCursor = goog.abstractMethod;
+
+
+/**
+ *
+ * @return {boolean} return true if this is an value cursor.
+ */
+ydn.db.core.req.ICursor.prototype.isValueCursor = goog.abstractMethod;

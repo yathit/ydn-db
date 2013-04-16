@@ -34,11 +34,11 @@ goog.exportProperty(ydn.db.core.DbOperator.prototype, 'reduce',
 goog.exportProperty(ydn.db.core.DbOperator.prototype, 'open',
     ydn.db.core.DbOperator.prototype.open);
 
-goog.exportProperty(ydn.db.Cursor.prototype, 'key',
+goog.exportProperty(ydn.db.Cursor.prototype, 'getKey',
     ydn.db.Cursor.prototype.getKey);
-goog.exportProperty(ydn.db.Cursor.prototype, 'primaryKey',
+goog.exportProperty(ydn.db.Cursor.prototype, 'getPrimaryKey',
     ydn.db.Cursor.prototype.getPrimaryKey);
-goog.exportProperty(ydn.db.Cursor.prototype, 'value',
+goog.exportProperty(ydn.db.Cursor.prototype, 'getValue',
     ydn.db.Cursor.prototype.getValue);
 goog.exportProperty(ydn.db.Cursor.prototype, 'update',
     ydn.db.Cursor.prototype.update);

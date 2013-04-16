@@ -108,7 +108,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
      */
     cursor.onNext = function(opt_key) {
       if (goog.isDef(opt_key)) {
-        var value = iter.isIndexIterator() ?
+        var value = iter.isKeyOnly() ?
             cursor.getPrimaryKey() : cursor.getValue();
         out = reduce(value, out, i);
         cursor.advance(1);

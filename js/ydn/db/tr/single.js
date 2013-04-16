@@ -30,4 +30,12 @@ ydn.db.tr.Single = function(storage, ptx_no) {
 goog.inherits(ydn.db.tr.Single, ydn.db.tr.Parallel);
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.Single.prototype.reusedTx = function(scopes, mode) {
+  return true;
+};
+
+
 
