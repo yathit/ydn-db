@@ -116,9 +116,10 @@ ydn.db.base.TxEventTypes = {
 /**
  * The three possible transaction modes.
  * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
- * @enum {string|number}
+ * @enum {string}
+ * @protected
  */
-ydn.db.base.DefaultTransactionMode = {
+ydn.db.base.StandardTransactionMode = {
   'READ_ONLY': 'readonly',
   'READ_WRITE': 'readwrite',
   'VERSION_CHANGE': 'versionchange'
@@ -136,14 +137,21 @@ ydn.db.base.DefaultTransactionMode = {
  * https://bitbucket.org/ytkyaw/ydn-db/issue/28
  * http://code.google.com/p/chromium/issues/detail?id=155171
  * https://bitbucket.org/ytkyaw/ydn-db/pull-request/8 Old firefox has them too.
+ * https://bitbucket.org/ytkyaw/ydn-db/issue/57
  * @const
  * @type {*}
+ * @protected
  */
-ydn.db.base.IDBTransaction = (goog.global.webkitIDBRequest && (
-    'LOADING' in goog.global.webkitIDBRequest) ?
-    (goog.global.webkitIDBTransaction || goog.global.IDBTransaction) :
-    (goog.global.IDBRequest && ('LOADING' in goog.global.IDBRequest)) ?
-    goog.global.IDBTransaction : ydn.db.base.DefaultTransactionMode);
+ydn.db.base.IDBTransaction =
+    (goog.global.IDBRequest &&
+        ('LOADING' in goog.global.IDBRequest)) ? // old Firefox
+        goog.global.IDBTransaction :             // use predefined numeric enum.
+        goog.global.indexedDB ?                  // latest standard browsers use
+            ydn.db.base.StandardTransactionMode :// user defined string enum
+            (goog.global.webkitIDBRequest &&     // old chrome use predefined
+                ('LOADING' in goog.global.webkitIDBRequest)) ? // enum
+                goog.global.webkitIDBTransaction :  // can be string or numeric.
+                ydn.db.base.StandardTransactionMode;// for all others.
 
 
 /**
