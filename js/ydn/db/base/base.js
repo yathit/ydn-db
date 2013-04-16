@@ -147,19 +147,16 @@ ydn.db.base.IDBTransaction =
     (goog.global.IDBRequest &&
         ('LOADING' in goog.global.IDBRequest)) ?
         goog.global.IDBTransaction :
-        // all non-prefix IDB browsers use standard user defined string enum.
-        goog.global.indexedDB ?
-            ydn.db.base.StandardTransactionMode :
-            // old chrome use predefined enum, it can be string or numeric. ?
-            (goog.global.webkitIDBRequest &&
-                // old webkit has this const.
-                ('LOADING' in goog.global.webkitIDBRequest &&
-                // old Chrome define 1 and use;
-                // however Android Webkit define 0, but not used
-                goog.global.webkitIDBTransaction.READ_WRITE === 1)) ?
-                goog.global.webkitIDBTransaction :
-                // for all others, assume standard.
-                ydn.db.base.StandardTransactionMode;
+        // old chrome use predefined enum, it can be string or numeric. ?
+        (goog.global.webkitIDBRequest &&
+            // old webkit has this const.
+            ('LOADING' in goog.global.webkitIDBRequest &&
+            // old Chrome define 1 and use;
+            // however Android Webkit define 0, but not used
+            goog.global.webkitIDBTransaction.READ_WRITE === 1)) ?
+            goog.global.webkitIDBTransaction :
+            // for all others, assume standard.
+            ydn.db.base.StandardTransactionMode;
 
 
 /**
