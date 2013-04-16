@@ -33,9 +33,9 @@ var obj_schema = {
 
 var setUp = function() {
 
-  ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
   // ydn.db.core.req.IDBCursor.DEBUG = true;
-  ydn.db.core.DbOperator.DEBUG = true;
+  // ydn.db.core.DbOperator.DEBUG = true;
 
   objs = [
     {id:'qs0', value: 0, x: 1, tag: ['a', 'b']},
@@ -549,23 +549,21 @@ var test_21_scan_key_dual = function () {
   var q2 = new ydn.db.Cursors(store_name, 'x');
 
   db = load_default();
-  var req = db.scan([q1, q2], function join_algo (index_key, key) {
-    //console.log(['receiving ', key, index_key]);
-    if (goog.isDef(key[0])) {
-      streaming_keys.push(key[0]);
-      streaming_index_key_0.push(index_key[0]);
-      streaming_index_key_1.push(index_key[1]);
+  var req = db.scan([q1, q2], function join_algo (keys, primary_keys) {
+    console.log(['receiving ', JSON.stringify(keys), JSON.stringify(primary_keys)]);
+    if (goog.isDefAndNotNull(keys[0])) {
+      streaming_keys.push(primary_keys[0]);
+      streaming_index_key_0.push(keys[0]);
+      streaming_index_key_1.push(keys[1]);
     }
 
-    return [goog.isDef(key[0]) ? true : null, goog.isDef(key[1]) ? true : null]; // continue iteration
+    return [
+      goog.isDefAndNotNull(keys[0]) ? true : undefined,
+      goog.isDefAndNotNull(keys[1]) ? true : undefined]; // continue iteration
   });
 
-  req.addCallback(function (result) {
+  req.addBoth(function (result) {
     //console.log(result);
-    done = true;
-  });
-  req.addErrback(function (e) {
-    console.log(e);
     done = true;
   });
 

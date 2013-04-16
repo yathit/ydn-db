@@ -114,8 +114,8 @@ ydn.db.base.TxEventTypes = {
 
 
 /**
- * The three possible transaction modes.
- * @see http://www.w3.org/TR/IndexedDB/#idl-def-IDBTransaction
+ * The three possible transaction modes in standard TransactionMode.
+ * @see http://lists.w3.org/Archives/Public/public-webapps/2013JanMar/0615.html
  * @enum {string}
  * @protected
  */
@@ -143,15 +143,19 @@ ydn.db.base.StandardTransactionMode = {
  * @protected
  */
 ydn.db.base.IDBTransaction =
+    // old Firefox use predefined numeric enum.
     (goog.global.IDBRequest &&
-        ('LOADING' in goog.global.IDBRequest)) ? // old Firefox
-        goog.global.IDBTransaction :             // use predefined numeric enum.
-        goog.global.indexedDB ?                  // latest standard browsers use
-            ydn.db.base.StandardTransactionMode :// user defined string enum
-            (goog.global.webkitIDBRequest &&     // old chrome use predefined
+        ('LOADING' in goog.global.IDBRequest)) ?
+        goog.global.IDBTransaction :
+        // all non-prefix IDB browsers use standard user defined string enum.
+        goog.global.indexedDB ?
+            ydn.db.base.StandardTransactionMode :
+            // old chrome use predefined enum, it can be string or numeric.
+            (goog.global.webkitIDBRequest &&
                 ('LOADING' in goog.global.webkitIDBRequest)) ? // enum
-                goog.global.webkitIDBTransaction :  // can be string or numeric.
-                ydn.db.base.StandardTransactionMode;// for all others.
+                goog.global.webkitIDBTransaction :
+                // for all others, assume standard.
+                ydn.db.base.StandardTransactionMode;
 
 
 /**

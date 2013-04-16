@@ -654,29 +654,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
         ' on ' + this.dir + ' direction is wrong');
   }
 
-  /**
-   *
-   * @param {IDBKey=} opt_effective_key effective key.
-   * @param {IDBKey=} opt_primary_key primary key.
-   * @param {*=} opt_value recrod value.
-   * @this {ydn.db.core.req.WebsqlCursor}
-   */
-  var fnc = function(opt_effective_key, opt_primary_key, opt_value) {
-    if (goog.isDefAndNotNull(opt_effective_key)) {
-      // effective key must not change
-      var cmp2 = ydn.db.cmp(key, opt_effective_key);
-      if (cmp2 == 0 || (cmp2 == 1 && this.reverse) ||
-          (cmp2 == -1 && !this.reverse)) {
-        this.onSuccess(opt_effective_key, opt_primary_key, opt_value);
-      } else {
-        throw 'not impl';
-      }
-    } else {
-      this.onSuccess(undefined, undefined, undefined);
-    }
-  };
-
-  this.continuePrimaryKey_(fnc, key, true);
+  this.continuePrimaryKey_(this.onSuccess, key, true);
 
 };
 

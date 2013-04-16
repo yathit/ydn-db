@@ -394,14 +394,15 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
           var iterator = iterators[idx];
           var cursor = cursors[i];
           if (goog.DEBUG && !goog.isDefAndNotNull(keys[i])) {
+            var at = i + '/' + iterators.length;
             if (goog.isDefAndNotNull(advance[i])) {
-              throw new ydn.error.InvalidOperationError(iterator + ' at ' + i +
+              throw new ydn.error.InvalidOperationError(cursor + ' ' + at +
                   ' must not advance ' + advance[i] + ' steps');
-            } else if (goog.isDefAndNotNull(next_effective_keys[i])) {
-              throw new ydn.error.InvalidOperationError(iterator + ' at ' + i +
+            } else if (goog.isDef(next_effective_keys[i])) {
+              throw new ydn.error.InvalidOperationError(cursor + ' ' + at +
                   ' must not continue to key ' + next_effective_keys[i]);
             } else if (goog.isDefAndNotNull(next_primary_keys[i])) {
-              throw new ydn.error.InvalidOperationError(iterator + ' at ' + i +
+              throw new ydn.error.InvalidOperationError(cursor + ' ' + at +
                   ' must not continue to primary key ' + next_primary_keys[i]);
             }
           }
