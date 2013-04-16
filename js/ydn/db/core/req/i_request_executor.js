@@ -21,7 +21,7 @@ ydn.db.core.req.IRequestExecutor = function() {};
 
 /**
  * List record in a store.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no transaction number.
  * @param {?function(*, boolean=)} return key in deferred function.
  * @param {!ydn.db.Iterator} store_name  store name.
@@ -33,7 +33,7 @@ ydn.db.core.req.IRequestExecutor.prototype.keysByIterator =
 
 /**
  * List record in a store.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no transaction number.
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {!ydn.db.Iterator} iter  store name.
@@ -44,7 +44,7 @@ ydn.db.core.req.IRequestExecutor.prototype.listByIterator =
 
 
 /**
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no transaction number.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index.
@@ -58,7 +58,7 @@ ydn.db.core.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
 
 
 /**
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no transaction number.
  * @param {string} store_name
  * @param {string=} opt_index_name

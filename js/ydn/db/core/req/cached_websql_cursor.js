@@ -12,7 +12,7 @@ goog.require('ydn.db.core.req.ICursor');
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no
  * @param {!ydn.db.schema.Store} store_schema schema.
  * @param {string} store_name the store name to open.

@@ -36,6 +36,7 @@ goog.require('ydn.db.crud.req.RequestExecutor');
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
  * @implements {ydn.db.crud.req.IRequestExecutor}
+ * @struct
  */
 ydn.db.crud.req.SimpleStore = function(dbname, schema) {
   goog.base(this, dbname, schema);
@@ -65,12 +66,16 @@ ydn.db.crud.req.SimpleStore.prototype.keysByIndexKeyRange = function(tx, tx_no,
   var msg = tx_no + ' keysByIndexKeyRange ' + store_name + ':' + index_name +
       ' ' + (key_range ? ydn.json.toShortString(key_range) : '');
   this.logger.finest(msg);
-  goog.Timer.callOnce(function() {
-    var store = tx.getSimpleStore(store_name);
+
+  var on_complete = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
     var arr = store.getKeys(index_name, key_range, reverse, limit, offset);
     this.logger.finer('success ' + msg);
     df(arr);
-  }, 0, this);
+    on_complete();
+    on_complete = null;
+  }, this);
+
 };
 
 
@@ -82,12 +87,14 @@ ydn.db.crud.req.SimpleStore.prototype.keysByKeyRange = function(tx, tx_no, df,
   var msg = tx_no + ' keysByKeyRange ' + store_name + ' ' +
       (key_range ? ydn.json.toShortString(key_range) : '');
   this.logger.finest(msg);
-  goog.Timer.callOnce(function() {
-    var store = tx.getSimpleStore(store_name);
+  var comp = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
     var arr = store.getKeys(null, key_range, reverse, limit, offset);
     this.logger.finer('success ' + msg);
     df(arr);
-  }, 0, this);
+    comp();
+    comp = null;
+  }, this);
 };
 
 
@@ -101,7 +108,7 @@ ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(tx, tx_no, df, objs,
 
 
 /**
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx number.
  * @param {?function(*, boolean=)} df deferred to feed result.
  * @param {string?} store_name table name.
@@ -121,10 +128,10 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
   this.logger.finest(label);
   var me = this;
 
-  goog.Timer.callOnce(function() {
+  var on_comp = tx.getStorage(function(storage) {
     var store;
     if (opt_single) {
-      store = tx.getSimpleStore(store_name);
+      store = storage.getSimpleStore(store_name);
       var key = store.addRecord(opt_key, value, !opt_is_update);
       if (goog.isDefAndNotNull(key)) {
         df(key);
@@ -132,6 +139,8 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
         var msg = goog.DEBUG ? ydn.json.toShortString(key) : '';
         var e = new ydn.db.ConstraintError(msg);
         df(e, true);
+        on_comp();
+        on_comp = null;
       }
     } else {
       var st = store_name;
@@ -151,7 +160,7 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
           id = keys[i];
         }
         if (!store || store.getName() != st) {
-          store = tx.getSimpleStore(st);
+          store = storage.getSimpleStore(st);
         }
         var result_key = store.addRecord(id, value[i], !opt_is_update);
         if (!goog.isDefAndNotNull(result_key)) {
@@ -161,8 +170,10 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
       }
       me.logger.finer((has_error ? 'error ' : 'success ') + label);
       df(arr, has_error);
+      on_comp();
+      on_comp = null;
     }
-  }, 0, this);
+  }, this);
 };
 
 
@@ -198,7 +209,10 @@ ydn.db.crud.req.SimpleStore.prototype.addObjects = function(
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.putData = goog.abstractMethod;
+ydn.db.crud.req.SimpleStore.prototype.putData = function(tx, tx_no, df,
+    store_name, data, delimiter) {
+  throw 'not impl';
+};
 
 
 /**
@@ -215,14 +229,16 @@ ydn.db.crud.req.SimpleStore.prototype.putObjects = function(
  */
 ydn.db.crud.req.SimpleStore.prototype.getById = function(tx, tx_no, df,
                                                          store_name, id) {
-  goog.Timer.callOnce(function() {
+  var onComp = tx.getStorage(function(storage) {
     /**
      * @type  {!ydn.db.con.simple.Store}
      */
-    var store = tx.getSimpleStore(store_name);
+    var store = storage.getSimpleStore(store_name);
     var key = store.getRecord(null, id);
     df(key);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
@@ -231,18 +247,19 @@ ydn.db.crud.req.SimpleStore.prototype.getById = function(tx, tx_no, df,
 */
 ydn.db.crud.req.SimpleStore.prototype.listByStore = function(tx, tx_no, df,
                                                              store_name) {
-  var tx_ =  /** {ydn.db.con.SimpleStorage} */ (tx);
-  goog.Timer.callOnce(function() {
-    var store = tx_.getSimpleStore(store_name);
+  var onComp = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
     df(store.getRecords());
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 
 };
 
 
 /**
  *
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  *  @param {string} tx_no transaction number.
  * @param {?function(*, boolean=)} df deferred to feed result.
  * @param {string?} store_name table name.
@@ -251,7 +268,7 @@ ydn.db.crud.req.SimpleStore.prototype.listByStore = function(tx, tx_no, df,
  */
 ydn.db.crud.req.SimpleStore.prototype.listByIds_ = function(tx, tx_no, df,
     store_name, ids) {
-  goog.Timer.callOnce(function() {
+  var onComp = tx.getStorage(function(storage) {
     var arr = [];
     var has_error = false;
     var st = store_name;
@@ -271,7 +288,7 @@ ydn.db.crud.req.SimpleStore.prototype.listByIds_ = function(tx, tx_no, df,
         st = db_key.getStoreName();
       }
       if (!store || store.getName() != st) {
-        store = tx.getSimpleStore(st);
+        store = storage.getSimpleStore(st);
       }
       var key = store.getRecord(null, id);
       if (!goog.isDefAndNotNull(key)) {
@@ -281,7 +298,9 @@ ydn.db.crud.req.SimpleStore.prototype.listByIds_ = function(tx, tx_no, df,
     }
 
     df(arr, has_error);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
@@ -312,12 +331,14 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
   var msg = tx_no + ' listByKeyRange ' + store_name + ' ' +
       (key_range ? ydn.json.toShortString(key_range) : '');
   this.logger.finest(msg);
-  goog.Timer.callOnce(function() {
-    var store = tx.getSimpleStore(store_name);
+  var onComp = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
     var results = store.getRecords(null, key_range, reverse, limit, offset);
     this.logger.finer('success ' + msg + results.length + ' records found.');
     df(results);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
@@ -326,10 +347,12 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
  */
 ydn.db.crud.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, tx_no,
       df, store_name, index, key_range, reverse, limit, offset) {
-  goog.Timer.callOnce(function() {
-    var store = tx.getSimpleStore(store_name);
+  var onComp = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
     df(store.getRecords(index, key_range, reverse, limit, offset));
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
@@ -341,12 +364,14 @@ ydn.db.crud.req.SimpleStore.prototype.removeById = function(tx, tx_no, df,
   var msg = tx_no + ' removeById ' + store_name + ' ' + id;
   this.logger.finest(msg);
   var me = this;
-  goog.Timer.callOnce(function() {
-    var store = tx.getSimpleStore(store_name);
+  var onComp = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
     var cnt = store.removeRecord(id);
     me.logger.finer('success ' + msg + (cnt == 0 ? ' [not found]' : ''));
     df(cnt);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
@@ -360,18 +385,20 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeys = function(tx, tx_no, df,
   var me = this;
   var store;
   var deleted = 0;
-  goog.Timer.callOnce(function() {
+  var onComp = tx.getStorage(function(storage) {
     for (var i = 0; i < keys.length; i++) {
       var store_name = keys[i].getStoreName();
       var id = keys[i].getId();
       if (!store || store.getName() != store_name) {
-        store = tx.getSimpleStore(store_name);
+        store = storage.getSimpleStore(store_name);
       }
       deleted += store.removeRecord(id);
     }
     me.logger.finer('success ' + msg + deleted + ' deleted');
     df(deleted);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
@@ -383,12 +410,14 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function(
   var msg = tx_no + ' removeByKeyRange';
   this.logger.finest(msg);
   var me = this;
-  goog.Timer.callOnce(function() {
-    var store = tx.getSimpleStore(store_name);
+  var onComp = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
     var cnt = store.removeRecords(key_range);
     me.logger.finer('success ' + msg);
     df(cnt);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
@@ -401,21 +430,24 @@ ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function(
       (key_range ? ydn.json.stringify(key_range) : '');
   this.logger.finest(msg);
   var me = this;
-  goog.Timer.callOnce(function() {
-    var store = tx.getSimpleStore(store_name);
+  var onComp = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
     var cnt = store.removeRecords(key_range);
     me.logger.finer('success ' + msg);
     df(undefined);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange =
-    goog.abstractMethod;
-
+ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = function(
+    tx, tx_no, df, store_name, index_name, key_range) {
+  throw 'not impl';
+};
 
 /**
  * @inheritDoc
@@ -424,14 +456,16 @@ ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df,
                                                                store_names) {
   var msg = tx_no + ' clearByStores';
   this.logger.finest(msg);
-  goog.Timer.callOnce(function() {
+  var onComp = tx.getStorage(function(storage) {
     for (var i = 0; i < store_names.length; i++) {
-      var store = tx.getSimpleStore(store_names[i]);
+      var store = storage.getSimpleStore(store_names[i]);
       store.clear();
     }
     this.logger.finer('success ' + msg);
     df(store_names.length);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
@@ -442,15 +476,17 @@ ydn.db.crud.req.SimpleStore.prototype.countStores = function(tx, tx_no, df,
                                                              store_names) {
   var msg = tx_no + ' countStores';
   this.logger.finest(msg);
-  goog.Timer.callOnce(function() {
+  var onComp = tx.getStorage(function(storage) {
     var arr = [];
     for (var i = 0; i < store_names.length; i++) {
-      var store = tx.getSimpleStore(store_names[i]);
+      var store = storage.getSimpleStore(store_names[i]);
       arr.push(store.countRecords());
     }
     this.logger.finer('success ' + msg);
     df(arr);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 
 };
 
@@ -465,17 +501,22 @@ ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(tx, tx_no, df,
       (goog.isDefAndNotNull(keyRange) ? 'KeyRange' : 'Store');
   var me = this;
   this.logger.finest(msg);
-  goog.Timer.callOnce(function() {
-    var store = tx.getSimpleStore(store_name);
+  var onComp = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
     var no = store.countRecords(index_name, keyRange);
     this.logger.finer('success ' + msg);
     df(no);
-  }, 0, this);
+    onComp();
+    onComp = null;
+  }, this);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.getIndexKeysByKeys = goog.abstractMethod;
+ydn.db.crud.req.SimpleStore.prototype.getIndexKeysByKeys = function(tx, lbl, df,
+    store_name, index_name, key_range, reverse, limit, offset, unique) {
+  throw 'not impl';
+};
 

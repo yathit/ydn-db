@@ -152,7 +152,7 @@ ydn.db.Streamer.prototype.setSink = function(sink) {
 
 /**
  *
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * transaction.
  */
 ydn.db.Streamer.prototype.setTx = function(tx) {

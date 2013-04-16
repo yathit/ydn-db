@@ -22,6 +22,8 @@
 goog.provide('ydn.db.tr.IThread');
 goog.provide('ydn.db.tr.IThread.Threads');
 
+
+
 /**
  * @interface
  */
@@ -30,7 +32,7 @@ ydn.db.tr.IThread = function() {};
 
 /**
  * @param {!goog.async.Deferred} df deferred object to intersect the request
- * @param {?function((IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage),
+ * @param {?function((ydn.db.con.IDatabase.Transaction),
  * string, ?function(*, boolean=))} callback
  *   callback when executor is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
@@ -53,7 +55,6 @@ ydn.db.tr.IThread.prototype.abort = goog.abstractMethod;
 ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
 
 
-
 /**
  * Create a new isolated transaction. After creating a transaction, use
  * {@link #getTx} to received an active transaction. If transaction is not
@@ -65,6 +66,7 @@ ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
  * @param {function(ydn.db.base.TxEventTypes, *)=} oncompleted handler.
  */
 ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
+
 
 /**
  * Threading type
@@ -102,8 +104,6 @@ ydn.db.tr.IThread.ThreadList = [
 ];
 
 
-
-
 /**
  * Abort an active transaction.
  */
@@ -133,7 +133,7 @@ ydn.db.tr.IThread.abort = function(tx) {
       // this will cause error on SQLTransaction and WebStorage.
       // the error is wanted because there is no way to abort a transaction in
       // WebSql. It is somehow recommanded workaround to abort a transaction.
-    }  else {
+    } else {
       throw new ydn.error.NotSupportedException();
     }
 

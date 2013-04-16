@@ -20,7 +20,7 @@ ydn.db.sql.req.IRequestExecutor = function() {};
 
 /**
  * Execute SQL statement.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {!ydn.db.Sql} sql  SQL object.

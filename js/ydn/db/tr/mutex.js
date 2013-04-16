@@ -10,10 +10,12 @@ goog.require('goog.asserts');
 goog.require('ydn.db.InvalidStateError');
 
 
+
 /**
  * Create transaction mutex.
  * @param {number} tr_no track number.
  * @constructor
+ * @const
  */
 ydn.db.tr.Mutex = function(tr_no) {
   this.tr_no = tr_no;
@@ -27,6 +29,11 @@ ydn.db.tr.Mutex = function(tr_no) {
 };
 
 
+/**
+ * @type {ydn.db.con.IDatabase.Transaction}
+ * @private
+ */
+ydn.db.tr.Mutex.prototype.tx_;
 
 
 /**
@@ -47,7 +54,7 @@ ydn.db.tr.Mutex.DEBUG = false;
 /**
  * Newly created transaction it push to mutex and lock.
  * @final
- * @param {!IDBTransaction|!SQLTransaction|!ydn.db.con.SimpleStorage} tx the transaction object.
+ * @param {ydn.db.con.IDatabase.Transaction} tx the transaction object.
  * @param {Array.<string>} store_names scope store name.
  * @param {ydn.db.base.TransactionMode} mode tx mode.
  */
@@ -55,11 +62,7 @@ ydn.db.tr.Mutex.prototype.up = function(tx, store_names, mode) {
 
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
-//  if (this.tx_) {
-//    this.logger.finest('tx ' + this.scope_name + ' force push by ' + scope);
-//  }
-  goog.asserts.assert(!this.tx_,
-      this + ': transaction overlap');
+  goog.asserts.assert(!this.tx_, this + ': transaction overlap');
 
   this.tx_ = tx;
 
@@ -323,7 +326,7 @@ ydn.db.tr.Mutex.prototype.oncompleted = null;
  * Return current active transaction if available. Transaction consumer must
  * check {@link #isActiveAndAvailable} if this transaction object
  * should be used.
- * @return {IDBTransaction|SQLTransaction|ydn.db.con.SimpleStorage} transaction
+ * @return {ydn.db.con.IDatabase.Transaction} transaction
  * object.
  */
 ydn.db.tr.Mutex.prototype.getTx = function() {

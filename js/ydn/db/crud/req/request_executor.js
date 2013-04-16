@@ -35,6 +35,7 @@ goog.require('ydn.db.Key');
  * @param {string} dbname database name.
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
+ * @struct
  */
 ydn.db.crud.req.RequestExecutor = function(dbname, schema) {
   /**

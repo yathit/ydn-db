@@ -7,7 +7,7 @@ goog.require('ydn.debug.error.InternalError');
 
 /**
  *
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {number} tx_no
  * @param {Array.<string>} store_names
  * @param {ydn.db.base.TransactionMode?} mode
@@ -24,7 +24,7 @@ ydn.db.tr.ParallelTxExecutor = function(tx, tx_no, store_names, mode) {
 
 
 /**
- * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
+ * @type {ydn.db.con.IDatabase.Transaction}
  * @private
  */
 ydn.db.tr.ParallelTxExecutor.prototype.tx_ = null;
@@ -69,24 +69,17 @@ ydn.db.tr.ParallelTxExecutor.prototype.isActive = function() {
 
 /**
  *
- * @return {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} active transaction object.
+ * @return {ydn.db.con.IDatabase.Transaction} active transaction object.
  * @protected
  */
 ydn.db.tr.ParallelTxExecutor.prototype.getTx = function() {
   return this.tx_;
 };
 
-ydn.db.tr.ParallelTxExecutor.prototype.abort = function() {
-  if (this.tx_) {
-    this.tx_['abort']();
-  } else {
-    throw new ydn.db.InvalidStateError('transaction completed');
-  }
-};
 
 /**
  *
- * @return {number}
+ * @return {number} transaction count.
  */
 ydn.db.tr.ParallelTxExecutor.prototype.getTxNo = function() {
   return this.tx_no_;

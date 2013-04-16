@@ -25,7 +25,7 @@ goog.require('ydn.debug.error.InternalError');
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no.
  * @param {string} store_name the store name to open.
  * @param {string|undefined} index_name index.

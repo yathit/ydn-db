@@ -779,7 +779,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
 
 /**
  * General executor for LIST methods.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
+ * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_no tx label.
  * @param {?function(*, boolean=)} df object in deferred function.
  * @param {string} store_name store name.

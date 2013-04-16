@@ -206,7 +206,7 @@ ydn.db.tr.Serial.prototype.lock = function() {
  * callback and set null after that callback so that it can be aborted
  * in the callback.
  * In general, this tx may be different from running tx.
- * @type {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage}
+ * @type {ydn.db.con.IDatabase.Transaction}
  * @protected
  */
 ydn.db.tr.Serial.prototype.s_request_tx = null;

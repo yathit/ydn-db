@@ -53,6 +53,11 @@ ydn.db.con.IDatabase.prototype.getVersion = goog.abstractMethod;
 ydn.db.con.IDatabase.prototype.getDbInstance = function() {};
 
 
+/**
+ * @typedef {(SQLTransaction|IDBTransaction|ydn.db.con.simple.TxStorage)}
+ */
+ydn.db.con.IDatabase.Transaction;
+
 
 /**
  * Perform transaction immediately and invoke transaction_callback with
@@ -61,7 +66,7 @@ ydn.db.con.IDatabase.prototype.getDbInstance = function() {};
  * when the data is transaction completed.
  * Caller must not invoke this method until transaction completed event is
  * fired.
- * @param {function((SQLTransaction|IDBTransaction|Object))||Function}
+ * @param {function(ydn.db.con.IDatabase.Transaction)}
   * transaction_callback callback function that invoke in the transaction with
  * transaction instance.
  * @param {Array.<string>} store_names list of store names involved in the

@@ -145,7 +145,7 @@ ydn.db.crud.req.WebSql.prototype.keysByIndexKeyRange = function(tx, tx_no, df,
 
 /**
  * Retrieve primary keys or value from a store in a given key range.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
+ * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_no tx label.
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {boolean} key_only retrieve key only.
@@ -247,7 +247,10 @@ ydn.db.crud.req.WebSql.prototype.addObject = function(
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.putData = goog.abstractMethod;
+ydn.db.crud.req.WebSql.prototype.putData = function(tx, tx_no, df,
+    store_name, data, delimiter) {
+  throw 'not impl';
+};
 
 
 /**
@@ -269,8 +272,8 @@ ydn.db.crud.req.WebSql.prototype.addObjects = function(
 
 
 /**
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx tx.
- * @param {string} tx_no
+ * @param {ydn.db.con.IDatabase.Transaction} tx tx.
+ * @param {string} tx_no tx label.
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {boolean} create true if insert, otherwise insert or replace.
  * @param {boolean} single false for array input.
@@ -345,7 +348,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
             table.getSQLKeyColumnNameQuoted() + ', ' +
             index.getSQLIndexColumnNameQuoted() + ') VALUES (?, ?)';
         var idx_params = [ydn.db.schema.Index.js2sql(key, table.getType()),
-          value];
+            value];
 
         /**
          * @param {SQLTransaction} tx transaction.
@@ -426,7 +429,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         }
         return false; // roll back
       } else {
-      // rollback for any error including constraint error.
+        // rollback for any error including constraint error.
         me.logger.warning('error: ' + error.message + ' ' + msg);
         df(error, true);
         return false;
@@ -1126,7 +1129,7 @@ ydn.db.crud.req.WebSql.prototype.removeByIndexKeyRange = function(tx, tx_no, df,
 
 /**
  * Retrieve primary keys or value from a store in a given key range.
- * @param {SQLTransaction|IDBTransaction|ydn.db.con.SimpleStorage} tx
+ * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no.
  * @param {?function(*, boolean=)} df key in deferred function.
  * @param {string} store_name table name.
@@ -1327,7 +1330,10 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.getIndexKeysByKeys = goog.abstractMethod;
+ydn.db.crud.req.WebSql.prototype.getIndexKeysByKeys =  function(tx, lbl, df,
+    store_name, index_name, key_range, reverse, limit, offset, unique) {
+  throw 'not impl';
+};
 
 
 
