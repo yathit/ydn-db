@@ -149,4 +149,7 @@ ydn.db.core.req.SimpleStore.prototype.getCursor = function(tx, tx_no,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.getStreamer = goog.abstractMethod;
+ydn.db.core.req.SimpleStore.prototype.getStreamer =  function(tx, tx_no,
+    store_name, index_name) {
+  throw 'not yet';
+};

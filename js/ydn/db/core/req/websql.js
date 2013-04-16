@@ -167,5 +167,9 @@ ydn.db.core.req.WebSql.prototype.getCursor = function(tx, tx_no, store_name,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.WebSql.prototype.getStreamer = goog.abstractMethod;
+ydn.db.core.req.WebSql.prototype.getStreamer = function(tx, tx_no,
+    store_name, index_name) {
+  throw 'not yet';
+};
+
 

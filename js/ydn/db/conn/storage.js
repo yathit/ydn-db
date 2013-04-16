@@ -648,7 +648,6 @@ ydn.db.con.Storage.prototype.purgeTxQueue_ = function(e) {
 ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
 
 
-
 /**
  * Run a transaction.
  *
@@ -660,7 +659,7 @@ ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
  * @final
  */
 ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
-     opt_mode, on_completed) {
+    opt_mode, on_completed) {
 
   var names = store_names;
 
@@ -671,14 +670,16 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
   } else {
     if (goog.DEBUG) {
       if (!goog.isArrayLike(store_names)) {  // could be  DOMStringList or Array
-        throw new ydn.debug.error.ArgumentException('store names must be an array');
+        throw new ydn.debug.error.ArgumentException(
+            'store names must be an array');
       } else if (store_names.length == 0) {
-        throw new ydn.debug.error.ArgumentException('number of store names must more than 0');
+        throw new ydn.debug.error.ArgumentException(
+            'number of store names must more than 0');
       } else {
         for (var i = 0; i < store_names.length; i++) {
           if (!goog.isString(store_names[i])) {
             throw new ydn.debug.error.ArgumentException('store name at ' + i +
-              ' must be string but found ' + typeof store_names[i]);
+                ' must be string but found ' + typeof store_names[i]);
           }
         }
       }
@@ -686,7 +687,7 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
   }
 
   var is_ready = !!this.db_ && this.db_.isReady();
-  if (!is_ready || this.in_version_change_tx_ ) {
+  if (!is_ready || this.in_version_change_tx_) {
     // a "versionchange" transaction is still running, a InvalidStateError
     // exception will be thrown
     this.pushTxQueue_(trFn, names, opt_mode, on_completed);
@@ -747,7 +748,8 @@ ydn.db.con.Storage.prototype.isAutoSchema = function() {
  * @protected
  */
 ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
-  this.logger.warning('Synchronization option for ' + store.getName() + ' ignored.');
+  this.logger.warning('Synchronization option for ' + store.getName() +
+      ' ignored.');
 };
 
 

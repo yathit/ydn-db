@@ -21,16 +21,17 @@ goog.require('ydn.debug.error.ArgumentException');
  */
 ydn.db.Streamer = function(storage, store_name, field_name) {
 
-  if (goog.isObject(storage) && 'transaction' in storage) {
+  if (storage && storage instanceof ydn.db.con.Storage) {
     this.db_ = /** @type {ydn.db.con.IStorage} */ (storage);
     this.cursor_ = null;
-  } else if (goog.isObject(storage) && 'db' in storage) {
+  } else if (storage && storage.db) {
     var tx = /** @type {!IDBTransaction} */ (storage);
     this.db_ = null;
     this.setTx(tx);
   } else {
     throw new ydn.debug.error.ArgumentException(
-        'ydn.db.Streamer: First argument requires storage or transaction instance required.');
+        'ydn.db.Streamer: First argument requires storage or transaction ' +
+            'instance required.');
   }
 
   if (!goog.isString(store_name)) {
@@ -156,12 +157,13 @@ ydn.db.Streamer.prototype.setSink = function(sink) {
  * transaction.
  */
 ydn.db.Streamer.prototype.setTx = function(tx) {
-  if ('db' in tx) {
+  if (tx.db) {
     var idb_tx = /** @type {!IDBTransaction} */ (tx);
     this.cursor_ = new ydn.db.con.IdbCursorStream(idb_tx,
         this.store_name_, this.index_name_, goog.bind(this.collector_, this));
   } else {
-    throw new ydn.debug.error.ArgumentException('Invalid IndexedDB Transaction.');
+    throw new ydn.debug.error.ArgumentException(
+        'Invalid IndexedDB Transaction.');
   }
 
 };
@@ -172,12 +174,12 @@ ydn.db.Streamer.prototype.setTx = function(tx) {
  * is empty.
  * @private
  */
-ydn.db.Streamer.prototype.push_ = function () {
+ydn.db.Streamer.prototype.push_ = function() {
   var on_queue = this.stack_value_.length > 0;
   if (on_queue && !this.is_collecting_ && goog.isFunction(this.sink_)) {
 
     var me = this;
-    var waiter = function () {
+    var waiter = function() {
       me.push_();
     };
     var key = this.stack_key_.shift();
@@ -354,10 +356,12 @@ ydn.db.Streamer.prototype.getIndexName = function() {
 };
 
 
-/**
- * @override
- */
-ydn.db.Streamer.prototype.toString = function() {
-  return 'Streamer:' + this.store_name_ + (this.index_name_ || '');
-};
+if (goog.DEBUG) {
+  /**
+   * @override
+   */
+  ydn.db.Streamer.prototype.toString = function() {
+    return 'Streamer:' + this.store_name_ + (this.index_name_ || '');
+  };
+}
 

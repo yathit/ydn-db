@@ -38,6 +38,9 @@ goog.inherits(ydn.db.sql.req.SimpleStore, ydn.db.core.req.SimpleStore);
 /**
  * @inheritDoc
  */
-ydn.db.sql.req.SimpleStore.prototype.executeSql = goog.abstractMethod;
+ydn.db.sql.req.SimpleStore.prototype.executeSql = function(tx, tx_no, df, sql,
+                                                           params) {
+  throw 'not yet';
+};
 
 

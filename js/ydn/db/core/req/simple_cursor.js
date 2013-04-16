@@ -38,7 +38,8 @@ ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
   this.primary_key_ = undefined;
   this.value_ = undefined;
   this.current_ = null;
-
+  this.buffer_ = null;
+  this.store_ = null;
 };
 goog.inherits(ydn.db.core.req.SimpleCursor, ydn.db.core.req.AbstractCursor);
 
@@ -50,9 +51,17 @@ ydn.db.core.req.SimpleCursor.DEBUG = false;
 
 
 /**
- *
+ * @type {ydn.db.Buffer}
+ * @private
  */
-ydn.db.core.req.SimpleCursor.storage_;
+ydn.db.core.req.SimpleCursor.prototype.buffer_;
+
+
+/**
+ * @type {ydn.db.con.simple.Store}
+ * @private
+ */
+ydn.db.core.req.SimpleCursor.prototype.store_;
 
 
 /**
@@ -157,9 +166,9 @@ ydn.db.core.req.SimpleCursor.prototype.advance = function(step) {
     }
   };
   if (this.reverse) {
-    this.getBuffer().reverseTraverse(tr_fn, this.current_);
+    this.buffer_.reverseTraverse(tr_fn, this.current_);
   } else {
-    this.getBuffer().traverse(tr_fn, this.current_);
+    this.buffer_.traverse(tr_fn, this.current_);
   }
 
 };
@@ -200,9 +209,9 @@ ydn.db.core.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
       }
     };
     if (this.reverse) {
-      this.getBuffer().reverseTraverse(tr_fn, start_node);
+      this.buffer_.reverseTraverse(tr_fn, start_node);
     } else {
-      this.getBuffer().traverse(tr_fn, start_node);
+      this.buffer_.traverse(tr_fn, start_node);
     }
   } else {
     this.advance(1);
@@ -230,7 +239,7 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
         this.value_ = this.primary_key_;
       } else {
         goog.asserts.assert(goog.isDefAndNotNull(this.primary_key_));
-        this.value_ = this.getSimpleStore().getRecord(null, this.primary_key_);
+        this.value_ = this.store_.getRecord(null, this.primary_key_);
       }
     }
   } else {
@@ -263,13 +272,18 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
     }
   }
 
-  if (this.reverse) {
-    this.getBuffer().reverseTraverse(goog.bind(this.defaultOnSuccess_, this),
-        start_node);
-  } else {
-    this.getBuffer().traverse(goog.bind(this.defaultOnSuccess_, this),
-        start_node);
-  }
+  var on_comp = this.tx.getStorage(function(storage) {
+    this.store_ = storage.getSimpleStore(this.store_name);
+    this.buffer_ = this.store_.getIndexCache(this.index_name);
+    if (this.reverse) {
+      this.buffer_.reverseTraverse(goog.bind(this.defaultOnSuccess_, this),
+          start_node);
+    } else {
+      this.buffer_.traverse(goog.bind(this.defaultOnSuccess_, this),
+          start_node);
+    }
+  }, this);
+
 };
 
 
