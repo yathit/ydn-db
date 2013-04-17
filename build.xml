@@ -368,7 +368,8 @@
     </target>
     <target name="build" description="build all distributions"
             depends="compile-conn,compile,simple,compile-dev,compile-crud,
-            compile-core,compile-crud-db,compile-crud-simple,compile-crud-idb,compile-crud-websql">
+            compile-core,compile-crud-db,compile-crud-simple,compile-crud-idb,
+            compile-crud-websql,compile-core-db,compile-core-idb">
 
     </target>
 </project>

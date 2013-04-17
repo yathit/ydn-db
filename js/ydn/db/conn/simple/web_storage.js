@@ -21,6 +21,7 @@ goog.provide('ydn.db.con.SessionStorage');
 goog.require('ydn.db.con.SimpleStorage');
 
 
+
 /**
  * @extends {ydn.db.con.SimpleStorage}
  * name and keyPath.
@@ -48,6 +49,7 @@ ydn.db.con.LocalStorage.isSupported = function() {
  */
 ydn.db.con.LocalStorage.TYPE = 'localstorage';
 
+
 /**
  * @inheritDoc
  */
@@ -64,7 +66,7 @@ ydn.db.con.LocalStorage.deleteDatabase = function(db_name) {
   var db = new ydn.db.con.LocalStorage();
   var schema = new ydn.db.schema.EditableDatabase();
   db.connect(db_name, schema);
-  db.getSchema(function (sch) {
+  db.getSchema(function(sch) {
     for (var i = 0; i < sch.stores.length; i++) {
       var store = db.getSimpleStore(sch.stores[i].name);
       store.clear();
@@ -72,6 +74,7 @@ ydn.db.con.LocalStorage.deleteDatabase = function(db_name) {
   });
 
 };
+
 
 
 /**
@@ -101,12 +104,14 @@ ydn.db.con.SessionStorage.isSupported = function() {
  */
 ydn.db.con.SessionStorage.TYPE = 'sessionstorage';
 
+
 /**
  * @inheritDoc
  */
 ydn.db.con.SessionStorage.prototype.getType = function() {
   return ydn.db.con.SessionStorage.TYPE;
 };
+
 
 /**
  *
@@ -116,7 +121,7 @@ ydn.db.con.SessionStorage.deleteDatabase = function(db_name) {
   var db = new ydn.db.con.SessionStorage();
   var schema = new ydn.db.schema.EditableDatabase();
   db.connect(db_name, schema);
-  db.getSchema(function (sch) {
+  db.getSchema(function(sch) {
     for (var i = 0; i < sch.stores.length; i++) {
       var store = db.getSimpleStore(sch.stores[i].name);
       store.clear();

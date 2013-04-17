@@ -7,6 +7,7 @@ goog.provide('ydn.db.con.IDatabase');
 goog.require('goog.async.Deferred');
 
 
+
 /**
  * @interface
  */
@@ -76,7 +77,6 @@ ydn.db.con.IDatabase.Transaction;
   * completed_event_handler handler for on completed event.
  */
 ydn.db.con.IDatabase.prototype.doTransaction = goog.abstractMethod;
-
 
 
 /**

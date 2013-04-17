@@ -30,16 +30,17 @@ goog.require('ydn.error.ConstraintError');
 goog.require('ydn.json');
 
 
+
 /**
  * @see goog.db.IndexedDb
  * @see ydn.db.Storage for schema
  *
  * @param {number=} opt_size estimated database size.
- * @param {number=} time_out connection time out.
+ * @param {number=} opt_time_out connection time out.
  * @implements {ydn.db.con.IDatabase}
  * @constructor
  */
-ydn.db.con.IndexedDb = function(opt_size, time_out) {
+ydn.db.con.IndexedDb = function(opt_size, opt_time_out) {
 
   if (goog.isDef(opt_size)) {
     // https://developers.google.com/chrome/whitepapers/storage#asking_more
@@ -54,16 +55,15 @@ ydn.db.con.IndexedDb = function(opt_size, time_out) {
     */
     if (opt_size > 5 * 1024 * 1024) { // no need to ask for 5 MB.
       this.logger.warning('storage size request ignored, ' +
-        'use Quota Management API instead');
+          'use Quota Management API instead');
     }
   }
 
   this.idx_db_ = null;
 
-  this.time_out_ = time_out || NaN;
+  this.time_out_ = opt_time_out || NaN;
 
 };
-
 
 
 /**
@@ -82,16 +82,16 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
    * This is final result of connection. It is either fail or connected
    * and only once.
    * @param {IDBDatabase} db database instance.
-   * @param {Error=} e error.
+   * @param {Error=} opt_err error.
    */
-  var setDb = function(db, e) {
+  var setDb = function(db, opt_err) {
 
     if (df.hasFired()) {
       me.logger.warning('database already set.');
-    } else if (goog.isDef(e)) {
-      me.logger.warning(e ? e.message : 'Error received.');
+    } else if (goog.isDef(opt_err)) {
+      me.logger.warning(opt_err ? opt_err.message : 'Error received.');
       me.idx_db_ = null;
-      df.errback(e);
+      df.errback(opt_err);
     } else {
       goog.asserts.assertObject(db);
       me.idx_db_ = db;
@@ -140,12 +140,13 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
    * @protected
    * @param {IDBDatabase} db database instance.
    * @param {IDBTransaction} trans transaction.
-   * @param {boolean} is_caller_setversion call from set version;
+   * @param {boolean} is_caller_setversion call from set version.
    */
   var updateSchema = function(db, trans, is_caller_setversion) {
 
     var action = is_caller_setversion ? 'changing' : 'upgrading';
-    me.logger.finer(action + ' version to ' + db.version + ' from ' + old_version);
+    me.logger.finer(action + ' version to ' + db.version +
+        ' from ' + old_version);
 
 
     // create store that we don't have previously
@@ -168,7 +169,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
   // In chrome, version is taken as description.
   me.logger.finer('Opening database: ' + dbname + ' ver: ' +
-    (schema.isAutoVersion() ? 'auto' : version));
+      (schema.isAutoVersion() ? 'auto' : version));
 
   /**
    * Currently in transaction stage, opening indexedDB return two format.
@@ -220,14 +221,14 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         var diff_msg = schema.difference(db_schema);
         if (diff_msg.length > 0) {
           me.logger.finer('Schema change require for difference in ' +
-            diff_msg);
+              diff_msg);
 
           var on_completed = function(t, e) {
             if (t == ydn.db.base.TxEventTypes.COMPLETE) {
               setDb(db);
             } else {
               me.logger.severe('Fail to update version on ' + db.name + ':' +
-                db.version);
+                  db.version);
               setDb(null, e);
             }
           };
@@ -237,7 +238,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
           if ('IDBOpenDBRequest' in goog.global) {
             db.close();
             var req = ydn.db.con.IndexedDb.indexedDb.open(
-              dbname, /** @type {number} */ (next_version));
+                dbname, /** @type {number} */ (next_version));
             req.onupgradeneeded = function(ev) {
               var db = ev.target.result;
               me.logger.finer('re-open for version ' + db.version);
@@ -307,13 +308,13 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       // here
 
       goog.asserts.assertFunction(db['setVersion'],
-        'Expecting IDBDatabase in old format');
+          'Expecting IDBDatabase in old format');
       var version = /** @type {*} */ (schema.getVersion());
       var ver_request = db.setVersion(/** @type {string} */ (version));
 
       ver_request.onfailure = function(e) {
         me.logger.warning('migrating from ' + db.version + ' to ' +
-          schema.getVersion() + ' failed.');
+            schema.getVersion() + ' failed.');
         setDb(null, e);
       };
       ver_request.onsuccess = function(e) {
@@ -325,7 +326,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       } else {
         // this will not happen according to IDB spec.
         me.logger.warning('connected database version ' + db.version +
-          ' is higher than requested version.');
+            ' is higher than requested version.');
       }
 
       /**
@@ -337,7 +338,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         if (diff_msg.length > 0) {
           me.logger.finer(diff_msg);
           setDb(null, new ydn.error.ConstraintError('different schema: ' +
-            diff_msg));
+              diff_msg));
         } else {
           setDb(db);
         }
@@ -406,9 +407,9 @@ ydn.db.con.IndexedDb.DEBUG = goog.DEBUG && false;
  * @type {IDBFactory} IndexedDb.
  */
 ydn.db.con.IndexedDb.indexedDb = goog.global.indexedDB ||
-  goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
-  goog.global.moz_indexedDB ||
-  goog.global['msIndexedDB'];
+    goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
+    goog.global.moz_indexedDB ||
+    goog.global['msIndexedDB'];
 
 
 /**
@@ -423,7 +424,7 @@ ydn.db.con.IndexedDb.TYPE = 'indexeddb';
  * @type {number}
  * @private
  */
-ydn.db.con.IndexedDb.prototype.time_out_ = 3*60*1000;
+ydn.db.con.IndexedDb.prototype.time_out_ = 3 * 60 * 1000;
 
 
 /**
@@ -467,8 +468,7 @@ ydn.db.con.IndexedDb.isSupported = function() {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.con.IndexedDb.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.con.IndexedDb');
-
+    goog.debug.Logger.getLogger('ydn.db.con.IndexedDb');
 
 
 /**
@@ -542,13 +542,13 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
       var index = objStore.index(objStore.indexNames[j]);
 
       indexes[j] = new ydn.db.schema.Index(index.keyPath, undefined,
-        index.unique, index.multiEntry, index.name);
+          index.unique, index.multiEntry, index.name);
     }
     stores[i] = new ydn.db.schema.Store(objStore.name, objStore.keyPath,
-      objStore.autoIncrement, undefined, indexes);
+        objStore.autoIncrement, undefined, indexes);
   }
   var schema = new ydn.db.schema.Database(/** @type {number} */ (idb.version),
-    stores);
+      stores);
 
   callback(schema);
 };
@@ -561,10 +561,10 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
  * @param {ydn.db.schema.Store} store_schema store schema.
  * @private
  */
-ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
-{
+ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
+                                                        store_schema) {
   this.logger.finest('Creating Object Store for ' + store_schema.getName() +
-    ' keyPath: ' + store_schema.getKeyPath());
+      ' keyPath: ' + store_schema.getKeyPath());
 
   var objectStoreNames = /** @type {DOMStringList} */ (db.objectStoreNames);
 
@@ -607,12 +607,15 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
 
     if (keyPath != store_keyPath) {
       db.deleteObjectStore(store_schema.getName());
-      this.logger.warning('store: ' + store_schema.getName() + ' deleted due to keyPath change.');
+        this.logger.warning('store: ' + store_schema.getName() +
+            ' deleted due to keyPath change.');
       store = createObjectStore();
-    } else if (goog.isBoolean(store.autoIncrement) && goog.isBoolean(store_schema.getAutoIncrement()) &&
+    } else if (goog.isBoolean(store.autoIncrement) &&
+        goog.isBoolean(store_schema.getAutoIncrement()) &&
         store.autoIncrement != store_schema.getAutoIncrement()) {
       db.deleteObjectStore(store_schema.getName());
-      this.logger.warning('store: ' + store_schema.getName() + ' deleted due to autoIncrement change.');
+      this.logger.warning('store: ' + store_schema.getName() +
+          ' deleted due to autoIncrement change.');
       store = createObjectStore();
     } else {
 
@@ -624,14 +627,16 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
         var index = store_schema.indexes[j];
         if (!indexNames.contains(index.name)) {
           if (index.unique || index.multiEntry) {
-            var idx_options = {unique: index.unique, multiEntry: index.multiEntry};
+            var idx_options = {
+              unique: index.unique,
+              multiEntry: index.multiEntry};
             store.createIndex(index.name,
-              // todo: remove this casting after externs is updated.
-              /** @type  {string} */ (index.keyPath),
-              idx_options);
+                // todo: remove this casting after externs is updated.
+                /** @type  {string} */ (index.keyPath),
+                idx_options);
           } else {
             store.createIndex(index.name,
-              /** @type  {string} */ (index.keyPath));
+                /** @type  {string} */ (index.keyPath));
           }
           created++;
         }
@@ -644,7 +649,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
       }
 
       this.logger.finest('Updated store: ' + store.name + ', ' + created +
-        ' index created, ' + deleted + ' index deleted.');
+          ' index created, ' + deleted + ' index deleted.');
     }
 
   } else {
@@ -655,7 +660,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
       var index = store_schema.indexes[j];
 
       this.logger.finest('Creating index: ' + index.name +
-        ' multiEntry: ' + index.multiEntry);
+          ' multiEntry: ' + index.multiEntry);
 
       if (index.unique || index.multiEntry) {
         var idx_options = {unique: index.unique, multiEntry: index.multiEntry};
@@ -667,7 +672,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
     }
 
     this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
-      store.keyPath);
+        store.keyPath);
   }
 };
 
@@ -686,7 +691,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans, store_schema)
  * on complete  handler.
  */
 ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
-      on_completed) {
+    on_completed) {
 
   /**
    *

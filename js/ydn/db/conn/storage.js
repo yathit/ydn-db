@@ -1,6 +1,6 @@
 /**
  * @license Copyright 2012 YDN Authors, Yathit. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");.
  */
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,10 +30,10 @@ goog.require('goog.events.EventTarget');
 goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.con.IStorage');
+goog.require('ydn.db.events.StorageEvent');
 goog.require('ydn.db.schema.EditableDatabase');
 goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.object');
-goog.require('ydn.db.events.StorageEvent');
 if (!ydn.db.base.NO_SIMPLE) {
   goog.require('ydn.db.con.LocalStorage');
   goog.require('ydn.db.con.SessionStorage');
@@ -68,7 +68,7 @@ if (!ydn.db.base.NO_WEBSQL) {
  * or its configuration in JSON format. If not provided, default empty
  * auto-schema is used.
  * @param {!StorageOptions=} opt_options options.
- * @throws {ConstrainedError} if fix version is used, but client database
+ * @throws {ConstraintError} if fix version is used, but client database
  * schema is dissimilar.
  * @implements {ydn.db.con.IStorage}
  * @constructor
@@ -109,14 +109,14 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   this.connectionTimeout = goog.isDef(options.connectionTimeout) ?
       options.connectionTimeout :
       ydn.db.con.IndexedDb.DEBUG ?
-      1000 : goog.DEBUG ? 30*1000 : 30*60*1000;
+      1000 : goog.DEBUG ? 30 * 1000 : 30 * 60 * 1000;
 
   /**
    * @final
    * @type {boolean}
    */
   this.use_text_store = goog.isDef(options.use_text_store) ?
-    options.use_text_store : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
+      options.use_text_store : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
 
   this.db_ = null;
 
@@ -149,7 +149,8 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
       schema = new ydn.db.schema.Database(schema_json);
     }
 
-    for (var i = 0, n = schema_json.stores ? schema_json.stores.length : 0; i < n; i++) {
+    var n = n = schema_json.stores ? schema_json.stores.length : 0;
+    for (var i = 0; i < n; i++) {
       var store = schema.getStore(schema_json.stores[i].name);
       if (schema_json.stores[i].Sync) {
         this.addSynchronizer(store, schema_json.stores[i].Sync);
@@ -179,7 +180,7 @@ goog.inherits(ydn.db.con.Storage, goog.events.EventTarget);
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.con.Storage.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.con.Storage');
+    goog.debug.Logger.getLogger('ydn.db.con.Storage');
 
 
 /**
@@ -204,9 +205,8 @@ ydn.db.con.Storage.prototype.getSchema = function(opt_callback) {
     }
   }
   return this.schema ? /** @type {!DatabaseSchema} */ (this.schema.toJSON()) :
-    null;
+      null;
 };
-
 
 
 /**
@@ -244,7 +244,7 @@ ydn.db.con.Storage.prototype.addStoreSchema = function(store_schema) {
       }
     } else {
       throw new ydn.error.ConstraintError('Cannot ' + action + ' store: ' +
-        store_name + '. Not auto schema generation mode.');
+          store_name + '. Not auto schema generation mode.');
     }
   } else {
     return goog.async.Deferred.succeed(false); // no change required
@@ -256,9 +256,9 @@ ydn.db.con.Storage.prototype.addStoreSchema = function(store_schema) {
  * Set database name. This will initialize the database.
  * @export
  * @throws {Error} name already defined.
- * @param {string} opt_db_name set database name.
+ * @param {string} db_name set database name.
  */
-ydn.db.con.Storage.prototype.setName = function(opt_db_name) {
+ydn.db.con.Storage.prototype.setName = function(db_name) {
   if (this.db_) {
     throw Error('Already defined with ' + this.db_name);
   }
@@ -266,7 +266,7 @@ ydn.db.con.Storage.prototype.setName = function(opt_db_name) {
   /**
    * @final
    */
-  this.db_name = opt_db_name;
+  this.db_name = db_name;
   this.connectDatabase();
 
 };
@@ -316,7 +316,6 @@ ydn.db.con.Storage.prototype.getName = function() {
 };
 
 
-
 /**
  * Specified storage mechanism ordering.
  * The default represent
@@ -344,11 +343,14 @@ ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
     return new ydn.db.con.IndexedDb(this.size, this.connectionTimeout);
   } else if (!ydn.db.base.NO_WEBSQL && db_type == ydn.db.con.WebSql.TYPE) {
     return new ydn.db.con.WebSql(this.size);
-  } else if (!ydn.db.base.NO_SIMPLE && db_type == ydn.db.con.LocalStorage.TYPE) {
+  } else if (!ydn.db.base.NO_SIMPLE &&
+      db_type == ydn.db.con.LocalStorage.TYPE) {
     return new ydn.db.con.LocalStorage();
-  } else if (!ydn.db.base.NO_SIMPLE && db_type == ydn.db.con.SessionStorage.TYPE) {
+  } else if (!ydn.db.base.NO_SIMPLE &&
+      db_type == ydn.db.con.SessionStorage.TYPE) {
     return new ydn.db.con.SessionStorage();
-  } else if (!ydn.db.base.NO_SIMPLE && db_type == ydn.db.con.SimpleStorage.TYPE) {
+  } else if (!ydn.db.base.NO_SIMPLE &&
+      db_type == ydn.db.con.SimpleStorage.TYPE) {
     return new ydn.db.con.SimpleStorage();
   }
   return null;
@@ -368,12 +370,12 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
   goog.asserts.assertString(this.db_name);
 
   var df = new goog.async.Deferred();
-  var resolve = function (is_connected, ev) {
+  var resolve = function(is_connected, ev) {
     if (is_connected) {
       me.logger.finest(me + ': ready.');
       me.last_queue_checkin_ = NaN;
 
-      goog.Timer.callOnce(function () {
+      goog.Timer.callOnce(function() {
         // dispatch asynchroniously so that any err on running db request
         // are not caught under deferred object.
 
@@ -385,7 +387,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
     } else {
       me.logger.warning(me + ': database connection fail ' + ev.name);
 
-      goog.Timer.callOnce(function () {
+      goog.Timer.callOnce(function() {
         me.onReady(ev);
         me.purgeTxQueue_(ev);
       });
@@ -401,7 +403,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
   var db = null;
 
   if (goog.userAgent.product.ASSUME_CHROME ||
-    goog.userAgent.product.ASSUME_FIREFOX) {
+        goog.userAgent.product.ASSUME_FIREFOX) {
     // for dead-code elimination
     db = this.createDbInstance(ydn.db.con.IndexedDb.TYPE);
   } else if (goog.userAgent.product.ASSUME_SAFARI) {
@@ -413,19 +415,19 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
     for (var i = 0; i < preference.length; i++) {
       var db_type = preference[i].toLowerCase();
       if (db_type == ydn.db.con.IndexedDb.TYPE &&
-        ydn.db.con.IndexedDb.isSupported()) { // run-time detection
+          ydn.db.con.IndexedDb.isSupported()) { // run-time detection
         db = this.createDbInstance(db_type);
         break;
       } else if (db_type == ydn.db.con.WebSql.TYPE &&
-        ydn.db.con.WebSql.isSupported()) {
+          ydn.db.con.WebSql.isSupported()) {
         db = this.createDbInstance(db_type);
         break;
       } else if (db_type == ydn.db.con.LocalStorage.TYPE &&
-        ydn.db.con.LocalStorage.isSupported()) {
+          ydn.db.con.LocalStorage.isSupported()) {
         db = this.createDbInstance(db_type);
         break;
       } else if (db_type == ydn.db.con.SessionStorage.TYPE &&
-        ydn.db.con.SessionStorage.isSupported()) {
+          ydn.db.con.SessionStorage.isSupported()) {
         db = this.createDbInstance(db_type);
         break;
       } else if (db_type == ydn.db.con.SimpleStorage.TYPE) {
@@ -462,7 +464,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       // no event for disconnected.
 
     };
-  }, function (e) {
+  }, function(e) {
     me.logger.warning(me + ': opening fail: ' + e.message);
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, me,
       NaN, NaN, e);
@@ -492,11 +494,11 @@ ydn.db.con.Storage.prototype.getType = function() {
 
 /**
  * Handle ready event by dispatching 'ready' event.
- * @param {ydn.db.events.StorageEvent} ev event
+ * @param {ydn.db.events.StorageEvent} ev event.
  * @expose since we want this function to be overidable, we have to use expose
  * instead of goog.exportProperty.
  */
-ydn.db.con.Storage.prototype.onReady = function (ev) {
+ydn.db.con.Storage.prototype.onReady = function(ev) {
   this.dispatchEvent(ev);
 };
 
@@ -576,7 +578,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
 
   var task = this.txQueue_.shift();
   if (task) {
-    this.logger.finest('pop tx queue '  + task.fnc.name);
+    this.logger.finest('pop tx queue ' + task.fnc.name);
     this.transaction(task.fnc, task.scopes, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
@@ -589,31 +591,23 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
  * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TxEventTypes, *)=} on_completed handler.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_on_completed handler.
  * @private
  */
 ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
-    opt_mode, on_completed) {
+    opt_mode, opt_on_completed) {
   this.logger.finest('push tx queue ' + trFn.name);
   this.txQueue_.push({
     fnc: trFn,
     scopes: store_names,
     mode: opt_mode,
-    oncompleted: on_completed
+    oncompleted: opt_on_completed
   });
-  var now = goog.now();
-  //if (!isNaN(this.last_queue_checkin_)) {
-    //if ((now - this.last_queue_checkin_) > ydn.db.con.Storage.timeOut) {
-    //  this.logger.warning('queue is not moving.');
-      // todo: actively push the queue if transaction object is available
-      // this will make robustness to the app.
-      // in normal situation, queue will automatically empty since
-      // pop queue will call whenever transaction is finished.
-    //}
-  //}
+
   if (goog.DEBUG && this.txQueue_.length > ydn.db.con.Storage.QUEUE_LIMIT &&
       (this.txQueue_.length % ydn.db.con.Storage.QUEUE_LIMIT) == 0) {
-    this.logger.warning('Transaction queue stack size is ' + this.txQueue_.length +
+    this.logger.warning('Transaction queue stack size is ' +
+        this.txQueue_.length +
         '. It is too large, possibility due to incorrect usage.');
   }
 
@@ -628,7 +622,7 @@ ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
 ydn.db.con.Storage.prototype.purgeTxQueue_ = function(e) {
   if (this.txQueue_) {
     this.logger.info('Purging ' + this.txQueue_.length +
-      ' transactions request.');
+        ' transactions request.');
     var task;
     while (task = this.txQueue_.shift()) {
       // task.fnc(null); this will cause error
@@ -655,11 +649,11 @@ ydn.db.con.Storage.prototype.in_version_change_tx_ = false;
  * @param {Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TxEventTypes, *)=} on_completed handler.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_on_completed handler.
  * @final
  */
 ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
-    opt_mode, on_completed) {
+    opt_mode, opt_on_completed) {
 
   var names = store_names;
 
@@ -690,23 +684,23 @@ ydn.db.con.Storage.prototype.transaction = function(trFn, store_names,
   if (!is_ready || this.in_version_change_tx_) {
     // a "versionchange" transaction is still running, a InvalidStateError
     // exception will be thrown
-    this.pushTxQueue_(trFn, names, opt_mode, on_completed);
+    this.pushTxQueue_(trFn, names, opt_mode, opt_on_completed);
     return;
   }
 
   var me = this;
 
   var mode = goog.isDef(opt_mode) ? opt_mode :
-    ydn.db.base.TransactionMode.READ_ONLY;
+      ydn.db.base.TransactionMode.READ_ONLY;
 
   if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {
     this.in_version_change_tx_ = true;
   }
 
   var on_complete = function(type, ev) {
-    if (goog.isFunction(on_completed)) {
-      on_completed(type, ev);
-      on_completed = undefined;
+    if (goog.isFunction(opt_on_completed)) {
+      opt_on_completed(type, ev);
+      opt_on_completed = undefined;
     }
     if (mode == ydn.db.base.TransactionMode.VERSION_CHANGE) {
       me.in_version_change_tx_ = false;
@@ -759,11 +753,11 @@ if (goog.DEBUG) { // don't allow to added non existing event type
    */
   ydn.db.con.Storage.prototype.addEventListener = function(
       type, handler, opt_capture, opt_handlerScope) {
-    var checkType = function (type) {
+    var checkType = function(type) {
       if (!goog.array.contains(['created', 'ready', 'deleted', 'updated'],
-        type)) {
+          type)) {
         throw new ydn.debug.error.ArgumentException('Invalid event type "' +
-          type + '"');
+            type + '"');
       }
     };
     if (goog.isArrayLike(type)) {
@@ -774,7 +768,7 @@ if (goog.DEBUG) { // don't allow to added non existing event type
       checkType(type);
     }
     goog.base(this, 'addEventListener', type, handler, opt_capture,
-      opt_handlerScope);
+        opt_handlerScope);
   };
 }
 
