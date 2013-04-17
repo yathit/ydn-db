@@ -945,8 +945,8 @@ var test_restrict = function() {
       function () {
         assertArrayEquals('restrict a = 2 keys', [2, 2, 2], keys1);
         assertArrayEquals('restrict a = 2 values', [data[1], data[2], data[3]], result1);
-        assertArrayEquals('restrict b keys', [2], keys2);
-        assertArrayEquals('restrict b values', [data[2]], result2);
+        assertArrayEquals('restrict b keys', [['b', 2], ['b', 2]], keys2);
+        assertArrayEquals('restrict b values', [data[1], data[3]], result2);
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db.getName(), db.getType());
         db.close();
@@ -964,12 +964,12 @@ var test_restrict = function() {
     result1 = x;
   });
 
-  var iter2 = iter.restrict('b', 'b');
+  var iter2 = iter1.restrict('b', 'b');
   db.keys(iter2).addBoth(function (x) {
     keys2 = x;
   });
   db.values(iter2).addBoth(function (x) {
-    keys2 = x;
+    result2 = x;
     done = true;
   });
 
