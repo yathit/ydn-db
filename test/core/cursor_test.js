@@ -15,6 +15,10 @@ var setUp = function () {
    ydn.debug.log('ydn.db', 'finest');
   // ydn.db.core.req.WebsqlCursor.DEBUG = true;
   ydn.db.con.simple.Store.DEBUG = true;
+  ydn.db.core.DbOperator.DEBUG = true;
+  ydn.db.core.req.SimpleStore.DEBUG = true;
+  ydn.db.core.req.SimpleCursor.DEBUG = true;
+
   reachedFinalContinuation = false;
 
 };

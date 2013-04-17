@@ -5,6 +5,7 @@
 
 goog.provide('ydn.db.core.req.SimpleCursor');
 goog.require('goog.Timer');
+goog.require('ydn.db.base.Mutex');
 goog.require('ydn.db.core.req.AbstractCursor');
 goog.require('ydn.db.core.req.ICursor');
 
@@ -41,7 +42,7 @@ ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
   this.buffer_ = null;
   this.store_ = null;
   this.onCursorComplete_ = null;
-  this.result_ready_ = false;
+  this.result_ready_ = new ydn.db.base.Mutex();
 };
 goog.inherits(ydn.db.core.req.SimpleCursor, ydn.db.core.req.AbstractCursor);
 
@@ -155,6 +156,10 @@ ydn.db.core.req.SimpleCursor.prototype.advance = function(step) {
 
   var me = this;
   var cnt = this.current_ ? -1 : 0;
+  if (ydn.db.core.req.SimpleCursor.DEBUG) {
+    var msg = this.current_ ? ' advancing ' : ' starting ';
+    window.console.log(this + msg + step + ' step');
+  }
   /**
    * Node traversal function.
    * @param {goog.structs.AvlTree.Node} node
@@ -163,6 +168,9 @@ ydn.db.core.req.SimpleCursor.prototype.advance = function(step) {
   var tr_fn = function(node) {
     cnt++;
     if (!node || cnt >= step) {
+      if (ydn.db.core.req.SimpleCursor.DEBUG) {
+        window.console.log('advance to ' + (node ? node.value : 'null'));
+      }
       me.defaultOnSuccess_(node);
       return true;
     }
@@ -222,16 +230,32 @@ ydn.db.core.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
 };
 
 
-ydn.db.core.req.SimpleCursor.prototype.result_ready_ = false;
+/**
+ * @type {ydn.db.base.Mutex}
+ * @private
+ */
+ydn.db.core.req.SimpleCursor.prototype.result_ready_;
 
 
+/**
+ * Dispatch onSuccess callback asynchronously until result are exhausted.
+ * @private
+ */
 ydn.db.core.req.SimpleCursor.prototype.dispatchOnSuccess_ = function() {
+  var me = this;
   goog.Timer.callOnce(function() {
-    if (this.result_ready_) {
+    window.console.log(this + ' invoke ' + me.result_ready_.state());
+    if (me.result_ready_.state()) {
+      if (ydn.db.core.req.SimpleCursor.DEBUG) {
+        window.console.log(this + ' invoke success ' + this.key_);
+      }
+      me.result_ready_.down();
       this.onSuccess(this.key_, this.primary_key_, this.value_);
-      this.result_ready_ = false;
       this.dispatchOnSuccess_();
     } else {
+      if (ydn.db.core.req.SimpleCursor.DEBUG) {
+        window.console.log(this + ' complete');
+      }
       this.onCursorComplete_();
       this.onCursorComplete_ = null;
     }
@@ -267,9 +291,16 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
     this.value_ = undefined;
   }
 
-  this.result_ready_ = true;
+  this.result_ready_.up();
 
-  return true;
+  if (ydn.db.core.req.SimpleCursor.DEBUG) {
+    var key_str = this.key_ + (this.is_index ?
+        ', ' + this.primary_key_ : '');
+    window.console.log(this + ' new position ' + key_str + ' ' +
+        this.result_ready_);
+  }
+
+  return true; // step only one traversal.
 };
 
 

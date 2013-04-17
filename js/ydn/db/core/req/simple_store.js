@@ -37,6 +37,12 @@ goog.inherits(ydn.db.core.req.SimpleStore, ydn.db.crud.req.SimpleStore);
 
 
 /**
+ * @define {boolean} debug flag.
+ */
+ydn.db.core.req.SimpleStore.DEBUG = false;
+
+
+/**
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.keysByIterator = function(tx, tx_no, df,
@@ -57,8 +63,10 @@ ydn.db.core.req.SimpleStore.prototype.keysByIterator = function(tx, tx_no, df,
    * @param {IDBKey=} opt_key
    */
   cursor.onNext = function(opt_key) {
-
-    if (goog.isDef(opt_key)) {
+    if (ydn.db.core.req.SimpleStore.DEBUG) {
+      window.console.log('receiving keysByIterator onNext: ' + opt_key);
+    }
+    if (goog.isDefAndNotNull(opt_key)) {
       if (!cued && offset > 0) {
         cursor.advance(offset);
         cued = true;
@@ -105,7 +113,7 @@ ydn.db.core.req.SimpleStore.prototype.listByIterator = function(tx, tx_no, df,
    * @param {IDBKey=} opt_key
    */
   cursor.onNext = function(opt_key) {
-    if (goog.isDef(opt_key)) {
+    if (goog.isDefAndNotNull(opt_key)) {
       var primary_key = iter.isIndexIterator() ?
           cursor.getPrimaryKey() : opt_key;
       var value = cursor.getValue();
@@ -117,7 +125,7 @@ ydn.db.core.req.SimpleStore.prototype.listByIterator = function(tx, tx_no, df,
       count++;
       arr.push(iter.isKeyOnly() ? primary_key : value);
       if (!goog.isDef(limit) || count < limit) {
-        cursor.continueEffectiveKey();
+        cursor.advance(1);
       } else {
         me.logger.finer('success:' + msg);
         cursor.exit();
