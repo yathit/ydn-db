@@ -191,7 +191,7 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3) {
  * @inheritDoc
  */
 ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
-                                                   arg5) {
+                                                   arg5, arg6) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
@@ -228,7 +228,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
 
     return df;
   } else {
-    return goog.base(this, 'values', arg1, arg2, arg3, arg4, arg5);
+    return goog.base(this, 'values', arg1, arg2, arg3, arg4, arg5, arg6);
   }
 
 };

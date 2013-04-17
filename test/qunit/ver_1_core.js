@@ -41,7 +41,7 @@ var store_inline_index = "ts6";    // in-line key store
 
 var get_db_name = 'tck1-get-1';
 var count_db_name ='ydn_db_tck1_count_2';
-var values_db_name = 'tck1-values-1';
+var values_db_name = 'tck1-values-2';
 
 var data_1 = { test: "test value", name: "name 1", id: 1 };
 var data_1a = { test: "test value", name: "name 1", id: ['a', 'b']};
@@ -526,7 +526,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
         type: 'NUMERIC',
         indexes: [
           {name: 'value', type: 'TEXT'},
-          {name: 'updated'}
+          {name: 'updated', type: 'DATE'}
         ]
       }
     ]

@@ -800,6 +800,12 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
   var msg = tx_no + ' listByKeyRange: ' + store_name +
       (index ? ':' + index : '') +
       (key_range ? ydn.json.stringify(key_range) : '');
+  if (reverse) {
+    msg += ' reverse';
+  }
+  if (opt_unique) {
+    msg += ' unique';
+  }
   this.logger.finest(msg);
   var request;
   if (index) {

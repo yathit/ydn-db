@@ -14,7 +14,7 @@ var db_name = 'test_index_2';
 
 var setUp = function () {
 
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
 
 
   // ydn.db.con.WebSql.DEBUG = true;
@@ -684,6 +684,62 @@ var test_multiEntry_text = function () {
     count_for(tags[i], i);
   }
 
+};
+
+
+var test_date_index = function() {
+  var db_name = 'test_date_index';
+  var store_name = 's1';
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id',
+      type: 'INTEGER',
+      indexes: [{
+        name: 'updated',
+        type: 'DATE'
+      }]
+    }]
+  };
+  var db = new ydn.db.Storage(db_name, schema, options);
+
+  var objs = [
+    {id: 1, value: Math.random(), updated: new Date( "2013-04-11T13:14:00.000Z")},
+    {id: 2, value: Math.random(), updated: new Date( "2013-04-11T13:15:00.000Z")},
+    {id: 3, value: Math.random(), updated: new Date( "2013-04-11T13:16:00.000Z")}
+  ];
+
+  db.clear(store_name);
+  db.put(store_name, objs).addCallback(function (value) {
+    console.log(db + ' ready.');
+  });
+
+  var done, result, reverse_result;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+
+        assertArrayEquals('ascending values', objs, result);
+        assertArrayEquals('descending values', [objs[2], objs[1], objs[0]], reverse_result);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  db.values(store_name, 'updated', null, 10, 0).addBoth(function (x) {
+    result = x;
+  });
+  db.values(store_name, 'updated', null, 10, 0, true).addBoth(function (x) {
+    reverse_result = x;
+    done = true;
+  });
 };
 
 
