@@ -241,7 +241,6 @@ ydn.db.Cursors = function(store, index, opt_key_range, opt_reverse,
 goog.inherits(ydn.db.Cursors, ydn.db.Iterator);
 
 
-
 /**
  * Create an iterator object.
  * @param {string} store_name store name.
@@ -255,7 +254,7 @@ goog.inherits(ydn.db.Cursors, ydn.db.Iterator);
 ydn.db.Cursors.where = function(store_name, index, op, value, opt_op2,
                                 opt_value2) {
   return new ydn.db.Cursors(store_name, index,
-    ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
+      ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
 
 
@@ -328,7 +327,7 @@ goog.inherits(ydn.db.IndexValueCursors, ydn.db.Iterator);
 ydn.db.IndexValueCursors.where = function(store_name, index, op, value, opt_op2,
                                           opt_value2) {
   return new ydn.db.IndexValueCursors(store_name, index,
-    ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
+      ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
 
 
@@ -527,10 +526,13 @@ if (goog.DEBUG) {
         start = '(';
         close = ')';
       }
-      var key_str = this.cursor_.getKey();
-      var p_key = this.cursor_.getPrimaryKey();
-      if (goog.isDefAndNotNull(p_key)) {
-        key_str += ', ' + p_key;
+      var key_str = '';
+      if (this.cursor_.length > 0) {
+        key_str = this.cursor_.getKey();
+        var p_key = this.cursor_.getPrimaryKey();
+        if (goog.isDefAndNotNull(p_key)) {
+          key_str += ', ' + p_key;
+        }
       }
       idx = start + key_str + close;
     }
@@ -731,6 +733,7 @@ ydn.db.Iterator.prototype.filter_store_names_;
  */
 ydn.db.Iterator.prototype.filter_ini_keys_;
 
+
 /**
  *
  * @type {Array}
@@ -746,9 +749,10 @@ ydn.db.Iterator.prototype.filter_ini_index_keys_;
  * @param {!ydn.db.KeyRange|!Array|number|string} key_range if not key range,
  * a key is build
  * using ydn.db.KeyRange.only().
- * @param {string=} store_name store name if different from this iterator.
+ * @param {string=} opt_store_name store name if different from this iterator.
  */
-ydn.db.Iterator.prototype.filter = function(index_name, key_range, store_name) {
+ydn.db.Iterator.prototype.filter = function(index_name, key_range,
+                                            opt_store_name) {
   if (arguments.length > 3) {
     throw new ydn.debug.error.ArgumentException('too many input arguments.');
   }
@@ -765,9 +769,9 @@ ydn.db.Iterator.prototype.filter = function(index_name, key_range, store_name) {
     throw new ydn.debug.error.ArgumentException('key range');
   }
   this.filter_key_ranges_.push(kr);
-  if (goog.isDef(store_name)) {
-    if (goog.isString(store_name)) {
-      this.filter_store_names_.push(store_name);
+  if (goog.isDef(opt_store_name)) {
+    if (goog.isString(opt_store_name)) {
+      this.filter_store_names_.push(opt_store_name);
     } else {
       throw new ydn.debug.error.ArgumentException('store name');
     }
@@ -846,12 +850,12 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
   var cursor = executor.getCursor(tx, tx_lbl, this.store_name, this.index,
       this.key_range_, this.direction, this.key_only_, !!opt_key_query);
 
-  if (!this.cursor_) {
-    this.cursor_ = new ydn.db.Cursor([cursor]);
-    this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_);
-  } else {
+  if (this.cursor_) {
     this.cursor_.resume([cursor]);
     this.logger.finest(tx_lbl + ' ' + this + ' reused cursor ' + this.cursor_);
+  } else {
+    this.cursor_ = new ydn.db.Cursor([cursor]);
+    this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_);
   }
 
   return this.cursor_;

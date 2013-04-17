@@ -124,18 +124,7 @@ ydn.db.core.Storage.prototype.scan = function(iterators, solver, streamers) {
 };
 
 
-///**
-// * Explain query plan.
-// * @param {!ydn.db.Iterator} q
-// * @return {Object} plan in JSON
-// */
-//ydn.db.core.Storage.prototype.explain = function(q) {
-//  return this.getIndexOperator().explain(q);
-//};
-
-
 /**
- *
  * @inheritDoc
  */
 ydn.db.core.Storage.prototype.map = function(iterator, callback) {
@@ -144,10 +133,7 @@ ydn.db.core.Storage.prototype.map = function(iterator, callback) {
 
 
 /**
- *
- * @param {!ydn.db.Iterator} iterator iterator.
- * @param {function(*, *, number): *} callback callback.
- * @param {*=} opt_initial initial value.
+ * @inheritDoc
  */
 ydn.db.core.Storage.prototype.reduce = function(iterator, callback,
                                                 opt_initial) {
