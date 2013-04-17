@@ -526,15 +526,7 @@ if (goog.DEBUG) {
         start = '(';
         close = ')';
       }
-      var key_str = '';
-      if (this.cursor_.length > 0) {
-        key_str = this.cursor_.getKey();
-        var p_key = this.cursor_.getPrimaryKey();
-        if (goog.isDefAndNotNull(p_key)) {
-          key_str += ', ' + p_key;
-        }
-      }
-      idx = start + key_str + close;
+      idx = start + this.cursor_ + close;
     }
     var s = this.isIndexIterator() ? 'Index' : '';
     s += this.isKeyOnly() ? 'Key' : 'Value';

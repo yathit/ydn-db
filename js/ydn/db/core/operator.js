@@ -769,7 +769,7 @@ ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
      *
      * @param {!Error} e error.
      */
-    cursor.onError = function(e) {
+    cursor.onFail = function(e) {
       cb(e, true);
     };
     var index = 0;

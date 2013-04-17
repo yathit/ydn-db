@@ -29,6 +29,7 @@ goog.require('ydn.debug.error.InternalError');
  *
  * @param {Array.<ydn.db.core.req.ICursor>} cursors cursors.
  * @constructor
+ * @struct
  */
 ydn.db.Cursor = function(cursors) {
 
@@ -36,12 +37,28 @@ ydn.db.Cursor = function(cursors) {
   this.keys_ = [];
   this.primary_keys_ = [];
   this.values_ = [];
-  this.merges_value_ = null;
   this.count_ = 0;
   this.done_ = false;
   this.exited_ = false;
-  this.init_();
 
+  /**
+   * This method is overridden by cursor consumer.
+   * @param {IDBKey?=} opt_key effective key.
+   */
+  this.onNext = function(opt_key) {
+    throw new ydn.debug.error.InternalError();
+  };
+
+
+  /**
+   * This method is overridden by cursor consumer.
+   * @param {!Error} e error.
+   */
+  this.onFail = function(e) {
+    throw new ydn.debug.error.InternalError();
+  };
+
+  this.init_();
 };
 
 
@@ -78,14 +95,6 @@ ydn.db.Cursor.prototype.primary_keys_;
  * @private
  */
 ydn.db.Cursor.prototype.values_;
-
-
-/**
- *
- * @type {Object}
- * @private
- */
-ydn.db.Cursor.prototype.merges_value_ = null;
 
 
 /**
@@ -302,24 +311,6 @@ ydn.db.Cursor.prototype.update = function(obj, opt_idx) {
 ydn.db.Cursor.prototype.clear = function(opt_idx) {
   var index = opt_idx || 0;
   return this.cursors_[index].clear();
-};
-
-
-/**
- * This method is overridden by cursor consumer.
- * @param {IDBKey=} opt_key effective key.
- */
-ydn.db.Cursor.prototype.onNext = function(opt_key) {
-  throw new ydn.debug.error.InternalError();
-};
-
-
-/**
- * This method is overridden by cursor consumer.
- * @param {!Error} e error.
- */
-ydn.db.Cursor.prototype.onFail = function(e) {
-  throw new ydn.debug.error.InternalError();
 };
 
 

@@ -25,10 +25,10 @@ goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('ydn.async');
-goog.require('ydn.db.crud.req.WebSql');
 goog.require('ydn.db.core.req.CachedWebsqlCursor');
 goog.require('ydn.db.core.req.IRequestExecutor');
 goog.require('ydn.db.core.req.WebsqlCursor');
+goog.require('ydn.db.crud.req.WebSql');
 goog.require('ydn.json');
 
 
@@ -101,7 +101,7 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this, key_query);
-  cursor.onError = function(e) {
+  cursor.onFail = function(e) {
     me.logger.warning('error:' + msg);
     cursor.exit();
     df(e, true);
