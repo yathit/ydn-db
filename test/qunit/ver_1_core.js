@@ -525,7 +525,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
         keyPath: 'id',
         type: 'NUMERIC',
         indexes: [
-          {name: 'value', type: 'TEXT'}
+          {name: 'value', type: 'TEXT'},
+          {name: 'updated'}
         ]
       }
     ]
@@ -538,7 +539,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   for (var i = 0; i < 5; i++) {
     data_list_inline[i] = {id: i, type: 'inline', msg: 'test inline ' + Math.random()};
     data_list_index[i] = {id: i, type: 'index',
-      value: (i%2) == 0 ? 'a' : 'b', msg: 'test inline ' + Math.random()};
+      value: (i%2) == 0 ? 'a' : 'b', msg: 'test inline ' + Math.random(),
+      updated: new Date('2013-04-11T13:1' + i + ':00.000Z')};
     data_list_outline[i] = {type: 'offline', value: 'test out of line ' + Math.random()};
     keys_list_outline[i] = i;
   }
@@ -553,7 +555,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     _db.put(store_inline, data_list_inline);
     _db.put(store_inline_index, data_list_index);
     _db.put(store_outline, data_list_outline, keys_list_outline);
-    _db.count(store_outline).always(function() {
+    _db.count([store_inline, store_inline_index, store_outline]).always(function() {
       ready.resolve();
     });
     _db.close();
@@ -613,7 +615,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   });
 
-  asyncTest("Retrieve objects by index key", 3, function () {
+  asyncTest("Retrieve objects by index key", 5, function () {
     ready.always(function () {
 
       db.values(store_inline_index, 'value', null, 10, 0).always(function (x) {
@@ -626,6 +628,14 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
       db.values(store_inline_index, 'value', ydn.db.KeyRange.only('a'), 1, 1).always(function (x) {
         deepEqual(x, [data_list_index[2]], 'with limit and offset');
+      });
+
+      db.values(store_inline_index, 'updated', null, 2, 0).always(function (x) {
+        deepEqual(x, [data_list_index[0], data_list_index[1]], 'ascending sort');
+      });
+
+      db.values(store_inline_index, 'updated', null, 2, 0, true).always(function (x) {
+        deepEqual(x, [data_list_index[4], data_list_index[3]], 'descending sort');
         start();
       });
     });
