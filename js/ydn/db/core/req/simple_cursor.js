@@ -40,6 +40,8 @@ ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
   this.current_ = null;
   this.buffer_ = null;
   this.store_ = null;
+  this.onCursorComplete_ = null;
+  this.result_ready_ = false;
 };
 goog.inherits(ydn.db.core.req.SimpleCursor, ydn.db.core.req.AbstractCursor);
 
@@ -220,6 +222,23 @@ ydn.db.core.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
 };
 
 
+ydn.db.core.req.SimpleCursor.prototype.result_ready_ = false;
+
+
+ydn.db.core.req.SimpleCursor.prototype.dispatchOnSuccess_ = function() {
+  goog.Timer.callOnce(function() {
+    if (this.result_ready_) {
+      this.onSuccess(this.key_, this.primary_key_, this.value_);
+      this.result_ready_ = false;
+      this.dispatchOnSuccess_();
+    } else {
+      this.onCursorComplete_();
+      this.onCursorComplete_ = null;
+    }
+  }, 0, this);
+};
+
+
 /**
  * Node traversal function.
  * @param {goog.structs.AvlTree.Node} node
@@ -248,11 +267,17 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
     this.value_ = undefined;
   }
 
-  goog.Timer.callOnce(function() {
-    this.onSuccess(this.key_, this.primary_key_, this.value_);
-  }, 0, this);
+  this.result_ready_ = true;
+
   return true;
 };
+
+
+/**
+ * @type {Function}
+ * @private
+ */
+ydn.db.core.req.SimpleCursor.prototype.onCursorComplete_;
 
 
 /**
@@ -272,7 +297,7 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
     }
   }
 
-  var on_comp = this.tx.getStorage(function(storage) {
+  this.onCursorComplete_ = this.tx.getStorage(function(storage) {
     this.store_ = storage.getSimpleStore(this.store_name);
     this.buffer_ = this.store_.getIndexCache(this.index_name);
     if (this.reverse) {
@@ -282,6 +307,7 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
       this.buffer_.traverse(goog.bind(this.defaultOnSuccess_, this),
           start_node);
     }
+    this.dispatchOnSuccess_();
   }, this);
 
 };
