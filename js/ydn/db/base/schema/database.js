@@ -219,7 +219,6 @@ ydn.db.schema.Database.prototype.count = function() {
 };
 
 
-
 /**
  *
  * @param {string} name store name.

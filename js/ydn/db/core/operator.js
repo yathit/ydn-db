@@ -574,14 +574,6 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
         cursors[i] = cursor;
         idx2iterator[idx] = i;
         idx++;
-        for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
-          var streamer = me.getIndexExecutor().getStreamer(tx, tx_no,
-              iterator.getPeerStoreName(j), iterator.getBaseIndexName(j));
-          streamer.setSink(goog.partial(on_streamer_pop, idx));
-          streamers.push(streamer);
-          idx2streamer[idx] = streamers.length;
-          idx++;
-        }
       }
 
       total = iterators.length + streamers.length;

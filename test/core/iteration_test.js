@@ -550,7 +550,7 @@ var test_21_scan_key_dual = function () {
 
   db = load_default();
   var req = db.scan([q1, q2], function join_algo (keys, primary_keys) {
-    console.log(['receiving ', JSON.stringify(keys), JSON.stringify(primary_keys)]);
+    // console.log(['receiving ', JSON.stringify(keys), JSON.stringify(primary_keys)]);
     if (goog.isDefAndNotNull(keys[0])) {
       streaming_keys.push(primary_keys[0]);
       streaming_index_key_0.push(keys[0]);

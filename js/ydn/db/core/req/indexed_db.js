@@ -44,7 +44,7 @@ goog.inherits(ydn.db.core.req.IndexedDb, ydn.db.crud.req.IndexedDb);
 
 /**
  *
- * @const {boolean} turn on debug flag to dump object.
+ * @define {boolean} turn on debug flag to dump object.
  */
 ydn.db.core.req.IndexedDb.DEBUG = false;
 
@@ -91,12 +91,10 @@ ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
         cursor.advance(1);
       } else {
         cursor.exit();
-        me.logger.finest('success:' + msg);
         df(arr);
       }
     } else {
       cursor.exit();
-      me.logger.finest('success:' + msg);
       df(arr);
     }
   };
@@ -115,9 +113,8 @@ ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onFail = function(e) {
-    me.logger.finer('error:' + msg);
     cursor.exit();
-    df(e, false);
+    df(e, true);
   };
   var count = 0;
   var cued = false;
@@ -139,12 +136,10 @@ ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
       if (!goog.isDef(limit) || count < limit) {
         cursor.continueEffectiveKey();
       } else {
-        me.logger.finer('success:' + msg);
         cursor.exit();
         df(arr);
       }
     } else {
-      me.logger.finest('success:' + msg);
       cursor.exit();
       df(arr);
     }

@@ -243,8 +243,9 @@ ydn.db.con.Storage.prototype.addStoreSchema = function(store_schema) {
         return goog.async.Deferred.succeed(false);
       }
     } else {
-      throw new ydn.error.ConstraintError('Cannot ' + action + ' store: ' +
-          store_name + '. Not auto schema generation mode.');
+      var msg = goog.DEBUG ? 'Cannot ' + action + ' store: ' +
+          store_name + '. Not auto schema generation mode.' : '';
+      throw new ydn.error.ConstraintError(msg);
     }
   } else {
     return goog.async.Deferred.succeed(false); // no change required

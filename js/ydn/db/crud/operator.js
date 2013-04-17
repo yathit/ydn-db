@@ -689,7 +689,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     var new_schema = ydn.db.schema.Store.fromJSON(store_name_or_schema);
     var diff = store.difference(new_schema);
     if (diff) {
-      throw new ydn.error.NotSupportedException('schema change: ' + diff);
+      throw new ydn.error.NotSupportedException(diff);
       // this.addStoreSchema(store);
     }
   }
@@ -828,7 +828,7 @@ ydn.db.crud.DbOperator.prototype.getStore_ = function(store_name_schema) {
     var new_schema = ydn.db.schema.Store.fromJSON(store_name_schema);
     var diff = store.difference(new_schema);
     if (diff) {
-      throw new ydn.error.NotSupportedException('schema change: ' + diff);
+      throw new ydn.error.NotSupportedException(diff);
       // this.addStoreSchema(store);
     }
   }
