@@ -956,6 +956,7 @@ var test_restrict = function() {
 
   db.keys(iter1).addBoth(function (x) {
     keys1 = x;
+    console.log(iter1.getKey())
   });
   db.values(iter1).addBoth(function (x) {
     result1 = x;

@@ -11,12 +11,14 @@ goog.require('ydn.db.sql.req.idb.Node');
 goog.require('ydn.object');
 
 
+
 /**
  *
- * @param {!ydn.db.schema.Store} schema store schema
+ * @param {!ydn.db.schema.Store} schema store schema.
  * @param {!ydn.db.Sql} sql store name.
  * @extends {ydn.db.sql.req.idb.Node}
  * @constructor
+ * @struct
  */
 ydn.db.sql.req.idb.ReduceNode = function(schema, sql) {
   goog.base(this, schema, sql);
@@ -55,7 +57,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
   if (aggregate == 'COUNT') {
     if (key_range) {
       req.countKeyRange(tx, tx_no, df, store_name, key_range,
-        wheres[0].getField(), false);
+          wheres[0].getField(), false);
     } else {
       req.countKeyRange(tx, tx_no, df, store_name, null, undefined, false);
     }
@@ -98,7 +100,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
      *
      * @param {!Error} e
      */
-    cursor.onError = function(e) {
+    cursor.onFail = function(e) {
       df(e, true);
     };
     var i = 0;
@@ -122,6 +124,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
 
 };
 
+
 /**
  * Return reduce iteration function for AVERAGE
  * @param {string} field name.
@@ -135,6 +138,7 @@ ydn.db.sql.req.idb.ReduceNode.reduceAverage = function(field) {
     return (prev * i + curr[field]) / (i + 1);
   };
 };
+
 
 /**
  * Return reduce iteration function for SUM

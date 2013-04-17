@@ -28,10 +28,11 @@ goog.require('ydn.debug.error.InternalError');
 /**
  *
  * @param {Array.<ydn.db.core.req.ICursor>} cursors cursors.
+ * @param {ydn.db.Cursor=} pre_cursor
  * @constructor
  * @struct
  */
-ydn.db.Cursor = function(cursors) {
+ydn.db.Cursor = function(cursors, pre_cursor) {
 
   this.cursors_ = cursors;
   this.keys_ = [];
@@ -40,6 +41,11 @@ ydn.db.Cursor = function(cursors) {
   this.count_ = 0;
   this.done_ = false;
   this.exited_ = false;
+
+  if (pre_cursor) {
+    this.keys_ = goog.array.clone(pre_cursor.keys_);
+    this.primary_keys_ = goog.array.clone(this.primary_keys_);
+  }
 
   /**
    * This method is overridden by cursor consumer.
