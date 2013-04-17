@@ -35,8 +35,8 @@ db.put('animals', animals).addCallback(function (value) {
 });
 
 var setUp = function() {
-  ydn.debug.log('ydn.db', 'finest');
-  ydn.db.core.DbOperator.DEBUG = true;
+  // ydn.debug.log('ydn.db', 'finest');
+  // ydn.db.core.DbOperator.DEBUG = true;
     //ydn.db.crud.req.IndexedDb.DEBUG = true;
     //ydn.db.algo.SortedMerge.DEBUG = true;
 
@@ -103,6 +103,73 @@ var test_sorted_merge_1 = function () {
 
 
 
+var test_three_iterator = function () {
+  var animals = [
+    {id: 1, name: 'rat', color: 'brown', horn: 0, legs: 4},
+    {id: 2, name: 'leopard', color: 'spots', horn: 2, legs: 4},
+    {id: 3, name: 'galon', color: 'gold', horn: 10, legs: 2},
+    {id: 4, name: 'cat', color: 'spots', horn: 0, legs: 4},
+    {id: 5, name: 'snake', color: 'spots', horn: 0, legs: 0},
+    {id: 6, name: 'ox', color: 'black', horn: 2, legs: 4},
+    {id: 7, name: 'cow', color: 'spots', horn: 2, legs: 4},
+    {id: 8, name: 'chicken', color: 'red', horn: 0, legs: 2}
+  ];
+
+
+  var schema = {
+    stores: [
+      {
+        name: 'animals',
+        keyPath: 'id',
+        indexes: [
+          {
+            keyPath: 'color'
+          },
+          {
+            keyPath: 'horn'
+          },
+          {
+            keyPath: 'legs'
+          },
+          {
+            keyPath: ['horn', 'name']
+          }, {
+            keyPath: ['legs', 'name']
+          }]
+      }]
+  };
+  var db = new ydn.db.Storage('test_three_iterator', schema, options);
+  db.clear();
+  db.put('animals', animals);
+
+  var iter_color = ydn.db.Cursors.where('animals', 'color', '=', 'spots');
+  var iter_horn = ydn.db.Cursors.where('animals', 'horn', '=', 2);
+  var iter_legs = ydn.db.Cursors.where('animals', 'legs', '=', 4);
+
+  var done;
+  var result = [];
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+        assertArrayEquals('correct result', [2, 7], result);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var solver = new ydn.db.algo.SortedMerge(result);
+  var req = db.scan([iter_horn, iter_color, iter_legs], solver);
+  req.addBoth(function() {
+    done = true;
+  });
+};
 
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();

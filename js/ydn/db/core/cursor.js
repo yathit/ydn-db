@@ -228,7 +228,8 @@ ydn.db.Cursor.prototype.getKey = function(opt_idx) {
  */
 ydn.db.Cursor.prototype.getPrimaryKey = function(opt_idx) {
   var index = opt_idx || 0;
-  return this.primary_keys_[index];
+  return this.cursors_[index].isIndexCursor() ?
+      this.primary_keys_[index] : this.keys_[index];
 };
 
 
@@ -238,7 +239,8 @@ ydn.db.Cursor.prototype.getPrimaryKey = function(opt_idx) {
  */
 ydn.db.Cursor.prototype.getValue = function(opt_idx) {
   var index = opt_idx || 0;
-  return this.values_[index];
+  return this.cursors_[index].isValueCursor() ?
+      this.values_[index] : this.getPrimaryKey(index);
 };
 
 

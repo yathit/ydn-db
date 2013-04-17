@@ -298,8 +298,10 @@ ydn.db.core.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
   this.request_.onsuccess = function(ev) {
     cursor = ev.target.result;
     if (cursor) {
-      cmp = ydn.db.con.IndexedDb.indexedDb.cmp(key, cursor.primaryKey);
-      if (cmp >= 0) {
+      cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cursor.primaryKey, key);
+      if (cmp == 0 ||
+          (cmp == 1 && !me.reverse) ||
+          (cmp == -1 && me.reverse)) {
         me.request_.onsuccess = goog.bind(me.defaultOnSuccess, me);
         var p_key = me.isIndexCursor() ? cursor.primaryKey : undefined;
         me.onSuccess(cursor.key, p_key, cursor.value);

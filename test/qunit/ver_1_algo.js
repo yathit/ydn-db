@@ -4,13 +4,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finer', div);
+      ydn.debug.log('ydn.db', 'finest', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finer');
+      ydn.debug.log('ydn.db', 'finest');
     } else {
       console.log('no logging facility');
     }
@@ -64,12 +64,18 @@ db.put('animals', animals).done(function (value) {
 var num_color = animals.reduce(function (p, x) {
   return x.color == 'spots' ? p + 1 : p;
 }, 0);
-var num_legs = animals.reduce(function (p, x) {
+var num_four_legs_ani = animals.reduce(function (p, x) {
   return x.legs == 4 ? p + 1 : p;
 }, 0);
-var num_horn = animals.reduce(function (p, x) {
+var num_two_horn_ani = animals.reduce(function (p, x) {
   return x.horn == 2 ? p + 1 : p;
 }, 0);
+// here iterator has one more than the result count because, iterator
+// stop only after returning null cursor.
+var horn_iter_count = num_two_horn_ani + 1;
+var color_iter_count = num_color + 1;
+var leg_iter_count = num_four_legs_ani + 1;
+
 
 
 (function () {
@@ -101,10 +107,9 @@ var num_horn = animals.reduce(function (p, x) {
     req.always(function() {
       // ['leopard', 'cow']
       deepEqual(result, [2, 7], 'correct result');
-      equal(iter_horn.count(), num_horn, 'horn table scan count');
-      // why '+ 1' ?
-      equal(iter_color.count(), num_color * (num_horn + 1), 'color table scan count');
-      equal(iter_legs.count(), num_legs * (num_color + 1) * (num_horn + 1), 'legs table scan count');
+      equal(iter_horn.count(), horn_iter_count, 'horn table scan count');
+      equal(iter_color.count(), color_iter_count * horn_iter_count, 'color table scan count');
+      equal(iter_legs.count(), leg_iter_count * color_iter_count * horn_iter_count, 'legs table scan count');
       start();
     });
 
@@ -123,9 +128,9 @@ var num_horn = animals.reduce(function (p, x) {
     req.always(function() {
       // ['leopard', 'cow']
       deepEqual(result, [2, 7], 'correct result');
-      ok(iter_horn.count() <= num_horn, 'horn table scan count less than or equal to ' + num_horn);
-      ok(iter_color.count() <= num_color , 'color table scan count less than or equal to ' + num_color);
-      ok(iter_legs.count() <= num_legs, 'legs table scan count less than or equal to ' + num_legs);
+      ok(iter_horn.count() <= horn_iter_count, 'horn table scan count less than or equal to ' + num_two_horn_ani);
+      ok(iter_color.count() <= color_iter_count , 'color table scan count less than or equal to ' + num_color);
+      ok(iter_legs.count() <= leg_iter_count, 'legs table scan count less than or equal to ' + num_four_legs_ani);
       start();
     });
 
@@ -144,16 +149,15 @@ var num_horn = animals.reduce(function (p, x) {
     req.always(function() {
       deepEqual(result, exp_result, 'correct result');
       ok(iter_horn_name.count() >= exp_result.length, 'horn table scan count larger or equal to ' + exp_result.length);
-      ok(iter_horn_name.count() <= num_horn, 'horn table scan count less than or equal to ' + num_horn);
+      ok(iter_horn_name.count() <= horn_iter_count, 'horn table scan count less than or equal to ' + horn_iter_count);
       ok(iter_legs_name.count() >= exp_result.length, 'legs table scan count larger or equal to ' + exp_result.length);
-      ok(iter_legs_name.count() <= num_legs, 'legs table scan count less than or equal to ' + num_legs);
+      ok(iter_legs_name.count() <= leg_iter_count, 'legs table scan count less than or equal to ' + leg_iter_count);
       start();
     });
 
   });
 
-  asyncTest("ZigzagMerge with streamer output", function () {
-    expect(5);
+  asyncTest("ZigzagMerge with streamer output", 3, function () {
 
     var iter_horn_name = new ydn.db.Cursors('animals', 'horn, name', ydn.db.KeyRange.starts([2]));
     var iter_legs_name = new ydn.db.Cursors('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
@@ -166,9 +170,7 @@ var num_horn = animals.reduce(function (p, x) {
       streamer.collect(function(keys, values) {
         deepEqual(values, exp_result, 'correct result');
         ok(iter_horn_name.count() >= exp_result.length, 'horn table scan count larger or equal to ' + exp_result.length);
-        ok(iter_horn_name.count() <= num_horn, 'horn table scan count less than or equal to ' + num_horn);
         ok(iter_legs_name.count() >= exp_result.length, 'legs table scan count larger or equal to ' + exp_result.length);
-        ok(iter_legs_name.count() <= num_legs, 'legs table scan count less than or equal to ' + num_legs);
         start();
       });
 
@@ -194,5 +196,7 @@ QUnit.moduleDone(function(result) {
 
 QUnit.done(function(results) {
   reporter.report();
+  ydn.db.deleteDatabase(db.getName(), db.getType());
+  db.close();
 });
 

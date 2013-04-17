@@ -65,22 +65,14 @@ ydn.db.algo.SortedMerge.DEBUG = false;
  * @inheritDoc
  */
 ydn.db.algo.SortedMerge.prototype.begin = function(iterators, callback) {
-//  this.reverses_ = [];
-//  this.degrees_ = [];
-//  for (var i = 0; i < iterators.length; i++) {
-//    this.reverses_[i] = iterators[i].isReversed();
-//    this.degrees_[i] = iterators[i].degree();
-//  }
   return false;
 };
-
 
 
 /**
  * @inheritDoc
  */
-ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
-
+ydn.db.algo.SortedMerge.prototype.solver = function(keys, values) {
 
   var advancement = [];
 
@@ -150,11 +142,11 @@ ydn.db.algo.SortedMerge.prototype.solver = function (keys, values) {
 
   if (ydn.db.algo.SortedMerge.DEBUG) {
     window.console.log('SortedMerge: match: ' + all_match +
-      ', skip: ' + skip +
-      ', highest_key: ' + JSON.stringify(highest_key) +
-      ', keys: ' + JSON.stringify(keys) +
-      ', cmps: ' + JSON.stringify(cmps) +
-      ', advancement: ' + JSON.stringify(advancement));
+        ', skip: ' + skip +
+        ', highest_key: ' + JSON.stringify(highest_key) +
+        ', keys: ' + JSON.stringify(keys) +
+        ', cmps: ' + JSON.stringify(cmps) +
+        ', advancement: ' + JSON.stringify(advancement));
   }
 
   if (all_match) {

@@ -104,7 +104,7 @@ db.put(store_name, data).done(function (value) {
       var exp_obj = data[value_order[idx]];
       deepEqual(x.getKey(), exp_obj.value, 'table index scan effective key at ' + idx);
       deepEqual(x.getPrimaryKey(), exp_obj.id, 'table index scan primary key at ' + idx);
-      equal(x.getValue(), undefined, 'table index scan value at ' + idx);
+      equal(x.getValue(), exp_obj.id, 'table index scan value at ' + idx);
       idx++;
     });
     req.always(function() {
