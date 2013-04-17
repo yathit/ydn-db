@@ -647,11 +647,14 @@ ydn.db.Iterator.prototype.restrict = function(field_name, value) {
     key_range = new ydn.db.KeyRange(lower, upper,
         !!this.key_range_.lowerOpen, !!this.key_range_.upperOpen);
   } else {
-    key_range = ydn.db.KeyRange.only(base);
+    key_range = ydn.db.KeyRange.only(value);
   }
-  var index = this.is_index_iterator_ ?
-      [field_name].concat(this.index_name_) : field_name;
-  return new ydn.db.Iterator(this.store_name, index.join(', '), key_range,
+  var index = field_name;
+  if (this.is_index_iterator_) {
+    index = [field_name].concat(this.index_name_).join(', ');
+  }
+
+  return new ydn.db.Iterator(this.store_name, index, key_range,
       this.isReversed(), this.isUnique(), this.key_only_);
 };
 

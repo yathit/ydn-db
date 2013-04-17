@@ -910,6 +910,61 @@ var test_compound_text_starts = function () {
 };
 
 
+var test_restrict = function() {
+  var db_name = 'test_restrict';
+  var data = [
+    {id: 1, a: 1, b: 'a'},
+    {id: 2, a: 2, b: 'a'},
+    {id: 3, a: 2, b: 'b'},
+    {id: 4, a: 3, b: 'c'}
+  ];
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [{
+        name: 'a'
+      }, {
+        name: 'b, a',
+        keyPath: ['b', 'a']
+      }]
+    }]
+  };
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  db.clear('st');
+  db.put('st', data);
+  var done1, keys1, result1;
+
+  waitForCondition(
+      function () {
+        return done1;
+      },
+      function () {
+        assertArrayEquals('restruct a = 2 keys', [2, 2], keys1);
+        assertArrayEquals('restrict a = 2', [data[1], data[2]], result1);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var iter = new ydn.db.ValueCursors('st');
+  var iter1 = iter.restrict('a', 2);
+  var iter2 = iter.restrict('a', 2);
+  console.log(iter.getKeyRange());
+
+  db.keys(iter1).addBoth(function (x) {
+    keys1 = x;
+  });
+  db.values(iter1).addBoth(function (x) {
+    result1 = x;
+    done1 = true;
+  });
+
+};
+
+
 
 
 var testCase = new goog.testing.ContinuationTestCase();
