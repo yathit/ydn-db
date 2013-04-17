@@ -48,11 +48,14 @@ goog.require('ydn.debug.error.ArgumentException');
  * @param {boolean=} opt_unique unique.
  * @param {boolean=} opt_key_only true for key only iterator. Default value is
  * true if index is specified, false if not defined.
+ * @param {(!Array.<string>|string)=} opt_index_key_path index key path. If
+ * key path is specified, key path is used to lookup the index instead of
+ * index name.
  * @constructor
  * @struct
  */
 ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
-                           opt_unique, opt_key_only) {
+                           opt_unique, opt_key_only, opt_index_key_path) {
   // Note for V8 optimization, declare all properties in constructor.
   if (!goog.isString(store)) {
     throw new ydn.debug.error.ArgumentException('store name must be a string');
@@ -67,8 +70,14 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
   /**
    * Indexed field.
    * @final
+   * @private
    */
   this.index_name_ = opt_index;
+  /**
+   * @final
+   * @private
+   */
+  this.index_key_path_ = opt_index_key_path;
   /**
    * @final
    * @private
@@ -588,6 +597,14 @@ ydn.db.Iterator.prototype.peer_store_names_;
 
 /**
  *
+ * @type {!Array.<string>|string|undefined}
+ * @private
+ */
+ydn.db.Iterator.prototype.index_key_path_;
+
+
+/**
+ *
  * @param {number} i index of peer.
  * @return {string} peer store name.
  */
@@ -649,13 +666,14 @@ ydn.db.Iterator.prototype.restrict = function(field_name, value) {
   } else {
     key_range = ydn.db.KeyRange.only(value);
   }
-  var index = field_name;
+  var index_name = field_name;
+  var index_key_path;
   if (this.is_index_iterator_) {
-    index = [field_name].concat(this.index_name_).join(', ');
+    index_key_path = [field_name].concat(this.index_name_);
   }
 
-  return new ydn.db.Iterator(this.store_name, index, key_range,
-      this.isReversed(), this.isUnique(), this.key_only_);
+  return new ydn.db.Iterator(this.store_name, index_name, key_range,
+      this.isReversed(), this.isUnique(), this.key_only_, index_key_path);
 };
 
 
@@ -669,7 +687,8 @@ ydn.db.Iterator.prototype.restrict = function(field_name, value) {
 ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
                                              opt_key_query) {
 
-  var cursor = executor.getCursor(tx, tx_lbl, this.store_name, this.index_name_,
+  var cursor = executor.getCursor(tx, tx_lbl, this.store_name,
+      this.index_key_path_ || this.index_name_,
       this.key_range_, this.direction, this.key_only_, !!opt_key_query);
 
   if (this.cursor_) {

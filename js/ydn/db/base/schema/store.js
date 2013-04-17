@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview About this file.
  *
@@ -6,31 +20,33 @@
  */
 
 goog.provide('ydn.db.schema.Store');
-
-goog.require('ydn.db.schema.Index');
 goog.require('ydn.db.KeyRange');
+goog.require('ydn.db.schema.Index');
+
 
 
 /**
  *
  * @param {string} name table name.
- * @param {(Array.<string>|string)=} keyPath indexedDB keyPath, like
+ * @param {(Array.<string>|string)=} opt_key_path indexedDB keyPath, like
  * 'feed.id.$t'. Default to.
- * @param {boolean=} autoIncrement If true, the object store has a key
+ * @param {boolean=} opt_autoIncrement If true, the object store has a key
  * generator. Defaults to false.
  * @param {string|ydn.db.schema.DataType=} opt_type
  * data type for keyPath. Default to
  * <code>ydn.db.schema.DataType.INTEGER</code> if opt_autoIncrement is
  * <code>true.</code>
  * @param {!Array.<!ydn.db.schema.Index>=} opt_indexes list of indexes.
- * @param {boolean=} dispatch_events if true, storage instance should
+ * @param {boolean=} opt_dispatch_events if true, storage instance should
  * dispatch event on changes.
- * @param {boolean=} fixed sync with backend server.
- * @param {StoreSyncOptionJson=} sync sync with backend server.
+ * @param {boolean=} opt_is_fixed sync with backend server.
+ * @param {StoreSyncOptionJson=} opt_sync sync with backend server.
  * @constructor
+ * @struct
  */
-ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
-                               opt_indexes, dispatch_events, fixed, sync) {
+ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
+                               opt_indexes, opt_dispatch_events, opt_is_fixed,
+                               opt_sync) {
 
   /**
    * @final
@@ -42,7 +58,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   /**
    * @final
    */
-  this.keyPath = goog.isDef(keyPath) ? keyPath : null;
+  this.keyPath = goog.isDef(opt_key_path) ? opt_key_path : null;
   /**
    * @final
    */
@@ -59,7 +75,7 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
    * @final
    * @type {boolean|undefined}
    */
-  this.autoIncrement = autoIncrement;
+  this.autoIncrement = opt_autoIncrement;
 
   var type;
   if (goog.isDef(opt_type)) {
@@ -70,7 +86,8 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
     }
     if (this.isComposite) {
       throw new ydn.debug.error.ArgumentException(
-          'composite key for store "' + this.name + '" must not specified type');
+          'composite key for store "' + this.name +
+              '" must not specified type');
     }
   }
 
@@ -91,18 +108,20 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
   /**
    * @final
    */
-  this.dispatch_events = !!dispatch_events;
+  this.dispatch_events = !!opt_dispatch_events;
   /**
    * @final
    */
-  this.fixed = !!fixed;
+  this.fixed = !!opt_is_fixed;
   /**
    * @final
+   * @private
    */
   this.keyColumnType_ = goog.isString(this.type) ?
       this.type : ydn.db.schema.DataType.TEXT;
   /**
    * @final
+   * @private
    */
   this.primary_column_name_ = goog.isArray(this.keyPath) ?
       this.keyPath.join(',') :
@@ -110,7 +129,12 @@ ydn.db.schema.Store = function(name, keyPath, autoIncrement, opt_type,
           this.keyPath :
           ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
 
-  this.primary_column_name_quoted_ = goog.string.quote(this.primary_column_name_);
+  /**
+   * @final
+   * @private
+   */
+  this.primary_column_name_quoted_ =
+      goog.string.quote(this.primary_column_name_);
 };
 
 
@@ -122,7 +146,6 @@ ydn.db.schema.Store.FetchStrategy = {
   ASCENDING_KEY: 'ascending-key',
   DESCENDING_KEY: 'descending-key'
 };
-
 
 
 /**
@@ -140,26 +163,31 @@ ydn.db.schema.Store.FetchStrategies = [
  */
 ydn.db.schema.Store.prototype.name;
 
+
 /**
  * @type {boolean}
  * @private
  */
 ydn.db.schema.Store.prototype.isComposite;
 
+
 /**
  * @type {(!Array.<string>|string)?}
  */
 ydn.db.schema.Store.prototype.keyPath;
+
 
 /**
  * @type {boolean|undefined}
  */
 ydn.db.schema.Store.prototype.autoIncrement;
 
+
 /**
  * @type {ydn.db.schema.DataType|undefined} //
  */
 ydn.db.schema.Store.prototype.type;
+
 
 /**
  * @private
@@ -167,21 +195,25 @@ ydn.db.schema.Store.prototype.type;
  */
 ydn.db.schema.Store.prototype.keyColumnType_;
 
+
 /**
  * @protected
  * @type {!Array.<string>}
  */
 ydn.db.schema.Store.prototype.keyPaths;
 
+
 /**
  * @type {!Array.<!ydn.db.schema.Index>}
  */
 ydn.db.schema.Store.prototype.indexes;
 
+
 /**
  * @type {boolean}
  */
 ydn.db.schema.Store.prototype.dispatch_events = false;
+
 
 /**
  * A fixed schema cannot store arbitrary data structure. This is used only
@@ -209,7 +241,6 @@ ydn.db.schema.Store.prototype.toJSON = function() {
     'indexes': indexes
   };
 };
-
 
 
 /**
@@ -448,6 +479,21 @@ ydn.db.schema.Store.prototype.getIndex = function(name) {
 
 
 /**
+ * Query index from index key path.
+ * @param {string|!Array.<string>} key_path key path.
+ * @return {ydn.db.schema.Index} resulting index.
+ */
+ydn.db.schema.Store.prototype.getIndexByKeyPath = function(key_path) {
+  for (var i = 0; i < this.indexes.length; i++) {
+    if (this.indexes[i].isKeyPath(key_path)) {
+      return this.indexes[i];
+    }
+  }
+  return null;
+};
+
+
+/**
  * @see #hasIndexByKeyPath
  * @param {string} name index name.
  * @return {boolean} return true if name is found in the index or primary
@@ -488,7 +534,7 @@ ydn.db.schema.Store.prototype.hasIndexByKeyPath = function(key_path) {
  * join by ',' and quoted. If keyPath is not define, default sqlite column
  * name is used.
  */
-ydn.db.schema.Store.prototype.getSQLKeyColumnNameQuoted = function () {
+ydn.db.schema.Store.prototype.getSQLKeyColumnNameQuoted = function() {
   return this.primary_column_name_quoted_;
 };
 
@@ -498,7 +544,7 @@ ydn.db.schema.Store.prototype.getSQLKeyColumnNameQuoted = function () {
  * join by ',' and quoted. If keyPath is not define, default sqlite column
  * name is used.
  */
-ydn.db.schema.Store.prototype.getSQLKeyColumnName = function () {
+ydn.db.schema.Store.prototype.getSQLKeyColumnName = function() {
   return this.primary_column_name_;
 };
 
@@ -566,8 +612,8 @@ ydn.db.schema.Store.prototype.getColumns = function() {
  * these include:
  *   1. composite index: in which a composite index is blown up to multiple
  *     columns. @see ydn.db.con.WebSql.prototype.prepareTableSchema_.
- * @param {ydn.db.schema.Store} that guided store schema
- * @return {!ydn.db.schema.Store} updated store schema
+ * @param {ydn.db.schema.Store} that guided store schema.
+ * @return {!ydn.db.schema.Store} updated store schema.
  */
 ydn.db.schema.Store.prototype.hint = function(that) {
   if (!that) {
@@ -579,7 +625,7 @@ ydn.db.schema.Store.prototype.hint = function(that) {
     goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
       this.keyPath;
   var type = this.type;
-  var indexes = goog.array.map(this.indexes, function (index) {
+  var indexes = goog.array.map(this.indexes, function(index) {
     return index.clone();
   });
 //  if (goog.isArray(that.keyPath)) {
@@ -638,7 +684,7 @@ ydn.db.schema.Store.prototype.getName = function() {
 
 /**
  *
- * @return {boolean|undefined} autoIncrement
+ * @return {boolean|undefined} autoIncrement.
  */
 ydn.db.schema.Store.prototype.getAutoIncrement = function() {
   return this.autoIncrement;
@@ -647,7 +693,7 @@ ydn.db.schema.Store.prototype.getAutoIncrement = function() {
 
 /**
  *
- * @return {Array.<string>|string?} keyPath
+ * @return {Array.<string>|string?} keyPath.
  */
 ydn.db.schema.Store.prototype.getKeyPath = function() {
   return this.keyPath;
@@ -740,8 +786,8 @@ ydn.db.schema.Store.prototype.addIndex = function(name, opt_unique, opt_type,
 
 /**
  * Extract primary key value of keyPath from a given object.
- * @param {!Object} record record value
- * @return {!IDBKey|undefined} extracted primary key
+ * @param {!Object} record record value.
+ * @return {!IDBKey|undefined} extracted primary key.
  */
 ydn.db.schema.Store.prototype.extractKey = function(record) {
   // http://www.w3.org/TR/IndexedDB/#key-construct

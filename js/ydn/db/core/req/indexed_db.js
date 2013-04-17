@@ -153,6 +153,12 @@ ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
 ydn.db.core.req.IndexedDb.prototype.getCursor = function(tx, tx_no,
         store_name, index_name, keyRange, direction, key_only, key_query) {
 
+  var store = this.schema.getStore(store_name);
+  goog.asserts.assertObject(store, 'store "' + store_name + '" not found.');
+  if (goog.isDef(index_name)) {
+    index_name = this.getIndexName(store, index_name);
+  }
+
   return new ydn.db.core.req.IDBCursor(tx, tx_no, store_name, index_name,
       keyRange, direction, key_only, key_query);
 };

@@ -295,7 +295,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     old_version = db.version;
 
     var db_info = 'database ' + dbname +
-      (db.version.length == 0 ? '' : ' version ' + db.version);
+        (db.version.length == 0 ? '' : ' version ' + db.version);
 
     if (goog.isDefAndNotNull(schema.version) && schema.version == db.version) {
       me.logger.fine('Existing ' + db_info + ' opened as requested.');
@@ -500,8 +500,6 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
 
   sql += ');';
   sqls.push(sql);
-
-
 
   return sqls;
 };

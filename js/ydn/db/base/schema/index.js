@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview Database index schema.
  *
@@ -6,11 +20,12 @@
  */
 
 
-goog.provide('ydn.db.schema.Index');
 goog.provide('ydn.db.schema.DataType');
+goog.provide('ydn.db.schema.Index');
 goog.require('ydn.db.base');
-goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.db.utils');
+goog.require('ydn.debug.error.ArgumentException');
+
 
 
 /**
@@ -20,25 +35,26 @@ goog.require('ydn.db.utils');
  * @param {string|ydn.db.schema.DataType=} opt_type to be determined.
  * @param {boolean=} opt_unique True if the index enforces that there is only
  * one objectfor each unique value it indexes on.
- * @param {boolean=} multiEntry  specifies whether the index's multiEntry flag
- * is set.
- * @param {string=} name index name.
+ * @param {boolean=} opt_multi_entry specifies whether the index's multiEntry
+ * flag is set.
+ * @param {string=} opt_index_name index name.
  * @constructor
  */
 ydn.db.schema.Index = function(
-    keyPath, opt_type, opt_unique, multiEntry, name) {
+    keyPath, opt_type, opt_unique, opt_multi_entry, opt_index_name) {
 
-  if (!goog.isDef(name)) {
+  if (!goog.isDef(opt_index_name)) {
     if (goog.isArray(keyPath)) {
-      name = keyPath.join(', ');
+      opt_index_name = keyPath.join(', ');
     } else {
-      name = keyPath;
+      opt_index_name = keyPath;
     }
   }
 
   if (goog.isDefAndNotNull(keyPath) && !goog.isString(keyPath) &&
-    !goog.isArrayLike(keyPath)) {
-    throw new ydn.debug.error.ArgumentException('index keyPath for ' + name +
+      !goog.isArrayLike(keyPath)) {
+    throw new ydn.debug.error.ArgumentException('index keyPath for ' +
+        opt_index_name +
         ' must be a string or array, but ' + keyPath + ' is ' + typeof keyPath);
   }
 
@@ -50,8 +66,8 @@ ydn.db.schema.Index = function(
     Object.freeze(/** @type {!Object} */ (keyPath));
   }
 
-  if (!goog.isDef(keyPath) && goog.isDef(name)) {
-    keyPath = name;
+  if (!goog.isDef(keyPath) && goog.isDef(opt_index_name)) {
+    keyPath = opt_index_name;
   }
 
   /**
@@ -60,13 +76,14 @@ ydn.db.schema.Index = function(
   this.keyPath = keyPath;
   /**
    * @final
+   * @private
    */
   this.is_composite_ = goog.isArrayLike(this.keyPath);
 
   /**
    * @final
    */
-  this.name = name;
+  this.name = opt_index_name;
   /**
    * @final
    * @type {ydn.db.schema.DataType|undefined}
@@ -75,11 +92,12 @@ ydn.db.schema.Index = function(
   if (goog.isDef(opt_type)) {
     if (!goog.isDef(this.type)) {
       throw new ydn.debug.error.ArgumentException('type invalid in index: ' +
-        this.name);
+          this.name);
     }
     if (goog.isArray(this.keyPath)) {
       throw new ydn.debug.error.ArgumentException(
-        'composite key for store "' + this.name + '" must not specified type');
+          'composite key for store "' + this.name +
+          '" must not specified type');
     }
   }
   /**
@@ -90,17 +108,19 @@ ydn.db.schema.Index = function(
   /**
    * @final
    */
-  this.multiEntry = !!multiEntry;
+  this.multiEntry = !!opt_multi_entry;
   /**
    * @final
+   * @private
    */
   this.keyColumnType_ = goog.isString(this.type) ? this.type :
       ydn.db.schema.DataType.TEXT;
   /**
    * @final
+   * @private
    */
-  this.index_column_name_ = goog.isString(name) ?
-      name : goog.isArray(keyPath) ?
+  this.index_column_name_ = goog.isString(opt_index_name) ?
+      opt_index_name : goog.isArray(keyPath) ?
           this.keyPath.join(',') : keyPath;
 
   this.index_column_name_quoted_ = goog.string.quote(this.index_column_name_);
@@ -119,14 +139,15 @@ ydn.db.schema.Index.prototype.extractKey = function(obj) {
       for (var i = 0, n = this.keyPath.length; i < n; i++) {
         var i_key = ydn.db.utils.getValueByKeys(obj, this.keyPath[i]);
         goog.asserts.assert(goog.isDefAndNotNull(i_key),
-          ydn.json.toShortString(obj) +
+            ydn.json.toShortString(obj) +
             ' does not issue require composite key value ' + i + ' of ' +
             n + ' on index "' + this.name + '"');
         key[i] = i_key;
       }
       return key;
     } else {
-      return /** @type {IDBKey} */ (ydn.db.utils.getValueByKeys(obj, this.keyPath));
+      return /** @type {IDBKey} */ (ydn.db.utils.getValueByKeys(
+          obj, this.keyPath));
     }
   }
 };
@@ -137,27 +158,32 @@ ydn.db.schema.Index.prototype.extractKey = function(obj) {
  */
 ydn.db.schema.Index.prototype.name;
 
+
 /**
  * @private
  * @type {ydn.db.schema.DataType}
  */
 ydn.db.schema.Index.prototype.keyColumnType_;
 
+
 /**
  * @type {(string|!Array.<string>)}
  */
 ydn.db.schema.Index.prototype.keyPath;
+
 
 /**
  * @type {boolean}
  */
 ydn.db.schema.Index.prototype.multiEntry;
 
+
 /**
  * @type {boolean}
  * @private
  */
 ydn.db.schema.Index.prototype.is_composite_;
+
 
 /**
  * @type {boolean}
@@ -259,13 +285,13 @@ ydn.db.schema.Index.TYPES = [
 
 /**
  * Return an immutable type.
- * @param {ydn.db.schema.DataType|string=} str data type in string.
+ * @param {ydn.db.schema.DataType|string=} opt_type data type in string.
  * @return {ydn.db.schema.DataType|undefined}
  * data type.
  */
-ydn.db.schema.Index.toType = function(str) {
-  if (goog.isString(str)) {
-    var idx = goog.array.indexOf(ydn.db.schema.Index.TYPES, str);
+ydn.db.schema.Index.toType = function(opt_type) {
+  if (goog.isString(opt_type)) {
+    var idx = goog.array.indexOf(ydn.db.schema.Index.TYPES, opt_type);
     return ydn.db.schema.Index.TYPES[idx]; // undefined OK.
   } else {
     return undefined;
@@ -321,7 +347,8 @@ ydn.db.schema.Index.prototype.getType = function() {
 
 /**
  *
- * @return {ydn.db.schema.DataType}
+ * @return {ydn.db.schema.DataType} get type suitable to use in SQL query
+ * construction.
  */
 ydn.db.schema.Index.prototype.getSqlType = function() {
   return this.keyColumnType_;
@@ -363,7 +390,6 @@ ydn.db.schema.Index.prototype.isUnique = function() {
 };
 
 
-
 /**
  * @inheritDoc
  */
@@ -378,22 +404,21 @@ ydn.db.schema.Index.prototype.toJSON = function() {
 };
 
 
-
 /**
  *
  * @return {!ydn.db.schema.Index} a clone.
  */
 ydn.db.schema.Index.prototype.clone = function() {
   var keyPath = goog.isArray(this.keyPath) ?
-    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
+      goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
       this.keyPath;
 
   return new ydn.db.schema.Index(
-    keyPath,
-    this.type,
-    this.unique,
-    this.multiEntry,
-    this.name);
+      keyPath,
+      this.type,
+      this.unique,
+      this.multiEntry,
+      this.name);
 };
 
 
@@ -425,6 +450,16 @@ ydn.db.schema.Index.compareKeyPath = function(keyPath1, keyPath2) {
 
 
 /**
+ * Test key path.
+ * @param {string|!Array.<string>} key_path key path to be tested.
+ * @return {boolean} true if given key path is equal to this key path.
+ */
+ydn.db.schema.Index.prototype.isKeyPath = function(key_path) {
+  return !ydn.db.schema.Index.compareKeyPath(this.keyPath, key_path);
+};
+
+
+/**
  * Compare two stores.
  * @see #equals
  * @param {ydn.db.schema.Index} index index schema to test.
@@ -451,13 +486,13 @@ ydn.db.schema.Index.prototype.difference = function(index) {
       goog.isDefAndNotNull(index.multiEntry) &&
       this.multiEntry != index.multiEntry) {
     return 'multiEntry, expect: ' + this.multiEntry +
-      ', but: ' + index.multiEntry;
+        ', but: ' + index.multiEntry;
   }
   if (goog.isDef(this.type) && goog.isDef(index.type) &&
       (goog.isArrayLike(this.type) ? !goog.array.equals(
-        /** @type {goog.array.ArrayLike} */ (this.type),
-        /** @type {goog.array.ArrayLike} */ (index.type)) :
-        this.type != index.type)) {
+      /** @type {goog.array.ArrayLike} */ (this.type),
+      /** @type {goog.array.ArrayLike} */ (index.type)) :
+      this.type != index.type)) {
     return 'data type, expect: ' + this.type + ', but: ' + index.type;
   }
   return '';
@@ -473,8 +508,8 @@ ydn.db.schema.Index.prototype.difference = function(index) {
  * these include:
  *   1. composite index: in which a composite index is blown up to multiple
  *     columns. @see ydn.db.con.WebSql.prototype.prepareTableSchema_.
- * @param {ydn.db.schema.Index} that guided index schema
- * @return {!ydn.db.schema.Index} updated index schema
+ * @param {ydn.db.schema.Index} that guided index schema.
+ * @return {!ydn.db.schema.Index} updated index schema.
  */
 ydn.db.schema.Index.prototype.hint = function(that) {
   if (!that) {
@@ -508,7 +543,7 @@ ydn.db.schema.Index.toDir = function(str) {
 
 /**
  *
- * @return {(string|!Array.<string>)} keyPath
+ * @return {(string|!Array.<string>)} keyPath.
  */
 ydn.db.schema.Index.prototype.getKeyPath = function() {
   return this.keyPath;
@@ -522,7 +557,7 @@ ydn.db.schema.Index.prototype.getKeyPath = function() {
  * join by ',' and quoted. If keyPath is not define, default sqlite column
  * name is used.
  */
-ydn.db.schema.Index.prototype.getSQLIndexColumnName = function () {
+ydn.db.schema.Index.prototype.getSQLIndexColumnName = function() {
   return this.index_column_name_;
 };
 
@@ -533,7 +568,7 @@ ydn.db.schema.Index.prototype.getSQLIndexColumnName = function () {
  * join by ',' and quoted. If keyPath is not define, default sqlite column
  * name is used.
  */
-ydn.db.schema.Index.prototype.getSQLIndexColumnNameQuoted = function () {
+ydn.db.schema.Index.prototype.getSQLIndexColumnNameQuoted = function() {
   return this.index_column_name_quoted_;
 };
 

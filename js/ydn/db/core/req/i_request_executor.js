@@ -60,7 +60,8 @@ ydn.db.core.req.IRequestExecutor.prototype.listByIterator =
  * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no transaction number.
  * @param {string} store_name the store name to open.
- * @param {string|undefined} index_name index.
+ * @param {string|!Array.<string>|undefined} index_name index name or index
+ * key path.
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec.
  * @param {boolean} key_only mode.

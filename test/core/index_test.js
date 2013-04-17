@@ -914,9 +914,11 @@ var test_restrict = function() {
   var db_name = 'test_restrict';
   var data = [
     {id: 1, a: 1, b: 'a'},
-    {id: 2, a: 2, b: 'a'},
-    {id: 3, a: 2, b: 'b'},
-    {id: 4, a: 3, b: 'c'}
+    {id: 2, a: 2, b: 'b'},
+    {id: 3, a: 2, b: 'c'},
+    {id: 4, a: 2, b: 'b'},
+    {id: 5, a: 3, b: 'b'},
+    {id: 6, a: 3, b: 'e'}
   ];
   var schema = {
     stores: [{
@@ -933,15 +935,18 @@ var test_restrict = function() {
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear('st');
   db.put('st', data);
-  var done1, keys1, result1;
+  var done, keys1, result1;
+  var keys2, result2;
 
   waitForCondition(
       function () {
-        return done1;
+        return done;
       },
       function () {
-        assertArrayEquals('restruct a = 2 keys', [2, 2], keys1);
-        assertArrayEquals('restrict a = 2', [data[1], data[2]], result1);
+        assertArrayEquals('restrict a = 2 keys', [2, 2, 2], keys1);
+        assertArrayEquals('restrict a = 2 values', [data[1], data[2], data[3]], result1);
+        assertArrayEquals('restrict b keys', [2], keys2);
+        assertArrayEquals('restrict b values', [data[2]], result2);
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db.getName(), db.getType());
         db.close();
@@ -951,16 +956,21 @@ var test_restrict = function() {
 
   var iter = new ydn.db.ValueCursors('st');
   var iter1 = iter.restrict('a', 2);
-  var iter2 = iter.restrict('a', 2);
-  console.log(iter.getKeyRange());
 
   db.keys(iter1).addBoth(function (x) {
     keys1 = x;
-    console.log(iter1.getKey())
   });
   db.values(iter1).addBoth(function (x) {
     result1 = x;
-    done1 = true;
+  });
+
+  var iter2 = iter.restrict('b', 'b');
+  db.keys(iter2).addBoth(function (x) {
+    keys2 = x;
+  });
+  db.values(iter2).addBoth(function (x) {
+    keys2 = x;
+    done = true;
   });
 
 };

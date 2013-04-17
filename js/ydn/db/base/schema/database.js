@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview Database schema.
  *
@@ -7,38 +21,37 @@
 
 
 goog.provide('ydn.db.schema.Database');
-
-
-goog.require('ydn.db.schema.Store');
 goog.require('ydn.db.Key');
+goog.require('ydn.db.schema.Store');
 
 
 
 /**
  *
- * @param {DatabaseSchema|number|string=} version version, if string, it must
- * be parse to int.
+ * @param {DatabaseSchema|number|string=} opt_version version, if string,
+ * it must be parse to int.
  * @param {!Array.<!ydn.db.schema.Store>=} opt_stores store schemas.
  * @constructor
+ * @struct
  */
-ydn.db.schema.Database = function(version, opt_stores) {
+ydn.db.schema.Database = function(opt_version, opt_stores) {
 
   /**
    * @type {number|undefined}
    */
   var ver;
   var stores = opt_stores;
-  if (goog.isObject(version)) {
+  if (goog.isObject(opt_version)) {
     /**
      * @type {DatabaseSchema}
      */
-    var json = version;
+    var json = opt_version;
     if (goog.DEBUG) {
       var fields = ['version', 'stores'];
       for (var key in json) {
         if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
           throw new ydn.debug.error.ArgumentException('Unknown field: ' + key +
-            ' in schema.');
+              ' in schema.');
         }
       }
     }
@@ -56,24 +69,24 @@ ydn.db.schema.Database = function(version, opt_stores) {
         });
         if (idx != -1) {
           throw new ydn.debug.error.ArgumentException('duplicate store name "' +
-            store.name + '".');
+              store.name + '".');
         }
 
       }
       stores.push(store);
     }
-  } else if (goog.isString(version)) {
-    ver = version.length == 0 ?
-      undefined : parseFloat(version);
-  } else if (goog.isNumber(version)) {
-    ver = version;
+  } else if (goog.isString(opt_version)) {
+    ver = opt_version.length == 0 ?
+        undefined : parseFloat(opt_version);
+  } else if (goog.isNumber(opt_version)) {
+    ver = opt_version;
   }
 
 
   if (goog.isDef(ver)) {
     if (!goog.isNumber(ver) || ver < 0) {
-      throw new ydn.debug.error.ArgumentException('Invalid version: ' + ver + ' (' +
-          version + ')');
+      throw new ydn.debug.error.ArgumentException('Invalid version: ' +
+          ver + ' (' + opt_version + ')');
     }
     if (isNaN(ver)) {
       ver = undefined;
@@ -103,7 +116,7 @@ ydn.db.schema.Database = function(version, opt_stores) {
 
 /**
  * @override
- * @return {!DatabaseSchema}
+ * @return {!DatabaseSchema} database schema in json.
  */
 ydn.db.schema.Database.prototype.toJSON = function() {
 
@@ -124,7 +137,6 @@ ydn.db.schema.Database.prototype.toJSON = function() {
  * @private
  */
 ydn.db.schema.Database.prototype.is_auto_version_ = false;
-
 
 
 /**
@@ -156,7 +168,6 @@ ydn.db.schema.Database.prototype.isAutoVersion = function() {
 };
 
 
-
 /**
  *
  * @return {boolean} true if auto schema.
@@ -173,31 +184,6 @@ ydn.db.schema.Database.prototype.isAutoSchema = function() {
 ydn.db.schema.Database.prototype.getStoreNames = function() {
   return goog.array.map(this.stores, function(x) {return x.name;});
 };
-//
-//
-///**
-// * @deprecated
-// * @param {!DatabaseSchema} json Restore from json stream.
-// * @return {!ydn.db.schema.Database} create new database schema from JSON
-// * string.
-// */
-//ydn.db.schema.Database.fromJSON = function(json) {
-//  if (goog.DEBUG) {
-//    var fields = ['version', 'stores'];
-//    for (var key in json) {
-//      if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-//        throw new ydn.debug.error.ArgumentException('Unknown field: ' + key + ' in ' +
-//            ydn.json.stringify(json));
-//      }
-//    }
-//  }
-//  var stores = [];
-//  var stores_json = json.stores || [];
-//  for (var i = 0; i < stores_json.length; i++) {
-//    stores.push(ydn.db.schema.Store.fromJSON(stores_json[i]));
-//  }
-//  return new ydn.db.schema.Database(json.version, stores);
-//};
 
 
 /**
@@ -261,18 +247,19 @@ ydn.db.schema.Database.prototype.hasStore = function(name) {
 /**
  * Return an explination what is different between the schemas.
  * @param {ydn.db.schema.Database} schema schema from sniffing.
- * @param {boolean=} hint hint the give schema.
+ * @param {boolean=} opt_hint hint the give schema.
  * @return {string} return empty string if the two are similar.
  */
-ydn.db.schema.Database.prototype.difference = function(schema, hint) {
+ydn.db.schema.Database.prototype.difference = function(schema, opt_hint) {
   if (!schema || this.stores.length != schema.stores.length) {
     return 'Number of store: ' + this.stores.length + ' vs ' +
-      schema.stores.length;
+        schema.stores.length;
   }
   for (var i = 0; i < this.stores.length; i++) {
     var store = schema.getStore(this.stores[i].name);
     // hint to sniffed schema, so that some lost info are recovered.
-    var hinted_store = (!!store && !!hint) ? store.hint(this.stores[i]) : store;
+    var hinted_store = (!!store && !!opt_hint) ?
+        store.hint(this.stores[i]) : store;
     var msg = this.stores[i].difference(hinted_store);
     if (msg.length > 0) {
       return 'store: "' + this.stores[i].name + '" ' + msg;
