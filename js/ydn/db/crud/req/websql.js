@@ -38,6 +38,7 @@ goog.require('ydn.json');
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
  * @implements {ydn.db.crud.req.IRequestExecutor}
+ * @struct
  */
 ydn.db.crud.req.WebSql = function(dbname, schema) {
   goog.base(this, dbname, schema);

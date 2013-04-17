@@ -50,6 +50,7 @@ goog.require('ydn.error.NotSupportedException');
  * @implements {ydn.db.ISyncOperator}
  * @constructor
  * @extends {ydn.db.tr.DbOperator}
+ * @struct
 */
 ydn.db.crud.DbOperator = function(storage, schema, tx_thread, sync_thread) {
   goog.base(this, storage, schema, tx_thread, sync_thread);

@@ -34,6 +34,7 @@ goog.require('ydn.json');
  * @constructor
  * @extends {ydn.db.crud.req.RequestExecutor}
  * @implements {ydn.db.crud.req.IRequestExecutor}
+ * @struct
  */
 ydn.db.crud.req.IndexedDb = function(dbname, schema) {
   goog.base(this, dbname, schema);
@@ -527,7 +528,8 @@ ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df,
       }
       if (goog.DEBUG && event.name == 'DataError') {
         // give useful info.
-        event = new ydn.db.InvalidKeyException(store + ': ' + text.substring(0, 70));
+        event = new ydn.db.InvalidKeyException(store + ': ' +
+            text.substring(0, 70));
       }
       df(request.error, true);
       // abort transaction ?
@@ -592,7 +594,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
   var msg = tx_no + ' removeByKeys: ' + keys.length + ' keys';
   this.logger.finest(msg);
 
-  var removeAt = function (i) {
+  var removeAt = function(i) {
 
     if (i >= keys.length) {
       df(count, has_failed);
@@ -608,7 +610,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
     // casting to null is weired, but argument of openCursor can be IDBKeyRange
     // or key. But annotation only allow IDBKeyRange or null.
 
-    request.onsuccess = function (event) {
+    request.onsuccess = function(event) {
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, i, keys[i], event]);
       }
@@ -616,14 +618,14 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
       var cursor = event.target.result;
       if (cursor) {
         var req = cursor['delete']();
-        req.onsuccess = function (e) {
+        req.onsuccess = function(e) {
           count++;
           removeAt(i);
         };
-        req.onerror = function (e) {
+        req.onerror = function(e) {
           has_failed = true;
           removeAt(i);
-        }
+        };
       } else {
         removeAt(i);
       }
@@ -999,8 +1001,8 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, lbl, df,
 /**
 * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.listByStore = function (tx, tx_no, df,
-                                                            store_name) {
+ydn.db.crud.req.IndexedDb.prototype.listByStore = function(tx, tx_no, df,
+                                                           store_name) {
   var me = this;
   var results = [];
   var msg = tx_no + ' listByStore: ' + store_name;
@@ -1011,7 +1013,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByStore = function (tx, tx_no, df,
   // Get everything in the store;
   var request = store.openCursor();
 
-  request.onsuccess = function (event) {
+  request.onsuccess = function(event) {
     var cursor = event.target.result;
     if (cursor) {
       results.push(cursor['value']);
@@ -1208,7 +1210,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.countKeyRange =  function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(tx, tx_no, df,
     table, keyRange, index_name) {
 
   var me = this;
@@ -1258,7 +1260,7 @@ ydn.db.crud.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
   var store = tx.objectStore(store_name);
   var index = store.index(index_name);
   var msg = tx_no + ' getIndexKeysByKeys: ' + store_name +
-    (index_name ? ':' + index_name + ' ' : ' ') + keys.length + ' keys';
+      (index_name ? ':' + index_name + ' ' : ' ') + keys.length + ' keys';
   this.logger.finest(msg);
   var results = [];
   var result_count = 0;

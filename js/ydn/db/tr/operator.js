@@ -27,6 +27,7 @@ goog.require('ydn.error.NotSupportedException');
  * @param {ydn.db.tr.IThread} tx_thread
  * @param {ydn.db.tr.IThread} sync_thread
  * @constructor
+ * @struct
  */
 ydn.db.tr.DbOperator = function(storage, schema, tx_thread, sync_thread) {
 
@@ -137,20 +138,13 @@ ydn.db.tr.DbOperator.prototype.addStoreSchema = function(store) {
 };
 
 
-
-
-/** @override */
-ydn.db.tr.DbOperator.prototype.toString = function() {
-  var s = 'TxStorage:' + this.getStorage().getName();
-//  if (goog.DEBUG) {
-//    var scope = this.getScope();
-//    scope = scope ? '[' + scope + ']' : '';
-//    var mu = this.getMuTx().getScope();
-//    var mu_scope = mu ? '[' + mu + ']' : '';
-//    return s + ':' + this.q_no_ + scope + ':' + this.getTxNo() + mu_scope;
-//  }
-  return s;
-};
+if (goog.DEBUG) {
+  /** @override */
+  ydn.db.tr.DbOperator.prototype.toString = function() {
+    var s = 'TxStorage:' + this.getStorage().getName();
+    return s;
+  };
+}
 
 
 

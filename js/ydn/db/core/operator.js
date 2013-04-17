@@ -46,6 +46,7 @@ goog.require('ydn.debug.error.ArgumentException');
  * @implements {ydn.db.core.IOperator}
  * @constructor
  * @extends {ydn.db.crud.DbOperator}
+ * @struct
 */
 ydn.db.core.DbOperator = function(storage, schema, thread,
                                   sync_thread) {
