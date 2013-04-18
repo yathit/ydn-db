@@ -24,8 +24,6 @@ if (/localstorage/.test(location.hash)) {
   options['mechanisms'] = ['localstorage'];
 }
 
-options['mechanisms'] = ['localstoragee'];
-
 
 var db;
 
@@ -131,7 +129,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   asyncTest("single data", 1, function () {
     var db = new ydn.db.Storage('tck1_put_1', schema_1, options);
     db.put(store_inline, data_1).always(function () {
-      console.log(db.getType() + ' type')
       ok(true, "data inserted");
       start();
       var type = db.getType();
@@ -412,7 +409,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(get_db_name, schema_1);
+    var _db = new ydn.db.Storage(get_db_name, schema_1, options);
     _db.put(store_inline, data_store_inline);
     _db.put(store_outline, {abc: value_store_outline}, key_store_outline);
     _db.put(store_outline_string, {abc: value_store_outline_string}, key_store_outline_string);
@@ -425,7 +422,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(get_db_name, schema_1);
+      db = new ydn.db.Storage(get_db_name, schema_1, options);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('Get test not finished.');
@@ -790,7 +787,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1);
+    var _db = new ydn.db.Storage(db_name, schema_1, options);
     _db.clear();
 
     _db.put(store_inline_string, inline_string_data).fail(function (e) {
@@ -809,7 +806,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(db_name, schema_1);
+      db = new ydn.db.Storage(db_name, schema_1, options);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('Keys test not finished.');
@@ -877,7 +874,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(count_db_name, schema_1);
+    var _db = new ydn.db.Storage(count_db_name, schema_1, options);
     _db.clear();
     var data = [];
     var data2 = [];
@@ -901,7 +898,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(count_db_name, schema_1);
+      db = new ydn.db.Storage(count_db_name, schema_1, options);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('Count test not finished.');

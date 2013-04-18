@@ -77,7 +77,7 @@ var schema_1 = {
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1);
+    var _db = new ydn.db.Storage(db_name, schema_1, options);
     _db.clear(store_inline_index);
     _db.put(store_inline_index, [
       {id: 1, value: 2, name: 'a' + Math.random()},
@@ -102,7 +102,7 @@ var schema_1 = {
 
   var test_env = {
     setup: function () {
-      db_r = new ydn.db.Storage(db_name, schema_1);
+      db_r = new ydn.db.Storage(db_name, schema_1, options);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('Keys test not finished.');
@@ -199,7 +199,7 @@ var schema_1 = {
     ]
   };
   var test_count = 0;
-  var db_r = new ydn.db.Storage(db_name, schema_1);
+  var db_r = new ydn.db.Storage(db_name, schema_1, options);
 
   var objs = [
     {id: 1, value: 2, name: 'a' + Math.random()},
@@ -296,7 +296,7 @@ var schema_1 = {
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1);
+    var _db = new ydn.db.Storage(db_name, schema_1, options);
     _db.clear(store_inline_index);
     _db.put(store_inline_index, objs);
 
@@ -309,7 +309,7 @@ var schema_1 = {
   var db;
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(db_name, schema_1);
+      db = new ydn.db.Storage(db_name, schema_1, options);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('List test not finished.');
@@ -547,7 +547,7 @@ var schema_1 = {
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1);
+    var _db = new ydn.db.Storage(db_name, schema_1, options);
     _db.clear(store_inline_index);
     _db.put(store_inline_index, objs);
 
@@ -560,7 +560,7 @@ var schema_1 = {
   var db;
   var test_env = {
     setup: function () {
-      db = new ydn.db.Storage(db_name, schema_1);
+      db = new ydn.db.Storage(db_name, schema_1, options);
       test_env.ydnTimeoutId = setTimeout(function () {
         start();
         console.warn('List test not finished.');

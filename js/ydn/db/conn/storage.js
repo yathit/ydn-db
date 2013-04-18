@@ -89,6 +89,20 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
             key + '" in options.');
       }
     }
+    if (options.mechanisms) {
+      if (!goog.isArray(options.mechanisms)) {
+        throw new ydn.debug.error.ArgumentException('mechanisms attribute ' +
+            'must be an array but ' + goog.typeOf(options.mechanisms) +
+            ' found.');
+      }
+      for (var i = 0; i < options.mechanisms.length; i++) {
+        if (!goog.array.contains(ydn.db.con.Storage.PREFERENCE,
+            options.mechanisms[i])) {
+          throw new ydn.debug.error.ArgumentException('Invalid mechanism "' +
+              options.mechanisms[i] + '"');
+        }
+      }
+    }
   }
 
   /**
@@ -443,33 +457,35 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, this,
         NaN, NaN, e);
     resolve(false, event);
+  } else {
+
+    this.init(); // let super class to initialize.
+
+    db.connect(this.db_name, this.schema).addCallbacks(function(old_version) {
+      this.db_ = db;
+      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY,
+          this, parseFloat(db.getVersion()), parseFloat(old_version), null);
+      resolve(true, event);
+
+      /**
+       *
+       * @param {*} e event.
+       */
+      db.onDisconnected = function(e) {
+
+        this.logger.finest(this + ': disconnected.');
+        // no event for disconnected.
+
+      };
+    }, function(e) {
+      this.logger.warning(this + ': opening fail: ' + e.message);
+      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY,
+          this, NaN, NaN, e);
+      event.message = e.message;
+      resolve(false, event);
+    }, this);
+
   }
-
-  this.init(); // let super class to initialize.
-
-  db.connect(this.db_name, this.schema).addCallbacks(function(old_version) {
-    this.db_ = db;
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY,
-        this, parseFloat(db.getVersion()), parseFloat(old_version), null);
-    resolve(true, event);
-
-    /**
-     *
-     * @param {*} e event.
-     */
-    db.onDisconnected = function(e) {
-
-      this.logger.finest(this + ': disconnected.');
-      // no event for disconnected.
-
-    };
-  }, function(e) {
-    this.logger.warning(this + ': opening fail: ' + e.message);
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, this,
-        NaN, NaN, e);
-    event.message = e.message;
-    resolve(false, event);
-  }, this);
 
   return df;
 
