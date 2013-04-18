@@ -332,7 +332,7 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
   var onComp = tx.getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var results = store.getRecords(null, key_range, reverse, limit, offset);
-    this.logger.finer('success ' + msg + results.length + ' records found.');
+    this.logger.finer(msg + ' ' + results.length + ' records found.');
     df(results);
     onComp();
     onComp = null;
@@ -345,9 +345,14 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
  */
 ydn.db.crud.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, tx_no,
       df, store_name, index, key_range, reverse, limit, offset) {
+  var msg = tx_no + ' listByIndexKeyRange ' + store_name + ' ' +
+      (key_range ? ydn.json.toShortString(key_range) : '');
+  this.logger.finest(msg);
   var onComp = tx.getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
-    df(store.getRecords(index, key_range, reverse, limit, offset));
+    var results = store.getRecords(index, key_range, reverse, limit, offset);
+    this.logger.finer(msg + ' ' + results.length + ' records found.');
+    df(results);
     onComp();
     onComp = null;
   }, this);
