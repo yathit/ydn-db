@@ -87,10 +87,11 @@ ydn.db.base.DEFAULT_CONNECTION_TIMEOUT = 30 * 60 * 1000;
  * @enum {string} storage mechanims type.
  */
 ydn.db.base.Mechanisms = {
-  LOCAL_STORAGE: 'localstorage',
-  SESSION_STORAGE: 'sessionstorage',
-  MEMORY_STORAGE: 'memory',
   IDB: 'indexeddb',
+  USER_DATA: 'userdata',
+  LOCAL_STORAGE: 'localstorage',
+  MEMORY_STORAGE: 'memory',
+  SESSION_STORAGE: 'sessionstorage',
   WEBSQL: 'websql'
 };
 

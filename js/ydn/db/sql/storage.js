@@ -72,6 +72,7 @@ ydn.db.sql.Storage.prototype.newExecutor = function() {
     return new ydn.db.sql.req.WebSql(this.db_name, this.schema);
   } else if (type == ydn.db.base.Mechanisms.MEMORY_STORAGE ||
       type == ydn.db.base.Mechanisms.LOCAL_STORAGE ||
+      type == ydn.db.base.Mechanisms.USER_DATA ||
       type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
     return new ydn.db.sql.req.SimpleStore(this.db_name, this.schema);
   } else {

@@ -26,13 +26,22 @@ goog.require('ydn.db.con.SimpleStorage');
  * @extends {ydn.db.con.SimpleStorage}
  * name and keyPath.
  * @constructor
+ * @implements {ydn.db.con.simple.IStorageProvider}
  * @struct
  */
 ydn.db.con.LocalStorage = function() {
-  goog.asserts.assertObject(window.localStorage);
-  goog.base(this, window.localStorage);
+  goog.base(this, this);
 };
 goog.inherits(ydn.db.con.LocalStorage, ydn.db.con.SimpleStorage);
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.con.LocalStorage.prototype.connectDb = function(name) {
+  goog.asserts.assertObject(window.localStorage);
+  return window.localStorage;
+};
 
 
 /**
@@ -75,13 +84,22 @@ ydn.db.con.LocalStorage.deleteDatabase = function(db_name) {
  * @extends {ydn.db.con.SimpleStorage}
  * name and keyPath.
  * @constructor
+ * @implements {ydn.db.con.simple.IStorageProvider}
  * @struct
  */
 ydn.db.con.SessionStorage = function() {
-  goog.asserts.assertObject(window.sessionStorage);
-  goog.base(this, window.sessionStorage);
+  goog.base(this, this);
 };
 goog.inherits(ydn.db.con.SessionStorage, ydn.db.con.SimpleStorage);
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.con.SessionStorage.prototype.connectDb = function(name) {
+  goog.asserts.assertObject(window.sessionStorage);
+  return window.sessionStorage;
+};
 
 
 /**

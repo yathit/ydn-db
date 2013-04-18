@@ -27,26 +27,26 @@ goog.require('ydn.db.VersionError');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.db.con.simple');
 goog.require('ydn.db.con.simple.Store');
+goog.require('ydn.db.con.simple.TxStorage');
 goog.require('ydn.db.req.InMemoryStorage');
 goog.require('ydn.debug.error.InternalError');
-goog.require('ydn.db.con.simple.TxStorage');
+goog.require('ydn.db.con.simple.IStorageProvider');
 
 
 
 /**
  * @implements {ydn.db.con.IDatabase}
- * @param {!Storage=} opt_localStorage storage provider.
+ * @param {!ydn.db.con.simple.IStorageProvider=} opt_provider storage provider.
  * @constructor
  * @struct
  */
-ydn.db.con.SimpleStorage = function(opt_localStorage) {
+ydn.db.con.SimpleStorage = function(opt_provider) {
 
   /**
    * @final
    * @private
    */
-  this.storage_ = opt_localStorage ||
-      /** @type {!Storage} */ (new ydn.db.req.InMemoryStorage());
+  this.provider_ = opt_provider || new ydn.db.req.InMemoryStorage();
 
   this.version_ = NaN;
 
@@ -59,6 +59,13 @@ ydn.db.con.SimpleStorage = function(opt_localStorage) {
  */
 ydn.db.con.SimpleStorage.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.con.SimpleStorage');
+
+
+/**
+ * @type {ydn.db.con.simple.IStorageProvider}
+ * @private
+ */
+ydn.db.con.SimpleStorage.prototype.provider_;
 
 
 /**
@@ -143,6 +150,11 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
       }
     });
   };
+
+  /**
+   * @final
+   */
+  this.storage_ = this.provider_.connectDb(dbname);
 
   /**
    * @final
@@ -290,7 +302,7 @@ ydn.db.con.SimpleStorage.prototype.getTxStorage = function(tx_fn) {
  */
 ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode,
                                                             oncompleted) {
-  var tx = new ydn.db.con.simple.TxStorage(this, function (t, e) {
+  var tx = new ydn.db.con.simple.TxStorage(this, function(t, e) {
     oncompleted(t, e);
   });
   trFn(tx);

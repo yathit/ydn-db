@@ -3,16 +3,27 @@
  */
 
 goog.provide('ydn.db.req.InMemoryStorage');
+goog.require('ydn.db.con.simple.IStorageProvider');
+
 
 
 /**
  * Implements for storage.
  * http://dev.w3.org/html5/webstorage/#storage-0
  * @implements {Storage}
+ * @implements {ydn.db.con.simple.IStorageProvider}
  * @constructor
  */
 ydn.db.req.InMemoryStorage = function() {
   this.clear();
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.req.InMemoryStorage.prototype.connectDb = function(name) {
+  return this;
 };
 
 
@@ -36,8 +47,12 @@ ydn.db.req.InMemoryStorage.prototype.setItem = function(key, value) {
  * @return {string?} value. If not found, null is return.
  */
 ydn.db.req.InMemoryStorage.prototype.getItem = function(key) {
-  return this.memoryStorage[key] || null; // window.localStorage return null
-  // if the key don't exist.
+  if (!goog.isDef(this.memoryStorage[key])) {
+    // window.localStorage return null if the key don't exist.
+    return null;
+  } else {
+    return this.memoryStorage[key];
+  }
 };
 
 

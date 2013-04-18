@@ -35,6 +35,7 @@ goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.object');
 goog.require('ydn.db.base');
 if (!ydn.db.base.NO_SIMPLE) {
+  goog.require('ydn.db.con.simple.UserData');
   goog.require('ydn.db.con.LocalStorage');
   goog.require('ydn.db.con.SessionStorage');
 }
@@ -349,6 +350,7 @@ ydn.db.con.Storage.PREFERENCE = [
   ydn.db.base.Mechanisms.WEBSQL,
   ydn.db.base.Mechanisms.LOCAL_STORAGE,
   ydn.db.base.Mechanisms.SESSION_STORAGE,
+  ydn.db.base.Mechanisms.USER_DATA,
   ydn.db.base.Mechanisms.MEMORY_STORAGE];
 
 
@@ -374,6 +376,9 @@ ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
   } else if (!ydn.db.base.NO_SIMPLE &&
       db_type == ydn.db.base.Mechanisms.MEMORY_STORAGE) {
     return new ydn.db.con.SimpleStorage();
+  } else if (!ydn.db.base.NO_SIMPLE &&
+      db_type == ydn.db.base.Mechanisms.USER_DATA) {
+    return new ydn.db.con.simple.UserData();
   }
   return null;
 };
@@ -445,6 +450,9 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       db = this.createDbInstance(db_type);
       break;
     } else if (db_type == ydn.db.base.Mechanisms.MEMORY_STORAGE) {
+      db = this.createDbInstance(db_type);
+      break;
+    } else if (db_type == ydn.db.base.Mechanisms.USER_DATA) {
       db = this.createDbInstance(db_type);
       break;
     }

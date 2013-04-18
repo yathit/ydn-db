@@ -78,11 +78,11 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
   this.autoIncrement = opt_autoIncrement;
 
   var type;
-  if (goog.isDef(opt_type)) {
+  if (goog.isDefAndNotNull(opt_type)) {
     type = ydn.db.schema.Index.toType(opt_type);
     if (!goog.isDef(type)) {
-      throw new ydn.debug.error.ArgumentException('type invalid in store: ' +
-          this.name);
+      throw new ydn.debug.error.ArgumentException('type "' + opt_type +
+          '" for primary key in store "' + this.name + '" is invalid.');
     }
     if (this.isComposite) {
       throw new ydn.debug.error.ArgumentException(
@@ -94,7 +94,7 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
   /**
    * @final
    */
-  this.type = goog.isDef(type) ? type : this.autoIncrement ?
+  this.type = goog.isDefAndNotNull(type) ? type : this.autoIncrement ?
       ydn.db.schema.DataType.INTEGER : undefined;
 
   /**
@@ -255,7 +255,7 @@ ydn.db.schema.Store.fromJSON = function(json) {
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.debug.error.ArgumentException('Unknown attribute "' +
-          key + '"');
+            key + '"');
       }
     }
   }
@@ -270,8 +270,10 @@ ydn.db.schema.Store.fromJSON = function(json) {
       indexes.push(index);
     }
   }
+  var type = json.type === 'undefined' || json.type === 'null' ?
+      undefined : json.type;
   return new ydn.db.schema.Store(json.name, json.keyPath,
-      json.autoIncrement, json.type, indexes, json.dispatchEvents, json.fixed,
+      json.autoIncrement, type, indexes, json.dispatchEvents, json.fixed,
       json.Sync);
 };
 
