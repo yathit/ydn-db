@@ -183,7 +183,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
           if (goog.isDefAndNotNull(primary_key)) {
             var cmp2 = ydn.db.con.IndexedDb.indexedDb.cmp(
                 cursor.primaryKey, primary_key);
-            if (cmp == 1) {
+            if (cmp2 == 1) {
               requestReady(cursor.key, cursor.primaryKey, cursor.value);
             } else {
               cursor['continue']();

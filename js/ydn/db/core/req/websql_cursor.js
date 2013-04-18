@@ -204,8 +204,8 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
    */
   var key = this.current_key_;
   if (goog.isDefAndNotNull(key_range)) {
-    var lower = key_range.lower;
-    var upper = key_range.upper;
+    var lower = /** @type {IDBKey} */ (key_range.lower);
+    var upper = /** @type {IDBKey} */ (key_range.upper);
     var lowerOpen = key_range.lowerOpen;
     var upperOpen = key_range.upperOpen;
     if (this.reverse) {
@@ -332,8 +332,8 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
    */
   var buildEffectiveKeyRange = function(key, open) {
     if (goog.isDefAndNotNull(key_range)) {
-      var lower = key_range.lower;
-      var upper = key_range.upper;
+      var lower = /** @type {IDBKey} */ (key_range.lower);
+      var upper = /** @type {IDBKey} */ (key_range.upper);
       var lowerOpen = key_range.lowerOpen;
       var upperOpen = key_range.upperOpen;
       if (reverse) {

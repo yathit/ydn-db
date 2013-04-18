@@ -244,7 +244,6 @@ ydn.db.core.req.SimpleCursor.prototype.result_ready_;
 ydn.db.core.req.SimpleCursor.prototype.dispatchOnSuccess_ = function() {
   var me = this;
   goog.Timer.callOnce(function() {
-    window.console.log(this + ' invoke ' + me.result_ready_.state());
     if (me.result_ready_.state()) {
       if (ydn.db.core.req.SimpleCursor.DEBUG) {
         window.console.log(this + ' invoke success ' + this.key_);
@@ -275,17 +274,37 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
 
   if (node) {
     var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
-    this.key_ = x.getKey();
-    this.primary_key_ = this.is_index ? x.getPrimaryKey() : this.key_;
-    if (!this.key_query) {
-      if (this.key_only) {
-        this.value_ = this.primary_key_;
-      } else {
-        goog.asserts.assert(goog.isDefAndNotNull(this.primary_key_));
-        this.value_ = this.store_.getRecord(null, this.primary_key_);
+
+    // check upper bound of key range.
+    if (this.key_range) {
+      if (!this.reverse && goog.isDefAndNotNull(this.key_range.upper)) {
+        var cmp = ydn.db.cmp(x.getKey(), this.key_range.upper);
+        if (cmp == 1 || (cmp == 0 && this.key_range.upperOpen)) {
+          this.current_ = null;
+        }
+      } else if (this.reverse && goog.isDefAndNotNull(this.key_range.lower)) {
+        var cmp = ydn.db.cmp(x.getKey(), this.key_range.lower);
+        if (cmp == -1 || (cmp == 0 && this.key_range.lowerOpen)) {
+          this.current_ = null;
+        }
       }
     }
-  } else {
+
+    if (this.current_) {
+      this.key_ = x.getKey();
+      this.primary_key_ = this.is_index ? x.getPrimaryKey() : this.key_;
+      if (!this.key_query) {
+        if (this.key_only) {
+          this.value_ = this.primary_key_;
+        } else {
+          goog.asserts.assert(goog.isDefAndNotNull(this.primary_key_));
+          this.value_ = this.store_.getRecord(null, this.primary_key_);
+        }
+      }
+    }
+  }
+
+  if (!this.current_) {
     this.key_ = undefined;
     this.primary_key_ = undefined;
     this.value_ = undefined;
@@ -317,6 +336,14 @@ ydn.db.core.req.SimpleCursor.prototype.onCursorComplete_;
 ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
     opt_key, opt_primary_key) {
   var start_node = null;
+
+  if (this.key_range) {
+    if (goog.isDefAndNotNull(this.key_range.lower)) {
+      start_node = new ydn.db.con.simple.Node(
+          /** @type {!IDBKey} */ (this.key_range.lower));
+    }
+  }
+
   if (goog.isDefAndNotNull(opt_key)) {
     if (this.isIndexCursor()) {
       if (goog.isDefAndNotNull(opt_primary_key)) {
@@ -329,13 +356,42 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
   }
 
   this.onCursorComplete_ = this.tx.getStorage(function(storage) {
+
+    var skip_lower_bound_check = goog.isDefAndNotNull(opt_key) ||
+        !this.key_range;
+
+    /**
+     * @param {goog.structs.AvlTree.Node} node
+     * @this {ydn.db.core.req.SimpleCursor}
+     * @return {boolean|undefined} continuation.
+     */
+    var onSuccess = function(node) {
+      var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
+      var key = x.getKey();
+      if (node && !skip_lower_bound_check) {
+        if (!this.reverse && this.key_range.lowerOpen) {
+          var cmp = ydn.db.cmp(key, this.key_range.lower);
+          if (cmp == 0) {
+            return true; // skip
+          }
+        }
+        if (this.reverse && this.key_range.upperOpen) {
+          var cmp = ydn.db.cmp(key, this.key_range.upper);
+          if (cmp == 0) {
+            return true; // skip
+          }
+        }
+      }
+      return this.defaultOnSuccess_(node);
+    };
+
     this.store_ = storage.getSimpleStore(this.store_name);
     this.buffer_ = this.store_.getIndexCache(this.index_name);
     if (this.reverse) {
-      this.buffer_.reverseTraverse(goog.bind(this.defaultOnSuccess_, this),
+      this.buffer_.reverseTraverse(goog.bind(onSuccess, this),
           start_node);
     } else {
-      this.buffer_.traverse(goog.bind(this.defaultOnSuccess_, this),
+      this.buffer_.traverse(goog.bind(onSuccess, this),
           start_node);
     }
     this.dispatchOnSuccess_();

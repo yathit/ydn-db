@@ -43,22 +43,22 @@ StorageOptions.prototype.connectionTimeout;
 function KeyRangeJson() {}
 
 /**
- * @type {*}
+ * @type {IDBKey|undefined}
  */
 KeyRangeJson.prototype.lower;
 
 /**
- * @type {*}
+ * @type {boolean}
  */
 KeyRangeJson.prototype.lowerOpen;
 
 /**
- * @type {*}
+ * @type {IDBKey|undefined}
  */
 KeyRangeJson.prototype.upper;
 
 /**
- * @type {*}
+ * @type {boolean}
  */
 KeyRangeJson.prototype.upperOpen;
 

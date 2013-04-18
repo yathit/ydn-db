@@ -214,9 +214,9 @@ goog.inherits(ydn.db.KeyCursors, ydn.db.Iterator);
  * Create a new key cursor iterator.
  * @param {string} store_name store name.
  * @param {string} op where operator.
- * @param {*} value rvalue to compare.
+ * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
- * @param {*=} opt_value2 second rvalue to compare.
+ * @param {IDBKey=} opt_value2 second rvalue to compare.
  * @return {ydn.db.KeyCursors} newly created iterator.
  */
 ydn.db.KeyCursors.where = function(store_name, op, value, opt_op2, opt_value2) {
@@ -251,9 +251,9 @@ goog.inherits(ydn.db.Cursors, ydn.db.Iterator);
  * @param {string} store_name store name.
  * @param {string} index index name.
  * @param {string} op where operator.
- * @param {*} value rvalue to compare.
+ * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
- * @param {*=} opt_value2 second rvalue to compare.
+ * @param {IDBKey=} opt_value2 second rvalue to compare.
  * @return {ydn.db.Cursors}
  */
 ydn.db.Cursors.where = function(store_name, index, op, value, opt_op2,
@@ -286,9 +286,9 @@ goog.inherits(ydn.db.ValueCursors, ydn.db.Iterator);
  * Create a new value cursor range iterator using where clause condition.
  * @param {string} store_name store name.
  * @param {string} op where operator.
- * @param {*} value rvalue to compare.
+ * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
- * @param {*=} opt_value2 second rvalue to compare.
+ * @param {IDBKey=} opt_value2 second rvalue to compare.
  * @return {ydn.db.ValueCursors} newly craeted cursor.
  */
 ydn.db.ValueCursors.where = function(store_name, op, value, opt_op2,
@@ -324,9 +324,9 @@ goog.inherits(ydn.db.IndexValueCursors, ydn.db.Iterator);
  * @param {string} store_name store name.
  * @param {string} index index name.
  * @param {string} op where operator.
- * @param {*} value rvalue to compare.
+ * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
- * @param {*=} opt_value2 second rvalue to compare.
+ * @param {IDBKey=} opt_value2 second rvalue to compare.
  * @return {ydn.db.IndexValueCursors}
  */
 ydn.db.IndexValueCursors.where = function(store_name, index, op, value, opt_op2,

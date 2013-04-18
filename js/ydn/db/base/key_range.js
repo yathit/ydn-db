@@ -12,8 +12,8 @@ goog.provide('ydn.db.KeyRange');
 
 /**
  * For those browser that not implemented IDBKeyRange.
- * @param {*} lower The value of the lower bound.
- * @param {*} upper  The value of the upper bound.
+ * @param {IDBKey|undefined} lower The value of the lower bound.
+ * @param {IDBKey|undefined} upper  The value of the upper bound.
  * @param {boolean=} lowerOpen  If true, the range excludes the lower bound
  * value.
  * @param {boolean=} upperOpen If true, the range excludes the lower bound
@@ -53,14 +53,14 @@ ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
 
 /**
  *
- * @type {*}
+ * @type {IDBKey|undefined}
  */
 ydn.db.KeyRange.prototype.lower = undefined;
 
 
 /**
  *
- * @type {*}
+ * @type {IDBKey|undefined}
  */
 ydn.db.KeyRange.prototype.upper = undefined;
 
@@ -104,7 +104,9 @@ ydn.db.KeyRange.prototype.toIDBKeyRange = function() {
  */
 ydn.db.KeyRange.clone = function(kr) {
   if (goog.isDefAndNotNull(kr)) {
-    return new ydn.db.KeyRange(kr.lower, kr.upper,
+    return new ydn.db.KeyRange(
+        /** @type {IDBKey} */ (kr.lower),
+        /** @type {IDBKey} */ (kr.upper),
         !!kr.lowerOpen, !!kr.upperOpen);
   } else {
     return undefined;
@@ -126,8 +128,8 @@ ydn.db.KeyRange.only = function(value) {
 /**
  * Creates a key range with upper and lower bounds.
  *
- * @param {*} lower The value of the lower bound.
- * @param {*} upper The value of the upper bound.
+ * @param {IDBKey|undefined} lower The value of the lower bound.
+ * @param {IDBKey|undefined} upper The value of the upper bound.
  * @param {boolean=} opt_lowerOpen If true, the range excludes the lower bound
  *     value.
  * @param {boolean=} opt_upperOpen If true, the range excludes the upper bound
@@ -143,26 +145,26 @@ ydn.db.KeyRange.bound = function(lower, upper,
 /**
  * Creates a key range with a upper bound only, starts at the first record.
  *
- * @param {Object} upper The value of the upper bound.
+ * @param {IDBKey} upper The value of the upper bound.
  * @param {boolean=} opt_upperOpen If true, the range excludes the upper bound
  *     value.
  * @return {!ydn.db.KeyRange} The key range.
  */
 ydn.db.KeyRange.upperBound = function(upper, opt_upperOpen) {
-  return new ydn.db.KeyRange(undefined, upper, undefined, opt_upperOpen);
+  return new ydn.db.KeyRange(undefined, upper, undefined, !!opt_upperOpen);
 };
 
 
 /**
  * Creates a key range with a lower bound only, finishes at the last record.
  *
- * @param {Object} lower The value of the lower bound.
+ * @param {IDBKey} lower The value of the lower bound.
  * @param {boolean=} opt_lowerOpen If true, the range excludes the lower bound
  *     value.
  * @return {!ydn.db.KeyRange} The key range.
  */
 ydn.db.KeyRange.lowerBound = function(lower, opt_lowerOpen) {
-  return new ydn.db.KeyRange(lower, undefined, opt_lowerOpen, undefined);
+  return new ydn.db.KeyRange(lower, undefined, !!opt_lowerOpen, undefined);
 };
 
 
@@ -174,7 +176,7 @@ ydn.db.KeyRange.lowerBound = function(lower, opt_lowerOpen) {
 ydn.db.KeyRange.starts = function(value) {
   var value_upper;
   if (goog.isArray(value)) {
-    value_upper = ydn.object.clone(value);
+    value_upper = goog.array.clone(value);
     // Note on ordering: array > string > data > number
     value_upper.push('\uffff');
   } else if (goog.isString(value)) {
@@ -359,17 +361,17 @@ ydn.db.KeyRange.toSql = function(quoted_column_name, type,
 /**
  *
  * @param {string} op where operator.
- * @param {*} value rvalue to compare.
- * @param {string=} op2 second operator.
- * @param {*=} value2 second rvalue to compare.
+ * @param {IDBKey} value rvalue to compare.
+ * @param {string=} opt_op2 second operator.
+ * @param {IDBKey=} opt_value2 second rvalue to compare.
  * @return {!ydn.db.KeyRange}
  */
-ydn.db.KeyRange.where = function(op, value, op2, value2) {
+ydn.db.KeyRange.where = function(op, value, opt_op2, opt_value2) {
   var upper, lower, upperOpen, lowerOpen;
   if (op == '^') {
     goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'value');
-    goog.asserts.assert(!goog.isDef(op2), 'op2');
-    goog.asserts.assert(!goog.isDef(value2), 'value2');
+    goog.asserts.assert(!goog.isDef(opt_op2), 'op2');
+    goog.asserts.assert(!goog.isDef(opt_value2), 'value2');
     return ydn.db.KeyRange.starts(/** @type {string|!Array} */ (value));
   } else if (op == '<' || op == '<=') {
     upper = value;
@@ -383,18 +385,17 @@ ydn.db.KeyRange.where = function(op, value, op2, value2) {
   } else {
     throw new ydn.debug.error.ArgumentException('invalid op: ' + op);
   }
-  if (op2 == '<' || op2 == '<=') {
-    upper = value2;
-    upperOpen = op2 == '<';
-  } else if (op2 == '>' || op2 == '>=') {
-    lower = value2;
-    lowerOpen = op2 == '>';
-  } else if (goog.isDef(op2)) {
-    throw new ydn.debug.error.ArgumentException('invalid op2: ' + op2);
+  if (opt_op2 == '<' || opt_op2 == '<=') {
+    upper = opt_value2;
+    upperOpen = opt_op2 == '<';
+  } else if (opt_op2 == '>' || opt_op2 == '>=') {
+    lower = opt_value2;
+    lowerOpen = opt_op2 == '>';
+  } else if (goog.isDef(opt_op2)) {
+    throw new ydn.debug.error.ArgumentException('invalid op2: ' + opt_op2);
   }
   return ydn.db.KeyRange.bound(lower, upper, lowerOpen, upperOpen);
 };
-
 
 
 /**
@@ -404,5 +405,5 @@ ydn.db.KeyRange.where = function(op, value, op2, value2) {
  * keys.
  */
 ydn.db.IDBKeyRange = goog.global.IDBKeyRange ||
-  goog.global.webkitIDBKeyRange || ydn.db.KeyRange;
+    goog.global.webkitIDBKeyRange || ydn.db.KeyRange;
 
