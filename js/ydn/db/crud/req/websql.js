@@ -1346,15 +1346,6 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.WebSql.prototype.getIndexKeysByKeys =  function(tx, lbl, df,
-    store_name, index_name, key_range, reverse, limit, offset, unique) {
-  throw 'not impl';
-};
-
-
 
 
 

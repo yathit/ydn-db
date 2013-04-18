@@ -144,21 +144,6 @@ ydn.db.crud.req.IRequestExecutor.prototype.getById = goog.abstractMethod;
 
 
 /**
- * Get list of keys in a range.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} df result promise.
- * @param {string} store_name store name.
- * @param {string} index_name Index name of key range.
- * @param {!Array} keys The key range.
- * @param {number=} offset number of result to skip.
- * @param {number=} limit place upper bound on results.
- */
-ydn.db.crud.req.IRequestExecutor.prototype.getIndexKeysByKeys =
-  goog.abstractMethod;
-
-
-/**
  * Retrieve primary keys from a store in a given key range.
  * @param {ydn.db.con.IDatabase.Transaction} tx
  *  @param {string} tx_no transaction number

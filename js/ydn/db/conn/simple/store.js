@@ -186,8 +186,17 @@ ydn.db.con.simple.Store.prototype.getIndexCache = function(opt_index_name) {
               var index = this.schema.getIndex(index_name);
               var obj = ydn.json.parse(obj_str);
               var index_key = /** @type {IDBKey} */ (index.extractKey(obj));
-              var index_node = new ydn.db.con.simple.Node(index_key, key);
-              this.key_indexes[index_name].add(index_node);
+              if (index.isMultiEntry()) {
+                if (goog.isArray(index_key)) {
+                  for (var k = 0; k < index_key.length; k++) {
+                    var i_node = new ydn.db.con.simple.Node(index_key[k], key);
+                    this.key_indexes[index_name].add(i_node);
+                  }
+                }
+              } else {
+                var index_node = new ydn.db.con.simple.Node(index_key, key);
+                this.key_indexes[index_name].add(index_node);
+              }
             }
           }
         }
@@ -559,12 +568,14 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(opt_key_range) {
  * @param {boolean=} opt_reverse
  * @param {number=} opt_limit
  * @param {number=} opt_offset
+ * @param {boolean=} opt_unique
  * @return {!Array} results.
  */
 ydn.db.con.simple.Store.prototype.getItems = function(is_key_cursor,
     is_value_query, opt_index_name, opt_key_range, opt_reverse, opt_limit,
-    opt_offset) {
+    opt_offset, opt_unique) {
   var results = [];
+  var prev_key;
   opt_index_name = opt_index_name || this.primary_index;
   var is_index = opt_index_name != this.primary_index;
   var cache = this.getIndexCache(opt_index_name);
@@ -648,33 +659,39 @@ ydn.db.con.simple.Store.prototype.getItems = function(is_key_cursor,
         }
       }
     }
+
     var key = x.getKey();
-    var primary_key = /** @type {!IDBKey} */ (is_index ?
-        x.getPrimaryKey() : key);
 
-    var push_value = function() {
-      var v = me.getRecord(null, primary_key);
-      results.push(v);
-    };
+    if (!opt_unique ||
+        (goog.isDefAndNotNull(prev_key) && ydn.db.cmp(prev_key, key))) {
+      var primary_key = /** @type {!IDBKey} */ (is_index ?
+          x.getPrimaryKey() : key);
 
-    if (is_value_query) {
-      if (is_index) {
-        if (is_key_cursor) {
-          results.push(primary_key);
+      var push_value = function() {
+        var v = me.getRecord(null, primary_key);
+        results.push(v);
+      };
+
+      if (is_value_query) {
+        if (is_index) {
+          if (is_key_cursor) {
+            results.push(primary_key);
+          } else {
+            push_value();
+          }
         } else {
-          push_value();
+          if (is_key_cursor) {
+            results.push(primary_key);
+          } else {
+            push_value();
+          }
         }
       } else {
-        if (is_key_cursor) {
-          results.push(primary_key);
-        } else {
-          push_value();
-        }
+        results.push(key);
       }
-    } else {
-      results.push(key);
     }
 
+    prev_key = key;
     if (goog.isDef(opt_limit) && results.length >= opt_limit) {
       return true;
     }

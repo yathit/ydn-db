@@ -1250,57 +1250,57 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(tx, tx_no, df,
 
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
-    store_name, index_name, keys, offset, limit) {
-  var me = this;
-  var store = tx.objectStore(store_name);
-  var index = store.index(index_name);
-  var msg = tx_no + ' getIndexKeysByKeys: ' + store_name +
-      (index_name ? ':' + index_name + ' ' : ' ') + keys.length + ' keys';
-  this.logger.finest(msg);
-  var results = [];
-  var result_count = 0;
-  limit = goog.isDef(limit) ? limit : keys.length;
-
-  var getKey = function(i) {
-    var key = keys[i];
-    var req = index.get(key);
-
-    req.onsuccess = function(event) {
-      result_count++;
-      var cur = /** @type {IDBCursor} */ (event.target.result);
-      if (cur) {
-        results[i] = cur.key;
-      } else {
-        results[i] = undefined;
-      }
-
-      if (result_count === limit) {
-        df(results);
-      } else {
-        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
-        if (next < limit) {
-          getKey(next);
-        }
-      }
-    };
-
-    req.onerror = function(ev) {
-      df(req.error, true);
-    };
-  };
-
-  if (keys.length > 0) {
-    // send parallel requests
-    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX && i < keys.length;
-         i++) {
-      getKey(i);
-    }
-  } else {
-    df([]);
-  }
-};
+//
+///**
+// * @inheritDoc
+// */
+//ydn.db.crud.req.IndexedDb.prototype.getIndexKeysByKeys = function(tx, tx_no, df,
+//    store_name, index_name, keys, offset, limit) {
+//  var me = this;
+//  var store = tx.objectStore(store_name);
+//  var index = store.index(index_name);
+//  var msg = tx_no + ' getIndexKeysByKeys: ' + store_name +
+//      (index_name ? ':' + index_name + ' ' : ' ') + keys.length + ' keys';
+//  this.logger.finest(msg);
+//  var results = [];
+//  var result_count = 0;
+//  limit = goog.isDef(limit) ? limit : keys.length;
+//
+//  var getKey = function(i) {
+//    var key = keys[i];
+//    var req = index.get(key);
+//
+//    req.onsuccess = function(event) {
+//      result_count++;
+//      var cur = /** @type {IDBCursor} */ (event.target.result);
+//      if (cur) {
+//        results[i] = cur.key;
+//      } else {
+//        results[i] = undefined;
+//      }
+//
+//      if (result_count === limit) {
+//        df(results);
+//      } else {
+//        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
+//        if (next < limit) {
+//          getKey(next);
+//        }
+//      }
+//    };
+//
+//    req.onerror = function(ev) {
+//      df(req.error, true);
+//    };
+//  };
+//
+//  if (keys.length > 0) {
+//    // send parallel requests
+//    for (var i = 0; i < ydn.db.crud.req.IndexedDb.REQ_PER_TX && i < keys.length;
+//         i++) {
+//      getKey(i);
+//    }
+//  } else {
+//    df([]);
+//  }
+//};

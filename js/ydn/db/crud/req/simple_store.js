@@ -344,13 +344,14 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.listByIndexKeyRange = function(tx, tx_no,
-      df, store_name, index, key_range, reverse, limit, offset) {
+    df, store_name, index, key_range, reverse, limit, offset, unique) {
   var msg = tx_no + ' listByIndexKeyRange ' + store_name + ' ' +
       (key_range ? ydn.json.toShortString(key_range) : '');
   this.logger.finest(msg);
   var onComp = tx.getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
-    var results = store.getRecords(index, key_range, reverse, limit, offset);
+    var results = store.getItems(false, true, index, key_range, reverse,
+        limit, offset, unique);
     this.logger.finer(msg + ' ' + results.length + ' records found.');
     df(results);
     onComp();
@@ -521,11 +522,4 @@ ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(tx, tx_no, df,
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.SimpleStore.prototype.getIndexKeysByKeys = function(tx, lbl, df,
-    store_name, index_name, key_range, reverse, limit, offset, unique) {
-  throw 'not impl';
-};
 
