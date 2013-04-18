@@ -171,8 +171,7 @@ ydn.db.core.req.SimpleCursor.prototype.advance = function(step) {
       if (ydn.db.core.req.SimpleCursor.DEBUG) {
         window.console.log('advance to ' + (node ? node.value : 'null'));
       }
-      me.defaultOnSuccess_(node);
-      return true;
+      return me.defaultOnSuccess_(node);
     }
   };
   if (this.reverse) {
@@ -200,21 +199,18 @@ ydn.db.core.req.SimpleCursor.prototype.continueEffectiveKey = function(key) {
     var tr_fn = function(node) {
       me.current_ = node;
       if (!node) {
-        me.defaultOnSuccess_(node);
-        return true;
+        return me.defaultOnSuccess_(node);
       }
       var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
       var e_key = x.getKey();
       var cmp = ydn.db.cmp(e_key, key);
       if (me.reverse) {
         if (cmp != 1) {
-          me.defaultOnSuccess_(node);
-          return true;
+          return me.defaultOnSuccess_(node);
         }
       } else {
         if (cmp != -1) {
-          me.defaultOnSuccess_(node);
-          return true;
+          return me.defaultOnSuccess_(node);
         }
       }
     };
@@ -270,10 +266,8 @@ ydn.db.core.req.SimpleCursor.prototype.dispatchOnSuccess_ = function() {
  */
 ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
 
-  this.current_ = node;
-  console.log(node ? node.value : '')
 
-  var key, primary_key, value;
+  this.current_ = node;
 
   if (node) {
     var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
@@ -294,29 +288,31 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
     }
 
     if (this.current_) {
-      key = x.getKey();
-      if (this.unique) {
-        if (goog.isDefAndNotNull(this.key_) && goog.isDefAndNotNull(key) &&
-            ydn.db.cmp(this.key_, key) == 0) {
-          return; // skip
+
+      if (this.unique && goog.isDefAndNotNull(this.key_) &&
+          goog.isDefAndNotNull(x.getKey())) {
+        if (ydn.db.cmp(this.key_, x.getKey()) == 0) {
+          return; // skip non-unique key.
         }
       }
-      primary_key = this.is_index ? x.getPrimaryKey() : this.key_;
+
+      this.key_ = x.getKey();
+      this.primary_key_ = this.is_index ? x.getPrimaryKey() : this.key_;
       if (!this.key_query) {
         if (this.key_only) {
-          value = this.primary_key_;
+          this.value_ = this.primary_key_;
         } else {
           goog.asserts.assert(goog.isDefAndNotNull(this.primary_key_));
-          value = this.store_.getRecord(null, this.primary_key_);
+          this.value_ = this.store_.getRecord(null, this.primary_key_);
         }
       }
     }
   }
 
-  if (this.current_) {
-    this.key_ = key;
-    this.primary_key_ = primary_key;
-    this.value_ = value;
+  if (!this.current_) {
+    this.key_ = undefined;
+    this.primary_key_ = undefined;
+    this.value_ = undefined;
   }
 
   this.result_ready_.up();
