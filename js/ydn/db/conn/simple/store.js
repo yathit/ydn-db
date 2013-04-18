@@ -358,8 +358,23 @@ ydn.db.con.simple.Store.prototype.clear = function() {
  */
 ydn.db.con.simple.Store.prototype.getRecord = function(index_name, key) {
   if (!index_name || index_name == this.primary_index) {
-    var v = this.storage.getItem(this.makeKey(key));
-    return goog.isNull(v) ? undefined : ydn.json.parse(v);
+    var v_str = this.storage.getItem(this.makeKey(key));
+    var v = undefined;
+    if (!goog.isNull(v_str)) {
+      v = /** @type {!Object} */ (ydn.json.parse(v_str));
+      for (var i = 0, n = this.schema.countIndex(); i < n; i++) {
+        var index = this.schema.index(i);
+        if (index.getType() == ydn.db.schema.DataType.DATE) {
+          // restore date type, because after deserialization, it is a string.
+          var d_str = index.extractKey(v);
+          if (d_str) {
+            var d = new Date(d_str);
+            index.applyValue(v, d);
+          }
+        }
+      }
+    }
+    return v;
   } else {
     goog.asserts.assert(this.schema.hasIndex(index_name), 'index "' +
         index_name + '" not found in ' + this);
@@ -425,11 +440,11 @@ ydn.db.con.simple.Store.prototype.countRecords = function(opt_index_name,
     }
     var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
     if (lowerOpen && goog.isDefAndNotNull(start) &&
-        ydn.db.con.simple.Node.cmp(x, start) == 0) {
+        ydn.db.cmp(x.getKey(), start.getKey()) == 0) {
       return;
     }
     if (goog.isDefAndNotNull(end)) {
-      var cmp = ydn.db.con.simple.Node.cmp(x, end);
+      var cmp = ydn.db.cmp(x.getKey(), end.getKey());
       if (cmp === 1) {
         return true;
       }
@@ -638,8 +653,8 @@ ydn.db.con.simple.Store.prototype.getItems = function(is_key_cursor,
         x.getPrimaryKey() : key);
 
     var push_value = function() {
-      var v = me.storage.getItem(me.makeKey(primary_key));
-      results.push(goog.isNull(v) ? undefined : ydn.json.parse(v));
+      var v = me.getRecord(null, primary_key);
+      results.push(v);
     };
 
     if (is_value_query) {

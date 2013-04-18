@@ -124,6 +124,9 @@ ydn.db.schema.Index = function(
           this.keyPath.join(',') : keyPath;
 
   this.index_column_name_quoted_ = goog.string.quote(this.index_column_name_);
+
+  this.key_paths_ = !this.is_composite_ && !this.multiEntry ?
+      this.keyPath.split('.') : null;
 };
 
 
@@ -154,6 +157,26 @@ ydn.db.schema.Index.prototype.extractKey = function(obj) {
 
 
 /**
+ * Apply index value to given object according to key path.
+ * Index must not be composite nor multiEntry.
+ * @param {!Object} obj
+ * @param {*} value
+ */
+ydn.db.schema.Index.prototype.applyValue = function(obj, value) {
+  for (var i = 0; i < this.key_paths_.length; i++) {
+    if (i == this.key_paths_.length - 1) {
+      obj[this.key_paths_[i]] = value;
+    } else {
+
+      if (!goog.isObject(obj[this.key_paths_[i]])) {
+        obj[this.key_paths_[i]] = {};
+      }
+    }
+  }
+};
+
+
+/**
  * @type {string}
  */
 ydn.db.schema.Index.prototype.name;
@@ -170,6 +193,14 @@ ydn.db.schema.Index.prototype.keyColumnType_;
  * @type {(string|!Array.<string>)}
  */
 ydn.db.schema.Index.prototype.keyPath;
+
+
+/**
+ * Cache result of spliting key path by '.'.
+ * @type {Array.<string>}
+ * @private
+ */
+ydn.db.schema.Index.prototype.key_paths_;
 
 
 /**

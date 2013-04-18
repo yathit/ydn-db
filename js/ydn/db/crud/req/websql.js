@@ -119,7 +119,7 @@ ydn.db.crud.req.WebSql.parseRow = function(row, store) {
       var x = row[column_name];
       var v = ydn.db.schema.Index.sql2js(x, index.getType());
       if (goog.isDef(v)) {
-        value[index.name] = v;
+        index.applyValue(value, v);
       }
     }
 

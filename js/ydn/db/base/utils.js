@@ -48,36 +48,49 @@ ydn.db.utils.getValueByKeys = function(obj, var_args) {
   return /** @type {IDBKey} */ (obj);
 };
 
+
 /**
  * @const
  * @type {Object}
  */
 ydn.db.utils.ARRAY_TERMINATOR = { };
+
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.BYTE_TERMINATOR = 0;
+
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.TYPE_NUMBER = 1;
+
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.TYPE_DATE = 2;
+
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.TYPE_STRING = 3;
+
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.TYPE_ARRAY = 4;
+
+
 /**
  * @const
  * @type {number}

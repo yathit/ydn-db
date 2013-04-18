@@ -408,36 +408,26 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeys = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function(
+ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function(
     tx, tx_no, df, store_name, key_range) {
-  var msg = tx_no + ' removeByKeyRange';
-  this.logger.finest(msg);
-  var me = this;
-  var onComp = tx.getStorage(function(storage) {
-    var store = storage.getSimpleStore(store_name);
-    var cnt = store.removeRecords(key_range);
-    me.logger.finer('success ' + msg);
-    df(cnt);
-    onComp();
-    onComp = null;
-  }, this);
+  this.removeByKeyRange(tx, tx_no, df, store_name, key_range);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function(
+ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function(
     tx, tx_no, df, store_name, key_range) {
-  var msg = tx_no + ' clearByKeyRange ' +
+  var msg = tx_no + ' removeByKeyRange ' +
       (key_range ? ydn.json.stringify(key_range) : '');
   this.logger.finest(msg);
   var me = this;
   var onComp = tx.getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var cnt = store.removeRecords(key_range);
-    me.logger.finer('success ' + msg);
-    df(undefined);
+    me.logger.finer(msg + ' deleted ' + cnt + ' records.');
+    df(cnt);
     onComp();
     onComp = null;
   }, this);
@@ -449,8 +439,24 @@ ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function(
  */
 ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = function(
     tx, tx_no, df, store_name, index_name, key_range) {
-  throw 'not impl';
+  var msg = tx_no + ' removeByIndexKeyRange ' +
+      (key_range ? ydn.json.stringify(key_range) : '');
+  this.logger.finest(msg);
+  var me = this;
+  var onComp = tx.getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
+    var keys = store.getKeys(index_name, key_range);
+    var cnt = keys.length;
+    for (var i = 0; i < cnt; i++) {
+      store.removeRecord(keys[i]);
+    }
+    me.logger.finer(msg + ' deleted ' + cnt + ' records.');
+    df(cnt);
+    onComp();
+    onComp = null;
+  }, this);
 };
+
 
 /**
  * @inheritDoc
