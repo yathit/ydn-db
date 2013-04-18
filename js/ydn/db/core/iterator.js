@@ -341,10 +341,10 @@ ydn.db.IndexValueCursors.where = function(store_name, index, op, value, opt_op2,
  * @enum {string}
  */
 ydn.db.Iterator.State = {
-  INITIAL: 'initial',
-  WORKING: 'working',
-  RESTING: 'resting',
-  COMPLETED: 'completed'
+  INITIAL: 'init',
+  WORKING: 'busy',
+  RESTING: 'rest',
+  COMPLETED: 'done'
 };
 
 

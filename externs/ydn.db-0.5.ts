@@ -60,14 +60,18 @@ declare module ydb.db
     constructor(key_string: string);
     constructor(store_name: string, id: any, parent_key?: Key);
   }
+  enum State {
+    init, busy, rest, done
+  }
   export class Iterator {
     count(): number;
-    done(): bool?;
+    getState(): State;
     join(on_field_name: string, peer_store_name: string, peer_field_name?: string);
-    key(): any;
-    primaryKey(): any;
+    getKey(): any;
+    getPrimaryKey(): any;
     reset();
     resume(key: any, index_key: any);
+    reverse(key: any, index_key: any);
   }
 
   enum Op {
@@ -129,14 +133,14 @@ declare module ydb.db
 
     get(store_name: string, key: any) : goog.async.Deferred;
 
-    keys(iter: ydb.db.Iterator, limit?: number, offset?: number);
+    keys(iter: ydb.db.Iterator, limit?: number);
     keys(store_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: boolean);
     keys(store_name: string, index_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: boolean);
     keys(store_name: string, limit?: bool, offset?: number);
 
     map(iterator: ydb.db.Iterator, callback: (value: any): any) : goog.async.Deferred;
 
-    open(iterator: ydb.db.Iterator, next_callback: (cursor: ydn.db.ICurosr): any, mode: string) : goog.async.Deferred;
+    open(iterator: ydb.db.Iterator, next_callback: (cursor: ICursor): any, mode: string) : goog.async.Deferred;
 
     put(store_name: string, value: any, key: any) : goog.async.Deferred;
     put(store_name: string, value: any[], key: any[]) : goog.async.Deferred;
@@ -151,7 +155,7 @@ declare module ydb.db
     scan(iterators: ydb.db.Iterator[], solver: (keys: any[], values: any[])) : goog.async.Deferred;
     scan(iterators: ydb.db.Iterator[], solver: ydn.db.algo.Solver) : goog.async.Deferred;
 
-    values(iter: ydb.db.Iterator, limit?: number, offset?: number);
+    values(iter: ydb.db.Iterator, limit?: number);
     values(store_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool);
     values(store_name: string, index_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool);
     values(store_name: string, ids?: Array);
@@ -184,6 +188,8 @@ declare module ydb.db
 
     getType(): string;
 
+    onReady : (event: ydn.db.events.StorageEvent);
+
     removeEventListener(type: EventType, handler: (event: any), capture?: bool);
     removeEventListener(type: EventType[], handler: (event: any), capture?: bool);
 
@@ -214,4 +220,43 @@ declare module ydb.db.algo {
     constructor(out:{push: (value:any)}, limit?:number);
   }
 
+}
+
+declare module ydn.db.events {
+
+  export class Event {
+
+    name: string;
+
+    type: ydn.db.EventType;
+  }
+
+  export class RecordEvent extends Event {
+
+    getStoreName(): string;
+
+    getKey(): any;
+
+    getValue(): any;
+  }
+
+
+  export class StorageEvent extends Event {
+
+    getError(): Error?;
+
+    getVersion(): number;
+
+    getOldVersion(): number;
+  }
+
+
+  export class StoreEvent extends Event {
+
+    getStoreName(): string;
+
+    getKeys(): any[];
+
+    getValues(): any[];
+  }
 }
