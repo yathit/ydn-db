@@ -39,6 +39,7 @@ goog.require('ydn.json');
  * @param {number=} opt_time_out connection time out.
  * @implements {ydn.db.con.IDatabase}
  * @constructor
+ * @struct
  */
 ydn.db.con.IndexedDb = function(opt_size, opt_time_out) {
 
@@ -396,10 +397,10 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
 
 /**
- *
- * @const {boolean} turn on debug flag to dump object.
+ * @protected
+ * @define {boolean} turn on debug flag to dump object.
  */
-ydn.db.con.IndexedDb.DEBUG = goog.DEBUG && false;
+ydn.db.con.IndexedDb.DEBUG = false;
 
 
 /**
@@ -410,13 +411,6 @@ ydn.db.con.IndexedDb.indexedDb = goog.global.indexedDB ||
     goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
     goog.global.moz_indexedDB ||
     goog.global['msIndexedDB'];
-
-
-/**
- * @const
- * @type {string}
- */
-ydn.db.con.IndexedDb.TYPE = 'indexeddb';
 
 
 /**
@@ -431,7 +425,7 @@ ydn.db.con.IndexedDb.prototype.time_out_ = 3 * 60 * 1000;
  * @return {string} storage mechanism type.
  */
 ydn.db.con.IndexedDb.prototype.getType = function() {
-  return ydn.db.con.IndexedDb.TYPE;
+  return ydn.db.base.Mechanisms.IDB;
 };
 
 
@@ -746,6 +740,6 @@ if (goog.DEBUG) {
    */
   ydn.db.con.IndexedDb.prototype.toString = function() {
     var s = this.idx_db_ ? this.idx_db_.name + ':' + this.idx_db_.version : '';
-    return this.getType() + ':' + s;
+    return 'IndexedDB:' + s;
   };
 }

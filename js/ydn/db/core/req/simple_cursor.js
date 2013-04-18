@@ -377,9 +377,10 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
       if (node && goog.isDefAndNotNull(key)) {
         if (goog.isDefAndNotNull(opt_key)) {
           if (goog.isDefAndNotNull(opt_primary_key)) {
-            if (goog.isDefAndNotNull(node.getPrimaryKey()) &&
+            var p_key = x.getPrimaryKey();
+            if (goog.isDefAndNotNull(p_key) &&
                 ydn.db.cmp(opt_key, key) == 0 &&
-                ydn.db.cmp(opt_primary_key, node.getPrimaryKey()) == 0) {
+                ydn.db.cmp(opt_primary_key, p_key) == 0) {
               return; // skip
             }
           } else {

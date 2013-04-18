@@ -27,17 +27,16 @@
 
 goog.provide('ydn.db.con.Storage');
 goog.require('goog.events.EventTarget');
-goog.require('goog.userAgent.product');
 goog.require('ydn.async');
 goog.require('ydn.db.con.IStorage');
 goog.require('ydn.db.events.StorageEvent');
 goog.require('ydn.db.schema.EditableDatabase');
 goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.object');
+goog.require('ydn.db.base');
 if (!ydn.db.base.NO_SIMPLE) {
   goog.require('ydn.db.con.LocalStorage');
   goog.require('ydn.db.con.SessionStorage');
-  goog.require('ydn.db.con.SimpleStorage');
 }
 if (!ydn.db.base.NO_IDB) {
   goog.require('ydn.db.con.IndexedDb');
@@ -108,7 +107,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    */
   this.connectionTimeout = goog.isDef(options.connectionTimeout) ?
       options.connectionTimeout :
-      ydn.db.con.IndexedDb.DEBUG ?
+      ydn.db.con.Storage.DEBUG ?
       1000 : goog.DEBUG ? 30 * 1000 : 30 * 60 * 1000;
 
   /**
@@ -173,6 +172,13 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   }
 };
 goog.inherits(ydn.db.con.Storage, goog.events.EventTarget);
+
+
+/**
+ * @protected
+ * @define {boolean} turn on debug flag to dump object.
+ */
+ydn.db.con.Storage.DEBUG = false;
 
 
 /**
@@ -325,11 +331,11 @@ ydn.db.con.Storage.prototype.getName = function() {
  * @type {!Array.<string>}
  */
 ydn.db.con.Storage.PREFERENCE = [
-  ydn.db.con.IndexedDb.TYPE,
-  ydn.db.con.WebSql.TYPE,
-  ydn.db.con.LocalStorage.TYPE,
-  ydn.db.con.SessionStorage.TYPE,
-  ydn.db.con.SimpleStorage.TYPE];
+  ydn.db.base.Mechanisms.IDB,
+  ydn.db.base.Mechanisms.WEBSQL,
+  ydn.db.base.Mechanisms.LOCAL_STORAGE,
+  ydn.db.base.Mechanisms.SESSION_STORAGE,
+  ydn.db.base.Mechanisms.MEMORY_STORAGE];
 
 
 /**
@@ -340,18 +346,18 @@ ydn.db.con.Storage.PREFERENCE = [
  */
 ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
 
-  if (!ydn.db.base.NO_IDB && db_type == ydn.db.con.IndexedDb.TYPE) {
+  if (!ydn.db.base.NO_IDB && db_type == ydn.db.base.Mechanisms.IDB) {
     return new ydn.db.con.IndexedDb(this.size, this.connectionTimeout);
-  } else if (!ydn.db.base.NO_WEBSQL && db_type == ydn.db.con.WebSql.TYPE) {
+  } else if (!ydn.db.base.NO_WEBSQL && db_type == ydn.db.base.Mechanisms.WEBSQL) {
     return new ydn.db.con.WebSql(this.size);
   } else if (!ydn.db.base.NO_SIMPLE &&
-      db_type == ydn.db.con.LocalStorage.TYPE) {
+      db_type == ydn.db.base.Mechanisms.LOCAL_STORAGE) {
     return new ydn.db.con.LocalStorage();
   } else if (!ydn.db.base.NO_SIMPLE &&
-      db_type == ydn.db.con.SessionStorage.TYPE) {
+      db_type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
     return new ydn.db.con.SessionStorage();
   } else if (!ydn.db.base.NO_SIMPLE &&
-      db_type == ydn.db.con.SimpleStorage.TYPE) {
+      db_type == ydn.db.base.Mechanisms.MEMORY_STORAGE) {
     return new ydn.db.con.SimpleStorage();
   }
   return null;
@@ -403,38 +409,29 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
    */
   var db = null;
 
-  if (goog.userAgent.product.ASSUME_CHROME ||
-        goog.userAgent.product.ASSUME_FIREFOX) {
-    // for dead-code elimination
-    db = this.createDbInstance(ydn.db.con.IndexedDb.TYPE);
-  } else if (goog.userAgent.product.ASSUME_SAFARI) {
-    // for dead-code elimination
-    db = this.createDbInstance(ydn.db.con.WebSql.TYPE);
-  } else {
-    // go according to ordering
-    var preference = this.mechanisms;
-    for (var i = 0; i < preference.length; i++) {
-      var db_type = preference[i].toLowerCase();
-      if (db_type == ydn.db.con.IndexedDb.TYPE &&
-          ydn.db.con.IndexedDb.isSupported()) { // run-time detection
-        db = this.createDbInstance(db_type);
-        break;
-      } else if (db_type == ydn.db.con.WebSql.TYPE &&
-          ydn.db.con.WebSql.isSupported()) {
-        db = this.createDbInstance(db_type);
-        break;
-      } else if (db_type == ydn.db.con.LocalStorage.TYPE &&
-          ydn.db.con.LocalStorage.isSupported()) {
-        db = this.createDbInstance(db_type);
-        break;
-      } else if (db_type == ydn.db.con.SessionStorage.TYPE &&
-          ydn.db.con.SessionStorage.isSupported()) {
-        db = this.createDbInstance(db_type);
-        break;
-      } else if (db_type == ydn.db.con.SimpleStorage.TYPE) {
-        db = this.createDbInstance(db_type);
-        break;
-      }
+  // go according to ordering
+  var preference = this.mechanisms;
+  for (var i = 0; i < preference.length; i++) {
+    var db_type = preference[i].toLowerCase();
+    if (db_type == ydn.db.base.Mechanisms.IDB &&
+        ydn.db.con.IndexedDb.isSupported()) { // run-time detection
+      db = this.createDbInstance(db_type);
+      break;
+    } else if (db_type == ydn.db.base.Mechanisms.WEBSQL &&
+        ydn.db.con.WebSql.isSupported()) {
+      db = this.createDbInstance(db_type);
+      break;
+    } else if (db_type == ydn.db.base.Mechanisms.LOCAL_STORAGE &&
+        ydn.db.con.LocalStorage.isSupported()) {
+      db = this.createDbInstance(db_type);
+      break;
+    } else if (db_type == ydn.db.base.Mechanisms.SESSION_STORAGE &&
+        ydn.db.con.SessionStorage.isSupported()) {
+      db = this.createDbInstance(db_type);
+      break;
+    } else if (db_type == ydn.db.base.Mechanisms.MEMORY_STORAGE) {
+      db = this.createDbInstance(db_type);
+      break;
     }
   }
 
@@ -778,7 +775,7 @@ if (goog.DEBUG) {
    * @inheritDoc
    */
   ydn.db.con.Storage.prototype.toString = function() {
-    return 'ydn.db.con.Storage:' + this.db_;
+    return 'Storage:' + this.db_;
   };
 }
 

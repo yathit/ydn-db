@@ -66,13 +66,13 @@ goog.inherits(ydn.db.sql.Storage, ydn.db.core.Storage);
 ydn.db.sql.Storage.prototype.newExecutor = function() {
 
   var type = this.getType();
-  if (type == ydn.db.con.IndexedDb.TYPE) {
+  if (type == ydn.db.base.Mechanisms.IDB) {
     return new ydn.db.sql.req.IndexedDb(this.db_name, this.schema);
-  } else if (type == ydn.db.con.WebSql.TYPE) {
+  } else if (type == ydn.db.base.Mechanisms.WEBSQL) {
     return new ydn.db.sql.req.WebSql(this.db_name, this.schema);
-  } else if (type == ydn.db.con.SimpleStorage.TYPE ||
-      type == ydn.db.con.LocalStorage.TYPE ||
-      type == ydn.db.con.SessionStorage.TYPE) {
+  } else if (type == ydn.db.base.Mechanisms.MEMORY_STORAGE ||
+      type == ydn.db.base.Mechanisms.LOCAL_STORAGE ||
+      type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
     return new ydn.db.sql.req.SimpleStore(this.db_name, this.schema);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);

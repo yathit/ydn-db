@@ -43,6 +43,14 @@ goog.inherits(ydn.db.crud.req.IndexedDb, ydn.db.crud.req.RequestExecutor);
 
 
 /**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.crud.req.IndexedDb.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.crud.req.IndexedDb');
+
+
+/**
  *
  * @const {boolean} turn on debug flag to dump debug objects.
  */
@@ -55,14 +63,6 @@ ydn.db.crud.req.IndexedDb.DEBUG = false; // always false here.
  * @type {number} Maximum number of requests created per transaction.
  */
 ydn.db.crud.req.IndexedDb.REQ_PER_TX = 10;
-
-
-/**
- * @protected
- * @type {goog.debug.Logger} logger.
- */
-ydn.db.crud.req.IndexedDb.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.crud.req.IndexedDb');
 
 
 /**

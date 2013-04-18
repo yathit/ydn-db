@@ -7,6 +7,7 @@ goog.provide('ydn.db.con.IStorage');
 goog.require('goog.async.Deferred');
 
 
+
 /**
  * @interface
  */

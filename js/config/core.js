@@ -9,8 +9,12 @@
 
 goog.require('ydn.db.core.DbOperator');
 goog.require('ydn.db.core.Storage');
-goog.require('ydn.db.core.req.CachedWebsqlCursor');
-goog.require('ydn.db.core.req.IDBCursor');
+if (!ydn.db.base.NO_WEBSQL) {
+  goog.require('ydn.db.core.req.CachedWebsqlCursor');
+}
+if (!ydn.db.base.NO_IDB) {
+  goog.require('ydn.db.core.req.IDBCursor');
+}
 goog.require('ydn.math.Expression');
 //
 //goog.exportProperty(ydn.db.core.Storage.prototype, 'thread',

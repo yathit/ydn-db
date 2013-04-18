@@ -268,7 +268,7 @@ ydn.db.Streamer.prototype.push = function(key, value) {
       if (!type) {
         var msg3 = goog.DEBUG ? 'Database is not connected.' : '';
         throw new ydn.error.InvalidOperationError(msg3);
-      } else if (type === ydn.db.con.IndexedDb.TYPE) {
+      } else if (type === ydn.db.base.Mechanisms.IDB) {
         this.cursor_ = new ydn.db.con.IdbCursorStream(this.db_,
           this.store_name_, this.index_name_,
             goog.bind(this.collector_, this));

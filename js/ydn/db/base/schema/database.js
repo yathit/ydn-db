@@ -140,6 +140,13 @@ ydn.db.schema.Database.prototype.is_auto_version_ = false;
 
 
 /**
+ * Current database version.
+ * @type {number|undefined}
+ */
+ydn.db.schema.Database.prototype.version;
+
+
+/**
  * Get schema version.
  * @return {number|undefined} version.
  */

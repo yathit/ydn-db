@@ -41,6 +41,7 @@ goog.require('ydn.string');
  * @param {number=} opt_size estimated database size. Default to 5 MB.
  * @implements {ydn.db.con.IDatabase}
  * @constructor
+ * @struct
  */
 ydn.db.con.WebSql = function(opt_size) {
 
@@ -343,17 +344,10 @@ ydn.db.con.WebSql.GENTLE_OPENING = true;
 
 
 /**
- * @const
- * @type {string} type.
- */
-ydn.db.con.WebSql.TYPE = 'websql';
-
-
-/**
  * @inheritDoc
  */
 ydn.db.con.WebSql.prototype.getType = function() {
-  return ydn.db.con.WebSql.TYPE;
+  return ydn.db.base.Mechanisms.WEBSQL;
 };
 
 
@@ -843,7 +837,7 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
    */
   var success_callback = function() {
     completed_event_handler(ydn.db.base.TxEventTypes.COMPLETE,
-      {'type': ydn.db.base.TxEventTypes.COMPLETE});
+        {'type': ydn.db.base.TxEventTypes.COMPLETE});
   };
 
   /**
@@ -943,3 +937,14 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
     db.logger.warning('Connecting ' + db_name + ' failed.');
   });
 };
+
+
+if (goog.DEBUG) {
+  /**
+   * @override
+   */
+  ydn.db.con.WebSql.prototype.toString = function() {
+    var s = this.sql_db_ ? ':' + this.sql_db_.version : '';
+    return 'WebSql:' + s;
+  };
+}

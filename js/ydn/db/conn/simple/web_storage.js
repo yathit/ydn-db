@@ -26,6 +26,7 @@ goog.require('ydn.db.con.SimpleStorage');
  * @extends {ydn.db.con.SimpleStorage}
  * name and keyPath.
  * @constructor
+ * @struct
  */
 ydn.db.con.LocalStorage = function() {
   goog.asserts.assertObject(window.localStorage);
@@ -44,17 +45,10 @@ ydn.db.con.LocalStorage.isSupported = function() {
 
 
 /**
- * @const
- * @type {string}
- */
-ydn.db.con.LocalStorage.TYPE = 'localstorage';
-
-
-/**
  * @inheritDoc
  */
 ydn.db.con.LocalStorage.prototype.getType = function() {
-  return ydn.db.con.LocalStorage.TYPE;
+  return ydn.db.base.Mechanisms.LOCAL_STORAGE;
 };
 
 
@@ -81,6 +75,7 @@ ydn.db.con.LocalStorage.deleteDatabase = function(db_name) {
  * @extends {ydn.db.con.SimpleStorage}
  * name and keyPath.
  * @constructor
+ * @struct
  */
 ydn.db.con.SessionStorage = function() {
   goog.asserts.assertObject(window.sessionStorage);
@@ -99,17 +94,10 @@ ydn.db.con.SessionStorage.isSupported = function() {
 
 
 /**
- * @const
- * @type {string}
- */
-ydn.db.con.SessionStorage.TYPE = 'sessionstorage';
-
-
-/**
  * @inheritDoc
  */
 ydn.db.con.SessionStorage.prototype.getType = function() {
-  return ydn.db.con.SessionStorage.TYPE;
+  return ydn.db.base.Mechanisms.SESSION_STORAGE;
 };
 
 

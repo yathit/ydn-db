@@ -135,17 +135,15 @@ var test_13_list_store_range = function () {
     },
     // Continuation
     function () {
-      assertEquals('length', 3, result.length);
-      assertEquals('0', objs[2].id, result[0].id);
+      assertArrayEquals('result', objs.slice(2, 5), result);
 
       reachedFinalContinuation = true;
     },
     100, // interval
     1000); // maxTimeout
 
-  var q = new ydn.db.Iterator(store_name, undefined, ydn.db.KeyRange.bound(1, 10));
   load_default(function (db) {
-    db.values(q).addBoth(function (value) {
+    db.values(store_name, ydn.db.KeyRange.bound(1, 10)).addBoth(function (value) {
       //console.log(db + ' fetch value: ' + JSON.stringify(value));
       result = value;
       done = true;
@@ -270,9 +268,7 @@ var test_23_list_index_range = function () {
     },
     // Continuation
     function () {
-      assertEquals('length', 3, result.length);
-      assertEquals('0', objs[1].id, result[0].id);
-      assertEquals('3', objs[2].id, result[2].id);
+      assertArrayEquals('result', [objs[1], objs[5], objs[2]], result);
 
       reachedFinalContinuation = true;
     },

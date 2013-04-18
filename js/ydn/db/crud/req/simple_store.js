@@ -45,6 +45,14 @@ goog.inherits(ydn.db.crud.req.SimpleStore, ydn.db.crud.req.RequestExecutor);
 
 
 /**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.crud.req.SimpleStore.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.crud.req.SimpleStore');
+
+
+/**
  *
  * @define {boolean} use sync result.
  */

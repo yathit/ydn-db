@@ -5,13 +5,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finer', div);
+      ydn.debug.log('ydn.db', 'finest', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finer');
+      ydn.debug.log('ydn.db', 'finest');
     } else {
       console.log('no logging facility');
     }
@@ -23,6 +23,8 @@ if (/websql/.test(location.hash)) {
 if (/localstorage/.test(location.hash)) {
   options['mechanisms'] = ['localstorage'];
 }
+
+options['mechanisms'] = ['localstoragee'];
 
 
 var db;
@@ -129,6 +131,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   asyncTest("single data", 1, function () {
     var db = new ydn.db.Storage('tck1_put_1', schema_1, options);
     db.put(store_inline, data_1).always(function () {
+      console.log(db.getType() + ' type')
       ok(true, "data inserted");
       start();
       var type = db.getType();

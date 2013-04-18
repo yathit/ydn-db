@@ -5,12 +5,10 @@
 
 goog.require('ydn.db.crud.Storage');
 goog.require('ydn.db.crud.DbOperator');
+goog.require('ydn.db.base');
 goog.require('ydn.db');
 goog.require('ydn.db.events.RecordEvent');
 goog.require('ydn.db.events.StoreEvent');
-
-
-goog.exportSymbol('ydn.db.crud.Storage', ydn.db.crud.Storage);
 
 goog.exportProperty(ydn.db.crud.Storage.prototype, 'branch',
   ydn.db.crud.Storage.prototype.branch);

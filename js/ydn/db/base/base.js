@@ -84,6 +84,18 @@ ydn.db.base.DEFAULT_CONNECTION_TIMEOUT = 30 * 60 * 1000;
 
 
 /**
+ * @enum {string} storage mechanims type.
+ */
+ydn.db.base.Mechanisms = {
+  LOCAL_STORAGE: 'localstorage',
+  SESSION_STORAGE: 'sessionstorage',
+  MEMORY_STORAGE: 'memory',
+  IDB: 'indexeddb',
+  WEBSQL: 'websql'
+};
+
+
+/**
  * Create a new deferred instance depending on target platform.
  * @return {!goog.async.Deferred} newly created deferred object.
  */

@@ -37,6 +37,7 @@ goog.require('ydn.db.con.simple.TxStorage');
  * @implements {ydn.db.con.IDatabase}
  * @param {!Storage=} opt_localStorage storage provider.
  * @constructor
+ * @struct
  */
 ydn.db.con.SimpleStorage = function(opt_localStorage) {
 
@@ -47,6 +48,8 @@ ydn.db.con.SimpleStorage = function(opt_localStorage) {
   this.storage_ = opt_localStorage ||
       /** @type {!Storage} */ (new ydn.db.req.InMemoryStorage());
 
+  this.version_ = NaN;
+
 };
 
 
@@ -56,13 +59,6 @@ ydn.db.con.SimpleStorage = function(opt_localStorage) {
  */
 ydn.db.con.SimpleStorage.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.con.SimpleStorage');
-
-
-/**
- * @const
- * @type {string}
- */
-ydn.db.con.SimpleStorage.TYPE = 'memory';
 
 
 /**
@@ -110,6 +106,13 @@ ydn.db.con.SimpleStorage.DEBUG = false;
 
 
 /**
+ * @type {number}
+ * @private
+ */
+ydn.db.con.SimpleStorage.prototype.version_;
+
+
+/**
  * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.getVersion = function() {
@@ -122,17 +125,20 @@ ydn.db.con.SimpleStorage.prototype.getVersion = function() {
  */
 ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
 
+  var me = this;
   var df = new goog.async.Deferred();
   /**
    *
-   * @param {*} x
-   * @param {*=} e
+   * @param {number} x
+   * @param {Error=} opt_err
    */
-  var callDf = function(x, e) {
+  var callDf = function(x, opt_err) {
     goog.Timer.callOnce(function() {
-      if (e) {
-        df.errback(e);
+      if (opt_err) {
+        me.logger.finer(me + ' opening fail');
+        df.errback(opt_err);
       } else {
+        me.logger.finer(me + ' version ' + me.getVersion() + ' open');
         df.callback(x);
       }
     });
@@ -178,12 +184,11 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
           this.schema.getVersion() > ex_schema.getVersion()) {
         var msg = goog.DEBUG ? 'existing version ' + ex_schema.getVersion() +
             ' is larger than ' + this.schema.getVersion() : '';
-        callDf(null, new ydn.db.VersionError(msg));
+        callDf(NaN, new ydn.db.VersionError(msg));
       } else {
         // upgrade schema
-        this.version = goog.isDef(this.schema.getVersion()) ?
-            this.schema.getVersion() :
-            (ex_schema.getVersion() + 1);
+        var v = this.schema.getVersion();
+        this.version_ = goog.isDef(v) ? v : (ex_schema.getVersion() + 1);
         for (var i = 0; i < this.schema.count(); i++) {
           var store = this.schema.store(i);
         }
@@ -195,16 +200,16 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
           }
         }
         var schema_json = this.schema.toJSON();
-        schema_json.version = this.version || NaN;
+        schema_json.version = this.version_ || NaN;
         this.storage_.setItem(db_key, ydn.json.stringify(schema_json));
-        callDf(ex_schema.getVersion());
+        callDf(ex_schema.getVersion() || NaN);
       }
     } else {
       for (var i = 0; i < this.schema.count(); i++) {
         var store = this.schema.store(i);
       }
-      this.version = ex_schema.getVersion();
-      callDf(this.version);
+      this.version_ = ex_schema.getVersion() || NaN;
+      callDf(this.version_);
     }
   } else {
     var json = schema.toJSON();
@@ -324,7 +329,13 @@ ydn.db.con.SimpleStorage.prototype.getSimpleStore = function(store_name) {
 };
 
 
-
-
-
+if (goog.DEBUG) {
+  /**
+   * @override
+   */
+  ydn.db.con.SimpleStorage.prototype.toString = function() {
+    var s = this.dbname + ':' + this.version_;
+    return 'SimpleStorage:' + this.getType() + ':' + s;
+  };
+}
 

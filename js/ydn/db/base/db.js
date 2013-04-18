@@ -51,21 +51,21 @@ ydn.db.deleteDatabase = function(db_name, opt_type) {
 
   // some IndexedDB API do not support deleting database.
   if (!ydn.db.base.NO_IDB && ydn.db.con.IndexedDb.isSupported() && (!opt_type ||
-      opt_type == ydn.db.con.IndexedDb.TYPE) &&
+      opt_type == ydn.db.base.Mechanisms.IDB) &&
       ydn.db.con.IndexedDb.indexedDb &&
       ('deleteDatabase' in ydn.db.con.IndexedDb.indexedDb)) {
     ydn.db.con.IndexedDb.indexedDb.deleteDatabase(db_name);
   }
   if (!ydn.db.base.NO_WEBSQL && ydn.db.con.WebSql.isSupported() && (!opt_type ||
-      opt_type == ydn.db.con.WebSql.TYPE)) {
+      opt_type == ydn.db.base.Mechanisms.WEBSQL)) {
     ydn.db.con.WebSql.deleteDatabase(db_name);
   }
   if (!ydn.db.base.NO_SIMPLE && (!opt_type ||
-      opt_type == ydn.db.con.LocalStorage.TYPE)) {
+      opt_type == ydn.db.base.Mechanisms.LOCAL_STORAGE)) {
     ydn.db.con.LocalStorage.deleteDatabase(db_name);
   }
   if (!ydn.db.base.NO_SIMPLE && (!opt_type ||
-      opt_type == ydn.db.con.SessionStorage.TYPE)) {
+      opt_type == ydn.db.base.Mechanisms.SESSION_STORAGE)) {
     ydn.db.con.SessionStorage.deleteDatabase(db_name);
   }
 };

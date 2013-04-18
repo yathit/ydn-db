@@ -38,6 +38,7 @@ if (!ydn.db.base.NO_WEBSQL) {
 }
 
 
+
 /**
  * Construct storage providing atomic CRUD database operations on implemented
  * storage mechanisms.
@@ -98,13 +99,13 @@ ydn.db.crud.Storage.prototype.getCoreOperator = function() {
 ydn.db.crud.Storage.prototype.newExecutor = function() {
 
   var type = this.getType();
-  if (!ydn.db.base.NO_IDB && type == ydn.db.con.IndexedDb.TYPE) {
+  if (!ydn.db.base.NO_IDB && type == ydn.db.base.Mechanisms.IDB) {
     return new ydn.db.crud.req.IndexedDb(this.db_name, this.schema);
-  } else if (!ydn.db.base.NO_WEBSQL && type == ydn.db.con.WebSql.TYPE) {
+  } else if (!ydn.db.base.NO_WEBSQL && type == ydn.db.base.Mechanisms.WEBSQL) {
     return new ydn.db.crud.req.WebSql(this.db_name, this.schema);
-  } else if (!ydn.db.base.NO_SIMPLE && type == ydn.db.con.SimpleStorage.TYPE ||
-      type == ydn.db.con.LocalStorage.TYPE ||
-      type == ydn.db.con.SessionStorage.TYPE) {
+  } else if (!ydn.db.base.NO_SIMPLE && type == ydn.db.base.Mechanisms.MEMORY_STORAGE ||
+      type == ydn.db.base.Mechanisms.LOCAL_STORAGE ||
+      type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
     return new ydn.db.crud.req.SimpleStore(this.db_name, this.schema);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
@@ -200,14 +201,15 @@ ydn.db.crud.Storage.prototype.remove = function(arg1, arg2, arg3) {
 };
 
 
-/** @override */
-ydn.db.crud.Storage.prototype.toString = function() {
-  var s = 'Storage:' + this.getName();
-  if (goog.DEBUG) { // this.base_tx_queue null
-    // is possible while in constructor
-    return s + ':' + this.getTxNo();
-  }
-  return s;
-};
+if (goog.DEBUG) {
+  /** @override */
+  ydn.db.crud.Storage.prototype.toString = function() {
+    var s = 'Storage:' + this.getName();
+    if (this.isReady()) {
+      s += ' [' + this.getType() + ']';
+    }
+    return s;
+  };
+}
 
 
