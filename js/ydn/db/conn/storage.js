@@ -348,7 +348,8 @@ ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
 
   if (!ydn.db.base.NO_IDB && db_type == ydn.db.base.Mechanisms.IDB) {
     return new ydn.db.con.IndexedDb(this.size, this.connectionTimeout);
-  } else if (!ydn.db.base.NO_WEBSQL && db_type == ydn.db.base.Mechanisms.WEBSQL) {
+  } else if (!ydn.db.base.NO_WEBSQL &&
+      db_type == ydn.db.base.Mechanisms.WEBSQL) {
     return new ydn.db.con.WebSql(this.size);
   } else if (!ydn.db.base.NO_SIMPLE &&
       db_type == ydn.db.base.Mechanisms.LOCAL_STORAGE) {
@@ -439,7 +440,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
     var e = new ydn.error.ConstraintError('No storage mechanism found.');
 
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, me,
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, this,
         NaN, NaN, e);
     resolve(false, event);
   }
@@ -447,9 +448,9 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
   this.init(); // let super class to initialize.
 
   db.connect(this.db_name, this.schema).addCallbacks(function(old_version) {
-    me.db_ = db;
+    this.db_ = db;
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY,
-        me, parseFloat(db.getVersion()), parseFloat(old_version), null);
+        this, parseFloat(db.getVersion()), parseFloat(old_version), null);
     resolve(true, event);
 
     /**
@@ -458,22 +459,21 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
      */
     db.onDisconnected = function(e) {
 
-      me.logger.finest(me + ': disconnected.');
+      this.logger.finest(this + ': disconnected.');
       // no event for disconnected.
 
     };
   }, function(e) {
-    me.logger.warning(me + ': opening fail: ' + e.message);
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, me,
-      NaN, NaN, e);
+    this.logger.warning(this + ': opening fail: ' + e.message);
+    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, this,
+        NaN, NaN, e);
     event.message = e.message;
     resolve(false, event);
-  });
+  }, this);
 
   return df;
 
 };
-
 
 
 /**
@@ -537,6 +537,7 @@ ydn.db.con.Storage.prototype.close = function() {
 /**
  * Get nati database instance.
  * @return {*} database instance.
+ * @deprecated no longer exported.
  */
 ydn.db.con.Storage.prototype.getDbInstance = function() {
   return this.db_ ? this.db_.getDbInstance() : null;
