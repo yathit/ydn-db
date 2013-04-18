@@ -271,6 +271,9 @@ ydn.db.core.req.SimpleCursor.prototype.dispatchOnSuccess_ = function() {
 ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
 
   this.current_ = node;
+  console.log(node ? node.value : '')
+
+  var key, primary_key, value;
 
   if (node) {
     var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
@@ -291,23 +294,29 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
     }
 
     if (this.current_) {
-      this.key_ = x.getKey();
-      this.primary_key_ = this.is_index ? x.getPrimaryKey() : this.key_;
+      key = x.getKey();
+      if (this.unique) {
+        if (goog.isDefAndNotNull(this.key_) && goog.isDefAndNotNull(key) &&
+            ydn.db.cmp(this.key_, key) == 0) {
+          return; // skip
+        }
+      }
+      primary_key = this.is_index ? x.getPrimaryKey() : this.key_;
       if (!this.key_query) {
         if (this.key_only) {
-          this.value_ = this.primary_key_;
+          value = this.primary_key_;
         } else {
           goog.asserts.assert(goog.isDefAndNotNull(this.primary_key_));
-          this.value_ = this.store_.getRecord(null, this.primary_key_);
+          value = this.store_.getRecord(null, this.primary_key_);
         }
       }
     }
   }
 
-  if (!this.current_) {
-    this.key_ = undefined;
-    this.primary_key_ = undefined;
-    this.value_ = undefined;
+  if (this.current_) {
+    this.key_ = key;
+    this.primary_key_ = primary_key;
+    this.value_ = value;
   }
 
   this.result_ready_.up();
