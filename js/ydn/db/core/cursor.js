@@ -196,11 +196,11 @@ ydn.db.Cursor.prototype.init_ = function() {
 
     // if there is previous position, the cursor must advance over previous
     // position.
-    var msg = goog.isDefAndNotNull(me.primary_keys_[i]) ?
+    var pk_str = goog.isDefAndNotNull(me.primary_keys_[i]) ?
         ', ' + me.primary_keys_[i] : '';
-    msg = goog.isDefAndNotNull(me.keys_[i]) ? ' resume from {' +
-        me.keys_[i] + msg + '}' : '';
-    me.logger.finest(cursor + msg + ' opening');
+    pk_str = goog.isDefAndNotNull(me.keys_[i]) ? ' resume from {' +
+        me.keys_[i] + pk_str + '}' : '';
+    me.logger.finest(cursor + pk_str + ' opening');
     cursor.openCursor(me.keys_[i], me.primary_keys_[i]);
   };
   for (var i = 0; i < total; i++) {

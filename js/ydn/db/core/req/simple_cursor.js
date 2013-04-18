@@ -340,6 +340,7 @@ ydn.db.core.req.SimpleCursor.prototype.onCursorComplete_;
  */
 ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
     opt_key, opt_primary_key) {
+
   var start_node = null;
 
   if (this.key_range) {
@@ -351,12 +352,12 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
 
   if (goog.isDefAndNotNull(opt_key)) {
     if (this.isIndexCursor()) {
-      if (goog.isDefAndNotNull(opt_primary_key)) {
-        start_node = new ydn.db.con.simple.Node(opt_key,
-            opt_primary_key);
-      } else {
-        start_node = new ydn.db.con.simple.Node(opt_key);
-      }
+      // primary key may not set. OK.
+      // goog.asserts.assert(goog.isDefAndNotNull(opt_primary_key));
+      start_node = new ydn.db.con.simple.Node(opt_key,
+          opt_primary_key);
+    } else {
+      start_node = new ydn.db.con.simple.Node(opt_key);
     }
   }
 
@@ -373,17 +374,31 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
     var onSuccess = function(node) {
       var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
       var key = x.getKey();
-      if (node && !skip_lower_bound_check) {
-        if (!this.reverse && this.key_range.lowerOpen) {
-          var cmp = ydn.db.cmp(key, this.key_range.lower);
-          if (cmp == 0) {
-            return true; // skip
+      if (node && goog.isDefAndNotNull(key)) {
+        if (goog.isDefAndNotNull(opt_key)) {
+          if (goog.isDefAndNotNull(opt_primary_key)) {
+            if (goog.isDefAndNotNull(node.getPrimaryKey()) &&
+                ydn.db.cmp(opt_key, key) == 0 &&
+                ydn.db.cmp(opt_primary_key, node.getPrimaryKey()) == 0) {
+              return; // skip
+            }
+          } else {
+            if (ydn.db.cmp(opt_key, key) == 0) {
+              return; // skip
+            }
           }
-        }
-        if (this.reverse && this.key_range.upperOpen) {
-          var cmp = ydn.db.cmp(key, this.key_range.upper);
-          if (cmp == 0) {
-            return true; // skip
+        } else if (this.key_range) {
+          if (!this.reverse && this.key_range.lowerOpen) {
+            var cmp = ydn.db.cmp(key, this.key_range.lower);
+            if (cmp == 0) {
+              return true; // skip
+            }
+          }
+          if (this.reverse && this.key_range.upperOpen) {
+            var cmp = ydn.db.cmp(key, this.key_range.upper);
+            if (cmp == 0) {
+              return true; // skip
+            }
           }
         }
       }
