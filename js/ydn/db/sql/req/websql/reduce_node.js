@@ -1,8 +1,22 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 /**
  * @fileoverview About this file.
  *
- * User: kyawtun
- * Date: 11/12/12
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 
@@ -11,9 +25,10 @@ goog.require('ydn.db.sql.req.websql.Node');
 goog.require('ydn.object');
 
 
+
 /**
  *
- * @param {!ydn.db.schema.Store} schema store schema
+ * @param {!ydn.db.schema.Store} schema store schema.
  * @param {!ydn.db.Sql} sql store name.
  * @extends {ydn.db.sql.req.websql.Node}
  * @constructor
@@ -40,7 +55,7 @@ ydn.db.sql.req.websql.ReduceNode.prototype.execute = function(df, tx, params) {
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     var n = results.rows.length;
     if (n == 1) {
       var value = ydn.object.takeFirst(results.rows.item(0));
@@ -69,7 +84,7 @@ ydn.db.sql.req.websql.ReduceNode.prototype.execute = function(df, tx, params) {
 
   if (ydn.db.sql.req.WebSql.DEBUG) {
     window.console.log(this + ' open SQL: ' + sql_stm + ' PARAMS:' +
-      ydn.json.stringify(params));
+        ydn.json.stringify(params));
   }
   tx.executeSql(sql_stm, params, callback, error_callback);
 

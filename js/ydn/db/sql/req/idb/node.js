@@ -15,8 +15,7 @@
 /**
  * @fileoverview IDB query node.
  *
- * User: kyawtun
- * Date: 10/12/12
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 
@@ -64,7 +63,6 @@ ydn.db.sql.req.idb.Node.prototype.store_schema;
  * @protected
  */
 ydn.db.sql.req.idb.Node.prototype.sql;
-
 
 
 /**
@@ -118,7 +116,7 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(tx, tx_no, df, req) {
 
   var ndf = df;
   if (!goog.isNull(sel_fields)) {
-    ndf = function (records, is_error) {
+    ndf = function(records, is_error) {
       if (is_error) {
         df(records, true);
       } else {
@@ -130,7 +128,7 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(tx, tx_no, df, req) {
             var obj = {};
             for (var i = 0; i < n; i++) {
               obj[sel_fields[i]] = ydn.db.utils.getValueByKeys(record,
-                sel_fields[i]);
+                  sel_fields[i]);
             }
             return obj;
           }
@@ -141,13 +139,14 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(tx, tx_no, df, req) {
   }
   if (order && order != this.store_schema.getKeyPath()) {
     req.listByIndexKeyRange(tx, tx_no, ndf, store_name, order, key_range,
-      reverse, limit, offset, false);
+        reverse, limit, offset, false);
   } else if (wheres.length > 0 && wheres[0].getField() !=
       this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, wheres[0].getField(), key_range,
-      reverse, limit, offset, false);
+    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, wheres[0].getField(),
+        key_range, reverse, limit, offset, false);
   } else {
-    req.listByKeyRange(tx, tx_no, ndf, store_name, key_range, reverse, limit, offset);
+    req.listByKeyRange(tx, tx_no, ndf, store_name, key_range, reverse, limit,
+        offset);
   }
 
 };

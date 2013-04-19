@@ -519,23 +519,22 @@ if (goog.DEBUG) {
    * @override
    */
   ydn.db.Iterator.prototype.toString = function() {
-    var idx = goog.isDef(this.index_name_) ? ':' + this.index_name_ : '';
-    if (this.cursor_) {
-      var close = ']';
-      var start = '[';
-      var state = this.getState();
-      if (state == ydn.db.Iterator.State.WORKING) {
-        start = '{';
-        close = '}';
-      } else if (state == ydn.db.Iterator.State.RESTING) {
-        start = '(';
-        close = ')';
+    var str = goog.isDef(this.index_key_path_) ?
+        this.index_key_path_.join(',') :
+            goog.isDef(this.index_name_) ? ':' + this.index_name_ : '';
+    if (this.key_range_) {
+      str += this.key_range_.lowerOpen ? ' (' : ' [';
+      if (goog.isDefAndNotNull(this.key_range_.lower)) {
+        str += ydn.json.stringify(this.key_range_.lower) + ', ';
       }
-      idx = start + this.cursor_ + close;
+      if (goog.isDefAndNotNull(this.key_range_.upper)) {
+        str += ydn.json.stringify(this.key_range_.upper);
+      }
+      str += this.key_range_.upperOpen ? ')' : ']';
     }
     var s = this.isIndexIterator() ? 'Index' : '';
     s += this.isKeyOnly() ? 'Key' : 'Value';
-    return s + 'Iterator:' + this.store_name + idx;
+    return s + 'Iterator:' + this.store_name + str;
   };
 }
 
@@ -664,11 +663,17 @@ ydn.db.Iterator.prototype.restrict = function(field_name, value) {
     key_range = new ydn.db.KeyRange(lower, upper,
         !!this.key_range_.lowerOpen, !!this.key_range_.upperOpen);
   } else {
-    key_range = ydn.db.KeyRange.only(value);
+    if (this.is_index_iterator_) {
+      key_range = ydn.db.KeyRange.starts(base);
+    } else {
+      key_range = ydn.db.KeyRange.only(value);
+    }
   }
-  var index_name = field_name;
+  var index_name = this.index_name_ || field_name;
   var index_key_path;
-  if (this.is_index_iterator_) {
+  if (this.index_key_path_) {
+    index_key_path = [field_name].concat(this.index_key_path_);
+  } else if (this.is_index_iterator_) {
     index_key_path = [field_name].concat(this.index_name_);
   }
 

@@ -1,14 +1,28 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 /**
  * @fileoverview WebSQL query node.
  *
- * User: kyawtun
- * Date: 10/12/12
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 
 goog.provide('ydn.db.sql.req.websql.Node');
-goog.require('ydn.db.schema.Store');
 goog.require('ydn.db.Sql');
+goog.require('ydn.db.schema.Store');
 
 
 
@@ -16,7 +30,7 @@ goog.require('ydn.db.Sql');
  * Create a SQL query object from a query object.
  *
  *
- * @param {!ydn.db.schema.Store} schema store schema
+ * @param {!ydn.db.schema.Store} schema store schema.
  * @param {!ydn.db.Sql} sql store name.
  * @constructor
  */
@@ -42,6 +56,7 @@ ydn.db.sql.req.websql.Node.prototype.logger =
  * @private
  */
 ydn.db.sql.req.websql.Node.prototype.store_schema_;
+
 
 /**
  * @type {ydn.db.Sql}
@@ -113,15 +128,12 @@ ydn.db.sql.req.websql.Node.prototype.execute = function(df, tx, params) {
    * @param {SQLTransaction} transaction transaction.
    * @param {SQLResultSet} results results.
    */
-  var callback = function (transaction, results) {
+  var callback = function(transaction, results) {
     var n = results.rows.length;
     for (var i = 0; i < n; i++) {
       var row = results.rows.item(i);
       if (goog.isObject(row)) {
         var value = me.parseRow(row);
-  //      var key_str = goog.isDefAndNotNull(store.keyPath) ?
-  //          row[me.store_schema_.getKeyPath()] : row[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME];
-  //      var key = ydn.db.schema.Index.sql2js(key_str, store.type);
         out.push(value);
       } else {
         out.push(value);

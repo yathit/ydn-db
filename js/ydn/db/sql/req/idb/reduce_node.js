@@ -13,10 +13,9 @@
 // limitations under the License.
 
 /**
- * @fileoverview About this file.
+ * @fileoverview Execute aggregate query.
  *
- * User: kyawtun
- * Date: 11/12/12
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 

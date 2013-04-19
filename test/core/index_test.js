@@ -14,7 +14,7 @@ var db_name = 'test_index_2';
 
 var setUp = function () {
 
-   // ydn.debug.log('ydn.db', 'finest');
+   ydn.debug.log('ydn.db', 'finest');
 
   // ydn.db.con.WebSql.DEBUG = true;
   // ydn.db.crud.req.WebSql.DEBUG = true;
@@ -908,11 +908,11 @@ var test_compound_text_starts = function () {
 var test_restrict = function() {
   var db_name = 'test_restrict';
   var data = [
-    {id: 1, a: 1, b: 'a'},
+    {id: 1, a: 3, b: 'a'},
     {id: 2, a: 2, b: 'b'},
     {id: 3, a: 2, b: 'c'},
     {id: 4, a: 2, b: 'b'},
-    {id: 5, a: 3, b: 'b'},
+    {id: 5, a: 1, b: 'b'},
     {id: 6, a: 3, b: 'e'}
   ];
   var schema = {
@@ -930,18 +930,18 @@ var test_restrict = function() {
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear('st');
   db.put('st', data);
-  var done, keys1, result1;
-  var keys2, result2;
+  var done, keys1, values1;
+  var keys2, values2;
 
   waitForCondition(
-      function () {
+      function() {
         return done;
       },
-      function () {
+      function() {
         assertArrayEquals('restrict a = 2 keys', [2, 2, 2], keys1);
-        assertArrayEquals('restrict a = 2 values', [data[1], data[2], data[3]], result1);
+        assertArrayEquals('restrict a = 2 values', [data[1], data[2], data[3]], values1);
         assertArrayEquals('restrict b keys', [['b', 2], ['b', 2]], keys2);
-        assertArrayEquals('restrict b values', [data[1], data[3]], result2);
+        assertArrayEquals('restrict b values', [data[1], data[3]], values2);
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db.getName(), db.getType());
         db.close();
@@ -952,25 +952,101 @@ var test_restrict = function() {
   var iter = new ydn.db.ValueCursors('st');
   var iter1 = iter.restrict('a', 2);
 
-  db.keys(iter1).addBoth(function (x) {
+  db.keys(iter1).addBoth(function(x) {
     keys1 = x;
   });
-  db.values(iter1).addBoth(function (x) {
-    result1 = x;
+  db.values(iter1).addBoth(function(x) {
+    values1 = x;
   });
 
   var iter2 = iter1.restrict('b', 'b');
-  db.keys(iter2).addBoth(function (x) {
+  db.keys(iter2).addBoth(function(x) {
     keys2 = x;
   });
-  db.values(iter2).addBoth(function (x) {
-    result2 = x;
+  db.values(iter2).addBoth(function(x) {
+    values2 = x;
     done = true;
   });
 
 };
 
 
+var test_restrict_index = function() {
+  var db_name = 'test_restrict_index';
+  var data = [
+    {id: 1, a: 3, b: 'a'},
+    {id: 2, a: 2, b: 'b'},
+    {id: 3, a: 2, b: 'c'},
+    {id: 4, a: 2, b: 'b'},
+    {id: 5, a: 1, b: 'b'},
+    {id: 6, a: 3, b: 'e'}
+  ];
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [{
+        name: 'a'
+      }, {
+        name: 'ba',
+        keyPath: ['b', 'a']
+      }]
+    }]
+  };
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  db.clear('st');
+  db.put('st', data);
+  var done;
+  var keys3, values3;
+  var keys4, values4;
+
+  waitForCondition(
+      function() {
+        return done;
+      },
+      function() {
+        assertArrayEquals('sorted by a keys', exp_keys3, keys3);
+        assertArrayEquals('sorted by a values', exp_values3, values3);
+        assertArrayEquals('sorted by a, restrict b keys', exp_keys4, keys4);
+        assertArrayEquals('sorted by a, restrict b keys', exp_values4, values4);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+
+  var exp_values3 = data.sort(function(a, b) {
+    return a.a == b.a ? 0 : a.a > b.a ? 1 : -1;
+  });
+  var exp_keys3 = exp_values3.map(function(x) {
+    return x.a;
+  });
+  var iter3 = new ydn.db.IndexValueCursors('st', 'a');
+  db.keys(iter3).addBoth(function(x) {
+    keys3 = x;
+  });
+  db.values(iter3).addBoth(function(x) {
+    values3 = x;
+  });
+  var exp_keys4 = exp_values3.filter(function(x) {
+    return x.b == 'b';
+  }).map(function(x) {
+        return [x.b, x.a];
+      });
+  var exp_values4 = exp_values3.filter(function(x) {
+    return x.b == 'b';
+  });
+  var iter4 = iter3.restrict('b', 'b');
+  db.keys(iter4).addBoth(function(x) {
+    keys4 = x;
+  });
+  db.values(iter4).addBoth(function(x) {
+    values4 = x;
+    done = true;
+  });
+};
 
 
 var testCase = new goog.testing.ContinuationTestCase();

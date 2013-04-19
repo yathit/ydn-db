@@ -108,7 +108,10 @@ ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
     iter, limit, offset) {
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
-  var msg = tx_no + ' listByIterator' + iter;
+  var msg = tx_no + ' listByIterator ' + iter;
+  if (limit > 0) {
+    msg = ' limit ' + limit;
+  }
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
