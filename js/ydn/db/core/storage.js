@@ -114,13 +114,13 @@ ydn.db.core.Storage.prototype.open = function(iterator, callback, opt_mode) {
 
 /**
  * Cursor scan iteration.
- * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
  * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
  * solver.
+ * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.core.Storage.prototype.scan = function(iterators, solver) {
-  return this.getIndexOperator().scan(iterators, solver);
+ydn.db.core.Storage.prototype.scan = function(solver, iterators) {
+  return this.getIndexOperator().scan(solver, iterators);
 };
 
 

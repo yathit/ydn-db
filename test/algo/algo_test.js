@@ -79,7 +79,7 @@ var match_animal = function(algo) {
     solver = new ydn.db.algo.SortedMerge(out);
   }
 
-  req = db.scan([q1, q2, q3], solver);
+  req = db.scan(solver, [q1, q2, q3]);
   req.addCallback(function (result) {
     //console.log(result);
     done = true;
@@ -165,7 +165,7 @@ var test_three_iterator = function () {
       1000); // maxTimeout
 
   var solver = new ydn.db.algo.SortedMerge(result);
-  var req = db.scan([iter_horn, iter_color, iter_legs], solver);
+  var req = db.scan(solver, [iter_horn, iter_color, iter_legs]);
   req.addBoth(function() {
     done = true;
   });

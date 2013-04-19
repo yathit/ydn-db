@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview Zigzag merge algorithm.
  *
@@ -5,40 +19,45 @@
  * streamers) to matching value by continuing the last highest element of
  * effective values.
  *
- * Ref: http://www.google.com/events/io/2010/sessions/next-gen-queries-appengine.html
+ * Ref:
+ * http://www.google.com/events/io/2010/sessions/next-gen-queries-appengine.html
+ *
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.algo.ZigzagMerge');
 goog.require('ydn.db');
 
 
+
 /**
  *
  * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
- * @param {number=} limit limit.
+ * @param {number=} opt_limit limit.
  * @constructor
  * @extends {ydn.db.algo.AbstractSolver}
  */
-ydn.db.algo.ZigzagMerge = function(out, limit) {
-  goog.base(this, out, limit);
+ydn.db.algo.ZigzagMerge = function(out, opt_limit) {
+  goog.base(this, out, opt_limit);
 
   this.is_duplex_output_ = out instanceof ydn.db.Streamer &&
-    !!out.getFieldName();
+      !!out.getFieldName();
 };
 goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
 
 
 /**
- * @define {boolean}
+ * @define {boolean} debug flag.
  */
 ydn.db.algo.ZigzagMerge.DEBUG = false;
+
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.algo.ZigzagMerge.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.algo.ZigzagMerge');
+    goog.debug.Logger.getLogger('ydn.db.algo.ZigzagMerge');
 
 
 /**
@@ -52,14 +71,14 @@ ydn.db.algo.ZigzagMerge.prototype.is_duplex_output_ = false;
 /**
  * @inheritDoc
  */
-ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback){
+ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
   var result = goog.base(this, 'begin', iterators, callback);
   if (this.is_duplex_output_) {
     var iter_index = iterators[0].getIndexName().split(', ');
     if (iter_index.length > 1) {
       if (iter_index[iter_index.length - 1] != this.out.getFieldName()) {
         throw new ydn.error.InvalidOperationError('Output streamer ' +
-          'projection field must be same as postfix field in the iterator');
+            'projection field must be same as postfix field in the iterator');
       }
     } else {
       if (goog.DEBUG) {
@@ -74,7 +93,7 @@ ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback){
 /**
  * @inheritDoc
  */
-ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
+ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
 
   var advancement = [];
 
@@ -151,7 +170,8 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function (keys, values) {
 
   if (ydn.db.algo.ZigzagMerge.DEBUG) {
     window.console.log('ZigzagMerge: match: ' + all_match +
-        ', highest_key: ' + JSON.stringify(/** @type {Object} */ (highest_postfix)) +
+        ', highest_key: ' + JSON.stringify(
+        /** @type {Object} */ (highest_postfix)) +
         ', keys: ' + JSON.stringify(keys) +
         ', cmps: ' + JSON.stringify(cmps) +
         ', advancement: ' + JSON.stringify(advancement));

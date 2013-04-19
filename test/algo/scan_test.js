@@ -110,7 +110,7 @@ var test_scan_reference_value = function() {
     }
   };
 
-  var req = db.scan([q1, q2], solver);
+  var req = db.scan(solver, [q1, q2]);
 
   req.addCallback(function (result) {
     //console.log(result);
@@ -214,7 +214,7 @@ var test_scan_advance = function() {
     return out;
   };
 
-  var req = db.scan([q1, q2], solver);
+  var req = db.scan(solver, [q1, q2]);
 
   req.addCallback(function (result) {
     //console.log(result);
@@ -387,7 +387,7 @@ var test_scan_effective_key_dual = function() {
     return out;
   };
 
-  var req = db.scan([q1, q2], solver);
+  var req = db.scan(solver, [q1, q2]);
 
   req.addCallback(function (result) {
     //console.log(result);

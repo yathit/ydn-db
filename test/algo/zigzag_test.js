@@ -95,7 +95,7 @@ var test_simple = function() {
 
   var solver = new ydn.db.algo.ZigzagMerge(out);
 
-  var req = db.scan([q1, q2], solver);
+  var req = db.scan(solver, [q1, q2]);
   req.addCallback(function (result) {
     //console.log(result);
     done = true;
@@ -137,7 +137,7 @@ var test_simple_streamer_out = function() {
 
   var solver = new ydn.db.algo.ZigzagMerge(out);
 
-  var req = db.scan([q1, q2], solver);
+  var req = db.scan(solver, [q1, q2]);
   req.addCallback(function () {
     out.collect(function(keys, values) {
       //console.log(['out', keys, values])
@@ -178,7 +178,7 @@ var test_simple_streamer_duplex_out = function() {
 
   var solver = new ydn.db.algo.ZigzagMerge(out);
 
-  var req = db.scan([q1, q2], solver);
+  var req = db.scan(solver, [q1, q2]);
   req.addCallback(function () {
     out.collect(function(keys, values) {
       //console.log(['out', keys, values])

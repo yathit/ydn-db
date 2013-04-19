@@ -120,14 +120,14 @@ var test_cursor_resume = function() {
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.put('st', data);
   var q = new ydn.db.ValueCursors('st');
-  db.scan([q], function (keys, values) {
+  db.scan(function (keys, values) {
     keys1 = keys;
     values1 = values;
     done1 = true;
     return []; // break at first call
-  });
+  }, [q]);
 
-  db.scan([q], function (keys, values) {
+  db.scan(function (keys, values) {
     if (goog.isDefAndNotNull(keys[0])) {
       keys2.push(keys[0]);
       values2.push(values[0]);
@@ -135,7 +135,7 @@ var test_cursor_resume = function() {
       done2 = true;
       return []; // break at first call
     }
-  });
+  }, [q]);
 
   waitForCondition(
       // Condition
@@ -192,7 +192,7 @@ var test_cursor_restart = function() {
   db.put('st', data);
   var q = new ydn.db.ValueCursors('st');
   var restarted = false;
-  db.scan([q], function (keys, values) {
+  db.scan(function (keys, values) {
     keys1.push(keys[0]);
     values1.push(values[0]);
     if (!restarted) {
@@ -202,7 +202,7 @@ var test_cursor_restart = function() {
       done1 = true;
       return []; // end
     }
-  });
+  }, [q]);
 
 
   waitForCondition(
@@ -255,14 +255,14 @@ var test_cursor_index_iter_resume = function() {
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.put('st', data);
   var q = new ydn.db.Cursors('st', 'tag');
-  db.scan([q], function (keys, values) {
+  db.scan(function (keys, values) {
     keys1 = keys;
     values1 = values;
     done1 = true;
     return []; // break at first call
-  });
+  }, [q]);
 
-  db.scan([q], function (keys, values) {
+  db.scan(function (keys, values) {
     if (goog.isDefAndNotNull(keys[0])) {
       keys2.push(keys[0]);
       values2.push(values[0]);
@@ -270,7 +270,7 @@ var test_cursor_index_iter_resume = function() {
       done2 = true;
       return []; // break at first call
     }
-  });
+  }, [q]);
 
   waitForCondition(
       // Condition
@@ -445,7 +445,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
     console.log(db + ' ready.');
   });
 
-  var req = db.scan([q], function join_algo(keys, values) {
+  var req = db.scan(function join_algo(keys, values) {
     //console.log(JSON.stringify([keys, values]));
     if (!goog.isDef(keys[0])) {
       return [];
@@ -454,7 +454,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
     streaming_keys.push(keys[0]);
     streaming_values_keys.push(values[0]);
     return [true]; // continue iteration
-  });
+  }, [q]);
 
   req.addCallback(function (result) {
     done = true;
@@ -549,7 +549,7 @@ var test_21_scan_key_dual = function () {
   var q2 = new ydn.db.Cursors(store_name, 'x');
 
   db = load_default();
-  var req = db.scan([q1, q2], function join_algo (keys, primary_keys) {
+  var req = db.scan(function join_algo (keys, primary_keys) {
     // console.log(['receiving ', JSON.stringify(keys), JSON.stringify(primary_keys)]);
     if (goog.isDefAndNotNull(keys[0])) {
       streaming_keys.push(primary_keys[0]);
@@ -560,7 +560,7 @@ var test_21_scan_key_dual = function () {
     return [
       goog.isDefAndNotNull(keys[0]) ? true : undefined,
       goog.isDefAndNotNull(keys[1]) ? true : undefined]; // continue iteration
-  });
+  }, [q1, q2]);
 
   req.addBoth(function (result) {
     //console.log(result);
@@ -927,14 +927,14 @@ var test_61_scan_cursor_resume = function() {
             1000); // maxTimeout
 
         // pick up where letf off.
-        var req = db.scan([q], function (keys, v) {
+        var req = db.scan(function (keys, v) {
           if (goog.isDef(keys[0])) {
             values.push(keys[0]);
             return [true];
           } else {
             return [];
           }
-        });
+        }, [q]);
         req.addCallback(function (result) {
           done = true;
         });
@@ -947,7 +947,7 @@ var test_61_scan_cursor_resume = function() {
       1000); // maxTimeout
 
   db = load_default();
-  var req = db.scan([q], function (keys, v) {
+  var req = db.scan(function (keys, v) {
     //console.log([keys, v]);
     if (goog.isDef(keys[0])) {
       values.push(keys[0]);
@@ -956,7 +956,7 @@ var test_61_scan_cursor_resume = function() {
     } else {
       return [];
     }
-  });
+  }, [q]);
   req.addCallback(function () {
     done = true;
   });

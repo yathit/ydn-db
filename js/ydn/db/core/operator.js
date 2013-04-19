@@ -15,7 +15,7 @@
 /**
 * @fileoverview Database operator providing index and table scan query.
 *
-*
+* @author kyawtun@yathit.com (Kyaw Tun)
 */
 
 goog.provide('ydn.db.core.DbOperator');
@@ -243,26 +243,39 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
 
 /**
  * Cursor scan iteration.
- * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
  * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
  * solver.
+ * @param {!Array.<!ydn.db.Iterator>=} opt_iterators the cursor.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.core.DbOperator.prototype.scan = function(iterators, solver) {
+ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
 
   var df = ydn.db.base.createDeferred();
   if (goog.DEBUG) {
-    if (!goog.isArray(iterators)) {
-      throw new TypeError('First argument must be array.');
-    }
-    for (var i = 0; i < iterators.length; i++) {
-      var is_iter = iterators[i] instanceof ydn.db.Iterator;
-      var is_streamer = iterators[i] instanceof ydn.db.Streamer;
-      if (!is_iter && !is_streamer) {
-        throw new TypeError('Iterator at ' + i +
-            ' must be cursor range iterator or streamer.');
+    if (goog.isDef(opt_iterators)) {
+      if (!goog.isArray(opt_iterators)) {
+        throw new TypeError('Iterator argument must be an array.');
+      }
+      for (var i = 0; i < opt_iterators.length; i++) {
+        var is_iter = opt_iterators[i] instanceof ydn.db.Iterator;
+        if (!is_iter) {
+          throw new TypeError('Iterator at ' + i +
+              ' must be cursor range iterator.');
+        }
       }
     }
+  }
+
+  /**
+   * @type {!Array.<!ydn.db.Iterator>}
+   */
+  var iterators;
+  if (opt_iterators) {
+    iterators = opt_iterators;
+  } else {
+    var iter = solver.getIterators();
+    goog.asserts.assertArray(iter, 'array of iterators required.');
+    iterators = iter;
   }
 
   var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;

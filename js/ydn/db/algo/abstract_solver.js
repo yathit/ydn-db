@@ -1,38 +1,54 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 /**
  * @fileoverview Abstract join algorithm.
  *
- * User: kyawtun
- * Date: 10/11/12
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.algo.AbstractSolver');
 goog.require('goog.debug.Logger');
-goog.require('ydn.db.Streamer');
 goog.require('ydn.db');
+goog.require('ydn.db.Streamer');
+
 
 
 /**
  *
  * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
- * @param {number=} limit limit.
+ * @param {number=} opt_limit limit.
  * to algorithm input and output.
  * @constructor
  */
-ydn.db.algo.AbstractSolver = function(out, limit) {
+ydn.db.algo.AbstractSolver = function(out, opt_limit) {
   if (goog.DEBUG && goog.isDefAndNotNull(out) && !('push' in out)) {
     throw new ydn.error.ArgumentException();
   }
   this.out = out || null;
-  this.limit = limit;
+  this.limit = opt_limit;
   this.match_count = 0;
-//  if (goog.isDefAndNotNull(adapter)) {
-//    if (goog.DEBUG && !goog.isFunction(adapter)) {
-//      throw new ydn.error.ArgumentException();
-//    }
-//    this.adapter = function(keys, values) {
-//      adapter(keys, values);
-//    }
-//  }
+};
+
+
+/**
+ * Return list of iterators for scanning for managed solver.
+ * @return {Array.<!ydn.db.Iterator>} iterators.
+ */
+ydn.db.algo.AbstractSolver.prototype.getIterators = function() {
+  return null;
 };
 
 
@@ -59,7 +75,7 @@ ydn.db.algo.AbstractSolver.prototype.out = null;
  * @param {!Function} callback on finish callback function.
  * @return {boolean}
  */
-ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback){
+ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback) {
   if (goog.DEBUG) {
     if (!goog.isArray(iterators)) {
       throw new TypeError('iterators must be array');
@@ -84,18 +100,20 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback){
  * @param {!Array} advance
  * @param {!Array} keys input values.
  * @param {!Array} values output values.
- * @param {*=} match_key match key.
+ * @param {*=} opt_match_key match key.
+ * @return {!Object} cursor advancement array.
  * @protected
  */
-ydn.db.algo.AbstractSolver.prototype.pusher = function (advance, keys, values, match_key) {
+ydn.db.algo.AbstractSolver.prototype.pusher = function(advance, keys, values,
+                                                       opt_match_key) {
 
-  var matched = goog.isDefAndNotNull(match_key);
-  if (!goog.isDef(match_key)) {
-    match_key = values[0];
-    matched =  goog.isDefAndNotNull(match_key);
+  var matched = goog.isDefAndNotNull(opt_match_key);
+  if (!goog.isDef(opt_match_key)) {
+    opt_match_key = values[0];
+    matched = goog.isDefAndNotNull(opt_match_key);
     for (var i = 1; matched && i < values.length; i++) {
       if (!goog.isDefAndNotNull(values[i]) ||
-        ydn.db.cmp(values[i], match_key) != 0) {
+          ydn.db.cmp(values[i], opt_match_key) != 0) {
         matched = false;
       }
     }
@@ -105,7 +123,7 @@ ydn.db.algo.AbstractSolver.prototype.pusher = function (advance, keys, values, m
     this.match_count++;
     //console.log(['match key', match_key, JSON.stringify(keys)]);
     if (this.out) {
-      this.out.push(match_key);
+      this.out.push(opt_match_key);
     }
     if (goog.isDef(this.limit) && this.match_count >= this.limit) {
       return [];
@@ -130,7 +148,7 @@ ydn.db.algo.AbstractSolver.prototype.solver = function(input, output) {
 /**
  * Invoke at the end of the iteration process.
  * @param {!Function} callback on finish callback function.
- * @return {boolean} true to wait
+ * @return {boolean} true to wait.
  */
 ydn.db.algo.AbstractSolver.prototype.finish = function(callback) {
   return false;

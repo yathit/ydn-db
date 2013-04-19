@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview Sorted merge algorithm.
  *
@@ -5,60 +19,34 @@
  * streamers) to matching value by continuing them by highest reference value.
  *
  * http://dev.mysql.com/doc/refman/5.0/en/index-merge-optimization.html
+ *
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.algo.SortedMerge');
-goog.require('ydn.db.algo.AbstractSolver');
 goog.require('ydn.db');
+goog.require('ydn.db.algo.AbstractSolver');
+
 
 
 /**
  *
  * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
- * @param {number=} limit limit.
+ * @param {number=} opt_limit limit.
  * @constructor
  * @extends {ydn.db.algo.AbstractSolver}
  */
-ydn.db.algo.SortedMerge = function(out, limit) {
-  goog.base(this, out, limit);
+ydn.db.algo.SortedMerge = function(out, opt_limit) {
+  goog.base(this, out, opt_limit);
 
 };
 goog.inherits(ydn.db.algo.SortedMerge, ydn.db.algo.AbstractSolver);
 
 
 /**
- * @define {boolean}
+ * @define {boolean} debug flag.
  */
 ydn.db.algo.SortedMerge.DEBUG = false;
-
-///**
-// *
-// * @type {boolean}
-// * @private
-// */
-//ydn.db.algo.SortedMerge.prototype.sorted_ = false;
-//
-///**
-// *
-// * @type {Array}
-// * @private
-// */
-//ydn.db.algo.SortedMerge.prototype.starting_keys_ = null;
-
-
-///**
-// *
-// * @type {Array.<boolean>}
-// * @private
-// */
-//ydn.db.algo.SortedMerge.prototype.reverses_ = [];
-//
-///**
-// *
-// * @type {Array.<boolean>}
-// * @private
-// */
-//ydn.db.algo.SortedMerge.prototype.degrees_ = [];
 
 
 /**
