@@ -137,7 +137,7 @@ ydn.db.Streamer.prototype.cursor_ = null;
  *
  * @return {boolean}
  */
-ydn.db.Streamer.prototype.isKeyOnly = function() {
+ydn.db.Streamer.prototype.isKeyIterator = function() {
   return this.key_only_;
 };
 

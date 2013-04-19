@@ -207,7 +207,7 @@ ydn.db.sql.req.WebSql.prototype.planQuery = function(query) {
   var key_range = query.getKeyRange();
 
   var sql = new ydn.db.sql.req.SqlQuery(query.getStoreName(), query.getIndexName(),
-    key_range, query.isReversed(), query.isUnique(), query.isKeyOnly());
+    key_range, query.isReversed(), query.isUnique(), query.isKeyIterator());
 
   var select = 'SELECT';
 
@@ -221,7 +221,7 @@ ydn.db.sql.req.WebSql.prototype.planQuery = function(query) {
   goog.asserts.assertString(key_column);
   var column = goog.string.quote(key_column);
 
-  var fields = query.isKeyOnly() ? column : '*';
+  var fields = query.isKeyIterator() ? column : '*';
   var from = fields + ' FROM ' + store.getQuotedName();
 
   var where_clause = '';

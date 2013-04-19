@@ -135,7 +135,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
         return;
       }
       count++;
-      arr.push(iter.isKeyOnly() ? primary_key : value);
+      arr.push(iter.isKeyIterator() ? primary_key : value);
       if (!goog.isDef(limit) || count < limit) {
         cursor.continueEffectiveKey();
       } else {

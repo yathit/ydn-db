@@ -13,8 +13,9 @@
 // limitations under the License.
 
 /**
- * @fileoverview Front-end cursor.
+ * @fileoverview Frond-end cursor managing cursors of an iterator.
  *
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.Cursor');
@@ -29,10 +30,12 @@ goog.require('ydn.debug.error.InternalError');
  *
  * @param {Array.<ydn.db.core.req.ICursor>} cursors cursors.
  * @param {ydn.db.Cursor=} opt_pre_cursor
+ * @param {IDBKey=} opt_key start position.
+ * @param {IDBKey=} opt_primary_key start position.
  * @constructor
  * @struct
  */
-ydn.db.Cursor = function(cursors, opt_pre_cursor) {
+ydn.db.Cursor = function(cursors, opt_pre_cursor, opt_key, opt_primary_key) {
 
   this.cursors_ = cursors;
   this.keys_ = [];
@@ -45,6 +48,12 @@ ydn.db.Cursor = function(cursors, opt_pre_cursor) {
   if (opt_pre_cursor) {
     this.keys_ = goog.array.clone(opt_pre_cursor.keys_);
     this.primary_keys_ = goog.array.clone(this.primary_keys_);
+  }
+  if (goog.isDefAndNotNull(opt_key)) {
+    this.keys_[0] = opt_key;
+  }
+  if (goog.isDefAndNotNull(opt_primary_key)) {
+    this.primary_keys_[0] = opt_primary_key;
   }
 
   /**
@@ -64,7 +73,9 @@ ydn.db.Cursor = function(cursors, opt_pre_cursor) {
     throw new ydn.debug.error.InternalError();
   };
 
-  this.init_();
+  if (this.cursors_.length > 0) {
+    this.init_();
+  }
 };
 
 
@@ -132,8 +143,7 @@ ydn.db.Cursor.prototype.exited_ = false;
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.Cursor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.Cursor');
+ydn.db.Cursor.prototype.logger = goog.debug.Logger.getLogger('ydn.db.Cursor');
 
 
 /**
@@ -206,16 +216,6 @@ ydn.db.Cursor.prototype.init_ = function() {
   for (var i = 0; i < total; i++) {
     listenCursor(i);
   }
-};
-
-
-/**
- *
- * @param {Array.<ydn.db.core.req.ICursor>} cursors active cursors.
- */
-ydn.db.Cursor.prototype.resume = function(cursors) {
-  this.cursors_ = cursors;
-  this.init_();
 };
 
 

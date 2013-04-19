@@ -11,6 +11,7 @@
 goog.provide('ydn.db.con.ICursorStream');
 
 
+
 /**
  *
  * @interface
@@ -24,6 +25,7 @@ ydn.db.con.ICursorStream = function() {};
  * @param {*} key
  */
 ydn.db.con.ICursorStream.prototype.seek = goog.abstractMethod;
+
 
 /**
  * Invoke callback when all stack are completely fetched.

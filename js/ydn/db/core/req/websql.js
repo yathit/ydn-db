@@ -127,7 +127,7 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
       if (key_query) { // call by keys() method
         out = key;
       } else {           // call by values() method
-        if (iter.isIndexIterator() && iter.isKeyOnly()) {
+        if (iter.isIndexIterator() && iter.isKeyIterator()) {
           out = primary_key;
         } else {
           out = value;

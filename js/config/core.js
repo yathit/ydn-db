@@ -80,8 +80,10 @@ goog.exportProperty(ydn.db.Iterator.prototype, 'isReversed',
     ydn.db.Iterator.prototype.isReversed);
 goog.exportProperty(ydn.db.Iterator.prototype, 'isUnique',
     ydn.db.Iterator.prototype.isUnique);
-goog.exportProperty(ydn.db.Iterator.prototype, 'isKeyOnly',
-    ydn.db.Iterator.prototype.isKeyOnly);
+goog.exportProperty(ydn.db.Iterator.prototype, 'isKeyIterator',
+    ydn.db.Iterator.prototype.isKeyIterator);
+goog.exportProperty(ydn.db.Iterator.prototype, 'isIndexIterator',
+    ydn.db.Iterator.prototype.isIndexIterator);
 goog.exportProperty(ydn.db.Iterator.prototype, 'getPrimaryKey',
     ydn.db.Iterator.prototype.getPrimaryKey);
 goog.exportProperty(ydn.db.Iterator.prototype, 'getKey',

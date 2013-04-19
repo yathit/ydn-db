@@ -15,7 +15,7 @@
 /**
 * @fileoverview Provide atomic CRUD database operations on a transaction queue.
 *
-*
+* @author kyawtun@yathit.com (Kyaw Tun)
 */
 
 
@@ -194,7 +194,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
         (index_name ? index_name : '') + ydn.json.stringify(key_range));
     this.tx_thread.exec(df, function(tx, tx_no, cb) {
       me.getExecutor().countKeyRange(tx, tx_no, cb, store_names[0], key_range,
-        index_name, !!unique);
+          index_name, !!unique);
     }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
 
   } else {
@@ -225,7 +225,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
         return goog.async.Deferred.succeed(undefined);
       } else {
         throw new ydn.debug.error.ArgumentException('Store: ' +
-          k_store_name + ' not found.');
+              k_store_name + ' not found.');
       }
     }
 
@@ -367,11 +367,11 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
       var msg = ydn.db.KeyRange.validate(/** @type {KeyRangeJson} */ (arg2));
       if (msg) {
         throw new ydn.debug.error.ArgumentException('invalid key range: ' +
-          arg2 + ' ' + msg);
+            arg2 + ' ' + msg);
       }
     }
     range = ydn.db.KeyRange.parseIDBKeyRange(
-      /** @type {KeyRangeJson} */ (arg2));
+        /** @type {KeyRangeJson} */ (arg2));
 
     if (goog.isNumber(arg3)) {
       limit = arg3;

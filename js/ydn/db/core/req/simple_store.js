@@ -123,7 +123,7 @@ ydn.db.core.req.SimpleStore.prototype.listByIterator = function(tx, tx_no, df,
         return;
       }
       count++;
-      arr.push(iter.isKeyOnly() ? primary_key : value);
+      arr.push(iter.isKeyIterator() ? primary_key : value);
       if (!goog.isDef(limit) || count < limit) {
         cursor.advance(1);
       } else {

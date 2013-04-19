@@ -246,11 +246,9 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
  * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
  * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
  * solver.
- * @param {!Array.<!ydn.db.Streamer>=} opt_streamers streamers.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
-                                                 opt_streamers) {
+ydn.db.core.DbOperator.prototype.scan = function(iterators, solver) {
 
   var df = ydn.db.base.createDeferred();
   if (goog.DEBUG) {
@@ -282,14 +280,6 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
   this.logger.finest(this + ': scan for ' + iterators.length +
       ' iterators on ' + scopes);
 
-  var passthrough_streamers = opt_streamers || [];
-  for (var i = 0; i < passthrough_streamers.length; i++) {
-    var store = passthrough_streamers[i].getStoreName();
-    if (!goog.array.contains(scopes, store)) {
-      scopes.push(store);
-    }
-  }
-
   var me = this;
 
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
@@ -299,7 +289,6 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
     var done = false;
 
     var total;
-    var idx2streamer = []; // convert main index to streamer index
     var idx2iterator = []; // convert main index to iterator index
 
     var keys = [];
@@ -309,7 +298,6 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
      * @type {Array.<!ydn.db.Cursor>}
      */
     var cursors = [];
-    var streamers = [];
 
     var do_exit = function() {
 
@@ -318,7 +306,6 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
       }
       done = true;
       goog.array.clear(cursors);
-      goog.array.clear(streamers);
       // console.log('existing');
       me.logger.finer('success ' + lbl);
       cb(undefined);
@@ -475,30 +462,6 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
     };
 
     /**
-     * Receive streamer result. When all streamer results are received,
-     * this begin on_iterators_ready.
-     * @param {number} i index.
-     * @param {*} key key.
-     * @param {*} value value.
-     * @return {boolean}
-     */
-    var on_streamer_pop = function(i, key, value) {
-      if (done) {
-        if (ydn.db.core.DbOperator.DEBUG) {
-          window.console.log(['on_streamer_next', i, key, value]);
-        }
-        throw new ydn.error.InternalError();
-      }
-      keys[i] = key;
-      values[i] = value;
-      result_count++;
-      if (result_count === total) { // receive all results
-        on_result_ready();
-      }
-      return false;
-    };
-
-    /**
      * Received iterator result. When all iterators result are collected,
      * begin to send request to collect streamers results.
      * @param {number} i index.
@@ -534,24 +497,17 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
 
       keys[i] = opt_key;
       if (iterator.isIndexIterator()) {
-        if (iterator.isKeyOnly()) {
+        if (iterator.isKeyIterator()) {
           values[i] = primary_key;
         } else {
           values[i] = value;
         }
       } else {
-        if (iterator.isKeyOnly()) {
+        if (iterator.isKeyIterator()) {
           values[i] = opt_key;
         } else {
           values[i] = value;
         }
-      }
-      // console.log([i, JSON.stringify(keys), JSON.stringify(values)])
-
-      var streamer_idx = idx2streamer[i];
-      for (var j = 0, n = iterator.degree() - 1; j < n; j++) {
-        var streamer = streamers[streamer_idx + j];
-        streamer.pull(opt_key, value);
       }
 
       if (is_result_ready) { // receive all results
@@ -565,7 +521,6 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
         cursors[k].exit();
       }
       goog.array.clear(cursors);
-      goog.array.clear(streamers);
       me.logger.finer(lbl + ' error');
       cb(e, true);
     };
@@ -582,12 +537,8 @@ ydn.db.core.DbOperator.prototype.scan = function(iterators, solver,
         idx++;
       }
 
-      total = iterators.length + streamers.length;
+      total = iterators.length;
     };
-
-    for (var i = 0; i < passthrough_streamers.length; i++) {
-      passthrough_streamers[i].setTx(tx);
-    }
 
     if (solver instanceof ydn.db.algo.AbstractSolver) {
       var wait = solver.begin(iterators, function() {
@@ -713,13 +664,13 @@ ydn.db.core.DbOperator.prototype.map = function(iterator, callback) {
         var key = opt_key;
         var ref;
         if (iterator.isIndexIterator()) {
-          if (iterator.isKeyOnly()) {
+          if (iterator.isKeyIterator()) {
             ref = key;
           } else {
             ref = cursor.getPrimaryKey();
           }
         } else {
-          if (iterator.isKeyOnly()) {
+          if (iterator.isKeyIterator()) {
             ref = key;
           } else {
             ref = cursor.getValue();
@@ -780,13 +731,13 @@ ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
       if (goog.isDefAndNotNull(opt_key)) {
         var current_value;
         if (iterator.isIndexIterator()) {
-          if (iterator.isKeyOnly()) {
+          if (iterator.isKeyIterator()) {
             current_value = opt_key;
           } else {
             current_value = cursor.getPrimaryKey();
           }
         } else {
-          if (iterator.isKeyOnly()) {
+          if (iterator.isKeyIterator()) {
             current_value = opt_key;
           } else {
             current_value = cursor.getValue();
