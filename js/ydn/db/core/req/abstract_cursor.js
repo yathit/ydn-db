@@ -175,6 +175,15 @@ ydn.db.core.req.AbstractCursor.prototype.isIndexCursor = function() {
 
 /**
  *
+ * @return {boolean} return true if this is an index cursor.
+ */
+ydn.db.core.req.AbstractCursor.prototype.isPrimaryCursor = function() {
+  return !this.is_index;
+};
+
+
+/**
+ *
  * @return {boolean} return true if this is an value cursor.
  */
 ydn.db.core.req.AbstractCursor.prototype.isValueCursor = function() {

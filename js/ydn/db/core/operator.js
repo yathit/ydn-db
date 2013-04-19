@@ -580,15 +580,15 @@ ydn.db.core.DbOperator.prototype.getIndexExecutor = function() {
 
 /**
  *
- * @param {!ydn.db.Iterator} iter the cursor.
  * @param {Function} callback icursor handler.
+ * @param {!ydn.db.Iterator} iter the cursor.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode.
  * @return {!goog.async.Deferred} promise on completed.
  */
-ydn.db.core.DbOperator.prototype.open = function(iter, callback, opt_mode) {
+ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode) {
   if (!(iter instanceof ydn.db.Iterator)) {
     throw new ydn.debug.error.ArgumentException(
-        'First argument must be cursor range iterator.');
+        'Second argument must be cursor range iterator.');
   }
   var store = this.schema.getStore(iter.getStoreName());
   if (!store) {

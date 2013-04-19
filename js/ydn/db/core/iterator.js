@@ -65,6 +65,7 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
   /**
    * Store name.
    * @final
+   * @private
    */
   this.store_name_ = store;
 
@@ -111,7 +112,7 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
 
   /**
    * @final
-   * @type {ydn.db.base.Direction}
+   * @private
    */
   this.direction_ = direction;
 
@@ -482,11 +483,29 @@ ydn.db.Iterator.prototype.isKeyIterator = function() {
 
 
 /**
+ * @return {boolean} <code>true</code> if value iterator, <code>false</code>
+ * if key iterator.
+ */
+ydn.db.Iterator.prototype.isValueIterator = function() {
+  return !this.is_key_iterator_;
+};
+
+
+/**
  *
  * @return {boolean} true if index iterator.
  */
 ydn.db.Iterator.prototype.isIndexIterator = function() {
   return this.is_index_iterator_;
+};
+
+
+/**
+ * @return {boolean} true for primary iterator, which use primary key as
+ * effective key.
+ */
+ydn.db.Iterator.prototype.isPrimaryIterator = function() {
+  return !this.is_index_iterator_;
 };
 
 
@@ -669,13 +688,42 @@ ydn.db.Iterator.prototype.restrict = function(field_name, value) {
  * @param {string=} opt_field_name restriction feild name.
  * @param {IDBKey=} opt_value restriction field value.
  * @constructor
+ * @private
+ * @struct
  */
 ydn.db.Iterator.Join = function(store_name, opt_field_name,
                                 opt_value) {
-  this.store_name_ = store_name;
-  this.field_name_ = opt_field_name;
-  this.value_ = opt_value;
+  /**
+   * @final
+   */
+  this.store_name = store_name;
+  /**
+   * @final
+   */
+  this.field_name = opt_field_name;
+  /**
+   * @final
+   */
+  this.value = opt_value;
 };
+
+
+/**
+ * @type {string}
+ */
+ydn.db.Iterator.Join.store_name;
+
+
+/**
+ * @type {string|undefined}
+ */
+ydn.db.Iterator.Join.field_name;
+
+
+/**
+ * @type {IDBKey|undefined}
+ */
+ydn.db.Iterator.Join.value;
 
 
 /**
@@ -722,15 +770,36 @@ ydn.db.Iterator.prototype.join = function(store_name, opt_field_name,
 ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
                                              opt_key_query) {
 
+  var is_key_query = !!opt_key_query;
   var cursor = executor.getCursor(tx, tx_lbl, this.store_name_,
       this.index_key_path_ || this.index_name_,
-      this.key_range_, this.direction_, this.is_key_iterator_, !!opt_key_query);
+      this.key_range_, this.direction_, this.is_key_iterator_, is_key_query);
+  var cursors = [cursor];
+  for (var i = 0, n = this.joins_ ? this.joins_.length : 0; i < n; i++) {
+    /**
+     * @type {!ydn.db.Iterator.Join}
+     */
+    var join = this.joins_[i];
+    if (join.field_name && goog.isDefAndNotNull(join.value)) {
+      var key_range;
+      if (this.isPrimaryIterator()) {
+        key_range = ydn.db.IDBKeyRange.only(join.value);
+      } else {
+        key_range = ydn.db.KeyRange.parseIDBKeyRange(
+            ydn.db.KeyRange.starts([join.value]));
+      }
+      var cur = executor.getCursor(tx, tx_lbl, join.store_name,
+          join.field_name, key_range,
+          this.direction_, this.is_key_iterator_, is_key_query);
+      cursors.push(cur);
+    }
+  }
 
   if (this.cursor_) {
     this.logger.finest(tx_lbl + ' ' + this + ' reused cursor ' + this.cursor_);
   }
 
-  this.cursor_ = new ydn.db.Cursor([cursor], this.cursor_);
+  this.cursor_ = new ydn.db.Cursor(cursors, this.cursor_);
 
   this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_);
   return this.cursor_;

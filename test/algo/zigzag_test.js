@@ -96,11 +96,11 @@ var test_simple = function() {
   var solver = new ydn.db.algo.ZigzagMerge(out);
 
   var req = db.scan(solver, [q1, q2]);
-  req.addCallback(function (result) {
+  req.addCallback(function(result) {
     //console.log(result);
     done = true;
   });
-  req.addErrback(function (e) {
+  req.addErrback(function(e) {
     console.log(e);
     done = true;
   });

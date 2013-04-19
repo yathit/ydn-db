@@ -755,11 +755,11 @@ var test_51_open_index_value_iterator = function() {
     1000); // maxTimeout
 
   db = load_default();
-  var req = db.open(q, function (cursor) {
+  var req = db.open(function (cursor) {
     streaming_eff_keys.push(cursor.getKey());
     streaming_keys.push(cursor.getPrimaryKey());
     streaming_values.push(cursor.getValue());
-  });
+  }, q);
   req.addCallback(function (result) {
     done = true;
   });
@@ -966,6 +966,120 @@ var test_61_scan_cursor_resume = function() {
   });
 };
 
+
+
+var test_join_primary = function() {
+  var db_name = 'test_join_primary';
+  var data = [
+    {id: 0, a: 3, b: 'e'},
+    {id: 1, a: 3, b: 'a'},
+    {id: 2, a: 2, b: 'b'}, // result
+    {id: 3, a: 2, b: 'c'},
+    {id: 4, a: 2, b: 'b'}, // result
+    {id: 5, a: 1, b: 'b'}
+  ];
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [{
+        name: 'a'
+      }, {
+        name: 'b'
+      }]
+    }]
+  };
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  db.clear('st');
+  db.put('st', data);
+  var done;
+  var keys1 = [];
+  var values1 = [];
+
+  waitForCondition(
+      function() {
+        return done;
+      },
+      function() {
+        assertArrayEquals('keys', [2, 4], keys1);
+        assertArrayEquals('values', [data[2], data[4]], values1);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var iter = new ydn.db.ValueCursors('st');
+  iter = iter.join('st', 'a', 2);
+  iter = iter.join('st', 'b', 'b');
+
+  var req = db.open(function(cursor) {
+    keys1.push(cursor.getPrimaryKey());
+    values1.push(cursor.getValue());
+  }, iter);
+  req.addBoth(function(x) {
+    done = true;
+  });
+
+};
+
+
+
+var test_join_index = function() {
+  var db_name = 'test_join_index';
+  var data = [
+    {id: 0, a: 3, b: 'e'},
+    {id: 1, a: 3, b: 'a'},
+    {id: 2, a: 2, b: 'b'}, // result
+    {id: 3, a: 2, b: 'c'},
+    {id: 4, a: 2, b: 'b'}, // result
+    {id: 5, a: 1, b: 'b'}
+  ];
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [{
+        name: 'a'
+      }, {
+        name: 'b'
+      }]
+    }]
+  };
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  db.clear('st');
+  db.put('st', data);
+  var done;
+  var keys1 = [];
+  var values1 = [];
+
+  waitForCondition(
+      function() {
+        return done;
+      },
+      function() {
+        assertArrayEquals('keys', [2, 4], keys1);
+        assertArrayEquals('values', [data[2], data[4]], values1);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var iter = ydn.db.IndexValueCursors.where('st', 'a', '=', 2);
+  iter = iter.join('st', 'b', 'b');
+
+  var req = db.open(function(cursor) {
+    keys1.push(cursor.getPrimaryKey());
+    values1.push(cursor.getValue());
+  }, iter);
+  req.addBoth(function(x) {
+    done = true;
+  });
+
+};
 
 
 var testCase = new goog.testing.ContinuationTestCase();

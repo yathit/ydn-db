@@ -147,18 +147,84 @@ ydn.db.Cursor.prototype.logger = goog.debug.Logger.getLogger('ydn.db.Cursor');
 
 
 /**
- *
+ * Open single cursor.
+ * @param {ydn.db.core.req.ICursor} cursor
  * @private
  */
-ydn.db.Cursor.prototype.init_ = function() {
+ydn.db.Cursor.prototype.openSingle_ = function(cursor) {
+  var me = this;
+  var i = 0;
+  /**
+   * On success handler.
+   * @param {IDBKey=} opt_key effective key.
+   * @param {IDBKey=} opt_p_key primary key.
+   * @param {*=} opt_value reference value.
+   * @this {ydn.db.core.req.ICursor}
+   */
+  cursor.onSuccess = function(opt_key, opt_p_key, opt_value) {
+    //console.log([result_count, opt_key, opt_p_key]);
+    if (!goog.isDefAndNotNull(opt_key)) {
+      me.logger.finest('cursor ' + cursor + ' finished.');
+      me.done_ = true;
+    }
+    me.keys_[i] = opt_key;
+    me.primary_keys_[i] = opt_p_key;
+    me.values_[i] = opt_value;
+
+    me.count_++;
+    if (me.done_) {
+      me.logger.finest(me + ' DONE.');
+      me.onNext();
+      me.finalize_();
+    } else {
+      var key_str = goog.isDefAndNotNull(me.primary_keys_[0]) ?
+          me.keys_[0] + ', ' + me.primary_keys_[0] : me.keys_[0];
+      me.logger.finest(me + ' new cursor position {' + key_str + '}');
+      me.onNext(me.keys_[0]);
+    }
+
+  };
+  /**
+   * On error handler.
+   * @param {!Error} e error.
+   * @this {ydn.db.core.req.ICursor}
+   */
+  cursor.onError = function(e) {
+    me.onFail(e);
+    me.finalize_();
+    me.done_ = true;
+  };
+
+  // if there is previous position, the cursor must advance over previous
+  // position.
+  var pk_str = goog.isDefAndNotNull(me.primary_keys_[i]) ?
+      ', ' + me.primary_keys_[i] : '';
+  pk_str = goog.isDefAndNotNull(me.keys_[i]) ? ' resume from {' +
+      me.keys_[i] + pk_str + '}' : '';
+  me.logger.finest(cursor + pk_str + ' opening');
+  cursor.openCursor(me.keys_[i], me.primary_keys_[i]);
+};
+
+
+/**
+ * Open cursors for joining primary keys.
+ * Base cursor is primary cursor, meaning that its effective key is primary.
+ * Other cursors may not may not be primary cursor. In any case, we will join
+ * primary key instead.
+ * The algorithm is sorted merge join, except different primary key retrieval.
+ * @private
+ */
+ydn.db.Cursor.prototype.openPrimaryKeyMerge_ = function() {
   var total = this.cursors_.length;
   var result_count = 0;
+  var primary_keys = [];
+  var value;
   var me = this;
-  if (ydn.db.Cursor.DEBUG) {
-    this.logger.finest('Initializing ' + this.cursors_.length + ' cursors');
-  }
-  var listenCursor = function(i) {
-    var cursor = me.cursors_[i];
+  var listenCursor = function(i_cursor) {
+    /**
+     * @type {ydn.db.core.req.ICursor}
+     */
+    var cursor = me.cursors_[i_cursor];
     /**
      * On success handler.
      * @param {IDBKey=} opt_key effective key.
@@ -173,23 +239,46 @@ ydn.db.Cursor.prototype.init_ = function() {
         me.logger.finest('cursor ' + cursor + ' finished.');
         me.done_ = true;
       }
-      me.keys_[i] = opt_key;
-      me.primary_keys_[i] = opt_p_key;
-      me.values_[i] = opt_value;
-      if (result_count >= total) {
-        goog.asserts.assert(result_count == total);
-        me.count_++;
+      me.keys_[i_cursor] = opt_key;
+      me.primary_keys_[i_cursor] = opt_p_key;
+      me.values_[i_cursor] = opt_value;
+      if (cursor.isPrimaryCursor()) {
+        primary_keys[i_cursor] = opt_key;
+      } else {
+        primary_keys[i_cursor] = opt_p_key;
+      }
+      if (result_count == total) {
+        // all cursor results are ready
         if (me.done_) {
+          me.count_++;
           me.logger.finest(me + ' DONE.');
           me.onNext();
           me.finalize_();
         } else {
-          var key_str = goog.isDefAndNotNull(me.primary_keys_[0]) ?
-              me.keys_[0] + ', ' + me.primary_keys_[0] : me.keys_[0];
-          me.logger.finest(me + ' new cursor position {' + key_str + '}');
-          me.onNext(me.keys_[0]);
+          // to get successful step, all primary key must be same.
+          var max_key = goog.array.clone(primary_keys).sort(ydn.db.cmp);
+          if (ydn.db.cmp(max_key, primary_keys[0])) {
+            // all keys are equal, hence we get matching key result.
+            var key_str = goog.isDefAndNotNull(me.primary_keys_[0]) ?
+                me.keys_[0] + ', ' + me.primary_keys_[0] : me.keys_[0];
+            me.logger.finest(me + ' new cursor position {' + key_str + '}');
+            me.onNext(me.keys_[0]);
+          } else {
+            // request behind cursor to max key position.
+            for (var i = 0; i < total; i++) {
+              if (ydn.db.cmp(primary_keys[i], max_key) == -1) {
+                var cur = me.cursors_[i];
+                if (cur.isPrimaryCursor()) {
+                  cur.continueEffectiveKey(max_key);
+                } else {
+                  cursor.continuePrimaryKey(max_key);
+                }
+              }
+            }
+          }
         }
         result_count = 0;
+        goog.array.clear(primary_keys);
       }
     };
     /**
@@ -206,15 +295,140 @@ ydn.db.Cursor.prototype.init_ = function() {
 
     // if there is previous position, the cursor must advance over previous
     // position.
-    var pk_str = goog.isDefAndNotNull(me.primary_keys_[i]) ?
-        ', ' + me.primary_keys_[i] : '';
-    pk_str = goog.isDefAndNotNull(me.keys_[i]) ? ' resume from {' +
-        me.keys_[i] + pk_str + '}' : '';
+    var pk_str = goog.isDefAndNotNull(me.primary_keys_[i_cursor]) ?
+        ', ' + me.primary_keys_[i_cursor] : '';
+    pk_str = goog.isDefAndNotNull(me.keys_[i_cursor]) ? ' resume from {' +
+        me.keys_[i_cursor] + pk_str + '}' : '';
     me.logger.finest(cursor + pk_str + ' opening');
-    cursor.openCursor(me.keys_[i], me.primary_keys_[i]);
+    cursor.openCursor(me.keys_[i_cursor], me.primary_keys_[i_cursor]);
   };
   for (var i = 0; i < total; i++) {
     listenCursor(i);
+  }
+};
+
+
+/**
+ * Open cursors for joining secondary keys.
+ * Base cursor is index cursor, meaning that its effective key is secondary key.
+ * Other cursors may not may not be index cursor. In any case, we will join
+ * primary key instead.
+ * The algorithm is zigzag merge join, except different index key retrieval.
+ * @private
+ */
+ydn.db.Cursor.prototype.openSecondaryKeyMerge_ = function() {
+  var total = this.cursors_.length;
+  var result_count = 0;
+  var primary_keys = [];
+  var value;
+  var me = this;
+  var listenCursor = function(i_cursor) {
+    /**
+     * @type {ydn.db.core.req.ICursor}
+     */
+    var cursor = me.cursors_[i_cursor];
+    /**
+     * On success handler.
+     * @param {IDBKey=} opt_key effective key.
+     * @param {IDBKey=} opt_p_key primary key.
+     * @param {*=} opt_value reference value.
+     * @this {ydn.db.core.req.ICursor}
+     */
+    cursor.onSuccess = function(opt_key, opt_p_key, opt_value) {
+      result_count++;
+      //console.log([result_count, opt_key, opt_p_key]);
+      if (!goog.isDefAndNotNull(opt_key)) {
+        me.logger.finest('cursor ' + cursor + ' finished.');
+        me.done_ = true;
+      }
+      me.keys_[i_cursor] = opt_key;
+      me.primary_keys_[i_cursor] = opt_p_key;
+      me.values_[i_cursor] = opt_value;
+      if (cursor.isPrimaryCursor()) {
+        primary_keys[i_cursor] = opt_key;
+      } else {
+        primary_keys[i_cursor] = opt_p_key;
+      }
+      if (result_count == total) {
+        // all cursor results are ready
+        if (me.done_) {
+          me.count_++;
+          me.logger.finest(me + ' DONE.');
+          me.onNext();
+          me.finalize_();
+        } else {
+          // to get successful step, all primary key must be same.
+          var max_key = goog.array.clone(primary_keys).sort(ydn.db.cmp);
+          if (ydn.db.cmp(max_key, primary_keys[0])) {
+            // all keys are equal, hence we get matching key result.
+            var key_str = goog.isDefAndNotNull(me.primary_keys_[0]) ?
+                me.keys_[0] + ', ' + me.primary_keys_[0] : me.keys_[0];
+            me.logger.finest(me + ' new cursor position {' + key_str + '}');
+            me.onNext(me.keys_[0]);
+          } else {
+            // request behind cursor to max key position.
+            for (var i = 0; i < total; i++) {
+              if (ydn.db.cmp(primary_keys[i], max_key) == -1) {
+                var cur = me.cursors_[i];
+                if (cur.isPrimaryCursor()) {
+                  cur.continueEffectiveKey(max_key);
+                } else {
+                  cursor.continuePrimaryKey(max_key);
+                }
+              }
+            }
+          }
+        }
+        result_count = 0;
+        goog.array.clear(primary_keys);
+      }
+    };
+    /**
+     * On error handler.
+     * @param {!Error} e error.
+     * @this {ydn.db.core.req.ICursor}
+     */
+    cursor.onError = function(e) {
+      me.onFail(e);
+      me.finalize_();
+      me.done_ = true;
+      result_count = 0;
+    };
+
+    // if there is previous position, the cursor must advance over previous
+    // position.
+    var pk_str = goog.isDefAndNotNull(me.primary_keys_[i_cursor]) ?
+        ', ' + me.primary_keys_[i_cursor] : '';
+    pk_str = goog.isDefAndNotNull(me.keys_[i_cursor]) ? ' resume from {' +
+        me.keys_[i_cursor] + pk_str + '}' : '';
+    me.logger.finest(cursor + pk_str + ' opening');
+    cursor.openCursor(me.keys_[i_cursor], me.primary_keys_[i_cursor]);
+  };
+  for (var i = 0; i < total; i++) {
+    listenCursor(i);
+  }
+};
+
+
+/**
+ *
+ * @private
+ */
+ydn.db.Cursor.prototype.init_ = function() {
+  var n = this.cursors_.length;
+  if (ydn.db.Cursor.DEBUG) {
+    this.logger.finest('Initializing ' + n + ' cursors');
+  }
+  if (n == 1) {
+    this.openSingle_(this.cursors_[0]);
+  } else if (n > 1) {
+    if (this.cursors_[0].isPrimaryCursor()) {
+      this.openPrimaryKeyMerge_();
+    } else {
+      this.openSecondaryKeyMerge_();
+    }
+  } else {
+    throw new ydn.debug.error.InternalError('no cursors');
   }
 };
 
