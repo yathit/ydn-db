@@ -520,7 +520,7 @@ if (goog.DEBUG) {
    */
   ydn.db.Iterator.prototype.toString = function() {
     var str = goog.isDef(this.index_key_path_) ?
-        this.index_key_path_.join(',') :
+        ':' + this.index_key_path_.join(',') :
             goog.isDef(this.index_name_) ? ':' + this.index_name_ : '';
     if (this.key_range_) {
       str += this.key_range_.lowerOpen ? ' (' : ' [';

@@ -14,7 +14,7 @@ var db_name = 'test_index_2';
 
 var setUp = function () {
 
-   ydn.debug.log('ydn.db', 'finest');
+   // ydn.debug.log('ydn.db', 'finest');
 
   // ydn.db.con.WebSql.DEBUG = true;
   // ydn.db.crud.req.WebSql.DEBUG = true;
@@ -972,14 +972,14 @@ var test_restrict = function() {
 
 
 var test_restrict_index = function() {
-  var db_name = 'test_restrict_index';
+  var db_name = 'test_restrict_index-2';
   var data = [
-    {id: 1, a: 3, b: 'a'},
-    {id: 2, a: 2, b: 'b'},
-    {id: 3, a: 2, b: 'c'},
-    {id: 4, a: 2, b: 'b'},
-    {id: 5, a: 1, b: 'b'},
-    {id: 6, a: 3, b: 'e'}
+    {id: 1, a: 3, b: 'a', c: 1},
+    {id: 2, a: 2, b: 'b', c: 1},
+    {id: 3, a: 2, b: 'c', c: 1},
+    {id: 4, a: 2, b: 'b', c: 2},
+    {id: 5, a: 1, b: 'b', c: 2},
+    {id: 6, a: 3, b: 'e', c: 2}
   ];
   var schema = {
     stores: [{
@@ -990,6 +990,9 @@ var test_restrict_index = function() {
       }, {
         name: 'ba',
         keyPath: ['b', 'a']
+      }, {
+        name: 'cba',
+        keyPath: ['c', 'b', 'a']
       }]
     }]
   };
@@ -999,6 +1002,7 @@ var test_restrict_index = function() {
   var done;
   var keys3, values3;
   var keys4, values4;
+  var keys5, values5;
 
   waitForCondition(
       function() {
@@ -1009,6 +1013,8 @@ var test_restrict_index = function() {
         assertArrayEquals('sorted by a values', exp_values3, values3);
         assertArrayEquals('sorted by a, restrict b keys', exp_keys4, keys4);
         assertArrayEquals('sorted by a, restrict b keys', exp_values4, values4);
+        assertArrayEquals('sorted by a, restrict b, c keys', [[2, 'b', 1], [2, 'b', 2]], keys5);
+        assertArrayEquals('sorted by a, restrict b, c values', [data[4], data[3]], values5);
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db.getName(), db.getType());
         db.close();
@@ -1016,8 +1022,8 @@ var test_restrict_index = function() {
       100, // interval
       1000); // maxTimeout
 
-
-  var exp_values3 = data.sort(function(a, b) {
+  var exp_values3 = goog.array.clone(data);
+  exp_values3.sort(function(a, b) {
     return a.a == b.a ? 0 : a.a > b.a ? 1 : -1;
   });
   var exp_keys3 = exp_values3.map(function(x) {
@@ -1044,6 +1050,14 @@ var test_restrict_index = function() {
   });
   db.values(iter4).addBoth(function(x) {
     values4 = x;
+  });
+
+  var iter5 = iter4.restrict('c', 2);
+  db.keys(iter5).addBoth(function(x) {
+    keys5 = x;
+  });
+  db.values(iter5).addBoth(function(x) {
+    values5 = x;
     done = true;
   });
 };
