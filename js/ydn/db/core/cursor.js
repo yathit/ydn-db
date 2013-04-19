@@ -234,6 +234,10 @@ ydn.db.Cursor.prototype.openPrimaryKeyMerge_ = function() {
      */
     cursor.onSuccess = function(opt_key, opt_p_key, opt_value) {
       result_count++;
+      if (ydn.db.Cursor.DEBUG) {
+        window.console.log(me + ' receiving result "' + opt_key + '" from ' +
+            i_cursor + ' of ' + result_count + '/' + total + ' ' + cursor);
+      }
       //console.log([result_count, opt_key, opt_p_key]);
       if (!goog.isDefAndNotNull(opt_key)) {
         me.logger.finest('cursor ' + cursor + ' finished.');
@@ -249,6 +253,7 @@ ydn.db.Cursor.prototype.openPrimaryKeyMerge_ = function() {
       }
       if (result_count == total) {
         // all cursor results are ready
+        result_count = 0;
         if (me.done_) {
           me.count_++;
           me.logger.finest(me + ' DONE.');
@@ -256,8 +261,14 @@ ydn.db.Cursor.prototype.openPrimaryKeyMerge_ = function() {
           me.finalize_();
         } else {
           // to get successful step, all primary key must be same.
-          var max_key = goog.array.clone(primary_keys).sort(ydn.db.cmp);
-          if (ydn.db.cmp(max_key, primary_keys[0])) {
+          var max_key = primary_keys.reduce(function(p, c) {
+            if (goog.isNull(p)) {
+              return c;
+            } else {
+              return ydn.db.cmp(c, p) == 1 ? c : p;
+            }
+          }, null);
+          if (ydn.db.cmp(max_key, primary_keys[0]) == 0) {
             // all keys are equal, hence we get matching key result.
             var key_str = goog.isDefAndNotNull(me.primary_keys_[0]) ?
                 me.keys_[0] + ', ' + me.primary_keys_[0] : me.keys_[0];
@@ -271,13 +282,14 @@ ydn.db.Cursor.prototype.openPrimaryKeyMerge_ = function() {
                 if (cur.isPrimaryCursor()) {
                   cur.continueEffectiveKey(max_key);
                 } else {
-                  cursor.continuePrimaryKey(max_key);
+                  cur.continuePrimaryKey(max_key);
                 }
+              } else {
+                result_count++;
               }
             }
           }
         }
-        result_count = 0;
         goog.array.clear(primary_keys);
       }
     };
@@ -336,6 +348,10 @@ ydn.db.Cursor.prototype.openSecondaryKeyMerge_ = function() {
      */
     cursor.onSuccess = function(opt_key, opt_p_key, opt_value) {
       result_count++;
+      if (ydn.db.Cursor.DEBUG) {
+        window.console.log(me + ' receiving result "' + opt_key + '" from ' +
+            i_cursor + '/' + total + ' ' + cursor);
+      }
       //console.log([result_count, opt_key, opt_p_key]);
       if (!goog.isDefAndNotNull(opt_key)) {
         me.logger.finest('cursor ' + cursor + ' finished.');
@@ -358,8 +374,14 @@ ydn.db.Cursor.prototype.openSecondaryKeyMerge_ = function() {
           me.finalize_();
         } else {
           // to get successful step, all primary key must be same.
-          var max_key = goog.array.clone(primary_keys).sort(ydn.db.cmp);
-          if (ydn.db.cmp(max_key, primary_keys[0])) {
+          var max_key = primary_keys.reduce(function(p, c) {
+            if (goog.isNull(p)) {
+              return c;
+            } else {
+              return ydn.db.cmp(c, p) == 1 ? c : p;
+            }
+          }, null);
+          if (ydn.db.cmp(max_key, primary_keys[0]) == 0) {
             // all keys are equal, hence we get matching key result.
             var key_str = goog.isDefAndNotNull(me.primary_keys_[0]) ?
                 me.keys_[0] + ', ' + me.primary_keys_[0] : me.keys_[0];
@@ -373,7 +395,7 @@ ydn.db.Cursor.prototype.openSecondaryKeyMerge_ = function() {
                 if (cur.isPrimaryCursor()) {
                   cur.continueEffectiveKey(max_key);
                 } else {
-                  cursor.continuePrimaryKey(max_key);
+                  cur.continuePrimaryKey(max_key);
                 }
               }
             }
@@ -509,7 +531,9 @@ ydn.db.Cursor.prototype.continueEffectiveKey = function(opt_key) {
  * @param {number} n number of steps.
  */
 ydn.db.Cursor.prototype.advance = function(n) {
-  this.cursors_[0].advance(n);
+  for (var i = 0; i < this.cursors_.length; i++) {
+    this.cursors_[i].advance(n);
+  }
 };
 
 

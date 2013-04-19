@@ -599,8 +599,8 @@ ydn.db.Iterator.prototype.stores = function() {
   var stores = [this.store_name_];
   if (this.joins_) {
     for (var i = 0; i < this.joins_.length; i++) {
-      if (!goog.array.contains(stores, this.joins_[i])) {
-        stores.push(this.joins_[i]);
+      if (!goog.array.contains(stores, this.joins_[i].store_name)) {
+        stores.push(this.joins_[i].store_name);
       }
     }
   }
