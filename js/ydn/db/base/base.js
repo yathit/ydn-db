@@ -130,7 +130,6 @@ ydn.db.base.TxEventTypes = {
  * The three possible transaction modes in standard TransactionMode.
  * @see http://lists.w3.org/Archives/Public/public-webapps/2013JanMar/0615.html
  * @enum {string}
- * @protected
  */
 ydn.db.base.StandardTransactionMode = {
   'READ_ONLY': 'readonly',

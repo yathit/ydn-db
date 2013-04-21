@@ -33,6 +33,7 @@ goog.require('ydn.db.sql.req.idb.ReduceNode');
  * @param {!ydn.db.schema.Database} schema schema.
  * @constructor
  * @implements {ydn.db.sql.req.IRequestExecutor}
+ * @struct
  */
 ydn.db.sql.req.IndexedDb = function(dbname, schema) {
   goog.base(this, dbname, schema);

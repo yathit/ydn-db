@@ -89,13 +89,13 @@ var committed_continuous_request_test = function(thread, exp_tx_no) {
 var test_abort_put  = function() {
   var db_name = 'test_abort' + Math.random();
   var opt = ydn.object.clone(options);
-  opt.thread = 'samescope-multirequest-serial';
+  opt.policy = 'repeat';
   var db = new ydn.db.crud.Storage(db_name, basic_schema, opt);
 
  // ydn.db.crud.req.WebSql.DEBUG = true;
 
 
-  var adb = db.branch('atomic-serial');
+  var adb = db.branch('atomic', true);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -200,7 +200,7 @@ var _test_invalid_data  = function() {
 
 var test_abort_put_data  = function() {
   var db_name = 'test_abort' + Math.random();
-  options.thread = 'samescope-multirequest-serial';
+  options.policy = 'repeat';
   var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
 

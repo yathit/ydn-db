@@ -106,19 +106,17 @@ var schema_auto_increase = {
   ]
 };
 
+QUnit.config.testTimeout = 5000;
+
 var reporter = new ydn.testing.Reporter('ydn-db');
 
 (function () {
 
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Put test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
 
     }
   };
@@ -224,13 +222,9 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Put test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
 
     }
   };
@@ -298,13 +292,9 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Put test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
 
     }
   };
@@ -423,13 +413,9 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   var test_env = {
     setup: function () {
       db = new ydn.db.Storage(get_db_name, schema_1, options);
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Get test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
       db.close();
     }
   };
@@ -564,13 +550,9 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   var test_env = {
     setup: function () {
       db = new ydn.db.Storage(values_db_name, schema_1, options);
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('List test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
       db.close();
     }
   };
@@ -807,13 +789,9 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   var test_env = {
     setup: function () {
       db = new ydn.db.Storage(db_name, schema_1, options);
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Keys test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
       db.close();
       //ydn.db.deleteDatabase(db.getName());
     }
@@ -899,13 +877,9 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   var test_env = {
     setup: function () {
       db = new ydn.db.Storage(count_db_name, schema_1, options);
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Count test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
       db.close();
       //ydn.db.deleteDatabase(db.getName());
     }

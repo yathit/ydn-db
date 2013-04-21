@@ -20,7 +20,7 @@
  */
 
 goog.provide('ydn.db.tr.IThread');
-goog.provide('ydn.db.tr.IThread.Threads');
+goog.provide('ydn.db.tr.IThread.Policy');
 
 
 
@@ -72,7 +72,7 @@ ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
  * Request type.
  * @enum {string}
  */
-ydn.db.tr.IThread.RequestType = {
+ydn.db.tr.IThread.Policy = {
   MULTI: 'multi',
   REPEAT: 'repeat',
   ATOMIC: 'atomic',
@@ -81,49 +81,14 @@ ydn.db.tr.IThread.RequestType = {
 
 
 /**
- * Threading type
- * @enum {string}
- */
-ydn.db.tr.IThread.Threads = {
-  SERIAL: 'serial',
-  PARALLEL: 'parallel',
-  ATOMIC_SERIAL: 'atomic-serial',
-  MULTI_REQUEST_SERIAL: 'multirequest-serial',
-  SAME_SCOPE_MULTI_REQUEST_SERIAL: 'samescope-multirequest-serial',
-  ATOMIC_PARALLEL: 'atomic-parallel',
-  OVERFLOW_PARALLEL: 'multirequest-parallel',
-  SAME_SCOPE_MULTI_REQUEST_PARALLEL: 'samescope-multirequest-parallel',
-  OPEN: 'open',
-  SINGLE: 'single'
-};
-
-
-/**
- * @const
- * @type {Array.<ydn.db.tr.IThread.Threads>}
- */
-ydn.db.tr.IThread.ThreadList = [
-  ydn.db.tr.IThread.Threads.SERIAL,
-  ydn.db.tr.IThread.Threads.PARALLEL,
-  ydn.db.tr.IThread.Threads.ATOMIC_SERIAL,
-  ydn.db.tr.IThread.Threads.MULTI_REQUEST_SERIAL,
-  ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_SERIAL,
-  ydn.db.tr.IThread.Threads.ATOMIC_PARALLEL,
-  ydn.db.tr.IThread.Threads.OVERFLOW_PARALLEL,
-  ydn.db.tr.IThread.Threads.SAME_SCOPE_MULTI_REQUEST_PARALLEL,
-  ydn.db.tr.IThread.Threads.OPEN,
-  ydn.db.tr.IThread.Threads.SINGLE
-];
-
-
-/**
  * Abort an active transaction.
+ * @param {ydn.db.con.IDatabase.Transaction} tx transaction to be aborted.
  */
 ydn.db.tr.IThread.abort = function(tx) {
   if (tx) {
-    if ('abort' in tx) {
-      tx['abort']();
-    } else if ('executeSql' in tx) {
+    if (goog.isFunction(tx.abort)) {
+      tx.abort();
+    } else if (goog.isFunction(tx.executeSql)) {
 
       /**
        * @param {SQLTransaction} transaction transaction.

@@ -35,6 +35,7 @@ goog.require('ydn.json');
  * @constructor
  * @implements {ydn.db.core.req.IRequestExecutor}
  * @extends {ydn.db.crud.req.IndexedDb}
+ * @struct
  */
 ydn.db.core.req.IndexedDb = function(dbname, schema) {
   goog.base(this, dbname, schema);

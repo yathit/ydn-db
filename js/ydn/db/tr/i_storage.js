@@ -8,6 +8,7 @@ goog.provide('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.Mutex');
 
 
+
 /**
  * @interface
  */
@@ -20,25 +21,26 @@ ydn.db.tr.IStorage = function() {};
  * transaction.
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
- * @param {ydn.db.base.TransactionMode=} mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TxEventTypes, *)=} oncompleted event
+ * @param {ydn.db.base.StandardTransactionMode=} opt_mode mode, default to
+ * 'readonly'.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted event
  * handler on completed.
- * @param {...} opt_args optional arguments to post-pend to callback function.
+ * @param {...} args optional arguments to post-pend to callback function.
  */
 ydn.db.tr.IStorage.prototype.run = goog.abstractMethod;
 
 
 /**
- * @return {IDBTransaction|SQLTransaction|Object} get transaction object.
+ * @return {ydn.db.con.IDatabase.Transaction} get transaction object.
  */
-ydn.db.tr.IStorage.getTx = goog.abstractMethod;
+ydn.db.tr.IStorage.getTx = function() {};
 
 
 /**
  * Get transaction count.
  * @return {number} transaction series number.
  */
-ydn.db.tr.IStorage.prototype.getTxNo = goog.abstractMethod;
+ydn.db.tr.IStorage.prototype.getTxNo = function() {};
 
 
 

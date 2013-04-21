@@ -34,10 +34,11 @@ var tearDown = function() {
 };
 
 
-var continuous_request_test = function(thread, exp_tx_no) {
+var continuous_request_test = function(policy, is_serial, exp_tx_no) {
 
   var db_name = 'nested_request_test' + Math.random();
-  options.thread = thread;
+  options.policy = policy;
+  options.isSerial = is_serial;
   var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
@@ -76,10 +77,11 @@ var continuous_request_test = function(thread, exp_tx_no) {
 };
 
 
-var committed_continuous_request_test = function(thread, exp_tx_no) {
+var committed_continuous_request_test = function(policy, is_serial, exp_tx_no) {
 
   var db_name = 'nested_request_test' + Math.random();
-  options.thread = thread;
+  options.policy = policy;
+  options.isSerial = is_serial;
   var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
@@ -119,10 +121,11 @@ var committed_continuous_request_test = function(thread, exp_tx_no) {
 
 };
 
-var nested_request_test = function(thread, exp_tx_no) {
+var nested_request_test = function(policy, is_serial, exp_tx_no) {
 
   var db_name = 'nested_request_test' + Math.random();
-  options.thread = thread;
+  options.policy = policy;
+  options.isSerial = is_serial;
   var db = new ydn.db.crud.Storage(db_name, basic_schema, options);
 
   var val = {id: 'a', value: Math.random()};
@@ -151,7 +154,7 @@ var nested_request_test = function(thread, exp_tx_no) {
       tx_no.push(db.getTxNo());
       // do some heavy DOM
       var root = document.createElement('div');
-      root.textContent = thread;
+      root.textContent = policy;
       document.body.appendChild(root);
       var parent = root;
       for (var i = 0; i < 1000; i++) {
@@ -175,26 +178,26 @@ var nested_request_test = function(thread, exp_tx_no) {
 
 var test_nested_request_serial_atomic = function() {
   // each request create a new tx
-  nested_request_test('atomic-serial', [1, 2, 3]);
+  nested_request_test('atomic', true, [1, 2, 3]);
 };
 
 var test_continuous_request_serial_atomic = function() {
   // each request create a new tx
-  continuous_request_test('atomic-serial', [1, 2, 3]);
+  continuous_request_test('atomic', true, [1, 2, 3]);
 };
 
 var test_nested_request_serial_strict_overflow = function() {
   // first create readwrite tx
   // second create readonly tx
   // third reuse
-  nested_request_test('samescope-multirequest-serial', [1, 2, 2]);
+  nested_request_test('repeat', true, [1, 2, 2]);
 };
 
 var test_continuous_request_serial_strict_overflow = function() {
   // first create readwrite tx
   // second create readonly tx
   // third reuse
-  continuous_request_test('samescope-multirequest-serial', [1, 2, 2]);
+  continuous_request_test('repeat', true, [1, 2, 2]);
 };
 
 var test_nested_request_parallel_strict_overflow = function() {
@@ -202,7 +205,7 @@ var test_nested_request_parallel_strict_overflow = function() {
   // second create readonly tx because not same as previous tx
   // third create readonly tx because although it is same as preivous tx
   // the tx might have committed.
-  nested_request_test('samescope-multirequest-parallel', [1, 2, 3]);
+  nested_request_test('repeat', false, [1, 2, 3]);
 };
 
 
@@ -210,13 +213,13 @@ var test_nested_request_parallel_overflow = function() {
   // first create readwrite tx  (running tx)
   // reuse running tx
   // reuse running tx
-  nested_request_test('multirequest-parallel', [1, 1, 1]);
+  nested_request_test('multi', false, [1, 1, 1]);
 };
 
 var test_continuous_request_parallel_strict_overflow  = function() {
   // websql is slow in opening request.
   var exp_tx_no = options.mechanisms[0] == 'websql' ? [1, 2] : [2, 2];
-  committed_continuous_request_test('samescope-multirequest-parallel', exp_tx_no);
+  committed_continuous_request_test('repeat', false, exp_tx_no);
 };
 
 

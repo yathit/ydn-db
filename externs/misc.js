@@ -30,7 +30,7 @@ StorageOptions.prototype.autoSchema;
 /**
  * @type {string|undefined}
  */
-StorageOptions.prototype.requestType;
+StorageOptions.prototype.policy;
 
 /**
  * @type {boolean|undefined}
