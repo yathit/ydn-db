@@ -33,8 +33,8 @@ goog.require('ydn.db.Cursor');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.base');
+goog.require('ydn.db.core.Join');
 goog.require('ydn.db.core.req.ICursor');
-goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.debug.error.ArgumentException');
 
 
@@ -681,53 +681,8 @@ ydn.db.Iterator.prototype.restrict = function(field_name, value) {
 };
 
 
-
 /**
- * Join operation.
- * @param {string} store_name store name to join.
- * @param {string=} opt_field_name restriction feild name.
- * @param {IDBKey=} opt_value restriction field value.
- * @constructor
- * @private
- * @struct
- */
-ydn.db.Iterator.Join = function(store_name, opt_field_name,
-                                opt_value) {
-  /**
-   * @final
-   */
-  this.store_name = store_name;
-  /**
-   * @final
-   */
-  this.field_name = opt_field_name;
-  /**
-   * @final
-   */
-  this.value = opt_value;
-};
-
-
-/**
- * @type {string}
- */
-ydn.db.Iterator.Join.store_name;
-
-
-/**
- * @type {string|undefined}
- */
-ydn.db.Iterator.Join.field_name;
-
-
-/**
- * @type {IDBKey|undefined}
- */
-ydn.db.Iterator.Join.value;
-
-
-/**
- * @type {Array.<!ydn.db.Iterator.Join>} list of joins.
+ * @type {Array.<!ydn.db.core.Join>} list of joins.
  * @private
  */
 ydn.db.Iterator.prototype.joins_;
@@ -747,7 +702,7 @@ ydn.db.Iterator.prototype.join = function(store_name, opt_field_name,
       this.key_range_, this.isReversed(), this.isUnique(),
       this.is_key_iterator_, this.index_key_path_);
 
-  var join = new ydn.db.Iterator.Join(store_name, opt_field_name,
+  var join = new ydn.db.core.Join(store_name, opt_field_name,
       opt_value);
 
   if (this.joins_) {
@@ -777,7 +732,7 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
   var cursors = [cursor];
   for (var i = 0, n = this.joins_ ? this.joins_.length : 0; i < n; i++) {
     /**
-     * @type {!ydn.db.Iterator.Join}
+     * @type {!ydn.db.core.Join}
      */
     var join = this.joins_[i];
     if (join.field_name && goog.isDefAndNotNull(join.value)) {

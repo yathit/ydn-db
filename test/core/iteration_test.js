@@ -1030,12 +1030,13 @@ var test_join_primary = function() {
 var test_join_index = function() {
   var db_name = 'test_join_index';
   var data = [
-    {id: 0, a: 3, b: 'e'},
+    {id: 0, a: 3, b: 'b'}, // result 3
     {id: 1, a: 3, b: 'a'},
-    {id: 2, a: 2, b: 'b'}, // result
+    {id: 2, a: 2, b: 'b'}, // result 1
     {id: 3, a: 2, b: 'c'},
-    {id: 4, a: 2, b: 'b'}, // result
-    {id: 5, a: 1, b: 'b'}
+    {id: 4, a: 1, b: 'b'},
+    {id: 5, a: 2, b: 'b'}, // result 2
+    {id: 6, a: 4, b: 'b'}
   ];
   var schema = {
     stores: [{
@@ -1048,6 +1049,10 @@ var test_join_index = function() {
       }]
     }]
   };
+
+  var iter = ydn.db.IndexValueCursors.where('st', 'a', '>=', 2, '<', 4);
+  iter = iter.join('st', 'b', 'b');
+
   var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear('st');
   db.put('st', data);
@@ -1060,8 +1065,8 @@ var test_join_index = function() {
         return done;
       },
       function() {
-        assertArrayEquals('keys', [2, 4], keys1);
-        assertArrayEquals('values', [data[2], data[4]], values1);
+        assertArrayEquals('keys', [['b', 2], ['b', 5], ['b', [3]]], keys1);
+        assertArrayEquals('values', [data[2], data[5], data[0]], values1);
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db.getName(), db.getType());
         db.close();
@@ -1069,8 +1074,6 @@ var test_join_index = function() {
       100, // interval
       1000); // maxTimeout
 
-  var iter = ydn.db.IndexValueCursors.where('st', 'a', '=', 2);
-  iter = iter.join('st', 'b', 'b');
 
   var req = db.open(function(cursor) {
     keys1.push(cursor.getPrimaryKey());

@@ -218,7 +218,6 @@ ydn.db.Cursor.prototype.openPrimaryKeyMerge_ = function() {
   var total = this.cursors_.length;
   var result_count = 0;
   var primary_keys = [];
-  var value;
   var me = this;
   var listenCursor = function(i_cursor) {
     /**
@@ -331,8 +330,8 @@ ydn.db.Cursor.prototype.openPrimaryKeyMerge_ = function() {
 ydn.db.Cursor.prototype.openSecondaryKeyMerge_ = function() {
   var total = this.cursors_.length;
   var result_count = 0;
+  var keys = [];
   var primary_keys = [];
-  var value;
   var me = this;
   var listenCursor = function(i_cursor) {
     /**
@@ -444,11 +443,7 @@ ydn.db.Cursor.prototype.init_ = function() {
   if (n == 1) {
     this.openSingle_(this.cursors_[0]);
   } else if (n > 1) {
-    if (this.cursors_[0].isPrimaryCursor()) {
-      this.openPrimaryKeyMerge_();
-    } else {
-      this.openSecondaryKeyMerge_();
-    }
+    this.openPrimaryKeyMerge_();
   } else {
     throw new ydn.debug.error.InternalError('no cursors');
   }
