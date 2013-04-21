@@ -30,7 +30,12 @@ StorageOptions.prototype.autoSchema;
 /**
  * @type {string|undefined}
  */
-StorageOptions.prototype.thread;
+StorageOptions.prototype.requestType;
+
+/**
+ * @type {boolean|undefined}
+ */
+StorageOptions.prototype.isSerial;
 
 /**
  * @type {number|undefined}

@@ -63,9 +63,21 @@ ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
  * @param {!Array.<string>} store_names list of keys or
  * store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TxEventTypes, *)=} oncompleted handler.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  */
 ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
+
+
+/**
+ * Request type.
+ * @enum {string}
+ */
+ydn.db.tr.IThread.RequestType = {
+  MULTI: 'multi',
+  REPEAT: 'repeat',
+  ATOMIC: 'atomic',
+  SINGLE: 'single'
+};
 
 
 /**

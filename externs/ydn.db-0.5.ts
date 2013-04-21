@@ -36,7 +36,8 @@ interface StorageOptions {
   mechanisms?: string[];
   size?: number;
   autoSchema?: bool;
-  thread?: string;
+  isSerial?: bool;
+  requestType?: string;
 }
 
 declare module goog.async

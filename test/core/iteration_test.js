@@ -1027,7 +1027,7 @@ var test_join_primary = function() {
 
 
 
-var test_join_index = function() {
+var _test_join_index = function() {
   var db_name = 'test_join_index';
   var data = [
     {id: 0, a: 3, b: 'b'}, // result 3
