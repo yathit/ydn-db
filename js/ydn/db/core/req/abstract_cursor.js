@@ -31,13 +31,13 @@ goog.require('ydn.debug.error.InternalError');
  * @param {string|undefined} index_name index name.
  * @param {IDBKeyRange} keyRange key range.
  * @param {ydn.db.base.Direction} direction cursor direction.
- * @param {boolean} key_only mode.
+ * @param {boolean} is_key_cursor mode.
  * @param {ydn.db.schema.Store.QueryMethod} mth true for keys query method.
  * @constructor
  * @extends {goog.Disposable}
  */
 ydn.db.core.req.AbstractCursor = function(tx, tx_no,
-    store_name, index_name, keyRange, direction, key_only, mth) {
+    store_name, index_name, keyRange, direction, is_key_cursor, mth) {
   goog.base(this);
   /**
    * @final
@@ -80,8 +80,9 @@ ydn.db.core.req.AbstractCursor = function(tx, tx_no,
 
   /**
    * @final
+   * @private
    */
-  this.key_only = key_only;
+  this.is_key_cursor_ = is_key_cursor;
 
   /**
    * @final
@@ -142,10 +143,10 @@ ydn.db.core.req.AbstractCursor.prototype.reverse = false;
 
 
 /**
- * @protected
+ * @private
  * @type {boolean}
  */
-ydn.db.core.req.AbstractCursor.prototype.key_only = true;
+ydn.db.core.req.AbstractCursor.prototype.is_key_cursor_ = true;
 
 
 /**
@@ -187,7 +188,7 @@ ydn.db.core.req.AbstractCursor.prototype.isPrimaryCursor = function() {
  * @return {boolean} return true if this is an value cursor.
  */
 ydn.db.core.req.AbstractCursor.prototype.isValueCursor = function() {
-  return !this.key_only;
+  return !this.is_key_cursor_;
 };
 
 

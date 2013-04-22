@@ -164,7 +164,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
 
   var order =  ' ORDER BY ';
 
-  if (this.key_only) {
+  if (!this.isValueCursor()) {
     if (index) {
       goog.asserts.assertString(effective_col_name);
       sqls.push(goog.string.quote(effective_col_name) + ', ' + q_primary_column_name);
@@ -365,7 +365,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.getValue = function () {
     this.index_name : this.store_schema_.getSQLKeyColumnName();
 
   if (this.current_cursor_index_ < this.cursor_.rows.length) {
-    if (this.key_only) {
+    if (!this.isValueCursor()) {
       return this.getPrimaryKey();
     } else {
       var row = this.cursor_.rows.item(this.current_cursor_index_);

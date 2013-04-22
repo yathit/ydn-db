@@ -101,7 +101,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
       obj_store.index(this.index_name) : null;
 
   var request;
-  if (this.key_only) {
+  if (!this.isValueCursor()) {
     if (index) {
       if (goog.isDefAndNotNull(this.dir)) {
         request = index.openKeyCursor(key_range, this.dir);

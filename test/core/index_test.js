@@ -14,11 +14,12 @@ var db_name = 'test_index_2';
 
 var setUp = function () {
 
-    ydn.debug.log('ydn.db', 'finest');
+   ydn.debug.log('ydn.db', 'finest');
 
   // ydn.db.con.WebSql.DEBUG = true;
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  ydn.db.core.req.WebSql.DEBUG = true;
+  //ydn.db.core.req.WebSql.DEBUG = true;
+  ydn.db.core.req.WebsqlCursor.DEBUG = true;
 
   reachedFinalContinuation = false;
 };
@@ -1064,32 +1065,13 @@ var test_restrict_index = function() {
 
 
 var test_values = function() {
-  var db_name = 'test_values-1';
+  var db_name = 'test_values-2';
   var db;
   var df = new goog.async.Deferred();
 
 
   var schema_1 = {
     stores: [
-      {
-        name: 'si',
-        keyPath: 'id',
-        type: 'NUMERIC'},
-      {
-        name: 'so',
-        type: 'NUMERIC'},
-      {
-        name: 'sia',
-        keyPath: 'id',
-        autoIncrement: true,
-        type: 'INTEGER'},
-      {
-        name: 'soa',
-        autoIncrement: true},
-      {
-        name: 'snk',
-        keyPath: 'id.$t', // gdata style key.
-        type: 'TEXT'},
       {
         name: 'sii',
         keyPath: 'id',

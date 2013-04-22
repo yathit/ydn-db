@@ -154,7 +154,10 @@ ydn.db.core.req.WebsqlCursor.prototype.collect = function(opt_row) {
   this.current_value_ = undefined;
   if (goog.isDef(opt_row)) {
     var row = opt_row;
-    if (goog.isObject) {
+    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
+      window.console.log(row);
+    }
+    if (goog.isObject(row)) {
       var primary_column_name = this.store_schema_.getSQLKeyColumnName();
       var primary_key = ydn.db.schema.Index.sql2js(
           row[primary_column_name], this.store_schema_.getType());
@@ -167,7 +170,7 @@ ydn.db.core.req.WebsqlCursor.prototype.collect = function(opt_row) {
       } else {
         this.current_key_ = primary_key;
       }
-      this.current_value_ = this.key_only ? primary_key :
+      this.current_value_ = !this.isValueCursor() ? primary_key :
           ydn.db.crud.req.WebSql.parseRow(row, this.store_schema_);
     } else {
       this.current_value_ = row;
@@ -331,6 +334,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
    * @return {ydn.db.KeyRange|IDBKeyRange} effective key range.
    */
   var buildEffectiveKeyRange = function(key, open) {
+    // console.log(key + ' ' + open + ' ' + JSON.stringify(key_range));
     if (goog.isDefAndNotNull(key_range)) {
       var lower = /** @type {IDBKey} */ (key_range.lower);
       var upper = /** @type {IDBKey} */ (key_range.upper);
@@ -345,6 +349,9 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
           } else if (u_cmp == 0) {
             lowerOpen = open || upperOpen;
           }
+        } else {
+          upper = key;
+          upperOpen = open;
         }
       } else {
         if (goog.isDefAndNotNull(lower)) {
@@ -355,6 +362,9 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
           } else if (l_cmp == 0) {
             lowerOpen = open || lowerOpen;
           }
+        } else {
+          lower = key;
+          lowerOpen = open;
         }
       }
       // console.log([lower, upper, lowerOpen, upperOpen])
@@ -402,7 +412,6 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
     } else {
       e_sql.where = where;
     }
-
   }
 
   var sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
@@ -537,18 +546,53 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
 
 
 /**
+ * @const
+ * @type {boolean}
+ */
+ydn.db.core.req.WebsqlCursor.MONITOR = true;
+
+
+/**
  * @inheritDoc
  */
 ydn.db.core.req.WebsqlCursor.prototype.advance = function(step) {
 
+  var key = this.current_key_;
+  var p_key = this.current_primary_key_;
+  /**
+   * @param {IDBKey=} k
+   * @param {IDBKey=} p_k
+   * @param {*=} v
+   * @this {ydn.db.core.req.WebsqlCursor}
+   */
+  var on_success = function(k, p_k, v) {
+    var same_k = goog.isDefAndNotNull(key) && goog.isDefAndNotNull(k) &&
+        ydn.db.cmp(key, k) == 0;
+    if (this.isPrimaryCursor()) {
+      if (same_k) {
+        throw new ydn.debug.error.InternalError(
+            'current: ' + key + ' next: ' + k);
+      }
+    } else {
+      var same_p_k = goog.isDefAndNotNull(p_k) && goog.isDefAndNotNull(p_key) &&
+          ydn.db.cmp(p_k, p_key) == 0;
+      if (same_k && same_p_k) {
+        throw new ydn.debug.error.InternalError(
+            'current: ' + key + ';' + p_key + ' next: ' + k + ';' + p_k);
+      }
+    }
+
+    this.onSuccess(k, p_k, v);
+  };
+
   goog.asserts.assert(step > 0);
-  step = step - 1;
-  if (this.isPrimaryCursor()) {
-    this.continueEffectiveKey_(this.onSuccess, this.current_key_, false, step);
-  } else {
-    this.continueEffectiveKey_(this.onSuccess, this.current_key_, false, step,
-        this.current_primary_key_);
-  }
+
+  // console.log('current key ' + this.current_key_);
+  this.continueEffectiveKey_(
+      ydn.db.core.req.WebsqlCursor.MONITOR ? on_success : this.onSuccess,
+      this.current_key_, true, step,
+      this.current_primary_key_);
+
 
 };
 
@@ -573,9 +617,10 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
  * @return {ydn.db.schema.Store.SqlParts} SQL statement parts.
  */
 ydn.db.core.req.WebsqlCursor.prototype.prepareBaseSql = function(params) {
+  var column = this.index_ ? this.index_.getSQLIndexColumnName() :
+      this.store_schema_.getSQLKeyColumnName();
   var sql = this.store_schema_.inSql(params, this.query_method,
-      this.store_schema_.getSQLKeyColumnName(),
-      this.key_range, this.reverse, this.unique);
+      column, this.key_range, this.reverse, this.unique);
   return sql;
 };
 

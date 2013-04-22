@@ -299,7 +299,7 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
       this.key_ = x.getKey();
       this.primary_key_ = this.is_index ? x.getPrimaryKey() : this.key_;
       if (!this.query_method) {
-        if (this.key_only) {
+        if (!this.isValueCursor()) {
           this.value_ = this.primary_key_;
         } else {
           goog.asserts.assert(goog.isDefAndNotNull(this.primary_key_));

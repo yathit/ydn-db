@@ -126,7 +126,7 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
       }
       count++;
       var out;
-      if (query_mth) { // call by keys() method
+      if (query_mth == ydn.db.schema.Store.QueryMethod.KEYS) {
         out = key;
       } else {           // call by values() method
         if (iter.isIndexIterator() && iter.isKeyIterator()) {
