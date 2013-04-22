@@ -21,15 +21,12 @@ goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.tr.AtomicParallel');
 goog.require('ydn.db.tr.AtomicSerial');
+goog.require('ydn.db.tr.OverflowSerial');
+goog.require('ydn.db.tr.StrictOverflowSerial');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IStorage');
-goog.require('ydn.db.tr.OverflowParallel');
-goog.require('ydn.db.tr.OverflowSerial');
 goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.db.tr.Serial');
-goog.require('ydn.db.tr.Single');
-goog.require('ydn.db.tr.StrictOverflowParallel');
-goog.require('ydn.db.tr.StrictOverflowSerial');
 
 
 
@@ -111,8 +108,16 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
  */
 ydn.db.tr.Storage.prototype.branch = function(request_type, opt_is_serial,
     opt_store_names, opt_mode, opt_max_tx) {
-  this.ptx_no++;
-  var tx_thread = this.newTxQueue(request_type, opt_is_serial, opt_max_tx);
+
+  var mode;
+  if (opt_mode == ydn.db.base.StandardTransactionMode.READ_ONLY) {
+    mode = ydn.db.base.TransactionMode.READ_ONLY;
+  } else if (opt_mode == ydn.db.base.StandardTransactionMode.READ_WRITE) {
+    mode = ydn.db.base.TransactionMode.READ_WRITE;
+  }
+
+  var tx_thread = this.newTxQueue(request_type, opt_is_serial,
+      opt_store_names, mode, opt_max_tx);
   return this.newOperator(tx_thread, this.sync_thread);
 };
 
@@ -142,11 +147,14 @@ ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
  * Create a new thread queue.
  * @param {ydn.db.tr.IThread.Policy} request_type thread policy.
  * @param {boolean=} opt_is_serial serial request.
+ * @param {!Array.<string>=} opt_store_names store names as scope.
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode as scope.
  * @param {number=} opt_max_tx limit number of transaction.
  * @return {!ydn.db.tr.IThread} new transactional storage.
 */
 ydn.db.tr.Storage.prototype.newTxQueue = function(request_type, opt_is_serial,
-                                                  opt_max_tx) {
+    opt_store_names, opt_mode, opt_max_tx) {
+
   if (opt_is_serial) {
     if (request_type == ydn.db.tr.IThread.Policy.MULTI) {
       return new ydn.db.tr.OverflowSerial(this, this.ptx_no++);
@@ -155,20 +163,19 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(request_type, opt_is_serial,
     } else if (request_type == ydn.db.tr.IThread.Policy.ATOMIC) {
       return new ydn.db.tr.AtomicSerial(this, this.ptx_no++);
     } else if (request_type == ydn.db.tr.IThread.Policy.SINGLE) {
-      return new ydn.db.tr.Serial(this, this.ptx_no++);
+      return new ydn.db.tr.Serial(this, this.ptx_no++, opt_max_tx);
     } else {
       throw new ydn.debug.error.ArgumentException('Invalid requestType "' +
           request_type + '"');
     }
   } else {
-    if (request_type == ydn.db.tr.IThread.Policy.MULTI) {
-      return new ydn.db.tr.OverflowParallel(this, this.ptx_no++);
-    } else if (request_type == ydn.db.tr.IThread.Policy.REPEAT) {
-      return new ydn.db.tr.StrictOverflowParallel(this, this.ptx_no++);
+    if (request_type == ydn.db.tr.IThread.Policy.MULTI ||
+        request_type == ydn.db.tr.IThread.Policy.REPEAT ||
+        request_type == ydn.db.tr.IThread.Policy.SINGLE) {
+      return new ydn.db.tr.Parallel(this, this.ptx_no++, request_type,
+          opt_store_names, opt_mode, opt_max_tx);
     } else if (request_type == ydn.db.tr.IThread.Policy.ATOMIC) {
       return new ydn.db.tr.AtomicParallel(this, this.ptx_no++);
-    } else if (request_type == ydn.db.tr.IThread.Policy.SINGLE) {
-      return new ydn.db.tr.Parallel(this, this.ptx_no++, opt_max_tx);
     } else {
       throw new ydn.debug.error.ArgumentException('Invalid requestType "' +
           request_type + '"');
@@ -193,8 +200,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
 
   var me = this;
   this.ptx_no++;
-  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.SINGLE, false, 1);
-  var db_operator = this.newOperator(tx_thread, this.sync_thread);
+
   var mode = ydn.db.base.TransactionMode.READ_ONLY;
   if (opt_mode) {
     if (opt_mode == ydn.db.base.StandardTransactionMode.READ_WRITE) {
@@ -204,6 +210,10 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
           opt_mode + '"');
     }
   }
+
+  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.SINGLE, false,
+      store_names, mode, 1);
+  var db_operator = this.newOperator(tx_thread, this.sync_thread);
 
   if (!goog.isDefAndNotNull(store_names)) {
     store_names = this.schema.getStoreNames();
@@ -237,8 +247,10 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
 
   this.logger.finest('scheduling run in transaction with ' +
       tx_thread);
+  // outFn(/** @type {!ydn.db.tr.IStorage} */ (db_operator));
+
   tx_thread.processTx(function(tx) {
-    me.logger.finest('executing run in transaction');
+    me.logger.finest('executing run in transaction on ' + tx_thread);
     outFn(/** @type {!ydn.db.tr.IStorage} */ (db_operator));
     outFn = null;
   }, store_names, mode, oncompleted);

@@ -32,11 +32,12 @@ goog.require('ydn.error.NotSupportedException');
  *
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
+ * @param {number=} opt_max_tx_no limit number of transaction created.
  * @constructor
  * @implements {ydn.db.tr.IThread}
  * @struct
  */
-ydn.db.tr.Serial = function(storage, ptx_no) {
+ydn.db.tr.Serial = function(storage, ptx_no, opt_max_tx_no) {
 
   /**
    * @final
@@ -70,6 +71,11 @@ ydn.db.tr.Serial = function(storage, ptx_no) {
    */
   this.mu_tx_ = new ydn.db.tr.Mutex(ptx_no);
 
+  /**
+   * @final
+   * @private
+   */
+  this.max_tx_no_ = opt_max_tx_no || 0;
 };
 
 
@@ -107,6 +113,13 @@ ydn.db.tr.Serial.prototype.storage_;
  * @type {ydn.db.tr.Mutex} mutex.
  */
 ydn.db.tr.Serial.prototype.mu_tx_ = null;
+
+
+/**
+ * @type {number} limit number of transactions.
+ * @private
+ */
+ydn.db.tr.Serial.prototype.max_tx_no_ = 0;
 
 
 /**
@@ -429,6 +442,11 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
     };
 
     this.completed_handlers = opt_on_completed ? [opt_on_completed] : [];
+
+    if (this.max_tx_no_ && this.getTxNo() >= this.max_tx_no_) {
+      throw new ydn.debug.error.InvalidOperationException(
+          'Exceed maximum number of transactions of ' + this.max_tx_no_);
+    }
 
     this.storage_.transaction(transaction_process, names, mode,
         completed_handler);

@@ -12,7 +12,7 @@
     <script>
 	    goog.require('goog.testing.ContinuationTestCase');
 	    goog.require('goog.testing.jsunit');
-      options = {mechanisms: ['indexeddb'], thread: 'atomic-serial'};
+      options = {mechanisms: ['indexeddb'], policy: 'atomic', isSerial: true};
     </script>
 	<script type="text/javascript" src="crud_test.js"></script>
 

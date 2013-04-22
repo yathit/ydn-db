@@ -75,6 +75,7 @@ ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
 ydn.db.tr.IThread.Policy = {
   MULTI: 'multi',
   REPEAT: 'repeat',
+  ALL: 'all',
   ATOMIC: 'atomic',
   SINGLE: 'single'
 };

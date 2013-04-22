@@ -5,6 +5,8 @@
 goog.provide('ydn.db.tr.ParallelTxExecutor');
 goog.require('ydn.debug.error.InternalError');
 
+
+
 /**
  *
  * @param {ydn.db.con.IDatabase.Transaction} tx
@@ -12,6 +14,7 @@ goog.require('ydn.debug.error.InternalError');
  * @param {Array.<string>} store_names
  * @param {ydn.db.base.TransactionMode?} mode
  * @constructor
+ * @struct
  */
 ydn.db.tr.ParallelTxExecutor = function(tx, tx_no, store_names, mode) {
   this.tx_ = tx;
@@ -20,7 +23,6 @@ ydn.db.tr.ParallelTxExecutor = function(tx, tx_no, store_names, mode) {
   this.mode_ = mode;
   this.oncompleted_handlers = [];
 };
-
 
 
 /**
@@ -86,6 +88,11 @@ ydn.db.tr.ParallelTxExecutor.prototype.getTxNo = function() {
 };
 
 
+/**
+ * Handler on tx completed.
+ * @param {ydn.db.base.TxEventTypes} t
+ * @param {*} e
+ */
 ydn.db.tr.ParallelTxExecutor.prototype.onCompleted = function(t, e) {
   goog.asserts.assert(this.isActive(), this.tx_no_ + ' already completed?');
   var fn;
@@ -101,38 +108,20 @@ ydn.db.tr.ParallelTxExecutor.prototype.onCompleted = function(t, e) {
 /**
  *
  * @param {Function} on_tx
- * @param {function(ydn.db.base.TxEventTypes, *)=} on_completed
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_on_completed
  */
-ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function(on_tx, on_completed) {
+ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function(on_tx,
+                                                            opt_on_completed) {
   if (this.tx_) {
     on_tx(this.tx_);
-    if (on_completed) {
-      this.oncompleted_handlers.push(on_completed);
+    if (opt_on_completed) {
+      this.oncompleted_handlers.push(opt_on_completed);
     }
   } else {
     throw new ydn.debug.error.InternalError(
         'tx committed on ParallelTxExecutor');
   }
 };
-
-
-/*//
-//*//**
-// *
-// * @return {ydn.db.base.TransactionMode?}
-//. *//*
-//ydn.db.tr.ParallelTxExecutor.prototype.getMode = function() {
-//  return this.mode_;
-//};
-//
-//*//**
-// *
-// * @return {Array.<string>}
-//. *//*
-//ydn.db.tr.ParallelTxExecutor.prototype.getTxScope = function() {
-//  return this.scopes_;
-//};
-//*/
 
 
 /**
@@ -142,7 +131,7 @@ ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function(on_tx, on_completed)
  * @return {boolean}
  */
 ydn.db.tr.ParallelTxExecutor.prototype.sameScope = function(scopes, mode) {
-  if (!this.store_names || !this.mode_) {
+  if (!this.scopes_ || !this.mode_) {
     return false;
   }
   if (mode != this.mode_) {
@@ -160,11 +149,11 @@ ydn.db.tr.ParallelTxExecutor.prototype.sameScope = function(scopes, mode) {
 };
 
 
-
 /**
  *
  * @param {!Array.<string>} store_names
  * @param {ydn.db.base.TransactionMode} mode
+ * @return {boolean}
  */
 ydn.db.tr.ParallelTxExecutor.prototype.subScope = function(store_names, mode) {
   if (!this.scopes_ || !this.mode_) {
@@ -172,7 +161,7 @@ ydn.db.tr.ParallelTxExecutor.prototype.subScope = function(store_names, mode) {
   }
   if (mode != this.mode_) {
     if (this.mode_ != ydn.db.base.TransactionMode.READ_WRITE ||
-      mode != ydn.db.base.TransactionMode.READ_ONLY) {
+        mode != ydn.db.base.TransactionMode.READ_ONLY) {
       return false;
     }
   }
@@ -189,11 +178,11 @@ ydn.db.tr.ParallelTxExecutor.prototype.subScope = function(store_names, mode) {
 
 
 if (goog.DEBUG) {
-/**
- * @inheritDoc
- */
-ydn.db.tr.ParallelTxExecutor.prototype.toString = function() {
-  return 'ParallelTxExecutor: txNo:' + this.tx_no_ + ' mode:' +
-    this.mode_ + ' scopes:' + ydn.json.stringify(this.scopes_);
-};
+  /**
+   * @inheritDoc
+   */
+  ydn.db.tr.ParallelTxExecutor.prototype.toString = function() {
+    return 'ParallelTxExecutor: txNo:' + this.tx_no_ + ' mode:' +
+        this.mode_ + ' scopes:' + ydn.json.stringify(this.scopes_);
+  };
 }

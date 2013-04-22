@@ -21,7 +21,7 @@ var basic_schema = {
 
 
 var setUp = function() {
-  //ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
   //ydn.db.tr.StrictOverflowParallel.DEBUG = true;
   //ydn.db.tr.Parallel.DEBUG = true;
 // ydn.db.con.IndexedDb.DEBUG = true;
@@ -95,17 +95,15 @@ var committed_continuous_request_test = function(policy, is_serial, exp_tx_no) {
     function() { return t1_fired; },
     // Continuation
     function() {
-      assertNotNullNorUndefined('has result', result);
+      assertObjectEquals('has result', val, result);
       assertEquals('correct obj', val.value, result.value);
       assertArrayEquals('tx no', exp_tx_no, tx_no);
       reachedFinalContinuation = true;
-      ydn.db.deleteDatabase(db.getName(), db.getType());
-      db.close();
     },
     100, // interval
     2000); // maxTimeout
 
-  db.run(function (tdb) {
+  db.run(function(tdb) {
     tdb.put(table_name, val);
   }, [table_name], 'readwrite', function (t) {
     db.get(table_name, 'a').addBoth(function (r) {
@@ -115,8 +113,10 @@ var committed_continuous_request_test = function(policy, is_serial, exp_tx_no) {
       result = x;
       tx_no.push(db.getTxNo());
       t1_fired = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
     });
-  })
+  });
 
 
 };
@@ -218,7 +218,7 @@ var test_nested_request_parallel_overflow = function() {
 
 var test_continuous_request_parallel_strict_overflow  = function() {
   // websql is slow in opening request.
-  var exp_tx_no = options.mechanisms[0] == 'websql' ? [1, 2] : [2, 2];
+  var exp_tx_no = options.mechanisms[0] == 'websql' ? [1, 2] : [1, 1];
   committed_continuous_request_test('repeat', false, exp_tx_no);
 };
 

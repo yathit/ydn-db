@@ -8,8 +8,8 @@
 
 goog.provide('ydn.db.tr.Parallel');
 goog.require('ydn.db.tr.IThread');
-goog.require('ydn.error.NotSupportedException');
 goog.require('ydn.db.tr.ParallelTxExecutor');
+goog.require('ydn.error.NotSupportedException');
 
 
 
@@ -20,11 +20,15 @@ goog.require('ydn.db.tr.ParallelTxExecutor');
  * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
+ * @param {ydn.db.tr.IThread.Policy=} opt_policy
+ * @param {!Array.<string>=} opt_store_names store names as scope.
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode as scope.
  * @param {number=} opt_max_tx_no limit number of transaction created.
  * @constructor
  * @struct
  */
-ydn.db.tr.Parallel = function(storage, ptx_no, opt_max_tx_no) {
+ydn.db.tr.Parallel = function(storage, ptx_no, opt_policy,
+                              opt_store_names, opt_mode, opt_max_tx_no) {
 
   /**
    * @final
@@ -46,6 +50,28 @@ ydn.db.tr.Parallel = function(storage, ptx_no, opt_max_tx_no) {
 
   this.p_request_tx = null;
 
+  /**
+   * @final
+   * @private
+   */
+  this.scope_store_names_ = opt_store_names;
+
+  /**
+   * @final
+   * @private
+   */
+  this.scope_mode_ = opt_mode;
+
+  /**
+   * @final
+   * @private
+   */
+  this.policy_ = opt_policy || ydn.db.tr.IThread.Policy.SINGLE;
+
+  /**
+   * @final
+   * @private
+   */
   this.max_tx_no_ = opt_max_tx_no || 0;
 
 };
@@ -87,6 +113,27 @@ ydn.db.tr.Parallel.prototype.max_tx_no_ = 0;
 
 
 /**
+ * @type {Array.<string>|undefined}
+ * @private
+ */
+ydn.db.tr.Parallel.prototype.scope_store_names_;
+
+
+/**
+ * @type {ydn.db.base.TransactionMode|undefined}
+ * @private
+ */
+ydn.db.tr.Parallel.prototype.scope_mode_;
+
+
+/**
+ * @type {ydn.db.tr.IThread.Policy}
+ * @private
+ */
+ydn.db.tr.Parallel.prototype.policy_;
+
+
+/**
  *
  * @type {ydn.db.tr.ParallelTxExecutor}
  * @private
@@ -105,16 +152,12 @@ ydn.db.tr.Parallel.prototype.pl_tx_ex_ = null;
 ydn.db.tr.Parallel.prototype.p_request_tx = null;
 
 
-
-
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.Parallel.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.tr.Parallel');
-
-
 
 
 /**
@@ -252,7 +295,15 @@ ydn.db.tr.Parallel.prototype.getExecutor = goog.abstractMethod;
  * @protected
  */
 ydn.db.tr.Parallel.prototype.reusedTx = function(store_names, mode) {
-  return false;
+  if (this.policy_ == ydn.db.tr.IThread.Policy.MULTI) {
+    return this.pl_tx_ex_.subScope(store_names, mode);
+  } else if (this.policy_ == ydn.db.tr.IThread.Policy.REPEAT) {
+    return this.pl_tx_ex_.sameScope(store_names, mode);
+  } else if (this.policy_ == ydn.db.tr.IThread.Policy.ALL) {
+    return true;
+  } else {
+    return false; // SINGLE and ATOMIC
+  }
 };
 
 
@@ -263,6 +314,14 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
     opt_mode, on_completed) {
 
   var label;
+
+  if (this.scope_store_names_) {
+    store_names = this.scope_store_names_;
+  }
+  if (this.scope_mode_) {
+    opt_mode = this.scope_mode_;
+  }
+
   var mode = goog.isDef(opt_mode) ?
       opt_mode : ydn.db.base.TransactionMode.READ_ONLY;
 
@@ -294,7 +353,8 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
     var act = this.isActive() ? 'active' : 'inactive';
     window.console.log(this +
         ' ' + this.pl_tx_ex_ +
-        (reused ? ' reusing transaction' : ' opening transaction ') +
+        (reused ? ' reusing ' + act + ' transaction' :
+            ' opening ' + act + ' transaction ') +
         ' for mode:' + mode + ' scopes:' +
         ydn.json.stringify(store_names));
   }
@@ -302,7 +362,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
   if (reused) {
     this.pl_tx_ex_.executeTx(callback, on_completed);
   } else {
-    if (this.max_tx_no_ && this.tx_no_ > this.max_tx_no_) {
+    if (this.max_tx_no_ && this.tx_no_ >= this.max_tx_no_) {
       throw new ydn.debug.error.InvalidOperationException(
           'Exceed maximum number of transactions of ' + this.max_tx_no_);
     }
@@ -322,7 +382,17 @@ ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
   var me = this;
   var rq_label;
 
+  if (ydn.db.tr.Parallel.DEBUG) {
+    var rdn = 'SN' + Math.random();
+    rdn = rdn.replace('.', '');
+    window.console.log(this + ' scheduling to execute ' + store_names + ' ' +
+        mode + ' ' + rdn);
+  }
+
   this.processTx(function(tx) {
+    if (ydn.db.tr.Parallel.DEBUG) {
+      window.console.log(this + ' executing ' + rdn);
+    }
     me.r_no_++;
     rq_label = me.getLabel() + 'R' + me.r_no_;
     /**
@@ -363,7 +433,7 @@ if (goog.DEBUG) {
   /** @override */
   ydn.db.tr.Parallel.prototype.toString = function() {
     var s = this.p_request_tx ? '*' : '';
-    return 'Parallel:' + this.getLabel() + s;
+    return 'Parallel:' + this.policy_ + ':' + this.getLabel() + s;
   };
 }
 

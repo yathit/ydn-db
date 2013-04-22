@@ -25,7 +25,7 @@ goog.require('ydn.error.NotSupportedException');
  */
 ydn.db.tr.AtomicParallel = function(storage, ptx_no) {
 
-  goog.base(this, storage, ptx_no);
+  goog.base(this, storage, ptx_no, ydn.db.tr.IThread.Policy.SINGLE);
 
 };
 goog.inherits(ydn.db.tr.AtomicParallel, ydn.db.tr.Parallel);

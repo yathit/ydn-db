@@ -12,6 +12,7 @@ goog.require('ydn.db.tr.Serial');
 goog.require('ydn.error.NotSupportedException');
 
 
+
 /**
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.

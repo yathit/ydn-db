@@ -3,19 +3,15 @@ goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.db.Storage');
 goog.require('ydn.testing');
+goog.require('ydn.debug');
 
 
-var reachedFinalContinuation, debug_console, stubs;
+var reachedFinalContinuation;
 
 var setUp = function() {
 
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    // goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  }
-
-  //stubs = new goog.testing.PropertyReplacer();
+  ydn.debug.log('ydn.db', 'finest');
+  ydn.db.tr.Parallel.DEBUG = true;
 
   var table_name = 't1';
   var store = new ydn.db.schema.Store(table_name);
@@ -317,21 +313,24 @@ var test_run = function () {
       1000); // maxTimeout
 
   var db = new ydn.db.Storage(db_name, schema);
-  db.run(function (idb) {
-    idb.put('st', data).addBoth(function (x) {
-      put_result = x;
-    });
-    idb.count('st').addBoth(function (x) {
-      count_result = x;
-    });
-    idb.values('st').addBoth(function (x) {
-      values_result = x;
-    });
-    idb.remove('st', 1).addBoth(function (x) {
-      remove_result = x;
-      done = true;
-    });
-  }, ['st'], 'readwrite');
+  db.onReady = function() {
+    db.run(function(idb) {
+      idb.put('st', data).addBoth(function(x) {
+        put_result = x;
+      });
+      idb.count('st').addBoth(function(x) {
+        count_result = x;
+      });
+      idb.values('st').addBoth(function(x) {
+        values_result = x;
+      });
+      idb.remove('st', 1).addBoth(function(x) {
+        remove_result = x;
+        done = true;
+      });
+    }, ['st'], 'readwrite');
+  };
+
 };
 
 
