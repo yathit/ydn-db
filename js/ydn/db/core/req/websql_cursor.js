@@ -543,8 +543,12 @@ ydn.db.core.req.WebsqlCursor.prototype.advance = function(step) {
 
   goog.asserts.assert(step > 0);
   step = step - 1;
-  this.continueEffectiveKey_(this.onSuccess, this.current_key_, false, step,
-      this.current_primary_key_);
+  if (this.isPrimaryCursor()) {
+    this.continueEffectiveKey_(this.onSuccess, this.current_key_, false, step);
+  } else {
+    this.continueEffectiveKey_(this.onSuccess, this.current_key_, false, step,
+        this.current_primary_key_);
+  }
 
 };
 

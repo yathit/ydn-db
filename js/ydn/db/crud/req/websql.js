@@ -367,7 +367,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
             table.getSQLKeyColumnNameQuoted() + ', ' +
             index.getSQLIndexColumnNameQuoted() + ') VALUES (?, ?)';
         var idx_params = [ydn.db.schema.Index.js2sql(key, table.getType()),
-            value];
+              value];
 
         /**
          * @param {SQLTransaction} tx transaction.
@@ -429,8 +429,8 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         window.console.log([sql, out, tr, error]);
       }
       result_count++;
-      if (error.code == 6 && // constraint failed
-          create) { // rollback for add, continue for put
+      if (error.code == 6) { // constraint failed
+        error.name = 'ConstraintError';
         if (single) {
           me.logger.finer('success ' + i_msg);
           df(error, true);
@@ -446,7 +446,11 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
             }
           }
         }
-        return false; // roll back
+        if (create && single) {
+          return true; // rollback for add
+        } else {
+          return false; // continue for put or multiple insert
+        }
       } else {
         // rollback for any error including constraint error.
         me.logger.warning('error: ' + error.message + ' ' + msg);
@@ -473,7 +477,6 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
 };
 
 
-
 /**
  * @inheritDoc
  */
@@ -482,6 +485,7 @@ ydn.db.crud.req.WebSql.prototype.putObjects = function(
   this.insertObjects(tx, tx_no, df, false, false, store_name, objects,
       opt_keys);
 };
+
 
 /**
  * @inheritDoc

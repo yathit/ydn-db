@@ -21,7 +21,7 @@ if (/websql/.test(location.hash)) {
 }
 
 
-QUnit.config.testTimeout = 5000;
+QUnit.config.testTimeout = 2000;
 var reporter = new ydn.testing.Reporter('ydn-db');
 
 var db_name = 'test_iteration_2';

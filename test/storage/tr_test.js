@@ -12,12 +12,8 @@ var table_name = 't1';
 var stubs;
 
 var setUp = function() {
-  var c = new goog.debug.Console();
-  c.setCapturing(true);
-  goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
-  //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
-  ydn.db.con.IndexedDb.DEBUG = true;
+  //
+  // ydn.db.con.IndexedDb.DEBUG = true;
 
 
   var index = new ydn.db.schema.Index('id');
@@ -131,9 +127,10 @@ var test_2_opt_arg = function() {
 
 
 
-var thread_test = function(thread, exp_tx_no) {
+var thread_test = function(policy, is_serial, exp_tx_no) {
   var options = {
-    thread: thread
+    policy: policy,
+    isSerial: is_serial
   };
   var schema = {
     stores: [
@@ -174,14 +171,14 @@ var thread_test = function(thread, exp_tx_no) {
 
 var test_atomic_serial_thread = function() {
 
-  thread_test('atomic-serial', [1, 2, 3, 4]);
+  thread_test('atomic', true, [1, 2, 3, 4]);
 
 };
 
 
 var test_strict_overflow_serial_thread = function() {
 
-  thread_test('samescope-multirequest-serial', [1, 1, 1, 2]);
+  thread_test('repeat', true, [1, 1, 1, 2]);
 
 };
 

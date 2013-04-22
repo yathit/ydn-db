@@ -4,13 +4,13 @@ if (/log/.test(location.hash)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finer', div);
+      ydn.debug.log('ydn.db', 'finest', div);
     } else {
       console.log('no logging facility');
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finer');
+      ydn.debug.log('ydn.db', 'finest');
     } else {
       console.log('no logging facility');
     }
@@ -20,7 +20,8 @@ if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
 
-QUnit.config.testTimeout = 5000;
+ydn.debug.log('finest');
+QUnit.config.testTimeout = 2000;
 var reporter = new ydn.testing.Reporter('ydn-db');
 
 var db_name = "qunit_test_8";
@@ -123,9 +124,7 @@ var schema_1 = {
   reporter.createTestSuite('iterator', 'Count', ydn.db.version);
 
 
-  asyncTest("1. primary key", function () {
-
-    expect(5);
+  asyncTest("1. primary key", 5, function () {
 
     df.always(function () {
       //db_r.count(store_inline).always(function (x) {
@@ -156,9 +155,8 @@ var schema_1 = {
 
   });
 
-  asyncTest("2. by index iterator", function () {
+  asyncTest("2. by index iterator", 2, function () {
     df.always(function () {
-      expect(2);
 
       var value_iter = ydn.db.Cursors.where(store_inline_index, 'value', '>', 1, '<=', 3);
       var name_iter = ydn.db.Cursors.where(store_inline_index, 'name', '^', 'b');
@@ -248,8 +246,8 @@ var schema_1 = {
   });
 
 
-  asyncTest("effective key by an index iterator", function () {
-    expect(1);
+  asyncTest("effective key by an index iterator", 1, function () {
+
     var iter = ydn.db.Cursors.where(store_inline_index, 'name', '^', 'c');
     db_r.get(iter).then(function (x) {
       equal(x, objs[3].id, 'get item 3 key');
@@ -260,8 +258,8 @@ var schema_1 = {
     });
   });
 
-  asyncTest("ref value by an iterator", function () {
-    expect(1);
+  asyncTest("ref value by an iterator", 1, function () {
+
     var iter = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '^', 'c');
     db_r.get(iter).then(function (x) {
       deepEqual(x, objs[3], 'get item 3 value');
@@ -383,8 +381,8 @@ var schema_1 = {
     })
   });
 
-  asyncTest("2. Ref value by index key range", function () {
-      expect(5);
+  asyncTest("2. Ref value by index key range", 5, function () {
+
       var q = ydn.db.IndexValueCursors.where(store_inline_index, 'value', '>=', 2, '<=', 4);
       db.values(q).always(function (x) {
         //console.log(q)
@@ -417,9 +415,9 @@ var schema_1 = {
       });
     });
 
-  asyncTest("3. Ref value by index key range", function () {
+  asyncTest("3. Ref value by index key range", 5, function () {
     var keys = objs.map(function(x) {return x.id});
-    expect(5);
+
     var q = ydn.db.Cursors.where(store_inline_index, 'value', '>=', 2, '<=', 4);
     db.values(q).always(function (x) {
       //console.log(q)
@@ -453,8 +451,8 @@ var schema_1 = {
   });
 
 
-  asyncTest("4. Ref value by string index key range", function () {
-    expect(4);
+  asyncTest("4. Ref value by string index key range", 4, function () {
+
     var q = ydn.db.IndexValueCursors.where(store_inline_index, 'name', '^', 'b');
     db.values(q).always(function (x) {
       //console.log(q)
@@ -482,9 +480,8 @@ var schema_1 = {
 
   });
 
-  asyncTest("5. multiEntry IndexIterator", function () {
+  asyncTest("5. multiEntry IndexIterator", 4, function () {
 
-    expect(4);
     var range = ydn.db.KeyRange.only('a');
     var q = new ydn.db.Cursors(store_inline_index, 'tags', range);
     db.values(q).always(function (x) {
@@ -674,9 +671,8 @@ var schema_1 = {
   });
 
 
-  asyncTest("3. Effective key by multiEntry index key range", function () {
+  asyncTest("3. Effective key by multiEntry index key range", 6, function () {
 
-    expect(6);
     var range = ydn.db.KeyRange.only('a');
     var q = new ydn.db.Cursors(store_inline_index, 'tags', range);
     db.keys(q).always(function (x) {

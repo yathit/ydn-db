@@ -63,7 +63,7 @@ var test_1_json_trival_config = function() {
 
 
 
-var test_0_json_config_empty_table = function() {
+var test_1_json_config_empty_table = function() {
   var store = {name:'todo', keyPath:"timeStamp"};
 
   var schema_ver1 = {
@@ -222,7 +222,7 @@ var test_4_lazy_init = function() {
   db.setName('lazy-db');
 };
 
-var test_connection_timeout = function () {
+var test_0_connection_timeout = function () {
   var schema = {
     stores: [{
       name: 's1',
@@ -233,7 +233,8 @@ var test_connection_timeout = function () {
   // within 1 ms, this *might* throw timeout error.
   var opt = {
    connectionTimeout: 1,
-   thread: 'atomic-serial' // only atomic can receive request in case of error
+   policy: 'atomic', // only atomic can receive request in case of error
+   isSerial: true
   };
 
   var db = new ydn.db.Storage('test_connection_timeout', schema, opt);

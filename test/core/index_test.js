@@ -14,11 +14,11 @@ var db_name = 'test_index_2';
 
 var setUp = function () {
 
-   // ydn.debug.log('ydn.db', 'finest');
+    ydn.debug.log('ydn.db', 'finest');
 
   // ydn.db.con.WebSql.DEBUG = true;
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  //ydn.db.core.req.WebSql.DEBUG = true;
+  ydn.db.core.req.WebSql.DEBUG = true;
 
   reachedFinalContinuation = false;
 };
@@ -1060,6 +1060,146 @@ var test_restrict_index = function() {
     values5 = x;
     done = true;
   });
+};
+
+
+var test_values = function() {
+  var db_name = 'test_values-1';
+  var db;
+  var df = new goog.async.Deferred();
+
+
+  var schema_1 = {
+    stores: [
+      {
+        name: 'si',
+        keyPath: 'id',
+        type: 'NUMERIC'},
+      {
+        name: 'so',
+        type: 'NUMERIC'},
+      {
+        name: 'sia',
+        keyPath: 'id',
+        autoIncrement: true,
+        type: 'INTEGER'},
+      {
+        name: 'soa',
+        autoIncrement: true},
+      {
+        name: 'snk',
+        keyPath: 'id.$t', // gdata style key.
+        type: 'TEXT'},
+      {
+        name: 'sii',
+        keyPath: 'id',
+        type: 'NUMERIC',
+        indexes: [
+          {name: 'name', type: 'TEXT'},
+          {name: 'value', type: 'NUMERIC'},
+          {name: 'tags', type: 'TEXT', multiEntry: true}
+        ]
+      }
+
+    ]
+  };
+  var objs = [
+    {test: 't' + Math.random(), value: 0, id: 0, name: 'a', tags: ['a', 'b']},
+    {test: 't' + Math.random(), value: 2, id: 1, name: 'b', tags: ['x']},
+    {test: 't' + Math.random(), value: 4, id: 2, name: 'ba', tags: ['z']},
+    {test: 't' + Math.random(), value: 6, id: 3, name: 'bc', tags: ['a', 'd', 'c']},
+    {test: 't' + Math.random(), value: 8, id: 4, name: 'bd', tags: ['e', 'c']},
+    {test: 't' + Math.random(), value: 10, id: 5, name: 'c', tags: ['b']},
+    {test: 't' + Math.random(), value: 12, id: 6, name: 'c', tags: ['a']}
+  ];
+
+  // persist store data.
+  // we don't want to share this database connection and test database connection.
+  (function() {
+    var _db = new ydn.db.Storage(db_name, schema_1, options);
+    _db.clear('sii');
+    _db.put('sii', objs);
+
+    _db.count('sii').addBoth(function() {
+      df.callback();  // this ensure all transactions are completed
+    });
+    _db.close();
+  })();
+
+  var done, result1, result2, result3, result4, result5, result6, result7, result8;
+
+  waitForCondition(
+      function() {
+        return done;
+      },
+      function() {
+        assertArrayEquals('closed bound', objs.slice(1, 4), result1);
+        assertArrayEquals('closed bound reverse', objs.slice(1, 4).reverse(), result2);
+        assertArrayEquals('closed bound limit', objs.slice(1, 2), result3);
+        assertArrayEquals('closed bound reverse limit', objs.slice(3, 4), result4);
+        assertArrayEquals('lowerBound', objs.slice(2), result5);
+        assertArrayEquals('open lowerBound', objs.slice(3), result6);
+        assertArrayEquals('upperBound', objs.slice(0, 3), result7);
+        assertArrayEquals('open upperBound', objs.slice(0, 2), result8);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  df.addBoth(function() {
+    db = new ydn.db.Storage(db_name, schema_1, options);
+    var key_range = ydn.db.KeyRange.bound(1, 3);
+    var q = new ydn.db.ValueCursors('sii', key_range);
+    db.values(q).addBoth(function (x) {
+      result1 = x;
+    });
+
+    key_range = ydn.db.KeyRange.bound(1, 3);
+    q = new ydn.db.ValueCursors('sii', key_range, true);
+    db.values(q).addBoth(function (x) {
+      result2 = x;
+    });
+
+    key_range = ydn.db.KeyRange.bound(1, 3);
+    q = new ydn.db.ValueCursors('sii', key_range);
+    db.values(q, 1).addBoth(function (x) {
+      result3 = x;
+    });
+
+    key_range = ydn.db.KeyRange.bound(1, 3);
+    q = new ydn.db.ValueCursors('sii', key_range, true);
+    db.values(q, 1).addBoth(function (x) {
+      result4 = x;
+    });
+
+    key_range = ydn.db.KeyRange.lowerBound(2);
+    q = new ydn.db.ValueCursors('sii', key_range);
+    db.values(q).addBoth(function (x) {
+      result5 = x;
+    });
+
+    key_range = ydn.db.KeyRange.lowerBound(2, true);
+    q = new ydn.db.ValueCursors('sii', key_range);
+    db.values(q).addBoth(function (x) {
+      result6 = x;
+    });
+
+    key_range = ydn.db.KeyRange.upperBound(2);
+    q = new ydn.db.ValueCursors('sii', key_range);
+    db.values(q).addBoth(function (x) {
+      result7 = x;
+    });
+
+    key_range = ydn.db.KeyRange.upperBound(2, true);
+    q = new ydn.db.ValueCursors('sii', key_range);
+    db.values(q).addBoth(function (x) {
+      result8 = x;
+      done = true;
+    });
+  });
+
 };
 
 

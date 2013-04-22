@@ -21,7 +21,7 @@ if (/websql/.test(location.hash)) {
 }
 
 
-QUnit.config.testTimeout = 5000;
+QUnit.config.testTimeout = 2000;
 
 
 var reporter = new ydn.testing.Reporter('ydn-db');
@@ -102,7 +102,7 @@ var leg_iter_count = num_four_legs_ani + 1;
 
     var result = [];
     var solver = new ydn.db.algo.NestedLoop(result);
-    var req = db.scan([iter_horn, iter_color, iter_legs], solver);
+    var req = db.scan(solver, [iter_horn, iter_color, iter_legs]);
     req.always(function() {
       // ['leopard', 'cow']
       deepEqual(result, [2, 7], 'correct result');
@@ -123,7 +123,7 @@ var leg_iter_count = num_four_legs_ani + 1;
 
     var result = [];
     var solver = new ydn.db.algo.SortedMerge(result);
-    var req = db.scan([iter_horn, iter_color, iter_legs], solver);
+    var req = db.scan(solver, [iter_horn, iter_color, iter_legs]);
     req.always(function() {
       // ['leopard', 'cow']
       deepEqual(result, [2, 7], 'correct result');
@@ -143,7 +143,7 @@ var leg_iter_count = num_four_legs_ani + 1;
 
     var result = [];
     var solver = new ydn.db.algo.ZigzagMerge(result);
-    var req = db.scan([iter_horn_name, iter_legs_name], solver);
+    var req = db.scan(solver, [iter_horn_name, iter_legs_name]);
     var exp_result = [7, 2, 6]; // ['cow', 'leopard', 'ox'];
     req.always(function() {
       deepEqual(result, exp_result, 'correct result');
@@ -163,7 +163,7 @@ var leg_iter_count = num_four_legs_ani + 1;
 
     var streamer = new ydn.db.Streamer(db, 'animals', 'name');
     var solver = new ydn.db.algo.ZigzagMerge(streamer);
-    var req = db.scan([iter_horn_name, iter_legs_name], solver);
+    var req = db.scan(solver, [iter_horn_name, iter_legs_name]);
     var exp_result = ['cow', 'leopard', 'ox'];
     req.then(function() {
       streamer.collect(function(keys, values) {

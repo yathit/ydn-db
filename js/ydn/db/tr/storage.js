@@ -171,6 +171,7 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(request_type, opt_is_serial,
   } else {
     if (request_type == ydn.db.tr.IThread.Policy.MULTI ||
         request_type == ydn.db.tr.IThread.Policy.REPEAT ||
+        request_type == ydn.db.tr.IThread.Policy.ALL ||
         request_type == ydn.db.tr.IThread.Policy.SINGLE) {
       return new ydn.db.tr.Parallel(this, this.ptx_no++, request_type,
           opt_store_names, opt_mode, opt_max_tx);
@@ -211,7 +212,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
     }
   }
 
-  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.SINGLE, false,
+  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.ALL, false,
       store_names, mode, 1);
   var db_operator = this.newOperator(tx_thread, this.sync_thread);
 
