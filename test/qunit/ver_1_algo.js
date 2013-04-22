@@ -21,6 +21,9 @@ if (/websql/.test(location.hash)) {
 }
 
 
+QUnit.config.testTimeout = 5000;
+
+
 var reporter = new ydn.testing.Reporter('ydn-db');
 
 var schema = {
@@ -81,13 +84,9 @@ var leg_iter_count = num_four_legs_ani + 1;
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Algo test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
     }
   };
 

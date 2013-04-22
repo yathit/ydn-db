@@ -302,7 +302,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
   if (reused) {
     this.pl_tx_ex_.executeTx(callback, on_completed);
   } else {
-    if (this.max_tx_no_ && me.tx_no_ > this.max_tx_no_) {
+    if (this.max_tx_no_ && this.tx_no_ > this.max_tx_no_) {
       throw new ydn.debug.error.InvalidOperationException(
           'Exceed maximum number of transactions of ' + this.max_tx_no_);
     }

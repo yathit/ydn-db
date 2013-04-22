@@ -20,6 +20,8 @@ if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
 
+
+QUnit.config.testTimeout = 5000;
 var reporter = new ydn.testing.Reporter('ydn-db');
 
 var db_name = 'test_iteration_2';
@@ -65,13 +67,9 @@ db.put(store_name, data).done(function (value) {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Storage Event test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
     }
   };
 
@@ -83,12 +81,12 @@ db.put(store_name, data).done(function (value) {
 
     var iter = new ydn.db.ValueCursors(store_name);
     var idx = 0;
-    var req = db.open(iter, function(x) {
+    var req = db.open(function(x) {
       deepEqual(x.getKey(), data[idx].id, 'table scan effective key at ' + idx);
       deepEqual(x.getPrimaryKey(), data[idx].id, 'table scan primary key at ' + idx);
       deepEqual(x.getValue(), data[idx], 'table scan value at ' + idx);
       idx++;
-    });
+    }, iter);
     req.always(function() {
       start();
     });
@@ -100,13 +98,13 @@ db.put(store_name, data).done(function (value) {
     var iter = new ydn.db.Cursors(store_name, 'value');
 
     var idx = 0;
-    var req = db.open(iter, function(x) {
+    var req = db.open(function(x) {
       var exp_obj = data[value_order[idx]];
       deepEqual(x.getKey(), exp_obj.value, 'table index scan effective key at ' + idx);
       deepEqual(x.getPrimaryKey(), exp_obj.id, 'table index scan primary key at ' + idx);
       equal(x.getValue(), exp_obj.id, 'table index scan value at ' + idx);
       idx++;
-    });
+    }, iter);
     req.always(function() {
       start();
     });
@@ -118,13 +116,13 @@ db.put(store_name, data).done(function (value) {
     var iter = new ydn.db.IndexValueCursors(store_name, 'value');
 
     var idx = 0;
-    var req = db.open(iter, function(x) {
+    var req = db.open(function(x) {
       var exp_obj = data[value_order[idx]];
       deepEqual(x.getKey(), exp_obj.value, 'table index scan effective key at ' + idx);
       deepEqual(x.getPrimaryKey(), exp_obj.id, 'table index scan primary key at ' + idx);
       deepEqual(x.getValue(), exp_obj, 'table index scan value at ' + idx);
       idx++;
-    });
+    }, iter);
     req.always(function() {
       start();
     });
@@ -137,13 +135,9 @@ db.put(store_name, data).done(function (value) {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Storage Event test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
     }
   };
 

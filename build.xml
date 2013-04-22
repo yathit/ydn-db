@@ -59,6 +59,7 @@
                 <arg line='-f "--externs=${ydn-db.dir}/externs/schema.js"'/>
                 <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
                 <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
+                <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
             </options>
         </closure-compile>
 
@@ -324,6 +325,7 @@
                 <arg line='-i "${ydn-db.dir}/js/config/tr.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/crud.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/core.js"'/>
+                <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
             </ex.opt>
         </adv-comp>
     </target>

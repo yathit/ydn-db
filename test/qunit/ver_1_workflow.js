@@ -21,6 +21,7 @@ if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
 
+QUnit.config.testTimeout = 1000;
 
 var db;
 var db_name_event = "tck_test_1_1";
@@ -53,13 +54,10 @@ var events_schema = {
 
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Storage Event test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
+
     }
   };
 
@@ -130,13 +128,10 @@ var events_schema = {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('RecordEvent Event test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
+
     }
   };
 
@@ -223,13 +218,10 @@ var events_schema = {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Store Event test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
+
     }
   };
 
@@ -317,13 +309,10 @@ var events_schema = {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('RecordEvent Event test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
+
     }
   };
 
@@ -370,13 +359,10 @@ var events_schema = {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('RecordEvent Event test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
+
     }
   };
 
@@ -411,7 +397,7 @@ var events_schema = {
     };
 
     var db = new ydn.db.Storage(db_name, schema);
-    var adb = db.branch('atomic-serial');
+    var adb = db.branch('atomic', true); // atomic-serial
 
     var done_count = 0;
     var done = function() {
@@ -485,7 +471,7 @@ var events_schema = {
     };
 
     var db = new ydn.db.Storage(db_name, schema);
-    var adb = db.branch('atomic-serial');
+    var adb = db.branch('atomic', true); // atomic-serial
 
     var done_count = 0;
     var done = function() {
@@ -538,13 +524,10 @@ var events_schema = {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Error test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
+
     }
   };
 

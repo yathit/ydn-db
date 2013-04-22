@@ -19,6 +19,8 @@ if (/log/.test(location.hash)) {
 if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
+
+QUnit.config.testTimeout = 5000;
 var reporter = new ydn.testing.Reporter('ydn-db');
 
 var db_name = "qunit_test_8";
@@ -103,13 +105,9 @@ var schema_1 = {
   var test_env = {
     setup: function () {
       db_r = new ydn.db.Storage(db_name, schema_1, options);
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('Keys test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
       db_r.close();
       test_count++;
       if (test_count >= 2) {
@@ -310,13 +308,9 @@ var schema_1 = {
   var test_env = {
     setup: function () {
       db = new ydn.db.Storage(db_name, schema_1, options);
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('List test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
       var type = db.getType();
       db.close();
       test_count++;
@@ -561,13 +555,9 @@ var schema_1 = {
   var test_env = {
     setup: function () {
       db = new ydn.db.Storage(db_name, schema_1, options);
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('List test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
       db.close();
       test_count++;
       if (test_count >= 3) {

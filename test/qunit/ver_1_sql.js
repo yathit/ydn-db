@@ -20,6 +20,8 @@ if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
 
+
+QUnit.config.testTimeout = 5000;
 var reporter = new ydn.testing.Reporter('ydn-db');
 
 var db_name = 'test_sql_1';
@@ -63,13 +65,9 @@ db.put(store_name, data).always(function (value) {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('SELECT test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
     }
   };
 
@@ -133,13 +131,9 @@ db.put(store_name, data).always(function (value) {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('SELECT test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
     }
   };
 
@@ -226,13 +220,9 @@ db.put(store_name, data).always(function (value) {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('ORDER test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
     }
   };
 
@@ -320,13 +310,10 @@ db.put(store_name, data).always(function (value) {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('ORDER test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
+
     }
   };
 
@@ -428,13 +415,10 @@ db.put(store_name, data).always(function (value) {
 (function () {
   var test_env = {
     setup: function () {
-      test_env.ydnTimeoutId = setTimeout(function () {
-        start();
-        console.warn('ORDER test not finished.');
-      }, 1000);
+
     },
     teardown: function () {
-      clearTimeout(test_env.ydnTimeoutId);
+
     }
   };
 
