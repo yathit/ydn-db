@@ -20,7 +20,7 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
- * @param {boolean} key_query true for keys query method.
+ * @param {ydn.db.schema.Store.QueryMethod} key_query true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor

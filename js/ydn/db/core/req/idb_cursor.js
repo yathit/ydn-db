@@ -32,16 +32,16 @@ goog.require('ydn.debug.error.InternalError');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec.
  * @param {boolean} key_only mode.
- * @param {boolean} key_query true for keys query method.
+ * @param {ydn.db.schema.Store.QueryMethod} q_mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
 ydn.db.core.req.IDBCursor = function(tx, tx_no,
-    store_name, index_name, keyRange, direction, key_only, key_query) {
+    store_name, index_name, keyRange, direction, key_only, q_mth) {
 
   goog.base(this, tx, tx_no, store_name, index_name,
-      keyRange, direction, key_only, key_query);
+      keyRange, direction, key_only, q_mth);
 
   this.request_ = null;
 

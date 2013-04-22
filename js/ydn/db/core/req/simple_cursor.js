@@ -21,16 +21,16 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec.
  * @param {boolean} key_only mode.
- * @param {boolean} key_query true for keys query method.
+ * @param {ydn.db.schema.Store.QueryMethod} q_mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
 ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
-    index_name, keyRange, direction, key_only, key_query) {
+    index_name, keyRange, direction, key_only, q_mth) {
 
   goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
-      key_only, key_query);
+      key_only, q_mth);
 
   goog.asserts.assert(store_schema);
   this.store_schema_ = store_schema;
@@ -298,7 +298,7 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
 
       this.key_ = x.getKey();
       this.primary_key_ = this.is_index ? x.getPrimaryKey() : this.key_;
-      if (!this.key_query) {
+      if (!this.query_method) {
         if (this.key_only) {
           this.value_ = this.primary_key_;
         } else {

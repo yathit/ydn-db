@@ -66,7 +66,8 @@ ydn.db.core.req.WebSql.prototype.logger =
  */
 ydn.db.core.req.WebSql.prototype.keysByIterator = function(tx, tx_no, df, iter,
                                                            limit, offset) {
-  this.fetchIterator_(tx, tx_no, df, iter, true, limit, offset);
+  this.fetchIterator_(tx, tx_no, df, iter, ydn.db.schema.Store.QueryMethod.KEYS,
+      limit, offset);
 };
 
 
@@ -76,7 +77,8 @@ ydn.db.core.req.WebSql.prototype.keysByIterator = function(tx, tx_no, df, iter,
 ydn.db.core.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q,
                                                            limit, offset) {
 
-  this.fetchIterator_(tx, tx_no, df, q, false, limit, offset);
+  this.fetchIterator_(tx, tx_no, df, q, ydn.db.schema.Store.QueryMethod.VALUES,
+      limit, offset);
 
 };
 
@@ -86,21 +88,21 @@ ydn.db.core.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q,
  * @param {string} tx_no tx label.
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {!ydn.db.Iterator} iter the query.
- * @param {boolean} key_query true for key query. 'keys' or 'list' method.
+ * @param {ydn.db.schema.Store.QueryMethod} query_mth query method.
  * @param {number=} opt_limit override limit.
  * @param {number=} opt_offset offset.
  * @private
  */
 ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
-    key_query, opt_limit, opt_offset) {
+    query_mth, opt_limit, opt_offset) {
 
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
-  var mth = key_query ? ' keys' : ' values';
+  var mth = query_mth ? ' keys' : ' values';
   var msg = tx_no + mth + 'ByIterator ' + iter;
   var me = this;
   this.logger.finest(msg);
-  var cursor = iter.iterate(tx, tx_no, this, key_query);
+  var cursor = iter.iterate(tx, tx_no, this, query_mth);
   cursor.onFail = function(e) {
     me.logger.warning('error:' + msg);
     cursor.exit();
@@ -124,7 +126,7 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
       }
       count++;
       var out;
-      if (key_query) { // call by keys() method
+      if (query_mth) { // call by keys() method
         out = key;
       } else {           // call by values() method
         if (iter.isIndexIterator() && iter.isKeyIterator()) {

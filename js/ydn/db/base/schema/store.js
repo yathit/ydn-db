@@ -325,6 +325,18 @@ ydn.db.schema.Store.prototype.toSql = function(params, method, index_column,
 
 
 /**
+ * @typedef {{
+ *   select: string,
+ *   from: string,
+ *   where: string,
+ *   group: string,
+ *   order: string
+ * }}
+ */
+ydn.db.schema.Store.SqlParts;
+
+
+/**
  *
  * @param {!Array} params sql parameter list.
  * @param {ydn.db.schema.Store.QueryMethod} method query method.
@@ -332,13 +344,7 @@ ydn.db.schema.Store.prototype.toSql = function(params, method, index_column,
  * @param {ydn.db.KeyRange|IDBKeyRange} key_range to retrieve.
  * @param {boolean} reverse ordering.
  * @param {boolean} unique unique.
- * @return {{
- *   select: string,
- *   from: string,
- *   where: string,
- *   group: string,
- *   order: string
- * }}
+ * @return {ydn.db.schema.Store.SqlParts}
  */
 ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
     key_range, reverse, unique) {

@@ -719,16 +719,16 @@ ydn.db.Iterator.prototype.join = function(store_name, opt_field_name,
  * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_lbl tx label.
  * @param {ydn.db.core.req.IRequestExecutor} executor executor.
- * @param {boolean=} opt_key_query true for keys query method.
+ * @param {ydn.db.schema.Store.QueryMethod=} opt_query query method.
  * @return {ydn.db.Cursor} newly created cursor.
  */
 ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
-                                             opt_key_query) {
+                                             opt_query) {
 
-  var is_key_query = !!opt_key_query;
+  var query_mth = opt_query || ydn.db.schema.Store.QueryMethod.VALUES;
   var cursor = executor.getCursor(tx, tx_lbl, this.store_name_,
       this.index_key_path_ || this.index_name_,
-      this.key_range_, this.direction_, this.is_key_iterator_, is_key_query);
+      this.key_range_, this.direction_, this.is_key_iterator_, query_mth);
   var cursors = [cursor];
   for (var i = 0, n = this.joins_ ? this.joins_.length : 0; i < n; i++) {
     /**
@@ -745,7 +745,7 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
       }
       var cur = executor.getCursor(tx, tx_lbl, join.store_name,
           join.field_name, key_range,
-          this.direction_, this.is_key_iterator_, is_key_query);
+          this.direction_, this.is_key_iterator_, query_mth);
       cursors.push(cur);
     }
   }

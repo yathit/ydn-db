@@ -33,16 +33,16 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {IDBKeyRange} keyRange key range.
  * @param {ydn.db.base.Direction} direction cursor direction.
  * @param {boolean} key_only mode.
- * @param {boolean} key_query true for keys query method.
+ * @param {ydn.db.schema.Store.QueryMethod} mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
 ydn.db.core.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
-    index_name, keyRange, direction, key_only, key_query) {
+    index_name, keyRange, direction, key_only, mth) {
 
   goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
-      key_only, key_query);
+      key_only, mth);
 
   goog.asserts.assert(store_schema);
   /**
@@ -564,6 +564,19 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
     this.advance(1);
   }
 
+};
+
+
+/**
+ * Prepare key range SQL.
+ * @param {!Array.<string>} params SQL params.
+ * @return {ydn.db.schema.Store.SqlParts} SQL statement parts.
+ */
+ydn.db.core.req.WebsqlCursor.prototype.prepareBaseSql = function(params) {
+  var sql = this.store_schema_.inSql(params, this.query_method,
+      this.store_schema_.getSQLKeyColumnName(),
+      this.key_range, this.reverse, this.unique);
+  return sql;
 };
 
 
