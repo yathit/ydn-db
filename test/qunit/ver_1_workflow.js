@@ -21,7 +21,7 @@ if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
 
-QUnit.config.testTimeout = 1000;
+QUnit.config.testTimeout = 2000;
 
 var db;
 var db_name_event = "tck_test_1_1";
@@ -555,14 +555,7 @@ var events_schema = {
       ydn.db.deleteDatabase(db_name, db.getType());
       db.close();
     }, function (e) {
-      if (db.getType() == 'websql') {
-        console.log(e);
-        equal(e.code, 6, 'got ConstraintError');
-        // this test fail on Safari OS X lion, getting code value of 1 instead
-        // of 6. I believe this is Safari bug.
-      } else {
-        equal(e.name, 'ConstraintError', 'got ConstraintError');
-      }
+      equal(e.name, 'ConstraintError', 'got ConstraintError');
       start();
       ydn.db.deleteDatabase(db_name, db.getType());
       db.close();

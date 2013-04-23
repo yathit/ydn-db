@@ -20,7 +20,6 @@ if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
 
-ydn.debug.log('finest');
 QUnit.config.testTimeout = 2000;
 var reporter = new ydn.testing.Reporter('ydn-db');
 

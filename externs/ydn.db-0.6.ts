@@ -61,18 +61,15 @@ declare module ydb.db
     constructor(key_string: string);
     constructor(store_name: string, id: any, parent_key?: Key);
   }
-  enum State {
-    init, busy, rest, done
-  }
+
   export class Iterator {
-    count(): number;
-    getState(): State;
-    join(on_field_name: string, peer_store_name: string, peer_field_name?: string);
+    join(peer_store_name: string, peer_field_name?: string, value?: any);
     getKey(): any;
     getPrimaryKey(): any;
-    reset();
-    resume(key: any, index_key: any);
-    reverse(key: any, index_key: any);
+    reset() : Iterator;
+    restrict(peer_field_name: string, value: any);
+    resume(key: any, index_key: any) : Iterator;
+    reverse(key: any, index_key: any) : Iterator;
   }
 
   enum Op {
@@ -110,10 +107,10 @@ declare module ydb.db
   }
 
   export class ICursor {
-    indexKey(i?: number): any;
-    key(i?: number): any;
+    getKey(i?: number): any;
+    getPrimaryKey(i?: number): any;
+    getValue(i?: number): any;
     clear(i?: number) : goog.async.Deferred;
-    merge(): Object;
     update(value: Object, i?: number) : goog.async.Deferred;
   }
 
@@ -141,7 +138,7 @@ declare module ydb.db
 
     map(iterator: ydb.db.Iterator, callback: (value: any): any) : goog.async.Deferred;
 
-    open(iterator: ydb.db.Iterator, next_callback: (cursor: ICursor): any, mode: string) : goog.async.Deferred;
+    open(next_callback: (cursor: ICursor): any, iterator: ydb.db.Iterator, mode: string) : goog.async.Deferred;
 
     put(store_name: string, value: any, key: any) : goog.async.Deferred;
     put(store_name: string, value: any[], key: any[]) : goog.async.Deferred;
@@ -153,8 +150,8 @@ declare module ydb.db
     remove(store_name: string, index_name: string, id_or_key_range: any) : goog.async.Deferred;
     clear(store_name: string, key_or_key_range: any) : goog.async.Deferred;
 
-    scan(iterators: ydb.db.Iterator[], solver: (keys: any[], values: any[])) : goog.async.Deferred;
-    scan(iterators: ydb.db.Iterator[], solver: ydn.db.algo.Solver) : goog.async.Deferred;
+    scan(solver: (keys: any[], values: any[]), iterators: ydb.db.Iterator[]) : goog.async.Deferred;
+    scan(solver: ydn.db.algo.Solver, iterators: ydb.db.Iterator[]) : goog.async.Deferred;
 
     values(iter: ydb.db.Iterator, limit?: number);
     values(store_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool);
