@@ -150,7 +150,7 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(tx, tx_no, df, req) {
   if (order && order != this.store_schema.getKeyPath()) {
     req.listByIndexKeyRange(tx, tx_no, ndf, store_name, order, key_range,
         reverse, limit, offset, false);
-  } else if (wheres.length > 0 && index_name !=
+  } else if (goog.isDef(index_name) && index_name !=
       this.store_schema.getKeyPath()) {
     req.listByIndexKeyRange(tx, tx_no, ndf, store_name, index_name,
         key_range, reverse, limit, offset, false);

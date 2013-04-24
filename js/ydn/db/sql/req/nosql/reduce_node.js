@@ -109,11 +109,12 @@ ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(tx, tx_no, df, req)
     // if (this.store_schema.hasIndex(field_name)) {
 
     var iter;
-    if (key_range) {
+
+    if (goog.isDef(index_name)) {
       iter = new ydn.db.IndexValueCursors(store_name, index_name,
           key_range);
     } else {
-      iter = new ydn.db.ValueCursors(store_name);
+      iter = new ydn.db.ValueCursors(store_name, key_range);
     }
 
     var cursor = iter.iterate(tx, tx_no, req);

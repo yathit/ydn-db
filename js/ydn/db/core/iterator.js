@@ -58,8 +58,8 @@ goog.require('ydn.debug.error.ArgumentException');
 ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
                            opt_unique, opt_key_only, opt_index_key_path) {
   // Note for V8 optimization, declare all properties in constructor.
-  if (!goog.isString(store)) {
-    throw new ydn.debug.error.ArgumentException('store name must be a string');
+  if (goog.DEBUG && !goog.isString(store)) {
+    throw new TypeError('store name');
   }
 
   /**
@@ -92,14 +92,14 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
   this.is_key_iterator_ = goog.isDef(opt_key_only) ?
       opt_key_only : !!(goog.isString(this.index_name_));
   if (goog.DEBUG && !goog.isBoolean(this.is_key_iterator_)) {
-    throw new ydn.debug.error.ArgumentException('key_only');
+    throw new TypeError('key_only');
   }
 
   if (goog.DEBUG && goog.isDef(opt_reverse) && !goog.isBoolean(opt_reverse)) {
-    throw new ydn.debug.error.ArgumentException('reverse');
+    throw new TypeError('reverse');
   }
   if (goog.DEBUG && goog.isDef(opt_unique) && !goog.isBoolean(opt_unique)) {
-    throw new ydn.debug.error.ArgumentException('unique');
+    throw new TypeError('unique');
   }
   var direction = ydn.db.base.Direction.NEXT;
   if (opt_reverse && opt_unique) {
@@ -267,7 +267,7 @@ ydn.db.Cursors.where = function(store_name, index, op, value, opt_op2,
 /**
  * Create an iterator object.
  * @param {!string} store store name.
- * @param {(!KeyRangeJson|ydn.db.KeyRange)=} opt_key_range key range.
+ * @param {(KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} opt_key_range key range.
  * @param {boolean=} opt_reverse reverse.
  * @constructor
  * @extends {ydn.db.Iterator}

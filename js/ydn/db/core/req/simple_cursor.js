@@ -145,7 +145,7 @@ ydn.db.core.req.SimpleCursor.prototype.hasCursor = function() {
  * @inheritDoc
  */
 ydn.db.core.req.SimpleCursor.prototype.update = function(obj) {
-  throw 'no update';
+  throw new ydn.debug.error.NotImplementedException();
 };
 
 
@@ -344,9 +344,16 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
   var start_node = null;
 
   if (this.key_range) {
-    if (goog.isDefAndNotNull(this.key_range.lower)) {
-      start_node = new ydn.db.con.simple.Node(
-          /** @type {!IDBKey} */ (this.key_range.lower));
+    if (this.reverse) {
+      if (goog.isDefAndNotNull(this.key_range.upper)) {
+        start_node = new ydn.db.con.simple.Node(
+            /** @type {!IDBKey} */ (this.key_range.upper));
+      }
+    } else {
+      if (goog.isDefAndNotNull(this.key_range.lower)) {
+        start_node = new ydn.db.con.simple.Node(
+            /** @type {!IDBKey} */ (this.key_range.lower));
+      }
     }
   }
 
@@ -428,7 +435,7 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
  */
 ydn.db.core.req.SimpleCursor.prototype.clear = function() {
 
-  throw 'no clear';
+  throw new ydn.debug.error.NotImplementedException();
 };
 
 
@@ -437,7 +444,7 @@ ydn.db.core.req.SimpleCursor.prototype.clear = function() {
  */
 ydn.db.core.req.SimpleCursor.prototype.restart = function(effective_key,
                                                           primary_key) {
-  throw 'no restart';
+  throw new ydn.debug.error.NotImplementedException();
 };
 
 
@@ -445,7 +452,7 @@ ydn.db.core.req.SimpleCursor.prototype.restart = function(effective_key,
  * @inheritDoc
  */
 ydn.db.core.req.SimpleCursor.prototype.continuePrimaryKey = function(key) {
-  throw 'no p cont';
+  throw new ydn.debug.error.NotImplementedException();
 
 };
 
