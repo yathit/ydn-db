@@ -21,8 +21,8 @@
 goog.provide('ydn.db.sql.req.IndexedDb');
 goog.require('ydn.db.core.req.IndexedDb');
 goog.require('ydn.db.sql.req.IRequestExecutor');
-goog.require('ydn.db.sql.req.idb.Node');
-goog.require('ydn.db.sql.req.idb.ReduceNode');
+goog.require('ydn.db.sql.req.nosql.Node');
+goog.require('ydn.db.sql.req.nosql.ReduceNode');
 
 
 
@@ -83,9 +83,9 @@ ydn.db.sql.req.IndexedDb.prototype.executeSql = function(tx, tx_no, df, sql,
     }
     var node;
     if (sql.getAggregate()) {
-      node = new ydn.db.sql.req.idb.ReduceNode(store_schema, sql);
+      node = new ydn.db.sql.req.nosql.ReduceNode(store_schema, sql);
     } else {
-      node = new ydn.db.sql.req.idb.Node(store_schema, sql);
+      node = new ydn.db.sql.req.nosql.Node(store_schema, sql);
     }
 
     node.execute(tx, tx_no, df, this);

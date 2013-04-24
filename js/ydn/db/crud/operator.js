@@ -706,13 +706,13 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     // The object store uses in-line keys or has a key generator, and a key
     // parameter was provided.
     throw new ydn.debug.error.ArgumentException(
-        'key cannot provide while in-line key ' + 'is in used.');
-  } else if (store.autoIncrement && goog.isDef(opt_keys)) {
+        'key must not be provided while the store uses in-line key.');
+  //} else if (store.autoIncrement && goog.isDef(opt_keys)) {
     // The object store uses in-line keys or has a key generator, and a key
     // parameter was provided.
-    throw new ydn.debug.error.ArgumentException('key cannot provide while ' +
-        'autoIncrement is true.');
-  } else if (!goog.isString(store.keyPath) && !store.autoIncrement &&
+  //  throw new ydn.debug.error.ArgumentException('key must not be provided ' +
+  //      'while autoIncrement is true.');
+  } else if (!store.usedInlineKey() && !store.autoIncrement &&
       !goog.isDef(opt_keys)) {
     // The object store uses out-of-line keys and has no key generator, and no
     // key parameter was provided.
@@ -935,12 +935,12 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       // The object store uses in-line keys or has a key generator, and a key
       // parameter was provided.
       throw new ydn.debug.error.ArgumentException(
-          'key cannot provide while in-line key ' + 'is in used.');
-    } else if (store.autoIncrement && goog.isDef(opt_keys)) {
+          'key must not be provided while the store uses in-line key.');
+    //} else if (store.autoIncrement && goog.isDef(opt_keys)) {
       // The object store uses in-line keys or has a key generator, and a key
       // parameter was provided.
-      throw new ydn.debug.error.ArgumentException('key cannot provide while ' +
-          'autoIncrement is true.');
+    //  throw new ydn.debug.error.ArgumentException('key must not be provided' +
+    //      ' while autoIncrement is true.');
     } else if (!store.usedInlineKey() && !store.autoIncrement &&
         !goog.isDef(opt_keys)) {
       // The object store uses out-of-line keys and has no key generator, and no

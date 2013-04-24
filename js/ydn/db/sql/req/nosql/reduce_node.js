@@ -19,8 +19,8 @@
  */
 
 
-goog.provide('ydn.db.sql.req.idb.ReduceNode');
-goog.require('ydn.db.sql.req.idb.Node');
+goog.provide('ydn.db.sql.req.nosql.ReduceNode');
+goog.require('ydn.db.sql.req.nosql.Node');
 goog.require('ydn.object');
 
 
@@ -29,14 +29,14 @@ goog.require('ydn.object');
  *
  * @param {!ydn.db.schema.Store} schema store schema.
  * @param {!ydn.db.Sql} sql store name.
- * @extends {ydn.db.sql.req.idb.Node}
+ * @extends {ydn.db.sql.req.nosql.Node}
  * @constructor
  * @struct
  */
-ydn.db.sql.req.idb.ReduceNode = function(schema, sql) {
+ydn.db.sql.req.nosql.ReduceNode = function(schema, sql) {
   goog.base(this, schema, sql);
 };
-goog.inherits(ydn.db.sql.req.idb.ReduceNode, ydn.db.sql.req.idb.Node);
+goog.inherits(ydn.db.sql.req.nosql.ReduceNode, ydn.db.sql.req.nosql.Node);
 
 
 /**
@@ -45,7 +45,7 @@ goog.inherits(ydn.db.sql.req.idb.ReduceNode, ydn.db.sql.req.idb.Node);
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {ydn.db.core.req.IRequestExecutor} req request executor.
  */
-ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
+ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
 
   var me = this;
   var out;
@@ -63,14 +63,23 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
   } else if (wheres.length == 1) {
     key_range = ydn.db.KeyRange.parseIDBKeyRange(wheres[0].getKeyRange());
   } else {
-    throw new ydn.error.NotSupportedException('too many conditions.');
+    throw new ydn.debug.error.NotSupportedException('too many conditions.');
   }
 
   var aggregate = this.sql.getAggregate();
+  var index_name = wheres.length > 0 ? wheres[0].getField() : undefined;
+
+  var msg = tx_no + ' executing ' + aggregate + ' on ' + store_name;
+  if (index_name) {
+    msg += ':' + index_name;
+  }
+  msg += ' ' + ydn.db.KeyRange.toString(key_range);
+  this.logger.finer(msg);
+
   if (aggregate == 'COUNT') {
     if (key_range) {
       req.countKeyRange(tx, tx_no, df, store_name, key_range,
-          wheres[0].getField(), false);
+          index_name, false);
     } else {
       req.countKeyRange(tx, tx_no, df, store_name, null, undefined, false);
     }
@@ -83,15 +92,15 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
     }
     var field_name = fields[0];
     if (aggregate == 'MIN') {
-      reduce = ydn.db.sql.req.idb.ReduceNode.reduceMin(field_name);
+      reduce = ydn.db.sql.req.nosql.ReduceNode.reduceMin(field_name);
     } else if (aggregate == 'MAX') {
-      reduce = ydn.db.sql.req.idb.ReduceNode.reduceMax(field_name);
+      reduce = ydn.db.sql.req.nosql.ReduceNode.reduceMax(field_name);
     } else if (aggregate == 'AVG') {
       out = 0;
-      reduce = ydn.db.sql.req.idb.ReduceNode.reduceAverage(field_name);
+      reduce = ydn.db.sql.req.nosql.ReduceNode.reduceAverage(field_name);
     } else if (aggregate == 'SUM') {
       out = 0;
-      reduce = ydn.db.sql.req.idb.ReduceNode.reduceSum(field_name);
+      reduce = ydn.db.sql.req.nosql.ReduceNode.reduceSum(field_name);
     } else {
       throw new ydn.error.NotSupportedException(aggregate);
     }
@@ -101,7 +110,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
 
     var iter;
     if (key_range) {
-      iter = new ydn.db.IndexValueCursors(store_name, wheres[0].getField(),
+      iter = new ydn.db.IndexValueCursors(store_name, index_name,
           key_range);
     } else {
       iter = new ydn.db.ValueCursors(store_name);
@@ -122,7 +131,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
      * @param {IDBKey=} opt_key
      */
     cursor.onNext = function(opt_key) {
-      if (goog.isDef(opt_key)) {
+      if (goog.isDefAndNotNull(opt_key)) {
         var value = iter.isKeyIterator() ?
             cursor.getPrimaryKey() : cursor.getValue();
         out = reduce(value, out, i);
@@ -143,7 +152,7 @@ ydn.db.sql.req.idb.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
  * @param {string} field name.
  * @return {Function} average.
  */
-ydn.db.sql.req.idb.ReduceNode.reduceAverage = function(field) {
+ydn.db.sql.req.nosql.ReduceNode.reduceAverage = function(field) {
   return function(curr, prev, i) {
     if (!goog.isDef(prev)) {
       prev = 0;
@@ -158,7 +167,7 @@ ydn.db.sql.req.idb.ReduceNode.reduceAverage = function(field) {
  * @param {string} field field name.
  * @return {Function} sum.
  */
-ydn.db.sql.req.idb.ReduceNode.reduceSum = function(field) {
+ydn.db.sql.req.nosql.ReduceNode.reduceSum = function(field) {
   return function(curr, prev, i) {
     return prev + curr[field];
   };
@@ -170,7 +179,7 @@ ydn.db.sql.req.idb.ReduceNode.reduceSum = function(field) {
  * @param {string} field name.
  * @return {Function} min.
  */
-ydn.db.sql.req.idb.ReduceNode.reduceMin = function(field) {
+ydn.db.sql.req.nosql.ReduceNode.reduceMin = function(field) {
   return function(curr, prev, i) {
     var x = curr[field];
     if (!goog.isDef(prev)) {
@@ -186,7 +195,7 @@ ydn.db.sql.req.idb.ReduceNode.reduceMin = function(field) {
  * @param {string} field name.
  * @return {Function} max.
  */
-ydn.db.sql.req.idb.ReduceNode.reduceMax = function(field) {
+ydn.db.sql.req.nosql.ReduceNode.reduceMax = function(field) {
   return function(curr, prev, i) {
     var x = curr[field];
     if (!goog.isDef(prev)) {

@@ -3,23 +3,17 @@ goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
 goog.require('ydn.db.Storage');
-goog.require('goog.testing.PropertyReplacer');
+goog.require('ydn.debug');
 
 
-var reachedFinalContinuation, schema, db, debug_console, objs;
+var reachedFinalContinuation, schema, db, objs;
 var db_name = 'test_sql_1';
 var store_name = 'st';
 
 var setUp = function() {
-  if (!debug_console) {
-    debug_console = new goog.debug.Console();
-    debug_console.setCapturing(true);
-    goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-    //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-    //goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-    //goog.debug.Logger.getLogger('ydn.db.con').setLevel(goog.debug.Logger.Level.FINEST);
-    goog.debug.Logger.getLogger('ydn.db.sql').setLevel(goog.debug.Logger.Level.FINEST);
-  }
+
+  // ydn.debug.log('ydn.db', 'finest');
+  // ydn.db.core.req.SimpleCursor.DEBUG = true;
   //ydn.db.sql.req.WebSql.DEBUG = true;
 
   var index_x = new ydn.db.schema.Index('x', ydn.db.schema.DataType.NUMERIC, true);

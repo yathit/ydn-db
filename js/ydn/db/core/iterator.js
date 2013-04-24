@@ -531,16 +531,7 @@ if (goog.DEBUG) {
     var str = goog.isDef(this.index_key_path_) ?
         ':' + this.index_key_path_.join(',') :
             goog.isDef(this.index_name_) ? ':' + this.index_name_ : '';
-    if (this.key_range_) {
-      str += this.key_range_.lowerOpen ? ' (' : ' [';
-      if (goog.isDefAndNotNull(this.key_range_.lower)) {
-        str += this.key_range_.lower + ', ';
-      }
-      if (goog.isDefAndNotNull(this.key_range_.upper)) {
-        str += this.key_range_.upper;
-      }
-      str += this.key_range_.upperOpen ? ')' : ']';
-    }
+    str += ydn.db.KeyRange.toString(this.key_range_);
     var s = this.isIndexIterator() ? 'Index' : '';
     s += this.isKeyIterator() ? 'Key' : 'Value';
     return s + 'Iterator:' + this.store_name_ + str;

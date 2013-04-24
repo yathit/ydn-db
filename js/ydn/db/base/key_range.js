@@ -321,6 +321,27 @@ ydn.db.KeyRange.prototype.and = function(that) {
 
 
 /**
+ * For debug display.
+ * @param {ydn.db.KeyRange|IDBKeyRange|undefined} kr
+ * @return {string} readable form.
+ */
+ydn.db.KeyRange.toString = function(kr) {
+  if (!kr) {
+    return '';
+  }
+  var str = kr.lowerOpen ? ' (' : ' [';
+  if (goog.isDefAndNotNull(kr.lower)) {
+    str += kr.lower + ', ';
+  }
+  if (goog.isDefAndNotNull(kr.upper)) {
+    str += kr.upper;
+  }
+  str += kr.upperOpen ? ')' : ']';
+  return str;
+};
+
+
+/**
  *
  * @param {string} quoted_column_name quoted column name.
  * @param {ydn.db.schema.DataType|undefined} type column type.

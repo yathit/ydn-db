@@ -19,7 +19,7 @@
  */
 
 
-goog.provide('ydn.db.sql.req.idb.Node');
+goog.provide('ydn.db.sql.req.nosql.Node');
 goog.require('ydn.db.Iterator');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Sql');
@@ -35,7 +35,7 @@ goog.require('ydn.error.ArgumentException');
  * @constructor
  * @struct
  */
-ydn.db.sql.req.idb.Node = function(schema, sql) {
+ydn.db.sql.req.nosql.Node = function(schema, sql) {
 
   this.sql = sql;
   this.store_schema = schema;
@@ -47,28 +47,28 @@ ydn.db.sql.req.idb.Node = function(schema, sql) {
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.sql.req.idb.Node.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.sql.req.idb.Node');
+ydn.db.sql.req.nosql.Node.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.sql.req.nosql.Node');
 
 
 /**
  * @type {!ydn.db.schema.Store}
  * @protected
  */
-ydn.db.sql.req.idb.Node.prototype.store_schema;
+ydn.db.sql.req.nosql.Node.prototype.store_schema;
 
 
 /**
  * @type {ydn.db.Sql}
  * @protected
  */
-ydn.db.sql.req.idb.Node.prototype.sql;
+ydn.db.sql.req.nosql.Node.prototype.sql;
 
 
 /**
  * @inheritDoc
  */
-ydn.db.sql.req.idb.Node.prototype.toJSON = function() {
+ydn.db.sql.req.nosql.Node.prototype.toJSON = function() {
   return {'sql': this.sql};
 };
 
@@ -76,7 +76,7 @@ ydn.db.sql.req.idb.Node.prototype.toJSON = function() {
 /**
  * @override
  */
-ydn.db.sql.req.idb.Node.prototype.toString = function() {
+ydn.db.sql.req.nosql.Node.prototype.toString = function() {
   return 'idb.Node:';
 };
 
@@ -87,7 +87,7 @@ ydn.db.sql.req.idb.Node.prototype.toString = function() {
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {ydn.db.core.req.IRequestExecutor} req
  */
-ydn.db.sql.req.idb.Node.prototype.execute = function(tx, tx_no, df, req) {
+ydn.db.sql.req.nosql.Node.prototype.execute = function(tx, tx_no, df, req) {
 
   var me = this;
   var out = [];
@@ -111,7 +111,7 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(tx, tx_no, df, req) {
   } else if (wheres.length == 1) {
     key_range = ydn.db.KeyRange.parseIDBKeyRange(wheres[0].getKeyRange());
   } else {
-    throw new ydn.error.NotSupportedException('too many conditions.');
+    throw new ydn.debug.error.NotSupportedException('too many conditions.');
   }
 
   var ndf = df;
@@ -137,12 +137,22 @@ ydn.db.sql.req.idb.Node.prototype.execute = function(tx, tx_no, df, req) {
       }
     };
   }
+
+  var index_name = wheres.length > 0 ? wheres[0].getField() : undefined;
+
+  var msg = tx_no + ' executing on' + store_name;
+  if (index_name) {
+    msg += ':' + index_name;
+  }
+  msg += ' ' + ydn.db.KeyRange.toString(key_range);
+  this.logger.finer(msg);
+
   if (order && order != this.store_schema.getKeyPath()) {
     req.listByIndexKeyRange(tx, tx_no, ndf, store_name, order, key_range,
         reverse, limit, offset, false);
-  } else if (wheres.length > 0 && wheres[0].getField() !=
+  } else if (wheres.length > 0 && index_name !=
       this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, wheres[0].getField(),
+    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, index_name,
         key_range, reverse, limit, offset, false);
   } else {
     req.listByKeyRange(tx, tx_no, ndf, store_name, key_range, reverse, limit,

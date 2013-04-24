@@ -298,7 +298,7 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
 
       this.key_ = x.getKey();
       this.primary_key_ = this.is_index ? x.getPrimaryKey() : this.key_;
-      if (!this.query_method) {
+      if (this.query_method == ydn.db.schema.Store.QueryMethod.VALUES) {
         if (!this.isValueCursor()) {
           this.value_ = this.primary_key_;
         } else {
@@ -389,16 +389,18 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
             }
           }
         } else if (this.key_range) {
-          if (!this.reverse && this.key_range.lowerOpen) {
+          if (!this.reverse && this.key_range.lowerOpen &&
+              goog.isDefAndNotNull(this.key_range.lower)) {
             var cmp = ydn.db.cmp(key, this.key_range.lower);
             if (cmp == 0) {
-              return true; // skip
+              return; // skip
             }
           }
-          if (this.reverse && this.key_range.upperOpen) {
+          if (this.reverse && this.key_range.upperOpen &&
+              goog.isDefAndNotNull(this.key_range.upper)) {
             var cmp = ydn.db.cmp(key, this.key_range.upper);
             if (cmp == 0) {
-              return true; // skip
+              return; // skip
             }
           }
         }
