@@ -13,7 +13,8 @@ var reachedFinalContinuation;
 
 
 var setUp = function() {
-  // ydn.debug.log('ydn.db', 'finest');
+  //ydn.debug.log('ydn.db', 'finest');
+  //ydn.db.core.req.WebsqlCursor.DEBUG = true;
   // ydn.db.core.req.IDBCursor.DEBUG = true;
   // ydn.db.core.DbOperator.DEBUG = true;
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
@@ -230,7 +231,7 @@ var test_scan_advance = function() {
  * Query for
  * SELECT age WHERE first = 'B' AND last = 'M' ORDER BY age
  */
-var test_scan_effective_key = function() {
+var test_index_values = function() {
 
   var db_name = 'test_scan_effective_key_4';
   var store_name = 'st';
@@ -284,11 +285,9 @@ var test_scan_effective_key = function() {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors(store_name, 'first-age', ydn.db.KeyRange.starts(['B']));
-  db.values(new ydn.db.Cursors(store_name, 'first-age')).addBoth(function (x) {
-    console.log(x);
-  })
-  db.values(q1).addBoth(function (x) {
+  var q2 = new ydn.db.Cursors(store_name, 'first-age', ydn.db.KeyRange.starts(['B']));
+
+  db.values(q2).addBoth(function (x) {
     result_keys = x;
     done = true;
   });

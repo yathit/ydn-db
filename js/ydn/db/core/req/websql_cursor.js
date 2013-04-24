@@ -344,7 +344,7 @@ ydn.db.core.req.WebsqlCursor.prototype.sqlContinueIndexEffectiveKey_ = function(
         this.reverse, this.unique);
     e_sql.where += ' AND ';
 
-    or = index_column + op + '?';
+    or = q_index_column + op + '?';
     params.push(encode_key);
   } else {
     var key_range = this.reverse ?
