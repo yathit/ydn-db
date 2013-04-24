@@ -14,7 +14,7 @@ var db_name = 'test_index_2';
 
 var setUp = function () {
 
-  //ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
   //ydn.db.core.req.SimpleCursor.DEBUG  = true;
 
   // ydn.db.con.WebSql.DEBUG = true;
@@ -95,7 +95,7 @@ var test_11_list_store = function () {
 };
 
 
-var test_12_list_store_reverse = function () {
+var test_values_store_reverse = function () {
 
   var done;
   var result;
@@ -127,7 +127,7 @@ var test_12_list_store_reverse = function () {
 };
 
 
-var test_13_list_store_range = function () {
+var test_values_store_range = function () {
 
   var done;
   var result;
@@ -157,7 +157,7 @@ var test_13_list_store_range = function () {
 };
 
 
-var test_15_list_limit = function () {
+var test_values_limit = function () {
 
   var done;
   var result;
@@ -180,6 +180,109 @@ var test_15_list_limit = function () {
     db.values(q, 3).addBoth(function (value) {
       //console.log(db + ' fetch value: ' + JSON.stringify(value));
       result = value;
+      done = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    });
+  });
+};
+
+
+var test_values_resume = function () {
+
+  var done;
+  var result1, result2;
+  waitForCondition(
+      // Condition
+      function() {
+        return done;
+      },
+      // Continuation
+      function() {
+        assertArrayEquals('first iteration', objs.slice(0, 3), result1);
+        assertArrayEquals('second iteration', objs.slice(3, 6), result2);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  load_default(function (db) {
+    var q1 = new ydn.db.Iterator(store_name);
+    db.values(q1, 3).addBoth(function(value) {
+      result1 = value;
+    });
+    db.values(q1, 3).addBoth(function(value) {
+      result2 = value;
+      done = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    });
+  });
+};
+
+
+var test_values_index_resume = function () {
+
+  var done;
+  var result1, result2;
+  waitForCondition(
+      // Condition
+      function() {
+        return done;
+      },
+      // Continuation
+      function() {
+        assertArrayEquals('first iteration', [objs[4], objs[5]], result1);
+        assertArrayEquals('second iteration', [objs[6]], result2);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  load_default(function(db) {
+    var q1 = ydn.db.IndexValueCursors.where(store_name, 'type', '=', 'c');
+    db.values(q1, 2).addBoth(function(value) {
+      result1 = value;
+    });
+    db.values(q1, 2).addBoth(function(value) {
+      result2 = value;
+      done = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    });
+  });
+};
+
+
+var test_values_index_resume_reverse = function () {
+
+  var done;
+  var result1, result2;
+  waitForCondition(
+      // Condition
+      function() {
+        return done;
+      },
+      // Continuation
+      function() {
+        assertArrayEquals('first iteration', [objs[6], objs[5]], result1);
+        assertArrayEquals('second iteration', [objs[4]], result2);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  load_default(function(db) {
+    var q1 = ydn.db.IndexValueCursors.where(store_name, 'type', '=', 'c');
+    q1 = q1.reverse();
+    db.values(q1, 2).addBoth(function(value) {
+      result1 = value;
+    });
+    db.values(q1, 2).addBoth(function(value) {
+      result2 = value;
       done = true;
       ydn.db.deleteDatabase(db.getName(), db.getType());
       db.close();

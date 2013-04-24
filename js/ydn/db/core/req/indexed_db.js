@@ -63,38 +63,76 @@ ydn.db.core.req.IndexedDb.prototype.logger =
  */
 ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
     iter, limit, offset) {
+  this.iterate_(ydn.db.schema.Store.QueryMethod.KEYS, tx, tx_no, df, iter,
+      limit, offset);
+};
+
+
+/**
+ * List record in a store.
+ * @param {ydn.db.schema.Store.QueryMethod} mth keys method.
+ * @param {ydn.db.con.IDatabase.Transaction} tx
+ * @param {string} tx_no transaction number.
+ * @param {?function(*, boolean=)} df key in deferred function.
+ * @param {!ydn.db.Iterator} iter iterator.
+ * @param {number=} opt_limit limit.
+ * @param {number=} opt_offset limit.
+ * @private
+ */
+ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, tx, tx_no, df,
+    iter, opt_limit, opt_offset) {
   var arr = [];
-  //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
-  var msg = tx_no + ' keysByIterator:' + iter;
+
+  var is_keys = mth == ydn.db.schema.Store.QueryMethod.KEYS;
+  var q = is_keys ? 'keys' :
+      mth == ydn.db.schema.Store.QueryMethod.VALUES ? 'values' :
+          mth == ydn.db.schema.Store.QueryMethod.COUNT ? 'count' : '';
+  var msg = tx_no + ' ' + q + 'ByIterator ' + iter;
+  if (opt_limit > 0) {
+    msg += ' limit ' + opt_limit;
+  }
   var me = this;
-  this.logger.finest(msg);
-  var cursor = iter.iterate(tx, tx_no, this);
+  this.logger.finer(msg);
+  var cursor = iter.iterate(tx, tx_no, this, mth);
   cursor.onFail = function(e) {
-    me.logger.warning('error:' + msg);
+    me.logger.finer('error:' + msg);
+    cursor.exit();
     df(e, true);
   };
   var count = 0;
   var cued = false;
+  var displayed = false;
   /**
-   * @param {IDBKey=} key
+   * @param {IDBKey=} opt_key
    */
-  cursor.onNext = function(key) {
-    if (goog.isDef(key)) {
-      if (!cued && offset > 0) {
-        cursor.advance(offset);
+  cursor.onNext = function(opt_key) {
+    if (!displayed) {
+      me.logger.finest(msg + ' starting');
+      displayed = true;
+    }
+    if (goog.isDefAndNotNull(opt_key)) {
+      var primary_key = iter.isIndexIterator() ?
+          cursor.getPrimaryKey() : opt_key;
+      if (!cued && opt_offset > 0) {
+        cursor.advance(opt_offset);
         cued = true;
         return;
       }
       count++;
-
-      arr.push(key);
-      if (!goog.isDef(limit) || count < limit) {
-        cursor.advance(1);
+      if (is_keys) {
+        arr.push(opt_key);
       } else {
+        arr.push(iter.isKeyIterator() ? primary_key : cursor.getValue());
+      }
+      if (!goog.isDef(opt_limit) || count < opt_limit) {
+        cursor.continueEffectiveKey();
+      } else {
+        me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
         cursor.exit();
         df(arr);
       }
     } else {
+      me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
       cursor.exit();
       df(arr);
     }
@@ -107,47 +145,8 @@ ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
  */
 ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
     iter, limit, offset) {
-  var arr = [];
-  //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
-  var msg = tx_no + ' listByIterator ' + iter;
-  if (limit > 0) {
-    msg = ' limit ' + limit;
-  }
-  var me = this;
-  this.logger.finest(msg);
-  var cursor = iter.iterate(tx, tx_no, this);
-  cursor.onFail = function(e) {
-    cursor.exit();
-    df(e, true);
-  };
-  var count = 0;
-  var cued = false;
-  /**
-   * @param {IDBKey=} opt_key
-   */
-  cursor.onNext = function(opt_key) {
-    if (goog.isDef(opt_key)) {
-      var primary_key = iter.isIndexIterator() ?
-          cursor.getPrimaryKey() : opt_key;
-      var value = cursor.getValue();
-      if (!cued && offset > 0) {
-        cursor.advance(offset);
-        cued = true;
-        return;
-      }
-      count++;
-      arr.push(iter.isKeyIterator() ? primary_key : value);
-      if (!goog.isDef(limit) || count < limit) {
-        cursor.continueEffectiveKey();
-      } else {
-        cursor.exit();
-        df(arr);
-      }
-    } else {
-      cursor.exit();
-      df(arr);
-    }
-  };
+  this.iterate_(ydn.db.schema.Store.QueryMethod.VALUES, tx, tx_no, df, iter,
+      limit, offset);
 };
 
 

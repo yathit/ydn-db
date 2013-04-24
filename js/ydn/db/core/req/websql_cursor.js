@@ -802,4 +802,12 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
 
 
 
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.core.req.WebsqlCursor.prototype.toString = function() {
+    return 'WebSql' + goog.base(this, 'toString');
+  };
+}
 

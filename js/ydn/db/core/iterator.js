@@ -562,14 +562,32 @@ ydn.db.Iterator.prototype.getPrimaryKey = function() {
  * @param {IDBKey} key effective key as start position.
  * @param {IDBKey=} opt_primary_key primary key as start position for index
  * iterator.
+ * @return {ydn.db.Iterator}
  */
 ydn.db.Iterator.prototype.resume = function(key, opt_primary_key) {
-  if (!this.cursor_) {
-    this.cursor_ = new ydn.db.Cursor([], null, key, opt_primary_key);
-  } else {
-    throw new ydn.debug.error.InvalidOperationException(
-        'iterator in operation');
+  var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
+      this.key_range_, this.isReversed(), this.isUnique(),
+      this.is_key_iterator_, this.index_key_path_);
+  iter.cursor_ = new ydn.db.Cursor([], null, key, opt_primary_key);
+  return iter;
+};
+
+
+/**
+ * Resume from a saved position.
+ * @param {IDBKey=} opt_key effective key as start position.
+ * @param {IDBKey=} opt_primary_key primary key as start position for index
+ * iterator.
+ * @return {ydn.db.Iterator}
+ */
+ydn.db.Iterator.prototype.reverse = function(opt_key, opt_primary_key) {
+  var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
+      this.key_range_, !this.isReversed(), this.isUnique(),
+      this.is_key_iterator_, this.index_key_path_);
+  if (goog.isDefAndNotNull(opt_key)) {
+    iter.cursor_ = new ydn.db.Cursor([], null, opt_key, opt_primary_key);
   }
+  return iter;
 };
 
 
@@ -741,203 +759,16 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
     }
   }
 
+  var msg = '';
   if (this.cursor_) {
-    this.logger.finest(tx_lbl + ' ' + this + ' reused cursor ' + this.cursor_);
+    msg = ' by resuming ' + this.cursor_;
   }
 
   this.cursor_ = new ydn.db.Cursor(cursors, this.cursor_);
 
-  this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_);
+  this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_ + msg);
   return this.cursor_;
 };
-
-
-
-//
-//
-///**
-// * @param {ydn.db.con.IDatabase.Transaction} tx
-// * @param {string} tx_no tx no.
-// * @param {ydn.db.core.req.IRequestExecutor} executor
-// * @return {ydn.db.core.req.AbstractCursor}
-// * @private
-// */
-//ydn.db.Iterator.prototype.iterateWithFilters_ = function(tx, tx_no, executor) {
-//  var me = this;
-//  var ini_key, ini_index_key;
-//  var resume = this.has_done === false;
-//  if (resume) {
-//    // continue the iteration
-//    goog.asserts.assert(this.primary_key);
-//    ini_key = this.primary_key;
-//    ini_index_key = this.index_name__key;
-//  } else { // start a new iteration
-//    this.counter = 0;
-//  }
-//  this.iterating_ = true;
-//
-//  // this algorithm is inspired by zigzag merge algorithm as described in
-//// http://www.google.com/events/io/2010/sessions/next-gen-queries-appengine.html
-//
-//  // We rely on the fact that requests are executed in order.
-//  // http://www.w3.org/TR/IndexedDB/#steps-for-asynchronously-executing-a-request
-//
-//  // secondary cursors for filters
-//  var cursors = [];
-//
-//  // we send primary_cursor first, so that we filtered cursor arrive, we know
-//  // our target key value is.
-//  var primary_cursor = executor.getCursor(tx, tx_no, this.store_name_, this.index_name_,
-//      this.key_range_, this.direction_, this.is_key_iterator_);
-//
-//
-//  primary_cursor.openCursor(ini_key, ini_index_key, resume);
-//
-//  /**
-//   * onSuccess handler is called before onNext callback. The purpose of
-//   * onSuccess handler is apply filter. If filter condition are not meet,
-//   * onSuccess return next advancement value skipping onNext callback.
-//   * @param primary_key
-//   * @param key
-//   * @param value
-//   */
-//  primary_cursor.onSuccess = function(primary_key, key, value) {
-//
-//    if (goog.isDef(primary_key)) {
-//      me.has_done = false;
-//      // array need to be clone because
-//      me.primary_key = primary_key;
-//      me.index_name__key = key;
-//      // check all filter condition are met.
-//      // me.counter++; // counter increase onNext callback
-//      if (isAllRequestDone()) {
-//        processNext(0);
-//      }
-//    } else {
-//      me.has_done = true;
-//      me.iterating_ = false;
-//    }
-//  };
-//
-//  var filterCursorOnSuccess = function(i, primary_key, key, value) {
-//
-//    var all_done = isAllRequestDone();
-//    if (goog.isDef(primary_key)) {
-//      me.filter_ini_keys_[i] = primary_key;
-//      me.filter_ini_index_keys_[i] = key;
-//    }
-//    if (isAllRequestDone()) {
-//      processNext(i + 1);
-//    }
-//  };
-//  for (var i = 0; i < this.filter_index_names_.length; i++) {
-//    var store_name = this.filter_store_names_[i] || this.store_name_;
-//    var cursor = executor.getCursor(tx, tx_no, store_name, this.filter_index_names_[i],
-//        this.filter_key_ranges_[i], this.direction_, true);
-//    cursor.openCursor(this.filter_ini_keys_[i], this.filter_ini_index_keys_[i]);
-//    cursors.push(cursor);
-//    cursor.onSuccess = goog.partial(filterCursorOnSuccess, i);
-//
-//  }
-//
-//  if (ydn.db.Iterator.DEBUG) {
-//    var msg = [];
-//    msg.push(primary_cursor.toString());
-//    for (var i = 0; i < cursors.length; i++) {
-//      msg.push(cursors[i].toString());
-//    }
-//    window.console.log('iterating ' + msg.join(', '));
-//  }
-//
-//
-//  /**
-//   * Return true if all requests finished.
-//   * @return {boolean}
-//   */
-//  var isAllRequestDone = function() {
-//    var some_req_not_finished = cursors.some(function(req) {
-//      return req.isRequestPending();
-//    });
-//    return !some_req_not_finished;
-//  };
-//
-//  /**
-//   * @param {number} idx caller request index.
-//   */
-//  var processNext = function(idx) {
-//    // filter is pass if its primary key of the filter is equal to or greater
-//    // than the primary cursor's primary key.
-//    // greater, however means the filter condition will never met and hence
-//    // primary cursor must advance.
-//    var pass = false;
-//    var match = true;
-//    var cmps = [];
-//    var highest_key = me.primary_key;
-//    for (var i = 0; i < cursors.length; i++) {
-//      var cursor = cursors[i];
-//      if (cursor.hasCursor()) {
-//        var cmp = ydn.db.cmp(me.primary_key, cursor.getPrimaryKey());
-//        cmps[i] = cmp;
-//        if (cmp === 1) {
-//          match = false;
-//        } else if (cmp === -1) {
-//          match = false;
-//          pass = true;
-//          if (ydn.db.cmp(cursor.getPrimaryKey(), highest_key) === 1) {
-//            highest_key = cursor.getPrimaryKey();
-//          }
-//        }
-//      } else {
-//        match = false;
-//      }
-//    }
-//    if (ydn.db.Iterator.DEBUG) {
-//      window.console.log(['processNext', match, pass, highest_key, JSON.stringify(cmps)]);
-//    }
-//
-//    if (match) {
-//      primary_cursor.onNext(primary_cursor.getPrimaryKey(),
-//          primary_cursor.getIndexKey(), primary_cursor.getValue());
-//      // all cursors advance one step.
-//      // primary_cursor.forward(true); // onNext will invoke
-//      for (var i = 0; i < cursors.length; i++) {
-//        cursors[i].forward(true);
-//      }
-//    } else if (pass) {
-//      // we mush skip current position.
-//      if (highest_key != me.primary_key) {
-//        primary_cursor.continuePrimaryKey(highest_key);
-//      }
-//      for (var i = 0; i < cursors.length; i++) {
-//        if (cmps[i] == 0) {
-//          cursors[i].continueEffectiveKey(highest_key);
-//        } else if (cmps[i] == -1) {
-//          cursors[i].continueEffectiveKey(highest_key);
-//        } else {
-//          if (!cursors[i].hasCursor()) {
-//            cursors[i].continueEffectiveKey(highest_key);
-//          } else if (highest_key != cursors[i].getPrimaryKey()) {
-//            cursors[i].continueEffectiveKey(highest_key);
-//          }
-//        }
-//      }
-//    } else {
-//      // all cursors lower than highest_key, seek it.
-//      if (me.primary_key != highest_key) {
-//        primary_cursor.continueEffectiveKey(highest_key);
-//      }
-//      for (var i = 0; i < cursors.length; i++) {
-//        if (!cursors[i].hasCursor() ||
-//            ydn.db.cmp(cursors[i].getPrimaryKey(), highest_key) !== 0) {
-//          cursors[i].continueEffectiveKey(highest_key);
-//        }
-//      }
-//    }
-//
-//  };
-//
-//  return primary_cursor;
-//};
 
 
 /**

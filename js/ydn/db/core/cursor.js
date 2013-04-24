@@ -47,7 +47,7 @@ ydn.db.Cursor = function(cursors, opt_pre_cursor, opt_key, opt_primary_key) {
 
   if (opt_pre_cursor) {
     this.keys_ = goog.array.clone(opt_pre_cursor.keys_);
-    this.primary_keys_ = goog.array.clone(this.primary_keys_);
+    this.primary_keys_ = goog.array.clone(opt_pre_cursor.primary_keys_);
   }
   if (goog.isDefAndNotNull(opt_key)) {
     this.keys_[0] = opt_key;
@@ -629,8 +629,20 @@ if (goog.DEBUG) {
    */
   ydn.db.Cursor.prototype.toString = function() {
     var s = '[';
-    for (var i = 0; i < this.cursors_.length; i++) {
-      s += this.cursors_[i].toString();
+    for (var i = 0; i < this.keys_.length; i++) {
+      if (i > 0) {
+        s += ' ';
+      }
+      if (this.cursors_[i]) {
+        s += this.cursors_[i].toString();
+      } else {
+        s += 'cursor~{' + this.keys_[i];
+        if (goog.isDefAndNotNull(this.primary_keys_[i])) {
+          s += ';' + this.primary_keys_[i] + '}';
+        } else {
+          s += '}';
+        }
+      }
     }
     s += ']';
     return 'Cursor ' + s;

@@ -102,6 +102,9 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
       mth == ydn.db.schema.Store.QueryMethod.VALUES ? 'values' :
       mth == ydn.db.schema.Store.QueryMethod.COUNT ? 'count' : '';
   var msg = tx_no + ' ' + q + 'ByIterator ' + iter;
+  if (opt_limit > 0) {
+    msg += ' limit ' + opt_limit;
+  }
   var me = this;
   this.logger.finer(msg);
   var cursor = iter.iterate(tx, tx_no, this, mth);

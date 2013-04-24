@@ -458,5 +458,13 @@ ydn.db.core.req.SimpleCursor.prototype.continuePrimaryKey = function(key) {
 
 
 
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.core.req.SimpleCursor.prototype.toString = function() {
+    return 'Simple' + goog.base(this, 'toString');
+  };
+}
 
 

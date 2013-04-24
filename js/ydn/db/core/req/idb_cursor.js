@@ -95,6 +95,17 @@ ydn.db.core.req.IDBCursor.prototype.request_ = null;
  */
 ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
 
+  var msg = this + ' opening ';
+  if (goog.isDefAndNotNull(key)) {
+    msg += '{' + key;
+    if (goog.isDefAndNotNull(primary_key)) {
+      msg += ';' + primary_key + '}';
+    } else {
+      msg += '}';
+    }
+  }
+  this.logger.finest(msg);
+
   var key_range = this.key_range;
   var obj_store = this.tx.objectStore(this.store_name);
   var index = goog.isString(this.index_name) ?
@@ -166,7 +177,10 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
       window.console.log(me + ' onSuccess ' + key);
     }
     me.onSuccess(key, p_key, value);
-    me.request_.onsuccess = goog.bind(me.defaultOnSuccess, me);
+    if (me.request_) {
+      me.request_.onsuccess = goog.bind(me.defaultOnSuccess, me);
+    }
+    request = null;
   };
 
   if (goog.isDefAndNotNull(key)) {
@@ -175,15 +189,16 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
       var cursor = ev.target.result;
       if (cursor) {
         var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cursor.key, key);
-        if (cmp == 1) {
+        var dir = me.reverse ? -1 : 1;
+        if (cmp == dir) {
           requestReady(cursor.key, cursor.primaryKey, cursor.value);
-        } else if (cmp == -1) {
+        } else if (cmp == (-dir)) {
           cursor['continue'](key);
         } else {
           if (goog.isDefAndNotNull(primary_key)) {
             var cmp2 = ydn.db.con.IndexedDb.indexedDb.cmp(
                 cursor.primaryKey, primary_key);
-            if (cmp2 == 1) {
+            if (cmp2 == dir) {
               requestReady(cursor.key, cursor.primaryKey, cursor.value);
             } else {
               cursor['continue']();
@@ -341,5 +356,13 @@ ydn.db.core.req.IDBCursor.prototype.disposeInternal = function() {
 };
 
 
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.core.req.IDBCursor.prototype.toString = function() {
+    return 'IDB' + goog.base(this, 'toString');
+  };
+}
 
 

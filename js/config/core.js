@@ -92,6 +92,8 @@ goog.exportProperty(ydn.db.Iterator.prototype, 'resume',
     ydn.db.Iterator.prototype.resume);
 goog.exportProperty(ydn.db.Iterator.prototype, 'reset',
     ydn.db.Iterator.prototype.reset);
+goog.exportProperty(ydn.db.Iterator.prototype, 'reverse',
+    ydn.db.Iterator.prototype.reverse);
 
 goog.exportProperty(ydn.db.KeyCursors, 'where', ydn.db.KeyCursors.where);
 goog.exportProperty(ydn.db.ValueCursors, 'where', ydn.db.ValueCursors.where);
