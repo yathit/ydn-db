@@ -88,23 +88,25 @@ ydn.db.core.req.WebSql.prototype.listByIterator = function(tx, tx_no, df, q,
  * @param {string} tx_no tx label.
  * @param {?function(*, boolean=)} df return key in deferred function.
  * @param {!ydn.db.Iterator} iter the query.
- * @param {ydn.db.schema.Store.QueryMethod} query_mth query method.
+ * @param {ydn.db.schema.Store.QueryMethod} mth query method.
  * @param {number=} opt_limit override limit.
  * @param {number=} opt_offset offset.
  * @private
  */
 ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
-    query_mth, opt_limit, opt_offset) {
+    mth, opt_limit, opt_offset) {
 
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
-  var mth = query_mth ? ' keys' : ' values';
-  var msg = tx_no + mth + 'ByIterator ' + iter;
+  var q = mth == ydn.db.schema.Store.QueryMethod.KEYS ? 'keys' :
+      mth == ydn.db.schema.Store.QueryMethod.VALUES ? 'values' :
+      mth == ydn.db.schema.Store.QueryMethod.COUNT ? 'count' : '';
+  var msg = tx_no + ' ' + q + 'ByIterator ' + iter;
   var me = this;
-  this.logger.finest(msg);
-  var cursor = iter.iterate(tx, tx_no, this, query_mth);
+  this.logger.finer(msg);
+  var cursor = iter.iterate(tx, tx_no, this, mth);
   cursor.onFail = function(e) {
-    me.logger.warning('error:' + msg);
+    me.logger.finer('error:' + msg);
     cursor.exit();
     df(e, true);
   };
@@ -126,7 +128,7 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
       }
       count++;
       var out;
-      if (query_mth == ydn.db.schema.Store.QueryMethod.KEYS) {
+      if (mth == ydn.db.schema.Store.QueryMethod.KEYS) {
         out = key;
       } else {           // call by values() method
         if (iter.isIndexIterator() && iter.isKeyIterator()) {
@@ -140,12 +142,12 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(tx, tx_no, df, iter,
         cursor.continueEffectiveKey();
       } else {
         cursor.exit();
-        me.logger.finest('success:' + msg);
+        me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
         df(arr);
       }
     } else {
       cursor.exit();
-      me.logger.finest('success:' + msg);
+      me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
       df(arr);
     }
   };

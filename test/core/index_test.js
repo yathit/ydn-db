@@ -14,12 +14,13 @@ var db_name = 'test_index_2';
 
 var setUp = function () {
 
-   ydn.debug.log('ydn.db', 'finest');
+   //ydn.debug.log('ydn.db', 'finest');
 
   // ydn.db.con.WebSql.DEBUG = true;
   // ydn.db.crud.req.WebSql.DEBUG = true;
   //ydn.db.core.req.WebSql.DEBUG = true;
-  ydn.db.core.req.WebsqlCursor.DEBUG = true;
+  //ydn.db.core.req.WebsqlCursor.DEBUG = true;
+  //ydn.db.Cursor.DEBUG = true;
 
   reachedFinalContinuation = false;
 };
@@ -907,7 +908,7 @@ var test_compound_text_starts = function () {
 
 
 var test_restrict = function() {
-  var db_name = 'test_restrict-1';
+  var db_name = 'test_restrict-2';
   var data = [
     {id: 1, a: 3, b: 'a'},
     {id: 2, a: 2, b: 'b'},
@@ -920,7 +921,7 @@ var test_restrict = function() {
     stores: [{
       name: 'st',
       keyPath: 'id',
-      type: 'TEXT',
+      type: 'INTEGER',
       indexes: [{
         name: 'a',
         type: 'NUMERIC'

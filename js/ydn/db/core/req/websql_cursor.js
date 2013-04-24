@@ -152,11 +152,11 @@ ydn.db.core.req.WebsqlCursor.prototype.collect = function(opt_row) {
   this.current_key_ = undefined;
   this.current_primary_key_ = undefined;
   this.current_value_ = undefined;
+  if (ydn.db.core.req.WebsqlCursor.DEBUG) {
+    window.console.log(opt_row);
+  }
   if (goog.isDef(opt_row)) {
     var row = opt_row;
-    if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-      window.console.log(row);
-    }
     if (goog.isObject(row)) {
       var primary_column_name = this.store_schema_.getSQLKeyColumnName();
       var primary_key = ydn.db.schema.Index.sql2js(
@@ -399,7 +399,7 @@ ydn.db.core.req.WebsqlCursor.prototype.sqlContinueEffectiveKey_ = function(
           upper = key;
           upperOpen = open;
         } else if (u_cmp == 0) {
-          lowerOpen = open || upperOpen;
+          upperOpen = open || upperOpen;
         }
       } else {
         upper = key;
@@ -429,8 +429,7 @@ ydn.db.core.req.WebsqlCursor.prototype.sqlContinueEffectiveKey_ = function(
     }
   }
 
-  var key_range = ydn.db.KeyRange.parseIDBKeyRange(
-      new ydn.db.KeyRange(lower, upper, !!lowerOpen, !!upperOpen));
+  var key_range = new ydn.db.KeyRange(lower, upper, !!lowerOpen, !!upperOpen);
 
   var column = this.index_ ? this.index_.getSQLIndexColumnName() :
       this.store_schema_.getSQLKeyColumnName();
@@ -500,12 +499,14 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
    * @param {SQLResultSet} results results.
    */
   var onSuccess = function(tx, results) {
+    /*
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log(sql);
       for (var r = 0, rn = results.rows.length; r < rn; r++) {
         window.console.log(results.rows.item(r));
       }
     }
+    */
     if (results.rows.length > 0) {
       me.collect(results.rows.item(0));
     } else {
@@ -632,39 +633,45 @@ ydn.db.core.req.WebsqlCursor.prototype.advance = function(step) {
   var key = this.current_key_;
   var p_key = this.current_primary_key_;
   /**
-   * @param {IDBKey=} k
-   * @param {IDBKey=} p_k
-   * @param {*=} v
+   * @param {IDBKey=} opt_key
+   * @param {IDBKey=} opt_p_key
+   * @param {*=} opt_value
    * @this {ydn.db.core.req.WebsqlCursor}
    */
-  var on_success = function(k, p_k, v) {
-    var same_k = goog.isDefAndNotNull(key) && goog.isDefAndNotNull(k) &&
-        ydn.db.cmp(key, k) == 0;
+  var on_success = function(opt_key, opt_p_key, opt_value) {
+    var same_k = goog.isDefAndNotNull(key) && goog.isDefAndNotNull(opt_key) &&
+        ydn.db.cmp(key, opt_key) == 0;
     if (this.isPrimaryCursor()) {
       if (same_k) {
         throw new ydn.debug.error.InternalError(
-            'current: ' + key + ' next: ' + k);
+            'current: ' + key + ' next: ' + opt_key);
       }
     } else {
-      var same_p_k = goog.isDefAndNotNull(p_k) && goog.isDefAndNotNull(p_key) &&
-          ydn.db.cmp(p_k, p_key) == 0;
+      var same_p_k = goog.isDefAndNotNull(opt_p_key) &&
+          goog.isDefAndNotNull(p_key) &&
+          ydn.db.cmp(opt_p_key, p_key) == 0;
       if (same_k && same_p_k) {
         throw new ydn.debug.error.InternalError(
-            'current: ' + key + ';' + p_key + ' next: ' + k + ';' + p_k);
+            'current: ' + key + ';' + p_key + ' next: ' +
+                opt_key + ';' + opt_p_key);
       }
     }
-
-    this.onSuccess(k, p_k, v);
+    this.onSuccess(opt_key, opt_p_key, opt_value);
   };
 
   goog.asserts.assert(step > 0);
 
-  // console.log('current key ' + this.current_key_);
+  var inclusive = true;
+  if (goog.isDefAndNotNull(this.current_key_) && (this.isPrimaryCursor() ||
+      goog.isDefAndNotNull(this.current_primary_key_))) {
+    step = step - 1;
+    inclusive = false;
+  }
+
   this.continueEffectiveKey_(
       ydn.db.core.req.WebsqlCursor.MONITOR ? on_success : this.onSuccess,
-      this.current_key_, true, step,
+      this.current_key_, inclusive, step,
       this.current_primary_key_);
-
 
 };
 
@@ -765,7 +772,7 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
  * @inheritDoc
  */
 ydn.db.core.req.WebsqlCursor.prototype.restart = function(effective_key,
-                                                           primary_key) {
+                                                          primary_key) {
   this.logger.finest(this + ' restarting.');
   this.openCursor(primary_key, effective_key);
 };
