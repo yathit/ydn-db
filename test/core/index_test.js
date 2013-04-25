@@ -8,7 +8,7 @@ goog.require('ydn.db.Storage');
 
 
 
-var reachedFinalContinuation, schema, debug_console, objs;
+var reachedFinalContinuation, schema, objs;
 var store_name = 't1';
 var db_name = 'test_index_2';
 
