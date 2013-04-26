@@ -976,7 +976,7 @@ ydn.db.schema.Store.SyncMethod = {
   GET: 'get',
   PUT: 'put',
   REMOVE: 'rm',
-  LIST: 'li'
+  VALUES: 'vs'
 };
 
 
@@ -985,16 +985,11 @@ ydn.db.schema.Store.SyncMethod = {
  * Override this function to attach the hook. The default implementation is
  * immediately invoke the given callback with first variable argument.
  * @param {ydn.db.schema.Store.SyncMethod} method
- * @param {{
-   *   index: (string?|undefined),
-   *   limit: (number|undefined),
-   *   offset: (number|undefined),
-   *   reverse: (boolean|undefined)
-   * }}  opt
+ * @param {Arguments} args arguments to the db method.
  * @param {Function} callback
  * @param {...} varargin
  */
-ydn.db.schema.Store.prototype.preHook = function(method, opt, callback,
+ydn.db.schema.Store.prototype.preHook = function(method, args, callback,
                                                  varargin) {
   callback(varargin);
 };
@@ -1005,17 +1000,12 @@ ydn.db.schema.Store.prototype.preHook = function(method, opt, callback,
  * Override this function to attach the hook. The default implementation is
  * immediately invoke the given callback with first variable argument.
  * @param {ydn.db.schema.Store.SyncMethod} method
- * @param {{
-   *   index: (string|undefined),
-   *   limit: (number|undefined),
-   *   offset: (number|undefined),
-   *   reverse: (boolean|undefined)
-   * }}  opt
+ * @param {Arguments} args arguments to the db method.
+ * @param {Object} value record value.
  * @param {Function} callback
- * @param {...} varargin
  */
-ydn.db.schema.Store.prototype.postHook = function(method, opt, callback,
-                                                  varargin) {
-  callback(varargin);
+ydn.db.schema.Store.prototype.postHook = function(method, args, value,
+                                                  callback) {
+  callback(value);
 };
 
