@@ -276,7 +276,6 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
         this.tx_thread.exec(req_df, function(tx, tx_no, cb) {
           me.getExecutor().getById(tx, tx_no, cb, store_name, id);
         }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-
         var args = arguments;
         req_df.addCallbacks(function(record) {
           store.postHook(ydn.db.schema.Store.SyncMethod.GET, args, record,
@@ -286,7 +285,6 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
         }, function(e) {
           df.errback(e);
         });
-
       } else {
         this.tx_thread.exec(df, function(tx, tx_no, cb) {
           me.getExecutor().getById(tx, tx_no, cb, store_name, id);
