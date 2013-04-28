@@ -52,7 +52,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   var req_type = ydn.db.tr.IThread.Policy.SINGLE;
   if (opt_options) {
     if (goog.isDef(opt_options.isSerial)) {
-      is_serial =  !!opt_options.isSerial;
+      is_serial = !!opt_options.isSerial;
     }
     if (opt_options.policy) {
       req_type = /** @type {ydn.db.tr.IThread.Policy} */
@@ -64,7 +64,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @final
    */
   this.sync_thread = ydn.db.base.USE_HOOK ?
-      this.newTxQueue(ydn.db.tr.IThread.Policy.ATOMIC, false) : null;
+      this.newTxQueue(ydn.db.tr.IThread.Policy.SINGLE, false) : null;
 
   /**
    * @final

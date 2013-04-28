@@ -1,3 +1,17 @@
+// Copyright 2012 YDN Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @fileoverview Parallel transaction executor.
  */
@@ -9,10 +23,10 @@ goog.require('ydn.debug.error.InternalError');
 
 /**
  *
- * @param {ydn.db.con.IDatabase.Transaction} tx
- * @param {number} tx_no
- * @param {Array.<string>} store_names
- * @param {ydn.db.base.TransactionMode?} mode
+ * @param {ydn.db.con.IDatabase.Transaction} tx transaction.
+ * @param {number} tx_no tx no.
+ * @param {Array.<string>} store_names store lists for explicit tx scope.
+ * @param {ydn.db.base.TransactionMode?} mode mode for explicit tx scope.
  * @constructor
  * @struct
  */
@@ -90,8 +104,8 @@ ydn.db.tr.ParallelTxExecutor.prototype.getTxNo = function() {
 
 /**
  * Handler on tx completed.
- * @param {ydn.db.base.TxEventTypes} t
- * @param {*} e
+ * @param {ydn.db.base.TxEventTypes} t tx event type.
+ * @param {*} e error if it has.
  */
 ydn.db.tr.ParallelTxExecutor.prototype.onCompleted = function(t, e) {
   goog.asserts.assert(this.isActive(), this.tx_no_ + ' already completed?');
@@ -107,16 +121,16 @@ ydn.db.tr.ParallelTxExecutor.prototype.onCompleted = function(t, e) {
 
 /**
  *
- * @param {Function} on_tx
- * @param {function(ydn.db.base.TxEventTypes, *)=} opt_on_completed
+ * @param {Function} on_tx tx function.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_on_completed handler.
  */
 ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function(on_tx,
                                                             opt_on_completed) {
   if (this.tx_) {
-    on_tx(this.tx_);
     if (opt_on_completed) {
       this.oncompleted_handlers.push(opt_on_completed);
     }
+    on_tx(this.tx_);
   } else {
     throw new ydn.debug.error.InternalError(
         'tx committed on ParallelTxExecutor');
@@ -126,9 +140,9 @@ ydn.db.tr.ParallelTxExecutor.prototype.executeTx = function(on_tx,
 
 /**
  *
- * @param {!Array.<string>} scopes
- * @param {ydn.db.base.TransactionMode} mode
- * @return {boolean}
+ * @param {!Array.<string>} scopes store names as tx scope.
+ * @param {ydn.db.base.TransactionMode} mode tx mode.
+ * @return {boolean} true if in same scope.
  */
 ydn.db.tr.ParallelTxExecutor.prototype.sameScope = function(scopes, mode) {
   if (!this.scopes_ || !this.mode_) {
@@ -151,9 +165,9 @@ ydn.db.tr.ParallelTxExecutor.prototype.sameScope = function(scopes, mode) {
 
 /**
  *
- * @param {!Array.<string>} store_names
- * @param {ydn.db.base.TransactionMode} mode
- * @return {boolean}
+ * @param {!Array.<string>} store_names store names as tx scope.
+ * @param {ydn.db.base.TransactionMode} mode mode tx mode.
+ * @return {boolean} true if in sub scope.
  */
 ydn.db.tr.ParallelTxExecutor.prototype.subScope = function(store_names, mode) {
   if (!this.scopes_ || !this.mode_) {

@@ -1037,15 +1037,20 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
 ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
                                                          opt_keys) {
   var df = new goog.async.Deferred();
+  var out;
   var me = this;
   var on_completed = function(t, e) {
     if (t == ydn.db.base.TxEventTypes.COMPLETE) {
-      df.callback();
+      df.callback(out);
     } else {
-      df.errback();
+      df.errback(out);
     }
   };
-  this.sync_thread.exec(df, function(tx, tx_no, cb) {
+  var req_df = new goog.async.Deferred();
+  req_df.addBoth(function(x) {
+    out = x;
+  });
+  this.sync_thread.exec(req_df, function(tx, tx_no, cb) {
     me.getExecutor().putObjects(tx, tx_no, cb, store_name, objs,
         opt_keys);
   }, [store_name], ydn.db.base.TransactionMode.READ_WRITE, on_completed);

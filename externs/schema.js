@@ -106,6 +106,7 @@ BaseOptions.prototype.metaStoreName;
 var AtomOptions = function() {};
 
 
+
 /**
  * @see http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html
  * @extends {AtomOptions}
@@ -195,8 +196,9 @@ StoreSyncOptionJson.prototype.writeRequestTimeout;
  */
 StoreSyncOptionJson.prototype.transport;
 
+
 /**
- * @type {AtomOptions|GDataOptions|ODataOptions|S3Options}
+ * @type {BaseOptions|AtomOptions|GDataOptions|ODataOptions|S3Options}
  */
 StoreSyncOptionJson.prototype.Options;
 
@@ -207,6 +209,7 @@ StoreSyncOptionJson.prototype.Options;
  * @type {Array}
  */
 StoreSyncOptionJson.prototype.fetchStrategies;
+
 
 
 /**

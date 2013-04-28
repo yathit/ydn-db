@@ -49,8 +49,8 @@ ydn.db.tr.AtomicParallel.prototype.reusedTx = function(scopes, mode) {
 /**
  * @inheritDoc
  */
-ydn.db.tr.AtomicParallel.prototype.exec = function (df, callback, store_names,
-     mode, on_completed) {
+ydn.db.tr.AtomicParallel.prototype.exec = function(df, callback, store_names,
+    mode, on_completed) {
   // intersect request result to make atomic
   var result;
   var is_error;
