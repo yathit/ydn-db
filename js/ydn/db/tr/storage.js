@@ -64,7 +64,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @final
    */
   this.sync_thread = ydn.db.base.USE_HOOK ?
-      this.newTxQueue(ydn.db.tr.IThread.Policy.SINGLE, false) : null;
+      this.newTxQueue(ydn.db.tr.IThread.Policy.ATOMIC, false) : null;
 
   /**
    * @final
