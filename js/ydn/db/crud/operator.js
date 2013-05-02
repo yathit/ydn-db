@@ -753,11 +753,11 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
                 //console.log('putObjects');
                 me.getExecutor().addObject(tx, tx_no, cb, store_name, obj, key);
               }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
-        } else {
-          me.logger.finer('prehook reject add: ' + label);
-          post_df.errback();
-        }
-      }, obj, key);
+            } else {
+              me.logger.finer('prehook reject add: ' + label);
+              post_df.errback();
+            }
+          }, obj, key);
 
       post_df.addCallbacks(function(key) {  // todo: use chain
         df.callback(key);
@@ -989,7 +989,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
                 //console.log('putObjects');
                 me.getExecutor().putObject(tx, tx_no, cb, store_name, obj, key);
               }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
-        }, obj, key);
+            }, obj, key);
 
         post_df.addCallbacks(function(key) {  // todo: use chain
           df.callback(key);
