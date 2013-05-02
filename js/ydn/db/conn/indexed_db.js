@@ -565,7 +565,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
   var createObjectStore = function() {
     // IE10 is picky on optional parameters of keyPath. If it is undefined,
     // it must not be defined.
-    var options = {'autoIncrement': !!store_schema.getAutoIncrement()};
+    var options = {'autoIncrement': !!store_schema.isAutoIncrement()};
     if (goog.isDefAndNotNull(store_schema.getKeyPath())) {
       options['keyPath'] = store_schema.getKeyPath();
     }
@@ -576,7 +576,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
         throw new ydn.db.InvalidAccessError('creating store for ' +
           store_schema.getName() + ' of keyPath: ' +
           store_schema.getKeyPath() + ' and autoIncrement: ' +
-          store_schema.getAutoIncrement());
+          store_schema.isAutoIncrement());
       } else if (goog.DEBUG && e.name == 'ConstraintError') {
         // store already exist.
         throw new ydn.error.ConstraintError('creating store for ' +
@@ -605,8 +605,8 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
             ' deleted due to keyPath change.');
       store = createObjectStore();
     } else if (goog.isBoolean(store.autoIncrement) &&
-        goog.isBoolean(store_schema.getAutoIncrement()) &&
-        store.autoIncrement != store_schema.getAutoIncrement()) {
+        goog.isBoolean(store_schema.isAutoIncrement()) &&
+        store.autoIncrement != store_schema.isAutoIncrement()) {
       db.deleteObjectStore(store_schema.getName());
       this.logger.warning('store: ' + store_schema.getName() +
           ' deleted due to autoIncrement change.');

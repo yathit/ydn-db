@@ -297,7 +297,7 @@ ydn.db.con.simple.Store.prototype.addRecord = function(key, value, opt_is_add) {
     if (this.schema.usedInlineKey()) {
       key = this.schema.extractKey(value);
     }
-    if (this.schema.getAutoIncrement() && !goog.isDefAndNotNull(key)) {
+    if (this.schema.isAutoIncrement() && !goog.isDefAndNotNull(key)) {
       key = this.generateKey();
     }
   }

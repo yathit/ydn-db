@@ -673,7 +673,7 @@ ydn.db.schema.Store.prototype.getName = function() {
  *
  * @return {boolean|undefined} autoIncrement.
  */
-ydn.db.schema.Store.prototype.getAutoIncrement = function() {
+ydn.db.schema.Store.prototype.isAutoIncrement = function() {
   return this.autoIncrement;
 };
 

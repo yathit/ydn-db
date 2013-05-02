@@ -971,7 +971,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
           goog.asserts.assert(ydn.db.Key.isValidKey(key), key +
               ' of type ' + (typeof key) + ' is invalid key for ' +
               ydn.json.toShortString(obj));
-        } else if (!store.getAutoIncrement() && store.usedInlineKey()) {
+        } else if (!store.isAutoIncrement() && store.usedInlineKey()) {
           goog.asserts.assert(ydn.db.Key.isValidKey(store.extractKey(obj)),
               'in-line key on ' + store.getKeyPath() + ' must provided in ' +
               ydn.json.toShortString(obj));
@@ -1039,6 +1039,19 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
   var df = new goog.async.Deferred();
   var me = this;
 
+  if (goog.DEBUG) {
+    var store = this.schema.getStore(store_name);
+    if (store) {
+      if (!store.usedInlineKey() && !store.isAutoIncrement() &&
+          !goog.isDefAndNotNull(opt_keys)) {
+        throw new ydn.debug.error.ArgumentException('key required for store "' +
+            store_name + '"');
+      }
+    } else {
+      throw new ydn.db.NotFoundError(store_name);
+    }
+  }
+
   this.sync_thread.exec(df, function(tx, tx_no, cb) {
     me.getExecutor().putObjects(tx, tx_no, cb, store_name, objs,
         opt_keys);
@@ -1053,7 +1066,7 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
  * This is friendly module use only.
  * @param {string} store_name store name.
  * @param {?string} index_name index name.
- * @param {?IDBKeyRange|ydn.db.KeyRange} key_range key range.
+ * @param {IDBKeyRange|ydn.db.KeyRange} key_range key range.
  * @param {boolean} reverse reverse.
  * @param {number} limit limit.
  * @return {!goog.async.Deferred} df.
@@ -1063,6 +1076,18 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
     key_range, reverse, limit) {
   var df = new goog.async.Deferred();
   var me = this;
+
+  if (goog.DEBUG) {
+    var store = this.schema.getStore(store_name);
+    if (store) {
+      if (index_name && !store.hasIndex(index_name)) {
+        throw new ydn.db.NotFoundError('index "' + index_name + '" in store "' +
+            store_name + '"');
+      }
+    } else {
+      throw new ydn.db.NotFoundError(store_name);
+    }
+  }
 
   var kr = ydn.db.KeyRange.parseIDBKeyRange(key_range);
   if (goog.isString(index_name)) {
@@ -1097,6 +1122,18 @@ ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
     key_range, reverse, limit) {
   var df = new goog.async.Deferred();
   var me = this;
+
+  if (goog.DEBUG) {
+    var store = this.schema.getStore(store_name);
+    if (store) {
+      if (index_name && !store.hasIndex(index_name)) {
+        throw new ydn.db.NotFoundError('index "' + index_name + '" in store "' +
+            store_name + '"');
+      }
+    } else {
+      throw new ydn.db.NotFoundError(store_name);
+    }
+  }
 
   if (goog.isString(index_name)) {
     var index = index_name;
