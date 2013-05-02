@@ -742,4 +742,19 @@ if (goog.DEBUG) {
     var s = this.idx_db_ ? this.idx_db_.name + ':' + this.idx_db_.version : '';
     return 'IndexedDB:' + s;
   };
+
+
+  /**
+   * Handy debug function in testing on Chrome to delete all IDB databases.
+   */
+  ydn.db.con.IndexedDb.deleteAllDatabases = function() {
+    var req = goog.global.indexedDB['webkitGetDatabaseNames']();
+    req.onsuccess = function(e) {
+      var names = e.target.result;
+      for (var i = 0; i < names.length; i++) {
+        window.console.info('deleting ' + names[i]);
+        ydn.db.con.IndexedDb.indexedDb.deleteDatabase(names[i]);
+      }
+    };
+  };
 }

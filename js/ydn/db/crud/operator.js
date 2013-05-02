@@ -1028,7 +1028,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
  * updating from
  * server.
  * This is friendly module use only.
- * @param {string} store_name store name.
+ * @param {string|!Array.<!ydn.db.Key>} store_name store name.
  * @param {!Array.<Object>} objs objects.
  * @param {!Array.<!IDBKey>=} opt_keys keys.
  * @return {!goog.async.Deferred} df return no result.
@@ -1039,23 +1039,43 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
   var df = new goog.async.Deferred();
   var me = this;
 
-  if (goog.DEBUG) {
-    var store = this.schema.getStore(store_name);
-    if (store) {
-      if (!store.usedInlineKey() && !store.isAutoIncrement() &&
-          !goog.isDefAndNotNull(opt_keys)) {
-        throw new ydn.debug.error.ArgumentException('key required for store "' +
-            store_name + '"');
+  var store_names, db_keys;
+  if (goog.isString(store_name)) {
+    if (goog.DEBUG) {
+      var store = this.schema.getStore(store_name);
+      if (store) {
+        if (!store.usedInlineKey() && !store.isAutoIncrement() &&
+            !goog.isDefAndNotNull(opt_keys)) {
+          throw new ydn.debug.error.ArgumentException(
+              'key required for store "' + store_name + '"');
+        }
+      } else {
+        throw new ydn.db.NotFoundError(store_name);
       }
-    } else {
-      throw new ydn.db.NotFoundError(store_name);
+    }
+    store_names = [store_name];
+  } else {
+    goog.asserts.assertArray(store_name);
+    db_keys = store_name;
+    store_names = [];
+    for (var i = 0, n = db_keys.length; i < n; i++) {
+      var s_name = db_keys[i].getStoreName();
+      if (goog.array.indexOf(store_names, s_name) == -1) {
+        store_names.push(s_name);
+      }
+      if (goog.DEBUG && !this.schema.hasStore(s_name)) {
+        throw new ydn.db.NotFoundError(s_name);
+      }
     }
   }
 
   this.sync_thread.exec(df, function(tx, tx_no, cb) {
-    me.getExecutor().putObjects(tx, tx_no, cb, store_name, objs,
-        opt_keys);
-  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+    if (goog.isString(store_name)) {
+      me.getExecutor().putObjects(tx, tx_no, cb, store_name, objs, opt_keys);
+    } else {
+      me.getExecutor().putByKeys(tx, tx_no, cb, objs, db_keys);
+    }
+  }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
   return df;
 };
 
