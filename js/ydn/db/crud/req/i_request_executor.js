@@ -54,36 +54,39 @@ ydn.db.crud.req.IRequestExecutor.prototype.removeById = goog.abstractMethod;
  * Delete given key in the object store.
  * Return number of keys deleted.
  * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
+ * @param {string} tx_no transaction number.
  * @param {?function(*, boolean=)} return object in deferred function.
  * @param {(!Array.<!ydn.db.Key>)} id object key to be deleted.
  */
-ydn.db.crud.req.IRequestExecutor.prototype.removeByKeys = goog.abstractMethod;
-
-
+ydn.db.crud.req.IRequestExecutor.prototype.removeByKeys =
+    goog.abstractMethod;
 
 
 /**
  * Clear records in the given key range from a store.
  * Return number of keys deleted.
  * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
+ * @param {string} tx_no transaction number.
  * @param {?function(*, boolean=)} return object in deferred function.
  * @param {string} store table name.
  * @param {IDBKeyRange} key range.
  */
-ydn.db.crud.req.IRequestExecutor.prototype.removeByKeyRange = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.removeByKeyRange =
+    goog.abstractMethod;
+
 
 /**
  * Clear records in the given key range from a store.
  * Return number of keys deleted.
  * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
+ *  @param {string} tx_no transaction number.
  * @param {?function(*, boolean=)} return object in deferred function.
  * @param {string} store table name.
  * @param {IDBKeyRange} key range.
  */
-ydn.db.crud.req.IRequestExecutor.prototype.clearByKeyRange = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.clearByKeyRange =
+    goog.abstractMethod;
+
 
 /**
  * Clear records in the given key range from a store.
