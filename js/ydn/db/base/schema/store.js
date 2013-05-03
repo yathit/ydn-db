@@ -750,9 +750,13 @@ ydn.db.schema.Store.prototype.addIndex = function(name, opt_type, opt_unique,
 /**
  * Extract primary key value of keyPath from a given object.
  * @param {!Object} record record value.
+ * @param {IDBKey=} opt_key out-of-line key.
  * @return {!IDBKey|undefined} extracted primary key.
  */
-ydn.db.schema.Store.prototype.extractKey = function(record) {
+ydn.db.schema.Store.prototype.extractKey = function(record, opt_key) {
+  if (!this.usedInlineKey() && goog.isDefAndNotNull(opt_key)) {
+    return opt_key;
+  }
   // http://www.w3.org/TR/IndexedDB/#key-construct
   if (this.isComposite) {
     var arr = [];

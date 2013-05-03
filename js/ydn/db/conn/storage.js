@@ -601,7 +601,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
 
   var task = this.txQueue_.shift();
   if (task) {
-    this.logger.finest('pop tx queue ' + task.fnc.name);
+    this.logger.finest('pop tx queue[' + (this.txQueue_.length + 1) + ']');
     this.transaction(task.fnc, task.scopes, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
@@ -619,7 +619,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
  */
 ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
     opt_mode, opt_on_completed) {
-  this.logger.finest('push tx queue ' + trFn.name);
+  this.logger.finest('push tx queue[' + this.txQueue_.length + ']');
   this.txQueue_.push({
     fnc: trFn,
     scopes: store_names,

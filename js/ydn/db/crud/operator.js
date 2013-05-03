@@ -532,7 +532,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       if (ydn.db.base.USE_HOOK) {
         store.preHook(ydn.db.schema.Store.SyncMethod.VALUES, arguments,
             function() {
-              me.logger.finest('listByIndexKeyRange: continue from preHook');
+              me.logger.finer('listByIndexKeyRange: continue from preHook');
               me.sync_thread.exec(df, function(tx, tx_no, cb) {
                 me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name,
                     index_name, range, reverse, limit, offset, false);
@@ -738,8 +738,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
   } else if (goog.isObject(value)) {
     var obj = value;
     var key = /** @type {number|string|undefined} */ (opt_keys);
-    var label = 'store: ' + store_name + ' key: ' +
-        store.usedInlineKey() ? store.extractKey(obj) : key;
+    var label = 'store: ' + store_name + ' key: ' + store.extractKey(obj, key);
 
     this.logger.finer('addObject: ' + label);
 
@@ -747,14 +746,14 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
       var post_df = new goog.async.Deferred();
       store.preHook(ydn.db.schema.Store.SyncMethod.ADD, arguments,
           function(obj) {
-            if (goog.isObject(obj)) {
-              me.logger.finest('addObject prehook: ' + label);
+            if (obj) {
+              me.logger.finest('addObject preHook: ' + label);
               me.tx_thread.exec(post_df, function(tx, tx_no, cb) {
                 //console.log('putObjects');
                 me.getExecutor().addObject(tx, tx_no, cb, store_name, obj, key);
               }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
             } else {
-              me.logger.finer('prehook reject add: ' + label);
+              me.logger.finer('preHook reject add: ' + label);
               post_df.errback();
             }
           }, obj, key);
@@ -924,7 +923,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
     }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
   } else if (goog.isString(arg1) || goog.isObject(arg1)) {
     var store = this.getStore_(arg1);
-    var store_name = store.getName();
+    var st_name = store.getName();
 
     // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
     if (store.usedInlineKey() && goog.isDef(opt_keys)) {
@@ -948,17 +947,17 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
     if (goog.isArray(value)) {
       var objs = value;
       var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
-      this.logger.finer('putObjects: ' + store_name + ' ' +
+      this.logger.finer('putObjects: ' + st_name + ' ' +
           objs.length + ' objects');
       this.tx_thread.exec(df, function(tx, tx_no, cb) {
         //console.log('putObjects');
-        me.getExecutor().putObjects(tx, tx_no, cb, store_name, objs, keys);
-      }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+        me.getExecutor().putObjects(tx, tx_no, cb, st_name, objs, keys);
+      }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
 
       if (store.dispatch_events) {
         df.addCallback(function(keys) {
           var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.UPDATED,
-              me.getStorage(), store_name, keys, objs);
+              me.getStorage(), st_name, keys, objs);
           me.getStorage().dispatchEvent(event);
         });
       }
@@ -977,34 +976,46 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
               ydn.json.toShortString(obj));
         }
       }
-      this.logger.finer('putObject: ' + store_name + ' ' + key);
+      this.logger.finer('putObject: ' + st_name + ' ' + key);
 
       if (ydn.db.base.USE_HOOK) {
         var post_df = new goog.async.Deferred();
-        var opt = {};
         store.preHook(ydn.db.schema.Store.SyncMethod.PUT, arguments,
             function(obj) {
-              goog.asserts.assertObject(obj);
-              me.tx_thread.exec(df, function(tx, tx_no, cb) {
-                //console.log('putObjects');
-                me.getExecutor().putObject(tx, tx_no, cb, store_name, obj, key);
-              }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
-            }, obj, key);
-
+              if (obj) {
+                me.tx_thread.exec(post_df, function(tx, tx_no, cb) {
+                  //console.log('putObjects');
+                  me.getExecutor().putObject(tx, tx_no, cb, st_name, obj, key);
+                }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+              } else {
+                // server reject put.
+                me.logger.finer('put ' + store.extractKey(obj, key) +
+                    ' canceled by preHook');
+                post_df.errback();
+              }
+            });
+        var args = arguments;
         post_df.addCallbacks(function(key) {  // todo: use chain
-          df.callback(key);
+          store.postHook(ydn.db.schema.Store.SyncMethod.PUT, args,
+              function(p_key) {
+                if (goog.isDefAndNotNull(p_key)) {
+                  df.callback(p_key);
+                } else {
+                  df.errback();
+                }
+              }, key);
         }, function(e) {
           df.errback(e);
         });
       } else {
         this.tx_thread.exec(df, function(tx, tx_no, cb) {
-          me.getExecutor().putObject(tx, tx_no, cb, store_name, obj, key);
-        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+          me.getExecutor().putObject(tx, tx_no, cb, st_name, obj, key);
+        }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
       }
       if (store.dispatch_events) {
         df.addCallback(function(key) {
           var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.UPDATED,
-              me.getStorage(), store_name, key, obj);
+              me.getStorage(), st_name, key, obj);
           me.getStorage().dispatchEvent(event);
         });
       }

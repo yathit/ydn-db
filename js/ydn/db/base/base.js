@@ -97,7 +97,7 @@ ydn.db.base.DEFAULT_CONNECTION_TIMEOUT = 30 * 60 * 1000;
 
 
 /**
- * @enum {string} storage mechanims type.
+ * @enum {string} storage mechanism type.
  */
 ydn.db.base.Mechanisms = {
   IDB: 'indexeddb',
@@ -115,6 +115,7 @@ ydn.db.base.Mechanisms = {
  */
 ydn.db.base.createDeferred = function() {
   if (ydn.db.base.JQUERY) {
+    // TODO: make jquery deferred compatible
     return new goog.async.Deferred();
   } else {
     return new goog.async.Deferred();
@@ -198,7 +199,7 @@ ydn.db.base.TransactionMode = {
 
 /**
  * @define {boolean} if true, a default key-value text store should be created
- * in the abscent of configuration option.
+ * in the absent of configuration option.
  */
 ydn.db.base.ENABLE_DEFAULT_TEXT_STORE = false;
 

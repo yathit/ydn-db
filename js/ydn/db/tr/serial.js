@@ -259,8 +259,7 @@ ydn.db.tr.Serial.prototype.popTxQueue_ = function() {
   var task = this.trQueue_.shift();
   if (task) {
     if (ydn.db.tr.Serial.DEBUG) {
-      this.logger.finest('pop tx queue of ' + this.trQueue_.length + ' ' +
-          task.fnc.name);
+      this.logger.finest('pop tx queue[' + this.trQueue_.length + ']');
     }
     this.processTx(task.fnc, task.store_names, task.mode, task.oncompleted);
   }
@@ -316,7 +315,7 @@ ydn.db.tr.Serial.prototype.isNextTxCompatible = function() {
  */
 ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
     opt_mode, opt_on_completed) {
-  this.logger.finest('Serial push tx queue ' + trFn.name);
+  this.logger.finest('push tx queue[' + this.trQueue_.length + ']');
   this.trQueue_.push({
     fnc: trFn,
     store_names: store_names,
@@ -407,7 +406,8 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         if (task.oncompleted) {
           me.completed_handlers.push(task.oncompleted);
         }
-        me.logger.finest('pop tx queue in continue ' + task.fnc.name);
+        me.logger.fine('pop tx queue' + (me.trQueue_.length + 1) +
+            ' reusing T' + me.getTxNo());
         task.fnc();
       }
     };
@@ -561,7 +561,7 @@ ydn.db.tr.Serial.prototype.getName = function() {
 
 if (goog.DEBUG) {
   /** @override */
-  ydn.db.tr.Serial.prototype.toString = function () {
+  ydn.db.tr.Serial.prototype.toString = function() {
     var s = !!this.s_request_tx ? '*' : '';
     return 'Serial' + ':' + this.getLabel() + s;
   };

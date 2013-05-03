@@ -21,12 +21,12 @@ goog.provide('ydn.db.tr.Storage');
 goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.tr.AtomicParallel');
 goog.require('ydn.db.tr.AtomicSerial');
-goog.require('ydn.db.tr.OverflowSerial');
-goog.require('ydn.db.tr.StrictOverflowSerial');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IStorage');
+goog.require('ydn.db.tr.OverflowSerial');
 goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.db.tr.Serial');
+goog.require('ydn.db.tr.StrictOverflowSerial');
 
 
 
@@ -60,16 +60,22 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
     }
   }
 
+
+
   /**
+   * here we must define sync thread first, so that it is ready when
+   * executing main thread.
    * @final
    */
   this.sync_thread = ydn.db.base.USE_HOOK ?
       this.newTxQueue(ydn.db.tr.IThread.Policy.ATOMIC, false) : null;
 
   /**
+   * main thread.
    * @final
    */
   this.db_operator = this.branch(req_type, is_serial);
+
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
 
@@ -97,7 +103,7 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
 
 
 /**
- * Create a new db operator during initialization.
+ * Create a new db operator.
  * @param {ydn.db.tr.IThread.Policy} request_type thread policy.
  * @param {boolean=} opt_is_serial serial request.
  * @param {!Array.<string>=} opt_store_names store names for tx scope.
@@ -246,8 +252,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
     };
   }
 
-  this.logger.finest('scheduling run in transaction with ' +
-      tx_thread);
+  this.logger.finest('scheduling run in transaction with ' + tx_thread);
   // outFn(/** @type {!ydn.db.tr.IStorage} */ (db_operator));
 
   tx_thread.processTx(function(tx) {
