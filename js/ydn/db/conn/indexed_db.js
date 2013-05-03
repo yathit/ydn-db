@@ -97,13 +97,13 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       goog.asserts.assertObject(db);
       me.idx_db_ = db;
       me.idx_db_.onabort = function(e) {
-        me.logger.finest(me + ': onabort - ' + e.message);
+        me.logger.warning(me + ': onabort - ' + e.message);
       };
       me.idx_db_.onerror = function(e) {
         if (ydn.db.con.IndexedDb.DEBUG) {
           window.console.log([this, e]);
         }
-        me.logger.finest(me + ': onerror - ' + e.message);
+        me.logger.warning(me + ': onerror - ' + e.message);
       };
 
       /**
@@ -121,6 +121,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         me.logger.finest(me + ': onversionchange to: ' + event.version);
         if (me.idx_db_) {
           me.idx_db_.onabort = null;
+          me.idx_db_.onblocked = null;
           me.idx_db_.onerror = null;
           me.idx_db_.onversionchange = null;
           me.idx_db_.close();
@@ -258,7 +259,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
             ver_request.onfailure = function(e) {
               me.logger.warning('migrating from ' + db.version + ' to ' +
-                next_version + ' failed.');
+                  next_version + ' failed.');
               setDb(null, e);
             };
 
@@ -371,7 +372,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       window.console.log([ev, openRequest]);
     }
     me.logger.severe('database ' + dbname + ' ' + schema.version +
-      ' block, close other connections.');
+        ' block, close other connections.');
 
     // should we reopen again after some time?
     setDb(null, ev);
@@ -385,7 +386,8 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         // but did not call any of over listening events.
         var msg = me + ': database state is still ' + openRequest.readyState;
         me.logger.severe(msg);
-        setDb(null, new ydn.db.TimeoutError('connection timeout after ' + me.time_out_));
+        setDb(null, new ydn.db.TimeoutError('connection timeout after ' +
+            me.time_out_));
       }
     }, this.time_out_);
 
@@ -411,6 +413,15 @@ ydn.db.con.IndexedDb.indexedDb = goog.global.indexedDB ||
     goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
     goog.global.moz_indexedDB ||
     goog.global['msIndexedDB'];
+
+
+/**
+ * @final
+ * @return {boolean} return indexedDB support on run time.
+ */
+ydn.db.con.IndexedDb.isSupported = function() {
+  return !!ydn.db.con.IndexedDb.indexedDb;
+};
 
 
 /**
@@ -445,15 +456,6 @@ ydn.db.con.IndexedDb.prototype.getDbInstance = function() {
  */
 ydn.db.con.IndexedDb.prototype.isReady = function() {
   return !!this.idx_db_;
-};
-
-
-/**
- *
- * @return {boolean} return indexedDB support on run time.
- */
-ydn.db.con.IndexedDb.isSupported = function() {
-  return !!ydn.db.con.IndexedDb.indexedDb;
 };
 
 
@@ -574,13 +576,13 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
     } catch (e) {
       if (goog.DEBUG && e.name == 'InvalidAccessError') {
         throw new ydn.db.InvalidAccessError('creating store for ' +
-          store_schema.getName() + ' of keyPath: ' +
-          store_schema.getKeyPath() + ' and autoIncrement: ' +
-          store_schema.isAutoIncrement());
+            store_schema.getName() + ' of keyPath: ' +
+            store_schema.getKeyPath() + ' and autoIncrement: ' +
+            store_schema.isAutoIncrement());
       } else if (goog.DEBUG && e.name == 'ConstraintError') {
         // store already exist.
         throw new ydn.error.ConstraintError('creating store for ' +
-          store_schema.getName());
+            store_schema.getName());
       } else {
         throw e;
       }
@@ -601,8 +603,8 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
 
     if (keyPath != store_keyPath) {
       db.deleteObjectStore(store_schema.getName());
-        this.logger.warning('store: ' + store_schema.getName() +
-            ' deleted due to keyPath change.');
+      this.logger.warning('store: ' + store_schema.getName() +
+          ' deleted due to keyPath change.');
       store = createObjectStore();
     } else if (goog.isBoolean(store.autoIncrement) &&
         goog.isBoolean(store_schema.isAutoIncrement()) &&

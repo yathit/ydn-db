@@ -988,28 +988,13 @@ ydn.db.schema.Store.SyncMethod = {
  * Database hook to call before persisting into the database.
  * Override this function to attach the hook. The default implementation is
  * immediately invoke the given callback with first variable argument.
+ * to preserve database operation order, preHook call is not waited.
  * @param {ydn.db.schema.Store.SyncMethod} method
+ * @param {!goog.async.Deferred} df deferred from database operation.
  * @param {Arguments} args arguments to the db method.
- * @param {Function} callback
- * @param {...} varargin
+ * @return {!goog.async.Deferred} deferred for output.
  */
-ydn.db.schema.Store.prototype.preHook = function(method, args, callback,
-                                                 varargin) {
-  callback(varargin);
-};
-
-
-/**
- * Database hook to call before after retrieval into the database.
- * Override this function to attach the hook. The default implementation is
- * immediately invoke the given callback with first variable argument.
- * @param {ydn.db.schema.Store.SyncMethod} method
- * @param {Arguments} args arguments to the db method.
- * @param {Object} value record value.
- * @param {Function} callback
- */
-ydn.db.schema.Store.prototype.postHook = function(method, args, value,
-                                                  callback) {
-  callback(value);
+ydn.db.schema.Store.prototype.hook = function(method, df, args) {
+  return df;
 };
 

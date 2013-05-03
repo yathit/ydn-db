@@ -78,7 +78,6 @@ ydn.db.crud.req.SimpleStore.prototype.keysByIndexKeyRange = function(tx, tx_no,
   var on_complete = tx.getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var arr = store.getKeys(index_name, key_range, reverse, limit, offset);
-    this.logger.finer('success ' + msg);
     df(arr);
     on_complete();
     on_complete = null;
@@ -98,7 +97,6 @@ ydn.db.crud.req.SimpleStore.prototype.keysByKeyRange = function(tx, tx_no, df,
   var comp = tx.getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var arr = store.getKeys(null, key_range, reverse, limit, offset);
-    this.logger.finer('success ' + msg);
     df(arr);
     comp();
     comp = null;
@@ -174,7 +172,6 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
         }
         arr.push(result_key);
       }
-      me.logger.finer((has_error ? 'error ' : 'success ') + label);
       df(arr, has_error);
     }
     on_comp();
@@ -217,7 +214,7 @@ ydn.db.crud.req.SimpleStore.prototype.addObjects = function(
  */
 ydn.db.crud.req.SimpleStore.prototype.putData = function(tx, tx_no, df,
     store_name, data, delimiter) {
-  throw 'not impl';
+  throw new ydn.debug.error.NotImplementedException('putData');
 };
 
 
