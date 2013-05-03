@@ -39,6 +39,14 @@ ydn.db.tr.AtomicParallel.DEBUG = false;
 
 
 /**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.tr.AtomicParallel.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.tr.AtomicParallel');
+
+
+/**
  * @inheritDoc
  */
 ydn.db.tr.AtomicParallel.prototype.reusedTx = function(scopes, mode) {
