@@ -834,10 +834,11 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
       if (results.length < limit) {
         cursor['continue']();
       } else {
-        me.logger.finest('success ' + msg);
+        me.logger.finest(tx_no + ' success ' + results.length + ' objects');
         df(results);
       }
     } else {
+      me.logger.finest(tx_no + ' success ' + results.length + ' objects');
       df(results);
     }
   };
@@ -1052,6 +1053,9 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(tx, tx_no, df,
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, id, event]);
     }
+    me.logger.finest(tx_no + ' record ' + id +
+        (goog.isDefAndNotNull(event.target.result) ? ' ' : ' not ') +
+        ' exists.');
     df(event.target.result);
   };
 

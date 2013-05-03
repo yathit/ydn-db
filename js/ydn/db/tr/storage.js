@@ -60,7 +60,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
     }
   }
 
-
+  var tx_thread = this.newTxQueue(req_type, is_serial);
 
   /**
    * here we must define sync thread first, so that it is ready when
@@ -74,7 +74,8 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
    * main thread.
    * @final
    */
-  this.db_operator = this.branch(req_type, is_serial);
+  this.db_operator = this.newOperator(tx_thread, this.sync_thread);
+
 
 };
 goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
@@ -88,7 +89,7 @@ ydn.db.tr.Storage.prototype.sync_thread;
 
 
 /**
- * @type {*}
+ * @type {ydn.db.tr.DbOperator}
  * @protected
  */
 ydn.db.tr.Storage.prototype.db_operator;
