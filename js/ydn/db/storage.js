@@ -14,11 +14,12 @@
 /**
  * @fileoverview Provide database query operations.
  *
- * @author Kyaw Tun <kyawtun@yathit.com>
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.Storage');
 goog.require('ydn.db.sql.Storage');
+
 
 
 /**
@@ -31,7 +32,7 @@ goog.require('ydn.db.sql.Storage');
  * {@link #setName} and {@link #setSchema}.
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
- * @param {(!ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database
+ * @param {(ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database
  * schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.

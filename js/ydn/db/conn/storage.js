@@ -64,7 +64,7 @@ if (!ydn.db.base.NO_WEBSQL) {
  *
  * @see {@link goog.db} Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
- * @param {!ydn.db.schema.Database|DatabaseSchema=} opt_schema database schema
+ * @param {ydn.db.schema.Database|DatabaseSchema=} opt_schema database schema
  * or its configuration in JSON format. If not provided, default empty
  * auto-schema is used.
  * @param {!StorageOptions=} opt_options options.

@@ -33,7 +33,7 @@ goog.require('ydn.db.crud.Storage');
  *
  *
  * @param {string=} opt_dbname database name.
- * @param {(!ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database
+ * @param {(ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database
  * schema
  * or its configuration in JSON format. If not provided, default empty schema
  * is used.
