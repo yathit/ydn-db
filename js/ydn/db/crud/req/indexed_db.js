@@ -151,10 +151,10 @@ ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table,
 ydn.db.crud.req.IndexedDb.prototype.putObject = function(
     tx, tx_no, df, table, value, opt_key) {
   var store = tx.objectStore(table);
-  var msg = tx_no + ' putObject: ' + table + ' ' +
-      (goog.isDef(opt_key) ? opt_key : '');
+  var msg = tx_no + ' putObject to store "' + table + '" ' +
+      (goog.isDef(opt_key) ? ' key: ' + opt_key : '');
   this.logger.finest(msg);
-
+  // console.log(value);
   var me = this;
   var request;
 
@@ -273,8 +273,8 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
 
   var me = this;
   var store = tx.objectStore(store_name);
-  var msg = tx_no + ' putObjects: ' + store_name + ' ' +
-      objs.length + ' objects';
+  var msg = tx_no + ' put ' + objs.length + ' objects' +
+          ' to store "' + store_name + '"';
   this.logger.finest(msg);
 
   /**
