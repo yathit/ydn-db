@@ -518,12 +518,12 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
           index_name);
 
       // inject sync module function.
-      var hdf = df;
+      var df2 = df;
       if (ydn.db.base.USE_HOOK) {
-        df = store.hook(ydn.db.schema.Store.SyncMethod.VALUES, hdf, arguments);
+        df = store.hook(ydn.db.schema.Store.SyncMethod.VALUES, df2, arguments);
       }
 
-      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
+      this.tx_thread.exec(df2, function(tx, tx_no, cb) {
         me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name,
             index_name, range, reverse, limit, offset, false);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
