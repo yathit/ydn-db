@@ -50,6 +50,29 @@ ydn.db.utils.getValueByKeys = function(obj, var_args) {
 
 
 /**
+ * Set object of given key path.
+ * @param {Object} obj
+ * @param {string} key_path doted key path.
+ * @param {*} value value to set.
+ */
+ydn.db.utils.setValueByKeys = function(obj, key_path, value) {
+  var paths = key_path.split('.');
+  if (obj) {
+    var last_key = paths.pop();
+    var key;
+    while (key = paths.shift()) {
+      if (!goog.isObject(obj[key])) {
+        goog.asserts.assert(!goog.isDef(obj[key]));
+        obj[key] = {};
+      }
+      obj = obj[key];
+    }
+    obj[last_key] = value;
+  }
+};
+
+
+/**
  * @const
  * @type {Object}
  */
