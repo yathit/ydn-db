@@ -93,9 +93,19 @@ BaseOptions.prototype.KeyPaths;
 
 
 /**
+ * Store name which store meta data.
+ * If specified, metaData must not specified.
  * @type {string}
  */
 BaseOptions.prototype.metaStoreName;
+
+
+/**
+ * Meta data data field.
+ * If specified, metaStoreName must not specified.
+ * @type {string}
+ */
+BaseOptions.prototype.metaData;
 
 
 
