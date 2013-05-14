@@ -1093,6 +1093,31 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
 
 
 /**
+ * Retrieve record values from given list of key objects.
+ * @param {!Array.<!ydn.db.Key>} keys keys to retrieve.
+ * @return {!goog.async.Deferred} df.
+ */
+ydn.db.crud.DbOperator.prototype.valuesInternal = function(keys) {
+  var store_names = [];
+  for (var i = 0, n = keys.length; i < n; i++) {
+    var s_name = keys[i].getStoreName();
+    if (goog.array.indexOf(store_names, s_name) == -1) {
+      store_names.push(s_name);
+    }
+    if (goog.DEBUG && !this.schema.hasStore(s_name)) {
+      throw new ydn.db.NotFoundError(s_name);
+    }
+  }
+  var me = this;
+  var df = new goog.async.Deferred();
+  this.sync_thread.exec(df, function(tx, tx_no, cb) {
+    me.getExecutor().listByKeys(tx, tx_no, cb, keys);
+  }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
+  return df;
+};
+
+
+/**
  * List keys from the database. Use only by synchronization process when
  * updating from server.
  * This is friendly module use only.

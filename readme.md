@@ -12,6 +12,8 @@ follow this library codes.
 [Apache ant](http://ant.apache.org/) is used to build javascript compiler. ydn-base repo
 [build.xml](https://bitbucket.org/ytkyaw/ydn-base/raw/master/build.xml) defines compiler
 and others tools setting. You must change according to your local machine setting.
+Specifically check property values of `closure-library.dir` and `closure-compiler.dir`, which
+point to respective directries.
 
 Downloads the following three repos a directory.
 
@@ -21,9 +23,9 @@ Downloads the following three repos a directory.
 
 that should create three directories for closure-library, ydn-base and ydn-db.
 
-Run `ant deps` to generate closure dependency tree.
-
 Run local apache (recommended) or a static server on that directory.
+
+Go to ydn-db folder and run `ant deps` and `ant ydn-base.deps` to generate closure dependency tree.
 
 Use HTML files in the /test folder for getting started. These files are also
 used for debug development.
