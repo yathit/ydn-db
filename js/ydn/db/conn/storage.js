@@ -28,12 +28,12 @@
 goog.provide('ydn.db.con.Storage');
 goog.require('goog.events.EventTarget');
 goog.require('ydn.async');
+goog.require('ydn.db.base');
 goog.require('ydn.db.con.IStorage');
 goog.require('ydn.db.events.StorageEvent');
 goog.require('ydn.db.schema.EditableDatabase');
 goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.object');
-goog.require('ydn.db.base');
 if (!ydn.db.base.NO_SIMPLE) {
   goog.require('ydn.db.con.simple.UserData');
   goog.require('ydn.db.con.LocalStorage');
@@ -770,14 +770,24 @@ ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
 };
 
 
+/**
+ * For validating user input.
+ * @return {!Array.<string>} list of event types.
+ */
+ydn.db.con.Storage.prototype.getEventTypes = function() {
+  return ['created', 'ready', 'deleted', 'updated'];
+};
+
+
 if (goog.DEBUG) { // don't allow to added non existing event type
   /**
    * @inheritDoc
    */
   ydn.db.con.Storage.prototype.addEventListener = function(
       type, handler, opt_capture, opt_handlerScope) {
+    var event_types = this.getEventTypes();
     var checkType = function(type) {
-      if (!goog.array.contains(['created', 'ready', 'deleted', 'updated'],
+      if (!goog.array.contains(event_types,
           type)) {
         throw new ydn.debug.error.ArgumentException('Invalid event type "' +
             type + '"');
