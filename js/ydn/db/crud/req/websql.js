@@ -299,7 +299,7 @@ ydn.db.crud.req.WebSql.prototype.addObjects = function(
  * @param {string} store_name table name.
  * @param {!Array.<!Object>} objects object to put.
  * @param {!Array.<(!Array|string|number)>=} opt_keys optional out-of-line keys.
- * @private
+ * @protected
 */
 ydn.db.crud.req.WebSql.prototype.insertObjects = function(
     tx, tx_no, df, create, single, store_name, objects, opt_keys) {
@@ -491,7 +491,7 @@ ydn.db.crud.req.WebSql.prototype.putObjects = function(
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.putByKeys = function(tx, tx_no, df, objs,
-                                                       keys) {
+                                                      keys) {
 
   if (keys.length == 0) {
     df([]);
@@ -512,10 +512,10 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(tx, tx_no, df, objs,
     /**
      *
      * @param {*} xs
-     * @param {boolean=} is_error
+     * @param {boolean=} opt_is_error
      */
-    var idf = function(xs, is_error) {
-      if (is_error) {
+    var idf = function(xs, opt_is_error) {
+      if (opt_is_error) {
         count++;
         if (count == total) {
           df(xs, true);
@@ -575,6 +575,7 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(tx, tx_no, df, objs,
 
 };
 
+
 /**
 *
 * @inheritDoc
@@ -584,7 +585,7 @@ ydn.db.crud.req.WebSql.prototype.getById = function(tx, tx_no, d, table_name,
 
   var table = this.schema.getStore(table_name);
   goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
-    ' not found.');
+      ' not found.');
 
   var me = this;
 
@@ -593,7 +594,7 @@ ydn.db.crud.req.WebSql.prototype.getById = function(tx, tx_no, d, table_name,
   var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
 
   var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-    column_name + ' = ?';
+      column_name + ' = ?';
 
   var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
 
@@ -651,8 +652,6 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name,
   var result_count = 0;
 
   var table = this.schema.getStore(table_name);
-  goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
-    ' not found.');
 
   /**
    * Get fetch the given id of i position and put to results array in
@@ -719,7 +718,7 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(tx, tx_no, df, table_name,
 
     var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-      column_name + ' = ?';
+        column_name + ' = ?';
     me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
     tx.executeSql(sql, params, callback, error_callback);
   };
@@ -808,8 +807,6 @@ ydn.db.crud.req.WebSql.prototype.listByStore = function(tx, tx_no, df, table_nam
 };
 
 
-
-
 /**
 *
 * @inheritDoc
@@ -872,7 +869,7 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(tx, tx_no, df, keys) {
 
     var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
-      column_name + ' = ?';
+        column_name + ' = ?';
     me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
     tx.executeSql(sql, params, callback, error_callback);
 
@@ -889,7 +886,6 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(tx, tx_no, df, keys) {
     df([]);
   }
 };
-
 
 
 /**
@@ -942,7 +938,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d,
      */
     var deleteMultiEntryIndex = function(index) {
       var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
-        store.getName() + ':' + index.getName();
+          store.getName() + ':' + index.getName();
 
       var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name);
       me.logger.finest('SQL: ' + idx_sql);
@@ -972,7 +968,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d,
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
-                                                            keys) {
+                                                         keys) {
 
   var me = this;
   var count = 0;
@@ -1107,7 +1103,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
    */
   var deleteMultiEntryIndex = function(index) {
     var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
-      store.getName() + ':' + index.getName();
+        store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
     me.logger.finest(tx_no + + ' SQL: ' + idx_sql);
@@ -1128,15 +1124,16 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.clearByKeyRange = function(tx, tx_no, df,
-     store_name, key_range) {
+    store_name, key_range) {
   this.clear_by_key_range_(tx, tx_no, df, store_name, undefined, key_range);
 };
+
 
 /**
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.removeByKeyRange = function(tx, tx_no, df,
-     store_name, key_range) {
+    store_name, key_range) {
   this.clear_by_key_range_(tx, tx_no, df, store_name, undefined, key_range);
 };
 
@@ -1161,7 +1158,7 @@ ydn.db.crud.req.WebSql.prototype.removeByIndexKeyRange = function(tx, tx_no, df,
  * @private
  */
 ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
-                    store_name, column_name, key_range) {
+    store_name, column_name, key_range) {
 
   var me = this;
   var arr = [];
@@ -1178,7 +1175,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
           index.getType(), key_range, where_params, params);
     } else {
       ydn.db.KeyRange.toSql(store.getSQLKeyColumnNameQuoted(), store.getType(),
-        key_range, where_params, params);
+          key_range, where_params, params);
     }
     where = ' WHERE ' + where_params.join(' AND ');
   }
@@ -1218,7 +1215,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
    */
   var deleteMultiEntryIndex = function(index) {
     var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
-      store.getName() + ':' + index.getName();
+        store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
     me.logger.finest(tx_no + + ' SQL: ' + idx_sql);
@@ -1302,7 +1299,7 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
-      key_range, index_name, unique) {
+    key_range, index_name, unique) {
 
   var me = this;
 
@@ -1311,7 +1308,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
   var store = this.schema.getStore(table);
 
   var sql = store.toSql(params, ydn.db.schema.Store.QueryMethod.COUNT,
-    index_name, key_range, false, unique);
+      index_name, key_range, false, unique);
 
   /**
    * @param {SQLTransaction} transaction transaction.
@@ -1348,8 +1345,5 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
 
   return d;
 };
-
-
-
 
 

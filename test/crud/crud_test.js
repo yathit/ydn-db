@@ -16,9 +16,9 @@ var load_store_name = 'st_load';
 
 
 var setUp = function () {
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  // ydn.debug.log('ydn.db.crud.req', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
@@ -295,7 +295,61 @@ var test_12_put_array_key = function() {
 
 
   db.put(table_name, arr).addBoth(function(value) {
-    console.log('receiving value callback.');
+    results = value;
+    hasEventFired = true;
+  });
+};
+
+
+
+var test_12_put_array_unique_constraint = function() {
+  var db_name = 'test_12_put_array_unique_constraint-1';
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [
+        {
+          keyPath: 'type',
+          unique: true
+        }]
+    }]
+  };
+  var data = [];
+  var expected = [];
+  var n = 4;
+  for (var i = 0; i < n; i++) {
+    data[i] = {
+      id: i,
+      type: 'a' + i
+    };
+    expected[i] = i;
+  }
+  data[n-2].type = data[1].type; // void unique constraint
+  console.log(data);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('no error', data.length, results.length);
+        //assertArrayEquals('result', expected, results);
+
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  db.put('st', data).addBoth(function(value) {
+    console.log(value);
     results = value;
     hasEventFired = true;
   });

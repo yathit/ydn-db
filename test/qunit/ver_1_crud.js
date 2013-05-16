@@ -110,24 +110,24 @@ QUnit.config.testTimeout = 2000;
 
 var reporter = new ydn.testing.Reporter('ydn-db');
 
-(function () {
+(function() {
 
   var test_env = {
-    setup: function () {
+    setup: function() {
 
     },
-    teardown: function () {
+    teardown: function() {
 
     }
   };
 
-  module("Put", test_env);
+  module('Put', test_env);
   reporter.createTestSuite('core', 'Put', ydn.db.version);
 
-  asyncTest("single data", 1, function () {
+  asyncTest('single data', 1, function() {
     var db = new ydn.db.Storage('tck1_put_1', schema_1, options);
-    db.put(store_inline, data_1).always(function () {
-      ok(true, "data inserted");
+    db.put(store_inline, data_1).always(function() {
+      ok(true, 'data inserted');
       start();
       var type = db.getType();
       db.close();
@@ -189,10 +189,10 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   });
 
 
-  asyncTest("nested key", 1, function () {
+  asyncTest('nested key', 1, function() {
     var db = new ydn.db.Storage('tck1_put_5', schema_1, options);
 
-    db.put(store_nested_key, gdata_1).always(function (x) {
+    db.put(store_nested_key, gdata_1).always(function(x) {
       equal(gdata_1.id.$t, x, 'key');
       start();
       var type = db.getType();
@@ -203,18 +203,53 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   });
 
 
-  asyncTest("single data - array index key", 2, function () {
+  asyncTest('single data - array index key', 2, function() {
     var db = new ydn.db.Storage('tck1_put_6', schema_1, options);
-    db.put(store_inline, data_1a).always(function (x) {
+    db.put(store_inline, data_1a).always(function(x) {
       //console.log('got it');
-      ok('length' in x, "array key");
+      ok('length' in x, 'array key');
       deepEqual(x, data_1a.id, 'same key');
       start();
       var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
     });
+  });
 
+  asyncTest('array put with ConstraintError', 3, function() {
+    var schema = {
+      stores: [{
+        name: 'st',
+        keyPath: 'id',
+        indexes: [
+          {
+            keyPath: 'type',
+            unique: true
+          }]
+      }]
+    };
+    var data = [];
+    var expected = [];
+    var n = 4;
+    for (var i = 0; i < n; i++) {
+      data[i] = {
+        id: i,
+        type: 'a' + i
+      };
+      expected[i] = i;
+    }
+    data[n-2].type = data[1].type; // void unique constraint
+    var db = new ydn.db.Storage('crud_put_7', schema, options);
+    // console.log(data)
+    db.put('st', data).always(function(x) {
+      // console.log(x)
+      equal(x.length, n, 'length');
+      equal(x[0], data[0].id, 'first request success');
+      equal(x[n-2].name, 'ConstraintError', 'has error');
+      start();
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    });
   });
 })();
 

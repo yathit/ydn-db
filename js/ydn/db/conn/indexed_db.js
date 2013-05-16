@@ -359,7 +359,10 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
   };
 
   openRequest.onerror = function(ev) {
-    var msg = 'opening database ' + dbname + ':' + schema.version + ' failed.';
+    var ver = goog.isDef(schema.version) ?
+        ' with version ' + schema.version : '';
+    var msg = 'open request to database "' + dbname + '" ' + ver +
+        ' cause error of ' + openRequest.error.name;
     if (ydn.db.con.IndexedDb.DEBUG) {
       window.console.log([ev, openRequest]);
     }

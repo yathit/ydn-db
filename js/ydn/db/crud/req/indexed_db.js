@@ -232,19 +232,16 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, event]);
       }
+      var error = request.error;
       if (goog.DEBUG) {
-        if (event.name == 'DataError') {
-          // DataError is due to invalid key.
-          // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
-          // IDBRequest-any-key
-          event = new ydn.db.InvalidKeyException('put to "' + store_name +
-              '": ' + i + ' of ' + objs.length);
-        } else if (event.name == 'DataCloneError') {
-          event = new ydn.db.DataCloneError('put to "' + store_name + '": ' +
-              i + ' of ' + objs.length);
-        }
+        me.logger.warning(tx_no + ' add request to "' + store_name +
+            '" cause ' + error.name + ' for object "' +
+            ydn.json.toShortString(objs[i]) + '" at index ' +
+            i + ' of ' + objs.length + ' objects.');
       }
-      df(request.error, true);
+      results[i] = error;
+      results.length = objs.length;
+      df(results, true);
     };
 
   };
@@ -320,17 +317,17 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, event]);
       }
+      var error = request.error;
       if (goog.DEBUG) {
-        var name = event.name;
-        me.logger.warning('request result ' + name +
-            ' error when put to "' + store_name + '" for object "' +
+        me.logger.warning(tx_no + ' put request to "' + store_name +
+            '" cause ' + error.name + ' for object "' +
             ydn.json.toShortString(objs[i]) + '" at index ' +
             i + ' of ' + objs.length + ' objects.');
       }
       // accessing request.error can cause InvalidStateError,
       // although it is not possible here since request has already done flag.
       // http://www.w3.org/TR/IndexedDB/#widl-IDBRequest-error
-      results[i] = request.error;
+      results[i] = error;
       has_error = true;
       if (result_count == objs.length) {
         out(event.target.transaction);
