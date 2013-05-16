@@ -330,15 +330,18 @@ var test_12_put_array_unique_constraint = function() {
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var hasEventFired = false;
-  var results;
+  var results, is_success;
 
   waitForCondition(
       // Condition
       function() { return hasEventFired; },
       // Continuation
       function() {
-        assertEquals('no error', data.length, results.length);
-        //assertArrayEquals('result', expected, results);
+        assertFalse('has error', is_success);
+        assertEquals('correct length', n, results.length);
+        assertEquals('first record', data[0].id, results[0]);
+        assertEquals('error record', 'ConstraintError', results[n - 2].name);
+        assertEquals('last record', data[n - 1].id, results[n - 1]);
 
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db_name, db.getType());
@@ -347,9 +350,12 @@ var test_12_put_array_unique_constraint = function() {
       100, // interval
       2000); // maxTimeout
 
-
-  db.put('st', data).addBoth(function(value) {
+  db.put('st', data).addCallbacks(function(x) {
+    is_success = true;
+    hasEventFired = true;
+  }, function(value) {
     console.log(value);
+    is_success = false;
     results = value;
     hasEventFired = true;
   });

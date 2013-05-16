@@ -106,7 +106,7 @@ var schema_auto_increase = {
   ]
 };
 
-QUnit.config.testTimeout = 2000;
+QUnit.config.testTimeout = 5000;
 
 var reporter = new ydn.testing.Reporter('ydn-db');
 
@@ -241,11 +241,14 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     data[n-2].type = data[1].type; // void unique constraint
     var db = new ydn.db.Storage('crud_put_7', schema, options);
     // console.log(data)
-    db.put('st', data).always(function(x) {
+    db.put('st', data).then(function(x) {
+      ok(false, 'must not success')
+      start();
+    }, function(x) {
       // console.log(x)
       equal(x.length, n, 'length');
       equal(x[0], data[0].id, 'first request success');
-      equal(x[n-2].name, 'ConstraintError', 'has error');
+      equal(x[n - 2].name, 'ConstraintError', 'has error');
       start();
       ydn.db.deleteDatabase(db.getName(), db.getType());
       db.close();
