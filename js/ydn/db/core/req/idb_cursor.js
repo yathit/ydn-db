@@ -161,6 +161,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
   var me = this;
   request.onerror = function(ev) {
     var err = request.error;
+    ev.preventDefault();
     me.onError(err);
   };
 
@@ -238,6 +239,7 @@ ydn.db.core.req.IDBCursor.prototype.update = function(record) {
       df.callback(x.target.result);
     };
     req.onerror = function(e) {
+      e.preventDefault();
       df.errback(e);
     };
     return df;
@@ -260,6 +262,7 @@ ydn.db.core.req.IDBCursor.prototype.clear = function() {
       df.callback(1);
     };
     req.onerror = function(e) {
+      e.preventDefault();
       df.errback(e);
     };
     return df;

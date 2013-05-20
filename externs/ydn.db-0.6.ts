@@ -72,6 +72,26 @@ declare module ydb.db
     reverse(key: any, index_key: any) : Iterator;
   }
 
+  enum EventType {
+    created,
+    deleted,
+    ready,
+    updated
+  }
+
+  enum Policy {
+    all,
+    atomic,
+    multi,
+    repeat,
+    single
+  }
+
+  enum TransactioinMode {
+    readonly,
+    readwrite
+  }
+
   enum Op {
     >, <, =, >=, <=
   }
@@ -116,6 +136,8 @@ declare module ydb.db
 
   export class DbOperator {
 
+    abort();
+
     add(store_name: string, value: any, key: any) : goog.async.Deferred;
     add(store_name: string, value: any) : goog.async.Deferred;
 
@@ -132,13 +154,13 @@ declare module ydb.db
     get(store_name: string, key: any) : goog.async.Deferred;
 
     keys(iter: ydb.db.Iterator, limit?: number);
-    keys(store_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: boolean);
-    keys(store_name: string, index_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: boolean);
+    keys(store_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool);
+    keys(store_name: string, index_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool);
     keys(store_name: string, limit?: bool, offset?: number);
 
     map(iterator: ydb.db.Iterator, callback: (value: any): any) : goog.async.Deferred;
 
-    open(next_callback: (cursor: ICursor): any, iterator: ydb.db.Iterator, mode: string) : goog.async.Deferred;
+    open(next_callback: (cursor: ICursor): any, iterator: ydb.db.Iterator, mode: TransactioinMode) : goog.async.Deferred;
 
     put(store_name: string, value: any, key: any) : goog.async.Deferred;
     put(store_name: string, value: any[], key: any[]) : goog.async.Deferred;
@@ -160,13 +182,6 @@ declare module ydb.db
     values(keys?: Array);
   }
 
-  enum EventType {
-    created,
-    deleted,
-    ready,
-    updated
-  }
-
   export class Storage extends DbOperator {
 
     constructor(db_name?:string, schema?: DatabaseSchemaJson, options?: StorageOptions);
@@ -174,7 +189,7 @@ declare module ydb.db
     addEventListener(type: EventType, handler: (event: any), capture?: bool);
     addEventListener(type: EventType[], handler: (event: any), capture?: bool);
 
-    branch (thread: string, name?: string): DbOperator;
+    branch (thread: Policy, isSerial: bool, scope: string[], mode: TransactioinMode, maxRequest: number): DbOperator;
 
     close();
 
@@ -186,16 +201,14 @@ declare module ydb.db
 
     getType(): string;
 
-    onReady : (event: ydn.db.events.StorageEvent);
-
     removeEventListener(type: EventType, handler: (event: any), capture?: bool);
     removeEventListener(type: EventType[], handler: (event: any), capture?: bool);
 
-    run(callback: (iStorage: ydn.db.Storage), store_names: string[], mode: string, completed_handler: (type:string, e?: Error));
+    run(callback: (iStorage: ydn.db.Storage), store_names: string[], mode: TransactioinMode, completed_handler: (type:string, e?: Error));
 
     setName(name: string);
 
-    transaction(callback: (tx: any), store_names: string[], mode: string, completed_handler: (type:string, e?: Error));
+    transaction(callback: (tx: any), store_names: string[], mode: TransactioinMode, completed_handler: (type:string, e?: Error));
 
   }
 }
