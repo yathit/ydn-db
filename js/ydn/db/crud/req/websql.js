@@ -24,7 +24,6 @@ goog.provide('ydn.db.crud.req.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
-goog.require('ydn.async');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.crud.req.RequestExecutor');

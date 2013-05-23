@@ -22,9 +22,8 @@
 
 goog.provide('ydn.db.crud.Storage');
 goog.require('goog.userAgent.product');
-goog.require('ydn.async');
-goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.db.crud.DbOperator');
+goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.db.tr.Storage');
 goog.require('ydn.object');
 if (!ydn.db.base.NO_IDB) {

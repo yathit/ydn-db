@@ -602,15 +602,17 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
 
   var me = this;
   var count = 0;
-  var has_failed = false;
   var store_name, store, key;
   var msg = tx_no + ' removeByKeys: ' + keys.length + ' keys';
   this.logger.finest(msg);
+  var errors = [];
 
   var removeAt = function(i) {
 
     if (i >= keys.length) {
-      df(count, has_failed);
+      var has_failed = errors.length > 0;
+      var out = has_failed ? errors : count;
+      df(out, has_failed);
       return;
     }
 
@@ -619,37 +621,19 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
       store = tx.objectStore(store_name);
     }
 
-    var request = store.openCursor(ydn.db.IDBKeyRange.only(keys[i].getId()));
-    // casting to null is weired, but argument of openCursor can be IDBKeyRange
-    // or key. But annotation only allow IDBKeyRange or null.
+    var request = store['delete'](keys[i].getId());
 
     request.onsuccess = function(event) {
-      if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, i, keys[i], event]);
-      }
       i++;
-      var cursor = event.target.result;
-      if (cursor) {
-        var req = cursor['delete']();
-        req.onsuccess = function(e) {
-          count++;
-          removeAt(i);
-        };
-        req.onerror = function(e) {
-          has_failed = true;
-          removeAt(i);
-        };
-      } else {
-        removeAt(i);
-      }
-
+      removeAt(i);
     };
     request.onerror = function(event) {
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
         window.console.log([store_name, key, event]);
       }
       event.preventDefault();
-      df(request.error, true);
+      errors[i] = request.error;
+      removeAt(i);
     };
   };
 
@@ -727,6 +711,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
   var msg = tx_no + ' clearByIndexKeyRange: ' + store_name + ':' + index_name +
       ' ' + key_range;
   this.logger.finest(msg);
+  var errors = [];
   // var request = index.openKeyCursor(key_range);
   // theoritically key cursor should be able to delete the record, but
   // according to IndexedDB API spec, it is not.
@@ -743,12 +728,15 @@ ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
         n++;
         cursor['continue']();
       };
-      req.onerror = function(e) {
-        me.logger.finest('error ' + msg);
-        throw req.error;
+      req.onerror = function(event) {
+        errors.push(req.error);
+        event.preventDefault();
+        cursor['continue']();
       };
     } else {
-      df(n);
+      var has_failed = errors.length > 0;
+      var out = has_failed ? errors : n;
+      df(out, has_failed);
     }
 
   };

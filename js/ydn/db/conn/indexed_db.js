@@ -22,7 +22,6 @@ goog.provide('ydn.db.con.IndexedDb');
 goog.require('goog.Timer');
 goog.require('goog.async.DeferredList');
 goog.require('goog.events');
-goog.require('ydn.async');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.db.schema.Database');

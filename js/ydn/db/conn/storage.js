@@ -27,7 +27,6 @@
 
 goog.provide('ydn.db.con.Storage');
 goog.require('goog.events.EventTarget');
-goog.require('ydn.async');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IStorage');
 goog.require('ydn.db.events.StorageEvent');
