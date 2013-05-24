@@ -608,7 +608,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
   var errors = [];
 
   var removeAt = function(i) {
-
+    i++;
     if (i >= keys.length) {
       var has_failed = errors.length > 0;
       var out = has_failed ? errors : count;
@@ -624,7 +624,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
     var request = store['delete'](keys[i].getId());
 
     request.onsuccess = function(event) {
-      i++;
+      count++;
       removeAt(i);
     };
     request.onerror = function(event) {
@@ -637,7 +637,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
     };
   };
 
-  removeAt(0);
+  removeAt(-1);
 
 };
 
