@@ -1011,8 +1011,8 @@ var test_compound_text_starts = function () {
 };
 
 
-var test_restrict = function() {
-  var db_name = 'test_restrict-2';
+var test_order = function() {
+  var db_name = 'test_order-2';
   var data = [
     {id: 1, a: 3, b: 'a'},
     {id: 2, a: 2, b: 'b'},
@@ -1058,7 +1058,7 @@ var test_restrict = function() {
       1000); // maxTimeout
 
   var iter = new ydn.db.ValueCursors('st');
-  var iter1 = iter.restrict('a', 2);
+  var iter1 = iter.order('a', 2);
 
   db.keys(iter1).addBoth(function(x) {
     keys1 = x;
@@ -1067,7 +1067,7 @@ var test_restrict = function() {
     values1 = x;
   });
 
-  var iter2 = iter1.restrict('b', 'b');
+  var iter2 = iter1.order('b', 'b');
   db.keys(iter2).addBoth(function(x) {
     keys2 = x;
   });
@@ -1079,8 +1079,8 @@ var test_restrict = function() {
 };
 
 
-var test_restrict_index = function() {
-  var db_name = 'test_restrict_index-2';
+var test_order_index = function() {
+  var db_name = 'test_order_index-2';
   var data = [
     {id: 1, a: 3, b: 'a', c: 1},
     {id: 2, a: 2, b: 'b', c: 1},
@@ -1152,7 +1152,7 @@ var test_restrict_index = function() {
   var exp_values4 = exp_values3.filter(function(x) {
     return x.b == 'b';
   });
-  var iter4 = iter3.restrict('b', 'b');
+  var iter4 = iter3.order('b', 'b');
   db.keys(iter4).addBoth(function(x) {
     keys4 = x;
   });
@@ -1160,7 +1160,7 @@ var test_restrict_index = function() {
     values4 = x;
   });
 
-  var iter5 = iter4.restrict('c', 2);
+  var iter5 = iter4.order('c', 2);
   db.keys(iter5).addBoth(function(x) {
     keys5 = x;
   });

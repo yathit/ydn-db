@@ -18,7 +18,7 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.core.Join');
+goog.provide('ydn.db.core.EquiJoin');
 
 
 
@@ -30,7 +30,7 @@ goog.provide('ydn.db.core.Join');
  * @constructor
  * @struct
  */
-ydn.db.core.Join = function(store_name, opt_field_name, opt_value) {
+ydn.db.core.EquiJoin = function(store_name, opt_field_name, opt_value) {
   /**
    * @final
    */
@@ -49,16 +49,16 @@ ydn.db.core.Join = function(store_name, opt_field_name, opt_value) {
 /**
  * @type {string}
  */
-ydn.db.core.Join.store_name;
+ydn.db.core.EquiJoin.store_name;
 
 
 /**
  * @type {string|undefined}
  */
-ydn.db.core.Join.field_name;
+ydn.db.core.EquiJoin.field_name;
 
 
 /**
  * @type {IDBKey|undefined}
  */
-ydn.db.core.Join.value;
+ydn.db.core.EquiJoin.value;

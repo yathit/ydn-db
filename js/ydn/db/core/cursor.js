@@ -13,7 +13,13 @@
 // limitations under the License.
 
 /**
- * @fileoverview Frond-end cursor managing cursors of an iterator.
+ * @fileoverview Front-end cursor managing cursors of an iterator.
+ *
+ * Iterator give raise to a front-end cursor which comprise joining of multiple
+ * physical cursors (ydn.db.core.req.ICursor).
+ *
+ * Unlike physical cursors, front-end cursor has persistent position, which is
+ * achieve by providing initial condition from the iterator.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -27,9 +33,10 @@ goog.require('ydn.debug.error.InternalError');
 
 
 /**
- *
+ * Create a new front-end cursor object.
  * @param {Array.<ydn.db.core.req.ICursor>} cursors cursors.
- * @param {ydn.db.Cursor=} opt_pre_cursor
+ * @param {ydn.db.Cursor=} opt_pre_cursor previous cursor, to resume cursor
+ * location.
  * @param {IDBKey=} opt_key start position.
  * @param {IDBKey=} opt_primary_key start position.
  * @constructor
@@ -63,7 +70,6 @@ ydn.db.Cursor = function(cursors, opt_pre_cursor, opt_key, opt_primary_key) {
   this.onNext = function(opt_key) {
     throw new ydn.debug.error.InternalError();
   };
-
 
   /**
    * This method is overridden by cursor consumer.
