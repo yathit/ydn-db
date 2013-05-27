@@ -81,6 +81,7 @@ var BaseOptions = function() {};
 
 
 /**
+ * Base URI.
  * @type {string}
  */
 BaseOptions.prototype.baseUri;
@@ -142,6 +143,19 @@ S3Options.prototype.maxKeys;
  */
 S3Options.prototype.prefix;
 
+/**
+ * Bucket name.
+ * @type {string}
+ */
+S3Options.prototype.bucket;
+
+
+/**
+ * URI namespace. URI has two parts: 1) namespace and 2) key.
+ * @type {string}
+ */
+S3Options.prototype.uriNamespace;
+
 
 
 /**
@@ -172,42 +186,55 @@ var ODataOptions = function() {};
 
 
 /**
+ * Synchronization option for a store.
  * @constructor
  */
 function StoreSyncOptionJson() {}
 
 
 /**
- * @type {boolean}
- */
-StoreSyncOptionJson.prototype.publicRead;
-
-
-/**
+ * Backend service format. Valid values are 'rest', 's3', 'gcs', 'atom',
+ * 'odata', 'gdata'.
  * @type {string}
  */
 StoreSyncOptionJson.prototype.format;
 
+/**
+ * Immutable database.
+ * @type {boolean}
+ */
+StoreSyncOptionJson.prototype.immutable;
+
 
 /**
+ * Read request timeout interval in milliseconds. A HTTP GET request is issued
+ * for <code>get</code> database method. <code>get</code> method wait until
+ * it received from the GET request. This timeout interval indicate
+ * <code>get</code> method should resolve no longer than the interval. If
+ * GET request received after resolving and data is different, 'delay-read'
+ * is dispatched.
  * @type {number}
  */
 StoreSyncOptionJson.prototype.readRequestTimeout;
 
 
 /**
+ * Write request timeout interval in milliseconds.
  * @type {number}
  */
 StoreSyncOptionJson.prototype.writeRequestTimeout;
 
 
 /**
+ * HTTP transport. This is compatible with Google Javascript Client request
+ * https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientrequest
  * @type {{request: Function}}
  */
 StoreSyncOptionJson.prototype.transport;
 
 
 /**
+ * Backend specific sync options.
  * @type {BaseOptions|AtomOptions|GDataOptions|ODataOptions|S3Options}
  */
 StoreSyncOptionJson.prototype.Options;
