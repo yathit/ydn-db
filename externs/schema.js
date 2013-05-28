@@ -150,13 +150,6 @@ S3Options.prototype.prefix;
 S3Options.prototype.bucket;
 
 
-/**
- * URI namespace. URI has two parts: 1) namespace and 2) key.
- * @type {string}
- */
-S3Options.prototype.uriNamespace;
-
-
 
 /**
  * @extends {AtomOptions}
