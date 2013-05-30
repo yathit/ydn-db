@@ -448,6 +448,8 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
 
   var me = this;
   var df = ydn.db.base.createDeferred();
+  var hdf = df;
+  var method = ydn.db.schema.Store.SyncMethod.NONE;
 
   /**
    * @type {number}
@@ -480,7 +482,8 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       var ids = arg1;
       this.logger.finer('listByIds: ' + store_name + ' ' +
           ids.length + ' ids');
-      this.tx_thread.exec(df, function(tx, tx_no, cb) {
+      method = ydn.db.schema.Store.SyncMethod.VALUES_IDS;
+      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
         me.getExecutor().listByIds(tx, tx_no, cb, store_name, ids);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
     } else if (goog.isString(arg1)) { // index name
@@ -516,14 +519,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       }
       this.logger.finer('listByIndexKeyRange: ' + store_name + ':' +
           index_name);
-
-      // inject sync module function.
-      var df2 = df;
-      if (ydn.db.base.USE_HOOK) {
-        df = store.hook(ydn.db.schema.Store.SyncMethod.VALUES, df2, arguments);
-      }
-
-      this.tx_thread.exec(df2, function(tx, tx_no, cb) {
+      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
         me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name,
             index_name, range, reverse, limit, offset, false);
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
@@ -569,12 +565,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       }
       this.logger.finer((range ? 'listByKeyRange: ' : 'listByStore: ') +
           store_name);
-
-      var hdf = df;
-      if (ydn.db.base.USE_HOOK) {
-        df = store.hook(ydn.db.schema.Store.SyncMethod.VALUES, hdf, arguments);
-      }
-
+      method = ydn.db.schema.Store.SyncMethod.VALUES;
       this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
         me.getExecutor().listByKeyRange(tx, tx_no, cb, store_name, range,
             reverse, limit, offset);
@@ -619,6 +610,10 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
   } else {
     throw new ydn.debug.error.ArgumentException('first argument ' + arg0 +
         ' is invalid.');
+  }
+
+  if (ydn.db.base.USE_HOOK) {
+    df = store.hook(method, hdf, arguments);
   }
 
   return df;

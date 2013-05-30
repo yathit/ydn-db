@@ -980,7 +980,9 @@ ydn.db.schema.Store.SyncMethod = {
   GET: 'get',
   PUT: 'put',
   REMOVE: 'rm',
-  VALUES: 'vs'
+  VALUES: 'vs',
+  VALUES_IDS: 'vl',
+  NONE: ''
 };
 
 
