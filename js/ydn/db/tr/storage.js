@@ -74,7 +74,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
    * main thread.
    * @final
    */
-  this.db_operator = this.newOperator(tx_thread, this.sync_thread);
+  this.db_operator = this.newOperator(tx_thread, tx_thread);
 
 
 };
