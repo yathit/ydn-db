@@ -21,6 +21,7 @@
 goog.provide('ydn.db.base');
 
 goog.require('goog.async.Deferred');
+goog.require('ydn.async.Deferred');
 
 
 /**
@@ -114,7 +115,9 @@ ydn.db.base.Mechanisms = {
  * @return {!goog.async.Deferred} newly created deferred object.
  */
 ydn.db.base.createDeferred = function() {
-  if (ydn.db.base.JQUERY) {
+  if (ydn.db.base.USE_HOOK) {
+    return new ydn.async.Deferred();
+  } else if (ydn.db.base.JQUERY) {
     // TODO: make jquery deferred compatible
     return new goog.async.Deferred();
   } else {
