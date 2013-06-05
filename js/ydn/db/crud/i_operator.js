@@ -5,8 +5,8 @@
 
 
 goog.provide('ydn.db.crud.IOperator');
-goog.require('ydn.db.crud.req.RequestExecutor');
 goog.require('ydn.db.KeyRange');
+goog.require('ydn.db.crud.req.RequestExecutor');
 
 
 
@@ -16,11 +16,11 @@ goog.require('ydn.db.KeyRange');
 ydn.db.crud.IOperator = function() {};
 
 
-
 /**
  * Abort current request transaction.
  */
 ydn.db.crud.IOperator.prototype.abort = goog.abstractMethod;
+
 
 /**
  *
@@ -33,10 +33,11 @@ ydn.db.crud.IOperator.prototype.abort = goog.abstractMethod;
  */
 ydn.db.crud.IOperator.prototype.count = goog.abstractMethod;
 
+
 /**
  * Return object or objects of given key or keys.
- * @param {(string|!ydn.db.Key)=} arg1 table name.
- * @param {(!ydn.db.KeyRange|!IDBKey)=} arg2
+ * @param {(!Object|string|!ydn.db.Key)=} arg1 table name.
+ * @param {(!Object|!ydn.db.KeyRange|!IDBKey)=} arg2
  * object key to be retrieved, if not provided,
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.
@@ -60,11 +61,11 @@ ydn.db.crud.IOperator.prototype.values = goog.abstractMethod;
 
 /**
  * List keys or effective keys.
- * @param {string|*} store_name or iterator
+ * @param {string|*} store_name or iterator.
  * @param {(string|ydn.db.KeyRange|KeyRangeJson|number)=} arg1 key range
  * or index name or limit for iterator.
- * @param {(number|ydn.db.KeyRange|KeyRangeJson)=} arg2 limit or key range
- * @param {number=} arg3 offset or limit
+ * @param {(number|ydn.db.KeyRange|KeyRangeJson)=} arg2 limit or key range.
+ * @param {number=} arg3 offset or limit.
  * @param {(boolean|number)=} arg4 reverse or offset.
  * @param {boolean=} arg5 reverse.
  * @return {!goog.async.Deferred} result promise.
@@ -110,7 +111,7 @@ ydn.db.crud.IOperator.prototype.put = goog.abstractMethod;
  * delete all stores.
  * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=}  arg2 delete a
  * specific row.
- * @param {*=} arg3 argument control
+ * @param {*=} arg3 argument control.
  * @see {@link #remove}
  * @return {!goog.async.Deferred} return a deferred function.
  */
@@ -120,7 +121,7 @@ ydn.db.crud.IOperator.prototype.clear = goog.abstractMethod;
 
 /**
  * Remove a specific entry from a store or all.
- * @param {string|ydn.db.Key|!Array.<!ydn.db.Key>} store_name store name
+ * @param {string|ydn.db.Key|!Array.<!ydn.db.Key>} store_name store name.
  * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} arg2 delete a specific key or
  * key range.
  * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} arg3 delete a specific key or

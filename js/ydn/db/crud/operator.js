@@ -277,7 +277,8 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
       }
 
       this.tx_thread.exec(req_df, function(tx, tx_no, cb) {
-        me.getExecutor().getById(tx, tx_no, cb, store_name, id);
+        me.getExecutor().getById(tx, tx_no, cb, store_name,
+            /** @type {IDBKey} */ (id));
       }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
 
     }

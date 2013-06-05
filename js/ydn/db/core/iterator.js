@@ -227,7 +227,7 @@ goog.inherits(ydn.db.KeyCursors, ydn.db.Iterator);
  * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
  * @param {IDBKey=} opt_value2 second rvalue to compare.
- * @return {ydn.db.KeyCursors} newly created iterator.
+ * @return {!ydn.db.KeyCursors} newly created iterator.
  */
 ydn.db.KeyCursors.where = function(store_name, op, value, opt_op2, opt_value2) {
   return new ydn.db.KeyCursors(store_name,
@@ -264,7 +264,7 @@ goog.inherits(ydn.db.Cursors, ydn.db.Iterator);
  * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
  * @param {IDBKey=} opt_value2 second rvalue to compare.
- * @return {ydn.db.Cursors}
+ * @return {!ydn.db.Cursors}
  */
 ydn.db.Cursors.where = function(store_name, index, op, value, opt_op2,
                                 opt_value2) {
@@ -299,7 +299,7 @@ goog.inherits(ydn.db.ValueCursors, ydn.db.Iterator);
  * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
  * @param {IDBKey=} opt_value2 second rvalue to compare.
- * @return {ydn.db.ValueCursors} newly craeted cursor.
+ * @return {!ydn.db.ValueCursors} newly craeted cursor.
  */
 ydn.db.ValueCursors.where = function(store_name, op, value, opt_op2,
                                      opt_value2) {
@@ -337,7 +337,7 @@ goog.inherits(ydn.db.IndexValueCursors, ydn.db.Iterator);
  * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
  * @param {IDBKey=} opt_value2 second rvalue to compare.
- * @return {ydn.db.IndexValueCursors}
+ * @return {!ydn.db.IndexValueCursors}
  */
 ydn.db.IndexValueCursors.where = function(store_name, index, op, value, opt_op2,
                                           opt_value2) {
