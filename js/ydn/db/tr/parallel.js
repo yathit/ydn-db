@@ -427,7 +427,7 @@ ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
       me.p_request_tx = null;
     };
     me.logger.finer(rq_label + ' BEGIN');
-    callback(tx, me.getLabel(), resultCallback);
+    callback(tx, rq_label, resultCallback);
     callback = null;
     me.logger.finer(rq_label + ' END');
   }, store_names, mode, on_completed);

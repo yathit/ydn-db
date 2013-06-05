@@ -1112,20 +1112,21 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
     }
 
     var request;
-    try {
-      request = store.get(ids[i]);
-    } catch (e) {
-      if (e.name == 'DataError') {
-        if (ydn.db.crud.req.IndexedDb.DEBUG) {
-          window.console.log([store_name, i, ids[i], e]);
-        }
-        // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
-        // IDBRequest-any-key
-        throw new ydn.db.InvalidKeyException(ids[i]);
-      } else {
-        throw e;
-      }
-    }
+//    try {
+    // console.log(tx_no + ': ' + store_name + ' ' + i + ' ' + ids[i])
+    request = store.get(ids[i]);
+//    } catch (e) {
+//      if (ydn.db.crud.req.IndexedDb.DEBUG) {
+//        window.console.log([store_name, i, ids[i], e]);
+//        if (e.name == 'DataError') {
+//          // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
+//          // IDBRequest-any-key
+//          throw new ydn.db.InvalidKeyException(ids[i]);
+//        } else {
+//          throw e;
+//        }
+//      }
+//    }
     request.onsuccess = (function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
