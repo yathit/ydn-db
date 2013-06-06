@@ -1089,6 +1089,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
   var me = this;
 
   var results = [];
+  results.length = ids.length;
   var result_count = 0;
   var store = tx.objectStore(store_name);
   var n = ids.length;
@@ -1172,6 +1173,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
   var me = this;
 
   var results = [];
+  results.length = keys.length;
   var result_count = 0;
   var msg = tx_no + ' listByKeys: ' + keys.length + ' ids';
   this.logger.finest(msg);
