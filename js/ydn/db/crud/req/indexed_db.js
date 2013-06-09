@@ -54,7 +54,7 @@ ydn.db.crud.req.IndexedDb.prototype.logger =
  *
  * @const {boolean} turn on debug flag to dump debug objects.
  */
-ydn.db.crud.req.IndexedDb.DEBUG = false; // always false here.
+ydn.db.crud.req.IndexedDb.DEBUG = true; // always false here.
 
 
 /**

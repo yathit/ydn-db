@@ -88,9 +88,9 @@ BaseOptions.prototype.baseUri;
 
 
 /**
- * @type {KeyPaths}
+ * @type {string}
  */
-BaseOptions.prototype.KeyPaths;
+BaseOptions.prototype.delimiter;
 
 
 /**
