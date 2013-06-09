@@ -4,9 +4,11 @@
 
 goog.require('goog.async.Deferred');
 goog.require('ydn.base');
+goog.require('ydn.db.base');
 goog.require('ydn.db');
 goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.events.StorageEvent');
+goog.require('ydn.async.Deferred');
 
 goog.exportSymbol('ydn.db.con.Storage', ydn.db.con.Storage);
 
@@ -37,11 +39,12 @@ goog.exportSymbol('ydn.db.deleteDatabase', ydn.db.deleteDatabase);
 goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'name',
     ydn.db.events.StorageEvent.prototype.name);
 goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'getVersion',
-  ydn.db.events.StorageEvent.prototype.getVersion);
+    ydn.db.events.StorageEvent.prototype.getVersion);
 goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'getOldVersion',
     ydn.db.events.StorageEvent.prototype.getOldVersion);
 goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'getError',
-  ydn.db.events.StorageEvent.prototype.getError);
+    ydn.db.events.StorageEvent.prototype.getError);
 
-
+goog.exportProperty(ydn.async.Deferred.prototype, 'progress',
+    ydn.async.Deferred.prototype.addProgback);
 
