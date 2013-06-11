@@ -117,7 +117,8 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         if (ydn.db.con.IndexedDb.DEBUG) {
           window.console.log([this, event]);
         }
-        me.logger.finest(me + ': onversionchange to: ' + event.version);
+        me.logger.finest(me + ' closing connection for onversionchange to: ' +
+            event.version);
         if (me.idx_db_) {
           me.idx_db_.onabort = null;
           me.idx_db_.onblocked = null;
