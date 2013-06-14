@@ -365,8 +365,10 @@ var test_fix_schema_ver_change = function() {
       function() { return done; },
       // Continuation
       function() {
-        assert_similar_schema(new ydn.db.schema.Database(schema1), sniff_schema1);
-        assert_similar_schema(new ydn.db.schema.Database(schema2), sniff_schema2);
+        assert_similar_schema(new ydn.db.schema.Database(schema1),
+            sniff_schema1);
+        assert_similar_schema(new ydn.db.schema.Database(schema2),
+            sniff_schema2);
         reachedFinalContinuation = true;
 
       },
