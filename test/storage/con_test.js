@@ -1,24 +1,22 @@
 
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
-goog.require('ydn.async');
+goog.require('ydn.debug');
 goog.require('ydn.object');
 goog.require('ydn.db.Storage');
-goog.require('goog.testing.PropertyReplacer');
 
 
 var reachedFinalContinuation, debug_console, db_name;
 var store_name = 'st';
-var stubs;
 
 
 var setUp = function() {
 
 
-  //ydn.db.con.IndexedDb.DEBUG = true;
+  ydn.db.con.IndexedDb.DEBUG = true;
 
   //ydn.db.con.WebSql.DEBUG = true;
-
+  ydn.debug.log('ydn.db', 'finest');
   db_name = 'test_db' + Math.random();
 
   store_schema = {name: store_name, keyPath: 'id'};
@@ -27,9 +25,9 @@ var setUp = function() {
 
 
 var tearDown = function() {
-  assertTrue('The final continuation was not reached', reachedFinalContinuation);
+  assertTrue('The final continuation was not reached',
+      reachedFinalContinuation);
 };
-
 
 
 var schema_test = function(schema, to_delete, name) {
@@ -91,7 +89,7 @@ var trival_schema_test = function(dbname, cb) {
   db.getSchema(function(v) {
     act_schema = new ydn.db.schema.Database(v);
     done = true;
-  })
+  });
 
 };
 
@@ -332,6 +330,65 @@ var test_schema_compound_index = function() {
   var schema = new ydn.db.schema.Database({stores: [store1]});
 
   schema_sniff_test(schema);
+
+};
+
+
+var test_fix_schema_ver_change = function() {
+
+  var db_name = 'test_schema_' + Math.random();
+  var schema1 = {
+    version: 1,
+    stores: [
+      {
+        name: 'st1'
+      }
+    ]
+  };
+  var schema2 = {
+    version: 2,
+    stores: [
+      {
+        name: 'st1'
+      }, {
+        name: 'st2'
+      }
+    ]
+  };
+  var db = new ydn.db.Storage(db_name, schema1, options);
+
+  var done = false;
+  var sniff_schema1, sniff_schema2;
+
+  waitForCondition(
+      // Condition
+      function() { return done; },
+      // Continuation
+      function() {
+        assert_similar_schema(new ydn.db.schema.Database(schema1), sniff_schema1);
+        assert_similar_schema(new ydn.db.schema.Database(schema2), sniff_schema2);
+        reachedFinalContinuation = true;
+
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  db.getSchema(function(result) {
+    // console.log(result);
+    sniff_schema1 = result;
+    db.close();
+    setTimeout(function() {
+      db = new ydn.db.Storage(db_name, schema2, options);
+      db.getSchema(function(result) {
+        // console.log(result);
+        sniff_schema2 = result;
+        done = true;
+        var type = db.getType();
+        db.close();
+        ydn.db.deleteDatabase(db_name, type);
+      });
+    }, 100);
+  });
 
 };
 

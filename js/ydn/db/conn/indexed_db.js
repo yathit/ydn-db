@@ -735,6 +735,7 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
  * Close the connection.
  */
 ydn.db.con.IndexedDb.prototype.close = function() {
+  this.logger.finest(this + ' closing connection');
   this.idx_db_.close(); // IDB return void.
 };
 
