@@ -125,34 +125,25 @@ var events_schema = {
 })();
 
 
-(function () {
-  var test_env = {
-    setup: function () {
+(function() {
 
-    },
-    teardown: function () {
+  module('RecordEvent Event');
 
-    }
-  };
-
-  module("RecordEvent Event", test_env);
-
-  asyncTest("created", function () {
-    expect(6);
-
+  asyncTest('created', 6, function() {
+    var db_name_event = 'test-created-1';
     var db = new ydn.db.Storage(db_name_event, events_schema);
 
     var key = Math.ceil(Math.random() * 100000);
-    var data = { test: "random value", name: "name " + key, id: key };
+    var data = {test: 'random value', name: 'name ' + key, id: key};
 
-    db.addEventListener('created', function (e) {
+    db.addEventListener('created', function(e) {
       //console.log(e);
       equal(e.type, 'created', 'type');
       equal(e.getKey(), key, 'key');
       deepEqual(e.getValue(), data, 'value');
     });
 
-    db.addEventListener('updated', function (e) {
+    db.addEventListener('updated', function(e) {
       //console.log(e);
       equal(e.name, 'RecordEvent', 'event name');
       equal(e.getStoreName(), store_inline, 'store name');
@@ -163,8 +154,16 @@ var events_schema = {
       start();
     });
 
-    db.add(store_inline, data);
-    db.put(store_inline, data);
+    db.add(store_inline, data).then(function(x) {
+      // console.log(x);
+    }, function(e) {
+      throw e;
+    });
+    db.put(store_inline, data).then(function(x) {
+      // console.log(x);
+    }, function(e) {
+      throw e;
+    });
 
   });
 
@@ -227,8 +226,7 @@ var events_schema = {
 
   module("Store Event", test_env);
 
-  asyncTest("created", function () {
-    expect(5);
+  asyncTest("created", 5, function () {
 
     var db = new ydn.db.Storage(db_name_event, events_schema);
 
@@ -238,6 +236,7 @@ var events_schema = {
       {name: "rand key 1", id: keys[0]},
       {name: "rand key 2", id: keys[1]}
     ];
+    // console.log(data);
 
     db.addEventListener('created', function (e) {
       // console.log(e);
@@ -253,7 +252,11 @@ var events_schema = {
       start();
     });
 
-    db.add(store_inline, data);
+    db.add(store_inline, data).then(function(x) {
+      // console.log(x);
+    }, function(e) {
+      throw e;
+    });
 
   });
 

@@ -4,8 +4,8 @@
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver-major" value="0"/>
-    <property name="ver-minor" value="7"/>
-    <property name="ver-patch" value="5"/>
+    <property name="ver-minor" value="6"/>
+    <property name="ver-patch" value="7"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
@@ -64,20 +64,20 @@
         </closure-compile>
 
         <concat destfile="${dev-out.fn}" append="true">
-            //@ sourceMappingURL=${buildno}-ydn.db-dev.js.map
+            //# sourceMappingURL=${buildno}-ydn.db-dev.js.map
         </concat>
 
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
-                 token="/Users/kyawtun/work/ydn-base/"
+                 token="${work.dir}/ydn-base/"
                  value="https://bitbucket.org/ytkyaw/ydn-base/raw/master/"/>
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
-                 token="/Users/kyawtun/work/ydn-db/"
+                 token="${work.dir}/ydn-db/"
                  value="https://bitbucket.org/ytkyaw/ydn-db/raw/${version}/"/>
         <replace description="replace so with online repo path"
                  file="${dev-out.fn}.map"
-                 token="/Users/kyawtun/work/closure-library/"
+                 token="${work.dir}/closure-library/"
                  value="https://raw.github.com/yathit/google-closure-library/master/"/>
 
         <concat

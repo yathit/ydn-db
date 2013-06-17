@@ -73,6 +73,46 @@ var test_created_event = function() {
   db.add(store_name_inline_number, obj);
 };
 
+
+var test_store_created_event = function() {
+
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var hasEventFired = false;
+  var ev;
+
+  var keys = [Math.ceil(Math.random() * 100000),
+    Math.ceil(Math.random() * 100000)];
+  var obj = [
+    {name: "rand key 1", id: keys[0]},
+    {name: "rand key 2", id: keys[1]}
+  ];
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertNotNull(ev);
+        assertEquals('name', 'StoreEvent', ev.name);
+        assertEquals('type', 'created', ev.type);
+        assertEquals('store name', store_name_inline_number, ev.store_name);
+        assertArrayEquals('key', keys, ev.keys);
+        assertArrayEquals('value', obj, ev.values);
+        // Remember, the state of this boolean will be tested in tearDown().
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      3000); // maxTimeout
+
+  db.addEventListener('created', function(e) {
+    ev = e;
+    hasEventFired = true;
+  });
+
+  db.add(store_name_inline_number, obj);
+};
+
 var test_updated_event = function() {
 
   var db = new ydn.db.crud.Storage(db_name, schema, options);

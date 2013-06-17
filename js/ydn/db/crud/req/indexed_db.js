@@ -199,7 +199,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
   var result_count = 0;
 
   var me = this;
-  var has_error = true;
+  var has_error = false;
   var store = tx.objectStore(store_name);
   var msg = tx_no + ' addObjects: ' + store_name + ' ' +
       objs.length + ' objects';
