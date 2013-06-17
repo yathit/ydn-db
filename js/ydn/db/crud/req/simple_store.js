@@ -293,11 +293,11 @@ ydn.db.crud.req.SimpleStore.prototype.listByIds_ = function(tx, tx_no, df,
       if (!store || store.getName() != st) {
         store = storage.getSimpleStore(st);
       }
-      var key = store.getRecord(null, id);
-      if (!goog.isDefAndNotNull(key)) {
-        has_error = true;
-      }
-      arr.push(key);
+      var value = store.getRecord(null, id);
+      // if (!goog.isDefAndNotNull(value)) {
+      //  has_error = true;
+      // }
+      arr[i] = value;
     }
 
     df(arr, has_error);
@@ -336,6 +336,7 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(tx, tx_no, df,
   this.logger.finest(msg);
   var onComp = tx.getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
+    this.logger.finer(msg + ' getting records for ' + store_name);
     var results = store.getRecords(null, key_range, reverse, limit, offset);
     this.logger.finer(msg + ' ' + results.length + ' records found.');
     df(results);
