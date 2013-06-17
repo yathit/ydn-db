@@ -992,7 +992,8 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
     }
     store_names = [store_name];
   } else {
-    goog.asserts.assertArray(store_name);
+    goog.asserts.assertArray(store_name, 'store name ' + store_name + ' +' +
+        ' must be an array or string, but ' + (typeof store_name));
     db_keys = store_name;
     store_names = [];
     for (var i = 0, n = db_keys.length; i < n; i++) {

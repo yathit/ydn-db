@@ -160,8 +160,9 @@ ydn.db.schema.Database.prototype.getVersion = function() {
  * @param {number} version must be number type.
  */
 ydn.db.schema.Database.prototype.setVersion = function(version) {
-  goog.asserts.assert(this.is_auto_version_);
-  goog.asserts.assertNumber(version);
+  goog.asserts.assert(this.is_auto_version_,
+      'autoversion schema cannot set a version');
+  goog.asserts.assertNumber(version, 'version must be a number');
   this.version = version;
 };
 

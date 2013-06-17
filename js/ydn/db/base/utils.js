@@ -62,7 +62,8 @@ ydn.db.utils.setValueByKeys = function(obj, key_path, value) {
     var key;
     while (key = paths.shift()) {
       if (!goog.isObject(obj[key])) {
-        goog.asserts.assert(!goog.isDef(obj[key]));
+        goog.asserts.assert(!goog.isDef(obj[key]), 'key "' + key +
+            '" already defined');
         obj[key] = {};
       }
       obj = obj[key];

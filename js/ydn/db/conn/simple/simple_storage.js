@@ -207,7 +207,8 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
         if (this.schema instanceof ydn.db.schema.EditableDatabase) {
           for (var i = 0; i < ex_schema.count(); i++) {
             var store = ex_schema.store(i);
-            goog.asserts.assert(!goog.isNull(store));
+            goog.asserts.assert(!goog.isNull(store), 'store at ' + i +
+                ' is null');
             this.schema.addStore(store);
           }
         }

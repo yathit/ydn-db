@@ -546,17 +546,18 @@ ydn.db.schema.Index.prototype.hint = function(that) {
   if (!that) {
     return this;
   }
-  goog.asserts.assert(this.name == that.name);
+  goog.asserts.assert(this.name == that.name, 'index name: ' +
+      this.name + ' != ' + that.name);
   var keyPath = goog.isArray(this.keyPath) ?
-    goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
-    this.keyPath;
+      goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
+      this.keyPath;
   var type = this.type;
   if (!goog.isDef(that.type) && type == 'TEXT') {
-    // composite are converted into TEXT
-    type = undefined;
+      // composite are converted into TEXT
+      type = undefined;
   }
   return new ydn.db.schema.Index(keyPath, type, this.unique, this.multiEntry,
-    that.name);
+      that.name);
 };
 
 

@@ -44,7 +44,8 @@ ydn.db.Key = function(store_or_json_or_value, opt_id, opt_parent) {
       opt_parent = new ydn.db.Key(store_or_json_or_value['parent']);
     }
   } else {
-    goog.asserts.assertString(store_or_json_or_value);
+    goog.asserts.assertString(store_or_json_or_value, 'store name of' +
+        ' a key object must be a string');
     if (!goog.isDef(opt_id)) {
       // must be valueOf string
       var idx = store_or_json_or_value.lastIndexOf(ydn.db.Key.SEP_PARENT);

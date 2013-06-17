@@ -616,7 +616,8 @@ ydn.db.schema.Store.prototype.hint = function(that) {
   if (!that) {
     return this;
   }
-  goog.asserts.assert(this.name == that.name);
+  goog.asserts.assert(this.name == that.name, 'store name: ' +
+      this.name + ' != ' + that.name);
   var autoIncrement = this.autoIncrement;
   var keyPath = goog.isArray(this.keyPath) ?
       goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :

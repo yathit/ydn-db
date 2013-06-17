@@ -217,7 +217,7 @@ ydn.db.con.Storage.prototype.getSchema = function(opt_callback) {
       this.db_.getSchema(callback);
     } else {
       var me = this;
-      goog.asserts.assertFunction(callback); // compiler complained.
+      goog.asserts.assertFunction(callback, 'schema'); // compiler complained.
       var get_schema = function(tx) {
         me.db_.getSchema(callback, tx);
       };
@@ -393,7 +393,8 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
   // handle version change
 
   var me = this;
-  goog.asserts.assertString(this.db_name);
+  goog.asserts.assertString(this.db_name, 'database name must be a string' +
+      ' but found ' + this.db_name + ' of type ' + (typeof this.db_name));
 
   var df = new goog.async.Deferred();
   var resolve = function(is_connected, ev) {

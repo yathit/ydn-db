@@ -20,7 +20,6 @@ ydn.db.con.IStorage = function() {};
 ydn.db.con.IStorage.prototype.close = goog.abstractMethod;
 
 
-
 /**
  * Run a transaction.
  * @export

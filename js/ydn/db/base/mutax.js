@@ -28,7 +28,7 @@ ydn.db.base.Mutex.prototype.state_ = false;
  */
 ydn.db.base.Mutex.prototype.up = function() {
   // console.log('mutex up')
-  goog.asserts.assert(!this.state_);
+  goog.asserts.assert(!this.state_, 'Mutex already up.');
   this.state_ = true;
 };
 
@@ -38,7 +38,7 @@ ydn.db.base.Mutex.prototype.up = function() {
  */
 ydn.db.base.Mutex.prototype.down = function() {
   // console.log('mutex down')
-  goog.asserts.assert(this.state_);
+  goog.asserts.assert(this.state_, 'Mutex already down.');
   this.state_ = false;
 };
 

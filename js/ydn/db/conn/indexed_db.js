@@ -93,7 +93,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       me.idx_db_ = null;
       df.errback(opt_err);
     } else {
-      goog.asserts.assertObject(db);
+      goog.asserts.assertObject(db, 'db');
       me.idx_db_ = db;
       me.idx_db_.onabort = function(e) {
         me.logger.warning(me + ': onabort - ' + e.message);
