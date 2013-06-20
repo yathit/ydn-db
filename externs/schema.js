@@ -94,6 +94,12 @@ BaseOptions.prototype.delimiter;
 
 
 /**
+ * @type {boolean}
+ */
+BaseOptions.prototype.keepMeta;
+
+
+/**
  * Store name which store meta data.
  * If specified, metaData must not specified.
  * @type {string}
@@ -106,7 +112,7 @@ BaseOptions.prototype.metaStoreName;
  * If specified, metaStoreName must not specified.
  * @type {string}
  */
-BaseOptions.prototype.metaData;
+BaseOptions.prototype.metaDataName;
 
 
 
