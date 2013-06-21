@@ -149,6 +149,7 @@ S3Options.prototype.maxKeys;
  */
 S3Options.prototype.prefix;
 
+
 /**
  * Bucket name.
  * @type {string}
