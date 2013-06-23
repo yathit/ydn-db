@@ -18,7 +18,7 @@ var load_store_name = 'st_load';
 var setUp = function () {
   // ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.crud.req.WebSql.DEBUG = true;
-   ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
@@ -303,7 +303,7 @@ var test_12_put_array_key = function() {
 
 
 var test_12_put_array_unique_constraint = function() {
-  var db_name = 'test_12_put_array_unique_constraint-1';
+  var db_name = 'test_12_put_array_unique_constraint-3';
   var schema = {
     stores: [{
       name: 'st',

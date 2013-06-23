@@ -471,13 +471,14 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
      columns that are already collectively subject to a UNIQUE or PRIMARY KEY
      constraint.
      */
-    //if (index.type != ydn.db.schema.DataType.BLOB) {
-    //  var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS ' +
-    //      goog.string.quote(index.name) +
-    //      ' ON ' + table_schema.getQuotedName() +
-    //      ' (' + goog.string.quote(index.getKeyPath()) + ')';
-    //  sqls.push(idx_sql);
-    //}
+    var key_path = index.getKeyPath();
+    if (index.type != ydn.db.schema.DataType.BLOB && goog.isString(key_path)) {
+      var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS ' +
+          goog.string.quote(table.getName() + '-' + index.getName()) +
+          ' ON ' + table.getQuotedName() +
+          ' (' + goog.string.quote(key_path) + ')';
+      sqls.push(idx_sql);
+    }
 
     var index_key_path = index.getSQLIndexColumnNameQuoted();
 
@@ -491,8 +492,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
 
   }
 
-  sql += ');';
-  sqls.push(sql);
+  sql += ')';
+  sqls.unshift(sql);
 
   return sqls;
 };
