@@ -18,7 +18,7 @@ var load_store_name = 'st_load';
 var setUp = function () {
   // ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  // ydn.debug.log('ydn.db', 'finest');
+   ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
@@ -315,34 +315,38 @@ var test_12_put_array_unique_constraint = function() {
         }]
     }]
   };
-  var data = [];
-  var expected = [];
-  var n = 4;
-  for (var i = 0; i < n; i++) {
-    data[i] = {
-      id: i,
-      type: 'a' + i
-    };
-    expected[i] = i;
-  }
-  data[n-2].type = data[1].type; // void unique constraint
-  console.log(data);
+  var data1 = [{
+    id: 1,
+    type: 'a1'
+  }, {
+    id: 2,
+    type: 'a3'
+  }];
+  var data2 = [{
+    id: 3,
+    type: 'a1' // void unique constraint
+  }, {
+    id: 4,
+    type: 'a4'
+  }];
+
+  // console.log(data);
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var hasEventFired = false;
-  var results, is_success;
+  var results1, result2, is_success;
 
   waitForCondition(
       // Condition
       function() { return hasEventFired; },
       // Continuation
       function() {
+        assertEquals('correct length for results1', 2, results1.length);
+        assertEquals('correct length for results2', 2, results2.length);
+        assertArrayEquals('results1', [1, 2], results1);
+        assertEquals('results2 last', 4, results2[1]);
         assertFalse('has error', is_success);
-        assertEquals('correct length', n, results.length);
-        assertEquals('first record', data[0].id, results[0]);
-        assertEquals('error record', 'ConstraintError', results[n - 2].name);
-        assertEquals('last record', data[n - 1].id, results[n - 1]);
-
+        assertEquals('error record', 'ConstraintError', results2[0].name);
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db_name, db.getType());
         db.close();
@@ -350,13 +354,23 @@ var test_12_put_array_unique_constraint = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.put('st', data).addCallbacks(function(x) {
+  db.clear('st');
+  db.put('st', data1).addCallbacks(function(x) {
+    // console.log(x);
+    results1 = x;
+  }, function(value) {
+    // console.log(value);
+    results1 = value;
+  });
+  db.put('st', data2).addCallbacks(function(x) {
+    // console.log(x);
     is_success = true;
+    results2 = x;
     hasEventFired = true;
   }, function(value) {
-    console.log(value);
+    // console.log(value);
     is_success = false;
-    results = value;
+    results2 = value;
     hasEventFired = true;
   });
 };

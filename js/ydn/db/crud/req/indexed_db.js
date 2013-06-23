@@ -286,19 +286,19 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
           ' to store "' + store_name + '"';
   this.logger.finest(msg);
 
-  /**
-   *
-   * @param {IDBTransaction} tx
-   */
-  var out = function(tx) {
-    if (has_error) {
-      df(results, true);
-    } else {
-      df(results);
-    }
-  };
-
   var put = function(i) {
+
+    if (!goog.isDefAndNotNull(objs[i])) {
+      result_count++;
+      if (result_count == objs.length) {
+        df(results, has_error);
+      } else {
+        var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
+        if (next < objs.length) {
+          put(next);
+        }
+      }
+    }
 
     var request;
 
@@ -315,7 +315,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
       //}
       results[i] = event.target.result;
       if (result_count == objs.length) {
-        out(event.target.transaction);
+        df(results, has_error);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -343,7 +343,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
       has_error = true;
       event.preventDefault(); // not abort the transaction.
       if (result_count == objs.length) {
-        out(event.target.transaction);
+        df(results, has_error);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {

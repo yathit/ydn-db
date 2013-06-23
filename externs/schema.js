@@ -172,6 +172,12 @@ GDataOptions.prototype.version;
 
 
 /**
+ * @type {string}
+ */
+GDataOptions.prototype.kind;
+
+
+/**
  * @type {string?}
  */
 GDataOptions.prototype.projection;
@@ -183,6 +189,7 @@ GDataOptions.prototype.projection;
  * @constructor
  */
 var ODataOptions = function() {};
+
 
 
 /**
@@ -198,6 +205,7 @@ function StoreSyncOptionJson() {}
  * @type {string}
  */
 StoreSyncOptionJson.prototype.format;
+
 
 /**
  * Immutable database.

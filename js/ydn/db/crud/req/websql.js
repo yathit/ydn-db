@@ -311,6 +311,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
   var result_keys = [];
   var result_count = 0;
   var msg = tx_no + ' inserting ' + objects.length + ' objects.';
+  var has_error = false;
 
   /**
    * Put and item at i. This ydn.db.con.Storage will invoke callback to df if
@@ -321,11 +322,17 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
    */
   var put = function(i, tx) {
 
-    if (goog.DEBUG && !goog.isDefAndNotNull(objects[i])) {
-      var t = goog.isDef(objects[i]) ? 'null' : 'undefined';
-      var at = objects.length == 1 ? '' : ' at ' + i + ' of ' + objects.length;
-      throw new ydn.debug.error.InvalidOperationException('inserting ' + t +
-          'object ' + at + ' "' + ydn.json.toShortString(objects[i]));
+    if (!goog.isDefAndNotNull(objects[i])) {
+      result_count++;
+      if (result_count == objects.length) {
+        me.logger.finer('success ' + msg);
+        df(result_keys, has_error);
+      } else {
+        var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
+        if (next < objects.length) {
+          put(next, tx);
+        }
+      }
     }
 
     var out;
@@ -408,7 +415,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         result_keys[i] = key;
         if (result_count == objects.length) {
           me.logger.finer('success ' + msg);
-          df(result_keys);
+          df(result_keys, has_error);
         } else {
           var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
           if (next < objects.length) {
@@ -428,37 +435,31 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         window.console.log([sql, out, tr, error]);
       }
       result_count++;
+      has_error = true;
       if (error.code == 6) { // constraint failed
         error.name = 'ConstraintError';
-        if (single) {
-          me.logger.finer('success ' + i_msg);
-          df(error, true);
+      } else {
+        me.logger.warning('error: ' + error.message + ' ' + msg);
+      }
+      if (single) {
+        me.logger.finer('success ' + i_msg);
+        df(error, true);
+      } else {
+        result_keys[i] = error;
+        if (result_count == objects.length) {
+          me.logger.finest('success ' + msg); // still success message ?
+          df(result_keys, has_error);
         } else {
-          result_keys[i] = null;
-          if (result_count == objects.length) {
-            me.logger.finest('success ' + msg); // still success message ?
-            df(result_keys);
-          } else {
-            var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
-            if (next < objects.length) {
-              put(next, tr);
-            }
+          var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
+          if (next < objects.length) {
+            put(next, tr);
           }
         }
-        if (create && single) {
-          return true; // rollback for add
-        } else {
-          return false; // continue for put or multiple insert
-        }
-      } else {
-        // rollback for any error including constraint error.
-        me.logger.warning('error: ' + error.message + ' ' + msg);
-        df(error, true);
-        return false;
       }
+      return false; // continue, not rollback
     };
 
-    //console.log([sql, out.values]);
+    // console.log([sql, out.values]);
     me.logger.finest(i_msg);
     tx.executeSql(sql, out.values, success_callback, error_callback);
   };
