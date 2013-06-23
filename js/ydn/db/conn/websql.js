@@ -597,6 +597,9 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             has_default_blob_column = true;
           } else {
             var unique = upper_fields[2] == 'UNIQUE';
+            if (goog.string.startsWith(name, st_name + '-')) {
+              name = name.substr(st_name.length + 1);
+            }
             var index = new ydn.db.schema.Index(name, type, unique);
             //console.log(index);
             indexes.push(index);

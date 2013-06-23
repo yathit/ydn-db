@@ -323,6 +323,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
   var put = function(i, tx) {
 
     if (!goog.isDefAndNotNull(objects[i])) {
+      me.logger.finest('empty object at ' + i + ' of ' + objects.length);
       result_count++;
       if (result_count == objects.length) {
         me.logger.finer('success ' + msg);
@@ -360,6 +361,11 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       result_count++;
 
       var key = goog.isDef(out.key) ? out.key : results.insertId;
+      if (results.rowsAffected < 1) { // catch for no-op
+        // assuming index constraint no op
+        has_error = true;
+        key = new ydn.db.ConstraintError(key + ' no-op');
+      }
 
       /**
        * Insert a row for each multi entry index.

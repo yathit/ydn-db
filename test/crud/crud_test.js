@@ -18,8 +18,9 @@ var load_store_name = 'st_load';
 var setUp = function () {
   // ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  // ydn.debug.log('ydn.db', 'finest');
+  //ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
+  //ydn.db.crud.req.IndexedDb.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
   var stores = [new ydn.db.schema.Store(table_name, 'id'),
@@ -303,7 +304,7 @@ var test_12_put_array_key = function() {
 
 
 var test_12_put_array_unique_constraint = function() {
-  var db_name = 'test_12_put_array_unique_constraint-3';
+  var db_name = 'test_12_put_array_unique_constraint-4';
   var schema = {
     stores: [{
       name: 'st',
@@ -311,30 +312,35 @@ var test_12_put_array_unique_constraint = function() {
       indexes: [
         {
           keyPath: 'type',
-          unique: true
+          unique: true,
+          type: 'INTEGER'
         }]
     }]
   };
   var data1 = [{
     id: 1,
-    type: 'a1'
+    type: 1,
+    value: 'a'
   }, {
     id: 2,
-    type: 'a3'
+    type: 2,
+    value: 'b'
   }];
   var data2 = [{
-    id: 3,
-    type: 'a1' // void unique constraint
+    id: 1, // void unique constraint
+    type: 3,
+    value: 'c'
   }, {
     id: 4,
-    type: 'a4'
+    type: 4,
+    value: 'd'
   }];
 
   // console.log(data);
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var hasEventFired = false;
-  var results1, result2, is_success;
+  var results1, results2, is_success;
 
   waitForCondition(
       // Condition
@@ -344,6 +350,87 @@ var test_12_put_array_unique_constraint = function() {
         assertEquals('correct length for results1', 2, results1.length);
         assertEquals('correct length for results2', 2, results2.length);
         assertArrayEquals('results1', [1, 2], results1);
+        assertEquals('results2 last', 4, results2[1]);
+        assertFalse('has error', is_success);
+        assertEquals('error record', 'ConstraintError', results2[0].name);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.clear('st');
+  db.add('st', data1).addCallbacks(function(x) {
+    // console.log(x);
+    results1 = x;
+  }, function(value) {
+    // console.log(value);
+    results1 = value;
+  });
+  db.add('st', data2).addCallbacks(function(x) {
+    // console.log(x);
+    is_success = true;
+    results2 = x;
+    hasEventFired = true;
+  }, function(value) {
+    // console.log(value);
+    is_success = false;
+    results2 = value;
+    hasEventFired = true;
+  });
+};
+
+
+
+var test_12_put_array_unique_index_constraint = function() {
+  var db_name = 'test_12_put_array_unique_index_constraint-4';
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [
+        {
+          keyPath: 'type',
+          unique: true,
+          type: 'INTEGER'
+        }]
+    }]
+  };
+  var data1 = [{
+    id: 1,
+    type: 1,
+    value: 'a'
+  }, {
+    id: 2,
+    type: 2,
+    value: 'b'
+  }];
+  var data2 = [{
+    id: 3,
+    type: 1, // void unique constraint
+    value: 'c'
+  }, {
+    id: 4,
+    type: 4,
+    value: 'd'
+  }];
+
+  // console.log(data);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var hasEventFired = false;
+  var results1, results2, keys, is_success;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('correct length for results1', 2, results1.length);
+        assertEquals('correct length for results2', 2, results2.length);
+        assertArrayEquals('results1', [1, 2], results1);
+        assertArrayEquals('keys', [1, 2, 4], keys);
         assertEquals('results2 last', 4, results2[1]);
         assertFalse('has error', is_success);
         assertEquals('error record', 'ConstraintError', results2[0].name);
@@ -366,13 +453,15 @@ var test_12_put_array_unique_constraint = function() {
     // console.log(x);
     is_success = true;
     results2 = x;
-    hasEventFired = true;
   }, function(value) {
     // console.log(value);
     is_success = false;
     results2 = value;
-    hasEventFired = true;
   });
+  db.keys('st').addBoth(function(x) {
+    keys = x;
+    hasEventFired = true;
+  })
 };
 
 

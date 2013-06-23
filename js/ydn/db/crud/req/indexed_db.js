@@ -217,9 +217,9 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
 
     request.onsuccess = function(event) {
       result_count++;
-      //if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      //  window.console.log([store_name, event]);
-      //}
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, event, i]);
+      }
       results[i] = event.target.result;
       if (result_count == objs.length) {
         df(results, has_error);
@@ -234,7 +234,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
     request.onerror = function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, event]);
+        window.console.log([store_name, event, i]);
       }
       var error = request.error;
       if (goog.DEBUG) {
@@ -247,7 +247,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       has_error = true;
       event.preventDefault(); // not abort the transaction.
       if (result_count == objs.length) {
-        df(event.target.transaction, has_error);
+        df(results, has_error);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -289,6 +289,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
   var put = function(i) {
 
     if (!goog.isDefAndNotNull(objs[i])) {
+      me.logger.finest('empty object at ' + i + ' of ' + objs.length);
       result_count++;
       if (result_count == objs.length) {
         df(results, has_error);
@@ -310,9 +311,9 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
 
     request.onsuccess = function(event) {
       result_count++;
-      //if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      //  window.console.log([store_name, event]);
-      //}
+      if (ydn.db.crud.req.IndexedDb.DEBUG) {
+        window.console.log([store_name, event, i]);
+      }
       results[i] = event.target.result;
       if (result_count == objs.length) {
         df(results, has_error);
@@ -327,15 +328,13 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
     request.onerror = function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, event]);
+        window.console.log([store_name, event, i]);
       }
       var error = request.error;
-      if (goog.DEBUG) {
-        me.logger.warning(tx_no + ' put request to "' + store_name +
-            '" cause ' + error.name + ' for object "' +
-            ydn.json.toShortString(objs[i]) + '" at index ' +
-            i + ' of ' + objs.length + ' objects.');
-      }
+      me.logger.finest(tx_no + ' put request to "' + store_name +
+          '" cause ' + error.name + ' for object "' +
+          ydn.json.toShortString(objs[i]) + '" at index ' +
+          i + ' of ' + objs.length + ' objects.');
       // accessing request.error can cause InvalidStateError,
       // although it is not possible here since request has already done flag.
       // http://www.w3.org/TR/IndexedDB/#widl-IDBRequest-error
