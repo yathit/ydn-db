@@ -474,6 +474,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
     var key_path = index.getKeyPath();
     if (index.type != ydn.db.schema.DataType.BLOB && goog.isString(key_path)) {
       var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS ' +
+          // table name is suffix to index name to satisfy unique index name
+          // requirement within a database.
           goog.string.quote(table.getName() + '-' + index.getName()) +
           ' ON ' + table.getQuotedName() +
           ' (' + goog.string.quote(key_path) + ')';
@@ -597,8 +599,8 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             has_default_blob_column = true;
           } else {
             var unique = upper_fields[2] == 'UNIQUE';
-            if (goog.string.startsWith(name, st_name + '-')) {
-              name = name.substr(st_name.length + 1);
+            if (goog.string.startsWith(name, info.tbl_name + '-')) {
+              name = name.substr(info.tbl_name.length + 1);
             }
             var index = new ydn.db.schema.Index(name, type, unique);
             //console.log(index);

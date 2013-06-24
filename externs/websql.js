@@ -8,7 +8,6 @@
 
 
 
-
 /**
  * http://www.sqlite.org/faq.html
  * How do I list all tables/indices contained in an SQLite database
@@ -16,25 +15,30 @@
  */
 function SqliteTableInfo() {}
 
+
 /**
  * @type {string}
  */
 SqliteTableInfo.prototype.type;
+
 
 /**
  * @type {string}
  */
 SqliteTableInfo.prototype.name;
 
+
 /**
  * @type {string}
  */
 SqliteTableInfo.prototype.tbl_name;
 
+
 /**
  * @type {string}
  */
 SqliteTableInfo.prototype.sql;
+
 
 /**
  * @type {number}

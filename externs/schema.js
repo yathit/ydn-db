@@ -183,6 +183,18 @@ GDataOptions.prototype.kind;
 GDataOptions.prototype.projection;
 
 
+/**
+ * @type {string}
+ */
+GDataOptions.prototype.domain;
+
+
+/**
+ * @type {string}
+ */
+GDataOptions.prototype.siteName;
+
+
 
 /**
  * @extends {AtomOptions}
