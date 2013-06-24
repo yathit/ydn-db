@@ -329,6 +329,43 @@ StoreSchema.prototype.Sync;
 /**
  * @constructor
  */
+function MetaData() {}
+
+
+/**
+ * @type {string}
+ */
+MetaData.prototype.id;
+
+
+/**
+ * @type {string}
+ */
+MetaData.prototype.etag;
+
+
+/**
+ * @type {number}
+ */
+MetaData.prototype.updated;
+
+
+/**
+ * @type {number}
+ */
+MetaData.prototype.expires;
+
+
+/**
+ * @type {number}
+ */
+MetaData.prototype.date;
+
+
+
+/**
+ * @constructor
+ */
 function DatabaseSchema() {}
 
 
