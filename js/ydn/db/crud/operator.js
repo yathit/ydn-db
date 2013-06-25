@@ -520,6 +520,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       }
       this.logger.finer('listByIndexKeyRange: ' + store_name + ':' +
           index_name);
+      method = ydn.db.schema.Store.SyncMethod.VALUES_INDEX;
       this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
         me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name,
             index_name, range, reverse, limit, offset, false);
