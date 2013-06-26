@@ -130,7 +130,7 @@ ydn.db.schema.Index = function(
   this.key_paths_ = !this.is_composite_ && !this.multiEntry ?
       this.keyPath.split('.') : null;
 
-  goog.asserts.assert(!goog.isDef(opt_generator) ||
+  goog.asserts.assert(!goog.isDefAndNotNull(opt_generator) ||
       goog.isFunction(opt_generator), 'index generator must be a function, ' +
       ', but ' + (typeof opt_generator) + ' found.');
   /**

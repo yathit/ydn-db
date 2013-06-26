@@ -733,6 +733,66 @@ var test_composite_primary_key = function () {
 };
 
 
+var test_index_generator = function() {
+
+  var db_name = 'test_index_generator-1';
+  var schema = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'id',
+        indexes: [
+          {
+            name: 'lowerName',
+            generator: function(obj) {
+              return obj.name.toLowerCase();
+            }
+          }]
+      }]
+  };
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+  var done, result;
+
+  waitForCondition(
+      // Condition
+      function() { return done; },
+      // Continuation
+      function() {
+        assertObjectEquals('get result', [3, 2, 1], result);
+
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var data = [
+    {
+      name: 'fa',
+      id: 1,
+      value: 'm' + Math.random()
+    },
+    {
+      name: 'Da',
+      id: 2,
+      value: 'm' + Math.random()
+    },
+    {
+      name: 'ba',
+      id: 3,
+      value: 'm' + Math.random()
+    }
+  ];
+  db.clear('st');
+  db.put('st', data);
+  db.keys('st', 'lowerName').addBoth(function (x) {
+    result = x;
+    done = true;
+  });
+};
+
+
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();
 G_testRunner.initialize(testCase);
