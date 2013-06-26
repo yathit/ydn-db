@@ -662,6 +662,8 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
   }
 
   var df = ydn.db.base.createDeferred();
+  var hdf = df;
+  var sync_type = ydn.db.schema.Store.SyncMethod.ADD;
   var me = this;
 
   if (!store) {
@@ -693,7 +695,13 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     //console.log('waiting to putObjects');
     this.logger.finer('addObjects: ' + store_name + ' ' + objs.length +
         ' objects');
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
+
+    for (var i = 0; i < objs.length; i++) {
+      store.generateIndex(objs[i]);
+    }
+
+    sync_type = ydn.db.schema.Store.SyncMethod.ADDS;
+    this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
       //console.log('putObjects');
       me.getExecutor().addObjects(tx, tx_no, cb, store_name, objs, keys);
     }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
@@ -712,11 +720,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     var label = 'store: ' + store_name + ' key: ' + store.extractKey(obj, key);
 
     this.logger.finer('addObject: ' + label);
-
-    var hdf = df;
-    if (ydn.db.base.USE_HOOK) {
-      df = store.hook(ydn.db.schema.Store.SyncMethod.ADD, hdf, arguments);
-    }
+    store.generateIndex(obj);
 
     this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
       me.getExecutor().addObject(tx, tx_no, cb, store_name, obj, key);
@@ -734,6 +738,10 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     throw new ydn.debug.error.ArgumentException('record must be an object or ' +
         'array list of objects' +
         ', but ' + value + ' of type ' + typeof value + ' found.');
+  }
+
+  if (ydn.db.base.USE_HOOK) {
+    df = store.hook(sync_type, hdf, arguments);
   }
 
   return df;
@@ -813,6 +821,8 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
 ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
 
   var df = ydn.db.base.createDeferred();
+  var hdf = df;
+  var sync_type = ydn.db.schema.Store.SyncMethod.NONE;
   var me = this;
 
   if (arg1 instanceof ydn.db.Key) {
@@ -870,7 +880,13 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
     }
     this.logger.finer('putByKeys: to ' + ydn.json.stringify(store_names) + ' ' +
         values.length + ' objects');
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
+
+    for (var i = 0; i < values.length; i++) {
+      store.generateIndex(values[i]);
+    }
+    sync_type = ydn.db.schema.Store.SyncMethod.PUT_KEYS;
+
+    this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
       me.getExecutor().putByKeys(tx, tx_no, cb, values, db_keys);
     }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
   } else if (goog.isString(arg1) || goog.isObject(arg1)) {
@@ -901,7 +917,11 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
       this.logger.finer('putObjects: ' + st_name + ' ' +
           objs.length + ' objects');
-      this.tx_thread.exec(df, function(tx, tx_no, cb) {
+      for (var i = 0; i < objs.length; i++) {
+        store.generateIndex(objs[i]);
+      }
+      sync_type = ydn.db.schema.Store.SyncMethod.PUTS;
+      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
         //console.log('putObjects');
         me.getExecutor().putObjects(tx, tx_no, cb, st_name, objs, keys);
       }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
@@ -929,13 +949,9 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         }
       }
       this.logger.finer('putObject: ' + st_name + ' ' + key);
-
-      var post_df = df;
-      if (ydn.db.base.USE_HOOK) {
-        df = store.hook(ydn.db.schema.Store.SyncMethod.PUT, post_df, arguments);
-      }
-
-      this.tx_thread.exec(post_df, function(tx, tx_no, cb) {
+      store.generateIndex(obj);
+      sync_type = ydn.db.schema.Store.SyncMethod.PUT;
+      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
         me.getExecutor().putObject(tx, tx_no, cb, st_name, obj, key);
       }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
 
@@ -954,6 +970,10 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
   } else {
     throw new ydn.debug.error.ArgumentException('the first argument of put ' +
         'must be store name, store schema or array of keys.');
+  }
+
+  if (ydn.db.base.USE_HOOK) {
+    df = store.hook(sync_type, hdf, arguments);
   }
 
   return df;

@@ -56,8 +56,12 @@ ydn.db.utils.getValueByKeys = function(obj, var_args) {
  * @param {*} value value to set.
  */
 ydn.db.utils.setValueByKeys = function(obj, key_path, value) {
-  var paths = key_path.split('.');
   if (obj) {
+    if (key_path.indexOf('.') == -1) {
+      obj[key_path] = value;
+      return;
+    }
+    var paths = key_path.split('.');
     var last_key = paths.pop();
     var key;
     while (key = paths.shift()) {

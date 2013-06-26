@@ -974,12 +974,41 @@ ydn.db.schema.Store.prototype.similar = function(store) {
 
 
 /**
+ * @type {Object.<Function>} index generator function for each index.
+ */
+ydn.db.schema.Store.prototype.index_generators;
+
+
+/**
+ * Add index by generator.
+ * @param {Object} obj record value.
+ */
+ydn.db.schema.Store.prototype.generateIndex = function(obj) {
+  if (!obj) {
+    return;
+  }
+  for (var index in this.index_generators) {
+    var fn = this.index_generators[index];
+    var out = fn(obj);
+    var type = typeof(out);
+    if (type == 'string' || type == 'number' || type == 'array' ||
+        type == 'undefined' || out instanceof Date) {
+      ydn.db.utils.setValueByKeys(obj, index, out);
+    }
+  }
+};
+
+
+/**
  * @enum {string}
  */
 ydn.db.schema.Store.SyncMethod = {
   ADD: 'add',
+  ADDS: 'as',
   GET: 'get',
   PUT: 'put',
+  PUTS: 'ps',
+  PUT_KEYS: 'pk',
   REMOVE: 'rm',
   VALUES: 'vs',
   VALUES_INDEX: 'vi',
