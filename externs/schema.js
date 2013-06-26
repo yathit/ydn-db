@@ -42,6 +42,15 @@ IndexSchema.prototype.keyPath;
 IndexSchema.prototype.multiEntry;
 
 
+/**
+ * Index key generator. Generator function will be invoked when a record value
+ * is about to 'add' or 'put' to the object store. Returning a valid IDBKey
+ * or undefined will set to the record value while ignoring invalid IDBKeys.
+ * @type {Function}
+ */
+IndexSchema.prototype.generator;
+
+
 
 /**
  * @constructor

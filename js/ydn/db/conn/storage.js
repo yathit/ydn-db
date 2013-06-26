@@ -162,7 +162,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
       schema = new ydn.db.schema.Database(schema_json);
     }
 
-    var n = n = schema_json.stores ? schema_json.stores.length : 0;
+    var n = schema_json.stores ? schema_json.stores.length : 0;
     for (var i = 0; i < n; i++) {
       var store = schema.getStore(schema_json.stores[i].name);
       if (schema_json.stores[i].Sync) {
@@ -759,7 +759,7 @@ ydn.db.con.Storage.prototype.isAutoSchema = function() {
 
 
 /**
- *
+ * ydn.db.sync module will override this method to inject sync functions.
  * @param {ydn.db.schema.Store} store
  * @param {StoreSyncOptionJson} option
  * @protected

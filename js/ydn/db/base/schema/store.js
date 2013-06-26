@@ -13,10 +13,9 @@
 // limitations under the License.
 
 /**
- * @fileoverview About this file.
+ * @fileoverview Represent object store.
  *
- * User: kyawtun
- * Date: 24/2/13
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.schema.Store');
@@ -40,13 +39,11 @@ goog.require('ydn.db.schema.Index');
  * @param {boolean=} opt_dispatch_events if true, storage instance should
  * dispatch event on changes.
  * @param {boolean=} opt_is_fixed sync with backend server.
- * @param {StoreSyncOptionJson=} opt_sync sync with backend server.
  * @constructor
  * @struct
  */
 ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
-                               opt_indexes, opt_dispatch_events, opt_is_fixed,
-                               opt_sync) {
+                               opt_indexes, opt_dispatch_events, opt_is_fixed) {
 
   /**
    * @final
