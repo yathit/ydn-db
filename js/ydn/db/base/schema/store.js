@@ -270,8 +270,7 @@ ydn.db.schema.Store.fromJSON = function(json) {
   var type = json.type === 'undefined' || json.type === 'null' ?
       undefined : json.type;
   return new ydn.db.schema.Store(json.name, json.keyPath,
-      json.autoIncrement, type, indexes, json.dispatchEvents, json.fixed,
-      json.Sync);
+      json.autoIncrement, type, indexes, json.dispatchEvents, json.fixed);
 };
 
 
@@ -984,14 +983,8 @@ ydn.db.schema.Store.prototype.generateIndex = function(obj) {
   if (!obj) {
     return;
   }
-  for (var index in this.index_generators) {
-    var fn = this.index_generators[index];
-    var out = fn(obj);
-    var type = typeof(out);
-    if (type == 'string' || type == 'number' || type == 'array' ||
-        type == 'undefined' || out instanceof Date) {
-      ydn.db.utils.setValueByKeys(obj, index, out);
-    }
+  for (var i = 0; i < this.indexes.length; i++) {
+    this.indexes[i].generateIndex(obj);
   }
 };
 

@@ -38,10 +38,12 @@ goog.require('ydn.debug.error.ArgumentException');
  * @param {boolean=} opt_multi_entry specifies whether the index's multiEntry
  * flag is set.
  * @param {string=} opt_index_name index name.
+ * @param {Function=} opt_generator index key generator.
  * @constructor
  */
 ydn.db.schema.Index = function(
-    keyPath, opt_type, opt_unique, opt_multi_entry, opt_index_name) {
+    keyPath, opt_type, opt_unique, opt_multi_entry, opt_index_name,
+    opt_generator) {
 
   if (!goog.isDef(opt_index_name)) {
     if (goog.isArray(keyPath)) {
@@ -127,6 +129,15 @@ ydn.db.schema.Index = function(
 
   this.key_paths_ = !this.is_composite_ && !this.multiEntry ?
       this.keyPath.split('.') : null;
+
+  goog.asserts.assert(!goog.isDef(opt_generator) ||
+      goog.isFunction(opt_generator), 'index generator must be a function, ' +
+      ', but ' + (typeof opt_generator) + ' found.');
+  /**
+   * @final
+   * @private
+   */
+  this.index_generator_ = opt_generator || null;
 };
 
 
@@ -412,6 +423,7 @@ ydn.db.schema.Index.prototype.isComposite = function() {
   return this.is_composite_;
 };
 
+
 /**
  *
  * @return {boolean} unique or not.
@@ -449,7 +461,8 @@ ydn.db.schema.Index.prototype.clone = function() {
       this.type,
       this.unique,
       this.multiEntry,
-      this.name);
+      this.name,
+      this.index_generator_);
 };
 
 
@@ -530,7 +543,6 @@ ydn.db.schema.Index.prototype.difference = function(index) {
 };
 
 
-
 /**
  * Create a new update index schema with given guided index schema.
  * NOTE: This is used in websql for checking table schema sniffed from the
@@ -553,8 +565,8 @@ ydn.db.schema.Index.prototype.hint = function(that) {
       this.keyPath;
   var type = this.type;
   if (!goog.isDef(that.type) && type == 'TEXT') {
-      // composite are converted into TEXT
-      type = undefined;
+    // composite are converted into TEXT
+    type = undefined;
   }
   return new ydn.db.schema.Index(keyPath, type, this.unique, this.multiEntry,
       that.name);
@@ -563,14 +575,13 @@ ydn.db.schema.Index.prototype.hint = function(that) {
 
 /**
  *
- * @param {ydn.db.base.Direction|string=} str direction in string format.
+ * @param {ydn.db.base.Direction|string=} opt_str direction in string format.
  * @return {ydn.db.base.Direction|undefined} equivalent typed direction.
  */
-ydn.db.schema.Index.toDir = function(str) {
-  var idx = goog.array.indexOf(ydn.db.base.DIRECTIONS, str);
+ydn.db.schema.Index.toDir = function(opt_str) {
+  var idx = goog.array.indexOf(ydn.db.base.DIRECTIONS, opt_str);
   return ydn.db.base.DIRECTIONS[idx]; // undefined OK.
 };
-
 
 
 /**
@@ -580,7 +591,6 @@ ydn.db.schema.Index.toDir = function(str) {
 ydn.db.schema.Index.prototype.getKeyPath = function() {
   return this.keyPath;
 };
-
 
 
 /**
@@ -612,13 +622,39 @@ ydn.db.schema.Index.prototype.getSQLIndexColumnNameQuoted = function() {
 ydn.db.schema.Index.prototype.index_column_name_;
 
 
-
 /**
  * @type {string}
  * @private
  */
 ydn.db.schema.Index.prototype.index_column_name_quoted_;
 
+
+/**
+ * @type {Function}
+ * @private
+ */
+ydn.db.schema.Index.prototype.index_generator_;
+
+
+/**
+ * Add index by generator.
+ * @param {Object} obj record value.
+ */
+ydn.db.schema.Index.prototype.generateIndex = function(obj) {
+  if (this.index_generator_) {
+    var out = this.index_generator_(obj);
+    var type = typeof(out);
+    if (type == 'string' || type == 'number' || type == 'array' ||
+        type == 'undefined' || out instanceof Date) {
+      for (var i = 0; i < this.key_paths_.length - 1; i++) {
+        if (!goog.isObject(obj[this.key_paths_[i]])) {
+          obj[this.key_paths_[i]] = {};
+        }
+      }
+      obj[this.key_paths_[this.key_paths_.length - 1]] = out;
+    }
+  }
+};
 
 
 /**
@@ -628,15 +664,16 @@ ydn.db.schema.Index.prototype.index_column_name_quoted_;
  */
 ydn.db.schema.Index.fromJSON = function(json) {
   if (goog.DEBUG) {
-    var fields = ['name', 'unique', 'type', 'keyPath', 'multiEntry'];
+    var fields = ['name', 'unique', 'type', 'keyPath', 'multiEntry',
+      'generator'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
-        throw new ydn.debug.error.ArgumentException('Unknown field: ' + key + ' in ' +
-            ydn.json.stringify(json));
+        throw new ydn.debug.error.ArgumentException('Unknown field: ' + key +
+            ' in ' + ydn.json.stringify(json));
       }
     }
   }
   return new ydn.db.schema.Index(json.keyPath, json.type, json.unique,
-      json.multiEntry, json.name);
+      json.multiEntry, json.name, json.generator);
 };
 
