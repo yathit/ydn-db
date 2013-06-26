@@ -490,6 +490,10 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
     } else if (goog.isString(arg1)) { // index name
       var index_name = arg1;
       if (goog.DEBUG) {
+        if (!store.hasIndex(index_name)) {
+          throw new ydn.debug.error.ArgumentException('index "' +
+              index_name + '" not found in store "' + store_name + '"');
+        }
         var msg = ydn.db.KeyRange.validate(/** @type {KeyRangeJson} */ (arg2));
         if (msg) {
           throw new ydn.debug.error.ArgumentException('invalid key range: ' +
@@ -999,8 +1003,8 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
 
   var store_names, db_keys;
   if (goog.isString(store_name)) {
+    var store = this.schema.getStore(store_name);
     if (goog.DEBUG) {
-      var store = this.schema.getStore(store_name);
       if (store) {
         if (!store.usedInlineKey() && !store.isAutoIncrement() &&
             !goog.isDefAndNotNull(opt_keys)) {
@@ -1011,6 +1015,9 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
         throw new ydn.db.NotFoundError(store_name);
       }
     }
+    for (var i = 0; i < objs.length; i++) {
+      store.generateIndex(objs[i]);
+    }
     store_names = [store_name];
   } else {
     goog.asserts.assertArray(store_name, 'store name ' + store_name + ' +' +
@@ -1019,12 +1026,14 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
     store_names = [];
     for (var i = 0, n = db_keys.length; i < n; i++) {
       var s_name = db_keys[i].getStoreName();
+      var store = this.schema.getStore(s_name);
       if (goog.array.indexOf(store_names, s_name) == -1) {
         store_names.push(s_name);
       }
-      if (goog.DEBUG && !this.schema.hasStore(s_name)) {
+      if (goog.DEBUG && !store) {
         throw new ydn.db.NotFoundError(s_name);
       }
+      store.generateIndex(objs[i]);
     }
   }
 
