@@ -995,6 +995,7 @@ ydn.db.schema.Store.prototype.generateIndex = function(obj) {
 ydn.db.schema.Store.SyncMethod = {
   ADD: 'add',
   ADDS: 'as',
+  COUNT: 'ct',
   GET: 'get',
   PUT: 'put',
   PUTS: 'ps',

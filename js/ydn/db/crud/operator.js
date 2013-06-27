@@ -73,6 +73,7 @@ ydn.db.crud.DbOperator.prototype.logger =
 ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
                                                  index_key_range, unique) {
   var df = ydn.db.base.createDeferred();
+  var hdf = df;
   var me = this;
 
   /**
@@ -132,7 +133,8 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
       me.getExecutor().countStores(tx, tx_no, cb, store_names);
     }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
   } else if (goog.isString(store_name)) {
-    if (!this.schema.hasStore(store_name)) {
+    var store = this.schema.getStore(store_name);
+    if (!store) {
       throw new ydn.debug.error.ArgumentException('store name "' + store_name +
           '" not found.');
     }
@@ -190,13 +192,17 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
           ' of type ' + typeof index_or_keyrange + ' found.');
     }
 
-    this.logger.finer('countKeyRange: ' + store_names[0] + ' ' +
+    this.logger.finer('countKeyRange: ' + store_name + ' ' +
         (index_name ? index_name : '') + ydn.json.stringify(key_range));
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
+    var sync_type = ydn.db.schema.Store.SyncMethod.COUNT;
+    this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
       me.getExecutor().countKeyRange(tx, tx_no, cb, store_names[0], key_range,
           index_name, !!unique);
     }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
 
+    if (ydn.db.base.USE_HOOK) {
+      df = store.hook(sync_type, hdf, arguments);
+    }
   } else {
     throw new ydn.debug.error.ArgumentException(
         'Invalid store name or store names.');
