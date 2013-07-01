@@ -489,7 +489,7 @@ ydn.db.schema.Store.prototype.getIndex = function(name) {
  */
 ydn.db.schema.Store.prototype.getIndexByKeyPath = function(key_path) {
   for (var i = 0; i < this.indexes.length; i++) {
-    if (this.indexes[i].isKeyPath(key_path)) {
+    if (this.indexes[i].equalsKeyPath(key_path)) {
       return this.indexes[i];
     }
   }
@@ -504,7 +504,7 @@ ydn.db.schema.Store.prototype.getIndexByKeyPath = function(key_path) {
  * keyPath.
  */
 ydn.db.schema.Store.prototype.hasIndex = function(name) {
-  if (name == this.keyPath) {
+  if (name === this.keyPath) {
     return true;
   }
 

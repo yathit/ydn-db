@@ -134,7 +134,6 @@ ydn.db.schema.Index = function(
       goog.isFunction(opt_generator), 'index generator must be a function, ' +
       ', but ' + (typeof opt_generator) + ' found.');
   /**
-   * @final
    * @private
    */
   this.index_generator_ = opt_generator || null;
@@ -498,7 +497,7 @@ ydn.db.schema.Index.compareKeyPath = function(keyPath1, keyPath2) {
  * @param {string|!Array.<string>} key_path key path to be tested.
  * @return {boolean} true if given key path is equal to this key path.
  */
-ydn.db.schema.Index.prototype.isKeyPath = function(key_path) {
+ydn.db.schema.Index.prototype.equalsKeyPath = function(key_path) {
   return !ydn.db.schema.Index.compareKeyPath(this.keyPath, key_path);
 };
 
@@ -634,6 +633,17 @@ ydn.db.schema.Index.prototype.index_column_name_quoted_;
  * @private
  */
 ydn.db.schema.Index.prototype.index_generator_;
+
+
+/**
+ * Set a generator function.
+ * @param {Function} gen generator function.
+ */
+ydn.db.schema.Index.prototype.setGenerator = function(gen) {
+  goog.asserts.assert(!this.index_generator_, 'index ' + this.name +
+      ' already has a generator');
+  this.index_generator_ = gen;
+};
 
 
 /**
