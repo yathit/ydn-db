@@ -605,7 +605,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
     var keyPath = store_schema.getKeyPath() || '';
     var store_keyPath = store.keyPath || '';
 
-    if (keyPath != store_keyPath) {
+    if (!!ydn.db.schema.Index.compareKeyPath(keyPath, store_keyPath)) {
       db.deleteObjectStore(store_schema.getName());
       this.logger.warning('store: ' + store_schema.getName() +
           ' deleted due to keyPath change.');

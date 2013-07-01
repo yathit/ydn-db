@@ -12,7 +12,7 @@ var reachedFinalContinuation, schema, debug_console;
 
 
 var setUp = function () {
-  ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
   //ydn.db.con.IndexedDb.DEBUG = true;
   //ydn.db.con.IndexedDb.DEBUG = true;
   reachedFinalContinuation = false;
@@ -295,10 +295,10 @@ var test_multiEntry = function() {
     ]
   };
 
-  version_change_test(schema2, schema, false, 'from multiEntry');
-  version_change_test(schema, schema2, false, 'to multiEntry');
+  //version_change_test(schema2, schema, false, 'from multiEntry');
+  //version_change_test(schema, schema2, false, 'to multiEntry');
 
-  version_unchange_test(schema, false, 'multiEntry=false:');
+  //version_unchange_test(schema, false, 'multiEntry=false:');
   version_unchange_test(schema2, true, 'multiEntry=true:');
 };
 

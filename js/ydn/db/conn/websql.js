@@ -134,16 +134,23 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
               hinted_store_schema);
         }
 
-        if (schema instanceof ydn.db.schema.EditableDatabase) {
-          var edited_schema = schema;
-          for (var j = 0; j < existing_schema.count(); j++) {
-            var info_store = existing_schema.store(j);
-            if (!edited_schema.hasStore(info_store.getName())) {
+        for (var j = 0; j < existing_schema.count(); j++) {
+          var info_store = existing_schema.store(j);
+          if (!schema.hasStore(info_store.getName())) {
+            if (schema instanceof ydn.db.schema.EditableDatabase) {
+              var edited_schema = schema;
               edited_schema.addStore(info_store);
+            } else {
+              var sql = 'DROP TABLE ' + info_store.getQuotedName();
+              me.logger.finer(sql);
+              tx.executeSql(sql, [],
+                  function(tr) {
+                    // ok
+                  }, function(tx, e) {
+                    throw e;
+                  });
             }
           }
-        } else {
-
         }
 
       }, tx, db);
@@ -568,7 +575,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
         var str = sql.substr(sql.indexOf('('), sql.lastIndexOf(')'));
         var column_infos = ydn.string.split_comma_seperated(str);
 
-        var key_name = undefined;
+        var store_key_path = undefined;
         var key_type;
         var indexes = [];
         var autoIncrement = false;
@@ -586,15 +593,23 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 
           if (upper_fields.indexOf('PRIMARY') != -1 &&
               upper_fields.indexOf('KEY') != -1) {
+            key_type = type;
             if (goog.isString(name) && !goog.string.isEmpty(name) &&
                 name != ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME) {
               // console.log('PRIMARY ' + name + ' on ' + info.name);
-              key_name = name;
+              // Array key path is denoted by comma separated list.
+              var arr_path = name.split(',');
+              store_key_path = name;
+              if (arr_path.length > 1) {
+                store_key_path = arr_path;
+                key_type = undefined;
+              }
             }
-            key_type = type;
             if (upper_fields.indexOf('AUTOINCREMENT') != -1) {
               autoIncrement = true;
             }
+          } else if (name == ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME) {
+            // pass, multi entry store use it as non-unique index key.
           } else if (name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
             has_default_blob_column = true;
           } else {
@@ -603,7 +618,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
               name = name.substr(info.tbl_name.length + 1);
             }
             var index = new ydn.db.schema.Index(name, type, unique);
-            //console.log(index);
+            // console.log(index);
             indexes.push(index);
           }
         }
@@ -612,16 +627,23 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
         if (goog.string.startsWith(info.name,
             ydn.db.con.WebSql.PREFIX_MULTIENTRY)) {
           var names = info.name.split(':');
-          if (!!names && names.length >= 3) {
+          if (names.length >= 3) {
             var st_name = names[1];
+            var multi_index = new ydn.db.schema.Index(names[2], type,
+                unique, true);
+            var ex_index = goog.array.findIndex(indexes, function(x) {
+              return x.getName() == names[2];
+            });
+            if (ex_index >= 0) {
+              indexes[ex_index] = multi_index;
+            } else {
+              indexes.push(multi_index);
+            }
             var store_index = goog.array.findIndex(stores, function(x) {
               return x.getName() === st_name;
             });
-            var multi_index = new ydn.db.schema.Index(names[2], type,
-                unique, true);
             if (store_index >= 0) { // main table exist, add this index
               var ex_store = stores[store_index];
-              indexes.push(multi_index);
               stores[store_index] = new ydn.db.schema.Store(ex_store.getName(),
                   ex_store.getKeyPath(), autoIncrement,
                   key_type, indexes, undefined, !has_default_blob_column);
@@ -630,6 +652,8 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
               stores.push(new ydn.db.schema.Store(st_name, undefined, false,
                   undefined, [multi_index]));
             }
+            me.logger.finest('multi entry index "' + multi_index.getName() +
+                '" found in ' + st_name + (store_index == -1 ? '*' : ''));
           } else {
             me.logger.warning('Invalid multiEntry store name "' + info.name +
                 '"');
@@ -642,11 +666,11 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             var ex_index = stores[i_store].index(0);
             goog.asserts.assertInstanceof(ex_index, ydn.db.schema.Index);
             indexes.push(ex_index);
-            stores[i_store] = new ydn.db.schema.Store(info.name, key_name,
+            stores[i_store] = new ydn.db.schema.Store(info.name, store_key_path,
                 autoIncrement, key_type, indexes, undefined,
                 !has_default_blob_column);
           } else {
-            var store = new ydn.db.schema.Store(info.name, key_name,
+            var store = new ydn.db.schema.Store(info.name, store_key_path,
                 autoIncrement, key_type, indexes, undefined,
                 !has_default_blob_column);
             stores.push(store);
