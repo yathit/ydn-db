@@ -1088,14 +1088,15 @@ ydn.db.crud.DbOperator.prototype.removeInternal = function(keys) {
  * @param {IDBKeyRange|ydn.db.KeyRange} key_range key range.
  * @param {boolean} reverse reverse.
  * @param {number} limit limit.
+ * @param {number=} opt_offset offset.
  * @return {!goog.async.Deferred} df.
  * @override
  */
 ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
-    key_range, reverse, limit) {
+    key_range, reverse, limit, opt_offset) {
   var df = new goog.async.Deferred();
   var me = this;
-
+  var offset = opt_offset || 0;
   if (goog.DEBUG) {
     var store = this.schema.getStore(store_name);
     if (store) {
@@ -1113,12 +1114,12 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
     var index = index_name;
     this.sync_thread.exec(df, function(tx, tx_no, cb) {
       me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name, index,
-          kr, reverse, limit, 0, false);
+          kr, reverse, limit, offset, false);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
   } else {
     this.sync_thread.exec(df, function(tx, tx_no, cb) {
       me.getExecutor().listByKeyRange(tx, tx_no, cb, store_name,
-          kr, reverse, limit, 0);
+          kr, reverse, limit, offset);
     }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
   }
   return df;

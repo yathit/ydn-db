@@ -25,20 +25,22 @@ goog.require('ydn.db.schema.Index');
 
 
 /**
- *
- * @param {string} name table name.
+ * Create a store schema.
+ * @param {string} name object store name or TABLE name.
  * @param {(Array.<string>|string)=} opt_key_path indexedDB keyPath, like
- * 'feed.id.$t'. Default to.
+ * 'feed.id.$t'. A path to extract primary key from record value.
  * @param {boolean=} opt_autoIncrement If true, the object store has a key
  * generator. Defaults to false.
- * @param {string|ydn.db.schema.DataType=} opt_type
- * data type for keyPath. Default to
+ * @param {string|ydn.db.schema.DataType=} opt_type data type for keyPath. This
+ * value is only used by WebSQL for column data type.
  * <code>ydn.db.schema.DataType.INTEGER</code> if opt_autoIncrement is
  * <code>true.</code>
  * @param {!Array.<!ydn.db.schema.Index>=} opt_indexes list of indexes.
  * @param {boolean=} opt_dispatch_events if true, storage instance should
- * dispatch event on changes.
- * @param {boolean=} opt_is_fixed sync with backend server.
+ * dispatch event on record values changes.
+ * @param {boolean=} opt_is_fixed fixed store schema. Websql TABLE, has a
+ * default column to store JSON stringify data. A fixed store schema TABLE,
+ * do not hae that default column.
  * @constructor
  * @struct
  */

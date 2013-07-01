@@ -204,6 +204,12 @@ GDataOptions.prototype.domain;
 GDataOptions.prototype.siteName;
 
 
+/**
+ * @type {boolean?}
+ */
+GDataOptions.prototype.prefetch;
+
+
 
 /**
  * @extends {AtomOptions}
