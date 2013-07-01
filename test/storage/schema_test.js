@@ -53,7 +53,7 @@ var test_auto_schema = function() {
     2000); // maxTimeout
 
   db.put(store_schema, {id: 'a', value: value, remark: 'put test'}).addCallback(function(y) {
-    console.log('put key ' + y);
+    // console.log('put key ' + y);
 
     db.get(table_name, 'a').addCallback(function(x) {
       result = x.value;
@@ -70,7 +70,7 @@ var version_change_test = function(schema1, schema2, is_final, msg) {
   var db_name = 'test' + Math.random();
   msg = msg || '';
 
-  var ver, oldVer, ver2, oldVer2;
+  var ver, oldVer, ver2, oldVer2, ex_schema1, ex_schema2;
   var done = false;
 
   waitForCondition(
@@ -82,14 +82,21 @@ var version_change_test = function(schema1, schema2, is_final, msg) {
         assertNaN(msg + 'change_test old version 1', oldVer);
         assertEquals(msg + 'change_test version 2', (ver + 1), ver2);
         assertEquals(msg + 'change_test old version 2', ver, oldVer2);
-
+        var s1 = new ydn.db.schema.Database(schema1);
+        var msg1 = s1.difference(ex_schema1);
+        assertTrue(msg + ' schema 1 ' + msg1, !msg1);
+        //console.log(schema2);
+        //console.log(ex_schema2);
+        var s2 = new ydn.db.schema.Database(schema2);
+        var msg2 = s2.difference(ex_schema2);
+        assertTrue(msg + ' schema 2 ' + msg2, !msg2);
         if (is_final) {
           reachedFinalContinuation = true;
         }
 
       },
       100, // interval
-      2000); // maxTimeout
+      3000); // maxTimeout
 
 
   var db = new ydn.db.Storage(db_name, schema1, options);
@@ -97,17 +104,23 @@ var version_change_test = function(schema1, schema2, is_final, msg) {
     // console.log(db.getSchema(function (s) {console.log(s)}));
     ver = e.getVersion();
     oldVer = e.getOldVersion();
-    db.close();
-    var db2 = new ydn.db.Storage(db_name, schema2, options);
-    db2.addEventListener('ready', function (e) {
-      // console.log(db.getSchema(function (s) {console.log(s)}));
-      ver2 = e.getVersion();
-      oldVer2 = e.getOldVersion();
-      ydn.db.deleteDatabase(db2.getName(), db2.getType());
-      db2.close();
-      done = true;
-    })
-  })
+    db.getSchema(function(x) {
+      ex_schema1 = new ydn.db.schema.Database(x);
+      db.close();
+      var db2 = new ydn.db.Storage(db_name, schema2, options);
+      db2.addEventListener('ready', function(e) {
+        // console.log(db.getSchema(function (s) {console.log(s)}));
+        ver2 = e.getVersion();
+        oldVer2 = e.getOldVersion();
+        db2.getSchema(function(x) {
+          ex_schema2 = new ydn.db.schema.Database(x);
+          ydn.db.deleteDatabase(db2.getName(), db2.getType());
+          db2.close();
+          done = true;
+        });
+      });
+    });
+  });
 };
 
 

@@ -490,6 +490,7 @@ ydn.db.con.IndexedDb.prototype.getVersion = function() {
  */
 ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
 
+  // console.log(this + ' getting schema');
   /**
    * @type {IDBDatabase}
    */
@@ -622,9 +623,35 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
 
       var created = 0;
       var deleted = 0;
+      var modified = 0;
       for (var j = 0; j < store_schema.indexes.length; j++) {
         var index = store_schema.indexes[j];
-        if (!indexNames.contains(index.name)) {
+        var need_create = false;
+        if (indexNames.contains(index.name)) {
+          var store_index = store.index(index.name);
+          // NOTE: Some browser (read: IE10) does not expose multiEntry
+          // attribute in the index object.
+          var dif_unique = goog.isDefAndNotNull(store_index.unique) &&
+              goog.isDefAndNotNull(index.unique) &&
+              store_index.unique != index.unique;
+          var dif_multi = goog.isDefAndNotNull(store_index.multiEntry) &&
+              goog.isDefAndNotNull(index.multiEntry) &&
+              store_index.multiEntry != index.multiEntry;
+          var dif_key_path = goog.isDefAndNotNull(store_index.keyPath) &&
+              goog.isDefAndNotNull(index.keyPath) &&
+              !!ydn.db.schema.Index.compareKeyPath(
+                  store_index.keyPath, index.keyPath);
+          if (dif_unique || dif_multi || dif_key_path) {
+            // console.log('delete index ' + index.name + ' on ' + store.name);
+            store.deleteIndex(index.name);
+            need_create = true;
+            created--;
+            modified++;
+          }
+        } else {
+          need_create = true;
+        }
+        if (need_create) {
           if (index.unique || index.multiEntry) {
             var idx_options = {
               unique: index.unique,
@@ -648,7 +675,8 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
       }
 
       this.logger.finest('Updated store: ' + store.name + ', ' + created +
-          ' index created, ' + deleted + ' index deleted.');
+          ' index created, ' + deleted + ' index deleted, ' +
+          modified + ' modified.');
     }
 
   } else {
