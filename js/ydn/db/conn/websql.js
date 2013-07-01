@@ -240,27 +240,10 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     // as it should.
     //
 
-    if (ydn.db.con.WebSql.GENTLE_OPENING) {
-      // this works in Chrome, Safari and Opera
-      db = goog.global.openDatabase(dbname, '', description,
-          this.size_);
-    } else {
-      try {
-        // this works in Chrome and OS X Safari even if the specified
-        // database version does not exist. Other browsers throw
-        // INVALID_STATE_ERR
-        db = goog.global.openDatabase(dbname, version, description,
-            this.size_, creationCallback);
-      } catch (e) {
-        if (e.name == 'INVALID_STATE_ERR') {
-          // fail back to gentle opening.
-          db = goog.global.openDatabase(dbname, '', description,
-              this.size_);
-        } else {
-          throw e;
-        }
-      }
-    }
+    // Always open with empty string database version.
+    // Version opening works in Chrome and OS X Safari even if the specified
+    // database version does not exist. Other browsers throw INVALID_STATE_ERR.
+    db = goog.global.openDatabase(dbname, '', description, this.size_);
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
       this.logger.warning('SECURITY_ERR for opening ' + dbname);
@@ -269,8 +252,8 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
       // don't throw now, so that web app can handle without using
       // database.
       this.last_error_ = new ydn.db.SecurityError(e);
-
     } else {
+      // this should never happen.
       throw e;
     }
   }
@@ -340,13 +323,6 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
   return df;
 };
-
-
-/**
- * @define {boolean} gentle opening do not specify version number on
- * database open method call.
- */
-ydn.db.con.WebSql.GENTLE_OPENING = true;
 
 
 /**
