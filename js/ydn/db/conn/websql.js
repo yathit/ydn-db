@@ -239,10 +239,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     // even if the database already exist. It simply invokes creationCallback,
     // as it should.
     //
-
-    // Always open with empty string database version.
-    // Version opening works in Chrome and OS X Safari even if the specified
-    // database version does not exist. Other browsers throw INVALID_STATE_ERR.
+    // Hence, always open with empty string database version.
     db = goog.global.openDatabase(dbname, '', description, this.size_);
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
@@ -929,7 +926,6 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
         }
         throw error;
       };
-
 
       var sql = 'SELECT * FROM sqlite_master WHERE type = "table"';
 
