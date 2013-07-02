@@ -83,7 +83,7 @@
         <concat
                 destfile="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js">
             <header>
-                (function($) {
+                (function() {
             </header>
             <filelist dir="${ydn-db.dir}/jsc"
                       files="${buildno}-ydn.db-dev.js"/>
@@ -91,7 +91,7 @@
         <concat destfile="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js"
                 append="true">
 
-            })(jQuery);
+            })();
         </concat>
         <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js"
               tofile="${ydn-db.dir}/jsc/ydn.db-jquery-${version}.js"/>
