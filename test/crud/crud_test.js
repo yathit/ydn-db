@@ -1,10 +1,10 @@
 
 goog.require('goog.debug.Console');
+goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
 goog.require('ydn.db.crud.Storage');
 goog.require('ydn.debug');
-goog.require('goog.testing.PropertyReplacer');
 
 
 var reachedFinalContinuation, schema, debug_console, db, objs;
@@ -15,10 +15,10 @@ var store_name_inline_number = 'st_inline_n';
 var load_store_name = 'st_load';
 
 
-var setUp = function () {
+var setUp = function() {
   // ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  //ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
 
@@ -81,22 +81,22 @@ var test_add_fail = function() {
 
   waitForCondition(
     // Condition
-    function () {
+    function() {
       return hasEventFired;
     },
     // Continuation
-    function () {
+    function() {
       assertEquals('add a', key, put_value);
       hasEventFired = false;
 
       waitForCondition(
         // Condition
-        function () {
+        function() {
           return hasEventFired;
 
         },
         // Continuation
-        function () {
+        function() {
           assertNull('add a again', put_value);
           assertNotNull('error event', add_ev);
           if (db.getType() == 'indexeddb') {
@@ -113,11 +113,11 @@ var test_add_fail = function() {
         100, // interval
         1000); // maxTimeout
 
-      db.add(store_name_inline_number, {id: key, value: '2', remark: 'add test'}).addCallback(function (value) {
+      db.add(store_name_inline_number, {id: key, value: '2', remark: 'add test'}).addCallback(function(value) {
         //console.log('receiving value callback ' + value);
         put_value = value;
         hasEventFired = true;
-      }).addErrback(function (e) {
+      }).addErrback(function(e) {
           put_value = null;
           add_ev = e;
           hasEventFired = true;
@@ -461,7 +461,7 @@ var test_12_put_array_unique_index_constraint = function() {
   db.keys('st').addBoth(function(x) {
     keys = x;
     hasEventFired = true;
-  })
+  });
 };
 
 
@@ -542,7 +542,7 @@ var test_13_put_array_by_keys = function() {
       console.log(x);
       results = x;
       done = true;
-    })
+    });
   });
 };
 
@@ -593,7 +593,7 @@ var test_21_get_inline = function() {
   };
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
-  var key = Math.ceil(Math.random()*10000);
+  var key = Math.ceil(Math.random() * 10000);
   var value = {id: key, value: 'a' + Math.random()};
 
   var done = false;
@@ -633,7 +633,7 @@ var test_22_get_offline = function() {
   var db_name = 'test_22_get_offline';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
-  var key = Math.ceil(Math.random()*1000);
+  var key = Math.ceil(Math.random() * 1000);
   var value = {value: 'a' + Math.random()};
 
   var done = false;
@@ -654,7 +654,7 @@ var test_22_get_offline = function() {
     2000); // maxTimeout
 
 
-  db.put(table_name_offline, value, key).addBoth(function (k) {
+  db.put(table_name_offline, value, key).addBoth(function(k) {
     db = new ydn.db.crud.Storage(db_name, schema, options);
     db.get(table_name_offline, key).addBoth(function(value) {
       //console.log('receiving value callback.');
@@ -679,8 +679,8 @@ var test_24_list_by_ids = function() {
   }
   var ids = [2,
     ydn.db.crud.req.IndexedDb.REQ_PER_TX,
-    ydn.db.crud.req.IndexedDb.REQ_PER_TX+1,
-    2*ydn.db.crud.req.IndexedDb.REQ_PER_TX+1];
+    ydn.db.crud.req.IndexedDb.REQ_PER_TX + 1,
+    2 * ydn.db.crud.req.IndexedDb.REQ_PER_TX + 1];
 
 
   var hasEventFired = false;
@@ -705,7 +705,7 @@ var test_24_list_by_ids = function() {
     2000); // maxTimeout
 
 
-  db.put(table_name, arr).addBoth(function (x) {
+  db.put(table_name, arr).addBoth(function(x) {
     db = new ydn.db.crud.Storage(db_name, schema, options);
     db.values(table_name, ids).addBoth(function(value) {
       //console.log('receiving value callback.');
@@ -755,7 +755,7 @@ var test_26_list = function() {
     1000); // maxTimeout
 
 
-  db.put(table_name, data).addBoth(function (x) {
+  db.put(table_name, data).addBoth(function(x) {
     db = new ydn.db.crud.Storage(db_name, schema, options);
     db.values(table_name).addCallback(function(value) {
       //console.log('receiving value callback.');
@@ -948,14 +948,14 @@ var test_32_count_stores = function() {
 
   var db_name = 'test_32_count_stores';
 
-  var store_inline = "ts";    // in-line key store
-  var store_inline_string = "tss";    // in-line key store
-  var store_outline = "ts2"; // out-of-line key store
-  var store_outline_string = "ts2s"; // out-of-line key store
-  var store_inline_auto = "ts3"; // in-line key + auto
-  var store_outline_auto = "ts4"; // out-of-line key + auto
-  var store_nested_key = "ts5"; // nested keyPath
-  var store_inline_index = "ts6";    // in-line key store
+  var store_inline = 'ts';    // in-line key store
+  var store_inline_string = 'tss';    // in-line key store
+  var store_outline = 'ts2'; // out-of-line key store
+  var store_outline_string = 'ts2s'; // out-of-line key store
+  var store_inline_auto = 'ts3'; // in-line key + auto
+  var store_outline_auto = 'ts4'; // out-of-line key + auto
+  var store_nested_key = 'ts5'; // nested keyPath
+  var store_inline_index = 'ts6';    // in-line key store
 
   var schema_1 = {
     stores: [
@@ -1128,7 +1128,7 @@ var test_remove_by_id = function() {
   db.remove(table_name, 1).addBoth(function(value) {
 
     delCount = value;
-    db.count(table_name).addBoth(function (x) {
+    db.count(table_name).addBoth(function(x) {
       count = x;
       hasEventFired = true;
     });
@@ -1172,19 +1172,19 @@ var test_remove_by_key = function() {
       100, // interval
       1000); // maxTimeout
 
-  db.clear('st').addBoth(function (x) {
+  db.clear('st').addBoth(function(x) {
     //console.log('cleared');
   });
-  db.put('st', objs).addBoth(function (x) {
+  db.put('st', objs).addBoth(function(x) {
     // console.log(x);
   });
-  db.keys('st').addBoth(function (x) {
+  db.keys('st').addBoth(function(x) {
     keys_before = x;
   });
-  db.remove(new ydn.db.Key('st', ids[1])).addBoth(function (x) {
+  db.remove(new ydn.db.Key('st', ids[1])).addBoth(function(x) {
     delCount = x;
   });
-  db.keys('st').addBoth(function (x) {
+  db.keys('st').addBoth(function(x) {
     keys_after = x;
     done = true;
   });
@@ -1230,13 +1230,13 @@ var test_remove_by_key_array = function() {
 
   db.clear('st');
   db.put('st', objs);
-  db.keys('st').addBoth(function (x) {
+  db.keys('st').addBoth(function(x) {
     keys_before = x;
   });
-  db.remove(keys).addBoth(function (x) {
+  db.remove(keys).addBoth(function(x) {
     delCount = x;
   });
-  db.keys('st').addBoth(function (x) {
+  db.keys('st').addBoth(function(x) {
     keys_after = x;
     done = true;
   });
@@ -1313,17 +1313,17 @@ var test_43_clear_by_key_range = function() {
     100, // interval
     1000); // maxTimeout
 
-  db.count(table_name).addBoth(function (x) {
+  db.count(table_name).addBoth(function(x) {
     count = x;
   });
   db.clear(table_name, ydn.db.KeyRange.lowerBound(2)).addBoth(function(value) {
-    db.count(table_name).addBoth(function (value) {
+    db.count(table_name).addBoth(function(value) {
 
       countValue = value;
 
       db.close();
       db = new ydn.db.crud.Storage(db_name, schema, options);
-      db.count(table_name).addBoth(function (value) {
+      db.count(table_name).addBoth(function(value) {
         recountValue = value;
         done = true;
       });
@@ -1349,22 +1349,22 @@ var test_51_array_key = function() {
   var a_value;
   waitForCondition(
     // Condition
-    function () {
+    function() {
       return a_done;
     },
     // Continuation
-    function () {
+    function() {
       assertArrayEquals('put a', key, a_value);
 
       var b_done;
       var b_value;
       waitForCondition(
         // Condition
-        function () {
+        function() {
           return b_done;
         },
         // Continuation
-        function () {
+        function() {
           assertEquals('get ' + JSON.stringify(key), key_value, b_value.value);
           reachedFinalContinuation = true;
           ydn.db.deleteDatabase(db_name, db.getType());
@@ -1374,7 +1374,7 @@ var test_51_array_key = function() {
         2000); // maxTimeout
 
 
-      db.get(table_name, key).addBoth(function (value) {
+      db.get(table_name, key).addBoth(function(value) {
         //console.log(db + ' receiving get value callback ' + key + ' = ' + value);
         b_value = value;
         b_done = true;
@@ -1383,7 +1383,7 @@ var test_51_array_key = function() {
     100, // interval
     2000); // maxTimeout
 
-  db.put(table_name, {id: key, value: key_value}).addBoth(function (value) {
+  db.put(table_name, {id: key, value: key_value}).addBoth(function(value) {
     //console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
     a_value = value;
     a_done = true;
@@ -1394,7 +1394,7 @@ var test_51_array_key = function() {
 
 
 
-var test_52_fetch_keys = function () {
+var test_52_fetch_keys = function() {
   var store_name = 'st';
   var db_name = 'test_crud_52_4';
 
@@ -1410,21 +1410,21 @@ var test_52_fetch_keys = function () {
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var objs = [
-    {id:'qs1', value:Math.random()},
-    {id:'at2', value:Math.random()},
-    {id:'bs2', value:Math.random()},
-    {id:'st', value:Math.random()}
+    {id: 'qs1', value: Math.random()},
+    {id: 'at2', value: Math.random()},
+    {id: 'bs2', value: Math.random()},
+    {id: 'st', value: Math.random()}
   ];
 
   var put_value_received, results;
   var put_done, get_done;
   waitForCondition(
       // Condition
-      function () {
+      function() {
         return put_done && get_done;
       },
       // Continuation
-      function () {
+      function() {
 
 
         assertEquals('obj length', keys.length, results.length);
@@ -1440,7 +1440,7 @@ var test_52_fetch_keys = function () {
       2000); // maxTimeout
 
 
-  db.put(store_name, objs).addBoth(function (value) {
+  db.put(store_name, objs).addBoth(function(value) {
     //console.log(['receiving value callback.', value]);
     put_value_received = value;
     put_done = true;
@@ -1449,7 +1449,7 @@ var test_52_fetch_keys = function () {
   var keys = [
     new ydn.db.Key(store_name, objs[1].id),
     new ydn.db.Key(store_name, objs[2].id)];
-  db.values(keys).addBoth(function (value) {
+  db.values(keys).addBoth(function(value) {
     //console.log('fetch value: ' + JSON.stringify(value));
     results = value;
 
@@ -1518,7 +1518,7 @@ var test_51_keys = function() {
 };
 
 
-var test_53_fetch_keys = function () {
+var test_53_fetch_keys = function() {
   var store_name1 = 'st1';
   var store_name2 = 'st2';
   var db_name = 'test_crud_53_8';
@@ -1541,8 +1541,8 @@ var test_53_fetch_keys = function () {
   }
   var ids = [2,
     ydn.db.crud.req.IndexedDb.REQ_PER_TX,
-    ydn.db.crud.req.IndexedDb.REQ_PER_TX+1,
-    2*ydn.db.crud.req.IndexedDb.REQ_PER_TX+1];
+    ydn.db.crud.req.IndexedDb.REQ_PER_TX + 1,
+    2 * ydn.db.crud.req.IndexedDb.REQ_PER_TX + 1];
   var keys = [];
   for (var i = 0; i < ids.length; i++) {
     keys.push(new ydn.db.Key(store_name1, objs1[ids[i]].id));
@@ -1555,28 +1555,28 @@ var test_53_fetch_keys = function () {
 
   waitForCondition(
     // Condition
-    function () {
+    function() {
       return put1_done && put2_done;
     },
     // Continuation
-    function () {
+    function() {
 
       var get_done, results;
       waitForCondition(
         // Condition
-        function () {
+        function() {
           return get_done;
         },
         // Continuation
-        function () {
+        function() {
           assertEquals('length', ids.length * 2, results.length);
           for (var i = 0; i < ids.length; i++) {
             assertEquals(i + '. ' + store_name1 + ': ' + keys[i].id,
               objs1[ids[i]].value, results[i].value);
           }
           for (var i = 0; i < ids.length; i++) {
-            assertEquals(i + '. ' + store_name2 + ': ' + keys[i+ids.length].id,
-              objs2[ids[i]].value, results[i+ids.length].value);
+            assertEquals(i + '. ' + store_name2 + ': ' + keys[i + ids.length].id,
+              objs2[ids[i]].value, results[i + ids.length].value);
           }
 
           reachedFinalContinuation = true;
@@ -1586,7 +1586,7 @@ var test_53_fetch_keys = function () {
         100, // interval
         2000); // maxTimeout
 
-      db.values(keys).addBoth(function (value) {
+      db.values(keys).addBoth(function(value) {
         //console.log('fetch value: ' + JSON.stringify(value));
         results = value;
         get_done = true;
@@ -1596,11 +1596,11 @@ var test_53_fetch_keys = function () {
     100, // interval
     2000); // maxTimeout
 
-  db.put(store_name1, objs1).addBoth(function (value) {
+  db.put(store_name1, objs1).addBoth(function(value) {
     //console.log(['receiving value callback.', value]);
     put1_done = true;
   });
-  db.put(store_name2, objs2).addBoth(function (value) {
+  db.put(store_name2, objs2).addBoth(function(value) {
     //console.log(['receiving value callback.', value]);
     put2_done = true;
   });
@@ -1608,7 +1608,7 @@ var test_53_fetch_keys = function () {
 };
 
 
-var test_constrained_error = function () {
+var test_constrained_error = function() {
   var db_name = 'test_constrained_error' + Math.random();
   var schema = {
     stores: [
@@ -1643,10 +1643,10 @@ var test_constrained_error = function () {
     100, // interval
     1000); // maxTimeout
 
-  db.add('st', obj).addBoth(function (k) {
+  db.add('st', obj).addBoth(function(k) {
     result = k;
   });
-  db.add('st', obj).addBoth(function (x) {
+  db.add('st', obj).addBoth(function(x) {
     result2 = x;
     done = true;
   });
