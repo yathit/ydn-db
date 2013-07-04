@@ -281,8 +281,7 @@ ydn.db.tr.Serial.prototype.peekScopes = function() {
 
 
 /**
- *
- * @return {ydn.db.base.TransactionMode?}
+ * @return {ydn.db.base.TransactionMode?} return next transaction mode.
  */
 ydn.db.tr.Serial.prototype.peekMode = function() {
   if (this.trQueue_.length > 0) {
@@ -294,7 +293,7 @@ ydn.db.tr.Serial.prototype.peekMode = function() {
 
 
 /**
- * Check next transaction
+ * Check next transaction.
  * @protected
  * @return {boolean}
  */

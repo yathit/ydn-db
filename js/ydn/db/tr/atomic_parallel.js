@@ -72,7 +72,9 @@ ydn.db.tr.AtomicParallel.prototype.exec = function(df, callback, store_names,
   });
   var completed_handler = function(t, e) {
     // console.log('completed_handler ' + t + ' ' + e);
-    if (is_error === true) {
+    if (t != ydn.db.base.TxEventTypes.COMPLETE) {
+      df.errback(e);
+    } else if (is_error === true) {
       df.errback(result);
     } else if (is_error === false) {
       df.callback(result);

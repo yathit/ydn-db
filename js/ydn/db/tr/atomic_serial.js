@@ -78,7 +78,9 @@ ydn.db.tr.AtomicSerial.prototype.exec = function(df, callback, store_names,
     result = e;
   });
   var completed_handler = function(t, e) {
-    if (is_error === true) {
+    if (t != ydn.db.base.TxEventTypes.COMPLETE) {
+      df.errback(e);
+    } else if (is_error === true) {
       df.errback(result);
     } else if (is_error === false) {
       df.callback(result);

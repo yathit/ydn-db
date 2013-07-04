@@ -5,8 +5,10 @@
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver-major" value="0"/>
     <property name="ver-minor" value="6"/>
-    <property name="ver-patch" value="10"/>
+    <property name="ver-patch" value="11"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
+    <condition property="gsutil" value="D:/opt/gsutil/gsutil"><os family="windows"/></condition>
+    <condition property="gsutil" value="/Users/kyawtun/opt/gsutil/gsutil"><os family="unix"/></condition>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
     <script language="javascript" description="Generate ascending order build no
