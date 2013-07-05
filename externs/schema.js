@@ -90,13 +90,6 @@ var BaseOptions = function() {};
 
 
 /**
- * Base URI.
- * @type {string}
- */
-BaseOptions.prototype.baseUri;
-
-
-/**
  * @type {string}
  */
 BaseOptions.prototype.delimiter;
@@ -251,29 +244,17 @@ StoreSyncOptionJson.prototype.format;
 
 
 /**
+ * Base URI.
+ * @type {string}
+ */
+StoreSyncOptionJson.prototype.baseUri;
+
+
+/**
  * Immutable database.
  * @type {boolean}
  */
 StoreSyncOptionJson.prototype.immutable;
-
-
-/**
- * Read request timeout interval in milliseconds. A HTTP GET request is issued
- * for <code>get</code> database method. <code>get</code> method wait until
- * it received from the GET request. This timeout interval indicate
- * <code>get</code> method should resolve no longer than the interval. If
- * GET request received after resolving and data is different, 'delay-read'
- * is dispatched.
- * @type {number}
- */
-StoreSyncOptionJson.prototype.readRequestTimeout;
-
-
-/**
- * Write request timeout interval in milliseconds.
- * @type {number}
- */
-StoreSyncOptionJson.prototype.writeRequestTimeout;
 
 
 /**
