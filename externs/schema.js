@@ -212,6 +212,22 @@ GDataOptions.prototype.prefetch;
 
 
 /**
+ * @extends {GDataOptions}
+ * @constructor
+ */
+var GDataJsonOptions = function() {};
+
+
+/**
+ * Base uri path post fix. This can be found in "path" of resources method in
+ * Google API discovery.
+ * @type {string}
+ */
+GDataJsonOptions.prototype.prefix;
+
+
+
+/**
  * @extends {AtomOptions}
  * @constructor
  */
