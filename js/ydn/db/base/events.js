@@ -20,6 +20,7 @@ goog.provide('ydn.db.events.Types');
  */
 ydn.db.events.Types = {
   READY: 'ready',
+  ERROR: 'error',
   CREATED: 'created',
   DELETED: 'deleted',
   UPDATED: 'updated'
@@ -124,10 +125,46 @@ ydn.db.events.StorageEvent.prototype.getOldVersion = function() {
 
 
 /**
- *
  * @return {Error} return error if connection was an error.
  */
 ydn.db.events.StorageEvent.prototype.getError = function() {
+  return this.error;
+};
+
+
+
+/**
+ * Storage error event.
+ * @param {goog.events.EventTarget} event_target event target.
+ * @param {Error} error error object in case of error.
+ * @extends {ydn.db.events.Event}
+ * @constructor
+ */
+ydn.db.events.StorageErrorEvent = function(event_target, error) {
+  goog.base(this, ydn.db.events.Types.ERROR, event_target);
+  this.error = error;
+};
+goog.inherits(ydn.db.events.StorageErrorEvent, ydn.db.events.Event);
+
+
+/**
+ * @final
+ * @type {string}
+ */
+ydn.db.events.StorageErrorEvent.prototype.name = 'StorageErrorEvent';
+
+
+/**
+ *
+ * @type {Error}
+ */
+ydn.db.events.StorageErrorEvent.prototype.error = null;
+
+
+/**
+ * @return {Error} return error if connection was an error.
+ */
+ydn.db.events.StorageErrorEvent.prototype.getError = function() {
   return this.error;
 };
 

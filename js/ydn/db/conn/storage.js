@@ -281,8 +281,11 @@ ydn.db.con.Storage.prototype.addStoreSchema = function(store_schema) {
  */
 ydn.db.con.Storage.prototype.setName = function(db_name) {
   if (this.db_) {
-    throw Error('Already defined with ' + this.db_name);
+    throw new ydn.debug.error.InvalidOperationException('Already' +
+        ' connected with ' + this.db_name);
   }
+  goog.asserts.assertString(this.db_name, 'database name must be a string' +
+      ' but found ' + this.db_name + ' of type ' + (typeof this.db_name));
 
   /**
    * @final
@@ -393,8 +396,6 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
   // handle version change
 
   var me = this;
-  goog.asserts.assertString(this.db_name, 'database name must be a string' +
-      ' but found ' + this.db_name + ' of type ' + (typeof this.db_name));
 
   var df = new goog.async.Deferred();
   var resolve = function(is_connected, ev) {
@@ -460,7 +461,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
   if (goog.isNull(db)) {
 
-    var e = new ydn.error.ConstraintError('No storage mechanism found.');
+    var e = new ydn.debug.error.ConstraintError('No storage mechanism found.');
 
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, this,
         NaN, NaN, e);
@@ -476,14 +477,14 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       resolve(true, event);
 
       /**
-       *
-       * @param {*} e event.
+       * @param {Error} e event.
        */
       db.onDisconnected = function(e) {
 
-        this.logger.finest(this + ': disconnected.');
-        // no event for disconnected.
-
+        me.logger.finest(this + ': disconnected.');
+        var event = new ydn.db.events.StorageErrorEvent(me, e);
+        me.dispatchEvent(event);
+        me.db_ = null;
       };
     }, function(e) {
       this.logger.warning(this + ': opening fail: ' + e.message);
@@ -492,7 +493,6 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       event.message = e.message;
       resolve(false, event);
     }, this);
-
   }
 
   return df;
@@ -515,6 +515,7 @@ ydn.db.con.Storage.prototype.getType = function() {
 
 
 /**
+ * TODO: remve this on rel 0.7.
  * Handle ready event by dispatching 'ready' event.
  * @param {ydn.db.events.StorageEvent} ev event.
  * @expose since we want this function to be overidable, we have to use expose
@@ -633,7 +634,6 @@ ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
         this.txQueue_.length +
         '. It is too large, possibility due to incorrect usage.');
   }
-
 };
 
 
@@ -760,8 +760,8 @@ ydn.db.con.Storage.prototype.isAutoSchema = function() {
 
 /**
  * ydn.db.sync module will override this method to inject sync functions.
- * @param {ydn.db.schema.Store} store
- * @param {StoreSyncOptionJson} option
+ * @param {ydn.db.schema.Store} store store object.
+ * @param {StoreSyncOptionJson} option synchronization options.
  * @protected
  */
 ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
@@ -775,7 +775,7 @@ ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
  * @return {!Array.<string>} list of event types.
  */
 ydn.db.con.Storage.prototype.getEventTypes = function() {
-  return ['created', 'ready', 'deleted', 'updated'];
+  return ['created', 'error', 'ready', 'deleted', 'updated'];
 };
 
 
