@@ -92,15 +92,15 @@ ydn.db.crud.req.RequestExecutor.prototype.getIndexName = function(store,
     index_name_or_key_path) {
 
   var index;
+  var index_name = index_name_or_key_path;
   if (goog.isArray(index_name_or_key_path)) {
     index = store.getIndexByKeyPath(index_name_or_key_path);
-    goog.asserts.assertObject(index, 'require index of key path "' +
-        index_name_or_key_path + '" not found in ' + store.getName());
+    index_name = index_name_or_key_path.join(', ');
   } else {
     index = store.getIndex(index_name_or_key_path);
-    goog.asserts.assertObject(index, 'require index "' +
-        index_name_or_key_path + '" not found in ' + store.getName());
   }
+  goog.asserts.assertObject(index, 'require index "' +
+      index_name + '" not found in store "' + store.getName() + '"');
   return index.getName();
 };
 

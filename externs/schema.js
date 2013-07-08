@@ -96,29 +96,6 @@ BaseOptions.prototype.delimiter;
 
 
 /**
- * @type {boolean}
- */
-BaseOptions.prototype.keepMeta;
-
-
-/**
- * Store name which store meta data.
- * If specified, metaData must not specified.
- * @type {string}
- */
-BaseOptions.prototype.metaStoreName;
-
-
-/**
- * Meta data data field.
- * If specified, metaStoreName must not specified.
- * @type {string}
- */
-BaseOptions.prototype.metaDataName;
-
-
-
-/**
  * @constructor
  * @extends {BaseOptions}
  */
@@ -263,6 +240,42 @@ StoreSyncOptionJson.prototype.immutable;
  * @type {{request: Function}}
  */
 StoreSyncOptionJson.prototype.transport;
+
+
+/**
+ * By default, meta data store are stripped, when read from the database.
+ * @type {boolean} Set true to keep meta data.
+ */
+StoreSyncOptionJson.prototype.keepMeta;
+
+
+/**
+ * Store name which store meta data.
+ * If specified, metaData must not specified.
+ * @type {string}
+ */
+StoreSyncOptionJson.prototype.metaStoreName;
+
+
+/**
+ * Meta data data field if it is recorded inline.
+ * If specified, metaStoreName must not specified.
+ * @type {string}
+ */
+StoreSyncOptionJson.prototype.metaDataName;
+
+
+/**
+ * Key paths of metadata.
+ * @type {{
+ *   date: string,
+ *   etag: string,
+ *   expires: string,
+ *   key: string,
+ *   updated: string
+ * }?}
+ */
+StoreSyncOptionJson.prototype.metaData;
 
 
 /**
