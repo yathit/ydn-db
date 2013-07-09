@@ -1133,7 +1133,11 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
  */
 ydn.db.crud.DbOperator.prototype.valuesInternal = function(keys) {
   var store_names = [];
-  for (var i = 0, n = keys.length; i < n; i++) {
+  var n = keys.length;
+  if (n == 0) {
+    return goog.async.Deferred.succeed([]);
+  }
+  for (var i = 0; i < n; i++) {
     var s_name = keys[i].getStoreName();
     if (goog.array.indexOf(store_names, s_name) == -1) {
       store_names.push(s_name);
