@@ -30,8 +30,11 @@ Go to ydn-db folder and run `ant deps` and `ant ydn-base.deps` to generate closu
 Use HTML files in the /test folder for getting started. These files are also
 used for debug development.
 
-Note, we use master track version of closure tools. Compiling with pre-build jar
+Note: we use master track version of closure tools. Compiling with pre-build jar
 may encounter compile error.
+
+Note: precompile files are built by using custom compiler to strip debug messages.
+See detail on ydn-base/tools/strip_debug.txt.
 
 
 # Testing #
