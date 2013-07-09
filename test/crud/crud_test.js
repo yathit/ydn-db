@@ -18,9 +18,10 @@ var load_store_name = 'st_load';
 var setUp = function() {
   // ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
+  // ydn.db.con.IndexedDb.DEBUG = true;
 
   var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
   var stores = [new ydn.db.schema.Store(table_name, 'id'),
@@ -384,6 +385,10 @@ var test_12_put_array_unique_constraint = function() {
 
 
 var test_12_put_array_unique_index_constraint = function() {
+
+  // Chrome bug report
+  // https://code.google.com/p/chromium/issues/detail?id=258273
+
   var db_name = 'test_12_put_array_unique_index_constraint-4';
   var schema = {
     stores: [{
@@ -430,9 +435,9 @@ var test_12_put_array_unique_index_constraint = function() {
         assertEquals('correct length for results1', 2, results1.length);
         assertEquals('correct length for results2', 2, results2.length);
         assertArrayEquals('results1', [1, 2], results1);
+        assertFalse('has error', is_success);
         assertArrayEquals('keys', [1, 2, 4], keys);
         assertEquals('results2 last', 4, results2[1]);
-        assertFalse('has error', is_success);
         assertEquals('error record', 'ConstraintError', results2[0].name);
         reachedFinalContinuation = true;
         ydn.db.deleteDatabase(db_name, db.getType());

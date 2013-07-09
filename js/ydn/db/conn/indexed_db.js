@@ -96,13 +96,13 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       goog.asserts.assertObject(db, 'db');
       me.idx_db_ = db;
       me.idx_db_.onabort = function(e) {
-        me.logger.warning(me + ': onabort - ' + e.message);
+        me.logger.finer(me + ': onabort');
       };
       me.idx_db_.onerror = function(e) {
         if (ydn.db.con.IndexedDb.DEBUG) {
-          window.console.log([this, e]);
+          window.console.log(e);
         }
-        me.logger.warning(me + ': onerror - ' + e.message);
+        me.logger.finer(me + ': onerror');
       };
 
       /**
