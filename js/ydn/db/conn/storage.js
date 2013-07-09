@@ -284,8 +284,8 @@ ydn.db.con.Storage.prototype.setName = function(db_name) {
     throw new ydn.debug.error.InvalidOperationException('Already' +
         ' connected with ' + this.db_name);
   }
-  goog.asserts.assertString(this.db_name, 'database name must be a string' +
-      ' but found ' + this.db_name + ' of type ' + (typeof this.db_name));
+  goog.asserts.assertString(db_name, 'database name must be a string' +
+      ' but found ' + db_name + ' of type ' + (typeof db_name));
 
   /**
    * @final
