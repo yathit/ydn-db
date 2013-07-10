@@ -746,11 +746,11 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
   };
 
   tx.onerror = function(event) {
-    on_completed(ydn.db.base.TxEventTypes.ERROR, event);
+    // on_completed(ydn.db.base.TxEventTypes.ERROR, event);
   };
 
   tx.onabort = function(event) {
-    on_completed(ydn.db.base.TxEventTypes.ABORT, event);
+    // on_completed(ydn.db.base.TxEventTypes.ABORT, event);
   };
 
   fnc(tx);

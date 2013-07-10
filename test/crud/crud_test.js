@@ -459,7 +459,7 @@ var test_12_put_array_unique_index_constraint = function() {
     is_success = true;
     results2 = x;
   }, function(value) {
-    // console.log(value);
+    console.log(value);
     is_success = false;
     results2 = value;
   });
