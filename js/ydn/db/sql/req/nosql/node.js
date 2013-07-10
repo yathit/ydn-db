@@ -82,12 +82,10 @@ ydn.db.sql.req.nosql.Node.prototype.toString = function() {
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx
- * @param {string} tx_no
- * @param {?function(*, boolean=)} df return key in deferred function.
+ * @param {ydn.db.Request} rq
  * @param {ydn.db.core.req.IRequestExecutor} req
  */
-ydn.db.sql.req.nosql.Node.prototype.execute = function(tx, tx_no, df, req) {
+ydn.db.sql.req.nosql.Node.prototype.execute = function(rq, req) {
 
   var me = this;
   var out = [];
@@ -114,33 +112,31 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(tx, tx_no, df, req) {
     throw new ydn.debug.error.NotSupportedException('too many conditions.');
   }
 
-  var ndf = df;
+  var ndf = rq.branch();
   if (!goog.isNull(sel_fields)) {
-    ndf = function(records, is_error) {
-      if (is_error) {
-        df(records, true);
-      } else {
-        var out = records.map(function(record) {
-          var n = sel_fields.length;
-          if (n == 1) {
-            return ydn.db.utils.getValueByKeys(record, sel_fields[0]);
-          } else {
-            var obj = {};
-            for (var i = 0; i < n; i++) {
-              obj[sel_fields[i]] = ydn.db.utils.getValueByKeys(record,
-                  sel_fields[i]);
-            }
-            return obj;
+    ndf.addCallbacks(function(records) {
+      var out = records.map(function(record) {
+        var n = sel_fields.length;
+        if (n == 1) {
+          return ydn.db.utils.getValueByKeys(record, sel_fields[0]);
+        } else {
+          var obj = {};
+          for (var i = 0; i < n; i++) {
+            obj[sel_fields[i]] = ydn.db.utils.getValueByKeys(record,
+                sel_fields[i]);
           }
-        });
-        df(out);
-      }
-    };
+          return obj;
+        }
+      });
+      rq.setDbValue(out);
+    }, function(e) {
+      rq.errback(e);
+    });
   }
 
   var index_name = wheres.length > 0 ? wheres[0].getField() : undefined;
 
-  var msg = tx_no + ' executing on' + store_name;
+  var msg = rq.getLabel() + ' executing on' + store_name;
   if (index_name) {
     msg += ':' + index_name;
   }
@@ -148,14 +144,14 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(tx, tx_no, df, req) {
   this.logger.finer(msg);
 
   if (order && order != this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, order, key_range,
+    req.listByIndexKeyRange(ndf, store_name, order, key_range,
         reverse, limit, offset, false);
   } else if (goog.isDef(index_name) && index_name !=
       this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(tx, tx_no, ndf, store_name, index_name,
+    req.listByIndexKeyRange(ndf, store_name, index_name,
         key_range, reverse, limit, offset, false);
   } else {
-    req.listByKeyRange(tx, tx_no, ndf, store_name, key_range, reverse, limit,
+    req.listByKeyRange(ndf, store_name, key_range, reverse, limit,
         offset);
   }
 

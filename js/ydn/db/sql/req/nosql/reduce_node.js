@@ -40,12 +40,10 @@ goog.inherits(ydn.db.sql.req.nosql.ReduceNode, ydn.db.sql.req.nosql.Node);
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx transaction object.
- * @param {string} tx_no tx label.
- * @param {?function(*, boolean=)} df return key in deferred function.
+ * @param {ydn.db.Request} rq transaction object.
  * @param {ydn.db.core.req.IRequestExecutor} req request executor.
  */
-ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(tx, tx_no, df, req) {
+ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(rq, req) {
 
   var me = this;
   var out;
@@ -69,7 +67,7 @@ ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(tx, tx_no, df, req)
   var aggregate = this.sql.getAggregate();
   var index_name = wheres.length > 0 ? wheres[0].getField() : undefined;
 
-  var msg = tx_no + ' executing ' + aggregate + ' on ' + store_name;
+  var msg = rq.getLabel() + ' executing ' + aggregate + ' on ' + store_name;
   if (index_name) {
     msg += ':' + index_name;
   }
@@ -78,10 +76,10 @@ ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(tx, tx_no, df, req)
 
   if (aggregate == 'COUNT') {
     if (key_range) {
-      req.countKeyRange(tx, tx_no, df, store_name, key_range,
+      req.countKeyRange(rq, store_name, key_range,
           index_name, false);
     } else {
-      req.countKeyRange(tx, tx_no, df, store_name, null, undefined, false);
+      req.countKeyRange(rq, store_name, null, undefined, false);
     }
   } else {
     var reduce;
@@ -117,14 +115,14 @@ ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(tx, tx_no, df, req)
       iter = new ydn.db.ValueCursors(store_name, key_range);
     }
 
-    var cursor = iter.iterate(tx, tx_no, req);
+    var cursor = iter.iterate(rq.getTx(), rq.getLabel(), req);
 
     /**
      *
      * @param {!Error} e
      */
     cursor.onFail = function(e) {
-      df(e, true);
+      rq.errback(e);
     };
     var i = 0;
     /**
@@ -139,7 +137,7 @@ ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(tx, tx_no, df, req)
         cursor.advance(1);
         i++;
       } else {
-        df(out);
+        rq.setDbValue(out);
       }
     };
   }

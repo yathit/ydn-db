@@ -292,6 +292,18 @@ ydn.db.Request.prototype.getLabel = function() {
 
 
 /**
+ * Create a new request using existing tx.
+ * @return {!ydn.db.Request}
+ */
+ydn.db.Request.prototype.branch = function() {
+  var req = new ydn.db.Request(this.method_);
+  req.tx_ = this.tx_;
+  this.tx_label_ = this.tx_label_;
+  return req;
+};
+
+
+/**
  * @param {ydn.db.Request.Method} method
  * @param {*} value
  * @return {!ydn.db.Request}

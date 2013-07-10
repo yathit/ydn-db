@@ -60,7 +60,7 @@ ydn.db.sql.req.WebSql.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.sql.req.WebSql.prototype.executeSql = function(tx, tx_no, df, sql, params) {
+ydn.db.sql.req.WebSql.prototype.executeSql = function(rq, sql, params) {
 
   var store_names = sql.getStoreNames();
   if (store_names.length == 1) {
@@ -85,7 +85,19 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(tx, tx_no, df, sql, params
       node = new ydn.db.sql.req.websql.Node(store_schema, sql);
     }
 
-    node.execute(df, /** @type {SQLTransaction} */ (tx), params);
+    /**
+     * @param {*} x result.
+     * @param {boolean=} opt_error true if error.
+     */
+    var df = function(x, opt_error) {
+      if (opt_error) {
+        rq.errback(x);
+      } else {
+        rq.setDbValue(x);
+      }
+    };
+
+    node.execute(df, /** @type {SQLTransaction} */ (rq.getTx()), params);
   } else {
     throw new ydn.error.NotSupportedException(sql.getSql());
   }
