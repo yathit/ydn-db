@@ -217,9 +217,9 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       results[i] = event.target.result;
       if (result_count == objs.length) {
         if (has_error) {
-          db_req.setDbValue(results);
-        } else {
           db_req.errback(results);
+        } else {
+          db_req.setDbValue(results);
         }
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
@@ -246,9 +246,9 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       event.preventDefault(); // not abort the transaction.
       if (result_count == objs.length) {
         if (has_error) {
-          db_req.setDbValue(results);
-        } else {
           db_req.errback(results);
+        } else {
+          db_req.setDbValue(results);
         }
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;

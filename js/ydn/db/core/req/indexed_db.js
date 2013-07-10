@@ -84,10 +84,7 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
   var tx = rq.getTx();
   var tx_no = rq.getLabel();
   var is_keys = mth == ydn.db.schema.Store.QueryMethod.KEYS;
-  var q = is_keys ? 'keys' :
-      mth == ydn.db.schema.Store.QueryMethod.VALUES ? 'values' :
-          mth == ydn.db.schema.Store.QueryMethod.COUNT ? 'count' : '';
-  var msg = tx_no + ' ' + q + 'ByIterator ' + iter;
+  var msg = tx_no + ' ' + mth + 'ByIterator ' + iter;
   if (opt_limit > 0) {
     msg += ' limit ' + opt_limit;
   }
@@ -123,7 +120,10 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
       } else {
         arr.push(iter.isKeyIterator() ? primary_key : cursor.getValue());
       }
-      if (!goog.isDef(opt_limit) || count < opt_limit) {
+      if (mth == ydn.db.schema.Store.QueryMethod.GET) {
+        cursor.exit();
+        rq.setDbValue(arr[0]);
+      } else if (!goog.isDef(opt_limit) || count < opt_limit) {
         cursor.continueEffectiveKey();
       } else {
         me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
@@ -133,7 +133,8 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
     } else {
       me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
       cursor.exit();
-      rq.setDbValue(arr);
+      var result = mth == ydn.db.schema.Store.QueryMethod.GET ? arr[0] : arr;
+      rq.setDbValue(result);
     }
   };
 };

@@ -658,8 +658,6 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     for (var i = 0; i < objs.length; i++) {
       store.generateIndex(objs[i]);
     }
-
-    sync_type = ydn.db.Request.Method.ADDS;
     req = this.tx_thread.request(ydn.db.Request.Method.ADDS,
         [store_name], ydn.db.base.TransactionMode.READ_WRITE);
     req.addTxback(function() {
@@ -1231,7 +1229,6 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
  */
 ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
 
-  var df = ydn.db.base.createDeferred();
   var req;
 
   if (goog.isString(arg1)) {
@@ -1282,7 +1279,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
         }, this);
 
         if (store.dispatch_events) {
-          df.addCallback(function(key) {
+          req.addCallback(function(key) {
             var event = new ydn.db.events.RecordEvent(
                 ydn.db.events.Types.DELETED,
                 this.getStorage(), store_name, key, undefined);
@@ -1301,7 +1298,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
           this.getExecutor().removeByKeyRange(req, store_name, key_range);
         }, this);
         if (store.dispatch_events) {
-          df.addCallback(function(key) {
+          req.addCallback(function(key) {
             var event = new ydn.db.events.StoreEvent(
                 ydn.db.events.Types.DELETED,
                 this.getStorage(), store_name, key, undefined);

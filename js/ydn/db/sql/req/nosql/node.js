@@ -112,8 +112,9 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(rq, req) {
     throw new ydn.debug.error.NotSupportedException('too many conditions.');
   }
 
-  var ndf = rq.branch();
+  var ndf = rq;
   if (!goog.isNull(sel_fields)) {
+    ndf = rq.branch();
     ndf.addCallbacks(function(records) {
       var out = records.map(function(record) {
         var n = sel_fields.length;

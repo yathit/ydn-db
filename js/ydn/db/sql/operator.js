@@ -58,11 +58,9 @@ goog.inherits(ydn.db.sql.DbOperator, ydn.db.core.DbOperator);
 /**
  * @param {string} sql SQL statement.
  * @param {!Array=} opt_params SQL parameters.
- * @return {!goog.async.Deferred} return result as list.
+ * @return {!ydn.db.Request} return result as list.
 */
-ydn.db.sql.DbOperator.prototype.executeSql = function (sql, opt_params) {
-
-  var df = ydn.db.base.createDeferred();
+ydn.db.sql.DbOperator.prototype.executeSql = function(sql, opt_params) {
 
   var query = new ydn.db.Sql(sql);
 
@@ -76,12 +74,14 @@ ydn.db.sql.DbOperator.prototype.executeSql = function (sql, opt_params) {
   }
 
   var me = this;
-  this.logger.finer('executeSql: ' + sql + " params: " + opt_params);
-  this.tx_thread.exec(df, function (tx, tx_no, cb) {
-    me.getExecutor().executeSql(tx, tx_no, cb, query, opt_params || []);
-  }, query.getStoreNames(), query.getMode());
+  this.logger.finer('executeSql: ' + sql + ' params: ' + opt_params);
+  var req = this.tx_thread.request(ydn.db.Request.Method.SQL,
+      query.getStoreNames(), query.getMode());
+  req.addTxback(function() {
+    this.getExecutor().executeSql(req, query, opt_params || []);
+  }, this);
 
-  return df;
+  return req;
 };
 
 
