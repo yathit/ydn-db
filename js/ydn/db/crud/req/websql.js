@@ -759,56 +759,6 @@ ydn.db.crud.req.WebSql.prototype.listByIndexKeyRange = function(req,
 };
 
 
-
-/**
-* @inheritDoc
- */
-ydn.db.crud.req.WebSql.prototype.listByStore = function(tx, tx_no, df, table_name) {
-
-  var me = this;
-  var arr = [];
-
-  var table = me.schema.getStore(table_name);
-  goog.asserts.assertInstanceof(table, ydn.db.schema.Store, table_name +
-    ' not found.');
-
-  var sql = 'SELECT * FROM ' + table.getQuotedName();
-
-  /**
-   * @param {SQLTransaction} transaction transaction.
-   * @param {SQLResultSet} results results.
-   */
-  var callback = function(transaction, results) {
-    for (var i = 0, n = results.rows.length; i < n; i++) {
-      var row = results.rows.item(i);
-      if (goog.isDefAndNotNull(row)) {
-        arr.push(ydn.db.crud.req.WebSql.parseRow(row, table));
-      }
-    }
-    df(arr);
-  };
-
-
-  /**
-   * @param {SQLTransaction} tr transaction.
-   * @param {SQLError} error error.
-   * @return {boolean} true to roll back.
-   */
-  var error_callback = function(tr, error) {
-    if (ydn.db.crud.req.WebSql.DEBUG) {
-      window.console.log([tr, error]);
-    }
-    me.logger.warning('error: ' + sql + ' ' + error.message);
-    df(error, true);
-    return false;
-  };
-
-  me.logger.finest('SQL: ' + sql + ' PARAMS: []');
-  tx.executeSql(sql, [], callback, error_callback);
-
-};
-
-
 /**
 *
 * @inheritDoc
@@ -1233,12 +1183,12 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
 };
 
 
-
 /**
  * @inheritDoc
 */
-ydn.db.crud.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
+ydn.db.crud.req.WebSql.prototype.countStores = function(req, tables) {
 
+  var tx = req.getTx();
   var me = this;
   var out = [];
 
@@ -1259,9 +1209,8 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
       // console.log(['row ', row  , results]);
       out[i] = parseInt(row['COUNT(*)'], 10);
       i++;
-      me.logger.finest(i + '. success ' + sql);
       if (i == tables.length) {
-        d(out);
+        req.setDbValue(out);
       } else {
         count(i);
       }
@@ -1277,8 +1226,7 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
       if (ydn.db.crud.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      me.logger.warning('error: ' + sql + ' ' + error.message);
-      d(error, true);
+      req.errback(error);
       return false;
     };
 
@@ -1288,19 +1236,18 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(tx, tx_no, d, tables) {
 
   if (tables.length == 0) {
     this.logger.finest('success');
-    d(0);
+    req.setDbValue(0);
   } else {
     count(0);
   }
 
-  return d;
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
+ydn.db.crud.req.WebSql.prototype.countKeyRange = function(req, table,
     key_range, index_name, unique) {
 
   var me = this;
@@ -1322,8 +1269,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
     }
     var row = results.rows.item(0);
     // console.log(['row ', row  , results]);
-    me.logger.finest('success ' + msg);
-    d(ydn.object.takeFirst(row)); // usually row['COUNT(*)']
+    req.setDbValue(ydn.object.takeFirst(row)); // usually row['COUNT(*)']
     // , but may be  row['COUNT("id")']
   };
 
@@ -1336,16 +1282,13 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(tx, tx_no, d, table,
     if (ydn.db.crud.req.WebSql.DEBUG) {
       window.console.log([sql, error]);
     }
-    me.logger.warning('error: ' + msg + error.message);
-    d(error, true);
+    req.errback(error);
     return false;
   };
 
-  var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
+  var msg = req.getLabel() + ' SQL: ' + sql + ' PARAMS: ' + params;
   this.logger.finest(msg);
-  tx.executeSql(sql, params, callback, error_callback);
-
-  return d;
+  req.getTx().executeSql(sql, params, callback, error_callback);
 };
 
 

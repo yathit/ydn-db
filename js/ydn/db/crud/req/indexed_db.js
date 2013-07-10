@@ -68,17 +68,14 @@ ydn.db.crud.req.IndexedDb.REQ_PER_TX = 10;
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df,
-                                                           stores) {
+ydn.db.crud.req.IndexedDb.prototype.countStores = function(req, stores) {
 
   var me = this;
   var out = [];
-  var msg = tx_no + ' countStores: ' + stores;
-  this.logger.finest(msg);
 
   var count_store = function(i) {
     var table = stores[i];
-    var store = tx.objectStore(table);
+    var store = req.getTx().objectStore(table);
     var request = store.count();
     request.onsuccess = function(event) {
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
@@ -87,8 +84,7 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df,
       out[i] = event.target.result;
       i++;
       if (i == stores.length) {
-        df(out);
-        df = null;
+        req.setDbValue(out);
       } else {
         count_store(i);
       }
@@ -99,14 +95,12 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(tx, tx_no, df,
         window.console.log(event);
       }
       event.preventDefault();
-      df(request.error, true);
-      df = null;
+      req.errback(request.error);
     };
   };
 
   if (stores.length == 0) {
-    df([]);
-    df = null;
+    req.setDbValue([]);
   } else {
     count_store(0);
   }
@@ -1006,43 +1000,6 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(req,
 
 /**
 * @inheritDoc
- */
-ydn.db.crud.req.IndexedDb.prototype.listByStore = function(tx, tx_no, df,
-                                                           store_name) {
-  var me = this;
-  var results = [];
-  var msg = tx_no + ' listByStore: ' + store_name;
-  this.logger.finest(msg);
-
-  var store = tx.objectStore(store_name);
-
-  // Get everything in the store;
-  var request = store.openCursor();
-
-  request.onsuccess = function(event) {
-    var cursor = event.target.result;
-    if (cursor) {
-      results.push(cursor['value']);
-      cursor['continue'](); // result.continue();
-    } else {
-      df(results);
-
-    }
-  };
-
-  request.onerror = function(event) {
-    if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, event]);
-    }
-    event.preventDefault();
-    df(request.error, true);
-  };
-
-};
-
-
-/**
-* @inheritDoc
 */
 ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
 
@@ -1225,12 +1182,12 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(req, keys) {
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
     table, keyRange, index_name) {
 
   var me = this;
-  var store = tx.objectStore(table);
-  var msg = tx_no + ' countKeyRange: ' + table +
+  var store = req.getTx().objectStore(table);
+  var msg = req.getLabel() + ' ' + table +
       (index_name ? ':' + index_name : '') +
       (keyRange ? ':' + ydn.json.stringify(keyRange) : '');
   this.logger.finest(msg);
@@ -1254,14 +1211,14 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(tx, tx_no, df,
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log(event);
     }
-    df(event.target.result);
+    req.setDbValue(event.target.result);
   };
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log(event);
     }
     event.preventDefault();
-    df(request.error, true);
+    req.errback(request.error);
   };
 
 };

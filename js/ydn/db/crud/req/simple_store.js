@@ -245,21 +245,6 @@ ydn.db.crud.req.SimpleStore.prototype.getById = function(req, store_name, id) {
 
 
 /**
-* @inheritDoc
-*/
-ydn.db.crud.req.SimpleStore.prototype.listByStore = function(tx, tx_no, df,
-                                                             store_name) {
-  var onComp = tx.getStorage(function(storage) {
-    var store = storage.getSimpleStore(store_name);
-    df(store.getRecords());
-    onComp();
-    onComp = null;
-  }, this);
-
-};
-
-
-/**
  *
  * @param {ydn.db.Request} req request.
  * @param {string?} store_name table name.
@@ -488,18 +473,14 @@ ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.countStores = function(tx, tx_no, df,
-                                                             store_names) {
-  var msg = tx_no + ' countStores';
-  this.logger.finest(msg);
-  var onComp = tx.getStorage(function(storage) {
+ydn.db.crud.req.SimpleStore.prototype.countStores = function(req, store_names) {
+  var onComp = req.getTx().getStorage(function(storage) {
     var arr = [];
     for (var i = 0; i < store_names.length; i++) {
       var store = storage.getSimpleStore(store_names[i]);
       arr.push(store.countRecords());
     }
-    this.logger.finer('success ' + msg);
-    df(arr);
+    req.setDbValue(arr);
     onComp();
     onComp = null;
   }, this);
@@ -510,18 +491,17 @@ ydn.db.crud.req.SimpleStore.prototype.countStores = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(req,
     store_name, keyRange, index_name) {
-  var msg = tx_no + ' count' +
+  var msg = req.getLabel() + ' count' +
       (goog.isDefAndNotNull(index_name) ? 'Index' : '') +
       (goog.isDefAndNotNull(keyRange) ? 'KeyRange' : 'Store');
-  var me = this;
   this.logger.finest(msg);
-  var onComp = tx.getStorage(function(storage) {
+  var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var no = store.countRecords(index_name, keyRange);
     this.logger.finer('success ' + msg);
-    df(no);
+    req.setDbValue(no);
     onComp();
     onComp = null;
   }, this);

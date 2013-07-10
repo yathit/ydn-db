@@ -113,18 +113,14 @@ ydn.db.crud.req.IRequestExecutor.prototype.clearByStores = goog.abstractMethod;
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx
- * @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} df return a deferred function.
+ * @param {ydn.db.Request} req request.
  * @param {!Array.<string>} table store name.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.countStores = goog.abstractMethod;
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx
- * @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} df return a deferred function.
+ * @param {ydn.db.Request} req request.
  * @param {string} table store name.
  * @param {IDBKeyRange} keyRange the key range.
  * @param {(string|undefined)} index name.
@@ -214,17 +210,6 @@ ydn.db.crud.req.IRequestExecutor.prototype.listByKeyRange = goog.abstractMethod;
  * @param {boolean} unique unique key.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.listByIndexKeyRange = goog.abstractMethod;
-
-
-/**
- * List records from stores.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} return object in deferred function.
- * @param {string} store_name  store name.
- * @deprecated
- */
-ydn.db.crud.req.IRequestExecutor.prototype.listByStore = goog.abstractMethod;
 
 
 /**
