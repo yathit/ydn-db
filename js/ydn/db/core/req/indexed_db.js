@@ -61,9 +61,9 @@ ydn.db.core.req.IndexedDb.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
+ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(rq,
     iter, limit, offset) {
-  this.iterate_(ydn.db.schema.Store.QueryMethod.KEYS, tx, tx_no, df, iter,
+  this.iterate_(ydn.db.schema.Store.QueryMethod.KEYS, rq, iter,
       limit, offset);
 };
 
@@ -71,18 +71,18 @@ ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(tx, tx_no, df,
 /**
  * List record in a store.
  * @param {ydn.db.schema.Store.QueryMethod} mth keys method.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- * @param {string} tx_no transaction number.
- * @param {?function(*, boolean=)} df key in deferred function.
+ * @param {ydn.db.Request} rq request.
  * @param {!ydn.db.Iterator} iter iterator.
  * @param {number=} opt_limit limit.
  * @param {number=} opt_offset limit.
  * @private
  */
-ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, tx, tx_no, df,
+ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
     iter, opt_limit, opt_offset) {
   var arr = [];
 
+  var tx = rq.getTx();
+  var tx_no = rq.getLabel();
   var is_keys = mth == ydn.db.schema.Store.QueryMethod.KEYS;
   var q = is_keys ? 'keys' :
       mth == ydn.db.schema.Store.QueryMethod.VALUES ? 'values' :
@@ -95,9 +95,8 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, tx, tx_no, df,
   this.logger.finer(msg);
   var cursor = iter.iterate(tx, tx_no, this, mth);
   cursor.onFail = function(e) {
-    me.logger.finer('error:' + msg);
     cursor.exit();
-    df(e, true);
+    rq.errback(e);
   };
   var count = 0;
   var cued = false;
@@ -129,12 +128,12 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, tx, tx_no, df,
       } else {
         me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
         cursor.exit();
-        df(arr);
+        rq.setDbValue(arr);
       }
     } else {
       me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
       cursor.exit();
-      df(arr);
+      rq.setDbValue(arr);
     }
   };
 };
@@ -143,10 +142,18 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IndexedDb.prototype.listByIterator = function(tx, tx_no, df,
+ydn.db.core.req.IndexedDb.prototype.listByIterator = function(rq,
     iter, limit, offset) {
-  this.iterate_(ydn.db.schema.Store.QueryMethod.VALUES, tx, tx_no, df, iter,
+  this.iterate_(ydn.db.schema.Store.QueryMethod.VALUES, rq, iter,
       limit, offset);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.IndexedDb.prototype.getByIterator = function(rq, iter) {
+  this.iterate_(ydn.db.schema.Store.QueryMethod.GET, rq, iter, 1, 0);
 };
 
 

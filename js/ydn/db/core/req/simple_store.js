@@ -45,17 +45,19 @@ ydn.db.core.req.SimpleStore.DEBUG = false;
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.keysByIterator = function(tx, tx_no, df,
+ydn.db.core.req.SimpleStore.prototype.keysByIterator = function(rq,
     iter, limit, offset) {
   var arr = [];
-  //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
+  //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);  '
+  var tx_no = rq.getLabel();
+  var tx = rq.getTx();
   var msg = tx_no + ' keysByIterator:' + iter;
   var me = this;
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onFail = function(e) {
     me.logger.warning('error:' + msg);
-    df(e, true);
+    rq.errback(e);
   };
   var count = 0;
   var cued = false;
@@ -79,23 +81,28 @@ ydn.db.core.req.SimpleStore.prototype.keysByIterator = function(tx, tx_no, df,
         cursor.advance(1);
       } else {
         cursor.exit();
-        me.logger.finest('success:' + msg);
-        df(arr);
+        rq.setDbValue(arr);
       }
     } else {
       cursor.exit();
-      me.logger.finest('success:' + msg);
-      df(arr);
+      rq.setDbValue(arr);
     }
   };
 };
 
 
 /**
- * @inheritDoc
+ * @param {ydn.db.schema.Store.QueryMethod} mth method.
+ * @param {ydn.db.Request} rq request.
+ * @param {!ydn.db.Iterator} iter  store name.
+ * @param {number=} opt_limit limit.
+ * @param {number=} opt_offset
+ * @private
  */
-ydn.db.core.req.SimpleStore.prototype.listByIterator = function(tx, tx_no, df,
-    iter, limit, offset) {
+ydn.db.core.req.SimpleStore.prototype.iterate_ = function(mth, rq,
+    iter, opt_limit, opt_offset) {
+  var tx = rq.getTx();
+  var tx_no = rq.getLabel();
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
   var msg = tx_no + ' listByIterator' + iter;
@@ -103,9 +110,8 @@ ydn.db.core.req.SimpleStore.prototype.listByIterator = function(tx, tx_no, df,
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onFail = function(e) {
-    me.logger.finer('error:' + msg);
     cursor.exit();
-    df(e, false);
+    rq.errback(e);
   };
   var count = 0;
   var cued = false;
@@ -117,26 +123,44 @@ ydn.db.core.req.SimpleStore.prototype.listByIterator = function(tx, tx_no, df,
       var primary_key = iter.isIndexIterator() ?
           cursor.getPrimaryKey() : opt_key;
       var value = cursor.getValue();
-      if (!cued && offset > 0) {
-        cursor.advance(offset);
+      if (!cued && opt_offset > 0) {
+        cursor.advance(opt_offset);
         cued = true;
         return;
       }
       count++;
       arr.push(iter.isKeyIterator() ? primary_key : value);
-      if (!goog.isDef(limit) || count < limit) {
+      if (!goog.isDef(opt_limit) || count < opt_limit) {
         cursor.advance(1);
       } else {
-        me.logger.finer('success:' + msg);
         cursor.exit();
-        df(arr);
+        var rs = ydn.db.schema.Store.QueryMethod.GET == mth ? arr[0] : arr;
+        rq.setDbValue(rs);
       }
     } else {
-      me.logger.finest('success:' + msg);
       cursor.exit();
-      df(arr);
+      var rs = ydn.db.schema.Store.QueryMethod.GET == mth ? arr[0] : arr;
+      rq.setDbValue(rs);
     }
   };
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.listByIterator = function(rq, iter, limit,
+                                                                offset) {
+  this.iterate_(ydn.db.schema.Store.QueryMethod.VALUES, rq, iter, limit,
+      offset);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.req.SimpleStore.prototype.getByIterator = function(rq, iter) {
+  this.iterate_(ydn.db.schema.Store.QueryMethod.GET, rq, iter, 1, 0);
 };
 
 

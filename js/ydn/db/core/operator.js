@@ -82,7 +82,6 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
-    var df = ydn.db.base.createDeferred();
     /**
      * @type {!ydn.db.Iterator}
      */
@@ -98,16 +97,12 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
       throw new ydn.debug.error.ArgumentException('index "' +
           index_name + '" not found in store "' + q_store_name + '".');
     }
-    var list_df = new goog.async.Deferred();
-    list_df.addCallbacks(function(x) {
-      df.callback(x[0]); // undefined OK.
-    }, function(e) {
-      df.errback(e);
-    });
     this.logger.finer('getByIterator:' + q);
-    this.tx_thread.exec(list_df, function(tx, tx_no, cb) {
-      me.getIndexExecutor().listByIterator(tx, tx_no, cb, q, 1);
-    }, [q_store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    var df = this.tx_thread.request(ydn.db.Request.Method.GET_ITER,
+        [q_store_name]);
+    df.addTxback(function() {
+      this.getIndexExecutor().getByIterator(df, q);
+    }, this);
     return df;
   } else {
     return goog.base(this, 'get', arg1, arg2);
@@ -123,7 +118,6 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
-    var df = ydn.db.base.createDeferred();
 
     /**
      * @type {number}
@@ -151,9 +145,11 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) {
     var q = arg1;
 
     this.logger.finer('keysByIterator:' + q);
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getIndexExecutor().keysByIterator(tx, tx_no, cb, q, limit);
-    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY);
+    var df = this.tx_thread.request(ydn.db.Request.Method.KEYS_ITER,
+        q.stores());
+    df.addTxback(function() {
+      this.getIndexExecutor().keysByIterator(df, q, limit);
+    }, this);
 
     return df;
   } else {
@@ -202,7 +198,6 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
-    var df = ydn.db.base.createDeferred();
 
     /**
      * @type {number}
@@ -229,9 +224,11 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
      */
     var q = arg1;
     this.logger.finer('listByIterator:' + q);
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getIndexExecutor().listByIterator(tx, tx_no, cb, q, limit);
-    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY);
+    var df = this.tx_thread.request(ydn.db.Request.Method.VALUES_ITER,
+        q.stores());
+    df.addTxback(function() {
+      this.getIndexExecutor().listByIterator(df, q, limit);
+    }, this);
 
     return df;
   } else {

@@ -284,7 +284,8 @@ ydn.db.schema.Store.QueryMethod = {
   NONE: 0,
   KEYS: 1,
   VALUES: 2,
-  COUNT: 3
+  GET: 3,
+  COUNT: 4
 };
 
 
