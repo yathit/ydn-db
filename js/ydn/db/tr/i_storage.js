@@ -30,17 +30,6 @@ ydn.db.tr.IStorage = function() {};
 ydn.db.tr.IStorage.prototype.run = goog.abstractMethod;
 
 
-/**
- * @return {ydn.db.con.IDatabase.Transaction} get transaction object.
- */
-ydn.db.tr.IStorage.getTx = function() {};
-
-
-/**
- * Get transaction count.
- * @return {number} transaction series number.
- */
-ydn.db.tr.IStorage.prototype.getTxNo = function() {};
 
 
 

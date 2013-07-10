@@ -478,7 +478,8 @@ ydn.db.tr.Serial.prototype.getLabel = function() {
 /**
  * @inheritDoc
  */
-ydn.db.tr.Serial.prototype.request = function(method, store_names, opt_mode) {
+ydn.db.tr.Serial.prototype.request = function(method, store_names, opt_mode,
+    opt_on_complete) {
   var req = new ydn.db.Request(method);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
@@ -505,7 +506,7 @@ ydn.db.tr.Serial.prototype.request = function(method, store_names, opt_mode) {
       me.r_no_++;
       req.setTx(tx, me.getLabel() + 'R' + me.r_no_);
     };
-    me.processTx(tx_callback, store_names, mode);
+    me.processTx(tx_callback, store_names, mode, opt_on_complete);
   }
   return req;
 };

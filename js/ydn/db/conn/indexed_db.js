@@ -759,7 +759,7 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
   };
 
   tx.onabort = function(event) {
-    type = ydn.db.base.TxEventTypes.ABORT;
+    on_completed(ydn.db.base.TxEventTypes.ABORT, event);
   };
 
   fnc(tx);

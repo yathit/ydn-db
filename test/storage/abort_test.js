@@ -29,9 +29,9 @@ var basic_schema = {
 
 
 var setUp = function() {
-  //ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
   //ydn.db.tr.Parallel.DEBUG = true;
-// ydn.db.con.IndexedDb.DEBUG = true;
+  // ydn.db.con.IndexedDb.DEBUG = true;
 
 };
 
@@ -79,7 +79,7 @@ var committed_continuous_request_test = function(thread, exp_tx_no) {
       tx_no.push(db.getTxNo());
       t1_fired = true;
     });
-  })
+  });
 
 
 };
@@ -122,14 +122,15 @@ var test_abort_put  = function() {
     100, // interval
     2000); // maxTimeout
 
-  db.put('t1', val).addCallback(function (x) {
+  var req1 = db.put('t1', val).addCallback(function (x) {
+    console.log('req1 put');
     t1_key = x;
-    db.abort();
+    req1.abort();
   });
   db.get('t1', 'a').addBoth(function (x) {
     t1_result = x;
     t1_fired = true;
-    console.log('t1 done')
+    console.log('t1 done');
   });
 
   db.put('t2', val);
@@ -139,10 +140,10 @@ var test_abort_put  = function() {
     console.log('t2 done')
   });
 
-  adb.put('t3', val).addCallback(function (x) {
+  var req2 = adb.put('t3', val).addCallback(function (x) {
     t3_key = x;
     assertThrows('must throw InvalidStateError for atomic thread', function () {
-      db.abort();
+      req2.abort();
     });
 
   });

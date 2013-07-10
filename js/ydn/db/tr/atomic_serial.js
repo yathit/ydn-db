@@ -63,6 +63,42 @@ ydn.db.tr.AtomicSerial.prototype.logger =
 /**
  * @inheritDoc
  */
+ydn.db.tr.AtomicSerial.prototype.request = function(method, scope, opt_mode) {
+  var req2, result, is_error;
+
+  /**
+   * @param {ydn.db.base.TxEventTypes} t event type.
+   * @param {*} e error.
+   */
+  var onComplete = function(t, e) {
+    if (t != ydn.db.base.TxEventTypes.COMPLETE) {
+      req2.errback(e);
+    } else if (is_error === true) {
+      req2.errback(result);
+    } else if (is_error === false) {
+      req2.setDbValue(result);
+    } else {
+      var err = new ydn.db.TimeoutError();
+      req2.errback(err);
+    }
+  };
+  var req = goog.base(this, 'request', method, scope, opt_mode, onComplete);
+  // intersect request result to make atomic
+  req2 = req.branch();
+  req.addCallbacks(function(x) {
+    is_error = false;
+    result = x;
+  }, function(e) {
+    is_error = true;
+    result = e;
+  });
+  return req2;
+};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.tr.AtomicSerial.prototype.exec = function(df, callback, store_names,
                                                  mode, on_completed) {
 

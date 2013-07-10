@@ -17,12 +17,6 @@ ydn.db.crud.IOperator = function() {};
 
 
 /**
- * Abort current request transaction.
- */
-ydn.db.crud.IOperator.prototype.abort = goog.abstractMethod;
-
-
-/**
  *
  * @param {!Array.<string>|string} store_name store name or names.
  * @param {string=} index name.
