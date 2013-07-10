@@ -843,9 +843,9 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(req, keys) {
 /**
 * @inheritDoc
 */
-ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d,
-                                                          store_names) {
+ydn.db.crud.req.WebSql.prototype.clearByStores = function(req, store_names) {
 
+  var tx = req.getTx();
   var me = this;
 
   var deleteStore = function(i, tx) {
@@ -861,7 +861,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d,
     var callback = function(transaction, results) {
       if (i == store_names.length - 1) {
         me.logger.finest('success ' + sql);
-        d(store_names.length);
+        req.setDbValue(store_names.length);
       } else {
         deleteStore(i + 1, transaction);
       }
@@ -876,8 +876,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d,
       if (ydn.db.crud.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      me.logger.warning('error: ' + sql + ' ' + error.message);
-      d(error, true);
+      req.errback(error);
       return false;
     };
 
@@ -904,14 +903,13 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d,
       }
     }
 
-    return d;
   };
 
   if (store_names.length > 0) {
     deleteStore(0, tx);
   } else {
     this.logger.finest('success');
-    d(0);
+    req.setDbValue(0);
   }
 };
 
@@ -919,21 +917,24 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(tx, tx_no, d,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
-                                                         keys) {
+ydn.db.crud.req.WebSql.prototype.removeByKeys = function(req, keys) {
 
+  var tx = req.getTx();
   var me = this;
   var count = 0;
   var has_failed = false;
   var store_name, store, key;
-  var msg = tx_no + ' removeByKeys: ' + keys.length + ' keys';
+  var msg = req.getLabel() + ' removeByKeys: ' + keys.length + ' keys';
   this.logger.finest(msg);
 
   var removeAt = function(i) {
 
     if (i >= keys.length) {
-      me.logger.finest('success ' + msg);
-      df(count, has_failed);
+      if (has_failed) {
+        req.errback(count);
+      } else {
+        req.setDbValue(count);
+      }
       return;
     }
 
@@ -971,7 +972,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
     var where = ' WHERE ' + store.getSQLKeyColumnNameQuoted() + ' = ?';
     var sql = 'DELETE FROM ' + store.getQuotedName() + where;
     //console.log([sql, out.values])
-    var i_msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + [key];
+    var i_msg = req.getLabel() + ' SQL: ' + sql + ' PARAMS: ' + [key];
     if (ydn.db.crud.req.WebSql.DEBUG) {
       window.console.log(i_msg);
     }
@@ -987,7 +988,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
           store.getName() + ':' + index.getName();
 
       var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-      me.logger.finest(tx_no + + ' SQL: ' + idx_sql);
+      me.logger.finest(req.getLabel() + + ' SQL: ' + idx_sql);
       tx.executeSql(idx_sql, [key]);
     };
 
@@ -1007,10 +1008,9 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
-                                                       id) {
+ydn.db.crud.req.WebSql.prototype.removeById = function(req, table, id) {
 
-
+  var tx = req.getTx();
   var store = this.schema.getStore(table);
   var key = ydn.db.schema.Index.js2sql(id, store.getType());
 
@@ -1024,8 +1024,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
     if (ydn.db.crud.req.WebSql.DEBUG) {
       window.console.log(results);
     }
-    me.logger.finest('success ' + msg);
-    d(results.rowsAffected);
+    req.setDbValue(results.rowsAffected);
   };
 
   /**
@@ -1037,15 +1036,14 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
     if (ydn.db.crud.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    me.logger.warning('error: ' + msg + error.message);
-    d(error, true);
+    req.errback(error);
     return false; // not rollback yet.
   };
 
   var where = ' WHERE ' + store.getSQLKeyColumnNameQuoted() + ' = ?';
   var sql = 'DELETE FROM ' + store.getQuotedName() + where;
   //console.log([sql, out.values])
-  var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + [key];
+  var msg = req.getLabel() + ' SQL: ' + sql + ' PARAMS: ' + [key];
   this.logger.finest(msg);
   tx.executeSql(sql, [key], success_callback, error_callback);
 
@@ -1058,7 +1056,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
         store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-    me.logger.finest(tx_no + + ' SQL: ' + idx_sql);
+    me.logger.finest(req.getLabel() + + ' SQL: ' + idx_sql);
     tx.executeSql(idx_sql, [key]);
   };
 
@@ -1075,43 +1073,42 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(tx, tx_no, d, table,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.clearByKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.WebSql.prototype.clearByKeyRange = function(req,
     store_name, key_range) {
-  this.clear_by_key_range_(tx, tx_no, df, store_name, undefined, key_range);
+  this.clear_by_key_range_(req, store_name, undefined, key_range);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.removeByKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.WebSql.prototype.removeByKeyRange = function(req,
     store_name, key_range) {
-  this.clear_by_key_range_(tx, tx_no, df, store_name, undefined, key_range);
+  this.clear_by_key_range_(req, store_name, undefined, key_range);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.removeByIndexKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.WebSql.prototype.removeByIndexKeyRange = function(req,
     store_name, index_name, key_range) {
-  this.clear_by_key_range_(tx, tx_no, df, store_name, index_name, key_range);
+  this.clear_by_key_range_(req, store_name, index_name, key_range);
 };
 
 
 /**
  * Retrieve primary keys or value from a store in a given key range.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- * @param {string} tx_no tx no.
- * @param {?function(*, boolean=)} df key in deferred function.
+ * @param {ydn.db.Request} req request.
  * @param {string} store_name table name.
  * @param {string|undefined} column_name name.
  * @param {IDBKeyRange} key_range to retrieve.
  * @private
  */
-ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
+ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(req,
     store_name, column_name, key_range) {
 
+  var tx = req.getTx();
   var me = this;
   var arr = [];
   var store = this.schema.getStore(store_name);
@@ -1139,7 +1136,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
    */
   var callback = function(transaction, results) {
     me.logger.finest('success ' + msg);
-    df(results.rowsAffected);
+    req.setDbValue(results.rowsAffected);
   };
 
   /**
@@ -1152,12 +1149,12 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
       window.console.log([tr, error]);
     }
     me.logger.warning('error: ' + msg + error.message);
-    df(error, true);
+    req.errback(error);
     return false;
   };
 
   //console.log([sql, params])
-  var msg = tx_no + ' SQL: ' + sql + ' PARAMS: ' + params;
+  var msg = req.getLabel() + ' SQL: ' + sql + ' PARAMS: ' + params;
   this.logger.finest(msg);
   tx.executeSql(sql, params, callback, error_callback);
 
@@ -1170,7 +1167,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(tx, tx_no, df,
         store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-    me.logger.finest(tx_no + + ' SQL: ' + idx_sql);
+    me.logger.finest(req.getLabel() + + ' SQL: ' + idx_sql);
     tx.executeSql(idx_sql, where_params);
   };
 

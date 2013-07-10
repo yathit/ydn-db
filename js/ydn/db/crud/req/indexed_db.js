@@ -549,12 +549,12 @@ ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df,
 /**
 * @inheritDoc
 */
-ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.removeById = function(req,
                                                           store_name, key) {
 
   var me = this;
-  var store = tx.objectStore(store_name);
-  var msg = tx_no + ' clearById: ' + store_name + ' ' + key;
+  var store = req.getTx().objectStore(store_name);
+  var msg = req.getLabel() + ' clearById: ' + store_name + ' ' + key;
   this.logger.finest(msg);
 
   var request = store.openCursor(ydn.db.IDBKeyRange.only(key));
@@ -564,15 +564,15 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
     }
     var cursor = event.target.result;
     if (cursor) {
-      var req = cursor['delete']();
-      req.onsuccess = function(e) {
-        df(1);
+      var r = cursor['delete']();
+      r.onsuccess = function(e) {
+        req.setDbValue(1);
       };
-      req.onerror = function(e) {
-        df(event, true);
+      r.onerror = function(e) {
+        req.errback(r.error);
       };
     } else {
-      df(undefined);
+      req.setDbValue(0);
     }
 
   };
@@ -581,7 +581,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
       window.console.log([store_name, key, event]);
     }
     event.preventDefault();
-    df(request.error, true);
+    req.errback(request.error);
   };
 
 };
@@ -590,13 +590,12 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
-                                                            keys) {
+ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(req, keys) {
 
   var me = this;
   var count = 0;
   var store_name, store, key;
-  var msg = tx_no + ' removeByKeys: ' + keys.length + ' keys';
+  var msg = req.getLabel() + ' removeByKeys: ' + keys.length + ' keys';
   this.logger.finest(msg);
   var errors = [];
 
@@ -604,14 +603,17 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
     i++;
     if (i >= keys.length) {
       var has_failed = errors.length > 0;
-      var out = has_failed ? errors : count;
-      df(out, has_failed);
+      if (has_failed) {
+        req.errback(errors);
+      } else {
+        req.setDbValue(count);
+      }
       return;
     }
 
     if (keys[i].getStoreName() != store_name) {
       store_name = keys[i].getStoreName();
-      store = tx.objectStore(store_name);
+      store = req.getTx().objectStore(store_name);
     }
 
     var request = store['delete'](keys[i].getId());
@@ -639,30 +641,30 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(tx, tx_no, df,
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.removeByKeyRange = function(
-    tx, tx_no, df, store_name, key_range) {
+    req, store_name, key_range) {
 
   var me = this;
-  var store = tx.objectStore(store_name);
+  var store = req.getTx().objectStore(store_name);
   var request = store.count(key_range);
-  var msg = tx_no + ' clearByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = req.getLabel() + ' clearByKeyRange: ' + store_name + ' ' +
+      key_range;
   this.logger.finest(msg);
   request.onsuccess = function(event) {
     var n = event.target.result;
-    var req = store['delete'](key_range);
-    req.onsuccess = function() {
-      df(n);
+    var r = store['delete'](key_range);
+    r.onsuccess = function() {
+      req.setDbValue(n);
     };
-    req.onerror = function(e) {
-      df(request.error, true);
+    r.onerror = function(e) {
+      req.errback(r.error);
     };
   };
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, key_range, event]);
     }
-    me.logger.finest('count error ' + msg);
     event.preventDefault();
-    df(request.error, true);
+    req.errback(request.error);
   };
 
 };
@@ -672,21 +674,21 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeyRange = function(
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.clearByKeyRange = function(
-    tx, tx_no, df, store_name, key_range) {
+    req, store_name, key_range) {
 
   var me = this;
-  var store = tx.objectStore(store_name);
+  var store = req.getTx().objectStore(store_name);
 
-  var msg = tx_no + ' clearByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = req.getLabel() + ' ' + store_name + ' ' + key_range;
   this.logger.finest(msg);
 
-  var req = store['delete'](key_range);
-  req.onsuccess = function(event) {
-    df(undefined);
+  var r = store['delete'](key_range);
+  r.onsuccess = function(event) {
+    req.setDbValue(undefined);
   };
-  req.onerror = function(event) {
+  r.onerror = function(event) {
     event.preventDefault();
-    df(req.error, true);
+    req.errback(r.error);
   };
 
 };
@@ -696,13 +698,13 @@ ydn.db.crud.req.IndexedDb.prototype.clearByKeyRange = function(
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
-    tx, tx_no, df, store_name, index_name, key_range) {
+    req, store_name, index_name, key_range) {
 
   var me = this;
-  var store = tx.objectStore(store_name);
+  var store = req.getTx().objectStore(store_name);
   var index = store.index(index_name);
-  var msg = tx_no + ' clearByIndexKeyRange: ' + store_name + ':' + index_name +
-      ' ' + key_range;
+  var msg = req.getLabel() + ' clearByIndexKeyRange: ' + store_name + ':' +
+      index_name + ' ' + key_range;
   this.logger.finest(msg);
   var errors = [];
   // var request = index.openKeyCursor(key_range);
@@ -716,26 +718,29 @@ ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
     var cursor = event.target.result;
     if (cursor) {
       //console.log(cursor);
-      var req = cursor['delete']();
-      req.onsuccess = function() {
+      var r = cursor['delete']();
+      r.onsuccess = function() {
         n++;
         cursor['continue']();
       };
-      req.onerror = function(event) {
-        errors.push(req.error);
+      r.onerror = function(event) {
+        errors.push(r.error);
         event.preventDefault();
         cursor['continue']();
       };
     } else {
       var has_failed = errors.length > 0;
-      var out = has_failed ? errors : n;
-      df(out, has_failed);
+      if (has_failed) {
+        req.errback(errors);
+      } else {
+        req.setDbValue(n);
+      }
     }
 
   };
   request.onerror = function(event) {
     event.preventDefault();
-    df(request.error, true);
+    req.errback(request.error);
   };
 
 };
@@ -744,17 +749,16 @@ ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
-                                                             store_names) {
+ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(req, store_names) {
 
   var me = this;
   var n_todo = store_names.length;
   var n_done = 0;
-  var msg = tx_no + ' clearByStores: ' + store_names;
+  var msg = req.getLabel() + ' clearByStores: ' + store_names;
   this.logger.finest(msg);
   for (var i = 0; i < n_todo; i++) {
     var store_name = store_names[i];
-    var store = tx.objectStore(store_name);
+    var store = req.getTx().objectStore(store_name);
     var request = store.clear();
     request.onsuccess = function(event) {
       n_done++;
@@ -762,7 +766,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
       //   window.console.log([n_done, event]);
       // }
       if (n_done == n_todo) {
-        df(n_done);
+        req.setDbValue(n_done);
       }
     };
     request.onerror = function(event) {
@@ -772,7 +776,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
       }
       event.preventDefault();
       if (n_done == n_todo) {
-        df(request.error, true);
+        req.errback(request.error);
       }
     };
   }

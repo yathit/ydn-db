@@ -354,16 +354,16 @@ ydn.db.crud.req.SimpleStore.prototype.listByIndexKeyRange = function(req,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.removeById = function(tx, tx_no, df,
+ydn.db.crud.req.SimpleStore.prototype.removeById = function(req,
                                                             store_name, id) {
-  var msg = tx_no + ' removeById ' + store_name + ' ' + id;
+  var msg = req.getLabel() + ' removeById ' + store_name + ' ' + id;
   this.logger.finest(msg);
   var me = this;
-  var onComp = tx.getStorage(function(storage) {
+  var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var cnt = store.removeRecord(id);
     me.logger.finer('success ' + msg + (cnt == 0 ? ' [not found]' : ''));
-    df(cnt);
+    req.setDbValue(cnt);
     onComp();
     onComp = null;
   }, this);
@@ -373,14 +373,13 @@ ydn.db.crud.req.SimpleStore.prototype.removeById = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.removeByKeys = function(tx, tx_no, df,
-                                                              keys) {
-  var msg = tx_no + ' removeByKeys ' + keys.length + ' keys';
+ydn.db.crud.req.SimpleStore.prototype.removeByKeys = function(req, keys) {
+  var msg = req.getLabel() + ' removeByKeys ' + keys.length + ' keys';
   this.logger.finest(msg);
   var me = this;
   var store;
   var deleted = 0;
-  var onComp = tx.getStorage(function(storage) {
+  var onComp = req.getTx().getStorage(function(storage) {
     for (var i = 0; i < keys.length; i++) {
       var store_name = keys[i].getStoreName();
       var id = keys[i].getId();
@@ -389,8 +388,7 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeys = function(tx, tx_no, df,
       }
       deleted += store.removeRecord(id);
     }
-    me.logger.finer('success ' + msg + deleted + ' deleted');
-    df(deleted);
+    req.setDbValue(deleted);
     onComp();
     onComp = null;
   }, this);
@@ -401,8 +399,8 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeys = function(tx, tx_no, df,
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function(
-    tx, tx_no, df, store_name, key_range) {
-  this.removeByKeyRange(tx, tx_no, df, store_name, key_range);
+    req, store_name, key_range) {
+  this.removeByKeyRange(req, store_name, key_range);
 };
 
 
@@ -410,16 +408,16 @@ ydn.db.crud.req.SimpleStore.prototype.clearByKeyRange = function(
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function(
-    tx, tx_no, df, store_name, key_range) {
-  var msg = tx_no + ' removeByKeyRange ' +
+    req, store_name, key_range) {
+  var msg = req.getLabel() + ' removeByKeyRange ' +
       (key_range ? ydn.json.stringify(key_range) : '');
   this.logger.finest(msg);
   var me = this;
-  var onComp = tx.getStorage(function(storage) {
+  var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var cnt = store.removeRecords(key_range);
     me.logger.finer(msg + ' deleted ' + cnt + ' records.');
-    df(cnt);
+    req.setDbValue(cnt);
     onComp();
     onComp = null;
   }, this);
@@ -430,20 +428,19 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function(
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = function(
-    tx, tx_no, df, store_name, index_name, key_range) {
-  var msg = tx_no + ' removeByIndexKeyRange ' +
+    req, store_name, index_name, key_range) {
+  var msg = req.getLabel() + ' removeByIndexKeyRange ' +
       (key_range ? ydn.json.stringify(key_range) : '');
   this.logger.finest(msg);
   var me = this;
-  var onComp = tx.getStorage(function(storage) {
+  var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var keys = store.getKeys(index_name, key_range);
     var cnt = keys.length;
     for (var i = 0; i < cnt; i++) {
       store.removeRecord(keys[i]);
     }
-    me.logger.finer(msg + ' deleted ' + cnt + ' records.');
-    df(cnt);
+    req.setDbValue(cnt);
     onComp();
     onComp = null;
   }, this);
@@ -453,17 +450,17 @@ ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = function(
 /**
  * @inheritDoc
 */
-ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(tx, tx_no, df,
+ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(req,
                                                                store_names) {
-  var msg = tx_no + ' clearByStores';
+  var msg = req.getLabel() + ' clearByStores';
   this.logger.finest(msg);
-  var onComp = tx.getStorage(function(storage) {
+  var onComp = req.getTx().getStorage(function(storage) {
     for (var i = 0; i < store_names.length; i++) {
       var store = storage.getSimpleStore(store_names[i]);
       store.clear();
     }
     this.logger.finer('success ' + msg);
-    df(store_names.length);
+    req.setDbValue(store_names.length);
     onComp();
     onComp = null;
   }, this);

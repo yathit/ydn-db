@@ -1007,7 +1007,7 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
 /**
  * Remove record by keys.
  * @param {!Array.<!ydn.db.Key>} keys keys.
- * @return {!goog.async.Deferred} df.
+ * @return {!ydn.db.Request} df.
  */
 ydn.db.crud.DbOperator.prototype.removeInternal = function(keys) {
   var store_names = [];
@@ -1021,10 +1021,11 @@ ydn.db.crud.DbOperator.prototype.removeInternal = function(keys) {
     }
   }
   var me = this;
-  var df = new goog.async.Deferred();
-  this.sync_thread.exec(df, function(tx, tx_no, cb) {
-    me.getExecutor().removeByKeys(tx, tx_no, cb, keys);
-  }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
+  var df = this.sync_thread.request(ydn.db.Request.Method.REMOVE_KEYS,
+      store_names, ydn.db.base.TransactionMode.READ_WRITE);
+  df.addTxback(function() {
+    this.getExecutor().removeByKeys(df, keys);
+  }, this);
   return df;
 };
 
@@ -1167,7 +1168,7 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
     throw new ydn.debug.error.ArgumentException('too many input arguments');
   }
 
-  var df = ydn.db.base.createDeferred();
+  var req;
   var me = this;
 
   if (goog.isString(arg1)) {
@@ -1187,14 +1188,18 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
       }
       this.logger.finer('clearByKeyRange: ' + st_name + ':' +
           ydn.json.stringify(key_range));
-      this.tx_thread.exec(df, function(tx, tx_no, cb) {
-        me.getExecutor().clearByKeyRange(tx, tx_no, cb, st_name, key_range);
-      }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+      req = this.tx_thread.request(ydn.db.Request.Method.CLEAR, [st_name],
+          ydn.db.base.TransactionMode.READ_WRITE);
+      req.addTxback(function() {
+        this.getExecutor().clearByKeyRange(req, st_name, key_range);
+      }, this);
     } else if (!goog.isDef(arg2)) {
       this.logger.finer('clearByStore: ' + st_name);
-      this.tx_thread.exec(df, function(tx, tx_no, cb) {
-        me.getExecutor().clearByStores(tx, tx_no, cb, [st_name]);
-      }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+      req = this.tx_thread.request(ydn.db.Request.Method.CLEAR, [st_name],
+          ydn.db.base.TransactionMode.READ_WRITE);
+      req.addTxback(function() {
+        this.getExecutor().clearByStores(req, [st_name]);
+      }, this);
 
     } else {
       throw new ydn.debug.error.ArgumentException('clear method requires' +
@@ -1206,16 +1211,18 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
       goog.isString(arg1[0])) {
     var store_names = arg1 || this.schema.getStoreNames();
     this.logger.finer('clearByStores: ' + ydn.json.stringify(store_names));
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().clearByStores(tx, tx_no, cb, store_names);
-    }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
+    req = this.tx_thread.request(ydn.db.Request.Method.CLEAR, store_names,
+        ydn.db.base.TransactionMode.READ_WRITE);
+    req.addTxback(function() {
+      this.getExecutor().clearByStores(req, store_names);
+    }, this);
 
   } else {
     throw new ydn.debug.error.ArgumentException('first argument "' + arg1 +
         '" is invalid.');
   }
 
-  return df;
+  return req;
 };
 
 
@@ -1225,7 +1232,7 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
 ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
 
   var df = ydn.db.base.createDeferred();
-  var me = this;
+  var req;
 
   if (goog.isString(arg1)) {
     /**
@@ -1249,10 +1256,12 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
               /** @type {KeyRangeJson} */ (arg3));
           this.logger.finer('removeByIndexKeyRange: ' + store_name + ':' +
               index.getName() + ' ' + store_name);
-          this.tx_thread.exec(df, function(tx, tx_no, cb) {
-            me.getExecutor().removeByIndexKeyRange(tx, tx_no, cb, store_name,
+          req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_INDEX,
+              [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+          req.addTxback(function() {
+            this.getExecutor().removeByIndexKeyRange(req, store_name,
                 index.getName(), key_range);
-          }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+          }, this);
         } else {
           throw new ydn.debug.error.ArgumentException('key range ' + arg3 +
               ' is invalid type "' + typeof arg3 + '".');
@@ -1266,22 +1275,19 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
           goog.isArrayLike(arg2) || arg2 instanceof Date) {
         var id = /** @type {IDBKey} */ (arg2);
         this.logger.finer('removeById: ' + store_name + ':' + id);
-        var hdf = df;
-        if (ydn.db.base.USE_HOOK) {
-          df = store.hook(ydn.db.Request.Method.REMOVE, hdf,
-              arguments);
-        }
-        this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
-          me.getExecutor().removeById(tx, tx_no, cb, store_name, id);
-        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+        req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_ID,
+            [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+        req.addTxback(function() {
+          this.getExecutor().removeById(req, store_name, id);
+        }, this);
 
         if (store.dispatch_events) {
           df.addCallback(function(key) {
             var event = new ydn.db.events.RecordEvent(
                 ydn.db.events.Types.DELETED,
-                me.getStorage(), store_name, key, undefined);
-            me.getStorage().dispatchEvent(event);
-          });
+                this.getStorage(), store_name, key, undefined);
+            this.getStorage().dispatchEvent(event);
+          }, this);
         }
 
       } else if (goog.isObject(arg2)) {
@@ -1289,17 +1295,18 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
             /** @type {KeyRangeJson} */ (arg2));
         this.logger.finer('removeByKeyRange: ' + store_name + ':' +
             ydn.json.stringify(key_range));
-        this.tx_thread.exec(df, function(tx, tx_no, cb) {
-          me.getExecutor().removeByKeyRange(tx, tx_no, cb, store_name,
-              key_range);
-        }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+        req = this.tx_thread.request(ydn.db.Request.Method.REMOVE,
+            [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+        req.addTxback(function() {
+          this.getExecutor().removeByKeyRange(req, store_name, key_range);
+        }, this);
         if (store.dispatch_events) {
           df.addCallback(function(key) {
             var event = new ydn.db.events.StoreEvent(
                 ydn.db.events.Types.DELETED,
-                me.getStorage(), store_name, key, undefined);
-            me.getStorage().dispatchEvent(event);
-          });
+                this.getStorage(), store_name, key, undefined);
+            this.getStorage().dispatchEvent(event);
+          }, this);
         }
       } else {
         throw new ydn.debug.error.ArgumentException(
@@ -1311,10 +1318,11 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
      * @type {!ydn.db.Key}
      */
     var key = arg1;
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().removeById(tx, tx_no, cb, key.getStoreName(),
-          arg1.getId());
-    }, [key.getStoreName()], ydn.db.base.TransactionMode.READ_WRITE);
+    req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_ID,
+        [key.getStoreName()], ydn.db.base.TransactionMode.READ_WRITE);
+    req.addTxback(function() {
+      this.getExecutor().removeById(req, key.getStoreName(), key.getId());
+    }, this);
   } else if (goog.isArray(arg1)) {
     /**
      * @type {!Array.<!ydn.db.Key>}
@@ -1338,16 +1346,18 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
       throw new ydn.debug.error.ArgumentException('at least one valid key ' +
           'required in key list "' + ydn.json.toShortString(arg1) + '"');
     }
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().removeByKeys(tx, tx_no, cb, arr);
-    }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
+    req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_KEYS,
+        store_names, ydn.db.base.TransactionMode.READ_WRITE);
+    req.addTxback(function() {
+      this.getExecutor().removeByKeys(req, arr);
+    }, this);
   } else {
     throw new ydn.debug.error.ArgumentException('first argument requires ' +
         'store name, key (ydn.db.Key) or list of keys (array) , but "' +
         ydn.json.toShortString(arg1) + '" (' + goog.typeOf(arg1) + ') found.');
   }
 
-  return df;
+  return req;
 };
 
 
