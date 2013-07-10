@@ -14,7 +14,16 @@
 
 
 /**
- * @fileoverview Deferred object having progress callback.
+ * @fileoverview Custom deferred class for transaction facilitating
+ * synchronization logic and aborting transaction.
+ *
+ * Rationale for using custom deferred class.
+ * ------------------------------------------
+ * In general coding pattern, usage of custom class is discouraged if
+ * composition of existing classes is application. Here, this custom deferred
+ * class can, in face, be composed using goog.async.Deferred and
+ * goog.events.EventTarget. However, high frequency usage of this class is
+ * an optimization is deseriable.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
