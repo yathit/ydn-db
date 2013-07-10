@@ -135,9 +135,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
 
 /**
  * Return object
- * @param {ydn.db.con.IDatabase.Transaction} tx
- * @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} return object in deferred function.
+ * @param {ydn.db.Request} req request.
  * @param {string} store table name.
  * @param {!IDBKey} id object key to be retrieved, if not
  * provided,
@@ -148,24 +146,19 @@ ydn.db.crud.req.IRequestExecutor.prototype.getById = goog.abstractMethod;
 
 /**
  * Retrieve primary keys from a store in a given key range.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} return object in deferred function.
+ * @param {ydn.db.Request} req request.
  * @param {string} store table name.
  * @param {IDBKeyRange} key_range to retrieve.
  * @param {boolean} reverse ordering.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
  */
-ydn.db.crud.req.IRequestExecutor.prototype.keysByKeyRange =
-  goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.keysByKeyRange = goog.abstractMethod;
 
 
 /**
  * Retrieve primary keys from a store in a given index key range.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} return object in deferred function.
+ * @param {ydn.db.Request} req request.
  * @param {string} store table name.
  * @param {string} index name.
  * @param {IDBKeyRange} key_range to retrieve.
@@ -175,14 +168,12 @@ ydn.db.crud.req.IRequestExecutor.prototype.keysByKeyRange =
  * @param {boolean} unique unique key.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.keysByIndexKeyRange =
-  goog.abstractMethod;
+    goog.abstractMethod;
 
 
 /**
  * Execute GET request callback results to df.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} df deferred to feed result.
+ * @param {ydn.db.Request} req request.
  * @param {string} store_name table name.
  * @param {!Array.<!IDBKey>} ids id to get.
  * @throws {ydn.db.InvalidKeyException}
@@ -193,18 +184,15 @@ ydn.db.crud.req.IRequestExecutor.prototype.listByIds = goog.abstractMethod;
 
 /**
  * Execute GET request callback results to df.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} df deferred to feed result.
+ * @param {ydn.db.Request} req request.
  * @param {!Array.<!ydn.db.Key>} keys id to get.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
 
+
 /**
  * Execute GET request callback results to df.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} df deferred to feed result.
+ * @param {ydn.db.Request} req request.
  * @param {string} store name.
  * @param {IDBKeyRange} key range to get.
  * @param {boolean} reverse to sort reverse order.
@@ -213,11 +201,10 @@ ydn.db.crud.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
  */
 ydn.db.crud.req.IRequestExecutor.prototype.listByKeyRange = goog.abstractMethod;
 
+
 /**
  * Execute GET request callback results to df.
- * @param {ydn.db.con.IDatabase.Transaction} tx
- *  @param {string} tx_no transaction number
- * @param {?function(*, boolean=)} df deferred to feed result.
+ * @param {ydn.db.Request} req request.
  * @param {string} store name.
  * @param {string} index name.
  * @param {IDBKeyRange} key range to get.
@@ -239,6 +226,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.listByIndexKeyRange = goog.abstractMe
  */
 ydn.db.crud.req.IRequestExecutor.prototype.listByStore = goog.abstractMethod;
 
+
 /**
  * Execute PUT request to the store of given records in delimited text.
  * @param {ydn.db.con.IDatabase.Transaction} tx
@@ -249,6 +237,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.listByStore = goog.abstractMethod;
  * @param {string} delimiter field delimiter.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.putData = goog.abstractMethod;
+
 
 /**
  * Put object and return key inserted.

@@ -18,7 +18,7 @@ var load_store_name = 'st_load';
 var setUp = function() {
   // ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
   // ydn.db.con.IndexedDb.DEBUG = true;
@@ -1389,7 +1389,7 @@ var test_51_array_key = function() {
     2000); // maxTimeout
 
   db.put(table_name, {id: key, value: key_value}).addBoth(function(value) {
-    //console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
+    // console.log(db + ' receiving put value callback for ' + key + ' = ' + key_value);
     a_value = value;
     a_done = true;
   });

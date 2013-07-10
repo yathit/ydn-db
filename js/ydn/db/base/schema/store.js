@@ -992,30 +992,11 @@ ydn.db.schema.Store.prototype.generateIndex = function(obj) {
 
 
 /**
- * @enum {string}
- */
-ydn.db.schema.Store.SyncMethod = {
-  ADD: 'add',
-  ADDS: 'as',
-  COUNT: 'ct',
-  GET: 'get',
-  PUT: 'put',
-  PUTS: 'ps',
-  PUT_KEYS: 'pk',
-  REMOVE: 'rm',
-  VALUES: 'vs',
-  VALUES_INDEX: 'vi',
-  VALUES_IDS: 'vl',
-  NONE: ''
-};
-
-
-/**
  * Database hook to call before persisting into the database.
  * Override this function to attach the hook. The default implementation is
  * immediately invoke the given callback with first variable argument.
  * to preserve database operation order, preHook call is not waited.
- * @param {ydn.db.schema.Store.SyncMethod} method
+ * @param {ydn.db.Request.Method} method
  * @param {!goog.async.Deferred} df deferred from database operation.
  * @param {Arguments} args arguments to the db method.
  * @return {!goog.async.Deferred} deferred for output.

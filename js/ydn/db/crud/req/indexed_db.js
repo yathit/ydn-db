@@ -787,9 +787,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
 
 /**
  * General executor for LIST methods.
- * @param {ydn.db.con.IDatabase.Transaction} tx tx.
- * @param {string} tx_no tx label.
- * @param {?function(*, boolean=)} df object in deferred function.
+ * @param {ydn.db.Request} req req.
  * @param {string} store_name store name.
  * @param {string?} index index name.
  * @param {IDBKeyRange} key_range range to list.
@@ -799,13 +797,13 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(tx, tx_no, df,
  * @param {boolean=} opt_unique unique attribute for index listing.
  * @private
  */
-ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(req,
     store_name, index, key_range, reverse, limit, offset, opt_unique) {
   var me = this;
   var results = [];
-  var store = tx.objectStore(store_name);
+  var store = req.getTx().objectStore(store_name);
   var dir = ydn.db.base.getDirection(reverse, opt_unique);
-  var msg = tx_no + ' listByKeyRange: ' + store_name +
+  var msg = req.getLabel() + ' ' + store_name +
       (index ? ':' + index : '') +
       (key_range ? ydn.json.stringify(key_range) : '');
   if (reverse) {
@@ -839,12 +837,10 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
       if (results.length < limit) {
         cursor['continue']();
       } else {
-        me.logger.finest(tx_no + ' success ' + results.length + ' objects');
-        df(results);
+        req.setDbValue(results);
       }
     } else {
-      me.logger.finest(tx_no + ' success ' + results.length + ' objects');
-      df(results);
+      req.setDbValue(results);
     }
   };
   request.onerror = function(event) {
@@ -852,7 +848,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
       window.console.log([store_name, event]);
     }
     event.preventDefault();
-    df(request.error, true);
+    req.errback(request.error);
   };
 };
 
@@ -861,8 +857,8 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(tx, tx_no, df,
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.listByKeyRange =
-    function(tx, tx_no, df, store_name, key_range, reverse, limit, offset) {
-  this.listByKeyRange_(tx, tx_no, df, store_name, null, key_range, reverse,
+    function(req, store_name, key_range, reverse, limit, offset) {
+  this.listByKeyRange_(req, store_name, null, key_range, reverse,
       limit, offset);
 };
 
@@ -870,9 +866,9 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange =
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, tx_no,
-    df, store_name, index, key_range, reverse, limit, offset, unique) {
-  this.listByKeyRange_(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(req,
+    store_name, index, key_range, reverse, limit, offset, unique) {
+  this.listByKeyRange_(req,
       store_name, index, key_range, reverse, limit, offset, unique);
 };
 
@@ -880,13 +876,13 @@ ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(tx, tx_no,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(req,
     store_name, key_range, reverse, limit, offset) {
   var results = [];
   var me = this;
-  var store = tx.objectStore(store_name);
+  var store = req.getTx().objectStore(store_name);
   var dir = ydn.db.base.getDirection(reverse);
-  var msg = tx_no + ' keysByKeyRange: ' + store_name + ' ' + key_range;
+  var msg = req.getLabel() + ' ' + store_name + ' ' + key_range;
   this.logger.finest(msg);
   var request = store.openCursor(key_range, dir);
   var cued = false;
@@ -902,10 +898,10 @@ ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
       if (results.length < limit) {
         cursor['continue']();
       } else {
-        df(results);
+        req.setDbValue(results);
       }
     } else {
-      df(results);
+      req.setDbValue(results);
     }
   };
   request.onerror = function(event) {
@@ -913,7 +909,7 @@ ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
       window.console.log([store_name, event]);
     }
     event.preventDefault();
-    df(request.error, true);
+    req.errback(request.error);
   };
 };
 
@@ -967,13 +963,13 @@ ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, lbl, df,
+ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(req,
     store_name, index_name, key_range, reverse, limit, offset, unique) {
   var results = [];
   var me = this;
-  var store = tx.objectStore(store_name);
+  var store = req.getTx().objectStore(store_name);
   var index = store.index(index_name);
-  var msg = lbl + ' keysByStore: ' + store_name + ':' + index_name + ' ' +
+  var msg = req.getLabel() + ' ' + store_name + ':' + index_name + ' ' +
       key_range;
   this.logger.finest(msg);
   var dir = ydn.db.base.getDirection(reverse, unique);
@@ -995,7 +991,7 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, lbl, df,
         cursor['continue']();
       }
     } else {
-      df(results);
+      req.setDbValue(results);
     }
   };
   request.onerror = function(event) {
@@ -1003,7 +999,7 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(tx, lbl, df,
       window.console.log([store_name, event]);
     }
     event.preventDefault();
-    df(request.error, true);
+    req.errback(request.error);
   };
 };
 
@@ -1048,13 +1044,12 @@ ydn.db.crud.req.IndexedDb.prototype.listByStore = function(tx, tx_no, df,
 /**
 * @inheritDoc
 */
-ydn.db.crud.req.IndexedDb.prototype.getById = function(tx, tx_no, df,
-                                                       store_name, id) {
+ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
 
   var me = this;
-  var msg = tx_no + ' getById: ' + store_name + ':' + id;
+  var msg = req.getLabel() + store_name + ':' + id;
   this.logger.finest(msg);
-  var store = tx.objectStore(store_name);
+  var store = req.getTx().objectStore(store_name);
 
   var request = store.get(id);
 
@@ -1062,10 +1057,10 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(tx, tx_no, df,
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([store_name, id, event]);
     }
-    me.logger.finest(tx_no + ' record ' + id +
+    me.logger.finest(req.getLabel() + ' record ' + id +
         (goog.isDefAndNotNull(event.target.result) ? ' ' : ' not ') +
         ' exists.');
-    df(event.target.result);
+    req.setDbValue(event.target.result);
   };
 
   request.onerror = function(event) {
@@ -1075,7 +1070,7 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(tx, tx_no, df,
     //me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
     // event.message);
     event.preventDefault();
-    df(request.error, true);
+    req.errback(request.error);
   };
 };
 
@@ -1083,16 +1078,16 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.listByIds = function(req,
                                                          store_name, ids) {
   var me = this;
 
   var results = [];
   results.length = ids.length;
   var result_count = 0;
-  var store = tx.objectStore(store_name);
+  var store = req.getTx().objectStore(store_name);
   var n = ids.length;
-  var msg = tx_no + ' listByIds: ' + store_name + ':' + n + ' ids';
+  var msg = req.getLabel() + ' ' + store_name + ':' + n + ' ids';
   this.logger.finest(msg);
 
   var get = function(i) {
@@ -1102,7 +1097,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
       result_count++;
       results[i] = undefined;
       if (result_count == n) {
-        df(results);
+        req.setDbValue(results);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < n) {
@@ -1134,7 +1129,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
       }
       results[i] = event.target.result;
       if (result_count == n) {
-        df(results);
+        req.setDbValue(results);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < n) {
@@ -1149,7 +1144,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
         window.console.log([store_name, ids, i, event]);
       }
       event.preventDefault();
-      df(request.error, true);
+      req.errback(request.error);
     };
 
   };
@@ -1160,7 +1155,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
       get(i);
     }
   } else {
-    df([]);
+    req.setDbValue([]);
   }
 };
 
@@ -1168,13 +1163,13 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
+ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(req, keys) {
   var me = this;
 
   var results = [];
   results.length = keys.length;
   var result_count = 0;
-  var msg = tx_no + ' listByKeys: ' + keys.length + ' ids';
+  var msg = req.getLabel() + ' ' + keys.length + ' ids';
   this.logger.finest(msg);
 
   var getKey = function(i) {
@@ -1185,7 +1180,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
     /**
      * @type {IDBObjectStore}
      */
-    var store = tx.objectStore(key.getStoreName());
+    var store = req.getTx().objectStore(key.getStoreName());
     var request = store.get(key.getId());
 
     request.onsuccess = function(event) {
@@ -1195,7 +1190,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
       }
       results[i] = event.target.result;
       if (result_count == keys.length) {
-        df(results);
+        req.setDbValue(results);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < keys.length) {
@@ -1210,7 +1205,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
         window.console.log([keys, event]);
       }
       event.preventDefault();
-      df(request.error, true);
+      req.errback(request.error);
     };
 
   };
@@ -1222,7 +1217,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(tx, tx_no, df, keys) {
       getKey(i);
     }
   } else {
-    df([]);
+    req.setDbValue([]);
   }
 };
 

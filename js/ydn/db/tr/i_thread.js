@@ -21,6 +21,7 @@
 
 goog.provide('ydn.db.tr.IThread');
 goog.provide('ydn.db.tr.IThread.Policy');
+goog.require('ydn.db.Request');
 
 
 
@@ -31,7 +32,17 @@ ydn.db.tr.IThread = function() {};
 
 
 /**
- * @param {!goog.async.Deferred} df deferred object to intersect the request
+ * Create an request.
+ * @param {ydn.db.Request.Method} method request method.
+ * @param {!Array.<string>} store_names store name involved in the transaction.
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
+ * @return {!ydn.db.Request}
+ */
+ydn.db.tr.IThread.prototype.request;
+
+
+/**
+ * @param {!goog.async.Deferred} df deferred object to intersect the request.
  * @param {?function((ydn.db.con.IDatabase.Transaction),
  * string, ?function(*, boolean=))} callback
  *   callback when executor is ready.

@@ -478,6 +478,42 @@ ydn.db.tr.Serial.prototype.getLabel = function() {
 /**
  * @inheritDoc
  */
+ydn.db.tr.Serial.prototype.request = function(method, store_names, opt_mode) {
+  var req = new ydn.db.Request(method);
+  var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
+  var me = this;
+
+  if (me.mu_tx_.isActiveAndAvailable() && this.reusedTx(store_names, mode)) {
+    //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
+    // call within a transaction
+    // continue to use existing transaction
+    var tx = me.mu_tx_.getTx();
+    me.r_no_++;
+    req.setTx(tx, me.getLabel() + 'R' + me.r_no_);
+  } else {
+    //
+    //
+    /**
+     * create a new transaction and close for invoke in non-transaction context
+     * @param {Function} cb callback to process tx.
+     */
+    var tx_callback = function(cb) {
+      //console.log('tx running for ' + scope);
+      // me.not_ready_ = true;
+      // transaction should be active now
+      var tx = me.mu_tx_.getTx();
+      me.r_no_++;
+      req.setTx(tx, me.getLabel() + 'R' + me.r_no_);
+    };
+    me.processTx(tx_callback, store_names, mode);
+  }
+  return req;
+};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.tr.Serial.prototype.exec = function(df, callback,
     store_names, opt_mode, on_complete) {
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;

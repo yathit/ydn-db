@@ -390,6 +390,33 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
 /**
  * @inheritDoc
  */
+ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode) {
+  var req = new ydn.db.Request(method);
+  var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
+  var me = this;
+
+  if (ydn.db.tr.Parallel.DEBUG) {
+    var rdn = 'SN' + Math.random();
+    rdn = rdn.replace('.', '');
+    window.console.log(this + ' scheduling to execute ' + store_names + ' ' +
+        mode + ' ' + rdn);
+  }
+
+  this.processTx(function(tx) {
+    if (ydn.db.tr.Parallel.DEBUG) {
+      window.console.log(this + ' executing ' + rdn);
+    }
+    me.r_no_++;
+    var rq_label = me.getLabel() + 'R' + me.r_no_;
+    req.setTx(tx, rq_label);
+  }, store_names, mode);
+  return req;
+};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
                                              on_completed) {
 

@@ -37,7 +37,7 @@ ydn.db.crud.IOperator.prototype.count = goog.abstractMethod;
 /**
  * Return object or objects of given key or keys.
  * @param {(!Object|string|!ydn.db.Key)=} arg1 table name.
- * @param {(!Object|!ydn.db.KeyRange|!IDBKey)=} arg2
+ * @param {(!Object|!IDBKey)=} arg2
  * object key to be retrieved, if not provided,
  * all entries in the store will return.
  * @return {!goog.async.Deferred} return object in deferred function.

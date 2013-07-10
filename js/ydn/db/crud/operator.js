@@ -22,6 +22,7 @@
 goog.provide('ydn.db.crud.DbOperator');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db');
+goog.require('ydn.db.Request');
 goog.require('ydn.db.ISyncOperator');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.crud.IOperator');
@@ -194,7 +195,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
 
     this.logger.finer('countKeyRange: ' + store_name + ' ' +
         (index_name ? index_name : '') + ydn.json.stringify(key_range));
-    var sync_type = ydn.db.schema.Store.SyncMethod.COUNT;
+    var sync_type = ydn.db.Request.Method.COUNT;
     this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
       me.getExecutor().countKeyRange(tx, tx_no, cb, store_names[0], key_range,
           index_name, !!unique);
@@ -218,7 +219,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
 ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
 
   var me = this;
-  var df = ydn.db.base.createDeferred();
+  var req;
 
   if (arg1 instanceof ydn.db.Key) {
     /**
@@ -236,10 +237,11 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     }
 
     var kid = k.getId();
-    this.logger.finer('getById: ' + k_store_name + ':' + kid);
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().getById(tx, tx_no, cb, k_store_name, kid);
-    }, [k_store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    this.logger.finer('getByKey: ' + k_store_name + ':' + kid);
+    req = this.tx_thread.request(ydn.db.Request.Method.GET, [k_store_name]);
+    req.addTxback(function() {
+      this.getExecutor().getById(req, k_store_name, kid);
+    }, this);
   } else if (goog.isString(arg1) && goog.isDef(arg2)) {
     var store_name = arg1;
     var store = this.schema.getStore(store_name);
@@ -251,50 +253,21 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
             store_name + '" not found.');
       }
     }
-    if (arg2 instanceof ydn.db.IDBKeyRange || arg2 instanceof ydn.db.KeyRange) {
-      var list_df = new goog.async.Deferred();
-      list_df.addCallbacks(function(x) {
-        df.callback(x[0]); // undefined OK.
-      }, function(e) {
-        df.errback(e);
-      });
-      if (goog.DEBUG) {
-        var msg = ydn.db.KeyRange.validate(arg2);
-        if (msg) {
-          throw new ydn.debug.error.ArgumentException('invalid key range: ' +
-              arg2 + ' ' + msg);
-        }
-      }
-      var key_range = ydn.db.KeyRange.parseIDBKeyRange(arg2);
-      this.logger.finer('getById: ' + store_name + ':' +
-          ydn.json.stringify(key_range));
-      this.tx_thread.exec(list_df, function(tx, tx_no, cb) {
-        me.getExecutor().listByKeyRange(tx, tx_no, cb, store_name, key_range,
-            false, 1, 0);
-      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-
-    } else {
-      var id = arg2;
-      this.logger.finer('getById: ' + store_name + ':' + id);
-
-      var req_df = df;
-      if (ydn.db.base.USE_HOOK) {
-        df = store.hook(ydn.db.schema.Store.SyncMethod.GET, req_df, arguments);
-      }
-
-      this.tx_thread.exec(req_df, function(tx, tx_no, cb) {
-        me.getExecutor().getById(tx, tx_no, cb, store_name,
-            /** @type {IDBKey} */ (id));
-      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-
-    }
+    var id = arg2;
+    goog.asserts.assert(ydn.db.Key.isValidKey(id), 'key ' + id + ' of type ' +
+        (typeof id) + ' is not a valid key');
+    this.logger.finer('getById: ' + store_name + ':' + id);
+    req = this.tx_thread.request(ydn.db.Request.Method.GET, [store_name]);
+    req.addTxback(function() {
+      this.getExecutor().getById(req, store_name, /** @type {IDBKey} */ (id));
+    }, this);
 
   } else {
     throw new ydn.debug.error.ArgumentException(
         'get require valid input arguments.');
   }
 
-  return df;
+  return req;
 };
 
 
@@ -352,10 +325,10 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
   }
 
   if (this.schema.isAutoSchema() && !store) {
-    return goog.async.Deferred.succeed([]);
+    return ydn.db.Request.succeed([]);
   }
 
-  var df = new goog.async.Deferred();
+  var req;
 
   if (goog.isString(arg1)) { // index key range
     var index_name = arg1;
@@ -392,10 +365,12 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
       }
     }
     this.logger.finer('keysByIndexKeyRange: ' + store_name);
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().keysByIndexKeyRange(tx, tx_no, cb, store_name,
+    req = this.tx_thread.request(ydn.db.Request.Method.KEYS_INDEX,
+        [store_name]);
+    req.addTxback(function() {
+      this.getExecutor().keysByIndexKeyRange(req, store_name,
           index_name, range, reverse, limit, offset, false);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    }, this);
   } else {
     if (goog.isObject(arg1)) {
       if (goog.DEBUG) {
@@ -436,14 +411,14 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
       }
     }
     this.logger.finer('keysByKeyRange: ' + store_name);
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().keysByKeyRange(tx, tx_no, cb, store_name, range, reverse,
+    req = this.tx_thread.request(ydn.db.Request.Method.KEYS, [store_name]);
+    req.addTxback(function() {
+      this.getExecutor().keysByKeyRange(req, store_name, range, reverse,
           limit, offset);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-
+    }, this);
   }
 
-  return df;
+  return req;
 };
 
 
@@ -454,9 +429,8 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
                                                    arg5) {
 
   var me = this;
-  var df = ydn.db.base.createDeferred();
-  var hdf = df;
-  var method = ydn.db.schema.Store.SyncMethod.NONE;
+  var req;
+  var method = ydn.db.Request.Method.NONE;
 
   /**
    * @type {number}
@@ -489,10 +463,11 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       var ids = arg1;
       this.logger.finer('listByIds: ' + store_name + ' ' +
           ids.length + ' ids');
-      method = ydn.db.schema.Store.SyncMethod.VALUES_IDS;
-      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
-        me.getExecutor().listByIds(tx, tx_no, cb, store_name, ids);
-      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+      req = this.tx_thread.request(ydn.db.Request.Method.VALUES_IDS,
+          [store_name]);
+      req.addTxback(function() {
+        this.getExecutor().listByIds(req, store_name, ids);
+      }, this);
     } else if (goog.isString(arg1)) { // index name
       var index_name = arg1;
       if (goog.DEBUG) {
@@ -530,12 +505,12 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       }
       this.logger.finer('listByIndexKeyRange: ' + store_name + ':' +
           index_name);
-      method = ydn.db.schema.Store.SyncMethod.VALUES_INDEX;
-      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
-        me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name,
+      method = ydn.db.Request.Method.VALUES_INDEX;
+      req = this.tx_thread.request(method, [store_name]);
+      req.addTxback(function() {
+        this.getExecutor().listByIndexKeyRange(req, store_name,
             index_name, range, reverse, limit, offset, false);
-      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-
+      }, this);
     } else {
       var range = null;
       if (goog.isObject(arg1)) {
@@ -577,12 +552,12 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       }
       this.logger.finer((range ? 'listByKeyRange: ' : 'listByStore: ') +
           store_name);
-      method = ydn.db.schema.Store.SyncMethod.VALUES;
-      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
-        me.getExecutor().listByKeyRange(tx, tx_no, cb, store_name, range,
+      method = ydn.db.Request.Method.VALUES;
+      req = this.tx_thread.request(method, [store_name]);
+      req.addTxback(function() {
+        this.getExecutor().listByKeyRange(req, store_name, range,
             reverse, limit, offset);
-      }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
-
+      }, this);
     }
   } else if (goog.isArray(arg0)) {
     if (arg0[0] instanceof ydn.db.Key) {
@@ -611,9 +586,11 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       }
       this.logger.finer('listByKeys: ' + ydn.json.stringify(store_names) +
           ' ' + keys.length + ' keys');
-      this.tx_thread.exec(df, function(tx, tx_no, cb) {
-        me.getExecutor().listByKeys(tx, tx_no, cb, keys);
-      }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
+      req = this.tx_thread.request(ydn.db.Request.Method.VALUES_KEYS,
+          store_names);
+      req.addTxback(function() {
+        this.getExecutor().listByKeys(req, keys);
+      }, this);
     } else {
       throw new ydn.debug.error.ArgumentException('first argument' +
           'must be array of ydn.db.Key, but ' + arg0[0] + ' of ' +
@@ -624,11 +601,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
         ' is invalid.');
   }
 
-  if (ydn.db.base.USE_HOOK) {
-    df = store.hook(method, hdf, arguments);
-  }
-
-  return df;
+  return req;
 };
 
 
@@ -673,7 +646,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
 
   var df = ydn.db.base.createDeferred();
   var hdf = df;
-  var sync_type = ydn.db.schema.Store.SyncMethod.ADD;
+  var sync_type = ydn.db.Request.Method.ADD;
   var me = this;
 
   if (!store) {
@@ -710,7 +683,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
       store.generateIndex(objs[i]);
     }
 
-    sync_type = ydn.db.schema.Store.SyncMethod.ADDS;
+    sync_type = ydn.db.Request.Method.ADDS;
     this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
       //console.log('putObjects');
       me.getExecutor().addObjects(tx, tx_no, cb, store_name, objs, keys);
@@ -832,7 +805,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
 
   var df = ydn.db.base.createDeferred();
   var hdf = df;
-  var sync_type = ydn.db.schema.Store.SyncMethod.NONE;
+  var sync_type = ydn.db.Request.Method.NONE;
   var me = this;
 
   if (arg1 instanceof ydn.db.Key) {
@@ -894,7 +867,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
     for (var i = 0; i < values.length; i++) {
       store.generateIndex(values[i]);
     }
-    sync_type = ydn.db.schema.Store.SyncMethod.PUT_KEYS;
+    sync_type = ydn.db.Request.Method.PUT_KEYS;
 
     this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
       me.getExecutor().putByKeys(tx, tx_no, cb, values, db_keys);
@@ -930,7 +903,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       for (var i = 0; i < objs.length; i++) {
         store.generateIndex(objs[i]);
       }
-      sync_type = ydn.db.schema.Store.SyncMethod.PUTS;
+      sync_type = ydn.db.Request.Method.PUTS;
       this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
         //console.log('putObjects');
         me.getExecutor().putObjects(tx, tx_no, cb, st_name, objs, keys);
@@ -960,7 +933,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       }
       this.logger.finer('putObject: ' + st_name + ' ' + key);
       store.generateIndex(obj);
-      sync_type = ydn.db.schema.Store.SyncMethod.PUT;
+      sync_type = ydn.db.Request.Method.PUT;
       this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
         me.getExecutor().putObject(tx, tx_no, cb, st_name, obj, key);
       }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
@@ -1094,7 +1067,7 @@ ydn.db.crud.DbOperator.prototype.removeInternal = function(keys) {
  */
 ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
     key_range, reverse, limit, opt_offset) {
-  var df = new goog.async.Deferred();
+  var req;
   var me = this;
   var offset = opt_offset || 0;
   if (goog.DEBUG) {
@@ -1112,30 +1085,34 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
   var kr = ydn.db.KeyRange.parseIDBKeyRange(key_range);
   if (goog.isString(index_name)) {
     var index = index_name;
-    this.sync_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().listByIndexKeyRange(tx, tx_no, cb, store_name, index,
+    req = this.sync_thread.request(ydn.db.Request.Method.VALUES_INDEX,
+        [store_name]);
+    req.addTxback(function() {
+      me.getExecutor().listByIndexKeyRange(req, store_name, index,
           kr, reverse, limit, offset, false);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    }, this);
   } else {
-    this.sync_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().listByKeyRange(tx, tx_no, cb, store_name,
+    req = this.sync_thread.request(ydn.db.Request.Method.VALUES_INDEX,
+        [store_name]);
+    req.addTxback(function() {
+      me.getExecutor().listByKeyRange(req, store_name,
           kr, reverse, limit, offset);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    }, this);
   }
-  return df;
+  return req;
 };
 
 
 /**
  * Retrieve record values from given list of key objects.
  * @param {!Array.<!ydn.db.Key>} keys keys to retrieve.
- * @return {!goog.async.Deferred} df.
+ * @return {!ydn.db.Request} df.
  */
 ydn.db.crud.DbOperator.prototype.valuesInternal = function(keys) {
   var store_names = [];
   var n = keys.length;
   if (n == 0) {
-    return goog.async.Deferred.succeed([]);
+    return ydn.db.Request.succeed(ydn.db.Request.Method.KEYS, []);
   }
   for (var i = 0; i < n; i++) {
     var s_name = keys[i].getStoreName();
@@ -1147,10 +1124,10 @@ ydn.db.crud.DbOperator.prototype.valuesInternal = function(keys) {
     }
   }
   var me = this;
-  var df = new goog.async.Deferred();
-  this.sync_thread.exec(df, function(tx, tx_no, cb) {
-    me.getExecutor().listByKeys(tx, tx_no, cb, keys);
-  }, store_names, ydn.db.base.TransactionMode.READ_ONLY);
+  var df = this.sync_thread.request(ydn.db.Request.Method.KEYS, store_names);
+  df.addTxback(function() {
+    me.getExecutor().listByKeys(df, keys);
+  }, this);
   return df;
 };
 
@@ -1164,12 +1141,12 @@ ydn.db.crud.DbOperator.prototype.valuesInternal = function(keys) {
  * @param {?IDBKeyRange} key_range key range.
  * @param {boolean} reverse reverse.
  * @param {number} limit limit.
- * @return {goog.async.Deferred} df.
+ * @return {!ydn.db.Request} df.
  * @override
  */
 ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
     key_range, reverse, limit) {
-  var df = new goog.async.Deferred();
+  var req;
   var me = this;
 
   if (goog.DEBUG) {
@@ -1186,17 +1163,21 @@ ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
 
   if (goog.isString(index_name)) {
     var index = index_name;
-    this.sync_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().keysByIndexKeyRange(tx, tx_no, cb, store_name, index,
+    req = this.sync_thread.request(ydn.db.Request.Method.KEYS_INDEX,
+        [store_name]);
+    req.addTxback(function() {
+      this.getExecutor().keysByIndexKeyRange(req, store_name, index,
           key_range, reverse, limit, 0, false);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    }, this);
   } else {
-    this.sync_thread.exec(df, function(tx, tx_no, cb) {
-      me.getExecutor().keysByKeyRange(tx, tx_no, cb, store_name,
+    req = this.sync_thread.request(ydn.db.Request.Method.KEYS,
+        [store_name]);
+    req.addTxback(function() {
+      this.getExecutor().keysByKeyRange(req, store_name,
           key_range, reverse, limit, 0);
-    }, [store_name], ydn.db.base.TransactionMode.READ_ONLY);
+    }, this);
   }
-  return df;
+  return req;
 };
 
 
@@ -1310,7 +1291,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
         this.logger.finer('removeById: ' + store_name + ':' + id);
         var hdf = df;
         if (ydn.db.base.USE_HOOK) {
-          df = store.hook(ydn.db.schema.Store.SyncMethod.REMOVE, hdf,
+          df = store.hook(ydn.db.Request.Method.REMOVE, hdf,
               arguments);
         }
         this.tx_thread.exec(hdf, function(tx, tx_no, cb) {

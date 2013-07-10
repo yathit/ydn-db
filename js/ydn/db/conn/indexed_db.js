@@ -212,10 +212,11 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       var schema_updater = function(db_schema) {
 
         // add existing object store
-        if (schema.isAutoSchema()) {
+        if (schema instanceof ydn.db.schema.EditableDatabase) {
+          var editable = /** @type {ydn.db.schema.EditableDatabase} */ (schema);
           for (var i = 0; i < db_schema.stores.length; i++) {
-            if (!schema.hasStore(db_schema.stores[i].getName())) {
-              schema.addStore(db_schema.stores[i].clone());
+            if (!editable.hasStore(db_schema.stores[i].getName())) {
+              editable.addStore(db_schema.stores[i].clone());
             }
           }
         }
@@ -433,6 +434,12 @@ ydn.db.con.IndexedDb.isSupported = function() {
  * @private
  */
 ydn.db.con.IndexedDb.prototype.time_out_ = 3 * 60 * 1000;
+
+
+/**
+ * @type {Function}
+ */
+ydn.db.con.IndexedDb.prototype.onDisconnected = null;
 
 
 /**
