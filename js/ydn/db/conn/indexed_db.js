@@ -741,16 +741,18 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
 
   var tx = db.transaction(scopes, /** @type {number} */ (mode));
 
+  var type = ydn.db.base.TxEventTypes.COMPLETE;
+
   tx.oncomplete = function(event) {
-    on_completed(ydn.db.base.TxEventTypes.COMPLETE, event);
+    on_completed(type, event);
   };
 
   tx.onerror = function(event) {
-    // on_completed(ydn.db.base.TxEventTypes.ERROR, event);
+    type = ydn.db.base.TxEventTypes.ERROR;
   };
 
   tx.onabort = function(event) {
-    // on_completed(ydn.db.base.TxEventTypes.ABORT, event);
+    type = ydn.db.base.TxEventTypes.ABORT;
   };
 
   fnc(tx);
