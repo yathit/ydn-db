@@ -255,8 +255,8 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = goog.abstractMethod;
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.addObject = function(
-    tx, tx_no, df, store_name, obj, opt_key) {
-  this.insertObjects(tx, tx_no, df, true, true, store_name, [obj], [opt_key]);
+    req, store_name, obj, opt_key) {
+  this.insertObjects(req, true, true, store_name, [obj], [opt_key]);
 };
 
 
@@ -272,9 +272,9 @@ ydn.db.crud.req.WebSql.prototype.putData = function(tx, tx_no, df,
 /**
 * @inheritDoc
 */
-ydn.db.crud.req.WebSql.prototype.putObject = function(tx, tx_no, df,
+ydn.db.crud.req.WebSql.prototype.putObject = function(rq,
     store_name, obj, opt_key) {
-  this.insertObjects(tx, tx_no, df, false, true, store_name, [obj], [opt_key]);
+  this.insertObjects(rq, false, true, store_name, [obj], [opt_key]);
 };
 
 
@@ -282,15 +282,13 @@ ydn.db.crud.req.WebSql.prototype.putObject = function(tx, tx_no, df,
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.addObjects = function(
-    tx, tx_no, df, store_name, objects, opt_keys) {
-  this.insertObjects(tx, tx_no, df, true, false, store_name, objects, opt_keys);
+    req, store_name, objects, opt_keys) {
+  this.insertObjects(req, true, false, store_name, objects, opt_keys);
 };
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx tx.
- * @param {string} tx_no tx label.
- * @param {?function(*, boolean=)} df key in deferred function.
+ * @param {ydn.db.Request} req tx.
  * @param {boolean} create true if insert, otherwise insert or replace.
  * @param {boolean} single false for array input.
  * @param {string} store_name table name.
@@ -299,16 +297,17 @@ ydn.db.crud.req.WebSql.prototype.addObjects = function(
  * @protected
 */
 ydn.db.crud.req.WebSql.prototype.insertObjects = function(
-    tx, tx_no, df, create, single, store_name, objects, opt_keys) {
+    req, create, single, store_name, objects, opt_keys) {
 
   var table = this.schema.getStore(store_name);
 
   var insert_statement = create ? 'INSERT INTO ' : 'INSERT OR REPLACE INTO ';
 
+  var tx = req.getTx();
   var me = this;
   var result_keys = [];
   var result_count = 0;
-  var msg = tx_no + ' inserting ' + objects.length + ' objects.';
+  var msg = req.getLabel() + ' inserting ' + objects.length + ' objects.';
   var has_error = false;
 
   /**
@@ -325,7 +324,11 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       result_count++;
       if (result_count == objects.length) {
         me.logger.finer('success ' + msg);
-        df(result_keys, has_error);
+        if (has_error) {
+          req.errback(result_keys);
+        } else {
+          req.setDbValue(result_keys);
+        }
       } else {
         var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
         if (next < objects.length) {
@@ -347,7 +350,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         ' (' + out.columns.join(', ') + ') ' +
         'VALUES (' + out.slots.join(', ') + ');';
 
-    var i_msg = tx_no +
+    var i_msg = req.getLabel() +
         ' SQL: ' + sql + ' PARAMS: ' + out.values +
         ' REQ: ' + i + ' of ' + objects.length;
 
@@ -396,7 +399,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
           return false;
         };
 
-        me.logger.finest(tx_no + ' multiEntry ' + idx_sql +
+        me.logger.finest(req.getLabel() + ' multiEntry ' + idx_sql +
             ' ' + idx_params);
         tx.executeSql(idx_sql, idx_params, idx_success, idx_error);
       };
@@ -413,13 +416,15 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       }
 
       if (single) {
-        me.logger.finer('success ' + msg);
-        df(key);
+        req.setDbValue(key);
       } else {
         result_keys[i] = key;
         if (result_count == objects.length) {
-          me.logger.finer('success ' + msg);
-          df(result_keys, has_error);
+          if (has_error) {
+            req.errback(result_keys);
+          } else {
+            req.setDbValue(result_keys);
+          }
         } else {
           var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
           if (next < objects.length) {
@@ -446,13 +451,16 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         me.logger.warning('error: ' + error.message + ' ' + msg);
       }
       if (single) {
-        me.logger.finer('success ' + i_msg);
-        df(error, true);
+        req.errback(error);
       } else {
         result_keys[i] = error;
         if (result_count == objects.length) {
           me.logger.finest('success ' + msg); // still success message ?
-          df(result_keys, has_error);
+          if (has_error) {
+            req.errback(result_keys);
+          } else {
+            req.setDbValue(result_keys);
+          }
         } else {
           var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
           if (next < objects.length) {
@@ -476,7 +484,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
     }
   } else {
     this.logger.finer('success');
-    df([]);
+    req.setDbValue([]);
   }
 };
 
@@ -485,8 +493,8 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.putObjects = function(
-    tx, tx_no, df, store_name, objects, opt_keys) {
-  this.insertObjects(tx, tx_no, df, false, false, store_name, objects,
+    rq, store_name, objects, opt_keys) {
+  this.insertObjects(rq, false, false, store_name, objects,
       opt_keys);
 };
 
@@ -494,14 +502,15 @@ ydn.db.crud.req.WebSql.prototype.putObjects = function(
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.putByKeys = function(tx, tx_no, df, objs,
+ydn.db.crud.req.WebSql.prototype.putByKeys = function(rq, objs,
                                                       keys) {
 
   if (keys.length == 0) {
-    df([]);
+    rq.setDbValue([]);
     return;
   }
 
+  var tx = rq.getTx();
   var results = [];
   var count = 0;
   var total = 0;
@@ -522,7 +531,7 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(tx, tx_no, df, objs,
       if (opt_is_error) {
         count++;
         if (count == total) {
-          df(xs, true);
+          rq.errback(xs);
         }
       } else {
         for (var i = 0; i < idx.length; i++) {
@@ -530,7 +539,7 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(tx, tx_no, df, objs,
         }
         count++;
         if (count == total) {
-          df(results);
+          rq.setDbValue(results);
         }
       }
     };
@@ -545,7 +554,7 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(tx, tx_no, df, objs,
         idx_keys.push(keys[idx[i]].getId());
       }
     }
-    me.insertObjects(tx, tx_no, idf, false, false, store_name, idx_objs,
+    me.insertObjects(rq, false, false, store_name, idx_objs,
         idx_keys);
 
   };

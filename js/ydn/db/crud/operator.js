@@ -621,8 +621,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     }
   }
 
-  var df = ydn.db.base.createDeferred();
-  var hdf = df;
+  var req;
   var sync_type = ydn.db.Request.Method.ADD;
   var me = this;
 
@@ -661,17 +660,19 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     }
 
     sync_type = ydn.db.Request.Method.ADDS;
-    this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
+    req = this.tx_thread.request(ydn.db.Request.Method.ADDS,
+        [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+    req.addTxback(function() {
       //console.log('putObjects');
-      me.getExecutor().addObjects(tx, tx_no, cb, store_name, objs, keys);
-    }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+      this.getExecutor().addObjects(req, store_name, objs, keys);
+    }, this);
 
     if (store.dispatch_events) {
-      df.addCallback(function(keys) {
+      req.addCallback(function(keys) {
         var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.CREATED,
-            me.getStorage(), store.getName(), keys, objs);
-        me.getStorage().dispatchEvent(event);
-      });
+            this.getStorage(), store.getName(), keys, objs);
+        this.getStorage().dispatchEvent(event);
+      }, this);
     }
 
   } else if (goog.isObject(value)) {
@@ -681,17 +682,18 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
 
     this.logger.finer('addObject: ' + label);
     store.generateIndex(obj);
-
-    this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
-      me.getExecutor().addObject(tx, tx_no, cb, store_name, obj, key);
-    }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+    req = this.tx_thread.request(ydn.db.Request.Method.ADD,
+        [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+    req.addTxback(function() {
+      this.getExecutor().addObject(req, store_name, obj, key);
+    }, this);
 
     if (store.dispatch_events) {
-      df.addCallback(function(key) {
+      req.addCallback(function(key) {
         var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.CREATED,
-            me.getStorage(), store.getName(), key, obj);
-        me.getStorage().dispatchEvent(event);
-      });
+            this.getStorage(), store.getName(), key, obj);
+        this.getStorage().dispatchEvent(event);
+      }, this);
     }
 
   } else {
@@ -700,12 +702,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
         ', but ' + value + ' of type ' + typeof value + ' found.');
   }
 
-  if (ydn.db.base.USE_HOOK) {
-    df = store.hook(sync_type, hdf, arguments);
-  }
-
-  return df;
-
+  return req;
 };
 
 
@@ -780,9 +777,7 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
  */
 ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
 
-  var df = ydn.db.base.createDeferred();
-  var hdf = df;
-  var sync_type = ydn.db.Request.Method.NONE;
+  var req;
   var me = this;
 
   if (arg1 instanceof ydn.db.Key) {
@@ -844,11 +839,11 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
     for (var i = 0; i < values.length; i++) {
       store.generateIndex(values[i]);
     }
-    sync_type = ydn.db.Request.Method.PUT_KEYS;
-
-    this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
-      me.getExecutor().putByKeys(tx, tx_no, cb, values, db_keys);
-    }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
+    req = this.tx_thread.request(ydn.db.Request.Method.PUT_KEYS, store_names,
+        ydn.db.base.TransactionMode.READ_WRITE);
+    req.addTxback(function() {
+      me.getExecutor().putByKeys(req, values, db_keys);
+    }, this);
   } else if (goog.isString(arg1) || goog.isObject(arg1)) {
     var store = this.getStore_(arg1);
     var st_name = store.getName();
@@ -880,18 +875,19 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       for (var i = 0; i < objs.length; i++) {
         store.generateIndex(objs[i]);
       }
-      sync_type = ydn.db.Request.Method.PUTS;
-      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
+      req = this.tx_thread.request(ydn.db.Request.Method.PUTS,
+          [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+      req.addTxback(function() {
         //console.log('putObjects');
-        me.getExecutor().putObjects(tx, tx_no, cb, st_name, objs, keys);
-      }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+        this.getExecutor().putObjects(req, st_name, objs, keys);
+      }, this);
 
       if (store.dispatch_events) {
-        df.addCallback(function(keys) {
+        req.addCallback(function(keys) {
           var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.UPDATED,
-              me.getStorage(), st_name, keys, objs);
-          me.getStorage().dispatchEvent(event);
-        });
+              this.getStorage(), st_name, keys, objs);
+          this.getStorage().dispatchEvent(event);
+        }, this);
       }
 
     } else if (goog.isObject(value)) {
@@ -910,17 +906,18 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       }
       this.logger.finer('putObject: ' + st_name + ' ' + key);
       store.generateIndex(obj);
-      sync_type = ydn.db.Request.Method.PUT;
-      this.tx_thread.exec(hdf, function(tx, tx_no, cb) {
-        me.getExecutor().putObject(tx, tx_no, cb, st_name, obj, key);
-      }, [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+      req = this.tx_thread.request(ydn.db.Request.Method.PUT,
+          [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+      req.addTxback(function() {
+        me.getExecutor().putObject(req, st_name, obj, key);
+      }, this);
 
       if (store.dispatch_events) {
-        df.addCallback(function(key) {
+        req.addCallback(function(key) {
           var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.UPDATED,
-              me.getStorage(), st_name, key, obj);
-          me.getStorage().dispatchEvent(event);
-        });
+              this.getStorage(), st_name, key, obj);
+          this.getStorage().dispatchEvent(event);
+        }, this);
       }
 
     } else {
@@ -932,11 +929,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         'must be store name, store schema or array of keys.');
   }
 
-  if (ydn.db.base.USE_HOOK) {
-    df = store.hook(sync_type, hdf, arguments);
-  }
-
-  return df;
+  return req;
 
 };
 
@@ -954,7 +947,6 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
  */
 ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
                                                          opt_keys) {
-  var df = new goog.async.Deferred();
   var me = this;
 
   var store_names, db_keys;
@@ -993,14 +985,22 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
     }
   }
 
-  this.sync_thread.exec(df, function(tx, tx_no, cb) {
-    if (goog.isString(store_name)) {
-      me.getExecutor().putObjects(tx, tx_no, cb, store_name, objs, opt_keys);
-    } else {
-      me.getExecutor().putByKeys(tx, tx_no, cb, objs, db_keys);
-    }
-  }, store_names, ydn.db.base.TransactionMode.READ_WRITE);
-  return df;
+  var req;
+  if (goog.isString(store_name)) {
+    var s_n = store_name;
+    req = this.sync_thread.request(ydn.db.Request.Method.PUTS,
+        store_names, ydn.db.base.TransactionMode.READ_WRITE);
+    req.addTxback(function() {
+      this.getExecutor().putObjects(req, s_n, objs, opt_keys);
+    }, this);
+  } else {
+    req = this.sync_thread.request(ydn.db.Request.Method.PUT_KEYS,
+        store_names, ydn.db.base.TransactionMode.READ_WRITE);
+    req.addTxback(function() {
+      this.getExecutor().putByKeys(req, objs, db_keys);
+    }, this);
+  }
+  return req;
 };
 
 

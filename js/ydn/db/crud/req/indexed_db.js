@@ -111,10 +111,10 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(req, stores) {
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table,
+ydn.db.crud.req.IndexedDb.prototype.addObject = function(db_req, table,
                                                          value, opt_key) {
-  var store = tx.objectStore(table);
-  var msg = tx_no + ' addObject: ' + table + ' ' + opt_key;
+  var store = db_req.getTx().objectStore(table);
+  var msg = db_req.getLabel() + ' addObject: ' + table + ' ' + opt_key;
   this.logger.finest(msg);
   var me = this;
   var request;
@@ -129,14 +129,14 @@ ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table,
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
-    df(event.target.result);
+    db_req.setDbValue(event.target.result);
   };
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
     event.preventDefault();
-    df(request.error, true);
+    db_req.errback(request.error);
   };
 };
 
@@ -145,9 +145,9 @@ ydn.db.crud.req.IndexedDb.prototype.addObject = function(tx, tx_no, df, table,
 * @inheritDoc
 */
 ydn.db.crud.req.IndexedDb.prototype.putObject = function(
-    tx, tx_no, df, table, value, opt_key) {
-  var store = tx.objectStore(table);
-  var msg = tx_no + ' putObject to store "' + table + '" ' +
+    db_req, table, value, opt_key) {
+  var store = db_req.getTx().objectStore(table);
+  var msg = db_req.getLabel() + ' putObject to store "' + table + '" ' +
       (goog.isDef(opt_key) ? ' key: ' + opt_key : '');
   this.logger.finest(msg);
   // console.log(value);
@@ -164,7 +164,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObject = function(
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       window.console.log([event, table, value]);
     }
-    df(event.target.result);
+    db_req.setDbValue(event.target.result);
   };
 
   request.onerror = function(event) {
@@ -178,7 +178,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObject = function(
           str.substring(0, 70));
     }
     event.preventDefault();
-    df(request.error, true);
+    db_req.errback(request.error);
   };
 };
 
@@ -187,15 +187,15 @@ ydn.db.crud.req.IndexedDb.prototype.putObject = function(
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
-    tx, tx_no, df, store_name, objs, opt_keys) {
+    db_req, store_name, objs, opt_keys) {
 
   var results = [];
   var result_count = 0;
 
   var me = this;
   var has_error = false;
-  var store = tx.objectStore(store_name);
-  var msg = tx_no + ' addObjects: ' + store_name + ' ' +
+  var store = db_req.getTx().objectStore(store_name);
+  var msg = db_req.getLabel() + ' addObjects: ' + store_name + ' ' +
       objs.length + ' objects';
   this.logger.finest(msg);
 
@@ -216,7 +216,11 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       }
       results[i] = event.target.result;
       if (result_count == objs.length) {
-        df(results, has_error);
+        if (has_error) {
+          db_req.setDbValue(results);
+        } else {
+          db_req.errback(results);
+        }
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -232,7 +236,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       }
       var error = request.error;
       if (goog.DEBUG) {
-        me.logger.warning(tx_no + ' add request to "' + store_name +
+        me.logger.warning(db_req.getLabel() + ' add request to "' + store_name +
             '" cause ' + error.name + ' for object "' +
             ydn.json.toShortString(objs[i]) + '" at index ' +
             i + ' of ' + objs.length + ' objects.');
@@ -241,7 +245,11 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       has_error = true;
       event.preventDefault(); // not abort the transaction.
       if (result_count == objs.length) {
-        df(results, has_error);
+        if (has_error) {
+          db_req.setDbValue(results);
+        } else {
+          db_req.errback(results);
+        }
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -259,7 +267,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       put(i);
     }
   } else {
-    df([]);
+    db_req.setDbValue([]);
   }
 };
 
@@ -267,7 +275,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
+ydn.db.crud.req.IndexedDb.prototype.putObjects = function(rq,
     store_name, objs, opt_keys) {
 
   var results = [];
@@ -275,8 +283,8 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
   var has_error = false;
 
   var me = this;
-  var store = tx.objectStore(store_name);
-  var msg = tx_no + ' put ' + objs.length + ' objects' +
+  var store = rq.getTx().objectStore(store_name);
+  var msg = rq.getLabel() + ' put ' + objs.length + ' objects' +
           ' to store "' + store_name + '"';
   this.logger.finest(msg);
 
@@ -286,7 +294,11 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
       me.logger.finest('empty object at ' + i + ' of ' + objs.length);
       result_count++;
       if (result_count == objs.length) {
-        df(results, has_error);
+        if (has_error) {
+          rq.errback(results);
+        } else {
+          rq.setDbValue(results);
+        }
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -310,7 +322,11 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
       }
       results[i] = event.target.result;
       if (result_count == objs.length) {
-        df(results, has_error);
+        if (has_error) {
+          rq.errback(results);
+        } else {
+          rq.setDbValue(results);
+        }
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -325,7 +341,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
         window.console.log([store_name, event, i]);
       }
       var error = request.error;
-      me.logger.finest(tx_no + ' put request to "' + store_name +
+      me.logger.finest(rq.getLabel() + ' put request to "' + store_name +
           '" cause ' + error.name + ' for object "' +
           ydn.json.toShortString(objs[i]) + '" at index ' +
           i + ' of ' + objs.length + ' objects.');
@@ -336,7 +352,11 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
       has_error = true;
       event.preventDefault(); // not abort the transaction.
       if (result_count == objs.length) {
-        df(results, has_error);
+        if (has_error) {
+          rq.errback(results);
+        } else {
+          rq.setDbValue(results);
+        }
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -354,7 +374,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
       put(i);
     }
   } else {
-    df([]);
+    rq.setDbValue([]);
   }
 };
 
@@ -362,7 +382,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(tx, tx_no, df,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs,
+ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(rq, objs,
                                                          keys) {
 
   var results = [];
@@ -371,15 +391,15 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs,
 
   var out = function() {
     if (has_error) {
-      df(results, true);
+      rq.errback(results);
     } else {
-      df(results);
+      rq.setDbValue(results);
     }
   };
 
   var me = this;
 
-  var msg = tx_no + ' putByKeys: of ' + objs.length + ' objects';
+  var msg = rq.getLabel() + ' putByKeys: of ' + objs.length + ' objects';
   this.logger.finest(msg);
 
   var put = function(i) {
@@ -388,7 +408,7 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(tx, tx_no, df, objs,
      */
     var key = keys[i];
     var store_name = key.getStoreName();
-    var store = tx.objectStore(store_name);
+    var store = rq.getTx().objectStore(store_name);
 
     var request;
 

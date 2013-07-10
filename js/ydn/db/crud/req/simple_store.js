@@ -107,16 +107,14 @@ ydn.db.crud.req.SimpleStore.prototype.keysByKeyRange = function(req,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(tx, tx_no, df, objs,
+ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(req, objs,
                                                            keys) {
-  this.insertRecord_(tx, tx_no, df, null, objs, keys, true, false);
+  this.insertRecord_(req, null, objs, keys, true, false);
 };
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx
- * @param {string} tx_no tx number.
- * @param {?function(*, boolean=)} df deferred to feed result.
+ * @param {ydn.db.Request} req request.
  * @param {string?} store_name table name.
  * @param {!Object|!Array.<!Object>} value object to put.
  * @param {(!IDBKey|!Array.<IDBKey>|!Array.<!ydn.db.Key>)=} opt_key optional
@@ -125,26 +123,26 @@ ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(tx, tx_no, df, objs,
  * @param {boolean=} opt_single true if call from put.
  * @private
  */
-ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
+ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
     store_name, value, opt_key, opt_is_update, opt_single) {
 
-  var label = tx_no + ' ' + (opt_is_update ? 'put' : 'add') + 'Object' +
-      (opt_single ? '' : 's ' + value.length + ' objects');
+  var label = req.getLabel() + ' ' + (opt_is_update ? 'put' : 'add') +
+      'Object' + (opt_single ? '' : 's ' + value.length + ' objects');
 
   this.logger.finest(label);
   var me = this;
 
-  var on_comp = tx.getStorage(function(storage) {
+  var on_comp = req.getTx().getStorage(function(storage) {
     var store;
     if (opt_single) {
       store = storage.getSimpleStore(store_name);
       var key = store.addRecord(opt_key, value, !opt_is_update);
       if (goog.isDefAndNotNull(key)) {
-        df(key);
+        req.setDbValue(key);
       } else {
         var msg = goog.DEBUG ? ydn.json.toShortString(key) : '';
         var e = new ydn.db.ConstraintError(msg);
-        df(e, true);
+        req.errback(e);
       }
     } else {
       var st = store_name;
@@ -172,7 +170,11 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
         }
         arr.push(result_key);
       }
-      df(arr, has_error);
+      if (has_error) {
+        req.errback(arr);
+      } else {
+        req.setDbValue(arr);
+      }
     }
     on_comp();
     on_comp = null;
@@ -184,9 +186,9 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(tx, tx_no, df,
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.addObject = function(
-    tx, tx_no, df, store_name, value, opt_key) {
+    req, store_name, value, opt_key) {
 
-  this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, false, true);
+  this.insertRecord_(req, store_name, value, opt_key, false, true);
 };
 
 
@@ -194,8 +196,8 @@ ydn.db.crud.req.SimpleStore.prototype.addObject = function(
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.putObject = function(
-    tx, tx_no, df, store_name, value, opt_key) {
-  this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, true, true);
+    req, store_name, value, opt_key) {
+  this.insertRecord_(req, store_name, value, opt_key, true, true);
 };
 
 
@@ -203,9 +205,9 @@ ydn.db.crud.req.SimpleStore.prototype.putObject = function(
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.addObjects = function(
-    tx, tx_no, df, store_name, value, opt_key) {
+    req, store_name, value, opt_key) {
 
-  this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, false, false);
+  this.insertRecord_(req, store_name, value, opt_key, false, false);
 };
 
 
@@ -222,8 +224,8 @@ ydn.db.crud.req.SimpleStore.prototype.putData = function(tx, tx_no, df,
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.putObjects = function(
-    tx, tx_no,  df, store_name, value, opt_key) {
-  this.insertRecord_(tx, tx_no, df, store_name, value, opt_key, true, false);
+    rq, store_name, value, opt_key) {
+  this.insertRecord_(rq, store_name, value, opt_key, true, false);
 };
 
 

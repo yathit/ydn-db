@@ -173,7 +173,6 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3) {
     if (goog.isDef(arg2) || goog.isDef(arg3)) {
       throw new ydn.debug.error.ArgumentException('too many arguments.');
     }
-    var df = ydn.db.base.createDeferred();
 
     /**
      *
@@ -181,10 +180,11 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3) {
      */
     var q = arg1;
     this.logger.finer('countKeyRange:' + q);
-    this.tx_thread.exec(df, function(tx, tx_no, cb) {
-      me.getIndexExecutor().countKeyRange(tx, tx_no, cb, q.getStoreName(),
+    var df = this.tx_thread.request(ydn.db.Request.Method.COUNT, q.stores());
+    df.addTxback(function() {
+      this.getIndexExecutor().countKeyRange(df, q.getStoreName(),
           q.keyRange(), q.getIndexName(), q.isUnique());
-    }, q.stores(), ydn.db.base.TransactionMode.READ_ONLY);
+    }, this);
 
     return df;
   } else {
