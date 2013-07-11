@@ -240,7 +240,7 @@ ydn.db.core.req.IDBCursor.prototype.update = function(record) {
     };
     req.onerror = function(e) {
       e.preventDefault();
-      df.setDbValue(e, true);
+      df.errback(e);
     };
     return df;
   } else {
@@ -263,7 +263,7 @@ ydn.db.core.req.IDBCursor.prototype.clear = function() {
     };
     req.onerror = function(e) {
       e.preventDefault();
-      df.setDbValue(e, true);
+      df.errback(e);
     };
     return df;
   } else {

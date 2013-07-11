@@ -597,7 +597,7 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, tr, error]);
     }
-    df.setDbValue(error, true);
+    df.errback(error);
     return false;
   };
 
@@ -749,7 +749,7 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       window.console.log([sql, tr, error]);
     }
-    df.setDbValue(error, true);
+    df.errback(error);
     return false;
 
   };
