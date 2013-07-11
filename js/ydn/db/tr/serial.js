@@ -22,6 +22,7 @@
 
 goog.provide('ydn.db.tr.Serial');
 goog.require('ydn.db.tr.IThread');
+goog.require('ydn.db.tr.Mutex');
 goog.require('ydn.error.NotSupportedException');
 
 

@@ -22,7 +22,6 @@ goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.tr.AtomicParallel');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.DbOperator');
-goog.require('ydn.db.tr.IStorage');
 goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.db.tr.Serial');
 
@@ -37,7 +36,6 @@ goog.require('ydn.db.tr.Serial');
  * is used.
  * schema used in chronical order.
  * @param {!StorageOptions=} opt_options options.
- * @implements {ydn.db.tr.IStorage}
  * @extends {ydn.db.con.Storage}
  * @constructor
  */
@@ -139,7 +137,7 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
 /**
  * @param {!ydn.db.tr.IThread} tx_thread transaction thread.
  * @param {ydn.db.tr.IThread} sync_thread thread for synchronization.
- * @return {ydn.db.tr.DbOperator} the db operator.
+ * @return {!ydn.db.tr.DbOperator} the db operator.
  * @protected
  */
 ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
@@ -191,10 +189,19 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(request_type, opt_is_serial,
 
 
 /**
- * @inheritDoc
+ * Run a new transaction.
+ * @param {function(!ydn.db.tr.DbOperator)} trFn function that invoke in the
+ * transaction.
+ * @param {!Array.<string>} store_names list of keys or
+ * store name involved in the transaction.
+ * @param {ydn.db.base.StandardTransactionMode=} opt_mode mode, default to
+ * 'readonly'.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted event
+ * handler on completed.
+ * @param {...} args optional arguments to post-pend to callback function.
  */
 ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
-                                           oncompleted, opt_args) {
+                                           opt_oncompleted, args) {
 
   var me = this;
   this.ptx_no++;
@@ -235,10 +242,10 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
 
   var outFn = trFn;
   if (arguments.length > 4) { // handle optional parameters
-    var args = Array.prototype.slice.call(arguments, 4);
+    var ex_args = Array.prototype.slice.call(arguments, 4);
     outFn = function() {
       var newArgs = Array.prototype.slice.call(arguments);
-      newArgs = newArgs.concat(args); // post-apply
+      newArgs = newArgs.concat(ex_args); // post-apply
       return trFn.apply(this, newArgs);
     };
   }
@@ -248,9 +255,9 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
 
   tx_thread.processTx(function(tx) {
     me.logger.finest('executing run in transaction on ' + tx_thread);
-    outFn(/** @type {!ydn.db.tr.IStorage} */ (db_operator));
+    outFn(db_operator);
     outFn = null;
-  }, store_names, mode, oncompleted);
+  }, store_names, mode, opt_oncompleted);
 
 };
 
