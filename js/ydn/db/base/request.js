@@ -30,9 +30,13 @@
  * ------------------------------------------
  * In general coding pattern, usage of custom class is discouraged if
  * composition of existing classes is application. Here, this custom deferred
- * class can, in face, be composed using goog.async.Deferred and
+ * class can, in face, be composed using goog.async.Deferred and/or
  * goog.events.EventTarget. However, high frequency usage of this class is
- * an optimization is deseriable.
+ * an optimization is deseriable. If goog.async.Deferred were used,
+ * #await will require at least two goog.async.Deferred objects for each
+ * transformer. Also note that #awaitDeferred is different from #wait.
+ * Futhermore, handling tx and logging with custom label will be messy with
+ * Deferred.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -204,9 +208,9 @@ ydn.db.Request.prototype.abort = function() {
 
 
 /**
- * Invoke when a database received a successful result. By default this will
- * invoke Deferred.callback method to fullfil the promise. This behavior may
- * be override.
+ * Resolve a database request. This will trigger invoking
+ * awaiting transformer callback function sequencially and asynchorniously
+ * and finally invoke Deferred.callback method to fulfill the promise.
  * @param {*} value result from database request.
  * @param {boolean=} opt_failed true if request fail.
  * @final
@@ -232,8 +236,9 @@ ydn.db.Request.prototype.setDbValue = function(value, opt_failed) {
 /**
  * Add db value transformer. Transformers are invoked successively.
  * @param {function(*, function(*))} tr a transformer.
+ * @see {goog.async.Deferred#awaitDeferred}
  */
-ydn.db.Request.prototype.addTransform = function(tr) {
+ydn.db.Request.prototype.await = function(tr) {
   goog.asserts.assert(!this.hasFired(), 'transformer cannot be added after' +
       ' resolved.');
   this.transformers_.push(tr);
@@ -300,6 +305,25 @@ ydn.db.Request.prototype.errback = function(opt_result) {
   this.logger.finer(this + ' ERROR');
   goog.base(this, 'errback', opt_result);
   this.dispose_();
+};
+
+
+/**
+ * Determine the current state of a Deferred object.
+ * Note: This is to satisfy JQuery build export. Closure project should use
+ * @see #hasFired instead.
+ * @return {string}
+ */
+ydn.db.Request.prototype.state = function() {
+  if (this.hasFired()) {
+    if (this.isError()) {
+      return 'rejected';
+    } else {
+      return 'resolved';
+    }
+  } else {
+    return 'pending';
+  }
 };
 
 

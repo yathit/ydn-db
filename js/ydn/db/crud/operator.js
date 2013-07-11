@@ -94,7 +94,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     this.logger.warning('count method requires store name(s)');
     var stores = this.schema.getStoreNames();
     req = this.tx_thread.request(ydn.db.Request.Method.COUNT, stores);
-    req.addTransform(function(cnt, cb) {
+    req.await(function(cnt, cb) {
       var total = 0;
       for (var i = 0; i < cnt.length; i++) {
         total += cnt[i];

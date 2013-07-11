@@ -113,7 +113,7 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(rq, req) {
   }
 
   if (!goog.isNull(sel_fields)) {
-    rq.addTransform(function(records, is_error, cb) {
+    rq.await(function(records, is_error, cb) {
       var out = records;
       if (!is_error) {
         out = records.map(function(record) {

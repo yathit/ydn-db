@@ -86,7 +86,8 @@ ydn.db.tr.AtomicSerial.prototype.request = function(method, scope, opt_mode) {
   };
   var req = goog.base(this, 'request', method, scope, opt_mode, onComplete);
   // intersect request result to make atomic
-  req.addTransform(function(value, has_error, rtn) {
+
+  req.await(function(value, has_error, rtn) {
     // console.log('req success', value);
     is_error = has_error;
     result = value;
