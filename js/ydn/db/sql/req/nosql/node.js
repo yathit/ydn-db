@@ -112,10 +112,9 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(rq, req) {
     throw new ydn.debug.error.NotSupportedException('too many conditions.');
   }
 
-  var ndf = rq;
   if (!goog.isNull(sel_fields)) {
-    ndf = rq.branch();
-    ndf.addCallbacks(function(records) {
+
+    rq.addTransform(function(records, cb) {
       var out = records.map(function(record) {
         var n = sel_fields.length;
         if (n == 1) {
@@ -129,9 +128,7 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(rq, req) {
           return obj;
         }
       });
-      rq.setDbValue(out);
-    }, function(e) {
-      rq.errback(e);
+      cb(out);
     });
   }
 
@@ -145,14 +142,14 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(rq, req) {
   this.logger.finer(msg);
 
   if (order && order != this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(ndf, store_name, order, key_range,
+    req.listByIndexKeyRange(rq, store_name, order, key_range,
         reverse, limit, offset, false);
   } else if (goog.isDef(index_name) && index_name !=
       this.store_schema.getKeyPath()) {
-    req.listByIndexKeyRange(ndf, store_name, index_name,
+    req.listByIndexKeyRange(rq, store_name, index_name,
         key_range, reverse, limit, offset, false);
   } else {
-    req.listByKeyRange(ndf, store_name, key_range, reverse, limit,
+    req.listByKeyRange(rq, store_name, key_range, reverse, limit,
         offset);
   }
 

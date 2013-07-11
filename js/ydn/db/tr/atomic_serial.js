@@ -64,21 +64,21 @@ ydn.db.tr.AtomicSerial.prototype.logger =
  * @inheritDoc
  */
 ydn.db.tr.AtomicSerial.prototype.request = function(method, scope, opt_mode) {
-  var result, is_error;
+  var req_setDbValue, result, is_error;
 
   /**
    * @param {ydn.db.base.TxEventTypes} t event type.
    * @param {*} e error.
    */
   var onComplete = function(t, e) {
-    console.log('onComplete', t, result);
+    // console.log('onComplete', t, result);
     req.removeTx();
     if (is_error === true) {
       // req.errback(result); // already fired.
     } else if (t != ydn.db.base.TxEventTypes.COMPLETE) {
       req.errback(e);
     } else if (is_error === false) {
-      req_setDbValue.call(req, result);
+      req_setDbValue(result);
     } else {
       var err = new ydn.db.TimeoutError();
       req.errback(err);
@@ -86,14 +86,14 @@ ydn.db.tr.AtomicSerial.prototype.request = function(method, scope, opt_mode) {
   };
   var req = goog.base(this, 'request', method, scope, opt_mode, onComplete);
   // intersect request result to make atomic
-  var req_setDbValue = req.setDbValue;
-  req.setDbValue = function(x) {
-    console.log('req success', x);
+  req.addTransform(function(value, rtn) {
+    // console.log('req success', value);
     is_error = false;
-    result = x;
-  };
-  req.addErrback(function(x) {
-    console.log('req error', e);
+    result = value;
+    req_setDbValue = rtn;
+  });
+  req.addErrback(function(e) {
+    // console.log('req error', e);
     is_error = true;
     result = e;
   });

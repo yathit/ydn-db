@@ -78,10 +78,10 @@ ydn.db.Request = function(method, opt_onCancelFunction, opt_defaultScope) {
   this.txbacks_ = [];
   /**
    * request branches.
-   * @type {!Array.<!ydn.db.Request>}
+   * @type {!Array.<function(*, function(*))>}
    * @private
    */
-  this.req_branches_ = [];
+  this.transformers_ = [];
   this.tx_ = null;
   this.tx_label_ = '';
 };
@@ -134,10 +134,6 @@ ydn.db.Request.prototype.setTx = function(tx, label) {
       tx_callback.call(scope, tx);
     }
     this.txbacks_.length = 0;
-    // propagate to branches
-    for (var i = 0; i < this.req_branches_.length; i++) {
-      this.req_branches_[i].setTx(tx, label);
-    }
   }
   this.logger.finer(this + ' END');
 };
@@ -148,10 +144,6 @@ ydn.db.Request.prototype.setTx = function(tx, label) {
  */
 ydn.db.Request.prototype.removeTx = function() {
   this.tx_ = null;
-  // propagate to branches
-  for (var i = 0; i < this.req_branches_.length; i++) {
-    this.req_branches_[i].removeTx();
-  }
 };
 
 
@@ -206,10 +198,6 @@ ydn.db.Request.prototype.abort = function() {
     } else {
       throw new ydn.error.NotSupportedException();
     }
-    // propagate to branches
-    for (var i = 0; i < this.req_branches_.length; i++) {
-      this.req_branches_[i].abort();
-    }
   } else {
     var msg = goog.DEBUG ? 'No active transaction' : '';
     throw new ydn.db.InvalidStateError(msg);
@@ -222,9 +210,27 @@ ydn.db.Request.prototype.abort = function() {
  * invoke Deferred.callback method to fullfil the promise. This behavior may
  * be override.
  * @param {*} value success result from database request.
+ * @final
  */
 ydn.db.Request.prototype.setDbValue = function(value) {
-  this.callback(value);
+  var tr = this.transformers_.shift();
+  if (tr) {
+    var me = this;
+    tr(value, function(tx_value) {
+      me.setDbValue(tx_value);
+    });
+  } else {
+    this.callback(value);
+  }
+};
+
+
+/**
+ * Add db value transformer. Transformers are invoked successively.
+ * @param {function(*, function(*))} tr a transformer.
+ */
+ydn.db.Request.prototype.addTransform = function(tr) {
+  this.transformers_.push(tr);
 };
 
 
@@ -299,10 +305,6 @@ ydn.db.Request.prototype.dispose_ = function() {
   this.progbacks_.length = 0;
   this.tx_ = null;
   this.tx_label_ = '~' + this.tx_label_;
-  // propagate to branches
-  for (var i = 0; i < this.req_branches_.length; i++) {
-    this.req_branches_[i].dispose_();
-  }
 };
 
 
@@ -317,19 +319,6 @@ ydn.db.Request.prototype.getLabel = function() {
     label += '[' + this.tx_label_ + ']';
   }
   return this.method_ + label;
-};
-
-
-/**
- * Create a new request using existing tx.
- * @return {!ydn.db.Request} a new request.
- */
-ydn.db.Request.prototype.branch = function() {
-  var req = new ydn.db.Request(this.method_);
-  req.tx_ = this.tx_;
-  this.tx_label_ = this.tx_label_;
-  this.req_branches_.push(req);
-  return req;
 };
 
 

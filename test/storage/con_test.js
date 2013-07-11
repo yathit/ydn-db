@@ -13,10 +13,10 @@ var store_name = 'st';
 var setUp = function() {
 
 
-  ydn.db.con.IndexedDb.DEBUG = true;
+  // ydn.db.con.IndexedDb.DEBUG = true;
 
   //ydn.db.con.WebSql.DEBUG = true;
-  ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
   db_name = 'test_db' + Math.random();
 
   store_schema = {name: store_name, keyPath: 'id'};
