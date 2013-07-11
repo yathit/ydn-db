@@ -59,6 +59,7 @@ goog.require('goog.debug.Logger');
  * @constructor
  * @extends {goog.async.Deferred}
  * @struct
+ * @suppress {checkStructDictInheritance}
  */
 ydn.db.Request = function(method, opt_onCancelFunction, opt_defaultScope) {
   goog.base(this, opt_onCancelFunction, opt_defaultScope);
@@ -135,7 +136,7 @@ ydn.db.Request.prototype.setTx = function(tx, label) {
     this.txbacks_.length = 0;
     // propagate to branches
     for (var i = 0; i < this.req_branches_.length; i++) {
-      this.req_branches_[i].setTx(tx);
+      this.req_branches_[i].setTx(tx, label);
     }
   }
   this.logger.finer(this + ' END');
@@ -210,7 +211,8 @@ ydn.db.Request.prototype.abort = function() {
       this.req_branches_[i].abort();
     }
   } else {
-    throw new ydn.db.InvalidStateError('No active transaction');
+    var msg = goog.DEBUG ? 'No active transaction' : '';
+    throw new ydn.db.InvalidStateError(msg);
   }
 };
 
@@ -299,7 +301,7 @@ ydn.db.Request.prototype.dispose_ = function() {
   this.tx_label_ = '~' + this.tx_label_;
   // propagate to branches
   for (var i = 0; i < this.req_branches_.length; i++) {
-    this.req_branches_[i].removeTx();
+    this.req_branches_[i].dispose_();
   }
 };
 

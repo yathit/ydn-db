@@ -6,7 +6,7 @@
  */
 
 
-goog.provide('ydn.db.tr.OverflowSerial');
+goog.provide('ydn.db.tr.OverflowSerial.nouse');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.db.tr.Serial');
 goog.require('ydn.error.NotSupportedException');

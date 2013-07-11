@@ -32,12 +32,16 @@ goog.require('ydn.error.NotSupportedException');
  *
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
+ * @param {ydn.db.tr.IThread.Policy=} opt_policy
+ * @param {!Array.<string>=} opt_store_names store names as scope.
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode as scope.
  * @param {number=} opt_max_tx_no limit number of transaction created.
  * @constructor
  * @implements {ydn.db.tr.IThread}
  * @struct
  */
-ydn.db.tr.Serial = function(storage, ptx_no, opt_max_tx_no) {
+ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
+                            opt_store_names, opt_mode, opt_max_tx_no) {
 
   /**
    * @final
@@ -52,6 +56,24 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_max_tx_no) {
   this.q_no_ = ptx_no;
 
   this.r_no_ = 0;
+
+  /**
+   * @final
+   * @private
+   */
+  this.scope_store_names_ = opt_store_names;
+
+  /**
+   * @final
+   * @private
+   */
+  this.scope_mode_ = opt_mode;
+
+  /**
+   * @final
+   * @private
+   */
+  this.policy_ = opt_policy || ydn.db.tr.IThread.Policy.SINGLE;
 
   /**
    * @final
@@ -189,6 +211,26 @@ ydn.db.tr.Serial.prototype.isActive = function() {
 
 
 /**
+ * @param {!Array.<string>} store_names store names for scope.
+ * @param {ydn.db.base.TransactionMode} mode tx mode.
+ * @return {boolean} return true if given scope and mode is compatible with
+ * active transaction and should be reuse.
+ * @protected
+ */
+ydn.db.tr.Serial.prototype.reusedTx = function(store_names, mode) {
+  if (this.policy_ == ydn.db.tr.IThread.Policy.MULTI) {
+    return this.mu_tx_.subScope(store_names, mode);
+  } else if (this.policy_ == ydn.db.tr.IThread.Policy.REPEAT) {
+    return this.mu_tx_.sameScope(store_names, mode);
+  } else if (this.policy_ == ydn.db.tr.IThread.Policy.ALL) {
+    return true;
+  } else {
+    return false; // SINGLE and ATOMIC
+  }
+};
+
+
+/**
  *
  * @return {!ydn.db.tr.Storage} storage.
  */
@@ -269,7 +311,7 @@ ydn.db.tr.Serial.prototype.popTxQueue_ = function() {
 
 /**
  *
- * @return {Array}
+ * @return {Array.<string>}
  */
 ydn.db.tr.Serial.prototype.peekScopes = function() {
   if (this.trQueue_.length > 0) {
@@ -298,7 +340,13 @@ ydn.db.tr.Serial.prototype.peekMode = function() {
  * @return {boolean}
  */
 ydn.db.tr.Serial.prototype.isNextTxCompatible = function() {
-  return false;
+  var scopes = this.peekScopes();
+  var mode = this.peekMode();
+  if (goog.isDefAndNotNull(scopes) && goog.isDefAndNotNull(mode)) {
+    return this.reusedTx(scopes, mode);
+  } else {
+    return false;
+  }
 };
 
 
@@ -451,18 +499,6 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         completed_handler);
   }
 
-};
-
-
-/**
- * @param {!Array.<string>} store_names
- * @param {ydn.db.base.TransactionMode} mode
- * @return {boolean} return true if given scope and mode is compatible with
- * active transaction and should be reuse.
- * @protected
- */
-ydn.db.tr.Serial.prototype.reusedTx = function(store_names, mode) {
-  return false;
 };
 
 

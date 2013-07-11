@@ -23,10 +23,8 @@ goog.require('ydn.db.tr.AtomicParallel');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IStorage');
-goog.require('ydn.db.tr.OverflowSerial');
 goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.db.tr.Serial');
-goog.require('ydn.db.tr.StrictOverflowSerial');
 
 
 
@@ -163,14 +161,14 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(request_type, opt_is_serial,
     opt_store_names, opt_mode, opt_max_tx) {
 
   if (opt_is_serial) {
-    if (request_type == ydn.db.tr.IThread.Policy.MULTI) {
-      return new ydn.db.tr.OverflowSerial(this, this.ptx_no++);
-    } else if (request_type == ydn.db.tr.IThread.Policy.REPEAT) {
-      return new ydn.db.tr.StrictOverflowSerial(this, this.ptx_no++);
+    if (request_type == ydn.db.tr.IThread.Policy.MULTI ||
+        request_type == ydn.db.tr.IThread.Policy.REPEAT ||
+        request_type == ydn.db.tr.IThread.Policy.ALL ||
+        request_type == ydn.db.tr.IThread.Policy.SINGLE) {
+      return new ydn.db.tr.Serial(this, this.ptx_no++, request_type,
+          opt_store_names, opt_mode, opt_max_tx);
     } else if (request_type == ydn.db.tr.IThread.Policy.ATOMIC) {
       return new ydn.db.tr.AtomicSerial(this, this.ptx_no++);
-    } else if (request_type == ydn.db.tr.IThread.Policy.SINGLE) {
-      return new ydn.db.tr.Serial(this, this.ptx_no++, opt_max_tx);
     } else {
       throw new ydn.debug.error.ArgumentException('Invalid requestType "' +
           request_type + '"');

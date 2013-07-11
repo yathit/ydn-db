@@ -127,13 +127,6 @@ ydn.db.tr.Parallel.prototype.max_tx_no_ = 0;
 
 
 /**
- * @type {Array.<string>|undefined}
- * @private
- */
-ydn.db.tr.Parallel.prototype.scope_store_names_;
-
-
-/**
  * @type {ydn.db.base.TransactionMode|undefined}
  * @private
  */

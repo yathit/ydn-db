@@ -7,9 +7,10 @@
 
 
 goog.provide('ydn.db.rich.RichStorage');
+goog.require('goog.asserts');
 goog.require('goog.storage.EncryptedStorage');
 goog.require('goog.storage.ExpiringStorage');
-goog.require('goog.asserts');
+
 
 
 /**
@@ -63,7 +64,7 @@ ydn.db.rich.RichStorage.isExpired = goog.storage.ExpiringStorage.isExpired;
  * @type {string}
  */
 ydn.db.rich.RichStorage.EXPIRATION_TIME_KEY =
-  goog.storage.ExpiringStorage.EXPIRATION_TIME_KEY;
+    goog.storage.ExpiringStorage.EXPIRATION_TIME_KEY;
 
 
 /**
@@ -71,14 +72,14 @@ ydn.db.rich.RichStorage.EXPIRATION_TIME_KEY =
  * @type {string}
  */
 ydn.db.rich.RichStorage.CREATION_TIME_KEY =
-  goog.storage.ExpiringStorage.CREATION_TIME_KEY;
+    goog.storage.ExpiringStorage.CREATION_TIME_KEY;
+
 
 /**
  * @const
  * @type {string}
  */
 ydn.db.rich.RichStorage.DATA_KEY = goog.storage.RichStorage.DATA_KEY;
-
 
 
 /**
@@ -90,7 +91,8 @@ ydn.db.rich.RichStorage.DATA_KEY = goog.storage.RichStorage.DATA_KEY;
  * @private
  */
 ydn.db.rich.RichStorage.prototype.hashKeyWithSecret_ =
-  goog.storage.EncryptedStorage.prototype.hashKeyWithSecret_;
+    goog.storage.EncryptedStorage.prototype.hashKeyWithSecret_;
+
 
 /**
  * Encrypts a value using a key, a salt, and the secret.
