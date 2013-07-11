@@ -59,7 +59,7 @@ goog.require('goog.debug.Logger');
  * @constructor
  * @extends {goog.async.Deferred}
  * @struct
- * @suppress {checkStructDictInheritance}
+ * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
 ydn.db.Request = function(method, opt_onCancelFunction, opt_defaultScope) {
   goog.base(this, opt_onCancelFunction, opt_defaultScope);
