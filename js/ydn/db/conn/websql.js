@@ -378,6 +378,18 @@ ydn.db.con.WebSql.prototype.logger =
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.con.WebSql.prototype.onFail = function(e) {};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.con.WebSql.prototype.onError = function(e) {};
+
+
+/**
  * @const
  * @type {string} column name prefix for multiEntry index.
  */

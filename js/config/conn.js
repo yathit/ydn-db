@@ -42,8 +42,8 @@ goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'getVersion',
     ydn.db.events.StorageEvent.prototype.getVersion);
 goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'getOldVersion',
     ydn.db.events.StorageEvent.prototype.getOldVersion);
-goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'getError',
-    ydn.db.events.StorageEvent.prototype.getError);
+goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'getOldSchema',
+    ydn.db.events.StorageEvent.prototype.getOldSchema);
 
 goog.exportProperty(ydn.async.Deferred.prototype, 'progress',
     ydn.async.Deferred.prototype.addProgback);

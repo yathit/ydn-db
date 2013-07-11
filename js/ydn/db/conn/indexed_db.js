@@ -96,13 +96,15 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       goog.asserts.assertObject(db, 'db');
       me.idx_db_ = db;
       me.idx_db_.onabort = function(e) {
-        me.logger.finer(me + ': onabort');
+        me.logger.finest(me + ': abort');
+        me.onError(e);
       };
       me.idx_db_.onerror = function(e) {
         if (ydn.db.con.IndexedDb.DEBUG) {
           window.console.log(e);
         }
-        me.logger.finer(me + ': onerror');
+        me.logger.finest(me + ': error');
+        me.onError(e);
       };
 
       /**
@@ -126,9 +128,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
           me.idx_db_.onversionchange = null;
           me.idx_db_.close();
           me.idx_db_ = null;
-          if (goog.isFunction(me.onDisconnected)) {
-            me.onDisconnected(event);
-          }
+          me.onFail(event);
         }
       };
       df.callback(parseFloat(old_version));
@@ -437,9 +437,15 @@ ydn.db.con.IndexedDb.prototype.time_out_ = 3 * 60 * 1000;
 
 
 /**
- * @type {Function}
+ * @inheritDoc
  */
-ydn.db.con.IndexedDb.prototype.onDisconnected = null;
+ydn.db.con.IndexedDb.prototype.onFail = function(e) {};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.con.IndexedDb.prototype.onError = function(e) {};
 
 
 /**

@@ -479,19 +479,16 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       /**
        * @param {Error} e event.
        */
-      db.onDisconnected = function(e) {
+      db.onFail = function(e) {
 
         me.logger.finest(this + ': disconnected.');
-        var event = new ydn.db.events.StorageErrorEvent(me, e);
+        var event = new ydn.db.events.StorageFailEvent(me, e);
         me.dispatchEvent(event);
         me.db_ = null;
       };
     }, function(e) {
-      this.logger.warning(this + ': opening fail: ' + e.message);
-      var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY,
-          this, NaN, NaN, e);
-      event.message = e.message;
-      resolve(false, event);
+      this.logger.warning(this + ': opening fail');
+      resolve(false, e);
     }, this);
   }
 
@@ -515,11 +512,8 @@ ydn.db.con.Storage.prototype.getType = function() {
 
 
 /**
- * TODO: remve this on rel 0.7.
  * Handle ready event by dispatching 'ready' event.
  * @param {ydn.db.events.StorageEvent} ev event.
- * @expose since we want this function to be overidable, we have to use expose
- * instead of goog.exportProperty.
  */
 ydn.db.con.Storage.prototype.onReady = function(ev) {
   this.dispatchEvent(ev);
@@ -775,7 +769,7 @@ ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
  * @return {!Array.<string>} list of event types.
  */
 ydn.db.con.Storage.prototype.getEventTypes = function() {
-  return ['created', 'error', 'ready', 'deleted', 'updated'];
+  return ['created', 'error', 'fail', 'ready', 'deleted', 'updated'];
 };
 
 

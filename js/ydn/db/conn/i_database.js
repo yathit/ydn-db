@@ -87,3 +87,18 @@ ydn.db.con.IDatabase.prototype.doTransaction = goog.abstractMethod;
  * @param {(IDBDatabase|Database)=} db database to reuse.
  */
 ydn.db.con.IDatabase.prototype.getSchema = goog.abstractMethod;
+
+
+/**
+ * On terminal failure.
+ * @type {Function}
+ */
+ydn.db.con.IDatabase.prototype.onFail = goog.abstractMethod;
+
+
+/**
+ * On terminal failure.
+ * @type {Function}
+ */
+ydn.db.con.IDatabase.prototype.onError = goog.abstractMethod;
+

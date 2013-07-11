@@ -313,10 +313,11 @@ ydn.db.Request.prototype.errback = function(opt_result) {
  * Note: This is to satisfy JQuery build export. Closure project should use
  * @see #hasFired instead.
  * @return {string}
+ * @suppress {accessControls}
  */
 ydn.db.Request.prototype.state = function() {
   if (this.hasFired()) {
-    if (this.isError()) {
+    if (this.hadError_) {
       return 'rejected';
     } else {
       return 'resolved';

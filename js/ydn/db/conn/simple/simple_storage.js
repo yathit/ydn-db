@@ -261,6 +261,18 @@ ydn.db.con.SimpleStorage.prototype.getDbInstance = function() {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.con.SimpleStorage.prototype.onFail = function(e) {};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.con.SimpleStorage.prototype.onError = function(e) {};
+
+
+/**
  * Column name of key, if keyPath is not specified.
  * @const {string}
  */
