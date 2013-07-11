@@ -26,8 +26,6 @@
  * Before this implementation, synchronization logic uses two or more deferred
  * objects, now sync logic facilities are built-in.
  *
- * Object instantiator must override {@see setDbValue} method.
- *
  * Rationale for using custom deferred class.
  * ------------------------------------------
  * In general coding pattern, usage of custom class is discouraged if
@@ -230,6 +228,8 @@ ydn.db.Request.prototype.setDbValue = function(value) {
  * @param {function(*, function(*))} tr a transformer.
  */
 ydn.db.Request.prototype.addTransform = function(tr) {
+  goog.asserts.assert(!this.hasFired(), 'transformer cannot be added after' +
+      ' resolved.');
   this.transformers_.push(tr);
 };
 

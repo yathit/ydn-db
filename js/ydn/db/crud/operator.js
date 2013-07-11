@@ -91,7 +91,20 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
   var key_range;
 
   if (!goog.isDefAndNotNull(store_name)) {
-    throw new ydn.debug.error.ArgumentException('store name required');
+    this.logger.warning('count method requires store name(s)');
+    var stores = this.schema.getStoreNames();
+    req = this.tx_thread.request(ydn.db.Request.Method.COUNT, stores);
+    req.addTransform(function(cnt, cb) {
+      var total = 0;
+      for (var i = 0; i < cnt.length; i++) {
+        total += cnt[i];
+      }
+      cb(total);
+    });
+    req.addTxback(function() {
+      //console.log('counting');
+      this.getExecutor().countStores(req, store_names);
+    }, this);
   } else if (goog.isArray(store_name)) {
 
     if (goog.isDef(index_key_range) || goog.isDef(index_or_keyrange)) {
@@ -109,7 +122,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     //console.log('waiting to count');
     this.logger.finer('countStores: ' + ydn.json.stringify(store_names));
     req = this.tx_thread.request(ydn.db.Request.Method.COUNT, store_names);
-    req.addTxback(function(tx, tx_no, cb) {
+    req.addTxback(function() {
       //console.log('counting');
       this.getExecutor().countStores(req, store_names);
     }, this);

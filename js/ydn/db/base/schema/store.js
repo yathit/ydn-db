@@ -21,6 +21,7 @@
 goog.provide('ydn.db.schema.Store');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.schema.Index');
+goog.require('ydn.db.Request.Method');
 
 
 
