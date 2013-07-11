@@ -76,7 +76,7 @@ ydn.db.Request = function(method, opt_onCancelFunction, opt_defaultScope) {
   this.txbacks_ = [];
   /**
    * request branches.
-   * @type {!Array.<function(*, function(*))>}
+   * @type {!Array.<function(*, boolean, function(*, boolean))>}
    * @private
    */
   this.transformers_ = [];
@@ -207,18 +207,24 @@ ydn.db.Request.prototype.abort = function() {
  * Invoke when a database received a successful result. By default this will
  * invoke Deferred.callback method to fullfil the promise. This behavior may
  * be override.
- * @param {*} value success result from database request.
+ * @param {*} value result from database request.
+ * @param {boolean=} opt_failed true if request fail.
  * @final
  */
-ydn.db.Request.prototype.setDbValue = function(value) {
+ydn.db.Request.prototype.setDbValue = function(value, opt_failed) {
   var tr = this.transformers_.shift();
+  var failed = !!opt_failed;
   if (tr) {
     var me = this;
-    tr(value, function(tx_value) {
-      me.setDbValue(tx_value);
+    tr(value, failed, function(tx_value, f2) {
+      me.setDbValue(tx_value, f2);
     });
   } else {
-    this.callback(value);
+    if (failed) {
+      this.errback(value);
+    } else {
+      this.callback(value);
+    }
   }
 };
 
@@ -281,8 +287,8 @@ ydn.db.Request.prototype.notify = function(opt_value) {
  * @inheritDoc
  */
 ydn.db.Request.prototype.callback = function(opt_result) {
-  goog.base(this, 'callback', opt_result);
   this.logger.finer(this + ' SUCCESS');
+  goog.base(this, 'callback', opt_result);
   this.dispose_();
 };
 
@@ -291,8 +297,8 @@ ydn.db.Request.prototype.callback = function(opt_result) {
  * @inheritDoc
  */
 ydn.db.Request.prototype.errback = function(opt_result) {
-  goog.base(this, 'errback', opt_result);
   this.logger.finer(this + ' ERROR');
+  goog.base(this, 'errback', opt_result);
   this.dispose_();
 };
 
@@ -304,7 +310,7 @@ ydn.db.Request.prototype.errback = function(opt_result) {
 ydn.db.Request.prototype.dispose_ = function() {
   this.progbacks_.length = 0;
   this.tx_ = null;
-  this.tx_label_ = '~' + this.tx_label_;
+  this.tx_label_ = this.tx_label_;
 };
 
 

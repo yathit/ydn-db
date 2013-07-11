@@ -76,19 +76,19 @@ ydn.db.tr.AtomicSerial.prototype.request = function(method, scope, opt_mode) {
     if (is_error === true) {
       // req.errback(result); // already fired.
     } else if (t != ydn.db.base.TxEventTypes.COMPLETE) {
-      req.errback(e);
+      req_setDbValue(e, true);
     } else if (is_error === false) {
-      req_setDbValue(result);
+      req_setDbValue(result, false);
     } else {
       var err = new ydn.db.TimeoutError();
-      req.errback(err);
+      req_setDbValue(err, true);
     }
   };
   var req = goog.base(this, 'request', method, scope, opt_mode, onComplete);
   // intersect request result to make atomic
-  req.addTransform(function(value, rtn) {
+  req.addTransform(function(value, has_error, rtn) {
     // console.log('req success', value);
-    is_error = false;
+    is_error = has_error;
     result = value;
     req_setDbValue = rtn;
   });

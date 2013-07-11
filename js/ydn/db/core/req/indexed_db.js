@@ -93,7 +93,7 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
   var cursor = iter.iterate(tx, tx_no, this, mth);
   cursor.onFail = function(e) {
     cursor.exit();
-    rq.errback(e);
+    rq.setDbValue(e, true);
   };
   var count = 0;
   var cued = false;

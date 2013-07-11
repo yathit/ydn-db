@@ -122,7 +122,7 @@ ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(rq, req) {
      * @param {!Error} e
      */
     cursor.onFail = function(e) {
-      rq.errback(e);
+      rq.setDbValue(e, true);
     };
     var i = 0;
     /**

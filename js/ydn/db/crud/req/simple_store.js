@@ -142,7 +142,7 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
       } else {
         var msg = goog.DEBUG ? ydn.json.toShortString(key) : '';
         var e = new ydn.db.ConstraintError(msg);
-        req.errback(e);
+        req.setDbValue(e, true);
       }
     } else {
       var st = store_name;
@@ -170,11 +170,7 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
         }
         arr.push(result_key);
       }
-      if (has_error) {
-        req.errback(arr);
-      } else {
-        req.setDbValue(arr);
-      }
+      req.setDbValue(arr, has_error);
     }
     on_comp();
     on_comp = null;
@@ -284,11 +280,7 @@ ydn.db.crud.req.SimpleStore.prototype.listByIds_ = function(req,
       arr[i] = value;
     }
 
-    if (has_error) {
-      req.errback(arr);
-    } else {
-      req.setDbValue(arr);
-    }
+    req.setDbValue(arr, has_error);
     onComp();
     onComp = null;
   }, this);

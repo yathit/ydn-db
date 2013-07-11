@@ -117,7 +117,7 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(rq, iter,
   var cursor = iter.iterate(tx, tx_no, this, mth);
   cursor.onFail = function(e) {
     cursor.exit();
-    rq.errback(e);
+    rq.setDbValue(e, true);
   };
   var count = 0;
   var cued = false;

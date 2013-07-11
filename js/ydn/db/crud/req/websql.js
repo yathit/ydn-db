@@ -236,7 +236,7 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(req,
       window.console.log([tr, error]);
     }
     me.logger.warning('error: ' + msg + error.message);
-    req.errback(error);
+    req.setDbValue(error, true);
     return false;
   };
 
@@ -324,11 +324,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       result_count++;
       if (result_count == objects.length) {
         me.logger.finer('success ' + msg);
-        if (has_error) {
-          req.errback(result_keys);
-        } else {
-          req.setDbValue(result_keys);
-        }
+        req.setDbValue(result_keys, has_error);
       } else {
         var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
         if (next < objects.length) {
@@ -420,11 +416,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       } else {
         result_keys[i] = key;
         if (result_count == objects.length) {
-          if (has_error) {
-            req.errback(result_keys);
-          } else {
-            req.setDbValue(result_keys);
-          }
+          req.setDbValue(result_keys, has_error);
         } else {
           var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
           if (next < objects.length) {
@@ -451,16 +443,12 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
         me.logger.warning('error: ' + error.message + ' ' + msg);
       }
       if (single) {
-        req.errback(error);
+        req.setDbValue(error, true);
       } else {
         result_keys[i] = error;
         if (result_count == objects.length) {
           me.logger.finest('success ' + msg); // still success message ?
-          if (has_error) {
-            req.errback(result_keys);
-          } else {
-            req.setDbValue(result_keys);
-          }
+          req.setDbValue(result_keys, has_error);
         } else {
           var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
           if (next < objects.length) {
@@ -531,7 +519,7 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(rq, objs,
       if (opt_is_error) {
         count++;
         if (count == total) {
-          rq.errback(xs);
+          rq.setDbValue(xs, true);
         }
       } else {
         for (var i = 0; i < idx.length; i++) {
@@ -643,7 +631,7 @@ ydn.db.crud.req.WebSql.prototype.getById = function(req, table_name, id) {
       window.console.log([tr, error]);
     }
     me.logger.warning('error: ' + msg + ' ' + error.message);
-    req.errback(error);
+    req.setDbValue(error, true);
     return false;
   };
 
@@ -821,7 +809,7 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(req, keys) {
       if (ydn.db.crud.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      req.errback(error);
+      req.setDbValue(error, true);
       return false;
     };
 
@@ -885,7 +873,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(req, store_names) {
       if (ydn.db.crud.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      req.errback(error);
+      req.setDbValue(error, true);
       return false;
     };
 
@@ -939,11 +927,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(req, keys) {
   var removeAt = function(i) {
 
     if (i >= keys.length) {
-      if (has_failed) {
-        req.errback(count);
-      } else {
-        req.setDbValue(count);
-      }
+      req.setDbValue(count, has_failed);
       return;
     }
 
@@ -1045,7 +1029,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(req, table, id) {
     if (ydn.db.crud.req.WebSql.DEBUG) {
       window.console.log([tr, error]);
     }
-    req.errback(error);
+    req.setDbValue(error, true);
     return false; // not rollback yet.
   };
 
@@ -1158,7 +1142,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(req,
       window.console.log([tr, error]);
     }
     me.logger.warning('error: ' + msg + error.message);
-    req.errback(error);
+    req.setDbValue(error, true);
     return false;
   };
 
@@ -1232,7 +1216,7 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(req, tables) {
       if (ydn.db.crud.req.WebSql.DEBUG) {
         window.console.log([tr, error]);
       }
-      req.errback(error);
+      req.setDbValue(error, true);
       return false;
     };
 
@@ -1288,7 +1272,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(req, table,
     if (ydn.db.crud.req.WebSql.DEBUG) {
       window.console.log([sql, error]);
     }
-    req.errback(error);
+    req.setDbValue(error, true);
     return false;
   };
 

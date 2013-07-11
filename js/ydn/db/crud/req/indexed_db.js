@@ -95,7 +95,7 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(req, stores) {
         window.console.log(event);
       }
       event.preventDefault();
-      req.errback(request.error);
+      req.setDbValue(request.error, true);
     };
   };
 
@@ -136,7 +136,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObject = function(db_req, table,
       window.console.log([event, table, value]);
     }
     event.preventDefault();
-    db_req.errback(request.error);
+    db_req.setDbValue(request.error, true);
   };
 };
 
@@ -178,7 +178,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObject = function(
           str.substring(0, 70));
     }
     event.preventDefault();
-    db_req.errback(request.error);
+    db_req.setDbValue(request.error, true);
   };
 };
 
@@ -216,11 +216,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       }
       results[i] = event.target.result;
       if (result_count == objs.length) {
-        if (has_error) {
-          db_req.errback(results);
-        } else {
-          db_req.setDbValue(results);
-        }
+        db_req.setDbValue(results, has_error);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -245,11 +241,7 @@ ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
       has_error = true;
       event.preventDefault(); // not abort the transaction.
       if (result_count == objs.length) {
-        if (has_error) {
-          db_req.errback(results);
-        } else {
-          db_req.setDbValue(results);
-        }
+        db_req.setDbValue(results, has_error);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -294,11 +286,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(rq,
       me.logger.finest('empty object at ' + i + ' of ' + objs.length);
       result_count++;
       if (result_count == objs.length) {
-        if (has_error) {
-          rq.errback(results);
-        } else {
-          rq.setDbValue(results);
-        }
+        rq.setDbValue(results, has_error);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -322,11 +310,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(rq,
       }
       results[i] = event.target.result;
       if (result_count == objs.length) {
-        if (has_error) {
-          rq.errback(results);
-        } else {
-          rq.setDbValue(results);
-        }
+        rq.setDbValue(results, has_error);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -352,11 +336,7 @@ ydn.db.crud.req.IndexedDb.prototype.putObjects = function(rq,
       has_error = true;
       event.preventDefault(); // not abort the transaction.
       if (result_count == objs.length) {
-        if (has_error) {
-          rq.errback(results);
-        } else {
-          rq.setDbValue(results);
-        }
+        rq.setDbValue(results, has_error);
       } else {
         var next = i + ydn.db.crud.req.IndexedDb.REQ_PER_TX;
         if (next < objs.length) {
@@ -390,11 +370,7 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(rq, objs,
   var has_error = false;
 
   var out = function() {
-    if (has_error) {
-      rq.errback(results);
-    } else {
-      rq.setDbValue(results);
-    }
+    rq.setDbValue(results, has_error);
   };
 
   var me = this;
@@ -589,7 +565,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(req,
         req.setDbValue(1);
       };
       r.onerror = function(e) {
-        req.errback(r.error);
+        req.setDbValue(r.error, true);
       };
     } else {
       req.setDbValue(0);
@@ -601,7 +577,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(req,
       window.console.log([store_name, key, event]);
     }
     event.preventDefault();
-    req.errback(request.error);
+    req.setDbValue(request.error, true);
   };
 
 };
@@ -624,7 +600,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(req, keys) {
     if (i >= keys.length) {
       var has_failed = errors.length > 0;
       if (has_failed) {
-        req.errback(errors);
+        req.setDbValue(errors, true);
       } else {
         req.setDbValue(count);
       }
@@ -676,7 +652,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeyRange = function(
       req.setDbValue(n);
     };
     r.onerror = function(e) {
-      req.errback(r.error);
+      req.setDbValue(r.error, true);
     };
   };
   request.onerror = function(event) {
@@ -684,7 +660,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeyRange = function(
       window.console.log([store_name, key_range, event]);
     }
     event.preventDefault();
-    req.errback(request.error);
+    req.setDbValue(request.error, true);
   };
 
 };
@@ -708,7 +684,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByKeyRange = function(
   };
   r.onerror = function(event) {
     event.preventDefault();
-    req.errback(r.error);
+    req.setDbValue(r.error, true);
   };
 
 };
@@ -751,7 +727,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
     } else {
       var has_failed = errors.length > 0;
       if (has_failed) {
-        req.errback(errors);
+        req.setDbValue(errors, true);
       } else {
         req.setDbValue(n);
       }
@@ -760,7 +736,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
   };
   request.onerror = function(event) {
     event.preventDefault();
-    req.errback(request.error);
+    req.setDbValue(request.error, true);
   };
 
 };
@@ -796,7 +772,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(req, store_names) {
       }
       event.preventDefault();
       if (n_done == n_todo) {
-        req.errback(request.error);
+        req.setDbValue(request.error, true);
       }
     };
   }
@@ -866,7 +842,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(req,
       window.console.log([store_name, event]);
     }
     event.preventDefault();
-    req.errback(request.error);
+    req.setDbValue(request.error, true);
   };
 };
 
@@ -927,7 +903,7 @@ ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(req,
       window.console.log([store_name, event]);
     }
     event.preventDefault();
-    req.errback(request.error);
+    req.setDbValue(request.error, true);
   };
 };
 
@@ -1017,7 +993,7 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(req,
       window.console.log([store_name, event]);
     }
     event.preventDefault();
-    req.errback(request.error);
+    req.setDbValue(request.error, true);
   };
 };
 
@@ -1051,7 +1027,7 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
     //me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
     // event.message);
     event.preventDefault();
-    req.errback(request.error);
+    req.setDbValue(request.error, true);
   };
 };
 
@@ -1125,7 +1101,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(req,
         window.console.log([store_name, ids, i, event]);
       }
       event.preventDefault();
-      req.errback(request.error);
+      req.setDbValue(request.error, true);
     };
 
   };
@@ -1186,7 +1162,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(req, keys) {
         window.console.log([keys, event]);
       }
       event.preventDefault();
-      req.errback(request.error);
+      req.setDbValue(request.error, true);
     };
 
   };
@@ -1242,7 +1218,7 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
       window.console.log(event);
     }
     event.preventDefault();
-    req.errback(request.error);
+    req.setDbValue(request.error, true);
   };
 
 };

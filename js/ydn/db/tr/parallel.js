@@ -383,7 +383,8 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
 /**
  * @inheritDoc
  */
-ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode) {
+ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode,
+                                                opt_on_complete) {
   var req = new ydn.db.Request(method);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
@@ -402,7 +403,7 @@ ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode) {
     me.r_no_++;
     var rq_label = me.getLabel() + 'R' + me.r_no_;
     req.setTx(tx, rq_label);
-  }, store_names, mode);
+  }, store_names, mode, opt_on_complete);
   return req;
 };
 

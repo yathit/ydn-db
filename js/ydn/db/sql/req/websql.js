@@ -90,11 +90,7 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(rq, sql, params) {
      * @param {boolean=} opt_error true if error.
      */
     var df = function(x, opt_error) {
-      if (opt_error) {
-        rq.errback(x);
-      } else {
-        rq.setDbValue(x);
-      }
+      rq.setDbValue(x, opt_error);
     };
 
     node.execute(df, /** @type {SQLTransaction} */ (rq.getTx()), params);

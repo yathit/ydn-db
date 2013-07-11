@@ -57,6 +57,40 @@ ydn.db.tr.AtomicParallel.prototype.reusedTx = function(scopes, mode) {
 /**
  * @inheritDoc
  */
+ydn.db.tr.AtomicParallel.prototype.request = function(method, scope, opt_mode) {
+  var req_setDbValue, result, is_error;
+
+  /**
+   * @param {ydn.db.base.TxEventTypes} t event type.
+   * @param {*} e error.
+   */
+  var onComplete = function(t, e) {
+    // console.log('onComplete', t, result);
+    req.removeTx();
+    if (t != ydn.db.base.TxEventTypes.COMPLETE) {
+      req_setDbValue(e, true);
+    } else if (req_setDbValue) {
+      req_setDbValue(result, is_error);
+    } else {
+      var err = new ydn.db.TimeoutError();
+      req.errback(err);
+    }
+  };
+  var req = goog.base(this, 'request', method, scope, opt_mode, onComplete);
+  // intersect request result to make atomic
+  req.addTransform(function(value, has_error, rtn) {
+    // console.log('req success', value);
+    is_error = has_error;
+    result = value;
+    req_setDbValue = rtn;
+  });
+  return req;
+};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.tr.AtomicParallel.prototype.exec = function(df, callback, store_names,
     mode, on_completed) {
   // intersect request result to make atomic

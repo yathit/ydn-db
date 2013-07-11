@@ -113,22 +113,24 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(rq, req) {
   }
 
   if (!goog.isNull(sel_fields)) {
-
-    rq.addTransform(function(records, cb) {
-      var out = records.map(function(record) {
-        var n = sel_fields.length;
-        if (n == 1) {
-          return ydn.db.utils.getValueByKeys(record, sel_fields[0]);
-        } else {
-          var obj = {};
-          for (var i = 0; i < n; i++) {
-            obj[sel_fields[i]] = ydn.db.utils.getValueByKeys(record,
-                sel_fields[i]);
+    rq.addTransform(function(records, is_error, cb) {
+      var out = records;
+      if (!is_error) {
+        out = records.map(function(record) {
+          var n = sel_fields.length;
+          if (n == 1) {
+            return ydn.db.utils.getValueByKeys(record, sel_fields[0]);
+          } else {
+            var obj = {};
+            for (var i = 0; i < n; i++) {
+              obj[sel_fields[i]] = ydn.db.utils.getValueByKeys(record,
+                  sel_fields[i]);
+            }
+            return obj;
           }
-          return obj;
-        }
-      });
-      cb(out);
+        });
+      }
+      cb(out, is_error);
     });
   }
 

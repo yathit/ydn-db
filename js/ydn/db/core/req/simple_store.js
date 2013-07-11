@@ -56,8 +56,7 @@ ydn.db.core.req.SimpleStore.prototype.keysByIterator = function(rq,
   this.logger.finest(msg);
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onFail = function(e) {
-    me.logger.warning('error:' + msg);
-    rq.errback(e);
+    rq.setDbValue(e, true);
   };
   var count = 0;
   var cued = false;
@@ -111,7 +110,7 @@ ydn.db.core.req.SimpleStore.prototype.iterate_ = function(mth, rq,
   var cursor = iter.iterate(tx, tx_no, this);
   cursor.onFail = function(e) {
     cursor.exit();
-    rq.errback(e);
+    rq.setDbValue(e, true);
   };
   var count = 0;
   var cued = false;

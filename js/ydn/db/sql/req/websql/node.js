@@ -105,7 +105,8 @@ ydn.db.sql.req.websql.Node.prototype.parseRow = function(row) {
   } else {
     var obj = {};
     for (var i = 0; i < this.sel_fields_.length; i++) {
-      obj[this.sel_fields_[i]] = goog.object.getValueByKeys(row, this.sel_fields_[i]);
+      obj[this.sel_fields_[i]] = goog.object.getValueByKeys(row,
+          this.sel_fields_[i]);
     }
     return obj;
   }
