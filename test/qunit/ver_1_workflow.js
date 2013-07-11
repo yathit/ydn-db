@@ -63,15 +63,14 @@ var events_schema = {
 
   module("Storage Event", test_env);
 
-  asyncTest("connected to a new database and existing", 15, function () {
+  asyncTest("connected to a new database and existing", 12, function () {
 
     var db = new ydn.db.Storage(db_name_event, schema);
 
     db.addEventListener('ready', function (e) {
-      equal(e.name, 'StorageEvent', 'event name');
+      equal(e.name, 'ReadyEvent', 'event name');
       equal(e.type, 'ready', 'event type');
       equal(e.getVersion(), 1, 'version number');
-      equal(e.getError(), null, 'no error');
       ok(isNaN(e.getOldVersion()), 'old version number');
 
       db.values(store_inline).always(function () {
@@ -81,11 +80,10 @@ var events_schema = {
         db = new ydn.db.Storage(db_name_event, schema);
 
         db.addEventListener('ready', function (e) {
-          equal(e.name, 'StorageEvent', 'event name');
+          equal(e.name, 'ReadyEvent', 'event name');
           equal(e.type, 'ready', 'event type');
           equal(e.getVersion(), 1, 'version number');
           equal(e.getOldVersion(), 1, 'old version number, existing');
-          equal(e.getError(), null, 'no error');
           db.values(store_inline).always(function () {
 
             db.close();
@@ -101,11 +99,11 @@ var events_schema = {
             db = new ydn.db.Storage(db_name_event, new_schema);
 
             db.addEventListener('ready', function (e) {
-              equal(e.name, 'StorageEvent', 'event name');
+              equal(e.name, 'ReadyEvent', 'event name');
               equal(e.type, 'ready', 'event type');
               equal(e.getVersion(), 2, 'updated version number');
               equal(e.getOldVersion(), 1, 'old version number, existing db, new schema');
-              equal(e.getError(), null, 'no error');
+
               var type = db.getType();
               db.values(tb_name).always(function () { // make sure all run.
                 db.close();
@@ -412,9 +410,9 @@ var events_schema = {
       }
     };
 
-    db.put(st1, obj).always(function (key) {
+    var req1 = db.put(st1, obj).always(function (key) {
       equal(obj.id, key, 'aborted store key');
-      db.abort();
+      req1.abort();
     });
     db.get(st1, obj.id).always(function (result) {
       equal(undefined, result, 'aborted store result');
@@ -429,10 +427,10 @@ var events_schema = {
       done();
     });
 
-    adb.put(st3, obj).always(function (key) {
+    var req3 = adb.put(st3, obj).always(function (key) {
       equal(obj.id, key, 'atomic store key');
       throws (function () { // this is an assertion too
-        db.abort();
+        req3.abort();
       }, undefined, 'atomic tx cannot be aborted');
     });
 
@@ -486,11 +484,11 @@ var events_schema = {
       }
     };
 
-    db.run(function (tdb) {
+    var req = db.run(function (tdb) {
       tdb.put('s1', obj).always(function (key) {
         tdb.get('s1', obj.id).then(function (result) {
           equal(obj.value, result.value, 'store 1 result');
-          tdb.abort();
+          req.abort();
         }, function (e) {
           ok(false, 'store 1 get not error');
         });
