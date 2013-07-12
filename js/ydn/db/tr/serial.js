@@ -418,6 +418,19 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
           throw new ydn.debug.error.ArgumentException('store name at ' + i +
               ' must be string but found ' + names[i] +
               ' of type ' + typeof names[i]);
+        } else if (this.scope_store_names_) {
+          if (!goog.array.contains(this.scope_store_names_, names[i])) {
+            throw new ydn.debug.error.ArgumentException('store name "' + i +
+                names[i] + '" in scope of ' + this);
+          }
+        } else {
+          // todo: check with auto schema
+          /*
+          if (!this.getStorage().hasStore(names[i])) {
+            throw new ydn.debug.error.ArgumentException('store name "' + i +
+                names[i] + '" in the schema.');
+          }
+          */
         }
       }
     }

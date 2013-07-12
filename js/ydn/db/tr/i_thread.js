@@ -60,10 +60,15 @@ ydn.db.tr.IThread.prototype.abort = goog.abstractMethod;
 
 
 /**
- *
  * @return {number}
  */
 ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
+
+
+/**
+ * @return {string}
+ */
+ydn.db.tr.IThread.prototype.getLabel = goog.abstractMethod;
 
 
 /**

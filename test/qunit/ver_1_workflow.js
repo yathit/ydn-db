@@ -319,14 +319,13 @@ var events_schema = {
 
   module("Run in transaction", test_env);
 
-  asyncTest("all four crud operations in one transaction", function () {
-    expect(4);
+  asyncTest("all requests in one transaction", 4, function () {
 
     var db_name = 'test_run_1';
 
     var db = new ydn.db.Storage(db_name, events_schema);
 
-    db.run(function(tdb) {
+    var req = db.run(function(tdb) {
       var key1 = Math.ceil(Math.random() * 100000);
       var obj = {test: 'first value', id: key1};
 
@@ -344,12 +343,13 @@ var events_schema = {
       tdb.clear(store_inline).always(function(x) {
         equal(1, x, 'clear');
       });
-    }, null, 'readwrite', function() {
+    }, null, 'readwrite');
+    req.always(function() {
       start();
       var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
-    })
+    });
 
   });
 
@@ -494,7 +494,9 @@ var events_schema = {
         });
       });
 
-    }, ['s1'], 'readwrite', function (t, e) {
+    }, ['s1'], 'readwrite');
+    req.always(function (x) {
+      console.log(x);
       db.get('s1', obj.id).always(function (result) {
         equal(undefined, result, 'aborted store 1 done result');
         done();
@@ -508,7 +510,7 @@ var events_schema = {
         });
       });
 
-    }, ['s2'], 'readwrite', function (t, e) {
+    }, ['s2'], 'readwrite').always(function (t, e) {
       db.get('s2', obj.id).always(function (result) {
         equal(obj.value, result.value, 'store 2 done result');
         done();

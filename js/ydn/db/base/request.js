@@ -396,6 +396,7 @@ ydn.db.Request.Method = {
   REMOVE: 'rms',
   REMOVE_KEYS: 'rmk',
   REMOVE_INDEX: 'rmi',
+  RUN: 'run',
   SQL: 'sql',
   VALUES: 'vs',
   VALUES_ITER: 'vsi',

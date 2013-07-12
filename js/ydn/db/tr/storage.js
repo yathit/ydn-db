@@ -192,20 +192,26 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(request_type, opt_is_serial,
  * Run a new transaction.
  * @param {function(!ydn.db.tr.DbOperator)} trFn function that invoke in the
  * transaction.
- * @param {!Array.<string>} store_names list of keys or
- * store name involved in the transaction.
+ * @param {Array.<string>=} opt_store_names list of store name involved in the
+ * transaction. Default to all store names.
  * @param {ydn.db.base.StandardTransactionMode=} opt_mode mode, default to
  * 'readonly'.
- * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted event
- * handler on completed.
- * @param {...} args optional arguments to post-pend to callback function.
+ * @return {!ydn.db.Request}
+ * @final
  */
-ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
-                                           opt_oncompleted, args) {
+ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
 
+  if (arguments.length > 3) {
+    throw new ydn.debug.error.ArgumentException('too many input arguments, ' +
+        'run accept not more than 3 input arguments, but ' +
+        arguments.length + ' found.');
+  }
   var me = this;
   this.ptx_no++;
 
+  var store_names = opt_store_names || this.schema.getStoreNames();
+
+  // NOTE: ydn.db.base.TransactionMode can be number (as in old definition).
   var mode = ydn.db.base.TransactionMode.READ_ONLY;
   if (opt_mode) {
     if (opt_mode == ydn.db.base.StandardTransactionMode.READ_WRITE) {
@@ -218,47 +224,27 @@ ydn.db.tr.Storage.prototype.run = function(trFn, store_names, opt_mode,
 
   var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.ALL, false,
       store_names, mode, 1);
+  var req = tx_thread.request(ydn.db.Request.Method.RUN, store_names, mode);
   var db_operator = this.newOperator(tx_thread, this.sync_thread);
 
-  if (!goog.isDefAndNotNull(store_names)) {
-    store_names = this.schema.getStoreNames();
-  }
-  if (goog.DEBUG) {
-    if (!goog.isArrayLike(store_names)) { // could be  DOMStringList or Array
-      throw new ydn.debug.error.ArgumentException(
-          'store names must be an array');
-    } else if (store_names.length == 0) {
-      throw new ydn.debug.error.ArgumentException(
-          'number of store names must more than 0');
-    } else {
-      for (var i = 0; i < store_names.length; i++) {
-        if (!goog.isString(store_names[i])) {
-          throw new ydn.debug.error.ArgumentException('store name at ' + i +
-              ' must be string but found ' + typeof store_names[i]);
-        }
-      }
+  var onComplete = function(type, e) {
+    var success = type === ydn.db.base.TxEventTypes.COMPLETE;
+    var result = e;
+    if (success) {
+      result = tx_thread.getTxNo();
     }
-  }
-
-  var outFn = trFn;
-  if (arguments.length > 4) { // handle optional parameters
-    var ex_args = Array.prototype.slice.call(arguments, 4);
-    outFn = function() {
-      var newArgs = Array.prototype.slice.call(arguments);
-      newArgs = newArgs.concat(ex_args); // post-apply
-      return trFn.apply(this, newArgs);
-    };
-  }
-
+    req.setDbValue(result, !success);
+  };
   this.logger.finest('scheduling run in transaction with ' + tx_thread);
   // outFn(/** @type {!ydn.db.tr.IStorage} */ (db_operator));
 
   tx_thread.processTx(function(tx) {
     me.logger.finest('executing run in transaction on ' + tx_thread);
-    outFn(db_operator);
-    outFn = null;
-  }, store_names, mode, opt_oncompleted);
+    req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
+    trFn(db_operator);
+  }, store_names, mode, onComplete);
 
+  return req;
 };
 
 
