@@ -244,7 +244,7 @@ ydn.db.Request.prototype.setDbValue = function(value, opt_failed) {
 
 /**
  * Add db value transformer. Transformers are invoked successively.
- * @param {function(*, boolean, function(this: T, *, boolean=))} tr a
+ * @param {function(this: T, *, boolean, function(*, boolean=))} tr a
  * transformer.
  * @param {T=} opt_scope An optional scope to call the await in.
  * @template T
