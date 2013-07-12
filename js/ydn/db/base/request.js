@@ -80,7 +80,7 @@ ydn.db.Request = function(method, opt_onCancelFunction, opt_defaultScope) {
   this.txbacks_ = [];
   /**
    * request branches.
-   * @type {!Array.<function(*, boolean, function(*, boolean))>}
+   * @type {!Array.<!Array>}
    * @private
    */
   this.transformers_ = [];
@@ -157,6 +157,13 @@ ydn.db.Request.prototype.getTx = function() {
   return this.tx_;
 };
 
+/**
+ * @return {ydn.db.Request.Method}
+ */
+ydn.db.Request.prototype.getMethod = function() {
+  return this.method_;
+};
+
 
 /**
  * @return {boolean}
@@ -220,7 +227,9 @@ ydn.db.Request.prototype.setDbValue = function(value, opt_failed) {
   var failed = !!opt_failed;
   if (tr) {
     var me = this;
-    tr(value, failed, function(tx_value, f2) {
+    var fn = tr[0];
+    var scope = tr[1];
+    fn.call(scope, value, failed, function(tx_value, f2) {
       me.setDbValue(tx_value, f2);
     });
   } else {
@@ -235,13 +244,16 @@ ydn.db.Request.prototype.setDbValue = function(value, opt_failed) {
 
 /**
  * Add db value transformer. Transformers are invoked successively.
- * @param {function(*, function(*))} tr a transformer.
+ * @param {function(*, boolean, function(this: T, *, boolean=))} tr a
+ * transformer.
+ * @param {T=} opt_scope An optional scope to call the await in.
+ * @template T
  * @see {goog.async.Deferred#awaitDeferred}
  */
-ydn.db.Request.prototype.await = function(tr) {
+ydn.db.Request.prototype.await = function(tr, opt_scope) {
   goog.asserts.assert(!this.hasFired(), 'transformer cannot be added after' +
       ' resolved.');
-  this.transformers_.push(tr);
+  this.transformers_.push([tr, opt_scope]);
 };
 
 

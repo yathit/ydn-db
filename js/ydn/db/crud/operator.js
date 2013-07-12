@@ -122,6 +122,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     //console.log('waiting to count');
     this.logger.finer('countStores: ' + ydn.json.stringify(store_names));
     req = this.tx_thread.request(ydn.db.Request.Method.COUNT, store_names);
+
     req.addTxback(function() {
       //console.log('counting');
       this.getExecutor().countStores(req, store_names);
@@ -217,9 +218,10 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
      */
     var k = arg1;
     var k_store_name = k.getStoreName();
-    if (!this.schema.hasStore(k_store_name)) {
+    var store = this.schema.getStore(k_store_name);
+    if (!store) {
       if (this.schema.isAutoSchema()) {
-        return goog.async.Deferred.succeed(undefined);
+        return ydn.db.Request.succeed(ydn.db.Request.Method.GET, undefined);
       } else {
         throw new ydn.debug.error.ArgumentException('Store: ' +
             k_store_name + ' not found.');
@@ -229,6 +231,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     var kid = k.getId();
     this.logger.finer('getByKey: ' + k_store_name + ':' + kid);
     req = this.tx_thread.request(ydn.db.Request.Method.GET, [k_store_name]);
+    store.hook(req, arguments);
     req.addTxback(function() {
       this.getExecutor().getById(req, k_store_name, kid);
     }, this);

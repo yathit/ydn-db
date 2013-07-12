@@ -998,12 +998,10 @@ ydn.db.schema.Store.prototype.generateIndex = function(obj) {
  * Override this function to attach the hook. The default implementation is
  * immediately invoke the given callback with first variable argument.
  * to preserve database operation order, preHook call is not waited.
- * @param {ydn.db.Request.Method} method
- * @param {!goog.async.Deferred} df deferred from database operation.
+ * @param {!ydn.db.Request} df deferred from database operation.
  * @param {Arguments} args arguments to the db method.
- * @return {!goog.async.Deferred} deferred for output.
  */
-ydn.db.schema.Store.prototype.hook = function(method, df, args) {
-  return df;
+ydn.db.schema.Store.prototype.hook = function(df, args) {
+  // do sync logic.
 };
 
