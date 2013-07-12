@@ -228,6 +228,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
   var db_operator = this.newOperator(tx_thread, this.sync_thread);
 
   var onComplete = function(type, e) {
+    req.removeTx();
     var success = type === ydn.db.base.TxEventTypes.COMPLETE;
     var result = e;
     if (success) {
