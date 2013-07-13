@@ -62,18 +62,29 @@ var continuous_request_test = function(policy, is_serial, exp_tx_no) {
       100, // interval
       2000); // maxTimeout
 
-  db.put(table_name, val).addBoth(function() {
-    tx_no.push(db.getTxNo());
-    db.get(table_name, 'a').addBoth(function (r) {
-      tx_no.push(db.getTxNo());
+  var req_put2 = db.put(table_name, val).addBoth(function() {
+    tx_no.push(req2TxNo(req_put2));
+    var req1 = db.get(table_name, 'a').addBoth(function (r) {
+      tx_no.push(req2TxNo(req1));
     });
-    db.get(table_name, 'a').addBoth(function (x) {
+    var req2 = db.get(table_name, 'a').addBoth(function (x) {
       result = x;
-      tx_no.push(db.getTxNo());
+      tx_no.push(req2TxNo(req2));
       t1_fired = true;
     });
   });
 
+};
+
+
+/**
+ * @param {ydn.db.Request} req
+ * @return {number}
+ */
+var req2TxNo = function(req) {
+  var label = req.valueOf();
+  console.log(label)
+  return parseFloat(label.match(/T(\d+)/)[1]);
 };
 
 
@@ -103,15 +114,17 @@ var committed_continuous_request_test = function(policy, is_serial, exp_tx_no) {
     100, // interval
     2000); // maxTimeout
 
-  db.run(function(tdb) {
+  var req = db.run(function(tdb) {
     tdb.put(table_name, val);
-  }, [table_name], 'readwrite', function (t) {
-    db.get(table_name, 'a').addBoth(function (r) {
-      tx_no.push(db.getTxNo());
+  }, [table_name], 'readwrite');
+
+  req.addBoth(function (t) {
+    var req_get1 = db.get(table_name, 'a').addBoth(function (r) {
+      tx_no.push(req2TxNo(req_get1));
     });
-    db.get(table_name, 'a').addBoth(function (x) {
+    var req2 = db.get(table_name, 'a').addBoth(function (x) {
       result = x;
-      tx_no.push(db.getTxNo());
+      tx_no.push(req2TxNo(req2));
       t1_fired = true;
       ydn.db.deleteDatabase(db.getName(), db.getType());
       db.close();
@@ -148,10 +161,10 @@ var nested_request_test = function(policy, is_serial, exp_tx_no) {
       100, // interval
       2000); // maxTimeout
 
-  db.put(table_name, val).addBoth(function() {
-    tx_no.push(db.getTxNo());
-    db.get(table_name, 'a').addBoth(function (r) {
-      tx_no.push(db.getTxNo());
+  var req_put1 = db.put(table_name, val).addBoth(function() {
+    tx_no.push(req2TxNo(req_put1));
+    var req_get1 = db.get(table_name, 'a').addBoth(function (r) {
+      tx_no.push(req2TxNo(req_get1));
       // do some heavy DOM
       var root = document.createElement('div');
       root.textContent = policy;
@@ -164,9 +177,9 @@ var nested_request_test = function(policy, is_serial, exp_tx_no) {
         parent = div;
       }
 
-      db.get(table_name, 'a').addBoth(function (x) {
+      var req1 = db.get(table_name, 'a').addBoth(function (x) {
         result = x;
-        tx_no.push(db.getTxNo());
+        tx_no.push(req2TxNo(req1));
         document.body.removeChild(root);
         t1_fired = true;
       });

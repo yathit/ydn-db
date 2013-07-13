@@ -23,7 +23,7 @@ ydn.db.crud.IOperator = function() {};
  * @param {(string|ydn.db.KeyRange)=} key_range_index key range.
  * @param {ydn.db.KeyRange=} opt_key_range key range.
  * @param {boolean=} unique count unique index key.
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @return {!ydn.db.Request} return object in deferred function.
  */
 ydn.db.crud.IOperator.prototype.count = goog.abstractMethod;
 
@@ -34,7 +34,7 @@ ydn.db.crud.IOperator.prototype.count = goog.abstractMethod;
  * @param {(!Object|!IDBKey)=} arg2
  * object key to be retrieved, if not provided,
  * all entries in the store will return.
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @return {!ydn.db.Request} return object in deferred function.
  */
 ydn.db.crud.IOperator.prototype.get = goog.abstractMethod;
 
@@ -48,7 +48,7 @@ ydn.db.crud.IOperator.prototype.get = goog.abstractMethod;
  * @param {number=} arg4 offset.
  * @param {(boolean|number)=} arg5 index name.
  * @param {boolean=} arg6 reverse.
- * @return {!goog.async.Deferred} return object in deferred function.
+ * @return {!ydn.db.Request} return object in deferred function.
  */
 ydn.db.crud.IOperator.prototype.values = goog.abstractMethod;
 
@@ -62,7 +62,7 @@ ydn.db.crud.IOperator.prototype.values = goog.abstractMethod;
  * @param {number=} arg3 offset or limit.
  * @param {(boolean|number)=} arg4 reverse or offset.
  * @param {boolean=} arg5 reverse.
- * @return {!goog.async.Deferred} result promise.
+ * @return {!ydn.db.Request} result promise.
  */
 ydn.db.crud.IOperator.prototype.keys = goog.abstractMethod;
 
@@ -73,7 +73,7 @@ ydn.db.crud.IOperator.prototype.keys = goog.abstractMethod;
  * schema.
  * @param {!Object|!Array.<!Object>} value object to put.
  * @param {*=} opt_keys out-of-line keys.
- * @return {!goog.async.Deferred} return newly created keys in promise.
+ * @return {!ydn.db.Request} return newly created keys in promise.
  */
 ydn.db.crud.IOperator.prototype.add = goog.abstractMethod;
 
@@ -93,7 +93,7 @@ ydn.db.crud.IOperator.prototype.load = goog.abstractMethod;
  * or schema, key or array of keys.
  * @param {!Object|!Array.<!Object>} value object to put.
  * @param {IDBKey|!Array.<IDBKey>=} opt_keys out-of-line keys.
- * @return {!goog.async.Deferred} return newly created keys in promise.
+ * @return {!ydn.db.Request} return newly created keys in promise.
  */
 ydn.db.crud.IOperator.prototype.put = goog.abstractMethod;
 
@@ -107,7 +107,7 @@ ydn.db.crud.IOperator.prototype.put = goog.abstractMethod;
  * specific row.
  * @param {*=} arg3 argument control.
  * @see {@link #remove}
- * @return {!goog.async.Deferred} return a deferred function.
+ * @return {!ydn.db.Request} return a deferred function.
  */
 ydn.db.crud.IOperator.prototype.clear = goog.abstractMethod;
 
@@ -121,6 +121,6 @@ ydn.db.crud.IOperator.prototype.clear = goog.abstractMethod;
  * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} arg3 delete a specific key or
  * key range.
  * @see {@link #remove}
- * @return {!goog.async.Deferred} return number of record removed a deferred function.
+ * @return {!ydn.db.Request} return number of record removed a deferred function.
  */
 ydn.db.crud.IOperator.prototype.remove = goog.abstractMethod;

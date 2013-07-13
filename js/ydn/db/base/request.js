@@ -372,6 +372,13 @@ if (goog.DEBUG) {
   ydn.db.Request.prototype.toString = function() {
     return 'Request:' + this.getLabel();
   };
+
+  /**
+   * @inheritDoc
+   */
+  ydn.db.Request.prototype.valueOf = function() {
+    return this.tx_label_;
+  };
 }
 
 

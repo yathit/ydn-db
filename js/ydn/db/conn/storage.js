@@ -403,6 +403,25 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       me.logger.finest(me + ': ready.');
       me.last_queue_checkin_ = NaN;
 
+      /**
+       * Error event received from the database. Bubble up to the application
+       * for logging purpose.
+       * @param {Error} e event.
+       */
+      db.onError = function(e) {
+        var event = new ydn.db.events.StorageErrorEvent(me, e);
+        me.dispatchEvent(event);
+      };
+
+      /**
+       * @param {Error} e event.
+       */
+      db.onFail = function(e) {
+        var event = new ydn.db.events.StorageFailEvent(me, e);
+        me.dispatchEvent(event);
+        me.db_ = null; // database can no longer be used on fail.
+      };
+
       goog.Timer.callOnce(function() {
         // dispatch asynchroniously so that any err on running db request
         // are not caught under deferred object.
@@ -410,16 +429,15 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
         me.onReady(ev);
         me.popTxQueue_();
       });
-      df.callback(ev);
 
+      df.callback(ev);
     } else {
       me.logger.warning(me + ': database connection fail ' + ev.name);
-
       goog.Timer.callOnce(function() {
-        me.onReady(ev);
+        var event = new ydn.db.events.StorageFailEvent(me, e);
+        me.dispatchEvent(event);
         me.purgeTxQueue_(ev);
       });
-
       df.errback(ev);
     }
   };
@@ -475,17 +493,6 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY,
           this, parseFloat(db.getVersion()), parseFloat(old_version), null);
       resolve(true, event);
-
-      /**
-       * @param {Error} e event.
-       */
-      db.onFail = function(e) {
-
-        me.logger.finest(this + ': disconnected.');
-        var event = new ydn.db.events.StorageFailEvent(me, e);
-        me.dispatchEvent(event);
-        me.db_ = null;
-      };
     }, function(e) {
       this.logger.warning(this + ': opening fail');
       resolve(false, e);
