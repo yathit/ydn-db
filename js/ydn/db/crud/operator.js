@@ -22,9 +22,9 @@
 goog.provide('ydn.db.crud.DbOperator');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db');
-goog.require('ydn.db.Request');
 goog.require('ydn.db.ISyncOperator');
 goog.require('ydn.db.Key');
+goog.require('ydn.db.Request');
 goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.DbOperator');
@@ -219,7 +219,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     var k_store_name = k.getStoreName();
     if (!this.schema.hasStore(k_store_name)) {
       if (this.schema.isAutoSchema()) {
-        return goog.async.Deferred.succeed(undefined);
+        return ydn.db.Request.succeed(ydn.db.Request.Method.GET, undefined);
       } else {
         throw new ydn.debug.error.ArgumentException('Store: ' +
             k_store_name + ' not found.');
@@ -237,7 +237,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     var store = this.schema.getStore(store_name);
     if (!store) {
       if (this.schema.isAutoSchema()) {
-        return goog.async.Deferred.succeed(undefined);
+        return ydn.db.Request.succeed(ydn.db.Request.Method.GET, undefined);
       } else {
         throw new ydn.debug.error.ArgumentException('Store name "' +
             store_name + '" not found.');
@@ -440,7 +440,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
     var store = this.schema.getStore(store_name);
     if (!store) {
       if (this.schema.isAutoSchema()) {
-        return goog.async.Deferred.succeed([]);
+        return ydn.db.Request.succeed(ydn.db.Request.Method.GET, []);
       } else {
         throw new ydn.db.NotFoundError(store_name);
       }
@@ -564,7 +564,8 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
             var fail_array = [];
             // I think more efficient than: fail_array.length = keys.length;
             fail_array[keys.length - 1] = undefined;
-            return goog.async.Deferred.succeed(fail_array);
+            return ydn.db.Request.succeed(ydn.db.Request.Method.GET,
+                fail_array);
           } else {
             throw new ydn.debug.error.ArgumentException('Store: ' +
                 i_store_name + ' not found.');
