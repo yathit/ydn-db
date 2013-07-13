@@ -82,9 +82,7 @@ var continuous_request_test = function(policy, is_serial, exp_tx_no) {
  * @return {number}
  */
 var req2TxNo = function(req) {
-  var label = req.valueOf();
-  console.log(label)
-  return parseFloat(label.match(/T(\d+)/)[1]);
+  return parseFloat(req.toJSON().transactionNo);
 };
 
 

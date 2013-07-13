@@ -379,6 +379,19 @@ if (goog.DEBUG) {
   ydn.db.Request.prototype.valueOf = function() {
     return this.tx_label_;
   };
+
+  /**
+   * @inheritDoc
+   */
+  ydn.db.Request.prototype.toJSON = function() {
+    var label = this.tx_label_ || '';
+    return {
+      'method': this.method_ ? this.method_.split(':') : [],
+      'branchNo': parseFloat(label.match(/B(\d+)/)[1]),
+      'transactionNo': parseFloat(label.match(/T(\d+)/)[1]),
+      'requestNo': parseFloat(label.match(/R(\d+)/)[1])
+    };
+  };
 }
 
 
