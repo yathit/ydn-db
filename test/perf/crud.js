@@ -30,7 +30,7 @@ var schema = {
 var db = new ydn.db.Storage(db_name, schema);
 
 
-var testPutSmall = function(db, data, onComplete, n) {
+var testPutTightSmall = function(db, data, onComplete, n) {
   // small data put test
   var small_data = {foo: 'bar'};
   for (var i = 0; i < n; i++) {
@@ -41,6 +41,23 @@ var testPutSmall = function(db, data, onComplete, n) {
       });
     }
   }
+};
+
+
+var testPutSmall = function(db, data, onComplete, n) {
+  var small_data = {foo: 'bar'};
+  var test = function(i) {
+    var req = db.put('st', small_data);
+    i++;
+    req.always(function(x) {
+      if (i == n) {
+        onComplete(); // timer end
+      } else {
+        test(i);
+      }
+    });
+  };
+  test(0);
 };
 
 
@@ -104,7 +121,7 @@ var initGetSmall = function(onComplete, n) {
   });
 };
 
-var testGetSmall = function(db, data, onComplete, n) {
+var testGetTightSmall = function(db, data, onComplete, n) {
   // small data put test
   var cnt = 0;
   for (var i = 0; i < n; i++) {
@@ -116,8 +133,25 @@ var testGetSmall = function(db, data, onComplete, n) {
         onComplete(); // timer end
       }
     });
-  };
+  }
+};
 
+
+var testGetSmall = function(db, data, onComplete, n) {
+  // small data put test
+  var test = function(i) {
+    var id = (n * Math.random()) | 0;
+    var req = db.get('st', id);
+    i++;
+    req.always(function(x) {
+      if (i == n) {
+        onComplete(); // timer end
+      } else {
+        test(i);
+      }
+    });
+  };
+  test(0);
 };
 
 
@@ -147,12 +181,12 @@ var testKeysKeyRangeSmall = function(db, start, onComplete, n) {
 var initBigData = function(cb, n) {
   var long =  (new Array(1000)).join(
       (new Array(10)).join('abcdefghijklmnopuqstubc'));
-  var arr = [];
-  for (var i = 0; i < 16; i++) {
-    arr[i] = Math.random();
-  }
   var data = [];
   for (var i = 0; i < n; i++) {
+    var arr = [];
+    for (var j = 0; j < 16; j++) {
+      arr[j] = Math.random();
+    }
     data[i] = {
       load: long,
       n: Math.random(),
@@ -270,9 +304,11 @@ var valuesIndexIterBig = function(db, start, onComplete, n) {
 var pref = new Pref(db);
 
  pref.addTest('Put (small-object)', testPutSmall, initClear, 100, 10);
+ pref.addTest('Put tight loop (small-object)', testPutTightSmall, initClear, 100, 10);
  pref.addTest('Put array (small-object)', testPutArraySmall, initPutArraySmall, 100, 10);
  pref.addTest('Put on a transaction (small-object)', testPutOnRunSmall, initClear, 100, 10);
  pref.addTest('Get (small-object)', testGetSmall, initGetSmall, 100, 10);
+ pref.addTest('Get tight loop (small-object)', testGetTightSmall, initGetSmall, 100, 10);
  pref.addTest('Values by key range (small-object)', testValuesKeyRangeSmall, null, 100, 10);
  pref.addTest('Keys by key range (small-object)', testKeysKeyRangeSmall, null, 100, 10);
 
