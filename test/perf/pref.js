@@ -93,7 +93,7 @@ RowView.prototype.addResult = function(idx, op_sec) {
       var stdDev = RowView.std(mean, scores);
       var stdErr = stdDev / sqrtCount;
       var tDist = RowView.tDist(count);
-      var error = ' ± ' + ((tDist * stdErr / mean) * 100).toFixed(1) + '% ';
+      var error = ' ± ' + ((tDist * stdErr / mean) * 100).toFixed(1) + '%';
       td.innerHTML = '<span>' + (mean | 0) + '</span><sup>' + error + '</sup>';
     } else {
       td.textContent = (mean | 0);

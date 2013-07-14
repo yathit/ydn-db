@@ -106,19 +106,18 @@ var initGetSmall = function(onComplete, n) {
 
 var testGetSmall = function(db, data, onComplete, n) {
   // small data put test
-  var test = function(i) {
+  var cnt = 0;
+  for (var i = 0; i < n; i++) {
     var id = (n * Math.random()) | 0;
     var req = db.get('st', id);
-    i++;
     req.always(function(x) {
-      if (i == n) {
+      cnt++;
+      if (cnt == n) {
         onComplete(); // timer end
-      } else {
-        test(i);
       }
     });
   };
-  test(0);
+
 };
 
 
