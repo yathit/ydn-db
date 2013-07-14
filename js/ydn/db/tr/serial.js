@@ -480,25 +480,14 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       } else {
         me.logger.fine(label + ' COMMITTED' + ' with ' + type);
       }
-      /**
-       * @preserve _try.
-       */
-      try {
-        var fn;
-        // console.log(me + ' ' + me.completed_handlers.length + ' found.');
-        while (fn = me.completed_handlers.shift()) {
-          fn(type, event);
-        }
-      } catch (e) {
-        // swallow error. document it publicly.
-        // this is necessary to continue transaction queue
-        if (goog.DEBUG) {
-          throw e;
-        }
-      } finally {
-        me.mu_tx_.down(type, event);
-        me.popTxQueue_();
+      // console.log(me + ' ' + me.completed_handlers.length + ' found.');
+      for (var j = 0; j < me.completed_handlers.length; j++) {
+        var fn = me.completed_handlers[j];
+        fn(type, event);
       }
+      me.completed_handlers.length = 0;
+      me.mu_tx_.down(type, event);
+      me.popTxQueue_();
       me.r_no_ = 0;
     };
 
