@@ -270,17 +270,17 @@ var valuesIndexIterBig = function(db, start, onComplete, n) {
 
 var pref = new Pref(db);
 
- pref.addTest('Put (small-object)', testPutSmall, initClear, 1000);
- pref.addTest('Put array (small-object)', testPutArraySmall, initPutArraySmall, 1000);
- pref.addTest('Put on a transaction (small-object)', testPutOnRunSmall, initClear, 1000);
- pref.addTest('Get (small-object)', testGetSmall, initGetSmall, 1000);
- pref.addTest('Values by key range (small-object)', testValuesKeyRangeSmall, null, 1000);
- pref.addTest('Keys by key range (small-object)', testKeysKeyRangeSmall, null, 1000);
+ pref.addTest('Put (small-object)', testPutSmall, initClear, 100, 10);
+ pref.addTest('Put array (small-object)', testPutArraySmall, initPutArraySmall, 100, 10);
+ pref.addTest('Put on a transaction (small-object)', testPutOnRunSmall, initClear, 100, 10);
+ pref.addTest('Get (small-object)', testGetSmall, initGetSmall, 100, 10);
+ pref.addTest('Values by key range (small-object)', testValuesKeyRangeSmall, null, 100, 10);
+ pref.addTest('Keys by key range (small-object)', testKeysKeyRangeSmall, null, 100, 10);
 
- pref.addTest('Put (with indexes)', testPutBig, initBigData, 1000);
+ pref.addTest('Put (with indexes)', testPutBig, initBigData, 20, 5);
 
-pref.addTest('Keys index key range limit 1', keysIndexKeyRangeBig, init100IndexData, 20);
- pref.addTest('Values index key range limit 1', valuesIndexKeyRangeBig, null, 20);
- pref.addTest('Values index key range limit 10', valuesIndexKeyRangeBigLimit5, null, 20);
- pref.addTest('Keys index key range limit 10', keysIndexKeyRangeBigLimit5, null, 20);
+pref.addTest('Keys index key range limit 1', keysIndexKeyRangeBig, init100IndexData, 20, 10);
+ pref.addTest('Values index key range limit 1', valuesIndexKeyRangeBig, null, 20, 10);
+ pref.addTest('Values index key range limit 10', valuesIndexKeyRangeBigLimit5, null, 20, 10);
+ pref.addTest('Keys index key range limit 10', keysIndexKeyRangeBigLimit5, null, 20, 10);
 pref.run();

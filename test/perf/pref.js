@@ -53,48 +53,95 @@ var RowView = function(test) {
  */
 RowView.prototype.ele_result_ = document.getElementById('result-tbody');
 
+
+RowView.std = function(mean, items) {
+  var deltaSquaredSum = 0;
+  for (var i = 0; i < items.length; i++) {
+    var delta = items[i] - mean;
+    deltaSquaredSum += delta * delta;
+  }
+  var variance = deltaSquaredSum / (items.length - 1);
+  return Math.sqrt(variance);
+};
+
+
+RowView.tDist = function(n) {
+  var tDistribution = [NaN, NaN, 12.71, 4.30, 3.18, 2.78, 2.57, 2.45, 2.36, 2.31, 2.26, 2.23, 2.20];
+  return tDistribution[n] || 2.20;
+};
+
+
+/**
+ * Add a new test result.
+ * @param {number} idx index of thread type.
+ * @param {number} op_sec operations per second.
+ */
 RowView.prototype.addResult = function(idx, op_sec) {
+  if (idx == 0) {
+    return;
+  }
   var scores = this.results_[idx];
   var td = this.tr_.children[idx];
+  scores.push(op_sec);
   setTimeout(function() {
-    scores.push(op_sec);
+    // update in separate thread.
     var total = scores.reduce(function(x, p) {return x + p}, 0);
-    var avg = (total / scores.length) | 0;
-    td.textContent = avg;
+    var mean = (total / scores.length);
+    var count = scores.length;
+    if (count > 2) {
+      var sqrtCount = Math.sqrt(count);
+      var stdDev = RowView.std(mean, scores);
+      var stdErr = stdDev / sqrtCount;
+      var tDist = RowView.tDist(count);
+      var error = ' ± ' + ((tDist * stdErr / mean) * 100).toFixed(1) + '% ';
+      td.innerHTML = '<span>' + (mean | 0) + '</span><sup>' + error + '</sup>';
+    } else {
+      td.textContent = (mean | 0);
+    }
   }, 10);
 };
 
 
+/**
+ * @param {Object} test test object.
+ * @param {Function} onFinished callback on finished the test.
+ */
 Pref.prototype.runTest = function(test, onFinished) {
   var me = this;
   var view = new RowView(test);
   var onReady = function(data) {
-    // run test for each thread.
-    var runTest = function(idx) {
-      var start = + new Date();
-      var onComplete = function() {
-        var end = + new Date();
-        var elapse = end - start;
-        var op_sec = (1000 * test.n / elapse) | 0;
-        if (idx > 0) { // first result is discarded
+    var runRepeat = function(lap) {
+      if (lap == test.nRepeat) {
+        onFinished();
+        return;
+      }
+      lap++;
+      // run test for each thread.
+      var runTest = function(idx) {
+        var start = + new Date();
+        var onComplete = function() {
+          var end = + new Date();
+          var elapse = end - start;
+          var op_sec = (1000 * test.nOp / elapse) | 0;
           view.addResult(idx, op_sec);
-        }
-        idx++;
-        if (idx < me.threads.length) {
-          runTest(idx);
-        } else {
-          onFinished();
-        }
+          idx++;
+          if (idx < me.threads.length) {
+            runTest(idx);
+          } else {
+            runRepeat(lap);
+          }
+        };
+        test.test(me.threads[idx], data, onComplete, test.nOp);
       };
-      test.test(me.threads[idx], data, onComplete, test.n);
+      runTest(0);
     };
-    runTest(0);
+    runRepeat(0);
   };
   if (test.init) {
     test.init(function(data) {
       me.prev_data_ = data;
       onReady(data);
-    }, test.n);
+    }, test.nOp);
   } else {
     onReady(me.prev_data_);
   }
@@ -106,15 +153,17 @@ Pref.prototype.runTest = function(test, onFinished) {
  * @param {string} title test title.
  * @param {Function} test test function.
  * @param {Function} init initialization function.
- * @param {number=} n number of op. Default to 1.
+ * @param {number=} nOp number of op. Default to 1.
+ * @param {number=} nRepeat number of op. Default to 1.
  */
-Pref.prototype.addTest = function(title, test, init, n) {
+Pref.prototype.addTest = function(title, test, init, nOp, nRepeat) {
   this.tests_.push({
     db: db,
     title: title,
     test: test,
     init: init,
-    n: n || 1
+    nOp: nOp || 1,
+    nRepeat: nRepeat || 1
   });
 };
 
