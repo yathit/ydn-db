@@ -45,7 +45,7 @@ var testPutSmall = function(db, data, onComplete, n) {
 
 
 var testPutOnRunSmall = function(th_db, data, onComplete, n) {
-  // small data put test
+  // NOTE: thread policy don't metter in this test.
   var small_data = {foo: 'bar'};
   var req = db.run(function(tdb) { // make sure req is committed.
     for (var i = 0; i < n; i++) {

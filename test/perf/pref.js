@@ -42,7 +42,7 @@ var RowView = function(test) {
       test.test.toString() + '</pre></div></details></td>' +
       '<td></td><td></td><td></td><td></td>';
   this.ele_result_.appendChild(tr);
-  this.results_ = [];
+  this.results_ = [[], [], [], [], []];
   this.tr_ = tr;
 };
 
@@ -54,11 +54,12 @@ var RowView = function(test) {
 RowView.prototype.ele_result_ = document.getElementById('result-tbody');
 
 RowView.prototype.addResult = function(idx, op_sec) {
-  this.results_.push(op_sec);
-  var total = this.results_.reduce(function(x, p) {return x + p}, 0);
-  var avg = (total / this.results_.length) | 0;
+  var scores = this.results_[idx];
   var td = this.tr_.children[idx];
   setTimeout(function() {
+    scores.push(op_sec);
+    var total = scores.reduce(function(x, p) {return x + p}, 0);
+    var avg = (total / scores.length) | 0;
     td.textContent = avg;
   }, 10);
 };
