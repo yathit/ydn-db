@@ -262,38 +262,9 @@ var test_run = function() {
     tdb.put(store_name_inline_number, objs).addBoth(function(x) {
       result = x;
     });
-  }, [store_name_inline_number], 'readwrite', function() {
+  }, [store_name_inline_number], 'readwrite').addBoth(function() {
     done = true;
   });
-
-};
-
-var test_run_opt_args = function() {
-  var db = new ydn.db.crud.Storage(db_name, schema, options);
-  var done = false;
-  var result;
-  var objs =  [{id: 1, value: '1', remark: 'put test'}, {id: 2, value: '2', remark: 'put test'}];
-  var keys = [1, 2];
-
-
-  waitForCondition(
-    // Condition
-    function() { return done; },
-    // Continuation
-    function() {
-      assertArrayEquals('put', keys, result);
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    2000); // maxTimeout
-
-  db.run(function (tdb, arg1) {
-    tdb.put(store_name_inline_number, arg1).addBoth(function(x) {
-      result = x;
-    });
-  }, [store_name_inline_number], 'readwrite', function() {
-    done = true;
-  }, objs);
 
 };
 
@@ -314,10 +285,9 @@ var test_store_event = function() {
     function() { return done1; },
     // Continuation
     function() {
-      assertEquals('event name', 'StorageEvent', result.name);
+      assertEquals('event name', 'ReadyEvent', result.name);
       assertEquals('event type', 'ready', result.type);
       assertEquals('version number', 1, result.getVersion());
-      assertNull('no error', result.getError());
       assertNaN('old version number', result.getOldVersion());
 
       reachedFinalContinuation = true;

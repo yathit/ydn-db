@@ -97,14 +97,14 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       me.idx_db_ = db;
       me.idx_db_.onabort = function(e) {
         me.logger.finest(me + ': abort');
-        me.onError(e);
+        me.onError(e.target.Error);
       };
       me.idx_db_.onerror = function(e) {
         if (ydn.db.con.IndexedDb.DEBUG) {
           window.console.log(e);
         }
         me.logger.finest(me + ': error');
-        me.onError(e);
+        me.onError(e.target.Error);
       };
 
       /**
@@ -128,7 +128,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
           me.idx_db_.onversionchange = null;
           me.idx_db_.close();
           me.idx_db_ = null;
-          me.onFail(event);
+          me.onFail(event.target.Error);
         }
       };
       df.callback(parseFloat(old_version));
@@ -754,15 +754,13 @@ ydn.db.con.IndexedDb.prototype.doTransaction = function(fnc, scopes, mode,
 
   var tx = db.transaction(scopes, /** @type {number} */ (mode));
 
-  var type = ydn.db.base.TxEventTypes.COMPLETE;
-
   tx.oncomplete = function(event) {
-    on_completed(type, event);
+    on_completed(ydn.db.base.TxEventTypes.COMPLETE, event);
   };
 
-  tx.onerror = function(event) {
-    type = ydn.db.base.TxEventTypes.ERROR;
-  };
+  // NOTE: Let downstream `tr` module handle transaction error event.
+  // future more, database instance will receive and dispatch error event.
+  // tx.onerror = function(event) {};
 
   tx.onabort = function(event) {
     on_completed(ydn.db.base.TxEventTypes.ABORT, event);

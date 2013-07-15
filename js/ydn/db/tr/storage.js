@@ -126,15 +126,6 @@ ydn.db.tr.Storage.prototype.branch = function(request_type, opt_is_serial,
 
 
 /**
- * @final
- * @return {number} transaction series number.
- */
-ydn.db.tr.Storage.prototype.getTxNo = function() {
-  return this.db_operator ? this.db_operator.getTxNo() : NaN;
-};
-
-
-/**
  * @param {!ydn.db.tr.IThread} tx_thread transaction thread.
  * @param {ydn.db.tr.IThread} sync_thread thread for synchronization.
  * @return {!ydn.db.tr.DbOperator} the db operator.
@@ -241,7 +232,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
 
   tx_thread.processTx(function(tx) {
     me.logger.finest('executing run in transaction on ' + tx_thread);
-    req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
+    // req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
     trFn(db_operator);
   }, store_names, mode, onComplete);
 

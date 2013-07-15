@@ -983,6 +983,8 @@ ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(req,
       results.push(cursor.primaryKey);
       if (results.length < limit) {
         cursor['continue']();
+      } else {
+        req.setDbValue(results);
       }
     } else {
       req.setDbValue(results);

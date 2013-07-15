@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <title>Performance test - CRUD operations</title>
+    <script type="text/javascript" src="../../jsc/zsw-ydn.db-dev.js"></script>
+    <style>
+        td:not(:first-child) {
+            text-align: right;
+        }
+        td, th {
+            border: 1px solid black;
+            padding: 4px;
+        }
+        table {
+            border-collapse: collapse;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div><label>Version: YDN-DB </label><span id="version"></span></div>
+    <div><label>Mechanism: </label><span id="mechanism"></span></div>
+    <h4>Performance results</h4>
+    <table>
+        <thead>
+        <tr>
+            <th rowspan="2">Description</th>
+            <th colspan="4">Op / sec</th>
+        </tr>
+        <tr>
+            <th>Serial single</th>
+            <th>Serial multi</th>
+            <th>Parallel single</th>
+            <th>Parallel multi</th>
+        </tr>
+        </thead>
+        <tbody id="result-tbody">
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript" src="pref.js"></script>
+<script type="text/javascript" src="crud.js"></script>
+</body>
+</html>
