@@ -59,7 +59,7 @@ ydn.db.tr.AtomicParallel.prototype.reusedTx = function(scopes, mode) {
  */
 ydn.db.tr.AtomicParallel.prototype.request = function(method, scope, opt_mode) {
   var req_setDbValue, result, is_error;
-
+  var me = this;
   /**
    * @param {ydn.db.base.TxEventTypes} t event type.
    * @param {*} e error.
@@ -67,13 +67,16 @@ ydn.db.tr.AtomicParallel.prototype.request = function(method, scope, opt_mode) {
   var onComplete = function(t, e) {
     // console.log('onComplete', t, result);
     req.removeTx();
-    if (t != ydn.db.base.TxEventTypes.COMPLETE) {
-      req_setDbValue(e, true);
-    } else if (req_setDbValue) {
+    me.logger.finer('transaction ' + t);
+    if (req_setDbValue) {
+      if (t != ydn.db.base.TxEventTypes.COMPLETE) {
+        is_error = true;
+        result = e;
+      }
       req_setDbValue(result, is_error);
     } else {
       var err = new ydn.db.TimeoutError();
-      req.errback(err);
+      req.setDbValue(err, true);
     }
   };
   var req = goog.base(this, 'request', method, scope, opt_mode, onComplete);
@@ -126,3 +129,9 @@ ydn.db.tr.AtomicParallel.prototype.exec = function(df, callback, store_names,
 };
 
 
+if (goog.DEBUG) {
+  /** @override */
+  ydn.db.tr.AtomicParallel.prototype.toString = function() {
+    return 'Atomic' + goog.base(this, 'toString');
+  };
+}

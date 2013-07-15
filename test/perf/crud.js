@@ -44,7 +44,17 @@ var schema = {
         }]
     }]
 };
-var db = new ydn.db.Storage(db_name, schema);
+var options = {};
+if (/websql/.test(location.hash)) {
+  options.mechanisms = ['websql'];
+} else if (/indexeddb/.test(location.hash)) {
+  options.mechanisms = ['indexeddb'];
+} else if (/localstorage/.test(location.hash)) {
+  options.mechanisms = ['localstorage'];
+} else if (/memory/.test(location.hash)) {
+  options.mechanisms = ['memory'];
+}
+var db = new ydn.db.Storage(db_name, schema, options);
 
 
 var testPutTightSmall = function(db, data, onComplete, n) {
@@ -145,6 +155,7 @@ var testGetTightSmall = function(db, data, onComplete, n) {
     var id = (n * Math.random()) | 0;
     var req = db.get('st', id);
     req.always(function(x) {
+      // console.log('cnt ', cnt);
       cnt++;
       if (cnt == n) {
         onComplete(); // timer end
@@ -324,15 +335,17 @@ var pref = new Pref(db);
  pref.addTest('Put tight loop (small-object)', testPutTightSmall, initClear, 100, 10);
  pref.addTest('Put array (small-object)', testPutArraySmall, initPutArraySmall, 100, 10);
  pref.addTest('Put on a transaction (small-object)', testPutOnRunSmall, initClear, 100, 10);
+
  pref.addTest('Get (small-object)', testGetSmall, initGetSmall, 100, 10);
- pref.addTest('Get tight loop (small-object)', testGetTightSmall, initGetSmall, 100, 10);
+pref.addTest('Get tight loop (small-object)', testGetTightSmall, initGetSmall, 100, 10);
  pref.addTest('Values by key range (small-object)', testValuesKeyRangeSmall, null, 100, 10);
  pref.addTest('Keys by key range (small-object)', testKeysKeyRangeSmall, null, 100, 10);
 
  pref.addTest('Put (with indexes)', testPutBig, initBigData, 20, 5);
 
-pref.addTest('Keys index key range limit 1', keysIndexKeyRangeBig, init100IndexData, 20, 10);
+ pref.addTest('Keys index key range limit 1', keysIndexKeyRangeBig, init100IndexData, 20, 10);
  pref.addTest('Values index key range limit 1', valuesIndexKeyRangeBig, null, 20, 10);
  pref.addTest('Values index key range limit 10', valuesIndexKeyRangeBigLimit5, null, 20, 10);
  pref.addTest('Keys index key range limit 10', keysIndexKeyRangeBigLimit5, null, 20, 10);
+
 pref.run();

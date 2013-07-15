@@ -73,15 +73,15 @@ ydn.db.tr.AtomicSerial.prototype.request = function(method, scope, opt_mode) {
   var onComplete = function(t, e) {
     // console.log('onComplete', t, result);
     req.removeTx();
-    if (is_error === true) {
-      // req.errback(result); // already fired.
-    } else if (t != ydn.db.base.TxEventTypes.COMPLETE) {
-      req_setDbValue(e, true);
-    } else if (is_error === false) {
-      req_setDbValue(result, false);
+    if (req_setDbValue) {
+      if (t != ydn.db.base.TxEventTypes.COMPLETE) {
+        is_error = true;
+        result = e;
+      }
+      req_setDbValue(result, is_error);
     } else {
       var err = new ydn.db.TimeoutError();
-      req_setDbValue(err, true);
+      req.setDbValue(err, true);
     }
   };
   var req = goog.base(this, 'request', method, scope, opt_mode, onComplete);
@@ -92,11 +92,6 @@ ydn.db.tr.AtomicSerial.prototype.request = function(method, scope, opt_mode) {
     is_error = has_error;
     result = value;
     req_setDbValue = rtn;
-  });
-  req.addErrback(function(e) {
-    // console.log('req error', e);
-    is_error = true;
-    result = e;
   });
   return req;
 };
@@ -138,4 +133,11 @@ ydn.db.tr.AtomicSerial.prototype.exec = function(df, callback, store_names,
   goog.base(this, 'exec', cdf, callback, store_names, mode, completed_handler);
 };
 
+
+if (goog.DEBUG) {
+  /** @override */
+  ydn.db.tr.AtomicSerial.prototype.toString = function() {
+    return 'Atomic' + goog.base(this, 'toString');
+  };
+}
 

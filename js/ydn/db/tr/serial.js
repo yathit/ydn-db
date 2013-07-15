@@ -77,12 +77,24 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
   this.policy_ = opt_policy || ydn.db.tr.IThread.Policy.SINGLE;
 
   /**
+   * @type {!Array.<{
+   *    fnc: Function,
+   *    scope: string,
+   *    store_names: !Array.<string>,
+   *    mode: ydn.db.base.TransactionMode,
+   *    oncompleted: function (ydn.db.base.TxEventTypes.<string>, *)
+   * }>}
    * @final
    * @private
    */
   this.trQueue_ = [];
 
-  this.completed_handlers = null;
+  /**
+   * @final
+   * @type {Array.<Function>}
+   * @private
+   */
+  this.completed_handlers_ = [];
 
   this.s_request_tx = null;
 
@@ -143,19 +155,6 @@ ydn.db.tr.Serial.prototype.mu_tx_ = null;
  * @private
  */
 ydn.db.tr.Serial.prototype.max_tx_no_ = 0;
-
-
-/**
- * @type {!Array.<{
- *    fnc: Function,
- *    scope: string,
- *    store_names: !Array.<string>,
- *    mode: ydn.db.base.TransactionMode,
- *    oncompleted: function (ydn.db.base.TxEventTypes.<string>, *)
- * }>}
- * @private
- */
-ydn.db.tr.Serial.prototype.trQueue_;
 
 
 /**
@@ -384,13 +383,6 @@ ydn.db.tr.Serial.prototype.abort = function() {
 
 
 /**
- * @type {Array.<Function>}
- * @private
- */
-ydn.db.tr.Serial.prototype.completed_handlers;
-
-
-/**
  * Create a new isolated transaction. After creating a transaction, use
  * {@link #getTx} to received an active transaction. If transaction is not
  * active, it return null. In this case a new transaction must re-create.
@@ -445,7 +437,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       // if db is not ready and we already send one tx request, we keep
       // our tx request in our queue
       (!this.getStorage().isReady() &&
-      !goog.isNull(this.completed_handlers) > 0)) {
+      this.completed_handlers_.length != 0)) {
     this.pushTxQueue(trFn, store_names, mode, opt_on_completed);
   } else {
     var label = this.getLabel();
@@ -465,7 +457,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
       while (me.isNextTxCompatible()) {
         var task = me.trQueue_.shift();
         if (task.oncompleted) {
-          me.completed_handlers.push(task.oncompleted);
+          me.completed_handlers_.push(task.oncompleted);
         }
         me.logger.fine('pop tx queue' + (me.trQueue_.length + 1) +
             ' reusing T' + me.getTxNo());
@@ -475,23 +467,20 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
 
     var completed_handler = function(type, event) {
       //console.log('transaction_process ' + scope_name + ' completed.');
-      if (type == ydn.db.base.TxEventTypes.COMPLETE) {
-        me.logger.fine(label + ' COMMITTED');
-      } else {
-        me.logger.fine(label + ' COMMITTED' + ' with ' + type);
-      }
-      // console.log(me + ' ' + me.completed_handlers.length + ' found.');
-      for (var j = 0; j < me.completed_handlers.length; j++) {
-        var fn = me.completed_handlers[j];
+      me.logger.fine(label + ' ' + type);
+      for (var j = 0; j < me.completed_handlers_.length; j++) {
+        var fn = me.completed_handlers_[j];
         fn(type, event);
       }
-      me.completed_handlers.length = 0;
+      me.completed_handlers_.length = 0;
       me.mu_tx_.down(type, event);
       me.popTxQueue_();
       me.r_no_ = 0;
     };
 
-    this.completed_handlers = opt_on_completed ? [opt_on_completed] : [];
+    if (opt_on_completed) {
+      this.completed_handlers_.push(opt_on_completed);
+    }
 
     if (this.max_tx_no_ && this.getTxNo() >= this.max_tx_no_) {
       throw new ydn.debug.error.InvalidOperationException(
@@ -523,13 +512,16 @@ ydn.db.tr.Serial.prototype.request = function(method, store_names, opt_mode,
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
 
-  if (me.mu_tx_.isActiveAndAvailable() && this.reusedTx(store_names, mode)) {
+  if (this.mu_tx_.isActiveAndAvailable() && this.reusedTx(store_names, mode)) {
     //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
     // call within a transaction
     // continue to use existing transaction
-    var tx = me.mu_tx_.getTx();
-    me.r_no_++;
-    req.setTx(tx, me.getLabel() + 'R' + me.r_no_);
+    var tx = this.mu_tx_.getTx();
+    this.r_no_++;
+    req.setTx(tx, this.getLabel() + 'R' + this.r_no_);
+    if (opt_on_complete) {
+      this.completed_handlers_.push(opt_on_complete);
+    }
   } else {
     //
     //

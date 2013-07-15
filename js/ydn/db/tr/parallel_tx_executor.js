@@ -109,10 +109,10 @@ ydn.db.tr.ParallelTxExecutor.prototype.getTxNo = function() {
  */
 ydn.db.tr.ParallelTxExecutor.prototype.onCompleted = function(t, e) {
   goog.asserts.assert(this.isActive(), this.tx_no_ + ' already completed?');
-  var fn;
-  while (fn = this.oncompleted_handlers.shift()) {
-    fn(t, e);
+  for (var i = 0; i < this.oncompleted_handlers.length; i++) {
+    this.oncompleted_handlers[i](t, e);
   }
+  this.oncompleted_handlers.length = 0;
   this.tx_ = null;
   this.scopes_ = null;
   this.oncompleted_handlers = null;

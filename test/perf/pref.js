@@ -38,10 +38,12 @@ var Pref = function(db) {
 
   this.threads = [
     db,
-    db.branch('single', false),
-    db.branch('multi', false),
+    db.branch('atomic', true),
     db.branch('single', true),
-    db.branch('multi', true)
+    db.branch('multi', true),
+    db.branch('atomic', false),
+    db.branch('single', false),
+    db.branch('multi', false)
   ];
 };
 
@@ -57,9 +59,9 @@ var RowView = function(test) {
       '<div ' + disp + '>' + init +
       '<p>Test function</p><pre>' +
       test.test.toString() + '</pre></div></details></td>' +
-      '<td></td><td></td><td></td><td></td>';
+      '<td></td><td></td><td></td><td></td><td></td><td></td>';
   this.ele_result_.appendChild(tr);
-  this.results_ = [[], [], [], [], []];
+  this.results_ = [[], [], [], [], [], [], []];
   this.tr_ = tr;
 };
 

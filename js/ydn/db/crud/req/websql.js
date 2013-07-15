@@ -612,7 +612,7 @@ ydn.db.crud.req.WebSql.prototype.getById = function(req, table_name, id) {
         var value = ydn.db.crud.req.WebSql.parseRow(row, table);
         req.setDbValue(value);
       } else {
-        me.logger.finer('success: ' + msg);
+        me.logger.finer('success no result: ' + msg);
         req.setDbValue(undefined);
       }
     } else {

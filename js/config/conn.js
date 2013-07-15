@@ -50,3 +50,4 @@ goog.exportProperty(ydn.db.Request.prototype, 'abort',
 goog.exportProperty(ydn.db.Request.prototype, 'canAbort',
     ydn.db.Request.prototype.canAbort);
 
+

@@ -860,13 +860,17 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
    */
   var error_callback = function(e) {
     me.logger.finest(me + ': Tx ' + mode + ' request cause error.');
-    completed_event_handler(ydn.db.base.TxEventTypes.ERROR, e);
+    // NOTE: we have to call ABORT, instead of ERROR, here.
+    // IndexedDB API use COMPLETE or ABORT as promise callbacks.
+    // ERROR is just an event.
+    completed_event_handler(ydn.db.base.TxEventTypes.ABORT, e);
   };
 
   if (goog.isNull(this.sql_db_)) {
     // this happen on SECURITY_ERR
     trFn(null);
-    completed_event_handler(ydn.db.base.TxEventTypes.ERROR,
+    // NOTE: we have to call ABORT, instead of ERROR, here. See above.
+    completed_event_handler(ydn.db.base.TxEventTypes.ABORT,
         this.last_error_);
   }
 

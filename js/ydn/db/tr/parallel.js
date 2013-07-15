@@ -336,11 +336,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
   var pl_tx_ex;
 
   var completed_handler = function(type, event) {
-    if (type == ydn.db.base.TxEventTypes.COMPLETE) {
-      me.logger.fine(label + ' COMMITTED');
-    } else {
-      me.logger.fine(label + ' COMMITTED' + ' with ' + type);
-    }
+    me.logger.fine(label + ' ' + type);
     pl_tx_ex.onCompleted(type, event);
   };
 
