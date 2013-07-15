@@ -21,27 +21,14 @@
 
 // ydn.debug.log('ydn.db', 'finest');
 
-var db_name = 'pref-test-1';
+(function() {
+
+
 var schema = {
   stores: [
     {
       name: 'st',
       autoIncrement: true
-    }, {
-      name: 'big',
-      autoIncrement: true,
-      indexes: [
-        {
-          name: 'n',
-          unique: true,
-          type: 'NUMERIC'
-        }, {
-          name: 't',
-          type: 'TEXT'
-        }, {
-          name: 'm',
-          multiEntry: true
-        }]
     }]
 };
 var options = {size: 200 * 1024 * 1024};
@@ -54,7 +41,7 @@ if (/websql/.test(location.hash)) {
 } else if (/memory/.test(location.hash)) {
   options.mechanisms = ['memory'];
 }
-var db = new ydn.db.Storage(db_name, schema, options);
+var db = new ydn.db.Storage('pref-test-sm-1', schema, options);
 
 
 var testPutTightSmall = function(db, data, onComplete, n) {
@@ -222,150 +209,25 @@ var testKeysKeyRangeSmall = function(db, start, onComplete, nOp, nData) {
   });
 };
 
-var initBigData = function(cb, n) {
-  var long =  (new Array(1000)).join(
-      (new Array(10)).join('abcdefghijklmnopuqstubc'));
-  var data = [];
-  for (var i = 0; i < n; i++) {
-    var arr = [];
-    for (var j = 0; j < 16; j++) {
-      arr[j] = Math.random();
-    }
-    data[i] = {
-      load: long,
-      n: Math.random(),
-      m: arr,
-      t: Math.random().toString(36).slice(2)
-    };
-  }
-  console.log(n + ' big data generated');
-  cb(data);
-};
 
 
-var testPutBig = function(db, data, onComplete, n) {
-  // small data put test
-  var small_data = {foo: 'bar'};
-  for (var i = 0; i < n; i++) {
-    var req = db.put('big', small_data);
-    if (i == n - 1) {
-      req.always(function() {
-        onComplete(); // timer end
-      });
-    }
-  }
-};
+var pref = Pref.newPref(db, 'small record object');
 
-var init100IndexData = function(cb) {
-  initBigData(function(data) {
-    db.clear('big').always(function() {
-      var req = db.put('big', data);
-      req.always(function() {
-        cb(data); // timer end
-      });
-    });
-  }, 100);
-};
+pref.addTest('Put', testPutSmall, initClear, 100);
+pref.addTest('Put tight loop', testPutTightSmall, initClear, 100);
+pref.addTest('Put array', testPutArraySmall, initPutArraySmall, 100);
+pref.addTest('Put on a transaction', testPutOnRunSmall, initClear, 100);
 
+pref.addTest('Get, 100 records', testGetSmall, initGetSmall, 100);
+pref.addTest('Get, 1000 records', testGetSmall, initGetSmall, 100, 1000);
+pref.addTest('Get, 10000 records', testGetSmall, initGetSmall, 100, 10000);
+pref.addTest('Get tight loop, 100 records', testGetTightSmall, initGetSmall, 100);
+pref.addTest('Get tight loop, 100000 records', testGetTightSmall, initGetSmall, 100, 100000);
+pref.addTest('Values by key range, 100 records', testValuesKeyRangeSmall, initGetSmall, 100, 101);
+pref.addTest('Keys by key range, 100 records', testKeysKeyRangeSmall, null, 100, 101);
+pref.addTest('Values by key range, 10000 records', testValuesKeyRangeSmall, initGetSmall, 100,  10000);
+pref.addTest('Keys by key range, 10000 records', testKeysKeyRangeSmall, null, 100,10000);
 
-var valuesIndexKeyRangeBig = function(db, start, onComplete, n) {
-  var cnt = 0;
-  for (var i = 0; i < n; i++) {
-    var range = ydn.db.KeyRange.lowerBound(Math.random());
-    db.values('big', 'n', range, 1).always(function(x) {
-      cnt++;
-      if (cnt == n) {
-        onComplete(); // timer end
-      } else {
-        // console.log(x); // ok
-      }
-    });
-  }
-};
+Pref.run();
 
-
-
-var keysIndexKeyRangeBig = function(db, start, onComplete, n) {
-  var cnt = 0;
-  for (var i = 0; i < n; i++) {
-    var range = ydn.db.KeyRange.lowerBound(Math.random());
-    db.keys('big', 'n', range, 1).always(function(x) {
-      cnt++;
-      if (cnt == n) {
-        onComplete(); // timer end
-      } else {
-        // console.log(x); // ok
-      }
-    });
-  }
-};
-
-var valuesIndexKeyRangeBigLimit5 = function(db, start, onComplete, n) {
-  var cnt = 0;
-  for (var i = 0; i < n; i++) {
-    var range = ydn.db.KeyRange.lowerBound(Math.random());
-    db.values('big', 'n', range, 10).always(function(x) {
-      cnt++;
-      if (cnt == n) {
-        onComplete(); // timer end
-      } else {
-        // console.log(x); // ok
-      }
-    });
-  }
-};
-
-
-var keysIndexKeyRangeBigLimit5 = function(db, start, onComplete, n) {
-  var cnt = 0;
-  for (var i = 0; i < n; i++) {
-    var range = ydn.db.KeyRange.lowerBound(Math.random());
-    db.keys('big', 'n', range, 10).always(function(x) {
-      cnt++;
-      if (cnt == n) {
-        onComplete(); // timer end
-      } else {
-        // console.log(x); // ok
-      }
-    });
-  }
-};
-
-var valuesIndexIterBig = function(db, start, onComplete, n) {
-  for (var i = 0; i < n; i++) {
-    var iter = ydn.db.IndexValueCursors.where('big', 'n', '>', Math.random());
-    db.values(iter, 1).always(function(x) {
-      if (i == n - 1) {
-        onComplete(); // timer end
-      } else {
-
-      }
-    });
-  }
-};
-
-
-var pref = new Pref(db);
-
-pref.addTest('Put (small-object)', testPutSmall, initClear, 100);
-pref.addTest('Put tight loop (small-object)', testPutTightSmall, initClear, 100);
-pref.addTest('Put array (small-object)', testPutArraySmall, initPutArraySmall, 100);
-pref.addTest('Put on a transaction (small-object)', testPutOnRunSmall, initClear, 100);
-
-pref.addTest('Get (small-object), 100 records', testGetSmall, initGetSmall, 100);
-pref.addTest('Get (small-object), 1000 records', testGetSmall, initGetSmall, 100, 1000);
-pref.addTest('Get (small-object), 10000 records', testGetSmall, initGetSmall, 100, 10000);
-pref.addTest('Get tight loop (small-object), 100 records', testGetTightSmall, initGetSmall, 100);
-pref.addTest('Get tight loop (small-object), 100000 records', testGetTightSmall, initGetSmall, 100, 100000);
-pref.addTest('Values by key range (small-object), 100 records', testValuesKeyRangeSmall, initGetSmall, 100, 101);
-pref.addTest('Keys by key range (small-object), 100 records', testKeysKeyRangeSmall, null, 100, 101);
-pref.addTest('Values by key range (small-object), 10000 records', testValuesKeyRangeSmall, initGetSmall, 100,  10000);
-pref.addTest('Keys by key range (small-object), 10000 records', testKeysKeyRangeSmall, null, 100,10000);
-pref.addTest('Put (with indexes)', testPutBig, initBigData, 20);
-
-pref.addTest('Keys index key range limit 1', keysIndexKeyRangeBig, init100IndexData, 20);
-pref.addTest('Values index key range limit 1', valuesIndexKeyRangeBig, null, 20);
-pref.addTest('Values index key range limit 10', valuesIndexKeyRangeBigLimit5, null, 20);
-pref.addTest('Keys index key range limit 10', keysIndexKeyRangeBigLimit5, null, 20);
-
-pref.run();
+})();

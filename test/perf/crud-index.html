@@ -2,18 +2,9 @@
 <html>
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type">
-    <title>Performance test - CRUD operations</title>
-    <script src="../../../closure-library/closure/goog/base.js"></script>
-    <script type="text/javascript" src="../../../ydn-base/js/deps.js"></script>
-    <script type="text/javascript" src="../../js/deps.js"></script>
-    <script>
-        goog.require('ydn.db.Storage');
-        goog.require('ydn.debug');
-    </script>
-    <script type="text/javascript" src="../../js/config/conn.js"></script>
+    <title>Performance test - CRUD operations with indexes</title>
+    <script type="text/javascript" src="../../jsc/ydn.db-dev.js"></script>
     <link href="perf.css" rel="stylesheet" type="text/css" />
-    <style>
-    </style>
 </head>
 <body>
 <div>
@@ -39,7 +30,6 @@
     </table>
 </div>
 <script type="text/javascript" src="pref.js"></script>
-<script type="text/javascript" src="crud-small.js"></script>
 <script type="text/javascript" src="crud-index.js"></script>
 </body>
 </html>

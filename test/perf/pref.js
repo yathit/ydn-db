@@ -27,13 +27,19 @@ document.getElementById('version').textContent = ydn.db.version;
 /**
  * Performance test runner.
  * @param {ydn.db.Storage} db database.
+ * @param {string} title test title.
+ * @param {number=} opt_nExp number of experiment. Default to 10.
  * @constructor
  */
-var Pref = function(db) {
+var Pref = function(db, title, opt_nExp) {
   this.db = db;
   db.addEventListener('ready', function() {
     document.getElementById('mechanism').textContent = db.getType();
   });
+  /**]
+   * @type {Array.<Test>}
+   * @private
+   */
   this.tests_ = [];
 
   this.threads = [
@@ -45,11 +51,19 @@ var Pref = function(db) {
     db.branch('single', false),
     db.branch('multi', false)
   ];
-  this.nRepeat = 10; // number of experiment
+  this.nRepeat = opt_nExp || 10; // number of experiment
+  this.title = title;
 };
 
 
-var RowView = function(test) {
+/**
+ * Create a test result row.
+ * @param {Test} test
+ * @param {Element} tbody
+ * @constructor
+ */
+var RowView = function(test, tbody) {
+
   var tr = document.createElement('TR');
   var webkit = /WebKit/.test(navigator.userAgent);
   // details tag is only supported by webkit browser.
@@ -61,17 +75,10 @@ var RowView = function(test) {
       '<p>Test function</p><pre>' +
       test.test.toString() + '</pre></div></details></td>' +
       '<td></td><td></td><td></td><td></td><td></td><td></td>';
-  this.ele_result_.appendChild(tr);
+  tbody.appendChild(tr);
   this.results_ = [[], [], [], [], [], [], []];
   this.tr_ = tr;
 };
-
-
-/**
- * @type {HTMLElement}
- * @private
- */
-RowView.prototype.ele_result_ = document.getElementById('result-tbody');
 
 
 RowView.std = function(mean, items) {
@@ -130,7 +137,7 @@ RowView.prototype.addResult = function(idx, op_sec) {
  */
 Pref.prototype.runTest = function(test, onFinished) {
   var me = this;
-  var view = new RowView(test);
+  var view = new RowView(test, this.tbody);
   var onReady = function(data) {
     var runRepeat = function(lap) {
       if (lap == me.nRepeat) {
@@ -140,11 +147,7 @@ Pref.prototype.runTest = function(test, onFinished) {
       lap++;
       // run test for each thread.
       var runTest = function(idx) {
-        var start = + new Date();
-        var onComplete = function() {
-          var end = + new Date();
-          var elapse = end - start;
-          var op_sec = (1000 * test.nOp / elapse) | 0;
+        var onComplete = function(op_sec) {
           view.addResult(idx, op_sec);
           idx++;
           if (idx < me.threads.length) {
@@ -153,7 +156,7 @@ Pref.prototype.runTest = function(test, onFinished) {
             runRepeat(lap);
           }
         };
-        test.test(me.threads[idx], data, onComplete, test.nOp, test.nData);
+        test.run(me.threads[idx], data, onComplete);
       };
       runTest(0);
     };
@@ -172,6 +175,49 @@ Pref.prototype.runTest = function(test, onFinished) {
 
 
 /**
+ * Create a test.
+ * @param {string} title test title.
+ * @param {Function} test test function.
+ * @param {Function} init initialization function.
+ * @param {number} nExp number of experiment.
+ * @param {number=} nOp number of op. Default to 1.
+ * @param {number=} nData number of data. Default to nOp.
+ * @constructor
+ */
+Test = function(title, test, init, nExp, nOp, nData) {
+  this.title = title;
+  this.test = test;
+  this.init = init;
+  this.nExp = nExp;
+  this.nOp = nOp || 1;
+  this.nData = nData || nOp;
+};
+
+
+/**
+ * Prepare data for test.
+ * @param {*} data test group data.
+ * @return {*} by default reuse group data.
+ */
+Test.prototype.prepareData = function(data) {
+  return data;
+};
+
+
+Test.prototype.run = function(db, data, onComplete) {
+  var d = this.prepareData(data);
+  var start = + new Date();
+  var nop = this.nOp;
+  var on_complete = function() {
+    var end = + new Date();
+    var elapse = end - start;
+    onComplete(1000 * nop / elapse);
+  };
+  this.test(db, d, on_complete, this.nOp, this.nData);
+};
+
+
+/**
  * @param {string} title test title.
  * @param {Function} test test function.
  * @param {Function} init initialization function.
@@ -179,14 +225,46 @@ Pref.prototype.runTest = function(test, onFinished) {
  * @param {number=} nData number of data. Default to nOp.
  */
 Pref.prototype.addTest = function(title, test, init, nOp, nData) {
-  this.tests_.push({
-    db: db,
-    title: title,
-    test: test,
-    init: init,
-    nOp: nOp || 1,
-    nData: nData || nOp
-  });
+  var test = new Test(title, test, init, this.nRepeat, nOp, nData);
+  this.tests_.push(test);
+  return test;
+};
+
+
+/**
+ * To continue testing after this test suite.
+ * @param {ydn.db.Storage} db storage instance.
+ * @param {string} title title.
+ * @return {Pref}
+ */
+Pref.newPref = function(db, title) {
+  var pref = new Pref(db, title);
+  if (!Pref.prefs_) {
+    Pref.prefs_ = [];
+  }
+  Pref.prefs_.push(pref);
+  return pref;
+};
+
+
+Pref.run = function() {
+  if (Pref.running_) {
+    return;
+  }
+  Pref.running_ = true;
+  var run = function() {
+    var pref = Pref.prefs_.shift();
+    if (pref) {
+      pref.run(function() {
+        run();
+      })
+    } else {
+      console.log('All run.')
+    }
+  };
+  setTimeout(function() {
+    run();
+  }, 1);
 };
 
 
@@ -197,9 +275,21 @@ Pref.prototype.tearDown = function() {
 };
 
 
-Pref.prototype.run = function() {
+/**
+ * @param {Function} cb callback on completing the run.
+ */
+Pref.prototype.run = function(cb) {
   var test = this.tests_.shift();
   var me = this;
+  if (!this.tbody) {
+    var table = document.getElementById('result-table');
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<th colspan=7 class="title">' + (this.title || '') +
+        '</th>';
+    table.appendChild(tr);
+    this.tbody = document.createElement('tbody');
+    table.appendChild(this.tbody);
+  }
   var onComplete = function() {
     me.run();
   };
@@ -207,5 +297,8 @@ Pref.prototype.run = function() {
     this.runTest(test, onComplete);
   } else {
     this.tearDown();
+    if (cb) {
+      cb();
+    }
   }
 };
