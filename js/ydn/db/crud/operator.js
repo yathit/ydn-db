@@ -94,13 +94,17 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     this.logger.warning('count method requires store name(s)');
     var stores = this.schema.getStoreNames();
     req = this.tx_thread.request(ydn.db.Request.Method.COUNT, stores);
-    req.await(function(cnt, cb) {
+    req.await(function(cnt, is_error, cb) {
+      if (is_error) {
+        cb(cnt, true);
+        return;
+      }
       var total = 0;
       for (var i = 0; i < cnt.length; i++) {
         total += cnt[i];
       }
-      cb(total);
-    });
+      cb(total, false);
+    }, this);
     req.addTxback(function() {
       //console.log('counting');
       this.getExecutor().countStores(req, store_names);
