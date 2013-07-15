@@ -45,6 +45,7 @@ var Pref = function(db) {
     db.branch('single', false),
     db.branch('multi', false)
   ];
+  this.nRepeat = 10; // number of experiment
 };
 
 
@@ -132,7 +133,7 @@ Pref.prototype.runTest = function(test, onFinished) {
   var view = new RowView(test);
   var onReady = function(data) {
     var runRepeat = function(lap) {
-      if (lap == test.nRepeat) {
+      if (lap == me.nRepeat) {
         onFinished();
         return;
       }
@@ -152,7 +153,7 @@ Pref.prototype.runTest = function(test, onFinished) {
             runRepeat(lap);
           }
         };
-        test.test(me.threads[idx], data, onComplete, test.nOp);
+        test.test(me.threads[idx], data, onComplete, test.nOp, test.nData);
       };
       runTest(0);
     };
@@ -162,7 +163,7 @@ Pref.prototype.runTest = function(test, onFinished) {
     test.init(function(data) {
       me.prev_data_ = data;
       onReady(data);
-    }, test.nOp);
+    }, test.nData);
   } else {
     onReady(me.prev_data_);
   }
@@ -175,16 +176,16 @@ Pref.prototype.runTest = function(test, onFinished) {
  * @param {Function} test test function.
  * @param {Function} init initialization function.
  * @param {number=} nOp number of op. Default to 1.
- * @param {number=} nRepeat number of op. Default to 1.
+ * @param {number=} nData number of data. Default to nOp.
  */
-Pref.prototype.addTest = function(title, test, init, nOp, nRepeat) {
+Pref.prototype.addTest = function(title, test, init, nOp, nData) {
   this.tests_.push({
     db: db,
     title: title,
     test: test,
     init: init,
     nOp: nOp || 1,
-    nRepeat: nRepeat || 1
+    nData: nData || nOp
   });
 };
 
