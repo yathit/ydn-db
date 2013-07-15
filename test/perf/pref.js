@@ -291,7 +291,7 @@ Pref.prototype.run = function(cb) {
     table.appendChild(this.tbody);
   }
   var onComplete = function() {
-    me.run();
+    me.run(cb);
   };
   if (test) {
     this.runTest(test, onComplete);
