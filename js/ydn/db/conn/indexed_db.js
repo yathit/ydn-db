@@ -97,14 +97,16 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       me.idx_db_ = db;
       me.idx_db_.onabort = function(e) {
         me.logger.finest(me + ': abort');
-        me.onError(e.target.Error);
+        var request = /** @type {IDBRequest} */ (e.target);
+        me.onError(request.error);
       };
       me.idx_db_.onerror = function(e) {
         if (ydn.db.con.IndexedDb.DEBUG) {
           window.console.log(e);
         }
         me.logger.finest(me + ': error');
-        me.onError(e.target.Error);
+        var request = /** @type {IDBRequest} */ (e.target);
+        me.onError(request.error);
       };
 
       /**

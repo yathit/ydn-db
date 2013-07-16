@@ -44,6 +44,8 @@ goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'getOldVersion',
     ydn.db.events.StorageEvent.prototype.getOldVersion);
 goog.exportProperty(ydn.db.events.StorageEvent.prototype, 'getOldSchema',
     ydn.db.events.StorageEvent.prototype.getOldSchema);
+goog.exportProperty(ydn.db.events.StorageErrorEvent.prototype, 'getError',
+    ydn.db.events.StorageErrorEvent.prototype.getError);
 
 goog.exportProperty(ydn.db.Request.prototype, 'abort',
     ydn.db.Request.prototype.abort);

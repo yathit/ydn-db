@@ -504,6 +504,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
           index_name);
       method = ydn.db.Request.Method.VALUES_INDEX;
       req = this.tx_thread.request(method, [store_name]);
+      store.hook(req, arguments);
       req.addTxback(function() {
         this.getExecutor().listByIndexKeyRange(req, store_name,
             index_name, range, reverse, limit, offset, false);
@@ -551,6 +552,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
           store_name);
       method = ydn.db.Request.Method.VALUES;
       req = this.tx_thread.request(method, [store_name]);
+      store.hook(req, arguments);
       req.addTxback(function() {
         this.getExecutor().listByKeyRange(req, store_name, range,
             reverse, limit, offset);
