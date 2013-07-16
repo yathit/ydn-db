@@ -156,7 +156,10 @@ Pref.prototype.runTest = function(test, onFinished) {
             runRepeat(lap);
           }
         };
-        test.run(me.threads[idx], data, onComplete);
+        setTimeout(function() {
+          // give some time for database to complete previous job.
+          test.run(me.threads[idx], data, onComplete);
+        }, 10);
       };
       runTest(0);
     };
@@ -235,10 +238,11 @@ Pref.prototype.addTest = function(title, test, init, nOp, nData) {
  * To continue testing after this test suite.
  * @param {ydn.db.Storage} db storage instance.
  * @param {string} title title.
+ * @param {number=} opt_nExp number of experiment.
  * @return {Pref}
  */
-Pref.newPref = function(db, title) {
-  var pref = new Pref(db, title);
+Pref.newPref = function(db, title, nExp) {
+  var pref = new Pref(db, title, nExp);
   if (!Pref.prefs_) {
     Pref.prefs_ = [];
   }
