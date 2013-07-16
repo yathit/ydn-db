@@ -1067,7 +1067,6 @@ ydn.db.crud.DbOperator.prototype.removeInternal = function(keys) {
 ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
     key_range, reverse, limit, opt_offset) {
   var req;
-  var me = this;
   var offset = opt_offset || 0;
   if (goog.DEBUG) {
     var store = this.schema.getStore(store_name);
@@ -1087,14 +1086,14 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
     req = this.sync_thread.request(ydn.db.Request.Method.VALUES_INDEX,
         [store_name]);
     req.addTxback(function() {
-      me.getExecutor().listByIndexKeyRange(req, store_name, index,
+      this.getExecutor().listByIndexKeyRange(req, store_name, index,
           kr, reverse, limit, offset, false);
     }, this);
   } else {
-    req = this.sync_thread.request(ydn.db.Request.Method.VALUES_INDEX,
+    req = this.sync_thread.request(ydn.db.Request.Method.VALUES,
         [store_name]);
     req.addTxback(function() {
-      me.getExecutor().listByKeyRange(req, store_name,
+      this.getExecutor().listByKeyRange(req, store_name,
           kr, reverse, limit, offset);
     }, this);
   }

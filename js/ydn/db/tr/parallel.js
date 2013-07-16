@@ -337,7 +337,10 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
 
   var completed_handler = function(type, event) {
     me.logger.fine(label + ' ' + type);
-    pl_tx_ex.onCompleted(type, event);
+    if (pl_tx_ex) {
+      // if transaction_process was not called due to database fail
+      pl_tx_ex.onCompleted(type, event);
+    }
   };
 
   var transaction_process = function(tx) {

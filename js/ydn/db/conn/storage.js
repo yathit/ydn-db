@@ -434,7 +434,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
     } else {
       me.logger.warning(me + ': database connection fail ' + ev.name);
       goog.Timer.callOnce(function() {
-        var event = new ydn.db.events.StorageFailEvent(me, e);
+        var event = new ydn.db.events.StorageFailEvent(me, ev);
         me.dispatchEvent(event);
         me.purgeTxQueue_(ev);
       });
