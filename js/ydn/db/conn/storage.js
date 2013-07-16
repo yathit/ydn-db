@@ -780,31 +780,37 @@ ydn.db.con.Storage.prototype.getEventTypes = function() {
 };
 
 
-if (goog.DEBUG) { // don't allow to added non existing event type
-  /**
-   * @inheritDoc
-   */
-  ydn.db.con.Storage.prototype.addEventListener = function(
-      type, handler, opt_capture, opt_handlerScope) {
-    var event_types = this.getEventTypes();
-    var checkType = function(type) {
-      if (!goog.array.contains(event_types,
-          type)) {
-        throw new ydn.debug.error.ArgumentException('Invalid event type "' +
-            type + '"');
+/**
+ * @inheritDoc
+ */
+ydn.db.con.Storage.prototype.addEventListener = function (type, handler,
+     opt_capture, opt_handlerScope) {
+  if (type == 'ready') {
+    // remove callback reference since 'ready' event is invoked only once.
+    goog.events.listenOnce(this, type, handler, opt_capture, opt_handlerScope);
+  } else {
+    if (goog.DEBUG) {// don't allow to added non existing event type
+      var event_types = this.getEventTypes();
+      var checkType = function (type) {
+        if (!goog.array.contains(event_types,
+            type)) {
+          throw new ydn.debug.error.ArgumentException('Invalid event type "' +
+              type + '"');
+        }
+      };
+      if (goog.isArrayLike(type)) {
+        for (var i = 0; i < type.length; i++) {
+          checkType(type[i]);
+        }
+      } else {
+        checkType(type);
       }
-    };
-    if (goog.isArrayLike(type)) {
-      for (var i = 0; i < type.length; i++) {
-        checkType(type[i]);
-      }
-    } else {
-      checkType(type);
     }
     goog.base(this, 'addEventListener', type, handler, opt_capture,
         opt_handlerScope);
-  };
-}
+  }
+};
+
 
 if (goog.DEBUG) {
   /**
