@@ -130,7 +130,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
           me.idx_db_.onversionchange = null;
           me.idx_db_.close();
           me.idx_db_ = null;
-          me.onFail(event.target.Error);
+          me.onFail(new Error(event.type));
         }
       };
       df.callback(parseFloat(old_version));

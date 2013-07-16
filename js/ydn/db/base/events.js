@@ -186,6 +186,7 @@ goog.inherits(ydn.db.events.StorageFailEvent, ydn.db.events.StorageErrorEvent);
 
 
 /**
+ * @final
  * @type {string}
  */
 ydn.db.events.StorageFailEvent.prototype.name = 'FailEvent';
