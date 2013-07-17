@@ -56,6 +56,7 @@ var Pref = function(db, title, opt_nExp) {
 };
 
 
+
 /**
  * Create a test result row.
  * @param {Test} test
@@ -77,6 +78,7 @@ var RowView = function(test, tbody) {
       '<td></td><td></td><td></td><td></td><td></td><td></td>';
   tbody.appendChild(tr);
   this.results_ = [[], [], [], [], [], [], []];
+  this.tx_counts_ = [[], [], [], [], [], [], []];
   this.tr_ = tr;
 };
 
@@ -93,7 +95,8 @@ RowView.std = function(mean, items) {
 
 
 RowView.tDist = function(n) {
-  var tDistribution = [NaN, NaN, 12.71, 4.30, 3.18, 2.78, 2.57, 2.45, 2.36, 2.31, 2.26, 2.23, 2.20];
+  var tDistribution = [NaN, NaN, 12.71, 4.30, 3.18, 2.78, 2.57, 2.45, 2.36,
+    2.31, 2.26, 2.23, 2.20];
   return tDistribution[n] || 2.20;
 };
 
@@ -102,19 +105,28 @@ RowView.tDist = function(n) {
  * Add a new test result.
  * @param {number} idx index of thread type.
  * @param {number} op_sec operations per second.
+ * @param {number=} opt_tx_count number of transaction counts.
  */
-RowView.prototype.addResult = function(idx, op_sec) {
+RowView.prototype.addResult = function(idx, op_sec, opt_tx_count) {
   if (idx == 0) {
     return;
   }
   var scores = this.results_[idx];
+  var tx_counts = this.tx_counts_[idx];
   var td = this.tr_.children[idx];
   scores.push(op_sec);
+  if (opt_tx_count) {
+    tx_counts.push(opt_tx_count);
+  }
   setTimeout(function() {
     // update in separate thread.
     var total = scores.reduce(function(x, p) {return x + p}, 0);
+    var tx_total = tx_counts.reduce(function(x, p) {return x + p}, 0);
+    var title = tx_total ? ' title="number of transactions used: ' +
+        (tx_total / tx_counts.length) + '"' : '';
     var mean = (total / scores.length);
     var count = scores.length;
+    var html = '<span' + title + '>' + (mean | 0) + '</span>';
     if (count > 2) {
       var sqrtCount = Math.sqrt(count);
       var stdDev = RowView.std(mean, scores);
@@ -123,10 +135,9 @@ RowView.prototype.addResult = function(idx, op_sec) {
       // http://stackoverflow.com/questions/4448600
       // http://www.webkit.org/perf/sunspider-0.9.1/sunspider-compare-results.js
       var error = ' ± ' + ((tDist * stdErr / mean) * 100).toFixed(1) + '%';
-      td.innerHTML = '<span>' + (mean | 0) + '</span><sup>' + error + '</sup>';
-    } else {
-      td.textContent = (mean | 0);
+      html += '<sup>' + error + '</sup>';
     }
+    td.innerHTML = html;
   }, 10);
 };
 
@@ -147,8 +158,12 @@ Pref.prototype.runTest = function(test, onFinished) {
       lap++;
       // run test for each thread.
       var runTest = function(idx) {
+        var t1;
+        var db = me.threads[idx];
         var onComplete = function(op_sec) {
-          view.addResult(idx, op_sec);
+          var t2 = db.getTxNo();
+          var tx_count = t2 - t1;
+          view.addResult(idx, op_sec, tx_count);
           idx++;
           if (idx < me.threads.length) {
             runTest(idx);
@@ -158,7 +173,8 @@ Pref.prototype.runTest = function(test, onFinished) {
         };
         setTimeout(function() {
           // give some time for database to complete previous job.
-          test.run(me.threads[idx], data, onComplete);
+          t1 = db.getTxNo();
+          test.run(db, data, onComplete);
         }, 10);
       };
       runTest(0);

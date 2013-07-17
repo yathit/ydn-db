@@ -377,6 +377,14 @@ ydn.db.Request.succeed = function(method, value) {
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.Request.prototype.valueOf = function() {
+  return this.tx_label_;
+};
+
+
 if (goog.DEBUG) {
   /**
    * @inheritDoc
@@ -385,12 +393,6 @@ if (goog.DEBUG) {
     return 'Request:' + this.getLabel();
   };
 
-  /**
-   * @inheritDoc
-   */
-  ydn.db.Request.prototype.valueOf = function() {
-    return this.tx_label_;
-  };
 
   /**
    * @inheritDoc

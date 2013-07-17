@@ -75,7 +75,6 @@
     }
   };
 
-
   var testPutSmall = function(db, data, onComplete, n) {
     var small_data = {foo: 'bar'};
     var test = function(i) {
@@ -120,6 +119,36 @@
         onComplete();
       });
     });
+  };
+
+
+  var longProcess = function(db, data, onComplete, nOp, nData) {
+    var st = getRandStore();
+    var doTest = function(i) {
+      i++;
+      if (Math.random() > 0.8) {
+        st = getRandStore();
+      }
+      var r = Math.random();
+      var req;
+      if (r < 0.3) {
+        req = db.put(st, {foo: 'bar', id: Math.random()});
+      } else if (r < 0.7) {
+        var k = ydn.db.KeyRange.lowerBound(Math.random());
+        req = db.values(st, 'id', k, 1);
+      } else {
+        var id = (nData * 3 * Math.random()) | 0;
+        req = db.remove(st, id);
+      }
+      req.always(function(x) {
+        if (i == nOp) {
+          onComplete(req.valueOf());
+        } else {
+          doTest(i);
+        }
+      }, req);
+    };
+    doTest(0);
   };
 
   var initGetSmall = function(onComplete, n) {
@@ -206,6 +235,7 @@
   pref.addTest('Get tight loop, 100 records', testGetTightSmall, initGetSmall, 100);
   pref.addTest('Get, 10000 records', testGetSmall, initGetSmall, 100, 10000);
   pref.addTest('Get tight loop, 10000 records', testGetTightSmall, initGetSmall, 100, 10000);
+  pref.addTest('Multi long process', longProcess, initClear, 100);
 
   Pref.run();
 
