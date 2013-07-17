@@ -397,11 +397,13 @@ if (goog.DEBUG) {
    */
   ydn.db.Request.prototype.toJSON = function() {
     var label = this.tx_label_ || '';
+    var m = label.match(/B(\d+)T(\d+)(?:Q(\d+?))?(?:R(\d+))?/) || [];
     return {
       'method': this.method_ ? this.method_.split(':') : [],
-      'branchNo': parseFloat(label.match(/B(\d+)/)[1]),
-      'transactionNo': parseFloat(label.match(/T(\d+)/)[1]),
-      'requestNo': parseFloat(label.match(/R(\d+)/)[1])
+      'branchNo': parseFloat(m[1]),
+      'transactionNo': parseFloat(m[2]),
+      'queueNo': parseFloat(m[3]),
+      'requestNo': parseFloat(m[4])
     };
   };
 }
