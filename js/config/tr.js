@@ -7,7 +7,7 @@ goog.require('ydn.db.tr.DbOperator');
 
 
 goog.exportProperty(ydn.db.tr.Storage.prototype, 'branch',
-  ydn.db.tr.Storage.prototype.branch);
+    ydn.db.tr.Storage.prototype.branch);
 goog.exportProperty(ydn.db.tr.Storage.prototype, 'run',
     ydn.db.tr.Storage.prototype.run);
 goog.exportProperty(ydn.db.tr.Storage.prototype, 'getTxNo',
