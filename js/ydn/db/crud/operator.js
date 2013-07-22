@@ -255,6 +255,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
         (typeof id) + ' is not a valid key');
     this.logger.finer('getById: ' + store_name + ':' + id);
     req = this.tx_thread.request(ydn.db.Request.Method.GET, [store_name]);
+    store.hook(req, arguments);
     req.addTxback(function() {
       this.getExecutor().getById(req, store_name, /** @type {IDBKey} */ (id));
     }, this);
