@@ -463,6 +463,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
           ids.length + ' ids');
       req = this.tx_thread.request(ydn.db.Request.Method.VALUES_IDS,
           [store_name]);
+      store.hook(req, arguments);
       req.addTxback(function() {
         this.getExecutor().listByIds(req, store_name, ids);
       }, this);
