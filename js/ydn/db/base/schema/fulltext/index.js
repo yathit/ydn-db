@@ -176,6 +176,14 @@ ydn.db.schema.FullTextSource = function(store_name, key_path,
 
 
 /**
+ * @return {string}
+ */
+ydn.db.schema.FullTextSource.prototype.getStoreName = function() {
+  return this.store_name;
+};
+
+
+/**
  * @return {number}
  */
 ydn.db.schema.FullTextSource.prototype.getWeight = function() {

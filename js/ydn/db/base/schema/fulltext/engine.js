@@ -33,7 +33,7 @@ ydn.db.schema.fulltext.Engine = function() {};
  * @param {string} query
  * @returns {Array.<string>}
  */
-fullproof.AbstractEngine.prototype.analyze = function(query) {};
+fullproof.AbstractEngine.prototype.parse = function(query) {};
 
 
 fullproof.AbstractEngine.prototype.score = function(query) {};

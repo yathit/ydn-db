@@ -29,20 +29,26 @@ goog.provide('ydn.db.schema.fulltext.Score');
 
 /**
  * An object that associates a value and a numerical score
- * @param {string} key usually a word.
+ * @param {string} key normalized value.
+ * @param {string} index_value original value being index.
  * @param {string} store_name source store name.
- * @param {IDBKey} p_key source primary key.
  * @param {string} key_path source key path.
+ * @param {IDBKey=} opt_p_key source primary key.
  * @param {number=} opt_score score.
  * @constructor
  */
-ydn.db.schema.fulltext.Score = function(key, store_name, p_key,
-                                        key_path, opt_score) {
+ydn.db.schema.fulltext.Score = function(key, index_value, store_name,
+                                        key_path, opt_p_key, opt_score) {
   /**
    * @final
    * @type {string}
    */
   this.key = key;
+  /**
+   * @final
+   * @type {string}
+   */
+  this.index_value = index_value;
   /**
    * @final
    * @type {string}
@@ -57,12 +63,18 @@ ydn.db.schema.fulltext.Score = function(key, store_name, p_key,
    * @final
    * @type {IDBKey}
    */
-  this.primary_key = p_key;
+  this.primary_key = opt_p_key;
   /**
    * @final
    * @type {number}
    */
-  this.score = goog.isDef(opt_score) ? opt_score : 1.0;
+  this.score = goog.isDef(opt_score) ? opt_score : NaN;
+  /**
+   * @final
+   * @private
+   * @type {Array.<number>}
+   */
+  this.encounter_count_ = [];
 };
 
 
@@ -86,7 +98,33 @@ ydn.db.schema.fulltext.Score.prototype.getPrimaryKey = function() {
  * @return {number} element score.
  */
 ydn.db.schema.fulltext.Score.prototype.getScore = function() {
+  if (isNaN(this.score)) {
+    this.score = this.compute();
+  }
   return this.score;
+};
+
+
+/**
+ * Token encounter in indexing string.
+ * @param {number} count current word count.
+ */
+ydn.db.schema.fulltext.Score.prototype.encounter = function(count) {
+  this.encounter_count_.push(count);
+};
+
+
+/**
+ * Compute score base on word encounter.
+ * @return {number} computed score.
+ */
+ydn.db.schema.fulltext.Score.prototype.compute = function() {
+  var occboost = 0;
+  for (var i = 0; i < this.encounter_count_.length; ++i) {
+    occboost += (3.1415 - Math.log(1 + this.encounter_count_[i])) / 10;
+  }
+  var countboost = Math.abs(Math.log(1 + this.encounter_count_.length)) / 10;
+  return 1 + occboost * 1.5 + countboost * 3;
 };
 
 
@@ -138,7 +176,7 @@ ydn.db.schema.fulltext.Score.prototype.toJson = function() {
     'primaryKey': this.primary_key,
     'key': this.key,
     'keyPath': this.key_path,
-    'score': this.score
+    'score': this.getScore()
   };
 };
 
