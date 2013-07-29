@@ -19,7 +19,7 @@
  */
 
 goog.provide('ydn.db.con.simple.Store');
-goog.require('ydn.db.Buffer');
+goog.require('ydn.structs.Buffer');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.simple');
 goog.require('ydn.db.con.simple.Node');
@@ -106,7 +106,7 @@ ydn.db.con.simple.Store.prototype.primary_index;
 
 /**
  * List of ascending ordered key for each index and primary key.
- * @type {!Object.<!ydn.db.Buffer>}
+ * @type {!Object.<!ydn.structs.Buffer>}
  * @private
  */
 ydn.db.con.simple.Store.prototype.key_indexes;
@@ -164,13 +164,13 @@ ydn.db.con.simple.Store.prototype.generateKey = function() {
 /**
  *
  * @param {string=} opt_index_name index name, default to primary key index.
- * @return {!ydn.db.Buffer}
+ * @return {!ydn.structs.Buffer}
  */
 ydn.db.con.simple.Store.prototype.getIndexCache = function(opt_index_name) {
   var index_name = opt_index_name || this.primary_index;
   if (!this.key_indexes[index_name]) {
     this.key_indexes[index_name] =
-        new ydn.db.Buffer(ydn.db.con.simple.Node.cmp);
+        new ydn.structs.Buffer(ydn.db.con.simple.Node.cmp);
     var n = this.storage.length;
     for (var i = 0; i < n; i++) {
       var key_str = this.storage.key(i);

@@ -111,6 +111,12 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
    */
   this.stores = stores || [];
 
+  /**
+   * @final
+   * @type {Array.<ydn.db.schema.fulltext.Index>}
+   * @private
+   */
+  this.full_text_schema_ = [];
 };
 
 
@@ -285,6 +291,17 @@ ydn.db.schema.Database.prototype.difference = function(schema, opt_hint) {
  */
 ydn.db.schema.Database.prototype.similar = function(schema) {
   return this.difference(schema).length == 0;
+};
+
+
+/**
+ * @param name
+ * @return {ydn.db.schema.fulltext.Index}
+ */
+ydn.db.schema.Database.prototype.getFullTextSchema = function(name) {
+  return goog.array.find(this.full_text_schema_, function(x) {
+    return x.getName() == name;
+  });
 };
 
 

@@ -9,6 +9,62 @@
 /**
  * @constructor
  */
+function FullTextSource() {}
+
+
+/**
+ * @type {string}
+ */
+FullTextSource.prototype.storeName;
+
+
+/**
+ * @type {string}
+ */
+FullTextSource.prototype.keyPath;
+
+
+/**
+ * @type {number?}
+ */
+FullTextSource.prototype.weight;
+
+
+
+/**
+ * @constructor
+ */
+function FullTextIndexSchema() {}
+
+
+/**
+ * @type {string}
+ */
+FullTextIndexSchema.prototype.name;
+
+
+/**
+ * @type {Array.<FullTextSource>}
+ */
+FullTextIndexSchema.prototype.sources;
+
+
+/**
+ * @type {string}
+ */
+FullTextIndexSchema.prototype.lang;
+
+
+/**
+ * @type {Array.<string>}
+ */
+FullTextIndexSchema.prototype.normalizers;
+
+
+
+/**
+ * @constructor
+ */
 function IndexSchema() {}
 
 
@@ -398,6 +454,12 @@ function DatabaseSchema() {}
  * @type {number}
  */
 DatabaseSchema.prototype.version;
+
+
+/**
+ * @type {Array.<!FullTextIndexSchema>}
+ */
+DatabaseSchema.prototype.fullTextIndexes;
 
 
 /**

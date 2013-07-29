@@ -772,6 +772,18 @@ ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
 
 
 /**
+ * ydn.db.sync module will override this method to inject sync functions.
+ * @param {ydn.db.schema.Store} store store object.
+ * @param {FullTextIndexSchema} option synchronization options.
+ * @protected
+ */
+ydn.db.con.Storage.prototype.addFullTextIndexer = function(store, option) {
+  this.logger.warning('Full text indexer option for ' + store.getName() +
+      ' ignored.');
+};
+
+
+/**
  * For validating user input.
  * @return {!Array.<string>} list of event types.
  */
