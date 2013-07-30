@@ -23,6 +23,7 @@
 goog.provide('ydn.db.schema.Database');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.schema.Store');
+goog.require('ydn.db.schema.fulltext.Index');
 
 
 
@@ -40,14 +41,15 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
    * @type {number|undefined}
    */
   var ver;
+  /**
+   * @type {DatabaseSchema}
+   */
+  var json;
   var stores = opt_stores;
   if (goog.isObject(opt_version)) {
-    /**
-     * @type {DatabaseSchema}
-     */
-    var json = opt_version;
+    json = opt_version;
     if (goog.DEBUG) {
-      var fields = ['version', 'stores'];
+      var fields = ['version', 'stores', 'fullTextIndexes'];
       for (var key in json) {
         if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
           throw new ydn.debug.error.ArgumentException('Unknown field: ' + key +
@@ -82,7 +84,6 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
     ver = opt_version;
   }
 
-
   if (goog.isDef(ver)) {
     if (!goog.isNumber(ver) || ver < 0) {
       throw new ydn.debug.error.ArgumentException('Invalid version: ' +
@@ -110,13 +111,28 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
    * @type {!Array.<!ydn.db.schema.Store>}
    */
   this.stores = stores || [];
-
+  var full_text_indexes = [];
+  if (json && json.fullTextIndexes) {
+    goog.asserts.assertArray(json.fullTextIndexes, 'fullTextIndexes');
+    for (var i = 0; i < json.fullTextIndexes.length; i++) {
+      var full_text_index = ydn.db.schema.fulltext.Index.fromJson(
+          json.fullTextIndexes[i]);
+      full_text_indexes[i] = full_text_index;
+      var p_indexes = [
+        new ydn.db.schema.Index('keyword', ydn.db.schema.DataType.TEXT),
+        new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT)
+      ];
+      var full_text_store_schema = new ydn.db.schema.Store(
+          full_text_index.getName(), undefined, true, undefined, p_indexes);
+      this.stores.push(full_text_store_schema);
+    }
+  }
   /**
    * @final
    * @type {Array.<ydn.db.schema.fulltext.Index>}
    * @private
    */
-  this.full_text_schema_ = [];
+  this.full_text_schema_ = full_text_indexes;
 };
 
 

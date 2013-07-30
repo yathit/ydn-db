@@ -53,7 +53,7 @@ ydn.db.schema.fulltext.Engine = function() {};
  * @param {string} query
  * @returns {Array.<ydn.db.schema.fulltext.ScoreEntry>}
  */
-ydn.db.schema.fulltext.Engine.prototype.score = function(query) {};
+ydn.db.schema.fulltext.Engine.prototype.analyze = function(query) {};
 
 
 /**

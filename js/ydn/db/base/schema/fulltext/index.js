@@ -56,11 +56,6 @@ ydn.db.schema.fulltext.Index = function(name, indexes, opt_lang,
     }
   }
   /**
-   * @protected
-   * @type {Array.<string>}
-   */
-  this.normalizers = opt_normalizers || null;
-  /**
    * @type {ydn.db.schema.fulltext.Engine}
    */
   this.engine = null;
@@ -72,14 +67,6 @@ ydn.db.schema.fulltext.Index = function(name, indexes, opt_lang,
  */
 ydn.db.schema.fulltext.Index.prototype.getName = function() {
   return this.name;
-};
-
-
-/**
- * @return {Array.<string>} list of normalizer to used.
- */
-ydn.db.schema.fulltext.Index.prototype.getNormalizers = function() {
-  return this.normalizers;
 };
 
 
@@ -117,7 +104,7 @@ ydn.db.schema.fulltext.Index.prototype.getIndex = function(name) {
  */
 ydn.db.schema.fulltext.Index.fromJson = function(json) {
   if (goog.DEBUG) {
-    var fields = ['name', 'indexes', 'lang'];
+    var fields = ['name', 'sources', 'lang'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.debug.error.ArgumentException('Unknown field: ' + key +
@@ -125,12 +112,12 @@ ydn.db.schema.fulltext.Index.fromJson = function(json) {
       }
     }
   }
-  if (!goog.isArray(json.indexes)) {
+  if (!goog.isArray(json.sources)) {
     throw new ydn.debug.error.ArgumentException('indexes require for ' +
-        'full text search index ' + json.name + ', but ' + json.indexes +
-        ' of type ' + typeof json.indexes + ' found.');
+        'full text search index ' + json.name + ', but ' + json.sources +
+        ' of type ' + typeof json.sources + ' found.');
   }
-  var indexes = json.indexes.map(function(x) {
+  var indexes = json.sources.map(function(x) {
     return ydn.db.schema.FullTextSource.fromJson(x);
   });
   return new ydn.db.schema.fulltext.Index(json.name, indexes);
