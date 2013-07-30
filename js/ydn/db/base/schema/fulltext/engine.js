@@ -52,11 +52,9 @@ ydn.db.schema.fulltext.Engine = function() {};
 /**
  * @param {string} text text to be prase and scored.
  * @param {ydn.db.schema.FullTextSource} source
- * @param {IDBKey=} opt_key primary key.
  * @return {Array.<ydn.db.schema.fulltext.ScoreEntry>} scores for each unique token.
  */
-ydn.db.schema.fulltext.Engine.prototype.score =
-    function(text, source, opt_key) {};
+ydn.db.schema.fulltext.Engine.prototype.score =function(text, source) {};
 
 
 /**
