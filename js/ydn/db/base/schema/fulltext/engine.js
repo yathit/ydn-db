@@ -20,6 +20,26 @@
 
 
 goog.provide('ydn.db.schema.fulltext.Engine');
+goog.provide('ydn.db.schema.fulltext.ScoreEntry');
+
+
+
+/**
+ * @interface
+ */
+ydn.db.schema.fulltext.ScoreEntry = function() {};
+
+
+/**
+ * @return {string}
+ */
+ydn.db.schema.fulltext.ScoreEntry.prototype.getKeyword = function() {};
+
+
+/**
+ * @param {Array.<IDBKey>} result search result.
+ */
+ydn.db.schema.fulltext.ScoreEntry.prototype.setResult = function(result) {};
 
 
 
@@ -31,17 +51,14 @@ ydn.db.schema.fulltext.Engine = function() {};
 
 /**
  * @param {string} query
- * @returns {Array.<string>}
+ * @returns {Array.<ydn.db.schema.fulltext.ScoreEntry>}
  */
-fullproof.AbstractEngine.prototype.parse = function(query) {};
-
-
-fullproof.AbstractEngine.prototype.score = function(query) {};
+ydn.db.schema.fulltext.Engine.prototype.score = function(query) {};
 
 
 /**
- * Score streaming score entries.
+ * Rank search result.
  * @param {!ydn.db.Request} req
  * @return {!ydn.db.Request}
  */
-ydn.db.schema.fulltext.Engine.prototype.prepare = function(req) {};
+ydn.db.schema.fulltext.Engine.prototype.rank = function(req) {};

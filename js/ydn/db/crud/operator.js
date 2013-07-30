@@ -796,7 +796,7 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
 /**
  * Full text search.
  * @param {ydn.db.schema.fulltext.Index} ft_schema
- * @param {Array.<string>} tokens
+ * @param {Array.<ydn.db.schema.fulltext.ScoreEntry>} tokens
  * @return {!ydn.db.Request}
  */
 ydn.db.crud.DbOperator.prototype.search = function(ft_schema, tokens) {
@@ -807,13 +807,12 @@ ydn.db.crud.DbOperator.prototype.search = function(ft_schema, tokens) {
   var req = this.tx_thread.request(ydn.db.Request.Method.SEARCH, store_names,
       ydn.db.base.TransactionMode.READ_ONLY);
   req.addTxback(function() {
-    var results = [];
     var exe = this.getExecutor();
     var n_tasks = ft_schema.count() * tokens.length;
     var check = function() {
       --n_tasks;
       if (n_tasks == 0) {
-        req.callback(results);
+        req.callback(tokens);
         check = null;
       }
     };
@@ -821,17 +820,17 @@ ydn.db.crud.DbOperator.prototype.search = function(ft_schema, tokens) {
       var ft_index = ft_schema.index(i);
       for (var j = 0; j < tokens.length; j++) {
         var iReq = req.copy();
-        var range = ydn.db.KeyRange.only(tokens[j]);
+        var range = ydn.db.KeyRange.only(tokens[j].getKeyword());
         exe.listByIndexKeyRange(iReq, ft_index.getStoreName(),
             ft_index.getIndexName(), range, 100, 0, false);
         iReq.addCallbacks(function(x) {
-          results = results.concat(x);
-          req.notify(results);
+          this.setResult(/** @type {Array.<IDBKey>} */ (x));
+          req.notify(this);
           check();
         }, function(e) {
           check();
           throw e;
-        }, this);
+        }, tokens[j]);
       }
     }
   }, this);
