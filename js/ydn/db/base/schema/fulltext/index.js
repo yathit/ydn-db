@@ -46,7 +46,7 @@ ydn.db.schema.fulltext.Index = function(name, indexes, opt_lang,
    */
   this.indexes = indexes;
   /**
-   * @protected
+   * @final
    * @type {string}
    */
   this.lang = opt_lang || '';
@@ -56,6 +56,11 @@ ydn.db.schema.fulltext.Index = function(name, indexes, opt_lang,
           opt_lang + ' for full text search index ' + name);
     }
   }
+  /**
+   * @final
+   * @type {Array.<string>}
+   */
+  this.normalizers = opt_normalizers || null;
   /**
    * @type {ydn.db.schema.fulltext.Engine}
    */
