@@ -74,6 +74,9 @@ ydn.db.tr.Mutex.DEBUG = false;
  */
 ydn.db.tr.Mutex.prototype.up = function(tx, store_names, mode) {
 
+  if (ydn.db.tr.Mutex.DEBUG) {
+    window.console.log(this + ': up');
+  }
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
   goog.asserts.assert(!this.tx_, this + ': transaction overlap');
@@ -97,33 +100,7 @@ ydn.db.tr.Mutex.prototype.up = function(tx, store_names, mode) {
 
   this.oncompleted = null;
 
-  if (ydn.db.tr.Mutex.DEBUG) {
-    window.console.log(this + ': open');
-  }
 };
-
-
-/**
- * Current transaction.
- * @type {!IDBTransaction|!SQLTransaction|ydn.db.con.SimpleStorage}
- * @private
- */
-ydn.db.tr.Mutex.prototype.idb_tx_ = null;
-
-
-/**
- * Transaction is explicitly set not to do transaction.
- * @type {boolean}
- * @private
- */
-ydn.db.tr.Mutex.prototype.is_set_done_ = false;
-
-
-/**
- * @private
- * @type {number}
- */
-ydn.db.tr.Mutex.prototype.tx_count_;
 
 
 /**
