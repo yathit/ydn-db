@@ -120,13 +120,6 @@ ydn.db.tr.Mutex.prototype.is_set_done_ = false;
 
 
 /**
- * @protected
- * @type {number}
- */
-ydn.db.tr.Mutex.prototype.scope_name;
-
-
-/**
  * @private
  * @type {number}
  */
@@ -145,15 +138,6 @@ ydn.db.tr.Mutex.prototype.store_names = null;
  * @type {?ydn.db.base.TransactionMode}
  */
 ydn.db.tr.Mutex.prototype.mode;
-
-
-/**
- *
- * @return {string} scope name.
- */
-ydn.db.tr.Mutex.prototype.getThreadName = function() {
-  return 'B' + this.scope_name + 'T' + this.tx_count_;
-};
 
 
 /**
@@ -221,7 +205,7 @@ ydn.db.tr.Mutex.prototype.down = function(type, event) {
   if (this.tx_) {
 
     if (ydn.db.tr.Mutex.DEBUG) {
-      window.console.log(this + ': close');
+      window.console.log(this + ': down');
     }
     // down must be call only once by those who up
     this.tx_ = null;

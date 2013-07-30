@@ -118,13 +118,15 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
       var full_text_index = ydn.db.schema.fulltext.Index.fromJson(
           json.fullTextIndexes[i]);
       full_text_indexes[i] = full_text_index;
-      var p_indexes = [
-        new ydn.db.schema.Index('keyword', ydn.db.schema.DataType.TEXT),
-        new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT)
-      ];
-      var full_text_store_schema = new ydn.db.schema.Store(
-          full_text_index.getName(), undefined, true, undefined, p_indexes);
-      this.stores.push(full_text_store_schema);
+      if (!this.getStore(full_text_index.getName())) {
+        var p_indexes = [
+          new ydn.db.schema.Index('keyword', ydn.db.schema.DataType.TEXT),
+          new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT)
+        ];
+        var full_text_store_schema = new ydn.db.schema.Store(
+            full_text_index.getName(), undefined, true, undefined, p_indexes);
+        this.stores.push(full_text_store_schema);
+      }
     }
   }
   /**
@@ -133,6 +135,34 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
    * @private
    */
   this.full_text_schema_ = full_text_indexes;
+};
+
+
+/**
+ * @return {number} number of full text indexes.
+ */
+ydn.db.schema.Database.prototype.countFullTextIndex = function() {
+  return this.full_text_schema_.length;
+};
+
+
+/**
+ * @param {number} idx
+ * @return {ydn.db.schema.fulltext.Index}
+ */
+ydn.db.schema.Database.prototype.fullTextIndex = function(idx) {
+  return this.full_text_schema_[idx];
+};
+
+
+/**
+ * @param {number} name
+ * @return {ydn.db.schema.fulltext.Index}
+ */
+ydn.db.schema.Database.prototype.getFullTextIndex = function(name) {
+  return goog.array.find(this.full_text_schema_, function(x) {
+    return x.getName() == name;
+  });
 };
 
 

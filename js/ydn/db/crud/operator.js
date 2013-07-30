@@ -822,7 +822,7 @@ ydn.db.crud.DbOperator.prototype.search = function(ft_schema, tokens) {
         var iReq = req.copy();
         var range = ydn.db.KeyRange.only(tokens[j].getKeyword());
         exe.listByIndexKeyRange(iReq, ft_index.getStoreName(),
-            ft_index.getIndexName(), range, 100, 0, false);
+            'keyword', range.toIDBKeyRange(), false, 100, 0, false);
         iReq.addCallbacks(function(x) {
           this.setResult(/** @type {Array.<IDBKey>} */ (x));
           req.notify(this);
@@ -974,6 +974,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       store.generateIndex(obj);
       req = this.tx_thread.request(ydn.db.Request.Method.PUT,
           [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+      store.hook(req, arguments);
       req.addTxback(function() {
         me.getExecutor().putObject(req, st_name, obj, key);
       }, this);

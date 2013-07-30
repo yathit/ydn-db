@@ -146,7 +146,7 @@ ydn.db.Request.prototype.setTx = function(tx, label) {
  */
 ydn.db.Request.prototype.copy = function() {
   // goog.asserts.assert(this.tx_, 'only active request can be copied');
-  var rq = new ydn.db.Request(this.method);
+  var rq = new ydn.db.Request(this.method_);
   rq.setTx(this.tx_, this.tx_label_);
   return rq;
 };

@@ -20,6 +20,7 @@
 
 
 goog.provide('ydn.db.schema.fulltext.Index');
+goog.require('ydn.db.schema.fulltext.Engine');
 
 
 
@@ -129,7 +130,7 @@ ydn.db.schema.fulltext.Index.fromJson = function(json) {
  * Primary index for fulltext search index.
  * @param {string} store_name store name of which index reside.
  * @param {string} key_path the index name.
- * @param {number=} opt_weight index weight. Default to 1.
+ * @param {number?=} opt_weight index weight. Default to 1.
  * @constructor
  */
 ydn.db.schema.FullTextSource = function(store_name, key_path,
