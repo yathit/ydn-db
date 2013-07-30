@@ -907,6 +907,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
     }
     req = this.tx_thread.request(ydn.db.Request.Method.PUT_KEYS, store_names,
         ydn.db.base.TransactionMode.READ_WRITE);
+    store.hook(req, arguments);
     req.addTxback(function() {
       me.getExecutor().putByKeys(req, values, db_keys);
     }, this);
@@ -943,6 +944,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       }
       req = this.tx_thread.request(ydn.db.Request.Method.PUTS,
           [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+      store.hook(req, arguments);
       req.addTxback(function() {
         //console.log('putObjects');
         this.getExecutor().putObjects(req, st_name, objs, keys);
