@@ -796,10 +796,10 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
 /**
  * Full text search.
  * @param {ydn.db.schema.fulltext.Index} ft_schema
- * @param {Array.<ydn.db.schema.fulltext.ScoreEntry>} tokens
+ * @param {ydn.db.schema.fulltext.ResultSet} query
  * @return {!ydn.db.Request}
  */
-ydn.db.crud.DbOperator.prototype.search = function(ft_schema, tokens) {
+ydn.db.crud.DbOperator.prototype.search = function(ft_schema, query) {
   var store_names = [];
   for (var i = 0; i < ft_schema.count(); i++) {
     store_names.push(ft_schema.index(i).getStoreName());
@@ -808,31 +808,22 @@ ydn.db.crud.DbOperator.prototype.search = function(ft_schema, tokens) {
       ydn.db.base.TransactionMode.READ_ONLY);
   req.addTxback(function() {
     var exe = this.getExecutor();
-    var n_tasks = ft_schema.count() * tokens.length;
-    var check = function() {
-      --n_tasks;
-      if (n_tasks == 0) {
-        req.callback(tokens);
-        check = null;
-      }
-    };
-    for (var i = 0; i < ft_schema.count(); i++) {
-      var ft_index = ft_schema.index(i);
-      for (var j = 0; j < tokens.length; j++) {
+    var lookup = function() {
+      query.nextLookup(function(store_name, index_name, kr, entry) {
         var iReq = req.copy();
-        var range = ydn.db.KeyRange.only(tokens[j].getKeyword());
-        exe.listByIndexKeyRange(iReq, ft_index.getStoreName(),
-            'keyword', range.toIDBKeyRange(), false, 100, 0, false);
+        exe.listByIndexKeyRange(iReq, store_name, index_name,
+            kr.toIDBKeyRange(), false, 100, 0, false);
         iReq.addCallbacks(function(x) {
-          this.setResult(/** @type {Array.<IDBKey>} */ (x));
+          var next = query.addResult(this, /** @type {Array} */ (x));
           req.notify(this);
-          check();
+          if (next) {
+            lookup();
+          }
         }, function(e) {
-          check();
           throw e;
-        }, tokens[j]);
-      }
-    }
+        }, entry);
+      });
+    };
   }, this);
   return req;
 };

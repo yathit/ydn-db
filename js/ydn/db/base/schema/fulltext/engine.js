@@ -20,6 +20,7 @@
 
 
 goog.provide('ydn.db.schema.fulltext.Engine');
+goog.provide('ydn.db.schema.fulltext.ResultSet');
 goog.provide('ydn.db.schema.fulltext.ScoreEntry');
 
 
@@ -30,16 +31,28 @@ goog.provide('ydn.db.schema.fulltext.ScoreEntry');
 ydn.db.schema.fulltext.ScoreEntry = function() {};
 
 
+
 /**
- * @return {string}
+ * @interface
  */
-ydn.db.schema.fulltext.ScoreEntry.prototype.getKeyword = function() {};
+ydn.db.schema.fulltext.ResultSet = function() {};
 
 
 /**
- * @param {Array.<IDBKey>} result search result.
+ * Get next lookup.
+ * @param {function(string, string, (IDBKey|ydn.db.KeyRange),
+ * ydn.db.schema.fulltext.ScoreEntry)} cb callback for next query.
  */
-ydn.db.schema.fulltext.ScoreEntry.prototype.setResult = function(result) {};
+ydn.db.schema.fulltext.ResultSet.prototype.nextLookup = function(cb) {};
+
+
+/**
+ * Return result from lookup.
+ * @param {ydn.db.schema.fulltext.ScoreEntry} query
+ * @param {Array} results
+ */
+ydn.db.schema.fulltext.ResultSet.prototype.addResult =
+    function(query, results) {};
 
 
 
@@ -54,12 +67,13 @@ ydn.db.schema.fulltext.Engine = function() {};
  * @param {ydn.db.schema.FullTextSource} source
  * @return {Array.<ydn.db.schema.fulltext.ScoreEntry>} scores for each unique token.
  */
-ydn.db.schema.fulltext.Engine.prototype.score =function(text, source) {};
+ydn.db.schema.fulltext.Engine.prototype.score = function(text, source) {};
 
 
 /**
  * Rank search result.
  * @param {!ydn.db.Request} req
+ * @param {ydn.db.schema.fulltext.ResultSet} result
  * @return {!ydn.db.Request}
  */
-ydn.db.schema.fulltext.Engine.prototype.rank = function(req) {};
+ydn.db.schema.fulltext.Engine.prototype.rank = function(req, result) {};

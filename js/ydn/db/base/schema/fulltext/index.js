@@ -20,7 +20,9 @@
 
 
 goog.provide('ydn.db.schema.fulltext.Index');
+goog.require('goog.array');
 goog.require('ydn.db.schema.fulltext.Engine');
+goog.require('ydn.debug.error.ArgumentException');
 
 
 
