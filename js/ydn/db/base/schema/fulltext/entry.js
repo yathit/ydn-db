@@ -1,4 +1,4 @@
-// Copyright 2012 YDN Authors. All Rights Reserved.
+// Copyright 2013 YDN Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@
  */
 
 
+goog.provide('ydn.db.schema.fulltext.Entry');
+
+
 
 /**
  * An object that associates a value and a numerical score
@@ -30,7 +33,7 @@
  * @param {IDBKey=} opt_p_key source primary key.
  * @param {number=} opt_score score.
  * @constructor
- * @implements {ydn.db.schema.fulltext.ScoreEntry}
+ * @struct
  */
 ydn.db.schema.fulltext.Entry = function(keyword, value, position,
     opt_store_name, opt_key_path, opt_p_key, opt_score) {
@@ -130,7 +133,7 @@ ydn.db.schema.fulltext.Entry.prototype.getPrimaryKey = function() {
  */
 ydn.db.schema.fulltext.Entry.prototype.toJson = function() {
   return {
-    'keyword': this.key,
+    'keyword': this.keyword,
     'value': this.value,
     'score': this.getScore(),
     'source': {
@@ -146,12 +149,12 @@ ydn.db.schema.fulltext.Entry.prototype.toJson = function() {
 /**
  * Compare by score, then by id.
  * Note: this result 0 only if the same entry is compared.
- * @param {fullproof.ScoreEntry} a entry a.
- * @param {fullproof.ScoreEntry} b entry b.
+ * @param {ydn.db.schema.fulltext.Entry} a entry a.
+ * @param {ydn.db.schema.fulltext.Entry} b entry b.
  * @return {number} return 1 if score of entry a is larger than that of b, -1
  * if score of entry b is larger than a, otherwise compare by id.
  */
-fullproof.ScoreEntry.cmp = function(a, b) {
+ydn.db.schema.fulltext.Entry.cmp = function(a, b) {
   var a_score = a.getScore();
   var b_score = b.getScore();
   return a_score > b_score ? 1 : b_score > a_score ? -1 :
@@ -163,12 +166,12 @@ fullproof.ScoreEntry.cmp = function(a, b) {
  * Uniquely identify this entry.
  * @return {number} Entry identifier.
  */
-fullproof.ScoreEntry.prototype.getId = function() {
+ydn.db.schema.fulltext.Entry.prototype.getId = function() {
   if (isNaN(this.id_)) {
     var st = this.store_name || '';
     var kp = this.key_path || '';
     var p = this.position || 0;
-    this.id_ = goog.string.hashCode(st + kp + p + this.key);
+    this.id_ = goog.string.hashCode(st + kp + p + this.keyword);
   }
   return this.id_;
 };
@@ -179,7 +182,7 @@ if (goog.DEBUG) {
    * @inheritDoc
    */
   ydn.db.schema.fulltext.Entry.prototype.toString = function() {
-    return 'fulltext.Entry:' + this.key;
+    return 'fulltext.Entry:' + this.keyword;
   };
 }
 
@@ -189,7 +192,7 @@ if (goog.DEBUG) {
  * @return {!ydn.db.schema.fulltext.Entry}
  */
 ydn.db.schema.fulltext.Entry.fromJson = function(json) {
-  return new fullproof.ScoreEntry(json['keyword'], json['value'],
+  return new ydn.db.schema.fulltext.Entry(json['keyword'], json['value'],
       json['position'], json['storeName'], json['keyPath'], json['primaryKey'],
       json['score']);
 };

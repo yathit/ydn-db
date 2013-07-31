@@ -23,7 +23,7 @@
 goog.provide('ydn.db.schema.Database');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.schema.Store');
-goog.require('ydn.db.schema.fulltext.Index');
+goog.require('ydn.db.schema.fulltext.InvIndex');
 
 
 
@@ -49,7 +49,7 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
   if (goog.isObject(opt_version)) {
     json = opt_version;
     if (goog.DEBUG) {
-      var fields = ['version', 'stores', 'fullTextIndexes'];
+      var fields = ['version', 'stores', 'fullTextCatalogs'];
       for (var key in json) {
         if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
           throw new ydn.debug.error.ArgumentException('Unknown field: ' + key +
@@ -112,11 +112,11 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
    */
   this.stores = stores || [];
   var full_text_indexes = [];
-  if (json && json.fullTextIndexes) {
-    goog.asserts.assertArray(json.fullTextIndexes, 'fullTextIndexes');
-    for (var i = 0; i < json.fullTextIndexes.length; i++) {
-      var full_text_index = ydn.db.schema.fulltext.Index.fromJson(
-          json.fullTextIndexes[i]);
+  if (json && json.fullTextCatalogs) {
+    goog.asserts.assertArray(json.fullTextCatalogs, 'fullTextCatalogs');
+    for (var i = 0; i < json.fullTextCatalogs.length; i++) {
+      var full_text_index = ydn.db.schema.fulltext.Catalog.fromJson(
+          json.fullTextCatalogs[i]);
       full_text_indexes[i] = full_text_index;
       if (!this.getStore(full_text_index.getName())) {
         var p_indexes = [
@@ -131,7 +131,7 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
   }
   /**
    * @final
-   * @type {Array.<ydn.db.schema.fulltext.Index>}
+   * @type {Array.<ydn.db.schema.fulltext.Catalog>}
    * @private
    */
   this.full_text_schema_ = full_text_indexes;
@@ -148,7 +148,7 @@ ydn.db.schema.Database.prototype.countFullTextIndex = function() {
 
 /**
  * @param {number} idx
- * @return {ydn.db.schema.fulltext.Index}
+ * @return {ydn.db.schema.fulltext.Catalog}
  */
 ydn.db.schema.Database.prototype.fullTextIndex = function(idx) {
   return this.full_text_schema_[idx];
@@ -156,8 +156,8 @@ ydn.db.schema.Database.prototype.fullTextIndex = function(idx) {
 
 
 /**
- * @param {number} name
- * @return {ydn.db.schema.fulltext.Index}
+ * @param {string} name
+ * @return {ydn.db.schema.fulltext.Catalog}
  */
 ydn.db.schema.Database.prototype.getFullTextIndex = function(name) {
   return goog.array.find(this.full_text_schema_, function(x) {
@@ -342,7 +342,7 @@ ydn.db.schema.Database.prototype.similar = function(schema) {
 
 /**
  * @param name
- * @return {ydn.db.schema.fulltext.Index}
+ * @return {ydn.db.schema.fulltext.Catalog}
  */
 ydn.db.schema.Database.prototype.getFullTextSchema = function(name) {
   return goog.array.find(this.full_text_schema_, function(x) {

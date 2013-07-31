@@ -28,27 +28,20 @@ goog.provide('ydn.db.schema.fulltext.ScoreEntry');
 /**
  * @interface
  */
-ydn.db.schema.fulltext.ScoreEntry = function() {};
-
-
-
-/**
- * @interface
- */
 ydn.db.schema.fulltext.ResultSet = function() {};
 
 
 /**
- * Get next lookup.
- * @param {function(string, string, (IDBKey|ydn.db.KeyRange),
- * ydn.db.schema.fulltext.ScoreEntry)} cb callback for next query.
+ * Next database lookup.
+ * @param {function(string, string, ydn.db.KeyRange,
+ * ydn.db.text.QueryEntry)} cb callback for next query.
  */
 ydn.db.schema.fulltext.ResultSet.prototype.nextLookup = function(cb) {};
 
 
 /**
  * Return result from lookup.
- * @param {ydn.db.schema.fulltext.ScoreEntry} query
+ * @param {ydn.db.schema.fulltext.Entry} query
  * @param {Array} results
  */
 ydn.db.schema.fulltext.ResultSet.prototype.addResult =
@@ -64,8 +57,8 @@ ydn.db.schema.fulltext.Engine = function() {};
 
 /**
  * @param {string} text text to be prase and scored.
- * @param {ydn.db.schema.FullTextSource} source
- * @return {Array.<ydn.db.schema.fulltext.ScoreEntry>} scores for each unique token.
+ * @param {ydn.db.schema.fulltext.InvIndex} source
+ * @return {Array.<ydn.db.schema.fulltext.Entry>} scores for each unique token.
  */
 ydn.db.schema.fulltext.Engine.prototype.score = function(text, source) {};
 

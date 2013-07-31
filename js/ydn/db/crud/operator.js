@@ -795,7 +795,7 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
 
 /**
  * Full text search.
- * @param {ydn.db.schema.fulltext.Index} ft_schema
+ * @param {ydn.db.schema.fulltext.Catalog} ft_schema
  * @param {ydn.db.schema.fulltext.ResultSet} query
  * @return {!ydn.db.Request}
  */
