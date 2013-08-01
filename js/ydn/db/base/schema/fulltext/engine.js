@@ -21,7 +21,7 @@
 
 goog.provide('ydn.db.schema.fulltext.Engine');
 goog.provide('ydn.db.schema.fulltext.ResultSet');
-goog.provide('ydn.db.schema.fulltext.ScoreEntry');
+goog.require('ydn.db.schema.fulltext.Entry');
 
 
 
@@ -34,7 +34,7 @@ ydn.db.schema.fulltext.ResultSet = function() {};
 /**
  * Next database lookup.
  * @param {function(string, string, ydn.db.KeyRange,
- * ydn.db.text.QueryEntry)} cb callback for next query.
+ * ydn.db.schema.fulltext.Entry)} cb callback for next query.
  */
 ydn.db.schema.fulltext.ResultSet.prototype.nextLookup = function(cb) {};
 
@@ -56,17 +56,23 @@ ydn.db.schema.fulltext.Engine = function() {};
 
 
 /**
- * @param {string} text text to be prase and scored.
- * @param {ydn.db.schema.fulltext.InvIndex} source
- * @return {Array.<ydn.db.schema.fulltext.Entry>} scores for each unique token.
+ * Free text query.
+ * @param {string} catalog_name
+ * @param {string} query
+ * @param {number=} opt_limit
+ * @param {number=} opt_threshold
+ * @return {ydn.db.text.ResultSet}
  */
-ydn.db.schema.fulltext.Engine.prototype.score = function(text, source) {};
+ydn.db.schema.fulltext.Engine.prototype.query = function(catalog_name, query,
+   opt_limit, opt_threshold) {};
 
 
 /**
- * Rank search result.
- * @param {!ydn.db.Request} req
- * @param {ydn.db.schema.fulltext.ResultSet} result
- * @return {!ydn.db.Request}
+ * Analyze an indexing value.
+ * @param {string} store_name the store name in which document belong.
+ * @param {IDBKey} key primary of the document.
+ * @param {!Object} obj the document to be indexed.
+ * @return {Array.<ydn.db.text.QueryEntry>} score for each token.
  */
-ydn.db.schema.fulltext.Engine.prototype.rank = function(req, result) {};
+ydn.db.schema.fulltext.Engine.prototype.analyze = function(
+    store_name, key, obj) {};

@@ -21,7 +21,6 @@
 
 goog.provide('ydn.db.schema.fulltext.Catalog');
 goog.require('goog.array');
-goog.require('ydn.db.schema.fulltext.Engine');
 goog.require('ydn.db.schema.fulltext.InvIndex');
 goog.require('ydn.debug.error.ArgumentException');
 

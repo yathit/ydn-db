@@ -797,15 +797,12 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
 
 /**
  * Full text search.
- * @param {ydn.db.schema.fulltext.Catalog} ft_schema
  * @param {ydn.db.schema.fulltext.ResultSet} query
  * @return {!ydn.db.Request}
  */
-ydn.db.crud.DbOperator.prototype.search = function(ft_schema, query) {
-  var store_names = [];
-  for (var i = 0; i < ft_schema.count(); i++) {
-    store_names.push(ft_schema.index(i).getStoreName());
-  }
+ydn.db.crud.DbOperator.prototype.search = function(query) {
+  var store_names = query.getStoreList();
+  this.logger.finest('query ' + query);
   var req = this.tx_thread.request(ydn.db.Request.Method.SEARCH, store_names,
       ydn.db.base.TransactionMode.READ_ONLY);
   req.addTxback(function() {
@@ -813,6 +810,7 @@ ydn.db.crud.DbOperator.prototype.search = function(ft_schema, query) {
     var lookup = function() {
       query.nextLookup(function(store_name, index_name, kr, entry) {
         var iReq = req.copy();
+        // console.log(store_name, index_name, kr);
         exe.listByIndexKeyRange(iReq, store_name, index_name,
             kr.toIDBKeyRange(), false, 100, 0, false);
         iReq.addCallbacks(function(x) {
@@ -826,6 +824,7 @@ ydn.db.crud.DbOperator.prototype.search = function(ft_schema, query) {
         }, entry);
       });
     };
+    lookup();
   }, this);
   return req;
 };
