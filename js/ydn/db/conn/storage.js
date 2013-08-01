@@ -184,9 +184,9 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
         throw new ydn.debug.error.ArgumentException('full text index store "' +
             store.getName() + '" must have "keyword" index');
       }
-      if (!store.isAutoIncrement()) {
+      if (store.getKeyPath() != 'id') {
         throw new ydn.debug.error.ArgumentException('full text index store "' +
-            store.getName() + '" must use key generator.');
+            store.getName() + '" must use "id" as key path.');
       }
     } else {
       throw new ydn.debug.error.ArgumentException('full text index store "' +

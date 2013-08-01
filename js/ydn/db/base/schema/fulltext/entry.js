@@ -10,3 +10,5 @@ goog.provide('ydn.db.schema.fulltext.Entry');
 ydn.db.schema.fulltext.Entry = function() {};
 
 
+
+
