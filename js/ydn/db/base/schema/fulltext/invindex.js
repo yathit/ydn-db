@@ -22,6 +22,7 @@
 goog.provide('ydn.db.schema.fulltext.InvIndex');
 goog.require('goog.array');
 goog.require('ydn.debug.error.ArgumentException');
+goog.require('ydn.json');
 
 
 
@@ -97,7 +98,7 @@ ydn.db.schema.fulltext.InvIndex.fromJson = function(json) {
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.debug.error.ArgumentException('Unknown field: ' + key +
-            ' in ' + ydn.json.stringify(json));
+            ' in ' + ydn.json.toShortString(json));
       }
     }
   }
