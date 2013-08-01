@@ -814,6 +814,7 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
         exe.listByIndexKeyRange(iReq, store_name, index_name,
             kr.toIDBKeyRange(), false, 100, 0, false);
         iReq.addCallbacks(function(x) {
+          console.log(store_name, index_name, kr.lower, x);
           var next = query.addResult(this, /** @type {Array} */ (x));
           req.notify(this);
           if (next) {

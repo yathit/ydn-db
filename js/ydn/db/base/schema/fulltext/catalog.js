@@ -131,6 +131,6 @@ ydn.db.schema.fulltext.Catalog.fromJson = function(json) {
   var indexes = json.indexes.map(function(x) {
     return ydn.db.schema.fulltext.InvIndex.fromJson(x);
   });
-  return new ydn.db.schema.fulltext.Catalog(json.name, indexes);
+  return new ydn.db.schema.fulltext.Catalog(json.name, indexes, json.lang);
 };
 
