@@ -721,8 +721,8 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
 
   } else {
     throw new ydn.debug.error.ArgumentException('record must be an object or ' +
-        'array list of objects' +
-        ', but ' + value + ' of type ' + typeof value + ' found.');
+        'array list of objects, but ' + value + ' of type ' + typeof value +
+        ' found.');
   }
 
   return req;
@@ -816,9 +816,11 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
         iReq.addCallbacks(function(x) {
           // console.log(store_name, index_name, kr.lower, x);
           var next = query.addResult(this, /** @type {Array} */ (x));
-          req.notify(this);
+          req.notify(query);
           if (next) {
             lookup();
+          } else {
+            req.callback(query);
           }
         }, function(e) {
           throw e;

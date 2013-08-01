@@ -10,14 +10,14 @@ goog.require('ydn.db.schema.Database');
 
 /**
  *
- * @param {DatabaseSchema|number|string=} version version, if string, it must
- * be parse to int.
+ * @param {DatabaseSchema|number|string=} opt_version version, if string,
+ * it must be parse to int.
  * @param {!Array.<!ydn.db.schema.Store>=} opt_stores store schemas.
  * @constructor
  * @extends {ydn.db.schema.Database}
  */
-ydn.db.schema.EditableDatabase = function(version, opt_stores) {
-  goog.base(this, version, opt_stores);
+ydn.db.schema.EditableDatabase = function(opt_version, opt_stores) {
+  goog.base(this, opt_version, opt_stores);
 };
 goog.inherits(ydn.db.schema.EditableDatabase, ydn.db.schema.Database);
 

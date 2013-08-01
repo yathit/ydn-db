@@ -50,6 +50,7 @@ ydn.db.schema.fulltext.ResultSet.prototype.nextLookup = function(cb) {};
  * Return result from lookup.
  * @param {ydn.db.schema.fulltext.Entry} query
  * @param {Array} results
+ * @return {boolean} return true to invoke next looup.
  */
 ydn.db.schema.fulltext.ResultSet.prototype.addResult =
     function(query, results) {};
@@ -71,7 +72,7 @@ ydn.db.schema.fulltext.Engine = function() {};
  * @return {ydn.db.schema.fulltext.ResultSet}
  */
 ydn.db.schema.fulltext.Engine.prototype.query = function(catalog_name, query,
-   opt_limit, opt_threshold) {};
+    opt_limit, opt_threshold) {};
 
 
 /**
