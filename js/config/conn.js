@@ -3,12 +3,12 @@
  */
 
 goog.require('goog.async.Deferred');
+goog.require('ydn.async.Deferred');
 goog.require('ydn.base');
-goog.require('ydn.db.base');
 goog.require('ydn.db');
+goog.require('ydn.db.base');
 goog.require('ydn.db.con.Storage');
 goog.require('ydn.db.events.StorageEvent');
-goog.require('ydn.async.Deferred');
 
 goog.exportSymbol('ydn.db.con.Storage', ydn.db.con.Storage);
 
@@ -51,5 +51,7 @@ goog.exportProperty(ydn.db.Request.prototype, 'abort',
     ydn.db.Request.prototype.abort);
 goog.exportProperty(ydn.db.Request.prototype, 'canAbort',
     ydn.db.Request.prototype.canAbort);
+goog.exportProperty(ydn.db.Request.prototype, 'progress',
+    ydn.db.Request.prototype.addProgback);
 
 

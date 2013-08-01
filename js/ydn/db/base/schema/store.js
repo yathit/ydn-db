@@ -135,6 +135,13 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
    */
   this.primary_column_name_quoted_ =
       goog.string.quote(this.primary_column_name_);
+
+  /**
+   * @final
+   * @type {Array.<function(!ydn.db.Request, Arguments)>} hookers.
+   * @private
+   */
+  this.hooks_ = [];
 };
 
 
@@ -994,14 +1001,25 @@ ydn.db.schema.Store.prototype.generateIndex = function(obj) {
 
 
 /**
+ * @param {function(!ydn.db.Request, Arguments)} hook
+ */
+ydn.db.schema.Store.prototype.addHook = function(hook) {
+  this.hooks_.push(hook);
+};
+
+
+/**
  * Database hook to call before persisting into the database.
  * Override this function to attach the hook. The default implementation is
  * immediately invoke the given callback with first variable argument.
  * to preserve database operation order, preHook call is not waited.
  * @param {!ydn.db.Request} df deferred from database operation.
  * @param {Arguments} args arguments to the db method.
+ * @final
  */
 ydn.db.schema.Store.prototype.hook = function(df, args) {
-  // do sync logic.
+  for (var i = 0; i < this.hooks_.length; i++) {
+    this.hooks_[i](df, args);
+  }
 };
 

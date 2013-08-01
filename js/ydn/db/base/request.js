@@ -142,6 +142,17 @@ ydn.db.Request.prototype.setTx = function(tx, label) {
 
 
 /**
+ * @return {!ydn.db.Request} active tx copy of this request.
+ */
+ydn.db.Request.prototype.copy = function() {
+  // goog.asserts.assert(this.tx_, 'only active request can be copied');
+  var rq = new ydn.db.Request(this.method_);
+  rq.setTx(this.tx_, this.tx_label_);
+  return rq;
+};
+
+
+/**
  * Remove tx when tx is inactive.
  */
 ydn.db.Request.prototype.removeTx = function() {
@@ -433,6 +444,7 @@ ydn.db.Request.Method = {
   REMOVE_KEYS: goog.DEBUG ? 'rm:keys' : 'o',
   REMOVE_INDEX: goog.DEBUG ? 'rm:iter:index' : 'p',
   RUN: goog.DEBUG ? 'run' : 'q',
+  SEARCH: goog.DEBUG ? 'search' : 'qa',
   SQL: goog.DEBUG ? 'sql' : 'r',
   VALUES: goog.DEBUG ? 'values' : 's',
   VALUES_ITER: goog.DEBUG ? 'values:iter' : 't',

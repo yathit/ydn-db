@@ -15,8 +15,7 @@
 /**
  * @fileoverview Database index schema.
  *
- * User: kyawtun
- * Date: 24/2/13
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 

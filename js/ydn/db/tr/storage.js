@@ -240,8 +240,13 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
 };
 
 
-/** @return {number} */
+/**
+ * Current transaction count. Useful for debugging or performance analysis
+ * purpose only.
+ * @return {number} transaction number.
+ */
 ydn.db.tr.Storage.prototype.getTxNo = function() {
   return this.db_operator ? this.db_operator.getTxNo() : NaN;
 };
+
 

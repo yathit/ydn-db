@@ -74,6 +74,9 @@ ydn.db.tr.Mutex.DEBUG = false;
  */
 ydn.db.tr.Mutex.prototype.up = function(tx, store_names, mode) {
 
+  if (ydn.db.tr.Mutex.DEBUG) {
+    window.console.log(this + ': up');
+  }
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
   goog.asserts.assert(!this.tx_, this + ': transaction overlap');
@@ -97,40 +100,7 @@ ydn.db.tr.Mutex.prototype.up = function(tx, store_names, mode) {
 
   this.oncompleted = null;
 
-  if (ydn.db.tr.Mutex.DEBUG) {
-    window.console.log(this + ': open');
-  }
 };
-
-
-/**
- * Current transaction.
- * @type {!IDBTransaction|!SQLTransaction|ydn.db.con.SimpleStorage}
- * @private
- */
-ydn.db.tr.Mutex.prototype.idb_tx_ = null;
-
-
-/**
- * Transaction is explicitly set not to do transaction.
- * @type {boolean}
- * @private
- */
-ydn.db.tr.Mutex.prototype.is_set_done_ = false;
-
-
-/**
- * @protected
- * @type {number}
- */
-ydn.db.tr.Mutex.prototype.scope_name;
-
-
-/**
- * @private
- * @type {number}
- */
-ydn.db.tr.Mutex.prototype.tx_count_;
 
 
 /**
@@ -145,15 +115,6 @@ ydn.db.tr.Mutex.prototype.store_names = null;
  * @type {?ydn.db.base.TransactionMode}
  */
 ydn.db.tr.Mutex.prototype.mode;
-
-
-/**
- *
- * @return {string} scope name.
- */
-ydn.db.tr.Mutex.prototype.getThreadName = function() {
-  return 'B' + this.scope_name + 'T' + this.tx_count_;
-};
 
 
 /**
@@ -221,7 +182,7 @@ ydn.db.tr.Mutex.prototype.down = function(type, event) {
   if (this.tx_) {
 
     if (ydn.db.tr.Mutex.DEBUG) {
-      window.console.log(this + ': close');
+      window.console.log(this + ': down');
     }
     // down must be call only once by those who up
     this.tx_ = null;

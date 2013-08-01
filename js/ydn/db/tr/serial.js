@@ -33,7 +33,7 @@ goog.require('ydn.error.NotSupportedException');
  *
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
- * @param {ydn.db.tr.IThread.Policy=} opt_policy
+ * @param {ydn.db.tr.IThread.Policy=} opt_policy transaction policy.
  * @param {!Array.<string>=} opt_store_names store names as scope.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode as scope.
  * @param {number=} opt_max_tx_no limit number of transaction created.
@@ -96,10 +96,18 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
    */
   this.completed_handlers_ = [];
 
+  /**
+   * Transaction object is sed when receiving a request before result df
+   * callback and set null after that callback so that it can be aborted
+   * in the callback.
+   * In general, this tx may be different from running tx.
+   * @type {ydn.db.con.IDatabase.Transaction}
+   * @protected
+   */
   this.s_request_tx = null;
 
   /**
-   *
+   * One database can have only one transaction.
    * @type {!ydn.db.tr.Mutex}
    * @private
    * @final
@@ -111,6 +119,12 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
    * @private
    */
   this.max_tx_no_ = opt_max_tx_no || 0;
+  /**
+   * A flag to indicate a transaction has been placed to the storage mechanism.
+   * @type {boolean}
+   * @private
+   */
+  this.has_tx_started_ = false;
 };
 
 
@@ -143,14 +157,6 @@ ydn.db.tr.Serial.prototype.storage_;
 
 
 /**
- * One database can have only one transaction.
- * @private
- * @type {ydn.db.tr.Mutex} mutex.
- */
-ydn.db.tr.Serial.prototype.mu_tx_ = null;
-
-
-/**
  * @type {number} limit number of transactions.
  * @private
  */
@@ -180,15 +186,6 @@ ydn.db.tr.Serial.prototype.getMuTx = function() {
  */
 ydn.db.tr.Serial.prototype.getTxNo = function() {
   return this.mu_tx_.getTxCount();
-};
-
-
-/**
- *
- * @return {number} transaction queue number.
- */
-ydn.db.tr.Serial.prototype.getQueueNo = function() {
-  return this.q_no_;
 };
 
 
@@ -240,8 +237,7 @@ ydn.db.tr.Serial.prototype.getStorage = function() {
 
 
 /**
- * @export
- * @return {SQLTransaction|IDBTransaction|Object} active transaction object.
+ * @return {ydn.db.con.IDatabase.Transaction} active transaction object.
  */
 ydn.db.tr.Serial.prototype.getTx = function() {
   return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_.getTx() : null;
@@ -257,31 +253,12 @@ ydn.db.tr.Serial.prototype.lock = function() {
 
 
 /**
- * Transaction object is sed when receiving a request before result df
- * callback and set null after that callback so that it can be aborted
- * in the callback.
- * In general, this tx may be different from running tx.
- * @type {ydn.db.con.IDatabase.Transaction}
- * @protected
- */
-ydn.db.tr.Serial.prototype.s_request_tx = null;
-
-
-/**
  *
  * @return {string|undefined} mechanism type.
  */
 ydn.db.tr.Serial.prototype.type = function() {
   return this.storage_.getType();
 };
-
-
-/**
- *
- * @type {number}
- * @private
- */
-ydn.db.tr.Serial.prototype.last_queue_checkin_ = NaN;
 
 
 /**
@@ -436,8 +413,9 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
   if (this.mu_tx_.isActive() || // we are serial, one tx at a time
       // if db is not ready and we already send one tx request, we keep
       // our tx request in our queue
-      (!this.getStorage().isReady() &&
-      this.completed_handlers_.length != 0)) {
+      (!this.getStorage().isReady() && // if not ready
+          this.has_tx_started_ // we put only one tx, to prevent overlap.
+          )) {
     this.pushTxQueue(trFn, store_names, mode, opt_on_completed);
   } else {
     var label = this.getLabel();
@@ -459,7 +437,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         if (task.oncompleted) {
           me.completed_handlers_.push(task.oncompleted);
         }
-        me.logger.fine('pop tx queue' + (me.trQueue_.length + 1) +
+        me.logger.finest('pop tx queue' + (me.trQueue_.length + 1) +
             ' reusing T' + me.getTxNo());
         task.fnc();
       }
@@ -468,12 +446,12 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
     var completed_handler = function(type, event) {
       //console.log('transaction_process ' + scope_name + ' completed.');
       me.logger.fine(label + ' ' + type);
+      me.mu_tx_.down(type, event);
       for (var j = 0; j < me.completed_handlers_.length; j++) {
         var fn = me.completed_handlers_[j];
         fn(type, event);
       }
       me.completed_handlers_.length = 0;
-      me.mu_tx_.down(type, event);
       me.popTxQueue_();
       me.r_no_ = 0;
     };
@@ -487,6 +465,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
           'Exceed maximum number of transactions of ' + this.max_tx_no_);
     }
 
+    this.has_tx_started_ = true;
     this.storage_.transaction(transaction_process, names, mode,
         completed_handler);
   }

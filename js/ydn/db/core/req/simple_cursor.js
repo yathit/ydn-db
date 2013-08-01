@@ -54,7 +54,7 @@ ydn.db.core.req.SimpleCursor.DEBUG = false;
 
 
 /**
- * @type {ydn.db.Buffer}
+ * @type {ydn.structs.Buffer}
  * @private
  */
 ydn.db.core.req.SimpleCursor.prototype.buffer_;
@@ -115,7 +115,7 @@ ydn.db.core.req.SimpleCursor.prototype.current_;
 
 //
 ///**
-// * @return {ydn.db.Buffer}
+// * @return {ydn.structs.Buffer}
 // * @protected
 // */
 //ydn.db.core.req.SimpleCursor.prototype.getBuffer = function() {

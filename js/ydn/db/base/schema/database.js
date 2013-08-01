@@ -23,6 +23,7 @@
 goog.provide('ydn.db.schema.Database');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.schema.Store');
+goog.require('ydn.db.schema.fulltext.InvIndex');
 
 
 
@@ -40,14 +41,15 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
    * @type {number|undefined}
    */
   var ver;
+  /**
+   * @type {DatabaseSchema}
+   */
+  var json;
   var stores = opt_stores;
   if (goog.isObject(opt_version)) {
-    /**
-     * @type {DatabaseSchema}
-     */
-    var json = opt_version;
+    json = opt_version;
     if (goog.DEBUG) {
-      var fields = ['version', 'stores'];
+      var fields = ['version', 'stores', 'fullTextCatalogs'];
       for (var key in json) {
         if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
           throw new ydn.debug.error.ArgumentException('Unknown field: ' + key +
@@ -82,7 +84,6 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
     ver = opt_version;
   }
 
-
   if (goog.isDef(ver)) {
     if (!goog.isNumber(ver) || ver < 0) {
       throw new ydn.debug.error.ArgumentException('Invalid version: ' +
@@ -110,7 +111,58 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
    * @type {!Array.<!ydn.db.schema.Store>}
    */
   this.stores = stores || [];
+  var full_text_indexes = [];
+  if (json && json.fullTextCatalogs) {
+    goog.asserts.assertArray(json.fullTextCatalogs, 'fullTextCatalogs');
+    for (var i = 0; i < json.fullTextCatalogs.length; i++) {
+      var full_text_index = ydn.db.schema.fulltext.Catalog.fromJson(
+          json.fullTextCatalogs[i]);
+      full_text_indexes[i] = full_text_index;
+      if (!this.getStore(full_text_index.getName())) {
+        var p_indexes = [
+          new ydn.db.schema.Index('keyword', ydn.db.schema.DataType.TEXT),
+          new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT)
+        ];
+        var full_text_store_schema = new ydn.db.schema.Store(
+            full_text_index.getName(), undefined, true, undefined, p_indexes);
+        this.stores.push(full_text_store_schema);
+      }
+    }
+  }
+  /**
+   * @final
+   * @type {Array.<ydn.db.schema.fulltext.Catalog>}
+   * @private
+   */
+  this.full_text_schema_ = full_text_indexes;
+};
 
+
+/**
+ * @return {number} number of full text indexes.
+ */
+ydn.db.schema.Database.prototype.countFullTextIndex = function() {
+  return this.full_text_schema_.length;
+};
+
+
+/**
+ * @param {number} idx
+ * @return {ydn.db.schema.fulltext.Catalog}
+ */
+ydn.db.schema.Database.prototype.fullTextIndex = function(idx) {
+  return this.full_text_schema_[idx];
+};
+
+
+/**
+ * @param {string} name
+ * @return {ydn.db.schema.fulltext.Catalog}
+ */
+ydn.db.schema.Database.prototype.getFullTextIndex = function(name) {
+  return goog.array.find(this.full_text_schema_, function(x) {
+    return x.getName() == name;
+  });
 };
 
 
@@ -285,6 +337,17 @@ ydn.db.schema.Database.prototype.difference = function(schema, opt_hint) {
  */
 ydn.db.schema.Database.prototype.similar = function(schema) {
   return this.difference(schema).length == 0;
+};
+
+
+/**
+ * @param name
+ * @return {ydn.db.schema.fulltext.Catalog}
+ */
+ydn.db.schema.Database.prototype.getFullTextSchema = function(name) {
+  return goog.array.find(this.full_text_schema_, function(x) {
+    return x.getName() == name;
+  });
 };
 
 

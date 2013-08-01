@@ -7,6 +7,63 @@
 
 
 /**
+ * Inverted index for full text serach.
+ * @constructor
+ */
+function InvIndex() {}
+
+
+/**
+ * @type {string}
+ */
+InvIndex.prototype.storeName;
+
+
+/**
+ * @type {string}
+ */
+InvIndex.prototype.keyPath;
+
+
+/**
+ * @type {number?}
+ */
+InvIndex.prototype.weight;
+
+
+
+/**
+ * @constructor
+ */
+function FullTextCatalog() {}
+
+
+/**
+ * @type {string}
+ */
+FullTextCatalog.prototype.name;
+
+
+/**
+ * @type {Array.<InvIndex>}
+ */
+FullTextCatalog.prototype.indexes;
+
+
+/**
+ * @type {string}
+ */
+FullTextCatalog.prototype.lang;
+
+
+/**
+ * @type {Array.<string>}
+ */
+FullTextCatalog.prototype.normalizers;
+
+
+
+/**
  * @constructor
  */
 function IndexSchema() {}
@@ -398,6 +455,12 @@ function DatabaseSchema() {}
  * @type {number}
  */
 DatabaseSchema.prototype.version;
+
+
+/**
+ * @type {Array.<!FullTextCatalog>}
+ */
+DatabaseSchema.prototype.fullTextCatalogs;
 
 
 /**
