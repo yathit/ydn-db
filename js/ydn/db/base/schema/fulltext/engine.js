@@ -32,6 +32,13 @@ ydn.db.schema.fulltext.ResultSet = function() {};
 
 
 /**
+ * Get list of store name involved in this catalog.
+ * @return {!Array.<string>}
+ */
+ydn.db.schema.fulltext.ResultSet.prototype.getStoreList = function() {};
+
+
+/**
  * Next database lookup.
  * @param {function(string, string, ydn.db.KeyRange,
  * ydn.db.schema.fulltext.Entry)} cb callback for next query.
@@ -61,7 +68,7 @@ ydn.db.schema.fulltext.Engine = function() {};
  * @param {string} query
  * @param {number=} opt_limit
  * @param {number=} opt_threshold
- * @return {ydn.db.text.ResultSet}
+ * @return {ydn.db.schema.fulltext.ResultSet}
  */
 ydn.db.schema.fulltext.Engine.prototype.query = function(catalog_name, query,
    opt_limit, opt_threshold) {};
@@ -72,7 +79,7 @@ ydn.db.schema.fulltext.Engine.prototype.query = function(catalog_name, query,
  * @param {string} store_name the store name in which document belong.
  * @param {IDBKey} key primary of the document.
  * @param {!Object} obj the document to be indexed.
- * @return {Array.<ydn.db.text.QueryEntry>} score for each token.
+ * @return {Array.<ydn.db.schema.fulltext.Entry>} score for each token.
  */
 ydn.db.schema.fulltext.Engine.prototype.analyze = function(
     store_name, key, obj) {};

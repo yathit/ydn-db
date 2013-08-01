@@ -23,7 +23,7 @@
 goog.provide('ydn.db.schema.Database');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.schema.Store');
-goog.require('ydn.db.schema.fulltext.InvIndex');
+goog.require('ydn.db.schema.fulltext.Catalog');
 
 
 
