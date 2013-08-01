@@ -61,10 +61,10 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   /**
    * here we must define sync thread first, so that it is ready when
    * executing main thread.
+   * This sync thread is used internally.
    * @final
    */
-  this.sync_thread = ydn.db.base.USE_HOOK ?
-      this.newTxQueue(ydn.db.tr.IThread.Policy.ATOMIC, false) : null;
+  this.sync_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.ATOMIC, false);
 
   /**
    * main thread.
