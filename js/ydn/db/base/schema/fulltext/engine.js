@@ -56,6 +56,12 @@ ydn.db.schema.fulltext.ResultSet.prototype.addResult =
     function(query, results) {};
 
 
+/**
+ * @return {Array.<ydn.db.schema.fulltext.Entry>}
+ */
+ydn.db.schema.fulltext.ResultSet.prototype.collect = function() {};
+
+
 
 /**
  * @interface

@@ -816,11 +816,11 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
         iReq.addCallbacks(function(x) {
           // console.log(store_name, index_name, kr.lower, x);
           var next = query.addResult(this, /** @type {Array} */ (x));
-          req.notify(query);
+          req.notify(query.collect());
           if (next) {
             lookup();
           } else {
-            req.callback(query);
+            req.callback(query.collect());
           }
         }, function(e) {
           throw e;
