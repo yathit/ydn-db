@@ -194,6 +194,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     this.logger.finer('countKeyRange: ' + store_name + ' ' +
         (index_name ? index_name : '') + ydn.json.stringify(key_range));
     req = this.tx_thread.request(ydn.db.Request.Method.COUNT, store_names);
+    store.hook(req, arguments);
     req.addTxback(function(tx) {
       this.getExecutor().countKeyRange(req, store_names[0], key_range,
           index_name, !!unique);

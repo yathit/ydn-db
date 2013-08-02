@@ -153,6 +153,13 @@ BaseOptions.prototype.delimiter;
 
 
 /**
+ * @type {string?}
+ */
+BaseOptions.prototype.maxKeys;
+
+
+
+/**
  * @constructor
  * @extends {BaseOptions}
  */
@@ -172,12 +179,6 @@ var S3Options = function() {};
  * @type {string?}
  */
 S3Options.prototype.delimiter;
-
-
-/**
- * @type {string?}
- */
-S3Options.prototype.maxKeys;
 
 
 /**
