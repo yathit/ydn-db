@@ -105,7 +105,7 @@ ydn.db.schema.fulltext.Catalog.prototype.index = function(idx) {
 ydn.db.schema.fulltext.Catalog.prototype.getSource = function(store_name,
                                                               index_name) {
   return goog.array.find(this.indexes, function(x) {
-    return x.getStoreName() == x && x.getKeyPath() == index_name;
+    return x.getStoreName() == store_name && x.getKeyPath() == index_name;
   });
 };
 
