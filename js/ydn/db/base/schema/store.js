@@ -19,9 +19,10 @@
  */
 
 goog.provide('ydn.db.schema.Store');
+goog.require('goog.array.ArrayLike');
 goog.require('ydn.db.KeyRange');
-goog.require('ydn.db.schema.Index');
 goog.require('ydn.db.Request.Method');
+goog.require('ydn.db.schema.Index');
 
 
 
@@ -138,7 +139,7 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
 
   /**
    * @final
-   * @type {Array.<function(!ydn.db.Request, Arguments)>} hookers.
+   * @type {Array.<function(!ydn.db.Request, goog.array.ArrayLike)>} hookers.
    * @private
    */
   this.hooks_ = [];
@@ -1001,25 +1002,32 @@ ydn.db.schema.Store.prototype.generateIndex = function(obj) {
 
 
 /**
- * @param {function(!ydn.db.Request, Arguments)} hook
+ * @param {function(!ydn.db.Request, goog.array.ArrayLike)} hook database
+ * pre-hook function.
+ * @return {number} internal hook index.
  */
 ydn.db.schema.Store.prototype.addHook = function(hook) {
   this.hooks_.push(hook);
+  return this.hooks_.length - 1;
 };
 
 
 /**
+ * Invoke hook functions.
  * Database hook to call before persisting into the database.
  * Override this function to attach the hook. The default implementation is
  * immediately invoke the given callback with first variable argument.
  * to preserve database operation order, preHook call is not waited.
  * @param {!ydn.db.Request} df deferred from database operation.
- * @param {Arguments} args arguments to the db method.
+ * @param {goog.array.ArrayLike} args arguments to the db method.
+ * @param {number=} opt_hook_idx hook index to ignore.
  * @final
  */
-ydn.db.schema.Store.prototype.hook = function(df, args) {
+ydn.db.schema.Store.prototype.hook = function(df, args, opt_hook_idx) {
   for (var i = 0; i < this.hooks_.length; i++) {
-    this.hooks_[i](df, args);
+    if (opt_hook_idx !== i) {
+      this.hooks_[i](df, args);
+    }
   }
 };
 
