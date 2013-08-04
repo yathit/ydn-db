@@ -50,7 +50,8 @@ ydn.db.schema.fulltext.ResultSet.prototype.nextLookup = function(cb) {};
  * Return result from lookup.
  * @param {ydn.db.schema.fulltext.Entry} query
  * @param {Array} results
- * @return {boolean} return true to invoke next looup.
+ * @return {boolean?} return true to invoke next looup, false when done and
+ * null if not done.
  */
 ydn.db.schema.fulltext.ResultSet.prototype.addResult =
     function(query, results) {};
