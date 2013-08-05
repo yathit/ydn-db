@@ -817,7 +817,7 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
         iReq.addCallbacks(function(x) {
           // console.log(store_name, index_name, kr.lower, x);
           var next = query.addResult(this, /** @type {Array} */ (x));
-          req.notify(query.collect());
+          req.notify(query);
           if (next === true) {
             lookup();
           } else if (next === false) {
