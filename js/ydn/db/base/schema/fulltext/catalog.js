@@ -73,6 +73,22 @@ ydn.db.schema.fulltext.Catalog = function(name, indexes, opt_lang,
 
 
 /**
+ * Return unique source store name.
+ * @return {!Array.<string>}
+ */
+ydn.db.schema.fulltext.Catalog.prototype.getSourceNames = function() {
+  var arr = [];
+  for (var i = 0; i < this.indexes.length; i++) {
+    var name = this.indexes[i].getStoreName();
+    if (arr.indexOf(name) == -1) {
+      arr.push(name);
+    }
+  }
+  return arr;
+};
+
+
+/**
  * @return {string} full text index name. This is store name as well.
  */
 ydn.db.schema.fulltext.Catalog.prototype.getName = function() {

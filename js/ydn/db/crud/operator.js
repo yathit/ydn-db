@@ -817,8 +817,8 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
         iReq.addCallbacks(function(x) {
           // console.log(store_name, index_name, kr.lower, x);
           var next = query.addResult(this, /** @type {Array} */ (x));
-          req.notify(query);
           if (next === true) {
+            req.notify(query);
             lookup();
           } else if (next === false) {
             req.callback(query.collect());
@@ -1182,6 +1182,21 @@ ydn.db.crud.DbOperator.prototype.valuesInternal = function(keys) {
     me.getExecutor().listByKeys(df, keys);
   }, this);
   return df;
+};
+
+
+/**
+ * Count number of records in stores.
+ * @param {!Array.<string>} store_names
+ * @return {!ydn.db.Request}
+ */
+ydn.db.crud.DbOperator.prototype.countInternal = function(store_names) {
+  var req = this.sync_thread.request(ydn.db.Request.Method.COUNT,
+      store_names);
+  req.addTxback(function() {
+    this.getExecutor().countStores(req, store_names);
+  }, this);
+  return req;
 };
 
 

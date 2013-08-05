@@ -803,8 +803,8 @@ ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
 
 /**
  * ydn.db.sync module will override this method to inject sync functions.
- * @param {ydn.db.schema.Store} store store object.
- * @param {ydn.db.schema.fulltext.Catalog} option synchronization options.
+ * @param {!ydn.db.schema.Store} store store object.
+ * @param {!ydn.db.schema.fulltext.Catalog} option synchronization options.
  * @protected
  */
 ydn.db.con.Storage.prototype.addFullTextIndexer = function(store, option) {
