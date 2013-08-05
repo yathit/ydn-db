@@ -808,6 +808,7 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
       ydn.db.base.TransactionMode.READ_ONLY);
   req.addTxback(function() {
     var exe = this.getExecutor();
+    // console.log('search ' + query);
     var lookup = function() {
       query.nextLookup(function(store_name, index_name, kr, entry) {
         var iReq = req.copy();
