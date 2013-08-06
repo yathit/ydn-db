@@ -172,38 +172,6 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   } else {
     schema = new ydn.db.schema.EditableDatabase();
   }
-  for (var i = 0; i < schema.countFullTextIndex(); i++) {
-    var ft_schema = schema.fullTextIndex(i);
-    var store = schema.getStore(ft_schema.getName());
-    if (store) {
-      if (!store.hasIndex('keyword')) {
-        throw new ydn.debug.error.ArgumentException('full text index store "' +
-            store.getName() + '" must have "keyword" index');
-      }
-      if (!store.hasIndex('value')) {
-        throw new ydn.debug.error.ArgumentException('full text index store "' +
-            store.getName() + '" must have "keyword" index');
-      }
-      if (store.getKeyPath() != 'id') {
-        throw new ydn.debug.error.ArgumentException('full text index store "' +
-            store.getName() + '" must use "id" as key path.');
-      }
-    } else {
-      throw new ydn.debug.error.ArgumentException('full text index store "' +
-          ft_schema.getName() + '" required.');
-    }
-    for (var j = 0; j < ft_schema.count(); j++) {
-      var index = ft_schema.index(j);
-      var source_store = schema.getStore(index.getStoreName());
-      if (source_store) {
-        this.addFullTextIndexer(source_store, ft_schema);
-      } else {
-        throw new ydn.debug.error.ArgumentException('full text source store "' +
-            index.getStoreName() + '" does not exist for full text index "' +
-            ft_schema.getName() + '"');
-      }
-    }
-  }
 
   /**
    * @final
@@ -554,7 +522,9 @@ ydn.db.con.Storage.prototype.getType = function() {
  * @param {ydn.db.events.StorageEvent} ev event.
  */
 ydn.db.con.Storage.prototype.onReady = function(ev) {
-  this.dispatchEvent(ev);
+  goog.Timer.callOnce(function() {
+    this.dispatchEvent(ev);
+  }, 1, this);
 };
 
 
@@ -803,8 +773,8 @@ ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
 
 /**
  * ydn.db.sync module will override this method to inject sync functions.
- * @param {ydn.db.schema.Store} store store object.
- * @param {ydn.db.schema.fulltext.Catalog} option synchronization options.
+ * @param {!ydn.db.schema.Store} store store object.
+ * @param {!ydn.db.schema.fulltext.Catalog} option synchronization options.
  * @protected
  */
 ydn.db.con.Storage.prototype.addFullTextIndexer = function(store, option) {

@@ -808,6 +808,7 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
       ydn.db.base.TransactionMode.READ_ONLY);
   req.addTxback(function() {
     var exe = this.getExecutor();
+    // console.log('search ' + query);
     var lookup = function() {
       query.nextLookup(function(store_name, index_name, kr, entry) {
         var iReq = req.copy();
@@ -817,8 +818,8 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
         iReq.addCallbacks(function(x) {
           // console.log(store_name, index_name, kr.lower, x);
           var next = query.addResult(this, /** @type {Array} */ (x));
-          req.notify(query.collect());
           if (next === true) {
+            req.notify(query);
             lookup();
           } else if (next === false) {
             req.callback(query.collect());
@@ -1007,13 +1008,14 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
  * @param {string|!Array.<!ydn.db.Key>} store_name store name.
  * @param {!Array.<Object>} objs objects.
  * @param {!Array.<!IDBKey>=} opt_keys keys.
+ * @param {boolean=} opt_use_main_thread default is background thread.
  * @param {number=} opt_hook_idx hook index to ignore.
  * @return {!goog.async.Deferred} df return no result.
  * @override
  */
 ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
-    opt_keys, opt_hook_idx) {
-  var me = this;
+    opt_keys, opt_use_main_thread, opt_hook_idx) {
+  var thread = opt_use_main_thread ? this.tx_thread : this.sync_thread;
 
   var store_names, db_keys;
   if (goog.isString(store_name)) {
@@ -1055,7 +1057,7 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
   if (goog.isString(store_name)) {
     var s_n = store_name;
     var store = this.schema.getStore(s_n);
-    req = this.sync_thread.request(ydn.db.Request.Method.PUTS,
+    req = thread.request(ydn.db.Request.Method.PUTS,
         store_names, ydn.db.base.TransactionMode.READ_WRITE);
     if (opt_hook_idx) {
       store.hook(req, [s_n, objs, opt_keys], opt_hook_idx);
@@ -1064,7 +1066,7 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
       this.getExecutor().putObjects(req, s_n, objs, opt_keys);
     }, this);
   } else {
-    req = this.sync_thread.request(ydn.db.Request.Method.PUT_KEYS,
+    req = thread.request(ydn.db.Request.Method.PUT_KEYS,
         store_names, ydn.db.base.TransactionMode.READ_WRITE);
     if (opt_hook_idx) {
       for (var i = 0; i < store_names.length; i++) {
@@ -1182,6 +1184,24 @@ ydn.db.crud.DbOperator.prototype.valuesInternal = function(keys) {
     me.getExecutor().listByKeys(df, keys);
   }, this);
   return df;
+};
+
+
+/**
+ * Count number of records in stores.
+ * @param {!Array.<string>} store_names
+ * @param {boolean=} opt_use_main_thread default is background thread.
+ * @return {!ydn.db.Request}
+ */
+ydn.db.crud.DbOperator.prototype.countInternal = function(store_names,
+                                                          opt_use_main_thread) {
+  var thread = opt_use_main_thread ? this.tx_thread : this.sync_thread;
+  var req = thread.request(ydn.db.Request.Method.COUNT,
+      store_names);
+  req.addTxback(function() {
+    this.getExecutor().countStores(req, store_names);
+  }, this);
+  return req;
 };
 
 

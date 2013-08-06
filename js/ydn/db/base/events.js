@@ -6,9 +6,9 @@
  */
 
 
-goog.provide('ydn.db.events.StoreEvent');
-goog.provide('ydn.db.events.StorageEvent');
 goog.provide('ydn.db.events.RecordEvent');
+goog.provide('ydn.db.events.StorageEvent');
+goog.provide('ydn.db.events.StoreEvent');
 goog.provide('ydn.db.events.Types');
 
 

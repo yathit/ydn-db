@@ -168,6 +168,7 @@ ydn.db.Request.prototype.getTx = function() {
   return this.tx_;
 };
 
+
 /**
  * @return {ydn.db.Request.Method}
  */
@@ -192,6 +193,7 @@ ydn.db.Request.prototype.canAbort = function() {
  */
 ydn.db.Request.prototype.abort = function() {
   if (this.tx_) {
+    this.logger.finer(this + ' aborting');
     if (goog.isFunction(this.tx_.abort)) {
       this.tx_.abort();
     } else if (goog.isFunction(this.tx_.executeSql)) {

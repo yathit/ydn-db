@@ -173,7 +173,7 @@ var test_abort_atomic_put  = function() {
 
   var req2 = adb.put('t3', val).addCallback(function(x) {
     t3_key = x;
-    console.log('t3 put', x);
+    // console.log('t3 put', x);
 
     assertThrows('must throw InvalidStateError for atomic thread', function() {
       req2.abort();
@@ -183,7 +183,7 @@ var test_abort_atomic_put  = function() {
   db.get('t3', 'a').addBoth(function(x) {
     t3_result = x;
     t3_fired = true;
-    console.log('t3 done', x);
+    // console.log('t3 done', x);
   });
 
 };
@@ -299,6 +299,80 @@ var test_abort_put_data = function() {
 
 };
 
+
+
+var test_abort_in_run = function() {
+  var db_name = 'test_abort_in_run';
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id'
+    }]
+  };
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var obj = {'id': 1, 'msg': 'msg' + Math.random()};
+
+  var done, can_abort, run_result, get1_result, get2_result, get3_result;
+  var tint = Math.random();
+  var put_tint, get_tint, abort_tint;
+
+  waitForCondition(
+      // Condition
+      function() {
+        return done;
+      },
+      // Continuation
+      function() {
+        assertObjectEquals('get1 result', obj, get1_result);
+        assertEquals('put tint', tint, put_tint);
+        assertEquals('get tint', tint, get_tint);
+        assertEquals('abort tint', tint, abort_tint);
+        assertTrue('can abort', can_abort);
+        assertEquals('AbortError', run_result);
+        assertUndefined('get3 result', get3_result);
+        assertUndefined('get2 result', get2_result);
+
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.clear();
+  var req = db.run(function(tdb) {
+    req.tx_.tint = tint;
+    var put_req = tdb.put('st', obj).addBoth(function() {
+      put_tint = put_req.tx_.tint;
+      var get_req = tdb.get('st', 1).addBoth(function(x) {
+        get_tint = get_req.tx_.tint;
+        get1_result = x;
+        can_abort = req.canAbort();
+        if (can_abort) {
+          abort_tint = req.tx_.tint;
+          req.abort();
+        }
+      });
+    });
+  }, ['st'], 'readwrite');
+  req.addCallbacks(function(x) {
+    run_result = '';
+  }, function(e) {
+    run_result = 'AbortError';
+  });
+
+  db.get('st', 1).addBoth(function(x) {
+    get2_result = x;
+  });
+  setTimeout(function() {
+    db.get('st', 1).addBoth(function(x) {
+      get3_result = x;
+      done = true;
+    });
+  }, 10);
+
+};
 
 
 
