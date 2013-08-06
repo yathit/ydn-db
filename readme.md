@@ -36,6 +36,13 @@ may encounter compile error.
 Note: precompile files are built by using custom compiler to strip debug messages.
 See detail on ydn-base/tools/strip_debug.txt.
 
+Additional features requires the following optional repos.
+
+1. Full text search https://github.com/yathit/ydn-db-fulltext.git
+2. Dependency for ydn-db-fulltext https://github.com/yathit/fullproof
+3. Dependency for ydn-db-fulltext https://github.com/yathit/natural
+4. Synchronization https://bitbucket.org/ytkyaw/ydn-db-sync (private)
+
 
 # Testing #
 
