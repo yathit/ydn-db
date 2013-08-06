@@ -36,6 +36,7 @@ ydn.db.tr.IThread = function() {};
  * @param {ydn.db.Request.Method} method request method.
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  * @return {!ydn.db.Request}
  */
 ydn.db.tr.IThread.prototype.request;
@@ -48,7 +49,7 @@ ydn.db.tr.IThread.prototype.request;
  *   callback when executor is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
- * @param {function(ydn.db.base.TxEventTypes, *)=} oncompleted handler.
+ * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  */
 ydn.db.tr.IThread.prototype.exec = goog.abstractMethod;
 

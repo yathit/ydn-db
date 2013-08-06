@@ -21,6 +21,7 @@ if (/websql/.test(location.hash)) {
   options['mechanisms'] = ['websql'];
 }
 
+
 QUnit.config.testTimeout = 2000;
 
 var db;

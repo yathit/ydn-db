@@ -197,7 +197,6 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
         'run accept not more than 3 input arguments, but ' +
         arguments.length + ' found.');
   }
-  var me = this;
   this.ptx_no++;
 
   var store_names = opt_store_names || this.schema.getStoreNames();
@@ -215,26 +214,25 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
 
   var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.ALL, false,
       store_names, mode, 1);
-  var req = tx_thread.request(ydn.db.Request.Method.RUN, store_names, mode);
   var db_operator = this.newOperator(tx_thread, this.sync_thread);
-
+  var req = new ydn.db.Request(ydn.db.Request.Method.RUN);
+  /**
+   * @param {ydn.db.base.TxEventTypes} type
+   * @param {*} e
+   */
   var onComplete = function(type, e) {
     req.removeTx();
     var success = type === ydn.db.base.TxEventTypes.COMPLETE;
-    var result = e;
-    if (success) {
-      result = tx_thread.getTxNo();
-    }
-    req.setDbValue(result, !success);
+    req.setDbValue(tx_thread.getTxNo(), !success);
   };
-  this.logger.finest('scheduling run in transaction with ' + tx_thread);
-  // outFn(/** @type {!ydn.db.tr.IStorage} */ (db_operator));
 
+  var me = this;
   tx_thread.processTx(function(tx) {
     me.logger.finest('executing run in transaction on ' + tx_thread);
-    // req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
+    req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
     trFn(db_operator);
   }, store_names, mode, onComplete);
+
 
   return req;
 };

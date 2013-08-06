@@ -398,7 +398,7 @@ ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode,
 
   this.processTx(function(tx) {
     if (ydn.db.tr.Parallel.DEBUG) {
-      window.console.log(this + ' executing ' + rdn);
+      window.console.log(me + ' executing ' + rdn);
     }
     me.r_no_++;
     var rq_label = me.getLabel() + 'R' + me.r_no_;
