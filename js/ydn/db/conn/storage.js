@@ -522,7 +522,9 @@ ydn.db.con.Storage.prototype.getType = function() {
  * @param {ydn.db.events.StorageEvent} ev event.
  */
 ydn.db.con.Storage.prototype.onReady = function(ev) {
-  this.dispatchEvent(ev);
+  goog.Timer.callOnce(function() {
+    this.dispatchEvent(ev);
+  }, 1, this);
 };
 
 
