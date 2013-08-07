@@ -815,17 +815,22 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
       // console.log(store_name, index_name, kr);
       exe.listByIndexKeyRange(iReq, store_name, index_name,
           kr.toIDBKeyRange(), false, 100, 0, false);
-      iReq.addCallbacks(function(x) {
+      iReq.addBoth(function(x) {
         // console.log(store_name, index_name, kr.lower, x);
+        var e = null;
+        if (!(x instanceof Array)) {
+          e = x;
+          x = [];
+        }
         var next = query.addResult(this, /** @type {Array} */ (x));
         if (next === true) {
           req.notify(query);
         } else if (next === false) {
           req.callback(query.collect());
         }
-      }, function(e) {
-        var next = query.addResult(this, []);
-        throw e;
+        if (e) {
+          throw e;
+        }
       }, entry);
     });
   }, this);
