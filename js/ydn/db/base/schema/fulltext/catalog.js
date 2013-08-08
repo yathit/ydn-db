@@ -132,7 +132,7 @@ ydn.db.schema.fulltext.Catalog.prototype.getSource = function(store_name,
  */
 ydn.db.schema.fulltext.Catalog.fromJson = function(json) {
   if (goog.DEBUG) {
-    var fields = ['name', 'indexes', 'lang'];
+    var fields = ['name', 'sources', 'lang'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.debug.error.ArgumentException('Unknown field: ' + key +
@@ -140,12 +140,12 @@ ydn.db.schema.fulltext.Catalog.fromJson = function(json) {
       }
     }
   }
-  if (!goog.isArray(json.indexes)) {
+  if (!goog.isArray(json.sources)) {
     throw new ydn.debug.error.ArgumentException('indexes require for ' +
-        'full text search index ' + json.name + ', but ' + json.indexes +
-        ' of type ' + typeof json.indexes + ' found.');
+        'full text search index ' + json.name + ', but ' + json.sources +
+        ' of type ' + typeof json.sources + ' found.');
   }
-  var indexes = json.indexes.map(function(x) {
+  var indexes = json.sources.map(function(x) {
     return ydn.db.schema.fulltext.InvIndex.fromJson(x);
   });
   return new ydn.db.schema.fulltext.Catalog(json.name, indexes, json.lang);

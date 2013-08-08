@@ -67,11 +67,11 @@ ydn.db.crud.Storage = function(opt_dbname, opt_schema, opt_options) {
     var ft_schema = schema.fullTextIndex(i);
     var store = schema.getStore(ft_schema.getName());
     if (store) {
-      if (!store.hasIndex('keyword')) {
+      if (!store.hasIndex('k')) {
         throw new ydn.debug.error.ArgumentException('full text index store "' +
             store.getName() + '" must have "keyword" index');
       }
-      if (!store.hasIndex('value')) {
+      if (!store.hasIndex('v')) {
         throw new ydn.debug.error.ArgumentException('full text index store "' +
             store.getName() + '" must have "keyword" index');
       }

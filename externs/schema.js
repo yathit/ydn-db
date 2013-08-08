@@ -47,7 +47,7 @@ FullTextCatalog.prototype.name;
 /**
  * @type {Array.<InvIndex>}
  */
-FullTextCatalog.prototype.indexes;
+FullTextCatalog.prototype.sources;
 
 
 /**

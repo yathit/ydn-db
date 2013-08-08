@@ -120,8 +120,8 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
       full_text_indexes[i] = full_text_index;
       if (!this.getStore(full_text_index.getName())) {
         var p_indexes = [
-          new ydn.db.schema.Index('keyword', ydn.db.schema.DataType.TEXT),
-          new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT)
+          new ydn.db.schema.Index('k', ydn.db.schema.DataType.TEXT),
+          new ydn.db.schema.Index('v', ydn.db.schema.DataType.TEXT)
         ];
         var full_text_store_schema = new ydn.db.schema.Store(
             full_text_index.getName(), 'id', false, undefined, p_indexes);
