@@ -1090,7 +1090,7 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
  * @param {!Array.<!ydn.db.Key>} keys keys.
  * @return {!ydn.db.Request} df.
  */
-ydn.db.crud.DbOperator.prototype.removeInternal = function(keys) {
+ydn.db.crud.DbOperator.prototype.removeInternalByKeys = function(keys) {
   var store_names = [];
   for (var i = 0, n = keys.length; i < n; i++) {
     var s_name = keys[i].getStoreName();
@@ -1106,6 +1106,23 @@ ydn.db.crud.DbOperator.prototype.removeInternal = function(keys) {
       store_names, ydn.db.base.TransactionMode.READ_WRITE);
   df.addTxback(function() {
     this.getExecutor().removeByKeys(df, keys);
+  }, this);
+  return df;
+};
+
+
+/**
+ * Remove record by keys.
+ * @param {string} store_name store_name.
+ * @param {IDBKeyRange=} opt_kr key range.
+ * @return {!ydn.db.Request} df.
+ */
+ydn.db.crud.DbOperator.prototype.removeInternal = function(store_name, opt_kr) {
+
+  var df = this.sync_thread.request(ydn.db.Request.Method.REMOVE, [store_name],
+      ydn.db.base.TransactionMode.READ_WRITE);
+  df.addTxback(function() {
+    this.getExecutor().removeByKeyRange(df, store_name, opt_kr || null);
   }, this);
   return df;
 };
@@ -1288,6 +1305,7 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
           ydn.json.stringify(key_range));
       req = this.tx_thread.request(ydn.db.Request.Method.CLEAR, [st_name],
           ydn.db.base.TransactionMode.READ_WRITE);
+      store.hook(req, [st_name, key_range]);
       req.addTxback(function() {
         this.getExecutor().clearByKeyRange(req, st_name, key_range);
       }, this);
@@ -1374,6 +1392,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
         this.logger.finer('removeById: ' + store_name + ':' + id);
         req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_ID,
             [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+        store.hook(req, [store_name, id]);
         req.addTxback(function() {
           this.getExecutor().removeById(req, store_name, id);
         }, this);
@@ -1394,6 +1413,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
             ydn.json.stringify(key_range));
         req = this.tx_thread.request(ydn.db.Request.Method.REMOVE,
             [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+        store.hook(req, [store_name, key_range]);
         req.addTxback(function() {
           this.getExecutor().removeByKeyRange(req, store_name, key_range);
         }, this);
@@ -1415,10 +1435,14 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
      * @type {!ydn.db.Key}
      */
     var key = arg1;
+    var st_name = key.getStoreName();
+    var store = this.schema.getStore(st_name);
+    goog.asserts.assert(store, 'store "' + st_name + '" not found.');
     req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_ID,
-        [key.getStoreName()], ydn.db.base.TransactionMode.READ_WRITE);
+        [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+    store.hook(req, [st_name, key.getId()]);
     req.addTxback(function() {
-      this.getExecutor().removeById(req, key.getStoreName(), key.getId());
+      this.getExecutor().removeById(req, st_name, key.getId());
     }, this);
   } else if (goog.isArray(arg1)) {
     /**
