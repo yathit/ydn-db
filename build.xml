@@ -7,8 +7,6 @@
     <property name="ver-minor" value="7"/>
     <property name="ver-patch" value="11"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
-    <condition property="gsutil" value="D:/opt/gsutil/gsutil"><os family="windows"/></condition>
-    <condition property="gsutil" value="/Users/kyawtun/opt/gsutil/gsutil"><os family="unix"/></condition>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
     <script language="javascript" description="Generate ascending order build no
