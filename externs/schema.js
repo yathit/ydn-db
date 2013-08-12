@@ -238,6 +238,12 @@ GDataOptions.prototype.siteName;
 GDataOptions.prototype.prefetch;
 
 
+/**
+ * @type {number}
+ */
+GDataOptions.prototype.prefetchRefractoryPeriod;
+
+
 
 /**
  * @extends {GDataOptions}
