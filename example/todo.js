@@ -1,9 +1,8 @@
-var store = {name:'todo', keyPath:"timeStamp"};
-
-var schema_ver1 = {
-  version:2,
-  size:1 * 1024 * 1024, // 1 MB,
-  stores:[store]
+var schema = {
+  stores:[{
+    name:'todo',
+    keyPath:"timeStamp"
+  }]
 };
 
 
@@ -12,11 +11,12 @@ var schema_ver1 = {
  * create IndexedDB or WebSql or even localStorage storage mechanism.
  * @type {ydn.db.Storage}
  */
-var db = new ydn.db.Storage('todos3', schema_ver1);
-
+var db = new ydn.db.Storage('todo_2', schema);
 
 var deleteTodo = function (id) {
-  var request = db.clear('todo', id);
+  db.remove('todo', id).fail(function(e) {
+    throw e;
+  });
 
   getAllTodoItems();
 };
@@ -25,17 +25,17 @@ var getAllTodoItems = function () {
   var todos = document.getElementById("todoItems");
   todos.innerHTML = "";
 
-  var df = db.get('todo');
+  var df = db.values('todo');
 
-  df.success(function (items) {
+  df.done(function (items) {
     var n = items.length;
     for (var i = 0; i < n; i++) {
       renderTodo(items[i]);
     }
   });
 
-  df.error(function (x) {
-    console.log('Failed: ' + x);
+  df.fail(function (e) {
+    throw e;
   })
 };
 
@@ -62,7 +62,9 @@ var addTodo = function () {
     "text":todo.value,
     "timeStamp":new Date().getTime()
   };
-  db.put('todo', data);
+  db.put('todo', data).fail(function(e) {
+    throw e;
+  });
 
   todo.value = "";
 
