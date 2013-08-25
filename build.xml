@@ -192,7 +192,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/conn"
-                input.fn="${ydn-db.dir}/js/ydn/db/conn/storage.js"
+                input.fn="${ydn-db.dir}/js/config/conn.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db-conn.js"
                 closure.entry="ydn.db.con.Storage">
