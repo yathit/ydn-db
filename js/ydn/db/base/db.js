@@ -83,4 +83,3 @@ ydn.db.cmp = (!ydn.db.base.NO_IDB && ydn.db.con.IndexedDb.indexedDb &&
         ydn.db.con.IndexedDb.indexedDb) : ydn.db.utils.cmp;
 
 
-
