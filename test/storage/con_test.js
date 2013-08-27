@@ -3,7 +3,7 @@ goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.debug');
 goog.require('ydn.object');
-goog.require('ydn.db.Storage');
+goog.require('ydn.db.crud.Storage');
 
 
 var reachedFinalContinuation, debug_console, db_name;

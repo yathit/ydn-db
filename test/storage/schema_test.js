@@ -3,7 +3,7 @@ goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.db');
 goog.require('ydn.debug');
-goog.require('ydn.db.Storage');
+goog.require('ydn.db.crud.Storage');
 goog.require('goog.testing.PropertyReplacer');
 
 

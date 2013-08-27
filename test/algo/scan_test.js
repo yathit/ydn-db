@@ -5,7 +5,7 @@ goog.require('ydn.db.algo.ZigzagMerge');
 goog.require('ydn.db.algo.SortedMerge');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.debug');
-goog.require('ydn.db.Storage');
+goog.require('ydn.db.sql.Storage');
 
 
 

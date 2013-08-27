@@ -2,7 +2,7 @@
 goog.require('goog.debug.Console');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
-goog.require('ydn.db.Storage');
+goog.require('ydn.db.sql.Storage');
 goog.require('ydn.debug');
 
 

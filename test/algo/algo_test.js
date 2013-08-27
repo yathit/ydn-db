@@ -7,6 +7,7 @@ goog.require('ydn.debug');
 
 
 
+
 var reachedFinalContinuation, debug_console;
 var store_name = 't1';
 var db_name = 'test_algo_2';
@@ -18,7 +19,7 @@ var anmialStore = new ydn.db.schema.Store('animals', 'id', false,
   ydn.db.schema.DataType.TEXT, [colorIndex, hornIndex, legIndex]);
 
 var schema = new ydn.db.schema.Database(undefined, [anmialStore]);
-var db = new ydn.db.Storage(db_name, schema, options);
+var db = new ydn.db.sql.Storage(db_name, schema, options);
 
 var animals = [
   {id: 'rat', color: 'brown', horn: 0, legs: 4},
