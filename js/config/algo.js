@@ -1,5 +1,5 @@
 /**
- * @fileoverview Exports for main ydn-db module.
+ * @fileoverview Exports for main ydn-db algo module.
  *
  */
 

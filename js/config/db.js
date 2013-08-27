@@ -1,5 +1,5 @@
 /**
- * @fileoverview Exports for conn-ydn-db module.
+ * @fileoverview Exports for ydn-db base module.
  */
 
 

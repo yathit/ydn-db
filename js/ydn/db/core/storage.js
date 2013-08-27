@@ -140,6 +140,7 @@ ydn.db.core.Storage.prototype.reduce = function(iterator, callback,
   return this.getIndexOperator().reduce(iterator, callback, opt_initial);
 };
 
+goog.exportSymbol('ydn.db.Storage', ydn.db.core.Storage);
 
 goog.exportProperty(ydn.db.core.Storage.prototype, 'scan',
     ydn.db.core.Storage.prototype.scan);

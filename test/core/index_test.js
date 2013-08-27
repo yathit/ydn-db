@@ -4,8 +4,7 @@ goog.require('goog.testing.jsunit');
 goog.require('ydn.db');
 goog.require('ydn.debug');
 
-goog.require('ydn.db.Storage');
-
+goog.require('ydn.db.core.Storage');
 
 
 var reachedFinalContinuation, schema, objs;
