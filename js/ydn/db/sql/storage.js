@@ -119,3 +119,11 @@ ydn.db.sql.Storage.prototype.executeSql = function(sql, opt_params) {
 //  return this.base_tx_queue.explain(q);
 //};
 
+
+goog.exportProperty(ydn.db.sql.Storage.prototype, 'executeSql',
+    ydn.db.sql.Storage.prototype.executeSql);
+
+goog.exportProperty(ydn.db.sql.DbOperator.prototype, 'executeSql',
+    ydn.db.sql.DbOperator.prototype.executeSql);
+
+goog.exportSymbol('ydn.db.Storage', ydn.db.sql.Storage);

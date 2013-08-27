@@ -233,7 +233,6 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
     trFn(db_operator);
   }, store_names, mode, onComplete);
 
-
   return req;
 };
 
@@ -247,4 +246,11 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
   return this.db_operator ? this.db_operator.getTxNo() : NaN;
 };
 
-
+goog.exportProperty(ydn.db.tr.Storage.prototype, 'branch',
+    ydn.db.tr.Storage.prototype.branch);
+goog.exportProperty(ydn.db.tr.Storage.prototype, 'run',
+    ydn.db.tr.Storage.prototype.run);
+goog.exportProperty(ydn.db.tr.Storage.prototype, 'getTxNo',
+    ydn.db.tr.Storage.prototype.getTxNo);
+goog.exportProperty(ydn.db.tr.DbOperator.prototype, 'getTxNo',
+    ydn.db.tr.DbOperator.prototype.getTxNo);
