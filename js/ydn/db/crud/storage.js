@@ -21,7 +21,7 @@
  */
 
 goog.provide('ydn.db.crud.Storage');
-goog.require('goog.userAgent.product');
+goog.require('ydn.base');
 goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.db.tr.Storage');
@@ -290,7 +290,7 @@ goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'count',
 
 goog.exportSymbol('ydn.db.cmp', ydn.db.cmp);
 
-goog.exportSymbol('ydn.db.Key', ydn.db.Key );
+goog.exportSymbol('ydn.db.Key', ydn.db.Key);
 goog.exportProperty(ydn.db.Key.prototype, 'id', ydn.db.Key.prototype.getId);
 goog.exportProperty(ydn.db.Key.prototype, 'parent',
     ydn.db.Key.prototype.getParent);
@@ -298,7 +298,7 @@ goog.exportProperty(ydn.db.Key.prototype, 'storeName',
     ydn.db.Key.prototype.getStoreName);
 
 
-goog.exportSymbol('ydn.db.KeyRange', ydn.db.KeyRange );
+goog.exportSymbol('ydn.db.KeyRange', ydn.db.KeyRange);
 goog.exportProperty(ydn.db.KeyRange, 'upperBound', ydn.db.KeyRange.upperBound);
 goog.exportProperty(ydn.db.KeyRange, 'lowerBound', ydn.db.KeyRange.lowerBound);
 goog.exportProperty(ydn.db.KeyRange, 'bound', ydn.db.KeyRange.bound);

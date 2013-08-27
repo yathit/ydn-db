@@ -39,7 +39,6 @@
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${dev-out.fn}">
             <extrapaths>
-                <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/dev.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/algo.js"'/>
@@ -175,7 +174,6 @@
                          output.fn="${ydn-db.dir}/jsc/${buildno}-ydn.db-raw.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
-                <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/dev.js"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
@@ -214,7 +212,6 @@
                     output.fn="${buildno}-ydn.db-crud@{postfix}.js"
                     closure.entry="ydn.db.crud.Storage">
                 <exjs.dir>
-                    <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                     <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
@@ -277,7 +274,6 @@
                     output.fn="${buildno}-ydn.db-core@{postfix}.js"
                     closure.entry="ydn.db.core.Storage">
                 <exjs.dir>
-                    <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                     <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
@@ -321,7 +317,6 @@
                 output.fn="${buildno}-ydn.db.js"
                 closure.entry="ydn.db.sql.Storage">
             <ex.opt>
-                <arg line='-i "${work.dir}/ydn-base/js/config/main.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/algo.js"'/>
                 <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
