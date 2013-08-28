@@ -35,7 +35,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
 
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                         input="${ydn-db.dir}/js/ydn/db/sql/storage.js"
+                         input="${ydn-db.dir}/js/ydn/db/storage.js"
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${dev-out.fn}">
             <extrapaths>
@@ -170,7 +170,7 @@
         <!--SIMPLE_OPTIMIZATIONS-->
         <closure-compile compilationlevel="WHITESPACE_ONLY"
                          base.dir="."
-                         input="${ydn-db.dir}/js/ydn/db/sql/storage.js"
+                         input="${ydn-db.dir}/js/ydn/db/storage.js"
                          output.fn="${ydn-db.dir}/jsc/${buildno}-ydn.db-raw.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
@@ -207,7 +207,7 @@
         <sequential>
             <adv-comp
                     input.dir="${ydn-db.dir}/js/ydn/db/crud"
-                    input.fn="${ydn-db.dir}/js/ydn/db/crud/storage.js"
+                    input.fn="${ydn-db.dir}/js/config/crud.js"
                     output.dir="${ydn-db.dir}/jsc"
                     output.fn="${buildno}-ydn.db-crud@{postfix}.js"
                     closure.entry="ydn.db.crud.Storage">
@@ -269,7 +269,7 @@
         <sequential>
             <adv-comp
                     input.dir="${ydn-db.dir}/js/ydn/db/core"
-                    input.fn="${ydn-db.dir}/js/ydn/db/core/storage.js"
+                    input.fn="${ydn-db.dir}/js/config/core.js"
                     output.dir="${ydn-db.dir}/jsc"
                     output.fn="${buildno}-ydn.db-core@{postfix}.js"
                     closure.entry="ydn.db.core.Storage">
@@ -312,7 +312,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js"
-                input.fn="${ydn-db.dir}/js/ydn/db/sql/storage.js"
+                input.fn="${ydn-db.dir}/js/ydn/db/storage.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db.js"
                 closure.entry="ydn.db.sql.Storage">

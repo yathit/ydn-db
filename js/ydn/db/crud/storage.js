@@ -249,8 +249,6 @@ if (goog.DEBUG) {
   };
 }
 
-goog.exportSymbol('ydn.db.Storage', ydn.db.crud.Storage);
-
 goog.exportProperty(ydn.db.crud.Storage.prototype, 'branch',
     ydn.db.crud.Storage.prototype.branch);
 
