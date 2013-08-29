@@ -5,7 +5,7 @@
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver-major" value="0"/>
     <property name="ver-minor" value="7"/>
-    <property name="ver-patch" value="15"/>
+    <property name="ver-patch" value="16"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
@@ -35,7 +35,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
 
         <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                         input="${ydn-db.dir}/js/ydn/db/storage.js"
+                         input="${ydn-db.dir}/js/config/storage.js"
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${dev-out.fn}">
             <extrapaths>
@@ -190,7 +190,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js/ydn/db/conn"
-                input.fn="${ydn-db.dir}/js/ydn/db/conn/storage.js"
+                input.fn="${ydn-db.dir}/js/config/conn.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db-conn.js"
                 closure.entry="ydn.db.con.Storage">
@@ -304,7 +304,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <adv-comp
                 input.dir="${ydn-db.dir}/js"
-                input.fn="${ydn-db.dir}/js/ydn/db/storage.js"
+                input.fn="${ydn-db.dir}/js/config/storage.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db.js"
                 closure.entry="ydn.db.Storage">

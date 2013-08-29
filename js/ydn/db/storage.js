@@ -46,4 +46,3 @@ ydn.db.Storage = function(opt_dbname, opt_schema, opt_options) {
 };
 goog.inherits(ydn.db.Storage, ydn.db.sql.Storage);
 
-goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
