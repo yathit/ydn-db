@@ -1,6 +1,9 @@
 /**
  * @fileoverview Exports for ydn-db connection module.
  *
+ * Exporting variable are defined in separate namespace so that closure
+ * project can use this library without exporting any of ydn-db properties.
+ * Project that want to export ydn-db properties should require this namespace.
  */
 
 
