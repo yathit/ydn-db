@@ -185,9 +185,9 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
     // auto schema do not have version
     // Note: undefined is not 'not defined', i.e. open('name', undefined)
     // is not the same effect as open('name');
-    openRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname);
+    openRequest = ydn.db.base.indexedDb.open(dbname);
   } else {
-    openRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname, version);
+    openRequest = ydn.db.base.indexedDb.open(dbname, version);
     // version could be number (new) or string (old).
     // casting is for old externs uncorrected defined as string
     // old version will think, version as description.
@@ -242,7 +242,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
           if ('IDBOpenDBRequest' in goog.global) {
             db.close();
-            var req = ydn.db.con.IndexedDb.indexedDb.open(
+            var req = ydn.db.base.indexedDb.open(
                 dbname, /** @type {number} */ (next_version));
             req.onupgradeneeded = function(ev) {
               var db = ev.target.result;
@@ -282,7 +282,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
               // version change state since transaction cannot open during
               // version change state.
               // db.close(); // necessary - cause error ?
-              var reOpenRequest = ydn.db.con.IndexedDb.indexedDb.open(dbname);
+              var reOpenRequest = ydn.db.base.indexedDb.open(dbname);
               reOpenRequest.onsuccess = function(rev) {
                 var db = rev.target.result;
                 me.logger.finer(me + ': OK.');
@@ -412,21 +412,11 @@ ydn.db.con.IndexedDb.DEBUG = false;
 
 
 /**
- * @const
- * @type {IDBFactory} IndexedDb.
- */
-ydn.db.con.IndexedDb.indexedDb = goog.global.indexedDB ||
-    goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
-    goog.global.moz_indexedDB ||
-    goog.global['msIndexedDB'];
-
-
-/**
  * @final
  * @return {boolean} return indexedDB support on run time.
  */
 ydn.db.con.IndexedDb.isSupported = function() {
-  return !!ydn.db.con.IndexedDb.indexedDb;
+  return !!ydn.db.base.indexedDb;
 };
 
 
@@ -802,7 +792,7 @@ if (goog.DEBUG) {
       var names = e.target.result;
       for (var i = 0; i < names.length; i++) {
         window.console.info('deleting ' + names[i]);
-        ydn.db.con.IndexedDb.indexedDb.deleteDatabase(names[i]);
+        ydn.db.base.indexedDb.deleteDatabase(names[i]);
       }
     };
   };

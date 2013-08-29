@@ -51,7 +51,7 @@ ydn.db.tr.Parallel = function(storage, ptx_no, opt_policy,
    */
   this.storage_ = storage;
 
-  /*
+  /**
    * @final
    */
   this.q_no_ = ptx_no;

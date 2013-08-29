@@ -254,3 +254,12 @@ ydn.db.base.getDirection = function(opt_reverse, opt_unique) {
   }
 };
 
+
+/**
+ * @const
+ * @type {IDBFactory} IndexedDb.
+ */
+ydn.db.base.indexedDb = goog.global.indexedDB ||
+    goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
+    goog.global.moz_indexedDB ||
+    goog.global['msIndexedDB'];

@@ -5,7 +5,7 @@
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver-major" value="0"/>
     <property name="ver-minor" value="7"/>
-    <property name="ver-patch" value="12"/>
+    <property name="ver-patch" value="15"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
@@ -39,10 +39,9 @@
                          input.dir="${ydn-db.dir}/js"
                          output.fn="${dev-out.fn}">
             <extrapaths>
-                <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/dev.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/algo.js"'/>
-                <arg line='-f "--closure_entry_point=ydn.db.sql.Storage"'/>
+                <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>
             <options>
@@ -145,6 +144,7 @@
                              output.fn="@{output.dir}/@{output.fn}">
                 <extrapaths>
                     <arg line='-p "${ydn-base.dir}/js"'/>
+                    <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
                     <exjs.dir/>
                 </extrapaths>
@@ -174,7 +174,6 @@
                          output.fn="${ydn-db.dir}/jsc/${buildno}-ydn.db-raw.js"
                          input.dir="${ydn-db.dir}/js">
             <extrapaths>
-                <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/dev.js"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
                 <arg line='-p "${ydn-db.dir}/js"'/>
@@ -196,8 +195,7 @@
                 output.fn="${buildno}-ydn.db-conn.js"
                 closure.entry="ydn.db.con.Storage">
             <exjs.dir>
-                <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
+
             </exjs.dir>
         </adv-comp>
     </target>
@@ -212,9 +210,6 @@
                     output.fn="${buildno}-ydn.db-crud@{postfix}.js"
                     closure.entry="ydn.db.crud.Storage">
                 <exjs.dir>
-                    <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
-                    <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                    <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/crud"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/tr"'/>
                     <module-option/>
@@ -274,9 +269,6 @@
                     output.fn="${buildno}-ydn.db-core@{postfix}.js"
                     closure.entry="ydn.db.core.Storage">
                 <exjs.dir>
-                    <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
-                    <arg line='-p "${ydn-db.dir}/js/ydn/db/base"'/>
-                    <arg line='-p "${ydn-db.dir}/js/ydn/db/conn"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/core"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/crud"'/>
                     <arg line='-p "${ydn-db.dir}/js/ydn/db/algo"'/>
@@ -315,9 +307,8 @@
                 input.fn="${ydn-db.dir}/js/ydn/db/storage.js"
                 output.dir="${ydn-db.dir}/jsc"
                 output.fn="${buildno}-ydn.db.js"
-                closure.entry="ydn.db.sql.Storage">
+                closure.entry="ydn.db.Storage">
             <ex.opt>
-                <arg line='-i "${ydn-db.dir}/js/config/db.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/algo.js"'/>
                 <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
             </ex.opt>

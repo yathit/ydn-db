@@ -189,7 +189,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
     request.onsuccess = function(ev) {
       var cursor = ev.target.result;
       if (cursor) {
-        var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cursor.key, key);
+        var cmp = ydn.db.base.indexedDb.cmp(cursor.key, key);
         var dir = me.reverse ? -1 : 1;
         if (cmp == dir) {
           requestReady(cursor.key, cursor.primaryKey, cursor.value);
@@ -197,7 +197,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
           cursor['continue'](key);
         } else {
           if (goog.isDefAndNotNull(primary_key)) {
-            var cmp2 = ydn.db.con.IndexedDb.indexedDb.cmp(
+            var cmp2 = ydn.db.base.indexedDb.cmp(
                 cursor.primaryKey, primary_key);
             if (cmp2 == dir) {
               requestReady(cursor.key, cursor.primaryKey, cursor.value);
@@ -305,7 +305,7 @@ ydn.db.core.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
   var cursor = this.request_.result;
 
   if (goog.DEBUG) {
-    var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(key, cursor.primaryKey);
+    var cmp = ydn.db.base.indexedDb.cmp(key, cursor.primaryKey);
     if (cmp != 1) { // key must higher than primary key
       throw new ydn.debug.error.InternalError('continuing primary key "' + key +
           '" must higher than current primary key "' + cursor.primaryKey + '"');
@@ -316,7 +316,7 @@ ydn.db.core.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
   this.request_.onsuccess = function(ev) {
     cursor = ev.target.result;
     if (cursor) {
-      cmp = ydn.db.con.IndexedDb.indexedDb.cmp(cursor.primaryKey, key);
+      cmp = ydn.db.base.indexedDb.cmp(cursor.primaryKey, key);
       if (cmp == 0 ||
           (cmp == 1 && !me.reverse) ||
           (cmp == -1 && me.reverse)) {

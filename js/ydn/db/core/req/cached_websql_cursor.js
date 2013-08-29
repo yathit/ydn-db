@@ -207,7 +207,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
     if (!!this.index_name) {
       goog.asserts.assert(goog.isDefAndNotNull(ini_index_key));
       if (goog.isDefAndNotNull(this.key_range)) {
-        var cmp = ydn.db.con.IndexedDb.indexedDb.cmp(ini_index_key, this.key_range.upper);
+        var cmp = ydn.db.base.indexedDb.cmp(ini_index_key, this.key_range.upper);
         if (cmp == 1 || (cmp == 0 && !this.key_range.upperOpen)) {
           this.onSuccess(undefined, undefined, undefined); // out of range;
           return;

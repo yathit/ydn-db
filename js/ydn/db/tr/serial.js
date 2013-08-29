@@ -50,7 +50,7 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
    */
   this.storage_ = storage;
 
-  /*
+  /**
    * Transaction queue no.
    * @final
    */
