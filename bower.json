@@ -1,0 +1,18 @@
+{
+  "name": "ydn-db",
+  "version": "0.7.12",
+  "authors": [
+    "kyawtun@yathit.com"
+  ],
+  "description": "Javascript database module for IndexedDB, WebDatabase (WebSQL) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
+  "main": "jsc/ydn.db-jquery-0.7.16.js",
+  "keywords": [
+    "indexeddb",
+    "websql",
+    "database",
+    "storage"
+  ],
+  "license": "Apache License 2.0",
+  "homepage": "http://dev.yathit.com",
+  "private": true
+}
