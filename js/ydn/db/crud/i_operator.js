@@ -105,7 +105,7 @@ ydn.db.crud.IOperator.prototype.load = goog.abstractMethod;
  * Execute PUT request either storing result to tx or callback to df.
  * @param {string|StoreSchema|ydn.db.Key|!Array.<!ydn.db.Key>} arg1 store name
  * or schema, key or array of keys.
- * @param {!Object|!Array.<!Object>} value object to put.
+ * @param {(!Object|!Array.<!Object>)} value object to put.
  * @param {IDBKey|!Array.<IDBKey>=} opt_keys out-of-line keys.
  * @return {!ydn.db.Request} return newly created keys in promise.
  */
