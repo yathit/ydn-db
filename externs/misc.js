@@ -48,7 +48,7 @@ StorageOptions.prototype.connectionTimeout;
 function KeyRangeJson() {}
 
 /**
- * @type {IDBKey|undefined}
+ * @type {number|string|!Date|!Array.<number|string|!Date>|undefined}
  */
 KeyRangeJson.prototype.lower;
 
@@ -58,7 +58,7 @@ KeyRangeJson.prototype.lower;
 KeyRangeJson.prototype.lowerOpen;
 
 /**
- * @type {IDBKey|undefined}
+ * @type {number|string|!Date|!Array.<number|string|!Date>|undefined}
  */
 KeyRangeJson.prototype.upper;
 
