@@ -414,7 +414,7 @@ var schema_1 = {
       });
     });
 
-  asyncTest("3. Ref value by index key range", 5, function () {
+  asyncTest("3. Ref value by index key range", 6, function () {
     var keys = objs.map(function(x) {return x.id});
 
     var q = ydn.db.Cursors.where(store_inline_index, 'value', '>=', 2, '<=', 4);
@@ -439,6 +439,13 @@ var schema_1 = {
     db.values(q).always(function (x) {
       //console.log(q)
       deepEqual(x, keys.slice(0, 3), 'upperBound');
+    });
+
+
+    q = new ydn.db.Cursors(store_inline_index, 'value', null, true);
+    db.values(q, 3).always(function (x) {
+      //console.log(q)
+      deepEqual(x, keys.slice().reverse().slice(0,3), 'reverse key range');
     });
 
     q =  ydn.db.Cursors.where(store_inline_index, 'value', '<', 4);
