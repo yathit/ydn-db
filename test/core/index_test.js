@@ -564,7 +564,7 @@ var test_multiEntry_simple = function () {
       }]
     }]
   };
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
 
   var objs = [
@@ -640,7 +640,7 @@ var test_multiEntry = function () {
       }]
     }]
   };
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
 
   var objs = [
@@ -720,7 +720,7 @@ var test_multiEntry_text = function () {
       }]
     }]
   };
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
     {id:'qs0', value: 0, tag: ['a', 'b']},
@@ -801,7 +801,7 @@ var test_date_index = function() {
       }]
     }]
   };
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
     {id: 1, value: Math.random(), updated: new Date( "2013-04-11T13:14:00.000Z")},
@@ -860,7 +860,7 @@ var test_multiEntry_unique = function () {
       }]
     }]
   };
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   var objs = [
     {id: 1, value: Math.random(), tag: ['a', 'b']},
@@ -1204,7 +1204,7 @@ var test_values = function() {
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1, options);
+    var _db = new ydn.db.core.Storage(db_name, schema_1, options);
     _db.clear('sii');
     _db.put('sii', objs);
 
@@ -1237,7 +1237,7 @@ var test_values = function() {
       1000); // maxTimeout
 
   df.addBoth(function() {
-    db = new ydn.db.Storage(db_name, schema_1, options);
+    db = new ydn.db.core.Storage(db_name, schema_1, options);
     var key_range = ydn.db.KeyRange.bound(1, 3);
     var q = new ydn.db.ValueCursors('sii', key_range);
     db.values(q).addBoth(function (x) {

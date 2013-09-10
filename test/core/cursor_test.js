@@ -37,7 +37,7 @@ var load_default = function() {
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
     ydn.db.schema.DataType.INTEGER, [indexSchema, typeIndex]);
   schema = new ydn.db.schema.Database(undefined, [store_schema]);
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   objs = [
     {id: -3, value: 'ba', type: 'a', remark: 'test ' + Math.random()},
@@ -66,7 +66,7 @@ var load_default2 = function() {
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
     ydn.db.schema.DataType.TEXT, [indexSchema]);
   schema = new ydn.db.schema.Database(undefined, [store_schema]);
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
 
   objs = [

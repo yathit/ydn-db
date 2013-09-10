@@ -22,7 +22,7 @@ var setUp = function() {
   var store_schema = new ydn.db.schema.Store(store_name, 'id', false,
     ydn.db.schema.DataType.INTEGER, [index_x, indexSchema, typeIndex]);
   schema = new ydn.db.schema.Database(undefined, [store_schema]);
-  db = new ydn.db.Storage(db_name, schema, options);
+  db = new ydn.db.sql.Storage(db_name, schema, options);
 
   objs = [
     {id: 0, x: -1, value: 'ba', type: 'a', remark: 'test ' + Math.random()},

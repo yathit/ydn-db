@@ -19,7 +19,7 @@ var anmialStore = new ydn.db.schema.Store('animals', 'id', false,
   ydn.db.schema.DataType.TEXT, [colorIndex, hornIndex, legIndex]);
 
 var schema = new ydn.db.schema.Database(undefined, [anmialStore]);
-var db = new ydn.db.sql.Storage(db_name, schema, options);
+var db = new ydn.db.core.Storage(db_name, schema, options);
 
 var animals = [
   {id: 'rat', color: 'brown', horn: 0, legs: 4},
@@ -139,7 +139,7 @@ var test_three_iterator = function () {
           }]
       }]
   };
-  var db = new ydn.db.Storage('test_three_iterator', schema, options);
+  var db = new ydn.db.core.Storage('test_three_iterator', schema, options);
   db.clear();
   db.put('animals', animals);
 

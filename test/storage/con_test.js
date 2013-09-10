@@ -34,7 +34,7 @@ var schema_test = function(schema, to_delete, name) {
 
   name = name || db_name;
   //console.log('testing schema: ' + JSON.stringify(schema));
-  var db = new ydn.db.Storage(name, schema, options);
+  var db = new ydn.db.crud.Storage(name, schema, options);
 
   var version = schema.version;
 
@@ -68,7 +68,7 @@ var schema_test = function(schema, to_delete, name) {
 var trival_schema_test = function(dbname, cb) {
   var schema = {};
 
-  var db = new ydn.db.Storage(dbname, schema, options);
+  var db = new ydn.db.crud.Storage(dbname, schema, options);
   var validated_schema = new ydn.db.schema.Database(db.getSchema());
 
   var done, act_schema;
@@ -145,7 +145,7 @@ var test_21_add_store = function() {
 
   var db_name = 'test_' + Math.random();
   // autoSchema database
-  var db = new ydn.db.Storage(db_name, undefined, options);
+  var db = new ydn.db.crud.Storage(db_name, undefined, options);
   var sh = db.getSchema();
   assertEquals('no store', 0, sh.stores.length);
   assertTrue('auto schema', db.isAutoSchema());
@@ -210,7 +210,7 @@ var assert_similar_schema = function(schema, schema_json) {
 var schema_sniff_test = function(schema) {
 
   var db_name = 'test_schema_' + Math.random();
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
 
   var schema_json = db.getSchema();
 
@@ -355,7 +355,7 @@ var test_fix_schema_ver_change = function() {
       }
     ]
   };
-  var db = new ydn.db.Storage(db_name, schema1, options);
+  var db = new ydn.db.crud.Storage(db_name, schema1, options);
 
   var done = false;
   var sniff_schema1, sniff_schema2;
@@ -380,7 +380,7 @@ var test_fix_schema_ver_change = function() {
     sniff_schema1 = result;
     db.close();
     setTimeout(function() {
-      db = new ydn.db.Storage(db_name, schema2, options);
+      db = new ydn.db.crud.Storage(db_name, schema2, options);
       db.getSchema(function(result) {
         // console.log(result);
         sniff_schema2 = result;

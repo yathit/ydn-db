@@ -27,7 +27,7 @@ var test_auto_schema = function() {
 
   var db_name = 'test_' + Math.random();
   // autoSchema database
-  var db = new ydn.db.Storage(db_name, undefined, options);
+  var db = new ydn.db.crud.Storage(db_name, undefined, options);
   var sh = db.getSchema();
   assertEquals('no store', 0, sh.stores.length);
   assertUndefined('auto schema', sh.version);
@@ -99,7 +99,7 @@ var version_change_test = function(schema1, schema2, is_final, msg) {
       3000); // maxTimeout
 
 
-  var db = new ydn.db.Storage(db_name, schema1, options);
+  var db = new ydn.db.crud.Storage(db_name, schema1, options);
   db.addEventListener('ready', function(e) {
     // console.log(db.getSchema(function (s) {console.log(s)}));
     ver = e.getVersion();
@@ -107,7 +107,7 @@ var version_change_test = function(schema1, schema2, is_final, msg) {
     db.getSchema(function(x) {
       ex_schema1 = new ydn.db.schema.Database(x);
       db.close();
-      var db2 = new ydn.db.Storage(db_name, schema2, options);
+      var db2 = new ydn.db.crud.Storage(db_name, schema2, options);
       db2.addEventListener('ready', function(e) {
         // console.log(db.getSchema(function (s) {console.log(s)}));
         ver2 = e.getVersion();
@@ -229,12 +229,12 @@ var version_unchange_test = function(schema, is_final, msg) {
       100, // interval
       2000); // maxTimeout
 
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
   db.addEventListener('ready', function(e) {
     ver = e.getVersion();
     oldVer = e.getOldVersion();
     db.close();
-    var db2 = new ydn.db.Storage(db_name, schema, options);
+    var db2 = new ydn.db.crud.Storage(db_name, schema, options);
     db2.addEventListener('ready', function (e) {
       ver2 = e.getVersion();
       oldVer2 = e.getOldVersion();

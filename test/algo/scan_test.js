@@ -5,7 +5,7 @@ goog.require('ydn.db.algo.ZigzagMerge');
 goog.require('ydn.db.algo.SortedMerge');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.debug');
-goog.require('ydn.db.sql.Storage');
+goog.require('ydn.db.core.Storage');
 
 
 
@@ -61,7 +61,7 @@ var test_scan_reference_value = function() {
       }]
     }]
   };
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
@@ -155,7 +155,7 @@ var test_scan_advance = function() {
       }]
     }]
   };
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
 
   db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
@@ -258,7 +258,7 @@ var test_index_values = function() {
       }]
     }]
   };
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
     // console.log(db + 'store: ' + store_name + ' ready.');
@@ -325,7 +325,7 @@ var test_scan_effective_key_dual = function() {
         }]
     }]
   };
-  var db = new ydn.db.Storage(db_name, schema, options);
+  var db = new ydn.db.core.Storage(db_name, schema, options);
   db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + 'store: ' + store_name + ' ready.');

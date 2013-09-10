@@ -40,7 +40,7 @@ var schema = {
         }]
     }]
 };
-var db = new ydn.db.Storage(db_name, schema, options);
+var db = new ydn.db.core.Storage(db_name, schema, options);
 
 var animals = [
   {id: 0, name: 'rat', color: 'brown', horn: 0, legs: 4},
