@@ -42,8 +42,7 @@ goog.require('ydn.debug.error.ArgumentException');
 /**
  * Create an iterator object.
  * @param {!string} store store name.
- * @param {string=} opt_index store field, where key query is preformed. If not
- * provided, the first index will be used.
+ * @param {string=} opt_index store field, where key query is preformed.
  * @param {(KeyRangeJson|ydn.db.KeyRange|IDBKeyRange)=} opt_key_range key range.
  * @param {boolean=} opt_reverse reverse.
  * @param {boolean=} opt_unique unique.
@@ -413,7 +412,9 @@ ydn.db.Iterator.prototype.getDirection = function() {
 
 
 /**
- * @return {ydn.db.IDBKeyRange} return key range.
+ * This is for friendly module use only, that does not mutate the key range.
+ * otherwise use @see #getKeyRange
+ * @return {ydn.db.IDBKeyRange} return key range instance.
  */
 ydn.db.Iterator.prototype.keyRange = function() {
   return this.key_range_;
@@ -471,7 +472,7 @@ ydn.db.Iterator.prototype.getUpperOpen = function() {
 ydn.db.Iterator.prototype.getKeyRange = function() {
   if (this.key_range_) {
     if (this.key_range_ instanceof ydn.db.IDBKeyRange) {
-      return this.key_range_;
+      return this.key_range_; // none mutable key range.
     } else {
       return ydn.db.IDBKeyRange.bound(this.key_range_.lower,
           this.key_range_.upper, this.key_range_.lowerOpen,
@@ -516,6 +517,16 @@ ydn.db.Iterator.prototype.isIndexIterator = function() {
  */
 ydn.db.Iterator.prototype.isPrimaryIterator = function() {
   return !this.is_index_iterator_;
+};
+
+
+/**
+ * @return {!ydn.db.Iterator}
+ */
+ydn.db.Iterator.prototype.clone = function() {
+  return new ydn.db.Iterator(this.store_name_, this.index_name_,
+      this.key_range_, this.isReversed(), this.isUnique(), this.isKeyIterator(),
+      this.index_key_path_);
 };
 
 

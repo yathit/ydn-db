@@ -23,6 +23,7 @@ goog.require('ydn.db.crud.Storage');
 goog.require('ydn.math.Expression');
 
 
+
 /**
  * Construct storage providing atomic CRUD database operations on implemented
  * storage mechanisms.
