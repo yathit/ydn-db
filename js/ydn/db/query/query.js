@@ -190,51 +190,12 @@ ydn.db.Query.prototype.where = function(index_name, op, value, opt_op2,
  * @param {T=} opt_scope
  * @template T
  */
-ydn.db.Query.prototype.values = function(cb, opt_limit, opt_scope) {
+ydn.db.Query.prototype.toArray = function(cb, opt_limit, opt_scope) {
   this.db.values(this.iterators[0], opt_limit).addCallbacks(function(list) {
     if (cb) {
       cb.call(opt_scope, list);
     } else {
       window.console.log(list);
-    }
-  }, function(e) {
-    throw e;
-  }, this);
-};
-
-
-/**
- * Execute query and collect as an array. This method forces query execution.
- * @param {function(this: T, !Array)} cb
- * @param {number=} opt_limit limit.
- * @param {T=} opt_scope
- * @template T
- */
-ydn.db.Query.prototype.keys = function(cb, opt_limit, opt_scope) {
-  this.db.keys(this.iterators[0], opt_limit).addCallbacks(function(list) {
-    if (cb) {
-      cb.call(opt_scope, list);
-    } else {
-      window.console.log(list);
-    }
-  }, function(e) {
-    throw e;
-  }, this);
-};
-
-
-/**
- * Execute query and collect as an array. This method forces query execution.
- * @param {function(this: T, Object)} cb
- * @param {T=} opt_scope
- * @template T
- */
-ydn.db.Query.prototype.get = function(cb, opt_scope) {
-  this.db.get(this.iterators[0]).addCallbacks(function(obj) {
-    if (cb) {
-      cb.call(opt_scope, obj);
-    } else {
-      window.console.log(obj);
     }
   }, function(e) {
     throw e;
@@ -310,7 +271,6 @@ ydn.db.core.DbOperator.prototype.from = function(store_name, opt_op1,
 };
 
 
-goog.exportSymbol('ydn.db.Query', ydn.db.Query);
 goog.exportProperty(ydn.db.Query.prototype, 'count',
     ydn.db.Query.prototype.count);
 goog.exportProperty(ydn.db.Query.prototype, 'get',
@@ -319,8 +279,8 @@ goog.exportProperty(ydn.db.Query.prototype, 'order',
     ydn.db.Query.prototype.order);
 goog.exportProperty(ydn.db.Query.prototype, 'reverse',
     ydn.db.Query.prototype.reverse);
-goog.exportProperty(ydn.db.Query.prototype, 'values',
-    ydn.db.Query.prototype.values);
+goog.exportProperty(ydn.db.Query.prototype, 'toArray',
+    ydn.db.Query.prototype.toArray);
 goog.exportProperty(ydn.db.Query.prototype, 'where',
     ydn.db.Query.prototype.where);
 
