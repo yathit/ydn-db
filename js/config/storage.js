@@ -4,6 +4,7 @@
  */
 
 
+goog.require('ydn.db.Query');
 goog.require('ydn.db.Storage');
 goog.require('ydn.db.con.exports');
 goog.require('ydn.db.core.exports');

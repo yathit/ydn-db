@@ -41,7 +41,6 @@
             <extrapaths>
                 <arg line='-i "${ydn-db.dir}/js/config/dev.js"'/>
                 <arg line='-i "${ydn-db.dir}/js/config/algo.js"'/>
-                <arg line='-i "${ydn-db.dir}/js/ydn/db/query/query.js"'/>
                 <arg line='-f "--closure_entry_point=ydn.db.Storage"'/>
                 <arg line='-p "${ydn-base.dir}/js"'/>
             </extrapaths>

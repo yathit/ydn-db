@@ -77,7 +77,7 @@ ydn.db.Query.prototype.clone = function() {
   for (var i = 0; i < this.iterators.length; ++i) {
     iters.push(this.iterators[i].clone());
   }
-  var q = new ydn.db.Query(this.storage, this.schema);
+  var q = new ydn.db.Query(this.db, this.schema);
   q.iterators = iters;
   return q;
 };
@@ -107,33 +107,37 @@ ydn.db.Query.prototype.order = function(order) {
   }
   var q = this.clone();
   if (q.iterators.length == 0) {
-    q.iterators[0] = new ydn.db.Iterator(this.store_name, orders.join(', '),
-        null, false, false, false, orders);
+    throw new Error('Store name not defined');
   } else if (q.iterators.length == 1) {
     var iter = q.iterators[0];
+    var store = this.schema.getStore(iter.getStoreName());
     var kr = iter.getKeyRange();
     if (iter.isIndexIterator()) {
       if (iter.getIndexName() != orders[0]) {
         var index = [iter.getIndexName(), orders[0]];
         if (kr) {
           if (kr.lower == kr.upper) {
-            var range = ydn.db.KeyRange.starts(kr.lower);
-            q.iterators[0] = new ydn.db.Iterator(this.store_name,
+            var range = ydn.db.KeyRange.starts([kr.lower]);
+            q.iterators[0] = new ydn.db.Iterator(iter.getStoreName(),
                 index.join(', '), range, iter.isReversed(), iter.isUnique(),
                 iter.isKeyIterator(), index);
           } else {
             throw new Error('Not supported');
           }
         } else {
-          q.iterators[0] = new ydn.db.Iterator(this.store_name,
+          q.iterators[0] = new ydn.db.Iterator(iter.getStoreName(),
               index.join(', '), null, iter.isReversed(), iter.isUnique(),
               iter.isKeyIterator(), index);
         }
       }
     } else {
-      var store = this.schema.getStore(this.store_name);
       if (orders[0] != store.getKeyPath()) {
-        throw new Error('Not possible without using in memory sorting.');
+        if (kr) {
+          throw new Error('Not possible without using in memory sorting.');
+        } else {
+          q.iterators[0] = new ydn.db.IndexValueCursors(iter.getStoreName(),
+              orders[0], null, iter.isReversed(), iter.isUnique());
+        }
       }
     }
   } else {
@@ -141,16 +145,6 @@ ydn.db.Query.prototype.order = function(order) {
   }
   q.orders = orders;
   return q;
-};
-
-
-/**
- * @param {number} limit set limit of this query.
- * @return {!ydn.db.Query} return this.
- */
-ydn.db.Query.prototype.setLimit = function(limit) {
-  this.limit = limit;
-  return this;
 };
 
 
@@ -166,18 +160,23 @@ ydn.db.Query.prototype.setLimit = function(limit) {
 ydn.db.Query.prototype.where = function(index_name, op, value, opt_op2,
     opt_value2) {
   var q = this.clone();
-  if (q.iterators.length > 1) {
-    throw new Error('Multi query not implemented');
-  } else if (q.iterators[0].hasKeyRange()) {
-    throw new ydn.debug.error.ArgumentException('joint query not implemented');
-  } else {
-    if (index_name == this.schema.getKeyPath()) {
-      q.iterators[0] = ydn.db.ValueCursors.where(this.store_name,
-          op, value, opt_op2, opt_value2);
+  if (q.iterators.length == 1) {
+    if (q.iterators[0].hasKeyRange()) {
+      throw new ydn.debug.error.ArgumentException(
+          'joint query not implemented yet');
     } else {
-      q.iterators[0] = ydn.db.IndexValueCursors.where(this.store_name,
-          index_name, op, value, opt_op2, opt_value2);
+      var store_name = q.iterators[0].getStoreName();
+      var store = this.schema.getStore(store_name);
+      if (index_name == store.getKeyPath()) {
+        q.iterators[0] = ydn.db.ValueCursors.where(store_name,
+            op, value, opt_op2, opt_value2);
+      } else {
+        q.iterators[0] = ydn.db.IndexValueCursors.where(store_name,
+            index_name, op, value, opt_op2, opt_value2);
+      }
     }
+  } else {
+    throw new Error('Multi query not implemented');
   }
   return q;
 };
@@ -188,18 +187,18 @@ ydn.db.Query.prototype.where = function(index_name, op, value, opt_op2,
  * @param {function(this: T, !Array)} cb
  * @param {number=} opt_limit limit.
  * @param {T=} opt_scope
+ * @return {!ydn.db.Request}
  * @template T
  */
 ydn.db.Query.prototype.toArray = function(cb, opt_limit, opt_scope) {
-  this.db.values(this.iterators[0], opt_limit).addCallbacks(function(list) {
-    if (cb) {
-      cb.call(opt_scope, list);
-    } else {
-      window.console.log(list);
-    }
+  var req = this.db.values(this.iterators[0], opt_limit);
+  req.addCallbacks(function(list) {
+    // console.log(this.iterators[0], list);
+    cb.call(opt_scope, list);
   }, function(e) {
     throw e;
   }, this);
+  return req;
 };
 
 
@@ -207,6 +206,7 @@ ydn.db.Query.prototype.toArray = function(cb, opt_limit, opt_scope) {
  * Count result of query. This method forces query execution.
  * @param {function(this: T, number)} cb
  * @param {T=} opt_scope
+ * @return {!ydn.db.Request}
  * @template T
  */
 ydn.db.Query.prototype.count = function(cb, opt_scope) {
@@ -223,6 +223,7 @@ ydn.db.Query.prototype.count = function(cb, opt_scope) {
   }, function(e) {
     throw e;
   }, this);
+  return req;
 };
 
 
@@ -273,8 +274,6 @@ ydn.db.core.DbOperator.prototype.from = function(store_name, opt_op1,
 
 goog.exportProperty(ydn.db.Query.prototype, 'count',
     ydn.db.Query.prototype.count);
-goog.exportProperty(ydn.db.Query.prototype, 'get',
-    ydn.db.Query.prototype.get);
 goog.exportProperty(ydn.db.Query.prototype, 'order',
     ydn.db.Query.prototype.order);
 goog.exportProperty(ydn.db.Query.prototype, 'reverse',

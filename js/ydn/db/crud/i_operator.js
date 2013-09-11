@@ -33,9 +33,10 @@ ydn.db.crud.IOperator = function() {};
 /**
  *
  * @param {!Array.<string>|string} store_name store name or names.
- * @param {string=} opt_index name.
- * @param {(string|ydn.db.KeyRange)=} key_range_index key range.
- * @param {ydn.db.KeyRange=} opt_key_range key range.
+ * @param {(string|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} opt_key_range_index
+ * index name or key range.
+ * @param {(ydn.db.KeyRange|ydn.db.IDBKeyRange)=} opt_key_range key range if
+ * second argument is an index.
  * @param {boolean=} opt_unique count unique index key.
  * @return {!ydn.db.Request} return object in deferred function.
  */

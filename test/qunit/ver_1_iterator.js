@@ -320,8 +320,14 @@ var schema_1 = {
   module("values", test_env);
   reporter.createTestSuite('iterator', 'values', ydn.db.version);
 
-  asyncTest("1. Ref value by primary key range", 8, function () {
+  asyncTest("1. Ref value by primary key range", 9, function () {
     df.always(function () {
+
+      var q = new ydn.db.ValueCursors(store_inline_index);
+      db.values(q).always(function (x) {
+        //console.log(q)
+        deepEqual(x, objs, 'all');
+      });
 
       var key_range = ydn.db.KeyRange.bound(1, 3);
       var q = new ydn.db.ValueCursors(store_inline_index, key_range);
