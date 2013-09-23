@@ -14,33 +14,12 @@
 /**
  * @fileoverview Provide encryption and expiring storage for string record.
  *
- * @author Kyaw Tun <kyawtun@yathit.com>
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.rich.Storage');
 goog.require('ydn.db.crud.Storage');
 goog.require('ydn.db.rich.RichStorage');
-
-
-
-
-//
-///**
-// * Initialize suitable database if {@code dbname} and {@code schema} are set,
-// * starting in the following order of preference.
-// * @override
-// */
-//ydn.db.crud.Storage.prototype.initDatabase = function () {
-//  // handle version change
-//  if (goog.isDef(this.schema) &&
-//    (ydn.db.base.ENABLE_DEFAULT_TEXT_STORE &&
-//      !this.schema.hasStore(ydn.db.schema.Store.DEFAULT_TEXT_STORE))) {
-//    this.schema.addStore(new ydn.db.schema.Store(
-//      ydn.db.schema.Store.DEFAULT_TEXT_STORE, 'id'));
-//  }
-//  goog.base(this, 'initDatabase');
-//};
-
 
 
 /**
@@ -67,8 +46,6 @@ ydn.db.crud.Storage.prototype.encrypt = function(secret, opt_expiration) {
 ydn.db.crud.Storage.prototype.getWrapper = function() {
   return this.wrapper || null;
 };
-
-
 
 
 /**

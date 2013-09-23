@@ -69,7 +69,7 @@ var test_primary_key_range = function () {
     5000); // maxTimeout
 
   var range = ydn.db.KeyRange.bound(1, 10);
-  db.keys(store_name, range).addCallback(function (value) {
+  db.keys(store_name, {keyRange: range}).addCallback(function (value) {
     //console.log('fetch value: ' + JSON.stringify(value));
     result = value;
     get_done = true;
@@ -127,7 +127,7 @@ var test_by_index_key_range = function () {
     5000); // maxTimeout
 
   var range = ydn.db.KeyRange.bound('ba', 'c');
-  db.keys(store_name, 'value', range).addCallback(function (value) {
+  db.keys(store_name, 'value', {keyRange: range}).addCallback(function (value) {
     //console.log('fetch value: ' + JSON.stringify(value));
     result = value;
     get_done = true;
@@ -245,7 +245,7 @@ var test_keyrange_starts = function () {
 
 
   var range = ydn.db.KeyRange.starts('b');
-  db.keys(store_name, 'value', range).addBoth(function (value) {
+  db.keys(store_name, 'value', {keyRange: range}).addBoth(function (value) {
     //console.log('fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -305,7 +305,7 @@ var test_string_key_starts = function () {
 
 
   var range = ydn.db.KeyRange.starts('b');
-  db.keys(store_name, range).addBoth(function (value) {
+  db.keys(store_name, {keyRange: range}).addBoth(function (value) {
     //console.log('fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;
@@ -359,7 +359,7 @@ var test_array_key_key_range = function () {
     5000); // maxTimeout
 
   var range = ydn.db.KeyRange.starts(['b']);
-  db.keys(store_name, range).addBoth(function (value) {
+  db.keys(store_name, {keyRange: range}).addBoth(function (value) {
     //console.log('fetch value: ' + JSON.stringify(value));
     result = value;
     done = true;

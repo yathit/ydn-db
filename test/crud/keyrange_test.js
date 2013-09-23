@@ -76,7 +76,7 @@ var keyRange_test = function (key_range, exp_result, reverse) {
     1000); // maxTimeout
 
   reverse = !!reverse;
-  var req = db.values(store_name, key_range, undefined, undefined, reverse);
+  var req = db.values(store_name, {keyRange: key_range, reverse: reverse});
   req.addBoth(function (value) {
     //console.log(db + ' fetch value: ' + JSON.stringify(value));
     result = value;
@@ -185,7 +185,7 @@ var test_query_start_with = function () {
 
 
       var key_range = ydn.db.KeyRange.starts('qs');
-      db.values(store_name, key_range).addCallback(function (value) {
+      db.values(store_name, {keyRange: key_range}).addCallback(function (value) {
         console.log('fetch value: ' + JSON.stringify(value));
         assertEquals('obj length', objs.length - 1, value.length);
         assertObjectEquals('get', objs[0], value[0]);

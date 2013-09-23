@@ -224,6 +224,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
      */
     var q = arg1;
     this.logger.finer('listByIterator:' + q);
+    return goog.base(this, 'values', arg1, arg2, arg3, arg4, arg5, arg6);
     var df = this.tx_thread.request(ydn.db.Request.Method.VALUES_ITER,
         q.stores());
     df.addTxback(function() {
@@ -583,7 +584,7 @@ ydn.db.core.DbOperator.prototype.getIndexExecutor = function() {
  * @return {!goog.async.Deferred} promise on completed.
  */
 ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode) {
-  if (!(iter instanceof ydn.db.Iterator)) {
+  if (goog.DEBUG && !(iter instanceof ydn.db.Iterator)) {
     throw new ydn.debug.error.ArgumentException(
         'Second argument must be cursor range iterator.');
   }
@@ -599,7 +600,7 @@ ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode) {
   this.logger.finer('open:' + tr_mode + ' ' + iter);
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
     var lbl = tx_no + ' iterating ' + iter;
-    me.logger.finest(lbl);
+    me.logger.finer(lbl);
     var cursor = iter.iterate(tx, tx_no, me.getIndexExecutor());
 
     cursor.onFail = function(e) {

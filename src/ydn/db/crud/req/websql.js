@@ -323,7 +323,8 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       me.logger.finest('empty object at ' + i + ' of ' + objects.length);
       result_count++;
       if (result_count == objects.length) {
-        me.logger.finer('success ' + msg);
+        me.logger.finer(msg + ' success ' + msg);
+        console.log(msg, result_keys);
         req.setDbValue(result_keys, has_error);
       } else {
         var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
@@ -412,10 +413,12 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       }
 
       if (single) {
+        console.log(msg, key);
         req.setDbValue(key);
       } else {
         result_keys[i] = key;
         if (result_count == objects.length) {
+          console.log(msg, result_keys);
           req.setDbValue(result_keys, has_error);
         } else {
           var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
@@ -510,27 +513,6 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(rq, objs,
    * @param {!Array.<number>} idx
    */
   var execute_on_store = function(store_name, idx) {
-    /**
-     *
-     * @param {*} xs
-     * @param {boolean=} opt_is_error
-     */
-    var idf = function(xs, opt_is_error) {
-      if (opt_is_error) {
-        count++;
-        if (count == total) {
-          rq.setDbValue(xs, true);
-        }
-      } else {
-        for (var i = 0; i < idx.length; i++) {
-          results[idx[i]] = xs[i];
-        }
-        count++;
-        if (count == total) {
-          rq.setDbValue(results);
-        }
-      }
-    };
     var idx_objs = [];
     me.logger.finest('put ' + idx.length + ' objects to ' + store_name);
     var store = me.schema.getStore(store_name);
@@ -542,7 +524,22 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(rq, objs,
         idx_keys.push(keys[idx[i]].getId());
       }
     }
-    me.insertObjects(rq, false, false, store_name, idx_objs,
+    var i_rq = rq.copy();
+    i_rq.addCallbacks(function(xs) {
+      for (var i = 0; i < idx.length; i++) {
+        results[idx[i]] = xs[i];
+      }
+      count++;
+      if (count == total) {
+        rq.setDbValue(results);
+      }
+    }, function(e) {
+      count++;
+      if (count == total) {
+        rq.setDbValue(xs, true);
+      }
+    });
+    me.insertObjects(i_rq, false, false, store_name, idx_objs,
         idx_keys);
 
   };

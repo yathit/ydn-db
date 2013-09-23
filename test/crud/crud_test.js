@@ -18,7 +18,7 @@ var load_store_name = 'st_load';
 var setUp = function() {
   // ydn.debug.log('ydn.db.crud.req', 'finest');
   // ydn.db.crud.req.WebSql.DEBUG = true;
-  ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
   // ydn.db.con.IndexedDb.DEBUG = true;
@@ -432,6 +432,9 @@ var test_12_put_array_unique_index_constraint = function() {
       function() { return hasEventFired; },
       // Continuation
       function() {
+        db.getSchema(function(s) {
+          console.log(s);
+        });
         assertEquals('correct length for results1', 2, results1.length);
         assertEquals('correct length for results2', 2, results2.length);
         assertArrayEquals('results1', [1, 2], results1);
@@ -455,7 +458,7 @@ var test_12_put_array_unique_index_constraint = function() {
     results1 = value;
   });
   db.put('st', data2).addCallbacks(function(x) {
-    // console.log(x);
+    console.log(x);
     is_success = true;
     results2 = x;
   }, function(value) {
@@ -540,14 +543,18 @@ var test_13_put_array_by_keys = function() {
     2000); // maxTimeout
 
 
-  db.put(arr, values).addBoth(function(value) {
+  db.put(arr, values).addCallbacks(function(value) {
     console.log('receiving value callback: ' + value);
     keys = value;
-    db.values(arr).addBoth(function(x) {
+    db.values(arr).addCallbacks(function(x) {
       console.log(x);
       results = x;
       done = true;
+    }, function(e) {
+      throw e;
     });
+  }, function(e) {
+    throw e;
   });
 };
 
@@ -760,35 +767,44 @@ var test_26_list = function() {
     1000); // maxTimeout
 
 
-  db.put(table_name, data).addBoth(function(x) {
+  db.put(table_name, data).addCallbacks(function(x) {
     db = new ydn.db.crud.Storage(db_name, schema, options);
-    db.values(table_name).addCallback(function(value) {
-      //console.log('receiving value callback.');
+    db.values(table_name).addCallbacks(function(value) {
+      // console.log('receiving value callback.');
       whole_result = value;
       whole_done = true;
-    }).addErrback(function(e) {
-        whole_done = true;
-        console.log('Error: ' + e);
-      });
+    }, function(e) {
+      throw e;
+    });
 
-    db.values(table_name, [1, 2]).addBoth(function(value) {
+    db.values(table_name, [1, 2]).addCallbacks(function(value) {
       //console.log('receiving value callback.');
       array_result = value;
       array_done = true;
+    }, function(e) {
+      throw e;
     });
 
-    db.values(table_name, null, 3).addBoth(function(value) {
+    db.values(table_name, {limit: 3}).addCallbacks(function(value) {
       //console.log('receiving value callback.');
       limit_result = value;
       limit_done = true;
+    }, function(e) {
+      throw e;
     });
-    db.values(table_name, null, 2, 1).addBoth(function(value) {
+
+    db.values(table_name, {limit: 2, offset: 1}).addCallbacks(function(value) {
       //console.log('receiving value callback.');
       offset_result = value;
       offset_done = true;
+    }, function(e) {
+      throw e;
     });
+
+  }, function(e) {
+    throw e;
   });
-  db.close();
+
 
 };
 
@@ -1508,12 +1524,12 @@ var test_51_keys = function() {
         console.log('Error: ' + e);
       });
 
-    db.keys(table_name, null, 3).addBoth(function(value) {
+    db.keys(table_name, {limit: 3}).addBoth(function(value) {
       //console.log('limit value callback.');
       limit_result = value;
       limit_done = true;
     });
-    db.keys(table_name, null, 2, 1).addBoth(function(value) {
+    db.keys(table_name, {limit: 2, offset: 1}).addBoth(function(value) {
       //console.log('limit offset value callback.');
       offset_result = value;
       offset_done = true;

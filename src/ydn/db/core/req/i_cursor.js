@@ -110,6 +110,7 @@ ydn.db.core.req.ICursor.prototype.isIndexCursor = function() {};
 /**
  *
  * @return {boolean} return true if this is an index cursor.
+ * @deprecated use isIndexCursor instead.
  */
 ydn.db.core.req.ICursor.prototype.isPrimaryCursor = function() {};
 

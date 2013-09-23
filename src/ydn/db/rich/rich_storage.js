@@ -105,8 +105,7 @@ ydn.db.rich.RichStorage.prototype.hashKeyWithSecret_ =
  * @private
  */
 ydn.db.rich.RichStorage.prototype.encryptValue_ =
-  goog.storage.EncryptedStorage.prototype.encryptValue_;
-
+    goog.storage.EncryptedStorage.prototype.encryptValue_;
 
 
 /**
@@ -120,7 +119,7 @@ ydn.db.rich.RichStorage.prototype.encryptValue_ =
  * @private
  */
 ydn.db.rich.RichStorage.prototype.decryptValue_ =
-  goog.storage.EncryptedStorage.prototype.decryptValue_;
+    goog.storage.EncryptedStorage.prototype.decryptValue_;
 
 
 /**
@@ -165,30 +164,31 @@ ydn.db.rich.RichStorage.prototype.unwrapValue = function(key, value) {
  * @param {number=} opt_expiration expiration.
  * @return {string} wrapped value.
  */
-ydn.db.rich.RichStorage.prototype.wrapValue = function(key, value, opt_expiration) {
+ydn.db.rich.RichStorage.prototype.wrapValue = function(key, value,
+                                                       opt_expiration) {
 
   // set method in goog.storage.EncryptedStorage
   key = this.hashKeyWithSecret_(key);
   var salt = [];
   // 64-bit random salt.
   for (var i = 0; i < 8; ++i) {
-    salt[i] = Math.floor(Math.random() * 0x100);
+    salt[i] = (Math.random() * 0x100) | 0;
   }
   value = this.encryptValue_(salt, key,
-    this.cleartextSerializer_.serialize(value));
+      this.cleartextSerializer_.serialize(value));
 
   var wrapper = {};
   wrapper[ydn.db.rich.RichStorage.DATA_KEY] = value;
   if (goog.isDef(opt_expiration)) {
     goog.asserts.assert(opt_expiration > 0,
-      'expiration time must be a number ' +
-      ' but ' + opt_expiration + ' found.');
+        'expiration time must be a number ' +
+        ' but ' + opt_expiration + ' found.');
   } else {
     opt_expiration = this.default_expiration;
   }
   if (opt_expiration) {
     wrapper[ydn.db.rich.RichStorage.EXPIRATION_TIME_KEY] =
-      opt_expiration;
+        opt_expiration;
   }
   wrapper[ydn.db.rich.RichStorage.CREATION_TIME_KEY] = goog.now();
   return ydn.json.stringify(wrapper);

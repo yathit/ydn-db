@@ -531,7 +531,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
     for (var i = 0; i < results.rows.length; i++) {
 
       var info = /** @type {SqliteTableInfo} */ (results.rows.item(i));
-      //console.log(info);
+      // console.log(info);
 
 //      name: "st1"
 //      rootpage: 5
