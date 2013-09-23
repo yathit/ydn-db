@@ -193,8 +193,7 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3) {
 /**
  * @inheritDoc
  */
-ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
-                                                   arg5, arg6) {
+ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3) {
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
@@ -202,7 +201,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
     /**
      * @type {number}
      */
-    var limit;
+    var limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
     if (goog.isNumber(arg2)) {
       limit = /** @type {number} */ (arg2);
       if (limit < 1) {
@@ -215,7 +214,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
     }
     if (goog.isDef(arg3)) {
       throw new ydn.debug.error.ArgumentException(
-          'offset must not be specified');
+          'too many input argument');
     }
 
     /**
@@ -224,16 +223,13 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
      */
     var q = arg1;
     this.logger.finer('listByIterator:' + q);
-    return goog.base(this, 'values', arg1, arg2, arg3, arg4, arg5, arg6);
     var df = this.tx_thread.request(ydn.db.Request.Method.VALUES_ITER,
         q.stores());
     df.addTxback(function() {
       this.getIndexExecutor().listByIterator(df, q, limit);
     }, this);
-
-    return df;
   } else {
-    return goog.base(this, 'values', arg1, arg2, arg3, arg4, arg5, arg6);
+    return goog.base(this, 'values', arg1, arg2, arg3);
   }
 
 };

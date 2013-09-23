@@ -58,8 +58,7 @@ goog.exportSymbol('ydn.db.ValueCursors', ydn.db.ValueCursors);
 goog.exportSymbol('ydn.db.Cursors', ydn.db.Cursors);
 goog.exportSymbol('ydn.db.IndexValueCursors', ydn.db.IndexValueCursors);
 
-goog.exportProperty(ydn.db.Iterator.prototype, 'count',
-    ydn.db.Iterator.prototype.count);
+
 goog.exportProperty(ydn.db.Iterator.prototype, 'getState',
     ydn.db.Iterator.prototype.getState);
 goog.exportProperty(ydn.db.Iterator.prototype, 'getKeyRange',

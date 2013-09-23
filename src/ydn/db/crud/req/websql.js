@@ -324,7 +324,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       result_count++;
       if (result_count == objects.length) {
         me.logger.finer(msg + ' success ' + msg);
-        console.log(msg, result_keys);
+        // console.log(msg, result_keys);
         req.setDbValue(result_keys, has_error);
       } else {
         var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
@@ -413,12 +413,12 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       }
 
       if (single) {
-        console.log(msg, key);
+        // console.log(msg, key);
         req.setDbValue(key);
       } else {
         result_keys[i] = key;
         if (result_count == objects.length) {
-          console.log(msg, result_keys);
+          // console.log(msg, result_keys);
           req.setDbValue(result_keys, has_error);
         } else {
           var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
@@ -536,7 +536,7 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(rq, objs,
     }, function(e) {
       count++;
       if (count == total) {
-        rq.setDbValue(xs, true);
+        rq.setDbValue(results, true);
       }
     });
     me.insertObjects(i_rq, false, false, store_name, idx_objs,

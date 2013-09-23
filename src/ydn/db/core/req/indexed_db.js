@@ -90,7 +90,14 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
   }
   var me = this;
   this.logger.finer(msg);
-  var cursor = iter.iterate(tx, tx_no, this, mth);
+
+  var query_mth = opt_query || ydn.db.schema.Store.QueryMethod.VALUES;
+  var csr = this.getCursor(tx, tx_no, iter.getStoreName(),
+      this.index_key_path_ || this.index_name_,
+      this.key_range_, this.direction_, this.is_key_iterator_, query_mth);
+
+  var cursor = new ydn.db.Cursor([csr]);
+
   cursor.onFail = function(e) {
     cursor.exit();
     rq.setDbValue(e, true);
