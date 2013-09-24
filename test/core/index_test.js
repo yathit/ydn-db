@@ -1010,7 +1010,7 @@ var test_compound_text_starts = function () {
 };
 
 
-var test_order = function() {
+var _test_order = function() {
   var db_name = 'test_order-2';
   var data = [
     {id: 1, a: 3, b: 'a'},
@@ -1078,7 +1078,7 @@ var test_order = function() {
 };
 
 
-var test_order_index = function() {
+var _test_order_index = function() {
   var db_name = 'test_order_index-2';
   var data = [
     {id: 1, a: 3, b: 'a', c: 1},

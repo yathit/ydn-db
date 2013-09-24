@@ -644,11 +644,37 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
       this.index_key_path_ || this.index_name_,
       this.key_range_, this.direction_, this.is_key_iterator_, query_mth);
   var cursors = [cursor];
-  var cursor_ = new ydn.db.Cursor(cursors);
+  for (var i = 0, n = this.joins_ ? this.joins_.length : 0; i < n; i++) {
+    /**
+     * @type {!ydn.db.core.EquiJoin}
+     */
+    var join = this.joins_[i];
+    if (join.field_name && goog.isDefAndNotNull(join.value)) {
+      var key_range;
+      if (this.isPrimaryIterator()) {
+        key_range = ydn.db.IDBKeyRange.only(join.value);
+      } else {
+        key_range = ydn.db.KeyRange.parseIDBKeyRange(
+            ydn.db.KeyRange.starts([join.value]));
+      }
+      var cur = executor.getCursor(tx, tx_lbl, join.store_name,
+          join.field_name, key_range,
+          this.direction_, this.is_key_iterator_, query_mth);
+      cursors.push(cur);
+    }
+  }
 
-  this.logger.finest(tx_lbl + ' ' + this + ' created ');
-  return cursor_;
+  var msg = '';
+  if (this.cursor_) {
+    msg = ' by resuming ' + this.cursor_;
+  }
+
+  this.cursor_ = new ydn.db.Cursor(cursors, this.cursor_);
+
+  this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_ + msg);
+  return this.cursor_;
 };
+
 
 
 /**
@@ -686,7 +712,6 @@ ydn.db.Iterator.prototype.reset = function() {
  */
 ydn.db.Iterator.prototype.stores = function() {
   var stores = [this.store_name_];
-  /*
   if (this.joins_) {
     for (var i = 0; i < this.joins_.length; i++) {
       if (!goog.array.contains(stores, this.joins_[i].store_name)) {
@@ -694,6 +719,54 @@ ydn.db.Iterator.prototype.stores = function() {
       }
     }
   }
-  */
   return stores;
+};
+
+
+/**
+ * Modified iterator with a given restriction.
+ * @param {string} field_name restriction feild name.
+ * @param {IDBKey} value restriction field value.
+ * @return {!ydn.db.Iterator}
+ */
+ydn.db.Iterator.prototype.restrict = function(field_name, value) {
+  goog.asserts.assertString(field_name, 'field name in string require but, "' +
+      field_name + '" of type ' + typeof field_name + ' found.');
+  goog.asserts.assert(ydn.db.Key.isValidKey(value), 'key value "' +
+      ydn.json.toShortString(value) + '" is invalid');
+  return this.join(this.store_name_, field_name, value);
+};
+
+
+/**
+ * @type {Array.<!ydn.db.core.EquiJoin>} list of joins.
+ * @private
+ */
+ydn.db.Iterator.prototype.joins_;
+
+
+/**
+ * Join operation.
+ * @param {string} store_name store name to join.
+ * @param {string=} opt_field_name restriction feild name.
+ * @param {IDBKey=} opt_value restriction field value.
+ * @return {!ydn.db.Iterator} Newly created iterator with join operation
+ * applied.
+ */
+ydn.db.Iterator.prototype.join = function(store_name, opt_field_name,
+                                          opt_value) {
+  var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
+      this.key_range_, this.isReversed(), this.isUnique(),
+      this.is_key_iterator_, this.index_key_path_);
+
+  var join = new ydn.db.core.EquiJoin(store_name, opt_field_name,
+      opt_value);
+
+  if (this.joins_) {
+    iter.joins_ = this.joins_.concat(join);
+  } else {
+    iter.joins_ = [join];
+  }
+
+  return iter;
 };
