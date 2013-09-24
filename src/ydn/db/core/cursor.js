@@ -35,14 +35,14 @@ goog.require('ydn.debug.error.InternalError');
 /**
  * Create a new front-end cursor object.
  * @param {Array.<ydn.db.core.req.ICursor>} cursors cursors.
- * @param {ydn.db.Cursor=} opt_pre_cursor previous cursor, to resume cursor
+ * @param {ydn.db.Cursor=} opt_prev_cursor previous cursor, to resume cursor
  * location.
  * @param {IDBKey=} opt_key start position.
  * @param {IDBKey=} opt_primary_key start position.
  * @constructor
  * @struct
  */
-ydn.db.Cursor = function(cursors, opt_pre_cursor, opt_key, opt_primary_key) {
+ydn.db.Cursor = function(cursors, opt_prev_cursor, opt_key, opt_primary_key) {
 
   this.cursors_ = cursors;
   this.keys_ = [];
@@ -52,9 +52,9 @@ ydn.db.Cursor = function(cursors, opt_pre_cursor, opt_key, opt_primary_key) {
   this.done_ = false;
   this.exited_ = false;
 
-  if (opt_pre_cursor) {
-    this.keys_ = goog.array.clone(opt_pre_cursor.keys_);
-    this.primary_keys_ = goog.array.clone(opt_pre_cursor.primary_keys_);
+  if (opt_prev_cursor) {
+    this.keys_ = goog.array.clone(opt_prev_cursor.keys_);
+    this.primary_keys_ = goog.array.clone(opt_prev_cursor.primary_keys_);
   }
   if (goog.isDefAndNotNull(opt_key)) {
     this.keys_[0] = opt_key;
