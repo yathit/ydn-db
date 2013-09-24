@@ -90,7 +90,7 @@ KeyRangeJson.prototype.upperOpen;
  *   unique: (boolean|undefined)
  * }}
  */
-IterationOptions;
+var IterationOptions;
 
 
 

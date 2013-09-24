@@ -354,9 +354,21 @@ ydn.db.crud.DbOperator.prototype.valuesByKeyRange_ = function(store_name,
 
 
 /**
+ * @typedef {{
+ *   keyRange: (IDBKeyRange),
+ *   limit: (number),
+ *   offset: (number),
+ *   reverse: (boolean),
+ *   unique: (boolean)
+ * }}
+ */
+ydn.db.crud.DbOperator.IteratorOptions;
+
+
+/**
  * Validate options on debug mode, add default limit and parse key range.
  * @param {IterationOptions|undefined} options
- * @return {!IterationOptions}
+ * @return {!ydn.db.crud.DbOperator.IteratorOptions}
  */
 ydn.db.crud.DbOperator.validateOptions = function(options) {
   if (options) {
@@ -393,7 +405,10 @@ ydn.db.crud.DbOperator.validateOptions = function(options) {
   }
   options.keyRange = ydn.db.KeyRange.parseIDBKeyRange(options.keyRange);
   options.limit = options.limit || ydn.db.base.DEFAULT_RESULT_LIMIT;
-  return options;
+  options.offset = options.offset || 0;
+  options.unique = !!options.unique;
+  options.reverse = !!options.reverse;
+  return /** @type {!ydn.db.crud.DbOperator.IteratorOptions} */ (options);
 };
 
 
