@@ -785,7 +785,7 @@ var test_26_list = function() {
       throw e;
     });
 
-    db.values(table_name, {limit: 3}).addCallbacks(function(value) {
+    db.values(table_name, null, 3).addCallbacks(function(value) {
       //console.log('receiving value callback.');
       limit_result = value;
       limit_done = true;
@@ -793,7 +793,7 @@ var test_26_list = function() {
       throw e;
     });
 
-    db.values(table_name, {limit: 2, offset: 1}).addCallbacks(function(value) {
+    db.values(table_name, null, 2, 1).addCallbacks(function(value) {
       //console.log('receiving value callback.');
       offset_result = value;
       offset_done = true;
@@ -1524,12 +1524,12 @@ var test_51_keys = function() {
         console.log('Error: ' + e);
       });
 
-    db.keys(table_name, {limit: 3}).addBoth(function(value) {
+    db.keys(table_name, null, 3).addBoth(function(value) {
       //console.log('limit value callback.');
       limit_result = value;
       limit_done = true;
     });
-    db.keys(table_name, {limit: 2, offset: 1}).addBoth(function(value) {
+    db.keys(table_name, null, 2, 1).addBoth(function(value) {
       //console.log('limit offset value callback.');
       offset_result = value;
       offset_done = true;
