@@ -251,7 +251,7 @@ ydn.db.Cursor.prototype.openPrimaryKeyMerge_ = function() {
       me.keys_[i_cursor] = opt_key;
       me.primary_keys_[i_cursor] = opt_p_key;
       me.values_[i_cursor] = opt_value;
-      if (cursor.isPrimaryCursor()) {
+      if (!cursor.isIndexCursor()) {
         primary_keys[i_cursor] = opt_key;
       } else {
         primary_keys[i_cursor] = opt_p_key;
@@ -284,7 +284,7 @@ ydn.db.Cursor.prototype.openPrimaryKeyMerge_ = function() {
             for (var i = 0; i < total; i++) {
               if (ydn.db.cmp(primary_keys[i], max_key) == -1) {
                 var cur = me.cursors_[i];
-                if (cur.isPrimaryCursor()) {
+                if (!cur.isIndexCursor()) {
                   cur.continueEffectiveKey(max_key);
                 } else {
                   cur.continuePrimaryKey(max_key);
@@ -365,7 +365,7 @@ ydn.db.Cursor.prototype.openSecondaryKeyMerge_ = function() {
       me.keys_[i_cursor] = opt_key;
       me.primary_keys_[i_cursor] = opt_p_key;
       me.values_[i_cursor] = opt_value;
-      if (cursor.isPrimaryCursor()) {
+      if (!cursor.isIndexCursor()) {
         primary_keys[i_cursor] = opt_key;
       } else {
         primary_keys[i_cursor] = opt_p_key;
@@ -397,7 +397,7 @@ ydn.db.Cursor.prototype.openSecondaryKeyMerge_ = function() {
             for (var i = 0; i < total; i++) {
               if (ydn.db.cmp(primary_keys[i], max_key) == -1) {
                 var cur = me.cursors_[i];
-                if (cur.isPrimaryCursor()) {
+                if (!cur.isIndexCursor()) {
                   cur.continueEffectiveKey(max_key);
                 } else {
                   cur.continuePrimaryKey(max_key);

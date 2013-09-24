@@ -56,42 +56,8 @@ ydn.db.MultiIterator = function(store, opt_index, opt_key_range, opt_reverse,
   goog.base(this, store, opt_index, opt_key_range, opt_reverse,
       opt_unique, opt_key_only, opt_index_key_path);
 
-  // transient properties during cursor iteration
-  this.cursor_ = null;
 };
 goog.inherits(ydn.db.MultiIterator, ydn.db.Iterator);
-
-
-/**
- * @define {boolean} to debug this file.
- */
-ydn.db.MultiIterator.DEBUG = false;
-
-
-/**
- * @type {ydn.db.Cursor}
- * @private
- */
-ydn.db.MultiIterator.prototype.cursor_;
-
-
-/**
- *
- * @return {ydn.db.MultiIterator.State} iterator state.
- */
-ydn.db.MultiIterator.prototype.getState = function() {
-  if (!this.cursor_) {
-    return ydn.db.Iterator.State.INITIAL;
-  } else if (this.cursor_.hasDone()) {
-    return ydn.db.Iterator.State.COMPLETED;
-  } else {
-    if (this.cursor_.isExited()) {
-      return ydn.db.Iterator.State.RESTING;
-    } else {
-      return ydn.db.Iterator.State.WORKING;
-    }
-  }
-};
 
 
 /**
@@ -100,42 +66,6 @@ ydn.db.MultiIterator.prototype.getState = function() {
  */
 ydn.db.MultiIterator.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.MultiIterator');
-
-
-
-if (goog.DEBUG) {
-
-  /**
-   * @override
-   */
-  ydn.db.MultiIterator.prototype.toString = function() {
-    var str = goog.isDef(this.index_key_path_) ?
-        ':' + this.index_key_path_.join(',') :
-            goog.isDef(this.index_name_) ? ':' + this.index_name_ : '';
-    str += ydn.db.KeyRange.toString(this.key_range_);
-    var s = this.isIndexIterator() ? 'Index' : '';
-    s += this.isKeyIterator() ? 'Key' : 'Value';
-    return s + 'Iterator:' + this.store_name_ + str;
-  };
-}
-
-
-/**
- *
- * @return {*|undefined} Current cursor key.
- */
-ydn.db.MultiIterator.prototype.getKey = function() {
-  return this.cursor_ ? this.cursor_.getKey() : undefined;
-};
-
-
-/**
- *
- * @return {*|undefined} Current cursor index key.
- */
-ydn.db.MultiIterator.prototype.getPrimaryKey = function() {
-  return this.cursor_ ? this.cursor_.getPrimaryKey() : undefined;
-};
 
 
 /**
@@ -179,24 +109,6 @@ ydn.db.MultiIterator.prototype.reverse = function(opt_key, opt_primary_key) {
 ydn.db.MultiIterator.prototype.count = function() {
   return this.cursor_ ? this.cursor_.getCount() : NaN;
 };
-
-
-/**
- *
- * @return {!Array.<string>} list of stores.
- */
-ydn.db.MultiIterator.prototype.stores = function() {
-  var stores = [this.store_name_];
-  if (this.joins_) {
-    for (var i = 0; i < this.joins_.length; i++) {
-      if (!goog.array.contains(stores, this.joins_[i].store_name)) {
-        stores.push(this.joins_[i].store_name);
-      }
-    }
-  }
-  return stores;
-};
-
 
 
 /**
@@ -338,13 +250,4 @@ ydn.db.MultiIterator.prototype.iterate = function(tx, tx_lbl, executor,
 };
 
 
-/**
- * Reset the state.
- */
-ydn.db.MultiIterator.prototype.reset = function() {
-  if (this.getState() == ydn.db.MultiIterator.State.WORKING) {
-    throw new ydn.error.InvalidOperationError(ydn.db.MultiIterator.State.WORKING);
-  }
-  this.cursor_ = null;
-};
 

@@ -127,17 +127,12 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
    */
   this.key_range_ = ydn.db.KeyRange.parseIDBKeyRange(opt_key_range);
 
-
   /**
-   * @type {IDBKey|undefined} current effective key.
+   * transient properties during cursor iteration
+   * @type {ydn.db.Cursor}
+   * @private
    */
-  this.key = undefined;
-
-
-  /**
-   * @type {IDBKey|undefined} current primary key.
-   */
-  this.primary_key = undefined;
+  this.cursor_ = null;
 
 };
 
@@ -607,29 +602,30 @@ ydn.db.Iterator.prototype.isUnique = function() {
 
 
 /**
- *
- * @return {IDBKey|undefined} Current cursor key.
- */
-ydn.db.Iterator.prototype.getKey = function() {
-  return this.key;
-};
-
-
-/**
- *
- * @return {IDBKey|undefined} Current cursor index key.
- */
-ydn.db.Iterator.prototype.getPrimaryKey = function() {
-  return this.primary_key;
-};
-
-
-/**
  * Return next key range.
  * @return {IDBKeyRange}
  */
 ydn.db.Iterator.prototype.getNextKeyRange = function() {
   return this.key_range_;
+};
+
+
+/**
+ *
+ * @return {ydn.db.Iterator.State} iterator state.
+ */
+ydn.db.Iterator.prototype.getState = function() {
+  if (!this.cursor_) {
+    return ydn.db.Iterator.State.INITIAL;
+  } else if (this.cursor_.hasDone()) {
+    return ydn.db.Iterator.State.COMPLETED;
+  } else {
+    if (this.cursor_.isExited()) {
+      return ydn.db.Iterator.State.RESTING;
+    } else {
+      return ydn.db.Iterator.State.WORKING;
+    }
+  }
 };
 
 
@@ -655,4 +651,49 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
 };
 
 
+/**
+ *
+ * @return {*|undefined} Current cursor key.
+ */
+ydn.db.Iterator.prototype.getKey = function() {
+  return this.cursor_ ? this.cursor_.getKey() : undefined;
+};
 
+
+/**
+ *
+ * @return {*|undefined} Current cursor index key.
+ */
+ydn.db.Iterator.prototype.getPrimaryKey = function() {
+  return this.cursor_ ? this.cursor_.getPrimaryKey() : undefined;
+};
+
+
+/**
+ * Reset the state.
+ */
+ydn.db.Iterator.prototype.reset = function() {
+  if (this.getState() == ydn.db.Iterator.State.WORKING) {
+    throw new ydn.error.InvalidOperationError(ydn.db.Iterator.State.WORKING);
+  }
+  this.cursor_ = null;
+};
+
+
+/**
+ *
+ * @return {!Array.<string>} list of stores.
+ */
+ydn.db.Iterator.prototype.stores = function() {
+  var stores = [this.store_name_];
+  /*
+  if (this.joins_) {
+    for (var i = 0; i < this.joins_.length; i++) {
+      if (!goog.array.contains(stores, this.joins_[i].store_name)) {
+        stores.push(this.joins_[i].store_name);
+      }
+    }
+  }
+  */
+  return stores;
+};
