@@ -577,12 +577,15 @@ ydn.db.core.DbOperator.prototype.getIndexExecutor = function() {
 
 /**
  *
- * @param {Function} callback icursor handler.
+ * @param {function(this: T, !ydn.db.Cursor)} callback icursor handler.
  * @param {!ydn.db.Iterator} iter the cursor.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode.
- * @return {!goog.async.Deferred} promise on completed.
+ * @param {T=} opt_scope optional callback scope.
+ * @return {!ydn.db.Request} promise on completed.
+ * @template T
  */
-ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode) {
+ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode,
+                                                 opt_scope) {
   if (goog.DEBUG && !(iter instanceof ydn.db.Iterator)) {
     throw new ydn.debug.error.ArgumentException(
         'Second argument must be cursor range iterator.');
@@ -595,15 +598,17 @@ ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode) {
   var tr_mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
 
   var me = this;
-  var df = ydn.db.base.createDeferred();
+  var df = this.tx_thread.request(ydn.db.Request.Method.OPEN, iter.stores(),
+      tr_mode);
   this.logger.finer('open:' + tr_mode + ' ' + iter);
-  this.tx_thread.exec(df, function(tx, tx_no, cb) {
+  df.addTxback(function(tx) {
+    var tx_no = df.getLabel();
     var lbl = tx_no + ' iterating ' + iter;
     me.logger.finer(lbl);
     var cursor = iter.iterate(tx, tx_no, me.getIndexExecutor());
 
     cursor.onFail = function(e) {
-      cb(e, true);
+      df.setDbValue(e, true);
     };
     /**
      * callback.
@@ -611,7 +616,7 @@ ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode) {
      */
     cursor.onNext = function(opt_key) {
       if (goog.isDefAndNotNull(opt_key)) {
-        var adv = callback(cursor);
+        var adv = callback.call(opt_scope, cursor);
         if (adv === true) {
           cursor.restart();
         } else if (goog.isObject(adv)) {
@@ -623,18 +628,18 @@ ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode) {
             cursor.continuePrimaryKey(adv['continuePrimary']);
           } else {
             cursor.exit();
-            cb(undefined); // break the loop
+            df.setDbValue(undefined); // break the loop
           }
         } else {
           cursor.advance(1);
         }
       } else {
         cursor.exit();
-        cb(undefined);
+        df.setDbValue(undefined);
       }
     };
 
-  }, iter.stores(), tr_mode);
+  }, this);
 
   return df;
 

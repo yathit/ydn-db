@@ -103,13 +103,16 @@ ydn.db.core.Storage.prototype.getIndexOperator = function() {
 
 /**
  *
- * @param {Function} callback icursor handler.
- * @param {!ydn.db.Iterator} iterator the cursor.
+ * @param {function(this: T, !ydn.db.Cursor)} callback icursor handler.
+ * @param {!ydn.db.Iterator} iter the cursor.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode.
- * @return {!goog.async.Deferred} promise on completed.
+ * @param {T=} opt_scope optional callback scope.
+ * @return {!ydn.db.Request} promise on completed.
+ * @template T
  */
-ydn.db.core.Storage.prototype.open = function(callback, iterator, opt_mode) {
-  return this.getIndexOperator().open(callback, iterator, opt_mode);
+ydn.db.core.Storage.prototype.open = function(callback, iter, opt_mode,
+                                              opt_scope) {
+  return this.getIndexOperator().open(callback, iter, opt_mode, opt_scope);
 };
 
 

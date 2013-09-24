@@ -438,6 +438,7 @@ ydn.db.Request.Method = {
   KEYS: goog.DEBUG ? 'keys' : 'g',
   KEYS_ITER: goog.DEBUG ? 'keys:iter' : 'h',
   KEYS_INDEX: goog.DEBUG ? 'keys:iter:index' : 'i',
+  OPEN: goog.DEBUG ? 'open' : 'i2',
   PUT: goog.DEBUG ? 'put' : 'j',
   PUTS: goog.DEBUG ? 'put:array' : 'k',
   PUT_KEYS: goog.DEBUG ? 'put:keys' : 'l',

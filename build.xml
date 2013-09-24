@@ -21,8 +21,7 @@
             project.setProperty("buildno", buildno);
             ]]></script>
     <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
-    <property name="dev-out.fn"
-              value="${ydn-db.dir}/jsc/${buildno}-ydn.db-dev.js"/>
+
     <property name="quoted-version" value="'${version}'"/>
 
     <target name="count-test" description="count number of test functions">
@@ -32,10 +31,6 @@
     </target>
 
     <target name="to-doc" description="copy file to documentation site">
-        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db.js"
-              tofile="${out.dir}/ydn.db.js"/>
-        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db.js"
-              tofile="${ydn-db.dir}/jsc/ydn.db.js"/>
         <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-crud.js"
               tofile="${ydn-db.dir}/jsc/ydn.db-crud.js"/>
         <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-crud.js"
@@ -44,17 +39,6 @@
               tofile="${ydn-db.dir}/jsc/ydn.db-core.js"/>
         <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-core.js"
               tofile="${out.dir}/ydn.db-core.js"/>
-        <copy file="${dev-out.fn}"
-              tofile="${out.dir}/ydn.db-dev.js"/>
-        <copy file="${dev-out.fn}"
-              tofile="${ydn-db.dir}/jsc/ydn.db-dev.js"/>
-        <copy file="${dev-out.fn}.map"
-              tofile="${out.dir}/ydn.db-dev.js.map"/>
-        <replace file="${out.dir}/ydn.db-dev.js"
-                 token="${buildno}-ydn.db-dev.js.map"
-                 value="ydn.db-dev.js.map"/>
-        <copy file="${ydn-db.dir}/jsc/${buildno}-ydn.db-jquery.js"
-              tofile="${out.dir}/ydn.db-jquery.js"/>
         <copy todir="${out.dir}/../test/">
             <fileset dir="${ydn-db.dir}/test/qunit">
                <exclude name="*.html"/>

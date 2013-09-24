@@ -39,7 +39,8 @@ ydn.db.tr.IThread = function() {};
  * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  * @return {!ydn.db.Request}
  */
-ydn.db.tr.IThread.prototype.request;
+ydn.db.tr.IThread.prototype.request =
+    function(method, store_names, opt_mode, opt_oncompleted) {};
 
 
 /**

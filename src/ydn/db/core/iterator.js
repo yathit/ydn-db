@@ -568,7 +568,7 @@ ydn.db.Iterator.prototype.resume = function(key, opt_primary_key) {
  * @param {IDBKey=} opt_key effective key as start position.
  * @param {IDBKey=} opt_primary_key primary key as start position for index
  * iterator.
- * @return {ydn.db.Iterator}
+ * @return {!ydn.db.Iterator}
  */
 ydn.db.Iterator.prototype.reverse = function(opt_key, opt_primary_key) {
   var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
@@ -634,7 +634,7 @@ ydn.db.Iterator.prototype.getState = function() {
  * @param {string} tx_lbl tx label.
  * @param {ydn.db.core.req.IRequestExecutor} executor executor.
  * @param {ydn.db.schema.Store.QueryMethod=} opt_query query method.
- * @return {ydn.db.Cursor} newly created cursor.
+ * @return {!ydn.db.Cursor} newly created cursor.
  */
 ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
                                              opt_query) {
@@ -674,7 +674,6 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
   this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_ + msg);
   return this.cursor_;
 };
-
 
 
 /**
