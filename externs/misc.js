@@ -81,40 +81,17 @@ KeyRangeJson.prototype.upper;
 KeyRangeJson.prototype.upperOpen;
 
 
-
 /**
- * @constructor
+ * @typedef {{
+ *   keyRange: (IDBKeyRange|undefined),
+ *   limit: (number|undefined),
+ *   offset: (number|undefined),
+ *   reverse: (boolean|undefined),
+ *   unique: (boolean|undefined)
+ * }}
  */
-function IterationOptions() {}
+IterationOptions;
 
 
-/**
- * @type {IDBKeyRange}
- */
-IterationOptions.prototype.keyRange;
-
-
-/**
- * @type {number}
- */
-IterationOptions.prototype.limit;
-
-
-/**
- * @type {number}
- */
-IterationOptions.prototype.offset;
-
-
-/**
- * @type {boolean}
- */
-IterationOptions.prototype.reverse;
-
-
-/**
- * @type {boolean}
- */
-IterationOptions.prototype.unique;
 
 
