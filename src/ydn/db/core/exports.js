@@ -53,10 +53,10 @@ goog.exportProperty(ydn.math.Expression, 'parseInfix',
 
 
 goog.exportSymbol('ydn.db.Iterator', ydn.db.Iterator);
-goog.exportSymbol('ydn.db.KeyCursors', ydn.db.KeyCursors);
-goog.exportSymbol('ydn.db.ValueCursors', ydn.db.ValueCursors);
-goog.exportSymbol('ydn.db.Cursors', ydn.db.Cursors);
-goog.exportSymbol('ydn.db.IndexValueCursors', ydn.db.IndexValueCursors);
+goog.exportSymbol('ydn.db.KeyIterator', ydn.db.KeyIterator);
+goog.exportSymbol('ydn.db.ValueIterator', ydn.db.ValueIterator);
+goog.exportSymbol('ydn.db.IndexIterator', ydn.db.IndexIterator);
+goog.exportSymbol('ydn.db.IndexValueIterator', ydn.db.IndexValueIterator);
 
 
 goog.exportProperty(ydn.db.Iterator.prototype, 'getState',
@@ -86,11 +86,11 @@ goog.exportProperty(ydn.db.Iterator.prototype, 'reset',
 goog.exportProperty(ydn.db.Iterator.prototype, 'reverse',
     ydn.db.Iterator.prototype.reverse);
 
-goog.exportProperty(ydn.db.KeyCursors, 'where', ydn.db.KeyCursors.where);
-goog.exportProperty(ydn.db.ValueCursors, 'where', ydn.db.ValueCursors.where);
-goog.exportProperty(ydn.db.Cursors, 'where', ydn.db.Cursors.where);
-goog.exportProperty(ydn.db.IndexValueCursors, 'where',
-    ydn.db.IndexValueCursors.where);
+goog.exportProperty(ydn.db.KeyIterator, 'where', ydn.db.KeyIterator.where);
+goog.exportProperty(ydn.db.ValueIterator, 'where', ydn.db.ValueIterator.where);
+goog.exportProperty(ydn.db.IndexIterator, 'where', ydn.db.IndexIterator.where);
+goog.exportProperty(ydn.db.IndexValueIterator, 'where',
+    ydn.db.IndexValueIterator.where);
 
 goog.exportSymbol('ydn.db.Streamer', ydn.db.Streamer);
 goog.exportProperty(ydn.db.Streamer.prototype, 'push',

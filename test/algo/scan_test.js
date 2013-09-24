@@ -89,8 +89,8 @@ var test_scan_reference_value = function() {
       100, // interval
       1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors(store_name, 'first', ydn.db.KeyRange.only('B'));
-  var q2 = new ydn.db.Cursors(store_name, 'last', ydn.db.KeyRange.only('M'));
+  var q1 = new ydn.db.IndexIterator(store_name, 'first', ydn.db.KeyRange.only('B'));
+  var q2 = new ydn.db.IndexIterator(store_name, 'last', ydn.db.KeyRange.only('M'));
 
   var solver = function(keys, values) {
     console.log(JSON.stringify(keys) + ':' + JSON.stringify(values));
@@ -186,8 +186,8 @@ var test_scan_advance = function() {
       100, // interval
       1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors(store_name, 'first', ydn.db.KeyRange.only('B'));
-  var q2 = new ydn.db.Cursors(store_name, 'last', ydn.db.KeyRange.only('M'));
+  var q1 = new ydn.db.IndexIterator(store_name, 'first', ydn.db.KeyRange.only('B'));
+  var q2 = new ydn.db.IndexIterator(store_name, 'last', ydn.db.KeyRange.only('M'));
 
   var solver = function (keys, values) {
     var out;
@@ -285,7 +285,7 @@ var test_index_values = function() {
     100, // interval
     1000); // maxTimeout
 
-  var q2 = new ydn.db.Cursors(store_name, 'first-age', ydn.db.KeyRange.starts(['B']));
+  var q2 = new ydn.db.IndexIterator(store_name, 'first-age', ydn.db.KeyRange.starts(['B']));
 
   db.values(q2).addBoth(function (x) {
     result_keys = x;
@@ -352,8 +352,8 @@ var test_scan_effective_key_dual = function() {
       100, // interval
       1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors(store_name, 'first-age', ydn.db.KeyRange.starts(['B']));
-  var q2 = new ydn.db.Cursors(store_name, 'last-age', ydn.db.KeyRange.starts(['M']));
+  var q1 = new ydn.db.IndexIterator(store_name, 'first-age', ydn.db.KeyRange.starts(['B']));
+  var q2 = new ydn.db.IndexIterator(store_name, 'last-age', ydn.db.KeyRange.starts(['M']));
 
   var max = 100;
   var cnt = 0;

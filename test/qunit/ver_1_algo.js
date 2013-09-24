@@ -96,9 +96,9 @@ var leg_iter_count = num_four_legs_ani + 1;
   asyncTest("NestedLoop", function () {
     expect(4);
 
-    var iter_color = ydn.db.Cursors.where('animals', 'color', '=', 'spots');
-    var iter_horn = ydn.db.Cursors.where('animals', 'horn', '=', 2);
-    var iter_legs = ydn.db.Cursors.where('animals', 'legs', '=', 4);
+    var iter_color = ydn.db.IndexIterator.where('animals', 'color', '=', 'spots');
+    var iter_horn = ydn.db.IndexIterator.where('animals', 'horn', '=', 2);
+    var iter_legs = ydn.db.IndexIterator.where('animals', 'legs', '=', 4);
 
     var result = [];
     var solver = new ydn.db.algo.NestedLoop(result);
@@ -117,9 +117,9 @@ var leg_iter_count = num_four_legs_ani + 1;
   asyncTest("SortedMerge", function () {
     expect(4);
 
-    var iter_color = ydn.db.Cursors.where('animals', 'color', '=', 'spots');
-    var iter_horn = ydn.db.Cursors.where('animals', 'horn', '=', 2);
-    var iter_legs = ydn.db.Cursors.where('animals', 'legs', '=', 4);
+    var iter_color = ydn.db.IndexIterator.where('animals', 'color', '=', 'spots');
+    var iter_horn = ydn.db.IndexIterator.where('animals', 'horn', '=', 2);
+    var iter_legs = ydn.db.IndexIterator.where('animals', 'legs', '=', 4);
 
     var result = [];
     var solver = new ydn.db.algo.SortedMerge(result);
@@ -138,8 +138,8 @@ var leg_iter_count = num_four_legs_ani + 1;
   asyncTest("ZigzagMerge", function () {
     expect(5);
 
-    var iter_horn_name = new ydn.db.Cursors('animals', 'horn, name', ydn.db.KeyRange.starts([2]));
-    var iter_legs_name = new ydn.db.Cursors('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
+    var iter_horn_name = new ydn.db.IndexIterator('animals', 'horn, name', ydn.db.KeyRange.starts([2]));
+    var iter_legs_name = new ydn.db.IndexIterator('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
 
     var result = [];
     var solver = new ydn.db.algo.ZigzagMerge(result);
@@ -158,8 +158,8 @@ var leg_iter_count = num_four_legs_ani + 1;
 
   asyncTest("ZigzagMerge with streamer output", 3, function () {
 
-    var iter_horn_name = new ydn.db.Cursors('animals', 'horn, name', ydn.db.KeyRange.starts([2]));
-    var iter_legs_name = new ydn.db.Cursors('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
+    var iter_horn_name = new ydn.db.IndexIterator('animals', 'horn, name', ydn.db.KeyRange.starts([2]));
+    var iter_legs_name = new ydn.db.IndexIterator('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
 
     var streamer = new ydn.db.Streamer(db, 'animals', 'name');
     var solver = new ydn.db.algo.ZigzagMerge(streamer);

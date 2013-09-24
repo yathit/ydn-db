@@ -21,12 +21,12 @@
  */
 
 
-goog.provide('ydn.db.Cursors');
-goog.provide('ydn.db.IndexValueCursors');
+goog.provide('ydn.db.IndexIterator');
+goog.provide('ydn.db.IndexValueIterator');
 goog.provide('ydn.db.Iterator');
 goog.provide('ydn.db.Iterator.State');
-goog.provide('ydn.db.KeyCursors');
-goog.provide('ydn.db.ValueCursors');
+goog.provide('ydn.db.KeyIterator');
+goog.provide('ydn.db.ValueIterator');
 goog.require('goog.debug.Logger');
 goog.require('goog.functions');
 goog.require('ydn.db.Cursor');
@@ -214,14 +214,14 @@ ydn.db.Iterator.prototype.direction_;
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.KeyCursors = function(store, opt_key_range, opt_reverse) {
+ydn.db.KeyIterator = function(store, opt_key_range, opt_reverse) {
   if (arguments.length > 3) {
     throw new ydn.debug.error.ArgumentException('too many argument');
   }
   goog.base(this, store, undefined, opt_key_range, opt_reverse,
       undefined, true);
 };
-goog.inherits(ydn.db.KeyCursors, ydn.db.Iterator);
+goog.inherits(ydn.db.KeyIterator, ydn.db.Iterator);
 
 
 /**
@@ -231,10 +231,10 @@ goog.inherits(ydn.db.KeyCursors, ydn.db.Iterator);
  * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
  * @param {IDBKey=} opt_value2 second rvalue to compare.
- * @return {!ydn.db.KeyCursors} newly created iterator.
+ * @return {!ydn.db.KeyIterator} newly created iterator.
  */
-ydn.db.KeyCursors.where = function(store_name, op, value, opt_op2, opt_value2) {
-  return new ydn.db.KeyCursors(store_name,
+ydn.db.KeyIterator.where = function(store_name, op, value, opt_op2, opt_value2) {
+  return new ydn.db.KeyIterator(store_name,
       ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
 
@@ -250,14 +250,14 @@ ydn.db.KeyCursors.where = function(store_name, op, value, opt_op2, opt_value2) {
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.Cursors = function(store, index, opt_key_range, opt_reverse,
-                          opt_unique) {
+ydn.db.IndexIterator = function(store, index, opt_key_range, opt_reverse,
+                                opt_unique) {
   if (!goog.isString(index)) {
     throw new ydn.debug.error.ArgumentException('index name must be string');
   }
   goog.base(this, store, index, opt_key_range, opt_reverse, opt_unique, true);
 };
-goog.inherits(ydn.db.Cursors, ydn.db.Iterator);
+goog.inherits(ydn.db.IndexIterator, ydn.db.Iterator);
 
 
 /**
@@ -268,11 +268,11 @@ goog.inherits(ydn.db.Cursors, ydn.db.Iterator);
  * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
  * @param {IDBKey=} opt_value2 second rvalue to compare.
- * @return {!ydn.db.Cursors}
+ * @return {!ydn.db.IndexIterator}
  */
-ydn.db.Cursors.where = function(store_name, index, op, value, opt_op2,
+ydn.db.IndexIterator.where = function(store_name, index, op, value, opt_op2,
                                 opt_value2) {
-  return new ydn.db.Cursors(store_name, index,
+  return new ydn.db.IndexIterator(store_name, index,
       ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
 
@@ -286,14 +286,14 @@ ydn.db.Cursors.where = function(store_name, index, op, value, opt_op2,
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.ValueCursors = function(store, opt_key_range, opt_reverse) {
+ydn.db.ValueIterator = function(store, opt_key_range, opt_reverse) {
   if (arguments.length > 3) {
     throw new ydn.debug.error.ArgumentException('too many argument');
   }
   goog.base(this, store, undefined, opt_key_range, opt_reverse, undefined,
       false);
 };
-goog.inherits(ydn.db.ValueCursors, ydn.db.Iterator);
+goog.inherits(ydn.db.ValueIterator, ydn.db.Iterator);
 
 
 /**
@@ -303,11 +303,11 @@ goog.inherits(ydn.db.ValueCursors, ydn.db.Iterator);
  * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
  * @param {IDBKey=} opt_value2 second rvalue to compare.
- * @return {!ydn.db.ValueCursors} newly craeted cursor.
+ * @return {!ydn.db.ValueIterator} newly craeted cursor.
  */
-ydn.db.ValueCursors.where = function(store_name, op, value, opt_op2,
+ydn.db.ValueIterator.where = function(store_name, op, value, opt_op2,
                                      opt_value2) {
-  return new ydn.db.ValueCursors(store_name,
+  return new ydn.db.ValueIterator(store_name,
       ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
 
@@ -323,14 +323,14 @@ ydn.db.ValueCursors.where = function(store_name, op, value, opt_op2,
  * @constructor
  * @extends {ydn.db.Iterator}
  */
-ydn.db.IndexValueCursors = function(store, index, opt_key_range, opt_reverse,
+ydn.db.IndexValueIterator = function(store, index, opt_key_range, opt_reverse,
                                     opt_unique) {
   if (!goog.isString(index)) {
     throw new ydn.debug.error.ArgumentException('index name must be string');
   }
   goog.base(this, store, index, opt_key_range, opt_reverse, opt_unique, false);
 };
-goog.inherits(ydn.db.IndexValueCursors, ydn.db.Iterator);
+goog.inherits(ydn.db.IndexValueIterator, ydn.db.Iterator);
 
 
 /**
@@ -341,11 +341,11 @@ goog.inherits(ydn.db.IndexValueCursors, ydn.db.Iterator);
  * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
  * @param {IDBKey=} opt_value2 second rvalue to compare.
- * @return {!ydn.db.IndexValueCursors}
+ * @return {!ydn.db.IndexValueIterator}
  */
-ydn.db.IndexValueCursors.where = function(store_name, index, op, value, opt_op2,
+ydn.db.IndexValueIterator.where = function(store_name, index, op, value, opt_op2,
                                           opt_value2) {
-  return new ydn.db.IndexValueCursors(store_name, index,
+  return new ydn.db.IndexValueIterator(store_name, index,
       ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
 

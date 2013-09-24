@@ -81,16 +81,6 @@ KeyRangeJson.prototype.upper;
 KeyRangeJson.prototype.upperOpen;
 
 
-/**
- * @typedef {{
- *   keyRange: (IDBKeyRange|undefined),
- *   limit: (number|undefined),
- *   offset: (number|undefined),
- *   reverse: (boolean|undefined),
- *   unique: (boolean|undefined)
- * }}
- */
-var IterationOptions;
 
 
 

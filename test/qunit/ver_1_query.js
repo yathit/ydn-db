@@ -246,7 +246,7 @@ var schema_1 = {
         console.log('values', x);
       })
 
-      var iter = new ydn.db.ValueCursors(store_inline_index);
+      var iter = new ydn.db.ValueIterator(store_inline_index);
       db.values(iter).done(function(x) {
         console.log('iter', x);
       })

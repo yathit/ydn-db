@@ -89,8 +89,8 @@ var test_simple = function() {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors('animals', 'color, name', ydn.db.KeyRange.starts(['spots']));
-  var q2 = new ydn.db.Cursors('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
+  var q1 = new ydn.db.IndexIterator('animals', 'color, name', ydn.db.KeyRange.starts(['spots']));
+  var q2 = new ydn.db.IndexIterator('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
   var out = [];
 
   var solver = new ydn.db.algo.ZigzagMerge(out);
@@ -131,8 +131,8 @@ var test_simple_streamer_out = function() {
       100, // interval
       1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors('animals', 'color, name', ydn.db.KeyRange.starts(['spots']));
-  var q2 = new ydn.db.Cursors('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
+  var q1 = new ydn.db.IndexIterator('animals', 'color, name', ydn.db.KeyRange.starts(['spots']));
+  var q2 = new ydn.db.IndexIterator('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
   var out = new ydn.db.Streamer(db, 'animals');
 
   var solver = new ydn.db.algo.ZigzagMerge(out);
@@ -172,8 +172,8 @@ var test_simple_streamer_duplex_out = function() {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors('animals', 'color, name', ydn.db.KeyRange.starts(['spots']));
-  var q2 = new ydn.db.Cursors('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
+  var q1 = new ydn.db.IndexIterator('animals', 'color, name', ydn.db.KeyRange.starts(['spots']));
+  var q2 = new ydn.db.IndexIterator('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
   var out = new ydn.db.Streamer(db, 'animals', 'name');
 
   var solver = new ydn.db.algo.ZigzagMerge(out);

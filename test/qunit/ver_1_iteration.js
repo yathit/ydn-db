@@ -79,7 +79,7 @@ db.put(store_name, data).done(function (value) {
   asyncTest("readonly table scan for value iterator", function () {
     expect(3 * data.length);
 
-    var iter = new ydn.db.ValueCursors(store_name);
+    var iter = new ydn.db.ValueIterator(store_name);
     var idx = 0;
     var req = db.open(function(x) {
       deepEqual(x.getKey(), data[idx].id, 'table scan effective key at ' + idx);
@@ -95,7 +95,7 @@ db.put(store_name, data).done(function (value) {
   asyncTest("readonly table scan on index key", function () {
     expect(3 * data.length);
 
-    var iter = new ydn.db.Cursors(store_name, 'value');
+    var iter = new ydn.db.IndexIterator(store_name, 'value');
 
     var idx = 0;
     var req = db.open(function(x) {
@@ -113,7 +113,7 @@ db.put(store_name, data).done(function (value) {
   asyncTest("readonly table scan on index", function () {
     expect(3 * data.length);
 
-    var iter = new ydn.db.IndexValueCursors(store_name, 'value');
+    var iter = new ydn.db.IndexValueIterator(store_name, 'value');
 
     var idx = 0;
     var req = db.open(function(x) {

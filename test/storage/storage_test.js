@@ -124,7 +124,7 @@ var test_1_json_config = function() {
       100, // interval
       2000); // maxTimeout
 
-  var iter = new ydn.db.ValueCursors('todo');
+  var iter = new ydn.db.ValueIterator('todo');
   db.values(iter).addCallback(function(value) {
     console.log('receiving value callback.' + JSON.stringify(value));
     put_value = value;

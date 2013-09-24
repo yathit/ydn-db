@@ -68,9 +68,9 @@ var match_animal = function(algo) {
     100, // interval
     1000); // maxTimeout
 
-  var q1 = new ydn.db.Cursors('animals', 'color', ydn.db.KeyRange.only('spots'));
-  var q2 = new ydn.db.Cursors('animals', 'horn', ydn.db.KeyRange.only(1));
-  var q3 = new ydn.db.Cursors('animals', 'legs', ydn.db.KeyRange.only(4));
+  var q1 = new ydn.db.IndexIterator('animals', 'color', ydn.db.KeyRange.only('spots'));
+  var q2 = new ydn.db.IndexIterator('animals', 'horn', ydn.db.KeyRange.only(1));
+  var q3 = new ydn.db.IndexIterator('animals', 'legs', ydn.db.KeyRange.only(4));
   var out = [];
 
   var solver, req;
@@ -143,9 +143,9 @@ var test_three_iterator = function () {
   db.clear();
   db.put('animals', animals);
 
-  var iter_color = ydn.db.Cursors.where('animals', 'color', '=', 'spots');
-  var iter_horn = ydn.db.Cursors.where('animals', 'horn', '=', 2);
-  var iter_legs = ydn.db.Cursors.where('animals', 'legs', '=', 4);
+  var iter_color = ydn.db.IndexIterator.where('animals', 'color', '=', 'spots');
+  var iter_horn = ydn.db.IndexIterator.where('animals', 'horn', '=', 2);
+  var iter_legs = ydn.db.IndexIterator.where('animals', 'legs', '=', 4);
 
   var done;
   var result = [];

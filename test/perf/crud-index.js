@@ -208,7 +208,7 @@
 
   var valuesIndexIterBig = function(db, start, onComplete, n) {
     for (var i = 0; i < n; i++) {
-      var iter = ydn.db.IndexValueCursors.where('big', 'n', '>', Math.random());
+      var iter = ydn.db.IndexValueIterator.where('big', 'n', '>', Math.random());
       db2.values(iter, 1).always(function(x) {
         if (i == n - 1) {
           onComplete(); // timer end
