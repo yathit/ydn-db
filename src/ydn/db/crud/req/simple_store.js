@@ -499,4 +499,10 @@ ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(req,
 };
 
 
-
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.req.SimpleStore.prototype.list = function(req, type, store_name,
+    index, key_range, reverse, limit, offset, unique) {
+  throw 'not yet';
+};

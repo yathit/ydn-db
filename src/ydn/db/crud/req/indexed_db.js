@@ -852,8 +852,8 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(req,
  */
 ydn.db.crud.req.IndexedDb.prototype.listByKeyRange =
     function(req, store_name, key_range, reverse, limit, offset) {
-  this.listByKeyRange_(req, store_name, null, key_range, reverse,
-      limit, offset);
+  this.list(req, ydn.db.crud.req.IRequestExecutor.ListType.VALUE,
+      store_name, null, key_range, reverse, limit, offset, false);
 };
 
 
@@ -862,7 +862,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange =
  */
 ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(req,
     store_name, index, key_range, reverse, limit, offset, unique) {
-  this.listByKeyRange_(req,
+  this.list(req, ydn.db.crud.req.IRequestExecutor.ListType.VALUE,
       store_name, index, key_range, reverse, limit, offset, unique);
 };
 
@@ -872,39 +872,8 @@ ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(req,
  */
 ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(req,
     store_name, key_range, reverse, limit, offset) {
-  var results = [];
-  var me = this;
-  var store = req.getTx().objectStore(store_name);
-  var dir = ydn.db.base.getDirection(reverse);
-  var msg = req.getLabel() + ' ' + store_name + ' ' + key_range;
-  this.logger.finest(msg);
-  var request = store.openCursor(key_range, dir);
-  var cued = false;
-  request.onsuccess = function(event) {
-    var cursor = event.target.result;
-    if (cursor) {
-      if (!cued && offset > 0) {
-        cued = true;
-        cursor.advance(offset);
-        return;
-      }
-      results.push(cursor.key);
-      if (results.length < limit) {
-        cursor['continue']();
-      } else {
-        req.setDbValue(results);
-      }
-    } else {
-      req.setDbValue(results);
-    }
-  };
-  request.onerror = function(event) {
-    if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, event]);
-    }
-    event.preventDefault();
-    req.setDbValue(request.error, true);
-  };
+  this.list(req, ydn.db.crud.req.IRequestExecutor.ListType.PRIMARY_KEY,
+      store_name, null, key_range, reverse, limit, offset, false);
 };
 
 //
@@ -959,44 +928,8 @@ ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(req,
  */
 ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(req,
     store_name, index_name, key_range, reverse, limit, offset, unique) {
-  var results = [];
-  var me = this;
-  var store = req.getTx().objectStore(store_name);
-  var index = store.index(index_name);
-  var msg = req.getLabel() + ' ' + store_name + ':' + index_name + ' ' +
-      key_range;
-  this.logger.finest(msg);
-  var dir = ydn.db.base.getDirection(reverse, unique);
-  var request = index.openKeyCursor(key_range, dir);
-  var cued = false;
-  request.onsuccess = function(event) {
-    /**
-     * @type {IDBCursor}
-     */
-    var cursor = event.target.result;
-    if (cursor) {
-      if (!cued && offset > 0) {
-        cued = true;
-        cursor.advance(offset);
-        return;
-      }
-      results.push(cursor.primaryKey);
-      if (results.length < limit) {
-        cursor['continue']();
-      } else {
-        req.setDbValue(results);
-      }
-    } else {
-      req.setDbValue(results);
-    }
-  };
-  request.onerror = function(event) {
-    if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, event]);
-    }
-    event.preventDefault();
-    req.setDbValue(request.error, true);
-  };
+  this.list(req, ydn.db.crud.req.IRequestExecutor.ListType.PRIMARY_KEY,
+      store_name, index_name, key_range, reverse, limit, offset, unique);
 };
 
 
@@ -1225,3 +1158,96 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
 
 };
 
+
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
+    store_name, index, key_range, reverse, limit, offset, unique) {
+  var me = this;
+  var results = [];
+  var store = req.getTx().objectStore(store_name);
+  var dir = ydn.db.base.getDirection(reverse, unique);
+  var msg = req.getLabel() + ' ' + type + ' ' + store_name +
+      (index ? ':' + index : '') +
+      (key_range ? ydn.json.stringify(key_range) : '');
+  if (reverse) {
+    msg += ' reverse';
+  }
+  if (unique) {
+    msg += ' unique';
+  }
+  this.logger.finest(msg);
+  var request;
+  if (type <= ydn.db.crud.req.IRequestExecutor.ListType.KEYS) {
+    // key query
+    if (index) {
+      request = store.index(index).openKeyCursor(key_range, dir);
+    } else {
+      // NOTE: key cursor for object is not available as of IndexedDB API v1.
+      request = store.openCursor(key_range, dir);
+    }
+  } else {
+    // value query
+    if (index) {
+      request = store.index(index).openCursor(key_range, dir);
+    } else {
+      request = store.openCursor(key_range, dir);
+    }
+  }
+
+  var cued = false;
+  request.onsuccess = function(event) {
+    /**
+     *
+     * @type {IDBCursorWithValue}
+     */
+    var cursor = event.target.result;
+    if (cursor) {
+      if (!cued && offset > 0) {
+        cued = true;
+        cursor.advance(offset);
+        return;
+      }
+      // push to result list
+      if (type == ydn.db.crud.req.IRequestExecutor.ListType.KEY) {
+        results.push(cursor.key);
+      } else if (type ==
+          ydn.db.crud.req.IRequestExecutor.ListType.PRIMARY_KEY) {
+        results.push(cursor.primaryKey);
+      } else if (type ==
+          ydn.db.crud.req.IRequestExecutor.ListType.KEYS) {
+        var obj = {};
+        if (index) {
+          obj[index] = cursor.key;
+        }
+        if (store.keyPath) {
+          obj[store.keyPath] = cursor.primaryKey;
+        } else {
+          obj[ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME] = cursor.primaryKey;
+        }
+        results.push(obj);
+      } else if (type ==
+          ydn.db.crud.req.IRequestExecutor.ListType.VALUE) {
+        results.push(cursor.value);
+      } else {
+        results.push([cursor.key, cursor.primaryKey, cursor.value]);
+      }
+      // continue
+      if (results.length < limit) {
+        cursor['continue']();
+      } else {
+        req.setDbValue(results);
+      }
+    } else {
+      req.setDbValue(results);
+    }
+  };
+  request.onerror = function(event) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
+      window.console.log([store_name, event]);
+    }
+    event.preventDefault();
+    req.setDbValue(request.error, true);
+  };
+};

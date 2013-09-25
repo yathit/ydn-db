@@ -118,9 +118,10 @@ ydn.db.crud.IOperator.prototype.put = goog.abstractMethod;
  * @param {(!Array.<string>|string)=} opt_arg1 delete the table as provided
  * otherwise
  * delete all stores.
- * @param {(IDBKey|KeyRangeJson|ydn.db.KeyRange)=} opt_arg2 delete a
- * specific row.
- * @param {*=} opt_arg3 argument control.
+ * @param {(string|KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} opt_arg2
+ * delete a specific row.
+ * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} opt_arg3 argument
+ * control.
  * @see {@link #remove}
  * @return {!ydn.db.Request} return a deferred function.
  */

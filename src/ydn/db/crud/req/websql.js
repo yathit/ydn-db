@@ -1279,3 +1279,10 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(req, table,
 };
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.req.WebSql.prototype.list = function(req, type, store_name,
+    index, key_range, reverse, limit, offset, unique) {
+  throw 'not yet';
+};

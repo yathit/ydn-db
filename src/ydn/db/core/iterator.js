@@ -567,7 +567,10 @@ ydn.db.Iterator.prototype.reverse = function(opt_key, opt_primary_key) {
   var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, !this.isReversed(), this.isUnique(),
       this.is_key_iterator_, this.index_key_path_);
-  iter.cursor_ = this.cursor_.clone(true);
+  //if (this.cursor_) {
+    //console.log('rev cur')
+    //iter.cursor_ = this.cursor_.clone(true);
+  //}
   return iter;
 };
 

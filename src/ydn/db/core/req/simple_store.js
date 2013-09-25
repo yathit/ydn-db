@@ -187,3 +187,5 @@ ydn.db.core.req.SimpleStore.prototype.getStreamer =  function(tx, tx_no,
     store_name, index_name) {
   throw 'not yet';
 };
+
+

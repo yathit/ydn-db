@@ -306,7 +306,7 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
     if (!goog.isString(store_name)) {
       throw new ydn.debug.error.ArgumentException(
           'store name must be a string, ' +
-              'but ' + store_name + ' of type ' + typeof store_name + ' is not.');
+          'but ' + store_name + ' of type ' + typeof store_name + ' is not.');
     }
     if (!this.schema.isAutoSchema()) {
       if (!store) {

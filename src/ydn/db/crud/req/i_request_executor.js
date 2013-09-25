@@ -239,5 +239,30 @@ ydn.db.crud.req.IRequestExecutor.prototype.putObjects = goog.abstractMethod;
 ydn.db.crud.req.IRequestExecutor.prototype.putByKeys = goog.abstractMethod;
 
 
+/**
+ * @enum {number}
+ */
+ydn.db.crud.req.IRequestExecutor.ListType = {
+  KEY: 1,
+  PRIMARY_KEY: 2,
+  KEYS: 3, // all below this enum are for keys
+  VALUE: 4,
+  ALL: 5
+};
 
+
+/**
+ * Execute GET request callback results to df.
+ * @param {ydn.db.Request} req request.
+ * @param {ydn.db.crud.req.IRequestExecutor.ListType} type result type.
+ * @param {string} store name.
+ * @param {string?} index name.
+ * @param {IDBKeyRange} key range to get.
+ * @param {boolean} reverse to sort reverse order.
+ * @param {number} limit the results.
+ * @param {number} offset skip first results.
+ * @param {boolean} unique unique key.
+ */
+ydn.db.crud.req.IRequestExecutor.prototype.list =
+    goog.abstractMethod;
 

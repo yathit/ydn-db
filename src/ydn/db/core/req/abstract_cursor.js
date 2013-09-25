@@ -294,7 +294,6 @@ ydn.db.core.req.AbstractCursor.prototype.onError = function(e) {
  * @param {IDBKey=} opt_key
  * @param {IDBKey=} opt_primary_key
  * @param {*=} opt_value
- * @final
  */
 ydn.db.core.req.AbstractCursor.prototype.onSuccess = function(
     opt_key, opt_primary_key, opt_value) {
