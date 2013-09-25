@@ -47,7 +47,7 @@ goog.inherits(ydn.db.core.req.CachedWebsqlCursor,
 
 
 /**
- * @define {boolean}
+ * @define {boolean} debug flag.
  */
 ydn.db.core.req.CachedWebsqlCursor.DEBUG = false;
 
@@ -57,7 +57,7 @@ ydn.db.core.req.CachedWebsqlCursor.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.core.req.CachedWebsqlCursor.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.core.req.CachedWebsqlCursor');
+    goog.debug.Logger.getLogger('ydn.db.core.req.CachedWebsqlCursor');
 
 
 /**

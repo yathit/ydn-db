@@ -639,9 +639,8 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
                                              opt_query) {
 
   var query_mth = opt_query || ydn.db.schema.Store.QueryMethod.VALUES;
-  var key, p_key;
   if (this.cursor_) {
-    this.cursor_.resume();
+    this.cursor_.resume(tx, tx_lbl);
   } else {
     this.cursor_ = executor.getCursor(tx, tx_lbl, this.store_name_,
         this.index_key_path_ || this.index_name_,

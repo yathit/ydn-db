@@ -357,8 +357,14 @@ ydn.db.core.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
 
 /**
  * Resume cursor.
+ * @param {ydn.db.con.IDatabase.Transaction} tx tx.
+ * @param {string} tx_no tx no.
  */
-ydn.db.core.req.AbstractCursor.prototype.resume = function() {
+ydn.db.core.req.AbstractCursor.prototype.resume = function(tx, tx_no) {
+  this.tx = tx;
+  this.tx_no = tx_no;
+  this.done_ = false;
+  this.exited_ = false;
   this.openCursor(this.key_, this.primary_key_);
 };
 
