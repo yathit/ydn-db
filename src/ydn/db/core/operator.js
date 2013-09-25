@@ -305,7 +305,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
     var values = [];
     /**
      *
-     * @type {Array.<!ydn.db.Cursor>}
+     * @type {Array.<!ydn.db.core.req.AbstractCursor>}
      */
     var cursors = [];
 
@@ -493,7 +493,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
        */
       var iterator = iterators[idx];
       /**
-       * @type {!ydn.db.Cursor}
+       * @type {!ydn.db.core.req.AbstractCursor}
        */
       var cursor = cursors[idx];
       var primary_key = cursor.getPrimaryKey();
@@ -577,7 +577,8 @@ ydn.db.core.DbOperator.prototype.getIndexExecutor = function() {
 
 /**
  *
- * @param {function(this: T, !ydn.db.Cursor)} callback icursor handler.
+ * @param {function(this: T, !ydn.db.core.req.AbstractCursor)} callback icursor
+ * handler.
  * @param {!ydn.db.Iterator} iter the cursor.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode.
  * @param {T=} opt_scope optional callback scope.

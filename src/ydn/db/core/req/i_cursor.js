@@ -7,6 +7,7 @@ goog.provide('ydn.db.core.req.ICursor');
 goog.require('goog.disposable.IDisposable');
 
 
+
 /**
  * @interface
  * @extends {goog.disposable.IDisposable}

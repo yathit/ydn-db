@@ -35,6 +35,8 @@ goog.require('ydn.debug.error.InternalError');
  * @param {ydn.db.schema.Store.QueryMethod} mth true for keys query method.
  * @constructor
  * @extends {goog.Disposable}
+ * @struct
+ * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
 ydn.db.core.req.AbstractCursor = function(tx, tx_no,
     store_name, index_name, keyRange, direction, is_key_cursor, mth) {
@@ -60,6 +62,18 @@ ydn.db.core.req.AbstractCursor = function(tx, tx_no,
   this.tx = tx;
 
   this.tx_no = tx_no;
+
+  this.count_ = 0;
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.done_ = false;
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.exited_ = false;
 
   /**
    * @final
@@ -88,6 +102,37 @@ ydn.db.core.req.AbstractCursor = function(tx, tx_no,
    * @final
    */
   this.query_method = mth;
+  /**
+   * @type {IDBKey|undefined}
+   * @private
+   */
+  this.key_ = undefined;
+  /**
+   * @type {IDBKey|undefined}
+   * @private
+   */
+  this.primary_key_ = undefined;
+  /**
+   * @type {*}
+   * @private
+   */
+  this.value_ = undefined;
+
+  /**
+   * This method is overridden by cursor consumer.
+   * @param {IDBKey?=} opt_key effective key.
+   */
+  this.onNext = function(opt_key) {
+    throw new ydn.debug.error.InternalError();
+  };
+
+  /**
+   * This method is overridden by cursor consumer.
+   * @param {Error|SQLError} e error.
+   */
+  this.onFail = function(e) {
+    throw new ydn.debug.error.InternalError();
+  };
 
 };
 goog.inherits(ydn.db.core.req.AbstractCursor, goog.Disposable);
@@ -157,6 +202,14 @@ ydn.db.core.req.AbstractCursor.prototype.query_method;
 
 
 /**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.core.req.AbstractCursor.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.core.req.AbstractCursor');
+
+
+/**
  *
  * @return {boolean} true if transaction is active.
  */
@@ -193,11 +246,13 @@ ydn.db.core.req.AbstractCursor.prototype.isValueCursor = function() {
 
 
 /**
- *
- * @param {!Error|SQLError} e error object.
+ * Callback on request error.
+ * @param {Error|SQLError} e error object.
  */
 ydn.db.core.req.AbstractCursor.prototype.onError = function(e) {
-  throw new ydn.debug.error.InternalError();
+  this.onFail(e);
+  this.finalize_();
+  this.done_ = true;
 };
 
 
@@ -219,10 +274,30 @@ ydn.db.core.req.AbstractCursor.prototype.onError = function(e) {
  * @param {IDBKey=} opt_key
  * @param {IDBKey=} opt_primary_key
  * @param {*=} opt_value
+ * @final
  */
 ydn.db.core.req.AbstractCursor.prototype.onSuccess = function(
     opt_key, opt_primary_key, opt_value) {
-  throw new ydn.debug.error.InternalError();
+  // console.log(this.count_, opt_key, opt_primary_key, opt_value);
+  if (!goog.isDefAndNotNull(opt_key)) {
+    this.logger.finer(this + ' finished.');
+    this.done_ = true;
+  }
+  this.key_ = opt_key;
+  this.primary_key_ = opt_primary_key;
+  this.value_ = opt_value;
+
+  this.count_++;
+  if (this.done_) {
+    this.logger.finest(this + ' DONE.');
+    this.onNext();
+    this.finalize_();
+  } else {
+    var key_str = goog.isDefAndNotNull(this.primary_key_) ?
+        this.key_ + ', ' + this.primary_key_ : this.key_;
+    this.logger.finest(this + ' new cursor position {' + key_str + '}');
+    this.onNext(this.key_);
+  }
 };
 
 
@@ -245,3 +320,142 @@ if (goog.DEBUG) {
         index + '[' + active + this.tx_no + ']';
   };
 }
+
+
+/**
+ * Copy keys from cursors before browser GC them, as cursor lift-time expires.
+ * http://www.w3.org/TR/IndexedDB/#dfn-transaction-lifetime
+ * Keys are used to resume cursors position.
+ * @private
+ */
+ydn.db.core.req.AbstractCursor.prototype.finalize_ = function() {
+  // IndexedDB will GC array keys, so we clone it.
+  if (goog.isDefAndNotNull(this.primary_key_)) {
+    this.primary_key_ = ydn.db.Key.clone(this.primary_key_);
+  } else {
+    this.primary_key_ = undefined;
+  }
+  if (goog.isDefAndNotNull(this.key_)) {
+    this.key_ = ydn.db.Key.clone(this.key_);
+  } else {
+    this.key_ = undefined;
+  }
+};
+
+
+/**
+ * Make cursor opening request.
+ *
+ * This will seek to given initial position if given. If only ini_key (primary
+ * key) is given, this will rewind, if not found.
+ *
+ * @param {IDBKey=} opt_ini_key effective key to resume position.
+ * @param {IDBKey=} opt_ini_primary_key primary key to resume position.
+ */
+ydn.db.core.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
+
+
+/**
+ * Resume cursor.
+ */
+ydn.db.core.req.AbstractCursor.prototype.resume = function() {
+  this.openCursor(this.key_, this.primary_key_);
+};
+
+
+/**
+ * Exit cursor
+ */
+ydn.db.core.req.AbstractCursor.prototype.exit = function() {
+  this.exited_ = true;
+  this.logger.finest(this + ': exit');
+  this.finalize_();
+};
+
+
+/**
+ * @return {number} Number of steps iterated.
+ */
+ydn.db.core.req.AbstractCursor.prototype.getCount = function() {
+  return this.count_;
+};
+
+
+/**
+ * @param {number=} opt_idx cursor index.
+ * @return {IDBKey|undefined} effective key of cursor.
+ */
+ydn.db.core.req.AbstractCursor.prototype.getKey = function(opt_idx) {
+  return this.key_;
+};
+
+
+/**
+ * @param {number=} opt_idx cursor index.
+ * @return {IDBKey|undefined} primary key of cursor.
+ */
+ydn.db.core.req.AbstractCursor.prototype.getPrimaryKey = function(opt_idx) {
+  return this.isIndexCursor() ?
+      this.primary_key_ : this.key_;
+};
+
+
+/**
+ * @param {number=} opt_idx cursor index.
+ * @return {*} value.
+ */
+ydn.db.core.req.AbstractCursor.prototype.getValue = function(opt_idx) {
+  return this.isValueCursor() ?
+      this.value_ : this.getPrimaryKey();
+};
+
+
+/**
+ *
+ * @return {boolean} true if cursor gone.
+ */
+ydn.db.core.req.AbstractCursor.prototype.hasDone = function() {
+  return this.done_;
+};
+
+
+/**
+ *
+ * @return {boolean} true if iteration is existed.
+ */
+ydn.db.core.req.AbstractCursor.prototype.isExited = function() {
+  return this.exited_;
+};
+
+
+/**
+ * Move cursor position to the primary key while remaining on same index key.
+ * @param {IDBKey} primary_key primary key position to continue.
+ */
+ydn.db.core.req.AbstractCursor.prototype.continuePrimaryKey =
+    function(primary_key) {};
+
+
+/**
+ * Move cursor position to the effective key.
+ * @param {IDBKey=} opt_effective_key effective key position to continue.
+ */
+ydn.db.core.req.AbstractCursor.prototype.continueEffectiveKey =
+    function(opt_effective_key) {};
+
+
+/**
+ * Move cursor position to the effective key.
+ * @param {number} number_of_step
+ */
+ydn.db.core.req.AbstractCursor.prototype.advance = function(number_of_step) {};
+
+
+/**
+ * Restart the cursor. If previous cursor position is given,
+ * the position is skip.
+ * @param {IDBKey=} effective_key previous position.
+ * @param {IDBKey=} primary_key
+ */
+ydn.db.core.req.AbstractCursor.prototype.restart =
+    function(effective_key, primary_key) {};

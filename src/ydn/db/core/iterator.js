@@ -129,7 +129,7 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
 
   /**
    * transient properties during cursor iteration
-   * @type {ydn.db.Cursor}
+   * @type {ydn.db.core.req.AbstractCursor}
    * @private
    */
   this.cursor_ = null;
@@ -165,13 +165,6 @@ ydn.db.Iterator.prototype.index_name_;
  * @private
  */
 ydn.db.Iterator.prototype.index_key_path_;
-
-
-/**
- * @type {ydn.db.Cursor}
- * @private
- */
-ydn.db.Iterator.prototype.cursor_;
 
 
 /**
@@ -558,7 +551,12 @@ ydn.db.Iterator.prototype.resume = function(key, opt_primary_key) {
   var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, this.isReversed(), this.isUnique(),
       this.is_key_iterator_, this.index_key_path_);
+  if (goog.isDefAndNotNull(key)) {
+  /*
   iter.cursor_ = new ydn.db.Cursor([], null, key, opt_primary_key);
+  */
+  throw new Error('not impl');
+  }
   return iter;
 };
 
@@ -575,7 +573,8 @@ ydn.db.Iterator.prototype.reverse = function(opt_key, opt_primary_key) {
       this.key_range_, !this.isReversed(), this.isUnique(),
       this.is_key_iterator_, this.index_key_path_);
   if (goog.isDefAndNotNull(opt_key)) {
-    iter.cursor_ = new ydn.db.Cursor([], null, opt_key, opt_primary_key);
+    throw new Error('no imp');
+    //iter.cursor_ = new ydn.db.Cursor([], null, opt_key, opt_primary_key);
   }
   return iter;
 };
@@ -634,44 +633,21 @@ ydn.db.Iterator.prototype.getState = function() {
  * @param {string} tx_lbl tx label.
  * @param {ydn.db.core.req.IRequestExecutor} executor executor.
  * @param {ydn.db.schema.Store.QueryMethod=} opt_query query method.
- * @return {!ydn.db.Cursor} newly created cursor.
+ * @return {!ydn.db.core.req.AbstractCursor} newly created cursor.
  */
 ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
                                              opt_query) {
 
   var query_mth = opt_query || ydn.db.schema.Store.QueryMethod.VALUES;
-  var cursor = executor.getCursor(tx, tx_lbl, this.store_name_,
-      this.index_key_path_ || this.index_name_,
-      this.key_range_, this.direction_, this.is_key_iterator_, query_mth);
-  var cursors = [cursor];
-  for (var i = 0, n = this.joins_ ? this.joins_.length : 0; i < n; i++) {
-    /**
-     * @type {!ydn.db.core.EquiJoin}
-     */
-    var join = this.joins_[i];
-    if (join.field_name && goog.isDefAndNotNull(join.value)) {
-      var key_range;
-      if (this.isPrimaryIterator()) {
-        key_range = ydn.db.IDBKeyRange.only(join.value);
-      } else {
-        key_range = ydn.db.KeyRange.parseIDBKeyRange(
-            ydn.db.KeyRange.starts([join.value]));
-      }
-      var cur = executor.getCursor(tx, tx_lbl, join.store_name,
-          join.field_name, key_range,
-          this.direction_, this.is_key_iterator_, query_mth);
-      cursors.push(cur);
-    }
-  }
-
-  var msg = '';
+  var key, p_key;
   if (this.cursor_) {
-    msg = ' by resuming ' + this.cursor_;
+    this.cursor_.resume();
+  } else {
+    this.cursor_ = executor.getCursor(tx, tx_lbl, this.store_name_,
+        this.index_key_path_ || this.index_name_,
+        this.key_range_, this.direction_, this.is_key_iterator_, query_mth);
+    this.cursor_.openCursor();
   }
-
-  this.cursor_ = new ydn.db.Cursor(cursors, this.cursor_);
-
-  this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_ + msg);
   return this.cursor_;
 };
 
@@ -739,7 +715,7 @@ ydn.db.Iterator.prototype.restrict = function(field_name, value) {
 
 /**
  * @type {Array.<!ydn.db.core.EquiJoin>} list of joins.
- * @private
+ * @protected
  */
 ydn.db.Iterator.prototype.joins_;
 

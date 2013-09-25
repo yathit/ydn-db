@@ -20,7 +20,8 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {IDBKeyRange} keyRange
  * @param {ydn.db.base.Direction} direction we are using old spec
  * @param {boolean} key_only mode.
- * @param {ydn.db.schema.Store.QueryMethod} key_query true for keys query method.
+ * @param {ydn.db.schema.Store.QueryMethod} key_query true for keys query
+ * method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
@@ -37,10 +38,12 @@ ydn.db.core.req.CachedWebsqlCursor = function(tx, tx_no, store_schema,
 
   this.cursor_ = null;
   this.current_cursor_index_ = NaN;
+  this.has_pending_request = false;
 
   //this.openCursor(ini_key, ini_index_key);
 };
-goog.inherits(ydn.db.core.req.CachedWebsqlCursor, ydn.db.core.req.AbstractCursor);
+goog.inherits(ydn.db.core.req.CachedWebsqlCursor,
+    ydn.db.core.req.AbstractCursor);
 
 
 /**
@@ -66,7 +69,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.store_schema_;
 
 
 /**
- * 
+ *
  * @type {*}
  * @private
  */
@@ -162,7 +165,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
     index.getSQLIndexColumnName() : primary_column_name;
   var q_effective_col_name = goog.string.quote(effective_col_name);
 
-  var order =  ' ORDER BY ';
+  var order = ' ORDER BY ';
 
   if (!this.isValueCursor()) {
     if (index) {
@@ -186,7 +189,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
         goog.string.quote(effective_col_name) + ' DESC, ' +
           q_primary_column_name + ' DESC ' :
         goog.string.quote(effective_col_name) + ' ASC, ' +
-          q_primary_column_name + ' ASC ' ;
+          q_primary_column_name + ' ASC ';
 
     } else {
       order += q_primary_column_name;
@@ -292,7 +295,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
 
   var sql = sqls.join(' ');
   var from = '{' + (!!ini_index_key ? ini_index_key + '-' : '') +
-      (!!ini_key ? ini_key: '')  + '}' ;
+      (!!ini_key ? ini_key : '') + '}';
 
   me.logger.finest(this + ': opened: ' + from + ' SQL: ' +
       sql + ' : ' + ydn.json.stringify(params));
@@ -319,7 +322,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.getIndexKey = function() {
       var row = this.cursor_.rows.item(this.current_cursor_index_);
       var index = this.store_schema_.getIndex(
         /** @type {string} */ (this.index_name));
-      var type =  index.getType();
+      var type = index.getType();
       return ydn.db.schema.Index.sql2js(row[index.getSQLIndexColumnName()],
         type);
     } else {
@@ -335,7 +338,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.getIndexKey = function() {
 /**
  * @return {IDBKey|undefined}
  */
-ydn.db.core.req.CachedWebsqlCursor.prototype.getPrimaryKey = function () {
+ydn.db.core.req.CachedWebsqlCursor.prototype.getPrimaryKey = function() {
   if (this.current_cursor_index_ < this.cursor_.rows.length) {
     var primary_column_name = this.store_schema_.getSQLKeyColumnName();
     var row = this.cursor_.rows.item(this.current_cursor_index_);
@@ -353,14 +356,14 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.getEffectiveKey = function() {
   } else {
     return this.getPrimaryKey();
   }
-}
+};
 
 
 /**
  * This must call only when cursor is active.
  * @return {*} return current primary key.
  */
-ydn.db.core.req.CachedWebsqlCursor.prototype.getValue = function () {
+ydn.db.core.req.CachedWebsqlCursor.prototype.getValue = function() {
   var column_name = this.index_name ?
     this.index_name : this.store_schema_.getSQLKeyColumnName();
 
@@ -474,7 +477,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
     goog.asserts.assertObject(obj);
     var out = me.store_schema_.getIndexedValues(obj, primary_key);
 
-    var sql = 'REPLACE INTO ' + this.store_schema_.getQuotedName()+
+    var sql = 'REPLACE INTO ' + this.store_schema_.getQuotedName() +
         ' (' + out.columns.join(', ') + ')' +
         ' VALUES (' + out.slots.join(', ') + ')' +
         ' ON CONFLICT FAIL';
@@ -599,7 +602,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.advance = function(step) {
   var p_key = this.getPrimaryKey();
   var key = this.getIndexKey();
   var value = this.getValue();
-  goog.Timer.callOnce(function () {
+  goog.Timer.callOnce(function() {
     // we must invoke async just like IndexedDB advance, otherwise
     // run-to-completion logic will not work as expected.
     this.onSuccess(p_key, key, value);

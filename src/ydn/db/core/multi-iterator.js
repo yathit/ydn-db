@@ -118,3 +118,50 @@ ydn.db.MultiIterator.prototype.order = function(field_name, value) {
       this.isReversed(), this.isUnique(), this.is_key_iterator_,
       index_key_path);
 };
+
+
+/**
+ * @param {ydn.db.con.IDatabase.Transaction} tx tx.
+ * @param {string} tx_lbl tx label.
+ * @param {ydn.db.core.req.IRequestExecutor} executor executor.
+ * @param {ydn.db.schema.Store.QueryMethod=} opt_query query method.
+ * @return {!ydn.db.Cursor} newly created cursor.
+ */
+ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
+                                             opt_query) {
+
+  var query_mth = opt_query || ydn.db.schema.Store.QueryMethod.VALUES;
+  var cursor = executor.getCursor(tx, tx_lbl, this.store_name_,
+      this.index_key_path_ || this.index_name_,
+      this.key_range_, this.direction_, this.is_key_iterator_, query_mth);
+  var cursors = [cursor];
+  for (var i = 0, n = this.joins_ ? this.joins_.length : 0; i < n; i++) {
+    /**
+     * @type {!ydn.db.core.EquiJoin}
+     */
+    var join = this.joins_[i];
+    if (join.field_name && goog.isDefAndNotNull(join.value)) {
+      var key_range;
+      if (this.isPrimaryIterator()) {
+        key_range = ydn.db.IDBKeyRange.only(join.value);
+      } else {
+        key_range = ydn.db.KeyRange.parseIDBKeyRange(
+            ydn.db.KeyRange.starts([join.value]));
+      }
+      var cur = executor.getCursor(tx, tx_lbl, join.store_name,
+          join.field_name, key_range,
+          this.direction_, this.is_key_iterator_, query_mth);
+      cursors.push(cur);
+    }
+  }
+
+  var msg = '';
+  if (this.cursor_) {
+    msg = ' by resuming ' + this.cursor_;
+  }
+
+  this.cursor_ = new ydn.db.Cursor(cursors, this.cursor_);
+
+  this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_ + msg);
+  return this.cursor_;
+};
