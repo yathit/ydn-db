@@ -442,15 +442,6 @@ ydn.db.core.req.SimpleCursor.prototype.clear = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleCursor.prototype.restart = function(effective_key,
-                                                          primary_key) {
-  throw new ydn.debug.error.NotImplementedException();
-};
-
-
-/**
- * @inheritDoc
- */
 ydn.db.core.req.SimpleCursor.prototype.continuePrimaryKey = function(key) {
   throw new ydn.debug.error.NotImplementedException();
 

@@ -36,7 +36,7 @@ db.put('animals', animals).addCallback(function (value) {
 });
 
 var setUp = function() {
-  // ydn.debug.log('ydn.db', 'finest');
+   // ydn.debug.log('ydn.db', 'finest');
   // ydn.db.core.DbOperator.DEBUG = true;
     //ydn.db.crud.req.IndexedDb.DEBUG = true;
     //ydn.db.algo.SortedMerge.DEBUG = true;

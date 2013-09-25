@@ -13,7 +13,7 @@ var reachedFinalContinuation;
 
 
 var setUp = function() {
-  //ydn.debug.log('ydn.db', 'finest');
+  // ydn.debug.log('ydn.db.core', 'finest');
   //ydn.db.core.req.WebsqlCursor.DEBUG = true;
   // ydn.db.core.req.IDBCursor.DEBUG = true;
   // ydn.db.core.DbOperator.DEBUG = true;
@@ -101,7 +101,7 @@ var test_scan_reference_value = function() {
     var b = values[1];
     var cmp = ydn.db.cmp(a, b);
     if (cmp == 0) {
-      console.log('get match at ' + a + ' : ' + values[0]);
+      //console.log('get match at ' + a + ' : ' + values[0]);
       result_keys.push(values[0]);
       return {advance: [1, 1]};
     } else if (cmp == 1) {
@@ -191,7 +191,7 @@ var test_scan_advance = function() {
 
   var solver = function (keys, values) {
     var out;
-
+    // console.log(keys, values);
     if (keys[0] != null) {
       if (values[1] != null && ydn.db.cmp(values[0], values[1]) == 0) {
         result_keys.push(values[0]); // we got the matching primary key.

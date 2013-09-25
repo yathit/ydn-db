@@ -769,16 +769,6 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.WebsqlCursor.prototype.restart = function(effective_key,
-                                                          primary_key) {
-  this.logger.finest(this + ' restarting.');
-  this.openCursor(primary_key, effective_key);
-};
-
-
-/**
- * @inheritDoc
- */
 ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey = function(key) {
 
   goog.asserts.assert(this.isIndexCursor());

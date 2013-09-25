@@ -88,6 +88,7 @@ ydn.db.core.req.AbstractCursor = function(tx, tx_no,
       direction == ydn.db.base.Direction.PREV_UNIQUE;
 
   /**
+   * @type {ydn.db.base.Direction}
    * @final
    */
   this.dir = direction;
@@ -207,6 +208,25 @@ ydn.db.core.req.AbstractCursor.prototype.query_method;
  */
 ydn.db.core.req.AbstractCursor.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.core.req.AbstractCursor');
+
+
+/**
+ * @param {boolean=} opt_reverse clone in reverse direction.
+ * @return {!ydn.db.core.req.AbstractCursor}
+ */
+ydn.db.core.req.AbstractCursor.prototype.clone = function(opt_reverse) {
+  var rev = this.reverse;
+  if (opt_reverse) {
+    rev = !rev;
+  }
+  var dir = ydn.db.base.getDirection(rev, this.unique);
+  var clone = new ydn.db.core.req.AbstractCursor(this.tx, this.tx_no,
+      this.store_name, this.index_name, this.key_range, dir,
+      this.is_key_cursor_, this.query_method);
+  clone.key_ = this.key_;
+  clone.primary_key_ = this.primary_key_;
+  return clone;
+};
 
 
 /**
@@ -359,12 +379,17 @@ ydn.db.core.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
  * Resume cursor.
  * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_no tx no.
+ * @final
  */
 ydn.db.core.req.AbstractCursor.prototype.resume = function(tx, tx_no) {
   this.tx = tx;
   this.tx_no = tx_no;
-  this.done_ = false;
   this.exited_ = false;
+  if (this.done_) {
+    this.key_ = undefined;
+    this.primary_key_ = undefined;
+  }
+  this.done_ = false;
   this.openCursor(this.key_, this.primary_key_);
 };
 
@@ -462,6 +487,13 @@ ydn.db.core.req.AbstractCursor.prototype.advance = function(number_of_step) {};
  * the position is skip.
  * @param {IDBKey=} effective_key previous position.
  * @param {IDBKey=} primary_key
+ * @final
  */
-ydn.db.core.req.AbstractCursor.prototype.restart =
-    function(effective_key, primary_key) {};
+ydn.db.core.req.AbstractCursor.prototype.restart = function(
+    effective_key, primary_key) {
+  this.logger.finest(this + ' restarting');
+  this.done_ = false;
+  this.exited_ = false;
+  this.openCursor(primary_key, effective_key);
+};
+

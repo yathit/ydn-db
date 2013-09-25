@@ -278,16 +278,6 @@ ydn.db.core.req.IDBCursor.prototype.clear = function() {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.IDBCursor.prototype.restart = function(
-    effective_key, primary_key) {
-  this.logger.finest(this + ' restarting.');
-  this.openCursor(primary_key, effective_key);
-};
-
-
-/**
- * @inheritDoc
- */
 ydn.db.core.req.IDBCursor.prototype.advance = function(step) {
   var cursor = this.request_.result;
 

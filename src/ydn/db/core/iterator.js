@@ -551,12 +551,7 @@ ydn.db.Iterator.prototype.resume = function(key, opt_primary_key) {
   var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, this.isReversed(), this.isUnique(),
       this.is_key_iterator_, this.index_key_path_);
-  if (goog.isDefAndNotNull(key)) {
-  /*
-  iter.cursor_ = new ydn.db.Cursor([], null, key, opt_primary_key);
-  */
-  throw new Error('not impl');
-  }
+  iter.cursor_ = this.cursor_.clone();
   return iter;
 };
 
@@ -572,10 +567,7 @@ ydn.db.Iterator.prototype.reverse = function(opt_key, opt_primary_key) {
   var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, !this.isReversed(), this.isUnique(),
       this.is_key_iterator_, this.index_key_path_);
-  if (goog.isDefAndNotNull(opt_key)) {
-    throw new Error('no imp');
-    //iter.cursor_ = new ydn.db.Cursor([], null, opt_key, opt_primary_key);
-  }
+  iter.cursor_ = this.cursor_.clone(true);
   return iter;
 };
 

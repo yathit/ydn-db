@@ -581,14 +581,6 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
 //};
 
 
-/**
- * @inheritDoc
- */
-ydn.db.core.req.CachedWebsqlCursor.prototype.restart = function(effective_key, primary_key) {
-  this.logger.finest(this + ' restarting.');
-  this.openCursor(primary_key, effective_key, true);
-};
-
 
 /**
  * @inheritDoc
