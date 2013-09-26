@@ -609,6 +609,81 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
 
 
 /**
+ * List
+ * @param {ydn.db.crud.req.IRequestExecutor.ListType} type
+ * @param {string} store_name
+ * @param {string?} index_name
+ * @param {ydn.db.KeyRange, ydn.db.IDBKeyRange} key_range
+ * @param {boolean?} reverse
+ * @param {number?} limit
+ * @param {number?} offset
+ * @param {boolean?} unique
+ * @return {!ydn.db.Request}
+ */
+ydn.db.crud.DbOperator.prototype.list = function (type, store_name, index_name,
+    key_range, reverse, limit, offset, unique) {
+
+  var store = this.schema.getStore(store_name);
+  if (!store) {
+    if (this.schema.isAutoSchema()) {
+      return ydn.db.Request.succeed(ydn.db.Request.Method.GET, []);
+    } else {
+      throw new ydn.db.NotFoundError(store_name);
+    }
+  }
+
+  var me = this;
+  var req;
+  var method = ydn.db.Request.Method.NONE;
+
+  if (goog.DEBUG) {
+    if (index_name && !store.hasIndex(index_name)) {
+      throw new ydn.debug.error.ArgumentException('index "' +
+          index_name + '" not found in store "' + store_name + '"');
+    }
+    var msg = ydn.db.KeyRange.validate(key_range);
+    if (msg) {
+      throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+          key_range + ' ' + msg);
+    }
+  }
+  var range = ydn.db.KeyRange.parseIDBKeyRange(key_range);
+  if (!goog.isDefAndNotNull(limit)) {
+    limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
+  } else if (!goog.isNumber(limit)) {
+    throw new ydn.debug.error.ArgumentException('limit must be a number.');
+  }
+  if (!goog.isDefAndNotNull(offset)) {
+    offset = 0;
+  } else if (!goog.isNumber(offset)) {
+    throw new ydn.debug.error.ArgumentException('offset must be a number.');
+  }
+  if (!goog.isDefAndNotNull(reverse)) {
+    reverse = false;
+  } else if (!goog.isBoolean(reverse)) {
+    throw new ydn.debug.error.ArgumentException(
+        'reverse must be a boolean, but ' + reverse);
+  }
+  if (!goog.isDefAndNotNull(unique)) {
+    unique = false;
+  } else if (!goog.isBoolean(unique)) {
+    throw new ydn.debug.error.ArgumentException(
+        'unique must be a boolean, but ' + unique);
+  }
+  this.logger.finer(type + ': ' + store_name + ':' + index_name);
+  method = ydn.db.Request.Method.VALUES_INDEX;
+  req = this.tx_thread.request(method, [store_name]);
+  // store.hook(req, arguments);
+  req.addTxback(function() {
+    this.getExecutor().list(req, type, store_name,
+        index_name, range, reverse, limit, offset, unique);
+  }, this);
+
+  return req;
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
