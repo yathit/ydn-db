@@ -609,19 +609,44 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
 
 
 /**
+ * List by iterator.
+ * @param {ydn.db.crud.req.IRequestExecutor.ListType} type
+ * @param {ydn.db.Iterator} iter
+ * @param {number=} opt_limit optional limit.
+ * @return {!ydn.db.Request}
+ */
+ydn.db.crud.DbOperator.prototype.listIter = function(type, iter, opt_limit) {
+  var store_name = iter.getStoreName();
+  var index_name = iter.getIndexName() || null;
+  var limit = opt_limit || ydn.db.base.DEFAULT_RESULT_LIMIT;
+  this.logger.finer('listIter:' + type + ': ' + store_name + ':' + index_name);
+  var method = ydn.db.Request.Method.VALUES_INDEX;
+  var req = this.tx_thread.request(method, [store_name]);
+  // store.hook(req, arguments);
+  req.addTxback(function() {
+    this.getExecutor().list(req, type, store_name,
+        index_name, iter.getNextKeyRange(), iter.isReversed(), limit, 0,
+        iter.isUnique());
+  }, this);
+
+  return req;
+};
+
+
+/**
  * List
  * @param {ydn.db.crud.req.IRequestExecutor.ListType} type
  * @param {string} store_name
- * @param {string=} index_name
- * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} key_range
+ * @param {string=} opt_index
+ * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} opt_key_range
  * @param {boolean=} opt_reverse
  * @param {number=} opt_limit
  * @param {number=} opt_offset
  * @param {boolean=} opt_unique
  * @return {!ydn.db.Request}
  */
-ydn.db.crud.DbOperator.prototype.list = function (type, store_name, index_name,
-    key_range, opt_reverse, opt_limit, opt_offset, opt_unique) {
+ydn.db.crud.DbOperator.prototype.list = function(type, store_name, opt_index,
+    opt_key_range, opt_reverse, opt_limit, opt_offset, opt_unique) {
 
   var store = this.schema.getStore(store_name);
   if (!store) {
@@ -637,17 +662,17 @@ ydn.db.crud.DbOperator.prototype.list = function (type, store_name, index_name,
   var method = ydn.db.Request.Method.NONE;
 
   if (goog.DEBUG) {
-    if (index_name && !store.hasIndex(index_name)) {
+    if (opt_index && !store.hasIndex(opt_index)) {
       throw new ydn.debug.error.ArgumentException('index "' +
-          index_name + '" not found in store "' + store_name + '"');
+          opt_index + '" not found in store "' + store_name + '"');
     }
-    var msg = ydn.db.KeyRange.validate(key_range);
+    var msg = ydn.db.KeyRange.validate(opt_key_range);
     if (msg) {
       throw new ydn.debug.error.ArgumentException('invalid key range: ' +
-          key_range + ' ' + msg);
+          opt_key_range + ' ' + msg);
     }
   }
-  var range = ydn.db.KeyRange.parseIDBKeyRange(key_range);
+  var range = ydn.db.KeyRange.parseIDBKeyRange(opt_key_range);
   var limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
   if (goog.isNumber(opt_limit)) {
     limit = opt_limit;
@@ -676,13 +701,13 @@ ydn.db.crud.DbOperator.prototype.list = function (type, store_name, index_name,
     throw new ydn.debug.error.ArgumentException('unique must be a boolean but' +
         ' "' + opt_unique + '" of type ' + typeof opt_unique + ' found.');
   }
-  this.logger.finer(type + ': ' + store_name + ':' + index_name);
+  this.logger.finer(type + ': ' + store_name + ':' + opt_index);
   method = ydn.db.Request.Method.VALUES_INDEX;
   req = this.tx_thread.request(method, [store_name]);
   // store.hook(req, arguments);
   req.addTxback(function() {
     this.getExecutor().list(req, type, store_name,
-        index_name || null, range, reverse, limit, offset, unique);
+        opt_index || null, range, reverse, limit, offset, unique);
   }, this);
 
   return req;
