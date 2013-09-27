@@ -651,28 +651,30 @@ ydn.db.crud.DbOperator.prototype.list = function (type, store_name, index_name,
   var limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
   if (goog.isNumber(opt_limit)) {
     limit = opt_limit;
-  } else if (goog.isDefAndNotNull(limit)) {
-    throw new ydn.debug.error.ArgumentException('limit must be a number.');
+  } else if (goog.isDefAndNotNull(opt_limit)) {
+    throw new ydn.debug.error.ArgumentException('limit must be a number but "' +
+        opt_limit + '" of type ' + typeof opt_limit + ' found.');
   }
   var offset = 0;
   if (goog.isNumber(opt_offset)) {
     offset = opt_offset;
-  } else if (goog.isDefAndNotNull(offset)) {
-    throw new ydn.debug.error.ArgumentException('offset must be a number.');
+  } else if (goog.isDefAndNotNull(opt_offset)) {
+    throw new ydn.debug.error.ArgumentException('offset must be a number but' +
+        ' "' + opt_offset + '" of type ' + typeof opt_offset + ' found.');
   }
   var reverse = false;
   if (goog.isBoolean(opt_reverse)) {
     reverse = opt_reverse;
-  } else if (goog.isDefAndNotNull(reverse)) {
-    throw new ydn.debug.error.ArgumentException(
-        'reverse must be a boolean, but ' + reverse);
+  } else if (goog.isDefAndNotNull(opt_reverse)) {
+    throw new ydn.debug.error.ArgumentException('reverse must be a boolean ' +
+        'but "' + opt_reverse + '" of type ' + typeof opt_reverse + ' found.');
   }
   var unique = false;
   if (goog.isBoolean(opt_unique)) {
     unique = opt_unique;
   } else if (goog.isDefAndNotNull(opt_unique)) {
-    throw new ydn.debug.error.ArgumentException(
-        'unique must be a boolean, but ' + opt_unique);
+    throw new ydn.debug.error.ArgumentException('unique must be a boolean but' +
+        ' "' + opt_unique + '" of type ' + typeof opt_unique + ' found.');
   }
   this.logger.finer(type + ': ' + store_name + ':' + index_name);
   method = ydn.db.Request.Method.VALUES_INDEX;

@@ -502,9 +502,23 @@ ydn.db.Iterator.prototype.isPrimaryIterator = function() {
 
 
 /**
+ * Copy this iterator with internal state.
+ * @see copy
  * @return {!ydn.db.Iterator}
  */
 ydn.db.Iterator.prototype.clone = function() {
+  return new ydn.db.Iterator(this.store_name_, this.index_name_,
+      this.key_range_, this.isReversed(), this.isUnique(), this.isKeyIterator(),
+      this.index_key_path_);
+};
+
+
+/**
+ * Copy this iterator.
+ * @see clone
+ * @return {!ydn.db.Iterator}
+ */
+ydn.db.Iterator.prototype.copy = function() {
   return new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, this.isReversed(), this.isUnique(), this.isKeyIterator(),
       this.index_key_path_);
