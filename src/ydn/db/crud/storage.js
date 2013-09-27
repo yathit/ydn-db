@@ -209,12 +209,12 @@ ydn.db.crud.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
  * List
  * @param {ydn.db.crud.req.IRequestExecutor.ListType} type
  * @param {string} store_name
- * @param {string?} index_name
- * @param {ydn.db.KeyRange, ydn.db.IDBKeyRange} key_range
- * @param {boolean?} reverse
- * @param {number?} limit
- * @param {number?} offset
- * @param {boolean?} unique
+ * @param {string=} index_name
+ * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} key_range
+ * @param {boolean=} reverse
+ * @param {number=} limit
+ * @param {number=} offset
+ * @param {boolean=} unique
  * @return {!ydn.db.Request}
  */
 ydn.db.crud.Storage.prototype.list = function(type, store_name, index_name,

@@ -527,6 +527,27 @@ ydn.db.schema.Store.prototype.hasIndex = function(name) {
 
 
 /**
+ * Check given key_path is equals to store key path.
+ * @param {(string|goog.array.ArrayLike)=} opt_key_path
+ * @return {boolean}
+ */
+ydn.db.schema.Store.prototype.isKeyPath = function(opt_key_path) {
+  if (goog.isDef(this.keyPath)) {
+    if (this.keyPaths.length == 1) {
+      return this.keyPath === opt_key_path;
+    } else if (goog.isArrayLike(opt_key_path)) {
+      return goog.array.equals(this.keyPaths,
+          /** @type {goog.array.ArrayLike} */ (opt_key_path));
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+};
+
+
+/**
  * @see #hasIndex
  * @param {string|!Array.<string>} key_path index key path.
  * @return {boolean} return true if key_path is found in the index including

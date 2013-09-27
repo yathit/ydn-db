@@ -612,16 +612,16 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
  * List
  * @param {ydn.db.crud.req.IRequestExecutor.ListType} type
  * @param {string} store_name
- * @param {string?} index_name
- * @param {ydn.db.KeyRange, ydn.db.IDBKeyRange} key_range
- * @param {boolean?} reverse
- * @param {number?} limit
- * @param {number?} offset
- * @param {boolean?} unique
+ * @param {string=} index_name
+ * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} key_range
+ * @param {boolean=} opt_reverse
+ * @param {number=} opt_limit
+ * @param {number=} opt_offset
+ * @param {boolean=} opt_unique
  * @return {!ydn.db.Request}
  */
 ydn.db.crud.DbOperator.prototype.list = function (type, store_name, index_name,
-    key_range, reverse, limit, offset, unique) {
+    key_range, opt_reverse, opt_limit, opt_offset, opt_unique) {
 
   var store = this.schema.getStore(store_name);
   if (!store) {
@@ -648,27 +648,31 @@ ydn.db.crud.DbOperator.prototype.list = function (type, store_name, index_name,
     }
   }
   var range = ydn.db.KeyRange.parseIDBKeyRange(key_range);
-  if (!goog.isDefAndNotNull(limit)) {
-    limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
-  } else if (!goog.isNumber(limit)) {
+  var limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
+  if (goog.isNumber(opt_limit)) {
+    limit = opt_limit;
+  } else if (goog.isDefAndNotNull(limit)) {
     throw new ydn.debug.error.ArgumentException('limit must be a number.');
   }
-  if (!goog.isDefAndNotNull(offset)) {
-    offset = 0;
-  } else if (!goog.isNumber(offset)) {
+  var offset = 0;
+  if (goog.isNumber(opt_offset)) {
+    offset = opt_offset;
+  } else if (goog.isDefAndNotNull(offset)) {
     throw new ydn.debug.error.ArgumentException('offset must be a number.');
   }
-  if (!goog.isDefAndNotNull(reverse)) {
-    reverse = false;
-  } else if (!goog.isBoolean(reverse)) {
+  var reverse = false;
+  if (goog.isBoolean(opt_reverse)) {
+    reverse = opt_reverse;
+  } else if (goog.isDefAndNotNull(reverse)) {
     throw new ydn.debug.error.ArgumentException(
         'reverse must be a boolean, but ' + reverse);
   }
-  if (!goog.isDefAndNotNull(unique)) {
-    unique = false;
-  } else if (!goog.isBoolean(unique)) {
+  var unique = false;
+  if (goog.isBoolean(opt_unique)) {
+    unique = opt_unique;
+  } else if (goog.isDefAndNotNull(opt_unique)) {
     throw new ydn.debug.error.ArgumentException(
-        'unique must be a boolean, but ' + unique);
+        'unique must be a boolean, but ' + opt_unique);
   }
   this.logger.finer(type + ': ' + store_name + ':' + index_name);
   method = ydn.db.Request.Method.VALUES_INDEX;
@@ -676,7 +680,7 @@ ydn.db.crud.DbOperator.prototype.list = function (type, store_name, index_name,
   // store.hook(req, arguments);
   req.addTxback(function() {
     this.getExecutor().list(req, type, store_name,
-        index_name, range, reverse, limit, offset, unique);
+        index_name || null, range, reverse, limit, offset, unique);
   }, this);
 
   return req;

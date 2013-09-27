@@ -494,6 +494,7 @@ ydn.db.Iterator.prototype.isIndexIterator = function() {
 /**
  * @return {boolean} true for primary iterator, which use primary key as
  * effective key.
+ * @deprecated use isIndexIterator instead.
  */
 ydn.db.Iterator.prototype.isPrimaryIterator = function() {
   return !this.is_index_iterator_;
