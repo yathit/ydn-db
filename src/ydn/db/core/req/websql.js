@@ -114,7 +114,8 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(rq, iter,
   }
   var me = this;
   this.logger.finer(msg);
-  var cursor = iter.iterate(tx, tx_no, this, mth);
+  var cursor = this.getCursor(tx, tx_no, iter.getStoreName(), mth);
+  iter.load(cursor);
   cursor.onFail = function(e) {
     cursor.exit();
     rq.setDbValue(e, true);
@@ -169,16 +170,11 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(rq, iter,
  * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.getCursor = function(tx, tx_no, store_name,
-        index_name, keyRange, direction, key_only, key_query) {
+                                                      mth) {
 
   var store = this.schema.getStore(store_name);
   goog.asserts.assertObject(store, 'store "' + store_name + '" not found.');
-  if (goog.isDef(index_name)) {
-    index_name = this.getIndexName(store, index_name);
-  }
-
-  return new ydn.db.core.req.WebsqlCursor(tx, tx_no, store, store_name,
-      index_name, keyRange, direction, key_only, key_query);
+  return new ydn.db.core.req.WebsqlCursor(tx, tx_no, store, mth);
 };
 
 

@@ -27,37 +27,40 @@ goog.require('ydn.debug.error.InternalError');
  * Open an index. This will resume depending on the cursor state.
  * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_no tx no.
- * @param {string} store_name the store name to open.
- * @param {string|undefined} index_name index name.
- * @param {IDBKeyRange} keyRange key range.
- * @param {ydn.db.base.Direction} direction cursor direction.
- * @param {boolean} is_key_cursor mode.
- * @param {ydn.db.schema.Store.QueryMethod} mth true for keys query method.
+ * @param {ydn.db.schema.Store} store_schema schema.
+ * @param {ydn.db.schema.Store.QueryMethod=} opt_mth query method, default to
+ * values.
  * @constructor
  * @extends {goog.Disposable}
  * @struct
  * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
-ydn.db.core.req.AbstractCursor = function(tx, tx_no,
-    store_name, index_name, keyRange, direction, is_key_cursor, mth) {
+ydn.db.core.req.AbstractCursor = function(tx, tx_no, store_schema, opt_mth) {
   goog.base(this);
   /**
    * @final
+   * @protected
+   * @type {ydn.db.schema.Store}
    */
-  this.store_name = store_name;
+  this.store_schema = store_schema;
   /**
    * @final
+   * @protected
    */
-  this.index_name = index_name;
+  this.store_name = store_schema.getName();
   /**
-   * @final
+   * @protected
    */
-  this.is_index = goog.isString(this.index_name);
+  this.index_name = undefined;
+  /**
+   * @protected
+   */
+  this.is_index = false;
 
   /**
-   * @final
+   * @protected
    */
-  this.key_range = keyRange || null;
+  this.key_range = null;
 
   this.tx = tx;
 
@@ -76,33 +79,9 @@ ydn.db.core.req.AbstractCursor = function(tx, tx_no,
   this.exited_ = false;
 
   /**
-   * @final
+   * @protected
    */
-  this.reverse = direction == ydn.db.base.Direction.PREV ||
-      direction == ydn.db.base.Direction.PREV_UNIQUE;
-
-  /**
-   * @final
-   */
-  this.unique = direction == ydn.db.base.Direction.NEXT_UNIQUE ||
-      direction == ydn.db.base.Direction.PREV_UNIQUE;
-
-  /**
-   * @type {ydn.db.base.Direction}
-   * @final
-   */
-  this.dir = direction;
-
-  /**
-   * @final
-   * @private
-   */
-  this.is_key_cursor_ = is_key_cursor;
-
-  /**
-   * @final
-   */
-  this.query_method = mth;
+  this.query_method = opt_mth || ydn.db.schema.Store.QueryMethod.VALUES;
   /**
    * @type {IDBKey|undefined}
    * @private
@@ -134,9 +113,53 @@ ydn.db.core.req.AbstractCursor = function(tx, tx_no,
   this.onFail = function(e) {
     throw new ydn.debug.error.InternalError();
   };
+  /**
+   * Invoke when cursor terminate.
+   * This method is overridden by iterator.
+   * @param {boolean} is_existed existed cursor.
+   * @param {IDBKey|undefined} key effective key.
+   * @param {IDBKey|undefined} primary_key primary key.
+   */
+  this.onTerminated = function(is_existed, key, primary_key) {
+  };
 
 };
 goog.inherits(ydn.db.core.req.AbstractCursor, goog.Disposable);
+
+
+/**
+ * Open an index. This will resume depending on the cursor state.
+ * @param {string} store_name the store name to open.
+ * @param {!Array.<string>|string|undefined} index_name index name.
+ * @param {IDBKeyRange} key_range key range.
+ * @param {ydn.db.base.Direction} direction cursor direction.
+ * @param {boolean} is_key_cursor mode.
+ */
+ydn.db.core.req.AbstractCursor.prototype.init = function(store_name,
+    index_name, key_range, direction, is_key_cursor) {
+  goog.asserts.assert(this.store_name == store_name, 'expect store name of ' +
+      this.store_name + ' but ' + store_name + ' found.');
+
+  if (goog.isDef(index_name)) {
+    this.index_name = this.store_schema.getIndexName(index_name);
+    goog.asserts.assertString(this.index_name, 'index "' +
+        index_name + '" not found in store "' + store_name + '"');
+  }
+  this.is_index = goog.isString(this.index_name);
+  this.key_range = key_range || null;
+  this.count_ = 0;
+  this.done_ = false;
+  this.exited_ = false;
+  this.reverse = direction == ydn.db.base.Direction.PREV ||
+      direction == ydn.db.base.Direction.PREV_UNIQUE;
+  this.unique = direction == ydn.db.base.Direction.NEXT_UNIQUE ||
+      direction == ydn.db.base.Direction.PREV_UNIQUE;
+  this.dir = direction;
+  this.is_key_cursor_ = is_key_cursor;
+  this.key_ = undefined;
+  this.primary_key_ = undefined;
+  this.value_ = undefined;
+};
 
 
 /**
@@ -157,7 +180,7 @@ ydn.db.core.req.AbstractCursor.prototype.is_index;
  * @protected
  * @type {string}
  */
-ydn.db.core.req.AbstractCursor.prototype.store_name = '';
+ydn.db.core.req.AbstractCursor.prototype.store_name;
 
 
 /**
@@ -208,25 +231,6 @@ ydn.db.core.req.AbstractCursor.prototype.query_method;
  */
 ydn.db.core.req.AbstractCursor.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.core.req.AbstractCursor');
-
-
-/**
- * @param {boolean=} opt_reverse clone in reverse direction.
- * @return {!ydn.db.core.req.AbstractCursor}
- */
-ydn.db.core.req.AbstractCursor.prototype.clone = function(opt_reverse) {
-  var rev = this.reverse;
-  if (opt_reverse) {
-    rev = !rev;
-  }
-  var dir = ydn.db.base.getDirection(rev, this.unique);
-  var clone = new ydn.db.core.req.AbstractCursor(this.tx, this.tx_no,
-      this.store_name, this.index_name, this.key_range, dir,
-      this.is_key_cursor_, this.query_method);
-  clone.key_ = this.key_;
-  clone.primary_key_ = this.primary_key_;
-  return clone;
-};
 
 
 /**
@@ -359,6 +363,7 @@ ydn.db.core.req.AbstractCursor.prototype.finalize_ = function() {
   } else {
     this.key_ = undefined;
   }
+  this.onTerminated(this.exited_, this.key_, this.primary_key_);
 };
 
 
@@ -375,21 +380,35 @@ ydn.db.core.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
 
 
 /**
+ * @param {ydn.db.con.IDatabase.Transaction} tx tx.
+ * @param {string} tx_no tx no.
+ * @param {IDBKey=} opt_ini_key effective key to resume position.
+ * @param {IDBKey=} opt_ini_primary_key primary key to resume position.
+ */
+ydn.db.core.req.AbstractCursor.prototype.open = function(tx, tx_no,
+    opt_ini_key, opt_ini_primary_key) {
+  this.tx = tx;
+  this.tx_no = tx_no;
+  this.exited_ = false;
+  this.done_ = false;
+  this.key_ = opt_ini_key;
+  this.primary_key_ = opt_ini_primary_key;
+  this.openCursor(this.key_, this.primary_key_);
+};
+
+
+/**
  * Resume cursor.
  * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_no tx no.
  * @final
  */
 ydn.db.core.req.AbstractCursor.prototype.resume = function(tx, tx_no) {
-  this.tx = tx;
-  this.tx_no = tx_no;
-  this.exited_ = false;
   if (this.done_) {
-    this.key_ = undefined;
-    this.primary_key_ = undefined;
+    this.open(tx, tx_no);
+  } else {
+    this.open(tx, tx_no, this.key_, this.primary_key_);
   }
-  this.done_ = false;
-  this.openCursor(this.key_, this.primary_key_);
 };
 
 

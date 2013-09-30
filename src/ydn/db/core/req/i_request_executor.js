@@ -63,14 +63,9 @@ ydn.db.core.req.IRequestExecutor.prototype.listByIterator =
 
 /**
  * @param {ydn.db.con.IDatabase.Transaction} tx
- * @param {string} tx_no transaction number.
- * @param {string} store_name the store name to open.
- * @param {string|!Array.<string>|undefined} index_name index name or index
- * key path.
- * @param {IDBKeyRange} keyRange
- * @param {ydn.db.base.Direction} direction we are using old spec.
- * @param {boolean} key_only mode.
- * @param {ydn.db.schema.Store.QueryMethod} query query method.
+ * @param {string} tx_no tx request label.
+ * @param {string} store_name schema.
+ * @param {ydn.db.schema.Store.QueryMethod=} query query method.
  * @return {!ydn.db.core.req.AbstractCursor} cursor.
  */
 ydn.db.core.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;

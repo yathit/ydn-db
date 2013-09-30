@@ -1052,3 +1052,26 @@ ydn.db.schema.Store.prototype.hook = function(df, args, opt_hook_idx) {
   }
 };
 
+
+/**
+ * Lookup index from the schema.
+ * @param {!Array.<string>|string} index_name_or_key_path index name or
+ * key path.
+ * @return {string} index name.
+ */
+ydn.db.schema.Store.prototype.getIndexName = function(index_name_or_key_path) {
+
+  var index;
+  var index_name = index_name_or_key_path;
+  if (goog.isArray(index_name_or_key_path)) {
+    index = this.getIndexByKeyPath(index_name_or_key_path);
+    index_name = index_name_or_key_path.join(', ');
+  } else {
+    index = this.getIndex(index_name_or_key_path);
+  }
+  if (goog.DEBUG && !index) {
+    throw new ydn.debug.error.ArgumentException('require index "' +
+        index_name + '" not found in store "' + this.getName() + '"');
+  }
+  return index.getName();
+};

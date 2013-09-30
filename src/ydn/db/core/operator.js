@@ -539,7 +539,9 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
       var idx = 0;
       for (var i = 0; i < iterators.length; i++) {
         var iterator = iterators[i];
-        var cursor = iterator.iterate(tx, tx_no, me.getIndexExecutor());
+        var cursor = me.getIndexExecutor().getCursor(tx, tx_no,
+            iterator.getStoreName());
+        iterator.load(cursor);
         cursor.onFail = on_error;
         cursor.onNext = goog.partial(on_iterator_next, idx);
         cursors[i] = cursor;
@@ -606,7 +608,8 @@ ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode,
     var tx_no = df.getLabel();
     var lbl = tx_no + ' iterating ' + iter;
     me.logger.finer(lbl);
-    var cursor = iter.iterate(tx, tx_no, me.getIndexExecutor());
+    var cursor = me.getIndexExecutor().getCursor(tx, tx_no, iter.getStoreName());
+    iter.load(cursor);
 
     cursor.onFail = function(e) {
       df.setDbValue(e, true);
@@ -666,7 +669,9 @@ ydn.db.core.DbOperator.prototype.map = function(iterator, callback) {
 
     var lbl = tx_no + ' iterating ' + iterator;
     me.logger.finest(lbl);
-    var cursor = iterator.iterate(tx, tx_no, me.getIndexExecutor());
+    var cursor = me.getIndexExecutor().getCursor(tx, tx_no,
+        iterator.getStoreName());
+    iterator.load(cursor);
 
     cursor.onFail = function(e) {
       cb(e, false);
@@ -729,7 +734,9 @@ ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
   this.logger.finer('reduce:' + iterator);
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
-    var cursor = iterator.iterate(tx, tx_no, me.getIndexExecutor());
+    var cursor = me.getIndexExecutor().getCursor(tx, tx_no,
+        iterator.getStoreName());
+    iterator.load(cursor);
 
     /**
      *

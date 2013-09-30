@@ -27,22 +27,15 @@ goog.require('ydn.db.core.req.ICursor');
  * Open an index. This will resume depending on the cursor state.
  * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_no tx no.
- * @param {!ydn.db.schema.Store} store_schema schema.
- * @param {string} store_name the store name to open.
- * @param {string|undefined} index_name index.
- * @param {IDBKeyRange} keyRange key range.
- * @param {ydn.db.base.Direction} direction cursor direction.
- * @param {boolean} key_only mode.
- * @param {ydn.db.schema.Store.QueryMethod} mth true for keys query method.
+ * @param {ydn.db.schema.Store} store_schema schema.
+ * @param {ydn.db.schema.Store.QueryMethod=} mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
-ydn.db.core.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
-    index_name, keyRange, direction, key_only, mth) {
+ydn.db.core.req.WebsqlCursor = function(tx, tx_no, store_schema, mth) {
 
-  goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
-      key_only, mth);
+  goog.base(this, tx, tx_no, store_schema, mth);
 
   goog.asserts.assert(store_schema);
   /**
@@ -51,11 +44,10 @@ ydn.db.core.req.WebsqlCursor = function(tx, tx_no, store_schema, store_name,
    */
   this.store_schema_ = store_schema;
   /**
-   * @final
+   * @type {ydn.db.schema.Index}
    * @private
    */
-  this.index_ = goog.isString(index_name) ?
-      store_schema.getIndex(index_name) : null;
+  this.index_ = null;
 
   this.current_key_ = undefined;
   this.current_primary_key_ = undefined;
@@ -76,22 +68,6 @@ ydn.db.core.req.WebsqlCursor.DEBUG = false;
  */
 ydn.db.core.req.WebsqlCursor.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.core.req.WebsqlCursor');
-
-
-/**
- *
- * @type {!ydn.db.schema.Store}
- * @private
- */
-ydn.db.core.req.WebsqlCursor.prototype.store_schema_;
-
-
-/**
- *
- * @type {ydn.db.schema.Index}
- * @private
- */
-ydn.db.core.req.WebsqlCursor.prototype.index_;
 
 
 /**
@@ -137,6 +113,18 @@ ydn.db.core.req.WebsqlCursor.prototype.getPrimaryKey = function() {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.core.req.WebsqlCursor.prototype.init = function(store_name,
+    index_name, key_range, direction, is_key_cursor) {
+  goog.base(this, 'init', store_name,
+      index_name, key_range, direction, is_key_cursor);
+  this.index_ = goog.isString(index_name) ?
+      this.store_schema.getIndex(index_name) : null;
+};
+
+
+/**
  * @return {*}
  */
 ydn.db.core.req.WebsqlCursor.prototype.getValue = function() {
@@ -158,12 +146,12 @@ ydn.db.core.req.WebsqlCursor.prototype.collect = function(opt_row) {
   if (goog.isDef(opt_row)) {
     var row = opt_row;
     if (goog.isObject(row)) {
-      var primary_column_name = this.store_schema_.getSQLKeyColumnName();
+      var primary_column_name = this.store_schema.getSQLKeyColumnName();
       var primary_key = ydn.db.schema.Index.sql2js(
-          row[primary_column_name], this.store_schema_.getType());
+          row[primary_column_name], this.store_schema.getType());
       if (this.isIndexCursor()) {
         goog.asserts.assertString(this.index_name);
-        var type = this.store_schema_.getIndex(this.index_name).getType();
+        var type = this.store_schema.getIndex(this.index_name).getType();
         this.current_primary_key_ = primary_key;
         this.current_key_ = ydn.db.schema.Index.sql2js(
             row[this.index_name], type);
@@ -171,7 +159,7 @@ ydn.db.core.req.WebsqlCursor.prototype.collect = function(opt_row) {
         this.current_key_ = primary_key;
       }
       this.current_value_ = !this.isValueCursor() ? primary_key :
-          ydn.db.crud.req.WebSql.parseRow(row, this.store_schema_);
+          ydn.db.crud.req.WebSql.parseRow(row, this.store_schema);
     } else {
       this.current_value_ = row;
     }
@@ -194,7 +182,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
   goog.asserts.assertString(this.index_name);
   // continuing primary key can only happen if there is a effective key.
   goog.asserts.assert(goog.isDefAndNotNull(this.current_key_));
-  var index = this.store_schema_.getIndex(this.index_name);
+  var index = this.store_schema.getIndex(this.index_name);
   var params = [];
 
   var index_name = this.index_name;
@@ -237,14 +225,14 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
       key_range = ydn.db.IDBKeyRange.lowerBound(key);
     }
   }
-  var e_sql = this.store_schema_.inSql(params, this.query_method, index_name,
+  var e_sql = this.store_schema.inSql(params, this.query_method, index_name,
       key_range, this.reverse, this.unique);
 
   var p_key_range = this.reverse ?
       ydn.db.IDBKeyRange.upperBound(primary_key, !opt_inclusive) :
       ydn.db.IDBKeyRange.lowerBound(primary_key, !opt_inclusive);
-  var p_sql = this.store_schema_.inSql(params, this.query_method,
-      this.store_schema_.getSQLKeyColumnName(),
+  var p_sql = this.store_schema.inSql(params, this.query_method,
+      this.store_schema.getSQLKeyColumnName(),
       p_key_range, this.reverse, this.unique);
 
   if (e_sql.where) {
@@ -323,8 +311,8 @@ ydn.db.core.req.WebsqlCursor.prototype.sqlContinueIndexEffectiveKey_ = function(
 
   var index_column = this.index_.getSQLIndexColumnName();
   var q_index_column = this.index_.getSQLIndexColumnNameQuoted();
-  var primary_column = this.store_schema_.getSQLKeyColumnName();
-  var q_primary_column = this.store_schema_.getSQLKeyColumnNameQuoted();
+  var primary_column = this.store_schema.getSQLKeyColumnName();
+  var q_primary_column = this.store_schema.getSQLKeyColumnNameQuoted();
 
   var op = this.reverse ? ' <' : ' >';
   if (open) {
@@ -334,12 +322,12 @@ ydn.db.core.req.WebsqlCursor.prototype.sqlContinueIndexEffectiveKey_ = function(
   }
   var encode_key = ydn.db.schema.Index.js2sql(key, this.index_.getType());
   var encode_primary_key = ydn.db.schema.Index.js2sql(primary_key,
-      this.store_schema_.getType());
+      this.store_schema.getType());
 
   var e_sql;
   var or = '';
   if (this.key_range) {
-    e_sql = this.store_schema_.inSql(params, this.query_method,
+    e_sql = this.store_schema.inSql(params, this.query_method,
         index_column, this.key_range,
         this.reverse, this.unique);
     e_sql.where += ' AND ';
@@ -350,7 +338,7 @@ ydn.db.core.req.WebsqlCursor.prototype.sqlContinueIndexEffectiveKey_ = function(
     var key_range = this.reverse ?
         ydn.db.KeyRange.upperBound(key, true) :
         ydn.db.KeyRange.lowerBound(key, true);
-    e_sql = this.store_schema_.inSql(params, this.query_method,
+    e_sql = this.store_schema.inSql(params, this.query_method,
         index_column, key_range,
         this.reverse, this.unique);
     or = e_sql.where;
@@ -432,8 +420,8 @@ ydn.db.core.req.WebsqlCursor.prototype.sqlContinueEffectiveKey_ = function(
   var key_range = new ydn.db.KeyRange(lower, upper, !!lowerOpen, !!upperOpen);
 
   var column = this.index_ ? this.index_.getSQLIndexColumnName() :
-      this.store_schema_.getSQLKeyColumnName();
-  var e_sql = this.store_schema_.inSql(params, this.query_method,
+      this.store_schema.getSQLKeyColumnName();
+  var e_sql = this.store_schema.inSql(params, this.query_method,
       column, key_range, this.reverse, this.unique);
 
 
@@ -444,7 +432,7 @@ ydn.db.core.req.WebsqlCursor.prototype.sqlContinueEffectiveKey_ = function(
 
   if (this.isIndexCursor()) {
     var order = this.reverse ? 'DESC' : 'ASC';
-    sql += ', ' + this.store_schema_.getSQLKeyColumnNameQuoted() + order;
+    sql += ', ' + this.store_schema.getSQLKeyColumnNameQuoted() + order;
   }
 
   return sql;
@@ -477,13 +465,13 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
     sql = this.sqlContinueEffectiveKey_(params, callback, opt_key, open);
   } else {
     var column = this.isPrimaryCursor() ?
-        this.store_schema_.getSQLKeyColumnName() :
+        this.store_schema.getSQLKeyColumnName() :
         this.index_.getSQLIndexColumnName();
-    sql = this.store_schema_.toSql(params, this.query_method, column,
+    sql = this.store_schema.toSql(params, this.query_method, column,
         this.key_range, this.reverse, this.unique);
     if (this.isIndexCursor()) {
       var order = this.reverse ? 'DESC' : 'ASC';
-      sql += ', ' + this.store_schema_.getSQLKeyColumnNameQuoted() + ' ASC';
+      sql += ', ' + this.store_schema.getSQLKeyColumnNameQuoted() + ' ASC';
     }
   }
 
@@ -602,9 +590,9 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
   };
 
   goog.asserts.assertObject(obj);
-  var out = me.store_schema_.getIndexedValues(obj, primary_key);
+  var out = me.store_schema.getIndexedValues(obj, primary_key);
 
-  var sql = 'REPLACE INTO ' + this.store_schema_.getQuotedName() +
+  var sql = 'REPLACE INTO ' + this.store_schema.getQuotedName() +
       ' (' + out.columns.join(', ') + ')' +
       ' VALUES (' + out.slots.join(', ') + ')' +
       ' ON CONFLICT FAIL';
@@ -696,8 +684,8 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey = function(key) {
  */
 ydn.db.core.req.WebsqlCursor.prototype.prepareBaseSql = function(params) {
   var column = this.index_ ? this.index_.getSQLIndexColumnName() :
-      this.store_schema_.getSQLKeyColumnName();
-  var sql = this.store_schema_.inSql(params, this.query_method,
+      this.store_schema.getSQLKeyColumnName();
+  var sql = this.store_schema.inSql(params, this.query_method,
       column, this.key_range, this.reverse, this.unique);
   return sql;
 };
@@ -754,8 +742,8 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
 
   };
 
-  var primary_column_name = this.store_schema_.getSQLKeyColumnName();
-  var sql = 'DELETE FROM ' + this.store_schema_.getQuotedName() +
+  var primary_column_name = this.store_schema.getSQLKeyColumnName();
+  var sql = 'DELETE FROM ' + this.store_schema.getQuotedName() +
       ' WHERE ' + primary_column_name + ' = ?';
   var params = [this.getPrimaryKey()];
   me.logger.finest(this + ': clear "' + sql + '" : ' +

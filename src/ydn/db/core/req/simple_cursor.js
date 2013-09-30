@@ -16,24 +16,16 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no.
  * @param {!ydn.db.schema.Store} store_schema schema.
- * @param {string} store_name the store name to open.
- * @param {string|undefined} index_name index.
- * @param {IDBKeyRange} keyRange
- * @param {ydn.db.base.Direction} direction we are using old spec.
- * @param {boolean} key_only mode.
- * @param {ydn.db.schema.Store.QueryMethod} q_mth true for keys query method.
+ * @param {ydn.db.schema.Store.QueryMethod=} q_mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
-ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, store_name,
-    index_name, keyRange, direction, key_only, q_mth) {
+ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, q_mth) {
 
-  goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
-      key_only, q_mth);
+  goog.base(this, tx, tx_no, store_schema, q_mth);
 
   goog.asserts.assert(store_schema);
-  this.store_schema_ = store_schema;
 
   this.key_ = undefined;
   this.primary_key_ = undefined;
@@ -80,7 +72,7 @@ ydn.db.core.req.SimpleCursor.prototype.logger =
  * @type {!ydn.db.schema.Store}
  * @private
  */
-ydn.db.core.req.SimpleCursor.prototype.store_schema_;
+ydn.db.core.req.SimpleCursor.prototype.store_schema;
 
 
 /**

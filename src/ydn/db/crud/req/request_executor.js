@@ -81,31 +81,6 @@ if (goog.DEBUG) {
 }
 
 
-/**
- * Lookup index from the schema.
- * @param {ydn.db.schema.Store} store store name.
- * @param {!Array.<string>|string} index_name_or_key_path index name or
- * key path.
- * @return {string} index name.
- */
-ydn.db.crud.req.RequestExecutor.prototype.getIndexName = function(store,
-    index_name_or_key_path) {
-
-  var index;
-  var index_name = index_name_or_key_path;
-  if (goog.isArray(index_name_or_key_path)) {
-    index = store.getIndexByKeyPath(index_name_or_key_path);
-    index_name = index_name_or_key_path.join(', ');
-  } else {
-    index = store.getIndex(index_name_or_key_path);
-  }
-  if (goog.DEBUG && !index) {
-    throw new ydn.debug.error.ArgumentException('require index "' +
-        index_name + '" not found in store "' + store.getName() + '"');
-  }
-  return index.getName();
-};
-
 
 
 

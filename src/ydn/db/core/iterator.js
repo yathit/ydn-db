@@ -128,11 +128,23 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
   this.key_range_ = ydn.db.KeyRange.parseIDBKeyRange(opt_key_range);
 
   /**
-   * transient properties during cursor iteration
-   * @type {ydn.db.core.req.AbstractCursor}
+   * cursor state
+   * @type {ydn.db.Iterator.State}
    * @private
    */
-  this.cursor_ = null;
+  this.state_ = ydn.db.Iterator.State.INITIAL;
+  /**
+   * current effective key.
+   * @type {IDBKey|undefined}
+   * @private
+   */
+  this.i_key_;
+  /**
+   * current primary key.
+   * @type {IDBKey|undefined}
+   * @private
+   */
+  this.i_primary_key_;
 
 };
 
@@ -336,8 +348,8 @@ goog.inherits(ydn.db.IndexValueIterator, ydn.db.Iterator);
  * @param {IDBKey=} opt_value2 second rvalue to compare.
  * @return {!ydn.db.IndexValueIterator}
  */
-ydn.db.IndexValueIterator.where = function(store_name, index, op, value, opt_op2,
-                                          opt_value2) {
+ydn.db.IndexValueIterator.where = function(store_name, index, op, value,
+                                           opt_op2, opt_value2) {
   return new ydn.db.IndexValueIterator(store_name, index,
       ydn.db.KeyRange.where(op, value, opt_op2, opt_value2));
 };
@@ -353,7 +365,6 @@ ydn.db.Iterator.State = {
   RESTING: 'rest',
   COMPLETED: 'done'
 };
-
 
 
 /**
@@ -566,8 +577,7 @@ ydn.db.Iterator.prototype.resume = function(key, opt_primary_key) {
   var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, this.isReversed(), this.isUnique(),
       this.is_key_iterator_, this.index_key_path_);
-  iter.cursor_ = this.cursor_.clone();
-  return iter;
+  throw new Error('not possible');
 };
 
 
@@ -624,40 +634,27 @@ ydn.db.Iterator.prototype.getNextKeyRange = function() {
  * @return {ydn.db.Iterator.State} iterator state.
  */
 ydn.db.Iterator.prototype.getState = function() {
-  if (!this.cursor_) {
-    return ydn.db.Iterator.State.INITIAL;
-  } else if (this.cursor_.hasDone()) {
-    return ydn.db.Iterator.State.COMPLETED;
-  } else {
-    if (this.cursor_.isExited()) {
-      return ydn.db.Iterator.State.RESTING;
-    } else {
-      return ydn.db.Iterator.State.WORKING;
-    }
-  }
+  return this.state_;
 };
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx tx.
- * @param {string} tx_lbl tx label.
- * @param {ydn.db.core.req.IRequestExecutor} executor executor.
- * @param {ydn.db.schema.Store.QueryMethod=} opt_query query method.
- * @return {!ydn.db.core.req.AbstractCursor} newly created cursor.
+ * Load cursor.
+ * @param {ydn.db.core.req.AbstractCursor} cursor
  */
-ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
-                                             opt_query) {
-
-  var query_mth = opt_query || ydn.db.schema.Store.QueryMethod.VALUES;
-  if (this.cursor_) {
-    this.cursor_.resume(tx, tx_lbl);
-  } else {
-    this.cursor_ = executor.getCursor(tx, tx_lbl, this.store_name_,
-        this.index_key_path_ || this.index_name_,
-        this.key_range_, this.direction_, this.is_key_iterator_, query_mth);
-    this.cursor_.openCursor();
-  }
-  return this.cursor_;
+ydn.db.Iterator.prototype.load = function(cursor) {
+  cursor.init(this.store_name_,
+      this.index_key_path_ || this.index_name_,
+      this.key_range_, this.direction_, this.is_key_iterator_);
+  this.state_ = ydn.db.Iterator.State.WORKING;
+  var me = this;
+  cursor.onTerminated = function(is_existed, key, primary_key) {
+    me.i_key_ = key;
+    me.i_primary_key_ = primary_key;
+    me.state_ = is_existed ? ydn.db.Iterator.State.RESTING :
+        ydn.db.Iterator.State.COMPLETED;
+  };
+  cursor.openCursor(this.i_key_, this.i_primary_key_);
 };
 
 
@@ -666,7 +663,7 @@ ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
  * @return {*|undefined} Current cursor key.
  */
 ydn.db.Iterator.prototype.getKey = function() {
-  return this.cursor_ ? this.cursor_.getKey() : undefined;
+  return this.i_key_;
 };
 
 
@@ -675,7 +672,7 @@ ydn.db.Iterator.prototype.getKey = function() {
  * @return {*|undefined} Current cursor index key.
  */
 ydn.db.Iterator.prototype.getPrimaryKey = function() {
-  return this.cursor_ ? this.cursor_.getPrimaryKey() : undefined;
+  return this.i_primary_key_;
 };
 
 
@@ -686,7 +683,9 @@ ydn.db.Iterator.prototype.reset = function() {
   if (this.getState() == ydn.db.Iterator.State.WORKING) {
     throw new ydn.error.InvalidOperationError(ydn.db.Iterator.State.WORKING);
   }
-  this.cursor_ = null;
+  this.i_key_ = undefined;
+  this.i_primary_key_ = undefined;
+  this.state_ = ydn.db.Iterator.State.INITIAL;
 };
 
 

@@ -54,7 +54,8 @@ ydn.db.core.req.SimpleStore.prototype.keysByIterator = function(rq,
   var msg = tx_no + ' keysByIterator:' + iter;
   var me = this;
   this.logger.finest(msg);
-  var cursor = iter.iterate(tx, tx_no, this);
+  var cursor = this.getCursor(tx, tx_no, iter.getStoreName());
+  iter.load(cursor);
   cursor.onFail = function(e) {
     rq.setDbValue(e, true);
   };
@@ -107,7 +108,8 @@ ydn.db.core.req.SimpleStore.prototype.iterate_ = function(mth, rq,
   var msg = tx_no + ' listByIterator' + iter;
   var me = this;
   this.logger.finest(msg);
-  var cursor = iter.iterate(tx, tx_no, this);
+  var cursor = this.getCursor(tx, tx_no, iter.getStoreName());
+  iter.load(cursor);
   cursor.onFail = function(e) {
     cursor.exit();
     rq.setDbValue(e, true);
@@ -166,17 +168,11 @@ ydn.db.core.req.SimpleStore.prototype.getByIterator = function(rq, iter) {
 /**
  * @inheritDoc
  */
-ydn.db.core.req.SimpleStore.prototype.getCursor = function(tx, tx_no,
-    store_name, index_name, keyRange, direction, key_only, key_query) {
-
+ydn.db.core.req.SimpleStore.prototype.getCursor = function(tx, lbl,
+                                                           store_name, mth) {
   var store = this.schema.getStore(store_name);
   goog.asserts.assertObject(store, 'store "' + store_name + '" not found.');
-  if (goog.isDef(index_name)) {
-    index_name = this.getIndexName(store, index_name);
-  }
-
-  return new ydn.db.core.req.SimpleCursor(tx, tx_no, store, store_name,
-      index_name, keyRange, direction, key_only, key_query);
+  return new ydn.db.core.req.SimpleCursor(tx, lbl, store, mth);
 };
 
 

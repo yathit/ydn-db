@@ -15,22 +15,15 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no
  * @param {!ydn.db.schema.Store} store_schema schema.
- * @param {string} store_name the store name to open.
- * @param {string|undefined} index_name index
- * @param {IDBKeyRange} keyRange
- * @param {ydn.db.base.Direction} direction we are using old spec
- * @param {boolean} key_only mode.
- * @param {ydn.db.schema.Store.QueryMethod} key_query true for keys query
+ * @param {ydn.db.schema.Store.QueryMethod=} key_query true for keys query
  * method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
-ydn.db.core.req.CachedWebsqlCursor = function(tx, tx_no, store_schema,
-    store_name, index_name, keyRange, direction, key_only, key_query) {
+ydn.db.core.req.CachedWebsqlCursor = function(tx, tx_no, store_schema, key_query) {
 
-  goog.base(this, tx, tx_no, store_name, index_name, keyRange, direction,
-      key_only, key_query);
+  goog.base(this, tx, tx_no, store_schema, key_query);
 
 
   goog.asserts.assert(store_schema);
