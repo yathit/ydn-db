@@ -32,7 +32,7 @@ ydn.db.crud.IOperator = function() {};
 
 /**
  *
- * @param {!Array.<string>|string} store_name store name or names.
+ * @param {*|!Array.<string>|string} store_name store name or names.
  * @param {(string|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} opt_key_range_index
  * index name or key range.
  * @param {(ydn.db.KeyRange|ydn.db.IDBKeyRange)=} opt_key_range key range if

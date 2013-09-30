@@ -79,4 +79,3 @@ ydn.db.core.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
  * @return {!ydn.db.Streamer}
  */
 ydn.db.core.req.IRequestExecutor.prototype.getStreamer = goog.abstractMethod;
-

@@ -118,13 +118,16 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
       count++;
       if (is_keys) {
         arr.push(opt_key);
+      } else if (mth == ydn.db.base.SqlQueryMethod.COUNT) {
+        // no result needed.
       } else {
         arr.push(iter.isKeyIterator() ? primary_key : cursor.getValue());
       }
       if (mth == ydn.db.base.SqlQueryMethod.GET) {
         cursor.exit();
         rq.setDbValue(arr[0]);
-      } else if (!goog.isDef(opt_limit) || count < opt_limit) {
+      } else if (mth == ydn.db.base.SqlQueryMethod.COUNT ||
+          !goog.isDef(opt_limit) || count < opt_limit) {
         cursor.continueEffectiveKey();
       } else {
         me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
@@ -134,7 +137,9 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
     } else {
       me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
       cursor.exit();
-      var result = mth == ydn.db.base.SqlQueryMethod.GET ? arr[0] : arr;
+      var result =
+          mth == ydn.db.base.SqlQueryMethod.GET ? arr[0] :
+          mth == ydn.db.base.SqlQueryMethod.COUNT ? count : arr;
       rq.setDbValue(result);
     }
   };

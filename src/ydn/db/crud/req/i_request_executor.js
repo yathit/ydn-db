@@ -112,7 +112,8 @@ ydn.db.crud.req.IRequestExecutor.prototype.countStores = goog.abstractMethod;
  * @param {string} table store name.
  * @param {IDBKeyRange} keyRange the key range.
  * @param {(string|undefined)} index name.
- * @param {boolean} unique count unique index key.
+ * @param {boolean} unique count unique index key. Note: indexeddb cannot
+ * count with unique, while websql can.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.countKeyRange = goog.abstractMethod;
 

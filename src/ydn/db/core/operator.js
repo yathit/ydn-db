@@ -175,11 +175,10 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3) {
      * @type {!ydn.db.Iterator}
      */
     var q = arg1;
-    this.logger.finer('countKeyRange:' + q);
+    this.logger.finer('countIterator:' + q);
     var df = this.tx_thread.request(ydn.db.Request.Method.COUNT, q.stores());
     df.addTxback(function() {
-      this.getIndexExecutor().countKeyRange(df, q.getStoreName(),
-          q.keyRange(), q.getIndexName(), q.isUnique());
+      this.iterate(ydn.db.base.SqlQueryMethod.COUNT, df, q);
     }, this);
 
     return df;
@@ -780,6 +779,84 @@ ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
   return df;
 };
 
+
+/**
+ * List record in a store.
+ * @param {ydn.db.base.SqlQueryMethod} mth keys method.
+ * @param {ydn.db.Request} rq request.
+ * @param {!ydn.db.Iterator} iter iterator.
+ * @param {number=} opt_limit limit.
+ * @param {number=} opt_offset limit.
+ * @protected
+ */
+ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
+                                                    opt_limit, opt_offset) {
+  var arr = [];
+
+  var tx = rq.getTx();
+  var tx_no = rq.getLabel();
+  var is_keys = mth == ydn.db.base.SqlQueryMethod.KEYS;
+  var msg = tx_no + ' ' + mth + 'ByIterator ' + iter;
+  if (opt_limit > 0) {
+    msg += ' limit ' + opt_limit;
+  }
+  var me = this;
+  this.logger.finer(msg);
+  var executor = this.getIndexExecutor();
+  var cursor = executor.getCursor(tx, tx_no, iter.getStoreName());
+  iter.load(cursor);
+  cursor.onFail = function(e) {
+    cursor.exit();
+    rq.setDbValue(e, true);
+  };
+  var count = 0;
+  var cued = false;
+  var displayed = false;
+  /**
+   * @param {IDBKey=} opt_key
+   */
+  cursor.onNext = function(opt_key) {
+    if (!displayed) {
+      me.logger.finest(msg + ' starting');
+      displayed = true;
+    }
+    if (goog.isDefAndNotNull(opt_key)) {
+      var primary_key = iter.isIndexIterator() ?
+          cursor.getPrimaryKey() : opt_key;
+      if (!cued && opt_offset > 0) {
+        cursor.advance(opt_offset);
+        cued = true;
+        return;
+      }
+      count++;
+      if (is_keys) {
+        arr.push(opt_key);
+      } else if (mth == ydn.db.base.SqlQueryMethod.COUNT) {
+        // no result needed.
+      } else {
+        arr.push(iter.isKeyIterator() ? primary_key : cursor.getValue());
+      }
+      if (mth == ydn.db.base.SqlQueryMethod.GET) {
+        cursor.exit();
+        rq.setDbValue(arr[0]);
+      } else if (mth == ydn.db.base.SqlQueryMethod.COUNT ||
+          !goog.isDef(opt_limit) || count < opt_limit) {
+        cursor.continueEffectiveKey();
+      } else {
+        me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
+        cursor.exit();
+        rq.setDbValue(arr);
+      }
+    } else {
+      me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
+      cursor.exit();
+      var result =
+          mth == ydn.db.base.SqlQueryMethod.GET ? arr[0] :
+              mth == ydn.db.base.SqlQueryMethod.COUNT ? count : arr;
+      rq.setDbValue(result);
+    }
+  };
+};
 
 
 

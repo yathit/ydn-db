@@ -35,3 +35,5 @@ ydn.db.core.IOperator.prototype.map = goog.abstractMethod;
 ydn.db.core.IOperator.prototype.reduce = goog.abstractMethod;
 
 
+
+

@@ -1118,7 +1118,12 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(req, keys) {
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
-    table, keyRange, index_name) {
+    table, keyRange, index_name, unique) {
+
+  if (goog.DEBUG && !!index_name && !!unique) {
+    throw new ydn.error.InvalidOperationException(
+        'unique count not available in IndexedDB');
+  }
 
   var me = this;
   var store = req.getTx().objectStore(table);
