@@ -59,16 +59,6 @@ ydn.db.core.req.IndexedDb.prototype.logger =
 
 
 /**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(rq,
-    iter, limit, offset) {
-  this.iterate_(ydn.db.base.SqlQueryMethod.KEYS, rq, iter,
-      limit, offset);
-};
-
-
-/**
  * List record in a store.
  * @param {ydn.db.base.SqlQueryMethod} mth keys method.
  * @param {ydn.db.Request} rq request.
@@ -143,24 +133,6 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
       rq.setDbValue(result);
     }
   };
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.listByIterator = function(rq,
-    iter, limit, offset) {
-  this.iterate_(ydn.db.base.SqlQueryMethod.VALUES, rq, iter,
-      limit, offset);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.IndexedDb.prototype.getByIterator = function(rq, iter) {
-  this.iterate_(ydn.db.base.SqlQueryMethod.GET, rq, iter, 1, 0);
 };
 
 

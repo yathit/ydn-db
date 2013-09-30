@@ -101,7 +101,7 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
     var df = this.tx_thread.request(ydn.db.Request.Method.GET_ITER,
         [q_store_name]);
     df.addTxback(function() {
-      this.getIndexExecutor().getByIterator(df, q);
+      this.iterate(ydn.db.base.SqlQueryMethod.GET, df, q, 1);
     }, this);
     return df;
   } else {
@@ -148,7 +148,7 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) {
     var df = this.tx_thread.request(ydn.db.Request.Method.KEYS_ITER,
         q.stores());
     df.addTxback(function() {
-      this.getIndexExecutor().keysByIterator(df, q, limit);
+      this.iterate(ydn.db.base.SqlQueryMethod.KEYS, df, q, limit);
     }, this);
 
     return df;
@@ -226,7 +226,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
     var df = this.tx_thread.request(ydn.db.Request.Method.VALUES_ITER,
         q.stores());
     df.addTxback(function() {
-      this.getIndexExecutor().listByIterator(df, q, limit);
+      this.iterate(ydn.db.base.SqlQueryMethod.VALUES, df, q, limit);
     }, this);
 
     return df;

@@ -33,35 +33,6 @@ ydn.db.core.req.IRequestExecutor = function() {};
 
 
 /**
- * List record in a store.
- * @param {ydn.db.Request} req request.
- * @param {!ydn.db.Iterator} store_name  store name.
- * @param {number=} opt_limit limit.
- */
-ydn.db.core.req.IRequestExecutor.prototype.keysByIterator =
-    goog.abstractMethod;
-
-
-/**
- * List record in a store.
- * @param {ydn.db.Request} req request.
- * @param {!ydn.db.Iterator} iter  store name.
- */
-ydn.db.core.req.IRequestExecutor.prototype.getByIterator =
-    goog.abstractMethod;
-
-
-/**
- * List record in a store.
- * @param {ydn.db.Request} req request.
- * @param {!ydn.db.Iterator} iter  store name.
- * @param {number=} opt_limit limit.
- */
-ydn.db.core.req.IRequestExecutor.prototype.listByIterator =
-    goog.abstractMethod;
-
-
-/**
  * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx request label.
  * @param {string} store_name schema.

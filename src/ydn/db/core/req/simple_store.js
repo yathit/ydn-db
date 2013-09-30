@@ -43,55 +43,6 @@ ydn.db.core.req.SimpleStore.DEBUG = false;
 
 
 /**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.keysByIterator = function(rq,
-    iter, limit, offset) {
-  var arr = [];
-  //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);  '
-  var tx_no = rq.getLabel();
-  var tx = rq.getTx();
-  var msg = tx_no + ' keysByIterator:' + iter;
-  var me = this;
-  this.logger.finest(msg);
-  var cursor = this.getCursor(tx, tx_no, iter.getStoreName());
-  iter.load(cursor);
-  cursor.onFail = function(e) {
-    rq.setDbValue(e, true);
-  };
-  var count = 0;
-  var cued = false;
-  /**
-   * @param {IDBKey=} opt_key
-   */
-  cursor.onNext = function(opt_key) {
-    if (ydn.db.core.req.SimpleStore.DEBUG) {
-      window.console.log('receiving keysByIterator onNext: ' + opt_key);
-    }
-    if (goog.isDefAndNotNull(opt_key)) {
-      if (!cued && offset > 0) {
-        cursor.advance(offset);
-        cued = true;
-        return;
-      }
-      count++;
-
-      arr.push(opt_key);
-      if (!goog.isDef(limit) || count < limit) {
-        cursor.advance(1);
-      } else {
-        cursor.exit();
-        rq.setDbValue(arr);
-      }
-    } else {
-      cursor.exit();
-      rq.setDbValue(arr);
-    }
-  };
-};
-
-
-/**
  * @param {ydn.db.base.SqlQueryMethod} mth method.
  * @param {ydn.db.Request} rq request.
  * @param {!ydn.db.Iterator} iter  store name.
@@ -144,24 +95,6 @@ ydn.db.core.req.SimpleStore.prototype.iterate_ = function(mth, rq,
       rq.setDbValue(rs);
     }
   };
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.listByIterator = function(rq, iter, limit,
-                                                                offset) {
-  this.iterate_(ydn.db.base.SqlQueryMethod.VALUES, rq, iter, limit,
-      offset);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.req.SimpleStore.prototype.getByIterator = function(rq, iter) {
-  this.iterate_(ydn.db.base.SqlQueryMethod.GET, rq, iter, 1, 0);
 };
 
 
