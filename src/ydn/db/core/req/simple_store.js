@@ -92,7 +92,7 @@ ydn.db.core.req.SimpleStore.prototype.keysByIterator = function(rq,
 
 
 /**
- * @param {ydn.db.schema.Store.QueryMethod} mth method.
+ * @param {ydn.db.base.SqlQueryMethod} mth method.
  * @param {ydn.db.Request} rq request.
  * @param {!ydn.db.Iterator} iter  store name.
  * @param {number=} opt_limit limit.
@@ -135,12 +135,12 @@ ydn.db.core.req.SimpleStore.prototype.iterate_ = function(mth, rq,
         cursor.advance(1);
       } else {
         cursor.exit();
-        var rs = ydn.db.schema.Store.QueryMethod.GET == mth ? arr[0] : arr;
+        var rs = ydn.db.base.SqlQueryMethod.GET == mth ? arr[0] : arr;
         rq.setDbValue(rs);
       }
     } else {
       cursor.exit();
-      var rs = ydn.db.schema.Store.QueryMethod.GET == mth ? arr[0] : arr;
+      var rs = ydn.db.base.SqlQueryMethod.GET == mth ? arr[0] : arr;
       rq.setDbValue(rs);
     }
   };
@@ -152,7 +152,7 @@ ydn.db.core.req.SimpleStore.prototype.iterate_ = function(mth, rq,
  */
 ydn.db.core.req.SimpleStore.prototype.listByIterator = function(rq, iter, limit,
                                                                 offset) {
-  this.iterate_(ydn.db.schema.Store.QueryMethod.VALUES, rq, iter, limit,
+  this.iterate_(ydn.db.base.SqlQueryMethod.VALUES, rq, iter, limit,
       offset);
 };
 
@@ -161,7 +161,7 @@ ydn.db.core.req.SimpleStore.prototype.listByIterator = function(rq, iter, limit,
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.getByIterator = function(rq, iter) {
-  this.iterate_(ydn.db.schema.Store.QueryMethod.GET, rq, iter, 1, 0);
+  this.iterate_(ydn.db.base.SqlQueryMethod.GET, rq, iter, 1, 0);
 };
 
 

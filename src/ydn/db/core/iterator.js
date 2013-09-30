@@ -84,22 +84,26 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
    * @private
    */
   this.is_index_iterator_ = !!this.index_name_;
+  if (goog.DEBUG) {
+    if (goog.isDef(opt_reverse) && !goog.isBoolean(opt_reverse)) {
+      throw new ydn.debug.error.ArgumentException('reverse value must be' +
+          ' a boolean, but ' + typeof opt_reverse + ' found');
+    }
+    if (goog.isDef(opt_unique) && !goog.isBoolean(opt_unique)) {
+      throw new ydn.debug.error.ArgumentException('unique value must be' +
+          ' a boolean, but ' + typeof opt_unique + ' found');
+    }
+    if (goog.isDef(opt_key_only) && !goog.isBoolean(opt_key_only)) {
+      throw new ydn.debug.error.ArgumentException('key_only value must be' +
+          ' a boolean, but ' + typeof opt_key_only + ' found');
+    }
+  }
   /**
    * @final
    * @private
    */
   this.is_key_iterator_ = goog.isDef(opt_key_only) ?
       opt_key_only : !!(goog.isString(this.index_name_));
-  if (goog.DEBUG && !goog.isBoolean(this.is_key_iterator_)) {
-    throw new TypeError('key_only');
-  }
-
-  if (goog.DEBUG && goog.isDef(opt_reverse) && !goog.isBoolean(opt_reverse)) {
-    throw new TypeError('reverse');
-  }
-  if (goog.DEBUG && goog.isDef(opt_unique) && !goog.isBoolean(opt_unique)) {
-    throw new TypeError('unique');
-  }
   var direction = ydn.db.base.Direction.NEXT;
   if (opt_reverse && opt_unique) {
     direction = ydn.db.base.Direction.PREV_UNIQUE;
@@ -485,15 +489,6 @@ ydn.db.Iterator.prototype.isKeyIterator = function() {
 
 
 /**
- * @return {boolean} <code>true</code> if value iterator, <code>false</code>
- * if key iterator.
- */
-ydn.db.Iterator.prototype.isValueIterator = function() {
-  return !this.is_key_iterator_;
-};
-
-
-/**
  *
  * @return {boolean} true if index iterator.
  */
@@ -520,6 +515,18 @@ ydn.db.Iterator.prototype.isPrimaryIterator = function() {
 ydn.db.Iterator.prototype.clone = function() {
   return new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, this.isReversed(), this.isUnique(), this.isKeyIterator(),
+      this.index_key_path_);
+};
+
+
+/**
+ * Set unique state.
+ * @param {boolean} val
+ * @return {!ydn.db.Iterator} newly created iterator.
+ */
+ydn.db.Iterator.prototype.unique = function(val) {
+  return new ydn.db.Iterator(this.store_name_, this.index_name_,
+      this.key_range_, this.isReversed(), val, this.isKeyIterator(),
       this.index_key_path_);
 };
 
@@ -655,6 +662,16 @@ ydn.db.Iterator.prototype.load = function(cursor) {
         ydn.db.Iterator.State.COMPLETED;
   };
   cursor.openCursor(this.i_key_, this.i_primary_key_);
+};
+
+
+/**
+ * @return {boolean} return true if iterator is fresh state, i.e., iteration
+ * will start without starting point.
+ */
+ydn.db.Iterator.prototype.isFreshState = function() {
+  return this.state_ == ydn.db.Iterator.State.INITIAL ||
+      this.state_ == ydn.db.Iterator.State.COMPLETED;
 };
 
 

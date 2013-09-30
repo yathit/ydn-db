@@ -124,13 +124,13 @@ ydn.db.MultiIterator.prototype.order = function(field_name, value) {
  * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_lbl tx label.
  * @param {ydn.db.core.req.IRequestExecutor} executor executor.
- * @param {ydn.db.schema.Store.QueryMethod=} opt_query query method.
+ * @param {ydn.db.base.SqlQueryMethod=} opt_query query method.
  * @return {!ydn.db.Cursor} newly created cursor.
  */
 ydn.db.Iterator.prototype.iterate = function(tx, tx_lbl, executor,
                                              opt_query) {
 
-  var query_mth = opt_query || ydn.db.schema.Store.QueryMethod.VALUES;
+  var query_mth = opt_query || ydn.db.base.SqlQueryMethod.VALUES;
   var cursor = executor.getCursor(tx, tx_lbl, this.store_name_,
       this.index_key_path_ || this.index_name_,
       this.key_range_, this.direction_, this.is_key_iterator_, query_mth);

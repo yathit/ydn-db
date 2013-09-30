@@ -63,14 +63,14 @@ ydn.db.core.req.IndexedDb.prototype.logger =
  */
 ydn.db.core.req.IndexedDb.prototype.keysByIterator = function(rq,
     iter, limit, offset) {
-  this.iterate_(ydn.db.schema.Store.QueryMethod.KEYS, rq, iter,
+  this.iterate_(ydn.db.base.SqlQueryMethod.KEYS, rq, iter,
       limit, offset);
 };
 
 
 /**
  * List record in a store.
- * @param {ydn.db.schema.Store.QueryMethod} mth keys method.
+ * @param {ydn.db.base.SqlQueryMethod} mth keys method.
  * @param {ydn.db.Request} rq request.
  * @param {!ydn.db.Iterator} iter iterator.
  * @param {number=} opt_limit limit.
@@ -83,7 +83,7 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
 
   var tx = rq.getTx();
   var tx_no = rq.getLabel();
-  var is_keys = mth == ydn.db.schema.Store.QueryMethod.KEYS;
+  var is_keys = mth == ydn.db.base.SqlQueryMethod.KEYS;
   var msg = tx_no + ' ' + mth + 'ByIterator ' + iter;
   if (opt_limit > 0) {
     msg += ' limit ' + opt_limit;
@@ -121,7 +121,7 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
       } else {
         arr.push(iter.isKeyIterator() ? primary_key : cursor.getValue());
       }
-      if (mth == ydn.db.schema.Store.QueryMethod.GET) {
+      if (mth == ydn.db.base.SqlQueryMethod.GET) {
         cursor.exit();
         rq.setDbValue(arr[0]);
       } else if (!goog.isDef(opt_limit) || count < opt_limit) {
@@ -134,7 +134,7 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
     } else {
       me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
       cursor.exit();
-      var result = mth == ydn.db.schema.Store.QueryMethod.GET ? arr[0] : arr;
+      var result = mth == ydn.db.base.SqlQueryMethod.GET ? arr[0] : arr;
       rq.setDbValue(result);
     }
   };
@@ -146,7 +146,7 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
  */
 ydn.db.core.req.IndexedDb.prototype.listByIterator = function(rq,
     iter, limit, offset) {
-  this.iterate_(ydn.db.schema.Store.QueryMethod.VALUES, rq, iter,
+  this.iterate_(ydn.db.base.SqlQueryMethod.VALUES, rq, iter,
       limit, offset);
 };
 
@@ -155,7 +155,7 @@ ydn.db.core.req.IndexedDb.prototype.listByIterator = function(rq,
  * @inheritDoc
  */
 ydn.db.core.req.IndexedDb.prototype.getByIterator = function(rq, iter) {
-  this.iterate_(ydn.db.schema.Store.QueryMethod.GET, rq, iter, 1, 0);
+  this.iterate_(ydn.db.base.SqlQueryMethod.GET, rq, iter, 1, 0);
 };
 
 

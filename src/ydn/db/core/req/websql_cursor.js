@@ -28,7 +28,7 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_no tx no.
  * @param {ydn.db.schema.Store} store_schema schema.
- * @param {ydn.db.schema.Store.QueryMethod=} mth true for keys query method.
+ * @param {ydn.db.base.SqlQueryMethod=} mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor

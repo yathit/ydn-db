@@ -65,7 +65,7 @@ ydn.db.core.req.WebSql.prototype.logger =
  */
 ydn.db.core.req.WebSql.prototype.keysByIterator = function(rq, iter,
                                                            limit, offset) {
-  this.fetchIterator_(rq, iter, ydn.db.schema.Store.QueryMethod.KEYS,
+  this.fetchIterator_(rq, iter, ydn.db.base.SqlQueryMethod.KEYS,
       limit, offset);
 };
 
@@ -74,7 +74,7 @@ ydn.db.core.req.WebSql.prototype.keysByIterator = function(rq, iter,
  * @inheritDoc
  */
 ydn.db.core.req.WebSql.prototype.getByIterator = function(rq, iter) {
-  this.fetchIterator_(rq, iter, ydn.db.schema.Store.QueryMethod.GET, 1, 0);
+  this.fetchIterator_(rq, iter, ydn.db.base.SqlQueryMethod.GET, 1, 0);
 };
 
 
@@ -84,7 +84,7 @@ ydn.db.core.req.WebSql.prototype.getByIterator = function(rq, iter) {
 ydn.db.core.req.WebSql.prototype.listByIterator = function(rq, q,
                                                            limit, offset) {
 
-  this.fetchIterator_(rq, q, ydn.db.schema.Store.QueryMethod.VALUES,
+  this.fetchIterator_(rq, q, ydn.db.base.SqlQueryMethod.VALUES,
       limit, offset);
 
 };
@@ -93,7 +93,7 @@ ydn.db.core.req.WebSql.prototype.listByIterator = function(rq, q,
 /**
  * @param {ydn.db.Request} rq request.
  * @param {!ydn.db.Iterator} iter the query.
- * @param {ydn.db.schema.Store.QueryMethod} mth query method.
+ * @param {ydn.db.base.SqlQueryMethod} mth query method.
  * @param {number=} opt_limit override limit.
  * @param {number=} opt_offset offset.
  * @private
@@ -105,9 +105,9 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(rq, iter,
   var tx_no = rq.getLabel();
   var arr = [];
   //var req = this.openQuery_(q, ydn.db.base.CursorMode.KEY_ONLY);
-  var q = mth == ydn.db.schema.Store.QueryMethod.KEYS ? 'keys' :
-      mth == ydn.db.schema.Store.QueryMethod.VALUES ? 'values' :
-      mth == ydn.db.schema.Store.QueryMethod.COUNT ? 'count' : '';
+  var q = mth == ydn.db.base.SqlQueryMethod.KEYS ? 'keys' :
+      mth == ydn.db.base.SqlQueryMethod.VALUES ? 'values' :
+      mth == ydn.db.base.SqlQueryMethod.COUNT ? 'count' : '';
   var msg = tx_no + ' ' + q + 'ByIterator ' + iter;
   if (opt_limit > 0) {
     msg += ' limit ' + opt_limit;
@@ -138,7 +138,7 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(rq, iter,
       }
       count++;
       var out;
-      if (mth == ydn.db.schema.Store.QueryMethod.KEYS) {
+      if (mth == ydn.db.base.SqlQueryMethod.KEYS) {
         out = key;
       } else {           // call by values() method
         if (iter.isIndexIterator() && iter.isKeyIterator()) {
@@ -153,13 +153,13 @@ ydn.db.core.req.WebSql.prototype.fetchIterator_ = function(rq, iter,
       } else {
         cursor.exit();
         me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
-        var rs = ydn.db.schema.Store.QueryMethod.GET == mth ? arr[0] : arr;
+        var rs = ydn.db.base.SqlQueryMethod.GET == mth ? arr[0] : arr;
         rq.setDbValue(rs);
       }
     } else {
       cursor.exit();
       me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
-      var rs = ydn.db.schema.Store.QueryMethod.GET == mth ? arr[0] : arr;
+      var rs = ydn.db.base.SqlQueryMethod.GET == mth ? arr[0] : arr;
       rq.setDbValue(rs);
     }
   };

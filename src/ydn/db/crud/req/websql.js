@@ -187,8 +187,8 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(req,
   var is_index = !!index;
   var effective_column = index_column || key_column;
   var params = [];
-  var mth = key_only ? ydn.db.schema.Store.QueryMethod.KEYS :
-      ydn.db.schema.Store.QueryMethod.VALUES;
+  var mth = key_only ? ydn.db.base.SqlQueryMethod.KEYS :
+      ydn.db.base.SqlQueryMethod.VALUES;
   var sql = store.toSql(params, mth, effective_column,
       key_range, reverse, distinct);
 
@@ -1243,7 +1243,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(req, table,
 
   var store = this.schema.getStore(table);
 
-  var sql = store.toSql(params, ydn.db.schema.Store.QueryMethod.COUNT,
+  var sql = store.toSql(params, ydn.db.base.SqlQueryMethod.COUNT,
       index_name, key_range, false, unique);
 
   /**

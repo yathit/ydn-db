@@ -263,3 +263,16 @@ ydn.db.base.indexedDb = goog.global.indexedDB ||
     goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
     goog.global.moz_indexedDB ||
     goog.global['msIndexedDB'];
+
+
+/**
+ * Query method used in sql iterator.
+ * @enum {number}
+ */
+ydn.db.base.SqlQueryMethod = {
+  NONE: 0,
+  KEYS: 1,
+  VALUES: 2,
+  GET: 3,
+  COUNT: 4
+};

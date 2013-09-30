@@ -610,7 +610,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
 
 /**
  * List by iterator.
- * @param {ydn.db.crud.req.IRequestExecutor.ListType} type
+ * @param {ydn.db.crud.req.ListType} type
  * @param {ydn.db.Iterator} iter
  * @param {number=} opt_limit optional limit.
  * @return {!ydn.db.Request}
@@ -635,7 +635,7 @@ ydn.db.crud.DbOperator.prototype.listIter = function(type, iter, opt_limit) {
 
 /**
  * List
- * @param {ydn.db.crud.req.IRequestExecutor.ListType} type
+ * @param {ydn.db.crud.req.ListType} type
  * @param {string} store_name
  * @param {string=} opt_index
  * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} opt_key_range

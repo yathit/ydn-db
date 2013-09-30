@@ -16,7 +16,7 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no.
  * @param {!ydn.db.schema.Store} store_schema schema.
- * @param {ydn.db.schema.Store.QueryMethod=} q_mth true for keys query method.
+ * @param {ydn.db.base.SqlQueryMethod=} q_mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
@@ -290,7 +290,7 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
 
       this.key_ = x.getKey();
       this.primary_key_ = this.is_index ? x.getPrimaryKey() : this.key_;
-      if (this.query_method == ydn.db.schema.Store.QueryMethod.VALUES) {
+      if (this.query_method == ydn.db.base.SqlQueryMethod.VALUES) {
         if (!this.isValueCursor()) {
           this.value_ = this.primary_key_;
         } else {

@@ -28,7 +28,7 @@ goog.require('ydn.debug.error.InternalError');
  * @param {ydn.db.con.IDatabase.Transaction} tx tx.
  * @param {string} tx_no tx no.
  * @param {ydn.db.schema.Store} store_schema schema.
- * @param {ydn.db.schema.Store.QueryMethod=} opt_mth query method, default to
+ * @param {ydn.db.base.SqlQueryMethod=} opt_mth query method, default to
  * values.
  * @constructor
  * @extends {goog.Disposable}
@@ -81,7 +81,7 @@ ydn.db.core.req.AbstractCursor = function(tx, tx_no, store_schema, opt_mth) {
   /**
    * @protected
    */
-  this.query_method = opt_mth || ydn.db.schema.Store.QueryMethod.VALUES;
+  this.query_method = opt_mth || ydn.db.base.SqlQueryMethod.VALUES;
   /**
    * @type {IDBKey|undefined}
    * @private
@@ -220,7 +220,7 @@ ydn.db.core.req.AbstractCursor.prototype.is_key_cursor_ = true;
 
 /**
  * @protected
- * @type {ydn.db.schema.Store.QueryMethod}
+ * @type {ydn.db.base.SqlQueryMethod}
  */
 ydn.db.core.req.AbstractCursor.prototype.query_method;
 
