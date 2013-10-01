@@ -207,7 +207,7 @@ ydn.db.crud.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
 
 /**
  * List
- * @param {ydn.db.crud.req.ListType} type
+ * @param {ydn.db.base.QueryMethod} type
  * @param {string} store_name
  * @param {string=} index_name
  * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} key_range

@@ -277,7 +277,7 @@ var test_listBy_index_ValueIterator_resume = function () {
     },
     // Continuation
     function () {
-      console.log(result)
+      // console.log(result)
       assertObjectEquals('first result', exp_result.slice(0, 3), result);
 
       done = false;
@@ -288,7 +288,7 @@ var test_listBy_index_ValueIterator_resume = function () {
         },
         // Continuation
         function () {
-          console.log(result2)
+          // console.log(result2)
           assertObjectEquals('second result', exp_result.slice(3, 6), result2);
           reachedFinalContinuation = true;
           ydn.db.deleteDatabase(db.getName(), db.getType());
@@ -496,7 +496,7 @@ var test_keysBy_ValueIterator_resume = function () {
         1000); // maxTimeout
 
       db.keys(q, 3).addBoth(function (value) {
-        console.log(value);
+        // console.log(value);
         result = value;
         done = true;
       });
@@ -507,7 +507,7 @@ var test_keysBy_ValueIterator_resume = function () {
   var q = new ydn.db.ValueIterator(store_name);
   // db.keys(q).addBoth(function (value) {console.log(value);});
   db.keys(q, 3).addBoth(function (value) {
-    console.log(value);
+    // console.log(value);
     result = value;
     done = true;
   });

@@ -309,16 +309,18 @@ ydn.db.con.simple.Store.prototype.addRecord = function(key, value, opt_is_add) {
     window.console.log('add ' + key);
   }
   if (opt_is_add) {
+    /*
     if (this.key_indexes[this.primary_index]) {
       var cache = this.key_indexes[this.primary_index];
-      if (cache.contains(ydn.db.utils.encodeKey(key))) {
+      var node = new ydn.db.con.simple.Node(key);
+      if (cache.contains(node)) {
         return null; // primary key constraint
       }
-    } else {
+    } else {   */
       if (!goog.isNull(this.storage.getItem(this.makeKey(key)))) {
         return null;
       }
-    }
+    // }
   }
   this.storage.setItem(this.makeKey(key),
       ydn.json.stringify(value));

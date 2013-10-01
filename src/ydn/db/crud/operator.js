@@ -165,7 +165,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
         key_range = null;
       }
     } else if (goog.isObject(index_or_keyrange) ||
-        !goog.isDef(index_or_keyrange)) {
+        !goog.isDefAndNotNull(index_or_keyrange)) {
 
       if (goog.isObject(index_or_keyrange)) {
         if (goog.DEBUG) {
@@ -186,9 +186,9 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
         key_range = null;
       }
     } else {
-      throw new ydn.debug.error.ArgumentException('key range must be an ' +
-          'object, but ' + ydn.json.toShortString(index_key_range) +
-          ' of type ' + typeof index_or_keyrange + ' found.');
+      throw new ydn.debug.error.ArgumentException('invalid second argument ' +
+          'for count "' + ydn.json.toShortString(index_key_range) +
+          '" of type ' + typeof index_or_keyrange);
     }
 
     this.logger.finer('countKeyRange: ' + store_name + ' ' +
@@ -610,7 +610,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
 
 /**
  * List by iterator.
- * @param {ydn.db.crud.req.ListType} type
+ * @param {ydn.db.base.QueryMethod} type
  * @param {ydn.db.Iterator} iter
  * @param {number=} opt_limit optional limit.
  * @return {!ydn.db.Request}
@@ -635,7 +635,7 @@ ydn.db.crud.DbOperator.prototype.listIter = function(type, iter, opt_limit) {
 
 /**
  * List
- * @param {ydn.db.crud.req.ListType} type
+ * @param {ydn.db.base.QueryMethod} type
  * @param {string} store_name
  * @param {string=} opt_index
  * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} opt_key_range

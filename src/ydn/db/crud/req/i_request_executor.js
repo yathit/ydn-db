@@ -244,7 +244,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.putByKeys = goog.abstractMethod;
 /**
  * @enum {number}
  */
-ydn.db.crud.req.ListType = {
+ydn.db.crud.req.ListType_ = {
   KEY: 1,
   PRIMARY_KEY: 2,
   KEYS: 3, // all below this enum are for keys
@@ -256,7 +256,7 @@ ydn.db.crud.req.ListType = {
 /**
  * Execute GET request callback results to df.
  * @param {ydn.db.Request} req request.
- * @param {ydn.db.crud.req.ListType} type result type.
+ * @param {ydn.db.base.QueryMethod} type result type.
  * @param {string} store name.
  * @param {string?} index name.
  * @param {IDBKeyRange} key range to get.

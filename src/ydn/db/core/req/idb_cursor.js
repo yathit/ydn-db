@@ -28,7 +28,7 @@ goog.require('ydn.debug.error.InternalError');
  * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no.
  * @param {ydn.db.schema.Store} store_schema schema.
- * @param {ydn.db.base.SqlQueryMethod=} q_mth true for keys query method.
+ * @param {ydn.db.base.QueryMethod=} q_mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor

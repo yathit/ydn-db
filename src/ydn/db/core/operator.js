@@ -101,7 +101,7 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
     var df = this.tx_thread.request(ydn.db.Request.Method.GET_ITER,
         [q_store_name]);
     df.addTxback(function() {
-      this.iterate(ydn.db.base.SqlQueryMethod.GET, df, q, 1);
+      this.iterate(ydn.db.base.QueryMethod.GET, df, q, 1);
     }, this);
     return df;
   } else {
@@ -148,7 +148,11 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5) {
     var df = this.tx_thread.request(ydn.db.Request.Method.KEYS_ITER,
         q.stores());
     df.addTxback(function() {
-      this.iterate(ydn.db.base.SqlQueryMethod.KEYS, df, q, limit);
+      if (q.isIndexIterator()) {
+        this.iterate(ydn.db.base.QueryMethod.LIST_KEY, df, q, limit);
+      } else {
+        this.iterate(ydn.db.base.QueryMethod.LIST_PRIMARY_KEY, df, q, limit);
+      }
     }, this);
 
     return df;
@@ -178,7 +182,7 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3) {
     this.logger.finer('countIterator:' + q);
     var df = this.tx_thread.request(ydn.db.Request.Method.COUNT, q.stores());
     df.addTxback(function() {
-      this.iterate(ydn.db.base.SqlQueryMethod.COUNT, df, q);
+      this.iterate(ydn.db.base.QueryMethod.COUNT, df, q);
     }, this);
 
     return df;
@@ -226,7 +230,11 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
     var df = this.tx_thread.request(ydn.db.Request.Method.VALUES_ITER,
         q.stores());
     df.addTxback(function() {
-      this.iterate(ydn.db.base.SqlQueryMethod.VALUES, df, q, limit);
+      if (q.isKeyIterator()) {
+        this.iterate(ydn.db.base.QueryMethod.LIST_PRIMARY_KEY, df, q, limit);
+      } else {
+        this.iterate(ydn.db.base.QueryMethod.LIST_VALUE, df, q, limit);
+      }
     }, this);
 
     return df;
@@ -782,7 +790,7 @@ ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
 
 /**
  * List record in a store.
- * @param {ydn.db.base.SqlQueryMethod} mth keys method.
+ * @param {ydn.db.base.QueryMethod} mth keys method.
  * @param {ydn.db.Request} rq request.
  * @param {!ydn.db.Iterator} iter iterator.
  * @param {number=} opt_limit limit.
@@ -795,7 +803,6 @@ ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
 
   var tx = rq.getTx();
   var tx_no = rq.getLabel();
-  var is_keys = mth == ydn.db.base.SqlQueryMethod.KEYS;
   var msg = tx_no + ' ' + mth + 'ByIterator ' + iter;
   if (opt_limit > 0) {
     msg += ' limit ' + opt_limit;
@@ -829,17 +836,22 @@ ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
         return;
       }
       count++;
-      if (is_keys) {
+      if (mth == ydn.db.base.QueryMethod.LIST_KEY) {
         arr.push(opt_key);
-      } else if (mth == ydn.db.base.SqlQueryMethod.COUNT) {
+      } else if (mth == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
+        arr.push(cursor.getPrimaryKey());
+      } else if (mth == ydn.db.base.QueryMethod.LIST_KEYS) {
+        arr.push([opt_key, cursor.getPrimaryKey()]);
+      } else if (mth == ydn.db.base.QueryMethod.COUNT) {
         // no result needed.
       } else {
+        // LIST_VALUE
         arr.push(iter.isKeyIterator() ? primary_key : cursor.getValue());
       }
-      if (mth == ydn.db.base.SqlQueryMethod.GET) {
+      if (mth == ydn.db.base.QueryMethod.GET) {
         cursor.exit();
         rq.setDbValue(arr[0]);
-      } else if (mth == ydn.db.base.SqlQueryMethod.COUNT ||
+      } else if (mth == ydn.db.base.QueryMethod.COUNT ||
           !goog.isDef(opt_limit) || count < opt_limit) {
         cursor.continueEffectiveKey();
       } else {
@@ -851,8 +863,8 @@ ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
       me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
       cursor.exit();
       var result =
-          mth == ydn.db.base.SqlQueryMethod.GET ? arr[0] :
-              mth == ydn.db.base.SqlQueryMethod.COUNT ? count : arr;
+          mth == ydn.db.base.QueryMethod.GET ? arr[0] :
+              mth == ydn.db.base.QueryMethod.COUNT ? count : arr;
       rq.setDbValue(result);
     }
   };

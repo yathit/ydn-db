@@ -187,8 +187,8 @@ ydn.db.crud.req.WebSql.prototype.list_by_key_range_ = function(req,
   var is_index = !!index;
   var effective_column = index_column || key_column;
   var params = [];
-  var mth = key_only ? ydn.db.base.SqlQueryMethod.KEYS :
-      ydn.db.base.SqlQueryMethod.VALUES;
+  var mth = key_only ? ydn.db.base.QueryMethod.LIST_KEYS :
+      ydn.db.base.QueryMethod.LIST_VALUE;
   var sql = store.toSql(params, mth, effective_column,
       key_range, reverse, distinct);
 
@@ -1243,7 +1243,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(req, table,
 
   var store = this.schema.getStore(table);
 
-  var sql = store.toSql(params, ydn.db.base.SqlQueryMethod.COUNT,
+  var sql = store.toSql(params, ydn.db.base.QueryMethod.COUNT,
       index_name, key_range, false, unique);
 
   /**
@@ -1282,7 +1282,77 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(req, table,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.list = function(req, type, store_name,
-    index, key_range, reverse, limit, offset, unique) {
-  throw 'not yet';
+ydn.db.crud.req.WebSql.prototype.list = function(req, mth, store_name,
+    index_column, key_range, reverse, limit, offset, distinct) {
+
+  var me = this;
+  var arr = [];
+  var store = this.schema.getStore(store_name);
+  var key_column = store.getSQLKeyColumnName();
+  var index = goog.isDefAndNotNull(index_column) &&
+      (index_column !== key_column) ? store.getIndex(index_column) : null;
+  var is_index = !!index;
+  var effective_column = index_column || key_column;
+  var params = [];
+  var sql = store.toSql(params, mth, effective_column,
+      key_range, reverse, distinct);
+
+  if (goog.isNumber(limit)) {
+    sql += ' LIMIT ' + limit;
+  }
+  if (goog.isNumber(offset)) {
+    sql += ' OFFSET ' + offset;
+  }
+
+  /**
+   * @param {SQLTransaction} transaction transaction.
+   * @param {SQLResultSet} results results.
+   */
+  var callback = function(transaction, results) {
+    var n = results.rows.length;
+    if (ydn.db.crud.req.WebSql.DEBUG) {
+      window.console.log(results);
+    }
+    for (var i = 0; i < n; i++) {
+      var row = results.rows.item(i);
+      if (ydn.db.crud.req.WebSql.DEBUG) {
+        window.console.log(row);
+      }
+      if (mth == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
+        arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType());
+      } else if (mth == ydn.db.base.QueryMethod.LIST_KEY) {
+        arr[i] = ydn.db.schema.Index.sql2js(row[effective_column],
+            store.getType());
+      } else if (mth == ydn.db.base.QueryMethod.LIST_KEYS) {
+        arr[i] = [
+          ydn.db.schema.Index.sql2js(row[effective_column], store.getType()),
+          ydn.db.schema.Index.sql2js(row[key_column], store.getType())];
+      } else if (goog.isDefAndNotNull(row)) {
+        // LIST_VALUE
+        arr[i] = ydn.db.crud.req.WebSql.parseRow(row, store);
+      }
+    }
+    me.logger.finer('success ' + msg);
+    req.setDbValue(arr);
+  };
+
+  var msg = req.getLabel() + ' SQL: ' + sql + ' ;params= ' +
+      ydn.json.stringify(params);
+
+  /**
+   * @param {SQLTransaction} tr transaction.
+   * @param {SQLError} error error.
+   * @return {boolean} true to roll back.
+   */
+  var error_callback = function(tr, error) {
+    if (ydn.db.crud.req.WebSql.DEBUG) {
+      window.console.log([tr, error]);
+    }
+    me.logger.warning('error: ' + msg + error.message);
+    req.setDbValue(error, true);
+    return false;
+  };
+
+  this.logger.finest(msg);
+  req.getTx().executeSql(sql, params, callback, error_callback);
 };

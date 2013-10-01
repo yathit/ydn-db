@@ -269,10 +269,12 @@ ydn.db.base.indexedDb = goog.global.indexedDB ||
  * Query method used in sql iterator.
  * @enum {number}
  */
-ydn.db.base.SqlQueryMethod = {
+ydn.db.base.QueryMethod = {
   NONE: 0,
-  KEYS: 1,
-  VALUES: 2,
-  GET: 3,
-  COUNT: 4
+  LIST_KEY: 1,
+  LIST_PRIMARY_KEY: 2,
+  LIST_KEYS: 3,
+  LIST_VALUE: 4,
+  GET: 5,
+  COUNT: 6
 };

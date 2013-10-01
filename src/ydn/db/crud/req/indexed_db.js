@@ -852,7 +852,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(req,
  */
 ydn.db.crud.req.IndexedDb.prototype.listByKeyRange =
     function(req, store_name, key_range, reverse, limit, offset) {
-  this.list(req, ydn.db.crud.req.ListType.VALUE,
+  this.list(req, ydn.db.base.QueryMethod.LIST_VALUE,
       store_name, null, key_range, reverse, limit, offset, false);
 };
 
@@ -862,7 +862,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange =
  */
 ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(req,
     store_name, index, key_range, reverse, limit, offset, unique) {
-  this.list(req, ydn.db.crud.req.ListType.VALUE,
+  this.list(req, ydn.db.base.QueryMethod.LIST_VALUE,
       store_name, index, key_range, reverse, limit, offset, unique);
 };
 
@@ -872,7 +872,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(req,
  */
 ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(req,
     store_name, key_range, reverse, limit, offset) {
-  this.list(req, ydn.db.crud.req.ListType.PRIMARY_KEY,
+  this.list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
       store_name, null, key_range, reverse, limit, offset, false);
 };
 
@@ -928,7 +928,7 @@ ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(req,
  */
 ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(req,
     store_name, index_name, key_range, reverse, limit, offset, unique) {
-  this.list(req, ydn.db.crud.req.ListType.PRIMARY_KEY,
+  this.list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
       store_name, index_name, key_range, reverse, limit, offset, unique);
 };
 
@@ -1184,7 +1184,9 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
   }
   this.logger.finest(msg);
   var request;
-  if (type <= ydn.db.crud.req.ListType.KEYS) {
+  if (type == ydn.db.base.QueryMethod.LIST_KEY ||
+      type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ||
+      type == ydn.db.base.QueryMethod.LIST_KEYS) {
     // key query
     if (index) {
       request = store.index(index).openKeyCursor(key_range, dir);
@@ -1215,13 +1217,13 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
         return;
       }
       // push to result list
-      if (type == ydn.db.crud.req.ListType.KEY) {
+      if (type == ydn.db.base.QueryMethod.LIST_KEY) {
         results.push(cursor.key);
       } else if (type ==
-          ydn.db.crud.req.ListType.PRIMARY_KEY) {
+          ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
         results.push(cursor.primaryKey);
       } else if (type ==
-          ydn.db.crud.req.ListType.KEYS) {
+          ydn.db.base.QueryMethod.LIST_KEYS) {
         var obj = {};
         if (index) {
           obj[index] = cursor.key;
@@ -1233,7 +1235,7 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
         }
         results.push(obj);
       } else if (type ==
-          ydn.db.crud.req.ListType.VALUE) {
+          ydn.db.base.QueryMethod.LIST_VALUE) {
         results.push(cursor.value);
       } else {
         results.push([cursor.key, cursor.primaryKey, cursor.value]);

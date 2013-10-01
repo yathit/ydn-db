@@ -288,7 +288,7 @@ ydn.db.schema.Store.fromJSON = function(json) {
 /**
  *
  * @param {!Array} params sql parameter list.
- * @param {ydn.db.base.SqlQueryMethod} method query method.
+ * @param {ydn.db.base.QueryMethod} method query method.
  * @param {string|undefined} index_column name.
  * @param {IDBKeyRange} key_range to retrieve.
  * @param {boolean} reverse ordering.
@@ -301,7 +301,7 @@ ydn.db.schema.Store.prototype.toSql = function(params, method, index_column,
       key_range, reverse, unique);
   var sql = '';
 
-  if (method != ydn.db.base.SqlQueryMethod.NONE) {
+  if (method != ydn.db.base.QueryMethod.NONE) {
     sql += 'SELECT ' + out.select;
   }
   sql += ' FROM ' + out.from;
@@ -334,7 +334,7 @@ ydn.db.schema.Store.SqlParts;
 /**
  *
  * @param {!Array} params sql parameter list.
- * @param {ydn.db.base.SqlQueryMethod} method query method.
+ * @param {ydn.db.base.QueryMethod} method query method.
  * @param {string|undefined} index_column name.
  * @param {ydn.db.KeyRange|IDBKeyRange} key_range to retrieve.
  * @param {boolean} reverse ordering.
@@ -365,10 +365,10 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
   var is_multi_entry = is_index && index.isMultiEntry();
 
   out.from = this.getQuotedName();
-  if (method === ydn.db.base.SqlQueryMethod.COUNT) {
+  if (method === ydn.db.base.QueryMethod.COUNT) {
     // primary key is always unqiue.
     out.select = 'COUNT(' + q_key_column + ')';
-  } else if (method === ydn.db.base.SqlQueryMethod.KEYS) {
+  } else if (method === ydn.db.base.QueryMethod.LIST_KEYS) {
     out.select = q_key_column;
     if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
       out.select += ', ' + q_effective_column;
@@ -386,10 +386,10 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
         ydn.db.con.WebSql.PREFIX_MULTIENTRY +
         this.getName() + ':' + index.getName());
 
-    if (method === ydn.db.base.SqlQueryMethod.COUNT) {
+    if (method === ydn.db.base.QueryMethod.COUNT) {
       out.select = 'COUNT(' + dist +
           idx_store_name + '.' + q_effective_column + ')';
-    } else if (method === ydn.db.base.SqlQueryMethod.KEYS) {
+    } else if (method === ydn.db.base.QueryMethod.LIST_KEYS) {
       out.select = this.getQuotedName() + '.' + q_key_column +
           ', ' + idx_store_name + '.' + q_effective_column;
     } else {

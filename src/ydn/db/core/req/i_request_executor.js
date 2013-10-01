@@ -36,7 +36,7 @@ ydn.db.core.req.IRequestExecutor = function() {};
  * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx request label.
  * @param {string} store_name schema.
- * @param {ydn.db.base.SqlQueryMethod=} query query method.
+ * @param {ydn.db.base.QueryMethod=} query query method.
  * @return {!ydn.db.core.req.AbstractCursor} cursor.
  */
 ydn.db.core.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;

@@ -43,7 +43,7 @@ ydn.db.core.req.SimpleStore.DEBUG = false;
 
 
 /**
- * @param {ydn.db.base.SqlQueryMethod} mth method.
+ * @param {ydn.db.base.QueryMethod} mth method.
  * @param {ydn.db.Request} rq request.
  * @param {!ydn.db.Iterator} iter  store name.
  * @param {number=} opt_limit limit.
@@ -86,12 +86,12 @@ ydn.db.core.req.SimpleStore.prototype.iterate_ = function(mth, rq,
         cursor.advance(1);
       } else {
         cursor.exit();
-        var rs = ydn.db.base.SqlQueryMethod.GET == mth ? arr[0] : arr;
+        var rs = ydn.db.base.QueryMethod.GET == mth ? arr[0] : arr;
         rq.setDbValue(rs);
       }
     } else {
       cursor.exit();
-      var rs = ydn.db.base.SqlQueryMethod.GET == mth ? arr[0] : arr;
+      var rs = ydn.db.base.QueryMethod.GET == mth ? arr[0] : arr;
       rq.setDbValue(rs);
     }
   };

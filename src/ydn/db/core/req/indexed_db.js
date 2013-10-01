@@ -60,7 +60,7 @@ ydn.db.core.req.IndexedDb.prototype.logger =
 
 /**
  * List record in a store.
- * @param {ydn.db.base.SqlQueryMethod} mth keys method.
+ * @param {ydn.db.base.QueryMethod} mth keys method.
  * @param {ydn.db.Request} rq request.
  * @param {!ydn.db.Iterator} iter iterator.
  * @param {number=} opt_limit limit.
@@ -73,7 +73,7 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
 
   var tx = rq.getTx();
   var tx_no = rq.getLabel();
-  var is_keys = mth == ydn.db.base.SqlQueryMethod.KEYS;
+  var is_keys = mth == ydn.db.base.QueryMethod.LIST_KEYS;
   var msg = tx_no + ' ' + mth + 'ByIterator ' + iter;
   if (opt_limit > 0) {
     msg += ' limit ' + opt_limit;
@@ -108,15 +108,15 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
       count++;
       if (is_keys) {
         arr.push(opt_key);
-      } else if (mth == ydn.db.base.SqlQueryMethod.COUNT) {
+      } else if (mth == ydn.db.base.QueryMethod.COUNT) {
         // no result needed.
       } else {
         arr.push(iter.isKeyIterator() ? primary_key : cursor.getValue());
       }
-      if (mth == ydn.db.base.SqlQueryMethod.GET) {
+      if (mth == ydn.db.base.QueryMethod.GET) {
         cursor.exit();
         rq.setDbValue(arr[0]);
-      } else if (mth == ydn.db.base.SqlQueryMethod.COUNT ||
+      } else if (mth == ydn.db.base.QueryMethod.COUNT ||
           !goog.isDef(opt_limit) || count < opt_limit) {
         cursor.continueEffectiveKey();
       } else {
@@ -128,8 +128,8 @@ ydn.db.core.req.IndexedDb.prototype.iterate_ = function(mth, rq,
       me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
       cursor.exit();
       var result =
-          mth == ydn.db.base.SqlQueryMethod.GET ? arr[0] :
-          mth == ydn.db.base.SqlQueryMethod.COUNT ? count : arr;
+          mth == ydn.db.base.QueryMethod.GET ? arr[0] :
+          mth == ydn.db.base.QueryMethod.COUNT ? count : arr;
       rq.setDbValue(result);
     }
   };

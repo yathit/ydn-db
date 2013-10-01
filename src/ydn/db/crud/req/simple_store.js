@@ -167,8 +167,10 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
         var result_key = store.addRecord(id, value[i], !opt_is_update);
         if (!goog.isDefAndNotNull(result_key)) {
           has_error = true;
+          arr.push(new ydn.db.ConstraintError());
+        } else {
+          arr.push(result_key);
         }
-        arr.push(result_key);
       }
       req.setDbValue(arr, has_error);
     }
