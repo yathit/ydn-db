@@ -142,26 +142,6 @@ ydn.db.crud.req.WebSql.prototype.getKeyFromRow = function(table, row) {
 
 
 /**
- * @inheritDoc
- */
-ydn.db.crud.req.WebSql.prototype.keysByKeyRange = function(req,
-    store_name, key_range, reverse, limit, offset) {
-  this.list_by_key_range_(req, true, store_name, undefined, key_range,
-      reverse, limit, offset, false);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.WebSql.prototype.keysByIndexKeyRange = function(req,
-    store_name, index_name, key_range, reverse, limit, offset, unique) {
-  this.list_by_key_range_(req, true, store_name, index_name,
-      key_range, reverse, limit, offset, unique);
-};
-
-
-/**
  * Retrieve primary keys or value from a store in a given key range.
  * @param {ydn.db.Request} req tx.
  * @param {boolean} key_only retrieve key only.
@@ -729,27 +709,6 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(req, table_name, ids) {
     me.logger.finer('success');
     req.setDbValue([]);
   }
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.WebSql.prototype.listByKeyRange = function(req,
-    store_name, key_range, reverse, limit, offset) {
-
-  this.list_by_key_range_(req, false, store_name, undefined,
-      key_range, reverse, limit, offset, false);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.WebSql.prototype.listByIndexKeyRange = function(req,
-    store_name, index, key_range, reverse, limit, offset, unqiue) {
-  this.list_by_key_range_(req, false, store_name, index, key_range,
-      reverse, limit, offset, unqiue);
 };
 
 

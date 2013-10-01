@@ -149,10 +149,10 @@ ydn.db.core.req.WebsqlCursor.prototype.collect = function(opt_row) {
       var primary_column_name = this.store_schema.getSQLKeyColumnName();
       var primary_key = ydn.db.schema.Index.sql2js(
           row[primary_column_name], this.store_schema.getType());
+      this.current_primary_key_ = primary_key;
       if (this.isIndexCursor()) {
         goog.asserts.assertString(this.index_name);
         var type = this.store_schema.getIndex(this.index_name).getType();
-        this.current_primary_key_ = primary_key;
         this.current_key_ = ydn.db.schema.Index.sql2js(
             row[this.index_name], type);
       } else {
@@ -456,9 +456,9 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
   var params = [];
   var sql;
 
-  if (goog.isDefAndNotNull(opt_primary_key)) {
-    goog.asserts.assert(this.is_index);
-    goog.asserts.assert(goog.isDefAndNotNull(opt_key));
+  if (this.is_index &&
+      goog.isDefAndNotNull(opt_primary_key) &&
+      goog.isDefAndNotNull(opt_key)) {
     sql = this.sqlContinueIndexEffectiveKey_(params, callback, opt_key,
         open, opt_primary_key);
   } else if (goog.isDefAndNotNull(opt_key)) {
@@ -700,8 +700,10 @@ ydn.db.core.req.WebsqlCursor.prototype.prepareBaseSql = function(params) {
  */
 ydn.db.core.req.WebsqlCursor.prototype.openCursor = function(
     opt_key,  opt_primary_key) {
+
   this.continueEffectiveKey_(this.onSuccess, opt_key, false,
       0, opt_primary_key);
+
 };
 
 

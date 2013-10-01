@@ -969,7 +969,7 @@ var test_61_scan_cursor_resume = function() {
 
 
 
-var test_join_primary = function() {
+var _test_join_primary = function() {
   var db_name = 'test_join_primary';
   var data = [
     {id: 0, a: 3, b: 'e'},

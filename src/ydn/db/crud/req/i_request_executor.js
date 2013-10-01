@@ -130,33 +130,6 @@ ydn.db.crud.req.IRequestExecutor.prototype.getById = goog.abstractMethod;
 
 
 /**
- * Retrieve primary keys from a store in a given key range.
- * @param {ydn.db.Request} req request.
- * @param {string} store table name.
- * @param {IDBKeyRange} key_range to retrieve.
- * @param {boolean} reverse ordering.
- * @param {number} limit the results.
- * @param {number} offset skip first results.
- */
-ydn.db.crud.req.IRequestExecutor.prototype.keysByKeyRange = goog.abstractMethod;
-
-
-/**
- * Retrieve primary keys from a store in a given index key range.
- * @param {ydn.db.Request} req request.
- * @param {string} store table name.
- * @param {string} index name.
- * @param {IDBKeyRange} key_range to retrieve.
- * @param {boolean} reverse ordering.
- * @param {number} limit the results.
- * @param {number} offset skip first results.
- * @param {boolean} unique unique key.
- */
-ydn.db.crud.req.IRequestExecutor.prototype.keysByIndexKeyRange =
-    goog.abstractMethod;
-
-
-/**
  * Execute GET request callback results to df.
  * @param {ydn.db.Request} req request.
  * @param {string} store_name table name.
@@ -173,32 +146,6 @@ ydn.db.crud.req.IRequestExecutor.prototype.listByIds = goog.abstractMethod;
  * @param {!Array.<!ydn.db.Key>} keys id to get.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
-
-
-/**
- * Execute GET request callback results to df.
- * @param {ydn.db.Request} req request.
- * @param {string} store name.
- * @param {IDBKeyRange} key range to get.
- * @param {boolean} reverse to sort reverse order.
- * @param {number} limit the results.
- * @param {number} offset skip first results.
- */
-ydn.db.crud.req.IRequestExecutor.prototype.listByKeyRange = goog.abstractMethod;
-
-
-/**
- * Execute GET request callback results to df.
- * @param {ydn.db.Request} req request.
- * @param {string} store name.
- * @param {string} index name.
- * @param {IDBKeyRange} key range to get.
- * @param {boolean} reverse to sort reverse order.
- * @param {number} limit the results.
- * @param {number} offset skip first results.
- * @param {boolean} unique unique key.
- */
-ydn.db.crud.req.IRequestExecutor.prototype.listByIndexKeyRange = goog.abstractMethod;
 
 
 /**

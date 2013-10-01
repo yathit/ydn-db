@@ -367,8 +367,8 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
     req = this.tx_thread.request(ydn.db.Request.Method.KEYS_INDEX,
         [store_name]);
     req.addTxback(function() {
-      this.getExecutor().keysByIndexKeyRange(req, store_name,
-          index_name, range, reverse, limit, offset, false);
+      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
+          store_name, index_name, range, reverse, limit, offset, false);
     }, this);
   } else {
     if (goog.isObject(arg1)) {
@@ -412,8 +412,8 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
     this.logger.finer('keysByKeyRange: ' + store_name);
     req = this.tx_thread.request(ydn.db.Request.Method.KEYS, [store_name]);
     req.addTxback(function() {
-      this.getExecutor().keysByKeyRange(req, store_name, range, reverse,
-          limit, offset);
+      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
+          store_name, null, range, reverse, limit, offset, false);
     }, this);
   }
 
@@ -509,8 +509,8 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       req = this.tx_thread.request(method, [store_name]);
       store.hook(req, arguments);
       req.addTxback(function() {
-        this.getExecutor().listByIndexKeyRange(req, store_name,
-            index_name, range, reverse, limit, offset, false);
+        this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
+            store_name, index_name, range, reverse, limit, offset, false);
       }, this);
     } else {
       var range = null;
@@ -557,8 +557,8 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       req = this.tx_thread.request(method, [store_name]);
       store.hook(req, arguments);
       req.addTxback(function() {
-        this.getExecutor().listByKeyRange(req, store_name, range,
-            reverse, limit, offset);
+        this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
+            store_name, null, range, reverse, limit, offset, false);
       }, this);
     }
   } else if (goog.isArray(arg0)) {
@@ -919,7 +919,7 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
     query.nextLookup(function(store_name, index_name, kr, entry) {
       var iReq = req.copy();
       // console.log(store_name, index_name, kr);
-      exe.listByIndexKeyRange(iReq, store_name, index_name,
+      exe.list(iReq, ydn.db.base.QueryMethod.LIST_VALUE, store_name, index_name,
           kr.toIDBKeyRange(), false, 100, 0, false);
       iReq.addBoth(function(x) {
         // console.log(store_name, index_name, kr.lower, x);
@@ -1264,20 +1264,21 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
   }
 
   var kr = ydn.db.KeyRange.parseIDBKeyRange(key_range);
+  // todo: unify if
   if (goog.isString(index_name)) {
     var index = index_name;
     req = this.sync_thread.request(ydn.db.Request.Method.VALUES_INDEX,
         [store_name]);
     req.addTxback(function() {
-      this.getExecutor().listByIndexKeyRange(req, store_name, index,
-          kr, reverse, limit, offset, false);
+      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
+          store_name, index, kr, reverse, limit, offset, false);
     }, this);
   } else {
     req = this.sync_thread.request(ydn.db.Request.Method.VALUES,
         [store_name]);
     req.addTxback(function() {
-      this.getExecutor().listByKeyRange(req, store_name,
-          kr, reverse, limit, offset);
+      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
+          store_name, null, kr, reverse, limit, offset, false);
     }, this);
   }
   return req;
@@ -1365,15 +1366,15 @@ ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
     req = this.sync_thread.request(ydn.db.Request.Method.KEYS_INDEX,
         [store_name]);
     req.addTxback(function() {
-      this.getExecutor().keysByIndexKeyRange(req, store_name, index,
-          key_range, reverse, limit, 0, false);
+      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
+          store_name, index, key_range, reverse, limit, 0, false);
     }, this);
   } else {
     req = this.sync_thread.request(ydn.db.Request.Method.KEYS,
         [store_name]);
     req.addTxback(function() {
-      this.getExecutor().keysByKeyRange(req, store_name,
-          key_range, reverse, limit, 0);
+      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
+          store_name, null, key_range, reverse, limit, 0, false);
     }, this);
   }
   return req;

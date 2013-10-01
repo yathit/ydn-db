@@ -847,34 +847,6 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(req,
 };
 
 
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.IndexedDb.prototype.listByKeyRange =
-    function(req, store_name, key_range, reverse, limit, offset) {
-  this.list(req, ydn.db.base.QueryMethod.LIST_VALUE,
-      store_name, null, key_range, reverse, limit, offset, false);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.IndexedDb.prototype.listByIndexKeyRange = function(req,
-    store_name, index, key_range, reverse, limit, offset, unique) {
-  this.list(req, ydn.db.base.QueryMethod.LIST_VALUE,
-      store_name, index, key_range, reverse, limit, offset, unique);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(req,
-    store_name, key_range, reverse, limit, offset) {
-  this.list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-      store_name, null, key_range, reverse, limit, offset, false);
-};
 
 //
 ///**
@@ -921,16 +893,6 @@ ydn.db.crud.req.IndexedDb.prototype.keysByKeyRange = function(req,
 //    df.errback(event);
 //  };
 //};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.IndexedDb.prototype.keysByIndexKeyRange = function(req,
-    store_name, index_name, key_range, reverse, limit, offset, unique) {
-  this.list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-      store_name, index_name, key_range, reverse, limit, offset, unique);
-};
 
 
 /**

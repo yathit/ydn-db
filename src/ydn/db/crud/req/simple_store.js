@@ -69,44 +69,6 @@ ydn.db.crud.req.SimpleStore.DEBUG = false;
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.keysByIndexKeyRange = function(req,
-    store_name, index_name, key_range, reverse, limit, offset) {
-  var msg = req.getLabel() + ' ' + store_name + ':' + index_name +
-      ' ' + (key_range ? ydn.json.toShortString(key_range) : '');
-  this.logger.finest(msg);
-
-  var on_complete = req.getTx().getStorage(function(storage) {
-    var store = storage.getSimpleStore(store_name);
-    var arr = store.getKeys(index_name, key_range, reverse, limit, offset);
-    req.setDbValue(arr);
-    on_complete();
-    on_complete = null;
-  }, this);
-
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.SimpleStore.prototype.keysByKeyRange = function(req,
-    store_name, key_range, reverse, limit, offset) {
-  var msg = req.getLabel() + ' ' + store_name + ' ' +
-      (key_range ? ydn.json.toShortString(key_range) : '');
-  this.logger.finest(msg);
-  var comp = req.getTx().getStorage(function(storage) {
-    var store = storage.getSimpleStore(store_name);
-    var arr = store.getKeys(null, key_range, reverse, limit, offset);
-    req.setDbValue(arr);
-    comp();
-    comp = null;
-  }, this);
-};
-
-
-/**
- * @inheritDoc
- */
 ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(req, objs,
                                                            keys) {
   this.insertRecord_(req, null, objs, keys, true, false);
@@ -304,46 +266,6 @@ ydn.db.crud.req.SimpleStore.prototype.listByIds = function(req,
 */
 ydn.db.crud.req.SimpleStore.prototype.listByKeys = function(req, keys) {
   this.listByIds_(req, null, keys);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.SimpleStore.prototype.listByKeyRange = function(req,
-    store_name, key_range, reverse, limit, offset) {
-  var msg = req.getLabel() + ' ' + store_name + ' ' +
-      (key_range ? ydn.json.toShortString(key_range) : '');
-  this.logger.finest(msg);
-  var onComp = req.getTx().getStorage(function(storage) {
-    var store = storage.getSimpleStore(store_name);
-    this.logger.finer(msg + ' getting records for ' + store_name);
-    var results = store.getRecords(null, key_range, reverse, limit, offset);
-    this.logger.finer(msg + ' ' + results.length + ' records found.');
-    req.setDbValue(results);
-    onComp();
-    onComp = null;
-  }, this);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.SimpleStore.prototype.listByIndexKeyRange = function(req,
-    store_name, index, key_range, reverse, limit, offset, unique) {
-  var msg = req.getLabel() + ' ' + store_name + ' ' +
-      (key_range ? ydn.json.toShortString(key_range) : '');
-  this.logger.finest(msg);
-  var onComp = req.getTx().getStorage(function(storage) {
-    var store = storage.getSimpleStore(store_name);
-    var results = store.getItems(ydn.db.base.QueryMethod.LIST_VALUE, index,
-        key_range, reverse, limit, offset, unique);
-    this.logger.finer(msg + ' ' + results.length + ' records found.');
-    req.setDbValue(results);
-    onComp();
-    onComp = null;
-  }, this);
 };
 
 
