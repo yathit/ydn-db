@@ -337,8 +337,8 @@ ydn.db.crud.req.SimpleStore.prototype.listByIndexKeyRange = function(req,
   this.logger.finest(msg);
   var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
-    var results = store.getItems(false, true, index, key_range, reverse,
-        limit, offset, unique);
+    var results = store.getItems(ydn.db.base.QueryMethod.LIST_VALUE, index,
+        key_range, reverse, limit, offset, unique);
     this.logger.finer(msg + ' ' + results.length + ' records found.');
     req.setDbValue(results);
     onComp();
@@ -506,5 +506,16 @@ ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(req,
  */
 ydn.db.crud.req.SimpleStore.prototype.list = function(req, type, store_name,
     index, key_range, reverse, limit, offset, unique) {
-  throw 'not yet';
+  var msg = req.getLabel() + ' ' + store_name + ' ' +
+      (key_range ? ydn.json.toShortString(key_range) : '');
+  this.logger.finest(msg);
+  var onComp = req.getTx().getStorage(function(storage) {
+    var store = storage.getSimpleStore(store_name);
+    var results = store.getItems(type, index, key_range,
+        reverse, limit, offset, unique);
+    this.logger.finer(msg + ' ' + results.length + ' records found.');
+    req.setDbValue(results);
+    onComp();
+    onComp = null;
+  }, this);
 };

@@ -562,9 +562,7 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(opt_key_range) {
 
 /**
  *
- * @param {boolean} is_key_cursor
- * @param {boolean} is_value_query false for effective key (false),
- * true for reference value query.
+ * @param {ydn.db.base.QueryMethod} mth
  * @param {string?=} opt_index_name
  * @param {IDBKeyRange=} opt_key_range
  * @param {boolean=} opt_reverse
@@ -573,8 +571,8 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(opt_key_range) {
  * @param {boolean=} opt_unique
  * @return {!Array} results.
  */
-ydn.db.con.simple.Store.prototype.getItems = function(is_key_cursor,
-    is_value_query, opt_index_name, opt_key_range, opt_reverse, opt_limit,
+ydn.db.con.simple.Store.prototype.getItems = function(mth,
+    opt_index_name, opt_key_range, opt_reverse, opt_limit,
     opt_offset, opt_unique) {
   var results = [];
   var prev_key;
@@ -674,22 +672,17 @@ ydn.db.con.simple.Store.prototype.getItems = function(is_key_cursor,
         results.push(v);
       };
 
-      if (is_value_query) {
-        if (is_index) {
-          if (is_key_cursor) {
-            results.push(primary_key);
-          } else {
-            push_value();
-          }
-        } else {
-          if (is_key_cursor) {
-            results.push(primary_key);
-          } else {
-            push_value();
-          }
-        }
-      } else {
+      if (mth == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
+        results.push(primary_key);
+      } else if (mth == ydn.db.base.QueryMethod.LIST_KEY) {
         results.push(key);
+      } else if (mth == ydn.db.base.QueryMethod.LIST_KEYS) {
+        results.push([key, primary_key]);
+      } else if (mth == ydn.db.base.QueryMethod.LIST_VALUE) {
+        var v = me.getRecord(null, primary_key);
+        results.push(v);
+      } else {
+        results.push([key, primary_key, me.getRecord(null, primary_key)]);
       }
     }
 
@@ -719,8 +712,8 @@ ydn.db.con.simple.Store.prototype.getItems = function(is_key_cursor,
  */
 ydn.db.con.simple.Store.prototype.getRecords = function(opt_index_name,
     opt_key_range, opt_reverse, opt_limit, opt_offset) {
-  return this.getItems(false, true, opt_index_name, opt_key_range, opt_reverse,
-      opt_limit, opt_offset);
+  return this.getItems(ydn.db.base.QueryMethod.LIST_VALUE, opt_index_name,
+      opt_key_range, opt_reverse, opt_limit, opt_offset);
 };
 
 
@@ -735,8 +728,8 @@ ydn.db.con.simple.Store.prototype.getRecords = function(opt_index_name,
  */
 ydn.db.con.simple.Store.prototype.getKeys = function(opt_index_name,
     opt_key_range, opt_reverse, opt_limit, opt_offset) {
-  return this.getItems(true, true, opt_index_name, opt_key_range, opt_reverse,
-      opt_limit, opt_offset);
+  return this.getItems(ydn.db.base.QueryMethod.LIST_PRIMARY_KEY, opt_index_name,
+      opt_key_range, opt_reverse, opt_limit, opt_offset);
 };
 
 
