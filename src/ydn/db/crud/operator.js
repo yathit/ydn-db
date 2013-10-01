@@ -609,31 +609,6 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
 
 
 /**
- * List by iterator.
- * @param {ydn.db.base.QueryMethod} type
- * @param {ydn.db.Iterator} iter
- * @param {number=} opt_limit optional limit.
- * @return {!ydn.db.Request}
- */
-ydn.db.crud.DbOperator.prototype.listIter = function(type, iter, opt_limit) {
-  var store_name = iter.getStoreName();
-  var index_name = iter.getIndexName() || null;
-  var limit = opt_limit || ydn.db.base.DEFAULT_RESULT_LIMIT;
-  this.logger.finer('listIter:' + type + ': ' + store_name + ':' + index_name);
-  var method = ydn.db.Request.Method.VALUES_INDEX;
-  var req = this.tx_thread.request(method, [store_name]);
-  // store.hook(req, arguments);
-  req.addTxback(function() {
-    this.getExecutor().list(req, type, store_name,
-        index_name, iter.getNextKeyRange(), iter.isReversed(), limit, 0,
-        iter.isUnique());
-  }, this);
-
-  return req;
-};
-
-
-/**
  * List
  * @param {ydn.db.base.QueryMethod} type
  * @param {string} store_name

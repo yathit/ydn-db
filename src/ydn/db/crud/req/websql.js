@@ -1242,16 +1242,20 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(req, table,
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.list = function(req, mth, store_name,
-    index_column, key_range, reverse, limit, offset, distinct) {
+    index_column, key_range, reverse, limit, offset, distinct, opt_position) {
 
   var me = this;
   var arr = [];
   var store = this.schema.getStore(store_name);
   var key_column = store.getSQLKeyColumnName();
+  var primary_type = store.getType();
+  var effective_type = primary_type;
   var index = goog.isDefAndNotNull(index_column) &&
       (index_column !== key_column) ? store.getIndex(index_column) : null;
-  var is_index = !!index;
   var effective_column = index_column || key_column;
+  if (index) {
+    effective_type = index.getType();
+  }
   var params = [];
   var sql = store.toSql(params, mth, effective_column,
       key_range, reverse, distinct);
@@ -1272,26 +1276,33 @@ ydn.db.crud.req.WebSql.prototype.list = function(req, mth, store_name,
     if (ydn.db.crud.req.WebSql.DEBUG) {
       window.console.log(results);
     }
+    var row;
     for (var i = 0; i < n; i++) {
-      var row = results.rows.item(i);
+      row = results.rows.item(i);
       if (ydn.db.crud.req.WebSql.DEBUG) {
         window.console.log(row);
       }
       if (mth == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
-        arr[i] = ydn.db.schema.Index.sql2js(row[key_column], store.getType());
+        arr[i] = ydn.db.schema.Index.sql2js(row[key_column], primary_type);
       } else if (mth == ydn.db.base.QueryMethod.LIST_KEY) {
         arr[i] = ydn.db.schema.Index.sql2js(row[effective_column],
-            store.getType());
+            effective_type);
       } else if (mth == ydn.db.base.QueryMethod.LIST_KEYS) {
         arr[i] = [
-          ydn.db.schema.Index.sql2js(row[effective_column], store.getType()),
-          ydn.db.schema.Index.sql2js(row[key_column], store.getType())];
+          ydn.db.schema.Index.sql2js(row[effective_column], effective_type),
+          ydn.db.schema.Index.sql2js(row[key_column], primary_type)];
       } else if (goog.isDefAndNotNull(row)) {
         // LIST_VALUE
         arr[i] = ydn.db.crud.req.WebSql.parseRow(row, store);
       }
     }
     me.logger.finer('success ' + msg);
+    if (opt_position && row) {
+      opt_position[0] = ydn.db.schema.Index.sql2js(row[effective_column],
+          effective_type);
+      opt_position[1] = ydn.db.schema.Index.sql2js(row[key_column],
+          primary_type);
+    }
     req.setDbValue(arr);
   };
 

@@ -791,6 +791,96 @@ ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
 /**
  * List record in a store.
  * @param {ydn.db.base.QueryMethod} mth keys method.
+ * @param {!ydn.db.Iterator} iter iterator.
+ * @param {number=} opt_limit limit.
+ * @param {number=} opt_offset limit.
+ * @return {!ydn.db.Request} request.
+ */
+ydn.db.core.DbOperator.prototype.listIter = function(mth, iter,
+                                                     opt_limit, opt_offset) {
+  var offset = opt_offset || 0;
+  var store_name = iter.getStoreName();
+  var index_name = iter.getIndexName() || null;
+  var limit = opt_limit || ydn.db.base.DEFAULT_RESULT_LIMIT;
+  this.logger.finer('listIter:' + mth + ': ' + store_name + ':' + index_name +
+      (opt_limit ? ' limit=' + limit : '') +
+      (opt_offset ? ' offset=' + offset : ''));
+  var method = ydn.db.Request.Method.VALUES_INDEX;
+  var req = this.tx_thread.request(method, [store_name]);
+  // store.hook(req, arguments);
+  var cursor_position = [];
+  req.addTxback(function() {
+    var e_key = iter.getKey();
+    if (iter.getState() != ydn.db.Iterator.State.COMPLETED &&
+        goog.isDefAndNotNull(e_key)) {
+      // console.log('to continue')
+      if (iter.isIndexIterator()) {
+        // first iterate keeping effective key constant
+        // console.log('as index iter')
+        var p_req = req.copy();
+        var p_kr = ydn.db.KeyRange.only(e_key);
+        this.getExecutor().list(p_req, mth, store_name,
+            index_name, p_kr.toIDBKeyRange(), iter.isReversed(), limit,
+            offset, iter.isUnique(), cursor_position);
+        p_req.addCallbacks(function(p_result) {
+          // console.log(p_result, 'continue ' + (p_result.length < limit));
+          if (p_result.length < limit) {
+            var e_kr = iter.isReversed() ?
+                ydn.db.KeyRange.bound(iter.getLower(), e_key,
+                    iter.getLowerOpen(), true) :
+                ydn.db.KeyRange.bound(e_key, iter.getUpper(),
+                    true, iter.getUpperOpen());
+            var e_req = req.copy();
+            var new_limit = limit - p_result.length;
+            this.getExecutor().list(e_req, mth, store_name,
+                index_name, e_kr.toIDBKeyRange(), iter.isReversed(),
+                new_limit, 0, iter.isUnique(), cursor_position);
+            e_req.addCallbacks(function(e_result) {
+              if (mth != ydn.db.base.QueryMethod.GET) {
+                // console.log('total', new_limit, p_result, e_result);
+                e_result = p_result.concat(e_result);
+              }
+              req.setDbValue(e_result);
+            }, function(e) {
+              req.setDbValue(e, true);
+            }, this);
+          } else {
+            req.setDbValue(p_result);
+          }
+        }, function(e) {
+          req.setDbValue(e, true);
+        }, this);
+      } else {
+        var kr = iter.isReversed() ?
+            ydn.db.KeyRange.bound(iter.getLower(), iter.getKey(),
+                iter.getLowerOpen(), true) :
+            ydn.db.KeyRange.bound(iter.getKey(), iter.getUpper(),
+                false, iter.getUpperOpen());
+        this.getExecutor().list(req, mth, store_name,
+            index_name, kr.toIDBKeyRange(), iter.isReversed(), limit,
+            offset, iter.isUnique(), cursor_position);
+      }
+    } else {
+      this.getExecutor().list(req, mth, store_name,
+          index_name, iter.getKeyRange(), iter.isReversed(), limit,
+          offset, iter.isUnique(), cursor_position);
+    }
+  }, this);
+  req.addCallback(function() {
+    if (goog.isDefAndNotNull(cursor_position[0])) {
+      iter.reset(ydn.db.Iterator.State.RESTING,
+          cursor_position[0], cursor_position[1]);
+    } else {
+      iter.reset();
+    }
+  });
+  return req;
+};
+
+
+/**
+ * List record in a store.
+ * @param {ydn.db.base.QueryMethod} mth keys method.
  * @param {ydn.db.Request} rq request.
  * @param {!ydn.db.Iterator} iter iterator.
  * @param {number=} opt_limit limit.

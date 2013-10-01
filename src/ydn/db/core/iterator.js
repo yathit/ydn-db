@@ -427,7 +427,7 @@ ydn.db.Iterator.prototype.hasKeyRange = function() {
 
 /**
  *
- * @return {*} get lower value of key range.
+ * @return {IDBKey|undefined} get lower value of key range.
  */
 ydn.db.Iterator.prototype.getLower = function() {
   return this.key_range_ ? undefined : this.key_range_.lower;
@@ -436,7 +436,7 @@ ydn.db.Iterator.prototype.getLower = function() {
 
 /**
  *
- * @return {*} get lower value of key range.
+ * @return {boolean|undefined} get lower value of key range.
  */
 ydn.db.Iterator.prototype.getLowerOpen = function() {
   return this.key_range_ ? undefined : this.key_range_.lowerOpen;
@@ -445,7 +445,7 @@ ydn.db.Iterator.prototype.getLowerOpen = function() {
 
 /**
  *
- * @return {*} get upper value of key range.
+ * @return {IDBKey|undefined} get upper value of key range.
  */
 ydn.db.Iterator.prototype.getUpper = function() {
   return this.key_range_ ? undefined : this.key_range_.upper;
@@ -454,7 +454,7 @@ ydn.db.Iterator.prototype.getUpper = function() {
 
 /**
  *
- * @return {*} get upper value of key range.
+ * @return {boolean|undefined} get upper value of key range.
  */
 ydn.db.Iterator.prototype.getUpperOpen = function() {
   return this.key_range_ ? undefined : this.key_range_.upperOpen;
@@ -632,7 +632,13 @@ ydn.db.Iterator.prototype.isUnique = function() {
  * @return {IDBKeyRange}
  */
 ydn.db.Iterator.prototype.getNextKeyRange = function() {
-  return this.key_range_;
+  if (this.state_ == ydn.db.Iterator.State.COMPLETED ||
+      this.state_ == ydn.db.Iterator.State.INITIAL ||
+      !goog.isDefAndNotNull(this.i_key_)) {
+    return this.key_range_;
+  } else {
+    return this.key_range_;
+  }
 };
 
 
@@ -677,7 +683,7 @@ ydn.db.Iterator.prototype.isFreshState = function() {
 
 /**
  *
- * @return {*|undefined} Current cursor key.
+ * @return {IDBKey|undefined} Current cursor key.
  */
 ydn.db.Iterator.prototype.getKey = function() {
   return this.i_key_;
@@ -686,7 +692,7 @@ ydn.db.Iterator.prototype.getKey = function() {
 
 /**
  *
- * @return {*|undefined} Current cursor index key.
+ * @return {IDBKey|undefined} Current cursor index key.
  */
 ydn.db.Iterator.prototype.getPrimaryKey = function() {
   return this.i_primary_key_;
@@ -695,14 +701,21 @@ ydn.db.Iterator.prototype.getPrimaryKey = function() {
 
 /**
  * Reset the state.
+ * @param {ydn.db.Iterator.State=} opt_state reset state, default to INITIAL.
+ * @param {IDBKey=} opt_key effective key for setting RESTING state.
+ * @param {IDBKey=} opt_primary_key effective key for setting RESTING state.
  */
-ydn.db.Iterator.prototype.reset = function() {
+ydn.db.Iterator.prototype.reset = function(opt_state,
+                                           opt_key, opt_primary_key) {
+  var state = opt_state || ydn.db.Iterator.State.INITIAL;
   if (this.getState() == ydn.db.Iterator.State.WORKING) {
-    throw new ydn.error.InvalidOperationError(ydn.db.Iterator.State.WORKING);
+    this.logger.warning(this + ': resetting state to ' + state +
+        ' ignore during iteration');
+  } else {
+    this.i_key_ = opt_key;
+    this.i_primary_key_ = opt_primary_key;
+    this.state_ = state;
   }
-  this.i_key_ = undefined;
-  this.i_primary_key_ = undefined;
-  this.state_ = ydn.db.Iterator.State.INITIAL;
 };
 
 

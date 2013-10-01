@@ -780,122 +780,6 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(req, store_names) {
 
 
 /**
- * General executor for LIST methods.
- * @param {ydn.db.Request} req req.
- * @param {string} store_name store name.
- * @param {string?} index index name.
- * @param {IDBKeyRange} key_range range to list.
- * @param {boolean} reverse to sort reverse order.
- * @param {number} limit the results.
- * @param {number} offset skip first results.
- * @param {boolean=} opt_unique unique attribute for index listing.
- * @private
- */
-ydn.db.crud.req.IndexedDb.prototype.listByKeyRange_ = function(req,
-    store_name, index, key_range, reverse, limit, offset, opt_unique) {
-  var me = this;
-  var results = [];
-  var store = req.getTx().objectStore(store_name);
-  var dir = ydn.db.base.getDirection(reverse, opt_unique);
-  var msg = req.getLabel() + ' ' + store_name +
-      (index ? ':' + index : '') +
-      (key_range ? ydn.json.stringify(key_range) : '');
-  if (reverse) {
-    msg += ' reverse';
-  }
-  if (opt_unique) {
-    msg += ' unique';
-  }
-  this.logger.finest(msg);
-  var request;
-  if (index) {
-    request = store.index(index).openCursor(key_range, dir);
-  } else {
-    request = store.openCursor(key_range, dir);
-  }
-
-  var cued = false;
-  request.onsuccess = function(event) {
-    /**
-     *
-     * @type {IDBCursorWithValue}
-     */
-    var cursor = event.target.result;
-    if (cursor) {
-      if (!cued && offset > 0) {
-        cued = true;
-        cursor.advance(offset);
-        return;
-      }
-      results.push(cursor.value);
-      if (results.length < limit) {
-        cursor['continue']();
-      } else {
-        req.setDbValue(results);
-      }
-    } else {
-      req.setDbValue(results);
-    }
-  };
-  request.onerror = function(event) {
-    if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, event]);
-    }
-    event.preventDefault();
-    req.setDbValue(request.error, true);
-  };
-};
-
-
-
-//
-///**
-// * @inheritDoc
-// */
-//ydn.db.crud.req.IndexedDb.prototype.keysByStore = function(df, store_name,
-//    reverse, limit, offset) {
-//  var me = this;
-//  var results = [];
-//  var store = this.tx.objectStore(store_name);
-//  var dir = ydn.db.base.getDirection(reverse);
-//  var msg = 'keysByStore: ' + store_name;
-//  this.logger.finest(msg);
-//  var request = store.openCursor(null, dir);
-//  var cued = false;
-//  request.onsuccess = function(event) {
-//    /**
-//     * @type {IDBCursor}
-//     */
-//    var cursor = event.target.result;
-//    if (cursor) {
-//      if (!cued && offset > 0) {
-//        cued = true;
-//        cursor.advance(offset);
-//        return;
-//      }
-//      results.push(cursor.primaryKey);
-//      if (results.length < limit) {
-//        cursor['continue']();
-//      } else {
-//        me.logger.finest('success ' + msg);
-//        df.callback(results);
-//      }
-//    } else {
-//      me.logger.finest('success ' + msg);
-//      df.callback(results);
-//    }
-//  };
-//  request.onerror = function(event) {
-//    if (ydn.db.crud.req.IndexedDb.DEBUG) {
-//      window.console.log([store_name, event]);
-//    }
-//    me.logger.finest('error ' + msg);
-//    df.errback(event);
-//  };
-//};
-
-
-/**
 * @inheritDoc
 */
 ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
@@ -1130,8 +1014,8 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
-    store_name, index, key_range, reverse, limit, offset, unique) {
-  var me = this;
+    store_name, index, key_range, reverse, limit, offset, unique,
+    opt_position) {
   var results = [];
   var store = req.getTx().objectStore(store_name);
   var dir = ydn.db.base.getDirection(reverse, unique);
@@ -1206,9 +1090,16 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
       if (results.length < limit) {
         cursor['continue']();
       } else {
+        if (opt_position) {
+          opt_position[0] = ydn.db.Key.clone(cursor.key);
+          opt_position[1] =
+              ydn.db.Key.clone(/** @type {IDBKey} */ (cursor.primaryKey));
+        }
+        // console.log(req + ' by limit', results);
         req.setDbValue(results);
       }
     } else {
+      // console.log(req + ' by cursor', results);
       req.setDbValue(results);
     }
   };

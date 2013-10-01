@@ -118,6 +118,21 @@ ydn.db.core.Storage.prototype.open = function(callback, iter, opt_mode,
 
 
 /**
+ * List record in a store.
+ * @param {ydn.db.base.QueryMethod} mth keys method.
+ * @param {!ydn.db.Iterator} iter iterator.
+ * @param {number=} opt_limit limit.
+ * @param {number=} opt_offset limit.
+ * @return {!ydn.db.Request} request.
+ */
+ydn.db.core.Storage.prototype.listIter = function(mth, iter,
+                                                  opt_limit, opt_offset) {
+  return this.getIndexOperator().listIter(mth, iter,
+      opt_limit, opt_offset);
+};
+
+
+/**
  * Cursor scan iteration.
  * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
  * solver.

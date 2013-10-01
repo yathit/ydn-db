@@ -189,18 +189,6 @@ ydn.db.crud.req.IRequestExecutor.prototype.putByKeys = goog.abstractMethod;
 
 
 /**
- * @enum {number}
- */
-ydn.db.crud.req.ListType_ = {
-  KEY: 1,
-  PRIMARY_KEY: 2,
-  KEYS: 3, // all below this enum are for keys
-  VALUE: 4,
-  ALL: 5
-};
-
-
-/**
  * Execute GET request callback results to df.
  * @param {ydn.db.Request} req request.
  * @param {ydn.db.base.QueryMethod} type result type.
@@ -211,6 +199,7 @@ ydn.db.crud.req.ListType_ = {
  * @param {number} limit the results.
  * @param {number} offset skip first results.
  * @param {boolean} unique unique key.
+ * @param {Array.<IDBKey|undefined>=} opt_position last cursor position.
  */
 ydn.db.crud.req.IRequestExecutor.prototype.list =
     goog.abstractMethod;

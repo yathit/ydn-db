@@ -86,8 +86,15 @@ ydn.db.Request = function(method, opt_onCancelFunction, opt_defaultScope) {
   this.transformers_ = [];
   this.tx_ = null;
   this.tx_label_ = '';
+  this.copy_count_ = 0;
 };
 goog.inherits(ydn.db.Request, goog.async.Deferred);
+
+
+/**
+ * @define {boolean} debug flag.
+ */
+ydn.db.Request.DEBUG = false;
 
 
 /**
@@ -147,7 +154,8 @@ ydn.db.Request.prototype.setTx = function(tx, label) {
 ydn.db.Request.prototype.copy = function() {
   // goog.asserts.assert(this.tx_, 'only active request can be copied');
   var rq = new ydn.db.Request(this.method_);
-  rq.setTx(this.tx_, this.tx_label_);
+  this.copy_count_++;
+  rq.setTx(this.tx_, this.tx_label_ + 'C' + this.copy_count_);
   return rq;
 };
 
@@ -246,6 +254,10 @@ ydn.db.Request.prototype.setDbValue = function(value, opt_failed) {
       me.setDbValue(tx_value, f2);
     });
   } else {
+    if (ydn.db.Request.DEBUG) {
+      window.console.log(this + ' receiving ' + (failed ? 'fail' : 'value'),
+          value);
+    }
     if (failed) {
       this.errback(value);
     } else {

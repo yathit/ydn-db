@@ -569,11 +569,12 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(opt_key_range) {
  * @param {number=} opt_limit
  * @param {number=} opt_offset
  * @param {boolean=} opt_unique
+ * @param {Array.<IDBKey|undefined>=} opt_position last cursor position.
  * @return {!Array} results.
  */
 ydn.db.con.simple.Store.prototype.getItems = function(mth,
     opt_index_name, opt_key_range, opt_reverse, opt_limit,
-    opt_offset, opt_unique) {
+    opt_offset, opt_unique, opt_position) {
   var results = [];
   var prev_key;
   opt_index_name = opt_index_name || this.primary_index;
@@ -667,11 +668,6 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
       var primary_key = /** @type {!IDBKey} */ (is_index ?
           x.getPrimaryKey() : key);
 
-      var push_value = function() {
-        var v = me.getRecord(null, primary_key);
-        results.push(v);
-      };
-
       if (mth == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
         results.push(primary_key);
       } else if (mth == ydn.db.base.QueryMethod.LIST_KEY) {
@@ -684,7 +680,12 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
       } else {
         results.push([key, primary_key, me.getRecord(null, primary_key)]);
       }
+      if (opt_position) {
+        opt_position[0] = key;
+        opt_position[1] = primary_key;
+      }
     }
+
 
     prev_key = key;
     if (goog.isDef(opt_limit) && results.length >= opt_limit) {
