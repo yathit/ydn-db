@@ -403,6 +403,19 @@ ydn.db.Request.succeed = function(method, value) {
 
 
 /**
+ * Return a Deferred's Promise object, as required by jQuery.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.Request.prototype.promise = function() {
+  // Ref: https://github.com/jquery/jquery/blob/master/src/deferred.js#L34
+  // Note: promise function return an object having `done`, `fail` and
+  // `progress` functions. Since a request object satisfy the requirement, this
+  // simply return itself.
+  return this;
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.Request.prototype.valueOf = function() {
@@ -410,30 +423,28 @@ ydn.db.Request.prototype.valueOf = function() {
 };
 
 
-if (goog.DEBUG) {
-  /**
-   * @inheritDoc
-   */
-  ydn.db.Request.prototype.toString = function() {
-    return 'Request:' + this.getLabel();
-  };
+/**
+ * @inheritDoc
+ */
+ydn.db.Request.prototype.toString = function() {
+  return 'Request:' + this.getLabel();
+};
 
 
-  /**
-   * @inheritDoc
-   */
-  ydn.db.Request.prototype.toJSON = function() {
-    var label = this.tx_label_ || '';
-    var m = label.match(/B(\d+)T(\d+)(?:Q(\d+?))?(?:R(\d+))?/) || [];
-    return {
-      'method': this.method_ ? this.method_.split(':') : [],
-      'branchNo': parseFloat(m[1]),
-      'transactionNo': parseFloat(m[2]),
-      'queueNo': parseFloat(m[3]),
-      'requestNo': parseFloat(m[4])
-    };
+/**
+ * @inheritDoc
+ */
+ydn.db.Request.prototype.toJSON = function() {
+  var label = this.tx_label_ || '';
+  var m = label.match(/B(\d+)T(\d+)(?:Q(\d+?))?(?:R(\d+))?/) || [];
+  return {
+    'method': this.method_ ? this.method_.split(':') : [],
+    'branchNo': parseFloat(m[1]),
+    'transactionNo': parseFloat(m[2]),
+    'queueNo': parseFloat(m[3]),
+    'requestNo': parseFloat(m[4])
   };
-}
+};
 
 
 /**

@@ -43,7 +43,11 @@
         };
 
         var req = $.when(wrap(db.count('items')),wrap(db.values('items')),wrap(db.get('config', 1)));
-
+        var disp = function(s) {
+            var e = document.createElement('div');
+            e.textContent = s;
+            document.body.appendChild(e);
+        };
         req.done(function(count,r,config) {
             var currency = config.currency;
             if(count > 0){
@@ -51,7 +55,7 @@
                 for (var i = 0; i < n; i++) {
                     var id    = r[i].id;
                     var itemId = r[i].itemId;
-                    console.log('ID: '+id+' itemID: '+itemId+' Currency: '+currency);
+                    disp('ID: '+id+' itemID: '+itemId+' Currency: '+currency);
                 }
             }
         });

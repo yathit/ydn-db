@@ -55,6 +55,8 @@ goog.exportProperty(ydn.db.Request.prototype, 'canAbort',
     ydn.db.Request.prototype.canAbort);
 goog.exportProperty(ydn.db.Request.prototype, 'progress',
     ydn.db.Request.prototype.addProgback);
+goog.exportProperty(ydn.db.Request.prototype, 'promise',
+    ydn.db.Request.prototype.promise);
 
 
 
