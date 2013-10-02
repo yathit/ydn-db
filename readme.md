@@ -1,8 +1,5 @@
 # Developer guide #
 
-
-## Documentation ##
-
 * [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
 * [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
 * [Demo applications](http://dev.yathit.com/index/demos.html)
@@ -44,7 +41,8 @@ The following snippet show querying from `people` object store using index `age`
 by key range bounded by 25. The result will be sorted by `age`.
 
     var q = db.from('people').where('age', '>=', 25);
-    q.list().done(function(objs) {
+    var limit = 10;
+    q.list(limit).done(function(objs) {
       console.log(objs);
     });
 
@@ -79,6 +77,27 @@ request in a single transaction.
     }, function(e) {
       console.log('transaction aborted');
     });
+
+### Events ###
+
+`ydn.db.Storage` dispatch events for connection and error. Additionally
+modification of records events can be installed by defining in schema.
+
+Data heavy query should be execute after database connection is established
+by listening `ready` event.
+
+    db.addEventListener('ready', function (event) {
+      var is_updated = event.getVersion() != event.getOldVersion();
+      if (is_updated) {
+        console.log('database connected with new schema');
+      } else if (isNaN(event.getOldVersion()))  {
+        console.log('new database created');
+      } else {
+        console.log('existing database connected');
+      }
+      // heavy database operations should start from this.
+    );
+
 
 ## Setup ##
 
