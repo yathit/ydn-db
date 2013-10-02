@@ -76,8 +76,9 @@ if (goog.DEBUG) {
    * @override
    */
   ydn.db.con.simple.Node.prototype.toString = function() {
-    return 'ydn.db.con.simple.Node:' + this.key +
-        (goog.isDefAndNotNull(this.primary_key) ? ':' + this.primary_key : '');
+    return 'ydn.db.con.simple.Node(' + this.key +
+        (goog.isDefAndNotNull(this.primary_key) ? ', ' +
+            this.primary_key + ')' : ')');
   };
 }
 

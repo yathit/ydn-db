@@ -482,7 +482,7 @@ var test_list_resume = function () {
   var rev = arr.slice().reverse();
   var rev_keys = keys.slice().reverse();
 
-  var done, key_1, key_2, key_3, p_key_1;
+  var done, key_1, key_2, key_3, p_key_1, key_4;
 
   waitForCondition(
       // Condition
@@ -495,6 +495,7 @@ var test_list_resume = function () {
         assertArrayEquals('keys 1', keys.slice(2), key_1);
         assertArrayEquals('keys 2', keys.slice(4), key_2);
         assertArrayEquals('keys 3', keys.slice(5), key_3);
+        assertArrayEquals('rev key', rev_keys.slice(4), key_4);
         ydn.db.deleteDatabase(db_name, db.getType());
         db.close();
         reachedFinalContinuation = true;
@@ -518,6 +519,10 @@ var test_list_resume = function () {
   db.list(mth, 'st', 'value', null, false, 10, 0, false, [2, undefined])
       .addBoth(function(value) {
         key_3 = value;
+      });
+  db.list(mth, 'st', 'value', null, true, 10, 0, false, [2, 2])
+      .addBoth(function(value) {
+        key_4 = value;
         done = true;
       });
 };
