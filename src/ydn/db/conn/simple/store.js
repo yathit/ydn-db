@@ -622,18 +622,19 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
     } else {
       lowerOpen = true;
     }
+    var e_key = /** @type {IDBKey} */ (opt_position[0]);
     var p_key = goog.isDef(opt_position[1]) ? opt_position[1] : '\uffff';
     if (opt_reverse) {
       if (is_index) {
-        end = new ydn.db.con.simple.Node(opt_position[0], p_key);
+        end = new ydn.db.con.simple.Node(e_key, p_key);
       } else {
-        end = new ydn.db.con.simple.Node(opt_position[0]);
+        end = new ydn.db.con.simple.Node(e_key);
       }
     } else {
       if (is_index) {
-        start = new ydn.db.con.simple.Node(opt_position[0], p_key);
+        start = new ydn.db.con.simple.Node(e_key, p_key);
       } else {
-        start = new ydn.db.con.simple.Node(opt_position[0]);
+        start = new ydn.db.con.simple.Node(e_key);
       }
     }
   }
