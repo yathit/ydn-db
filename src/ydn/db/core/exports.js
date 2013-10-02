@@ -41,6 +41,17 @@ goog.exportProperty(ydn.db.Cursor.prototype, 'update',
 goog.exportProperty(ydn.db.Cursor.prototype, 'clear',
     ydn.db.Cursor.prototype.clear);
 
+goog.exportProperty(ydn.db.core.req.AbstractCursor.prototype, 'getKey',
+    ydn.db.core.req.AbstractCursor.prototype.getKey);
+goog.exportProperty(ydn.db.core.req.AbstractCursor.prototype, 'getPrimaryKey',
+    ydn.db.core.req.AbstractCursor.prototype.getPrimaryKey);
+goog.exportProperty(ydn.db.core.req.AbstractCursor.prototype, 'getValue',
+    ydn.db.core.req.AbstractCursor.prototype.getValue);
+goog.exportProperty(ydn.db.core.req.AbstractCursor.prototype, 'update',
+    ydn.db.core.req.AbstractCursor.prototype.update);
+goog.exportProperty(ydn.db.core.req.AbstractCursor.prototype, 'clear',
+    ydn.db.core.req.AbstractCursor.prototype.clear);
+
 goog.exportSymbol('ydn.math.Expression', ydn.math.Expression);
 goog.exportProperty(ydn.math.Expression.prototype, 'evaluate',
     ydn.math.Expression.prototype.evaluate);

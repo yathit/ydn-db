@@ -28,15 +28,15 @@ goog.require('ydn.debug.error.InternalError');
  * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no.
  * @param {ydn.db.schema.Store} store_schema schema.
- * @param {ydn.db.base.QueryMethod=} q_mth true for keys query method.
+ * @param {ydn.db.base.QueryMethod=} opt_mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
  * @struct
  */
-ydn.db.core.req.IDBCursor = function(tx, tx_no, store_schema, q_mth) {
+ydn.db.core.req.IDBCursor = function(tx, tx_no, store_schema, opt_mth) {
 
-  goog.base(this, tx, tx_no, store_schema, q_mth);
+  goog.base(this, tx, tx_no, store_schema, opt_mth);
 
   /**
    * @type {IDBRequest} cursor request object.
