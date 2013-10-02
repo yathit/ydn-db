@@ -32,6 +32,7 @@ goog.require('ydn.db.core.req.ICursor');
  * @extends {ydn.db.core.req.AbstractCursor}
  * @implements {ydn.db.core.req.ICursor}
  * @constructor
+ * @struct
  */
 ydn.db.core.req.WebsqlCursor = function(tx, tx_no, store_schema, opt_mth) {
 
@@ -298,7 +299,6 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
 /**
  * Continue to given effective key position.
  * @param {!Array.<string>} params sql params.
- * @param {?ydn.db.core.req.WebsqlCursor.callback} callback invoke.
  * @param {IDBKey} key effective key.
  * @param {boolean} open open.
  * @param {IDBKey} primary_key primary key.
@@ -306,7 +306,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
  * @private
  */
 ydn.db.core.req.WebsqlCursor.prototype.sqlContinueIndexEffectiveKey_ = function(
-    params, callback, key, open, primary_key) {
+    params, key, open, primary_key) {
 
 
   var index_column = this.index_.getSQLIndexColumnName();
@@ -360,14 +360,13 @@ ydn.db.core.req.WebsqlCursor.prototype.sqlContinueIndexEffectiveKey_ = function(
 /**
  * Continue to given effective key position.
  * @param {!Array.<string>} params sql params.
- * @param {?ydn.db.core.req.WebsqlCursor.callback} callback invoke.
  * @param {IDBKey} key effective key.
  * @param {boolean} open open bound.
  * @return {string} sql.
  * @private
  */
 ydn.db.core.req.WebsqlCursor.prototype.sqlContinueEffectiveKey_ = function(
-    params, callback, key, open) {
+    params, key, open) {
   var p_sql;
   /** @type {IDBKey} */
   var lower;
@@ -459,10 +458,10 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
   if (this.is_index &&
       goog.isDefAndNotNull(opt_primary_key) &&
       goog.isDefAndNotNull(opt_key)) {
-    sql = this.sqlContinueIndexEffectiveKey_(params, callback, opt_key,
+    sql = this.sqlContinueIndexEffectiveKey_(params, opt_key,
         open, opt_primary_key);
   } else if (goog.isDefAndNotNull(opt_key)) {
-    sql = this.sqlContinueEffectiveKey_(params, callback, opt_key, open);
+    sql = this.sqlContinueEffectiveKey_(params, opt_key, open);
   } else {
     var column = this.isPrimaryCursor() ?
         this.store_schema.getSQLKeyColumnName() :
@@ -559,7 +558,6 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
   if (!this.hasCursor()) {
     throw new ydn.db.InvalidAccessError();
   }
-
 
   var df = new goog.async.Deferred();
   var me = this;
