@@ -566,6 +566,13 @@ if (goog.DEBUG) {
         ':' + this.index_key_path_.join(',') :
             goog.isDef(this.index_name_) ? ':' + this.index_name_ : '';
     str += ydn.db.KeyRange.toString(this.key_range_);
+    if (this.state_ != ydn.db.Iterator.State.INITIAL) {
+      str += this.state_ + '{' + this.i_key_;
+      if (this.isIndexIterator()) {
+        str += ', ' + this.i_primary_key_;
+      }
+      str += '}';
+    }
     var s = this.isIndexIterator() ? 'Index' : '';
     s += this.isKeyIterator() ? 'Key' : 'Value';
     return s + 'Iterator:' + this.store_name_ + str;

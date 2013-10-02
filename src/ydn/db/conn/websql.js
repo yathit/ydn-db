@@ -184,6 +184,11 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
      * @param {SQLError} e error.
      */
     var error_callback = function(e) {
+      me.logger.severe('SQLError ' + e.code + ' (' + e.message + ') ' +
+          'on changing version from ' + db.version + ' to ' + new_version);
+      if (ydn.db.con.WebSql.DEBUG) {
+        window.console.log(e);
+      }
       throw e;
     };
 

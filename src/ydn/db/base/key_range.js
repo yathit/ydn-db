@@ -333,7 +333,7 @@ ydn.db.KeyRange.toString = function(kr) {
   if (!kr) {
     return '';
   }
-  var str = kr.lowerOpen ? ' (' : ' [';
+  var str = kr.lowerOpen ? '(' : '[';
   if (goog.isDefAndNotNull(kr.lower)) {
     str += kr.lower + ', ';
   }
