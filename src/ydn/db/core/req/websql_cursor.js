@@ -298,148 +298,6 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
 
 /**
  * Continue to given effective key position.
- * @param {!Array.<string>} params sql params.
- * @param {IDBKey} key effective key.
- * @param {boolean} open open.
- * @param {IDBKey} primary_key primary key.
- * @return {string} sql.
- * @private
- */
-ydn.db.core.req.WebsqlCursor.prototype.sqlContinueIndexEffectiveKey_ = function(
-    params, key, open, primary_key) {
-
-
-  var index_column = this.index_.getSQLIndexColumnName();
-  var q_index_column = this.index_.getSQLIndexColumnNameQuoted();
-  var primary_column = this.store_schema.getSQLKeyColumnName();
-  var q_primary_column = this.store_schema.getSQLKeyColumnNameQuoted();
-
-  var op = this.reverse ? ' <' : ' >';
-  if (open) {
-    op += ' ';
-  } else {
-    op += '= ';
-  }
-  var encode_key = ydn.db.schema.Index.js2sql(key, this.index_.getType());
-  var encode_primary_key = ydn.db.schema.Index.js2sql(primary_key,
-      this.store_schema.getType());
-
-  var e_sql;
-  var or = '';
-  if (this.key_range) {
-    e_sql = this.store_schema.inSql(params, this.query_method,
-        index_column, this.key_range,
-        this.reverse, this.unique);
-    e_sql.where += ' AND ';
-
-    or = q_index_column + op + '?';
-    params.push(encode_key);
-  } else {
-    var key_range = this.reverse ?
-        ydn.db.KeyRange.upperBound(key, true) :
-        ydn.db.KeyRange.lowerBound(key, true);
-    e_sql = this.store_schema.inSql(params, this.query_method,
-        index_column, key_range,
-        this.reverse, this.unique);
-    or = e_sql.where;
-    e_sql.where = '';
-  }
-
-  e_sql.where += '(' + or + ' OR (' + q_index_column + ' = ? AND ' +
-      q_primary_column + op + '?))';
-  params.push(encode_key);
-  params.push(encode_primary_key);
-
-  return 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
-      ' WHERE ' + e_sql.where +
-      (e_sql.group ? ' GROUP BY ' + e_sql.group : '') +
-      ' ORDER BY ' + e_sql.order;
-};
-
-
-/**
- * Continue to given effective key position.
- * @param {!Array.<string>} params sql params.
- * @param {IDBKey} key effective key.
- * @param {boolean} open open bound.
- * @return {string} sql.
- * @private
- */
-ydn.db.core.req.WebsqlCursor.prototype.sqlContinueEffectiveKey_ = function(
-    params, key, open) {
-  var p_sql;
-  /** @type {IDBKey} */
-  var lower;
-  /** @type {IDBKey} */
-  var upper;
-  var lowerOpen, upperOpen;
-  if (goog.isDefAndNotNull(this.key_range)) {
-    lower = /** @type {IDBKey} */ (this.key_range.lower);
-    upper = /** @type {IDBKey} */ (this.key_range.upper);
-    lowerOpen = this.key_range.lowerOpen;
-    upperOpen = this.key_range.upperOpen;
-
-    if (this.reverse) {
-      if (goog.isDefAndNotNull(upper)) {
-        var u_cmp = ydn.db.cmp(key, upper);
-        if (u_cmp == -1) {
-          upper = key;
-          upperOpen = open;
-        } else if (u_cmp == 0) {
-          upperOpen = open || upperOpen;
-        }
-      } else {
-        upper = key;
-        upperOpen = open;
-      }
-    } else {
-      if (goog.isDefAndNotNull(lower)) {
-        var l_cmp = ydn.db.cmp(key, lower);
-        if (l_cmp == 1) {
-          lower = key;
-          lowerOpen = open;
-        } else if (l_cmp == 0) {
-          lowerOpen = open || lowerOpen;
-        }
-      } else {
-        lower = key;
-        lowerOpen = open;
-      }
-    }
-  } else {
-    if (this.reverse) {
-      upper = key;
-      upperOpen = open;
-    } else {
-      lower = key;
-      lowerOpen = open;
-    }
-  }
-
-  var key_range = new ydn.db.KeyRange(lower, upper, !!lowerOpen, !!upperOpen);
-
-  var column = this.index_ ? this.index_.getSQLIndexColumnName() :
-      this.store_schema.getSQLKeyColumnName();
-  var e_sql = this.store_schema.inSql(params, this.query_method,
-      column, key_range, this.reverse, this.unique);
-
-
-  var sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
-      (e_sql.where ? ' WHERE ' + e_sql.where : '') +
-      (e_sql.group ? ' GROUP BY ' + e_sql.group : '') +
-      ' ORDER BY ' + e_sql.order;
-
-  if (this.isIndexCursor()) {
-    var order = this.reverse ? 'DESC' : 'ASC';
-    sql += ', ' + this.store_schema.getSQLKeyColumnNameQuoted() + order;
-  }
-
-  return sql;
-};
-
-
-/**
- * Continue to given effective key position.
  * @param {?ydn.db.core.req.WebsqlCursor.callback} callback invoke.
  * @param {IDBKey=} opt_key effective key.
  * @param {boolean=} opt_inclusive position is inclusive.
@@ -458,10 +316,13 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
   if (this.is_index &&
       goog.isDefAndNotNull(opt_primary_key) &&
       goog.isDefAndNotNull(opt_key)) {
-    sql = this.sqlContinueIndexEffectiveKey_(params, opt_key,
-        open, opt_primary_key);
+    sql = this.store_schema.sqlContinueIndexEffectiveKey(this.query_method,
+        params, this.index_.getName(), this.key_range, opt_key,
+        open, opt_primary_key, this.reverse, this.unique);
   } else if (goog.isDefAndNotNull(opt_key)) {
-    sql = this.sqlContinueEffectiveKey_(params, opt_key, open);
+    var index_name = this.index_ ? this.index_.getName() : null;
+    sql = this.store_schema.sqlContinueEffectiveKey(this.query_method, params,
+        index_name, this.key_range, this.reverse, this.unique, opt_key, open);
   } else {
     var column = this.isPrimaryCursor() ?
         this.store_schema.getSQLKeyColumnName() :

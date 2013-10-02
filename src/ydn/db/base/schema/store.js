@@ -440,6 +440,157 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
 
 
 /**
+ * Continue to given effective key position.
+ * @param {ydn.db.base.QueryMethod} method query method.
+ * @param {!Array.<string>} params sql params.
+ * @param {string?} index_name index name.
+ * @param {IDBKeyRange|ydn.db.KeyRange} key_range key range.
+ * @param {boolean} reverse ordering.
+ * @param {boolean} unique unique.
+ * @param {IDBKey} key effective key.
+ * @param {boolean} open open bound.
+ * @return {string} sql.
+ */
+ydn.db.schema.Store.prototype.sqlContinueEffectiveKey = function(method,
+    params, index_name, key_range, reverse, unique, key, open) {
+  var p_sql;
+  /** @type {IDBKey} */
+  var lower;
+  /** @type {IDBKey} */
+  var upper;
+  var lowerOpen, upperOpen;
+  if (goog.isDefAndNotNull(key_range)) {
+    lower = /** @type {IDBKey} */ (key_range.lower);
+    upper = /** @type {IDBKey} */ (key_range.upper);
+    lowerOpen = key_range.lowerOpen;
+    upperOpen = key_range.upperOpen;
+
+    if (reverse) {
+      if (goog.isDefAndNotNull(upper)) {
+        var u_cmp = ydn.db.cmp(key, upper);
+        if (u_cmp == -1) {
+          upper = key;
+          upperOpen = open;
+        } else if (u_cmp == 0) {
+          upperOpen = open || upperOpen;
+        }
+      } else {
+        upper = key;
+        upperOpen = open;
+      }
+    } else {
+      if (goog.isDefAndNotNull(lower)) {
+        var l_cmp = ydn.db.cmp(key, lower);
+        if (l_cmp == 1) {
+          lower = key;
+          lowerOpen = open;
+        } else if (l_cmp == 0) {
+          lowerOpen = open || lowerOpen;
+        }
+      } else {
+        lower = key;
+        lowerOpen = open;
+      }
+    }
+  } else {
+    if (reverse) {
+      upper = key;
+      upperOpen = open;
+    } else {
+      lower = key;
+      lowerOpen = open;
+    }
+  }
+
+  key_range = new ydn.db.KeyRange(lower, upper, !!lowerOpen, !!upperOpen);
+
+  var index = index_name ? this.getIndex(index_name) : null;
+  var column = index ? index.getSQLIndexColumnName() :
+      this.getSQLKeyColumnName();
+  var e_sql = this.inSql(params, method,
+      column, key_range, reverse, unique);
+
+
+  var sql = 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
+      (e_sql.where ? ' WHERE ' + e_sql.where : '') +
+      (e_sql.group ? ' GROUP BY ' + e_sql.group : '') +
+      ' ORDER BY ' + e_sql.order;
+
+  if (index) {
+    var order = reverse ? 'DESC' : 'ASC';
+    sql += ', ' + this.getSQLKeyColumnNameQuoted() + order;
+  }
+
+  return sql;
+};
+
+
+/**
+ * Continue to given effective key position.
+ * @param {ydn.db.base.QueryMethod} method query method.
+ * @param {!Array.<string>} params sql params.
+ * @param {string} index_name index name.
+ * @param {IDBKeyRange|ydn.db.KeyRange} key_range key range.
+ * @param {IDBKey} key effective key.
+ * @param {boolean} open open.
+ * @param {IDBKey} primary_key primary key.
+ * @param {boolean} reverse ordering.
+ * @param {boolean} unique unique.
+ * @return {string} sql.
+ */
+ydn.db.schema.Store.prototype.sqlContinueIndexEffectiveKey = function(method,
+    params, index_name, key_range, key, open, primary_key, reverse, unique) {
+
+  var index = this.getIndex(index_name);
+  var index_column = index.getSQLIndexColumnName();
+  var q_index_column = index.getSQLIndexColumnNameQuoted();
+  var primary_column = this.getSQLKeyColumnName();
+  var q_primary_column = this.getSQLKeyColumnNameQuoted();
+
+  var op = reverse ? ' <' : ' >';
+  if (open) {
+    op += ' ';
+  } else {
+    op += '= ';
+  }
+  var encode_key = ydn.db.schema.Index.js2sql(key, index.getType());
+  var encode_primary_key = ydn.db.schema.Index.js2sql(primary_key,
+      this.getType());
+
+  var e_sql;
+  var or = '';
+  if (key_range) {
+    e_sql = this.inSql(params, method,
+        index_column, key_range,
+        reverse, unique);
+    e_sql.where += ' AND ';
+
+    or = q_index_column + op + '?';
+    params.push(encode_key);
+  } else {
+    key_range = reverse ?
+        ydn.db.KeyRange.upperBound(key, true) :
+        ydn.db.KeyRange.lowerBound(key, true);
+    e_sql = this.inSql(params, method,
+        index_column, key_range,
+        reverse, unique);
+    or = e_sql.where;
+    e_sql.where = '';
+  }
+
+  e_sql.where += '(' + or + ' OR (' + q_index_column + ' = ? AND ' +
+      q_primary_column + op + '?))';
+  params.push(encode_key);
+  params.push(encode_primary_key);
+
+  return 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
+      ' WHERE ' + e_sql.where +
+      (e_sql.group ? ' GROUP BY ' + e_sql.group : '') +
+      ' ORDER BY ' + e_sql.order;
+};
+
+
+/**
  *
  * @return {!ydn.db.schema.Store} clone this database schema.
  */

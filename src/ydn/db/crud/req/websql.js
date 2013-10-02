@@ -1173,8 +1173,21 @@ ydn.db.crud.req.WebSql.prototype.list = function(req, mth, store_name,
     effective_type = index.getType();
   }
   var params = [];
-  var sql = store.toSql(params, mth, effective_column,
-      key_range, reverse, distinct);
+  var sql;
+  if (!!opt_position && goog.isDef(opt_position[0])) {
+    var e_key = /** @type {IDBKey} */ (opt_position[0]);
+    if (index && goog.isDef(opt_position[1])) {
+      var p_key = /** @type {IDBKey} */ (opt_position[1]);
+      sql = store.sqlContinueIndexEffectiveKey(mth, params, index.getName(),
+          key_range, e_key, true, p_key, reverse, distinct);
+    } else {
+      sql = store.sqlContinueEffectiveKey(mth, params, index_column,
+          key_range, reverse, distinct, e_key, true);
+    }
+  } else {
+    sql = store.toSql(params, mth, effective_column,
+        key_range, reverse, distinct);
+  }
 
   if (goog.isNumber(limit)) {
     sql += ' LIMIT ' + limit;
