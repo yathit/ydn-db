@@ -6,6 +6,28 @@
 * [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
 * [Download](http://dev.yathit.com/index/downloads.html)
 
+
+## Features ##
+
+* Unified data access layer on IndexedDB, WebDatabase and WebStorage storage mechanisms.
+* Support *all* features of asynchronous IndexedDB API.
+* The implementation of WebSQL supports schema reflection, untyped column key,
+composite index, multiEntry and IndexedDB-like aborting and implicit commit transaction.
+localStorage use on-memory [AVL tree index](http://en.wikipedia.org/wiki/AVL_tree)
+for key range query and its performance is in-par with database.
+* Support for on-the-fly [database schema](http://dev.yathit.com/api-reference/ydn-db-schema.htm l)
+generation, IndexedDB-style versioned schema migration and advance schema-centric (auto-version)
+migration by reflecting on existing schema.
+* Well tested closure library module including 234 unit test functions in addition to
+[qunit end-to-end test](http://dev.yathit.com/index/demos.html) to validate library API specification.
+* Advance transaction workflow and managed request (meaning you will never ever see InvalidStateError).
+* Designed for high performance index query (only).
+* Customized log message, improper usage protection and guided error message on dev distribution.
+* Basic support for high level query using [SQL](http://dev.yathit.com/ydn-db/sql-query.html).
+* Full text search (via ydn-db-text module).
+* Client-server Synchronization (via ydn-db-sync module).
+* We adopt strict javascript coding pattern for performance and robustness: no global, no eval, no error globbing, parameterized query, all public methods and constructors are strongly type, this is this, coding error throw error.
+
 ## Examples ##
 
 ### Simple usage ###
@@ -60,7 +82,7 @@ equal filter is supported.
 
 By default, each database request are executed in separate transaction and
 executed in order. The following code snippet show running all database
-request in a single transaction.
+requests in a single transaction.
 
     var req = db.run(function update_prop (run_db) {
     run_db.get('player', 1).done(function(data) {
@@ -102,7 +124,7 @@ by listening `ready` event.
 ## Setup ##
 
 This setup is for library developer. For using this library, just include one of the ydn-db
-minified js file from [Download](http://dev.yathit.com/index/downloads.html).
+minified js file from [download page](http://dev.yathit.com/index/downloads.html).
 
 If you haven't try [Closure Tools](https://developers.google.com/closure/) before,
 setup can be time consuming and painful. I recommend to read
