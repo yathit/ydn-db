@@ -103,6 +103,20 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
   var obj_store = this.tx.objectStore(this.store_name);
   var index = goog.isString(this.index_name) ?
       obj_store.index(this.index_name) : null;
+  if (goog.isDef(key)) {
+    var open = index ? !(goog.isDef(primary_key)) : true;
+    var s_key = /** @type {IDBKey} */ (key);
+    var lower = /** @type {IDBKey|undefined} */ (key_range ?
+        key_range.lower : undefined);
+    var upper = /** @type {IDBKey|undefined} */ (key_range ?
+        key_range.upper : undefined);
+    var lowerOpen = key_range ? !!key_range.lowerOpen : false;
+    var upperOpen = key_range ? !!key_range.upperOpen : false;
+    var kr = this.reverse ?
+        new ydn.db.KeyRange(lower, s_key, lowerOpen, open) :
+        new ydn.db.KeyRange(s_key, upper, open, upperOpen);
+    key_range = kr.toIDBKeyRange();
+  }
 
   var request;
   if (!this.isValueCursor()) {
