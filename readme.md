@@ -1,7 +1,89 @@
 # Developer guide #
 
 
-# Setup #
+## Documentation ##
+
+* [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
+* [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
+* [Demo applications](http://dev.yathit.com/index/demos.html)
+* [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
+* [Download](http://dev.yathit.com/index/downloads.html)
+
+## Examples ##
+
+### Simple usage ###
+
+Simple usage for opening, storing and retrieving by a primary key `id1`.
+
+    db = new ydn.db.Storage('db-name');
+    db.put('store-name', {message: 'Hello world!'}, 'id1');
+    db.get('store-name', 'id1').always(function(record) {
+      console.log(record);
+    });
+
+### Schema definition ###
+
+    var schema = {
+      stores: [{
+        name: 'people',
+        indexes: [{
+           keyPath: 'age'
+        }, {
+           keyPath: ['age', 'name']
+        }]
+      ]
+    }
+    db = new ydn.db.Storage('db-name', schema);
+
+If database exist, it will be open and update with given schema if necessary.
+In doing so, object stores and indexes will be created or deleted.
+
+### Query ###
+
+The following snippet show querying from `people` object store using index `age`
+by key range bounded by 25. The result will be sorted by `age`.
+
+    var q = db.from('people').where('age', '>=', 25);
+    q.list().done(function(objs) {
+      console.log(objs);
+    });
+
+Sorting by an index with filtering on other index.
+
+    var q = db.from('people').where('age', '=', 25);
+    q.order('name').list().done(function(objs) {
+      console.log(objs);
+    });
+
+Note that, above sort query require compound index `['age', 'name']` and only
+equal filter is supported.
+
+### Transaction ###
+
+By default, each database request are executed in separate transaction and
+executed in order. The following code snippet show running all database
+request in a single transaction.
+
+    var req = db.run(function update_prop (run_db) {
+    run_db.get('player', 1).done(function(data) {
+        data.health += 10;
+        run_db.put('player', data).done(function(key) {
+          if (data.health > 100) {
+            req.abort();
+          }
+        });
+      }
+    }, ['player'], 'readwrite');
+    req.then(function() {
+      console.log('updated.');
+    }, function(e) {
+      console.log('transaction aborted');
+    });
+
+## Setup ##
+
+This setup is for library developer. For using this library, just include one of the ydn-db
+minified js file from [Download](http://dev.yathit.com/index/downloads.html).
 
 If you haven't try [Closure Tools](https://developers.google.com/closure/) before,
 setup can be time consuming and painful. I recommend to read
@@ -44,7 +126,7 @@ Additional features requires the following optional repos.
 4. Synchronization https://bitbucket.org/ytkyaw/ydn-db-sync (private)
 
 
-# Testing #
+## Testing ##
 
 You should able to run /ydn-db/test/all-test.html or run individually.
 Since all test are async, disable run inparallel check box.
@@ -60,7 +142,7 @@ End-to-end testing for disteribution can be found in test/qunit folder as well
  as online [qunit test kits] (http://dev.yathit.com/index/demos.html).
 
 
-# Contributing #
+## Contributing ##
 
 Sending pull request is easiest way. For more, email to one of the authors in
 the source code.
@@ -98,7 +180,7 @@ be straight forward. This library design have no consideration for these
 storage mechanisms.
 
 
-# Bug report #
+## Bug report ##
 
 Please [file an issue](https://bitbucket.org/ytkyaw/ydn-db/issues/new) for bug
 report describing how we could reproduce the problem. Any subtle problem,
@@ -109,13 +191,5 @@ You may also ask question in [Stackoverflow #ydn-db](http://stackoverflow.com/qu
 with ydb-db hash, or follow on Twitter [@yathit](https://twitter.com/yathit).
 
 
-# Documentation #
-
-* [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
-* [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
-* [Demo applications](http://dev.yathit.com/index/demos.html)
-* [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
-
-
-# License #
+## License ##
 Licensed under the Apache License, Version 2.0
