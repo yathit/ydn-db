@@ -618,10 +618,11 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
  * @param {number=} opt_limit
  * @param {number=} opt_offset
  * @param {boolean=} opt_unique
+ * @param {Array.<IDBKey|undefined>=} opt_pos last cursor position.
  * @return {!ydn.db.Request}
  */
 ydn.db.crud.DbOperator.prototype.list = function(type, store_name, opt_index,
-    opt_key_range, opt_reverse, opt_limit, opt_offset, opt_unique) {
+    opt_key_range, opt_reverse, opt_limit, opt_offset, opt_unique, opt_pos) {
 
   var store = this.schema.getStore(store_name);
   if (!store) {
@@ -676,13 +677,17 @@ ydn.db.crud.DbOperator.prototype.list = function(type, store_name, opt_index,
     throw new ydn.debug.error.ArgumentException('unique must be a boolean but' +
         ' "' + opt_unique + '" of type ' + typeof opt_unique + ' found.');
   }
+  if (offset && !!opt_pos && goog.isDef(opt_pos[0])) {
+    throw new ydn.debug.error.ArgumentException('offset must not given when ' +
+        'initial cursor position is defined');
+  }
   this.logger.finer(type + ': ' + store_name + ':' + opt_index);
   method = ydn.db.Request.Method.VALUES_INDEX;
   req = this.tx_thread.request(method, [store_name]);
   // store.hook(req, arguments);
   req.addTxback(function() {
     this.getExecutor().list(req, type, store_name,
-        opt_index || null, range, reverse, limit, offset, unique);
+        opt_index || null, range, reverse, limit, offset, unique, opt_pos);
   }, this);
 
   return req;

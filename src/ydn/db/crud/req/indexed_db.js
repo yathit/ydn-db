@@ -1028,6 +1028,26 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
   if (unique) {
     msg += ' unique';
   }
+  if (!!opt_position && goog.isDef(opt_position[0])) {
+    // start position is given, cursor must open after this position.
+    var open = index ? !(goog.isDef(opt_position[1])) : true;
+    var s_key = /** @type {IDBKey} */ (opt_position[0]);
+    var lower = /** @type {IDBKey|undefined} */ (key_range ?
+        key_range.lower : undefined);
+    var upper = /** @type {IDBKey|undefined} */ (key_range ?
+        key_range.upper : undefined);
+    var lowerOpen = key_range ? !!key_range.lowerOpen : false;
+    var upperOpen = key_range ? !!key_range.upperOpen : false;
+    var kr = reverse ?
+        new ydn.db.KeyRange(lower, s_key, lowerOpen, open) :
+        new ydn.db.KeyRange(s_key, upper, open, upperOpen);
+    key_range = kr.toIDBKeyRange();
+    msg += ' starting from ' +
+        ydn.json.stringify(/** @type {Object} */ (opt_position[0]));
+    if (goog.isDef(opt_position[1])) {
+      msg += ', ' + ydn.json.stringify(/** @type {Object} */ (opt_position[1]));
+    }
+  }
   this.logger.finest(msg);
   var request;
   if (type == ydn.db.base.QueryMethod.LIST_KEY ||
@@ -1057,10 +1077,45 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
      */
     var cursor = event.target.result;
     if (cursor) {
-      if (!cued && offset > 0) {
-        cued = true;
-        cursor.advance(offset);
-        return;
+      if (!cued) {
+        if (offset > 0) {
+          // if offset is defined, position will be ignored.
+          cued = true;
+          cursor.advance(offset);
+          return;
+        } else if (!!opt_position && !!index && goog.isDef(opt_position[0])) {
+          if (goog.isDef(opt_position[1])) {
+            var cmp = ydn.db.base.indexedDb.cmp(cursor.key, opt_position[0]);
+            var dir = reverse ? -1 : 1;
+            if (cmp == 0) {
+              var cmp2 = ydn.db.base.indexedDb.cmp(
+                  cursor.primaryKey, opt_position[1]);
+              // console.log('continue ' + cmp2 + ' ' +
+              //    cursor.key + ', ' + cursor.primaryKey);
+              if (cmp2 == 0) {
+                cued = true;
+                // console.log('cued by primary key');
+                cursor['continue'](); // skip current key
+                return;
+              } else if (cmp2 == dir) {
+                // console.log('cued by primary key passed over');
+                cued = true;
+              } else {
+                // console.log('continue cueing');
+                cursor['continue']();
+                return;
+              }
+            } else {
+              // console.log('cued by key ' + cursor.key + ' passed over');
+              cued = true;
+            }
+          } else {
+            // console.log('cued by key passed over without primary key');
+            cued = true;
+          }
+        } else {
+          cued = true;
+        }
       }
       // push to result list
       if (type == ydn.db.base.QueryMethod.LIST_KEY) {
@@ -1099,6 +1154,10 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
         req.setDbValue(results);
       }
     } else {
+      if (opt_position) {
+        opt_position[0] = undefined;
+        opt_position[1] = undefined;
+      }
       // console.log(req + ' by cursor', results);
       req.setDbValue(results);
     }

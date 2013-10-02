@@ -215,12 +215,13 @@ ydn.db.crud.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
  * @param {number=} limit
  * @param {number=} offset
  * @param {boolean=} unique
+ * @param {Array.<IDBKey|undefined>=} opt_pos last cursor position.
  * @return {!ydn.db.Request}
  */
 ydn.db.crud.Storage.prototype.list = function(type, store_name, index_name,
-    key_range, reverse, limit, offset, unique) {
+    key_range, reverse, limit, offset, unique, opt_pos) {
   return this.getCoreOperator().list(type, store_name, index_name,
-      key_range, reverse, limit, offset, unique);
+      key_range, reverse, limit, offset, unique, opt_pos);
 };
 
 

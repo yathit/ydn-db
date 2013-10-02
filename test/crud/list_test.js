@@ -10,7 +10,7 @@ var reachedFinalContinuation;
 
 
 var setUp = function () {
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
 
 
 };
@@ -368,6 +368,160 @@ var test_array_key_key_range = function () {
 };
 
 
+var test_list = function () {
+
+  var db_name = 'test_list';
+  var store_name = 'st';
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id',
+      indexes: [{
+        keyPath: 'value'
+      }]
+    }]
+  };
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var objs = [
+    {id: 0, value: 2, type: 'a'},
+    {id: 1, value: 3, type: 'a'},
+    {id: 2, value: 2, type: 'b'},
+    {id: 3, value: 2, type: 'b'},
+    {id: 4, value: 1, type: 'c'},
+    {id: 5, value: 1, type: 'c'},
+    {id: 6, value: 3, type: 'c'}
+  ];
+  db.put(store_name, objs).addCallback(function(value) {
+    // console.log(db + ' ready.');
+  });
+
+  var arr = objs.slice().sort(function(a, b) {
+    return a.value > b.value ? 1 : a.value < b.value ? -1 :
+        a.id > b.id ? 1 : a.id < b.id ? -1 : 0;
+  });
+  var keys = arr.map(function(x) {return x.id;});
+  var rev = arr.slice().reverse();
+  var rev_keys = keys.slice().reverse();
+
+  var done, value_1, value_2, key_1, key_2, u_value;
+
+  waitForCondition(
+      // Condition
+      function() {
+        return done;
+      },
+      // Continuation
+      function() {
+        assertArrayEquals('keys 1', keys.slice(1, 3), key_1);
+        assertArrayEquals('value 1', arr.slice(1, 3), value_1);
+        assertArrayEquals('unique value', [1, 2, 3], u_value);
+        assertArrayEquals('key 2', rev_keys, key_2);
+        assertArrayEquals('value 2', rev, value_2);
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      5000); // maxTimeout
+
+  var mth = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
+  db.list(mth, 'st', 'value', null, false, 2, 1).addBoth(function(value) {
+    key_1 = value;
+  });
+  db.list(mth, 'st', 'value', null, true).addBoth(function(value) {
+    key_2 = value;
+  });
+  mth = ydn.db.base.QueryMethod.LIST_KEY;
+  db.list(mth, 'st', 'value', null, false, 3, 0, true).addBoth(function(value) {
+    u_value = value;
+  });
+  mth = ydn.db.base.QueryMethod.LIST_VALUE;
+  db.list(mth, 'st', 'value', null, false, 2, 1).addBoth(function(value) {
+    value_1 = value;
+  });
+  db.list(mth, 'st', 'value', null, true).addBoth(function(value) {
+    value_2 = value;
+    done = true;
+  });
+};
+
+
+var test_list_resume = function () {
+
+  var db_name = 'test_list_resume';
+  var store_name = 'st';
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id',
+      indexes: [{
+        keyPath: 'value'
+      }]
+    }]
+  };
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var objs = [
+    {id: 0, value: 2, type: 'a'},
+    {id: 1, value: 3, type: 'a'},
+    {id: 2, value: 2, type: 'b'},
+    {id: 3, value: 2, type: 'b'},
+    {id: 4, value: 1, type: 'c'},
+    {id: 5, value: 1, type: 'c'},
+    {id: 6, value: 3, type: 'c'}
+  ];
+  db.put(store_name, objs).addCallback(function(value) {
+    // console.log(db + ' ready.');
+  });
+
+  var arr = objs.slice().sort(function(a, b) {
+    return a.value > b.value ? 1 : a.value < b.value ? -1 :
+        a.id > b.id ? 1 : a.id < b.id ? -1 : 0;
+  });
+  var keys = arr.map(function(x) {return x.id;});
+  var rev = arr.slice().reverse();
+  var rev_keys = keys.slice().reverse();
+
+  var done, key_1, key_2, key_3, p_key_1;
+
+  waitForCondition(
+      // Condition
+      function() {
+        return done;
+      },
+      // Continuation
+      function() {
+        assertArrayEquals('p keys 1', [5, 6], p_key_1);
+        assertArrayEquals('keys 1', keys.slice(2), key_1);
+        assertArrayEquals('keys 2', keys.slice(4), key_2);
+        assertArrayEquals('keys 3', keys.slice(5), key_3);
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      5000); // maxTimeout
+
+  var mth = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
+  db.list(mth, 'st', undefined, null, false, 10, 0, false, [4])
+      .addBoth(function(value) {
+        p_key_1 = value;
+      });
+  db.list(mth, 'st', 'value', null, false, 10, 0, false, [1, 5])
+      .addBoth(function(value) {
+        key_1 = value;
+      });
+  db.list(mth, 'st', 'value', null, false, 10, 0, false, [2, 2])
+      .addBoth(function(value) {
+        key_2 = value;
+      });
+  db.list(mth, 'st', 'value', null, false, 10, 0, false, [2, undefined])
+      .addBoth(function(value) {
+        key_3 = value;
+        done = true;
+      });
+};
 
 
 

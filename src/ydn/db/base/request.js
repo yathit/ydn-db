@@ -32,10 +32,10 @@
  * composition of existing classes is application. Here, this custom deferred
  * class can, in face, be composed using goog.async.Deferred and/or
  * goog.events.EventTarget. However, high frequency usage of this class is
- * an optimization is deseriable. If goog.async.Deferred were used,
+ * an optimization is desirable. If goog.async.Deferred were used,
  * #await will require at least two goog.async.Deferred objects for each
  * transformer. Also note that #awaitDeferred is different from #wait.
- * Futhermore, handling tx and logging with custom label will be messy with
+ * Furthermore, handling tx and logging with custom label will be messy with
  * Deferred.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
@@ -407,7 +407,8 @@ ydn.db.Request.succeed = function(method, value) {
  * @return {!goog.async.Deferred}
  */
 ydn.db.Request.prototype.promise = function() {
-  // Ref: https://github.com/jquery/jquery/blob/master/src/deferred.js#L34
+  // Ref: https://github.com/jquery/jquery/blob/
+  // cb37994d76afb45efc3b606546349ed4e695c053/src/deferred.js#L34
   // Note: promise function return an object having `done`, `fail` and
   // `progress` functions. Since a request object satisfy the requirement, this
   // simply return itself.
