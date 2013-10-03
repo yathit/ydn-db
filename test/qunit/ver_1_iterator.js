@@ -274,7 +274,7 @@ var schema_1 = {
 
 (function () {
 
-  var db_name = 'test_ver_1_iterator_list';
+  var db_name = 'test_ver_1_iterator_list-2';
   var test_count = 0;
   var df = $.Deferred();
 

@@ -10,7 +10,7 @@ var reachedFinalContinuation;
 
 
 var setUp = function () {
-  // ydn.debug.log('ydn.db', 'finest');
+   ydn.debug.log('ydn.db', 'finest');
 
 };
 
@@ -525,6 +525,176 @@ var test_list_resume = function () {
         key_4 = value;
         done = true;
       });
+};
+
+
+var test_multiEntry = function () {
+
+  var objs = [
+    {id: 0, tag: ['a', 'b']},
+    {id: 1, tag: ['e']},
+    {id: 2, tag: ['a', 'c']},
+    {id: 3, tag: []},
+    {id: 4, tag: ['c']},
+    {id: 5}
+  ];
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [{
+        keyPath: 'tag',
+        // type: 'TEXT',
+        multiEntry: true
+      }]
+    }]
+  };
+  var db = new ydn.db.crud.Storage('test-me', schema, options);
+
+  db.clear('st');
+  db.put('st', objs).addCallback(function(value) {
+    console.log(db + ' ready', value);
+  });
+
+  // var tags = ['d', 'b', 'c', 'a', 'e'];
+  // var exp_counts = [1, 3, 2, 4, 0];
+  var tags = ['a', 'b', 'c', 'd'];
+  var exp_keys = [[0, 2], [0], [2, 4], []];
+  var exp_values = exp_keys.map(function(x) {
+    return x.map(function(y) {
+      return objs[y];
+    });
+  });
+  var r_keys = [];
+  var r_values = [];
+  var total = tags.length * 2;
+  var done = 0;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done == total;
+      },
+      // Continuation
+      function () {
+
+        for (var i = 0; i < tags.length; i++) {
+          assertArrayEquals('keys for: ' + tags[i], exp_keys[i], r_keys[i]);
+          assertArrayEquals('values for: ' + tags[i], exp_values[i], r_values[i]);
+        }
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  var count_for = function (tag_name, idx) {
+    var keyRange = ydn.db.KeyRange.only(tag_name);
+
+    db.keys('st', 'tag', keyRange).addBoth(function (value) {
+      // console.log(tag_name + ' ==> ' + JSON.stringify(value));
+      r_keys[idx] = value;
+      done++;
+    });
+
+    db.values('st', 'tag', keyRange).addBoth(function (value) {
+      // console.log(tag_name + ' ==> ' + JSON.stringify(value));
+      r_values[idx] = value;
+      done++;
+    });
+  };
+
+  for (var i = 0; i < tags.length; i++) {
+    count_for(tags[i], i);
+  }
+
+};
+
+
+var test_delete_multiEntry = function () {
+
+  var objs = [
+    {id: 0, tag: ['a', 'b']},
+    {id: 1, tag: ['e']},
+    {id: 2, tag: ['a', 'c']},
+    {id: 3, tag: []},
+    {id: 4, tag: ['c']},
+    {id: 5}
+  ];
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [{
+        keyPath: 'tag',
+        multiEntry: true
+      }]
+    }]
+  };
+  var db = new ydn.db.crud.Storage('test-me', schema, options);
+
+  db.clear('st');
+  db.put('st', objs).addCallback(function(value) {
+    console.log(db + ' ready', value);
+  });
+  db.remove('st', 4);
+
+  // var tags = ['d', 'b', 'c', 'a', 'e'];
+  // var exp_counts = [1, 3, 2, 4, 0];
+  var tags = ['a', 'c'];
+  var exp_keys = [[0, 2], [2]];
+  var exp_values = exp_keys.map(function(x) {
+    return x.map(function(y) {
+      return objs[y];
+    });
+  });
+  var r_keys = [];
+  var r_values = [];
+  var total = tags.length * 2;
+  var done = 0;
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done == total;
+      },
+      // Continuation
+      function () {
+
+        for (var i = 0; i < tags.length; i++) {
+          assertArrayEquals('keys for: ' + tags[i], exp_keys[i], r_keys[i]);
+          assertArrayEquals('values for: ' + tags[i], exp_values[i], r_values[i]);
+        }
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+
+
+  var count_for = function (tag_name, idx) {
+    var keyRange = ydn.db.KeyRange.only(tag_name);
+
+    db.keys('st', 'tag', keyRange).addBoth(function (value) {
+      // console.log(tag_name + ' ==> ' + JSON.stringify(value));
+      r_keys[idx] = value;
+      done++;
+    });
+
+    db.values('st', 'tag', keyRange).addBoth(function (value) {
+      // console.log(tag_name + ' ==> ' + JSON.stringify(value));
+      r_values[idx] = value;
+      done++;
+    });
+  };
+
+  for (var i = 0; i < tags.length; i++) {
+    count_for(tags[i], i);
+  }
+
 };
 
 

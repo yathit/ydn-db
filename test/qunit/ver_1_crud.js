@@ -742,7 +742,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
   asyncTest('Retrieve objects by multiEntry key', 1, function() {
 
-    var db_name = 'test-multiEntry-1';
+    var db_name = 'test-multiEntry-3';
     var data = [
       {id: 0, tag: ['a'], msg: Math.random()},
       {id: 1, tag: ['b', 'a'], msg: Math.random()},
@@ -756,13 +756,14 @@ var reporter = new ydn.testing.Reporter('ydn-db');
           type: 'INTEGER',
           indexes: [
             {name: 'tag',
-              type: 'TEXT',
+              // type: 'TEXT',
               multiEntry: true}
           ]
         }
       ]
     };
     var db = new ydn.db.Storage(db_name, schema, options);
+    db.clear('st');
     db.put('st', data);
     db.count('st').always(function(cnt) {
 

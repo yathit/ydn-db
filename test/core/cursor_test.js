@@ -12,7 +12,7 @@ var store_name = 't1';
 var db_name = 'test_cursor_4';
 
 var setUp = function () {
-  // ydn.debug.log('ydn.db', 'finest');
+   // ydn.debug.log('ydn.db', 'finest');
   // ydn.db.core.req.IDBCursor.DEBUG = true;
  // ydn.db.core.req.WebsqlCursor.DEBUG = true;
   //ydn.db.con.simple.Store.DEBUG = true;
@@ -58,6 +58,19 @@ var load_default = function() {
   return db;
 };
 
+var getData = function() {
+  var objs = [
+        {id:'qs0', value: 0, tag: ['a', 'b']},
+        {id:'qs1', value: 1, tag: 'a'},
+        {id:'at2', value: 2, tag: ['a', 'b']},
+        {id:'bs1', value: 3, tag: 'b'},
+        {id:'bs2', value: 4, tag: ['a', 'c', 'd']},
+        {id:'bs3', value: 5, tag: ['c']},
+        {id:'st3', value: 6}
+      ];
+  return JSON.parse(JSON.stringify(objs));
+};
+
 
 var df2_cnt = 0;
 var load_default2 = function() {
@@ -69,17 +82,7 @@ var load_default2 = function() {
   schema = new ydn.db.schema.Database(undefined, [store_schema]);
   var db = new ydn.db.core.Storage(db_name, schema, options);
 
-
-  objs = [
-    {id:'qs0', value: 0, tag: ['a', 'b']},
-    {id:'qs1', value: 1, tag: 'a'},
-    {id:'at2', value: 2, tag: ['a', 'b']},
-    {id:'bs1', value: 3, tag: 'b'},
-    {id:'bs2', value: 4, tag: ['a', 'c', 'd']},
-    {id:'bs3', value: 5, tag: ['c']},
-    {id:'st3', value: 6}
-  ];
-
+  var objs = getData();
   db.clear(store_name);
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + ' ready.');
@@ -686,14 +689,35 @@ var test_keys_by_KeyIndexIterator_unqiue = function () {
 
 var test_multiEntry = function () {
 
-  var db = load_default2();
+  var objs = [
+    {id: 0, tag: ['a', 'b']},
+    {id: 1, tag: ['e']},
+    {id: 2, tag: ['a', 'c']},
+    {id: 3, tag: []},
+    {id: 4, tag: ['c']},
+    {id: 5}
+  ];
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [{
+        keyPath: 'tag',
+        multiEntry: true
+      }]
+    }]
+  };
+  var db = new ydn.db.core.Storage('test-me', schema, options);
+
+  db.put('st', objs).addCallback(function(value) {
+    console.log(db + ' ready', value);
+  });
 
   // var tags = ['d', 'b', 'c', 'a', 'e'];
   // var exp_counts = [1, 3, 2, 4, 0];
-  var tags = ['d'];
-  var exp_counts = [1];
-
-  var counts = [];
+  var tags = ['a', 'b', 'c', 'd'];
+  var expected = [[0, 2], [0], [2, 4], []];
+  var results = [];
   var total = tags.length;
   var done = 0;
 
@@ -706,7 +730,7 @@ var test_multiEntry = function () {
     function () {
 
       for (var i = 0; i < total; i++) {
-        assertEquals('for tag: ' + tags[i] + ' count', exp_counts[i], counts[i]);
+        assertArrayEquals('for tag: ' + tags[i], expected[i], results[i]);
       }
       ydn.db.deleteDatabase(db.getName(), db.getType());
       db.close();
@@ -718,11 +742,11 @@ var test_multiEntry = function () {
 
   var count_for = function (tag_name, idx) {
     var keyRange = ydn.db.KeyRange.only(tag_name);
-    var q = new ydn.db.IndexValueIterator(store_name, 'tag', keyRange);
+    var q = new ydn.db.IndexIterator('st', 'tag', keyRange);
 
     db.values(q).addBoth(function (value) {
-      //console.log(tag_name + ' ==> ' + JSON.stringify(value));
-      counts[idx] = value.length;
+      console.log(tag_name + ' ==> ' + JSON.stringify(value));
+      results[idx] = value;
       done++;
     });
   };

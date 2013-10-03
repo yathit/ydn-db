@@ -273,7 +273,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
             table.getSQLKeyColumnNameQuoted() + ', ' +
             index.getSQLIndexColumnNameQuoted() + ') VALUES (?, ?)';
         var idx_params = [ydn.db.schema.Index.js2sql(key, table.getType()),
-              value];
+            ydn.db.schema.Index.js2sql(value, index.getType())];
 
         /**
          * @param {SQLTransaction} tx transaction.
@@ -360,6 +360,9 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
 
     // console.log([sql, out.values]);
     me.logger.finest(i_msg);
+    if (ydn.db.crud.req.WebSql.DEBUG) {
+      window.console.log(sql, out.values);
+    }
     tx.executeSql(sql, out.values, success_callback, error_callback);
   };
 

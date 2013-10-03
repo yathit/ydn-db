@@ -368,7 +368,9 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
   if (method === ydn.db.base.QueryMethod.COUNT) {
     // primary key is always unqiue.
     out.select = 'COUNT(' + q_key_column + ')';
-  } else if (method === ydn.db.base.QueryMethod.LIST_KEYS) {
+  } else if (method === ydn.db.base.QueryMethod.LIST_KEYS ||
+      method === ydn.db.base.QueryMethod.LIST_KEY ||
+      method === ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
     out.select = q_key_column;
     if (goog.isDefAndNotNull(index_column) && index_column != key_column) {
       out.select += ', ' + q_effective_column;
@@ -389,13 +391,13 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
     if (method === ydn.db.base.QueryMethod.COUNT) {
       out.select = 'COUNT(' + dist +
           idx_store_name + '.' + q_effective_column + ')';
-    } else if (method === ydn.db.base.QueryMethod.LIST_KEYS) {
-      out.select = this.getQuotedName() + '.' + q_key_column +
+    } else if (method === ydn.db.base.QueryMethod.LIST_KEYS ||
+        method === ydn.db.base.QueryMethod.LIST_KEY ||
+        method === ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
+      out.select = 'DISTINCT ' + this.getQuotedName() + '.' + q_key_column +
           ', ' + idx_store_name + '.' + q_effective_column;
     } else {
-      out.select = this.getQuotedName() + '.*' +
-          ', ' + idx_store_name + '.' + q_effective_column +
-          ' AS ' + effective_column;
+      out.select = 'DISTINCT ' + this.getQuotedName() + '.*';
     }
     out.from = idx_store_name + ' INNER JOIN ' + this.getQuotedName() +
         ' USING (' + q_key_column + ')';

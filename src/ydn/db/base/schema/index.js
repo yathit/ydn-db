@@ -285,7 +285,7 @@ ydn.db.schema.Index.js2sql = function(key, type) {
     if (key instanceof Date) {
       return +key;  // date is store as NUMERIC
     } // else ?
-  } else if (goog.isDef(type)) {
+  } else if (goog.isDefAndNotNull(type)) {
     return key; // NUMERIC, INTEGER, and BLOB
   } else {
     return ydn.db.utils.encodeKey(key);

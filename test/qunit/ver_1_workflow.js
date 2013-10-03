@@ -497,7 +497,7 @@ var events_schema = {
 
     }, ['s1'], 'readwrite');
     req.always(function (x) {
-      console.log(x);
+      // console.log(x);
       db.get('s1', obj.id).always(function (result) {
         equal(undefined, result, 'aborted store 1 done result');
         done();
@@ -517,7 +517,6 @@ var events_schema = {
         done();
       });
     });
-
 
   });
 
