@@ -452,8 +452,7 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
 
   var sql = 'REPLACE INTO ' + this.store_schema.getQuotedName() +
       ' (' + out.columns.join(', ') + ')' +
-      ' VALUES (' + out.slots.join(', ') + ')' +
-      ' ON CONFLICT FAIL';
+      ' VALUES (' + out.slots.join(', ') + ')';
 
   me.logger.finest(this + ': update "' + sql + '" : ' +
       ydn.json.stringify(out.values));

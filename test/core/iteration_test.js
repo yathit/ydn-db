@@ -33,7 +33,8 @@ var obj_schema = {
 
 var setUp = function() {
 
-  ydn.debug.log('ydn.db.core.req.WebsqlCursor', 'finest');
+  // ydn.debug.log('ydn.db.crud', 'finest');
+  // ydn.debug.log('ydn.db.core', 'finest');
   //ydn.db.core.req.IDBCursor.DEBUG = true;
   //ydn.db.Cursor.DEBUG = true;
   // ydn.db.core.DbOperator.DEBUG = true;

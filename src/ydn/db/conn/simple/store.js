@@ -577,6 +577,7 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
     opt_offset, opt_unique, opt_position) {
   var results = [];
   var prev_key;
+  var resume = !!opt_position && goog.isDefAndNotNull(opt_position[0]);
   opt_index_name = opt_index_name || this.primary_index;
   var is_index = opt_index_name != this.primary_index;
   var cache = this.getIndexCache(opt_index_name);
@@ -616,7 +617,7 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
     lowerOpen = !!opt_key_range.lowerOpen;
     upperOpen = !!opt_key_range.upperOpen;
   }
-  if (opt_position && goog.isDef(opt_position[0])) {
+  if (resume) {
     if (opt_reverse) {
       upperOpen = true;
     } else {
@@ -661,14 +662,14 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
     // console.log(x + ' ' + start + ' ' + end)
     if (opt_reverse) {
       if (upperOpen && goog.isDefAndNotNull(end)) {
-        var cmp = opt_position ? ydn.db.con.simple.Node.cmp(x, end) :
+        var cmp = resume ? ydn.db.con.simple.Node.cmp(x, end) :
             ydn.db.cmp(x.getKey(), end.getKey());
         if (cmp == 0) {
           return;
         }
       }
       if (goog.isDefAndNotNull(start)) {
-        var cmp = opt_position ? ydn.db.con.simple.Node.cmp(x, start) :
+        var cmp = resume ? ydn.db.con.simple.Node.cmp(x, start) :
             ydn.db.cmp(x.getKey(), start.getKey());
         if (cmp == -1 || (cmp == 0 && lowerOpen)) {
           if (opt_position) {
@@ -680,14 +681,14 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
       }
     } else {
       if (lowerOpen && goog.isDefAndNotNull(start)) {
-        var cmp = opt_position ? ydn.db.con.simple.Node.cmp(x, start) :
+        var cmp = resume ? ydn.db.con.simple.Node.cmp(x, start) :
             ydn.db.cmp(x.getKey(), start.getKey());
         if (cmp == 0) {
           return;
         }
       }
       if (goog.isDefAndNotNull(end)) {
-        var cmp = opt_position ? ydn.db.con.simple.Node.cmp(x, end) :
+        var cmp = resume ? ydn.db.con.simple.Node.cmp(x, end) :
             ydn.db.cmp(x.getKey(), end.getKey());
         if (cmp == 1 || (cmp == 0 && upperOpen)) {
           if (opt_position) {

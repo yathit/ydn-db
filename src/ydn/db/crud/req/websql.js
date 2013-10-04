@@ -1228,7 +1228,7 @@ ydn.db.crud.req.WebSql.prototype.list = function(req, mth, store_name,
         arr[i] = ydn.db.crud.req.WebSql.parseRow(row, store);
       }
     }
-    me.logger.finer('success ' + msg);
+    me.logger.finer('success ' + req);
     if (opt_position && row) {
       opt_position[0] = ydn.db.schema.Index.sql2js(row[effective_column],
           effective_type);
@@ -1238,7 +1238,7 @@ ydn.db.crud.req.WebSql.prototype.list = function(req, mth, store_name,
     req.setDbValue(arr);
   };
 
-  var msg = req.getLabel() + ' SQL: ' + sql + ' ;params= ' +
+  var msg = req + ' SQL: ' + sql + ' ;params= ' +
       ydn.json.stringify(params);
 
   /**

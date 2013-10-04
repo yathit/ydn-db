@@ -383,8 +383,8 @@ ydn.db.Request.prototype.dispose_ = function() {
 ydn.db.Request.prototype.getLabel = function() {
   var label = '';
   if (this.tx_label_) {
-    label = this.tx_ ? '!' : '';
-    label += '[' + this.tx_label_ + ']';
+    label = this.tx_ ? '*' : '';
+    label = '[' + this.tx_label_ + label + ']';
   }
   return this.method_ + label;
 };
@@ -413,14 +413,6 @@ ydn.db.Request.prototype.promise = function() {
   // `progress` functions. Since a request object satisfy the requirement, this
   // simply return itself.
   return this;
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.Request.prototype.valueOf = function() {
-  return this.tx_label_;
 };
 
 
