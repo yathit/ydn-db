@@ -31,7 +31,7 @@ var tearDown = function() {
 
 
 var df_cnt = 0;
-var load_default = function() {
+var load_default = function(cb) {
   var db_name = 'test-df-' + (df_cnt++);
   var indexSchema = new ydn.db.schema.Index('value', ydn.db.schema.DataType.TEXT, true);
   var typeIndex = new ydn.db.schema.Index('type', ydn.db.schema.DataType.TEXT, false);
@@ -54,6 +54,10 @@ var load_default = function() {
   db.put(store_name, objs).addCallback(function (value) {
     console.log(db + ' ready.');
   });
+
+  if (cb) {
+    cb(db);
+  }
 
   return db;
 };
@@ -90,6 +94,42 @@ var load_default2 = function() {
 
   return db;
 };
+
+
+
+var test_list_store = function () {
+
+  var done;
+  var result;
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+        assertEquals('length', objs.length, result.length);
+        assertArrayEquals(objs, result);
+
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      1000); // maxTimeout
+
+  var q = new ydn.db.Iterator(store_name);
+
+  load_default(function (db) {
+    db.values(q).addBoth(function (value) {
+      //console.log(db + ' fetch value: ' + JSON.stringify(value));
+      result = value;
+      done = true;
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    });
+  });
+
+};
+
 
 var test_getByIterator = function () {
   var db = load_default();

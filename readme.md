@@ -1,4 +1,8 @@
-# Developer guide #
+# Setup #
+
+For using this library, include one of the ydn-db
+minified js file from [download page](http://dev.yathit.com/index/downloads.html)
+to your HTML page.
 
 * [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
 * [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
@@ -6,6 +10,17 @@
 * [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
 * [Download](http://dev.yathit.com/index/downloads.html)
 
+## Supported browsers ##
+
+Basically this library can be used in any browser.
+
+* Chrome 4+
+* Firefox 3+
+* IE 6 (userdata), IE7+ (localStorage), IE10+ desktop/mobile (indexeddb)
+* Safari 3.1+ desktop/mobile (websql)
+* Android browser 2.1+ (websql), 4+ (indexeddb)
+* Android web client, iOS web client (websql)
+* Opera 10+ (websql), Opera 15+ (indexeddb)
 
 ## Features ##
 
@@ -121,10 +136,7 @@ by listening `ready` event.
     );
 
 
-## Setup ##
-
-This setup is for library developer. For using this library, just include one of the ydn-db
-minified js file from [download page](http://dev.yathit.com/index/downloads.html).
+# Library developer guide #
 
 If you haven't try [Closure Tools](https://developers.google.com/closure/) before,
 setup can be time consuming and painful. I recommend to read

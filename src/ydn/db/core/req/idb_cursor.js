@@ -30,7 +30,6 @@ goog.require('ydn.debug.error.InternalError');
  * @param {ydn.db.schema.Store} store_schema schema.
  * @param {ydn.db.base.QueryMethod=} opt_mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
- * @implements {ydn.db.core.req.ICursor}
  * @constructor
  * @struct
  */

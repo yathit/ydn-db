@@ -33,7 +33,7 @@ var obj_schema = {
 
 var setUp = function() {
 
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db.core.req.WebsqlCursor', 'finest');
   //ydn.db.core.req.IDBCursor.DEBUG = true;
   //ydn.db.Cursor.DEBUG = true;
   // ydn.db.core.DbOperator.DEBUG = true;
@@ -94,7 +94,7 @@ var load_default = function() {
 };
 
 
-var test_cursor_resume = function() {
+var test_scan_cursor_resume = function() {
   var done1, done2;
   var keys1, values1;
   var keys2 = [];
@@ -166,7 +166,7 @@ var test_cursor_resume = function() {
 };
 
 
-var test_cursor_restart = function() {
+var test_scan_cursor_restart = function() {
   var done1;
   var keys1 = [];
   var values1 = [];
@@ -221,7 +221,7 @@ var test_cursor_restart = function() {
 
 };
 
-var test_cursor_index_iter_resume = function() {
+var test_scan_cursor_index_iter_resume = function() {
   var done1, done2;
   var keys1, values1;
   var keys2 = [];
@@ -375,7 +375,7 @@ var test_streamer_sink = function() {
 };
 
 
-var test_index_streamer_collect = function() {
+var test_streamer_collect_index = function() {
   if (options.mechanisms[0] == 'websql') {
     // know issue.
     reachedFinalContinuation = true;
@@ -467,7 +467,7 @@ var scan_key_single_test = function (q, actual_keys, actual_index_keys) {
 
 };
 
-var test_11_scan_key_iterator = function () {
+var test_scan_key_iterator = function () {
 
   var actual_keys = objs.map(function(x) {return x.id;});
   actual_keys.sort();
@@ -477,7 +477,7 @@ var test_11_scan_key_iterator = function () {
 
 };
 
-var test_12_scan_value_iterator = function () {
+var test_scan_value_iterator = function () {
 
   objs.sort(function(a, b) {
     return a.id > b.id ? 1 : -1;
@@ -489,7 +489,7 @@ var test_12_scan_value_iterator = function () {
 
 };
 
-var test_13_scan_index_key_iterator = function () {
+var test_scan_index_key_iterator = function () {
 
   objs.sort(function(a, b) {
     return a.value > b.value ? 1 : -1;
@@ -504,7 +504,7 @@ var test_13_scan_index_key_iterator = function () {
 };
 
 
-var test_14_scan_index_key_iterator_reverse = function () {
+var test_scan_index_key_iterator_reverse = function () {
 
   objs.sort(function(a, b) {
     return a.value > b.value ? -1 : 1;
@@ -518,7 +518,7 @@ var test_14_scan_index_key_iterator_reverse = function () {
 };
 
 
-var test_21_scan_key_dual = function () {
+var test_scan_key_dual = function () {
 
   var actual_keys = objs.map(function(x) {return x.id;});
   var actual_index_key_0 = objs.map(function(x) {return x.value;});
@@ -572,7 +572,7 @@ var test_21_scan_key_dual = function () {
 
 
 
-var test_41_map_key_iterator = function() {
+var test_map_key_iterator = function() {
 
   var done;
   var streaming_keys = [];
@@ -610,7 +610,7 @@ var test_41_map_key_iterator = function() {
 };
 
 
-var test_41_map_value_iterator = function() {
+var test_map_value_iterator = function() {
 
   var done;
   var streaming_keys = [];
@@ -649,7 +649,7 @@ var test_41_map_value_iterator = function() {
   });
 };
 
-var test_41_map_index_key_iterator = function() {
+var test_map_index_key_iterator = function() {
 
   var done;
   var streaming_keys = [];
@@ -686,7 +686,7 @@ var test_41_map_index_key_iterator = function() {
 };
 
 
-var test_41_map_index_value_iterator = function() {
+var test_map_index_value_iterator = function() {
 
   var done;
   var streaming_keys = [];
@@ -723,7 +723,64 @@ var test_41_map_index_value_iterator = function() {
 };
 
 
-var test_51_open_index_value_iterator = function() {
+
+var test_open_value_iterator_update = function() {
+
+  var objs = goog.array.range(4).map(function(i) {
+    return {
+      id: i,
+      label: 'old-' + Math.random()
+    };
+  });
+  var db_name = 'test_open_value_iterator-1';
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id'
+    }]
+  };
+  var new_val = 'new-' + Math.random();
+  var done, result, type;
+  var db = new ydn.db.core.Storage(db_name, schema, options);
+  db.clear('st');
+  db.put('st', objs).addBoth(function() {
+    type = db.getType();
+    //db.close();
+    //var db2 = new ydn.db.core.Storage(db_name, schema, options);
+    var iter = ydn.db.ValueIterator.where('st', '>=', 1, '<=', 2);
+    var req = db.open(function(cursor) {
+      var val = cursor.getValue();
+      val.label = new_val;
+      cursor.update(val);
+    }, iter, 'readwrite');
+    req.addBoth(function() {
+      db.values('st').addBoth(function(x) {
+        result = x;
+        done = true;
+        db.close();
+      });
+    });
+  });
+
+  waitForCondition(
+      // Condition
+      function () {
+        return done;
+      },
+      // Continuation
+      function () {
+        objs[1].label = new_val;
+        objs[2].label = new_val;
+        assertArrayEquals('updated result', objs, result);
+        ydn.db.deleteDatabase(db_name, type);
+        reachedFinalContinuation = true;
+      },
+      100, // interval
+      2000); // maxTimeout
+};
+
+
+var test_open_index_value_iterator = function() {
 
   var done;
   var streaming_keys = [];
@@ -852,7 +909,7 @@ var test_51_open_index_value_iterator = function() {
 
 
 
-var test_51_reduce = function() {
+var test_reduce = function() {
 
   var done, result;
 
@@ -892,7 +949,7 @@ var test_51_reduce = function() {
 
 
 
-var test_61_scan_cursor_resume = function() {
+var test_scan_cursor_resume = function() {
 
   var done;
   var values = [];

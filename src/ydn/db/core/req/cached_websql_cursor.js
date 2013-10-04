@@ -468,7 +468,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
     };
 
     goog.asserts.assertObject(obj);
-    var out = me.store_schema_.getIndexedValues(obj, primary_key);
+    var out = me.store_schema_.sqlNamesValues(obj, primary_key);
 
     var sql = 'REPLACE INTO ' + this.store_schema_.getQuotedName() +
         ' (' + out.columns.join(', ') + ')' +

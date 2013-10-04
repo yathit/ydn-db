@@ -832,6 +832,7 @@ ydn.db.con.WebSql.prototype.isReady = function() {
  */
 ydn.db.con.WebSql.prototype.close = function() {
   // WebSQl API do not have close method.
+  this.sql_db_ = null;
 };
 
 

@@ -60,40 +60,6 @@ var load_default = function(cb) {
 };
 
 
-var test_11_list_store = function () {
-
-  var done;
-  var result;
-  waitForCondition(
-    // Condition
-    function () {
-      return done;
-    },
-    // Continuation
-    function () {
-      assertEquals('length', objs.length, result.length);
-      assertArrayEquals(objs, result);
-
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    1000); // maxTimeout
-
-  var q = new ydn.db.Iterator(store_name);
-
-  load_default(function (db) {
-    db.values(q).addBoth(function (value) {
-      //console.log(db + ' fetch value: ' + JSON.stringify(value));
-      result = value;
-      done = true;
-      ydn.db.deleteDatabase(db.getName(), db.getType());
-      db.close();
-    });
-  });
-
-};
-
-
 var test_values_store_reverse = function () {
 
   var done;
@@ -290,7 +256,7 @@ var test_values_index_resume_reverse = function () {
 };
 
 
-var test_21_list_index = function () {
+var test_list_index = function () {
 
   var done, result, objs;
 
@@ -326,7 +292,7 @@ var test_21_list_index = function () {
 };
 
 
-var test_22_list_index_rev = function () {
+var test_list_index_rev = function () {
 
   var done, result, objs;
 
@@ -362,7 +328,7 @@ var test_22_list_index_rev = function () {
   });
 };
 
-var test_23_list_index_range = function () {
+var test_list_index_range = function () {
 
   var done, result;
 
@@ -516,7 +482,7 @@ var test_keys_by_index = function () {
 };
 
 
-var test_42_remove_by_index_key_range = function() {
+var test_remove_by_index_key_range = function() {
 
   var hasEventFired = false;
   var countValue;
@@ -548,7 +514,7 @@ var test_42_remove_by_index_key_range = function() {
 
 var test_multiEntry_simple = function () {
 
-  ydn.db.crud.req.WebSql.DEBUG = true;
+  // ydn.db.crud.req.WebSql.DEBUG = true;
 
   var db_name = 'test_multiEntry_simple_1';
   var store_name = 's1';
@@ -624,7 +590,7 @@ var test_multiEntry_simple = function () {
 
 var test_multiEntry = function () {
 
-  ydn.db.crud.req.WebSql.DEBUG = true;
+  // ydn.db.crud.req.WebSql.DEBUG = true;
 
   var db_name = 'test_multiEntry_1';
   var store_name = 's1';
@@ -705,7 +671,7 @@ var test_multiEntry = function () {
 
 var test_multiEntry_text = function () {
 
-  ydn.db.crud.req.WebSql.DEBUG = true;
+  // ydn.db.crud.req.WebSql.DEBUG = true;
 
   var db_name = 'test_multiEntry_text_2';
   var store_name = 's1';

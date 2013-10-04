@@ -16,14 +16,13 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {ydn.db.con.IDatabase.Transaction} tx
  * @param {string} tx_no tx no.
  * @param {!ydn.db.schema.Store} store_schema schema.
- * @param {ydn.db.base.QueryMethod=} q_mth true for keys query method.
+ * @param {ydn.db.base.QueryMethod=} opt_mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
- * @implements {ydn.db.core.req.ICursor}
  * @constructor
  */
-ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, q_mth) {
+ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, opt_mth) {
 
-  goog.base(this, tx, tx_no, store_schema, q_mth);
+  goog.base(this, tx, tx_no, store_schema, opt_mth);
 
   goog.asserts.assert(store_schema);
 
@@ -31,10 +30,20 @@ ydn.db.core.req.SimpleCursor = function(tx, tx_no, store_schema, q_mth) {
   this.primary_key_ = undefined;
   this.value_ = undefined;
   this.current_ = null;
-  this.buffer_ = null;
-  this.store_ = null;
   this.onCursorComplete_ = null;
   this.result_ready_ = new ydn.db.base.Mutex();
+
+  /**
+   * @type {ydn.structs.Buffer}
+   * @private
+   */
+  this.buffer_ = null;
+
+  /**
+   * @type {ydn.db.con.simple.Store}
+   * @private
+   */
+  this.store_ = null;
 };
 goog.inherits(ydn.db.core.req.SimpleCursor, ydn.db.core.req.AbstractCursor);
 
@@ -43,20 +52,6 @@ goog.inherits(ydn.db.core.req.SimpleCursor, ydn.db.core.req.AbstractCursor);
  * @define {boolean} for debug.
  */
 ydn.db.core.req.SimpleCursor.DEBUG = false;
-
-
-/**
- * @type {ydn.structs.Buffer}
- * @private
- */
-ydn.db.core.req.SimpleCursor.prototype.buffer_;
-
-
-/**
- * @type {ydn.db.con.simple.Store}
- * @private
- */
-ydn.db.core.req.SimpleCursor.prototype.store_;
 
 
 /**
@@ -137,7 +132,8 @@ ydn.db.core.req.SimpleCursor.prototype.hasCursor = function() {
  * @inheritDoc
  */
 ydn.db.core.req.SimpleCursor.prototype.update = function(obj) {
-  throw new ydn.debug.error.NotImplementedException();
+  this.store_.addRecord(this.getPrimaryKey(), obj);
+  return goog.async.Deferred.succeed();
 };
 
 

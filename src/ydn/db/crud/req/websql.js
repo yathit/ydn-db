@@ -232,9 +232,9 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
 
     var out;
     if (goog.isDef(opt_keys)) {
-      out = table.getIndexedValues(objects[i], opt_keys[i]);
+      out = table.sqlNamesValues(objects[i], opt_keys[i]);
     } else {
-      out = table.getIndexedValues(objects[i]);
+      out = table.sqlNamesValues(objects[i]);
     }
 
     //console.log([obj, JSON.stringify(obj)]);
@@ -273,7 +273,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
             table.getSQLKeyColumnNameQuoted() + ', ' +
             index.getSQLIndexColumnNameQuoted() + ') VALUES (?, ?)';
         var idx_params = [ydn.db.schema.Index.js2sql(key, table.getType()),
-            ydn.db.schema.Index.js2sql(value, index.getType())];
+              ydn.db.schema.Index.js2sql(value, index.getType())];
 
         /**
          * @param {SQLTransaction} tx transaction.

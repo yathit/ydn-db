@@ -30,7 +30,6 @@ goog.require('ydn.db.core.req.ICursor');
  * @param {ydn.db.schema.Store} store_schema schema.
  * @param {ydn.db.base.QueryMethod=} opt_mth true for keys query method.
  * @extends {ydn.db.core.req.AbstractCursor}
- * @implements {ydn.db.core.req.ICursor}
  * @constructor
  * @struct
  */
@@ -449,14 +448,14 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
   };
 
   goog.asserts.assertObject(obj);
-  var out = me.store_schema.getIndexedValues(obj, primary_key);
+  var out = me.store_schema.sqlNamesValues(obj, primary_key);
 
   var sql = 'REPLACE INTO ' + this.store_schema.getQuotedName() +
       ' (' + out.columns.join(', ') + ')' +
       ' VALUES (' + out.slots.join(', ') + ')' +
       ' ON CONFLICT FAIL';
 
-  me.logger.finest(this + ': clear "' + sql + '" : ' +
+  me.logger.finest(this + ': update "' + sql + '" : ' +
       ydn.json.stringify(out.values));
   this.tx.executeSql(sql, out.values, onSuccess, onError);
   return df;

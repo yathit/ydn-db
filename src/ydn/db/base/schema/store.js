@@ -395,9 +395,12 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
         method === ydn.db.base.QueryMethod.LIST_KEY ||
         method === ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
       out.select = 'DISTINCT ' + this.getQuotedName() + '.' + q_key_column +
-          ', ' + idx_store_name + '.' + q_effective_column;
+          ', ' + idx_store_name + '.' + q_effective_column +
+          ' AS ' + effective_column;
     } else {
-      out.select = 'DISTINCT ' + this.getQuotedName() + '.*';
+      out.select = 'DISTINCT ' + this.getQuotedName() + '.*' +
+          ', ' + idx_store_name + '.' + q_effective_column +
+          ' AS ' + effective_column;
     }
     out.from = idx_store_name + ' INNER JOIN ' + this.getQuotedName() +
         ' USING (' + q_key_column + ')';
@@ -1014,9 +1017,11 @@ ydn.db.schema.Store.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
 /**
- * This is for WebSQL.
+ * Prepare SQL column name and values.
  * @param {!Object} obj get values of indexed fields.
  * @param {IDBKey=} opt_key optional key.
+ * @param {boolean=} opt_exclude_unique_column exclude unique constrained
+ * columns.
  * @return {{
  *    columns: Array.<string>,
  *    slots: Array.<string>,
@@ -1024,7 +1029,8 @@ ydn.db.schema.Store.DEFAULT_TEXT_STORE = 'default_text_store';
  *    key: (IDBKey|undefined)
  *  }} return list of values as it appear on the indexed fields.
  */
-ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
+ydn.db.schema.Store.prototype.sqlNamesValues = function(obj, opt_key,
+    opt_exclude_unique_column) {
 
   // since corretness of the inline, offline, auto are already checked,
   // here we don't check again. this method should not throw error for
@@ -1043,7 +1049,8 @@ ydn.db.schema.Store.prototype.getIndexedValues = function(obj, opt_key) {
     var index = this.indexes[i];
     if (index.isMultiEntry() ||
         index.name === this.keyPath ||
-        index.name == ydn.db.base.DEFAULT_BLOB_COLUMN) {
+        index.name == ydn.db.base.DEFAULT_BLOB_COLUMN ||
+        (!!opt_exclude_unique_column && index.isUnique())) {
       continue;
     }
 

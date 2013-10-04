@@ -32,6 +32,7 @@ goog.require('ydn.debug.error.InternalError');
  * values.
  * @constructor
  * @extends {goog.Disposable}
+ * @implements {ydn.db.core.req.ICursor}
  * @struct
  * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
@@ -431,19 +432,17 @@ ydn.db.core.req.AbstractCursor.prototype.getCount = function() {
 
 
 /**
- * @param {number=} opt_idx cursor index.
  * @return {IDBKey|undefined} effective key of cursor.
  */
-ydn.db.core.req.AbstractCursor.prototype.getKey = function(opt_idx) {
+ydn.db.core.req.AbstractCursor.prototype.getKey = function() {
   return this.key_;
 };
 
 
 /**
- * @param {number=} opt_idx cursor index.
  * @return {IDBKey|undefined} primary key of cursor.
  */
-ydn.db.core.req.AbstractCursor.prototype.getPrimaryKey = function(opt_idx) {
+ydn.db.core.req.AbstractCursor.prototype.getPrimaryKey = function() {
   return this.isIndexCursor() ?
       this.primary_key_ : this.key_;
 };
@@ -497,7 +496,27 @@ ydn.db.core.req.AbstractCursor.prototype.continueEffectiveKey =
  * Move cursor position to the effective key.
  * @param {number} number_of_step
  */
-ydn.db.core.req.AbstractCursor.prototype.advance = function(number_of_step) {};
+ydn.db.core.req.AbstractCursor.prototype.advance = goog.abstractMethod;
+
+
+/**
+ * @return {boolean}
+ */
+ydn.db.core.req.AbstractCursor.prototype.hasCursor = goog.abstractMethod;
+
+
+/**
+ * @param {!Object} obj record value.
+ * @return {!goog.async.Deferred} value.
+ */
+ydn.db.core.req.AbstractCursor.prototype.update = goog.abstractMethod;
+
+
+/**
+ * Clear record
+ * @return {!goog.async.Deferred} value.
+ */
+ydn.db.core.req.AbstractCursor.prototype.clear = goog.abstractMethod;
 
 
 /**

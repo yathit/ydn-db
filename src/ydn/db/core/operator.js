@@ -615,7 +615,8 @@ ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode,
     var tx_no = df.getLabel();
     var lbl = tx_no + ' iterating ' + iter;
     me.logger.finer(lbl);
-    var cursor = me.getIndexExecutor().getCursor(tx, tx_no, iter.getStoreName());
+    var cursor = me.getIndexExecutor().getCursor(tx, tx_no,
+        iter.getStoreName());
     iter.load(cursor);
 
     cursor.onFail = function(e) {
