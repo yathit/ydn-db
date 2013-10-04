@@ -333,9 +333,10 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
 
   if (this.key_range) {
     if (this.reverse) {
+      var p_key = this.is_index ? '\uffff' : undefined;
       if (goog.isDefAndNotNull(this.key_range.upper)) {
         start_node = new ydn.db.con.simple.Node(
-            /** @type {!IDBKey} */ (this.key_range.upper));
+            /** @type {!IDBKey} */ (this.key_range.upper), p_key);
       }
     } else {
       if (goog.isDefAndNotNull(this.key_range.lower)) {
@@ -356,10 +357,9 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
     }
   }
 
-  this.onCursorComplete_ = this.tx.getStorage(function(storage) {
+  // console.log('starting from ', start_node, this.key_range, this.reverse);
 
-    var skip_lower_bound_check = goog.isDefAndNotNull(opt_key) ||
-        !this.key_range;
+  this.onCursorComplete_ = this.tx.getStorage(function(storage) {
 
     /**
      * @param {goog.structs.AvlTree.Node} node
@@ -369,19 +369,11 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
     var onSuccess = function(node) {
       var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
       var key = x.getKey();
+      // console.log('on ', x);
       if (node && goog.isDefAndNotNull(key)) {
         if (goog.isDefAndNotNull(opt_key)) {
-          if (goog.isDefAndNotNull(opt_primary_key)) {
-            var p_key = x.getPrimaryKey();
-            if (goog.isDefAndNotNull(p_key) &&
-                ydn.db.cmp(opt_key, key) == 0 &&
-                ydn.db.cmp(opt_primary_key, p_key) == 0) {
-              return; // skip
-            }
-          } else {
-            if (ydn.db.cmp(opt_key, key) == 0) {
-              return; // skip
-            }
+          if ((ydn.db.con.simple.Node.cmp(start_node, x) == 0)) {
+            return; // skip
           }
         } else if (this.key_range) {
           if (!this.reverse && this.key_range.lowerOpen &&
@@ -400,6 +392,7 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
           }
         }
       }
+      // console.log('ready');
       return this.defaultOnSuccess_(node);
     };
 

@@ -638,6 +638,10 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
       }
     }
   }
+  if (ydn.db.con.simple.Store.DEBUG) {
+    window.console.log(this + ' ' + (opt_reverse ? ' rev' : '') +
+        ' from ' + start + ' to ' + end);
+  }
   // console.log(opt_reverse, start, end)
   var me = this;
 
@@ -656,12 +660,16 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
     var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
     // console.log(x + ' ' + start + ' ' + end)
     if (opt_reverse) {
-      if (upperOpen && goog.isDefAndNotNull(end) &&
-          ydn.db.con.simple.Node.cmp(x, end) == 0) {
-        return;
+      if (upperOpen && goog.isDefAndNotNull(end)) {
+        var cmp = opt_position ? ydn.db.con.simple.Node.cmp(x, end) :
+            ydn.db.cmp(x.getKey(), end.getKey());
+        if (cmp == 0) {
+          return;
+        }
       }
       if (goog.isDefAndNotNull(start)) {
-        var cmp = ydn.db.cmp(x.getKey(), start.getKey());
+        var cmp = opt_position ? ydn.db.con.simple.Node.cmp(x, start) :
+            ydn.db.cmp(x.getKey(), start.getKey());
         if (cmp == -1 || (cmp == 0 && lowerOpen)) {
           if (opt_position) {
             opt_position[0] = undefined;
@@ -671,12 +679,16 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
         }
       }
     } else {
-      if (lowerOpen && goog.isDefAndNotNull(start) &&
-          ydn.db.con.simple.Node.cmp(x, start) == 0) {
-        return;
+      if (lowerOpen && goog.isDefAndNotNull(start)) {
+        var cmp = opt_position ? ydn.db.con.simple.Node.cmp(x, start) :
+            ydn.db.cmp(x.getKey(), start.getKey());
+        if (cmp == 0) {
+          return;
+        }
       }
       if (goog.isDefAndNotNull(end)) {
-        var cmp = ydn.db.cmp(x.getKey(), end.getKey());
+        var cmp = opt_position ? ydn.db.con.simple.Node.cmp(x, end) :
+            ydn.db.cmp(x.getKey(), end.getKey());
         if (cmp == 1 || (cmp == 0 && upperOpen)) {
           if (opt_position) {
             opt_position[0] = undefined;

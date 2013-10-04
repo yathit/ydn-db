@@ -317,7 +317,7 @@ ydn.db.core.req.AbstractCursor.prototype.onSuccess = function(
     this.onNext();
     this.finalize_();
   } else {
-    var key_str = goog.isDefAndNotNull(this.primary_key_) ?
+    var key_str = this.is_index ?
         this.key_ + ', ' + this.primary_key_ : this.key_;
     this.logger.finest(this + ' new cursor position {' + key_str + '}');
     this.onNext(this.key_);

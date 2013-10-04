@@ -73,8 +73,8 @@ ydn.db.core.req.IDBCursor.prototype.defaultOnSuccess = function(ev) {
         cursor.key + ', ' + cursor.primaryKey : ''));
   }
   if (cursor) {
-    var p_key = this.isIndexCursor() ? cursor.primaryKey : undefined;
-    this.onSuccess(cursor.key, p_key, cursor.value);
+    // var p_key = this.isIndexCursor() ? cursor.primaryKey : undefined;
+    this.onSuccess(cursor.key, cursor.primaryKey, cursor.value);
   } else {
     this.onSuccess();
   }

@@ -14,8 +14,8 @@ var db_name = 'test_index_2';
 var setUp = function () {
 
   // ydn.debug.log('ydn.db', 'finest');
-  //ydn.db.core.req.SimpleCursor.DEBUG  = true;
-
+  // ydn.db.core.req.SimpleStore.DEBUG  = true;
+  // ydn.db.con.simple.Store.DEBUG = true;
   // ydn.db.con.WebSql.DEBUG = true;
   // ydn.db.crud.req.WebSql.DEBUG = true;
   //ydn.db.core.req.WebSql.DEBUG = true;
@@ -926,7 +926,7 @@ var compound_index_test = function (db, key_range, len, exp_result) {
     },
     // Continuation
     function () {
-      assertEquals('length', len, result.length);
+      // assertEquals('length', len, result.length);
       assertArrayEquals(exp_result, result);
       reachedFinalContinuation = true;
       ydn.db.deleteDatabase(db.getName(), db.getType());

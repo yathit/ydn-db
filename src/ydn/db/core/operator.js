@@ -891,6 +891,7 @@ ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
         // LIST_VALUE
         arr.push(iter.isKeyIterator() ? primary_key : cursor.getValue());
       }
+      // console.log(count, cursor);
       if (mth == ydn.db.base.QueryMethod.GET) {
         cursor.exit();
         rq.setDbValue(arr[0]);
@@ -898,12 +899,13 @@ ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
           !goog.isDef(opt_limit) || count < opt_limit) {
         cursor.continueEffectiveKey();
       } else {
-        me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
+        me.logger.finer('success:' + msg + ' yields ' + arr.length +
+            ' records');
         cursor.exit();
         rq.setDbValue(arr);
       }
     } else {
-      me.logger.finer('success:' + msg + ' ' + arr.length + ' records');
+      me.logger.finer('success:' + msg + ' yields ' + arr.length + ' records');
       cursor.exit();
       var result =
           mth == ydn.db.base.QueryMethod.GET ? arr[0] :
