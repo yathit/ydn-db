@@ -33,6 +33,7 @@ goog.require('ydn.db.con.IStorage');
 goog.require('ydn.db.events.StorageEvent');
 goog.require('ydn.db.schema.EditableDatabase');
 goog.require('ydn.debug.error.ArgumentException');
+goog.require('ydn.error.ConstraintError');
 goog.require('ydn.object');
 if (!ydn.db.base.NO_SIMPLE) {
   goog.require('ydn.db.con.simple.UserData');
@@ -479,7 +480,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
   if (goog.isNull(db)) {
 
-    var e = new ydn.debug.error.ConstraintError('No storage mechanism found.');
+    var e = new ydn.error.ConstraintError('No storage mechanism found.');
 
     var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, this,
         NaN, NaN, e);

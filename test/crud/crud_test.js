@@ -910,7 +910,7 @@ var test_25_get_none_exist = function() {
 
 
   db.get(table_name, 'no_data').addBoth(function(value) {
-    console.log(value);
+    // console.log(value);
     put_value = value;
     hasEventFired = true;
   });
