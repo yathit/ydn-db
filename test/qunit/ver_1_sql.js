@@ -23,6 +23,7 @@ if (/websql/.test(location.hash)) {
 
 QUnit.config.testTimeout = 2000;
 var reporter = new ydn.testing.Reporter('ydn-db');
+var suite_name = 'sql';
 
 var db_name = 'test_sql_1';
 var store_name = 'st';
@@ -72,7 +73,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("SELECT", test_env);
-  reporter.createTestSuite('sql', 'SELECT', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'SELECT', ydn.db.version);
 
   asyncTest("*", function () {
     expect(1);
@@ -138,7 +139,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("Paging", test_env);
-  reporter.createTestSuite('sql', 'Paging', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Paging', ydn.db.version);
 
   var ids = data.map(function(x) {
       return x.id;
@@ -227,7 +228,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("ORDER", test_env);
-  reporter.createTestSuite('sql', 'ORDER', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'ORDER', ydn.db.version);
 
 
   asyncTest("primary key", function () {
@@ -318,7 +319,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("WHERE", test_env);
-  reporter.createTestSuite('sql', 'WHERE', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'WHERE', ydn.db.version);
 
   asyncTest("number: =", function () {
     expect(1);
@@ -334,7 +335,7 @@ db.put(store_name, data).always(function (value) {
   });
 
   module("WHERE", test_env);
-  reporter.createTestSuite('sql', 'WHERE', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'WHERE', ydn.db.version);
 
   asyncTest("string: =", function () {
     expect(1);
@@ -423,7 +424,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("Aggregate", test_env);
-  reporter.createTestSuite('sql', 'Aggregate', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Aggregate', ydn.db.version);
 
   asyncTest("COUNT(*)", function () {
     expect(1);
@@ -526,16 +527,16 @@ db.put(store_name, data).always(function (value) {
 
 
 QUnit.testDone(function(result) {
-  reporter.addResult('sql', result.module,
+  reporter.addResult(suite_name, result.module,
     result.name, result.failed, result.passed, result.duration);
 });
 
 QUnit.moduleDone(function(result) {
-  reporter.endTestSuite('sql', result.name,
+  reporter.endTestSuite(suite_name, result.name,
     {passed: result.passed, failed: result.failed});
 });
 
-QUnit.done(function(results) {
+QUnit.done(function() {
   reporter.report();
   var type = db.getType();
   ydn.db.deleteDatabase(db_name, type);

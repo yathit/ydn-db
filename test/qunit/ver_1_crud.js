@@ -106,9 +106,10 @@ var schema_auto_increase = {
   ]
 };
 
-QUnit.config.testTimeout = 5000;
+QUnit.config.testTimeout = 2000;
 
 var reporter = new ydn.testing.Reporter('ydn-db');
+var suite_name = 'crud';
 
 (function() {
 
@@ -122,7 +123,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   };
 
   module('Put', test_env);
-  reporter.createTestSuite('core', 'Put', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Put', ydn.db.version);
 
   asyncTest('single data', 1, function() {
     var schema = {
@@ -132,8 +133,8 @@ var reporter = new ydn.testing.Reporter('ydn-db');
       }]
     };
     var data_1 = { test: 'test value', name: 'name 1', id: 1 };
-    var db = new ydn.db.Storage('tck1_put_2', schema_1, options);
-    db.put(store_inline, data_1).always(function() {
+    var db = new ydn.db.Storage('tck1_put_2', schema, options);
+    db.put('st', data_1).always(function() {
       ok(true, 'data inserted');
       start();
       var type = db.getType();
@@ -171,10 +172,17 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
 
   asyncTest('data with off-line-key', 2, function() {
-    var db = new ydn.db.Storage('tck1_put_3', schema_1, options);
+    var schema = {
+      stores: [
+        {
+          name: 'st'
+        }]
+    };
+    var db = new ydn.db.Storage('tck1_put_3', schema, options);
 
     var key = Math.random();
-    db.put(store_outline, data_2, key).always(function(x) {
+    var data_2 = { test: 'test value', name: 'name 2' };
+    db.put('st', data_2, key).always(function(x) {
       ok(true, 'data inserted');
       equal(key, x, 'key');
       start();
@@ -187,13 +195,21 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
 
   asyncTest('offline-key autoincrement', 2, function() {
-    var db = new ydn.db.Storage('tck1_put_4', schema_auto_increase, options);
 
-    db.put(store_outline_auto, data_1).always(function(x) {
+    var schema = {
+      stores: [
+        {
+          name: 'st',
+          autoIncrement: true}
+      ]
+    };
+    var db = new ydn.db.Storage('tck1_put_4', schema, options);
+    var data_1 = { test: 'test value', name: 'name 1' };
+    db.put('st', data_1).always(function(x) {
       ok(true, 'no key data insert ok');
       var key = x;
       // add same data.
-      db.put(store_outline_auto, data_1).always(function(x) {
+      db.put('st', data_1).always(function(x) {
         ok(x > key, 'key 2 greater than previous key');
         start();
         var type = db.getType();
@@ -206,9 +222,17 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
 
   asyncTest('nested key', 1, function() {
-    var db = new ydn.db.Storage('tck1_put_5', schema_1, options);
-
-    db.put(store_nested_key, gdata_1).always(function(x) {
+    var schema = {
+      stores: [
+        {
+          name: 'st',
+          keyPath: 'id.$t', // gdata style key.
+          type: 'TEXT'}
+      ]
+    };
+    var db = new ydn.db.Storage('tck1_put_5', schema, options);
+    var gdata_1 = { test: 'test value', name: 'name 3', id: {$t: 1} };
+    db.put('st', gdata_1).always(function(x) {
       equal(gdata_1.id.$t, x, 'key');
       start();
       var type = db.getType();
@@ -220,8 +244,17 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
 
   asyncTest('single data - array index key', 2, function() {
-    var db = new ydn.db.Storage('tck1_put_6', schema_1, options);
-    db.put(store_inline, data_1a).always(function(x) {
+    var schema = {
+      stores: [
+        {
+          name: 'st',
+          keyPath: 'id',
+          type: 'NUMERIC'}
+      ]
+    };
+    var db = new ydn.db.Storage('tck1_put_6', schema, options);
+    var data_1a = { test: 'test value', name: 'name 1', id: ['a', 'b']};
+    db.put('st', data_1a).always(function(x) {
       //console.log('got it');
       ok('length' in x, 'array key');
       deepEqual(x, data_1a.id, 'same key');
@@ -284,7 +317,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   };
 
   module('Clear', test_env);
-  reporter.createTestSuite('core', 'Clear', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Clear', ydn.db.version);
   var data_inline = [
     {id: 1, msg: Math.random()},
     {id: 2, msg: Math.random()},
@@ -299,6 +332,17 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   asyncTest('by store', 3, function() {
 
     var db_name = 'test-clear-' + Math.random();
+    var schema_1 = {
+      stores: [
+        {
+          name: store_inline,
+          keyPath: 'id',
+          type: 'NUMERIC'},
+        {
+          name: store_outline,
+          type: 'NUMERIC'}
+      ]
+    };
     var db = new ydn.db.Storage(db_name, schema_1, options);
     db.put(store_inline, data_inline);
     db.put(store_outline, data_offline, [1, 2, 3]);
@@ -319,7 +363,17 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 
 
   asyncTest('by database', 3, function() {
-
+    var schema_1 = {
+      stores: [
+        {
+          name: store_inline,
+          keyPath: 'id',
+          type: 'NUMERIC'},
+        {
+          name: store_outline,
+          type: 'NUMERIC'}
+      ]
+    };
     var db_name = 'test-clear-' + Math.random();
     var db = new ydn.db.Storage(db_name, schema_1, options);
     db.put(store_inline, data_inline);
@@ -355,7 +409,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   };
 
   module('Remove', test_env);
-  reporter.createTestSuite('core', 'Remove', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Remove', ydn.db.version);
   var data = [
     {id: 1, msg: Math.random()},
     {id: 2, msg: Math.random()},
@@ -368,9 +422,24 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   ];
 
   asyncTest('by id', 3, function() {
-
+    var schema_1 = {
+      stores: [
+        {
+          name: store_inline,
+          keyPath: 'id',
+          type: 'NUMERIC'},
+        {
+          name: store_outline,
+          type: 'NUMERIC'}
+      ]
+    };
     var db_name = 'test-remove-1' + Math.random();
     var db = new ydn.db.Storage(db_name, schema_1, options);
+    var data = [
+      {id: 1, msg: Math.random()},
+      {id: 2, msg: Math.random()},
+      {id: 3, msg: Math.random()}
+    ];
     db.put(store_inline, data);
     db.count(store_inline).always(function(cnt) {
       equal(cnt, 3, '3 entries');
@@ -416,9 +485,24 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 //  });
 
   asyncTest('by key range', 3, function() {
-
+    var schema_1 = {
+      stores: [
+        {
+          name: store_inline,
+          keyPath: 'id',
+          type: 'NUMERIC'},
+        {
+          name: store_outline,
+          type: 'NUMERIC'}
+      ]
+    };
     var db_name = 'test-remove-' + Math.random();
     var db = new ydn.db.Storage(db_name, schema_1, options);
+    var data = [
+      {id: 1, msg: Math.random()},
+      {id: 2, msg: Math.random()},
+      {id: 3, msg: Math.random()}
+    ];
     db.put(store_inline, data);
     db.count(store_inline).always(function(cnt) {
       equal(cnt, 3, '3 entries');
@@ -447,7 +531,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   var key_store_outline = Math.random();
   var value_store_outline_string = 'value ' + Math.random();
   var key_store_outline_string = 'id' + Math.random();
-  var data_nested_key = { test: 'test value', name: 'name 3', id: {$t: 'id' + Math.random()} };
 
   var ready = $.Deferred();
 
@@ -458,7 +541,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     _db.put(store_inline, data_store_inline);
     _db.put(store_outline, {abc: value_store_outline}, key_store_outline);
     _db.put(store_outline_string, {abc: value_store_outline_string}, key_store_outline_string);
-    _db.put(store_nested_key, data_nested_key);
     _db.put(store_inline_string, data_store_inline_string).always(function() {
       ready.resolve();
     });
@@ -476,7 +558,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   };
 
   module('Get', test_env);
-  reporter.createTestSuite('core', 'Get', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Get', ydn.db.version);
 
   asyncTest('inline-key number', 1, function() {
 
@@ -522,22 +604,6 @@ var reporter = new ydn.testing.Reporter('ydn-db');
     db.get(store_outline_string, key_store_outline_string).then(function(x) {
       equal(x && x.abc, value_store_outline_string, 'value');
       start();
-    }, function(e) {
-      ok(false, e.message);
-      start();
-    });
-
-  });
-
-
-  asyncTest('nested key path', 1, function() {
-
-    db.get(store_nested_key, data_nested_key.id.$t).then(function(x) {
-      deepEqual(data_nested_key, x, 'same object ');
-      start();
-      var type = db.getType();
-      db.close();
-      ydn.db.deleteDatabase(db.getName(), type);
     }, function(e) {
       ok(false, e.message);
       start();
@@ -613,7 +679,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   };
 
   module('Values', test_env);
-  reporter.createTestSuite('core', 'Values', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Values', ydn.db.version);
 
   asyncTest('Retrieve all objects from a store - inline key', 7, function() {
 
@@ -854,7 +920,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   };
 
   module('Keys', test_env);
-  reporter.createTestSuite('core', 'Keys', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Keys', ydn.db.version);
 
   asyncTest('from a store', 3, function() {
 
@@ -942,7 +1008,7 @@ var reporter = new ydn.testing.Reporter('ydn-db');
   };
 
   module('Count', test_env);
-  reporter.createTestSuite('core', 'Count', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Count', ydn.db.version);
 
   asyncTest('all records in a store', 1, function() {
 
@@ -1007,12 +1073,12 @@ var reporter = new ydn.testing.Reporter('ydn-db');
 })();
 
 QUnit.testDone(function(result) {
-  reporter.addResult('core', result.module,
+  reporter.addResult(suite_name, result.module,
     result.name, result.failed, result.passed, result.duration);
 });
 
 QUnit.moduleDone(function(result) {
-  reporter.endTestSuite('core', result.name,
+  reporter.endTestSuite(suite_name, result.name,
     {passed: result.passed, failed: result.failed});
   if (result.name == 'Get') {
     ydn.db.deleteDatabase(get_db_name);
@@ -1023,7 +1089,7 @@ QUnit.moduleDone(function(result) {
   }
 });
 
-QUnit.done(function(results) {
+QUnit.done(function() {
   reporter.report();
 });
 

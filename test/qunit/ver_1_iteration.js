@@ -23,6 +23,7 @@ if (/websql/.test(location.hash)) {
 
 QUnit.config.testTimeout = 2000;
 var reporter = new ydn.testing.Reporter('ydn-db');
+var suite_name = 'iteration';
 
 var db_name = 'test_iteration_2';
 var store_name = 'st';
@@ -74,7 +75,7 @@ db.put(store_name, data).done(function (value) {
   };
 
   module("open", test_env);
-  reporter.createTestSuite('iteration', 'open', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'open', ydn.db.version);
 
   asyncTest("readonly table scan for value iterator", function () {
     expect(3 * data.length);
@@ -142,7 +143,7 @@ db.put(store_name, data).done(function (value) {
   };
 
   module("Streamer", test_env);
-  reporter.createTestSuite('iteration', 'Streamer', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Streamer', ydn.db.version);
 
   asyncTest("synchronous push", function () {
     expect(1);
@@ -160,12 +161,12 @@ db.put(store_name, data).done(function (value) {
 })();
 
 QUnit.testDone(function(result) {
-  reporter.addResult('iteration', result.module,
+  reporter.addResult(suite_name, result.module,
     result.name, result.failed, result.passed, result.duration);
 });
 
 QUnit.moduleDone(function(result) {
-  reporter.endTestSuite('iteration', result.name,
+  reporter.endTestSuite(suite_name, result.name,
     {passed: result.passed, failed: result.failed});
 });
 

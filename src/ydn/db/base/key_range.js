@@ -14,13 +14,13 @@ goog.provide('ydn.db.KeyRange');
  * For those browser that not implemented IDBKeyRange.
  * @param {IDBKey|undefined} lower The value of the lower bound.
  * @param {IDBKey|undefined} upper  The value of the upper bound.
- * @param {boolean=} lowerOpen  If true, the range excludes the lower bound
+ * @param {boolean=} opt_lowerOpen  If true, the range excludes the lower bound
  * value.
- * @param {boolean=} upperOpen If true, the range excludes the lower bound
+ * @param {boolean=} opt_upperOpen If true, the range excludes the lower bound
  * value.
  * @constructor
  */
-ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
+ydn.db.KeyRange = function(lower, upper, opt_lowerOpen, opt_upperOpen) {
 
   // todo: use new @dict type annotation.
 
@@ -35,11 +35,11 @@ ydn.db.KeyRange = function(lower, upper, lowerOpen, upperOpen) {
   /**
    * @final
    */
-  this['lowerOpen'] = !!lowerOpen;
+  this['lowerOpen'] = !!opt_lowerOpen;
   /**
    * @final
    */
-  this['upperOpen'] = !!upperOpen;
+  this['upperOpen'] = !!opt_upperOpen;
 
   if (goog.DEBUG && goog.isFunction(Object.freeze)) {
     // NOTE: due to performance penalty (in Chrome) of using freeze and

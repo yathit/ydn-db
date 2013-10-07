@@ -10,6 +10,7 @@ goog.provide('ydn.db.base.Mutex');
 /**
  * Create a new mutax with false state.
  * @constructor
+ * @struct
  */
 ydn.db.base.Mutex = function() {
   this.state_ = false;
