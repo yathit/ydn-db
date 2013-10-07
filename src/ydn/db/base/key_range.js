@@ -393,9 +393,9 @@ ydn.db.KeyRange.toSql = function(quoted_column_name, type,
  */
 ydn.db.KeyRange.where = function(op, value, opt_op2, opt_value2) {
   var upper, lower, upperOpen, lowerOpen;
-  if (op == '^') {
-    goog.asserts.assert(goog.isString(value) || goog.isArray(value), 'key value' +
-        ' of starts with must be an array or a string');
+  if (op == 'starts' || op == '^') {
+    goog.asserts.assert(goog.isString(value) || goog.isArray(value),
+        'key value of starts with must be an array or a string');
     goog.asserts.assert(!goog.isDef(opt_op2), 'op2 must not be defined');
     goog.asserts.assert(!goog.isDef(opt_value2), 'value2 must not be defined');
     return ydn.db.KeyRange.starts(/** @type {string|!Array} */ (value));
