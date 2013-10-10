@@ -233,19 +233,6 @@ GDataOptions.prototype.siteName;
 
 
 /**
- * @type {string}
- */
-GDataOptions.prototype.prefetch;
-
-
-/**
- * @type {number}
- */
-GDataOptions.prototype.prefetchRefractoryPeriod;
-
-
-
-/**
  * @extends {GDataOptions}
  * @constructor
  */
@@ -340,6 +327,20 @@ StoreSyncOptionJson.prototype.metaDataName;
  * }?}
  */
 StoreSyncOptionJson.prototype.metaData;
+
+
+/**
+ * Indicate prefetch to be performed.
+ * @type {string} valid options are 'meta' and 'full'.
+ */
+StoreSyncOptionJson.prototype.prefetch;
+
+
+/**
+ * Prefetch refractory period interval in milliseconds.
+ * @type {number}
+ */
+StoreSyncOptionJson.prototype.prefetchRefractoryPeriod;
 
 
 /**
