@@ -233,7 +233,7 @@ GDataOptions.prototype.siteName;
 
 
 /**
- * @type {boolean|string}
+ * @type {string}
  */
 GDataOptions.prototype.prefetch;
 
