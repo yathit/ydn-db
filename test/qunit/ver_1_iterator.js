@@ -21,7 +21,7 @@ if (/websql/.test(location.hash)) {
 }
 
 QUnit.config.testTimeout = 2000;
-var reporter = new ydn.testing.Reporter('ydn-db');
+var reporter = new ydn.testing.Reporter('ydn-db', ydn.db.version);
 var suite_name = 'iterator';
 
 var db_name = "qunit_test_8";
@@ -121,7 +121,7 @@ var schema_1 = {
   };
 
   module("Count", test_env);
-  reporter.createTestSuite(suite_name, 'Count', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Count');
 
 
   asyncTest("1. primary key", 5, function () {
@@ -219,7 +219,7 @@ var schema_1 = {
       }
     }
   });
-  reporter.createTestSuite(suite_name, 'Get', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Get');
 
   asyncTest("effective key by an iterator", function () {
     expect(1);
@@ -319,7 +319,7 @@ var schema_1 = {
   };
 
   module("values", test_env);
-  reporter.createTestSuite(suite_name, 'values', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'values');
 
   asyncTest("1. Ref value by primary key range", 9, function () {
     df.always(function () {
@@ -578,7 +578,7 @@ var schema_1 = {
   };
 
   module("keys", test_env);
-  reporter.createTestSuite(suite_name, 'keys', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'keys');
 
 
   asyncTest("1. Effective key by by primary key range", 8, function () {

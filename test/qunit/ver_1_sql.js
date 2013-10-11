@@ -22,7 +22,7 @@ if (/websql/.test(location.hash)) {
 
 
 QUnit.config.testTimeout = 2000;
-var reporter = new ydn.testing.Reporter('ydn-db');
+var reporter = new ydn.testing.Reporter('ydn-db', ydn.db.version);
 var suite_name = 'sql';
 
 var db_name = 'test_sql_1';
@@ -73,7 +73,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("SELECT", test_env);
-  reporter.createTestSuite(suite_name, 'SELECT', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'SELECT');
 
   asyncTest("*", function () {
     expect(1);
@@ -139,7 +139,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("Paging", test_env);
-  reporter.createTestSuite(suite_name, 'Paging', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Paging');
 
   var ids = data.map(function(x) {
       return x.id;
@@ -228,7 +228,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("ORDER", test_env);
-  reporter.createTestSuite(suite_name, 'ORDER', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'ORDER');
 
 
   asyncTest("primary key", function () {
@@ -319,7 +319,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("WHERE", test_env);
-  reporter.createTestSuite(suite_name, 'WHERE', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'WHERE');
 
   asyncTest("number: =", function () {
     expect(1);
@@ -335,7 +335,7 @@ db.put(store_name, data).always(function (value) {
   });
 
   module("WHERE", test_env);
-  reporter.createTestSuite(suite_name, 'WHERE', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'WHERE');
 
   asyncTest("string: =", function () {
     expect(1);
@@ -424,7 +424,7 @@ db.put(store_name, data).always(function (value) {
   };
 
   module("Aggregate", test_env);
-  reporter.createTestSuite(suite_name, 'Aggregate', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'Aggregate');
 
   asyncTest("COUNT(*)", function () {
     expect(1);

@@ -24,7 +24,7 @@ if (/websql/.test(location.hash)) {
 
 QUnit.config.testTimeout = 2000;
 var suite_name = 'workflow';
-var reporter = new ydn.testing.Reporter('ydn-db');
+var reporter = new ydn.testing.Reporter('ydn-db', ydn.db.version);
 
 var db;
 var db_name_event = "tck_test_1_1";
@@ -65,7 +65,7 @@ var events_schema = {
   };
 
   module("Storage Event", test_env);
-  reporter.createTestSuite(suite_name, 'storage-event', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'storage-event');
   asyncTest("connected to a new database and existing", 12, function () {
 
     var db = new ydn.db.Storage(db_name_event, schema);
@@ -129,7 +129,7 @@ var events_schema = {
 (function() {
 
   module('RecordEvent Event');
-  reporter.createTestSuite(suite_name, 'record-event', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'record-event');
   asyncTest('created', 6, function() {
     var db_name_event = 'test-created-1';
     var db = new ydn.db.Storage(db_name_event, events_schema);
@@ -226,7 +226,7 @@ var events_schema = {
   };
 
   module("Store Event", test_env);
-  reporter.createTestSuite(suite_name, 'store-event', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'store-event');
   asyncTest("created", 5, function () {
 
     var db = new ydn.db.Storage(db_name_event, events_schema);
@@ -321,7 +321,7 @@ var events_schema = {
   };
 
   module("Run in transaction", test_env);
-  reporter.createTestSuite(suite_name, 'run', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'run');
   asyncTest("all requests in one transaction", 4, function () {
 
     var db_name = 'test_run_1';
@@ -371,7 +371,7 @@ var events_schema = {
   };
 
   module("Abort", test_env);
-  reporter.createTestSuite(suite_name, 'abort', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'abort');
   asyncTest("abort a put operation request method", 7, function () {
 
     var db_name = 'test_abort_1';
@@ -537,7 +537,7 @@ var events_schema = {
   };
 
   module("Error", test_env);
-  reporter.createTestSuite(suite_name, 'error', ydn.db.version);
+  reporter.createTestSuite(suite_name, 'error');
   var db_name = 'test_constrained_error' + Math.random();
   var schema = {
     stores: [

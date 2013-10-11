@@ -1,128 +1,17 @@
 
-var options = {}; // options = {mechanisms: ['websql']};
-if (/log/.test(location.hash)) {
-  if (/ui/.test(location.hash)) {
-    if (ydn.debug && ydn.debug.log) {
-      var div = document.createElement('div');
-      document.body.appendChild(div);
-      ydn.debug.log('ydn.db', 'finest', div);
-    } else {
-      console.log('no logging facility');
-    }
-  } else {
-    if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finest');
-    } else {
-      console.log('no logging facility');
-    }
-  }
-}
-if (/websql/.test(location.hash)) {
-  options['mechanisms'] = ['websql'];
-}
-if (/localstorage/.test(location.hash)) {
-  options['mechanisms'] = ['localstorage'];
-}
 
-
-var db;
-
-var db_name_tck1 = 'tck_test_1_1';
-var dbname_auto_increase = 'tck1_auto_increment';
-var store_inline = 'ts';    // in-line key store
-var store_inline_string = 'tss';    // in-line key store
-var store_outline = 'ts2'; // out-of-line key store
-var store_outline_string = 'ts2s'; // out-of-line key store
-var store_inline_auto = 'ts3'; // in-line key + auto
-var store_outline_auto = 'ts4'; // out-of-line key + auto
-var store_nested_key = 'ts5'; // nested keyPath
-var store_inline_index = 'ts6';    // in-line key store
-
-
-var get_db_name = 'tck1-get-1';
-var count_db_name = 'ydn_db_tck1_count_2';
-var values_db_name = 'tck1-values-2';
-
-var data_1 = { test: 'test value', name: 'name 1', id: 1 };
-var data_1a = { test: 'test value', name: 'name 1', id: ['a', 'b']};
-var data_2 = { test: 'test value', name: 'name 2' };
-var gdata_1 = { test: 'test value', name: 'name 3', id: {$t: 1} };
-
-// schema without auto increment
-var schema_1 = {
-  stores: [
-    {
-      name: store_inline,
-      keyPath: 'id',
-      type: 'NUMERIC'},
-    {
-      name: store_inline_string,
-      keyPath: 'id',
-      type: 'TEXT'},
-    {
-      name: store_outline,
-      type: 'NUMERIC'},
-    {
-      name: store_outline_string,
-      type: 'TEXT'},
-    {
-      name: store_nested_key,
-      keyPath: 'id.$t', // gdata style key.
-      type: 'TEXT'}
-  ]
-};
-
-
-var schema_auto_increase = {
-  stores: [
-    {
-      name: store_inline,
-      keyPath: 'id',
-      type: 'NUMERIC'},
-    {
-      name: store_outline,
-      type: 'NUMERIC'},
-    {
-      name: store_inline_auto,
-      keyPath: 'id',
-      autoIncrement: true,
-      type: 'INTEGER'},
-    {
-      name: store_outline_auto,
-      autoIncrement: true},
-    {
-      name: store_nested_key,
-      keyPath: 'id.$t', // gdata style key.
-      type: 'NUMERIC'},
-    {
-      name: store_inline_index,
-      keyPath: 'id',
-      type: 'NUMERIC',
-      indexes: [
-        {name: 'value', type: 'TEXT'}
-      ]
-    }
-
-  ]
-};
-
-QUnit.config.testTimeout = 2000;
-
-var reporter = new ydn.testing.Reporter('ydn-db', ydn.db.version);
 var suite_name = 'crud';
 
 (function() {
 
-  var test_env = {
+  module('Put', {
     setup: function() {
 
     },
     teardown: function() {
 
     }
-  };
-
-  module('Put', test_env);
+  });
   reporter.createTestSuite(suite_name, 'Put');
 
   asyncTest('single data', 1, function() {
@@ -136,14 +25,13 @@ var suite_name = 'crud';
     var db = new ydn.db.Storage('tck1_put_2', schema, options);
     db.put('st', data_1).always(function() {
       ok(true, 'data inserted');
-      start();
       var type = db.getType();
+      start();
       db.close();
       ydn.db.deleteDatabase(db.getName(), type);
     });
 
   });
-
 
   asyncTest('inline-key autoincrement', 2, function() {
     var schema = {
@@ -169,7 +57,6 @@ var suite_name = 'crud';
     });
 
   });
-
 
   asyncTest('data with off-line-key', 2, function() {
     var schema = {
@@ -220,7 +107,6 @@ var suite_name = 'crud';
 
   });
 
-
   asyncTest('nested key', 1, function() {
     var schema = {
       stores: [
@@ -241,7 +127,6 @@ var suite_name = 'crud';
     });
 
   });
-
 
   asyncTest('single data - array index key', 2, function() {
     var schema = {
@@ -307,16 +192,10 @@ var suite_name = 'crud';
 
 (function() {
 
-  var test_env = {
-    setup: function() {
 
-    },
-    teardown: function() {
-
-    }
-  };
-
-  module('Clear', test_env);
+  var store_inline = 'ts';
+  var store_outline = 'ts2';
+  module('Clear');
   reporter.createTestSuite(suite_name, 'Clear');
   var data_inline = [
     {id: 1, msg: Math.random()},
@@ -399,16 +278,10 @@ var suite_name = 'crud';
 
 (function() {
 
-  var test_env = {
-    setup: function() {
 
-    },
-    teardown: function() {
-
-    }
-  };
-
-  module('Remove', test_env);
+  var store_inline = 'ts';
+  var store_outline = 'ts2';
+  module('Remove');
   reporter.createTestSuite(suite_name, 'Remove');
   var data = [
     {id: 1, msg: Math.random()},
@@ -457,33 +330,6 @@ var suite_name = 'crud';
 
   });
 
-//  asyncTest("by keys", function () {
-//    expect(3);
-//    var db_name = 'test-remove-1' + Math.random();
-//    var db = new ydn.db.Storage(db_name, schema_1, options);
-//    var keys = [
-//      new ydn.db.Key(store_inline, 1),
-//      new ydn.db.Key(store_outline, 2),
-//      new ydn.db.Key(store_inline, 3)];
-//    db.put(store_inline, data);
-//    db.put(store_outline, data_offline, [1, 2, 3]);
-//
-//    db.count([store_inline, store_outline]).always(function (cnt) {
-//      equal(cnt, [3, 3], '6 entries');
-//
-//      db.remove(keys).always(function (x) {
-//        equal(x, 3, "3 entry removed");
-//        db.count([store_inline, store_outline]).always(function (cnt) {
-//          equal(cnt, [1, 2], '3 left');
-//          start();
-//          ydn.db.deleteDatabase(db.getName(), db.getType());
-//          db.close();
-//        });
-//      });
-//    });
-//
-//  });
-
   asyncTest('by key range', 3, function() {
     var schema_1 = {
       stores: [
@@ -522,8 +368,10 @@ var suite_name = 'crud';
 
 })();
 
+
 (function() {
 
+  var get_db_name = 'test-get-21';
   var db;
   var data_store_inline = {id: 1, value: 'value ' + Math.random()};
   var data_store_inline_string = {id: 'a', value: 'value ' + Math.random()};
@@ -531,13 +379,36 @@ var suite_name = 'crud';
   var key_store_outline = Math.random();
   var value_store_outline_string = 'value ' + Math.random();
   var key_store_outline_string = 'id' + Math.random();
+  // schema without auto increment
+  var store_inline = 'st1';
+  var store_inline_string = 'st2';
+  var store_outline = 'st3';
+  var store_outline_string = 'st4';
+  var schema = {
+    stores: [
+      {
+        name: store_inline,
+        keyPath: 'id',
+        type: 'NUMERIC'},
+      {
+        name: store_inline_string,
+        keyPath: 'id',
+        type: 'TEXT'},
+      {
+        name: store_outline,
+        type: 'NUMERIC'},
+      {
+        name: store_outline_string,
+        type: 'TEXT'}
+    ]
+  };
 
   var ready = $.Deferred();
 
   // persist store data.
   // we don't want to share this database connection and test database connection.
   (function() {
-    var _db = new ydn.db.Storage(get_db_name, schema_1, options);
+    var _db = new ydn.db.Storage(get_db_name, schema, options);
     _db.put(store_inline, data_store_inline);
     _db.put(store_outline, {abc: value_store_outline}, key_store_outline);
     _db.put(store_outline_string, {abc: value_store_outline_string}, key_store_outline_string);
@@ -547,13 +418,18 @@ var suite_name = 'crud';
     _db.close();
   })();
 
+  var total = 0;
   var test_env = {
     setup: function() {
-      db = new ydn.db.Storage(get_db_name, schema_1, options);
-
+      db = new ydn.db.Storage(get_db_name, schema, options);
     },
     teardown: function() {
       db.close();
+      total++;
+      if (total >= 4) {
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      }
     }
   };
 
@@ -565,7 +441,7 @@ var suite_name = 'crud';
     ready.always(function() {
 
       db.get(store_inline, 1).then(function(x) {
-        equal(data_store_inline.value, x.value, 'value');
+        deepEqual(data_store_inline, x, 'value');
         start();
       }, function(e) {
         ok(false, e.message);
@@ -576,39 +452,39 @@ var suite_name = 'crud';
   });
 
   asyncTest('inline-line string key', 1, function() {
-
-    db.get(store_inline_string, 'a').then(function(x) {
-      equal(data_store_inline_string.value, x.value, 'value');
-      start();
-    }, function(e) {
-      ok(false, e.message);
-      start();
+    ready.always(function() {
+      db.get(store_inline_string, 'a').then(function(x) {
+        deepEqual(data_store_inline_string, x, 'value');
+        start();
+      }, function(e) {
+        ok(false, e.message);
+        start();
+      });
     });
-
   });
 
   asyncTest('out-off-line number key', 1, function() {
-
-    db.get(store_outline, key_store_outline).then(function(x) {
-      equal(x && x.abc, value_store_outline, 'value');
-      start();
-    }, function(e) {
-      ok(false, e.message);
-      start();
+    ready.always(function() {
+      db.get(store_outline, key_store_outline).then(function(x) {
+        equal(x && x.abc, value_store_outline, 'value');
+        start();
+      }, function(e) {
+        ok(false, e.message);
+        start();
+      });
     });
-
   });
 
   asyncTest('out-off-line string key', 1, function() {
-
-    db.get(store_outline_string, key_store_outline_string).then(function(x) {
-      equal(x && x.abc, value_store_outline_string, 'value');
-      start();
-    }, function(e) {
-      ok(false, e.message);
-      start();
+    ready.always(function() {
+      db.get(store_outline_string, key_store_outline_string).then(function(x) {
+        equal(x && x.abc, value_store_outline_string, 'value');
+        start();
+      }, function(e) {
+        ok(false, e.message);
+        start();
+      });
     });
-
   });
 
 })();
@@ -616,6 +492,11 @@ var suite_name = 'crud';
 (function() {
 
   var db;
+  var values_db_name = 'tck1-values-21';
+  var store_inline = 'st1';
+  var store_inline_index = 'st2';
+  var store_outline = 'st3';
+  var store_outline_string = 'st4';
 
   // schema without auto increment
   var schema_1 = {
@@ -668,6 +549,7 @@ var suite_name = 'crud';
     _db.close();
   })();
 
+  var total = 0;
   var test_env = {
     setup: function() {
       db = new ydn.db.Storage(values_db_name, schema_1, options);
@@ -675,6 +557,11 @@ var suite_name = 'crud';
     },
     teardown: function() {
       db.close();
+      total++;
+      if (total >= 6) {
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      }
     }
   };
 
@@ -801,7 +688,6 @@ var suite_name = 'crud';
         start();
         var type = db.getType();
         db.close();
-        ydn.db.deleteDatabase(db.getName(), type);
       });
     });
   });
@@ -850,6 +736,11 @@ var suite_name = 'crud';
 
   var db;
   var db_name = 'tck1-keys-1';
+  var store_inline = 'ts';    // in-line key store
+  var store_inline_string = 'tss';    // in-line key store
+  var store_outline = 'ts2'; // out-of-line key store
+  var store_outline_string = 'ts2s'; // out-of-line key store
+  var store_inline_index = 'ts3';
 
   // schema without auto increment
   var schema_1 = {
@@ -968,8 +859,22 @@ var suite_name = 'crud';
 
 
   var db;
+  var count_db_name = 'ydn_db_tck1_count_2';
+  var store_inline = 'st1';
+  var store_outline = 'st2';
 
   var ready = $.Deferred();
+  var schema_1 = {
+    stores: [
+      {
+        name: store_inline,
+        keyPath: 'id',
+        type: 'NUMERIC'},
+      {
+        name: store_outline,
+        type: 'NUMERIC'}
+    ]
+  };
 
   // persist store data.
   // we don't want to share this database connection and test database connection.
@@ -996,6 +901,7 @@ var suite_name = 'crud';
     _db.close();
   })();
 
+  var total = 0;
   var test_env = {
     setup: function() {
       db = new ydn.db.Storage(count_db_name, schema_1, options);
@@ -1003,7 +909,11 @@ var suite_name = 'crud';
     },
     teardown: function() {
       db.close();
-      //ydn.db.deleteDatabase(db.getName());
+      total++;
+      if (total >= 4) {
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      }
     }
   };
 
@@ -1072,26 +982,7 @@ var suite_name = 'crud';
 
 })();
 
-QUnit.testDone(function(result) {
-  reporter.addResult(suite_name, result.module,
-    result.name, result.failed, result.passed, result.duration);
-});
 
-QUnit.moduleDone(function(result) {
-  reporter.endTestSuite(suite_name, result.name,
-    {passed: result.passed, failed: result.failed});
-  if (result.name == 'Get') {
-    ydn.db.deleteDatabase(get_db_name);
-  } else if (result.name == 'Count') {
-    ydn.db.deleteDatabase(count_db_name);
-  } else if (result.name == 'Values') {
-    ydn.db.deleteDatabase(values_db_name);
-  }
-});
-
-QUnit.done(function() {
-  reporter.report();
-});
 
 
 

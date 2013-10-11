@@ -24,7 +24,7 @@ if (/websql/.test(location.hash)) {
 QUnit.config.testTimeout = 2000;
 
 
-var reporter = new ydn.testing.Reporter('ydn-db');
+var reporter = new ydn.testing.Reporter('ydn-db', ydn.db.version);
 
 var schema = {
   stores: [
@@ -91,7 +91,7 @@ var leg_iter_count = num_four_legs_ani + 1;
   };
 
   module("join", test_env);
-  reporter.createTestSuite('algo', 'join', ydn.db.version);
+  reporter.createTestSuite('algo', 'join');
 
   asyncTest("NestedLoop", 1, function () {
 
