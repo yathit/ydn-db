@@ -188,6 +188,29 @@ var suite_name = 'crud';
       db.close();
     });
   });
+
+  var schema_array = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'id'
+      }]
+  };
+  var data_1a = { test: 'test value', name: 'name 1', id: ['a', 'b']};
+
+  asyncTest('single data - array index key', 2, function() {
+    var db = new ydn.db.Storage('tck1_put_array-key', schema_array, options);
+    db.put('st', data_1a).always(function(x) {
+      //console.log('got it');
+      ok('length' in x, 'array key');
+      deepEqual(x, data_1a.id, 'same key');
+      start();
+      var type = db.getType();
+      db.close();
+      ydn.db.deleteDatabase(db.getName(), type);
+    });
+
+  });
 })();
 
 (function() {
