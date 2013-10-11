@@ -275,7 +275,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
  * @inheritDoc
  */
 ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
-                                                 arg2, arg3, arg4, arg5) {
+                                                 arg2, arg3, arg4, arg5, arg6) {
   var me = this;
 
   /**
@@ -294,6 +294,10 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
    * @type {boolean}
    */
   var reverse = false;
+  /**
+   * @type {boolean}
+   */
+  var unique = false;
   /**
    *
    * @type {string}
@@ -356,19 +360,28 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
       throw new ydn.debug.error.ArgumentException('offset must be a number');
     }
     if (goog.isDef(arg5)) {
-      if (goog.isBoolean) {
+      if (goog.isBoolean(arg5)) {
         reverse = arg5;
       } else {
         throw new ydn.debug.error.ArgumentException(
             'reverse must be a boolean');
       }
     }
+    if (goog.isDef(arg6)) {
+      if (goog.isBoolean(arg6)) {
+        unique = arg6;
+      } else {
+        throw new ydn.debug.error.ArgumentException(
+            'unique must be a boolean');
+      }
+    }
     this.logger.finer('keysByIndexKeyRange: ' + store_name);
     req = this.tx_thread.request(ydn.db.Request.Method.KEYS_INDEX,
         [store_name]);
+    store.hook(req, arguments);
     req.addTxback(function() {
       this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-          store_name, index_name, range, reverse, limit, offset, false);
+          store_name, index_name, range, reverse, limit, offset, unique);
     }, this);
   } else {
     if (goog.isObject(arg1)) {
@@ -411,6 +424,7 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
     }
     this.logger.finer('keysByKeyRange: ' + store_name);
     req = this.tx_thread.request(ydn.db.Request.Method.KEYS, [store_name]);
+    store.hook(req, arguments);
     req.addTxback(function() {
       this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
           store_name, null, range, reverse, limit, offset, false);
@@ -1321,11 +1335,13 @@ ydn.db.crud.DbOperator.prototype.countInternal = function(store_names,
  * @param {?IDBKeyRange} key_range key range.
  * @param {boolean} reverse reverse.
  * @param {number} limit limit.
+ * @param {number} offset limit.
+ * @param {boolean} unique limit.
  * @return {!ydn.db.Request} df.
  * @override
  */
 ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
-    key_range, reverse, limit) {
+    key_range, reverse, limit, offset, unique) {
   var req;
   var me = this;
 
@@ -1347,14 +1363,14 @@ ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
         [store_name]);
     req.addTxback(function() {
       this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-          store_name, index, key_range, reverse, limit, 0, false);
+          store_name, index, key_range, reverse, limit, offset, unique);
     }, this);
   } else {
     req = this.sync_thread.request(ydn.db.Request.Method.KEYS,
         [store_name]);
     req.addTxback(function() {
       this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-          store_name, null, key_range, reverse, limit, 0, false);
+          store_name, null, key_range, reverse, limit, offset, unique);
     }, this);
   }
   return req;

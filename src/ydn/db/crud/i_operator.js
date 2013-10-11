@@ -61,8 +61,9 @@ ydn.db.crud.IOperator.prototype.get = goog.abstractMethod;
  * list of primary keys or key range.
  * @param {(number|KeyRangeJson|ydn.db.KeyRange)=} opt_arg3 limit.
  * @param {number=} opt_arg4 offset.
- * @param {(boolean|number)=} arg5 opt_index name.
+ * @param {(boolean|number)=} opt_unique name.
  * @param {boolean=} opt_arg6 reverse.
+ * @param {boolean=} opt_arg7 reverse.
  * @return {!ydn.db.Request} return object in deferred function.
  */
 ydn.db.crud.IOperator.prototype.values = goog.abstractMethod;
@@ -77,6 +78,7 @@ ydn.db.crud.IOperator.prototype.values = goog.abstractMethod;
  * @param {number=} opt_arg3 offset or limit.
  * @param {(boolean|number)=} opt_arg4 reverse or offset.
  * @param {boolean=} opt_arg5 reverse.
+ * @param {boolean=} unique limit.
  * @return {!ydn.db.Request} result promise.
  */
 ydn.db.crud.IOperator.prototype.keys = goog.abstractMethod;

@@ -1120,8 +1120,7 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
       // push to result list
       if (type == ydn.db.base.QueryMethod.LIST_KEY) {
         results.push(cursor.key);
-      } else if (type ==
-          ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
+      } else if (type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
         results.push(cursor.primaryKey);
       } else if (type ==
           ydn.db.base.QueryMethod.LIST_KEYS) {
