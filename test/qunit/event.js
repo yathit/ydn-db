@@ -39,7 +39,7 @@
     }
   };
 
-  module("storage", test_env);
+  module("event,storage", test_env);
   reporter.createTestSuite('event');
   asyncTest("connected to a new database and existing", 12, function () {
 
@@ -122,7 +122,7 @@
         type: 'NUMERIC'}
     ]};
 
-  module('record');
+  module('event,record');
   reporter.createTestSuite('event', 'record-event');
   asyncTest('created', 6, function() {
     var db_name_event = 'test-created-1';
@@ -238,7 +238,7 @@
     }
   };
 
-  module("store", test_env);
+  module("event,store", test_env);
   reporter.createTestSuite('event', 'store-event');
   asyncTest("created", 5, function () {
 
@@ -332,7 +332,7 @@
     }
   };
 
-  module("Error", test_env);
+  module("event,error", test_env);
   reporter.createTestSuite('event', 'error');
   var db_name = 'test_constrained_error' + Math.random();
   var schema = {

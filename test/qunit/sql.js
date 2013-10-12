@@ -54,7 +54,7 @@
     }
   };
 
-  module("SELECT", test_env);
+  module("sql,SELECT", test_env);
   reporter.createTestSuite('sql', 'SELECT');
 
   asyncTest("*", function () {
@@ -164,7 +164,7 @@
     }
   };
 
-  module("Paging", test_env);
+  module("sql,Paging", test_env);
   reporter.createTestSuite('sql', 'Paging');
 
   var ids = data.map(function(x) {
@@ -297,7 +297,7 @@
     }
   };
 
-  module("ORDER", test_env);
+  module("sql,ORDER", test_env);
   reporter.createTestSuite('sql', 'ORDER');
 
 
@@ -431,7 +431,7 @@
     }
   };
 
-  module("WHERE", test_env);
+  module("sql,WHERE", test_env);
   reporter.createTestSuite('sql', 'WHERE');
 
   asyncTest("number: =", 1, function () {
@@ -571,7 +571,7 @@
   };
 
 
-  module("Aggregate", test_env);
+  module("sql,Aggregate", test_env);
   reporter.createTestSuite('sql', 'Aggregate');
 
   asyncTest("COUNT(*)", 1, function () {

@@ -2,7 +2,7 @@
 
 (function() {
 
-  module('Put', {
+  module('crud,put', {
     setup: function() {
 
     },
@@ -216,7 +216,7 @@
 
   var store_inline = 'ts';
   var store_outline = 'ts2';
-  module('Clear');
+  module('crud,Clear');
   reporter.createTestSuite('crud', 'Clear');
   var data_inline = [
     {id: 1, msg: Math.random()},
@@ -302,7 +302,7 @@
 
   var store_inline = 'ts';
   var store_outline = 'ts2';
-  module('Remove');
+  module('crud,Remove');
   reporter.createTestSuite('crud', 'Remove');
   var data = [
     {id: 1, msg: Math.random()},
@@ -454,7 +454,7 @@
     }
   };
 
-  module('Get', test_env);
+  module('crud,Get', test_env);
   reporter.createTestSuite('crud', 'Get');
 
   asyncTest('inline-key number', 1, function() {
@@ -586,7 +586,7 @@
     }
   };
 
-  module('Values', test_env);
+  module('crud,Values', test_env);
   reporter.createTestSuite('crud', 'Values');
 
   asyncTest('Retrieve all objects from a store - inline key', 7, function() {
@@ -831,7 +831,7 @@
     }
   };
 
-  module('Keys', test_env);
+  module('crud,Keys', test_env);
   reporter.createTestSuite('crud', 'Keys');
 
   asyncTest('from a store', 3, function() {
@@ -938,7 +938,7 @@
     }
   };
 
-  module('Count', test_env);
+  module('crud,Count', test_env);
   reporter.createTestSuite('crud', 'Count');
 
   asyncTest('all records in a store', 1, function() {

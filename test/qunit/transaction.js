@@ -28,7 +28,7 @@
     }
   };
 
-  module("run", test_env);
+  module("transaction,run", test_env);
   reporter.createTestSuite('transaction', 'run');
   asyncTest("all requests in one transaction", 4, function () {
 
@@ -97,7 +97,7 @@
     }
   };
 
-  module("abort", test_env);
+  module("transaction,abort", test_env);
   reporter.createTestSuite('transaction', 'abort');
   asyncTest("abort a put operation request method", 7, function () {
 

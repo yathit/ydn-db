@@ -57,7 +57,7 @@
     }
   };
 
-  module("open", test_env);
+  module("cursor,open", test_env);
   reporter.createTestSuite('cursor');
 
   asyncTest("readonly table scan for value iterator", 3 * data.length, function () {
@@ -212,7 +212,7 @@
     }
   };
 
-  module("Count", test_env);
+  module("cursor,Count", test_env);
   reporter.createTestSuite('cursor');
 
 
@@ -298,7 +298,7 @@
   ];
 
 
-  module("Get", {
+  module("cursor,Get", {
     setup: function () {
       db_r.clear(store_inline_index);
       db_r.put(store_inline_index, objs);
@@ -427,7 +427,7 @@
     }
   };
 
-  module("values", test_env);
+  module("cursor,values", test_env);
   reporter.createTestSuite('cursor', 'values');
 
   asyncTest("reference value by primary key range", 9, function () {
@@ -702,7 +702,7 @@
     }
   };
 
-  module("keys", test_env);
+  module("cursor,keys", test_env);
   reporter.createTestSuite('cursor', 'keys');
 
 
@@ -927,7 +927,7 @@
     }
   };
 
-  module("join", test_env);
+  module("cursor,join", test_env);
   reporter.createTestSuite('cursor', 'join');
 
   asyncTest("NestedLoop", 1, function () {
