@@ -26,6 +26,7 @@ if (/localstorage/.test(location.hash)) {
 
 
 QUnit.config.testTimeout = 2000;
+QUnit.config.reorder = false;
 
 // unit test runner must define suite name be for starting a module.
 var suite_name = '';
@@ -33,13 +34,12 @@ var reporter = new ydn.testing.Reporter('ydn-db', ydn.db.version);
 
 
 QUnit.testDone(function(result) {
-  reporter.addResult(suite_name, result.module,
+  reporter.addResult(result.module,
     result.name, result.failed, result.passed, result.duration);
 });
 
 QUnit.moduleDone(function(result) {
-  reporter.endTestSuite(suite_name, result.name,
-      {passed: result.passed, failed: result.failed});
+  reporter.endTestSuite(result.name, result);
 });
 
 QUnit.done(function() {

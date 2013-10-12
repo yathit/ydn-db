@@ -50,28 +50,24 @@
             </fileset>
         </copy>
     </target>
-    <macrodef name="adv-comp">
+    <macrodef name="adv-comp" description="main compilation routine">
         <attribute name="input.fn"/>
         <attribute name="input.dir"/>
         <attribute name="output.fn"/>
-        <attribute name="output.dir"/>
+        <attribute name="mechanisms" default="iswu"/>
         <attribute name="closure.entry"/>
         <attribute name="cssmap-target" default="dummy"/>
-        <element name="exjs.dir" optional="yes"/>
         <element name="ex.opt" optional="yes"/>
         <sequential>
             <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
                              base.dir="@{input.dir}"
                              input="@{input.fn}"
                              input.dir="@{input.dir}"
-                             output.fn="@{output.dir}/@{output.fn}">
-                <extrapaths>
+                             output.fn="${ydn-base.dir}/jsc/ydn.db-@{mechanisms}">
+                <options>
                     <arg line='-p "${ydn-base.dir}/src"'/>
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/base"'/>
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/conn"'/>
-                    <exjs.dir/>
-                </extrapaths>
-                <options>
                     <!--<arg line='-f "-generate_exports"'/>-->
                     <arg line='-f "--externs=${ydn-db.dir}/externs/misc.js"'/>
                     <arg line='-f "--externs=${ydn-db.dir}/externs/schema.js"'/>
@@ -89,20 +85,6 @@
         </sequential>
     </macrodef>
 
-    <target name="compile-conn"
-            description="generates compiled files for conn">
-        <mkdir dir="${ydn-db.dir}/jsc"/>
-        <adv-comp
-                input.dir="${ydn-db.dir}/src/ydn/db/conn"
-                input.fn="${ydn-db.dir}/src/config/conn.js"
-                output.dir="${ydn-db.dir}/jsc"
-                output.fn="${buildno}-ydn.db-conn.js"
-                closure.entry="ydn.db.con.Storage">
-            <exjs.dir>
-
-            </exjs.dir>
-        </adv-comp>
-    </target>
     <macrodef name="crud" description="compile CRUD module">
         <element name="module-option" optional="yes"/>
         <attribute name="postfix" default=""/>
@@ -113,11 +95,11 @@
                     output.dir="${ydn-db.dir}/jsc"
                     output.fn="${buildno}-ydn.db-crud@{postfix}.js"
                     closure.entry="ydn.db.crud.Storage">
-                <exjs.dir>
+                <ex.opt>
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/crud"'/>
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/tr"'/>
                     <module-option/>
-                </exjs.dir>
+                </ex.opt>
             </adv-comp>
 
         </sequential>
@@ -172,13 +154,13 @@
                     output.dir="${ydn-db.dir}/jsc"
                     output.fn="${buildno}-ydn.db-core@{postfix}.js"
                     closure.entry="ydn.db.core.Storage">
-                <exjs.dir>
+                <ex.opt>
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/core"'/>
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/crud"'/>
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/algo"'/>
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/tr"'/>
                     <module-option/>
-                </exjs.dir>
+                </ex.opt>
             </adv-comp>
 
         </sequential>
@@ -246,7 +228,7 @@
         </java>
     </target>
     <target name="build" description="build all distributions"
-            depends="compile-conn,compile-crud,
+            depends="compile-crud,
             compile-core,compile-crud-db,compile-crud-simple,compile-crud-idb,
             compile-crud-websql,compile-core-db,compile-core-idb">
 

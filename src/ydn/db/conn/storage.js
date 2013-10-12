@@ -35,17 +35,6 @@ goog.require('ydn.db.schema.EditableDatabase');
 goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.error.ConstraintError');
 goog.require('ydn.object');
-if (!ydn.db.base.NO_SIMPLE) {
-  goog.require('ydn.db.con.simple.UserData');
-  goog.require('ydn.db.con.LocalStorage');
-  goog.require('ydn.db.con.SessionStorage');
-}
-if (!ydn.db.base.NO_IDB) {
-  goog.require('ydn.db.con.IndexedDb');
-}
-if (!ydn.db.base.NO_WEBSQL) {
-  goog.require('ydn.db.con.WebSql');
-}
 
 
 
@@ -364,25 +353,7 @@ ydn.db.con.Storage.PREFERENCE = [
  * @return {ydn.db.con.IDatabase} newly created database instance.
  */
 ydn.db.con.Storage.prototype.createDbInstance = function(db_type) {
-
-  if (!ydn.db.base.NO_IDB && db_type == ydn.db.base.Mechanisms.IDB) {
-    return new ydn.db.con.IndexedDb(this.size, this.connectionTimeout);
-  } else if (!ydn.db.base.NO_WEBSQL &&
-      db_type == ydn.db.base.Mechanisms.WEBSQL) {
-    return new ydn.db.con.WebSql(this.size);
-  } else if (!ydn.db.base.NO_SIMPLE &&
-      db_type == ydn.db.base.Mechanisms.LOCAL_STORAGE) {
-    return new ydn.db.con.LocalStorage();
-  } else if (!ydn.db.base.NO_SIMPLE &&
-      db_type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
-    return new ydn.db.con.SessionStorage();
-  } else if (!ydn.db.base.NO_SIMPLE &&
-      db_type == ydn.db.base.Mechanisms.MEMORY_STORAGE) {
-    return new ydn.db.con.SimpleStorage();
-  } else if (!ydn.db.base.NO_SIMPLE &&
-      db_type == ydn.db.base.Mechanisms.USER_DATA) {
-    return new ydn.db.con.simple.UserData();
-  }
+  // super class will inject db instance.
   return null;
 };
 
@@ -453,26 +424,8 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
   var preference = this.mechanisms;
   for (var i = 0; i < preference.length; i++) {
     var db_type = preference[i].toLowerCase();
-    if (db_type == ydn.db.base.Mechanisms.IDB &&
-        ydn.db.con.IndexedDb.isSupported()) { // run-time detection
-      db = this.createDbInstance(db_type);
-      break;
-    } else if (db_type == ydn.db.base.Mechanisms.WEBSQL &&
-        ydn.db.con.WebSql.isSupported()) {
-      db = this.createDbInstance(db_type);
-      break;
-    } else if (db_type == ydn.db.base.Mechanisms.LOCAL_STORAGE &&
-        ydn.db.con.LocalStorage.isSupported()) {
-      db = this.createDbInstance(db_type);
-      break;
-    } else if (db_type == ydn.db.base.Mechanisms.SESSION_STORAGE &&
-        ydn.db.con.SessionStorage.isSupported()) {
-      db = this.createDbInstance(db_type);
-      break;
-    } else if (db_type == ydn.db.base.Mechanisms.MEMORY_STORAGE) {
-      db = this.createDbInstance(db_type);
-      break;
-    } else if (db_type == ydn.db.base.Mechanisms.USER_DATA) {
+    db = this.createDbInstance(db_type);
+    if (db) { // run-time detection
       db = this.createDbInstance(db_type);
       break;
     }
