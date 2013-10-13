@@ -1,5 +1,3 @@
-
-
 (function() {
 
   module('crud,put', {
@@ -14,10 +12,12 @@
 
   asyncTest('single data', 1, function() {
     var schema = {
-      stores: [{
-        name: 'st',
-        keyPath: 'id'
-      }]
+      stores: [
+        {
+          name: 'st',
+          keyPath: 'id'
+        }
+      ]
     };
     var data_1 = { test: 'test value', name: 'name 1', id: 1 };
     var db = new ydn.db.Storage('tck1_put_2', schema, options);
@@ -33,11 +33,13 @@
 
   asyncTest('inline-key autoincrement', 2, function() {
     var schema = {
-      stores: [{
-        name: 'st',
-        keyPath: 'id',
-        autoIncrement: true
-      }]
+      stores: [
+        {
+          name: 'st',
+          keyPath: 'id',
+          autoIncrement: true
+        }
+      ]
     };
     var data_1 = { test: 'test value', name: 'name 1', id: 1 };
     var data_2 = { test: 'test value', name: 'name 2' };
@@ -61,7 +63,8 @@
       stores: [
         {
           name: 'st'
-        }]
+        }
+      ]
     };
     var db = new ydn.db.Storage('tck1_put_3', schema, options);
 
@@ -150,15 +153,18 @@
 
   asyncTest('array put with ConstraintError', 3, function() {
     var schema = {
-      stores: [{
-        name: 'st',
-        keyPath: 'id',
-        indexes: [
-          {
-            keyPath: 'type',
-            unique: true
-          }]
-      }]
+      stores: [
+        {
+          name: 'st',
+          keyPath: 'id',
+          indexes: [
+            {
+              keyPath: 'type',
+              unique: true
+            }
+          ]
+        }
+      ]
     };
     var data = [];
     var expected = [];
@@ -192,11 +198,12 @@
       {
         name: 'st',
         keyPath: 'id'
-      }]
+      }
+    ]
   };
   var data_1a = { test: 'test value', name: 'name 1', id: ['a', 'b']};
 
-  asyncTest('single data - array index key', 2, function() {
+  asyncTest('array index key', 2, function() {
     var db = new ydn.db.Storage('tck1_put_array-key', schema_array, options);
     db.put('st', data_1a).always(function(x) {
       //console.log('got it');
@@ -563,8 +570,7 @@
     _db.clear();
     _db.put(store_inline, data_list_inline);
     _db.put(store_inline_index, data_list_index);
-    _db.put(store_outline, data_list_outline, keys_list_outline);
-    _db.count([store_inline, store_inline_index, store_outline]).always(function() {
+    _db.put(store_outline, data_list_outline, keys_list_outline).always(function() {
       ready.resolve();
     });
     _db.close();
@@ -737,8 +743,7 @@
     };
     var db = new ydn.db.Storage(db_name, schema, options);
     db.clear('st');
-    db.put('st', data);
-    db.count('st').always(function(cnt) {
+    db.put('st', data).always(function(cnt) {
 
       db.close();
       var db2 = new ydn.db.Storage(db_name, schema, options);
@@ -788,7 +793,11 @@
     ]
   };
 
-  var data_list_index = [{id: 1, value: 'a'}, {id: 2, value: 'b'}, {id: 3, value: 'a'}];
+  var data_list_index = [
+    {id: 1, value: 'a'},
+    {id: 2, value: 'b'},
+    {id: 3, value: 'a'}
+  ];
   var keys_inline = [1, 2, 10, 20, 100];
   var keys_inline_string = ['ab1', 'ab2', 'ac1', 'ac2', 'b'];
   var inline_data = keys_inline.map(function(x) {
@@ -812,12 +821,10 @@
     //console.log(inline_data);
     _db.put(store_inline, inline_data);
     _db.put(store_inline_index, data_list_index).always(function() {
-      _db.count([store_inline, store_inline_index]).always(function() {
-        ready.resolve();
-      });
+      _db.close();
+      ready.resolve();
     });
 
-    _db.close();
   })();
 
   var test_env = {
@@ -1002,6 +1009,7 @@
   });
 
 })();
+
 
 
 

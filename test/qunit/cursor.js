@@ -186,11 +186,10 @@
       {id: 2, value: 'v' + Math.random()},
       {id: 3, value: 'v' + Math.random()},
       {id: 4, value: 'v' + Math.random()}
-    ]);
-    _db.count(store_inline).always(function() {
+    ]).always(function() {
+      _db.close();
       df.resolve();  // this ensure all transaction are completed
     });
-    _db.close();
   })();
 
   var test_count = 0;
@@ -351,7 +350,7 @@
     });
   });
 
-  asyncTest("reference value by an iterator", 1, function () {
+  asyncTest("reference value by an iterator start", 1, function () {
 
     var iter = ydn.db.IndexValueIterator.where(store_inline_index, 'name', '^', 'c');
     db_r.get(iter).then(function (x) {
@@ -403,12 +402,10 @@
   (function() {
     var _db = new ydn.db.Storage(db_name, schema_1, options);
     _db.clear(store_inline_index);
-    _db.put(store_inline_index, objs);
-
-    _db.count(store_inline_index).always(function() {
+    _db.put(store_inline_index, objs).always(function() {
+      _db.close();
       df.resolve();  // this ensure all transactions are completed
     });
-    _db.close();
   })();
 
   var db;
@@ -678,12 +675,10 @@
   (function() {
     var _db = new ydn.db.Storage(db_name, schema_1, options);
     _db.clear(store_inline_index);
-    _db.put(store_inline_index, objs);
-
-    _db.count(store_inline_index).always(function() {
+    _db.put(store_inline_index, objs).always(function() {
+      _db.close();
       df.resolve();  // this ensure all transactions are completed
     });
-    _db.close();
   })();
 
   var db;
