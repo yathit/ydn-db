@@ -26,11 +26,11 @@ goog.require('ydn.db.Key');
 goog.require('ydn.db.VersionError');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.db.con.simple');
+goog.require('ydn.db.con.simple.IStorageProvider');
 goog.require('ydn.db.con.simple.Store');
 goog.require('ydn.db.con.simple.TxStorage');
 goog.require('ydn.db.req.InMemoryStorage');
 goog.require('ydn.debug.error.InternalError');
-goog.require('ydn.db.con.simple.IStorageProvider');
 
 
 
@@ -38,19 +38,16 @@ goog.require('ydn.db.con.simple.IStorageProvider');
  * @implements {ydn.db.con.IDatabase}
  * @param {!ydn.db.con.simple.IStorageProvider=} opt_provider storage provider.
  * @constructor
+ * @extends {ydn.db.con.SimpleStorageService}
  * @struct
  */
 ydn.db.con.SimpleStorage = function(opt_provider) {
-
-  /**
-   * @final
-   * @private
-   */
-  this.provider_ = opt_provider || new ydn.db.req.InMemoryStorage();
+  goog.base(this, opt_provider);
 
   this.version_ = NaN;
 
 };
+goog.inherits(ydn.db.con.SimpleStorage, ydn.db.con.SimpleStorageService);
 
 
 /**
@@ -59,34 +56,6 @@ ydn.db.con.SimpleStorage = function(opt_provider) {
  */
 ydn.db.con.SimpleStorage.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.con.SimpleStorage');
-
-
-/**
- * @type {ydn.db.con.simple.IStorageProvider}
- * @private
- */
-ydn.db.con.SimpleStorage.prototype.provider_;
-
-
-/**
- * @type {!Storage}
- * @private
- */
-ydn.db.con.SimpleStorage.prototype.storage_;
-
-
-/**
- * @protected
- * @type {!ydn.db.schema.Database}
- */
-ydn.db.con.SimpleStorage.prototype.schema;
-
-
-/**
- * @protected
- * @type {string}
- */
-ydn.db.con.SimpleStorage.prototype.dbname;
 
 
 /**
@@ -238,13 +207,6 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
 
 
 /**
- * @type {Object.<!ydn.db.con.simple.Store>}
- * @private
- */
-ydn.db.con.SimpleStorage.prototype.simple_stores_;
-
-
-/**
  * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.isReady = function() {
@@ -273,13 +235,6 @@ ydn.db.con.SimpleStorage.prototype.onError = function(e) {};
 
 
 /**
- * Column name of key, if keyPath is not specified.
- * @const {string}
- */
-ydn.db.con.SimpleStorage.DEFAULT_KEY_PATH = '_id_';
-
-
-/**
  * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.getType = function() {
@@ -296,61 +251,14 @@ ydn.db.con.SimpleStorage.prototype.close = function() {
 
 
 /**
- * Get storage in transaction.
- * @param {function(Storage)} tx_fn transaction function.
- * @return {Function} on complete callback to invoke after completing.
- * @deprecated
- */
-ydn.db.con.SimpleStorage.prototype.getTxStorage = function(tx_fn) {
-  tx_fn(this.storage_);
-  var on_complete = function() {
-
-  };
-  return on_complete;
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.con.SimpleStorage.prototype.doTransaction = function(trFn, scopes, mode,
-                                                            oncompleted) {
+    oncompleted) {
   var tx = new ydn.db.con.simple.TxStorage(this, function(t, e) {
     oncompleted(t, e);
   });
   trFn(tx);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.con.SimpleStorage.prototype.getSchema = function(callback) {
-  goog.Timer.callOnce(function() {
-    var db_key = ydn.db.con.simple.makeKey(this.dbname);
-    var db_value = this.storage_.getItem(db_key);
-    var schema = new ydn.db.schema.Database(db_value);
-    callback(schema);
-  }, 0, this);
-};
-
-
-/**
- * @param store_name store name.
- * @return {!ydn.db.con.simple.Store} storage object.
- */
-ydn.db.con.SimpleStorage.prototype.getSimpleStore = function(store_name) {
-  var store = this.schema.getStore(store_name);
-  if (store) {
-    if (!this.simple_stores_[store_name]) {
-      this.simple_stores_[store_name] =
-          new ydn.db.con.simple.Store(this.dbname, this.storage_, store);
-    }
-  } else {
-    throw new ydn.debug.error.InternalError('store name "' + store_name +
-        '" not found.');
-  }
-  return this.simple_stores_[store_name];
 };
 
 

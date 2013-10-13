@@ -19,10 +19,10 @@
  */
 
 goog.provide('ydn.db.con.simple.Store');
-goog.require('ydn.structs.Buffer');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.simple');
 goog.require('ydn.db.con.simple.Node');
+goog.require('ydn.structs.Buffer');
 
 
 

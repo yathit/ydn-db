@@ -19,7 +19,7 @@
 
 
 goog.provide('ydn.db.base');
-
+goog.provide('ydn.db.base.Transaction');
 goog.require('goog.async.Deferred');
 goog.require('ydn.async.Deferred');
 
@@ -266,6 +266,13 @@ ydn.db.base.indexedDb = goog.global.indexedDB ||
 
 
 /**
+ * @const
+ * @type {string} column name prefix for multiEntry index.
+ */
+ydn.db.base.PREFIX_MULTIENTRY = 'ydn.db.me:';
+
+
+/**
  * Query method used in sql iterator.
  * @enum {number}
  */
@@ -278,3 +285,9 @@ ydn.db.base.QueryMethod = {
   GET: 5,
   COUNT: 6
 };
+
+
+/**
+ * @typedef {(SQLTransaction|IDBTransaction|Object)}
+ */
+ydn.db.base.Transaction;

@@ -45,7 +45,7 @@ ydn.db.tr.IThread.prototype.request =
 
 /**
  * @param {!goog.async.Deferred} df deferred object to intersect the request.
- * @param {?function((ydn.db.con.IDatabase.Transaction),
+ * @param {?function((ydn.db.base.Transaction),
  * string, ?function(*, boolean=))} callback
  *   callback when executor is ready.
  * @param {!Array.<string>} store_names store name involved in the transaction.
@@ -101,7 +101,7 @@ ydn.db.tr.IThread.Policy = {
 
 /**
  * Abort an active transaction.
- * @param {ydn.db.con.IDatabase.Transaction} tx transaction to be aborted.
+ * @param {ydn.db.base.Transaction} tx transaction to be aborted.
  */
 ydn.db.tr.IThread.abort = function(tx) {
   if (tx) {

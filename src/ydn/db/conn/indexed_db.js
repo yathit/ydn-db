@@ -797,3 +797,32 @@ if (goog.DEBUG) {
     };
   };
 }
+
+
+/**
+ * Delete database.
+ * @param {string} db_name name of database.
+ * @param {string=} opt_type delete only specific types.
+ * @return {ydn.db.Request}
+ */
+ydn.db.con.IndexedDb.deleteDatabase = function(db_name, opt_type) {
+  if (ydn.db.base.indexedDb &&
+      (!opt_type || opt_type == ydn.db.base.Mechanisms.IDB)) {
+    var req = ydn.db.base.indexedDb.deleteDatabase(db_name);
+    var df = new ydn.db.Request(ydn.db.Request.Method.VERSION_CHANGE);
+    req.onblocked = function(e) {
+      df.notify(e);
+    };
+    req.onerror = function(e) {
+      df.errback(e);
+    };
+    req.onsuccess = function(e) {
+      df.callback(e);
+    };
+    return df;
+  } else {
+    return null;
+  }
+};
+ydn.db.databaseDeletors.push(ydn.db.con.IndexedDb.deleteDatabase);
+

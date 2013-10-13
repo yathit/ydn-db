@@ -46,6 +46,7 @@ goog.provide('ydn.db.Request');
 goog.provide('ydn.db.Request.Method');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
+goog.require('ydn.db.base.Transaction');
 
 
 
@@ -105,7 +106,7 @@ ydn.db.Request.prototype.method_;
 
 
 /**
- * @type {ydn.db.con.IDatabase.Transaction} transaction object.
+ * @type {ydn.db.base.Transaction} transaction object.
  */
 ydn.db.Request.prototype.tx_;
 
@@ -127,7 +128,7 @@ ydn.db.Request.prototype.logger =
 
 /**
  * Set active transaction. This will invoke tx listener callbacks.
- * @param {ydn.db.con.IDatabase.Transaction} tx active transaction.
+ * @param {ydn.db.base.Transaction} tx active transaction.
  * @param {string} label tx label.
  * @final
  */
@@ -169,7 +170,7 @@ ydn.db.Request.prototype.removeTx = function() {
 
 
 /**
- * @return {ydn.db.con.IDatabase.Transaction}
+ * @return {ydn.db.base.Transaction}
  * @final
  */
 ydn.db.Request.prototype.getTx = function() {
@@ -471,5 +472,6 @@ ydn.db.Request.Method = {
   VALUES_INDEX: goog.DEBUG ? 'values:iter:index' : 'u',
   VALUES_IDS: goog.DEBUG ? 'values:array' : 'v',
   VALUES_KEYS: goog.DEBUG ? 'values:keys' : 'w',
+  VERSION_CHANGE: goog.DEBUG ? 'IDBVersionChangeEvent ' : 'vc',
   NONE: ''
 };

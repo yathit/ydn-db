@@ -64,8 +64,12 @@ ydn.db.con.LocalStorage.prototype.getType = function() {
 /**
  *
  * @param {string} db_name
+ * @param {string=} opt_type delete only specific types.
  */
-ydn.db.con.LocalStorage.deleteDatabase = function(db_name) {
+ydn.db.con.LocalStorage.deleteDatabase = function(db_name, opt_type) {
+  if (!!opt_type && opt_type != ydn.db.base.Mechanisms.LOCAL_STORAGE) {
+    return;
+  }
   var db = new ydn.db.con.LocalStorage();
   var schema = new ydn.db.schema.EditableDatabase();
   db.connect(db_name, schema);
@@ -75,8 +79,8 @@ ydn.db.con.LocalStorage.deleteDatabase = function(db_name) {
       store.clear();
     }
   });
-
 };
+ydn.db.databaseDeletors.push(ydn.db.con.LocalStorage.deleteDatabase);
 
 
 
@@ -122,8 +126,12 @@ ydn.db.con.SessionStorage.prototype.getType = function() {
 /**
  *
  * @param {string} db_name
+ * @param {string=} opt_type delete only specific types.
  */
-ydn.db.con.SessionStorage.deleteDatabase = function(db_name) {
+ydn.db.con.SessionStorage.deleteDatabase = function(db_name, opt_type) {
+  if (!!opt_type && opt_type != ydn.db.base.Mechanisms.SESSION_STORAGE) {
+    return;
+  }
   var db = new ydn.db.con.SessionStorage();
   var schema = new ydn.db.schema.EditableDatabase();
   db.connect(db_name, schema);
@@ -134,5 +142,6 @@ ydn.db.con.SessionStorage.deleteDatabase = function(db_name) {
     }
   });
 };
+ydn.db.databaseDeletors.push(ydn.db.con.SessionStorage.deleteDatabase);
 
 

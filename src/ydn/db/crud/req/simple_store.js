@@ -25,6 +25,8 @@ goog.require('goog.Timer');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.ConstraintError');
+goog.require('ydn.db.con.simple.Store');
+goog.require('ydn.db.con.simple.TxStorage');
 goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.crud.req.RequestExecutor');
 
@@ -94,9 +96,11 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
   this.logger.finest(label);
   var me = this;
 
-  var on_comp = req.getTx().getStorage(function(storage) {
+  var tx = /** @type {ydn.db.con.simple.TxStorage} */ (req.getTx());
+  var on_comp = tx.getStorage(function(storage) {
     var store;
     if (opt_single) {
+      goog.asserts.assertString(store_name, 'store name must be provided');
       store = storage.getSimpleStore(store_name);
       var key = store.addRecord(opt_key, value, !opt_is_update);
       if (goog.isDefAndNotNull(key)) {
@@ -108,6 +112,7 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
       }
     } else {
       var st = store_name;
+      goog.asserts.assertString(st, 'store name a string, but ' + st);
       var arr = [];
       var has_error = false;
       var keys = opt_key || {};

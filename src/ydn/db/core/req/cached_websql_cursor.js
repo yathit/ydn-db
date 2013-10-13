@@ -12,7 +12,7 @@ goog.require('ydn.db.core.req.ICursor');
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {ydn.db.con.IDatabase.Transaction} tx
+ * @param {ydn.db.base.Transaction} tx
  * @param {string} tx_no tx no
  * @param {!ydn.db.schema.Store} store_schema schema.
  * @param {ydn.db.base.QueryMethod=} key_query true for keys query

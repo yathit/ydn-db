@@ -51,31 +51,26 @@
         </copy>
     </target>
     <macrodef name="adv-comp" description="main compilation routine">
-        <attribute name="input.fn"/>
-        <attribute name="input.dir"/>
-        <attribute name="output.fn"/>
+        <attribute name="base-module" default="core"/>
         <attribute name="mechanisms" default="iswu"/>
-        <attribute name="closure.entry"/>
-        <attribute name="cssmap-target" default="dummy"/>
+        <attribute name="input.fn" default="${ydn-db.dir}/src/config/@{base-module}.js"/>
+        <attribute name="output.fn" default="${ydn-base.dir}/jsc/ydn.db-@{mechanisms}-@{base-module}"/>
         <element name="ex.opt" optional="yes"/>
         <sequential>
             <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                             base.dir="@{input.dir}"
+                             base.dir="${ydn-db.dir}/src/"
                              input="@{input.fn}"
-                             input.dir="@{input.dir}"
-                             output.fn="${ydn-base.dir}/jsc/ydn.db-@{mechanisms}">
+                             input.dir="${ydn-db.dir}/src/"
+                             output.fn="@{output.fn}">
                 <options>
                     <arg line='-p "${ydn-base.dir}/src"'/>
-                    <arg line='-p "${ydn-db.dir}/src/ydn/db/base"'/>
-                    <arg line='-p "${ydn-db.dir}/src/ydn/db/conn"'/>
-                    <!--<arg line='-f "-generate_exports"'/>-->
                     <arg line='-f "--externs=${ydn-db.dir}/externs/misc.js"'/>
                     <arg line='-f "--externs=${ydn-db.dir}/externs/schema.js"'/>
                     <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/gapi.js"'/>
-                    <arg line='-f "--closure_entry_point=@{closure.entry}"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.@{base-module}.Storage"'/>
                     <arg line='-f "--define=ydn.db.version=${quoted-version}"'/>
                     <arg line='-f "--define=goog.DEBUG=false"'/>
                     <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
@@ -107,7 +102,11 @@
     <target name="compile-crud"
             description="generates compiled files for crud distribution">
         <mkdir dir="${ydn-db.dir}/jsc"/>
-        <crud></crud>
+        <sequential>
+            <adv-comp base-module="crud">
+            </adv-comp>
+
+        </sequential>
     </target>
     <target name="compile-crud-idb"
             description="generates compiled files for crud Indexeddb only distribution">

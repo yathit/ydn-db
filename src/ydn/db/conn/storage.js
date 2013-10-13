@@ -30,6 +30,7 @@ goog.require('goog.events.EventTarget');
 goog.require('ydn.db');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IStorage');
+goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.db.events.StorageEvent');
 goog.require('ydn.db.schema.EditableDatabase');
 goog.require('ydn.debug.error.ArgumentException');
@@ -788,37 +789,6 @@ if (goog.DEBUG) {
   };
 }
 
-
-/**
- * Delete database. This will attempt to delete in all mechanisms.
- * @param {string} db_name name of database.
- * @param {string=} opt_type delete only specific types.
- */
-ydn.db.deleteDatabase = function(db_name, opt_type) {
-
-  // todo: deleteDatabase must return deferred object as per with w3c
-  // http://www.w3.org/TR/IndexedDB/#widl-IDBFactory-deleteDatabase-IDBOpenDBRequest-DOMString-name
-
-  // some IndexedDB API do not support deleting database.
-  if (!ydn.db.base.NO_IDB && ydn.db.con.IndexedDb.isSupported() && (!opt_type ||
-      opt_type == ydn.db.base.Mechanisms.IDB) &&
-      ydn.db.base.indexedDb &&
-      ('deleteDatabase' in ydn.db.base.indexedDb)) {
-    ydn.db.base.indexedDb.deleteDatabase(db_name);
-  }
-  if (!ydn.db.base.NO_WEBSQL && ydn.db.con.WebSql.isSupported() && (!opt_type ||
-      opt_type == ydn.db.base.Mechanisms.WEBSQL)) {
-    ydn.db.con.WebSql.deleteDatabase(db_name);
-  }
-  if (!ydn.db.base.NO_SIMPLE && (!opt_type ||
-      opt_type == ydn.db.base.Mechanisms.LOCAL_STORAGE)) {
-    ydn.db.con.LocalStorage.deleteDatabase(db_name);
-  }
-  if (!ydn.db.base.NO_SIMPLE && (!opt_type ||
-      opt_type == ydn.db.base.Mechanisms.SESSION_STORAGE)) {
-    ydn.db.con.SessionStorage.deleteDatabase(db_name);
-  }
-};
 
 
 

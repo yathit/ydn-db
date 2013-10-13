@@ -23,7 +23,7 @@ goog.require('ydn.debug.error.InternalError');
 
 /**
  *
- * @param {ydn.db.con.IDatabase.Transaction} tx transaction.
+ * @param {ydn.db.base.Transaction} tx transaction.
  * @param {number} tx_no tx no.
  * @param {Array.<string>} store_names store lists for explicit tx scope.
  * @param {ydn.db.base.TransactionMode?} mode mode for explicit tx scope.
@@ -40,7 +40,7 @@ ydn.db.tr.ParallelTxExecutor = function(tx, tx_no, store_names, mode) {
 
 
 /**
- * @type {ydn.db.con.IDatabase.Transaction}
+ * @type {ydn.db.base.Transaction}
  * @private
  */
 ydn.db.tr.ParallelTxExecutor.prototype.tx_ = null;
@@ -85,7 +85,7 @@ ydn.db.tr.ParallelTxExecutor.prototype.isActive = function() {
 
 /**
  *
- * @return {ydn.db.con.IDatabase.Transaction} active transaction object.
+ * @return {ydn.db.base.Transaction} active transaction object.
  * @protected
  */
 ydn.db.tr.ParallelTxExecutor.prototype.getTx = function() {

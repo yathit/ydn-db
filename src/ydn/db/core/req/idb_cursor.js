@@ -25,7 +25,7 @@ goog.require('ydn.debug.error.InternalError');
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {ydn.db.con.IDatabase.Transaction} tx
+ * @param {ydn.db.base.Transaction} tx
  * @param {string} tx_no tx no.
  * @param {ydn.db.schema.Store} store_schema schema.
  * @param {ydn.db.base.QueryMethod=} opt_mth true for keys query method.

@@ -44,7 +44,7 @@ ydn.db.tr.Mutex = function(tr_no) {
 
 
 /**
- * @type {ydn.db.con.IDatabase.Transaction}
+ * @type {ydn.db.base.Transaction}
  * @private
  */
 ydn.db.tr.Mutex.prototype.tx_;
@@ -68,7 +68,7 @@ ydn.db.tr.Mutex.DEBUG = false;
 /**
  * Newly created transaction it push to mutex and lock.
  * @final
- * @param {ydn.db.con.IDatabase.Transaction} tx the transaction object.
+ * @param {ydn.db.base.Transaction} tx the transaction object.
  * @param {Array.<string>} store_names scope store name.
  * @param {ydn.db.base.TransactionMode} mode tx mode.
  */
@@ -301,7 +301,7 @@ ydn.db.tr.Mutex.prototype.oncompleted = null;
  * Return current active transaction if available. Transaction consumer must
  * check {@link #isActiveAndAvailable} if this transaction object
  * should be used.
- * @return {ydn.db.con.IDatabase.Transaction} transaction
+ * @return {ydn.db.base.Transaction} transaction
  * object.
  */
 ydn.db.tr.Mutex.prototype.getTx = function() {

@@ -122,7 +122,7 @@ ydn.db.MultiIterator.prototype.order = function(field_name, value) {
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx tx.
+ * @param {ydn.db.base.Transaction} tx tx.
  * @param {string} tx_lbl tx label.
  * @param {ydn.db.core.req.IRequestExecutor} executor executor.
  * @param {ydn.db.base.QueryMethod=} opt_query query method.

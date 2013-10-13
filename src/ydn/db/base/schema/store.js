@@ -385,7 +385,7 @@ ydn.db.schema.Store.prototype.inSql = function(params, method, index_column,
 
   if (is_multi_entry) {
     var idx_store_name = goog.string.quote(
-        ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+        ydn.db.base.PREFIX_MULTIENTRY +
         this.getName() + ':' + index.getName());
 
     if (method === ydn.db.base.QueryMethod.COUNT) {

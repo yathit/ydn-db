@@ -19,12 +19,13 @@
 
 goog.provide('ydn.db.con.simple.TxStorage');
 goog.require('goog.Timer');
+goog.require('ydn.db.con.SimpleStorageService');
 
 
 
 /**
  *
- * @param {!ydn.db.con.SimpleStorage} storage parent storage.
+ * @param {!ydn.db.con.SimpleStorageService} storage parent storage.
  * @param {function(ydn.db.base.TxEventTypes, *)} oncompleted function.
  * @constructor
  * @struct
@@ -44,7 +45,7 @@ ydn.db.con.simple.TxStorage = function(storage, oncompleted) {
 
 
 /**
- * @type {ydn.db.con.SimpleStorage}
+ * @type {ydn.db.con.SimpleStorageService}
  * @private
  */
 ydn.db.con.simple.TxStorage.prototype.storage_;
@@ -58,7 +59,7 @@ ydn.db.con.simple.TxStorage.prototype.on_completed_;
 
 
 /**
- * @param {function(this: T, !ydn.db.con.SimpleStorage)} fnc storage.
+ * @param {function(this: T, !ydn.db.con.SimpleStorageService)} fnc storage.
  * @param {T} fnc_obj function object handle.
  * @return {Function} on_complete function to invoke after complete.
  * @template T

@@ -150,7 +150,7 @@ ydn.db.crud.req.IRequestExecutor.prototype.listByKeys = goog.abstractMethod;
 
 /**
  * Execute PUT request to the store of given records in delimited text.
- * @param {ydn.db.con.IDatabase.Transaction} tx
+ * @param {ydn.db.base.Transaction} tx
  *  @param {string} tx_no transaction number
  * @param {?function(*, boolean=)} df deferred to feed result.
  * @param {string} store_name table name.

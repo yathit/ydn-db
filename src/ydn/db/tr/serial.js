@@ -101,7 +101,7 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
    * callback and set null after that callback so that it can be aborted
    * in the callback.
    * In general, this tx may be different from running tx.
-   * @type {ydn.db.con.IDatabase.Transaction}
+   * @type {ydn.db.base.Transaction}
    * @protected
    */
   this.s_request_tx = null;
@@ -237,7 +237,7 @@ ydn.db.tr.Serial.prototype.getStorage = function() {
 
 
 /**
- * @return {ydn.db.con.IDatabase.Transaction} active transaction object.
+ * @return {ydn.db.base.Transaction} active transaction object.
  */
 ydn.db.tr.Serial.prototype.getTx = function() {
   return this.mu_tx_.isActiveAndAvailable() ? this.mu_tx_.getTx() : null;

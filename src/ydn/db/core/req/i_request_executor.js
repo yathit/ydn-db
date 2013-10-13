@@ -33,7 +33,7 @@ ydn.db.core.req.IRequestExecutor = function() {};
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx
+ * @param {ydn.db.base.Transaction} tx
  * @param {string} tx_no tx request label.
  * @param {string} store_name schema.
  * @param {ydn.db.base.QueryMethod=} query query method.
@@ -43,7 +43,7 @@ ydn.db.core.req.IRequestExecutor.prototype.getCursor = goog.abstractMethod;
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx
+ * @param {ydn.db.base.Transaction} tx
  * @param {string} tx_no transaction number.
  * @param {string} store_name
  * @param {string=} opt_index_name

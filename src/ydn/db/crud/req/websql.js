@@ -267,7 +267,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
        * @param {number} value index at.
        */
       var insertMultiEntryIndex = function(index, value) {
-        var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+        var idx_name = ydn.db.base.PREFIX_MULTIENTRY +
             table.getName() + ':' + index.getName();
         var idx_sql = insert_statement + goog.string.quote(idx_name) + ' (' +
             table.getSQLKeyColumnNameQuoted() + ', ' +
@@ -760,7 +760,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(req, store_names) {
      * @param {ydn.db.schema.Index} index
      */
     var deleteMultiEntryIndex = function(index) {
-      var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+      var idx_name = ydn.db.base.PREFIX_MULTIENTRY +
           store.getName() + ':' + index.getName();
 
       var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name);
@@ -852,7 +852,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(req, keys) {
      * @param {ydn.db.schema.Index} index
      */
     var deleteMultiEntryIndex = function(index) {
-      var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+      var idx_name = ydn.db.base.PREFIX_MULTIENTRY +
           store.getName() + ':' + index.getName();
 
       var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
@@ -920,7 +920,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(req, table, id) {
    * @param {ydn.db.schema.Index} index
    */
   var deleteMultiEntryIndex = function(index) {
-    var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+    var idx_name = ydn.db.base.PREFIX_MULTIENTRY +
         store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
@@ -1031,7 +1031,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(req,
    * @param {ydn.db.schema.Index} index
    */
   var deleteMultiEntryIndex = function(index) {
-    var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+    var idx_name = ydn.db.base.PREFIX_MULTIENTRY +
         store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;

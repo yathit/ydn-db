@@ -396,13 +396,6 @@ ydn.db.con.WebSql.prototype.onError = function(e) {};
 
 
 /**
- * @const
- * @type {string} column name prefix for multiEntry index.
- */
-ydn.db.con.WebSql.PREFIX_MULTIENTRY = 'ydn.db.me:';
-
-
-/**
  * Initialize variable to the schema and prepare SQL statement for creating
  * the table.
  * @private
@@ -443,7 +436,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
     var unique = '';
     if (index.isMultiEntry()) {
       // create separate table for multiEntry
-      var idx_name = ydn.db.con.WebSql.PREFIX_MULTIENTRY +
+      var idx_name = ydn.db.base.PREFIX_MULTIENTRY +
           table.getName() + ':' + index.getName();
       var idx_unique = index.isUnique() ? ' UNIQUE ' : '';
       var multi_entry_sql = insert_statement +
@@ -616,7 +609,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 
         // multiEntry store, which store in separated table
         if (goog.string.startsWith(info.name,
-            ydn.db.con.WebSql.PREFIX_MULTIENTRY)) {
+            ydn.db.base.PREFIX_MULTIENTRY)) {
           var names = info.name.split(':');
           if (names.length >= 3) {
             var st_name = names[1];
@@ -899,8 +892,12 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
 /**
  *
  * @param {string} db_name database name to be deleted.
+ * @param {string=} opt_type delete only specific types.
  */
-ydn.db.con.WebSql.deleteDatabase = function(db_name) {
+ydn.db.con.WebSql.deleteDatabase = function(db_name, opt_type) {
+  if (!!opt_type && opt_type != ydn.db.base.Mechanisms.WEBSQL) {
+    return;
+  }
   // WebSQL API does not expose deleting database.
   // Dropping all tables indeed delete the database.
   var db = new ydn.db.con.WebSql();
@@ -961,6 +958,7 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name) {
     db.logger.warning('Connecting ' + db_name + ' failed.');
   });
 };
+ydn.db.databaseDeletors.push(ydn.db.con.WebSql.deleteDatabase);
 
 
 if (goog.DEBUG) {

@@ -14,7 +14,7 @@ goog.require('ydn.debug.error.ArgumentException');
 
 /**
  *
- * @param {ydn.db.con.IStorage|ydn.db.con.IDatabase.Transaction} storage storage connector.
+ * @param {ydn.db.con.IStorage|ydn.db.base.Transaction} storage storage connector.
  * @param {string} store_name store name.
  * @param {string=} field_name projection field name.
  * @constructor
@@ -153,7 +153,7 @@ ydn.db.Streamer.prototype.setSink = function(sink) {
 
 /**
  *
- * @param {ydn.db.con.IDatabase.Transaction} tx
+ * @param {ydn.db.base.Transaction} tx
  * transaction.
  */
 ydn.db.Streamer.prototype.setTx = function(tx) {

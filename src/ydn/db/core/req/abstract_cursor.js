@@ -25,7 +25,7 @@ goog.require('ydn.debug.error.InternalError');
 
 /**
  * Open an index. This will resume depending on the cursor state.
- * @param {ydn.db.con.IDatabase.Transaction} tx tx.
+ * @param {ydn.db.base.Transaction} tx tx.
  * @param {string} tx_no tx no.
  * @param {ydn.db.schema.Store} store_schema schema.
  * @param {ydn.db.base.QueryMethod=} opt_mth query method, default to
@@ -381,7 +381,7 @@ ydn.db.core.req.AbstractCursor.prototype.openCursor = goog.abstractMethod;
 
 
 /**
- * @param {ydn.db.con.IDatabase.Transaction} tx tx.
+ * @param {ydn.db.base.Transaction} tx tx.
  * @param {string} tx_no tx no.
  * @param {IDBKey=} opt_ini_key effective key to resume position.
  * @param {IDBKey=} opt_ini_primary_key primary key to resume position.
@@ -400,7 +400,7 @@ ydn.db.core.req.AbstractCursor.prototype.open = function(tx, tx_no,
 
 /**
  * Resume cursor.
- * @param {ydn.db.con.IDatabase.Transaction} tx tx.
+ * @param {ydn.db.base.Transaction} tx tx.
  * @param {string} tx_no tx no.
  * @final
  */
