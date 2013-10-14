@@ -5,6 +5,7 @@
 
 
 goog.provide('ydn.db.Storageisw');
+goog.require('ydn.db.base');
 goog.require('ydn.db.con.exports');
 goog.require('ydn.db.crud.Storage');
 goog.require('ydn.db.crud.Storage.isw');
@@ -40,6 +41,3 @@ goog.inherits(ydn.db.Storageisw, ydn.db.crud.Storage);
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storageisw);
 
 
-if (goog.DEBUG) {
-  goog.require('ydn.base.debug');
-}

@@ -53,6 +53,13 @@ ydn.db.base.JQUERY = false;
 
 
 /**
+ * Install event dispatcher.
+ * @define {boolean} true for dispatching.
+ */
+ydn.db.base.DISPATCH_EVENT = false;
+
+
+/**
  * Default result limit during retrieving records from the database.
  * @const
  * @type {number}

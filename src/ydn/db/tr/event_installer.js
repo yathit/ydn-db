@@ -21,20 +21,48 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 goog.provide('ydn.db.tr.events');
+goog.require('goog.debug.ErrorHandler');
+goog.require('goog.events');
+goog.require('goog.events.EventHandler');
 goog.require('goog.events.EventTarget');
+goog.require('goog.events.EventWrapper');
 goog.require('ydn.db.tr.Storage');
 
 
+/**
+ * @protected
+ * @return {!goog.events.EventTarget}
+ */
+ydn.db.tr.Storage.prototype.getEventTarget = function() {
+  if (!this.event_target) {
+    this.event_target = new goog.events.EventTarget();
+  }
+  return /** @type {!goog.events.EventTarget} */ (this.event_target);
+};
 
 
 /**
- * @inheritDoc
+ * Adds an event listener to the event target. The same handler can only be
+ * added once per the type. Even if you add the same handler multiple times
+ * using the same type then it will only be called once when the event is
+ * dispatched.
+ *
+ * @param {string} type The type of the event to listen for.
+ * @param {Function|Object} handler The function to handle the event. The
+ *     handler can also be an object that implements the handleEvent method
+ *     which takes the event object as argument.
+ * @param {boolean=} opt_capture In DOM-compliant browsers, this determines
+ *     whether the listener is fired during the capture or bubble phase
+ *     of the event.
+ * @param {Object=} opt_handlerScope Object in whose scope to call
+ *     the listener.
  */
 ydn.db.tr.Storage.prototype.addEventListener = function(type, handler,
-                                                         opt_capture, opt_handlerScope) {
+    opt_capture, opt_handlerScope) {
   if (type == 'ready') {
     // remove callback reference since 'ready' event is invoked only once.
-    goog.events.listenOnce(this, type, handler, opt_capture, opt_handlerScope);
+    goog.events.listenOnce(this.getEventTarget(), type, handler, opt_capture,
+        opt_handlerScope);
   } else {
     if (goog.DEBUG) {// don't allow to added non existing event type
       var event_types = this.getEventTypes();
@@ -53,9 +81,17 @@ ydn.db.tr.Storage.prototype.addEventListener = function(type, handler,
         checkType(type);
       }
     }
-    goog.base(this, 'addEventListener', type, handler, opt_capture,
+    goog.events.listen(this.getEventTarget(), type, handler, opt_capture,
         opt_handlerScope);
   }
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.tr.Storage.prototype.dispatchDbEvent = function(event) {
+  this.getEventTarget().dispatchEvent(event);
 };
 
 goog.exportProperty(goog.events.EventTarget.prototype, 'addEventListener',

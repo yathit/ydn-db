@@ -38,3 +38,4 @@ goog.inherits(ydn.db.Storageis, ydn.db.crud.Storage);
 
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storageis);
+

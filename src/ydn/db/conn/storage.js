@@ -171,6 +171,12 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   if (goog.isDef(opt_dbname)) {
     this.setName(opt_dbname);
   }
+
+  /**
+   * Event dipatcher, initialized in ydn.db.tr.events
+   * @protected
+   */
+  this.event_target = null;
 };
 
 

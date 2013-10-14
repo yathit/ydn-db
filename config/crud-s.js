@@ -8,9 +8,7 @@ goog.provide('ydn.db.Storages');
 goog.require('ydn.db.con.exports');
 goog.require('ydn.db.crud.Storage');
 goog.require('ydn.db.crud.exports');
-goog.require('ydn.db.crud.Storage');
-goog.require('ydn.db.crud.req.IndexedDb');
-goog.require('ydn.db.crud.req.WebSql');
+goog.require('ydn.db.crud.Storage.s');
 
 
 
@@ -40,20 +38,3 @@ goog.inherits(ydn.db.Storages, ydn.db.crud.Storage);
 
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storages);
-
-
-/**
- * @param {string} db_name
- * @param {!ydn.db.schema.Database} schema
- * @param {string} type
- * @return {!ydn.db.crud.req.IRequestExecutor}
- */
-ydn.db.crud.Storage.getExecutor = function(db_name, schema, type) {
-  if (type == ydn.db.base.Mechanisms.IDB) {
-    return new ydn.db.crud.req.IndexedDb(db_name, schema);
-  } else if (type == ydn.db.base.Mechanisms.WEBSQL) {
-    return new ydn.db.crud.req.WebSql(db_name, schema);
-  } else {
-    throw new ydn.debug.error.InternalError('No executor for ' + type);
-  }
-};

@@ -147,34 +147,107 @@
             description="generates compiled files for crud distribution">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <sequential>
+            <compile base-module="crud" mechanisms="isw" feature="-e">
+                <exopt>
+                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
+                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
+                </exopt>
+            </compile>
             <compile base-module="crud" mechanisms="isw">
-
+                <exopt>
+                </exopt>
             </compile>
         </sequential>
+
     </target>
     <target name="crud"
             description="generates compiled files for crud distribution">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <sequential>
             <compile base-module="crud" mechanisms="is"/>
-            <compile base-module="crud" mechanisms="is" debug="true" feature="-dev"/>
+            <compile base-module="crud" mechanisms="is" feature="-e">
+                <exopt>
+                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
+                </exopt>
+            </compile>
+            <compile base-module="crud" mechanisms="is" debug="true" feature="-e-dev">
+                <exopt>
+                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
+                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
+                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
+                </exopt>
+            </compile>
             <compile base-module="crud" mechanisms="s"/>
-            <compile base-module="crud" mechanisms="s" debug="true" feature="-dev"/>
+            <compile base-module="crud" mechanisms="s" debug="true" feature="-dev">
+                <exopt>
+                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
+                </exopt>
+            </compile>
             <compile base-module="crud" mechanisms="i"/>
-            <compile base-module="crud" mechanisms="i" debug="true" feature="-dev"/>
+            <compile base-module="crud" mechanisms="i" feature="-e">
+                <exopt>
+                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
+                </exopt>
+            </compile>
+            <compile base-module="crud" mechanisms="i" debug="true" feature="-e-dev">
+                <exopt>
+                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
+                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
+                </exopt>
+            </compile>
+            <compile base-module="crud" mechanisms="i" debug="true" feature="-dev">
+                <exopt>
+                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
+                </exopt>
+            </compile>
             <compile base-module="crud" mechanisms="isw"/>
-            <compile base-module="crud" mechanisms="isw" debug="true" feature="-dev"/>
+            <compile base-module="crud" mechanisms="isw" debug="true" feature="-dev">
+                <exopt>
+                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
+                </exopt>
+            </compile>
+            <compile base-module="crud" mechanisms="isw" debug="true" feature="-e-dev">
+                <exopt>
+                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
+                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
+                </exopt>
+            </compile>
             <compile base-module="crud">
+            </compile>
+            <compile base-module="crud"  mechanisms="iswu"  feature="-e">
                 <exopt>
+                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
                     <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
                 </exopt>
             </compile>
-            <compile base-module="crud"  debug="true" feature="-dev">
+            <compile base-module="crud" mechanisms="iswu"  debug="true" feature="-e-dev">
                 <exopt>
+                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
+                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
                     <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
                 </exopt>
             </compile>
-            <compile base-module="crud" mechanisms="wu"  debug="true" feature="-dev"/>
+            <compile base-module="crud" mechanisms="wu"  debug="true" feature="-dev">
+                <exopt>
+                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
+                    <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
+                </exopt>
+            </compile>
         </sequential>
     </target>
     <target name="testc"
