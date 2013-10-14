@@ -16,27 +16,27 @@
 
 
 /**
- * @fileoverview Injdect storage mechanism for IndexedDB.
+ * @fileoverview Injdect request executor for IndexedDB.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.tr.Storage.i');
-goog.require('ydn.db.con.IndexedDb');
-goog.require('ydn.db.tr.Storage');
+goog.provide('ydn.db.crud.Storage.i');
+goog.require('ydn.db.tr.Storage.i');
+goog.require('ydn.db.crud.Storage');
+goog.require('ydn.db.crud.req.IndexedDb');
 
 
 /**
- * Create database instance.
- * @protected
- * @param {string} db_type database type.
- * @return {ydn.db.con.IDatabase} newly created database instance.
+ * @param {string} db_name
+ * @param {!ydn.db.schema.Database} schema
+ * @param {string} type
+ * @return {!ydn.db.crud.req.IRequestExecutor}
  */
-ydn.db.tr.Storage.prototype.createDbInstance = function(db_type) {
-
-  if (db_type == ydn.db.base.Mechanisms.IDB &&
-      ydn.db.con.IndexedDb.isSupported()) {
-    return new ydn.db.con.IndexedDb(this.size, this.connectionTimeout);
+ydn.db.crud.Storage.getExecutor = function(db_name, schema, type) {
+  if (type == ydn.db.base.Mechanisms.IDB) {
+    return new ydn.db.crud.req.IndexedDb(db_name, schema);
+  } else {
+    throw new ydn.db.InternalError('No executor for ' + type);
   }
-  return null;
 };

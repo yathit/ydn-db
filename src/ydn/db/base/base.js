@@ -53,36 +53,6 @@ ydn.db.base.JQUERY = false;
 
 
 /**
- * Normally false, set to true only on compile flag when compile together with
- * module employ database hooks. There are two hooks define in
- * {@link ydn.db.schema.Store#preHook} and {@link ydn.db.schema.Store#postHook}
- * @define {boolean} Enable sync module.
- */
-ydn.db.base.USE_HOOK = false;
-
-
-/**
- * For stripping non IndexedDB code and unlocking IDB feature.
- * @define {boolean} remove IndexedDB module.
- */
-ydn.db.base.NO_IDB = false;
-
-
-/**
- *
- * @define {boolean} remove simple storage (webstorage) module.
- */
-ydn.db.base.NO_SIMPLE = false;
-
-
-/**
- *
- * @define {boolean} remove webstorage module.
- */
-ydn.db.base.NO_WEBSQL = false;
-
-
-/**
  * Default result limit during retrieving records from the database.
  * @const
  * @type {number}
@@ -115,13 +85,11 @@ ydn.db.base.Mechanisms = {
  * @return {!goog.async.Deferred} newly created deferred object.
  */
 ydn.db.base.createDeferred = function() {
-  if (ydn.db.base.USE_HOOK) {
-    return new ydn.async.Deferred();
-  } else if (ydn.db.base.JQUERY) {
+ if (ydn.db.base.JQUERY) {
     // TODO: make jquery deferred compatible
-    return new goog.async.Deferred();
+    return new ydn.async.Deferred();
   } else {
-    return new goog.async.Deferred();
+    return new ydn.async.Deferred();
   }
 };
 

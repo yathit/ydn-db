@@ -5,7 +5,7 @@
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver-major" value="0"/>
     <property name="ver-minor" value="8"/>
-    <property name="ver-patch" value="2"/>
+    <property name="ver-patch" value="4"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
@@ -50,16 +50,19 @@
             </fileset>
         </copy>
     </target>
-    <macrodef name="adv-comp" description="main compilation routine">
+    <macrodef name="compile" description="main compilation routine">
+        <attribute name="debug" default="false"/>
+        <attribute name="feature" default=""/>
         <attribute name="base-module" default="core"/>
         <attribute name="mechanisms" default="iswu"/>
-        <attribute name="input.fn" default="${ydn-db.dir}/src/config/@{base-module}.js"/>
-        <attribute name="output.fn" default="${ydn-base.dir}/jsc/ydn.db-@{mechanisms}-@{base-module}"/>
-        <element name="ex.opt" optional="yes"/>
+        <attribute name="input.fn" default="${ydn-db.dir}/config/@{base-module}-@{mechanisms}.js"/>
+        <attribute name="output.fn" default="${ydn-db.dir}/jsc/ydn.db-@{mechanisms}-@{base-module}@{feature}.js"/>
+        <element name="exopt" optional="yes"/>
         <sequential>
             <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
                              base.dir="${ydn-db.dir}/src/"
                              input="@{input.fn}"
+                             debug="@{debug}"
                              input.dir="${ydn-db.dir}/src/"
                              output.fn="@{output.fn}">
                 <options>
@@ -70,21 +73,62 @@
                     <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
                     <arg line='-f "--externs=${ydn-base.dir}/externs/gapi.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.@{base-module}.Storage"'/>
+                    <arg line='-f "--only_closure_dependencies"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.Storage@{mechanisms}"'/>
                     <arg line='-f "--define=ydn.db.version=${quoted-version}"'/>
-                    <arg line='-f "--define=goog.DEBUG=false"'/>
                     <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
+                    <arg line='-f "--source_map_format=V3"'/>
+                    <arg line='-f "--create_source_map=@{output.fn}.map"'/>
+                    <exopt/>
+                </options>
+            </closure-compile>
+
+            <replace description="replace so with online repo path"
+                     file="@{output.fn}.map"
+                     token="${work.dir}/ydn-base/"
+                     value="https://bitbucket.org/ytkyaw/ydn-base/raw/${version}/"/>
+            <replace description="replace so with online repo path"
+                     file="@{output.fn}.map"
+                     token="${work.dir}/ydn-db/"
+                     value="https://bitbucket.org/ytkyaw/ydn-db/raw/${version}/"/>
+            <replace description="replace so with online repo path"
+                     file="@{output.fn}.map"
+                     token="${work.dir}/closure-library/"
+                     value="https://raw.github.com/yathit/google-closure-library/master/"/>
+
+        </sequential>
+    </macrodef>
+    <macrodef name="test-compile" description="main compilation routine">
+        <attribute name="input.fn" default="${ydn-db.dir}/src/ydn/db/utils/shoper.js"/>
+        <attribute name="output.fn" default="${ydn-db.dir}/jsc/hi.js"/>
+        <element name="ex.opt" optional="yes"/>
+        <sequential>
+            <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
+                             base.dir="${ydn-db.dir}/src/"
+                             input="@{input.fn}"
+                             debug="false"
+                             input.dir="${ydn-db.dir}/src/"
+                             output.fn="@{output.fn}">
+                <options>
+                    <arg line='-p "${ydn-base.dir}/src"'/>
+                    <arg line='-f "--externs=${ydn-db.dir}/externs/misc.js"'/>
+                    <arg line='-f "--externs=${ydn-db.dir}/externs/schema.js"'/>
+                    <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
+                    <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
+                    <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
+                    <arg line='-f "--externs=${ydn-base.dir}/externs/gapi.js"'/>
+                    <arg line='-f "--only_closure_dependencies"'/>
+                    <arg line='-f "--closure_entry_point=ydn.Shoper"'/>
                     <ex.opt/>
                 </options>
             </closure-compile>
         </sequential>
     </macrodef>
-
     <macrodef name="crud" description="compile CRUD module">
         <element name="module-option" optional="yes"/>
         <attribute name="postfix" default=""/>
         <sequential>
-            <adv-comp
+            <compile
                     input.dir="${ydn-db.dir}/src/ydn/db/crud"
                     input.fn="${ydn-db.dir}/src/config/crud.js"
                     output.dir="${ydn-db.dir}/jsc"
@@ -95,59 +139,58 @@
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/tr"'/>
                     <module-option/>
                 </ex.opt>
-            </adv-comp>
+            </compile>
 
         </sequential>
     </macrodef>
-    <target name="compile-crud"
+    <target name="crud-isw"
             description="generates compiled files for crud distribution">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <sequential>
-            <adv-comp base-module="crud">
-            </adv-comp>
+            <compile base-module="crud" mechanisms="isw">
 
+            </compile>
         </sequential>
     </target>
-    <target name="compile-crud-idb"
-            description="generates compiled files for crud Indexeddb only distribution">
-        <crud postfix="-idb">
-            <module-option>
-                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
-                <arg line='-f "--define=ydn.db.base.NO_WEBSQL=true"'/>
-            </module-option>
-        </crud>
+    <target name="crud"
+            description="generates compiled files for crud distribution">
+        <mkdir dir="${ydn-db.dir}/jsc"/>
+        <sequential>
+            <compile base-module="crud" mechanisms="is"/>
+            <compile base-module="crud" mechanisms="is" debug="true" feature="-dev"/>
+            <compile base-module="crud" mechanisms="s"/>
+            <compile base-module="crud" mechanisms="s" debug="true" feature="-dev"/>
+            <compile base-module="crud" mechanisms="i"/>
+            <compile base-module="crud" mechanisms="i" debug="true" feature="-dev"/>
+            <compile base-module="crud" mechanisms="isw"/>
+            <compile base-module="crud" mechanisms="isw" debug="true" feature="-dev"/>
+            <compile base-module="crud">
+                <exopt>
+                    <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
+                </exopt>
+            </compile>
+            <compile base-module="crud"  debug="true" feature="-dev">
+                <exopt>
+                    <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
+                </exopt>
+            </compile>
+            <compile base-module="crud" mechanisms="wu"  debug="true" feature="-dev"/>
+        </sequential>
     </target>
-    <target name="compile-crud-websql"
-            description="generates compiled files for crud websql only distribution">
-        <crud postfix="-websql">
-            <module-option>
-                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
-                <arg line='-f "--define=ydn.db.base.NO_IDB=true"'/>
-            </module-option>
-        </crud>
+    <target name="testc"
+            description="generates compiled files for crud distribution">
+
+        <sequential>
+            <test-compile></test-compile>
+        </sequential>
     </target>
-    <target name="compile-crud-db"
-            description="generates compiled files for crud with IDB and websql distribution">
-        <crud postfix="-db">
-            <module-option>
-                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
-            </module-option>
-        </crud>
-    </target>
-    <target name="compile-crud-simple"
-            description="generates compiled files for crud simple only distribution">
-        <crud postfix="-simple">
-            <module-option>
-                <arg line='-f "--define=ydn.db.base.NO_IDB=true"'/>
-                <arg line='-f "--define=ydn.db.base.NO_WEBSQL=true"'/>
-            </module-option>
-        </crud>
-    </target>
+
+
     <macrodef name="core" description="compile core module">
         <element name="module-option" optional="yes"/>
         <attribute name="postfix" default=""/>
         <sequential>
-            <adv-comp
+            <compile
                     input.dir="${ydn-db.dir}/src/ydn/db/core"
                     input.fn="${ydn-db.dir}/src/config/core.js"
                     output.dir="${ydn-db.dir}/jsc"
@@ -160,7 +203,7 @@
                     <arg line='-p "${ydn-db.dir}/src/ydn/db/tr"'/>
                     <module-option/>
                 </ex.opt>
-            </adv-comp>
+            </compile>
 
         </sequential>
     </macrodef>
@@ -227,9 +270,8 @@
         </java>
     </target>
     <target name="build" description="build all distributions"
-            depends="compile-crud,
-            compile-core,compile-crud-db,compile-crud-simple,compile-crud-idb,
-            compile-crud-websql,compile-core-db,compile-core-idb">
+            depends="crud,compile-core,
+            compile-core-db,compile-core-idb">
 
     </target>
 </project>

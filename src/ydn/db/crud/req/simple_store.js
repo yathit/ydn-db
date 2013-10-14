@@ -21,7 +21,6 @@
 
 
 goog.provide('ydn.db.crud.req.SimpleStore');
-goog.require('goog.Timer');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.ConstraintError');

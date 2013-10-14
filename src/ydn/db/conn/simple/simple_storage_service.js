@@ -102,10 +102,11 @@ ydn.db.con.SimpleStorageService.prototype.getSimpleStore = function(store_name) 
  * by reflecting connected database.
  */
 ydn.db.con.SimpleStorageService.prototype.getSchema = function(callback) {
-  goog.Timer.callOnce(function() {
-    var db_key = ydn.db.con.simple.makeKey(this.dbname);
-    var db_value = this.storage_.getItem(db_key);
+  var me = this;
+  setTimeout(function() {
+    var db_key = ydn.db.con.simple.makeKey(me.dbname);
+    var db_value = me.storage_.getItem(db_key);
     var schema = new ydn.db.schema.Database(db_value);
     callback(schema);
-  }, 0, this);
+  }, 10);
 };

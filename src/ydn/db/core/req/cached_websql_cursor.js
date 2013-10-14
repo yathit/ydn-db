@@ -587,11 +587,12 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.advance = function(step) {
   var p_key = this.getPrimaryKey();
   var key = this.getIndexKey();
   var value = this.getValue();
-  goog.Timer.callOnce(function() {
+  var me = this;
+  setTimeout(function() {
     // we must invoke async just like IndexedDB advance, otherwise
     // run-to-completion logic will not work as expected.
-    this.onSuccess(p_key, key, value);
-  }, 0, this);
+    me.onSuccess(p_key, key, value);
+  }, 4);
 
 };
 

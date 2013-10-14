@@ -23,7 +23,7 @@
 goog.provide('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.db.tr.Serial');
-goog.require('ydn.error.NotSupportedException');
+goog.require('ydn.debug.error.NotSupportedException');
 
 
 

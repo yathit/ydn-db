@@ -24,19 +24,11 @@ goog.provide('ydn.db.crud.Storage');
 goog.require('ydn.base');
 goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.db.crud.IOperator');
-goog.require('ydn.db.tr.Storage');
-goog.require('ydn.object');
-if (!ydn.db.base.NO_IDB) {
-  goog.require('ydn.db.crud.req.IndexedDb');
-}
-if (!ydn.db.base.NO_SIMPLE) {
-  goog.require('ydn.db.crud.req.SimpleStore');
-}
-if (!ydn.db.base.NO_WEBSQL) {
-  goog.require('ydn.db.crud.req.WebSql');
-}
+goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.events.RecordEvent');
 goog.require('ydn.db.events.StoreEvent');
+goog.require('ydn.db.tr.Storage');
+goog.require('ydn.object');
 
 
 
@@ -131,23 +123,12 @@ ydn.db.crud.Storage.prototype.getCoreOperator = function() {
 
 /**
  * @return {ydn.db.crud.req.IRequestExecutor}
- */
+*/
 ydn.db.crud.Storage.prototype.newExecutor = function() {
-
   var type = this.getType();
-  if (!ydn.db.base.NO_IDB && type == ydn.db.base.Mechanisms.IDB) {
-    return new ydn.db.crud.req.IndexedDb(this.db_name, this.schema);
-  } else if (!ydn.db.base.NO_WEBSQL && type == ydn.db.base.Mechanisms.WEBSQL) {
-    return new ydn.db.crud.req.WebSql(this.db_name, this.schema);
-  } else if (!ydn.db.base.NO_SIMPLE && type == ydn.db.base.Mechanisms.MEMORY_STORAGE ||
-      type == ydn.db.base.Mechanisms.LOCAL_STORAGE ||
-      type == ydn.db.base.Mechanisms.USER_DATA ||
-      type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
-    return new ydn.db.crud.req.SimpleStore(this.db_name, this.schema);
-  } else {
-    throw new ydn.db.InternalError('No executor for ' + type);
-  }
-
+  goog.asserts.assertString(type, 'no connected?');
+  return ydn.db.crud.Storage.getExecutor(this.db_name, this.schema,
+      type);
 };
 
 
@@ -269,3 +250,5 @@ if (goog.DEBUG) {
     return s;
   };
 }
+
+

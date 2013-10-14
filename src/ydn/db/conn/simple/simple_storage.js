@@ -19,7 +19,6 @@
 
 
 goog.provide('ydn.db.con.SimpleStorage');
-goog.require('goog.Timer');
 goog.require('goog.asserts');
 goog.require('goog.async.Deferred');
 goog.require('ydn.db.Key');
@@ -109,7 +108,7 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
    * @param {Error=} opt_err
    */
   var callDf = function(x, opt_err) {
-    goog.Timer.callOnce(function() {
+    setTimeout(function() {
       if (opt_err) {
         me.logger.finer(me + ' opening fail');
         df.errback(opt_err);
@@ -117,7 +116,7 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
         me.logger.finer(me + ' version ' + me.getVersion() + ' open');
         df.callback(x);
       }
-    });
+    }, 10);
   };
 
   /**
@@ -134,11 +133,6 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
    * @final
    */
   this.schema = schema;
-
-  /**
-   * @final
-   */
-  this.simple_stores_ = {};
 
   var db_key = ydn.db.con.simple.makeKey(this.dbname);
 

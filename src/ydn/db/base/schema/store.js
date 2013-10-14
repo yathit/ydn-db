@@ -50,10 +50,12 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
                                opt_indexes, opt_dispatch_events, opt_is_fixed) {
 
   /**
+   * @private
    * @final
+   * @type {string}
    */
-  this.name = name;
-  if (!goog.isString(this.name)) {
+  this.name_ = name;
+  if (!goog.isString(this.name_)) {
     throw new ydn.debug.error.ArgumentException('store name must be a string');
   }
   /**
@@ -83,11 +85,11 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
     type = ydn.db.schema.Index.toType(opt_type);
     if (!goog.isDef(type)) {
       throw new ydn.debug.error.ArgumentException('type "' + opt_type +
-          '" for primary key in store "' + this.name + '" is invalid.');
+          '" for primary key in store "' + this.name_ + '" is invalid.');
     }
     if (this.isComposite) {
       throw new ydn.debug.error.ArgumentException(
-          'composite key for store "' + this.name +
+          'composite key for store "' + this.name_ +
               '" must not specified type');
     }
   }
@@ -166,11 +168,6 @@ ydn.db.schema.Store.FetchStrategies = [
   ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
 
 
-/**
- * @type {string}
- */
-ydn.db.schema.Store.prototype.name;
-
 
 /**
  * @type {boolean}
@@ -242,7 +239,7 @@ ydn.db.schema.Store.prototype.toJSON = function() {
   }
 
   return {
-    'name': this.name,
+    'name': this.name_,
     'keyPath': this.keyPath,
     'autoIncrement': this.autoIncrement,
     'type': this.type,
@@ -632,7 +629,7 @@ ydn.db.schema.Store.prototype.index = function(idx) {
 ydn.db.schema.Store.prototype.getIndex = function(name) {
   return /** @type {ydn.db.schema.Index} */ (goog.array.find(this.indexes,
       function(x) {
-        return x.name == name;
+        return x.getName() == name;
       }));
 };
 
@@ -664,7 +661,7 @@ ydn.db.schema.Store.prototype.hasIndex = function(name) {
   }
 
   return goog.array.some(this.indexes, function(x) {
-    return x.name == name;
+    return x.getName() == name;
   });
 };
 
@@ -749,7 +746,7 @@ ydn.db.schema.Store.prototype.primary_column_name_quoted_;
  * @return {string} return quoted name.
  */
 ydn.db.schema.Store.prototype.getQuotedName = function() {
-  return goog.string.quote(this.name);
+  return goog.string.quote(this.name_);
 };
 
 
@@ -766,7 +763,7 @@ ydn.db.schema.Store.prototype.getColumns = function() {
      */
     this.columns_ = [];
     for (var i = 0; i < this.indexes.length; i++) {
-      this.columns_.push(this.indexes[i].name);
+      this.columns_.push(this.indexes[i].getName());
     }
   }
   return this.columns_;
@@ -788,8 +785,8 @@ ydn.db.schema.Store.prototype.hint = function(that) {
   if (!that) {
     return this;
   }
-  goog.asserts.assert(this.name == that.name, 'store name: ' +
-      this.name + ' != ' + that.name);
+  goog.asserts.assert(this.name_ == that.name_, 'store name: ' +
+      this.name_ + ' != ' + that.name_);
   var autoIncrement = this.autoIncrement;
   var keyPath = goog.isArray(this.keyPath) ?
       goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
@@ -829,7 +826,7 @@ ydn.db.schema.Store.prototype.hint = function(that) {
   }
 
   return new ydn.db.schema.Store(
-      that.name, keyPath, autoIncrement, type, indexes);
+      that.name_, keyPath, autoIncrement, type, indexes);
 };
 
 
@@ -838,7 +835,7 @@ ydn.db.schema.Store.prototype.hint = function(that) {
  * @return {string} store name.
  */
 ydn.db.schema.Store.prototype.getName = function() {
-  return this.name;
+  return this.name_;
 };
 
 
@@ -874,7 +871,7 @@ ydn.db.schema.Store.prototype.usedInlineKey = function() {
  * @return {!Array.<string>} list of index names.
  */
 ydn.db.schema.Store.prototype.getIndexNames = function() {
-  return this.indexes.map(function(x) {return x.name;});
+  return this.indexes.map(function(x) {return x.getName();});
 };
 
 
@@ -1048,8 +1045,8 @@ ydn.db.schema.Store.prototype.sqlNamesValues = function(obj, opt_key,
   for (var i = 0; i < this.indexes.length; i++) {
     var index = this.indexes[i];
     if (index.isMultiEntry() ||
-        index.name === this.keyPath ||
-        index.name == ydn.db.base.DEFAULT_BLOB_COLUMN ||
+        index.getName() === this.keyPath ||
+        index.getName() == ydn.db.base.DEFAULT_BLOB_COLUMN ||
         (!!opt_exclude_unique_column && index.isUnique())) {
       continue;
     }
@@ -1087,7 +1084,7 @@ ydn.db.schema.Store.prototype.sqlNamesValues = function(obj, opt_key,
  * @return {boolean} true if store schema is exactly equal to this schema.
  */
 ydn.db.schema.Store.prototype.equals = function(store) {
-  return this.name === store.name &&
+  return this.name_ === store.name_ &&
       ydn.object.equals(this.toJSON(), store.toJSON());
 };
 
@@ -1101,10 +1098,10 @@ ydn.db.schema.Store.prototype.equals = function(store) {
 ydn.db.schema.Store.prototype.difference = function(store) {
 
   if (!store) {
-    return 'missing store: ' + this.name;
+    return 'missing store: ' + this.name_;
   }
-  if (this.name != store.name) {
-    return 'store name, expect: ' + this.name + ', but: ' + store.name;
+  if (this.name_ != store.name_) {
+    return 'store name, expect: ' + this.name_ + ', but: ' + store.name_;
   }
   var msg = ydn.db.schema.Index.compareKeyPath(this.keyPath, store.keyPath);
   if (msg) {
@@ -1128,10 +1125,10 @@ ydn.db.schema.Store.prototype.difference = function(store) {
     return 'data type, expect:  ' + this.type + ', but: ' + store.type;
   }
   for (var i = 0; i < this.indexes.length; i++) {
-    var index = store.getIndex(this.indexes[i].name);
+    var index = store.getIndex(this.indexes[i].getName());
     var index_msg = this.indexes[i].difference(index);
     if (index_msg.length > 0) {
-      return 'index "' + this.indexes[i].name + '" ' + index_msg;
+      return 'index "' + this.indexes[i].getName() + '" ' + index_msg;
     }
   }
 

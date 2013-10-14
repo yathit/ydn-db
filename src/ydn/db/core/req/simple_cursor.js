@@ -4,7 +4,6 @@
 
 
 goog.provide('ydn.db.core.req.SimpleCursor');
-goog.require('goog.Timer');
 goog.require('ydn.db.base.Mutex');
 goog.require('ydn.db.core.req.AbstractCursor');
 goog.require('ydn.db.core.req.ICursor');
@@ -227,22 +226,22 @@ ydn.db.core.req.SimpleCursor.prototype.result_ready_;
  */
 ydn.db.core.req.SimpleCursor.prototype.dispatchOnSuccess_ = function() {
   var me = this;
-  goog.Timer.callOnce(function() {
+  setTimeout(function() {
     if (me.result_ready_.state()) {
       if (ydn.db.core.req.SimpleCursor.DEBUG) {
-        window.console.log(this + ' invoke success ' + this.key_);
+        window.console.log(this + ' invoke success ' + me.key_);
       }
       me.result_ready_.down();
-      this.onSuccess(this.key_, this.primary_key_, this.value_);
-      this.dispatchOnSuccess_();
+      me.onSuccess(me.key_, me.primary_key_, me.value_);
+      me.dispatchOnSuccess_();
     } else {
       if (ydn.db.core.req.SimpleCursor.DEBUG) {
         window.console.log(this + ' complete');
       }
-      this.onCursorComplete_();
-      this.onCursorComplete_ = null;
+      me.onCursorComplete_();
+      me.onCursorComplete_ = null;
     }
-  }, 0, this);
+  }, 4);
 };
 
 

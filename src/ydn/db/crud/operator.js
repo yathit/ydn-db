@@ -30,7 +30,7 @@ goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.DbOperator');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.debug.error.ArgumentException');
-goog.require('ydn.error.NotSupportedException');
+goog.require('ydn.debug.error.NotSupportedException');
 
 
 
@@ -742,7 +742,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     var new_schema = ydn.db.schema.Store.fromJSON(store_name_or_schema);
     var diff = store.difference(new_schema);
     if (diff) {
-      throw new ydn.error.NotSupportedException(diff);
+      throw new ydn.debug.error.NotSupportedException(diff);
       // this.addStoreSchema(store);
     }
   }
@@ -795,7 +795,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
       req.addCallback(function(keys) {
         var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.CREATED,
             this.getStorage(), store.getName(), keys, objs);
-        this.getStorage().dispatchEvent(event);
+        this.getStorage().dispatchDbEvent(event);
       }, this);
     }
 
@@ -816,7 +816,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
       req.addCallback(function(key) {
         var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.CREATED,
             this.getStorage(), store.getName(), key, obj);
-        this.getStorage().dispatchEvent(event);
+        this.getStorage().dispatchDbEvent(event);
       }, this);
     }
 
@@ -864,7 +864,7 @@ ydn.db.crud.DbOperator.prototype.getStore_ = function(store_name_schema) {
     var new_schema = ydn.db.schema.Store.fromJSON(store_name_schema);
     var diff = store.difference(new_schema);
     if (diff) {
-      throw new ydn.error.NotSupportedException(diff);
+      throw new ydn.debug.error.NotSupportedException(diff);
       // this.addStoreSchema(store);
     }
   }
@@ -1054,7 +1054,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         req.addCallback(function(keys) {
           var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.UPDATED,
               this.getStorage(), st_name, keys, objs);
-          this.getStorage().dispatchEvent(event);
+          this.getStorage().dispatchDbEvent(event);
         }, this);
       }
 
@@ -1085,7 +1085,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         req.addCallback(function(key) {
           var event = new ydn.db.events.RecordEvent(ydn.db.events.Types.UPDATED,
               this.getStorage(), st_name, key, obj);
-          this.getStorage().dispatchEvent(event);
+          this.getStorage().dispatchDbEvent(event);
         }, this);
       }
 
@@ -1505,7 +1505,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
             var event = new ydn.db.events.RecordEvent(
                 ydn.db.events.Types.DELETED,
                 this.getStorage(), store_name, key, undefined);
-            this.getStorage().dispatchEvent(event);
+            this.getStorage().dispatchDbEvent(event);
           }, this);
         }
 
@@ -1525,7 +1525,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
             var event = new ydn.db.events.StoreEvent(
                 ydn.db.events.Types.DELETED,
                 this.getStorage(), store_name, key, undefined);
-            this.getStorage().dispatchEvent(event);
+            this.getStorage().dispatchDbEvent(event);
           }, this);
         }
       } else {

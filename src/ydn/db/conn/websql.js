@@ -23,7 +23,6 @@
 goog.provide('ydn.db.con.WebSql');
 goog.require('goog.async.Deferred');
 goog.require('goog.debug.Logger');
-goog.require('goog.events');
 goog.require('goog.functions');
 goog.require('ydn.db.SecurityError');
 goog.require('ydn.db.base');
@@ -716,7 +715,7 @@ ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
                                                      callback) {
   var me = this;
   this.getSchema(function(table_infos) {
-    var table_info = table_infos.getStore(store_schema.name);
+    var table_info = table_infos.getStore(store_schema.getName());
     me.update_store_with_info_(trans, store_schema,
         callback, table_info);
   }, trans);
@@ -767,7 +766,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
         callback = null; // must call only once.
       }
       var msg = goog.DEBUG ? 'SQLError creating table: ' +
-          table_schema.name + ' ' + error.message + ' for executing "' +
+          table_schema.getName() + ' ' + error.message + ' for executing "' +
           sql : '"';
       throw new ydn.db.SQLError(error, msg);
     };
@@ -782,7 +781,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     // table already exists.
     var msg = table_schema.difference(existing_table_schema);
     if (msg.length == 0) {
-      me.logger.finest('same table ' + table_schema.name + ' exists.');
+      me.logger.finest('same table ' + table_schema.getName() + ' exists.');
       callback(true);
       callback = null;
       return;
@@ -791,11 +790,11 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
 
       // TODO: use ALTER
       this.logger.warning(
-          'table: ' + table_schema.name + ' has changed by ' + msg +
+          'table: ' + table_schema.getName() + ' has changed by ' + msg +
           ' additionallly TABLE ALTERATION is not implemented, ' +
           'dropping old table.');
       sqls.unshift('DROP TABLE IF EXISTS ' +
-          goog.string.quote(table_schema.name));
+          goog.string.quote(table_schema.getName()));
     }
   }
 
@@ -803,7 +802,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     window.console.log([sqls, existing_table_schema]);
   }
 
-  me.logger.finest(action + ' table: ' + table_schema.name + ': ' +
+  me.logger.finest(action + ' table: ' + table_schema.getName() + ': ' +
       sqls.join(';'));
   for (var i = 0; i < sqls.length; i++) {
     exe_sql(sqls[i]);

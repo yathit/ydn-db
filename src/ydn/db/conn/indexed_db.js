@@ -19,9 +19,7 @@
  */
 
 goog.provide('ydn.db.con.IndexedDb');
-goog.require('goog.Timer');
 goog.require('goog.async.DeferredList');
-goog.require('goog.events');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.db.schema.Database');
@@ -386,7 +384,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
   // check for long database connection
   if (goog.isNumber(this.time_out_) && !isNaN(this.time_out_)) {
-    goog.Timer.callOnce(function() {
+    setTimeout(function() {
       if (openRequest.readyState != 'done') {
         // what we observed is chrome attached error object to openRequest
         // but did not call any of over listening events.
@@ -632,8 +630,8 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
       for (var j = 0; j < store_schema.indexes.length; j++) {
         var index = store_schema.indexes[j];
         var need_create = false;
-        if (indexNames.contains(index.name)) {
-          var store_index = store.index(index.name);
+        if (indexNames.contains(index.getName())) {
+          var store_index = store.index(index.getName());
           // NOTE: Some browser (read: IE10) does not expose multiEntry
           // attribute in the index object.
           var dif_unique = goog.isDefAndNotNull(store_index.unique) &&
@@ -648,7 +646,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
                   store_index.keyPath, index.keyPath);
           if (dif_unique || dif_multi || dif_key_path) {
             // console.log('delete index ' + index.name + ' on ' + store.name);
-            store.deleteIndex(index.name);
+            store.deleteIndex(index.getName());
             need_create = true;
             created--;
             modified++;
@@ -661,12 +659,12 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
             var idx_options = {
               unique: index.unique,
               multiEntry: index.multiEntry};
-            store.createIndex(index.name,
+            store.createIndex(index.getName(),
                 // todo: remove this casting after externs is updated.
                 /** @type  {string} */ (index.keyPath),
                 idx_options);
           } else {
-            store.createIndex(index.name,
+            store.createIndex(index.getName(),
                 /** @type  {string} */ (index.keyPath));
           }
           created++;
@@ -691,19 +689,19 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
     for (var j = 0; j < store_schema.indexes.length; j++) {
       var index = store_schema.indexes[j];
 
-      this.logger.finest('Creating index: ' + index.name +
+      this.logger.finest('Creating index: ' + index.getName() +
           ' multiEntry: ' + index.multiEntry);
 
       if (index.unique || index.multiEntry) {
         var idx_options = {unique: index.unique, multiEntry: index.multiEntry};
 
-        store.createIndex(index.name, index.keyPath, idx_options);
+        store.createIndex(index.getName(), index.keyPath, idx_options);
       } else {
-        store.createIndex(index.name, index.keyPath);
+        store.createIndex(index.getName(), index.keyPath);
       }
     }
 
-    this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
+    this.logger.finest('Created store: ' + store.getName() + ' keyPath: ' +
         store.keyPath);
   }
 };

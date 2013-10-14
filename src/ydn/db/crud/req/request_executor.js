@@ -40,10 +40,14 @@ goog.require('ydn.db.Key');
 ydn.db.crud.req.RequestExecutor = function(dbname, schema) {
   /**
    * @final
+   * @protected
+   * @type {string}
    */
   this.dbname = dbname;
   /**
    * @final
+   * @protected
+   * @type {!ydn.db.schema.Database}
    */
   this.schema = schema;
 };
@@ -54,21 +58,7 @@ ydn.db.crud.req.RequestExecutor = function(dbname, schema) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.req.RequestExecutor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.crud.req.RequestExecutor');
-
-
-/**
- * @protected
- * @type {!ydn.db.schema.Database}
- */
-ydn.db.crud.req.RequestExecutor.prototype.schema;
-
-
-/**
- * @protected
- * @type {string}
- */
-ydn.db.crud.req.RequestExecutor.prototype.dbname = '';
+    goog.debug.Logger.getLogger('ydn.db.crud.req.RequestExecuto');
 
 
 if (goog.DEBUG) {

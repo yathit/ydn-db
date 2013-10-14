@@ -39,6 +39,7 @@ goog.require('ydn.debug.error.ArgumentException');
  * @param {string=} opt_index_name index name.
  * @param {Function=} opt_generator index key generator.
  * @constructor
+ * @struct
  */
 ydn.db.schema.Index = function(
     keyPath, opt_type, opt_unique, opt_multi_entry, opt_index_name,
@@ -82,9 +83,11 @@ ydn.db.schema.Index = function(
   this.is_composite_ = goog.isArrayLike(this.keyPath);
 
   /**
+   * @private
    * @final
+   * @type {string}
    */
-  this.name = opt_index_name;
+  this.index_name_ = opt_index_name;
   /**
    * @final
    * @type {ydn.db.schema.DataType|undefined}
@@ -93,11 +96,11 @@ ydn.db.schema.Index = function(
   if (goog.isDef(opt_type)) {
     if (!goog.isDef(this.type)) {
       throw new ydn.debug.error.ArgumentException('type invalid in index: ' +
-          this.name);
+          this.index_name_);
     }
     if (goog.isArray(this.keyPath)) {
       throw new ydn.debug.error.ArgumentException(
-          'composite key for store "' + this.name +
+          'composite key for store "' + this.index_name_ +
           '" must not specified type');
     }
   }
@@ -153,7 +156,7 @@ ydn.db.schema.Index.prototype.extractKey = function(obj) {
         goog.asserts.assert(goog.isDefAndNotNull(i_key),
             ydn.json.toShortString(obj) +
             ' does not issue require composite key value ' + i + ' of ' +
-            n + ' on index "' + this.name + '"');
+            n + ' on index "' + this.index_name_ + '"');
         key[i] = i_key;
       }
       return key;
@@ -183,12 +186,6 @@ ydn.db.schema.Index.prototype.applyValue = function(obj, value) {
     }
   }
 };
-
-
-/**
- * @type {string}
- */
-ydn.db.schema.Index.prototype.name;
 
 
 /**
@@ -400,7 +397,7 @@ ydn.db.schema.Index.prototype.getSqlType = function() {
  * @return {string} index name.
  */
 ydn.db.schema.Index.prototype.getName = function() {
-  return this.name;
+  return this.index_name_;
 };
 
 
@@ -436,7 +433,7 @@ ydn.db.schema.Index.prototype.isUnique = function() {
  */
 ydn.db.schema.Index.prototype.toJSON = function() {
   return {
-    'name': this.name,
+    'name': this.index_name_,
     'keyPath': this.keyPath,
     'type': this.type,
     'unique': this.unique,
@@ -459,7 +456,7 @@ ydn.db.schema.Index.prototype.clone = function() {
       this.type,
       this.unique,
       this.multiEntry,
-      this.name,
+      this.index_name_,
       this.index_generator_);
 };
 
@@ -510,10 +507,10 @@ ydn.db.schema.Index.prototype.equalsKeyPath = function(key_path) {
  */
 ydn.db.schema.Index.prototype.difference = function(index) {
   if (!index) {
-    return 'no index for ' + this.name;
+    return 'no index for ' + this.index_name_;
   }
-  if (this.name != index.name) {
-    return 'name, expect: ' + this.name + ', but: ' + index.name;
+  if (this.index_name_ != index.index_name_) {
+    return 'name, expect: ' + this.index_name_ + ', but: ' + index.index_name_;
   }
   var msg = ydn.db.schema.Index.compareKeyPath(this.keyPath, index.keyPath);
   if (msg) {
@@ -556,8 +553,8 @@ ydn.db.schema.Index.prototype.hint = function(that) {
   if (!that) {
     return this;
   }
-  goog.asserts.assert(this.name == that.name, 'index name: ' +
-      this.name + ' != ' + that.name);
+  goog.asserts.assert(this.index_name_ == that.index_name_, 'index name: ' +
+      this.index_name_ + ' != ' + that.index_name_);
   var keyPath = goog.isArray(this.keyPath) ?
       goog.array.clone(/** @type {goog.array.ArrayLike} */ (this.keyPath)) :
       this.keyPath;
@@ -567,7 +564,7 @@ ydn.db.schema.Index.prototype.hint = function(that) {
     type = undefined;
   }
   return new ydn.db.schema.Index(keyPath, type, this.unique, this.multiEntry,
-      that.name);
+      that.index_name_);
 };
 
 
@@ -639,7 +636,7 @@ ydn.db.schema.Index.prototype.index_generator_;
  * @param {Function} gen generator function.
  */
 ydn.db.schema.Index.prototype.setGenerator = function(gen) {
-  goog.asserts.assert(!this.index_generator_, 'index ' + this.name +
+  goog.asserts.assert(!this.index_generator_, 'index ' + this.index_name_ +
       ' already has a generator');
   this.index_generator_ = gen;
 };

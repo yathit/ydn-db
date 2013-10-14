@@ -67,11 +67,11 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
       var store = ydn.db.schema.Store.fromJSON(stores_json[i]);
       if (goog.DEBUG) {
         var idx = goog.array.findIndex(stores, function(x) {
-          return x.name == store.name;
+          return x.name == store.getName();
         });
         if (idx != -1) {
           throw new ydn.debug.error.ArgumentException('duplicate store name "' +
-              store.name + '".');
+              store.getName() + '".');
         }
 
       }
@@ -242,7 +242,7 @@ ydn.db.schema.Database.prototype.isAutoSchema = function() {
  * @return {!Array.<string>} list of store names.
  */
 ydn.db.schema.Database.prototype.getStoreNames = function() {
-  return goog.array.map(this.stores, function(x) {return x.name;});
+  return goog.array.map(this.stores, function(x) {return x.getName();});
 };
 
 
@@ -273,7 +273,7 @@ ydn.db.schema.Database.prototype.count = function() {
 ydn.db.schema.Database.prototype.getStore = function(name) {
   return /** @type {ydn.db.schema.Store} */ (goog.array.find(this.stores,
       function(x) {
-        return x.name == name;
+        return x.getName() == name;
       }));
 };
 
@@ -299,7 +299,7 @@ ydn.db.schema.Database.prototype.getIndexOf = function(name) {
 ydn.db.schema.Database.prototype.hasStore = function(name) {
 
   return goog.array.some(this.stores, function(x) {
-    return x.name == name;
+    return x.getName() == name;
   });
 };
 
@@ -316,13 +316,13 @@ ydn.db.schema.Database.prototype.difference = function(schema, opt_hint) {
         schema.stores.length;
   }
   for (var i = 0; i < this.stores.length; i++) {
-    var store = schema.getStore(this.stores[i].name);
+    var store = schema.getStore(this.stores[i].getName());
     // hint to sniffed schema, so that some lost info are recovered.
     var hinted_store = (!!store && !!opt_hint) ?
         store.hint(this.stores[i]) : store;
     var msg = this.stores[i].difference(hinted_store);
     if (msg.length > 0) {
-      return 'store: "' + this.stores[i].name + '" ' + msg;
+      return 'store: "' + this.stores[i].getName() + '" ' + msg;
     }
   }
 
@@ -362,7 +362,7 @@ ydn.db.schema.Database.prototype.listStores = function() {
      * @type {!Array.<string>}
      */
     this.store_names = goog.array.map(this.stores, function(x) {
-      return x.name;
+      return x.getName();
     });
   }
   return this.store_names;

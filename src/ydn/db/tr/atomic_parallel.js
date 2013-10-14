@@ -9,7 +9,7 @@
 goog.provide('ydn.db.tr.AtomicParallel');
 goog.require('ydn.db.tr.IThread');
 goog.require('ydn.db.tr.Parallel');
-goog.require('ydn.error.NotSupportedException');
+goog.require('ydn.debug.error.NotSupportedException');
 
 
 

@@ -18,7 +18,6 @@
 
 
 goog.provide('ydn.db.con.simple.TxStorage');
-goog.require('goog.Timer');
 goog.require('ydn.db.con.SimpleStorageService');
 
 
@@ -32,8 +31,8 @@ goog.require('ydn.db.con.SimpleStorageService');
  */
 ydn.db.con.simple.TxStorage = function(storage, oncompleted) {
   /**
-   * @final
    * @private
+   * @type {ydn.db.con.SimpleStorageService}
    */
   this.storage_ = storage;
   /**
@@ -42,13 +41,6 @@ ydn.db.con.simple.TxStorage = function(storage, oncompleted) {
    */
   this.on_completed_ = oncompleted;
 };
-
-
-/**
- * @type {ydn.db.con.SimpleStorageService}
- * @private
- */
-ydn.db.con.simple.TxStorage.prototype.storage_;
 
 
 /**
@@ -66,9 +58,11 @@ ydn.db.con.simple.TxStorage.prototype.on_completed_;
  */
 ydn.db.con.simple.TxStorage.prototype.getStorage = function(
     fnc, fnc_obj) {
-  goog.Timer.callOnce(function() {
-    fnc.call(fnc_obj, this.storage_);
-  }, 0, this);
+  var st = this.storage_;
+  goog.asserts.assertObject(st, 'transaction already committed');
+  setTimeout(function() {
+    fnc.call(fnc_obj, /** @type {!ydn.db.con.SimpleStorageService} */ (st));
+  }, 4);
 
   var me = this;
   var on_complete = function() {

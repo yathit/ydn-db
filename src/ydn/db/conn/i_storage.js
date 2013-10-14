@@ -22,7 +22,6 @@ ydn.db.con.IStorage.prototype.close = goog.abstractMethod;
 
 /**
  * Run a transaction.
- * @export
  * @param {function((!IDBTransaction|!SQLTransaction|Object))|!Function} trFn
  * function that invoke in the transaction.
  * @param {!Array.<string>} store_names list of keys or

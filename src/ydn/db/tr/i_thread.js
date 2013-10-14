@@ -130,7 +130,7 @@ ydn.db.tr.IThread.abort = function(tx) {
       // the error is wanted because there is no way to abort a transaction in
       // WebSql. It is somehow recommanded workaround to abort a transaction.
     } else {
-      throw new ydn.error.NotSupportedException();
+      throw new ydn.debug.error.NotSupportedException();
     }
 
   } else {

@@ -16,13 +16,15 @@
 
 
 /**
- * @fileoverview Injdect storage mechanism for IndexedDB.
+ * @fileoverview Injdect storage mechanism for WebStorage.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.tr.Storage.i');
-goog.require('ydn.db.con.IndexedDb');
+goog.provide('ydn.db.tr.Storage.w');
+goog.require('ydn.db.con.LocalStorage');
+goog.require('ydn.db.con.SessionStorage');
+goog.require('ydn.db.con.SimpleStorage');
 goog.require('ydn.db.tr.Storage');
 
 
@@ -34,9 +36,14 @@ goog.require('ydn.db.tr.Storage');
  */
 ydn.db.tr.Storage.prototype.createDbInstance = function(db_type) {
 
-  if (db_type == ydn.db.base.Mechanisms.IDB &&
-      ydn.db.con.IndexedDb.isSupported()) {
-    return new ydn.db.con.IndexedDb(this.size, this.connectionTimeout);
+  if (db_type == ydn.db.base.Mechanisms.LOCAL_STORAGE &&
+      ydn.db.con.LocalStorage.isSupported()) {
+    return new ydn.db.con.LocalStorage();
+  } else if (db_type == ydn.db.base.Mechanisms.SESSION_STORAGE &&
+      ydn.db.con.SessionStorage.isSupported()) {
+    return new ydn.db.con.SessionStorage();
+  } else if (db_type == ydn.db.base.Mechanisms.MEMORY_STORAGE) {
+    return new ydn.db.con.SimpleStorage();
   }
   return null;
 };

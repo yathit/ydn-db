@@ -227,7 +227,7 @@ ydn.db.Request.prototype.abort = function() {
       // the error is wanted because there is no way to abort a transaction in
       // WebSql. It is somehow recommanded workaround to abort a transaction.
     } else {
-      throw new ydn.error.NotSupportedException();
+      throw new ydn.debug.error.NotSupportedException();
     }
   } else {
     var msg = goog.DEBUG ? 'No active transaction' : '';

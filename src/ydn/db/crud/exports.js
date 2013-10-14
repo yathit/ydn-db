@@ -16,6 +16,8 @@ goog.exportProperty(ydn.db.crud.Storage.prototype, 'add',
     ydn.db.crud.Storage.prototype.add);
 goog.exportProperty(ydn.db.crud.Storage.prototype, 'get',
     ydn.db.crud.Storage.prototype.get);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'keys',
+    ydn.db.crud.Storage.prototype.keys);
 //goog.exportProperty(ydn.db.crud.Storage.prototype, 'load',
 //  ydn.db.crud.Storage.prototype.load);
 goog.exportProperty(ydn.db.crud.Storage.prototype, 'values',
@@ -33,6 +35,8 @@ goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'add',
     ydn.db.crud.DbOperator.prototype.add);
 goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'get',
     ydn.db.crud.DbOperator.prototype.get);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'keys',
+    ydn.db.crud.DbOperator.prototype.keys);
 //goog.exportProperty(ydn.db.crud.Storage.prototype, 'load',
 //  ydn.db.crud.Storage.prototype.load);
 goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'values',

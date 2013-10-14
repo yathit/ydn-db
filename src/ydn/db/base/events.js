@@ -10,6 +10,7 @@ goog.provide('ydn.db.events.RecordEvent');
 goog.provide('ydn.db.events.StorageEvent');
 goog.provide('ydn.db.events.StoreEvent');
 goog.provide('ydn.db.events.Types');
+goog.require('goog.events.Event');
 
 
 /**
@@ -32,7 +33,7 @@ ydn.db.events.Types = {
 /**
  *
  * @param {ydn.db.events.Types} event_type event type.
- * @param {goog.events.EventTarget} event_target target.
+ * @param {Object=} event_target target.
  * @extends {goog.events.Event}
  * @constructor
  */
@@ -62,7 +63,7 @@ ydn.db.events.Event.prototype.getStoreName = function() {
 /**
  *
  * @param {ydn.db.events.Types} event_type type.
- * @param {goog.events.EventTarget} event_target event target.
+ * @param {Object} event_target event target.
  * @param {number} version source.
  * @param {number} old_version old version.
  * @param {Object} old_schema old schema read from the database.
@@ -136,7 +137,7 @@ ydn.db.events.StorageEvent.prototype.getOldSchema = function() {
 
 /**
  * Storage error event.
- * @param {goog.events.EventTarget} event_target event target.
+ * @param {Object} event_target event target.
  * @param {Error} error error object in case of error.
  * @param {ydn.db.events.Types=} opt_type default to error.
  * @extends {ydn.db.events.Event}
@@ -174,7 +175,7 @@ ydn.db.events.StorageErrorEvent.prototype.getError = function() {
 
 /**
  * Storage terminal fail event.
- * @param {goog.events.EventTarget} event_target event target.
+ * @param {Object} event_target event target.
  * @param {Error} error error object in case of error.
  * @extends {ydn.db.events.StorageErrorEvent}
  * @constructor
@@ -195,7 +196,7 @@ ydn.db.events.StorageFailEvent.prototype.name = 'FailEvent';
 /**
  *
  * @param {ydn.db.events.Types} event_type  type.
- * @param {goog.events.EventTarget} event_target target.
+ * @param {Object} event_target target.
  * @param {string} store_name source.
  * @param {*} key source.
  * @param {*} value source.
@@ -255,7 +256,7 @@ ydn.db.events.RecordEvent.prototype.getValue = function() {
 /**
  *
  * @param {ydn.db.events.Types} event_type  type.
- * @param {goog.events.EventTarget} event_target target.
+ * @param {Object} event_target target.
  * @param {string} store_name source.
  * @param {Array} keys source.
  * @param {Array=} opt_values source.

@@ -81,7 +81,7 @@ ydn.db.con.simple.UserData.deleteDatabase = function(db_name) {
   db.connect(db_name, schema);
   db.getSchema(function(sch) {
     for (var i = 0; i < sch.stores.length; i++) {
-      var store = db.getSimpleStore(sch.stores[i].name);
+      var store = db.getSimpleStore(sch.stores[i].getName());
       store.clear();
     }
   });
