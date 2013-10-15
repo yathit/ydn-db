@@ -527,7 +527,7 @@
     });
   });
 
-  asyncTest("3. Ref value by index key range", 6, function () {
+  asyncTest("Ref value by index key range", 6, function () {
     var keys = objs.map(function(x) {return x.id});
 
     var q = ydn.db.IndexIterator.where(store_inline_index, 'value', '>=', 2, '<=', 4);
@@ -705,7 +705,6 @@
     df.always(function () {
 
       var keys = objs.map(function(x) {return x.id});
-
 
       var key_range = ydn.db.KeyRange.bound(1, 3);
       var q = new ydn.db.ValueIterator(store_inline_index, key_range);
