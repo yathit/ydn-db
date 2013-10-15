@@ -96,9 +96,7 @@
         <attribute name="input.dir" default="${ydn-db.dir}/src"/>
         <attribute name="output.fn"/>
         <attribute name="output.dir" default="${ydn-db.dir}/jsc"/>
-        <attribute name="closure.entry"/>
         <element name="exjs.dir" optional="yes"/>
-        <element name="ex.opt" optional="yes"/>
         <sequential>
             <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
                              base.dir="@{input.dir}"
@@ -117,11 +115,17 @@
                     <arg line='-f "--closure_entry_point=ydn.db.Storage.main_entry"'/>
                     <arg line='-f "--define=ydn.db.version=${quoted-version}"'/>
                     <arg line='-f "--define=goog.DEBUG=true"'/>
-                    <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
-                    <ex.opt/>
+                    <arg line='-f "--source_map_format=V3"'/>
+                    <arg line='-f "--create_source_map=@{output.dir}/@{output.fn}.map"'/>
+                    <arg line='-f "--output_wrapper=(function(){%output%})();"'/>
                 </options>
             </closure-compile>
+
+            <concat destfile="@{output.dir}/@{output.fn}" append="true">
+                //# sourceMappingURL=@{output.fn}.map
+            </concat>
         </sequential>
+
     </macrodef>
 
     <target name="compile-main"
@@ -131,8 +135,7 @@
             <adv-comp
                     input.fn="${ydn-db.dir}/config/core.js"
                     output.dir="${ydn-db.dir}/jsc"
-                    output.fn="ydn.db-dev.js"
-                    closure.entry="ydn.db.crud.Storage">
+                    output.fn="ydn.db-dev.js">
 
             </adv-comp>
 

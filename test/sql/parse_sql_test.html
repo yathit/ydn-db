@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Test for IndexedDb indexing</title>
+	<title>Test for SQL parsing</title>
 </head>
 <body>
 
@@ -13,13 +13,8 @@
     <script>
 	    goog.require('goog.testing.ContinuationTestCase');
 	    goog.require('goog.testing.jsunit');
-        options = {mechanisms: ['indexeddb']};
-        goog.require('ydn.db.Storage');
     </script>
-    <script type="text/javascript" src="../../src/ydn/db/tr/inject.js"></script>
-    <script type="text/javascript" src="../../src/ydn/db/crud/inject.js"></script>
-    <script type="text/javascript" src="../../src/ydn/db/core/inject.js"></script>
-	<script type="text/javascript" src="index_test.js"></script>
+	<script type="text/javascript" src="parse_sql.js"></script>
 
 </body>
 </html>
