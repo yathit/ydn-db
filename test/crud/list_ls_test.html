@@ -13,7 +13,10 @@
 	    goog.require('goog.testing.ContinuationTestCase');
 	    goog.require('goog.testing.jsunit');
       options = {mechanisms: ['localstorage']};
+        goog.require('ydn.db.crud.Storage');
     </script>
+    <script type="text/javascript" src="../../src/ydn/db/tr/inject.js"></script>
+    <script type="text/javascript" src="../../src/ydn/db/crud/inject.js"></script>
 	<script type="text/javascript" src="list_test.js"></script>
 
 </body>

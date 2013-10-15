@@ -20,6 +20,7 @@
 
 goog.provide('ydn.db.con.IndexedDb');
 goog.require('goog.async.DeferredList');
+goog.require('ydn.db');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
 goog.require('ydn.db.schema.Database');
@@ -701,7 +702,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
       }
     }
 
-    this.logger.finest('Created store: ' + store.getName() + ' keyPath: ' +
+    this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
         store.keyPath);
   }
 };

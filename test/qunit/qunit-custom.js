@@ -1,6 +1,6 @@
 
 var m = location.search.match(/module=(\w+)/);
-var module = m ? m[1] : 'all';
+var module = m ? m[1] : null;
 m = location.search.match(/filename=(\w+)/);
 var filename = m ? m[1] : 'ydn.db-isw-e.js';
 m = location.search.match(/mechanism=(\w+)/);

@@ -52,16 +52,6 @@ goog.exportProperty(ydn.db.core.req.AbstractCursor.prototype, 'update',
 goog.exportProperty(ydn.db.core.req.AbstractCursor.prototype, 'clear',
     ydn.db.core.req.AbstractCursor.prototype.clear);
 
-goog.exportSymbol('ydn.math.Expression', ydn.math.Expression);
-goog.exportProperty(ydn.math.Expression.prototype, 'evaluate',
-    ydn.math.Expression.prototype.evaluate);
-goog.exportProperty(ydn.math.Expression.prototype, 'compile',
-    ydn.math.Expression.prototype.compile);
-goog.exportProperty(ydn.math.Expression, 'parseRpn',
-    ydn.math.Expression.parseRpn);
-goog.exportProperty(ydn.math.Expression, 'parseInfix',
-    ydn.math.Expression.parseInfix);
-
 
 goog.exportSymbol('ydn.db.Iterator', ydn.db.Iterator);
 goog.exportSymbol('ydn.db.KeyIterator', ydn.db.KeyIterator);

@@ -66,7 +66,7 @@ ydn.db.con.SimpleStorageService = function(opt_provider) {
    * @type {Object.<!ydn.db.con.simple.Store>}
    * @private
    */
-  this.simple_stores_;
+  this.simple_stores_ = {};
 };
 
 

@@ -22,15 +22,6 @@ goog.provide('ydn.db.core.DbOperator');
 goog.require('ydn.db.Iterator');
 goog.require('ydn.db.core.IOperator');
 goog.require('ydn.db.core.req.IRequestExecutor');
-if (!ydn.db.base.NO_IDB) {
-  goog.require('ydn.db.core.req.IndexedDb');
-}
-if (!ydn.db.base.NO_SIMPLE) {
-  goog.require('ydn.db.core.req.SimpleStore');
-}
-if (!ydn.db.base.NO_WEBSQL) {
-  goog.require('ydn.db.core.req.WebSql');
-}
 goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.debug.error.ArgumentException');
 

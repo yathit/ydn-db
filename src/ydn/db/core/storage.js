@@ -20,7 +20,6 @@
 goog.provide('ydn.db.core.Storage');
 goog.require('ydn.db.core.DbOperator');
 goog.require('ydn.db.crud.Storage');
-goog.require('ydn.math.Expression');
 
 
 
@@ -51,35 +50,14 @@ ydn.db.core.Storage = function(opt_dbname, opt_schema, opt_options) {
 goog.inherits(ydn.db.core.Storage, ydn.db.crud.Storage);
 
 
-///**
-// * @override
-// */
-//ydn.db.core.Storage.prototype.newTxQueue = function(thread, scope_name) {
-//  thread = thread || this.thread;
-//  return new ydn.db.core.DbOperator(this, thread, this.ptx_no++,
-//      this.schema, scope_name);
-//};
-
-
 /**
- * @inheritDoc
+ * @return {ydn.db.crud.req.IRequestExecutor}
  */
 ydn.db.core.Storage.prototype.newExecutor = function() {
-
   var type = this.getType();
-  if (type == ydn.db.base.Mechanisms.IDB) {
-    return new ydn.db.core.req.IndexedDb(this.db_name, this.schema);
-  } else if (type == ydn.db.base.Mechanisms.WEBSQL) {
-    return new ydn.db.core.req.WebSql(this.db_name, this.schema);
-  } else if (type == ydn.db.base.Mechanisms.MEMORY_STORAGE ||
-      type == ydn.db.base.Mechanisms.USER_DATA ||
-      type == ydn.db.base.Mechanisms.LOCAL_STORAGE ||
-      type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
-    return new ydn.db.core.req.SimpleStore(this.db_name, this.schema);
-  } else {
-    throw new ydn.db.InternalError('No executor for ' + type);
-  }
-
+  goog.asserts.assertString(type, 'no connected?');
+  return ydn.db.core.Storage.getExecutor(this.db_name, this.schema,
+      type);
 };
 
 

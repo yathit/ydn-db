@@ -1,4 +1,4 @@
-<project name="ydn-db" basedir="." default="compile-core">
+<project name="ydn-db" basedir="." default="build">
     <dirname property="ydn-db.dir" file="${ant.file.ydn-db}"/>
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
@@ -50,258 +50,7 @@
             </fileset>
         </copy>
     </target>
-    <macrodef name="compile" description="main compilation routine">
-        <attribute name="debug" default="false"/>
-        <attribute name="feature" default=""/>
-        <attribute name="base-module" default="core"/>
-        <attribute name="mechanisms" default="iswu"/>
-        <attribute name="input.fn" default="${ydn-db.dir}/config/@{base-module}-@{mechanisms}.js"/>
-        <attribute name="output.fn" default="${ydn-db.dir}/jsc/ydn.db-@{mechanisms}-@{base-module}@{feature}.js"/>
-        <element name="exopt" optional="yes"/>
-        <sequential>
-            <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                             base.dir="${ydn-db.dir}/src/"
-                             input="@{input.fn}"
-                             debug="@{debug}"
-                             input.dir="${ydn-db.dir}/src/"
-                             output.fn="@{output.fn}">
-                <options>
-                    <arg line='-p "${ydn-base.dir}/src"'/>
-                    <arg line='-f "--externs=${ydn-db.dir}/externs/misc.js"'/>
-                    <arg line='-f "--externs=${ydn-db.dir}/externs/schema.js"'/>
-                    <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
-                    <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
-                    <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
-                    <arg line='-f "--externs=${ydn-base.dir}/externs/gapi.js"'/>
-                    <arg line='-f "--only_closure_dependencies"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.Storage@{mechanisms}"'/>
-                    <arg line='-f "--define=ydn.db.version=${quoted-version}"'/>
-                    <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
-                    <arg line='-f "--source_map_format=V3"'/>
-                    <arg line='-f "--create_source_map=@{output.fn}.map"'/>
-                    <exopt/>
-                </options>
-            </closure-compile>
 
-            <replace description="replace so with online repo path"
-                     file="@{output.fn}.map"
-                     token="${work.dir}/ydn-base/"
-                     value="https://bitbucket.org/ytkyaw/ydn-base/raw/${version}/"/>
-            <replace description="replace so with online repo path"
-                     file="@{output.fn}.map"
-                     token="${work.dir}/ydn-db/"
-                     value="https://bitbucket.org/ytkyaw/ydn-db/raw/${version}/"/>
-            <replace description="replace so with online repo path"
-                     file="@{output.fn}.map"
-                     token="${work.dir}/closure-library/"
-                     value="https://raw.github.com/yathit/google-closure-library/master/"/>
-
-        </sequential>
-    </macrodef>
-    <macrodef name="test-compile" description="main compilation routine">
-        <attribute name="input.fn" default="${ydn-db.dir}/src/ydn/db/utils/shoper.js"/>
-        <attribute name="output.fn" default="${ydn-db.dir}/jsc/hi.js"/>
-        <element name="ex.opt" optional="yes"/>
-        <sequential>
-            <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
-                             base.dir="${ydn-db.dir}/src/"
-                             input="@{input.fn}"
-                             debug="false"
-                             input.dir="${ydn-db.dir}/src/"
-                             output.fn="@{output.fn}">
-                <options>
-                    <arg line='-p "${ydn-base.dir}/src"'/>
-                    <arg line='-f "--externs=${ydn-db.dir}/externs/misc.js"'/>
-                    <arg line='-f "--externs=${ydn-db.dir}/externs/schema.js"'/>
-                    <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
-                    <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
-                    <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
-                    <arg line='-f "--externs=${ydn-base.dir}/externs/gapi.js"'/>
-                    <arg line='-f "--only_closure_dependencies"'/>
-                    <arg line='-f "--closure_entry_point=ydn.Shoper"'/>
-                    <ex.opt/>
-                </options>
-            </closure-compile>
-        </sequential>
-    </macrodef>
-    <macrodef name="crud" description="compile CRUD module">
-        <element name="module-option" optional="yes"/>
-        <attribute name="postfix" default=""/>
-        <sequential>
-            <compile
-                    input.dir="${ydn-db.dir}/src/ydn/db/crud"
-                    input.fn="${ydn-db.dir}/src/config/crud.js"
-                    output.dir="${ydn-db.dir}/jsc"
-                    output.fn="${buildno}-ydn.db-crud@{postfix}.js"
-                    closure.entry="ydn.db.crud.Storage">
-                <ex.opt>
-                    <arg line='-p "${ydn-db.dir}/src/ydn/db/crud"'/>
-                    <arg line='-p "${ydn-db.dir}/src/ydn/db/tr"'/>
-                    <module-option/>
-                </ex.opt>
-            </compile>
-
-        </sequential>
-    </macrodef>
-    <target name="crud-isw"
-            description="generates compiled files for crud distribution">
-        <mkdir dir="${ydn-db.dir}/jsc"/>
-        <sequential>
-            <compile base-module="crud" mechanisms="isw" feature="-e">
-                <exopt>
-                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
-                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="isw">
-                <exopt>
-                </exopt>
-            </compile>
-        </sequential>
-
-    </target>
-    <target name="crud"
-            description="generates compiled files for crud distribution">
-        <mkdir dir="${ydn-db.dir}/jsc"/>
-        <sequential>
-            <compile base-module="crud" mechanisms="is"/>
-            <compile base-module="crud" mechanisms="is" feature="-e">
-                <exopt>
-                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="is" debug="true" feature="-e-dev">
-                <exopt>
-                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
-                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
-                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="s"/>
-            <compile base-module="crud" mechanisms="s" debug="true" feature="-dev">
-                <exopt>
-                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="i"/>
-            <compile base-module="crud" mechanisms="i" feature="-e">
-                <exopt>
-                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="i" debug="true" feature="-e-dev">
-                <exopt>
-                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
-                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="i" debug="true" feature="-dev">
-                <exopt>
-                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="isw"/>
-            <compile base-module="crud" mechanisms="isw" debug="true" feature="-dev">
-                <exopt>
-                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="isw" debug="true" feature="-e-dev">
-                <exopt>
-                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
-                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud">
-            </compile>
-            <compile base-module="crud"  mechanisms="iswu"  feature="-e">
-                <exopt>
-                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
-                    <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="iswu"  debug="true" feature="-e-dev">
-                <exopt>
-                    <arg line='-i "${ydn-db.dir}/src/ydn/db/tr/event_installer.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.db.tr.events"'/>
-                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
-                    <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
-                </exopt>
-            </compile>
-            <compile base-module="crud" mechanisms="wu"  debug="true" feature="-dev">
-                <exopt>
-                    <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
-                    <arg line='-f "--closure_entry_point=ydn.base.debug"'/>
-                    <arg line='-f "--define=ydn.json.POLY_FILL=true"'/>
-                </exopt>
-            </compile>
-        </sequential>
-    </target>
-    <target name="testc"
-            description="generates compiled files for crud distribution">
-
-        <sequential>
-            <test-compile></test-compile>
-        </sequential>
-    </target>
-
-
-    <macrodef name="core" description="compile core module">
-        <element name="module-option" optional="yes"/>
-        <attribute name="postfix" default=""/>
-        <sequential>
-            <compile
-                    input.dir="${ydn-db.dir}/src/ydn/db/core"
-                    input.fn="${ydn-db.dir}/src/config/core.js"
-                    output.dir="${ydn-db.dir}/jsc"
-                    output.fn="${buildno}-ydn.db-core@{postfix}.js"
-                    closure.entry="ydn.db.core.Storage">
-                <ex.opt>
-                    <arg line='-p "${ydn-db.dir}/src/ydn/db/core"'/>
-                    <arg line='-p "${ydn-db.dir}/src/ydn/db/crud"'/>
-                    <arg line='-p "${ydn-db.dir}/src/ydn/db/algo"'/>
-                    <arg line='-p "${ydn-db.dir}/src/ydn/db/tr"'/>
-                    <module-option/>
-                </ex.opt>
-            </compile>
-
-        </sequential>
-    </macrodef>
-
-    <target name="compile-core" description="generates compiled files for client js">
-        <mkdir dir="${ydn-db.dir}/jsc"/>
-        <core></core>
-    </target>
-    <target name="compile-core-idb"
-            description="generates compiled files for core Indexeddb only distribution">
-        <core postfix="-idb">
-            <module-option>
-                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
-                <arg line='-f "--define=ydn.db.base.NO_WEBSQL=true"'/>
-            </module-option>
-        </core>
-    </target>
-    <target name="compile-core-db"
-            description="generates compiled files for core database only distribution">
-        <core postfix="-db">
-            <module-option>
-                <arg line='-f "--define=ydn.db.base.NO_SIMPLE=true"'/>
-            </module-option>
-        </core>
-    </target>
 
     <target name="gen-all-test-js" description="generate all test js">
         <gen-js-test base.dir="${ydn-db.dir}/test" ext="db"></gen-js-test>
@@ -342,9 +91,55 @@
             <arg line="--directory=${work.dir}/ydn-dev/out/ydn-db/docs"/>
         </java>
     </target>
+    <macrodef name="adv-comp">
+        <attribute name="input.fn"/>
+        <attribute name="input.dir" default="${ydn-db.dir}/src"/>
+        <attribute name="output.fn"/>
+        <attribute name="output.dir" default="${ydn-db.dir}/jsc"/>
+        <attribute name="closure.entry"/>
+        <element name="exjs.dir" optional="yes"/>
+        <element name="ex.opt" optional="yes"/>
+        <sequential>
+            <closure-compile compilationlevel="ADVANCED_OPTIMIZATIONS"
+                             base.dir="@{input.dir}"
+                             input="@{input.fn}"
+                             input.dir="@{input.dir}"
+                             output.fn="@{output.dir}/@{output.fn}">
+                <options>
+                    <arg line='-p "${ydn-base.dir}/src"'/>
+                    <exjs.dir/>
+                    <arg line='-f "--externs=${ydn-db.dir}/externs/misc.js"'/>
+                    <arg line='-f "--externs=${ydn-db.dir}/externs/schema.js"'/>
+                    <arg line='-f "--externs=${ydn-db.dir}/externs/websql.js"'/>
+                    <arg line='-f "--externs=${ydn-base.dir}/externs/misc.js"'/>
+                    <arg line='-f "--externs=${ydn-base.dir}/externs/atom.js"'/>
+                    <arg line='-f "--externs=${ydn-base.dir}/externs/gapi.js"'/>
+                    <arg line='-f "--closure_entry_point=ydn.db.Storage.main_entry"'/>
+                    <arg line='-f "--define=ydn.db.version=${quoted-version}"'/>
+                    <arg line='-f "--define=goog.DEBUG=true"'/>
+                    <arg line='-f "--output_wrapper=${outputwrapper.norun}"'/>
+                    <ex.opt/>
+                </options>
+            </closure-compile>
+        </sequential>
+    </macrodef>
+
+    <target name="compile-main"
+            description="generates compiled files for crud distribution">
+        <mkdir dir="${ydn-db.dir}/jsc"/>
+        <sequential>
+            <adv-comp
+                    input.fn="${ydn-db.dir}/config/core.js"
+                    output.dir="${ydn-db.dir}/jsc"
+                    output.fn="ydn.db-dev.js"
+                    closure.entry="ydn.db.crud.Storage">
+
+            </adv-comp>
+
+        </sequential>
+    </target>
     <target name="build" description="build all distributions"
-            depends="crud,compile-core,
-            compile-core-db,compile-core-idb">
+            depends="deps,compile-main">
 
     </target>
 </project>

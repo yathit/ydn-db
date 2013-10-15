@@ -477,8 +477,9 @@ ydn.db.con.Storage.prototype.getType = function() {
  * @param {ydn.db.events.StorageEvent} ev event.
  */
 ydn.db.con.Storage.prototype.onReady = function(ev) {
+  var me = this;
   setTimeout(function() {
-    this.dispatchDbEvent(ev);
+    me.dispatchDbEvent(ev);
   }, 10);
 };
 

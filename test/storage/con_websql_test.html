@@ -14,7 +14,12 @@
 	    goog.require('goog.testing.ContinuationTestCase');
 	    goog.require('goog.testing.jsunit');
       options = {mechanisms: ['websql']};
+        goog.require('ydn.db.crud.Storage');
+        goog.require('goog.events.EventTarget');
     </script>
+    <script type="text/javascript" src="../../src/ydn/db/tr/inject.js"></script>
+    <script type="text/javascript" src="../../src/ydn/db/tr/event_installer.js"></script>
+    <script type="text/javascript" src="../../src/ydn/db/crud/inject.js"></script>
 	<script type="text/javascript" src="con_test.js"></script>
 
 </body>

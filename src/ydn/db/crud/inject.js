@@ -1,7 +1,3 @@
-/**
- * @license Copyright 2012 YDN Authors, Yathit. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");.
- */
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,15 +12,15 @@
 
 
 /**
- * @fileoverview Injdect request executor for IndexedDB, WebSql, WebStorage
- * and UserData.
+ * @fileoverview Inject request executors.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.crud.Storage.s');
-goog.require('ydn.db.tr.Storage.s');
+goog.provide('ydn.db.crud.Storage.inject_executor');
 goog.require('ydn.db.crud.Storage');
+goog.require('ydn.db.crud.req.IndexedDb');
+goog.require('ydn.db.crud.req.SimpleStore');
 goog.require('ydn.db.crud.req.WebSql');
 
 
@@ -35,8 +31,15 @@ goog.require('ydn.db.crud.req.WebSql');
  * @return {!ydn.db.crud.req.IRequestExecutor}
  */
 ydn.db.crud.Storage.getExecutor = function(db_name, schema, type) {
-  if (type == ydn.db.base.Mechanisms.WEBSQL) {
+  if (type == ydn.db.base.Mechanisms.IDB) {
+    return new ydn.db.crud.req.IndexedDb(db_name, schema);
+  } else if (type == ydn.db.base.Mechanisms.WEBSQL) {
     return new ydn.db.crud.req.WebSql(db_name, schema);
+  } else if (type == ydn.db.base.Mechanisms.MEMORY_STORAGE ||
+      type == ydn.db.base.Mechanisms.LOCAL_STORAGE ||
+      type == ydn.db.base.Mechanisms.USER_DATA ||
+      type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
+    return new ydn.db.crud.req.SimpleStore(db_name, schema);
   } else {
     throw new ydn.db.InternalError('No executor for ' + type);
   }
