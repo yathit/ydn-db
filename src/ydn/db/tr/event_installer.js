@@ -94,5 +94,3 @@ ydn.db.tr.Storage.prototype.dispatchDbEvent = function(event) {
   this.getEventTarget().dispatchEvent(event);
 };
 
-goog.exportProperty(goog.events.EventTarget.prototype, 'addEventListener',
-    goog.events.EventTarget.prototype.addEventListener);
