@@ -49,38 +49,6 @@ ydn.db.sql.Storage = function(opt_dbname, opt_schema, opt_options) {
 };
 goog.inherits(ydn.db.sql.Storage, ydn.db.core.Storage);
 
-//
-///**
-// * @override
-// */
-//ydn.db.sql.Storage.prototype.newTxQueue = function(thread, scope_name) {
-//  thread = thread || this.thread;
-//  return new ydn.db.sql.DbOperator(this, thread, this.ptx_no++,
-//      this.schema, scope_name);
-//};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.sql.Storage.prototype.newExecutor = function() {
-
-  var type = this.getType();
-  if (type == ydn.db.base.Mechanisms.IDB) {
-    return new ydn.db.sql.req.IndexedDb(this.db_name, this.schema);
-  } else if (type == ydn.db.base.Mechanisms.WEBSQL) {
-    return new ydn.db.sql.req.WebSql(this.db_name, this.schema);
-  } else if (type == ydn.db.base.Mechanisms.MEMORY_STORAGE ||
-      type == ydn.db.base.Mechanisms.LOCAL_STORAGE ||
-      type == ydn.db.base.Mechanisms.USER_DATA ||
-      type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
-    return new ydn.db.sql.req.SimpleStore(this.db_name, this.schema);
-  } else {
-    throw new ydn.db.InternalError('No executor for ' + type);
-  }
-
-};
-
 
 /**
  *

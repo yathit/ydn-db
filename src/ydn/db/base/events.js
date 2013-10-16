@@ -36,6 +36,8 @@ ydn.db.events.Types = {
  * @param {Object=} event_target target.
  * @extends {goog.events.Event}
  * @constructor
+ * @struct
+ * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
 ydn.db.events.Event = function(event_type, event_target) {
   goog.base(this, event_type, event_target);
@@ -69,6 +71,8 @@ ydn.db.events.Event.prototype.getStoreName = function() {
  * @param {Object} old_schema old schema read from the database.
  * @extends {ydn.db.events.Event}
  * @constructor
+ * @struct
+ * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
 ydn.db.events.StorageEvent = function(event_type, event_target, version,
                                       old_version, old_schema) {
@@ -142,6 +146,7 @@ ydn.db.events.StorageEvent.prototype.getOldSchema = function() {
  * @param {ydn.db.events.Types=} opt_type default to error.
  * @extends {ydn.db.events.Event}
  * @constructor
+ * @struct
  */
 ydn.db.events.StorageErrorEvent = function(event_target, error, opt_type) {
   var type = opt_type || ydn.db.events.Types.ERROR;
@@ -179,6 +184,7 @@ ydn.db.events.StorageErrorEvent.prototype.getError = function() {
  * @param {Error} error error object in case of error.
  * @extends {ydn.db.events.StorageErrorEvent}
  * @constructor
+ * @struct
  */
 ydn.db.events.StorageFailEvent = function(event_target, error) {
   goog.base(this, event_target, error, ydn.db.events.Types.FAIL);
@@ -193,6 +199,7 @@ goog.inherits(ydn.db.events.StorageFailEvent, ydn.db.events.StorageErrorEvent);
 ydn.db.events.StorageFailEvent.prototype.name = 'FailEvent';
 
 
+
 /**
  *
  * @param {ydn.db.events.Types} event_type  type.
@@ -202,6 +209,7 @@ ydn.db.events.StorageFailEvent.prototype.name = 'FailEvent';
  * @param {*} value source.
  * @extends {ydn.db.events.Event}
  * @constructor
+ * @struct
  */
 ydn.db.events.RecordEvent = function(event_type, event_target, store_name, key,
                                      value) {
@@ -262,6 +270,7 @@ ydn.db.events.RecordEvent.prototype.getValue = function() {
  * @param {Array=} opt_values source.
  * @extends {ydn.db.events.Event}
  * @constructor
+ * @struct
  */
 ydn.db.events.StoreEvent = function(event_type, event_target, store_name, keys,
                                     opt_values) {

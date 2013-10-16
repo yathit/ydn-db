@@ -8,6 +8,7 @@
 
 
 goog.provide('ydn.db.con.exports');
+goog.require('ydn.base.exports');
 goog.require('ydn.db');
 goog.require('ydn.db.con.Storage');
 

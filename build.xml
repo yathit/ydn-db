@@ -20,7 +20,7 @@
             var buildno = toChar(major) + toChar(minor) + toChar(patch);
             project.setProperty("buildno", buildno);
             ]]></script>
-    <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc"/>
+    <property name="out.dir" location="${work.dir}/ydn-dev/public/jsc/ydn-db/"/>
 
     <property name="quoted-version" value="'${version}'"/>
 

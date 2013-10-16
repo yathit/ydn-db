@@ -121,17 +121,6 @@ ydn.db.crud.Storage.prototype.getCoreOperator = function() {
 
 
 /**
- * @return {ydn.db.crud.req.IRequestExecutor}
-*/
-ydn.db.crud.Storage.prototype.newExecutor = function() {
-  var type = this.getType();
-  goog.asserts.assertString(type, 'no connected?');
-  return ydn.db.crud.Storage.getExecutor(this.db_name, this.schema,
-      type);
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.crud.Storage.prototype.add = function(store, value, opt_key) {

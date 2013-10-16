@@ -51,17 +51,6 @@ goog.inherits(ydn.db.core.Storage, ydn.db.crud.Storage);
 
 
 /**
- * @return {ydn.db.crud.req.IRequestExecutor}
- */
-ydn.db.core.Storage.prototype.newExecutor = function() {
-  var type = this.getType();
-  goog.asserts.assertString(type, 'no connected?');
-  return ydn.db.core.Storage.getExecutor(this.db_name, this.schema,
-      type);
-};
-
-
-/**
  * Create a new operator.
  * @inheritDoc
  */
