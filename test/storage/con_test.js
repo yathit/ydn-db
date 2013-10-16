@@ -165,7 +165,7 @@ var test_21_add_store = function() {
 /**
 * Assert the two schema are similar
 * @param {ydn.db.schema.Database} schema
-* @param {ydn.db.schema.Database|DatabaseSchema} schema_json
+* @param {DatabaseSchema} schema_json
 */
 var assert_similar_schema = function(schema, schema_json) {
   //console.log(['testing ', schema, schema_json]);
@@ -174,9 +174,9 @@ var assert_similar_schema = function(schema, schema_json) {
   for (var i = 0; i < schema.stores.length; i++) {
     var store = schema.stores[i];
     var store_json = stores[i];
-    assertEquals(i + ': name', store.name, store_json.name);
+    assertEquals(i + ': name', store.getName(), store_json.name);
     if (store_json.type && store.type) {
-      assertEquals(i + ': type', store.type, store_json.type);
+      assertEquals(i + ': type', store.getType(), store_json.type);
     }
 
     if (store.keyPath) {
@@ -222,9 +222,9 @@ var schema_sniff_test = function(schema) {
     function() { return t1_fired; },
     // Continuation
     function() {
-      console.log([schema_json, sniff_schema]);
+      // console.log([schema_json, sniff_schema]);
       //assertTrue(schema.similar(sniff_schema));
-      assert_similar_schema(schema_json, sniff_schema);
+      assert_similar_schema(new ydn.db.schema.Database(schema_json), sniff_schema);
       reachedFinalContinuation = true;
       var type = db.getType();
       db.close();
