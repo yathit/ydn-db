@@ -177,6 +177,13 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @protected
    */
   this.event_target = null;
+
+  /**
+   * On ready handler.
+   * @type {goog.async.Deferred}
+   * @private
+   */
+  this.df_on_ready_ = new goog.async.Deferred();
 };
 
 
@@ -399,7 +406,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
         // dispatch asynchroniously so that any err on running db request
         // are not caught under deferred object.
 
-        me.onReady(ev);
+        me.dispatchReady(ev);
         me.popTxQueue_();
       }, 10);
 
@@ -408,7 +415,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
       me.logger.warning(me + ': database connection fail ' + ev.name);
       setTimeout(function() {
         var event = new ydn.db.events.StorageFailEvent(me, ev);
-        me.dispatchDbEvent(event);
+        me.dispatchReady(event);
         me.purgeTxQueue_(ev);
       }, 10);
       df.errback(ev);
@@ -436,8 +443,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
     var e = new ydn.error.ConstraintError('No storage mechanism found.');
 
-    var event = new ydn.db.events.StorageEvent(ydn.db.events.Types.READY, this,
-        NaN, NaN, e);
+    var event = new ydn.db.events.StorageFailEvent(this, e);
     resolve(false, event);
   } else {
 
@@ -473,14 +479,29 @@ ydn.db.con.Storage.prototype.getType = function() {
 
 
 /**
- * Handle ready event by dispatching 'ready' event.
- * @param {ydn.db.events.StorageEvent} ev event.
+ * Add handler on database ready event.
+ * @param {function(this: T, Error?)} cb in case of database fail to open, invoke with
+ * the error, otherwise null.
+ * @param {T=} opt_scope
+ * @template T
  */
-ydn.db.con.Storage.prototype.onReady = function(ev) {
-  var me = this;
-  setTimeout(function() {
-    me.dispatchDbEvent(ev);
-  }, 10);
+ydn.db.con.Storage.prototype.onReady = function(cb, opt_scope) {
+  this.df_on_ready_.addBoth(cb, opt_scope);
+};
+
+
+/**
+ * Handle ready event by dispatching 'ready' event.
+ * @param {ydn.db.events.Event} ev event.
+ */
+ydn.db.con.Storage.prototype.dispatchReady = function(ev) {
+  if (ev instanceof ydn.db.events.StorageErrorEvent) {
+    var err = /** @type {ydn.db.events.StorageErrorEvent} */ (ev);
+    this.df_on_ready_.errback(err.error);
+  } else {
+    this.df_on_ready_.callback();
+  }
+  this.dispatchDbEvent(ev);
 };
 
 

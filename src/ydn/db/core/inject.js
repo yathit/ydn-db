@@ -25,23 +25,21 @@ goog.require('ydn.db.core.req.WebSql');
 
 
 /**
- * @param {string} db_name
- * @param {!ydn.db.schema.Database} schema
- * @param {string} type
  * @return {!ydn.db.core.req.IRequestExecutor}
  */
-ydn.db.core.Storage.getExecutor = function(db_name, schema, type) {
+ydn.db.core.Storage.prototype.newExecutor = function() {
+  var type = this.getType();
   if (type == ydn.db.base.Mechanisms.IDB) {
-    return new ydn.db.core.req.IndexedDb(db_name, schema);
+    return new ydn.db.core.req.IndexedDb(this.db_name, this.schema);
   } else if (type == ydn.db.base.Mechanisms.WEBSQL) {
-    return new ydn.db.core.req.WebSql(db_name, schema);
+    return new ydn.db.core.req.WebSql(this.db_name, this.schema);
   } else if (type == ydn.db.base.Mechanisms.MEMORY_STORAGE ||
       type == ydn.db.base.Mechanisms.LOCAL_STORAGE ||
       type == ydn.db.base.Mechanisms.USER_DATA ||
       type == ydn.db.base.Mechanisms.SESSION_STORAGE) {
-    return new ydn.db.core.req.SimpleStore(db_name, schema);
+    return new ydn.db.core.req.SimpleStore(this.db_name, this.schema);
   } else {
-    throw new ydn.db.InternalError('No executor for ' + type);
+    throw new ydn.debug.error.InternalError('No executor for ' + type);
   }
 };
 

@@ -4,7 +4,7 @@
  */
 
 
-goog.provide('ydn.tr.events.exports');
+goog.provide('ydn.db.tr.events.exports');
 goog.require('ydn.db.tr.events');
 
 

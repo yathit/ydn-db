@@ -157,6 +157,14 @@ goog.inherits(ydn.db.events.StorageErrorEvent, ydn.db.events.Event);
 
 
 /**
+ * @return {string}
+ */
+ydn.db.events.StorageErrorEvent.prototype.toString = function() {
+  return this.name + ':' + (this.error ? this.error : '');
+};
+
+
+/**
  * @type {string}
  */
 ydn.db.events.StorageErrorEvent.prototype.name = 'ErrorEvent';
