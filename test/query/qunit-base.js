@@ -1,7 +1,7 @@
 
 var options = {}; // options = {mechanisms: ['websql']};
-if (/log/.test(location.hash)) {
-  if (/ui/.test(location.hash)) {
+if (/log/.test(location.search)) {
+  if (/ui/.test(location.search)) {
     if (ydn.debug && ydn.debug.log) {
       var div = document.createElement('div');
       document.body.appendChild(div);
@@ -11,19 +11,20 @@ if (/log/.test(location.hash)) {
     }
   } else {
     if (ydn.debug && ydn.debug.log) {
-      ydn.debug.log('ydn.db', 'finest');
+      ydn.debug.log('ydn.db', 'finer');
     } else {
       console.log('no logging facility');
     }
   }
 }
-if (/websql/.test(location.hash)) {
+if (/websql/.test(location.search)) {
   options['mechanisms'] = ['websql'];
 }
-if (/localstorage/.test(location.hash)) {
+if (/localstorage/.test(location.search)) {
   options['mechanisms'] = ['localstorage'];
 }
 
+// ydn.debug.log('ydn.db.con.WebSql', 'finer');
 
 QUnit.config.testTimeout = 2000;
 QUnit.config.reorder = false;

@@ -1,6 +1,3 @@
-
-
-
 (function() {
 
   var db_name = 'test_query_count';
@@ -11,7 +8,8 @@
       {
         name: store_inline,
         keyPath: 'id'
-      }, {
+      },
+      {
         name: store_inline_index,
         keyPath: 'id',
         type: 'NUMERIC',
@@ -116,8 +114,6 @@
 })();
 
 
-
-
 (function() {
 
   var db_name = 'test_query_to_list-1';
@@ -159,10 +155,10 @@
 
   var db;
   var test_env = {
-    setup: function () {
+    setup: function() {
       db = new ydn.db.Storage(db_name, schema_1, options);
     },
-    teardown: function () {
+    teardown: function() {
       var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db_name, type);
@@ -197,7 +193,6 @@
 })();
 
 
-
 (function() {
 
   var db_name = 'test_query_to_list-2';
@@ -211,7 +206,6 @@
     ]
   };
   var test_count = 0;
-  var df = $.Deferred();
 
   var objs = [
     {test: 't' + Math.random(), value: 4, id: 0, name: 'a', tags: ['a', 'b']},
@@ -224,25 +218,18 @@
     {test: 't' + Math.random(), value: 2, id: 6, name: 'c', tags: ['a']}
   ];
 
-  // persist store data.
-  (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1, options);
-    _db.clear(store_inline_index);
-    _db.put(store_inline_index, objs).always(function() {
-      _db.close();
-      setTimeout(function() {
 
-        df.resolve();
-      }, 100);
-    });
-  })();
+  var db = new ydn.db.Storage(db_name, schema_1, options);
+  db.clear(store_inline_index);
+  db.put(store_inline_index, objs).always(function() {
 
-  var db;
+  });
+
+
   var test_env = {
-    setup: function () {
-      db = new ydn.db.Storage(db_name, schema_1, options);
+    setup: function() {
     },
-    teardown: function () {
+    teardown: function() {
       var type = db.getType();
       db.close();
       ydn.db.deleteDatabase(db_name, type);
@@ -251,27 +238,27 @@
 
   module('query,list-key', test_env);
   reporter.createTestSuite('query');
-  var keys = objs.map(function(x) {return x.id;});
+  var keys = objs.map(function(x) {
+    return x.id;
+  });
   asyncTest('primary keys by key range', 3, function() {
-    df.always(function() {
 
-      var q = db.from(store_inline_index, '>=', 1, '<=', 3);
-      q.select('id').list().always(function(x) {
-        // console.log(x, keys.slice(1, 4))
-        deepEqual(x, keys.slice(1, 4), 'closed bound');
-      });
-
-      q.copy().reverse().select('id').list().always(function(x) {
-        var exp = keys.slice(1, 4).reverse();
-        deepEqual(x, exp, 'closed bound reverse');
-      });
-
-      q.copy().select('id').list(1).always(function(x) {
-        deepEqual(x, keys.slice(1, 2), 'closed bound limit');
-        start();
-      });
-
+    var q = db.from(store_inline_index, '>=', 1, '<=', 3);
+    q.select('id').list().always(function(x) {
+      // console.log(x, keys.slice(1, 4))
+      deepEqual(x, keys.slice(1, 4), 'closed bound');
     });
+
+    q.copy().reverse().select('id').list().always(function(x) {
+      var exp = keys.slice(1, 4).reverse();
+      deepEqual(x, exp, 'closed bound reverse');
+    });
+
+    q.copy().select('id').list(1).always(function(x) {
+      deepEqual(x, keys.slice(1, 2), 'closed bound limit');
+      start();
+    });
+
   });
 
 })();
@@ -279,7 +266,7 @@
 
 (function() {
 
-  var db_name = 'test_query_to_list-4';
+  var db_name = 'test_query_to_list-order-4';
   var store_inline_index = 'ts6';    // in-line key store
   var schema_1 = {
     stores: [
@@ -296,7 +283,6 @@
     ]
   };
   var test_count = 0;
-  var df = $.Deferred();
 
   var objs = [
     {test: 't' + Math.random(), value: 4, id: 0, name: 'a', tags: ['a', 'b']},
@@ -313,29 +299,20 @@
         a.id > b.id ? 1 : a.id < b.id ? -1 : 0;
   };
 
-  // persist store data.
-  (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1, options);
-    _db.clear(store_inline_index);
-    _db.put(store_inline_index, objs);
+  var df = $.Deferred();
+  var db = new ydn.db.Storage(db_name, schema_1, options);
+  db.clear(store_inline_index);
+  db.put(store_inline_index, objs).always(function() {
+    df.resolve();
+  });
 
-    _db.count(store_inline_index).always(function() {
-      _db.close();
-      setTimeout(function() {
-        df.resolve();
-      }, 100);
-    });
-  })();
-
-  var db;
   var test_env = {
     setup: function() {
-      db = new ydn.db.Storage(db_name, schema_1, options);
     },
     teardown: function() {
       test_count++;
-      db.close();
       if (test_count == 2) {
+        db.close();
         var type = db.getType();
         ydn.db.deleteDatabase(db_name, type);
       }
@@ -347,7 +324,9 @@
   var sorted_objs = objs.slice().sort(function(a, b) {
     return a.value > b.value ? 1 : -1;
   });
-  var keys = objs.map(function(x) {return x.id;});
+  var keys = objs.map(function(x) {
+    return x.id;
+  });
 
 
   asyncTest('by index key range', 4, function() {
@@ -385,11 +364,13 @@
         });
       });
     });
+
+
   });
 
   asyncTest('ordering', 5, function() {
-    df.always(function() {
 
+    df.always(function() {
       var q = db.from(store_inline_index);
       q.list().always(function(x) {
         //console.log(q)
@@ -427,14 +408,12 @@
         deepEqual(x, [objs[2], objs[0], objs[1]], 'compound order');
         start();
       });
-
     });
+
   });
 
 
 })();
-
-
 
 
 (function() {
@@ -514,9 +493,6 @@
 })();
 
 
-
-
-
 (function() {
 
   var db_name = 'test_query_patch';
@@ -590,7 +566,9 @@
   var sorted_objs = objs.slice().sort(function(a, b) {
     return a.value > b.value ? 1 : -1;
   });
-  var keys = objs.map(function(x) {return x.id;});
+  var keys = objs.map(function(x) {
+    return x.id;
+  });
 
   asyncTest('single', 3, function() {
     var new_val = 'new-' + Math.random();
@@ -615,7 +593,8 @@
       q = db.from(store_inline_index, '=', 2);
       q.patch(['test', 'name'], [new_val, 'name']).always(function() {
         db.get(store_inline_index, 2).always(function(x) {
-          var obj = createPatch(2); obj.name = 'name';
+          var obj = createPatch(2);
+          obj.name = 'name';
           deepEqual(x, obj, 'by fields');
           start();
         });
