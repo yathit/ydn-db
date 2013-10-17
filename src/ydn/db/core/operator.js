@@ -20,6 +20,7 @@
 
 goog.provide('ydn.db.core.DbOperator');
 goog.require('ydn.db.Iterator');
+goog.require('ydn.db.algo.AbstractSolver');
 goog.require('ydn.db.core.IOperator');
 goog.require('ydn.db.core.req.IRequestExecutor');
 goog.require('ydn.db.crud.DbOperator');
