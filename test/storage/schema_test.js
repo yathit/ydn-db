@@ -12,7 +12,7 @@ var reachedFinalContinuation, schema, debug_console;
 
 
 var setUp = function () {
-  // ydn.debug.log('ydn.db', 'finest');
+   ydn.debug.log('ydn.db.con', 'finest');
   //ydn.db.con.IndexedDb.DEBUG = true;
   //ydn.db.con.IndexedDb.DEBUG = true;
   reachedFinalContinuation = false;
@@ -364,6 +364,65 @@ var test_composite_index_schema = function() {
   version_unchange_test(schema2, false, '2:');
   version_change_test(schema, schema2, false, '3:');
   version_change_test(schema2, schema, true, '4:');
+
+};
+
+var _test_data_lost_index_add = function() {
+  // only work in IndexedDB
+  var db_name = 'test_data_lost_index_add-1';
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id'
+    }]
+  };
+  var data = [{
+    id: 1,
+    value: 2
+  }, {
+    id: 2,
+    value: 1
+  }, {
+    id: 3,
+    value: 2
+  }];
+  var keys, done;
+
+  waitForCondition(
+      // Condition
+      function() { return done; },
+      // Continuation
+      function() {
+        // console.log([ver, oldVer, ver2, oldVer2]);
+        assertArrayEquals(keys, [1, 3]);
+
+        reachedFinalContinuation = true;
+
+      },
+      100, // interval
+      5000); // maxTimeout
+
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+  db.clear('st');
+  db.put('st', data);
+  db.close();
+  var schema2 = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [{
+        keyPath: 'value'
+      }]
+    }]
+  };
+  setTimeout(function() {
+    // make time to close the database, before schema change.
+    var db2 = new ydn.db.crud.Storage(db_name, schema2, options);
+    db2.keys('st', 'value', ydn.db.KeyRange.only(2)).addBoth(function(x) {
+      keys = x;
+      done = true;
+    });
+  }, 1000);
 
 };
 

@@ -788,11 +788,10 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     } else {
       action = 'Modify';
 
-      // TODO: use ALTER
+      // ALTER TABLE cannot run in WebSQL
       this.logger.warning(
           'table: ' + table_schema.getName() + ' has changed by ' + msg +
-          ' additionallly TABLE ALTERATION is not implemented, ' +
-          'dropping old table.');
+          ' ALTER TABLE cannot run in WebSql, dropping old table.');
       sqls.unshift('DROP TABLE IF EXISTS ' +
           goog.string.quote(table_schema.getName()));
     }
