@@ -465,6 +465,8 @@ var test_mutli_connection = function() {
         // console.log([ver, oldVer, ver2, oldVer2]);
         assertNotNullNorUndefined('version change event called', event_vc);
         assertNotNullNorUndefined('fail event called', event_fail);
+        var e = event_fail.getError();
+        assertEquals('fail event name', 'versionchange', e.name);
         assertArrayEquals(keys, [1, 3]);
 
         reachedFinalContinuation = true;
@@ -489,11 +491,11 @@ var test_mutli_connection = function() {
   };
   db.addEventListener('versionchange', function(e) {
     db.put('st', data);
-    console.log(e);
+    // console.log(e);
     event_vc = e;
   });
   db.addEventListener('fail', function(e) {
-    console.log(e);
+    // console.log(e);
     event_fail = e;
   });
   setTimeout(function() {

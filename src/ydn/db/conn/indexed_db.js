@@ -131,7 +131,9 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
           if (!event.defaultPrevented) {
             me.idx_db_.close();
             me.idx_db_ = null;
-            me.onFail(new Error(event.type));
+            var e = new Error();
+            e.name = event.type;
+            me.onFail(e);
           }
         }
       };
