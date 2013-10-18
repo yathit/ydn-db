@@ -96,3 +96,10 @@ ydn.db.con.IDatabase.prototype.onFail = goog.abstractMethod;
  */
 ydn.db.con.IDatabase.prototype.onError = goog.abstractMethod;
 
+
+/**
+ * On terminal failure.
+ * @type {Function}
+ */
+ydn.db.con.IDatabase.prototype.onVersionChange = goog.abstractMethod;
+

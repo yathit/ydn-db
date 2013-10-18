@@ -959,6 +959,12 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name, opt_type) {
 ydn.db.databaseDeletors.push(ydn.db.con.WebSql.deleteDatabase);
 
 
+/**
+ * @inheritDoc
+ */
+ydn.db.con.WebSql.prototype.onVersionChange = function(e) {};
+
+
 if (goog.DEBUG) {
   /**
    * @override

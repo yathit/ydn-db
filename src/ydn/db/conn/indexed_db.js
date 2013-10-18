@@ -127,9 +127,12 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
           me.idx_db_.onblocked = null;
           me.idx_db_.onerror = null;
           me.idx_db_.onversionchange = null;
-          me.idx_db_.close();
-          me.idx_db_ = null;
-          me.onFail(new Error(event.type));
+          me.onVersionChange(event);
+          if (!event.defaultPrevented) {
+            me.idx_db_.close();
+            me.idx_db_ = null;
+            me.onFail(new Error(event.type));
+          }
         }
       };
       df.callback(parseFloat(old_version));
@@ -150,7 +153,6 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
     var action = is_caller_setversion ? 'changing' : 'upgrading';
     me.logger.finer(action + ' version to ' + db.version +
         ' from ' + old_version);
-
 
     // create store that we don't have previously
     for (var i = 0; i < schema.stores.length; i++) {
@@ -190,7 +192,6 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
     // version could be number (new) or string (old).
     // casting is for old externs uncorrected defined as string
     // old version will think, version as description.
-
   }
 
   openRequest.onsuccess = function(ev) {
@@ -437,6 +438,12 @@ ydn.db.con.IndexedDb.prototype.onFail = function(e) {};
  * @inheritDoc
  */
 ydn.db.con.IndexedDb.prototype.onError = function(e) {};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.con.IndexedDb.prototype.onVersionChange = function(e) {};
 
 
 /**

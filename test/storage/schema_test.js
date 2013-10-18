@@ -12,7 +12,7 @@ var reachedFinalContinuation, schema, debug_console;
 
 
 var setUp = function () {
-   ydn.debug.log('ydn.db.con', 'finest');
+  // ydn.debug.log('ydn.db.con', 'finest');
   //ydn.db.con.IndexedDb.DEBUG = true;
   //ydn.db.con.IndexedDb.DEBUG = true;
   reachedFinalContinuation = false;
@@ -367,7 +367,11 @@ var test_composite_index_schema = function() {
 
 };
 
-var _test_data_lost_index_add = function() {
+var test_data_index_add = function() {
+  if (options.mechanisms[0] != 'indexeddb') {
+    reachedFinalContinuation = true;
+    return;
+  }
   // only work in IndexedDB
   var db_name = 'test_data_lost_index_add-1';
   var schema = {
@@ -397,6 +401,8 @@ var _test_data_lost_index_add = function() {
         assertArrayEquals(keys, [1, 3]);
 
         reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
 
       },
       100, // interval
@@ -426,6 +432,79 @@ var _test_data_lost_index_add = function() {
 
 };
 
+var test_mutli_connection = function() {
+  if (options.mechanisms[0] != 'indexeddb') {
+    reachedFinalContinuation = true;
+    return;
+  }
+  // only work in IndexedDB
+  var db_name = 'test_mutli_connection-2';
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id'
+    }]
+  };
+  var data = [{
+    id: 1,
+    value: 2
+  }, {
+    id: 2,
+    value: 1
+  }, {
+    id: 3,
+    value: 2
+  }];
+  var keys, done, event_vc, event_fail;
+
+  waitForCondition(
+      // Condition
+      function() { return done; },
+      // Continuation
+      function() {
+        // console.log([ver, oldVer, ver2, oldVer2]);
+        assertNotNullNorUndefined('version change event called', event_vc);
+        assertNotNullNorUndefined('fail event called', event_fail);
+        assertArrayEquals(keys, [1, 3]);
+
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, options.mechanisms[0]);
+        db.close();
+
+      },
+      100, // interval
+      5000); // maxTimeout
+
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+  db.clear('st');
+
+  var schema2 = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id',
+      indexes: [{
+        keyPath: 'value'
+      }]
+    }]
+  };
+  db.addEventListener('versionchange', function(e) {
+    db.put('st', data);
+    console.log(e);
+    event_vc = e;
+  });
+  db.addEventListener('fail', function(e) {
+    console.log(e);
+    event_fail = e;
+  });
+  setTimeout(function() {
+    // make time.
+    var db2 = new ydn.db.crud.Storage(db_name, schema2, options);
+    db2.keys('st', 'value', ydn.db.KeyRange.only(2)).addBoth(function(x) {
+      keys = x;
+      done = true;
+    });
+  }, 1000);
+};
 
 
 var testCase = new goog.testing.ContinuationTestCase();

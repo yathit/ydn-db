@@ -402,6 +402,14 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
         me.db_ = null; // database can no longer be used on fail.
       };
 
+
+      /**
+       * @param {Event} e event.
+       */
+      db.onVersionChange = function(e) {
+        me.dispatchDbEvent(e);
+      };
+
       setTimeout(function() {
         // dispatch asynchroniously so that any err on running db request
         // are not caught under deferred object.
@@ -764,13 +772,14 @@ ydn.db.con.Storage.prototype.addFullTextIndexer = function(store, option) {
  * @return {!Array.<string>} list of event types.
  */
 ydn.db.con.Storage.prototype.getEventTypes = function() {
-  return ['created', 'error', 'fail', 'ready', 'deleted', 'updated'];
+  return ['created', 'error', 'fail', 'ready', 'deleted', 'updated',
+    'versionchange'];
 };
 
 
 /**
  * Dispatch event if installed.
- * @param {goog.events.Event} event optional args.
+ * @param {goog.events.EventLike} event optional args.
  */
 ydn.db.con.Storage.prototype.dispatchDbEvent = function(event) {
 

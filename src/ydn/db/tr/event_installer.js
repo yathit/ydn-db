@@ -87,7 +87,6 @@ ydn.db.tr.Storage.prototype.addEventListener = function(type, handler,
 };
 
 
-
 /**
  * Removes an event listener from the event target. The handler must be the
  * same object as the one added. If the handler has not been added then

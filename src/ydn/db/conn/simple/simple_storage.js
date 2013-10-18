@@ -231,6 +231,12 @@ ydn.db.con.SimpleStorage.prototype.onError = function(e) {};
 /**
  * @inheritDoc
  */
+ydn.db.con.SimpleStorage.prototype.onVersionChange = function(e) {};
+
+
+/**
+ * @inheritDoc
+ */
 ydn.db.con.SimpleStorage.prototype.getType = function() {
   return 'memory';
 };
