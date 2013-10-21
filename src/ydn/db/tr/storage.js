@@ -138,14 +138,6 @@ ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
 
 
 /**
- * @return {ydn.db.crud.req.IRequestExecutor}
- */
-ydn.db.tr.Storage.prototype.newExecutor = function() {
-  throw new ydn.debug.error.InternalError('Request executor not injected');
-};
-
-
-/**
  * Create a new thread queue.
  * @param {ydn.db.tr.IThread.Policy} request_type thread policy.
  * @param {boolean=} opt_is_serial serial request.
