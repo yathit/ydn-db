@@ -16,7 +16,9 @@ var load_store_name = 'st_load';
 
 
 var setUp = function() {
-  // ydn.debug.log('ydn.db.crud.req.WebSql', 'finest');
+
+  ydn.json.POLY_FILL = true;
+  ydn.debug.log('ydn.db', 'finest');
   // ydn.db.crud.req.WebSql.DEBUG = true;
   // ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Serial.DEBUG = true;
@@ -161,7 +163,7 @@ var test_11_put = function() {
 
 
   db.put(table_name, {id: 'a', value: '1', remark: 'put test'}).addBoth(function(value) {
-    //console.log('receiving value callback.');
+    console.log('receiving value callback.');
     put_value = value;
     hasEventFired = true;
   });
