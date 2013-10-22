@@ -418,6 +418,7 @@ var test_onReady = function() {
     db.close();
     var db2 =  new ydn.db.crud.Storage(db_name, schema2, options);
     db2.onReady(function (x) {
+      console.log(x);
       e2 = x;
       done2 = true;
       db2.close();
