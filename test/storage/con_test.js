@@ -394,6 +394,51 @@ var test_fix_schema_ver_change = function() {
 
 };
 
+var test_onReady = function() {
+  var db_name = 'test_onReady';
+  var e1, e2, done1, done2;
+  var schema1 = {
+    version: 2,
+    stores: [
+      {
+        name: 'st'
+      }]
+  };
+  var schema2 = {
+    version: 1,
+    stores: [
+      {
+        name: 'st2'
+      }]
+  };
+  var db =  new ydn.db.crud.Storage(db_name, schema1, options);
+  db.onReady(function (x) {
+    e1 = x;
+    done1 = true;
+    db.close();
+    var db2 =  new ydn.db.crud.Storage(db_name, schema2, options);
+    db2.onReady(function (x) {
+      e2 = x;
+      done2 = true;
+      db2.close();
+    });
+  });
+
+  waitForCondition(
+      // Condition
+      function() { return done1 && done2; },
+      // Continuation
+      function() {
+        assertUndefined('event 1', e1);
+        assertNotNullNorUndefined('event 2', e2);
+        assertEquals('error event', 'error', e2.type);
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, options.mechanisms[0]);
+      },
+      100, // interval
+      3000); // maxTimeout
+};
+
 
 var testCase = new goog.testing.ContinuationTestCase();
 testCase.autoDiscoverTests();
