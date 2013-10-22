@@ -4,7 +4,7 @@
     "kyawtun@yathit.com"
   ],
   "description": "Javascript database module for IndexedDB, WebDatabase (WebSQL) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
-  "main": "jsc/ydn.db-jquery-0.7.16.js",
+  "main": "jsc/ydn.db-dev.js",
   "keywords": [
     "indexeddb",
     "websql",
