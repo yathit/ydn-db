@@ -19,8 +19,8 @@
 
 goog.provide('ydn.db.Storage');
 goog.require('ydn.db.Query');
-goog.require('ydn.db.core.Storage.inject_executor');
 goog.require('ydn.db.sql.Storage');
+goog.require('ydn.db.sql.Storage.inject');
 goog.require('ydn.db.tr.Storage.inject_db');
 goog.require('ydn.db.tr.events');
 

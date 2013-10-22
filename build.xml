@@ -124,6 +124,18 @@
             <concat destfile="@{output.dir}/@{output.fn}" append="true">
 //# sourceMappingURL=@{output.fn}.map
             </concat>
+            <replace description="replace so with online repo path"
+                     file="@{output.dir}/@{output.fn}.map"
+                     token="${work.dir}/ydn-base/"
+                     value="../../ydn-base/raw/master/"/>
+            <replace description="replace so with online repo path"
+                     file="@{output.dir}/@{output.fn}.map"
+                     token="${work.dir}/ydn-db/"
+                     value="../"/>
+            <replace description="replace so with online repo path"
+                     file="@{output.dir}/@{output.fn}.map"
+                     token="${work.dir}/closure-library/"
+                     value="../../closure-library/master/"/>
         </sequential>
 
     </macrodef>
@@ -140,6 +152,15 @@
             </adv-comp>
 
         </sequential>
+    </target>
+    <target name="github" description="push to github">
+        <echo>git branch github</echo>
+        <echo>ant compile-main</echo>
+        <echo>git add jsc/ydn.db-dev.js</echo>
+        <echo>git add jsc/ydn.db-dev.js.map</echo>
+        <echo>git commit -m 'update'</echo>
+        <echo>git push github github:master</echo>
+        <echo>git branch master</echo>
     </target>
     <target name="build" description="build all distributions"
             depends="deps,compile-main">

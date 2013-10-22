@@ -17,5 +17,4 @@ goog.require('ydn.debug.exports');
 
 
 goog.exportSymbol('ydn.db.Storage', ydn.db.Storage);
-goog.exportProperty(ydn.db.tr.Storage.prototype, 'addEventListener',
-    ydn.db.tr.Storage.prototype.addEventListener);
+

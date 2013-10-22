@@ -20,12 +20,12 @@
 
 
 goog.provide('ydn.db.tr.Storage.inject_db');
-goog.require('ydn.db.tr.Storage');
 goog.require('ydn.db.con.IndexedDb');
 goog.require('ydn.db.con.LocalStorage');
 goog.require('ydn.db.con.SessionStorage');
 goog.require('ydn.db.con.SimpleStorage');
 goog.require('ydn.db.con.WebSql');
+goog.require('ydn.db.tr.Storage');
 
 
 /**
