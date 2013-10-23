@@ -419,9 +419,12 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
   }
 
 
-  // every table must has a default field to store schemaless fields
-  sql += ' ,' + ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' +
-      ydn.db.schema.DataType.BLOB;
+  // table must has a default field to store schemaless fields, unless
+  // fixed table schema is used.
+  if (!table.isFixed()) {
+    sql += ' ,' + ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' +
+        ydn.db.schema.DataType.BLOB;
+  }
 
   var sqls = [];
   var sep = ', ';
