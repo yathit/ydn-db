@@ -699,8 +699,11 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
     for (var j = 0; j < store_schema.indexes.length; j++) {
       var index = store_schema.indexes[j];
 
-      this.logger.finest('Creating index: ' + index.getName() +
-          ' multiEntry: ' + index.multiEntry);
+      if (index.getType() == ydn.db.schema.DataType.BLOB) {
+        this.logger.info('Index ' + index + ' of blob data type ignored.');
+        continue;
+      }
+      this.logger.finest('Creating index: ' + index);
 
       if (index.unique || index.multiEntry) {
         var idx_options = {unique: index.unique, multiEntry: index.multiEntry};
@@ -711,8 +714,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
       }
     }
 
-    this.logger.finest('Created store: ' + store.name + ' keyPath: ' +
-        store.keyPath);
+    this.logger.finest('Created store: ' + store);
   }
 };
 

@@ -683,3 +683,17 @@ ydn.db.schema.Index.fromJSON = function(json) {
       json.multiEntry, json.name, json.generator);
 };
 
+
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.schema.Index.prototype.toString = function() {
+    var s = this.multiEntry ? 'MultiEntry' : '';
+    if (this.key_paths_ && this.key_paths_.length > 1) {
+      s += 'Compound';
+    }
+    return s + 'Index:' + this.index_name_;
+  };
+}
+
