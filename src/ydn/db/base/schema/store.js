@@ -1227,3 +1227,14 @@ ydn.db.schema.Store.prototype.getIndexName = function(index_name_or_key_path) {
   }
   return index.getName();
 };
+
+
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.schema.Store.prototype.toString = function() {
+    return 'Store:' + this.name_ + '[' + this.countIndex() + 'index]';
+  };
+}
+
