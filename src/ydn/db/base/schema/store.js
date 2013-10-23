@@ -650,6 +650,14 @@ ydn.db.schema.Store.prototype.getIndexByKeyPath = function(key_path) {
 
 
 /**
+ * @return {boolean} return true if store is fixed.
+ */
+ydn.db.schema.Store.prototype.isFixed = function() {
+  return this.fixed;
+};
+
+
+/**
  * @see #hasIndexByKeyPath
  * @param {string} name index name.
  * @return {boolean} return true if name is found in the index or primary

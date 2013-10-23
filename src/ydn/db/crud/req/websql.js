@@ -112,7 +112,8 @@ ydn.db.crud.req.WebSql.parseRow = function(row, store) {
         index.isComposite() || index.isMultiEntry()) {
       continue;
     }
-    if (index.getType() == ydn.db.schema.DataType.DATE) {
+    if (index.getType() == ydn.db.schema.DataType.DATE ||
+        store.isFixed()) { // fixed schema does not stored data in default blob
       // in JSON serialization, date lost type.
       var x = row[column_name];
       var v = ydn.db.schema.Index.sql2js(x, index.getType());
@@ -120,7 +121,6 @@ ydn.db.crud.req.WebSql.parseRow = function(row, store) {
         index.applyValue(value, v);
       }
     }
-
   }
 
   return value;

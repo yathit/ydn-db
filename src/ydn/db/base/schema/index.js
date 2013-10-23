@@ -301,7 +301,7 @@ ydn.db.schema.Index.sql2js = function(key, type) {
   if (type == ydn.db.schema.DataType.DATE) {
     return new Date(key); // key is number
   } else if (goog.isDef(type)) {
-    return /** @type {number} */ (key);   // NUMERIC, INTEGER,
+    return /** @type {number} */ (key);   // NUMERIC, INTEGER, BLOB
   } else {
     return ydn.db.utils.decodeKey(/** @type {string} */ (key));
   }
