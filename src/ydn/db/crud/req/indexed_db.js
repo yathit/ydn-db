@@ -156,7 +156,6 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
   var me = this;
   var mth = is_replace ? 'put' : 'add';
   var ob_store = rq.getTx().objectStore(store_name);
-  var store = this.schema.getStore(store_name);
   var msg = rq.getLabel() + ' ' + mth + ' ' + objs.length + ' objects' +
       ' to store "' + store_name + '"';
   this.logger.finest(msg);
@@ -179,23 +178,6 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
     var request;
 
     var obj = objs[i];
-    // store could not be null, but check it for robustness.
-    if (store && store.isFixed()) {
-      // fixed schema has special optimization for WebSQL, in which BLOB column
-      // are not actually indexed.
-      var has_clone = false;
-      for (var idx = 0; idx < store.countIndex(); idx++) {
-        if (store.index(idx).getType() == ydn.db.schema.DataType.BLOB) {
-          if (!has_clone) {
-            obj = goog.object.clone(obj);
-          }
-          var kp = store.index(idx).getKeyPath();
-          if (goog.isString(kp)) {
-            ydn.db.utils.setValueByKeys(obj, kp, undefined);
-          }
-        }
-      }
-    }
     if (goog.isDefAndNotNull(opt_keys)) {
       if (is_replace) {
         request = ob_store.put(obj, opt_keys[i]);
