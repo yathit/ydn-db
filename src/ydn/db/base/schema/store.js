@@ -779,6 +779,27 @@ ydn.db.schema.Store.prototype.getColumns = function() {
 
 
 /**
+ * Update store schema with given guided store schema for
+ * indexeddb.
+ * these include:
+ *   1. blob column data type
+ * @param {!ydn.db.schema.Store} that guided store schema.
+ */
+ydn.db.schema.Store.prototype.hintForIdb = function(that) {
+  for (var i = 0; i < that.indexes.length; i++) {
+    var index = that.indexes[i];
+    if (!this.hasIndex(index.getName()) &&
+        index.getType() == ydn.db.schema.DataType.BLOB) {
+      var clone = new ydn.db.schema.Index(
+          index.getKeyPath(), index.getType(), index.isUnique(),
+          index.isMultiEntry(), index.getName());
+      this.indexes.push(clone);
+    }
+  }
+};
+
+
+/**
  * Create a new update store schema with given guided store schema.
  * NOTE: This is used in websql for checking table schema sniffed from the
  * connection is similar to requested table schema. The fact is that
@@ -789,7 +810,7 @@ ydn.db.schema.Store.prototype.getColumns = function() {
  * @param {ydn.db.schema.Store} that guided store schema.
  * @return {!ydn.db.schema.Store} updated store schema.
  */
-ydn.db.schema.Store.prototype.hint = function(that) {
+ydn.db.schema.Store.prototype.hintForWebSql = function(that) {
   if (!that) {
     return this;
   }

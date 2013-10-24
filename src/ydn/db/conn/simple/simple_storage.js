@@ -152,7 +152,7 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
   if (ex_schema_json) {
     var ex_schema = new ydn.db.schema.Database(ex_schema_json);
 
-    var diff_msg = this.schema.difference(ex_schema);
+    var diff_msg = this.schema.difference(ex_schema, false, false);
     if (diff_msg) {
       if (!this.schema.isAutoVersion() &&
           !isNaN(ex_schema.getVersion()) &&

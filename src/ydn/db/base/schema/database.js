@@ -307,10 +307,14 @@ ydn.db.schema.Database.prototype.hasStore = function(name) {
 /**
  * Return an explination what is different between the schemas.
  * @param {ydn.db.schema.Database} schema schema from sniffing.
- * @param {boolean=} opt_hint hint the give schema.
+ * @param {boolean} hint_websql hint the give schema, so that property
+ * that could not be reflect from the connection are filled.
+ * @param {boolean} hint_idb hint the give schema, so that property
+ * that could not be reflect from the connection are filled.
  * @return {string} return empty string if the two are similar.
  */
-ydn.db.schema.Database.prototype.difference = function(schema, opt_hint) {
+ydn.db.schema.Database.prototype.difference = function(schema, hint_websql,
+                                                       hint_idb) {
   if (!schema || this.stores.length != schema.stores.length) {
     return 'Number of store: ' + this.stores.length + ' vs ' +
         schema.stores.length;
@@ -318,11 +322,19 @@ ydn.db.schema.Database.prototype.difference = function(schema, opt_hint) {
   for (var i = 0; i < this.stores.length; i++) {
     var store = schema.getStore(this.stores[i].getName());
     // hint to sniffed schema, so that some lost info are recovered.
-    var hinted_store = (!!store && !!opt_hint) ?
-        store.hint(this.stores[i]) : store;
-    var msg = this.stores[i].difference(hinted_store);
-    if (msg.length > 0) {
-      return 'store: "' + this.stores[i].getName() + '" ' + msg;
+    if (store) {
+      if (hint_websql) {
+        store = store.hintForWebSql(this.stores[i]);
+      }
+      if (hint_idb) {
+        store.hintForIdb(this.stores[i]);
+      }
+      var msg = this.stores[i].difference(store);
+      if (msg.length > 0) {
+        return 'store: "' + this.stores[i].getName() + '" ' + msg;
+      }
+    } else {
+      return 'missing object store "' + this.stores[i].getName() + '"';
     }
   }
 
@@ -336,7 +348,7 @@ ydn.db.schema.Database.prototype.difference = function(schema, opt_hint) {
  * @return {boolean} true if given schema is similar to this schema.
  */
 ydn.db.schema.Database.prototype.similar = function(schema) {
-  return this.difference(schema).length == 0;
+  return this.difference(schema, false, false).length == 0;
 };
 
 

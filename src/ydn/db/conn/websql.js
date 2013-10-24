@@ -127,7 +127,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
           var table_info = existing_schema.getStore(schema.store(i).getName());
           // hint to sniffed schema, so that some lost info are recovered.
           var hinted_store_schema = table_info ?
-              table_info.hint(schema.store(i)) : null;
+              table_info.hintForWebSql(schema.store(i)) : null;
 
           me.update_store_with_info_(tx, schema.store(i), counter,
               hinted_store_schema);
@@ -295,7 +295,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     } else {
       // require upgrade check
       this.getSchema(function(existing_schema) {
-        var msg = schema.difference(existing_schema, true);
+        var msg = schema.difference(existing_schema, true, false);
         if (msg) {
           if (db.version.length == 0) {
             me.logger.fine('New ' + db_info + ' created.');
