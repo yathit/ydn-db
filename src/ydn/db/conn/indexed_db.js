@@ -225,7 +225,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
           }
         }
 
-        var diff_msg = schema.difference(db_schema);
+        var diff_msg = schema.difference(db_schema, false, true);
         if (diff_msg.length > 0) {
           me.logger.finer('Schema change require for difference in ' +
               diff_msg);
@@ -341,7 +341,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
        * @param {ydn.db.schema.Database} db_schema schema.
        */
       var validator = function(db_schema) {
-        var diff_msg = schema.difference(db_schema);
+        var diff_msg = schema.difference(db_schema, false, true);
         if (diff_msg.length > 0) {
           me.logger.finer(diff_msg);
           setDb(null, new ydn.error.ConstraintError('different schema: ' +
@@ -581,29 +581,33 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
 
   var objectStoreNames = /** @type {DOMStringList} */ (db.objectStoreNames);
 
-  var createObjectStore = function() {
+  /**
+   * @return {IDBObjectStore}
+   */
+  var createAObjectStore = function() {
     // IE10 is picky on optional parameters of keyPath. If it is undefined,
     // it must not be defined.
     var options = {'autoIncrement': !!store_schema.isAutoIncrement()};
     if (goog.isDefAndNotNull(store_schema.getKeyPath())) {
       options['keyPath'] = store_schema.getKeyPath();
     }
-    try {
-      return db.createObjectStore(store_schema.getName(), options);
-    } catch (e) {
-      if (goog.DEBUG && e.name == 'InvalidAccessError') {
-        throw new ydn.db.InvalidAccessError('creating store for ' +
-            store_schema.getName() + ' of keyPath: ' +
-            store_schema.getKeyPath() + ' and autoIncrement: ' +
-            store_schema.isAutoIncrement());
-      } else if (goog.DEBUG && e.name == 'ConstraintError') {
-        // store already exist.
-        throw new ydn.error.ConstraintError('creating store for ' +
-            store_schema.getName());
-      } else {
-        throw e;
-      }
-    }
+    // try/cache don't add benefit.
+    // try {
+    return db.createObjectStore(store_schema.getName(), options);
+    // } catch (e) {
+    //   if (goog.DEBUG && e.name == 'InvalidAccessError') {
+    //     throw new ydn.db.InvalidAccessError('creating store for ' +
+    //         store_schema.getName() + ' of keyPath: ' +
+    //         store_schema.getKeyPath() + ' and autoIncrement: ' +
+    //         store_schema.isAutoIncrement());
+    //   } else if (goog.DEBUG && e.name == 'ConstraintError') {
+    //     // store already exist.
+    //     throw new ydn.error.ConstraintError('creating store for ' +
+    //         store_schema.getName());
+    //   } else {
+    //     throw e;
+    //   }
+    // }
   };
 
   /**
@@ -622,14 +626,14 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
       db.deleteObjectStore(store_schema.getName());
       this.logger.warning('store: ' + store_schema.getName() +
           ' deleted due to keyPath change.');
-      store = createObjectStore();
+      store = createAObjectStore();
     } else if (goog.isBoolean(store.autoIncrement) &&
         goog.isBoolean(store_schema.isAutoIncrement()) &&
         store.autoIncrement != store_schema.isAutoIncrement()) {
       db.deleteObjectStore(store_schema.getName());
       this.logger.warning('store: ' + store_schema.getName() +
           ' deleted due to autoIncrement change.');
-      store = createObjectStore();
+      store = createAObjectStore();
     } else {
 
       var indexNames = /** @type {DOMStringList} */ (store.indexNames);
@@ -637,8 +641,8 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
       var created = 0;
       var deleted = 0;
       var modified = 0;
-      for (var j = 0; j < store_schema.indexes.length; j++) {
-        var index = store_schema.indexes[j];
+      for (var j = 0; j < store_schema.countIndex(); j++) {
+        var index = store_schema.index(j);
         var need_create = false;
         if (indexNames.contains(index.getName())) {
           var store_index = store.index(index.getName());
@@ -661,7 +665,8 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
             created--;
             modified++;
           }
-        } else {
+        } else if (index.getType() != ydn.db.schema.DataType.BLOB) {
+          // BLOB column data type, used in websql, is not index.
           need_create = true;
         }
         if (need_create) {
@@ -694,7 +699,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
 
   } else {
 
-    store = createObjectStore();
+    store = createAObjectStore();
 
     for (var j = 0; j < store_schema.indexes.length; j++) {
       var index = store_schema.indexes[j];

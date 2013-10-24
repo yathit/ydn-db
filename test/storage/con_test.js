@@ -93,7 +93,7 @@ var trival_schema_test = function(dbname, cb) {
 
 };
 
-var test_10_trival_schema = function() {
+var test_trival_schema = function() {
   var trival_db_name = 'test_' + Math.random();
   trival_schema_test(trival_db_name, function() {
     trival_schema_test(trival_db_name, function() {
@@ -103,32 +103,32 @@ var test_10_trival_schema = function() {
   });
 };
 
-var test_12_no_db = function() {
+var test_no_db = function() {
   var schema = {stores: [store_schema]};
   schema_test(schema, true, 'test_no_db' + Math.random());
 };
 
 
-var test_13a_same_ver = function() {
+var test_same_ver = function() {
   var schema = {version: 1, stores: [store_schema]};
   schema_test(schema, true, 'test_same' + Math.random());
 };
 
-var test_13b_same_ver_diff_schema = function() {
+var test_same_ver_diff_schema = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
   var schema = {version: 1, stores: [store_schema, new_store]};
   schema_test(schema, true, 'test_diff' + Math.random());
 };
 
 
-var test_13c_ver_update = function() {
+var test_ver_update = function() {
   var new_store = {name: 'nst' + Math.random(), keyPath: 'id'};
   var schema = {version: 2, stores: [store_schema, new_store]};
   schema_test(schema, true);
 };
 
 
-var test_21_add_store = function() {
+var test_add_store = function() {
   var done, sh_len;
   waitForCondition(
     // Condition
@@ -159,7 +159,6 @@ var test_21_add_store = function() {
     done = true;
   });
 };
-
 
 
 /**

@@ -140,7 +140,7 @@ var test_add_fail = function() {
 
 
 
-var test_11_put = function() {
+var test_put = function() {
   var db_name = 'test_11_put';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -227,7 +227,7 @@ var test_load_data = function() {
 
 
 
-var test_12_put_array = function() {
+var test_put_array = function() {
   var db_name = 'test_13';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -267,7 +267,7 @@ var test_12_put_array = function() {
 
 
 
-var test_12_put_array_key = function() {
+var test_put_array_key = function() {
   var db_name = 'test_12_put_array_key';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -306,7 +306,7 @@ var test_12_put_array_key = function() {
 
 
 
-var test_12_put_array_unique_constraint = function() {
+var test_put_array_unique_constraint = function() {
   var db_name = 'test_12_put_array_unique_constraint-4';
   var schema = {
     stores: [{
@@ -386,7 +386,7 @@ var test_12_put_array_unique_constraint = function() {
 
 
 
-var test_12_put_array_unique_index_constraint = function() {
+var test_put_array_unique_index_constraint = function() {
 
   // Chrome bug report
   // https://code.google.com/p/chromium/issues/detail?id=258273
@@ -475,7 +475,7 @@ var test_12_put_array_unique_index_constraint = function() {
 };
 
 
-var test_13_put_key = function() {
+var test_put_key = function() {
   var db_name = 'test_13_put_key';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -513,7 +513,7 @@ var test_13_put_key = function() {
 };
 
 
-var test_13_put_array_by_keys = function() {
+var test_put_array_by_keys = function() {
   var db_name = 'test_crud_ 13_2';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -561,7 +561,7 @@ var test_13_put_array_by_keys = function() {
 };
 
 
-var _test_14_put_large_array = function() {
+var _test_put_large_array = function() {
   var db_name = 'test_crud_ 13_2';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -597,7 +597,7 @@ var _test_14_put_large_array = function() {
 };
 
 
-var test_21_get_inline = function() {
+var test_get_inline = function() {
   var db_name = 'test_21_get_inline';
   var schema = {
     stores: [{
@@ -643,7 +643,7 @@ var test_21_get_inline = function() {
 };
 
 
-var test_22_get_offline = function() {
+var test_get_offline = function() {
   var db_name = 'test_22_get_offline';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -682,7 +682,7 @@ var test_22_get_offline = function() {
 
 
 
-var test_24_list_by_ids = function() {
+var test_list_by_ids = function() {
   var db_name = 'test_crud_23 _2';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -732,7 +732,7 @@ var test_24_list_by_ids = function() {
 };
 
 
-var test_26_list = function() {
+var test_list = function() {
   var db_name = 'test_crud_26_1';
   var stores = [new ydn.db.schema.Store(table_name, 'id', false,
     ydn.db.schema.DataType.NUMERIC)];
@@ -811,7 +811,7 @@ var test_26_list = function() {
 };
 
 
-var _test_25_get_large_array = function() {
+var _test_get_large_array = function() {
   var db_name = 'test_crud_23 _2';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -855,7 +855,7 @@ var _test_25_get_large_array = function() {
 };
 
 
-var test_24_get_all_no_data = function() {
+var test_get_all_no_data = function() {
 
   var db_name = 'test_get_all_2';
   var table_name = 'no_data_table';
@@ -889,7 +889,7 @@ var test_24_get_all_no_data = function() {
 };
 
 
-var test_25_get_none_exist = function() {
+var test_get_none_exist = function() {
   var db_name = 'test_25_get_none_exist';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -919,7 +919,7 @@ var test_25_get_none_exist = function() {
 };
 
 
-var test_31_count_store = function() {
+var test_count_store = function() {
 
   var db_name = 'test_31_count_store_2';
 
@@ -967,7 +967,7 @@ var test_31_count_store = function() {
 
 
 
-var test_32_count_stores = function() {
+var test_count_stores = function() {
 
   var db_name = 'test_32_count_stores';
 
@@ -1050,7 +1050,7 @@ var test_32_count_stores = function() {
 };
 
 
-var test_40_clear_store = function() {
+var test_clear_store = function() {
   var db_name = 'test_40_clear_store';
   var schema = {
     stores: [{
@@ -1302,7 +1302,7 @@ var test_remove_by_key_range = function() {
 };
 
 
-var test_43_clear_by_key_range = function() {
+var test_clear_by_key_range = function() {
   //ydn.db.con.simple.Store.DEBUG = true;
   var db_name = 'test_43_clear_by_key_range';
   var schema = {
@@ -1357,7 +1357,7 @@ var test_43_clear_by_key_range = function() {
 };
 
 
-var test_51_array_key = function() {
+var test_array_key = function() {
   var db_name = 'test_51_array_key_1';
 
   var stores = [new ydn.db.schema.Store(table_name, 'id')];
@@ -1417,7 +1417,7 @@ var test_51_array_key = function() {
 
 
 
-var test_52_fetch_keys = function() {
+var test_fetch_keys = function() {
   var store_name = 'st';
   var db_name = 'test_crud_52_4';
 
@@ -1483,7 +1483,7 @@ var test_52_fetch_keys = function() {
 
 
 
-var test_51_keys = function() {
+var test_keys = function() {
   var db_name = 'test_51_keys_1';
   var stores = [new ydn.db.schema.Store(table_name, 'id', false,
     ydn.db.schema.DataType.NUMERIC)];
@@ -1541,7 +1541,7 @@ var test_51_keys = function() {
 };
 
 
-var test_53_fetch_keys = function() {
+var test_fetch_keys = function() {
   var store_name1 = 'st1';
   var store_name2 = 'st2';
   var db_name = 'test_crud_53_8';
