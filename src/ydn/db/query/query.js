@@ -12,18 +12,19 @@
 
 
 /**
- * @fileoverview Query module.
+ * @fileoverview Query builder class.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.Query');
 goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.BasicQuery');
 
 
 
 /**
- * Query class.
+ * Query builder class.
  * @param {ydn.db.core.Storage} db
  * @param {ydn.db.schema.Database} schema
  * @param {ydn.db.Iterator} iter key range.
@@ -285,12 +286,8 @@ ydn.db.Query.prototype.list = function(opt_limit) {
     type = this.type;
   }
   // console.log(this.iterator.getState(), this.iterator.getKey());
-  var req = this.db.listIter(type, this.iterator, limit, offset);
-  if (this.filter_) {
-    req.addCallback(function(values) {
-      return goog.array.filter(values, this.filter_, this.filter_scope_);
-    }, this);
-  }
+  var basic = new ydn.db.BasicQuery(this.db, this.schema);
+  var req = basic.list(type, this.iterator, limit, offset);
   return req;
 };
 
@@ -330,23 +327,8 @@ ydn.db.Query.prototype.patch = function(arg1, opt_arg2) {
       throw new ydn.debug.error.ArgumentException('too many arguments');
     }
   }
-  var req = this.db.open(function(cursor) {
-    var val = /** @type {!Object} */ (cursor.getValue());
-    if (goog.isString(arg1)) {
-      ydn.db.utils.setValueByKeys(val, arg1, opt_arg2);
-    } else if (goog.isArray(arg1)) {
-      for (var i = 0; i < arg1.length; i++) {
-        ydn.db.utils.setValueByKeys(val, arg1[i], opt_arg2[i]);
-      }
-    } else if (goog.isObject(arg1)) {
-      for (var k in arg1) {
-        if (arg1.hasOwnProperty(k)) {
-          val[k] = arg1[k];
-        }
-      }
-    }
-    req.awaitDeferred(cursor.update(val));
-  }, this.iterator, ydn.db.base.TransactionMode.READ_WRITE, this);
+  var basic = new ydn.db.BasicQuery(this.db, this.schema);
+  var req = basic.patch(this.iterator, arg1, opt_arg2);
   return req;
 };
 
@@ -359,8 +341,8 @@ ydn.db.Query.prototype.patch = function(arg1, opt_arg2) {
  * @template T
  */
 ydn.db.Query.prototype.open = function(cb, opt_scope) {
-  var req = this.db.open(cb, this.iterator,
-      ydn.db.base.TransactionMode.READ_WRITE, opt_scope);
+  var basic = new ydn.db.BasicQuery(this.db, this.schema);
+  var req = basic.open(this.iterator, cb, opt_scope);
   return req;
 };
 
@@ -370,24 +352,8 @@ ydn.db.Query.prototype.open = function(cb, opt_scope) {
  * @return {!ydn.db.Request}
  */
 ydn.db.Query.prototype.count = function() {
-  var iter = this.iterator;
-  var req;
-  if (iter.isUnique()) {
-    req = this.db.count(iter);
-  } else if (iter.isIndexIterator()) {
-    req = this.db.count(iter.getStoreName(), iter.getIndexName(),
-        iter.getKeyRange());
-  } else {
-    req = this.db.count(iter.getStoreName(), iter.getKeyRange());
-  }
-  if (iter.getState() != ydn.db.Iterator.State.INITIAL) {
-    // reset iteration state.
-    req.addBoth(function() {
-      if (iter.getState() != ydn.db.Iterator.State.WORKING) {
-        iter.reset();
-      }
-    });
-  }
+  var basic = new ydn.db.BasicQuery(this.db, this.schema);
+  var req = basic.count(this.iterator);
   return req;
 };
 
@@ -397,10 +363,8 @@ ydn.db.Query.prototype.count = function() {
  * @return {!ydn.db.Request}
  */
 ydn.db.Query.prototype.clear = function() {
-  var iter = this.iterator;
-  var req = iter.isIndexIterator() ?
-      this.db.clear(iter.getStoreName(), iter.getIndexName(), iter.keyRange()) :
-      this.db.clear(iter.getStoreName(), iter.keyRange());
+  var basic = new ydn.db.BasicQuery(this.db, this.schema);
+  var req = basic.clear(this.iterator);
   return req;
 };
 
