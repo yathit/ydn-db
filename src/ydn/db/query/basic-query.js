@@ -53,9 +53,8 @@ ydn.db.BasicQuery.DEBUG = false;
 
 /**
  * Execute query and collect as an array. This method forces query execution.
- * @param {ydn.db.core.Storage} db
  * @param {ydn.db.base.QueryMethod} mth query method.
- * @param {ydn.db.Iterator} iterator
+ * @param {!ydn.db.Iterator} iterator
  * @param {number} limit
  * @param {number} offset
  * @return {!ydn.db.Request}
@@ -69,7 +68,7 @@ ydn.db.BasicQuery.prototype.list = function(mth, iterator, limit, offset) {
 
 /**
  * Patch object.
- * @param {ydn.db.Iterator} iterator iterator.
+ * @param {!ydn.db.Iterator} iterator iterator.
  * @param {!Object|string|!Array.<string>} arg1 Patch object, field name or
  * field names.
  * @param {*=} opt_arg2 field value or field values.
@@ -99,7 +98,7 @@ ydn.db.BasicQuery.prototype.patch = function(iterator, arg1, opt_arg2) {
 
 /**
  * Execute query and collect as an array. This method forces query execution.
- * @param {ydn.db.Iterator} iterator iterator.
+ * @param {!ydn.db.Iterator} iterator iterator.
  * @param {function(this: T, !ydn.db.core.req.AbstractCursor)} cb
  * @param {T=} opt_scope
  * @return {!ydn.db.Request}
