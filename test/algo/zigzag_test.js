@@ -70,9 +70,11 @@ var tearDown = function() {
 };
 
 
-var test_simple = function() {
+
+var simple_test = function(rev) {
 
   var done;
+  var exp_result = [3, 1, 5];
 
   waitForCondition(
     // Condition
@@ -82,7 +84,7 @@ var test_simple = function() {
     // Continuation
     function () {
       // ['cat', 'cow', 'leopard']
-      assertArrayEquals('result', [3, 1, 5], out);
+      assertArrayEquals('result', exp_result, out);
       reachedFinalContinuation = true;
 
     },
@@ -91,6 +93,11 @@ var test_simple = function() {
 
   var q1 = new ydn.db.IndexIterator('animals', 'color, name', ydn.db.KeyRange.starts(['spots']));
   var q2 = new ydn.db.IndexIterator('animals', 'legs, name', ydn.db.KeyRange.starts([4]));
+  if (rev) {
+    q1 = q1.reverse();
+    q2 = q2.reverse();
+    exp_result = exp_result.reverse();
+  }
   var out = [];
 
   var solver = new ydn.db.algo.ZigzagMerge(out);
@@ -106,6 +113,15 @@ var test_simple = function() {
   });
 };
 
+
+var test_simple = function() {
+  simple_test(false);
+};
+
+
+var test_simple_reverse = function() {
+  simple_test(true);
+};
 
 var test_simple_streamer_out = function() {
 
@@ -193,7 +209,10 @@ var test_simple_streamer_duplex_out = function() {
   });
 };
 
-
+var tearDownPage = function() {
+  ydn.db.deleteDatabase(db.getName(), db.getType());
+  db.close();
+};
 
 
 

@@ -35,11 +35,13 @@ var three_iterator = function (rev) {
     {id: 3, name: 'galon', color: 'gold', horn: 10, legs: 2},
     {id: 4, name: 'tiger', color: 'spots', horn: 2, legs: 4},
     {id: 5, name: 'snake', color: 'spots', horn: 0, legs: 0},
-    {id: 6, name: 'ox', color: 'black', horn: 2, legs: 4},
-    {id: 7, name: 'cow', color: 'spots', horn: 2, legs: 4},
-    {id: 8, name: 'chicken', color: 'red', horn: 0, legs: 2},
-    {id: 9, name: 'cat', color: 'spots', horn: 0, legs: 4},
-    {id: 10, name: 'human', color: 'pink', horn: 0, legs: 2}
+    {id: 6, name: 'rhino', color: 'spots', horn: 1, legs: 4},
+    {id: 7, name: 'ox', color: 'black', horn: 2, legs: 4},
+    {id: 8, name: 'cow', color: 'spots', horn: 2, legs: 4},
+    {id: 9, name: 'chicken', color: 'red', horn: 0, legs: 2},
+    {id: 10, name: 'unicon', color: 'pink', horn: 1, legs: 4},
+    {id: 11, name: 'cat', color: 'spots', horn: 0, legs: 4},
+    {id: 12, name: 'human', color: 'pink', horn: 0, legs: 2}
   ];
 
   var schema = {
@@ -71,7 +73,7 @@ var three_iterator = function (rev) {
   var iter_color = ydn.db.IndexIterator.where('animals', 'color', '=', 'spots');
   var iter_horn = ydn.db.IndexIterator.where('animals', 'horn', '=', 2);
   var iter_legs = ydn.db.IndexIterator.where('animals', 'legs', '=', 4);
-  var exp_result = [2, 4, 7];
+  var exp_result = [2, 4, 8];
   if (rev) {
     iter_color = iter_color.reverse();
     iter_horn = iter_horn.reverse();

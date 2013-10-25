@@ -150,14 +150,26 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
       var postfix_part = postfix(keys[i]);
       var cmp = ydn.db.cmp(highest_postfix, postfix_part);
       cmps[i] = cmp;
-      if (cmp === 1) {
-        // base key is greater than ith key, so fast forward to ith key.
-        all_match = false;
-      } else if (cmp === -1) {
-        // ith key is greater than base key. we are not going to get it
-        all_match = false;
-        highest_postfix = postfix_part;
-        highest_idx = 1;
+      if (this.is_reverse) {
+        if (cmp == -1) {
+          // base key is greater than ith key, so fast forward to ith key.
+          all_match = false;
+        } else if (cmp == 1) {
+          // ith key is greater than base key. we are not going to get it
+          all_match = false;
+          highest_postfix = postfix_part;
+          highest_idx = 1;
+        }
+      } else {
+        if (cmp == 1) {
+          // base key is greater than ith key, so fast forward to ith key.
+          all_match = false;
+        } else if (cmp == -1) {
+          // ith key is greater than base key. we are not going to get it
+          all_match = false;
+          highest_postfix = postfix_part;
+          highest_idx = 1;
+        }
       }
       //i += this.degrees_[i]; // skip peer iterators.
     } else {
@@ -177,6 +189,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
         ', advancement: ' + JSON.stringify(advancement));
   }
 
+  var cmp_target = this.is_reverse ? -1 : 1;
   if (all_match) {
     // all postfix key matched.
     // however result is the one when all primary keys are match.
@@ -198,7 +211,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
   } else if (highest_idx == 0) {
     // some need to catch up to base key
     for (var j = 1; j < keys.length; j++) {
-      if (cmps[j] === 1) {
+      if (cmps[j] == cmp_target) {
         advancement[j] = makeKey(keys[j], highest_postfix);
       }
     }
@@ -212,7 +225,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
         // we need to compare again, because intermediate highest
         // key might get cmp value of 0, but not the highest key
         goog.asserts.assertArray(keys[j]);
-        if (ydn.db.cmp(highest_postfix, postfix(keys[j])) === 1) {
+        if (ydn.db.cmp(highest_postfix, postfix(keys[j])) === cmp_target) {
           advancement[j] = makeKey(keys[j], highest_postfix);
         }
       }
