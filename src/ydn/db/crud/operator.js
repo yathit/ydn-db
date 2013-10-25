@@ -226,7 +226,11 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     var store = this.schema.getStore(k_store_name);
     if (!store) {
       if (this.schema.isAutoSchema()) {
-        return ydn.db.Request.succeed(ydn.db.Request.Method.GET, undefined);
+        if (this.getStorage().isReady()) {
+          return ydn.db.Request.succeed(ydn.db.Request.Method.GET, undefined);
+        } else {
+          throw new ydn.debug.error.NotSupportedException('database not ready');
+        }
       } else {
         throw new ydn.debug.error.ArgumentException('Store: ' +
             k_store_name + ' not found.');
@@ -245,7 +249,11 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     var store = this.schema.getStore(store_name);
     if (!store) {
       if (this.schema.isAutoSchema()) {
-        return ydn.db.Request.succeed(ydn.db.Request.Method.GET, undefined);
+        if (this.getStorage().isReady()) {
+          return ydn.db.Request.succeed(ydn.db.Request.Method.GET, undefined);
+        } else {
+          throw new ydn.debug.error.NotSupportedException('database not ready');
+        }
       } else {
         throw new ydn.debug.error.ArgumentException('Store name "' +
             store_name + '" not found.');
