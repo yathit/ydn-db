@@ -8,6 +8,9 @@
 /**
  * Portion of this code is obtained from Facebook Inc's IndexedDB-polyfill
  * project under Apache License 2.0.
+ *
+ * See also in https://github.com/mozilla/releases-mozilla-aurora/blob/master/
+ * dom/indexedDB/Key.cpp for key encoding algorithm.
  */
 
 goog.provide('ydn.db.utils');

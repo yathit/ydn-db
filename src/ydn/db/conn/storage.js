@@ -503,13 +503,18 @@ ydn.db.con.Storage.prototype.onReady = function(cb, opt_scope) {
  * @param {ydn.db.events.Event} ev event.
  */
 ydn.db.con.Storage.prototype.dispatchReady = function(ev) {
-  if (ev instanceof ydn.db.events.StorageErrorEvent) {
-    var err = /** @type {ydn.db.events.StorageErrorEvent} */ (ev);
-    this.df_on_ready_.errback(err.error);
-  } else {
-    this.df_on_ready_.callback();
-  }
-  this.dispatchDbEvent(ev);
+  var me = this;
+  // using setTimeout here prevent transaction overlap error.
+  setTimeout(function() {
+    if (ev instanceof ydn.db.events.StorageErrorEvent) {
+      var err = /** @type {ydn.db.events.StorageErrorEvent} */ (ev);
+      me.df_on_ready_.errback(err.error);
+    } else {
+      me.df_on_ready_.callback();
+    }
+    me.dispatchDbEvent(ev);
+  }, 4);
+
 };
 
 

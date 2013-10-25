@@ -229,7 +229,15 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
         if (this.getStorage().isReady()) {
           return ydn.db.Request.succeed(ydn.db.Request.Method.GET, undefined);
         } else {
-          throw new ydn.debug.error.NotSupportedException('database not ready');
+          req = new ydn.db.Request(ydn.db.Request.Method.GET);
+          this.getStorage().onReady(function() {
+            me.get(arg1, arg2).addCallbacks(function(x) {
+              req.callback(x);
+            }, function(e) {
+              req.errback(e);
+            })
+          });
+          return req;
         }
       } else {
         throw new ydn.debug.error.ArgumentException('Store: ' +
@@ -252,7 +260,15 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
         if (this.getStorage().isReady()) {
           return ydn.db.Request.succeed(ydn.db.Request.Method.GET, undefined);
         } else {
-          throw new ydn.debug.error.NotSupportedException('database not ready');
+          req = new ydn.db.Request(ydn.db.Request.Method.GET);
+          this.getStorage().onReady(function() {
+            me.get(arg1, arg2).addCallbacks(function(x) {
+              req.callback(x);
+            }, function(e) {
+              req.errback(e);
+            })
+          });
+          return req;
         }
       } else {
         throw new ydn.debug.error.ArgumentException('Store name "' +
@@ -471,7 +487,20 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
     var store = this.schema.getStore(store_name);
     if (!store) {
       if (this.schema.isAutoSchema()) {
-        return ydn.db.Request.succeed(ydn.db.Request.Method.GET, []);
+        if (this.getStorage().isReady()) {
+          return ydn.db.Request.succeed(ydn.db.Request.Method.VALUES, []);
+        } else {
+          req = new ydn.db.Request(ydn.db.Request.Method.VALUES);
+          this.getStorage().onReady(function() {
+            me.values(arg0, arg1, arg2, arg3, arg4,
+                    arg5).addCallbacks(function(x) {
+              req.callback(x);
+            }, function(e) {
+              req.errback(e);
+            })
+          });
+          return req;
+        }
       } else {
         throw new ydn.db.NotFoundError(store_name);
       }
