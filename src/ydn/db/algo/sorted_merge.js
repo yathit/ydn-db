@@ -52,14 +52,6 @@ ydn.db.algo.SortedMerge.DEBUG = false;
 /**
  * @inheritDoc
  */
-ydn.db.algo.SortedMerge.prototype.begin = function(iterators, callback) {
-  return false;
-};
-
-
-/**
- * @inheritDoc
- */
 ydn.db.algo.SortedMerge.prototype.solver = function(keys, values) {
 
   var advancement = [];
@@ -82,15 +74,29 @@ ydn.db.algo.SortedMerge.prototype.solver = function(keys, values) {
       //console.log([values[0], values[i]])
       var cmp = ydn.db.cmp(base_key, values[i]);
       cmps[i] = cmp;
-      if (cmp === 1) {
-        // base key is greater than ith key, so fast forward to ith key.
-        all_match = false;
-      } else if (cmp === -1) {
-        // ith key is greater than base key. we are not going to get it
-        all_match = false;
-        skip = true; //
-        if (ydn.db.cmp(values[i], highest_key) === 1) {
-          highest_key = values[i];
+      if (this.is_reverse) {
+        if (cmp == -1) {
+          // base key is greater than ith key, so fast forward to ith key.
+          all_match = false;
+        } else if (cmp == 1) {
+          // ith key is greater than base key. we are not going to get it
+          all_match = false;
+          skip = true; //
+          if (ydn.db.cmp(values[i], highest_key) == -1) {
+            highest_key = values[i];
+          }
+        }
+      } else {
+        if (cmp == 1) {
+          // base key is greater than ith key, so fast forward to ith key.
+          all_match = false;
+        } else if (cmp == -1) {
+          // ith key is greater than base key. we are not going to get it
+          all_match = false;
+          skip = true; //
+          if (ydn.db.cmp(values[i], highest_key) == 1) {
+            highest_key = values[i];
+          }
         }
       }
       //i += this.degrees_[i]; // skip peer iterators.
@@ -114,15 +120,22 @@ ydn.db.algo.SortedMerge.prototype.solver = function(keys, values) {
       if (goog.isDefAndNotNull(values[j])) {
         // we need to compare again, because intermediate highest
         // key might get cmp value of 0, but not the highest key
-        if (ydn.db.cmp(highest_key, values[j]) === 1) {
-          advancement[j] = highest_key;
+        if (this.is_reverse) {
+          if (ydn.db.cmp(highest_key, values[j]) == -1) {
+            advancement[j] = highest_key;
+          }
+        } else {
+          if (ydn.db.cmp(highest_key, values[j]) == 1) {
+            advancement[j] = highest_key;
+          }
         }
       }
     }
   } else {
     // some need to catch up to base key
+    var cmp_target = this.is_reverse ? -1 : 1;
     for (var j = 1; j < keys.length; j++) {
-      if (cmps[j] === 1) {
+      if (cmps[j] === cmp_target) {
         advancement[j] = base_key;
       }
     }

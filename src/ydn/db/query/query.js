@@ -65,6 +65,16 @@ ydn.db.Query = function(db, schema, iter, opt_type) {
   if (ydn.db.Query.DEBUG && !iter) {
     throw new Error('iterator is null');
   }
+  /**
+   * @type {?function(*): boolean}
+   * @private
+   */
+  this.filter_ = null;
+  /**
+   * @type {*}
+   * @private
+   */
+  this.filter_scope_;
 };
 
 
@@ -78,8 +88,11 @@ ydn.db.Query.DEBUG = false;
  * @return {!ydn.db.Query}
  */
 ydn.db.Query.prototype.copy = function() {
-  return new ydn.db.Query(this.db, this.schema, this.iterator.copy(),
+  var q = new ydn.db.Query(this.db, this.schema, this.iterator.copy(),
       this.type);
+  q.filter_ = this.filter_;
+  q.filter_scope_ = this.filter_scope_;
+  return q;
 };
 
 
@@ -272,7 +285,13 @@ ydn.db.Query.prototype.list = function(opt_limit) {
     type = this.type;
   }
   // console.log(this.iterator.getState(), this.iterator.getKey());
-  return this.db.listIter(type, this.iterator, limit, offset);
+  var req = this.db.listIter(type, this.iterator, limit, offset);
+  if (this.filter_) {
+    req.addCallback(function(values) {
+      return goog.array.filter(values, this.filter_, this.filter_scope_);
+    }, this);
+  }
+  return req;
 };
 
 
@@ -383,6 +402,12 @@ ydn.db.Query.prototype.clear = function() {
       this.db.clear(iter.getStoreName(), iter.getIndexName(), iter.keyRange()) :
       this.db.clear(iter.getStoreName(), iter.keyRange());
   return req;
+};
+
+
+ydn.db.Query.prototype.filter = function(cb, opt_scope) {
+  this.filter_ = cb;
+  this.filter_scope_ = opt_scope;
 };
 
 

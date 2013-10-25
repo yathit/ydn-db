@@ -35,11 +35,17 @@ goog.require('ydn.db.Streamer');
  */
 ydn.db.algo.AbstractSolver = function(out, opt_limit) {
   if (goog.DEBUG && goog.isDefAndNotNull(out) && !('push' in out)) {
-    throw new ydn.error.ArgumentException();
+    throw new ydn.error.ArgumentException('output receiver object must have ' +
+        '"push" method.');
   }
   this.out = out || null;
   this.limit = opt_limit;
   this.match_count = 0;
+  /**
+   * @protected
+   * @type {boolean}
+   */
+  this.is_reverse = false;
 };
 
 
@@ -61,14 +67,6 @@ ydn.db.algo.AbstractSolver.prototype.logger =
 
 
 /**
- *
- * @protected
- * @type {!Array|!{push: Function}|!ydn.db.Streamer|null}
- */
-ydn.db.algo.AbstractSolver.prototype.out = null;
-
-
-/**
  * Invoke before beginning of the iteration process.
  *
  * @param {!Array} iterators list of iterators feed to the scanner.
@@ -76,20 +74,34 @@ ydn.db.algo.AbstractSolver.prototype.out = null;
  * @return {boolean}
  */
 ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback) {
+  this.is_reverse = iterators[0].isReversed();
   if (goog.DEBUG) {
-    if (!goog.isArray(iterators)) {
-      throw new TypeError('iterators must be array');
-    }
-    if (iterators.length < 2) {
-      throw new RangeError('ZigzagMerge require at least 2 iterators, but ' +
-          ' only ' + iterators.length + ' found.');
-    }
     for (var i = 0; i < iterators.length; i++) {
       if (!(iterators[i] instanceof ydn.db.Iterator)) {
-        throw new TypeError('item at iterators ' + i + ' is not an iterator.');
+        throw new ydn.debug.error.TypeError('item at iterators ' + i +
+            ' is not an iterator.');
+      }
+      if (i > 0) {
+        if (this.is_reverse != iterators[i].isReversed()) {
+          var r = this.is_reverse ? 'be reverse' : 'not be reverse';
+          throw new ydn.debug.error.TypeError('iterator at ' + i +
+              ' must ' + r);
+        }
       }
     }
   }
+  var s = '{';
+  for (var i = 0; i < iterators.length; i++) {
+    if (i > 0) {
+      s += ', '
+    }
+    s += iterators.toString();
+  }
+  s += '}';
+  if (this.is_reverse) {
+    s += ' reverse';
+  }
+  this.logger.fine(this + ' begin ' + s);
   return false;
 };
 
