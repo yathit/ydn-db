@@ -384,7 +384,8 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
         advance = out['advance'] || [];
         restart = out['restart'] || [];
       } else {
-        throw new ydn.error.InvalidOperationException('scan callback output');
+        throw new ydn.debug.error.InvalidOperationException(
+            'scan callback output');
       }
       var move_count = 0;
       result_count = 0;

@@ -100,6 +100,18 @@ ydn.db.core.req.AbstractCursor = function(tx, tx_no, store_schema, opt_mth) {
   this.value_ = undefined;
 
   /**
+   * @type {boolean|undefined}
+   * @protected
+   */
+  this.reverse;
+
+  /**
+   * @type {boolean|undefined}
+   * @protected
+   */
+  this.unique;
+
+  /**
    * This method is overridden by cursor consumer.
    * @param {IDBKey?=} opt_key effective key.
    */

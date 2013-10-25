@@ -306,9 +306,11 @@ ydn.db.core.req.IDBCursor.prototype.continuePrimaryKey = function(key) {
 
   if (goog.DEBUG) {
     var cmp = ydn.db.base.indexedDb.cmp(key, cursor.primaryKey);
-    if (cmp != 1) { // key must higher than primary key
+    var exp_cmp = this.reverse ? -1 : 1;
+    if (cmp != exp_cmp) { // key must higher than primary key
       throw new ydn.debug.error.InternalError('continuing primary key "' + key +
-          '" must higher than current primary key "' + cursor.primaryKey + '"');
+          '" must ' + (this.reverse ? 'lower' : 'higher') +
+          ' than current primary key "' + cursor.primaryKey + '"');
     }
   }
 
