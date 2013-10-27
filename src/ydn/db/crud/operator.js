@@ -235,7 +235,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
               req.callback(x);
             }, function(e) {
               req.errback(e);
-            })
+            });
           });
           return req;
         }
@@ -266,7 +266,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
               req.callback(x);
             }, function(e) {
               req.errback(e);
-            })
+            });
           });
           return req;
         }
