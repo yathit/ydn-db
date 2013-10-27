@@ -114,6 +114,13 @@ ydn.db.tr.Parallel = function(storage, ptx_no, opt_policy,
    */
   this.max_tx_no_ = opt_max_tx_no || 0;
 
+  /**
+   * Generator function on spawn synchronous thread.
+   * @type {Function}
+   * @private
+   */
+  this.generator_ = null;
+
 };
 
 
