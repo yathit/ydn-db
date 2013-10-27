@@ -246,6 +246,7 @@ ydn.db.tr.Storage.prototype.getTxNo = function() {
   return this.db_operator ? this.db_operator.getTxNo() : NaN;
 };
 
+// TODO: move to seperate export class
 goog.exportProperty(ydn.db.tr.Storage.prototype, 'branch',
     ydn.db.tr.Storage.prototype.branch);
 goog.exportProperty(ydn.db.tr.Storage.prototype, 'run',
