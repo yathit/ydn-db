@@ -17,23 +17,23 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.BasicQuery');
+goog.provide('ydn.db.query.Base');
 goog.require('ydn.db.core.Storage');
 
 
 
 /**
  * Query directly execute on raw cursor.
- * @param {ydn.db.core.Storage} db
+ * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
  * @constructor
  * @struct
  */
-ydn.db.BasicQuery = function(db, schema) {
+ydn.db.query.Base = function(db, schema) {
   /**
    * @final
    * @protected
-   * @type {ydn.db.core.Storage}
+   * @type {ydn.db.core.DbOperator}
    */
   this.db = db;
   /**
@@ -48,7 +48,7 @@ ydn.db.BasicQuery = function(db, schema) {
 /**
  * @define {boolean} debug flag.
  */
-ydn.db.BasicQuery.DEBUG = false;
+ydn.db.query.Base.DEBUG = false;
 
 
 /**
@@ -59,7 +59,7 @@ ydn.db.BasicQuery.DEBUG = false;
  * @param {number} offset
  * @return {!ydn.db.Request}
  */
-ydn.db.BasicQuery.prototype.list = function(mth, iterator, limit, offset) {
+ydn.db.query.Base.prototype.list = function(mth, iterator, limit, offset) {
   // console.log(this.iterator.getState(), this.iterator.getKey());
   var req = this.db.listIter(mth, iterator, limit, offset);
   return req;
@@ -74,7 +74,7 @@ ydn.db.BasicQuery.prototype.list = function(mth, iterator, limit, offset) {
  * @param {*=} opt_arg2 field value or field values.
  * @return {!ydn.db.Request}
  */
-ydn.db.BasicQuery.prototype.patch = function(iterator, arg1, opt_arg2) {
+ydn.db.query.Base.prototype.patch = function(iterator, arg1, opt_arg2) {
   var req = this.db.open(function(cursor) {
     var val = /** @type {!Object} */ (cursor.getValue());
     if (goog.isString(arg1)) {
@@ -104,7 +104,7 @@ ydn.db.BasicQuery.prototype.patch = function(iterator, arg1, opt_arg2) {
  * @return {!ydn.db.Request}
  * @template T
  */
-ydn.db.BasicQuery.prototype.open = function(iterator, cb, opt_scope) {
+ydn.db.query.Base.prototype.open = function(iterator, cb, opt_scope) {
   var req = this.db.open(cb, iterator,
       ydn.db.base.TransactionMode.READ_WRITE, opt_scope);
   return req;
@@ -116,7 +116,7 @@ ydn.db.BasicQuery.prototype.open = function(iterator, cb, opt_scope) {
  * @param {ydn.db.Iterator} iter iterator.
  * @return {!ydn.db.Request}
  */
-ydn.db.BasicQuery.prototype.count = function(iter) {
+ydn.db.query.Base.prototype.count = function(iter) {
   var req;
   if (iter.isUnique()) {
     req = this.db.count(iter);
@@ -143,7 +143,7 @@ ydn.db.BasicQuery.prototype.count = function(iter) {
  * @param {ydn.db.Iterator} iter iterator.
  * @return {!ydn.db.Request}
  */
-ydn.db.BasicQuery.prototype.clear = function(iter) {
+ydn.db.query.Base.prototype.clear = function(iter) {
   var req = iter.isIndexIterator() ?
       this.db.clear(iter.getStoreName(), iter.getIndexName(), iter.keyRange()) :
       this.db.clear(iter.getStoreName(), iter.keyRange());

@@ -17,23 +17,23 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.RestrictedQuery');
+goog.provide('ydn.db.query.Restricted');
 goog.require('ydn.db.core.Storage');
 
 
 
 /**
  * Query directly execute on raw cursor.
- * @param {ydn.db.core.Storage} db
+ * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
  * @constructor
  * @struct
  */
-ydn.db.RestrictedQuery = function(db, schema) {
+ydn.db.query.Restricted = function(db, schema) {
   /**
    * @final
    * @protected
-   * @type {ydn.db.core.Storage}
+   * @type {ydn.db.core.DbOperator}
    */
   this.db = db;
   /**
@@ -48,7 +48,7 @@ ydn.db.RestrictedQuery = function(db, schema) {
 /**
  * @define {boolean} debug flag.
  */
-ydn.db.RestrictedQuery.DEBUG = false;
+ydn.db.query.Restricted.DEBUG = false;
 
 
 /**
@@ -58,58 +58,23 @@ ydn.db.RestrictedQuery.DEBUG = false;
  * @param {number} limit
  * @return {!ydn.db.Request}
  */
-ydn.db.RestrictedQuery.prototype.list = function(mth, iterators, limit) {
+ydn.db.query.Restricted.prototype.list = function(mth, iterators, limit) {
   // console.log(this.iterator.getState(), this.iterator.getKey());
   var out = [];
   var solver = new ydn.db.algo.SortedMerge(out, limit);
-  this.db.scan(solver, iterators);
-  var req = new ydn.db.Request(ydn.db.Request.Method.LIST);
-  this.db.list(mth, out);
-  return req;
-};
-
-
-/**
- * Patch object.
- * @param {ydn.db.Iterator} iterator iterator.
- * @param {!Object|string|!Array.<string>} arg1 Patch object, field name or
- * field names.
- * @param {*=} opt_arg2 field value or field values.
- * @return {!ydn.db.Request}
- */
-ydn.db.RestrictedQuery.prototype.patch = function(iterator, arg1, opt_arg2) {
-  var req = this.db.open(function(cursor) {
-    var val = /** @type {!Object} */ (cursor.getValue());
-    if (goog.isString(arg1)) {
-      ydn.db.utils.setValueByKeys(val, arg1, opt_arg2);
-    } else if (goog.isArray(arg1)) {
-      for (var i = 0; i < arg1.length; i++) {
-        ydn.db.utils.setValueByKeys(val, arg1[i], opt_arg2[i]);
-      }
-    } else if (goog.isObject(arg1)) {
-      for (var k in arg1) {
-        if (arg1.hasOwnProperty(k)) {
-          val[k] = arg1[k];
-        }
-      }
+  var scan_req = this.db.scan(solver, iterators);
+  var store_name = iterators[0].getStoreName();
+  var req = scan_req.copy();
+  scan_req.addCallbacks(function(p_keys) {
+    if (mth == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
+      req.callback(p_keys);
+    } else {
+      req.chainDeferred(this.db.values(store_name, p_keys));
     }
-    req.awaitDeferred(cursor.update(val));
-  }, iterator, ydn.db.base.TransactionMode.READ_WRITE, this);
-  return req;
-};
+  }, function(e) {
+    req.errback(e);
+  }, this);
 
-
-/**
- * Execute query and collect as an array. This method forces query execution.
- * @param {ydn.db.Iterator} iterator iterator.
- * @param {function(this: T, !ydn.db.core.req.AbstractCursor)} cb
- * @param {T=} opt_scope
- * @return {!ydn.db.Request}
- * @template T
- */
-ydn.db.RestrictedQuery.prototype.open = function(iterator, cb, opt_scope) {
-  var req = this.db.open(cb, iterator,
-      ydn.db.base.TransactionMode.READ_WRITE, opt_scope);
   return req;
 };
 
@@ -119,7 +84,7 @@ ydn.db.RestrictedQuery.prototype.open = function(iterator, cb, opt_scope) {
  * @param {ydn.db.Iterator} iter iterator.
  * @return {!ydn.db.Request}
  */
-ydn.db.RestrictedQuery.prototype.count = function(iter) {
+ydn.db.query.Restricted.prototype.count = function(iter) {
   var req;
   if (iter.isUnique()) {
     req = this.db.count(iter);
@@ -146,7 +111,7 @@ ydn.db.RestrictedQuery.prototype.count = function(iter) {
  * @param {ydn.db.Iterator} iter iterator.
  * @return {!ydn.db.Request}
  */
-ydn.db.RestrictedQuery.prototype.clear = function(iter) {
+ydn.db.query.Restricted.prototype.clear = function(iter) {
   var req = iter.isIndexIterator() ?
       this.db.clear(iter.getStoreName(), iter.getIndexName(), iter.keyRange()) :
       this.db.clear(iter.getStoreName(), iter.keyRange());

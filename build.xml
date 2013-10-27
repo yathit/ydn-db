@@ -171,7 +171,7 @@
         <echo>git checkout master</echo>
     </target>
     <target name="build" description="build all distributions"
-            depends="deps,compile-main">
+            depends="ydn-base.deps,deps,compile-main">
 
     </target>
 </project>
