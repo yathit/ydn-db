@@ -192,7 +192,7 @@ ydn.db.tr.Storage.prototype.newTxQueue = function(request_type, opt_is_serial,
  */
 ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
 
-  if (arguments.length > 3) {
+  if (goog.DEBUG && arguments.length > 3) {
     throw new ydn.debug.error.ArgumentException('too many input arguments, ' +
         'run accept not more than 3 input arguments, but ' +
         arguments.length + ' found.');
@@ -231,6 +231,84 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
     me.logger.finest('executing run in transaction on ' + tx_thread);
     req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
     trFn(db_operator);
+  }, store_names, mode, onComplete);
+
+  return req;
+};
+
+
+/**
+ * Run a new transaction in synchronous thread.
+ * @param {function(!ydn.db.tr.DbOperator)} trFn function that invoke in the
+ * transaction.
+ * @param {Array.<string>=} opt_store_names list of store name involved in the
+ * transaction. Default to all store names.
+ * @param {ydn.db.base.StandardTransactionMode=} opt_mode mode, default to
+ * 'readonly'.
+ * @return {!ydn.db.Request}
+ * @final
+ */
+ydn.db.tr.Storage.prototype.spawn = function(trFn, opt_store_names, opt_mode) {
+
+  if (goog.DEBUG && arguments.length > 3) {
+    throw new ydn.debug.error.ArgumentException('too many input arguments, ' +
+        'run accept not more than 3 input arguments, but ' +
+        arguments.length + ' found.');
+  }
+  this.ptx_no++;
+
+  var store_names = opt_store_names || this.schema.getStoreNames();
+
+  // NOTE: ydn.db.base.TransactionMode can be number (as in old definition).
+  var mode = ydn.db.base.TransactionMode.READ_ONLY;
+  if (opt_mode) {
+    if (opt_mode == ydn.db.base.StandardTransactionMode.READ_WRITE) {
+      mode = ydn.db.base.TransactionMode.READ_WRITE;
+    } else if (opt_mode != ydn.db.base.StandardTransactionMode.READ_ONLY) {
+      throw new ydn.debug.error.ArgumentException('Invalid transaction mode "' +
+          opt_mode + '"');
+    }
+  }
+
+  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.ALL, false,
+      store_names, mode, 1);
+  var db_operator = this.newOperator(tx_thread, this.sync_thread);
+  var gen;
+  /**
+   * Hook to collect result from yeild statement.
+   * @param {!ydn.db.Request} rq
+   * @param {goog.array.ArrayLike} args
+   */
+  var resultHook = function(rq, args) {
+    rq.addCallback(function(x) {
+      if ('send' in gen) {
+        gen['send'](x);
+      } else {
+        gen['next'](x);
+      }
+    });
+  };
+  for (var i = 0; i < this.schema.count(); i++) {
+    var store = this.schema.store(i);
+    store.addHook(resultHook);
+  }
+  var req = new ydn.db.Request(ydn.db.Request.Method.RUN);
+  /**
+   * @param {ydn.db.base.TxEventTypes} type
+   * @param {*} e
+   */
+  var onComplete = function(type, e) {
+    req.removeTx();
+    var success = type === ydn.db.base.TxEventTypes.COMPLETE;
+    req.setDbValue(tx_thread.getTxNo(), !success);
+  };
+
+  var me = this;
+  tx_thread.processTx(function(tx) {
+    me.logger.finest('executing run in transaction on ' + tx_thread);
+    req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
+    gen = trFn(db_operator);
+    gen.next();
   }, store_names, mode, onComplete);
 
   return req;
