@@ -52,16 +52,42 @@ ydn.db.tr.Parallel = function(storage, ptx_no, opt_policy,
   this.storage_ = storage;
 
   /**
+   * Transaction thread number.
    * @final
+   * @private
    */
   this.q_no_ = ptx_no;
 
+  /**
+   * Transaction number, increase one as a transaction created from this thread.
+   * @type {number}
+   * @private
+   */
   this.tx_no_ = 0;
 
+  /**
+   * Request number, increase one as a request created from this thread. Reset
+   * to 0 on each transaction.
+   * @type {number}
+   * @private
+   */
   this.r_no_ = 0;
 
+  /**
+   *
+   * @type {ydn.db.tr.ParallelTxExecutor}
+   * @private
+   */
   this.pl_tx_ex_ = null;
 
+  /**
+   * Transaction object is sed when receiving a request before result df
+   * callback and set null after that callback so that it can be aborted
+   * in the callback.
+   * In general, this tx may be different from running tx.
+   * @type {ydn.db.base.Transaction}
+   * @protected
+   */
   this.p_request_tx = null;
 
   /**
@@ -141,25 +167,6 @@ ydn.db.tr.Parallel.prototype.policy_;
 
 
 /**
- *
- * @type {ydn.db.tr.ParallelTxExecutor}
- * @private
- */
-ydn.db.tr.Parallel.prototype.pl_tx_ex_ = null;
-
-
-/**
- * Transaction object is sed when receiving a request before result df
- * callback and set null after that callback so that it can be aborted
- * in the callback.
- * In general, this tx may be different from running tx.
- * @type {ydn.db.base.Transaction}
- * @protected
- */
-ydn.db.tr.Parallel.prototype.p_request_tx = null;
-
-
-/**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
@@ -176,16 +183,6 @@ ydn.db.tr.Parallel.prototype.logger =
 ydn.db.tr.Parallel.prototype.addStoreSchema = function(store) {
   return this.storage_.addStoreSchema(store);
 };
-//
-//
-///**
-// * @inheritDoc
-// */
-//ydn.db.tr.Parallel.prototype.transaction = function(trFn, store_names,
-//       opt_mode, completed_event_handler) {
-//  this.storage_.transaction(trFn, store_names,
-//      opt_mode, completed_event_handler);
-//};
 
 
 /**
