@@ -13,10 +13,9 @@
 // limitations under the License.
 
 /**
- * @fileoverview About this file.
+ * @fileoverview Transaction thread.
  *
- * User: kyawtun
- * Date: 20/1/13
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 goog.provide('ydn.db.tr.Thread');
@@ -96,16 +95,95 @@ ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
   /**
    * Generator function on spawn synchronous thread.
    * @type {Function}
-   * @protected
+   * @private
    */
-  this.generator = null;
+  this.generator_;
 
+  /**
+   * Generator completed callback.
+   * @type {ydn.db.Request}
+   * @private
+   */
+  this.gen_req_ = null;
+
+  /**
+   * Set break the active transaction by commit method.
+   * @type {boolean}
+   * @private
+   */
+  this.break_tx_ = false;
 };
 
 
-ydn.db.tr.Thread.prototype.setGenerator = function(gen) {
-  goog.asserts.assert(!this.generator, 'thread can have only one generator');
-  this.generator = gen;
+/**
+ * Set generator
+ * @param {Function} gen
+ * @return {Function} callback to invoke when tx is committed or aborted.
+ */
+ydn.db.tr.Thread.prototype.setGenerator = function(gen, req) {
+  goog.asserts.assert(!this.generator_, 'thread can have only one generator');
+  this.generator_ = gen;
+  this.gen_req_ = req;
+  return goog.bind(this.onGenTxCommitted_, this);
+};
+
+
+/**
+ * @param {ydn.db.base.TxEventTypes} type
+ * @param {*} e
+ * @private
+ */
+ydn.db.tr.Thread.prototype.onGenTxCommitted_ = function(type, e) {
+  var done = type == ydn.db.base.TxEventTypes.COMPLETE ||
+      type == ydn.db.base.TxEventTypes.ABORT;
+  if (done && !this.break_tx_) {
+    var success = type == ydn.db.base.TxEventTypes.COMPLETE;
+    this.gen_req_.setDbValue(this.getTxNo(), !success);
+  }
+};
+
+
+/**
+ * Commit active transaction by setTimeout.
+ */
+ydn.db.tr.Thread.prototype.commit = function() {
+  if (!goog.isDef(this.generator_)) {
+    throw new ydn.debug.error.InvalidOperationException('Transaction thread' +
+        ' not running in a generator');
+  } else if (this.generator_) {
+    this.break_tx_ = true;
+  } else {
+    // null
+    throw new ydn.debug.error.InvalidOperationException('Coroutine' +
+        ' transaction thread has been ended');
+  }
+};
+
+
+/**
+ * Send next result value to generator.
+ * @param x
+ * @private
+ */
+ydn.db.tr.Thread.prototype.sendNext_ = function(x) {
+  if (this.break_tx_) {
+    this.break_tx_ = false;
+    var me = this;
+    // let transaction be committed
+    setTimeout(function() {
+      // and create a new transaction.
+      me.processTx(function(tx) {
+        // new tx is active, start next request.
+        // me.gen_req_.setTx(tx); // todo set correct tx, current implementation
+        // not allow setting multiple tx setting.
+        me.generator_['next'](x);
+      }, /** @type {!Array.<string>} */ (me.scope_store_names), me.scope_mode,
+          me.onGenTxCommitted_);
+
+    }, 4);
+  } else {
+    this.generator_['next'](x);
+  }
 };
 
 
@@ -120,6 +198,19 @@ ydn.db.tr.Thread.prototype.setGenerator = function(gen) {
 ydn.db.tr.Thread.prototype.request = function(method, store_names, opt_mode,
                                               opt_oncompleted) {
   var req = new ydn.db.Request(method);
+  if (this.generator_) {
+    req.addCallbacks(function(x) {
+      this.sendNext_(x);
+    }, function(e) {
+      var err = e;
+      if (!(e instanceof Error)) {
+        err = new Error();
+        err['error'] = e;
+      }
+      this.sendNext_(err);
+    }, this);
+  }
+
   return req;
 };
 

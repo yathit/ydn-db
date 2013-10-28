@@ -142,6 +142,14 @@ ydn.db.tr.DbOperator.prototype.getStorage = function() {
 
 
 /**
+ *  Commit active transaction in coroutine thread.
+ */
+ydn.db.tr.DbOperator.prototype.commit = function() {
+  this.tx_thread.commit();
+};
+
+
+/**
  * Add or update a store issuing a version change event.
  * @protected
  * @param {!StoreSchema|!ydn.db.schema.Store} store schema.

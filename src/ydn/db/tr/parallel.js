@@ -13,10 +13,11 @@
 // limitations under the License.
 
 /**
- * @fileoverview Transaction queue.
+ * @fileoverview Parallel transaction thread.
  *
- * A transaction is used to crate non-overlapping transaction so that each
- * database methods are atomic and run in order.
+ * Transaction is created as necessary resulting parallel transactions.
+ *
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 
