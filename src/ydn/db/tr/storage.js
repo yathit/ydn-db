@@ -308,6 +308,7 @@ ydn.db.tr.Storage.prototype.spawn = function(trFn, opt_store_names, opt_mode) {
     me.logger.finest('executing run in transaction on ' + tx_thread);
     req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
     gen = trFn(db_operator);
+    tx_thread.setGenerator(gen);
     gen.next();
   }, store_names, mode, onComplete);
 
@@ -323,13 +324,3 @@ ydn.db.tr.Storage.prototype.spawn = function(trFn, opt_store_names, opt_mode) {
 ydn.db.tr.Storage.prototype.getTxNo = function() {
   return this.db_operator ? this.db_operator.getTxNo() : NaN;
 };
-
-// TODO: move to seperate export class
-goog.exportProperty(ydn.db.tr.Storage.prototype, 'branch',
-    ydn.db.tr.Storage.prototype.branch);
-goog.exportProperty(ydn.db.tr.Storage.prototype, 'run',
-    ydn.db.tr.Storage.prototype.run);
-goog.exportProperty(ydn.db.tr.Storage.prototype, 'getTxNo',
-    ydn.db.tr.Storage.prototype.getTxNo);
-goog.exportProperty(ydn.db.tr.DbOperator.prototype, 'getTxNo',
-    ydn.db.tr.DbOperator.prototype.getTxNo);

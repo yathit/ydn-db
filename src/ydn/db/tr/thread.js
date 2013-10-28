@@ -103,6 +103,12 @@ ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
 };
 
 
+ydn.db.tr.Thread.prototype.setGenerator = function(gen) {
+  goog.asserts.assert(!this.generator, 'thread can have only one generator');
+  this.generator = gen;
+};
+
+
 /**
  * Create an request.
  * @param {ydn.db.Request.Method} method request method.
@@ -111,8 +117,11 @@ ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
  * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  * @return {!ydn.db.Request}
  */
-ydn.db.tr.Thread.prototype.request =
-    function(method, store_names, opt_mode, opt_oncompleted) {};
+ydn.db.tr.Thread.prototype.request = function(method, store_names, opt_mode,
+                                              opt_oncompleted) {
+  var req = new ydn.db.Request(method);
+  return req;
+};
 
 
 /**
@@ -225,14 +234,6 @@ ydn.db.tr.Thread.abort = function(tx) {
     if (goog.isFunction(tx.abort)) {
       tx.abort();
     } else if (goog.isFunction(tx.executeSql)) {
-
-      /**
-       * @param {SQLTransaction} transaction transaction.
-       * @param {SQLResultSet} results results.
-       */
-      var callback = function(transaction, results) {
-
-      };
       /**
        * @param {SQLTransaction} tr transaction.
        * @param {SQLError} error error.
@@ -242,7 +243,7 @@ ydn.db.tr.Thread.abort = function(tx) {
         // console.log(error);
         return true; // roll back
       };
-      tx.executeSql('ABORT', [], callback, error_callback);
+      tx.executeSql('ABORT', [], null, error_callback);
       // this will cause error on SQLTransaction and WebStorage.
       // the error is wanted because there is no way to abort a transaction in
       // WebSql. It is somehow recommanded workaround to abort a transaction.

@@ -7,6 +7,7 @@ goog.provide('ydn.db.crud.exports');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.crud.Storage');
+goog.require('ydn.db.tr.exports');
 
 
 goog.exportProperty(ydn.db.crud.Storage.prototype, 'branch',

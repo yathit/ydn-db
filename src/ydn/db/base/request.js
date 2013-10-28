@@ -44,7 +44,7 @@
 
 goog.provide('ydn.db.Request');
 goog.provide('ydn.db.Request.Method');
-goog.require('goog.async.Deferred');
+goog.require('ydn.async.Deferred');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db.base.Transaction');
 
@@ -60,9 +60,8 @@ goog.require('ydn.db.base.Transaction');
  * @param {Object=} opt_defaultScope The default object context to call
  *     callbacks and errbacks in.
  * @constructor
- * @extends {goog.async.Deferred}
+ * @extends {ydn.async.Deferred}
  * @struct
- * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
 ydn.db.Request = function(method, opt_onCancelFunction, opt_defaultScope) {
   goog.base(this, opt_onCancelFunction, opt_defaultScope);
@@ -89,7 +88,7 @@ ydn.db.Request = function(method, opt_onCancelFunction, opt_defaultScope) {
   this.tx_label_ = '';
   this.copy_count_ = 0;
 };
-goog.inherits(ydn.db.Request, goog.async.Deferred);
+goog.inherits(ydn.db.Request, ydn.async.Deferred);
 
 
 /**
@@ -300,30 +299,6 @@ ydn.db.Request.prototype.addTxback = function(fun, opt_scope) {
 };
 
 
-/**
- * Register a callback function to be called for progress events.
- * @param {!function(this:T,?):?} fun The function to be called on progress.
- * @param {T=} opt_scope An optional scope to call the progback in.
- * @return {!goog.async.Deferred} This Deferred.
- * @template T
- */
-ydn.db.Request.prototype.addProgback = function(fun, opt_scope) {
-  this.progbacks_.push([fun, opt_scope]);
-  return this;
-};
-
-
-/**
- * Notify to progress callback listers about the progress of the result.
- * @param {*=} opt_value The value.
- */
-ydn.db.Request.prototype.notify = function(opt_value) {
-  for (var i = 0; i < this.progbacks_.length; i++) {
-    var progback = this.progbacks_[i][0];
-    var scope = this.progbacks_[i][1];
-    progback.call(scope, opt_value);
-  }
-};
 
 
 /**
@@ -371,7 +346,6 @@ ydn.db.Request.prototype.state = function() {
  * @private
  */
 ydn.db.Request.prototype.dispose_ = function() {
-  this.progbacks_.length = 0;
   this.tx_ = null;
   this.tx_label_ = this.tx_label_;
 };

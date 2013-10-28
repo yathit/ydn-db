@@ -236,7 +236,8 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
  */
 ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode,
                                                 opt_on_complete) {
-  var req = new ydn.db.Request(method);
+  var req = goog.base(this, 'request', method, store_names, opt_mode,
+      opt_on_complete);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
 
