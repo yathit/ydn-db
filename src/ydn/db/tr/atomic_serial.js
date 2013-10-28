@@ -21,7 +21,6 @@
 
 
 goog.provide('ydn.db.tr.AtomicSerial');
-goog.require('ydn.db.tr.IThread');
 goog.require('ydn.db.tr.Serial');
 goog.require('ydn.debug.error.NotSupportedException');
 
@@ -31,7 +30,6 @@ goog.require('ydn.debug.error.NotSupportedException');
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
  *
- * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
  * @constructor
