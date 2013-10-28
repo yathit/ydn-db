@@ -30,7 +30,7 @@ var test_sync = function() {
   };
   var db_type = 'indexeddb';
   var db_name = 'test-sync';
-  var db = new ydn.db.crud.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, schema);
 
   var val = {id: 'a', value: Math.random()};
 
@@ -38,9 +38,9 @@ var test_sync = function() {
   var result;
 
   db.onReady(function() {
-    var fn = function* (tdb) {
+    function fn (tdb) {
       var p1 = yield tdb.put('st', val);
-      var result = yield tdb.get('st', 'a');
+      var result = yield tdb.get('st', p1);
       assertObjectEquals('result', val, result);
       console.log('done ', result);
     }

@@ -238,17 +238,19 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
 
 
 /**
- * Run a new transaction in synchronous thread.
+ * Spawn a new transaction thread using generator coroutine.
  * @param {function(!ydn.db.tr.DbOperator)} trFn function that invoke in the
  * transaction.
  * @param {Array.<string>=} opt_store_names list of store name involved in the
  * transaction. Default to all store names.
  * @param {ydn.db.base.StandardTransactionMode=} opt_mode mode, default to
  * 'readonly'.
+ * @param {number=} opt_max_tx limit number of transactions created.
  * @return {!ydn.db.Request}
  * @final
  */
-ydn.db.tr.Storage.prototype.spawn = function(trFn, opt_store_names, opt_mode) {
+ydn.db.tr.Storage.prototype.spawn = function(trFn, opt_store_names, opt_mode,
+                                             opt_max_tx) {
 
   if (goog.DEBUG && arguments.length > 3) {
     throw new ydn.debug.error.ArgumentException('too many input arguments, ' +
@@ -269,46 +271,33 @@ ydn.db.tr.Storage.prototype.spawn = function(trFn, opt_store_names, opt_mode) {
           opt_mode + '"');
     }
   }
-
+  // use parallel queue, because generator yielding will make tx creation
+  // linear.
   var tx_thread = this.newTxQueue(ydn.db.tr.Thread.Policy.ALL, false,
-      store_names, mode, 1);
+      store_names, mode, opt_max_tx);
   var db_operator = this.newOperator(tx_thread, this.sync_thread);
-  var gen;
-  /**
-   * Hook to collect result from yeild statement.
-   * @param {!ydn.db.Request} rq
-   * @param {goog.array.ArrayLike} args
-   */
-  var resultHook = function(rq, args) {
-    rq.addCallback(function(x) {
-      if ('send' in gen) {
-        gen['send'](x);
-      } else {
-        gen['next'](x);
-      }
-    });
-  };
-  for (var i = 0; i < this.schema.count(); i++) {
-    var store = this.schema.store(i);
-    store.addHook(resultHook);
-  }
+
   var req = new ydn.db.Request(ydn.db.Request.Method.RUN);
+  var onTxCompleted;
   /**
    * @param {ydn.db.base.TxEventTypes} type
    * @param {*} e
    */
   var onComplete = function(type, e) {
     req.removeTx();
-    var success = type === ydn.db.base.TxEventTypes.COMPLETE;
-    req.setDbValue(tx_thread.getTxNo(), !success);
+    var done = type == ydn.db.base.TxEventTypes.COMPLETE ||
+        type == ydn.db.base.TxEventTypes.ABORT;
+    if (done) {
+      onTxCompleted(type, e);
+    }
   };
 
   var me = this;
   tx_thread.processTx(function(tx) {
     me.logger.finest('executing run in transaction on ' + tx_thread);
     req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
-    gen = trFn(db_operator);
-    tx_thread.setGenerator(gen);
+    var gen = trFn(db_operator);
+    onTxCompleted = tx_thread.setGenerator(gen, req);
     gen.next();
   }, store_names, mode, onComplete);
 

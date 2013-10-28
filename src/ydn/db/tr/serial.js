@@ -17,6 +17,8 @@
  *
  * A transaction is used to crate non-overlapping transaction so that each
  * database methods are atomic and run in order.
+ *
+ * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
 
