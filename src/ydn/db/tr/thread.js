@@ -21,6 +21,7 @@
 goog.provide('ydn.db.tr.Thread');
 goog.provide('ydn.db.tr.Thread.Policy');
 goog.require('ydn.db.Request');
+goog.require('goog.debug.Logger');
 
 
 
@@ -39,7 +40,7 @@ goog.require('ydn.db.Request');
  * @struct
  */
 ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
-                             opt_store_names, opt_mode, opt_max_tx_no) {
+                            opt_store_names, opt_mode, opt_max_tx_no) {
 
   /**
    * @final
@@ -112,7 +113,20 @@ ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
    * @private
    */
   this.break_tx_ = false;
+  /**
+   * @type {number}
+   * @private
+   */
+  this.yield_no_ = 0;
 };
+
+
+/**
+ * @protected
+ * @type {goog.debug.Logger} logger.
+ */
+ydn.db.tr.Thread.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.tr.Thread');
 
 
 /**
@@ -136,9 +150,16 @@ ydn.db.tr.Thread.prototype.setGenerator = function(gen, req) {
 ydn.db.tr.Thread.prototype.onGenTxCommitted_ = function(type, e) {
   var done = type == ydn.db.base.TxEventTypes.COMPLETE ||
       type == ydn.db.base.TxEventTypes.ABORT;
-  if (done && !this.break_tx_) {
-    var success = type == ydn.db.base.TxEventTypes.COMPLETE;
-    this.gen_req_.setDbValue(this.getTxNo(), !success);
+  if (done) {
+    if (this.break_tx_) {
+      this.logger.finest('tx ' + this.getTxNo() + ' committed');
+      this.break_tx_ = false;
+    } else {
+      this.logger.finest('Generator done ' + this.break_tx_);
+      var success = type == ydn.db.base.TxEventTypes.COMPLETE;
+      this.gen_req_.setDbValue(this.getTxNo(), !success);
+    }
+
   }
 };
 
@@ -151,6 +172,8 @@ ydn.db.tr.Thread.prototype.commit = function() {
     throw new ydn.debug.error.InvalidOperationException('Transaction thread' +
         ' not running in a generator');
   } else if (this.generator_) {
+    this.logger.finest('Receive to commit tx ' + this.getTxNo() + ' on yield ' +
+        this.yield_no_);
     this.break_tx_ = true;
   } else {
     // null
@@ -167,7 +190,8 @@ ydn.db.tr.Thread.prototype.commit = function() {
  */
 ydn.db.tr.Thread.prototype.sendNext_ = function(x) {
   if (this.break_tx_) {
-    this.break_tx_ = false;
+    this.logger.finest('waiting tx to be committed for yielding ' +
+        this.yield_no_);
     var me = this;
     // let transaction be committed
     setTimeout(function() {
@@ -176,14 +200,17 @@ ydn.db.tr.Thread.prototype.sendNext_ = function(x) {
         // new tx is active, start next request.
         // me.gen_req_.setTx(tx); // todo set correct tx, current implementation
         // not allow setting multiple tx setting.
+        me.logger.finest('sending result to yield ' + me.yield_no_);
         me.generator_['next'](x);
       }, /** @type {!Array.<string>} */ (me.scope_store_names), me.scope_mode,
-          me.onGenTxCommitted_);
+          goog.bind(me.onGenTxCommitted_, me));
 
     }, 4);
   } else {
+    this.logger.finest('sending result to yield ' + this.yield_no_);
     this.generator_['next'](x);
   }
+  this.yield_no_++;
 };
 
 
