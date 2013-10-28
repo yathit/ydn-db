@@ -44,7 +44,7 @@ var test_basic = function() {
       100, // interval
       2000); // maxTimeout
 
-  db.onReady(function() {
+
     var fn = function* (tdb) {
       var p1 = yield tdb.put('st', val);
       var result = yield tdb.get('st', p1);
@@ -57,7 +57,7 @@ var test_basic = function() {
       tx_no = x;
       done = true;
     });
-  });
+
 
 };
 
