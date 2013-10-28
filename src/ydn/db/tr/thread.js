@@ -19,16 +19,88 @@
  * Date: 20/1/13
  */
 
-goog.provide('ydn.db.tr.IThread');
-goog.provide('ydn.db.tr.IThread.Policy');
+goog.provide('ydn.db.tr.Thread');
+goog.provide('ydn.db.tr.Thread.Policy');
 goog.require('ydn.db.Request');
 
 
 
+
 /**
- * @interface
+ * Create transaction queue providing methods to run in non-overlapping
+ * transactions.
+ *
+ * @param {!ydn.db.tr.Storage} storage base storage.
+ * @param {number} ptx_no transaction queue number.
+ * @param {ydn.db.tr.Thread.Policy=} opt_policy
+ * @param {!Array.<string>=} opt_store_names store names as scope.
+ * @param {ydn.db.base.TransactionMode=} opt_mode mode as scope.
+ * @param {number=} opt_max_tx_no limit number of transaction created.
+ * @constructor
+ * @struct
  */
-ydn.db.tr.IThread = function() {};
+ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
+                             opt_store_names, opt_mode, opt_max_tx_no) {
+
+  /**
+   * @final
+   * @type {!ydn.db.tr.Storage}
+   * @private
+   */
+  this.storage_ = storage;
+
+  /**
+   * Transaction thread number.
+   * @final
+   */
+  this.q_no_ = ptx_no;
+
+  /**
+   * Transaction number, increase one as a transaction created from this thread.
+   * @type {number}
+   */
+  this.tx_no_ = 0;
+
+  /**
+   * Request number, increase one as a request created from this thread. Reset
+   * to 0 on each transaction.
+   * @type {number}
+   */
+  this.r_no_ = 0;
+
+
+  /**
+   * @final
+   * @protected
+   */
+  this.scope_store_names = opt_store_names;
+
+  /**
+   * @final
+   * @protected
+   */
+  this.scope_mode = opt_mode;
+
+  /**
+   * @final
+   * @protected
+   */
+  this.policy = opt_policy || ydn.db.tr.Thread.Policy.SINGLE;
+
+  /**
+   * @final
+   * @protected
+   */
+  this.max_tx_no = opt_max_tx_no || 0;
+
+  /**
+   * Generator function on spawn synchronous thread.
+   * @type {Function}
+   * @protected
+   */
+  this.generator = null;
+
+};
 
 
 /**
@@ -39,7 +111,7 @@ ydn.db.tr.IThread = function() {};
  * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  * @return {!ydn.db.Request}
  */
-ydn.db.tr.IThread.prototype.request =
+ydn.db.tr.Thread.prototype.request =
     function(method, store_names, opt_mode, opt_oncompleted) {};
 
 
@@ -52,25 +124,70 @@ ydn.db.tr.IThread.prototype.request =
  * @param {ydn.db.base.TransactionMode} mode mode, default to 'readonly'.
  * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  */
-ydn.db.tr.IThread.prototype.exec = goog.abstractMethod;
+ydn.db.tr.Thread.prototype.exec = goog.abstractMethod;
 
 
 /**
  * Abort an active transaction.
  */
-ydn.db.tr.IThread.prototype.abort = goog.abstractMethod;
+ydn.db.tr.Thread.prototype.abort = goog.abstractMethod;
 
 
 /**
- * @return {number}
+ *
+ * @return {number} transaction count.
  */
-ydn.db.tr.IThread.prototype.getTxNo = goog.abstractMethod;
+ydn.db.tr.Thread.prototype.getTxNo = function() {
+  return this.tx_no_;
+};
 
 
 /**
- * @return {string}
+ *
+ * @return {string|undefined} mechansim type.
  */
-ydn.db.tr.IThread.prototype.getLabel = goog.abstractMethod;
+ydn.db.tr.Thread.prototype.type = function() {
+  return this.storage_.getType();
+};
+
+
+
+/**
+ *
+ * @return {number} transaction queue number.
+ */
+ydn.db.tr.Thread.prototype.getQueueNo = function() {
+  return this.q_no_;
+};
+
+
+/**
+ * Add or update a store issuing a version change event.
+ * @protected
+ * @param {!StoreSchema|!ydn.db.schema.Store} store schema.
+ * @return {!goog.async.Deferred} promise.
+ */
+ydn.db.tr.Thread.prototype.addStoreSchema = function(store) {
+  return this.storage_.addStoreSchema(store);
+};
+
+
+/**
+ * @protected
+ * @return {!ydn.db.tr.Storage} storage.
+ */
+ydn.db.tr.Thread.prototype.getStorage = function() {
+  return this.storage_;
+};
+
+
+/**
+ *
+ * @return {string} label.
+ */
+ydn.db.tr.Thread.prototype.getLabel = function() {
+  return 'B' + this.q_no_ + 'T' + this.tx_no_;
+};
 
 
 /**
@@ -83,14 +200,14 @@ ydn.db.tr.IThread.prototype.getLabel = goog.abstractMethod;
  * @param {ydn.db.base.TransactionMode=} opt_mode mode, default to 'readonly'.
  * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  */
-ydn.db.tr.IThread.prototype.processTx = goog.abstractMethod;
+ydn.db.tr.Thread.prototype.processTx = goog.abstractMethod;
 
 
 /**
  * Request type.
  * @enum {string}
  */
-ydn.db.tr.IThread.Policy = {
+ydn.db.tr.Thread.Policy = {
   MULTI: 'multi',
   REPEAT: 'repeat',
   ALL: 'all',
@@ -103,7 +220,7 @@ ydn.db.tr.IThread.Policy = {
  * Abort an active transaction.
  * @param {ydn.db.base.Transaction} tx transaction to be aborted.
  */
-ydn.db.tr.IThread.abort = function(tx) {
+ydn.db.tr.Thread.abort = function(tx) {
   if (tx) {
     if (goog.isFunction(tx.abort)) {
       tx.abort();

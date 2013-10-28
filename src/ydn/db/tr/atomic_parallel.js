@@ -7,7 +7,7 @@
 
 
 goog.provide('ydn.db.tr.AtomicParallel');
-goog.require('ydn.db.tr.IThread');
+goog.require('ydn.db.tr.Thread');
 goog.require('ydn.db.tr.Parallel');
 goog.require('ydn.debug.error.NotSupportedException');
 
@@ -17,7 +17,6 @@ goog.require('ydn.debug.error.NotSupportedException');
  * Create transaction queue providing methods to run in non-overlapping
  * transactions.
  *
- * @implements {ydn.db.tr.IThread}
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
  * @constructor
@@ -25,7 +24,7 @@ goog.require('ydn.debug.error.NotSupportedException');
  */
 ydn.db.tr.AtomicParallel = function(storage, ptx_no) {
 
-  goog.base(this, storage, ptx_no, ydn.db.tr.IThread.Policy.SINGLE);
+  goog.base(this, storage, ptx_no, ydn.db.tr.Thread.Policy.SINGLE);
 
 };
 goog.inherits(ydn.db.tr.AtomicParallel, ydn.db.tr.Parallel);

@@ -45,13 +45,13 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
   this.ptx_no = 0;
 
   var is_serial = true;
-  var req_type = ydn.db.tr.IThread.Policy.SINGLE;
+  var req_type = ydn.db.tr.Thread.Policy.SINGLE;
   if (opt_options) {
     if (goog.isDef(opt_options.isSerial)) {
       is_serial = !!opt_options.isSerial;
     }
     if (opt_options.policy) {
-      req_type = /** @type {ydn.db.tr.IThread.Policy} */
+      req_type = /** @type {ydn.db.tr.Thread.Policy} */
           (opt_options.policy);
     }
   }
@@ -64,7 +64,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
    * This sync thread is used internally.
    * @final
    */
-  this.sync_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.ATOMIC, false);
+  this.sync_thread = this.newTxQueue(ydn.db.tr.Thread.Policy.ATOMIC, false);
 
   /**
    * main thread.
@@ -78,7 +78,7 @@ goog.inherits(ydn.db.tr.Storage, ydn.db.con.Storage);
 
 
 /**
- * @type {ydn.db.tr.IThread}
+ * @type {ydn.db.tr.Thread}
  * @protected
  */
 ydn.db.tr.Storage.prototype.sync_thread;
@@ -101,7 +101,7 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
 
 /**
  * Create a new db operator.
- * @param {ydn.db.tr.IThread.Policy} request_type thread policy.
+ * @param {ydn.db.tr.Thread.Policy} request_type thread policy.
  * @param {boolean=} opt_is_serial serial request.
  * @param {!Array.<string>=} opt_store_names store names for tx scope.
  * @param {ydn.db.base.StandardTransactionMode=} opt_mode tx mode.
@@ -126,8 +126,8 @@ ydn.db.tr.Storage.prototype.branch = function(request_type, opt_is_serial,
 
 
 /**
- * @param {!ydn.db.tr.IThread} tx_thread transaction thread.
- * @param {ydn.db.tr.IThread} sync_thread thread for synchronization.
+ * @param {!ydn.db.tr.Thread} tx_thread transaction thread.
+ * @param {ydn.db.tr.Thread} sync_thread thread for synchronization.
  * @return {!ydn.db.tr.DbOperator} the db operator.
  * @protected
  */
@@ -139,37 +139,37 @@ ydn.db.tr.Storage.prototype.newOperator = function(tx_thread, sync_thread) {
 
 /**
  * Create a new thread queue.
- * @param {ydn.db.tr.IThread.Policy} request_type thread policy.
+ * @param {ydn.db.tr.Thread.Policy} request_type thread policy.
  * @param {boolean=} opt_is_serial serial request.
  * @param {!Array.<string>=} opt_store_names store names as scope.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode as scope.
  * @param {number=} opt_max_tx limit number of transaction.
- * @return {!ydn.db.tr.IThread} new transactional storage.
+ * @return {!ydn.db.tr.Thread} new transactional storage.
 */
 ydn.db.tr.Storage.prototype.newTxQueue = function(request_type, opt_is_serial,
     opt_store_names, opt_mode, opt_max_tx) {
 
   if (opt_is_serial) {
-    if (request_type == ydn.db.tr.IThread.Policy.MULTI ||
-        request_type == ydn.db.tr.IThread.Policy.REPEAT ||
-        request_type == ydn.db.tr.IThread.Policy.ALL ||
-        request_type == ydn.db.tr.IThread.Policy.SINGLE) {
+    if (request_type == ydn.db.tr.Thread.Policy.MULTI ||
+        request_type == ydn.db.tr.Thread.Policy.REPEAT ||
+        request_type == ydn.db.tr.Thread.Policy.ALL ||
+        request_type == ydn.db.tr.Thread.Policy.SINGLE) {
       return new ydn.db.tr.Serial(this, this.ptx_no++, request_type,
           opt_store_names, opt_mode, opt_max_tx);
-    } else if (request_type == ydn.db.tr.IThread.Policy.ATOMIC) {
+    } else if (request_type == ydn.db.tr.Thread.Policy.ATOMIC) {
       return new ydn.db.tr.AtomicSerial(this, this.ptx_no++);
     } else {
       throw new ydn.debug.error.ArgumentException('Invalid requestType "' +
           request_type + '"');
     }
   } else {
-    if (request_type == ydn.db.tr.IThread.Policy.MULTI ||
-        request_type == ydn.db.tr.IThread.Policy.REPEAT ||
-        request_type == ydn.db.tr.IThread.Policy.ALL ||
-        request_type == ydn.db.tr.IThread.Policy.SINGLE) {
+    if (request_type == ydn.db.tr.Thread.Policy.MULTI ||
+        request_type == ydn.db.tr.Thread.Policy.REPEAT ||
+        request_type == ydn.db.tr.Thread.Policy.ALL ||
+        request_type == ydn.db.tr.Thread.Policy.SINGLE) {
       return new ydn.db.tr.Parallel(this, this.ptx_no++, request_type,
           opt_store_names, opt_mode, opt_max_tx);
-    } else if (request_type == ydn.db.tr.IThread.Policy.ATOMIC) {
+    } else if (request_type == ydn.db.tr.Thread.Policy.ATOMIC) {
       return new ydn.db.tr.AtomicParallel(this, this.ptx_no++);
     } else {
       throw new ydn.debug.error.ArgumentException('Invalid requestType "' +
@@ -212,7 +212,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
     }
   }
 
-  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.ALL, false,
+  var tx_thread = this.newTxQueue(ydn.db.tr.Thread.Policy.ALL, false,
       store_names, mode, 1);
   var db_operator = this.newOperator(tx_thread, this.sync_thread);
   var req = new ydn.db.Request(ydn.db.Request.Method.RUN);
@@ -270,7 +270,7 @@ ydn.db.tr.Storage.prototype.spawn = function(trFn, opt_store_names, opt_mode) {
     }
   }
 
-  var tx_thread = this.newTxQueue(ydn.db.tr.IThread.Policy.ALL, false,
+  var tx_thread = this.newTxQueue(ydn.db.tr.Thread.Policy.ALL, false,
       store_names, mode, 1);
   var db_operator = this.newOperator(tx_thread, this.sync_thread);
   var gen;

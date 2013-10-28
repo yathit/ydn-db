@@ -21,7 +21,7 @@
 
 
 goog.provide('ydn.db.tr.Serial');
-goog.require('ydn.db.tr.IThread');
+goog.require('ydn.db.tr.Thread');
 goog.require('ydn.db.tr.Mutex');
 goog.require('ydn.debug.error.NotSupportedException');
 
@@ -33,48 +33,19 @@ goog.require('ydn.debug.error.NotSupportedException');
  *
  * @param {!ydn.db.tr.Storage} storage base storage.
  * @param {number} ptx_no transaction queue number.
- * @param {ydn.db.tr.IThread.Policy=} opt_policy transaction policy.
+ * @param {ydn.db.tr.Thread.Policy=} opt_policy transaction policy.
  * @param {!Array.<string>=} opt_store_names store names as scope.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode as scope.
  * @param {number=} opt_max_tx_no limit number of transaction created.
  * @constructor
- * @implements {ydn.db.tr.IThread}
+ * @extends {ydn.db.tr.Thread}
  * @struct
  */
 ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
                             opt_store_names, opt_mode, opt_max_tx_no) {
 
-  /**
-   * @final
-   * @private
-   */
-  this.storage_ = storage;
-
-  /**
-   * Transaction queue no.
-   * @final
-   */
-  this.q_no_ = ptx_no;
-
-  this.r_no_ = 0;
-
-  /**
-   * @final
-   * @private
-   */
-  this.scope_store_names_ = opt_store_names;
-
-  /**
-   * @final
-   * @private
-   */
-  this.scope_mode_ = opt_mode;
-
-  /**
-   * @final
-   * @private
-   */
-  this.policy_ = opt_policy || ydn.db.tr.IThread.Policy.SINGLE;
+  goog.base(this, storage, ptx_no, opt_policy,
+      opt_store_names, opt_mode, opt_max_tx_no);
 
   /**
    * @type {!Array.<{
@@ -126,6 +97,7 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
    */
   this.has_tx_started_ = false;
 };
+goog.inherits(ydn.db.tr.Serial, ydn.db.tr.Thread);
 
 
 /**
@@ -133,34 +105,6 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
  * @type {boolean}
  */
 ydn.db.tr.Serial.DEBUG = false;
-
-
-/**
- * @private
- * @type {number} request number.
- */
-ydn.db.tr.Serial.prototype.r_no_;
-
-
-/**
- * @private
- * @type {number} thread number.
- */
-ydn.db.tr.Serial.prototype.q_no_;
-
-
-/**
- * @type {!ydn.db.tr.Storage}
- * @private
- */
-ydn.db.tr.Serial.prototype.storage_;
-
-
-/**
- * @type {number} limit number of transactions.
- * @private
- */
-ydn.db.tr.Serial.prototype.max_tx_no_ = 0;
 
 
 /**
@@ -177,15 +121,6 @@ ydn.db.tr.Serial.prototype.logger =
  */
 ydn.db.tr.Serial.prototype.getMuTx = function() {
   return this.mu_tx_;
-};
-
-
-/**
- *
- * @return {number} transaction count.
- */
-ydn.db.tr.Serial.prototype.getTxNo = function() {
-  return this.mu_tx_.getTxCount();
 };
 
 
@@ -215,24 +150,15 @@ ydn.db.tr.Serial.prototype.isActive = function() {
  * @protected
  */
 ydn.db.tr.Serial.prototype.reusedTx = function(store_names, mode) {
-  if (this.policy_ == ydn.db.tr.IThread.Policy.MULTI) {
+  if (this.policy == ydn.db.tr.Thread.Policy.MULTI) {
     return this.mu_tx_.subScope(store_names, mode);
-  } else if (this.policy_ == ydn.db.tr.IThread.Policy.REPEAT) {
+  } else if (this.policy == ydn.db.tr.Thread.Policy.REPEAT) {
     return this.mu_tx_.sameScope(store_names, mode);
-  } else if (this.policy_ == ydn.db.tr.IThread.Policy.ALL) {
+  } else if (this.policy == ydn.db.tr.Thread.Policy.ALL) {
     return true;
   } else {
     return false; // SINGLE and ATOMIC
   }
-};
-
-
-/**
- *
- * @return {!ydn.db.tr.Storage} storage.
- */
-ydn.db.tr.Serial.prototype.getStorage = function() {
-  return this.storage_;
 };
 
 
@@ -249,15 +175,6 @@ ydn.db.tr.Serial.prototype.getTx = function() {
  */
 ydn.db.tr.Serial.prototype.lock = function() {
   this.mu_tx_.lock();
-};
-
-
-/**
- *
- * @return {string|undefined} mechanism type.
- */
-ydn.db.tr.Serial.prototype.type = function() {
-  return this.storage_.getType();
 };
 
 
@@ -355,7 +272,7 @@ ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
  */
 ydn.db.tr.Serial.prototype.abort = function() {
   this.logger.finer(this + ': aborting');
-  ydn.db.tr.IThread.abort(this.s_request_tx);
+  ydn.db.tr.Thread.abort(this.s_request_tx);
 };
 
 
@@ -466,7 +383,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
     }
 
     this.has_tx_started_ = true;
-    this.storage_.transaction(transaction_process, names, mode,
+    this.getStorage().transaction(transaction_process, names, mode,
         completed_handler);
   }
 

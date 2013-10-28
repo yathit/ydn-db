@@ -28,7 +28,7 @@ goog.require('ydn.db.Request');
 goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.db.tr.AtomicSerial');
 goog.require('ydn.db.tr.DbOperator');
-goog.require('ydn.db.tr.IThread');
+goog.require('ydn.db.tr.Thread');
 goog.require('ydn.debug.error.ArgumentException');
 goog.require('ydn.debug.error.NotSupportedException');
 
@@ -45,8 +45,8 @@ goog.require('ydn.debug.error.NotSupportedException');
  *
  * @param {!ydn.db.crud.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema schema.
- * @param {ydn.db.tr.IThread} tx_thread
- * @param {ydn.db.tr.IThread} sync_thread
+ * @param {ydn.db.tr.Thread} tx_thread
+ * @param {ydn.db.tr.Thread} sync_thread
  * @implements {ydn.db.crud.IOperator}
  * @implements {ydn.db.ISyncOperator}
  * @constructor

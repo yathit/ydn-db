@@ -28,8 +28,8 @@ goog.require('ydn.debug.error.ArgumentException');
  *
  * @param {!ydn.db.crud.Storage} storage base storage object.
  * @param {!ydn.db.schema.Database} schema
- * @param {ydn.db.tr.IThread} thread
- * @param {ydn.db.tr.IThread} sync_thread
+ * @param {ydn.db.tr.Thread} thread
+ * @param {ydn.db.tr.Thread} sync_thread
  * @constructor
  * @implements {ydn.db.sql.IStorage}
  * @extends {ydn.db.core.DbOperator}
