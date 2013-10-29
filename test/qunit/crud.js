@@ -761,7 +761,7 @@
 (function() {
 
   var db;
-  var db_name = 'tck1-keys-1';
+  var db_name = 'test-keys-1';
   var store_inline = 'ts';    // in-line key store
   var store_inline_string = 'tss';    // in-line key store
   var store_outline = 'ts2'; // out-of-line key store
