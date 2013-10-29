@@ -45,14 +45,6 @@ ydn.db.base.DEFAULT_BLOB_COLUMN = '_default_';
 
 
 /**
- * For JQuery output, deferred functions is slight different and adapt
- * the deferred to jquery style.
- * @define {boolean} true if target compile output is Jquery.
- */
-ydn.db.base.JQUERY = false;
-
-
-/**
  * Install event dispatcher.
  * @define {boolean} true for dispatching.
  */
@@ -84,20 +76,6 @@ ydn.db.base.Mechanisms = {
   MEMORY_STORAGE: 'memory',
   SESSION_STORAGE: 'sessionstorage',
   WEBSQL: 'websql'
-};
-
-
-/**
- * Create a new deferred instance depending on target platform.
- * @return {!goog.async.Deferred} newly created deferred object.
- */
-ydn.db.base.createDeferred = function() {
- if (ydn.db.base.JQUERY) {
-    // TODO: make jquery deferred compatible
-    return new ydn.async.Deferred();
-  } else {
-    return new ydn.async.Deferred();
-  }
 };
 
 

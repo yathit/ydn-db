@@ -923,7 +923,7 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
   var store = this.getStore_(store_name_or_schema);
   var store_name = store.getName();
 
-  var df = ydn.db.base.createDeferred();
+  var df =  this.tx_thread.request(ydn.db.Request.Method.LOAD, [store_name]);
   var me = this;
 
   this.tx_thread.exec(df, function(tx, tx_no, cb) {

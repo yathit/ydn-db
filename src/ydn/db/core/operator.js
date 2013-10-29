@@ -247,7 +247,6 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
  */
 ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
 
-  var df = ydn.db.base.createDeferred();
   if (goog.DEBUG) {
     if (goog.isDef(opt_iterators)) {
       if (!goog.isArray(opt_iterators)) {
@@ -291,6 +290,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
       ' iterators on ' + scopes);
 
   var me = this;
+  var df = this.tx_thread.request(ydn.db.Request.Method.SCAN, scopes);
 
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
@@ -665,7 +665,7 @@ ydn.db.core.DbOperator.prototype.map = function(iterator, callback) {
           '" not found.');
     }
   }
-  var df = ydn.db.base.createDeferred();
+  var df = this.tx_thread.request(ydn.db.Request.Method.MAP, stores);
   this.logger.finest('map:' + iterator);
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
@@ -729,7 +729,7 @@ ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
           '" not found.');
     }
   }
-  var df = ydn.db.base.createDeferred();
+  var df = this.tx_thread.request(ydn.db.Request.Method.REDUCE, stores);
 
   var previous = goog.isObject(opt_initial) ?
       ydn.object.clone(opt_initial) : opt_initial;

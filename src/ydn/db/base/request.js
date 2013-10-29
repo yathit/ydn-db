@@ -299,8 +299,6 @@ ydn.db.Request.prototype.addTxback = function(fun, opt_scope) {
 };
 
 
-
-
 /**
  * @inheritDoc
  */
@@ -430,16 +428,20 @@ ydn.db.Request.Method = {
   KEYS_ITER: goog.DEBUG ? 'keys:iter' : 'h',
   KEYS_INDEX: goog.DEBUG ? 'keys:iter:index' : 'i',
   LIST: goog.DEBUG ? 'list' : 'i2',
-  OPEN: goog.DEBUG ? 'open' : 'i3',
+  LOAD: goog.DEBUG ? 'load' : 'i3',
+  MAP: goog.DEBUG ? 'map' : 'i4',
+  OPEN: goog.DEBUG ? 'open' : 'i5',
   PUT: goog.DEBUG ? 'put' : 'j',
   PUTS: goog.DEBUG ? 'put:array' : 'k',
   PUT_KEYS: goog.DEBUG ? 'put:keys' : 'l',
+  REDUCE: goog.DEBUG ? 'reduce' : 'm0',
   REMOVE_ID: goog.DEBUG ? 'rm' : 'm',
   REMOVE: goog.DEBUG ? 'rm:iter' : 'n',
   REMOVE_KEYS: goog.DEBUG ? 'rm:keys' : 'o',
   REMOVE_INDEX: goog.DEBUG ? 'rm:iter:index' : 'p',
   RUN: goog.DEBUG ? 'run' : 'q',
-  SEARCH: goog.DEBUG ? 'search' : 'qa',
+  SCAN: goog.DEBUG ? 'scan' : 'qa',
+  SEARCH: goog.DEBUG ? 'search' : 'qb',
   SQL: goog.DEBUG ? 'sql' : 'r',
   VALUES: goog.DEBUG ? 'values' : 's',
   VALUES_ITER: goog.DEBUG ? 'values:iter' : 't',
