@@ -68,6 +68,14 @@ ydn.db.crud.DbOperator.prototype.logger =
 
 
 /**
+ * @return {ydn.db.crud.req.IRequestExecutor} executor.
+ */
+ydn.db.crud.DbOperator.prototype.getCrudExecutor = function() {
+  return /** @type {ydn.db.crud.req.IRequestExecutor} */ (this.getExecutor());
+};
+
+
+/**
  *
  * @inheritDoc
  */
@@ -107,7 +115,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     }, this);
     req.addTxback(function() {
       //console.log('counting');
-      this.getExecutor().countStores(req, store_names);
+      this.getCrudExecutor().countStores(req, store_names);
     }, this);
   } else if (goog.isArray(store_name)) {
 
@@ -129,7 +137,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
 
     req.addTxback(function() {
       //console.log('counting');
-      this.getExecutor().countStores(req, store_names);
+      this.getCrudExecutor().countStores(req, store_names);
     }, this);
   } else if (goog.isString(store_name)) {
     var store = this.schema.getStore(store_name);
@@ -196,7 +204,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     req = this.tx_thread.request(ydn.db.Request.Method.COUNT, store_names);
     store.hook(req, arguments);
     req.addTxback(function(tx) {
-      this.getExecutor().countKeyRange(req, store_names[0], key_range,
+      this.getCrudExecutor().countKeyRange(req, store_names[0], key_range,
           index_name, !!unique);
     }, this);
 
@@ -250,7 +258,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     req = this.tx_thread.request(ydn.db.Request.Method.GET, [k_store_name]);
     store.hook(req, arguments);
     req.addTxback(function() {
-      this.getExecutor().getById(req, k_store_name, kid);
+      this.getCrudExecutor().getById(req, k_store_name, kid);
     }, this);
   } else if (goog.isString(arg1) && goog.isDef(arg2)) {
     var store_name = arg1;
@@ -282,7 +290,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     req = this.tx_thread.request(ydn.db.Request.Method.GET, [store_name]);
     store.hook(req, arguments);
     req.addTxback(function() {
-      this.getExecutor().getById(req, store_name, /** @type {IDBKey} */ (id));
+      this.getCrudExecutor().getById(req, store_name, /** @type {IDBKey} */ (id));
     }, this);
 
   } else {
@@ -404,8 +412,8 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
         [store_name]);
     store.hook(req, arguments);
     req.addTxback(function() {
-      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-          store_name, index_name, range, reverse, limit, offset, unique);
+      this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
+          store_name, index_name, range, limit, offset, reverse, unique);
     }, this);
   } else {
     if (goog.isObject(arg1)) {
@@ -450,8 +458,8 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
     req = this.tx_thread.request(ydn.db.Request.Method.KEYS, [store_name]);
     store.hook(req, arguments);
     req.addTxback(function() {
-      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-          store_name, null, range, reverse, limit, offset, false);
+      this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
+          store_name, null, range, limit, offset, reverse, false);
     }, this);
   }
 
@@ -517,7 +525,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
           [store_name]);
       store.hook(req, arguments);
       req.addTxback(function() {
-        this.getExecutor().listByIds(req, store_name, ids);
+        this.getCrudExecutor().listByIds(req, store_name, ids);
       }, this);
     } else if (goog.isString(arg1)) { // index name
       var index_name = arg1;
@@ -560,8 +568,8 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       req = this.tx_thread.request(method, [store_name]);
       store.hook(req, arguments);
       req.addTxback(function() {
-        this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
-            store_name, index_name, range, reverse, limit, offset, false);
+        this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
+            store_name, index_name, range, limit, offset, reverse, false);
       }, this);
     } else {
       var range = null;
@@ -608,8 +616,8 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       req = this.tx_thread.request(method, [store_name]);
       store.hook(req, arguments);
       req.addTxback(function() {
-        this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
-            store_name, null, range, reverse, limit, offset, false);
+        this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
+            store_name, null, range, limit, offset, reverse, false);
       }, this);
     }
   } else if (goog.isArray(arg0)) {
@@ -643,7 +651,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       req = this.tx_thread.request(ydn.db.Request.Method.VALUES_KEYS,
           store_names);
       req.addTxback(function() {
-        this.getExecutor().listByKeys(req, keys);
+        this.getCrudExecutor().listByKeys(req, keys);
       }, this);
     } else {
       throw new ydn.debug.error.ArgumentException('first argument' +
@@ -665,15 +673,15 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
  * @param {string} store_name
  * @param {string=} opt_index
  * @param {ydn.db.KeyRange|ydn.db.IDBKeyRange=} opt_key_range
- * @param {boolean=} opt_reverse
  * @param {number=} opt_limit
  * @param {number=} opt_offset
+ * @param {boolean=} opt_reverse
  * @param {boolean=} opt_unique
  * @param {Array.<IDBKey|undefined>=} opt_pos last cursor position.
  * @return {!ydn.db.Request}
  */
 ydn.db.crud.DbOperator.prototype.list = function(type, store_name, opt_index,
-    opt_key_range, opt_reverse, opt_limit, opt_offset, opt_unique, opt_pos) {
+    opt_key_range, opt_limit, opt_offset, opt_reverse, opt_unique, opt_pos) {
 
   var store = this.schema.getStore(store_name);
   if (!store) {
@@ -737,8 +745,8 @@ ydn.db.crud.DbOperator.prototype.list = function(type, store_name, opt_index,
   req = this.tx_thread.request(method, [store_name]);
   // store.hook(req, arguments);
   req.addTxback(function() {
-    this.getExecutor().list(req, type, store_name,
-        opt_index || null, range, reverse, limit, offset, unique, opt_pos);
+    this.getCrudExecutor().list(req, type, store_name,
+        opt_index || null, range, limit, offset, reverse, unique, opt_pos);
   }, this);
 
   return req;
@@ -825,7 +833,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
         [store_name], ydn.db.base.TransactionMode.READ_WRITE);
     req.addTxback(function() {
       //console.log('putObjects');
-      this.getExecutor().addObjects(req, store_name, objs, keys);
+      this.getCrudExecutor().addObjects(req, store_name, objs, keys);
     }, this);
 
     if (store.dispatch_events) {
@@ -846,7 +854,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     req = this.tx_thread.request(ydn.db.Request.Method.ADD,
         [store_name], ydn.db.base.TransactionMode.READ_WRITE);
     req.addTxback(function() {
-      this.getExecutor().addObject(req, store_name, obj, key);
+      this.getCrudExecutor().addObject(req, store_name, obj, key);
     }, this);
 
     if (store.dispatch_events) {
@@ -927,7 +935,7 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
   var me = this;
 
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
-    me.getExecutor().putData(tx, tx_no, cb, store_name, data, delimiter);
+    me.getCrudExecutor().putData(tx, tx_no, cb, store_name, data, delimiter);
   }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
   return df;
 };
@@ -944,14 +952,14 @@ ydn.db.crud.DbOperator.prototype.search = function(query) {
   var req = this.tx_thread.request(ydn.db.Request.Method.SEARCH, store_names,
       ydn.db.base.TransactionMode.READ_ONLY);
   req.addTxback(function() {
-    var exe = this.getExecutor();
+    var exe = this.getCrudExecutor();
     // console.log('search ' + query);
 
     query.nextLookup(function(store_name, index_name, kr, entry) {
       var iReq = req.copy();
       // console.log(store_name, index_name, kr);
       exe.list(iReq, ydn.db.base.QueryMethod.LIST_VALUE, store_name, index_name,
-          kr.toIDBKeyRange(), false, 100, 0, false);
+          kr.toIDBKeyRange(), 100, 0, false, false);
       iReq.addBoth(function(x) {
         // console.log(store_name, index_name, kr.lower, x);
         var e = null;
@@ -1046,7 +1054,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         ydn.db.base.TransactionMode.READ_WRITE);
     store.hook(req, arguments);
     req.addTxback(function() {
-      me.getExecutor().putByKeys(req, values, db_keys);
+      me.getCrudExecutor().putByKeys(req, values, db_keys);
     }, this);
   } else if (goog.isString(arg1) || goog.isObject(arg1)) {
     var store = this.getStore_(arg1);
@@ -1084,7 +1092,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       store.hook(req, arguments);
       req.addTxback(function() {
         //console.log('putObjects');
-        this.getExecutor().putObjects(req, st_name, objs, keys);
+        this.getCrudExecutor().putObjects(req, st_name, objs, keys);
       }, this);
 
       if (store.dispatch_events) {
@@ -1115,7 +1123,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
           [st_name], ydn.db.base.TransactionMode.READ_WRITE);
       store.hook(req, arguments);
       req.addTxback(function() {
-        me.getExecutor().putObject(req, st_name, obj, key);
+        me.getCrudExecutor().putObject(req, st_name, obj, key);
       }, this);
 
       if (store.dispatch_events) {
@@ -1203,7 +1211,7 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
       store.hook(req, [s_n, objs, opt_keys], opt_hook_idx);
     }
     req.addTxback(function() {
-      this.getExecutor().putObjects(req, s_n, objs, opt_keys);
+      this.getCrudExecutor().putObjects(req, s_n, objs, opt_keys);
     }, this);
   } else {
     req = thread.request(ydn.db.Request.Method.PUT_KEYS,
@@ -1215,7 +1223,7 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
       }
     }
     req.addTxback(function() {
-      this.getExecutor().putByKeys(req, objs, db_keys);
+      this.getCrudExecutor().putByKeys(req, objs, db_keys);
     }, this);
   }
   return req;
@@ -1242,7 +1250,7 @@ ydn.db.crud.DbOperator.prototype.removeInternalByKeys = function(keys) {
   var df = this.sync_thread.request(ydn.db.Request.Method.REMOVE_KEYS,
       store_names, ydn.db.base.TransactionMode.READ_WRITE);
   df.addTxback(function() {
-    this.getExecutor().removeByKeys(df, keys);
+    this.getCrudExecutor().removeByKeys(df, keys);
   }, this);
   return df;
 };
@@ -1259,7 +1267,7 @@ ydn.db.crud.DbOperator.prototype.removeInternal = function(store_name, opt_kr) {
   var df = this.sync_thread.request(ydn.db.Request.Method.REMOVE, [store_name],
       ydn.db.base.TransactionMode.READ_WRITE);
   df.addTxback(function() {
-    this.getExecutor().removeByKeyRange(df, store_name, opt_kr || null);
+    this.getCrudExecutor().removeByKeyRange(df, store_name, opt_kr || null);
   }, this);
   return df;
 };
@@ -1301,15 +1309,15 @@ ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
     req = this.sync_thread.request(ydn.db.Request.Method.VALUES_INDEX,
         [store_name]);
     req.addTxback(function() {
-      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
-          store_name, index, kr, reverse, limit, offset, false);
+      this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
+          store_name, index, kr, limit, offset, reverse, false);
     }, this);
   } else {
     req = this.sync_thread.request(ydn.db.Request.Method.VALUES,
         [store_name]);
     req.addTxback(function() {
-      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
-          store_name, null, kr, reverse, limit, offset, false);
+      this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
+          store_name, null, kr, limit, offset, reverse, false);
     }, this);
   }
   return req;
@@ -1339,7 +1347,7 @@ ydn.db.crud.DbOperator.prototype.valuesInternal = function(keys) {
   var me = this;
   var df = this.sync_thread.request(ydn.db.Request.Method.KEYS, store_names);
   df.addTxback(function() {
-    me.getExecutor().listByKeys(df, keys);
+    me.getCrudExecutor().listByKeys(df, keys);
   }, this);
   return df;
 };
@@ -1357,7 +1365,7 @@ ydn.db.crud.DbOperator.prototype.countInternal = function(store_names,
   var req = thread.request(ydn.db.Request.Method.COUNT,
       store_names);
   req.addTxback(function() {
-    this.getExecutor().countStores(req, store_names);
+    this.getCrudExecutor().countStores(req, store_names);
   }, this);
   return req;
 };
@@ -1399,15 +1407,15 @@ ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
     req = this.sync_thread.request(ydn.db.Request.Method.KEYS_INDEX,
         [store_name]);
     req.addTxback(function() {
-      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-          store_name, index, key_range, reverse, limit, offset, unique);
+      this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
+          store_name, index, key_range, limit, offset, reverse, unique);
     }, this);
   } else {
     req = this.sync_thread.request(ydn.db.Request.Method.KEYS,
         [store_name]);
     req.addTxback(function() {
-      this.getExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-          store_name, null, key_range, reverse, limit, offset, unique);
+      this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
+          store_name, null, key_range, limit, offset, reverse, unique);
     }, this);
   }
   return req;
@@ -1447,14 +1455,14 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
           ydn.db.base.TransactionMode.READ_WRITE);
       store.hook(req, [st_name, key_range]);
       req.addTxback(function() {
-        this.getExecutor().clearByKeyRange(req, st_name, key_range);
+        this.getCrudExecutor().clearByKeyRange(req, st_name, key_range);
       }, this);
     } else if (!goog.isDef(arg2)) {
       this.logger.finer('clearByStore: ' + st_name);
       req = this.tx_thread.request(ydn.db.Request.Method.CLEAR, [st_name],
           ydn.db.base.TransactionMode.READ_WRITE);
       req.addTxback(function() {
-        this.getExecutor().clearByStores(req, [st_name]);
+        this.getCrudExecutor().clearByStores(req, [st_name]);
       }, this);
 
     } else {
@@ -1470,7 +1478,7 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
     req = this.tx_thread.request(ydn.db.Request.Method.CLEAR, store_names,
         ydn.db.base.TransactionMode.READ_WRITE);
     req.addTxback(function() {
-      this.getExecutor().clearByStores(req, store_names);
+      this.getCrudExecutor().clearByStores(req, store_names);
     }, this);
 
   } else {
@@ -1514,7 +1522,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
           req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_INDEX,
               [store_name], ydn.db.base.TransactionMode.READ_WRITE);
           req.addTxback(function() {
-            this.getExecutor().removeByIndexKeyRange(req, store_name,
+            this.getCrudExecutor().removeByIndexKeyRange(req, store_name,
                 index.getName(), key_range);
           }, this);
         } else {
@@ -1534,7 +1542,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
             [store_name], ydn.db.base.TransactionMode.READ_WRITE);
         store.hook(req, [store_name, id]);
         req.addTxback(function() {
-          this.getExecutor().removeById(req, store_name, id);
+          this.getCrudExecutor().removeById(req, store_name, id);
         }, this);
 
         if (store.dispatch_events) {
@@ -1555,7 +1563,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
             [store_name], ydn.db.base.TransactionMode.READ_WRITE);
         store.hook(req, [store_name, key_range]);
         req.addTxback(function() {
-          this.getExecutor().removeByKeyRange(req, store_name, key_range);
+          this.getCrudExecutor().removeByKeyRange(req, store_name, key_range);
         }, this);
         if (store.dispatch_events) {
           req.addCallback(function(key) {
@@ -1582,7 +1590,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
         [st_name], ydn.db.base.TransactionMode.READ_WRITE);
     store.hook(req, [st_name, key.getId()]);
     req.addTxback(function() {
-      this.getExecutor().removeById(req, st_name, key.getId());
+      this.getCrudExecutor().removeById(req, st_name, key.getId());
     }, this);
   } else if (goog.isArray(arg1)) {
     /**
@@ -1610,7 +1618,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
     req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_KEYS,
         store_names, ydn.db.base.TransactionMode.READ_WRITE);
     req.addTxback(function() {
-      this.getExecutor().removeByKeys(req, arr);
+      this.getCrudExecutor().removeByKeys(req, arr);
     }, this);
   } else {
     throw new ydn.debug.error.ArgumentException('first argument requires ' +

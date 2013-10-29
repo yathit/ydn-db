@@ -425,21 +425,21 @@ var test_list = function () {
       5000); // maxTimeout
 
   var mth = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
-  db.list(mth, 'st', 'value', null, false, 2, 1).addBoth(function(value) {
+  db.list(mth, 'st', 'value', null, 2, 1).addBoth(function(value) {
     key_1 = value;
   });
-  db.list(mth, 'st', 'value', null, true).addBoth(function(value) {
+  db.list(mth, 'st', 'value', null, 10, 0, true).addBoth(function(value) {
     key_2 = value;
   });
   mth = ydn.db.base.QueryMethod.LIST_KEY;
-  db.list(mth, 'st', 'value', null, false, 3, 0, true).addBoth(function(value) {
+  db.list(mth, 'st', 'value', null, 3, 0, false, true).addBoth(function(value) {
     u_value = value;
   });
   mth = ydn.db.base.QueryMethod.LIST_VALUE;
-  db.list(mth, 'st', 'value', null, false, 2, 1).addBoth(function(value) {
+  db.list(mth, 'st', 'value', null, 2, 1).addBoth(function(value) {
     value_1 = value;
   });
-  db.list(mth, 'st', 'value', null, true).addBoth(function(value) {
+  db.list(mth, 'st', 'value', null, 10, 0, true).addBoth(function(value) {
     value_2 = value;
     done = true;
   });
@@ -504,23 +504,23 @@ var test_list_resume = function () {
       5000); // maxTimeout
 
   var mth = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
-  db.list(mth, 'st', undefined, null, false, 10, 0, false, [4])
+  db.list(mth, 'st', undefined, null, 10, 0, false, false, [4])
       .addBoth(function(value) {
         p_key_1 = value;
       });
-  db.list(mth, 'st', 'value', null, false, 10, 0, false, [1, 5])
+  db.list(mth, 'st', 'value', null, 10, 0, false, false, [1, 5])
       .addBoth(function(value) {
         key_1 = value;
       });
-  db.list(mth, 'st', 'value', null, false, 10, 0, false, [2, 2])
+  db.list(mth, 'st', 'value', null, 10, 0, false, false, [2, 2])
       .addBoth(function(value) {
         key_2 = value;
       });
-  db.list(mth, 'st', 'value', null, false, 10, 0, false, [2, undefined])
+  db.list(mth, 'st', 'value', null, 10, 0, false, false, [2, undefined])
       .addBoth(function(value) {
         key_3 = value;
       });
-  db.list(mth, 'st', 'value', null, true, 10, 0, false, [2, 2])
+  db.list(mth, 'st', 'value', null, 10, 0, true, false, [2, 2])
       .addBoth(function(value) {
         key_4 = value;
         done = true;

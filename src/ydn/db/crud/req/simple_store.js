@@ -431,7 +431,7 @@ ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(req,
  * @inheritDoc
  */
 ydn.db.crud.req.SimpleStore.prototype.list = function(req, type, store_name,
-    index, key_range, reverse, limit, offset, unique, opt_position) {
+    index, key_range, limit, offset, reverse, unique, opt_position) {
   var msg = req.getLabel() + ' ' + store_name + ' ' +
       (key_range ? ydn.json.toShortString(key_range) : '');
   this.logger.finest(msg);

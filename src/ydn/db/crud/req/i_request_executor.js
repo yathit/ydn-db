@@ -195,9 +195,9 @@ ydn.db.crud.req.IRequestExecutor.prototype.putByKeys = goog.abstractMethod;
  * @param {string} store name.
  * @param {string?} index name.
  * @param {IDBKeyRange} key range to get.
- * @param {boolean} reverse to sort reverse order.
  * @param {number} limit the results.
  * @param {number} offset skip first results.
+ * @param {boolean} reverse to sort reverse order.
  * @param {boolean} unique unique key.
  * @param {Array.<IDBKey|undefined>=} opt_position last cursor position.
  */

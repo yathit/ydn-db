@@ -146,14 +146,14 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(rq, req) {
   if (order && order != this.store_schema.getKeyPath()) {
     req.list(rq, ydn.db.base.QueryMethod.LIST_VALUE,
         store_name, order, key_range,
-        reverse, limit, offset, false);
+        limit, offset, reverse, false);
   } else if (goog.isDef(index_name) && index_name !=
       this.store_schema.getKeyPath()) {
     req.list(rq, ydn.db.base.QueryMethod.LIST_VALUE, store_name, index_name,
-        key_range, reverse, limit, offset, false);
+        key_range, limit, offset, reverse, false);
   } else {
     req.list(rq, ydn.db.base.QueryMethod.LIST_VALUE, store_name, null,
-        key_range, reverse, limit, offset, false);
+        key_range, limit, offset, reverse, false);
   }
 
 };

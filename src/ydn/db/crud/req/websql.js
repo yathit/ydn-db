@@ -1160,7 +1160,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(req, table,
  * @inheritDoc
  */
 ydn.db.crud.req.WebSql.prototype.list = function(req, mth, store_name,
-    index_column, key_range, reverse, limit, offset, distinct, opt_position) {
+    index_column, key_range, limit, offset, reverse, distinct, opt_position) {
 
   var me = this;
   var arr = [];

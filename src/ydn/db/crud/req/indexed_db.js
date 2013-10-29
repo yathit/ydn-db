@@ -912,7 +912,7 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
-    store_name, index, key_range, reverse, limit, offset, unique,
+    store_name, index, key_range, limit, offset, reverse, unique,
     opt_position) {
   var results = [];
   var store = req.getTx().objectStore(store_name);

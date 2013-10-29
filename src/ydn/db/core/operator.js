@@ -809,9 +809,9 @@ ydn.db.core.DbOperator.prototype.listIter = function(mth, iter,
       [] : [iter.getKey(), iter.getPrimaryKey()];
   req.addTxback(function() {
     var e_key = iter.getKey();
-    this.getExecutor().list(req, mth, store_name,
-        index_name, iter.getKeyRange(), iter.isReversed(), limit,
-        offset, iter.isUnique(), cursor_position);
+    this.getCrudExecutor().list(req, mth, store_name,
+        index_name, iter.getKeyRange(), limit,
+        offset, iter.isReversed(), iter.isUnique(), cursor_position);
   }, this);
   req.addCallback(function() {
     if (goog.isDefAndNotNull(cursor_position[0])) {
