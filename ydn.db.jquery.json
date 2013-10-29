@@ -9,7 +9,7 @@
     "storage",
     "sqlite"
   ],
-  "version": "0.8.6",
+  "version": "0.8.9",
   "author": {
     "name": "YDN Authors, Yathit",
     "url": "https://raw.github.com/yathit/ydn-db/master/AUTHORS"
