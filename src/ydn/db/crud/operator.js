@@ -471,7 +471,7 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
  * @inheritDoc
  */
 ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
-                                                   arg5) {
+                                                   arg5, arg6) {
 
   var me = this;
   var req;
@@ -489,6 +489,10 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
    * @type {boolean}
    */
   var reverse = false;
+  /**
+   * @type {boolean}
+   */
+  var unique = false;
 
   if (goog.isString(arg0)) {
     var store_name = arg0;
@@ -562,6 +566,14 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
         throw new ydn.debug.error.ArgumentException(
             'reverse must be a boolean, but ' + arg5);
       }
+      if (goog.isDef(arg6)) {
+        if (goog.isBoolean(arg6)) {
+          unique = arg6;
+        } else {
+          throw new ydn.debug.error.ArgumentException(
+              'unique must be a boolean');
+        }
+      }
       this.logger.finer('listByIndexKeyRange: ' + store_name + ':' +
           index_name);
       method = ydn.db.Request.Method.VALUES_INDEX;
@@ -569,7 +581,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
       store.hook(req, arguments);
       req.addTxback(function() {
         this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_VALUE,
-            store_name, index_name, range, limit, offset, reverse, false);
+            store_name, index_name, range, limit, offset, reverse, unique);
       }, this);
     } else {
       var range = null;
