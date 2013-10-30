@@ -139,29 +139,8 @@ KeyPaths.prototype.nextUrl;
 KeyPaths.prototype.updated;
 
 
-
 /**
  * @constructor
- */
-var BaseOptions = function() {};
-
-
-/**
- * @type {string}
- */
-BaseOptions.prototype.delimiter;
-
-
-/**
- * @type {string?}
- */
-BaseOptions.prototype.maxKeys;
-
-
-
-/**
- * @constructor
- * @extends {BaseOptions}
  */
 var AtomOptions = function() {};
 
@@ -169,7 +148,6 @@ var AtomOptions = function() {};
 
 /**
  * @see http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html
- * @extends {AtomOptions}
  * @constructor
  */
 var S3Options = function() {};
@@ -193,6 +171,11 @@ S3Options.prototype.prefix;
  */
 S3Options.prototype.bucket;
 
+
+/**
+ * @type {string?}
+ */
+S3Options.prototype.maxKeys;
 
 
 /**
@@ -345,7 +328,7 @@ StoreSyncOptionJson.prototype.prefetchRefractoryPeriod;
 
 /**
  * Backend specific sync options.
- * @type {BaseOptions|AtomOptions|GDataOptions|ODataOptions|S3Options}
+ * @type {AtomOptions|GDataOptions|ODataOptions|S3Options}
  */
 StoreSyncOptionJson.prototype.Options;
 

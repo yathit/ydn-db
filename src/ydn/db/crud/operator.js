@@ -805,8 +805,6 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
   }
 
   var req;
-  var sync_type = ydn.db.Request.Method.ADD;
-  var me = this;
 
   if (!store) {
     throw new ydn.debug.error.ArgumentException('store name "' + store_name +
