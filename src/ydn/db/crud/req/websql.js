@@ -149,42 +149,15 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = goog.abstractMethod;
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.addObject = function(
-    req, store_name, obj, opt_key) {
-  this.insertObjects(req, true, true, store_name, [obj], [opt_key]);
-};
-
-
-/**
- * @inheritDoc
- */
 ydn.db.crud.req.WebSql.prototype.putData = function(tx, tx_no, df,
     store_name, data, delimiter) {
-  throw 'not impl';
-};
-
-
-/**
-* @inheritDoc
-*/
-ydn.db.crud.req.WebSql.prototype.putObject = function(rq,
-    store_name, obj, opt_key) {
-  this.insertObjects(rq, false, true, store_name, [obj], [opt_key]);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.WebSql.prototype.addObjects = function(
-    req, store_name, objects, opt_keys) {
-  this.insertObjects(req, true, false, store_name, objects, opt_keys);
+  throw new ydn.debug.error.NotImplementedException('putData');
 };
 
 
 /**
  * @param {ydn.db.Request} req tx.
- * @param {boolean} create true if insert, otherwise insert or replace.
+ * @param {boolean} is_replace true if `put`, otherwise `add`.
  * @param {boolean} single false for array input.
  * @param {string} store_name table name.
  * @param {!Array.<!Object>} objects object to put.
@@ -192,8 +165,8 @@ ydn.db.crud.req.WebSql.prototype.addObjects = function(
  * @protected
 */
 ydn.db.crud.req.WebSql.prototype.insertObjects = function(
-    req, create, single, store_name, objects, opt_keys) {
-
+    req, is_replace, single, store_name, objects, opt_keys) {
+  var create = !is_replace;
   var table = this.schema.getStore(store_name);
 
   var insert_statement = create ? 'INSERT INTO ' : 'INSERT OR REPLACE INTO ';
@@ -381,18 +354,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.WebSql.prototype.putObjects = function(
-    rq, store_name, objects, opt_keys) {
-  this.insertObjects(rq, false, false, store_name, objects,
-      opt_keys);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.WebSql.prototype.putByKeys = function(rq, objs,
-                                                      keys) {
+ydn.db.crud.req.WebSql.prototype.putByKeys = function(rq, objs, keys) {
 
   if (keys.length == 0) {
     rq.setDbValue([]);

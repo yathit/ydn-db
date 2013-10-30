@@ -72,25 +72,24 @@ ydn.db.crud.req.SimpleStore.DEBUG = false;
  */
 ydn.db.crud.req.SimpleStore.prototype.putByKeys = function(req, objs,
                                                            keys) {
-  this.insertRecord_(req, null, objs, keys, true, false);
+  this.insertObjects(req, true, false, null, objs, keys);
 };
 
 
 /**
+ * Put objects and return list of key inserted.
  * @param {ydn.db.Request} req request.
- * @param {string?} store_name table name.
- * @param {!Object|!Array.<!Object>} value object to put.
- * @param {(!IDBKey|!Array.<IDBKey>|!Array.<!ydn.db.Key>)=} opt_key optional
- * out-of-line key.
- * @param {boolean=} opt_is_update true if call from put.
- * @param {boolean=} opt_single true if call from put.
- * @private
+ * @param {boolean} is_update true if `put`, otherwise `add`.
+ * @param {boolean} single true if result take only the first result.
+ * @param {string?} store_name store name.
+ * @param {!Array.<!Object>} value object to put.
+ * @param {!Array.<IDBKey|ydn.db.Key>=} opt_key optional out-of-line keys.
  */
-ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
-    store_name, value, opt_key, opt_is_update, opt_single) {
+ydn.db.crud.req.SimpleStore.prototype.insertObjects = function(req,
+    is_update, single, store_name, value, opt_key) {
 
-  var label = req.getLabel() + ' ' + (opt_is_update ? 'put' : 'add') +
-      'Object' + (opt_single ? '' : 's ' + value.length + ' objects');
+  var label = req.getLabel() + ' ' + (is_update ? 'put' : 'add') +
+      'Object' + (single ? '' : 's ' + value.length + ' objects');
 
   this.logger.finest(label);
   var me = this;
@@ -98,10 +97,12 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
   var tx = /** @type {ydn.db.con.simple.TxStorage} */ (req.getTx());
   var on_comp = tx.getStorage(function(storage) {
     var store;
-    if (opt_single) {
+    if (single) {
       goog.asserts.assertString(store_name, 'store name must be provided');
       store = storage.getSimpleStore(store_name);
-      var key = store.addRecord(opt_key, value, !opt_is_update);
+      var key = /** @type {IDBKey|undefined} */ (opt_key ?
+          opt_key[0] : undefined);
+      key = store.addRecord(key, value[0], !is_update);
       if (goog.isDefAndNotNull(key)) {
         req.setDbValue(key);
       } else {
@@ -111,7 +112,6 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
       }
     } else {
       var st = store_name;
-      goog.asserts.assertString(st, 'store name a string, but ' + st);
       var arr = [];
       var has_error = false;
       var keys = opt_key || {};
@@ -121,16 +121,17 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
           /**
            * @type {ydn.db.Key}
            */
-          var db_key = opt_key[i];
+          var db_key = /** @type {ydn.db.Key} */ (opt_key[i]);
           id = db_key.getId();
           st = db_key.getStoreName();
         } else {
           id = keys[i];
         }
         if (!store || store.getName() != st) {
+          goog.asserts.assertString(st, 'store name a string, but ' + st);
           store = storage.getSimpleStore(st);
         }
-        var result_key = store.addRecord(id, value[i], !opt_is_update);
+        var result_key = store.addRecord(id, value[i], !is_update);
         if (!goog.isDefAndNotNull(result_key)) {
           has_error = true;
           arr.push(new ydn.db.ConstraintError());
@@ -149,47 +150,9 @@ ydn.db.crud.req.SimpleStore.prototype.insertRecord_ = function(req,
 /**
  * @inheritDoc
  */
-ydn.db.crud.req.SimpleStore.prototype.addObject = function(
-    req, store_name, value, opt_key) {
-
-  this.insertRecord_(req, store_name, value, opt_key, false, true);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.SimpleStore.prototype.putObject = function(
-    req, store_name, value, opt_key) {
-  this.insertRecord_(req, store_name, value, opt_key, true, true);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.SimpleStore.prototype.addObjects = function(
-    req, store_name, value, opt_key) {
-
-  this.insertRecord_(req, store_name, value, opt_key, false, false);
-};
-
-
-/**
- * @inheritDoc
- */
 ydn.db.crud.req.SimpleStore.prototype.putData = function(tx, tx_no, df,
     store_name, data, delimiter) {
   throw new ydn.debug.error.NotImplementedException('putData');
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.SimpleStore.prototype.putObjects = function(
-    rq, store_name, value, opt_key) {
-  this.insertRecord_(rq, store_name, value, opt_key, true, false);
 };
 
 

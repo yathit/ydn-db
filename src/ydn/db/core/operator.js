@@ -250,12 +250,13 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
   if (goog.DEBUG) {
     if (goog.isDef(opt_iterators)) {
       if (!goog.isArray(opt_iterators)) {
-        throw new TypeError('Iterator argument must be an array.');
+        throw new ydn.debug.error.ArgumentException('Iterator argument must' +
+            ' be an array.');
       }
       for (var i = 0; i < opt_iterators.length; i++) {
         var is_iter = opt_iterators[i] instanceof ydn.db.Iterator;
         if (!is_iter) {
-          throw new TypeError('Iterator at ' + i +
+          throw new ydn.debug.error.ArgumentException('Iterator at ' + i +
               ' must be cursor range iterator.');
         }
       }

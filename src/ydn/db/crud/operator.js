@@ -146,7 +146,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
           '" not found.');
     }
     if (goog.DEBUG && goog.isDef(unique) && !goog.isBoolean(unique)) {
-      throw new TypeError('unique value "' + unique +
+      throw new ydn.debug.error.ArgumentException('unique value "' + unique +
           '" must be boolean, but found ' + typeof unique + '.');
     }
     store_names = [store_name];
@@ -427,7 +427,7 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
       range = ydn.db.KeyRange.parseIDBKeyRange(arg1);
     } else {
       if (goog.DEBUG && goog.isDefAndNotNull(arg1)) {
-        throw new TypeError('invalid key range: ' +
+        throw new ydn.debug.error.ArgumentException('invalid key range: ' +
             ydn.json.toShortString(arg1) + ' of type ' + typeof arg1);
       }
       range = null;
@@ -595,8 +595,8 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
         }
         range = ydn.db.KeyRange.parseIDBKeyRange(arg1);
       } else if (goog.DEBUG && goog.isDefAndNotNull(arg1)) {
-        throw new TypeError('expect key range object, but found "' +
-            ydn.json.toShortString(arg1) + '" of type ' + typeof arg1);
+        throw new ydn.debug.error.ArgumentException('expect key range object,' +
+            ' but found "' + ydn.json.toShortString(arg1) + '" of type ' + typeof arg1);
       }
       if (!goog.isDef(arg2)) {
         limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
@@ -845,7 +845,8 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
         [store_name], ydn.db.base.TransactionMode.READ_WRITE);
     req.addTxback(function() {
       //console.log('putObjects');
-      this.getCrudExecutor().addObjects(req, store_name, objs, keys);
+      this.getCrudExecutor().insertObjects(req, false, false, store_name, objs,
+          keys);
     }, this);
 
     if (store.dispatch_events) {
@@ -866,7 +867,8 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     req = this.tx_thread.request(ydn.db.Request.Method.ADD,
         [store_name], ydn.db.base.TransactionMode.READ_WRITE);
     req.addTxback(function() {
-      this.getCrudExecutor().addObject(req, store_name, obj, key);
+      this.getCrudExecutor().insertObjects(req, false, true, store_name, [obj],
+          [key]);
     }, this);
 
     if (store.dispatch_events) {
@@ -1104,7 +1106,8 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       store.hook(req, arguments);
       req.addTxback(function() {
         //console.log('putObjects');
-        this.getCrudExecutor().putObjects(req, st_name, objs, keys);
+        this.getCrudExecutor().insertObjects(req, true, false, st_name, objs,
+            keys);
       }, this);
 
       if (store.dispatch_events) {
@@ -1135,7 +1138,9 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
           [st_name], ydn.db.base.TransactionMode.READ_WRITE);
       store.hook(req, arguments);
       req.addTxback(function() {
-        me.getCrudExecutor().putObject(req, st_name, obj, key);
+        var keys = goog.isDef(key) ? [key] : undefined;
+        me.getCrudExecutor().insertObjects(req, true, true, st_name, [obj],
+            keys);
       }, this);
 
       if (store.dispatch_events) {
@@ -1223,7 +1228,8 @@ ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
       store.hook(req, [s_n, objs, opt_keys], opt_hook_idx);
     }
     req.addTxback(function() {
-      this.getCrudExecutor().putObjects(req, s_n, objs, opt_keys);
+      this.getCrudExecutor().insertObjects(req, true, false, s_n, objs,
+          opt_keys);
     }, this);
   } else {
     req = thread.request(ydn.db.Request.Method.PUT_KEYS,

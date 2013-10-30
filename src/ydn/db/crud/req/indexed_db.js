@@ -109,35 +109,6 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(req, stores) {
 
 
 /**
- * @inheritDoc
- */
-ydn.db.crud.req.IndexedDb.prototype.addObject = function(db_req, table,
-                                                         value, opt_key) {
-  var keys = goog.isDef(opt_key) ? [opt_key] : undefined;
-  this.insertObjects(db_req, false, true, table, [value], keys);
-};
-
-
-/**
-* @inheritDoc
-*/
-ydn.db.crud.req.IndexedDb.prototype.putObject = function(
-    db_req, table, value, opt_key) {
-  var keys = goog.isDef(opt_key) ? [opt_key] : undefined;
-  this.insertObjects(db_req, true, true, table, [value], keys);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.IndexedDb.prototype.addObjects = function(
-    db_req, store_name, objs, opt_keys) {
-  this.insertObjects(db_req, false, false, store_name, objs, opt_keys);
-};
-
-
-/**
  * Put objects and return list of key inserted.
  * @param {ydn.db.Request} rq request.
  * @param {boolean} is_replace true if `put`, otherwise `add`.
@@ -245,15 +216,6 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
   } else {
     rq.setDbValue([]);
   }
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.crud.req.IndexedDb.prototype.putObjects = function(rq,
-    store_name, objs, opt_keys) {
-  this.insertObjects(rq, true, false, store_name, objs, opt_keys);
 };
 
 

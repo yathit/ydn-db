@@ -19,26 +19,6 @@ ydn.db.crud.req.IRequestExecutor = function() {};
 
 
 /**
- * Execute PUT request either storing result to tx or callback to df.
- * @param {ydn.db.Request} req request.
- * @param {string} table table name.
- * @param {!Object} value object to put.
- * @param {(!Array|string|number)=} opt_key optional out-of-line key.
- */
-ydn.db.crud.req.IRequestExecutor.prototype.addObject = goog.abstractMethod;
-
-
-/**
- * Add objects and return list of key inserted.
- * @param {ydn.db.Request} req request.
- * @param {string} store_name store name.
- * @param {!Array.<!Object>} objs object to put.
- * @param {!Array.<IDBKey>=} opt_key optional out-of-line keys.
- */
-ydn.db.crud.req.IRequestExecutor.prototype.addObjects = goog.abstractMethod;
-
-
-/**
  * Delete given key in the object store.
  * Return number of keys deleted.
  * @param {ydn.db.Request} req request.
@@ -161,23 +141,15 @@ ydn.db.crud.req.IRequestExecutor.prototype.putData = goog.abstractMethod;
 
 
 /**
- * Put object and return key inserted.
- * @param {ydn.db.Request} req request.
- * @param {string} store table name.
- * @param {!Object} obj object to put.
- * @param {(!Array|string|number)=} opt_key optional out-of-line key.
- */
-ydn.db.crud.req.IRequestExecutor.prototype.putObject = goog.abstractMethod;
-
-
-/**
  * Put objects and return list of key inserted.
- * @param {ydn.db.Request} req request.
+ * @param {ydn.db.Request} rq request.
+ * @param {boolean} is_replace true if `put`, otherwise `add`.
+ * @param {boolean} is_single true if result take only the first result.
  * @param {string} store_name store name.
  * @param {!Array.<!Object>} objs object to put.
- * @param {!Array.<(!Array|string|number)>=} opt_key optional out-of-line keys.
+ * @param {!Array.<IDBKey>=} opt_keys optional out-of-line keys.
  */
-ydn.db.crud.req.IRequestExecutor.prototype.putObjects = goog.abstractMethod;
+ydn.db.crud.req.IRequestExecutor.prototype.insertObjects = goog.abstractMethod;
 
 
 /**
