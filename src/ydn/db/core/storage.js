@@ -70,7 +70,7 @@ ydn.db.core.Storage.prototype.getIndexOperator = function() {
 
 /**
  *
- * @param {function(this: T, !ydn.db.core.req.AbstractCursor)} callback icursor
+ * @param {function(this: T, !ydn.db.core.req.ICursor)} callback icursor
  * handler.
  * @param {!ydn.db.Iterator} iter the cursor.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode.

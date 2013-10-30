@@ -99,7 +99,7 @@ ydn.db.query.Base.prototype.patch = function(iterator, arg1, opt_arg2) {
 /**
  * Execute query and collect as an array. This method forces query execution.
  * @param {!ydn.db.Iterator} iterator iterator.
- * @param {function(this: T, !ydn.db.core.req.AbstractCursor)} cb
+ * @param {function(this: T, !ydn.db.core.req.ICursor)} cb
  * @param {T=} opt_scope
  * @return {!ydn.db.Request}
  * @template T

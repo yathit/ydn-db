@@ -902,7 +902,7 @@ ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
         // no result needed.
       } else {
         // LIST_VALUE
-        arr.push(iter.isKeyIterator() ? primary_key : cursor.getValue());
+        arr.push(cursor.getValue());
       }
       // console.log(count, cursor);
       if (mth == ydn.db.base.QueryMethod.GET) {
