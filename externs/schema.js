@@ -204,6 +204,14 @@ GDataOptions.prototype.projection;
 
 
 /**
+ * Maximum number of results to be retrieved
+ * https://developers.google.com/gdata/docs/2.0/reference#Queries
+ * @type {string}
+ */
+GDataOptions.prototype.maxResults;
+
+
+/**
  * @type {string}
  */
 GDataOptions.prototype.domain;
