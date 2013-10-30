@@ -34,8 +34,9 @@ ydn.db.core.AbstractIterator = function() {
 };
 
 /**
- * Load cursor.
- * @param {ydn.db.core.req.AbstractCursor} cursor
+ * Load cursors.
+ * @param {Array.<ydn.db.core.req.AbstractCursor>} cursor
+ * @return {!ydn.db.core.req.ICursor} cursor
  */
 ydn.db.core.AbstractIterator.prototype.load = goog.abstractMethod;
 
@@ -44,4 +45,4 @@ ydn.db.core.AbstractIterator.prototype.load = goog.abstractMethod;
  *
  * @return {!Array.<string>} return list of store name used for this iterator.
  */
-ydn.db.core.AbstractIterator.prototype.getStoreNames = goog.abstractMethod;
+ydn.db.core.AbstractIterator.prototype.stores = goog.abstractMethod;

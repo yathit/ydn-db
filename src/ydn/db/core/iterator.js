@@ -661,10 +661,10 @@ ydn.db.Iterator.prototype.getState = function() {
 
 
 /**
- * Load cursor.
- * @param {ydn.db.core.req.AbstractCursor} cursor
+ * @inheritDoc
  */
-ydn.db.Iterator.prototype.load = function(cursor) {
+ydn.db.Iterator.prototype.load = function(cursors) {
+  var cursor = cursors[0];
   cursor.init(this.store_name_,
       this.index_key_path_ || this.index_name_,
       this.key_range_, this.direction_, this.is_key_iterator_);
@@ -677,6 +677,7 @@ ydn.db.Iterator.prototype.load = function(cursor) {
         ydn.db.Iterator.State.COMPLETED;
   };
   cursor.openCursor(this.i_key_, this.i_primary_key_);
+  return cursor;
 };
 
 
