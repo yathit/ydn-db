@@ -29,12 +29,11 @@ goog.provide('ydn.db.KeyIterator');
 goog.provide('ydn.db.ValueIterator');
 goog.require('goog.debug.Logger');
 goog.require('goog.functions');
-goog.require('ydn.db.Cursor');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.base');
-goog.require('ydn.db.core.EquiJoin');
 goog.require('ydn.db.core.req.ICursor');
+goog.require('ydn.db.core.AbstractIterator');
 goog.require('ydn.debug.error.ArgumentException');
 
 
@@ -52,13 +51,15 @@ goog.require('ydn.debug.error.ArgumentException');
  * key path is specified, key path is used to lookup the index instead of
  * index name.
  * @constructor
+ * @extends {ydn.db.core.AbstractIterator}
  * @struct
  */
 ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
                            opt_unique, opt_key_only, opt_index_key_path) {
   // Note for V8 optimization, declare all properties in constructor.
   if (goog.DEBUG && !goog.isString(store)) {
-    throw new TypeError('store name');
+    throw new TypeError('store name must be a string, but ' + store +
+        ' found.');
   }
 
   /**
@@ -151,6 +152,7 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
   this.i_primary_key_;
 
 };
+goog.inherits(ydn.db.Iterator, ydn.db.core.AbstractIterator);
 
 
 /**
@@ -731,62 +733,6 @@ ydn.db.Iterator.prototype.reset = function(opt_state,
  * @return {!Array.<string>} list of stores.
  */
 ydn.db.Iterator.prototype.stores = function() {
-  var stores = [this.store_name_];
-  if (this.joins_) {
-    for (var i = 0; i < this.joins_.length; i++) {
-      if (!goog.array.contains(stores, this.joins_[i].store_name)) {
-        stores.push(this.joins_[i].store_name);
-      }
-    }
-  }
-  return stores;
+  return [this.store_name_];
 };
 
-
-/**
- * Modified iterator with a given restriction.
- * @param {string} field_name restriction feild name.
- * @param {IDBKey} value restriction field value.
- * @return {!ydn.db.Iterator}
- */
-ydn.db.Iterator.prototype.restrict = function(field_name, value) {
-  goog.asserts.assertString(field_name, 'field name in string require but, "' +
-      field_name + '" of type ' + typeof field_name + ' found.');
-  goog.asserts.assert(ydn.db.Key.isValidKey(value), 'key value "' +
-      ydn.json.toShortString(value) + '" is invalid');
-  return this.join(this.store_name_, field_name, value);
-};
-
-
-/**
- * @type {Array.<!ydn.db.core.EquiJoin>} list of joins.
- * @protected
- */
-ydn.db.Iterator.prototype.joins_;
-
-
-/**
- * Join operation.
- * @param {string} store_name store name to join.
- * @param {string=} opt_field_name restriction feild name.
- * @param {IDBKey=} opt_value restriction field value.
- * @return {!ydn.db.Iterator} Newly created iterator with join operation
- * applied.
- */
-ydn.db.Iterator.prototype.join = function(store_name, opt_field_name,
-                                          opt_value) {
-  var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
-      this.key_range_, this.isReversed(), this.isUnique(),
-      this.is_key_iterator_, this.index_key_path_);
-
-  var join = new ydn.db.core.EquiJoin(store_name, opt_field_name,
-      opt_value);
-
-  if (this.joins_) {
-    iter.joins_ = this.joins_.concat(join);
-  } else {
-    iter.joins_ = [join];
-  }
-
-  return iter;
-};

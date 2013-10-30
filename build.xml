@@ -149,7 +149,7 @@
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <sequential>
             <adv-comp
-                    input.fn="${ydn-db.dir}/config/core.js"
+                    input.fn="${ydn-db.dir}/config/main.js"
                     output.dir="${ydn-db.dir}/jsc"
                     output.fn="ydn.db-dev.js">
 
