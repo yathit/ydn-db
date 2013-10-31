@@ -24,7 +24,7 @@
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.query.RestrictionCursor');
+goog.provide('ydn.db.query.ConjunctionCursor');
 goog.require('goog.debug.Logger');
 goog.require('ydn.db');
 goog.require('ydn.debug.error.InternalError');
@@ -33,18 +33,18 @@ goog.require('ydn.debug.error.InternalError');
 
 /**
  * Create a new front-end cursor object.
- * @param {Array.<ydn.db.core.req.ICursor>} cursors cursors.
- * @param {ydn.db.query.RestrictionCursor=} opt_prev_cursor previous cursor, to resume cursor
+ * @param {Array.<ydn.db.core.req.AbstractCursor>} cursors cursors.
+ * @param {ydn.db.query.ConjunctionCursor=} opt_prev_cursor previous cursor, to resume cursor
  * location.
  * @param {IDBKey=} opt_key start position.
  * @param {IDBKey=} opt_primary_key start position.
  * @constructor
  * @struct
  */
-ydn.db.query.RestrictionCursor = function(cursors, opt_prev_cursor, opt_key, opt_primary_key) {
+ydn.db.query.ConjunctionCursor = function(cursors, opt_prev_cursor, opt_key, opt_primary_key) {
 
   /**
-   * @type {Array.<ydn.db.core.req.ICursor>}
+   * @type {Array.<ydn.db.core.req.AbstractCursor>}
    * @protected
    */
   this.cursors = cursors;
@@ -94,9 +94,6 @@ ydn.db.query.RestrictionCursor = function(cursors, opt_prev_cursor, opt_key, opt
     throw new ydn.debug.error.InternalError();
   };
 
-  if (this.cursors.length > 0) {
-    this.init_();
-  }
 };
 
 
@@ -104,7 +101,7 @@ ydn.db.query.RestrictionCursor = function(cursors, opt_prev_cursor, opt_key, opt
  *
  * @define {boolean} debug flag.
  */
-ydn.db.query.RestrictionCursor.DEBUG = false;
+ydn.db.query.ConjunctionCursor.DEBUG = false;
 
 
 /**
@@ -112,7 +109,7 @@ ydn.db.query.RestrictionCursor.DEBUG = false;
  * @type {number}
  * @private
  */
-ydn.db.query.RestrictionCursor.prototype.count_ = 0;
+ydn.db.query.ConjunctionCursor.prototype.count_ = 0;
 
 
 /**
@@ -120,7 +117,7 @@ ydn.db.query.RestrictionCursor.prototype.count_ = 0;
  * @type {boolean} done state.
  * @private
  */
-ydn.db.query.RestrictionCursor.prototype.done_ = false;
+ydn.db.query.ConjunctionCursor.prototype.done_ = false;
 
 
 /**
@@ -129,40 +126,21 @@ ydn.db.query.RestrictionCursor.prototype.done_ = false;
  * @type {boolean} exited flag.
  * @private
  */
-ydn.db.query.RestrictionCursor.prototype.exited_ = false;
+ydn.db.query.ConjunctionCursor.prototype.exited_ = false;
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.query.RestrictionCursor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.query.RestrictionCursor');
-
-
-/**
- *
- * @private
- */
-ydn.db.query.RestrictionCursor.prototype.init_ = function() {
-  var n = this.cursors.length;
-  if (ydn.db.query.RestrictionCursor.DEBUG) {
-    this.logger.finest('Initializing ' + n + ' cursors');
-  }
-  if (n == 1) {
-    this.openSingle_(this.cursors[0]);
-  } else if (n > 1) {
-    this.openPrimaryKeyMerge_();
-  } else {
-    throw new ydn.debug.error.InternalError('no cursors');
-  }
-};
+ydn.db.query.ConjunctionCursor.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.query.ConjunctionCursor');
 
 
 /**
  * @return {number} Number of steps iterated.
  */
-ydn.db.query.RestrictionCursor.prototype.getCount = function() {
+ydn.db.query.ConjunctionCursor.prototype.getCount = function() {
   return this.count_;
 };
 
@@ -171,7 +149,7 @@ ydn.db.query.RestrictionCursor.prototype.getCount = function() {
  * @param {number=} opt_idx cursor index.
  * @return {IDBKey|undefined} effective key of cursor.
  */
-ydn.db.query.RestrictionCursor.prototype.getKey = function(opt_idx) {
+ydn.db.query.ConjunctionCursor.prototype.getKey = function(opt_idx) {
   var index = opt_idx || 0;
   return this.keys[index];
 };
@@ -181,7 +159,7 @@ ydn.db.query.RestrictionCursor.prototype.getKey = function(opt_idx) {
  * @param {number=} opt_idx cursor index.
  * @return {IDBKey|undefined} primary key of cursor.
  */
-ydn.db.query.RestrictionCursor.prototype.getPrimaryKey = function(opt_idx) {
+ydn.db.query.ConjunctionCursor.prototype.getPrimaryKey = function(opt_idx) {
   var index = opt_idx || 0;
   return this.cursors[index].isIndexCursor() ?
       this.primary_keys[index] : this.keys[index];
@@ -192,7 +170,7 @@ ydn.db.query.RestrictionCursor.prototype.getPrimaryKey = function(opt_idx) {
  * @param {number=} opt_idx cursor index.
  * @return {*} value.
  */
-ydn.db.query.RestrictionCursor.prototype.getValue = function(opt_idx) {
+ydn.db.query.ConjunctionCursor.prototype.getValue = function(opt_idx) {
   var index = opt_idx || 0;
   return this.cursors[index].isValueCursor() ?
       this.values[index] : this.getPrimaryKey(index);
@@ -205,7 +183,7 @@ ydn.db.query.RestrictionCursor.prototype.getValue = function(opt_idx) {
  * @param {IDBKey=} opt_key previous position.
  * @param {IDBKey=} opt_primary_key primary key.
  */
-ydn.db.query.RestrictionCursor.prototype.restart = function(opt_key, opt_primary_key) {
+ydn.db.query.ConjunctionCursor.prototype.restart = function(opt_key, opt_primary_key) {
   this.done_ = false;
   this.cursors[0].restart(opt_primary_key, opt_key);
 };
@@ -215,7 +193,7 @@ ydn.db.query.RestrictionCursor.prototype.restart = function(opt_key, opt_primary
  * Move cursor position to the primary key while remaining on same index key.
  * @param {IDBKey} key primary key position to continue.
  */
-ydn.db.query.RestrictionCursor.prototype.continuePrimaryKey = function(key) {
+ydn.db.query.ConjunctionCursor.prototype.continuePrimaryKey = function(key) {
   // console.log(this + ' continuePrimaryKey ' + key)
   this.cursors[0].continuePrimaryKey(key);
 };
@@ -225,7 +203,7 @@ ydn.db.query.RestrictionCursor.prototype.continuePrimaryKey = function(key) {
  * Move cursor position to the effective key.
  * @param {IDBKey=} opt_key effective key position to continue.
  */
-ydn.db.query.RestrictionCursor.prototype.continueEffectiveKey = function(opt_key) {
+ydn.db.query.ConjunctionCursor.prototype.continueEffectiveKey = function(opt_key) {
   this.cursors[0].continueEffectiveKey(opt_key);
 };
 
@@ -234,7 +212,7 @@ ydn.db.query.RestrictionCursor.prototype.continueEffectiveKey = function(opt_key
  * Move cursor position to the effective key.
  * @param {number} n number of steps.
  */
-ydn.db.query.RestrictionCursor.prototype.advance = function(n) {
+ydn.db.query.ConjunctionCursor.prototype.advance = function(n) {
   for (var i = 0; i < this.cursors.length; i++) {
     this.cursors[i].advance(n);
   }
@@ -246,7 +224,7 @@ ydn.db.query.RestrictionCursor.prototype.advance = function(n) {
  * @param {number=} opt_idx cursor index.
  * @return {!goog.async.Deferred} value.
  */
-ydn.db.query.RestrictionCursor.prototype.update = function(obj, opt_idx) {
+ydn.db.query.ConjunctionCursor.prototype.update = function(obj, opt_idx) {
   var index = opt_idx || 0;
   return this.cursors[index].update(obj);
 };
@@ -256,7 +234,7 @@ ydn.db.query.RestrictionCursor.prototype.update = function(obj, opt_idx) {
  * @param {number=} opt_idx cursor index.
  * @return {!goog.async.Deferred} value.
  */
-ydn.db.query.RestrictionCursor.prototype.clear = function(opt_idx) {
+ydn.db.query.ConjunctionCursor.prototype.clear = function(opt_idx) {
   var index = opt_idx || 0;
   return this.cursors[index].clear();
 };
@@ -266,7 +244,7 @@ ydn.db.query.RestrictionCursor.prototype.clear = function(opt_idx) {
  *
  * @return {boolean} true if cursor gone.
  */
-ydn.db.query.RestrictionCursor.prototype.hasDone = function() {
+ydn.db.query.ConjunctionCursor.prototype.hasDone = function() {
   return this.done_;
 };
 
@@ -275,7 +253,7 @@ ydn.db.query.RestrictionCursor.prototype.hasDone = function() {
  *
  * @return {boolean} true if iteration is existed.
  */
-ydn.db.query.RestrictionCursor.prototype.isExited = function() {
+ydn.db.query.ConjunctionCursor.prototype.isExited = function() {
   return this.exited_;
 };
 
@@ -283,7 +261,7 @@ ydn.db.query.RestrictionCursor.prototype.isExited = function() {
 /**
  * Exit cursor
  */
-ydn.db.query.RestrictionCursor.prototype.exit = function() {
+ydn.db.query.ConjunctionCursor.prototype.exit = function() {
   this.exited_ = true;
   this.logger.finest(this + ': exit');
   this.finalize_();
@@ -296,7 +274,7 @@ ydn.db.query.RestrictionCursor.prototype.exit = function() {
  *  its reference value. Keys are used to resume cursors position.
  * @private
  */
-ydn.db.query.RestrictionCursor.prototype.finalize_ = function() {
+ydn.db.query.ConjunctionCursor.prototype.finalize_ = function() {
 
   // IndexedDB will GC array keys, so we clone it.
   this.primary_keys = goog.array.map(this.primary_keys, function(x) {
@@ -321,7 +299,7 @@ ydn.db.query.RestrictionCursor.prototype.finalize_ = function() {
  *  its reference value. Keys are used to resume cursors position.
  * @private
  */
-ydn.db.query.RestrictionCursor.prototype.dispose_ = function() {
+ydn.db.query.ConjunctionCursor.prototype.dispose_ = function() {
 
   for (var i = 0; i < this.cursors.length; i++) {
     this.cursors[i].dispose();
@@ -336,7 +314,7 @@ if (goog.DEBUG) {
   /**
    * @inheritDoc
    */
-  ydn.db.query.RestrictionCursor.prototype.toString = function() {
+  ydn.db.query.ConjunctionCursor.prototype.toString = function() {
     var s = '[';
     for (var i = 0; i < this.keys.length; i++) {
       if (i > 0) {
