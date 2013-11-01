@@ -43,62 +43,6 @@ ydn.db.core.req.SimpleStore.DEBUG = false;
 
 
 /**
- * @param {ydn.db.base.QueryMethod} mth method.
- * @param {ydn.db.Request} rq request.
- * @param {!ydn.db.Iterator} iter  store name.
- * @param {number=} opt_limit limit.
- * @param {number=} opt_offset
- * @private
- */
-ydn.db.core.req.SimpleStore.prototype.iterate_ = function(mth, rq,
-    iter, opt_limit, opt_offset) {
-  var tx = rq.getTx();
-  var tx_no = rq.getLabel();
-  var arr = [];
-  //var req = this.openQuery_(q, ydn.db.base.CursorMode.READ_ONLY);
-  var msg = tx_no + ' listByIterator' + iter;
-  var me = this;
-  this.logger.finest(msg);
-  var cursor = this.getCursor(tx, tx_no, iter.getStoreName());
-  iter.load(cursor);
-  cursor.onFail = function(e) {
-    cursor.exit();
-    rq.setDbValue(e, true);
-  };
-  var count = 0;
-  var cued = false;
-  /**
-   * @param {IDBKey=} opt_key
-   */
-  cursor.onNext = function(opt_key) {
-    if (goog.isDefAndNotNull(opt_key)) {
-      var primary_key = iter.isIndexIterator() ?
-          cursor.getPrimaryKey() : opt_key;
-      var value = cursor.getValue();
-      if (!cued && opt_offset > 0) {
-        cursor.advance(opt_offset);
-        cued = true;
-        return;
-      }
-      count++;
-      arr.push(iter.isKeyIterator() ? primary_key : value);
-      if (!goog.isDef(opt_limit) || count < opt_limit) {
-        cursor.advance(1);
-      } else {
-        cursor.exit();
-        var rs = ydn.db.base.QueryMethod.GET == mth ? arr[0] : arr;
-        rq.setDbValue(rs);
-      }
-    } else {
-      cursor.exit();
-      var rs = ydn.db.base.QueryMethod.GET == mth ? arr[0] : arr;
-      rq.setDbValue(rs);
-    }
-  };
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.core.req.SimpleStore.prototype.getCursor = function(tx, lbl,
