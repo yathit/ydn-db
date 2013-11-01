@@ -701,8 +701,8 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
 
     store = createAObjectStore();
 
-    for (var j = 0; j < store_schema.indexes.length; j++) {
-      var index = store_schema.indexes[j];
+    for (var j = 0; j < store_schema.countIndex(); j++) {
+      var index = store_schema.index(j);
 
       if (index.getType() == ydn.db.schema.DataType.BLOB) {
         this.logger.info('Index ' + index + ' of blob data type ignored.');

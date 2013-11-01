@@ -20,6 +20,7 @@
 
 goog.provide('ydn.db.crud.req.IndexedDb');
 goog.require('goog.async.DeferredList');
+goog.require('goog.userAgent');
 goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.crud.req.RequestExecutor');
 goog.require('ydn.error');
@@ -658,7 +659,31 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
     me.logger.finest(req.getLabel() + ' record ' + id +
         (goog.isDefAndNotNull(event.target.result) ? ' ' : ' not ') +
         ' exists.');
-    req.setDbValue(event.target.result);
+    // check for decode blob, since chrome does not support blob
+    var BASE64_MARKER = ';base64,';
+    var s = event.target.result;
+    if (!store.keyPath && store.indexNames.length == 0 &&
+        goog.userAgent.WEBKIT && goog.isString(s) &&
+        s.indexOf(BASE64_MARKER) >= 0) {
+      if (s.charAt(0) == '"' && s.charAt(s.length - 1) == '"') {
+        s = s.substr(1, s.length - 2);
+      }
+      var parts = s.split(BASE64_MARKER);
+      var contentType = parts[0].split(':')[1];
+      var raw = window.atob(parts[1]);
+      var rawLength = raw.length;
+
+      var uInt8Array = new Uint8Array(rawLength);
+
+      for (var i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+      }
+
+      var blob = new Blob([uInt8Array.buffer], {type: contentType});
+      req.setDbValue(blob);
+    } else {
+      req.setDbValue(event.target.result);
+    }
   };
 
   request.onerror = function(event) {

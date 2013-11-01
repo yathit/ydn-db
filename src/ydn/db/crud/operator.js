@@ -21,6 +21,7 @@
 
 goog.provide('ydn.db.crud.DbOperator');
 goog.require('goog.debug.Logger');
+goog.require('goog.userAgent');
 goog.require('ydn.db');
 goog.require('ydn.db.ISyncOperator');
 goog.require('ydn.db.Key');
@@ -1131,15 +1132,52 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         }
       }
       this.logger.finer('putObject: ' + st_name + ' ' + key);
-      store.generateIndex(obj);
-      req = this.tx_thread.request(ydn.db.Request.Method.PUT,
-          [st_name], ydn.db.base.TransactionMode.READ_WRITE);
-      store.hook(req, arguments);
-      req.addTxback(function() {
-        var keys = goog.isDef(key) ? [key] : undefined;
-        me.getCrudExecutor().insertObjects(req, true, true, st_name, [obj],
-            keys);
-      }, this);
+      var is_blob = (goog.isDef(goog.global['Blob']) && obj instanceof Blob) &&
+          // check for using blob store
+          store.isFixed() && !store.usedInlineKey() &&
+          store.countIndex() == 0 &&
+          // only webkit need to encode blob into dataURL.
+          goog.userAgent.WEBKIT;
+      if (is_blob) {
+        // we cannot invoke request to thread, because encoding is async,
+        // we must wait encoding is ready before starting transaction.
+        // TODO: this will cause transaction could not be reused.
+        req = new ydn.db.Request(ydn.db.Request.Method.PUT);
+        var fr = new FileReader();
+        fr.onload = function(e) {
+          var value = e.target.result;
+          var rq = me.tx_thread.request(ydn.db.Request.Method.PUT,
+              [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+          store.hook(rq, arguments);
+          rq.addTxback(function() {
+            me.getCrudExecutor().insertObjects(rq, true, true, st_name, [value],
+                [key]);
+          }, this);
+          rq.addCallbacks(function(x) {
+            req.callback(x);
+          }, function(e) {
+            req.errback(e);
+          })
+        };
+        fr.onerror = function(e) {
+          req.errback(e);
+        };
+        fr.onabort = function(e) {
+          req.errback(e);
+        };
+        fr.readAsDataURL(/** @type {!Blob} */ (obj));
+      } else {
+        store.generateIndex(obj);
+        req = this.tx_thread.request(ydn.db.Request.Method.PUT,
+            [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+        store.hook(req, arguments);
+        req.addTxback(function() {
+          var keys = goog.isDef(key) ? [key] : undefined;
+          me.getCrudExecutor().insertObjects(req, true, true, st_name, [obj],
+              keys);
+        }, this);
+      }
+
 
       if (store.dispatch_events) {
         req.addCallback(function(key) {

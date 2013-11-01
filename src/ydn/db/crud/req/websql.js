@@ -96,6 +96,31 @@ ydn.db.crud.req.WebSql.prototype.logger =
  */
 ydn.db.crud.req.WebSql.parseRow = function(row, store) {
 
+  if (store.isFixed() && !store.usedInlineKey() && store.countIndex() == 0 &&
+      row[ydn.db.base.DEFAULT_BLOB_COLUMN]) {
+    // check for blob or file
+    var s = row[ydn.db.base.DEFAULT_BLOB_COLUMN];
+    var BASE64_MARKER = ';base64,';
+    if (s.indexOf(BASE64_MARKER) == -1) {
+      return ydn.json.parse(s);
+    } else {
+      if (s.charAt(0) == '"' && s.charAt(s.length - 1) == '"') {
+        s = s.substr(1, s.length - 2);
+      }
+      var parts = s.split(BASE64_MARKER);
+      var contentType = parts[0].split(':')[1];
+      var raw = window.atob(parts[1]);
+      var rawLength = raw.length;
+
+      var uInt8Array = new Uint8Array(rawLength);
+
+      for (var i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+      }
+
+      return new Blob([uInt8Array.buffer], {type: contentType});
+    }
+  }
   var value = row[ydn.db.base.DEFAULT_BLOB_COLUMN] ?
       ydn.json.parse(row[ydn.db.base.DEFAULT_BLOB_COLUMN]) : {};
   if (goog.isDefAndNotNull(store.keyPath)) {
@@ -105,8 +130,8 @@ ydn.db.crud.req.WebSql.parseRow = function(row, store) {
     }
   }
 
-  for (var j = 0; j < store.indexes.length; j++) {
-    var index = store.indexes[j];
+  for (var j = 0; j < store.countIndex(); j++) {
+    var index = store.index(j);
     var column_name = index.getSQLIndexColumnName();
     if (column_name == ydn.db.base.DEFAULT_BLOB_COLUMN ||
         index.isComposite() || index.isMultiEntry()) {

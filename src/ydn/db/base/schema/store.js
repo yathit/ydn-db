@@ -210,6 +210,7 @@ ydn.db.schema.Store.prototype.keyPaths;
 
 /**
  * @type {!Array.<!ydn.db.schema.Index>}
+ * @protected
  */
 ydn.db.schema.Store.prototype.indexes;
 
@@ -1090,6 +1091,17 @@ ydn.db.schema.Store.prototype.sqlNamesValues = function(obj, opt_key,
   if (!this.fixed) {
     values.push(ydn.json.stringify(obj));
     columns.push(ydn.db.base.DEFAULT_BLOB_COLUMN);
+  } else if (this.isFixed() && !this.usedInlineKey() &&
+      this.countIndex() == 0) {
+    // check for blob
+    var BASE64_MARKER = ';base64,';
+    if (goog.isString(obj) && obj.indexOf(BASE64_MARKER) == -1) {
+      values.push(obj);
+      columns.push(ydn.db.base.DEFAULT_BLOB_COLUMN);
+    } else {
+      values.push(ydn.json.stringify(obj));
+      columns.push(ydn.db.base.DEFAULT_BLOB_COLUMN);
+    }
   }
 
   var slots = [];

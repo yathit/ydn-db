@@ -421,7 +421,10 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
 
   // table must has a default field to store schemaless fields, unless
   // fixed table schema is used.
-  if (!table.isFixed()) {
+  if (!table.isFixed() ||
+      // note: when even when using fixed schema, blob data are store in
+      // default column when store is out-of-line non-indexing
+      (!table.usedInlineKey()) && table.countIndex() == 0) {
     sql += ' ,' + ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' +
         ydn.db.schema.DataType.BLOB;
   }
