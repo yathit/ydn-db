@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @fileoverview Implements ydn.db.io.QueryService with IndexedDB.
+ * @fileoverview Implements request executor with IndexedDB.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
