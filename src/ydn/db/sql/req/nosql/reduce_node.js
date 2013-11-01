@@ -115,9 +115,9 @@ ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(rq, req) {
       iter = new ydn.db.ValueIterator(store_name, key_range);
     }
 
-    var crs = [req.getCursor(rq.getTx(), rq.getLabel(), store_name,
-        ydn.db.base.QueryMethod.LIST_VALUE)];
-    var cursor = iter.load(crs);
+    var cur = req.getCursor(rq.getTx(), rq.getLabel(), store_name,
+        ydn.db.base.QueryMethod.LIST_VALUE);
+    var cursor = iter.load([cur]);
 
     /**
      *
