@@ -178,6 +178,7 @@ S3Options.prototype.bucket;
 S3Options.prototype.maxKeys;
 
 
+
 /**
  * @extends {AtomOptions}
  * @constructor
@@ -221,6 +222,7 @@ GDataOptions.prototype.domain;
  * @type {string}
  */
 GDataOptions.prototype.siteName;
+
 
 
 /**
@@ -285,26 +287,11 @@ StoreSyncOptionJson.prototype.transport;
 
 
 /**
- * By default, meta data store are stripped, when read from the database.
- * @type {boolean} Set true to keep meta data.
- */
-StoreSyncOptionJson.prototype.keepMeta;
-
-
-/**
  * Store name which store meta data.
  * If specified, metaData must not specified.
  * @type {string}
  */
 StoreSyncOptionJson.prototype.metaStoreName;
-
-
-/**
- * Meta data data field if it is recorded inline.
- * If specified, metaStoreName must not specified.
- * @type {string}
- */
-StoreSyncOptionJson.prototype.metaDataName;
 
 
 /**
