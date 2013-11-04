@@ -1,7 +1,7 @@
 {
   "name": "ydn.db",
   "title": "YDN-DB Database library",
-  "description": "Javascript database module for IndexedDB, WebDatabase (WebSQL) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
+  "description": "Javascript database library for IndexedDB, WebDatabase (WebSQL) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
   "keywords": [
     "indexeddb",
     "database",
@@ -28,11 +28,9 @@
     }
   ],
   "bugs": "https://github.com/yathit/ydn-db/issues",
-  "homepage": "https://bitbucket.org/ytkyaw/ydn-db/wiki/Home",
+  "homepage": "http://dev.yathit.com",
   "docs": "http://dev.yathit.com/api-reference/ydn-db/storage.html",
   "download": "http://dev.yathit.com/index/downloads.html",
   "demo": "http://dev.yathit.com/index/demos.html",
-  "dependencies": {
-    "jquery": ">=1.7"
-  }
+  "dependencies": {}
 }
