@@ -23,7 +23,6 @@ goog.provide('ydn.db.crud.DbOperator');
 goog.require('goog.debug.Logger');
 goog.require('goog.userAgent');
 goog.require('ydn.db');
-goog.require('ydn.db.ISyncOperator');
 goog.require('ydn.db.Key');
 goog.require('ydn.db.Request');
 goog.require('ydn.db.crud.IOperator');
@@ -49,7 +48,6 @@ goog.require('ydn.debug.error.NotSupportedException');
  * @param {ydn.db.tr.Thread} tx_thread
  * @param {ydn.db.tr.Thread} sync_thread
  * @implements {ydn.db.crud.IOperator}
- * @implements {ydn.db.ISyncOperator}
  * @constructor
  * @extends {ydn.db.tr.DbOperator}
  * @struct
@@ -1132,6 +1130,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         }
       }
       this.logger.finer('putObject: ' + st_name + ' ' + key);
+      // note File is also instanceof Blob
       var is_blob = (goog.isDef(goog.global['Blob']) && obj instanceof Blob) &&
           // check for using blob store
           store.isFixed() && !store.usedInlineKey() &&
@@ -1148,7 +1147,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
           var value = e.target.result;
           var rq = me.tx_thread.request(ydn.db.Request.Method.PUT,
               [st_name], ydn.db.base.TransactionMode.READ_WRITE);
-          store.hook(rq, arguments);
+          store.hook(rq, [st_name, obj, key]);
           rq.addTxback(function() {
             me.getCrudExecutor().insertObjects(rq, true, true, st_name, [value],
                 [key]);
@@ -1157,7 +1156,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
             req.callback(x);
           }, function(e) {
             req.errback(e);
-          })
+          });
         };
         fr.onerror = function(e) {
           req.errback(e);
@@ -1212,7 +1211,6 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
  * @param {boolean=} opt_use_main_thread default is background thread.
  * @param {number=} opt_hook_idx hook index to ignore.
  * @return {!goog.async.Deferred} df return no result.
- * @override
  */
 ydn.db.crud.DbOperator.prototype.dumpInternal = function(store_name, objs,
     opt_keys, opt_use_main_thread, opt_hook_idx) {
@@ -1338,10 +1336,10 @@ ydn.db.crud.DbOperator.prototype.removeInternal = function(store_name, opt_kr) {
  * @param {number} limit limit.
  * @param {number=} opt_offset offset.
  * @return {!goog.async.Deferred} df.
- * @override
  */
 ydn.db.crud.DbOperator.prototype.listInternal = function(store_name, index_name,
     key_range, reverse, limit, opt_offset) {
+  limit = limit || ydn.db.base.DEFAULT_RESULT_LIMIT;
   var req;
   var offset = opt_offset || 0;
   if (goog.DEBUG) {
@@ -1432,17 +1430,17 @@ ydn.db.crud.DbOperator.prototype.countInternal = function(store_names,
  * @param {string} store_name store name.
  * @param {?string} index_name index name.
  * @param {?IDBKeyRange} key_range key range.
- * @param {boolean} reverse reverse.
  * @param {number} limit limit.
  * @param {number} offset limit.
+ * @param {boolean} reverse reverse.
  * @param {boolean} unique limit.
  * @return {!ydn.db.Request} df.
- * @override
  */
 ydn.db.crud.DbOperator.prototype.keysInternal = function(store_name, index_name,
-    key_range, reverse, limit, offset, unique) {
+    key_range, limit, offset, reverse, unique) {
   var req;
   var me = this;
+  limit = limit || ydn.db.base.DEFAULT_RESULT_LIMIT;
 
   if (goog.DEBUG) {
     var store = this.schema.getStore(store_name);
