@@ -5,16 +5,16 @@
   var options = {
     Encryption: {
       secrets: [{
-        key: 'aaaa',
-        passphase: 'monkey'
+        name: 'aaaa',
+        key: 'monkey'
       }]
     }
   };
   var options2 = {
     Encryption: {
       secrets: [{
-        key: 'aaaa',
-        passphase: 'monk'
+        name: 'aaaa',
+        key: 'monk'
       }]
     }
   };

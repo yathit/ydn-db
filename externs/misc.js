@@ -53,7 +53,7 @@ StorageOptions.prototype.connectionTimeout;
 /**
  * @type {{
  *    expiration: (number|undefined),
- *    secrets: Array.<{key: string, passphase: string}>
+ *    secrets: Array.<{name: string, key: string}>
  * }}
  */
 StorageOptions.prototype.Encryption;
