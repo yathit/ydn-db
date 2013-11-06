@@ -69,7 +69,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
 
   if (goog.DEBUG) {
     var fields = ['autoSchema', 'connectionTimeout', 'size', 'mechanisms',
-      'policy', 'isSerial'];
+      'policy', 'isSerial', 'Encryption'];
     for (var key in options) {
       if (options.hasOwnProperty(key) &&
           goog.array.indexOf(fields, key) == -1) {
@@ -111,13 +111,6 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
       options.connectionTimeout :
       ydn.db.con.Storage.DEBUG ?
       1000 : goog.DEBUG ? 30 * 1000 : 30 * 60 * 1000;
-
-  /**
-   * @final
-   * @type {boolean}
-   */
-  this.use_text_store = goog.isDef(options.use_text_store) ?
-      options.use_text_store : ydn.db.base.ENABLE_DEFAULT_TEXT_STORE;
 
   this.db_ = null;
 
@@ -161,12 +154,21 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
     schema = new ydn.db.schema.EditableDatabase();
   }
 
+  var has_valid_encryption = this.setEncryption(options.Encryption);
   /**
    * @final
    * @protected
    * @type {!ydn.db.schema.Database}
    */
   this.schema = schema;
+  for (var i = 0; i < this.schema.count(); i++) {
+    if (this.schema.store(i).isEncrypted()) {
+      if (goog.DEBUG && !has_valid_encryption) {
+        throw new Error('encryption option must be defined');
+      }
+      this.addEncryption(this.schema.store(i));
+    }
+  }
 
   if (goog.isDef(opt_dbname)) {
     this.setName(opt_dbname);
@@ -757,6 +759,26 @@ ydn.db.con.Storage.prototype.isAutoSchema = function() {
 ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
   this.logger.warning('Synchronization option for ' + store.getName() +
       ' ignored.');
+};
+
+
+/**
+ * ydn.db.sync module will override this method to inject sync functions.
+ * @param {ydn.db.schema.Store} store store object.
+ * @protected
+ */
+ydn.db.con.Storage.prototype.addEncryption = function(store) {
+  this.logger.warning('Encryption option for ' + store.getName() +
+      ' ignored.');
+};
+
+
+/**
+ * @param {Object} encryption secret name.
+ * @return {boolean}
+ */
+ydn.db.con.Storage.prototype.setEncryption = function(encryption) {
+  return false;
 };
 
 

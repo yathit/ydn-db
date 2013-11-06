@@ -50,6 +50,15 @@ StorageOptions.prototype.isSerial;
 StorageOptions.prototype.connectionTimeout;
 
 
+/**
+ * @type {{
+ *    expiration: (number|undefined),
+ *    secrets: Array.<{key: string, passphase: string}>
+ * }}
+ */
+StorageOptions.prototype.Encryption;
+
+
 
 /**
  * @constructor

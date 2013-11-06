@@ -381,6 +381,12 @@ StoreSchema.prototype.type;
 
 
 /**
+ * @type {boolean|undefined}
+ */
+StoreSchema.prototype.encrypted;
+
+
+/**
  * @type {Array.<!IndexSchema>}
  */
 StoreSchema.prototype.indexes;

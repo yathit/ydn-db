@@ -43,11 +43,13 @@ goog.require('ydn.db.schema.Index');
  * @param {boolean=} opt_is_fixed fixed store schema. Websql TABLE, has a
  * default column to store JSON stringify data. A fixed store schema TABLE,
  * do not hae that default column.
+ * @param {boolean=} opt_encrypted store is encrypted.
  * @constructor
  * @struct
  */
 ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
-                               opt_indexes, opt_dispatch_events, opt_is_fixed) {
+                               opt_indexes, opt_dispatch_events, opt_is_fixed,
+                               opt_encrypted) {
 
   /**
    * @private
@@ -141,10 +143,28 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
 
   /**
    * @final
+   * @type {boolean}
+   * @private
+   */
+  this.is_encrypted_ = !!opt_encrypted;
+  if (goog.DEBUG && this.is_encrypted_) {
+    if (this.keyPath) {
+      throw new ydn.debug.error.ArgumentException('encrypted store "' +
+          this.name_ + '" must not use inline key');
+    }
+    if (this.isAutoIncrement()) {
+      throw new ydn.debug.error.ArgumentException('encrypted store "' +
+          this.name_ + '" must not use key generator');
+    }
+  }
+
+  /**
+   * @final
    * @type {Array.<function(!ydn.db.Request, goog.array.ArrayLike)>} hookers.
    * @private
    */
   this.hooks_ = [];
+
 };
 
 
@@ -166,7 +186,6 @@ ydn.db.schema.Store.FetchStrategies = [
   ydn.db.schema.Store.FetchStrategy.LAST_UPDATED,
   ydn.db.schema.Store.FetchStrategy.ASCENDING_KEY,
   ydn.db.schema.Store.FetchStrategy.DESCENDING_KEY];
-
 
 
 /**
@@ -257,7 +276,7 @@ ydn.db.schema.Store.prototype.toJSON = function() {
 ydn.db.schema.Store.fromJSON = function(json) {
   if (goog.DEBUG) {
     var fields = ['name', 'keyPath', 'autoIncrement', 'type', 'indexes',
-      'dispatchEvents', 'fixed', 'Sync'];
+      'dispatchEvents', 'fixed', 'Sync', 'encrypted'];
     for (var key in json) {
       if (json.hasOwnProperty(key) && goog.array.indexOf(fields, key) == -1) {
         throw new ydn.debug.error.ArgumentException('Unknown attribute "' +
@@ -278,8 +297,8 @@ ydn.db.schema.Store.fromJSON = function(json) {
   }
   var type = json.type === 'undefined' || json.type === 'null' ?
       undefined : json.type;
-  return new ydn.db.schema.Store(json.name, json.keyPath,
-      json.autoIncrement, type, indexes, json.dispatchEvents, json.fixed);
+  return new ydn.db.schema.Store(json.name, json.keyPath, json.autoIncrement,
+      type, indexes, json.dispatchEvents, json.fixed, json.encrypted);
 };
 
 
@@ -655,6 +674,14 @@ ydn.db.schema.Store.prototype.getIndexByKeyPath = function(key_path) {
  */
 ydn.db.schema.Store.prototype.isFixed = function() {
   return this.fixed;
+};
+
+
+/**
+ * @return {boolean} return true if store is encrypted.
+ */
+ydn.db.schema.Store.prototype.isEncrypted = function() {
+  return this.is_encrypted_;
 };
 
 
@@ -1038,12 +1065,6 @@ ydn.db.schema.Store.prototype.setKeyValue = function(obj, value) {
     obj = obj[key];
   }
 };
-
-
-/**
- * @define {string} default key-value store name.
- */
-ydn.db.schema.Store.DEFAULT_TEXT_STORE = 'default_text_store';
 
 
 /**

@@ -63,6 +63,12 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
     if (goog.DEBUG && !goog.isArray(stores_json)) {
       throw new ydn.debug.error.ArgumentException('stores must be array');
     }
+    /**
+     * Default ext store name.
+     * @type {string|undefined}
+     * @private
+     */
+    this.default_text_store_name_ = json['defaultTextStoreName'];
     for (var i = 0; i < stores_json.length; i++) {
       var store = ydn.db.schema.Store.fromJSON(stores_json[i]);
       if (goog.DEBUG) {
@@ -163,6 +169,17 @@ ydn.db.schema.Database.prototype.getFullTextIndex = function(name) {
   return goog.array.find(this.full_text_schema_, function(x) {
     return x.getName() == name;
   });
+};
+
+
+/**
+ * Get default text store.
+ * @return string}
+ */
+ydn.db.schema.Database.prototype.getDefaultTextStoreName = function() {
+  goog.asserts.assertString(this.default_text_store_name_,
+      'defaultTextStoreName is not defined in the database schema');
+  return this.default_text_store_name_;
 };
 
 

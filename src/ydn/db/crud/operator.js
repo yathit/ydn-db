@@ -254,7 +254,8 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
 
     var kid = k.getId();
     this.logger.finer('getByKey: ' + k_store_name + ':' + kid);
-    req = this.tx_thread.request(ydn.db.Request.Method.GET, [k_store_name]);
+    req = this.tx_thread.request(ydn.db.Request.Method.GET_BY_KEY,
+        [k_store_name]);
     store.hook(req, arguments);
     req.addTxback(function() {
       this.getCrudExecutor().getById(req, k_store_name, kid);
@@ -1169,11 +1170,15 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         store.generateIndex(obj);
         req = this.tx_thread.request(ydn.db.Request.Method.PUT,
             [st_name], ydn.db.base.TransactionMode.READ_WRITE);
-        store.hook(req, arguments);
+        var args = [st_name, obj, key];
+        store.hook(req, args);
         req.addTxback(function() {
-          var keys = goog.isDef(key) ? [key] : undefined;
-          me.getCrudExecutor().insertObjects(req, true, true, st_name, [obj],
-              keys);
+          // Note: here we are reading from arguments array, so that if
+          // hook manipulate the value, we get updated value.
+          // encryption hook manipulate both key and value.
+          var keys = goog.isDef(key) ? [args[2]] : undefined;
+          me.getCrudExecutor().insertObjects(req, true, true, st_name,
+              [args[1]], keys);
         }, this);
       }
 
@@ -1202,8 +1207,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
 
 /**
  * Dump object into the database. Use only by synchronization process when
- * updating from
- * server.
+ * updating from server.
  * This is friendly module use only.
  * @param {string|!Array.<!ydn.db.Key>} store_name store name.
  * @param {!Array.<Object>} objs objects.
@@ -1592,9 +1596,10 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
         this.logger.finer('removeById: ' + store_name + ':' + id);
         req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_ID,
             [store_name], ydn.db.base.TransactionMode.READ_WRITE);
-        store.hook(req, [store_name, id]);
+        var rm_args = [store_name, id];
+        store.hook(req, rm_args);
         req.addTxback(function() {
-          this.getCrudExecutor().removeById(req, store_name, id);
+          this.getCrudExecutor().removeById(req, store_name, rm_args[1]);
         }, this);
 
         if (store.dispatch_events) {
@@ -1640,9 +1645,10 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
     goog.asserts.assert(store, 'store "' + st_name + '" not found.');
     req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_ID,
         [st_name], ydn.db.base.TransactionMode.READ_WRITE);
-    store.hook(req, [st_name, key.getId()]);
+    var hk_args = [st_name, key.getId()];
+    store.hook(req, hk_args);
     req.addTxback(function() {
-      this.getCrudExecutor().removeById(req, st_name, key.getId());
+      this.getCrudExecutor().removeById(req, st_name, hk_args[1]);
     }, this);
   } else if (goog.isArray(arg1)) {
     /**

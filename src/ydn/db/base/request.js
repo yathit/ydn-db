@@ -423,6 +423,7 @@ ydn.db.Request.Method = {
   CLEAR: goog.DEBUG ? 'clear' : 'c',
   COUNT: goog.DEBUG ? 'count' : 'd',
   GET: goog.DEBUG ? 'get' : 'e',
+  GET_BY_KEY: goog.DEBUG ? 'get:key' : 'ek',
   GET_ITER: goog.DEBUG ? 'get:iter' : 'f',
   KEYS: goog.DEBUG ? 'keys' : 'g',
   KEYS_ITER: goog.DEBUG ? 'keys:iter' : 'h',

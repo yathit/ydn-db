@@ -150,9 +150,9 @@ ydn.db.query.RestrictionCursor.prototype.init_ = function() {
     this.logger.finest('Initializing ' + n + ' cursors');
   }
   if (n == 1) {
-    this.openSingle_(this.cursors[0]);
+    // this.openSingle_(this.cursors[0]);
   } else if (n > 1) {
-    this.openPrimaryKeyMerge_();
+    // this.openPrimaryKeyMerge_();
   } else {
     throw new ydn.debug.error.InternalError('no cursors');
   }
