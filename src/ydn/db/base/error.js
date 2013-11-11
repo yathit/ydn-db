@@ -46,6 +46,16 @@ goog.inherits(ydn.db.ConstraintError, Error);
 ydn.db.ConstraintError.prototype.name = 'ConstraintError';
 
 
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.ConstraintError.prototype.toString = function() {
+    return this.name + ': ' + this.message;
+  };
+}
+
+
 
 /**
  * Base class for custom error objects.
@@ -68,6 +78,16 @@ ydn.db.InvalidKeyException = function(opt_msg) {
   this.name = 'ydn.db.InvalidKeyException';
 };
 goog.inherits(ydn.db.InvalidKeyException, Error);
+
+
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.InvalidKeyException.prototype.toString = function() {
+    return this.name + ': ' + this.message;
+  };
+}
 
 
 
@@ -98,6 +118,16 @@ goog.inherits(ydn.db.VersionError, Error);
  * @type {string} name of error.
  */
 ydn.db.VersionError.prototype.name = 'ydn.db.VersionError';
+
+
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.VersionError.prototype.toString = function() {
+    return this.name + ': ' + this.message;
+  };
+}
 
 
 
@@ -231,6 +261,16 @@ goog.inherits(ydn.db.NotFoundError, Error);
 ydn.db.NotFoundError.prototype.name = 'NotFoundError';
 
 
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.NotFoundError.prototype.toString = function() {
+    return this.name + ': ' + this.message;
+  };
+}
+
+
 
 /**
  * Base class for custom error objects.
@@ -253,6 +293,16 @@ ydn.db.DataCloneError = function(opt_msg) {
   this.name = 'DataCloneError';
 };
 goog.inherits(ydn.db.DataCloneError, Error);
+
+
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.DataCloneError.prototype.toString = function() {
+    return this.name + ': ' + this.message;
+  };
+}
 
 
 
@@ -282,6 +332,17 @@ goog.inherits(ydn.db.SQLError, Error);
 
 
 
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.SQLError.prototype.toString = function() {
+    return this.name + ': ' + this.message;
+  };
+}
+
+
+
 /**
  *
  * @param {Error} e original message.
@@ -305,6 +366,16 @@ ydn.db.SecurityError = function(e, opt_msg) {
   this.name = 'SecurityError';
 };
 goog.inherits(ydn.db.SecurityError, Error);
+
+
+if (goog.DEBUG) {
+  /**
+   * @inheritDoc
+   */
+  ydn.db.SecurityError.prototype.toString = function() {
+    return this.name + ': ' + this.message;
+  };
+}
 
 
 
