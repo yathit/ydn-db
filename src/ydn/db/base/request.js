@@ -398,6 +398,95 @@ ydn.db.Request.prototype.toString = function() {
 
 
 /**
+ * Exhausts the execution sequence while a result is available. The result may
+ * be modified by callbacks or errbacks, and execution will block if the
+ * returned result is an incomplete Deferred.
+ *
+ * @override Remove try/catch block for performance (and better debugging)
+ * @suppress {accessControls}
+ */
+ydn.db.Request.prototype.fire_ = function() {
+  if (this.unhandledExceptionTimeoutId_ && this.hasFired() &&
+      this.hasErrback_()) {
+    // It is possible to add errbacks after the Deferred has fired. If a new
+    // errback is added immediately after the Deferred encountered an unhandled
+    // error, but before that error is rethrown, cancel the rethrow.
+    goog.global.clearTimeout(this.unhandledExceptionTimeoutId_);
+    delete this.unhandledExceptionTimeoutId_;
+  }
+
+  if (this.parent_) {
+    this.parent_.branches_--;
+    delete this.parent_;
+  }
+
+  var res = this.result_;
+  var unhandledException = false;
+  var isNewlyBlocked = false;
+
+  while (this.sequence_.length && !this.blocked_) {
+    var sequenceEntry = this.sequence_.shift();
+
+    var callback = sequenceEntry[0];
+    var errback = sequenceEntry[1];
+    var scope = sequenceEntry[2];
+
+    var f = this.hadError_ ? errback : callback;
+    if (f) {
+      /* preserveTry */
+      // try {
+      var ret = f.call(scope || this.defaultScope_, res);
+
+      // If no result, then use previous result.
+      if (goog.isDef(ret)) {
+        // Bubble up the error as long as the return value hasn't changed.
+        this.hadError_ = this.hadError_ && (ret == res || this.isError(ret));
+        this.result_ = res = ret;
+      }
+
+      if (res instanceof goog.async.Deferred) {
+        isNewlyBlocked = true;
+        this.blocked_ = true;
+      }
+
+      /* } catch (ex) {
+       res = ex;
+       this.hadError_ = true;
+
+       if (!this.hasErrback_()) {
+       // If an error is thrown with no additional errbacks in the queue,
+       // prepare to rethrow the error.
+       unhandledException = true;
+       }
+       } */
+    }
+  }
+
+  this.result_ = res;
+
+  if (isNewlyBlocked) {
+    res.addCallbacks(
+        goog.bind(this.continue_, this, true /* isSuccess */),
+        goog.bind(this.continue_, this, false /* isSuccess */));
+    res.blocking_ = true;
+  } else if (goog.async.Deferred.STRICT_ERRORS && this.isError(res) &&
+      !(res instanceof goog.async.Deferred.CanceledError)) {
+    this.hadError_ = true;
+    unhandledException = true;
+  }
+
+  if (unhandledException) {
+    // Rethrow the unhandled error after a timeout. Execution will continue, but
+    // the error will be seen by global handlers and the user. The throw will
+    // be canceled if another errback is appended before the timeout executes.
+    // The error's original stack trace is preserved where available.
+    this.unhandledExceptionTimeoutId_ = goog.global.setTimeout(
+        goog.functions.fail(res), 0);
+  }
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.Request.prototype.toJSON = function() {
