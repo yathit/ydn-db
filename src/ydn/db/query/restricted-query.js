@@ -18,8 +18,8 @@
  */
 
 goog.provide('ydn.db.query.Restricted');
-goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.algo.SortedMerge');
+goog.require('ydn.db.core.Storage');
 
 
 

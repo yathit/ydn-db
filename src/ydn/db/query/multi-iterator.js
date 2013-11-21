@@ -51,8 +51,8 @@ goog.require('ydn.debug.error.ArgumentException');
  * @struct
  * @extends {ydn.db.Iterator}
  */
-ydn.db.query.RestrictionIterator = function(store, opt_index, opt_key_range, opt_reverse,
-                           opt_unique, opt_key_only, opt_index_key_path) {
+ydn.db.query.RestrictionIterator = function(store, opt_index, opt_key_range,
+    opt_reverse, opt_unique, opt_key_only, opt_index_key_path) {
   goog.base(this, store, opt_index, opt_key_range, opt_reverse,
       opt_unique, opt_key_only, opt_index_key_path);
 
