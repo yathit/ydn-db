@@ -64,7 +64,16 @@ ydn.db.Query = function(db, schema, iter, opt_type) {
    * @type {!Array.<!ydn.db.Iterator>}
    */
   this.iterators = goog.isArray(iter) ? iter : [iter];
-
+  /**
+   * @type {?function(*): boolean}
+   * @private
+   */
+  this.filter_ = null;
+  /**
+   * @type {*}
+   * @private
+   */
+  this.filter_scope_;
 };
 
 
@@ -376,6 +385,12 @@ ydn.db.Query.prototype.clear = function() {
   var basic = new ydn.db.query.Base(this.db, this.schema);
   var req = basic.clear(this.iterators[0]);
   return req;
+};
+
+
+ydn.db.Query.prototype.filter = function(cb, opt_scope) {
+  this.filter_ = cb;
+  this.filter_scope_ = opt_scope;
 };
 
 
