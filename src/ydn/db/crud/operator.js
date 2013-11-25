@@ -256,7 +256,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     this.logger.finer('getByKey: ' + k_store_name + ':' + kid);
     req = this.tx_thread.request(ydn.db.Request.Method.GET_BY_KEY,
         [k_store_name]);
-    store.hook(req, arguments);
+    store.hook(req, arguments, undefined, this);
     req.addTxback(function() {
       this.getCrudExecutor().getById(req, k_store_name, kid);
     }, this);
@@ -288,7 +288,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
         (typeof id) + ' is not a valid key');
     this.logger.finer('getById: ' + store_name + ':' + id);
     req = this.tx_thread.request(ydn.db.Request.Method.GET, [store_name]);
-    store.hook(req, arguments);
+    store.hook(req, arguments, undefined, this);
     req.addTxback(function() {
       this.getCrudExecutor().getById(req, store_name, /** @type {IDBKey} */ (id));
     }, this);
@@ -527,7 +527,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
           ids.length + ' ids');
       req = this.tx_thread.request(ydn.db.Request.Method.VALUES_IDS,
           [store_name]);
-      store.hook(req, arguments);
+      store.hook(req, arguments, undefined, this);
       req.addTxback(function() {
         this.getCrudExecutor().listByIds(req, store_name, ids);
       }, this);

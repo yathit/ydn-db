@@ -1251,12 +1251,14 @@ ydn.db.schema.Store.prototype.addHook = function(hook) {
  * @param {!ydn.db.Request} df deferred from database operation.
  * @param {goog.array.ArrayLike} args arguments to the db method.
  * @param {number=} opt_hook_idx hook index to ignore.
+ * @param {*=} opt_scope
  * @final
  */
-ydn.db.schema.Store.prototype.hook = function(df, args, opt_hook_idx) {
+ydn.db.schema.Store.prototype.hook = function(df, args, opt_hook_idx,
+                                              opt_scope) {
   for (var i = 0; i < this.hooks_.length; i++) {
     if (opt_hook_idx !== i) {
-      this.hooks_[i](df, args);
+      this.hooks_[i].call(opt_scope, df, args);
     }
   }
 };
