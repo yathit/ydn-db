@@ -12,25 +12,28 @@
 
 
 /**
- * @fileoverview Query with multiple AND iterators.
+ * @fileoverview Conjunction query, or query with multiple AND iterators.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
-goog.provide('ydn.db.query.Restricted');
+goog.provide('ydn.db.query.ConjQuery');
 goog.require('ydn.db.algo.SortedMerge');
 goog.require('ydn.db.core.Storage');
 
 
 
 /**
- * Query directly execute on raw cursor.
+ * Conjunction query.
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
+ * @param {!Array.<!ydn.db.Iterator>} iters
+ * @param {boolean=} opt_join_key By default reference values of iterators are
+ * joined. Set true to join on keys.
  * @constructor
  * @struct
  */
-ydn.db.query.Restricted = function(db, schema) {
+ydn.db.query.ConjQuery = function(db, schema, iters, opt_join_key) {
   /**
    * @final
    * @protected
@@ -43,13 +46,24 @@ ydn.db.query.Restricted = function(db, schema) {
    * @type {ydn.db.schema.Database}
    */
   this.schema = schema;
+  /**
+   * @final
+   * @protected
+   * @type {!Array.<!ydn.db.Iterator>}
+   */
+  this.iters = iters;
+  /**
+   * @final
+   * @type {boolean}
+   */
+  this.key_join = !!opt_join_key;
 };
 
 
 /**
  * @define {boolean} debug flag.
  */
-ydn.db.query.Restricted.DEBUG = false;
+ydn.db.query.ConjQuery.DEBUG = false;
 
 
 /**
@@ -59,12 +73,12 @@ ydn.db.query.Restricted.DEBUG = false;
  * @param {number} limit
  * @return {!ydn.db.Request}
  */
-ydn.db.query.Restricted.prototype.list = function(mth, iterators, limit) {
+ydn.db.query.ConjQuery.prototype.list = function(limit) {
   // console.log(this.iterator.getState(), this.iterator.getKey());
   var out = [];
   var solver = new ydn.db.algo.SortedMerge(out, limit);
-  var scan_req = this.db.scan(solver, iterators);
-  var store_name = iterators[0].getStoreName();
+  var scan_req = this.db.scan(solver, this.iters);
+  var store_name = this.iters[0].getStoreName();
   var req = scan_req.copy();
   scan_req.addCallbacks(function(p_keys) {
     if (mth == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
@@ -85,7 +99,7 @@ ydn.db.query.Restricted.prototype.list = function(mth, iterators, limit) {
  * @param {ydn.db.Iterator} iter iterator.
  * @return {!ydn.db.Request}
  */
-ydn.db.query.Restricted.prototype.count = function(iter) {
+ydn.db.query.ConjQuery.prototype.count = function(iter) {
   var req;
   if (iter.isUnique()) {
     req = this.db.count(iter);
@@ -112,7 +126,7 @@ ydn.db.query.Restricted.prototype.count = function(iter) {
  * @param {ydn.db.Iterator} iter iterator.
  * @return {!ydn.db.Request}
  */
-ydn.db.query.Restricted.prototype.clear = function(iter) {
+ydn.db.query.ConjQuery.prototype.clear = function(iter) {
   var req = iter.isIndexIterator() ?
       this.db.clear(iter.getStoreName(), iter.getIndexName(), iter.keyRange()) :
       this.db.clear(iter.getStoreName(), iter.keyRange());
