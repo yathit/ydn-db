@@ -68,8 +68,6 @@ ydn.db.query.ConjQuery.DEBUG = false;
 
 /**
  * Execute query and collect as an array. This method forces query execution.
- * @param {ydn.db.base.QueryMethod} mth query method.
- * @param {[ydn.db.Iterator]} iterators
  * @param {number} limit
  * @return {!ydn.db.Request}
  */
