@@ -21,7 +21,7 @@
  */
 
 
-goog.provide('ydn.db.query.RestrictionIterator');
+goog.provide('ydn.db.query.ConjunctionIterator');
 goog.require('goog.debug.Logger');
 goog.require('goog.functions');
 goog.require('ydn.db.Cursor');
@@ -51,28 +51,27 @@ goog.require('ydn.debug.error.ArgumentException');
  * @struct
  * @extends {ydn.db.Iterator}
  */
-ydn.db.query.RestrictionIterator = function(store, opt_index, opt_key_range,
+ydn.db.query.ConjunctionIterator = function(store, opt_index, opt_key_range,
     opt_reverse, opt_unique, opt_key_only, opt_index_key_path) {
   goog.base(this, store, opt_index, opt_key_range, opt_reverse,
       opt_unique, opt_key_only, opt_index_key_path);
-
 };
-goog.inherits(ydn.db.query.RestrictionIterator, ydn.db.Iterator);
+goog.inherits(ydn.db.query.ConjunctionIterator, ydn.db.Iterator);
 
 
 /**
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.query.RestrictionIterator.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.query.RestrictionIterator');
+ydn.db.query.ConjunctionIterator.prototype.logger =
+    goog.debug.Logger.getLogger('ydn.db.query.ConjunctionIterator');
 
 
 /**
  *
  * @return {number} number of record iterated.
  */
-ydn.db.query.RestrictionIterator.prototype.count = function() {
+ydn.db.query.ConjunctionIterator.prototype.count = function() {
   return this.cursor_ ? this.cursor_.getCount() : NaN;
 };
 
@@ -81,10 +80,10 @@ ydn.db.query.RestrictionIterator.prototype.count = function() {
  * Create a new iterator with new ordering.
  * @param {string} field_name field name to order.
  * @param {IDBKey} value field value.
- * @return {!ydn.db.query.RestrictionIterator} newly created iterator applying given
+ * @return {!ydn.db.query.ConjunctionIterator} newly created iterator applying given
  * restriction.
  */
-ydn.db.query.RestrictionIterator.prototype.order = function(field_name, value) {
+ydn.db.query.ConjunctionIterator.prototype.order = function(field_name, value) {
   goog.asserts.assertString(field_name, 'field name in string require but, "' +
       field_name + '" of type ' + typeof field_name + ' found.');
   goog.asserts.assert(ydn.db.Key.isValidKey(value), 'key value "' +
@@ -115,7 +114,7 @@ ydn.db.query.RestrictionIterator.prototype.order = function(field_name, value) {
     index_name = field_name;
   }
 
-  return new ydn.db.query.RestrictionIterator(this.store_name_, index_name, key_range,
+  return new ydn.db.query.ConjunctionIterator(this.store_name_, index_name, key_range,
       this.isReversed(), this.isUnique(), this.is_key_iterator_,
       index_key_path);
 };
@@ -128,7 +127,7 @@ ydn.db.query.RestrictionIterator.prototype.order = function(field_name, value) {
  * @param {ydn.db.base.QueryMethod=} opt_query query method.
  * @return {!ydn.db.Cursor} newly created cursor.
  */
-ydn.db.query.RestrictionIterator.prototype.iterate = function(tx, tx_lbl, executor,
+ydn.db.query.ConjunctionIterator.prototype.iterate = function(tx, tx_lbl, executor,
                                              opt_query) {
 
   var query_mth = opt_query || ydn.db.base.QueryMethod.LIST_VALUE;
@@ -174,7 +173,7 @@ ydn.db.query.RestrictionIterator.prototype.iterate = function(tx, tx_lbl, execut
  * @param {IDBKey} value restriction field value.
  * @return {!ydn.db.Iterator}
  */
-ydn.db.query.RestrictionIterator.prototype.restrict = function(field_name, value) {
+ydn.db.query.ConjunctionIterator.prototype.restrict = function(field_name, value) {
   goog.asserts.assertString(field_name, 'field name in string require but, "' +
       field_name + '" of type ' + typeof field_name + ' found.');
   goog.asserts.assert(ydn.db.Key.isValidKey(value), 'key value "' +
@@ -187,7 +186,7 @@ ydn.db.query.RestrictionIterator.prototype.restrict = function(field_name, value
  * @type {Array.<!ydn.db.core.EquiJoin>} list of joins.
  * @protected
  */
-ydn.db.query.RestrictionIterator.prototype.joins_;
+ydn.db.query.ConjunctionIterator.prototype.joins_;
 
 
 /**
@@ -198,7 +197,7 @@ ydn.db.query.RestrictionIterator.prototype.joins_;
  * @return {!ydn.db.Iterator} Newly created iterator with join operation
  * applied.
  */
-ydn.db.query.RestrictionIterator.prototype.join = function(store_name, opt_field_name,
+ydn.db.query.ConjunctionIterator.prototype.join = function(store_name, opt_field_name,
                                           opt_value) {
   var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, this.isReversed(), this.isUnique(),
@@ -221,7 +220,7 @@ ydn.db.query.RestrictionIterator.prototype.join = function(store_name, opt_field
  *
  * @return {!Array.<string>} list of stores.
  */
-ydn.db.query.RestrictionIterator.prototype.stores = function() {
+ydn.db.query.ConjunctionIterator.prototype.stores = function() {
   var stores = [this.getStoreName()];
   if (this.joins_) {
     for (var i = 0; i < this.joins_.length; i++) {

@@ -586,7 +586,7 @@ ydn.db.core.DbOperator.prototype.getIndexExecutor = function() {
  *
  * @param {function(this: T, !ydn.db.core.req.ICursor)} callback icursor
  * handler.
- * @param {!ydn.db.Iterator} iter the cursor.
+ * @param {!ydn.db.core.AbstractIterator} iter the cursor.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode.
  * @param {T=} opt_scope optional callback scope.
  * @return {!ydn.db.Request} promise on completed.
@@ -594,15 +594,21 @@ ydn.db.core.DbOperator.prototype.getIndexExecutor = function() {
  */
 ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode,
                                                  opt_scope) {
-  if (goog.DEBUG && !(iter instanceof ydn.db.Iterator)) {
-    throw new ydn.debug.error.ArgumentException(
-        'Second argument must be cursor range iterator.');
+  if (goog.DEBUG) {
+    if (!(iter instanceof ydn.db.Iterator)) {
+      throw new ydn.debug.error.ArgumentException(
+          'Second argument must be cursor range iterator.');
+    }
+    var store_names = iter.stores();
+    for (var i = 0; i < store_names.length; i++) {
+      var store = this.schema.getStore(store_names[i]);
+      if (!store) {
+        throw new ydn.debug.error.ArgumentException('Store "' +
+            store_names[i] + '" not found.');
+      }
+    }
   }
-  var store = this.schema.getStore(iter.getStoreName());
-  if (!store) {
-    throw new ydn.debug.error.ArgumentException('Store "' +
-        iter.getStoreName() + '" not found.');
-  }
+
   var tr_mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
 
   var me = this;
@@ -644,6 +650,11 @@ ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode,
             cursor.exit();
             df.setDbValue(undefined); // break the loop
           }
+        } else if (goog.isNull(adv)) {
+          cursor.exit();
+          df.setDbValue(undefined);
+        } else if (goog.isDefAndNotNull(adv)) {
+          cursor.continueEffectiveKey(adv);
         } else {
           cursor.advance(1);
         }
