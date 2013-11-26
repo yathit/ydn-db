@@ -32,16 +32,17 @@ goog.require('ydn.db');
 
 /**
  *
- * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
+ * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} opt_out output
+ * receiver.
  * @param {number=} opt_limit limit.
  * @constructor
  * @extends {ydn.db.algo.AbstractSolver}
  */
-ydn.db.algo.ZigzagMerge = function(out, opt_limit) {
-  goog.base(this, out, opt_limit);
+ydn.db.algo.ZigzagMerge = function(opt_out, opt_limit) {
+  goog.base(this, opt_out, opt_limit);
 
-  this.is_duplex_output_ = out instanceof ydn.db.Streamer &&
-      !!out.getFieldName();
+  this.is_duplex_output_ = opt_out instanceof ydn.db.Streamer &&
+      !!opt_out.getFieldName();
 };
 goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
 
@@ -115,7 +116,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
    * @param {!Array} x the key.
    * @return {!Array}
    */
-  var prefix = function (x) {
+  var prefix = function(x) {
     return x.slice(0, x.length - 1);
   };
 

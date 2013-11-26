@@ -27,30 +27,14 @@ goog.require('ydn.db.query.Base');
  * Query builder class.
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
+ * @param {ydn.db.base.QueryMethod} type query type. Default to values.
  * @param {!ydn.db.Iterator} iter key range.
- * @param {ydn.db.base.QueryMethod=} opt_type query type. Default to values.
  * @constructor
+ * @extends {ydn.db.query.Base}
  * @struct
  */
-ydn.db.Query = function(db, schema, iter, opt_type) {
-  /**
-   * @final
-   * @protected
-   * @type {ydn.db.core.DbOperator}
-   */
-  this.db = db;
-  /**
-   * @final
-   * @protected
-   * @type {ydn.db.schema.Database}
-   */
-  this.schema = schema;
-  /**
-   * @final
-   * @protected
-   * @type {ydn.db.base.QueryMethod}
-   */
-  this.type = opt_type || ydn.db.base.QueryMethod.NONE;
+ydn.db.Query = function(db, schema, type, iter) {
+  goog.base(this, db, schema, type);
   /**
    * @final
    * @protected
@@ -65,6 +49,7 @@ ydn.db.Query = function(db, schema, iter, opt_type) {
   this.iterator = iter;
 
 };
+goog.inherits(ydn.db.Query, ydn.db.query.Base);
 
 
 /**
@@ -391,6 +376,18 @@ ydn.db.Query.prototype.clear = function() {
       this.db.clear(iter.getStoreName(), iter.getIndexName(), iter.keyRange()) :
       this.db.clear(iter.getStoreName(), iter.keyRange());
   return req;
+};
+
+
+/**
+ * Create AND query.
+ * @param {ydn.db.query.Base} q
+ * @return {ydn.db.query.ConjQuery}
+ */
+ydn.db.Query.prototype.and = function(q) {
+  var iters = q.getIterators();
+  iters.push(this.iterator);
+  return new ydn.db.query.ConjQuery(this.db, this.schema, this.type, iters);
 };
 
 

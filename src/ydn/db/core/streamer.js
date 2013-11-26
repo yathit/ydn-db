@@ -1,29 +1,29 @@
 /**
- * @fileoverview Cursor stream accept key and pop to a sink.
+ * @fileoverview Cursor stream accept key and pop to a sink callback.
  *
  * User: kyawtun
  * Date: 11/11/12
  */
 
 goog.provide('ydn.db.Streamer');
-goog.require('ydn.db.con.IdbCursorStream');
-goog.require('ydn.db.con.IStorage');
 goog.require('ydn.db.Iterator');
+goog.require('ydn.db.con.IStorage');
+goog.require('ydn.db.con.IdbCursorStream');
 goog.require('ydn.debug.error.ArgumentException');
+
 
 
 /**
  *
  * @param {ydn.db.con.IStorage|ydn.db.base.Transaction} storage storage connector.
  * @param {string} store_name store name.
- * @param {string=} field_name projection field name.
+ * @param {string=} opt_field_name projection field name.
  * @constructor
  */
-ydn.db.Streamer = function(storage, store_name, field_name) {
+ydn.db.Streamer = function(storage, store_name, opt_field_name) {
 
   if (storage && storage instanceof ydn.db.con.Storage) {
     this.db_ = /** @type {ydn.db.con.IStorage} */ (storage);
-    this.cursor_ = null;
   } else if (storage && storage.db) {
     var tx = /** @type {!IDBTransaction} */ (storage);
     this.db_ = null;
@@ -38,14 +38,23 @@ ydn.db.Streamer = function(storage, store_name, field_name) {
     throw new ydn.debug.error.ArgumentException('a store name required.');
   }
   this.store_name_ = store_name;
-  if (goog.isDef(field_name) && !goog.isString(field_name)) {
-    throw new ydn.debug.error.ArgumentException('index name must be a string.');
+  if (goog.isDef(opt_field_name) && !goog.isString(opt_field_name)) {
+    throw new ydn.debug.error.ArgumentException('projection index name must be' +
+        ' a string.');
   }
-  this.index_name_ = field_name;
+  this.index_name_ = opt_field_name;
 
   this.cursor_ = null;
-  this.stack_value_ = [];
+  /**
+   * @private
+   * @type {Array}
+   */
   this.stack_key_ = [];
+  /**
+   * @private
+   * @type {Array}
+   */
+  this.stack_value_ = [];
   this.is_collecting_ = false;
 };
 
@@ -55,7 +64,7 @@ ydn.db.Streamer = function(storage, store_name, field_name) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.Streamer.prototype.logger =
-  goog.debug.Logger.getLogger('ydn.db.Streamer');
+    goog.debug.Logger.getLogger('ydn.db.Streamer');
 
 
 /**
@@ -64,6 +73,7 @@ ydn.db.Streamer.prototype.logger =
  * @private
  */
 ydn.db.Streamer.prototype.db_ = null;
+
 
 /**
  *
@@ -98,22 +108,9 @@ ydn.db.Streamer.prototype.index_name_;
 /**
  *
  * @type {(function(*, *, Function): boolean)?}
+ * @private
  */
 ydn.db.Streamer.prototype.sink_ = null;
-
-
-/**
- * @private
- * @type {Array}
- */
-ydn.db.Streamer.prototype.stack_key_ = [];
-
-
-/**
- * @private
- * @type {Array}
- */
-ydn.db.Streamer.prototype.stack_value_ = [];
 
 
 /**
@@ -231,6 +228,24 @@ ydn.db.Streamer.prototype.collect = function(callback) {
 
 
 /**
+ * Callback on finished.
+ * @return {!goog.async.Deferred}
+ */
+ydn.db.Streamer.prototype.done = function() {
+  if (this.cursor_) {
+    var df = new goog.async.Deferred();
+    var me = this;
+    this.cursor_.onFinish(function on_finish(e) {
+      df.callback(me.stack_value_);
+    });
+    return df;
+  } else {
+    return goog.async.Deferred.succeed(this.stack_value_);
+  }
+};
+
+
+/**
  * Collect value from cursor stream.
  * @param {*} key
  * @param {*} value
@@ -261,16 +276,16 @@ ydn.db.Streamer.prototype.push = function(key, value) {
     // instantiation, database may not have connected yet.
     if (!this.cursor_) {
       if (!this.db_) {
-        var msg2 = goog.DEBUG ? 'Database is not setup.' : '';
-        throw new ydn.error.InvalidOperationError(msg2);
+        throw new ydn.error.InvalidOperationError(
+            'Database connection is not setup.');
       }
       var type = this.db_.getType();
       if (!type) {
-        var msg3 = goog.DEBUG ? 'Database is not connected.' : '';
-        throw new ydn.error.InvalidOperationError(msg3);
+        throw new ydn.error.InvalidOperationError(
+            'Database is not connected.');
       } else if (type === ydn.db.base.Mechanisms.IDB) {
         this.cursor_ = new ydn.db.con.IdbCursorStream(this.db_,
-          this.store_name_, this.index_name_,
+            this.store_name_, this.index_name_,
             goog.bind(this.collector_, this));
       } else {
         throw new ydn.error.NotImplementedException(type);

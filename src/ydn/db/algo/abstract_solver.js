@@ -27,18 +27,19 @@ goog.require('ydn.db.Streamer');
 
 
 /**
- *
- * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
+ * Abstract join algorithm.
+ * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} opt_out output
+ * receiver.
  * @param {number=} opt_limit limit.
  * to algorithm input and output.
  * @constructor
  */
-ydn.db.algo.AbstractSolver = function(out, opt_limit) {
-  if (goog.DEBUG && goog.isDefAndNotNull(out) && !('push' in out)) {
+ydn.db.algo.AbstractSolver = function(opt_out, opt_limit) {
+  if (goog.DEBUG && goog.isDefAndNotNull(opt_out) && !('push' in opt_out)) {
     throw new ydn.error.ArgumentException('output receiver object must have ' +
         '"push" method.');
   }
-  this.out = out || null;
+  this.out = opt_out || null;
   this.limit = opt_limit;
   this.match_count = 0;
   /**
@@ -46,15 +47,6 @@ ydn.db.algo.AbstractSolver = function(out, opt_limit) {
    * @type {boolean}
    */
   this.is_reverse = false;
-};
-
-
-/**
- * Return list of iterators for scanning for managed solver.
- * @return {Array.<!ydn.db.Iterator>} iterators.
- */
-ydn.db.algo.AbstractSolver.prototype.getIterators = function() {
-  return null;
 };
 
 
@@ -69,7 +61,8 @@ ydn.db.algo.AbstractSolver.prototype.logger =
 /**
  * Invoke before beginning of the iteration process.
  *
- * @param {!Array} iterators list of iterators feed to the scanner.
+ * @param {!Array.<!ydn.db.Iterator>} iterators list of iterators feed to the
+ * scanner.
  * @param {!Function} callback on finish callback function.
  * @return {boolean}
  */
@@ -93,7 +86,7 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback) {
   var s = '{';
   for (var i = 0; i < iterators.length; i++) {
     if (i > 0) {
-      s += ', '
+      s += ', ';
     }
     s += iterators.toString();
   }

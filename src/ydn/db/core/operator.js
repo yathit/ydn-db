@@ -242,40 +242,31 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
  * Cursor scan iteration.
  * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
  * solver.
- * @param {!Array.<!ydn.db.Iterator>=} opt_iterators the cursor.
- * @return {!goog.async.Deferred} promise on completed.
+ * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
+ *  @param {ydn.db.base.TransactionMode=} opt_mode mode. Expose for friendly
+ *  use. Scanning is always READ_ONLY mode, but query class may need to open
+ *  transaction in READ_WRITE mode.
+ * @return {!ydn.db.Request} promise on completed.
  */
-ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
+ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
+                                                 opt_mode) {
 
   if (goog.DEBUG) {
-    if (goog.isDef(opt_iterators)) {
-      if (!goog.isArray(opt_iterators)) {
-        throw new ydn.debug.error.ArgumentException('Iterator argument must' +
-            ' be an array.');
-      }
-      for (var i = 0; i < opt_iterators.length; i++) {
-        var is_iter = opt_iterators[i] instanceof ydn.db.Iterator;
-        if (!is_iter) {
-          throw new ydn.debug.error.ArgumentException('Iterator at ' + i +
-              ' must be cursor range iterator.');
-        }
+    if (!goog.isArray(iterators)) {
+      throw new ydn.debug.error.ArgumentException('iterators argument must' +
+          ' be an array, but ' + iterators + ' of type ' + typeof iterators +
+          ' found');
+    }
+    for (var i = 0; i < iterators.length; i++) {
+      var is_iter = iterators[i] instanceof ydn.db.Iterator;
+      if (!is_iter) {
+        throw new ydn.debug.error.ArgumentException('Iterator at ' + i +
+            ' must be cursor range iterator.');
       }
     }
   }
 
-  /**
-   * @type {!Array.<!ydn.db.Iterator>}
-   */
-  var iterators;
-  if (opt_iterators) {
-    iterators = opt_iterators;
-  } else {
-    var iter = solver.getIterators();
-    goog.asserts.assertArray(iter, 'array of iterators required.');
-    iterators = iter;
-  }
-
-  var tr_mode = ydn.db.base.TransactionMode.READ_ONLY;
+  var tr_mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
 
   var scopes = [];
   for (var i = 0; i < iterators.length; i++) {
@@ -287,7 +278,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, opt_iterators) {
     }
   }
 
-  this.logger.finest(this + ': scan for ' + iterators.length +
+  this.logger.finer(this + ': scan for ' + iterators.length +
       ' iterators on ' + scopes);
 
   var me = this;

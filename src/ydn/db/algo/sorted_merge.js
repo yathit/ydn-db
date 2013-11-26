@@ -31,13 +31,14 @@ goog.require('ydn.db.algo.AbstractSolver');
 
 /**
  *
- * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} out output receiver.
+ * @param {(!Array|!{push: Function}|!ydn.db.Streamer)=} opt_out output
+ * receiver.
  * @param {number=} opt_limit limit.
  * @constructor
  * @extends {ydn.db.algo.AbstractSolver}
  */
-ydn.db.algo.SortedMerge = function(out, opt_limit) {
-  goog.base(this, out, opt_limit);
+ydn.db.algo.SortedMerge = function(opt_out, opt_limit) {
+  goog.base(this, opt_out, opt_limit);
 
 };
 goog.inherits(ydn.db.algo.SortedMerge, ydn.db.algo.AbstractSolver);

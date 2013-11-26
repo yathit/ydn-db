@@ -58,6 +58,11 @@ ydn.db.con.IdbCursorStream = function(db, store_name, index_name, sink) {
   this.index_name_ = index_name;
   this.sink_ = sink;
   this.cursor_ = null;
+  /**
+   *
+   * @type {!Array}
+   * @private
+   */
   this.stack_ = [];
   this.running_ = 0;
   this.on_tx_request_ = false;
@@ -113,14 +118,6 @@ ydn.db.con.IdbCursorStream.prototype.store_name_;
  * @private
  */
 ydn.db.con.IdbCursorStream.prototype.index_name_;
-
-
-/**
- *
- * @type {!Array}
- * @private
- */
-ydn.db.con.IdbCursorStream.prototype.stack_ = [];
 
 
 /**
@@ -207,7 +204,6 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
     return; // else: we should not request more than on transaction request
   }
 
-
   var me = this;
   var on_completed = function(type, ev) {
     me.tx_ = null;
@@ -280,6 +276,10 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
 };
 
 
+/**
+ * Clear stack.
+ * @private
+ */
 ydn.db.con.IdbCursorStream.prototype.clearStack_ = function() {
   if (this.cursor_ && this.stack_.length > 0) {
     // we retain only valid request with active cursor.

@@ -27,13 +27,16 @@ goog.require('ydn.db.core.Storage');
  * Conjunction query.
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
+ * @param {ydn.db.base.QueryMethod} type query type.
  * @param {!Array.<!ydn.db.Iterator>} iters
  * @param {boolean=} opt_join_key By default reference values of iterators are
  * joined. Set true to join on keys.
  * @constructor
+ * @extends {ydn.db.query.Base}
  * @struct
  */
-ydn.db.query.ConjQuery = function(db, schema, iters, opt_join_key) {
+ydn.db.query.ConjQuery = function(db, schema, type, iters, opt_join_key) {
+  goog.base(this, db, schema, type);
   /**
    * @final
    * @protected
@@ -49,6 +52,12 @@ ydn.db.query.ConjQuery = function(db, schema, iters, opt_join_key) {
   /**
    * @final
    * @protected
+   * @type {ydn.db.base.QueryMethod}
+   */
+  this.type = type || ydn.db.base.QueryMethod.NONE;
+  /**
+   * @final
+   * @protected
    * @type {!Array.<!ydn.db.Iterator>}
    */
   this.iters = iters;
@@ -58,6 +67,7 @@ ydn.db.query.ConjQuery = function(db, schema, iters, opt_join_key) {
    */
   this.key_join = !!opt_join_key;
 };
+goog.inherits(ydn.db.query.ConjQuery, ydn.db.query.Base);
 
 
 /**
@@ -68,66 +78,49 @@ ydn.db.query.ConjQuery.DEBUG = false;
 
 /**
  * Execute query and collect as an array. This method forces query execution.
+ * @param {function(this: T, !ydn.db.core.req.ICursor)} cb
+ * @param {T=} opt_scope
+ * @return {!ydn.db.Request}
+ * @template T
+ */
+ydn.db.query.ConjQuery.prototype.open = function(cb, opt_scope) {
+  var req;
+  var out = {
+    'push': function(key) {
+
+    }
+  };
+  var solver = this.key_join ? new ydn.db.algo.ZigzagMerge(out) :
+      new ydn.db.algo.SortedMerge(out);
+  req = this.db.scan(solver, this.iters,
+      ydn.db.base.TransactionMode.READ_WRITE);
+  return req;
+};
+
+
+/**
+ * Execute query and collect as an array. This method forces query execution.
  * @param {number} limit
  * @return {!ydn.db.Request}
  */
 ydn.db.query.ConjQuery.prototype.list = function(limit) {
   // console.log(this.iterator.getState(), this.iterator.getKey());
-  var out = [];
-  var solver = new ydn.db.algo.SortedMerge(out, limit);
-  var scan_req = this.db.scan(solver, this.iters);
-  var store_name = this.iters[0].getStoreName();
-  var req = scan_req.copy();
-  scan_req.addCallbacks(function(p_keys) {
-    if (mth == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
-      req.callback(p_keys);
+  var out = this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ? [] :
+      new ydn.db.Streamer();
+
+  var solver = this.key_join ?
+      new ydn.db.algo.ZigzagMerge(out) :
+      new ydn.db.algo.SortedMerge(out);
+  var req = this.db.scan(solver, this.iters,
+      ydn.db.base.TransactionMode.READ_WRITE);
+  return req.addCallback(function() {
+    if (this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
+      return out;
     } else {
-      req.chainDeferred(this.db.values(store_name, p_keys));
+      return out.done(); // wait for data collection to finished.
     }
-  }, function(e) {
-    req.errback(e);
   }, this);
-
-  return req;
 };
 
 
-/**
- * Count result of query. This method forces query execution.
- * @param {ydn.db.Iterator} iter iterator.
- * @return {!ydn.db.Request}
- */
-ydn.db.query.ConjQuery.prototype.count = function(iter) {
-  var req;
-  if (iter.isUnique()) {
-    req = this.db.count(iter);
-  } else if (iter.isIndexIterator()) {
-    req = this.db.count(iter.getStoreName(), iter.getIndexName(),
-        iter.getKeyRange());
-  } else {
-    req = this.db.count(iter.getStoreName(), iter.getKeyRange());
-  }
-  if (iter.getState() != ydn.db.Iterator.State.INITIAL) {
-    // reset iteration state.
-    req.addBoth(function() {
-      if (iter.getState() != ydn.db.Iterator.State.WORKING) {
-        iter.reset();
-      }
-    });
-  }
-  return req;
-};
-
-
-/**
- * Count result of query. This method forces query execution.
- * @param {ydn.db.Iterator} iter iterator.
- * @return {!ydn.db.Request}
- */
-ydn.db.query.ConjQuery.prototype.clear = function(iter) {
-  var req = iter.isIndexIterator() ?
-      this.db.clear(iter.getStoreName(), iter.getIndexName(), iter.keyRange()) :
-      this.db.clear(iter.getStoreName(), iter.keyRange());
-  return req;
-};
 
