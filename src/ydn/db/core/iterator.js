@@ -32,8 +32,8 @@ goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.base');
-goog.require('ydn.db.core.req.ICursor');
 goog.require('ydn.db.core.AbstractIterator');
+goog.require('ydn.db.core.req.ICursor');
 goog.require('ydn.debug.error.ArgumentException');
 
 

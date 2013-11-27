@@ -23,6 +23,7 @@ goog.require('goog.async.DeferredList');
 goog.require('goog.userAgent');
 goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.crud.req.RequestExecutor');
+goog.require('ydn.debug.error.InvalidOperationException');
 goog.require('ydn.error');
 goog.require('ydn.json');
 
@@ -852,7 +853,7 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
     table, keyRange, index_name, unique) {
 
   if (goog.DEBUG && !!index_name && !!unique) {
-    throw new ydn.error.InvalidOperationException(
+    throw new ydn.debug.error.InvalidOperationException(
         'unique count not available in IndexedDB');
   }
 

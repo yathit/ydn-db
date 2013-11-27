@@ -24,6 +24,7 @@ goog.provide('ydn.db.core.AbstractIterator');
 goog.require('ydn.db.core.req.AbstractCursor');
 
 
+
 /**
  * Abstract iterator.
  * @constructor
@@ -32,6 +33,7 @@ goog.require('ydn.db.core.req.AbstractCursor');
 ydn.db.core.AbstractIterator = function() {
 
 };
+
 
 /**
  * Load cursors.
