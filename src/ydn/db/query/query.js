@@ -192,7 +192,13 @@ ydn.db.Query.prototype.where = function(index_name, op, value, opt_op2,
   var q = new ydn.db.Query(this.db, this.schema, this.type, this.store_name,
       index_name, kr, this.is_reverse, this.is_unique);
   if (this.key_range) {
-    return this.and(q);
+    if (this.index_name == index_name) {
+      kr = this.key_range.and(kr);
+      return new ydn.db.Query(this.db, this.schema, this.type, this.store_name,
+          index_name, kr, this.is_reverse, this.is_unique);
+    } else {
+      return this.and(q);
+    }
   } else {
     return q;
   }

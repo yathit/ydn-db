@@ -106,6 +106,11 @@ var query_test = function(rev, opt_select, opt_num) {
     exp_result = exp_result.map(function(i) {
       return animals[i];
     });
+  } else if (opt_select == 'name') {
+    exp_result = exp_result.map(function(i) {
+      return animals[i].name;
+    });
+    exp_result.sort();
   }
   var done;
   var result = [];

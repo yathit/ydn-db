@@ -40,9 +40,6 @@ goog.require('ydn.db');
  */
 ydn.db.algo.ZigzagMerge = function(opt_out, opt_limit) {
   goog.base(this, opt_out, opt_limit);
-
-  this.is_duplex_output_ = opt_out instanceof ydn.db.Streamer &&
-      !!opt_out.getFieldName();
 };
 goog.inherits(ydn.db.algo.ZigzagMerge, ydn.db.algo.AbstractSolver);
 
@@ -59,36 +56,6 @@ ydn.db.algo.ZigzagMerge.DEBUG = false;
  */
 ydn.db.algo.ZigzagMerge.prototype.logger =
     goog.debug.Logger.getLogger('ydn.db.algo.ZigzagMerge');
-
-
-/**
- *
- * @type {boolean}
- * @private
- */
-ydn.db.algo.ZigzagMerge.prototype.is_duplex_output_ = false;
-
-
-/**
- * @inheritDoc
- */
-ydn.db.algo.ZigzagMerge.prototype.begin = function(tx, iterators, callback) {
-  var result = goog.base(this, 'begin', tx, iterators, callback);
-  if (this.is_duplex_output_) {
-    var iter_index = iterators[0].getIndexName().split(', ');
-    if (iter_index.length > 1) {
-      if (iter_index[iter_index.length - 1] != this.out.getFieldName()) {
-        throw new ydn.error.InvalidOperationError('Output streamer ' +
-            'projection field must be same as postfix field in the iterator');
-      }
-    } else {
-      if (goog.DEBUG) {
-        this.logger.warning('Unable to check correctness of output streamer.');
-      }
-    }
-  }
-  return result;
-};
 
 
 /**
@@ -202,7 +169,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
       }
     }
     if (this.out) {
-      if (this.is_duplex_output_) {
+      if (this.is_duplex_output) {
         this.out.push(values[0], highest_postfix);
       } else {
         this.out.push(values[0]);

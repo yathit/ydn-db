@@ -51,6 +51,14 @@ ydn.db.algo.AbstractSolver = function(opt_out, opt_limit) {
    * @type {boolean}
    */
   this.is_reverse = false;
+  /**
+   * For streamer output receiver, if this set true, output both key and
+   * reference value.
+   * @type {boolean}
+   * @protected
+   */
+  this.is_duplex_output = opt_out instanceof ydn.db.Streamer &&
+      !!opt_out.getFieldName();
 };
 
 
@@ -90,6 +98,19 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(tx, iterators, callback) {
   if (this.out instanceof ydn.db.Streamer) {
     this.out.setTx(tx);
   }
+  if (this.is_duplex_output) {
+    var iter_index = iterators[0].getIndexKeyPath();
+    if (iter_index && iter_index.length > 1) {
+      if (iter_index[iter_index.length - 1] != this.out.getFieldName()) {
+        throw new ydn.error.InvalidOperationError('Output streamer ' +
+            'projection field must be same as postfix field in the iterator');
+      }
+    } else {
+      if (goog.DEBUG) {
+        this.logger.warning('Unable to check correctness of output streamer.');
+      }
+    }
+  }
   var s = '{';
   for (var i = 0; i < iterators.length; i++) {
     if (i > 0) {
@@ -113,11 +134,12 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(tx, iterators, callback) {
  * @param {!Array} keys input values.
  * @param {!Array} values output values.
  * @param {*=} opt_match_key match key.
+ * @param {*=} opt_match_value match key.
  * @return {!Object} cursor advancement array.
  * @protected
  */
 ydn.db.algo.AbstractSolver.prototype.pusher = function(advance, keys, values,
-                                                       opt_match_key) {
+    opt_match_key, opt_match_value) {
 
   var matched = goog.isDefAndNotNull(opt_match_key);
   if (!goog.isDef(opt_match_key)) {
@@ -135,7 +157,11 @@ ydn.db.algo.AbstractSolver.prototype.pusher = function(advance, keys, values,
     this.match_count++;
     //console.log(['match key', match_key, JSON.stringify(keys)]);
     if (this.out) {
-      this.out.push(opt_match_key);
+      if (this.is_duplex_output) {
+        this.out.push(opt_match_key, opt_match_value);
+      } else {
+        this.out.push(opt_match_key);
+      }
     }
     if (goog.isDef(this.limit) && this.match_count >= this.limit) {
       return [];

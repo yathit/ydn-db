@@ -401,6 +401,15 @@ ydn.db.Iterator.prototype.getIndexName = function() {
 
 /**
  *
+ * @return {!Array.<string>|string|undefined} return store name.
+ */
+ydn.db.Iterator.prototype.getIndexKeyPath = function() {
+  return this.index_key_path_ || this.index_name_;
+};
+
+
+/**
+ *
  * @return {ydn.db.base.Direction} return store name.
  */
 ydn.db.Iterator.prototype.getDirection = function() {
