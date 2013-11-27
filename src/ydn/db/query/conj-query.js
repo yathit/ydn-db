@@ -174,4 +174,16 @@ ydn.db.query.ConjQuery.prototype.select = function(field_name_s) {
 };
 
 
+/**
+ * @return {!ydn.db.query.ConjQuery} return a new query.
+ */
+ydn.db.query.ConjQuery.prototype.reverse = function() {
+  var iters = this.iters.map(function(iter) {
+    return iter.reverse();
+  });
+  return new ydn.db.query.ConjQuery(this.db, this.schema, this.type, iters);
+};
+
+
+
 

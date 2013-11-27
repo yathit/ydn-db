@@ -26,6 +26,7 @@ var tearDown = function() {
 
 
 var animals = [
+  {id: 0, name: 'worm', color: 'brown', horn: 0, legs: 0},
   {id: 1, name: 'rat', color: 'brown', horn: 0, legs: 4},
   {id: 2, name: 'leopard', color: 'spots', horn: 2, legs: 4},
   {id: 3, name: 'galon', color: 'gold', horn: 10, legs: 2},
@@ -37,7 +38,8 @@ var animals = [
   {id: 9, name: 'chicken', color: 'red', horn: 0, legs: 2},
   {id: 10, name: 'unicon', color: 'pink', horn: 1, legs: 4},
   {id: 11, name: 'cat', color: 'spots', horn: 0, legs: 4},
-  {id: 12, name: 'human', color: 'pink', horn: 0, legs: 2}
+  {id: 12, name: 'human', color: 'pink', horn: 0, legs: 2},
+  {id: 13, name: 'leotri', color: 'spots', horn: 2, legs: 3}
 ];
 
 var schema = {
@@ -81,13 +83,24 @@ var test_logic = function() {
 };
 
 
-var two_iterator = function(rev) {
+/**
+ * Main test function
+ * @param {number} rev 1 for reverse queries, 2 for reverse conj query.
+ * @param {boolean=} opt_value value query
+ * @param {number=} opt_num number of query, 2 or 3. default to 2.
+ */
+var query_test = function(rev, opt_value, opt_num) {
 
   var db = new ydn.db.core.Storage('test-sorted-merge-' + rev, schema, options);
   db.clear();
   db.put('animals', animals);
 
-  var exp_result = [2, 4, 8];
+  var exp_result = opt_num == 3 ? [2, 4, 8] : [2, 4, 8, 13];
+  if (opt_value) {
+    exp_result = exp_result.map(function(i) {
+      return animals[i];
+    });
+  }
   var done;
   var result = [];
 
@@ -108,12 +121,26 @@ var two_iterator = function(rev) {
 
   var q1 = db.from('animals').where('color', '=', 'spots');
   var q2 = db.from('animals').where('horn', '=', 2);
-  var q = q1.and(q2);
+  var q3 = db.from('animals').where('legs', '=', 4);
+
   if (rev) {
+    exp_result = exp_result.reverse();
+  }
+  if (rev == 1) {
     q1 = q1.reverse();
     q2 = q2.reverse();
+    q3 = q3.reverse();
   }
-  q = q.select('id');
+  var q = q1.and(q2);
+  if (opt_num == 3) {
+    q = q3.and(q);
+  }
+  if (!opt_value) {
+    q = q.select('id');
+  }
+  if (rev == 2) {
+    q = q.reverse();
+  }
   var req = q.list();
   req.addBoth(function(x) {
     result = x;
@@ -123,12 +150,36 @@ var two_iterator = function(rev) {
 
 
 var test_two_iterator = function() {
-  two_iterator(false);
+  query_test(0);
 };
 
 
-var _test_two_iterator_reverse = function() {
-  two_iterator(true);
+var test_two_iterator_value = function() {
+  query_test(0, true);
+};
+
+var test_three_iterator = function() {
+  query_test(0, false, 3);
+};
+
+
+var test_two_iterator_reverse = function() {
+  query_test(1);
+};
+
+
+var test_three_iterator_reverse = function() {
+  query_test(1, false, 3);
+};
+
+
+var test_three_iterator_value = function() {
+  query_test(1, true, 3);
+};
+
+
+var test_two_iterator_conj_reverse = function() {
+  query_test(2);
 };
 
 var testCase = new goog.testing.ContinuationTestCase();
