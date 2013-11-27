@@ -72,8 +72,8 @@ ydn.db.algo.ZigzagMerge.prototype.is_duplex_output_ = false;
 /**
  * @inheritDoc
  */
-ydn.db.algo.ZigzagMerge.prototype.begin = function(iterators, callback) {
-  var result = goog.base(this, 'begin', iterators, callback);
+ydn.db.algo.ZigzagMerge.prototype.begin = function(tx, iterators, callback) {
+  var result = goog.base(this, 'begin', tx, iterators, callback);
   if (this.is_duplex_output_) {
     var iter_index = iterators[0].getIndexName().split(', ');
     if (iter_index.length > 1) {

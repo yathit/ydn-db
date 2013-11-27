@@ -522,6 +522,18 @@ ydn.db.Iterator.prototype.clone = function() {
 
 
 /**
+ * Copy this iterator with settign key only to true to true.
+ * @see copy
+ * @return {!ydn.db.Iterator}
+ */
+ydn.db.Iterator.prototype.asKeyIterator = function() {
+  return new ydn.db.Iterator(this.store_name_, this.index_name_,
+      this.key_range_, this.isReversed(), this.isUnique(), true,
+      this.index_key_path_);
+};
+
+
+/**
  * Set unique state.
  * @param {boolean} val
  * @return {!ydn.db.Iterator} newly created iterator.

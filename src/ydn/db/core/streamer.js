@@ -28,10 +28,6 @@ ydn.db.Streamer = function(storage, store_name, opt_field_name) {
     var tx = /** @type {!IDBTransaction} */ (storage);
     this.db_ = null;
     this.setTx(tx);
-  } else {
-    throw new ydn.debug.error.ArgumentException(
-        'ydn.db.Streamer: First argument requires storage or transaction ' +
-            'instance required.');
   }
 
   if (!goog.isString(store_name)) {

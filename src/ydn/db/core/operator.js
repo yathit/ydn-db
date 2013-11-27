@@ -139,7 +139,7 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5,
 
     this.logger.finer('keysByIterator:' + q);
     var df = this.tx_thread.request(ydn.db.Request.Method.KEYS_ITER,
-        q.stores());
+        [q.getStoreName()]);
     df.addTxback(function() {
       if (q.isIndexIterator()) {
         this.iterate(ydn.db.base.QueryMethod.LIST_KEY, df, q, limit);
@@ -173,7 +173,8 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3) {
      */
     var q = arg1;
     this.logger.finer('countIterator:' + q);
-    var df = this.tx_thread.request(ydn.db.Request.Method.COUNT, q.stores());
+    var df = this.tx_thread.request(ydn.db.Request.Method.COUNT,
+        [q.getStoreName()]);
     df.addTxback(function() {
       this.iterate(ydn.db.base.QueryMethod.COUNT, df, q);
     }, this);
@@ -221,7 +222,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
     var q = arg1;
     this.logger.finer('listByIterator:' + q);
     var df = this.tx_thread.request(ydn.db.Request.Method.VALUES_ITER,
-        q.stores());
+        [q.getStoreName()]);
     df.addTxback(function() {
       if (q.isKeyIterator()) {
         this.iterate(ydn.db.base.QueryMethod.LIST_PRIMARY_KEY, df, q, limit);
@@ -531,12 +532,12 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
     var open_iterators = function() {
       var idx = 0;
       for (var i = 0; i < iterators.length; i++) {
+        /**
+         * @type {!ydn.db.Iterator}
+         */
         var iterator = iterators[i];
-        var names = iterator.stores();
-        var crs = [];
-        for (var ni = 0; ni < names.length; ni++) {
-          crs[ni] = me.getIndexExecutor().getCursor(tx, tx_no, names[ni]);
-        }
+        var crs = [me.getIndexExecutor().getCursor(tx, tx_no,
+            iterator.getStoreName())];
         var cursor = iterator.load(crs);
         cursor.onFail = on_error;
         cursor.onNext = goog.partial(on_iterator_next, idx);
@@ -549,7 +550,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
     };
 
     if (solver instanceof ydn.db.algo.AbstractSolver) {
-      var wait = solver.begin(iterators, function() {
+      var wait = solver.begin(tx, iterators, function() {
         open_iterators();
       });
       if (!wait) {

@@ -29,32 +29,20 @@ goog.require('ydn.db.core.Storage');
  * @param {ydn.db.schema.Database} schema
  * @param {ydn.db.base.QueryMethod} type query type.
  * @param {!Array.<!ydn.db.Iterator>} iters
- * @param {boolean=} opt_join_key By default reference values of iterators are
- * joined. Set true to join on keys.
+ * @param {boolean=} opt_ref_join By default key of iterators are
+ * joined. Set true to join on reference value.
  * @constructor
  * @extends {ydn.db.query.Base}
  * @struct
  */
-ydn.db.query.ConjQuery = function(db, schema, type, iters, opt_join_key) {
+ydn.db.query.ConjQuery = function(db, schema, type, iters, opt_ref_join) {
   goog.base(this, db, schema, type);
-  /**
-   * @final
-   * @protected
-   * @type {ydn.db.core.DbOperator}
-   */
-  this.db = db;
-  /**
-   * @final
-   * @protected
-   * @type {ydn.db.schema.Database}
-   */
-  this.schema = schema;
-  /**
-   * @final
-   * @protected
-   * @type {ydn.db.base.QueryMethod}
-   */
-  this.type = type || ydn.db.base.QueryMethod.NONE;
+  if (goog.DEBUG) {
+    for (var i = 0; i < iters.length; i++) {
+      goog.asserts.assert(iters[i].isKeyIterator(), 'iterator ' + i +
+          ' must be key iterator');
+    }
+  }
   /**
    * @final
    * @protected
@@ -65,7 +53,7 @@ ydn.db.query.ConjQuery = function(db, schema, type, iters, opt_join_key) {
    * @final
    * @type {boolean}
    */
-  this.key_join = !!opt_join_key;
+  this.ref_join = !!opt_ref_join;
 };
 goog.inherits(ydn.db.query.ConjQuery, ydn.db.query.Base);
 
@@ -90,11 +78,20 @@ ydn.db.query.ConjQuery.prototype.open = function(cb, opt_scope) {
 
     }
   };
-  var solver = this.key_join ? new ydn.db.algo.ZigzagMerge(out) :
+  var solver = this.ref_join ? new ydn.db.algo.ZigzagMerge(out) :
       new ydn.db.algo.SortedMerge(out);
   req = this.db.scan(solver, this.iters,
       ydn.db.base.TransactionMode.READ_WRITE);
   return req;
+};
+
+
+/**
+ * Return true if joining is key, otherwise reference value.
+ * @return {boolean}
+ */
+ydn.db.query.ConjQuery.prototype.isRefJoin = function() {
+  return this.ref_join;
 };
 
 
@@ -106,20 +103,74 @@ ydn.db.query.ConjQuery.prototype.open = function(cb, opt_scope) {
 ydn.db.query.ConjQuery.prototype.list = function(limit) {
   // console.log(this.iterator.getState(), this.iterator.getKey());
   var out = this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ? [] :
-      new ydn.db.Streamer();
+      new ydn.db.Streamer(null, this.iters[0].getStoreName());
 
-  var solver = this.key_join ?
+  var solver = this.ref_join ?
       new ydn.db.algo.ZigzagMerge(out) :
       new ydn.db.algo.SortedMerge(out);
   var req = this.db.scan(solver, this.iters,
       ydn.db.base.TransactionMode.READ_WRITE);
-  return req.addCallback(function() {
+  var ans = req.copy();
+  req.addCallbacks(function() {
     if (this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY) {
-      return out;
+      ans.callback(out);
     } else {
-      return out.done(); // wait for data collection to finished.
+      // wait for data collection to finished.
+      out.done().addBoth(function(x) {
+        ans.callback(x);
+      });
     }
+  }, function(e) {
+    ans.errback(e);
   }, this);
+  return ans;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.query.ConjQuery.prototype.getIterators = function() {
+  return this.iters.slice();
+};
+
+
+/**
+ * @return {ydn.db.schema.Store}
+ */
+ydn.db.query.ConjQuery.prototype.getStore = function() {
+  return this.schema.getStore(this.iters[0].getStoreName());
+};
+
+
+/**
+ * Select query result.
+ * @param {string|!Array.<string>} field_name_s select field name(s).
+ * @return {!ydn.db.query.ConjQuery}
+ */
+ydn.db.query.ConjQuery.prototype.select = function(field_name_s) {
+  var store = this.getStore();
+  var fields = goog.isArray(field_name_s) ? field_name_s : [field_name_s];
+  var type = this.type;
+  if (fields.length == 1) {
+    // select a key
+    var field = fields[0];
+    if (field == ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME ||
+        field === store.getKeyPath()) {
+      type = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
+    } else if (!field || field == '*') {
+      type = ydn.db.base.QueryMethod.LIST_VALUE;
+    } else if (store.hasIndex(field)) {
+      type = ydn.db.base.QueryMethod.LIST_KEY;
+    } else {
+      throw new ydn.debug.error.ArgumentException('Invalid select "' +
+          field + '", index not found in store "' +
+          store.getName() + '"');
+    }
+  } else {
+    throw new ydn.debug.error.ArgumentException('Not implemented');
+  }
+  return new ydn.db.query.ConjQuery(this.db, this.schema, type, this.iters);
 };
 
 

@@ -39,6 +39,10 @@ ydn.db.algo.AbstractSolver = function(opt_out, opt_limit) {
     throw new ydn.error.ArgumentException('output receiver object must have ' +
         '"push" method.');
   }
+  /**
+   * @protected
+   * @type {(!Array|!{push: Function}|!ydn.db.Streamer)|null}
+   */
   this.out = opt_out || null;
   this.limit = opt_limit;
   this.match_count = 0;
@@ -60,13 +64,13 @@ ydn.db.algo.AbstractSolver.prototype.logger =
 
 /**
  * Invoke before beginning of the iteration process.
- *
+ * @param {ydn.db.base.Transaction} tx transaction used in iteration.
  * @param {!Array.<!ydn.db.Iterator>} iterators list of iterators feed to the
  * scanner.
  * @param {!Function} callback on finish callback function.
  * @return {boolean}
  */
-ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback) {
+ydn.db.algo.AbstractSolver.prototype.begin = function(tx, iterators, callback) {
   this.is_reverse = iterators[0].isReversed();
   if (goog.DEBUG) {
     for (var i = 0; i < iterators.length; i++) {
@@ -82,6 +86,9 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(iterators, callback) {
         }
       }
     }
+  }
+  if (this.out instanceof ydn.db.Streamer) {
+    this.out.setTx(tx);
   }
   var s = '{';
   for (var i = 0; i < iterators.length; i++) {

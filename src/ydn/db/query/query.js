@@ -20,6 +20,7 @@
 goog.provide('ydn.db.Query');
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.query.Base');
+goog.require('ydn.db.query.ConjQuery');
 
 
 
@@ -27,7 +28,7 @@ goog.require('ydn.db.query.Base');
  * Query builder class.
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
- * @param {ydn.db.base.QueryMethod} type query type. Default to values.
+ * @param {ydn.db.base.QueryMethod?} type query type. Default to values.
  * @param {!ydn.db.Iterator} iter key range.
  * @constructor
  * @extends {ydn.db.query.Base}
@@ -63,7 +64,8 @@ ydn.db.Query.DEBUG = false;
  */
 ydn.db.Query.prototype.copy = function() {
 
-  var q = new ydn.db.Query(this.db, this.schema, this.iterator.copy(), this.type);
+  var q = new ydn.db.Query(this.db, this.schema, this.type,
+      this.iterator.copy());
 
   return q;
 };
@@ -74,8 +76,8 @@ ydn.db.Query.prototype.copy = function() {
  */
 ydn.db.Query.prototype.reverse = function() {
 
-  return new ydn.db.Query(this.db, this.schema, this.iterator.reverse(),
-      this.type);
+  return new ydn.db.Query(this.db, this.schema,
+      this.type, this.iterator.reverse());
 };
 
 
@@ -95,8 +97,7 @@ ydn.db.Query.prototype.unique = function(val) {
     throw new ydn.debug.error.ArgumentException('primary key query is ' +
         'already unique');
   }
-  return new ydn.db.Query(this.db, this.schema, iter.unique(val),
-      this.type);
+  return new ydn.db.Query(this.db, this.schema, this.type, iter.unique(val));
 };
 
 
@@ -144,7 +145,7 @@ ydn.db.Query.prototype.order = function(order) {
       }
     }
   }
-  return new ydn.db.Query(this.db, this.schema, iter, this.type);
+  return new ydn.db.Query(this.db, this.schema, this.type, iter);
 };
 
 
@@ -176,7 +177,7 @@ ydn.db.Query.prototype.where = function(index_name, op, value, opt_op2,
     }
   }
 
-  return new ydn.db.Query(this.db, this.schema, iter, this.type);
+  return new ydn.db.Query(this.db, this.schema, this.type, iter);
 };
 
 
@@ -245,7 +246,7 @@ ydn.db.Query.prototype.select = function(field_name_s) {
     throw new ydn.debug.error.ArgumentException('Selecting more than 2 field' +
         ' names is not supported, but ' + fields.length + ' fields selected.');
   }
-  return new ydn.db.Query(this.db, this.schema, iter, type);
+  return new ydn.db.Query(this.db, this.schema, type, iter);
 };
 
 
@@ -343,7 +344,6 @@ ydn.db.Query.prototype.open = function(cb, opt_scope) {
  * @return {!ydn.db.Request}
  */
 ydn.db.Query.prototype.count = function() {
-  var basic = new ydn.db.query.Base(this.db, this.schema);
   var iter = this.iterator;
   var req;
   if (iter.isUnique()) {
@@ -380,13 +380,21 @@ ydn.db.Query.prototype.clear = function() {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.Query.prototype.getIterators = function() {
+  return [this.iterator.asKeyIterator()];
+};
+
+
+/**
  * Create AND query.
  * @param {ydn.db.query.Base} q
  * @return {ydn.db.query.ConjQuery}
  */
 ydn.db.Query.prototype.and = function(q) {
   var iters = q.getIterators();
-  iters.push(this.iterator);
+  iters.push(this.iterator.asKeyIterator());
   return new ydn.db.query.ConjQuery(this.db, this.schema, this.type, iters);
 };
 
@@ -421,7 +429,8 @@ ydn.db.core.Storage.prototype.from = function(store_name, opt_op1, opt_value1,
         ' defined.');
   }
   var iter = new ydn.db.ValueIterator(store_name, range);
-  return new ydn.db.Query(this.getIndexOperator(), this.schema, iter);
+  return new ydn.db.Query(this.getIndexOperator(), this.schema, null,
+      iter);
 };
 
 
@@ -455,7 +464,7 @@ ydn.db.core.DbOperator.prototype.from = function(store_name, opt_op1,
         ' defined.');
   }
   var iter = new ydn.db.ValueIterator(store_name, range);
-  return new ydn.db.Query(this, this.schema, iter);
+  return new ydn.db.Query(this, this.schema, null, iter);
 };
 
 
