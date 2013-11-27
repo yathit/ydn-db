@@ -58,6 +58,9 @@ var schema = {
           keyPath: 'legs'
         },
         {
+          keyPath: 'name'
+        },
+        {
           keyPath: ['horn', 'name']
         }, {
           keyPath: ['legs', 'name']
@@ -86,17 +89,20 @@ var test_logic = function() {
 /**
  * Main test function
  * @param {number} rev 1 for reverse queries, 2 for reverse conj query.
- * @param {boolean=} opt_value value query
+ * @param {string=} opt_select index name. Valid value are 'id'
+ * and 'name'. If not provided, query will be on record value.
  * @param {number=} opt_num number of query, 2 or 3. default to 2.
  */
-var query_test = function(rev, opt_value, opt_num) {
+var query_test = function(rev, opt_select, opt_num) {
 
   var db = new ydn.db.core.Storage('test-sorted-merge-' + rev, schema, options);
   db.clear();
   db.put('animals', animals);
 
-  var exp_result = opt_num == 3 ? [2, 4, 8] : [2, 4, 8, 13];
-  if (opt_value) {
+  var exp_result = opt_num == 3 ?
+      [2, 4, 8] :
+      [2, 4, 8, 13];
+  if (!opt_select) {
     exp_result = exp_result.map(function(i) {
       return animals[i];
     });
@@ -135,14 +141,15 @@ var query_test = function(rev, opt_value, opt_num) {
   if (opt_num == 3) {
     q = q3.and(q);
   }
-  if (!opt_value) {
-    q = q.select('id');
+  if (opt_select) {
+    q = q.select(opt_select);
   }
   if (rev == 2) {
     q = q.reverse();
   }
   var req = q.list();
   req.addBoth(function(x) {
+    console.log(x);
     result = x;
     done = true;
   });
@@ -150,36 +157,41 @@ var query_test = function(rev, opt_value, opt_num) {
 
 
 var test_two_iterator = function() {
-  query_test(0);
+  query_test(0, 'id');
 };
 
 
 var test_two_iterator_value = function() {
-  query_test(0, true);
+  query_test(0, undefined);
 };
 
 var test_three_iterator = function() {
-  query_test(0, false, 3);
+  query_test(0, 'id', 3);
 };
 
 
 var test_two_iterator_reverse = function() {
-  query_test(1);
+  query_test(1, 'id');
 };
 
 
 var test_three_iterator_reverse = function() {
-  query_test(1, false, 3);
+  query_test(1, 'id', 3);
 };
 
 
 var test_three_iterator_value = function() {
-  query_test(1, true, 3);
+  query_test(1, undefined, 3);
 };
 
 
 var test_two_iterator_conj_reverse = function() {
-  query_test(2);
+  query_test(2, 'id');
+};
+
+
+var test_zigzag_two_iterator = function() {
+  query_test(0, 'name');
 };
 
 var testCase = new goog.testing.ContinuationTestCase();
