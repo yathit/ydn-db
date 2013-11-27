@@ -73,6 +73,12 @@ ydn.db.Query = function(db, schema, type, store_name, index_name, kr, opt_revers
    * @type {boolean}
    */
   this.is_unique = !!opt_unique;
+  /**
+   * Cursor position.
+   * @type {Array.<IDBKey>} [key, primaryKey]
+   * @protected
+   */
+  this.marker = null;
 
 };
 goog.inherits(ydn.db.Query, ydn.db.query.Base);
@@ -272,13 +278,28 @@ ydn.db.Query.prototype.list = function(opt_limit) {
   var limit = opt_limit || ydn.db.base.DEFAULT_RESULT_LIMIT;
   var mth = ydn.db.base.QueryMethod.LIST_VALUE;
   var iter = this.getIterator();
+  if (this.marker && this.marker[0]) {
+    // console.log('starting from ' + this.marker[0]);
+    iter = iter.resume(this.marker[0], this.marker[1]);
+  }
   if (this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ||
       this.type == ydn.db.base.QueryMethod.LIST_KEYS ||
       this.type == ydn.db.base.QueryMethod.LIST_KEY) {
     mth = this.type;
   }
 
-  return this.db.listIter(mth, iter, limit, offset);
+  var req = this.db.listIter(mth, iter, limit, offset);
+  req.addCallback(function(x) {
+    if (iter.getState() == ydn.db.Iterator.State.RESTING) {
+      // iteration not finished
+      // console.log('end in ' + iter.getKey());
+      this.marker = [iter.getKey()];
+      if (this.index_name) {
+        this.marker.push(iter.getPrimaryKey());
+      }
+    }
+  }, this);
+  return req;
 };
 
 
@@ -300,16 +321,17 @@ ydn.db.Query.prototype.getIterator = function(opt_key_only) {
       (this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ||
       this.type == ydn.db.base.QueryMethod.LIST_KEYS ||
       this.type == ydn.db.base.QueryMethod.LIST_KEY);
+  var kr = this.key_range;
   if (is_key_only) {
     return this.index_name ?
-        new ydn.db.IndexIterator(this.store_name, this.index_name, this.key_range,
+        new ydn.db.IndexIterator(this.store_name, this.index_name, kr,
             this.is_reverse, this.is_unique) :
-        new ydn.db.KeyIterator(this.store_name, this.key_range, this.is_reverse);
+        new ydn.db.KeyIterator(this.store_name, kr, this.is_reverse);
   } else {
     return this.index_name ?
         new ydn.db.IndexValueIterator(this.store_name, this.index_name,
-            this.key_range, this.is_reverse, this.is_unique) :
-        new ydn.db.ValueIterator(this.store_name, this.key_range, this.is_reverse);
+            kr, this.is_reverse, this.is_unique) :
+        new ydn.db.ValueIterator(this.store_name, kr, this.is_reverse);
   }
 };
 

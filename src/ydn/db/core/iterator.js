@@ -599,13 +599,16 @@ if (goog.DEBUG) {
  * @param {IDBKey} key effective key as start position.
  * @param {IDBKey=} opt_primary_key primary key as start position for index
  * iterator.
- * @return {ydn.db.Iterator}
+ * @return {!ydn.db.Iterator}
  */
 ydn.db.Iterator.prototype.resume = function(key, opt_primary_key) {
   var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, this.isReversed(), this.isUnique(),
       this.is_key_iterator_, this.index_key_path_);
-  throw new Error('not possible');
+  iter.i_key_ = key;
+  iter.i_primary_key_ = opt_primary_key;
+  iter.state_ = ydn.db.Iterator.State.RESTING;
+  return iter;
 };
 
 
