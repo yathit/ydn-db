@@ -150,6 +150,12 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
    * @private
    */
   this.i_primary_key_;
+  /**
+   * Index of index key path that seperate prefix and postfix. This is used in
+   * join algorithms.
+   * @type {number}
+   */
+  this.prefix_index = NaN;
 
 };
 goog.inherits(ydn.db.Iterator, ydn.db.core.AbstractIterator);

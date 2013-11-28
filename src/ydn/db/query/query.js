@@ -21,6 +21,7 @@ goog.provide('ydn.db.Query');
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.query.Base');
 goog.require('ydn.db.query.ConjQuery');
+goog.require('ydn.db.query.Iterator');
 
 
 
@@ -29,56 +30,19 @@ goog.require('ydn.db.query.ConjQuery');
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
  * @param {ydn.db.base.QueryMethod?} type query type. Default to values.
- * @param {string} store_name index name.
- * @param {string?} index_name index name.
- * @param {ydn.db.KeyRange} kr key range.
- * @param {boolean=} opt_reverse reverse dir.
- * @param {boolean=} opt_unique unique dir.
+ * @param {ydn.db.query.Iterator} iter index name.
  * @constructor
  * @extends {ydn.db.query.Base}
  * @struct
  */
-ydn.db.Query = function(db, schema, type, store_name, index_name, kr, opt_reverse,
-                        opt_unique) {
+ydn.db.Query = function(db, schema, type, iter) {
   goog.base(this, db, schema, type);
   /**
    * @final
    * @protected
-   * @type {Array.<string>}
+   * @type {ydn.db.query.Iterator}
    */
-  this.orders = [];
-  /**
-   * @final
-   * @protected
-   * @type {ydn.db.KeyRange}
-   */
-  this.key_range = kr || null;
-  /**
-   * @final
-   * @protected
-   * @type {string}
-   */
-  this.store_name = store_name;
-  /**
-   * @final
-   * @protected
-   * @type {string?}
-   */
-  this.index_name = index_name || null;
-  /**
-   * @type {boolean}
-   */
-  this.is_reverse = !!opt_reverse;
-  /**
-   * @type {boolean}
-   */
-  this.is_unique = !!opt_unique;
-  /**
-   * Cursor position.
-   * @type {Array.<IDBKey>} [key, primaryKey]
-   * @protected
-   */
-  this.marker = null;
+  this.iter = iter;
 
 };
 goog.inherits(ydn.db.Query, ydn.db.query.Base);
@@ -94,8 +58,7 @@ ydn.db.Query.DEBUG = false;
  * @return {!ydn.db.Query}
  */
 ydn.db.Query.prototype.copy = function() {
-  return new ydn.db.Query(this.db, this.schema, this.type, this.store_name,
-      this.index_name, this.key_range, this.is_reverse, this.is_unique);
+  return new ydn.db.Query(this.db, this.schema, this.type, this.iter.clone());
 };
 
 
@@ -103,9 +66,8 @@ ydn.db.Query.prototype.copy = function() {
  * @return {!ydn.db.Query} return a new query.
  */
 ydn.db.Query.prototype.reverse = function() {
-
-  return new ydn.db.Query(this.db, this.schema, this.type, this.store_name,
-      this.index_name, this.key_range, !this.is_reverse, this.is_unique);
+  var iter = this.iter.reverse();
+  return new ydn.db.Query(this.db, this.schema, this.type, iter);
 };
 
 
@@ -119,13 +81,8 @@ ydn.db.Query.prototype.unique = function(val) {
     throw new ydn.debug.error.ArgumentException('unique value must be' +
         ' a boolean, but ' + typeof val + ' found');
   }
-
-  if (!this.index_name) {
-    throw new ydn.debug.error.ArgumentException('primary key query is ' +
-        'already unique');
-  }
-  return new ydn.db.Query(this.db, this.schema, this.type, this.store_name,
-      this.index_name, this.key_range, this.is_reverse, val);
+  var iter = this.iter.unique(val);
+  return new ydn.db.Query(this.db, this.schema, this.type, iter);
 };
 
 
@@ -136,44 +93,13 @@ ydn.db.Query.prototype.unique = function(val) {
  */
 ydn.db.Query.prototype.order = function(order) {
   var orders = goog.isString(order) ? [order] : order;
-  if (orders.length != 1) {
-    throw new ydn.debug.error.ArgumentException('Multi ordering not' +
-        ' implemented, wait for next release');
-  }
-
-  var iter = this.getIterator();
-  var store = this.schema.getStore(iter.getStoreName());
-  var kr = this.key_range;
-  var index = this.index_name;
-  if (this.index_name) {
-    if (this.index_name != orders[0]) {
-      index = [this.index_name, orders[0]];
-      if (kr) {
-        if (kr.lower == kr.upper) {
-          kr = ydn.db.KeyRange.starts([kr.lower]);
-        } else {
-          throw new ydn.debug.error.ArgumentException('Not supported');
-        }
-      } else {
-        iter = new ydn.db.Iterator(iter.getStoreName(),
-            index.join(', '), null, iter.isReversed(), iter.isUnique(),
-            iter.isKeyIterator(), index);
-      }
-    }
+  var iter = this.iter.clone();
+  var msg = iter.setOrder(orders);
+  if (msg) {
+    throw new Error(msg);
   } else {
-    if (orders[0] != store.getKeyPath()) {
-      if (kr) {
-        throw new ydn.debug.error.ArgumentException('Not possible without' +
-            ' using in memory sorting.');
-      } else {
-        index = orders[0];
-        kr = null;
-      }
-    }
+    return new ydn.db.Query(this.db, this.schema, this.type, iter);
   }
-  var index_name = index ? store.getIndexName(index) : null;
-  return new ydn.db.Query(this.db, this.schema, this.type, this.store_name,
-      index_name, kr, this.is_reverse, this.is_unique);
 };
 
 
@@ -188,19 +114,16 @@ ydn.db.Query.prototype.order = function(order) {
  */
 ydn.db.Query.prototype.where = function(index_name, op, value, opt_op2,
     opt_value2) {
-  var kr = ydn.db.KeyRange.where(op, value, opt_op2, opt_value2);
-  var q = new ydn.db.Query(this.db, this.schema, this.type, this.store_name,
-      index_name, kr, this.is_reverse, this.is_unique);
-  if (this.key_range) {
-    if (this.index_name == index_name) {
-      kr = this.key_range.and(kr);
-      return new ydn.db.Query(this.db, this.schema, this.type, this.store_name,
-          index_name, kr, this.is_reverse, this.is_unique);
-    } else {
-      return this.and(q);
-    }
+  if (!this.iter.getIndexName() || this.iter.getIndexName() == index_name) {
+    var iter = this.iter.clone();
+    var msg = iter.where(index_name, op, value, opt_op2, opt_value2);
+    return new ydn.db.Query(this.db, this.schema, this.type, iter);
   } else {
-    return q;
+    var kr = ydn.db.KeyRange.where(op, value, opt_op2, opt_value2);
+    var iter = new ydn.db.query.Iterator(this.getStore(), kr, this.iter.isReverse(),
+        this.iter.isUnique());
+    var q = new ydn.db.Query(this.db, this.schema, this.type, iter);
+    return this.and(q);
   }
 };
 
@@ -209,7 +132,7 @@ ydn.db.Query.prototype.where = function(index_name, op, value, opt_op2,
  * @return {ydn.db.schema.Store}
  */
 ydn.db.Query.prototype.getStore = function() {
-  return this.schema.getStore(this.store_name);
+  return this.schema.getStore(this.iter.getStoreName());
 };
 
 
@@ -237,7 +160,6 @@ ydn.db.Query.prototype.select = function(field_name_s) {
         if (field != this.index_name) {
           throw new ydn.debug.error.ArgumentException('select field name ' +
               'must be "' + this.index_name + '", but "' + field + '" found.');
-
         }
       } else {
         index = field;
@@ -299,10 +221,7 @@ ydn.db.Query.prototype.list = function(opt_limit) {
     if (iter.getState() == ydn.db.Iterator.State.RESTING) {
       // iteration not finished
       // console.log('end in ' + iter.getKey());
-      this.marker = [iter.getKey()];
-      if (this.index_name) {
-        this.marker.push(iter.getPrimaryKey());
-      }
+      this.marker = [iter.getKey(), iter.getPrimaryKey()];
     }
   }, this);
   return req;
@@ -313,7 +232,7 @@ ydn.db.Query.prototype.list = function(opt_limit) {
  * @inheritDoc
  */
 ydn.db.Query.prototype.getIterators = function() {
-  return [this.getIterator(true)];
+  return [this.iter.clone()];
 };
 
 
@@ -327,18 +246,7 @@ ydn.db.Query.prototype.getIterator = function(opt_key_only) {
       (this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ||
       this.type == ydn.db.base.QueryMethod.LIST_KEYS ||
       this.type == ydn.db.base.QueryMethod.LIST_KEY);
-  var kr = this.key_range;
-  if (is_key_only) {
-    return this.index_name ?
-        new ydn.db.IndexIterator(this.store_name, this.index_name, kr,
-            this.is_reverse, this.is_unique) :
-        new ydn.db.KeyIterator(this.store_name, kr, this.is_reverse);
-  } else {
-    return this.index_name ?
-        new ydn.db.IndexValueIterator(this.store_name, this.index_name,
-            kr, this.is_reverse, this.is_unique) :
-        new ydn.db.ValueIterator(this.store_name, kr, this.is_reverse);
-  }
+  return this.iter.getIterator(!is_key_only);
 };
 
 
@@ -418,14 +326,15 @@ ydn.db.Query.prototype.open = function(cb, opt_scope) {
  */
 ydn.db.Query.prototype.count = function() {
   var req;
-  if (this.index_name) {
-    if (this.is_unique) {
-      req = this.db.count(this.getIterator(true));
+  if (this.iter.hasIndex()) {
+    if (this.iter.isUnique()) {
+      req = this.db.count(this.iter.getIterator());
     } else {
-      req = this.db.count(this.store_name, this.index_name, this.key_range);
+      req = this.db.count(this.iter.getStoreName(), this.iter.getIndexName(),
+          this.iter.getKeyRange());
     }
   } else {
-    req = this.db.count(this.store_name, this.key_range);
+    req = this.db.count(this.iter.getStoreName(), this.iter.getKeyRange());
   }
   return req;
 };
@@ -436,9 +345,10 @@ ydn.db.Query.prototype.count = function() {
  * @return {!ydn.db.Request}
  */
 ydn.db.Query.prototype.clear = function() {
-  var req = this.index_name ?
-      this.db.clear(this.store_name, this.index_name, this.key_range) :
-      this.db.clear(this.store_name, this.key_range);
+  var req = this.iter.hasIndex() ?
+      this.db.clear(this.iter.getStoreName(), this.iter.getIndexName(),
+          this.iter.getKeyRange()) :
+      this.db.clear(this.iter.getStoreName(), this.iter.getKeyRange());
   return req;
 };
 
@@ -483,8 +393,8 @@ ydn.db.core.Storage.prototype.from = function(store_name, opt_op1, opt_value1,
     throw new ydn.debug.error.ArgumentException('second boundary must not be' +
         ' defined.');
   }
-  return new ydn.db.Query(this.getIndexOperator(), this.schema, null,
-      store_name, null, range);
+  var iter = new ydn.db.query.Iterator(this.schema.getStore(store_name), range);
+  return new ydn.db.Query(this.getIndexOperator(), this.schema, null, iter);
 };
 
 
@@ -517,7 +427,8 @@ ydn.db.core.DbOperator.prototype.from = function(store_name, opt_op1,
     throw new ydn.debug.error.ArgumentException('second boundary must not be' +
         ' defined.');
   }
-  return new ydn.db.Query(this, this.schema, null, store_name, null, range);
+  var iter = new ydn.db.query.Iterator(this.schema.getStore(store_name), range);
+  return new ydn.db.Query(this, this.schema, null, iter);
 };
 
 

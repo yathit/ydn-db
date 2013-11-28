@@ -49,11 +49,23 @@ ydn.db.query.Base = function(db, schema, type) {
    * @type {ydn.db.base.QueryMethod}
    */
   this.type = type || ydn.db.base.QueryMethod.NONE;
+  /**
+   * @final
+   * @protected
+   * @type {Array.<string>}
+   */
+  this.orders = [];
+  /**
+   * Cursor position.
+   * @type {Array.<IDBKey>} [key, primaryKey]
+   * @protected
+   */
+  this.marker = null;
 };
 
 
 /**
- * @return {!Array.<ydn.db.Iterator>}
+ * @return {!Array.<ydn.db.query.Iterator>}
  */
 ydn.db.query.Base.prototype.getIterators = goog.abstractMethod;
 

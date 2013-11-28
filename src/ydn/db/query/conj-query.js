@@ -20,6 +20,7 @@
 goog.provide('ydn.db.query.ConjQuery');
 goog.require('ydn.db.algo.SortedMerge');
 goog.require('ydn.db.core.Storage');
+goog.require('ydn.db.query.Iterator');
 
 
 
@@ -28,7 +29,7 @@ goog.require('ydn.db.core.Storage');
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
  * @param {ydn.db.base.QueryMethod} type query type.
- * @param {!Array.<!ydn.db.Iterator>} iters
+ * @param {!Array.<!ydn.db.query.Iterator>} iters
  * @param {boolean=} opt_ref_join By default key of iterators are
  * joined. Set true to join on reference value.
  * @constructor
@@ -37,23 +38,12 @@ goog.require('ydn.db.core.Storage');
  */
 ydn.db.query.ConjQuery = function(db, schema, type, iters, opt_ref_join) {
   goog.base(this, db, schema, type);
-  if (goog.DEBUG) {
-    for (var i = 0; i < iters.length; i++) {
-      goog.asserts.assert(iters[i].isKeyIterator(), 'iterator ' + i +
-          ' must be key iterator');
-    }
-  }
   /**
    * @final
    * @protected
-   * @type {!Array.<!ydn.db.Iterator>}
+   * @type {!Array.<!ydn.db.query.Iterator>}
    */
   this.iters = iters;
-  /**
-   * @final
-   * @type {boolean}
-   */
-  this.ref_join = !!opt_ref_join;
 };
 goog.inherits(ydn.db.query.ConjQuery, ydn.db.query.Base);
 
@@ -78,20 +68,37 @@ ydn.db.query.ConjQuery.prototype.open = function(cb, opt_scope) {
 
     }
   };
-  var solver = this.ref_join ? new ydn.db.algo.ZigzagMerge(out) :
+  var solver = this.isRefJoin() ? new ydn.db.algo.ZigzagMerge(out) :
       new ydn.db.algo.SortedMerge(out);
-  req = this.db.scan(solver, this.iters,
+  req = this.db.scan(solver, this.getIterableIterators(),
       ydn.db.base.TransactionMode.READ_WRITE);
   return req;
 };
 
 
 /**
- * Return true if joining is key, otherwise reference value.
+ * Get iterable iterator.
+ * @return {!Array.<!ydn.db.Iterator>}
+ */
+ydn.db.query.ConjQuery.prototype.getIterableIterators = function() {
+  var iters = [];
+  for (var i = 0; i < this.iters.length; i++) {
+    iters[i] = this.iters[i].getIterator();
+  }
+  return iters;
+};
+
+
+/**
  * @return {boolean}
  */
 ydn.db.query.ConjQuery.prototype.isRefJoin = function() {
-  return this.ref_join;
+  for (var i = 0; i < this.iters.length; i++) {
+    if (this.iters[i].hasPrefix()) {
+      return true;
+    }
+  }
+  return false;
 };
 
 
@@ -105,10 +112,10 @@ ydn.db.query.ConjQuery.prototype.list = function(limit) {
   var out = this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ? [] :
       new ydn.db.Streamer(null, this.iters[0].getStoreName());
 
-  var solver = this.ref_join ?
+  var solver = this.isRefJoin() ?
       new ydn.db.algo.ZigzagMerge(out) :
       new ydn.db.algo.SortedMerge(out);
-  var req = this.db.scan(solver, this.iters,
+  var req = this.db.scan(solver, this.getIterableIterators(),
       ydn.db.base.TransactionMode.READ_WRITE);
   var ans = req.copy();
   req.addCallbacks(function() {
@@ -136,14 +143,6 @@ ydn.db.query.ConjQuery.prototype.getIterators = function() {
 
 
 /**
- * @return {ydn.db.schema.Store}
- */
-ydn.db.query.ConjQuery.prototype.getStore = function() {
-  return this.schema.getStore(this.iters[0].getStoreName());
-};
-
-
-/**
  * Select query result.
  * @param {string|!Array.<string>} field_name_s select field name(s).
  * @return {!ydn.db.query.ConjQuery}
@@ -164,8 +163,7 @@ ydn.db.query.ConjQuery.prototype.select = function(field_name_s) {
       type = ydn.db.base.QueryMethod.LIST_KEY;
     } else {
       throw new ydn.debug.error.ArgumentException('Invalid select "' +
-          field + '", index not found in store "' +
-          store.getName() + '"');
+          field + '", index not found in store "' + store.getName() + '"');
     }
   } else {
     throw new ydn.debug.error.ArgumentException('Not implemented');
