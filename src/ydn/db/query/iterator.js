@@ -118,6 +118,10 @@ ydn.db.query.Iterator.prototype.setOrder = function(postfix) {
       return err_msg;
     }
   }
+  if (this.index_ && this.index_.getName() != index.getName()) {
+    // existing index, but different index
+    // this is only possible
+  }
   this.postfix = postfix;
   this.index_ = index;
   return null;
@@ -249,7 +253,6 @@ ydn.db.query.Iterator.prototype.where = function(index_name, op, value, opt_op2,
   if (this.index_) {
     goog.asserts.assert(this.index_.getName() == index_name,
         'different index name cannot be used for where clause');
-
     if (this.key_range) {
       this.key_range = this.key_range.and(key_range);
     } else {
@@ -262,6 +265,15 @@ ydn.db.query.Iterator.prototype.where = function(index_name, op, value, opt_op2,
     this.key_range = key_range;
   }
   return null;
+};
+
+
+/**
+ * Get ordering.
+ * @return {Array.<string>}
+ */
+ydn.db.query.Iterator.prototype.getPostFix = function() {
+  return this.postfix.slice();
 };
 
 

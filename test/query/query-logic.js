@@ -61,6 +61,20 @@ test('creating key range index query', function() {
   equal(iter.isUnique(), false, 'unique');
 });
 
+test('ordering', function() {
+  var q = db.from('st');
+  deepEqual(q.getOrder(), [], 'natural ordering');
+  q = db.from('st').order('id');
+  deepEqual(q.getOrder(), ['id'], 'order by primary key');
+  q = db.from('st').select('name');
+  deepEqual(q.getOrder(), ['name'], 'order by index');
+  q = db.from('st').where('name', '>', 'a');
+  throws(function() {
+    q = q.order('value');
+  }, Error, 'impossible ordering'
+  );
+});
+
 
 ydn.db.deleteDatabase(db.getName(), db.getType());
 db.close();

@@ -19,6 +19,7 @@
 
 goog.provide('ydn.db.query.ConjQuery');
 goog.require('ydn.db.algo.SortedMerge');
+goog.require('ydn.db.algo.ZigzagMerge');
 goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.query.Iterator');
 

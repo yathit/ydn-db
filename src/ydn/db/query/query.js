@@ -146,13 +146,50 @@ ydn.db.Query.prototype.getStore = function() {
  * @return {!ydn.db.Query}
  */
 ydn.db.Query.prototype.select = function(field_name_s) {
-  var iter = this.iter.clone();
+  var store = this.getStore();
   var fields = goog.isString(field_name_s) ? [field_name_s] : field_name_s;
-  var msg = iter.setOrder(fields);
-  if (msg) {
-    throw new ydn.debug.error.ArgumentException(msg);
+  var type = this.type;
+  var iter = this.iter.clone();
+  var index = this.iter.getIndexName();
+  if (fields.length == 1) {
+    var field = fields[0];
+    if (field == ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME ||
+        field == store.getKeyPath()) {
+      type = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
+    } else if (!field || field == '*') {
+      type = ydn.db.base.QueryMethod.LIST_VALUE;
+    } else if (store.hasIndex(field)) {
+      var msg = iter.setOrder(fields);
+      if (msg) {
+        throw new ydn.debug.error.ArgumentException(msg);
+      }
+    } else {
+      throw new ydn.debug.error.ArgumentException('Invalid select "' +
+          field + '", index not found in store "' +
+          store.getName() + '"');
+    }
+  } else if (fields.length == 2) {
+    if (!index) {
+      throw new ydn.debug.error.ArgumentException('Only primary key can be ' +
+          'selected for this query.');
+    }
+    for (var i = 0; i < 2; i++) {
+      var is_primary = fields[i] == ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME ||
+          store.isKeyPath(fields[i]);
+      if (!is_primary) {
+        if (fields[i] != index) {
+          throw new ydn.debug.error.ArgumentException('select field name ' +
+              'must be "' + index + '", but "' + fields[i] + '" found.');
+        }
+      }
+    }
+    type = ydn.db.base.QueryMethod.LIST_KEYS;
+  } else {
+    throw new ydn.debug.error.ArgumentException('Selecting more than 2 field' +
+        ' names is not supported, but ' + fields.length + ' fields selected.');
   }
-  return new ydn.db.Query(this.db, this.schema, this.type, iter);
+
+  return new ydn.db.Query(this.db, this.schema, type, iter);
 };
 
 
@@ -207,6 +244,14 @@ ydn.db.Query.prototype.getIterator = function(opt_key_only) {
       this.type == ydn.db.base.QueryMethod.LIST_KEYS ||
       this.type == ydn.db.base.QueryMethod.LIST_KEY);
   return this.iter.getIterator(!is_key_only);
+};
+
+
+/**
+ * @return {Array.<string>}
+ */
+ydn.db.Query.prototype.getOrder = function() {
+  return this.iter.getPostFix();
 };
 
 
