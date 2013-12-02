@@ -101,7 +101,9 @@ ydn.db.query.Iterator.prototype.setPrefix = function(prefix) {
  */
 ydn.db.query.Iterator.prototype.setOrder = function(postfix) {
   var index_key_path = this.prefix.concat(postfix);
-  var index = this.store.getIndexByKeyPath(index_key_path);
+  var key_path = index_key_path.length == 1 ? index_key_path[0] :
+      index_key_path;
+  var index = this.store.getIndexByKeyPath(key_path);
   var err_msg = 'require index "' + index_key_path.join(', ') + '" missing in ' +
       'store ' + this.store.getName();
   if (!index) {
@@ -113,9 +115,8 @@ ydn.db.query.Iterator.prototype.setOrder = function(postfix) {
         return err_msg;
       } // else, OK. it is just primary key path
     } else {
+      return err_msg;
     }
-  } else {
-    return err_msg;
   }
   this.postfix = postfix;
   this.index_ = index;
@@ -238,10 +239,10 @@ ydn.db.query.Iterator.prototype.hasIndex = function() {
  */
 ydn.db.query.Iterator.prototype.where = function(index_name, op, value, opt_op2,
     opt_value2) {
-  if (this.prefix.length == 0) {
+  if (this.prefix.length > 0) {
     return 'cannot use where clause after prefix';
   }
-  if (this.postfix.length == 0) {
+  if (this.postfix.length > 0) {
     return 'cannot use where clause after postfix';
   }
   var key_range = ydn.db.KeyRange.where(op, value, opt_op2, opt_value2);
@@ -250,7 +251,7 @@ ydn.db.query.Iterator.prototype.where = function(index_name, op, value, opt_op2,
         'different index name cannot be used for where clause');
 
     if (this.key_range) {
-      this.key_range = this.key_range.add(key_range);
+      this.key_range = this.key_range.and(key_range);
     } else {
       this.key_range = key_range;
     }

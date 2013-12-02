@@ -148,27 +148,7 @@ ydn.db.query.ConjQuery.prototype.getIterators = function() {
  * @return {!ydn.db.query.ConjQuery}
  */
 ydn.db.query.ConjQuery.prototype.select = function(field_name_s) {
-  var store = this.getStore();
-  var fields = goog.isArray(field_name_s) ? field_name_s : [field_name_s];
-  var type = this.type;
-  if (fields.length == 1) {
-    // select a key
-    var field = fields[0];
-    if (field == ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME ||
-        field === store.getKeyPath()) {
-      type = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
-    } else if (!field || field == '*') {
-      type = ydn.db.base.QueryMethod.LIST_VALUE;
-    } else if (store.hasIndex(field)) {
-      type = ydn.db.base.QueryMethod.LIST_KEY;
-    } else {
-      throw new ydn.debug.error.ArgumentException('Invalid select "' +
-          field + '", index not found in store "' + store.getName() + '"');
-    }
-  } else {
-    throw new ydn.debug.error.ArgumentException('Not implemented');
-  }
-  return new ydn.db.query.ConjQuery(this.db, this.schema, type, this.iters);
+  throw new Error('not impl')
 };
 
 

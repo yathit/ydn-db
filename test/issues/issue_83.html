@@ -11,8 +11,19 @@
 <script type="text/javascript">
 var db = window.openDatabase('test-83', '', 'test db', 1*1024*1024);
 db.transaction(function(tx) {
-    tx.executeSql('CREATE TABLE people(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT)')
+    tx.executeSql('CREATE TABLE IF NOT EXISTS people(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT)')
+}, function(e) {
+    show('tx failed on creating table ' + e.code + ' ' + e.message);
+}, function() {
+    show('table creating done');
 });
+
+
+var show = function(s) {
+    var div = document.createElement('p');
+    div.innerHTML = s;
+    document.body.appendChild(div);
+};
 
 var runSql = function(sql) {
     var msg = document.createElement('div');
@@ -26,12 +37,15 @@ var runSql = function(sql) {
             for (var i = 0; i < n; i++) {
                 s += '<div>' + JSON.stringify(rs.rows.item(i)) + '</div>';
             }
-            var div = document.createElement('div');
-            div.innerHTML = s;
-            document.body.appendChild(div);
-        }, function(e) {
-            throw e;
+            show(s);
+        }, function(t, e) {
+            show('error executing ' + sql + e.code + ' ' + e.name + ' ' +
+                    e.message);
         });
+    }, function(e) {
+       show('tx failed ' + e.code + ' ' + e.message);
+    }, function() {
+       show('tx committed');
     });
 };
 

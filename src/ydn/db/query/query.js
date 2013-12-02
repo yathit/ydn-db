@@ -22,6 +22,7 @@ goog.require('ydn.db.core.Storage');
 goog.require('ydn.db.query.Base');
 goog.require('ydn.db.query.ConjQuery');
 goog.require('ydn.db.query.Iterator');
+goog.require('ydn.debug.error.ArgumentException');
 
 
 
@@ -117,6 +118,9 @@ ydn.db.Query.prototype.where = function(index_name, op, value, opt_op2,
   if (!this.iter.getIndexName() || this.iter.getIndexName() == index_name) {
     var iter = this.iter.clone();
     var msg = iter.where(index_name, op, value, opt_op2, opt_value2);
+    if (msg) {
+      throw new ydn.debug.error.ArgumentException(msg);
+    }
     return new ydn.db.Query(this.db, this.schema, this.type, iter);
   } else {
     var kr = ydn.db.KeyRange.where(op, value, opt_op2, opt_value2);
@@ -142,57 +146,13 @@ ydn.db.Query.prototype.getStore = function() {
  * @return {!ydn.db.Query}
  */
 ydn.db.Query.prototype.select = function(field_name_s) {
-  var store = this.getStore();
-  var fields = goog.isArray(field_name_s) ? field_name_s : [field_name_s];
-  var type = this.type;
-  var kr = this.key_range;
-  var index = this.index_name;
-  if (fields.length == 1) {
-    // select a key
-    var field = fields[0];
-    if (field == ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME ||
-        field === store.getKeyPath()) {
-      type = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
-    } else if (!field || field == '*') {
-      type = ydn.db.base.QueryMethod.LIST_VALUE;
-    } else if (store.hasIndex(field)) {
-      if (this.index_name) {
-        if (field != this.index_name) {
-          throw new ydn.debug.error.ArgumentException('select field name ' +
-              'must be "' + this.index_name + '", but "' + field + '" found.');
-        }
-      } else {
-        index = field;
-      }
-      type = ydn.db.base.QueryMethod.LIST_KEY;
-    } else {
-      throw new ydn.debug.error.ArgumentException('Invalid select "' +
-          field + '", index not found in store "' +
-          store.getName() + '"');
-    }
-  } else if (fields.length == 2) {
-    if (!index) {
-      throw new ydn.debug.error.ArgumentException('Only primary key can be ' +
-          'selected for this query.');
-    }
-    for (var i = 0; i < 2; i++) {
-      var is_primary = fields[i] == ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME ||
-          store.isKeyPath(fields[i]);
-      if (!is_primary) {
-        if (fields[i] != index) {
-          throw new ydn.debug.error.ArgumentException('select field name ' +
-              'must be "' + index + '", but "' + fields[i] + '" found.');
-        }
-      }
-    }
-    type = ydn.db.base.QueryMethod.LIST_KEYS;
-  } else {
-    throw new ydn.debug.error.ArgumentException('Selecting more than 2 field' +
-        ' names is not supported, but ' + fields.length + ' fields selected.');
+  var iter = this.iter.clone();
+  var fields = goog.isString(field_name_s) ? [field_name_s] : field_name_s;
+  var msg = iter.setOrder(fields);
+  if (msg) {
+    throw new ydn.debug.error.ArgumentException(msg);
   }
-  var index_name = index ? store.getIndexName(index) : null;
-  return new ydn.db.Query(this.db, this.schema, type, this.store_name,
-      index_name, kr, this.is_reverse, this.is_unique);
+  return new ydn.db.Query(this.db, this.schema, this.type, iter);
 };
 
 
