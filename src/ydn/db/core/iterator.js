@@ -530,9 +530,11 @@ ydn.db.Iterator.prototype.isPrimaryIterator = function() {
  * @return {!ydn.db.Iterator}
  */
 ydn.db.Iterator.prototype.clone = function() {
-  return new ydn.db.Iterator(this.store_name_, this.index_name_,
+  var iter = new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, this.isReversed(), this.isUnique(), this.isKeyIterator(),
       this.index_key_path_);
+  iter.prefix_index = this.prefix_index;
+  return iter;
 };
 
 

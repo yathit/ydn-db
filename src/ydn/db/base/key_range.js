@@ -185,6 +185,15 @@ ydn.db.KeyRange.starts = function(value) {
     value_upper.push('\uffff');
   } else if (goog.isString(value)) {
     value_upper = value + '\uffff';
+  } else if (goog.isNumber(value)) {
+    /**
+     * Number.EPSILON in ES6.
+     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/EPSILON
+     * @type {number}
+     */
+    var EPSILON = 2.220460492503130808472633361816E-16;
+    value_upper = value + EPSILON;
+    value = value - EPSILON;
   } else {
     return ydn.db.KeyRange.only(value);
   }
@@ -315,7 +324,7 @@ ydn.db.KeyRange.prototype.and = function(that) {
     lowerOpen = that.lowerOpen || this.lowerOpen;
   }
   if (goog.isDefAndNotNull(that.upper) &&
-    (!goog.isDefAndNotNull(this.upper) || that.upper <= this.upper)) {
+      (!goog.isDefAndNotNull(this.upper) || that.upper <= this.upper)) {
     upper = that.upper;
     upperOpen = that.upperOpen || this.upperOpen;
   }

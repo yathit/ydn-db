@@ -19,6 +19,7 @@
 
 
 goog.provide('ydn.db.query.Iterator');
+goog.require('ydn.db.ConstraintError');
 goog.require('ydn.db.Iterator');
 
 
@@ -63,11 +64,6 @@ ydn.db.query.Iterator = function(store, opt_key_range, opt_reverse,
    * @type {Array.<string>}
    */
   this.postfix = [];
-  /**
-   * @private
-   * @type {ydn.db.schema.Index|undefined}
-   */
-  this.index_ = undefined;
 };
 
 
@@ -77,19 +73,7 @@ ydn.db.query.Iterator = function(store, opt_key_range, opt_reverse,
  * @return {string?} error message return, if require index not exist.
  */
 ydn.db.query.Iterator.prototype.setPrefix = function(prefix) {
-  var index_key_path = prefix.concat(this.postfix);
-  var index = this.store.getIndexByKeyPath(index_key_path);
-  if (!index && this.postfix[this.postfix.length - 1] == this.store.getKeyPath()) {
-    // todo: for array keyPath
-    index = this.store.getIndexByKeyPath(
-        index_key_path.slice(0, index_key_path.length - 1));
-  }
-  if (!index) {
-    return 'require index "' + index_key_path.join(', ') + '" missing in ' +
-        'store ' + this.store.getName();
-  }
   this.prefix = prefix;
-  this.index_ = index;
   return null; // ok
 };
 
@@ -100,30 +84,7 @@ ydn.db.query.Iterator.prototype.setPrefix = function(prefix) {
  * @return {string?} error message return, if require index not exist.
  */
 ydn.db.query.Iterator.prototype.setOrder = function(postfix) {
-  var index_key_path = this.prefix.concat(postfix);
-  var key_path = index_key_path.length == 1 ? index_key_path[0] :
-      index_key_path;
-  var index = this.store.getIndexByKeyPath(key_path);
-  var err_msg = 'require index "' + index_key_path.join(', ') + '" missing in ' +
-      'store ' + this.store.getName();
-  if (!index) {
-    if (postfix[postfix.length - 1] == this.store.getKeyPath()) {
-      // todo: for array keyPath
-      index = this.store.getIndexByKeyPath(
-          index_key_path.slice(0, index_key_path.length - 1));
-      if (index_key_path.length != 1) {
-        return err_msg;
-      } // else, OK. it is just primary key path
-    } else {
-      return err_msg;
-    }
-  }
-  if (this.index_ && this.index_.getName() != index.getName()) {
-    // existing index, but different index
-    // this is only possible
-  }
   this.postfix = postfix;
-  this.index_ = index;
   return null;
 };
 
@@ -134,8 +95,12 @@ ydn.db.query.Iterator.prototype.setOrder = function(postfix) {
  * @return {!ydn.db.Iterator} iterator for this.
  */
 ydn.db.query.Iterator.prototype.getIterator = function(opt_value_iterator) {
-  var index_name = this.index_ ? this.index_.getName() : undefined;
-  var iter = new ydn.db.Iterator(this.store.getName(), index_name,
+  if (!this.hasValidIndex()) {
+    throw new ydn.db.ConstraintError('Require index "' +
+        this.prefix.concat(this.postfix).join(', ') +
+        '" not found in store "' + this.store.getName() + '"');
+  }
+  var iter = new ydn.db.Iterator(this.store.getName(), this.getIndexName(),
       this.key_range, this.is_reverse, this.is_unique, !!opt_value_iterator);
   iter.prefix_index = this.prefix.length;
   return iter;
@@ -166,7 +131,6 @@ ydn.db.query.Iterator.prototype.clone = function() {
   var iter = new ydn.db.query.Iterator(this.store, this.key_range, this.is_reverse, this.is_unique);
   iter.postfix = this.postfix.slice();
   iter.prefix = this.prefix.slice();
-  iter.index_ = this.index_;
   return iter;
 };
 
@@ -180,10 +144,44 @@ ydn.db.query.Iterator.prototype.getKeyRange = function() {
 
 
 /**
+ * @return {ydn.db.schema.Index}
+ */
+ydn.db.query.Iterator.prototype.getIndex = function() {
+  var indexes = this.prefix.concat(this.postfix);
+  var index = this.store.getIndexByKeyPath(indexes);
+  if (index) {
+    return index;
+  } else if (indexes[indexes.length - 1] == this.store.getKeyPath()) {
+    index = this.store.getIndexByKeyPath(indexes.slice(0, indexes.length - 1));
+    if (index) {
+      return index;
+    }
+  }
+  return null;
+};
+
+
+/**
  * @return {string|undefined}
  */
 ydn.db.query.Iterator.prototype.getIndexName = function() {
-  return this.index_ ? this.index_.getName() : undefined;
+  var index = this.getIndex();
+  return index ? index.getName() : undefined;
+};
+
+
+/**
+ * @return {boolean}
+ */
+ydn.db.query.Iterator.prototype.hasValidIndex = function() {
+  if (this.prefix.length == 0 && this.postfix.length == 0) {
+    return true;
+  }
+  if (!this.usedIndex()) {
+    return true;
+  }
+  var index = this.getIndex();
+  return true;
 };
 
 
@@ -225,16 +223,26 @@ ydn.db.query.Iterator.prototype.isReverse = function() {
 
 
 /**
- * @return {boolean}
+ * Test this iterator used index.
+ * @return {boolean} True if there is postfix or prefix (different from
+ * primary key.
  */
-ydn.db.query.Iterator.prototype.hasIndex = function() {
-  return !!this.index_;
+ydn.db.query.Iterator.prototype.usedIndex = function() {
+  if (this.prefix.length > 0) {
+    return true;
+  }
+  if (this.postfix.length == 1) {
+    return this.postfix[0] != this.store.getKeyPath();
+  } else if (this.postfix.length > 1) {
+    return true;
+  }
+  return false;
 };
 
 
 /**
  * Add where clause condition.
- * @param {string} index_name index name.
+ * @param {string|Array.<string>} index_name index name or index key path.
  * @param {string} op where operator.
  * @param {IDBKey} value rvalue to compare.
  * @param {string=} opt_op2 second operator.
@@ -243,26 +251,35 @@ ydn.db.query.Iterator.prototype.hasIndex = function() {
  */
 ydn.db.query.Iterator.prototype.where = function(index_name, op, value, opt_op2,
     opt_value2) {
-  if (this.prefix.length > 0) {
-    return 'cannot use where clause after prefix';
-  }
-  if (this.postfix.length > 0) {
-    return 'cannot use where clause after postfix';
-  }
   var key_range = ydn.db.KeyRange.where(op, value, opt_op2, opt_value2);
-  if (this.index_) {
-    goog.asserts.assert(this.index_.getName() == index_name,
-        'different index name cannot be used for where clause');
+  if (this.prefix.length > 0) {
+    // only possible with equal key range
+    if (this.key_range) {
+      if (goog.isDefAndNotNull(this.key_range.lower) &&
+          goog.isDefAndNotNull(this.key_range.upper) &&
+          ydn.db.cmp(this.key_range.lower, this.key_range.upper) == 0) {
+        var lower = goog.isArray(this.key_range.lower) ?
+            this.key_range.lower.slice().push(op) : [this.key_range.lower, op];
+        var op2 = goog.isDefAndNotNull(opt_op2) ? opt_op2 : '\uffff';
+        var upper = goog.isArray(this.key_range.upper) ?
+            this.key_range.upper.slice().push(op2) : [this.key_range.upper, op2];
+        this.key_range = ydn.db.KeyRange.where(op, lower, op2, upper);
+      } else if ((this.prefix.length == 1 && this.prefix[0] == index_name) ||
+          goog.isArray(index_name) && goog.array.equals(this.prefix, index_name)) {
+        this.key_range = this.key_range.and(key_range);
+      } else {
+        return 'cannot use where clause with existing filter';
+      }
+    } else {
+      return 'cannot use where clause with existing filter';
+    }
+  } else {
+    this.prefix = goog.isArray(index_name) ? index_name : [index_name];
     if (this.key_range) {
       this.key_range = this.key_range.and(key_range);
     } else {
       this.key_range = key_range;
     }
-  } else {
-    this.index_ = this.store.getIndex(index_name);
-    goog.asserts.assert(this.index_, 'Index "' + index_name + '" not found in ' +
-        this.store.getName());
-    this.key_range = key_range;
   }
   return null;
 };

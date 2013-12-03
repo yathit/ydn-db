@@ -331,7 +331,7 @@ ydn.db.Query.prototype.open = function(cb, opt_scope) {
  */
 ydn.db.Query.prototype.count = function() {
   var req;
-  if (this.iter.hasIndex()) {
+  if (this.iter.usedIndex()) {
     if (this.iter.isUnique()) {
       req = this.db.count(this.iter.getIterator());
     } else {
@@ -350,7 +350,7 @@ ydn.db.Query.prototype.count = function() {
  * @return {!ydn.db.Request}
  */
 ydn.db.Query.prototype.clear = function() {
-  var req = this.iter.hasIndex() ?
+  var req = this.iter.usedIndex() ?
       this.db.clear(this.iter.getStoreName(), this.iter.getIndexName(),
           this.iter.getKeyRange()) :
       this.db.clear(this.iter.getStoreName(), this.iter.getKeyRange());
