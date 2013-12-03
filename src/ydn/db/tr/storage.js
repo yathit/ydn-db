@@ -62,6 +62,7 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
    * here we must define sync thread first, so that it is ready when
    * executing main thread.
    * This sync thread is used internally.
+   * todo: this should belong to db_operator, not storage instance.
    * @final
    */
   this.sync_thread = this.newTxQueue(ydn.db.tr.Thread.Policy.ATOMIC, false);

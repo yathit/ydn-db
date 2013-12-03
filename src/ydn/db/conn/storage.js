@@ -94,17 +94,21 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   }
 
   /**
+   * List of preference storage mechanisms to used.
    * @final
    * @type {!Array.<string>}
    */
   this.mechanisms = options.mechanisms || ydn.db.con.Storage.PREFERENCE;
 
   /**
+   * WebSQl database size during initialization.
    * @final
    */
   this.size = options.size;
 
   /**
+   * Timeout for database connection.
+   * @type {number}
    * @final
    */
   this.connectionTimeout = goog.isDef(options.connectionTimeout) ?
@@ -112,6 +116,11 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
       ydn.db.con.Storage.DEBUG ?
       1000 : goog.DEBUG ? 30 * 1000 : 30 * 60 * 1000;
 
+  /**
+   * The database instance.
+   * @type {ydn.db.con.IDatabase}
+   * @private
+   */
   this.db_ = null;
 
   /**
@@ -301,13 +310,6 @@ ydn.db.con.Storage.prototype.setName = function(db_name) {
  * @protected
  */
 ydn.db.con.Storage.prototype.db_name;
-
-
-/**
- * @type {ydn.db.con.IDatabase}
- * @private
- */
-ydn.db.con.Storage.prototype.db_;
 
 
 /**
