@@ -48,7 +48,7 @@ ydn.db.tr.Storage.prototype.getEventTarget = function() {
  * dispatched.
  *
  * @param {string} type The type of the event to listen for.
- * @param {Function|Object} handler The function to handle the event. The
+ * @param {Function} handler The function to handle the event. The
  *     handler can also be an object that implements the handleEvent method
  *     which takes the event object as argument.
  * @param {boolean=} opt_capture In DOM-compliant browsers, this determines
@@ -93,7 +93,7 @@ ydn.db.tr.Storage.prototype.addEventListener = function(type, handler,
  * nothing is done.
  *
  * @param {string} type The type of the event to listen for.
- * @param {Function|Object} handler The function to handle the event. The
+ * @param {Function} handler The function to handle the event. The
  *     handler can also be an object that implements the handleEvent method
  *     which takes the event object as argument.
  * @param {boolean=} opt_capture In DOM-compliant browsers, this determines
