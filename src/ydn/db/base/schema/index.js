@@ -129,8 +129,7 @@ ydn.db.schema.Index = function(
 
   this.index_column_name_quoted_ = goog.string.quote(this.index_column_name_);
 
-  this.key_paths_ = !this.is_composite_ && !this.multiEntry ?
-      this.keyPath.split('.') : null;
+  this.key_paths_ = !this.is_composite_ ? this.keyPath.split('.') : null;
 
   goog.asserts.assert(!goog.isDefAndNotNull(opt_generator) ||
       goog.isFunction(opt_generator), 'index generator must be a function, ' +
@@ -650,8 +649,8 @@ ydn.db.schema.Index.prototype.generateIndex = function(obj) {
   if (this.index_generator_) {
     var out = this.index_generator_(obj);
     var type = typeof(out);
-    if (type == 'string' || type == 'number' || type == 'array' ||
-        type == 'undefined' || out instanceof Date) {
+    if (type == 'string' || type == 'number' || out instanceof Date ||
+        goog.isArray(out)) {
       for (var i = 0; i < this.key_paths_.length - 1; i++) {
         if (!goog.isObject(obj[this.key_paths_[i]])) {
           obj[this.key_paths_[i]] = {};
