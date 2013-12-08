@@ -90,7 +90,43 @@ KeyRangeJson.prototype.upper;
 KeyRangeJson.prototype.upperOpen;
 
 
+/**
+ * @const
+ * @type {Object}
+ */
+var DataSourceOption = {};
 
+
+/**
+ * @const
+ * @type {Object}
+ */
+var GDataSourceOption = {};
+
+
+/**
+ * @type {string}
+ */
+GDataSourceOption.kind;
+
+
+/**
+ * @type {string}
+ */
+GDataSourceOption.id;
+
+
+/**
+ * @const
+ * @type {Object}
+ */
+var ContactDataSourceOption = {};
+
+
+/**
+ * @type {string}
+ */
+GDataSourceOption.id;
 
 
 
