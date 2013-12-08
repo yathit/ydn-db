@@ -15,6 +15,7 @@
 
 goog.provide('ydn.db.utils');
 goog.require('ydn.db.base');
+goog.require('ydn.db.Key');
 
 
 /**

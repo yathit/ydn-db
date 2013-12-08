@@ -98,35 +98,31 @@ var DataSourceOption = {};
 
 
 /**
- * @const
- * @type {Object}
+ * @constructor
  */
-var GDataSourceOption = {};
+var GDataSourceOption = function() {};
 
 
 /**
  * @type {string}
  */
-GDataSourceOption.kind;
+GDataSourceOption.prototype.kind;
 
 
 /**
  * @type {string}
  */
-GDataSourceOption.id;
+GDataSourceOption.prototype.id;
 
-
-/**
- * @const
- * @type {Object}
- */
-var ContactDataSourceOption = {};
 
 
 /**
- * @type {string}
+ * @constructor
+ * @extends {GDataSourceOption}
  */
-GDataSourceOption.id;
+var ContactDataSourceOption = function() {};
+
+
 
 
 

@@ -20,6 +20,7 @@
 
 goog.provide('ydn.db');
 goog.require('ydn.db.utils');
+goog.require('ydn.db.Request');
 
 
 /**
