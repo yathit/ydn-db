@@ -14,8 +14,6 @@
  */
 
 goog.provide('ydn.db.utils');
-goog.require('ydn.db.base');
-goog.require('ydn.db.Key');
 
 
 /**
@@ -266,6 +264,7 @@ ydn.db.utils.pNeg1074 = 5e-324;                      // 2^-1074);
  * @type {number}
  */
 ydn.db.utils.pNeg1022 = 2.2250738585072014e-308;     // 2^-1022
+
 
 /**
  *
