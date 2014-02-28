@@ -124,5 +124,38 @@ var ContactDataSourceOption = function() {};
 
 
 
+/**
+ * Record format for {@see ydn.debug.DbLogger}.
+ * @interface.
+ */
+var DbLoggerRecord = function() {};
+
+
+/** @type {string} */
+DbLoggerRecord.prototype.exception;
+
+
+/** @type {number} */
+DbLoggerRecord.prototype.level;
+
+
+/** @type {string} */
+DbLoggerRecord.prototype.logger;
+
+
+/** @type {string} */
+DbLoggerRecord.prototype.name;
+
+
+/** @type {number} */
+DbLoggerRecord.prototype.time;
+
+
+/** @type {string} */
+DbLoggerRecord.prototype.message;
+
+
+/** @type {number} */
+DbLoggerRecord.prototype.seq;
 
 

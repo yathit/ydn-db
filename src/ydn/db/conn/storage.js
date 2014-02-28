@@ -215,13 +215,17 @@ ydn.db.con.Storage.prototype.logger =
 
 /**
  * Get current schema.
- * @param {function(ydn.db.schema.Database)=} opt_callback schema in database.
+ * @param {function(DatabaseSchema)=} opt_callback schema in database.
  * @return {DatabaseSchema} schema in memory. Null if not connected.
  */
 ydn.db.con.Storage.prototype.getSchema = function(opt_callback) {
   if (goog.isDef(opt_callback)) {
+    /**
+     * @param {ydn.db.schema.Database} schema
+     */
     var callback = function(schema) {
       opt_callback(schema.toJSON());
+      opt_callback = undefined;
     };
     if (this.db_) {
       this.db_.getSchema(callback);
