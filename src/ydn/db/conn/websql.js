@@ -474,7 +474,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
           // requirement within a database.
           goog.string.quote(table.getName() + '-' + index.getName()) +
           ' ON ' + table.getQuotedName() +
-          ' (' + goog.string.quote(key_path) + ')';
+          ' (' + index.getSQLIndexColumnNameQuoted() + ')';
       sqls.push(idx_sql);
     }
 
