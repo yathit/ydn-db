@@ -214,6 +214,26 @@ ydn.db.con.Storage.prototype.logger =
 
 
 /**
+ * @param {string} store_name
+ * @return {boolean}
+ */
+ydn.db.con.Storage.prototype.hasStore = function(store_name) {
+  return this.schema.hasStore(store_name);
+};
+
+
+/**
+ * @param {string} store_name
+ * @param {string} index_name
+ * @return {boolean}
+ */
+ydn.db.con.Storage.prototype.hasIndex = function(store_name, index_name) {
+  var store = this.schema.getStore(store_name);
+  return store ? store.hasIndex(index_name) : false;
+};
+
+
+/**
  * Get current schema.
  * @param {function(DatabaseSchema)=} opt_callback schema in database.
  * @return {DatabaseSchema} schema in memory. Null if not connected.
