@@ -160,3 +160,77 @@ DbLoggerRecord.prototype.message;
 DbLoggerRecord.prototype.seq;
 
 
+
+/**
+ * JSON format in result of db.search() query.
+ * Stringify out put of ydn.db.schema.fulltext.Entry.
+ * @constructor
+ */
+var DbFullTextSearchResult = function() {};
+
+
+
+/**
+ * @constructor
+ */
+DbFullTextSearchResult.Token = function() {};
+
+
+/**
+ * Keypath of token.
+ * @type {string}
+ */
+DbFullTextSearchResult.Token.prototype.keyPath;
+
+
+/**
+ * Index of location of matching keyword in the document.
+ * @type {!Array.<number>}
+ */
+DbFullTextSearchResult.Token.prototype.loc;
+
+
+/**
+ * Keyword from the document.
+ * @type {string}
+ */
+DbFullTextSearchResult.Token.prototype.value;
+
+
+/**
+ * Primary key of the document, in which it was found.
+ * @type {IDBKey}
+ */
+DbFullTextSearchResult.prototype.primaryKey;
+
+
+/**
+ * Matching score.
+ * @type {number}
+ */
+DbFullTextSearchResult.prototype.score;
+
+
+/**
+ * Target store name.
+ * @type {string}
+ */
+DbFullTextSearchResult.prototype.storeName;
+
+
+/**
+ * Search result.
+ * @type {!Array.<DbFullTextSearchResult.Token>}
+ */
+DbFullTextSearchResult.prototype.tokens;
+
+
+/**
+ * Search value.
+ * @type {string}
+ */
+DbFullTextSearchResult.prototype.value;
+
+
+
+
