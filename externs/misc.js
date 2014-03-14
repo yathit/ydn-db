@@ -232,5 +232,13 @@ DbFullTextSearchResult.prototype.tokens;
 DbFullTextSearchResult.prototype.value;
 
 
+/**
+ * Record value of given primaryKey from storeName object store. This value
+ * is not set by search return result.
+ * @type {*}
+ */
+DbFullTextSearchResult.prototype.record;
+
+
 
 
