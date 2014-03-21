@@ -75,7 +75,7 @@ ydn.db.sql.req.websql.ReduceNode.prototype.execute = function(df, tx, params) {
    */
   var error_callback = function(tr, error) {
     if (ydn.db.sql.req.WebSql.DEBUG) {
-      window.console.log([sql_stm, tr, error]);
+      goog.global.console.log([sql_stm, tr, error]);
     }
     me.logger.warning('Sqlite error: ' + error.message);
     df(error, true);
@@ -83,7 +83,7 @@ ydn.db.sql.req.websql.ReduceNode.prototype.execute = function(df, tx, params) {
   };
 
   if (ydn.db.sql.req.WebSql.DEBUG) {
-    window.console.log(this + ' open SQL: ' + sql_stm + ' PARAMS:' +
+    goog.global.console.log(this + ' open SQL: ' + sql_stm + ' PARAMS:' +
         ydn.json.stringify(params));
   }
   tx.executeSql(sql_stm, params, callback, error_callback);

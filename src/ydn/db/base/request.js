@@ -255,7 +255,7 @@ ydn.db.Request.prototype.setDbValue = function(value, opt_failed) {
     });
   } else {
     if (ydn.db.Request.DEBUG) {
-      window.console.log(this + ' receiving ' + (failed ? 'fail' : 'value'),
+      goog.global.console.log(this + ' receiving ' + (failed ? 'fail' : 'value'),
           value);
     }
     if (failed) {

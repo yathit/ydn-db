@@ -210,7 +210,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
   var reused = this.isActive() && this.reusedTx(store_names, mode);
   if (ydn.db.tr.Parallel.DEBUG) {
     var act = this.isActive() ? 'active' : 'inactive';
-    window.console.log(this +
+    goog.global.console.log(this +
         ' ' + this.pl_tx_ex_ +
         (reused ? ' reusing ' + act + ' transaction' :
             ' opening ' + act + ' transaction ') +
@@ -245,13 +245,13 @@ ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode,
   if (ydn.db.tr.Parallel.DEBUG) {
     var rdn = 'SN' + Math.random();
     rdn = rdn.replace('.', '');
-    window.console.log(this + ' scheduling to execute ' + store_names + ' ' +
+    goog.global.console.log(this + ' scheduling to execute ' + store_names + ' ' +
         mode + ' ' + rdn);
   }
 
   this.processTx(function(tx) {
     if (ydn.db.tr.Parallel.DEBUG) {
-      window.console.log(me + ' executing ' + rdn);
+      goog.global.console.log(me + ' executing ' + rdn);
     }
     me.r_no_++;
     var rq_label = me.getLabel() + 'R' + me.r_no_;
@@ -273,13 +273,13 @@ ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
   if (ydn.db.tr.Parallel.DEBUG) {
     var rdn = 'SN' + Math.random();
     rdn = rdn.replace('.', '');
-    window.console.log(this + ' scheduling to execute ' + store_names + ' ' +
+    goog.global.console.log(this + ' scheduling to execute ' + store_names + ' ' +
         mode + ' ' + rdn);
   }
 
   this.processTx(function(tx) {
     if (ydn.db.tr.Parallel.DEBUG) {
-      window.console.log(this + ' executing ' + rdn);
+      goog.global.console.log(this + ' executing ' + rdn);
     }
     me.r_no_++;
     rq_label = me.getLabel() + 'R' + me.r_no_;

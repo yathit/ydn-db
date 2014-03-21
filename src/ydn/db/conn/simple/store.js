@@ -203,7 +203,7 @@ ydn.db.con.simple.Store.prototype.getIndexCache = function(opt_index_name) {
       }
     }
     if (ydn.db.con.simple.Store.DEBUG) {
-      window.console.log('index ' + index_name + ' of ' +
+      goog.global.console.log('index ' + index_name + ' of ' +
           this.schema.getName() + ' for ' +
           this.key_indexes[index_name].getCount() + ' records.');
     }
@@ -222,7 +222,7 @@ ydn.db.con.simple.Store.prototype.updateIndex = function(key, value) {
     var cache = this.key_indexes[idx];
     if (cache) {
       if (ydn.db.con.simple.Store.DEBUG) {
-        window.console.log('updating ' + key + ' in index ' + idx + ' of ' +
+        goog.global.console.log('updating ' + key + ' in index ' + idx + ' of ' +
             this.schema.getName());
       }
       if (idx == this.primary_index) {
@@ -250,7 +250,7 @@ ydn.db.con.simple.Store.prototype.removeIndex = function(key, value) {
     var cache = this.key_indexes[idx];
     if (cache) {
       if (ydn.db.con.simple.Store.DEBUG) {
-        window.console.log('removing ' + key + ' in index ' + idx + ' of ' +
+        goog.global.console.log('removing ' + key + ' in index ' + idx + ' of ' +
             this.schema.getName());
       }
       if (idx == this.primary_index) {
@@ -275,7 +275,7 @@ ydn.db.con.simple.Store.prototype.clearIndexCache = function() {
     if (cache) {
       cache.clear();
       if (ydn.db.con.simple.Store.DEBUG) {
-        window.console.log('index ' + idx + ' of ' +
+        goog.global.console.log('index ' + idx + ' of ' +
             this.schema.getName() + ' cleared.');
       }
     }
@@ -306,7 +306,7 @@ ydn.db.con.simple.Store.prototype.addRecord = function(key, value, opt_is_add) {
       this + 'primary key not provided in ' + ydn.json.toShortString(value));
 
   if (ydn.db.con.simple.Store.DEBUG) {
-    window.console.log('add ' + key);
+    goog.global.console.log('add ' + key);
   }
   if (opt_is_add) {
     /*
@@ -535,7 +535,7 @@ ydn.db.con.simple.Store.prototype.removeRecords = function(opt_key_range) {
       me.storage.removeItem(key);
       count++;
       if (ydn.db.con.simple.Store.DEBUG) {
-        window.console.log(count + '. remove ' + x.getKey() + ' ' + key);
+        goog.global.console.log(count + '. remove ' + x.getKey() + ' ' + key);
       }
       if (removed_ids.length < 10) {
         removed_ids.push(x.getKey());
@@ -640,7 +640,7 @@ ydn.db.con.simple.Store.prototype.getItems = function(mth,
     }
   }
   if (ydn.db.con.simple.Store.DEBUG) {
-    window.console.log(this + ' ' + (opt_reverse ? ' rev' : '') +
+    goog.global.console.log(this + ' ' + (opt_reverse ? ' rev' : '') +
         ' from ' + start + ' to ' + end);
   }
   // console.log(opt_reverse, start, end)

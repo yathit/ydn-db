@@ -93,7 +93,7 @@ ydn.db.algo.NestedLoop.prototype.solver = function(keys, values) {
   next(keys.length - 1); // increase one step to the innermost loop
 
   if (ydn.db.algo.NestedLoop.DEBUG) {
-    window.console.log([keys, values, advancement]);
+    goog.global.console.log([keys, values, advancement]);
   }
 
   if (all_restarting) {

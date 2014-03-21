@@ -117,7 +117,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.invokeNextSuccess_ = function() {
   var current_values = this.moveNext_();
 
   if (ydn.db.core.req.CachedWebsqlCursor.DEBUG) {
-    window.console.log(['onSuccess', this.current_cursor_index_].concat(current_values));
+    goog.global.console.log(['onSuccess', this.current_cursor_index_].concat(current_values));
   }
 
   var primary_key = current_values[0];
@@ -254,7 +254,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
    */
   var onSuccess = function(transaction, results) {
     if (ydn.db.core.req.CachedWebsqlCursor.DEBUG) {
-      window.console.log([sql, results]);
+      goog.global.console.log([sql, results]);
     }
     me.has_pending_request = false;
     me.cursor_ = results;
@@ -277,7 +277,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
    */
   var onError = function(tr, error) {
     if (ydn.db.core.req.CachedWebsqlCursor.DEBUG) {
-      window.console.log([sql, tr, error]);
+      goog.global.console.log([sql, tr, error]);
     }
     me.has_pending_request = false;
     me.logger.warning('get error: ' + error.message);
@@ -394,7 +394,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.clear = function() {
      */
     var onSuccess = function(transaction, results) {
       if (ydn.db.core.req.CachedWebsqlCursor.DEBUG) {
-        window.console.log([sql, results]);
+        goog.global.console.log([sql, results]);
       }
       me.has_pending_request = false;
       df.callback(results.rowsAffected);
@@ -407,7 +407,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.clear = function() {
      */
     var onError = function(tr, error) {
       if (ydn.db.core.req.CachedWebsqlCursor.DEBUG) {
-        window.console.log([sql, tr, error]);
+        goog.global.console.log([sql, tr, error]);
       }
       me.has_pending_request = false;
       me.logger.warning('get error: ' + error.message);
@@ -446,7 +446,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
      */
     var onSuccess = function(transaction, results) {
       if (ydn.db.core.req.CachedWebsqlCursor.DEBUG) {
-        window.console.log([sql, results]);
+        goog.global.console.log([sql, results]);
       }
       me.has_pending_request = false;
       df.callback(primary_key);
@@ -459,7 +459,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
      */
     var onError = function(tr, error) {
       if (ydn.db.core.req.CachedWebsqlCursor.DEBUG) {
-        window.console.log([sql, tr, error]);
+        goog.global.console.log([sql, tr, error]);
       }
       me.has_pending_request = false;
       me.logger.warning('get error: ' + error.message);

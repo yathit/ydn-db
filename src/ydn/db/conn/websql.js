@@ -187,7 +187,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
           'while changing version from ' + db.version + ' to ' + new_version +
           ' on ' + dbname);
       if (ydn.db.con.WebSql.DEBUG) {
-        window.console.log(e);
+        goog.global.console.log(e);
       }
       throw e;
     };
@@ -681,7 +681,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
    */
   var error_callback = function(tr, error) {
     if (ydn.db.con.WebSql.DEBUG) {
-      window.console.log([tr, error]);
+      goog.global.console.log([tr, error]);
     }
     throw error;
   };
@@ -764,7 +764,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
      */
     var error_callback = function(tr, error) {
       if (ydn.db.con.WebSql.DEBUG) {
-        window.console.log([tr, error]);
+        goog.global.console.log([tr, error]);
       }
       count++;
       if (count == sqls.length) {
@@ -804,7 +804,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
   }
 
   if (ydn.db.con.WebSql.DEBUG) {
-    window.console.log([sqls, existing_table_schema]);
+    goog.global.console.log([sqls, existing_table_schema]);
   }
 
   me.logger.finest(action + ' table: ' + table_schema.getName() + ': ' +
@@ -947,7 +947,7 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name, opt_type) {
        */
       var error_callback = function(tr, error) {
         if (ydn.db.con.WebSql.DEBUG) {
-          window.console.log([tr, error]);
+          goog.global.console.log([tr, error]);
         }
         throw error;
       };

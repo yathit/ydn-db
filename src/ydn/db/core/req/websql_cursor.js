@@ -141,7 +141,7 @@ ydn.db.core.req.WebsqlCursor.prototype.collect = function(opt_row) {
   this.current_primary_key_ = undefined;
   this.current_value_ = undefined;
   if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-    window.console.log(opt_row);
+    goog.global.console.log(opt_row);
   }
   if (goog.isDef(opt_row)) {
     var row = opt_row;
@@ -258,7 +258,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
    */
   var onSuccess = function(tx, results) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-      window.console.log([sql, results]);
+      goog.global.console.log([sql, results]);
     }
 
     if (results.rows.length > 0) {
@@ -278,7 +278,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
    */
   var onError = function(tr, error) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-      window.console.log([sql, error]);
+      goog.global.console.log([sql, error]);
     }
     me.logger.warning('get error: ' + error.message);
     me.onError(error);
@@ -348,9 +348,9 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
   var onSuccess = function(tx, results) {
     /*
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-      window.console.log(sql);
+      goog.global.console.log(sql);
       for (var r = 0, rn = results.rows.length; r < rn; r++) {
-        window.console.log(results.rows.item(r));
+        goog.global.console.log(results.rows.item(r));
       }
     }
     */
@@ -372,7 +372,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
    */
   var onError = function(tr, error) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-      window.console.log([sql, tr, error]);
+      goog.global.console.log([sql, tr, error]);
     }
     me.logger.warning('get error: ' + error.message);
     me.onError(error);
@@ -429,7 +429,7 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
    */
   var onSuccess = function(transaction, results) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-      window.console.log([sql, results]);
+      goog.global.console.log([sql, results]);
     }
     df.callback(primary_key);
   };
@@ -441,7 +441,7 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
    */
   var onError = function(tr, error) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-      window.console.log([sql, tr, error]);
+      goog.global.console.log([sql, tr, error]);
     }
     df.errback(error);
     return false;
@@ -582,7 +582,7 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
    */
   var onSuccess = function(transaction, results) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-      window.console.log([sql, results]);
+      goog.global.console.log([sql, results]);
     }
     df.callback(results.rowsAffected);
   };
@@ -594,7 +594,7 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
    */
   var onError = function(tr, error) {
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
-      window.console.log([sql, tr, error]);
+      goog.global.console.log([sql, tr, error]);
     }
     df.errback(error);
     return false;

@@ -69,7 +69,7 @@ ydn.db.core.req.IDBCursor.prototype.defaultOnSuccess = function(ev) {
   // console.log(this, this.request_);
   var cursor = ev.target.result;
   if (ydn.db.core.req.IDBCursor.DEBUG) {
-    window.console.log(this + ' onSuccess ' + (cursor ?
+    goog.global.console.log(this + ' onSuccess ' + (cursor ?
         cursor.key + ', ' + cursor.primaryKey : ''));
   }
   if (cursor) {
@@ -179,7 +179,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
    */
   var requestReady = function(key, primaryKey, value) {
     if (ydn.db.core.req.IDBCursor.DEBUG) {
-      window.console.log(me + ' requestReady ' + key);
+      goog.global.console.log(me + ' requestReady ' + key);
     }
     me.request_ = request;
     me.request_.onsuccess = goog.bind(me.defaultOnSuccess, me);
@@ -191,7 +191,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
   if (goog.isDefAndNotNull(key)) {
     // start position is given, cursor must open after this position.
     if (ydn.db.core.req.IDBCursor.DEBUG) {
-      window.console.log(me + ' seeking start position, now ' + key);
+      goog.global.console.log(me + ' seeking start position, now ' + key);
     }
     request.onsuccess = function(ev) {
       var cursor = ev.target.result;
@@ -222,7 +222,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
   } else {
     me.request_ = request;
     if (ydn.db.core.req.IDBCursor.DEBUG) {
-      window.console.log(me + ' ready ', me.request_);
+      goog.global.console.log(me + ' ready ', me.request_);
     }
     me.request_.onsuccess = goog.bind(me.defaultOnSuccess, me);
   }

@@ -145,7 +145,7 @@ ydn.db.core.req.SimpleCursor.prototype.advance = function(step) {
   var cnt = this.current_ ? -1 : 0;
   if (ydn.db.core.req.SimpleCursor.DEBUG) {
     var msg = this.current_ ? ' advancing ' : ' starting ';
-    window.console.log(this + msg + step + ' step');
+    goog.global.console.log(this + msg + step + ' step');
   }
   /**
    * Node traversal function.
@@ -156,7 +156,7 @@ ydn.db.core.req.SimpleCursor.prototype.advance = function(step) {
     cnt++;
     if (!node || cnt >= step) {
       if (ydn.db.core.req.SimpleCursor.DEBUG) {
-        window.console.log('advance to ' + (node ? node.value : 'null'));
+        goog.global.console.log('advance to ' + (node ? node.value : 'null'));
       }
       return me.defaultOnSuccess_(node);
     }
@@ -229,14 +229,14 @@ ydn.db.core.req.SimpleCursor.prototype.dispatchOnSuccess_ = function() {
   setTimeout(function() {
     if (me.result_ready_.state()) {
       if (ydn.db.core.req.SimpleCursor.DEBUG) {
-        window.console.log(this + ' invoke success ' + me.key_);
+        goog.global.console.log(this + ' invoke success ' + me.key_);
       }
       me.result_ready_.down();
       me.onSuccess(me.key_, me.primary_key_, me.value_);
       me.dispatchOnSuccess_();
     } else {
       if (ydn.db.core.req.SimpleCursor.DEBUG) {
-        window.console.log(this + ' complete');
+        goog.global.console.log(this + ' complete');
       }
       me.onCursorComplete_();
       me.onCursorComplete_ = null;
@@ -307,7 +307,7 @@ ydn.db.core.req.SimpleCursor.prototype.defaultOnSuccess_ = function(node) {
   if (ydn.db.core.req.SimpleCursor.DEBUG) {
     var key_str = this.key_ + (this.is_index ?
         ', ' + this.primary_key_ : '');
-    window.console.log(this + ' new position ' + key_str + ' ' +
+    goog.global.console.log(this + ' new position ' + key_str + ' ' +
         this.result_ready_);
   }
 

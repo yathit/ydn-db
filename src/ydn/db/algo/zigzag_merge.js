@@ -101,7 +101,7 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
 
   if (!goog.isDefAndNotNull(keys[0])) {
     if (ydn.db.algo.SortedMerge.DEBUG) {
-      window.console.log('SortedMerge: done.');
+      goog.global.console.log('SortedMerge: done.');
     }
     return [];
   }
@@ -142,14 +142,14 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
       //i += this.degrees_[i]; // skip peer iterators.
     } else {
       if (ydn.db.algo.ZigzagMerge.DEBUG) {
-        window.console.log(this + ': iterator ' + i + ' reach the end');
+        goog.global.console.log(this + ': iterator ' + i + ' reach the end');
       }
       return [];
     }
   }
 
   if (ydn.db.algo.ZigzagMerge.DEBUG) {
-    window.console.log('ZigzagMerge: match: ' + all_match +
+    goog.global.console.log('ZigzagMerge: match: ' + all_match +
         ', highest_key: ' + JSON.stringify(
         /** @type {Object} */ (highest_postfix)) +
         ', keys: ' + JSON.stringify(keys) +

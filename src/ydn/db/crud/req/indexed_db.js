@@ -81,7 +81,7 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(req, stores) {
     var request = store.count();
     request.onsuccess = function(event) {
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log(event);
+        goog.global.console.log(event);
       }
       out[i] = event.target.result;
       i++;
@@ -94,7 +94,7 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(req, stores) {
     };
     request.onerror = function(event) {
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log(event);
+        goog.global.console.log(event);
       }
       event.preventDefault();
       req.setDbValue(request.error, true);
@@ -168,7 +168,7 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
     request.onsuccess = function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, event, i]);
+        goog.global.console.log([store_name, event, i]);
       }
       results[i] = event.target.result;
       if (result_count == objs.length) {
@@ -184,7 +184,7 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
     request.onerror = function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, event, i]);
+        goog.global.console.log([store_name, event, i]);
       }
       var error = request.error;
       me.logger.finest(rq.getLabel() + mth + ' request to "' + store_name +
@@ -259,7 +259,7 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(rq, objs,
     request.onsuccess = function(event) {
       result_count++;
       //if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      //  window.console.log([store_name, event]);
+      //  goog.global.console.log([store_name, event]);
       //}
       results[i] = event.target.result;
       if (result_count == objs.length) {
@@ -275,7 +275,7 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(rq, objs,
     request.onerror = function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, event]);
+        goog.global.console.log([store_name, event]);
       }
       var name = event.name;
       if (goog.DEBUG) {
@@ -373,7 +373,7 @@ ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df,
     request.onsuccess = function(event) {
 
       //if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      //  window.console.log([store_name, event]);
+      //  goog.global.console.log([store_name, event]);
       //}
       results.push(event.target.result);
       if (done) {
@@ -386,7 +386,7 @@ ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df,
     request.onerror = function(event) {
 
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, event]);
+        goog.global.console.log([store_name, event]);
       }
       if (goog.DEBUG && event.name == 'DataError') {
         // give useful info.
@@ -418,7 +418,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(req,
   var request = store.openCursor(ydn.db.IDBKeyRange.only(key));
   request.onsuccess = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, key, event]);
+      goog.global.console.log([store_name, key, event]);
     }
     var cursor = event.target.result;
     if (cursor) {
@@ -436,7 +436,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(req,
   };
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, key, event]);
+      goog.global.console.log([store_name, key, event]);
     }
     event.preventDefault();
     req.setDbValue(request.error, true);
@@ -482,7 +482,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(req, keys) {
     };
     request.onerror = function(event) {
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, key, event]);
+        goog.global.console.log([store_name, key, event]);
       }
       event.preventDefault();
       errors[i] = request.error;
@@ -519,7 +519,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeyRange = function(
   };
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, key_range, event]);
+      goog.global.console.log([store_name, key_range, event]);
     }
     event.preventDefault();
     req.setDbValue(request.error, true);
@@ -621,7 +621,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(req, store_names) {
     request.onsuccess = function(event) {
       n_done++;
       // if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      //   window.console.log([n_done, event]);
+      //   goog.global.console.log([n_done, event]);
       // }
       if (n_done == n_todo) {
         req.setDbValue(n_done);
@@ -630,7 +630,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(req, store_names) {
     request.onerror = function(event) {
       n_done++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([n_done, event]);
+        goog.global.console.log([n_done, event]);
       }
       event.preventDefault();
       if (n_done == n_todo) {
@@ -655,7 +655,7 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
 
   request.onsuccess = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, id, event]);
+      goog.global.console.log([store_name, id, event]);
     }
     me.logger.finest(req.getLabel() + ' record ' + id +
         (goog.isDefAndNotNull(event.target.result) ? ' ' : ' not ') +
@@ -689,7 +689,7 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
 
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, id, event]);
+      goog.global.console.log([store_name, id, event]);
     }
     //me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
     // event.message);
@@ -736,7 +736,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(req,
     request = store.get(ids[i]);
 //    } catch (e) {
 //      if (ydn.db.crud.req.IndexedDb.DEBUG) {
-//        window.console.log([store_name, i, ids[i], e]);
+//        goog.global.console.log([store_name, i, ids[i], e]);
 //        if (e.name == 'DataError') {
 //          // http://www.w3.org/TR/IndexedDB/#widl-IDBObjectStore-get-
 //          // IDBRequest-any-key
@@ -749,7 +749,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(req,
     request.onsuccess = (function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, ids, i, event]);
+        goog.global.console.log([store_name, ids, i, event]);
       }
       results[i] = event.target.result;
       if (result_count == n) {
@@ -765,7 +765,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(req,
     request.onerror = function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([store_name, ids, i, event]);
+        goog.global.console.log([store_name, ids, i, event]);
       }
       event.preventDefault();
       req.setDbValue(request.error, true);
@@ -810,7 +810,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(req, keys) {
     request.onsuccess = function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log(event);
+        goog.global.console.log(event);
       }
       results[i] = event.target.result;
       if (result_count == keys.length) {
@@ -826,7 +826,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(req, keys) {
     request.onerror = function(event) {
       result_count++;
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
-        window.console.log([keys, event]);
+        goog.global.console.log([keys, event]);
       }
       event.preventDefault();
       req.setDbValue(request.error, true);
@@ -881,13 +881,13 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
 
   request.onsuccess = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log(event);
+      goog.global.console.log(event);
     }
     req.setDbValue(event.target.result);
   };
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log(event);
+      goog.global.console.log(event);
     }
     event.preventDefault();
     req.setDbValue(request.error, true);
@@ -1049,7 +1049,7 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
   };
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
-      window.console.log([store_name, event]);
+      goog.global.console.log([store_name, event]);
     }
     event.preventDefault();
     req.setDbValue(request.error, true);

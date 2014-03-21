@@ -738,7 +738,7 @@ ydn.db.Sql_.prototype.toIdbQuery = function(schema) {
     }
   }
 
-  //window.console.log([this, cursor]);
+  //goog.global.console.log([this, cursor]);
   return cursor;
 };
 

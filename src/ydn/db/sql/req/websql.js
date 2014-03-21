@@ -182,7 +182,7 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(rq, sql, params) {
 //   */
 //  var error_callback = function(tr, error) {
 //    if (ydn.db.core.req.WebSql.DEBUG) {
-//      window.console.log([cursor, tr, error]);
+//      goog.global.console.log([cursor, tr, error]);
 //    }
 //    me.logger.warning('Sqlite error: ' + error.message);
 //    df(error, true);

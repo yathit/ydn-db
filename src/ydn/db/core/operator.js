@@ -332,7 +332,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
         out = solver(keys, values);
       }
       if (ydn.db.core.DbOperator.DEBUG) {
-        window.console.log(me + ' received result from solver ' +
+        goog.global.console.log(me + ' received result from solver ' +
             ydn.json.stringify(out) + ' for keys ' + ydn.json.stringify(keys));
       }
       var next_primary_keys = [];
@@ -425,7 +425,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
 
           if (goog.isDefAndNotNull(restart[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
-              window.console.log('cursor ' + cursor + ' of iterator ' +
+              goog.global.console.log('cursor ' + cursor + ' of iterator ' +
                   iterator + ': restarting.');
             }
             goog.asserts.assert(restart[i] === true, i +
@@ -433,19 +433,19 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
             cursor.restart();
           } else if (goog.isDef(next_effective_keys[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
-              window.console.log(iterator + ': continuing to ' +
+              goog.global.console.log(iterator + ': continuing to ' +
                   next_effective_keys[i]);
             }
             cursor.continueEffectiveKey(next_effective_keys[i]);
           } else if (goog.isDefAndNotNull(next_primary_keys[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
-              window.console.log(cursor + ': continuing to primary key ' +
+              goog.global.console.log(cursor + ': continuing to primary key ' +
                   next_primary_keys[i]);
             }
             cursor.continuePrimaryKey(next_primary_keys[i]);
           } else if (goog.isDefAndNotNull(advance[i])) {
             if (ydn.db.core.DbOperator.DEBUG) {
-              window.console.log(iterator + ': advancing ' + advance[i] +
+              goog.global.console.log(iterator + ': advancing ' + advance[i] +
                   ' steps.');
             }
             goog.asserts.assert(advance[i] === 1, i +
@@ -474,7 +474,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
     var on_iterator_next = function(i, opt_key) {
       if (done) {
         if (ydn.db.core.DbOperator.DEBUG) {
-          window.console.log('iterator ' + i + ' done');
+          goog.global.console.log('iterator ' + i + ' done');
         }
         // calling next to a terminated iterator
         throw new ydn.error.InternalError();
@@ -496,7 +496,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
         var key_str = opt_key +
             (goog.isDefAndNotNull(primary_key) ? ', ' + primary_key : '');
         var ready_str = is_result_ready ? ' (all result done)' : '';
-        window.console.log(cursor + ' new position ' + key_str + ready_str);
+        goog.global.console.log(cursor + ' new position ' + key_str + ready_str);
       }
 
       keys[i] = opt_key;

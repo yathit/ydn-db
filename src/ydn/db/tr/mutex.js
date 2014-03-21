@@ -75,7 +75,7 @@ ydn.db.tr.Mutex.DEBUG = false;
 ydn.db.tr.Mutex.prototype.up = function(tx, store_names, mode) {
 
   if (ydn.db.tr.Mutex.DEBUG) {
-    window.console.log(this + ': up');
+    goog.global.console.log(this + ': up');
   }
   // In compiled code, it is permissible to overlap transaction,
   // rather than cause error.
@@ -182,7 +182,7 @@ ydn.db.tr.Mutex.prototype.down = function(type, event) {
   if (this.tx_) {
 
     if (ydn.db.tr.Mutex.DEBUG) {
-      window.console.log(this + ': down');
+      goog.global.console.log(this + ': down');
     }
     // down must be call only once by those who up
     this.tx_ = null;
@@ -229,7 +229,7 @@ ydn.db.tr.Mutex.prototype.inScope = function() {
  */
 ydn.db.tr.Mutex.prototype.lock = function() {
   if (ydn.db.tr.Mutex.DEBUG) {
-    window.console.log(this + ': locked');
+    goog.global.console.log(this + ': locked');
   }
   this.is_locked_ = true;
 };

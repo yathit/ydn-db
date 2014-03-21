@@ -61,7 +61,7 @@ ydn.db.algo.SortedMerge.prototype.solver = function(keys, values) {
 
   if (!goog.isDefAndNotNull(base_key)) {
     if (ydn.db.algo.SortedMerge.DEBUG) {
-      window.console.log('SortedMerge: done.');
+      goog.global.console.log('SortedMerge: done.');
     }
     return [];
   }
@@ -143,7 +143,7 @@ ydn.db.algo.SortedMerge.prototype.solver = function(keys, values) {
   }
 
   if (ydn.db.algo.SortedMerge.DEBUG) {
-    window.console.log('SortedMerge: match: ' + all_match +
+    goog.global.console.log('SortedMerge: match: ' + all_match +
         ', skip: ' + skip +
         ', highest_key: ' + JSON.stringify(highest_key) +
         ', keys: ' + JSON.stringify(keys) +

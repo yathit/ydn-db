@@ -101,7 +101,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       };
       me.idx_db_.onerror = function(e) {
         if (ydn.db.con.IndexedDb.DEBUG) {
-          window.console.log(e);
+          goog.global.console.log(e);
         }
         me.logger.finest(me + ': error');
         var request = /** @type {IDBRequest} */ (e.target);
@@ -118,7 +118,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         // Version_changes_while_a_web_app_is_open_in_another_tab
         //
         if (ydn.db.con.IndexedDb.DEBUG) {
-          window.console.log([this, event]);
+          goog.global.console.log([this, event]);
         }
         me.logger.finest(me + ' closing connection for onversionchange to: ' +
             event.version);
@@ -369,7 +369,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
     var msg = 'open request to database "' + dbname + '" ' + ver +
         ' cause error of ' + openRequest.error.name;
     if (ydn.db.con.IndexedDb.DEBUG) {
-      window.console.log([ev, openRequest]);
+      goog.global.console.log([ev, openRequest]);
     }
     me.logger.severe(msg);
     setDb(null, ev);
@@ -377,7 +377,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
   openRequest.onblocked = function(ev) {
     if (ydn.db.con.IndexedDb.DEBUG) {
-      window.console.log([ev, openRequest]);
+      goog.global.console.log([ev, openRequest]);
     }
     me.logger.severe('database ' + dbname + ' ' + schema.version +
         ' block, close other connections.');
@@ -533,7 +533,7 @@ ydn.db.con.IndexedDb.prototype.getSchema = function(callback, trans, db) {
       throw new ydn.error.InternalError();
     }
   } else {
-    //window.console.log(['trans', trans]);
+    //goog.global.console.log(['trans', trans]);
     idb = trans['db'];
   }
 
@@ -805,7 +805,7 @@ if (goog.DEBUG) {
     req.onsuccess = function(e) {
       var names = e.target.result;
       for (var i = 0; i < names.length; i++) {
-        window.console.info('deleting ' + names[i]);
+        goog.global.console.info('deleting ' + names[i]);
         ydn.db.base.indexedDb.deleteDatabase(names[i]);
       }
     };
