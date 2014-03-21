@@ -634,68 +634,68 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
       this.logger.warning('store: ' + store_schema.getName() +
           ' deleted due to autoIncrement change.');
       store = createAObjectStore();
-    } else {
-
-      var indexNames = /** @type {DOMStringList} */ (store.indexNames);
-
-      var created = 0;
-      var deleted = 0;
-      var modified = 0;
-      for (var j = 0; j < store_schema.countIndex(); j++) {
-        var index = store_schema.index(j);
-        var need_create = false;
-        if (indexNames.contains(index.getName())) {
-          var store_index = store.index(index.getName());
-          // NOTE: Some browser (read: IE10) does not expose multiEntry
-          // attribute in the index object.
-          var dif_unique = goog.isDefAndNotNull(store_index.unique) &&
-              goog.isDefAndNotNull(index.unique) &&
-              store_index.unique != index.unique;
-          var dif_multi = goog.isDefAndNotNull(store_index.multiEntry) &&
-              goog.isDefAndNotNull(index.multiEntry) &&
-              store_index.multiEntry != index.multiEntry;
-          var dif_key_path = goog.isDefAndNotNull(store_index.keyPath) &&
-              goog.isDefAndNotNull(index.keyPath) &&
-              !!ydn.db.schema.Index.compareKeyPath(
-                  store_index.keyPath, index.keyPath);
-          if (dif_unique || dif_multi || dif_key_path) {
-            // console.log('delete index ' + index.name + ' on ' + store.name);
-            store.deleteIndex(index.getName());
-            need_create = true;
-            created--;
-            modified++;
-          }
-        } else if (index.getType() != ydn.db.schema.DataType.BLOB) {
-          // BLOB column data type, used in websql, is not index.
-          need_create = true;
-        }
-        if (need_create) {
-          if (index.unique || index.multiEntry) {
-            var idx_options = {
-              unique: index.unique,
-              multiEntry: index.multiEntry};
-            store.createIndex(index.getName(),
-                // todo: remove this casting after externs is updated.
-                /** @type  {string} */ (index.keyPath),
-                idx_options);
-          } else {
-            store.createIndex(index.getName(),
-                /** @type  {string} */ (index.keyPath));
-          }
-          created++;
-        }
-      }
-      for (var j = 0; j < indexNames.length; j++) {
-        if (!store_schema.hasIndex(indexNames[j])) {
-          store.deleteIndex(indexNames[j]);
-          deleted++;
-        }
-      }
-
-      this.logger.finest('Updated store: ' + store.name + ', ' + created +
-          ' index created, ' + deleted + ' index deleted, ' +
-          modified + ' modified.');
     }
+
+    var indexNames = /** @type {DOMStringList} */ (store.indexNames);
+
+    var created = 0;
+    var deleted = 0;
+    var modified = 0;
+    for (var j = 0; j < store_schema.countIndex(); j++) {
+      var index = store_schema.index(j);
+      var need_create = false;
+      if (indexNames.contains(index.getName())) {
+        var store_index = store.index(index.getName());
+        // NOTE: Some browser (read: IE10) does not expose multiEntry
+        // attribute in the index object.
+        var dif_unique = goog.isDefAndNotNull(store_index.unique) &&
+            goog.isDefAndNotNull(index.unique) &&
+            store_index.unique != index.unique;
+        var dif_multi = goog.isDefAndNotNull(store_index.multiEntry) &&
+            goog.isDefAndNotNull(index.multiEntry) &&
+            store_index.multiEntry != index.multiEntry;
+        var dif_key_path = goog.isDefAndNotNull(store_index.keyPath) &&
+            goog.isDefAndNotNull(index.keyPath) &&
+            !!ydn.db.schema.Index.compareKeyPath(
+                store_index.keyPath, index.keyPath);
+        if (dif_unique || dif_multi || dif_key_path) {
+          // console.log('delete index ' + index.name + ' on ' + store.name);
+          store.deleteIndex(index.getName());
+          need_create = true;
+          created--;
+          modified++;
+        }
+      } else if (index.getType() != ydn.db.schema.DataType.BLOB) {
+        // BLOB column data type, used in websql, is not index.
+        need_create = true;
+      }
+      if (need_create) {
+        if (index.unique || index.multiEntry) {
+          var idx_options = {
+            unique: index.unique,
+            multiEntry: index.multiEntry};
+          store.createIndex(index.getName(),
+              // todo: remove this casting after externs is updated.
+              /** @type  {string} */ (index.keyPath),
+              idx_options);
+        } else {
+          store.createIndex(index.getName(),
+              /** @type  {string} */ (index.keyPath));
+        }
+        created++;
+      }
+    }
+    for (var j = 0; j < indexNames.length; j++) {
+      if (!store_schema.hasIndex(indexNames[j])) {
+        store.deleteIndex(indexNames[j]);
+        deleted++;
+      }
+    }
+
+    this.logger.finest('Updated store: ' + store.name + ', ' + created +
+        ' index created, ' + deleted + ' index deleted, ' +
+        modified + ' modified.');
+
 
   } else {
 

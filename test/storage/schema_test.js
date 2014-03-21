@@ -309,7 +309,33 @@ var test_multiEntry = function() {
   version_unchange_test(schema2, true, 'multiEntry=true:');
 };
 
+var test_key_path_index = function() {
+  var schema = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'x',
+        type: 'TEXT'
+      }
+    ]
+  };
 
+  var schema2 = {
+    stores: [
+      {
+        name: 'st',
+        indexes: [{
+          name: 'y'
+        }]
+      }
+    ]
+  };
+
+  version_unchange_test(schema, false, '1:');
+  version_unchange_test(schema2, false, '2:');
+  version_change_test(schema, schema2, false, '3:');
+  version_change_test(schema2, schema, true, '4:');
+};
 
 var test_composite_key_schema = function() {
 
