@@ -663,6 +663,14 @@ ydn.db.schema.Index.prototype.generateIndex = function(obj) {
 
 
 /**
+ * @return {boolean} true if index use generator index.
+ */
+ydn.db.schema.Index.prototype.isGeneratorIndex = function() {
+  return !!this.index_generator_;
+};
+
+
+/**
  *
  * @param {!IndexSchema} json object in json format.
  * @return {ydn.db.schema.Index} created from input json string.

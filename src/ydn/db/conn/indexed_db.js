@@ -635,8 +635,19 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
           ' deleted due to autoIncrement change.');
       store = createAObjectStore();
     }
-
     var indexNames = /** @type {DOMStringList} */ (store.indexNames);
+
+    // check for new generator index
+    for (var j = 0; j < store_schema.countIndex(); j++) {
+      var index = store_schema.index(j);
+      if (!indexNames.contains(index.getName()) && index.isGeneratorIndex()) {
+        // generator index are only created on put, not on existing one,
+        // instead of deleting all record, we could reindex them.
+        store.clear();
+        this.logger.warning('store: ' + store_schema.getName() +
+            ' cleared since generator index need re-indexing.');
+      }
+    }
 
     var created = 0;
     var deleted = 0;
