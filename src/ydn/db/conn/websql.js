@@ -899,7 +899,8 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
  * @param {string=} opt_type delete only specific types.
  */
 ydn.db.con.WebSql.deleteDatabase = function(db_name, opt_type) {
-  if (!!opt_type && opt_type != ydn.db.base.Mechanisms.WEBSQL) {
+  if (!ydn.db.con.WebSql.isSupported() ||
+      (!!opt_type && opt_type != ydn.db.base.Mechanisms.WEBSQL)) {
     return;
   }
   // WebSQL API does not expose deleting database.

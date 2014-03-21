@@ -696,7 +696,6 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
         ' index created, ' + deleted + ' index deleted, ' +
         modified + ' modified.');
 
-
   } else {
 
     store = createAObjectStore();
