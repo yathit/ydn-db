@@ -20,7 +20,7 @@
 
 
 goog.provide('ydn.db.crud.DbOperator');
-goog.require('goog.debug.Logger');
+goog.require('goog.log');
 goog.require('goog.userAgent');
 goog.require('ydn.db');
 goog.require('ydn.db.Key');
@@ -63,7 +63,7 @@ goog.inherits(ydn.db.crud.DbOperator, ydn.db.tr.DbOperator);
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.DbOperator.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.crud.DbOperator');
+    goog.log.getLogger('ydn.db.crud.DbOperator');
 
 
 /**

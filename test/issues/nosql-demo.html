@@ -17,7 +17,7 @@
     goog.require('ydn.db.algo.ZigzagMerge');
     goog.require('goog.debug.Console');
     goog.require('goog.debug.LogManager');
-    goog.require('goog.debug.Logger');
+    goog.require('goog.log');
     goog.require('ydn.db.ValueIterator');
 </script>
 <script type="text/javascript">
@@ -114,7 +114,7 @@
         var c = new goog.debug.Console();
         c.setCapturing(true);
         goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-        goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+        goog.log.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
 
     }
 </script>

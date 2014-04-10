@@ -58,7 +58,7 @@ goog.inherits(ydn.db.core.DbOperator, ydn.db.crud.DbOperator);
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.core.DbOperator.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.core.DbOperator');
+    goog.log.getLogger('ydn.db.core.DbOperator');
 
 
 /**

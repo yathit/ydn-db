@@ -20,7 +20,7 @@
  */
 
 goog.provide('ydn.db.algo.AbstractSolver');
-goog.require('goog.debug.Logger');
+goog.require('goog.log');
 goog.require('ydn.db');
 goog.require('ydn.db.Streamer');
 
@@ -67,7 +67,7 @@ ydn.db.algo.AbstractSolver = function(opt_out, opt_limit) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.algo.AbstractSolver.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.algo.AbstractSolver');
+    goog.log.getLogger('ydn.db.algo.AbstractSolver');
 
 
 /**

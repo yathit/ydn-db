@@ -50,7 +50,7 @@ ydn.db.core.req.CachedWebsqlCursor.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.core.req.CachedWebsqlCursor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.core.req.CachedWebsqlCursor');
+    goog.log.getLogger('ydn.db.core.req.CachedWebsqlCursor');
 
 
 /**

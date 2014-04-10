@@ -243,7 +243,7 @@ ydn.db.core.req.AbstractCursor.prototype.query_method;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.core.req.AbstractCursor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.core.req.AbstractCursor');
+    goog.log.getLogger('ydn.db.core.req.AbstractCursor');
 
 
 /**

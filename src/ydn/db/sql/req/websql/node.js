@@ -48,7 +48,7 @@ ydn.db.sql.req.websql.Node = function(schema, sql) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.sql.req.websql.Node.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.sql.req.websql.Node');
+    goog.log.getLogger('ydn.db.sql.req.websql.Node');
 
 
 /**

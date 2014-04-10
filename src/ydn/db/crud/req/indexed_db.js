@@ -49,7 +49,7 @@ goog.inherits(ydn.db.crud.req.IndexedDb, ydn.db.crud.req.RequestExecutor);
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.req.IndexedDb.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.crud.req.IndexedDb');
+    goog.log.getLogger('ydn.db.crud.req.IndexedDb');
 
 
 /**

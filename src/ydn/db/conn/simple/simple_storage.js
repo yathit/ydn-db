@@ -54,7 +54,7 @@ goog.inherits(ydn.db.con.SimpleStorage, ydn.db.con.SimpleStorageService);
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.con.SimpleStorage.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.con.SimpleStorage');
+    goog.log.getLogger('ydn.db.con.SimpleStorage');
 
 
 /**

@@ -45,7 +45,7 @@
 goog.provide('ydn.db.Request');
 goog.provide('ydn.db.Request.Method');
 goog.require('ydn.async.Deferred');
-goog.require('goog.debug.Logger');
+goog.require('goog.log');
 goog.require('ydn.db.base.Transaction');
 
 
@@ -61,7 +61,6 @@ goog.require('ydn.db.base.Transaction');
  *     callbacks and errbacks in.
  * @constructor
  * @extends {ydn.async.Deferred}
- * @struct
  */
 ydn.db.Request = function(method, opt_onCancelFunction, opt_defaultScope) {
   goog.base(this, opt_onCancelFunction, opt_defaultScope);
@@ -122,7 +121,7 @@ ydn.db.Request.prototype.tx_label_ = '';
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.Request.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.Request');
+    goog.log.getLogger('ydn.db.Request');
 
 
 /**
@@ -406,13 +405,12 @@ ydn.db.Request.prototype.toString = function() {
  * @suppress {accessControls}
  */
 ydn.db.Request.prototype.fire_ = function() {
-  if (this.unhandledExceptionTimeoutId_ && this.hasFired() &&
-      this.hasErrback_()) {
+  if (this.unhandledErrorId_ && this.hasFired() && this.hasErrback_()) {
     // It is possible to add errbacks after the Deferred has fired. If a new
     // errback is added immediately after the Deferred encountered an unhandled
-    // error, but before that error is rethrown, cancel the rethrow.
-    goog.global.clearTimeout(this.unhandledExceptionTimeoutId_);
-    delete this.unhandledExceptionTimeoutId_;
+    // error, but before that error is rethrown, the error is unscheduled.
+    goog.async.Deferred.unscheduleError_(this.unhandledErrorId_);
+    this.unhandledErrorId_ = 0;
   }
 
   if (this.parent_) {
@@ -433,42 +431,36 @@ ydn.db.Request.prototype.fire_ = function() {
 
     var f = this.hadError_ ? errback : callback;
     if (f) {
-      /* preserveTry */
-      // try {
-      var ret = f.call(scope || this.defaultScope_, res);
 
-      // If no result, then use previous result.
-      if (goog.isDef(ret)) {
-        // Bubble up the error as long as the return value hasn't changed.
-        this.hadError_ = this.hadError_ && (ret == res || this.isError(ret));
-        this.result_ = res = ret;
-      }
+        var ret = f.call(scope || this.defaultScope_, res);
 
-      if (res instanceof goog.async.Deferred) {
-        isNewlyBlocked = true;
-        this.blocked_ = true;
-      }
+        // If no result, then use previous result.
+        if (goog.isDef(ret)) {
+          // Bubble up the error as long as the return value hasn't changed.
+          this.hadError_ = this.hadError_ && (ret == res || this.isError(ret));
+          this.result_ = res = ret;
+        }
 
-      /* } catch (ex) {
-       res = ex;
-       this.hadError_ = true;
+        if (goog.Thenable.isImplementedBy(res)) {
+          isNewlyBlocked = true;
+          this.blocked_ = true;
+        }
 
-       if (!this.hasErrback_()) {
-       // If an error is thrown with no additional errbacks in the queue,
-       // prepare to rethrow the error.
-       unhandledException = true;
-       }
-       } */
     }
   }
 
   this.result_ = res;
 
   if (isNewlyBlocked) {
-    res.addCallbacks(
-        goog.bind(this.continue_, this, true /* isSuccess */),
-        goog.bind(this.continue_, this, false /* isSuccess */));
-    res.blocking_ = true;
+    var onCallback = goog.bind(this.continue_, this, true /* isSuccess */);
+    var onErrback = goog.bind(this.continue_, this, false /* isSuccess */);
+
+    if (res instanceof goog.async.Deferred) {
+      res.addCallbacks(onCallback, onErrback);
+      res.blocking_ = true;
+    } else {
+      res.then(onCallback, onErrback);
+    }
   } else if (goog.async.Deferred.STRICT_ERRORS && this.isError(res) &&
       !(res instanceof goog.async.Deferred.CanceledError)) {
     this.hadError_ = true;
@@ -480,8 +472,7 @@ ydn.db.Request.prototype.fire_ = function() {
     // the error will be seen by global handlers and the user. The throw will
     // be canceled if another errback is appended before the timeout executes.
     // The error's original stack trace is preserved where available.
-    this.unhandledExceptionTimeoutId_ = goog.global.setTimeout(
-        goog.functions.fail(res), 0);
+    this.unhandledErrorId_ = goog.async.Deferred.scheduleError_(res);
   }
 };
 

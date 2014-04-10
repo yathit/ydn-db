@@ -42,7 +42,7 @@ ydn.db.tr.AtomicParallel.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.AtomicParallel.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.tr.AtomicParallel');
+    goog.log.getLogger('ydn.db.tr.AtomicParallel');
 
 
 /**

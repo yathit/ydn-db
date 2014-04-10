@@ -27,7 +27,7 @@ goog.provide('ydn.db.Iterator');
 goog.provide('ydn.db.Iterator.State');
 goog.provide('ydn.db.KeyIterator');
 goog.provide('ydn.db.ValueIterator');
-goog.require('goog.debug.Logger');
+goog.require('goog.log');
 goog.require('goog.functions');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
@@ -384,7 +384,7 @@ ydn.db.Iterator.State = {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.Iterator.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.Iterator');
+    goog.log.getLogger('ydn.db.Iterator');
 
 
 /**

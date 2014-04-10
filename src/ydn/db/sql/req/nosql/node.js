@@ -48,7 +48,7 @@ ydn.db.sql.req.nosql.Node = function(schema, sql) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.sql.req.nosql.Node.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.sql.req.nosql.Node');
+    goog.log.getLogger('ydn.db.sql.req.nosql.Node');
 
 
 /**

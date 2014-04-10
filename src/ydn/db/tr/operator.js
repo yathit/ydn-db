@@ -78,7 +78,7 @@ ydn.db.tr.DbOperator = function(storage, schema, tx_thread, sync_thread) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.DbOperator.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.tr.DbOperator');
+    goog.log.getLogger('ydn.db.tr.DbOperator');
 
 
 /**

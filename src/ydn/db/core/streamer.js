@@ -60,7 +60,7 @@ ydn.db.Streamer = function(storage, store_name, opt_field_name) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.Streamer.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.Streamer');
+    goog.log.getLogger('ydn.db.Streamer');
 
 
 /**

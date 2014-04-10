@@ -55,7 +55,7 @@ ydn.db.tr.Mutex.prototype.tx_;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.Mutex.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.tr.Mutex');
+    goog.log.getLogger('ydn.db.tr.Mutex');
 
 
 /**

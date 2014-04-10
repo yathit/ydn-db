@@ -22,7 +22,7 @@
 
 goog.provide('ydn.db.con.WebSql');
 goog.require('goog.async.Deferred');
-goog.require('goog.debug.Logger');
+goog.require('goog.log');
 goog.require('goog.functions');
 goog.require('ydn.db.SecurityError');
 goog.require('ydn.db.base');
@@ -379,7 +379,7 @@ ydn.db.con.WebSql.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.con.WebSql.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.con.WebSql');
+    goog.log.getLogger('ydn.db.con.WebSql');
 
 
 /**

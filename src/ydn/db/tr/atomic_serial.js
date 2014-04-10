@@ -55,7 +55,7 @@ ydn.db.tr.AtomicSerial.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.AtomicSerial.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.tr.AtomicSerial');
+    goog.log.getLogger('ydn.db.tr.AtomicSerial');
 
 
 /**

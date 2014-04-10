@@ -53,7 +53,7 @@ ydn.db.sql.req.IndexedDb.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.sql.req.IndexedDb.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.sql.req.IndexedDb');
+    goog.log.getLogger('ydn.db.sql.req.IndexedDb');
 
 
 /**

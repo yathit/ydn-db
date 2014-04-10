@@ -58,7 +58,7 @@ ydn.db.core.req.IDBCursor.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.core.req.IDBCursor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.core.req.IDBCursor');
+    goog.log.getLogger('ydn.db.core.req.IDBCursor');
 
 
 /**

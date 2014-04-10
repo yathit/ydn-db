@@ -54,7 +54,7 @@ ydn.db.sql.req.WebSql.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.sql.req.WebSql.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.sql.req.WebSql');
+    goog.log.getLogger('ydn.db.sql.req.WebSql');
 
 
 /**

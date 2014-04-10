@@ -480,7 +480,7 @@ ydn.db.con.IndexedDb.prototype.isReady = function() {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.con.IndexedDb.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.con.IndexedDb');
+    goog.log.getLogger('ydn.db.con.IndexedDb');
 
 
 /**

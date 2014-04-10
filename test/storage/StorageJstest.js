@@ -17,9 +17,9 @@ ydn.store.StorageJstest.prototype.setUp = function() {
   var c = new goog.debug.Console();
   c.setCapturing(true);
   goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
-  //goog.debug.Logger.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.debug.Logger.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
+  //goog.log.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
+  goog.log.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
+  goog.log.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
 
   this.dbname = 'storage_test_4-';
 

@@ -22,7 +22,7 @@
 
 goog.provide('ydn.db.crud.req.WebSql');
 goog.require('goog.async.Deferred');
-goog.require('goog.debug.Logger');
+goog.require('goog.log');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.crud.req.IRequestExecutor');
 goog.require('ydn.db.crud.req.RequestExecutor');
@@ -83,7 +83,7 @@ ydn.db.crud.req.WebSql.RW_REQ_PER_TX = 2;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.req.WebSql.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.crud.req.WebSql');
+    goog.log.getLogger('ydn.db.crud.req.WebSql');
 
 
 /**

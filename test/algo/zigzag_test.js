@@ -10,7 +10,7 @@ var reachedFinalContinuation;
 var debug_console = new goog.debug.Console();
 debug_console.setCapturing(true);
 goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.WARNING);
-//goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
+//goog.log.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
 
 var db_name = 'test_zigzag_test_5';
 

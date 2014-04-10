@@ -55,7 +55,7 @@ ydn.db.algo.ZigzagMerge.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.algo.ZigzagMerge.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.algo.ZigzagMerge');
+    goog.log.getLogger('ydn.db.algo.ZigzagMerge');
 
 
 /**

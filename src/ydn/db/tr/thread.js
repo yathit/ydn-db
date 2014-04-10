@@ -21,7 +21,7 @@
 goog.provide('ydn.db.tr.Thread');
 goog.provide('ydn.db.tr.Thread.Policy');
 goog.require('ydn.db.Request');
-goog.require('goog.debug.Logger');
+goog.require('goog.log');
 
 
 
@@ -126,7 +126,7 @@ ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.Thread.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.tr.Thread');
+    goog.log.getLogger('ydn.db.tr.Thread');
 
 
 /**

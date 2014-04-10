@@ -51,7 +51,7 @@ ydn.db.sql.req.SimpleStore.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.sql.req.SimpleStore.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.sql.req.SimpleStore');
+    goog.log.getLogger('ydn.db.sql.req.SimpleStore');
 
 
 /**

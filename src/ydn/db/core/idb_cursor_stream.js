@@ -21,7 +21,7 @@
  */
 
 goog.provide('ydn.db.con.IdbCursorStream');
-goog.require('goog.debug.Logger');
+goog.require('goog.log');
 goog.require('ydn.db.con.ICursorStream');
 goog.require('ydn.db.con.IStorage');
 
@@ -74,7 +74,7 @@ ydn.db.con.IdbCursorStream = function(db, store_name, index_name, sink) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.con.IdbCursorStream.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.con.IdbCursorStream');
+    goog.log.getLogger('ydn.db.con.IdbCursorStream');
 
 
 /**

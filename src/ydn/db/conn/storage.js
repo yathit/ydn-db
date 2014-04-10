@@ -210,7 +210,7 @@ ydn.db.con.Storage.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.con.Storage.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.con.Storage');
+    goog.log.getLogger('ydn.db.con.Storage');
 
 
 /**

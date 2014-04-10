@@ -67,7 +67,7 @@ ydn.db.core.req.WebsqlCursor.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.core.req.WebsqlCursor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.core.req.WebsqlCursor');
+    goog.log.getLogger('ydn.db.core.req.WebsqlCursor');
 
 
 /**

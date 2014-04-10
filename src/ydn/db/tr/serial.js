@@ -114,7 +114,7 @@ ydn.db.tr.Serial.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.Serial.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.tr.Serial');
+    goog.log.getLogger('ydn.db.tr.Serial');
 
 
 /**

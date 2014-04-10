@@ -13,8 +13,8 @@ var div = document.getElementById('console');
 var c = new goog.debug.DivConsole(div);
 c.setCapturing(true);
 
-goog.debug.Logger.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
-goog.debug.Logger.getLogger('ydn.db.conn').setLevel(goog.debug.Logger.Level.FINEST);
+goog.log.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINE);
+goog.log.getLogger('ydn.db.conn').setLevel(goog.debug.Logger.Level.FINEST);
 
 // NOTE: size is only used in WebSQL
 var options = {

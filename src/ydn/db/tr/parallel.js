@@ -82,7 +82,7 @@ ydn.db.tr.Parallel.DEBUG = false;
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.tr.Parallel.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.tr.Parallel');
+    goog.log.getLogger('ydn.db.tr.Parallel');
 
 
 /**

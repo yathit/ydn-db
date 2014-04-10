@@ -50,7 +50,7 @@ goog.inherits(ydn.db.crud.req.SimpleStore, ydn.db.crud.req.RequestExecutor);
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.req.SimpleStore.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.crud.req.SimpleStore');
+    goog.log.getLogger('ydn.db.crud.req.SimpleStore');
 
 
 /**

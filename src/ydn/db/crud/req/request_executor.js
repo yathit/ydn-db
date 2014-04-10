@@ -25,7 +25,7 @@
 
 goog.provide('ydn.db.crud.req.RequestExecutor');
 goog.require('goog.async.Deferred');
-goog.require('goog.debug.Logger');
+goog.require('goog.log');
 goog.require('ydn.db.InternalError');
 goog.require('ydn.db.Key');
 
@@ -58,7 +58,7 @@ ydn.db.crud.req.RequestExecutor = function(dbname, schema) {
  * @type {goog.debug.Logger} logger.
  */
 ydn.db.crud.req.RequestExecutor.prototype.logger =
-    goog.debug.Logger.getLogger('ydn.db.crud.req.RequestExecuto');
+    goog.log.getLogger('ydn.db.crud.req.RequestExecuto');
 
 
 if (goog.DEBUG) {
