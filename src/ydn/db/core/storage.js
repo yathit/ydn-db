@@ -101,7 +101,7 @@ ydn.db.core.Storage.prototype.listIter = function(mth, iter,
 
 /**
  * Cursor scan iteration.
- * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
+ * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): (Array|undefined)} solver
  * solver.
  * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
  * @return {!goog.async.Deferred} promise on completed.

@@ -241,7 +241,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
 
 /**
  * Cursor scan iteration.
- * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): !Array} solver
+ * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): (Array|undefined)} solver
  * solver.
  * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
  *  @param {ydn.db.base.TransactionMode=} opt_mode mode. Expose for friendly
@@ -333,7 +333,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
       }
       if (ydn.db.core.DbOperator.DEBUG) {
         goog.global.console.log(me + ' received result from solver ' +
-            ydn.json.stringify(out) + ' for keys ' + ydn.json.stringify(keys));
+            out + ' for keys ' + ydn.json.stringify(keys));
       }
       var next_primary_keys = [];
       var next_effective_keys = [];
