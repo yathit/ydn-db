@@ -1603,7 +1603,8 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
         }, this);
 
         if (store.dispatch_events) {
-          req.addCallback(function(key) {
+          req.addCallback(function(cnt_deleted) {
+            var key = cnt_deleted == 1 ? id : undefined;
             var event = new ydn.db.events.RecordEvent(
                 ydn.db.events.Types.DELETED,
                 this.getStorage(), store_name, key, undefined);
@@ -1623,10 +1624,12 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
           this.getCrudExecutor().removeByKeyRange(req, store_name, key_range);
         }, this);
         if (store.dispatch_events) {
-          req.addCallback(function(key) {
+          req.addCallback(function(n_keys) {
+            var keys = []; // todo: get list of keys delted
+            keys.length = n_keys;
             var event = new ydn.db.events.StoreEvent(
                 ydn.db.events.Types.DELETED,
-                this.getStorage(), store_name, key, undefined);
+                this.getStorage(), store_name, keys, undefined);
             this.getStorage().dispatchDbEvent(event);
           }, this);
         }
