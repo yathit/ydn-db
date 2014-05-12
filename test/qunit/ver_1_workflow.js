@@ -45,6 +45,93 @@ var events_schema = {
       type: 'NUMERIC'}
   ]};
 
+
+(function () {
+
+
+  var db;
+  var test_env = {
+    setup: function () {
+      var db_name = 'test_tb' + Math.random();
+      db = new ydn.db.Storage(db_name, events_schema);
+    },
+    teardown: function () {
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
+    }
+  };
+  var suite_name = 'Promise';
+  module(suite_name, test_env);
+  reporter.createTestSuite(suite_name, 'chaining');
+  asyncTest("use promise chaining", 2, function () {
+
+    db.addEventListener('ready', function (e) {
+      var data = [{id: 1, value: 'a'}, {id: 2, value: 'b'}];
+      db.put(store_inline, data);
+      db.get(store_inline, 1).done(function(x) {
+        equal(x.value, 'a', 'direct result');
+        x.value = 'A';
+        return x;
+      }).done(function(x) {
+        equal(x.value, 'A', 'transform result');
+        start();
+      });
+
+    });
+
+  });
+
+  // FIXME: QUnit do not support testing Promise throwing error
+  /*
+  asyncTest("use promise chaining with error", 2, function () {
+
+    db.addEventListener('ready', function (e) {
+      var data = [{id: 1, value: 'a'}, {id: 2, value: 'b'}];
+      db.put(store_inline, data);
+      db.get(store_inline, 1).then(function(x) {
+        equal(x.value, 'a', 'direct result');
+
+        throw new Error('switch to error');
+      }).then(function(x) {
+
+        ok(false, 'should not get result');
+        start();
+      }, function(e) {
+
+        ok(true, 'got error');
+        start();
+      });
+
+    });
+
+  });
+  */
+
+  asyncTest("multi stores chaining", 3, function () {
+
+    db.addEventListener('ready', function (e) {
+      var data = [{id: 1, value: 'a'}, {id: 2, value: 'b'}];
+      db.put(store_inline, data);
+      db.put(store_outline, {value: 'c'}, 3);
+      var req = db.values(store_inline, null).then(function(x) {
+        var id = x.reduce(function(p, x) {
+          return p + x.id;
+        }, 0);
+        equal(id, 3, 'sum');
+        return db.get(store_outline, id);
+      });
+      ok(!!req && !!req.then, 'return a promise');
+      req.then(function(x) {
+        equal(x.value, 'c', 'result');
+        start();
+      });
+
+    });
+
+  });
+
+})();
+
 (function () {
 
   var db_name_event = 'test_tb' + Math.random();
