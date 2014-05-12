@@ -158,7 +158,8 @@
         </sequential>
     </target>
     <target name="github" description="push to github">
-        <echo>git branch github</echo>
+        <echo>$ git branch github</echo>
+        <echo>git checkout github</echo>
         <echo>ant build</echo>
         <echo>git add src/deps.js</echo>
         <echo>git add jsc/ydn.db-dev.js</echo>
