@@ -20,6 +20,8 @@ goog.exportProperty(ydn.db.Query.prototype, 'patch',
     ydn.db.Query.prototype.patch);
 goog.exportProperty(ydn.db.Query.prototype, 'reverse',
     ydn.db.Query.prototype.reverse);
+goog.exportProperty(ydn.db.Query.prototype, 'unique',
+    ydn.db.Query.prototype.unique);
 goog.exportProperty(ydn.db.Query.prototype, 'where',
     ydn.db.Query.prototype.where);
 
