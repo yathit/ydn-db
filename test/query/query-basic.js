@@ -195,44 +195,44 @@
 
 (function() {
 
-  var db_name = 'test_query_to_list-2';
   var store_inline_index = 'ts6';    // in-line key store
   var schema_1 = {
     stores: [
       {
         name: store_inline_index,
-        keyPath: 'id'
+        keyPath: 'id',
+        indexes: [{
+          name: 'value'
+        }]
       }
     ]
   };
   var test_count = 0;
 
   var objs = [
-    {test: 't' + Math.random(), value: 4, id: 0, name: 'a', tags: ['a', 'b']},
+    {test: 't' + Math.random(), value: 14, id: 0, name: 'a', tags: ['a', 'b']},
     {test: 't' + Math.random(), value: 10, id: 1, name: 'a', tags: ['x']},
     {test: 't' + Math.random(), value: 0, id: 2, name: 'a', tags: ['z']},
-    {test: 't' + Math.random(), value: 2, id: 3, name: 'bc',
+    {test: 't' + Math.random(), value: 13, id: 3, name: 'bc',
       tags: ['a', 'd', 'c']},
-    {test: 't' + Math.random(), value: 2, id: 4, name: 'bc', tags: ['e', 'c']},
-    {test: 't' + Math.random(), value: 8, id: 5, name: 'c', tags: ['b']},
-    {test: 't' + Math.random(), value: 2, id: 6, name: 'c', tags: ['a']}
+    {test: 't' + Math.random(), value: 13, id: 4, name: 'bc', tags: ['e', 'c']},
+    {test: 't' + Math.random(), value: 18, id: 5, name: 'c', tags: ['b']},
+    {test: 't' + Math.random(), value: 12, id: 6, name: 'c', tags: ['a']}
   ];
 
-
-  var db = new ydn.db.Storage(db_name, schema_1, options);
-  db.clear(store_inline_index);
-  db.put(store_inline_index, objs).always(function() {
-
-  });
-
-
+  var db;
   var test_env = {
     setup: function() {
+      var db_name = 'test_query_to_list-' + Math.random();
+
+      db = new ydn.db.Storage(db_name, schema_1, options);
+      db.put(store_inline_index, objs).always(function() {
+
+      });
     },
     teardown: function() {
-      var type = db.getType();
+      ydn.db.deleteDatabase(db.getName(), db.getType());
       db.close();
-      ydn.db.deleteDatabase(db_name, type);
     }
   };
 
@@ -241,6 +241,7 @@
   var keys = objs.map(function(x) {
     return x.id;
   });
+
   asyncTest('primary keys by key range', 3, function() {
 
     var q = db.from(store_inline_index, '>=', 1, '<=', 3);
@@ -256,6 +257,27 @@
 
     q.copy().select('id').list(1).always(function(x) {
       deepEqual(x, keys.slice(1, 2), 'closed bound limit');
+      start();
+    });
+
+  });
+
+
+  var values = objs.map(function(x) {
+    return x.values;
+  }).sort();
+
+  asyncTest('index keys by key range', 2, function() {
+
+    var q = db.from(store_inline_index).where('value', '>=', 13, '<=', 14);
+    q.select('value').list().always(function(x) {
+      // console.log(x, keys.slice(1, 4))
+      deepEqual(x, [13, 13, 14], 'closed bound - index');
+    });
+
+    q.select('id').list().always(function(x) {
+      // console.log(x, keys.slice(1, 4))
+      deepEqual(x, [3, 4, 0], 'closed bound - primary');
       start();
     });
 
@@ -422,7 +444,6 @@
 
 (function() {
 
-  var db_name = 'test_query_to_list-7';
   var store_inline_index = 'ts6';    // in-line key store
   var schema_1 = {
     stores: [
@@ -436,7 +457,7 @@
       }
     ]
   };
-  var test_count = 0;
+
   var df = $.Deferred();
 
   var objs = [
@@ -454,41 +475,53 @@
         a.id > b.id ? 1 : a.id < b.id ? -1 : 0;
   };
 
-  // persist store data.
-  (function() {
-    var _db = new ydn.db.Storage(db_name, schema_1, options);
-    _db.clear(store_inline_index);
-    _db.put(store_inline_index, objs).always(function() {
-      _db.close();
-      setTimeout(function() {
-        df.resolve();
-      }, 100);
-    });
-  })();
-
   var db;
 
   module('query,query-unique', {
     setup: function() {
-      db = new ydn.db.Storage(db_name, schema_1, options);
+      var db_name = 'test_query_to_list-' + Math.random();
+      var _db = new ydn.db.Storage(db_name, schema_1, options);
+      _db.clear(store_inline_index);
+      _db.put(store_inline_index, objs).always(function() {
+        _db.close();
+        db = new ydn.db.Storage(db_name, schema_1, options);
+        df.resolve();
+      });
     },
     teardown: function() {
       var type = db.getType();
-      test_count++;
       db.close();
-      ydn.db.deleteDatabase(db_name, type);
+      ydn.db.deleteDatabase(db.getName(), type);
     }
   });
   reporter.createTestSuite('query');
 
-  asyncTest('unique index', 1, function() {
+  asyncTest('unique index', 2, function() {
     df.always(function() {
       var q = db.from(store_inline_index).select('tags').unique(true);
       q.list().always(function(x) {
         //console.log(q)
         deepEqual(x, ['a', 'b', 'c'], 'unique index keys');
+
+      });
+
+      q = db.from(store_inline_index).select('tags').unique(false);
+      q.list().always(function(x) {
+        //console.log(q)
+        deepEqual(x, ["a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "b",
+          "b",
+          "b",
+          "b",
+          "c",
+          "c"], 'non unique index keys');
         start();
       });
+
 
     });
   });

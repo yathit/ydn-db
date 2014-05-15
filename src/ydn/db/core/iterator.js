@@ -539,13 +539,25 @@ ydn.db.Iterator.prototype.clone = function() {
 
 
 /**
- * Copy this iterator with settign key only to true to true.
+ * Copy this iterator with setting key only to true.
  * @see copy
  * @return {!ydn.db.Iterator}
  */
 ydn.db.Iterator.prototype.asKeyIterator = function() {
   return new ydn.db.Iterator(this.store_name_, this.index_name_,
       this.key_range_, this.isReversed(), this.isUnique(), true,
+      this.index_key_path_);
+};
+
+
+/**
+ * Copy this iterator with setting key only to false.
+ * @see copy
+ * @return {!ydn.db.Iterator}
+ */
+ydn.db.Iterator.prototype.asValueIterator = function() {
+  return new ydn.db.Iterator(this.store_name_, this.index_name_,
+      this.key_range_, this.isReversed(), this.isUnique(), false,
       this.index_key_path_);
 };
 

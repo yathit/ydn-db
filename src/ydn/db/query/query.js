@@ -116,6 +116,13 @@ ydn.db.Query.prototype.order = function(order) {
 ydn.db.Query.prototype.where = function(index_name, op, value, opt_op2,
     opt_value2) {
   if (!this.iter.getIndexName() || this.iter.getIndexName() == index_name) {
+    if (!this.iter.getIndexName()) {
+      var store = this.schema.getStore(this.iter.getStoreName());
+      if (!store.hasIndex(index_name)) {
+        throw new ydn.debug.error.ArgumentException('index "' + index_name + '" not exists in ' +
+            this.iter.getStoreName());
+      }
+    }
     var iter = this.iter.clone();
     var msg = iter.where(index_name, op, value, opt_op2, opt_value2);
     if (msg) {
@@ -163,6 +170,7 @@ ydn.db.Query.prototype.select = function(field_name_s) {
       if (msg) {
         throw new ydn.debug.error.ArgumentException(msg);
       }
+      type = ydn.db.base.QueryMethod.LIST_KEY;
     } else {
       throw new ydn.debug.error.ArgumentException('Invalid select "' +
           field + '", index not found in store "' +
@@ -263,6 +271,10 @@ ydn.db.Query.prototype.getOrder = function() {
  * @return {!ydn.db.Request}
  */
 ydn.db.Query.prototype.patch = function(arg1, opt_arg2) {
+  var iter = this.getIterator();
+  if (iter.isKeyIterator()) {
+    iter = iter.asValueIterator();
+  }
   if (goog.DEBUG) {
     if (arguments.length < 1) {
       throw new ydn.debug.error.ArgumentException('too few arguments');
@@ -306,7 +318,7 @@ ydn.db.Query.prototype.patch = function(arg1, opt_arg2) {
       }
     }
     req.awaitDeferred(cursor.update(val));
-  }, this.getIterator(), ydn.db.base.TransactionMode.READ_WRITE, this);
+  }, iter, ydn.db.base.TransactionMode.READ_WRITE, this);
   return req;
 };
 

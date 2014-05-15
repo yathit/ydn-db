@@ -12,8 +12,9 @@
 
 
 /**
- * @fileoverview Query Iterator.
+ * @fileoverview Iterator builder.
  *
+ * Provide iterator.
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
 
@@ -84,6 +85,15 @@ ydn.db.query.Iterator.prototype.setPrefix = function(prefix) {
  * @return {string?} error message return, if require index not exist.
  */
 ydn.db.query.Iterator.prototype.setOrder = function(postfix) {
+  // remove ordering as in prefix
+  var n = postfix.length;
+  for (var i = n - 1; i >= 0; i--) {
+    if (postfix[i] == this.prefix[this.prefix.length - 1]) {
+      postfix = postfix.slice(0, i);
+    } else {
+      break;
+    }
+  }
   this.postfix = postfix;
   return null;
 };
@@ -180,8 +190,7 @@ ydn.db.query.Iterator.prototype.hasValidIndex = function() {
   if (!this.usedIndex()) {
     return true;
   }
-  var index = this.getIndex();
-  return true;
+  return !!this.getIndex(); // there must be an index
 };
 
 
