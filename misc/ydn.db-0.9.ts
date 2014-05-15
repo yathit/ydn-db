@@ -51,14 +51,14 @@ interface StorageOptions {
   requestType?: string;
 }
 
-declare module ydb.db
+declare module ydn.db
 {
   export class Request {
     abort();
-    always(callback: (data: any));
-    done(callback: (data: any));
-    fail(callback: (data: any));
-    then(success_callback: (data: any), error_callback: (data: Error));
+    always(callback: (data: any) => void);
+    done(callback: (data: any) => void);
+    fail(callback: (data: any) => void);
+    then(success_callback: (data: any) => any, error_callback: (data: Error) => any);
     canAbort(): boolean;
   }
 
@@ -110,32 +110,40 @@ declare module ydb.db
 
   export class IndexKeyIterator extends Iterator {
     constructor(store_name: string, index_name: string, key_range?: any, reverse?: bool);
+
+    static where (store_name: string, index_name: string, op: Op, value: any, op2: Op, value2: any);
+
   }
-  export function IndexKeyIterator.where(store_name: string, index_name: string, op: Op, value: any, op2: Op, value2: any);
 
   export class KeyIterator extends Iterator {
     constructor(store_name: string, key_range?: any, reverse?: bool);
+
+    static where(store_name: string, op: Op, value: any, op2: Op, value2: any);
+
   }
-  export function KeyIterator.where(store_name: string, op: Op, value: any, op2: Op, value2: any);
 
   export class ValueIterator extends Iterator {
     constructor(store_name: string, key_range?: any, reverse?: bool);
+
+    static where(store_name: string, op: Op, value: any, op2: Op, value2: any);
+
   }
-  export function ValueIterator.where(store_name: string, op: Op, value: any, op2: Op, value2: any);
 
   export class IndexValueIterator extends Iterator {
     constructor(store_name: string, index_name: string, key_range?: any, reverse?: bool);
+
+    static where(store_name: string, index_name: string, op: Op, value: any, op2: Op, value2: any);
+
   }
-  export function IndexValueIterator.where(store_name: string, index_name: string, op: Op, value: any, op2: Op, value2: any);
 
   export class Streamer {
     constructor(storage?: ydn.db.Storage, store_name: string, index_name?: string, foreign_index_name?: string);
 
     push(key: any, value?: any);
 
-    collect(callback: (values: any[]));
+    collect(callback: (values: any[]) => void);
 
-    setSink(callback: (key: any, value: any, toWait: (): bool));
+    setSink(callback: (key: any, value: any, toWait: () => bool) => void);
   }
 
   export class ICursor {
@@ -148,7 +156,7 @@ declare module ydb.db
 
   export class Query {
     count(): Request;
-    open(callback: (ICursor), Iterator, TransactionMode): Request;
+    open(callback: (ICursor)=>void, Iterator, TransactionMode): Request;
     patch(Object): Request;
     patch(field_name: string, value: any): Request;
     patch(field_names: string[], value: any[]): Request;
@@ -184,12 +192,12 @@ declare module ydb.db
 
     get(store_name: string, key: any) : Request;
 
-    keys(iter: ydb.db.Iterator, limit?: number) : Request;
+    keys(iter: Iterator, limit?: number) : Request;
     keys(store_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool) : Request;
     keys(store_name: string, index_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool) : Request;
     keys(store_name: string, limit?: bool, offset?: number) : Request;
 
-    open(next_callback: (cursor: ICursor): any, iterator: ydb.db.Iterator, mode: TransactionMode) : Request;
+    open(next_callback: (cursor: ICursor) => any, iterator: Iterator, mode: TransactionMode) : Request;
 
     put(store_name: string, value: any, key: any) : Request;
     put(store_name: string, value: any[], key: any[]) : Request;
@@ -199,10 +207,9 @@ declare module ydb.db
     remove(store_name: string, index_name: string, id_or_key_range: any) : Request;
     clear(store_name: string, key_or_key_range: any) : Request;
 
-    scan(solver: (keys: any[], values: any[]), iterators: ydb.db.Iterator[]) : Request;
-    scan(solver: ydn.db.algo.Solver, iterators: ydb.db.Iterator[]) : Request;
+    scan(solver: (keys: any[], values: any[]) => any, iterators: Iterator[]) : Request;
 
-    values(iter: ydb.db.Iterator, limit?: number) : Request;
+    values(iter: Iterator, limit?: number) : Request;
     values(store_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool) : Request;
     values(store_name: string, index_name: string, key_range?: Object, limit?: number, offset?: number, reverse?: bool) : Request;
     values(store_name: string, ids?: Array) : Request;
@@ -213,8 +220,8 @@ declare module ydb.db
 
     constructor(db_name?:string, schema?: DatabaseSchemaJson, options?: StorageOptions);
 
-    addEventListener(type: EventType, handler: (event: any), capture?: bool);
-    addEventListener(type: EventType[], handler: (event: any), capture?: bool);
+    addEventListener(type: EventType, handler: (event: any) => void, capture?: bool);
+    addEventListener(type: EventType[], handler: (event: any) => void, capture?: bool);
 
     branch (thread: Policy, isSerial: bool, scope: string[], mode: TransactionMode, maxRequest: number): DbOperator;
 
@@ -228,16 +235,18 @@ declare module ydb.db
 
     getType(): string;
 
-    removeEventListener(type: EventType, handler: (event: any), capture?: bool);
-    removeEventListener(type: EventType[], handler: (event: any), capture?: bool);
+    onReady (Error?);
 
-    run(callback: (iStorage: ydn.db.Storage), store_names: string[], mode: TransactionMode) : Request;
+    removeEventListener(type: EventType, handler: (event: any) => void, capture?: bool);
+    removeEventListener(type: EventType[], handler: (event: any) => void, capture?: bool);
+
+    run(callback: (iStorage: ydn.db.Storage) => void, store_names: string[], mode: TransactionMode) : Request;
 
     search(catalog_name: string) : Request;
 
     setName(name: string);
 
-    transaction(callback: (tx: any), store_names: string[], mode: TransactionMode, completed_handler: (type:string, e?: Error));
+    transaction(callback: (tx: any) => void, store_names: string[], mode: TransactionMode, completed_handler: (type:string, e?: Error) => void);
 
   }
 }
@@ -249,15 +258,15 @@ declare module ydb.db.algo {
   }
 
   export class NestedLoop extends Solver {
-    constructor(out:{push: (value:any)}, limit?:number);
+    constructor(out:{push: (value:any) => void}, limit?:number);
   }
 
   export class SortedMerge extends Solver {
-    constructor(out:{push: (value:any)}, limit?:number);
+    constructor(out:{push: (value:any) => void}, limit?:number);
   }
 
   export class ZigzagMerge extends Solver {
-    constructor(out:{push: (value:any)}, limit?:number);
+    constructor(out:{push: (value:any) => void}, limit?:number);
   }
 
 }
@@ -283,7 +292,7 @@ declare module ydn.db.events {
 
   export class StorageEvent extends Event {
 
-    getError(): Error?;
+    getError(): Error;
 
     getVersion(): number;
 
