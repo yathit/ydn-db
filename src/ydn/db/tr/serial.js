@@ -197,7 +197,7 @@ ydn.db.tr.Serial.prototype.popTxQueue_ = function() {
   var task = this.trQueue_.shift();
   if (task) {
     if (ydn.db.tr.Serial.DEBUG) {
-      this.logger.finest('pop tx queue[' + this.trQueue_.length + ']');
+      goog.log.finest(this.logger, 'pop tx queue[' + this.trQueue_.length + ']');
     }
     this.processTx(task.fnc, task.store_names, task.mode, task.oncompleted);
   }
@@ -258,7 +258,7 @@ ydn.db.tr.Serial.prototype.isNextTxCompatible = function() {
  */
 ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
     opt_mode, opt_on_completed) {
-  this.logger.finest('push tx queue[' + this.trQueue_.length + ']');
+  goog.log.finest(this.logger, 'push tx queue[' + this.trQueue_.length + ']');
   this.trQueue_.push({
     fnc: trFn,
     store_names: store_names,
@@ -273,7 +273,7 @@ ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
  * Abort an active transaction.
  */
 ydn.db.tr.Serial.prototype.abort = function() {
-  this.logger.finer(this + ': aborting');
+  goog.log.finer(this.logger, this + ': aborting');
   ydn.db.tr.Thread.abort(this.s_request_tx);
 };
 
@@ -341,7 +341,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
     var transaction_process = function(tx) {
       me.mu_tx_.up(tx, store_names, mode);
       label = me.getLabel();
-      me.logger.fine(label + ' BEGIN ' +
+      goog.log.fine(me.logger, label + ' BEGIN ' +
           ydn.json.stringify(store_names) + ' ' + mode);
 
       // now execute transaction process
@@ -356,7 +356,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         if (task.oncompleted) {
           me.completed_handlers_.push(task.oncompleted);
         }
-        me.logger.finest('pop tx queue' + (me.trQueue_.length + 1) +
+        goog.log.finest(me.logger,  'pop tx queue' + (me.trQueue_.length + 1) +
             ' reusing T' + me.getTxNo());
         task.fnc();
       }
@@ -364,7 +364,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
 
     var completed_handler = function(type, event) {
       //console.log('transaction_process ' + scope_name + ' completed.');
-      me.logger.fine(label + ' ' + type);
+      goog.log.fine(me.logger, label + ' ' + type);
       me.mu_tx_.down(type, event);
       for (var j = 0; j < me.completed_handlers_.length; j++) {
         var fn = me.completed_handlers_[j];
@@ -463,19 +463,19 @@ ydn.db.tr.Serial.prototype.exec = function(df, callback,
     var resultCallback = function(result, opt_is_error) {
       me.s_request_tx = tx; // so that we can abort it.
       if (opt_is_error) {
-        me.logger.finer(rq_label + ' ERROR');
+        goog.log.finer(me.logger, rq_label + ' ERROR');
         df.errback(result);
       } else {
-        me.logger.finer(rq_label + ' SUCCESS');
+        goog.log.finer(me.logger, rq_label + ' SUCCESS');
         df.callback(result);
       }
       me.s_request_tx = null;
     };
     me.r_no_++;
     rq_label = me.getLabel() + 'R' + me.r_no_;
-    me.logger.finer(rq_label + ' BEGIN');
+    goog.log.finer(me.logger, rq_label + ' BEGIN');
     callback(tx, rq_label, resultCallback);
-    me.logger.finer(rq_label + ' END');
+    goog.log.finer(me.logger, rq_label + ' END');
     callback = null;
   } else {
     //
@@ -496,19 +496,19 @@ ydn.db.tr.Serial.prototype.exec = function(df, callback,
       var resultCallback2 = function(result, opt_is_error) {
         me.s_request_tx = tx; // so that we can abort it.
         if (opt_is_error) {
-          me.logger.finer(rq_label + ' ERROR');
+          goog.log.finer(me.logger, rq_label + ' ERROR');
           df.errback(result);
         } else {
-          me.logger.finer(rq_label + ' SUCCESS');
+          goog.log.finer(me.logger, rq_label + ' SUCCESS');
           df.callback(result);
         }
         me.s_request_tx = null;
       };
       me.r_no_++;
       rq_label = me.getLabel() + 'R' + me.r_no_;
-      me.logger.finer(rq_label + ' BEGIN');
+      goog.log.finer(me.logger, rq_label + ' BEGIN');
       callback(tx, rq_label, resultCallback2);
-      me.logger.finer(rq_label + ' END');
+      goog.log.finer(me.logger, rq_label + ' END');
       callback = null; // we don't call again.
     };
     me.processTx(tx_callback, store_names, mode, on_complete);

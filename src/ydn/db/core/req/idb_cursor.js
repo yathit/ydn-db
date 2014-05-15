@@ -96,7 +96,7 @@ ydn.db.core.req.IDBCursor.prototype.openCursor = function(key, primary_key) {
       msg += '}';
     }
   }
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
 
   var key_range = this.key_range;
   var obj_store = this.tx.objectStore(this.store_name);

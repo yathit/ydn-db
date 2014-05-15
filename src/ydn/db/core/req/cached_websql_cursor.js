@@ -280,7 +280,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
       goog.global.console.log([sql, tr, error]);
     }
     me.has_pending_request = false;
-    me.logger.warning('get error: ' + error.message);
+    goog.log.warning(me.logger, 'get error: ' + error.message);
     me.onError(error);
     return true; // roll back
 
@@ -290,7 +290,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.openCursor = function(ini_key, ini_
   var from = '{' + (!!ini_index_key ? ini_index_key + '-' : '') +
       (!!ini_key ? ini_key : '') + '}';
 
-  me.logger.finest(this + ': opened: ' + from + ' SQL: ' +
+  goog.log.finest(me.logger,  this + ': opened: ' + from + ' SQL: ' +
       sql + ' : ' + ydn.json.stringify(params));
   this.tx.executeSql(sql, params, onSuccess, onError);
 
@@ -410,7 +410,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.clear = function() {
         goog.global.console.log([sql, tr, error]);
       }
       me.has_pending_request = false;
-      me.logger.warning('get error: ' + error.message);
+      goog.log.warning(me.logger, 'get error: ' + error.message);
       df.errback(error);
       return true; // roll back
 
@@ -420,7 +420,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.clear = function() {
     var sql = 'DELETE FROM ' + this.store_schema_.getQuotedName() +
         ' WHERE ' + primary_column_name + ' = ?';
     var params = [this.getPrimaryKey()];
-    me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(params));
+    goog.log.finest(me.logger,  this + ': clear "' + sql + '" : ' + ydn.json.stringify(params));
     this.tx.executeSql(sql, params, onSuccess, onError);
     return df;
 
@@ -462,7 +462,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
         goog.global.console.log([sql, tr, error]);
       }
       me.has_pending_request = false;
-      me.logger.warning('get error: ' + error.message);
+      goog.log.warning(me.logger, 'get error: ' + error.message);
       df.errback(error);
       return true; // roll back
     };
@@ -475,7 +475,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
         ' VALUES (' + out.slots.join(', ') + ')' +
         ' ON CONFLICT FAIL';
 
-    me.logger.finest(this + ': clear "' + sql + '" : ' + ydn.json.stringify(out.values));
+    goog.log.finest(me.logger,  this + ': clear "' + sql + '" : ' + ydn.json.stringify(out.values));
     this.tx.executeSql(sql, out.values, onSuccess, onError);
     return df;
 
@@ -493,7 +493,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
 //  var label = this.store_name + ':' + this.index_name;
 //  if (next_position === false) {
 //    // restart the iterator
-//    this.logger.finest(this + ' restarting.');
+//    goog.log.finest(this.logger, this + ' restarting.');
 //    this.openCursor();
 //  } else if (this.hasCursor()) {
 //    if (goog.isDefAndNotNull(next_position)) {
@@ -531,7 +531,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
 //    } else {
 //      // notify that cursor iteration is finished.
 //      this.onSuccess(undefined, undefined, undefined);
-//      this.logger.finest(this + ' resting.');
+//      goog.log.finest(this.logger, this + ' resting.');
 //    }
 //  } else {
 //    throw new ydn.error.InvalidOperationError('Iterator:' + label + ' cursor gone.');
@@ -556,7 +556,7 @@ ydn.db.core.req.CachedWebsqlCursor.prototype.update = function(obj) {
 //
 //  if (exclusive === false) {
 //    // restart the iterator
-//    this.logger.finest(this + ' restarting.');
+//    goog.log.finest(this.logger, this + ' restarting.');
 //    this.openCursor(next_primary_key, next_index_key, true);
 //    return;
 //  }

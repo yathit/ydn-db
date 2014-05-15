@@ -152,7 +152,7 @@ ydn.db.sql.req.websql.Node.prototype.execute = function(df, tx, params) {
     if (ydn.db.sql.req.WebSql.DEBUG) {
       goog.global.console.log([sql_stm, tr, error]);
     }
-    me.logger.warning('Sqlite error: ' + error.message);
+    goog.log.warning(me.logger, 'Sqlite error: ' + error.message);
     df(error, true);
     return true; // roll back
   };

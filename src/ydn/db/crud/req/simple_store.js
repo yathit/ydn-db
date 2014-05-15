@@ -91,7 +91,7 @@ ydn.db.crud.req.SimpleStore.prototype.insertObjects = function(req,
   var label = req.getLabel() + ' ' + (is_update ? 'put' : 'add') +
       'Object' + (single ? '' : 's ' + value.length + ' objects');
 
-  this.logger.finest(label);
+  goog.log.finest(this.logger, label);
   var me = this;
 
   var tx = /** @type {ydn.db.con.simple.TxStorage} */ (req.getTx());
@@ -242,12 +242,12 @@ ydn.db.crud.req.SimpleStore.prototype.listByKeys = function(req, keys) {
 ydn.db.crud.req.SimpleStore.prototype.removeById = function(req,
                                                             store_name, id) {
   var msg = req.getLabel() + ' removeById ' + store_name + ' ' + id;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var me = this;
   var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var cnt = store.removeRecord(id);
-    me.logger.finer('success ' + msg + (cnt == 0 ? ' [not found]' : ''));
+    goog.log.finer(me.logger, 'success ' + msg + (cnt == 0 ? ' [not found]' : ''));
     req.setDbValue(cnt);
     onComp();
     onComp = null;
@@ -260,7 +260,7 @@ ydn.db.crud.req.SimpleStore.prototype.removeById = function(req,
  */
 ydn.db.crud.req.SimpleStore.prototype.removeByKeys = function(req, keys) {
   var msg = req.getLabel() + ' removeByKeys ' + keys.length + ' keys';
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var me = this;
   var store;
   var deleted = 0;
@@ -296,12 +296,12 @@ ydn.db.crud.req.SimpleStore.prototype.removeByKeyRange = function(
     req, store_name, key_range) {
   var msg = req.getLabel() + ' removeByKeyRange ' +
       (key_range ? ydn.json.stringify(key_range) : '');
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var me = this;
   var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var cnt = store.removeRecords(key_range);
-    me.logger.finer(msg + ' deleted ' + cnt + ' records.');
+    goog.log.finer(me.logger, msg + ' deleted ' + cnt + ' records.');
     req.setDbValue(cnt);
     onComp();
     onComp = null;
@@ -316,7 +316,7 @@ ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = function(
     req, store_name, index_name, key_range) {
   var msg = req.getLabel() + ' removeByIndexKeyRange ' +
       (key_range ? ydn.json.stringify(key_range) : '');
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var me = this;
   var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
@@ -338,13 +338,13 @@ ydn.db.crud.req.SimpleStore.prototype.removeByIndexKeyRange = function(
 ydn.db.crud.req.SimpleStore.prototype.clearByStores = function(req,
                                                                store_names) {
   var msg = req.getLabel() + ' clearByStores';
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var onComp = req.getTx().getStorage(function(storage) {
     for (var i = 0; i < store_names.length; i++) {
       var store = storage.getSimpleStore(store_names[i]);
       store.clear();
     }
-    this.logger.finer('success ' + msg);
+    goog.log.finer(this.logger, 'success ' + msg);
     req.setDbValue(store_names.length);
     onComp();
     onComp = null;
@@ -378,11 +378,11 @@ ydn.db.crud.req.SimpleStore.prototype.countKeyRange = function(req,
   var msg = req.getLabel() + ' count' +
       (goog.isDefAndNotNull(index_name) ? 'Index' : '') +
       (goog.isDefAndNotNull(keyRange) ? 'KeyRange' : 'Store');
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var no = store.countRecords(index_name, keyRange);
-    this.logger.finer('success ' + msg);
+    goog.log.finer(this.logger, 'success ' + msg);
     req.setDbValue(no);
     onComp();
     onComp = null;
@@ -397,12 +397,12 @@ ydn.db.crud.req.SimpleStore.prototype.list = function(req, type, store_name,
     index, key_range, limit, offset, reverse, unique, opt_position) {
   var msg = req.getLabel() + ' ' + store_name + ' ' +
       (key_range ? ydn.json.toShortString(key_range) : '');
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var onComp = req.getTx().getStorage(function(storage) {
     var store = storage.getSimpleStore(store_name);
     var results = store.getItems(type, index, key_range,
         reverse, limit, offset, unique, opt_position);
-    this.logger.finer(msg + ' ' + results.length + ' records found.');
+    goog.log.finer(this.logger, msg + ' ' + results.length + ' records found.');
     req.setDbValue(results);
     onComp();
     onComp = null;

@@ -763,7 +763,7 @@ ydn.db.Iterator.prototype.reset = function(opt_state,
                                            opt_key, opt_primary_key) {
   var state = opt_state || ydn.db.Iterator.State.INITIAL;
   if (this.getState() == ydn.db.Iterator.State.WORKING) {
-    this.logger.warning(this + ': resetting state to ' + state +
+    goog.log.warning(this.logger, this + ': resetting state to ' + state +
         ' ignore during iteration');
   } else {
     this.i_key_ = opt_key;

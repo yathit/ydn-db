@@ -233,7 +233,7 @@ ydn.db.tr.Storage.prototype.run = function(trFn, opt_store_names, opt_mode) {
 
   var me = this;
   tx_thread.processTx(function(tx) {
-    me.logger.finest('executing run in transaction on ' + tx_thread);
+    goog.log.finest(me.logger,  'executing run in transaction on ' + tx_thread);
     req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
     trFn(db_operator);
   }, store_names, mode, onComplete);
@@ -299,7 +299,7 @@ ydn.db.tr.Storage.prototype.spawn = function(trFn, opt_store_names, opt_mode,
 
   var me = this;
   tx_thread.processTx(function(tx) {
-    me.logger.finest('executing run in transaction on ' + tx_thread);
+    goog.log.finest(me.logger,  'executing run in transaction on ' + tx_thread);
     req.setTx(tx, tx_thread.getLabel() + 'R0'); // Request 0
     var gen = trFn(db_operator);
     onTxCompleted = tx_thread.setGenerator(gen, req);

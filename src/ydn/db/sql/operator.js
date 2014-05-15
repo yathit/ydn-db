@@ -73,7 +73,7 @@ ydn.db.sql.DbOperator.prototype.executeSql = function(sql, opt_params) {
     }
   }
 
-  this.logger.finer('executeSql: ' + sql + ' params: ' + opt_params);
+  goog.log.finer(this.logger, 'executeSql: ' + sql + ' params: ' + opt_params);
   var req = this.tx_thread.request(ydn.db.Request.Method.SQL,
       query.getStoreNames(), query.getMode());
   req.addTxback(function() {

@@ -184,13 +184,13 @@ ydn.db.sql.req.WebSql.prototype.executeSql = function(rq, sql, params) {
 //    if (ydn.db.core.req.WebSql.DEBUG) {
 //      goog.global.console.log([cursor, tr, error]);
 //    }
-//    me.logger.warning('Sqlite error: ' + error.message);
+//    goog.log.warning(me.logger, 'Sqlite error: ' + error.message);
 //    df(error, true);
 //    return true; // roll back
 //  };
 //
 //  if (goog.DEBUG) {
-//    this.logger.finest(this + ' open SQL: ' + sql + ' PARAMS:' +
+//    goog.log.finest(this.logger, this + ' open SQL: ' + sql + ' PARAMS:' +
 //      ydn.json.stringify(cursor.params));
 //  }
 //  tx.executeSql(sql, cursor.params, callback, error_callback);

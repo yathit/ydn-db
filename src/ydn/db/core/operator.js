@@ -89,7 +89,7 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
       throw new ydn.debug.error.ArgumentException('index "' +
           index_name + '" not found in store "' + q_store_name + '".');
     }
-    this.logger.finer('getByIterator:' + q);
+    goog.log.finer(this.logger, 'getByIterator:' + q);
     var df = this.tx_thread.request(ydn.db.Request.Method.GET_ITER,
         [q_store_name]);
     df.addTxback(function() {
@@ -137,7 +137,7 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5,
      */
     var q = arg1;
 
-    this.logger.finer('keysByIterator:' + q);
+    goog.log.finer(this.logger, 'keysByIterator:' + q);
     var df = this.tx_thread.request(ydn.db.Request.Method.KEYS_ITER,
         [q.getStoreName()]);
     df.addTxback(function() {
@@ -172,7 +172,7 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3, arg4) {
      * @type {!ydn.db.Iterator}
      */
     var q = arg1;
-    this.logger.finer('countIterator:' + q);
+    goog.log.finer(this.logger, 'countIterator:' + q);
     var df = this.tx_thread.request(ydn.db.Request.Method.COUNT,
         [q.getStoreName()]);
     df.addTxback(function() {
@@ -220,7 +220,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
      * @type {!ydn.db.Iterator}
      */
     var q = arg1;
-    this.logger.finer('listByIterator:' + q);
+    goog.log.finer(this.logger, 'listByIterator:' + q);
     var df = this.tx_thread.request(ydn.db.Request.Method.VALUES_ITER,
         [q.getStoreName()]);
     df.addTxback(function() {
@@ -279,7 +279,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
     }
   }
 
-  this.logger.finer(this + ': scan for ' + iterators.length +
+  goog.log.finer(this.logger, this + ': scan for ' + iterators.length +
       ' iterators on ' + scopes);
 
   var me = this;
@@ -288,7 +288,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
     var lbl = tx_no + ' ' + me + ' scanning';
-    me.logger.finest(lbl);
+    goog.log.finest(me.logger,  lbl);
     var done = false;
 
     var total;
@@ -310,7 +310,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
       done = true;
       goog.array.clear(cursors);
       // console.log('existing');
-      me.logger.finer('success ' + lbl);
+      goog.log.finer(me.logger, 'success ' + lbl);
       cb(undefined);
     };
 
@@ -525,7 +525,7 @@ ydn.db.core.DbOperator.prototype.scan = function(solver, iterators,
         cursors[k].exit();
       }
       goog.array.clear(cursors);
-      me.logger.finer(lbl + ' error');
+      goog.log.finer(me.logger, lbl + ' error');
       cb(e, true);
     };
 
@@ -606,11 +606,11 @@ ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode,
   var me = this;
   var df = this.tx_thread.request(ydn.db.Request.Method.OPEN, iter.stores(),
       tr_mode);
-  this.logger.finer('open:' + tr_mode + ' ' + iter);
+  goog.log.finer(this.logger, 'open:' + tr_mode + ' ' + iter);
   df.addTxback(function(tx) {
     var tx_no = df.getLabel();
     var lbl = tx_no + ' iterating ' + iter;
-    me.logger.finer(lbl);
+    goog.log.finer(me.logger, lbl);
 
     var names = iter.stores();
     var crs = [];
@@ -677,11 +677,11 @@ ydn.db.core.DbOperator.prototype.map = function(iterator, callback) {
     }
   }
   var df = this.tx_thread.request(ydn.db.Request.Method.MAP, stores);
-  this.logger.finest('map:' + iterator);
+  goog.log.finest(this.logger, 'map:' + iterator);
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
     var lbl = tx_no + ' iterating ' + iterator;
-    me.logger.finest(lbl);
+    goog.log.finest(me.logger,  lbl);
 
     var names = iterator.stores();
     var crs = [];
@@ -748,7 +748,7 @@ ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
 
   var previous = goog.isObject(opt_initial) ?
       ydn.object.clone(opt_initial) : opt_initial;
-  this.logger.finer('reduce:' + iterator);
+  goog.log.finer(this.logger, 'reduce:' + iterator);
   this.tx_thread.exec(df, function(tx, tx_no, cb) {
 
 
@@ -816,7 +816,7 @@ ydn.db.core.DbOperator.prototype.listIter = function(mth, iter,
   var store_name = iter.getStoreName();
   var index_name = iter.getIndexName() || null;
   var limit = opt_limit || ydn.db.base.DEFAULT_RESULT_LIMIT;
-  this.logger.finer('listIter:' + mth + ' ' + iter +
+  goog.log.finer(this.logger, 'listIter:' + mth + ' ' + iter +
       (opt_limit ? ' limit=' + limit : '') +
       (opt_offset ? ' offset=' + offset : ''));
   var method = ydn.db.Request.Method.VALUES_INDEX;
@@ -864,7 +864,7 @@ ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
     msg += ' limit ' + opt_limit;
   }
   var me = this;
-  this.logger.finer(msg);
+  goog.log.finer(this.logger, msg);
   var executor = this.getIndexExecutor();
   var cursors = [];
   var store_names = iter.stores();
@@ -884,7 +884,7 @@ ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
    */
   cursor.onNext = function(opt_key) {
     if (!displayed) {
-      me.logger.finest(msg + ' starting');
+      goog.log.finest(me.logger,  msg + ' starting');
       displayed = true;
     }
     if (goog.isDefAndNotNull(opt_key)) {
@@ -915,13 +915,13 @@ ydn.db.core.DbOperator.prototype.iterate = function(mth, rq, iter,
           !goog.isDef(opt_limit) || count < opt_limit) {
         cursor.continueEffectiveKey();
       } else {
-        me.logger.finer('success:' + msg + ' yields ' + arr.length +
+        goog.log.finer(me.logger, 'success:' + msg + ' yields ' + arr.length +
             ' records');
         cursor.exit();
         rq.setDbValue(arr);
       }
     } else {
-      me.logger.finer('success:' + msg + ' yields ' + arr.length + ' records');
+      goog.log.finer(me.logger, 'success:' + msg + ' yields ' + arr.length + ' records');
       cursor.exit();
       var result =
           mth == ydn.db.base.QueryMethod.GET ? arr[0] :

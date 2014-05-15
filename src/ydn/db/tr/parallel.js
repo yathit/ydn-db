@@ -132,7 +132,7 @@ ydn.db.tr.Parallel.prototype.subScope = function(store_names, mode) {
  * @throws InvalidStateError if transaction is not active.
  */
 ydn.db.tr.Parallel.prototype.abort = function() {
-  this.logger.finer(this + ': aborting');
+  goog.log.finer(this.logger, this + ': aborting');
   ydn.db.tr.Thread.abort(this.p_request_tx);
 };
 
@@ -188,7 +188,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
   var pl_tx_ex;
 
   var completed_handler = function(type, event) {
-    me.logger.fine(label + ' ' + type);
+    goog.log.fine(me.logger, label + ' ' + type);
     if (pl_tx_ex) {
       // if transaction_process was not called due to database fail
       pl_tx_ex.onCompleted(type, event);
@@ -201,7 +201,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
     pl_tx_ex = new ydn.db.tr.ParallelTxExecutor(
         tx, me.tx_no_, store_names, mode);
     label = me.getLabel();
-    me.logger.fine(label + ' BEGIN ' +
+    goog.log.fine(me.logger, label + ' BEGIN ' +
         ydn.json.stringify(store_names) + ' ' + mode);
     me.pl_tx_ex_ = pl_tx_ex;
     me.pl_tx_ex_.executeTx(callback, on_completed);
@@ -292,18 +292,18 @@ ydn.db.tr.Parallel.prototype.exec = function(df, callback, store_names, mode,
       me.p_request_tx = tx; // so that we can abort it.
       rq_label = me.getLabel() + 'R' + me.r_no_;
       if (is_error) {
-        me.logger.finer(rq_label + ' ERROR');
+        goog.log.finer(me.logger, rq_label + ' ERROR');
         df.errback(result);
       } else {
-        me.logger.finer(rq_label + ' SUCCESS');
+        goog.log.finer(me.logger, rq_label + ' SUCCESS');
         df.callback(result);
       }
       me.p_request_tx = null;
     };
-    me.logger.finer(rq_label + ' BEGIN');
+    goog.log.finer(me.logger, rq_label + ' BEGIN');
     callback(tx, rq_label, resultCallback);
     callback = null;
-    me.logger.finer(rq_label + ' END');
+    goog.log.finer(me.logger, rq_label + ' END');
   }, store_names, mode, on_completed);
 };
 

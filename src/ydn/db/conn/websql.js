@@ -104,7 +104,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     var new_version = schema.isAutoVersion() ?
         is_version_change ? isNaN(current_version) ?
             1 : (current_version + 1) : current_version : schema.version;
-    me.logger.fine(dbname + ': ' + action + ' from ' +
+    goog.log.fine(me.logger, dbname + ': ' + action + ' from ' +
         db.version + ' to ' + new_version);
 
     var executed = false;
@@ -141,7 +141,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
               edited_schema.addStore(info_store);
             } else {
               var sql = 'DROP TABLE ' + info_store.getQuotedName();
-              me.logger.finer(sql);
+              goog.log.finer(me.logger, sql);
               tx.executeSql(sql, [],
                   function(tr) {
                     // ok
@@ -162,7 +162,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
       var has_created = updated_count == schema.stores.length;
       if (!executed) {
         // success callback without actually executing
-        me.logger.warning(dbname + ': ' + action + ' voided.');
+        goog.log.warning(me.logger, dbname + ': ' + action + ' voided.');
         //if (!me.df_sql_db_.hasFired()) { // FIXME: why need to check ?
         // this checking is necessary when browser prompt user,
         // this migration function run two times: one creating table
@@ -173,7 +173,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
         if (updated_count != schema.stores.length) {
           msg = ' but unexpected stores exists.';
         }
-        me.logger.finest(dbname + ':' + db.version + ' ready' + msg);
+        goog.log.finest(me.logger,  dbname + ':' + db.version + ' ready' + msg);
         setDb(db);
       }
     };
@@ -183,7 +183,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
      * @param {SQLError} e error.
      */
     var error_callback = function(e) {
-      me.logger.severe('SQLError ' + e + ' ' + e.code + '(' + e.message + ') ' +
+      goog.log.error(me.logger, 'SQLError ' + e + ' ' + e.code + '(' + e.message + ') ' +
           'while changing version from ' + db.version + ' to ' + new_version +
           ' on ' + dbname);
       if (ydn.db.con.WebSql.DEBUG) {
@@ -206,7 +206,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
   var creationCallback = function(e) {
     var msg = init_migrated ?
         ' and already migrated, but migrating again.' : ', migrating.';
-    me.logger.finest('receiving creation callback ' + msg);
+    goog.log.finest(me.logger,  'receiving creation callback ' + msg);
 
     // the standard state that we should call VERSION_CHANGE request on
     // this callback.
@@ -248,7 +248,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     db = goog.global.openDatabase(dbname, '', description, this.size_);
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
-      this.logger.warning('SECURITY_ERR for opening ' + dbname);
+      goog.log.warning(this.logger, 'SECURITY_ERR for opening ' + dbname);
       db = null; // this will purge the tx queue
       // throw new ydn.db.SecurityError(e);
       // don't throw now, so that web app can handle without using
@@ -290,7 +290,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
         (db.version.length == 0 ? '' : ' version ' + db.version);
 
     if (goog.isDefAndNotNull(schema.version) && schema.version == db.version) {
-      me.logger.fine('Existing ' + db_info + ' opened as requested.');
+      goog.log.fine(me.logger, 'Existing ' + db_info + ' opened as requested.');
       setDb(db);
     } else {
       // require upgrade check
@@ -298,16 +298,16 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
         var msg = schema.difference(existing_schema, true, false);
         if (msg) {
           if (db.version.length == 0) {
-            me.logger.fine('New ' + db_info + ' created.');
+            goog.log.fine(me.logger, 'New ' + db_info + ' created.');
 
             doVersionChange_(db, schema, true);
           } else if (!schema.isAutoVersion()) {
-            me.logger.fine('Existing ' + db_info + ' opened and ' +
+            goog.log.fine(me.logger, 'Existing ' + db_info + ' opened and ' +
                 ' schema change to version ' + schema.version + ' for ' + msg);
 
             doVersionChange_(db, schema, true);
           } else {
-            me.logger.fine('Existing ' + db_info + ' opened and ' +
+            goog.log.fine(me.logger, 'Existing ' + db_info + ' opened and ' +
                 'schema change for ' + msg);
 
             doVersionChange_(db, schema, true);
@@ -315,7 +315,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
 
         } else {
           // same schema.
-          me.logger.fine('Existing ' + db_info + ' with same schema opened.');
+          goog.log.fine(me.logger, 'Existing ' + db_info + ' with same schema opened.');
           setDb(db);
         }
       }, null, db);
@@ -560,7 +560,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
       }
       if (info.type == 'table') {
         var sql = goog.object.get(info, 'sql');
-        me.logger.finest('Parsing table schema from SQL: ' + sql);
+        goog.log.finest(me.logger,  'Parsing table schema from SQL: ' + sql);
         var str = sql.substr(sql.indexOf('('), sql.lastIndexOf(')'));
         var column_infos = ydn.string.split_comma_seperated(str);
 
@@ -641,10 +641,10 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
               stores.push(new ydn.db.schema.Store(st_name, undefined, false,
                   undefined, [multi_index]));
             }
-            me.logger.finest('multi entry index "' + multi_index.getName() +
+            goog.log.finest(me.logger,  'multi entry index "' + multi_index.getName() +
                 '" found in ' + st_name + (store_index == -1 ? '*' : ''));
           } else {
-            me.logger.warning('Invalid multiEntry store name "' + info.name +
+            goog.log.warning(me.logger, 'Invalid multiEntry store name "' + info.name +
                 '"');
           }
         } else {
@@ -689,7 +689,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
   if (!trans) {
 
     var tx_error_callback = function(e) {
-      me.logger.severe('opening tx: ' + e.message);
+      goog.log.error(me.logger, 'opening tx: ' + e.message);
       throw e;
     };
 
@@ -787,7 +787,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     // table already exists.
     var msg = table_schema.difference(existing_table_schema);
     if (msg.length == 0) {
-      me.logger.finest('same table ' + table_schema.getName() + ' exists.');
+      goog.log.finest(me.logger,  'same table ' + table_schema.getName() + ' exists.');
       callback(true);
       callback = null;
       return;
@@ -795,7 +795,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
       action = 'Modify';
 
       // ALTER TABLE cannot run in WebSQL
-      this.logger.warning(
+      goog.log.warning(this.logger,
           'table: ' + table_schema.getName() + ' has changed by ' + msg +
           ' ALTER TABLE cannot run in WebSql, dropping old table.');
       sqls.unshift('DROP TABLE IF EXISTS ' +
@@ -807,7 +807,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     goog.global.console.log([sqls, existing_table_schema]);
   }
 
-  me.logger.finest(action + ' table: ' + table_schema.getName() + ': ' +
+  goog.log.finest(me.logger,  action + ' table: ' + table_schema.getName() + ': ' +
       sqls.join(';'));
   for (var i = 0; i < sqls.length; i++) {
     exe_sql(sqls[i]);
@@ -863,7 +863,7 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
    * @param {SQLError} e error.
    */
   var error_callback = function(e) {
-    me.logger.finest(me + ': Tx ' + mode + ' request cause error.');
+    goog.log.finest(me.logger,  me + ': Tx ' + mode + ' request cause error.');
     // NOTE: we have to call ABORT, instead of ERROR, here.
     // IndexedDB API use COMPLETE or ABORT as promise callbacks.
     // ERROR is just an event.
@@ -907,11 +907,11 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name, opt_type) {
   // Dropping all tables indeed delete the database.
   var db = new ydn.db.con.WebSql();
   var schema = new ydn.db.schema.EditableDatabase();
-  db.logger.finer('deleting websql database: ' + db_name);
+  goog.log.finer(db.logger, 'deleting websql database: ' + db_name);
   var df = db.connect(db_name, schema);
 
   var on_completed = function(t, e) {
-    db.logger.info('all tables in ' + db_name + ' deleted.');
+    goog.log.info(db.logger, 'all tables in ' + db_name + ' deleted.');
   };
 
   df.addCallback(function() {
@@ -935,10 +935,10 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name, opt_type) {
             continue;
           }
           del++;
-          db.logger.finest('deleting table: ' + info.name);
+          goog.log.finest(db.logger, 'deleting table: ' + info.name);
           tx.executeSql('DROP TABLE ' + info.name);
         }
-        db.logger.finer(del + ' tables deleted from "' + db_name + '"');
+        goog.log.finer(db.logger, del + ' tables deleted from "' + db_name + '"');
       };
 
       /**
@@ -960,7 +960,7 @@ ydn.db.con.WebSql.deleteDatabase = function(db_name, opt_type) {
 
   });
   df.addErrback(function() {
-    db.logger.warning('Connecting ' + db_name + ' failed.');
+    goog.log.warning(db.logger, 'Connecting ' + db_name + ' failed.');
   });
 };
 ydn.db.databaseDeletors.push(ydn.db.con.WebSql.deleteDatabase);

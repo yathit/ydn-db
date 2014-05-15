@@ -98,7 +98,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
   var key_range;
 
   if (!goog.isDefAndNotNull(store_name)) {
-    this.logger.warning('count method requires store name(s)');
+    goog.log.warning(this.logger, 'count method requires store name(s)');
     var stores = this.schema.getStoreNames();
     req = this.tx_thread.request(ydn.db.Request.Method.COUNT, stores);
     req.await(function(cnt, is_error, cb) {
@@ -131,7 +131,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
     }
 
     //console.log('waiting to count');
-    this.logger.finer('countStores: ' + ydn.json.stringify(store_names));
+    goog.log.finer(this.logger, 'countStores: ' + ydn.json.stringify(store_names));
     req = this.tx_thread.request(ydn.db.Request.Method.COUNT, store_names);
 
     req.addTxback(function() {
@@ -198,7 +198,7 @@ ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
           '" of type ' + typeof index_or_keyrange);
     }
 
-    this.logger.finer('countKeyRange: ' + store_name + ' ' +
+    goog.log.finer(this.logger, 'countKeyRange: ' + store_name + ' ' +
         (index_name ? index_name : '') + ydn.json.stringify(key_range));
     req = this.tx_thread.request(ydn.db.Request.Method.COUNT, store_names);
     store.hook(req, arguments);
@@ -253,7 +253,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     }
 
     var kid = k.getId();
-    this.logger.finer('getByKey: ' + k_store_name + ':' + kid);
+    goog.log.finer(this.logger, 'getByKey: ' + k_store_name + ':' + kid);
     req = this.tx_thread.request(ydn.db.Request.Method.GET_BY_KEY,
         [k_store_name]);
     store.hook(req, arguments, undefined, this);
@@ -286,7 +286,7 @@ ydn.db.crud.DbOperator.prototype.get = function(arg1, arg2) {
     var id = arg2;
     goog.asserts.assert(ydn.db.Key.isValidKey(id), 'key ' + id + ' of type ' +
         (typeof id) + ' is not a valid key');
-    this.logger.finer('getById: ' + store_name + ':' + id);
+    goog.log.finer(this.logger, 'getById: ' + store_name + ':' + id);
     req = this.tx_thread.request(ydn.db.Request.Method.GET, [store_name]);
     store.hook(req, arguments, undefined, this);
     req.addTxback(function() {
@@ -407,7 +407,7 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
             'unique must be a boolean');
       }
     }
-    this.logger.finer('keysByIndexKeyRange: ' + store_name);
+    goog.log.finer(this.logger, 'keysByIndexKeyRange: ' + store_name);
     req = this.tx_thread.request(ydn.db.Request.Method.KEYS_INDEX,
         [store_name]);
     store.hook(req, arguments);
@@ -454,7 +454,7 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
             'reverse must be a boolean');
       }
     }
-    this.logger.finer('keysByKeyRange: ' + store_name);
+    goog.log.finer(this.logger, 'keysByKeyRange: ' + store_name);
     req = this.tx_thread.request(ydn.db.Request.Method.KEYS, [store_name]);
     store.hook(req, arguments);
     req.addTxback(function() {
@@ -523,7 +523,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
         throw new ydn.debug.error.ArgumentException('too many input arguments');
       }
       var ids = arg1;
-      this.logger.finer('listByIds: ' + store_name + ' ' +
+      goog.log.finer(this.logger, 'listByIds: ' + store_name + ' ' +
           ids.length + ' ids');
       req = this.tx_thread.request(ydn.db.Request.Method.VALUES_IDS,
           [store_name]);
@@ -574,7 +574,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
               'unique must be a boolean');
         }
       }
-      this.logger.finer('listByIndexKeyRange: ' + store_name + ':' +
+      goog.log.finer(this.logger, 'listByIndexKeyRange: ' + store_name + ':' +
           index_name);
       method = ydn.db.Request.Method.VALUES_INDEX;
       req = this.tx_thread.request(method, [store_name]);
@@ -622,7 +622,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
               'boolean, but ' + arg4 + ' is ' + typeof arg4);
         }
       }
-      this.logger.finer((range ? 'listByKeyRange: ' : 'listByStore: ') +
+      goog.log.finer(this.logger, (range ? 'listByKeyRange: ' : 'listByStore: ') +
           store_name);
       method = ydn.db.Request.Method.VALUES;
       req = this.tx_thread.request(method, [store_name]);
@@ -658,7 +658,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
           store_names.push(i_store_name);
         }
       }
-      this.logger.finer('listByKeys: ' + ydn.json.stringify(store_names) +
+      goog.log.finer(this.logger, 'listByKeys: ' + ydn.json.stringify(store_names) +
           ' ' + keys.length + ' keys');
       req = this.tx_thread.request(ydn.db.Request.Method.VALUES_KEYS,
           store_names);
@@ -752,7 +752,7 @@ ydn.db.crud.DbOperator.prototype.list = function(type, store_name, opt_index,
     throw new ydn.debug.error.ArgumentException('offset must not given when ' +
         'initial cursor position is defined');
   }
-  this.logger.finer(type + ': ' + store_name + ':' + opt_index);
+  goog.log.finer(this.logger, type + ': ' + store_name + ':' + opt_index);
   method = ydn.db.Request.Method.VALUES_INDEX;
   req = this.tx_thread.request(method, [store_name]);
   // store.hook(req, arguments);
@@ -790,7 +790,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
 
     // this is async process, but we don't need to wait for it.
     store = ydn.db.schema.Store.fromJSON(/** @type {!StoreSchema} */ (schema));
-    this.logger.finer('Adding object store: ' + store_name);
+    goog.log.finer(this.logger, 'Adding object store: ' + store_name);
     this.addStoreSchema(store);
 
   } else if (this.schema.isAutoSchema() &&
@@ -833,7 +833,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     var objs = value;
     var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
     //console.log('waiting to putObjects');
-    this.logger.finer('addObjects: ' + store_name + ' ' + objs.length +
+    goog.log.finer(this.logger, 'addObjects: ' + store_name + ' ' + objs.length +
         ' objects');
 
     for (var i = 0; i < objs.length; i++) {
@@ -860,7 +860,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     var key = /** @type {number|string|undefined} */ (opt_keys);
     var label = 'store: ' + store_name + ' key: ' + store.extractKey(obj, key);
 
-    this.logger.finer('addObject: ' + label);
+    goog.log.finer(this.logger, 'addObject: ' + label);
     store.generateIndex(obj);
     req = this.tx_thread.request(ydn.db.Request.Method.ADD,
         [store_name], ydn.db.base.TransactionMode.READ_WRITE);
@@ -912,7 +912,7 @@ ydn.db.crud.DbOperator.prototype.getStore_ = function(store_name_schema) {
 
     // this is async process, but we don't need to wait for it.
     store = ydn.db.schema.Store.fromJSON(/** @type {!StoreSchema} */ (schema));
-    this.logger.finer('Adding object store: ' + store_name);
+    goog.log.finer(this.logger, 'Adding object store: ' + store_name);
     this.addStoreSchema(store);
 
   } else if (this.schema.isAutoSchema() && goog.isObject(store_name_schema))
@@ -960,7 +960,7 @@ ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
  */
 ydn.db.crud.DbOperator.prototype.search = function(query) {
   var store_names = query.getStoreList();
-  this.logger.finest('query ' + query);
+  goog.log.finest(this.logger, 'query ' + query);
   var req = this.tx_thread.request(ydn.db.Request.Method.SEARCH, store_names,
       ydn.db.base.TransactionMode.READ_ONLY);
   req.addTxback(function() {
@@ -1056,7 +1056,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         store.setKeyValue(values[i], db_keys[i].getId());
       }
     }
-    this.logger.finer('putByKeys: to ' + ydn.json.stringify(store_names) + ' ' +
+    goog.log.finer(this.logger, 'putByKeys: to ' + ydn.json.stringify(store_names) + ' ' +
         values.length + ' objects');
 
     for (var i = 0; i < values.length; i++) {
@@ -1094,7 +1094,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
     if (goog.isArray(value)) {
       var objs = value;
       var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
-      this.logger.finer('putObjects: ' + st_name + ' ' +
+      goog.log.finer(this.logger, 'putObjects: ' + st_name + ' ' +
           objs.length + ' objects');
       for (var i = 0; i < objs.length; i++) {
         store.generateIndex(objs[i]);
@@ -1130,7 +1130,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
               ydn.json.toShortString(obj));
         }
       }
-      this.logger.finer('putObject: ' + st_name + ' ' + key);
+      goog.log.finer(this.logger, 'putObject: ' + st_name + ' ' + key);
       // note File is also instanceof Blob
       var is_blob = (goog.isDef(goog.global['Blob']) && obj instanceof Blob) &&
           // check for using blob store
@@ -1505,7 +1505,7 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
         throw new ydn.debug.error.ArgumentException('clear method requires' +
             ' a valid non-null KeyRange object.');
       }
-      this.logger.finer('clearByKeyRange: ' + st_name + ':' +
+      goog.log.finer(this.logger, 'clearByKeyRange: ' + st_name + ':' +
           ydn.json.stringify(key_range));
       req = this.tx_thread.request(ydn.db.Request.Method.CLEAR, [st_name],
           ydn.db.base.TransactionMode.READ_WRITE);
@@ -1514,7 +1514,7 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
         this.getCrudExecutor().clearByKeyRange(req, st_name, key_range);
       }, this);
     } else if (!goog.isDef(arg2)) {
-      this.logger.finer('clearByStore: ' + st_name);
+      goog.log.finer(this.logger, 'clearByStore: ' + st_name);
       req = this.tx_thread.request(ydn.db.Request.Method.CLEAR, [st_name],
           ydn.db.base.TransactionMode.READ_WRITE);
       req.addTxback(function() {
@@ -1530,7 +1530,7 @@ ydn.db.crud.DbOperator.prototype.clear = function(arg1, arg2, arg3) {
   } else if (!goog.isDef(arg1) || goog.isArray(arg1) &&
       goog.isString(arg1[0])) {
     var store_names = arg1 || this.schema.getStoreNames();
-    this.logger.finer('clearByStores: ' + ydn.json.stringify(store_names));
+    goog.log.finer(this.logger, 'clearByStores: ' + ydn.json.stringify(store_names));
     req = this.tx_thread.request(ydn.db.Request.Method.CLEAR, store_names,
         ydn.db.base.TransactionMode.READ_WRITE);
     req.addTxback(function() {
@@ -1573,7 +1573,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
         if (goog.isObject(arg3) || goog.isNull(arg3)) {
           var key_range = ydn.db.KeyRange.parseIDBKeyRange(
               /** @type {KeyRangeJson} */ (arg3));
-          this.logger.finer('removeByIndexKeyRange: ' + store_name + ':' +
+          goog.log.finer(this.logger, 'removeByIndexKeyRange: ' + store_name + ':' +
               index.getName() + ' ' + store_name);
           req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_INDEX,
               [store_name], ydn.db.base.TransactionMode.READ_WRITE);
@@ -1593,7 +1593,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
       if (goog.isString(arg2) || goog.isNumber(arg2) ||
           goog.isArrayLike(arg2) || arg2 instanceof Date) {
         var id = /** @type {IDBKey} */ (arg2);
-        this.logger.finer('removeById: ' + store_name + ':' + id);
+        goog.log.finer(this.logger, 'removeById: ' + store_name + ':' + id);
         req = this.tx_thread.request(ydn.db.Request.Method.REMOVE_ID,
             [store_name], ydn.db.base.TransactionMode.READ_WRITE);
         var rm_args = [store_name, id];
@@ -1615,7 +1615,7 @@ ydn.db.crud.DbOperator.prototype.remove = function(arg1, arg2, arg3) {
       } else if (goog.isObject(arg2)) {
         var key_range = ydn.db.KeyRange.parseIDBKeyRange(
             /** @type {KeyRangeJson} */ (arg2));
-        this.logger.finer('removeByKeyRange: ' + store_name + ':' +
+        goog.log.finer(this.logger, 'removeByKeyRange: ' + store_name + ':' +
             ydn.json.stringify(key_range));
         req = this.tx_thread.request(ydn.db.Request.Method.REMOVE,
             [store_name], ydn.db.base.TransactionMode.READ_WRITE);

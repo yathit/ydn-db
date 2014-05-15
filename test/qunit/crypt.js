@@ -42,7 +42,7 @@
       db.close();
       db = new ydn.db.Storage(db_name, schema, options2);
       db.get('st', key).always(function(v) {
-        // console.log(v);
+        console.log(v);
         ok(!v, 'not encrypted');
         ydn.db.deleteDatabase(db_name, db.getType());
         db.close();

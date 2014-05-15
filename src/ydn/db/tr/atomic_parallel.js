@@ -66,7 +66,7 @@ ydn.db.tr.AtomicParallel.prototype.request = function(method, scope, opt_mode) {
   var onComplete = function(t, e) {
     // console.log('onComplete', t, result);
     req.removeTx();
-    me.logger.finer('transaction ' + t);
+    goog.log.finer(me.logger, 'transaction ' + t);
     if (req_setDbValue) {
       if (t != ydn.db.base.TxEventTypes.COMPLETE) {
         is_error = true;

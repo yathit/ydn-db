@@ -316,7 +316,7 @@ ydn.db.core.req.AbstractCursor.prototype.onSuccess = function(
     opt_key, opt_primary_key, opt_value) {
   // console.log(this.count_, opt_key, opt_primary_key, opt_value);
   if (!goog.isDefAndNotNull(opt_key)) {
-    this.logger.finer(this + ' finished.');
+    goog.log.finer(this.logger, this + ' finished.');
     this.done_ = true;
   }
   this.key_ = opt_key;
@@ -325,13 +325,13 @@ ydn.db.core.req.AbstractCursor.prototype.onSuccess = function(
 
   this.count_++;
   if (this.done_) {
-    this.logger.finest(this + ' DONE.');
+    goog.log.finest(this.logger, this + ' DONE.');
     this.onNext();
     this.finalize_();
   } else {
     var key_str = this.is_index ?
         this.key_ + ', ' + this.primary_key_ : this.key_;
-    this.logger.finest(this + ' new cursor position {' + key_str + '}');
+    goog.log.finest(this.logger, this + ' new cursor position {' + key_str + '}');
     this.onNext(this.key_);
   }
 };
@@ -430,7 +430,7 @@ ydn.db.core.req.AbstractCursor.prototype.resume = function(tx, tx_no) {
  */
 ydn.db.core.req.AbstractCursor.prototype.exit = function() {
   this.exited_ = true;
-  this.logger.finest(this + ': exit');
+  goog.log.finest(this.logger, this + ': exit');
   this.finalize_();
 };
 
@@ -540,7 +540,7 @@ ydn.db.core.req.AbstractCursor.prototype.clear = goog.abstractMethod;
  */
 ydn.db.core.req.AbstractCursor.prototype.restart = function(
     effective_key, primary_key) {
-  this.logger.finest(this + ' restarting');
+  goog.log.finest(this.logger, this + ' restarting');
   this.done_ = false;
   this.exited_ = false;
   this.openCursor(primary_key, effective_key);

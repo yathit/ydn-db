@@ -152,10 +152,10 @@ ydn.db.tr.Thread.prototype.onGenTxCommitted_ = function(type, e) {
       type == ydn.db.base.TxEventTypes.ABORT;
   if (done) {
     if (this.break_tx_) {
-      this.logger.finest('tx ' + this.getTxNo() + ' committed');
+      goog.log.finest(this.logger, 'tx ' + this.getTxNo() + ' committed');
       this.break_tx_ = false;
     } else {
-      this.logger.finest('Generator done ' + this.break_tx_);
+      goog.log.finest(this.logger, 'Generator done ' + this.break_tx_);
       var success = type == ydn.db.base.TxEventTypes.COMPLETE;
       this.gen_req_.setDbValue(this.getTxNo(), !success);
     }
@@ -172,7 +172,7 @@ ydn.db.tr.Thread.prototype.commit = function() {
     throw new ydn.debug.error.InvalidOperationException('Transaction thread' +
         ' not running in a generator');
   } else if (this.generator_) {
-    this.logger.finest('Receive to commit tx ' + this.getTxNo() + ' on yield ' +
+    goog.log.finest(this.logger, 'Receive to commit tx ' + this.getTxNo() + ' on yield ' +
         this.yield_no_);
     this.break_tx_ = true;
   } else {
@@ -190,7 +190,7 @@ ydn.db.tr.Thread.prototype.commit = function() {
  */
 ydn.db.tr.Thread.prototype.sendNext_ = function(x) {
   if (this.break_tx_) {
-    this.logger.finest('waiting tx to be committed for yielding ' +
+    goog.log.finest(this.logger, 'waiting tx to be committed for yielding ' +
         this.yield_no_);
     var me = this;
     // let transaction be committed
@@ -200,14 +200,14 @@ ydn.db.tr.Thread.prototype.sendNext_ = function(x) {
         // new tx is active, start next request.
         // me.gen_req_.setTx(tx); // todo set correct tx, current implementation
         // not allow setting multiple tx setting.
-        me.logger.finest('sending result to yield ' + me.yield_no_);
+        goog.log.finest(me.logger,  'sending result to yield ' + me.yield_no_);
         me.generator_['next'](x);
       }, /** @type {!Array.<string>} */ (me.scope_store_names), me.scope_mode,
           goog.bind(me.onGenTxCommitted_, me));
 
     }, 4);
   } else {
-    this.logger.finest('sending result to yield ' + this.yield_no_);
+    goog.log.finest(this.logger, 'sending result to yield ' + this.yield_no_);
     this.generator_['next'](x);
   }
   this.yield_no_++;

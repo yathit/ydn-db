@@ -107,7 +107,7 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(tx, iterators, callback) {
       }
     } else {
       if (goog.DEBUG) {
-        this.logger.warning('Unable to check correctness of output streamer.');
+        goog.log.warning(this.logger, 'Unable to check correctness of output streamer.');
       }
     }
   }
@@ -122,7 +122,7 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(tx, iterators, callback) {
   if (this.is_reverse) {
     s += ' reverse';
   }
-  this.logger.fine(this + ' begin ' + s);
+  goog.log.fine(this.logger, this + ' begin ' + s);
   return false;
 };
 

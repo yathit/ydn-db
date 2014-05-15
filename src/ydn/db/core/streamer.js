@@ -214,7 +214,7 @@ ydn.db.Streamer.prototype.collect = function(callback) {
     });
   } else {
     // throw new ydn.error.InvalidOperationError('Not collected.');
-    // this.logger.warning('Not collected yet.');
+    // goog.log.warning(this.logger, 'Not collected yet.');
     callback(this.stack_key_, this.stack_value_);
     this.stack_key_ = [];
     this.stack_value_ = [];

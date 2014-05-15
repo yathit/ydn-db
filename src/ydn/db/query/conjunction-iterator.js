@@ -162,7 +162,7 @@ ydn.db.query.ConjunctionIterator.prototype.iterate = function(tx, tx_lbl, execut
 
   this.cursor_ = new ydn.db.Cursor(cursors, this.cursor_);
 
-  this.logger.finest(tx_lbl + ' ' + this + ' created ' + this.cursor_ + msg);
+  goog.log.finest(this.logger, tx_lbl + ' ' + this + ' created ' + this.cursor_ + msg);
   return this.cursor_;
 };
 

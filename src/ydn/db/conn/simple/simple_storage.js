@@ -110,10 +110,10 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
   var callDf = function(x, opt_err) {
     setTimeout(function() {
       if (opt_err) {
-        me.logger.finer(me + ' opening fail');
+        goog.log.finer(me.logger, me + ' opening fail');
         df.errback(opt_err);
       } else {
-        me.logger.finer(me + ' version ' + me.getVersion() + ' open');
+        goog.log.finer(me.logger, me + ' version ' + me.getVersion() + ' open');
         df.callback(x);
       }
     }, 10);

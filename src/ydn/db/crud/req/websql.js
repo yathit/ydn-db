@@ -213,10 +213,10 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
   var put = function(i, tx) {
 
     if (!goog.isDefAndNotNull(objects[i])) {
-      me.logger.finest('empty object at ' + i + ' of ' + objects.length);
+      goog.log.finest(me.logger,  'empty object at ' + i + ' of ' + objects.length);
       result_count++;
       if (result_count == objects.length) {
-        me.logger.finer(msg + ' success ' + msg);
+        goog.log.finer(me.logger, msg + ' success ' + msg);
         // console.log(msg, result_keys);
         req.setDbValue(result_keys, has_error);
       } else {
@@ -285,11 +285,11 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
          * @return {boolean} true to roll back.
          */
         var idx_error = function(tr, error) {
-          me.logger.warning('multiEntry index insert error: ' + error.message);
+          goog.log.warning(me.logger, 'multiEntry index insert error: ' + error.message);
           return false;
         };
 
-        me.logger.finest(req.getLabel() + ' multiEntry ' + idx_sql +
+        goog.log.finest(me.logger,  req.getLabel() + ' multiEntry ' + idx_sql +
             ' ' + idx_params);
         tx.executeSql(idx_sql, idx_params, idx_success, idx_error);
       };
@@ -336,14 +336,14 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       if (error.code == 6) { // constraint failed
         error.name = 'ConstraintError';
       } else {
-        me.logger.warning('error: ' + error.message + ' ' + msg);
+        goog.log.warning(me.logger, 'error: ' + error.message + ' ' + msg);
       }
       if (single) {
         req.setDbValue(error, true);
       } else {
         result_keys[i] = error;
         if (result_count == objects.length) {
-          me.logger.finest('success ' + msg); // still success message ?
+          goog.log.finest(me.logger,  'success ' + msg); // still success message ?
           req.setDbValue(result_keys, has_error);
         } else {
           var next = i + ydn.db.crud.req.WebSql.RW_REQ_PER_TX;
@@ -356,7 +356,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
     };
 
     // console.log([sql, out.values]);
-    me.logger.finest(i_msg);
+    goog.log.finest(me.logger,  i_msg);
     if (ydn.db.crud.req.WebSql.DEBUG) {
       goog.global.console.log(sql, out.values);
     }
@@ -370,7 +370,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
       put(i, /** @type {SQLTransaction} */ (tx));
     }
   } else {
-    this.logger.finer('success');
+    goog.log.finer(this.logger, 'success');
     req.setDbValue([]);
   }
 };
@@ -399,7 +399,7 @@ ydn.db.crud.req.WebSql.prototype.putByKeys = function(rq, objs, keys) {
    */
   var execute_on_store = function(store_name, idx) {
     var idx_objs = [];
-    me.logger.finest('put ' + idx.length + ' objects to ' + store_name);
+    goog.log.finest(me.logger,  'put ' + idx.length + ' objects to ' + store_name);
     var store = me.schema.getStore(store_name);
     var inline = store.usedInlineKey();
     var idx_keys = inline ? undefined : [];
@@ -494,11 +494,11 @@ ydn.db.crud.req.WebSql.prototype.getById = function(req, table_name, id) {
         var value = ydn.db.crud.req.WebSql.parseRow(row, table);
         req.setDbValue(value);
       } else {
-        me.logger.finer('success no result: ' + msg);
+        goog.log.finer(me.logger, 'success no result: ' + msg);
         req.setDbValue(undefined);
       }
     } else {
-      me.logger.finer('success no result: ' + msg);
+      goog.log.finer(me.logger, 'success no result: ' + msg);
       req.setDbValue(undefined);
     }
   };
@@ -512,13 +512,13 @@ ydn.db.crud.req.WebSql.prototype.getById = function(req, table_name, id) {
     if (ydn.db.crud.req.WebSql.DEBUG) {
       goog.global.console.log([tr, error]);
     }
-    me.logger.warning('error: ' + msg + ' ' + error.message);
+    goog.log.warning(me.logger, 'error: ' + msg + ' ' + error.message);
     req.setDbValue(error, true);
     return false;
   };
 
   //goog.global.console.log(['getById', sql, params]);
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   tx.executeSql(sql, params, callback, error_callback);
 };
 
@@ -581,7 +581,7 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(req, table_name, ids) {
       if (ydn.db.crud.req.WebSql.DEBUG) {
         goog.global.console.log([tr, error]);
       }
-      me.logger.warning('error: ' + sql + ' ' + error.message);
+      goog.log.warning(me.logger, 'error: ' + sql + ' ' + error.message);
       // t.abort(); there is no abort
       if (result_count == ids.length) {
         req.setDbValue(objects);
@@ -600,7 +600,7 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(req, table_name, ids) {
     var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
         column_name + ' = ?';
-    me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
+    goog.log.finest(me.logger,  'SQL: ' + sql + ' PARAMS: ' + params);
     tx.executeSql(sql, params, callback, error_callback);
   };
 
@@ -611,7 +611,7 @@ ydn.db.crud.req.WebSql.prototype.listByIds = function(req, table_name, ids) {
       get(i, /** @type {SQLTransaction} */ (tx));
     }
   } else {
-    me.logger.finer('success');
+    goog.log.finer(me.logger, 'success');
     req.setDbValue([]);
   }
 };
@@ -650,7 +650,7 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(req, keys) {
       }
 
       if (result_count == keys.length) {
-        me.logger.finest('success ' + sql);
+        goog.log.finest(me.logger,  'success ' + sql);
         req.setDbValue(objects);
       } else {
         var next = i + ydn.db.crud.req.WebSql.REQ_PER_TX;
@@ -680,7 +680,7 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(req, keys) {
     var params = [ydn.db.schema.Index.js2sql(id, table.getType())];
     var sql = 'SELECT * FROM ' + table.getQuotedName() + ' WHERE ' +
         column_name + ' = ?';
-    me.logger.finest('SQL: ' + sql + ' PARAMS: ' + params);
+    goog.log.finest(me.logger,  'SQL: ' + sql + ' PARAMS: ' + params);
     tx.executeSql(sql, params, callback, error_callback);
 
   };
@@ -692,7 +692,7 @@ ydn.db.crud.req.WebSql.prototype.listByKeys = function(req, keys) {
       get(i, tx);
     }
   } else {
-    this.logger.finest('success');
+    goog.log.finest(this.logger, 'success');
     req.setDbValue([]);
   }
 };
@@ -718,7 +718,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(req, store_names) {
      */
     var callback = function(transaction, results) {
       if (i == store_names.length - 1) {
-        me.logger.finest('success ' + sql);
+        goog.log.finest(me.logger,  'success ' + sql);
         req.setDbValue(store_names.length);
       } else {
         deleteStore(i + 1, transaction);
@@ -738,7 +738,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(req, store_names) {
       return false;
     };
 
-    me.logger.finest('SQL: ' + sql + ' PARAMS: []');
+    goog.log.finest(me.logger,  'SQL: ' + sql + ' PARAMS: []');
     tx.executeSql(sql, [], callback, errback);
 
     /**
@@ -750,7 +750,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(req, store_names) {
           store.getName() + ':' + index.getName();
 
       var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name);
-      me.logger.finest('SQL: ' + idx_sql);
+      goog.log.finest(me.logger,  'SQL: ' + idx_sql);
       tx.executeSql(idx_sql, []);
     };
 
@@ -766,7 +766,7 @@ ydn.db.crud.req.WebSql.prototype.clearByStores = function(req, store_names) {
   if (store_names.length > 0) {
     deleteStore(0, tx);
   } else {
-    this.logger.finest('success');
+    goog.log.finest(this.logger, 'success');
     req.setDbValue(0);
   }
 };
@@ -783,7 +783,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(req, keys) {
   var has_failed = false;
   var store_name, store, key;
   var msg = req.getLabel() + ' removeByKeys: ' + keys.length + ' keys';
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
 
   var removeAt = function(i) {
 
@@ -817,7 +817,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(req, keys) {
       if (ydn.db.crud.req.WebSql.DEBUG) {
         goog.global.console.log([tr, error]);
       }
-      me.logger.warning('error: ' + i_msg + error.message);
+      goog.log.warning(me.logger, 'error: ' + i_msg + error.message);
       has_failed = true;
       removeAt(i);
       return false;
@@ -842,7 +842,7 @@ ydn.db.crud.req.WebSql.prototype.removeByKeys = function(req, keys) {
           store.getName() + ':' + index.getName();
 
       var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-      me.logger.finest(req.getLabel() + + ' SQL: ' + idx_sql);
+      goog.log.finest(me.logger,  req.getLabel() + + ' SQL: ' + idx_sql);
       tx.executeSql(idx_sql, [key]);
     };
 
@@ -898,7 +898,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(req, table, id) {
   var sql = 'DELETE FROM ' + store.getQuotedName() + where;
   //console.log([sql, out.values])
   var msg = req.getLabel() + ' SQL: ' + sql + ' PARAMS: ' + [key];
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   tx.executeSql(sql, [key], success_callback, error_callback);
 
   /**
@@ -910,7 +910,7 @@ ydn.db.crud.req.WebSql.prototype.removeById = function(req, table, id) {
         store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-    me.logger.finest(req.getLabel() + + ' SQL: ' + idx_sql);
+    goog.log.finest(me.logger,  req.getLabel() + + ' SQL: ' + idx_sql);
     tx.executeSql(idx_sql, [key]);
   };
 
@@ -989,7 +989,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(req,
    * @param {SQLResultSet} results results.
    */
   var callback = function(transaction, results) {
-    me.logger.finest('success ' + msg);
+    goog.log.finest(me.logger,  'success ' + msg);
     req.setDbValue(results.rowsAffected);
   };
 
@@ -1002,14 +1002,14 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(req,
     if (ydn.db.crud.req.WebSql.DEBUG) {
       goog.global.console.log([tr, error]);
     }
-    me.logger.warning('error: ' + msg + error.message);
+    goog.log.warning(me.logger, 'error: ' + msg + error.message);
     req.setDbValue(error, true);
     return false;
   };
 
   //console.log([sql, params])
   var msg = req.getLabel() + ' SQL: ' + sql + ' PARAMS: ' + params;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   tx.executeSql(sql, params, callback, error_callback);
 
   /**
@@ -1021,7 +1021,7 @@ ydn.db.crud.req.WebSql.prototype.clear_by_key_range_ = function(req,
         store.getName() + ':' + index.getName();
 
     var idx_sql = 'DELETE FROM  ' + goog.string.quote(idx_name) + where;
-    me.logger.finest(req.getLabel() + + ' SQL: ' + idx_sql);
+    goog.log.finest(me.logger,  req.getLabel() + + ' SQL: ' + idx_sql);
     tx.executeSql(idx_sql, where_params);
   };
 
@@ -1081,12 +1081,12 @@ ydn.db.crud.req.WebSql.prototype.countStores = function(req, tables) {
       return false;
     };
 
-    me.logger.finest('SQL: ' + sql + ' PARAMS: []');
+    goog.log.finest(me.logger,  'SQL: ' + sql + ' PARAMS: []');
     tx.executeSql(sql, [], callback, error_callback);
   };
 
   if (tables.length == 0) {
-    this.logger.finest('success');
+    goog.log.finest(this.logger, 'success');
     req.setDbValue(0);
   } else {
     count(0);
@@ -1138,7 +1138,7 @@ ydn.db.crud.req.WebSql.prototype.countKeyRange = function(req, table,
   };
 
   var msg = req.getLabel() + ' SQL: ' + sql + ' PARAMS: ' + params;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   req.getTx().executeSql(sql, params, callback, error_callback);
 };
 
@@ -1214,7 +1214,7 @@ ydn.db.crud.req.WebSql.prototype.list = function(req, mth, store_name,
         arr[i] = ydn.db.crud.req.WebSql.parseRow(row, store);
       }
     }
-    me.logger.finer('success ' + req);
+    goog.log.finer(me.logger, 'success ' + req);
     if (opt_position && row) {
       opt_position[0] = ydn.db.schema.Index.sql2js(row[effective_column],
           effective_type);
@@ -1236,11 +1236,11 @@ ydn.db.crud.req.WebSql.prototype.list = function(req, mth, store_name,
     if (ydn.db.crud.req.WebSql.DEBUG) {
       goog.global.console.log([tr, error]);
     }
-    me.logger.warning('error: ' + msg + error.message);
+    goog.log.warning(me.logger, 'error: ' + msg + error.message);
     req.setDbValue(error, true);
     return false;
   };
 
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   req.getTx().executeSql(sql, params, callback, error_callback);
 };

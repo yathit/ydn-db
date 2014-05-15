@@ -131,12 +131,12 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
   var ob_store = rq.getTx().objectStore(store_name);
   var msg = rq.getLabel() + ' ' + mth + ' ' + objs.length + ' objects' +
       ' to store "' + store_name + '"';
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
 
   var put = function(i) {
 
     if (!goog.isDefAndNotNull(objs[i])) {
-      me.logger.finest('empty object at ' + i + ' of ' + objs.length);
+      goog.log.finest(me.logger,  'empty object at ' + i + ' of ' + objs.length);
       result_count++;
       if (result_count == objs.length) {
         rq.setDbValue(results, has_error);
@@ -187,7 +187,7 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
         goog.global.console.log([store_name, event, i]);
       }
       var error = request.error;
-      me.logger.finest(rq.getLabel() + mth + ' request to "' + store_name +
+      goog.log.finest(me.logger,  rq.getLabel() + mth + ' request to "' + store_name +
           '" cause ' + error.name + ' for object "' +
           ydn.json.toShortString(objs[i]) + '" at index ' +
           i + ' of ' + objs.length + ' objects.');
@@ -238,7 +238,7 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(rq, objs,
   var me = this;
 
   var msg = rq.getLabel() + ' putByKeys: of ' + objs.length + ' objects';
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
 
   var put = function(i) {
     /**
@@ -279,7 +279,7 @@ ydn.db.crud.req.IndexedDb.prototype.putByKeys = function(rq, objs,
       }
       var name = event.name;
       if (goog.DEBUG) {
-        me.logger.warning('request result ' + name +
+        goog.log.warning(me.logger, 'request result ' + name +
             ' error when put keys to "' + store_name + '" for object "' +
             ydn.json.toShortString(objs[i]) + '" at index ' +
             i + ' of ' + objs.length + ' objects.');
@@ -335,7 +335,7 @@ ydn.db.crud.req.IndexedDb.prototype.putData = function(tx, tx_no, df,
 
   var msg = tx_no + ' Loading data ' + ' of ' + fields.length +
       '-fields record to ' + store_name;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
 
   var put = function() {
 
@@ -413,7 +413,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(req,
   var me = this;
   var store = req.getTx().objectStore(store_name);
   var msg = req.getLabel() + ' clearById: ' + store_name + ' ' + key;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
 
   var request = store.openCursor(ydn.db.IDBKeyRange.only(key));
   request.onsuccess = function(event) {
@@ -454,7 +454,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(req, keys) {
   var count = 0;
   var store_name, store, key;
   var msg = req.getLabel() + ' removeByKeys: ' + keys.length + ' keys';
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var errors = [];
 
   var removeAt = function(i) {
@@ -506,7 +506,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeyRange = function(
   var request = store.count(key_range);
   var msg = req.getLabel() + ' clearByKeyRange: ' + store_name + ' ' +
       key_range;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   request.onsuccess = function(event) {
     var n = event.target.result;
     var r = store['delete'](key_range);
@@ -538,7 +538,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByKeyRange = function(
   var store = req.getTx().objectStore(store_name);
 
   var msg = req.getLabel() + ' ' + store_name + ' ' + key_range;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
 
   var r = store['delete'](key_range);
   r.onsuccess = function(event) {
@@ -563,7 +563,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByIndexKeyRange = function(
   var index = store.index(index_name);
   var msg = req.getLabel() + ' clearByIndexKeyRange: ' + store_name + ':' +
       index_name + ' ' + key_range;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var errors = [];
   // var request = index.openKeyCursor(key_range);
   // theoritically key cursor should be able to delete the record, but
@@ -613,7 +613,7 @@ ydn.db.crud.req.IndexedDb.prototype.clearByStores = function(req, store_names) {
   var n_todo = store_names.length;
   var n_done = 0;
   var msg = req.getLabel() + ' clearByStores: ' + store_names;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   for (var i = 0; i < n_todo; i++) {
     var store_name = store_names[i];
     var store = req.getTx().objectStore(store_name);
@@ -648,7 +648,7 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
 
   var me = this;
   var msg = req.getLabel() + store_name + ':' + id;
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var store = req.getTx().objectStore(store_name);
 
   var request = store.get(id);
@@ -657,7 +657,7 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       goog.global.console.log([store_name, id, event]);
     }
-    me.logger.finest(req.getLabel() + ' record ' + id +
+    goog.log.finest(me.logger,  req.getLabel() + ' record ' + id +
         (goog.isDefAndNotNull(event.target.result) ? ' ' : ' not ') +
         ' exists.');
     // check for decode blob, since chrome does not support blob
@@ -691,7 +691,7 @@ ydn.db.crud.req.IndexedDb.prototype.getById = function(req, store_name, id) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
       goog.global.console.log([store_name, id, event]);
     }
-    //me.logger.warning('Error retrieving ' + id + ' in ' + store_name + ' ' +
+    //goog.log.warning(me.logger, 'Error retrieving ' + id + ' in ' + store_name + ' ' +
     // event.message);
     event.preventDefault();
     req.setDbValue(request.error, true);
@@ -712,7 +712,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByIds = function(req,
   var store = req.getTx().objectStore(store_name);
   var n = ids.length;
   var msg = req.getLabel() + ' ' + store_name + ':' + n + ' ids';
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
 
   var get = function(i) {
 
@@ -794,7 +794,7 @@ ydn.db.crud.req.IndexedDb.prototype.listByKeys = function(req, keys) {
   results.length = keys.length;
   var result_count = 0;
   var msg = req.getLabel() + ' ' + keys.length + ' ids';
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
 
   var getKey = function(i) {
     /**
@@ -862,7 +862,7 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
   var msg = req.getLabel() + ' ' + table +
       (index_name ? ':' + index_name : '') +
       (keyRange ? ':' + ydn.json.stringify(keyRange) : '');
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var request;
   if (goog.isDefAndNotNull(index_name)) {
     var index = store.index(index_name);
@@ -934,7 +934,7 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
       msg += ', ' + ydn.json.stringify(/** @type {Object} */ (opt_position[1]));
     }
   }
-  this.logger.finest(msg);
+  goog.log.finest(this.logger, msg);
   var request;
   if (type == ydn.db.base.QueryMethod.LIST_KEY ||
       type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ||

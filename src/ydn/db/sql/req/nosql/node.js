@@ -141,7 +141,7 @@ ydn.db.sql.req.nosql.Node.prototype.execute = function(rq, req) {
     msg += ':' + index_name;
   }
   msg += ' ' + ydn.db.KeyRange.toString(key_range);
-  this.logger.finer(msg);
+  goog.log.finer(this.logger, msg);
 
   if (order && order != this.store_schema.getKeyPath()) {
     req.list(rq, ydn.db.base.QueryMethod.LIST_VALUE,

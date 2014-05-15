@@ -90,7 +90,7 @@ ydn.db.query.SKeyCursor.prototype.openSecondaryKeyMerge_ = function() {
       }
       //console.log([result_count, opt_key, opt_p_key]);
       if (!goog.isDefAndNotNull(opt_key)) {
-        me.logger.finest('cursor ' + cursor + ' finished.');
+        goog.log.finest(me.logger,  'cursor ' + cursor + ' finished.');
         me.done_ = true;
       }
       me.keys_[i_cursor] = opt_key;
@@ -105,7 +105,7 @@ ydn.db.query.SKeyCursor.prototype.openSecondaryKeyMerge_ = function() {
         // all cursor results are ready
         if (me.done_) {
           me.count_++;
-          me.logger.finest(me + ' DONE.');
+          goog.log.finest(me.logger,  me + ' DONE.');
           me.onNext();
           me.finalize_();
         } else {
@@ -121,7 +121,7 @@ ydn.db.query.SKeyCursor.prototype.openSecondaryKeyMerge_ = function() {
             // all keys are equal, hence we get matching key result.
             var key_str = goog.isDefAndNotNull(me.primary_keys_[0]) ?
                 me.keys_[0] + ', ' + me.primary_keys_[0] : me.keys_[0];
-            me.logger.finest(me + ' new cursor position {' + key_str + '}');
+            goog.log.finest(me.logger,  me + ' new cursor position {' + key_str + '}');
             me.onNext(me.keys_[0]);
           } else {
             // request behind cursor to max key position.
@@ -159,7 +159,7 @@ ydn.db.query.SKeyCursor.prototype.openSecondaryKeyMerge_ = function() {
         ', ' + me.primary_keys_[i_cursor] : '';
     pk_str = goog.isDefAndNotNull(me.keys_[i_cursor]) ? ' resume from {' +
         me.keys_[i_cursor] + pk_str + '}' : '';
-    me.logger.finest(cursor + pk_str + ' opening');
+    goog.log.finest(me.logger,  cursor + pk_str + ' opening');
     cursor.openCursor(me.keys_[i_cursor], me.primary_keys_[i_cursor]);
   };
   for (var i = 0; i < total; i++) {
@@ -242,7 +242,7 @@ ydn.db.query.SKeyCursor.prototype.isExited = function() {
  */
 ydn.db.query.SKeyCursor.prototype.exit = function() {
   this.exited_ = true;
-  this.logger.finest(this + ': exit');
+  goog.log.finest(this.logger, this + ': exit');
   this.finalize_();
   this.dispose_();
 };

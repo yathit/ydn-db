@@ -134,7 +134,7 @@ ydn.db.Request.prototype.setTx = function(tx, label) {
   goog.asserts.assert(!this.tx_, 'TX already set.');
   this.tx_ = tx;
   this.tx_label_ = label;
-  this.logger.finer(this + ' BEGIN');
+  goog.log.finer(this.logger, this + ' BEGIN');
   if (tx) {
     for (var i = 0; i < this.txbacks_.length; i++) {
       var tx_callback = this.txbacks_[i][0];
@@ -143,7 +143,7 @@ ydn.db.Request.prototype.setTx = function(tx, label) {
     }
     this.txbacks_.length = 0;
   }
-  this.logger.finer(this + ' END');
+  goog.log.finer(this.logger, this + ' END');
 };
 
 
@@ -200,7 +200,7 @@ ydn.db.Request.prototype.canAbort = function() {
  */
 ydn.db.Request.prototype.abort = function() {
   if (this.tx_) {
-    this.logger.finer(this + ' aborting');
+    goog.log.finer(this.logger, this + ' aborting');
     if (goog.isFunction(this.tx_.abort)) {
       this.tx_.abort();
     } else if (goog.isFunction(this.tx_.executeSql)) {
@@ -302,7 +302,7 @@ ydn.db.Request.prototype.addTxback = function(fun, opt_scope) {
  * @inheritDoc
  */
 ydn.db.Request.prototype.callback = function(opt_result) {
-  this.logger.finer(this + ' SUCCESS');
+  goog.log.finer(this.logger, this + ' SUCCESS');
   goog.base(this, 'callback', opt_result);
   this.dispose_();
 };
@@ -312,7 +312,7 @@ ydn.db.Request.prototype.callback = function(opt_result) {
  * @inheritDoc
  */
 ydn.db.Request.prototype.errback = function(opt_result) {
-  this.logger.finer(this + ' ERROR');
+  goog.log.finer(this.logger, this + ' ERROR');
   goog.base(this, 'errback', opt_result);
   this.dispose_();
 };

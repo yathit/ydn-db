@@ -408,7 +408,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
   var df = new goog.async.Deferred();
   var resolve = function(is_connected, ev) {
     if (is_connected) {
-      me.logger.finest(me + ': ready.');
+      goog.log.finest(me.logger,  me + ': ready.');
       me.last_queue_checkin_ = NaN;
 
       /**
@@ -448,7 +448,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
 
       df.callback(ev);
     } else {
-      me.logger.warning(me + ': database connection fail ' + ev.name);
+      goog.log.warning(me.logger, me + ': database connection fail ' + ev.name);
       setTimeout(function() {
         var event = new ydn.db.events.StorageFailEvent(me, ev);
         me.dispatchReady(event);
@@ -491,7 +491,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
           this, parseFloat(db.getVersion()), parseFloat(old_version), null);
       resolve(true, event);
     }, function(e) {
-      this.logger.warning(this + ': opening fail');
+      goog.log.warning(this.logger, this + ': opening fail');
       resolve(false, e);
     }, this);
   }
@@ -573,7 +573,7 @@ ydn.db.con.Storage.prototype.close = function() {
   if (this.db_) {
     this.db_.close();
     this.db_ = null;
-    this.logger.finest(this + ' closed');
+    goog.log.finest(this.logger, this + ' closed');
   }
 };
 
@@ -620,7 +620,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
 
   var task = this.txQueue_.shift();
   if (task) {
-    this.logger.finest('pop tx queue[' + (this.txQueue_.length + 1) + ']');
+    goog.log.finest(this.logger, 'pop tx queue[' + (this.txQueue_.length + 1) + ']');
     this.transaction(task.fnc, task.scopes, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
@@ -638,7 +638,7 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
  */
 ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
     opt_mode, opt_on_completed) {
-  this.logger.finest('push tx queue[' + this.txQueue_.length + ']');
+  goog.log.finest(this.logger, 'push tx queue[' + this.txQueue_.length + ']');
   this.txQueue_.push({
     fnc: trFn,
     scopes: store_names,
@@ -648,7 +648,7 @@ ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
 
   if (goog.DEBUG && this.txQueue_.length > ydn.db.con.Storage.QUEUE_LIMIT &&
       (this.txQueue_.length % ydn.db.con.Storage.QUEUE_LIMIT) == 0) {
-    this.logger.warning('Transaction queue stack size is ' +
+    goog.log.warning(this.logger, 'Transaction queue stack size is ' +
         this.txQueue_.length +
         '. It is too large, possibility due to incorrect usage.');
   }
@@ -662,7 +662,7 @@ ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
  */
 ydn.db.con.Storage.prototype.purgeTxQueue_ = function(e) {
   if (this.txQueue_) {
-    this.logger.info('Purging ' + this.txQueue_.length +
+    goog.log.info(this.logger, 'Purging ' + this.txQueue_.length +
         ' transactions request.');
     var task;
     while (task = this.txQueue_.shift()) {
@@ -783,7 +783,7 @@ ydn.db.con.Storage.prototype.isAutoSchema = function() {
  * @protected
  */
 ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
-  this.logger.warning('Synchronization option for ' + store.getName() +
+  goog.log.warning(this.logger, 'Synchronization option for ' + store.getName() +
       ' ignored.');
 };
 
@@ -794,7 +794,7 @@ ydn.db.con.Storage.prototype.addSynchronizer = function(store, option) {
  * @protected
  */
 ydn.db.con.Storage.prototype.addEncryption = function(store) {
-  this.logger.warning('Encryption option for ' + store.getName() +
+  goog.log.warning(this.logger, 'Encryption option for ' + store.getName() +
       ' ignored.');
 };
 
@@ -815,7 +815,7 @@ ydn.db.con.Storage.prototype.setEncryption = function(encryption) {
  * @protected
  */
 ydn.db.con.Storage.prototype.addFullTextIndexer = function(store, option) {
-  this.logger.warning('Full text indexer option for ' + store.getName() +
+  goog.log.warning(this.logger, 'Full text indexer option for ' + store.getName() +
       ' ignored.');
 };
 

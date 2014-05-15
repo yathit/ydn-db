@@ -72,7 +72,7 @@ ydn.db.sql.req.nosql.ReduceNode.prototype.execute = function(rq, req) {
     msg += ':' + index_name;
   }
   msg += ' ' + ydn.db.KeyRange.toString(key_range);
-  this.logger.finer(msg);
+  goog.log.finer(this.logger, msg);
 
   if (aggregate == 'COUNT') {
     if (key_range) {

@@ -161,7 +161,7 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
         var value = me.isIndex() ? cursor_value[me.index_name_] : cursor_value;
         me.sink_(cursor.primaryKey, value);
       } else {
-        me.logger.warning('sink gone, dropping value for: ' +
+        goog.log.warning(me.logger, 'sink gone, dropping value for: ' +
             cursor.primaryKey);
       }
       if (cursor && me.stack_.length > 0) {
@@ -175,7 +175,7 @@ ydn.db.con.IdbCursorStream.prototype.processRequest_ = function(req) {
   req.onerror = function(ev) {
     var msg = 'error' in req ?
         req['error'].name + ':' + req['error'].message : '';
-    me.logger.warning('seeking fail. ' + msg);
+    goog.log.warning(me.logger, 'seeking fail. ' + msg);
     me.running_ --;
     me.clearStack_();
   };
@@ -208,9 +208,9 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
   var on_completed = function(type, ev) {
     me.tx_ = null;
     if (type !== ydn.db.base.TxEventTypes.COMPLETE) {
-      me.logger.warning(ev.name + ':' + ev.message);
+      goog.log.warning(me.logger, ev.name + ':' + ev.message);
     }
-    me.logger.finest(me + ' transaction ' + type);
+    goog.log.finest(me.logger,  me + ' transaction ' + type);
   };
 
   /**
@@ -219,7 +219,7 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
    */
   var doRequest = function(tx) {
     var key = me.stack_.shift();
-    me.logger.finest(me + ' transaction started for ' + key);
+    goog.log.finest(me.logger,  me + ' transaction started for ' + key);
     var store = tx.objectStore(me.store_name_);
     /**
      * We cannot use index here, because index is useful to loopup from
@@ -243,10 +243,10 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
   };
 
   if (this.tx_) {
-    me.logger.finest(me + ' using existing tx.');
+    goog.log.finest(me.logger,  me + ' using existing tx.');
     doRequest(this.tx_);
   } else if (this.idb_) {
-    me.logger.finest(me + ' creating tx from IDBDatabase.');
+    goog.log.finest(me.logger,  me + ' creating tx from IDBDatabase.');
     this.tx = this.idb_.transaction([this.store_name_],
         ydn.db.base.TransactionMode.READ_ONLY);
     this.tx.oncomplete = function(event) {
@@ -261,7 +261,7 @@ ydn.db.con.IdbCursorStream.prototype.createRequest_ = function() {
       on_completed(ydn.db.base.TxEventTypes.ABORT, event);
     };
   } else if (this.db_) {
-    me.logger.finest(me + ' creating tx from ydn.db.con.IStorage.');
+    goog.log.finest(me.logger,  me + ' creating tx from ydn.db.con.IStorage.');
     this.on_tx_request_ = true;
     this.db_.transaction(function(tx) {
       me.on_tx_request_ = false;

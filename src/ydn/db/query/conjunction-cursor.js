@@ -263,7 +263,7 @@ ydn.db.query.ConjunctionCursor.prototype.isExited = function() {
  */
 ydn.db.query.ConjunctionCursor.prototype.exit = function() {
   this.exited_ = true;
-  this.logger.finest(this + ': exit');
+  goog.log.finest(this.logger, this + ': exit');
   this.finalize_();
   this.dispose_();
 };
@@ -304,7 +304,7 @@ ydn.db.query.ConjunctionCursor.prototype.dispose_ = function() {
   for (var i = 0; i < this.cursors.length; i++) {
     this.cursors[i].dispose();
   }
-  this.logger.finest(this + ' disposed');
+  goog.log.finest(this.logger, this + ' disposed');
   goog.array.clear(this.values);
   goog.array.clear(this.cursors);
 };

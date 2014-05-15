@@ -280,7 +280,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       goog.global.console.log([sql, error]);
     }
-    me.logger.warning('get error: ' + error.message);
+    goog.log.warning(me.logger, 'get error: ' + error.message);
     me.onError(error);
     me.collect();
     callback.call(me, me.current_primary_key_, me.current_key_,
@@ -289,7 +289,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continuePrimaryKey_ = function(
     return false;
   };
 
-  this.logger.finest(this + ': continuePrimary: ' + ' SQL: ' +
+  goog.log.finest(this.logger, this + ': continuePrimary: ' + ' SQL: ' +
       sql + ' : ' + ydn.json.stringify(params));
   this.tx.executeSql(sql, params, onSuccess, onError);
 };
@@ -374,7 +374,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
     if (ydn.db.core.req.WebsqlCursor.DEBUG) {
       goog.global.console.log([sql, tr, error]);
     }
-    me.logger.warning('get error: ' + error.message);
+    goog.log.warning(me.logger, 'get error: ' + error.message);
     me.onError(error);
     me.collect();
     callback.call(me, me.current_primary_key_, me.current_key_,
@@ -384,7 +384,7 @@ ydn.db.core.req.WebsqlCursor.prototype.continueEffectiveKey_ = function(
 
   };
 
-  this.logger.finest(this + ': continue: ' + ' SQL: ' +
+  goog.log.finest(this.logger, this + ': continue: ' + ' SQL: ' +
       sql + ' : ' + ydn.json.stringify(params));
 
   this.tx.executeSql(sql, params, onSuccess, onError);
@@ -454,7 +454,7 @@ ydn.db.core.req.WebsqlCursor.prototype.update = function(obj) {
       ' (' + out.columns.join(', ') + ')' +
       ' VALUES (' + out.slots.join(', ') + ')';
 
-  me.logger.finest(this + ': update "' + sql + '" : ' +
+  goog.log.finest(me.logger,  this + ': update "' + sql + '" : ' +
       ydn.json.stringify(out.values));
   this.tx.executeSql(sql, out.values, onSuccess, onError);
   return df;
@@ -605,7 +605,7 @@ ydn.db.core.req.WebsqlCursor.prototype.clear = function() {
   var sql = 'DELETE FROM ' + this.store_schema.getQuotedName() +
       ' WHERE ' + primary_column_name + ' = ?';
   var params = [this.getPrimaryKey()];
-  me.logger.finest(this + ': clear "' + sql + '" : ' +
+  goog.log.finest(me.logger,  this + ': clear "' + sql + '" : ' +
       ydn.json.stringify(params));
   this.tx.executeSql(sql, params, onSuccess, onError);
   return df;
