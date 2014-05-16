@@ -94,20 +94,6 @@ ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
   this.max_tx_no = opt_max_tx_no || 0;
 
   /**
-   * Generator function on spawn synchronous thread.
-   * @type {Function}
-   * @private
-   */
-  this.generator_;
-
-  /**
-   * Generator completed callback.
-   * @type {ydn.db.Request}
-   * @private
-   */
-  this.gen_req_ = null;
-
-  /**
    * Set break the active transaction by commit method.
    * @type {boolean}
    * @private
@@ -125,93 +111,7 @@ ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
  * @protected
  * @type {goog.debug.Logger} logger.
  */
-ydn.db.tr.Thread.prototype.logger =
-    goog.log.getLogger('ydn.db.tr.Thread');
-
-
-/**
- * Set generator
- * @param {Function} gen
- * @return {Function} callback to invoke when tx is committed or aborted.
- */
-ydn.db.tr.Thread.prototype.setGenerator = function(gen, req) {
-  goog.asserts.assert(!this.generator_, 'thread can have only one generator');
-  this.generator_ = gen;
-  this.gen_req_ = req;
-  return goog.bind(this.onGenTxCommitted_, this);
-};
-
-
-/**
- * @param {ydn.db.base.TxEventTypes} type
- * @param {*} e
- * @private
- */
-ydn.db.tr.Thread.prototype.onGenTxCommitted_ = function(type, e) {
-  var done = type == ydn.db.base.TxEventTypes.COMPLETE ||
-      type == ydn.db.base.TxEventTypes.ABORT;
-  if (done) {
-    if (this.break_tx_) {
-      goog.log.finest(this.logger, 'tx ' + this.getTxNo() + ' committed');
-      this.break_tx_ = false;
-    } else {
-      goog.log.finest(this.logger, 'Generator done ' + this.break_tx_);
-      var success = type == ydn.db.base.TxEventTypes.COMPLETE;
-      this.gen_req_.setDbValue(this.getTxNo(), !success);
-    }
-
-  }
-};
-
-
-/**
- * Commit active transaction by setTimeout.
- */
-ydn.db.tr.Thread.prototype.commit = function() {
-  if (!goog.isDef(this.generator_)) {
-    throw new ydn.debug.error.InvalidOperationException('Transaction thread' +
-        ' not running in a generator');
-  } else if (this.generator_) {
-    goog.log.finest(this.logger, 'Receive to commit tx ' + this.getTxNo() + ' on yield ' +
-        this.yield_no_);
-    this.break_tx_ = true;
-  } else {
-    // null
-    throw new ydn.debug.error.InvalidOperationException('Coroutine' +
-        ' transaction thread has been ended');
-  }
-};
-
-
-/**
- * Send next result value to generator.
- * @param x
- * @private
- */
-ydn.db.tr.Thread.prototype.sendNext_ = function(x) {
-  if (this.break_tx_) {
-    goog.log.finest(this.logger, 'waiting tx to be committed for yielding ' +
-        this.yield_no_);
-    var me = this;
-    // let transaction be committed
-    setTimeout(function() {
-      // and create a new transaction.
-      me.processTx(function(tx) {
-        // new tx is active, start next request.
-        // me.gen_req_.setTx(tx); // todo set correct tx, current implementation
-        // not allow setting multiple tx setting.
-        goog.log.finest(me.logger,  'sending result to yield ' + me.yield_no_);
-        me.generator_['next'](x);
-      }, /** @type {!Array.<string>} */ (me.scope_store_names), me.scope_mode,
-          goog.bind(me.onGenTxCommitted_, me));
-
-    }, 4);
-  } else {
-    goog.log.finest(this.logger, 'sending result to yield ' + this.yield_no_);
-    this.generator_['next'](x);
-  }
-  this.yield_no_++;
-};
+ydn.db.tr.Thread.prototype.logger = goog.log.getLogger('ydn.db.tr.Thread');
 
 
 /**
@@ -222,24 +122,7 @@ ydn.db.tr.Thread.prototype.sendNext_ = function(x) {
  * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  * @return {!ydn.db.Request}
  */
-ydn.db.tr.Thread.prototype.request = function(method, store_names, opt_mode,
-                                              opt_oncompleted) {
-  var req = new ydn.db.Request(method);
-  if (this.generator_) {
-    req.addCallbacks(function(x) {
-      this.sendNext_(x);
-    }, function(e) {
-      var err = e;
-      if (!(e instanceof Error)) {
-        err = new Error();
-        err['error'] = e;
-      }
-      this.sendNext_(err);
-    }, this);
-  }
-
-  return req;
-};
+ydn.db.tr.Thread.prototype.request = goog.abstractMethod;
 
 
 /**
@@ -276,7 +159,6 @@ ydn.db.tr.Thread.prototype.getTxNo = function() {
 ydn.db.tr.Thread.prototype.type = function() {
   return this.storage_.getType();
 };
-
 
 
 /**

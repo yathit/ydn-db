@@ -16,6 +16,5 @@ goog.exportProperty(ydn.db.tr.DbOperator.prototype, 'getTxNo',
     ydn.db.tr.DbOperator.prototype.getTxNo);
 goog.exportProperty(ydn.db.tr.Storage.prototype, 'run',
     ydn.db.tr.Storage.prototype.run);
-goog.exportProperty(ydn.db.tr.Storage.prototype, 'spawn',
-    ydn.db.tr.Storage.prototype.spawn);
+
 

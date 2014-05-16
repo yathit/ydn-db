@@ -44,8 +44,8 @@
 
 goog.provide('ydn.db.Request');
 goog.provide('ydn.db.Request.Method');
-goog.require('ydn.async.Deferred');
 goog.require('goog.log');
+goog.require('ydn.async.Deferred');
 goog.require('ydn.db.base.Transaction');
 
 
@@ -199,8 +199,9 @@ ydn.db.Request.prototype.canAbort = function() {
  * @final
  */
 ydn.db.Request.prototype.abort = function() {
+
+  goog.log.finer(this.logger, this + ' aborting ' + this.tx_);
   if (this.tx_) {
-    goog.log.finer(this.logger, this + ' aborting');
     if (goog.isFunction(this.tx_.abort)) {
       this.tx_.abort();
     } else if (goog.isFunction(this.tx_.executeSql)) {
@@ -228,7 +229,7 @@ ydn.db.Request.prototype.abort = function() {
       throw new ydn.debug.error.NotSupportedException();
     }
   } else {
-    var msg = goog.DEBUG ? 'No active transaction' : '';
+    var msg = goog.DEBUG ? this + ' No active transaction' : '';
     throw new ydn.db.InvalidStateError(msg);
   }
 };
@@ -299,22 +300,24 @@ ydn.db.Request.prototype.addTxback = function(fun, opt_scope) {
 
 
 /**
- * @inheritDoc
- */
+* @inheritDoc
+*/
 ydn.db.Request.prototype.callback = function(opt_result) {
   goog.log.finer(this.logger, this + ' SUCCESS');
   goog.base(this, 'callback', opt_result);
-  this.dispose_();
+  // we cannot dispose because tr need to be aborted.
+  // this.dispose_();
 };
 
 
 /**
- * @inheritDoc
- */
+* @inheritDoc
+*/
 ydn.db.Request.prototype.errback = function(opt_result) {
   goog.log.finer(this.logger, this + ' ERROR');
   goog.base(this, 'errback', opt_result);
-  this.dispose_();
+  // we cannot dispose because tr need to be aborted.
+  // this.dispose_();
 };
 
 
@@ -339,10 +342,14 @@ ydn.db.Request.prototype.state = function() {
 
 
 /**
- * Release references.
+ * Release references to transaction.
  * @private
+ * @deprecated not needed.
  */
 ydn.db.Request.prototype.dispose_ = function() {
+  if (ydn.db.Request.DEBUG) {
+    goog.global.console.log(this + ' dispose ');
+  }
   this.tx_ = null;
   this.tx_label_ = this.tx_label_;
 };

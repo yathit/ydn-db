@@ -23,8 +23,8 @@
 
 
 goog.provide('ydn.db.tr.Serial');
-goog.require('ydn.db.tr.Thread');
 goog.require('ydn.db.tr.Mutex');
+goog.require('ydn.db.tr.Thread');
 goog.require('ydn.debug.error.NotSupportedException');
 
 
@@ -356,7 +356,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         if (task.oncompleted) {
           me.completed_handlers_.push(task.oncompleted);
         }
-        goog.log.finest(me.logger,  'pop tx queue' + (me.trQueue_.length + 1) +
+        goog.log.finest(me.logger, 'pop tx queue' + (me.trQueue_.length + 1) +
             ' reusing T' + me.getTxNo());
         task.fnc();
       }
@@ -406,10 +406,20 @@ ydn.db.tr.Serial.prototype.getLabel = function() {
  */
 ydn.db.tr.Serial.prototype.request = function(method, store_names, opt_mode,
     opt_on_complete) {
-  var req = goog.base(this, 'request', method, store_names, opt_mode,
-      opt_on_complete);
+  var req = new ydn.db.Request(method);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
+
+  /**
+   * @param {ydn.db.base.TxEventTypes} t
+   * @param {*} e
+   */
+  var onComplete = function(t, e) {
+    req.removeTx();
+    if (opt_on_complete) {
+      opt_on_complete(t, e);
+    }
+  };
 
   if (this.mu_tx_.isActiveAndAvailable() && this.reusedTx(store_names, mode)) {
     //console.log(mu_tx.getScope() + ' continuing tx for ' + scope);
@@ -418,9 +428,7 @@ ydn.db.tr.Serial.prototype.request = function(method, store_names, opt_mode,
     var tx = this.mu_tx_.getTx();
     this.r_no_++;
     req.setTx(tx, this.getLabel() + 'R' + this.r_no_);
-    if (opt_on_complete) {
-      this.completed_handlers_.push(opt_on_complete);
-    }
+    this.completed_handlers_.push(onComplete);
   } else {
     //
     //
@@ -436,7 +444,7 @@ ydn.db.tr.Serial.prototype.request = function(method, store_names, opt_mode,
       me.r_no_++;
       req.setTx(tx, me.getLabel() + 'R' + me.r_no_);
     };
-    me.processTx(tx_callback, store_names, mode, opt_on_complete);
+    me.processTx(tx_callback, store_names, mode, onComplete);
   }
   return req;
 };

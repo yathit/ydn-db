@@ -22,8 +22,8 @@
 
 
 goog.provide('ydn.db.tr.Parallel');
-goog.require('ydn.db.tr.Thread');
 goog.require('ydn.db.tr.ParallelTxExecutor');
+goog.require('ydn.db.tr.Thread');
 goog.require('ydn.debug.error.NotSupportedException');
 
 
@@ -237,8 +237,7 @@ ydn.db.tr.Parallel.prototype.processTx = function(callback, store_names,
  */
 ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode,
                                                 opt_on_complete) {
-  var req = goog.base(this, 'request', method, store_names, opt_mode,
-      opt_on_complete);
+  var req = new ydn.db.Request(method);
   var mode = opt_mode || ydn.db.base.TransactionMode.READ_ONLY;
   var me = this;
 
@@ -249,6 +248,17 @@ ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode,
         mode + ' ' + rdn);
   }
 
+  /**
+   * @param {ydn.db.base.TxEventTypes} t
+   * @param {*} e
+   */
+  var onComplete = function(t, e) {
+    req.removeTx();
+    if (opt_on_complete) {
+      opt_on_complete(t, e);
+    }
+  };
+
   this.processTx(function(tx) {
     if (ydn.db.tr.Parallel.DEBUG) {
       goog.global.console.log(me + ' executing ' + rdn);
@@ -256,7 +266,7 @@ ydn.db.tr.Parallel.prototype.request = function(method, store_names, opt_mode,
     me.r_no_++;
     var rq_label = me.getLabel() + 'R' + me.r_no_;
     req.setTx(tx, rq_label);
-  }, store_names, mode, opt_on_complete);
+  }, store_names, mode, onComplete);
   return req;
 };
 
