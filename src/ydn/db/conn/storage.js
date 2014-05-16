@@ -534,6 +534,9 @@ ydn.db.con.Storage.prototype.dispatchReady = function(ev) {
   var me = this;
   // using setTimeout here prevent transaction overlap error.
   setTimeout(function() {
+    if (me.schema.isAutoVersion() && me.df_on_ready_.hasFired()) {
+      return;
+    }
     if (ev instanceof ydn.db.events.StorageErrorEvent) {
       var err = /** @type {ydn.db.events.StorageErrorEvent} */ (ev);
       me.df_on_ready_.errback(err.error);
