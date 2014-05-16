@@ -23,8 +23,8 @@
 
 
 goog.provide('ydn.db.tr.Serial');
-goog.require('ydn.db.tr.Thread');
 goog.require('ydn.db.tr.Mutex');
+goog.require('ydn.db.tr.Thread');
 goog.require('ydn.debug.error.NotSupportedException');
 
 
@@ -356,7 +356,7 @@ ydn.db.tr.Serial.prototype.processTx = function(trFn, store_names, opt_mode,
         if (task.oncompleted) {
           me.completed_handlers_.push(task.oncompleted);
         }
-        goog.log.finest(me.logger,  'pop tx queue' + (me.trQueue_.length + 1) +
+        goog.log.finest(me.logger, 'pop tx queue' + (me.trQueue_.length + 1) +
             ' reusing T' + me.getTxNo());
         task.fnc();
       }

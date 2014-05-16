@@ -229,7 +229,7 @@ ydn.db.Request.prototype.abort = function() {
       throw new ydn.debug.error.NotSupportedException();
     }
   } else {
-    var msg = goog.DEBUG ? 'No active transaction' : '';
+    var msg = goog.DEBUG ? this + ' No active transaction' : '';
     throw new ydn.db.InvalidStateError(msg);
   }
 };
