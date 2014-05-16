@@ -122,10 +122,7 @@ ydn.db.tr.Thread.prototype.logger = goog.log.getLogger('ydn.db.tr.Thread');
  * @param {function(ydn.db.base.TxEventTypes, *)=} opt_oncompleted handler.
  * @return {!ydn.db.Request}
  */
-ydn.db.tr.Thread.prototype.request = function(method, store_names, opt_mode,
-                                              opt_oncompleted) {
-  return new ydn.db.Request(method);
-};
+ydn.db.tr.Thread.prototype.request = goog.abstractMethod;
 
 
 /**

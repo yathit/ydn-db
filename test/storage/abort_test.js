@@ -29,7 +29,7 @@ var basic_schema = {
 
 
 var setUp = function() {
-  // ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
   // ydn.db.tr.Parallel.DEBUG = true;
   // ydn.db.con.IndexedDb.DEBUG = true;
 
@@ -348,7 +348,8 @@ var test_abort_in_run = function() {
       var get_req = tdb.get('st', 1).addBoth(function(x) {
         get_tint = get_req.tx_.tint;
         get1_result = x;
-        can_abort = req.canAbort();
+        can_abort = get_req.canAbort();
+        assertTrue('request can be aborted', can_abort);
         if (can_abort) {
           abort_tint = req.tx_.tint;
           req.abort();
