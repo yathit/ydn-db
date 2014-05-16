@@ -5,7 +5,19 @@
 (function () {
 
 
-  asyncTest("abort in run", 4, function () {
+  asyncTest("abort in run", 2, function () {
+
+    var test_env = {
+      setup: function () {
+
+      },
+      teardown: function () {
+
+      }
+    };
+
+    module("transaction,storage", test_env);
+    reporter.createTestSuite('transaction');
 
     var db_name = 'test_abort_2';
 
@@ -40,7 +52,7 @@
     var done_count = 0;
     var done = function() {
       done_count++;
-      if (done_count >= 2) {
+      if (done_count >= 1) {
         start();
         ydn.db.deleteDatabase(db_name, db.getType());
         db.close();
@@ -49,9 +61,10 @@
 
     var req = db.run(function (tdb) {
       tdb.put('s1', obj).always(function (key) {
-        tdb.get('s1', obj.id).then(function (result) {
+        var req_get = tdb.get('s1', obj.id);
+        req_get.then(function (result) {
           equal(obj.value, result.value, 'store 1 result');
-          req.abort();
+          req_get.abort();
         }, function (e) {
           ok(false, 'store 1 get not error');
         });
@@ -66,19 +79,7 @@
       });
     });
 
-    db.run(function (tdb) {
-      tdb.put('s2', obj).always(function (key) {
-        tdb.get('s2', obj.id).always(function (result) {
-          equal(obj.value, result.value, 'store 2 result');
-        });
-      });
 
-    }, ['s2'], 'readwrite').always(function (t, e) {
-          db.get('s2', obj.id).always(function (result) {
-            equal(obj.value, result.value, 'store 2 done result');
-            done();
-          });
-        });
 
   });
 

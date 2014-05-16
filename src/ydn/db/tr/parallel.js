@@ -22,8 +22,8 @@
 
 
 goog.provide('ydn.db.tr.Parallel');
-goog.require('ydn.db.tr.Thread');
 goog.require('ydn.db.tr.ParallelTxExecutor');
+goog.require('ydn.db.tr.Thread');
 goog.require('ydn.debug.error.NotSupportedException');
 
 
