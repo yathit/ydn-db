@@ -589,44 +589,6 @@ var test_keysBy_index_ValueIterator = function() {
   });
 };
 
-var test_keysBy_multiEntry_index_KeyIterator = function () {
-
-  if (options.mechanisms[0] == 'websql') {
-    // know issue.
-    reachedFinalContinuation = true;
-    return;
-  }
-
-  var db = load_default2();
-  var done;
-  var result;
-  var keys = ['a', 'b', 'c', 'd'];
-  waitForCondition(
-    // Condition
-    function () {
-      return done;
-    },
-    // Continuation
-    function () {
-      assertObjectEquals('result', keys, result);
-      ydn.db.deleteDatabase(db.getName(), db.getType());
-      db.close();
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    1000); // maxTimeout
-
-  var q = new ydn.db.IndexIterator(store_name, 'tag', null, false, true);
-
-  db.keys(q).addBoth(function (value) {
-    //console.log(db + ' fetch value: ' + JSON.stringify(value));
-    result = value;
-    done = true;
-  });
-};
-
-
-
 var test_keys_by_ValueIndexIterator = function () {
   var db = load_default();
   var done;
@@ -725,77 +687,6 @@ var test_keys_by_KeyIndexIterator_unqiue = function () {
   });
 };
 
-
-
-var test_multiEntry = function () {
-
-  var objs = [
-    {id: 0, tag: ['a', 'b']},
-    {id: 1, tag: ['e']},
-    {id: 2, tag: ['a', 'c']},
-    {id: 3, tag: []},
-    {id: 4, tag: ['c']},
-    {id: 5}
-  ];
-  var schema = {
-    stores: [{
-      name: 'st',
-      keyPath: 'id',
-      indexes: [{
-        keyPath: 'tag',
-        multiEntry: true
-      }]
-    }]
-  };
-  var db = new ydn.db.core.Storage('test-me', schema, options);
-
-  db.put('st', objs).addCallback(function(value) {
-    console.log(db + ' ready', value);
-  });
-
-  // var tags = ['d', 'b', 'c', 'a', 'e'];
-  // var exp_counts = [1, 3, 2, 4, 0];
-  var tags = ['a', 'b', 'c', 'd'];
-  var expected = [[0, 2], [0], [2, 4], []];
-  var results = [];
-  var total = tags.length;
-  var done = 0;
-
-  waitForCondition(
-    // Condition
-    function () {
-      return done == total;
-    },
-    // Continuation
-    function () {
-
-      for (var i = 0; i < total; i++) {
-        assertArrayEquals('for tag: ' + tags[i], expected[i], results[i]);
-      }
-      ydn.db.deleteDatabase(db.getName(), db.getType());
-      db.close();
-      reachedFinalContinuation = true;
-    },
-    100, // interval
-    1000); // maxTimeout
-
-
-  var count_for = function (tag_name, idx) {
-    var keyRange = ydn.db.KeyRange.only(tag_name);
-    var q = new ydn.db.IndexIterator('st', 'tag', keyRange);
-
-    db.values(q).addBoth(function (value) {
-      console.log(tag_name + ' ==> ' + JSON.stringify(value));
-      results[idx] = value;
-      done++;
-    });
-  };
-
-  for (var i = 0; i < total; i++) {
-    count_for(tags[i], i);
-  }
-
-};
 
 
 var testCase = new goog.testing.ContinuationTestCase();

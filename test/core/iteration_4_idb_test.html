@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Test for WebSql keys</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Test for IndexedDb iteration</title>
 </head>
 <body>
 
@@ -12,13 +13,15 @@
     <script>
 	    goog.require('goog.testing.ContinuationTestCase');
 	    goog.require('goog.testing.jsunit');
-      options = {mechanisms: ['websql']};
-        goog.require('ydn.db.crud.Storage');
+      options = {mechanisms: ['indexeddb']};
+        goog.require('ydn.db.core.Storage');
+        goog.require('goog.events.EventTarget');
     </script>
     <script type="text/javascript" src="../../src/ydn/db/tr/inject.js"></script>
     <script type="text/javascript" src="../../src/ydn/db/crud/inject.js"></script>
-	<script type="text/javascript" src="list_test.js"></script>
-	<script type="text/javascript" src="list_2_test.js"></script>
+    <script type="text/javascript" src="../../src/ydn/db/core/inject.js"></script>
+    <script type="text/javascript" src="../../src/ydn/db/tr/event_installer.js"></script>
+	<script type="text/javascript" src="iteration_4_test.js"></script>
 
 </body>
 </html>

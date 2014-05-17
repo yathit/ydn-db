@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Test for IndexedDb indexing</title>
+	<title>Test for IndexedDB keys and values listing</title>
 </head>
 <body>
 
@@ -13,12 +13,11 @@
     <script>
 	    goog.require('goog.testing.ContinuationTestCase');
 	    goog.require('goog.testing.jsunit');
+
+      options = {mechanisms: ['indexeddb']};
         goog.require('ydn.db.Storage');
-        options = {mechanisms: ['websql']};
     </script>
-	<script type="text/javascript" src="index_test.js"></script>
-	<script type="text/javascript" src="index_2_test.js"></script>
-	<script type="text/javascript" src="index_3_test.js"></script>
+	<script type="text/javascript" src="list_2_test.js"></script>
 
 </body>
 </html>
