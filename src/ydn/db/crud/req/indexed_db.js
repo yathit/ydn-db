@@ -151,7 +151,7 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
     var request;
 
     var obj = objs[i];
-    if (goog.isDefAndNotNull(opt_keys)) {
+    if (opt_keys && goog.isDefAndNotNull(opt_keys[i])) {
       if (is_replace) {
         request = ob_store.put(obj, opt_keys[i]);
       } else {
