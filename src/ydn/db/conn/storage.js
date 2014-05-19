@@ -375,6 +375,7 @@ ydn.db.con.Storage.prototype.getName = function() {
  */
 ydn.db.con.Storage.PREFERENCE = [
   ydn.db.base.Mechanisms.IDB,
+  ydn.db.base.Mechanisms.SQLITE,
   ydn.db.base.Mechanisms.WEBSQL,
   ydn.db.base.Mechanisms.LOCAL_STORAGE,
   ydn.db.base.Mechanisms.SESSION_STORAGE,
@@ -408,7 +409,7 @@ ydn.db.con.Storage.prototype.connectDatabase = function() {
   var df = new goog.async.Deferred();
   var resolve = function(is_connected, ev) {
     if (is_connected) {
-      goog.log.finest(me.logger,  me + ': ready.');
+      goog.log.finest(me.logger, me + ': ready.');
       me.last_queue_checkin_ = NaN;
 
       /**

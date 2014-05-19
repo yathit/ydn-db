@@ -32,7 +32,7 @@ ydn.db.sql.Storage.prototype.newExecutor = function() {
   var type = this.getType();
   if (type == ydn.db.base.Mechanisms.IDB) {
     return new ydn.db.sql.req.IndexedDb(this.db_name, this.schema);
-  } else if (type == ydn.db.base.Mechanisms.WEBSQL) {
+  } else if (type == ydn.db.base.Mechanisms.WEBSQL || type == ydn.db.base.Mechanisms.SQLITE) {
     return new ydn.db.sql.req.WebSql(this.db_name, this.schema);
   } else if (type == ydn.db.base.Mechanisms.MEMORY_STORAGE ||
       type == ydn.db.base.Mechanisms.LOCAL_STORAGE ||

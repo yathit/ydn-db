@@ -37,11 +37,12 @@ goog.require('ydn.string');
  * Construct a WebSql database connector.
  * Note: Version is ignored, since it does work well.
  * @param {number=} opt_size estimated database size. Default to 5 MB.
+ * @param {ydn.db.base.Mechanisms=} opt_type either WEBSQL or SQLITE
  * @implements {ydn.db.con.IDatabase}
  * @constructor
  * @struct
  */
-ydn.db.con.WebSql = function(opt_size) {
+ydn.db.con.WebSql = function(opt_size, opt_type) {
 
   // Safari default limit is slightly over 4 MB, so we ask the largest storage
   // size but, still not don't bother to user.
@@ -53,6 +54,7 @@ ydn.db.con.WebSql = function(opt_size) {
    */
   this.size_ = goog.isDef(opt_size) ? opt_size : 4 * 1024 * 1024; // 5 MB
 
+  this.type_ = opt_type || ydn.db.base.Mechanisms.WEBSQL;
 };
 
 
@@ -75,12 +77,12 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
   /**
    *
    * @param {Database} db database.
-   * @param {Error=} e error object only in case of error.
+   * @param {Error=} opt_err error object only in case of error.
    */
-  var setDb = function(db, e) {
-    if (goog.isDef(e)) {
+  var setDb = function(db, opt_err) {
+    if (goog.isDef(opt_err)) {
       me.sql_db_ = null;
-      df.errback(e);
+      df.errback(opt_err);
 
     } else {
       me.sql_db_ = db;
@@ -94,7 +96,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
    * @private
    * @param {Database} db database.
    * @param {ydn.db.schema.Database} schema  schema.
-   * @param {boolean=} is_version_change version change or not.
+   * @param {boolean} is_version_change version change or not.
    */
   var doVersionChange_ = function(db, schema, is_version_change) {
 
@@ -173,7 +175,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
         if (updated_count != schema.stores.length) {
           msg = ' but unexpected stores exists.';
         }
-        goog.log.finest(me.logger,  dbname + ':' + db.version + ' ready' + msg);
+        goog.log.finest(me.logger, dbname + ':' + db.version + ' ready' + msg);
         setDb(db);
       }
     };
@@ -206,7 +208,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
   var creationCallback = function(e) {
     var msg = init_migrated ?
         ' and already migrated, but migrating again.' : ', migrating.';
-    goog.log.finest(me.logger,  'receiving creation callback ' + msg);
+    goog.log.finest(me.logger, 'receiving creation callback ' + msg);
 
     // the standard state that we should call VERSION_CHANGE request on
     // this callback.
@@ -245,7 +247,25 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     // as it should.
     //
     // Hence, always open with empty string database version.
-    db = goog.global.openDatabase(dbname, '', description, this.size_);
+    if (this.type_ == ydn.db.base.Mechanisms.SQLITE) {
+      // use sqlitePlugin
+      if (goog.global['sqlitePlugin']) {
+        db = goog.global['sqlitePlugin'].openDatabase(dbname, '', description, this.size_);
+        if (!db.readTransaction) {
+          db.readTransaction = db.transaction;
+        }
+        db.changeVersion = function(old_ver, new_ver, transaction_callback, error_callback, success_callback) {
+          db.transaction(transaction_callback, error_callback, success_callback);
+        };
+      } else {
+        goog.log.warning(this.logger, 'sqlitePlugin not found.');
+        db = null;
+        this.last_error_ = new Error('sqlitePlugin not found.');
+      }
+
+    } else {
+      db = goog.global.openDatabase(dbname, '', description, this.size_);
+    }
   } catch (e) {
     if (e.name == 'SECURITY_ERR') {
       goog.log.warning(this.logger, 'SECURITY_ERR for opening ' + dbname);
@@ -284,10 +304,10 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
     // schema as expected. If not correct, we will correct to the schema,
     // without increasing database version.
 
-    old_version = db.version;
+    old_version = db.version || ''; // sqlite does not have version attribute.
 
     var db_info = 'database ' + dbname +
-        (db.version.length == 0 ? '' : ' version ' + db.version);
+        (old_version.length == 0 ? '' : ' version ' + db.version);
 
     if (goog.isDefAndNotNull(schema.version) && schema.version == db.version) {
       goog.log.fine(me.logger, 'Existing ' + db_info + ' opened as requested.');
@@ -297,7 +317,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
       this.getSchema(function(existing_schema) {
         var msg = schema.difference(existing_schema, true, false);
         if (msg) {
-          if (db.version.length == 0) {
+          if (old_version == 0) {
             goog.log.fine(me.logger, 'New ' + db_info + ' created.');
 
             doVersionChange_(db, schema, true);
@@ -331,7 +351,7 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
  * @inheritDoc
  */
 ydn.db.con.WebSql.prototype.getType = function() {
-  return ydn.db.base.Mechanisms.WEBSQL;
+  return this.type_;
 };
 
 
@@ -364,6 +384,15 @@ ydn.db.con.WebSql.prototype.getDbInstance = function() {
  */
 ydn.db.con.WebSql.isSupported = function() {
   return goog.isFunction(goog.global.openDatabase);
+};
+
+
+/**
+ *
+ * @return {boolean} true if sqlite is supported on cordova enviroment.
+ */
+ydn.db.con.WebSql.isSqliteSupported = function() {
+  return !!goog.global['sqlitePlugin'];
 };
 
 

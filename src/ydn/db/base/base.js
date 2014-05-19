@@ -75,6 +75,7 @@ ydn.db.base.Mechanisms = {
   LOCAL_STORAGE: 'localstorage',
   MEMORY_STORAGE: 'memory',
   SESSION_STORAGE: 'sessionstorage',
+  SQLITE: 'sqlite',
   WEBSQL: 'websql'
 };
 

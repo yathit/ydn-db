@@ -39,6 +39,9 @@ ydn.db.tr.Storage.prototype.createDbInstance = function(db_type) {
   if (db_type == ydn.db.base.Mechanisms.IDB &&
       ydn.db.con.IndexedDb.isSupported()) {
     return new ydn.db.con.IndexedDb(this.size, this.connectionTimeout);
+  } else if (db_type == ydn.db.base.Mechanisms.SQLITE &&
+      ydn.db.con.WebSql.isSqliteSupported()) {
+    return new ydn.db.con.WebSql(this.size, ydn.db.base.Mechanisms.SQLITE);
   } else if (db_type == ydn.db.base.Mechanisms.WEBSQL &&
       ydn.db.con.WebSql.isSupported()) {
     return new ydn.db.con.WebSql(this.size);
