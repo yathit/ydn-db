@@ -131,7 +131,7 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
         ];
         var full_text_store_schema = new ydn.db.schema.Store(
             full_text_index.getName(), 'id', false, undefined, p_indexes,
-            false, true, false);
+            false, false, false);
         this.stores.push(full_text_store_schema);
       }
     }
