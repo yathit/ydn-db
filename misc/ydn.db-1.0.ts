@@ -1,4 +1,4 @@
-// TypeScript definition for YDN-DB
+// TypeScript definition for YDN-DB version 1
 
 interface FullTextSource {
   storeName: string;
