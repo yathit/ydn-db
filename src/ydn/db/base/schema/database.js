@@ -130,7 +130,8 @@ ydn.db.schema.Database = function(opt_version, opt_stores) {
           new ydn.db.schema.Index('v', ydn.db.schema.DataType.TEXT)
         ];
         var full_text_store_schema = new ydn.db.schema.Store(
-            full_text_index.getName(), 'id', false, undefined, p_indexes);
+            full_text_index.getName(), 'id', false, undefined, p_indexes,
+            false, true, false);
         this.stores.push(full_text_store_schema);
       }
     }
