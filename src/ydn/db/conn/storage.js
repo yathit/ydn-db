@@ -114,7 +114,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   this.connectionTimeout = goog.isDef(options.connectionTimeout) ?
       options.connectionTimeout :
       ydn.db.con.Storage.DEBUG ?
-      1000 : goog.DEBUG ? 30 * 1000 : 30 * 60 * 1000;
+      1000 : goog.DEBUG ? 3 * 1000 : 60 * 1000;
 
   /**
    * The database instance.
