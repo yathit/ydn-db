@@ -12,12 +12,6 @@ goog.require('ydn.db.test');
 ydn.store.IndexedDbJstest = AsyncTestCase('IndexedDbJstest');
 
 ydn.store.IndexedDbJstest.prototype.setUp = function() {
-  //console.log('running test for IndexedDbJstest');
-
-  this.console = new goog.debug.Console();
-  this.console.setCapturing(true);
-  goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.INFO);
-  // goog.log.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
 
   this.dbname = 'test_2';
 
@@ -25,7 +19,7 @@ ydn.store.IndexedDbJstest.prototype.setUp = function() {
 
 
 ydn.store.IndexedDbJstest.prototype.tearDown = function() {
-  this.console.setCapturing(false);
+
 };
 
 ydn.store.IndexedDbJstest.prototype.test_special_key = function(queue) {

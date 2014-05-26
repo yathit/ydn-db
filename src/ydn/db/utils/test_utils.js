@@ -95,7 +95,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
 
   queue.call('clear db before start', function(callbacks) {
     db.clear(ydn.db.test.table).addCallback(callbacks.add(function(value) {
-      assertTrue('clear OK', value);
+      assertEquals('clear OK', 1, value);
     }));
   });
 
@@ -192,17 +192,17 @@ ydn.db.test.special_keys_test = function(queue, db) {
   var test_key = function(key) {
     var key_value = 'a' + Math.random();
     queue.call('put ' + key, function(callbacks) {
-      goog.global.console.log('putting ' + key + key_value);
+      // goog.global.console.log('putting ' + key + key_value);
       db.put(ydn.db.test.table, {id: key, value: key_value}).addCallback(callbacks.add(function(value) {
-        goog.global.console.log('put ' + key + ' ' + value);
+        // goog.global.console.log('put ' + key + ' ' + value);
         assertEquals('put a 1', key, value);
       }));
     });
 
     queue.call('get ' + key, function(callbacks) {
-      goog.global.console.log('getting ' + key);
+      // goog.global.console.log('getting ' + key);
       db.get(ydn.db.test.table, key).addCallback(callbacks.add(function(value) {
-        goog.global.console.log('get ' + key + ' ' + value);
+        // goog.global.console.log('get ' + key + ' ' + value);
         assertEquals('get ' + key, key_value, value.value);
       }));
     });

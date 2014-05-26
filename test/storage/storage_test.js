@@ -222,60 +222,6 @@ var test_4_lazy_init = function() {
   db.setName('lazy-db');
 };
 
-var test_0_connection_timeout = function () {
-  var schema = {
-    stores: [{
-      name: 's1',
-      autoIncrement: true
-    }]
-  };
-  // assuming that database cannot be opened
-  // within 1 ms, this *might* throw timeout error.
-  var opt = {
-   connectionTimeout: 1,
-   policy: 'atomic', // only atomic can receive request in case of error
-   isSerial: true
-  };
-
-  var db = new ydn.db.Storage('test_connection_timeout', schema, opt);
-
-  var done, done2, event, key, has_error;
-
-  waitForCondition(
-      // Condition
-      function() { return done + done2; },
-      // Continuation
-      function() {
-        assertTrue('receive StorageEvent assuming database cannot be opened within 1ms',
-            event instanceof ydn.db.events.StorageEvent);
-        var err = event.getError();
-        assertNotNull('got error', err);
-        assertEquals('time out error', 'ydn.db.TimeoutError', err.name);
-        assertTrue('put request receive error', has_error);
-        assertTrue('error instead of a key', key instanceof Error);
-        reachedFinalContinuation = true;
-        ydn.db.deleteDatabase(db.getName(), db.getType());
-        db.close();
-      },
-      100, // interval
-      1000); // maxTimeout
-
-  db.onReady = function (e) {
-    event = e;
-    done = true;
-  };
-
-  db.put('s1', {id: 1}).addCallback(function (x) {
-    key = x;
-    has_error = false;
-    done2 = true;
-  }).addErrback(function (x) {
-        key = x;
-        has_error = true;
-        done2 = true;
-      });
-};
-
 
 var test_run = function () {
   var data = [
@@ -314,7 +260,7 @@ var test_run = function () {
       1000); // maxTimeout
 
   var db = new ydn.db.Storage(db_name, schema);
-  db.onReady = function() {
+  db.onReady(function() {
     db.run(function(idb) {
       idb.put('st', data).addBoth(function(x) {
         put_result = x;
@@ -330,7 +276,7 @@ var test_run = function () {
         done = true;
       });
     }, ['st'], 'readwrite');
-  };
+  });
 
 };
 

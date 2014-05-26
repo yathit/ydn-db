@@ -12,173 +12,31 @@ goog.require('ydn.db.test');
 ydn.store.StorageJstest = AsyncTestCase('StorageJstest');
 
 ydn.store.StorageJstest.prototype.setUp = function() {
-  //console.log('running test for PageJstest');
 
-  this.console = new goog.debug.Console();
-  this.console.setCapturing(true);
-  goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.INFO);
-  //goog.log.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  // goog.log.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
-  // goog.log.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
-
-  this.dbname = 'storage_test_4-';
 
 };
 
 
 ydn.store.StorageJstest.prototype.tearDown = function() {
-  this.console.setCapturing(false);
-};
-
-
-ydn.store.StorageJstest.prototype.test_setItem = function(queue) {
-  var db = new ydn.db.Storage(this.dbname + '1');
-
-  queue.call('not initialized', function(callbacks) {
-    assertUndefined('not initialized', db.db);
-  });
-
-  queue.call('initialized', function(callbacks) {
-    assertTrue('db initialized', db.isReady());
-  });
-
-  queue.call('put a', function(callbacks) {
-    db.setItem('a', '1').addBoth(callbacks.add(function(value) {
-      assertEquals('put a OK', 'a', value);
-    }));
-  });
 
 };
 
 
 /**
- * Test database can be use before initialized.
+ * Test database initialization with auto schema
  * @param queue
  */
-ydn.store.StorageJstest.prototype.test_setItem_getItem = function(queue) {
-  var db = new ydn.db.Storage(this.dbname + '2');
-
-  var v = 'a' + Math.random();
-  db.setItem('a', v); // using db before initialized.
-
-  queue.call('not initialized', function(callbacks) {
-    assertFalse('not initialized', db.isReady());
-  });
-
-  queue.call('set schema', function(callbacks) {
-    db.setSchema(ydn.db.test.getSchema());
-  });
-
-  queue.call('initialized', function(callbacks) {
-    assertTrue('db initialized', db.isReady());
-  });
-
-  queue.call('get a', function(callbacks) {
-    db.getItem('a').addBoth(callbacks.add(function(value) {
-      assertEquals('get a OK', v, value);
-    }));
-  });
-
-  // to make sure transaction can continue.
-  queue.call('get a again', function(callbacks) {
-    db.getItem('a').addBoth(callbacks.add(function(value) {
-      assertEquals('get a again', v, value);
-    }));
-  });
-
-  queue.call('get b', function(callbacks) {
-    db.getItem('b').addBoth(callbacks.add(function(value) {
-      assertUndefined('no b', value);
-    }));
-  });
-
-  queue.call('get a again 2', function(callbacks) {
-    db.getItem('a').addBoth(callbacks.add(function(value) {
-      assertEquals('get a again 2', v, value);
+ydn.store.StorageJstest.prototype.testAutoSchema = function(queue) {
+  var db = new ydn.db.Storage('test-trivial-schema');
+  var store_name = 's' + Math.random();
+  queue.call('put using trivial schema', function(callbacks) {
+    var key = Math.random();
+    db.put(store_name, {foo: 'bar'}, key).addBoth(callbacks.add(function(x) {
+      assertFalse('not error', x instanceof Error);
+      assertEquals('has a key', key, x);
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
     }));
   });
 };
-
-
-
-/**
- * Test database can be use before initialized.
- * @param queue
- */
-ydn.store.StorageJstest.prototype.test_put_get = function(queue) {
-  var db = new ydn.db.Storage(this.dbname + '3');
-	this.table = ydn.db.test.table;
-  var self = this;
-
-  var v = {'id': 'a', 'value': 'a' + Math.random()};
-  db.put(this.table, v); // using db before initialized.
-
-  queue.call('not initialized', function(callbacks) {
-		assertFalse('not initialized', db.isReady());
-  });
-
-  queue.call('set schema', function(callbacks) {
-    db.setSchema(ydn.db.test.getSchema());
-  });
-
-  queue.call('initialized', function(callbacks) {
-    assertTrue('db initialized', db.isReady());
-  });
-
-  queue.call('get a', function(callbacks) {
-    db.get(self.table, 'a').addBoth(callbacks.add(function(value) {
-      assertEquals('get a OK', v, value);
-    }));
-  });
-
-  // to make sure transaction can continue.
-  queue.call('get a again', function(callbacks) {
-    db.get(self.table, 'a').addBoth(callbacks.add(function(value) {
-      assertEquals('get a again', v, value);
-    }));
-  });
-
-  queue.call('get b', function(callbacks) {
-    db.get(self.table, 'b').addBoth(callbacks.add(function(value) {
-      assertUndefined('no b', value);
-    }));
-  });
-
-  queue.call('get a again 2', function(callbacks) {
-    db.get(self.table, 'a').addBoth(callbacks.add(function(value) {
-      assertEquals('get a again 2', v, value);
-    }));
-  });
-};
-
-
-/**
- * Test for JSON configruation
- * @param queue
- */
-ydn.store.StorageJstest.prototype.test_json_config = function(queue) {
-
-  var store = {name:'todo', keyPath:"timeStamp"};
-
-  var schema_ver1 = {
-    version: 2,
-    size: 1 * 1024 * 1024, // 1 MB
-    Stores:[store]
-  };
-
-  var db = new ydn.db.Storage('todo_test', schema_ver1);
-
-  // it is wired that without this initialized test, it fail.
-  // it is likely from js test bug.
-  queue.call('initialized', function(callbacks) {
-    assertTrue('db initialized', db.isReady());
-  });
-
-  queue.call('get todo table', function(callbacks) {
-    db.get('todo').addCallback(callbacks.add(function(value) {
-      assertEquals('empty', [], value);
-    }));
-  })
-};
-
 

@@ -15,18 +15,13 @@ ydn.db.KeyJstest = TestCase('ydn.db.KeyJstest');
 
 ydn.db.KeyJstest.prototype.setUp = function() {
 
-  this.console = new goog.debug.Console();
-  this.console.setCapturing(true);
-  goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
-  //goog.log.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.log.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.log.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
+
 
 };
 
 
 ydn.db.KeyJstest.prototype.tearDown = function() {
-  this.console.setCapturing(false);
+
 };
 
 
