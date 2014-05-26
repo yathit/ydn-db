@@ -92,5 +92,42 @@ ydn.db.test.CrudJstest.prototype.testClearStore = function(queue) {
 };
 
 
+ydn.db.test.CrudJstest.prototype.testListByIds = function(queue) {
+  var db_name = 'testListByIds';
+  var schema = {
+    stores: [{
+      name: 'st',
+      keyPath: 'id'
+    }]
+  };
+  var db = new ydn.db.Storage(db_name, schema, database_options);
+  var arr = [];
+  var n = ydn.db.crud.req.IndexedDb.REQ_PER_TX * 2.5;
+  for (var i = 0; i < n; i++) {
+    arr.push({id: i, value: 'a' + Math.random()});
+  }
+  var ids = [2,
+    ydn.db.crud.req.IndexedDb.REQ_PER_TX,
+    ydn.db.crud.req.IndexedDb.REQ_PER_TX + 1,
+    2 * ydn.db.crud.req.IndexedDb.REQ_PER_TX + 1];
+
+  queue.call('init data', function(callbacks) {
+    db.put('st', arr).addBoth(callbacks.add(function(x) {
+      db = new ydn.db.Storage(db_name, schema, database_options);
+      db.values('st', ids).addBoth(callbacks.add(function(results) {
+        assertEquals('length', ids.length, results.length);
+        for (var i = 0; i < ids.length; i++) {
+          assertEquals('of ' + i, arr[ids[i]].value, results[i].value);
+          ydn.db.deleteDatabase(db.getName(), db.getType());
+          db.close();
+        }
+      }));
+    }));
+  });
+
+  db.close();
+};
+
+
 
 
