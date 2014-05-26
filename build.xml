@@ -63,7 +63,7 @@
         </calc-deps>
     </target>
     <target name="jstd" description="print out jstd file for JS test driver">
-        <jstd-gen base.dir="${ydn-db.dir}">
+        <jstd-gen base.dir="${ydn-db.dir}" input.fn="${ydn-db.dir}/config/test.js">
             <deps-options>
                 <arg line='--path "${ydn-base.dir}/src"'/>
             </deps-options>

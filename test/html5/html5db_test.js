@@ -258,7 +258,7 @@ var _test_6_no_keyPath = function () {
 //*/
 //var test_7_special_keys = function() {
 //
-//	var db = new ydn.db.LocalStorage(db_name, basic_schema);
+//	var db = new ydn.db.Storage(db_name, basic_schema);
 //	var me = this;
 //
 //  var test_key = function(key) {

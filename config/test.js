@@ -3,6 +3,7 @@
  *
  */
 
+goog.require('ydn.db.test');
 goog.require('ydn.db.Storage');
 goog.require('goog.debug.Console');
 

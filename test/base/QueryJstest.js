@@ -15,8 +15,8 @@ ydn.db.QueryJstest = TestCase('ydn.db.QueryJstest');
 
 ydn.db.QueryJstest.prototype.setUp = function() {
 
-  var c = new goog.debug.Console();
-  c.setCapturing(true);
+  this.console = new goog.debug.Console();
+  this.console.setCapturing(true);
   goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
   //goog.log.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
   goog.log.getLogger('ydn.db').setLevel(goog.debug.Logger.Level.FINEST);
@@ -24,8 +24,13 @@ ydn.db.QueryJstest.prototype.setUp = function() {
 };
 
 
-ydn.db.QueryJstest.prototype.test_key_range = function() {
+ydn.db.QueryJstest.prototype.tearDown = function() {
+  this.console.setCapturing(false);
+};
 
+
+ydn.db.QueryJstest.prototype.test_key_range = function() {
+  assertTrue("not implemented test", true);
 };
 
 //

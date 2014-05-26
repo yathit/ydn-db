@@ -14,15 +14,20 @@ ydn.store.StorageJstest = AsyncTestCase('StorageJstest');
 ydn.store.StorageJstest.prototype.setUp = function() {
   //console.log('running test for PageJstest');
 
-  var c = new goog.debug.Console();
-  c.setCapturing(true);
-  goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.FINE);
+  this.console = new goog.debug.Console();
+  this.console.setCapturing(true);
+  goog.debug.LogManager.getRoot().setLevel(goog.debug.Logger.Level.INFO);
   //goog.log.getLogger('ydn.gdata.MockServer').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.log.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
-  goog.log.getLogger('ydn.db.IndexedDb').setLevel(goog.debug.Logger.Level.FINEST);
+  // goog.log.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
+  // goog.log.getLogger('ydn.db.Storage').setLevel(goog.debug.Logger.Level.FINEST);
 
   this.dbname = 'storage_test_4-';
 
+};
+
+
+ydn.store.StorageJstest.prototype.tearDown = function() {
+  this.console.setCapturing(false);
 };
 
 
@@ -31,10 +36,6 @@ ydn.store.StorageJstest.prototype.test_setItem = function(queue) {
 
   queue.call('not initialized', function(callbacks) {
     assertUndefined('not initialized', db.db);
-  });
-
-  queue.call('set schema', function(callbacks) {
-    db.setSchema(ydn.db.test.getSchema());
   });
 
   queue.call('initialized', function(callbacks) {

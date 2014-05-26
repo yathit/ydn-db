@@ -6,7 +6,7 @@
  */
 
 goog.provide('ydn.db.test');
-goog.require('ydn.db.io.QueryService');
+goog.require('ydn.db.Storage');
 
 
 /**
@@ -19,15 +19,20 @@ ydn.db.test.table = 't1';
  * @return {!ydn.db.schema.Database} database schema.
  */
 ydn.db.test.getSchema = function() {
-  var basic_schema = new ydn.db.schema.Database(1);
-  basic_schema.addStore(new ydn.db.schema.Store(ydn.db.test.table, 'id'));
-  return basic_schema;
+  // var basic_schema = new ydn.db.schema.Database(1);
+  // basic_schema.addStore(new ydn.db.schema.Store(ydn.db.test.table, 'id'));
+  return new ydn.db.schema.Database({
+    stores: [{
+      name: 't1',
+      keyPath: 'id'
+    }]
+  });
 };
 
 
 /**
  * @param queue test queue.
- * @param {ydn.db.io.QueryService} db Database instance.
+ * @param {ydn.db.Storage} db Database instance.
  */
 ydn.db.test.db_clear_all_tests = function(queue, db) {
 
@@ -48,7 +53,7 @@ ydn.db.test.db_clear_all_tests = function(queue, db) {
 
 /**
  * @param queue test queue.
- * @param {ydn.db.io.QueryService} db Database instance.
+ * @param {ydn.db.Storage} db Database instance.
  */
 ydn.db.test.clear_tests = function(queue, db) {
 
@@ -84,7 +89,7 @@ ydn.db.test.clear_tests = function(queue, db) {
 /**
  * Test put and get for basic object.
  * @param queue test queue.
- * @param {ydn.db.io.QueryService} db Database instance.
+ * @param {ydn.db.Storage} db Database instance.
  */
 ydn.db.test.run_put_get_tests = function(queue, db) {
 
@@ -180,7 +185,7 @@ ydn.db.test.run_put_get_tests = function(queue, db) {
  * http://www.w3.org/TR/2011/WD-WebIDL-20110927/#idl-DOMString
  * The DOMString type corresponds to the set of all possible sequences of 16 bit unsigned integer code units.
  * @param queue test queue.
- * @param {ydn.db.io.QueryService} db Database instance.
+ * @param {ydn.db.Storage} db Database instance.
  */
 ydn.db.test.special_keys_test = function(queue, db) {
 
@@ -216,7 +221,7 @@ ydn.db.test.special_keys_test = function(queue, db) {
 
 /**
  * @param queue test queue.
- * @param {ydn.db.io.QueryService} db Database instance.
+ * @param {ydn.db.Storage} db Database instance.
  */
 ydn.db.test.empty_store_get_test = function(queue, db) {
   var rand_key = 'k' + Math.random();
@@ -229,19 +234,24 @@ ydn.db.test.empty_store_get_test = function(queue, db) {
 
 
 /**
- * @return {ydn.db.schema.Database} schema used in nested_key_path test.
+ * @return {DatabaseSchema} schema used in nested_key_path test.
  */
 ydn.db.test.get_nested_key_path_schema = function() {
-  var store_name = 'nested_key_path';
-  var schema = new ydn.db.schema.Database(1);
-  schema.addStore(new ydn.db.schema.Store(store_name, 'id.$t'));
-  return schema;
+  // var store_name = 'nested_key_path';
+  // var schema = new ydn.db.schema.Database(1);
+  // schema.addStore(new ydn.db.schema.Store(store_name, 'id.$t'));
+  return {
+    stores: [{
+      name: 'nested_key_path',
+      keyPath: 'id.$t'
+    }]
+  };
 };
 
 
 /**
  * @param queue test queue.
- * @param {ydn.db.io.QueryService} db Database instance.
+ * @param {ydn.db.Storage} db Database instance.
  */
 ydn.db.test.nested_key_path = function(queue, db) {
   var schema = ydn.db.test.get_nested_key_path_schema();
