@@ -7,6 +7,7 @@
 
 goog.provide('ydn.db.test');
 goog.require('ydn.db.Storage');
+goog.require('goog.dom.pattern.AbstractPattern');
 
 
 /**
