@@ -61,23 +61,37 @@ test('creating key range index query', function() {
   equal(iter.isUnique(), false, 'unique');
 });
 
-test('ordering', function() {
+test('natural ordering', function() {
   var q = db.from('st');
   deepEqual(q.getOrder(), [], 'natural ordering');
-  q = db.from('st').order('id');
+});
+
+
+test('primary key ordering', function() {
+  var q = db.from('st').order('id');
   deepEqual(q.getOrder(), ['id'], 'order by primary key');
-  q = db.from('st').select('name');
-  deepEqual(q.getOrder(), ['name'], 'order by index');
-  q = db.from('st').where('name', '=', 'a');
+});
+
+test('ordering by index', function() {
+  var q = db.from('st').order('value');
+  var iter = q.getIterator();
+  equal(iter.getIndexName(), 'value', 'index');
+  deepEqual(q.getOrder(), ['value']);
+});
+
+test('selection', function() {
+  var q = db.from('st').select('name');
+  deepEqual(q.getOrder(), ['name'], 'order by selection');
+  var iter = q.getIterator();
+  equal(iter.getIndexName(), 'name');
+});
+
+
+test('filtering and ordering', function() {
+  var q = db.from('st').where('name', '=', 'a');
   q = q.order('value');
   var iter = q.getIterator();
   equal(iter.getIndexName(), 'name-value', 'filter and order');
-  q = db.from('st').where('name', '>', 'a');
-  q = q.order('value');
-  throws(function() {
-     q.getIterator();
-  }, Error, 'impossible ordering'
-  );
 });
 
 
