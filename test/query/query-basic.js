@@ -333,7 +333,7 @@
     },
     teardown: function() {
       test_count++;
-      if (test_count == 2) {
+      if (test_count == 4) {
         db.close();
         var type = db.getType();
         ydn.db.deleteDatabase(db_name, type);
@@ -389,21 +389,49 @@
 
   });
 
-  asyncTest('ordering', 3, function() {
+
+  asyncTest('natural ordering', 2, function() {
 
     df.always(function() {
 
       var q = db.from(store_inline_index);
       q.list().always(function(x) {
-        //console.log(q)
         deepEqual(x, objs, 'natural order');
       });
 
-      q = db.from(store_inline_index).order('value');
+      var q2 = db.from(store_inline_index).reverse();
+      q2.list().always(function(x) {
+        deepEqual(x, objs.reverse(), 'natural order reverse');
+        start();
+      });
+
+    });
+
+  });
+
+
+  asyncTest('index ordering', 2, function() {
+
+    df.always(function() {
+      var q = db.from(store_inline_index).order('value');
       q.list().always(function(x) {
-        //console.log(q)
         deepEqual(x, sorted_objs, 'simple index order');
       });
+
+      var q2 = db.from(store_inline_index).order('value').reverse();
+      q2.list().always(function(x) {
+        deepEqual(x, sorted_objs.reverse(), 'reverse index order');
+        start();
+      });
+
+    });
+
+  });
+
+
+  asyncTest('ordering with key range', 1, function() {
+
+    df.always(function() {
 
       var q = db.from(store_inline_index).where('value', '>=', 2, '<=', 4);
       // q = q.order('value');
