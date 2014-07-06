@@ -204,6 +204,7 @@ declare module ydn.db
     put(store_name: string, value: any) : Request;
     put(store_name: string, value: any[]) : Request;
 
+    remove(store_name: string, id_or_key_range: any) : Request;
     remove(store_name: string, index_name: string, id_or_key_range: any) : Request;
     clear(store_name: string, key_or_key_range: any) : Request;
 
