@@ -121,3 +121,22 @@ ydn.db.core.req.ICursor.prototype.isPrimaryCursor = function() {};
  * @return {boolean} return true if this is an value cursor.
  */
 ydn.db.core.req.ICursor.prototype.isValueCursor = function() {};
+
+
+/**
+ * @return {IDBKey|undefined} effective key of cursor.
+ */
+ydn.db.core.req.ICursor.prototype.getKey = function() {};
+
+
+/**
+ * @return {IDBKey|undefined} primary key of cursor.
+ */
+ydn.db.core.req.ICursor.prototype.getPrimaryKey = function() {};
+
+
+/**
+ * @param {number=} opt_idx cursor index.
+ * @return {*} value.
+ */
+ydn.db.core.req.ICursor.prototype.getValue = function(opt_idx) {};
