@@ -143,7 +143,6 @@ ydn.db.Request.prototype.setTx = function(tx, label) {
     }
     this.txbacks_.length = 0;
   }
-  goog.log.finer(this.logger, this + ' END');
 };
 
 
@@ -163,6 +162,7 @@ ydn.db.Request.prototype.copy = function() {
  * Remove tx when tx is inactive.
  */
 ydn.db.Request.prototype.removeTx = function() {
+  goog.log.finer(this.logger, this + ' END');
   this.tx_ = null;
 };
 
