@@ -514,14 +514,14 @@ EntityService.prototype.add = function(callback, name, obj) {
  * @param {IDBKey} id entity id
  * @param {string} token validator token
  */
-EntityService.prototype.update = function(callback, name, obj, id, token) {
+EntityService.prototype.put = function(callback, name, obj, id, token) {
 
 };
 
 
 /**
  * Write collection.
- * @param {function(number, IDBKey, ?string)} callback status code and result
+ * @param {function(number)} callback status code and result
  * @param {string} name entity name
  * @param {IDBKey} id entity id
  * @param {string} token validator token
