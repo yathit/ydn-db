@@ -480,14 +480,14 @@ DatabaseSchema.prototype.stores;
 /**
  * @interface
  */
-function EntityService() {};
+function EntityService() {}
 
 
 /**
  * Send HTTP GET request.
- * @param {Function} callback status code and result
+ * @param {function(number, !Object, IDBKey, ?string)} callback status code and result
  * @param {string} name entity name
- * @param {string} id entity id
+ * @param {IDBKey} id entity id
  * @param {?string} token validator token
  */
 EntityService.prototype.get = function(callback, name, id, token) {
@@ -497,8 +497,8 @@ EntityService.prototype.get = function(callback, name, id, token) {
 
 /**
  * Write collection.
- * @param {function(number, string, Object)} callback status code, validator and result
- * @param {string} name entity name
+ * @param {function(number, !Object, IDBKey, ?string)} callback status code, validator and result
+ * @param {IDBKey} name entity name
  * @param {Object} obj
  */
 EntityService.prototype.add = function(callback, name, obj) {
@@ -508,10 +508,10 @@ EntityService.prototype.add = function(callback, name, obj) {
 
 /**
  * Write collection.
- * @param {Function} callback status code and result
+ * @param {function(number, !Object, IDBKey, ?string)} callback status code and result
  * @param {string} name entity name
  * @param {Object} obj entity value
- * @param {string} id entity id
+ * @param {IDBKey} id entity id
  * @param {string} token validator token
  */
 EntityService.prototype.update = function(callback, name, obj, id, token) {
@@ -521,9 +521,9 @@ EntityService.prototype.update = function(callback, name, obj, id, token) {
 
 /**
  * Write collection.
- * @param {Function} callback status code and result
+ * @param {function(number, IDBKey, ?string)} callback status code and result
  * @param {string} name entity name
- * @param {string} id entity id
+ * @param {IDBKey} id entity id
  * @param {string} token validator token
  */
 EntityService.prototype.remove = function(callback, name, id, token) {
@@ -542,6 +542,3 @@ EntityService.prototype.remove = function(callback, name, id, token) {
 EntityService.prototype.list = function(callback, name, token) {
 
 };
-
-
-
