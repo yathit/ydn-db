@@ -585,10 +585,19 @@ ydn.db.con.Storage.prototype.close = function() {
 /**
  * Get nati database instance.
  * @return {*} database instance.
- * @deprecated no longer exported.
  */
 ydn.db.con.Storage.prototype.getDbInstance = function() {
   return this.db_ ? this.db_.getDbInstance() : null;
+};
+
+
+/**
+ * @param {IDBDatabase} db
+ */
+ydn.db.con.Storage.prototype.setDbInstance = function(db) {
+  var instance = new ydn.db.con.IndexedDb();
+  instance.setDbInstance(db);
+  this.db_ = instance;
 };
 
 

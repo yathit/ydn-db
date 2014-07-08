@@ -32,8 +32,8 @@ goog.exportProperty(ydn.db.con.Storage.prototype, 'transaction',
 
 // for hacker only. This method should not document this, since this will change
 // transaction state.
-//goog.exportProperty(ydn.db.con.Storage.prototype, 'db',
-//    ydn.db.con.Storage.prototype.getDbInstance);
+goog.exportProperty(ydn.db.con.Storage.prototype, 'db',
+    ydn.db.con.Storage.prototype.getDbInstance);
 
 goog.exportSymbol('ydn.db.version', ydn.db.version);
 goog.exportSymbol('ydn.db.cmp', ydn.db.cmp);

@@ -95,7 +95,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
       goog.asserts.assertObject(db, 'db');
       me.idx_db_ = db;
       me.idx_db_.onabort = function(e) {
-        goog.log.finest(me.logger,  me + ': abort');
+        goog.log.finest(me.logger, me + ': abort');
         var request = /** @type {IDBRequest} */ (e.target);
         me.onError(request.error);
       };
@@ -103,7 +103,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         if (ydn.db.con.IndexedDb.DEBUG) {
           goog.global.console.log(e);
         }
-        goog.log.finest(me.logger,  me + ': error');
+        goog.log.finest(me.logger, me + ': error');
         var request = /** @type {IDBRequest} */ (e.target);
         me.onError(request.error);
       };
@@ -120,7 +120,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
         if (ydn.db.con.IndexedDb.DEBUG) {
           goog.global.console.log([this, event]);
         }
-        goog.log.finest(me.logger,  me + ' closing connection for onversionchange to: ' +
+        goog.log.finest(me.logger, me + ' closing connection for onversionchange to: ' +
             event.version);
         if (me.idx_db_) {
           me.idx_db_.onabort = null;
@@ -464,6 +464,17 @@ ydn.db.con.IndexedDb.prototype.getType = function() {
 ydn.db.con.IndexedDb.prototype.getDbInstance = function() {
   // no checking for closing status. caller should know it.
   return this.idx_db_ || null;
+};
+
+
+/**
+ * Return database object, on if it is ready.
+ * @final
+ * @param {IDBDatabase} db instance.
+ */
+ydn.db.con.IndexedDb.prototype.setDbInstance = function(db) {
+  // no checking for closing status. caller should know it.
+  this.idx_db_ = db;
 };
 
 
