@@ -1130,7 +1130,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
               ydn.json.toShortString(obj));
         }
       }
-      goog.log.finer(this.logger, 'putObject: ' + st_name + ' ' + key);
+      goog.log.finer(this.logger, 'putObject: ' + st_name + ' ' + (goog.isDef(key) ? key : '(without-key)'));
       // note File is also instanceof Blob
       var is_blob = (goog.isDef(goog.global['Blob']) && obj instanceof Blob) &&
           // check for using blob store

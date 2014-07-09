@@ -120,7 +120,7 @@ ydn.db.crud.req.IndexedDb.prototype.countStores = function(req, stores) {
  * @param {!Array.<IDBKey>=} opt_keys optional out-of-line keys.
  */
 ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
-     is_single, store_name, objs, opt_keys) {
+    is_single, store_name, objs, opt_keys) {
 
   var results = [];
   var result_count = 0;
@@ -136,7 +136,7 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
   var put = function(i) {
 
     if (!goog.isDefAndNotNull(objs[i])) {
-      goog.log.finest(me.logger,  'empty object at ' + i + ' of ' + objs.length);
+      goog.log.finest(me.logger, 'empty object at ' + i + ' of ' + objs.length);
       result_count++;
       if (result_count == objs.length) {
         rq.setDbValue(results, has_error);

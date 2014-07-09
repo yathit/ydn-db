@@ -320,9 +320,6 @@ ydn.db.con.Storage.prototype.setName = function(db_name) {
   goog.asserts.assertString(db_name, 'database name must be a string' +
       ' but found ' + db_name + ' of type ' + (typeof db_name));
 
-  /**
-   * @final
-   */
   this.db_name = db_name;
   this.connectDatabase();
 
@@ -593,8 +590,10 @@ ydn.db.con.Storage.prototype.getDbInstance = function() {
 
 /**
  * @param {IDBDatabase} db
+ * @param {string} db_name
  */
-ydn.db.con.Storage.prototype.setDbInstance = function(db) {
+ydn.db.con.Storage.prototype.setDbInstance = function(db, db_name) {
+  this.db_name = db_name;
   var instance = new ydn.db.con.IndexedDb();
   instance.setDbInstance(db);
   this.db_ = instance;

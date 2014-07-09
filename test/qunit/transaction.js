@@ -56,7 +56,7 @@
         equal(1, x, 'clear');
       });
     }, null, 'readwrite');
-    req.always(function() {
+    req.always(function(cnt) {
       start();
       var type = db.getType();
       db.close();
@@ -65,8 +65,39 @@
 
   });
 
-})();
+  asyncTest('request after run', 2, function () {
 
+    var db_name = 'test_run_2';
+    var schema = {
+      stores: [
+        {
+          name: 'st',
+          keyPath: 'id',
+          indexes: [{
+            name: 'name'
+          }]
+        }]
+    };
+    var db = new ydn.db.Storage(db_name, schema);
+
+    var val = Math.random();
+    var req = db.run(function(tdb) {
+      var data = {name: 'a', value: val, id: 1};
+      tdb.put('st', data);
+    }, ['st'], 'readwrite');
+    req.always(function(cnt) {
+      db.values('st', 'name', ydn.db.KeyRange.only('a')).always(function(arr) {
+        equal(arr.length, 1, 'correct result');
+        equal(arr[0].value, val, 'correct value');
+        start();
+        ydn.db.deleteDatabase(db.getName(), db.getType());
+        db.close();
+      });
+    });
+
+  });
+
+})();
 
 
 (function () {
@@ -251,3 +282,5 @@
   });
 
 })();
+
+
