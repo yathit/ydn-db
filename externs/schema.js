@@ -478,14 +478,14 @@ DatabaseSchema.prototype.stores;
 
 
 /**
- * @interface
+ * @constructor
  */
 function EntityService() {}
 
 
 /**
  * Send HTTP GET request.
- * @param {function(number, !Object, IDBKey, ?string)} callback status code and result
+ * @param {function(number, !Object, ?string)} callback status code and result
  * @param {string} name entity name
  * @param {IDBKey} id entity id
  * @param {?string} token validator token
@@ -533,8 +533,8 @@ EntityService.prototype.remove = function(callback, name, id, token) {
 
 /**
  * List collection.
- * @param {Function} callback return nullable paging token and list of entities. If paging token
- * is is not `null`, list method will be invoke again with given paging token.
+ * @param {function(number, Array.<!Object>, ?string)} callback return nullable paging token and
+ * list of entities. If paging token is not `null`, list method will be invoke again with given paging token.
  * @param {string} name entity name
  * @param {?string} token paging token. If paging token is not provided, paging token should be
  * read from the database.
