@@ -1,10 +1,11 @@
 {
-  "name": "ydn-db",
+  "name": "ydn.db",
+  "version": "1.0.3",
   "authors": [
     "kyawtun@yathit.com"
   ],
   "description": "Javascript database module for IndexedDB, WebDatabase (WebSQL) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
-  "main": "jsc/ydn.db-npm-dev.js",
+  "main": "jsc/ydn.db-dev.js",
   "keywords": [
     "indexeddb",
     "websql",
