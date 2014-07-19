@@ -382,20 +382,6 @@ ydn.db.Request.succeed = function(method, value) {
 
 
 /**
- * Return a Deferred's Promise object, as required by jQuery.
- * @return {!goog.async.Deferred}
- */
-ydn.db.Request.prototype.promise = function() {
-  // Ref: https://github.com/jquery/jquery/blob/
-  // cb37994d76afb45efc3b606546349ed4e695c053/src/deferred.js#L34
-  // Note: promise function return an object having `done`, `fail` and
-  // `progress` functions. Since a request object satisfy the requirement, this
-  // simply return itself.
-  return this;
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.Request.prototype.toString = function() {
