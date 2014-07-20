@@ -590,10 +590,8 @@ ydn.db.con.Storage.prototype.getDbInstance = function() {
 
 /**
  * @param {IDBDatabase} db
- * @param {string} db_name
  */
-ydn.db.con.Storage.prototype.setDbInstance = function(db, db_name) {
-  this.db_name = db_name;
+ydn.db.con.Storage.prototype.setDbInstance = function(db) {
   var instance = new ydn.db.con.IndexedDb();
   instance.setDbInstance(db);
   this.db_ = instance;

@@ -474,6 +474,9 @@ ydn.db.con.IndexedDb.prototype.getDbInstance = function() {
  */
 ydn.db.con.IndexedDb.prototype.setDbInstance = function(db) {
   // no checking for closing status. caller should know it.
+  if (this.idx_db_) {
+    this.idx_db_.close();
+  }
   this.idx_db_ = db;
 };
 
@@ -823,7 +826,7 @@ if (goog.DEBUG) {
    * Handy debug function in testing on Chrome to delete all IDB databases.
    */
   ydn.db.con.IndexedDb.deleteAllDatabases = function() {
-    var req = window['webkitGetDatabaseNames']();
+    var req = window.indexedDB['webkitGetDatabaseNames']();
     req.onsuccess = function(e) {
       var names = e.target.result;
       for (var i = 0; i < names.length; i++) {
