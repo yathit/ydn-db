@@ -21,7 +21,7 @@ var basic_schema = {
 
 
 var setUp = function() {
-  //ydn.debug.log('ydn.db', 'finest');
+  ydn.debug.log('ydn.db', 'finest');
   //ydn.db.tr.StrictOverflowParallel.DEBUG = true;
  // ydn.db.tr.Parallel.DEBUG = true;
 // ydn.db.con.IndexedDb.DEBUG = true;
@@ -231,6 +231,64 @@ var test_continuous_request_parallel_strict_overflow  = function() {
   // websql is slow in opening request.
   var exp_tx_no = options.mechanisms[0] == 'websql' ? [1, 2] : [1, 1];
   committed_continuous_request_test('repeat', false, exp_tx_no);
+};
+
+
+var test_auto_schema = function() {
+  var db_name = 'test_auto_schema' + Math.random();
+  var db = new ydn.db.crud.Storage(db_name);
+  var s_name = 's' + Math.random().toFixed(6).substr(2);
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('result key', 'id1', results);
+
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put(s_name, {'msg': 'Some value'}, 'id1').addBoth(function(x) {
+    results = x;
+    hasEventFired = true;
+  });
+};
+
+
+var test_auto_schema_inline = function() {
+  var db_name = 'test_auto_schema' + Math.random();
+  var db = new ydn.db.crud.Storage(db_name);
+  var s_name = 's' + Math.random().toFixed(6).substr(2);
+
+  var hasEventFired = false;
+  var results;
+
+  waitForCondition(
+      // Condition
+      function() { return hasEventFired; },
+      // Continuation
+      function() {
+        assertEquals('result key', 1, results);
+
+        reachedFinalContinuation = true;
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+      },
+      100, // interval
+      2000); // maxTimeout
+
+  db.put({name: s_name, keyPath: 'id'}, {id: 1, msg: 'Some value'}).addBoth(function(x) {
+    results = x;
+    hasEventFired = true;
+  });
 };
 
 
