@@ -32,6 +32,7 @@ goog.require('ydn.structs.Buffer');
  * @param {!Storage} storage
  * @param {!ydn.db.schema.Store} store_schema
  * @constructor
+ * @struct
  */
 ydn.db.con.simple.Store = function(db_name, storage, store_schema) {
   /**
