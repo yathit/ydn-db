@@ -75,12 +75,19 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
         'keyPath must be a string or array');
   }
 
+  if (goog.DEBUG) {
+    if (goog.isDefAndNotNull(opt_autoIncrement) && !goog.isBoolean(opt_autoIncrement)) {
+      throw new ydn.debug.error.ArgumentException('invalid autoIncrement value ' +
+          'in store "' + name + '"');
+    }
+  }
+
   /**
    * IE10 do not reflect autoIncrement, so that make undefined as an option.
    * @final
    * @type {boolean|undefined}
    */
-  this.autoIncrement = opt_autoIncrement;
+  this.autoIncrement = !!opt_autoIncrement;
 
   var type;
   if (goog.isDefAndNotNull(opt_type)) {
