@@ -13,8 +13,7 @@ var reachedFinalContinuation, schema, debug_console;
 
 var setUp = function() {
   // ydn.debug.log('ydn.db.con', 'finest');
-  //ydn.db.con.IndexedDb.DEBUG = true;
-  //ydn.db.con.IndexedDb.DEBUG = true;
+  // ydn.db.con.IndexedDb.DEBUG = true;
   reachedFinalContinuation = false;
 
 };
@@ -327,6 +326,34 @@ var test_key_path_index = function() {
         indexes: [{
           name: 'y'
         }]
+      }
+    ]
+  };
+
+  version_unchange_test(schema, false, '1:');
+  version_unchange_test(schema2, false, '2:');
+  version_change_test(schema, schema2, false, '3:');
+  version_change_test(schema2, schema, true, '4:');
+};
+
+
+var test_auto_increment = function() {
+  var schema = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'x',
+        autoIncrement: true
+      }
+    ]
+  };
+
+  var schema2 = {
+    stores: [
+      {
+        name: 'st',
+        keyPath: 'x',
+        autoIncrement: false
       }
     ]
   };
