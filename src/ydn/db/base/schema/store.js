@@ -51,15 +51,15 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
                                opt_indexes, opt_dispatch_events, opt_is_fixed,
                                opt_encrypted) {
 
+  if (!goog.isString(name)) {
+    throw new ydn.debug.error.ArgumentException('store name must be a string');
+  }
   /**
    * @private
    * @final
    * @type {string}
    */
   this.name_ = name;
-  if (!goog.isString(this.name_)) {
-    throw new ydn.debug.error.ArgumentException('store name must be a string');
-  }
   /**
    * @final
    */
