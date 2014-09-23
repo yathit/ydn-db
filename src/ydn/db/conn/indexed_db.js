@@ -468,20 +468,6 @@ ydn.db.con.IndexedDb.prototype.getDbInstance = function() {
 
 
 /**
- * Return database object, on if it is ready.
- * @final
- * @param {IDBDatabase} db instance.
- */
-ydn.db.con.IndexedDb.prototype.setDbInstance = function(db) {
-  // no checking for closing status. caller should know it.
-  if (this.idx_db_) {
-    this.idx_db_.close();
-  }
-  this.idx_db_ = db;
-};
-
-
-/**
  * @inheritDoc
  */
 ydn.db.con.IndexedDb.prototype.isReady = function() {
