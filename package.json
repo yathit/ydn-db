@@ -1,0 +1,29 @@
+{
+  "name": "ydn.db",
+  "version": "1.0.3",
+  "description": "Javascript database library for IndexedDB, WebDatabase (WebSQL) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
+  "main": "jsc/ydn.db-dev.js",
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yathit/ydn-db"
+  },
+  "keywords": [
+    "IndexedDB",
+    "WebSQL",
+    "WebStorage",
+    "database"
+  ],
+  "author": "Kyaw Tun",
+  "license": "Apache V2",
+  "bugs": {
+    "url": "https://github.com/yathit/ydn-db/issues"
+  },
+  "homepage": "http://dev.yathit.com/ydn-db/index.html"
+}
