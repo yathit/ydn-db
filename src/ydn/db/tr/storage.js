@@ -102,7 +102,7 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
 
 /**
  * Create a new db operator.
- * @param {ydn.db.tr.Thread.Policy?} request_type thread policy. Default is
+ * @param {ydn.db.tr.Thread.Policy=} opt_policy thread policy. Default is
  * SINGLE.
  * @param {boolean=} opt_is_serial serial request.
  * @param {!Array.<string>=} opt_store_names store names for tx scope.
@@ -112,10 +112,10 @@ ydn.db.tr.Storage.prototype.ptx_no = 0;
  * @return {ydn.db.tr.DbOperator} db operator.
  * @final
  */
-ydn.db.tr.Storage.prototype.branch = function(request_type, opt_is_serial,
+ydn.db.tr.Storage.prototype.branch = function(opt_policy, opt_is_serial,
     opt_store_names, opt_mode, opt_max_tx, opt_no_sync) {
 
-  request_type = request_type || ydn.db.tr.Thread.Policy.SINGLE;
+  opt_policy = opt_policy || ydn.db.tr.Thread.Policy.SINGLE;
   var mode;
   if (opt_mode == ydn.db.base.StandardTransactionMode.READ_ONLY) {
     mode = ydn.db.base.TransactionMode.READ_ONLY;
@@ -123,7 +123,7 @@ ydn.db.tr.Storage.prototype.branch = function(request_type, opt_is_serial,
     mode = ydn.db.base.TransactionMode.READ_WRITE;
   }
 
-  var tx_thread = this.newTxQueue(request_type, opt_is_serial,
+  var tx_thread = this.newTxQueue(opt_policy, opt_is_serial,
       opt_store_names, mode, opt_max_tx);
   var sync_thread = opt_no_sync ? null : this.sync_thread;
   return this.newOperator(tx_thread, sync_thread);
