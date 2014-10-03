@@ -532,9 +532,14 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
         this.getCrudExecutor().listByIds(req, store_name, ids);
       }, this);
     } else if (goog.isString(arg1)) { // index name
-      req = this.valuesByIndexKeyRange(store_name, arg1, arg2, arg3, arg4, arg5, arg6);
+      req = this.valuesByIndexKeyRange(store_name, arg1,
+          /** @type {ydn.db.KeyRange|IDBKeyRange} */ (arg2), arg3,
+          /** @type {number|undefined} */ (arg4), arg5, arg6);
     } else {
-      req = this.valuesByKeyRange(store_name, arg1, arg2, arg3, arg4, arg5);
+      req = this.valuesByKeyRange(store_name,
+          /** @type {ydn.db.KeyRange|IDBKeyRange} */ (arg1),
+          /** @type {number|undefined} */ (arg2), arg3,
+          /** @type {boolean|undefined} */ (arg4));
     }
   } else if (goog.isArray(arg0)) {
     if (arg0[0] instanceof ydn.db.Key) {
