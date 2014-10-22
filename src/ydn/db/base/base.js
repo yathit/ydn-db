@@ -245,3 +245,28 @@ ydn.db.base.QueryMethod = {
  * @typedef {(SQLTransaction|IDBTransaction|Object)}
  */
 ydn.db.base.Transaction;
+
+
+/**
+ * @define {string} Store name for history.
+ */
+ydn.db.base.SN_ENTITY_HISTORY = '_ydn_sync_history';
+
+
+/**
+ * Store schema for storing history log for recovery.
+ * This is used in ydn-db-sync module.
+ * @const
+ * @type {StoreSchema}
+ */
+ydn.db.base.entitySchema = /** @type {StoreSchema} */ (/** @type {Object} */({
+  name: ydn.db.base.SN_ENTITY_HISTORY,
+  keyPath: 'sequence',
+  autoIncrement: true,
+  indexes: [
+    {
+      name: 'key',
+      keyPath: ['entity', 'id']
+    }
+  ]
+}));
