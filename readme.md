@@ -1,7 +1,7 @@
 # Setup #
 
 For using this library, include one of the ydn-db
-minified js file from [download page](http://dev.yathit.com/index/downloads.html)
+minified js file from [download page](http://dev.yathit.com/ydn-db/downloads.html)
 to your HTML page.
 
 * [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
