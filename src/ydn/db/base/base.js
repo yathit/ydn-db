@@ -110,6 +110,13 @@ ydn.db.base.StandardTransactionMode = {
 
 
 /**
+ * @define {boolean} support for old indexeddb specification.
+ * @type {boolean}
+ */
+ydn.db.base.OLD_INDEXEDDB_SUPPORT = false;
+
+
+/**
  * Before Chrome 22, IDBTransaction mode are number. New standard change to
  * string. Chrome 22 still follow standard, but weird new constants are
  * taking from the new standard.
@@ -125,7 +132,7 @@ ydn.db.base.StandardTransactionMode = {
  * @type {*}
  * @protected
  */
-ydn.db.base.IDBTransaction =
+ydn.db.base.IDBTransaction = !ydn.db.base.OLD_INDEXEDDB_SUPPORT ? ydn.db.base.StandardTransactionMode :
     // old Firefox use predefined numeric enum.
     (goog.global.IDBRequest &&
         ('LOADING' in goog.global.IDBRequest)) ?
