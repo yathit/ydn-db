@@ -111,7 +111,6 @@ ydn.db.base.StandardTransactionMode = {
 
 /**
  * @define {boolean} support for old indexeddb specification.
- * @type {boolean}
  */
 ydn.db.base.OLD_INDEXEDDB_SUPPORT = false;
 
