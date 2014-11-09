@@ -1,4 +1,4 @@
-<project name="ydn-db" basedir="." default="build">
+<project name="ydn-db" basedir="." default="compile-main-dev">
     <dirname property="ydn-db.dir" file="${ant.file.ydn-db}"/>
     <property name="work.dir" location="${ydn-db.dir}/.." />
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
@@ -114,7 +114,6 @@
                     <arg line='-f "--externs=${ydn-base.dir}/externs/gapi.js"'/>
                     <arg line='-f "--closure_entry_point=ydn.db.Storage.main_entry"'/>
                     <arg line='-f "--define=ydn.db.version=${quoted-version}"'/>
-                    <arg line='-f "--define=goog.DEBUG=true"'/>
                     <arg line='-f "--source_map_format=V3"'/>
                     <arg line='-f "--create_source_map=@{output.dir}/@{output.fn}.map"'/>
                     <arg line='-f "--output_wrapper=(function(){%output%})();"'/>
@@ -148,7 +147,7 @@
 
     </macrodef>
 
-    <target name="compile-main"
+    <target name="compile-main-dev"
             description="generates compiled files for crud distribution">
         <mkdir dir="${ydn-db.dir}/jsc"/>
         <sequential>
@@ -157,6 +156,32 @@
                     output.dir="${ydn-db.dir}/jsc"
                     output.fn="ydn.db-dev.js">
 
+            </adv-comp>
+
+        </sequential>
+    </target>
+    <target name="copy-files" description="copy output file to website">
+        <copy todir="${home.dir}/work/ydn-website/src/site/jsc/">
+            <fileset dir="jsc">
+                <include name="ydn.db.js"/>
+                <include name="ydn.db.js.map"/>
+                <include name="ydn.db-dev.js"/>
+                <include name="ydn.db-dev.js.map"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="compile-main"
+            description="generates compiled files for crud distribution">
+        <mkdir dir="${ydn-db.dir}/jsc"/>
+        <sequential>
+            <adv-comp
+                    input.fn="${ydn-db.dir}/config/main.js"
+                    output.dir="${ydn-db.dir}/jsc"
+                    output.fn="ydn.db.js">
+                <exjs.dir>
+                    <arg line='-f "--define=goog.DEBUG=false"'/>
+                    <arg line='-f "--define=goog.log.ENABLED=false"'/>
+                </exjs.dir>
             </adv-comp>
 
         </sequential>
@@ -177,7 +202,7 @@
         <echo>git checkout github</echo>
     </target>
     <target name="build" description="build all distributions"
-            depends="deps,compile-main">
+            depends="deps,compile-main,compile-main-dev,copy-files">
 
     </target>
 </project>
