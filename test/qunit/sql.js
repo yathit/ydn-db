@@ -57,15 +57,17 @@
   module("sql,SELECT", test_env);
   reporter.createTestSuite('sql', 'SELECT');
 
-  asyncTest("*", function () {
-    expect(1);
+  asyncTest("*", 1, function () {
 
-    var sql = 'SELECT * FROM "st"';
-    var req = db.executeSql(sql);
-    req.always(function(x) {
-      deepEqual(x, data, sql);
-      start();
+    db.onReady(function() {
+      var sql = 'SELECT * FROM "st"';
+      var req = db.executeSql(sql);
+      req.always(function(x) {
+        deepEqual(x, data, sql);
+        start();
+      });
     });
+
   });
 
   asyncTest("primary field", function () {

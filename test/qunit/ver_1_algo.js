@@ -26,29 +26,38 @@ QUnit.config.testTimeout = 2000;
 
 var reporter = new ydn.testing.Reporter('ydn-db', ydn.db.version);
 
-var schema = {
-  stores: [
-    {
-      name: 'animals',
-      keyPath: 'id',
-      indexes: [
-        {
-          keyPath: 'color'
-        },
-        {
-          keyPath: 'horn'
-        },
-        {
-          keyPath: 'legs'
-        },
-        {
-          keyPath: ['horn', 'name']
-        }, {
-          keyPath: ['legs', 'name']
-        }]
-    }]
+var createDatabase = function(name) {
+
+  var schema = {
+    stores: [
+      {
+        name: 'animals',
+        keyPath: 'id',
+        indexes: [
+          {
+            keyPath: 'color'
+          },
+          {
+            keyPath: 'horn'
+          },
+          {
+            keyPath: 'legs'
+          },
+          {
+            keyPath: ['horn', 'name']
+          }, {
+            keyPath: ['legs', 'name']
+          }]
+      }]
+  };
+  var db = new ydn.db.Storage(name, schema, options);
+  db.clear();
+  db.put('animals', animals).done(function (value) {
+    //console.log(db + 'store: animals ready.');
+  });
+  return db;
 };
-var db = new ydn.db.Storage('test_algo_2', schema, options);
+
 
 var animals = [
   {id: 1, name: 'rat', color: 'brown', horn: 0, legs: 4},
@@ -60,10 +69,7 @@ var animals = [
   {id: 7, name: 'cow', color: 'spots', horn: 2, legs: 4},
   {id: 8, name: 'chicken', color: 'red', horn: 0, legs: 2}
 ];
-db.clear();
-db.put('animals', animals).done(function (value) {
-  //console.log(db + 'store: animals ready.');
-});
+
 var num_color = animals.reduce(function (p, x) {
   return x.color == 'spots' ? p + 1 : p;
 }, 0);
@@ -73,20 +79,19 @@ var num_four_legs_ani = animals.reduce(function (p, x) {
 var num_two_horn_ani = animals.reduce(function (p, x) {
   return x.horn == 2 ? p + 1 : p;
 }, 0);
-// here iterator has one more than the result count because, iterator
-// stop only after returning null cursor.
-var horn_iter_count = num_two_horn_ani + 1;
-var color_iter_count = num_color + 1;
-var leg_iter_count = num_four_legs_ani + 1;
+
 
 
 
 (function () {
+  var db;
   var test_env = {
     setup: function () {
-
+      db = createDatabase('ydn-db-algo-1')
     },
     teardown: function () {
+      ydn.db.deleteDatabase(db.getName(), db.getType());
+      db.close();
     }
   };
 
@@ -192,7 +197,6 @@ QUnit.moduleDone(function(result) {
 
 QUnit.done(function(results) {
   reporter.report();
-  ydn.db.deleteDatabase(db.getName(), db.getType());
-  db.close();
+
 });
 

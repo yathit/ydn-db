@@ -31,19 +31,21 @@
 
   module('crypt,crud');
   reporter.createTestSuite('crypt');
-  asyncTest('encryption and decription', 3, function() {
+  asyncTest('encryption and decryption', 4, function() {
     var db = new ydn.db.Storage(db_name, schema, options);
     db.put('st', obj, key);
     db.close();
     db = new ydn.db.Storage(db_name, schema, options);
     db.get('st', key).always(function(v) {
-      ok(v, 'got it');
+      // console.log(v);
+      ok(v, 'retrieved by key');
       deepEqual(obj, v, 'encryption ok');
       db.close();
       db = new ydn.db.Storage(db_name, schema, options2);
       db.get('st', key).always(function(v) {
-        console.log(v);
-        ok(!v, 'not encrypted');
+        // console.log(v);
+        ok(v, 'retrieved by key');
+        notDeepEqual(obj, v, 'decrypted by invalid key');
         ydn.db.deleteDatabase(db_name, db.getType());
         db.close();
         start();

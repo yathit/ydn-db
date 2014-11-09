@@ -64,7 +64,7 @@ ydn.db.algo.AbstractSolver = function(opt_out, opt_limit) {
 
 /**
  * @protected
- * @type {goog.debug.Logger} logger.
+ * @type {goog.log.Logger} logger.
  */
 ydn.db.algo.AbstractSolver.prototype.logger =
     goog.log.getLogger('ydn.db.algo.AbstractSolver');
@@ -106,9 +106,12 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(tx, iterators, callback) {
             'projection field must be same as postfix field in the iterator');
       }
     } else {
+      // todo: add validation
+      /*
       if (goog.DEBUG) {
         goog.log.warning(this.logger, 'Unable to check correctness of output streamer.');
       }
+      */
     }
   }
   var s = '{';
