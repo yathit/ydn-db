@@ -465,7 +465,7 @@ var test_data_index_add = function() {
     return;
   }
   // only work in IndexedDB
-  var db_name = 'test_data_lost_index_add-1';
+  var db_name = 'test_data_lost_index_add-2';
   var schema = {
     stores: [{
       name: 'st',
