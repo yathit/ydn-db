@@ -24,6 +24,17 @@ ydn.db.KeyRange = function(lower, upper, opt_lowerOpen, opt_upperOpen) {
 
   // todo: use new @dict type annotation.
 
+  if (lower > upper) {
+    lower = undefined;
+    upper = undefined;
+  }
+  if (goog.isNull(lower)) {
+    lower = undefined;
+  }
+  if (goog.isNull(upper)) {
+    upper = undefined;
+  }
+
   /**
    * @final
    */
@@ -41,13 +52,13 @@ ydn.db.KeyRange = function(lower, upper, opt_lowerOpen, opt_upperOpen) {
    */
   this['upperOpen'] = !!opt_upperOpen;
 
-  if (goog.DEBUG && goog.isFunction(Object.freeze)) {
+  // if (goog.DEBUG && goog.isFunction(Object.freeze)) {
     // NOTE: due to performance penalty (in Chrome) of using freeze and
     // hard to debug on different browser we don't want to use freeze
     // this is experimental.
     // http://news.ycombinator.com/item?id=4415981
-    Object.freeze(/** @type {!Object} */ (this));
-  }
+    // Object.freeze(/** @type {!Object} */ (this));
+  // }
 };
 
 
