@@ -80,7 +80,7 @@ ydn.db.crud.req.WebSql.RW_REQ_PER_TX = 2;
 
 /**
  * @protected
- * @type {goog.debug.Logger} logger.
+ * @type {goog.log.Logger} logger.
  */
 ydn.db.crud.req.WebSql.prototype.logger =
     goog.log.getLogger('ydn.db.crud.req.WebSql');
@@ -213,7 +213,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
   var put = function(i, tx) {
 
     if (!goog.isDefAndNotNull(objects[i])) {
-      goog.log.finest(me.logger,  'empty object at ' + i + ' of ' + objects.length);
+      goog.log.finest(me.logger, 'empty object at ' + i + ' of ' + objects.length);
       result_count++;
       if (result_count == objects.length) {
         goog.log.finer(me.logger, msg + ' success ' + msg);
@@ -289,7 +289,7 @@ ydn.db.crud.req.WebSql.prototype.insertObjects = function(
           return false;
         };
 
-        goog.log.finest(me.logger,  req.getLabel() + ' multiEntry ' + idx_sql +
+        goog.log.finest(me.logger, req.getLabel() + ' multiEntry ' + idx_sql +
             ' ' + idx_params);
         tx.executeSql(idx_sql, idx_params, idx_success, idx_error);
       };
