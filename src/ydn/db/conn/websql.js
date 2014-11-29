@@ -424,6 +424,12 @@ ydn.db.con.WebSql.prototype.onError = function(e) {};
 
 
 /**
+ * @define {boolean} option to create index.
+ */
+ydn.db.con.WebSql.CREATE_INDEX = false;
+
+
+/**
  * Initialize variable to the schema and prepare SQL statement for creating
  * the table.
  * @private
@@ -497,7 +503,7 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
      constraint.
      */
     var key_path = index.getKeyPath();
-    if (index.type != ydn.db.schema.DataType.BLOB && goog.isString(key_path)) {
+    if (ydn.db.con.WebSql.CREATE_INDEX && index.type != ydn.db.schema.DataType.BLOB && goog.isString(key_path)) {
       var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS ' +
           // table name is suffix to index name to satisfy unique index name
           // requirement within a database.
