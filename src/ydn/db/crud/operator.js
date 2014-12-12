@@ -368,6 +368,74 @@ ydn.db.crud.DbOperator.prototype.keysByKeyRange = function(store_name, opt_kr,
 
 
 /**
+ * Value by key range.
+ * @param {string} store_name
+ * @param {string} index_name
+ * @param {ydn.db.KeyRange|IDBKeyRange|KeyRangeJson=} opt_kr
+ * @param {number=} opt_limit
+ * @param {number=} opt_offset
+ * @param {boolean=} opt_reverse
+ * @param {boolean=} opt_unique
+ * @return {!ydn.db.Request<!Array<IDBKey>>}
+ */
+ydn.db.crud.DbOperator.prototype.keysByIndexKeyRange = function(store_name,
+    index_name, opt_kr, opt_limit, opt_offset, opt_reverse, opt_unique) {
+
+  var range, limit, offset, reverse, unique;
+  if (goog.DEBUG) {
+    var msg = ydn.db.KeyRange.validate(/** @type {KeyRangeJson} */ (opt_kr));
+    if (msg) {
+      throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+          opt_kr + ' ' + msg);
+    }
+  }
+  var store = this.schema.getStore(store_name);
+  range = ydn.db.KeyRange.parseIDBKeyRange(
+      /** @type {KeyRangeJson} */ (opt_kr));
+
+  if (goog.isNumber(opt_limit)) {
+    limit = opt_limit;
+  } else if (!goog.isDef(opt_limit)) {
+    limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
+  } else {
+    throw new ydn.debug.error.ArgumentException('limit must be a number');
+  }
+  if (goog.isNumber(opt_offset)) {
+    offset = opt_offset;
+  } else if (!goog.isDef(opt_offset)) {
+    offset = 0;
+  } else {
+    throw new ydn.debug.error.ArgumentException('offset must be a number');
+  }
+  if (goog.isDef(opt_reverse)) {
+    if (goog.isBoolean(opt_reverse)) {
+      reverse = opt_reverse;
+    } else {
+      throw new ydn.debug.error.ArgumentException(
+          'reverse must be a boolean');
+    }
+  }
+  if (goog.isDef(opt_unique)) {
+    if (goog.isBoolean(opt_unique)) {
+      unique = opt_unique;
+    } else {
+      throw new ydn.debug.error.ArgumentException(
+          'unique must be a boolean');
+    }
+  }
+  goog.log.finer(this.logger, 'keysByIndexKeyRange: ' + store_name);
+  var req = this.tx_thread.request(ydn.db.Request.Method.KEYS_INDEX,
+      [store_name]);
+  store.hook(req, arguments);
+  req.addTxback(function() {
+    this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
+        store_name, index_name, range, limit, offset, reverse, unique);
+  }, this);
+  return req;
+};
+
+
+/**
  *
  * @inheritDoc
  */
@@ -431,55 +499,13 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
   var req;
 
   if (goog.isString(arg1)) { // index key range
-    var index_name = arg1;
-    if (goog.DEBUG) {
-      var msg = ydn.db.KeyRange.validate(/** @type {KeyRangeJson} */ (arg2));
-      if (msg) {
-        throw new ydn.debug.error.ArgumentException('invalid key range: ' +
-            arg2 + ' ' + msg);
-      }
-    }
-    range = ydn.db.KeyRange.parseIDBKeyRange(
-        /** @type {KeyRangeJson} */ (arg2));
-
-    if (goog.isNumber(arg3)) {
-      limit = arg3;
-    } else if (!goog.isDef(arg3)) {
-      limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
-    } else {
-      throw new ydn.debug.error.ArgumentException('limit must be a number');
-    }
-    if (goog.isNumber(arg4)) {
-      offset = arg4;
-    } else if (!goog.isDef(arg4)) {
-      offset = 0;
-    } else {
-      throw new ydn.debug.error.ArgumentException('offset must be a number');
-    }
-    if (goog.isDef(arg5)) {
-      if (goog.isBoolean(arg5)) {
-        reverse = arg5;
-      } else {
-        throw new ydn.debug.error.ArgumentException(
-            'reverse must be a boolean');
-      }
-    }
-    if (goog.isDef(arg6)) {
-      if (goog.isBoolean(arg6)) {
-        unique = arg6;
-      } else {
-        throw new ydn.debug.error.ArgumentException(
-            'unique must be a boolean');
-      }
-    }
-    goog.log.finer(this.logger, 'keysByIndexKeyRange: ' + store_name);
-    req = this.tx_thread.request(ydn.db.Request.Method.KEYS_INDEX,
-        [store_name]);
-    store.hook(req, arguments);
-    req.addTxback(function() {
-      this.getCrudExecutor().list(req, ydn.db.base.QueryMethod.LIST_PRIMARY_KEY,
-          store_name, index_name, range, limit, offset, reverse, unique);
-    }, this);
+    req = this.keysByIndexKeyRange(store_name,
+        /** @type {string} */ (arg1),
+        /** @type {ydn.db.KeyRange|IDBKeyRange} */ (arg2),
+        /** @type {number|undefined} */ (arg3),
+        /** @type {number|undefined} */ (arg4),
+        /** @type {boolean|undefined} */ (arg5),
+        /** @type {boolean|undefined} */ (arg6));
   } else {
     req = this.keysByKeyRange(store_name,
         /** @type {ydn.db.KeyRange|IDBKeyRange} */ (arg1),
