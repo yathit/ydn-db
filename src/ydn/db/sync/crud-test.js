@@ -36,7 +36,7 @@ function testGet() {
       }
     ]
   };
-  var db_name = 'sync-crud-add-2';
+  var db_name = 'sync-crud-get-1';
   var data_1 = { test: 'test value', name: 'name 1', id: 1 };
   var service = new ydn.db.sync.MockEntityService(data_1);
   var db = new ydn.db.Storage(db_name, schema);

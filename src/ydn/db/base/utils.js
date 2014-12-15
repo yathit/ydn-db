@@ -97,7 +97,7 @@ ydn.db.utils.setValueByKeys = function(obj, key_path, value) {
  * @const
  * @type {Object}
  */
-ydn.db.utils.ARRAY_TERMINATOR = { };
+ydn.db.utils.ARRAY_TERMINATOR = {};
 
 
 /**
@@ -149,10 +149,10 @@ ydn.db.utils.MAX_TYPE_BYTE_SIZE = 12; // NOTE: Cannot be greater than 255
  */
 ydn.db.utils.encodeKey = function(key) {
   var stack = [key], writer = new ydn.db.utils.HexStringWriter(), type = 0,
-    dataType, obj;
+      dataType, obj;
   while ((obj = stack.pop()) !== undefined) {
     if (type % 4 === 0 && type + ydn.db.utils.TYPE_ARRAY >
-      ydn.db.utils.MAX_TYPE_BYTE_SIZE) {
+        ydn.db.utils.MAX_TYPE_BYTE_SIZE) {
       writer.write(type);
       type = 0;
     }
@@ -224,7 +224,7 @@ ydn.db.utils.decodeKey = function(encodedKey) {
         parentArray = tmp;
       }
       if (type === 0 && reader.current + ydn.db.utils.TYPE_ARRAY >
-        ydn.db.utils.MAX_TYPE_BYTE_SIZE) {
+          ydn.db.utils.MAX_TYPE_BYTE_SIZE) {
         reader.read();
       }
       else break;
@@ -247,32 +247,43 @@ ydn.db.utils.decodeKey = function(encodedKey) {
   return rootArray[0];
 };
 
+
 // Utils
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.p16 = 0x10000;
+
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.p32 = 0x100000000;
+
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.p48 = 0x1000000000000;
+
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.p52 = 0x10000000000000;
+
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.pNeg1074 = 5e-324;                      // 2^-1074);
+
+
 /**
  * @const
  * @type {number}
@@ -307,7 +318,7 @@ ydn.db.utils.ieee754 = function(number) {
         e = p + 1023;
       }
       m = e ? Math.floor((number / Math.pow(2, p) - 1) * ydn.db.utils.p52) :
-        Math.floor(number / ydn.db.utils.pNeg1074);
+          Math.floor(number / ydn.db.utils.pNeg1074);
     }
     else {
       e = 0x7FF;
@@ -319,14 +330,14 @@ ydn.db.utils.ieee754 = function(number) {
       }
     }
   }
-  return { sign: s, exponent: e, mantissa: m };
+  return {sign: s, exponent: e, mantissa: m};
 };
 
 
 /**
- * @private
- * @param writer
- * @param number
+ * @protected
+ * @param {ydn.db.utils.HexStringWriter} writer
+ * @param {number} number
  */
 ydn.db.utils.encodeNumber = function(writer, number) {
   var iee_number = ydn.db.utils.ieee754(number);
@@ -354,7 +365,7 @@ ydn.db.utils.encodeNumber = function(writer, number) {
 
 /**
  * @private
- * @param reader
+ * @param {ydn.db.utils.HexStringReader} reader
  * @return {*}
  */
 ydn.db.utils.decodeNumber = function(reader) {
@@ -381,16 +392,18 @@ ydn.db.utils.decodeNumber = function(reader) {
   return (m + 1) * Math.pow(2, e - 1023) * s;
 };
 
+
 /**
  * @const
  * @type {number}
  */
 ydn.db.utils.secondLayer = 0x3FFF + 0x7F;
 
+
 /**
- * @private
- * @param writer
- * @param string
+ * @protected
+ * @param {ydn.db.utils.HexStringWriter} writer
+ * @param {string} string
  */
 ydn.db.utils.encodeString = function(writer, string) {
   /* 3 layers:
@@ -415,9 +428,10 @@ ydn.db.utils.encodeString = function(writer, string) {
   writer.write(ydn.db.utils.BYTE_TERMINATOR);
 };
 
+
 /**
- * @private
- * @param reader
+ * @protected
+ * @param {ydn.db.utils.HexStringReader} reader
  * @return {string}
  */
 ydn.db.utils.decodeString = function(reader) {
@@ -458,9 +472,11 @@ ydn.db.utils.decodeString = function(reader) {
   return buffer.join('');
 };
 
+
+
 /**
- * @private
- * @param string
+ * @protected
+ * @param {string} string
  * @constructor
  */
 ydn.db.utils.HexStringReader = function(string) {
@@ -470,10 +486,12 @@ ydn.db.utils.HexStringReader = function(string) {
   this.index = -1;
 };
 
+
 /**
- * @type {number?}
+ * @type {?number}
  */
 ydn.db.utils.HexStringReader.prototype.current;
+
 
 /**
  * @type {number}
@@ -481,11 +499,13 @@ ydn.db.utils.HexStringReader.prototype.current;
  */
 ydn.db.utils.HexStringReader.prototype.index;
 
+
 /**
  * @type {number}
  * @private
  */
 ydn.db.utils.HexStringReader.prototype.lastIndex;
+
 
 /**
  * @type {string}
@@ -496,16 +516,19 @@ ydn.db.utils.HexStringReader.prototype.string;
 
 /**
  *
- * @return {number?}
+ * @return {?number}
  */
 ydn.db.utils.HexStringReader.prototype.read = function() {
 
-  return this.current = this.index < this.lastIndex ? parseInt(this.string[++this.index] +
-    this.string[++this.index], 16) : null;
+  return this.current = this.index < this.lastIndex ? parseInt(
+      this.string.charAt(++this.index) + this.string.charAt(++this.index), 16) :
+      null;
 };
 
+
+
 /**
- * @private
+ * @protected
  * @constructor
  */
 ydn.db.utils.HexStringWriter = function() {
@@ -522,17 +545,19 @@ ydn.db.utils.HexStringWriter = function() {
  */
 ydn.db.utils.HexStringWriter.prototype.c;
 
+
 /**
  * @type {Array}
  * @private
  */
 ydn.db.utils.HexStringWriter.prototype.buffer;
 
+
 /**
  *
- * @param $byte
+ * @param {...number} var_args
  */
-ydn.db.utils.HexStringWriter.prototype.write = function($byte) {
+ydn.db.utils.HexStringWriter.prototype.write = function(var_args) {
   for (var i = 0; i < arguments.length; i++) {
     this.c = arguments[i].toString(16);
     this.buffer.push(this.c.length === 2 ? this.c : this.c = '0' + this.c);
@@ -546,7 +571,8 @@ ydn.db.utils.HexStringWriter.prototype.write = function($byte) {
  */
 ydn.db.utils.HexStringWriter.prototype.trim = function() {
   var length = this.buffer.length;
-  while (this.buffer[--length] === '00') {}
+  while (this.buffer[--length] === '00') {
+  }
   this.buffer.length = ++length;
   return this;
 };
@@ -568,7 +594,7 @@ ydn.db.utils.HexStringWriter.prototype.toString = function() {
  * greater than the second, -1 if the first is less than the second, and 0 if
  * the first is equal to the second.
  */
-ydn.db.utils.cmp = function (first, second) {
+ydn.db.utils.cmp = function(first, second) {
   var key1 = ydn.db.utils.encodeKey(first);
   var key2 = ydn.db.utils.encodeKey(second);
   return key1 > key2 ? 1 : (key1 == key2 ? 0 : -1);
