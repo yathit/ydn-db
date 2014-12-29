@@ -84,12 +84,14 @@ ydn.db.tr.Thread = function(storage, ptx_no, opt_policy,
   /**
    * @final
    * @protected
+   * @type {ydn.db.tr.Thread.Policy}
    */
   this.policy = opt_policy || ydn.db.tr.Thread.Policy.SINGLE;
 
   /**
    * @final
    * @protected
+   * @type {number}
    */
   this.max_tx_no = opt_max_tx_no || 0;
 

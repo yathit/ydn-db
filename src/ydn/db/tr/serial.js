@@ -90,6 +90,7 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
   /**
    * @final
    * @private
+   * @type {number}
    */
   this.max_tx_no_ = opt_max_tx_no || 0;
   /**

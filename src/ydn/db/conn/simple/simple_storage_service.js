@@ -36,7 +36,8 @@ ydn.db.con.SimpleStorageService = function(opt_provider) {
 
   /**
    * @final
-   * @private
+   * @protected
+   * @type {!ydn.db.con.simple.IStorageProvider}
    */
   this.provider_ = opt_provider || new ydn.db.req.InMemoryStorage();
 
@@ -46,10 +47,6 @@ ydn.db.con.SimpleStorageService = function(opt_provider) {
    */
   this.dbname;
 
-  /**
-   * @type {ydn.db.con.simple.IStorageProvider}
-   */
-  this.provider_;
 
   /**
    * @type {!Storage}

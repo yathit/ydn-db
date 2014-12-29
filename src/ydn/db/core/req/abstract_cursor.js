@@ -47,6 +47,7 @@ ydn.db.core.req.AbstractCursor = function(tx, tx_no, store_schema, opt_mth) {
   /**
    * @final
    * @protected
+   * @type {string}
    */
   this.store_name = store_schema.getName();
   /**

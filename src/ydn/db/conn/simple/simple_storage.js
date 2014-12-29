@@ -121,16 +121,19 @@ ydn.db.con.SimpleStorage.prototype.connect = function(dbname, schema) {
 
   /**
    * @final
+   * @type {!Storage}
    */
   this.storage_ = this.provider_.connectDb(dbname);
 
   /**
    * @final
+   * @type {string}
    */
   this.dbname = dbname;
 
   /**
    * @final
+   * @type {!ydn.db.schema.Database}
    */
   this.schema = schema;
 

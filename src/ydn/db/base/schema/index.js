@@ -79,6 +79,7 @@ ydn.db.schema.Index = function(
   /**
    * @final
    * @private
+   * @type {boolean}
    */
   this.is_composite_ = goog.isArrayLike(this.keyPath);
 
@@ -116,12 +117,14 @@ ydn.db.schema.Index = function(
   /**
    * @final
    * @private
+   * @type {ydn.db.schema.DataType}
    */
   this.keyColumnType_ = goog.isString(this.type) ? this.type :
       ydn.db.schema.DataType.TEXT;
   /**
    * @final
    * @private
+   * @type {string}
    */
   this.index_column_name_ = goog.isString(opt_index_name) ?
       opt_index_name : goog.isArray(keyPath) ?

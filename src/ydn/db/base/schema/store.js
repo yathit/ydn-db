@@ -62,10 +62,12 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
   this.name_ = name;
   /**
    * @final
+   * @type {(Array<string>|string)}
    */
   this.keyPath = goog.isDef(opt_key_path) ? opt_key_path : null;
   /**
    * @final
+   * @type {boolean}
    */
   this.isComposite = goog.isArrayLike(this.keyPath);
 
@@ -105,35 +107,42 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
 
   /**
    * @final
+   * @type {ydn.db.schema.DataType|undefined}
    */
   this.type = goog.isDefAndNotNull(type) ? type : this.autoIncrement ?
       ydn.db.schema.DataType.INTEGER : undefined;
 
   /**
    * @final
+   * @type {!Array<string>}
    */
   this.keyPaths = goog.isString(this.keyPath) ? this.keyPath.split('.') : [];
   /**
    * @final
+   * @type {!Array.<!ydn.db.schema.Index>}
    */
   this.indexes = opt_indexes || [];
   /**
    * @final
+   * @type {boolean}
    */
   this.dispatch_events = !!opt_dispatch_events;
   /**
    * @final
+   * @type {boolean}
    */
   this.fixed = !!opt_is_fixed;
   /**
    * @final
    * @private
+   * @type {ydn.db.schema.DataType}
    */
   this.keyColumnType_ = goog.isString(this.type) ?
       this.type : ydn.db.schema.DataType.TEXT;
   /**
    * @final
    * @private
+   * @type {string}
    */
   this.primary_column_name_ = goog.isArray(this.keyPath) ?
       this.keyPath.join(',') :
@@ -144,6 +153,7 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
   /**
    * @final
    * @private
+   * @type {string}
    */
   this.primary_column_name_quoted_ =
       goog.string.quote(this.primary_column_name_);

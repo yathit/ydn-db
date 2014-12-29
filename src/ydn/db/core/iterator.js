@@ -102,6 +102,7 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
   /**
    * @final
    * @private
+   * @type {boolean}
    */
   this.is_key_iterator_ = goog.isDef(opt_key_only) ?
       opt_key_only : !!(goog.isString(this.index_name_));
@@ -117,6 +118,7 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
   /**
    * @final
    * @private
+   * @type {ydn.db.base.Direction}
    */
   this.direction_ = direction;
 
@@ -129,6 +131,7 @@ ydn.db.Iterator = function(store, opt_index, opt_key_range, opt_reverse,
   /**
    * @final
    * @private
+   * @type {?IDBKeyRange}
    */
   this.key_range_ = ydn.db.KeyRange.parseIDBKeyRange(opt_key_range);
 

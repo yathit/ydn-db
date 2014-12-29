@@ -55,6 +55,7 @@ ydn.db.con.simple.Store = function(db_name, storage, store_schema) {
   var kp = this.schema.getKeyPath();
   /**
    * @final
+   * @type {string}
    */
   this.primary_index = goog.isArray(kp) ? kp.join(',') :
       kp || ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
@@ -63,6 +64,7 @@ ydn.db.con.simple.Store = function(db_name, storage, store_schema) {
 
   /**
    * @final
+   * @type {string}
    */
   this.key_prefix = ydn.db.con.simple.makeKey(this.db_name,
       this.schema.getName(), this.primary_index) + ydn.db.con.simple.SEP;

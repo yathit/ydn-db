@@ -103,6 +103,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
   /**
    * WebSQl database size during initialization.
    * @final
+   * @type {number|undefined}
    */
   this.size = options.size;
 
@@ -520,7 +521,7 @@ ydn.db.con.Storage.prototype.getType = function() {
  * @template T
  */
 ydn.db.con.Storage.prototype.onReady = function(cb, opt_scope) {
-  this.df_on_ready_.addBoth(cb, opt_scope);
+  this.df_on_ready_.branch().addBoth(cb, opt_scope);
 };
 
 

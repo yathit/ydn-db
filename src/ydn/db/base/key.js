@@ -70,14 +70,17 @@ ydn.db.Key = function(store_or_json_or_value, opt_id, opt_parent) {
 
   /**
    * @final
+   * @type {string}
    */
   this.store_name = store_name;
   /**
    * @final
+   * @type {IDBKey|undefined}
    */
   this.id = opt_id;
   /**
    * @final
+   * @type {?ydn.db.Key}
    */
   this.parent = opt_parent || null;
 

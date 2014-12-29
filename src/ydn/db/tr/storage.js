@@ -64,12 +64,14 @@ ydn.db.tr.Storage = function(opt_dbname, opt_schema, opt_options) {
    * This sync thread is used internally.
    * todo: this should belong to db_operator, not storage instance.
    * @final
+   * @type {!ydn.db.tr.Thread}
    */
   this.sync_thread = this.newTxQueue(ydn.db.tr.Thread.Policy.ATOMIC, false);
 
   /**
    * main thread.
    * @final
+   * @type {!ydn.db.tr.DbOperator}
    */
   this.db_operator = this.newOperator(tx_thread, this.sync_thread);
 

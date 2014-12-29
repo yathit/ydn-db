@@ -24,6 +24,7 @@ ydn.db.Where = function(field, op, opt_value, opt_op2, opt_value2) {
   /**
    * @final
    * @private
+   * @type {ydn.db.KeyRange}
    */
   this.key_range_ = op instanceof ydn.db.KeyRange ?
       op : goog.isString(op) && goog.isDef(opt_value) ?
@@ -31,6 +32,7 @@ ydn.db.Where = function(field, op, opt_value, opt_op2, opt_value2) {
       ydn.db.KeyRange.parseKeyRange(/** @type {KeyRangeJson} */ (op));
   /**
    * @final
+   * @type {string}
    */
   this.field = field;
 };
