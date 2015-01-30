@@ -485,7 +485,7 @@ ydn.db.con.IndexedDb.prototype.isReady = function() {
 
 /**
  * @protected
- * @type {goog.debug.Logger} logger.
+ * @type {goog.log.Logger} logger.
  */
 ydn.db.con.IndexedDb.prototype.logger =
     goog.log.getLogger('ydn.db.con.IndexedDb');
@@ -726,7 +726,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
         goog.log.log(this.logger, goog.log.Level.INFO, 'Index ' + index + ' of blob data type ignored.');
         continue;
       }
-      goog.log.log(this.logger, goog.log.Level.FINEST, 'Creating index: ' + index);
+      goog.log.finest(this.logger, 'Creating index: ' + index + ' for ' + store_schema.getName());
 
       if (index.unique || index.multiEntry) {
         var idx_options = {unique: index.unique, multiEntry: index.multiEntry};
@@ -737,7 +737,7 @@ ydn.db.con.IndexedDb.prototype.update_store_ = function(db, trans,
       }
     }
 
-    goog.log.log(this.logger, goog.log.Level.FINEST, 'Created store: ' + store);
+    goog.log.finer(this.logger, 'Created store: ' + store);
   }
 };
 

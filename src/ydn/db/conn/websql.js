@@ -405,7 +405,7 @@ ydn.db.con.WebSql.DEBUG = false;
 
 /**
  * @protected
- * @type {goog.debug.Logger} logger.
+ * @type {goog.log.Logger} logger.
  */
 ydn.db.con.WebSql.prototype.logger =
     goog.log.getLogger('ydn.db.con.WebSql');

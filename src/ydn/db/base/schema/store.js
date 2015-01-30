@@ -122,6 +122,15 @@ ydn.db.schema.Store = function(name, opt_key_path, opt_autoIncrement, opt_type,
    * @type {!Array.<!ydn.db.schema.Index>}
    */
   this.indexes = opt_indexes || [];
+  var names = [];
+  for (var i = 0; i < this.indexes.length; i++) {
+    var i_name = this.indexes[i].getName();
+    if (names.indexOf(i_name) >= 0) {
+      throw new ydn.debug.error.ArgumentException('index "' + i_name +
+         '" already defined in store: ' + this.name_);
+    }
+    names.push(i_name);
+  }
   /**
    * @final
    * @type {boolean}

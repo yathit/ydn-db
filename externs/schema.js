@@ -175,7 +175,7 @@ S3Options.prototype.bucket;
 
 
 /**
- * @type {string?}
+ * @type {?string}
  */
 S3Options.prototype.maxKeys;
 
@@ -189,7 +189,7 @@ var GDataOptions = function() {};
 
 
 /**
- * @type {string?}
+ * @type {?string}
  */
 GDataOptions.prototype.version;
 

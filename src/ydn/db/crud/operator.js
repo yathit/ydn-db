@@ -919,7 +919,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     // The object store uses out-of-line keys and has no key generator, and no
     // key parameter was provided.
     throw new ydn.debug.error.ArgumentException(
-        'out-of-line key must be provided.');
+        'out-of-line key must be provided for store: ' + store_name);
   }
 
   if (goog.isArray(value)) {
@@ -1181,7 +1181,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       // The object store uses out-of-line keys and has no key generator, and no
       // key parameter was provided.
       throw new ydn.debug.error.ArgumentException(
-          'out-of-line key must be provided.');
+          'out-of-line key must be provided for store: ' + st_name);
     }
 
     if (goog.isArray(value)) {

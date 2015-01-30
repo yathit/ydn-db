@@ -316,7 +316,7 @@ ydn.db.sync.Entity.prototype.get = function(id) {
 /**
  * Add item.
  * @param {!Object} record record value.
- * @return {!goog.async.Deferred<IDBKey>}
+ * @return {!goog.async.Deferred<Object>} server respound object or given object.
  */
 ydn.db.sync.Entity.prototype.add = function(record) {
   var me = this;
@@ -380,7 +380,7 @@ ydn.db.sync.Entity.prototype.add = function(record) {
  * Update item.
  * @param {IDBKey} id entry id.
  * @param {!Object} record record value.
- * @return {!goog.async.Deferred}
+ * @return {!goog.async.Deferred<Object>}  server respound object or given object.
  */
 ydn.db.sync.Entity.prototype.put = function(id, record) {
   var me = this;

@@ -228,6 +228,26 @@ ydn.db.crud.Storage.prototype.remove = function(arg1, arg2, arg3) {
 };
 
 
+/**
+ * Database statistic for number of records.
+ * @return {!goog.async.Deferred<Array<{name: string, count: number}>>}
+ */
+ydn.db.con.Storage.prototype.getStat = function() {
+  if (this.isReady()) {
+    var dfs = [];
+    for (var i = 0; i < this.schema.count(); i++) {
+      var store = this.schema.store(i);
+      dfs.push(this.count(store.getName()).addCallback(function(cnt) {
+        return {'name': this, 'count': cnt};
+      }, store.getName()));
+    }
+    return goog.async.DeferredList.gatherResults(dfs);
+  } else {
+    return goog.async.Deferred.fail(null);
+  }
+};
+
+
 if (goog.DEBUG) {
   /** @override */
   ydn.db.crud.Storage.prototype.toString = function() {
