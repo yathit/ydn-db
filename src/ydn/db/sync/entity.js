@@ -305,7 +305,11 @@ ydn.db.sync.Entity.prototype.get = function(id) {
       } else if (status == 304) { // Not Modified
         deferred.callback(db_obj);
       } else {
-        deferred.errback(new Error('Unknown ' + status));
+        var e = new Error(status);
+        if (!status) {
+          e.name = 'NetworkError';
+        }
+        deferred.errback(e);
       }
     }, this.name, id, token);
   }, this);

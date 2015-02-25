@@ -86,14 +86,11 @@ ydn.db.algo.CaseInsensitiveSearch.prototype.solver = function(keys, values) {
   }
   var target = this.q.substr(0, n);
 
-  // initialize advancement array
-  var advancement = [];
-
   var key = this.is_key_iter_ ? keys[0] : values[0];
 
   if (n == 0) {
 
   }
 
-  return advancement;
+  return [];
 };
