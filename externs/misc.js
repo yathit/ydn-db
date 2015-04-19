@@ -199,7 +199,7 @@ DbFullTextSearchResult.Token.prototype.value;
 
 /**
  * Primary key of the document, in which it was found.
- * @type {IDBKey}
+ * @type {number|string|!Date|!Array.<number|string|!Date>}
  */
 DbFullTextSearchResult.prototype.primaryKey;
 
