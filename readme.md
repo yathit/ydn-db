@@ -197,19 +197,18 @@ End-to-end testing for disteribution can be found in test/qunit folder as well
 
 ## Contributing ##
 
-Sending pull request is easiest way. For more, email to one of the authors in
-the source code.
+Sending pull requests is easiest.  For large or architectual changes, please email one 
+of the authors in the source code.
 
-We follow [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml).
-All commit on master branch must pass most stringent setting compilation and all unit tests.
+We follow the [Google JavaScript Style Guide](http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml).
+All commits on the master branch must pass the most stringent compilation settings and pass all unit tests.
 
-Few coding dialect we have as follow:
+A few coding dialects we follow:
 
-* Preferred variable naming is `like_this` `notLikeThis`. For function name, `useLikeThis` as usual.
-* Assume native types (boolean, number, string) are not nullable. If nullable type is used,
-it is different from `undefined`. Using `undefined` for missing value in native type
+* Preferred variable naming is `like_this`, `notLikeThis`. Function names `areLikeThis`.
+* Assume native types (boolean, number, string) are not nullable. If a nullable type is used,
+it is different from `undefined`. Using `undefined` for missing values in native type
 is encourage over `null`.
-
 
 ## Library design ##
 
@@ -233,16 +232,15 @@ be straight forward. This library design have no consideration for these
 storage mechanisms.
 
 
-## Bug report ##
+## Bug reports ##
 
 Please [file an issue](https://bitbucket.org/ytkyaw/ydn-db/issues/new) for bug
-report describing how we could reproduce the problem. Any subtle problem,
-memory/speed performance issue and missing feature from stand point of IndexedDB
-API will be considered.
+reports describing how we could reproduce your problem. We will try address any
+subtle problems, memory and speed performance issues, and even extending the 
+features of the IndexedDB API.
 
-You may also ask question in [Stackoverflow #ydn-db](http://stackoverflow.com/questions/tagged/ydn-db)
-with ydb-db hash, or follow on Twitter [@yathit](https://twitter.com/yathit).
-
+You may also ask questions in [Stackoverflow #ydn-db](http://stackoverflow.com/questions/tagged/ydn-db)
+with ydb-db hash, or follow us on Twitter [@yathit](https://twitter.com/yathit).
 
 ## License ##
 Licensed under the Apache License, Version 2.0
