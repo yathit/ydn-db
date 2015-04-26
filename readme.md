@@ -181,18 +181,18 @@ Additional features requires the following optional repos.
 
 ## Testing ##
 
-You should able to run /ydn-db/test/all-test.html or run individually.
-Since all test are async, disable run inparallel check box.
+You should be able to run /ydn-db/test/all-test.html or run tests individually.
+Since all tests are async, disable run the 'in parallel' check box.
 These test files are for basic testing and debugging.
 
-Coverage test is performed by [JsTestDriver](http://code.google.com/p/js-test-driver/)
-test. Notice that `ant gen-alltest-js` generate jsTestDriver.conf to prepare testing
+The coverage test is performed by [JsTestDriver](http://code.google.com/p/js-test-driver/)
+test. Notice that `ant gen-alltest-js` generates jsTestDriver.conf to prepare the testing
 configuration.
 
     java -jar JsTestDriver.jar --tests all
 
-End-to-end testing for disteribution can be found in test/qunit folder as well
- as online [qunit test kits] (http://dev.yathit.com/index/demos.html).
+End-to-end testing for distribution can be found in the test/qunit folder as well
+as online [qunit test kits] (http://dev.yathit.com/index/demos.html).
 
 
 ## Contributing ##
