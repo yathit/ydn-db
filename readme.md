@@ -1,8 +1,8 @@
 # Setup #
 
-For using this library, include one of the ydn-db
-minified js file from [download page](http://dev.yathit.com/ydn-db/downloads.html)
-to your HTML page.
+To use this , include one of the ydn-db
+minified js files from [download page](http://dev.yathit.com/ydn-db/downloads.html)
+in your HTML page.
 
 * [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
 * [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
@@ -12,7 +12,7 @@ to your HTML page.
 
 ## Supported browsers ##
 
-Basically this library can be used in any browser.
+This library can be used in almost any browser.
 
 * Chrome 4+
 * Firefox 3+
@@ -30,18 +30,18 @@ Basically this library can be used in any browser.
 composite index, multiEntry and IndexedDB-like aborting and implicit commit transaction.
 localStorage use on-memory [AVL tree index](http://en.wikipedia.org/wiki/AVL_tree)
 for key range query and its performance is in-par with database.
-* Support for on-the-fly [database schema](http://dev.yathit.com/api-reference/ydn-db-schema.htm l)
+* Support for on-the-fly [database schema](http://dev.yathit.com/api-reference/ydn-db-schema.html)
 generation, IndexedDB-style versioned schema migration and advance schema-centric (auto-version)
-migration by reflecting on existing schema.
+migration by reflecting on the existing schema.
 * Well tested closure library module including 234 unit test functions in addition to
 [qunit end-to-end test](http://dev.yathit.com/index/demos.html) to validate library API specification.
-* Advance transaction workflow and managed request (meaning you will never ever see InvalidStateError).
+* Advance transaction workflow and managed request (meaning you will never ever see an InvalidStateError).
 * Designed for high performance index query (only).
-* Customized log message, improper usage protection and guided error message on dev distribution.
+* Customized log messages, improper usage protection and guided error messages on dev distribution.
 * Basic support for high level query using [SQL](http://dev.yathit.com/ydn-db/sql-query.html).
 * Full text search (via ydn-db-text module).
 * Client-server Synchronization (via ydn-db-sync module).
-* We adopt strict javascript coding pattern for performance and robustness: no global, no eval, no error globbing, parameterized query, all public methods and constructors are strongly type, this is this, coding error throw error.
+* We adopt strict javascript coding patterns for performance and robustness: no global; no eval; no error globbing; parameterized query; all public methods and constructors are strongly typed; this is this; and coding errors throw errors.
 
 ## Examples ##
 
@@ -69,13 +69,13 @@ Simple usage for opening, storing and retrieving by a primary key `id1`.
     }
     db = new ydn.db.Storage('db-name', schema);
 
-If database exist, it will be open and update with given schema if necessary.
+If the database exists, it will be opened and updated with the given schema if necessary.
 In doing so, object stores and indexes will be created or deleted.
 
 ### Query ###
 
-The following snippet show querying from `people` object store using index `age`
-by key range bounded by 25. The result will be sorted by `age`.
+The following snippet shows querying from the `people` object store using index `age`
+by a key range bounded by 25. The result will be sorted by `age`.
 
     var q = db.from('people').where('age', '>=', 25);
     var limit = 10;
@@ -83,20 +83,20 @@ by key range bounded by 25. The result will be sorted by `age`.
       console.log(objs);
     });
 
-Sorting by an index with filtering on other index.
+Sorting using an index with filtering on another index.
 
     var q = db.from('people').where('age', '=', 25);
     q.order('name').list().done(function(objs) {
       console.log(objs);
     });
 
-Note that, above sort query require compound index `['age', 'name']` and only
-equal filter is supported.
+Note that the above sort query requires a compound index `['age', 'name']` and only
+the equal filter is supported.
 
 ### Transaction ###
 
-By default, each database request are executed in separate transaction and
-executed in order. The following code snippet show running all database
+By default, database requests are executed in separate transactions and
+executed in order. The following code snippet shows running all database
 requests in a single transaction.
 
     var req = db.run(function update_prop (run_db) {
