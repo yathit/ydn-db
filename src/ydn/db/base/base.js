@@ -137,7 +137,7 @@ ydn.db.base.IDBTransaction = !ydn.db.base.OLD_INDEXEDDB_SUPPORT ? ydn.db.base.St
         ('LOADING' in goog.global.IDBRequest)) ?
         goog.global.IDBTransaction :
         // old chrome use predefined enum, it can be string or numeric. ?
-        (goog.global.webkitIDBRequest &&
+        (goog.global.webkitIDBRequest &&     // This probing may cause a Chrome deprecation warning.  Ignore it.
             // old webkit has this const.
             ('LOADING' in goog.global.webkitIDBRequest &&
             // old Chrome define 1 and use;
