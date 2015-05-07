@@ -27,18 +27,18 @@ goog.require('ydn.db.tr.events');
 
 
 /**
- * Create a suitable storage mechanism from indexdb, to websql to
+ * Create a suitable storage mechanism from indexdb to websql or to
  * localStorage.
  *
  * If database name and schema are provided, this will immediately initialize
- * the database and ready to use. However if any of these two are missing,
- * the database is not initialize until they are set by calling
+ * the database and be ready to use. However, if either of these two are missing,
+ * the database is not initialized until they are set by calling
  * {@link #setName} and {@link #setSchema}.
  * @see goog.db Google Closure Library DB module.
  * @param {string=} opt_dbname database name.
  * @param {(ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database
  * schema
- * or its configuration in JSON format. If not provided, default empty schema
+ * or its configuration in JSON format. If not provided, a default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
  * @extends {ydn.db.sql.Storage}
