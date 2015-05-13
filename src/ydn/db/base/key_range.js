@@ -11,12 +11,12 @@ goog.provide('ydn.db.KeyRange');
 
 
 /**
- * For those browser that not implemented IDBKeyRange.
+ * For those browsers that have not implemented IDBKeyRange.
  * @param {IDBKey|undefined} lower The value of the lower bound.
  * @param {IDBKey|undefined} upper  The value of the upper bound.
  * @param {boolean=} opt_lowerOpen  If true, the range excludes the lower bound
  * value.
- * @param {boolean=} opt_upperOpen If true, the range excludes the lower bound
+ * @param {boolean=} opt_upperOpen If true, the range excludes the upper bound
  * value.
  * @constructor
  */
@@ -53,8 +53,8 @@ ydn.db.KeyRange = function(lower, upper, opt_lowerOpen, opt_upperOpen) {
   this['upperOpen'] = !!opt_upperOpen;
 
   // if (goog.DEBUG && goog.isFunction(Object.freeze)) {
-    // NOTE: due to performance penalty (in Chrome) of using freeze and
-    // hard to debug on different browser we don't want to use freeze
+    // NOTE: due to the performance penalty (in Chrome) of using freeze and
+    // being hard to debug on different browsers we don't want to use freeze
     // this is experimental.
     // http://news.ycombinator.com/item?id=4415981
     // Object.freeze(/** @type {!Object} */ (this));
@@ -232,7 +232,7 @@ ydn.db.KeyRange.toJSON = function(keyRange) {
 
 
 /**
- * Read four primitive attributes from the input and return newly created
+ * Read four primitive attributes from the input and return a newly created
  * keyRange object.
  * @param {(KeyRangeJson|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} key_range
  * keyRange.
@@ -294,7 +294,7 @@ ydn.db.KeyRange.parseIDBKeyRange = function(opt_key_range) {
 /**
  *
  * @param {Object|undefined} keyRange
- * @return {string} if not valid key range object, return a message reason.
+ * @return {string} empty or the reason why the keyRange is not valid.
  */
 ydn.db.KeyRange.validate = function(keyRange) {
   if (keyRange instanceof ydn.db.KeyRange) {
@@ -345,7 +345,7 @@ ydn.db.KeyRange.prototype.and = function(that) {
 
 
 /**
- * For debug display.
+ * For display during debugging
  * @param {ydn.db.KeyRange|IDBKeyRange|undefined} kr
  * @return {string} readable form.
  */
