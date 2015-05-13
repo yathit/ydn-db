@@ -7,6 +7,7 @@ in your HTML page.
 * [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
 * [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
 * [Demo applications](http://dev.yathit.com/ydn-db/doc/example/index.html)
+* [Example applications](http://yathit.github.io/ydndb-demo/)
 * [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
 * [Download](http://dev.yathit.com/index/downloads.html)
 
