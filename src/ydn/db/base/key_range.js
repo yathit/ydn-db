@@ -130,7 +130,6 @@ ydn.db.KeyRange.clone = function(kr) {
  *
  * @param {IDBKey} value The single value in the range.
  * @return {!ydn.db.KeyRange} The key range.
- * @expose
  */
 ydn.db.KeyRange.only = function(value) {
   return new ydn.db.KeyRange(value, value, false, false);
@@ -147,7 +146,6 @@ ydn.db.KeyRange.only = function(value) {
  * @param {boolean=} opt_upperOpen If true, the range excludes the upper bound
  *     value.
  * @return {!ydn.db.KeyRange} The key range.
- * @expose
  */
 ydn.db.KeyRange.bound = function(lower, upper,
                                  opt_lowerOpen, opt_upperOpen) {
@@ -162,7 +160,6 @@ ydn.db.KeyRange.bound = function(lower, upper,
  * @param {boolean=} opt_upperOpen If true, the range excludes the upper bound
  *     value.
  * @return {!ydn.db.KeyRange} The key range.
- * @expose
  */
 ydn.db.KeyRange.upperBound = function(upper, opt_upperOpen) {
   return new ydn.db.KeyRange(undefined, upper, undefined, !!opt_upperOpen);
@@ -176,7 +173,6 @@ ydn.db.KeyRange.upperBound = function(upper, opt_upperOpen) {
  * @param {boolean=} opt_lowerOpen If true, the range excludes the lower bound
  *     value.
  * @return {!ydn.db.KeyRange} The key range.
- * @expose
  */
 ydn.db.KeyRange.lowerBound = function(lower, opt_lowerOpen) {
   return new ydn.db.KeyRange(lower, undefined, !!opt_lowerOpen, undefined);

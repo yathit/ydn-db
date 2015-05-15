@@ -60,4 +60,8 @@ goog.exportProperty(ydn.async.Deferred.prototype, 'promise',
     ydn.async.Deferred.prototype.promise);
 
 
-
+goog.exportSymbol('ydn.db.KeyRange',ydn.db.KeyRange);
+goog.exportProperty(ydn.db.KeyRange, 'only', ydn.db.KeyRange.only);
+goog.exportProperty(ydn.db.KeyRange, 'bound', ydn.db.KeyRange.bound);
+goog.exportProperty(ydn.db.KeyRange, 'upperBound', ydn.db.KeyRange.upperBound);
+goog.exportProperty(ydn.db.KeyRange, 'lowerBound', ydn.db.KeyRange.lowerBound);
