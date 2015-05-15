@@ -62,8 +62,9 @@ Simple usage for opening, storing and retrieving by a primary key `id1`.
       stores: [{
         name: 'people',
         indexes: [{
-           keyPath: 'age'
+           name: 'age'
         }, {
+           name: 'age, name',
            keyPath: ['age', 'name']
         }]
       ]
