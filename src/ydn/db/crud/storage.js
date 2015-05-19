@@ -21,6 +21,7 @@
  */
 
 goog.provide('ydn.db.crud.Storage');
+goog.require('goog.async.DeferredList');
 goog.require('ydn.db.crud.DbOperator');
 goog.require('ydn.db.crud.IOperator');
 goog.require('ydn.db.crud.req.IRequestExecutor');
