@@ -98,7 +98,8 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    * @final
    * @type {!Array.<string>}
    */
-  this.mechanisms = options.mechanisms || ydn.db.con.Storage.PREFERENCE;
+  this.mechanisms = options.mechanisms ||
+      ydn.db.con.Storage.getDefaultMechanism();
 
   /**
    * WebSQl database size during initialization.
@@ -266,7 +267,7 @@ ydn.db.con.Storage.prototype.getSchema = function(opt_callback) {
 
 /**
  * Add a store schema to current database schema on auto schema generation
- * mode {@see #auto_schema}.
+ * mode {@see #autoSchema}.
  * If the store already exist it will be updated as necessary.
  * @param {!StoreSchema|!ydn.db.schema.Store} store_schema store schema.
  * @return {!goog.async.Deferred} promise.
@@ -379,6 +380,20 @@ ydn.db.con.Storage.PREFERENCE = [
   ydn.db.base.Mechanisms.SESSION_STORAGE,
   ydn.db.base.Mechanisms.USER_DATA,
   ydn.db.base.Mechanisms.MEMORY_STORAGE];
+
+
+/**
+ * @return {!Array<string>} Get default storage mechanism order according to
+ * suitability.
+ */
+ydn.db.con.Storage.getDefaultMechanism = function() {
+  if (goog.userAgent.product.SAFARI) {
+    // IndexedDB in Safari is too buggy at this moment.
+    return goog.array.slice(ydn.db.con.Storage.PREFERENCE, 1);
+  } else {
+    return ydn.db.con.Storage.PREFERENCE;
+  }
+};
 
 
 /**
@@ -515,8 +530,8 @@ ydn.db.con.Storage.prototype.getType = function() {
 
 /**
  * Add handler on database ready event.
- * @param {function(this: T, Error?)} cb in case of database fail to open, invoke with
- * the error, otherwise null.
+ * @param {function(this: T, Error?)} cb in case of database fail to open,
+ * invoke with the error, otherwise null.
  * @param {T=} opt_scope
  * @template T
  */
@@ -621,7 +636,8 @@ ydn.db.con.Storage.prototype.popTxQueue_ = function() {
 
   var task = this.txQueue_.shift();
   if (task) {
-    goog.log.finest(this.logger, 'pop tx queue[' + (this.txQueue_.length + 1) + ']');
+    goog.log.finest(this.logger, 'pop tx queue[' +
+        (this.txQueue_.length + 1) + ']');
     this.transaction(task.fnc, task.scopes, task.mode, task.oncompleted);
   }
   this.last_queue_checkin_ = goog.now();
@@ -816,8 +832,8 @@ ydn.db.con.Storage.prototype.setEncryption = function(encryption) {
  * @protected
  */
 ydn.db.con.Storage.prototype.addFullTextIndexer = function(store, option) {
-  goog.log.warning(this.logger, 'Full text indexer option for ' + store.getName() +
-      ' ignored.');
+  goog.log.warning(this.logger, 'Full text indexer option for ' +
+      store.getName() + ' ignored.');
 };
 
 

@@ -419,13 +419,6 @@ ydn.db.con.IndexedDb.DEBUG = false;
  * @return {boolean} return indexedDB support on run time.
  */
 ydn.db.con.IndexedDb.isSupported = function() {
-  if (!ydn.db.base.indexedDb) {
-    return false;
-  }
-  if (goog.userAgent.product.SAFARI) {
-    // IndexedDB in Safari is too buggy at this moment.
-    return false;
-  }
   return !!ydn.db.base.indexedDb;
 };
 
