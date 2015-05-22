@@ -26,6 +26,7 @@
  */
 
 goog.provide('ydn.db.con.Storage');
+goog.require('goog.userAgent.product');
 goog.require('ydn.db');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');

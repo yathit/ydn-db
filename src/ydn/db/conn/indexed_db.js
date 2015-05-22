@@ -20,7 +20,6 @@
 
 goog.provide('ydn.db.con.IndexedDb');
 goog.require('goog.async.DeferredList');
-goog.require('goog.userAgent.product');
 goog.require('ydn.db');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
