@@ -31,7 +31,7 @@ ydn.db.events.Types = {
 
 
 /**
- *
+ * Base database event.
  * @param {ydn.db.events.Types} event_type event type.
  * @param {Object=} event_target target.
  * @extends {goog.events.Event}
