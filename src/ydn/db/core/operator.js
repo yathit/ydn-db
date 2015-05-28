@@ -99,7 +99,48 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
   } else {
     return goog.base(this, 'get', arg1, arg2);
   }
+};
 
+
+/**
+ * @param {ydn.db.Iterator} q the iterator.
+ * @param {number=} arg2 limit.
+ * @param {number=} arg3 offset.
+ */
+ydn.db.core.DbOperator.prototype.keysOf = function (q, arg2, arg3) {
+
+  /**
+   * @type {number}
+   */
+  var limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
+  if (goog.isNumber(arg2)) {
+    limit = /** @type {number} */ (arg2);
+    if (limit < 1) {
+      throw new ydn.debug.error.ArgumentException('limit must be ' +
+          'a positive value, but ' + arg2);
+    }
+  } else if (goog.isDef(arg2)) {
+    throw new ydn.debug.error.ArgumentException('limit must be a number, ' +
+        ' but ' + arg2);
+  }
+  if (goog.isDef(arg3)) {
+    throw new ydn.debug.error.ArgumentException(
+        'offset must not be specified');
+  }
+
+
+  goog.log.finer(this.logger, 'keysByIterator:' + q);
+  var df = this.tx_thread.request(ydn.db.Request.Method.KEYS_ITER,
+      [q.getStoreName()]);
+  df.addTxback(function () {
+    if (q.isIndexIterator()) {
+      this.iterate(ydn.db.base.QueryMethod.LIST_KEY, df, q, limit);
+    } else {
+      this.iterate(ydn.db.base.QueryMethod.LIST_PRIMARY_KEY, df, q, limit);
+    }
+  }, this);
+
+  return df;
 };
 
 
@@ -108,51 +149,11 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
  */
 ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5,
                                                  arg6, arg7) {
-
-  var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
-
-    /**
-     * @type {number}
-     */
-    var limit = ydn.db.base.DEFAULT_RESULT_LIMIT;
-    if (goog.isNumber(arg2)) {
-      limit = /** @type {number} */ (arg2);
-      if (limit < 1) {
-        throw new ydn.debug.error.ArgumentException('limit must be ' +
-            'a positive value, but ' + arg2);
-      }
-    } else if (goog.isDef(arg2)) {
-      throw new ydn.debug.error.ArgumentException('limit must be a number, ' +
-          ' but ' + arg2);
-    }
-    if (goog.isDef(arg3)) {
-      throw new ydn.debug.error.ArgumentException(
-          'offset must not be specified');
-    }
-
-    /**
-     *
-     * @type {!ydn.db.Iterator}
-     */
-    var q = arg1;
-
-    goog.log.finer(this.logger, 'keysByIterator:' + q);
-    var df = this.tx_thread.request(ydn.db.Request.Method.KEYS_ITER,
-        [q.getStoreName()]);
-    df.addTxback(function() {
-      if (q.isIndexIterator()) {
-        this.iterate(ydn.db.base.QueryMethod.LIST_KEY, df, q, limit);
-      } else {
-        this.iterate(ydn.db.base.QueryMethod.LIST_PRIMARY_KEY, df, q, limit);
-      }
-    }, this);
-
-    return df;
+    return this.keysOf(arg1, /** @type {number} */(arg2), /** @type {number} */(arg3));
   } else {
     return goog.base(this, 'keys', arg1, arg2, arg3, arg4, arg5, arg6, arg7);
   }
-
 };
 
 
@@ -188,6 +189,51 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3, arg4) {
 
 
 /**
+ * @param {!ydn.db.Iterator} q the iterator.
+ * @param {number=} arg2 limit.
+ * @param {number=} arg3 offset.
+ * @return {!ydn.db.Request}
+ */
+ydn.db.core.DbOperator.prototype.listValues = function (q, arg2, arg3) {
+
+  var me = this;
+
+
+  /**
+   * @type {number}
+   */
+  var limit;
+  if (goog.isNumber(arg2)) {
+    limit = /** @type {number} */ (arg2);
+    if (limit < 1) {
+      throw new ydn.debug.error.ArgumentException('limit must be ' +
+          'a positive value, but ' + limit);
+    }
+  } else if (goog.isDef(arg2)) {
+    throw new ydn.debug.error.ArgumentException('limit must be a number, ' +
+        'but ' + arg2);
+  }
+  if (goog.isDef(arg3)) {
+    throw new ydn.debug.error.ArgumentException(
+        'offset must not be specified');
+  }
+
+  goog.log.finer(this.logger, 'listByIterator:' + q);
+  var df = this.tx_thread.request(ydn.db.Request.Method.VALUES_ITER,
+      [q.getStoreName()]);
+  df.addTxback(function () {
+    if (q.isKeyIterator()) {
+      this.iterate(ydn.db.base.QueryMethod.LIST_PRIMARY_KEY, df, q, limit);
+    } else {
+      this.iterate(ydn.db.base.QueryMethod.LIST_VALUE, df, q, limit);
+    }
+  }, this);
+
+  return df;
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
@@ -195,43 +241,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
-
-    /**
-     * @type {number}
-     */
-    var limit;
-    if (goog.isNumber(arg2)) {
-      limit = /** @type {number} */ (arg2);
-      if (limit < 1) {
-        throw new ydn.debug.error.ArgumentException('limit must be ' +
-            'a positive value, but ' + limit);
-      }
-    } else if (goog.isDef(arg2)) {
-      throw new ydn.debug.error.ArgumentException('limit must be a number, ' +
-          'but ' + arg2);
-    }
-    if (goog.isDef(arg3)) {
-      throw new ydn.debug.error.ArgumentException(
-          'offset must not be specified');
-    }
-
-    /**
-     *
-     * @type {!ydn.db.Iterator}
-     */
-    var q = arg1;
-    goog.log.finer(this.logger, 'listByIterator:' + q);
-    var df = this.tx_thread.request(ydn.db.Request.Method.VALUES_ITER,
-        [q.getStoreName()]);
-    df.addTxback(function() {
-      if (q.isKeyIterator()) {
-        this.iterate(ydn.db.base.QueryMethod.LIST_PRIMARY_KEY, df, q, limit);
-      } else {
-        this.iterate(ydn.db.base.QueryMethod.LIST_VALUE, df, q, limit);
-      }
-    }, this);
-
-    return df;
+    return this.listValues(arg1, /** @type {number} */(arg2), /** @type {number} */(arg3));
   } else {
     return goog.base(this, 'values', arg1, arg2, arg3, arg4, arg5, arg6);
   }
