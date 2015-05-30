@@ -9,7 +9,7 @@ in your HTML page.
 * [Demo applications](http://dev.yathit.com/ydn-db/doc/example/index.html)
 * [Example applications](http://yathit.github.io/ydndb-demo/)
 * [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
-* [Download](http://dev.yathit.com/index/downloads.html)
+* [Download](http://dev.yathit.com/ydn-db/downloads.html)
 
 ## Supported browsers ##
 
