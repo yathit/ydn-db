@@ -26,9 +26,12 @@ Import lastest minified JS script (see download section) to your HTML files. Thi
 
 ### Resources
 
-* [Using YDN-DB](http://dev.yathit.com/ydn-db/using.html)
-* [API Reference](http://dev.yathit.com/api-reference/ydn-db-storage.html)
-* [Demo applications](http://dev.yathit.com/ydn-db/demos.html)
+* [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
+* [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
+* [Demo applications](http://dev.yathit.com/ydn-db/doc/example/index.html)
+* [Example applications](http://yathit.github.io/ydndb-demo/)
+* [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
+* [Download](http://dev.yathit.com/ydn-db/downloads.html)
 
 
 ### Setup, download and dependency 
