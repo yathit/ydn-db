@@ -27,15 +27,15 @@ goog.require('ydn.db.crud.Storage');
  * Construct storage providing atomic CRUD database operations on implemented
  * storage mechanisms.
  *
- * This class do not execute database operation, but create a non-overlapping
+ * This class does not execute database operations, but creates a non-overlapping
  * transaction queue on ydn.db.crud.DbOperator and all operations are
  * passed to it.
  *
  *
- * @param {string=} opt_dbname database name.
+ * @param {string=} opt_dbname database name
  * @param {(ydn.db.schema.Database|!DatabaseSchema)=} opt_schema database
  * schema
- * or its configuration in JSON format. If not provided, default empty schema
+ * or its configuration in JSON format. If not provided, a default empty schema
  * is used.
  * @param {!StorageOptions=} opt_options options.
  * @extends {ydn.db.crud.Storage}
@@ -72,10 +72,10 @@ ydn.db.core.Storage.prototype.getIndexOperator = function() {
  *
  * @param {function(this: T, !ydn.db.core.req.ICursor)} callback icursor
  * handler.
- * @param {!ydn.db.Iterator} iter the cursor.
+ * @param {!ydn.db.Iterator} iter for the cursor.
  * @param {ydn.db.base.TransactionMode=} opt_mode mode.
  * @param {T=} opt_scope optional callback scope.
- * @return {!ydn.db.Request} promise on completed.
+ * @return {!ydn.db.Request} promise upon completion.
  * @template T
  */
 ydn.db.core.Storage.prototype.open = function(callback, iter, opt_mode,
@@ -86,11 +86,11 @@ ydn.db.core.Storage.prototype.open = function(callback, iter, opt_mode,
 
 /**
  * List record in a store.
- * @param {ydn.db.base.QueryMethod} mth keys method.
- * @param {!ydn.db.Iterator} iter iterator.
- * @param {number=} opt_limit limit.
- * @param {number=} opt_offset limit.
- * @return {!ydn.db.Request} request.
+ * @param {ydn.db.base.QueryMethod} mth keys method
+ * @param {!ydn.db.Iterator} iter iterator
+ * @param {number=} opt_limit limit
+ * @param {number=} opt_offset limit
+ * @return {!ydn.db.Request} request
  */
 ydn.db.core.Storage.prototype.listIter = function(mth, iter,
                                                   opt_limit, opt_offset) {
@@ -102,9 +102,9 @@ ydn.db.core.Storage.prototype.listIter = function(mth, iter,
 /**
  * Cursor scan iteration.
  * @param {!ydn.db.algo.AbstractSolver|function(!Array, !Array): (Array|undefined)} solver
- * solver.
- * @param {!Array.<!ydn.db.Iterator>} iterators the cursor.
- * @return {!goog.async.Deferred} promise on completed.
+ * solver
+ * @param {!Array.<!ydn.db.Iterator>} iterator for the cursor
+ * @return {!goog.async.Deferred} promise upon completion
  */
 ydn.db.core.Storage.prototype.scan = function(solver, iterators) {
   return this.getIndexOperator().scan(solver, iterators);
