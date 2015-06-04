@@ -187,27 +187,6 @@
         </sequential>
     </target>
 
-    <target name="compile-core-entity"
-            description="generates compiled files for client js">
-        <mkdir dir="${ydn-db.dir}/jsc"/>
-        <adv-comp
-                input.dir="${ydn-db.dir}/src"
-                input.fn="${ydn-db.dir}/config/main.js"
-                output.fn="ydn.db-core-entity.js">
-            <exjs.dir>
-                <arg line='-i "${ydn-db.dir}/config/export-entity.js"'/>
-                <arg line='-p "${work.dir}/ydn/src"'/>
-                <arg line='-p "${work.dir}/gdata/src"'/>
-                <arg line='-i "${ydn-base.dir}/src/config/debug.js"'/>
-                <arg line='-f "--closure_entry_point=ydn.debug.exports"'/>
-                <arg line='-f "--closure_entry_point=ydn.db.sync.entity.exports"'/>
-                <arg line='-f "--define=goog.log.ENABLED=true"'/>
-                <arg line='-f "--externs=${work.dir}/gdata/externs/gdata.js"'/>
-                <arg line='-f "--externs=${work.dir}/ydn-base/externs/aws.js"'/>
-                <arg line='-f "--externs=${work.dir}/ydn-db/externs/entity.js"'/>
-            </exjs.dir>
-        </adv-comp>
-    </target>
 
     <target name="github" description="push to github">
         <echo>git branch github</echo>
