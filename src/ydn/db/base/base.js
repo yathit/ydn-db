@@ -25,7 +25,7 @@ goog.require('ydn.async.Deferred');
 
 
 /**
- * When key column is not defined, You can access the ROWID of an SQLite table
+ * When a key column is not defined, you can access the ROWID of an SQLite table
  * using one the special column names ROWID, _ROWID_, or OID.
  *
  * http://www.sqlite.org/autoinc.html
@@ -36,8 +36,8 @@ ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME = '_ROWID_';
 
 
 /**
- * SQLite store serialized object into this default column. This library
- * always create table with this default column of type BLOB.
+ * SQLite stores serialized objects into this default column. This library
+ * always creates each table with this default column of type BLOB.
  * @const
  * @type {string}
  */
@@ -52,7 +52,7 @@ ydn.db.base.DISPATCH_EVENT = false;
 
 
 /**
- * Default result limit during retrieving records from the database.
+ * Default result limit when retrieving records from the database.
  * @const
  * @type {number}
  */
@@ -81,8 +81,8 @@ ydn.db.base.Mechanisms = {
 
 
 /**
- * Event types the Transaction can dispatch. COMPLETE events are dispatched
- * when the transaction is committed. If a transaction is aborted it dispatches
+ * Event types that the Transaction can dispatch. COMPLETE events are dispatched
+ * when the transaction is committed. If a transaction is aborted, it dispatches
  * both an ABORT event and an ERROR event with the ABORT_ERR code. Error events
  * are dispatched on any error.
  *
@@ -116,12 +116,12 @@ ydn.db.base.OLD_INDEXEDDB_SUPPORT = false;
 
 
 /**
- * Before Chrome 22, IDBTransaction mode are number. New standard change to
- * string. Chrome 22 still follow standard, but weird new constants are
- * taking from the new standard.
- * HACK: The fun fact with current Chrome 22 defines  webkitIDBTransaction as
- * numeric value, but the database engine expect string format and display
- * deprecated warning.
+ * Before Chrome 22, IDBTransaction modes were numbers. New standards change it to
+ * a string. Chrome 22 still follows the standard, but weird new constants are
+ * taken from the new standard.
+ * HACK: The fun fact with current Chrome 22 is that it defines webkitIDBTransaction as
+ * a numeric value, but the database engine expects a string format and displays a 
+ * deprecation warning.
  * For detail discussion see:
  * https://bitbucket.org/ytkyaw/ydn-db/issue/28
  * http://code.google.com/p/chromium/issues/detail?id=155171
@@ -132,16 +132,16 @@ ydn.db.base.OLD_INDEXEDDB_SUPPORT = false;
  * @protected
  */
 ydn.db.base.IDBTransaction = !ydn.db.base.OLD_INDEXEDDB_SUPPORT ? ydn.db.base.StandardTransactionMode :
-    // old Firefox use predefined numeric enum.
+    // old Firefox uses a predefined numeric enum.
     (goog.global.IDBRequest &&
         ('LOADING' in goog.global.IDBRequest)) ?
         goog.global.IDBTransaction :
-        // old chrome use predefined enum, it can be string or numeric. ?
+        // old chrome uses a predefined enum, it can be string or numeric. ?
         (goog.global.webkitIDBRequest &&
             // old webkit has this const.
             ('LOADING' in goog.global.webkitIDBRequest &&
-            // old Chrome define 1 and use;
-            // however Android Webkit define 0, but not used
+            // old Chrome defines 1 and uses it;
+            // however Android Webkit defines 0, but does not use it
             goog.global.webkitIDBTransaction.READ_WRITE === 1)) ?
             goog.global.webkitIDBTransaction :
             // for all others, assume standard.
@@ -162,7 +162,7 @@ ydn.db.base.TransactionMode = {
 
 /**
  * @define {boolean} if true, a default key-value text store should be created
- * in the absent of configuration option.
+ * in the absence of a configuration option.
  */
 ydn.db.base.ENABLE_DEFAULT_TEXT_STORE = false;
 
@@ -176,7 +176,7 @@ ydn.db.base.ENABLE_ENCRYPTION = false;
 /**
  * Cursor direction.
  * @link http://www.w3.org/TR/IndexedDB/#dfn-direction
- * @enum {string} Cursor direction.
+ * @enum {string} cursor direction.
  */
 ydn.db.base.Direction = {
   NEXT: 'next',
@@ -188,7 +188,7 @@ ydn.db.base.Direction = {
 
 /**
  * @const
- * @type {!Array.<ydn.db.base.Direction>} Cursor directions.
+ * @type {!Array.<ydn.db.base.Direction>} cursor directions.
  */
 ydn.db.base.DIRECTIONS = [
   ydn.db.base.Direction.NEXT,
@@ -261,7 +261,7 @@ ydn.db.base.SN_ENTITY_HISTORY = '_ydn_sync_history';
 
 /**
  * Store schema for storing history log for recovery.
- * This is used in ydn-db-sync module.
+ * This is used in the ydn-db-sync module.
  * @const
  * @type {StoreSchema}
  */
