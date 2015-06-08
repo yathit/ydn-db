@@ -30,7 +30,7 @@ goog.require('ydn.debug.error.ArgumentException');
  * Query builder class.
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
- * @param {ydn.db.base.QueryMethod?} type query type. Default to values.
+ * @param {ydn.db.base.QueryMethod?} query type.  Defaults to values.
  * @param {ydn.db.query.Iterator} iter index name.
  * @constructor
  * @extends {ydn.db.query.Base}
@@ -73,7 +73,7 @@ ydn.db.Query.prototype.reverse = function() {
 
 
 /**
- * Set unique state of query.
+ * Set query's unique requirement.
  * @param {boolean} val
  * @return {!ydn.db.Query}
  */
@@ -202,7 +202,7 @@ ydn.db.Query.prototype.select = function(field_name_s) {
 
 
 /**
- * Execute query and collect as an array. This method forces query execution.
+ * Execute query and collect results as an array. This method forces query execution.
  * @param {number=} opt_limit
  * @return {!ydn.db.Request}
  */
@@ -243,7 +243,7 @@ ydn.db.Query.prototype.getIterators = function() {
 
 /**
  * Get iterator.
- * @param {boolean=} opt_key_only return key only iterator.
+ * @param {boolean=} opt_key_only return key-only iterator.
  * @return {!ydn.db.Iterator}
  */
 ydn.db.Query.prototype.getIterator = function(opt_key_only) {
@@ -324,7 +324,7 @@ ydn.db.Query.prototype.patch = function(arg1, opt_arg2) {
 
 
 /**
- * Execute query and collect as an array. This method forces query execution.
+ * Execute query and collect results as an array. This method forces query execution.
  * @param {function(this: T, !ydn.db.core.req.ICursor)} cb
  * @param {T=} opt_scope
  * @return {!ydn.db.Request}
@@ -338,7 +338,7 @@ ydn.db.Query.prototype.open = function(cb, opt_scope) {
 
 
 /**
- * Count result of query. This method forces query execution.
+ * Count results of query. This method forces query execution.
  * @return {!ydn.db.Request}
  */
 ydn.db.Query.prototype.count = function() {
@@ -358,7 +358,7 @@ ydn.db.Query.prototype.count = function() {
 
 
 /**
- * Count result of query. This method forces query execution.
+ * Count results of query. This method forces query execution.
  * @return {!ydn.db.Request}
  */
 ydn.db.Query.prototype.clear = function() {
