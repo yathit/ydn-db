@@ -132,11 +132,11 @@ ydn.db.base.OLD_INDEXEDDB_SUPPORT = false;
  * @protected
  */
 ydn.db.base.IDBTransaction = !ydn.db.base.OLD_INDEXEDDB_SUPPORT ? ydn.db.base.StandardTransactionMode :
-  // old Firefox uses a predefined numeric enum.
+    // old Firefox uses a predefined numeric enum.
     (goog.global.hasOwnProperty('IDBRequest') &&
         ('LOADING' in goog.global.IDBRequest)) ?
         goog.global.IDBTransaction :
-      // old chrome uses a predefined enum, it can be string or numeric. ?
+        // old chrome uses a predefined enum, it can be string or numeric. ?
         (goog.global.hasOwnProperty('webkitIDBRequest') &&
             // old webkit has this const.
             ('LOADING' in goog.global.webkitIDBRequest &&
