@@ -12,7 +12,7 @@
 
 
 /**
- * @fileoverview Query directly execute on raw cursor.
+ * @fileoverview Query execution directly on a raw cursor.
  *
  * @author kyawtun@yathit.com (Kyaw Tun)
  */
@@ -23,10 +23,10 @@ goog.require('ydn.db.core.Storage');
 
 
 /**
- * Query directly execute on raw cursor.
+ * Query execution directly on a raw cursor.
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
- * @param {ydn.db.base.QueryMethod?} type query type. Default to NONE.
+ * @param {ydn.db.base.QueryMethod?} query type, defaults to NONE.
  * @constructor
  * @struct
  */
