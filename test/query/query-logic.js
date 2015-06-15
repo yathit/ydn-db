@@ -88,10 +88,13 @@ test('selection', function() {
 
 
 test('filtering and ordering', function() {
-  var q = db.from('st').where('name', '=', 'a');
+  var q = db.from('st').where('name', '=', '2');
   q = q.order('value');
   var iter = q.getIterator();
   equal(iter.getIndexName(), 'name-value', 'filter and order');
+  var kr = iter.getKeyRange();
+  deepEqual(kr.lower, ['2'], 'lower key');
+  deepEqual(kr.upper, ['2', '\uffff'], 'upper key');
 });
 
 

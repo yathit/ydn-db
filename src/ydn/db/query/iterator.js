@@ -95,6 +95,12 @@ ydn.db.query.Iterator.prototype.setOrder = function(postfix) {
     }
   }
   this.postfix = postfix;
+  if (this.key_range && !!this.prefix[0]) {
+    if (this.key_range.lower != this.key_range.upper) {
+      throw new ydn.db.ConstraintError('Ordering no allowed with range query');
+    }
+    this.key_range = ydn.db.KeyRange.starts([this.key_range.lower]);
+  }
   return null;
 };
 
