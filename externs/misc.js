@@ -28,7 +28,7 @@ EncryptionOption.prototype.encryptKey;
 /**
  * @type {boolean|undefined}
  */
-EncryptionOption.prototype.unsafe_parse;
+EncryptionOption.prototype.unsafeParse;
 
 
 
