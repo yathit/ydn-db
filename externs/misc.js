@@ -7,6 +7,58 @@
 
 
 /**
+ * Encryption option.
+ * @constructor
+ */
+function EncryptionOption() {}
+
+
+/**
+ * @type {number|undefined}
+ */
+EncryptionOption.prototype.expiration;
+
+
+/**
+ * @type {boolean|undefined}
+ */
+EncryptionOption.prototype.encryptKey;
+
+
+/**
+ * @type {string|undefined}
+ */
+EncryptionOption.prototype.method;
+
+
+
+/**
+ * Encryption option.
+ * @constructor
+ */
+function EncryptionOptionSecret() {}
+
+
+/**
+ * @type {string}
+ */
+EncryptionOptionSecret.prototype.name;
+
+
+/**
+ * @type {string}
+ */
+EncryptionOptionSecret.prototype.key;
+
+
+/**
+ * @type {Array<EncryptionOptionSecret>}
+ */
+EncryptionOption.prototype.secrets;
+
+
+
+/**
  * @constructor
  */
 function StorageOptions() {}
@@ -50,11 +102,9 @@ StorageOptions.prototype.isSerial;
 StorageOptions.prototype.connectionTimeout;
 
 
+
 /**
- * @type {{
- *    expiration: (number|undefined),
- *    secrets: Array.<{name: string, key: string}>
- * }}
+ * @type {EncryptionOption}
  */
 StorageOptions.prototype.Encryption;
 

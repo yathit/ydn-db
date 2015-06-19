@@ -818,7 +818,7 @@ ydn.db.con.Storage.prototype.addEncryption = function(store) {
 
 
 /**
- * @param {Object} encryption secret name.
+ * @param {EncryptionOption} encryption secret name.
  * @return {boolean}
  */
 ydn.db.con.Storage.prototype.setEncryption = function(encryption) {
