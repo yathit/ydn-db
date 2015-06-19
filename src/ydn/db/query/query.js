@@ -30,7 +30,7 @@ goog.require('ydn.debug.error.ArgumentException');
  * Query builder class.
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
- * @param {ydn.db.base.QueryMethod?} query type.  Defaults to values.
+ * @param {ydn.db.base.QueryMethod?} type query type.  Defaults to values.
  * @param {ydn.db.query.Iterator} iter index name.
  * @constructor
  * @extends {ydn.db.query.Base}

@@ -26,7 +26,7 @@ goog.require('ydn.db.core.Storage');
  * Query execution directly on a raw cursor.
  * @param {ydn.db.core.DbOperator} db
  * @param {ydn.db.schema.Database} schema
- * @param {ydn.db.base.QueryMethod?} query type, defaults to NONE.
+ * @param {ydn.db.base.QueryMethod?} type type, defaults to NONE.
  * @constructor
  * @struct
  */
