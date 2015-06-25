@@ -31,6 +31,12 @@ EncryptionOption.prototype.encryptKey;
 EncryptionOption.prototype.unsafeParse;
 
 
+/**
+ * @type {boolean|undefined}
+ */
+EncryptionOption.prototype.exposeKey;
+
+
 
 /**
  * @type {string|undefined}
