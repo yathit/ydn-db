@@ -44,7 +44,7 @@
       db = new ydn.db.Storage(db_name, schema, options2);
       db.get('st', key).always(function(v) {
         // console.log(v);
-        ok(v, 'retrieved by key');
+        ok(!v, 'retrieved by invalid key');
         notDeepEqual(obj, v, 'decrypted by invalid key');
         ydn.db.deleteDatabase(db_name, db.getType());
         db.close();
