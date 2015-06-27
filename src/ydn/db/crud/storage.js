@@ -140,6 +140,16 @@ ydn.db.crud.Storage.prototype.count = function(store_name, key_range, index,
 
 
 /**
+ *
+ * @inheritDoc
+ */
+ydn.db.crud.Storage.prototype.countByIndex = function(store_name, key_range, index,
+                                               unique) {
+  return this.getCoreOperator().countByIndex(store_name, key_range, index, unique);
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.crud.Storage.prototype.get = function(arg1, arg2) {
@@ -153,16 +163,18 @@ ydn.db.crud.Storage.prototype.get = function(arg1, arg2) {
  */
 ydn.db.crud.Storage.prototype.keys = function(store_name, arg2, arg3, arg4,
                                               arg5, arg6, arg7) {
-  //  return ydn.db.crud.DbOperator.prototype.keys.apply(
-  //    /** @type {ydn.db.crud.DbOperator} */ (this.base_tx_queue),
-  //    Array.prototype.slice.call(arguments));
-
-  // above trick is the same effect as follow
-  //return this.getCoreOperator().keys(store_name, arg2, arg3,
-  //  arg4, arg5, arg6, arg7);
-  // but it preserve argument length
-
   return this.getCoreOperator().keys(store_name, arg2, arg3, arg4, arg5, arg6,
+      arg7);
+};
+
+
+/**
+ *
+ * @inheritDoc
+ */
+ydn.db.crud.Storage.prototype.keysByIndex = function(store_name, arg2, arg3, arg4,
+                                              arg5, arg6, arg7) {
+  return this.getCoreOperator().keysByIndex(store_name, arg2, arg3, arg4, arg5, arg6,
       arg7);
 };
 
@@ -173,6 +185,15 @@ ydn.db.crud.Storage.prototype.keys = function(store_name, arg2, arg3, arg4,
 ydn.db.crud.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
                                                 arg6) {
   return this.getCoreOperator().values(arg1, arg2, arg3, arg4, arg5, arg6);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.Storage.prototype.valuesByIndex = function(arg1, arg2, arg3, arg4, arg5,
+                                                arg6) {
+  return this.getCoreOperator().valuesByIndex(arg1, arg2, arg3, arg4, arg5, arg6);
 };
 
 

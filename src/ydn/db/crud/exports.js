@@ -19,10 +19,12 @@ goog.exportProperty(ydn.db.crud.Storage.prototype, 'get',
     ydn.db.crud.Storage.prototype.get);
 goog.exportProperty(ydn.db.crud.Storage.prototype, 'keys',
     ydn.db.crud.Storage.prototype.keys);
-//goog.exportProperty(ydn.db.crud.Storage.prototype, 'load',
-//  ydn.db.crud.Storage.prototype.load);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'keysByIndex',
+    ydn.db.crud.Storage.prototype.keysByIndex);
 goog.exportProperty(ydn.db.crud.Storage.prototype, 'values',
     ydn.db.crud.Storage.prototype.values);
+goog.exportProperty(ydn.db.crud.Storage.prototype, 'valuesByIndex',
+    ydn.db.crud.Storage.prototype.valuesByIndex);
 goog.exportProperty(ydn.db.crud.Storage.prototype, 'put',
     ydn.db.crud.Storage.prototype.put);
 goog.exportProperty(ydn.db.crud.Storage.prototype, 'clear',
@@ -38,10 +40,12 @@ goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'get',
     ydn.db.crud.DbOperator.prototype.get);
 goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'keys',
     ydn.db.crud.DbOperator.prototype.keys);
-//goog.exportProperty(ydn.db.crud.Storage.prototype, 'load',
-//  ydn.db.crud.Storage.prototype.load);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'keysByIndex',
+    ydn.db.crud.DbOperator.prototype.keysByIndex);
 goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'values',
     ydn.db.crud.DbOperator.prototype.values);
+goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'valuesByIndex',
+    ydn.db.crud.DbOperator.prototype.valuesByIndex);
 goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'put',
     ydn.db.crud.DbOperator.prototype.put);
 goog.exportProperty(ydn.db.crud.DbOperator.prototype, 'clear',

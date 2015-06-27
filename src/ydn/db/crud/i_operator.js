@@ -44,6 +44,18 @@ ydn.db.crud.IOperator.prototype.count = goog.abstractMethod;
 
 
 /**
+ *
+ * @param {string} store_name store name or names.
+ * @param {string} index_name store name or names.
+ * @param {(IDBKeyRange|ydn.db.KeyRange|ydn.db.IDBKeyRange)=} opt_key_range_index
+ * index name or key range.
+ * @param {boolean=} opt_unique count unique index key.
+ * @return {!ydn.db.Request} return object in deferred function.
+ */
+ydn.db.crud.IOperator.prototype.countByIndex = goog.abstractMethod;
+
+
+/**
  * Return object or objects of given key or keys.
  * @param {(!Object|string|!ydn.db.Key)=} opt_arg1 table name.
  * @param {(!Object|!IDBKey)=} opt_arg2
@@ -70,6 +82,21 @@ ydn.db.crud.IOperator.prototype.values = goog.abstractMethod;
 
 
 /**
+ * Return object or objects of given key or keys.
+ * @param {string} opt_arg1 table name.
+ * @param {string} opt_arg2
+ * list of primary keys or key range.
+ * @param {(IDBKeyRange|KeyRangeJson|ydn.db.KeyRange)=} opt_arg3 limit.
+ * @param {number=} opt_arg4 offset.
+ * @param {number=} opt_unique name.
+ * @param {boolean=} opt_arg6 reverse.
+ * @param {boolean=} opt_arg7 reverse.
+ * @return {!ydn.db.Request} return object in deferred function.
+ */
+ydn.db.crud.IOperator.prototype.valuesByIndex = goog.abstractMethod;
+
+
+/**
  * List keys or effective keys.
  * @param {*|string} store_name or iterator.
  * @param {(string|ydn.db.KeyRange|KeyRangeJson|number)=} opt_arg1 key range
@@ -82,6 +109,21 @@ ydn.db.crud.IOperator.prototype.values = goog.abstractMethod;
  * @return {!ydn.db.Request} result promise.
  */
 ydn.db.crud.IOperator.prototype.keys = goog.abstractMethod;
+
+
+/**
+ * List keys or effective keys.
+ * @param {string} store_name or iterator.
+ * @param {string} opt_arg1 key range
+ * or index name or limit for iterator.
+ * @param {(IDBKeyRange|ydn.db.KeyRange|KeyRangeJson)=} opt_arg2 limit or key range.
+ * @param {number=} opt_arg3 offset or limit.
+ * @param {(number)=} opt_arg4 reverse or offset.
+ * @param {boolean=} opt_arg5 reverse.
+ * @param {boolean=} unique limit.
+ * @return {!ydn.db.Request} result promise.
+ */
+ydn.db.crud.IOperator.prototype.keysByIndex = goog.abstractMethod;
 
 
 /**

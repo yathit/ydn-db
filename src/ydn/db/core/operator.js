@@ -105,9 +105,8 @@ ydn.db.core.DbOperator.prototype.get = function(arg1, arg2) {
 /**
  * @param {ydn.db.Iterator} q the iterator.
  * @param {number=} arg2 limit.
- * @param {number=} arg3 offset.
  */
-ydn.db.core.DbOperator.prototype.keysOf = function (q, arg2, arg3) {
+ydn.db.core.DbOperator.prototype.keysOf = function (q, arg2) {
 
   /**
    * @type {number}
@@ -123,13 +122,8 @@ ydn.db.core.DbOperator.prototype.keysOf = function (q, arg2, arg3) {
     throw new ydn.debug.error.ArgumentException('limit must be a number, ' +
         ' but ' + arg2);
   }
-  if (goog.isDef(arg3)) {
-    throw new ydn.debug.error.ArgumentException(
-        'offset must not be specified');
-  }
 
-
-  goog.log.finer(this.logger, 'keysByIterator:' + q);
+  goog.log.finer(this.logger, 'keysOf:' + q);
   var df = this.tx_thread.request(ydn.db.Request.Method.KEYS_ITER,
       [q.getStoreName()]);
   df.addTxback(function () {
@@ -150,10 +144,32 @@ ydn.db.core.DbOperator.prototype.keysOf = function (q, arg2, arg3) {
 ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5,
                                                  arg6, arg7) {
   if (arg1 instanceof ydn.db.Iterator) {
-    return this.keysOf(arg1, /** @type {number} */(arg2), /** @type {number} */(arg3));
+    return this.keysOf(arg1, /** @type {number} */(arg2));
   } else {
     return goog.base(this, 'keys', arg1, arg2, arg3, arg4, arg5, arg6, arg7);
   }
+};
+
+/**
+ * @inheritDoc
+ */
+ydn.db.core.DbOperator.prototype.countOf = function(arg1) {
+
+  /**
+   *
+   * @type {!ydn.db.Iterator}
+   */
+  var q = arg1;
+  goog.log.finer(this.logger, 'countIterator:' + q);
+  var df = this.tx_thread.request(ydn.db.Request.Method.COUNT,
+      [q.getStoreName()]);
+  df.addTxback(function () {
+    this.iterate(ydn.db.base.QueryMethod.COUNT, df, q);
+  }, this);
+
+  return df;
+
+
 };
 
 
@@ -162,25 +178,11 @@ ydn.db.core.DbOperator.prototype.keys = function(arg1, arg2, arg3, arg4, arg5,
  */
 ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3, arg4) {
 
-  var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
     if (goog.isDef(arg2) || goog.isDef(arg3)) {
       throw new ydn.debug.error.ArgumentException('too many arguments.');
     }
-
-    /**
-     *
-     * @type {!ydn.db.Iterator}
-     */
-    var q = arg1;
-    goog.log.finer(this.logger, 'countIterator:' + q);
-    var df = this.tx_thread.request(ydn.db.Request.Method.COUNT,
-        [q.getStoreName()]);
-    df.addTxback(function() {
-      this.iterate(ydn.db.base.QueryMethod.COUNT, df, q);
-    }, this);
-
-    return df;
+    return this.countOf(arg1);
   } else {
     return goog.base(this, 'count', arg1, arg2, arg3, arg4);
   }
@@ -191,10 +193,9 @@ ydn.db.core.DbOperator.prototype.count = function(arg1, arg2, arg3, arg4) {
 /**
  * @param {!ydn.db.Iterator} q the iterator.
  * @param {number=} arg2 limit.
- * @param {number=} arg3 offset.
  * @return {!ydn.db.Request}
  */
-ydn.db.core.DbOperator.prototype.listValues = function (q, arg2, arg3) {
+ydn.db.core.DbOperator.prototype.valuesOf = function (q, arg2) {
 
   var me = this;
 
@@ -212,10 +213,6 @@ ydn.db.core.DbOperator.prototype.listValues = function (q, arg2, arg3) {
   } else if (goog.isDef(arg2)) {
     throw new ydn.debug.error.ArgumentException('limit must be a number, ' +
         'but ' + arg2);
-  }
-  if (goog.isDef(arg3)) {
-    throw new ydn.debug.error.ArgumentException(
-        'offset must not be specified');
   }
 
   goog.log.finer(this.logger, 'listByIterator:' + q);
@@ -241,7 +238,7 @@ ydn.db.core.DbOperator.prototype.values = function(arg1, arg2, arg3, arg4,
 
   var me = this;
   if (arg1 instanceof ydn.db.Iterator) {
-    return this.listValues(arg1, /** @type {number} */(arg2), /** @type {number} */(arg3));
+    return this.valuesOf(arg1, /** @type {number} */(arg2));
   } else {
     return goog.base(this, 'values', arg1, arg2, arg3, arg4, arg5, arg6);
   }
@@ -670,145 +667,6 @@ ydn.db.core.DbOperator.prototype.open = function(callback, iter, opt_mode,
 
   return df;
 
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.DbOperator.prototype.map = function(iterator, callback) {
-
-  var me = this;
-  var stores = iterator.stores();
-  for (var store, i = 0; store = stores[i]; i++) {
-    if (!store) {
-      throw new ydn.debug.error.ArgumentException('Store "' + store +
-          '" not found.');
-    }
-  }
-  var df = this.tx_thread.request(ydn.db.Request.Method.MAP, stores);
-  goog.log.finest(this.logger, 'map:' + iterator);
-  this.tx_thread.exec(df, function(tx, tx_no, cb) {
-
-    var lbl = tx_no + ' iterating ' + iterator;
-    goog.log.finest(me.logger,  lbl);
-
-    var names = iterator.stores();
-    var crs = [];
-    for (var ni = 0; ni < names.length; ni++) {
-      crs[ni] = me.getIndexExecutor().getCursor(tx, tx_no, names[ni]);
-    }
-    var cursor = iterator.load(crs);
-
-    cursor.onFail = function(e) {
-      cb(e, false);
-    };
-    /**
-     *
-     * @param {IDBKey=} opt_key effective key.
-     */
-    cursor.onNext = function(opt_key) {
-      if (goog.isDefAndNotNull(opt_key)) {
-        var key = opt_key;
-        var ref;
-        if (iterator.isIndexIterator()) {
-          if (iterator.isKeyIterator()) {
-            ref = key;
-          } else {
-            ref = cursor.getPrimaryKey();
-          }
-        } else {
-          if (iterator.isKeyIterator()) {
-            ref = key;
-          } else {
-            ref = cursor.getValue();
-          }
-        }
-        callback(ref);
-        //console.log(['onNext', key, primaryKey, value, ref, adv]);
-        cursor.advance(1);
-
-      } else {
-        cb(undefined);
-        callback = null;
-      }
-    };
-
-  }, stores, ydn.db.base.TransactionMode.READ_ONLY);
-
-  return df;
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.DbOperator.prototype.reduce = function(iterator, callback,
-                                                   opt_initial) {
-
-  var me = this;
-  var stores = iterator.stores();
-  for (var store, i = 0; store = stores[i]; i++) {
-    if (!store) {
-      throw new ydn.debug.error.ArgumentException('Store "' + store +
-          '" not found.');
-    }
-  }
-  var df = this.tx_thread.request(ydn.db.Request.Method.REDUCE, stores);
-
-  var previous = goog.isObject(opt_initial) ?
-      ydn.object.clone(opt_initial) : opt_initial;
-  goog.log.finer(this.logger, 'reduce:' + iterator);
-  this.tx_thread.exec(df, function(tx, tx_no, cb) {
-
-
-    var names = iterator.stores();
-    var crs = [];
-    for (var ni = 0; ni < names.length; ni++) {
-      crs[ni] = me.getIndexExecutor().getCursor(tx, tx_no, names[ni]);
-    }
-    var cursor = iterator.load(crs);
-
-    /**
-     *
-     * @param {!Error} e error.
-     */
-    cursor.onFail = function(e) {
-      cb(e, true);
-    };
-    var index = 0;
-    /**
-     *
-     * @param {IDBKey=} opt_key effective key.
-     */
-    cursor.onNext = function(opt_key) {
-      if (goog.isDefAndNotNull(opt_key)) {
-        var current_value;
-        if (iterator.isIndexIterator()) {
-          if (iterator.isKeyIterator()) {
-            current_value = opt_key;
-          } else {
-            current_value = cursor.getPrimaryKey();
-          }
-        } else {
-          if (iterator.isKeyIterator()) {
-            current_value = opt_key;
-          } else {
-            current_value = cursor.getValue();
-          }
-        }
-
-        //console.log([previous, current_value, index]);
-        previous = callback(previous, current_value, index++);
-        cursor.advance(1);
-      } else {
-        cb(previous);
-      }
-    };
-
-  }, stores, ydn.db.base.TransactionMode.READ_ONLY);
-
-  return df;
 };
 
 

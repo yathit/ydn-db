@@ -86,16 +86,33 @@ ydn.db.core.Storage.prototype.open = function(callback, iter, opt_mode,
 
 /**
  * List record in a store.
- * @param {ydn.db.base.QueryMethod} mth keys method
  * @param {!ydn.db.Iterator} iter iterator
- * @param {number=} opt_limit limit
- * @param {number=} opt_offset limit
  * @return {!ydn.db.Request} request
  */
-ydn.db.core.Storage.prototype.listIter = function(mth, iter,
-                                                  opt_limit, opt_offset) {
-  return this.getIndexOperator().listIter(mth, iter,
-      opt_limit, opt_offset);
+ydn.db.core.Storage.prototype.countOf = function(iter) {
+  return this.getIndexOperator().countOf(iter);
+};
+
+
+/**
+ * List record in a store.
+ * @param {!ydn.db.Iterator} iter iterator
+ * @param {number=} opt_limit limit
+ * @return {!ydn.db.Request} request
+ */
+ydn.db.core.Storage.prototype.valuesOf = function(iter, opt_limit) {
+  return this.getIndexOperator().valuesOf(iter, opt_limit);
+};
+
+
+/**
+ * List record in a store.
+ * @param {!ydn.db.Iterator} iter iterator
+ * @param {number=} opt_limit limit
+ * @return {!ydn.db.Request} request
+ */
+ydn.db.core.Storage.prototype.keysOf = function(iter, opt_limit) {
+  return this.getIndexOperator().keysOf(iter, opt_limit);
 };
 
 
@@ -110,21 +127,3 @@ ydn.db.core.Storage.prototype.scan = function(solver, iterators) {
   return this.getIndexOperator().scan(solver, iterators);
 };
 
-
-/**
- * @inheritDoc
- */
-ydn.db.core.Storage.prototype.map = function(iterator, callback) {
-  return this.getIndexOperator().map(iterator, callback);
-};
-
-
-/**
- * @inheritDoc
- */
-ydn.db.core.Storage.prototype.reduce = function(iterator, callback,
-                                                opt_initial) {
-  return this.getIndexOperator().reduce(iterator, callback, opt_initial);
-};
-
-//goog.exportSymbol('ydn.db.Storage', ydn.db.core.Storage);

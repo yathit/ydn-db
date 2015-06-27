@@ -17,22 +17,29 @@ ydn.db.core.IOperator = function() {};
 
 
 /**
- * Map operation.
+ * Iterate keys by iterator.
  * @param {!ydn.db.Iterator} iterator
- * @param {?function(*): (*|undefined)} callback
- * @return {!goog.async.Deferred} deferred.
+ * @return {!ydn.db.Request} result promise.
  */
-ydn.db.core.IOperator.prototype.map = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.countOf = goog.abstractMethod;
 
 
 /**
- * Reduce operation.
- * @param {!ydn.db.Iterator} iterator iterator.
- * @param {function(*, *, number): *} callback callback.
- * @param {*=} opt_initial initial value.
- * @return {!goog.async.Deferred} deferred.
+ * Iterate keys by iterator.
+ * @param {!ydn.db.Iterator} iterator
+ * @param {number=} arg2 limit.
+ * @return {!ydn.db.Request} result promise.
  */
-ydn.db.core.IOperator.prototype.reduce = goog.abstractMethod;
+ydn.db.core.IOperator.prototype.keysOf = goog.abstractMethod;
+
+
+/**
+ * Iterate values by iterator.
+ * @param {!ydn.db.Iterator} iterator iterator
+ * @param {number=} arg2 limit.
+ * @return {!ydn.db.Request} result promise.
+ */
+ydn.db.core.IOperator.prototype.valuesOf = goog.abstractMethod;
 
 
 

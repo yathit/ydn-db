@@ -78,6 +78,67 @@ ydn.db.crud.DbOperator.prototype.getCrudExecutor = function() {
  *
  * @inheritDoc
  */
+ydn.db.crud.DbOperator.prototype.countByIndex = function(store_name, index_name,
+                                                  index_key_range, unique) {
+  var req;
+  var me = this;
+
+  /**
+   * @type {!Array.<string>}
+   */
+  var store_names;
+
+  /**
+   * @type {IDBKeyRange}
+   */
+  var key_range;
+
+  var store = this.schema.getStore(store_name);
+  if (!store) {
+    throw new ydn.debug.error.ArgumentException('store name "' + store_name +
+        '" not found.');
+  }
+  if (goog.DEBUG && goog.isDef(unique) && !goog.isBoolean(unique)) {
+    throw new ydn.debug.error.ArgumentException('unique value "' + unique +
+        '" must be boolean, but found ' + typeof unique + '.');
+  }
+  store_names = [store_name];
+
+  if (goog.isObject(index_key_range)) {
+    if (goog.DEBUG) {
+      var msg1 = ydn.db.KeyRange.validate(index_key_range);
+      if (msg1) {
+        throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+            ydn.json.toShortString(index_key_range) + ' ' + msg1);
+      }
+    }
+    key_range = ydn.db.KeyRange.parseIDBKeyRange(index_key_range);
+  } else {
+    if (goog.DEBUG && goog.isDefAndNotNull(index_key_range)) {
+      throw new ydn.debug.error.ArgumentException('invalid key range: ' +
+          ydn.json.toShortString(index_key_range) +
+          ' of type ' + typeof index_key_range);
+    }
+    key_range = null;
+  }
+
+  goog.log.finer(this.logger, 'countIndexKeyRange: ' + store_name + ' ' +
+      (index_name ? index_name : '') + ydn.json.stringify(key_range));
+  req = this.tx_thread.request(ydn.db.Request.Method.COUNT, store_names);
+  store.hook(req, arguments);
+  req.addTxback(function(tx) {
+    this.getCrudExecutor().countKeyRange(req, store_names[0], key_range,
+        index_name, !!unique);
+  }, this);
+
+  return req;
+};
+
+
+/**
+ *
+ * @inheritDoc
+ */
 ydn.db.crud.DbOperator.prototype.count = function(store_name, index_or_keyrange,
                                                  index_key_range, unique) {
   var req;
@@ -378,7 +439,7 @@ ydn.db.crud.DbOperator.prototype.keysByKeyRange = function(store_name, opt_kr,
  * @param {boolean=} opt_unique
  * @return {!ydn.db.Request<!Array<IDBKey>>}
  */
-ydn.db.crud.DbOperator.prototype.keysByIndexKeyRange = function(store_name,
+ydn.db.crud.DbOperator.prototype.keysByIndex = function(store_name,
     index_name, opt_kr, opt_limit, opt_offset, opt_reverse, opt_unique) {
 
   var range, limit, offset, reverse, unique;
@@ -423,7 +484,7 @@ ydn.db.crud.DbOperator.prototype.keysByIndexKeyRange = function(store_name,
           'unique must be a boolean');
     }
   }
-  goog.log.finer(this.logger, 'keysByIndexKeyRange: ' + store_name);
+  goog.log.finer(this.logger, 'keysByIndex: ' + store_name);
   var req = this.tx_thread.request(ydn.db.Request.Method.KEYS_INDEX,
       [store_name]);
   store.hook(req, arguments);
@@ -499,7 +560,7 @@ ydn.db.crud.DbOperator.prototype.keys = function(opt_store_name, arg1,
   var req;
 
   if (goog.isString(arg1)) { // index key range
-    req = this.keysByIndexKeyRange(store_name,
+    req = this.keysByIndex(store_name,
         /** @type {string} */ (arg1),
         /** @type {ydn.db.KeyRange|IDBKeyRange} */ (arg2),
         /** @type {number|undefined} */ (arg3),
@@ -582,7 +643,7 @@ ydn.db.crud.DbOperator.prototype.values = function(arg0, arg1, arg2, arg3, arg4,
         this.getCrudExecutor().listByIds(req, store_name, ids);
       }, this);
     } else if (goog.isString(arg1)) { // index name
-      req = this.valuesByIndexKeyRange(store_name, arg1,
+      req = this.valuesByIndex(store_name, arg1,
           /** @type {ydn.db.KeyRange|IDBKeyRange} */ (arg2), arg3,
           /** @type {number|undefined} */ (arg4), arg5, arg6);
     } else {
@@ -714,7 +775,7 @@ ydn.db.crud.DbOperator.prototype.valuesByKeyRange = function(store_name, opt_kr,
  * @param {boolean=} opt_unique
  * @return {!ydn.db.Request.<!Array.<Object>>}
  */
-ydn.db.crud.DbOperator.prototype.valuesByIndexKeyRange = function(store_name,
+ydn.db.crud.DbOperator.prototype.valuesByIndex = function(store_name,
     index_name, opt_kr, opt_limit, opt_offset, opt_reverse, opt_unique) {
   var store = this.schema.getStore(store_name);
   var limit, offset, reverse, unique;

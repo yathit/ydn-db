@@ -12,23 +12,27 @@ goog.require('ydn.db.core.Storage');
 
 
 
-goog.exportProperty(ydn.db.core.Storage.prototype, 'scan',
-    ydn.db.core.Storage.prototype.scan);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'map',
-    ydn.db.core.Storage.prototype.map);
-goog.exportProperty(ydn.db.core.Storage.prototype, 'reduce',
-    ydn.db.core.Storage.prototype.reduce);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'countOf',
+    ydn.db.core.Storage.prototype.countOf);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'keysOf',
+    ydn.db.core.Storage.prototype.keysOf);
 goog.exportProperty(ydn.db.core.Storage.prototype, 'open',
     ydn.db.core.Storage.prototype.open);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'scan',
+    ydn.db.core.Storage.prototype.scan);
+goog.exportProperty(ydn.db.core.Storage.prototype, 'valuesOf',
+    ydn.db.core.Storage.prototype.valuesOf);
 
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'scan',
-    ydn.db.core.DbOperator.prototype.scan);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'map',
-    ydn.db.core.DbOperator.prototype.map);
-goog.exportProperty(ydn.db.core.DbOperator.prototype, 'reduce',
-    ydn.db.core.DbOperator.prototype.reduce);
+goog.exportProperty(ydn.db.core.DbOperator.prototype, 'countOf',
+    ydn.db.core.DbOperator.prototype.countOf);
+goog.exportProperty(ydn.db.core.DbOperator.prototype, 'keysOf',
+    ydn.db.core.DbOperator.prototype.keysOf);
 goog.exportProperty(ydn.db.core.DbOperator.prototype, 'open',
     ydn.db.core.DbOperator.prototype.open);
+goog.exportProperty(ydn.db.core.DbOperator.prototype, 'scan',
+    ydn.db.core.DbOperator.prototype.scan);
+goog.exportProperty(ydn.db.core.DbOperator.prototype, 'valuesOf',
+    ydn.db.core.DbOperator.prototype.valuesOf);
 
 goog.exportProperty(ydn.db.core.req.AbstractCursor.prototype, 'getKey',
     ydn.db.core.req.AbstractCursor.prototype.getKey);

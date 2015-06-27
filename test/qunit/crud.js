@@ -870,7 +870,7 @@
         deepEqual(x, [1, 3, 2], 'number of record');
       });
 
-      db.keys(store_inline_index, 'value', ydn.db.KeyRange.only('a'), 10, 0).always(function(x) {
+      db.keysByIndex(store_inline_index, 'value', ydn.db.KeyRange.only('a'), 10, 0).always(function(x) {
         deepEqual(x, [1, 3], 'only a');
         start();
         var type = db.getType();
