@@ -138,12 +138,14 @@ ydn.db.crud.IOperator.prototype.add = goog.abstractMethod;
 
 
 /**
- * Execute PUT request to the store of given records in delimited text.
- * @param {string} store_name table name.
- * @param {string} data delimited text to put. one object per line.
- * @param {string=} opt_delimiter field delimiter.
+ * Execute ADD request either storing result to tx or callback to df.
+ * @param {string} store_name_or_schema store name or
+ * schema.
+ * @param {!Array.<!Object>} value object to put.
+ * @param {!Array.<IDBKey>=} opt_keys out-of-line keys.
+ * @return {!ydn.db.Request} return newly created keys in promise.
  */
-ydn.db.crud.IOperator.prototype.load = goog.abstractMethod;
+ydn.db.crud.IOperator.prototype.addAll = goog.abstractMethod;
 
 
 /**
@@ -155,6 +157,17 @@ ydn.db.crud.IOperator.prototype.load = goog.abstractMethod;
  * @return {!ydn.db.Request} return newly created keys in promise.
  */
 ydn.db.crud.IOperator.prototype.put = goog.abstractMethod;
+
+
+/**
+ * Execute PUT request either storing result to tx or callback to df.
+ * @param {string} arg1 store name
+ * or schema, key or array of keys.
+ * @param {!Array.<!Object>} value object to put.
+ * @param {!Array.<IDBKey>=} opt_keys out-of-line keys.
+ * @return {!ydn.db.Request} return newly created keys in promise.
+ */
+ydn.db.crud.IOperator.prototype.putAll = goog.abstractMethod;
 
 
 /**

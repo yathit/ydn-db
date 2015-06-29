@@ -142,6 +142,53 @@ ydn.db.tr.DbOperator.prototype.getStorage = function() {
 
 
 /**
+ * @final
+ * @param {string|StoreSchema} store_name_or_schema store name or schema.
+ * @return {!ydn.db.schema.Store} storage.
+ */
+ydn.db.tr.DbOperator.prototype.getStore = function(store_name_or_schema) {
+
+  var store_name = goog.isString(store_name_or_schema) ?
+      store_name_or_schema : goog.isObject(store_name_or_schema) ?
+      store_name_or_schema['name'] : undefined;
+  if (!goog.isString(store_name)) {
+    throw new ydn.debug.error.ArgumentException('store name ' + store_name +
+        ' must be a string, but ' + typeof store_name);
+  }
+
+  var store = this.schema.getStore(store_name);
+  if (!store) {
+    if (!this.schema.isAutoSchema()) {
+      throw new ydn.debug.error.ArgumentException('store name "' + store_name +
+          '" not found.');
+    }
+    var schema = goog.isObject(store_name_or_schema) ?
+        store_name_or_schema : {'name': store_name};
+
+    // this is async process, but we don't need to wait for it.
+    store = ydn.db.schema.Store.fromJSON(/** @type {!StoreSchema} */ (schema));
+    goog.log.finer(this.logger, 'Adding object store: ' + store_name);
+    this.addStoreSchema(store);
+
+  } else if (this.schema.isAutoSchema() &&
+      goog.isObject(store_name_or_schema)) {
+    // if there is changes in schema, change accordingly.
+    var new_schema = ydn.db.schema.Store.fromJSON(store_name_or_schema);
+    var diff = store.difference(new_schema);
+    if (diff) {
+      throw new ydn.debug.error.NotSupportedException(diff);
+      // this.addStoreSchema(store);
+    }
+  }
+  if (!store) {
+    throw new ydn.db.NotFoundError(store_name);
+  }
+  return store;
+};
+
+
+
+/**
  * Add or update a store issuing a version change event.
  * @protected
  * @param {!StoreSchema|!ydn.db.schema.Store} store schema.

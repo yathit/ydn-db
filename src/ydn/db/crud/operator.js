@@ -925,45 +925,17 @@ ydn.db.crud.DbOperator.prototype.list = function(type, store_name, opt_index,
 ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
                                                opt_keys) {
 
-  var store_name = goog.isString(store_name_or_schema) ?
-      store_name_or_schema : goog.isObject(store_name_or_schema) ?
-      store_name_or_schema['name'] : undefined;
-  if (!goog.isString(store_name)) {
-    throw new ydn.debug.error.ArgumentException('store name ' + store_name +
-        ' must be a string, but ' + typeof store_name);
+  if (goog.isArray(value)) {
+    return this.addAll(/** @type {string} */(store_name_or_schema),
+        /** @type {!Array<!Object>} */(value),
+        /** @type {!Array<IDBKey>} */(opt_keys));
   }
 
-  var store = this.schema.getStore(store_name);
-  if (!store) {
-    if (!this.schema.isAutoSchema()) {
-      throw new ydn.debug.error.ArgumentException('store name "' + store_name +
-          '" not found.');
-    }
-    var schema = goog.isObject(store_name_or_schema) ?
-        store_name_or_schema : {'name': store_name};
-
-    // this is async process, but we don't need to wait for it.
-    store = ydn.db.schema.Store.fromJSON(/** @type {!StoreSchema} */ (schema));
-    goog.log.finer(this.logger, 'Adding object store: ' + store_name);
-    this.addStoreSchema(store);
-
-  } else if (this.schema.isAutoSchema() &&
-      goog.isObject(store_name_or_schema)) {
-    // if there is changes in schema, change accordingly.
-    var new_schema = ydn.db.schema.Store.fromJSON(store_name_or_schema);
-    var diff = store.difference(new_schema);
-    if (diff) {
-      throw new ydn.debug.error.NotSupportedException(diff);
-      // this.addStoreSchema(store);
-    }
-  }
+  var store = this.getStore(store_name_or_schema);
+  var store_name = store.getName();
 
   var req;
 
-  if (!store) {
-    throw new ydn.debug.error.ArgumentException('store name "' + store_name +
-        '" not found.');
-  }
   // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
   if ((goog.isString(store.keyPath)) && goog.isDef(opt_keys)) {
     // The object store uses in-line keys or has a key generator, and a key
@@ -1004,7 +976,7 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
     if (store.dispatch_events) {
       req.addCallback(function(keys) {
         var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.CREATED,
-            this.getStorage(), store.getName(), keys, objs);
+            this.getStorage(), store_name, keys, objs);
         this.getStorage().dispatchDbEvent(event);
       }, this);
     }
@@ -1042,109 +1014,68 @@ ydn.db.crud.DbOperator.prototype.add = function(store_name_or_schema, value,
 
 
 /**
- *
- * @param {string|StoreSchema} store_name_schema store name or schema.
- * @return {ydn.db.schema.Store} store.
- * @private
- */
-ydn.db.crud.DbOperator.prototype.getStore_ = function(store_name_schema) {
-
-  var store_name = goog.isString(store_name_schema) ?
-      store_name_schema : goog.isObject(store_name_schema) ?
-      store_name_schema['name'] : undefined;
-  if (!goog.isString(store_name)) {
-    throw new ydn.debug.error.ArgumentException('store name must be a string');
-  }
-
-  var store = this.schema.getStore(store_name);
-  if (!store) {
-    if (!this.schema.isAutoSchema()) {
-      throw new ydn.db.NotFoundError(store_name);
-    }
-    var schema = goog.isObject(store_name_schema) ?
-        store_name_schema : {'name': store_name};
-
-    // this is async process, but we don't need to wait for it.
-    store = ydn.db.schema.Store.fromJSON(/** @type {!StoreSchema} */ (schema));
-    goog.log.finer(this.logger, 'Adding object store: ' + store_name);
-    this.addStoreSchema(store);
-
-  } else if (this.schema.isAutoSchema() && goog.isObject(store_name_schema))
-  {
-    // if there is changes in schema, change accordingly.
-    var new_schema = ydn.db.schema.Store.fromJSON(store_name_schema);
-    var diff = store.difference(new_schema);
-    if (diff) {
-      throw new ydn.debug.error.NotSupportedException(diff);
-      // this.addStoreSchema(store);
-    }
-  }
-  if (!store) {
-    throw new ydn.db.NotFoundError(store_name);
-  }
-  return store;
-};
-
-
-/**
  * @inheritDoc
  */
-ydn.db.crud.DbOperator.prototype.load = function(store_name_or_schema, data,
-                                                 opt_delimiter) {
+ydn.db.crud.DbOperator.prototype.addAll = function(store_name_or_schema, value,
+                                                opt_keys) {
 
-  var delimiter = opt_delimiter || ',';
 
-  var store = this.getStore_(store_name_or_schema);
+  var store = this.getStore(store_name_or_schema);
   var store_name = store.getName();
 
-  var df =  this.tx_thread.request(ydn.db.Request.Method.LOAD, [store_name]);
-  var me = this;
-
-  this.tx_thread.exec(df, function(tx, tx_no, cb) {
-    me.getCrudExecutor().putData(tx, tx_no, cb, store_name, data, delimiter);
-  }, [store_name], ydn.db.base.TransactionMode.READ_WRITE);
-  return df;
-};
+  var req;
 
 
-/**
- * Full text search.
- * @param {ydn.db.schema.fulltext.ResultSet} query
- * @return {!ydn.db.Request}
- */
-ydn.db.crud.DbOperator.prototype.search = function(query) {
-  var store_names = query.getStoreList();
-  goog.log.finest(this.logger, 'query ' + query);
-  var req = this.tx_thread.request(ydn.db.Request.Method.SEARCH, store_names,
-      ydn.db.base.TransactionMode.READ_ONLY);
-  req.addTxback(function() {
-    var exe = this.getCrudExecutor();
-    // console.log('search ' + query);
+  // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
+  if ((goog.isString(store.keyPath)) && goog.isDef(opt_keys)) {
+    // The object store uses in-line keys or has a key generator, and a key
+    // parameter was provided.
+    throw new ydn.debug.error.ArgumentException(
+        'key must not be provided while the store uses in-line key.');
+    //} else if (store.autoIncrement && goog.isDef(opt_keys)) {
+    // The object store uses in-line keys or has a key generator, and a key
+    // parameter was provided.
+    //  throw new ydn.debug.error.ArgumentException('key must not be provided ' +
+    //      'while autoIncrement is true.');
+  } else if (!store.usedInlineKey() && !store.autoIncrement &&
+      !goog.isDef(opt_keys)) {
+    // The object store uses out-of-line keys and has no key generator, and no
+    // key parameter was provided.
+    throw new ydn.debug.error.ArgumentException(
+        'out-of-line key must be provided for store: ' + store_name);
+  }
 
-    query.nextLookup(function(store_name, index_name, kr, entry) {
-      var iReq = req.copy();
-      // console.log(store_name, index_name, kr);
-      exe.list(iReq, ydn.db.base.QueryMethod.LIST_VALUE, store_name, index_name,
-          kr.toIDBKeyRange(), 100, 0, false, false);
-      iReq.addBoth(function(x) {
-        // console.log(store_name, index_name, kr.lower, x);
-        var e = null;
-        if (!(x instanceof Array)) {
-          e = x;
-          x = [];
-        }
-        var next = query.addResult(this, /** @type {Array} */ (x));
-        if (next === true) {
-          req.notify(query);
-        } else if (next === false) {
-          req.callback(query.collect());
-        }
-        if (e) {
-          throw e;
-        }
-      }, entry);
-    });
-  }, this);
+  if (goog.isArray(value)) {
+    var objs = value;
+    var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
+    //console.log('waiting to putObjects');
+    goog.log.finer(this.logger, 'addObjects: ' + store_name + ' ' + objs.length +
+        ' objects');
+
+    for (var i = 0; i < objs.length; i++) {
+      store.generateIndex(objs[i]);
+    }
+    req = this.tx_thread.request(ydn.db.Request.Method.ADDS,
+        [store_name], ydn.db.base.TransactionMode.READ_WRITE);
+    req.addTxback(function() {
+      //console.log('putObjects');
+      this.getCrudExecutor().insertObjects(req, false, false, store_name, objs,
+          keys);
+    }, this);
+
+    if (store.dispatch_events) {
+      req.addCallback(function(keys) {
+        var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.CREATED,
+            this.getStorage(), store.getName(), keys, objs);
+        this.getStorage().dispatchDbEvent(event);
+      }, this);
+    }
+  } else {
+    throw new ydn.debug.error.ArgumentException('record must be an ' +
+        'array list of objects, but ' + value + ' of type ' + typeof value +
+        ' found.');
+  }
+
   return req;
 };
 
@@ -1223,7 +1154,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
       me.getCrudExecutor().putByKeys(req, values, db_keys);
     }, this);
   } else if (goog.isString(arg1) || goog.isObject(arg1)) {
-    var store = this.getStore_(arg1);
+    var store = this.getStore(arg1);
     var st_name = store.getName();
 
     // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
@@ -1356,6 +1287,65 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
 
   return req;
 
+};
+
+
+/**
+ * @inheritDoc
+ */
+ydn.db.crud.DbOperator.prototype.putAll = function (arg1, value, opt_keys) {
+
+  var req;
+  var me = this;
+
+
+  var store = this.getStore(arg1);
+  var st_name = store.getName();
+
+  // https://developer.mozilla.org/en-US/docs/IndexedDB/IDBObjectStore#put
+  if (store.usedInlineKey() && goog.isDef(opt_keys)) {
+    // The object store uses in-line keys or has a key generator, and a key
+    // parameter was provided.
+    throw new ydn.debug.error.ArgumentException(
+        'key must not be provided while the store uses in-line key.');
+    //} else if (store.autoIncrement && goog.isDef(opt_keys)) {
+    // The object store uses in-line keys or has a key generator, and a key
+    // parameter was provided.
+    //  throw new ydn.debug.error.ArgumentException('key must not be provided' +
+    //      ' while autoIncrement is true.');
+  } else if (!store.usedInlineKey() && !store.autoIncrement && !goog.isDef(opt_keys)) {
+    // The object store uses out-of-line keys and has no key generator, and no
+    // key parameter was provided.
+    throw new ydn.debug.error.ArgumentException(
+        'out-of-line key must be provided for store: ' + st_name);
+  }
+
+  var objs = value;
+  var keys = /** @type {!Array.<(number|string)>|undefined} */ (opt_keys);
+  goog.log.finer(this.logger, 'putObjects: ' + st_name + ' ' +
+      objs.length + ' objects');
+  for (var i = 0; i < objs.length; i++) {
+    store.generateIndex(objs[i]);
+  }
+  req = this.tx_thread.request(ydn.db.Request.Method.PUTS,
+      [st_name], ydn.db.base.TransactionMode.READ_WRITE);
+  store.hook(req, arguments);
+  req.addTxback(function () {
+    //console.log('putObjects');
+    this.getCrudExecutor().insertObjects(req, true, false, st_name, objs,
+        keys);
+  }, this);
+
+  if (store.dispatch_events) {
+    req.addCallback(function (keys) {
+      var event = new ydn.db.events.StoreEvent(ydn.db.events.Types.UPDATED,
+          this.getStorage(), st_name, keys, objs);
+      this.getStorage().dispatchDbEvent(event);
+    }, this);
+  }
+
+
+  return req;
 };
 
 

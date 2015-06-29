@@ -4,7 +4,7 @@
   "description": "Javascript database library for IndexedDB, WebDatabase (WebSQL) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
   "main": "jsc/ydn.db-dev.js",
   "directories": {
-    "example": "example",
+    "jsc": "compiled js file for distributions",
     "test": "test"
   },
   "scripts": {

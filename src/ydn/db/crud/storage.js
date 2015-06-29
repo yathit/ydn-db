@@ -130,6 +130,14 @@ ydn.db.crud.Storage.prototype.add = function(store, value, opt_key) {
 
 
 /**
+ * @inheritDoc
+ */
+ydn.db.crud.Storage.prototype.addAll = function(store, value, opt_key) {
+  return this.getCoreOperator().addAll(store, value, opt_key);
+};
+
+
+/**
  *
  * @inheritDoc
  */
@@ -220,17 +228,16 @@ ydn.db.crud.Storage.prototype.list = function(type, store_name, index_name,
 /**
  * @inheritDoc
  */
-ydn.db.crud.Storage.prototype.load = function(store_name_or_schema, data,
-                                              delimiter)  {
-  return this.getCoreOperator().load(store_name_or_schema, data, delimiter);
+ydn.db.crud.Storage.prototype.put = function(store, value, opt_key) {
+  return this.getCoreOperator().put(store, value, opt_key);
 };
 
 
 /**
  * @inheritDoc
  */
-ydn.db.crud.Storage.prototype.put = function(store, value, opt_key) {
-  return this.getCoreOperator().put(store, value, opt_key);
+ydn.db.crud.Storage.prototype.putAll = function(store, value, opt_key) {
+  return this.getCoreOperator().putAll(store, value, opt_key);
 };
 
 
