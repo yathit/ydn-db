@@ -32,7 +32,7 @@ EncryptionOption.prototype.unsafeParse;
 
 
 /**
- * @type {boolean|undefined}
+ * @type {string|boolean|undefined}
  */
 EncryptionOption.prototype.exposeKey;
 

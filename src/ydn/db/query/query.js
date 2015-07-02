@@ -247,10 +247,12 @@ ydn.db.Query.prototype.getIterators = function() {
  * @return {!ydn.db.Iterator}
  */
 ydn.db.Query.prototype.getIterator = function(opt_key_only) {
-  var is_key_only = !!opt_key_only ||
-      (this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ||
-      this.type == ydn.db.base.QueryMethod.LIST_KEYS ||
-      this.type == ydn.db.base.QueryMethod.LIST_KEY);
+  var is_key_only = !!opt_key_only;
+  if (!goog.isDef(opt_key_only)) {
+    is_key_only = this.type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY ||
+        this.type == ydn.db.base.QueryMethod.LIST_KEYS ||
+        this.type == ydn.db.base.QueryMethod.LIST_KEY;
+  }
   return this.iter.getIterator(!is_key_only);
 };
 
@@ -331,7 +333,7 @@ ydn.db.Query.prototype.patch = function(arg1, opt_arg2) {
  * @template T
  */
 ydn.db.Query.prototype.open = function(cb, opt_scope) {
-  var req = this.db.open(cb, this.getIterator(),
+  var req = this.db.open(cb, this.getIterator(false),
       ydn.db.base.TransactionMode.READ_WRITE, opt_scope);
   return req;
 };

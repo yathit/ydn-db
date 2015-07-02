@@ -117,7 +117,7 @@ ydn.db.query.Iterator.prototype.getIterator = function(opt_value_iterator) {
         '" not found in store "' + this.store.getName() + '"');
   }
   var iter = new ydn.db.Iterator(this.store.getName(), this.getIndexName(),
-      this.key_range, this.is_reverse, this.is_unique, !!opt_value_iterator);
+      this.key_range, this.is_reverse, this.is_unique, !opt_value_iterator);
   iter.prefix_index = this.prefix.length;
   return iter;
 };
