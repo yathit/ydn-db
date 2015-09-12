@@ -110,7 +110,9 @@ ydn.db.base.StandardTransactionMode = {
 
 
 /**
- * @define {boolean} support for old indexeddb specification.
+ * @define {boolean} support for old indexeddb specification (Firefox 3.5,
+ * Chrome 7, Android Browser, etc). Support for old indexedDB spec will cause
+ * warning message in modern browsers.
  */
 ydn.db.base.OLD_INDEXEDDB_SUPPORT = false;
 
@@ -131,7 +133,8 @@ ydn.db.base.OLD_INDEXEDDB_SUPPORT = false;
  * @type {*}
  * @protected
  */
-ydn.db.base.IDBTransaction = !ydn.db.base.OLD_INDEXEDDB_SUPPORT ? ydn.db.base.StandardTransactionMode :
+ydn.db.base.IDBTransaction = !ydn.db.base.OLD_INDEXEDDB_SUPPORT ?
+    ydn.db.base.StandardTransactionMode :
     // old Firefox uses a predefined numeric enum.
     (goog.global.hasOwnProperty('IDBRequest') &&
         ('LOADING' in goog.global.IDBRequest)) ?
@@ -219,7 +222,8 @@ ydn.db.base.getDirection = function(opt_reverse, opt_unique) {
  * @const
  * @type {IDBFactory} IndexedDb.
  */
-ydn.db.base.indexedDb = goog.global.indexedDB ||
+ydn.db.base.indexedDb = !ydn.db.base.OLD_INDEXEDDB_SUPPORT ?
+    goog.global.indexedDB : goog.global.indexedDB ||
     goog.global.mozIndexedDB || goog.global.webkitIndexedDB ||
     goog.global.moz_indexedDB ||
     goog.global['msIndexedDB'];
