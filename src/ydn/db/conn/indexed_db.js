@@ -242,7 +242,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
 
           var next_version = goog.isNumber(db.version) ? db.version + 1 : 1;
 
-          if ('IDBOpenDBRequest' in goog.global) {
+          if (!ydn.db.base.OLD_INDEXEDDB_SUPPORT || 'IDBOpenDBRequest' in goog.global) {
             db.close();
             var req = ydn.db.base.indexedDb.open(
                 dbname, /** @type {number} */ (next_version));
@@ -259,7 +259,7 @@ ydn.db.con.IndexedDb.prototype.connect = function(dbname, schema) {
               goog.log.log(me.logger, goog.log.Level.FINER, me + ': fail.');
               setDb(null);
             };
-          } else {
+          } else if (ydn.db.base.OLD_INDEXEDDB_SUPPORT) {
             var ver_request = db.setVersion(next_version + '');
 
             ver_request.onfailure = function(e) {
