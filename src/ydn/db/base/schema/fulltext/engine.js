@@ -58,7 +58,7 @@ ydn.db.schema.fulltext.ResultSet.prototype.addResult =
 
 
 /**
- * @return {Array.<ydn.db.schema.fulltext.Entry>}
+ * @return {Array<ydn.db.schema.fulltext.Entry>}
  */
 ydn.db.schema.fulltext.ResultSet.prototype.collect = function() {};
 

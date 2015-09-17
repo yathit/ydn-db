@@ -37,6 +37,62 @@ InvIndex.prototype.weight;
 /**
  * @constructor
  */
+function FullTextSearchResultToken() {}
+
+
+/**
+ * @type {string}
+ */
+FullTextSearchResultToken.prototype.keyPath;
+
+
+/**
+ * @type {string}
+ */
+FullTextSearchResultToken.prototype.value;
+
+
+/**
+ * @type {number}
+ */
+FullTextSearchResultToken.prototype.loc;
+
+
+
+/**
+ * @constructor
+ */
+function FullTextSearchResult() {}
+
+
+/**
+ * @type {string}
+ */
+FullTextSearchResult.prototype.storeName;
+
+
+/**
+ * @type {IDBKey}
+ */
+FullTextSearchResult.prototype.primaryKey;
+
+
+/**
+ * @type {number}
+ */
+FullTextSearchResult.prototype.score;
+
+
+/**
+ * @type {Array<FullTextSearchResultToken>}
+ */
+FullTextSearchResult.prototype.tokens;
+
+
+
+/**
+ * @constructor
+ */
 function FullTextCatalog() {}
 
 
