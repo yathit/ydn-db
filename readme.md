@@ -197,6 +197,17 @@ End-to-end testing for distribution can be found in the test/qunit folder as wel
 as online [qunit test kits] (http://dev.yathit.com/index/demos.html).
 
 
+## Deployment ##
+
+For update bower, create a tag
+
+    git tag -a v1.3.3 -m "bug fixes"
+
+and push the tag to github
+
+    git push origin master v1.3.3
+
+
 ## Contributing ##
 
 Sending pull requests is easiest.  For large or architectual changes, please email one 

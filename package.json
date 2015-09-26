@@ -1,6 +1,6 @@
 {
   "name": "ydn.db",
-  "version": "1.3.0",
+  "version": "1.3.3",
   "description": "Javascript database library for IndexedDB, WebDatabase (WebSQL) and WebStorage (localStorage) storage mechanisms supporting version migration, advanced query and transaction workflow.",
   "main": "jsc/ydn.db-dev.js",
   "directories": {
