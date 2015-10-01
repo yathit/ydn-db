@@ -37,7 +37,6 @@ ydn.db.events.Types = {
  * @extends {goog.events.Event}
  * @constructor
  * @struct
- * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
 ydn.db.events.Event = function(event_type, event_target) {
   goog.base(this, event_type, event_target);
@@ -72,7 +71,6 @@ ydn.db.events.Event.prototype.getStoreName = function() {
  * @extends {ydn.db.events.Event}
  * @constructor
  * @struct
- * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
 ydn.db.events.StorageEvent = function(event_type, event_target, version,
                                       old_version, old_schema) {

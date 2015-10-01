@@ -34,7 +34,6 @@ goog.require('ydn.debug.error.InternalError');
  * @extends {goog.Disposable}
  * @implements {ydn.db.core.req.ICursor}
  * @struct
- * @suppress {checkStructDictInheritance} suppress closure-library code.
  */
 ydn.db.core.req.AbstractCursor = function(tx, tx_no, store_schema, opt_mth) {
   goog.base(this);
