@@ -39,8 +39,8 @@ goog.inherits(ydn.db.con.LocalStorage, ydn.db.con.SimpleStorage);
  * @inheritDoc
  */
 ydn.db.con.LocalStorage.prototype.connectDb = function(name) {
-  goog.asserts.assertObject(window.localStorage);
-  return window.localStorage;
+  goog.asserts.assertObject(goog.global.localStorage);
+  return goog.global.localStorage;
 };
 
 
@@ -49,7 +49,7 @@ ydn.db.con.LocalStorage.prototype.connectDb = function(name) {
  * @return {boolean} true if localStorage is supported.
  */
 ydn.db.con.LocalStorage.isSupported = function() {
-  return !!window.localStorage;
+  return !!goog.global.localStorage;
 };
 
 
@@ -101,8 +101,8 @@ goog.inherits(ydn.db.con.SessionStorage, ydn.db.con.SimpleStorage);
  * @inheritDoc
  */
 ydn.db.con.SessionStorage.prototype.connectDb = function(name) {
-  goog.asserts.assertObject(window.sessionStorage);
-  return window.sessionStorage;
+  goog.asserts.assertObject(goog.global.sessionStorage);
+  return goog.global.sessionStorage;
 };
 
 
@@ -111,7 +111,7 @@ ydn.db.con.SessionStorage.prototype.connectDb = function(name) {
  * @return {boolean} true if localStorage is supported.
  */
 ydn.db.con.SessionStorage.isSupported = function() {
-  return !!window.sessionStorage;
+  return !!goog.global.sessionStorage;
 };
 
 
