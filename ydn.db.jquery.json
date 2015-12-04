@@ -10,7 +10,7 @@
     "websql",
     "sqlite"
   ],
-  "version": "1.0.3",
+  "version": "1.3.3",
   "author": {
     "name": "YDN Authors, Yathit",
     "url": "https://raw.github.com/yathit/ydn-db/master/AUTHORS"
