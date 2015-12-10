@@ -8,7 +8,7 @@ in your HTML page.
 * [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
 * [Demo applications](http://dev.yathit.com/ydn-db/doc/example/index.html)
 * [Example applications](http://yathit.github.io/ydndb-demo/)
-* [Release notes](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
+* [Release notes](https://github.com/yathit/ydn-db/blob/master/release.md)
 * [Download](http://dev.yathit.com/ydn-db/downloads.html)
 
 ## Supported browsers ##
