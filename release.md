@@ -1,0 +1,11 @@
+# Release Notes
+
+#### 1.3.5
+
+1. Fix iOS 9 detection for default storage mechanism to be WebSQL.
+
+## Old release notes
+
+1. [Arvhive 3](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_note_v1)
+2. [Archive 2](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes)
+3. [Archive 1](https://bitbucket.org/ytkyaw/ydn-db/wiki/Release_notes_archive_1)

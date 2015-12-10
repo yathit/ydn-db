@@ -27,6 +27,7 @@
 
 goog.provide('ydn.db.con.Storage');
 goog.require('goog.userAgent.product');
+goog.require('goog.labs.userAgent.platform');
 goog.require('ydn.db');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
@@ -388,7 +389,7 @@ ydn.db.con.Storage.PREFERENCE = [
  * suitability.
  */
 ydn.db.con.Storage.getDefaultMechanism = function() {
-  if (goog.userAgent.product.SAFARI) {
+  if (goog.userAgent.product.SAFARI || goog.labs.userAgent.platform.isIos()) {
     // IndexedDB in Safari is too buggy at this moment.
     return goog.array.slice(ydn.db.con.Storage.PREFERENCE, 1);
   } else {
