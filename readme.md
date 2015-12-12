@@ -71,7 +71,7 @@ Simple usage for opening, storing and retrieving by a primary key `id1`.
 
     db = new ydn.db.Storage('db-name', schema);
     db.put('people', {name: 'John', age: 10, sex: 'Male'}, 'id1');
-    db.get('people', 'id1').always(function(record) {
+    db.get('people', 'id1').done(function(record) {
       console.log(record);
     });
 
@@ -94,8 +94,7 @@ Sorting using an index with filtering on another index.
       console.log(objs);
     });
 
-Note that the above sort query requires a compound index `['age', 'name']` and only
-the equal filter is supported.
+Note that the above sort query requires a compound index `['age', 'name']`.
 
 ### Transaction ###
 
@@ -254,4 +253,5 @@ You may also ask questions in [Stackoverflow #ydn-db](http://stackoverflow.com/q
 with ydb-db hash, or follow us on Twitter [@yathit](https://twitter.com/yathit).
 
 ## License ##
+
 Licensed under the Apache License, Version 2.0
