@@ -46,16 +46,6 @@ migration by reflecting on the existing schema.
 
 ## Examples ##
 
-### Simple usage ###
-
-Simple usage for opening, storing and retrieving by a primary key `id1`.
-
-    db = new ydn.db.Storage('db-name');
-    db.put('store-name', {message: 'Hello world!'}, 'id1');
-    db.get('store-name', 'id1').always(function(record) {
-      console.log(record);
-    });
-
 ### Schema definition ###
 
     var schema = {
@@ -73,6 +63,18 @@ Simple usage for opening, storing and retrieving by a primary key `id1`.
 
 If the database exists, it will be opened and updated with the given schema if necessary.
 In doing so, object stores and indexes will be created or deleted.
+
+
+### Simple usage ###
+
+Simple usage for opening, storing and retrieving by a primary key `id1`.
+
+    db = new ydn.db.Storage('db-name', schema);
+    db.put('people', {name: 'John', age: 10, sex: 'Male'}, 'id1');
+    db.get('people', 'id1').always(function(record) {
+      console.log(record);
+    });
+
 
 ### Query ###
 
@@ -102,19 +104,19 @@ executed in order. The following code snippet shows running all database
 requests in a single transaction.
 
     var req = db.run(function update_prop (run_db) {
-    run_db.get('player', 1).done(function(data) {
-        data.health += 10;
-        run_db.put('player', data).done(function(key) {
-          if (data.health > 100) {
-            req.abort();
+        run_db.get('player', 1).done(function(data) {
+            data.health += 10;
+            run_db.put('player', data).done(function(key) {
+              if (data.health > 100) {
+                req.abort();
+              }
+            });
           }
-        });
-      }
-    }, ['player'], 'readwrite');
-    req.then(function() {
-      console.log('updated.');
-    }, function(e) {
-      console.log('transaction aborted');
+        }, ['player'], 'readwrite');
+        req.then(function() {
+          console.log('updated.');
+        }, function(e) {
+          console.log('transaction aborted');
     });
 
 ### Events ###
@@ -125,14 +127,10 @@ modification of records events can be installed by defining in schema.
 Data heavy query should be execute after database connection is established
 by listening `ready` event.
 
-    db.addEventListener('ready', function (event) {
-      var is_updated = event.getVersion() != event.getOldVersion();
-      if (is_updated) {
-        console.log('database connected with new schema');
-      } else if (isNaN(event.getOldVersion()))  {
-        console.log('new database created');
-      } else {
-        console.log('existing database connected');
+    db.onReady(function (err) {
+      if (err) {
+        console.error(err);
+        return;
       }
       // heavy database operations should start from this.
     );

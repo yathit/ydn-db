@@ -188,21 +188,6 @@
     </target>
 
 
-    <target name="github" description="push to github">
-        <echo>git branch github</echo>
-        <echo>ant build</echo>
-        <echo>git add src/deps.js</echo>
-        <echo>git add jsc/ydn.db-dev.js</echo>
-        <echo>git add jsc/ydn.db-npm-dev.js</echo>
-        <echo>git add jsc/ydn.db-dev.js.map</echo>
-        <echo>git add bower.json</echo>
-        <echo>git add ydn.db.jquery.json</echo>
-        <echo>git commit -m 'compile update'</echo>
-        <echo>git push github github:master</echo>
-        <echo>git checkout master</echo>
-        <echo>;; updating</echo>
-        <echo>git checkout github</echo>
-    </target>
     <target name="build" description="build all distributions"
             depends="deps,compile-main,compile-main-dev,copy-files">
 
