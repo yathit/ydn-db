@@ -394,6 +394,10 @@ var test_fix_schema_ver_change = function() {
 };
 
 var test_onReady = function() {
+  if (options.mechanisms[0] != 'indexeddb') {
+    reachedFinalContinuation = true;
+    return;
+  }
   var db_name = 'test_onReady';
   var e1, e2, done1, done2;
   var schema1 = {
