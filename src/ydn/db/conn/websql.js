@@ -655,19 +655,21 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             var st_name = names[1];
             var multi_index = new ydn.db.schema.Index(names[2], type,
                 unique, true);
-            var ex_index = goog.array.findIndex(indexes, function(x) {
-              return x.getName() == names[2];
-            });
-            if (ex_index >= 0) {
-              indexes[ex_index] = multi_index;
-            } else {
-              indexes.push(multi_index);
-            }
+
             var store_index = goog.array.findIndex(stores, function(x) {
               return x.getName() === st_name;
             });
             if (store_index >= 0) { // main table exist, add this index
               var ex_store = stores[store_index];
+              indexes = ex_store.indexes;              
+              var ex_index = goog.array.findIndex(indexes, function(x) {
+                return x.getName() == names[2];
+              });
+              if (ex_index >= 0) {
+                indexes[ex_index] = multi_index;
+              } else {
+                indexes.push(multi_index);
+              }
               stores[store_index] = new ydn.db.schema.Store(ex_store.getName(),
                   ex_store.getKeyPath(), autoIncrement,
                   key_type, indexes, undefined, !has_default_blob_column);
@@ -687,9 +689,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             return x.getName() === info.name;
           });
           if (i_store >= 0) {
-            var ex_index = stores[i_store].index(0);
-            goog.asserts.assertInstanceof(ex_index, ydn.db.schema.Index);
-            indexes.push(ex_index);
+            goog.array.extend(indexes, stores[i_store].indexes);
             stores[i_store] = new ydn.db.schema.Store(info.name, store_key_path,
                 autoIncrement, key_type, indexes, undefined,
                 !has_default_blob_column);
