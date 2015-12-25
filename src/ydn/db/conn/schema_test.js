@@ -17,8 +17,6 @@ var schema, debug_console;
 var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 
 
-
-
 function setUp() {
   // ydn.debug.log('ydn.db.con', 'finest');
   // ydn.db.con.IndexedDb.DEBUG = true;
@@ -430,7 +428,6 @@ function test_blob_column() {
 
 function test_data_index_add() {
   if (options.mechanisms[0] != 'indexeddb') {
-    reachedFinalContinuation = true;
     return;
   }
   // only work in IndexedDB
@@ -547,5 +544,61 @@ function test_multi_connection() {
 
 
 
+function test_multiple_multi_entry_index() {
+
+  var db_name = 'test_' + Math.random();
+  var schema = {
+    stores: [{
+      name: 'ms1',
+      keyPath: 'a',
+      indexes: [{
+        name: 'ab',
+        keyPath: ['a', 'b']
+      }, {
+        name: 'de',
+        keyPath: ['d', 'e']
+      }]
+    }]
+  };
+
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var value = 'a' + Math.random();
+  asyncTestCase.waitForAsync('put');
+  var data = [{
+    a: 1,
+    b: 2,
+    d: 4,
+    e: 5
+  }, {
+    a: 11,
+    b: 12,
+    d: 14,
+    e: 15
+  }];
+  db.onReady(function(e) {
+    if (e) {
+      console.error(e);
+      fail(String(e));
+    }
+    db.put('ms1', data).addBoth(function(y) {
+      // console.log('put key ' + y);
+      db.valuesByIndex('ms1', 'ab', ydn.db.KeyRange.only([1, 2])).addBoth(function(x) {
+        // console.log(data[0], x[0]);
+        assertObjectEquals('get by ab index', data[0], x[0]);
+        asyncTestCase.continueTesting();
+        asyncTestCase.waitForAsync('de');
+        db.valuesByIndex('ms1', 'de', ydn.db.KeyRange.only([14, 15])).addBoth(function(x) {
+          assertObjectEquals('get by de index', data[1], x[0]);
+          asyncTestCase.continueTesting();
+          ydn.db.deleteDatabase(db.getName(), db.getType());
+          db.close();
+        });
+      });
+
+    });
+  });
+
+}
 
 

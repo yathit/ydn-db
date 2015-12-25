@@ -180,10 +180,10 @@ ydn.db.crud.Storage.prototype.keys = function(store_name, arg2, arg3, arg4,
  *
  * @inheritDoc
  */
-ydn.db.crud.Storage.prototype.keysByIndex = function(store_name, arg2, arg3, arg4,
-                                              arg5, arg6, arg7) {
-  return this.getCoreOperator().keysByIndex(store_name, arg2, arg3, arg4, arg5, arg6,
-      arg7);
+ydn.db.crud.Storage.prototype.keysByIndex = function(store_name, index_name,
+    opt_kr, opt_limit, opt_offset, opt_reverse, opt_unique) {
+  return this.getCoreOperator().keysByIndex(store_name, index_name,
+      opt_kr, opt_limit, opt_offset, opt_reverse, opt_unique);
 };
 
 
@@ -199,9 +199,10 @@ ydn.db.crud.Storage.prototype.values = function(arg1, arg2, arg3, arg4, arg5,
 /**
  * @inheritDoc
  */
-ydn.db.crud.Storage.prototype.valuesByIndex = function(arg1, arg2, arg3, arg4, arg5,
-                                                arg6) {
-  return this.getCoreOperator().valuesByIndex(arg1, arg2, arg3, arg4, arg5, arg6);
+ydn.db.crud.Storage.prototype.valuesByIndex = function(store_name, index_name,
+    opt_kr, opt_limit, opt_offset, opt_reverse, opt_unique) {
+  return this.getCoreOperator().valuesByIndex(store_name, index_name, opt_kr,
+      opt_limit, opt_offset, opt_reverse, opt_unique);
 };
 
 
