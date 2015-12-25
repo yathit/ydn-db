@@ -1,5 +1,9 @@
 # Release Notes
 
+#### 1.3.6
+
+1. Multi entry index table generation bug fix. Issue #90 #91 
+  
 #### 1.3.5
 
 1. Fix iOS 9 detection for default storage mechanism to be WebSQL.
