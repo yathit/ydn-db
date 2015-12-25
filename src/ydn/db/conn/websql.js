@@ -21,9 +21,10 @@
  */
 
 goog.provide('ydn.db.con.WebSql');
+
 goog.require('goog.async.Deferred');
-goog.require('goog.log');
 goog.require('goog.functions');
+goog.require('goog.log');
 goog.require('ydn.db.SecurityError');
 goog.require('ydn.db.base');
 goog.require('ydn.db.con.IDatabase');
@@ -413,13 +414,15 @@ ydn.db.con.WebSql.prototype.logger =
 /**
  * @inheritDoc
  */
-ydn.db.con.WebSql.prototype.onFail = function(e) {};
+ydn.db.con.WebSql.prototype.onFail = function(e) {
+};
 
 
 /**
  * @inheritDoc
  */
-ydn.db.con.WebSql.prototype.onError = function(e) {};
+ydn.db.con.WebSql.prototype.onError = function(e) {
+};
 
 
 /**
@@ -430,7 +433,7 @@ ydn.db.con.WebSql.CREATE_INDEX = false;
 
 /**
  * Prepare SQL statement for dropping the table and all columns.
- * 
+ *
  * @private
  * @param {ydn.db.schema.Store} table table schema.
  * @return {string} SQL statement for dropping the table.
@@ -440,7 +443,7 @@ ydn.db.con.WebSql.prototype.prepareDropTable_ = function(table) {
   var drop_statement = 'DROP TABLE IF EXISTS ';
 
   var sqls = [];
-  sqls.push(drop_statement + +goog.string.quote(table.getName()));
+  sqls.push(drop_statement + goog.string.quote(table.getName()));
 
   for (var i = 0, n = table.countIndex(); i < n; i++) {
     /**
@@ -489,8 +492,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
   // table must has a default field to store schemaless fields, unless
   // fixed table schema is used.
   if (!table.isFixed() ||
-      // note: when even when using fixed schema, blob data are store in
-      // default column when store is out-of-line non-indexing
+        // note: when even when using fixed schema, blob data are store in
+        // default column when store is out-of-line non-indexing
       (!table.usedInlineKey()) && table.countIndex() == 0) {
     sql += ' ,' + ydn.db.base.DEFAULT_BLOB_COLUMN + ' ' +
         ydn.db.schema.DataType.BLOB;
@@ -537,8 +540,8 @@ ydn.db.con.WebSql.prototype.prepareCreateTable_ = function(table) {
     var key_path = index.getKeyPath();
     if (ydn.db.con.WebSql.CREATE_INDEX && index.type != ydn.db.schema.DataType.BLOB && goog.isString(key_path)) {
       var idx_sql = 'CREATE ' + unique + ' INDEX IF NOT EXISTS ' +
-          // table name is suffix to index name to satisfy unique index name
-          // requirement within a database.
+            // table name is suffix to index name to satisfy unique index name
+            // requirement within a database.
           goog.string.quote(table.getName() + '-' + index.getName()) +
           ' ON ' + table.getQuotedName() +
           ' (' + index.getSQLIndexColumnNameQuoted() + ')';
@@ -627,7 +630,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
       }
       if (info.type == 'table') {
         var sql = goog.object.get(info, 'sql');
-        goog.log.finest(me.logger,  'Parsing table schema from SQL: ' + sql);
+        goog.log.finest(me.logger, 'Parsing table schema from SQL: ' + sql);
         var str = sql.substr(sql.indexOf('('), sql.lastIndexOf(')'));
         var column_infos = ydn.string.split_comma_seperated(str);
 
@@ -681,7 +684,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
 
         // multiEntry store, which store in separated table
         if (goog.string.startsWith(info.name,
-            ydn.db.base.PREFIX_MULTIENTRY)) {
+                ydn.db.base.PREFIX_MULTIENTRY)) {
           var names = info.name.split(':');
           if (names.length >= 3) {
             var st_name = names[1];
@@ -693,7 +696,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             });
             if (store_index >= 0) { // main table exist, add this index
               var ex_store = stores[store_index];
-              indexes = ex_store.indexes;              
+              indexes = ex_store.indexes;
               var ex_index = goog.array.findIndex(indexes, function(x) {
                 return x.getName() == names[2];
               });
@@ -710,7 +713,7 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
               stores.push(new ydn.db.schema.Store(st_name, undefined, false,
                   undefined, [multi_index]));
             }
-            goog.log.finest(me.logger,  'multi entry index "' + multi_index.getName() +
+            goog.log.finest(me.logger, 'multi entry index "' + multi_index.getName() +
                 '" found in ' + st_name + (store_index == -1 ? '*' : ''));
           } else {
             goog.log.warning(me.logger, 'Invalid multiEntry store name "' + info.name +
@@ -806,7 +809,7 @@ ydn.db.con.WebSql.prototype.update_store_ = function(trans, store_schema,
  * @private
  */
 ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
-    table_schema, callback, existing_table_schema) {
+                                                               table_schema, callback, existing_table_schema) {
 
   var me = this;
 
@@ -854,7 +857,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     // table already exists.
     var msg = table_schema.difference(existing_table_schema);
     if (msg.length == 0) {
-      goog.log.finest(me.logger,  'same table ' + table_schema.getName() + ' exists.');
+      goog.log.finest(me.logger, 'same table ' + table_schema.getName() + ' exists.');
       callback(true);
       callback = null;
       return;
@@ -873,7 +876,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
     goog.global.console.log([sqls, existing_table_schema]);
   }
 
-  goog.log.finest(me.logger,  action + ' table: ' + table_schema.getName() + ': ' +
+  goog.log.finest(me.logger, action + ' table: ' + table_schema.getName() + ': ' +
       sqls.join(';'));
   for (var i = 0; i < sqls.length; i++) {
     exe_sql(sqls[i]);
@@ -929,7 +932,7 @@ ydn.db.con.WebSql.prototype.doTransaction = function(trFn, scopes, mode,
    * @param {SQLError} e error.
    */
   var error_callback = function(e) {
-    goog.log.finest(me.logger,  me + ': Tx ' + mode + ' request cause error.');
+    goog.log.finest(me.logger, me + ': Tx ' + mode + ' request cause error.');
     // NOTE: we have to call ABORT, instead of ERROR, here.
     // IndexedDB API use COMPLETE or ABORT as promise callbacks.
     // ERROR is just an event.
@@ -1035,7 +1038,8 @@ ydn.db.databaseDeletors.push(ydn.db.con.WebSql.deleteDatabase);
 /**
  * @inheritDoc
  */
-ydn.db.con.WebSql.prototype.onVersionChange = function(e) {};
+ydn.db.con.WebSql.prototype.onVersionChange = function(e) {
+};
 
 
 if (goog.DEBUG) {
