@@ -688,7 +688,8 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
           var names = info.name.split(':');
           if (names.length >= 3) {
             var st_name = names[1];
-            var multi_index = new ydn.db.schema.Index(names[2], type,
+            var index_name = names[2];
+            var multi_index = new ydn.db.schema.Index(index_name, type,
                 unique, true);
 
             var store_index = goog.array.findIndex(stores, function(x) {
@@ -696,14 +697,18 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             });
             if (store_index >= 0) { // main table exist, add this index
               var ex_store = stores[store_index];
-              indexes = ex_store.indexes;
-              var ex_index = goog.array.findIndex(indexes, function(x) {
-                return x.getName() == names[2];
-              });
-              if (ex_index >= 0) {
+              var ex_index = ex_store.hasIndex(index_name);
+              if (ex_index) {
                 indexes[ex_index] = multi_index;
               } else {
-                indexes.push(multi_index);
+                var dep_index = goog.array.findIndex(indexes, function(x) {
+                  return x.getName() == index_name;
+                });
+                if (dep_index >= 0) {
+                  indexes[dep_index] = multi_index;
+                } else {
+                  indexes.push(multi_index);
+                }
               }
               stores[store_index] = new ydn.db.schema.Store(ex_store.getName(),
                   ex_store.getKeyPath(), autoIncrement,
@@ -724,7 +729,16 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             return x.getName() === info.name;
           });
           if (i_store >= 0) {
-            goog.array.extend(indexes, stores[i_store].indexes);
+            for (var i = 0; i < stores[i_store].countIndex(); i++) {
+              var i_index = stores[i_store].index(i);
+              var ex_index_name = i_index.getName();
+              var index_exists = goog.array.findIndex(indexes, function(x) {
+                return x.getName() == ex_index_name;
+              });
+              if (index_exists == -1) {
+                indexes.push(i_index);
+              }
+            }
             stores[i_store] = new ydn.db.schema.Store(info.name, store_key_path,
                 autoIncrement, key_type, indexes, undefined,
                 !has_default_blob_column);
