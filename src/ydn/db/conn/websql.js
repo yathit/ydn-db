@@ -142,17 +142,13 @@ ydn.db.con.WebSql.prototype.connect = function(dbname, schema) {
               var edited_schema = schema;
               edited_schema.addStore(info_store);
             } else {
-              var sqls = me.prepareDropTable_(info_store);
-              for (var i = 0; i < sqls.length; i++) {
-                var sql = sqls[i];
-                goog.log.finer(me.logger, sql);
-                tx.executeSql(sql, [],
-                    function(tr) {
-                      // ok
-                    }, function(tx, e) {
-                      throw e;
-                    });
-              }
+              var sql = me.prepareDropTable_(info_store);
+              tx.executeSql(sql, [],
+                  function(tr) {
+                    // ok
+                  }, function(tx, e) {
+                    throw e;
+                  });
             }
           }
         }
@@ -437,7 +433,7 @@ ydn.db.con.WebSql.CREATE_INDEX = false;
  * 
  * @private
  * @param {ydn.db.schema.Store} table table schema.
- * @return {!Array.<string>} SQL statement for dropping the table.
+ * @return {string} SQL statement for dropping the table.
  */
 ydn.db.con.WebSql.prototype.prepareDropTable_ = function(table) {
 
@@ -461,7 +457,7 @@ ydn.db.con.WebSql.prototype.prepareDropTable_ = function(table) {
 
   }
 
-  return sqls;
+  return sqls.join(';');
 };
 
 
@@ -869,7 +865,7 @@ ydn.db.con.WebSql.prototype.update_store_with_info_ = function(trans,
       goog.log.warning(this.logger,
           'table: ' + table_schema.getName() + ' has changed by ' + msg +
           ' ALTER TABLE cannot run in WebSql, dropping old table.');
-      sqls.unshift.apply(sqls, this.prepareDropTable_(existing_table_schema));
+      sqls.unshift(this.prepareDropTable_(existing_table_schema));
     }
   }
 

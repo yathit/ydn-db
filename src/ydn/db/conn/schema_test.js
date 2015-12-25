@@ -18,7 +18,7 @@ var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 
 
 function setUp() {
-  // ydn.debug.log('ydn.db.con', 'finest');
+  ydn.debug.log('ydn.db.con', 'warning');
   // ydn.db.con.IndexedDb.DEBUG = true;
 
 }
@@ -543,7 +543,6 @@ function test_multi_connection() {
 }
 
 
-
 function test_multiple_multi_entry_index() {
 
   var db_name = 'test_' + Math.random();
@@ -563,7 +562,6 @@ function test_multiple_multi_entry_index() {
 
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
-  var value = 'a' + Math.random();
   asyncTestCase.waitForAsync('put');
   var data = [{
     a: 1,
@@ -597,6 +595,60 @@ function test_multiple_multi_entry_index() {
       });
 
     });
+  });
+
+}
+
+
+function test_drop_multi_entry_index() {
+
+  var db_name = 'test_' + Math.random();
+  var schema_1 = {
+    stores: [{
+      name: 'ms1',
+      keyPath: 'a',
+      indexes: [{
+        name: 'ab',
+        keyPath: ['a', 'b']
+      }, {
+        name: 'de',
+        keyPath: ['d', 'e']
+      }]
+    }]
+  };
+  var schema_2 = {
+    stores: [{
+      name: 'ms1',
+      keyPath: 'a',
+      indexes: [{
+        name: 'de',
+        keyPath: ['d', 'e']
+      }]
+    }]
+  };
+
+  var db = new ydn.db.crud.Storage(db_name, schema_1, options);
+
+  asyncTestCase.waitForAsync('create two multi entry');
+  db.getSchema(function(sch) {
+    assertEquals('two indexes', 2, sch.stores[0].indexes.length);
+    asyncTestCase.continueTesting();
+
+    db.close();
+    asyncTestCase.waitForAsync('drop a multi entry');
+    setTimeout(function() {
+      var db2 = new ydn.db.crud.Storage(db_name, schema_2, options);
+      var sch2 = db2.getSchema(function(sch) {
+        console.log(sch.stores[0]);
+        assertEquals('one indexes in actual schema', 1, sch.stores[0].indexes.length);
+        ydn.db.deleteDatabase(db2.getName(), db2.getType());
+        db2.close();
+        asyncTestCase.continueTesting();
+      });
+      console.log(sch2.stores[0]);
+      assertEquals('one indexes in defined schema', 1, sch2.stores[0].indexes.length);
+    }, 500);
+
   });
 
 }
