@@ -898,6 +898,58 @@ ydn.db.crud.req.IndexedDb.prototype.countKeyRange = function(req,
 
 
 /**
+ * @define {boolean} use getAll and getKeyAll if available.
+ */
+ydn.db.crud.req.IndexedDb.USE_ALL_QUERY = true;
+
+
+/**
+ * Use getAll query.
+ * @param {ydn.db.Request} req
+ * @param {IDBIndex|IDBObjectStore} index
+ * @param {IDBKeyRange} kr
+ * @param {number} limit
+ * @private
+ */
+ydn.db.crud.req.IndexedDb.prototype.getAll_ = function(req, index, kr, limit) {
+  var request = index['getAll'](kr, limit);
+  request.onsuccess = function(event) {
+    req.setDbValue(event.target.result);
+  };
+  request.onerror = function(event) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
+      goog.global.console.log(event);
+    }
+    event.preventDefault();
+    req.setDbValue(request.error, true);
+  };
+};
+
+
+/**
+ * Use getAll query.
+ * @param {ydn.db.Request} req
+ * @param {IDBIndex|IDBObjectStore} index
+ * @param {IDBKeyRange} kr
+ * @param {number} limit
+ * @private
+ */
+ydn.db.crud.req.IndexedDb.prototype.getAllKeys_ = function(req, index, kr, limit) {
+  var request = index['getAllKeys'](kr, limit);
+  request.onsuccess = function(event) {
+    req.setDbValue(event.target.result);
+  };
+  request.onerror = function(event) {
+    if (ydn.db.crud.req.IndexedDb.DEBUG) {
+      goog.global.console.log(event);
+    }
+    event.preventDefault();
+    req.setDbValue(request.error, true);
+  };
+};
+
+
+/**
  * @inheritDoc
  */
 ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
@@ -942,16 +994,36 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
       type == ydn.db.base.QueryMethod.LIST_KEYS) {
     // key query
     if (index) {
-      request = store.index(index).openKeyCursor(key_range, dir);
+      var store_index = store.index(index);
+      if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY &&
+          store_index['getAllKeys'] && !unique && !offset && !reverse) {
+        this.getAllKeys_(req, store_index, key_range, limit);
+        return;
+      }
+      request = store_index.openKeyCursor(key_range, dir);
     } else {
       // NOTE: key cursor for object is not available as of IndexedDB API v1.
+      if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY &&
+          store['getAllKeys'] && !unique && !offset && !reverse) {
+        this.getAllKeys_(req, store, key_range, limit);
+        return;
+      }
       request = store.openCursor(key_range, dir);
     }
   } else {
     // value query
     if (index) {
-      request = store.index(index).openCursor(key_range, dir);
+      var store_index = store.index(index);
+      if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && store_index['getAll'] && !unique && !offset && !reverse) {
+        this.getAll_(req, store_index, key_range, limit);
+        return;
+      }
+      request = store_index.openCursor(key_range, dir);
     } else {
+      if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && store['getAll'] && !unique && !offset && !reverse) {
+        this.getAll_(req, store, key_range, limit);
+        return;
+      }
       request = store.openCursor(key_range, dir);
     }
   }

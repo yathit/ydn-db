@@ -212,10 +212,9 @@ var test_keys = function() {
 };
 
 
-var test_list = function() {
+var test_values = function() {
   var db_name = 'test_crud_26_1';
-  var stores = [new ydn.db.schema.Store(table_name, 'id', false,
-    ydn.db.schema.DataType.NUMERIC)];
+  var stores = [new ydn.db.schema.Store(table_name, 'id', false, ydn.db.schema.DataType.NUMERIC)];
   var schema = new ydn.db.schema.Database(undefined, stores);
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -228,19 +227,26 @@ var test_list = function() {
   //var rev_data = ydn.object.clone(data).reverse();
 
 
-  var whole_done, array_done, limit_done, offset_done;
-  var whole_result, array_result, limit_result, offset_result;
+  var whole_done, array_done, limit_done, offset_done, reverse_done, reverse_offset_done;
+  var whole_result, array_result, limit_result, offset_result, reverse_result, reverse_offset_result;
 
   waitForCondition(
     // Condition
-    function() { return whole_done && array_done && limit_done && offset_done; },
+    function() { return whole_done && array_done && limit_done && offset_done && reverse_done && reverse_offset_done; },
     // Continuation
     function() {
       assertArrayEquals('whole store', data, whole_result);
       assertArrayEquals('array keys', data.slice(1, 3), array_result);
       assertArrayEquals('limit store', data.slice(0, 3), limit_result);
       assertArrayEquals('offset store', data.slice(1, 3), offset_result);
-
+      var rev_data = data.slice();
+      rev_data.reverse();
+      rev_data = rev_data.slice(0, 3);
+      assertArrayEquals('reverse store', rev_data, reverse_result);
+      var rev_data = data.slice();
+      rev_data.reverse();
+      rev_data = rev_data.slice(1, 3);
+      assertArrayEquals('reverse offset store', rev_data, reverse_offset_result);
       reachedFinalContinuation = true;
       ydn.db.deleteDatabase(db_name, db.getType());
       db.close();
@@ -275,6 +281,14 @@ var test_list = function() {
       throw e;
     });
 
+    db.values(table_name, null, 3, 0, true).addCallbacks(function(value) {
+      //console.log('receiving value callback.');
+      reverse_result = value;
+      reverse_done = true;
+    }, function(e) {
+      throw e;
+    });
+
     db.values(table_name, null, 2, 1).addCallbacks(function(value) {
       //console.log('receiving value callback.');
       offset_result = value;
@@ -283,10 +297,17 @@ var test_list = function() {
       throw e;
     });
 
+    db.values(table_name, null, 2, 1, true).addCallbacks(function(value) {
+      //console.log('receiving value callback.');
+      reverse_offset_result = value;
+      reverse_offset_done = true;
+    }, function(e) {
+      throw e;
+    });
+
   }, function(e) {
     throw e;
   });
-
 
 };
 
