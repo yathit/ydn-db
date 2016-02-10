@@ -364,6 +364,7 @@ var test_list_resume = function () {
     {id: 5, value: 1, type: 'c'},
     {id: 6, value: 3, type: 'c'}
   ];
+  db.clear();
   db.put(store_name, objs).addCallback(function(value) {
     // console.log(db + ' ready.');
   });

@@ -996,7 +996,7 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
     if (index) {
       var store_index = store.index(index);
       if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY &&
-          store_index['getAllKeys'] && !unique && !offset && !reverse) {
+          store_index['getAllKeys'] && !unique && !offset && !reverse && !opt_position) {
         this.getAllKeys_(req, store_index, key_range, limit);
         return;
       }
@@ -1004,7 +1004,8 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
     } else {
       // NOTE: key cursor for object is not available as of IndexedDB API v1.
       if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && type == ydn.db.base.QueryMethod.LIST_PRIMARY_KEY &&
-          store['getAllKeys'] && !unique && !offset && !reverse) {
+          store['getAllKeys'] && !unique && !offset && !reverse &&
+          !opt_position) {
         this.getAllKeys_(req, store, key_range, limit);
         return;
       }
@@ -1014,13 +1015,15 @@ ydn.db.crud.req.IndexedDb.prototype.list = function(req, type,
     // value query
     if (index) {
       var store_index = store.index(index);
-      if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && store_index['getAll'] && !unique && !offset && !reverse) {
+      if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && store_index['getAll'] && !unique && !offset && !reverse &&
+          !opt_position) {
         this.getAll_(req, store_index, key_range, limit);
         return;
       }
       request = store_index.openCursor(key_range, dir);
     } else {
-      if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && store['getAll'] && !unique && !offset && !reverse) {
+      if (ydn.db.crud.req.IndexedDb.USE_ALL_QUERY && store['getAll'] && !unique && !offset && !reverse &&
+          !opt_position) {
         this.getAll_(req, store, key_range, limit);
         return;
       }

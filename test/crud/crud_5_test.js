@@ -58,6 +58,7 @@ function test_index_values() {
       assertArrayEquals(sorted, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -86,6 +87,7 @@ function test_index_values_unique() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -94,6 +96,7 @@ function test_index_values_unique() {
       assertArrayEquals(exp, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -124,6 +127,7 @@ function test_index_values_reverse() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -131,6 +135,7 @@ function test_index_values_reverse() {
       assertArrayEquals(sorted, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -161,6 +166,7 @@ function test_index_values_with_limit() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -169,6 +175,7 @@ function test_index_values_with_limit() {
       assertArrayEquals(exp, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -199,6 +206,7 @@ function test_index_values_with_limit_offset() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -207,6 +215,7 @@ function test_index_values_with_limit_offset() {
       assertArrayEquals(exp, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -240,6 +249,7 @@ function test_index_keys() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -247,6 +257,7 @@ function test_index_keys() {
       assertArrayEquals(keys, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -283,6 +294,7 @@ function test_index_keys_with_keyRange() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -291,6 +303,7 @@ function test_index_keys_with_keyRange() {
       assertArrayEquals(keys, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -323,6 +336,7 @@ function test_index_keys_with_limit() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -330,6 +344,7 @@ function test_index_keys_with_limit() {
       assertArrayEquals(keys.slice(0, 2), arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -363,6 +378,7 @@ function test_index_keys_reverse() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -370,6 +386,7 @@ function test_index_keys_reverse() {
       assertArrayEquals(keys, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -403,6 +420,7 @@ function test_index_keys_reverse_limit_offset() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -411,6 +429,7 @@ function test_index_keys_reverse_limit_offset() {
       assertArrayEquals(exp, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
   });
 }
@@ -443,6 +462,7 @@ function test_index_keys_limit_offset() {
   asyncTestCase.waitForAsync('put');
   db.clear();
   db.put('store1', data).addCallback(function() {
+    db.close();
     var tdb = new ydn.db.crud.Storage(db_name, schema, options);
     asyncTestCase.continueTesting();
     asyncTestCase.waitForAsync('values');
@@ -451,6 +471,111 @@ function test_index_keys_limit_offset() {
       assertArrayEquals(exp, arr);
       asyncTestCase.continueTesting();
       ydn.db.deleteDatabase(db_name, tdb.getType());
+      tdb.close();
     });
+  });
+}
+
+
+function test_list_primary_key_resume() {
+
+  var db_name = 'test_list_resume';
+  var store_name = 'st';
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id',
+      indexes: [{
+        keyPath: 'value'
+      }]
+    }]
+  };
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var objs = [
+    {id: 0, value: 2, type: 'a'},
+    {id: 1, value: 3, type: 'a'},
+    {id: 2, value: 2, type: 'b'},
+    {id: 3, value: 2, type: 'b'},
+    {id: 4, value: 1, type: 'c'},
+    {id: 5, value: 1, type: 'c'},
+    {id: 6, value: 3, type: 'c'}
+  ];
+
+  var arr = objs.slice().sort(function(a, b) {
+    return a.value > b.value ? 1 : a.value < b.value ? -1 :
+        a.id > b.id ? 1 : a.id < b.id ? -1 : 0;
+  });
+  var keys = arr.map(function(x) {return x.id;});
+  var rev = arr.slice().reverse();
+  var rev_keys = keys.slice().reverse();
+  var mth = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
+
+  asyncTestCase.waitForAsync('put');
+  db.clear();
+  db.put(store_name, objs).addCallback(function(value) {
+    db.close();
+    db = new ydn.db.crud.Storage(db_name, schema, options);
+    asyncTestCase.continueTesting();
+    asyncTestCase.waitForAsync('list');
+    db.list(mth, 'st', undefined, null, 10, 0, false, false, [4])
+        .addBoth(function(value) {
+          assertArrayEquals([5, 6], value);
+          asyncTestCase.continueTesting();
+          ydn.db.deleteDatabase(db_name, db.getType());
+          db.close();
+        });
+  });
+}
+
+
+function test_list_primary_key_index_resume() {
+
+  var db_name = 'test_list_index_resume';
+  var store_name = 'st';
+  var schema = {
+    stores: [{
+      name: store_name,
+      keyPath: 'id',
+      indexes: [{
+        keyPath: 'value'
+      }]
+    }]
+  };
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  var objs = [
+    {id: 0, value: 2, type: 'a'},
+    {id: 1, value: 3, type: 'a'},
+    {id: 2, value: 2, type: 'b'},
+    {id: 3, value: 2, type: 'b'},
+    {id: 4, value: 1, type: 'c'},
+    {id: 5, value: 1, type: 'c'},
+    {id: 6, value: 3, type: 'c'}
+  ];
+
+  var arr = objs.slice().sort(function(a, b) {
+    return a.value > b.value ? 1 : a.value < b.value ? -1 :
+        a.id > b.id ? 1 : a.id < b.id ? -1 : 0;
+  });
+  var keys = arr.map(function(x) {return x.id;});
+  var rev = arr.slice().reverse();
+  var rev_keys = keys.slice().reverse();
+  var mth = ydn.db.base.QueryMethod.LIST_PRIMARY_KEY;
+
+  asyncTestCase.waitForAsync('put');
+  db.clear();
+  db.put(store_name, objs).addCallback(function(value) {
+    db.close();
+    db = new ydn.db.crud.Storage(db_name, schema, options);
+    asyncTestCase.continueTesting();
+    asyncTestCase.waitForAsync('list');
+    db.list(mth, 'st', 'value', null, 10, 0, false, false, [1, 5])
+        .addBoth(function(value) {
+          assertArrayEquals(keys.slice(2), value);
+          asyncTestCase.continueTesting();
+          ydn.db.deleteDatabase(db_name, db.getType());
+          db.close();
+        });
   });
 }
