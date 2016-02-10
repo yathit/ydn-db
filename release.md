@@ -1,5 +1,11 @@
 # Release Notes
 
+#### 1.4.0 
+
+1. Use getAll
+2. Use getAllKeys
+3. zigzag_merge respect limit.
+
 #### 1.3.6
 
 1. Multi entry index table generation bug fix. Issue #90 #91 

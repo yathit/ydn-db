@@ -188,7 +188,7 @@ ydn.db.crud.req.IndexedDb.prototype.insertObjects = function(rq, is_replace,
         goog.global.console.log([store_name, event, i]);
       }
       var error = request.error;
-      goog.log.finest(me.logger,  rq.getLabel() + mth + ' request to "' + store_name +
+      goog.log.finest(me.logger, rq.getLabel() + mth + ' request to "' + store_name +
           '" cause ' + error.name + ' for object "' +
           ydn.json.toShortString(objs[i]) + '" at index ' +
           i + ' of ' + objs.length + ' objects.');

@@ -175,6 +175,9 @@ ydn.db.algo.ZigzagMerge.prototype.solver = function(keys, values) {
         this.out.push(values[0]);
       }
     }
+    if (goog.isDefAndNotNull(this.limit) && this.out.length >= this.limit) {
+      return [];
+    }
     return advancement;
   } else if (highest_idx == 0) {
     // some need to catch up to base key

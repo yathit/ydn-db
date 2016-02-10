@@ -4,8 +4,8 @@
     <property name="ydn-base.dir" location="${work.dir}/ydn-base" />
     <import file="${ydn-base.dir}/build.xml"/>
     <property name="ver-major" value="1"/>
-    <property name="ver-minor" value="3"/>
-    <property name="ver-patch" value="6"/>
+    <property name="ver-minor" value="4"/>
+    <property name="ver-patch" value="0"/>
     <property name="version" value="${ver-major}.${ver-minor}.${ver-patch}"/>
 
     <property name="buildno" value="${ver-major}${ver-minor}${ver-patch}"/>
