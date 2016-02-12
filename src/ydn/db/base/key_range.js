@@ -80,14 +80,14 @@ ydn.db.KeyRange.prototype.upper = undefined;
  *
  * @type {boolean}
  */
-ydn.db.KeyRange.prototype.lowerOpen;
+ydn.db.KeyRange.prototype.lowerOpen = false;
 
 
 /**
  *
  * @type {boolean}
  */
-ydn.db.KeyRange.prototype.upperOpen;
+ydn.db.KeyRange.prototype.upperOpen = false;
 
 
 /**
