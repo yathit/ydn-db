@@ -178,7 +178,7 @@ ydn.db.algo.AbstractSolver.prototype.pusher = function(advance, keys, values,
 /**
  * Find the lowest key.
  * @param {Array<IDBKey>} keys
- * @return {number} advancement array for lowest key
+ * @return {Array<number>} advancement array for lowest key
  */
 ydn.db.algo.AbstractSolver.lowestAdvance = function(keys) {
   var adv = [];

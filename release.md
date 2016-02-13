@@ -1,5 +1,9 @@
 # Release Notes
 
+#### 1.4.2
+
+1. Add ydn.db.algo.MultiQuery for `WHERE IN` query.
+
 #### 1.4.1
 
 1. Bug fix for Issue #96
