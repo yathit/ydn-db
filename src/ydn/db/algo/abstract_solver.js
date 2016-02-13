@@ -178,11 +178,39 @@ ydn.db.algo.AbstractSolver.prototype.pusher = function(advance, keys, values,
 /**
  * Find the lowest key.
  * @param {Array<IDBKey>} keys
+ * @return {number} advancement array for lowest key
+ */
+ydn.db.algo.AbstractSolver.lowestAdvance = function(keys) {
+  var adv = [];
+  var idx = -1;
+  for (var i = 0; i < keys.length; i++) {
+    if (goog.isDefAndNotNull(keys[i])) {
+      if (adv.length == 0) {
+        adv[i] = 1;
+        idx = i;
+      } else {
+        var cmp = ydn.db.cmp(keys[i], keys[idx]);
+        if (cmp == -1) {
+          idx = i;
+          adv = [];
+          adv[i] = 1;
+        } else if (cmp == 0) {
+          adv[i] = 1;
+        }
+      }
+    }
+  }
+  return adv;
+};
+
+
+/**
+ * Find the lowest key.
+ * @param {Array<IDBKey>} keys
  * @return {number} index of the lowest key.
  */
 ydn.db.algo.AbstractSolver.lowest = function(keys) {
   var idx = -1;
-  var lowest = null;
   for (var i = 0; i < keys.length; i++) {
     if (goog.isDefAndNotNull(keys[i])) {
       if (!goog.isDef(keys[idx])) {

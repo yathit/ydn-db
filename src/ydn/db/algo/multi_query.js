@@ -56,8 +56,13 @@ ydn.db.algo.MultiQuery.prototype.begin = function(iterators, callback) {
  * @inheritDoc
  */
 ydn.db.algo.MultiQuery.prototype.solver = function(keys, values) {
-  var lowest = ydn.db.algo.AbstractSolver.lowest(keys);
-  var advancement = [];
-  advancement[lowest] = 1;
+  var advancement = ydn.db.algo.AbstractSolver.lowestAdvance(keys);
+  var lowest = -1;
+  for (var i = 0; i < advancement.length; i++) {
+    if (goog.isDefAndNotNull(advancement[i])) {
+      lowest = i;
+      break;
+    }
+  }
   return this.pusher({'advance': advancement}, keys, values, values[lowest], keys[lowest]);
 };
