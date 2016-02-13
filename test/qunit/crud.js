@@ -81,6 +81,51 @@
 
   });
 
+  asyncTest('generator', 2, function() {
+    var schema = {
+      stores: [
+        {
+          name: 'contact',
+          keyPath: 'contactid',
+          indexes: [
+            {
+              name: 'accountid, name',
+              //keyPath: ['accountid', 'name'],
+              generator: function (obj) {
+                return [
+                  obj.accountid,
+                  obj.name.toUpperCase()
+                ];
+              }
+            }
+          ]
+        }
+      ]
+    };
+    var data = [{
+      contactid: 1,
+      accountid: 1,
+      name: 'Kyaw'
+    }, {
+      contactid: 2,
+      accountid: 2,
+      name: 'Tun'
+    }];
+    var db = new ydn.db.Storage('generator', schema, options);
+
+    db.putAll('contact', data).always(function(x) {
+      console.log('key', x);
+      deepEqual([1, 2], x, 'key');
+      db.valuesByIndex('contact', 'accountidname', ydn.db.KeyRange.starts([2])).always(function(x) {
+        deepEqual(data[1], x[0]);
+        start();
+        var type = db.getType();
+        db.close();
+        ydn.db.deleteDatabase(db.getName(), type);
+      });
+    });
+
+  });
 
   asyncTest('offline-key autoincrement', 2, function() {
 
