@@ -56,9 +56,8 @@ ydn.db.algo.MultiQuery.prototype.begin = function(iterators, callback) {
  * @inheritDoc
  */
 ydn.db.algo.MultiQuery.prototype.solver = function(keys, values) {
-
-  // initialize advancement array
+  var lowest = ydn.db.algo.AbstractSolver.lowest(keys);
   var advancement = [];
-
-
+  advancement[lowest] = 1;
+  return this.pusher({'advance': advancement}, keys, values, values[lowest], keys[lowest]);
 };

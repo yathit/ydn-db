@@ -133,7 +133,7 @@ ydn.db.algo.AbstractSolver.prototype.begin = function(tx, iterators, callback) {
 /**
  * Push the result if all keys match. Break the limit if the number of results
  * reach the limit.
- * @param {!Array} advance
+ * @param {!Array|!Object} advance
  * @param {!Array} keys input values.
  * @param {!Array} values output values.
  * @param {*=} opt_match_key match key.
@@ -172,6 +172,27 @@ ydn.db.algo.AbstractSolver.prototype.pusher = function(advance, keys, values,
   }
 
   return advance;
+};
+
+
+/**
+ * Find the lowest key.
+ * @param {Array<IDBKey>} keys
+ * @return {number} index of the lowest key.
+ */
+ydn.db.algo.AbstractSolver.lowest = function(keys) {
+  var idx = -1;
+  var lowest = null;
+  for (var i = 0; i < keys.length; i++) {
+    if (goog.isDefAndNotNull(keys[i])) {
+      if (!goog.isDef(keys[idx])) {
+        idx = i;
+      } else if (ydn.db.cmp(keys[i], keys[idx]) == -1) {
+        idx = i;
+      }
+    }
+  }
+  return idx;
 };
 
 

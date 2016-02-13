@@ -4,6 +4,7 @@
 
 
 goog.provide('ydn.db.algo');
+goog.require('ydn.db.algo.MultiQuery');
 goog.require('ydn.db.algo.NestedLoop');
 goog.require('ydn.db.algo.SortedMerge');
 goog.require('ydn.db.algo.ZigzagMerge');
