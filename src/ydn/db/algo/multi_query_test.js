@@ -72,6 +72,7 @@ function test_basic() {
     var result = [];
     var multi = new ydn.db.algo.MultiQuery(result);
     db.scan(multi, iters).addCallback(function(x) {
+      db.values('animals', keys).add
       result.sort(function(a, b) {
         return a < b ? -1 : a > b ? 1 : 0;
       });
