@@ -69,7 +69,7 @@ ydn.db.schema.Index = function(
   }
 
   if (!goog.isDef(keyPath) && goog.isDef(opt_index_name)) {
-    keyPath = opt_index_name;
+    keyPath = opt_index_name.replace(/[,\s]/g, '');
   }
 
   /**

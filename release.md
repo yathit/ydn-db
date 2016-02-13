@@ -1,9 +1,13 @@
 # Release Notes
 
+#### 1.4.1
+
+1. Bug fix for Issue #96
+
 #### 1.4.0 
 
-1. Use getAll
-2. Use getAllKeys
+1. Use new IndexedDB feature [getAll](https://w3c.github.io/IndexedDB/#dom-idbobjectstore-getall) if available
+2. Use new IndexedDB feature getAllKeys if available
 3. zigzag_merge respect limit.
 
 #### 1.3.6
