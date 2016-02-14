@@ -52,10 +52,9 @@ ydn.db.tr.Serial = function(storage, ptx_no, opt_policy,
   /**
    * @type {!Array.<{
    *    fnc: Function,
-   *    scope: string,
    *    store_names: !Array.<string>,
    *    mode: ydn.db.base.TransactionMode,
-   *    oncompleted: function (ydn.db.base.TxEventTypes.<string>, *)
+   *    oncompleted: (function (ydn.db.base.TxEventTypes.<string>, *)|undefined)
    * }>}
    * @final
    * @private
@@ -263,7 +262,7 @@ ydn.db.tr.Serial.prototype.pushTxQueue = function(trFn, store_names,
   this.trQueue_.push({
     fnc: trFn,
     store_names: store_names,
-    mode: opt_mode,
+    mode: opt_mode || ydn.db.base.TransactionMode.READ_ONLY,
     oncompleted: opt_on_completed
   });
 

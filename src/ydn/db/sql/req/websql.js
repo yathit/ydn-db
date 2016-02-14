@@ -209,13 +209,13 @@ ydn.db.sql.req.WebSql.prototype.planQuery = function(query) {
   var store = this.schema.getStore(query.getStoreName());
   if (!store) {
     throw new ydn.db.SqlParseError('TABLE: ' + query.getStoreName() +
-      ' not found.');
+        ' not found.');
   }
 
   var key_range = query.getKeyRange();
 
   var sql = new ydn.db.sql.req.SqlQuery(query.getStoreName(), query.getIndexName(),
-    key_range, query.isReversed(), query.isUnique(), query.isKeyIterator());
+      key_range, query.isReversed(), query.isUnique(), query.isKeyIterator());
 
   var select = 'SELECT';
 
@@ -224,7 +224,7 @@ ydn.db.sql.req.WebSql.prototype.planQuery = function(query) {
   var index = goog.isDef(idx_name) ? store.getIndex(idx_name) : null;
 
   var key_column = index ? index.getKeyPath() :
-    goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
+      goog.isDefAndNotNull(store.keyPath) ? store.keyPath :
       ydn.db.base.SQLITE_SPECIAL_COLUNM_NAME;
   goog.asserts.assertString(key_column);
   var column = goog.string.quote(key_column);
@@ -242,13 +242,13 @@ ydn.db.sql.req.WebSql.prototype.planQuery = function(query) {
       if (goog.isDefAndNotNull(key_range.lower)) {
         var lowerOp = key_range['lowerOpen'] ? ' > ' : ' >= ';
         where_clause += ' ' + column + lowerOp + '?';
-        sql.params.push(key_range.lower);
+        sql.params.push(/** @type {string} */(key_range.lower));
       }
       if (goog.isDefAndNotNull(key_range['upper'])) {
         var upperOp = key_range['upperOpen'] ? ' < ' : ' <= ';
         var and = where_clause.length > 0 ? ' AND ' : ' ';
         where_clause += and + column + upperOp + '?';
-        sql.params.push(key_range.upper);
+        sql.params.push(/** @type {string} */(key_range.upper));
       }
     }
     where_clause = ' WHERE ' + '(' + where_clause + ')';

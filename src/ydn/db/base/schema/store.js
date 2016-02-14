@@ -614,7 +614,7 @@ ydn.db.schema.Store.prototype.sqlContinueIndexEffectiveKey = function(method,
     e_sql.where += ' AND ';
 
     or = q_index_column + op + '?';
-    params.push(encode_key);
+    params.push(/** @type {string} */(encode_key));
   } else {
     key_range = reverse ?
         ydn.db.KeyRange.upperBound(key, true) :
@@ -628,8 +628,8 @@ ydn.db.schema.Store.prototype.sqlContinueIndexEffectiveKey = function(method,
 
   e_sql.where += '(' + or + ' OR (' + q_index_column + ' = ? AND ' +
       q_primary_column + op + '?))';
-  params.push(encode_key);
-  params.push(encode_primary_key);
+  params.push(/** @type {string} */(encode_key));
+  params.push(/** @type {string} */(encode_primary_key));
 
   return 'SELECT ' + e_sql.select + ' FROM ' + e_sql.from +
       ' WHERE ' + e_sql.where +
@@ -1287,6 +1287,21 @@ ydn.db.schema.Store.prototype.hook = function(df, args, opt_hook_idx,
       this.hooks_[i].call(opt_scope, df, args);
     }
   }
+};
+
+
+/**
+ * Get index of indexes by index name.
+ * @param {string} name name of index to find.
+ * @return {number} -1 if not found.
+ */
+ydn.db.schema.Store.prototype.getIndexOfIndexByName = function(name) {
+  for (var i = 0; i < this.indexes.length; i++) {
+    if (this.indexes[i].getName() == name) {
+      return i;
+    }
+  }
+  return -1;
 };
 
 

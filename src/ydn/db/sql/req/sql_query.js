@@ -60,7 +60,6 @@ ydn.db.sql.req.SqlQuery = function(store, index, keyRange,
 goog.inherits(ydn.db.sql.req.SqlQuery, ydn.db.sql.req.IterableQuery);
 
 
-
 /**
  * @inheritDoc
  */
@@ -95,7 +94,6 @@ ydn.db.sql.req.SqlQuery.prototype.toJSON = function() {
 
 
 
-
 /**
  * SQL statement for executing.
  * @type {string} sql string.
@@ -110,8 +108,6 @@ ydn.db.sql.req.SqlQuery.prototype.sql = '';
 ydn.db.sql.req.SqlQuery.prototype.params = [];
 
 
-
-
 /**
  * @override
  */
@@ -119,7 +115,6 @@ ydn.db.sql.req.SqlQuery.prototype.toString = function() {
   var idx = goog.isDef(this.getIndexName()) ? ':' + this.getIndexName() : '';
   return 'Cursor:' + this.getStoreName() + idx;
 };
-
 
 
 /**

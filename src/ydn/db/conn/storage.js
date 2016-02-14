@@ -135,7 +135,7 @@ ydn.db.con.Storage = function(opt_dbname, opt_schema, opt_options) {
    *    fnc: Function,
    *    scopes: Array.<string>,
    *    mode: ydn.db.base.TransactionMode,
-   *    oncompleted: function(ydn.db.base.TxEventTypes, *)
+   *    oncompleted: (function(ydn.db.base.TxEventTypes, *)|undefined)
    *  }>}
    */
   this.txQueue_ = [];
@@ -661,7 +661,7 @@ ydn.db.con.Storage.prototype.pushTxQueue_ = function(trFn, store_names,
   this.txQueue_.push({
     fnc: trFn,
     scopes: store_names,
-    mode: opt_mode,
+    mode: opt_mode || ydn.db.base.TransactionMode.READ_ONLY,
     oncompleted: opt_on_completed
   });
 

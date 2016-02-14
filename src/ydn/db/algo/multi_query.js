@@ -27,6 +27,16 @@ goog.require('ydn.db.algo.AbstractSolver');
 
 /**
  * Union of multi query.
+ * <pre>
+ *   var iters = [ydn.db.IndexIterator.where('Task', 'IndexA', '=', 1),
+ *     ydn.db.IndexIterator.where('Task', 'IndexB', '=', 1)];
+ *   var result = [];
+ *   var limit = 10;
+ *   var multi = new ydn.db.algo.MultiQuery(result, limit);
+ *   db.scan(multi, iters). done(function(x) {
+ *      db.values('Task', result).done(...)
+ *   });
+ * </pre>
  * @param {(!Array|!{push: Function}|!ydn.db.Streamer)} out output receiver.
  * @param {number=} opt_limit limit.
  * @constructor

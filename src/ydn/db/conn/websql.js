@@ -701,8 +701,8 @@ ydn.db.con.WebSql.prototype.getSchema = function(callback, trans, db) {
             });
             if (store_index >= 0) { // main table exist, add this index
               var ex_store = stores[store_index];
-              var ex_index = ex_store.hasIndex(index_name);
-              if (ex_index) {
+              var ex_index = ex_store.getIndexOfIndexByName(index_name);
+              if (ex_index >= 0) {
                 indexes[ex_index] = multi_index;
               } else {
                 var dep_index = goog.array.findIndex(indexes, function(x) {

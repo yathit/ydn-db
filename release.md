@@ -1,5 +1,10 @@
 # Release Notes
 
+
+#### 1.4.3
+
+1. Closure compiler update. Some type fixes.
+
 #### 1.4.2
 
 1. Add ydn.db.algo.MultiQuery for `WHERE IN` query.
