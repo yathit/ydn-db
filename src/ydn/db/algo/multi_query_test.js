@@ -1,4 +1,3 @@
-
 goog.provide('ydn.db.algo.MultiQueryTest');
 goog.setTestOnly('ydn.db.algo.MultiQueryTest');
 goog.require('goog.debug.Console');
@@ -38,9 +37,8 @@ function test_lowest_advancement() {
   assertArrayEquals([undefined, 1, 1], ydn.db.algo.AbstractSolver.lowestAdvance([1, 0, 0, 2]));
 }
 
-
-function test_basic() {
-  var animals = [
+var createData = function() {
+  return [
     {id: 1, name: 'rat', color: 'brown', horn: 0, legs: 4},
     {id: 2, name: 'leopard', color: 'spots', horn: 2, legs: 4},
     {id: 3, name: 'galon', color: 'gold', horn: 10, legs: 2},
@@ -54,7 +52,11 @@ function test_basic() {
     {id: 11, name: 'cat', color: 'spots', horn: 0, legs: 4},
     {id: 12, name: 'human', color: 'pink', horn: 0, legs: 2}
   ];
-  var schema = {
+};
+
+
+var createSchema = function() {
+  return {
     stores: [{
       name: 'animals',
       keyPath: 'id',
@@ -67,6 +69,12 @@ function test_basic() {
       }]
     }]
   };
+};
+
+
+function test_basic() {
+  var animals = createData();
+  var schema = createSchema();
   var db = new ydn.db.Storage('multi-queyr-basic', schema);
   asyncTestCase.waitForAsync('test');
   db.putAll('animals', animals).addCallback(function() {
@@ -94,34 +102,9 @@ function test_basic() {
 
 
 function test_multi_index() {
-  var animals = [
-    {id: 1, name: 'rat', color: 'brown', horn: 0, legs: 4},
-    {id: 2, name: 'leopard', color: 'spots', horn: 2, legs: 4},
-    {id: 3, name: 'galon', color: 'gold', horn: 10, legs: 2},
-    {id: 4, name: 'tiger', color: 'spots', horn: 2, legs: 4},
-    {id: 5, name: 'snake', color: 'spots', horn: 0, legs: 0},
-    {id: 6, name: 'rhino', color: 'spots', horn: 1, legs: 4},
-    {id: 7, name: 'ox', color: 'black', horn: 2, legs: 4},
-    {id: 8, name: 'cow', color: 'spots', horn: 2, legs: 4},
-    {id: 9, name: 'chicken', color: 'red', horn: 0, legs: 2},
-    {id: 10, name: 'unicon', color: 'pink', horn: 1, legs: 4},
-    {id: 11, name: 'cat', color: 'spots', horn: 0, legs: 4},
-    {id: 12, name: 'human', color: 'pink', horn: 0, legs: 2}
-  ];
-  var schema = {
-    stores: [{
-      name: 'animals',
-      keyPath: 'id',
-      indexes: [{
-        name: 'color'
-      }, {
-        name: 'horn'
-      }, {
-        name: 'legs'
-      }]
-    }]
-  };
-  var db = new ydn.db.Storage('multi-queyr-basic', schema);
+  var animals = createData();
+  var schema = createSchema();
+  var db = new ydn.db.Storage('test_multi_index', schema);
   asyncTestCase.waitForAsync('test');
   db.putAll('animals', animals).addCallback(function() {
     var iters = [ydn.db.IndexIterator.where('animals', 'horn', '=', 0),
