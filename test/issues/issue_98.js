@@ -21,7 +21,7 @@ function tearDown() {
 
 
 function test_compoundindex() {
-  var db_name = 'test_issue_98';
+  var db_name = 'test_issue_98_5';
   var schema = {
     stores: [
       {
@@ -29,8 +29,7 @@ function test_compoundindex() {
         keyPath: 'id',
         indexes: [
           {
-            keyPath: ['first', 'last'],
-            name: 'first-last'
+            keyPath: ['first', 'last']
           },
           {
             keyPath: 'first'
@@ -48,26 +47,31 @@ function test_compoundindex() {
     first: 'First',
     last: 'Last'
   }];
-  db.put('test', data[0]);
-  db.put('test', data[1]);
-
-  asyncTestCase.waitForAsync('first');
-  db.from('test').where('first', '=', 'First').order('last').list(20).addCallbacks(function(x) {
-    assertArrayEquals(data, x);
+  asyncTestCase.waitForAsync('ready');
+  db.onReady(function() {
     asyncTestCase.continueTesting();
-    asyncTestCase.waitForAsync('second');
-    db.close();
-    var db2 = new ydn.db.Storage('test_issue_98', schema, options);
-    db2.from('test').where('first', '=', 'First').order('last').list(20).addCallbacks(function(x) {
+    db.put('test', data[0]);
+    db.put('test', data[1]);
+
+    asyncTestCase.waitForAsync('first');
+    db.from('test').where('first', '=', 'First').order('last').list(20).addCallbacks(function(x) {
       assertArrayEquals(data, x);
       asyncTestCase.continueTesting();
-      db2.close();
+      asyncTestCase.waitForAsync('second');
+      db.close();
+      var db2 = new ydn.db.Storage('test_issue_98', schema, options);
+      db2.from('test').where('first', '=', 'First').order('last').list(20).addCallbacks(function(x) {
+        assertArrayEquals(data, x);
+        asyncTestCase.continueTesting();
+        db2.close();
+      }, function(e) {
+        fail(e);
+      });
     }, function(e) {
       fail(e);
     });
-  }, function(e) {
-    fail(e);
   });
+
   to_del.push(to_del);
 }
 
