@@ -860,7 +860,7 @@ ydn.db.schema.Store.prototype.hintForIdb = function(that) {
  * some schema information are not able to reconstruct from the connection,
  * these include:
  *   1. composite index: in which a composite index is blown up to multiple
- *     columns. @see ydn.db.con.WebSql.prototype.prepareTableSchema_.
+ *     columns. {@see ydn.db.con.WebSql#prepareCreateTable_}.
  * @param {ydn.db.schema.Store} that guided store schema.
  * @return {!ydn.db.schema.Store} updated store schema.
  */
