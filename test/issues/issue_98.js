@@ -5,20 +5,19 @@ var to_del = [];
 // var options = {mechanisms: ['indexeddb']};
 var options = {mechanisms: ['websql']};
 
-var setUp = function() {
-
+function setUp() {
   ydn.json.POLY_FILL = true;
   ydn.debug.log('ydn.db', 'finest');
 
-};
+}
 
 
-var tearDown = function() {
+function tearDown() {
   var name;
   while (name = to_del.pop()) {
     ydn.db.deleteDatabase(name, options.mechanisms[0]);
   }
-};
+}
 
 
 function test_compoundindex() {
