@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test for Race condition</title>
+</head>
+<body>
+
+    <script src="../../../closure-library/closure/goog/base.js"></script>
+    <script src="../../../closure-library/closure/goog/deps.js"></script>
+    <script type="text/javascript" src="../../../ydn-base/src/deps.js"></script>
+    <script type="text/javascript" src="../../src/deps.js"></script>
+    <script type="text/javascript" >
+        goog.require('ydn.debug');
+	    goog.require('goog.testing.AsyncTestCase');
+	    goog.require('goog.testing.jsunit');
+        goog.require('ydn.db.crud.Storage');
+        goog.require('ydn.db.Storage');
+        goog.require('ydn.db.Query');
+    </script>
+	<script type="text/javascript" src="issue_98.js"></script>
+
+</body>
+</html>

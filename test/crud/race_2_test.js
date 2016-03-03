@@ -26,7 +26,7 @@ var tearDown = function() {
   var name;
   while (name = to_del.pop()) {
     ydn.db.deleteDatabase(name, options.mechanisms[0]);
-  };
+  }
 };
 
 
