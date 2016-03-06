@@ -888,7 +888,7 @@ ydn.db.schema.Store.prototype.hintForWebSql = function(that) {
         /** @type {goog.array.ArrayLike} */ (that.keyPath));
   }
 
-  // update composite index
+  // update composite index, FIXME: issue with duplicate index
   for (var i = 0, n = that.indexes.length; i < n; i++) {
     if (that.indexes[i].isComposite()) {
       var name = that.indexes[i].getName();
