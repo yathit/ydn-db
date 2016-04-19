@@ -191,7 +191,7 @@ ydn.db.crud.IOperator.prototype.clear = goog.abstractMethod;
  * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} opt_arg2 delete
  * a specific key or
  * key range.
- * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} opt_arg3 delete
+ * @param {(IDBKey|KeyRangeJson|ydn.db.KeyRange)=} opt_arg3 delete
  * a specific key or
  * key range.
  * @see {@link #remove}
