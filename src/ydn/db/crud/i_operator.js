@@ -188,7 +188,7 @@ ydn.db.crud.IOperator.prototype.clear = goog.abstractMethod;
 /**
  * Remove a specific entry from a store or all.
  * @param {string|ydn.db.Key|!Array.<!ydn.db.Key>} store_name store name.
- * @param {(string|number|Date|KeyRangeJson|ydn.db.KeyRange)=} opt_arg2 delete
+ * @param {(IDBKey|KeyRangeJson|ydn.db.KeyRange)=} opt_arg2 delete
  * a specific key or
  * key range.
  * @param {(IDBKey|KeyRangeJson|ydn.db.KeyRange)=} opt_arg3 delete

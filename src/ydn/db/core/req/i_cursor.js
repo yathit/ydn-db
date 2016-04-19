@@ -130,7 +130,7 @@ ydn.db.core.req.ICursor.prototype.getKey = function() {};
 
 
 /**
- * @return {IDBKey} primary key of cursor.
+ * @return {IDBKey|undefined} primary key of cursor.
  */
 ydn.db.core.req.ICursor.prototype.getPrimaryKey = function() {};
 
