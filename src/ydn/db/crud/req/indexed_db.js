@@ -489,7 +489,7 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(req, keys) {
           removeAt(i);
         };
       } else {
-        req.setDbValue(0);
+        removeAt(i);
       }
     };
     request.onerror = function(event) {

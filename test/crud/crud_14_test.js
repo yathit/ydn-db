@@ -131,7 +131,7 @@ var test_remove_by_key_range = function() {
 };
 
 
-var test_clear_by_key_range = function() {
+function test_clear_by_key_range() {
   //ydn.db.con.simple.Store.DEBUG = true;
   var db_name = 'test_43_clear_by_key_range';
   var schema = {
@@ -187,7 +187,7 @@ var test_clear_by_key_range = function() {
 
 
 
-var test_remove_by_key = function() {
+function test_remove_by_key() {
   var db_name = 'test_remove_by_key';
   var schema = {
     stores: [{
@@ -205,7 +205,7 @@ var test_remove_by_key = function() {
   }
 
   var done = false;
-  var delCount, keys_before, keys_after;
+  var delCount, keys_before, keys_after, countInvalid, countInvalidValid;
 
   waitForCondition(
     // Condition
@@ -214,7 +214,9 @@ var test_remove_by_key = function() {
     function() {
       assertEquals('3 keys before', 3, keys_before.length);
       assertEquals('delete count', 1, delCount);
-      assertEquals('2 keys after', 2, keys_after.length);
+      assertEquals('delete count invalid', 0, countInvalid);
+      assertEquals('delete count countInvalidValid', 1, countInvalidValid);
+      assertEquals('1 keys after', 1, keys_after.length);
       reachedFinalContinuation = true;
       ydn.db.deleteDatabase(db_name, db.getType());
       db.close();
@@ -234,12 +236,17 @@ var test_remove_by_key = function() {
   db.remove(new ydn.db.Key('st', ids[1])).addBoth(function(x) {
     delCount = x;
   });
+  db.remove(new ydn.db.Key('st', 10)).addBoth(function(x) {
+    countInvalid = x;
+  });
+  db.remove([new ydn.db.Key('st', 11), new ydn.db.Key('st', ids[0])]).addBoth(function(x) {
+    countInvalidValid = x;
+  });
   db.keys('st').addBoth(function(x) {
     keys_after = x;
     done = true;
   });
 };
-
 
 
 var tearDownPage = function() {
