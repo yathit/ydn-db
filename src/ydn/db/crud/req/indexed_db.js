@@ -433,7 +433,6 @@ ydn.db.crud.req.IndexedDb.prototype.removeById = function(req,
     } else {
       req.setDbValue(0);
     }
-
   };
   request.onerror = function(event) {
     if (ydn.db.crud.req.IndexedDb.DEBUG) {
@@ -475,20 +474,32 @@ ydn.db.crud.req.IndexedDb.prototype.removeByKeys = function(req, keys) {
       store = req.getTx().objectStore(store_name);
     }
 
-    var request = store['delete'](keys[i].getId());
-
+    var request = store.openCursor(IDBKeyRange.only(keys[i].getId()));
     request.onsuccess = function(event) {
-      count++;
-      removeAt(i);
+      var cursor = event.target.result;
+      if (cursor) {
+        var r = cursor['delete']();
+        r.onsuccess = function(e) {
+          count++;
+          removeAt(i);
+        };
+        r.onerror = function(event) {
+          event.preventDefault();
+          errors[i] = r.error;
+          removeAt(i);
+        };
+      } else {
+        req.setDbValue(0);
+      }
     };
     request.onerror = function(event) {
       if (ydn.db.crud.req.IndexedDb.DEBUG) {
         goog.global.console.log([store_name, key, event]);
       }
       event.preventDefault();
-      errors[i] = request.error;
-      removeAt(i);
+      req.setDbValue(request.error, true);
     };
+
   };
 
   removeAt(-1);
