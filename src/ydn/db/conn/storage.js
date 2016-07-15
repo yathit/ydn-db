@@ -229,11 +229,12 @@ ydn.db.con.Storage.prototype.hasStore = function(store_name) {
 /**
  * @param {string} store_name
  * @param {string} index_name
+ *  @param {boolean=} opt_exclude_primary exclude primary as index.
  * @return {boolean}
  */
-ydn.db.con.Storage.prototype.hasIndex = function(store_name, index_name) {
+ydn.db.con.Storage.prototype.hasIndex = function(store_name, index_name, opt_exclude_primary) {
   var store = this.schema.getStore(store_name);
-  return store ? store.hasIndex(index_name) : false;
+  return store ? store.hasIndex(index_name, opt_exclude_primary) : false;
 };
 
 

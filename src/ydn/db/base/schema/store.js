@@ -714,10 +714,11 @@ ydn.db.schema.Store.prototype.isEncrypted = function() {
 /**
  * @see #hasIndexByKeyPath
  * @param {string} name index name.
+ * @param {boolean=} opt_exclude_primary exclude primary as index.
  * @return {boolean} return true if name is found in the index or primary
  * keyPath.
  */
-ydn.db.schema.Store.prototype.hasIndex = function(name) {
+ydn.db.schema.Store.prototype.hasIndex = function(name, opt_exclude_primary) {
   if (name === this.keyPath) {
     return true;
   }
