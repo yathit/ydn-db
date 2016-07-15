@@ -719,7 +719,7 @@ ydn.db.schema.Store.prototype.isEncrypted = function() {
  * keyPath.
  */
 ydn.db.schema.Store.prototype.hasIndex = function(name, opt_exclude_primary) {
-  if (name === this.keyPath) {
+  if (!opt_exclude_primary && name === this.keyPath) {
     return true;
   }
 
