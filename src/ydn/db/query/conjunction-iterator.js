@@ -24,12 +24,12 @@
 goog.provide('ydn.db.query.ConjunctionIterator');
 goog.require('goog.log');
 goog.require('goog.functions');
-goog.require('ydn.db.Cursor');
+goog.require('ydn.db.query.ConjunctionCursor');
 goog.require('ydn.db.Iterator');
 goog.require('ydn.db.KeyRange');
 goog.require('ydn.db.Where');
 goog.require('ydn.db.base');
-goog.require('ydn.db.core.EquiJoin');
+goog.require('ydn.db.query.EquiJoin');
 goog.require('ydn.db.core.req.ICursor');
 goog.require('ydn.debug.error.ArgumentException');
 
@@ -125,7 +125,7 @@ ydn.db.query.ConjunctionIterator.prototype.order = function(field_name, value) {
  * @param {string} tx_lbl tx label.
  * @param {ydn.db.core.req.IRequestExecutor} executor executor.
  * @param {ydn.db.base.QueryMethod=} opt_query query method.
- * @return {!ydn.db.Cursor} newly created cursor.
+ * @return {!ydn.db.query.ConjunctionCursor} newly created cursor.
  */
 ydn.db.query.ConjunctionIterator.prototype.iterate = function(tx, tx_lbl, executor,
                                              opt_query) {
@@ -137,7 +137,7 @@ ydn.db.query.ConjunctionIterator.prototype.iterate = function(tx, tx_lbl, execut
   var cursors = [cursor];
   for (var i = 0, n = this.joins_ ? this.joins_.length : 0; i < n; i++) {
     /**
-     * @type {!ydn.db.core.EquiJoin}
+     * @type {!ydn.db.query.EquiJoin}
      */
     var join = this.joins_[i];
     if (join.field_name && goog.isDefAndNotNull(join.value)) {
@@ -160,7 +160,7 @@ ydn.db.query.ConjunctionIterator.prototype.iterate = function(tx, tx_lbl, execut
     msg = ' by resuming ' + this.cursor_;
   }
 
-  this.cursor_ = new ydn.db.Cursor(cursors, this.cursor_);
+  this.cursor_ = new ydn.db.query.ConjunctionCursor(cursors, this.cursor_);
 
   goog.log.finest(this.logger, tx_lbl + ' ' + this + ' created ' + this.cursor_ + msg);
   return this.cursor_;
@@ -183,7 +183,7 @@ ydn.db.query.ConjunctionIterator.prototype.restrict = function(field_name, value
 
 
 /**
- * @type {Array.<!ydn.db.core.EquiJoin>} list of joins.
+ * @type {Array.<!ydn.db.query.EquiJoin>} list of joins.
  * @protected
  */
 ydn.db.query.ConjunctionIterator.prototype.joins_;
@@ -203,7 +203,7 @@ ydn.db.query.ConjunctionIterator.prototype.join = function(store_name, opt_field
       this.key_range_, this.isReversed(), this.isUnique(),
       this.is_key_iterator_, this.index_key_path_);
 
-  var join = new ydn.db.core.EquiJoin(store_name, opt_field_name,
+  var join = new ydn.db.query.EquiJoin(store_name, opt_field_name,
       opt_value);
 
   if (this.joins_) {
