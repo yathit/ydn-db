@@ -1,39 +1,113 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>YDN DB by yathit</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">YDN DB</h1>
-      <h2 class="project-tagline">Javascript database module for Indexeddb, Web SQL and localStorage storage mechanisms supporting version migration, advanced query, SQL and transaction.</h2>
-      <a href="https://github.com/yathit/ydn-db" class="btn">View on GitHub</a>
-      <a href="https://github.com/yathit/ydn-db/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/yathit/ydn-db/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+<html>
+<head><title>Yathit Developer Network</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <script type="text/javascript" src="jsc/app.js"></script>
+</head>
+<body>
+<article class="content">
+  <section class="featured">
+    <h1>
+      HTML5 javascript database library for web app.
+    </h1>
+    <hgroup>
+      <h2>
 
-    <section class="main-content">
-      <h3>
-<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>YDN-DB.</h3>
+      </h2>
+    </hgroup>
+  </section>
+  <div>
+    <h3>Work on all browsers</h3>
+    <p>Support all desktop, mobile and web client browsers utilizing IndexedDB, WebSQL and localStorage. No dependency.</p>
+
+    <p>See <a href="blog/limitation.html">browser support and limitation</a> for details.</p>
+  </div><div>
+  <h3>Beautiful API</h3>
+  <p>The library API is carefully designed so that it is simple, powerful and make sense.</p>
+  <pre>var db = new ydn.db.Storage('db-name');
+db.put('store-name', {message: 'Hello world!'}, 'id1');
+db.get('store-name', 'id1').always(function(record) {
+  console.log(record);
+});</pre>
+</div><div>
+  <h3>Rich queries</h3>
+  <p>Fast indexed query on client database with multiple filters, ordering
+    and pagination.</p>
+  <pre>var q = db.from('people').where('age', '>=', 25);
+q.list(10).done(function(peoples) {
+  console.log(peoples); // list of first 10 peoples
+});</pre>
+  <pre>var q = db.from('people').where('country', '=', 'US').order('name');
+q.list(10).done(function(peoples) {
+  console.log(peoples); // list of first 10 peoples from US ordered by name
+});
+q.list(10).done(function(peoples) {
+  console.log(peoples); // next 10 peoples
+});</pre>
+</div><div>
+  <h3>Unified managed schema</h3>
+  <p>Manage database table or object stores as defined by simple javascript object.
+    Schema could optionally be versioned or let library to generate dynamically.</p>
+  <pre>var schema = {
+  stores: [{
+    name: 'people',
+    indexes: [{
+       keyPath: 'age'
+    }, {
+       name: 'age, name',
+       keyPath: ['age', 'name']
+    }]
+  ]
+}
+var db = new ydn.db.Storage('db-name', schema);</pre>
+</div><div>
+  <h3>Complex transaction workflow</h3>
+  <p>Run complex transaction workflow over hundreds of indexes on millions of records.</p>
+  <pre>db.run(function health_10up(tx_db) {
+   tx_db.get('player', 1).done(function(p1_obj) {
+        p1_obj.health += 10;
+        tx_db.put('player', p1_obj);
+   });
+}, ['player'], 'readwrite');</pre>
+</div><div>
+  <h3>High performance streaming API</h3>
+  <p>Reduce memory usage and fast UI respond by using streaming API.</p>
+  <pre>var q = db.from('author').where('first', 'starts', input_value);
+var ul = document.getElementById('auto-suggestion-list');
+ul.innerHTML = '';
+q.open(function (cursor) {
+  var li = document.createElement('li');
+  var people = cursor.getValue();
+  li.textContent = people.first + ' ' + people.last;
+});</pre>
+</div><div>
+  <h3>Synchronize with REST backend services</h3>
+  <p>Cache and persists in RESTful backend service.</p>
+  <pre> var schema = {
+  stores: [{
+        name: 'todo',
+        keyPath: 'id',
+        Sync: {
+          format: 'gcs',  // Google Cloud Storage
+          Options: {
+            bucket: 'ydn-note-data',
+            prefix: 'todo/'
+          }
+        }
+  }]
+};
+var db = new ydn.db.Storage(db_name, schema);
+// GET https://ydn-note-data.storage.googleapis.com/todo/id123
+db.get('todo', 'id123');
+// PUT https://ydn-note-data.storage.googleapis.com/todo/id123
+db.put('todo', 'id123');
+// DELETE https://ydn-note-data.storage.googleapis.com/todo/id123
+db.remove('todo', 'id123');
+    </pre>
+</div>
+  <br/>
 
 
-<p>Please visit to <a href="ydn-db.html">old site</a> while we are developing awesome new site.</p>
-
-
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/yathit/ydn-db">YDN DB</a> is maintained by <a href="https://github.com/yathit">yathit</a>.</span>
-
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
-
-    </section>
-
-  
-  </body>
+</article>
+</body>
 </html>
