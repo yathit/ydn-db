@@ -1,0 +1,78 @@
+<!DOCTYPE html><html><head><title>advance-transactions</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><script type="text/javascript" src="/jsc/app.js"></script></head><body><article class="content"><script type="text/javascript" src="/jsc/ydn.db-dev.js"></script><script type="text/javascript" src="/js/ydn-db/players.js"></script><div dir="ltr"><h2><a name="TOC-Advance-transactions" />Advance transactions</h2>
+
+<p>
+Low level transaction can be performd in <code>transaction </code>function. The function is invoked with transaction object instance. Transaction object could be <code><a href="https://developer.mozilla.org/en-US/docs/IndexedDB/IDBTransaction" >IDBTransaction</a></code>, <code><a href="http://www.w3.org/TR/webdatabase/#sqltransaction" >SQLTransaction </a></code>or <code>null </code>depending at the run-time environment provided. Use duck typing or <code>db.type()</code> to check it. The follow runnable code (Chrome, Safari, IE) illustrate the usage. 
+</p>
+<pre>db.transaction(function transaction_callback (tdb) {
+  tx = tdb.getTx();
+  if (tdb.type() == 'indexeddb') { <br />    request = tx.objectStore('player').openCursor()
+    request.onsuccess = function(event) {
+      console.log('IndexedDB got ' + JSON.stringify(event.target.result.value)) 
+    }
+  } else if (tx.executeSql) {<br />    tx.executeSql('SELECT * FROM player', [], function(tr, results) {
+      console.log('WebSql got ' + JSON.stringify(results.rows.item(0))); 
+    })
+  } else { // localStorage or memory store. In any case, it has getItem, setItem, etc
+    var v = tx.getItem('_database_tr_test2-player-1')
+    console.log('localStorage got ' + v);
+  }
+}, ['player'], 'readwrite')
+</pre>
+
+<p>
+Query can be performed in the transaction too. </p>
+<pre>db.transaction(function(tdb) {
+  q = tdb.query('player').where('age', '&lt;', 30);
+  q.fetch().success(function updateAllUnder30(list) {
+    for (var i = 0; i &lt; list.length; i++) {    
+      var obj = list[i];
+      console.log('Updating player ' + obj.id);      
+      obj.health += 10;
+      tdb.put('player', obj).success(function(id) {
+        console.log('Updated ' + id)
+      });
+    }
+  })
+}, ['player'], 'readwrite');
+</pre>
+Note that executing multiple update inside the transaction is much faster than multiple put call because transaction object is not created each time.
+<h3><a name="TOC-Passing-additional-parameters" />Passing additional parameters</h3>
+<p>
+New to javascript may find the following code is correct</p>
+<pre>for (var i = 1; i &lt;= 3; i++) {
+  console.log('Requesting to update player ' + i);
+  db.transaction(function increaseHealth10(tdb) {
+    console.log(tdb + ' Updating player ' + i);
+    tdb.get('player', i).success(function(p1) {
+      print_player(p1);
+      p1.health += 10;
+      tdb.put('player', p1).success(function(p1id) {
+        console.log(tdb + ' Player ' + p1id + ' updated.');
+      })
+    })
+  }, ['player'], 'readwrite')   
+}
+</pre>
+<p>The problem here is the transaction callback <code>increaseHealth10 </code>is invoked asynchronous, but it carried outer scope variable <code>i</code>, which is mutable. When <code>increaseHealth10 </code>is invoked, the value of <code>i</code> has been changed. We can pass additional argument to transaction, so that its value is in the transaction function closure. The rewrite version is: 
+</p>
+ 
+<pre>for (var i = 1; i &lt;= 3; i++) {
+  console.log('Requesting to update player ' + i);
+  db.transaction(function increaseHealth10(tdb, i) {
+    console.log(tdb + ' Updating player ' + i);
+    tdb.get('player', i).success(function(p1) {
+      print_player(p1);
+      p1.health += 10;
+      tdb.put('player', p1).success(function(p1id) {
+        console.log(tdb + ' Player ' + p1id + ' updated.');
+      })
+    })
+  }, ['player'], 'readwrite', null, i)
+}
+</pre>
+<p>The additional arguments pass to transaction function will pass back to its callback after transaction object.
+</p>
+<h3><a name="TOC-Lifetime-of-a-transaction" />Lifetime of a transaction</h3>
+<p>
+You might wandering when a transaction would be committed. Neither IndexedDB API nor WebSQL specification has commit method define. It can correctly assume that transaction is committed automatically after <code>transaction_callback </code>is executed. If you invoked async inside the <code>transaction_callback </code>it will be executed <i>after </i>the transaction is committed.    
+</p></div></article><script type="text/javascript">initDom()</script></body></html>

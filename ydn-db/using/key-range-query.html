@@ -1,0 +1,152 @@
+<!DOCTYPE html><html><head><title>key-range-query</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><script type="text/javascript" src="/jsc/app.js"></script></head><body><article class="content"><script type="text/javascript" src="/jsc/ydn.db-dev.js"></script><script type="text/javascript" src="/js/ydn-db/customer.js"></script><div dir="ltr"><h2><a name="TOC-Key-range" />Key range</h2>
+
+<p>Store-wise query that described in previous sections are not feasible for large object store, because each query open the whole store. To use large object store efficiently, transaction <a href="http://www.w3.org/TR/IndexedDB/#cursor-concept" ><i>cursor </i></a>must be opened in a specific range in context of specific field, terms as <i><a href="http://www.w3.org/TR/IndexedDB/#index-concept" >index</a></i>. See indexing section for more detail.</p>
+
+<p>In this API, key range is specified in JSON as follow, which is direct equivalent to <a href="https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange" >
+    IDBKeyRange</a> interface.</p>
+<pre>key_range = {
+    lower: lower_value,     // optional, either number or string
+    upper: upper_value,     // optional, either number or string
+    lowerOpen: true,        // optional, boolean
+    upperOpen: true         // optional, boolean
+}
+</pre>
+Although both <code>lower</code> and <code>upper</code> are optional, either one of them must be define to be meaningful.
+
+<p>
+    To retrieve all keys within a certain range, you can construct a key range from a query as follow:
+
+</p>
+<table class="gridtable">
+    
+<thead>
+    
+<tr>
+        
+<th>Range</th>
+        
+<th>Code</th>
+    </tr>
+    
+<tr>
+        
+<td>All keys ≤ <strong>x</strong></td>
+        
+<td><code>query.upperBound(<strong>x</strong>)</code>
+        </td>
+    </tr>
+    
+<tr>
+        
+<td>All keys &lt; <strong>x</strong></td>
+        
+<td><code>query.upperBound(<strong>x</strong>, true) </code>
+        </td>
+    </tr>
+    
+<tr>
+        
+<td>All keys ≥ <strong> y</strong></td>
+        
+<td><code>query.lowerBound(<strong>y</strong>)</code>
+        </td>
+    </tr>
+    
+<tr>
+        
+<td>All keys &gt; <strong> y</strong></td>
+        
+<td><code>query.lowerBound(<strong>y</strong>,
+            true)</code></td>
+    </tr>
+    
+<tr>
+        
+<td>All keys <span style="color:rgb(51,51,51);font-family:Lucida Grande,Lucida Sans Unicode,DejaVu Sans,Lucida,Arial,Helvetica,sans-serif;font-size:14px;line-height:18px">≥</span> <strong>x</strong> &amp;&amp; ≤ <strong>y</strong></td>
+        
+<td><code>query.bound(<strong>x</strong>,
+            <strong>y</strong>)</code></td>
+    </tr>
+    
+<tr>
+        
+<td>All keys &gt; <strong>x</strong> &amp;&amp;&lt; <strong>y</strong></td>
+        
+<td><code>query.bound(<strong>x</strong>, <strong>y</strong>,
+            true, true)</code></td>
+    </tr>
+    
+<tr>
+        
+<td>All keys &gt; <strong>x</strong> &amp;&amp; <span style="color:rgb(51,51,51);font-family:Lucida Grande,Lucida Sans Unicode,DejaVu Sans,Lucida,Arial,Helvetica,sans-serif;font-size:14px;line-height:18px">≤</span> <strong>y</strong></td>
+        
+<td><code>query.bound(<strong>x</strong>, <strong>y</strong>,
+            true, false)</code></td>
+    </tr>
+    
+<tr>
+        
+<td>All keys ≥ <strong>x</strong> &amp;&amp;&lt; <strong>y</strong></td>
+        
+<td><code>query.bound(<strong>x</strong>, <strong>y</strong>,
+            false, true)</code></td>
+    </tr>
+    
+<tr>
+        
+<td>The key = <strong>z</strong></td>
+        
+<td><code>query.only(<strong>z</strong>)</code></td>
+    </tr>
+    </thead>
+    
+<tbody />
+</table>
+<p>
+All of these are, in fact, grantfathered from native IDBKeyRange methods. However this works on
+        cross-platform.
+</p>
+
+<p>
+    The follow query represent a range of records having <code>age </code>less than 20:
+</p>
+<pre>key_range = {'lower': 20};
+q = db.query(
+    'customer', // store name
+    'age',       // index field where the key range is specified
+    key_range,  // optional, key range in JSON
+    'next'      // optional, cursor direction (next, prev, nextunique, prevunique)
+)
+// alternatively
+q = db.query('customer', 'age').lowerBound(20)
+</pre>
+
+Notice that both store name and index field are given in constructing query, whereas previously only store name is required. 
+
+<div class="box">
+    This page is pre-loaded customer database (<code>db</code>), such that you can copied and paste the code snippet
+    to your console to see in action.
+</div>
+<p>
+    Result is fetched as array list in deferred function as follow:
+</p>
+<pre>    results = q.fetch()
+    results.success(print_it)
+</pre>
+This will fetch all customers lower than age of 20.
+<p>Additional key range can be opened by a repeat call. The following query open record for the two records. There is not limit on number of key ranges and combination of constructor methods used.</p>
+<pre>    q = db.query('customer', 'email').only('a@gmail.com').only('c@gmail.com')
+    results = db.fetch(q)
+    results.success(print_it)
+</pre>
+Astute reader will notice that <code>only</code> equivalent to setting <code>upper</code> and <code>lower</code> the same value with closing both bound.
+<p>
+Another trick, we have with key range query for string type is starts, which is defined as
+</p><pre>q = db.query('customer', 'first').starts('B')
+// equals to
+q = db.query('customer', 'first').bound('B', 'B\uffff')
+q.fetch().success(print_it)
+</pre>
+<p>
+    See more example usage on <a href="#when">when query</a>.
+</p></div></article><script type="text/javascript">initDom()</script></body></html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Example using ydn.db.Storage</title>
+  <script type="text/javascript" src="/jsc/ydn.db-dev.js"></script>
+</head>
+<body>
+<ol>
+  <li>Write some text and save it.</li>
+  <li>Then reload the page.</li>
+  <li>The text will be restored.</li>
+</ol>
+<textarea id="content"></textarea>
+<button onclick="save()">Save</button>
+<script type="text/javascript">
+
+  ydn.debug.log('ydn.db', 300);
+
+  // initialize database
+  var schema = {stores: [{name: 'note'}]};
+  db = new ydn.db.Storage('note3', schema);
+
+
+  // this is just setting value but require setTimeout crazy hack is for IE
+  // supposedly to run background thread to UI thread
+  var setValue = function( value) {
+    setTimeout(function() {
+      var ele = document.getElementById('content');
+      ele.value = value || '';
+    }, 0);
+  };
+
+  // restore previous save text.
+  db.get('note', 1)
+      .done(function (record) {
+        if (record) {
+            setValue(record.content);
+        }
+      })
+      .fail(function (e) {
+        throw e;
+      });
+
+  function save() {
+    var ele = document.getElementById('content');
+    db.put('note', {content: ele.value}, 1)
+        .done(function(x) {
+          ele.value = '';
+    }).fail(function(e) {
+          throw e;
+        });
+  }
+
+</script>
+</body>
+</html>

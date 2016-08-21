@@ -1,0 +1,9 @@
+CACHE MANIFEST
+# v22
+index.html
+pubmed-app.js
+/demo/ydn-db-text/app.js
+/jsc/ydn.db-dev-text.js
+
+NETWORK:
+*

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head><title>Authentication</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <script type="text/javascript" src="/jsc/app.js"></script>
+</head>
+<body>
+<article class="content">
+  <div dir="ltr">
+    <p>Pure client web app authenticate user with the help of a proxy login server. There are two type of proxy login server, bearer token base and CORS session base.
+    </p>
+
+    <h3>
+      <a name="TOC-Bearer-token-base-authentication"/>Bearer token base authentication
+    </h3>
+
+    <p>
+      <a href="http://openid.net/connect/">OpenId Connect</a> protocol are the first successful large scale deployment of bearer token base authentication.   
+    </p>
+
+    <h3><a name="TOC-CORS-authentication"/>CORS authentication</h3>
+
+    <p>
+      Login server accept cross domain request from the web app to verify login user.
+    </p>
+
+    <p>
+      The login process is as follow: </p>
+    <ol>
+      <li>Send login https XHR request to the server </li>
+      <li>Server look for secure HTTP only session cookie in the request </li>
+      <ol>
+        <li>If session cookie is not found, server return 202 with login_url </li>
+        <li>Web app redirect to login_url </li>
+        <li>Upon successful login, login server set secure HTTP only cookie and redirect back to web app</li>
+      </ol>
+      <li>If session cookie is found, server return 200 with user data such as secret_key for database encryption and x-xsf-token. </li>
+      <ol>
+        <li>Web app continue other requests like getting accession tokens and modifying ACLs. All of these request require x-xsf-token. </li>
+      </ol>
+    </ol>
+  </div>
+</article>
+<script type="text/javascript">initDom()</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head><title>Setup</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <script type="text/javascript" src="/jsc/app.js"></script>
+</head>
+<body>
+<article class="content">
+  <h2>Using with JQuery</h2>
+
+  <p>
+    YDN-DB is also distributed as <a href="http://git.yathit.com/ydn-db/downloads">JQuery plug-in module</a>. The
+    plugin script, <code>jquery-ydn-db-min-x.x.js</code>, should be included after jquery script in your HTML file.
+  </p>
+  <p>
+    <a href="using.html">Usage</a> is the same as YDN-DB module. When using as JQuery plugin, a <code>db</code> field is introduced to JQuery as
+    ready to use database instance.
+  </p>
+  <p>
+    A basic use case is as follow:
+  </p>
+<pre>$.db.setName('db_name_1');
+
+$.db.setItem('x', 'some value')
+
+$.db.getItem('x').done(function(value) {
+    console.log('x = ' + value);
+});
+</pre>
+  Database instance is ready, so that you can invoke database methods, like <code>setItem</code>, before opening the database.
+
+  <p>
+    For complete example, see <a href="example/jtodo.js">jtodo.js</a> script in <a href="example/jtodo.html">
+    JQuery todo list example</a>.
+  </p>
+
+</article>
+<script type="text/javascript">initDom()</script>
+</body>
+</html>

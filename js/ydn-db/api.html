@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+  <head>
+    <title>YDN Developer center</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="../css/main.css">
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" src="../../jsc/prettify.js">
+</script>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-33861582-1']);
+  _gaq.push(['_setDomainName', 'dev.yathit.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<style type="text/css">
+                /* default.css */
+        body {
+                font: 12px "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
+                width: 800px;
+        }
+
+        .header {
+                clear: both;
+                background-color: #ccc;
+                padding: 8px;
+        }
+
+        h1 {
+                font-size: 150%;
+                font-weight: bold;
+                padding: 0;
+                margin: 1em 0 0 .3em;
+        }
+
+        hr {
+                border: none 0;
+                border-top: 1px solid #7F8FB1;
+                height: 1px;
+        }
+
+        pre.code {
+                display: block;
+                padding: 8px;
+                border: 1px dashed #ccc;
+        }
+
+        #index {
+                margin-top: 24px;
+                float: left;
+                width: 160px;
+                position: absolute;
+                left: 8px;
+                background-color: #F3F3F3;
+                padding: 8px;
+        }
+
+        #content {
+                margin-left: 190px;
+                width: 600px;
+        }
+
+        .classList {
+                list-style-type: none;
+                padding: 0;
+                margin: 0 0 0 8px;
+                font-family: arial, sans-serif;
+                font-size: 1em;
+                overflow: auto;
+        }
+
+        .classList li {
+                padding: 0;
+                margin: 0 0 8px 0;
+        }
+
+        .summaryTable {
+                width: 100%;
+        }
+
+        h1.classTitle {
+                font-size: 170%;
+                line-height: 130%;
+        }
+
+        h2 {
+                font-size: 110%;
+        }
+
+        caption, div.sectionTitle {
+                background-color: #7F8FB1;
+                color: #fff;
+                font-size: 130%;
+                text-align: left;
+                padding: 2px 6px 2px 6px;
+                border: 1px #7F8FB1 solid;
+        }
+
+        div.sectionTitle {
+                margin-bottom: 8px;
+        }
+
+        .summaryTable thead {
+                display: none;
+        }
+
+        .summaryTable td {
+                vertical-align: top;
+                padding: 4px;
+                border-bottom: 1px #7F8FB1 solid;
+                border-right: 1px #7F8FB1 solid;
+        }
+
+                /*col#summaryAttributes {}*/
+        .summaryTable td.attributes {
+                border-left: 1px #7F8FB1 solid;
+                width: 140px;
+                text-align: right;
+        }
+
+        td.attributes, .fixedFont {
+                line-height: 15px;
+                color: #002EBE;
+                font-family: "Courier New", Courier, monospace;
+                font-size: 13px;
+        }
+
+        .summaryTable td.nameDescription {
+                text-align: left;
+                font-size: 13px;
+                line-height: 15px;
+        }
+
+        .summaryTable td.nameDescription, .description {
+                line-height: 15px;
+                padding: 4px;
+                padding-left: 4px;
+        }
+
+        .summaryTable {
+                margin-bottom: 8px;
+        }
+
+        ul.inheritsList {
+                list-style: square;
+                margin-left: 20px;
+                padding-left: 0;
+        }
+
+        .detailList {
+                margin-left: 20px;
+                line-height: 15px;
+        }
+
+        .detailList dt {
+                margin-left: 20px;
+        }
+
+        .detailList .heading {
+                font-weight: bold;
+                padding-bottom: 6px;
+                margin-left: 0;
+        }
+
+        .light, td.attributes, .light a:link, .light a:visited {
+                color: #777;
+                font-style: italic;
+        }
+
+        .fineprint {
+                text-align: right;
+                font-size: 10px;
+        }
+</style>
+  </head>
+
+  <body>
+    <div class="menu_bar">
+      <ul>
+        <li><a href="index.html">Introduction</a></li>
+
+        <li><a href="demos.html">Demos</a></li>
+
+        <li><a href="api.html">API documentation</a></li>
+
+        <li><a href="http://git.yathit.com/ydn-db">Source code</a></li>
+      </ul>
+    </div>
+
+    <div class="main">
+      <div class="aside">
+        <ul>
+          <li><a href="index.html">Introduction</a></li>
+
+          <li><a href="using.html">Using YDN-DB</a></li>
+
+          <li><a href="schema.html">Database schema</a></li>
+
+          <li><a href="query.html">Query</a></li>
+
+          <li><a href="transaction.html">Transaction</a></li>
+
+          <li><a href="index.html">Tutorial</a></li>
+
+          <li><a href="jquery.html">JQuery</a></li>
+        </ul>
+      </div>
+
+      <div class="content">
+        <!-- ============================== class title ============================ -->
+
+        <h1 class="classTitle">Class ydn.db.Storage</h1>
+        <!-- ============================== constructor summary ==================== -->
+
+        <table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class ydn.db.Storage.">
+          <caption>
+            Class Summary
+          </caption>
+
+          <thead>
+            <tr>
+              <th scope="col">Constructor Attributes</th>
+
+              <th scope="col">Constructor Name and Description</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#constructor">ydn.db.Storage</a></b>(opt_dbname, opt_schema)
+                </div>
+
+                <div class="description">
+                  Create a suitable storage mechanism from indexdb, to websql to localStorage.
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table><!-- ============================== methods summary ======================== -->
+
+        <table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class ydn.db.Storage.">
+          <caption>
+            Method Summary
+          </caption>
+
+          <thead>
+            <tr>
+              <th scope="col">Method Attributes</th>
+
+              <th scope="col">Method Name and Description</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#clear">clear</a></b>(opt_store_name, opt_key)
+                </div>
+
+                <div class="description">
+                  Remove a specific entry or all entries from a store.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#close">close</a></b>()
+                </div>
+
+                <div class="description">
+                  Close the database.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#count">count</a></b>(opt_store_name)
+                </div>
+
+                <div class="description">
+                  Get number of items in a store.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#get">get</a></b>(store_name, opt_key)
+                </div>
+
+                <div class="description">
+                  Retrieve an object.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#getConfig">getConfig</a></b>()
+                </div>
+
+                <div class="description">
+                  Get configuration of this storage.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#getDb">getDb</a></b>()
+                </div>
+
+                <div class="description">
+                  Return underlining database instance.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#getItem">getItem</a></b>(key)
+                </div>
+
+                <div class="description">
+                  Retrieve a value from default key-value store.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#initDatabase">initDatabase</a></b>()
+                </div>
+
+                <div class="description">
+                  Initialize suitable database if {@code dbname} and {@code schema} are set, starting in the following order of preference.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#isReady">isReady</a></b>()
+                </div>
+
+                <div class="description">
+                  Probe database is initialized and ready to be use.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#list">list</a></b>(q)
+                </div>
+
+                <div class="description">
+                  Fetch result of a query and return as array.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#put">put</a></b>(store_name, value)
+                </div>
+
+                <div class="description">
+                  Put an object to the store.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#setDbName">setDbName</a></b>(opt_db_name)
+                </div>
+
+                <div class="description">
+                  Set database.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#setItem">setItem</a></b>(key, value)
+                </div>
+
+                <div class="description">
+                  Store a value to default key-value store.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="attributes">&nbsp;</td>
+
+              <td class="nameDescription">
+                <div class="fixedFont">
+                  <b><a href="#setSchema">setSchema</a></b>(schema)
+                </div>
+
+                <div class="description">
+                  Set the latest version of database schema.
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table><!-- ============================== events summary ======================== -->
+        <!-- ============================== constructor details ==================== -->
+
+        <div class="details">
+          <a name="constructor"></a> 
+
+          <div class="sectionTitle">
+            Class Detail
+          </div>
+
+          <div class="fixedFont">
+            <b>ydn.db.Storage</b>(opt_dbname, opt_schema)
+          </div>
+
+          <div class="description">
+            Create a suitable storage mechanism from indexdb, to websql to localStorage. If database name and schema are provided, this will immediately initialize the database and ready to use. However if any of these two are missing, the database is not initialize until they are set by calling #setsetDbName and <a href="#setSchema">#setSchema</a>.
+          </div>
+
+          <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+
+            <dt><span class="light fixedFont">{string=}</span> <b>opt_dbname</b></dt>
+
+            <dd>database name.</dd>
+
+            <dt><span class="light fixedFont">{!ydn.db.DatabaseSchema=}</span> <b>opt_schema</b></dt>
+
+            <dd>database schema or its configuration in JSON format. schema used in chronical order.</dd>
+          </dl>
+
+          <dl class="detailList">
+            <dt class="heading">See:</dt>
+
+            <dd>goog.db Google Closure Library DB module.</dd>
+          </dl>
+        </div><!-- ============================== field details ========================== -->
+
+        <div class="sectionTitle">
+          Field Detail
+        </div> <a name="db_name"></a> 
+
+        <div class="fixedFont">
+          <b>db_name</b>
+        </div>
+
+        <div class="description">
+        </div>
+        <hr>
+
+         <a name=".DEFAULT_TEXT_STORE"></a> 
+
+        <div class="fixedFont">
+          &lt;static&gt; <span class="light">ydn.db.Storage.</span><b>DEFAULT_TEXT_STORE</b>
+        </div>
+
+        <div class="description">
+        </div>
+        <hr>
+
+         <a name="deferredDb"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{deferred db instance.}</span> <b>deferredDb</b>
+        </div>
+
+        <div class="description">
+        </div>
+        <hr>
+
+         <a name="schema"></a> 
+
+        <div class="fixedFont">
+          <b>schema</b>
+        </div>
+
+        <div class="description">
+        </div><!-- ============================== method details ========================= -->
+
+        <div class="sectionTitle">
+          Method Detail
+        </div> <a name="clear"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{!goog.async.Deferred}</span> <b>clear</b>(opt_store_name, opt_key)
+        </div>
+
+        <div class="description">
+          Remove a specific entry or all entries from a store.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+
+          <dt><span class="light fixedFont">{string=}</span> <b>opt_store_name</b></dt>
+
+          <dd>the store name to use. If not provided all entries in the store will be cleared.</dd>
+
+          <dt><span class="light fixedFont">{string=}</span> <b>opt_key</b></dt>
+
+          <dd>delete a specific row.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{!goog.async.Deferred}</span> return {@code true} in the deferred function.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">See:</dt>
+
+          <dd>
+          </dd>
+        </dl>
+        <hr>
+
+         <a name="close"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{!goog.async.Deferred}</span> <b>close</b>()
+        </div>
+
+        <div class="description">
+          Close the database.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{!goog.async.Deferred}</span> deferred function.</dd>
+        </dl>
+        <hr>
+
+         <a name="count"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{!goog.async.Deferred}</span> <b>count</b>(opt_store_name)
+        </div>
+
+        <div class="description">
+          Get number of items in a store.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+
+          <dt><span class="light fixedFont">{string=}</span> <b>opt_store_name</b></dt>
+
+          <dd>store name, if not provided, count all entries in the database.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{!goog.async.Deferred}</span> return number of items in deferred function.</dd>
+        </dl>
+        <hr>
+
+         <a name="get"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{!goog.async.Deferred}</span> <b>get</b>(store_name, opt_key)
+        </div>
+
+        <div class="description">
+          Retrieve an object. Note: This will not raise error to get non-existing object.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+
+          <dt><span class="light fixedFont">{string}</span> <b>store_name</b></dt>
+
+          <dd>The name of store to retrive object from.</dd>
+
+          <dt><span class="light fixedFont">{string=}</span> <b>opt_key</b></dt>
+
+          <dd>the key of an object to be retrieved. if not provided, all entries in the store will return.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{!goog.async.Deferred}</span> return resulting object in deferred function. If not found, {@code undefined} is return.</dd>
+        </dl>
+        <hr>
+
+         <a name="getConfig"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{{db_name: string|schema: !Object}}</span> <b>getConfig</b>()
+        </div>
+
+        <div class="description">
+          Get configuration of this storage. This is useful from getting storage from main thread to worker thread. 
+<pre>
+  var db = new ydn.db.Storage(...);
+  ... initialize ...
+  var config = db.getConfig();
+
+  ... in worker thread ...
+  var worker_db = new ydn.db.Storage(config.db_name, config.schema);
+</pre>
+          In this way, data can be share between the two threads.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{{db_name: string|schema: !Object}}</span> configuration containing database and list of schema in JSON format.</dd>
+        </dl>
+        <hr>
+
+         <a name="getDb"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{ydn.db.Db|undefined}</span> <b>getDb</b>()
+        </div>
+
+        <div class="description">
+          Return underlining database instance.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{ydn.db.Db|undefined}</span> Database if exists.</dd>
+        </dl>
+        <hr>
+
+         <a name="getItem"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{!goog.async.Deferred}</span> <b>getItem</b>(key)
+        </div>
+
+        <div class="description">
+          Retrieve a value from default key-value store. Note: This will not raise error to get non-existing object.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+
+          <dt><span class="light fixedFont">{string}</span> <b>key</b></dt>
+
+          <dd>The key to get.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{!goog.async.Deferred}</span> return resulting object in deferred function. If not found, {@code undefined} is return.</dd>
+        </dl>
+        <hr>
+
+         <a name="initDatabase"></a> 
+
+        <div class="fixedFont">
+          <b>initDatabase</b>()
+        </div>
+
+        <div class="description">
+          Initialize suitable database if {@code dbname} and {@code schema} are set, starting in the following order of preference. 1. IndexedDb 2. Sqlite 3. Html5Db 4. MemoryStore
+        </div>
+        <hr>
+
+         <a name="isReady"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{boolean}</span> <b>isReady</b>()
+        </div>
+
+        <div class="description">
+          Probe database is initialized and ready to be use.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{boolean}</span> true if the database has been initialized.</dd>
+        </dl>
+        <hr>
+
+         <a name="list"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{!goog.async.Deferred}</span> <b>list</b>(q)
+        </div>
+
+        <div class="description">
+          Fetch result of a query and return as array.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+
+          <dt><span class="light fixedFont">{ydn.db.Query}</span> <b>q</b></dt>
+
+          <dd>query.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{!goog.async.Deferred}</span> return array of result for each row in a deferred function.</dd>
+        </dl>
+        <hr>
+
+         <a name="put"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{!goog.async.Deferred}</span> <b>put</b>(store_name, value)
+        </div>
+
+        <div class="description">
+          Put an object to the store.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+
+          <dt><span class="light fixedFont">{string}</span> <b>store_name</b></dt>
+
+          <dd>the name of store to use.</dd>
+
+          <dt><span class="light fixedFont">{!Object|Array.}</span> <b>value</b></dt>
+
+          <dd>object to put.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{!goog.async.Deferred}</span> return key in deferred function. On error, an {@code Error} object is return as received from the mechanism.</dd>
+        </dl>
+        <hr>
+
+         <a name="setDbName"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{string}</span> <b>setDbName</b>(opt_db_name)
+        </div>
+
+        <div class="description">
+          Set database. This will initialize the database.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+
+          <dt><span class="light fixedFont">{string}</span> <b>opt_db_name</b></dt>
+
+          <dd>set database name.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">Throws:</dt>
+
+          <dt><span class="light fixedFont">{Error}</span> <b></b></dt>
+
+          <dd>if database is already initialized.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{string}</span> normalized database name.</dd>
+        </dl>
+        <hr>
+
+         <a name="setItem"></a> 
+
+        <div class="fixedFont">
+          <span class="light">{!goog.async.Deferred}</span> <b>setItem</b>(key, value)
+        </div>
+
+        <div class="description">
+          Store a value to default key-value store.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+
+          <dt><span class="light fixedFont">{string}</span> <b>key</b></dt>
+
+          <dd>The key to set.</dd>
+
+          <dt><span class="light fixedFont">{string}</span> <b>value</b></dt>
+
+          <dd>The value to save.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+
+          <dd><span class="light fixedFont">{!goog.async.Deferred}</span> true on success. undefined on fail.</dd>
+        </dl>
+        <hr>
+
+         <a name="setSchema"></a> 
+
+        <div class="fixedFont">
+          <b>setSchema</b>(schema)
+        </div>
+
+        <div class="description">
+          Set the latest version of database schema. This will start initialization if database name have been set. The the database is already initialized, this will issue version change event and migrate to the schema.
+        </div>
+
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+
+          <dt><span class="light fixedFont">{!ydn.db.DatabaseSchema|!Object}</span> <b>schema</b></dt>
+
+          <dd>set the last schema or its configuration in JSON format.</dd>
+        </dl>
+
+        <dl class="detailList">
+          <dt class="heading">See:</dt>
+
+          <dd>
+          </dd>
+        </dl>
+      </div>
+</div><script type="text/javascript">
+        var addPrettyClass = function(tag) {
+            var codes = document.getElementsByTagName(tag);
+            for (var i = 0; i < codes.length; i++) {
+               if (!codes[i].className) {
+                codes[i].className = "prettyprint";
+               }
+            }
+        }
+        addPrettyClass('code');
+        addPrettyClass('pre');
+        prettyPrint();
+        </script>
+<script type="text/javascript" src="../demo/example/ydn-db.js">
+</script>
+  </body>
+</html>

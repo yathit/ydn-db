@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>YDN-DB-TEXT example: Animals species database</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="../../../jsc/ydn.db-dev-text.js"></script>
+
+    <script type="text/javascript">
+        // ydn.debug.log('ydn.db', 'finest');
+    </script>
+
+
+    <style TYPE="text/css">
+
+        body {
+            margin: 0;
+        }
+        div.floatbox {
+            float: left;
+            width: 300px;
+        }
+
+        div.resultbox {
+            border: 1px solid black;
+            margin: 0.5em;
+            color: black;
+            background-color: #EEEEEE;
+            overflow: hidden;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        textarea.typebox {
+            float: left;
+            width: 300px;
+            height: 200px;
+            margin: 1em;
+            color: black;
+            background-color: white;
+        }
+        #results {
+            overflow-y: auto;
+        }
+        #ref {
+            padding: 4px;
+            background-color: white;
+            font-size: smaller;
+            color: gray;
+            max-height: 2em;
+            z-index: -1;
+        }
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            margin: 0;
+        }
+        #status {
+            background-color: #d3d3d3;
+            padding: 4px;
+            opacity: 1;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+<h1>Animal Database</h1>
+
+<div style="margin: 1em" id="application">
+    Type an animal name here:
+    <div>
+        <input type="text" id="search_input" class="typebox" list="search_hint">
+
+        <datalist id="search_hint">
+
+        </datalist>
+        <button id="search">Search</button>
+    </div>
+    <div style="clear:both" id="results">
+    </div>
+</div>
+<footer>
+    <div id="ref">
+        <div>
+            This application provides an example of fulltext search in the species
+            database from
+            the <a href="http://gapanalysis.usgs.gov/data/species-data/">U.S. Geological
+            Survey Gap Analysis Program</a>
+        </div>
+    </div>
+
+    <div id="status">
+        starting...
+    </div>
+</footer>
+<script type="text/javascript" src="animals.js"></script>
+<script type="text/javascript">
+    var app = new Animals();
+    app.run();
+</script>
+</body>
+</html>

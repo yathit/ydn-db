@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head><title>YDN login client</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <script type="text/javascript" src="/jsc/app.js"></script>
+</head>
+<body>
+<article class="content">
+    <script type="text/javascript" src="/jsc/ydn.auth.js"></script>
+    <div dir="ltr"><h2><a name="TOC-YDN-login-client"/>YDN login client</h2>
+
+        <p>
+            Authentication is the most important in securing the web site.
+            Both user and server are responsible for securing the web site.
+            Nowadays user are using a lot of web services. Using same password
+            for different web site is bad, as well as all of them is nearly
+            impossible task. Current solution is we use user credential
+            service like <a href="http://openid.net/">OpenID</a>, <a href="http://www.mozilla.org/en-US/persona/">Mozzlla</a> or
+            <a href="www.passport.net">Microsoft Passport</a>. However
+            <a href="https://developers.google.com/accounts/docs/OpenID">Google</a> and
+            <a href="https://developers.facebook.com/blog/post/2009/05/18/facebook-supports-openid-for-automatic-login/">Facebook</a>
+            OpenID accounts are the most widely used and more secure due to two factor authentication.
+            By federating login service, we don't want to maintain user credentials and user
+            can safely use the same login credentials for multiple web apps.
+        </p>
+
+        <p>
+            Here we describe Google Appengine (GAE) proxy login system. In most case, it fit into free tier. The open source code for Java and Python is available in our repo. Here we describe javascript login module.
+        </p>
+
+        <p>
+            To be general, we describe GAE login server domain is different from domain hosting the web app, which is hosted in static CDN server.
+        </p>
+
+        <p>
+            First include the ydn-auth module, which give a single global variable ydn.api.App</p>
+        <pre>    &lt;script type="text/javascript" src="ydn-auth-min-x.x.js"&gt;&lt;/script&gt;</pre>
+        <div class="box">
+            This page is attached with YDN-login module script, so that you can copy and paste the code snippets to your browser console to see in action.
+        </div>
+        <p>Minimally, an app is configured as</p>
+<pre>var options = {
+  appId: 'test',
+  loginServerOrigin: 'https://gae-login-server.appspot.com'
+};
+app = new ydn.api.App(options);
+</pre>
+
+        <p>
+            where,
+            <code>app_id </code>is registered in GAE application, which is hosted in
+            <code>api_server_url</code>. Notice that secure protocol, login server accept only https connection.
+        </p>
+
+        <h3><a name="TOC-User-object"/>User object</h3>
+
+        <p>At this point, user object is ready to get from the app as:</p>
+<pre>user = app.getUser()
+</pre>
+        <p>Then we invoke refresh method to connect with the login server.  </p>
+<pre>user.refresh() 
+</pre>
+        <p>
+            <code>refresh</code> send XHR request to server, which return login url, if user is not login, or logout url along with other user properties, if user is login.
+        </p>
+
+        <div name="class=box">
+            If this is a cross domain request, login server must configure to accept CORS request. See ydn-login-server for more detail.  
+        </div>
+        <p>The user object has the following method</p>
+<pre>user.getNickname()
+user.getEmail() 
+user.getLogoutUrl() 
+user.getLoginUrl() 
+user.isLogin()
+</pre>
+        <p>
+            If you have not login, get the login url with
+            <code>user.getLoginUrl()</code> and follow the url to login to the server. If you already login follow
+            <code>user.getLogoutUrl()</code> to logout.
+        </p>
+
+        <h3><a name="TOC-User-event"/>User event</h3>
+
+        <p>User is a <code>EventTarget</code> and dispatch five events</p>
+        <table class="gridtable">
+
+            <thead>
+
+            <tr>
+
+                <th>EventType</th>
+
+
+                <th>Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tbody>
+            <tr>
+                <td><code>user-loaded</code></td>
+                <td>User data is loaded from the localStorage</td>
+            </tr>
+            <tr>
+                <td><code>user-logging-in</code></td>
+                <td>User initiate login</td>
+            </tr>
+            <tr>
+                <td><code>user-login</code></td>
+                <td>Received login data from the server</td>
+            </tr>
+            <tr>
+                <td><code>user-logging-out</code></td>
+                <td>User initiate logout</td>
+            </tr>
+            <tr>
+                <td><code>user-logout</code></td>
+                <td>Received logout data from the server</td>
+            </tr>
+
+            </tbody>
+        </table>
+        <p>
+            These events are listen as follow:
+        </p>
+<pre>user.addEventListener('user-login', function(e) {
+console.log('login data received.');
+console.log(e);
+});
+user.addEventListener('user-logout', function(e) {
+console.log('logout data received');
+console.log(e);
+});
+user.refresh(true); // force login request by setting true
+</pre>
+        <h3><a name="TOC-User-presenter"/>User presenter</h3>
+
+        <div><br/>
+        </div>
+        Ydn-login module adopt Model-View-Presenter design pattern, in which user object is presenter. Usually user object is setup with a user display as follow:
+
+<pre>var login_ele = document.createElement('a');
+var nickname_ele = document.createElement('span');
+var base = document.createElement('div');
+base.appendChild(login_ele);
+base.appendChild(nickname_ele);
+document.getElementsByTagName('h3')[2].appendChild(base);
+var user_display = {
+  setLoginUrl: function(label) {
+    login_ele.textContent = 'login';
+    login_ele.href = label;
+  },
+  setLogoutUrl: function(label) {
+    login_ele.textContent = 'logout';
+    login_ele.href = label;
+  },
+  setNickname: function(label) {
+    nickname_ele.textContent = label;
+  }
+};
+
+user.setView(user_display);
+user.refresh(true); // this will update user display</pre>
+        <div class="box">Instead of implementing <code>setLoginUrl</code> and
+            <code>setLogoutUrl</code> methods, user display can implement <code>getLoginClick</code> method. The method must return
+            <code>EventTarget</code>. Since all DOM Element, are
+            <code>EventTarget</code> returning any DOM Element is a valid implementation. In this case, the app will redirect to the login or logout url if user invoke the CLICK event to the given event target element. If the app is run in iframe, the app will
+            <code><a href="https://developer.mozilla.org/en-US/docs/DOM/window.postMessage">postMessage</a></code> to the parent frame with the data
+            <code>{action: 'redirect', url: 'login-url'}</code>. Login server's
+            <code>X-Frame-Options</code> security policy do not allow redirect from iframe. 
+        </div>
+
+        <p>You will notice that user display implementation involves only functions, which is feature of MVP design pattern. View is a dump display without event or logic. Application will still functional even if these display methods are not implemented. Mock display for unit testing are easily emulated. This design pattern is powerful way to use different UI targets without changing application logic. </p>
+
+        <p>
+            In addition to checking referer URL and redirect url with the app id, login server does two things to prevent Cross-Site Request Forgery, </p>
+
+        <ol>
+            <li>It set secure HTTP-only session cookie to its domain, in this case https://yathit-api.appengine.com. </li>
+            <li>Redirect URL has a hash string containing a token. The token have to be set set in the header on every XHR request to the API server. These are taken care of by the library, so you don't need to do them.</li>
+        </ol>
+        <p>
+            After user is login, you can request to generate access tokens and assertion tokens associated the with user account. User (your app) can also change ACL of these tokens. The following tokens are supported: </p>
+
+        <ol>
+            <li>
+                <a href="https://developers.google.com/gdata/">Google Data API</a> access token 
+            </li>
+            <li>Amazon
+                <a href="http://aws.amazon.com/code/8872061742402990">Anonymous </a>and
+                <a href="http://aws.amazon.com/code/7351543942956566">Identity </a>tokens 
+            </li>
+            <li>
+                <a href="http://self-issued.info/docs/draft-ietf-oauth-json-web-token.html">JSON Web Token</a>
+            </li>
+        </ol>
+        <p>
+            Access token allow you to call REST request to their end points. JWT token allow you to transfer login authentication similar to Single-Sign-On (SSO) services.</p>
+
+        <p>See full application in
+            <a href="/demo/ydn-login/gae_demo_app.js">demo_app.js</a> in
+            <a href="/demo/ydn-login/gae_demo_app.html">Login Demo App.</a>
+        </p></div>
+</article>
+<script type="text/javascript">initDom()</script>
+</body>
+</html>

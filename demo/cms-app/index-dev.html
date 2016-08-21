@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Blog demo app</title>
+    <link rel="stylesheet" type="text/css" href="app.css">
+    <script type="text/javascript" src="../../../../closure-library/closure/goog/base.js"></script>
+    <script type="text/javascript" src="../../../../ydn-base/src/deps.js"></script>
+    <script type="text/javascript" src="../../../../ydn-db/src/deps.js"></script>
+    <script type="text/javascript" src="../../../../ydn/js/deps.js"></script>
+    <script type="text/javascript" src="../../../../ydn-db-sync/js/deps.js"></script>
+</head>
+
+<body>
+<div role="navigation" class="menu_bar">
+    <ul class="left">
+        <li>Blog Demo App</li>
+    </ul>
+
+    <ul class="right">
+        <li><a id="user-login">...</a></li>
+
+        <li><span id="user-name" style="display: none;"></span></li>
+    </ul>
+</div>
+<div id="content">
+
+
+</div>
+<footer>
+    <p>This demo app illustrate client side authentication.</p>
+</footer>
+
+<script type="text/javascript">
+    goog.require('ydn.debug');
+    goog.require('ydn.db.Storage');
+    goog.require('ydn.db.sync');
+    goog.require('ydn.base');
+</script>
+<script type="text/javascript">
+    ydn.db.base.USE_HOOK = true;
+    ydn.debug.log('ydn', 'finest');
+    ydn.debug.log('ydn.db.tr', 'off');
+</script>
+<script type="text/javascript" src="auth.js"></script>
+<script type="text/javascript" src="cms-app.js"></script>
+<script type="text/javascript">
+    app = new CmsApp();
+</script>
+<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+</body>
+</html>

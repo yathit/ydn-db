@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>API References - Algorithm class</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link href="../../css/main.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/jsc/app.js"></script>
+  </head>
+  <body>
+    <article class="content">
+      <h1 class="classTitle">Class ydn.db.Solver</h1>
+      <p> An Algorithm class represents an iterative solver by guiding cursor
+        increment for each scanning iteration. </p>
+
+      <br>
+      <div class="sectionTitle"> Constructor <br>
+      </div>
+      <details> <summary>
+          <div class="fixedFont"> <b>ydn.db.algo.AbstractSolver</b>(solver, initializer,
+            finalizer)</div>
+          <div class="description"> Create an algorithm giving functions. </div>
+        </summary>
+        <p><em>Solver function</em> is an optimizer receiving input argument, <code>input</code>,
+          of some function to optimized and its function output value, <code>output</code>.
+          Solver return an array giving advance to make for next iteration step.
+          At the same time solver must meet given constrain condition. A solver
+          function decide a result and push to output streamers.<br>
+        </p>
+        <p><em>Adapter function</em> format result from scanning iteration to
+          solver function. </p>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{!function(input: !Array, output:
+              !Array, constrain: !Array</span><span class="light fixedFont"></span><span
+              class="light fixedFont">):
+              Array}</span> <b>solver</b></dt>
+          <dd>The <em>solver function</em> to guide next cursor iteration.</dd>
+          <dt><span class="light fixedFont">{function(</span><span class="light fixedFont">iterator_keys:
+              !Array, iterator_values: !Array, streamer_keys: !Array, </span><span
+              class="light fixedFont">streamer_values:
+              !Array</span><span class="light fixedFont"></span><span class="light fixedFont">):
+              {'input': !Array, 'output': !Array, 'constrain': !Array}</span> <b>adapter</b></dt>
+          <dd><span class="light fixedFont optional">Optional. </span>The <em>adapter
+              function</em> format streaming values from the scanner for
+            advancer function.</dd>
+          <dt><span class="light fixedFont">{function(iterators: !Array,
+              streamers: !Array, on_complete: Function): boolean}</span> <b>initializer</b></dt>
+          <dd><span class="light fixedFont optional">Optional. </span>The <em>initializer
+              function</em> is invoked before beginning of scanning iteration.
+            Return <code>true</code> to wait for <code>on_complete</code>
+            callback. </dd>
+          <dt><span class="light fixedFont">{function(on_complete: Function):
+              boolean}</span> <b>finalizer</b></dt>
+          <dd><span class="light fixedFont optional">Optional. </span>The <em>finalizer
+              function</em> is invoked at the end of scanning iteration. Return
+            <code>true</code> to wait for <code>on_complete</code> callback. </dd>
+        </dl>
+      </details> <br>
+      <div class="sectionTitle"> Concrete Classes </div>
+      <details> <summary>
+          <div class="fixedFont"> <b>ydn.db.algo.NestedLoop</b>(out, limit) <span
+              class="version">version
+              4</span></div>
+          <div class="description"> Create an nested loop join algorithm. </div>
+        </summary>
+        <p>The following example illustrate friendship graph query. <code>friendship</code>
+          object store has only one <em>listed</em> indexed field <code>friend_list</code>.
+          It uses people object store key as out-of-line key. <code>people</code>
+          object store has many attributes, among them is <code>location</code>
+          field. The query is to find list of friends who know <code>me</code>
+          and <code>other_guy</code> and located in 'Singapore'.<br>
+        </p>
+        <pre>var q1 = ydn.db.Cursor.where('friendship', 'friend_list', '=', me);
+var q2 = ydn.db.Cursor.where('friendship', 'friend_list', '=', other_guy);
+var q3 = ydn.db.Cursor.where('people', 'location', '=', Singapore);
+var out = new ydn.db.Streamer(db, 'people');
+var join_algo = new ydn.db.algo.NestedJoin(out);
+var result = db.scan([q3, q1, q2], join_algo);
+result.done(function() {
+  out.collect(function(friends) {
+    console.log(friends); // should get desire list of friends 
+  }
+});
+</pre>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{(!Array|!{push: Function}|!ydn.db.Streamer)=}</span>
+            <b>out</b></dt>
+          <dd>The output streamers.</dd>
+            <dt><span class="light fixedFont">{number=}</span>
+                <b>limit</b></dt>
+            <dd>Limit number of results.</dd>
+        </dl>
+      </details>
+      <hr> <details> <summary>
+        <div class="fixedFont"> <b>ydn.db.algo.SortedMerge</b>(out, limit) </div>
+        <div class="description"> Create an sorted merge join algorithm. </div>
+    </summary>
+        <p>Sorted merge join given input iterators by their reference value. Generally
+            input iterators are index key cursor iterator and hence their reference
+            values are primary keys.
+        </p>
+
+        <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+            <dt><span class="light fixedFont">{(!Array|!{push: Function}|!ydn.db.Streamer)=}</span>
+                <b>out</b></dt>
+            <dd>The output streamers.</dd>
+            <dt><span class="light fixedFont">{number=}</span>
+                <b>limit</b></dt>
+            <dd>Limit number of results.</dd>
+        </dl>
+    </details>
+        <hr> <details> <summary>
+        <div class="fixedFont"> <b>ydn.db.algo.Zigzag</b>(out, limit) </div>
+        <div class="description"> Create an zigzag merge join algorithm. </div>
+    </summary>
+        <p>Sorted merge join given input iterators by their effective key, which
+            compose a constant prefix and sorted post-fix. Generally
+            input iterators are composite index key cursor iterator of
+            filtered prefix index and sorted postfix index.
+        </p>
+
+        <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+            <dt><span class="light fixedFont">{(!Array|!{push: Function}|!ydn.db.Streamer)=}</span>
+                <b>out</b></dt>
+            <dd>The output streamers.</dd>
+            <dt><span class="light fixedFont">{number=}</span>
+                <b>limit</b></dt>
+            <dd>Limit number of results.</dd>
+        </dl>
+    </details>
+        <br>
+    </article>
+    <script type="text/javascript">initDom()</script>
+  </body>
+</html>

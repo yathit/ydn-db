@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YDN-DB NoSQL query demo</title>
+    <link href="app.css" rel="stylesheet" type="text/css">
+
+</head>
+<body>
+<article class="content">
+    <h2>NoSQL query demonstration application.</h2>
+    <p>See discussion on <a href="http://dev.yathit.com/ydn-db/nosql-query.html">NoSQL Methods</a> section.</p>
+</article>
+<div >
+    <div id="app-menu_bar">
+        <div id="app-menu_bar-gen_author">
+            <span class="menu-title">Create</span>
+            <input title="Number of authors to generate" id="app-menu_bar-gen_author-num_author" value="10000" />
+            <button id="app-menu_bar-gen_author-btn">Generate</button>
+        </div>
+        <div id="app-menu_bar-system">
+            <span class="menu-title">System</span>
+            <select id="app-menu_bar-query-system">
+                <option value="index" selected>Composite index</option>
+                <option value="zigzag">Sorted merge</option>
+            </select>
+        </div>
+        <div id="app-menu_bar-query">
+            <span class="menu-title">Filter</span>
+            <span>License:</span>
+            <select id="app-menu_bar-query-license">
+                <option value="" selected>None</option>
+                <option value="CC">CC</option>
+                <option value="ND">ND</option>
+                <option value="SA">SA</option>
+                <option value="NC">NC</option>
+                <option value="BY">BY</option>
+            </select>
+            <span>Publisher:</span>
+            <select id="app-menu_bar-query-publisher">
+                <option value="" selected>None</option>
+            </select>
+            <span>Topic:</span>
+            <datalist id="app-menu_bar-query-topics-data">
+
+            </datalist>
+            <input type="text" id="app-menu_bar-query-topic" list="app-menu_bar-query-topics-data" />
+            <span>After:</span>
+            <input id="app-menu_bar-query-publish-after" type="date"/>
+            <span>Before:</span>
+            <input id="app-menu_bar-query-publish-before" type="date"/>
+        </div>
+        <div id="app-menu_bar-sort">
+            <span class="menu-title">Sort</span>
+            <select id="app-menu_bar-query-sort">
+                <option value="" selected>None</option>
+                <option value="title">Title</option>
+                <option value="publish">Publish</option>
+            </select>
+            <select id="app-menu_bar-query-direction">
+                <option value="ASC">Ascending</option>
+                <option value="DES">Descending</option>
+            </select>
+        </div>
+    </div>
+    <div id="app-content">
+
+    </div>
+    <div id="app-status_bar">
+        <span id="app-status_bar-num_authors" title="Number of authors" class="app-status-box"></span>
+        <span id="app-status_bar-num_articles" title="Number of articles" class="app-status-box"></span>
+
+        <span id="app-status_bar-msg" ></span>
+    </div>
+</div>
+
+<script type="text/javascript" src="ydn.db-dev.js"></script>
+<script type="text/javascript" src="data-seeding.js"></script>
+<script type="text/javascript" src="status_bar.js"></script>
+<script type="text/javascript" src="query-planner.js"></script>
+<script type="text/javascript" src="generator.js"></script>
+<script type="text/javascript" src="query_container.js"></script>
+<script type="text/javascript" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html><html><head><title>Key class</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><script type="text/javascript" src="/jsc/app.js"></script></head><body><article class="content"><script type="text/javascript" src="/jsc/ydn.db-dev.js"></script><div dir="ltr"><h2><a name="TOC-Key-class" />Key class</h2>
+<p>In NoSQL database like IndexedDB, object store exists unrelated to other stores. This gives tremendous scalability and performance. However most application data are related or necessarily co-related for consistency.  </p>
+<p>Fortunately, keys can be constructed in such a way that stores has appearance relationship. Additionally keys can be used as reference to enforce co-related consistency during database operation. </p>
+<p>This implementation is inspired by appengine datastore API which employs <a href="https://developers.google.com/appengine/docs/python/datastore/keyclass">hierarchical key class</a> for modeling data and key serialization.  </p>
+<p>
+In relational database, such parent-child relationship will be defined as <a href="http://en.wikipedia.org/wiki/Foreign_key#CASCADE" >cascade foreign key</a> relationship. In the same way, a hierarchical key comprises own id and parent key. The key is constructed      so that it is efficient for retrieval from parent-to-child or vice versa using efficient key range query. Consistency of parent-child relationship can be enforced by using schema, of which we will discuss on modeling.</p>
+
+The following example illustrate how to construct keys:
+
+<pre>aid = 'work'
+customer1_key = db.key('customer', 1)
+address1_key = db.key('address', aid, customer1_key)
+// alternatively
+address1_key  = db.key('address', aid, 'customer', 1)
+customer1_key = address1_key.parent() 
+// for another customer
+address2_key = db.key('address', aid, 'customer', 2)
+db.fetch([customer1_key, address1_key, customer2_key]).success(function(out) {
+  customer1 = out[0]
+  address1 = out[1]
+  customer2 = out[2]  
+  console.log(db.key('address', address1) // this will be address1_key
+});
+</pre>
+<p>Even though <code>address2</code> has the same id 'work' with <code>address1</code>, their key are different since customer id is included in generating the key. Let us discuss how to generate a child key.</p>
+
+<p>Transversing from child to parent is simple as <code>parent()</code> method to child key. But transversing from parent to child requires querying to child store. To make this efficient, we must index it. All child object will have a field that specify parent id. Indexing parent id field will be the most efficient indexing. However that will not work for more than one level of ancestor hierarchy. We can get out of most from indexing child key itself and it is constructed such that it is ordered ancestor hierarchy. The implementation of child key generation is:   </p>
+<pre>var key_generator = function(obj) {
+  var parent_id = obj[parent_field];
+  var child_id = obj[keyPath];
+  return parent_id + '|' + child_id;
+};
+</pre>
+<p>The key is stored in <code>_key_</code> field and it is indexed, so that we can perform the following <code>starts</code> key range query:</p>
+<pre>db.query(child_store, '_key_').starts(parent_id).fetch().success(children)
+</pre>
+<p>The children query return full children objects. Querying only children key is not possible, unlike appengine datastore. </p>
+<p>
+See also use of key in <a href="/ydn-db/using/relationships.html">modeling relationships</a>.</p></div></article><script type="text/javascript">initDom()</script></body></html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+  <head>
+    <title>CloudyRec proxy login</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  </head>
+
+  <body>
+
+  <h3>Authorization for CloudyRec backend example application</h3>
+
+  <div>
+    <span id="nickname"></span>
+    <a id="login">...</a>
+  </div>
+  <div class="content">
+    <br/>
+    <div>
+      <a href="http://www.cloudyrec.com">CloudyRec</a>
+      <a href="http://dev.yathit.com/auth.html">YDN-AUTH</a>
+    </div>
+
+  </div>
+
+  <div>
+    <span>Resource key</span>
+    <input value="8e15d7418581bbec39d6f9efdeeeeb9c" id="resource_key" /><br/>
+    <button onclick="listResource()">List</button>
+  </div>
+  <div id="result">
+
+  </div>
+
+<script type="text/javascript" src="/jsc/ydn-auth-min.js">
+</script>
+<script type="text/javascript" src="cloudyrec_app.js">
+</script>
+  </body>
+</html>

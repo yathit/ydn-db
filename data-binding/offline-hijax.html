@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head><title>Offline Hijax</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <script type="text/javascript" src="/jsc/app.js"></script>
+</head>
+<body>
+<article class="content">
+  <div dir="ltr"><h2><a name="TOC-1"/><br/></h2>
+
+    <p>
+      Now a day, user don't like waiting. Lead by Google, Facebook and Twitter, all web site must be extremely fast and comparable to native application. The trick is using javascript.
+    </p>
+
+    <h3><a name="TOC-Offline-Hijax"/>Offline Hijax</h3>
+
+    <p>In 2004, Google outline crawling strategy for
+      <a href="https://developers.google.com/webmasters/ajax-crawling/">making AJAX site URL crawlable</a>. At the begining, web master don't buy it. But now Bing also follow Google's AJAX crawling strategy, and most arguments against it are irrelevant whether semantically correct or not. 
+    </p>
+
+    <p>To better understand, what we are doing, let us start with the problem in client side. </p>
+
+    <p>We want offline web site, this is archieved using a new standard called
+      <a href="http://www.w3.org/TR/offline-webapps">Offline Application Caching APIs</a>. It has its won limitation and quark too. Anyways the gist of it is you define list of URLs that you want the browser to cache in a manifest file, <code>site.appcache</code>. For example:
+    </p>
+<pre>CACHE MANIFEST
+index.html
+help.html
+style/default.css
+images/logo.png
+images/backgound.png
+</pre>
+    <p>Each web page link to it by declaring as:</p>
+<pre>&lt;!DOCTYPE HTML&gt;
+&lt;html manifest="site.appcache"&gt;
+</pre>
+    <p>Please be note query parameters are part of URL and must register separately too. Hash fragment is not part of URL. It is not even sent to the server.
+    </p>
+
+    <p>It is fine for web app (actually that is their target audience), but for web site it is difficult. The problem not end here because, if you update the app cache minifest to update the site, the browser will download all the files, of which user not likely to visit at all.</p>
+
+    <p>What we provide with YDN-hijax, is you attach the hijax javascript module in each of your web page and make app cache file with some base URL. Once a user visit the site, our module will lazily store into the client database and update the links into ajax url. If user click the link, a hijacked callback update the page pulling out the content from the database and redirect is cancelled. </p>
+  </div>
+</article>
+<script type="text/javascript">initDom()</script>
+</body>
+</html>

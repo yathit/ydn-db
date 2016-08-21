@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head><title>Setup</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <script type="text/javascript" src="/jsc/app.js"></script>
+</head>
+<body>
+<article class="content">
+  <script type="text/javascript" src="/jsc/ydn.db-dev.js"></script>
+  <div dir="ltr"><h2>
+    <a name="TOC-Setting-up-YDN-DB-javascript-module"/>Setting up YDN-DB javascript module
+  </h2>
+
+    <h3><a name="TOC-Setup"/>Setup</h3>
+    <ol>
+      <li>
+        <a href="http://git.yathit.com/ydn-db/downloads">Download</a> the latest version of distribution.
+      </li>
+      <li>Include the YDN-DB script on appropriate location or in the header section of your HTML file.
+        <pre>&lt;script type="text/javascript" src="ydn-db-min-x.x.js"&gt;&lt;/script&gt;</pre>
+      </li>
+    </ol>
+    <p>For development you may want to use dev-ydn-db-min-x.x.js, which enforce assertion, print warning/error.
+    </p>
+
+    <p>The namespace of this library is
+      <code>ydn.db</code>. The script provide main javascript class object call
+      <code>ydn.db.Storage</code>.
+    </p>
+
+    <div class="box">Pages in this sections include the YDN-DB script and some preloaded data, so that you follow the sample code in your browser's developer console to see in action.
+    </div>
+    <h3><a name="TOC-Basic-usage"/>Basic usage</h3>
+
+    <p>
+      The simplest way to initialize a database is by specifying a database name.
+    </p>
+<pre>db = new ydn.db.Storage('db-name');
+</pre>
+    <p>
+      <code>ydn.db.Storage</code> creates a default key-value store. The default key-value
+      store is used by <code>setItem,</code> <code>getItem</code> and
+      <code>removeItem</code> methods
+      as follow.
+    </p>
+<pre>db.setItem('x', 'some value')
+
+db.getItem('x').done(function(value) {
+    console.log(value);
+});
+</pre>
+    <p>
+      All database operation methods are asynchronous and follow deferred pattern, instead of more common callback pattern. The return
+      <i>deferred object</i> accepts three asynchronous functions, <code>done</code> to receive value on success event and
+      <code>fail</code> to received in case of error and
+      <code>then</code> to accept both. On most of the case, <code>error </code>callback will be have one argument of
+      <code>Error </code>instance.  </p>
+
+    <div class="box">
+      If you use raw source code, <i>deferred object</i> is
+      <a href="http://code.google.com/p/closure-library/source/browse/trunk/third_party/closure/goog/mochikit/async/deferred.js">
+        <code>goog.async.Deferred</code></a> class, which is also similar to
+      <a href="http://api.jquery.com/category/deferred-object/">JQuery Deferred.</a> Both of them provides
+      advanced asynchronous workflow.    
+    </div>
+
+    <h3><a name="TOC-Object-store-or-TABLE"/>Object store or TABLE
+    </h3>
+
+    <div>In relational database, data are stored in
+      <code>TABLE</code>. In NoSQL database like,
+      <a href="http://www.w3.org/TR/IndexedDB">IndexedDB</a>, data are store in
+      <a href="http://www.w3.org/TR/IndexedDB/#object-store-concept">Object Store</a>. Here will will use the terms object store, which refer to TABLE for
+      <a href="http://www.w3.org/TR/webdatabase/">WebSql </a>storage mechanism. Object store are defined in database schema in JSON format as follow:
+    </div>
+
+<pre>schema_ver1 = {
+version: 1,
+Stores: [{
+    name: 'customer',
+    keyPath: 'email'
+}, {
+    name: 'product',
+    keyPath: 'sku'
+}]
+}
+</pre>
+    <div>
+      <div>The database version is specified as number and the estimated database size is in bytes. Both are optional.</div>
+      <div>If version is omitted, it is taken as version 1.
+        <code>stores </code>lists object store as a array list, describing require store name and optional keyPath. Here is the example of the objects that will be in
+        <code>customer </code>and <code>product </code>stores:
+      </div>
+    </div>
+<pre>customer1 = {
+   email: 'acb@gmail.com', 
+   first: 'John', 
+   last: 'Moe'
+}
+product1 = {
+   sku: 'ABC', 
+   description: 'Organic fruit'
+}
+</pre>
+
+    We use the store using <code>get</code>, <code>put</code> and
+    <code>clear</code> methods.
+<pre>db2 = new ydn.db.Storage('db2', schema_ver1)
+db2.put('customer', customer1) 
+db2.put('product', product1)
+db2.get('customer', 'acb@gmail.com').done(function(value) {
+    console.log(value);
+});  
+</pre>
+    <h3><a name="TOC-Lazy-initialization"/>Lazy initialization</h3>
+
+    <p>
+      If the database name is not available at the time of application start up, you can initialize with no argument constructor.
+      You can invoke database operation methods. It will be processed when the database is ready. To illustrate the case,
+    </p>
+<pre>db3 = new ydn.db.Storage()
+
+db3.setItem('a1', 'a1 object').done(function(y) {
+    db3.getItem('a1').done(function(x) {
+        console.log(x);
+    })
+})
+</pre>
+    Initialize the database now,
+<pre>db3.setName('lazy-db')
+
+</pre>
+    Notice that, success callbacks are called after the database initialization. We find this feature useful in complex
+    web app implementation.
+
+    <p><br/>
+    </p>
+
+    <h3><a name="TOC-Additional-options"/>Additional options</h3>
+
+    <p> Additional options can be pass as third argument.
+    </p>
+
+    <p>
+    </p>
+<pre>// default preference is
+options = {
+  preference: ["indexeddb", "websql", "localstorage", "sessionstorage", "memory"], // preferential ordering of store mechanisms. This is default value.
+  size: 5 * 1024 * 1024, // estimated size in byte (for WebSQL). This is default value.
+  use_text_store: true // if true a default text store is added tot he schema. default value depend on distribution.
+}
+db = new ydn.db.Storage('db4', {}, options)
+db.type() // return storage mechanism used
+</pre>
+  </div>
+</article>
+<script type="text/javascript">initDom()</script>
+</body>
+</html>

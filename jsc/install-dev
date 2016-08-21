@@ -1,0 +1,934 @@
+Downloading/unpacking Fabric==1.8 (from -r requirements/./base.txt (line 33))
+  Downloading Fabric-1.8.0.tar.gz (219kB): 219kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/Fabric/setup.py) egg_info for package Fabric
+
+    warning: no previously-included files matching '*' found under directory 'docs/_build'
+    warning: no previously-included files matching '*.pyc' found under directory 'tests'
+    warning: no previously-included files matching '*.pyo' found under directory 'tests'
+Downloading/unpacking progressbar==2.2 (from -r requirements/./base.txt (line 34))
+  Downloading progressbar-2.2.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/progressbar/setup.py) egg_info for package progressbar
+
+Downloading/unpacking django-haystack==2.1.0 (from -r requirements/./base.txt (line 35))
+  Downloading django-haystack-2.1.0.tar.gz (821kB): 821kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/django-haystack/setup.py) egg_info for package django-haystack
+
+Downloading/unpacking pyelasticsearch==0.6 (from -r requirements/./base.txt (line 36))
+  Downloading pyelasticsearch-0.6.tar.gz (40kB): 40kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/pyelasticsearch/setup.py) egg_info for package pyelasticsearch
+
+Downloading/unpacking PyYAML==3.10 (from -r requirements/./base.txt (line 37))
+  Downloading PyYAML-3.10.tar.gz (241kB): 241kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/PyYAML/setup.py) egg_info for package PyYAML
+
+Downloading/unpacking django-taggit==0.11.2 (from -r requirements/./base.txt (line 38))
+  Downloading django_taggit-0.11.2-py2.py3-none-any.whl
+Downloading/unpacking pylibmc==1.2.3 (from -r requirements/./base.txt (line 39))
+  Downloading pylibmc-1.2.3.tar.gz (47kB): 47kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/pylibmc/setup.py) egg_info for package pylibmc
+
+Downloading/unpacking python-postmark==0.4.1 (from -r requirements/./base.txt (line 40))
+  Downloading python-postmark-0.4.1.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/python-postmark/setup.py) egg_info for package python-postmark
+
+Downloading/unpacking django-extensions==1.3.3 (from -r requirements/./base.txt (line 41))
+  Downloading django-extensions-1.3.3.tar.gz (169kB): 169kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/django-extensions/setup.py) egg_info for package django-extensions
+
+Downloading/unpacking rfc3339==5 (from -r requirements/./base.txt (line 42))
+  Downloading rfc3339-5.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/rfc3339/setup.py) egg_info for package rfc3339
+
+Downloading/unpacking httpheader==1.1 (from -r requirements/./base.txt (line 43))
+  Downloading httpheader-1.1.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/httpheader/setup.py) egg_info for package httpheader
+
+Downloading/unpacking html5lib==0.999 (from -r requirements/./base.txt (line 44))
+  Downloading html5lib-0.999.tar.gz (885kB): 885kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/html5lib/setup.py) egg_info for package html5lib
+
+Downloading/unpacking parameterizedtestcase==0.0.3 (from -r requirements/./testing.txt (line 1))
+  Downloading parameterizedtestcase-0.0.3.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/parameterizedtestcase/setup.py) egg_info for package parameterizedtestcase
+
+Downloading/unpacking selenium==2.39.0 (from -r requirements/./testing.txt (line 2))
+  Downloading selenium-2.39.0.tar.gz (2.5MB): 2.5MB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/selenium/setup.py) egg_info for package selenium
+
+Downloading/unpacking unittest2==0.5.1 (from -r requirements/./testing.txt (line 3))
+  Downloading unittest2-0.5.1.tar.gz (62kB): 62kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/unittest2/setup.py) egg_info for package unittest2
+
+Obtaining fastly from git+git://github.com/fastly/fastly-py.git#egg=fastly (from -r requirements/development.txt (line 3))
+  Cloning git://github.com/fastly/fastly-py.git to ./env/src/fastly
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/src/fastly/setup.py) egg_info for package fastly
+
+  Installing extra requirements: 'egg'
+Obtaining django-debug-toolbar from git+git://github.com/sprintly/django-debug-toolbar.git#egg=django_debug_toolbar-dev (from -r requirements/development.txt (line 4))
+  Cloning git://github.com/sprintly/django-debug-toolbar.git to ./env/src/django-debug-toolbar
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/src/django-debug-toolbar/setup.py) egg_info for package django-debug-toolbar
+
+    no previously-included directories found matching 'example'
+  Installing extra requirements: 'egg'
+Downloading/unpacking BeautifulSoup==3.2.1 (from -r requirements/development.txt (line 5))
+  Downloading BeautifulSoup-3.2.1.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/BeautifulSoup/setup.py) egg_info for package BeautifulSoup
+
+Downloading/unpacking Pygments==1.5 (from -r requirements/development.txt (line 6))
+  Downloading Pygments-1.5.tar.gz (3.7MB): 3.7MB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/Pygments/setup.py) egg_info for package Pygments
+
+Downloading/unpacking amqplib==1.0.2 (from -r requirements/development.txt (line 7))
+  Downloading amqplib-1.0.2.tgz (58kB): 58kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/amqplib/setup.py) egg_info for package amqplib
+
+Downloading/unpacking anyjson==0.3.1 (from -r requirements/development.txt (line 8))
+  Downloading anyjson-0.3.1.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/anyjson/setup.py) egg_info for package anyjson
+
+Downloading/unpacking certifi==0.0.8 (from -r requirements/development.txt (line 9))
+  Downloading certifi-0.0.8.tar.gz (118kB): 118kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/certifi/setup.py) egg_info for package certifi
+
+Downloading/unpacking chardet==1.0.1 (from -r requirements/development.txt (line 10))
+  Downloading chardet-1.0.1.tar.gz (156kB): 156kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/chardet/setup.py) egg_info for package chardet
+
+Downloading/unpacking coverage==3.7.1 (from -r requirements/development.txt (line 11))
+  Downloading coverage-3.7.1.tar.gz (284kB): 284kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/coverage/setup.py) egg_info for package coverage
+
+    warning: no previously-included files matching '*.pyc' found anywhere in distribution
+Downloading/unpacking cssutils==0.9.10b1 (from -r requirements/development.txt (line 12))
+  Downloading cssutils-0.9.10b1.zip (430kB): 430kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/cssutils/setup.py) egg_info for package cssutils
+
+Downloading/unpacking decorator==3.3.3 (from -r requirements/development.txt (line 13))
+  Downloading decorator-3.3.3.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/decorator/setup.py) egg_info for package decorator
+
+    warning: no previously-included files found matching 'Makefile'
+Downloading/unpacking docutils>=0.9 (from -r requirements/development.txt (line 14))
+  Downloading docutils-0.11.tar.gz (1.6MB): 1.6MB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/docutils/setup.py) egg_info for package docutils
+
+    warning: no files found matching 'MANIFEST'
+    warning: no files found matching '*' under directory 'extras'
+    warning: no previously-included files matching '.cvsignore' found under directory '*'
+    warning: no previously-included files matching '*.pyc' found under directory '*'
+    warning: no previously-included files matching '*~' found under directory '*'
+    warning: no previously-included files matching '.DS_Store' found under directory '*'
+Downloading/unpacking logan==0.3.1 (from -r requirements/development.txt (line 15))
+  Downloading logan-0.3.1.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/logan/setup.py) egg_info for package logan
+
+Downloading/unpacking oauthlib==0.1.3 (from -r requirements/development.txt (line 16))
+  Downloading oauthlib-0.1.3.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/oauthlib/setup.py) egg_info for package oauthlib
+
+Downloading/unpacking pyasn1==0.1.3 (from -r requirements/development.txt (line 17))
+  Downloading pyasn1-0.1.3.tar.gz (54kB): 54kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/pyasn1/setup.py) egg_info for package pyasn1
+
+Downloading/unpacking pynliner==0.4.0 (from -r requirements/development.txt (line 18))
+  Downloading pynliner-0.4.0.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/pynliner/setup.py) egg_info for package pynliner
+
+Downloading/unpacking python-dateutil==1.5 (from -r requirements/development.txt (line 19))
+  Downloading python-dateutil-1.5.tar.gz (233kB): 233kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/python-dateutil/setup.py) egg_info for package python-dateutil
+
+Downloading/unpacking python-memcached==1.48 (from -r requirements/development.txt (line 20))
+  Downloading python-memcached-1.48.tar.gz (40kB): 40kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/python-memcached/setup.py) egg_info for package python-memcached
+
+Downloading/unpacking rsa==3.0.1 (from -r requirements/development.txt (line 21))
+  Downloading rsa-3.0.1.zip (49kB): 49kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/rsa/setup.py) egg_info for package rsa
+    Downloading http://pypi.python.org/packages/source/d/distribute/distribute-0.6.10.tar.gz
+    Extracting in /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/tmp8x3_1E
+    Now working in /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/tmp8x3_1E/distribute-0.6.10
+    Building a Distribute egg in /Users/kyawtun/sprintly/sprint.ly/env/build/rsa
+    /Users/kyawtun/sprintly/sprint.ly/env/build/rsa/distribute-0.6.10-py2.7.egg
+
+    warning: no files found matching 'README'
+Downloading/unpacking simplejson==2.5.2 (from -r requirements/development.txt (line 22))
+  Downloading simplejson-2.5.2.tar.gz (53kB): 53kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/simplejson/setup.py) egg_info for package simplejson
+
+Downloading/unpacking six==1.1.0 (from -r requirements/development.txt (line 23))
+  Downloading six-1.1.0.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/six/setup.py) egg_info for package six
+
+Downloading/unpacking ssh==1.7.14 (from -r requirements/development.txt (line 24))
+  Downloading ssh-1.7.14.tar.gz (794kB): 794kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/ssh/setup.py) egg_info for package ssh
+
+Downloading/unpacking virtualenv==1.7.2 (from -r requirements/development.txt (line 25))
+  Downloading virtualenv-1.7.2.tar.gz (2.2MB): 2.2MB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/virtualenv/setup.py) egg_info for package virtualenv
+
+    warning: no previously-included files matching '*' found under directory 'docs/_templates'
+    warning: no previously-included files matching '*' found under directory 'docs/_build'
+Requirement already satisfied (use --upgrade to upgrade): wsgiref==0.1.2 in /System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7 (from -r requirements/development.txt (line 26))
+Downloading/unpacking yolk==0.4.3 (from -r requirements/development.txt (line 27))
+  Downloading yolk-0.4.3.tar.gz (86kB): 86kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/yolk/setup.py) egg_info for package yolk
+
+    warning: no files found matching '*.txt' under directory 'tests'
+    warning: no files found matching '*.conf' under directory 'docs'
+    warning: no files found matching '*.css_t' under directory 'docs'
+    warning: no files found matching 'indexsidebar.html' under directory 'docs'
+    warning: no files found matching 'tests/test_cli.py'
+Downloading/unpacking pdbpp (from -r requirements/development.txt (line 28))
+  Downloading pdbpp-0.7.2.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/pdbpp/setup.py) egg_info for package pdbpp
+
+Downloading/unpacking ipython (from -r requirements/development.txt (line 29))
+  Downloading ipython-2.1.0-py2-none-any.whl (2.8MB): 2.8MB downloaded
+Downloading/unpacking readline (from -r requirements/development.txt (line 30))
+  Downloading readline-6.2.4.1.tar.gz (2.3MB): 2.3MB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/readline/setup.py) egg_info for package readline
+
+Downloading/unpacking pinder (from lookout->-r requirements/./base.txt (line 5))
+  Downloading pinder-1.0.1.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/pinder/setup.py) egg_info for package pinder
+    Downloading http://pypi.python.org/packages/source/d/distribute/distribute-0.6.10.tar.gz
+    Extracting in /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/tmpVL_26k
+    Now working in /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/tmpVL_26k/distribute-0.6.10
+    Building a Distribute egg in /Users/kyawtun/sprintly/sprint.ly/env/build/pinder
+    /Users/kyawtun/sprintly/sprint.ly/env/build/pinder/distribute-0.6.10-py2.7.egg
+
+Downloading/unpacking iso8601 (from recurly->-r requirements/./base.txt (line 6))
+  Downloading iso8601-0.1.10.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/iso8601/setup.py) egg_info for package iso8601
+
+Downloading/unpacking pylint>=1.0 (from django-jenkins->-r requirements/./base.txt (line 15))
+  Downloading pylint-1.2.1.tar.gz (404kB): 404kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/pylint/setup.py) egg_info for package pylint
+
+Requirement already satisfied (use --upgrade to upgrade): setuptools in ./env/lib/python2.7/site-packages (from pusher==0.6->-r requirements/./base.txt (line 21))
+Downloading/unpacking amqp>=1.0.11,<1.1.0 (from kombu==2.5.10->-r requirements/./base.txt (line 28))
+  Downloading amqp-1.0.13.tar.gz (70kB): 70kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/amqp/setup.py) egg_info for package amqp
+
+Downloading/unpacking billiard>=2.7.3.28,<3.0 (from celery==3.0.19->-r requirements/./base.txt (line 29))
+  Downloading billiard-2.7.3.34.tar.gz (135kB): 135kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/billiard/setup.py) egg_info for package billiard
+
+    warning: no files found matching '*.py' under directory 'Lib'
+Downloading/unpacking paramiko>=1.10.0 (from Fabric==1.8->-r requirements/./base.txt (line 33))
+  Downloading paramiko-1.14.0-py2.py3-none-any.whl (148kB): 148kB downloaded
+Downloading/unpacking fancycompleter>=0.2 (from pdbpp->-r requirements/development.txt (line 28))
+  Downloading fancycompleter-0.4.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/fancycompleter/setup.py) egg_info for package fancycompleter
+
+Downloading/unpacking wmctrl (from pdbpp->-r requirements/development.txt (line 28))
+  Downloading wmctrl-0.1.tar.gz
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/wmctrl/setup.py) egg_info for package wmctrl
+
+Downloading/unpacking gnureadline (from ipython->-r requirements/development.txt (line 29))
+  Downloading gnureadline-6.3.3-cp27-none-macosx_10_9_intel.whl (257kB): 257kB downloaded
+Downloading/unpacking httplib2 (from pinder->lookout->-r requirements/./base.txt (line 5))
+  Downloading httplib2-0.9.tar.gz (204kB): 204kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/httplib2/setup.py) egg_info for package httplib2
+
+Downloading/unpacking logilab-common>=0.53.0 (from pylint>=1.0->django-jenkins->-r requirements/./base.txt (line 15))
+  Downloading logilab-common-0.61.0.tar.gz (199kB): 199kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/logilab-common/setup.py) egg_info for package logilab-common
+
+    package init file './test/__init__.py' not found (or not a regular file)
+Downloading/unpacking astroid>=1.1 (from pylint>=1.0->django-jenkins->-r requirements/./base.txt (line 15))
+  Downloading astroid-1.1.1.tar.gz (119kB): 119kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/astroid/setup.py) egg_info for package astroid
+
+    package init file './test/__init__.py' not found (or not a regular file)
+Downloading/unpacking ecdsa (from paramiko>=1.10.0->Fabric==1.8->-r requirements/./base.txt (line 33))
+  Downloading ecdsa-0.11.tar.gz (45kB): 45kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/ecdsa/setup.py) egg_info for package ecdsa
+
+Downloading/unpacking pyrepl>=0.8.2 (from fancycompleter>=0.2->pdbpp->-r requirements/development.txt (line 28))
+  Downloading pyrepl-0.8.4.tar.gz (45kB): 45kB downloaded
+  Running setup.py (path:/Users/kyawtun/sprintly/sprint.ly/env/build/pyrepl/setup.py) egg_info for package pyrepl
+
+Installing collected packages: backports.ssl-match-hostname, pytz, ajax, transloadit, lookout, recurly, django-recurly, django-gravatar, Django, MySQL-python, gunicorn, South, authorize, boto, django-jenkins, django-sphinx, factory-boy, markdown2, mock, pep8, pusher, pycrypto, pyflakes, raven, requests, django-autocomplete-light, GChartWrapper, kombu, celery, django-celery, mixpanel-celery, oboe, Fabric, progressbar, django-haystack, pyelasticsearch, PyYAML, django-taggit, pylibmc, python-postmark, django-extensions, rfc3339, httpheader, html5lib, parameterizedtestcase, selenium, unittest2, fastly, django-debug-toolbar, BeautifulSoup, Pygments, amqplib, anyjson, certifi, chardet, coverage, cssutils, decorator, docutils, logan, oauthlib, pyasn1, pynliner, python-dateutil, python-memcached, rsa, simplejson, six, ssh, virtualenv, yolk, pdbpp, ipython, readline, pinder, iso8601, pylint, amqp, billiard, paramiko, fancycompleter, wmctrl, gnureadline, httplib2, logilab-common, astroid, ecdsa, pyrepl
+  Running setup.py install for backports.ssl-match-hostname
+
+  Running setup.py install for pytz
+
+    warning: no files found matching '*.pot' under directory 'pytz'
+    warning: no previously-included files found matching 'test_zdump.py'
+  Running setup.py install for ajax
+
+  Running setup.py develop for transloadit
+
+    Creating /Users/kyawtun/sprintly/sprint.ly/env/lib/python2.7/site-packages/transloadit.egg-link (link to .)
+    Adding transloadit 0.0.1 to easy-install.pth file
+
+    Installed /Users/kyawtun/sprintly/sprint.ly/env/src/transloadit
+  Running setup.py develop for lookout
+
+    Creating /Users/kyawtun/sprintly/sprint.ly/env/lib/python2.7/site-packages/lookout.egg-link (link to .)
+    Adding lookout 0.1.0 to easy-install.pth file
+
+    Installed /Users/kyawtun/sprintly/sprint.ly/env/src/lookout
+  Running setup.py develop for recurly
+
+    Creating /Users/kyawtun/sprintly/sprint.ly/env/lib/python2.7/site-packages/recurly.egg-link (link to .)
+    Adding recurly 2.1.7 to easy-install.pth file
+
+    Installed /Users/kyawtun/sprintly/sprint.ly/env/src/recurly
+  Running setup.py develop for django-recurly
+
+    Creating /Users/kyawtun/sprintly/sprint.ly/env/lib/python2.7/site-packages/django-recurly.egg-link (link to .)
+    Adding django-recurly 0.0.0 to easy-install.pth file
+
+    Installed /Users/kyawtun/sprintly/sprint.ly/env/src/django-recurly
+  Running setup.py develop for django-gravatar
+
+    Creating /Users/kyawtun/sprintly/sprint.ly/env/lib/python2.7/site-packages/django-gravatar.egg-link (link to .)
+    Adding django-gravatar 0.1.0 to easy-install.pth file
+
+    Installed /Users/kyawtun/sprintly/sprint.ly/env/src/django-gravatar
+  Found existing installation: Django 1.6.5
+    Uninstalling Django:
+      Successfully uninstalled Django
+  Running setup.py install for Django
+    changing mode of build/scripts-2.7/django-admin.py from 644 to 755
+
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/django-admin.py to 755
+  Running setup.py install for MySQL-python
+    building '_mysql' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -g -Os -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -DNDEBUG -Wall -Wstrict-prototypes -Wshorten-64-to-32 -DNDEBUG -g -fwrapv -Os -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -Dversion_info=(1,2,3,'final',0) -D__version__=1.2.3 -I/usr/local/Cellar/mysql/5.6.17_1/include/mysql -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c _mysql.c -o build/temp.macosx-10.9-intel-2.7/_mysql.o -Os -g -fno-strict-aliasing
+    In file included from _mysql.c:36:
+    /usr/local/Cellar/mysql/5.6.17_1/include/mysql/my_config.h:348:11: warning: 'SIZEOF_SIZE_T' macro redefined
+      #define SIZEOF_SIZE_T  SIZEOF_LONG
+              ^
+    /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pymacconfig.h:43:17: note: previous definition is here
+    #        define SIZEOF_SIZE_T           8
+                    ^
+    In file included from _mysql.c:36:
+    /usr/local/Cellar/mysql/5.6.17_1/include/mysql/my_config.h:442:9: warning: 'HAVE_WCSCOLL' macro redefined
+    #define HAVE_WCSCOLL
+            ^
+    /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h:906:9: note: previous definition is here
+    #define HAVE_WCSCOLL 1
+            ^
+    _mysql.c:253:14: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+                    cmd_argc = PySequence_Size(cmd_args);
+                             ~ ^~~~~~~~~~~~~~~~~~~~~~~~~
+    _mysql.c:278:12: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+                    groupc = PySequence_Size(groups);
+                           ~ ^~~~~~~~~~~~~~~~~~~~~~~
+    _mysql.c:405:14: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+                            int j, n2=PySequence_Size(fun);
+                                   ~~ ^~~~~~~~~~~~~~~~~~~~
+    _mysql.c:986:9: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+                    len = mysql_real_escape_string(&(self->connection), out, in, size);
+                        ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    _mysql.c:988:9: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+                    len = mysql_escape_string(out, in, size);
+                        ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    _mysql.c:1016:9: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+            size = PyString_GET_SIZE(s);
+                 ~ ^~~~~~~~~~~~~~~~~~~~
+    /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/stringobject.h:92:32: note: expanded from macro 'PyString_GET_SIZE'
+    #define PyString_GET_SIZE(op)  Py_SIZE(op)
+                                   ^~~~~~~~~~~
+    /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/object.h:116:56: note: expanded from macro 'Py_SIZE'
+    #define Py_SIZE(ob)             (((PyVarObject*)(ob))->ob_size)
+                                     ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+    _mysql.c:1025:9: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+                    len = mysql_real_escape_string(&(self->connection), out+1, in, size);
+                        ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    _mysql.c:1027:9: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+                    len = mysql_escape_string(out+1, in, size);
+                        ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    _mysql.c:1111:11: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+            if ((n = PyObject_Length(o)) == -1) goto error;
+                   ~ ^~~~~~~~~~~~~~~~~~
+    /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/abstract.h:434:25: note: expanded from macro 'PyObject_Length'
+    #define PyObject_Length PyObject_Size
+                            ^
+    _mysql.c:1298:10: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+                            len = strlen(buf);
+                                ~ ^~~~~~~~~~~
+    _mysql.c:1300:10: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+                            len = strlen(buf);
+                                ~ ^~~~~~~~~~~
+    _mysql.c:1336:11: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+                                    len = strlen(buf);
+                                        ~ ^~~~~~~~~~~
+    _mysql.c:1338:11: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+                                    len = strlen(buf);
+                                        ~ ^~~~~~~~~~~
+    _mysql.c:1421:10: warning: comparison of unsigned expression < 0 is always false [-Wtautological-compare]
+            if (how < 0 || how >= sizeof(row_converters)) {
+                ~~~ ^ ~
+    16 warnings generated.
+    In file included from _mysql.c:36:
+    /usr/local/Cellar/mysql/5.6.17_1/include/mysql/my_config.h:348:11: warning: 'SIZEOF_SIZE_T' macro redefined
+      #define SIZEOF_SIZE_T  SIZEOF_LONG
+              ^
+    /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pymacconfig.h:56:17: note: previous definition is here
+    #        define SIZEOF_SIZE_T           4
+                    ^
+    In file included from _mysql.c:36:
+    /usr/local/Cellar/mysql/5.6.17_1/include/mysql/my_config.h:442:9: warning: 'HAVE_WCSCOLL' macro redefined
+    #define HAVE_WCSCOLL
+            ^
+    /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h:906:9: note: previous definition is here
+    #define HAVE_WCSCOLL 1
+            ^
+    In file included from _mysql.c:36:
+    /usr/local/Cellar/mysql/5.6.17_1/include/mysql/my_config.h:661:9: warning: 'SIZEOF_TIME_T' macro redefined
+    #define SIZEOF_TIME_T 8
+            ^
+    /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pymacconfig.h:57:17: note: previous definition is here
+    #        define SIZEOF_TIME_T           4
+                    ^
+    _mysql.c:1421:10: warning: comparison of unsigned expression < 0 is always false [-Wtautological-compare]
+            if (how < 0 || how >= sizeof(row_converters)) {
+                ~~~ ^ ~
+    4 warnings generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/_mysql.o -L/usr/local/Cellar/mysql/5.6.17_1/lib -lmysqlclient_r -lssl -lcrypto -o build/lib.macosx-10.9-intel-2.7/_mysql.so
+    ld: warning: ignoring file /usr/local/Cellar/mysql/5.6.17_1/lib/libmysqlclient_r.dylib, file was built for x86_64 which is not the architecture being linked (i386): /usr/local/Cellar/mysql/5.6.17_1/lib/libmysqlclient_r.dylib
+
+    warning: no files found matching 'MANIFEST'
+    warning: no files found matching 'ChangeLog'
+    warning: no files found matching 'GPL'
+  Running setup.py install for gunicorn
+
+    Installing gunicorn_paster script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+    Installing gunicorn script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+    Installing gunicorn_django script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+  Running setup.py install for authorize
+    /Users/kyawtun/sprintly/sprint.ly/env/bin/python -O /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/tmp3_nVYa.py
+    removing /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/tmp3_nVYa.py
+
+    warning: no files found matching '*.txt'
+  Running setup.py install for boto
+
+    warning: no files found matching 'boto/mturk/test/*.doctest'
+    warning: no files found matching 'boto/mturk/test/.gitignore'
+    changing mode of build/scripts-2.7/sdbadmin from 644 to 755
+    changing mode of build/scripts-2.7/elbadmin from 644 to 755
+    changing mode of build/scripts-2.7/cfadmin from 644 to 755
+    changing mode of build/scripts-2.7/s3put from 644 to 755
+    changing mode of build/scripts-2.7/fetch_file from 644 to 755
+    changing mode of build/scripts-2.7/launch_instance from 644 to 755
+    changing mode of build/scripts-2.7/list_instances from 644 to 755
+    changing mode of build/scripts-2.7/taskadmin from 644 to 755
+    changing mode of build/scripts-2.7/kill_instance from 644 to 755
+    changing mode of build/scripts-2.7/bundle_image from 644 to 755
+    changing mode of build/scripts-2.7/pyami_sendmail from 644 to 755
+    changing mode of build/scripts-2.7/lss3 from 644 to 755
+    changing mode of build/scripts-2.7/cq from 644 to 755
+    changing mode of build/scripts-2.7/route53 from 644 to 755
+    changing mode of build/scripts-2.7/s3multiput from 644 to 755
+    changing mode of build/scripts-2.7/cwutil from 644 to 755
+    changing mode of build/scripts-2.7/instance_events from 644 to 755
+    changing mode of build/scripts-2.7/asadmin from 644 to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/asadmin to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/bundle_image to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/cfadmin to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/cq to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/cwutil to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/elbadmin to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/fetch_file to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/instance_events to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/kill_instance to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/launch_instance to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/list_instances to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/lss3 to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/pyami_sendmail to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/route53 to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/s3multiput to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/s3put to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/sdbadmin to 755
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/taskadmin to 755
+  Running setup.py install for django-jenkins
+
+    warning: no previously-included files matching '__pycache__' found anywhere in distribution
+    warning: no previously-included files matching '*.pyc' found anywhere in distribution
+  Running setup.py install for django-sphinx
+
+    warning: no previously-included files matching '*~' found anywhere in distribution
+  Running setup.py install for factory-boy
+
+  Running setup.py install for markdown2
+    changing mode of build/scripts-2.7/markdown2 from 644 to 755
+
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/markdown2 to 755
+  Running setup.py install for mock
+
+    warning: no files found matching '*.png' under directory 'docs'
+    warning: no files found matching '*.css' under directory 'docs'
+    warning: no files found matching '*.html' under directory 'docs'
+    warning: no files found matching '*.js' under directory 'docs'
+  Running setup.py install for pusher
+
+  Running setup.py install for pycrypto
+    checking for gcc... gcc
+    checking whether the C compiler works... yes
+    checking for C compiler default output file name... a.out
+    checking for suffix of executables...
+    checking whether we are cross compiling... no
+    checking for suffix of object files... o
+    checking whether we are using the GNU C compiler... yes
+    checking whether gcc accepts -g... yes
+    checking for gcc option to accept ISO C89... none needed
+    checking for __gmpz_init in -lgmp... no
+    checking for __gmpz_init in -lmpir... no
+    checking whether mpz_powm is declared... no
+    checking whether mpz_powm_sec is declared... no
+    checking how to run the C preprocessor... gcc -E
+    checking for grep that handles long lines and -e... /usr/bin/grep
+    checking for egrep... /usr/bin/grep -E
+    checking for ANSI C header files... yes
+    checking for sys/types.h... yes
+    checking for sys/stat.h... yes
+    checking for stdlib.h... yes
+    checking for string.h... yes
+    checking for memory.h... yes
+    checking for strings.h... yes
+    checking for inttypes.h... yes
+    checking for stdint.h... yes
+    checking for unistd.h... yes
+    checking for inttypes.h... (cached) yes
+    checking limits.h usability... yes
+    checking limits.h presence... yes
+    checking for limits.h... yes
+    checking stddef.h usability... yes
+    checking stddef.h presence... yes
+    checking for stddef.h... yes
+    checking for stdint.h... (cached) yes
+    checking for stdlib.h... (cached) yes
+    checking for string.h... (cached) yes
+    checking wchar.h usability... yes
+    checking wchar.h presence... yes
+    checking for wchar.h... yes
+    checking for inline... inline
+    checking for int16_t... yes
+    checking for int32_t... yes
+    checking for int64_t... yes
+    checking for int8_t... yes
+    checking for size_t... yes
+    checking for uint16_t... yes
+    checking for uint32_t... yes
+    checking for uint64_t... yes
+    checking for uint8_t... yes
+    checking for stdlib.h... (cached) yes
+    checking for GNU libc compatible malloc... yes
+    checking for memmove... yes
+    checking for memset... yes
+    configure: creating ./config.status
+    config.status: creating src/config.h
+    warning: GMP or MPIR library not found; Not building Crypto.PublicKey._fastmath.
+    building 'Crypto.Hash._MD2' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/MD2.c -o build/temp.macosx-10.9-intel-2.7/src/MD2.o
+    In file included from src/MD2.c:147:
+    src/hash_template.c:134:9: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+            size = PyBytes_Size(value);
+                 ~ ^~~~~~~~~~~~~~~~~~~
+    src/pycrypto_compat.h:39:22: note: expanded from macro 'PyBytes_Size'
+    #define PyBytes_Size PyString_Size
+                         ^
+    src/MD2.c:44:19: warning: unused variable 'md2_oid' [-Wunused-const-variable]
+    static const char md2_oid[] = { 0x06, 0x08, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x02, 0x02 };
+                      ^
+    2 warnings generated.
+    src/MD2.c:44:19: warning: unused variable 'md2_oid' [-Wunused-const-variable]
+    static const char md2_oid[] = { 0x06, 0x08, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x02, 0x02 };
+                      ^
+    1 warning generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/MD2.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Hash/_MD2.so
+    building 'Crypto.Hash._MD4' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/MD4.c -o build/temp.macosx-10.9-intel-2.7/src/MD4.o
+    In file included from src/MD4.c:221:
+    src/hash_template.c:134:9: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+            size = PyBytes_Size(value);
+                 ~ ^~~~~~~~~~~~~~~~~~~
+    src/pycrypto_compat.h:39:22: note: expanded from macro 'PyBytes_Size'
+    #define PyBytes_Size PyString_Size
+                         ^
+    1 warning generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/MD4.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Hash/_MD4.so
+    building 'Crypto.Hash._SHA256' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/SHA256.c -o build/temp.macosx-10.9-intel-2.7/src/SHA256.o
+    In file included from src/SHA256.c:72:
+    In file included from src/hash_SHA2_template.c:199:
+    src/hash_template.c:134:9: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+            size = PyBytes_Size(value);
+                 ~ ^~~~~~~~~~~~~~~~~~~
+    src/pycrypto_compat.h:39:22: note: expanded from macro 'PyBytes_Size'
+    #define PyBytes_Size PyString_Size
+                         ^
+    1 warning generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/SHA256.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Hash/_SHA256.so
+    building 'Crypto.Hash._SHA224' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/SHA224.c -o build/temp.macosx-10.9-intel-2.7/src/SHA224.o
+    In file included from src/SHA224.c:73:
+    In file included from src/hash_SHA2_template.c:199:
+    src/hash_template.c:134:9: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+            size = PyBytes_Size(value);
+                 ~ ^~~~~~~~~~~~~~~~~~~
+    src/pycrypto_compat.h:39:22: note: expanded from macro 'PyBytes_Size'
+    #define PyBytes_Size PyString_Size
+                         ^
+    1 warning generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/SHA224.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Hash/_SHA224.so
+    building 'Crypto.Hash._SHA384' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/SHA384.c -o build/temp.macosx-10.9-intel-2.7/src/SHA384.o
+    In file included from src/SHA384.c:80:
+    In file included from src/hash_SHA2_template.c:199:
+    src/hash_template.c:134:9: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+            size = PyBytes_Size(value);
+                 ~ ^~~~~~~~~~~~~~~~~~~
+    src/pycrypto_compat.h:39:22: note: expanded from macro 'PyBytes_Size'
+    #define PyBytes_Size PyString_Size
+                         ^
+    1 warning generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/SHA384.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Hash/_SHA384.so
+    building 'Crypto.Hash._SHA512' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/SHA512.c -o build/temp.macosx-10.9-intel-2.7/src/SHA512.o
+    In file included from src/SHA512.c:80:
+    In file included from src/hash_SHA2_template.c:199:
+    src/hash_template.c:134:9: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+            size = PyBytes_Size(value);
+                 ~ ^~~~~~~~~~~~~~~~~~~
+    src/pycrypto_compat.h:39:22: note: expanded from macro 'PyBytes_Size'
+    #define PyBytes_Size PyString_Size
+                         ^
+    1 warning generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/SHA512.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Hash/_SHA512.so
+    building 'Crypto.Hash._RIPEMD160' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -DPCT_LITTLE_ENDIAN=1 -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/RIPEMD160.c -o build/temp.macosx-10.9-intel-2.7/src/RIPEMD160.o
+    In file included from src/RIPEMD160.c:425:
+    src/hash_template.c:134:9: warning: implicit conversion loses integer precision: 'Py_ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+            size = PyBytes_Size(value);
+                 ~ ^~~~~~~~~~~~~~~~~~~
+    src/pycrypto_compat.h:39:22: note: expanded from macro 'PyBytes_Size'
+    #define PyBytes_Size PyString_Size
+                         ^
+    src/RIPEMD160.c:197:20: warning: unused function 'byteswap_digest' [-Wunused-function]
+    static inline void byteswap_digest(uint32_t *p)
+                       ^
+    2 warnings generated.
+    src/RIPEMD160.c:197:20: warning: unused function 'byteswap_digest' [-Wunused-function]
+    static inline void byteswap_digest(uint32_t *p)
+                       ^
+    1 warning generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/RIPEMD160.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Hash/_RIPEMD160.so
+    building 'Crypto.Cipher._AES' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/AES.c -o build/temp.macosx-10.9-intel-2.7/src/AES.o
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/AES.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Cipher/_AES.so
+    building 'Crypto.Cipher._ARC2' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/ARC2.c -o build/temp.macosx-10.9-intel-2.7/src/ARC2.o
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/ARC2.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Cipher/_ARC2.so
+    building 'Crypto.Cipher._Blowfish' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/Blowfish.c -o build/temp.macosx-10.9-intel-2.7/src/Blowfish.o
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/Blowfish.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Cipher/_Blowfish.so
+    building 'Crypto.Cipher._CAST' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/CAST.c -o build/temp.macosx-10.9-intel-2.7/src/CAST.o
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/CAST.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Cipher/_CAST.so
+    building 'Crypto.Cipher._DES' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -Isrc/libtom/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/DES.c -o build/temp.macosx-10.9-intel-2.7/src/DES.o
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1378:42: warning: implicit conversion loses integer precision: 'long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+            *cook    = (*raw0 & 0x00fc0000L) << 6;
+                     ~ ~~~~~~~~~~~~~~~~~~~~~~^~~~
+    src/libtom/tomcrypt_des.c:1382:42: warning: implicit conversion loses integer precision: 'long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+            *cook    = (*raw0 & 0x0003f000L) << 12;
+                     ~ ~~~~~~~~~~~~~~~~~~~~~~^~~~~
+    src/libtom/tomcrypt_des.c:1603:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[0], pt+0);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1604:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[1], pt+4);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1624:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[0], ct+0);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1625:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[1], ct+4);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1646:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[0], pt+0);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1647:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[1], pt+4);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1669:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[0], ct+0);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1670:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[1], ct+4);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    10 warnings generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/DES.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Cipher/_DES.so
+    building 'Crypto.Cipher._DES3' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -Isrc/libtom/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/DES3.c -o build/temp.macosx-10.9-intel-2.7/src/DES3.o
+    In file included from src/DES3.c:26:
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1378:42: warning: implicit conversion loses integer precision: 'long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+            *cook    = (*raw0 & 0x00fc0000L) << 6;
+                     ~ ~~~~~~~~~~~~~~~~~~~~~~^~~~
+    src/libtom/tomcrypt_des.c:1382:42: warning: implicit conversion loses integer precision: 'long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+            *cook    = (*raw0 & 0x0003f000L) << 12;
+                     ~ ~~~~~~~~~~~~~~~~~~~~~~^~~~~
+    src/libtom/tomcrypt_des.c:1603:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[0], pt+0);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES3.c:26:
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1604:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[1], pt+4);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES3.c:26:
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1624:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[0], ct+0);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES3.c:26:
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1625:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[1], ct+4);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES3.c:26:
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1646:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[0], pt+0);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES3.c:26:
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1647:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[1], pt+4);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES3.c:26:
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1669:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[0], ct+0);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    In file included from src/DES3.c:26:
+    In file included from src/DES.c:32:
+    src/libtom/tomcrypt_des.c:1670:5: warning: implicit conversion loses integer precision: 'unsigned long' to 'ulong32' (aka 'unsigned int') [-Wshorten-64-to-32]
+        LOAD32H(work[1], ct+4);
+        ^~~~~~~~~~~~~~~~~~~~~~
+    src/libtom/tomcrypt_macros.h:51:48: note: expanded from macro 'LOAD32H'
+               ((unsigned long)((y)[2] & 255)<<8)  | \
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    10 warnings generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/DES3.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Cipher/_DES3.so
+    building 'Crypto.Cipher._ARC4' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/ARC4.c -o build/temp.macosx-10.9-intel-2.7/src/ARC4.o
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/ARC4.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Cipher/_ARC4.so
+    building 'Crypto.Cipher._XOR' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/XOR.c -o build/temp.macosx-10.9-intel-2.7/src/XOR.o
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/XOR.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Cipher/_XOR.so
+    building 'Crypto.Util.strxor' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/strxor.c -o build/temp.macosx-10.9-intel-2.7/src/strxor.o
+    src/strxor.c:31:19: warning: unused variable 'rcsid' [-Wunused-const-variable]
+    static const char rcsid[] = "$Id$";
+                      ^
+    1 warning generated.
+    src/strxor.c:31:19: warning: unused variable 'rcsid' [-Wunused-const-variable]
+    static const char rcsid[] = "$Id$";
+                      ^
+    1 warning generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/strxor.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Util/strxor.so
+    building 'Crypto.Util._counter' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -Wall -Wstrict-prototypes -Wshorten-64-to-32 -fwrapv -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -std=c99 -O3 -fomit-frame-pointer -Isrc/ -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c src/_counter.c -o build/temp.macosx-10.9-intel-2.7/src/_counter.o
+    src/_counter.c:99:74: warning: implicit conversion loses integer precision: 'long' to 'uint32_t' (aka 'unsigned int') [-Wshorten-64-to-32]
+        self->buf_size = PyBytes_GET_SIZE(prefix) + PyBytes_GET_SIZE(suffix) + self->nbytes;
+                       ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+    1 warning generated.
+    cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386 -Wl,-F. build/temp.macosx-10.9-intel-2.7/src/_counter.o -o build/lib.macosx-10.9-intel-2.7/Crypto/Util/_counter.so
+
+  Running setup.py install for raven
+
+    warning: no previously-included files matching '*~' found anywhere in distribution
+    Installing raven script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+  Running setup.py install for django-autocomplete-light
+    processing file django.po in /Users/kyawtun/sprintly/sprint.ly/env/build/django-autocomplete-light/autocomplete_light/locale/es/LC_MESSAGES
+    processing file django.po in /Users/kyawtun/sprintly/sprint.ly/env/build/django-autocomplete-light/autocomplete_light/locale/fr/LC_MESSAGES
+    processing file django.po in /Users/kyawtun/sprintly/sprint.ly/env/build/django-autocomplete-light/autocomplete_light/locale/it/LC_MESSAGES
+    processing file django.po in /Users/kyawtun/sprintly/sprint.ly/env/build/django-autocomplete-light/autocomplete_light/locale/pl/LC_MESSAGES
+    processing file django.po in /Users/kyawtun/sprintly/sprint.ly/env/build/django-autocomplete-light/autocomplete_light/locale/pt-br/LC_MESSAGES
+
+  Running setup.py install for GChartWrapper
+
+  Running setup.py install for kombu
+
+  Running setup.py install for celery
+    Upgrade: no old version found.
+
+    no previously-included directories found matching '*.pyc'
+    Installing celeryctl script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+    Installing celeryd script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+    Installing camqadm script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+    Installing celeryev script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+    Installing celery script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+    Installing celeryd-multi script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+    Installing celerybeat script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+  Running setup.py install for django-celery
+    changing mode of build/scripts-2.7/djcelerymon from 644 to 755
+
+    no previously-included directories found matching 'bin/*.pyc'
+    no previously-included directories found matching 'tests/*.pyc'
+    no previously-included directories found matching 'docs/*.pyc'
+    no previously-included directories found matching 'extra/*.pyc'
+    no previously-included directories found matching 'djcelery/*.pyc'
+    no previously-included directories found matching 'docs/.build'
+    no previously-included directories found matching 'examples/*.pyc'
+    changing mode of /Users/kyawtun/sprintly/sprint.ly/env/bin/djcelerymon to 755
+    Installing djcelerymon script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+  Running setup.py install for mixpanel-celery
+
+    no previously-included directories found matching 'docs/.build'
+  Running setup.py install for oboe
+    /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/oboe_metadata_initXkJHoy.c:1:1: warning: type specifier missing, defaults to 'int' [-Wimplicit-int]
+    main (int argc, char **argv) {
+    ^~~~
+    /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/oboe_metadata_initXkJHoy.c:2:5: warning: implicit declaration of function 'oboe_metadata_init' is invalid in C99 [-Wimplicit-function-declaration]
+        oboe_metadata_init();
+        ^
+    2 warnings generated.
+    ld: library not found for -loboe
+    clang: error: linker command failed with exit code 1 (use -v to see invocation)
+
+  Running setup.py install for Fabric
+
+    warning: no previously-included files matching '*' found under directory 'docs/_build'
+    warning: no previously-included files matching '*.pyc' found under directory 'tests'
+    warning: no previously-included files matching '*.pyo' found under directory 'tests'
+    Installing fab script to /Users/kyawtun/sprintly/sprint.ly/env/bin
+  Running setup.py install for progressbar
+
+  Running setup.py install for django-haystack
+
+  Running setup.py install for pyelasticsearch
+
+  Running setup.py install for PyYAML
+    checking if libyaml is compilable
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -g -Os -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -DNDEBUG -Wall -Wstrict-prototypes -Wshorten-64-to-32 -DNDEBUG -g -fwrapv -Os -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c build/temp.macosx-10.9-intel-2.7/check_libyaml.c -o build/temp.macosx-10.9-intel-2.7/check_libyaml.o
+    build/temp.macosx-10.9-intel-2.7/check_libyaml.c:2:10: fatal error: 'yaml.h' file not found
+    #include <yaml.h>
+             ^
+    1 error generated.
+
+    libyaml is not found or a compiler error: forcing --without-libyaml
+    (if libyaml is installed correctly, you may need to
+     specify the option --include-dirs or uncomment and
+     modify the parameter include_dirs in setup.cfg)
+
+  Running setup.py install for pylibmc
+    building '_pylibmc' extension
+    cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -g -Os -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -DNDEBUG -Wall -Wstrict-prototypes -Wshorten-64-to-32 -DNDEBUG -g -fwrapv -Os -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -DUSE_ZLIB -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c _pylibmcmodule.c -o build/temp.macosx-10.9-intel-2.7/_pylibmcmodule.o -fno-strict-aliasing
+    In file included from _pylibmcmodule.c:34:
+    ./_pylibmcmodule.h:42:10: fatal error: 'libmemcached/memcached.h' file not found
+    #include <libmemcached/memcached.h>
+             ^
+    1 error generated.
+    error: command 'cc' failed with exit status 1
+    Complete output from command /Users/kyawtun/sprintly/sprint.ly/env/bin/python -c "import setuptools, tokenize;__file__='/Users/kyawtun/sprintly/sprint.ly/env/build/pylibmc/setup.py';exec(compile(getattr(tokenize, 'open', open)(__file__).read().replace('\r\n', '\n'), __file__, 'exec'))" install --record /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/pip-n_FfMo-record/install-record.txt --single-version-externally-managed --compile --install-headers /Users/kyawtun/sprintly/sprint.ly/env/include/site/python2.7:
+    running install
+
+running build
+
+running build_py
+
+creating build
+
+creating build/lib.macosx-10.9-intel-2.7
+
+creating build/lib.macosx-10.9-intel-2.7/pylibmc
+
+copying pylibmc/__init__.py -> build/lib.macosx-10.9-intel-2.7/pylibmc
+
+copying pylibmc/__main__.py -> build/lib.macosx-10.9-intel-2.7/pylibmc
+
+copying pylibmc/client.py -> build/lib.macosx-10.9-intel-2.7/pylibmc
+
+copying pylibmc/consts.py -> build/lib.macosx-10.9-intel-2.7/pylibmc
+
+copying pylibmc/pools.py -> build/lib.macosx-10.9-intel-2.7/pylibmc
+
+copying pylibmc/test.py -> build/lib.macosx-10.9-intel-2.7/pylibmc
+
+running build_ext
+
+building '_pylibmc' extension
+
+creating build/temp.macosx-10.9-intel-2.7
+
+cc -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -g -Os -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -DNDEBUG -Wall -Wstrict-prototypes -Wshorten-64-to-32 -DNDEBUG -g -fwrapv -Os -Wall -Wstrict-prototypes -DENABLE_DTRACE -arch x86_64 -arch i386 -pipe -DUSE_ZLIB -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c _pylibmcmodule.c -o build/temp.macosx-10.9-intel-2.7/_pylibmcmodule.o -fno-strict-aliasing
+
+In file included from _pylibmcmodule.c:34:
+
+./_pylibmcmodule.h:42:10: fatal error: 'libmemcached/memcached.h' file not found
+
+#include <libmemcached/memcached.h>
+
+         ^
+
+1 error generated.
+
+error: command 'cc' failed with exit status 1
+
+----------------------------------------
+Cleaning up...
+Command /Users/kyawtun/sprintly/sprint.ly/env/bin/python -c "import setuptools, tokenize;__file__='/Users/kyawtun/sprintly/sprint.ly/env/build/pylibmc/setup.py';exec(compile(getattr(tokenize, 'open', open)(__file__).read().replace('\r\n', '\n'), __file__, 'exec'))" install --record /var/folders/xl/wlg6q0v963b6420b56gcwtph0000gn/T/pip-n_FfMo-record/install-record.txt --single-version-externally-managed --compile --install-headers /Users/kyawtun/sprintly/sprint.ly/env/include/site/python2.7 failed with error code 1 in /Users/kyawtun/sprintly/sprint.ly/env/build/pylibmc
+Storing debug log for failure in /Users/kyawtun/.pip/pip.log

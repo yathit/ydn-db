@@ -1,0 +1,177 @@
+<!DOCTYPE html><html><head><title>query-iteration</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><script type="text/javascript" src="/jsc/app.js"></script></head><body><article class="content"><script type="text/javascript" src="/jsc/ydn.db-dev.js"></script><div dir="ltr"><h3><a name="TOC-Query-Iterations" />Query Iterations</h3>
+<p>Previous section described several query methods, and are, in fact, implemented as query iteraction methods.
+</p>
+<p>
+    During transaction of the querying, the object store return iteration of a record (cursor) at a time. For each iteration we can</p>
+<ol><li>disgard the record from the result list</li>
+<li>terminate the query transaction by not continuing the cursor</li>
+<li>modified the record, and</li>
+<li>aggregate by reducing operation. </li>
+</ol>
+<p>Correspondingly, this API provide query iteration methods similar to
+    <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array#Iteration_methods" >
+        <code>Array</code> iteration methods</a>.
+
+    The following four iteration function are invoke during each cusor iteration in that order.
+</p>
+<ul>
+    <li><code>q.filter = function(currentItem) {return true;}</code> Return true to insert into the result array.</li>
+    <li><code>q.map = function(currentItem) {return someObject;}</code> Return an object, a string
+        or a number to insert into the result array.
+    </li>
+    <li><code>q.reduce = function(previousValue, currentItem, index) {return someObject;}</code> Return an object, a string
+        or a number as result.</li>
+    <li><code>q.continue = function(currentItem) {return true;}</code>Return true to continue the cursor.</li>
+</ul>
+
+
+<h4><a name="TOC-Filter" />Filter</h4>
+<p>Filter function take only one argument <code>{!Object}</code>, the current cursor object. It will be a customer object having all their fields set.
+If current cursor object to be include as query result, filter function return <code>true</code>, otherwise return
+    <code>false</code>.
+</p>
+<p>
+    The following filter function select customers having the country code <code>SG</code>.
+</p>
+<pre>q = db.query('customer')
+q.filter = function(customer) {
+    return customer.country === 'SG';
+}
+q.fetch().success(print_it)
+</pre>
+
+
+
+
+
+
+<p>
+<code>WHERE</code> predicate is implemented as <code>filter</code> iteration function follow:
+</p>
+<pre>  var op_test = function(op, lv) {
+    if (op === '=' || op === '==') {
+      return function(x) {return x == lv};
+    } else if (op === '===') {
+      return function(x) {return x === lv};
+    } else if (op === '&gt;') {
+      return function(x) {return x &gt; lv};
+    } else if (op === '&gt;=') {
+      return function(x) {return x &gt;= lv};
+    } else if (op === '&lt;') {
+      return function(x) {return x &lt; lv};
+    } else if (op === '&lt;=') {
+      return function(x) {return x &lt;= lv};
+    } else if (op === '!=') {
+      return function(x) {return x != lv};
+    } else {
+      goog.asserts.assert(false, 'Invalid op: ' + op);
+    }
+  };
+
+  var test1 = op_test(op, value);
+  var test2 = goog.isDef(op2) &amp;&amp; goog.isDef(value2) ?
+      op_test(op2, value2) : goog.functions.TRUE;
+
+  var prev_filter = this.filter || goog.functions.TRUE;
+
+  filter_fn = function (obj) {
+    return prev_filter(obj) &amp;&amp; test1(obj[field]) &amp;&amp; test2(obj[field]);
+  };
+</pre>
+
+<h4><a name="TOC-Map" />Map</h4>
+<p>
+    Map function take only one argument <code>{!Object)}</code>, the current cursor object, and
+    return a desire value. The value could be an object or a type.
+</p>
+<p>
+    The following map function compile customer label from the customer store.
+</p>
+<pre>q = db.query('customer')
+q.map = function(customer) {
+    var salute = customer.sex == 'MALE' ? 'Mr ' : 'Mdm ';
+    return salute + customer.full_name;
+}
+q.fetch().success(print_items)
+    </pre>
+
+
+
+
+
+
+
+
+<p>
+    SQL <code>SELECT</code> statement is implemented as <code>map</code> iteration function follow:
+</p>
+<pre>q.map = function(data) {
+    if (goog.isString(arg1)) {
+      return data[fields];
+    } else {
+      var selected_data = {};
+      for (var i = 0; i &lt; arg1.length; i++) {
+        selected_data[arg1[i]] = data[arg1[i]];
+      }
+      return selected_data;
+    }
+  }
+</pre>
+
+<h4><a name="TOC-Reduce" />Reduce</h4>
+<p>
+    Reduce function take four arguments:
+    </p>
+<ul>
+        <li>
+            <code>previousValue {*}</code>: The value previously returned in the last invocation of the callback, or
+            <code>initialValue</code>, if supplied.
+        </li>
+
+        <li>
+            <code>currentValue {*}</code>: The current element being processed in the array.
+        </li>
+        <li>
+            <code>index {number}</code>: The index of the current element being processed in the array.
+        </li>
+    </ul>
+Note: In array reduce method, there is four argument that have full array. For better memory utilization, the array
+        is not set. If the reduce function require it, it should cache <code>currentValue</code> successively.
+
+Aggregation convenient methods are implemented as reduce method.
+
+
+<p>
+    <code>count</code> is implemented in <code>reduce</code> method as follow:
+</p>
+<pre>q.reduce = function(prev) {
+    if (!prev) {
+      prev = 0;
+    }
+    return prev + 1;
+  }
+</pre>
+
+
+<p>
+    <code>sum</code> is implemented in <code>reduce</code> method as follow:
+</p>
+<pre>q.reduce = function(prev, curr, i, arr) {
+    if (!goog.isDef(prev)) {
+      prev = 0;
+    }
+    return prev + curr[field];
+  }
+</pre>
+
+
+<p>
+    <code>average</code> is implemented in <code>reduce</code> method as follow:
+</p>
+<pre>q.reduce = function(prev, curr, i) {
+    if (!goog.isDef(prev)) {
+      prev = 0;
+    }
+    return (prev * (i -1) + curr[field]) / i;
+  }
+</pre></div></article><script type="text/javascript">initDom()</script></body></html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html manifest="checkvist.appcache">
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <title>CheckVist Sync Demo App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script  type="text/javascript" src="checkvist-app.js"></script>
+    <script  type="text/javascript" src="adapter.js"></script>
+    <script  type="text/javascript" src="checkvist.js"></script>
+    <script  type="text/javascript" src="zts-ydn.db-crud-sync.js"></script>
+</head>
+<body>
+<header>
+    <h3>CheckVist Sync Demo App</h3>
+
+    <div id="toolbar">
+        <span id="username"></span>
+        <a id="btn_logout" href="#" style="display: none;">logout</a>
+    </div>
+</header>
+<div id="login-panel" style="display: none;">
+    <form id="login-form" name="login-form" method="post">
+        <label for="login">User name</label>
+        <input type="text" name="login" id="login"/>
+        <label for="pass">Password</label>
+        <input type="password" name="pass" id="pass"/>
+        <input type="submit" value="Login"/>
+    </form>
+</div>
+<div id="content">
+    <div id="checklists"></div>
+</div>
+<div>See <a href="http://dev.yathit.com/ydn-db/synchronization.html">Synchronization</a> about this app.</div>
+<script type="text/javascript">
+    //
+    var app = new CheckvistApp();
+    app.run();
+</script>
+</body>
+</html>

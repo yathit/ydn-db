@@ -1,0 +1,101 @@
+<!DOCTYPE html><html><head><title>Modeling relationships</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><script type="text/javascript" src="/jsc/app.js"></script></head><body><article class="content"><script type="text/javascript" src="/jsc/ydn.db-dev.js"></script><div dir="ltr"><h2><a name="TOC-Modeling-relationships" />Modeling relationships</h2>
+<p>We described how to use of <a href="/ydn-db/using/key.html">Key class</a> to define relationships. </p>
+<h3><a name="TOC-Parent-child-relationship" />Parent-child relationship</h3>
+<p>To model parent-child relationship, using <code>parent </code>keyword, a schema is defined as:</p>
+<pre>schema = {stores: [
+  {
+   name: 'customer',
+   keyPath: 'id'
+  },
+   name: 'address',
+   keyPath: 'type'
+   parent: 'customer'
+  }
+]}
+</pre>
+<p>
+All database operations and key constructions are now enforce into parent-child relationship.
+</p>
+<pre>address_key = db.key('address', 'work'); // error, parent key require
+address_key = db.key('address', 'work', 'customer', cid);
+address &lt;- address_key.get()
+customer_key = address_key.parent_key // same as db.key('customer', cid)
+customer &lt;- customer_key.get()
+// alternatively
+customer &lt;- address_key.parent()
+addresses &lt;- db.children(customer, 'address')
+db.clear(customer_key) // customer and its address are deleted from the store
+</pre>
+
+<p>
+In this case, deleting customer will automatically delete its address. It is also noted that it is not possible to create a new address without a valid customer. </p>
+
+<h3><a name="TOC-One-to-many-relationship" />One-to-many relationship</h3>
+<p>
+One-to-many relationships are defined by <code>reference </code>schema keyword pointing to a store name as followed:
+</p>
+<pre>schema = {stores: [
+  {
+   name: 'customer',
+   keyPath: 'id',
+   reference: 'membership'
+  },
+   name: 'membership',
+   keyPath: 'type'
+  }
+]}
+k = db.key('customer', cid)
+customer &lt;- k.get()
+membership &lt;- customer.membership.get() // use membership key to retrieve membership instance
+delete k.membership // membership key is deleted, but membership is still in the store
+k.clear()   // membership is unaffected
+</pre>
+In this example, a <code>customer </code>has one <code>membership </code>status (free, pro, etc). Where <code>reference </code>is a key to <code>membership </code>store. The <code>reference </code>field is indexed so that querying from membership-to-customer, e.g. querying all free customers, can be efficiently performed by using key range query.  
+<div><br />
+</div>
+<div>Retrieving <code>customer </code>does not automatically retrieve membership object instance. To support such modeling usage, <code>embedded </code>schema keyword can be used as followed.   </div>
+<pre>schema = {stores: [
+  {
+   name: 'customer',
+   keyPath: 'id',
+   embedded: 'membership'
+  },
+   name: 'membership',
+   keyPath: 'type'
+  }
+]}
+
+k = db.key('customer', cid)
+customer &lt;- k.get()
+customer.membership.type .. // use membership instance
+k.clear()   // membership is also clear from the store.
+</pre>
+This sound convenient, but it has extra cost of retrieving membership instance every time, whether it necessary or not.
+<div><br />
+</div>
+<div>It is also noted that <b>one-to-one relationship</b> can be archived by setting reference from both stores against each other. </div>
+<div><br />
+</div>
+<div>Both <code>reference </code>and <code>embedded </code>support collection.</div>
+<pre>schema = {stores: [
+  {
+   name: 'customer',
+   keyPath: 'id',
+   referenceList: 'product'
+  },
+   name: 'product',
+   keyPath: 'sku'
+   embeddedList: 'category'
+  },
+   name: 'category',
+   keyPath: 'name'
+]}
+k = db.key('customer', cid)
+customer &lt;- k.get()
+products &lt;- db.fetch(customer.product)
+products[0].cateogry[0].name // category array is ready to use
+</pre>
+Notice that this is essentially uni-directional <b>many-to-many relationship</b>. It is uni-directional because retrieving from <code>product </code>to <code>customer </code>requires expensive <a href="/ydn-db/using/query-iterations.html">filter iteration query</a> on <code>customer </code>store.
+<p>
+<code>embeddedList </code>should be used with caution because retrieving product will retrieve all the embedded category instances. 
+</p></div></article><script type="text/javascript">initDom()</script></body></html>

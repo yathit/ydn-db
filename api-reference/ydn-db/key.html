@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>API References</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link href="../../css/main.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/jsc/app.js"></script>
+  </head>
+  <body>
+    <article class="content">
+      <h1 class="classTitle">Class Key</h1>
+      <p> An instance of the Key class represents a unique key for a object
+        store record. </p>
+      <div class="sectionTitle"> Constructor </div>
+      <a name="constructor"></a> <details> <summary>
+          <div class="description"> Create a key from JSON formatted object. </div>
+        </summary>
+        <div class="details">
+          <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+            <dt><span class="light fixedFont optional">{!Object}</span> <b>json</b></dt>
+            <dd>JSON formatted object.</dd>
+            <pre>var k1 = new ydn.db.Key({"store_name": "player", "id": 1});</pre>
+          </dl>
+        </div>
+      </details> <details> <summary>
+          <div class="fixedFont"> <b>ydn.db.Key</b>(key_string) </div>
+          <div class="description"> Create a key from serialized key string. </div>
+        </summary>
+        <div class="details">
+          <pre>var key_string = key.valueOf();
+var same_key = new ydn.db.Key(key_string);</pre>
+          <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+            <dt><span class="light fixedFont optional">{string}</span> <b>key_string</b></dt>
+            <dd>Serialized key string object.</dd>
+          </dl>
+        </div>
+      </details> <details> <summary>
+          <div class="fixedFont"> <b>ydn.db.Key</b>(store_name, id) </div>
+          <div class="description"> Create a key with store name and id. </div>
+        </summary>
+        <div class="details">
+          <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+            <dt><span class="light fixedFont optional">{string}</span> <b>store_name</b></dt>
+            <dd>Store name.</dd>
+            <dt><span class="light fixedFont optional">{string|number|!Array}</span>
+              <b>id</b></dt>
+            <dd>Id as specified in keyPath or auto generated.</dd>
+          </dl>
+        </div>
+      </details> <details> <summary>
+          <div class="fixedFont"> <b>ydn.db.Key</b>(store_name, id, parent_key)
+          </div>
+          <div class="description"> Create a key with a parent key. </div>
+        </summary>
+        <div class="details">
+          <pre>var key = new ydn.db.Key('player', 1);
+var child_key = new ydn.db.Key('game', 1, key);
+</pre>
+          <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+            <dt><span class="light fixedFont optional">{string}</span> <b>store_name</b></dt>
+            <dd>Store name.</dd>
+            <dt><span class="light fixedFont optional">{string|number}</span> <b>id</b></dt>
+            <dd>Id as specified in keyPath or auto generated.</dd>
+            <dt><span class="light fixedFont optional">{ydn.db.Key}</span> <b>parent_key</b></dt>
+            <dd>Parent key.</dd>
+          </dl>
+        </div>
+      </details> <details> <summary>
+          <div class="fixedFont"> <b>ydn.db.Key</b>(store_name, id,
+            parent_store_name, parent_id, ...) </div>
+          <div class="description"> Create a key with ancestor store name and id
+            pairs. </div>
+        </summary>
+        <div class="details"> Previous example with <code>parent_key</code> can
+          be rewriten as:
+          <pre>var child_key = new ydn.db.Key('player', 1, 'game', 1);
+
+</pre>
+          <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+            <dt><span class="light fixedFont optional">{string}</span> <b>store_name</b></dt>
+            <dd>Store name.</dd>
+            <dt><span class="light fixedFont optional">{string|number}</span> <b>id</b></dt>
+            <dd>Id as specified in keyPath or auto generated.</dd>
+          </dl>
+        </div>
+      </details>
+      <div class="sectionTitle"> Method </div>
+      <a name="id"></a> <details> <summary>
+          <div class="fixedFont"> <b>id</b>() </div>
+          <div class="description"> Get id. </div>
+        </summary>
+        <div class="details">
+          <dl class="detailList">
+            <dt class="heading">Returns:</dt>
+            <dd><span class="light fixedFont">{string}</span> return id.</dd>
+          </dl>
+        </div>
+      </details>
+      <hr> <a name="parent"></a> <details> <summary>
+          <div class="fixedFont"><b>parent</b>() </div>
+          <div class="description"> Get the parent key. </div>
+        </summary>
+        <div class="details">
+          <dl class="detailList">
+            <dt class="heading">Returns:</dt>
+            <dd><span class="light fixedFont">{ydn.db.Key}</span> return the
+              parent key. <code>null</code> if no parent.</dd>
+          </dl>
+        </div>
+      </details>
+      <hr> <a name="storeName"></a> <details> <summary>
+          <div class="fixedFont"><b>storeName</b>() </div>
+          <div class="description"> Get store name. </div>
+        </summary>
+        <div class="details">
+          <dl class="detailList">
+            <dt class="heading">Returns:</dt>
+            <dd><span class="light fixedFont">{string}</span> return store name.</dd>
+          </dl>
+        </div>
+      </details>
+      <hr> <a name="toJSON"></a> <details> <summary>
+          <div class="fixedFont"><b>toJSON</b>() </div>
+          <div class="description"> Get key in JSON format. </div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!Object}</span> object JSON object.
+            It is used to reconstruct the key.</dd>
+        </dl>
+      </details>
+      <hr> <details> <summary>
+          <div class="fixedFont"><b>valueOf</b>(value) </div>
+          <div class="description"> Get key value as serialized string. </div>
+        </summary><a name="valueOf"></a>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{string}</span> key value.</dd>
+        </dl>
+      </details> <br>
+    </article>
+    <script type="text/javascript">initDom()</script>
+  </body>
+</html>

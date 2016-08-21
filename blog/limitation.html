@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Supported browser and limitation</title>
+    <script type="text/javascript" src="/jsc/app.js"></script>
+</head>
+<body>
+<article  class="content">
+
+    <h2>Supported browsers and limitation</h2>
+    <p>Date: May 18, 2014</p>
+    <p>Support all desktop, mobile and web client browsers utilizing IndexedDB, WebSQL and localStorage. No dependency.</p>
+    <ul>
+        <li>Chrome 4+ (IndexedDB or WebSql)</li>
+        <li>Firefox 3+ (IndexedDB draft), Firefox 10+ (IndexedDB)</li>
+        <li>IE 6 (userdata), IE7+ (localStorage), IE10+ desktop/mobile (IndexedDB)</li>
+        <li>Safari 3.1+ desktop/mobile/iOS web client (WebSql)</li>
+        <li>Android web client, Android browser 2.1+ (WebSql), 4+ (IndexedDB)</li>
+        <li>Opera 10+ (WebSql), Opera 15+ (IndexedDB)</li>
+    </ul>
+    <h3>Fully compatible browsers</h3>
+
+    <ul>
+        <li>Chrome (both mobile and desktop)</li>
+        <li>Firefox (both mobile and desktop)</li>
+    </ul>
+    <p>These browsers support all features of the library and are well tested. Version of the browser is not specified since they auto-update continuously. Chrome currently does not support blob, but the feature is coming.</p>
+    <p>Older version of these browser as supported as well including Firefox 3.5 and old chrome mobile browsers. But some features (like compound index, multiEntry) may not work.</p>
+    <h3>WebSQL support</h3>
+    <ul>
+        <li>Chrome</li>
+        <li>Safari (desktop and iOS) </li>
+        <li>Opera</li>
+        <li>iOS UIWebView</li>
+        <li>Cordova WebView</li>
+        <li>Android WebView (pre 4.3)</li>
+        <li>Blackberry</li>
+    </ul>
+    <p>WebSQL supports all features of the library. The limitation are data lost on schema changes, JSON serialization instead of <a href="https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/The_structured_clone_algorithm">structured cloning</a>, some database error messages and aborting.</p>
+    <p>Cursor iteration is significantly slower in WebSQL. It is suggest to use <code>executeSQL</code> or CRUD method instead, which execute natively in WebSQL.</p>
+    <h3>Modern Internet Explorer (IE11)</h3>
+    <p>Internet Explorer does support IndexedDB, but not yet fully compliant as of today (May 18, 2014). Missing features are compound index, multiEntry and some schema reflection API.</p>
+    <h3>Internet Explorer 7, 8, 9</h3>
+    <p>These Internet Explorer browsers does not have database, but instead use WebStorage. It is unsorted key-value store. The library use in-memory <a href="http://en.wikipedia.org/wiki/AVL_tree">AVL tree</a> for query. Storage size is limited to 5MB.</p>
+    <p>Most of the features are supported.</p>
+    <h3>Internet Explorer 6</h3>
+    <p>Use 1MB <a href="http://msdn.microsoft.com/en-us/library/ms531424(v=vs.85).aspx">User Data</a> storage mechanism.</p>
+    <p>Most of the features are supported.</p>
+    <h2>Incomplete implementation</h2>
+    <h3>Event module</h3>
+    <p>Event module implementation is incomplete. See <a href="http://dev.yathit.com/ydn-db/ydn-db-version-1-release.html">release note</a> for more detail.</p>
+    </article>
+</body>
+</html>

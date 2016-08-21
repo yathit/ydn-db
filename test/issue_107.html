@@ -28,7 +28,7 @@
     };
 
     var db = new ydn.db.Storage('db-107', initialSchema);
-
+    console.log(ydn.db.version);
     db.put('store1', {
         "id": 1,
         "nom": "Bleu",

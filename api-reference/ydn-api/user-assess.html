@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>API References</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link href="../../css/main.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/jsc/app.js"></script>
+  </head>
+  <body>
+    <article class="content">
+      <h1 class="classTitle">Class ydn.api.UserAssess</h1>
+      <p>Providing authorization.</p>
+      <a name="constructor"></a>
+      <div class="sectionTitle"> Constructor </div>
+      <details> <summary>
+          <div class="fixedFont"> <b>ydn.api.UserAssess</b>() </div>
+          <div class="description"> Create a user assess object. </div>
+        </summary>
+        <div class="details"> API user do not initiate user object, but acquired
+          from application instance using <code>getUser()</code> method.
+          <pre>var app = new ydn.api.App(options);
+  var user = app.getUserAssess();
+</pre> </div>
+      </details>
+      <div class="sectionTitle"> Events </div>
+      <details> <summary> <a name="tokens-loaded"></a>
+          <div class="fixedFont"> <span class="light">{string}</span> <b>tokens-loaded</b></div>
+        </summary>
+        <div class="description"> This class dispatch <code>goog.events.Event</code>
+          of type <code>tokens-loaded</code>, when it received all tokens
+          accessible to the login user. </div>
+      </details>
+      <hr> <details> <summary> <a name="user-token-loaded"></a>
+          <div class="fixedFont"> <span class="light">{string}</span> <b>user-token-loaded</b></div>
+        </summary>
+        <div class="description"> This class dispatch <code>goog.events.Event</code>
+          of type <code>user-token-loaded</code>, when it received token belong
+          to user. </div>
+      </details>
+      <hr> <details> <summary> <a name="acls-loaded"></a>
+          <div class="fixedFont"> <span class="light">{string}</span> <b>acls-loaded</b></div>
+        </summary>
+        <div class="description"> This class dispatch <code>goog.events.Event</code>
+          of type <code>acls-loaded</code>, when it received all ACL. </div>
+      </details> <br>
+      <div class="sectionTitle"> Methods </div>
+      <details><summary><a name="addEventListener"></a>
+          <div class="fixedFont"> <b>addEventListener</b>(type, handler,
+            capture) </div>
+          <div class="description"> Adds an event listener to the this storage
+            object. </div>
+        </summary> The same handler can only be added once per the type. Even if
+        you add the same handler multiple times using the same type then it will
+        only be called once when the event is dispatched.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>type</b></dt>
+          <dd>event type.</dd>
+          <dt><span class="light fixedFont">{Function|Object}</span> <b>handler</b></dt>
+          <dd>The function to handle the event. The handler can also
+            be an object that implements the handleEvent method which takes the
+            event object as argument.</dd>
+          <dt><span class="light fixedFont">{boolean=}</span> <b>capture</b></dt>
+          <dd>whether the listener is fired during the capture or bubble phase
+            of the event.</dd>
+        </dl>
+      </details>
+      <hr> <details> <summary> <a name="getUserToken"></a>
+          <div class="fixedFont"> <b>getUserToken</b>() </div>
+          <div class="description"> Get token belong to user. </div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{ydn.http.AccessTokenTransport}</span>User
+            token object. </dd>
+        </dl>
+      </details>
+      <hr> <details> <summary> <a name="getAllUserIds"></a>
+          <div class="fixedFont"> <b>getAllUserIds</b>() </div>
+          <div class="description"> Get all user ids (email) known. </div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!Array.&lt;string&gt;}</span>List
+            of user ids. </dd>
+        </dl>
+      </details>
+      <hr> <details> <summary> <a name="getTokenKeys"></a>
+          <div class="fixedFont"> <b>getTokenKeys</b>() </div>
+          <div class="description"> Get token keys. </div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!Array.&lt;string&gt;}</span>List
+            of token keys. </dd>
+        </dl>
+      </details>
+      <hr> <details> <summary> <a name="getToken"></a>
+          <div class="fixedFont"> <b>getToken</b>(key) </div>
+          <div class="description"> Get token. </div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>key</b></dt>
+          <dd>Token key.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{ydn.http.AccessTokenTransport}</span>Token.
+            </dd>
+        </dl>
+      </details>
+      <hr> <details> <summary> <a name="getTokenByOwnerEmail"></a>
+          <div class="fixedFont"> <b>getTokenByOwnerEmail</b>(id) </div>
+          <div class="description"> Get token by token owner's email. </div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>id</b></dt>
+          <dd>Token owner id.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{ydn.http.AccessTokenTransport}</span>Token.
+            </dd>
+        </dl>
+      </details>
+      <hr> <details> <summary> <a name="removeEventListener"></a>
+          <div class="fixedFont"> <b>removeEventListener</b>(type, handler,
+            capture) </div>
+          <div class="description"> Removes an event listener from the event
+            target. </div>
+        </summary> The handler must be the same object as the one added. If the
+        handler has not been added then nothing is done.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>type</b></dt>
+          <dd>event type.</dd>
+          <dt><span class="light fixedFont">{Function|Object}</span> <b>handler</b></dt>
+          <dd>The function to handle the event. The handler can also be an
+            object that implements the handleEvent method which takes the event
+            object as argument.</dd>
+          <dt><span class="light fixedFont">{boolean=}</span> <b>capture</b></dt>
+          <dd>whether the listener is fired during the capture or bubble phase
+            of the event.</dd>
+        </dl>
+      </details> <br>
+    </article>
+    <script type="text/javascript">initDom()</script>
+  </body>
+</html>

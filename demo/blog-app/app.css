@@ -1,0 +1,71 @@
+body {
+    margin: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #333333;
+    background-color: #ffffff;
+}
+
+.menu_bar {
+    padding: 4px 8px 8px 24px;
+    font-size: medium;
+    border-bottom: 1px solid #ebebeb;
+    overflow: hidden;
+}
+.menu_bar ul {
+    font-size: 13px;
+    font-weight: bold;
+    padding: 0;
+    margin: 0;
+    height: 20px;
+}
+.menu_bar ul li {
+    padding: 4px;
+    list-style: none;
+    display: inline;
+}
+.left {
+    float: left;
+    display: inline;
+    overflow: hidden;
+}
+.right {
+    float: right;
+    display: inline;
+}
+
+
+label {
+    margin-right:1em;
+    width:5em;
+    float:left;
+}
+
+
+#todo-list {
+    list-style: none;
+}
+
+.toolbar {
+    font-size: medium;
+    overflow: hidden;
+}
+.toolbar ul {
+    font-size: 13px;
+    font-weight: bold;
+    padding: 0;
+    margin: 0;
+    height: 20px;
+}
+.toolbar ul li {
+    padding: 4px;
+    list-style: none;
+    display: inline;
+}
+#content {
+    margin: 1em;
+}
+.editor {
+    width: 100%;
+}

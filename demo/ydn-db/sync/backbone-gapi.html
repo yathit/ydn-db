@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Example app for sync backend server with Backbone.sync</title>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script type="text/javascript" src="http://underscorejs.org/underscore-min.js"></script>
+  <script type="text/javascript" src="http://backbonejs.org/backbone-min.js"></script>
+    <script type="text/javascript" src="/jsc/ydn.api.js"></script>
+
+</head>
+<body>
+<h3>Backbone sync demo app for ydn.db.Storage synchronization using Google Task API backend</h3>
+
+<p>This app require your permission to use tasks list from your Google account.</p>
+<button id="authorize-button" style="visibility: hidden">Authorize</button>
+ <h4 id="task-list"></h4>
+<div id="content"></div>
+<hr>
+<div id="status-message"></div>
+<script type="text/javascript" src="backbone-gapi/gapi.js"></script>
+<script type="text/javascript" src="backbone-gapi/sync.js"></script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+
+
+
+</body>
+</html>

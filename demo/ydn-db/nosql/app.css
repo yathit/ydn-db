@@ -1,0 +1,53 @@
+body {
+    font-family: Arial;
+}
+.app-status-box {
+    background: #dcdcdc;
+    padding: 2px;
+
+}
+#app-root {
+
+}
+#app-menu_bar{
+    margin: 1em;
+}
+#app-status_bar {
+    right: 0;
+    left: 0;
+    overflow: hidden;
+    border: solid thin #d3d3d3;
+    border-top: solid thick #ffffff;
+    background: #d3d3d3;
+    padding: 4px;
+    margin: 0;
+    font-size: small;
+}
+.summary-span {
+    padding: 2px 4px;
+}
+.summary-span-author {
+    width: 8em;
+    display: inline-block;
+    overflow-x: hidden;
+}
+.summary-span-publish {
+    width: 7em;
+    display: inline-block;
+    overflow-x: hidden;
+}
+.summary-span-license {
+    width: 2em;
+    display: inline-block;
+    overflow-x: hidden;
+}
+.summary-span-license {
+    width: 4em;
+    display: inline-block;
+    overflow-x: hidden;
+}
+.menu-title {
+    min-width: 4em;
+    display: inline-block;
+    font-variant: small-caps;
+}

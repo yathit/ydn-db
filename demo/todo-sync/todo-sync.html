@@ -1,0 +1,30 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Todo Sync App</title>
+    <link rel="stylesheet" type="text/css" href="todo-sync.css"/>
+    <script type="text/javascript" src="todo-sync-app.js"></script>
+    <script type="text/javascript" src="../../jsc/ydn.db.js"></script>
+    <script type="text/javascript" src="auth.js"></script>
+</head>
+<body>
+
+<div role="navigation" class="menu_bar">
+    <ul class="left">
+        <li><a href="http://dev.yathit.com">YDN</a></li>
+        <li>Todo Sync App</li>
+    </ul>
+
+    <ul class="right">
+        <li><a id="user-login" href="#">...</a></li>
+
+        <li><span id="user-name"></span></li>
+    </ul>
+</div>
+
+<div class="content">
+    <div id="todo-list"></div>
+</div>
+<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+</body>
+</html>

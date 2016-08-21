@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Full text search on biomedical journals</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="../../../jsc/ydn.db-dev.js"></script>
+    <script type="text/javascript">
+        // ydn.debug.log('ydn.db', 'fine');
+    </script>
+
+
+    <style TYPE="text/css">
+
+        body {
+            margin: 0;
+        }
+        div.floatbox {
+            float: left;
+            width: 300px;
+        }
+
+        div.resultbox {
+            border: 1px solid black;
+            margin: 0.5em;
+            color: black;
+            background-color: #EEEEEE;
+            overflow: hidden;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        textarea.typebox {
+            float: left;
+            width: 300px;
+            height: 200px;
+            margin: 1em;
+            color: black;
+            background-color: white;
+        }
+        #results {
+            overflow-y: auto;
+        }
+        #header {
+            margin: 0.5em;
+        }
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            margin: 0;
+        }
+        #status-bar {
+            background-color: #d3d3d3;
+            padding: 4px;
+        }
+        #status-bar span {
+            /* border: thin solid gray; */
+            padding: 0 4px;
+        }
+        #tutor {
+            font-family: Arial, sans-serif;
+            font-size: smaller;
+            color: darkcyan;
+        }
+        #ref {
+            background-color: white;
+            font-size: smaller;
+            color: gray;
+        }
+        .toggle {
+            padding: 0 4px;
+        }
+        .highlighted {
+            background-color: lightgoldenrodyellow;
+        }
+    </style>
+</head>
+<body>
+<div id="header">
+    <a href="http://dev.yathit.com/api-reference/ydn-db/storage.html">API Documentation</a>
+    <a href="https://github.com/yathit/ydn-db-fulltext">Source codes</a>
+</div>
+<h3>Biomedical Medical Journal Abstract Search</h3>
+
+<div style="margin: 1em" id="application">
+    <div>
+        <input type="text" id="search_input" class="typebox">
+        <button id="search">Search</button>
+    </div>
+    <div id="tutor"></div>
+    <div id="results">
+    </div>
+</div>
+<footer>
+<div id="ref">
+    Pubmed citation abstract data provide by
+    <a href="http://www.ncbi.nlm.nih.gov/">NCBI</a>. You are bound to
+    <a href="http://www.ncbi.nlm.nih.gov/books/NBK25497/#chapter2.Usage_Guidelines_and_Requiremen/">NCBI Usage Guidelines</a>
+    for using this web application.
+</div>
+<div id="status-bar">
+    <span id="entry-count" title="number of entries">
+        0
+    </span>
+    <span id="index-count" title="number of indices">
+        0
+    </span>
+    <span id="status">
+        starting...
+    </span>
+</div>
+</footer>
+
+<script type="text/javascript" src="../app.js"></script>
+<script type="text/javascript" src="pubmed-app.js"></script>
+<script type="text/javascript">
+    var app = new PubMedApp();
+    app.run();
+</script>
+</body>
+</html>

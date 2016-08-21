@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AngularJs web app with Google Cloud Storage backend service</title>
+    <script type="text/javascript" src="/jsc/app.js"></script>
+</head>
+<body>
+<article  class="content">
+
+    <h1>AngularJs web app with Google Cloud Storage backend service</h1>
+
+    <div><a href="http://dev.yathit.com/demo/feature-matrix/index.html">The demo app</a></div>
+    <div><a href="https://github.com/yathit/feature-matrix">Project repo in Github</a></div>
+
+    <p>The purpose of this web application is to collect user unit test result and do simple exploratory analysis and display them into tables. This app use AngularJs single page web application framework. App data is persisted in <a href="https://developers.google.com/storage/">Google Cloud Storage</a> (GCS) service. GCS service is similar to Amazon AWS S3 service and used same <a href="http://docs.aws.amazon.com/AmazonS3/latest/dev/Welcome.html"> REST XML API format</a>.</p>
+
+    <p>This web application has two parts. The first part is data collection. It is essentially running a qunit test and result are put to GCS service. The GCS bucket
+        <a href="http://ydn-test-report-2.storage.googleapis.com/"><code>ydn-test-report-2</code></a> accept anonymous write request from selected origins.</p>
+
+    <p>The second part is angular js app, which query and fetch unit test results from GCS and display the results.</p>
+
+    <h2>An angular service for GCS backend</h2>
+
+    <p>Angular JS application has four primary modules, 1) Controller 2) Directive 3) Filter and 4) Services. Each of them are essentially a singleton instance providing function that angular understand.</p>
+
+    <p>YDN-DB database instance belong to service module, the lowest food chain of the four angular modules. Since YDN-DB storage instance provide ORM like functions, we do not need any additional wrapper function here. We define schema and instantiate a new storage instance. If localStorage is used, we will need to serialize and deserialize during write and write. Web SQL and IndexedDB will require more function for creating transaction and making request. </p>
+
+<pre>angular.module('myApp.services', [])
+    .factory('database', function() {
+      var schema = {}; // detail later
+      return new ydn.db.Storage('feature-matrix', schema);
+    });
+</pre>
+
+    <p>There is on thing to note. Most of the web app examples, that you might found are synchronous, meaning that database service return query result. However YDN-DB always return asynchronously in the form of <a href="http://api.jquery.com/promise/">JQuery compatible promise</a>. AngularJS also use <a href="http://docs.angularjs.org/api/ng.$q">JQuery compatible promise</a>. Here, compatible means you can directly chain the promise. However AngularJS promise, <code>$q</code>, has optimization twist. <code>$q</code> deferred resolution synchronize with AngularJS render event cycle so that DOM manipulation are orchestrated to reduce browser point refresh. However YDN-DB deferred, nor JQuery deferred, aware of them. Teh application logic has to to pump event up by invoking <a href="http://docs.angularjs.org/api/ng.$rootScope.Scope#methods_$apply">$scope.$apply()</a> for each deferred resolution. We will see this in controller, where the database service is consumed.</p>
+
+    <p>To enable synchronization between client database and backend server, <a href="http://dev.yathit.com/api-reference/ydn-db/schema.html#sync"><code>Sync</code> attribute</a> is added into the database store schema by specifying backend service type and name.
+        Basic format will be 'rest', representing RESTful backend server. Here Google Cloud Storage backend service, first class citizen in YDN-DB, is used by specifying <code>gcs</code> format,
+ which is essentially equals to <code>s3</code> format. The
+        only require attribute is <code>bucket</code> for Google Cloud Storage bucket name.
+        When database CRUD operation are performed, corresponding HTTP methods are
+        conditional request are made to the server.</p>
+
+<pre>var schema = {
+  stores: [{
+    name: 'ydn-db',
+    Sync: {
+      format: 'gcs', // refer to Google Cloud Storage backend
+      immutable: true,
+      Options: {
+        bucket: 'ydn-test-report-2' // GCS bucket name
+      }
+    }
+  }]
+};
+</pre>
+
+    <h3>
+        <a name="efficient-backend-design" class="anchor" href="#efficient-backend-design"><span class="octicon octicon-link"></span></a>Efficient backend design</h3>
+
+    <p>One thing we concern here is cost or in engineering terms efficiency. Traditional backend server perform basic formatting after querying from the database return only necessary data to the client. REST service are barebone backend service and do not have such luxury. In return, REST service are cheap and easily scalable and portable.</p>
+        <p>REST API has only two query, GET request on object URI returning the object and GET request on bucket URI, returning list of object URI. Efficient mean we only send request only as necessary to render the view. In terms of cost, GET bucket request does not incur network cost since it does not return any object.</p>
+
+    <p>We use client database, YDN-DB, to cache object resource. Whenever a cached data is reused, it must be validated. In REST service, read request cache validation is made by
+        either with <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26">If-None-Match</a> etag
+        or <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28">If-Unmodified-Since</a> updated date.
+        For write request, <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.24">If-Match</a> or
+        <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25">If-Modified-Since</a>
+        are used to ensure updated record was not modified by others. In this app, we only use read request.
+        We can further reduce the cost in this particular case, since the data is immutable. Once a test is run,
+        the result is written and it cannot be changed. Immutable database does not require cache invalidation.
+        Once we have the data, it can be cached permanently. In YDN-DB, it is done by setting
+        <code>immutable</code> attribute to <code>true</code>.</p>
+
+    <h3>
+        <a name="rest-uri-design-for-querying" class="anchor" href="#rest-uri-design-for-querying"><span class="octicon octicon-link"></span></a>REST URI design for querying</h3>
+
+    <p>In general, we will expect several thousands of results in the bucket. It will be huge
+        cost if we were to cached all of them into client. Worse, most user spend just a brief
+        period. A quick approach will be to display the last, say 25, results. In S3 like REST service, the only query available is ascending order of URI (or primary key). And hence
+        we have to design URI such that last result will come first. This can easily be
+        achieved using negative timestamp from some future epoch.</p>
+
+
+    <table>
+        <caption>Typical result table</caption>
+        <thead>
+        <tr>
+            <th>Platform</th>
+            <th>Browser</th>
+            <th>CRUD</th>
+            <th>Cursor</th>
+            <th>Event</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Linux</td>
+            <td>Firefox</td>
+            <td style="background: lightgreen">Pass</td>
+            <td style="background: lightgreen">Pass</td>
+            <td style="background: lightgreen">Pass</td>
+        </tr>
+        <tr>
+            <td>Win32</td>
+            <td>IE9</td>
+            <td style="background: lightgreen">Pass</td>
+            <td style="background: red">Fail</td>
+            <td style="background: red">Fail</td>
+        </tr>
+        <tr>
+            <td>Win32</td>
+            <td>IE9</td>
+            <td style="background: lightgreen">Pass</td>
+            <td style="background: red">Fail</td>
+            <td style="background: red">Fail</td>
+        </tr>
+        <tr>
+            <td>MacIntel</td>
+            <td>Safari</td>
+            <td style="background: lightgreen">Pass</td>
+            <td style="background: red">Fail</td>
+            <td style="background: lightgreen">Pass</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p>But the last results set does not meet user expectation of feature matrix.
+        User want to see overview. In general there will be repeated platform/browser result, Win32/IE9 in above table. Best information quality is achieved if unique platform/browser are displayed. </p>
+
+    <h3>Local secondary indexing</h3>
+    <p>This problem is typically encountered in using key-value store database. The solution is local secondary indexing
+    as promoted in <a href="http://aws.typepad.com/aws/2013/04/local-secondary-indexes-for-amazon-dynamodb.html">Amazon Dynamo API</a>. To query unique 'platform/browser', we enumerate URI such that resulting URI are ordered by 'platform/browser' value. URI is designed having two parts, the first part is hash predicate and last part is range key, timestamp here. An example URI for our case is:</p>
+
+<pre>http://http://ydn-test-report-2.storage.googleapis.com/MacIntel/Safari/251988549193682
+</pre>
+    <p>Unlike database query, enumerating REST URI keys are not straight forward. First, we send GET
+        request to the bucket with <a href="https://developers.google.com/storage/docs/reference-headers#delimiter"><code>delimiter=/</code></a>,
+        listing all platform available in the bucket. Please note S3 REST API return <code>CommonPrefixes</code>, listing unique 'platform' value here.</p>
+
+
+<pre>GET http://http://ydn-test-report-2.storage.googleapis.com/?delimiter=/
+</pre>
+
+    <p>Then we query again with value of 'platform' as <a href="https://developers.google.com/storage/docs/reference-headers#prefix">prefix</a>,
+        listing all browsers in the platform.</p>
+
+<pre>GET http://http://ydn-test-report-2.storage.googleapis.com/?delimiter=/&amp;prefix=MacIntel
+</pre>
+
+    <p>Then we query again with both 'platform/browser' predicate, but limit to one last result using <a href="https://developers.google.com/storage/docs/reference-headers#maxkeys">max-keys</a>.</p>
+
+<pre>GET http://http://ydn-test-report-2.storage.googleapis.com/?prefix=MacIntel/Safari/&amp;max-key=1
+</pre>
+    <p>Repeating this last query, we enumerate unique 'platform/browser'. This approach is workable, but not an ideal.</p>
+
+    <h3>Header metadata indexing</h3>
+
+    <p>Better solution is "header metadata indexing", which is possible in GCS, using <a href="https://developers.google.com/storage/docs/json_api/">JSON API</a> and <a href="http://msdn.microsoft.com/en-us/library/windowsazure/dd135733.aspx">Microsoft Azure Blob Service REST API</a>. The two ingredients of interest in these newer API are batch query
+        and meta-data in object listing. This is utilized by keeping platform, browser metadata
+        in <a href="https://developers.google.com/storage/docs/reference-headers#xgoogmeta">custom header</a>.
+        The metadata are indexed in the client side database. The app analyze meta data before sending GET request,
+        so that only necessary requests are made.</p>
+
+    <p>Additionally, to synchronize, client and server metadata efficiently, we can make URI such that it is always increasing or decreasing. After full data is cached, only newer data can be query using marker key. </p>
+    <p>This meta data is keep in separate object store as follow:</p>
+
+<pre>var schema = {
+  stores: [{
+    name: 'ydn-db-meta',
+    keyPath: 'name',
+    // index meta data in the header
+    indexes: [{
+        keyPath: 'platform' // x-goog-meta-platform
+      }, {
+        keyPath: 'browser' // x-goog-meta-browser
+      }, {
+        keyPath: 'version' // x-goog-meta-version
+      }, {
+        keyPath: 'etag' // required index for 'ydn-db' store conditional request.
+      }, {
+        keyPath: 'updated'
+      }, {
+        // use compound index, so that we can query unique quickly
+        name: 'platform, browser',
+        keyPath: ['metadata.platform', 'metadata.browser']
+      }, {
+        // use compound index, so that we can query unique quickly
+        name: 'platform, browser, version',
+        keyPath: ['metadata.platform', 'metadata.browser', 'metadata.version']
+    }],
+    Sync: {
+      // 'gcs-meta' sync option format store only meta data of the
+      // object. The key must be generate in descending order.
+      format: 'gcs-meta',
+      // prefetch only 'meta', other possible is 'full'
+      // 'meta' is default for 'gcs-meta' sync format.
+      prefetch: 'meta',
+      // Prefetch refractory period interval in milliseconds.
+      prefetchRefractoryPeriod: 60 * 1000, // Default is 5000.
+      Options: {
+        bucket: 'ydn-test-report-2',
+        prefix: 'ydn-db/'  // path prefix for this store.
+      }
+    }
+  }]
+};
+</pre>
+
+    <h2>
+        <a name="an-angular-controller-for-database-query" class="anchor" href="#an-angular-controller-for-database-query"><span class="octicon octicon-link"></span></a>An angular controller for database query</h2>
+
+    <p>The job of a controller is preparing data to display in view. This involves
+        querying from the database and formatting the result into model data suitable for rendering
+        them in views.</p>
+
+    <p>The home page of this app is feature matrix of unit test result from unique set of browsers.
+        To query unique browser, a compound index <code>platform, browser</code> is created on
+        <code>ydn-db-meta</code> store. Using the index, we can query or enumerate unqiue unique secondary key. Since we keep primary key the same for both <code>ydn-db-meta</code>
+        and <code>ydn-db</code>, it is used to retrieve result set from <code>ydn-db</code> object store.</p>
+
+<pre>angular.module('myApp.controllers', [])
+    .controller('HomeCtrl', ['$scope', 'utils', 'database',
+        function($scope, utils, db) {
+          var index_name = 'platform, browser';
+          var key_range = null;
+          var limit = 50;
+          var offset = 0;
+          var reverse = false;
+          var unique = true;
+          db.keys('ydn-db-meta', index_name, key_range, limit, offset, reverse, unique)
+            .then(function(keys) { // list of primary key for unique browser
+              var req = db.values('ydn-db', keys);
+              req.then(function(json) {
+              $scope.results = utils.processResult(json);
+              $scope.$apply(); // pump angular event queue
+            }, function(e) {
+              throw e;
+        }, this);
+    });
+}])
+</pre>
+
+<p>Resulting data are further processed in <code>utils.processResult</code> service function. This utility function transform raw qunit output into array of objects, <code>results</code>, suitable for rendering into a table in the controller template with the help of <code>resultView</code> directive.</p>
+<pre>&lt;table class="feature">
+    &lt;thead>
+    &lt;tr>
+        &lt;td width="20%">Platform&lt;/td>
+        &lt;td width="20%">Browser&lt;/td>
+        &lt;td width="10%">CRUD&lt;/td>
+        &lt;td width="10%">Cursor&lt;/td>
+        &lt;td width="10%">Event&lt;/td>
+        &lt;td width="10%">Transaction&lt;/td>
+        &lt;td width="10%">Query&lt;/td>
+        &lt;td width="10%">SQL&lt;/td>
+    &lt;/tr>
+    &lt;/thead>
+    &lt;tbody>
+    &lt;tr ng-repeat="resultSet in results">
+        &lt;td>{{resultSet.platform}}&lt;/td>
+        &lt;td>{{resultSet.browser}} - {{resultSet.version}}&lt;/td>
+        &lt;td>&lt;span class="cell">&lt;a result-view name="crud" >&lt;/a>&lt;/span>&lt;/td>
+        &lt;td>&lt;span class="cell">&lt;a result-view name="cursor"  >&lt;/a>&lt;/span>&lt;/td>
+        &lt;td>&lt;span class="cell">&lt;a result-view name="event"  >&lt;/a>&lt;/span>&lt;/td>
+        &lt;td>&lt;span class="cell">&lt;a result-view name="transaction"  >&lt;/a>&lt;/span>&lt;/td>
+        &lt;td>&lt;span class="cell">&lt;a result-view name="query"  >&lt;/a>&lt;/span>&lt;/td>
+        &lt;td>&lt;span class="cell">&lt;a result-view name="sql"  >&lt;/a>&lt;/span>&lt;/td>
+    &lt;/tr>
+    &lt;/tbody>
+&lt;/table></pre>
+    <h2>Security Model</h2>
+    <p>This application do not require authentication. Unit test results are supposed to collect anonymously so that privacy are observed. Anyone can POST (create new data) or PUT (override) existing data. It is possible to prevent overriding by changing ACL during create the object. Abuse of data is mainly relied on browser cross origin policy. Even though bucket access anonymous write access, since CORS is granted to selected origins, other web site cannot write to the bucket however.</p>
+    <h3>Browser requirement</h3>
+    <p>For security reason, data and web site cannot be in same origin. The app is running on trusted origin and all HTML contents (and hence js and css) are secured. Data read from the bucket are taken as untrusted resources. Data from untrusted sources are not directly executed, but parsed to JSON object.</p>
+    <p>To send the data we need to write POST cross origin to REST server. Sending POST request to different host is only allowed by <a href="http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4">form post</a>, which has content type of <code>application/x-www-form-urlencoded</code>. It is different from what we want of JSON format. Additionally form post do not send custom headers, which is require for our application. The solution is to use newer XMLHttpRequest level 2 as part of <a href="http://www.w3.org/TR/cors/">Cross-Origin Resource Sharing</a>. Most modern browser support CORS, but still have problem in Safari regarding to content type. To make problem worse, our application need to support browser including IE6 for our unit test. There is no way, but to use proxy server. I have use Google appengine for proxying form data. Google appengine is not only generous free tier, GCS integration is very easy.</p>
+    <h3>Questions?</h3>
+    <p>Please check out running <a href="http://dev.yathit.com/demo/feature-matrix/index.html"> demo app</a> to understand how the app work. Full source code is available in
+    <a href="https://github.com/yathit/feature-matrix">Github</a>. To replicate the repo,
+        you will need to create Google Cloud Storage bucket and configure as described in the project readme file.
+    </p>
+<p>If you are not clear about how or why, feel free to make a comment below. For bug report of the source code, please fine issue on github. For alternative or better idea, please discuss and send pull request.</p>
+
+</article>
+</body>
+</html>

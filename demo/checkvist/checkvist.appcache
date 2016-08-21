@@ -1,0 +1,11 @@
+CACHE MANIFEST
+# v16
+checkvist-sync.html
+adapter.js		
+checkvist.js		
+checkvist-app.js	
+zts-ydn.db-crud-sync.js
+main.css
+
+NETWORK:
+*

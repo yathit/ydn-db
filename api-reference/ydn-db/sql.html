@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>API References</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="/jsc/app.js">
+</script> <link href="../../css/main.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <article class="content">
+      <h1 class="classTitle">Class ydn.db.Sql</h1>
+      <p> Class Sql represents a declarative description to retrieve or
+        manipulate records in a database. </p>
+      <div class="sectionTitle"> Constructor </div>
+      <details> <summary><a name="constructor"></a>
+          <div class="fixedFont"> <b>ydn.db.Sql</b>(sql_statement) <span class="version">version
+              2</span></div>
+          <div class="description"> Create a new Sql using a declarative SQL
+            statement.</div>
+        </summary>
+        <div class="details">
+          <p>Subset of SQLite 3 SQL statement with NoSQL twist. The following
+            keywords are supported: <code>ASC, AVG, CONCAT, COUNT, DELETE,
+              DESC, FROM, INSERT, JOIN, MAX, MIN, ORDER BY, SELECT, UNIQUE,
+              UPDATE</code> </p>
+          <p>All non-keywords in the SQL statement should be double quoted. </p>
+          <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+            <dt><span class="light fixedFont optional">{string=}</span> <b>sql_statement</b></dt>
+            <dd>SQL statement. <br>
+            </dd>
+          </dl>
+        </div>
+      </details>
+      <div class="sectionTitle"> Methods </div>
+      <details> <summary> <a name="aggregate-avg"></a>
+          <div class="fixedFont"><b>aggregate</b>('avg', field) </div>
+          <div class="description"> The average value of all values in the
+            field. </div>
+        </summary> This emulate SQL <code>AVG</code> aggregate function by
+        introducing a reduce iteration function.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>field</b></dt>
+          <dd>Target field.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details> <details><summary> <a name="select_concat"></a>
+          <div class="fixedFont"><b>aggregate</b>('concat', field) </div>
+          <div class="description"> The concatenated string of the give field
+            value of records. </div>
+        </summary> This emulate SQL <code>GROUP_CONCAT</code> aggregate
+        function by introducing a reduce iteration function.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>field</b></dt>
+          <dd>Target field.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details> <details> <summary> <a name="select_count"></a>
+          <div class="fixedFont"><b>aggregate</b>('count', field) </div>
+          <div class="description"> The count of the number of times that the
+            field is not <code>null</code> nor <code>undefined</code> of the
+            field. </div>
+        </summary> This emulate SQL <code>COUNT</code> aggregate function by
+        introducing a reduce iteration function.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>field</b></dt>
+          <dd>Target field.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details> <details><summary> <a name="select_max"></a>
+          <div class="fixedFont"><b>aggregate</b>('max', field) </div>
+          <div class="description"> The maximum value of all values in the
+            field. </div>
+        </summary> This emulate SQL <code>MAX</code> aggregate function by
+        introducing a reduce iteration function.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>field</b></dt>
+          <dd>Target field.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details> <details><summary> <a name="select_min"></a>
+          <div class="fixedFont"><b>aggregate</b>('min', field) </div>
+          <div class="description"> The minimum value of all values in the
+            field. </div>
+        </summary> This emulate SQL <code>MIN</code> aggregate function by
+        introducing a reduce iteration function.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>field</b></dt>
+          <dd>Target field.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details> <details><summary> <a name="select_sum"></a>
+          <div class="fixedFont"><b>aggregate</b>('sum', field) </div>
+          <div class="description"> Sum of all values in the field. </div>
+        </summary> This emulate SQL <code>SUM</code> aggregate function by
+        introducing a reduce iteration function.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>field</b></dt>
+          <dd>Target field.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr> <details><summary> <a name="delete"></a>
+          <div class="fixedFont"><b>delete</b>(fields) </div>
+          <div class="description"> Delete a record or field(s) of a record. </div>
+        </summary> This emulates SQL <code>DELETE</code> query.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string|!Array.&lt;string&gt;=}</span>
+            <b>fields</b></dt>
+          <dd><span class="light optional">Optional</span>. Fields to delete. If
+            not specified, the record will be deleted</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr> <details><summary> <a name="distinct"></a>
+          <div class="fixedFont"><b>distinct</b>(value) </div>
+          <div class="description"> Skip duplicate instances of a key value
+            during cursor iteration.</div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{boolean}</span> <b>value</b></dt>
+          <dd>Set unique.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr> <details><summary> <a name="from"></a>
+          <div class="fixedFont"><b>from</b>(store_name_1, ...) </div>
+          <div class="description"> Select a store or stores.</div>
+        </summary> If multiple store names are given, the result is Cartesian
+        product of all records in the stores. Use where clause to restrict the
+        resulting rows.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>store_name_1</b></dt>
+          <dd><span class="light fixedFont optional">Variable.</span> Store
+            name(s).</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr> <details><summary> <a name="insert"></a>
+          <div class="fixedFont"><b>insert</b>(fields, values) </div>
+          <div class="description"> Insert a record by giving its field value. </div>
+        </summary> This emulates SQL <code>INSERT</code> query.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{!Array.&lt;string&gt;}</span><b>fields</b>
+            <b></b></dt>
+          <dd>Field names. </dd>
+          <dt><span class="light fixedFont">{!Array} </span><b>values</b> <b></b></dt>
+          <dd>Value corresponding to field name. </dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr><details><summary> <a name="limit"></a>
+          <div class="fixedFont"> <span class="light"></span><b>limit</b>(value)
+            </div>
+          <div class="description"> Place an upper bound on the number of
+            resulting records. </div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{number}</span> <b>value</b></dt>
+          <dd>A positive number.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr> <details><summary> <a name="project"></a>
+          <div class="fixedFont"><b>project</b>(expression) </div>
+          <div class="description"> Set map function to apply the record value.
+          </div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{ydn.math.Expression}</span> <b>expression</b></dt>
+          <dd>Set expression as a map function.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details> <details><summary> <a name="select"></a>
+          <div class="fixedFont"><b>project</b>(fields) </div>
+          <div class="description"> Select field values from the records. </div>
+        </summary> This emulates SQL <code>SELECT</code> query by introducing a
+        map iteration function.
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string|!Array.&lt;string&gt;}</span>
+            <b>fields</b></dt>
+          <dd>Fields to select.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr> <details><summary><a name="offset"></a>
+          <div class="fixedFont"><b>offset</b>(value) </div>
+          <div class="description"> Omit first offset number of resulting
+            records. </div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{number}</span> <b>value</b></dt>
+          <dd>A positive number.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr> <details><summary> <a name="order"></a>
+          <div class="fixedFont"><b>order</b>(field) </div>
+          <div class="description"> Order resulting records by a field value. </div>
+        </summary>
+        <div class="details"> If not set, results are ordered by ascending order
+          of key value. The field must be indexed or will be indexed in
+          auto-schema mode.
+          <dl class="detailList">
+            <dt class="heading">Parameters:</dt>
+            <dt><span class="light fixedFont">{string}</span> <b>field</b></dt>
+            <dd>Record field name.</dd>
+          </dl>
+          <dl class="detailList">
+            <dt class="heading">Returns:</dt>
+            <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+          </dl>
+        </div>
+      </details>
+      <hr> <details><summary> <a name="reverse"></a>
+          <div class="fixedFont"><b>reverse</b>(value) </div>
+          <div class="description"> Reverse ordering.</div>
+        </summary>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{boolean}</span> <b>value</b></dt>
+          <dd><code>true</code> for descending ordering. Default is ascending
+            ordering.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr> <details><summary> <a name="update"></a>
+          <div class="fixedFont"><b>update</b>(fields, values) </div>
+          <div class="description"> Update field values. </div>
+        </summary> This emulate SQL <code>UPDATE</code> query.<br>
+        <p>The follow example illustrate all female players to pink color.</p>
+        <pre>var q = new ydb.db.Sql();
+q.from('player').where('sex', '=', 'FEMALE').update('color', 'pink');<br>db.execute(q); <br></pre>
+        <p>The follow example illustrate updating all players of age less than
+          20 add 10 health. Such updating a value relative to itself will have
+          require transaction, but query eliminate it nicely.<br>
+        </p>
+        <pre>var q = new ydb.db.Sql();
+var exp = ydn.math.Expression.parseRpn('"health" 10 +');
+q.from('player').where('age', '&lt;', 20).update('health', exp);<br>db.execute(q); <br></pre>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{Array.&lt;string&gt;}</span> <b>fields</b></dt>
+          <dd>Target fields.</dd>
+          <dt><span class="light fixedFont">{Array.&lt;string|ydn.math.Expression&gt;}</span>
+            <b>values</b></dt>
+          <dd>Field values or expressions to update. The length of <b>values</b>
+            must equal to that of <b>fields</b>.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details>
+      <hr> <details><summary> <a name="where"></a>
+          <div class="fixedFont"><b>where</b>(field, operator, value, operator2,
+            value2) </div>
+          <div class="description">Defines the condition to be met for the rows
+            to be returned. </div>
+        </summary> <code>AND</code> condition is used for repeated <b>where</b>
+        call.<br>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>field</b></dt>
+          <dd>Target field name.</dd>
+          <dt><span class="light fixedFont">{string}</span> <b>operator</b></dt>
+          <dd>Operator: valid values are: <code>=, ==, ===, !=, !==, &lt;,
+              &gt;, =&gt;, &lt;=</code></dd>
+          <dt><span class="light fixedFont">{string}</span> <b>value</b></dt>
+          <dd>Value to perform logical operation against the field value.</dd>
+          <dt><span class="light fixedFont">{string}</span> <b>operator2</b></dt>
+          <dd>Optional second operator</dd>
+          <dt><span class="light fixedFont">{string}</span> <b>value2</b></dt>
+          <dd>Optional second value to perform logical operation against the
+            field value.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details> <details><summary> <a name="where-join"></a>
+          <div class="fixedFont"><b>where</b>(field, operator, foreign_key) </div>
+          <div class="description">Defines the condition to be met for the rows
+            to be returned. </div>
+        </summary>
+        <p>The following query preform <code>INNER JOIN</code> of the two table
+          using 'id' of 'store_1' and 'owner' of 'store_2' as equi-join
+          predicate.</p>
+        <pre>ver q = new ydn.db.Sql();
+q.from('store_1', 'store_2').where('id', '=', ['store_2', 'owner']);
+db.execute(q);</pre>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{string}</span> <b>field</b></dt>
+          <dd>Target field name.</dd>
+          <dt><span class="light fixedFont">{string}</span> <b>operator</b></dt>
+          <dd>Operator: valid values are: <code>=, ==, ===, !=, !==, &lt;,
+              &gt;, =&gt;, &lt;=</code></dd>
+          <dt><span class="light fixedFont">{Array.&lt;string[2]&gt;}</span> <b>foreign_key</b></dt>
+          <dd>Foreign key as defined by store name and field name. Its value is
+            used to perform logical operation against the field value.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details><details><summary> <a name="where"></a>
+          <div class="fixedFont"><b>where</b>(expression) </div>
+          <div class="description">Defines the condition to be met for the rows
+            to be returned. </div>
+        </summary> <code>AND</code> condition is used for repeated <b>where</b>
+        call.<br>
+        <dl class="detailList">
+          <dt class="heading">Parameters:</dt>
+          <dt><span class="light fixedFont">{ydn.math.Expression}</span> <b>expression</b></dt>
+          <dd>An conditional expression.</dd>
+        </dl>
+        <dl class="detailList">
+          <dt class="heading">Returns:</dt>
+          <dd><span class="light fixedFont">{!ydn.db.Sql}</span> for chaining.</dd>
+        </dl>
+      </details> <br>
+    </article>
+    <script type="text/javascript">
+initDom()
+  </script>
+  </body>
+</html>
