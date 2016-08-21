@@ -1,0 +1,489 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js no-touch">
+  <head>
+
+    <link type="text/css" rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro">
+    
+<meta charset="utf-8" />
+
+
+<title>
+  
+    Unit tests
+  
+</title>
+
+
+
+
+
+<meta name="author" content="https://plus.google.com/+KyawTun-Yathit/posts" />
+
+
+
+<meta name="description" content="YDN-DB example demo application and unit tests" />
+
+
+<link rel="icon" href="/favicon.ico" />
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="twitter:card" content="summary">
+<meta property="twitter:account_id" content="@yathit" />
+<meta property="twitter:site" content="@yathit" />
+<meta property="twitter:description" content="YDN-DB example demo application and unit tests" />
+<meta property="twitter:creator" content="@yathit" />
+<meta property="twitter:image:src" content="http://dev.yathit.com/imgs/logo.png" />
+
+
+<link rel="author" href="https://plus.google.com/+KyawTun-Yathit/posts">
+<link rel="publisher" href="https://plus.google.com/+KyawTun-Yathit">
+
+<meta itemprop="name" content="
+  
+    Unit tests
+  
+">
+<link itemprop="image" href="/imgs/logo.png">
+<meta itemprop="description" content="YDN-DB example demo application and unit tests">
+
+<meta property="og:site_name" content="Yathit" />
+<meta property="og:title" content="
+  
+    Unit tests
+  
+" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://dev.yathit.com/" />
+<meta property="og:image" content="http://dev.yathit.com/imgs/logo.png" />
+
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/iccdnijlhdogaccaiafdpjmbakdcdakk">
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ldikiokclnbceabnlbkabmcacpiednop">
+
+<link rel="stylesheet" media="screen" href="/css/styles.min.css" />
+
+<script src="/js/analytics.js"></script>
+
+  </head>
+
+  <body class="page-doc page--article article--ydndb-example theme--ydndb-example" itemscope itemtype="http://schema.org/TechArticle">
+    
+
+    <header class="main-header">
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="main-nav">
+
+  <header class="main-nav__header">
+    <span class="main-nav__current-label">Unit tests</span>
+  </header>
+
+  <ul class="main-nav__list clear">
+  
+    
+    
+    <li class="main-nav__item main-nav__item--<strong>ydn-db</strong>
+                main-nav__item--home 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+
+        <strong>YDN-DB</strong>
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--download
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+
+        Download
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--documentation
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+
+        Documentation
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--api
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
+
+        API
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--examples
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+
+        Examples
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--github
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+
+        GitHub
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+
+  <li class="main-nav__item right">
+    <a class="main-nav__link main-nav__link--parent" id="user-login">...</a>
+  </li>
+  <li class="main-nav__item right">
+    <span class="main-nav__link main-nav__link--parent" id="user-name" style="display: none;"></span>
+  </li>
+
+  </ul>
+  <button class="main-nav__btn btn--toggle-nav">
+    <i class="icon icon-menu"></i>
+  </button>
+
+</nav>
+
+
+</header>
+
+
+    <div class="article-container" itemprop="text">
+
+       <div class="ydn-breadcrumb-before"></div>
+        <div class="container">
+           <div class="content">
+             <div id="ydn-breadcrumb" name="ydndb-doc"></div>
+           </div>
+        </div>
+        <div class="ydn-breadcrumb-after"></div>
+
+      <div class="editorial-header">
+        <div class="container">
+          <div class="content">
+
+            <h1 class="editorial-header__title"></h1>
+            <h2 class="editorial-header__subtitle" itemprop="name">Unit tests</h2>
+
+            <p class="editorial-header__excerpt" itemprop="headline">List of YDN-DB example applications and unit test suites.</p>
+
+          </div>
+        </div>
+      </div>
+
+
+      <div class="container">
+  <div class="content">
+
+<h3>Unit test</h3>
+<p>Unit test are also good source of how to use the API. It is more comprehensive than an app does.</p>
+<ul>
+  <li><a href="/test/test_all.html">All tests</a></li>
+  <li> <a href="/test/test_dev_all.html#log">All tests in dev version with logging</a></li>
+  <li> <a href="/test/test_dev_all.html#log&amp;ui">All tests in dev version with logging on screen</a></li>
+  <li>
+    <a href="/test/perf/crud.html">Performance tests</a>
+    (<a href="/test/perf/crud-small.html">small</a>)
+    (<a href="/test/perf/crud-index.html">large</a>)
+  </li>
+  <li><a href="http://dev.yathit.com/demo/feature-matrix/index.html">View all unit test results</a></li>
+
+</ul>
+<div id="single-test" style="display: none">
+  <ul>
+    <li><a href="/test/test_crud.html">YDN-DB: CRUD test</a> (<a href="/test/test_dev_crud.html#log">with
+      logging</a> - <a href="/test/test_dev_core.html#log&amp;ui">with
+      logging on screen</a>) </li>
+    <li> <a href="/test/test_workflow.html">YDN-DB: workflow test</a> (<a href="/test/test_dev_workflow.html#log">with
+      logging</a> - <a href="/test/test_dev_workflow.html#log&amp;ui">with
+      logging on screen</a>) </li>
+    <li> <a href="/test/test_iterator.html">YDN-DB: iterator test</a> (<a href="/test/test_dev_iterator.html#log">with
+      logging</a> - <a href="/test/test_dev_iterator.html#log&amp;ui">with
+      logging on screen</a>) </li>
+    <li> <a href="/test/test_query.html">YDN-DB: query test</a> (<a href="/test/test_dev_query.html#log">with
+      logging</a> - <a href="/test/test_dev_query.html#log&amp;ui">with
+      logging on screen</a>) </li>
+    <li> <a href="/test/test_iteration.html">YDN-DB: iteration test</a> (<a
+        href="/test/test_dev_iteration.html#log">with
+      logging</a> - <a href="/test/test_dev_iteration.html#log&amp;ui">with
+      logging on screen</a>) </li>
+    <li> <a href="/test/test_algo.html">YDN-DB: join algorithm test</a> (<a
+        href="/test/test_dev_algo.html#log">with
+      logging</a> - <a href="/test/test_dev_algo.html#log&amp;ui">with
+      logging on screen</a>) </li>
+    <li> <a href="/test/test_sql.html">YDN-DB: SQL test</a> (<a href="/test/test_dev_sql.html#log">with
+      logging</a> - <a href="/test/test_dev_sql.html#log&amp;ui">with
+      logging on screen</a>) </li>
+
+  </ul>
+</div>
+</div>
+</div>
+
+      <div class="container clear-both">
+        <div class="content">
+
+          <div class="container-medium">
+  <nav class="article-nav">
+  
+    <a class="article-nav-link article-nav-link--prev" title="Previous article" href="/ydn-db/doc/example/synchronization.html">
+      Previous 'Synchronization'
+    </a>
+  
+  
+  </nav>
+</div>
+
+
+          <br /><div class="g-comments" data-href=""></div>
+        </div>
+      </div>
+
+
+
+      
+        
+
+
+
+
+
+      
+      
+
+
+<script src="/jsc/ydn.db-dev.js"></script>
+
+    </div> <!-- /.article-container -->
+    <div class="container clear">
+	<div id="gc-content-license" class="gc-content-license g-wide--3 g-wide--last" >
+		
+		<div class="container clear">
+	<div class="g-wide--3 g-wide--last">
+    
+		<h4>Authors</h4>
+		
+		
+    <a href="/resources/contributors/index.html#kyawtun">
+      Kyaw Tun</a>
+		
+    
+	</div>
+</div>
+
+	</div>
+</div>
+
+    <footer class="main-footer">
+  <div class="main-footer__container container clear">
+    <div class="main-footer__list-group">
+      <ul class="main-footer__list main-footer__list--primary">
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--<strong>ydn-db</strong>  sitemap__item--home  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+            <strong>YDN-DB</strong>
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--download  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+            Download
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--documentation  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+            Documentation
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--api  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
+            API
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--examples  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+            Examples
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--github  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+            GitHub
+          </a>
+        </li>
+        
+      
+      </ul>
+
+      <div class="main-footer__google-section">
+        <h3 class="main-footer__title"><a href="http://dev.yathit.com/">
+          <img id="developers-logo-footer" src="/imgs/yathit-dev-network.svg" alt="Yathit Developer Network logo">
+        </a></h3>
+        <ul class="main-footer__list main-footer__list--secondary google-list">
+          <li><a href="https://www.yathit.com/">Yathit</a></li>
+          <li><a href="https://www.yathit.com/terms.html">Terms of Service</a></li>
+          <li><a href="https://www.yathit.com/privacy.html">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    <script src="/jsc/prettify.js"></script>
+
+    
+<script src="/js/script.js"></script>
+<script src="/jsc/website-app.js"></script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+
+
+
+
+
+  </body>
+</html>
+
