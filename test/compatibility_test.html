@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+    <script type="text/javascript" src="/jsc/app.js"></script>
+    <title>YDN-DB Module compatibility test</title>
+  </head>
+  <body>
+    <article class="content">
+      <h1>Versioning</h1>
+      <p>This project use triplet version system and worth to mention here. A
+        version compose of specification version, release version and source
+        code version. The distinguishing feature is a version is not outdated by
+        the new version. If an old version is subset of a new version, the new
+        version is called backward compatible. &nbsp; <br>
+      </p>
+      <p>Specification version consist API documentation, target platforms and
+        compatibility test suite. Specification version usually have a code name
+        and version number can interchangably use with code name.&nbsp;</p>
+      <p>Release version refer to binary distribution version publish to public
+        use. The first release version is 0 and increase by one successively.
+        Release candidate version is -1, beta version is -2 and alpha version is
+        -3. <br>
+      </p>
+      <p>Source code version are increase by one after significant changes.
+        Source code is irrespective of release version and share across
+        specification and release version. <br>
+      </p>
+      <h1>Module Release Process</h1>
+      <br>
+      A compile distribution is promoted to release status when it pass defined
+      compatibility test for all its target platform.<br>
+      <br>
+      <h2> Compatibility tests</h2>
+      <table class="gridtable">
+        <tbody>
+          <tr>
+            <td>Specification version<br>
+            </td>
+            <td>Code name<br>
+            </td>
+            <td>Test file <br>
+            </td>
+            <td>Coverage<br>
+            </td>
+            <td>Target test result<br>
+            </td>
+          </tr>
+          <tr>
+            <td>1<br>
+            </td>
+            <td>crud<br>
+            </td>
+            <td><a href="test_core.html">version 1/a><br>
+            </td>
+            <td>60 % (appox.) </td>
+            <td>100%<br>
+            </td>
+          </tr>
+          <tr>
+            <td>2<br>
+            </td>
+            <td>index<br>
+            </td>
+            <td><a href="test_dev_iterator.html">version 2</a><br>
+            </td>
+            <td>40 % (appox.) </td>
+            <td><br>
+            </td>
+          </tr>
+          <tr>
+            <td>3<br>
+            </td>
+            <td>query<br>
+            </td>
+            <td><a href="test_dev_events.html">version 3</a><br>
+            </td>
+            <td>20 % (appox.) </td>
+            <td><br>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <h2>Target for version 1<br>
+      </h2>
+      <table class="gridtable">
+        <tbody>
+          <tr>
+            <td>Platform<br>
+            </td>
+            <td>Browser<br>
+            </td>
+          </tr>
+          <tr>
+            <td>Windows 7 64-bit<br>
+            </td>
+            <td>Chrome, IE9, IE10, Firefox, Safari, Opera<br>
+            </td>
+          </tr>
+          <tr>
+            <td>Windows 8<br>
+            </td>
+            <td>IE 10, Chrome, Firefox<br>
+            </td>
+          </tr>
+          <tr>
+            <td>OS X<br>
+            </td>
+            <td>Chrome, Firefox, Safari, Opera</td>
+          </tr>
+          <tr>
+            <td>Linux<br>
+            </td>
+            <td>Firefox<br>
+            </td>
+          </tr>
+          <tr>
+            <td>iOS 6<br>
+            </td>
+            <td>Safari, Chrome<br>
+            </td>
+          </tr>
+          <tr>
+            <td>Android 3<br>
+            </td>
+            <td>Android, Chrome<br>
+            </td>
+          </tr>
+          <tr>
+            <td>Android 4<br>
+            </td>
+            <td>Android, Chrome</td>
+          </tr>
+          <tr>
+            <td>Windows Phone 8<br>
+            </td>
+            <td>IE 10<br>
+            </td>
+          </tr>
+          <tr>
+            <td>Blackberry 7<br>
+            </td>
+            <td>Blackberry
+              <meta charset="utf-8">
+            </td>
+          </tr>
+          <tr>
+            <td>Blackberry 10<br>
+            </td>
+            <td>Blackberry <br>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      If, not version is mentions, only the latest version is assumed.<br>
+      <h2>Distribution numbering scheme</h2>
+      <br>
+      A compiled distribution file has file name as follow:<br>
+      <br>
+      <table class="gridtable">
+        <tbody>
+          <tr>
+            <td><br>
+            </td>
+            <td>Target<br>
+            </td>
+            <td>Module name<br>
+            </td>
+            <td>Specification version<br>
+            </td>
+            <td>Distribution version<br>
+            </td>
+            <td>Source code version<br>
+            </td>
+            <td>File type<br>
+            </td>
+          </tr>
+          <tr>
+            <td>Description</td>
+            <td>Target audience or environment. <br>
+            </td>
+            <td>Module name as namespace.<br>
+            </td>
+            <td>Compatibility test version number is essentially public release
+              version number. It has complete API documentation. If minus sign
+              is pre-pended, it refer to candidate distribution which does not
+              yet pass the test or the test itself is not complete.<br>
+            </td>
+            <td>Increasing version for each build. Reset for each public
+              version. If public version is 0, distribution must be 0.<br>
+            </td>
+            <td>Version of source code. No reset, always increase by one.<br>
+            </td>
+            <td><br>
+            </td>
+          </tr>
+          <tr>
+            <td>Seperator<br>
+            </td>
+            <td>-<br>
+            </td>
+            <td>-<br>
+            </td>
+            <td>.<br>
+            </td>
+            <td>.<br>
+            </td>
+            <td>.<br>
+            </td>
+            <td><br>
+            </td>
+          </tr>
+          <tr>
+            <td>Example 1<br>
+            </td>
+            <td><br>
+            </td>
+            <td>ydn.db<br>
+            </td>
+            <td>1<br>
+            </td>
+            <td>0<br>
+            </td>
+            <td>17<br>
+            </td>
+            <td>js<br>
+            </td>
+          </tr>
+          <tr>
+            <td>Example 2<br>
+            </td>
+            <td>debug-<br>
+            </td>
+            <td>ydn.db<br>
+            </td>
+            <td>-1<br>
+            </td>
+            <td>5<br>
+            </td>
+            <td>15<br>
+            </td>
+            <td>js<br>
+            </td>
+          </tr>
+          <tr>
+            <td>Example 3<br>
+            </td>
+            <td>debug-<br>
+            </td>
+            <td>ydn.db<br>
+            </td>
+            <td>0<br>
+            </td>
+            <td>7<br>
+            </td>
+            <td>19<br>
+            </td>
+            <td>js<br>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+    </article>
+    <script type="text/javascript">initDom()</script>
+  </body>
+</html>

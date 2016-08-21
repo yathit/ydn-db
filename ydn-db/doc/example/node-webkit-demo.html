@@ -1,0 +1,471 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js no-touch">
+  <head>
+
+    <link type="text/css" rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro">
+    
+<meta charset="utf-8" />
+
+
+<title>
+  
+    Node-Webkit demo app
+  
+</title>
+
+
+
+
+
+<meta name="author" content="https://plus.google.com/+KyawTun-Yathit/posts" />
+
+
+
+<meta name="description" content="Node-Webkit demo app" />
+
+
+<link rel="icon" href="/favicon.ico" />
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="twitter:card" content="summary">
+<meta property="twitter:account_id" content="@yathit" />
+<meta property="twitter:site" content="@yathit" />
+<meta property="twitter:description" content="Node-Webkit demo app" />
+<meta property="twitter:creator" content="@yathit" />
+<meta property="twitter:image:src" content="http://dev.yathit.com/imgs/logo.png" />
+
+
+<link rel="author" href="https://plus.google.com/+KyawTun-Yathit/posts">
+<link rel="publisher" href="https://plus.google.com/+KyawTun-Yathit">
+
+<meta itemprop="name" content="
+  
+    Node-Webkit demo app
+  
+">
+<link itemprop="image" href="/imgs/logo.png">
+<meta itemprop="description" content="Node-Webkit demo app">
+
+<meta property="og:site_name" content="Yathit" />
+<meta property="og:title" content="
+  
+    Node-Webkit demo app
+  
+" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://dev.yathit.com/" />
+<meta property="og:image" content="http://dev.yathit.com/imgs/logo.png" />
+
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/iccdnijlhdogaccaiafdpjmbakdcdakk">
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ldikiokclnbceabnlbkabmcacpiednop">
+
+<link rel="stylesheet" media="screen" href="/css/styles.min.css" />
+
+<script src="/js/analytics.js"></script>
+
+  </head>
+
+  <body class="page-doc page--article article--ydndb-example theme--ydndb-example" itemscope itemtype="http://schema.org/TechArticle">
+    
+
+    <header class="main-header">
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="main-nav">
+
+  <header class="main-nav__header">
+    <span class="main-nav__current-label">Node-Webkit demo app</span>
+  </header>
+
+  <ul class="main-nav__list clear">
+  
+    
+    
+    <li class="main-nav__item main-nav__item--<strong>ydn-db</strong>
+                main-nav__item--home 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+
+        <strong>YDN-DB</strong>
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--download
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+
+        Download
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--documentation
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+
+        Documentation
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--api
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
+
+        API
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--examples
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+
+        Examples
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--github
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+
+        GitHub
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+
+  <li class="main-nav__item right">
+    <a class="main-nav__link main-nav__link--parent" id="user-login">...</a>
+  </li>
+  <li class="main-nav__item right">
+    <span class="main-nav__link main-nav__link--parent" id="user-name" style="display: none;"></span>
+  </li>
+
+  </ul>
+  <button class="main-nav__btn btn--toggle-nav">
+    <i class="icon icon-menu"></i>
+  </button>
+
+</nav>
+
+
+</header>
+
+
+    <div class="article-container" itemprop="text">
+
+       <div class="ydn-breadcrumb-before"></div>
+        <div class="container">
+           <div class="content">
+             <div id="ydn-breadcrumb" name="ydndb-doc"></div>
+           </div>
+        </div>
+        <div class="ydn-breadcrumb-after"></div>
+
+      <div class="editorial-header">
+        <div class="container">
+          <div class="content">
+
+            <h1 class="editorial-header__title"></h1>
+            <h2 class="editorial-header__subtitle" itemprop="name">Node-Webkit demo app</h2>
+
+            <p class="editorial-header__excerpt" itemprop="headline">YDN-DB todo list demo app built by Node-Webkit HTML5 desktop app platform.</p>
+
+          </div>
+        </div>
+      </div>
+
+
+      <div class="container"><div class="content ">
+
+    <h3 id="node-webkit-demo-app">Node-Webkit demo app</h3>
+
+    <p><a href="https://github.com/rogerwang/node-webkit">node-webkit</a> is an app runtime based on <a href="http://www.chromium.org/">Chromium</a> and <a href="http://nodejs.org/">node.js</a>. You can write native apps in HTML and JavaScript with node-webkit. It also lets you call Node.js modules directly from the DOM and enables a new way of writing native applications with all Web technologies.</p>
+
+    <p>Checkout pre-built <a href="http://ydn-db-d1.storage.googleapis.com/nw-todo/YDN-DB-Todo-0.1.0.zip">binary application files</a> for Windows and OS X.</p>
+
+    <h3 id="loading-bundled-data-into-the-database">Loading bundled data into the database</h3>
+
+    <p>Applications often ship with some data.  We can fetch required files from the server or we can bundle the data files together with the application.  The following code snippet shows loading JSON data from a resource file into a YDN-DB database.</p>
+
+    <pre><code> var fs = require('fs');
+ var obj;
+ fs.readFile('./data.json', 'utf8', function (err, data) {
+   if (err) throw err;
+   var json = JSON.parse(data);
+   db.put('todo', json);
+ });
+</code></pre>
+
+    <p><a href="https://github.com/yathit/node-webkit-ydn-db-todo-sample">Source code in Github</a></p>
+
+  </div></div>
+
+
+      <div class="container clear-both">
+        <div class="content">
+
+          <div class="container-medium">
+  <nav class="article-nav">
+  
+    <a class="article-nav-link article-nav-link--prev" title="Previous article" href="/ydn-db/doc/example/todo-android.html">
+      Previous 'Android App'
+    </a>
+  
+  
+    <a class="article-nav-link article-nav-link--next" title="Next article" href="/ydn-db/doc/example/todo-sqlite.html" style="float: right;">
+      Next 'Sqliteplugin on Phonegap'
+    </a>
+  
+  </nav>
+</div>
+
+
+          <br /><div class="g-comments" data-href=""></div>
+        </div>
+      </div>
+
+
+
+      
+        
+
+
+
+
+
+      
+      
+
+
+<script src="/jsc/ydn.db-dev.js"></script>
+
+    </div> <!-- /.article-container -->
+    <div class="container clear">
+	<div id="gc-content-license" class="gc-content-license g-wide--3 g-wide--last" >
+		
+		<div class="container clear">
+	<div class="g-wide--3 g-wide--last">
+    
+		<h4>Authors</h4>
+		
+		
+    <a href="/resources/contributors/index.html#kyawtun">
+      Kyaw Tun</a>
+		
+    
+	</div>
+</div>
+
+	</div>
+</div>
+
+    <footer class="main-footer">
+  <div class="main-footer__container container clear">
+    <div class="main-footer__list-group">
+      <ul class="main-footer__list main-footer__list--primary">
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--<strong>ydn-db</strong>  sitemap__item--home  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+            <strong>YDN-DB</strong>
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--download  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+            Download
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--documentation  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+            Documentation
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--api  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
+            API
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--examples  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+            Examples
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--github  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+            GitHub
+          </a>
+        </li>
+        
+      
+      </ul>
+
+      <div class="main-footer__google-section">
+        <h3 class="main-footer__title"><a href="http://dev.yathit.com/">
+          <img id="developers-logo-footer" src="/imgs/yathit-dev-network.svg" alt="Yathit Developer Network logo">
+        </a></h3>
+        <ul class="main-footer__list main-footer__list--secondary google-list">
+          <li><a href="https://www.yathit.com/">Yathit</a></li>
+          <li><a href="https://www.yathit.com/terms.html">Terms of Service</a></li>
+          <li><a href="https://www.yathit.com/privacy.html">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    <script src="/jsc/prettify.js"></script>
+
+    
+<script src="/js/script.js"></script>
+<script src="/jsc/website-app.js"></script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+
+
+
+
+
+  </body>
+</html>
+

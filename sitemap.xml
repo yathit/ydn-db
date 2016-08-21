@@ -1,0 +1,813 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
+    <url>
+        <loc>/api/ydn/api/app.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.api.App</title>
+    </url>
+    <url>
+        <loc>/api/ydn/api/user-assess.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.api.UserAssess</title>
+    </url>
+    <url>
+        <loc>/api/ydn/api/user.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.api.User</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/inj/app.html</loc>
+        <lastmod>2014-11-09T09:26:42+08:00</lastmod>
+        <title>Class ydn.crm.inj.App</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/inj/context.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.inj.Context</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/model/field.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.model.Field</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/model/group.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.model.Group</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/model/record.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.model.Record</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/model/sugarcrm.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.model.SugarCrm</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/record.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.Record</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/schema.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.Schema</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/ui/events.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.ui.events</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/ui/record/record.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.ui.record.Record</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/ui/simple-sugar-panel.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.ui.SimpleSugarPanel</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crypto/Cipher.html</loc>
+        <lastmod>2015-06-30T09:34:51+08:00</lastmod>
+        <title>Class ydn.crypto.Cipher</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/events.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>YDN-DB - ydn.db.events</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/icursor.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Interface ydn.db.ICursor</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/</loc>
+        <lastmod>2014-11-09T09:22:43+08:00</lastmod>
+        <title>Class ydn.db</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/iservice.html</loc>
+        <lastmod>2015-06-05T09:28:05+08:00</lastmod>
+        <title>Interface for Entity service provider</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/iterator.html</loc>
+        <lastmod>2015-05-26T16:45:35+08:00</lastmod>
+        <title>Class ydn.db.Iterator</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/key.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.db.Key</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/keyrange.html</loc>
+        <lastmod>2015-06-22T15:50:48+08:00</lastmod>
+        <title>Class ydn.db.KeyRange</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/query.html</loc>
+        <lastmod>2015-10-03T09:05:21+08:00</lastmod>
+        <title>Class ydn.db.Query</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/request.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.db.Request</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/schema.html</loc>
+        <lastmod>2015-06-19T18:48:49+08:00</lastmod>
+        <title>Class ydn.db.schema</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/solver.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.db.Solver</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/storage.html</loc>
+        <lastmod>2015-12-12T11:21:17+08:00</lastmod>
+        <title>Class ydn.db.Storage</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/streamer.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.db.Streamer</title>
+    </url>
+    <url>
+        <loc>/api/ydn/debug.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.debug</title>
+    </url>
+    <url>
+        <loc>/api/ydn/gdata/entry.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.gdata.Entry</title>
+    </url>
+    <url>
+        <loc>/api/ydn/gdata/feed.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.gdata.Feed</title>
+    </url>
+    <url>
+        <loc>/api/ydn/gdata/m8/contact-entry.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.gdata.m8.ContactEntry</title>
+    </url>
+    <url>
+        <loc>/api/ydn/gdata/m8/group-entry.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.gdata.m8.GroupEntry</title>
+    </url>
+    <url>
+        <loc>/api/ydn/geohash.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Namespace ydn.geohash</title>
+    </url>
+    <url>
+        <loc>/api/ydn/http/callback-result.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.http.CallbackResult</title>
+    </url>
+    <url>
+        <loc>/api/ydn/http/itransport.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.http.ITransport</title>
+    </url>
+    <url>
+        <loc>/api/ydn/math-expression.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Namespace ydn.math.Expression</title>
+    </url>
+    <url>
+        <loc>/</loc>
+        <lastmod>2014-09-12T22:57:36+08:00</lastmod>
+        <title>YDN | Home page</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/animal-search.html</loc>
+        <lastmod>2015-06-26T09:11:07+08:00</lastmod>
+        <title>Full-text search</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/encryption.html</loc>
+        <lastmod>2015-06-26T09:29:09+08:00</lastmod>
+        <title>Encryption</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/feature-matrix.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>AngularJS app on Sync</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/</loc>
+        <lastmod>2014-09-22T15:57:25+08:00</lastmod>
+        <title>Examples</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/node-webkit-demo.html</loc>
+        <lastmod>2015-10-03T09:04:33+08:00</lastmod>
+        <title>Node-Webkit demo app</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/synchronization.html</loc>
+        <lastmod>2015-06-26T09:34:46+08:00</lastmod>
+        <title>Synchronization</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/todo-android.html</loc>
+        <lastmod>2015-06-26T08:59:45+08:00</lastmod>
+        <title>Android App</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/todo-sqlite.html</loc>
+        <lastmod>2015-06-26T09:00:47+08:00</lastmod>
+        <title>Sqliteplugin on Phonegap</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/todo.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Todo list example</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/unit-tests.html</loc>
+        <lastmod>2015-06-26T09:01:23+08:00</lastmod>
+        <title>Unit tests</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/winjs-todo.html</loc>
+        <lastmod>2014-11-14T19:57:38+08:00</lastmod>
+        <title>Windows Store App</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/full-text/basic.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Basic concept</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/full-text/</loc>
+        <lastmod>2014-11-27T17:16:37+08:00</lastmod>
+        <title>Full text search</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/full-text/usage.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Usage</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/</loc>
+        <lastmod>2015-06-18T19:42:32+08:00</lastmod>
+        <title>Documentations</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/cmpidx.html</loc>
+        <lastmod>2015-06-21T00:11:24+08:00</lastmod>
+        <title>Compound index</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/</loc>
+        <lastmod>2015-06-23T08:18:18+08:00</lastmod>
+        <title>Query</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/join-query.html</loc>
+        <lastmod>2015-06-23T08:18:18+08:00</lastmod>
+        <title>Join query</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/key-joining.html</loc>
+        <lastmod>2015-07-02T06:04:32+08:00</lastmod>
+        <title>Key joining</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/multi-query.html</loc>
+        <lastmod>2014-12-19T09:02:29+08:00</lastmod>
+        <title>Multi query</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/sql-query.html</loc>
+        <lastmod>2014-11-22T06:21:38+08:00</lastmod>
+        <title>SQL</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/events.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Events</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/</loc>
+        <lastmod>2015-07-01T06:36:57+08:00</lastmod>
+        <title>Getting started</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/key.html</loc>
+        <lastmod>2015-06-22T15:50:48+08:00</lastmod>
+        <title>Key</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/library-developer.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>For library developer</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/limitation.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Supported browsers and their limitation</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/polyfill.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Polyfill</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/schema.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Schema</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/setup.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Setup</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/support.html</loc>
+        <lastmod>2015-05-26T16:47:40+08:00</lastmod>
+        <title>Getting support</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/version-1-release-note.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Version 1 release note</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/sync/build-in.html</loc>
+        <lastmod>2015-06-05T10:00:46+08:00</lastmod>
+        <title>Synchronizing with AWS S3 like backend</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/sync/entity.html</loc>
+        <lastmod>2015-06-05T09:59:37+08:00</lastmod>
+        <title>Synchronizing with a web service</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/sync/</loc>
+        <lastmod>2014-09-22T15:57:25+08:00</lastmod>
+        <title>Synchronization</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/sync/rest.html</loc>
+        <lastmod>2015-06-05T08:48:38+08:00</lastmod>
+        <title>Synchronizing with a RESTful service</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/blob.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>File and Blob</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/debugging.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Debugging</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/encryption.html</loc>
+        <lastmod>2015-07-01T09:57:53+08:00</lastmod>
+        <title>Encryption</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/</loc>
+        <lastmod>2015-12-12T09:35:44+08:00</lastmod>
+        <title>Using YDN-DB</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/modeling.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Modeling relationships</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/transaction.html</loc>
+        <lastmod>2015-12-12T09:35:44+08:00</lastmod>
+        <title>Transaction</title>
+    </url>
+    <url>
+        <loc>/ydn-db/downloads.html</loc>
+        <lastmod>2015-06-17T07:30:09+08:00</lastmod>
+        <title>YDN Javascript library</title>
+    </url>
+    <url>
+        <loc>/ydn-db/</loc>
+        <lastmod>2015-06-16T13:47:46+08:00</lastmod>
+        <title>YDN-DB javascript library</title>
+    </url>
+    <url>
+        <loc>/api/ydn/api/app.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.api.App</title>
+    </url>
+    <url>
+        <loc>/api/ydn/api/user-assess.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.api.UserAssess</title>
+    </url>
+    <url>
+        <loc>/api/ydn/api/user.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.api.User</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/inj/app.html</loc>
+        <lastmod>2014-11-09T09:26:42+08:00</lastmod>
+        <title>Class ydn.crm.inj.App</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/inj/context.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.inj.Context</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/model/field.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.model.Field</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/model/group.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.model.Group</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/model/record.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.model.Record</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/model/sugarcrm.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.model.SugarCrm</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/record.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.Record</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/schema.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.Schema</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/ui/events.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.ui.events</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/ui/record/record.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.ui.record.Record</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crm/sugarcrm/ui/simple-sugar-panel.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.crm.sugarcrm.ui.SimpleSugarPanel</title>
+    </url>
+    <url>
+        <loc>/api/ydn/crypto/Cipher.html</loc>
+        <lastmod>2015-06-30T09:34:51+08:00</lastmod>
+        <title>Class ydn.crypto.Cipher</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/events.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>YDN-DB - ydn.db.events</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/icursor.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Interface ydn.db.ICursor</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/</loc>
+        <lastmod>2014-11-09T09:22:43+08:00</lastmod>
+        <title>Class ydn.db</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/iservice.html</loc>
+        <lastmod>2015-06-05T09:28:05+08:00</lastmod>
+        <title>Interface for Entity service provider</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/iterator.html</loc>
+        <lastmod>2015-05-26T16:45:35+08:00</lastmod>
+        <title>Class ydn.db.Iterator</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/key.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.db.Key</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/keyrange.html</loc>
+        <lastmod>2015-06-22T15:50:48+08:00</lastmod>
+        <title>Class ydn.db.KeyRange</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/query.html</loc>
+        <lastmod>2015-10-03T09:05:21+08:00</lastmod>
+        <title>Class ydn.db.Query</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/request.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.db.Request</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/schema.html</loc>
+        <lastmod>2015-06-19T18:48:49+08:00</lastmod>
+        <title>Class ydn.db.schema</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/solver.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.db.Solver</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/storage.html</loc>
+        <lastmod>2015-12-12T11:21:17+08:00</lastmod>
+        <title>Class ydn.db.Storage</title>
+    </url>
+    <url>
+        <loc>/api/ydn/db/streamer.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.db.Streamer</title>
+    </url>
+    <url>
+        <loc>/api/ydn/debug.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.debug</title>
+    </url>
+    <url>
+        <loc>/api/ydn/gdata/entry.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.gdata.Entry</title>
+    </url>
+    <url>
+        <loc>/api/ydn/gdata/feed.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.gdata.Feed</title>
+    </url>
+    <url>
+        <loc>/api/ydn/gdata/m8/contact-entry.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.gdata.m8.ContactEntry</title>
+    </url>
+    <url>
+        <loc>/api/ydn/gdata/m8/group-entry.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.gdata.m8.GroupEntry</title>
+    </url>
+    <url>
+        <loc>/api/ydn/geohash.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Namespace ydn.geohash</title>
+    </url>
+    <url>
+        <loc>/api/ydn/http/callback-result.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.http.CallbackResult</title>
+    </url>
+    <url>
+        <loc>/api/ydn/http/itransport.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Class ydn.http.ITransport</title>
+    </url>
+    <url>
+        <loc>/api/ydn/math-expression.html</loc>
+        <lastmod>2014-09-21T09:00:06+08:00</lastmod>
+        <title>Namespace ydn.math.Expression</title>
+    </url>
+    <url>
+        <loc>/</loc>
+        <lastmod>2014-09-12T22:57:36+08:00</lastmod>
+        <title>YDN | Home page</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/animal-search.html</loc>
+        <lastmod>2015-06-26T09:11:07+08:00</lastmod>
+        <title>Full-text search</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/encryption.html</loc>
+        <lastmod>2015-06-26T09:29:09+08:00</lastmod>
+        <title>Encryption</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/feature-matrix.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>AngularJS app on Sync</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/</loc>
+        <lastmod>2014-09-22T15:57:25+08:00</lastmod>
+        <title>Examples</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/node-webkit-demo.html</loc>
+        <lastmod>2015-10-03T09:04:33+08:00</lastmod>
+        <title>Node-Webkit demo app</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/synchronization.html</loc>
+        <lastmod>2015-06-26T09:34:46+08:00</lastmod>
+        <title>Synchronization</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/todo-android.html</loc>
+        <lastmod>2015-06-26T08:59:45+08:00</lastmod>
+        <title>Android App</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/todo-sqlite.html</loc>
+        <lastmod>2015-06-26T09:00:47+08:00</lastmod>
+        <title>Sqliteplugin on Phonegap</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/todo.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Todo list example</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/unit-tests.html</loc>
+        <lastmod>2015-06-26T09:01:23+08:00</lastmod>
+        <title>Unit tests</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/example/winjs-todo.html</loc>
+        <lastmod>2014-11-14T19:57:38+08:00</lastmod>
+        <title>Windows Store App</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/full-text/basic.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Basic concept</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/full-text/</loc>
+        <lastmod>2014-11-27T17:16:37+08:00</lastmod>
+        <title>Full text search</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/full-text/usage.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Usage</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/</loc>
+        <lastmod>2015-06-18T19:42:32+08:00</lastmod>
+        <title>Documentations</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/cmpidx.html</loc>
+        <lastmod>2015-06-21T00:11:24+08:00</lastmod>
+        <title>Compound index</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/</loc>
+        <lastmod>2015-06-23T08:18:18+08:00</lastmod>
+        <title>Query</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/join-query.html</loc>
+        <lastmod>2015-06-23T08:18:18+08:00</lastmod>
+        <title>Join query</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/key-joining.html</loc>
+        <lastmod>2015-07-02T06:04:32+08:00</lastmod>
+        <title>Key joining</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/multi-query.html</loc>
+        <lastmod>2014-12-19T09:02:29+08:00</lastmod>
+        <title>Multi query</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/query/sql-query.html</loc>
+        <lastmod>2014-11-22T06:21:38+08:00</lastmod>
+        <title>SQL</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/events.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Events</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/</loc>
+        <lastmod>2015-07-01T06:36:57+08:00</lastmod>
+        <title>Getting started</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/key.html</loc>
+        <lastmod>2015-06-22T15:50:48+08:00</lastmod>
+        <title>Key</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/library-developer.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>For library developer</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/limitation.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Supported browsers and their limitation</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/polyfill.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Polyfill</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/schema.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Schema</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/setup.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Setup</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/support.html</loc>
+        <lastmod>2015-05-26T16:47:40+08:00</lastmod>
+        <title>Getting support</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/setup/version-1-release-note.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Version 1 release note</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/sync/build-in.html</loc>
+        <lastmod>2015-06-05T10:00:46+08:00</lastmod>
+        <title>Synchronizing with AWS S3 like backend</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/sync/entity.html</loc>
+        <lastmod>2015-06-05T09:59:37+08:00</lastmod>
+        <title>Synchronizing with a web service</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/sync/</loc>
+        <lastmod>2014-09-22T15:57:25+08:00</lastmod>
+        <title>Synchronization</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/sync/rest.html</loc>
+        <lastmod>2015-06-05T08:48:38+08:00</lastmod>
+        <title>Synchronizing with a RESTful service</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/blob.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>File and Blob</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/debugging.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Debugging</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/encryption.html</loc>
+        <lastmod>2015-07-01T09:57:53+08:00</lastmod>
+        <title>Encryption</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/</loc>
+        <lastmod>2015-12-12T09:35:44+08:00</lastmod>
+        <title>Using YDN-DB</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/modeling.html</loc>
+        <lastmod>2014-11-06T11:43:34+08:00</lastmod>
+        <title>Modeling relationships</title>
+    </url>
+    <url>
+        <loc>/ydn-db/doc/usage/transaction.html</loc>
+        <lastmod>2015-12-12T09:35:44+08:00</lastmod>
+        <title>Transaction</title>
+    </url>
+    <url>
+        <loc>/ydn-db/downloads.html</loc>
+        <lastmod>2015-06-17T07:30:09+08:00</lastmod>
+        <title>YDN Javascript library</title>
+    </url>
+    <url>
+        <loc>/ydn-db/</loc>
+        <lastmod>2015-06-16T13:47:46+08:00</lastmod>
+        <title>YDN-DB javascript library</title>
+    </url>
+</urlset>

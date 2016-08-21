@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Issue 107</title>
+  <meta charset="utf-8"/>
+
+  <script
+      type="text/javascript" src="../jsc/ydn.db-dev.js"></script>
+</head>
+<body>
+    <p>Testing for issue 107</p>
+<script type="text/javascript">
+
+    var initialSchema   = {
+        version: 1,
+        stores: [
+            {
+                name: 'store1',
+                keyPath: 'id',
+                autoIncrement: true
+            },
+            {
+                name: 'store2',
+                keyPath: 'id',
+                autoIncrement: true
+            }
+        ]
+    };
+
+    var db = new ydn.db.Storage('db-107', initialSchema);
+
+    db.put('store1', {
+        "id": 1,
+        "nom": "Bleu",
+        "store": 1,
+        "code": "#bidule"
+    });
+    db.put('store2', {
+        "id": 1,
+        "nom": "Saumon",
+        "store": 2,
+        "code": "#dbb494"
+    });
+    db.get("store1", 1)
+            .then(function (result1) {
+                console.log(result1);
+                return db.get("store2", 1);
+            })
+            .then(function (result2) {
+                console.log(result2);
+                document.write(JSON.stringify(result2));
+            });
+    db.close();
+    ydn.db.deleteDatabase(db.getName(), db.getType());
+</script>
+
+</body>
+</html>

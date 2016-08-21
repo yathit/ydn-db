@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>safari 8</title>
+</head>
+<body>
+  <h3>
+    <a href="https://github.com/yathit/ydn-db/issues/20">issue 20</a>
+  </h3>
+  <div id="result"></div>
+  <script>
+    var oReq = indexedDB.open("library");
+    oReq.onupgradeneeded = function() {
+      // The database did not previously exist, so create object stores and indexes.
+      var db = oReq.result;
+      var book_store = db.createObjectStore("book", {keyPath: "isbn"});
+      var author_store = db.createObjectStore("author", {keyPath: "email"});
+    };
+
+    oReq.onsuccess = function() {
+      var db = oReq.result;
+      // change this to ['book']; to get safari 7.1 working.
+      var store_names = ['book', 'author'];
+      var tx = db.transaction(store_names, 'readwrite');
+      var book_store = tx.objectStore('book');
+      book_store.put({isbn: '123', title: 'New book'});
+
+      tx.oncomplete = function() {
+        var tx = db.transaction(store_names, 'readonly');
+        var book_store = tx.objectStore('book');
+        var req = book_store.get('123');
+        req.onsuccess = function(ev) {
+          var div = document.getElementById('result');
+          div.textContent = JSON.stringify(ev.target.result);
+        }
+      }
+    };
+  </script>
+</body>
+</html>

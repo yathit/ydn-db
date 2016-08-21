@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <title>Performance test - CRUD operations</title>
+    <script type="text/javascript" src="../../jsc/ydn.db.js"></script>
+    <link href="perf.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div>
+    <div><label>Version: YDN-DB </label><span id="version"></span></div>
+    <div><label>Mechanism: </label><span id="mechanism"></span></div>
+    <h4>Performance results</h4>
+    <table id="result-table">
+        <thead>
+        <tr>
+            <th rowspan="2">Description</th>
+            <th colspan="6">Op / sec</th>
+        </tr>
+        <tr>
+            <th>Serial atomic</th>
+            <th>Serial single</th>
+            <th>Serial multi</th>
+            <th>Parallel atomic</th>
+            <th>Parallel single</th>
+            <th>Parallel multi</th>
+        </tr>
+        </thead>
+
+    </table>
+    <div class="note">
+    <p>
+        <em>Note on <a href="/ydn-db/transaction.html">transaction policy</a>: </em>
+        Serial refers to as serial transaction, in which order of execution is respected.
+        Parallel refers to as parallel transaction.
+        Atomic refers to as atomic request, in which write request confirm that
+        data is written to the database.
+        Single refers to as one request
+        per transaction. Multi refers to as multiple requests per transaction.
+    </p>
+    </div>
+</div>
+<script type="text/javascript" src="pref.js"></script>
+<script type="text/javascript" src="crud-small.js"></script>
+</body>
+</html>
