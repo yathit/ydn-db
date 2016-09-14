@@ -24,7 +24,7 @@ goog.require('ydn.db.query.ConjQuery');
 
 /**
  * Create AND query.
- * @param {Array.<ydn.db.Query} qs querys
+ * @param {Array<ydn.db.Query>} qs querys
  * @return {*}
  */
 ydn.db.query.and = function(qs) {
@@ -44,7 +44,7 @@ ydn.db.query.and = function(qs) {
 
 /**
  * Create AND query.
- * @param {Array.<ydn.db.Query} qs
+ * @param {Array<ydn.db.Query>} qs
  * @return {ydn.db.query.ConjQuery}
  * @private
  */
