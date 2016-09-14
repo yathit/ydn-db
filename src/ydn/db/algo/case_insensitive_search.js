@@ -88,9 +88,6 @@ ydn.db.algo.CaseInsensitiveSearch.prototype.solver = function(keys, values) {
 
   var key = this.is_key_iter_ ? keys[0] : values[0];
 
-  if (n == 0) {
-
-  }
 
   return [];
 };
