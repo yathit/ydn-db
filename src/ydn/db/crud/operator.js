@@ -1201,7 +1201,7 @@ ydn.db.crud.DbOperator.prototype.put = function(arg1, value, opt_keys) {
         }, this);
       }
 
-    } else if (goog.isObject(value)) {
+    } else if (goog.isObject(value) || (!store.usedInlineKey() && goog.isDef(value))) {
       var obj = value;
       var key = /** @type {number|string|undefined} */ (opt_keys);
       if (goog.DEBUG) {

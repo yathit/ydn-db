@@ -1,13 +1,14 @@
 
 goog.require('goog.debug.Console');
+goog.require('goog.testing.AsyncTestCase');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
 goog.require('ydn.db.crud.Storage');
 goog.require('ydn.debug');
 
-
-var reachedFinalContinuation, schema, debug_console, db, objs;
+var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
+var schema, debug_console, db, objs;
 
 var table_name = 'st_inline';
 var table_name_offline = 'st_offline';
@@ -15,7 +16,7 @@ var store_name_inline_number = 'st_inline_n';
 var load_store_name = 'st_load';
 
 
-var setUp = function() {
+function setUp () {
 
   ydn.json.POLY_FILL = true;
   // ydn.debug.log('ydn.db', 'finest');
@@ -33,14 +34,15 @@ var setUp = function() {
   ];
   schema = new ydn.db.schema.Database(undefined, stores);
 
-};
-
-var tearDown = function() {
-  assertTrue('The final continuation was not reached', reachedFinalContinuation);
-};
+}
 
 
-var test_add_inline = function() {
+function tearDown() {
+
+}
+
+
+function test_add_inline() {
   var db_name = 'test_add' + goog.now();
   var schema = {
     stores: [{
@@ -50,84 +52,51 @@ var test_add_inline = function() {
   }
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
-  var fired = [];
-  var results = [];
   var keys = ['a', 2];
 
-  waitForCondition(
-    // Condition
-    function() { return fired[0] && fired[1] && fired[2]; },
-    // Continuation
-    function() {
-      assertEquals('add 0', keys[0], results[0]);
-      assertEquals('add 1', keys[1], results[1]);
-      assertTrue('add 2: Error object', goog.isObject(results[2]));
-      assertEquals('add 2: Error', 'ConstraintError', results[2].name);
 
-      reachedFinalContinuation = true;
-      ydn.db.deleteDatabase(db_name, db.getType());
-      db.close();
-    },
-    100, // interval
-    1000); // maxTimeout
-
-
+  asyncTestCase.waitForAsync('add 1');
   db.add('st', {id: keys[0], value: '1', remark: 'put test'}).addBoth(function(value) {
-    //console.log('receiving value callback.');
-    results[0] = value;
-    fired[0] = true;
+    assertEquals('add 0', keys[0], value);
+    asyncTestCase.continueTesting();
+    asyncTestCase.waitForAsync('add 2');
 
+    db.add('st', {id: keys[1], value: '1', remark: 'put test'}).addBoth(function(value) {
+      assertEquals('add 1', keys[1], value);
+
+      asyncTestCase.continueTesting();
+      asyncTestCase.waitForAsync('add 3');
+
+      db.add('st', {id: keys[0], value: '1', remark: 'put test'}).addCallbacks(function(value) {
+        asyncTestCase.continueTesting();
+      }, function(value) {
+        assertTrue('add 2: Error object', goog.isObject(value));
+        assertEquals('add 2: Error', 'ConstraintError', value.name);
+        ydn.db.deleteDatabase(db_name, db.getType());
+        db.close();
+        asyncTestCase.continueTesting();
+      });
+    });
   });
 
-  db.add('st', {id: keys[1], value: '1', remark: 'put test'}).addBoth(function(value) {
-    //console.log('receiving value callback.');
-    results[1] = value;
-    fired[1] = true;
-  });
-
-  db.add('st', {id: keys[0], value: '1', remark: 'put test'}).addCallbacks(function(value) {
-    fired[2] = true;
-  }, function(value) {
-    results[2] = value;
-    fired[2] = true;
-  });
-};
+}
 
 
-
-
-var test_put = function() {
+function test_put() {
   var db_name = 'test_11_put';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
-  var hasEventFired = false;
-  var put_value;
-
-  waitForCondition(
-    // Condition
-    function() { return hasEventFired; },
-    // Continuation
-    function() {
-      assertEquals('put a', 'a', put_value);
-      // Remember, the state of this boolean will be tested in tearDown().
-      reachedFinalContinuation = true;
-      ydn.db.deleteDatabase(db_name, db.getType());
-      db.close();
-    },
-    100, // interval
-    2000); // maxTimeout
-
-
+  asyncTestCase.waitForAsync('put 1');
   db.put(table_name, {id: 'a', value: '1', remark: 'put test'}).addBoth(function(value) {
-    console.log('receiving value callback.');
-    put_value = value;
-    hasEventFired = true;
+    assertEquals('put a', 'a', value);
+    ydn.db.deleteDatabase(db_name, db.getType());
+    db.close();
+    asyncTestCase.continueTesting();
   });
-};
+}
 
 
-
-var test_put_key = function() {
+function test_put_key() {
   var db_name = 'test_13_put_key';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
 
@@ -135,39 +104,21 @@ var test_put_key = function() {
   var value =
     {id: 1, msg: Math.random()};
 
-  var done = false;
-  var results, keys;
-
-  waitForCondition(
-    // Condition
-    function() { return done; },
-    // Continuation
-    function() {
+  asyncTestCase.waitForAsync('put 1');
+  db.put(key, value).addBoth(function(x) {
+    keys = x;
+    db.get(key).addBoth(function(results) {
       assertEquals('key', 1, keys);
       assertObjectEquals('value', value, results);
-
-      reachedFinalContinuation = true;
       ydn.db.deleteDatabase(db_name, db.getType());
       db.close();
-    },
-    100, // interval
-    1000); // maxTimeout
-
-
-  db.put(key, value).addBoth(function(x) {
-    console.log('receiving value callback.');
-    keys = x;
-    db.get(key).addBoth(function(x) {
-      results = x;
-      done = true;
+      asyncTestCase.continueTesting();
     });
   });
-};
+}
 
 
-
-
-var test_count_store = function() {
+function test_count_store() {
 
   var db_name = 'test_31_count_store_2';
 
@@ -185,37 +136,21 @@ var test_count_store = function() {
 
   db.clear(store_1);
   db.put(store_1, arr).addCallback(function(keys) {
-    console.log(keys);
+    // console.log(keys);
   });
 
-  var done = false;
-  var count;
 
-  waitForCondition(
-    // Condition
-    function() { return done; },
-    // Continuation
-    function() {
-      assertEquals('number of record', n, count);
-      // Remember, the state of this boolean will be tested in tearDown().
-      reachedFinalContinuation = true;
-      ydn.db.deleteDatabase(db_name, db.getType());
-      db.close();
-    },
-    100, // interval
-    2000); // maxTimeout
-
-
+  asyncTestCase.waitForAsync('count');
   db.count(store_1).addBoth(function(value) {
-    //console.log('receiving value callback.');
-    count = value;
-    done = true;
+    assertEquals('number of record', n, value);
+    ydn.db.deleteDatabase(db_name, db.getType());
+    db.close();
+    asyncTestCase.continueTesting();
   });
-};
+}
 
 
-
-var test_remove_by_id = function() {
+function test_remove_by_id() {
   var db_name = 'test_41_remove_by_key';
   var db = new ydn.db.crud.Storage(db_name, schema, options);
   db.clear(table_name);
@@ -223,44 +158,57 @@ var test_remove_by_id = function() {
     [{id: 1}, {id: 2}, {id: 3}, {id: 4}]
   );
 
-  var hasEventFired = false;
-  var delCount, count;
-
-  waitForCondition(
-    // Condition
-    function() { return hasEventFired; },
-    // Continuation
-    function() {
-      assertEquals('remove result', 1, delCount);
+  asyncTestCase.waitForAsync('remove');
+  db.remove(table_name, 1).addBoth(function(delCount) {
+    assertEquals('remove result', 1, delCount);
+    db.count(table_name).addBoth(function(count) {
       assertEquals('count', 3, count);
-      // Remember, the state of this boolean will be tested in tearDown().
-      reachedFinalContinuation = true;
       ydn.db.deleteDatabase(db_name, db.getType());
       db.close();
-    },
-    100, // interval
-    1000); // maxTimeout
-
-  db.remove(table_name, 1).addBoth(function(value) {
-
-    delCount = value;
-    db.count(table_name).addBoth(function(x) {
-      count = x;
-      hasEventFired = true;
+      asyncTestCase.continueTesting();
     });
   });
 
-};
+}
+
+
+function test_serial() {
+  var db_name = 'test_serial';
+  var schema = {
+    stores: [{
+      name: 'st1'
+    }]
+  };
+  var db = new ydn.db.crud.Storage(db_name, schema, options);
+
+  asyncTestCase.waitForAsync('get');
+  var get1 = false;
+  var get21 = false;
+  var get22 = false;
+  db.get('st1', 1).addCallback(function(x1) {
+    get1 = true;
+  });
+  var obj = {a: 1};
+  db.put('st1', obj, 2).addCallback(function(x1) {
+    get21 = true;
+  });
+  db.get('st1', 2).addCallback(function(x1) {
+    assertObjectEquals(obj, x1);
+    get22 = true;
+  });
+  db.get('st1', 3).addBoth(function(x3) {
+    assertTrue(get1);
+    assertTrue(get21);
+    assertTrue(get22);
+    ydn.db.deleteDatabase(db_name, db.getType());
+    db.close();
+    asyncTestCase.continueTesting();
+  });
+}
 
 
 
-var tearDownPage = function() {
 
-};
-
-var testCase = new goog.testing.ContinuationTestCase();
-testCase.autoDiscoverTests();
-G_testRunner.initialize(testCase);
 
 
 
