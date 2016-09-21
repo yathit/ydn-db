@@ -3,14 +3,15 @@
 <html lang="en" class="no-js no-touch" itemscope itemtype="http://schema.org/Article">
   <head>
 
-    <link href="//fonts.googleapis.com/css?family=Crimson+Text:400,600" rel="stylesheet" type="text/css">
+    <link type="text/css" rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro">
+
     
 <meta charset="utf-8" />
 
 
 <title>
   
-    YDN | Home page
+    YDN-DB javascript library
   
 </title>
 
@@ -41,7 +42,7 @@
 
 <meta itemprop="name" content="
   
-    YDN | Home page
+    YDN-DB javascript library
   
 ">
 <link itemprop="image" href="/imgs/logo.png">
@@ -50,7 +51,7 @@
 <meta property="og:site_name" content="Yathit" />
 <meta property="og:title" content="
   
-    YDN | Home page
+    YDN-DB javascript library
   
 " />
 <meta property="og:type" content="website" />
@@ -66,29 +67,15 @@
 
   </head>
 
-  <body class="page--ydn">
+  <body class="page--ydndb">
     
 
     <header class="main-header">
 
-  <div class="yathit-header">
-  
-    <div class="yathit-header__top">
-      <div class="container">
-        <span id="beta" class="beta">
-  <i class="icon icon-cog"></i>
-  <a name="view-source" href="https://github.com/yathit" target="_blank">View Source</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a name="feedback-link" href="https://github.com/yathit/issues/new?title=Feedback%20for:%20/index.html" target="_blank">Submit Feedback</a>
-</span>
-
-
-        <a class="yathit-header__dev-logo" href="//dev.yathit.com/">
-          <img src="/imgs/yathit-dev-network.svg" alt="Yathit Developers Homepage">
-        </a>
-      </div>
-    </div>
-  </div>
-
 	
+
+
+
 
 
 
@@ -112,21 +99,21 @@
 <nav class="main-nav">
 
   <header class="main-nav__header">
-    <span class="main-nav__current-label">Web <strong>Fundamentals</strong></span>
+    <span class="main-nav__current-label">YDN-DB javascript library</span>
   </header>
 
   <ul class="main-nav__list clear">
   
     
     
-    <li class="main-nav__item main-nav__item--<strong>ydn</strong>
+    <li class="main-nav__item main-nav__item--<strong>ydn-db</strong>
                 main-nav__item--home 
                
-                main-nav__item--current
+               
                ">
-      <a class="main-nav__link main-nav__link--parent" href="//dev.yathit.com/ydn.html" title="Go to <strong>YDN</strong>">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
 
-        <strong>YDN</strong>
+        <strong>YDN-DB</strong>
 
         
         <i class="main-nav__icon icon icon-chevron-right"></i>
@@ -140,16 +127,16 @@
   
     
     
-    <li class="main-nav__item main-nav__item--inboxcrm
+    <li class="main-nav__item main-nav__item--download
                
                
                  
                
                
                ">
-      <a class="main-nav__link main-nav__link--parent" href="//crm.yathit.com/crm-in-inbox/sugarcrm/index.html" title="Go to InboxCRM">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
 
-        InboxCRM
+        Download
 
         
         <i class="main-nav__icon icon icon-chevron-right"></i>
@@ -163,16 +150,16 @@
   
     
     
-    <li class="main-nav__item main-nav__item--ydn-db
+    <li class="main-nav__item main-nav__item--documentation
                
                
                  
                
                
                ">
-      <a class="main-nav__link main-nav__link--parent" href="//dev.yathit.com/ydn-db/index.html" title="Go to YDN-DB">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
 
-        YDN-DB
+        Documentation
 
         
         <i class="main-nav__icon icon icon-chevron-right"></i>
@@ -196,6 +183,29 @@
       <a class="main-nav__link main-nav__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
 
         API
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--examples
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+
+        Examples
 
         
         <i class="main-nav__icon icon icon-chevron-right"></i>
@@ -249,27 +259,143 @@
 </header>
 
 
-    <div class="editorial-header ydn-tagline">
-  <div class="container">
-    <div class="content">
+    <div class="ydndb-header centered themed--background">
+	<div class="container">
+		<h1><strong>YDN-DB</strong></h1>
+		<p>HTML5 javascript database library for web apps.</p>
 
-      <h2 class="ydn-tagline-1 editorial-header__subtitle">Build what you love to do</h2>
-      <h2 class="ydn-tagline-2 editorial-header__subtitle">And make it masterpiece</h2>
+	</div>
+</div>
+<div class="container">
+	<div class="centered">
+		<h3 class="g-wide--2 g--centered xlarge">Javascript database library for IndexedDB, WebSQL and WebStorage.</h3>
+	</div>
+	<ul class="list-guides-intro list-centered list-reset clear">
+		<li class="g-medium--half g-wide--1 theme--tools">
+			<span class="icon-circle--large themed--background"><i class="icon icon-multi-device-layouts"></i></span><h3 class="large">Multi-browser support</h3>
+			<p>Support all desktop, mobile browsers and web clients. See <a href="doc/setup/limitation.html">details</a>. No dependencies.</p>
+		</li>
+		<li class="g-medium--half g-wide--1 theme--tools g-medium--last">
+			<span class="icon-circle--large themed--background"><i class="icon icon-user-input"></i></span><h3 class="large">Powerful query</h3>
+			<p>Build powerful queries using <a href="doc/query/cmpidx.html">compound index</a>, <a href="doc/setup/schema.html#ydn-db-store-schema">multi-entry index</a>, <a href="doc/query/key-joining.html">self-join</a> and multi-query.</p>
+		</li>
+		<li class="g-medium--half g-wide--1 theme--tools">
+			<span class="icon-circle--large themed--background"><i class="icon icon-chevron-up"></i></span><h3 class="large">Database that syncs</h3>
+			<p>Robust and simple <a href="doc/sync/index.html">synchronization</a> with <a href="doc/sync/rest.html">RESTFul web services</a> including <a href="doc/sync/build-in.html">AWS S3 and Google GCS</a>.</p>
+		</li>
+		<li class="g-medium--half g-wide--1 theme--tools g-medium--last g-wide--last">
+			<span class="icon-circle--large themed--background"><i class="icon icon-cog"></i></span><h3 class="large">Easy to debug</h3>
+			<p>Turn on <a href="doc/usage/debugging.html">detailed logging</a> for transaction and database requests.</p>
+		</li>
+		<li class="g-medium--half g-wide--1 theme--tools g-wide--first">
+			<span class="icon-circle--large themed--background"><i class="icon icon-performance"></i></span><h3 class="large">High performance</h3>
+			<p>Designed with a <a href="doc/setup/library-developer.html">high performance database API</a> and implemented for extreme speed.</p>
+		</li>
+		<li class="g-medium--half g-wide--1 theme--tools g-medium--last">
+			<span class="icon-circle--large themed--background"><i class="icon icon-diamond"></i></span><h3 class="large">SQL support</h3>
+			<p>Basic <a href="doc/query/sql-query.html">SQL support</a> similar to MS DocumentDB.</p>
+		</li>
+		<li class="g-medium--half g-wide--1 theme--tools">
+			<span class="icon-circle--large themed--background"><i class="icon icon-tick"></i></span><h3 class="large">Custom build</h3>
+			<p>Custom build a minified file containing only what you need. (<a href="https://www.yathit.com/contactus.html">Paid support required.</a>)</p>
+		</li>
+		<li class="g-medium--half g-wide--1 theme--tools g-medium--last g-wide--last">
+			<span class="icon-circle--large themed--background"><i class="icon icon-lessons"></i></span><h3 class="large">Full-text search</h3>
+			<p><a href="doc/full-text/index.html">Full-text search</a> with stemming, normalization and query ranking.</p>
+		</li>
+	</ul>
+</div>
 
-    </div>
-  </div>
+<div class="divider divider--secondary">
+  <span class="themed divider-icon"></span>
 </div>
 
 <div class="container">
-	<div class="content">
-    <a class="twitter-timeline" href="https://twitter.com/yathit"
-       data-widget-id="510436519597707265">Tweets by @yathit</a>
-  </div>
+  <div class="content">
+<h3>Beautiful API</h3>
+<p>The library API is carefully designed so that it is simple, powerful and make sense.</p>
+<pre>var db = new ydn.db.Storage('db-name');
+db.put('store-name', {message: 'Hello world!'}, 'id1');
+db.get('store-name', 'id1').always(function(record) {
+  console.log(record);
+});</pre>
+
+  <h3>Rich queries</h3>
+  <p>Fast indexed query on client database with multiple filters, ordering
+    and pagination.</p>
+        <pre>var q = db.from('people').where('age', '>=', 25);
+q.list(10).done(function(peoples) {
+  console.log(peoples); // list of first 10 peoples
+});</pre>
+        <pre>var q = db.from('people').where('country', '=', 'US').order('name');
+q.list(10).done(function(peoples) {
+  console.log(peoples); // list of first 10 peoples from US ordered by name
+});
+q.list(10).done(function(peoples) {
+  console.log(peoples); // next 10 peoples
+});</pre>
+
+  <h3>Unified managed schema</h3>
+  <p>Manage database table or object stores as defined by a simple Javascript object.
+    Schema can be versioned or generated dynamically.</p>
+        <pre>var schema = {
+  stores: [{
+    name: 'people',
+    indexes: [{
+       keyPath: 'age'
+    }, {
+       name: 'age, name',
+       keyPath: ['age', 'name']
+    }]
+  ]
+}
+var db = new ydn.db.Storage('db-name', schema);</pre>
+
+  <h3>Complex transaction workflow</h3>
+  <p>Run complex transaction workflow over hundreds of indexes on millions of records.</p>
+        <pre>db.run(function health_10up(tx_db) {
+   tx_db.get('player', 1).done(function(p1_obj) {
+        p1_obj.health += 10;
+        tx_db.put('player', p1_obj);
+   });
+}, ['player'], 'readwrite');</pre>
+
+  <h3>High performance streaming API</h3>
+  <p>Reduce memory usage and increase UI responsiveness by using the streaming API.</p>
+        <pre>var q = db.from('author').where('first', 'starts', input_value);
+var ul = document.getElementById('auto-suggestion-list');
+ul.innerHTML = '';
+q.open(function (cursor) {
+  var li = document.createElement('li');
+  var people = cursor.getValue();
+  li.textContent = people.first + ' ' + people.last;
+});</pre>
+
+  <h3>Synchronize with REST backend services</h3>
+  <p>Cache and persist in the RESTful backend service.</p>
+    <pre> var schema = {
+  stores: [{
+        name: 'todo',
+        keyPath: 'id',
+        Sync: {
+          format: 'gcs',  // Google Cloud Storage
+          Options: {
+            bucket: 'ydn-note-data',
+            prefix: 'todo/'
+          }
+        }
+  }]
+};
+var db = new ydn.db.Storage(db_name, schema);
+// GET https://ydn-note-data.storage.googleapis.com/todo/id123
+db.get('todo', 'id123');
+// PUT https://ydn-note-data.storage.googleapis.com/todo/id123
+db.put('todo', 'id123');
+// DELETE https://ydn-note-data.storage.googleapis.com/todo/id123
+db.remove('todo', 'id123');
+    </pre>
+ </div>
 </div>
-
-
-
-
 
 
 
@@ -282,9 +408,9 @@
         
 
         
-        <li class="sitemap__item sitemap__item--<strong>ydn</strong>  sitemap__item--home  sitemap__item--current ">
-          <a class="sitemap-list__link sitemap-list__link--parent" href="//dev.yathit.com/ydn.html" title="Go to <strong>YDN</strong>">
-            <strong>YDN</strong>
+        <li class="sitemap__item sitemap__item--<strong>ydn-db</strong>  sitemap__item--home  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+            <strong>YDN-DB</strong>
           </a>
         </li>
         
@@ -293,9 +419,9 @@
         
 
         
-        <li class="sitemap__item sitemap__item--inboxcrm  ">
-          <a class="sitemap-list__link sitemap-list__link--parent" href="//crm.yathit.com/crm-in-inbox/sugarcrm/index.html" title="Go to InboxCRM">
-            InboxCRM
+        <li class="sitemap__item sitemap__item--download  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+            Download
           </a>
         </li>
         
@@ -304,9 +430,9 @@
         
 
         
-        <li class="sitemap__item sitemap__item--ydn-db  ">
-          <a class="sitemap-list__link sitemap-list__link--parent" href="//dev.yathit.com/ydn-db/index.html" title="Go to YDN-DB">
-            YDN-DB
+        <li class="sitemap__item sitemap__item--documentation  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+            Documentation
           </a>
         </li>
         
@@ -318,6 +444,17 @@
         <li class="sitemap__item sitemap__item--api  ">
           <a class="sitemap-list__link sitemap-list__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
             API
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--examples  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+            Examples
           </a>
         </li>
         
@@ -349,6 +486,8 @@
   </div>
 </footer>
 
+
+    <script src="/jsc/prettify.js"></script>
 
 
     
