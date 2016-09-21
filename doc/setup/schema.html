@@ -181,7 +181,7 @@
                
                
                ">
-      <a class="main-nav__link main-nav__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
 
         API
 
@@ -294,7 +294,7 @@
 
     <h2 id="ydn-db-database-schema">YDN-DB database schema</h2>
 
-    <p>YDN-DB library create object stores along with their indexes during database connection as defined in the YDN-DB database schema. <a href="/api/ydn/db/schema.html#database">YDN-DB database schema</a> is defined by an JSON object. For example:</p>
+    <p>YDN-DB library create object stores along with their indexes during database connection as defined in the YDN-DB database schema. <a href="/ydn-db/api/ydn/db/schema.html#database">YDN-DB database schema</a> is defined by an JSON object. For example:</p>
 
     <pre><code>var schema = {
   version: 1,
@@ -377,7 +377,7 @@
 
     <p>Database version must not be lower than existing database version. A way to know existing database version is opening the database without giving version. Generally we do not need to know existing database version before opening database, because as application author, we know all versions we used before. Existing database version in the user browser must be one of these versions used before. But in practice, if an application depend on specific database version, managing database version can be quite complicate over years of refactoring the application. Whenever possible, use auto version.</p>
 
-    <p>An application which require to do some logic during database changes can listen <a href="/api/ydn/db/events.html#ready"><code>ready</code> event</a>. The open event listener is invoked with custom event which has <code>getVersion()</code> and <code>getOldVersion()</code> methods to query new and old database versions.    </p>
+    <p>An application which require to do some logic during database changes can listen <a href="/ydn-db/api/ydn/db/events.html#ready"><code>ready</code> event</a>. The open event listener is invoked with custom event which has <code>getVersion()</code> and <code>getOldVersion()</code> methods to query new and old database versions.    </p>
 
     <h3 id="ydn-db-store-schema">YDN-DB store schema</h3>
 
@@ -587,7 +587,7 @@
 
         
         <li class="sitemap__item sitemap__item--api  ">
-          <a class="sitemap-list__link sitemap-list__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
             API
           </a>
         </li>

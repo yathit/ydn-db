@@ -181,7 +181,7 @@
                
                
                ">
-      <a class="main-nav__link main-nav__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
 
         API
 
@@ -288,11 +288,11 @@
 
     <h3 id="ydn-db-event-module">YDN-DB event module</h3>
 
-    <p>YDN-DB is composed of <a href="setup.html#ydn-db-modules">several modules</a> and one of them is Event module. With event module, such as ‘ydn.db-iswu-core-e-qry-dev.js’, database instance dispatches four types of <a href="/api/ydn/db/events.html">events</a>. Responding to these events are necessary to handle very rare problem during database schema upgrading. </p>
+    <p>YDN-DB is composed of <a href="setup.html#ydn-db-modules">several modules</a> and one of them is Event module. With event module, such as ‘ydn.db-iswu-core-e-qry-dev.js’, database instance dispatches four types of <a href="/ydn-db/api/ydn/db/events.html">events</a>. Responding to these events are necessary to handle very rare problem during database schema upgrading. </p>
 
     <h3 id="database-ready-event">Database ready event</h3>
 
-    <p>When storage instance is connected and ready for use, it dispatch <code>'ready'</code> <a href="/api/ydn/db/events.html#StoreEvent">StorageEvent</a>. <code>'ready'</code> event is dispatch only once before connection time out interval (default to 30 seconds). All database requests must wait until <code>'ready'</code> state and push in request queue. Hence heavy database operation are requested only after ready as follow: </p>
+    <p>When storage instance is connected and ready for use, it dispatch <code>'ready'</code> <a href="/ydn-db/api/ydn/db/events.html#StoreEvent">StorageEvent</a>. <code>'ready'</code> event is dispatch only once before connection time out interval (default to 30 seconds). All database requests must wait until <code>'ready'</code> state and push in request queue. Hence heavy database operation are requested only after ready as follow: </p>
 
     <pre><code>db.addEventListener('ready', function (event) {
   var is_updated = event.getVersion() != event.getOldVersion();
@@ -332,7 +332,7 @@
 
     <h3 id="database-fail-event">Database fail event</h3>
 
-    <p>Storage instance dispatches <code>'fail'</code> <a href="/api/ydn/db/events.html#StorageErrorEvent">StorageErrorEvent</a> when it no longer be used due to fatal error. The event is the last event dispatched. Database request cannot be placed during and after this event. </p>
+    <p>Storage instance dispatches <code>'fail'</code> <a href="/ydn-db/api/ydn/db/events.html#StorageErrorEvent">StorageErrorEvent</a> when it no longer be used due to fatal error. The event is the last event dispatched. Database request cannot be placed during and after this event. </p>
 
     <pre><code>db.addEventListener('fail', function (event) {
   var err = event.getError();
@@ -366,7 +366,7 @@
 
     <h3 id="installable-events">Installable events</h3>
 
-    <p>When a record is created, modified or deleted from an object store, events can be requested to be emitted from the storage instance. These events, [StoreEvent](/api/ydn/db/events.html#StoreEvent] and [RecordEvent](/api/ydn/db/events.html#RecordEvent], are installed by setting <code>dispatchEvents</code> to <code>true</code> on <a href="/api/ydn/db/schema.html#Store">store schema</a>.</p>
+    <p>When a record is created, modified or deleted from an object store, events can be requested to be emitted from the storage instance. These events, [StoreEvent](/api/ydn/db/events.html#StoreEvent] and [RecordEvent](/api/ydn/db/events.html#RecordEvent], are installed by setting <code>dispatchEvents</code> to <code>true</code> on <a href="/ydn-db/api/ydn/db/schema.html#Store">store schema</a>.</p>
 
     <pre><code>var schema = {
   stores: [{
@@ -516,7 +516,7 @@ db.addEventListener(['created', 'updated', 'deleted'], function(event) {
 
         
         <li class="sitemap__item sitemap__item--api  ">
-          <a class="sitemap-list__link sitemap-list__link--parent" href="/api/ydn/db/storage.html" title="Go to API">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
             API
           </a>
         </li>
